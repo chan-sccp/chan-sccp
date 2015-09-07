@@ -1360,7 +1360,7 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	channel->line->name)					\
 		CLI_AMI_TABLE_FIELD(DeviceName,		"-16",		s,		16,	d ? d->id : "(unknown)")			\
 		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10",	s,	10,	channel->callInfo.calledPartyNumber)			\
-		CLI_AMI_TABLE_FIELD(PBX State,		"-10.10",	s,	10,	(channel->owner) ? pbx_state2str(PBX(getChannelState)(channel)) : "(none)")	\
+		CLI_AMI_TABLE_FIELD(PBX State,		"-10.10",	s,	10,	(channel->owner) ? pbx_state2str(iPbx.getChannelState(channel)) : "(none)")	\
 		CLI_AMI_TABLE_FIELD(SCCP State,		"-10.10",	s,	10,	sccp_channelstate2str(channel->state))			\
 		CLI_AMI_TABLE_FIELD(ReadCodec,		"-10.10",	s,	10,	codec2name(channel->rtp.audio.readFormat))		\
 		CLI_AMI_TABLE_FIELD(WriteCodec,		"-10.10",	s,	10,	codec2name(channel->rtp.audio.writeFormat))		\
@@ -2338,7 +2338,7 @@ static int sccp_system_message(int fd, sccp_cli_totals_t *totals, struct mansess
 		return RESULT_SHOWUSAGE;
 	}
 
-	if (!(PBX(feature_addToDatabase) ("SCCP/message", "text", argv[3]))) {
+	if (!(iPbx.feature_addToDatabase("SCCP/message", "text", argv[3]))) {
 		CLI_AMI_OUTPUT(fd, s, "Failed to store the SCCP system message text\n");
 	} else {
 		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_3 "SCCP system message text stored successfully\n");
@@ -2355,7 +2355,7 @@ static int sccp_system_message(int fd, sccp_cli_totals_t *totals, struct mansess
 	}
 
 	snprintf(timeoutStr, sizeof(timeoutStr), "%d", timeout);
-	if (!(PBX(feature_addToDatabase) ("SCCP/message", "timeout", timeoutStr))) {
+	if (!(iPbx.feature_addToDatabase("SCCP/message", "timeout", timeoutStr))) {
 		CLI_AMI_OUTPUT(fd, s, "Failed to store the SCCP system message timeout\n");
 	} else {
 		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_3 "SCCP system message timeout stored successfully\n");
@@ -3367,7 +3367,7 @@ static int sccp_answercall(int fd, sccp_cli_totals_t *totals, struct mansession 
 			if (d) {
 				sccp_channel_answer(d, c);
 				if (c->owner) {
-					PBX(queue_control) (c->owner, AST_CONTROL_ANSWER);
+					iPbx.queue_control(c->owner, AST_CONTROL_ANSWER);
 				}
 				res = RESULT_SUCCESS;
 			} else {

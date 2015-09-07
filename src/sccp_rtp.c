@@ -40,8 +40,8 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 		return TRUE;
 	}
 
-	if (PBX(rtp_audio_create)) {
-		rtpResult = (boolean_t) PBX(rtp_audio_create) ((sccp_channel_t *) c);
+	if (iPbx.rtp_audio_create) {
+		rtpResult = (boolean_t) iPbx.rtp_audio_create((sccp_channel_t *) c);
 	} else {
 		pbx_log(LOG_ERROR, "we should start our own rtp server, but we dont have one\n");
 		return FALSE;
@@ -71,7 +71,7 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "is mapped: %d\n", isMappedIPv4 ? 1 : 0);
 
 	//struct sockaddr_in us;
-	//PBX(rtp_setPeer) (&c->rtp.audio, &c->rtp.audio.phone, device ? device->nat : 0);
+	//iPbx.rtp_setPeer(&c->rtp.audio, &c->rtp.audio.phone, device ? device->nat : 0);
 
 	return rtpResult;
 }
@@ -92,8 +92,8 @@ int sccp_rtp_createVideoServer(const sccp_channel_t * c)
 		return TRUE;
 	}
 
-	if (PBX(rtp_video_create)) {
-		rtpResult = (boolean_t) PBX(rtp_video_create) ((sccp_channel_t *) c);
+	if (iPbx.rtp_video_create) {
+		rtpResult = (boolean_t) iPbx.rtp_video_create((sccp_channel_t *) c);
 	} else {
 		pbx_log(LOG_ERROR, "we should start our own rtp server, but we dont have one\n");
 	}
@@ -114,8 +114,8 @@ void sccp_rtp_stop(sccp_channel_t * c)
 	if (!c) {
 		return;
 	}
-	if (PBX(rtp_stop)) {
-		PBX(rtp_stop) (c);
+	if (iPbx.rtp_stop) {
+		iPbx.rtp_stop(c);
 	} else {
 		pbx_log(LOG_ERROR, "no pbx function to stop rtp\n");
 	}
@@ -190,8 +190,8 @@ void sccp_rtp_set_phone(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_sto
 		memcpy(&rtp->phone, new_peer, sizeof(rtp->phone));
 
 		//update pbx
-		if (PBX(rtp_setPhoneAddress)) {
-			PBX(rtp_setPhoneAddress) (rtp, new_peer, device->nat >= SCCP_NAT_ON ? 1 : 0);
+		if (iPbx.rtp_setPhoneAddress) {
+			iPbx.rtp_setPhoneAddress(rtp, new_peer, device->nat >= SCCP_NAT_ON ? 1 : 0);
 		}
 
 		char buf1[NI_MAXHOST + NI_MAXSERV];
@@ -254,8 +254,8 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, sccp_rtp_t *
  */
 uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t * rtp, skinny_codec_t codec)
 {
-	if (PBX(rtp_get_payloadType)) {
-		return PBX(rtp_get_payloadType) (rtp, codec);
+	if (iPbx.rtp_get_payloadType) {
+		return iPbx.rtp_get_payloadType(rtp, codec);
 	} else {
 		return 97;
 	}
@@ -266,8 +266,8 @@ uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t * rtp, skinny_codec_t codec)
  */
 int sccp_rtp_get_sampleRate(skinny_codec_t codec)
 {
-	if (PBX(rtp_get_sampleRate)) {
-		return PBX(rtp_get_sampleRate) (codec);
+	if (iPbx.rtp_get_sampleRate) {
+		return iPbx.rtp_get_sampleRate(codec);
 	} else {
 		return 3840;
 	}
@@ -283,13 +283,13 @@ void sccp_rtp_destroy(sccp_channel_t * c)
 
 	if (c->rtp.audio.rtp) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX rtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
-		PBX(rtp_destroy) (c->rtp.audio.rtp);
+		iPbx.rtp_destroy(c->rtp.audio.rtp);
 		c->rtp.audio.rtp = NULL;
 	}
 
 	if (c->rtp.video.rtp) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX vrtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
-		PBX(rtp_destroy) (c->rtp.video.rtp);
+		iPbx.rtp_destroy(c->rtp.video.rtp);
 		c->rtp.video.rtp = NULL;
 	}
 }
@@ -318,7 +318,7 @@ boolean_t sccp_rtp_getVideoPeer(sccp_channel_t * c, struct sockaddr_storage **ne
 boolean_t sccp_rtp_getUs(const sccp_rtp_t *rtp, struct sockaddr_storage *us)
 {
 	if (rtp->rtp) {
-		PBX(rtp_getUs) (rtp->rtp, us);
+		iPbx.rtp_getUs(rtp->rtp, us);
 		return TRUE;
 	} else {
 		// us = &rtp->phone_remote;
@@ -343,7 +343,7 @@ uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * rtp)
 boolean_t sccp_rtp_getPeer(const sccp_rtp_t *rtp, struct sockaddr_storage *them)
 {
 	if (rtp->rtp) {
-		PBX(rtp_getPeer) (rtp->rtp, them);
+		iPbx.rtp_getPeer(rtp->rtp, them);
 		return TRUE;
 	} else {
 		return FALSE;

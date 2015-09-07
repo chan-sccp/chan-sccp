@@ -33,7 +33,7 @@
  * chan-sccp agnostic to the PBX Software we are connected to. And provides a way to cope with multiple different versions
  * of these PBX Implementation. There Callback functions are implemented under the pbx_impl directory
  */
-struct sccp_pbx_cb {
+typedef struct _PbxInterface {
 	/* *INDENT-OFF* */
 	/* channels */
 	boolean_t(*const alloc_pbxChannel) (sccp_channel_t * channel, const void * ids, const PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel);	/* returns a new channel with pbx_channel_ref and ast_module_info_ref*/
@@ -164,7 +164,9 @@ struct sccp_pbx_cb {
 	PBX_CHANNEL_TYPE *(*const get_underlying_channel) (PBX_CHANNEL_TYPE *pbx_channel);				/* takes pbx_channel_ref */
 	boolean_t (*const attended_transfer) (sccp_channel_t *destination_channel, sccp_channel_t *source_channel);	/* takes pbx_channel_ref on source_channel */
 	/* *INDENT-ON* */
-};
+} PbxInterface;
+
+extern const PbxInterface iPbx;
 
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

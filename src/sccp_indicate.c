@@ -81,7 +81,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 
 	switch (state) {
 		case SCCP_CHANNELSTATE_DOWN:
-			//PBX(set_callstate)(c, AST_STATE_DOWN);
+			//iPbx.set_callstate(c, AST_STATE_DOWN);
 			break;
 		case SCCP_CHANNELSTATE_OFFHOOK:
 			if (SCCP_CHANNELSTATE_DOWN == c->previousChannelState) {				// new call
@@ -230,7 +230,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			}
 			*/
 
-// 			PBX(set_callstate) (c, AST_STATE_RINGING);						/*!\todo thats not the right place to update pbx state */
+// 			iPbx.set_callstate(c, AST_STATE_RINGING);						/*!\todo thats not the right place to update pbx state */
 			break;
 		case SCCP_CHANNELSTATE_CONNECTED:
 			if (linedevice) {
@@ -320,9 +320,9 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 					/* When dialing a shared line which you also have registered, we don't want to outgoing call to show up on our own device as a callwaiting call */
 					AUTO_RELEASE sccp_channel_t *activeChannel = sccp_device_getActiveChannel(d);
 
-					if (activeChannel && (sccp_strequals(PBX(getChannelLinkedId) (activeChannel), PBX(getChannelLinkedId) (c)))) {
+					if (activeChannel && (sccp_strequals(iPbx.getChannelLinkedId(activeChannel), iPbx.getChannelLinkedId(c)))) {
 						sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: (SCCP_CHANNELSTATE_CALLWAITING) Already Own Part of the Call: Skipping\n", DEV_ID_LOG(d));
-						sccp_log_and(DEBUGCAT_INDICATE + DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "%s: LinkedId: %s / %s: LinkedId Remote: %s\n", DEV_ID_LOG(d), PBX(getChannelLinkedId) (c), DEV_ID_LOG(d), PBX(getChannelLinkedId) (activeChannel));
+						sccp_log_and(DEBUGCAT_INDICATE + DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "%s: LinkedId: %s / %s: LinkedId Remote: %s\n", DEV_ID_LOG(d), iPbx.getChannelLinkedId(c), DEV_ID_LOG(d), iPbx.getChannelLinkedId(activeChannel));
 						break;
 					}
 				}
@@ -536,9 +536,9 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 			if (state != SCCP_CHANNELSTATE_ONHOOK) {
 				AUTO_RELEASE sccp_channel_t *activeChannel = sccp_device_getActiveChannel(remoteDevice);
 
-				if (activeChannel && sccp_strequals(PBX(getChannelLinkedId) (activeChannel), PBX(getChannelLinkedId) (c))) {
+				if (activeChannel && sccp_strequals(iPbx.getChannelLinkedId(activeChannel), iPbx.getChannelLinkedId(c))) {
 					sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: (indicate_remote_device) Already Own Part of the Call: Hidden\n", DEV_ID_LOG(device));
-					sccp_log_and(DEBUGCAT_INDICATE + DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "%s: LinkedId: %s / %s: LinkedId Remote: %s\n", DEV_ID_LOG(device), PBX(getChannelLinkedId) (c), DEV_ID_LOG(remoteDevice), PBX(getChannelLinkedId) (activeChannel));
+					sccp_log_and(DEBUGCAT_INDICATE + DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "%s: LinkedId: %s / %s: LinkedId Remote: %s\n", DEV_ID_LOG(device), iPbx.getChannelLinkedId(c), DEV_ID_LOG(remoteDevice), iPbx.getChannelLinkedId(activeChannel));
 					continue;
 				}
 			}

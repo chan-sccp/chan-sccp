@@ -81,7 +81,7 @@ static sccp_line_t *sccp_sk_get_retained_line(sccp_device_t * d, sccp_line_t * l
 static void sccp_sk_dial(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Dial Pressed\n", DEV_ID_LOG(d));
-	if (c && !PBX(getChannelPbx) (c)) {									// Prevent dialling if in an inappropriate state.
+	if (c && !iPbx.getChannelPbx(c)) {									// Prevent dialling if in an inappropriate state.
 		/* Only handle this in DIALING state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
 		if (c->softswitch_action == SCCP_SOFTSWITCH_GETFORWARDEXTEN) {
 			sccp_pbx_softswitch(c);
@@ -381,7 +381,7 @@ static void sccp_sk_backspace(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_d
 	AUTO_RELEASE sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
 	int len;
 
-	if (((c->state != SCCP_CHANNELSTATE_DIALING) && (c->state != SCCP_CHANNELSTATE_DIGITSFOLL) && (c->state != SCCP_CHANNELSTATE_OFFHOOK) && (c->state != SCCP_CHANNELSTATE_GETDIGITS)) || PBX(getChannelPbx) (c)) {
+	if (((c->state != SCCP_CHANNELSTATE_DIALING) && (c->state != SCCP_CHANNELSTATE_DIGITSFOLL) && (c->state != SCCP_CHANNELSTATE_OFFHOOK) && (c->state != SCCP_CHANNELSTATE_GETDIGITS)) || iPbx.getChannelPbx(c)) {
 		return;
 	}
 
@@ -860,7 +860,7 @@ static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_d
 		ast_str_append(&paramStr, DEFAULT_PBX_STR_BUFFERSIZE, "&amp;channel=%s", c->designator);
 		ast_str_append(&paramStr, DEFAULT_PBX_STR_BUFFERSIZE, "&amp;callid=%d", c->callid);
 		if (c->owner) {
-			ast_str_append(&paramStr, DEFAULT_PBX_STR_BUFFERSIZE, "&amp;linkedid=%s", PBX(getChannelLinkedId) (c));
+			ast_str_append(&paramStr, DEFAULT_PBX_STR_BUFFERSIZE, "&amp;linkedid=%s", iPbx.getChannelLinkedId(c));
 			ast_str_append(&paramStr, DEFAULT_PBX_STR_BUFFERSIZE, "&amp;uniqueid=%s", pbx_channel_uniqueid(c->owner));
 		}
 	}
