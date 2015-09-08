@@ -187,6 +187,21 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sc
 }
 
 /*!
+ * \brief Handle Unknown Wifi Message send by Wireless devices like 792X
+ * \param no_s SCCP Session = NULL
+ * \param no_d SCCP Device = NULL
+ * \param msg_in SCCP Message
+ */
+void sccp_handle_WifiMessage(sccp_session_t * no_s, sccp_device_t * no_d, sccp_msg_t * msg_in)
+{
+	uint32_t mid = letohl(msg_in->header.lel_messageId);
+	sccp_log(DEBUGCAT_MESSAGE)("SCCP WIFI_Message: %s(0x%04X) %d bytes length\n", msgtype2str(mid), mid, msg_in->header.length);
+	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
+		sccp_dump_msg(msg_in);
+        }
+}
+
+/*!
  * \brief Handle Token Request
  *
  * If a fall-back server has been entered in the phones cnf.xml file and the phone has fallen back to a secundairy server
