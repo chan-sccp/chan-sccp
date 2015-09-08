@@ -194,8 +194,9 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sc
  */
 void sccp_handle_WifiMessage(sccp_session_t * no_s, sccp_device_t * no_d, sccp_msg_t * msg_in)
 {
-	uint32_t mid = letohl(msg_in->header.lel_messageId);
-	sccp_log(DEBUGCAT_MESSAGE)("SCCP WIFI_Message: %s(0x%04X) %d bytes length\n", msgtype2str(mid), mid, msg_in->header.length);
+	char *xmldata = sccp_strdupa(msg_in->data.WifiMessage.xmldata);
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_2 "SCCP WIFI_Message: %s\n", xmldata);
+	
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
 		sccp_dump_msg(msg_in);
         }

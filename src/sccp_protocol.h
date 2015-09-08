@@ -3088,7 +3088,7 @@ typedef union {
 	 * 00000960 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
 	 */
 	struct {
-		char dummy[2404];
+		char xmldata[2404];
 	} WifiMessage;
 
 	// empty / unresearched structs
