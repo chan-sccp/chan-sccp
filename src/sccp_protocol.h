@@ -474,6 +474,7 @@ typedef enum {
 	StartMediaTransmissionAck 			= 0x0154,
 	StartMultiMediaTransmissionAck 			= 0x0155,
 	CallHistoryInfoMessage 				= 0x0156,
+	WifiMessage					= 0x0157,	/* new (2015-09-08), send by 7925/7926 using firmware version 1.4.7.3 */
 
 	MwiResponseMessage 				= 0x0158,	/*new (2013-12-9)*/
 	ExtensionDeviceCaps 				= 0x0159,
@@ -2933,6 +2934,26 @@ typedef union {
 		uint32_t lel_unknown;
 	} CallHistoryInfoMessage;
 
+	/*
+	 * Fixed Size XML Message
+	 * 00000000 - 68 09 00 00 00 00 00 00  57 01 00 00 3C 49 6E 74  - h.......W...<Int
+	 * 00000010 - 65 72 66 61 63 65 31 3E  3C 77 69 66 69 3E 3C 42  - erface1><wifi><B
+	 * 00000020 - 53 53 49 44 3E 45 38 3A  45 44 3A 46 33 3A 31 30  - SSID>E8:ED:F3:10
+	 * 00000030 - 3A 32 39 3A 46 44 3C 2F  42 53 53 49 44 3E 3C 53  - :29:FD</BSSID><S
+	 * 00000040 - 53 49 44 3E 77 70 61 5F  70 68 79 3C 2F 53 53 49  - SID>wpa_phy</SSI
+	 * 00000050 - 44 3E 3C 41 50 4E 61 6D  65 3E 4D 6F 73 5F 41 50  - D><APName>Mos_AP
+	 * 00000060 - 33 5F 37 63 36 39 2E 66  36 3C 2F 41 50 4E 61 6D  - 3_7c69.f6</APNam
+	 * 00000070 - 65 3E 3C 2F 77 69 66 69  3E 3C 4F 66 66 50 72 65  - e></wifi><OffPre
+	 * 00000080 - 6D 3E 3C 2F 4F 66 66 50  72 65 6D 3E 3C 2F 49 6E  - m></OffPrem></In
+	 * 00000090 - 74 65 72 66 61 63 65 31  3E 00 00 00 00 00 00 00  - terface1>.......
+	 * 000000A0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+	 * ...
+	 * 00000960 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+	 */
+	struct {
+		char xmldata[2404];
+	} WifiMessage;
+
 	// empty / unresearched structs
 	// 00000000 - 08 00 00 00 00 00 00 00  2D 00 00 00 00 00 00 00  // 7960 -- 6 buttons
 	// 00000000 - 08 00 00 00 16 00 00 00  2D 00 00 00 02 00 00 00  // 7962 -- 6 buttons
@@ -3330,6 +3351,7 @@ static const struct messagetype sccp_messagetypes[] = {
 	[StartMediaTransmissionAck] = { 		"Start Media Transmission Acknowledge", 	offsize(sccp_data_t, StartMediaTransmissionAck)},
 	[StartMultiMediaTransmissionAck] = { 		"Start Media Transmission Acknowledge", 	offsize(sccp_data_t, StartMultiMediaTransmissionAck)},
 	[CallHistoryInfoMessage] = { 			"Call History Info", 				offsize(sccp_data_t, CallHistoryInfoMessage)},
+	[WifiMessage] = { 				"Wifi Information", 				offsize(sccp_data_t, WifiMessage)},
 	[ExtensionDeviceCaps] = { 			"Extension Device Capabilities Message", 	offsize(sccp_data_t, ExtensionDeviceCaps)},
 	[XMLAlarmMessage] = { 				"XML-AlarmMessage", 				offsize(sccp_data_t, XMLAlarmMessage)},
 	[MediaPathCapabilityMessage] = {		"MediaPath Capability Message",			offsize(sccp_data_t, MediaPathCapabilityMessage)},

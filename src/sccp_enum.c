@@ -3656,6 +3656,7 @@ static const char *skinny_devicetype_map[] = {"Undefined: Maybe you forgot the d
 "Cisco 7920",
 "Cisco 7921",
 "Cisco 7925",
+"Cisco 7926",
 "Cisco 7931",
 "Cisco 7935",
 "Cisco 7936 Conference",
@@ -3704,7 +3705,7 @@ static const char *skinny_devicetype_map[] = {"Undefined: Maybe you forgot the d
 };
 
 int skinny_devicetype_exists(int skinny_devicetype_int_value) {
-	static const int skinny_devicetypes[] = {SKINNY_DEVICETYPE_UNDEFINED,SKINNY_DEVICETYPE_VGC,SKINNY_DEVICETYPE_ATA186,SKINNY_DEVICETYPE_ATA188,SKINNY_DEVICETYPE_VIRTUAL30SPPLUS,SKINNY_DEVICETYPE_PHONEAPPLICATION,SKINNY_DEVICETYPE_ANALOGACCESS,SKINNY_DEVICETYPE_DIGITALACCESSPRI,SKINNY_DEVICETYPE_DIGITALACCESST1,SKINNY_DEVICETYPE_DIGITALACCESSTITAN2,SKINNY_DEVICETYPE_ANALOGACCESSELVIS,SKINNY_DEVICETYPE_DIGITALACCESSLENNON,SKINNY_DEVICETYPE_CONFERENCEBRIDGE,SKINNY_DEVICETYPE_CONFERENCEBRIDGEYOKO,SKINNY_DEVICETYPE_CONFERENCEBRIDGEDIXIELAND,SKINNY_DEVICETYPE_CONFERENCEBRIDGESUMMIT,SKINNY_DEVICETYPE_H225,SKINNY_DEVICETYPE_H323PHONE,SKINNY_DEVICETYPE_H323TRUNK,SKINNY_DEVICETYPE_MUSICONHOLD,SKINNY_DEVICETYPE_PILOT,SKINNY_DEVICETYPE_TAPIPORT,SKINNY_DEVICETYPE_TAPIROUTEPOINT,SKINNY_DEVICETYPE_VOICEINBOX,SKINNY_DEVICETYPE_VOICEINBOXADMIN,SKINNY_DEVICETYPE_LINEANNUNCIATOR,SKINNY_DEVICETYPE_SOFTWAREMTPDIXIELAND,SKINNY_DEVICETYPE_CISCOMEDIASERVER,SKINNY_DEVICETYPE_CONFERENCEBRIDGEFLINT,SKINNY_DEVICETYPE_ROUTELIST,SKINNY_DEVICETYPE_LOADSIMULATOR,SKINNY_DEVICETYPE_MEDIA_TERM_POINT,SKINNY_DEVICETYPE_MEDIA_TERM_POINTYOKO,SKINNY_DEVICETYPE_MEDIA_TERM_POINTDIXIELAND,SKINNY_DEVICETYPE_MEDIA_TERM_POINTSUMMIT,SKINNY_DEVICETYPE_MGCPSTATION,SKINNY_DEVICETYPE_MGCPTRUNK,SKINNY_DEVICETYPE_RASPROXY,SKINNY_DEVICETYPE_TRUNK,SKINNY_DEVICETYPE_ANNUNCIATOR,SKINNY_DEVICETYPE_MONITORBRIDGE,SKINNY_DEVICETYPE_RECORDER,SKINNY_DEVICETYPE_MONITORBRIDGEYOKO,SKINNY_DEVICETYPE_SIPTRUNK,SKINNY_DEVICETYPE_ANALOG_GATEWAY,SKINNY_DEVICETYPE_BRI_GATEWAY,SKINNY_DEVICETYPE_30SPPLUS,SKINNY_DEVICETYPE_12SPPLUS,SKINNY_DEVICETYPE_12SP,SKINNY_DEVICETYPE_12,SKINNY_DEVICETYPE_30VIP,SKINNY_DEVICETYPE_CISCO7902,SKINNY_DEVICETYPE_CISCO7905,SKINNY_DEVICETYPE_CISCO7906,SKINNY_DEVICETYPE_CISCO7910,SKINNY_DEVICETYPE_CISCO7911,SKINNY_DEVICETYPE_CISCO7912,SKINNY_DEVICETYPE_CISCO7920,SKINNY_DEVICETYPE_CISCO7921,SKINNY_DEVICETYPE_CISCO7925,SKINNY_DEVICETYPE_CISCO7931,SKINNY_DEVICETYPE_CISCO7935,SKINNY_DEVICETYPE_CISCO7936,SKINNY_DEVICETYPE_CISCO7937,SKINNY_DEVICETYPE_CISCO7940,SKINNY_DEVICETYPE_CISCO7941,SKINNY_DEVICETYPE_CISCO7941GE,SKINNY_DEVICETYPE_CISCO7942,SKINNY_DEVICETYPE_CISCO7945,SKINNY_DEVICETYPE_CISCO7960,SKINNY_DEVICETYPE_CISCO7961,SKINNY_DEVICETYPE_CISCO7961GE,SKINNY_DEVICETYPE_CISCO7962,SKINNY_DEVICETYPE_CISCO7965,SKINNY_DEVICETYPE_CISCO7970,SKINNY_DEVICETYPE_CISCO7971,SKINNY_DEVICETYPE_CISCO7975,SKINNY_DEVICETYPE_CISCO7985,SKINNY_DEVICETYPE_NOKIA_E_SERIES,SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR,SKINNY_DEVICETYPE_NOKIA_ICC,SKINNY_DEVICETYPE_CISCO6901,SKINNY_DEVICETYPE_CISCO6911,SKINNY_DEVICETYPE_CISCO6921,SKINNY_DEVICETYPE_CISCO6941,SKINNY_DEVICETYPE_CISCO6945,SKINNY_DEVICETYPE_CISCO6961,SKINNY_DEVICETYPE_CISCO8941,SKINNY_DEVICETYPE_CISCO8945,SKINNY_DEVICETYPE_SPA_303G,SKINNY_DEVICETYPE_SPA_502G,SKINNY_DEVICETYPE_SPA_504G,SKINNY_DEVICETYPE_SPA_509G,SKINNY_DEVICETYPE_SPA_521S,SKINNY_DEVICETYPE_SPA_524SG,SKINNY_DEVICETYPE_SPA_525G,SKINNY_DEVICETYPE_SPA_525G2,SKINNY_DEVICETYPE_CISCO_ADDON_7914,SKINNY_DEVICETYPE_CISCO_ADDON_7915_12BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_7916_12BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_SPA500S,SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS,SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS,};
+	static const int skinny_devicetypes[] = {SKINNY_DEVICETYPE_UNDEFINED,SKINNY_DEVICETYPE_VGC,SKINNY_DEVICETYPE_ATA186,SKINNY_DEVICETYPE_ATA188,SKINNY_DEVICETYPE_VIRTUAL30SPPLUS,SKINNY_DEVICETYPE_PHONEAPPLICATION,SKINNY_DEVICETYPE_ANALOGACCESS,SKINNY_DEVICETYPE_DIGITALACCESSPRI,SKINNY_DEVICETYPE_DIGITALACCESST1,SKINNY_DEVICETYPE_DIGITALACCESSTITAN2,SKINNY_DEVICETYPE_ANALOGACCESSELVIS,SKINNY_DEVICETYPE_DIGITALACCESSLENNON,SKINNY_DEVICETYPE_CONFERENCEBRIDGE,SKINNY_DEVICETYPE_CONFERENCEBRIDGEYOKO,SKINNY_DEVICETYPE_CONFERENCEBRIDGEDIXIELAND,SKINNY_DEVICETYPE_CONFERENCEBRIDGESUMMIT,SKINNY_DEVICETYPE_H225,SKINNY_DEVICETYPE_H323PHONE,SKINNY_DEVICETYPE_H323TRUNK,SKINNY_DEVICETYPE_MUSICONHOLD,SKINNY_DEVICETYPE_PILOT,SKINNY_DEVICETYPE_TAPIPORT,SKINNY_DEVICETYPE_TAPIROUTEPOINT,SKINNY_DEVICETYPE_VOICEINBOX,SKINNY_DEVICETYPE_VOICEINBOXADMIN,SKINNY_DEVICETYPE_LINEANNUNCIATOR,SKINNY_DEVICETYPE_SOFTWAREMTPDIXIELAND,SKINNY_DEVICETYPE_CISCOMEDIASERVER,SKINNY_DEVICETYPE_CONFERENCEBRIDGEFLINT,SKINNY_DEVICETYPE_ROUTELIST,SKINNY_DEVICETYPE_LOADSIMULATOR,SKINNY_DEVICETYPE_MEDIA_TERM_POINT,SKINNY_DEVICETYPE_MEDIA_TERM_POINTYOKO,SKINNY_DEVICETYPE_MEDIA_TERM_POINTDIXIELAND,SKINNY_DEVICETYPE_MEDIA_TERM_POINTSUMMIT,SKINNY_DEVICETYPE_MGCPSTATION,SKINNY_DEVICETYPE_MGCPTRUNK,SKINNY_DEVICETYPE_RASPROXY,SKINNY_DEVICETYPE_TRUNK,SKINNY_DEVICETYPE_ANNUNCIATOR,SKINNY_DEVICETYPE_MONITORBRIDGE,SKINNY_DEVICETYPE_RECORDER,SKINNY_DEVICETYPE_MONITORBRIDGEYOKO,SKINNY_DEVICETYPE_SIPTRUNK,SKINNY_DEVICETYPE_ANALOG_GATEWAY,SKINNY_DEVICETYPE_BRI_GATEWAY,SKINNY_DEVICETYPE_30SPPLUS,SKINNY_DEVICETYPE_12SPPLUS,SKINNY_DEVICETYPE_12SP,SKINNY_DEVICETYPE_12,SKINNY_DEVICETYPE_30VIP,SKINNY_DEVICETYPE_CISCO7902,SKINNY_DEVICETYPE_CISCO7905,SKINNY_DEVICETYPE_CISCO7906,SKINNY_DEVICETYPE_CISCO7910,SKINNY_DEVICETYPE_CISCO7911,SKINNY_DEVICETYPE_CISCO7912,SKINNY_DEVICETYPE_CISCO7920,SKINNY_DEVICETYPE_CISCO7921,SKINNY_DEVICETYPE_CISCO7925,SKINNY_DEVICETYPE_CISCO7926,SKINNY_DEVICETYPE_CISCO7931,SKINNY_DEVICETYPE_CISCO7935,SKINNY_DEVICETYPE_CISCO7936,SKINNY_DEVICETYPE_CISCO7937,SKINNY_DEVICETYPE_CISCO7940,SKINNY_DEVICETYPE_CISCO7941,SKINNY_DEVICETYPE_CISCO7941GE,SKINNY_DEVICETYPE_CISCO7942,SKINNY_DEVICETYPE_CISCO7945,SKINNY_DEVICETYPE_CISCO7960,SKINNY_DEVICETYPE_CISCO7961,SKINNY_DEVICETYPE_CISCO7961GE,SKINNY_DEVICETYPE_CISCO7962,SKINNY_DEVICETYPE_CISCO7965,SKINNY_DEVICETYPE_CISCO7970,SKINNY_DEVICETYPE_CISCO7971,SKINNY_DEVICETYPE_CISCO7975,SKINNY_DEVICETYPE_CISCO7985,SKINNY_DEVICETYPE_NOKIA_E_SERIES,SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR,SKINNY_DEVICETYPE_NOKIA_ICC,SKINNY_DEVICETYPE_CISCO6901,SKINNY_DEVICETYPE_CISCO6911,SKINNY_DEVICETYPE_CISCO6921,SKINNY_DEVICETYPE_CISCO6941,SKINNY_DEVICETYPE_CISCO6945,SKINNY_DEVICETYPE_CISCO6961,SKINNY_DEVICETYPE_CISCO8941,SKINNY_DEVICETYPE_CISCO8945,SKINNY_DEVICETYPE_SPA_303G,SKINNY_DEVICETYPE_SPA_502G,SKINNY_DEVICETYPE_SPA_504G,SKINNY_DEVICETYPE_SPA_509G,SKINNY_DEVICETYPE_SPA_521S,SKINNY_DEVICETYPE_SPA_524SG,SKINNY_DEVICETYPE_SPA_525G,SKINNY_DEVICETYPE_SPA_525G2,SKINNY_DEVICETYPE_CISCO_ADDON_7914,SKINNY_DEVICETYPE_CISCO_ADDON_7915_12BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_7916_12BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_SPA500S,SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS,SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS,};
 	uint32_t idx;
 	for (idx=0; idx < ARRAY_LEN(skinny_devicetypes); idx++) {
 		if (skinny_devicetypes[idx]==skinny_devicetype_int_value) {
@@ -3776,51 +3777,52 @@ const char * skinny_devicetype2str(skinny_devicetype_t enum_value) {
 		case SKINNY_DEVICETYPE_CISCO7920: return skinny_devicetype_map[57];
 		case SKINNY_DEVICETYPE_CISCO7921: return skinny_devicetype_map[58];
 		case SKINNY_DEVICETYPE_CISCO7925: return skinny_devicetype_map[59];
-		case SKINNY_DEVICETYPE_CISCO7931: return skinny_devicetype_map[60];
-		case SKINNY_DEVICETYPE_CISCO7935: return skinny_devicetype_map[61];
-		case SKINNY_DEVICETYPE_CISCO7936: return skinny_devicetype_map[62];
-		case SKINNY_DEVICETYPE_CISCO7937: return skinny_devicetype_map[63];
-		case SKINNY_DEVICETYPE_CISCO7940: return skinny_devicetype_map[64];
-		case SKINNY_DEVICETYPE_CISCO7941: return skinny_devicetype_map[65];
-		case SKINNY_DEVICETYPE_CISCO7941GE: return skinny_devicetype_map[66];
-		case SKINNY_DEVICETYPE_CISCO7942: return skinny_devicetype_map[67];
-		case SKINNY_DEVICETYPE_CISCO7945: return skinny_devicetype_map[68];
-		case SKINNY_DEVICETYPE_CISCO7960: return skinny_devicetype_map[69];
-		case SKINNY_DEVICETYPE_CISCO7961: return skinny_devicetype_map[70];
-		case SKINNY_DEVICETYPE_CISCO7961GE: return skinny_devicetype_map[71];
-		case SKINNY_DEVICETYPE_CISCO7962: return skinny_devicetype_map[72];
-		case SKINNY_DEVICETYPE_CISCO7965: return skinny_devicetype_map[73];
-		case SKINNY_DEVICETYPE_CISCO7970: return skinny_devicetype_map[74];
-		case SKINNY_DEVICETYPE_CISCO7971: return skinny_devicetype_map[75];
-		case SKINNY_DEVICETYPE_CISCO7975: return skinny_devicetype_map[76];
-		case SKINNY_DEVICETYPE_CISCO7985: return skinny_devicetype_map[77];
-		case SKINNY_DEVICETYPE_NOKIA_E_SERIES: return skinny_devicetype_map[78];
-		case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR: return skinny_devicetype_map[79];
-		case SKINNY_DEVICETYPE_NOKIA_ICC: return skinny_devicetype_map[80];
-		case SKINNY_DEVICETYPE_CISCO6901: return skinny_devicetype_map[81];
-		case SKINNY_DEVICETYPE_CISCO6911: return skinny_devicetype_map[82];
-		case SKINNY_DEVICETYPE_CISCO6921: return skinny_devicetype_map[83];
-		case SKINNY_DEVICETYPE_CISCO6941: return skinny_devicetype_map[84];
-		case SKINNY_DEVICETYPE_CISCO6945: return skinny_devicetype_map[85];
-		case SKINNY_DEVICETYPE_CISCO6961: return skinny_devicetype_map[86];
-		case SKINNY_DEVICETYPE_CISCO8941: return skinny_devicetype_map[87];
-		case SKINNY_DEVICETYPE_CISCO8945: return skinny_devicetype_map[88];
-		case SKINNY_DEVICETYPE_SPA_303G: return skinny_devicetype_map[89];
-		case SKINNY_DEVICETYPE_SPA_502G: return skinny_devicetype_map[90];
-		case SKINNY_DEVICETYPE_SPA_504G: return skinny_devicetype_map[91];
-		case SKINNY_DEVICETYPE_SPA_509G: return skinny_devicetype_map[92];
-		case SKINNY_DEVICETYPE_SPA_521S: return skinny_devicetype_map[93];
-		case SKINNY_DEVICETYPE_SPA_524SG: return skinny_devicetype_map[94];
-		case SKINNY_DEVICETYPE_SPA_525G: return skinny_devicetype_map[95];
-		case SKINNY_DEVICETYPE_SPA_525G2: return skinny_devicetype_map[96];
-		case SKINNY_DEVICETYPE_CISCO_ADDON_7914: return skinny_devicetype_map[97];
-		case SKINNY_DEVICETYPE_CISCO_ADDON_7915_12BUTTON: return skinny_devicetype_map[98];
-		case SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON: return skinny_devicetype_map[99];
-		case SKINNY_DEVICETYPE_CISCO_ADDON_7916_12BUTTON: return skinny_devicetype_map[100];
-		case SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON: return skinny_devicetype_map[101];
-		case SKINNY_DEVICETYPE_CISCO_ADDON_SPA500S: return skinny_devicetype_map[102];
-		case SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS: return skinny_devicetype_map[103];
-		case SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS: return skinny_devicetype_map[104];
+		case SKINNY_DEVICETYPE_CISCO7926: return skinny_devicetype_map[60];
+		case SKINNY_DEVICETYPE_CISCO7931: return skinny_devicetype_map[61];
+		case SKINNY_DEVICETYPE_CISCO7935: return skinny_devicetype_map[62];
+		case SKINNY_DEVICETYPE_CISCO7936: return skinny_devicetype_map[63];
+		case SKINNY_DEVICETYPE_CISCO7937: return skinny_devicetype_map[64];
+		case SKINNY_DEVICETYPE_CISCO7940: return skinny_devicetype_map[65];
+		case SKINNY_DEVICETYPE_CISCO7941: return skinny_devicetype_map[66];
+		case SKINNY_DEVICETYPE_CISCO7941GE: return skinny_devicetype_map[67];
+		case SKINNY_DEVICETYPE_CISCO7942: return skinny_devicetype_map[68];
+		case SKINNY_DEVICETYPE_CISCO7945: return skinny_devicetype_map[69];
+		case SKINNY_DEVICETYPE_CISCO7960: return skinny_devicetype_map[70];
+		case SKINNY_DEVICETYPE_CISCO7961: return skinny_devicetype_map[71];
+		case SKINNY_DEVICETYPE_CISCO7961GE: return skinny_devicetype_map[72];
+		case SKINNY_DEVICETYPE_CISCO7962: return skinny_devicetype_map[73];
+		case SKINNY_DEVICETYPE_CISCO7965: return skinny_devicetype_map[74];
+		case SKINNY_DEVICETYPE_CISCO7970: return skinny_devicetype_map[75];
+		case SKINNY_DEVICETYPE_CISCO7971: return skinny_devicetype_map[76];
+		case SKINNY_DEVICETYPE_CISCO7975: return skinny_devicetype_map[77];
+		case SKINNY_DEVICETYPE_CISCO7985: return skinny_devicetype_map[78];
+		case SKINNY_DEVICETYPE_NOKIA_E_SERIES: return skinny_devicetype_map[79];
+		case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR: return skinny_devicetype_map[80];
+		case SKINNY_DEVICETYPE_NOKIA_ICC: return skinny_devicetype_map[81];
+		case SKINNY_DEVICETYPE_CISCO6901: return skinny_devicetype_map[82];
+		case SKINNY_DEVICETYPE_CISCO6911: return skinny_devicetype_map[83];
+		case SKINNY_DEVICETYPE_CISCO6921: return skinny_devicetype_map[84];
+		case SKINNY_DEVICETYPE_CISCO6941: return skinny_devicetype_map[85];
+		case SKINNY_DEVICETYPE_CISCO6945: return skinny_devicetype_map[86];
+		case SKINNY_DEVICETYPE_CISCO6961: return skinny_devicetype_map[87];
+		case SKINNY_DEVICETYPE_CISCO8941: return skinny_devicetype_map[88];
+		case SKINNY_DEVICETYPE_CISCO8945: return skinny_devicetype_map[89];
+		case SKINNY_DEVICETYPE_SPA_303G: return skinny_devicetype_map[90];
+		case SKINNY_DEVICETYPE_SPA_502G: return skinny_devicetype_map[91];
+		case SKINNY_DEVICETYPE_SPA_504G: return skinny_devicetype_map[92];
+		case SKINNY_DEVICETYPE_SPA_509G: return skinny_devicetype_map[93];
+		case SKINNY_DEVICETYPE_SPA_521S: return skinny_devicetype_map[94];
+		case SKINNY_DEVICETYPE_SPA_524SG: return skinny_devicetype_map[95];
+		case SKINNY_DEVICETYPE_SPA_525G: return skinny_devicetype_map[96];
+		case SKINNY_DEVICETYPE_SPA_525G2: return skinny_devicetype_map[97];
+		case SKINNY_DEVICETYPE_CISCO_ADDON_7914: return skinny_devicetype_map[98];
+		case SKINNY_DEVICETYPE_CISCO_ADDON_7915_12BUTTON: return skinny_devicetype_map[99];
+		case SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON: return skinny_devicetype_map[100];
+		case SKINNY_DEVICETYPE_CISCO_ADDON_7916_12BUTTON: return skinny_devicetype_map[101];
+		case SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON: return skinny_devicetype_map[102];
+		case SKINNY_DEVICETYPE_CISCO_ADDON_SPA500S: return skinny_devicetype_map[103];
+		case SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS: return skinny_devicetype_map[104];
+		case SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS: return skinny_devicetype_map[105];
 		default:
 			pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_devicetype2str\n", enum_value);
 			return "SCCP: OutOfBounds Error during lookup of sparse skinny_devicetype2str\n";
@@ -3949,94 +3951,96 @@ skinny_devicetype_t skinny_devicetype_str2val(const char *lookup_str) {
 	} else if (sccp_strcaseequals(skinny_devicetype_map[59], lookup_str)) {
 		return SKINNY_DEVICETYPE_CISCO7925;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[60], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7931;
+		return SKINNY_DEVICETYPE_CISCO7926;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[61], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7935;
+		return SKINNY_DEVICETYPE_CISCO7931;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[62], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7936;
+		return SKINNY_DEVICETYPE_CISCO7935;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[63], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7937;
+		return SKINNY_DEVICETYPE_CISCO7936;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[64], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7940;
+		return SKINNY_DEVICETYPE_CISCO7937;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[65], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7941;
+		return SKINNY_DEVICETYPE_CISCO7940;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[66], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7941GE;
+		return SKINNY_DEVICETYPE_CISCO7941;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[67], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7942;
+		return SKINNY_DEVICETYPE_CISCO7941GE;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[68], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7945;
+		return SKINNY_DEVICETYPE_CISCO7942;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[69], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7960;
+		return SKINNY_DEVICETYPE_CISCO7945;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[70], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7961;
+		return SKINNY_DEVICETYPE_CISCO7960;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[71], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7961GE;
+		return SKINNY_DEVICETYPE_CISCO7961;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[72], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7962;
+		return SKINNY_DEVICETYPE_CISCO7961GE;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[73], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7965;
+		return SKINNY_DEVICETYPE_CISCO7962;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[74], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7970;
+		return SKINNY_DEVICETYPE_CISCO7965;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[75], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7971;
+		return SKINNY_DEVICETYPE_CISCO7970;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[76], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7975;
+		return SKINNY_DEVICETYPE_CISCO7971;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[77], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO7985;
+		return SKINNY_DEVICETYPE_CISCO7975;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[78], lookup_str)) {
-		return SKINNY_DEVICETYPE_NOKIA_E_SERIES;
+		return SKINNY_DEVICETYPE_CISCO7985;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[79], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR;
+		return SKINNY_DEVICETYPE_NOKIA_E_SERIES;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[80], lookup_str)) {
-		return SKINNY_DEVICETYPE_NOKIA_ICC;
+		return SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[81], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO6901;
+		return SKINNY_DEVICETYPE_NOKIA_ICC;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[82], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO6911;
+		return SKINNY_DEVICETYPE_CISCO6901;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[83], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO6921;
+		return SKINNY_DEVICETYPE_CISCO6911;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[84], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO6941;
+		return SKINNY_DEVICETYPE_CISCO6921;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[85], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO6945;
+		return SKINNY_DEVICETYPE_CISCO6941;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[86], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO6961;
+		return SKINNY_DEVICETYPE_CISCO6945;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[87], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO8941;
+		return SKINNY_DEVICETYPE_CISCO6961;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[88], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO8945;
+		return SKINNY_DEVICETYPE_CISCO8941;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[89], lookup_str)) {
-		return SKINNY_DEVICETYPE_SPA_303G;
+		return SKINNY_DEVICETYPE_CISCO8945;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[90], lookup_str)) {
-		return SKINNY_DEVICETYPE_SPA_502G;
+		return SKINNY_DEVICETYPE_SPA_303G;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[91], lookup_str)) {
-		return SKINNY_DEVICETYPE_SPA_504G;
+		return SKINNY_DEVICETYPE_SPA_502G;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[92], lookup_str)) {
-		return SKINNY_DEVICETYPE_SPA_509G;
+		return SKINNY_DEVICETYPE_SPA_504G;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[93], lookup_str)) {
-		return SKINNY_DEVICETYPE_SPA_521S;
+		return SKINNY_DEVICETYPE_SPA_509G;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[94], lookup_str)) {
-		return SKINNY_DEVICETYPE_SPA_524SG;
+		return SKINNY_DEVICETYPE_SPA_521S;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[95], lookup_str)) {
-		return SKINNY_DEVICETYPE_SPA_525G;
+		return SKINNY_DEVICETYPE_SPA_524SG;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[96], lookup_str)) {
-		return SKINNY_DEVICETYPE_SPA_525G2;
+		return SKINNY_DEVICETYPE_SPA_525G;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[97], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO_ADDON_7914;
+		return SKINNY_DEVICETYPE_SPA_525G2;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[98], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO_ADDON_7915_12BUTTON;
+		return SKINNY_DEVICETYPE_CISCO_ADDON_7914;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[99], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON;
+		return SKINNY_DEVICETYPE_CISCO_ADDON_7915_12BUTTON;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[100], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO_ADDON_7916_12BUTTON;
+		return SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[101], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON;
+		return SKINNY_DEVICETYPE_CISCO_ADDON_7916_12BUTTON;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[102], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO_ADDON_SPA500S;
+		return SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[103], lookup_str)) {
-		return SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS;
+		return SKINNY_DEVICETYPE_CISCO_ADDON_SPA500S;
 	} else if (sccp_strcaseequals(skinny_devicetype_map[104], lookup_str)) {
+		return SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS;
+	} else if (sccp_strcaseequals(skinny_devicetype_map[105], lookup_str)) {
 		return SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS;
 	}
 	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, skinny_devicetype_str2val(%s) not found\n", lookup_str);
@@ -4049,7 +4053,7 @@ int skinny_devicetype_str2intval(const char *lookup_str) {
 }
 
 char *skinny_devicetype_all_entries(void) {
-	static char res[] = "Undefined: Maybe you forgot the devicetype in your config,VGC,Cisco Ata 186,Cisco Ata 188,Virtual 30SP plus,Phone Application,Analog Access,Digital Access PRI,Digital Access T1,Digital Access Titan2,Analog Access Elvis,Digital Access Lennon,Conference Bridge,Conference Bridge Yoko,Conference Bridge Dixieland,Conference Bridge Summit,H225,H323 Phone,H323 Trunk,Music On Hold,Pilot,Tapi Port,Tapi Route Point,Voice In Box,Voice Inbox Admin,Line Annunciator,Line Annunciator,Line Annunciator,Line Annunciator,Route List,Load Simulator,Media Termination Point,Media Termination Point Yoko,Media Termination Point Dixieland,Media Termination Point Summit,MGCP Station,MGCP Trunk,RAS Proxy,Trunk,Annuciator,Monitor Bridge,Recorder,Monitor Bridge Yoko,Sip Trunk,Analog Gateway,BRI Gateway,30SP plus,12SP plus,12SP,12,30 VIP,Cisco 7902,Cisco 7905,Cisco 7906,Cisco 7910,Cisco 7911,Cisco 7912,Cisco 7920,Cisco 7921,Cisco 7925,Cisco 7931,Cisco 7935,Cisco 7936 Conference,Cisco 7937 Conference,Cisco 7940,Cisco 7941,Cisco 7941 GE,Cisco 7942,Cisco 7945,Cisco 7960,Cisco 7961,Cisco 7961 GE,Cisco 7962,Cisco 7965,Cisco 7970,Cisco 7971,Cisco 7975,Cisco 7985,Nokia E Series,Cisco IP Communicator,Nokia ICC client,Cisco 6901,Cisco 6911,Cisco 6921,Cisco 6941,Cisco 6945,Cisco 6961,Cisco 8941,Cisco 8945,Cisco SPA 303G,Cisco SPA 502G,Cisco SPA 504G,Cisco SPA 509G,Cisco SPA 521S,Cisco SPA 524SG,Cisco SPA 525G,Cisco SPA 525G2,Cisco 7914 AddOn,Cisco 7915 AddOn (12 Buttons),Cisco 7915 AddOn (24 Buttons),Cisco 7916 AddOn (12 Buttons),Cisco 7916 AddOn (24 Buttons),Cisco SPA500DS (32 Buttons),Cisco SPA500DS (32 Buttons),Cisco SPA932DS (32 Buttons)";
+	static char res[] = "Undefined: Maybe you forgot the devicetype in your config,VGC,Cisco Ata 186,Cisco Ata 188,Virtual 30SP plus,Phone Application,Analog Access,Digital Access PRI,Digital Access T1,Digital Access Titan2,Analog Access Elvis,Digital Access Lennon,Conference Bridge,Conference Bridge Yoko,Conference Bridge Dixieland,Conference Bridge Summit,H225,H323 Phone,H323 Trunk,Music On Hold,Pilot,Tapi Port,Tapi Route Point,Voice In Box,Voice Inbox Admin,Line Annunciator,Line Annunciator,Line Annunciator,Line Annunciator,Route List,Load Simulator,Media Termination Point,Media Termination Point Yoko,Media Termination Point Dixieland,Media Termination Point Summit,MGCP Station,MGCP Trunk,RAS Proxy,Trunk,Annuciator,Monitor Bridge,Recorder,Monitor Bridge Yoko,Sip Trunk,Analog Gateway,BRI Gateway,30SP plus,12SP plus,12SP,12,30 VIP,Cisco 7902,Cisco 7905,Cisco 7906,Cisco 7910,Cisco 7911,Cisco 7912,Cisco 7920,Cisco 7921,Cisco 7925,Cisco 7926,Cisco 7931,Cisco 7935,Cisco 7936 Conference,Cisco 7937 Conference,Cisco 7940,Cisco 7941,Cisco 7941 GE,Cisco 7942,Cisco 7945,Cisco 7960,Cisco 7961,Cisco 7961 GE,Cisco 7962,Cisco 7965,Cisco 7970,Cisco 7971,Cisco 7975,Cisco 7985,Nokia E Series,Cisco IP Communicator,Nokia ICC client,Cisco 6901,Cisco 6911,Cisco 6921,Cisco 6941,Cisco 6945,Cisco 6961,Cisco 8941,Cisco 8945,Cisco SPA 303G,Cisco SPA 502G,Cisco SPA 504G,Cisco SPA 509G,Cisco SPA 521S,Cisco SPA 524SG,Cisco SPA 525G,Cisco SPA 525G2,Cisco 7914 AddOn,Cisco 7915 AddOn (12 Buttons),Cisco 7915 AddOn (24 Buttons),Cisco 7916 AddOn (12 Buttons),Cisco 7916 AddOn (24 Buttons),Cisco SPA500DS (32 Buttons),Cisco SPA500DS (32 Buttons),Cisco SPA932DS (32 Buttons)";
 	return res;
 }
 /* = End =========================================================================================       sparse skinny_devicetype === */
