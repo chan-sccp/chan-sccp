@@ -618,17 +618,19 @@ void sccp_device_preregistration(sccp_device_t * device)
  * \note needs to be called with a retained device
  * \note adds a retained device to the list (refcount + 1)
  */
-void sccp_device_addToGlobals(sccp_device_t * device)
+void sccp_device_addToGlobals(const sccp_device_t * const device)
 {
 	if (!device) {
 		pbx_log(LOG_ERROR, "Adding null to the global device list is not allowed!\n");
 		return;
 	}
-	device = sccp_device_retain(device);
-	SCCP_RWLIST_WRLOCK(&GLOB(devices));
-	SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(devices), device, list, id);
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
-	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Added device '%s' (%s) to Glob(devices)\n", device->id, device->config_type);
+	sccp_device_t *d = sccp_device_retain(device);
+	if (d) {
+		SCCP_RWLIST_WRLOCK(&GLOB(devices));
+		SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(devices), d, list, id);
+		SCCP_RWLIST_UNLOCK(&GLOB(devices));
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Added device '%s' (%s) to Glob(devices)\n", d->id, d->config_type);
+	}
 }
 
 /*!
@@ -1665,31 +1667,32 @@ void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, boolean_t
  *   - device->buttonconfig is not locked
  * \return_ref d->currentLine
  */
-sccp_line_t *sccp_dev_get_activeline(const sccp_device_t * d)
+sccp_line_t *sccp_dev_get_activeline(const sccp_device_t * const device)
 {
 	sccp_buttonconfig_t *buttonconfig;
 
-	if (!d || !d->session) {
+	if (!device || !device->session) {
 		return NULL;
 	}
-	if (d->currentLine) {
-		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: The active line is %s\n", d->id, d->currentLine->name);
-		return sccp_line_retain(d->currentLine);
+	if (device->currentLine) {
+		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: The active line is %s\n", device->id, device->currentLine->name);
+		return sccp_line_retain(device->currentLine);
 	}
 	// else try to set an new currentLine
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-		if (buttonconfig->type == LINE) {
-			sccp_device_t *device = (sccp_device_t *) d;						// need non-const device
-
-			if ((device->currentLine = sccp_line_find_byname(buttonconfig->button.line.name, FALSE))) {	// update d->currentLine, returns retained line
+	
+	/*! \todo Does this actually make sense. traversing the buttonconfig and then finding a line, potentially doing this multiple times */
+	sccp_device_t * const d = (sccp_device_t * const) device;						// need non-const device
+	SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
+		if (buttonconfig->type == LINE && !d->currentLine) {
+			if ((d->currentLine = sccp_line_find_byname(buttonconfig->button.line.name, FALSE))) {	// update device->currentLine, returns retained line
 				sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Forcing the active line to %s from NULL\n", d->id, d->currentLine->name);
-				return sccp_line_retain(device->currentLine);					// returning retained
+				return sccp_line_retain(d->currentLine);					// returning retained
 			}
 		}
 	}
 
 	// failed to find or set a currentLine
-	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No lines\n", d->id);
+	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No lines\n", device->id);
 	return NULL;												// never reached
 }
 
@@ -1698,7 +1701,7 @@ sccp_line_t *sccp_dev_get_activeline(const sccp_device_t * d)
  * \param device SCCP Device
  * \param l SCCP Line
  */
-void sccp_dev_set_activeline(sccp_device_t * device, const sccp_line_t * l)
+void sccp_dev_set_activeline(sccp_device_t * const device, const sccp_line_t * l)
 {
 	if (!device || !device->session) {
 		return;
@@ -1713,23 +1716,23 @@ void sccp_dev_set_activeline(sccp_device_t * device, const sccp_line_t * l)
  * \param d SCCP Device
  * \return SCCP Channel
  */
-sccp_channel_t *sccp_device_getActiveChannel(const sccp_device_t * d)
+sccp_channel_t *sccp_device_getActiveChannel(const sccp_device_t * const device)
 {
 	sccp_channel_t *channel = NULL;
 
-	if (!d) {
+	if (!device) {
 		return NULL;
 	}
 
-	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Getting the active channel on device.\n", d->id);
+	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Getting the active channel on device.\n", device->id);
 
- 	if (d->active_channel && (channel = sccp_channel_retain(d->active_channel))) {
+ 	if (device->active_channel && (channel = sccp_channel_retain(device->active_channel))) {
 		if (channel && channel->state == SCCP_CHANNELSTATE_DOWN) {
-			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: 'active channel': %s on device is DOWN apparently. Returning NULL\n", d->id, channel->designator);
+			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: 'active channel': %s on device is DOWN apparently. Returning NULL\n", device->id, channel->designator);
 			channel = sccp_channel_release(channel);				/* explicit release, when not returning channel because it's DOWN */
 		}
 	} else {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No active channel on device.\n", d->id);
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No active channel on device.\n", device->id);
 	}
 
 	return channel;
@@ -1740,7 +1743,7 @@ sccp_channel_t *sccp_device_getActiveChannel(const sccp_device_t * d)
  * \param d SCCP Device
  * \param channel SCCP Channel
  */
-void sccp_device_setActiveChannel(sccp_device_t * d, sccp_channel_t * channel)
+void sccp_device_setActiveChannel(sccp_device_t * const d, sccp_channel_t * channel)
 {
 	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
 
@@ -2316,24 +2319,24 @@ boolean_t sccp_device_isVideoSupported(const sccp_device_t * device)
  * \return SCCP Service
  *
  */
-sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t instance)
+sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * const device, uint16_t instance)
 {
 	sccp_buttonconfig_t *config = NULL;
 
-	if (!d || !d->session) {
+	if (!device || !device->session) {
 		return NULL;
 	}
-	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: searching for service with instance %d\n", d->id, instance);
-	SCCP_LIST_LOCK(&d->buttonconfig);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: instance: %d buttontype: %d\n", d->id, config->instance, config->type);
+	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: searching for service with instance %d\n", device->id, instance);
+	SCCP_LIST_LOCK(&device->buttonconfig);
+	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+		sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: instance: %d buttontype: %d\n", device->id, config->instance, config->type);
 
 		if (config->type == SERVICE && config->instance == instance) {
-			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: found service: %s\n", d->id, config->label);
+			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: found service: %s\n", device->id, config->label);
 			break;
 		}
 	}
-	SCCP_LIST_UNLOCK(&d->buttonconfig);
+	SCCP_LIST_UNLOCK(&device->buttonconfig);
 
 	return config;
 }
