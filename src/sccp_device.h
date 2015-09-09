@@ -310,18 +310,18 @@ struct sccp_device {
 		uint32_t transactionID;
 	} dtu_softkey;
 
-	boolean_t (*checkACL) (sccp_device_t * device);								/*!< check ACL callback function */
-	sccp_push_result_t (*pushURL) (const sccp_device_t * device, const char *url, uint8_t priority, uint8_t tone);
-	sccp_push_result_t (*pushTextMessage) (const sccp_device_t * device, const char *messageText, const char *from, uint8_t priority, uint8_t tone);
+	boolean_t (*checkACL) (const sccp_device_t * const device);								/*!< check ACL callback function */
+	sccp_push_result_t (*pushURL) (const sccp_device_t * const device, const char *url, uint8_t priority, uint8_t tone);
+	sccp_push_result_t (*pushTextMessage) (const sccp_device_t * const device, const char *messageText, const char *from, uint8_t priority, uint8_t tone);
 	boolean_t (*hasDisplayPrompt) (void);									/*!< has Display Prompt callback function (derived from devicetype and protocol) */
 	boolean_t (*hasEnhancedIconMenuSupport) (void);								/*!< has Enhanced IconMenu Support (derived from devicetype and protocol) */
-	void (*retrieveDeviceCapabilities) (const sccp_device_t * device);					/*!< set device background image */
-	void (*setBackgroundImage) (const sccp_device_t * device, const char *url);				/*!< set device background image */
-	void (*displayBackgroundImagePreview) (const sccp_device_t * device, const char *url);			/*!< display background image as preview */
-	void (*setRingTone) (const sccp_device_t * device, const char *url);					/*!< set the default Ringtone */
+	void (*retrieveDeviceCapabilities) (const sccp_device_t * const device);				/*!< set device background image */
+	void (*setBackgroundImage) (const sccp_device_t * const device, const char *url);			/*!< set device background image */
+	void (*displayBackgroundImagePreview) (const sccp_device_t * const device, const char *url);		/*!< display background image as preview */
+	void (*setRingTone) (const sccp_device_t * const device, const char *url);					/*!< set the default Ringtone */
 	const struct sccp_device_indication_cb *indicate;
 	
-	sccp_dtmfmode_t(*getDtmfMode) (const sccp_device_t * device);
+	sccp_dtmfmode_t(*getDtmfMode) (const sccp_device_t * const device);
 	
 	struct { 
 #ifndef SCCP_ATOMIC
@@ -333,7 +333,7 @@ struct sccp_device {
 	sccp_call_statistics_t call_statistics[2];								/*!< Call statistics */
 	char *softkeyDefinition;										/*!< requested softKey configuration */
 	sccp_softKeySetConfiguration_t *softkeyset;								/*!< Allow for a copy of the softkeyset, if any of the softkeys needs to be redefined, for example for urihook/uriaction */
-	void (*copyStr2Locale) (const sccp_device_t *d, char *dst, const char *src, size_t dst_size);		/*!< copy string to device converted to locale if necessary */
+	void (*copyStr2Locale) (const sccp_device_t * const d, char *dst, const char *src, size_t dst_size);		/*!< copy string to device converted to locale if necessary */
 
 #ifdef CS_SCCP_CONFERENCE
 	sccp_conference_t *conference;										/*!< conference we are part of */ /*! \todo to be removed in favor of conference_id */
@@ -374,14 +374,14 @@ struct sccp_addon {
  * \brief SCCP Device Indication Callback Structure
  */
 struct sccp_device_indication_cb {
-	void (*const remoteHold) (const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy);
-	void (*const remoteOffhook) (const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
-	void (*const remoteOnhook) (const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
-	void (*const offhook) (const sccp_device_t * device, sccp_linedevices_t * linedevice, uint32_t callid);
-	void (*const onhook) (const sccp_device_t * device, const uint8_t lineInstance, uint32_t callid);
-	void (*const dialing) (const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel);
-	void (*const proceed) (const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel);
-	void (*const connected) (const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
+	void (*const remoteHold) (const sccp_device_t * const device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy);
+	void (*const remoteOffhook) (const sccp_device_t * const device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
+	void (*const remoteOnhook) (const sccp_device_t * const device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
+	void (*const offhook) (const sccp_device_t * const device, sccp_linedevices_t * linedevice, uint32_t callid);
+	void (*const onhook) (const sccp_device_t * const device, const uint8_t lineInstance, uint32_t callid);
+	void (*const dialing) (const sccp_device_t * const device, const uint8_t lineInstance, const sccp_channel_t * channel);
+	void (*const proceed) (const sccp_device_t * const device, const uint8_t lineInstance, const sccp_channel_t * channel);
+	void (*const connected) (const sccp_device_t * const device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
 };
 
 #define sccp_dev_display(p,q) sccp_dev_display_debug(p, q, __FILE__, __LINE__, __PRETTY_FUNCTION__)

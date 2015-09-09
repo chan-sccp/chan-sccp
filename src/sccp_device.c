@@ -40,25 +40,25 @@ void sccp_device_removeFromGlobals(sccp_device_t * device);
 int sccp_device_destroy(const void *ptr);
 
 /* indicate definition */
-static void sccp_device_old_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy);
-static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy);
-static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_linedevices_t * linedevice, uint32_t callid);
-static void sccp_device_indicate_onhook(const sccp_device_t * device, const uint8_t lineInstance, uint32_t callid);
-static void sccp_device_indicate_dialing(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel);
-static void sccp_device_indicate_proceed(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel);
-static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
-static void sccp_device_indicate_offhook_remote(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
-static void sccp_device_indicate_onhook_remote(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
+static void sccp_device_old_indicate_remoteHold(const sccp_device_t * const device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy);
+static void sccp_device_new_indicate_remoteHold(const sccp_device_t * const device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy);
+static void sccp_device_indicate_offhook(const sccp_device_t * const device, sccp_linedevices_t * linedevice, uint32_t callid);
+static void sccp_device_indicate_onhook(const sccp_device_t * const device, const uint8_t lineInstance, uint32_t callid);
+static void sccp_device_indicate_dialing(const sccp_device_t * const device, const uint8_t lineInstance, const sccp_channel_t * channel);
+static void sccp_device_indicate_proceed(const sccp_device_t * const device, const uint8_t lineInstance, const sccp_channel_t * channel);
+static void sccp_device_indicate_connected(const sccp_device_t * const device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
+static void sccp_device_indicate_offhook_remote(const sccp_device_t * const device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
+static void sccp_device_indicate_onhook_remote(const sccp_device_t * const device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
 
 /* end indicate */
-static sccp_push_result_t sccp_device_pushURL(const sccp_device_t * device, const char *url, uint8_t priority, uint8_t tone);
-static sccp_push_result_t sccp_device_pushURLNotSupported(const sccp_device_t * device, const char *url, uint8_t priority, uint8_t tone)
+static sccp_push_result_t sccp_device_pushURL(const sccp_device_t * const device, const char *url, uint8_t priority, uint8_t tone);
+static sccp_push_result_t sccp_device_pushURLNotSupported(const sccp_device_t * const device, const char *url, uint8_t priority, uint8_t tone)
 {
 	return SCCP_PUSH_RESULT_NOT_SUPPORTED;
 }
 
-static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t * device, const char *messageText, const char *from, uint8_t priority, uint8_t tone);
-static sccp_push_result_t sccp_device_pushTextMessageNotSupported(const sccp_device_t * device, const char *messageText, const char *from, uint8_t priority, uint8_t tone)
+static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t * const device, const char *messageText, const char *from, uint8_t priority, uint8_t tone);
+static sccp_push_result_t sccp_device_pushTextMessageNotSupported(const sccp_device_t * const device, const char *messageText, const char *from, uint8_t priority, uint8_t tone)
 {
 	return SCCP_PUSH_RESULT_NOT_SUPPORTED;
 }
@@ -85,7 +85,7 @@ static const struct sccp_device_indication_cb sccp_device_indication_olderDevice
 	.connected = sccp_device_indicate_connected,
 };
 
-static boolean_t sccp_device_checkACLTrue(sccp_device_t * device)
+static boolean_t sccp_device_checkACLTrue(const sccp_device_t * const device)
 {
 	return TRUE;
 }
@@ -100,7 +100,7 @@ static boolean_t sccp_device_falseResult(void)
 	return FALSE;
 }
 
-static void sccp_device_retrieveDeviceCapabilities(const sccp_device_t * device)
+static void sccp_device_retrieveDeviceCapabilities(const sccp_device_t * const device)
 {
 	char *xmlStr = "<getDeviceCaps></getDeviceCaps>";
 	unsigned int transactionID = random();
@@ -108,7 +108,11 @@ static void sccp_device_retrieveDeviceCapabilities(const sccp_device_t * device)
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_DEVICECAPABILITIES, 1, 0, transactionID, xmlStr, 2);
 }
 
-static void sccp_device_setBackgroundImage(const sccp_device_t * device, const char *url)
+#define container_of(ptr, type, member) ({ \
+                const typeof( ((type *)0)->member ) *__mptr = (ptr); \
+                (type *)( (char *)__mptr - offsetof(type,member) );})
+
+static void sccp_device_setBackgroundImage(const sccp_device_t * const device, const char *url)
 {
 	char xmlStr[2048] = { 0 };
 	unsigned int transactionID = random();
@@ -132,7 +136,7 @@ static void sccp_device_setBackgroundImage(const sccp_device_t * device, const c
 	//sccp_log(DEBUGCAT_CORE)("%s: sent new background to device: %s, from d->backgroundImage: %s\n", device->id, url, device->backgroundImage);
 }
 
-static sccp_dtmfmode_t sccp_device_getDtfmMode(const sccp_device_t * device)
+static sccp_dtmfmode_t sccp_device_getDtfmMode(const sccp_device_t * const device)
 {
 	sccp_dtmfmode_t res = device->dtmfmode;
 
@@ -146,12 +150,12 @@ static sccp_dtmfmode_t sccp_device_getDtfmMode(const sccp_device_t * device)
 	return res;
 }
 
-static void sccp_device_setBackgroundImageNotSupported(const sccp_device_t * device, const char *url)
+static void sccp_device_setBackgroundImageNotSupported(const sccp_device_t * const device, const char *url)
 {
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: does not support Background Image\n", device->id);
 }
 
-static void sccp_device_displayBackgroundImagePreview(const sccp_device_t * device, const char *url)
+static void sccp_device_displayBackgroundImagePreview(const sccp_device_t * const device, const char *url)
 {
 	char xmlStr[2048];
 	unsigned int transactionID = random();
@@ -170,12 +174,12 @@ static void sccp_device_displayBackgroundImagePreview(const sccp_device_t * devi
 	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 0, transactionID, xmlStr, 0);
 }
 
-static void sccp_device_displayBackgroundImagePreviewNotSupported(const sccp_device_t * device, const char *url)
+static void sccp_device_displayBackgroundImagePreviewNotSupported(const sccp_device_t * const device, const char *url)
 {
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: does not support Background Image\n", device->id);
 }
 
-static void sccp_device_setRingtone(const sccp_device_t * device, const char *url)
+static void sccp_device_setRingtone(const sccp_device_t * const device, const char *url)
 {
 	char xmlStr[2048];
 	unsigned int transactionID = random();
@@ -195,7 +199,7 @@ static void sccp_device_setRingtone(const sccp_device_t * device, const char *ur
 	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 0, transactionID, xmlStr, 0);
 }
 
-static void sccp_device_copyStr2Locale_UTF8(const sccp_device_t *d, char *dst, const char *src, size_t dst_size)
+static void sccp_device_copyStr2Locale_UTF8(const sccp_device_t * const d, char *dst, const char *src, size_t dst_size)
 {
 	if (!dst || !src) {
 		return;
@@ -204,7 +208,7 @@ static void sccp_device_copyStr2Locale_UTF8(const sccp_device_t *d, char *dst, c
 }
 
 #if HAVE_ICONV_H
-static void sccp_device_copyStr2Locale_Convert(const sccp_device_t *d, char *dst, const char *src, size_t dst_size)
+static void sccp_device_copyStr2Locale_Convert(const sccp_device_t * const d, char *dst, const char *src, size_t dst_size)
 {
 	if (!dst || !src) {
 		return;
@@ -219,7 +223,7 @@ static void sccp_device_copyStr2Locale_Convert(const sccp_device_t *d, char *dst
 }
 #endif
 
-static void sccp_device_setRingtoneNotSupported(const sccp_device_t * device, const char *url)
+static void sccp_device_setRingtoneNotSupported(const sccp_device_t * const device, const char *url)
 {
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: does not support setting ringtone\n", device->id);
 }
@@ -250,7 +254,7 @@ static void sccp_device_setRingtoneNotSupported(const sccp_device_t * device, co
 /*!
  * \brief Check device ipaddress against the ip ACL (permit/deny and permithosts entries)
  */
-static boolean_t sccp_device_checkACL(sccp_device_t * device)
+static boolean_t sccp_device_checkACL(const sccp_device_t * const device)
 {
 
 	struct sockaddr_storage sas;
@@ -2496,7 +2500,7 @@ void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t
 /*!
  * \brief Indicate to device that remote side has been put on hold (old).
  */
-static void sccp_device_old_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy)
+static void sccp_device_old_indicate_remoteHold(const sccp_device_t * const device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy)
 {
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_HOLD, callpriority, callPrivacy);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOLD);
@@ -2506,14 +2510,14 @@ static void sccp_device_old_indicate_remoteHold(const sccp_device_t * device, ui
 /*!
  * \brief Indicate to device that remote side has been put on hold (new).
  */
-static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy)
+static void sccp_device_new_indicate_remoteHold(const sccp_device_t * const device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy)
 {
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_HOLDRED, callpriority, callPrivacy);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOLD);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_HOLD, GLOB(digittimeout));
 }
 
-static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_linedevices_t * linedevice, uint32_t callid)
+static void sccp_device_indicate_offhook(const sccp_device_t * const device, sccp_linedevices_t * linedevice, uint32_t callid)
 {
 
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
@@ -2525,7 +2529,7 @@ static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_line
 }
 
 #if 0														/* new impl: does not seem to work (Reported by Sharan and Antonio: 01-07-2014), needs more work */
-static void sccp_device_indicate_onhook(const sccp_device_t * device, const sccp_channel_t * channel, const uint8_t lineInstance, uint32_t callid)
+static void sccp_device_indicate_onhook(const sccp_device_t * const device, const sccp_channel_t * channel, const uint8_t lineInstance, uint32_t callid)
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_OFF);
@@ -2552,7 +2556,7 @@ static void sccp_device_indicate_onhook(const sccp_device_t * device, const sccp
 	sccp_dev_check_displayprompt(device);									/* see if we need to display anything from the messageStack */
 }
 #endif
-static void sccp_device_indicate_onhook(const sccp_device_t * device, const uint8_t lineInstance, uint32_t callid)
+static void sccp_device_indicate_onhook(const sccp_device_t * const device, const uint8_t lineInstance, uint32_t callid)
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_dev_cleardisplaynotify(device);
@@ -2571,13 +2575,13 @@ static void sccp_device_indicate_onhook(const sccp_device_t * device, const uint
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
 }
 
-static void sccp_device_indicate_offhook_remote(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel)
+static void sccp_device_indicate_offhook_remote(const sccp_device_t * const device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel)
 {
 	sccp_device_sendcallstate(device, linedevice->lineInstance, channel->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	sccp_dev_set_keyset(device, linedevice->lineInstance, channel->callid, KEYMODE_OFFHOOK);
 }
 
-static void sccp_device_indicate_onhook_remote(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel)
+static void sccp_device_indicate_onhook_remote(const sccp_device_t * const device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel)
 {
 
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, linedevice->lineInstance, SKINNY_LAMP_OFF);
@@ -2592,7 +2596,7 @@ static void sccp_device_indicate_onhook_remote(const sccp_device_t * device, scc
 	sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
 }
 
-static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel)
+static void sccp_device_indicate_connected(const sccp_device_t * const device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel)
 {
 	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, linedevice->lineInstance, channel->callid);
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
@@ -2607,13 +2611,13 @@ static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_li
 	sccp_dev_displayprompt(device, linedevice->lineInstance, channel->callid, SKINNY_DISP_CONNECTED, GLOB(digittimeout));
 }
 
-static void __sccp_device_indicate_immediate_dialing(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel)
+static void __sccp_device_indicate_immediate_dialing(const sccp_device_t * const device, const uint8_t lineInstance, const sccp_channel_t * channel)
 {
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
 	sccp_dev_set_keyset(device, lineInstance, channel->callid, KEYMODE_OFFHOOK);
 }
 
-static void __sccp_device_indicate_normal_dialing(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel)
+static void __sccp_device_indicate_normal_dialing(const sccp_device_t * const device, const uint8_t lineInstance, const sccp_channel_t * channel)
 {
 	sccp_channel_t *c = (sccp_channel_t *) channel;
 
@@ -2636,7 +2640,7 @@ static void __sccp_device_indicate_normal_dialing(const sccp_device_t * device, 
  * \todo sccp_device_indicate_dialing should be split in a early_immediate version and a standard version, to make this function more readable. We can bind the correct indication function during device
  * registration / sccp_channel_setDevice
  */
-static void sccp_device_indicate_dialing(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel)
+static void sccp_device_indicate_dialing(const sccp_device_t * const device, const uint8_t lineInstance, const sccp_channel_t * channel)
 {
 	if (device->earlyrtp != SCCP_EARLYRTP_IMMEDIATE) {
 		__sccp_device_indicate_normal_dialing(device, lineInstance, channel);
@@ -2645,7 +2649,7 @@ static void sccp_device_indicate_dialing(const sccp_device_t * device, const uin
 	}
 }
 
-static void sccp_device_indicate_proceed(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel)
+static void sccp_device_indicate_proceed(const sccp_device_t * const device, const uint8_t lineInstance, const sccp_channel_t * channel)
 {
 	sccp_dev_stoptone(device, lineInstance, channel->callid);
 	sccp_device_sendcallstate(device, lineInstance, channel->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -2814,7 +2818,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 /*!
  * \brief Push a URL to an SCCP device
  */
-static sccp_push_result_t sccp_device_pushURL(const sccp_device_t * device, const char *url, uint8_t priority, uint8_t tone)
+static sccp_push_result_t sccp_device_pushURL(const sccp_device_t * const device, const char *url, uint8_t priority, uint8_t tone)
 {
 	const char *xmlFormat = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"%s\"/></CiscoIPPhoneExecute>";
 	size_t msg_length = strlen(xmlFormat) + sccp_strlen(url) - 2 /* for %s */  + 1 /* for terminator */ ;
@@ -2841,7 +2845,7 @@ static sccp_push_result_t sccp_device_pushURL(const sccp_device_t * device, cons
  * protocolversion < 17 allows for maximum of 1024 characters in the text block / maximum 2000 characted in overall message
  * protocolversion > 17 allows variable sized messages up to 4000 char in the text block (using multiple messages if necessary)
  */
-static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t * device, const char *messageText, const char *from, uint8_t priority, uint8_t tone)
+static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t * const device, const char *messageText, const char *from, uint8_t priority, uint8_t tone)
 {
 	const char *xmlFormat = "<CiscoIPPhoneText>%s<Text>%s</Text></CiscoIPPhoneText>";
 	size_t msg_length = strlen(xmlFormat) + sccp_strlen(messageText) - 4 /* for the %s' */  + 1 /* for terminator */ ;
