@@ -174,6 +174,11 @@ typedef enum {
 	SKINNY_CODEC_H264 				= 103,
 	SKINNY_CODEC_T120 				= 105,
 	SKINNY_CODEC_H224 				= 106,
+	SKINNY_CODEC_XV150_MR_711U			= 111,
+	SKINNY_CODEC_NSE_VBD_711U			= 112,
+	SKINNY_CODEC_XV150_MR_729A			= 113,
+	SKINNY_CODEC_NSE_VBD_729A			= 114,
+	SKINNY_CODEC_H264_FEC				= 115,
 	SKINNY_CODEC_DTMF_OOB_RFC2833			= 257,		// DTMF 0x101
 	SKINNY_CODEC_DTMF_PASSTHROUGH			= 258,
 	SKINNY_CODEC_DTMF_DYNAMIC    			= 259,
@@ -251,6 +256,11 @@ static const struct skinny_codec skinny_codecs[] = {
 	{SKINNY_CODEC_H263P,		SKINNY_CODEC_TYPE_VIDEO,	"h263",		"h263p",	"Vieo H.263+", 				NULL,		90000,	1,	98},
 	{SKINNY_CODEC_H264,		SKINNY_CODEC_TYPE_VIDEO,	"h264",		"h264",		"H.264", 				"H264",		90000,	1,	99},
 	{SKINNY_CODEC_T120,		SKINNY_CODEC_TYPE_TEXT, 	"t120",		"t120",		"T.140", 				NULL,		1000,	1,	0},	//payload unknown
+	{SKINNY_CODEC_XV150_MR_711U,	SKINNY_CODEC_TYPE_MIXED,	"xv711u",	"xv711u",	"xv150_mr_711u", 			NULL,		0,	1,	0},	//used for modem traffic over vg224
+	{SKINNY_CODEC_NSE_VBD_711U,	SKINNY_CODEC_TYPE_MIXED,	"v711u",	"v711u",	"nse vbd 711u", 			NULL,		0,	1,	0},	//unknown codec type
+	{SKINNY_CODEC_XV150_MR_729A,	SKINNY_CODEC_TYPE_MIXED,	"xv729a",	"xv729a",	"xv150_mr_711u", 			NULL,		0,	1,	0},	//used for modem traffic over vg224
+	{SKINNY_CODEC_NSE_VBD_729A,	SKINNY_CODEC_TYPE_MIXED,	"v729a",	"v729a",	"nse_vbd_729a", 			NULL,		0,	1,	0},	//unknown codec type
+	{SKINNY_CODEC_H264_FEC,		SKINNY_CODEC_TYPE_MIXED,	"h264f",	"h264f",	"h264_fec", 				NULL,		1000,	1,	0},	//unknown codec type
 	{SKINNY_CODEC_DTMF_OOB_RFC2833,	SKINNY_CODEC_TYPE_MIXED,	"rfc2833",	"rfc2833",	"DTMF RFC 2833 Dyn Pay Load",		NULL,		1000,	1,	0},
 	{SKINNY_CODEC_DTMF_PASSTHROUGH,	SKINNY_CODEC_TYPE_MIXED,	"passthrough",	"passthrough",	"DTMF Passthrough",			NULL,		1000,	1,	0},
 	{SKINNY_CODEC_DTMF_DYNAMIC,	SKINNY_CODEC_TYPE_MIXED,	"dynamic",	"dynamic",	"DTMF Dynamic",				NULL,		1000,	1,	0},
