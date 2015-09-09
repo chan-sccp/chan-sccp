@@ -408,49 +408,49 @@ sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * const devi
 #define REQCMD(x,y) x = sccp_build_packet(y, 0)
 sccp_msg_t *sccp_build_packet(sccp_mid_t t, size_t pkt_len);
 
-void sccp_dev_check_displayprompt(const sccp_device_t * d);
-void sccp_device_setLastNumberDialed(sccp_device_t * device, const char *lastNumberDialed, const sccp_linedevices_t *linedevice);
-void sccp_device_preregistration(sccp_device_t * device);
-void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn);
-void sccp_dev_sendmsg(const sccp_device_t * d, sccp_mid_t t);
-void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t lineInstance, uint32_t callid, uint8_t softKeySetIndex);
-void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInstance, uint32_t callid);
-void sccp_dev_cleardisplay(const sccp_device_t * d);
-void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt);
-void sccp_dev_set_speaker(const sccp_device_t * d, uint8_t opt);
-void sccp_dev_set_microphone(sccp_device_t * d, uint8_t opt);
-void sccp_dev_set_cplane(const sccp_device_t * device, uint8_t lineInstance, int status);
-void sccp_dev_deactivate_cplane(sccp_device_t * d);
-void sccp_dev_starttone(const sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout);
-void sccp_dev_stoptone(const sccp_device_t * d, uint8_t line, uint32_t callid);
-void sccp_dev_clearprompt(const sccp_device_t * d, uint8_t lineInstance, uint32_t callid);
-void sccp_dev_display_debug(const sccp_device_t * d, const char *msg, const char *file, const int lineno, const char *pretty_function);
-void sccp_dev_displayprompt_debug(const sccp_device_t * d, const uint8_t lineInstance, const uint32_t callid, const char *msg, int timeout, const char *file, const int lineno, const char *pretty_function);
-void sccp_dev_displaynotify_debug(const sccp_device_t * d, const char *msg, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function);
-void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, const uint8_t priority, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function);
-void sccp_dev_cleardisplaynotify(const sccp_device_t * d);
-void sccp_dev_cleardisplayprinotify(const sccp_device_t * d, const uint8_t priority);
-void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, boolean_t withHint, sccp_speed_t * k);
+void sccp_dev_check_displayprompt(const sccp_device_t * const d);
+void sccp_device_setLastNumberDialed(sccp_device_t * const device, const char *lastNumberDialed, const sccp_linedevices_t *linedevice);
+void sccp_device_preregistration(sccp_device_t * const device);
+void sccp_dev_build_buttontemplate(sccp_device_t * const d, btnlist * btn);
+void sccp_dev_sendmsg(const sccp_device_t * const d, sccp_mid_t t);
+void sccp_dev_set_keyset(const sccp_device_t * const d, uint8_t lineInstance, uint32_t callid, uint8_t softKeySetIndex);
+void sccp_dev_set_ringer(const sccp_device_t * const d, uint8_t opt, uint8_t lineInstance, uint32_t callid);
+void sccp_dev_cleardisplay(const sccp_device_t * const d);
+void sccp_dev_set_registered(sccp_device_t * const d, uint8_t opt);
+void sccp_dev_set_speaker(const sccp_device_t * const d, uint8_t opt);
+void sccp_dev_set_microphone(sccp_device_t * const d, uint8_t opt);
+void sccp_dev_set_cplane(const sccp_device_t * const device, uint8_t lineInstance, int status);
+void sccp_dev_deactivate_cplane(sccp_device_t * const d);
+void sccp_dev_starttone(const sccp_device_t * const d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout);
+void sccp_dev_stoptone(const sccp_device_t * const d, uint8_t line, uint32_t callid);
+void sccp_dev_clearprompt(const sccp_device_t * const d, uint8_t lineInstance, uint32_t callid);
+void sccp_dev_display_debug(const sccp_device_t * const d, const char *msg, const char *file, const int lineno, const char *pretty_function);
+void sccp_dev_displayprompt_debug(const sccp_device_t * const d, const uint8_t lineInstance, const uint32_t callid, const char *msg, int timeout, const char *file, const int lineno, const char *pretty_function);
+void sccp_dev_displaynotify_debug(const sccp_device_t * const d, const char *msg, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function);
+void sccp_dev_displayprinotify_debug(const sccp_device_t * const d, const char *msg, const uint8_t priority, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function);
+void sccp_dev_cleardisplaynotify(const sccp_device_t * const d);
+void sccp_dev_cleardisplayprinotify(const sccp_device_t * const d, const uint8_t priority);
+void sccp_dev_speed_find_byindex(sccp_device_t * const d, uint16_t instance, boolean_t withHint, sccp_speed_t * k);
 void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * device);
 void sccp_dev_postregistration(void *data);
-void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime);
-void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t callid);
-void sccp_dev_set_message(sccp_device_t * d, const char *msg, const int timeout, const boolean_t storedb, const boolean_t beep);
-void sccp_dev_clear_message(sccp_device_t * d, const boolean_t cleardb);
-void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priority, const char *message);
-void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t priority);
+void sccp_dev_clean(sccp_device_t * const d, boolean_t destroy, uint8_t cleanupTime);
+void sccp_dev_keypadbutton(sccp_device_t * const d, char digit, uint8_t line, uint32_t callid);
+void sccp_dev_set_message(sccp_device_t * const d, const char *msg, const int timeout, const boolean_t storedb, const boolean_t beep);
+void sccp_dev_clear_message(sccp_device_t * const d, const boolean_t cleardb);
+void sccp_device_addMessageToStack(sccp_device_t * const device, const uint8_t priority, const char *message);
+void sccp_device_clearMessageFromStack(sccp_device_t * const device, const uint8_t priority);
 void sccp_device_featureChangedDisplay(const sccp_event_t * event);
-void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, skinny_callstate_t state, skinny_callpriority_t precedence_level, skinny_callinfo_visibility_t visibility);
+void sccp_device_sendcallstate(const sccp_device_t * const d, uint8_t instance, uint32_t callid, skinny_callstate_t state, skinny_callpriority_t precedence_level, skinny_callinfo_visibility_t visibility);
 
-int sccp_dev_send(const sccp_device_t * d, sccp_msg_t * msg);
-int sccp_device_check_ringback(sccp_device_t * d);
-int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type);
+int sccp_dev_send(const sccp_device_t * const d, sccp_msg_t * msg);
+int sccp_device_check_ringback(sccp_device_t * const d);
+int sccp_device_sendReset(sccp_device_t * const d, uint8_t reset_type);
 
-uint8_t sccp_device_find_index_for_line(const sccp_device_t * d, const char *lineName);
-uint8_t sccp_device_numberOfChannels(const sccp_device_t * device);
+uint8_t sccp_device_find_index_for_line(const sccp_device_t * const d, const char *lineName);
+uint8_t sccp_device_numberOfChannels(const sccp_device_t * const device);
 
-boolean_t sccp_device_isVideoSupported(const sccp_device_t * device);
-boolean_t sccp_device_check_update(sccp_device_t * d);
+boolean_t sccp_device_isVideoSupported(const sccp_device_t * const device);
+boolean_t sccp_device_check_update(sccp_device_t * const d);
 
 // find device
 sccp_device_t *sccp_device_find_byid(const char *id, boolean_t useRealtime);
@@ -475,7 +475,7 @@ sccp_device_t *sccp_device_find_realtime(const char *name);
 #endif
 #endif
 
-void sccp_device_setLamp(const sccp_device_t * device, skinny_stimulus_t stimulus, uint8_t instance, skinny_lampmode_t mode);
+void sccp_device_setLamp(const sccp_device_t * const device, skinny_stimulus_t stimulus, uint8_t instance, skinny_lampmode_t mode);
 
 #endif														/* __SCCP_DEVICE_H */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
