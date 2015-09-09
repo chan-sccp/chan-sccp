@@ -395,12 +395,14 @@ void sccp_device_post_reload(void);
 /* live cycle */
 sccp_device_t *sccp_device_create(const char *id);
 sccp_device_t *sccp_device_createAnonymous(const char *name);
-void sccp_device_addToGlobals(sccp_device_t * device);
+void sccp_device_addToGlobals(const sccp_device_t * const device);
 
-sccp_line_t *sccp_dev_get_activeline(const sccp_device_t * d);
-sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t instance);
-sccp_channel_t *sccp_device_getActiveChannel(const sccp_device_t * d);
-void sccp_device_setActiveChannel(sccp_device_t * d, sccp_channel_t * c);
+sccp_line_t *sccp_dev_get_activeline(const sccp_device_t * const device);
+void sccp_dev_set_activeline(sccp_device_t * const device, const sccp_line_t * l);
+sccp_channel_t *sccp_device_getActiveChannel(const sccp_device_t * const device);
+void sccp_device_setActiveChannel(sccp_device_t * const device, sccp_channel_t * c);
+
+sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * const device, uint16_t instance);
 
 #define REQ(x,y) x = sccp_build_packet(y, sizeof(x->data.y))
 #define REQCMD(x,y) x = sccp_build_packet(y, 0)
@@ -429,7 +431,6 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
 void sccp_dev_cleardisplaynotify(const sccp_device_t * d);
 void sccp_dev_cleardisplayprinotify(const sccp_device_t * d, const uint8_t priority);
 void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, boolean_t withHint, sccp_speed_t * k);
-void sccp_dev_set_activeline(sccp_device_t * device, const sccp_line_t * l);
 void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * device);
 void sccp_dev_postregistration(void *data);
 void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime);
