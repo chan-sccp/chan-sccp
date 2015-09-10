@@ -219,7 +219,7 @@ EXIT:
  * Used to map SKinny Message Id's to their Handling Implementations
  */
 struct messageMap_cb {
-	void (*const messageHandler_cb) (sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg);
+	void (*const messageHandler_cb) (const sccp_session_t * const s, sccp_device_t * const d, const sccp_msg_t * const msg);
 	boolean_t deviceIsNecessary;
 };
 

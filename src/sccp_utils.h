@@ -30,7 +30,7 @@
 #endif
 
 void sccp_dump_packet(unsigned char *messagebuffer, int len);
-void sccp_dump_msg(sccp_msg_t * msg);
+void sccp_dump_msg(const sccp_msg_t * const msg);
 int sccp_addons_taps(sccp_device_t * d);
 void sccp_addons_clear(sccp_device_t * d);
 void sccp_safe_sleep(int ms);

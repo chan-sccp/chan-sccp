@@ -3244,6 +3244,9 @@ typedef struct {
 	sccp_data_t data;											/*!< Message [SCCP Data] */
 } sccp_msg_t;
 
+#define messagePtr sccp_msg_t * const
+#define constMessagePtr const sccp_msg_t * const
+
 /* So in theory, a message should never be bigger than this.
  * If it is, we abort the connection */
 #define SCCP_MAX_PACKET sizeof(sccp_msg_t)
