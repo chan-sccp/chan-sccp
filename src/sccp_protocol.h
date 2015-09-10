@@ -537,6 +537,8 @@ typedef enum {
 	/* SPCP server -> client */
 	SPCPRegisterTokenAck 				= 0x8100,
 	SPCPRegisterTokenReject 			= 0x8101,
+
+	UnknownVGMessage				= 0xFF00,	/* Unknown Message (VG224). Reported by Ahmet Zaim */
 /*
 	SPCPPlatformInfoGetReq				= 0xFF02,
 	SPCPPlatformInfoGetRsp				= 0xFF03,
@@ -3216,6 +3218,8 @@ typedef union {
 		uint32_t lel_status;
 	} RecordingStatusMessage;										/*!< Recording Status Message Structure */
 
+	struct {
+	} UnknownVGMessage;
 } sccp_data_t;													/*!< SKINNY Data Structure */
 
 /*!
@@ -3422,7 +3426,6 @@ static const struct messagetype sccp_messagetypes[] = {
 	[MwiResponseMessage] = {			"Mwi Response Message",				offsize(sccp_data_t, MwiResponseMessage)},
 	[CallCountRespMessage] = {			"CallCount Response Message",			offsize(sccp_data_t, CallCountRespMessage)},
 	[RecordingStatusMessage] = {			"Recording Status Message",			offsize(sccp_data_t, RecordingStatusMessage)},
-
 	/* *INDENT-ON* */
 };
 
@@ -3431,6 +3434,7 @@ static const struct messagetype spcp_messagetypes[] = {
 	[SPCPRegisterTokenRequest - SPCP_MESSAGE_OFFSET	] = {"SPCP Register Token Request", 		offsize(sccp_data_t, SPCPRegisterTokenRequest)},
 	[SPCPRegisterTokenAck - SPCP_MESSAGE_OFFSET	] = {"SPCP RegisterMessageACK", 		offsize(sccp_data_t, SPCPRegisterTokenAck)},
 	[SPCPRegisterTokenReject - SPCP_MESSAGE_OFFSET	] = {"SPCP RegisterMessageReject", 		offsize(sccp_data_t, SPCPRegisterTokenReject)},
+	[UnknownVGMessage - SPCP_MESSAGE_OFFSET		] = {"Unknown Message (VG224)",			offsize(sccp_data_t, UnknownVGMessage)},
 	/* *INDENT-ON* */
 };
 
