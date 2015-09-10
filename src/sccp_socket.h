@@ -118,17 +118,17 @@ static inline char *sccp_socket_stringify_port(const struct sockaddr_storage *so
 
 void sccp_socket_setoptions(int new_socket);
 void *sccp_socket_thread(void *ignore);
-void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t);
-int sccp_session_send(const sccp_device_t * device, sccp_msg_t * msg);
-int sccp_session_send2(const sccp_session_t * const s, const sccp_msg_t * const msg);
-void sccp_session_addDevice(sccp_session_t * session, sccp_device_t * device);
+void sccp_session_sendmsg(constDevicePtr device, sccp_mid_t t);
+int sccp_session_send(constDevicePtr device, const sccp_msg_t * msg);
+int sccp_session_send2(constSessionPtr s, sccp_msg_t * msg);
+void sccp_session_addDevice(sessionPtr session, devicePtr device);
 sccp_device_t *sccp_session_removeDevice(sccp_session_t * session);
-sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message);
-void sccp_session_crossdevice_cleanup(sccp_session_t * current_session, sccp_session_t * previous_session, boolean_t token);
-void sccp_session_tokenReject(sccp_session_t * session, uint32_t backoff_time);
-void sccp_session_tokenAck(sccp_session_t * session);
-void sccp_session_tokenRejectSPCP(sccp_session_t * session, uint32_t features);
-void sccp_session_tokenAckSPCP(sccp_session_t * session, uint32_t features);
-void sccp_socket_stop_sessionthread(sccp_session_t * session, uint8_t newRegistrationState);
+sccp_session_t *sccp_session_reject(constSessionPtr session, char *message);
+void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPtr previous_session, boolean_t token);
+void sccp_session_tokenReject(constSessionPtr session, uint32_t backoff_time);
+void sccp_session_tokenAck(constSessionPtr session);
+void sccp_session_tokenRejectSPCP(constSessionPtr session, uint32_t features);
+void sccp_session_tokenAckSPCP(constSessionPtr session, uint32_t features);
+void sccp_socket_stop_sessionthread(sessionPtr session, uint8_t newRegistrationState);
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

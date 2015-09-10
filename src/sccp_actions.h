@@ -28,7 +28,7 @@ void sccp_handle_speed_dial_stat_req(constSessionPtr s, devicePtr d, constMessag
 void sccp_handle_stimulus(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
 void sccp_handle_AvailableLines(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
 void sccp_handle_speeddial(constDevicePtr d, const sccp_speed_t * const k);
-void sccp_handle_backspace(devicePtr d, const uint8_t lineInstance, const uint32_t callid);
+void sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const uint32_t callid);
 void sccp_handle_dialtone(constDevicePtr d, constLinePtr l, constChannelPtr c);
 void sccp_handle_KeepAliveMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
 void sccp_handle_offhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in);

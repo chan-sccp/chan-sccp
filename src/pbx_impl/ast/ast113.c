@@ -63,7 +63,7 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk113_rtp_read(PBX_CHANNEL_TYPE * ast)
 static int sccp_wrapper_asterisk113_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame);
 static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *data, size_t datalen);
 static int sccp_wrapper_asterisk113_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL_TYPE * newchan);
-static void sccp_wrapper_asterisk13_setDialedNumber(const sccp_channel_t * channel, const char *number);
+static void sccp_wrapper_asterisk13_setDialedNumber(constChannelPtr channel, const char *number);
 
 //#ifdef CS_AST_RTP_INSTANCE_BRIDGE
 //static enum ast_bridge_result sccp_wrapper_asterisk113_rtpBridge(PBX_CHANNEL_TYPE * c0, PBX_CHANNEL_TYPE * c1, int flags, PBX_FRAME_TYPE ** fo, PBX_CHANNEL_TYPE ** rc, int timeoutms);
@@ -76,8 +76,8 @@ int sccp_wrapper_asterisk113_hangup(PBX_CHANNEL_TYPE * ast_channel);
 int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 static int sccp_wrapper_asterisk113_devicestate(const char *data);
-static boolean_t sccp_wrapper_asterisk113_setWriteFormat(const sccp_channel_t * channel, skinny_codec_t codec);
-static boolean_t sccp_wrapper_asterisk113_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec);
+static boolean_t sccp_wrapper_asterisk113_setWriteFormat(constChannelPtr channel, skinny_codec_t codec);
+static boolean_t sccp_wrapper_asterisk113_setReadFormat(constChannelPtr channel, skinny_codec_t codec);
 PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE * chan, const char *exten, const char *context);
 
 static inline skinny_codec_t sccp_asterisk113_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability)
@@ -346,7 +346,7 @@ static int sccp_wrapper_asterisk113_devicestate(const char *data)
 	return res;
 }
 
-static boolean_t sccp_wrapper_asterisk113_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec);
+static boolean_t sccp_wrapper_asterisk113_setReadFormat(constChannelPtr channel, skinny_codec_t codec);
 
 #define RTP_NEW_SOURCE(_c,_log) 								\
 	if(c->rtp.audio.rtp) { 										\
@@ -895,7 +895,7 @@ static int sccp_wrapper_asterisk113_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 	return res;
 }
 
-static void sccp_wrapper_asterisk113_setCalleridPresence(const sccp_channel_t * channel)
+static void sccp_wrapper_asterisk113_setCalleridPresence(constChannelPtr channel)
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
@@ -905,7 +905,7 @@ static void sccp_wrapper_asterisk113_setCalleridPresence(const sccp_channel_t * 
 	}
 }
 
-static int sccp_wrapper_asterisk113_setNativeAudioFormats(const sccp_channel_t * channel, skinny_codec_t codec[], int length)
+static int sccp_wrapper_asterisk113_setNativeAudioFormats(constChannelPtr channel, skinny_codec_t codec[], int length)
 {
 	struct ast_format *format;
 	int i;
@@ -936,7 +936,7 @@ static int sccp_wrapper_asterisk113_setNativeAudioFormats(const sccp_channel_t *
 	return 1;
 }
 
-static int sccp_wrapper_asterisk113_setNativeVideoFormats(const sccp_channel_t * channel, skinny_codec_t codec)
+static int sccp_wrapper_asterisk113_setNativeVideoFormats(constChannelPtr channel, skinny_codec_t codec)
 {
 	// struct ast_format fmt;
 	// ast_format_set(&fmt, skinny_codec2pbx_codec(formats), 0);
@@ -1246,7 +1246,7 @@ int sccp_wrapper_asterisk113_hangup(PBX_CHANNEL_TYPE * ast_channel)
  * \todo copy connected line info
  *
  */
-static sccp_parkresult_t sccp_wrapper_asterisk113_park(const sccp_channel_t * hostChannel)
+static sccp_parkresult_t sccp_wrapper_asterisk113_park(constChannelPtr hostChannel)
 {
 	char extout[AST_MAX_EXTENSION];
 	char extstr[20];
@@ -1281,7 +1281,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk113_park(const sccp_channel_t * ho
 	return res;
 }
 
-static boolean_t sccp_wrapper_asterisk113_getFeatureExtension(const sccp_channel_t * channel, char **extension)
+static boolean_t sccp_wrapper_asterisk113_getFeatureExtension(constChannelPtr channel, char **extension)
 {
 	char feat[AST_FEATURE_MAX_LEN];
 	int feat_res = -1;
@@ -1294,7 +1294,7 @@ static boolean_t sccp_wrapper_asterisk113_getFeatureExtension(const sccp_channel
 	return feat_res ? FALSE : TRUE;
 }
 
-static boolean_t sccp_wrapper_asterisk113_getPickupExtension(const sccp_channel_t * channel, char **extension)
+static boolean_t sccp_wrapper_asterisk113_getPickupExtension(constChannelPtr channel, char **extension)
 {
 	boolean_t res = FALSE;
 	struct ast_features_pickup_config *pickup_cfg = NULL;
@@ -1323,7 +1323,7 @@ static boolean_t sccp_wrapper_asterisk113_getPickupExtension(const sccp_channel_
  * \param target Channel t park to
  *
  */
-static boolean_t sccp_wrapper_asterisk113_pickupChannel(const sccp_channel_t * chan, PBX_CHANNEL_TYPE * target)
+static boolean_t sccp_wrapper_asterisk113_pickupChannel(constChannelPtr chan, PBX_CHANNEL_TYPE * target)
 {
 	boolean_t result;
 	PBX_CHANNEL_TYPE *ref;
@@ -1358,7 +1358,7 @@ static int sccp_wrapper_asterisk113_get_sampleRate(skinny_codec_t codec)
 	return ast_rtp_lookup_sample_rate2(1, astCodec, 0);
 }
 
-static sccp_extension_status_t sccp_wrapper_asterisk113_extensionStatus(const sccp_channel_t * channel)
+static sccp_extension_status_t sccp_wrapper_asterisk113_extensionStatus(constChannelPtr channel)
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
@@ -2064,7 +2064,7 @@ static void sccp_wrapper_asterisk113_getCodec(PBX_CHANNEL_TYPE * ast, struct ast
  * \param cid name result
  * \return parse result
  */
-static int sccp_wrapper_asterisk113_callerid_name(const sccp_channel_t * channel, char **cid_name)
+static int sccp_wrapper_asterisk113_callerid_name(constChannelPtr channel, char **cid_name)
 {
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
@@ -2081,7 +2081,7 @@ static int sccp_wrapper_asterisk113_callerid_name(const sccp_channel_t * channel
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
  */
-static int sccp_wrapper_asterisk113_callerid_number(const sccp_channel_t * channel, char **cid_number)
+static int sccp_wrapper_asterisk113_callerid_number(constChannelPtr channel, char **cid_number)
 {
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
@@ -2098,7 +2098,7 @@ static int sccp_wrapper_asterisk113_callerid_number(const sccp_channel_t * chann
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
  */
-static int sccp_wrapper_asterisk113_callerid_ton(const sccp_channel_t * channel, char **cid_ton)
+static int sccp_wrapper_asterisk113_callerid_ton(constChannelPtr channel, char **cid_ton)
 {
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
@@ -2113,7 +2113,7 @@ static int sccp_wrapper_asterisk113_callerid_ton(const sccp_channel_t * channel,
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
  */
-static int sccp_wrapper_asterisk113_callerid_ani(const sccp_channel_t * channel, char **cid_ani)
+static int sccp_wrapper_asterisk113_callerid_ani(constChannelPtr channel, char **cid_ani)
 {
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
@@ -2130,7 +2130,7 @@ static int sccp_wrapper_asterisk113_callerid_ani(const sccp_channel_t * channel,
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
  */
-static int sccp_wrapper_asterisk113_callerid_subaddr(const sccp_channel_t * channel, char **cid_subaddr)
+static int sccp_wrapper_asterisk113_callerid_subaddr(constChannelPtr channel, char **cid_subaddr)
 {
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
@@ -2147,7 +2147,7 @@ static int sccp_wrapper_asterisk113_callerid_subaddr(const sccp_channel_t * chan
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
  */
-static int sccp_wrapper_asterisk113_callerid_dnid(const sccp_channel_t * channel, char **cid_dnid)
+static int sccp_wrapper_asterisk113_callerid_dnid(constChannelPtr channel, char **cid_dnid)
 {
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
@@ -2164,7 +2164,7 @@ static int sccp_wrapper_asterisk113_callerid_dnid(const sccp_channel_t * channel
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
  */
-static int sccp_wrapper_asterisk113_callerid_rdnis(const sccp_channel_t * channel, char **cid_rdnis)
+static int sccp_wrapper_asterisk113_callerid_rdnis(constChannelPtr channel, char **cid_rdnis)
 {
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
@@ -2181,7 +2181,7 @@ static int sccp_wrapper_asterisk113_callerid_rdnis(const sccp_channel_t * channe
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
  */
-static int sccp_wrapper_asterisk113_callerid_presence(const sccp_channel_t * channel)
+static int sccp_wrapper_asterisk113_callerid_presence(constChannelPtr channel)
 {
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
@@ -2350,7 +2350,7 @@ static boolean_t sccp_wrapper_asterisk113_destroyRTP(PBX_RTP_TYPE * rtp)
 	return (!res) ? TRUE : FALSE;
 }
 
-static boolean_t sccp_wrapper_asterisk113_checkHangup(const sccp_channel_t * channel)
+static boolean_t sccp_wrapper_asterisk113_checkHangup(constChannelPtr channel)
 {
 	int res;
 
@@ -2408,7 +2408,7 @@ static int sccp_wrapper_asterisk113_setPhoneRTPAddress(const struct sccp_rtp *rt
 	return res;
 }
 
-static boolean_t sccp_wrapper_asterisk113_setWriteFormat(const sccp_channel_t * channel, skinny_codec_t codec)
+static boolean_t sccp_wrapper_asterisk113_setWriteFormat(constChannelPtr channel, skinny_codec_t codec)
 {
 	//! \todo possibly needs to be synced to ast108
 	if (!channel) {
@@ -2439,7 +2439,7 @@ static boolean_t sccp_wrapper_asterisk113_setWriteFormat(const sccp_channel_t * 
 	return TRUE;
 }
 
-static boolean_t sccp_wrapper_asterisk113_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec)
+static boolean_t sccp_wrapper_asterisk113_setReadFormat(constChannelPtr channel, skinny_codec_t codec)
 {
 	//! \todo possibly needs to be synced to ast108
 	if (!channel) {
@@ -2471,7 +2471,7 @@ static boolean_t sccp_wrapper_asterisk113_setReadFormat(const sccp_channel_t * c
 	return TRUE;
 }
 
-static void sccp_wrapper_asterisk113_setCalleridName(const sccp_channel_t * channel, const char *name)
+static void sccp_wrapper_asterisk113_setCalleridName(constChannelPtr channel, const char *name)
 {
 	if (name) {
 		ast_party_name_free(&ast_channel_caller(channel->owner)->id.name);
@@ -2480,7 +2480,7 @@ static void sccp_wrapper_asterisk113_setCalleridName(const sccp_channel_t * chan
 	}
 }
 
-static void sccp_wrapper_asterisk13_setDialedNumber(const sccp_channel_t * channel, const char *number)
+static void sccp_wrapper_asterisk13_setDialedNumber(constChannelPtr channel, const char *number)
 {
 	struct ast_party_dialed dialed;
 
@@ -2490,7 +2490,7 @@ static void sccp_wrapper_asterisk13_setDialedNumber(const sccp_channel_t * chann
 	ast_party_dialed_set(ast_channel_dialed(channel->owner), &dialed);
 }
 
-static void sccp_wrapper_asterisk113_setCalleridNumber(const sccp_channel_t * channel, const char *number)
+static void sccp_wrapper_asterisk113_setCalleridNumber(constChannelPtr channel, const char *number)
 {
 	if (number) {
 		ast_party_number_free(&ast_channel_caller(channel->owner)->id.number);
@@ -2499,7 +2499,7 @@ static void sccp_wrapper_asterisk113_setCalleridNumber(const sccp_channel_t * ch
 	}
 }
 
-static void sccp_wrapper_asterisk113_setCalleridAni(const sccp_channel_t * channel, const char *number)
+static void sccp_wrapper_asterisk113_setCalleridAni(constChannelPtr channel, const char *number)
 {
 	if (number) {
 		ast_party_number_free(&ast_channel_caller(channel->owner)->ani.number);
@@ -2508,7 +2508,7 @@ static void sccp_wrapper_asterisk113_setCalleridAni(const sccp_channel_t * chann
 	}
 }
 
-static void sccp_wrapper_asterisk113_setRedirectingParty(const sccp_channel_t * channel, const char *number, const char *name)
+static void sccp_wrapper_asterisk113_setRedirectingParty(constChannelPtr channel, const char *number, const char *name)
 {
 	if (number) {
 		ast_party_number_free(&ast_channel_redirecting(channel->owner)->from.number);
@@ -2523,7 +2523,7 @@ static void sccp_wrapper_asterisk113_setRedirectingParty(const sccp_channel_t * 
 	}
 }
 
-static void sccp_wrapper_asterisk113_setRedirectedParty(const sccp_channel_t * channel, const char *number, const char *name)
+static void sccp_wrapper_asterisk113_setRedirectedParty(constChannelPtr channel, const char *number, const char *name)
 {
 	if (number) {
 		ast_party_number_free(&ast_channel_redirecting(channel->owner)->to.number);
@@ -2538,7 +2538,7 @@ static void sccp_wrapper_asterisk113_setRedirectedParty(const sccp_channel_t * c
 	}
 }
 
-static void sccp_wrapper_asterisk113_updateConnectedLine(const sccp_channel_t * channel, const char *number, const char *name, uint8_t reason)
+static void sccp_wrapper_asterisk113_updateConnectedLine(constChannelPtr channel, const char *number, const char *name, uint8_t reason)
 {
 	if (!channel || !channel->owner) {
 		return;
@@ -2664,13 +2664,13 @@ static int sccp_wrapper_asterisk113_sched_wait(int id)
 	return FALSE;
 }
 
-static int sccp_wrapper_asterisk113_setCallState(const sccp_channel_t * channel, int state)
+static int sccp_wrapper_asterisk113_setCallState(constChannelPtr channel, int state)
 {
 	sccp_pbx_setcallstate((sccp_channel_t *) channel, state);
 	return 0;
 }
 
-static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel)
+static boolean_t sccp_asterisk_getRemoteChannel(constChannelPtr channel, PBX_CHANNEL_TYPE ** pbx_channel)
 {
 
 	PBX_CHANNEL_TYPE *remotePeer = NULL;
@@ -2861,7 +2861,7 @@ static void sccp_wrapper_asterisk_set_pbxchannel_linkedid(PBX_CHANNEL_TYPE * pbx
 };
 
 #define DECLARE_PBX_CHANNEL_STRGET(_field) 									\
-static const char *sccp_wrapper_asterisk_get_channel_##_field(const sccp_channel_t * channel)	 		\
+static const char *sccp_wrapper_asterisk_get_channel_##_field(constChannelPtr channel)	 		\
 {														\
 	static const char *empty_channel_##_field = "--no-channel" #_field "--";				\
 	if (channel && channel->owner) {											\
@@ -2871,7 +2871,7 @@ static const char *sccp_wrapper_asterisk_get_channel_##_field(const sccp_channel
 };
 
 #define DECLARE_PBX_CHANNEL_STRSET(_field)									\
-static void sccp_wrapper_asterisk_set_channel_##_field(const sccp_channel_t * channel, const char * _field)	\
+static void sccp_wrapper_asterisk_set_channel_##_field(constChannelPtr channel, const char * _field)	\
 { 														\
 	if (channel && channel->owner) {											\
 		ast_channel_##_field##_set(channel->owner, _field);						\
@@ -2894,14 +2894,14 @@ DECLARE_PBX_CHANNEL_STRGET(name)
     DECLARE_PBX_CHANNEL_STRGET(call_forward)
     DECLARE_PBX_CHANNEL_STRSET(call_forward)
 
-static void sccp_wrapper_asterisk_set_channel_linkedid(const sccp_channel_t * channel, const char *new_linkedid)
+static void sccp_wrapper_asterisk_set_channel_linkedid(constChannelPtr channel, const char *new_linkedid)
 {
 	if (channel && channel->owner) {
 		sccp_wrapper_asterisk_set_pbxchannel_linkedid(channel->owner, new_linkedid);
 	}
 };
 
-static enum ast_channel_state sccp_wrapper_asterisk_get_channel_state(const sccp_channel_t * channel)
+static enum ast_channel_state sccp_wrapper_asterisk_get_channel_state(constChannelPtr channel)
 {
 	if (channel && channel->owner) {
 		return ast_channel_state(channel->owner);
@@ -2909,7 +2909,7 @@ static enum ast_channel_state sccp_wrapper_asterisk_get_channel_state(const sccp
 	return 0;
 }
 
-static const struct ast_pbx *sccp_wrapper_asterisk_get_channel_pbx(const sccp_channel_t * channel)
+static const struct ast_pbx *sccp_wrapper_asterisk_get_channel_pbx(constChannelPtr channel)
 {
 	if (channel && channel->owner) {
 		return ast_channel_pbx(channel->owner);

@@ -396,7 +396,7 @@ int sccp_socket_getOurAddressfor(const struct sockaddr_storage *them, struct soc
 	return 0;
 }
 
-void sccp_socket_stop_sessionthread(sccp_session_t * session, uint8_t newRegistrationState)
+void sccp_socket_stop_sessionthread(sessionPtr session, uint8_t newRegistrationState)
 {
 	if (!session) {
 		pbx_log(LOG_NOTICE, "SCCP: session already terminated\n");
@@ -462,7 +462,7 @@ static int sccp_dissect_header(sccp_session_t * s, sccp_header_t * header)
 	return msgtype2size(messageId);
 }
 
-static void sccp_socket_get_error(sccp_session_t *s)
+static void sccp_socket_get_error(constSessionPtr s)
 {
 	if (!s || s->fds[0].fd <= 0) {
 		return;
@@ -666,7 +666,7 @@ static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
  * \param session SCCP Session
  * \param device SCCP Device
  */
-void sccp_session_addDevice(sccp_session_t * session, sccp_device_t * device)
+void sccp_session_addDevice(sessionPtr session, devicePtr device)
 {
 	sccp_device_t *new_device = NULL;
 	if (session && device && session->device != device) {
@@ -1142,9 +1142,10 @@ void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t)
  * \param msg Message Data Structure (sccp_msg_t)
  * \return SCCP Session Send
  */
-int sccp_session_send(const sccp_device_t * const device, const sccp_msg_t * const msg)
+int sccp_session_send(constDevicePtr device, const sccp_msg_t * msg_in)
 {
 	const sccp_session_t * const s = sccp_session_findByDevice(device);
+	sccp_msg_t *msg = (sccp_msg_t *) msg_in;				/* discard const * const */
 
 	if (s && !s->session_stop) {
 		return sccp_session_send2(s, msg);
@@ -1162,8 +1163,9 @@ int sccp_session_send(const sccp_device_t * const device, const sccp_msg_t * con
  * \lock
  *      - session
  */
-int sccp_session_send2(const sccp_session_t * const s, const sccp_msg_t * const msg)
+int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 {
+	sccp_session_t * const s = (sessionPtr) session;								/* discard const */
 	ssize_t res = 0;
 	uint32_t msgid = letohl(msg->header.lel_messageId);
 	ssize_t bytesSent;
@@ -1279,16 +1281,17 @@ sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device)
  * \param session SCCP Session Pointer
  * \param message Message as char (reason of rejection)
  */
-sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message)
+sccp_session_t *sccp_session_reject(constSessionPtr session, char *message)
 {
 	sccp_msg_t *msg = NULL;
+	sccp_session_t * const s = (sccp_session_t * const) session;			/* discard const */
 
 	REQ(msg, RegisterRejectMessage);
 	sccp_copy_string(msg->data.RegisterRejectMessage.text, message, sizeof(msg->data.RegisterRejectMessage.text));
-	sccp_session_send2(session, msg);
+	sccp_session_send2(s, msg);
 
 	/* if we reject the connection during accept connection, thread is not ready */
-	sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_FAILED);
+	sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 	return NULL;
 }
 
@@ -1298,7 +1301,7 @@ sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message)
  * \param previous_session SCCP Session Pointer
  * \param token Do we need to return a token reject or a session reject (as Boolean)
  */
-void sccp_session_crossdevice_cleanup(sccp_session_t * current_session, sccp_session_t * previous_session, boolean_t token)
+void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPtr previous_session, boolean_t token)
 {
 	if (!current_session) {
 		return;
@@ -1342,7 +1345,7 @@ void sccp_session_crossdevice_cleanup(sccp_session_t * current_session, sccp_ses
  * \param session SCCP Session Pointer
  * \param backoff_time Time to Backoff before retrying TokenSend
  */
-void sccp_session_tokenReject(sccp_session_t * session, uint32_t backoff_time)
+void sccp_session_tokenReject(constSessionPtr session, uint32_t backoff_time)
 {
 	sccp_msg_t *msg = NULL;
 
@@ -1355,7 +1358,7 @@ void sccp_session_tokenReject(sccp_session_t * session, uint32_t backoff_time)
  * \brief Send a token acknowledgement.
  * \param session SCCP Session Pointer
  */
-void sccp_session_tokenAck(sccp_session_t * session)
+void sccp_session_tokenAck(constSessionPtr session)
 {
 	sccp_msg_t *msg = NULL;
 
@@ -1368,7 +1371,7 @@ void sccp_session_tokenAck(sccp_session_t * session)
  * \param session SCCP Session Pointer
  * \param features Phone Features as Uint32_t
  */
-void sccp_session_tokenRejectSPCP(sccp_session_t * session, uint32_t features)
+void sccp_session_tokenRejectSPCP(constSessionPtr session, uint32_t features)
 {
 	sccp_msg_t *msg = NULL;
 
@@ -1382,7 +1385,7 @@ void sccp_session_tokenRejectSPCP(sccp_session_t * session, uint32_t features)
  * \param session SCCP Session Pointer
  * \param features Phone Features as Uint32_t
  */
-void sccp_session_tokenAckSPCP(sccp_session_t * session, uint32_t features)
+void sccp_session_tokenAckSPCP(constSessionPtr session, uint32_t features)
 {
 	sccp_msg_t *msg = NULL;
 

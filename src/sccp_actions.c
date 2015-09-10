@@ -219,7 +219,7 @@ void sccp_handle_LocationInfoMessage(constSessionPtr s, devicePtr d, constMessag
  * \todo Implement a decision when to send RegisterTokenAck and when to send RegisterTokenReject
  *       If sending RegisterTokenReject what should the lel_tokenRejWaitTime (BackOff time) be
  */
-void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_msg_t * msg_in)
+void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg_in)
 {
 	AUTO_RELEASE sccp_device_t *device = NULL;
 	char *deviceName = "";
@@ -268,18 +268,22 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 	/* no configuation for this device and no anonymous devices allowed */
 	if (!device) {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: not found\n", deviceName);
-		s = sccp_session_reject(s, "Unknown Device");
+		sccp_session_reject(s, "Unknown Device");
 		return;
 	}
 
-	sccp_session_addDevice(s, device);								// retaining device in session
+	{
+		sccp_session_t *session = (sccp_session_t * const) s;						// discard const session
+		session->protocolType = SCCP_PROTOCOL;
+		sccp_session_addDevice(session, device);								// retaining device in session
+	}
 	device->status.token = SCCP_TOKEN_STATE_REJ;
 	device->skinny_type = deviceType;
 
 	if (device->checkACL(device) == FALSE) {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&s->sin));
 		device->registrationState = SKINNY_DEVICE_RS_FAILED;
-		s = sccp_session_reject(s, "IP Not Authorized");
+		sccp_session_reject(s, "IP Not Authorized");
 		return;
 	}
 
@@ -376,7 +380,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
  * \todo Implement a decision when to send RegisterTokenAck and when to send RegisterTokenReject
  *       If sending RegisterTokenReject what should the lel_tokenRejWaitTime (BackOff time) be
  */
-void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_msg_t * msg_in)
+void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_in)
 {
 	AUTO_RELEASE sccp_device_t *device = NULL;
 	char *deviceName = "";
@@ -401,7 +405,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_msg
 	/* ip address range check */
 	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &s->sin)) {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName);
-		s = sccp_session_reject(s, "IP not authorized");
+		sccp_session_reject(s, "IP not authorized");
 		return;
 	}
 
@@ -433,11 +437,14 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_msg
 	if (!device) {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: not found\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName);
 		sccp_session_tokenRejectSPCP(s, 60);
-		s = sccp_session_reject(s, "Device not Accepted");
+		sccp_session_reject(s, "Device not Accepted");
 		return;
 	}
-	s->protocolType = SPCP_PROTOCOL;
-	sccp_session_addDevice(s, device);								// retaining device in session
+	{
+		sccp_session_t *session = (sccp_session_t * const) s;						// discard const session
+		session->protocolType = SPCP_PROTOCOL;
+		sccp_session_addDevice(session, device);								// retaining device in session
+	}
 	device->status.token = SCCP_TOKEN_STATE_REJ;
 	device->skinny_type = deviceType;
 
@@ -445,7 +452,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_msg
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&s->sin));
 		device->registrationState = SKINNY_DEVICE_RS_FAILED;
 		sccp_session_tokenRejectSPCP(s, 60);
-		s = sccp_session_reject(s, "IP Not Authorized");
+		sccp_session_reject(s, "IP Not Authorized");
 		return;
 	}
 
@@ -453,7 +460,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_msg
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", device->id);
 		device->registrationState = SKINNY_DEVICE_RS_FAILED;
 		sccp_session_tokenRejectSPCP(s, 60);
-		s = sccp_session_reject(s, "Crossover session not allowed");
+		sccp_session_reject(s, "Crossover session not allowed");
 		device->session = sccp_session_reject(device->session, "Crossover session not allowed");
 		return;
 	}
@@ -476,8 +483,10 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_msg
  * \callgraph
  * \callergraph
  */
-void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_t * msg_in)
+void sccp_handle_register(constSessionPtr session, devicePtr maybe_d, constMessagePtr msg_in)
 {
+	sccp_session_t * const s = (sccp_session_t * const) session;						// discard const session
+
 	AUTO_RELEASE sccp_device_t *device = NULL;
 	char *phone_ipv4 = NULL, *phone_ipv6 = NULL;
 
@@ -501,7 +510,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 
 	if (GLOB(reload_in_progress)) {
 		pbx_log(LOG_NOTICE, "SCCP: Reload in progress. Come back later.\n");
-		s = sccp_session_reject(s, "Reload in progress");
+		sccp_session_reject(s, "Reload in progress");
 		return;
 	}
 
@@ -554,13 +563,13 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 		if (device->checkACL(device) == FALSE) {
 			pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", deviceName, sccp_socket_stringify_addr(&s->sin));
 			device->registrationState = SKINNY_DEVICE_RS_FAILED;
-			s = sccp_session_reject(s, "IP Not Authorized");
+			sccp_session_reject(s, "IP Not Authorized");
 			return;
 		}
 
 	} else {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Device Unknown \n", deviceName);
-		s = sccp_session_reject(s, "Device Unknown");
+		sccp_session_reject(s, "Device Unknown");
 		return;
 	}
 
@@ -669,7 +678,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
  * \param d SCCP Device as sccp_device_t
  * \return Linked List of ButtonDefinitions
  */
-static btnlist *sccp_make_button_template(sccp_device_t * d)
+static btnlist *sccp_make_button_template(devicePtr d)
 {
 	int i = 0;
 	btnlist *btn;
@@ -1018,9 +1027,10 @@ void sccp_handle_unregister(constSessionPtr s, devicePtr d, constMessagePtr msg_
 	/* we don't need to look for active channels. the phone does send unregister only when there are no channels */
 	REQ(msg_out, UnregisterAckMessage);
 	msg_out->data.UnregisterAckMessage.lel_status = SKINNY_UNREGISTERSTATUS_OK;
-	sccp_session_send2(s, msg_out);										// send directly to session, skipping device check
+	sccp_session_send2(s, msg_out);								// send directly to session, skipping device check
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
-	sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_NONE);
+	
+	sccp_socket_stop_sessionthread((sessionPtr)s, SKINNY_DEVICE_RS_NONE);	/* discard const session */
 }
 
 /*!
@@ -1042,7 +1052,7 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 
 	if (d->registrationState != SKINNY_DEVICE_RS_PROGRESS && d->registrationState != SKINNY_DEVICE_RS_OK) {
 		pbx_log(LOG_WARNING, "%s: Received a button template request from unregistered device\n", d->id);
-		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+		sccp_socket_stop_sessionthread( (sessionPtr) s, SKINNY_DEVICE_RS_FAILED);		/* discard const */
 		return;
 	}
 
@@ -1057,7 +1067,7 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 
 	if (!btn) {
 		pbx_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
-		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+		sccp_socket_stop_sessionthread( (sessionPtr) s, SKINNY_DEVICE_RS_FAILED);		/* discard const */
 		return;
 	}
 
@@ -1888,7 +1898,7 @@ void sccp_handle_offhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
  * \param line Line Number as uint8_t
  * \param callid Call ID as uint32_t
  */
-void sccp_handle_backspace(constDevicePtr d, uint8_t lineInstance, uint32_t callid)
+void sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const uint32_t callid)
 {
 	sccp_msg_t *msg_out = NULL;
 
@@ -2289,7 +2299,7 @@ void sccp_handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMe
 	uint32_t transactionID = letohl(msg_in->data.SubscriptionStatReqMessage.lel_transactionID);										
 	uint32_t featureID = letohl(msg_in->data.SubscriptionStatReqMessage.lel_featureID);		/* LineInstance / BLF: 0x01 */
 	uint32_t timer = letohl(msg_in->data.SubscriptionStatReqMessage.lel_timer);			/* all 32 bits used */
-	char *subscriptionID = msg_in->data.SubscriptionStatReqMessage.subscriptionID;
+	char *subscriptionID = strdupa(msg_in->data.SubscriptionStatReqMessage.subscriptionID);
 
 	/* take transactionID apart */
 	uint32_t index = transactionID >> 4;								/* just 28 bits filled */
@@ -2313,7 +2323,7 @@ void sccp_handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMe
 	sccp_dev_send(d, msg_out);
 
 	/* sometimes a phone sends an ' ' entry, I think we can ignore this one */
-	if (sccp_strlen(msg_in->data.SubscriptionStatReqMessage.subscriptionID) <= 1) {
+	if (sccp_strlen(subscriptionID) <= 1) {
 		return;
 	}
 
@@ -3972,11 +3982,10 @@ void sccp_handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, c
  * \param d SCCP Device
  * \param msg_in SCCP Message
  */
-void sccp_handle_KeepAliveMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+void sccp_handle_KeepAliveMessage(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_in)
 {
 	sccp_msg_t *msg_out = sccp_build_packet(KeepAliveAckMessage, 0);
-
-	sccp_session_send2(s, msg_out);
+	sccp_session_send2(s, msg_out);					/* device existence is not guaranteed */
 }
 
 /*!

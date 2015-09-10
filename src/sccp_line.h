@@ -152,7 +152,7 @@ void sccp_line_addToGlobals(sccp_line_t * line);
 void sccp_line_removeFromGlobals(sccp_line_t * line);
 void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineInstance, sccp_subscription_id_t *subscriptionId);
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device);
-void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel);
+void sccp_line_addChannel(constLinePtr line, constChannelPtr channel);
 void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel);
 void sccp_line_clean(sccp_line_t * l, boolean_t destroy);
 void sccp_line_kill_channels(sccp_line_t * l);
@@ -166,14 +166,14 @@ sccp_line_t *sccp_line_find_byname(const char *name, uint8_t realtime);
 
 #if DEBUG
 #define sccp_line_find_byid(_x,_y) __sccp_line_find_byid(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
-sccp_line_t *__sccp_line_find_byid(sccp_device_t * d, uint16_t instance, const char *filename, int lineno, const char *func);
+sccp_line_t *__sccp_line_find_byid(constDevicePtr d, uint16_t instance, const char *filename, int lineno, const char *func);
 
 #ifdef CS_SCCP_REALTIME
 #define sccp_line_find_realtime_byname(_x) __sccp_line_find_realtime_byname(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_line_t *__sccp_line_find_realtime_byname(const char *name, const char *filename, int lineno, const char *func);
 #endif														// CS_SCCP_REALTIME
 #else														// DEBUG
-sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance);
+sccp_line_t *sccp_line_find_byid(constDevicePtr d, uint16_t instance);
 
 #ifdef CS_SCCP_REALTIME
 sccp_line_t *sccp_line_find_realtime_byname(const char *name);
