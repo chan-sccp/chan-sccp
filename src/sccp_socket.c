@@ -570,6 +570,7 @@ READ_SKIP:
 
 	/* process message */
 	if ((sccp_handle_message(msg, s) == 0)) {
+		s->lastKeepAlive = time(0);
 		return msg->header.length + 8;
 	} else {
 		return -2;

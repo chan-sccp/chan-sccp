@@ -174,7 +174,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
  * \param deviceIsNecessary Is a valid device necessary for this message to be processed, if it is, the device is retain during execution of this particular message parser
  * \return -1 or retained Device;
  */
-inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_msg_t * msg, const char *msgtypestr, boolean_t deviceIsNecessary)
+inline static sccp_device_t *check_session_message_device(constSessionPtr s, constMessagePtr msg, const char *msgtypestr, boolean_t deviceIsNecessary)
 {
 	sccp_device_t *d = NULL;
 
@@ -281,7 +281,7 @@ static const struct messageMap_cb spcpMessagesCbMap[] = {
  * \param       msg Message as sccp_msg_t
  * \param       s Session as sccp_session_t
  */
-int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
+int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 {
 	const struct messageMap_cb *messageMap_cb = NULL;
 	uint32_t mid = 0;
@@ -290,7 +290,8 @@ int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 	if (!s) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_handle_message) Client does not have a session which is required. Exiting sccp_handle_message !\n");
 		if (msg) {
-			sccp_free(msg);
+			sccp_msg_t * message = (sccp_msg_t *) msg;					/* discard const * const */
+			sccp_free(message);
 		}
 		return -1;
 	}
@@ -326,7 +327,6 @@ int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 	if (messageMap_cb->messageHandler_cb) {
 		messageMap_cb->messageHandler_cb(s, device, msg);
 	}
-	s->lastKeepAlive = time(0);
 
 	if (device && device->registrationState == SKINNY_DEVICE_RS_PROGRESS && mid == device->protocol->registrationFinishedMessageId) {
 		sccp_dev_set_registered(device, SKINNY_DEVICE_RS_OK);
