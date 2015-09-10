@@ -276,6 +276,7 @@ static const struct messageMap_cb sccpMessagesCbMap[] = {
 
 static const struct messageMap_cb spcpMessagesCbMap[] = {
 	[SPCPRegisterTokenRequest - SPCP_MESSAGE_OFFSET] = {sccp_handle_SPCPTokenReq, FALSE},
+	[UnknownVGMessage - SPCP_MESSAGE_OFFSET] = {NULL, FALSE},
 };
 /*!
  * \brief       Controller function to handle Received Messages
