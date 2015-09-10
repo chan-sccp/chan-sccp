@@ -571,6 +571,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 
 	/* process message */
 	if ((sccp_handle_message(msg, s) == 0)) {
+		s->lastKeepAlive = time(0);
 		return msg->header.length + 8;
 	} else {
 		return -2;
