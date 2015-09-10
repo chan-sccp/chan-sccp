@@ -24,7 +24,7 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t * c, sccp_line_t * line, sccp_channelstate_t state);
+static void __sccp_indicate_remote_device(const sccp_device_t * const device, const sccp_channel_t * const c, const sccp_line_t * const line, const sccp_channelstate_t state);
 
 /*!
  * \brief Indicate Without Lock
@@ -45,7 +45,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
  * 
  */
 //void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
-void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelstate_t state, uint8_t debug, char *file, int line, const char *pretty_function)
+void __sccp_indicate(const sccp_device_t * const device, const sccp_channel_t * const c, const sccp_channelstate_t state, const uint8_t debug, const char *file, const int line, const char *pretty_function)
 {
 	int instance = 0;
 
@@ -467,7 +467,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
  * \warning
  *  - line->devices is not always locked
  */
-static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t * c, sccp_line_t * line, sccp_channelstate_t state)
+static void __sccp_indicate_remote_device(const sccp_device_t * const device, const sccp_channel_t * const c, const sccp_line_t * const line, const sccp_channelstate_t state)
 {
 	int instance = 0;
 	sccp_phonebook_t phonebookRecord = SCCP_PHONEBOOK_NONE;

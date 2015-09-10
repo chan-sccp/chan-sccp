@@ -51,15 +51,25 @@ typedef unsigned long sccp_group_t;										/*!< SCCP callgroup / pickupgroup *
 typedef ULONG sccp_group_t;											/*!< SCCP callgroup / pickupgroup */
 #endif
 
-typedef struct sccp_channel sccp_channel_t;									/*!< SCCP Channel Structure */
 typedef struct sccp_session sccp_session_t;									/*!< SCCP Session Structure */
+typedef struct sccp_linedevices sccp_linedevices_t;								/*!< SCCP Line Connected to Devices */
+typedef struct sccp_device sccp_device_t;									/*!< SCCP Device Structure */
 typedef struct sccp_line sccp_line_t;										/*!< SCCP Line Structure */
+typedef struct sccp_channel sccp_channel_t;									/*!< SCCP Channel Structure */
 typedef struct sccp_speed sccp_speed_t;										/*!< SCCP Speed Structure */
 typedef struct sccp_service sccp_service_t;									/*!< SCCP Service Structure */
-typedef struct sccp_device sccp_device_t;									/*!< SCCP Device Structure */
 typedef struct sccp_addon sccp_addon_t;										/*!< SCCP Add-On Structure */
 typedef struct sccp_hint sccp_hint_t;										/*!< SCCP Hint Structure */
 typedef struct sccp_hostname sccp_hostname_t;									/*!< SCCP HostName Structure */
+
+#define sessionPtr sccp_session_t *const
+#define devicePtr sccp_device_t * const
+#define linePtr sccp_line_t *const
+#define channelPtr sccp_channel_t *const
+#define constSessionPtr const sccp_session_t * const
+#define constDevicePtr const sccp_device_t * const
+#define constLinePtr const sccp_line_t * const
+#define constChannelPtr const sccp_channel_t * const
 
 #ifdef CS_DEVSTATE_FEATURE
 typedef struct sccp_devstate_specifier sccp_devstate_specifier_t;						/*!< SCCP Custom DeviceState Specifier Structure */
@@ -71,7 +81,6 @@ typedef struct sccp_buttonconfig sccp_buttonconfig_t;								/*!< SCCP Button Co
 typedef struct sccp_hotline sccp_hotline_t;									/*!< SCCP Hotline Structure */
 typedef struct sccp_callinfo sccp_callinfo_t;									/*!< SCCP Call Information Structure */
 typedef struct sccp_call_statistics sccp_call_statistics_t;							/*!< SCCP Call Statistic Structure */
-typedef struct sccp_linedevices sccp_linedevices_t;								/*!< SCCP Line Connected to Devices */
 typedef struct softKeySetConfiguration sccp_softKeySetConfiguration_t;						/*!< SoftKeySet configuration */
 typedef struct sccp_mailbox sccp_mailbox_t;									/*!< SCCP Mailbox Type Definition */
 typedef struct subscriptionId sccp_subscription_id_t;								/*!< SCCP SubscriptionId Structure */

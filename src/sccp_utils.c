@@ -79,7 +79,7 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 	} while (cur < (len - 1));
 }
 
-void sccp_dump_msg(sccp_msg_t * msg)
+void sccp_dump_msg(const sccp_msg_t * const msg)
 {
 	sccp_dump_packet((unsigned char *) msg, letohl(msg->header.length) + 8);
 }

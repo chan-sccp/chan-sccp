@@ -1141,9 +1141,9 @@ void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t)
  * \param msg Message Data Structure (sccp_msg_t)
  * \return SCCP Session Send
  */
-int sccp_session_send(const sccp_device_t * device, sccp_msg_t * msg)
+int sccp_session_send(const sccp_device_t * const device, const sccp_msg_t * const msg)
 {
-	sccp_session_t *s = sccp_session_findByDevice(device);
+	const sccp_session_t * const s = sccp_session_findByDevice(device);
 
 	if (s && !s->session_stop) {
 		return sccp_session_send2(s, msg);
@@ -1161,7 +1161,7 @@ int sccp_session_send(const sccp_device_t * device, sccp_msg_t * msg)
  * \lock
  *      - session
  */
-int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg)
+int sccp_session_send2(const sccp_session_t * const s, const sccp_msg_t * const msg)
 {
 	ssize_t res = 0;
 	uint32_t msgid = letohl(msg->header.lel_messageId);
