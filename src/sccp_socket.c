@@ -515,7 +515,8 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	msg->header.length = letohl(msg->header.length);
 	if ((msgDataSegmentSize = sccp_dissect_header(s, &msg->header)) < 0) {
 		UnreadBytesAccordingToPacket = msg->header.length - 4;
-		goto READ_SKIP;
+		//goto READ_SKIP;
+		goto READ_ERROR;
 	}
 	// STAGE 2: read message data
 	msgDataSegmentSize -= SCCP_PACKET_HEADER;
@@ -545,7 +546,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Finished Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
 
 	// STAGE 3: discard the rest of UnreadBytesAccordingToPacket if it was bigger then msgDataSegmentSize
-READ_SKIP:
+//READ_SKIP:
 	if (UnreadBytesAccordingToPacket > 0) {									/* checking to prevent unneeded allocation of discardBuffer */
 		pbx_log(LOG_NOTICE, "%s: Going to Discard %d bytes of data for '%s' (%d) (Needs developer attention)\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
 		unsigned char discardBuffer[128];
