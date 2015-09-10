@@ -172,15 +172,15 @@ struct sccp_selectedchannel {
 	SCCP_LIST_ENTRY (sccp_selectedchannel_t) list;								/*!< Selected Channel Linked List Entry */
 };														/*!< SCCP Selected Channel Structure */
 /* live cycle */
-sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device);					// device is optional
-sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
+channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device);					// device is optional
+channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
 
 void sccp_channel_updateChannelDesignator(sccp_channel_t * c);
 void sccp_channel_updateMusicClass(sccp_channel_t * c, const sccp_line_t *l);
 void sccp_channel_updateChannelCapability(sccp_channel_t * channel);
 void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel_t * c);
 void sccp_channel_send_callinfo2(sccp_channel_t * c);
-void sccp_channel_setChannelstate(sccp_channel_t * channel, sccp_channelstate_t state);
+void sccp_channel_setChannelstate(channelPtr channel, sccp_channelstate_t state);
 void sccp_channel_display_callInfo(sccp_channel_t * channel);
 void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number);
 void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number);
@@ -191,23 +191,23 @@ void sccp_channel_set_calleridPresenceParameter(sccp_channel_t * c, sccp_calleri
 void sccp_channel_connect(sccp_channel_t * c);
 void sccp_channel_disconnect(sccp_channel_t * c);
 
-void sccp_channel_openReceiveChannel(sccp_channel_t * c);
-void sccp_channel_closeReceiveChannel(sccp_channel_t * c, boolean_t KeepPortOpen);
-void sccp_channel_updateReceiveChannel(sccp_channel_t * c);
-void sccp_channel_openMultiMediaReceiveChannel(sccp_channel_t * channel);
-void sccp_channel_closeMultiMediaReceiveChannel(sccp_channel_t * channel, boolean_t KeepPortOpen);
-void sccp_channel_updateMultiMediaReceiveChannel(sccp_channel_t * channel);
+void sccp_channel_openReceiveChannel(constChannelPtr c);
+void sccp_channel_closeReceiveChannel(constChannelPtr c, boolean_t KeepPortOpen);
+void sccp_channel_updateReceiveChannel(constChannelPtr c);
+void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel);
+void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean_t KeepPortOpen);
+void sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel);
 
-void sccp_channel_startMediaTransmission(sccp_channel_t * c);
-void sccp_channel_stopMediaTransmission(sccp_channel_t * c, boolean_t KeepPortOpen);
-void sccp_channel_updateMediaTransmission(sccp_channel_t * channel);
-void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel);
-void sccp_channel_stopMultiMediaTransmission(sccp_channel_t * channel, boolean_t KeepPortOpen);
-void sccp_channel_updateMultiMediaTransmission(sccp_channel_t * channel);
+void sccp_channel_startMediaTransmission(constChannelPtr c);
+void sccp_channel_stopMediaTransmission(constChannelPtr c, boolean_t KeepPortOpen);
+void sccp_channel_updateMediaTransmission(constChannelPtr channel);
+void sccp_channel_startMultiMediaTransmission(constChannelPtr channel);
+void sccp_channel_stopMultiMediaTransmission(constChannelPtr channel, boolean_t KeepPortOpen);
+void sccp_channel_updateMultiMediaTransmission(constChannelPtr channel);
 
 void sccp_channel_closeAllMediaTransmitAndReceive(sccp_device_t * d, sccp_channel_t * channel);
 
-boolean_t sccp_channel_transfer_on_hangup(sccp_channel_t * channel);
+boolean_t sccp_channel_transfer_on_hangup(constChannelPtr channel);
 gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel);
 gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t * channel, uint timeout);
 gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t * channel, uint timeout);

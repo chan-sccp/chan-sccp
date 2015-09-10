@@ -640,7 +640,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
  *  - line->channels is not always locked
  * 
  */
-void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel)
+void sccp_line_addChannel(constLinePtr line, constChannelPtr channel)
 {
 	if (!line || !channel) {
 		return;
@@ -924,14 +924,14 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
  * \param func Debug Function Name
  * \return SCCP Line (can be null)
  */
-sccp_line_t *__sccp_line_find_byid(sccp_device_t * d, uint16_t instance, const char *filename, int lineno, const char *func)
+sccp_line_t *__sccp_line_find_byid(constDevicePtr d, uint16_t instance, const char *filename, int lineno, const char *func)
 #else
 /*!
  * \param d SCCP Device
  * \param instance line instance as int
  * \return SCCP Line (can be null)
  */
-sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
+sccp_line_t *sccp_line_find_byid(constDevicePtr d, uint16_t instance)
 #endif
 {
 	sccp_line_t *l = NULL;
