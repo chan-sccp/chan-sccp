@@ -979,6 +979,16 @@ typedef enum skinny_tone {
 	SKINNY_TONE_MLPP_BNEA=0x7B,
 	SKINNY_TONE_MLPP_UPA=0x7C,
 	SKINNY_TONE_NOTONE=0x7F,
+	SKINNY_TONE_MEETME_GREETING=0x80,
+	SKINNY_TONE_MEETME_NUMBER_INVALID=0x81,
+	SKINNY_TONE_MEETME_NUMBER_FAILED=0x82,
+	SKINNY_TONE_MEETME_ENTER_PIN=0x83,
+	SKINNY_TONE_MEETME_INVALID_PIN=0x84,
+	SKINNY_TONE_MEETME_FAILED_PIN=0x85,
+	SKINNY_TONE_MEETME_CFB_FAILED=0x86,
+	SKINNY_TONE_MEETME_ENTER_ACCESS_CODE=0x87,
+	SKINNY_TONE_MEETME_ACCESS_CODE_INVALID=0x88,
+	SKINNY_TONE_MEETME_ACCESS_CODE_FAILED=0x89,
 	SKINNY_TONE_SENTINEL
 } skinny_tone_t;
 int skinny_tone_exists(int skinny_tone_int_value);
@@ -1404,25 +1414,27 @@ char *skinny_devicetype_all_entries(void);
 /* = End =========================================================================================       sparse skinny_devicetype === */
 
 
-/* = Begin =======================================================================================          skinny_encryptiontype === */
+/* = Begin =======================================================================================        skinny_encryptionmethod === */
 
 /*
- * \brief enum skinny_encryptiontype
+ * \brief enum skinny_encryptionmethod
  */
-typedef enum skinny_encryptiontype {
-	NO_ENCRYPTION=0x0,
-	AES_128_HMAC_SHA1_32=0x1,
-	AES_128_HMAC_SHA1_80=0x2,
-	CCM_F8_128_HMAC_SHA1_32=0x3,
-	CCM_F8_128_HMAC_SHA1_80=0x4,
-	SKINNY_ENCRYPTIONTYPE_SENTINEL
-} skinny_encryptiontype_t;
-int skinny_encryptiontype_exists(int skinny_encryptiontype_int_value);
-const char * skinny_encryptiontype2str(skinny_encryptiontype_t enum_value);
-skinny_encryptiontype_t skinny_encryptiontype_str2val(const char *lookup_str);
-int skinny_encryptiontype_str2intval(const char *lookup_str);
-char *skinny_encryptiontype_all_entries(void);
-/* = End =========================================================================================          skinny_encryptiontype === */
+typedef enum skinny_encryptionmethod {
+	SKINNY_ENCRYPTIONMETHOD_NONE=0x0,
+	SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_32=0x1,
+	SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_80=0x2,
+	SKINNY_ENCRYPTIONMETHOD_F8_128_HMAC_SHA1_32=0x3,
+	SKINNY_ENCRYPTIONMETHOD_F8_128_HMAC_SHA1_80=0x4,
+	SKINNY_ENCRYPTIONMETHOD_AEAD_AES_128_GCM=0x5,
+	SKINNY_ENCRYPTIONMETHOD_AEAD_AES_256_GCM=0x6,
+	SKINNY_ENCRYPTIONMETHOD_SENTINEL
+} skinny_encryptionmethod_t;
+int skinny_encryptionmethod_exists(int skinny_encryptionmethod_int_value);
+const char * skinny_encryptionmethod2str(skinny_encryptionmethod_t enum_value);
+skinny_encryptionmethod_t skinny_encryptionmethod_str2val(const char *lookup_str);
+int skinny_encryptionmethod_str2intval(const char *lookup_str);
+char *skinny_encryptionmethod_all_entries(void);
+/* = End =========================================================================================        skinny_encryptionmethod === */
 
 
 /* = Begin =======================================================================================         skinny_miscCommandType === */

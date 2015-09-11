@@ -2415,10 +2415,20 @@ static const char *skinny_tone_map[] = {"Silence",
 "MLPP Bnea",
 "MLPP Upa",
 "No Tone",
+"Meetme Greeting Tone",
+"Meetme Number Invalid Tone",
+"Meetme Number Failed Tone",
+"Meetme Enter Pin Tone",
+"Meetme Invalid Pin Tone",
+"Meetme Failed Pin Tone",
+"Meetme CFB Failed Tone",
+"Meetme Enter Access Code Tone",
+"Meetme Access Code Invalid Tone",
+"Meetme Access Code Failed Tone",
 };
 
 int skinny_tone_exists(int skinny_tone_int_value) {
-	static const int skinny_tones[] = {SKINNY_TONE_SILENCE,SKINNY_TONE_DTMF1,SKINNY_TONE_DTMF2,SKINNY_TONE_DTMF3,SKINNY_TONE_DTMF4,SKINNY_TONE_DTMF5,SKINNY_TONE_DTMF6,SKINNY_TONE_DTMF7,SKINNY_TONE_DTMF8,SKINNY_TONE_DTMF9,SKINNY_TONE_DTMF0,SKINNY_TONE_DTMFSTAR,SKINNY_TONE_DTMFPOUND,SKINNY_TONE_DTMFA,SKINNY_TONE_DTMFB,SKINNY_TONE_DTMFC,SKINNY_TONE_DTMFD,SKINNY_TONE_INSIDEDIALTONE,SKINNY_TONE_OUTSIDEDIALTONE,SKINNY_TONE_LINEBUSYTONE,SKINNY_TONE_ALERTINGTONE,SKINNY_TONE_REORDERTONE,SKINNY_TONE_RECORDERWARNINGTONE,SKINNY_TONE_RECORDERDETECTEDTONE,SKINNY_TONE_REVERTINGTONE,SKINNY_TONE_RECEIVEROFFHOOKTONE,SKINNY_TONE_PARTIALDIALTONE,SKINNY_TONE_NOSUCHNUMBERTONE,SKINNY_TONE_BUSYVERIFICATIONTONE,SKINNY_TONE_CALLWAITINGTONE,SKINNY_TONE_CONFIRMATIONTONE,SKINNY_TONE_CAMPONINDICATIONTONE,SKINNY_TONE_RECALLDIALTONE,SKINNY_TONE_ZIPZIP,SKINNY_TONE_ZIP,SKINNY_TONE_BEEPBONK,SKINNY_TONE_MUSICTONE,SKINNY_TONE_HOLDTONE,SKINNY_TONE_TESTTONE,SKINNY_TONE_DTMONITORWARNINGTONE,SKINNY_TONE_ADDCALLWAITING,SKINNY_TONE_PRIORITYCALLWAIT,SKINNY_TONE_RECALLDIAL,SKINNY_TONE_BARGIN,SKINNY_TONE_DISTINCTALERT,SKINNY_TONE_PRIORITYALERT,SKINNY_TONE_REMINDERRING,SKINNY_TONE_PRECEDENCE_RINGBACK,SKINNY_TONE_PREEMPTIONTONE,SKINNY_TONE_MF1,SKINNY_TONE_MF2,SKINNY_TONE_MF3,SKINNY_TONE_MF4,SKINNY_TONE_MF5,SKINNY_TONE_MF6,SKINNY_TONE_MF7,SKINNY_TONE_MF8,SKINNY_TONE_MF9,SKINNY_TONE_MF0,SKINNY_TONE_MFKP1,SKINNY_TONE_MFST,SKINNY_TONE_MFKP2,SKINNY_TONE_MFSTP,SKINNY_TONE_MFST3P,SKINNY_TONE_MILLIWATT,SKINNY_TONE_MILLIWATTTEST,SKINNY_TONE_HIGHTONE,SKINNY_TONE_FLASHOVERRIDE,SKINNY_TONE_FLASH,SKINNY_TONE_PRIORITY,SKINNY_TONE_IMMEDIATE,SKINNY_TONE_PREAMPWARN,SKINNY_TONE_2105HZ,SKINNY_TONE_2600HZ,SKINNY_TONE_440HZ,SKINNY_TONE_300HZ,SKINNY_TONE_MLPP_PALA,SKINNY_TONE_MLPP_ICA,SKINNY_TONE_MLPP_VCA,SKINNY_TONE_MLPP_BPA,SKINNY_TONE_MLPP_BNEA,SKINNY_TONE_MLPP_UPA,SKINNY_TONE_NOTONE,};
+	static const int skinny_tones[] = {SKINNY_TONE_SILENCE,SKINNY_TONE_DTMF1,SKINNY_TONE_DTMF2,SKINNY_TONE_DTMF3,SKINNY_TONE_DTMF4,SKINNY_TONE_DTMF5,SKINNY_TONE_DTMF6,SKINNY_TONE_DTMF7,SKINNY_TONE_DTMF8,SKINNY_TONE_DTMF9,SKINNY_TONE_DTMF0,SKINNY_TONE_DTMFSTAR,SKINNY_TONE_DTMFPOUND,SKINNY_TONE_DTMFA,SKINNY_TONE_DTMFB,SKINNY_TONE_DTMFC,SKINNY_TONE_DTMFD,SKINNY_TONE_INSIDEDIALTONE,SKINNY_TONE_OUTSIDEDIALTONE,SKINNY_TONE_LINEBUSYTONE,SKINNY_TONE_ALERTINGTONE,SKINNY_TONE_REORDERTONE,SKINNY_TONE_RECORDERWARNINGTONE,SKINNY_TONE_RECORDERDETECTEDTONE,SKINNY_TONE_REVERTINGTONE,SKINNY_TONE_RECEIVEROFFHOOKTONE,SKINNY_TONE_PARTIALDIALTONE,SKINNY_TONE_NOSUCHNUMBERTONE,SKINNY_TONE_BUSYVERIFICATIONTONE,SKINNY_TONE_CALLWAITINGTONE,SKINNY_TONE_CONFIRMATIONTONE,SKINNY_TONE_CAMPONINDICATIONTONE,SKINNY_TONE_RECALLDIALTONE,SKINNY_TONE_ZIPZIP,SKINNY_TONE_ZIP,SKINNY_TONE_BEEPBONK,SKINNY_TONE_MUSICTONE,SKINNY_TONE_HOLDTONE,SKINNY_TONE_TESTTONE,SKINNY_TONE_DTMONITORWARNINGTONE,SKINNY_TONE_ADDCALLWAITING,SKINNY_TONE_PRIORITYCALLWAIT,SKINNY_TONE_RECALLDIAL,SKINNY_TONE_BARGIN,SKINNY_TONE_DISTINCTALERT,SKINNY_TONE_PRIORITYALERT,SKINNY_TONE_REMINDERRING,SKINNY_TONE_PRECEDENCE_RINGBACK,SKINNY_TONE_PREEMPTIONTONE,SKINNY_TONE_MF1,SKINNY_TONE_MF2,SKINNY_TONE_MF3,SKINNY_TONE_MF4,SKINNY_TONE_MF5,SKINNY_TONE_MF6,SKINNY_TONE_MF7,SKINNY_TONE_MF8,SKINNY_TONE_MF9,SKINNY_TONE_MF0,SKINNY_TONE_MFKP1,SKINNY_TONE_MFST,SKINNY_TONE_MFKP2,SKINNY_TONE_MFSTP,SKINNY_TONE_MFST3P,SKINNY_TONE_MILLIWATT,SKINNY_TONE_MILLIWATTTEST,SKINNY_TONE_HIGHTONE,SKINNY_TONE_FLASHOVERRIDE,SKINNY_TONE_FLASH,SKINNY_TONE_PRIORITY,SKINNY_TONE_IMMEDIATE,SKINNY_TONE_PREAMPWARN,SKINNY_TONE_2105HZ,SKINNY_TONE_2600HZ,SKINNY_TONE_440HZ,SKINNY_TONE_300HZ,SKINNY_TONE_MLPP_PALA,SKINNY_TONE_MLPP_ICA,SKINNY_TONE_MLPP_VCA,SKINNY_TONE_MLPP_BPA,SKINNY_TONE_MLPP_BNEA,SKINNY_TONE_MLPP_UPA,SKINNY_TONE_NOTONE,SKINNY_TONE_MEETME_GREETING,SKINNY_TONE_MEETME_NUMBER_INVALID,SKINNY_TONE_MEETME_NUMBER_FAILED,SKINNY_TONE_MEETME_ENTER_PIN,SKINNY_TONE_MEETME_INVALID_PIN,SKINNY_TONE_MEETME_FAILED_PIN,SKINNY_TONE_MEETME_CFB_FAILED,SKINNY_TONE_MEETME_ENTER_ACCESS_CODE,SKINNY_TONE_MEETME_ACCESS_CODE_INVALID,SKINNY_TONE_MEETME_ACCESS_CODE_FAILED,};
 	uint32_t idx;
 	for (idx=0; idx < ARRAY_LEN(skinny_tones); idx++) {
 		if (skinny_tones[idx]==skinny_tone_int_value) {
@@ -2513,6 +2523,16 @@ const char * skinny_tone2str(skinny_tone_t enum_value) {
 		case SKINNY_TONE_MLPP_BNEA: return skinny_tone_map[80];
 		case SKINNY_TONE_MLPP_UPA: return skinny_tone_map[81];
 		case SKINNY_TONE_NOTONE: return skinny_tone_map[82];
+		case SKINNY_TONE_MEETME_GREETING: return skinny_tone_map[83];
+		case SKINNY_TONE_MEETME_NUMBER_INVALID: return skinny_tone_map[84];
+		case SKINNY_TONE_MEETME_NUMBER_FAILED: return skinny_tone_map[85];
+		case SKINNY_TONE_MEETME_ENTER_PIN: return skinny_tone_map[86];
+		case SKINNY_TONE_MEETME_INVALID_PIN: return skinny_tone_map[87];
+		case SKINNY_TONE_MEETME_FAILED_PIN: return skinny_tone_map[88];
+		case SKINNY_TONE_MEETME_CFB_FAILED: return skinny_tone_map[89];
+		case SKINNY_TONE_MEETME_ENTER_ACCESS_CODE: return skinny_tone_map[90];
+		case SKINNY_TONE_MEETME_ACCESS_CODE_INVALID: return skinny_tone_map[91];
+		case SKINNY_TONE_MEETME_ACCESS_CODE_FAILED: return skinny_tone_map[92];
 		default:
 			pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_tone2str\n", enum_value);
 			return "SCCP: OutOfBounds Error during lookup of sparse skinny_tone2str\n";
@@ -2686,6 +2706,26 @@ skinny_tone_t skinny_tone_str2val(const char *lookup_str) {
 		return SKINNY_TONE_MLPP_UPA;
 	} else if (sccp_strcaseequals(skinny_tone_map[82], lookup_str)) {
 		return SKINNY_TONE_NOTONE;
+	} else if (sccp_strcaseequals(skinny_tone_map[83], lookup_str)) {
+		return SKINNY_TONE_MEETME_GREETING;
+	} else if (sccp_strcaseequals(skinny_tone_map[84], lookup_str)) {
+		return SKINNY_TONE_MEETME_NUMBER_INVALID;
+	} else if (sccp_strcaseequals(skinny_tone_map[85], lookup_str)) {
+		return SKINNY_TONE_MEETME_NUMBER_FAILED;
+	} else if (sccp_strcaseequals(skinny_tone_map[86], lookup_str)) {
+		return SKINNY_TONE_MEETME_ENTER_PIN;
+	} else if (sccp_strcaseequals(skinny_tone_map[87], lookup_str)) {
+		return SKINNY_TONE_MEETME_INVALID_PIN;
+	} else if (sccp_strcaseequals(skinny_tone_map[88], lookup_str)) {
+		return SKINNY_TONE_MEETME_FAILED_PIN;
+	} else if (sccp_strcaseequals(skinny_tone_map[89], lookup_str)) {
+		return SKINNY_TONE_MEETME_CFB_FAILED;
+	} else if (sccp_strcaseequals(skinny_tone_map[90], lookup_str)) {
+		return SKINNY_TONE_MEETME_ENTER_ACCESS_CODE;
+	} else if (sccp_strcaseequals(skinny_tone_map[91], lookup_str)) {
+		return SKINNY_TONE_MEETME_ACCESS_CODE_INVALID;
+	} else if (sccp_strcaseequals(skinny_tone_map[92], lookup_str)) {
+		return SKINNY_TONE_MEETME_ACCESS_CODE_FAILED;
 	}
 	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, skinny_tone_str2val(%s) not found\n", lookup_str);
 	return SKINNY_TONE_SENTINEL;
@@ -2697,7 +2737,7 @@ int skinny_tone_str2intval(const char *lookup_str) {
 }
 
 char *skinny_tone_all_entries(void) {
-	static char res[] = "Silence,DTMF 1,DTMF 2,DTMF 3,DTMF 4,DTMF 5,DTMF 6,DTMF 7,DTMF 8,DTMF 9,DTMF 0,DTMF Star,DTMF Pound,DTMF A,DTMF B,DTMF C,DTMF D,Inside Dial Tone,Outside Dial Tone,Line Busy Tone,Alerting Tone,Reorder Tone,Recorder Warning Tone,Recorder Detected Tone,Reverting Tone,Receiver OffHook Tone,Partial Dial Tone,No Such Number Tone,Busy Verification Tone,Call Waiting Tone,Confirmation Tone,Camp On Indication Tone,Recall Dial Tone,Zip Zip,Zip,Beep Bonk,Music Tone,Hold Tone,Test Tone,DT Monitor Warning Tone,Add Call Waiting,Priority Call Wait,Recall Dial,Barg In,Distinct Alert,Priority Alert,Reminder Ring,Precedence RingBank,Pre-EmptionTone,MF1,MF2,MF3,MF4,MF5,MF6,MF7,MF8,MF9,MF0,MFKP1,MFST,MFKP2,MFSTP,MFST3P,MILLIWATT,MILLIWATT TEST,HIGH TONE,FLASH OVERRIDE,FLASH,PRIORITY,IMMEDIATE,PRE-AMP WARN,2105 HZ,2600 HZ,440 HZ,300 HZ,MLPP Pala,MLPP Ica,MLPP Vca,MLPP Bpa,MLPP Bnea,MLPP Upa,No Tone";
+	static char res[] = "Silence,DTMF 1,DTMF 2,DTMF 3,DTMF 4,DTMF 5,DTMF 6,DTMF 7,DTMF 8,DTMF 9,DTMF 0,DTMF Star,DTMF Pound,DTMF A,DTMF B,DTMF C,DTMF D,Inside Dial Tone,Outside Dial Tone,Line Busy Tone,Alerting Tone,Reorder Tone,Recorder Warning Tone,Recorder Detected Tone,Reverting Tone,Receiver OffHook Tone,Partial Dial Tone,No Such Number Tone,Busy Verification Tone,Call Waiting Tone,Confirmation Tone,Camp On Indication Tone,Recall Dial Tone,Zip Zip,Zip,Beep Bonk,Music Tone,Hold Tone,Test Tone,DT Monitor Warning Tone,Add Call Waiting,Priority Call Wait,Recall Dial,Barg In,Distinct Alert,Priority Alert,Reminder Ring,Precedence RingBank,Pre-EmptionTone,MF1,MF2,MF3,MF4,MF5,MF6,MF7,MF8,MF9,MF0,MFKP1,MFST,MFKP2,MFSTP,MFST3P,MILLIWATT,MILLIWATT TEST,HIGH TONE,FLASH OVERRIDE,FLASH,PRIORITY,IMMEDIATE,PRE-AMP WARN,2105 HZ,2600 HZ,440 HZ,300 HZ,MLPP Pala,MLPP Ica,MLPP Vca,MLPP Bpa,MLPP Bnea,MLPP Upa,No Tone,Meetme Greeting Tone,Meetme Number Invalid Tone,Meetme Number Failed Tone,Meetme Enter Pin Tone,Meetme Invalid Pin Tone,Meetme Failed Pin Tone,Meetme CFB Failed Tone,Meetme Enter Access Code Tone,Meetme Access Code Invalid Tone,Meetme Access Code Failed Tone";
 	return res;
 }
 /* = End =========================================================================================             sparse skinny_tone === */
@@ -4059,56 +4099,58 @@ char *skinny_devicetype_all_entries(void) {
 /* = End =========================================================================================       sparse skinny_devicetype === */
 
 
-/* = Begin =======================================================================================          skinny_encryptiontype === */
+/* = Begin =======================================================================================        skinny_encryptionmethod === */
 
 /*!
  * \brief Skinny Device Registration (ENUM)
  */
-static const char *skinny_encryptiontype_map[] = {
-	[NO_ENCRYPTION] = "No Encryption",
-	[AES_128_HMAC_SHA1_32] = "AES128 SHA1 32",
-	[AES_128_HMAC_SHA1_80] = "AES128 SHA1 80",
-	[CCM_F8_128_HMAC_SHA1_32] = "HMAC_SHA1_32",
-	[CCM_F8_128_HMAC_SHA1_80] = "HMAC_SHA1_80",
-	[SKINNY_ENCRYPTIONTYPE_SENTINEL] = "LOOKUPERROR"
+static const char *skinny_encryptionmethod_map[] = {
+	[SKINNY_ENCRYPTIONMETHOD_NONE] = "No Encryption",
+	[SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_32] = "AES128 SHA1 32",
+	[SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_80] = "AES128 SHA1 80",
+	[SKINNY_ENCRYPTIONMETHOD_F8_128_HMAC_SHA1_32] = "HMAC_SHA1_32",
+	[SKINNY_ENCRYPTIONMETHOD_F8_128_HMAC_SHA1_80] = "HMAC_SHA1_80",
+	[SKINNY_ENCRYPTIONMETHOD_AEAD_AES_128_GCM] = "AES 128 GCM",
+	[SKINNY_ENCRYPTIONMETHOD_AEAD_AES_256_GCM] = "AES 256 GCM",
+	[SKINNY_ENCRYPTIONMETHOD_SENTINEL] = "LOOKUPERROR"
 };
 
-int skinny_encryptiontype_exists(int skinny_encryptiontype_int_value) {
-	if ((AES_128_HMAC_SHA1_32 <=skinny_encryptiontype_int_value) && (skinny_encryptiontype_int_value < SKINNY_ENCRYPTIONTYPE_SENTINEL )) {
+int skinny_encryptionmethod_exists(int skinny_encryptionmethod_int_value) {
+	if ((SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_32 <=skinny_encryptionmethod_int_value) && (skinny_encryptionmethod_int_value < SKINNY_ENCRYPTIONMETHOD_SENTINEL )) {
 		return 1;
 	}
 	return 0;
 }
 
-const char * skinny_encryptiontype2str(skinny_encryptiontype_t enum_value) {
-	if ((NO_ENCRYPTION <= enum_value) && (enum_value <= SKINNY_ENCRYPTIONTYPE_SENTINEL)) {
-		return skinny_encryptiontype_map[enum_value];
+const char * skinny_encryptionmethod2str(skinny_encryptionmethod_t enum_value) {
+	if ((SKINNY_ENCRYPTIONMETHOD_NONE <= enum_value) && (enum_value <= SKINNY_ENCRYPTIONMETHOD_SENTINEL)) {
+		return skinny_encryptionmethod_map[enum_value];
 	}
-	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_encryptiontype2str\n", enum_value);
-	return "SCCP: OutOfBounds Error during lookup of skinny_encryptiontype2str\n";
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_encryptionmethod2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of skinny_encryptionmethod2str\n";
 }
 
-skinny_encryptiontype_t skinny_encryptiontype_str2val(const char *lookup_str) {
+skinny_encryptionmethod_t skinny_encryptionmethod_str2val(const char *lookup_str) {
 	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(skinny_encryptiontype_map); idx++) {
-		if (sccp_strcaseequals(skinny_encryptiontype_map[idx], lookup_str)) {
+	for (idx = 0; idx < ARRAY_LEN(skinny_encryptionmethod_map); idx++) {
+		if (sccp_strcaseequals(skinny_encryptionmethod_map[idx], lookup_str)) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, skinny_encryptiontype_str2val(%s) not found\n", lookup_str);
-	return SKINNY_ENCRYPTIONTYPE_SENTINEL;
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, skinny_encryptionmethod_str2val(%s) not found\n", lookup_str);
+	return SKINNY_ENCRYPTIONMETHOD_SENTINEL;
 }
 
-int skinny_encryptiontype_str2intval(const char *lookup_str) {
-	int res = skinny_encryptiontype_str2val(lookup_str);
-	return (int)res != SKINNY_ENCRYPTIONTYPE_SENTINEL ? res : -1;
+int skinny_encryptionmethod_str2intval(const char *lookup_str) {
+	int res = skinny_encryptionmethod_str2val(lookup_str);
+	return (int)res != SKINNY_ENCRYPTIONMETHOD_SENTINEL ? res : -1;
 }
 
-char *skinny_encryptiontype_all_entries(void) {
-	static char res[] = "No Encryption,AES128 SHA1 32,AES128 SHA1 80,HMAC_SHA1_32,HMAC_SHA1_80";
+char *skinny_encryptionmethod_all_entries(void) {
+	static char res[] = "No Encryption,AES128 SHA1 32,AES128 SHA1 80,HMAC_SHA1_32,HMAC_SHA1_80,AES 128 GCM,AES 256 GCM";
 	return res;
 }
-/* = End =========================================================================================          skinny_encryptiontype === */
+/* = End =========================================================================================        skinny_encryptionmethod === */
 
 
 /* = Begin =======================================================================================         skinny_miscCommandType === */
