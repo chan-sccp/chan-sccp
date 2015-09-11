@@ -2629,7 +2629,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 		return;
 	}
 
-	if (event - 1 < 0 && event -1 > ARRAY_LEN(softkeysmap)) {
+	if ((int)event - 1 < 0 && (int)event - 1 > ARRAY_LEN(softkeysmap)) {
 		pbx_log(LOG_ERROR, "SCCP: Received Softkey Event is out of bounds of softkeysmap (0 < %ld < %ld). Exiting\n", (long)(letohl(msg_in->data.SoftKeyEventMessage.lel_softKeyEvent) - 1), (long)ARRAY_LEN(softkeysmap));
 		return;
 	}
