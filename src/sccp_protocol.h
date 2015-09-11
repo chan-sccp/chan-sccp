@@ -175,6 +175,7 @@ typedef enum {
 	SKINNY_CODEC_G729_ANNEX_B 			= 0x0055,
 	SKINNY_CODEC_G729_B_LOW 			= 0x0056,		// ILBC
 	SKINNY_CODEC_ISAC 				= 0x0059,
+	SKINNY_CODEC_OPUS				= 0x005a,		// New
 	SKINNY_CODEC_AMR				= 0x0061,
 	SKINNY_CODEC_AMR_WB				= 0x0062,
 	SKINNY_CODEC_H261 				= 0x0064,
@@ -200,6 +201,7 @@ typedef enum {
 	SKINNY_CODEC_DTMF_DYNAMIC    			= 0x0103,
 	SKINNY_CODEC_DTMF_OOB				= 0x0104,		// OUTOFBAND
 	SKINNY_CODEC_DTMF_IB_RFC2833			= 0x0105,		// INBAND
+	SKINNY_CODEC_CFB_TONES				= 0x0106,
 	SKINNY_CODEC_DTMF_NOAUDIO  			= 0x012B,
 	SKINNY_CODEC_V150_LC_MODEM_RELAY		= 0x012C,
 	SKINNY_CODEC_V150_LC_SPRT			= 0x012D,
@@ -269,6 +271,7 @@ static const struct skinny_codec skinny_codecs[] = {
 	{SKINNY_CODEC_G729_AB,		SKINNY_CODEC_TYPE_AUDIO,	"g729",		"g729ab",	"G.729 Annex A + B", 			NULL,		8000,	1,	18},
 	{SKINNY_CODEC_G729_ANNEX_B,	SKINNY_CODEC_TYPE_AUDIO, 	"g729",		"g729/annex/b",	"G.729 Annex B", 			NULL,		8000,	1,	18},
 	{SKINNY_CODEC_ISAC,		SKINNY_CODEC_TYPE_AUDIO,	"isac",		"isac",		"iSAC", 				NULL,		8000,	1,	0},	//payload unknown
+	{SKINNY_CODEC_OPUS,		SKINNY_CODEC_TYPE_AUDIO,	"opus",		"opus",		"Opus", 				NULL,		16000,	1,	0},	//new opus payload support
 	{SKINNY_CODEC_H224,		SKINNY_CODEC_TYPE_AUDIO,	"h224",		"h224",		"H.224", 				NULL,		8000,	1,	31},
 	{SKINNY_CODEC_AAC,		SKINNY_CODEC_TYPE_AUDIO, 	"aac",		"aac",		"AAC", 					NULL,		8000,	1,	0},
 	{SKINNY_CODEC_MP4A_LATM_128,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_128","mp4a_latm_128","mp4a latm 128k",			NULL,		128000,	1,	0},
@@ -305,6 +308,7 @@ static const struct skinny_codec skinny_codecs[] = {
 	{SKINNY_CODEC_DTMF_DYNAMIC,	SKINNY_CODEC_TYPE_MIXED,	"dynamic",	"dynamic",	"DTMF Dynamic",				NULL,		0,	1,	0},
 	{SKINNY_CODEC_DTMF_OOB,		SKINNY_CODEC_TYPE_MIXED,	"oob",		"oob",		"DTMF Out of Band",			NULL,		0,	1,	0},
 	{SKINNY_CODEC_DTMF_IB_RFC2833,	SKINNY_CODEC_TYPE_MIXED,	"rfc2833(ib)",	"rfc2833(ib)",	"DTMF RFC2833 In band",			NULL,		0,	1,	0},
+	{SKINNY_CODEC_CFB_TONES,	SKINNY_CODEC_TYPE_MIXED,	"cfb",		"cfb",		"CFB Tones",				NULL,		0,	1,	0},
 	{SKINNY_CODEC_DTMF_NOAUDIO,	SKINNY_CODEC_TYPE_MIXED,	"noaudio",	"noaudio",	"DTMF NoAudio",				NULL,		0,	1,	0},
 	{SKINNY_CODEC_V150_LC_MODEM_RELAY,SKINNY_CODEC_TYPE_MIXED,	"v150_modem",	"v150_modem", 	"v150_lc_modem_relay",			NULL,		0,	1,	0},
 	{SKINNY_CODEC_V150_LC_SPRT,	SKINNY_CODEC_TYPE_MIXED,	"v150_sprt",	"v150_sprt",	"v150_lc_sprt",				NULL,		0,	1,	0},
@@ -523,7 +527,7 @@ typedef enum {
 	StartMediaTransmissionAck 			= 0x0154,
 	StartMultiMediaTransmissionAck 			= 0x0155,
 	CallHistoryInfoMessage 				= 0x0156,
-	WifiMessage					= 0x0157,	/* new (2015-09-08), send by 7925/7926 using firmware version 1.4.7.3 */
+	LocationInfoMessage				= 0x0157,	/* new (2015-09-08), send by 7925/7926 using firmware version 1.4.7.3 */
 
 	MwiResponseMessage 				= 0x0158,	/*new (2013-12-9)*/
 	ExtensionDeviceCaps 				= 0x0159,
@@ -572,7 +576,7 @@ typedef struct {
 } EncryptionKey;
 
 typedef struct {
-	skinny_encryptiontype_t algorithm;
+	skinny_encryptionmethod_t algorithm;
 	uint16_t keylen;
 	uint16_t saltlen;
 	EncryptionKey keyData;
@@ -1664,6 +1668,7 @@ typedef union {
 		char ipv6Address[16];
 		uint32_t lel_ipV6AddressScope;
 		char loadInfo[32];
+		char configVersionStamp[48];									/* New since 11.5 */
 
 		/* 7910:
 		   02 00 00 00 // protocolVer (1st bit)
@@ -3003,7 +3008,7 @@ typedef union {
 	 */
 	struct {
 		char xmldata[2404];
-	} WifiMessage;
+	} LocationInfoMessage;
 
 	// empty / unresearched structs
 	// 00000000 - 08 00 00 00 00 00 00 00  2D 00 00 00 00 00 00 00  // 7960 -- 6 buttons
@@ -3404,7 +3409,7 @@ static const struct messagetype sccp_messagetypes[] = {
 	[StartMediaTransmissionAck] = { 		"Start Media Transmission Acknowledge", 	offsize(sccp_data_t, StartMediaTransmissionAck)},
 	[StartMultiMediaTransmissionAck] = { 		"Start Media Transmission Acknowledge", 	offsize(sccp_data_t, StartMultiMediaTransmissionAck)},
 	[CallHistoryInfoMessage] = { 			"Call History Info", 				offsize(sccp_data_t, CallHistoryInfoMessage)},
-	[WifiMessage] = { 				"Wifi Information", 				offsize(sccp_data_t, WifiMessage)},
+	[LocationInfoMessage] = {			"Location/Wifi Information",			offsize(sccp_data_t, LocationInfoMessage)},
 	[ExtensionDeviceCaps] = { 			"Extension Device Capabilities Message", 	offsize(sccp_data_t, ExtensionDeviceCaps)},
 	[XMLAlarmMessage] = { 				"XML-AlarmMessage", 				offsize(sccp_data_t, XMLAlarmMessage)},
 	[MediaPathCapabilityMessage] = {		"MediaPath Capability Message",			offsize(sccp_data_t, MediaPathCapabilityMessage)},

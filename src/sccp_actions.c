@@ -187,15 +187,15 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sc
 }
 
 /*!
- * \brief Handle Unknown Wifi Message send by Wireless devices like 792X
+ * \brief Handle LocationInfo Message send by Wireless devices like 792X
  * \param no_s SCCP Session = NULL
  * \param no_d SCCP Device = NULL
  * \param msg_in SCCP Message
  */
-void sccp_handle_WifiMessage(sccp_session_t * no_s, sccp_device_t * no_d, sccp_msg_t * msg_in)
+void sccp_handle_LocationInfoMessage(sccp_session_t * no_s, sccp_device_t * no_d, sccp_msg_t * msg_in)
 {
-	char *xmldata = sccp_strdupa(msg_in->data.WifiMessage.xmldata);
-	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_2 "SCCP WIFI_Message: %s\n", xmldata);
+	char *xmldata = sccp_strdupa(msg_in->data.LocationInfoMessage.xmldata);
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_2 "SCCP: LocationInfo (WIFI) Message: %s\n", xmldata);
 	
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
 		sccp_dump_msg(msg_in);

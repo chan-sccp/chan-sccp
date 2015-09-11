@@ -156,7 +156,12 @@ static const struct pbx2skinny_codec_map {
 #    endif
 #    ifdef AST_FORMAT_SIREN7
 	{AST_FORMAT_SIREN7, 	SKINNY_CODEC_G722_1_24K},			// should this not be SKINNY_CODEC_G722_1_32K
+#    endif
+#    ifdef AST_FORMAT_SIREN14
 	{AST_FORMAT_SIREN14, 	SKINNY_CODEC_G722_1_32K},			// should this not be SKINNY_CODEC_G722_1_48K
+#    endif
+#    ifdef AST_FORMAT_OPUS
+	{AST_FORMAT_OPUS, 	SKINNY_CODEC_OPUS},
 #    endif
 	/* *INDENT-ON* */
 };
