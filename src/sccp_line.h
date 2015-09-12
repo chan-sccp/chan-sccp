@@ -26,8 +26,8 @@
 #define sccp_line_retain(_x) 		({ast_assert(_x != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #define sccp_line_release(_x) 		({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #endif
-#define sccp_linedevice_refreplace(_x, _y) ({sccp_refcount_replace((void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_line_refreplace(_x, _y)	({sccp_refcount_replace((void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_linedevice_refreplace(_x, _y) ({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_line_refreplace(_x, _y)	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 /*!
  * \brief SCCP cfwd information
  */
@@ -159,7 +159,7 @@ void sccp_line_kill_channels(sccp_line_t * l);
 
 sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line);
 void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c);
-void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, sccp_callforward_t type, char *number);
+void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number);
 
 // find line
 sccp_line_t *sccp_line_find_byname(const char *name, uint8_t realtime);

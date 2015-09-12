@@ -3125,7 +3125,7 @@ static int sccp_start_call(int fd, int argc, char *argv[])
 	if (d && d->defaultLineInstance > 0) {
 		line = sccp_line_find_byid(d, d->defaultLineInstance);
 	} else {
-		line = sccp_dev_get_activeline(d);
+		line = sccp_dev_getActiveLine(d);
 	}
 
 	if (!line) {

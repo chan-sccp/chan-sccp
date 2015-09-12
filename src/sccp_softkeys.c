@@ -62,7 +62,7 @@ static sccp_line_t *sccp_sk_get_retained_line(sccp_device_t * d, sccp_line_t * l
 	if (d && lineInstance && (line = sccp_line_find_byid(d, lineInstance))) {
 		return line;
 	}
-	if (d && d->currentLine && (line = sccp_dev_get_activeline(d))) {
+	if (d && d->currentLine && (line = sccp_dev_getActiveLine(d))) {
 		return line;
 	}
 	if (d && d->defaultLineInstance > 0 && (line = sccp_line_find_byid(d, d->defaultLineInstance))) {
@@ -649,7 +649,7 @@ static void sccp_sk_private(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Creating new PRIVATE channel\n", d->id);
 		if (line) {
 			instance = sccp_device_find_index_for_line(d, l->name);
-			sccp_dev_set_activeline(d, l);
+			sccp_dev_setActiveLine(d, l);
 			sccp_dev_set_cplane(d, instance, 1);
 			channel = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		}

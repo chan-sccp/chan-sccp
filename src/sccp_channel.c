@@ -1507,7 +1507,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		if (!linedevice1) {
 
 			/** this device does not have the original line, mybe it is pickedup with cli or ami function */
-			AUTO_RELEASE sccp_line_t *activeLine = sccp_dev_get_activeline(device);
+			AUTO_RELEASE sccp_line_t *activeLine = sccp_dev_getActiveLine(device);
 
 			if (!activeLine) {
 				return;
@@ -1599,7 +1599,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 
 		if (d) {
 			sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Set Active Line\n", d->id);
-			sccp_dev_set_activeline(d, channel->line);
+			sccp_dev_setActiveLine(d, channel->line);
 
 			/* the old channel state could be CALLTRANSFER, so the bridged channel is on hold */
 			/* do we need this ? -FS */
@@ -1661,7 +1661,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
  * \callgraph
  * \callergraph
  */
-int sccp_channel_hold(sccp_channel_t * channel)
+int sccp_channel_hold(channelPtr channel)
 {
 	uint16_t instance;
 
@@ -1722,7 +1722,7 @@ int sccp_channel_hold(sccp_channel_t * channel)
 		}
 	}
 	//sccp_rtp_stop(channel);
-	sccp_dev_set_activeline(d, NULL);
+	sccp_dev_setActiveLine(d, NULL);
 	sccp_indicate(d, channel, SCCP_CHANNELSTATE_HOLD);							// this will also close (but not destroy) the RTP stream
 	sccp_channel_setDevice(channel, NULL);
 
@@ -1751,7 +1751,7 @@ int sccp_channel_hold(sccp_channel_t * channel)
  * \callergraph
  * 
  */
-int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolean_t swap_channels)
+int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swap_channels)
 {
 	uint16_t instance;
 
@@ -1962,7 +1962,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 			SCCP_LIST_UNLOCK(&d->selectedChannels);
 			sccp_free(sccp_selected_channel);
 		}
-		sccp_dev_set_activeline(d, NULL);
+		sccp_dev_setActiveLine(d, NULL);
 	}
 	if (channel && channel->privateData && channel->privateData->device) {
 		sccp_channel_setDevice(channel, NULL);
@@ -2019,7 +2019,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
  * \callgraph
  * \callergraph
  */
-void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
+void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 {
 	uint8_t prev_channel_state = 0;
 	uint32_t blindTransfer = 0;
@@ -2148,7 +2148,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 /*!
  * \brief Release Transfer Variables
  */
-void sccp_channel_transfer_release(sccp_device_t * d, sccp_channel_t * c)
+void sccp_channel_transfer_release(devicePtr d, channelPtr c)
 {
 	if (!d || !c) {
 		return;
@@ -2165,7 +2165,7 @@ void sccp_channel_transfer_release(sccp_device_t * d, sccp_channel_t * c)
 /*!
  * \brief Cancel Transfer
  */
-void sccp_channel_transfer_cancel(sccp_device_t * d, sccp_channel_t * c)
+void sccp_channel_transfer_cancel(devicePtr d, channelPtr c)
 {
 	if (!d || !c || !d->transferChannels.transferee) {
 		return;
@@ -2185,7 +2185,7 @@ void sccp_channel_transfer_cancel(sccp_device_t * d, sccp_channel_t * c)
 
 		d->transferChannels.transferee->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 		sccp_rtp_stop(d->transferChannels.transferee);
-		sccp_dev_set_activeline(d, NULL);
+		sccp_dev_setActiveLine(d, NULL);
 		sccp_indicate(d, d->transferChannels.transferee, SCCP_CHANNELSTATE_HOLD);
 		sccp_channel_setDevice(d->transferChannels.transferee, NULL);
 #if ASTERISK_VERSION_GROUP >= 108
@@ -2204,7 +2204,7 @@ void sccp_channel_transfer_cancel(sccp_device_t * d, sccp_channel_t * c)
  * \callgraph
  * \callergraph
  */
-void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_channel)
+void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 {
 	PBX_CHANNEL_TYPE *pbx_source_local_channel = NULL;
 	PBX_CHANNEL_TYPE *pbx_source_remote_channel = NULL;
@@ -2659,15 +2659,15 @@ const char *sccp_channel_getLinkedId(const sccp_channel_t * channel)
  * \return *refcounted* SCCP Channel (can be null)
  * \todo rename function to include that it checks the channelstate != DOWN
  */
-sccp_channel_t *sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id)
+sccp_channel_t *sccp_find_channel_on_line_byid(constLinePtr l, uint32_t id)
 {
 	sccp_channel_t *c = NULL;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", id);
 
-	SCCP_LIST_LOCK(&l->channels);
+	SCCP_LIST_LOCK(&((linePtr)l)->channels);
 	c = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->callid == id && tmpc->state != SCCP_CHANNELSTATE_DOWN), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	SCCP_LIST_UNLOCK(&l->channels);
+	SCCP_LIST_UNLOCK(&((linePtr)l)->channels);
 	return c;
 }
 
@@ -2779,7 +2779,7 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
  * \callergraph
  * 
  */
-sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d, uint32_t passthrupartyid)
+sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(constDevicePtr d, uint32_t passthrupartyid)
 {
 	sccp_channel_t *c = NULL;
 
@@ -2824,15 +2824,15 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
  * \param state State
  * \return *refcounted* SCCP Channel
  */
-sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, sccp_channelstate_t state)
+sccp_channel_t *sccp_channel_find_bystate_on_line(constLinePtr l, sccp_channelstate_t state)
 {
 	sccp_channel_t *c = NULL;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
-	SCCP_LIST_LOCK(&l->channels);
+	SCCP_LIST_LOCK(&((linePtr)l)->channels);
 	c = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->state == state), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	SCCP_LIST_UNLOCK(&l->channels);
+	SCCP_LIST_UNLOCK(&((linePtr)l)->channels);
 
 	if (!c) {
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Could not find active channel with state %s(%u) on line\n", l->id, sccp_channelstate2str(state), state);
@@ -2851,7 +2851,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, sccp_channels
  * \param state State as int
  * \return *refcounted* SCCP Channel
  */
-sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * device, sccp_channelstate_t state)
+sccp_channel_t *sccp_channel_find_bystate_on_device(constDevicePtr device, sccp_channelstate_t state)
 {
 	sccp_channel_t *c = NULL;
 
@@ -2896,7 +2896,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * device, sccp
  * 
  * \todo Currently this returns the selectedchannel unretained (there is no retain/release for selectedchannel at the moment)
  */
-sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * channel)
+sccp_selectedchannel_t *sccp_device_find_selectedchannel(constDevicePtr d, constChannelPtr channel)
 {
 	if (!d) {
 		return NULL;
@@ -2905,9 +2905,9 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channel (%d)\n", DEV_ID_LOG(d), channel->callid);
 
-	SCCP_LIST_LOCK(&d->selectedChannels);
+	SCCP_LIST_LOCK(&((devicePtr)d)->selectedChannels);
 	sc = SCCP_LIST_FIND(&d->selectedChannels, sccp_selectedchannel_t, tmpsc, list, (tmpsc->channel == channel), FALSE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	SCCP_LIST_UNLOCK(&d->selectedChannels);
+	SCCP_LIST_UNLOCK(&((devicePtr)d)->selectedChannels);
 	return sc;
 }
 
@@ -2917,14 +2917,14 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
  * \return count Number of Selected Channels
  * 
  */
-uint8_t sccp_device_selectedchannels_count(sccp_device_t * device)
+uint8_t sccp_device_selectedchannels_count(constDevicePtr device)
 {
 	uint8_t count = 0;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channels count\n", device->id);
-	SCCP_LIST_LOCK(&device->selectedChannels);
+	SCCP_LIST_LOCK(&((devicePtr)device)->selectedChannels);
 	count = SCCP_LIST_GETSIZE(&device->selectedChannels);
-	SCCP_LIST_UNLOCK(&device->selectedChannels);
+	SCCP_LIST_UNLOCK(&((devicePtr)device)->selectedChannels);
 
 	return count;
 }

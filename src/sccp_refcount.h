@@ -45,7 +45,8 @@ void * const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types 
 void sccp_refcount_updateIdentifier(void *ptr, char *identifier);
 void * const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func);
 void * const sccp_refcount_release(const void * const ptr, const char *filename, int lineno, const char *func);
-void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func);
+//void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func);
+void sccp_refcount_replace(const void **replaceptr, const void *const newptr, const char *filename, int lineno, const char *func);
 void sccp_refcount_print_hashtable(int fd);
 void sccp_refcount_autorelease(void *ptr);
 
