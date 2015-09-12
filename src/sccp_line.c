@@ -480,7 +480,7 @@ void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c)
  * 
  * \todo implement cfwd_noanswer
  */
-void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward_t type, char *number)
+void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number)
 {
 	AUTO_RELEASE sccp_linedevices_t *linedevice = NULL;
 	sccp_feature_type_t feature_type = SCCP_FEATURE_CFWDNONE;

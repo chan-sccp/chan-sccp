@@ -504,14 +504,14 @@ gcc_inline void * const sccp_refcount_release(const void * const ptr, const char
 	return NULL;
 }
 
-gcc_inline void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func)
+gcc_inline void sccp_refcount_replace(const void **replaceptr, const void *const newptr, const char *filename, int lineno, const char *func)
 {
 	if ((!replaceptr && !newptr) || (&newptr == replaceptr)) {						// nothing changed
 		return;
 	}
 
-	void *tmpNewPtr = NULL;											// retain new one first
-	void *oldPtr = *replaceptr;
+	const void *tmpNewPtr = NULL;											// retain new one first
+	const void *oldPtr = *replaceptr;
 
 	if (newptr) {
 		if ((tmpNewPtr = sccp_refcount_retain(newptr, filename, lineno, func))) {

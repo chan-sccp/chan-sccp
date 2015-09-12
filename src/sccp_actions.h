@@ -14,7 +14,7 @@
 
 #ifndef __SCCP_ACTIONS_H
 #define __SCCP_ACTIONS_H
-void sccp_init_device(sccp_device_t * d);
+//void sccp_init_device(sccp_device_t * d);
 void sccp_handle_unknown_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
 void sccp_handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
 void sccp_handle_alarm(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
@@ -51,7 +51,7 @@ void sccp_handle_EnblocCallMessage(constSessionPtr s, devicePtr d, constMessageP
 void sccp_handle_forward_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
 void sccp_handle_feature_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
 void sccp_handle_services_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
-void sccp_handle_feature_action(devicePtr d, const int instance, const boolean_t toggleState);
+void sccp_handle_feature_action(constDevicePtr d, const int instance, const boolean_t toggleState);
 void sccp_handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
 void sccp_handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
 void sccp_handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in);

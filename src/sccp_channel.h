@@ -23,7 +23,7 @@
 #define sccp_channel_retain(_x) 	({ast_assert(_x != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #define sccp_channel_release(_x) 	({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #endif
-#define sccp_channel_refreplace(_x, _y)	({sccp_refcount_replace((void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_channel_refreplace(_x, _y)	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 
 /*!
  * \brief SCCP CallInfo Structure
@@ -217,12 +217,12 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * c);
 void sccp_channel_answer(const sccp_device_t * d, sccp_channel_t * c);
 void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel);
 void sccp_channel_clean(sccp_channel_t * c);
-void sccp_channel_transfer(sccp_channel_t * c, sccp_device_t * device);
-void sccp_channel_transfer_release(sccp_device_t * d, sccp_channel_t * c);
-void sccp_channel_transfer_cancel(sccp_device_t * d, sccp_channel_t * c);
-void sccp_channel_transfer_complete(sccp_channel_t * c);
-int sccp_channel_hold(sccp_channel_t * c);
-int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * c, boolean_t swap_channels);
+void sccp_channel_transfer(channelPtr channel, constDevicePtr device);
+void sccp_channel_transfer_release(devicePtr d, channelPtr c);
+void sccp_channel_transfer_cancel(devicePtr d, channelPtr c);
+void sccp_channel_transfer_complete(channelPtr c);
+int sccp_channel_hold(channelPtr c);
+int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swap_channels);
 int sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
 
 #if DEBUG
@@ -245,14 +245,14 @@ const char *sccp_channel_getLinkedId(const sccp_channel_t * channel);
 
 // find channel
 sccp_channel_t *sccp_channel_find_byid(uint32_t id);
-sccp_channel_t *sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id);
+sccp_channel_t *sccp_find_channel_on_line_byid(constLinePtr l, uint32_t id);
 sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid);
-sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, sccp_channelstate_t state);
-sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, sccp_channelstate_t state);
-sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t * d, const uint32_t lineInstance, const uint32_t callid);
-sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d, uint32_t passthrupartyid);
-sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * c);
-uint8_t sccp_device_selectedchannels_count(sccp_device_t * d);
+sccp_channel_t *sccp_channel_find_bystate_on_line(constLinePtr l, sccp_channelstate_t state);
+sccp_channel_t *sccp_channel_find_bystate_on_device(constDevicePtr d, sccp_channelstate_t state);
+sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(constDevicePtr d, const uint32_t lineInstance, const uint32_t callid);
+sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(constDevicePtr d, uint32_t passthrupartyid);
+sccp_selectedchannel_t *sccp_device_find_selectedchannel(constDevicePtr d, constChannelPtr c);
+uint8_t sccp_device_selectedchannels_count(constDevicePtr d);
 
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

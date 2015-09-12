@@ -47,7 +47,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
  * \callgraph
  * \callergraph
  */
-void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_callforward_t type)
+void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_callforward_t type)
 {
 	if (!l) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line is not specified!\n");
@@ -202,7 +202,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
  * \return SCCP Channel
  *
  */
-void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
+void sccp_feat_handle_directed_pickup(linePtr l, uint8_t lineInstance, devicePtr d)
 {
 
 	if (!l || !d || sccp_strlen(d->id) < 3) {
@@ -275,7 +275,7 @@ void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, scc
  * \lock
  *  - asterisk channel
  */
-int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
+int sccp_feat_directed_pickup(channelPtr c, char *exten)
 {
 	int res = -1;
 
@@ -469,7 +469,7 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
  *
  * \todo Fix callerid setting before calling ast_pickup_call
  */
-int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
+int sccp_feat_grouppickup(linePtr l, devicePtr d)
 {
 	int res = 0;
 
@@ -589,7 +589,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
  * \callgraph
  * \callergraph
  */
-void sccp_feat_updatecid(sccp_channel_t * c)
+void sccp_feat_updatecid(channelPtr c)
 {
 	char *name = NULL, *number = NULL;
 
@@ -622,7 +622,7 @@ void sccp_feat_updatecid(sccp_channel_t * c)
  * \param lineInstance LineInstance as uint8_t
  *
  */
-void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
+void sccp_feat_voicemail(constDevicePtr d, uint8_t lineInstance)
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Voicemail Button pressed on line (%d)\n", d->id, lineInstance);
 
@@ -684,7 +684,7 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_feat_idivert(devicePtr d, linePtr l, channelPtr c)
 {
 	int instance;
 
@@ -727,7 +727,7 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
  */
-void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * channel)
+void sccp_feat_handle_conference(constDevicePtr d, constLinePtr l, uint8_t lineInstance, channelPtr channel)
 {
 #ifdef CS_SCCP_CONFERENCE
 	if (!l || !d || sccp_strlen_zero(d->id)) {
@@ -799,7 +799,7 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
  */
-void sccp_feat_conference_start(sccp_device_t * device, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
+void sccp_feat_conference_start(devicePtr device, linePtr l, const uint32_t lineInstance, channelPtr c)
 {
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 
@@ -896,7 +896,7 @@ void sccp_feat_conference_start(sccp_device_t * device, sccp_line_t * l, const u
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
-void sccp_feat_join(sccp_device_t * device, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
+void sccp_feat_join(devicePtr device, linePtr l, uint8_t lineInstance, channelPtr c)
 {
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 
@@ -974,7 +974,7 @@ void sccp_feat_join(sccp_device_t * device, sccp_line_t * l, uint8_t lineInstanc
  * \param c SCCP Channel
  * \return Success as int
  */
-void sccp_feat_conflist(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
+void sccp_feat_conflist(devicePtr d, linePtr l, uint8_t lineInstance, channelPtr c)
 {
 	if (d) {
 #ifdef CS_SCCP_CONFERENCE
@@ -1001,7 +1001,7 @@ void sccp_feat_conflist(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
  */
-void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
+void sccp_feat_handle_meetme(linePtr l, uint8_t lineInstance, devicePtr d)
 {
 	if (!l || !d || sccp_strlen_zero(d->id)) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
@@ -1192,7 +1192,7 @@ static void *sccp_feat_meetme_thread(void *data)
  * \param c SCCP Channel
  * \author Federico Santulli
  */
-void sccp_feat_meetme_start(sccp_channel_t * c)
+void sccp_feat_meetme_start(channelPtr c)
 {
 	sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_feat_meetme_thread, (void *) c);
 }
@@ -1205,7 +1205,7 @@ void sccp_feat_meetme_start(sccp_channel_t * c)
  * \return SCCP Channel
  *
  */
-void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
+void sccp_feat_handle_barge(linePtr l, uint8_t lineInstance, devicePtr d)
 {
 
 	if (!l || !d || sccp_strlen_zero(d->id)) {
@@ -1271,7 +1271,7 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
  * \param exten Extention as char
  * \return Success as int
  */
-int sccp_feat_barge(sccp_channel_t * c, char *exten)
+int sccp_feat_barge(channelPtr c, char *exten)
 {
 	/* sorry but this is private code -FS */
 	if (!c) {
@@ -1298,7 +1298,7 @@ int sccp_feat_barge(sccp_channel_t * c, char *exten)
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
  */
-void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
+void sccp_feat_handle_cbarge(linePtr l, uint8_t lineInstance, devicePtr d)
 {
 
 	if (!l || !d || sccp_strlen(d->id) < 3) {
@@ -1366,7 +1366,7 @@ void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_
  * \param conferencenum Conference Number as char
  * \return Success as int
  */
-int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum)
+int sccp_feat_cbarge(channelPtr c, char *conferencenum)
 {
 	/* sorry but this is private code -FS */
 	if (!c) {
@@ -1392,7 +1392,7 @@ int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum)
  * \param d SCCP Device
  * \param line SCCP Line
  */
-void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line)
+void sccp_feat_adhocDial(constDevicePtr d, constLinePtr line)
 {
 	if (!d || !d->session || !line) {
 		return;
@@ -1430,7 +1430,7 @@ void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line)
  * \param featureType SCCP Feature Type
  * 
  */
-void sccp_feat_changed(sccp_device_t * device, sccp_linedevices_t * linedevice, sccp_feature_type_t featureType)
+void sccp_feat_changed(constDevicePtr device, sccp_linedevices_t * linedevice, sccp_feature_type_t featureType)
 {
 	if (device) {
 		sccp_featButton_changed(device, featureType);
@@ -1450,7 +1450,7 @@ void sccp_feat_changed(sccp_device_t * device, sccp_linedevices_t * linedevice, 
  * \param device SCCP Device
  * \param channel SCCP Channel
  */
-void sccp_feat_channelstateChanged(sccp_device_t * device, sccp_channel_t * channel)
+void sccp_feat_channelstateChanged(devicePtr device, channelPtr channel)
 {
 	uint8_t state;
 
@@ -1493,34 +1493,35 @@ void sccp_feat_channelstateChanged(sccp_device_t * device, sccp_channel_t * chan
  * \param no_lineInstance 0 Value
  * \param channel SCCP Channel
  */
-void sccp_feat_monitor(sccp_device_t * device, sccp_line_t * no_line, uint32_t no_lineInstance, sccp_channel_t * channel)
+void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_lineInstance, channelPtr channel)
 {
+	sccp_featureConfiguration_t *monitorFeature = (sccp_featureConfiguration_t *)&device->monitorFeature;		/* discard const */
 	if (!channel) {
-		if (device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) {
-			device->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_REQUESTED;
+		if (monitorFeature->status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) {
+			monitorFeature->status &= ~SCCP_FEATURE_MONITOR_STATE_REQUESTED;
 		} else {
-			device->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_REQUESTED;
+			monitorFeature->status |= SCCP_FEATURE_MONITOR_STATE_REQUESTED;
 		}
-		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) No active channel to monitor, setting monitor state to requested (%d)\n", device->id, device->monitorFeature.status);
+		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) No active channel to monitor, setting monitor state to requested (%d)\n", device->id, monitorFeature->status);
 	} else {
 		/* check if we need to start or stop monitor */
 		/*
-		   if (((device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) >> 1) == (device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
-		   sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: no need to update monitor state (%d)\n", device->id, device->monitorFeature.status);
+		   if (((monitorFeature->status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) >> 1) == (monitorFeature->status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
+		   sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: no need to update monitor state (%d)\n", device->id, monitorFeature->status);
 		   return;
 		   }
 		 */
 		if (iPbx.feature_monitor(channel)) {
-			if (device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) {		// Just toggle the state, we don't get information back about the asterisk monitor status (async call)
-				device->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
+			if (monitorFeature->status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) {		// Just toggle the state, we don't get information back about the asterisk monitor status (async call)
+				monitorFeature->status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 			} else {
-				device->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
+				monitorFeature->status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 			}
 		} else {											// monitor feature missing
-			device->monitorFeature.status = SCCP_FEATURE_MONITOR_STATE_DISABLED;
+			monitorFeature->status = SCCP_FEATURE_MONITOR_STATE_DISABLED;
 		}
 	}
-	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) monitor status: %d\n", device->id, device->monitorFeature.status);
+	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) monitor status: %d\n", device->id, monitorFeature->status);
 }
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
