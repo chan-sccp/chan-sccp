@@ -3506,32 +3506,32 @@ typedef struct {
 
 	/* protocol callbacks */
 	/* send messages */
-	void (*const sendCallInfo) (const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance);
-	void (*const sendDialedNumber) (const sccp_device_t * device, const sccp_channel_t * channel);
-	void (*const sendRegisterAck) (const sccp_device_t * device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat);
-	void (*const displayPrompt) (const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message);
-	void (*const displayNotify) (const sccp_device_t * device, uint8_t timeout, const char *message);
-	void (*const displayPriNotify) (const sccp_device_t * device, uint8_t priority, uint8_t timeout, const char *message);
-	void (*const sendCallforwardMessage) (const sccp_device_t * device, const sccp_linedevices_t * linedevice);
-	void (*const sendUserToDeviceDataVersionMessage) (const sccp_device_t * device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority);
-	void (*const sendFastPictureUpdate) (const sccp_device_t * device, const sccp_channel_t * channel);
-	void (*const sendOpenReceiveChannel) (const sccp_device_t * device, const sccp_channel_t * channel);
-	void (*const sendOpenMultiMediaChannel) (const sccp_device_t * device, const sccp_channel_t * channel, uint32_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
-	void (*const sendStartMultiMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel, int payloadType, int bitRate);
-	void (*const sendStartMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel);
-	void (*const sendConnectionStatisticsReq) (const sccp_device_t * device, const sccp_channel_t * channel, uint8_t clear);
+	void (*const sendCallInfo) (constDevicePtr device, constChannelPtr channel, uint8_t instance);
+	void (*const sendDialedNumber) (constDevicePtr device, constChannelPtr channel);
+	void (*const sendRegisterAck) (constDevicePtr device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat);
+	void (*const displayPrompt) (constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message);
+	void (*const displayNotify) (constDevicePtr device, uint8_t timeout, const char *message);
+	void (*const displayPriNotify) (constDevicePtr device, uint8_t priority, uint8_t timeout, const char *message);
+	void (*const sendCallforwardMessage) (constDevicePtr device, const sccp_linedevices_t * linedevice);
+	void (*const sendUserToDeviceDataVersionMessage) (constDevicePtr device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority);
+	void (*const sendFastPictureUpdate) (constDevicePtr device, constChannelPtr channel);
+	void (*const sendOpenReceiveChannel) (constDevicePtr device, constChannelPtr channel);
+	void (*const sendOpenMultiMediaChannel) (constDevicePtr device, constChannelPtr channel, uint32_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
+	void (*const sendStartMultiMediaTransmission) (constDevicePtr device, constChannelPtr channel, int payloadType, int bitRate);
+	void (*const sendStartMediaTransmission) (constDevicePtr device, constChannelPtr channel);
+	void (*const sendConnectionStatisticsReq) (constDevicePtr device, constChannelPtr channel, uint8_t clear);
 
 	/* parse received messages */
-	void (*const parseOpenReceiveChannelAck) (const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
-	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
-	void (*const parseStartMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
-	void (*const parseStartMultiMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
-	void (*const parseEnblocCall) (const sccp_msg_t * msg, char *calledParty, uint32_t * lineInstance);
+	void (*const parseOpenReceiveChannelAck) (constMessagePtr msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
+	void (*const parseOpenMultiMediaReceiveChannelAck) (constMessagePtr msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
+	void (*const parseStartMediaTransmissionAck) (constMessagePtr msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
+	void (*const parseStartMultiMediaTransmissionAck) (constMessagePtr msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
+	void (*const parseEnblocCall) (constMessagePtr msg, char *calledParty, uint32_t * lineInstance);
 } sccp_deviceProtocol_t;											/*!< SCCP Device Protocol Callback Structure */
 
 boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version);
 uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);
-const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(const sccp_device_t * device, int type);
+const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(constDevicePtr device, int type);
 const char *skinny_keymode2longstr(skinny_keymode_t keymode);
 #endif														/* __SCCP_PROTOCOL_H */
 
