@@ -290,10 +290,6 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 
 	if (!s) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_handle_message) Client does not have a session which is required. Exiting sccp_handle_message !\n");
-		if (msg) {
-			sccp_msg_t * message = (sccp_msg_t *) msg;					/* discard const * const */
-			sccp_free(message);
-		}
 		return -1;
 	}
 
