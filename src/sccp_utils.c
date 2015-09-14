@@ -79,7 +79,7 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 	} while (cur < (len - 1));
 }
 
-void sccp_dump_msg(sccp_msg_t * msg)
+void sccp_dump_msg(const sccp_msg_t * const msg)
 {
 	sccp_dump_packet((unsigned char *) msg, letohl(msg->header.length) + 8);
 }
@@ -180,7 +180,7 @@ void sccp_pbx_setcallstate(sccp_channel_t * channel, int state)
 void sccp_dev_dbclean(void)
 {
 	struct ast_db_entry *entry = NULL;
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 	char key[256];
 
 	//! \todo write an pbx implementation for that
@@ -199,7 +199,7 @@ void sccp_dev_dbclean(void)
 			SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
 			if (!d) {
-				PBX(feature_removeFromDatabase) ("SCCP", key);
+				iPbx.feature_removeFromDatabase("SCCP", key);
 				sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: device '%s' removed from asterisk database\n", entry->key);
 			}
 
@@ -678,31 +678,31 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 				switch (event->event.featureChanged.featureType) {
 					case SCCP_FEATURE_CFWDALL:
 						if (linedevice->cfwdAll.enabled) {
-							PBX(feature_addToDatabase) (cfwdDeviceLineStore, "cfwdAll", linedevice->cfwdAll.number);
-							PBX(feature_addToDatabase) (cfwdLineDeviceStore, "cfwdAll", linedevice->cfwdAll.number);
+							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdAll", linedevice->cfwdAll.number);
+							iPbx.feature_addToDatabase(cfwdLineDeviceStore, "cfwdAll", linedevice->cfwdAll.number);
 							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						} else {
-							PBX(feature_removeFromDatabase) (cfwdDeviceLineStore, "cfwdAll");
-							PBX(feature_removeFromDatabase) (cfwdLineDeviceStore, "cfwdAll");
+							iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdAll");
+							iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, "cfwdAll");
 							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						}
 						break;
 					case SCCP_FEATURE_CFWDBUSY:
 						if (linedevice->cfwdBusy.enabled) {
-							PBX(feature_addToDatabase) (cfwdDeviceLineStore, "cfwdBusy", linedevice->cfwdBusy.number);
-							PBX(feature_addToDatabase) (cfwdLineDeviceStore, "cfwdBusy", linedevice->cfwdBusy.number);
+							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdBusy", linedevice->cfwdBusy.number);
+							iPbx.feature_addToDatabase(cfwdLineDeviceStore, "cfwdBusy", linedevice->cfwdBusy.number);
 							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						} else {
-							PBX(feature_removeFromDatabase) (cfwdDeviceLineStore, "cfwdBusy");
-							PBX(feature_removeFromDatabase) (cfwdLineDeviceStore, "cfwdBusy");
+							iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdBusy");
+							iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, "cfwdBusy");
 							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						}
 						break;
 					case SCCP_FEATURE_CFWDNONE:
-						PBX(feature_removeFromDatabase) (cfwdDeviceLineStore, "cfwdAll");
-						PBX(feature_removeFromDatabase) (cfwdDeviceLineStore, "cfwdBusy");
-						PBX(feature_removeFromDatabase) (cfwdLineDeviceStore, "cfwdAll");
-						PBX(feature_removeFromDatabase) (cfwdLineDeviceStore, "cfwdBusy");
+						iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdAll");
+						iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdBusy");
+						iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, "cfwdAll");
+						iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, "cfwdBusy");
 						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: cfwd cleared from db\n", DEV_ID_LOG(device));
 					default:
 						break;
@@ -714,14 +714,14 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 			if (device->dndFeature.previousStatus != device->dndFeature.status) {
 				if (!device->dndFeature.status) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to off\n", DEV_ID_LOG(device));
-					PBX(feature_removeFromDatabase) (family, "dnd");
+					iPbx.feature_removeFromDatabase(family, "dnd");
 				} else {
 					if (device->dndFeature.status == SCCP_DNDMODE_SILENT) {
 						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to silent\n", DEV_ID_LOG(device));
-						PBX(feature_addToDatabase) (family, "dnd", "silent");
+						iPbx.feature_addToDatabase(family, "dnd", "silent");
 					} else {
 						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to reject\n", DEV_ID_LOG(device));
-						PBX(feature_addToDatabase) (family, "dnd", "reject");
+						iPbx.feature_addToDatabase(family, "dnd", "reject");
 					}
 				}
 				device->dndFeature.previousStatus = device->dndFeature.status;
@@ -730,12 +730,12 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 		case SCCP_FEATURE_PRIVACY:
 			if (device->privacyFeature.previousStatus != device->privacyFeature.status) {
 				if (!device->privacyFeature.status) {
-					PBX(feature_removeFromDatabase) (family, "privacy");
+					iPbx.feature_removeFromDatabase(family, "privacy");
 				} else {
 					char data[256];
 
 					sprintf(data, "%d", device->privacyFeature.status);
-					PBX(feature_addToDatabase) (family, "privacy", data);
+					iPbx.feature_addToDatabase(family, "privacy", data);
 				}
 				device->privacyFeature.previousStatus = device->privacyFeature.status;
 			}
@@ -743,9 +743,9 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 		case SCCP_FEATURE_MONITOR:
 			if (device->monitorFeature.previousStatus != device->monitorFeature.status) {
 				if (device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) {
-					PBX(feature_addToDatabase) (family, "monitor", "on");
+					iPbx.feature_addToDatabase(family, "monitor", "on");
 				} else {
-					PBX(feature_removeFromDatabase) (family, "monitor");
+					iPbx.feature_removeFromDatabase(family, "monitor");
 				}
 				device->monitorFeature.previousStatus = device->monitorFeature.status;
 			}

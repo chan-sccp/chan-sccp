@@ -44,7 +44,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
  * \warning
  *  - device->buttonconfig is not always locked
  */
-void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t featureType)
+void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureType)
 {
 	sccp_msg_t *msg = NULL;
 	sccp_buttonconfig_t *config = NULL, *buttonconfig = NULL;
@@ -56,7 +56,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 		return;
 	}
 
-	SCCP_LIST_LOCK(&device->buttonconfig);
+	SCCP_LIST_LOCK(&((devicePtr)device)->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		if (config->type == FEATURE && config->button.feature.id == featureType) {
 			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s\n", DEV_ID_LOG(device), config->button.feature.id, (config->button.feature.options) ? config->button.feature.options : "(none)");
@@ -297,7 +297,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) Got Feature Status Request. Instance = %d, Label: '%s', Status: %d, Nota bene: Config pointer: %p\n", DEV_ID_LOG(device), instance, config->label, config->button.feature.status, config);
 		}
 	}
-	SCCP_LIST_UNLOCK(&device->buttonconfig);
+	SCCP_LIST_UNLOCK(&((devicePtr)device)->buttonconfig);
 }
 
 /*!

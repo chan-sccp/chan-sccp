@@ -172,9 +172,9 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
  * \param msg SCCP Msg
  * \param msgtypestr Message
  * \param deviceIsNecessary Is a valid device necessary for this message to be processed, if it is, the device is retain during execution of this particular message parser
- * \return -1 or Device;
+ * \return -1 or retained Device;
  */
-inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_msg_t * msg, const char *msgtypestr, boolean_t deviceIsNecessary)
+inline static sccp_device_t *check_session_message_device(constSessionPtr s, constMessagePtr msg, const char *msgtypestr, boolean_t deviceIsNecessary)
 {
 	sccp_device_t *d = NULL;
 
@@ -192,7 +192,7 @@ inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sc
 		pbx_log(LOG_WARNING, "No valid Session Device available to handle %s for, but device is needed\n", msgtypestr);
 		goto EXIT;
 	}
-	if (deviceIsNecessary && !(d = sccp_device_retain(s->device))) {
+	if (deviceIsNecessary && !(d = sccp_device_retain(s->device))) {			/* explicit retain to return d to sccp_handle_message */
 		pbx_log(LOG_WARNING, "Session Device vould not be retained, to handle %s for, but device is needed\n", msgtypestr);
 		goto EXIT;
 	}
@@ -200,7 +200,6 @@ inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sc
 	if (deviceIsNecessary && d && d->session && s != d->session) {
 		pbx_log(LOG_WARNING, "(%s) Provided Session and Device Session are not the same. Rejecting message handling\n", msgtypestr);
 		sccp_session_crossdevice_cleanup(s, d->session, FALSE);
-		d = d ? sccp_device_release(d) : NULL;
 		goto EXIT;
 	}
 
@@ -220,7 +219,7 @@ EXIT:
  * Used to map SKinny Message Id's to their Handling Implementations
  */
 struct messageMap_cb {
-	void (*const messageHandler_cb) (sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg);
+	void (*const messageHandler_cb) (const sccp_session_t * const s, sccp_device_t * const d, const sccp_msg_t * const msg);
 	boolean_t deviceIsNecessary;
 };
 
@@ -283,17 +282,14 @@ static const struct messageMap_cb spcpMessagesCbMap[] = {
  * \param       msg Message as sccp_msg_t
  * \param       s Session as sccp_session_t
  */
-int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
+int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 {
 	const struct messageMap_cb *messageMap_cb = NULL;
 	uint32_t mid = 0;
-	sccp_device_t *device = NULL;
+	AUTO_RELEASE sccp_device_t *device = NULL;
 
 	if (!s) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_handle_message) Client does not have a session which is required. Exiting sccp_handle_message !\n");
-		if (msg) {
-			sccp_free(msg);
-		}
 		return -1;
 	}
 
@@ -328,7 +324,6 @@ int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 	if (messageMap_cb->messageHandler_cb) {
 		messageMap_cb->messageHandler_cb(s, device, msg);
 	}
-	s->lastKeepAlive = time(0);
 
 	if (device && device->registrationState == SKINNY_DEVICE_RS_PROGRESS && mid == device->protocol->registrationFinishedMessageId) {
 		sccp_dev_set_registered(device, SKINNY_DEVICE_RS_OK);
@@ -337,7 +332,6 @@ int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
 		sccp_dev_displaynotify(device, servername, 5);
 	}
-	device = device ? sccp_device_release(device) : NULL;
 	return 0;
 }
 
@@ -682,9 +676,9 @@ int sccp_preUnload(void)
 	GLOB(module_running) = FALSE;
 	pbx_mutex_unlock(&GLOB(lock));
 
-	sccp_device_t *d;
-	sccp_line_t *l;
-	sccp_session_t *s;
+	sccp_device_t *d = NULL;
+	sccp_line_t *l = NULL;
+	sccp_session_t *s = NULL;
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 
@@ -718,7 +712,7 @@ int sccp_preUnload(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Lines\n");
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing Hotline\n");
 	sccp_line_removeFromGlobals(GLOB(hotline)->line);
-	GLOB(hotline)->line = sccp_line_release(GLOB(hotline)->line);
+	GLOB(hotline)->line = sccp_line_release(GLOB(hotline)->line);						/* explicit release of hotline->line */
 	sccp_free(GLOB(hotline));
 
 	/* removing lines */

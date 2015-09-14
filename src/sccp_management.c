@@ -299,7 +299,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 static int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 {
 	const char *id = astman_get_header(m, "ActionID");
-	sccp_line_t *line;
+	sccp_line_t *line = NULL;
 	char idtext[256] = "";
 	int total = 0;
 
@@ -650,7 +650,7 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		if (d && d->defaultLineInstance > 0) {
 			line = sccp_line_find_byid(d, d->defaultLineInstance);
 		} else {
-			line = sccp_dev_get_activeline(d);
+			line = sccp_dev_getActiveLine(d);
 		}
 	} else {
 		line = sccp_line_find_byname(lineName, FALSE);
@@ -717,7 +717,7 @@ static int sccp_manager_answerCall2(struct mansession *s, const struct message *
 			if (c->state == SCCP_CHANNELSTATE_RINGING) {
 				sccp_channel_answer(d, c);
 				if (c->owner) {
-					PBX(queue_control) (c->owner, AST_CONTROL_ANSWER);
+					iPbx.queue_control(c->owner, AST_CONTROL_ANSWER);
 				}
 				snprintf(retValStr, sizeof(retValStr), "Answered channel '%s' on device '%s'\r\n", channelId, deviceName);
 				astman_send_ack(s, m, retValStr);

@@ -24,7 +24,7 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t * c, sccp_line_t * line, sccp_channelstate_t state);
+static void __sccp_indicate_remote_device(const sccp_device_t * const device, const sccp_channel_t * const c, const sccp_line_t * const line, const sccp_channelstate_t state);
 
 /*!
  * \brief Indicate Without Lock
@@ -45,7 +45,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
  * 
  */
 //void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
-void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelstate_t state, uint8_t debug, char *file, int line, const char *pretty_function)
+void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const c, const sccp_channelstate_t state, const uint8_t debug, const char *file, const int line, const char *pretty_function)
 {
 	int instance = 0;
 
@@ -76,12 +76,12 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 	}
 
 	/* all the check are ok. We can safely run all the dev functions with no more checks */
-	sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Indicate SCCP state %d (%s),channel state %d (%s) on call %s-%08x (previous channelstate %d (%s))\n", d->id, state, sccp_channelstate2str(state), c->state, sccp_channelstate2str(c->state), l->name, c->callid, c->previousChannelState, sccp_channelstate2str(c->previousChannelState));
+	sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Indicate SCCP new state %d (%s), current channel state %d (%s) on call %s-%08x (previous channelstate %d (%s))\n", d->id, state, sccp_channelstate2str(state), c->state, sccp_channelstate2str(c->state), l->name, c->callid, c->previousChannelState, sccp_channelstate2str(c->previousChannelState));
 	sccp_channel_setChannelstate(c, state);
 
 	switch (state) {
 		case SCCP_CHANNELSTATE_DOWN:
-			//PBX(set_callstate)(c, AST_STATE_DOWN);
+			//iPbx.set_callstate(c, AST_STATE_DOWN);
 			break;
 		case SCCP_CHANNELSTATE_OFFHOOK:
 			if (SCCP_CHANNELSTATE_DOWN == c->previousChannelState) {				// new call
@@ -198,8 +198,8 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 				sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DND is activated on device\n", d->id);
 				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, instance, c->callid);
 			} else {
-				sccp_linedevices_t *ownlinedevice;
-				sccp_device_t *remoteDevice;
+				sccp_linedevices_t *ownlinedevice = NULL;
+				sccp_device_t *remoteDevice = NULL;
 
 				SCCP_LIST_TRAVERSE(&l->devices, ownlinedevice, list) {
 					remoteDevice = ownlinedevice->device;
@@ -230,7 +230,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			}
 			*/
 
-// 			PBX(set_callstate) (c, AST_STATE_RINGING);						/*!\todo thats not the right place to update pbx state */
+// 			iPbx.set_callstate(c, AST_STATE_RINGING);						/*!\todo thats not the right place to update pbx state */
 			break;
 		case SCCP_CHANNELSTATE_CONNECTED:
 			if (linedevice) {
@@ -320,9 +320,9 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 					/* When dialing a shared line which you also have registered, we don't want to outgoing call to show up on our own device as a callwaiting call */
 					AUTO_RELEASE sccp_channel_t *activeChannel = sccp_device_getActiveChannel(d);
 
-					if (activeChannel && (sccp_strequals(PBX(getChannelLinkedId) (activeChannel), PBX(getChannelLinkedId) (c)))) {
+					if (activeChannel && (sccp_strequals(iPbx.getChannelLinkedId(activeChannel), iPbx.getChannelLinkedId(c)))) {
 						sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: (SCCP_CHANNELSTATE_CALLWAITING) Already Own Part of the Call: Skipping\n", DEV_ID_LOG(d));
-						sccp_log_and(DEBUGCAT_INDICATE + DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "%s: LinkedId: %s / %s: LinkedId Remote: %s\n", DEV_ID_LOG(d), PBX(getChannelLinkedId) (c), DEV_ID_LOG(d), PBX(getChannelLinkedId) (activeChannel));
+						sccp_log_and(DEBUGCAT_INDICATE + DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "%s: LinkedId: %s / %s: LinkedId Remote: %s\n", DEV_ID_LOG(d), iPbx.getChannelLinkedId(c), DEV_ID_LOG(d), iPbx.getChannelLinkedId(activeChannel));
 						break;
 					}
 				}
@@ -446,9 +446,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 		/* notify features (sccp_feat_channelstateChanged = empty function, skipping) */
 		//sccp_feat_channelstateChanged(d, c);
 
-		sccp_event_t event;
-
-		memset(&event, 0, sizeof(sccp_event_t));
+		sccp_event_t event = {{{0}}};
 		event.type = SCCP_EVENT_LINESTATUS_CHANGED;
 		event.event.lineStatusChanged.line = sccp_line_retain(l);
 		event.event.lineStatusChanged.optional_device = d ? sccp_device_retain(d) : NULL;
@@ -456,7 +454,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 		sccp_event_fire(&event);
 	}
 
-	sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s) on call %s-%08x\n", d->id, sccp_channelstate2str(state), l->name, c->callid);
+	sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s) on call %s-%08x. New state on channel: %s (%d)\n", d->id, sccp_channelstate2str(state), l->name, c->callid, sccp_channelstate2str(c->state), c->state);
 }
 
 /*!
@@ -469,10 +467,9 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
  * \warning
  *  - line->devices is not always locked
  */
-static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t * c, sccp_line_t * line, sccp_channelstate_t state)
+static void __sccp_indicate_remote_device(const sccp_device_t * const device, const sccp_channel_t * const c, const sccp_line_t * const line, const sccp_channelstate_t state)
 {
-	sccp_channel_t tmpChannel;										/*!< use this channel to set original called/calling info */
-	int instance;
+	int instance = 0;
 	sccp_phonebook_t phonebookRecord = SCCP_PHONEBOOK_NONE;
 
 	if (!c || !line) {
@@ -495,9 +492,9 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: (__sccp_indicate_remote_device) I'm a hotline, do not notify me!\n");
 		return;
 	}
-	sccp_linedevices_t *linedevice;
+	sccp_linedevices_t *linedevice = NULL;
 
-	memset(&tmpChannel, 0, sizeof(sccp_channel_t));
+	sccp_channel_t tmpChannel = {0};										/*!< use this channel to set original called/calling info */
 	tmpChannel.callid = c->callid;
 	if (c->privacy || !c->callInfo.presentation) {
 		sccp_copy_string(tmpChannel.callInfo.callingPartyName, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.callInfo.callingPartyName));
@@ -539,9 +536,9 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 			if (state != SCCP_CHANNELSTATE_ONHOOK) {
 				AUTO_RELEASE sccp_channel_t *activeChannel = sccp_device_getActiveChannel(remoteDevice);
 
-				if (activeChannel && sccp_strequals(PBX(getChannelLinkedId) (activeChannel), PBX(getChannelLinkedId) (c))) {
+				if (activeChannel && sccp_strequals(iPbx.getChannelLinkedId(activeChannel), iPbx.getChannelLinkedId(c))) {
 					sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: (indicate_remote_device) Already Own Part of the Call: Hidden\n", DEV_ID_LOG(device));
-					sccp_log_and(DEBUGCAT_INDICATE + DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "%s: LinkedId: %s / %s: LinkedId Remote: %s\n", DEV_ID_LOG(device), PBX(getChannelLinkedId) (c), DEV_ID_LOG(remoteDevice), PBX(getChannelLinkedId) (activeChannel));
+					sccp_log_and(DEBUGCAT_INDICATE + DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "%s: LinkedId: %s / %s: LinkedId Remote: %s\n", DEV_ID_LOG(device), iPbx.getChannelLinkedId(c), DEV_ID_LOG(remoteDevice), iPbx.getChannelLinkedId(activeChannel));
 					continue;
 				}
 			}
@@ -654,7 +651,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 		}
 	}
 
-	tmpChannel.line = sccp_line_release(tmpChannel.line);
+	tmpChannel.line = sccp_line_release(tmpChannel.line);				/* explicit release of line, retained when creating a copy of the channel above */
 }
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
