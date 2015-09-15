@@ -2383,21 +2383,33 @@ static boolean_t sccp_wrapper_asterisk18_checkHangup(const sccp_channel_t * chan
 
 static boolean_t sccp_wrapper_asterisk18_rtpGetPeer(PBX_RTP_TYPE * rtp, struct sockaddr_storage *address)
 {
-	struct ast_sockaddr addr;
+	union sockaddr_union {
+		struct sockaddr sa;
+		struct sockaddr_storage ss;
+		struct sockaddr_in sin;
+		struct sockaddr_in6 sin6;
+	} tmpaddress = {
+		.ss = *address,
+	};
 
-	ast_rtp_instance_get_remote_address(rtp, &addr);
-	// ast_sockaddr_to_sin(&addr, address);
-	memcpy(address, &addr.ss, sizeof(struct sockaddr_storage));
+	ast_rtp_get_peer(rtp, &tmpaddress.sin);
+	address->ss_family = AF_INET;
 	return TRUE;
 }
 
 static boolean_t sccp_wrapper_asterisk18_rtpGetUs(PBX_RTP_TYPE * rtp, struct sockaddr_storage *address)
 {
-	struct ast_sockaddr addr;
+	union sockaddr_union {
+		struct sockaddr sa;
+		struct sockaddr_storage ss;
+		struct sockaddr_in sin;
+		struct sockaddr_in6 sin6;
+	} tmpaddress = {
+		.ss = *address,
+	};
 
-	ast_rtp_instance_get_local_address(rtp, &addr);
-	// ast_sockaddr_to_sin(&addr, address);
-	memcpy(address, &addr.ss, sizeof(struct sockaddr_storage));
+	ast_rtp_get_us(rtp, &tmpaddress.sin);
+	address->ss_family = AF_INET;
 	return TRUE;
 }
 
@@ -2900,9 +2912,9 @@ static const char *sccp_wrapper_asterisk_get_channel_##_field(const sccp_channel
 #define DECLARE_PBX_CHANNEL_STRSET(_field)									\
 static void sccp_wrapper_asterisk_set_channel_##_field(const sccp_channel_t * channel, const char * _field)	\
 { 														\
-        if (channel && channel->owner) {											\
-        	sccp_copy_string(channel->owner->_field, _field, sizeof(channel->owner->_field));		\
-        }													\
+	if (channel && channel->owner) {											\
+		sccp_copy_string(channel->owner->_field, _field, sizeof(channel->owner->_field));		\
+	}													\
 };
 
 DECLARE_PBX_CHANNEL_STRGET(name)
@@ -3323,7 +3335,7 @@ const PbxInterface iPbx = {
  */
 const PbxInterface iPbx = {
 	/* *INDENT-OFF* */
-        /* channel */
+	/* channel */
 	.alloc_pbxChannel 		= sccp_wrapper_asterisk18_allocPBXChannel,
 	.extension_status 		= sccp_wrapper_asterisk18_extensionStatus,
 	.setPBXChannelLinkedId		= sccp_wrapper_asterisk_set_pbxchannel_linkedid,

@@ -2101,20 +2101,32 @@ static boolean_t sccp_wrapper_asterisk16_checkHangup(const sccp_channel_t * chan
 
 static boolean_t sccp_wrapper_asterisk16_rtpGetPeer(PBX_RTP_TYPE * rtp, struct sockaddr_storage *address)
 {
-	struct sockaddr_in *tmpaddress = (struct sockaddr_in *) address;
+	union sockaddr_union {
+	        struct sockaddr sa;
+	        struct sockaddr_storage ss;
+	        struct sockaddr_in sin;
+	        struct sockaddr_in6 sin6;
+	} tmpaddress = {
+		.ss = *address,
+	};
 
-	ast_rtp_get_peer(rtp, tmpaddress);
-	address = (struct sockaddr_storage *) tmpaddress;
+	ast_rtp_get_peer(rtp, &tmpaddress.sin);
 	address->ss_family = AF_INET;
 	return TRUE;
 }
 
 static boolean_t sccp_wrapper_asterisk16_rtpGetUs(PBX_RTP_TYPE * rtp, struct sockaddr_storage *address)
 {
-	struct sockaddr_in *tmpaddress = (struct sockaddr_in *) address;
+	union sockaddr_union {
+	        struct sockaddr sa;
+	        struct sockaddr_storage ss;
+	        struct sockaddr_in sin;
+	        struct sockaddr_in6 sin6;
+	} tmpaddress = {
+		.ss = *address,
+	};
 
-	ast_rtp_get_us(rtp, tmpaddress);
-	address = (struct sockaddr_storage *) tmpaddress;
+	ast_rtp_get_us(rtp, &tmpaddress.sin);
 	address->ss_family = AF_INET;
 	return TRUE;
 }
