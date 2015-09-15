@@ -2142,8 +2142,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 			usleep(20);
 			if (d->session) {
-				AUTO_RELEASE sccp_device_t *previous_device = NULL;
-				previous_device = sccp_session_removeDevice(d->session);			/* implicit release */
+				sccp_session_releaseDevice(d->session);						/* implicit release */
 			}
 			d->session = NULL;
 		}

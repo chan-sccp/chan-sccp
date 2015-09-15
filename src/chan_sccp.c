@@ -729,7 +729,7 @@ int sccp_preUnload(void)
 	/* removing sessions */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), s, list) {
-		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_NONE);
+		sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
 	if (SCCP_LIST_EMPTY(&GLOB(sessions))) {
