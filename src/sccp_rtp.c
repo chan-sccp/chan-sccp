@@ -60,11 +60,9 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(c);
 
 	if (device) {
-		//struct sockaddr_storage sas = { 0 };
-		sccp_socket_getSas(device->session, &c->rtp.audio.phone_remote);
-		//memcpy((void *) &c->rtp.audio.phone_remote, &sas, sizeof(struct sockaddr_storage));
-	
-		sccp_socket_setPort(&c->rtp.audio.phone_remote, port);
+		struct sockaddr_storage remote = c->rtp.audio.phone_remote;					/* discard const */
+		sccp_socket_getSas(device->session, &remote);
+		sccp_socket_setPort(&remote, port);
 	}
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "is IPv4: %d\n", sccp_socket_is_IPv4(&c->rtp.audio.phone_remote) ? 1 : 0);
