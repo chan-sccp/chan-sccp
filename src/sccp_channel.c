@@ -753,7 +753,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 		uint16_t port = sccp_rtp_getServerPort(&channel->rtp.audio);					/* get rtp server port */
 		if (!sccp_socket_getExternalAddr(&audio->phone_remote)) {				/* Use externip (PBX behind NAT Firewall */
 			//memcpy(&audio->phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));	/* Fallback: use ip-address of incoming interface */
-			sccp_socket_getOurIP(d->session, &audio->phone_remote, 0);
+			sccp_session_getOurIP(d->session, &audio->phone_remote, 0);
 		}
 		sccp_socket_ipv4_mapped(&audio->phone_remote, &audio->phone_remote);
 		sccp_socket_setPort(&audio->phone_remote, port);
@@ -934,7 +934,7 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
 
 	struct sockaddr_storage sus = { 0 }, *remote = &audio->phone_remote;
-	sccp_socket_getOurIP(d->session, &sus, 0);
+	sccp_session_getOurIP(d->session, &sus, 0);
 	uint16_t usFamily = sccp_socket_is_IPv6(&sus) ? AF_INET6 : AF_INET;
 	uint16_t remoteFamily = (remote->ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(remote)) ? AF_INET6 : AF_INET;
 
@@ -1077,7 +1077,7 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
 
 	struct sockaddr_storage sus = { 0 }, *remote = &video->phone_remote;
-	sccp_socket_getOurIP(d->session, &sus, 0);
+	sccp_session_getOurIP(d->session, &sus, 0);
 	uint16_t usFamily = sccp_socket_is_IPv6(&sus) ? AF_INET6 : AF_INET;
 	uint16_t remoteFamily = (remote->ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(remote)) ? AF_INET6 : AF_INET;
 

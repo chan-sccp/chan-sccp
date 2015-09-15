@@ -624,7 +624,7 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 			timeinfo = localtime(&d->registrationTime); 												\
 			strftime(regtime, sizeof(regtime), "%c ", timeinfo);											\
         	        if(d->session) {															\
-        	        	sccp_socket_getSas(d->session, &sas);											 	\
+        	        	sccp_session_getSas(d->session, &sas);											 	\
 	        		sccp_copy_string(addrStr,sccp_socket_stringify(&sas),sizeof(addrStr));								\
 	                } else {addrStr[0] = '-'; addrStr[1] = '-';addrStr[2] = '\0';}                                                                          \
 
@@ -719,10 +719,10 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 
 	if (d->session) {
 		struct sockaddr_storage sas = { 0 };
-		sccp_socket_getSas(d->session, &sas);
+		sccp_session_getSas(d->session, &sas);
 		sccp_copy_string(clientAddress, sccp_socket_stringify(&sas), sizeof(clientAddress));
 		struct sockaddr_storage ourip = { 0 };
-		sccp_socket_getOurIP(d->session, &ourip, 0);
+		sccp_session_getOurIP(d->session, &ourip, 0);
 		sccp_copy_string(serverAddress, sccp_socket_stringify(&ourip), sizeof(serverAddress));
 	} else {
 		sprintf(clientAddress, "%s", "???.???.???.???");
@@ -1870,7 +1870,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 			char xmlData2[2000];
 
 			struct sockaddr_storage ourip = { 0 };
-			sccp_socket_getOurIP(d->session, &ourip, 0);
+			sccp_session_getOurIP(d->session, &ourip, 0);
 			sprintf(xmlData2, xmlData1, sccp_socket_stringify(&ourip));
 
 			d->protocol->sendUserToDeviceDataVersionMessage(d, 1, 0, 0, 1, xmlData2, 1);
@@ -1899,7 +1899,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 			if (d->registrationState == SKINNY_DEVICE_RS_OK) {
 				if (argc < 5) {
 					struct sockaddr_storage sas = { 0 };
-					sccp_socket_getSas(d->session, &sas);
+					sccp_session_getSas(d->session, &sas);
 					sccp_copy_string(clientAddress, sccp_socket_stringify_addr(&sas), sizeof(clientAddress));
 				} else {
 					sccp_copy_string(clientAddress, argv[6], sizeof(clientAddress));
