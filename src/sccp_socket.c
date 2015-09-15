@@ -33,6 +33,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #else
 #define sccp_socket_poll poll
 #endif
+#include <asterisk/cli.h>
 sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 
 /* arbitrary values */
