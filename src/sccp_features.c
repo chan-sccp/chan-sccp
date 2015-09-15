@@ -202,7 +202,7 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
  * \return SCCP Channel
  *
  */
-void sccp_feat_handle_directed_pickup(linePtr l, uint8_t lineInstance, devicePtr d)
+void sccp_feat_handle_directed_pickup(constLinePtr l, uint8_t lineInstance, constDevicePtr d)
 {
 
 	if (!l || !d || sccp_strlen(d->id) < 3) {
@@ -469,7 +469,7 @@ int sccp_feat_directed_pickup(channelPtr c, char *exten)
  *
  * \todo Fix callerid setting before calling ast_pickup_call
  */
-int sccp_feat_grouppickup(linePtr l, devicePtr d)
+int sccp_feat_grouppickup(constLinePtr l, constDevicePtr d)
 {
 	int res = 0;
 
@@ -974,7 +974,7 @@ void sccp_feat_join(devicePtr device, linePtr l, uint8_t lineInstance, channelPt
  * \param c SCCP Channel
  * \return Success as int
  */
-void sccp_feat_conflist(devicePtr d, linePtr l, uint8_t lineInstance, channelPtr c)
+void sccp_feat_conflist(devicePtr d, constLinePtr l, uint8_t lineInstance, constChannelPtr c)
 {
 	if (d) {
 #ifdef CS_SCCP_CONFERENCE
@@ -1001,7 +1001,7 @@ void sccp_feat_conflist(devicePtr d, linePtr l, uint8_t lineInstance, channelPtr
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
  */
-void sccp_feat_handle_meetme(linePtr l, uint8_t lineInstance, devicePtr d)
+void sccp_feat_handle_meetme(constLinePtr l, uint8_t lineInstance, constDevicePtr d)
 {
 	if (!l || !d || sccp_strlen_zero(d->id)) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
@@ -1069,8 +1069,8 @@ void sccp_feat_handle_meetme(linePtr l, uint8_t lineInstance, devicePtr d)
  * \brief SCCP Meetme Application Config Structure
  */
 static struct meetmeAppConfig {
-	char *appName;
-	char *defaultMeetmeOption;
+	const char *appName;
+	const char *defaultMeetmeOption;
 } meetmeApps[] = {
 	/* *INDENT-OFF* */
 	{"MeetMe", 	"qd"}, 
@@ -1109,7 +1109,7 @@ static void *sccp_feat_meetme_thread(void *data)
 
 #define SCCP_CONF_SPACER '|'
 #endif
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(data);
+	AUTO_RELEASE sccp_channel_t * c = sccp_channel_retain(data);
 
 	if (!c) {
 		pbx_log(LOG_NOTICE, "SCCP: no channel provided for meetme feature. exiting\n");
@@ -1136,7 +1136,7 @@ static void *sccp_feat_meetme_thread(void *data)
 
 	if (!app) {												// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
 		pbx_log(LOG_WARNING, "SCCP: No MeetMe application available!\n");
-		c = sccp_channel_retain(c);
+		//c = sccp_channel_retain(c);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 		sccp_channel_set_calledparty(c, SKINNY_DISP_CONFERENCE, c->dialedNumber);
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);

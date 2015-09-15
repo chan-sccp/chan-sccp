@@ -27,7 +27,7 @@ struct sccp_rtp {
 
 int sccp_rtp_createAudioServer(const sccp_channel_t * c);
 int sccp_rtp_createVideoServer(const sccp_channel_t * c);
-void sccp_rtp_stop(sccp_channel_t * c);
+void sccp_rtp_stop(constChannelPtr channel);
 void sccp_rtp_destroy(sccp_channel_t * c);
 void sccp_rtp_set_peer(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer);
 void sccp_rtp_set_phone(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer);

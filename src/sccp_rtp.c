@@ -110,13 +110,20 @@ int sccp_rtp_createVideoServer(const sccp_channel_t * c)
  * \brief Stop an RTP Source.
  * \param c SCCP Channel
  */
-void sccp_rtp_stop(sccp_channel_t * c)
+void sccp_rtp_stop(constChannelPtr channel)
 {
-	if (!c) {
+	if (!channel) {
 		return;
 	}
 	if (iPbx.rtp_stop) {
-		iPbx.rtp_stop(c);
+		if (channel->rtp.audio.rtp) {
+			PBX_RTP_TYPE *rtp = (PBX_RTP_TYPE *) channel->rtp.audio.rtp;		/* discard const */
+			iPbx.rtp_stop(rtp);
+		}
+		if (channel->rtp.video.rtp) {
+			PBX_RTP_TYPE *rtp = (PBX_RTP_TYPE *) channel->rtp.video.rtp;		/* discard const */
+			iPbx.rtp_stop(rtp);
+		}
 	} else {
 		pbx_log(LOG_ERROR, "no pbx function to stop rtp\n");
 	}
