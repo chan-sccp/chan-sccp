@@ -2137,7 +2137,6 @@ static boolean_t sccp_wrapper_asterisk111_rtpGetPeer(PBX_RTP_TYPE * rtp, struct 
 	struct ast_sockaddr addr;
 
 	ast_rtp_instance_get_remote_address(rtp, &addr);
-	// ast_sockaddr_to_sin(&addr, address);
 	memcpy(address, &addr.ss, sizeof(struct sockaddr_storage));
 	return TRUE;
 }
@@ -2147,7 +2146,6 @@ static boolean_t sccp_wrapper_asterisk111_rtpGetUs(PBX_RTP_TYPE * rtp, struct so
 	struct ast_sockaddr addr;
 
 	ast_rtp_instance_get_local_address(rtp, &addr);
-	// ast_sockaddr_to_sin(&addr, address);
 	memcpy(address, &addr.ss, sizeof(struct sockaddr_storage));
 	return TRUE;
 }
