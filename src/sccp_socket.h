@@ -48,7 +48,7 @@ struct sccp_session {
 	pthread_t session_thread;										/*!< Session Thread */
 	struct sockaddr_storage ourip;										/*!< Our IP is for rtp use */
 	struct sockaddr_storage ourIPv4;
-	char designator[16];
+	char designator[32];
 };														/*!< SCCP Session Structure */
 
 

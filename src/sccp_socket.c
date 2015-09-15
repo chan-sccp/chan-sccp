@@ -1389,10 +1389,10 @@ static void sccp_session_crossdevice_cleanup(constSessionPtr current_session, se
 
 	/* cleanup previous session */
 	if (current_session != previous_session) {
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Previous session %p needs to be cleaned up and killed!\n", DEV_ID_LOG(current_session->device), previous_session);
+		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Previous session %p needs to be cleaned up and killed!\n", current_session->designator, previous_session);
 
 		/* remove session */
-		sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Remove Session %p from globals\n", DEV_ID_LOG(current_session->device), previous_session);
+		sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Remove Session %p from globals\n", current_session->designator, previous_session);
 		// sccp_session_removeFromGlobals(previous_session);
 
 		/* cleanup device */
@@ -1407,12 +1407,12 @@ static void sccp_session_crossdevice_cleanup(constSessionPtr current_session, se
 			}
 		}
 		/* kill threads */
-		sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Kill Previous Session %p Thread\n", DEV_ID_LOG(current_session->device), previous_session);
+		sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Kill Previous Session %p Thread\n", current_session->designator, previous_session);
 		__sccp_session_stopthread(previous_session, SKINNY_DEVICE_RS_FAILED);
 	}
 
 	/* reject current_session and cleanup */
-	sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Reject New Session %p and make device come back again for another try.\n", DEV_ID_LOG(current_session->device), current_session);
+	sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Reject New Session %p and make device come back again for another try.\n", current_session->designator, current_session);
 	if (token) {
 		sccp_session_tokenReject(current_session, GLOB(token_backoff_time));
 	}
@@ -1518,7 +1518,8 @@ gcc_inline const char * const sccp_session_getDesignator(constSessionPtr session
 
 gcc_inline boolean_t sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr device)
 {
-	if (session && device && (session->device != device || device->session != session)) {
+	if (session && device && session->device && session->device != device) {
+	//if (session && device && (session->device != device || device->session != session)) {
 		pbx_log(LOG_WARNING, "Session and Device Session are of sync.\n");
 		sccp_session_crossdevice_cleanup(session, device->session, FALSE);
 		return TRUE;
@@ -1536,13 +1537,13 @@ gcc_inline sccp_device_t * const sccp_session_getDevice(constSessionPtr session,
 	if (!session) {
 		return NULL;
 	}
-	sccp_device_t *device = sccp_device_retain(session->device);
-	if (sccp_session_check_crossdevice(session, device)) {
-		sccp_device_release(device);							/* explicit release after error */
-		return NULL;
-	}
+	sccp_device_t *device = (required || session->device) ? sccp_device_retain(session->device) : NULL;
 	if (required && !device) {
 		pbx_log(LOG_WARNING, "No valid Session Device available\n");
+		return NULL;
+	}
+	if (required && sccp_session_check_crossdevice(session, device)) {
+		sccp_device_release(device);							/* explicit release after error */
 		return NULL;
 	}
 	return device;
