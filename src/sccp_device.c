@@ -2138,13 +2138,16 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 		}
 		SCCP_LIST_UNLOCK(&d->selectedChannels);
 
-		if (d->session && d->session->device) {
-			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-			usleep(20);
-			if (d->session) {
-				sccp_session_releaseDevice(d->session);						/* implicit release */
+		{
+			sccp_session_t * volatile s = d->session;						/* make sure we reread d->session */
+			if (s) {
+				sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+				usleep(20);
+				if (s) {									/* session could have dissolved, use volatile pointer */
+					sccp_session_releaseDevice(s);						/* implicit release */
+				}
+				d->session = NULL;
 			}
-			d->session = NULL;
 		}
 
 		/* release line references, refcounted in btnList */
@@ -2153,7 +2156,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 				if ((btn[i].type == SKINNY_BUTTONTYPE_LINE) && btn[i].ptr) {
-					btn[i].ptr = sccp_line_release(btn[i].ptr);			/* explicit release to cleanup device */
+					btn[i].ptr = sccp_line_release(btn[i].ptr);				/* explicit release to cleanup device */
 				}
 			}
 			sccp_free(d->buttonTemplate);

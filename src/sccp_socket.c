@@ -687,6 +687,7 @@ static sccp_device_t *__sccp_session_removeDevice(sessionPtr session)
 		sccp_session_lock(session);
 		session->device->registrationState = SKINNY_DEVICE_RS_NONE;
 		session->device->session = NULL;
+		sccp_copy_string(session->designator, sccp_socket_stringify(&session->ourip), sizeof(session->designator));
 		return_device = session->device;								// returning device reference
 		session->device = NULL;										// clear device reference
 		sccp_session_unlock(session);
@@ -698,23 +699,35 @@ static sccp_device_t *__sccp_session_removeDevice(sessionPtr session)
  * \brief Retain device pointer in session. Replace existing pointer if necessary
  * \param session SCCP Session
  * \param device SCCP Device
+ * \returns -1 when error happend, 0 if no new ref was taken and 1 if new device ref
  */
-static void __sccp_session_addDevice(sessionPtr session, constDevicePtr device)
+static int __sccp_session_addDevice(sessionPtr session, constDevicePtr device)
 {
+	int res = 0;
 	sccp_device_t *new_device = NULL;
-	if (session && device && session->device != device) {
+	if (session && (!device || (device && session->device != device))) {
 		sccp_session_lock(session);
-		new_device = sccp_device_retain(device);
+		new_device = sccp_device_retain(device);			/* do this before releasing anything, to prevent device cleanup if the same */
 		if (session->device) {
 			AUTO_RELEASE sccp_device_t * device = NULL;
 			device = __sccp_session_removeDevice(session);		/* implicit release */
 		}
-		if (new_device) {
-			session->device = new_device;				/* keep newly retained device */
-			session->device->session = session;			/* update device session pointer */
+		if (device) {
+			if (new_device) {
+				session->device = new_device;				/* keep newly retained device */
+				session->device->session = session;			/* update device session pointer */
+				
+				char buf[16] = "";
+				snprintf(buf,16, "%s:%d", device->id, session->fds[0].fd);
+				sccp_copy_string(session->designator, buf, sizeof(session->designator));
+				res = 1;
+			} else {
+				res = -1;
+			}
 		}
 		sccp_session_unlock(session);
 	}
+	return res;
 }
 
 /*!
@@ -722,20 +735,20 @@ static void __sccp_session_addDevice(sessionPtr session, constDevicePtr device)
  * \param session SCCP Session
  * \param device SCCP Device
  */
-void sccp_session_retainDevice(constSessionPtr session, constDevicePtr device)
+int sccp_session_retainDevice(constSessionPtr session, constDevicePtr device)
 {
-	sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
-	//AUTO_RELEASE sccp_device_t * d = (sccp_device_t *)sccp_device_retain(device);				/* discard const */
-	
-	if (s && device) {
-		__sccp_session_addDevice(s, device);
+	if (session && (!device || (device && session->device != device))) {
+		sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", DEV_ID_LOG(device), s->fds[0].fd, sccp_socket_stringify_addr(&s->sin));
+		return __sccp_session_addDevice(s, device);
 	}
+	return 0;
 }
 
 
-void sccp_session_releaseDevice(constSessionPtr session)
+void sccp_session_releaseDevice(constSessionPtr volatile session)
 {
-	sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
+	sccp_session_t * s = (sccp_session_t *)session;									/* discard const */
 	if (s) {
 		AUTO_RELEASE sccp_device_t * device = NULL;
 		device = __sccp_session_removeDevice(s);
@@ -1058,7 +1071,9 @@ static void sccp_accept_connection(void)
 	} else {
 		memcpy(&s->ourip, &GLOB(bindaddr), sizeof(s->ourip));
 	}
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Connected on server via %s\n", sccp_socket_stringify(&s->ourip));
+	sccp_copy_string(s->designator, sccp_socket_stringify(&s->ourip), sizeof(s->designator));
+	
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Connected on server via %s\n", s->designator);
 
 	size_t stacksize = 0;
 	pthread_attr_t attr;
@@ -1336,7 +1351,7 @@ sccp_session_t *sccp_session_reject(constSessionPtr session, char *message)
  * \param previous_session SCCP Session Pointer
  * \param token Do we need to return a token reject or a session reject (as Boolean)
  */
-void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPtr previous_session, boolean_t token)
+static void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPtr previous_session, boolean_t token)
 {
 	if (!current_session) {
 		return;
@@ -1434,7 +1449,7 @@ void sccp_session_tokenAckSPCP(constSessionPtr session, uint32_t features)
  * \param session SCCP Session
  * \param device SCCP Device
  */
-void sccp_session_setProtocol(constSessionPtr session, uint16_t protocolType)
+gcc_inline void sccp_session_setProtocol(constSessionPtr session, uint16_t protocolType)
 {
 	sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
 	
@@ -1448,7 +1463,7 @@ void sccp_session_setProtocol(constSessionPtr session, uint16_t protocolType)
  * \param session SCCP Session
  * \param device SCCP Device
  */
-void sccp_session_resetLastKeepAlive(constSessionPtr session)
+gcc_inline void sccp_session_resetLastKeepAlive(constSessionPtr session)
 {
 	sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
 	
@@ -1457,7 +1472,7 @@ void sccp_session_resetLastKeepAlive(constSessionPtr session)
 	}
 }
 
-void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState)
+gcc_inline void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState)
 {
 	sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
 	
@@ -1466,4 +1481,40 @@ void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationSta
 	}	
 }
 
+gcc_inline const char * const sccp_session_getDesignator(constSessionPtr session)
+{
+	return session->designator;
+}
+
+gcc_inline boolean_t sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr device)
+{
+	if (session && device && (session->device != device || device->session != session)) {
+		pbx_log(LOG_WARNING, "Session and Device Session are of sync.\n");
+		sccp_session_crossdevice_cleanup(session, device->session, FALSE);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+
+/*!
+ * \brief Get device connected to this session
+ * \note returns retained device
+ */
+gcc_inline sccp_device_t * const sccp_session_getDevice(constSessionPtr session, boolean_t required)
+{
+	if (!session) {
+		return NULL;
+	}
+	sccp_device_t *device = sccp_device_retain(session->device);
+	if (sccp_session_check_crossdevice(session, device)) {
+		sccp_device_release(device);							/* explicit release after error */
+		return NULL;
+	}
+	if (required && !device) {
+		pbx_log(LOG_WARNING, "No valid Session Device available\n");
+		return NULL;
+	}
+	return device;
+}
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
