@@ -118,10 +118,12 @@ void sccp_rtp_stop(constChannelPtr channel)
 	if (iPbx.rtp_stop) {
 		if (channel->rtp.audio.rtp) {
 			PBX_RTP_TYPE *rtp = (PBX_RTP_TYPE *) channel->rtp.audio.rtp;		/* discard const */
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX audio rtp transmission on channel %08X\n", channel->currentDeviceId, channel->callid);
 			iPbx.rtp_stop(rtp);
 		}
 		if (channel->rtp.video.rtp) {
 			PBX_RTP_TYPE *rtp = (PBX_RTP_TYPE *) channel->rtp.video.rtp;		/* discard const */
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX video rtp transmission on channel %08X\n", channel->currentDeviceId, channel->callid);
 			iPbx.rtp_stop(rtp);
 		}
 	} else {
