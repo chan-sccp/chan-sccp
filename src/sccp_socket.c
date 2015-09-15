@@ -1488,6 +1488,20 @@ gcc_inline void sccp_session_setProtocol(constSessionPtr session, uint16_t proto
 	}
 }
 
+
+/*!
+ * \brief Get Session Protocol
+ * \param session SCCP Session
+ * \param device SCCP Device
+ */
+gcc_inline uint16_t sccp_session_getProtocol(constSessionPtr session)
+{
+	if (session) {
+		return session->protocolType;
+	}
+	return UNKNOWN_PROTOCOL;
+}
+
 /*!
  * \brief Reset Last KeepAlive
  * \param session SCCP Session

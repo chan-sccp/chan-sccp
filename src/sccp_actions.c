@@ -640,8 +640,8 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 		device->protocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
 	}
 
-	device->protocol = sccp_protocol_getDeviceProtocol(device, s->protocolType);
-	uint8_t ourMaxProtocolCapability = sccp_protocol_getMaxSupportedVersionNumber(s->protocolType);
+	device->protocol = sccp_protocol_getDeviceProtocol(device, sccp_session_getProtocol(s));
+	uint8_t ourMaxProtocolCapability = sccp_protocol_getMaxSupportedVersionNumber(sccp_session_getProtocol(s));
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "%s: Asked for our protocol capability (%d).\n", DEV_ID_LOG(device), ourMaxProtocolCapability);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "%s: Phone protocol capability : %d\n", DEV_ID_LOG(device), protocolVer);

@@ -1388,15 +1388,20 @@ uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type)
 
 gcc_inline boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version)
 {
-	const sccp_deviceProtocol_t **protocolDef;
-	size_t protocolArraySize;
+	const sccp_deviceProtocol_t **protocolDef = NULL;
+	size_t protocolArraySize = 0 ;
 
-	if (type == SCCP_PROTOCOL) {
-		protocolArraySize = ARRAY_LEN(sccpProtocolDefinition);
-		protocolDef = sccpProtocolDefinition;
-	} else {
-		protocolArraySize = ARRAY_LEN(spcpProtocolDefinition);
-		protocolDef = spcpProtocolDefinition;
+	switch (type) {
+		case SCCP_PROTOCOL:
+			protocolArraySize = ARRAY_LEN(sccpProtocolDefinition);
+			protocolDef = sccpProtocolDefinition;
+			break;
+		case SPCP_PROTOCOL:
+			protocolArraySize = ARRAY_LEN(spcpProtocolDefinition);
+			protocolDef = spcpProtocolDefinition;
+			break;
+		default:
+			pbx_log(LOG_WARNING, "SCCP: Unknown Protocol\n");
 	}
 
 	return (version < protocolArraySize && protocolDef[version] != NULL) ? TRUE : FALSE;

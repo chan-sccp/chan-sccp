@@ -32,8 +32,9 @@
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW		3							/*!< At least we require protocol V.3 */
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH		22							/*!< We support up to protocol V.17 */
 
-#define SCCP_PROTOCOL					0
-#define SPCP_PROTOCOL					1
+#define UNKNOWN_PROTOCOL				0
+#define SCCP_PROTOCOL					1
+#define SPCP_PROTOCOL					2
 
 #define DEFAULT_SCCP_PORT				2000							/*!< SCCP uses port 2000. */
 #define DEFAULT_SCCP_SECURE_PORT			2443							/*!< SCCP secure port 2443. */

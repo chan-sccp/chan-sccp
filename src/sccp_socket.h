@@ -133,6 +133,7 @@ void sccp_session_tokenRejectSPCP(constSessionPtr session, uint32_t features);
 void sccp_session_tokenAckSPCP(constSessionPtr session, uint32_t features);
 void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState);
 void sccp_session_setProtocol(constSessionPtr session, uint16_t protocolType);
+uint16_t sccp_session_getProtocol(constSessionPtr session);
 void sccp_session_resetLastKeepAlive(constSessionPtr session);
 
 const char *const sccp_session_getDesignator(constSessionPtr session);
