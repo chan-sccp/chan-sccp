@@ -17,6 +17,8 @@
 
 #include "sccp_cli.h"
 
+/* ------------------------------------------------------------------------------------------------------- SOCKET FUNCTIONS - */
+
 /*!
  * \brief SCCP Host Access Rule Structure
  *
@@ -31,8 +33,6 @@ struct sccp_ha {
 	struct sccp_ha *next;
 	int sense;
 };
-
-struct sccp_session;
 
 boolean_t sccp_socket_is_IPv4(const struct sockaddr_storage *sockAddrStorage);
 boolean_t sccp_socket_is_IPv6(const struct sockaddr_storage *sockAddrStorage);
@@ -99,11 +99,14 @@ static inline char *sccp_socket_stringify_port(const struct sockaddr_storage *so
 }
 
 /* end sccp_socket_stringify_fmt short cuts */
-
 void sccp_socket_setoptions(int new_socket);
 void *sccp_socket_thread(void *ignore);
-void sccp_session_terminateAll();
 
+/* ------------------------------------------------------------------------------------------------------- SESSION FUNCTIONS - */
+struct sccp_session;
+
+void sccp_session_terminateAll();
+const char *const sccp_session_getDesignator(constSessionPtr session);
 void sccp_session_sendmsg(constDevicePtr device, sccp_mid_t t);
 int sccp_session_send(constDevicePtr device, const sccp_msg_t * msg);
 int sccp_session_send2(constSessionPtr s, sccp_msg_t * msg);
@@ -118,8 +121,6 @@ void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationSta
 void sccp_session_setProtocol(constSessionPtr session, uint16_t protocolType);
 uint16_t sccp_session_getProtocol(constSessionPtr session);
 void sccp_session_resetLastKeepAlive(constSessionPtr session);
-
-const char *const sccp_session_getDesignator(constSessionPtr session);
 boolean_t sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr device);
 sccp_device_t * const sccp_session_getDevice(constSessionPtr session, boolean_t required);
 boolean_t sccp_session_isValid(constSessionPtr session);
