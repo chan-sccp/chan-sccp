@@ -15,6 +15,8 @@
 #ifndef __SCCP_SOCKET_H
 #define __SCCP_SOCKET_H
 
+#include "sccp_cli.h"
+
 /*!
  * \brief SCCP Host Access Rule Structure
  *
@@ -30,27 +32,7 @@ struct sccp_ha {
 	int sense;
 };
 
-/*!
- * \brief SCCP Session Structure
- * \note This contains the current session the phone is in
- */
-struct sccp_session {
-	time_t lastKeepAlive;											/*!< Last KeepAlive Time */
-	SCCP_RWLIST_ENTRY (sccp_session_t) list;								/*!< Linked List Entry for this Session */
-	sccp_device_t *device;											/*!< Associated Device */
-	struct pollfd fds[1];											/*!< File Descriptor */
-	struct sockaddr_storage sin;										/*!< Incoming Socket Address */
-	boolean_t needcheckringback;										/*!< Need Check Ring Back. (0/1) default 1 */
-	uint16_t protocolType;
-	volatile uint8_t session_stop;										/*!< Signal Session Stop */
-	sccp_mutex_t write_lock;										/*!< Prevent multiple threads writing to the socket at the same time */
-	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
-	pthread_t session_thread;										/*!< Session Thread */
-	struct sockaddr_storage ourip;										/*!< Our IP is for rtp use */
-	struct sockaddr_storage ourIPv4;
-	char designator[32];
-};														/*!< SCCP Session Structure */
-
+struct sccp_session;
 
 boolean_t sccp_socket_is_IPv4(const struct sockaddr_storage *sockAddrStorage);
 boolean_t sccp_socket_is_IPv6(const struct sockaddr_storage *sockAddrStorage);
@@ -120,6 +102,7 @@ static inline char *sccp_socket_stringify_port(const struct sockaddr_storage *so
 
 void sccp_socket_setoptions(int new_socket);
 void *sccp_socket_thread(void *ignore);
+void sccp_session_terminateAll();
 
 void sccp_session_sendmsg(constDevicePtr device, sccp_mid_t t);
 int sccp_session_send(constDevicePtr device, const sccp_msg_t * msg);
@@ -140,5 +123,6 @@ const char *const sccp_session_getDesignator(constSessionPtr session);
 boolean_t sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr device);
 sccp_device_t * const sccp_session_getDevice(constSessionPtr session, boolean_t required);
 boolean_t sccp_session_isValid(constSessionPtr session);
+int sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

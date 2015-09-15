@@ -670,8 +670,6 @@ int sccp_preUnload(void)
 
 	sccp_device_t *d = NULL;
 	sccp_line_t *l = NULL;
-	sccp_session_t *s = NULL;
-
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 
 #if CS_TEST_FRAMEWORK
@@ -718,15 +716,8 @@ int sccp_preUnload(void)
 	}
 	usleep(100);												// wait for events to finalize
 
-	/* removing sessions */
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
-	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), s, list) {
-		sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
-	}
-	SCCP_RWLIST_TRAVERSE_SAFE_END;
-	if (SCCP_LIST_EMPTY(&GLOB(sessions))) {
-		SCCP_RWLIST_HEAD_DESTROY(&GLOB(sessions));
-	}
+	/* terminate all sessions */
+	sccp_session_terminateAll();
 
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killing the socket thread\n");
 	sccp_globals_lock(socket_lock);
