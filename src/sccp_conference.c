@@ -58,7 +58,7 @@ int playback_to_channel(sccp_conference_participant_t * participant, const char 
 int playback_to_conference(sccp_conference_t * conference, const char *filename, int say_number);
 sccp_conference_t *sccp_conference_findByID(uint32_t identifier);
 sccp_conference_participant_t *sccp_conference_participant_findByID(sccp_conference_t * conference, uint32_t identifier);
-sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, sccp_channel_t * channel);
+sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, constChannelPtr channel);
 sccp_conference_participant_t *sccp_conference_participant_findByDevice(sccp_conference_t * conference, sccp_device_t * device);
 sccp_conference_participant_t *sccp_conference_participant_findByPBXChannel(sccp_conference_t * conference, PBX_CHANNEL_TYPE * channel);
 void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant, boolean_t start);
@@ -961,7 +961,7 @@ sccp_conference_participant_t *sccp_conference_participant_findByID(sccp_confere
 /*!
  * \brief Find participant by sccp channel
  */
-sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, sccp_channel_t * channel)
+sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, constChannelPtr channel)
 {
 	sccp_conference_participant_t *participant = NULL;
 
@@ -1032,7 +1032,7 @@ sccp_conference_participant_t *sccp_conference_participant_findByPBXChannel(sccp
  * UserCallDataSoftKey:STRING:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
  * UserCallData:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
  */
-void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * c)
+void sccp_conference_show_list(sccp_conference_t * conference, constChannelPtr channel)
 {
 	int use_icon = 0;
 
@@ -1041,7 +1041,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		return;
 	}
 
-	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
+	//AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
 
 	if (!channel) {												// only send this list to sccp phones
 		pbx_log(LOG_WARNING, "SCCPCONF/%04d: No channel available to display conferencelist for\n", conference->id);

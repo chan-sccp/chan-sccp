@@ -1146,7 +1146,7 @@ void sccp_channel_updateMultiMediaTransmission(constChannelPtr channel)
 	}
 }
 
-void sccp_channel_closeAllMediaTransmitAndReceive(sccp_device_t * d, sccp_channel_t * channel)
+void sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannelPtr channel)
 {
 	ast_assert(channel != NULL);
 

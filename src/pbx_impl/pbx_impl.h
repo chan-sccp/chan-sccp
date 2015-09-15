@@ -90,8 +90,8 @@ typedef struct _PbxInterface {
 	int (*const rtp_setPhoneAddress) (const struct sccp_rtp * rtp, const struct sockaddr_storage * new_peer, int nat_active);
 	boolean_t(*const rtp_setWriteFormat) (constChannelPtr channel, skinny_codec_t codec);
 	boolean_t(*const rtp_setReadFormat) (constChannelPtr channel, skinny_codec_t codec);
-	boolean_t(*const rtp_destroy) (PBX_RTP_TYPE * tp);
-	int (*const rtp_stop) (sccp_channel_t * channel);
+	boolean_t(*const rtp_destroy) (PBX_RTP_TYPE * rtp);
+	void (*const rtp_stop) (PBX_RTP_TYPE *rtp);
 	int (*const rtp_codec) (sccp_channel_t * channel);
 	boolean_t(*const rtp_audio_create) (sccp_channel_t * channel);
 	boolean_t(*const rtp_video_create) (sccp_channel_t * channel);

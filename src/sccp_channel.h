@@ -205,7 +205,7 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel);
 void sccp_channel_stopMultiMediaTransmission(constChannelPtr channel, boolean_t KeepPortOpen);
 void sccp_channel_updateMultiMediaTransmission(constChannelPtr channel);
 
-void sccp_channel_closeAllMediaTransmitAndReceive(sccp_device_t * d, sccp_channel_t * channel);
+void sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannelPtr channel);
 
 boolean_t sccp_channel_transfer_on_hangup(constChannelPtr channel);
 gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel);

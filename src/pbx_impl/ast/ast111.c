@@ -1985,20 +1985,6 @@ static int sccp_wrapper_asterisk111_callerid_presence(const sccp_channel_t * cha
 	return CALLERID_PRESENCE_FORBIDDEN;
 }
 
-static int sccp_wrapper_asterisk111_rtp_stop(sccp_channel_t * channel)
-{
-	if (channel->rtp.audio.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX audio rtp transmission on channel %08X\n", channel->currentDeviceId, channel->callid);
-		ast_rtp_instance_stop(channel->rtp.audio.rtp);
-	}
-
-	if (channel->rtp.video.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX video rtp transmission on channel %08X\n", channel->currentDeviceId, channel->callid);
-		ast_rtp_instance_stop(channel->rtp.video.rtp);
-	}
-	return 0;
-}
-
 static boolean_t sccp_wrapper_asterisk111_create_audio_rtp(sccp_channel_t * c)
 {
 	struct ast_sockaddr sock = { {0,} };
@@ -2978,7 +2964,7 @@ const PbxInterface iPbx = {
 	rtp_setWriteFormat:		sccp_wrapper_asterisk111_setWriteFormat,
 	rtp_setReadFormat:		sccp_wrapper_asterisk111_setReadFormat,
 	rtp_destroy:			sccp_wrapper_asterisk111_destroyRTP,
-	rtp_stop:			sccp_wrapper_asterisk111_rtp_stop,
+	rtp_stop:			ast_rtp_instance_stop,
 	rtp_codec:			NULL,
 	rtp_audio_create:		sccp_wrapper_asterisk111_create_audio_rtp,
 	rtp_video_create:		sccp_wrapper_asterisk111_create_video_rtp,
@@ -3106,7 +3092,7 @@ const PbxInterface iPbx = {
 	/* rtp */
 	.rtp_getPeer			= sccp_wrapper_asterisk111_rtpGetPeer,
 	.rtp_getUs 			= sccp_wrapper_asterisk111_rtpGetUs,
-	.rtp_stop 			= sccp_wrapper_asterisk111_rtp_stop,
+	.rtp_stop 			= ast_rtp_instance_stop,
 	.rtp_audio_create 		= sccp_wrapper_asterisk111_create_audio_rtp,
 	.rtp_video_create 		= sccp_wrapper_asterisk111_create_video_rtp,
 	.rtp_get_payloadType 		= sccp_wrapper_asterisk111_get_payloadType,
