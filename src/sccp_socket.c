@@ -18,6 +18,7 @@
 #include "sccp_socket.h"
 #include "sccp_device.h"
 #include "sccp_utils.h"
+#include "sccp_cli.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #ifndef CS_USE_POLL_COMPAT
@@ -58,6 +59,26 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime);
 void sccp_session_close(sccp_session_t * s);
 void sccp_socket_device_thread_exit(void *session);
 void *sccp_socket_device_thread(void *session);
+
+/*!
+ * \brief SCCP Session Structure
+ * \note This contains the current session the phone is in
+ */
+struct sccp_session {
+	time_t lastKeepAlive;											/*!< Last KeepAlive Time */
+	SCCP_RWLIST_ENTRY (sccp_session_t) list;								/*!< Linked List Entry for this Session */
+	sccp_device_t *device;											/*!< Associated Device */
+	struct pollfd fds[1];											/*!< File Descriptor */
+	struct sockaddr_storage sin;										/*!< Incoming Socket Address */
+	uint16_t protocolType;
+	volatile uint8_t session_stop;										/*!< Signal Session Stop */
+	sccp_mutex_t write_lock;										/*!< Prevent multiple threads writing to the socket at the same time */
+	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
+	pthread_t session_thread;										/*!< Session Thread */
+	struct sockaddr_storage ourip;										/*!< Our IP is for rtp use */
+	struct sockaddr_storage ourIPv4;
+	char designator[32];
+};														/*!< SCCP Session Structure */
 
 union sockaddr_union {
 	struct sockaddr sa;
@@ -699,6 +720,29 @@ static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
 		SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 	}
 	return res;
+}
+
+
+/*!
+ * \brief Terminate all session
+ * 
+ * \lock
+ *      - socket_lock
+ *      - Glob(sessions)
+ */
+void sccp_session_terminateAll()
+{
+	sccp_session_t *s = NULL;
+	
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
+	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), s, list) {
+		sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
+	}
+	SCCP_RWLIST_TRAVERSE_SAFE_END;
+	
+	if (SCCP_LIST_EMPTY(&GLOB(sessions))) {
+		SCCP_RWLIST_HEAD_DESTROY(&GLOB(sessions));
+	}
 }
 
 /*!
@@ -1569,6 +1613,63 @@ boolean_t sccp_session_isValid(constSessionPtr session)
 		return TRUE;
 	}
 	return FALSE;
+}
+
+/* -------------------------------------------------------------------------------------------------------SHOW SESSIONS- */
+/*!
+ * \brief Show Sessions
+ * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ * 
+ */
+int sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
+{
+	int local_line_total = 0;
+	char clientAddress[INET6_ADDRSTRLEN] = "";
+
+#define CLI_AMI_TABLE_NAME Sessions
+#define CLI_AMI_TABLE_PER_ENTRY_NAME Session
+#define CLI_AMI_TABLE_LIST_ITER_HEAD &GLOB(sessions)
+#define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_session_t
+#define CLI_AMI_TABLE_LIST_ITER_VAR session
+#define CLI_AMI_TABLE_LIST_LOCK SCCP_RWLIST_RDLOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_RWLIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
+#define CLI_AMI_TABLE_BEFORE_ITERATION 														\
+		sccp_session_lock(session);													\
+		sccp_copy_string(clientAddress, sccp_socket_stringify_addr(&session->sin), sizeof(clientAddress));				\
+		AUTO_RELEASE sccp_device_t *d = session->device ? sccp_device_retain(session->device) : NULL;								\
+		if (d || (argc == 4 && sccp_strcaseequals(argv[3],"all"))) {									\
+
+#define CLI_AMI_TABLE_AFTER_ITERATION 														\
+		}																\
+		sccp_session_unlock(session);													\
+
+#define CLI_AMI_TABLE_FIELDS 															\
+		CLI_AMI_TABLE_FIELD(Socket,		"-6",		d,	6,	session->fds[0].fd)					\
+		CLI_AMI_TABLE_FIELD(IP,			"40.40",	s,	40,	clientAddress)                                		\
+		CLI_AMI_TABLE_FIELD(Port,		"-5",		d,	5,	sccp_socket_getPort(&session->sin) )    		\
+		CLI_AMI_TABLE_FIELD(KA,			"-4",		d,	4,	(uint32_t) (time(0) - session->lastKeepAlive))		\
+		CLI_AMI_TABLE_FIELD(KAI,		"-4",		d,	4,	(d) ? d->keepaliveinterval : 0)				\
+		CLI_AMI_TABLE_FIELD(DeviceName,		"15",		s,	15,	(d) ? d->id : "--")					\
+		CLI_AMI_TABLE_FIELD(State,		"-14.14",	s,	14,	(d) ? sccp_devicestate2str(d->state) : "--")		\
+		CLI_AMI_TABLE_FIELD(Type,		"-15.15",	s,	15,	(d) ? skinny_devicetype2str(d->skinny_type) : "--")	\
+		CLI_AMI_TABLE_FIELD(RegState,		"-10.10",	s,	10,	(d) ? skinny_registrationstate2str(d->registrationState) : "--")	\
+		CLI_AMI_TABLE_FIELD(Token,		"-10.10",	s,	10,	d ? sccp_tokenstate2str(d->status.token) : "--")
+#include "sccp_cli_table.h"
+
+	if (s) {
+		totals->lines = local_line_total;
+		totals->tables = 1;
+	}
+	return RESULT_SUCCESS;
 }
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
