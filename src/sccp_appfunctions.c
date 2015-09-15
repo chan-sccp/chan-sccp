@@ -103,7 +103,9 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				sccp_session_t *s = d->session;
 
 				if (s) {
-					sccp_copy_string(buf, sccp_socket_stringify(&s->sin), buf_len);
+					struct sockaddr_storage sas = { 0 };
+					sccp_socket_getOurIP(s, &sas, 0);
+					sccp_copy_string(buf, sccp_socket_stringify(&sas), buf_len);
 				}
 			} else if (!strcasecmp(token, "id")) {
 				sccp_copy_string(buf, d->id, buf_len);
@@ -669,12 +671,16 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 			} else if (!strcasecmp(token, "peerip")) {							// NO-NAT (Ip-Address Associated with the Session->sin)
 				AUTO_RELEASE sccp_device_t *d = NULL;
 				if ((d = sccp_channel_getDevice_retained(c))) {
-					sccp_copy_string(buf, sccp_socket_stringify(&d->session->sin), len);
+					struct sockaddr_storage sas = { 0 };
+					sccp_socket_getOurIP(d->session, &sas, 0);
+					sccp_copy_string(buf, sccp_socket_stringify(&sas), len);
 				}
 			} else if (!strcasecmp(token, "recvip")) {							// NAT (Actual Source IP-Address Reported by the phone upon registration)
 				AUTO_RELEASE sccp_device_t *d = NULL;
 				if ((d = sccp_channel_getDevice_retained(c))) {
-					ast_copy_string(buf, sccp_socket_stringify(&d->session->sin), len);
+					struct sockaddr_storage sas = { 0 };
+					sccp_socket_getSas(d->session, &sas);
+					sccp_copy_string(buf, sccp_socket_stringify(&sas), len);
 				}
 			} else if (!strcasecmp(colname, "rtpqos")) {
 				AUTO_RELEASE sccp_device_t *d = NULL;

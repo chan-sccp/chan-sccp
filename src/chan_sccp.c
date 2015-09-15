@@ -183,7 +183,7 @@ inline static sccp_device_t * const check_session_message_device(constSessionPtr
 		errors++;
 	}
 
-	if (!s || (s->fds[0].fd < 0)) {
+ 	if (!sccp_session_isValid(s)) {
 		pbx_log(LOG_ERROR, "(%s) Session no longer valid\n", msgtypestr);
 		errors++;
 	}

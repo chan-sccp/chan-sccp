@@ -1798,13 +1798,7 @@ static int sccp_wrapper_asterisk111_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 			//        ast_sockaddr_to_sin(&sin_tmp, &sin);
 			//        sin.sin_addr.s_addr = sin.sin_addr.s_addr ? sin.sin_addr.s_addr : d->session->ourip.s_addr;
 			memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
-			if (sccp_socket_is_any_addr(&sas)) {
-				if (sccp_socket_is_IPv4(&sas)) {
-					((struct sockaddr_in6 *) &sas)->sin6_addr = ((struct sockaddr_in6 *) &d->session->ourip)->sin6_addr;
-				} else {
-					((struct sockaddr_in *) &sas)->sin_addr = ((struct sockaddr_in *) &d->session->ourip)->sin_addr;
-				}
-			}
+			sccp_socket_getOurIP(d->session, &sas, sccp_socket_is_IPv4(&sas) ? AF_INET : AF_INET6);
 		}
 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_update_rtp_peer) new remote rtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s) => directmedia=%s\n", c->currentDeviceId, sccp_socket_stringify(&sas), S_COR(d->directrtp, "yes", "no"),
