@@ -259,7 +259,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 		timeinfo = localtime(&device->registrationTime);
 
 		struct sockaddr_storage sas = { 0 };
-		if (sccp_socket_getSas(device->session, &sas)) {
+		if (sccp_session_getSas(device->session, &sas)) {
 			sccp_copy_string(clientAddress, sccp_socket_stringify(&sas), sizeof(clientAddress));
 		} else {
 			sccp_copy_string(clientAddress, "--", sizeof(clientAddress));

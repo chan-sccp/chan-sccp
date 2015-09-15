@@ -61,7 +61,7 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 
 	if (device) {
 		struct sockaddr_storage remote = c->rtp.audio.phone_remote;					/* discard const */
-		sccp_socket_getSas(device->session, &remote);
+		sccp_session_getSas(device->session, &remote);
 		sccp_socket_setPort(&remote, port);
 	}
 

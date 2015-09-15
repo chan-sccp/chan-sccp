@@ -137,7 +137,7 @@ boolean_t sccp_socket_getExternalAddr(struct sockaddr_storage *sockAddrStorage)
 	return TRUE;
 }
 
-boolean_t sccp_socket_getOurIP(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage, int family)
+boolean_t sccp_session_getOurIP(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage, int family)
 {
 	if (session && sockAddrStorage) {
 		if (!sccp_socket_is_any_addr(&session->ourip)) {
@@ -158,7 +158,7 @@ boolean_t sccp_socket_getOurIP(constSessionPtr session, struct sockaddr_storage 
 	return FALSE;
 }
 
-boolean_t sccp_socket_getSas(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage)
+boolean_t sccp_session_getSas(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage)
 {
 	if (session && sockAddrStorage) {
 		memcpy(sockAddrStorage, &session->sin, sizeof(struct sockaddr_storage));
@@ -448,7 +448,7 @@ static int __sccp_socket_setOurAddressFromTheirs(const struct sockaddr_storage *
 	return 0;
 }
 
-int sccp_socket_setOurIP4Address(constSessionPtr session, const struct sockaddr_storage *addr) 
+int sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr_storage *addr) 
 {
 	sccp_session_t * const s = (sccp_session_t * const)session;						/* discard const */
 	if (s) {

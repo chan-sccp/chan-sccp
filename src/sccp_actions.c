@@ -278,7 +278,7 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 
 	if (device->checkACL(device) == FALSE) {
 		struct sockaddr_storage sas = { 0 };
-		sccp_socket_getSas(s, &sas);
+		sccp_session_getSas(s, &sas);
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&sas));
 		device->registrationState = SKINNY_DEVICE_RS_FAILED;
 		sccp_session_reject(s, "IP Not Authorized");
@@ -314,7 +314,7 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 				char output[20] = "";
 
 				struct sockaddr_storage sas = { 0 };
-				sccp_socket_getSas(s, &sas);
+				sccp_session_getSas(s, &sas);
 				snprintf(command, SCCP_PATH_MAX, "%s %s %s %s", GLOB(token_fallback), deviceName, sccp_socket_stringify_host(&sas), skinny_devicetype2str(deviceType));
 				FILE *pp;
 
@@ -404,7 +404,7 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 
 	/* ip address range check */
 	struct sockaddr_storage sas = { 0 };
-	sccp_socket_getSas(s, &sas);
+	sccp_session_getSas(s, &sas);
 	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &sas)) {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName);
 		sccp_session_reject(s, "IP not authorized");
@@ -449,7 +449,7 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 
 	if (device->checkACL(device) == FALSE) {
 		struct sockaddr_storage sas = { 0 };
-		sccp_socket_getSas(s, &sas);
+		sccp_session_getSas(s, &sas);
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&sas));
 		device->registrationState = SKINNY_DEVICE_RS_FAILED;
 		sccp_session_tokenRejectSPCP(s, 60);
@@ -555,7 +555,7 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 		/* check ACLs for this device */
 		if (device->checkACL(device) == FALSE) {
 			struct sockaddr_storage sas = { 0 };
-			sccp_socket_getSas(s, &sas);
+			sccp_session_getSas(s, &sas);
 			pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", deviceName, sccp_socket_stringify_addr(&sas));
 			device->registrationState = SKINNY_DEVICE_RS_FAILED;
 			sccp_session_reject(s, "IP Not Authorized");
@@ -586,7 +586,7 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 		struct sockaddr_in *sin = (struct sockaddr_in *) &register_sas;
 		memcpy(&sin->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, sizeof(sin->sin_addr));
 		phone_ipv4 = strdupa(sccp_socket_stringify_host(&register_sas));
-		sccp_socket_setOurIP4Address(s, &register_sas);
+		sccp_session_setOurIP4Address(s, &register_sas);
 		//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Our IPv4 Address %s\n", deviceName, sccp_socket_stringify(&s->ourIPv4));
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Our IPv4 Address %s\n", deviceName, sccp_socket_stringify(&register_sas));
 	}
@@ -599,7 +599,7 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 	if (device->nat == SCCP_NAT_AUTO && GLOB(localaddr)) {
 		device->nat = SCCP_NAT_AUTO_OFF;
 		struct sockaddr_storage session_sas = { 0 };
-		sccp_socket_getSas(s, &session_sas);
+		sccp_session_getSas(s, &session_sas);
 		sccp_socket_ipv4_mapped(&session_sas, &session_sas);
 		char *session_ipv4 = strdupa(sccp_socket_stringify_host(&session_sas));
 
@@ -2746,7 +2746,7 @@ void sccp_handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constM
 			if (d->nat >= SCCP_NAT_ON) {
 				/* Rewrite ip-addres to the outside source address via which the phone connection (device->sin) */
 				uint16_t port = sccp_socket_getPort(&sas);
-				sccp_socket_getSas(s, &sas);
+				sccp_session_getSas(s, &sas);
 				sccp_socket_ipv4_mapped(&sas, &sas);
 				sccp_socket_setPort(&sas, port);
 
@@ -2822,7 +2822,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constM
 		if (channel->rtp.video.rtp || sccp_rtp_createVideoServer(channel)) {
 			if (d->nat >= SCCP_NAT_ON) {
 				uint16_t port = sccp_socket_getPort(&sas);
-				sccp_socket_getSas(s, &sas);
+				sccp_session_getSas(s, &sas);
 				sccp_socket_ipv4_mapped(&sas, &sas);
 				sccp_socket_setPort(&sas, port);
 			}
@@ -3190,7 +3190,7 @@ void sccp_handle_ServerResMessage(constSessionPtr s, devicePtr d, constMessagePt
 
 	REQ(msg_out, ServerResMessage);
 	struct sockaddr_storage sas = { 0 };
-	sccp_socket_getOurIP(d->session, &sas, 0);
+	sccp_session_getOurIP(d->session, &sas, 0);
 	sccp_copy_string(msg_out->data.ServerResMessage.server[0].serverName, sccp_socket_stringify_addr(&sas), sizeof(msg_out->data.ServerResMessage.server[0].serverName));
 	msg_out->data.ServerResMessage.serverListenPort[0] = sccp_socket_getPort(&GLOB(bindaddr));
 

@@ -260,7 +260,7 @@ static boolean_t sccp_device_checkACL(constDevicePtr device)
 	}
 
 	/* get current socket information */
-	sccp_socket_getSas(device->session, &sas);
+	sccp_session_getSas(device->session, &sas);
 
 	/* no permit deny information */
 	if (!device->ha) {

@@ -631,7 +631,7 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage * sas)
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		struct sockaddr_storage sinsas = { 0 };
-		sccp_socket_getSas(d->session, &sinsas);
+		sccp_session_getSas(d->session, &sinsas);
 		if (d->session && sccp_socket_cmp_addr(&sas, sas) == 0) {
 			d = sccp_device_retain(d);
 			break;
