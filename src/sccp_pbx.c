@@ -411,22 +411,6 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 }
 
 /*!
- * \brief Thread to check Device Ring Back
- *
- * The Auto Answer thread is started by ref sccp_pbx_needcheckringback if necessary
- *
- * \param d SCCP Device
- */
-void sccp_pbx_needcheckringback(sccp_device_t * d)
-{
-	if (d && d->session) {
-		sccp_session_lock(d->session);
-		d->session->needcheckringback = 1;
-		sccp_session_unlock(d->session);
-	}
-}
-
-/*!
  * \brief Answer an Asterisk Channel
  * \note we have no bridged channel at this point
  *
@@ -776,7 +760,9 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	// export sccp informations in asterisk dialplan
 	if (d) {
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_MAC", d->id);
-		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP", d->session ? sccp_socket_stringify_addr(&d->session->sin) : "");
+		struct sockaddr_storage sas = { 0 };
+		sccp_socket_getSas(d->session, &sas);
+		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP", d->session ? sccp_socket_stringify_addr(&sas) : "");
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", skinny_devicetype2str(d->skinny_type));
 	}
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%d\n", (l) ? l->id : "(null)", (l) ? l->name : "(null)", c->callid);

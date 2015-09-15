@@ -258,8 +258,9 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), device, list) {
 		timeinfo = localtime(&device->registrationTime);
 
-		if (device->session) {
-			sccp_copy_string(clientAddress, sccp_socket_stringify(&device->session->sin), sizeof(clientAddress));
+		struct sockaddr_storage sas = { 0 };
+		if (sccp_socket_getSas(device->session, &sas)) {
+			sccp_copy_string(clientAddress, sccp_socket_stringify(&sas), sizeof(clientAddress));
 		} else {
 			sccp_copy_string(clientAddress, "--", sizeof(clientAddress));
 		}

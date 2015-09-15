@@ -623,13 +623,16 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
  * 
  */
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr)
+/*
 sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage * sas)
 {
 	sccp_device_t *d = NULL;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		if (d->session && sccp_socket_cmp_addr(&d->session->sin, sas) == 0) {
+		struct sockaddr_storage sinsas = { 0 };
+		sccp_socket_getSas(d->session, &sinsas);
+		if (d->session && sccp_socket_cmp_addr(&sas, sas) == 0) {
 			d = sccp_device_retain(d);
 			break;
 		}
@@ -637,6 +640,7 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage * sas)
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	return d;
 }
+*/
 
 /*!
  * \brief Handle Feature Change Event for persistent feature storage

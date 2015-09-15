@@ -60,6 +60,7 @@
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
 #include "sccp_hint.h"
+#include "sccp_socket.h"
 #include "sys/stat.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
@@ -619,10 +620,12 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 	{																			\
 		AUTO_RELEASE sccp_device_t *d = sccp_device_retain(list_dev);											\
 		if (d) {																	\
+			struct sockaddr_storage sas = { 0 };													\
 			timeinfo = localtime(&d->registrationTime); 												\
 			strftime(regtime, sizeof(regtime), "%c ", timeinfo);											\
         	        if(d->session) {															\
-	        		sccp_copy_string(addrStr,sccp_socket_stringify(&d->session->sin),sizeof(addrStr));						\
+        	        	sccp_socket_getSas(d->session, &sas);											 	\
+	        		sccp_copy_string(addrStr,sccp_socket_stringify(&sas),sizeof(addrStr));								\
 	                } else {addrStr[0] = '-'; addrStr[1] = '-';addrStr[2] = '\0';}                                                                          \
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 																\
@@ -715,8 +718,12 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, d->ha);
 
 	if (d->session) {
-		sccp_copy_string(clientAddress, sccp_socket_stringify(&d->session->sin), sizeof(clientAddress));
-		sccp_copy_string(serverAddress, sccp_socket_stringify(&d->session->ourip), sizeof(serverAddress));
+		struct sockaddr_storage sas = { 0 };
+		sccp_socket_getSas(d->session, &sas);
+		sccp_copy_string(clientAddress, sccp_socket_stringify(&sas), sizeof(clientAddress));
+		struct sockaddr_storage ourip = { 0 };
+		sccp_socket_getOurIP(d->session, &ourip, 0);
+		sccp_copy_string(serverAddress, sccp_socket_stringify(&ourip), sizeof(serverAddress));
 	} else {
 		sprintf(clientAddress, "%s", "???.???.???.???");
 		sprintf(serverAddress, "%s", "???.???.???.???");
@@ -1390,64 +1397,8 @@ CLI_AMI_ENTRY(show_channels, sccp_show_channels, "Lists active SCCP channels", c
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* -------------------------------------------------------------------------------------------------------SHOW SESSIONS- */
-    /*!
-     * \brief Show Sessions
-     * \param fd Fd as int
-     * \param total Total number of lines as int
-     * \param s AMI Session
-     * \param m Message
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     */
-    //static int sccp_show_sessions(int fd, int argc, char *argv[])
-static int sccp_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
-{
-	int local_line_total = 0;
-	char clientAddress[INET6_ADDRSTRLEN] = "";
 
-#define CLI_AMI_TABLE_NAME Sessions
-#define CLI_AMI_TABLE_PER_ENTRY_NAME Session
-#define CLI_AMI_TABLE_LIST_ITER_HEAD &GLOB(sessions)
-#define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_session_t
-#define CLI_AMI_TABLE_LIST_ITER_VAR session
-#define CLI_AMI_TABLE_LIST_LOCK SCCP_RWLIST_RDLOCK
-#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_RWLIST_TRAVERSE
-#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
-#define CLI_AMI_TABLE_BEFORE_ITERATION 														\
-		sccp_session_lock(session);													\
-		sccp_copy_string(clientAddress, sccp_socket_stringify_addr(&session->sin), sizeof(clientAddress));				\
-		AUTO_RELEASE sccp_device_t *d = session->device ? sccp_device_retain(session->device) : NULL;								\
-		if (d || (argc == 4 && sccp_strcaseequals(argv[3],"all"))) {									\
-
-#define CLI_AMI_TABLE_AFTER_ITERATION 														\
-		}																\
-		sccp_session_unlock(session);													\
-
-#define CLI_AMI_TABLE_FIELDS 															\
-		CLI_AMI_TABLE_FIELD(Socket,		"-6",		d,	6,	session->fds[0].fd)					\
-		CLI_AMI_TABLE_FIELD(IP,			"40.40",	s,	40,	clientAddress)                                		\
-		CLI_AMI_TABLE_FIELD(Port,		"-5",		d,	5,	sccp_socket_getPort(&session->sin) )    		\
-		CLI_AMI_TABLE_FIELD(KA,			"-4",		d,	4,	(uint32_t) (time(0) - session->lastKeepAlive))		\
-		CLI_AMI_TABLE_FIELD(KAI,		"-4",		d,	4,	(d) ? d->keepaliveinterval : 0)				\
-		CLI_AMI_TABLE_FIELD(DeviceName,		"15",		s,	15,	(d) ? d->id : "--")					\
-		CLI_AMI_TABLE_FIELD(State,		"-14.14",	s,	14,	(d) ? sccp_devicestate2str(d->state) : "--")		\
-		CLI_AMI_TABLE_FIELD(Type,		"-15.15",	s,	15,	(d) ? skinny_devicetype2str(d->skinny_type) : "--")	\
-		CLI_AMI_TABLE_FIELD(RegState,		"-10.10",	s,	10,	(d) ? skinny_registrationstate2str(d->registrationState) : "--")	\
-		CLI_AMI_TABLE_FIELD(Token,		"-10.10",	s,	10,	d ? sccp_tokenstate2str(d->status.token) : "--")
-#include "sccp_cli_table.h"
-
-	if (s) {
-		totals->lines = local_line_total;
-		totals->tables = 1;
-	}
-	return RESULT_SUCCESS;
-}
-
+/* -------------------------------------------------------------------------------------------------------SHOW SESSIONS- */
 static char cli_sessions_usage[] = "Usage: sccp show sessions [all]\n" "	Show [All] SCCP Sessions.\n";
 static char ami_sessions_usage[] = "Usage: SCCPShowSessions\n" "Show [All] SCCP Sessions.\n\n" "Optional PARAMS: all\n";
 
@@ -1456,7 +1407,7 @@ static char ami_sessions_usage[] = "Usage: SCCPShowSessions\n" "Show [All] SCCP 
 #define AMI_COMMAND "SCCPShowSessions"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS ""
-CLI_AMI_ENTRY(show_sessions, sccp_show_sessions, "Show all SCCP sessions", cli_sessions_usage, FALSE, TRUE)
+CLI_AMI_ENTRY(show_sessions, sccp_cli_show_sessions, "Show all SCCP sessions", cli_sessions_usage, FALSE, TRUE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -1918,7 +1869,9 @@ static int sccp_test(int fd, int argc, char *argv[])
 			};
 			char xmlData2[2000];
 
-			sprintf(xmlData2, xmlData1, sccp_socket_stringify(&d->session->ourip));
+			struct sockaddr_storage ourip = { 0 };
+			sccp_socket_getOurIP(d->session, &ourip, 0);
+			sprintf(xmlData2, xmlData1, sccp_socket_stringify(&ourip));
 
 			d->protocol->sendUserToDeviceDataVersionMessage(d, 1, 0, 0, 1, xmlData2, 1);
 			pbx_log(LOG_NOTICE, "%s: Done1\n", d->id);
@@ -1945,7 +1898,9 @@ static int sccp_test(int fd, int argc, char *argv[])
 		if (d) {
 			if (d->registrationState == SKINNY_DEVICE_RS_OK) {
 				if (argc < 5) {
-					sccp_copy_string(clientAddress, sccp_socket_stringify_addr(&d->session->sin), sizeof(clientAddress));
+					struct sockaddr_storage sas = { 0 };
+					sccp_socket_getSas(d->session, &sas);
+					sccp_copy_string(clientAddress, sccp_socket_stringify_addr(&sas), sizeof(clientAddress));
 				} else {
 					sccp_copy_string(clientAddress, argv[6], sizeof(clientAddress));
 				}
@@ -3017,11 +2972,11 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 	}
 
 	usleep(20);
-	sccp_session_t *s;
-
-	if (d && (s = d->session) && AST_PTHREADT_NULL != s->session_thread) {
-		pthread_cancel(s->session_thread);
+	sccp_session_t * volatile s = d->session;						/* make sure we reread d->session */
+	if (s) {
+		sccp_session_releaseDevice(s);							/* implicit release */
 	}
+	d->session = NULL;
 
 	return RESULT_SUCCESS;
 }

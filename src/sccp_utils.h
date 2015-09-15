@@ -113,7 +113,7 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
 #endif
 
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr);
-sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage *sin);
+//sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage *sin);
 
 sccp_feature_type_t sccp_featureStr2featureID(const char *str);
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *SubscriptionIdNum);

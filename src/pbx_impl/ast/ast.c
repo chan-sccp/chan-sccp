@@ -803,9 +803,19 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
 		if (d) {
 			if (!strcasecmp(args.param, "peerip")) {
-				sccp_copy_string(buf, sccp_socket_stringify(&d->session->sin), buflen);
+				struct sockaddr_storage sas = { 0 };
+				if (sccp_socket_getOurIP(d->session, &sas, 0)) {
+					sccp_copy_string(buf, sccp_socket_stringify(&sas), buflen);
+				} else {
+					sccp_copy_string(buf, "--", buflen);
+				}
 			} else if (!strcasecmp(args.param, "recvip")) {
-				ast_copy_string(buf, sccp_socket_stringify(&d->session->sin), buflen);
+				struct sockaddr_storage sas = { 0 };
+				if (sccp_socket_getSas(d->session, &sas)) {
+					sccp_copy_string(buf, sccp_socket_stringify(&sas), buflen);
+				} else {
+					sccp_copy_string(buf, "--", buflen);
+				}
 			} else if (!strcasecmp(args.param, "useragent")) {
 				sccp_copy_string(buf, skinny_devicetype2str(d->skinny_type), buflen);
 			} else if (!strcasecmp(args.param, "from")) {
