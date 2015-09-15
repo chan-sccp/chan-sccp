@@ -157,10 +157,6 @@ static void __attribute__((destructor)) __unregister_file_version(void) \
 
 #define DEV_ID_LOG(x) (x && !sccp_strlen_zero(x->id)) ? x->id : "SCCP"
 
-extern struct sccp_pbx_cb sccp_pbx;
-
-#define PBX(x) sccp_pbx.x
-
 #ifdef CS_AST_HAS_TECH_PVT
 #define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)x->tech_pvt)
 #else
@@ -473,7 +469,7 @@ struct sccp_global_vars {
 ({															\
 	int _count = 0; 												\
 	int _sched_res = -1; 												\
-	while (id > -1 && (_sched_res = PBX(sched_del)(id)) && ++_count < 10) 						\
+	while (id > -1 && (_sched_res = iPbx.sched_del(id)) && ++_count < 10) 						\
 		usleep(1); 												\
 	if (_count == 10) { 												\
 		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Unable to cancel schedule ID %d.\n", id); 		\
@@ -493,7 +489,7 @@ extern const char devstate_db_family[];
 /* Function Declarations */
 int sccp_sched_free(void *ptr);
 sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_codec_t requestedCodec, skinny_codec_t capabilities[], uint8_t capabilityLength, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel);
-int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s);
+int sccp_handle_message(constMessagePtr msg, constSessionPtr s);
 int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug);
 char *sccp_get_debugcategories(int32_t debugvalue);
 int load_config(void);

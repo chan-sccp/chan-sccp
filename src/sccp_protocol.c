@@ -30,9 +30,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 /*!
  * \brief Send CallInfoMessage (V3)
  */
-static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance)
+static void sccp_device_sendCallinfoV3(constDevicePtr device, constChannelPtr channel, uint8_t instance)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	if (!channel) {
 		return;
@@ -95,9 +95,9 @@ static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_
 /*!
  * \brief Send CallInfoMessage (V7)
  */
-static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance)
+static void sccp_device_sendCallinfoV7(constDevicePtr device, constChannelPtr channel, uint8_t instance)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	if (!channel) {
 		return;
@@ -178,9 +178,9 @@ static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_
 /*!
  * \brief Send CallInfoMessage (V16)
  */
-static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance)
+static void sccp_protocol_sendCallinfoV16(constDevicePtr device, constChannelPtr channel, uint8_t instance)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	if (!channel) {
 		return;
@@ -267,9 +267,9 @@ static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sc
 /*!
  * \brief Send DialedNumber Message (V3)
  */
-static void sccp_protocol_sendDialedNumberV3(const sccp_device_t * device, const sccp_channel_t * channel)
+static void sccp_protocol_sendDialedNumberV3(constDevicePtr device, constChannelPtr channel)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 	uint8_t instance;
 
 	REQ(msg, DialedNumberMessage);
@@ -288,9 +288,9 @@ static void sccp_protocol_sendDialedNumberV3(const sccp_device_t * device, const
  * \brief Send DialedNumber Message (V18)
  *
  */
-static void sccp_protocol_sendDialedNumberV18(const sccp_device_t * device, const sccp_channel_t * channel)
+static void sccp_protocol_sendDialedNumberV18(constDevicePtr device, constChannelPtr channel)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 	uint8_t instance;
 
 	REQ(msg, DialedNumberMessage);
@@ -313,9 +313,9 @@ static void sccp_protocol_sendDialedNumberV18(const sccp_device_t * device, cons
 /*!
  * \brief Send Display Prompt Message (Static)
  */
-static void sccp_protocol_sendStaticDisplayprompt(const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message)
+static void sccp_protocol_sendStaticDisplayprompt(constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, DisplayPromptStatusMessage);
 	msg->data.DisplayPromptStatusMessage.lel_messageTimeout = htolel(timeout);
@@ -330,9 +330,9 @@ static void sccp_protocol_sendStaticDisplayprompt(const sccp_device_t * device, 
 /*!
  * \brief Send Display Prompt Message (Dynamic)
  */
-static void sccp_protocol_sendDynamicDisplayprompt(const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message)
+static void sccp_protocol_sendDynamicDisplayprompt(constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	int msg_len = strlen(message);
 	int hdr_len = sizeof(msg->data.DisplayDynamicPromptStatusMessage) - 3;
@@ -356,9 +356,9 @@ static void sccp_protocol_sendDynamicDisplayprompt(const sccp_device_t * device,
 /*!
  * \brief Send Display Notify Message (Static)
  */
-static void sccp_protocol_sendStaticDisplayNotify(const sccp_device_t * device, uint8_t timeout, const char *message)
+static void sccp_protocol_sendStaticDisplayNotify(constDevicePtr device, uint8_t timeout, const char *message)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, DisplayNotifyMessage);
 	msg->data.DisplayNotifyMessage.lel_displayTimeout = htolel(timeout);
@@ -371,9 +371,9 @@ static void sccp_protocol_sendStaticDisplayNotify(const sccp_device_t * device, 
 /*!
  * \brief Send Display Notify Message (Dynamic)
  */
-static void sccp_protocol_sendDynamicDisplayNotify(const sccp_device_t * device, uint8_t timeout, const char *message)
+static void sccp_protocol_sendDynamicDisplayNotify(constDevicePtr device, uint8_t timeout, const char *message)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	int msg_len = strlen(message);
 	int hdr_len = sizeof(msg->data.DisplayDynamicNotifyMessage) - sizeof(msg->data.DisplayDynamicNotifyMessage.dummy);
@@ -396,9 +396,9 @@ static void sccp_protocol_sendDynamicDisplayNotify(const sccp_device_t * device,
 /*!
  * \brief Send Priority Display Notify Message (Static)
  */
-static void sccp_protocol_sendStaticDisplayPriNotify(const sccp_device_t * device, uint8_t priority, uint8_t timeout, const char *message)
+static void sccp_protocol_sendStaticDisplayPriNotify(constDevicePtr device, uint8_t priority, uint8_t timeout, const char *message)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, DisplayPriNotifyMessage);
 	msg->data.DisplayPriNotifyMessage.lel_displayTimeout = htolel(timeout);
@@ -412,9 +412,9 @@ static void sccp_protocol_sendStaticDisplayPriNotify(const sccp_device_t * devic
 /*!
  * \brief Send Priority Display Notify Message (Dynamic)
  */
-static void sccp_protocol_sendDynamicDisplayPriNotify(const sccp_device_t * device, uint8_t priority, uint8_t timeout, const char *message)
+static void sccp_protocol_sendDynamicDisplayPriNotify(constDevicePtr device, uint8_t priority, uint8_t timeout, const char *message)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	int msg_len = strlen(message);
 	int hdr_len = sizeof(msg->data.DisplayDynamicPriNotifyMessage) - 3;
@@ -437,9 +437,9 @@ static void sccp_protocol_sendDynamicDisplayPriNotify(const sccp_device_t * devi
 /*!
  * \brief Send Call Forward Status Message
  */
-static void sccp_protocol_sendCallForwardStatus(const sccp_device_t * device, const sccp_linedevices_t * linedevice)
+static void sccp_protocol_sendCallForwardStatus(constDevicePtr device, const sccp_linedevices_t * linedevice)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, ForwardStatMessage);
 	msg->data.ForwardStatMessage.v3.lel_lineNumber = htolel(linedevice->lineInstance);
@@ -460,9 +460,9 @@ static void sccp_protocol_sendCallForwardStatus(const sccp_device_t * device, co
 /*!
  * \brief Send Call Forward Status Message (V19)
  */
-static void sccp_protocol_sendCallForwardStatusV18(const sccp_device_t * device, const sccp_linedevices_t * linedevice)
+static void sccp_protocol_sendCallForwardStatusV18(constDevicePtr device, const sccp_linedevices_t * linedevice)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, ForwardStatMessage);
 	msg->data.ForwardStatMessage.v18.lel_lineNumber = htolel(linedevice->lineInstance);
@@ -491,9 +491,9 @@ static void sccp_protocol_sendCallForwardStatusV18(const sccp_device_t * device,
 /*!
  * \brief Send Register Acknowledgement Message (V3)
  */
-static void sccp_protocol_sendRegisterAckV3(const sccp_device_t * device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat)
+static void sccp_protocol_sendRegisterAckV3(constDevicePtr device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, RegisterAckMessage);
 
@@ -517,9 +517,9 @@ static void sccp_protocol_sendRegisterAckV3(const sccp_device_t * device, uint8_
 /*!
  * \brief Send Register Acknowledgement Message (V4)
  */
-static void sccp_protocol_sendRegisterAckV4(const sccp_device_t * device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat)
+static void sccp_protocol_sendRegisterAckV4(constDevicePtr device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, RegisterAckMessage);
 
@@ -543,9 +543,9 @@ static void sccp_protocol_sendRegisterAckV4(const sccp_device_t * device, uint8_
 /*!
  * \brief Send Register Acknowledgement Message (V11)
  */
-static void sccp_protocol_sendRegisterAckV11(const sccp_device_t * device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat)
+static void sccp_protocol_sendRegisterAckV11(constDevicePtr device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, RegisterAckMessage);
 
@@ -570,7 +570,7 @@ static void sccp_protocol_sendRegisterAckV11(const sccp_device_t * device, uint8
 /*!
  * \brief Send Open Receive Channel (V3)
  */
-static void sccp_protocol_sendOpenReceiveChannelV3(const sccp_device_t * device, const sccp_channel_t * channel)
+static void sccp_protocol_sendOpenReceiveChannelV3(constDevicePtr device, constChannelPtr channel)
 {
 	int packetSize = 20;											/*! \todo calculate packetSize */
 	sccp_msg_t *msg = sccp_build_packet(OpenReceiveChannel, sizeof(msg->data.OpenReceiveChannel.v3));
@@ -606,7 +606,7 @@ static void sccp_protocol_sendOpenReceiveChannelV3(const sccp_device_t * device,
 /*!
  * \brief Send Open Receive Channel (V17)
  */
-static void sccp_protocol_sendOpenReceiveChannelV17(const sccp_device_t * device, const sccp_channel_t * channel)
+static void sccp_protocol_sendOpenReceiveChannelV17(constDevicePtr device, constChannelPtr channel)
 {
 	int packetSize = 20;											/*! \todo calculate packetSize */
 	sccp_msg_t *msg = sccp_build_packet(OpenReceiveChannel, sizeof(msg->data.OpenReceiveChannel.v17));
@@ -649,7 +649,7 @@ static void sccp_protocol_sendOpenReceiveChannelV17(const sccp_device_t * device
 /*!
  * \brief Send Open Receive Channel (v22)
  */
-static void sccp_protocol_sendOpenReceiveChannelv22(const sccp_device_t * device, const sccp_channel_t * channel)
+static void sccp_protocol_sendOpenReceiveChannelv22(constDevicePtr device, constChannelPtr channel)
 {
 	int packetSize = 20;											/*! \todo calculate packetSize */
 	sccp_msg_t *msg = sccp_build_packet(OpenReceiveChannel, sizeof(msg->data.OpenReceiveChannel.v22));
@@ -692,7 +692,7 @@ static void sccp_protocol_sendOpenReceiveChannelv22(const sccp_device_t * device
 /*!
  * \brief Send Open MultiMediaChannel Message (V3)
  */
-static void sccp_protocol_sendOpenMultiMediaChannelV3(const sccp_device_t * device, const sccp_channel_t * channel, uint32_t skinnyFormat, int payloadType, uint8_t lineInstance, int bitRate)
+static void sccp_protocol_sendOpenMultiMediaChannelV3(constDevicePtr device, constChannelPtr channel, uint32_t skinnyFormat, int payloadType, uint8_t lineInstance, int bitRate)
 {
 	sccp_msg_t *msg = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(msg->data.OpenMultiMediaChannelMessage.v3));
 
@@ -720,7 +720,7 @@ static void sccp_protocol_sendOpenMultiMediaChannelV3(const sccp_device_t * devi
 /*!
  * \brief Send Open MultiMediaChannel Message (V17)
  */
-static void sccp_protocol_sendOpenMultiMediaChannelV17(const sccp_device_t * device, const sccp_channel_t * channel, uint32_t skinnyFormat, int payloadType, uint8_t lineInstance, int bitRate)
+static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, constChannelPtr channel, uint32_t skinnyFormat, int payloadType, uint8_t lineInstance, int bitRate)
 {
 	sccp_msg_t *msg = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(msg->data.OpenMultiMediaChannelMessage.v17));
 
@@ -756,7 +756,7 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(const sccp_device_t * dev
 /*!
  * \brief Send Start Media Transmission (V3)
  */
-static void sccp_protocol_sendStartMediaTransmissionV3(const sccp_device_t * device, const sccp_channel_t * channel)
+static void sccp_protocol_sendStartMediaTransmissionV3(constDevicePtr device, constChannelPtr channel)
 {
 	sccp_msg_t *msg = sccp_build_packet(StartMediaTransmission, sizeof(msg->data.StartMediaTransmission.v3));
 	int packetSize = 20;											/*! \todo calculate packetSize */
@@ -791,7 +791,7 @@ static void sccp_protocol_sendStartMediaTransmissionV3(const sccp_device_t * dev
 /*!
  * \brief Send Start Media Transmission (V17)
  */
-static void sccp_protocol_sendStartMediaTransmissionV17(const sccp_device_t * device, const sccp_channel_t * channel)
+static void sccp_protocol_sendStartMediaTransmissionV17(constDevicePtr device, constChannelPtr channel)
 {
 	sccp_msg_t *msg = sccp_build_packet(StartMediaTransmission, sizeof(msg->data.StartMediaTransmission.v17));
 	int packetSize = 20;											/*! \todo calculate packetSize */
@@ -828,7 +828,7 @@ static void sccp_protocol_sendStartMediaTransmissionV17(const sccp_device_t * de
 /*!
  * \brief Send Start Media Transmission (v22)
  */
-static void sccp_protocol_sendStartMediaTransmissionv22(const sccp_device_t * device, const sccp_channel_t * channel)
+static void sccp_protocol_sendStartMediaTransmissionv22(constDevicePtr device, constChannelPtr channel)
 {
 	sccp_msg_t *msg = sccp_build_packet(StartMediaTransmission, sizeof(msg->data.StartMediaTransmission.v22));
 	int packetSize = 20;											/*! \todo calculate packetSize */
@@ -865,7 +865,7 @@ static void sccp_protocol_sendStartMediaTransmissionv22(const sccp_device_t * de
 /*!
  * \brief Send Start MultiMedia Transmission (V3)
  */
-static void sccp_protocol_sendStartMultiMediaTransmissionV3(const sccp_device_t * device, const sccp_channel_t * channel, int payloadType, int bitRate)
+static void sccp_protocol_sendStartMultiMediaTransmissionV3(constDevicePtr device, constChannelPtr channel, int payloadType, int bitRate)
 {
 	sccp_msg_t *msg = sccp_build_packet(StartMultiMediaTransmission, sizeof(msg->data.StartMultiMediaTransmission.v3));
 
@@ -901,7 +901,7 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV3(const sccp_device_t 
 /*!
  * \brief Send Start MultiMedia Transmission (V17)
  */
-static void sccp_protocol_sendStartMultiMediaTransmissionV17(const sccp_device_t * device, const sccp_channel_t * channel, int payloadType, int bitRate)
+static void sccp_protocol_sendStartMultiMediaTransmissionV17(constDevicePtr device, constChannelPtr channel, int payloadType, int bitRate)
 {
 	sccp_msg_t *msg = sccp_build_packet(StartMultiMediaTransmission, sizeof(msg->data.StartMultiMediaTransmission.v17));
 
@@ -947,9 +947,9 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV17(const sccp_device_t
 }
 
 /* fastPictureUpdate */
-static void sccp_protocol_sendFastPictureUpdate(const sccp_device_t * device, const sccp_channel_t * channel)
+static void sccp_protocol_sendFastPictureUpdate(constDevicePtr device, constChannelPtr channel)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, MiscellaneousCommandMessage);
 
@@ -968,7 +968,7 @@ static void sccp_protocol_sendFastPictureUpdate(const sccp_device_t * device, co
 /*!
  * \brief Send User To Device Message (V1)
  */
-static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_t * device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority)
+static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority)
 {
 	int data_len = strlen(xmlData);
 	int msg_len = 0;
@@ -1052,7 +1052,7 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 /*!
  * \brief Send Start MultiMedia Transmission (V3)
  */
-static void sccp_protocol_sendConnectionStatisticsReqV3(const sccp_device_t * device, const sccp_channel_t * channel, uint8_t clear)
+static void sccp_protocol_sendConnectionStatisticsReqV3(constDevicePtr device, constChannelPtr channel, uint8_t clear)
 {
 	sccp_msg_t *msg = sccp_build_packet(ConnectionStatisticsReq, sizeof(msg->data.ConnectionStatisticsReq.v3));
 
@@ -1070,7 +1070,7 @@ static void sccp_protocol_sendConnectionStatisticsReqV3(const sccp_device_t * de
 /*!
  * \brief Send Start MultiMedia Transmission (V17)
  */
-static void sccp_protocol_sendConnectionStatisticsReqV19(const sccp_device_t * device, const sccp_channel_t * channel, uint8_t clear)
+static void sccp_protocol_sendConnectionStatisticsReqV19(constDevicePtr device, constChannelPtr channel, uint8_t clear)
 {
 	sccp_msg_t *msg = sccp_build_packet(ConnectionStatisticsReq, sizeof(msg->data.ConnectionStatisticsReq.v19));
 
@@ -1096,7 +1096,7 @@ static void sccp_protocol_sendConnectionStatisticsReqV19(const sccp_device_t * d
 /*!
  * \brief OpenReceiveChannelAck
  */
-static void sccp_protocol_parseOpenReceiveChannelAckV3(const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
+static void sccp_protocol_parseOpenReceiveChannelAckV3(constMessagePtr msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
 {
 	*mediastatus = letohl(msg->data.OpenReceiveChannelAck.v3.lel_mediastatus);
 	*callReference = letohl(msg->data.OpenReceiveChannelAck.v3.lel_callReference);
@@ -1109,7 +1109,7 @@ static void sccp_protocol_parseOpenReceiveChannelAckV3(const sccp_msg_t * msg, s
 	sin->sin_port = htons(htolel(msg->data.OpenReceiveChannelAck.v3.lel_portNumber));
 }
 
-static void sccp_protocol_parseOpenReceiveChannelAckV17(const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
+static void sccp_protocol_parseOpenReceiveChannelAckV17(constMessagePtr msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
 {
 	*mediastatus = letohl(msg->data.OpenReceiveChannelAck.v17.lel_mediastatus);
 	*callReference = letohl(msg->data.OpenReceiveChannelAck.v17.lel_callReference);
@@ -1132,7 +1132,7 @@ static void sccp_protocol_parseOpenReceiveChannelAckV17(const sccp_msg_t * msg, 
 	//sccp_dump_msg((sccp_msg_t *)msg);
 }
 
-static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV3(const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
+static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV3(constMessagePtr msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
 {
 	*mediastatus = letohl(msg->data.OpenMultiMediaReceiveChannelAckMessage.v3.lel_mediastatus);
 	*passthrupartyid = letohl(msg->data.OpenMultiMediaReceiveChannelAckMessage.v3.lel_passThruPartyId);
@@ -1145,7 +1145,7 @@ static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV3(const sccp_msg_
 	sin->sin_port = htons(htolel(msg->data.OpenMultiMediaReceiveChannelAckMessage.v3.lel_portNumber));
 }
 
-static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17(const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
+static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17(constMessagePtr msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
 {
 	*mediastatus = letohl(msg->data.OpenMultiMediaReceiveChannelAckMessage.v17.lel_mediastatus);
 	*passthrupartyid = letohl(msg->data.OpenMultiMediaReceiveChannelAckMessage.v17.lel_passThruPartyId);
@@ -1170,7 +1170,7 @@ static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17(const sccp_msg
 /*!
  * \brief StartMediaTransmissionAck
  */
-static void sccp_protocol_parseStartMediaTransmissionAckV3(const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss)
+static void sccp_protocol_parseStartMediaTransmissionAckV3(constMessagePtr msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss)
 {
 	*partyID = letohl(msg->data.StartMediaTransmissionAck.v3.lel_passThruPartyId);
 	*callID = letohl(msg->data.StartMediaTransmissionAck.v3.lel_callReference);
@@ -1184,7 +1184,7 @@ static void sccp_protocol_parseStartMediaTransmissionAckV3(const sccp_msg_t * ms
 	sin->sin_port = htons(htolel(msg->data.StartMediaTransmissionAck.v3.lel_portNumber));
 }
 
-static void sccp_protocol_parseStartMediaTransmissionAckV17(const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss)
+static void sccp_protocol_parseStartMediaTransmissionAckV17(constMessagePtr msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss)
 {
 	*partyID = letohl(msg->data.StartMediaTransmissionAck.v17.lel_passThruPartyId);
 	*callID = letohl(msg->data.StartMediaTransmissionAck.v17.lel_callReference);
@@ -1210,7 +1210,7 @@ static void sccp_protocol_parseStartMediaTransmissionAckV17(const sccp_msg_t * m
 /*!
  * \brief StartMultiMediaTransmissionAck
  */
-static void sccp_protocol_parseStartMultiMediaTransmissionAckV3(const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss)
+static void sccp_protocol_parseStartMultiMediaTransmissionAckV3(constMessagePtr msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss)
 {
 	*partyID = letohl(msg->data.StartMultiMediaTransmissionAck.v3.lel_passThruPartyId);
 	*callID = letohl(msg->data.StartMultiMediaTransmissionAck.v3.lel_callReference);
@@ -1224,7 +1224,7 @@ static void sccp_protocol_parseStartMultiMediaTransmissionAckV3(const sccp_msg_t
 	sin->sin_port = htons(htolel(msg->data.StartMultiMediaTransmissionAck.v3.lel_portNumber));
 }
 
-static void sccp_protocol_parseStartMultiMediaTransmissionAckV17(const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss)
+static void sccp_protocol_parseStartMultiMediaTransmissionAckV17(constMessagePtr msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss)
 {
 	*partyID = letohl(msg->data.StartMultiMediaTransmissionAck.v17.lel_passThruPartyId);
 	*callID = letohl(msg->data.StartMultiMediaTransmissionAck.v17.lel_callReference);
@@ -1250,19 +1250,19 @@ static void sccp_protocol_parseStartMultiMediaTransmissionAckV17(const sccp_msg_
 /*!
  * \brief EnblocCallMessage
  */
-static void sccp_protocol_parseEnblocCallV3(const sccp_msg_t * msg, char *calledParty, uint32_t * lineInstance)
+static void sccp_protocol_parseEnblocCallV3(constMessagePtr msg, char *calledParty, uint32_t * lineInstance)
 {
 	sccp_copy_string(calledParty, msg->data.EnblocCallMessage.v3.calledParty, StationMaxDirnumSize);
 	*lineInstance = 0;											// v3 - v16 don't provicde lineInstance during enbloc dialing
 }
 
-static void sccp_protocol_parseEnblocCallV17(const sccp_msg_t * msg, char *calledParty, uint32_t * lineInstance)
+static void sccp_protocol_parseEnblocCallV17(constMessagePtr msg, char *calledParty, uint32_t * lineInstance)
 {
 	sccp_copy_string(calledParty, msg->data.EnblocCallMessage.v17.calledParty, StationMaxDirnumSize);
 	*lineInstance = letohl(msg->data.EnblocCallMessage.v17.lel_lineInstance);
 }
 
-static void sccp_protocol_parseEnblocCallV22(const sccp_msg_t * msg, char *calledParty, uint32_t * lineInstance)
+static void sccp_protocol_parseEnblocCallV22(constMessagePtr msg, char *calledParty, uint32_t * lineInstance)
 {
 	sccp_copy_string(calledParty, msg->data.EnblocCallMessage.v18.calledParty, 25);
 #if defined(HAVE_UNALIGNED_BUSERROR)
@@ -1406,7 +1406,7 @@ gcc_inline boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t ver
 /*!
  * \brief Get Maximum Possible Protocol Supported by Device
  */
-const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(const sccp_device_t * device, int type)
+const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(constDevicePtr device, int type)
 {
 
 	uint8_t i;

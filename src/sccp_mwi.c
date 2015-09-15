@@ -286,7 +286,7 @@ int sccp_mwi_checksubscription(const void *ptr)
 	}
 
 	/* reschedule my self */
-	if ((subscription->schedUpdate = PBX(sched_add) (SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
+	if ((subscription->schedUpdate = iPbx.sched_add(SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
 		pbx_log(LOG_ERROR, "Error creating mailbox subscription.\n");
 	}
 	return 0;
@@ -466,7 +466,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 		}
 #else
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) Falling back to polling mailbox status\n");
-		if ((subscription->schedUpdate = PBX(sched_add) (SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
+		if ((subscription->schedUpdate = iPbx.sched_add(SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
 			pbx_log(LOG_ERROR, "SCCP: (mwi_addMailboxSubscription) Error creating mailbox subscription.\n");
 		}
 #endif
@@ -505,7 +505,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
  */
 void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 	sccp_line_t *l = lineDevice->line;
 	sccp_device_t *d = lineDevice->device;
 	int instance = 0;
