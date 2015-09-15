@@ -49,6 +49,7 @@ struct sccp_session {
 	pthread_t session_thread;										/*!< Session Thread */
 	struct sockaddr_storage ourip;										/*!< Our IP is for rtp use */
 	struct sockaddr_storage ourIPv4;
+	char designator[16];
 };														/*!< SCCP Session Structure */
 
 
@@ -122,10 +123,9 @@ void *sccp_socket_thread(void *ignore);
 void sccp_session_sendmsg(constDevicePtr device, sccp_mid_t t);
 int sccp_session_send(constDevicePtr device, const sccp_msg_t * msg);
 int sccp_session_send2(constSessionPtr s, sccp_msg_t * msg);
-void sccp_session_retainDevice(constSessionPtr session, constDevicePtr device);
-void sccp_session_releaseDevice(constSessionPtr session);
+int sccp_session_retainDevice(constSessionPtr session, constDevicePtr device);
+void sccp_session_releaseDevice(constSessionPtr volatile session);
 sccp_session_t *sccp_session_reject(constSessionPtr session, char *message);
-void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPtr previous_session, boolean_t token);
 void sccp_session_tokenReject(constSessionPtr session, uint32_t backoff_time);
 void sccp_session_tokenAck(constSessionPtr session);
 void sccp_session_tokenRejectSPCP(constSessionPtr session, uint32_t features);
@@ -133,5 +133,9 @@ void sccp_session_tokenAckSPCP(constSessionPtr session, uint32_t features);
 void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState);
 void sccp_session_setProtocol(constSessionPtr session, uint16_t protocolType);
 void sccp_session_resetLastKeepAlive(constSessionPtr session);
+
+const char *const sccp_session_getDesignator(constSessionPtr session);
+boolean_t sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr device);
+sccp_device_t * const sccp_session_getDevice(constSessionPtr session, boolean_t required);
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
