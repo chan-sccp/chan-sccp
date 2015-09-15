@@ -130,7 +130,7 @@ static void sccp_sk_redial(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_devi
 	char *data;
 
 	if (d->useRedialMenu) {
-		if (d->session->protocolType == SCCP_PROTOCOL) {
+		if (d->protocol->type == SCCP_PROTOCOL) {
 			if (d->protocolversion < 15) {
 				data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"Key:Directories\"/><ExecuteItem Priority=\"0\" URL=\"Key:KeyPad3\"/></CiscoIPPhoneExecute>";
 			} else {

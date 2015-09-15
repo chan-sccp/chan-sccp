@@ -3500,7 +3500,8 @@ typedef struct {
  * Connect Specific CallBack-Functions to Particular SCCP Protocol Versions
  */
 typedef struct {
-	const char *name;											/*! protocol name ( SCCP | SPCP ) */
+	//const char *name;											/*! protocol name ( SCCP | SPCP ) */
+	const uint16_t type;											/*! (SCCP_PROTOCOL | SPCP_PROTOCOL) */
 	const uint8_t version;											/*! the protocol version number */
 	const uint16_t registrationFinishedMessageId;								/*! use this message id to determine that the device is fully registered */
 
