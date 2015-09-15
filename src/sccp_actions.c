@@ -272,11 +272,8 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 		return;
 	}
 
-	{
-		sccp_session_t *session = (sccp_session_t * const) s;						// discard const session
-		session->protocolType = SCCP_PROTOCOL;
-		sccp_session_addDevice(session, device);								// retaining device in session
-	}
+	sccp_session_setProtocol(s, SCCP_PROTOCOL);
+	sccp_session_retainDevice(s, device);
 	device->status.token = SCCP_TOKEN_STATE_REJ;
 	device->skinny_type = deviceType;
 
@@ -440,11 +437,9 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 		sccp_session_reject(s, "Device not Accepted");
 		return;
 	}
-	{
-		sccp_session_t *session = (sccp_session_t * const) s;						// discard const session
-		session->protocolType = SPCP_PROTOCOL;
-		sccp_session_addDevice(session, device);								// retaining device in session
-	}
+
+	sccp_session_setProtocol(s, SPCP_PROTOCOL);
+	sccp_session_retainDevice(s, device);
 	device->status.token = SCCP_TOKEN_STATE_REJ;
 	device->skinny_type = deviceType;
 
@@ -483,10 +478,8 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
  * \callgraph
  * \callergraph
  */
-void sccp_handle_register(constSessionPtr session, devicePtr maybe_d, constMessagePtr msg_in)
+void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_in)
 {
-	sccp_session_t * const s = (sccp_session_t * const) session;						// discard const session
-
 	AUTO_RELEASE sccp_device_t *device = NULL;
 	char *phone_ipv4 = NULL, *phone_ipv6 = NULL;
 
@@ -551,7 +544,7 @@ void sccp_handle_register(constSessionPtr session, devicePtr maybe_d, constMessa
 	if (device) {
 		if (!s->device || s->device != device) {
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", DEV_ID_LOG(device), s->fds[0].fd, sccp_socket_stringify_addr(&s->sin));
-			sccp_session_addDevice(s, device);							// retaining device in session
+			sccp_session_retainDevice(s, device);
 		}
 
 		if (!device || !device->session || !s->device) {
@@ -584,15 +577,14 @@ void sccp_handle_register(constSessionPtr session, devicePtr maybe_d, constMessa
 		memcpy(&sin6->sin6_addr, &msg_in->data.RegisterMessage.ipv6Address, sizeof(sin6->sin6_addr));
 		phone_ipv6 = strdupa(sccp_socket_stringify_host(&register_sas));
 	}
-	register_sas.ss_family = AF_INET;
-	struct sockaddr_in *sin = (struct sockaddr_in *) &register_sas;
 
-	memcpy(&sin->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, sizeof(sin->sin_addr));
-	phone_ipv4 = strdupa(sccp_socket_stringify_host(&register_sas));
-
-	/* get our IPv4 address */
+	/* set our IPv4 address */
 	{
-		sccp_socket_getOurAddressfor(&register_sas, &s->ourIPv4);
+		register_sas.ss_family = AF_INET;
+		struct sockaddr_in *sin = (struct sockaddr_in *) &register_sas;
+		memcpy(&sin->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, sizeof(sin->sin_addr));
+		phone_ipv4 = strdupa(sccp_socket_stringify_host(&register_sas));
+		sccp_socket_setOurIP4Address(s, &register_sas);
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Our IPv4 Address %s\n", deviceName, sccp_socket_stringify(&s->ourIPv4));
 	}
 	/* */
@@ -631,7 +623,7 @@ void sccp_handle_register(constSessionPtr session, devicePtr maybe_d, constMessa
 	device->skinny_type = deviceType;
 
 	// device->session = s;
-	s->lastKeepAlive = time(0);
+	sccp_session_resetLastKeepAlive(s);
 	device->mwilight = 0;
 	device->protocolversion = protocolVer;
 	device->status.token = SCCP_TOKEN_STATE_NOTOKEN;
@@ -1030,7 +1022,7 @@ void sccp_handle_unregister(constSessionPtr s, devicePtr d, constMessagePtr msg_
 	sccp_session_send2(s, msg_out);								// send directly to session, skipping device check
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
 	
-	sccp_socket_stop_sessionthread((sessionPtr)s, SKINNY_DEVICE_RS_NONE);	/* discard const session */
+	sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
 }
 
 /*!
@@ -1052,7 +1044,7 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 
 	if (d->registrationState != SKINNY_DEVICE_RS_PROGRESS && d->registrationState != SKINNY_DEVICE_RS_OK) {
 		pbx_log(LOG_WARNING, "%s: Received a button template request from unregistered device\n", d->id);
-		sccp_socket_stop_sessionthread( (sessionPtr) s, SKINNY_DEVICE_RS_FAILED);		/* discard const */
+		sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 		return;
 	}
 
@@ -1067,7 +1059,7 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 
 	if (!btn) {
 		pbx_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
-		sccp_socket_stop_sessionthread( (sessionPtr) s, SKINNY_DEVICE_RS_FAILED);		/* discard const */
+		sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 		return;
 	}
 
