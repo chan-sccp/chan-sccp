@@ -252,8 +252,7 @@ static void sccp_device_setRingtoneNotSupported(constDevicePtr device, const cha
  */
 static boolean_t sccp_device_checkACL(constDevicePtr device)
 {
-
-	struct sockaddr_storage sas;
+	struct sockaddr_storage sas = { 0 };
 	boolean_t matchesACL = FALSE;
 
 	if (!device || !device->session) {
@@ -261,7 +260,7 @@ static boolean_t sccp_device_checkACL(constDevicePtr device)
 	}
 
 	/* get current socket information */
-	memcpy(&sas, &device->session->sin, sizeof(struct sockaddr_storage));
+	sccp_socket_getSas(device->session, &sas);
 
 	/* no permit deny information */
 	if (!device->ha) {
