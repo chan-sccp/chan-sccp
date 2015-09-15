@@ -115,6 +115,36 @@ boolean_t sccp_socket_getExternalAddr(struct sockaddr_storage *sockAddrStorage)
 	return TRUE;
 }
 
+boolean_t sccp_socket_getOurIP(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage, int family)
+{
+	if (session && sockAddrStorage) {
+		if (!sccp_socket_is_any_addr(&session->ourip)) {
+			switch (family) {
+				case 0:
+					memcpy(sockAddrStorage, &session->ourip, sizeof(struct sockaddr_storage));
+					break;
+				case AF_INET:
+					((struct sockaddr_in *) sockAddrStorage)->sin_addr = ((struct sockaddr_in *) &session->ourip)->sin_addr;
+					break;
+				case AF_INET6:
+					((struct sockaddr_in6 *) sockAddrStorage)->sin6_addr = ((struct sockaddr_in6 *) &session->ourip)->sin6_addr;
+					break;
+			}
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+boolean_t sccp_socket_getSas(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage)
+{
+	if (session && sockAddrStorage) {
+		memcpy(sockAddrStorage, &session->sin, sizeof(struct sockaddr_storage));
+		return TRUE;
+	}
+	return FALSE;
+}
+
 size_t sccp_socket_sizeof(const struct sockaddr_storage * sockAddrStorage)
 {
 	if (sccp_socket_is_IPv4(sockAddrStorage)) {
@@ -1517,4 +1547,13 @@ gcc_inline sccp_device_t * const sccp_session_getDevice(constSessionPtr session,
 	}
 	return device;
 }
+
+boolean_t sccp_session_isValid(constSessionPtr session)
+{
+	if (session && session->fds[0].fd > 0 && !session->session_stop && !sccp_socket_is_any_addr(&session->ourip)) {
+		return TRUE;
+	}
+	return FALSE;
+}
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

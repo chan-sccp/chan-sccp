@@ -42,7 +42,6 @@ struct sccp_session {
 	struct sockaddr_storage sin;										/*!< Incoming Socket Address */
 	boolean_t needcheckringback;										/*!< Need Check Ring Back. (0/1) default 1 */
 	uint16_t protocolType;
-	uint8_t gone_missing;											/*!< KeepAlive received from an unregistered device */
 	volatile uint8_t session_stop;										/*!< Signal Session Stop */
 	sccp_mutex_t write_lock;										/*!< Prevent multiple threads writing to the socket at the same time */
 	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
@@ -59,8 +58,9 @@ uint16_t sccp_socket_getPort(const struct sockaddr_storage *sockAddrStorage);
 void sccp_socket_setPort(const struct sockaddr_storage *sockAddrStorage, uint16_t port);
 int sccp_socket_is_any_addr(const struct sockaddr_storage *sockAddrStorage);
 boolean_t sccp_socket_getExternalAddr(struct sockaddr_storage *sockAddrStorage);
-//int sccp_socket_getOurAddressfor(const struct sockaddr_storage *them, struct sockaddr_storage *us);
-int sccp_socket_setOurIP4Address(constSessionPtr s, const struct sockaddr_storage *addr);
+boolean_t sccp_socket_getOurIP(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage, int family);
+boolean_t sccp_socket_getSas(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage);
+int sccp_socket_setOurIP4Address(constSessionPtr session, const struct sockaddr_storage *addr) ;
 size_t sccp_socket_sizeof(const struct sockaddr_storage *sockAddrStorage);
 boolean_t sccp_socket_is_mapped_IPv4(const struct sockaddr_storage *sockAddrStorage);
 boolean_t sccp_socket_ipv4_mapped(const struct sockaddr_storage *sockAddrStorage, struct sockaddr_storage *sockAddrStorage_mapped);
@@ -120,6 +120,7 @@ static inline char *sccp_socket_stringify_port(const struct sockaddr_storage *so
 
 void sccp_socket_setoptions(int new_socket);
 void *sccp_socket_thread(void *ignore);
+
 void sccp_session_sendmsg(constDevicePtr device, sccp_mid_t t);
 int sccp_session_send(constDevicePtr device, const sccp_msg_t * msg);
 int sccp_session_send2(constSessionPtr s, sccp_msg_t * msg);
@@ -137,5 +138,6 @@ void sccp_session_resetLastKeepAlive(constSessionPtr session);
 const char *const sccp_session_getDesignator(constSessionPtr session);
 boolean_t sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr device);
 sccp_device_t * const sccp_session_getDevice(constSessionPtr session, boolean_t required);
+boolean_t sccp_session_isValid(constSessionPtr session);
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
