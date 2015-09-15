@@ -71,8 +71,8 @@ struct sccp_session {
 	sccp_device_t *device;											/*!< Associated Device */
 	struct pollfd fds[1];											/*!< File Descriptor */
 	struct sockaddr_storage sin;										/*!< Incoming Socket Address */
-	uint16_t protocolType;
-	volatile uint8_t session_stop;										/*!< Signal Session Stop */
+	uint32_t protocolType;
+	volatile boolean_t session_stop;										/*!< Signal Session Stop */
 	sccp_mutex_t write_lock;										/*!< Prevent multiple threads writing to the socket at the same time */
 	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
 	pthread_t session_thread;										/*!< Session Thread */
@@ -465,7 +465,7 @@ static void __sccp_session_stopthread(sessionPtr session, uint8_t newRegistratio
 	}
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "%s: Stopping Session Thread\n", DEV_ID_LOG(session->device));
 
-	session->session_stop = 1;
+	session->session_stop = TRUE;
 	if (session->device) {
 		session->device->registrationState = newRegistrationState;
 	}
@@ -845,7 +845,7 @@ void sccp_session_close(sccp_session_t * s)
 {
 
 	sccp_session_lock(s);
-	s->session_stop = 1;
+	s->session_stop = TRUE;
 	if (s->fds[0].fd > 0) {
 		close(s->fds[0].fd);
 		s->fds[0].fd = -1;
