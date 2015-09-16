@@ -315,7 +315,7 @@ enum feature_type
 }
 
 enum callinfo_key {
-	SCCP_CALLINFO_CALLEDPARTY_NAME,			,	"calledparty name",
+	SCCP_CALLINFO_NONE,				= 0,	"none",
 	SCCP_CALLINFO_CALLEDPARTY_NUMBER,		,	"calledparty number",
 	SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL,		,	"calledparty voicemail",
 	SCCP_CALLINFO_CALLEDPARTY_VALID,		,	"calledparty valid",

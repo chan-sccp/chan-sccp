@@ -20,6 +20,7 @@
 #include <config.h>
 #include "common.h"
 #include "sccp_utils.h"
+#include <stdarg.h>
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
@@ -67,6 +68,16 @@ struct sccp_callinfo {
 	} valid;
 };														/*!< SCCP CallInfo Structure */
 
+static const enum sccp_callinfo_range {
+	sccp_callinfo_range_char,
+	sccp_callinfo_range_int,
+	sccp_callinfo_range_presentation,
+} sccp_callinfo_ranges[] = {
+	[SCCP_CALLINFO_CALLEDPARTY_NAME ... SCCP_CALLINFO_HUNT_PILOT_NUMBER] = sccp_callinfo_range_char,
+	[SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON ... SCCP_CALLINFO_LAST_REDIRECT_REASON] = sccp_callinfo_range_int,
+	[SCCP_CALLINFO_PRESENTATION] = sccp_callinfo_range_presentation,	
+};
+
 sccp_callinfo_t *const sccp_callinfo_ctor(void)
 {
 	sccp_callinfo_t *const ci = sccp_malloc(sizeof(sccp_callinfo_t));
@@ -83,9 +94,10 @@ sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t *ci)
 	return NULL;
 }
 
-int sccp_callinfo_setStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const char value[StationMaxDirnumSize])
+
+gcc_inline static int sccp_callinfo_setStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const char value[StationMaxDirnumSize])
 {
-	assert(ci != NULL);
+ 	assert(ci != NULL);
 
 	uint valid = 0;
 	uint changed = 0;
@@ -176,6 +188,68 @@ int sccp_callinfo_setStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const ch
 		}
 	}
 	return changed;
+}
+
+
+gcc_inline static int sccp_callinfo_setReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const int reason)
+{
+	assert(ci != NULL);
+	int changed = 0;
+	switch(key) {
+		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
+			ci->originalCdpnRedirectReason = reason;
+			changed++;
+			break;
+		case SCCP_CALLINFO_LAST_REDIRECT_REASON:
+			ci->lastRedirectingReason = reason;
+			changed++;
+			break;
+		default:
+			pbx_log(LOG_ERROR, "SCCP: (CallInfo_setStr) unknown key %d\n",key);
+			return -2;
+	}
+	return changed;
+}
+
+
+gcc_inline static int sccp_callinfo_setPresentation(sccp_callinfo_t * ci, const sccp_calleridpresence_t presentation)
+{
+	assert(ci != NULL);
+	ci->presentation = presentation;
+	return 1;
+}
+
+/*
+ * \brief callinfo setter with variable number of arguments
+ * sccp_callinfo_set(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER:, "test", SCCP_CALLINFO_LAST_REDIRECT_REASON, 4, SCCP_CALLINFO_KEY_SENTINEL);
+ * SENTINEL is required to stop processing
+ * \returns: number of changed fields
+ */
+int sccp_callinfo_set(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...) 
+{
+ 	assert(ci != NULL);
+
+ 	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
+ 	int changes = 0;
+ 	
+	va_list ap;
+	va_start(ap, key);
+	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) 
+	{
+		switch(sccp_callinfo_ranges[curkey]) {
+			case sccp_callinfo_range_char:
+				changes |= sccp_callinfo_setStr(ci, curkey, va_arg(ap, char *));
+				break;
+			case sccp_callinfo_range_int:
+				changes |= sccp_callinfo_setReason(ci, curkey, va_arg(ap, int));
+				break;
+			case sccp_callinfo_range_presentation:
+				changes |= sccp_callinfo_setPresentation(ci, va_arg(ap, sccp_calleridpresence_t));
+				break;
+		}
+	}
+	va_end(ap);
+	return changes;
 }
 
 boolean_t sccp_callinfo_getStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, char *const value)
@@ -269,26 +343,6 @@ boolean_t sccp_callinfo_getStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ch
 	return TRUE;
 }
 
-int sccp_callinfo_setReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const int reason)
-{
-	assert(ci != NULL);
-	int changed = 0;
-	switch(key) {
-		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
-			ci->originalCdpnRedirectReason = reason;
-			changed++;
-			break;
-		case SCCP_CALLINFO_LAST_REDIRECT_REASON:
-			ci->lastRedirectingReason = reason;
-			changed++;
-			break;
-		default:
-			pbx_log(LOG_ERROR, "SCCP: (CallInfo_setStr) unknown key %d\n",key);
-			return -2;
-	}
-	return changed;
-}
-
 boolean_t sccp_callinfo_getReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key, int *const reason)
 {
 	assert(ci != NULL);
@@ -310,13 +364,6 @@ boolean_t sccp_callinfo_getReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key,
 	return TRUE;
 }
 
-int sccp_callinfo_setPresentation(sccp_callinfo_t * ci, const sccp_calleridpresence_t presentation)
-{
-	assert(ci != NULL);
-	ci->presentation = presentation;
-	return 1;
-}
-
 boolean_t sccp_callinfo_getPresentation(sccp_callinfo_t * ci, sccp_calleridpresence_t *const presentation)
 {
 	assert(ci != NULL);
@@ -324,60 +371,56 @@ boolean_t sccp_callinfo_getPresentation(sccp_callinfo_t * ci, sccp_calleridprese
 	return TRUE;
 }
 
+
 int sccp_callinfo_setCalledParty(sccp_callinfo_t * ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize])
 {
 	assert(ci != NULL);
-	int changed = 0;
-	changed |= sccp_callinfo_setStr(ci, SCCP_CALLINFO_CALLEDPARTY_NAME, name);
-	changed |= sccp_callinfo_setStr(ci, SCCP_CALLINFO_CALLEDPARTY_NUMBER, number);
-	changed |= sccp_callinfo_setStr(ci, SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, voicemail);
-	
-	return changed;
+	return sccp_callinfo_set(ci, 
+		SCCP_CALLINFO_CALLEDPARTY_NAME, name, 
+		SCCP_CALLINFO_CALLEDPARTY_NUMBER, number, 
+		SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, voicemail, 
+		SCCP_CALLINFO_KEY_SENTINEL);
 }
 
 int sccp_callinfo_setCallingParty(sccp_callinfo_t * ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize])
 {
 	assert(ci != NULL);
-	int changed = 0;
-	changed |= sccp_callinfo_setStr(ci, SCCP_CALLINFO_CALLINGPARTY_NAME, name);
-	changed |= sccp_callinfo_setStr(ci, SCCP_CALLINFO_CALLINGPARTY_NUMBER, number);
-	changed |= sccp_callinfo_setStr(ci, SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL, voicemail);
-	
-	return changed;
+	return sccp_callinfo_set(ci, 
+		SCCP_CALLINFO_CALLINGPARTY_NAME, name, 
+		SCCP_CALLINFO_CALLINGPARTY_NUMBER, number, 
+		SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL, voicemail, 
+		SCCP_CALLINFO_KEY_SENTINEL);
 }
 
 int sccp_callinfo_setOrigCalledParty(sccp_callinfo_t * ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize], const int reason)
 {
 	assert(ci != NULL);
-	int changed = 0;
-	changed |= sccp_callinfo_setStr(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, name);
-	changed |= sccp_callinfo_setStr(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, number);
-	changed |= sccp_callinfo_setStr(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL, voicemail);
-	changed |= sccp_callinfo_setReason(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, reason);
-	
-	return changed;
+	return sccp_callinfo_set(ci, 
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, name,
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, number,
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL, voicemail,
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, reason,
+		SCCP_CALLINFO_KEY_SENTINEL);
 }
 
 int sccp_callinfo_setOrigCallingParty(sccp_callinfo_t * ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize])
 {
 	assert(ci != NULL);
-	int changed = 0;
-	changed |= sccp_callinfo_setStr(ci, SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, name);
-	changed |= sccp_callinfo_setStr(ci, SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, number);
-	
-	return changed;
+	return sccp_callinfo_set(ci, 
+		SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, name,
+		SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, number,
+		SCCP_CALLINFO_KEY_SENTINEL);
 }
 
 int sccp_callinfo_setLastRedirectingParty(sccp_callinfo_t * ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize], const int reason)
 {
 	assert(ci != NULL);
-	int changed = 0;
-	changed |= sccp_callinfo_setStr(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, name);
-	changed |= sccp_callinfo_setStr(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, number);
-	changed |= sccp_callinfo_setStr(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, voicemail);
-	changed |= sccp_callinfo_setReason(ci, SCCP_CALLINFO_LAST_REDIRECT_REASON, reason);
-	
-	return changed;
+	return sccp_callinfo_set(ci, 
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, name,
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, number,
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, voicemail,
+		SCCP_CALLINFO_LAST_REDIRECT_REASON, reason,
+		SCCP_CALLINFO_KEY_SENTINEL);
 }
 
 /*

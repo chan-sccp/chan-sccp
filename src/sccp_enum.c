@@ -1888,7 +1888,7 @@ char *sccp_feature_type_all_entries(void) {
  * \brief enum sccp_callinfo_key
  */
 static const char *sccp_callinfo_key_map[] = {
-	[SCCP_CALLINFO_CALLEDPARTY_NAME] = "calledparty name",
+	[SCCP_CALLINFO_NONE] = "none",
 	[SCCP_CALLINFO_CALLEDPARTY_NUMBER] = "calledparty number",
 	[SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL] = "calledparty voicemail",
 	[SCCP_CALLINFO_CALLEDPARTY_VALID] = "calledparty valid",
@@ -1927,7 +1927,7 @@ int sccp_callinfo_key_exists(int sccp_callinfo_key_int_value) {
 }
 
 const char * sccp_callinfo_key2str(sccp_callinfo_key_t enum_value) {
-	if ((SCCP_CALLINFO_CALLEDPARTY_NAME <= enum_value) && (enum_value <= SCCP_CALLINFO_KEY_SENTINEL)) {
+	if ((SCCP_CALLINFO_NONE <= enum_value) && (enum_value <= SCCP_CALLINFO_KEY_SENTINEL)) {
 		return sccp_callinfo_key_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_callinfo_key2str\n", enum_value);
@@ -1951,7 +1951,7 @@ int sccp_callinfo_key_str2intval(const char *lookup_str) {
 }
 
 char *sccp_callinfo_key_all_entries(void) {
-	static char res[] = "calledparty name,calledparty number,calledparty voicemail,calledparty valid,calledparty voicemail valid,callingparty name,callingparty number,callingparty voicemail,callingparty valid,callingparty voicemail valid,orig_calledparty name,orig_calledparty number,orig_calledparty voicemail,orig_calledparty valid,orig_calledparty voicemail valid,orig_callingparty name,orig_callingparty number,orig_callingparty valid,last_redirectingparty name,last_redirectingparty number,last_redirectingparty voicemail,last_redirectingparty valid,last_redirectingparty voicemail valid,hunt pilot name,hunt pilor number,orig_calledparty_redirect reason,last_redirect reason,presentaion";
+	static char res[] = "none,calledparty number,calledparty voicemail,calledparty valid,calledparty voicemail valid,callingparty name,callingparty number,callingparty voicemail,callingparty valid,callingparty voicemail valid,orig_calledparty name,orig_calledparty number,orig_calledparty voicemail,orig_calledparty valid,orig_calledparty voicemail valid,orig_callingparty name,orig_callingparty number,orig_callingparty valid,last_redirectingparty name,last_redirectingparty number,last_redirectingparty voicemail,last_redirectingparty valid,last_redirectingparty voicemail valid,hunt pilot name,hunt pilor number,orig_calledparty_redirect reason,last_redirect reason,presentaion";
 	return res;
 }
 /* = End =========================================================================================              sccp_callinfo_key === */

@@ -719,6 +719,7 @@ char *sccp_feature_type_all_entries(void);
  * \brief enum sccp_callinfo_key
  */
 typedef enum sccp_callinfo_key {
+	SCCP_CALLINFO_NONE=0,
 	SCCP_CALLINFO_CALLEDPARTY_NAME,
 	SCCP_CALLINFO_CALLEDPARTY_NUMBER,
 	SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL,

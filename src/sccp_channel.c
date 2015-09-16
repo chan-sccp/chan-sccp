@@ -190,7 +190,8 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	channel->privateData->microphone = TRUE;
 	channel->privateData->device = NULL;
 	channel->privateData->callInfo = sccp_callinfo_ctor();
-	sccp_callinfo_setPresentation(channel->privateData->callInfo, CALLERID_PRESENCE_ALLOWED);
+	//sccp_callinfo_setPresentation(channel->privateData->callInfo, CALLERID_PRESENCE_ALLOWED);
+	sccp_callinfo_set(channel->privateData->callInfo, SCCP_CALLINFO_PRESENTATION, CALLERID_PRESENCE_ALLOWED, SCCP_CALLINFO_KEY_SENTINEL);
 
 	channel->line = sccp_line_retain(line);
 
