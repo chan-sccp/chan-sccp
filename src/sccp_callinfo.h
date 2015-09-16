@@ -16,11 +16,12 @@ struct sccp_callinfo;
 sccp_callinfo_t *const sccp_callinfo_ctor(void);
 sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t *ci);
 
-int sccp_callinfo_setStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const char value[StationMaxDirnumSize]);
+//int sccp_callinfo_setStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const char value[StationMaxDirnumSize]);
+//int sccp_callinfo_setReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const int reason);
+//int sccp_callinfo_setPresentation(sccp_callinfo_t * ci, const sccp_calleridpresence_t presentation);
+int sccp_callinfo_set(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...);
 boolean_t sccp_callinfo_getStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, char *const value);
-int sccp_callinfo_setReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const int reason);
 boolean_t sccp_callinfo_getReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key, int *const reason);
-int sccp_callinfo_setPresentation(sccp_callinfo_t * ci, const sccp_calleridpresence_t presentation);
 boolean_t sccp_callinfo_getPresentation(sccp_callinfo_t * ci, sccp_calleridpresence_t *const presentation);
 
 int sccp_callinfo_setCalledParty(sccp_callinfo_t * ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize]);
