@@ -28,7 +28,7 @@
 /*!
  * \brief SCCP CallInfo Structure
  */
-struct sccp_callinfo {
+struct sccp_oldcallinfo {
 	char calledPartyName[StationMaxNameSize];								/*!< Called Party Name */
 	char calledPartyNumber[StationMaxDirnumSize];								/*!< Called Party Number */
 	char cdpnVoiceMailbox[StationMaxDirnumSize];								/*!< Called Party Voicemail Box */
@@ -156,7 +156,7 @@ struct sccp_channel {
 
 	char *musicclass;											/*!< Music Class */
 
-	sccp_callinfo_t oldCallInfo;
+	struct sccp_oldcallinfo oldCallInfo;
 	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
 
 #if ASTERISK_VERSION_GROUP >= 111
