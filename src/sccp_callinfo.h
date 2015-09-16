@@ -14,7 +14,7 @@
 #define __SCCP_CALLINFO_H
 
 struct sccp_callinfo;
-sccp_callinfo_t __attribute__ ((malloc)) *const sccp_callinfo_ctor(void);
+sccp_callinfo_t *const sccp_callinfo_ctor(void);
 sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t * ci);
 sccp_callinfo_t *sccp_callinfo_copyCtor(const sccp_callinfo_t * const src_ci);
 boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src, sccp_callinfo_t * const dst);
@@ -52,9 +52,9 @@ int sccp_callinfo_setLastRedirectingParty(sccp_callinfo_t * const ci, const char
  *
  * \usage: unsigned int x = sccp_callinfo_getString(ci, resultcharPtr, &result_data_len, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, SCCP_CALLINFO_KEY_SENTINEL);
  * SENTINEL is required to stop processing
- * \returns ptr to buffer
+ * \returns total number of entries
  */
-char __attribute__ ((malloc)) * sccp_callinfo_getString(const sccp_callinfo_t * const ci, int *newlen, sccp_callinfo_key_t key, ...);
+unsigned int sccp_callinfo_getString(const sccp_callinfo_t * const ci, char *newstr, int *newlen, sccp_callinfo_key_t key, ...);
 
 /* debug */
 boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str_t ** const buf);

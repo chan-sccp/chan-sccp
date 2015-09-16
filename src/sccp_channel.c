@@ -458,19 +458,6 @@ sccp_callinfo_t * const sccp_channel_getCallInfo(const sccp_channel_t *const cha
 	return (sccp_callinfo_t * const) channel->privateData->callInfo;			/* discard const because callinfo has a private implementation anyway */
 }
 /*!
- * \brief Set pointer to channels private callinfo
- */
-void sccp_channel_setCallInfo(const sccp_channel_t *const channel, sccp_callinfo_t * const callinfo)
-{
-	if (channel) {
-		if (channel->privateData->callInfo) {
-			channel->privateData->callInfo = sccp_callinfo_dtor(channel->privateData->callInfo);
-		}
-		channel->privateData->callInfo = callinfo;
-	}
-}
-
-/*!
  * \brief Send Call Information to Device/Channel
  *
  * Wrapper function that calls sccp_channel_send_staticCallinfo or sccp_channel_send_dynamicCallinfo

@@ -631,21 +631,19 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 							break;
 					}
 
-					sccp_dev_set_ringer(remoteDevice, SKINNY_RINGTYPE_OFF, lineInstance, callid);
-					sccp_dev_clearprompt(remoteDevice, lineInstance, callid);
-					sccp_device_setLamp(remoteDevice, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
-					sccp_device_sendcallstate(remoteDevice, lineInstance, callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
-					if (remoteDevice->protocol && remoteDevice->protocol->sendCallInfo) {
-						remoteDevice->protocol->sendCallInfo(ci, callid, calltype, lineInstance, remoteDevice);
-					}
-					// sccp_dev_set_keyset(remoteDevice, lineInstance, tmpChannel.callid, KEYMODE_ONHOOKSTEALABLE);
-					sccp_dev_set_keyset(remoteDevice, lineInstance, callid, KEYMODE_EMPTY);	/* set NULL keymode -> No SoftKeys */
+					sccp_dev_set_ringer(remoteDevice, SKINNY_RINGTYPE_OFF, instance, tmpChannel.callid);
+					sccp_dev_clearprompt(remoteDevice, instance, tmpChannel.callid);
+					sccp_device_setLamp(remoteDevice, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
+					sccp_device_sendcallstate(remoteDevice, instance, tmpChannel.callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
+					remoteDevice->protocol->sendOldCallInfo(remoteDevice, &tmpChannel, instance);
+					// sccp_dev_set_keyset(remoteDevice, instance, tmpChannel.callid, KEYMODE_ONHOOKSTEALABLE);
+					sccp_dev_set_keyset(remoteDevice, instance, tmpChannel.callid, KEYMODE_EMPTY);	/* set NULL keymode -> No SoftKeys */
 					break;
 
 				case SCCP_CHANNELSTATE_HOLD:
 					if (c->channelStateReason == SCCP_CHANNELSTATEREASON_NORMAL) {
-						remoteDevice->indicate->remoteHold(remoteDevice, lineInstance, callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
-						remoteDevice->protocol->sendCallInfo(ci, lineInstance, callid, calltype, remoteDevice);
+						remoteDevice->indicate->remoteHold(remoteDevice, instance, tmpChannel.callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
+						remoteDevice->protocol->sendOldCallInfo(remoteDevice, &tmpChannel, instance);
 					} else {
 						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Skipped Remote Hold Indication for reason: %s\n", DEV_ID_LOG(device), sccp_channelstatereason2str(c->channelStateReason));
 					}
