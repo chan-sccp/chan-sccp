@@ -44,7 +44,7 @@ AST_MUTEX_DEFINE_STATIC(callCountLock);
  */
 struct sccp_private_channel_data {
 	sccp_device_t *device;
-	sccp_callinfo_t * callInfo;
+	sccp_callinfo_t *callInfo;
 	boolean_t microphone;											/*!< Flag to mute the microphone when calling a baby phone */
 };
 
@@ -190,6 +190,12 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	channel->privateData->microphone = TRUE;
 	channel->privateData->device = NULL;
 	channel->privateData->callInfo = sccp_callinfo_ctor();
+	if (!channel->privateData->callInfo) {
+		/* error allocating memory */
+		sccp_free(channel->privateData);
+		channel = sccp_channel_release(channel);				/* explicit release when private_data could not be created */
+		return NULL;
+	}
 	//sccp_callinfo_setPresentation(channel->privateData->callInfo, CALLERID_PRESENCE_ALLOWED);
 	sccp_callinfo_set(channel->privateData->callInfo, SCCP_CALLINFO_PRESENTATION, CALLERID_PRESENCE_ALLOWED, SCCP_CALLINFO_KEY_SENTINEL);
 
@@ -529,7 +535,7 @@ void sccp_channel_display_callInfo(sccp_channel_t * channel)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - originalCalledPartyRedirectReason: %d, lastRedirectingReason: %d, CallInfo Presentation: %s\n\n", channel->oldCallInfo.originalCdpnRedirectReason, channel->oldCallInfo.lastRedirectingReason, channel->oldCallInfo.presentation ? "ALLOWED" : "FORBIDDEN");
 }
 
-static void __sccp_channel_set_callingparty(const char *name, const char *number, sccp_callinfo_t * const oldCallInfo)
+static void __sccp_channel_set_callingparty(const char *name, const char *number, struct sccp_oldcallinfo * const oldCallInfo)
 {
 	/* in case we want to clear out the current name or number use "" instead of NULL */
 	if (name) {
@@ -565,8 +571,7 @@ void sccp_channel_set_callingparty(constChannelPtr channel, const char *name, co
 	if (!channel) {
 		return;
 	}
-	sccp_callinfo_t oldCallInfo = (sccp_callinfo_t) channel->oldCallInfo;				/* discard const */
-	__sccp_channel_set_callingparty(name, number, &oldCallInfo);
+	__sccp_channel_set_callingparty(name, number, (struct sccp_oldcallinfo * ) &channel->oldCallInfo);		/* discard const */
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_callingparty) Set callingParty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, name, number, channel->callid);
 }
 

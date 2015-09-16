@@ -73,7 +73,7 @@ static const enum sccp_callinfo_range {
 	sccp_callinfo_range_int,
 	sccp_callinfo_range_presentation,
 } sccp_callinfo_ranges[] = {
-	[SCCP_CALLINFO_CALLEDPARTY_NAME ... SCCP_CALLINFO_HUNT_PILOT_NUMBER] = sccp_callinfo_range_char,
+	[SCCP_CALLINFO_CALLEDPARTY_NAME ... SCCP_CALLINFO_HUNT_PILOT_NUMBER] = sccp_callinfo_range_char,	/* yes this is valid ;-) */
 	[SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON ... SCCP_CALLINFO_LAST_REDIRECT_REASON] = sccp_callinfo_range_int,
 	[SCCP_CALLINFO_PRESENTATION] = sccp_callinfo_range_presentation,	
 };
@@ -82,6 +82,7 @@ sccp_callinfo_t *const sccp_callinfo_ctor(void)
 {
 	sccp_callinfo_t *const ci = sccp_malloc(sizeof(sccp_callinfo_t));
 	if (!ci) {
+		pbx_log(LOG_ERROR, "SCCP: No memory to allocate callinfo object. Failing\n");
 		return NULL;
 	}
 	return ci;
