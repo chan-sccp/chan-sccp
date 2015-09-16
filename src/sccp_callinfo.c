@@ -98,7 +98,7 @@ sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t *ci)
 
 gcc_inline static int sccp_callinfo_setStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const char value[StationMaxDirnumSize])
 {
- 	assert(ci != NULL);
+ 	//assert(ci != NULL);
 
 	uint valid = 0;
 	uint changed = 0;
@@ -194,7 +194,7 @@ gcc_inline static int sccp_callinfo_setStr(sccp_callinfo_t * ci, sccp_callinfo_k
 
 gcc_inline static int sccp_callinfo_setReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const int reason)
 {
-	assert(ci != NULL);
+	//assert(ci != NULL);
 	int changed = 0;
 	switch(key) {
 		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
@@ -215,7 +215,7 @@ gcc_inline static int sccp_callinfo_setReason(sccp_callinfo_t * ci, sccp_callinf
 
 gcc_inline static int sccp_callinfo_setPresentation(sccp_callinfo_t * ci, const sccp_calleridpresence_t presentation)
 {
-	assert(ci != NULL);
+	//assert(ci != NULL);
 	ci->presentation = presentation;
 	return 1;
 }
@@ -247,9 +247,9 @@ int sccp_callinfo_set(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...)
 	return changes;
 }
 
-gcc_inline boolean_t sccp_callinfo_getStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, char **const value)
+gcc_inline static boolean_t sccp_callinfo_getStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, char **const value)
 {
-	assert(ci != NULL);
+	//assert(ci != NULL);
 	
 	char *srcPtr = NULL;							/* use to set the destination of the value */
 	unsigned int *validPtr = NULL;						/* array to validation bitfield */
@@ -328,6 +328,7 @@ gcc_inline boolean_t sccp_callinfo_getStr(sccp_callinfo_t * ci, sccp_callinfo_ke
 			if (*validPtr == 1) {
 				sccp_copy_string(*value, srcPtr, StationMaxDirnumSize);
 			} else {
+				// not valid -> return empty string
 				**value = '\0';
 				return FALSE;
 			}
@@ -338,12 +339,9 @@ gcc_inline boolean_t sccp_callinfo_getStr(sccp_callinfo_t * ci, sccp_callinfo_ke
 	return TRUE;
 }
 
-gcc_inline boolean_t sccp_callinfo_getReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key, int *const reason)
+gcc_inline static boolean_t sccp_callinfo_getReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key, int *const reason)
 {
-	assert(ci != NULL);
-	if (!ci) {
-		return FALSE;
-	}
+	//assert(ci != NULL);
 
 	switch(key) {
 		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
@@ -359,9 +357,9 @@ gcc_inline boolean_t sccp_callinfo_getReason(sccp_callinfo_t * ci, sccp_callinfo
 	return TRUE;
 }
 
-gcc_inline boolean_t sccp_callinfo_getPresentation(sccp_callinfo_t * ci, sccp_calleridpresence_t *const presentation)
+gcc_inline static boolean_t sccp_callinfo_getPresentation(sccp_callinfo_t * ci, sccp_calleridpresence_t *const presentation)
 {
-	assert(ci != NULL);
+	//assert(ci != NULL);
 	*presentation = ci->presentation;
 	return TRUE;
 }
