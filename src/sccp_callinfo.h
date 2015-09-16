@@ -15,6 +15,7 @@
 struct sccp_callinfo;
 sccp_callinfo_t *const sccp_callinfo_ctor(void);
 sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t *ci);
+boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src, sccp_callinfo_t * const dst);
 
 /*
  * \brief callinfo setter with variable number of arguments

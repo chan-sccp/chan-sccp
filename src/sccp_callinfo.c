@@ -95,6 +95,14 @@ sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t *ci)
 	return NULL;
 }
 
+boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src, sccp_callinfo_t * const dst)
+{
+	if (src && dst) {
+		memcpy(dst, src, sizeof(sccp_callinfo_t));
+		return TRUE;
+	}
+	return FALSE;
+}
 
 gcc_inline static int sccp_callinfo_setStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const char value[StationMaxDirnumSize])
 {
@@ -499,5 +507,6 @@ void sccp_channel_set_calleridPresenceParameter(sccp_channel_t * channel, sccp_c
 		iPbx.set_callerid_presence(channel);
 	}
 }
+
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
