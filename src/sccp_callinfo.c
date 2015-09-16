@@ -220,12 +220,6 @@ gcc_inline static int sccp_callinfo_setPresentation(sccp_callinfo_t * ci, const 
 	return 1;
 }
 
-/*
- * \brief callinfo setter with variable number of arguments
- * sccp_callinfo_set(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER:, "test", SCCP_CALLINFO_LAST_REDIRECT_REASON, 4, SCCP_CALLINFO_KEY_SENTINEL);
- * SENTINEL is required to stop processing
- * \returns: number of changed fields
- */
 int sccp_callinfo_set(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...) 
 {
  	assert(ci != NULL);
@@ -253,7 +247,7 @@ int sccp_callinfo_set(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...)
 	return changes;
 }
 
-boolean_t sccp_callinfo_getStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, char *const value)
+gcc_inline boolean_t sccp_callinfo_getStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, char **const value)
 {
 	assert(ci != NULL);
 	
@@ -332,19 +326,19 @@ boolean_t sccp_callinfo_getStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ch
 	if (srcPtr) {
 		if (validPtr) {
 			if (*validPtr == 1) {
-				sccp_copy_string(value, srcPtr, StationMaxDirnumSize);
+				sccp_copy_string(*value, srcPtr, StationMaxDirnumSize);
 			} else {
-				*value = '\0';
+				**value = '\0';
 				return FALSE;
 			}
 		} else {
-			sccp_copy_string(value, srcPtr, StationMaxDirnumSize);
+			sccp_copy_string(*value, srcPtr, StationMaxDirnumSize);
 		}
 	}
 	return TRUE;
 }
 
-boolean_t sccp_callinfo_getReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key, int *const reason)
+gcc_inline boolean_t sccp_callinfo_getReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key, int *const reason)
 {
 	assert(ci != NULL);
 	if (!ci) {
@@ -365,13 +359,39 @@ boolean_t sccp_callinfo_getReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key,
 	return TRUE;
 }
 
-boolean_t sccp_callinfo_getPresentation(sccp_callinfo_t * ci, sccp_calleridpresence_t *const presentation)
+gcc_inline boolean_t sccp_callinfo_getPresentation(sccp_callinfo_t * ci, sccp_calleridpresence_t *const presentation)
 {
 	assert(ci != NULL);
 	*presentation = ci->presentation;
 	return TRUE;
 }
 
+int sccp_callinfo_get(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...) 
+{
+ 	assert(ci != NULL);
+
+ 	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
+ 	int changes = 0;
+ 	
+	va_list ap;
+	va_start(ap, key);
+	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) 
+	{
+		switch(sccp_callinfo_ranges[curkey]) {
+			case sccp_callinfo_range_char:
+				changes |= sccp_callinfo_getStr(ci, curkey, va_arg(ap, char **)) ? 1 : 0;
+				break;
+			case sccp_callinfo_range_int:
+				changes |= sccp_callinfo_getReason(ci, curkey, va_arg(ap, int *)) ? 1 : 0;
+				break;
+			case sccp_callinfo_range_presentation:
+				changes |= sccp_callinfo_getPresentation(ci, va_arg(ap, sccp_calleridpresence_t *))  ? 1 : 0;
+				break;
+		}
+	}
+	va_end(ap);
+	return changes;
+}
 
 int sccp_callinfo_setCalledParty(sccp_callinfo_t * ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize])
 {
