@@ -40,47 +40,47 @@ static void sccp_device_sendCallinfoV3(constDevicePtr device, constChannelPtr ch
 
 	REQ(msg, CallInfoMessage);
 
-	if (!sccp_strlen_zero(channel->callInfo.callingPartyName)) {
-		sccp_copy_string(msg->data.CallInfoMessage.callingPartyName, channel->callInfo.callingPartyName, sizeof(msg->data.CallInfoMessage.callingPartyName));
+	if (!sccp_strlen_zero(channel->oldCallInfo.callingPartyName)) {
+		sccp_copy_string(msg->data.CallInfoMessage.callingPartyName, channel->oldCallInfo.callingPartyName, sizeof(msg->data.CallInfoMessage.callingPartyName));
 	}
-	if (!sccp_strlen_zero(channel->callInfo.callingPartyNumber)) {
-		sccp_copy_string(msg->data.CallInfoMessage.callingParty, channel->callInfo.callingPartyNumber, sizeof(msg->data.CallInfoMessage.callingParty));
+	if (!sccp_strlen_zero(channel->oldCallInfo.callingPartyNumber)) {
+		sccp_copy_string(msg->data.CallInfoMessage.callingParty, channel->oldCallInfo.callingPartyNumber, sizeof(msg->data.CallInfoMessage.callingParty));
 	}
-	if (!sccp_strlen_zero(channel->callInfo.calledPartyName)) {
-		sccp_copy_string(msg->data.CallInfoMessage.calledPartyName, channel->callInfo.calledPartyName, sizeof(msg->data.CallInfoMessage.calledPartyName));
+	if (!sccp_strlen_zero(channel->oldCallInfo.calledPartyName)) {
+		sccp_copy_string(msg->data.CallInfoMessage.calledPartyName, channel->oldCallInfo.calledPartyName, sizeof(msg->data.CallInfoMessage.calledPartyName));
 	}
-	if (!sccp_strlen_zero(channel->callInfo.calledPartyNumber)) {
-		sccp_copy_string(msg->data.CallInfoMessage.calledParty, channel->callInfo.calledPartyNumber, sizeof(msg->data.CallInfoMessage.calledParty));
+	if (!sccp_strlen_zero(channel->oldCallInfo.calledPartyNumber)) {
+		sccp_copy_string(msg->data.CallInfoMessage.calledParty, channel->oldCallInfo.calledPartyNumber, sizeof(msg->data.CallInfoMessage.calledParty));
 	}
-	if (!sccp_strlen_zero(channel->callInfo.originalCalledPartyName)) {
-		sccp_copy_string(msg->data.CallInfoMessage.originalCalledPartyName, channel->callInfo.originalCalledPartyName, sizeof(msg->data.CallInfoMessage.originalCalledPartyName));
+	if (!sccp_strlen_zero(channel->oldCallInfo.originalCalledPartyName)) {
+		sccp_copy_string(msg->data.CallInfoMessage.originalCalledPartyName, channel->oldCallInfo.originalCalledPartyName, sizeof(msg->data.CallInfoMessage.originalCalledPartyName));
 	}
-	if (!sccp_strlen_zero(channel->callInfo.originalCalledPartyNumber)) {
-		sccp_copy_string(msg->data.CallInfoMessage.originalCalledParty, channel->callInfo.originalCalledPartyNumber, sizeof(msg->data.CallInfoMessage.originalCalledParty));
+	if (!sccp_strlen_zero(channel->oldCallInfo.originalCalledPartyNumber)) {
+		sccp_copy_string(msg->data.CallInfoMessage.originalCalledParty, channel->oldCallInfo.originalCalledPartyNumber, sizeof(msg->data.CallInfoMessage.originalCalledParty));
 	}
-	if (!sccp_strlen_zero(channel->callInfo.lastRedirectingPartyName)) {
-		sccp_copy_string(msg->data.CallInfoMessage.lastRedirectingPartyName, channel->callInfo.lastRedirectingPartyName, sizeof(msg->data.CallInfoMessage.lastRedirectingPartyName));
+	if (!sccp_strlen_zero(channel->oldCallInfo.lastRedirectingPartyName)) {
+		sccp_copy_string(msg->data.CallInfoMessage.lastRedirectingPartyName, channel->oldCallInfo.lastRedirectingPartyName, sizeof(msg->data.CallInfoMessage.lastRedirectingPartyName));
 	}
-	if (!sccp_strlen_zero(channel->callInfo.lastRedirectingPartyNumber)) {
-		sccp_copy_string(msg->data.CallInfoMessage.lastRedirectingParty, channel->callInfo.lastRedirectingPartyNumber, sizeof(msg->data.CallInfoMessage.lastRedirectingParty));
+	if (!sccp_strlen_zero(channel->oldCallInfo.lastRedirectingPartyNumber)) {
+		sccp_copy_string(msg->data.CallInfoMessage.lastRedirectingParty, channel->oldCallInfo.lastRedirectingPartyNumber, sizeof(msg->data.CallInfoMessage.lastRedirectingParty));
 	}
-	if (channel->callInfo.originalCdpnRedirectReason) {
-		msg->data.CallInfoMessage.originalCdpnRedirectReason = htolel(channel->callInfo.originalCdpnRedirectReason);
+	if (channel->oldCallInfo.originalCdpnRedirectReason) {
+		msg->data.CallInfoMessage.originalCdpnRedirectReason = htolel(channel->oldCallInfo.originalCdpnRedirectReason);
 	}
-	if (channel->callInfo.lastRedirectingReason) {
-		msg->data.CallInfoMessage.lastRedirectingReason = htolel(channel->callInfo.lastRedirectingReason);
+	if (channel->oldCallInfo.lastRedirectingReason) {
+		msg->data.CallInfoMessage.lastRedirectingReason = htolel(channel->oldCallInfo.lastRedirectingReason);
 	}
-	if (!sccp_strlen_zero(channel->callInfo.cgpnVoiceMailbox)) {
-		sccp_copy_string(msg->data.CallInfoMessage.cgpnVoiceMailbox, channel->callInfo.cgpnVoiceMailbox, sizeof(msg->data.CallInfoMessage.cgpnVoiceMailbox));
+	if (!sccp_strlen_zero(channel->oldCallInfo.cgpnVoiceMailbox)) {
+		sccp_copy_string(msg->data.CallInfoMessage.cgpnVoiceMailbox, channel->oldCallInfo.cgpnVoiceMailbox, sizeof(msg->data.CallInfoMessage.cgpnVoiceMailbox));
 	}
-	if (!sccp_strlen_zero(channel->callInfo.cdpnVoiceMailbox)) {
-		sccp_copy_string(msg->data.CallInfoMessage.cdpnVoiceMailbox, channel->callInfo.cdpnVoiceMailbox, sizeof(msg->data.CallInfoMessage.cdpnVoiceMailbox));
+	if (!sccp_strlen_zero(channel->oldCallInfo.cdpnVoiceMailbox)) {
+		sccp_copy_string(msg->data.CallInfoMessage.cdpnVoiceMailbox, channel->oldCallInfo.cdpnVoiceMailbox, sizeof(msg->data.CallInfoMessage.cdpnVoiceMailbox));
 	}
-	if (!sccp_strlen_zero(channel->callInfo.originalCdpnVoiceMailbox)) {
-		sccp_copy_string(msg->data.CallInfoMessage.originalCdpnVoiceMailbox, channel->callInfo.originalCdpnVoiceMailbox, sizeof(msg->data.CallInfoMessage.originalCdpnVoiceMailbox));
+	if (!sccp_strlen_zero(channel->oldCallInfo.originalCdpnVoiceMailbox)) {
+		sccp_copy_string(msg->data.CallInfoMessage.originalCdpnVoiceMailbox, channel->oldCallInfo.originalCdpnVoiceMailbox, sizeof(msg->data.CallInfoMessage.originalCdpnVoiceMailbox));
 	}
-	if (!sccp_strlen_zero(channel->callInfo.lastRedirectingVoiceMailbox)) {
-		sccp_copy_string(msg->data.CallInfoMessage.lastRedirectingVoiceMailbox, channel->callInfo.lastRedirectingVoiceMailbox, sizeof(msg->data.CallInfoMessage.lastRedirectingVoiceMailbox));
+	if (!sccp_strlen_zero(channel->oldCallInfo.lastRedirectingVoiceMailbox)) {
+		sccp_copy_string(msg->data.CallInfoMessage.lastRedirectingVoiceMailbox, channel->oldCallInfo.lastRedirectingVoiceMailbox, sizeof(msg->data.CallInfoMessage.lastRedirectingVoiceMailbox));
 	}
 
 	msg->data.CallInfoMessage.lel_lineInstance = htolel(instance);
@@ -89,7 +89,7 @@ static void sccp_device_sendCallinfoV3(constDevicePtr device, constChannelPtr ch
 	msg->data.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
 
 	sccp_dev_send(device, msg);
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V3) for %s channel %d on line instance %d" "\n\tcallerid: %s" "\n\tcallerName: %s\n", (device) ? device->id : "(null)", skinny_calltype2str(channel->calltype), channel->callid, instance, channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V3) for %s channel %d on line instance %d" "\n\tcallerid: %s" "\n\tcallerName: %s\n", (device) ? device->id : "(null)", skinny_calltype2str(channel->calltype), channel->callid, instance, channel->oldCallInfo.callingPartyNumber, channel->oldCallInfo.callingPartyName);
 }
 
 /*!
@@ -112,18 +112,18 @@ static void sccp_device_sendCallinfoV7(constDevicePtr device, constChannelPtr ch
 	//memset(data, 0, sizeof(data));
 	memset(data, 0, dataSize);
 
-	data[0] = (strlen(channel->callInfo.callingPartyNumber) > 0) ? channel->callInfo.callingPartyNumber : NULL;
-	data[1] = (strlen(channel->callInfo.calledPartyNumber) > 0) ? channel->callInfo.calledPartyNumber : NULL;
-	data[2] = (strlen(channel->callInfo.originalCalledPartyNumber) > 0) ? channel->callInfo.originalCalledPartyNumber : NULL;
-	data[3] = (strlen(channel->callInfo.lastRedirectingPartyNumber) > 0) ? channel->callInfo.lastRedirectingPartyNumber : NULL;
-	data[4] = (strlen(channel->callInfo.cgpnVoiceMailbox) > 0) ? channel->callInfo.cgpnVoiceMailbox : NULL;
-	data[5] = (strlen(channel->callInfo.cdpnVoiceMailbox) > 0) ? channel->callInfo.cdpnVoiceMailbox : NULL;
-	data[6] = (strlen(channel->callInfo.originalCdpnVoiceMailbox) > 0) ? channel->callInfo.originalCdpnVoiceMailbox : NULL;
-	data[7] = (strlen(channel->callInfo.lastRedirectingVoiceMailbox) > 0) ? channel->callInfo.lastRedirectingVoiceMailbox : NULL;
-	data[8] = (strlen(channel->callInfo.callingPartyName) > 0) ? channel->callInfo.callingPartyName : NULL;
-	data[9] = (strlen(channel->callInfo.calledPartyName) > 0) ? channel->callInfo.calledPartyName : NULL;
-	data[10] = (strlen(channel->callInfo.originalCalledPartyName) > 0) ? channel->callInfo.originalCalledPartyName : NULL;
-	data[11] = (strlen(channel->callInfo.lastRedirectingPartyName) > 0) ? channel->callInfo.lastRedirectingPartyName : NULL;
+	data[0] = (strlen(channel->oldCallInfo.callingPartyNumber) > 0) ? channel->oldCallInfo.callingPartyNumber : NULL;
+	data[1] = (strlen(channel->oldCallInfo.calledPartyNumber) > 0) ? channel->oldCallInfo.calledPartyNumber : NULL;
+	data[2] = (strlen(channel->oldCallInfo.originalCalledPartyNumber) > 0) ? channel->oldCallInfo.originalCalledPartyNumber : NULL;
+	data[3] = (strlen(channel->oldCallInfo.lastRedirectingPartyNumber) > 0) ? channel->oldCallInfo.lastRedirectingPartyNumber : NULL;
+	data[4] = (strlen(channel->oldCallInfo.cgpnVoiceMailbox) > 0) ? channel->oldCallInfo.cgpnVoiceMailbox : NULL;
+	data[5] = (strlen(channel->oldCallInfo.cdpnVoiceMailbox) > 0) ? channel->oldCallInfo.cdpnVoiceMailbox : NULL;
+	data[6] = (strlen(channel->oldCallInfo.originalCdpnVoiceMailbox) > 0) ? channel->oldCallInfo.originalCdpnVoiceMailbox : NULL;
+	data[7] = (strlen(channel->oldCallInfo.lastRedirectingVoiceMailbox) > 0) ? channel->oldCallInfo.lastRedirectingVoiceMailbox : NULL;
+	data[8] = (strlen(channel->oldCallInfo.callingPartyName) > 0) ? channel->oldCallInfo.callingPartyName : NULL;
+	data[9] = (strlen(channel->oldCallInfo.calledPartyName) > 0) ? channel->oldCallInfo.calledPartyName : NULL;
+	data[10] = (strlen(channel->oldCallInfo.originalCalledPartyName) > 0) ? channel->oldCallInfo.originalCalledPartyName : NULL;
+	data[11] = (strlen(channel->oldCallInfo.lastRedirectingPartyName) > 0) ? channel->oldCallInfo.lastRedirectingPartyName : NULL;
 
 	for (i = 0; i < dataSize; i++) {
 		if (data[i] != NULL) {
@@ -147,8 +147,8 @@ static void sccp_device_sendCallinfoV7(constDevicePtr device, constChannelPtr ch
 	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits = 0;
 	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED);
 	msg->data.CallInfoDynamicMessage.lel_callInstance = htolel(instance);
-	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason = htolel(channel->callInfo.originalCdpnRedirectReason);
-	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(channel->callInfo.lastRedirectingReason);
+	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason = htolel(channel->oldCallInfo.originalCdpnRedirectReason);
+	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(channel->oldCallInfo.lastRedirectingReason);
 
 	if (dummy_len) {
 		// int bufferSize = dummy_len + ARRAY_LEN(data);
@@ -172,7 +172,7 @@ static void sccp_device_sendCallinfoV7(constDevicePtr device, constChannelPtr ch
 	}
 
 	sccp_dev_send(device, msg);
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V7) for %s channel %d on line instance %d" "\n\tcallerid: %s" "\n\tcallerName: %s\n", (device) ? device->id : "(null)", skinny_calltype2str(channel->calltype), channel->callid, instance, channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V7) for %s channel %d on line instance %d" "\n\tcallerid: %s" "\n\tcallerName: %s\n", (device) ? device->id : "(null)", skinny_calltype2str(channel->calltype), channel->callid, instance, channel->oldCallInfo.callingPartyNumber, channel->oldCallInfo.callingPartyName);
 }
 
 /*!
@@ -194,22 +194,22 @@ static void sccp_protocol_sendCallinfoV16(constDevicePtr device, constChannelPtr
 	//memset(data, 0, sizeof(data));
 	memset(data, 0, dataSize);
 
-	data[0] = (strlen(channel->callInfo.callingPartyNumber) > 0) ? channel->callInfo.callingPartyNumber : NULL;
-	data[1] = (strlen(channel->callInfo.originalCallingPartyNumber) > 0) ? channel->callInfo.originalCallingPartyNumber : NULL;
-	data[2] = (strlen(channel->callInfo.calledPartyNumber) > 0) ? channel->callInfo.calledPartyNumber : NULL;
-	data[3] = (strlen(channel->callInfo.originalCalledPartyNumber) > 0) ? channel->callInfo.originalCalledPartyNumber : NULL;
-	data[4] = (strlen(channel->callInfo.lastRedirectingPartyNumber) > 0) ? channel->callInfo.lastRedirectingPartyNumber : NULL;
-	data[5] = (strlen(channel->callInfo.cgpnVoiceMailbox) > 0) ? channel->callInfo.cgpnVoiceMailbox : NULL;
-	data[6] = (strlen(channel->callInfo.cdpnVoiceMailbox) > 0) ? channel->callInfo.cdpnVoiceMailbox : NULL;
-	data[7] = (strlen(channel->callInfo.originalCdpnVoiceMailbox) > 0) ? channel->callInfo.originalCdpnVoiceMailbox : NULL;
-	data[8] = (strlen(channel->callInfo.lastRedirectingVoiceMailbox) > 0) ? channel->callInfo.lastRedirectingVoiceMailbox : NULL;
-	data[9] = (strlen(channel->callInfo.callingPartyName) > 0) ? channel->callInfo.callingPartyName : NULL;
-	data[10] = (strlen(channel->callInfo.calledPartyName) > 0) ? channel->callInfo.calledPartyName : NULL;
-	data[11] = (strlen(channel->callInfo.originalCalledPartyName) > 0) ? channel->callInfo.originalCalledPartyName : NULL;
-	data[12] = (strlen(channel->callInfo.lastRedirectingPartyName) > 0) ? channel->callInfo.lastRedirectingPartyName : NULL;
-	data[13] = (strlen(channel->callInfo.originalCalledPartyName) > 0) ? channel->callInfo.originalCalledPartyName : NULL;
-	data[14] = (strlen(channel->callInfo.cgpnVoiceMailbox) > 0) ? channel->callInfo.cgpnVoiceMailbox : NULL;
-	data[15] = (strlen(channel->callInfo.cdpnVoiceMailbox) > 0) ? channel->callInfo.cdpnVoiceMailbox : NULL;
+	data[0] = (strlen(channel->oldCallInfo.callingPartyNumber) > 0) ? channel->oldCallInfo.callingPartyNumber : NULL;
+	data[1] = (strlen(channel->oldCallInfo.originalCallingPartyNumber) > 0) ? channel->oldCallInfo.originalCallingPartyNumber : NULL;
+	data[2] = (strlen(channel->oldCallInfo.calledPartyNumber) > 0) ? channel->oldCallInfo.calledPartyNumber : NULL;
+	data[3] = (strlen(channel->oldCallInfo.originalCalledPartyNumber) > 0) ? channel->oldCallInfo.originalCalledPartyNumber : NULL;
+	data[4] = (strlen(channel->oldCallInfo.lastRedirectingPartyNumber) > 0) ? channel->oldCallInfo.lastRedirectingPartyNumber : NULL;
+	data[5] = (strlen(channel->oldCallInfo.cgpnVoiceMailbox) > 0) ? channel->oldCallInfo.cgpnVoiceMailbox : NULL;
+	data[6] = (strlen(channel->oldCallInfo.cdpnVoiceMailbox) > 0) ? channel->oldCallInfo.cdpnVoiceMailbox : NULL;
+	data[7] = (strlen(channel->oldCallInfo.originalCdpnVoiceMailbox) > 0) ? channel->oldCallInfo.originalCdpnVoiceMailbox : NULL;
+	data[8] = (strlen(channel->oldCallInfo.lastRedirectingVoiceMailbox) > 0) ? channel->oldCallInfo.lastRedirectingVoiceMailbox : NULL;
+	data[9] = (strlen(channel->oldCallInfo.callingPartyName) > 0) ? channel->oldCallInfo.callingPartyName : NULL;
+	data[10] = (strlen(channel->oldCallInfo.calledPartyName) > 0) ? channel->oldCallInfo.calledPartyName : NULL;
+	data[11] = (strlen(channel->oldCallInfo.originalCalledPartyName) > 0) ? channel->oldCallInfo.originalCalledPartyName : NULL;
+	data[12] = (strlen(channel->oldCallInfo.lastRedirectingPartyName) > 0) ? channel->oldCallInfo.lastRedirectingPartyName : NULL;
+	data[13] = (strlen(channel->oldCallInfo.originalCalledPartyName) > 0) ? channel->oldCallInfo.originalCalledPartyName : NULL;
+	data[14] = (strlen(channel->oldCallInfo.cgpnVoiceMailbox) > 0) ? channel->oldCallInfo.cgpnVoiceMailbox : NULL;
+	data[15] = (strlen(channel->oldCallInfo.cdpnVoiceMailbox) > 0) ? channel->oldCallInfo.cdpnVoiceMailbox : NULL;
 
 	for (i = 0; i < dataSize; i++) {
 		if (data[i] != NULL) {
@@ -233,8 +233,8 @@ static void sccp_protocol_sendCallinfoV16(constDevicePtr device, constChannelPtr
 	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits = 0;
 	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED);
 	msg->data.CallInfoDynamicMessage.lel_callInstance = htolel(instance);
-	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason = htolel(channel->callInfo.originalCdpnRedirectReason);
-	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(channel->callInfo.lastRedirectingReason);
+	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason = htolel(channel->oldCallInfo.originalCdpnRedirectReason);
+	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(channel->oldCallInfo.lastRedirectingReason);
 
 	if (dummy_len) {
 		// int bufferSize = dummy_len + ARRAY_LEN(data);
@@ -257,10 +257,10 @@ static void sccp_protocol_sendCallinfoV16(constDevicePtr device, constChannelPtr
 		memcpy(&msg->data.CallInfoDynamicMessage.dummy, &buffer[0], bufferSize);
 	}
 	sccp_dev_send(device, msg);
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V16) for %s channel %d on line instance %d" "\n\tcallerid: %s" "\n\tcallerName: %s\n", (device) ? device->id : "(null)", skinny_calltype2str(channel->calltype), channel->callid, instance, channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V16) for %s channel %d on line instance %d" "\n\tcallerid: %s" "\n\tcallerName: %s\n", (device) ? device->id : "(null)", skinny_calltype2str(channel->calltype), channel->callid, instance, channel->oldCallInfo.callingPartyNumber, channel->oldCallInfo.callingPartyName);
 }
 
-/* done - callInfoMessage */
+/* done - oldCallInfoMessage */
 
 /* DialedNumber Message */
 
@@ -281,7 +281,7 @@ static void sccp_protocol_sendDialedNumberV3(constDevicePtr device, constChannel
 	msg->data.DialedNumberMessage.v3.lel_callReference = htolel(channel->callid);
 
 	sccp_dev_send(device, msg);
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, channel->callInfo.calledPartyNumber, skinny_calltype2str(channel->calltype), channel->callid);
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, channel->oldCallInfo.calledPartyNumber, skinny_calltype2str(channel->calltype), channel->callid);
 }
 
 /*!
@@ -303,7 +303,7 @@ static void sccp_protocol_sendDialedNumberV18(constDevicePtr device, constChanne
 	msg->data.DialedNumberMessage.v18.lel_callReference = htolel(channel->callid);
 
 	sccp_dev_send(device, msg);
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, channel->callInfo.calledPartyNumber, skinny_calltype2str(channel->calltype), channel->callid);
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, channel->oldCallInfo.calledPartyNumber, skinny_calltype2str(channel->calltype), channel->callid);
 }
 
 /* done - DialedNumber Message */
@@ -1057,9 +1057,9 @@ static void sccp_protocol_sendConnectionStatisticsReqV3(constDevicePtr device, c
 	sccp_msg_t *msg = sccp_build_packet(ConnectionStatisticsReq, sizeof(msg->data.ConnectionStatisticsReq.v3));
 
 	if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-		sccp_copy_string(msg->data.ConnectionStatisticsReq.v3.DirectoryNumber, channel->callInfo.calledPartyNumber, sizeof(msg->data.ConnectionStatisticsReq.v3.DirectoryNumber));
+		sccp_copy_string(msg->data.ConnectionStatisticsReq.v3.DirectoryNumber, channel->oldCallInfo.calledPartyNumber, sizeof(msg->data.ConnectionStatisticsReq.v3.DirectoryNumber));
 	} else {
-		sccp_copy_string(msg->data.ConnectionStatisticsReq.v3.DirectoryNumber, channel->callInfo.callingPartyNumber, sizeof(msg->data.ConnectionStatisticsReq.v3.DirectoryNumber));
+		sccp_copy_string(msg->data.ConnectionStatisticsReq.v3.DirectoryNumber, channel->oldCallInfo.callingPartyNumber, sizeof(msg->data.ConnectionStatisticsReq.v3.DirectoryNumber));
 	}
 	msg->data.ConnectionStatisticsReq.v3.lel_callReference = htolel((channel) ? channel->callid : 0);
 	msg->data.ConnectionStatisticsReq.v3.lel_StatsProcessing = htolel(clear);
@@ -1075,9 +1075,9 @@ static void sccp_protocol_sendConnectionStatisticsReqV19(constDevicePtr device, 
 	sccp_msg_t *msg = sccp_build_packet(ConnectionStatisticsReq, sizeof(msg->data.ConnectionStatisticsReq.v19));
 
 	if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-		sccp_copy_string(msg->data.ConnectionStatisticsReq.v19.DirectoryNumber, channel->callInfo.calledPartyNumber, sizeof(msg->data.ConnectionStatisticsReq.v19.DirectoryNumber));
+		sccp_copy_string(msg->data.ConnectionStatisticsReq.v19.DirectoryNumber, channel->oldCallInfo.calledPartyNumber, sizeof(msg->data.ConnectionStatisticsReq.v19.DirectoryNumber));
 	} else {
-		sccp_copy_string(msg->data.ConnectionStatisticsReq.v19.DirectoryNumber, channel->callInfo.callingPartyNumber, sizeof(msg->data.ConnectionStatisticsReq.v19.DirectoryNumber));
+		sccp_copy_string(msg->data.ConnectionStatisticsReq.v19.DirectoryNumber, channel->oldCallInfo.callingPartyNumber, sizeof(msg->data.ConnectionStatisticsReq.v19.DirectoryNumber));
 	}
 	msg->data.ConnectionStatisticsReq.v19.lel_callReference = htolel((channel) ? channel->callid : 0);
 	msg->data.ConnectionStatisticsReq.v19.lel_StatsProcessing = htolel(clear);

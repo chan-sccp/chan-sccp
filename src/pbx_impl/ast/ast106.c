@@ -760,7 +760,7 @@ static void sccp_wrapper_asterisk16_setCalleridPresence(const sccp_channel_t * c
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
-	if (CALLERID_PRESENCE_FORBIDDEN == channel->callInfo.presentation) {
+	if (CALLERID_PRESENCE_FORBIDDEN == channel->oldCallInfo.presentation) {
 		pbx_channel->cid.cid_pres |= AST_PRES_PROHIB_USER_NUMBER_NOT_SCREENED;
 	}
 }
@@ -1160,24 +1160,24 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE * chan, PBX_CHANNEL_TYPE * target)
 	/* exchange callerid info */
 	if (c) {
 		if (chan && !sccp_strlen_zero(chan->cid.cid_name)) {
-			sccp_copy_string(c->callInfo.originalCalledPartyName, chan->cid.cid_name, sizeof(c->callInfo.originalCalledPartyName));
+			sccp_copy_string(c->oldCallInfo.originalCalledPartyName, chan->cid.cid_name, sizeof(c->oldCallInfo.originalCalledPartyName));
 		}
 		if (chan && !sccp_strlen_zero(chan->cid.cid_num)) {
-			sccp_copy_string(c->callInfo.originalCalledPartyNumber, chan->cid.cid_num, sizeof(c->callInfo.originalCalledPartyNumber));
+			sccp_copy_string(c->oldCallInfo.originalCalledPartyNumber, chan->cid.cid_num, sizeof(c->oldCallInfo.originalCalledPartyNumber));
 		}
 		if (!sccp_strlen_zero(target_cid_name)) {
-			sccp_copy_string(c->callInfo.calledPartyName, target_cid_name, sizeof(c->callInfo.callingPartyName));
+			sccp_copy_string(c->oldCallInfo.calledPartyName, target_cid_name, sizeof(c->oldCallInfo.callingPartyName));
 			sccp_free(target_cid_name);
 		}
 		if (!sccp_strlen_zero(target_cid_number)) {
-			sccp_copy_string(c->callInfo.calledPartyNumber, target_cid_number, sizeof(c->callInfo.callingPartyNumber));
+			sccp_copy_string(c->oldCallInfo.calledPartyNumber, target_cid_number, sizeof(c->oldCallInfo.callingPartyNumber));
 			sccp_free(target_cid_number);
 		}
 
 		/* we use the chan->cid.cid_name to do the magic */
 		if (!sccp_strlen_zero(target_cid_ani)) {
-			sccp_copy_string(c->callInfo.callingPartyNumber, target_cid_ani, sizeof(c->callInfo.callingPartyNumber));
-			sccp_copy_string(c->callInfo.callingPartyName, target_cid_ani, sizeof(c->callInfo.callingPartyName));
+			sccp_copy_string(c->oldCallInfo.callingPartyNumber, target_cid_ani, sizeof(c->oldCallInfo.callingPartyNumber));
+			sccp_copy_string(c->oldCallInfo.callingPartyName, target_cid_ani, sizeof(c->oldCallInfo.callingPartyName));
 			sccp_free(target_cid_ani);
 		}
 	}

@@ -487,38 +487,38 @@ static void sccp_wrapper_asterisk18_connectedline(sccp_channel_t * channel, cons
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 			sccp_log((DEBUGCAT_CHANNEL)) ("SCCP: (connectedline) Destination\n");
 			if (ast->connected.id.number.str && !sccp_strlen_zero(ast->connected.id.number.str)) {
-				sccp_copy_string(channel->callInfo.originalCallingPartyNumber, ast->connected.id.number.str, sizeof(channel->callInfo.originalCallingPartyNumber));
-				channel->callInfo.originalCallingParty_valid = 1;
+				sccp_copy_string(channel->oldCallInfo.originalCallingPartyNumber, ast->connected.id.number.str, sizeof(channel->oldCallInfo.originalCallingPartyNumber));
+				channel->oldCallInfo.originalCallingParty_valid = 1;
 			}
 			if (ast->connected.id.name.str && !sccp_strlen_zero(ast->connected.id.name.str)) {
-				sccp_copy_string(channel->callInfo.originalCallingPartyName, ast->connected.id.name.str, sizeof(channel->callInfo.originalCallingPartyName));
+				sccp_copy_string(channel->oldCallInfo.originalCallingPartyName, ast->connected.id.name.str, sizeof(channel->oldCallInfo.originalCallingPartyName));
 			}
-			if (channel->callInfo.callingParty_valid) {
-				sccp_copy_string(channel->callInfo.originalCalledPartyNumber, channel->callInfo.callingPartyNumber, sizeof(channel->callInfo.originalCalledPartyNumber));
-				sccp_copy_string(channel->callInfo.originalCalledPartyName, channel->callInfo.callingPartyNumber, sizeof(channel->callInfo.originalCalledPartyName));
-				channel->callInfo.originalCalledParty_valid = 1;
-				sccp_copy_string(channel->callInfo.lastRedirectingPartyName, channel->callInfo.callingPartyName, sizeof(channel->callInfo.lastRedirectingPartyName));
-				sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, channel->callInfo.callingPartyNumber, sizeof(channel->callInfo.lastRedirectingPartyNumber));
-				channel->callInfo.lastRedirectingParty_valid = 1;
+			if (channel->oldCallInfo.callingParty_valid) {
+				sccp_copy_string(channel->oldCallInfo.originalCalledPartyNumber, channel->oldCallInfo.callingPartyNumber, sizeof(channel->oldCallInfo.originalCalledPartyNumber));
+				sccp_copy_string(channel->oldCallInfo.originalCalledPartyName, channel->oldCallInfo.callingPartyNumber, sizeof(channel->oldCallInfo.originalCalledPartyName));
+				channel->oldCallInfo.originalCalledParty_valid = 1;
+				sccp_copy_string(channel->oldCallInfo.lastRedirectingPartyName, channel->oldCallInfo.callingPartyName, sizeof(channel->oldCallInfo.lastRedirectingPartyName));
+				sccp_copy_string(channel->oldCallInfo.lastRedirectingPartyNumber, channel->oldCallInfo.callingPartyNumber, sizeof(channel->oldCallInfo.lastRedirectingPartyNumber));
+				channel->oldCallInfo.lastRedirectingParty_valid = 1;
 			}
 		} else {
 			sccp_log((DEBUGCAT_CHANNEL)) ("SCCP: (connectedline) Transferee\n");
-			if (channel->callInfo.callingParty_valid) {
-				sccp_copy_string(channel->callInfo.originalCallingPartyNumber, channel->callInfo.callingPartyNumber, sizeof(channel->callInfo.originalCallingPartyNumber));
-				sccp_copy_string(channel->callInfo.originalCallingPartyName, channel->callInfo.callingPartyNumber, sizeof(channel->callInfo.originalCallingPartyName));
-				channel->callInfo.originalCallingParty_valid = 1;
+			if (channel->oldCallInfo.callingParty_valid) {
+				sccp_copy_string(channel->oldCallInfo.originalCallingPartyNumber, channel->oldCallInfo.callingPartyNumber, sizeof(channel->oldCallInfo.originalCallingPartyNumber));
+				sccp_copy_string(channel->oldCallInfo.originalCallingPartyName, channel->oldCallInfo.callingPartyNumber, sizeof(channel->oldCallInfo.originalCallingPartyName));
+				channel->oldCallInfo.originalCallingParty_valid = 1;
 			}
-			if (channel->callInfo.calledParty_valid) {
-				sccp_copy_string(channel->callInfo.originalCalledPartyNumber, channel->callInfo.calledPartyNumber, sizeof(channel->callInfo.originalCalledPartyNumber));
-				sccp_copy_string(channel->callInfo.originalCalledPartyName, channel->callInfo.calledPartyNumber, sizeof(channel->callInfo.originalCalledPartyName));
-				channel->callInfo.originalCalledParty_valid = 1;
-				sccp_copy_string(channel->callInfo.lastRedirectingPartyName, channel->callInfo.calledPartyName, sizeof(channel->callInfo.lastRedirectingPartyName));
-				sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, channel->callInfo.calledPartyNumber, sizeof(channel->callInfo.lastRedirectingPartyNumber));
-				channel->callInfo.lastRedirectingParty_valid = 1;
+			if (channel->oldCallInfo.calledParty_valid) {
+				sccp_copy_string(channel->oldCallInfo.originalCalledPartyNumber, channel->oldCallInfo.calledPartyNumber, sizeof(channel->oldCallInfo.originalCalledPartyNumber));
+				sccp_copy_string(channel->oldCallInfo.originalCalledPartyName, channel->oldCallInfo.calledPartyNumber, sizeof(channel->oldCallInfo.originalCalledPartyName));
+				channel->oldCallInfo.originalCalledParty_valid = 1;
+				sccp_copy_string(channel->oldCallInfo.lastRedirectingPartyName, channel->oldCallInfo.calledPartyName, sizeof(channel->oldCallInfo.lastRedirectingPartyName));
+				sccp_copy_string(channel->oldCallInfo.lastRedirectingPartyNumber, channel->oldCallInfo.calledPartyNumber, sizeof(channel->oldCallInfo.lastRedirectingPartyNumber));
+				channel->oldCallInfo.lastRedirectingParty_valid = 1;
 			}
 		}
-		channel->callInfo.originalCdpnRedirectReason = channel->callInfo.lastRedirectingReason;
-		channel->callInfo.lastRedirectingReason = 4;							// need to figure out these codes
+		channel->oldCallInfo.originalCdpnRedirectReason = channel->oldCallInfo.lastRedirectingReason;
+		channel->oldCallInfo.lastRedirectingReason = 4;							// need to figure out these codes
 	}
 
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
@@ -881,7 +881,7 @@ static void sccp_wrapper_asterisk18_setCalleridPresence(const sccp_channel_t * c
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
-	if (CALLERID_PRESENCE_FORBIDDEN == channel->callInfo.presentation) {
+	if (CALLERID_PRESENCE_FORBIDDEN == channel->oldCallInfo.presentation) {
 		pbx_channel->caller.id.name.presentation |= AST_PRES_PROHIB_USER_NUMBER_NOT_SCREENED;
 		pbx_channel->caller.id.number.presentation |= AST_PRES_PROHIB_USER_NUMBER_NOT_SCREENED;
 	}

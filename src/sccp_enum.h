@@ -713,6 +713,50 @@ char *sccp_feature_type_all_entries(void);
 /* = End =========================================================================================              sccp_feature_type === */
 
 
+/* = Begin =======================================================================================              sccp_callinfo_key === */
+
+/*
+ * \brief enum sccp_callinfo_key
+ */
+typedef enum sccp_callinfo_key {
+	SCCP_CALLINFO_CALLEDPARTY_NAME,
+	SCCP_CALLINFO_CALLEDPARTY_NUMBER,
+	SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL,
+	SCCP_CALLINFO_CALLEDPARTY_VALID,
+	SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL_VALID,
+	SCCP_CALLINFO_CALLINGPARTY_NAME,
+	SCCP_CALLINFO_CALLINGPARTY_NUMBER,
+	SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL,
+	SCCP_CALLINFO_CALLINGPARTY_VALID,
+	SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL_VALID,
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME,
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER,
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL,
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_VALID,
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL_VALID,
+	SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME,
+	SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER,
+	SCCP_CALLINFO_ORIG_CALLINGPARTY_VALID,
+	SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME,
+	SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER,
+	SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL,
+	SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VALID,
+	SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL_VALID,
+	SCCP_CALLINFO_HUNT_PILOT_NAME,
+	SCCP_CALLINFO_HUNT_PILOT_NUMBER,
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON,
+	SCCP_CALLINFO_LAST_REDIRECT_REASON,
+	SCCP_CALLINFO_PRESENTATION,
+	SCCP_CALLINFO_KEY_SENTINEL
+} sccp_callinfo_key_t;
+int sccp_callinfo_key_exists(int sccp_callinfo_key_int_value);
+const char * sccp_callinfo_key2str(sccp_callinfo_key_t enum_value);
+sccp_callinfo_key_t sccp_callinfo_key_str2val(const char *lookup_str);
+int sccp_callinfo_key_str2intval(const char *lookup_str);
+char *sccp_callinfo_key_all_entries(void);
+/* = End =========================================================================================              sccp_callinfo_key === */
+
+
 /* = Begin =======================================================================================                skinny_lampmode === */
 
 /*

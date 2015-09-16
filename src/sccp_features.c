@@ -540,12 +540,12 @@ int sccp_feat_grouppickup(constLinePtr l, constDevicePtr d)
 
 	/* change the call direction, we know it is a pickup, so it should be an inbound call */
 	c->calltype = SKINNY_CALLTYPE_INBOUND;
-	sccp_copy_string(c->callInfo.calledPartyNumber, c->callInfo.callingPartyNumber, sizeof(c->callInfo.calledPartyNumber));
-	sccp_copy_string(c->callInfo.calledPartyName, c->callInfo.callingPartyName, sizeof(c->callInfo.calledPartyName));
-	c->callInfo.calledParty_valid = 1;
-	c->callInfo.callingParty_valid = 0;
-	c->callInfo.callingPartyName[0] = '\0';
-	c->callInfo.callingPartyNumber[0] = '\0';
+	sccp_copy_string(c->oldCallInfo.calledPartyNumber, c->oldCallInfo.callingPartyNumber, sizeof(c->oldCallInfo.calledPartyNumber));
+	sccp_copy_string(c->oldCallInfo.calledPartyName, c->oldCallInfo.callingPartyName, sizeof(c->oldCallInfo.calledPartyName));
+	c->oldCallInfo.calledParty_valid = 1;
+	c->oldCallInfo.callingParty_valid = 0;
+	c->oldCallInfo.callingPartyName[0] = '\0';
+	c->oldCallInfo.callingPartyNumber[0] = '\0';
 	/* done, change call direction */
 
 	c->state = SCCP_CHANNELSTATE_PROCEED;
@@ -589,7 +589,7 @@ int sccp_feat_grouppickup(constLinePtr l, constDevicePtr d)
  * \callgraph
  * \callergraph
  */
-void sccp_feat_updatecid(channelPtr c)
+/*static void sccp_feat_updatecid(channelPtr c)
 {
 	char *name = NULL, *number = NULL;
 
@@ -615,6 +615,7 @@ void sccp_feat_updatecid(channelPtr c)
 		sccp_free(number);
 	}
 }
+*/
 
 /*!
  * \brief Handle VoiceMail

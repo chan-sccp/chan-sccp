@@ -222,7 +222,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGIN);
 			char prompt[100];
 
-			snprintf(prompt, sizeof(prompt), "%s%s: %s", (c->ringermode == SKINNY_RINGTYPE_URGENT) ? SKINNY_DISP_FLASH : "", strlen(c->callInfo.originalCalledPartyName) ? c->callInfo.originalCalledPartyName : SKINNY_DISP_FROM, strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber);
+			snprintf(prompt, sizeof(prompt), "%s%s: %s", (c->ringermode == SKINNY_RINGTYPE_URGENT) ? SKINNY_DISP_FLASH : "", strlen(c->oldCallInfo.originalCalledPartyName) ? c->oldCallInfo.originalCalledPartyName : SKINNY_DISP_FROM, strlen(c->oldCallInfo.callingPartyName) ? c->oldCallInfo.callingPartyName : c->oldCallInfo.callingPartyNumber);
 			sccp_dev_displayprompt(d, instance, c->callid, prompt, GLOB(digittimeout));
 			/*
 			if (c->ringermode) {
@@ -496,19 +496,19 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 
 	sccp_channel_t tmpChannel = {0};										/*!< use this channel to set original called/calling info */
 	tmpChannel.callid = c->callid;
-	if (c->privacy || !c->callInfo.presentation) {
-		sccp_copy_string(tmpChannel.callInfo.callingPartyName, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.callInfo.callingPartyName));
-		sccp_copy_string(tmpChannel.callInfo.calledPartyName, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.callInfo.calledPartyName));
-		sccp_copy_string(tmpChannel.callInfo.callingPartyNumber, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.callInfo.callingPartyNumber));
-		sccp_copy_string(tmpChannel.callInfo.calledPartyNumber, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.callInfo.calledPartyNumber));
+	if (c->privacy || !c->oldCallInfo.presentation) {
+		sccp_copy_string(tmpChannel.oldCallInfo.callingPartyName, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.oldCallInfo.callingPartyName));
+		sccp_copy_string(tmpChannel.oldCallInfo.calledPartyName, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.oldCallInfo.calledPartyName));
+		sccp_copy_string(tmpChannel.oldCallInfo.callingPartyNumber, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.oldCallInfo.callingPartyNumber));
+		sccp_copy_string(tmpChannel.oldCallInfo.calledPartyNumber, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
 	} else {
-		sccp_copy_string(tmpChannel.callInfo.callingPartyName, c->callInfo.callingPartyName, sizeof(tmpChannel.callInfo.callingPartyName));
-		sccp_copy_string(tmpChannel.callInfo.calledPartyName, c->callInfo.calledPartyName, sizeof(tmpChannel.callInfo.calledPartyName));
-		sccp_copy_string(tmpChannel.callInfo.callingPartyNumber, c->callInfo.callingPartyNumber, sizeof(tmpChannel.callInfo.callingPartyNumber));
-		sccp_copy_string(tmpChannel.callInfo.calledPartyNumber, c->callInfo.calledPartyNumber, sizeof(tmpChannel.callInfo.calledPartyNumber));
+		sccp_copy_string(tmpChannel.oldCallInfo.callingPartyName, c->oldCallInfo.callingPartyName, sizeof(tmpChannel.oldCallInfo.callingPartyName));
+		sccp_copy_string(tmpChannel.oldCallInfo.calledPartyName, c->oldCallInfo.calledPartyName, sizeof(tmpChannel.oldCallInfo.calledPartyName));
+		sccp_copy_string(tmpChannel.oldCallInfo.callingPartyNumber, c->oldCallInfo.callingPartyNumber, sizeof(tmpChannel.oldCallInfo.callingPartyNumber));
+		sccp_copy_string(tmpChannel.oldCallInfo.calledPartyNumber, c->oldCallInfo.calledPartyNumber, sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
 	}
 	tmpChannel.calltype = c->calltype;
-	tmpChannel.callInfo.presentation = c->callInfo.presentation;
+	tmpChannel.oldCallInfo.presentation = c->oldCallInfo.presentation;
 	tmpChannel.line = sccp_line_retain(c->line);
 
 	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Indicate state %s (%d) with reason: %s (%d) on remote devices for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, sccp_channelstatereason2str(tmpChannel.channelStateReason), tmpChannel.channelStateReason, c->designator, c->callid);
@@ -527,7 +527,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 		AUTO_RELEASE sccp_device_t *remoteDevice = sccp_device_retain(linedevice->device);
 
 		if (remoteDevice) {
-			uint8_t stateVisibility = (c->privacy || !c->callInfo.presentation) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_DEFAULT;
+			uint8_t stateVisibility = (c->privacy || !c->oldCallInfo.presentation) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_DEFAULT;
 
 			/*! \note SKINNY_CALLINFO_VISIBILITY_HIDDEN on old devices: Dirty Hack to prevent showing the call twice (both incoming and outgoing) */
 			// stateVisibility = remoteDevice->protocolversion < 17 ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : stateVisibility;
@@ -582,17 +582,17 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 									remoteDevice->indicate->proceed(remoteDevice, instance, &tmpChannel);
 									// remoteDevice->indicate->connected(remoteDevice, linedevice, &tmpChannel); /*TODO add source device to phonebook entry */
 
-									sccp_copy_string(tmpChannel.callInfo.originalCalledPartyName, "originalCalledPartyName", sizeof(tmpChannel.callInfo.calledPartyNumber));
-									sccp_copy_string(tmpChannel.callInfo.originalCalledPartyNumber, "originalCalledPartyNumber", sizeof(tmpChannel.callInfo.calledPartyNumber));
-									tmpChannel.callInfo.originalCalledParty_valid = 1;
+									sccp_copy_string(tmpChannel.oldCallInfo.originalCalledPartyName, "originalCalledPartyName", sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
+									sccp_copy_string(tmpChannel.oldCallInfo.originalCalledPartyNumber, "originalCalledPartyNumber", sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
+									tmpChannel.oldCallInfo.originalCalledParty_valid = 1;
 
-									sccp_copy_string(tmpChannel.callInfo.originalCallingPartyName, "originalCalledPartyName", sizeof(tmpChannel.callInfo.calledPartyNumber));
-									sccp_copy_string(tmpChannel.callInfo.originalCallingPartyNumber, "originalCalledPartyNumber", sizeof(tmpChannel.callInfo.calledPartyNumber));
-									tmpChannel.callInfo.originalCallingParty_valid = 1;
+									sccp_copy_string(tmpChannel.oldCallInfo.originalCallingPartyName, "originalCalledPartyName", sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
+									sccp_copy_string(tmpChannel.oldCallInfo.originalCallingPartyNumber, "originalCalledPartyNumber", sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
+									tmpChannel.oldCallInfo.originalCallingParty_valid = 1;
 
-									sccp_copy_string(tmpChannel.callInfo.lastRedirectingPartyName, "originalCalledPartyName", sizeof(tmpChannel.callInfo.calledPartyNumber));
-									sccp_copy_string(tmpChannel.callInfo.lastRedirectingPartyNumber, "originalCalledPartyNumber", sizeof(tmpChannel.callInfo.calledPartyNumber));
-									tmpChannel.callInfo.lastRedirectingParty_valid = 1;
+									sccp_copy_string(tmpChannel.oldCallInfo.lastRedirectingPartyName, "originalCalledPartyName", sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
+									sccp_copy_string(tmpChannel.oldCallInfo.lastRedirectingPartyNumber, "originalCalledPartyNumber", sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
+									tmpChannel.oldCallInfo.lastRedirectingParty_valid = 1;
 
 									remoteDevice->indicate->connected(remoteDevice, linedevice, &tmpChannel);	/*TODO add source device to phonebook entry */
 									break;

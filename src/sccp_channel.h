@@ -156,7 +156,7 @@ struct sccp_channel {
 
 	char *musicclass;											/*!< Music Class */
 
-	sccp_callinfo_t callInfo;
+	sccp_callinfo_t oldCallInfo;
 	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
 
 #if ASTERISK_VERSION_GROUP >= 111
@@ -182,8 +182,8 @@ void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel
 void sccp_channel_send_callinfo2(sccp_channel_t * c);
 void sccp_channel_setChannelstate(channelPtr channel, sccp_channelstate_t state);
 void sccp_channel_display_callInfo(sccp_channel_t * channel);
-void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number);
-void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number);
+void sccp_channel_set_callingparty(constChannelPtr c, const char *name, const char *number);
+void sccp_channel_set_calledparty(sccp_channel_t * c, const char *name, const char *number);
 boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *name, char *number);
 boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * c, char *name, char *number);
 void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * c);

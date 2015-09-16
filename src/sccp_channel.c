@@ -44,6 +44,7 @@ AST_MUTEX_DEFINE_STATIC(callCountLock);
  */
 struct sccp_private_channel_data {
 	sccp_device_t *device;
+	sccp_callinfo_t * callInfo;
 	boolean_t microphone;											/*!< Flag to mute the microphone when calling a baby phone */
 };
 
@@ -175,21 +176,21 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		pbx_log(LOG_ERROR, "%s: No memory to allocate channel on line %s\n", l->id, l->name);
 		return NULL;
 	}
-	memset(channel, 0, sizeof(sccp_channel_t));
 	//ast_mutex_init(&channel->lock);
 	sccp_copy_string(channel->designator, designator, sizeof(channel->designator));
 
-	private_data = sccp_malloc(sizeof(struct sccp_private_channel_data));
+	private_data = sccp_calloc(sizeof(struct sccp_private_channel_data), 1);
 	if (!private_data) {
 		/* error allocating memory */
 		pbx_log(LOG_ERROR, "%s: No memory to allocate channel private data on line %s\n", l->id, l->name);
 		channel = sccp_channel_release(channel);				/* explicit release when private_data could not be created */
 		return NULL;
 	}
-	memset(private_data, 0, sizeof(struct sccp_private_channel_data));
 	channel->privateData = private_data;
 	channel->privateData->microphone = TRUE;
 	channel->privateData->device = NULL;
+	channel->privateData->callInfo = sccp_callinfo_ctor();
+	sccp_callinfo_setPresentation(channel->privateData->callInfo, CALLERID_PRESENCE_ALLOWED);
 
 	channel->line = sccp_line_retain(line);
 
@@ -205,7 +206,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	channel->answered_elsewhere = FALSE;
 
 	/* by default we allow callerid presentation */
-	channel->callInfo.presentation = CALLERID_PRESENCE_ALLOWED;
+	channel->oldCallInfo.presentation = CALLERID_PRESENCE_ALLOWED;
 
 	channel->callid = callid;
 	channel->passthrupartyid = callid ^ 0xFFFFFFFF;
@@ -458,7 +459,7 @@ void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel
 	uint8_t instance = 0;
 
 	if (device && channel && channel->callid) {
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send callInfo of callid %d\n", DEV_ID_LOG(device), channel->callid);
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send oldCallInfo of callid %d\n", DEV_ID_LOG(device), channel->callid);
 		if (device->protocol && device->protocol->sendCallInfo) {
 			instance = sccp_device_find_index_for_line(device, channel->line->name);
 			device->protocol->sendCallInfo(device, channel, instance);
@@ -518,13 +519,35 @@ void sccp_channel_setChannelstate(channelPtr channel, sccp_channelstate_t state)
  */
 void sccp_channel_display_callInfo(sccp_channel_t * channel)
 {
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x callInfo:\n", channel->line->name, channel->callid);
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - calledParty: %s <%s>, valid: %s\n", (channel->callInfo.calledPartyName) ? channel->callInfo.calledPartyName : "", (channel->callInfo.calledPartyNumber) ? channel->callInfo.calledPartyNumber : "", (channel->callInfo.calledParty_valid) ? "TRUE" : "FALSE");
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - callingParty: %s <%s>, valid: %s\n", (channel->callInfo.callingPartyName) ? channel->callInfo.callingPartyName : "", (channel->callInfo.callingPartyNumber) ? channel->callInfo.callingPartyNumber : "", (channel->callInfo.callingParty_valid) ? "TRUE" : "FALSE");
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - originalCalledParty: %s <%s>, valid: %s\n", (channel->callInfo.originalCalledPartyName) ? channel->callInfo.originalCalledPartyName : "", (channel->callInfo.originalCalledPartyNumber) ? channel->callInfo.originalCalledPartyNumber : "", (channel->callInfo.originalCalledParty_valid) ? "TRUE" : "FALSE");
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - originalCallingParty: %s <%s>, valid: %s\n", (channel->callInfo.originalCallingPartyName) ? channel->callInfo.originalCallingPartyName : "", (channel->callInfo.originalCallingPartyNumber) ? channel->callInfo.originalCallingPartyNumber : "", (channel->callInfo.originalCallingParty_valid) ? "TRUE" : "FALSE");
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - lastRedirectingParty: %s <%s>, valid: %s\n", (channel->callInfo.lastRedirectingPartyName) ? channel->callInfo.lastRedirectingPartyName : "", (channel->callInfo.lastRedirectingPartyNumber) ? channel->callInfo.lastRedirectingPartyNumber : "", (channel->callInfo.lastRedirectingParty_valid) ? "TRUE" : "FALSE");
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - originalCalledPartyRedirectReason: %d, lastRedirectingReason: %d, CallInfo Presentation: %s\n\n", channel->callInfo.originalCdpnRedirectReason, channel->callInfo.lastRedirectingReason, channel->callInfo.presentation ? "ALLOWED" : "FORBIDDEN");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x oldCallInfo:\n", channel->line->name, channel->callid);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - calledParty: %s <%s>, valid: %s\n", (channel->oldCallInfo.calledPartyName) ? channel->oldCallInfo.calledPartyName : "", (channel->oldCallInfo.calledPartyNumber) ? channel->oldCallInfo.calledPartyNumber : "", (channel->oldCallInfo.calledParty_valid) ? "TRUE" : "FALSE");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - callingParty: %s <%s>, valid: %s\n", (channel->oldCallInfo.callingPartyName) ? channel->oldCallInfo.callingPartyName : "", (channel->oldCallInfo.callingPartyNumber) ? channel->oldCallInfo.callingPartyNumber : "", (channel->oldCallInfo.callingParty_valid) ? "TRUE" : "FALSE");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - originalCalledParty: %s <%s>, valid: %s\n", (channel->oldCallInfo.originalCalledPartyName) ? channel->oldCallInfo.originalCalledPartyName : "", (channel->oldCallInfo.originalCalledPartyNumber) ? channel->oldCallInfo.originalCalledPartyNumber : "", (channel->oldCallInfo.originalCalledParty_valid) ? "TRUE" : "FALSE");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - originalCallingParty: %s <%s>, valid: %s\n", (channel->oldCallInfo.originalCallingPartyName) ? channel->oldCallInfo.originalCallingPartyName : "", (channel->oldCallInfo.originalCallingPartyNumber) ? channel->oldCallInfo.originalCallingPartyNumber : "", (channel->oldCallInfo.originalCallingParty_valid) ? "TRUE" : "FALSE");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - lastRedirectingParty: %s <%s>, valid: %s\n", (channel->oldCallInfo.lastRedirectingPartyName) ? channel->oldCallInfo.lastRedirectingPartyName : "", (channel->oldCallInfo.lastRedirectingPartyNumber) ? channel->oldCallInfo.lastRedirectingPartyNumber : "", (channel->oldCallInfo.lastRedirectingParty_valid) ? "TRUE" : "FALSE");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - originalCalledPartyRedirectReason: %d, lastRedirectingReason: %d, CallInfo Presentation: %s\n\n", channel->oldCallInfo.originalCdpnRedirectReason, channel->oldCallInfo.lastRedirectingReason, channel->oldCallInfo.presentation ? "ALLOWED" : "FORBIDDEN");
+}
+
+static void __sccp_channel_set_callingparty(const char *name, const char *number, sccp_callinfo_t * const oldCallInfo)
+{
+	/* in case we want to clear out the current name or number use "" instead of NULL */
+	if (name) {
+		if (!sccp_strlen_zero(name)) {
+			sccp_copy_string(oldCallInfo->callingPartyName, name, sizeof(oldCallInfo->callingPartyName));
+		} else {
+			oldCallInfo->callingPartyName[0] = '\0';
+		}
+	}
+
+	if (number) {
+		if (!sccp_strlen_zero(number)) {
+			sccp_copy_string(oldCallInfo->callingPartyNumber, number, sizeof(oldCallInfo->callingPartyNumber));
+			oldCallInfo->callingParty_valid = 1;
+		} else {
+			oldCallInfo->callingPartyNumber[0] = '\0';
+			oldCallInfo->callingParty_valid = 0;
+		}
+	}
 }
 
 /*!
@@ -536,31 +559,14 @@ void sccp_channel_display_callInfo(sccp_channel_t * channel)
  * \callgraph
  * \callergraph
  */
-void sccp_channel_set_callingparty(sccp_channel_t * channel, char *name, char *number)
+void sccp_channel_set_callingparty(constChannelPtr channel, const char *name, const char *number)
 {
 	if (!channel) {
 		return;
 	}
-
-	/* in case we want to clear out the current name or number use "" instead of NULL */
-	if (name) {
-		if (!sccp_strlen_zero(name)) {
-			sccp_copy_string(channel->callInfo.callingPartyName, name, sizeof(channel->callInfo.callingPartyName));
-		} else {
-			channel->callInfo.callingPartyName[0] = '\0';
-		}
-	}
-
-	if (number) {
-		if (!sccp_strlen_zero(number)) {
-			sccp_copy_string(channel->callInfo.callingPartyNumber, number, sizeof(channel->callInfo.callingPartyNumber));
-			channel->callInfo.callingParty_valid = 1;
-		} else {
-			channel->callInfo.callingPartyNumber[0] = '\0';
-			channel->callInfo.callingParty_valid = 0;
-		}
-	}
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_callingparty) Set callingParty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyName, channel->callInfo.calledPartyNumber, channel->callid);
+	sccp_callinfo_t oldCallInfo = (sccp_callinfo_t) channel->oldCallInfo;				/* discard const */
+	__sccp_channel_set_callingparty(name, number, &oldCallInfo);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_callingparty) Set callingParty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, name, number, channel->callid);
 }
 
 /*!
@@ -580,26 +586,26 @@ boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *
 		return FALSE;
 	}
 	/* in case we want to clear out the current name or number use "" instead of NULL */
-	if (name && strncmp(name, channel->callInfo.originalCallingPartyName, StationMaxNameSize - 1)) {
+	if (name && strncmp(name, channel->oldCallInfo.originalCallingPartyName, StationMaxNameSize - 1)) {
 		if (!sccp_strlen_zero(name)) {
-			sccp_copy_string(channel->callInfo.originalCallingPartyName, name, sizeof(channel->callInfo.originalCallingPartyName));
+			sccp_copy_string(channel->oldCallInfo.originalCallingPartyName, name, sizeof(channel->oldCallInfo.originalCallingPartyName));
 		} else {
-			channel->callInfo.originalCallingPartyName[0] = '\0';
+			channel->oldCallInfo.originalCallingPartyName[0] = '\0';
 		}
 		changed = TRUE;
 	}
 
-	if (number && strncmp(number, channel->callInfo.originalCallingPartyNumber, StationMaxNameSize - 1)) {
+	if (number && strncmp(number, channel->oldCallInfo.originalCallingPartyNumber, StationMaxNameSize - 1)) {
 		if (!sccp_strlen_zero(number)) {
-			sccp_copy_string(channel->callInfo.originalCallingPartyNumber, number, sizeof(channel->callInfo.originalCallingPartyNumber));
-			channel->callInfo.originalCallingParty_valid = 1;
+			sccp_copy_string(channel->oldCallInfo.originalCallingPartyNumber, number, sizeof(channel->oldCallInfo.originalCallingPartyNumber));
+			channel->oldCallInfo.originalCallingParty_valid = 1;
 		} else {
-			channel->callInfo.originalCallingPartyNumber[0] = '\0';
-			channel->callInfo.originalCallingParty_valid = 0;
+			channel->oldCallInfo.originalCallingPartyNumber[0] = '\0';
+			channel->oldCallInfo.originalCallingParty_valid = 0;
 		}
 		changed = TRUE;
 	}
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_originalCallingparty) Set originalCallingparty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.originalCallingPartyName, channel->callInfo.originalCallingPartyNumber, channel->callid);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_originalCallingparty) Set originalCallingparty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, channel->oldCallInfo.originalCallingPartyName, channel->oldCallInfo.originalCallingPartyNumber, channel->callid);
 	return changed;
 }
 
@@ -612,7 +618,7 @@ boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *
  * \callgraph
  * \callergraph
  */
-void sccp_channel_set_calledparty(sccp_channel_t * channel, char *name, char *number)
+void sccp_channel_set_calledparty(sccp_channel_t * channel, const char *name, const char *number)
 {
 	if (!channel || sccp_strequals(number, "s") /* skip update for immediate earlyrtp + s-extension */ ) {
 		return;
@@ -621,22 +627,22 @@ void sccp_channel_set_calledparty(sccp_channel_t * channel, char *name, char *nu
 	/* in case we want to clear out the current name or number use "" instead of NULL */
 	if (name) {
 		if (!sccp_strlen_zero(name)) {
-			sccp_copy_string(channel->callInfo.calledPartyName, name, sizeof(channel->callInfo.calledPartyName));
+			sccp_copy_string(channel->oldCallInfo.calledPartyName, name, sizeof(channel->oldCallInfo.calledPartyName));
 		} else {
-			channel->callInfo.calledPartyName[0] = '\0';
+			channel->oldCallInfo.calledPartyName[0] = '\0';
 		}
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Name '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyName, channel->callid);
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Name '%s' on channel %d\n", channel->currentDeviceId, channel->oldCallInfo.calledPartyName, channel->callid);
 	}
 
 	if (number) {
 		if (!sccp_strlen_zero(number)) {
-			sccp_copy_string(channel->callInfo.calledPartyNumber, number, sizeof(channel->callInfo.calledPartyNumber));
-			channel->callInfo.calledParty_valid = 1;
+			sccp_copy_string(channel->oldCallInfo.calledPartyNumber, number, sizeof(channel->oldCallInfo.calledPartyNumber));
+			channel->oldCallInfo.calledParty_valid = 1;
 		} else {
-			channel->callInfo.calledPartyNumber[0] = '\0';
-			channel->callInfo.calledParty_valid = 0;
+			channel->oldCallInfo.calledPartyNumber[0] = '\0';
+			channel->oldCallInfo.calledParty_valid = 0;
 		}
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Number '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyNumber, channel->callid);
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Number '%s' on channel %d\n", channel->currentDeviceId, channel->oldCallInfo.calledPartyNumber, channel->callid);
 	}
 }
 
@@ -657,26 +663,26 @@ boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * channel, char *n
 		return FALSE;
 	}
 	/* in case we want to clear out the current name or number use "" instead of NULL */
-	if (name && strncmp(name, channel->callInfo.originalCalledPartyName, StationMaxNameSize - 1)) {
+	if (name && strncmp(name, channel->oldCallInfo.originalCalledPartyName, StationMaxNameSize - 1)) {
 		if (!sccp_strlen_zero(name)) {
-			sccp_copy_string(channel->callInfo.originalCalledPartyName, name, sizeof(channel->callInfo.originalCalledPartyName));
+			sccp_copy_string(channel->oldCallInfo.originalCalledPartyName, name, sizeof(channel->oldCallInfo.originalCalledPartyName));
 		} else {
-			channel->callInfo.originalCalledPartyName[0] = '\0';
+			channel->oldCallInfo.originalCalledPartyName[0] = '\0';
 		}
 		changed = TRUE;
 	}
 
-	if (number && strncmp(number, channel->callInfo.originalCalledPartyNumber, StationMaxNameSize - 1)) {
+	if (number && strncmp(number, channel->oldCallInfo.originalCalledPartyNumber, StationMaxNameSize - 1)) {
 		if (!sccp_strlen_zero(number)) {
-			sccp_copy_string(channel->callInfo.originalCalledPartyNumber, number, sizeof(channel->callInfo.originalCalledPartyNumber));
-			channel->callInfo.originalCalledParty_valid = 1;
+			sccp_copy_string(channel->oldCallInfo.originalCalledPartyNumber, number, sizeof(channel->oldCallInfo.originalCalledPartyNumber));
+			channel->oldCallInfo.originalCalledParty_valid = 1;
 		} else {
-			channel->callInfo.originalCalledPartyNumber[0] = '\0';
-			channel->callInfo.originalCalledParty_valid = 0;
+			channel->oldCallInfo.originalCalledPartyNumber[0] = '\0';
+			channel->oldCallInfo.originalCalledParty_valid = 0;
 		}
 		changed = TRUE;
 	}
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_originalCalledparty) Set originalCalledparty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.originalCalledPartyName, channel->callInfo.originalCalledPartyNumber, channel->callid);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_originalCalledparty) Set originalCalledparty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, channel->oldCallInfo.originalCalledPartyName, channel->oldCallInfo.originalCalledPartyNumber, channel->callid);
 	return changed;
 
 }
@@ -1565,19 +1571,19 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 
 		if (linedevice2) {
 			if (!sccp_strlen_zero(linedevice2->subscriptionId.number)) {
-				sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, linedevice2->subscriptionId.number);
+				sprintf(channel->oldCallInfo.calledPartyNumber, "%s%s", channel->line->cid_num, linedevice2->subscriptionId.number);
 			} else {
-				sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
+				sprintf(channel->oldCallInfo.calledPartyNumber, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
 			}
 
 			if (!sccp_strlen_zero(linedevice2->subscriptionId.name)) {
-				sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, linedevice2->subscriptionId.name);
+				sprintf(channel->oldCallInfo.calledPartyName, "%s%s", channel->line->cid_name, linedevice2->subscriptionId.name);
 			} else {
-				sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
+				sprintf(channel->oldCallInfo.calledPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
 			}
 
-			iPbx.set_callerid_number(channel, channel->callInfo.calledPartyNumber);
-			iPbx.set_callerid_name(channel, channel->callInfo.calledPartyName);
+			iPbx.set_callerid_number(channel, channel->oldCallInfo.calledPartyNumber);
+			iPbx.set_callerid_name(channel, channel->oldCallInfo.calledPartyName);
 		}
 	}
 	/* done */
@@ -1618,7 +1624,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			}
 
 			sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Set Connected Line\n", d->id);
-			iPbx.set_connected_line(channel, channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
+			iPbx.set_connected_line(channel, channel->oldCallInfo.calledPartyNumber, channel->oldCallInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
 
 			/** check for monitor request */
 			if ((device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
@@ -1631,7 +1637,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 #ifdef CS_MANAGER_EVENTS
 			if (GLOB(callevents)) {
 				manager_event(EVENT_FLAG_CALL, "CallAnswered", "Channel: %s\r\n" "SCCPLine: %s\r\n" "SCCPDevice: %s\r\n"
-					      "Uniqueid: %s\r\n" "CallingPartyNumber: %s\r\n" "CallingPartyName: %s\r\n" "originalCallingParty: %s\r\n" "lastRedirectingParty: %s\r\n", channel->designator, l->name, d->id, iPbx.getChannelUniqueID(channel), channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName, channel->callInfo.originalCallingPartyName, channel->callInfo.lastRedirectingPartyName);
+					      "Uniqueid: %s\r\n" "CallingPartyNumber: %s\r\n" "CallingPartyName: %s\r\n" "originalCallingParty: %s\r\n" "lastRedirectingParty: %s\r\n", channel->designator, l->name, d->id, iPbx.getChannelUniqueID(channel), channel->oldCallInfo.callingPartyNumber, channel->oldCallInfo.callingPartyName, channel->oldCallInfo.originalCallingPartyName, channel->oldCallInfo.lastRedirectingPartyName);
 			}
 #endif
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answered channel %s on line %s\n", d->id, channel->designator, l->name);
@@ -1848,34 +1854,34 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 			if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 
 				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
-					sprintf(channel->callInfo.callingPartyNumber, "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
+					sprintf(channel->oldCallInfo.callingPartyNumber, "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
 				} else {
-					sprintf(channel->callInfo.callingPartyNumber, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
+					sprintf(channel->oldCallInfo.callingPartyNumber, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
 				}
 
 				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
-					sprintf(channel->callInfo.callingPartyName, "%s%s", channel->line->cid_name, linedevice->subscriptionId.name);
+					sprintf(channel->oldCallInfo.callingPartyName, "%s%s", channel->line->cid_name, linedevice->subscriptionId.name);
 				} else {
-					sprintf(channel->callInfo.callingPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
+					sprintf(channel->oldCallInfo.callingPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
 				}
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set callingPartyNumber '%s' callingPartyName '%s'\n", DEV_ID_LOG(d), channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName);
-				iPbx.set_connected_line(channel, channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set callingPartyNumber '%s' callingPartyName '%s'\n", DEV_ID_LOG(d), channel->oldCallInfo.callingPartyNumber, channel->oldCallInfo.callingPartyName);
+				iPbx.set_connected_line(channel, channel->oldCallInfo.callingPartyNumber, channel->oldCallInfo.callingPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
 
 			} else if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 
 				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
-					sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
+					sprintf(channel->oldCallInfo.calledPartyNumber, "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
 				} else {
-					sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
+					sprintf(channel->oldCallInfo.calledPartyNumber, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
 				}
 
 				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
-					sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, linedevice->subscriptionId.name);
+					sprintf(channel->oldCallInfo.calledPartyName, "%s%s", channel->line->cid_name, linedevice->subscriptionId.name);
 				} else {
-					sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
+					sprintf(channel->oldCallInfo.calledPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
 				}
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set calledPartyNumber '%s' calledPartyName '%s'\n", DEV_ID_LOG(d), channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName);
-				iPbx.set_connected_line(channel, channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set calledPartyNumber '%s' calledPartyName '%s'\n", DEV_ID_LOG(d), channel->oldCallInfo.calledPartyNumber, channel->oldCallInfo.calledPartyName);
+				iPbx.set_connected_line(channel, channel->oldCallInfo.calledPartyNumber, channel->oldCallInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
 			}
 		}
 	}
@@ -1990,8 +1996,12 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 		iPbx.set_owner(channel, NULL);
 	}
 	if (channel->privateData) {
+		if (channel->privateData->callInfo) {
+			sccp_callinfo_dtor(channel->privateData->callInfo);
+		}
 		sccp_free(channel->privateData);
 	}
+	
 #ifndef SCCP_ATOMIC
 	ast_mutex_destroy(&channel->scheduler.lock);
 #endif
@@ -2270,30 +2280,30 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 		int connectedLineUpdateReason = (sccp_destination_local_channel->state == SCCP_CHANNELSTATE_RINGOUT) ? AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING : AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER;
 
 		/* update redirecting info line for source part */
-		fromNumber = sccp_destination_local_channel->callInfo.callingPartyNumber;
-		fromName = sccp_destination_local_channel->callInfo.callingPartyName;
+		fromNumber = sccp_destination_local_channel->oldCallInfo.callingPartyNumber;
+		fromName = sccp_destination_local_channel->oldCallInfo.callingPartyName;
 
-		toNumber = sccp_destination_local_channel->callInfo.calledPartyNumber;
-		toName = sccp_destination_local_channel->callInfo.calledPartyName;
+		toNumber = sccp_destination_local_channel->oldCallInfo.calledPartyNumber;
+		toName = sccp_destination_local_channel->oldCallInfo.calledPartyName;
 
 		if (sccp_source_local_channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-			originalCallingPartyName = sccp_source_local_channel->callInfo.callingPartyName;
-			originalCallingPartyNumber = sccp_source_local_channel->callInfo.callingPartyNumber;
+			originalCallingPartyName = sccp_source_local_channel->oldCallInfo.callingPartyName;
+			originalCallingPartyNumber = sccp_source_local_channel->oldCallInfo.callingPartyNumber;
 		} else {
-			originalCallingPartyName = sccp_source_local_channel->callInfo.calledPartyName;
-			originalCallingPartyNumber = sccp_source_local_channel->callInfo.calledPartyNumber;
+			originalCallingPartyName = sccp_source_local_channel->oldCallInfo.calledPartyName;
+			originalCallingPartyNumber = sccp_source_local_channel->oldCallInfo.calledPartyNumber;
 		}
 
 		/* update our source part */
-		sccp_copy_string(sccp_source_local_channel->callInfo.lastRedirectingPartyName, fromName ? fromName : "", sizeof(sccp_source_local_channel->callInfo.callingPartyName));
-		sccp_copy_string(sccp_source_local_channel->callInfo.lastRedirectingPartyNumber, fromNumber ? fromNumber : "", sizeof(sccp_source_local_channel->callInfo.lastRedirectingPartyNumber));
-		sccp_source_local_channel->callInfo.lastRedirectingParty_valid = 1;
+		sccp_copy_string(sccp_source_local_channel->oldCallInfo.lastRedirectingPartyName, fromName ? fromName : "", sizeof(sccp_source_local_channel->oldCallInfo.callingPartyName));
+		sccp_copy_string(sccp_source_local_channel->oldCallInfo.lastRedirectingPartyNumber, fromNumber ? fromNumber : "", sizeof(sccp_source_local_channel->oldCallInfo.lastRedirectingPartyNumber));
+		sccp_source_local_channel->oldCallInfo.lastRedirectingParty_valid = 1;
 		sccp_channel_display_callInfo(sccp_source_local_channel);
 
 		/* update our destination part */
-		sccp_copy_string(sccp_destination_local_channel->callInfo.lastRedirectingPartyName, fromName ? fromName : "", sizeof(sccp_destination_local_channel->callInfo.callingPartyName));
-		sccp_copy_string(sccp_destination_local_channel->callInfo.lastRedirectingPartyNumber, fromNumber ? fromNumber : "", sizeof(sccp_destination_local_channel->callInfo.lastRedirectingPartyNumber));
-		sccp_destination_local_channel->callInfo.lastRedirectingParty_valid = 1;
+		sccp_copy_string(sccp_destination_local_channel->oldCallInfo.lastRedirectingPartyName, fromName ? fromName : "", sizeof(sccp_destination_local_channel->oldCallInfo.callingPartyName));
+		sccp_copy_string(sccp_destination_local_channel->oldCallInfo.lastRedirectingPartyNumber, fromNumber ? fromNumber : "", sizeof(sccp_destination_local_channel->oldCallInfo.lastRedirectingPartyNumber));
+		sccp_destination_local_channel->oldCallInfo.lastRedirectingParty_valid = 1;
 		sccp_destination_local_channel->calltype = SKINNY_CALLTYPE_FORWARD;
 		sccp_channel_display_callInfo(sccp_destination_local_channel);
 
@@ -2367,7 +2377,7 @@ EXIT:
  */
 void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * channel)
 {
-	channel->callInfo.presentation = CALLERID_PRESENCE_ALLOWED;
+	channel->oldCallInfo.presentation = CALLERID_PRESENCE_ALLOWED;
 	if (iPbx.set_callerid_presence) {
 		iPbx.set_callerid_presence(channel);
 	}
@@ -2380,7 +2390,7 @@ void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * channel)
  */
 void sccp_channel_set_calleridPresenceParameter(sccp_channel_t * channel, sccp_calleridpresence_t presenceParameter)
 {
-	channel->callInfo.presentation = presenceParameter;
+	channel->oldCallInfo.presentation = presenceParameter;
 	if (iPbx.set_callerid_presence) {
 		iPbx.set_callerid_presence(channel);
 	}
@@ -2419,7 +2429,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 
 	/* copy the number to dial in the ast->exten */
 	sccp_copy_string(sccp_forwarding_channel->dialedNumber, dialedNumber, sizeof(sccp_forwarding_channel->dialedNumber));
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Incoming: %s (%s) Forwarded By: %s (%s) Forwarded To: %s\n", sccp_channel_parent->callInfo.callingPartyName, sccp_channel_parent->callInfo.callingPartyNumber, lineDevice->line->cid_name, lineDevice->line->cid_num, dialedNumber);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Incoming: %s (%s) Forwarded By: %s (%s) Forwarded To: %s\n", sccp_channel_parent->oldCallInfo.callingPartyName, sccp_channel_parent->oldCallInfo.callingPartyNumber, lineDevice->line->cid_name, lineDevice->line->cid_num, dialedNumber);
 
 	/* Copy Channel Capabilities From Predecessor */
 	memset(&sccp_forwarding_channel->remoteCapabilities.audio, 0, sizeof(sccp_forwarding_channel->remoteCapabilities.audio));
@@ -2445,11 +2455,11 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 
 	/* setting callerid */
 	if (iPbx.set_callerid_number) {
-		iPbx.set_callerid_number(sccp_forwarding_channel, sccp_channel_parent->callInfo.callingPartyNumber);
+		iPbx.set_callerid_number(sccp_forwarding_channel, sccp_channel_parent->oldCallInfo.callingPartyNumber);
 	}
 
 	if (iPbx.set_callerid_name) {
-		iPbx.set_callerid_name(sccp_forwarding_channel, sccp_channel_parent->callInfo.callingPartyName);
+		iPbx.set_callerid_name(sccp_forwarding_channel, sccp_channel_parent->oldCallInfo.callingPartyName);
 	}
 
 	if (iPbx.set_callerid_ani) {
@@ -2461,7 +2471,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	}
 
 	if (iPbx.set_callerid_redirectedParty) {
-		iPbx.set_callerid_redirectedParty(sccp_forwarding_channel, sccp_channel_parent->callInfo.calledPartyNumber, sccp_channel_parent->callInfo.calledPartyName);
+		iPbx.set_callerid_redirectedParty(sccp_forwarding_channel, sccp_channel_parent->oldCallInfo.calledPartyNumber, sccp_channel_parent->oldCallInfo.calledPartyName);
 	}
 
 	if (iPbx.set_callerid_redirectingParty) {
