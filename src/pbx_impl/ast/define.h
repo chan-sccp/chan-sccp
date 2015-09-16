@@ -280,6 +280,7 @@ typedef struct ast_event pbx_event_t;
 #define pbx_sockaddr_port ast_sockaddr_port
 #define pbx_sockaddr_to_sin ast_sockaddr_to_sin
 #define pbx_state2str ast_state2str
+#define pbx_str_t struct ast_str
 #define pbx_str_alloca ast_str_alloca
 #define pbx_str_append ast_str_append
 #define pbx_str_append_escapecommas ast_str_append_escapecommas

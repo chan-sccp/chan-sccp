@@ -113,6 +113,7 @@ typedef int (*sccp_sched_cb) (const void *data);
 #include "sccp_refcount.h"
 #include "sccp_event.h"
 #include "pbx_impl/pbx_impl.h"
+#include "sccp_callinfo.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)
 /* *INDENT-ON* */

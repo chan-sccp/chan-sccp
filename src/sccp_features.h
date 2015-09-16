@@ -21,7 +21,7 @@ void sccp_feat_handle_directed_pickup(constLinePtr l, uint8_t lineInstance, cons
 int sccp_feat_directed_pickup(channelPtr c, char *exten);
 int sccp_feat_grouppickup(constLinePtr l, constDevicePtr d);
 #endif
-void sccp_feat_updatecid(channelPtr c);
+//void sccp_feat_updatecid(channelPtr c);
 void sccp_feat_meetme_start(channelPtr c);
 void sccp_feat_voicemail(constDevicePtr d, uint8_t line_instance);
 void sccp_feat_idivert(devicePtr d, linePtr l, channelPtr c);

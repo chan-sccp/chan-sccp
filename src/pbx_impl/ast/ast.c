@@ -686,17 +686,17 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 				  (redirecting_to.number.valid && redirecting_to.number.str) ? redirecting_to.number.str : "");
 
 	if (redirecting_from.name.valid && redirecting_from.name.str) {
-		sccp_copy_string(channel->callInfo.lastRedirectingPartyName, redirecting_from.name.str, sizeof(channel->callInfo.callingPartyName));
+		sccp_copy_string(channel->oldCallInfo.lastRedirectingPartyName, redirecting_from.name.str, sizeof(channel->oldCallInfo.callingPartyName));
 	}
 
-	sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "", sizeof(channel->callInfo.lastRedirectingPartyNumber));
-	channel->callInfo.lastRedirectingParty_valid = 1;
+	sccp_copy_string(channel->oldCallInfo.lastRedirectingPartyNumber, (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "", sizeof(channel->oldCallInfo.lastRedirectingPartyNumber));
+	channel->oldCallInfo.lastRedirectingParty_valid = 1;
 #else
-	sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : "", sizeof(channel->callInfo.lastRedirectingPartyNumber));
-	channel->callInfo.lastRedirectingParty_valid = 1;
+	sccp_copy_string(channel->oldCallInfo.lastRedirectingPartyNumber, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : "", sizeof(channel->oldCallInfo.lastRedirectingPartyNumber));
+	channel->oldCallInfo.lastRedirectingParty_valid = 1;
 #endif
-	channel->callInfo.originalCdpnRedirectReason = channel->callInfo.lastRedirectingReason;
-	channel->callInfo.lastRedirectingReason = 4;								// need to figure out these codes
+	channel->oldCallInfo.originalCdpnRedirectReason = channel->oldCallInfo.lastRedirectingReason;
+	channel->oldCallInfo.lastRedirectingReason = 4;								// need to figure out these codes
 
 	sccp_channel_send_callinfo2(channel);
 }

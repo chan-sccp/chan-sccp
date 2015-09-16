@@ -157,7 +157,8 @@ am_chan_sccp_la_OBJECTS = chan_sccp_la-sccp_enum.lo \
 	chan_sccp_la-sccp_conference.lo chan_sccp_la-sccp_rtp.lo \
 	chan_sccp_la-sccp_appfunctions.lo \
 	chan_sccp_la-sccp_protocol.lo chan_sccp_la-sccp_socket.lo \
-	chan_sccp_la-sccp_threadpool.lo chan_sccp_la-sccp_devstate.lo
+	chan_sccp_la-sccp_threadpool.lo chan_sccp_la-sccp_devstate.lo \
+	chan_sccp_la-sccp_callinfo.lo
 am__EXTRA_chan_sccp_la_SOURCES_DIST = pbx_impl/ast/define.h \
 	pbx_impl/ast/ast.h pbx_impl/ast/ast.c pbx_impl/ast/ast106.h \
 	pbx_impl/ast/ast106.c pbx_impl/ast/ast108.h \
@@ -497,9 +498,9 @@ AUTOMAKE_OPTIONS = gnu
 csmod_LTLIBRARIES = chan_sccp.la 
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov revision.h .revision
 EXTRA_DIST = sccp_enum.in revision.h sccp_config_entries.hh
-chan_sccp_la_SOURCES = sccp_enum.h chan_sccp.h sccp_cli.h \
-	sccp_threadpool.h sccp_event.h sccp_labels.h sccp_utils.h \
-	sccp_channel.h sccp_softkeys.h sccp_conference.h \
+chan_sccp_la_SOURCES = sccp_enum.h sccp_callinfo.h chan_sccp.h \
+	sccp_cli.h sccp_threadpool.h sccp_event.h sccp_labels.h \
+	sccp_utils.h sccp_channel.h sccp_softkeys.h sccp_conference.h \
 	sccp_featureButton.h sccp_line.h sccp_actions.h sccp_config.h \
 	sccp_features.h sccp_pbx.h pbx_impl/pbx_impl.h sccp_device.h \
 	sccp_hint.h sccp_lock.h sccp_refcount.h sccp_protocol.h \
@@ -514,7 +515,7 @@ chan_sccp_la_SOURCES = sccp_enum.h chan_sccp.h sccp_cli.h \
 	sccp_refcount.c sccp_event.c sccp_management.c sccp_mwi.c \
 	sccp_conference.c sccp_rtp.c sccp_appfunctions.c \
 	sccp_protocol.c sccp_socket.c sccp_threadpool.c \
-	sccp_devstate.c
+	sccp_devstate.c sccp_callinfo.c
 
 #if CS_EXPERIMENTAL_XML
 #chan_sccp_la_SOURCES	+=      sccp_webservice.h       sccp_xml.h 		sccp_xml_embedded.h	sccp_webservice.c	\
@@ -528,7 +529,7 @@ chan_sccp_la_CFLAGS = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) \
 	$(LIBEXSLT_CFLAGS) $(LIBCURL_CFLAGS) \
 	$(ax_warn_cflags_variable) $(LIBBFD) -D_REENTRANT \
 	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
-chan_sccp_la_LDFLAGS = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS) #$(LIBBFD)
+chan_sccp_la_LDFLAGS = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS)
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -621,6 +622,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-pbx_impl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_actions.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_appfunctions.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_callinfo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_channel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_cli.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_conference.Plo@am__quote@
@@ -854,6 +856,13 @@ chan_sccp_la-sccp_devstate.lo: sccp_devstate.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_devstate.c' object='chan_sccp_la-sccp_devstate.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -c -o chan_sccp_la-sccp_devstate.lo `test -f 'sccp_devstate.c' || echo '$(srcdir)/'`sccp_devstate.c
+
+chan_sccp_la-sccp_callinfo.lo: sccp_callinfo.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -MT chan_sccp_la-sccp_callinfo.lo -MD -MP -MF $(DEPDIR)/chan_sccp_la-sccp_callinfo.Tpo -c -o chan_sccp_la-sccp_callinfo.lo `test -f 'sccp_callinfo.c' || echo '$(srcdir)/'`sccp_callinfo.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/chan_sccp_la-sccp_callinfo.Tpo $(DEPDIR)/chan_sccp_la-sccp_callinfo.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_callinfo.c' object='chan_sccp_la-sccp_callinfo.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -c -o chan_sccp_la-sccp_callinfo.lo `test -f 'sccp_callinfo.c' || echo '$(srcdir)/'`sccp_callinfo.c
 
 chan_sccp_la-ast.lo: pbx_impl/ast/ast.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -MT chan_sccp_la-ast.lo -MD -MP -MF $(DEPDIR)/chan_sccp_la-ast.Tpo -c -o chan_sccp_la-ast.lo `test -f 'pbx_impl/ast/ast.c' || echo '$(srcdir)/'`pbx_impl/ast/ast.c

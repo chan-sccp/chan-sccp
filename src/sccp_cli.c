@@ -1057,7 +1057,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 			if (d) {
 				if (!s) {
 					pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n",
-						!found_linedevice ? l->name : " +--", linedevice->subscriptionId.number, l->label ? l->label : "--", (d) ? d->id : "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (channel) ? sccp_channelstate2str(channel->state) : "--", (channel) ? skinny_calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
+						!found_linedevice ? l->name : " +--", linedevice->subscriptionId.number, l->label ? l->label : "--", (d) ? d->id : "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (channel) ? sccp_channelstate2str(channel->state) : "--", (channel) ? skinny_calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->oldCallInfo.calledPartyName : channel->oldCallInfo.callingPartyName) : "", cap_buf);
 				} else {
 					astman_append(s, "Event: SCCPLineEntry\r\n");
 					astman_append(s, "ChannelType: SCCP\r\n");
@@ -1071,7 +1071,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 					astman_append(s, "ActiveChannels: %d\r\n", SCCP_RWLIST_GETSIZE(&l->channels));
 					astman_append(s, "ChannelState: %s\r\n", (channel) ? sccp_channelstate2str(channel->state) : "--");
 					astman_append(s, "CallType: %s\r\n", (channel) ? skinny_calltype2str(channel->calltype) : "");
-					astman_append(s, "PartyName: %s\r\n", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "");
+					astman_append(s, "PartyName: %s\r\n", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->oldCallInfo.calledPartyName : channel->oldCallInfo.callingPartyName) : "");
 					astman_append(s, "Capabilities: %s\r\n", cap_buf);
 					astman_append(s, "\r\n");
 				}
@@ -1082,7 +1082,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 
 		if (found_linedevice == 0) {
 			if (!s) {
-				pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n", l->name, "", l->label, "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (channel) ? sccp_channelstate2str(channel->state) : "--", (channel) ? skinny_calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
+				pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n", l->name, "", l->label, "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (channel) ? sccp_channelstate2str(channel->state) : "--", (channel) ? skinny_calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->oldCallInfo.calledPartyName : channel->oldCallInfo.callingPartyName) : "", cap_buf);
 			} else {
 				astman_append(s, "Event: SCCPLineEntry\r\n");
 				astman_append(s, "ChannelType: SCCP\r\n");
@@ -1366,7 +1366,7 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 		CLI_AMI_TABLE_FIELD(Name,		"-25.25",	s,	25,	strdupa(tmpname))					\
 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	channel->line->name)					\
 		CLI_AMI_TABLE_FIELD(DeviceName,		"-16",		s,		16,	d ? d->id : "(unknown)")			\
-		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10",	s,	10,	channel->callInfo.calledPartyNumber)			\
+		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10",	s,	10,	channel->oldCallInfo.calledPartyNumber)			\
 		CLI_AMI_TABLE_FIELD(PBX State,		"-10.10",	s,	10,	(channel->owner) ? pbx_state2str(iPbx.getChannelState(channel)) : "(none)")	\
 		CLI_AMI_TABLE_FIELD(SCCP State,		"-10.10",	s,	10,	sccp_channelstate2str(channel->state))			\
 		CLI_AMI_TABLE_FIELD(ReadCodec,		"-10.10",	s,	10,	codec2name(channel->rtp.audio.readFormat))		\
@@ -1946,9 +1946,9 @@ static int sccp_test(int fd, int argc, char *argv[])
 				pbx_log(LOG_NOTICE, "%s: Setting Original Calling Party, '%s', '%s'\n", c->designator, argv[5], argv[6]);
 				sccp_channel_set_originalCalledparty(c, argv[5], argv[6]);
 			} else if (sccp_strcaseequals(argv[4], "lastRedirectReason")) {
-				pbx_log(LOG_NOTICE, "%s: Setting RedirectReason '%d' -> '%s'\n", c->designator, c->callInfo.lastRedirectingReason, argv[5]);
-				c->callInfo.originalCdpnRedirectReason = c->callInfo.lastRedirectingReason;
-				c->callInfo.lastRedirectingReason = atoi(argv[5]);
+				pbx_log(LOG_NOTICE, "%s: Setting RedirectReason '%d' -> '%s'\n", c->designator, c->oldCallInfo.lastRedirectingReason, argv[5]);
+				c->oldCallInfo.originalCdpnRedirectReason = c->oldCallInfo.lastRedirectingReason;
+				c->oldCallInfo.lastRedirectingReason = atoi(argv[5]);
 			}
 			return RESULT_SUCCESS;
 		} else {
