@@ -110,10 +110,6 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		return -1;
 	}
 
-	char *cid_name = NULL;
-	char *cid_number = NULL;
-
-	char suffixedNumber[255] = { '\0' };									/*!< For saving the digittimeoutchar to the logs */
 	boolean_t hasSession = FALSE;
 
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(c->line);
@@ -151,15 +147,20 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	}
 
 	/* Reinstated this call instead of the following lines */
-	if (strlen(c->oldCallInfo.callingPartyName) > 0) {
-		cid_name = strdup(c->oldCallInfo.callingPartyName);
-	}
+	char cid_name[StationMaxNameSize] = {0};
+	char cid_num[StationMaxDirnumSize] = {0};
+	char suffixedNumber[StationMaxDirnumSize] = {0};
+	sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
 
-	if (strlen(c->oldCallInfo.callingPartyNumber) > 0) {
-		cid_number = strdup(c->oldCallInfo.callingPartyNumber);
-	}
+	sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
+	sccp_callinfo_getter(ci, 
+		SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
+		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
+		SCCP_CALLINFO_PRESENTATION, &presentation, 
+		SCCP_CALLINFO_KEY_SENTINEL);
+	sccp_copy_string(suffixedNumber, cid_num, sizeof(suffixedNumber));
 	//! \todo implement dnid, ani, ani2 and rdnis
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk callerid='%s <%s>'\n", (cid_number) ? cid_number : "", (cid_name) ? cid_name : "");
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk callerid='%s <%s>'\n", cid_name, cid_num);
 
 	/* Set the channel callingParty Name and Number, called Party Name and Number, original CalledParty Name and Number, Presentation */
 	if (GLOB(recorddigittimeoutchar)) {
@@ -171,24 +172,24 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		   enbloc dialed numbers (such as via 7970 enbloc dialing) if they match a certain pattern.
 		   This would help users dial from call history lists on other phones, which do not have enbloc dialing,
 		   when using shared lines. */
-		if (NULL != cid_number && strlen(cid_number) > 0 && strlen(cid_number) < sizeof(suffixedNumber) - 2 && '0' == cid_number[0]) {
-			sccp_copy_string(suffixedNumber, cid_number, sizeof(suffixedNumber));
-			suffixedNumber[strlen(cid_number) + 0] = '#';
-			suffixedNumber[strlen(cid_number) + 1] = '\0';
-			sccp_channel_set_callingparty(c, cid_name, suffixedNumber);
-		} else {
-			sccp_channel_set_callingparty(c, cid_name, cid_number);
+		int length = sccp_strlen(cid_num);
+		if (length && (length + 2  < StationMaxDirnumSize) && ('\0' == cid_num[0])) {
+			suffixedNumber[length + 0] = '#';
+			suffixedNumber[length + 1] = '\0';
 		}
-	} else {
-		sccp_channel_set_callingparty(c, cid_name, cid_number);
+		/* Set the channel calledParty Name and Number 7910 compatibility */
 	}
-	/* Set the channel calledParty Name and Number 7910 compatibility */
-	sccp_channel_set_calledparty(c, l->cid_name, l->cid_num);
-	iPbx.set_connected_line(c, c->oldCallInfo.calledPartyNumber, c->oldCallInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN);
+	iPbx.set_connected_line(c, l->cid_num, l->cid_name, AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN);
 
 	//! \todo implement dnid, ani, ani2 and rdnis
-	if (iPbx.get_callerid_presence) {
-		sccp_channel_set_calleridPresenceParameter(c, iPbx.get_callerid_presence(c));
+	int pbx_presentation = iPbx.get_callerid_presence ? iPbx.get_callerid_presence(c) : -1;
+	if (	(!sccp_strequals(suffixedNumber, cid_num)) || 
+		(pbx_presentation > -1 && pbx_presentation != presentation)
+	) {
+		sccp_callinfo_setter(ci, 
+			SCCP_CALLINFO_CALLINGPARTY_NUMBER, (!sccp_strlen_zero(suffixedNumber) ? suffixedNumber : NULL), 
+			SCCP_CALLINFO_PRESENTATION, (pbx_presentation > -1) ? pbx_presentation : presentation,
+			SCCP_CALLINFO_KEY_SENTINEL);
 	}
 	sccp_channel_display_callInfo(c);
 
@@ -239,7 +240,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 				char prompt[100];
 
-				snprintf(prompt, sizeof(prompt), "%s: %s: %s", active_channel->line->name, SKINNY_DISP_FROM, c->oldCallInfo.callingPartyNumber);
+				snprintf(prompt, sizeof(prompt), "%s: %s: %s", active_channel->line->name, SKINNY_DISP_FROM, cid_num);
 				sccp_dev_displayprompt(linedevice->device, activeChannelLinedevice->lineInstance, active_channel->callid, prompt, GLOB(digittimeout));
 			}
 			isRinging = TRUE;
@@ -286,13 +287,6 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	while (c->owner && !pbx_check_hangup(c->owner) && l && v) {
 		pbx_builtin_setvar_helper(c->owner, v->name, v->value);
 		v = v->next;
-	}
-
-	if (cid_name) {
-		sccp_free(cid_name);
-	}
-	if (cid_number) {
-		sccp_free(cid_number);
 	}
 
 	return isRinging != TRUE;
@@ -598,64 +592,62 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
                 d = sccp_device_retain(linedevice->device);
                 SCCP_LIST_UNLOCK(&l->devices);
         }
-        if (linedevice) {		/* single line channel */
-		switch (c->calltype) {
-			case SKINNY_CALLTYPE_INBOUND:
-				/* append subscriptionId to cid */
-				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
-					sprintf(c->oldCallInfo.calledPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
-				} else {
-					sprintf(c->oldCallInfo.calledPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
-				}
+	sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
+	char cid_name[StationMaxNameSize] = {0};
+	char cid_num[StationMaxDirnumSize] = {0};
+	switch (c->calltype) {
+		case SKINNY_CALLTYPE_INBOUND:
+			/* append subscriptionId to cid */
+			if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
+				snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, linedevice->subscriptionId.number);
+			} else {
+				snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
+			}
 
-				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
-					sprintf(c->oldCallInfo.calledPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
-				} else {
-					sprintf(c->oldCallInfo.calledPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
-				}
-				break;
-			case SKINNY_CALLTYPE_FORWARD:
-			case SKINNY_CALLTYPE_OUTBOUND:
-				/* append subscriptionId to cid */
-				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
-					sprintf(c->oldCallInfo.callingPartyNumber, "%s%s", l->cid_num, linedevice->subscriptionId.number);
-				} else {
-					sprintf(c->oldCallInfo.callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
-				}
+			if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
+				snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, linedevice->subscriptionId.name);
+			} else {
+				snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
+			}
+			sccp_callinfo_setter(ci, 
+				SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name, 
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cid_num,  
+				SCCP_CALLINFO_KEY_SENTINEL);
+			break;
+		case SKINNY_CALLTYPE_FORWARD:
+		case SKINNY_CALLTYPE_OUTBOUND:
+			/* append subscriptionId to cid */
+			if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
+				snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, linedevice->subscriptionId.number);
+			} else {
+				snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
+			}
 
-				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
-					sprintf(c->oldCallInfo.callingPartyName, "%s%s", l->cid_name, linedevice->subscriptionId.name);
-				} else {
-					sprintf(c->oldCallInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
-				}
-				break;
-			case SKINNY_CALLTYPE_SENTINEL:
-				break;
-		}
+			if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
+				snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, linedevice->subscriptionId.name);
+			} else {
+				snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
+			}
+			sccp_callinfo_setter(ci, 
+				SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
+				SCCP_CALLINFO_KEY_SENTINEL);
+			break;
+		case SKINNY_CALLTYPE_SENTINEL:
+			break;
+	}
+	if (linedevice) {
 		memcpy(&c->capabilities.audio, &linedevice->device->capabilities.audio, sizeof(c->capabilities.audio));
 		memcpy(&c->capabilities.video, &linedevice->device->capabilities.video, sizeof(c->capabilities.video));
 		memcpy(&c->preferences.audio , &linedevice->device->preferences.audio , sizeof(c->preferences.audio));
 		memcpy(&c->preferences.video , &linedevice->device->preferences.video , sizeof(c->preferences.video));
 	} else {			/* shared line */
-		switch (c->calltype) {
-			case SKINNY_CALLTYPE_INBOUND:
-				sprintf(c->oldCallInfo.calledPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
-				sprintf(c->oldCallInfo.calledPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
-				break;
-			case SKINNY_CALLTYPE_FORWARD:
-			case SKINNY_CALLTYPE_OUTBOUND:
-				sprintf(c->oldCallInfo.callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
-				sprintf(c->oldCallInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
-				break;
-			case SKINNY_CALLTYPE_SENTINEL:
-				break;
-		}
 		/* \todo we should be doing this when a device is attached to a line, and store the caps/prefs inside the sccp_line_t */
 		/* \todo it would be nice if we could set audio preferences by line instead of only per device, especially in case of shared line */
 		sccp_line_copyCodecSetsFromLineToChannel(l, c);
 	}
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:              cid_num: \"%s\"\n", c->oldCallInfo.callingPartyNumber);
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:             cid_name: \"%s\"\n", c->oldCallInfo.callingPartyName);
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:              cid_num: \"%s\"\n", cid_num);
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:             cid_name: \"%s\"\n", cid_name);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:          accountcode: \"%s\"\n", l->accountcode);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:                exten: \"%s\"\n", c->dialedNumber);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:              context: \"%s\"\n", l->context);
@@ -694,13 +686,13 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	pbx_update_use_count();
 
 	if (iPbx.set_callerid_number) {
-		iPbx.set_callerid_number(c, c->oldCallInfo.callingPartyNumber);
+		iPbx.set_callerid_number(c, cid_num);	//cid_+c->oldCallInfo.callingPartyNumber);
 	}
 	if (iPbx.set_callerid_ani) {
-		iPbx.set_callerid_ani(c, c->oldCallInfo.callingPartyNumber);
+		iPbx.set_callerid_ani(c, cid_num);	//c->oldCallInfo.callingPartyNumber);
 	}
 	if (iPbx.set_callerid_name) {
-		iPbx.set_callerid_name(c, c->oldCallInfo.callingPartyName);
+		iPbx.set_callerid_name(c, cid_name);	//c->oldCallInfo.callingPartyName);
 	}
 
 	/* call ast_channel_call_forward_set with the forward destination if this device is forwarded */
@@ -1058,7 +1050,8 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			case SCCP_SOFTSWITCH_DIAL:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension %s\n", d->id, shortenedNumber);
 
-				sccp_copy_string(c->oldCallInfo.calledPartyNumber, shortenedNumber, sizeof(c->oldCallInfo.calledPartyNumber));
+				//sccp_copy_string(c->oldCallInfo.calledPartyNumber, shortenedNumber, sizeof(c->oldCallInfo.calledPartyNumber));
+				//sccp_channel_set_calledparty(c, NULL, shortenedNumber);
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 				break;
 			case SCCP_SOFTSWITCH_SENTINEL:

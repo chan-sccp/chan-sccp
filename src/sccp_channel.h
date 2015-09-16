@@ -28,7 +28,7 @@
 /*!
  * \brief SCCP CallInfo Structure
  */
-struct sccp_callinfo {
+struct sccp_oldcallinfo {
 	char calledPartyName[StationMaxNameSize];								/*!< Called Party Name */
 	char calledPartyNumber[StationMaxDirnumSize];								/*!< Called Party Number */
 	char cdpnVoiceMailbox[StationMaxDirnumSize];								/*!< Called Party Voicemail Box */
@@ -156,7 +156,7 @@ struct sccp_channel {
 
 	char *musicclass;											/*!< Music Class */
 
-	sccp_callinfo_t oldCallInfo;
+	struct sccp_oldcallinfo oldCallInfo;
 	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
 
 #if ASTERISK_VERSION_GROUP >= 111
@@ -178,6 +178,7 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 void sccp_channel_updateChannelDesignator(sccp_channel_t * c);
 void sccp_channel_updateMusicClass(sccp_channel_t * c, const sccp_line_t *l);
 void sccp_channel_updateChannelCapability(sccp_channel_t * channel);
+sccp_callinfo_t * const sccp_channel_getCallInfo(const sccp_channel_t *const channel);
 void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel_t * c);
 void sccp_channel_send_callinfo2(sccp_channel_t * c);
 void sccp_channel_setChannelstate(channelPtr channel, sccp_channelstate_t state);

@@ -2605,8 +2605,8 @@ static void sccp_device_indicate_connected(constDevicePtr device, sccp_linedevic
 	sccp_dev_stoptone(device, linedevice->lineInstance, channel->callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, linedevice->lineInstance, SKINNY_LAMP_ON);
 	sccp_device_sendcallstate(device, linedevice->lineInstance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	if (device->protocol && device->protocol->sendCallInfo) {
-		device->protocol->sendCallInfo(device, channel, linedevice->lineInstance);
+	if (device->protocol && device->protocol->sendOldCallInfo) {
+		device->protocol->sendOldCallInfo(device, channel, linedevice->lineInstance);
 	}
 	sccp_dev_set_cplane(device, linedevice->lineInstance, 1);
 	//sccp_dev_set_keyset(device, linedevice->lineInstance, channel->callid, KEYMODE_CONNECTED);              // moved back to sccp_indicate (re-used for connconf as well)
@@ -2630,8 +2630,8 @@ static void __sccp_device_indicate_normal_dialing(constDevicePtr device, const u
 		if (device->protocol->sendDialedNumber) {
 			device->protocol->sendDialedNumber(device, channel);
 		}
-		if (device->protocol->sendCallInfo) {
-			device->protocol->sendCallInfo(device, channel, lineInstance);
+		if (device->protocol->sendOldCallInfo) {
+			device->protocol->sendOldCallInfo(device, channel, lineInstance);
 		}
 	}
 	sccp_dev_set_keyset(device, lineInstance, channel->callid, KEYMODE_RINGOUT);
@@ -2655,8 +2655,8 @@ static void sccp_device_indicate_proceed(constDevicePtr device, const uint8_t li
 {
 	sccp_dev_stoptone(device, lineInstance, channel->callid);
 	sccp_device_sendcallstate(device, lineInstance, channel->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	if (device->protocol && device->protocol->sendCallInfo) {
-		device->protocol->sendCallInfo(device, channel, lineInstance);
+	if (device->protocol && device->protocol->sendOldCallInfo) {
+		device->protocol->sendOldCallInfo(device, channel, lineInstance);
 	}
 	sccp_dev_displayprompt(device, lineInstance, channel->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 }

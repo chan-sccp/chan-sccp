@@ -29,6 +29,9 @@
 #include <dlfcn.h>
 #include <bfd.h>
 #endif
+#if ASTERISK_VERSION_GROUP >= 112 
+#include <asterisk/backtrace.h>
+#endif
 #endif
 #endif
 
@@ -2015,6 +2018,7 @@ void sccp_utils_unregister_tests(void)
 #endif
 
 #ifdef DEBUG
+#if ASTERISK_VERSION_GROUP < 112 
 #if HAVE_EXECINFO_H
 static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 {
@@ -2182,6 +2186,9 @@ void sccp_do_backtrace()
 #endif		
 	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "--------------------------------------------------------------------------(bt)--\n");
 	size = backtrace(addresses, SCCP_BACKTRACE_SIZE);
+#if ASTERISK_VERSION_GROUP >= 112 
+	strings = __ast_bt_get_symbols(addresses, size);
+#else
 	strings = __sccp_bt_get_symbols(addresses, size);
 
 	for (i = 1; i < size; i++) {

@@ -733,25 +733,41 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
 			if (channel) {
 				lineState->callInfo.calltype = channel->calltype;
 
+
 				if (channel->state != SCCP_CHANNELSTATE_ONHOOK && channel->state != SCCP_CHANNELSTATE_DOWN) {
 					lineState->state = channel->state;
 
+					sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
+					char cid_name[StationMaxNameSize] = {0};
+					char cid_num[StationMaxDirnumSize] = {0};
+					sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
+
 					/* set cid name/numbe information according to the call direction */
 					if (SKINNY_CALLTYPE_INBOUND == channel->calltype) {
-						if (channel->privacy || !channel->oldCallInfo.presentation) {
+						sccp_callinfo_getter(ci, 
+							SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
+							SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
+							SCCP_CALLINFO_PRESENTATION, &presentation, 
+							SCCP_CALLINFO_KEY_SENTINEL);
+						if (presentation == CALLERID_PRESENCE_FORBIDDEN) {
 							sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyName));
 							sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
 						} else {
-							sccp_copy_string(lineState->callInfo.partyName, channel->oldCallInfo.callingPartyName, sizeof(lineState->callInfo.partyName));
-							sccp_copy_string(lineState->callInfo.partyNumber, channel->oldCallInfo.callingPartyName, sizeof(lineState->callInfo.partyNumber));
+							sccp_copy_string(lineState->callInfo.partyName, cid_name, sizeof(lineState->callInfo.partyName));
+							sccp_copy_string(lineState->callInfo.partyNumber, cid_num, sizeof(lineState->callInfo.partyNumber));
 						}
 					} else {
-						if (channel->privacy || !channel->oldCallInfo.presentation) {
+						sccp_callinfo_getter(ci, 
+							SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name, 
+							SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cid_num, 
+							SCCP_CALLINFO_PRESENTATION, &presentation, 
+							SCCP_CALLINFO_KEY_SENTINEL);
+						if (presentation == CALLERID_PRESENCE_FORBIDDEN) {
 							sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyName));
 							sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
 						} else {
-							sccp_copy_string(lineState->callInfo.partyName, channel->oldCallInfo.calledPartyName, sizeof(lineState->callInfo.partyName));
-							sccp_copy_string(lineState->callInfo.partyNumber, channel->oldCallInfo.calledPartyNumber, sizeof(lineState->callInfo.partyNumber));
+							sccp_copy_string(lineState->callInfo.partyName, cid_name, sizeof(lineState->callInfo.partyName));
+							sccp_copy_string(lineState->callInfo.partyNumber, cid_num, sizeof(lineState->callInfo.partyNumber));
 						}
 					}
 				} else {
@@ -845,30 +861,45 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 			case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
 			case SCCP_CHANNELSTATE_INVALIDNUMBER:
 			case SCCP_CHANNELSTATE_CALLCONFERENCE:
-			case SCCP_CHANNELSTATE_CALLTRANSFER:
+			case SCCP_CHANNELSTATE_CALLTRANSFER: 
+			{
+				sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
+				char cid_name[StationMaxNameSize] = {0};
+				char cid_num[StationMaxDirnumSize] = {0};
+				sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
 				//if (dev_privacy == 0 || (dev_privacy == 1 && channel->privacy == FALSE)) {
 
 				/** set cid name/number information according to the call direction */
 				switch (channel->calltype) {
 					case SKINNY_CALLTYPE_INBOUND:
-						if (channel->privacy || !channel->oldCallInfo.presentation) {
+						sccp_callinfo_getter(ci, 
+							SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
+							SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
+							SCCP_CALLINFO_PRESENTATION, &presentation, 
+							SCCP_CALLINFO_KEY_SENTINEL);
+						if (presentation == CALLERID_PRESENCE_FORBIDDEN) {
 							sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyName));
 							sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
 						} else {
-							sccp_copy_string(lineState->callInfo.partyName, channel->oldCallInfo.callingPartyName, sizeof(lineState->callInfo.partyName));
-							sccp_copy_string(lineState->callInfo.partyNumber, channel->oldCallInfo.callingPartyNumber, sizeof(lineState->callInfo.partyNumber));
+							sccp_copy_string(lineState->callInfo.partyName, cid_name, sizeof(lineState->callInfo.partyName));
+							sccp_copy_string(lineState->callInfo.partyNumber, cid_num, sizeof(lineState->callInfo.partyNumber));
 						}
-						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speeddial partyName: '%s' (callingParty)\n", line->name, channel->oldCallInfo.callingPartyName);
+						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speeddial partyName: '%s' (callingParty)\n", line->name, cid_name);
 						break;
 					case SKINNY_CALLTYPE_OUTBOUND:
-						if (channel->privacy || !channel->oldCallInfo.presentation) {
+						sccp_callinfo_getter(ci, 
+							SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name, 
+							SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cid_num, 
+							SCCP_CALLINFO_PRESENTATION, &presentation, 
+							SCCP_CALLINFO_KEY_SENTINEL);
+						if (presentation == CALLERID_PRESENCE_FORBIDDEN) {
 							sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyName));
 							sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
 						} else {
-							sccp_copy_string(lineState->callInfo.partyName, channel->oldCallInfo.calledPartyName, sizeof(lineState->callInfo.partyName));
-							sccp_copy_string(lineState->callInfo.partyNumber, channel->oldCallInfo.calledPartyNumber, sizeof(lineState->callInfo.partyNumber));
+							sccp_copy_string(lineState->callInfo.partyName, cid_name, sizeof(lineState->callInfo.partyName));
+							sccp_copy_string(lineState->callInfo.partyNumber, cid_num, sizeof(lineState->callInfo.partyNumber));
 						}
-						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speeddial partyName: '%s' (calledParty)\n", line->name, channel->oldCallInfo.calledPartyName);
+						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speeddial partyName: '%s' (calledParty)\n", line->name, cid_name);
 						break;
 					case SKINNY_CALLTYPE_FORWARD:
 						sccp_copy_string(lineState->callInfo.partyName, "cfwd", sizeof(lineState->callInfo.partyName));
@@ -878,6 +909,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 					case SKINNY_CALLTYPE_SENTINEL:
 						break;
 				}
+			}
 				break;
 			case SCCP_CHANNELSTATE_BLINDTRANSFER:
 			case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
@@ -1280,16 +1312,29 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
 
 				} else {
-					/* use a temporary channel as fallback for non dynamic speeddial devices */
-					sccp_channel_t tmpChannel = { 0 };
-					sccp_copy_string(tmpChannel.oldCallInfo.callingPartyName, hint->callInfo.partyName, sizeof(tmpChannel.oldCallInfo.callingPartyName));
-					sccp_copy_string(tmpChannel.oldCallInfo.calledPartyName, hint->callInfo.partyName, sizeof(tmpChannel.oldCallInfo.calledPartyName));
-					sccp_copy_string(tmpChannel.oldCallInfo.callingPartyNumber, hint->callInfo.partyNumber, sizeof(tmpChannel.oldCallInfo.callingPartyNumber));
-					sccp_copy_string(tmpChannel.oldCallInfo.calledPartyNumber, hint->callInfo.partyNumber, sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
-					tmpChannel.calltype = (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? SKINNY_CALLTYPE_OUTBOUND : SKINNY_CALLTYPE_INBOUND;
-					/* done */
+					{
+						/* use a temporary channel as fallback for non dynamic speeddial devices */
+						/*
+						sccp_channel_t tmpChannel = { 0 };
+						sccp_copy_string(tmpChannel.oldCallInfo.callingPartyName, hint->callInfo.partyName, sizeof(tmpChannel.oldCallInfo.callingPartyName));
+						sccp_copy_string(tmpChannel.oldCallInfo.calledPartyName, hint->callInfo.partyName, sizeof(tmpChannel.oldCallInfo.calledPartyName));
+						sccp_copy_string(tmpChannel.oldCallInfo.callingPartyNumber, hint->callInfo.partyNumber, sizeof(tmpChannel.oldCallInfo.callingPartyNumber));
+						sccp_copy_string(tmpChannel.oldCallInfo.calledPartyNumber, hint->callInfo.partyNumber, sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
+						tmpChannel.calltype = (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? SKINNY_CALLTYPE_OUTBOUND : SKINNY_CALLTYPE_INBOUND;
+						d->protocol->sendOldCallInfo(d, &tmpChannel, subscriber->instance);
+						*/
+						sccp_callinfo_t *ci = sccp_callinfo_ctor();
+						sccp_callinfo_setter(ci, 
+							SCCP_CALLINFO_CALLINGPARTY_NAME, hint->callInfo.partyName,
+							SCCP_CALLINFO_CALLINGPARTY_NUMBER, hint->callInfo.partyNumber,
+							SCCP_CALLINFO_CALLEDPARTY_NAME, hint->callInfo.partyName,
+							SCCP_CALLINFO_CALLEDPARTY_NUMBER, hint->callInfo.partyNumber,
+							SCCP_CALLINFO_KEY_SENTINEL);
+						uint8_t calltype = (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? SKINNY_CALLTYPE_OUTBOUND : SKINNY_CALLTYPE_INBOUND;
+						d->protocol->sendCallInfo(ci, 0, calltype, subscriber->instance, d);
+						sccp_callinfo_dtor(ci);
+					}
 
-					d->protocol->sendCallInfo(d, &tmpChannel, subscriber->instance);
 					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_ON);
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
 				}
