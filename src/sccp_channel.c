@@ -448,6 +448,13 @@ void sccp_channel_updateChannelCapability(sccp_channel_t * channel)
 }
 
 /*!
+ * \brief Get const pointer to channels private callinfo
+ */
+sccp_callinfo_t * const sccp_channel_getCallInfo(const sccp_channel_t *const channel)
+{
+	return (sccp_callinfo_t * const) channel->privateData->callInfo;			/* discard const because callinfo has a private implementation anyway */
+}
+/*!
  * \brief Send Call Information to Device/Channel
  *
  * Wrapper function that calls sccp_channel_send_staticCallinfo or sccp_channel_send_dynamicCallinfo
