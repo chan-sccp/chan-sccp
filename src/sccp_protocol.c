@@ -40,6 +40,33 @@ static void sccp_device_sendCallinfoV3(constDevicePtr device, constChannelPtr ch
 
 	REQ(msg, CallInfoMessage);
 
+	/*
+	sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
+	sccp_callinfo_getter(channel->privateData->callinfo,
+		SCCP_CALLINFO_CALLEDPARTY_NAME, &msg->data.CallInfoMessage.calledPartyName,
+		SCCP_CALLINFO_CALLEDPARTY_NUMBER, &msg->data.CallInfoMessage.calledParty,
+		SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, &msg->data.CallInfoMessage.cdpnVoiceMailbox,
+		SCCP_CALLINFO_CALLINGPARTY_NAME, &msg->data.CallInfoMessage.callingPartyName,
+		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &msg->data.CallInfoMessage.callingParty,
+		SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL, &msg->data.CallInfoMessage.cgpnVoiceMailbox,
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &msg->data.CallInfoMessage.originalCalledPartyName,
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, &msg->data.CallInfoMessage.originalCalledParty,
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL, &msg->data.CallInfoMessage.originalCdpnVoiceMailbox,
+		//SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, 
+		//SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER,
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &msg->data.CallInfoMessage.lastRedirectingPartyName,
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, &msg->data.CallInfoMessage.lastRedirectingParty,
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, &msg->data.CallInfoMessage.lastRedirectingVoiceMailbox,
+		//SCCP_CALLINFO_HUNT_PILOT_NAME,
+		//SCCP_CALLINFO_HUNT_PILOT_NUMBER,
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &msg->data.CallInfoMessage.originalCdpnRedirectReason,
+		SCCP_CALLINFO_LAST_REDIRECT_REASON, &msg->data.CallInfoMessage.lastRedirectingReason,
+		SCCP_CALLINFO_PRESENTATION, &presentation,
+		SCCP_CALLINFO_KEY_SENTINEL);
+	if (!presentation) {
+		msg->data.CallInfoMessage.partyPIRestrictionBits = 0xf;
+	}
+	*/
 	if (!sccp_strlen_zero(channel->oldCallInfo.callingPartyName)) {
 		sccp_copy_string(msg->data.CallInfoMessage.callingPartyName, channel->oldCallInfo.callingPartyName, sizeof(msg->data.CallInfoMessage.callingPartyName));
 	}
