@@ -13,8 +13,8 @@
 #define __SCCP_CALLINFO_H
 
 struct sccp_callinfo;
-sccp_callinfo_t *const sccp_callinfo_ctor(void);
-sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t *ci);
+sccp_callinfo_t *const sccp_callinfo_ctor(void) 		__attribute__((constructor));
+sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t *ci) 	__attribute__((destructor));
 boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src, sccp_callinfo_t * const dst);
 
 /*
@@ -23,9 +23,6 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src, sccp_callinfo_t 
  * SENTINEL is required to stop processing
  * \returns: number of changed fields
  */
-//int sccp_callinfo_setStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const char value[StationMaxDirnumSize]);
-//int sccp_callinfo_setReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const int reason);
-//int sccp_callinfo_setPresentation(sccp_callinfo_t * ci, const sccp_calleridpresence_t presentation);
 int sccp_callinfo_set(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...);
 
 /*
