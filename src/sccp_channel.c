@@ -196,8 +196,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		channel = sccp_channel_release(channel);				/* explicit release when private_data could not be created */
 		return NULL;
 	}
-	//sccp_callinfo_setPresentation(channel->privateData->callInfo, CALLERID_PRESENCE_ALLOWED);
-	sccp_callinfo_set(channel->privateData->callInfo, SCCP_CALLINFO_PRESENTATION, CALLERID_PRESENCE_ALLOWED, SCCP_CALLINFO_KEY_SENTINEL);
+	sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_PRESENTATION, CALLERID_PRESENCE_ALLOWED, SCCP_CALLINFO_KEY_SENTINEL);
 
 	channel->line = sccp_line_retain(line);
 

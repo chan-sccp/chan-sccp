@@ -23,7 +23,7 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src, sccp_callinfo_t 
  * SENTINEL is required to stop processing
  * \returns: number of changed fields
  */
-int sccp_callinfo_set(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...);
+int sccp_callinfo_setter(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...);
 
 /*
  * \brief callinfo getter with variable number of arguments
@@ -31,10 +31,7 @@ int sccp_callinfo_set(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...);
  * SENTINEL is required to stop processing
  * \returns: number of changed fields
  */
-//boolean_t sccp_callinfo_getStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, char **const value);
-//boolean_t sccp_callinfo_getReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key, int *const reason);
-//boolean_t sccp_callinfo_getPresentation(sccp_callinfo_t * ci, sccp_calleridpresence_t *const presentation);
-int sccp_callinfo_get(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...);
+int sccp_callinfo_getter(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...);
 
 /* helpers */
 int sccp_callinfo_setCalledParty(sccp_callinfo_t * ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize]);
