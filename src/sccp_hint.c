@@ -1289,7 +1289,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					tmpChannel.calltype = (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? SKINNY_CALLTYPE_OUTBOUND : SKINNY_CALLTYPE_INBOUND;
 					/* done */
 
-					d->protocol->sendCallInfo(d, &tmpChannel, subscriber->instance);
+					d->protocol->sendOldCallInfo(d, &tmpChannel, subscriber->instance);
 					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_ON);
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
 				}

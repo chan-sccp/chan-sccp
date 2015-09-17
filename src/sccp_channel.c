@@ -468,9 +468,10 @@ void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send oldCallInfo of callid %d\n", DEV_ID_LOG(device), channel->callid);
 		if (device->protocol && device->protocol->sendCallInfo) {
 			instance = sccp_device_find_index_for_line(device, channel->line->name);
-			device->protocol->sendCallInfo(device, channel, instance);
+			device->protocol->sendOldCallInfo(device, channel, instance);
 		}
 	}
+	
 }
 
 /*!
