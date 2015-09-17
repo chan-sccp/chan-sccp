@@ -307,7 +307,7 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 	sccp_msg_t *msg = NULL;
 
 	sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
-	RAII_VAR(char *, data, NULL, sccp_free);
+	char *data = NULL;
 	int data_len = 0;
 	unsigned int dataSize = sccp_callinfo_getString(ci, data, &data_len, 
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER,
@@ -348,6 +348,7 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V3) for %s channel %d on line instance %d" "\n\tcallerid: %s" "\n\tcallerName: %s\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, lineInstance, msg->data.CallInfoMessage.callingParty, msg->data.CallInfoMessage.callingPartyName);
 	sccp_dev_send(device, msg);
+	sccp_free(data);
 }
 
 static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, constDevicePtr device)
@@ -356,7 +357,7 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	sccp_msg_t *msg = NULL;
 
 	sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
-	RAII_VAR(char *, data, NULL, sccp_free);
+	char *data = NULL;
 	int data_len = 0;
 	unsigned int dataSize = sccp_callinfo_getString(ci, data, &data_len, 
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER,
@@ -401,6 +402,7 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V3) for %s channel %d on line instance %d" "\n\tcallerid: %s" "\n\tcallerName: %s\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, lineInstance, msg->data.CallInfoMessage.callingParty, msg->data.CallInfoMessage.callingPartyName);
 	sccp_dev_send(device, msg);
+	sccp_free(data);
 }
 
 /* done - oldCallInfoMessage */
