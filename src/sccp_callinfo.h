@@ -2,6 +2,7 @@
  * \file        sccp_callinfo.h
  * \brief       SCCP CallInfo Header
  * \author      Diederik de Groot <ddegroot [at] users.sf.net>
+ * \date	2015-Sept-16
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
@@ -32,6 +33,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...);
  * \returns: number of changed fields
  */
 int sccp_callinfo_getter(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...);
+void sccp_callinfo_getStringArray(sccp_callinfo_t * const ci, char strArray[16][StationMaxDirnumSize]);
 
 /* helpers */
 int sccp_callinfo_setCalledParty(sccp_callinfo_t * ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize]);
@@ -40,7 +42,14 @@ int sccp_callinfo_setOrigCalledParty(sccp_callinfo_t * ci, const char name[Stati
 int sccp_callinfo_setOrigCallingParty(sccp_callinfo_t * ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize]);
 int sccp_callinfo_setLastRedirectingParty(sccp_callinfo_t * ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize], const int reason);
 
-//boolean_t sccp_callinfo_sendCallInfo(sccp_callinfo_t *ci, constDevicePtr d, constChannelPtr c);
+/*!
+ * \brief return all callinfo strings concatenated into one newly allocated string, null seperated
+ * used by sccp_protocol.c sendCallInfo 
+ * resulting buffer needs to be freed
+ */
+int sccp_callinfo_getLongString(sccp_callinfo_t * const ci, char *buf, int *buflen);		
+
+/* debug */
 boolean_t sccp_callinfo_getCallInfoStr(sccp_callinfo_t *ci, pbx_str_t ** const buf);
 void sccp_callinfo_print2log(sccp_callinfo_t *ci);
 

@@ -3,6 +3,7 @@
  * \brief       SCCP CallInfo Class
  * \brief       SCCP CallInfo Header
  * \author      Diederik de Groot <ddegroot [at] users.sf.net>
+ * \date	2015-Sept-16
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
@@ -70,6 +71,9 @@ struct sccp_callinfo {
 	sccp_mutex_t lock;
 };														/*!< SCCP CallInfo Structure */
 
+#define sccp_callinfo_lock(x) sccp_mutex_lock(&((sccp_callinfo_t * const)x)->lock)
+#define sccp_callinfo_unlock(x) sccp_mutex_unlock(&((sccp_callinfo_t * const)x)->lock)
+
 enum sccp_callinfo_type {
 	_CALLINFO_STRING,
 	_CALLINFO_REASON,
@@ -131,27 +135,27 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src_ci, sccp_callinfo
 	if (src_ci && dst_ci) {
 		sccp_callinfo_t tmp_ci = {{ 0 }};
 		
-	 	sccp_mutex_lock(&((sccp_callinfo_t * const)src_ci)->lock);
+	 	sccp_callinfo_lock(src_ci);
 		memcpy(&tmp_ci, src_ci, sizeof(sccp_callinfo_t));
-		sccp_mutex_unlock(&((sccp_callinfo_t * const)src_ci)->lock);
+		sccp_callinfo_unlock(src_ci);
 
-	 	sccp_mutex_lock(&dst_ci->lock);
+	 	sccp_callinfo_lock(dst_ci);
 		memcpy(dst_ci, &tmp_ci, sizeof(sccp_callinfo_t));
-		sccp_mutex_unlock(&dst_ci->lock);
+	 	sccp_callinfo_unlock(dst_ci);
 		
 		return TRUE;
 	}
 	return FALSE;
 }
 
-int sccp_callinfo_setter(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...) 
+int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...) 
 {
  	assert(ci != NULL);
 
  	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
  	int changes = 0;
 
- 	sccp_mutex_lock(&ci->lock);
+ 	sccp_callinfo_lock(ci);
 	va_list ap;
 	va_start(ap, key);
 	
@@ -173,7 +177,8 @@ int sccp_callinfo_setter(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...)
 				{
 					uint valid = 0;
 					char *value = va_arg(ap, char *);
-					unsigned int *validPtr = entry.validOffset ? (((unsigned int*)&ci->valid) + entry.validOffset) : NULL;	// cast bitfieldpointer into array of uint
+					/* cast bitfieldpointer into array of uint */
+					unsigned int *validPtr = entry.validOffset ? (((unsigned int*)&ci->valid) + entry.validOffset) : NULL;	
 
 					if (!sccp_strlen_zero(value)) {
 						valid = 1;
@@ -192,18 +197,18 @@ int sccp_callinfo_setter(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...)
 	}
 	
 	va_end(ap);
- 	sccp_mutex_unlock(&ci->lock);
+ 	sccp_callinfo_unlock(ci);
 	return changes;
 }
 
-int sccp_callinfo_getter(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...)
+int sccp_callinfo_getter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...)
 {
  	assert(ci != NULL);
 
  	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
  	int changes = 0;
 
- 	sccp_mutex_lock(&ci->lock);
+ 	sccp_callinfo_lock(ci);
 	va_list ap;
 	va_start(ap, key);
 	
@@ -233,7 +238,8 @@ int sccp_callinfo_getter(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...)
 					char *srcPtr = (char *)(ci + entry.fieldOffset);
 					char **destPtr = va_arg(ap, char **);
 					if (entry.validOffset) {
-						unsigned int *validPtr = (((unsigned int*)&ci->valid) + entry.validOffset);	// cast bitfieldpointer into array of uint
+						/* cast bitfieldpointer into array of uint */
+						unsigned int *validPtr = (((unsigned int*)&ci->valid) + entry.validOffset);
 						if (*validPtr) {
 							sccp_copy_string(*destPtr, srcPtr, StationMaxDirnumSize);
 						}
@@ -246,8 +252,62 @@ int sccp_callinfo_getter(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...)
 	}
 	
 	va_end(ap);
- 	sccp_mutex_unlock(&ci->lock);
+ 	sccp_callinfo_unlock(ci);
 	return changes;
+}
+
+void sccp_callinfo_getStringArray(sccp_callinfo_t * const ci, char strArray[16][StationMaxDirnumSize])
+{
+ 	assert(ci != NULL);
+
+	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
+	uint8_t arrEntry = 0;
+	
+ 	sccp_callinfo_lock(ci);
+	for (curkey=SCCP_CALLINFO_CALLEDPARTY_NAME; curkey <= SCCP_CALLINFO_HUNT_PILOT_NUMBER; curkey++) {
+		struct sccp_callinfo_entry entry = sccp_callinfo_entries[curkey];
+		if (entry.validOffset) {
+			unsigned int *validPtr = (((unsigned int*)&ci->valid) + entry.validOffset);
+			if (*validPtr == 0) {					// skip copying string, insert \0 instead
+				strArray[arrEntry++][0] = '\0';
+				continue;
+			}
+		}
+		sccp_copy_string(strArray[arrEntry++], (char *)ci + entry.fieldOffset, StationMaxDirnumSize);
+	}
+ 	sccp_callinfo_unlock(ci);
+}
+
+int sccp_callinfo_getLongString(sccp_callinfo_t * const ci, char *newstr, int *newlen) {
+	char buffer[16 * (StationMaxDirnumSize + 1)] = { 0 };
+	
+ 	assert(ci != NULL);
+
+	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
+	uint16_t pos = 0;
+	char * entryStr = NULL;
+	
+ 	sccp_callinfo_lock(ci);
+	for (curkey=SCCP_CALLINFO_CALLEDPARTY_NAME; curkey <= SCCP_CALLINFO_HUNT_PILOT_NUMBER; curkey++) {
+		struct sccp_callinfo_entry entry = sccp_callinfo_entries[curkey];
+		uint8_t len = 0;
+		entryStr = (char *)ci + entry.fieldOffset;
+		if (entry.validOffset) {
+			unsigned int *validPtr = (((unsigned int*)&ci->valid) + entry.validOffset);
+			if (*validPtr == 0) {					// skip copying string, insert \0 instead
+				pos += 1;
+				continue;
+			}
+		}
+		len = sccp_strlen(entryStr);
+		memcpy(&buffer[pos], entryStr, len); 
+		pos += len + 1;
+	}
+ 	sccp_callinfo_unlock(ci);
+	
+	newstr = strdup(buffer);
+	*newlen = sccp_strlen(buffer);
+	return *newlen;
 }
 
 int sccp_callinfo_setCalledParty(sccp_callinfo_t * ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize])
@@ -301,17 +361,6 @@ int sccp_callinfo_setLastRedirectingParty(sccp_callinfo_t * ci, const char name[
 		SCCP_CALLINFO_KEY_SENTINEL);
 }
 
-/*
-boolean_t sccp_callinfo_sendCallInfo(sccp_callinfo_t *ci, constDevicePtr d)
-{
-	assert(ci != NULL && d != NULL);
-	if (device->protocol && device->protocol->sendCallInfo) {
-		instance = sccp_device_find_index_for_line(device, channel->line->name);
-		device->protocol->sendCallInfo(device, channel, instance);
-	}
-	return TRUE;
-}
-*/
 
 boolean_t sccp_callinfo_getCallInfoStr(sccp_callinfo_t *ci, pbx_str_t ** const buf)
 {
