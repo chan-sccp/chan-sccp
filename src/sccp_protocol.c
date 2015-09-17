@@ -309,7 +309,7 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 	sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
 	RAII_VAR(char *, data, NULL, sccp_free);
 	int data_len = 0;
-	unsigned int dataSize = sccp_callinfo_getLongString(ci, data, &data_len, 
+	unsigned int dataSize = sccp_callinfo_getString(ci, data, &data_len, 
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER,
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER,
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER,
@@ -358,7 +358,7 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
 	RAII_VAR(char *, data, NULL, sccp_free);
 	int data_len = 0;
-	unsigned int dataSize = sccp_callinfo_getLongString(ci, data, &data_len, 
+	unsigned int dataSize = sccp_callinfo_getString(ci, data, &data_len, 
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER,
 					SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER,
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER,

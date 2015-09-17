@@ -278,7 +278,7 @@ void sccp_callinfo_getStringArray(const sccp_callinfo_t * const ci, char strArra
  	sccp_callinfo_unlock(ci);
 }
 
-unsigned int sccp_callinfo_getLongString(const sccp_callinfo_t * const ci, char *newstr, int *newlen, sccp_callinfo_key_t key, ...) {
+unsigned int sccp_callinfo_getString(const sccp_callinfo_t * const ci, char *newstr, int *newlen, sccp_callinfo_key_t key, ...) {
 	char buffer[16 * (StationMaxDirnumSize + 1)] = { 0 };
 	
  	assert(ci != NULL);

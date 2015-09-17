@@ -47,11 +47,11 @@ int sccp_callinfo_setLastRedirectingParty(sccp_callinfo_t * const ci, const char
  * \note used by sccp_protocol.c sendCallInfo 
  * \note resulting buffer needs to be freed
  *
- * \usage: unsigned int x = sccp_callinfo_getLongString(ci, resultcharPtr, &result_data_len, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, SCCP_CALLINFO_KEY_SENTINEL);
+ * \usage: unsigned int x = sccp_callinfo_getString(ci, resultcharPtr, &result_data_len, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, SCCP_CALLINFO_KEY_SENTINEL);
  * SENTINEL is required to stop processing
  * \returns total number of entries
  */
-unsigned int sccp_callinfo_getLongString(const sccp_callinfo_t * const ci, char *newstr, int *newlen, sccp_callinfo_key_t key, ...);
+unsigned int sccp_callinfo_getString(const sccp_callinfo_t * const ci, char *newstr, int *newlen, sccp_callinfo_key_t key, ...);
 
 /* debug */
 boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str_t ** const buf);
