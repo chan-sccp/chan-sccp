@@ -117,6 +117,7 @@ sccp_callinfo_t *const sccp_callinfo_ctor(void)
 	
 	/* set defaults */
 	ci->presentation = CALLERID_PRESENCE_ALLOWED;
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_4 "SCCP: callinfo constructor: %p\n", ci);
 	
 	return ci;
 }
@@ -126,6 +127,7 @@ sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t *ci)
 	assert(ci != NULL);
 	sccp_mutex_destroy(&ci->lock);
 	sccp_free(ci);
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_4 "SCCP: callinfo destructor\n");
 	return NULL;
 }
 
@@ -162,7 +164,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) 
 	{
 		struct sccp_callinfo_entry entry = sccp_callinfo_entries[curkey];
-		void *destPtr = ci + entry.fieldOffset;
+		uint8_t *destPtr = ((uint8_t *)ci) + entry.fieldOffset;
 		switch (entry.type) {
 			case _CALLINFO_REASON:
 				*(int*)destPtr = va_arg(ap, int);
@@ -177,14 +179,15 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 				{
 					uint valid = 0;
 					char *value = va_arg(ap, char *);
+					char *dest = *(char **)destPtr;
 					/* cast bitfieldpointer into array of uint */
 					unsigned int *validPtr = entry.validOffset ? (((unsigned int*)&ci->valid) + entry.validOffset) : NULL;	
 
 					if (!sccp_strlen_zero(value)) {
 						valid = 1;
 					}
-					if (!strncmp(destPtr, value, StationMaxDirnumSize)) {
-						sccp_copy_string(destPtr, va_arg(ap, char *), StationMaxDirnumSize);
+					if (!strncmp(dest, value, StationMaxDirnumSize)) {
+						sccp_copy_string(dest, va_arg(ap, char *), StationMaxDirnumSize);
 						changes++;
 						if (validPtr && *validPtr != valid) {
 							*validPtr = valid;
@@ -215,36 +218,37 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) 
 	{
 		struct sccp_callinfo_entry entry = sccp_callinfo_entries[curkey];
+		uint8_t *srcPtr = (((uint8_t *)ci) + entry.fieldOffset);
 		switch (entry.type) {
 			case _CALLINFO_REASON:
 				{
-					int *srcPtr = (int *)(ci + entry.fieldOffset);
+					int src = *(int*)srcPtr;
 					int *destPtr = va_arg(ap, int *);
-					*destPtr = *srcPtr;
+					*destPtr = src;
 					changes++;
 				}
 				break;
 				
 			case _CALLINFO_PRESENTATION:
 				{
-					sccp_calleridpresence_t *srcPtr = (sccp_calleridpresence_t *) (ci + entry.fieldOffset);
+					sccp_calleridpresence_t src = *(sccp_calleridpresence_t*)srcPtr;
 					sccp_calleridpresence_t *destPtr = va_arg(ap, sccp_calleridpresence_t*);
-					*destPtr = *srcPtr;
+					*destPtr = src;
 					changes++;
 				}
 				break;
 			case _CALLINFO_STRING:
 				{
-					char *srcPtr = (char *)(ci + entry.fieldOffset);
+					char *src = *(char **)srcPtr;
 					char **destPtr = va_arg(ap, char **);
 					if (entry.validOffset) {
 						/* cast bitfieldpointer into array of uint */
 						unsigned int *validPtr = (((unsigned int*)&ci->valid) + entry.validOffset);
 						if (*validPtr) {
-							sccp_copy_string(*destPtr, srcPtr, StationMaxDirnumSize);
+							sccp_copy_string(*destPtr, src, StationMaxDirnumSize);
 						}
 					} else {
-						sccp_copy_string(*destPtr, srcPtr, StationMaxDirnumSize);
+						sccp_copy_string(*destPtr, src, StationMaxDirnumSize);
 					}
 				}
 				break;
