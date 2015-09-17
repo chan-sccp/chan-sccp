@@ -54,7 +54,7 @@ struct sccp_callinfo {
 	uint32_t lastRedirectingReason;										/*!< Last Redirecting Reason */
 	int presentation;											/*!< Should this callerinfo be shown (privacy) */
 
-	struct {
+	struct valid {
 		unsigned int cdpnVoiceMailbox:1;								/*!< TRUE if the name information is valid/present */
 		unsigned int calledParty:1;									/*!< TRUE if the name information is valid/present */
 		unsigned int cgpnVoiceMailbox:1;								/*!< TRUE if the name information is valid/present */
@@ -66,7 +66,41 @@ struct sccp_callinfo {
 		unsigned int lastRedirectingParty:1;								/*!< TRUE if the name information is valid/present */
 		unsigned int huntPilot:1;									/*!< TRUE if the name information is valid/present */
 	} valid;
+
+	sccp_mutex_t lock;
 };														/*!< SCCP CallInfo Structure */
+
+enum sccp_callinfo_type {
+	_CALLINFO_STRING,
+	_CALLINFO_REASON,
+	_CALLINFO_PRESENTATION,
+};
+
+struct sccp_callinfo_entry_type {
+	const enum sccp_callinfo_type type;
+	const int fieldOffset;
+	const int validOffset;
+} static const sccp_callinfo_entry_types[] = {
+	[SCCP_CALLINFO_CALLEDPARTY_NAME] 		= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,calledPartyName), -1},
+	[SCCP_CALLINFO_CALLEDPARTY_NUMBER] 		= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,calledPartyNumber), 1},
+	[SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL] 		= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,cdpnVoiceMailbox), 0},
+	[SCCP_CALLINFO_CALLINGPARTY_NAME] 		= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,callingPartyName), -1},
+	[SCCP_CALLINFO_CALLINGPARTY_NUMBER] 		= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,callingPartyNumber), 3},
+	[SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL] 		= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,cgpnVoiceMailbox), 2},
+	[SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME] 		= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,originalCalledPartyName), -1},
+	[SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER] 	= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,originalCalledPartyNumber), 5},
+	[SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL] 	= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,originalCdpnVoiceMailbox), 4},
+	[SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME] 		= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,originalCallingPartyName), -1},
+	[SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER] 	= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,originalCallingPartyNumber), 6},
+	[SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME] 	= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,lastRedirectingPartyName), -1},
+	[SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER] 	= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,lastRedirectingPartyNumber), 8},
+	[SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL]	= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,lastRedirectingVoiceMailbox), 7},
+	[SCCP_CALLINFO_HUNT_PILOT_NAME] 		= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,huntPilotName), -1},
+	[SCCP_CALLINFO_HUNT_PILOT_NUMBER] 		= {_CALLINFO_STRING, offsetof(sccp_callinfo_t,huntPilotNumber), -1},
+	[SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON]= {_CALLINFO_REASON, offsetof(sccp_callinfo_t,originalCdpnRedirectReason), -1},
+	[SCCP_CALLINFO_LAST_REDIRECT_REASON] 		= {_CALLINFO_REASON, offsetof(sccp_callinfo_t,lastRedirectingReason), -1},
+	[SCCP_CALLINFO_PRESENTATION] 			= {_CALLINFO_PRESENTATION, offsetof(sccp_callinfo_t,presentation), -1},
+};
 
 static const enum sccp_callinfo_range {
 	sccp_callinfo_range_char,
@@ -85,147 +119,35 @@ sccp_callinfo_t *const sccp_callinfo_ctor(void)
 		pbx_log(LOG_ERROR, "SCCP: No memory to allocate callinfo object. Failing\n");
 		return NULL;
 	}
+	sccp_mutex_init(&ci->lock);
 	return ci;
 }
 
 sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t *ci)
 {
 	assert(ci != NULL);
+	sccp_mutex_destroy(&ci->lock);
 	sccp_free(ci);
 	return NULL;
 }
 
-boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src, sccp_callinfo_t * const dst)
+boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci)
 {
-	if (src && dst) {
-		memcpy(dst, src, sizeof(sccp_callinfo_t));
+	/* observing locking order. not locking both callinfo objects at the same time, using a tmp as go between */
+	if (src_ci && dst_ci) {
+		sccp_callinfo_t tmp_ci = {{ 0 }};
+		
+	 	sccp_mutex_lock(&((sccp_callinfo_t * const)src_ci)->lock);
+		memcpy(&tmp_ci, src_ci, sizeof(sccp_callinfo_t));
+		sccp_mutex_unlock(&((sccp_callinfo_t * const)src_ci)->lock);
+
+	 	sccp_mutex_lock(&dst_ci->lock);
+		memcpy(dst_ci, &tmp_ci, sizeof(sccp_callinfo_t));
+		sccp_mutex_unlock(&dst_ci->lock);
+		
 		return TRUE;
 	}
 	return FALSE;
-}
-
-gcc_inline static int sccp_callinfo_setStr(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const char value[StationMaxDirnumSize])
-{
- 	//assert(ci != NULL);
-
-	uint valid = 0;
-	uint changed = 0;
-	char *destPtr = NULL;							/* use to set the destination of the value */
-	unsigned int *validPtr = NULL;						/* array to validation bitfield */
-
-	if (!sccp_strlen_zero(value)) {
-		valid = 1;
-	}
-
-	switch(key) {
-		case SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL:
-			destPtr = ci->cdpnVoiceMailbox;
-			validPtr = (((unsigned int*)&ci->valid) + 0);		/* cast pointer to bitfiled into array */
-			break;
-		case SCCP_CALLINFO_CALLEDPARTY_NAME:
-			destPtr = ci->calledPartyName;
-			break;
-		case SCCP_CALLINFO_CALLEDPARTY_NUMBER:
-			destPtr = ci->calledPartyNumber;
-			validPtr = (((unsigned int*)&ci->valid) + 1);
-			break;
-			
-		case SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL:
-			destPtr = ci->cgpnVoiceMailbox;
-			validPtr = (((unsigned int*)&ci->valid) + 2);
-			break;
-		case SCCP_CALLINFO_CALLINGPARTY_NAME:
-			destPtr = ci->callingPartyName;
-			break;
-		case SCCP_CALLINFO_CALLINGPARTY_NUMBER:
-			destPtr = ci->callingPartyNumber;
-			validPtr = (((unsigned int*)&ci->valid) + 3);
-			break;
-			
-		case SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL:
-			destPtr = ci->cdpnVoiceMailbox;
-			validPtr = (((unsigned int*)&ci->valid) + 4);
-			break;
-		case SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME:
-			destPtr = ci->calledPartyName;
-			break;
-		case SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER:
-			destPtr = ci->calledPartyNumber;
-			validPtr = (((unsigned int*)&ci->valid) + 5);
-			break;
-			
-		case SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME:
-			destPtr = ci->callingPartyName;
-			break;
-		case SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER:
-			destPtr = ci->callingPartyNumber;
-			validPtr = (((unsigned int*)&ci->valid) + 6);
-			break;
-			
-		case SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL:
-			destPtr = ci->lastRedirectingVoiceMailbox;
-			validPtr = (((unsigned int*)&ci->valid) + 7);
-			break;
-		case SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME:
-			destPtr = ci->lastRedirectingPartyName;
-			break;
-		case SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER:
-			destPtr = ci->lastRedirectingPartyNumber;
-			validPtr = (((unsigned int*)&ci->valid) + 8);
-			break;
-
-		case SCCP_CALLINFO_HUNT_PILOT_NAME:
-			destPtr = ci->huntPilotName;
-			break;
-		case SCCP_CALLINFO_HUNT_PILOT_NUMBER:
-			destPtr = ci->huntPilotNumber;
-			validPtr = (((unsigned int*)&ci->valid) + 8);
-			break;
-
-		default:
-			pbx_log(LOG_ERROR, "SCCP: (CallInfo_setStr) unknown key %d\n",key);
-			changed = -1;
-	}
-	if (destPtr) {
-		if (!strcmp(destPtr, value)) {
-			sccp_copy_string(destPtr, value, StationMaxDirnumSize);
-			changed++;
-			if (validPtr && *validPtr != valid) {
-				*validPtr = valid;
-				changed++;
-			}
-		}
-	}
-	return changed;
-}
-
-
-gcc_inline static int sccp_callinfo_setReason(sccp_callinfo_t * ci, sccp_callinfo_key_t key, const int reason)
-{
-	//assert(ci != NULL);
-	int changed = 0;
-	switch(key) {
-		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
-			ci->originalCdpnRedirectReason = reason;
-			changed++;
-			break;
-		case SCCP_CALLINFO_LAST_REDIRECT_REASON:
-			ci->lastRedirectingReason = reason;
-			changed++;
-			break;
-		default:
-			pbx_log(LOG_ERROR, "SCCP: (CallInfo_setStr) unknown key %d\n",key);
-			return -2;
-	}
-	return changed;
-}
-
-
-gcc_inline static int sccp_callinfo_setPresentation(sccp_callinfo_t * ci, const sccp_calleridpresence_t presentation)
-{
-	//assert(ci != NULL);
-	ci->presentation = presentation;
-	return 1;
 }
 
 int sccp_callinfo_set(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...) 
@@ -234,24 +156,49 @@ int sccp_callinfo_set(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...)
 
  	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
  	int changes = 0;
- 	
+
+ 	sccp_mutex_lock(&ci->lock);
 	va_list ap;
 	va_start(ap, key);
+	
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) 
 	{
-		switch(sccp_callinfo_ranges[curkey]) {
-			case sccp_callinfo_range_char:
-				changes |= sccp_callinfo_setStr(ci, curkey, va_arg(ap, char *));
+		struct sccp_callinfo_entry_type entry = sccp_callinfo_entry_types[curkey];
+		void *destPtr = ci + entry.fieldOffset;
+		switch (entry.type) {
+			case _CALLINFO_REASON:
+				*(int*)destPtr = va_arg(ap, int);
+				changes++;
 				break;
-			case sccp_callinfo_range_int:
-				changes |= sccp_callinfo_setReason(ci, curkey, va_arg(ap, int));
+				
+			case _CALLINFO_PRESENTATION:
+				*(sccp_calleridpresence_t*)destPtr = va_arg(ap, sccp_calleridpresence_t);
+				changes++;
 				break;
-			case sccp_callinfo_range_presentation:
-				changes |= sccp_callinfo_setPresentation(ci, va_arg(ap, sccp_calleridpresence_t));
+			case _CALLINFO_STRING:
+				{
+					uint valid = 0;
+					char *value = va_arg(ap, char *);
+					unsigned int *validPtr = entry.validOffset ? (((unsigned int*)&ci->valid) + entry.validOffset) : NULL;	// cast bitfieldpointer into array of uint
+
+					if (!sccp_strlen_zero(value)) {
+						valid = 1;
+					}
+					if (!strncmp(destPtr, value, StationMaxDirnumSize)) {
+						sccp_copy_string(destPtr, va_arg(ap, char *), StationMaxDirnumSize);
+						changes++;
+						if (validPtr && *validPtr != valid) {
+							*validPtr = valid;
+							changes++;
+						}
+					}
+				}
 				break;
 		}
 	}
+	
 	va_end(ap);
+ 	sccp_mutex_unlock(&ci->lock);
 	return changes;
 }
 
@@ -379,6 +326,7 @@ int sccp_callinfo_get(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...)
  	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
  	int changes = 0;
  	
+ 	sccp_mutex_lock(&ci->lock);
 	va_list ap;
 	va_start(ap, key);
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) 
@@ -396,6 +344,7 @@ int sccp_callinfo_get(sccp_callinfo_t * ci, sccp_callinfo_key_t key, ...)
 		}
 	}
 	va_end(ap);
+ 	sccp_mutex_unlock(&ci->lock);
 	return changes;
 }
 
@@ -465,6 +414,7 @@ boolean_t sccp_callinfo_sendCallInfo(sccp_callinfo_t *ci, constDevicePtr d)
 boolean_t sccp_callinfo_getCallInfoStr(sccp_callinfo_t *ci, pbx_str_t ** const buf)
 {
 	assert(ci != NULL);
+ 	sccp_mutex_lock(&ci->lock);
 	pbx_str_append(buf, 0, " - calledParty: %s <%s>%s%s%s\n", ci->calledPartyName, ci->calledPartyNumber, (ci->cdpnVoiceMailbox) ? " voicemail: " : "", ci->cdpnVoiceMailbox, (ci->valid.calledParty) ? ", valid" : ", invalid");
 	pbx_str_append(buf, 0, " - callingParty: %s <%s>%s%s%s\n", ci->callingPartyName, ci->callingPartyNumber, (ci->cgpnVoiceMailbox) ? " voicemail: " : "", ci->cgpnVoiceMailbox, (ci->valid.callingParty) ? ", valid" : ", invalid");
 	pbx_str_append(buf, 0, " - originalCalledParty: %s <%s>%s%s%s, reason: %d\n", ci->originalCalledPartyName, ci->originalCalledPartyNumber, (ci->originalCdpnVoiceMailbox) ? " voicemail: " : "" , ci->originalCdpnVoiceMailbox, (ci->valid.originalCalledParty) ? ", valid" : ", invalid", ci->originalCdpnRedirectReason);
@@ -472,6 +422,7 @@ boolean_t sccp_callinfo_getCallInfoStr(sccp_callinfo_t *ci, pbx_str_t ** const b
 	pbx_str_append(buf, 0, " - lastRedirectingParty: %s <%s>%s%s%s, reason: %d\n", ci->lastRedirectingPartyName, ci->lastRedirectingPartyNumber, (ci->lastRedirectingVoiceMailbox) ? " voicemail: " : "", ci->lastRedirectingVoiceMailbox, (ci->valid.lastRedirectingParty) ? ", valid" : ", invalid", ci->lastRedirectingReason);
 	pbx_str_append(buf, 0, " - huntPilot: %s <%s>%s\n", ci->huntPilotName, ci->huntPilotNumber, (ci->valid.huntPilot) ? ", valid" : ", invalid");
 	pbx_str_append(buf, 0, " - presentation: %s\n\n", sccp_calleridpresence2str(ci->presentation));
+ 	sccp_mutex_unlock(&ci->lock);
 	return TRUE;
 }
 
