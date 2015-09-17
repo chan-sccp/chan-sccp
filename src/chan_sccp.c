@@ -298,7 +298,7 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 	} else {
 		messageMap_cb = &sccpMessagesCbMap[mid];
 	}
-	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (%x)\n", sccp_session_getDesignator(s), msgtype2str(mid), mid);
+	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (0x%X)\n", sccp_session_getDesignator(s), msgtype2str(mid), mid);
 
 	/* we dont know how to handle event */
 	if (!messageMap_cb) {
