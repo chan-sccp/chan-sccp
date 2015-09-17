@@ -3508,7 +3508,8 @@ typedef struct {
 
 	/* protocol callbacks */
 	/* send messages */
-	void (*const sendCallInfo) (constDevicePtr device, constChannelPtr channel, uint8_t instance);
+	void (*const sendOldCallInfo) (constDevicePtr device, constChannelPtr channel, uint8_t instance);
+	void (*const sendCallInfo) (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, constDevicePtr device);
 	void (*const sendDialedNumber) (constDevicePtr device, constChannelPtr channel);
 	void (*const sendRegisterAck) (constDevicePtr device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat);
 	void (*const displayPrompt) (constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message);
