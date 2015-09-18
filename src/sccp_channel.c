@@ -533,7 +533,7 @@ void sccp_channel_setChannelstate(channelPtr channel, sccp_channelstate_t state)
  */
 void sccp_channel_display_callInfo(sccp_channel_t * channel)
 {
-	sccp_callinfo_print2log(channel->privateData->callInfo);
+	sccp_callinfo_print2log(channel->privateData->callInfo, channel->designator);
 }
 
 /*!
@@ -1498,8 +1498,8 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		AUTO_RELEASE sccp_linedevices_t *linedevice2 = sccp_linedevice_find(device, channel->line);
 
 		if (linedevice2) {
-			char tmpNumber[StationMaxDirnumSize];
-			char tmpName[StationMaxNameSize];
+			char tmpNumber[StationMaxDirnumSize] = {0};
+			char tmpName[StationMaxNameSize] = {0};
 			if (!sccp_strlen_zero(linedevice2->subscriptionId.number)) {
 				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, linedevice2->subscriptionId.number);
 			} else {
@@ -1555,8 +1555,8 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			}
 
 			sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Set Connected Line\n", d->id);
-		        char tmpCalledNumber[StationMaxDirnumSize];
-		        char tmpCalledName[StationMaxNameSize];
+		        char tmpCalledNumber[StationMaxDirnumSize] = {0};
+		        char tmpCalledName[StationMaxNameSize] = {0};
 	                sccp_callinfo_getter(channel->privateData->callInfo,
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &tmpCalledNumber,
 				SCCP_CALLINFO_CALLEDPARTY_NAME, &tmpCalledName,
@@ -1574,10 +1574,10 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONNECTED);
 #ifdef CS_MANAGER_EVENTS
 			if (GLOB(callevents)) {
-			        char tmpCallingNumber[StationMaxDirnumSize];
-			        char tmpCallingName[StationMaxNameSize];
-			        char tmpOrigCallingName[StationMaxNameSize];
-			        char tmpLastRedirectingName[StationMaxNameSize];
+			        char tmpCallingNumber[StationMaxDirnumSize] = {0};
+			        char tmpCallingName[StationMaxNameSize] = {0};
+			        char tmpOrigCallingName[StationMaxNameSize] = {0};
+			        char tmpLastRedirectingName[StationMaxNameSize] = {0};
 	        	        sccp_callinfo_getter(channel->privateData->callInfo,
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &tmpCallingNumber,
 					SCCP_CALLINFO_CALLEDPARTY_NAME, &tmpCallingName,
