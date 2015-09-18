@@ -55,7 +55,7 @@ struct sccp_callinfo {
 	uint32_t lastRedirectingReason;										/*!< Last Redirecting Reason */
 	int presentation;											/*!< Should this callerinfo be shown (privacy) */
 
-	struct valid {
+	struct {
 		unsigned int cdpnVoiceMailbox:1;								/*!< TRUE if the name information is valid/present */
 		unsigned int calledParty:1;									/*!< TRUE if the name information is valid/present */
 		unsigned int cgpnVoiceMailbox:1;								/*!< TRUE if the name information is valid/present */
@@ -66,7 +66,7 @@ struct sccp_callinfo {
 		unsigned int lastRedirectingVoiceMailbox:1;							/*!< TRUE if the name information is valid/present */
 		unsigned int lastRedirectingParty:1;								/*!< TRUE if the name information is valid/present */
 		unsigned int huntPilot:1;									/*!< TRUE if the name information is valid/present */
-	} valid;
+	} valid __attribute__((aligned(16)));
 
 	sccp_mutex_t lock;
 };														/*!< SCCP CallInfo Structure */
@@ -108,7 +108,7 @@ struct sccp_callinfo_entry {
 
 sccp_callinfo_t *const sccp_callinfo_ctor(void)
 {
-	sccp_callinfo_t *const ci = sccp_malloc(sizeof(sccp_callinfo_t));
+	sccp_callinfo_t *const ci = sccp_calloc(sizeof(sccp_callinfo_t), 1);
 	if (!ci) {
 		pbx_log(LOG_ERROR, "SCCP: No memory to allocate callinfo object. Failing\n");
 		return NULL;
@@ -179,14 +179,14 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 				{
 					uint valid = 0;
 					char *value = va_arg(ap, char *);
-					char *dest = *(char **)destPtr;
+					char *dest = (char *)destPtr;
 					/* cast bitfieldpointer into array of uint */
-					unsigned int *validPtr = entry.validOffset ? (((unsigned int*)&ci->valid) + entry.validOffset) : NULL;	
+					uint16_t *validPtr = entry.validOffset ? (((uint16_t*)&ci->valid) + entry.validOffset) : NULL;	
 
 					if (value) {
 						valid = !sccp_strlen_zero(value) ? 1 : 0;
 						if (!strncmp(dest, value, StationMaxDirnumSize)) {
-							sccp_copy_string(dest, va_arg(ap, char *), StationMaxDirnumSize);
+							sccp_copy_string(dest, value, StationMaxDirnumSize);
 							changes++;
 							if (validPtr && *validPtr != valid) {
 								*validPtr = valid;
@@ -207,6 +207,8 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 	
 	va_end(ap);
  	sccp_callinfo_unlock(ci);
+
+ 	sccp_callinfo_print2log(ci);
 	return changes;
 }
 
@@ -245,16 +247,18 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 				break;
 			case _CALLINFO_STRING:
 				{
-					char *src = *(char **)srcPtr;
+					char *src = (char *)srcPtr;
 					char **destPtr = va_arg(ap, char **);
 					if (entry.validOffset) {
 						/* cast bitfieldpointer into array of uint */
-						unsigned int *validPtr = (((unsigned int*)&ci->valid) + entry.validOffset);
+						uint16_t *validPtr = (((uint16_t*)&ci->valid) + entry.validOffset);
 						if (*validPtr) {
 							sccp_copy_string(*destPtr, src, StationMaxDirnumSize);
+							changes++;
 						}
 					} else {
 						sccp_copy_string(*destPtr, src, StationMaxDirnumSize);
+						changes++;
 					}
 				}
 				break;
@@ -263,6 +267,8 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 	
 	va_end(ap);
  	sccp_callinfo_unlock(ci);
+
+ 	sccp_callinfo_print2log(ci);
 	return changes;
 }
 
@@ -277,7 +283,7 @@ void sccp_callinfo_getStringArray(const sccp_callinfo_t * const ci, char strArra
 	for (curkey=SCCP_CALLINFO_CALLEDPARTY_NAME; curkey <= SCCP_CALLINFO_HUNT_PILOT_NUMBER; curkey++) {
 		struct sccp_callinfo_entry entry = sccp_callinfo_entries[curkey];
 		if (entry.validOffset) {
-			unsigned int *validPtr = (((unsigned int*)&ci->valid) + entry.validOffset);
+			uint16_t *validPtr = (((uint16_t*)&ci->valid) + entry.validOffset);
 			if (*validPtr == 0) {					// skip copying string, insert \0 instead
 				strArray[arrEntry++][0] = '\0';
 				continue;
@@ -288,10 +294,11 @@ void sccp_callinfo_getStringArray(const sccp_callinfo_t * const ci, char strArra
  	sccp_callinfo_unlock(ci);
 }
 
-unsigned int sccp_callinfo_getString(const sccp_callinfo_t * const ci, char *newstr, int *newlen, sccp_callinfo_key_t key, ...) {
-	char buffer[16 * (StationMaxDirnumSize + 1)] = { 0 };
-	
+unsigned int sccp_callinfo_getString(const sccp_callinfo_t * const ci, char *newstr, int *newlen, sccp_callinfo_key_t key, ...) 
+{
  	assert(ci != NULL);
+
+	char buffer[16 * (StationMaxDirnumSize + 1)] = { 0 };
 
 	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
 	uint16_t pos = 0;
@@ -307,21 +314,24 @@ unsigned int sccp_callinfo_getString(const sccp_callinfo_t * const ci, char *new
 		entryStr = (char *)ci + entry.fieldOffset;
 		entries++;
 		if (entry.validOffset) {
-			unsigned int *validPtr = (((unsigned int*)&ci->valid) + entry.validOffset);
+			uint16_t *validPtr = (((uint16_t*)&ci->valid) + entry.validOffset);
 			if (*validPtr == 0) {					// skip copying string, insert \0 instead
 				pos += 1;
+				sccp_log(DEBUGCAT_CORE)("SCCP: skiping pos=%d, valid=%d, entry:%s\n", pos, *validPtr, entryStr);
 				continue;
 			}
 		}
 		len = sccp_strlen(entryStr);
-		memcpy(&buffer[pos], entryStr, len); 
+		//memcpy(&buffer[pos], entryStr, len); 
 		pos += len + 1;
+		sccp_log(DEBUGCAT_CORE)("SCCP: pos=%d, len=%d, entry:%s\n", pos, len, entryStr);
 	}
 	va_end(ap);
  	sccp_callinfo_unlock(ci);
 	
-	newstr = strdup(buffer);
-	*newlen = sccp_strlen(buffer);
+	newstr = sccp_calloc(sizeof(char), pos);
+	memcpy(newstr, buffer, pos);
+	*newlen = 0;
 	return entries;
 }
 
@@ -381,11 +391,12 @@ boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t *const ci, pbx_str_
 {
 	assert(ci != NULL);
  	sccp_callinfo_lock(ci);
-	pbx_str_append(buf, 0, " - calledParty: %s <%s>%s%s%s\n", ci->calledPartyName, ci->calledPartyNumber, (ci->cdpnVoiceMailbox) ? " voicemail: " : "", ci->cdpnVoiceMailbox, (ci->valid.calledParty) ? ", valid" : ", invalid");
-	pbx_str_append(buf, 0, " - callingParty: %s <%s>%s%s%s\n", ci->callingPartyName, ci->callingPartyNumber, (ci->cgpnVoiceMailbox) ? " voicemail: " : "", ci->cgpnVoiceMailbox, (ci->valid.callingParty) ? ", valid" : ", invalid");
-	pbx_str_append(buf, 0, " - originalCalledParty: %s <%s>%s%s%s, reason: %d\n", ci->originalCalledPartyName, ci->originalCalledPartyNumber, (ci->originalCdpnVoiceMailbox) ? " voicemail: " : "" , ci->originalCdpnVoiceMailbox, (ci->valid.originalCalledParty) ? ", valid" : ", invalid", ci->originalCdpnRedirectReason);
+ 	pbx_str_append(buf, 0, "callinfo: %p:\n", ci);
+	pbx_str_append(buf, 0, " - calledParty: %s <%s>%s%s%s\n", ci->calledPartyName, ci->calledPartyNumber, (!sccp_strlen_zero(ci->cdpnVoiceMailbox)) ? " voicemail: " : "", ci->cdpnVoiceMailbox, (ci->valid.calledParty) ? ", valid" : ", invalid");
+	pbx_str_append(buf, 0, " - callingParty: %s <%s>%s%s%s\n", ci->callingPartyName, ci->callingPartyNumber, (!sccp_strlen_zero(ci->cgpnVoiceMailbox)) ? " voicemail: " : "", ci->cgpnVoiceMailbox, (ci->valid.callingParty) ? ", valid" : ", invalid");
+	pbx_str_append(buf, 0, " - originalCalledParty: %s <%s>%s%s%s, reason: %d\n", ci->originalCalledPartyName, ci->originalCalledPartyNumber, (!sccp_strlen_zero(ci->originalCdpnVoiceMailbox)) ? " voicemail: " : "" , ci->originalCdpnVoiceMailbox, (ci->valid.originalCalledParty) ? ", valid" : ", invalid", ci->originalCdpnRedirectReason);
 	pbx_str_append(buf, 0, " - originalCallingParty: %s <%s>%s\n", ci->originalCallingPartyName, ci->originalCallingPartyNumber, (ci->valid.originalCallingParty) ? ", valid" : ", invalid");
-	pbx_str_append(buf, 0, " - lastRedirectingParty: %s <%s>%s%s%s, reason: %d\n", ci->lastRedirectingPartyName, ci->lastRedirectingPartyNumber, (ci->lastRedirectingVoiceMailbox) ? " voicemail: " : "", ci->lastRedirectingVoiceMailbox, (ci->valid.lastRedirectingParty) ? ", valid" : ", invalid", ci->lastRedirectingReason);
+	pbx_str_append(buf, 0, " - lastRedirectingParty: %s <%s>%s%s%s, reason: %d\n", ci->lastRedirectingPartyName, ci->lastRedirectingPartyNumber, (!sccp_strlen_zero(ci->lastRedirectingVoiceMailbox)) ? " voicemail: " : "", ci->lastRedirectingVoiceMailbox, (ci->valid.lastRedirectingParty) ? ", valid" : ", invalid", ci->lastRedirectingReason);
 	pbx_str_append(buf, 0, " - huntPilot: %s <%s>%s\n", ci->huntPilotName, ci->huntPilotNumber, (ci->valid.huntPilot) ? ", valid" : ", invalid");
 	pbx_str_append(buf, 0, " - presentation: %s\n\n", sccp_calleridpresence2str(ci->presentation));
  	sccp_callinfo_unlock(ci);
@@ -397,6 +408,7 @@ void sccp_callinfo_print2log(const sccp_callinfo_t *const ci)
 	assert(ci != NULL);
 	pbx_str_t *buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	sccp_callinfo_getCallInfoStr(ci, &buf);
+	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "%s\n", pbx_str_buffer(buf));
 }
 
 #if 0
