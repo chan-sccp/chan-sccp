@@ -183,13 +183,19 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 					/* cast bitfieldpointer into array of uint */
 					unsigned int *validPtr = entry.validOffset ? (((unsigned int*)&ci->valid) + entry.validOffset) : NULL;	
 
-					if (!sccp_strlen_zero(value)) {
-						valid = 1;
-					}
-					if (!strncmp(dest, value, StationMaxDirnumSize)) {
-						sccp_copy_string(dest, va_arg(ap, char *), StationMaxDirnumSize);
-						changes++;
-						if (validPtr && *validPtr != valid) {
+					if (value) {
+						valid = !sccp_strlen_zero(value) ? 1 : 0;
+						if (!strncmp(dest, value, StationMaxDirnumSize)) {
+							sccp_copy_string(dest, va_arg(ap, char *), StationMaxDirnumSize);
+							changes++;
+							if (validPtr && *validPtr != valid) {
+								*validPtr = valid;
+								changes++;
+							}
+						}
+					} else {
+						/* provided a null pointer -> invalidation */
+						if (validPtr) {
 							*validPtr = valid;
 							changes++;
 						}
