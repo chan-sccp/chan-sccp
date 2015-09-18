@@ -340,7 +340,7 @@ enum callinfo_key {
 	
 	SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON,	,	"orig_calledparty_redirect reason",
 	SCCP_CALLINFO_LAST_REDIRECT_REASON,		,	"last_redirect reason",
-	SCCP_CALLINFO_PRESENTATION,			,	"presentaion",
+	SCCP_CALLINFO_PRESENTATION,			,	"presentation",
 };
 
 } /* NAMESPACE sccp */

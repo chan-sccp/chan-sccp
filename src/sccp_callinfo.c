@@ -122,17 +122,34 @@ sccp_callinfo_t *const sccp_callinfo_ctor(void)
 
 	/* set defaults */
 	ci->presentation = CALLERID_PRESENCE_ALLOWED;
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_4 "SCCP: callinfo constructor: %p\n", ci);
 
+	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_4 "SCCP: callinfo constructor: %p\n", ci);
 	return ci;
 }
 
 sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t * ci)
 {
 	assert(ci != NULL);
+	sccp_callinfo_lock(ci);
 	sccp_mutex_destroy(&ci->lock);
+	sccp_callinfo_unlock(ci);
 	sccp_free(ci);
 	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_4 "SCCP: callinfo destructor\n");
+	return NULL;
+}
+
+sccp_callinfo_t *sccp_callinfo_copyCtor(const sccp_callinfo_t * const src_ci)
+{
+	/* observing locking order. not locking both callinfo objects at the same time, using a tmp as go between */
+	if (src_ci) {
+		sccp_callinfo_t *tmp_ci = sccp_callinfo_ctor();
+		if (!tmp_ci) {
+			return NULL;
+		}
+		memcpy(&tmp_ci, src_ci, sizeof(sccp_callinfo_t));
+
+		return tmp_ci;
+	}
 	return NULL;
 }
 
@@ -168,7 +185,6 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 	va_start(ap, key);
 
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
-
 		struct sccp_callinfo_entry entry = sccp_callinfo_entries[curkey];
 		uint8_t *destPtr = ((uint8_t *) ci) + entry.fieldOffset;
 
@@ -178,7 +194,6 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 				*(int *) destPtr = va_arg(ap, int);
 				changes++;
 				break;
-
 			case _CALLINFO_PRESENTATION:
 				*(sccp_calleridpresence_t *) destPtr = va_arg(ap, sccp_calleridpresence_t);
 				changes++;
@@ -226,6 +241,62 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 	sccp_callinfo_unlock(ci);
 
 	sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_setter)");
+	return changes;
+}
+
+int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, sccp_callinfo_key_t key, ...)
+{
+	assert(src_ci != NULL && dst_ci != NULL);
+
+	sccp_callinfo_key_t srckey = SCCP_CALLINFO_NONE;
+	sccp_callinfo_key_t dstkey = SCCP_CALLINFO_NONE;
+	int changes = 0;
+
+	/* observing locking order. not locking both callinfo objects at the same time, using a tmp_ci as go between */
+	sccp_callinfo_lock(src_ci);
+	sccp_callinfo_t tmp_ci = {{0}};
+	va_list ap;
+	va_start(ap, key);
+	dstkey=va_arg(ap, sccp_callinfo_key_t);
+
+	for (srckey = key; 	srckey > SCCP_CALLINFO_NONE && srckey < SCCP_CALLINFO_KEY_SENTINEL &&
+				dstkey > SCCP_CALLINFO_NONE && dstkey < SCCP_CALLINFO_KEY_SENTINEL; 
+				srckey = va_arg(ap, sccp_callinfo_key_t), 
+				dstkey = va_arg(ap, sccp_callinfo_key_t)) {
+		struct sccp_callinfo_entry src_entry = sccp_callinfo_entries[srckey];
+		struct sccp_callinfo_entry dst_entry = sccp_callinfo_entries[dstkey];
+		uint8_t *srcPtr = ((uint8_t *) src_ci) + src_entry.fieldOffset;
+		uint8_t *tmpPtr = ((uint8_t *) &tmp_ci) + dst_entry.fieldOffset;
+
+		if (src_entry.validOffset > -1) {
+			unsigned int src_valid_bitfield = *(unsigned int*)&src_ci->valid;
+			unsigned int dst_valid_bitfield = *(unsigned int*)&dst_ci->valid;
+
+			if ((src_valid_bitfield >> src_entry.validOffset) & 1) {
+				memcpy(tmpPtr, srcPtr, dst_entry.fieldSize);
+				changes++;
+			}
+			if ((src_valid_bitfield >> src_entry.validOffset) & 1) {
+				dst_valid_bitfield |= 1 << dst_entry.validOffset;
+			} else {
+				dst_valid_bitfield &= ~(1 << dst_entry.validOffset);
+			}
+		} else {
+			memcpy(tmpPtr, srcPtr, dst_entry.fieldSize);
+			changes++;
+		}
+		sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%p: (sccp_callinfo_setter) srckey: %s (%d), srcPtr:%p, dstkey: %s (%d), dstPtr:%p, newValidValue: 0x%x, num changes:%d\n", src_ci, sccp_callinfo_key2str(srckey), srckey, srcPtr, sccp_callinfo_key2str(dstkey), dstkey, tmpPtr, *(unsigned int *)&src_ci->valid, changes);
+	}
+
+	va_end(ap);
+	sccp_callinfo_unlock(src_ci);
+	
+	sccp_callinfo_lock(dst_ci);
+	memcpy(dst_ci, &tmp_ci, sizeof(sccp_callinfo_t));
+	sccp_callinfo_unlock(dst_ci);
+
+	sccp_callinfo_print2log(src_ci, "SCCP: (sccp_callinfo_setter)");
+	sccp_callinfo_print2log(dst_ci, "SCCP: (sccp_callinfo_setter)");
 	return changes;
 }
 
