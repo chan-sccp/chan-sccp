@@ -16,6 +16,7 @@
 struct sccp_callinfo;
 sccp_callinfo_t *const sccp_callinfo_ctor(void);
 sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t * ci);
+sccp_callinfo_t *sccp_callinfo_copyCtor(const sccp_callinfo_t * const src_ci);
 boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src, sccp_callinfo_t * const dst);
 
 /*
@@ -26,6 +27,7 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src, sccp_callinfo_t 
  * \returns: number of changed fields
  */
 int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...);
+int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, sccp_callinfo_key_t key, ...);
 
 /*
  * \brief callinfo getter with variable number of arguments, destination parameter needs to be prodided by reference

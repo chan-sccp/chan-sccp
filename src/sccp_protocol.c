@@ -309,7 +309,7 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 	sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
 	char *data = NULL;
 	int data_len = 0;
-	/*
+
 	unsigned int dataSize = sccp_callinfo_getString(ci, data, &data_len, 
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER,
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER,
@@ -352,7 +352,6 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 		sccp_dev_send(device, msg);
 	}
 	sccp_free(data);
-	*/
 }
 
 static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, constDevicePtr device)
@@ -363,7 +362,7 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
 	char *data = NULL;
 	int data_len = 0;
-	/*
+
 	unsigned int dataSize = sccp_callinfo_getString(ci, data, &data_len, 
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER,
 					SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER,
@@ -410,7 +409,6 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 		sccp_dev_send(device, msg);
 	}
 	sccp_free(data);
-	*/
 }
 
 /* done - oldCallInfoMessage */

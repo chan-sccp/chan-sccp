@@ -1907,7 +1907,7 @@ static const char *sccp_callinfo_key_map[] = {
 	[SCCP_CALLINFO_HUNT_PILOT_NUMBER] = "hunt pilor number",
 	[SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON] = "orig_calledparty_redirect reason",
 	[SCCP_CALLINFO_LAST_REDIRECT_REASON] = "last_redirect reason",
-	[SCCP_CALLINFO_PRESENTATION] = "presentaion",
+	[SCCP_CALLINFO_PRESENTATION] = "presentation",
 	[SCCP_CALLINFO_KEY_SENTINEL] = "LOOKUPERROR"
 };
 
@@ -1943,7 +1943,7 @@ int sccp_callinfo_key_str2intval(const char *lookup_str) {
 }
 
 char *sccp_callinfo_key_all_entries(void) {
-	static char res[] = "none,calledparty name,calledparty number,calledparty voicemail,callingparty name,callingparty number,callingparty voicemail,orig_calledparty name,orig_calledparty number,orig_calledparty voicemail,orig_callingparty name,orig_callingparty number,last_redirectingparty name,last_redirectingparty number,last_redirectingparty voicemail,hunt pilot name,hunt pilor number,orig_calledparty_redirect reason,last_redirect reason,presentaion";
+	static char res[] = "none,calledparty name,calledparty number,calledparty voicemail,callingparty name,callingparty number,callingparty voicemail,orig_calledparty name,orig_calledparty number,orig_calledparty voicemail,orig_callingparty name,orig_callingparty number,last_redirectingparty name,last_redirectingparty number,last_redirectingparty voicemail,hunt pilot name,hunt pilor number,orig_calledparty_redirect reason,last_redirect reason,presentation";
 	return res;
 }
 /* = End =========================================================================================              sccp_callinfo_key === */
