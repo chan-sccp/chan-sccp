@@ -196,9 +196,12 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		channel = sccp_channel_release(channel);				/* explicit release when private_data could not be created */
 		return NULL;
 	}
-	sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_PRESENTATION, CALLERID_PRESENCE_ALLOWED, SCCP_CALLINFO_KEY_SENTINEL);
 
 	channel->line = sccp_line_retain(line);
+	sccp_callinfo_setter(channel->privateData->callInfo, 
+		SCCP_CALLINFO_PRESENTATION, 
+		CALLERID_PRESENCE_ALLOWED, 
+		SCCP_CALLINFO_KEY_SENTINEL);
 
 	/* this is for dialing scheduler */
 	channel->scheduler.digittimeout = -1;
@@ -1579,10 +1582,10 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			        char tmpOrigCallingName[StationMaxNameSize] = {0};
 			        char tmpLastRedirectingName[StationMaxNameSize] = {0};
 	        	        sccp_callinfo_getter(channel->privateData->callInfo,
-					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &tmpCallingNumber,
-					SCCP_CALLINFO_CALLEDPARTY_NAME, &tmpCallingName,
-					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &tmpOrigCallingName,
-					SCCP_CALLINFO_CALLEDPARTY_NAME, &tmpLastRedirectingName,
+					SCCP_CALLINFO_CALLINGPARTY_NUMBER, &tmpCallingNumber,
+					SCCP_CALLINFO_CALLINGPARTY_NAME, &tmpCallingName,
+					SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &tmpOrigCallingName,
+					SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &tmpLastRedirectingName,
 					SCCP_CALLINFO_KEY_SENTINEL);
 				manager_event(EVENT_FLAG_CALL, "CallAnswered", "Channel: %s\r\n" "SCCPLine: %s\r\n" "SCCPDevice: %s\r\n"
 					      "Uniqueid: %s\r\n" "CallingPartyNumber: %s\r\n" "CallingPartyName: %s\r\n" "originalCallingParty: %s\r\n" "lastRedirectingParty: %s\r\n", 
@@ -1801,8 +1804,8 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 		AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, l);
 
 		if (linedevice) {
-			char tmpNumber[StationMaxDirnumSize]={0};
-			char tmpName[StationMaxNameSize]={0};
+			char tmpNumber[StationMaxDirnumSize] = {0};
+			char tmpName[StationMaxNameSize] = {0};
 			if (!sccp_strlen_zero(linedevice->subscriptionId.number)) {
 				snprintf(tmpNumber, StationMaxDirnumSize,  "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
 			} else {
