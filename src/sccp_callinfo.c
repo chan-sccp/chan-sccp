@@ -66,7 +66,7 @@ struct sccp_callinfo {
 		unsigned int lastRedirectingVoiceMailbox:1;							/*!< TRUE if the name information is valid/present */
 		unsigned int lastRedirectingParty:1;								/*!< TRUE if the name information is valid/present */
 		unsigned int huntPilot:1;									/*!< TRUE if the name information is valid/present */
-	} valid __attribute__ ((aligned(16)));
+	} valid;
 
 	sccp_mutex_t lock;
 };														/*!< SCCP CallInfo Structure */
@@ -165,7 +165,6 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 
 	sccp_callinfo_lock(ci);
 	va_list ap;
-
 	va_start(ap, key);
 
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
@@ -177,7 +176,6 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 		switch (entry.type) {
 			case _CALLINFO_REASON:
 				*(int *) destPtr = va_arg(ap, int);
-
 				changes++;
 				break;
 
@@ -191,27 +189,34 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 					char *value = va_arg(ap, char *);
 					char *dest = (char *) destPtr;
 
-					/* cast bitfieldpointer into array of uint */
-					uint16_t *validPtr = entry.validOffset ? (((uint16_t *) & ci->valid) + entry.validOffset) : NULL;
-
+					unsigned int valid_bitfield = *(unsigned int*)&ci->valid;
 					if (value) {
 						valid = !sccp_strlen_zero(value) ? 1 : 0;
 						if (strncmp(dest, value, entry.fieldSize)) {
 							sccp_copy_string(dest, value, entry.fieldSize);
 							changes++;
-							if (validPtr && *validPtr != valid) {
-								*validPtr = valid;
+							if (entry.validOffset > -1) {
+								if (valid) {
+									valid_bitfield |= 1 << entry.validOffset;
+								} else {
+									valid_bitfield &= ~(1 << entry.validOffset);
+								}
 								changes++;
 							}
 						}
 					} else {
 						/* provided a null pointer -> invalidation */
-						if (validPtr) {
-							*validPtr = valid;
+						dest[0] = '\0';
+						if (entry.validOffset > -1) {
+							if (valid) {
+								valid_bitfield |= 1 << entry.validOffset;
+							} else {
+								valid_bitfield &= ~(1 << entry.validOffset);
+							}
 							changes++;
 						}
 					}
-					sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%p: (sccp_callinfo_setter) curkey: %s (%d), value:%s, dest:%s, valid:%d, validPtr:%d, num changes:%d\n", ci, sccp_callinfo_key2str(curkey), curkey, value, dest, valid, validPtr ? *validPtr : -1, changes);
+					sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%p: (sccp_callinfo_setter) curkey: %s (%d), value:%s, dest:%s, valid:%d, newValidValue: 0x%x, num changes:%d\n", ci, sccp_callinfo_key2str(curkey), curkey, value, dest, valid, *(unsigned int *)&ci->valid, changes);
 				}
 				break;
 		}
@@ -220,7 +225,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 	va_end(ap);
 	sccp_callinfo_unlock(ci);
 
-	//sccp_callinfo_print2log(ci);
+	sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_setter)");
 	return changes;
 }
 
@@ -233,7 +238,6 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 
 	sccp_callinfo_lock(ci);
 	va_list ap;
-
 	va_start(ap, key);
 
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
@@ -246,7 +250,6 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 			case _CALLINFO_REASON:
 				{
 					int src = *(int *) srcPtr;
-
 					*(int *) destPtr = src;
 					changes++;
 				}
@@ -255,7 +258,6 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 			case _CALLINFO_PRESENTATION:
 				{
 					sccp_calleridpresence_t src = *(sccp_calleridpresence_t *) srcPtr;
-
 					*(sccp_calleridpresence_t *) destPtr = src;
 					changes++;
 				}
@@ -264,11 +266,10 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 				{
 					char *src = (char *) srcPtr;
 
-					if (entry.validOffset) {
-						/* cast bitfieldpointer into array of uint */
-						uint16_t *validPtr = (((uint16_t *) & ci->valid) + entry.validOffset);
+					if (entry.validOffset > -1) {
+						unsigned int valid_bitfield = *(unsigned int*)&ci->valid;
 
-						if (*validPtr) {
+						if ((valid_bitfield >> entry.validOffset) & 1) {
 							sccp_copy_string(destPtr, src, entry.fieldSize);
 							changes++;
 						}
@@ -285,7 +286,7 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 	va_end(ap);
 	sccp_callinfo_unlock(ci);
 
-	//sccp_callinfo_print2log(ci);
+	sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_getter)");
 	return changes;
 }
 
@@ -300,10 +301,9 @@ void sccp_callinfo_getStringArray(const sccp_callinfo_t * const ci, char strArra
 	for (curkey = SCCP_CALLINFO_CALLEDPARTY_NAME; curkey <= SCCP_CALLINFO_HUNT_PILOT_NUMBER; curkey++) {
 		struct sccp_callinfo_entry entry = sccp_callinfo_entries[curkey];
 
-		if (entry.validOffset) {
-			uint16_t *validPtr = (((uint16_t *) & ci->valid) + entry.validOffset);
-
-			if (*validPtr == 0) {									// skip copying string, insert \0 instead
+		if (entry.validOffset > -1) {
+			unsigned int valid_bitfield = *(unsigned int*)&ci->valid;
+			if ((valid_bitfield >> entry.validOffset) & 0) {
 				strArray[arrEntry++][0] = '\0';
 				continue;
 			}
@@ -326,25 +326,24 @@ unsigned int sccp_callinfo_getString(const sccp_callinfo_t * const ci, char *new
 
 	sccp_callinfo_lock(ci);
 	va_list ap;
-
 	va_start(ap, key);
+
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
 		struct sccp_callinfo_entry entry = sccp_callinfo_entries[curkey];
 		uint8_t len = 0;
 
 		entryStr = (char *) ci + entry.fieldOffset;
 		entries++;
-		if (entry.validOffset) {
-			uint16_t *validPtr = (((uint16_t *) & ci->valid) + entry.validOffset);
-
-			if (*validPtr == 0) {									// skip copying string, insert \0 instead
+		if (entry.validOffset > -1) {
+			unsigned int valid_bitfield = *(unsigned int*)&ci->valid;
+			if ((valid_bitfield >> entry.validOffset) & 0) {
 				pos += 1;
-				sccp_log(DEBUGCAT_CORE) ("SCCP: skiping pos=%d, valid=%d, entry:%s\n", pos, *validPtr, entryStr);
+				sccp_log(DEBUGCAT_CORE) ("SCCP: skiping pos=%d, entry:%s\n", pos, entryStr);
 				continue;
 			}
 		}
 		len = sccp_strlen(entryStr);
-		//memcpy(&buffer[pos], entryStr, len); 
+		memcpy(&buffer[pos], entryStr, len); 
 		pos += len + 1;
 		sccp_log(DEBUGCAT_CORE) ("SCCP: pos=%d, len=%d, entry:%s\n", pos, len, entryStr);
 	}
@@ -399,17 +398,19 @@ boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str
 	pbx_str_append(buf, 0, " - lastRedirectingParty: %s <%s>%s%s%s, reason: %d\n", ci->lastRedirectingPartyName, ci->lastRedirectingPartyNumber, (!sccp_strlen_zero(ci->lastRedirectingVoiceMailbox)) ? " voicemail: " : "", ci->lastRedirectingVoiceMailbox, (ci->valid.lastRedirectingParty) ? ", valid" : ", invalid", ci->lastRedirectingReason);
 	pbx_str_append(buf, 0, " - huntPilot: %s <%s>%s\n", ci->huntPilotName, ci->huntPilotNumber, (ci->valid.huntPilot) ? ", valid" : ", invalid");
 	pbx_str_append(buf, 0, " - presentation: %s\n\n", sccp_calleridpresence2str(ci->presentation));
+	
+	pbx_str_append(buf, 0, " - valid binary 0x%x\n", *((unsigned int *) & ci->valid));
 	sccp_callinfo_unlock(ci);
 	return TRUE;
 }
 
-void sccp_callinfo_print2log(const sccp_callinfo_t * const ci)
+void sccp_callinfo_print2log(const sccp_callinfo_t * const ci, const char *const header)
 {
 	assert(ci != NULL);
 	pbx_str_t *buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 	sccp_callinfo_getCallInfoStr(ci, &buf);
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "%s\n", pbx_str_buffer(buf));
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "%s:%s\n", header, pbx_str_buffer(buf));
 }
 
 #if 0

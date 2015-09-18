@@ -55,7 +55,7 @@ unsigned int sccp_callinfo_getString(const sccp_callinfo_t * const ci, char *new
 
 /* debug */
 boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str_t ** const buf);
-void sccp_callinfo_print2log(const sccp_callinfo_t * const ci);
+void sccp_callinfo_print2log(const sccp_callinfo_t * const ci, const char *const header);
 
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
