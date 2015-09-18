@@ -20,14 +20,15 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src, sccp_callinfo_t 
 
 /*
  * \brief callinfo setter with variable number of arguments
- * sccp_callinfo_setter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER:, "test", SCCP_CALLINFO_LAST_REDIRECT_REASON, 4, SCCP_CALLINFO_KEY_SENTINEL);
+ * settting "" means to clear out a particular entry. provising a NULL pointer will skip updating the entry.
+ * sccp_callinfo_setter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, "test", SCCP_CALLINFO_LAST_REDIRECT_REASON, 4, SCCP_CALLINFO_KEY_SENTINEL);
  * SENTINEL is required to stop processing
  * \returns: number of changed fields
  */
 int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...);
 
 /*
- * \brief callinfo getter with variable number of arguments
+ * \brief callinfo getter with variable number of arguments, destination parameter needs to be prodided by reference
  * sccp_callinfo_getter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER:, &name, SCCP_CALLINFO_LAST_REDIRECT_REASON, &readon, SCCP_CALLINFO_KEY_SENTINEL);
  * SENTINEL is required to stop processing
  * \returns: number of changed fields
