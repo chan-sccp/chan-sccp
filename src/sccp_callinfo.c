@@ -123,7 +123,12 @@ sccp_callinfo_t *const sccp_callinfo_ctor(void)
 	/* set defaults */
 	ci->presentation = CALLERID_PRESENCE_ALLOWED;
 
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_4 "SCCP: callinfo constructor: %p\n", ci);
+	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
+		#ifdef DEBUG
+		sccp_do_backtrace();
+		#endif
+	}
+	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_1 "SCCP: callinfo constructor: %p\n", ci);
 	return ci;
 }
 
@@ -134,7 +139,7 @@ sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t * ci)
 	sccp_mutex_destroy(&ci->lock);
 	sccp_callinfo_unlock(ci);
 	sccp_free(ci);
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_4 "SCCP: callinfo destructor\n");
+	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "SCCP: callinfo destructor\n");
 	return NULL;
 }
 
@@ -192,10 +197,12 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 			case _CALLINFO_REASON:
 				*(int *) destPtr = va_arg(ap, int);
 				changes++;
+				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%p: (sccp_callinfo_setter) curkey: %s, value:%d \n", ci, sccp_callinfo_key2str(curkey), *(int *) destPtr);
 				break;
 			case _CALLINFO_PRESENTATION:
 				*(sccp_calleridpresence_t *) destPtr = va_arg(ap, sccp_calleridpresence_t);
 				changes++;
+				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%p: (sccp_callinfo_setter) curkey: %s, value:%s \n", ci, sccp_callinfo_key2str(curkey), sccp_calleridpresence2str(*(sccp_calleridpresence_t *) destPtr));
 				break;
 			case _CALLINFO_STRING:
 				{
@@ -224,6 +231,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 						}
 					}
 					//sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%p: (sccp_callinfo_setter) curkey: %s (%d), value:%s, dest:%s, valid:%d, newValidValue: 0x%x, num changes:%d\n", ci, sccp_callinfo_key2str(curkey), curkey, value, dest, valid, *((uint8_t *) ci) + entry.validOffset, changes);
+					sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%p: (sccp_callinfo_setter) curkey: %s, value:%s \n", ci, sccp_callinfo_key2str(curkey), dest);
 				}
 				break;
 		}
@@ -233,10 +241,10 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 	sccp_callinfo_unlock(ci);
 
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
-		sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_setter)");
 		#ifdef DEBUG
 		sccp_do_backtrace();
 		#endif
+		sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_setter)");
 	}
 	return changes;
 }
@@ -353,10 +361,10 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 	sccp_callinfo_unlock(ci);
 
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
-		sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_getter)");
 		#ifdef DEBUG
 		sccp_do_backtrace();
 		#endif
+		sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_getter)");
 	}
 	return changes;
 }
