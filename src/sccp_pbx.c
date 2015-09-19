@@ -153,7 +153,12 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
 
 	sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
-	sccp_callinfo_getter(ci, SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, SCCP_CALLINFO_PRESENTATION, &presentation, SCCP_CALLINFO_KEY_SENTINEL);
+	sccp_callinfo_getter(ci, 
+		SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
+		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
+		SCCP_CALLINFO_PRESENTATION, &presentation, 
+		SCCP_CALLINFO_KEY_SENTINEL);
+	sccp_copy_string(suffixedNumber, cid_num, sizeof(suffixedNumber));
 	//! \todo implement dnid, ani, ani2 and rdnis
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk callerid='%s <%s>'\n", cid_name, cid_num);
 
@@ -169,7 +174,6 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		   when using shared lines. */
 		int length = sccp_strlen(cid_num);
 		if (length && (length + 2  < StationMaxDirnumSize) && ('\0' == cid_num[0])) {
-			sccp_copy_string(suffixedNumber, cid_num, sizeof(suffixedNumber));
 			suffixedNumber[length + 0] = '#';
 			suffixedNumber[length + 1] = '\0';
 		}
@@ -179,9 +183,11 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 	//! \todo implement dnid, ani, ani2 and rdnis
 	int pbx_presentation = iPbx.get_callerid_presence ? iPbx.get_callerid_presence(c) : -1;
-	if (!sccp_strequals(suffixedNumber, cid_num) || (pbx_presentation > -1 && pbx_presentation != presentation)) {
+	if (	(!sccp_strequals(suffixedNumber, cid_num)) || 
+		(pbx_presentation > -1 && pbx_presentation != presentation)
+	) {
 		sccp_callinfo_setter(ci, 
-			SCCP_CALLINFO_CALLINGPARTY_NUMBER, suffixedNumber, 
+			SCCP_CALLINFO_CALLINGPARTY_NUMBER, (!sccp_strlen_zero(suffixedNumber) ? suffixedNumber : NULL), 
 			SCCP_CALLINFO_PRESENTATION, (pbx_presentation > -1) ? pbx_presentation : presentation,
 			SCCP_CALLINFO_KEY_SENTINEL);
 	}
