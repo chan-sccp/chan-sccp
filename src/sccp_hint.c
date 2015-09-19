@@ -743,7 +743,7 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
 							sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
 						} else {
 							sccp_copy_string(lineState->callInfo.partyName, channel->callInfo.callingPartyName, sizeof(lineState->callInfo.partyName));
-							sccp_copy_string(lineState->callInfo.partyNumber, channel->callInfo.callingPartyName, sizeof(lineState->callInfo.partyNumber));
+							sccp_copy_string(lineState->callInfo.partyNumber, channel->callInfo.callingPartyNumber, sizeof(lineState->callInfo.partyNumber));
 						}
 					} else {
 						if (channel->privacy || !channel->callInfo.presentation) {
