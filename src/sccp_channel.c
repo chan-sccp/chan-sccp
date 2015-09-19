@@ -198,10 +198,10 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	}
 
 	channel->line = sccp_line_retain(line);
-	sccp_callinfo_setter(channel->privateData->callInfo, 
-		SCCP_CALLINFO_PRESENTATION, 
-		CALLERID_PRESENCE_ALLOWED, 
-		SCCP_CALLINFO_KEY_SENTINEL);
+	//sccp_callinfo_setter(channel->privateData->callInfo, 
+	//	SCCP_CALLINFO_PRESENTATION, 
+	//	CALLERID_PRESENCE_ALLOWED, 
+	//	SCCP_CALLINFO_KEY_SENTINEL);
 
 	/* this is for dialing scheduler */
 	channel->scheduler.digittimeout = -1;
