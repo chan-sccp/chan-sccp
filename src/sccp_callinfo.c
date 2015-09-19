@@ -53,11 +53,11 @@ enum callinfo_types {
  * \brief SCCP CallInfo Structure
  */
 struct sccp_callinfo {
+	sccp_mutex_t lock;
 	callinfo_entry_t entries[HUNT_PILOT + 1];
 	uint32_t originalCdpnRedirectReason;									/*!< Original Called Party Redirect Reason */
 	uint32_t lastRedirectingReason;										/*!< Last Redirecting Reason */
 	sccp_calleridpresence_t presentation;									/*!< Should this callerinfo be shown (privacy) */
-	sccp_mutex_t lock;
 };														/*!< SCCP CallInfo Structure */
 
 #define sccp_callinfo_lock(x) sccp_mutex_lock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
