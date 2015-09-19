@@ -1312,7 +1312,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
 
 				} else {
-					{
+					if (!sccp_strlen_zero(hint->callInfo.partyNumber)) {
 						/* use a temporary channel as fallback for non dynamic speeddial devices */
 						/*
 						sccp_channel_t tmpChannel = { 0 };
