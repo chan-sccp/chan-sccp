@@ -1313,20 +1313,10 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 				} else {
 					if (!sccp_strlen_zero(hint->callInfo.partyNumber)) {
-						/* use a temporary channel as fallback for non dynamic speeddial devices */
-						/*
-						sccp_channel_t tmpChannel = { 0 };
-						sccp_copy_string(tmpChannel.oldCallInfo.callingPartyName, hint->callInfo.partyName, sizeof(tmpChannel.oldCallInfo.callingPartyName));
-						sccp_copy_string(tmpChannel.oldCallInfo.calledPartyName, hint->callInfo.partyName, sizeof(tmpChannel.oldCallInfo.calledPartyName));
-						sccp_copy_string(tmpChannel.oldCallInfo.callingPartyNumber, hint->callInfo.partyNumber, sizeof(tmpChannel.oldCallInfo.callingPartyNumber));
-						sccp_copy_string(tmpChannel.oldCallInfo.calledPartyNumber, hint->callInfo.partyNumber, sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
-						tmpChannel.calltype = (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? SKINNY_CALLTYPE_OUTBOUND : SKINNY_CALLTYPE_INBOUND;
-						d->protocol->sendOldCallInfo(d, &tmpChannel, subscriber->instance);
-						*/
 						sccp_callinfo_t *ci = sccp_callinfo_ctor();
 						sccp_callinfo_setter(ci, 
-							SCCP_CALLINFO_CALLINGPARTY_NAME, hint->callInfo.partyName,
-							SCCP_CALLINFO_CALLINGPARTY_NUMBER, hint->callInfo.partyNumber,
+							//SCCP_CALLINFO_CALLINGPARTY_NAME, hint->callInfo.partyName,
+							//SCCP_CALLINFO_CALLINGPARTY_NUMBER, hint->callInfo.partyNumber,
 							SCCP_CALLINFO_CALLEDPARTY_NAME, hint->callInfo.partyName,
 							SCCP_CALLINFO_CALLEDPARTY_NUMBER, hint->callInfo.partyNumber,
 							SCCP_CALLINFO_KEY_SENTINEL);

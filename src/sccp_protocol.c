@@ -421,43 +421,38 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 /*!
  * \brief Send DialedNumber Message (V3)
  */
-static void sccp_protocol_sendDialedNumberV3(constDevicePtr device, constChannelPtr channel)
+static void sccp_protocol_sendDialedNumberV3(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const char dialedNumber[SCCP_MAX_EXTENSION])
 {
 	sccp_msg_t *msg = NULL;
-	uint8_t instance;
 
 	REQ(msg, DialedNumberMessage);
 
-	instance = sccp_device_find_index_for_line(device, channel->line->name);
-	sccp_copy_string(msg->data.DialedNumberMessage.v3.calledParty, channel->dialedNumber, sizeof(msg->data.DialedNumberMessage.v3.calledParty));
+	sccp_copy_string(msg->data.DialedNumberMessage.v3.calledParty, dialedNumber, sizeof(msg->data.DialedNumberMessage.v3.calledParty));
 
-	msg->data.DialedNumberMessage.v3.lel_lineInstance = htolel(instance);
-	msg->data.DialedNumberMessage.v3.lel_callReference = htolel(channel->callid);
+	msg->data.DialedNumberMessage.v3.lel_lineInstance = htolel(lineInstance);
+	msg->data.DialedNumberMessage.v3.lel_callReference = htolel(callid);
 
 	sccp_dev_send(device, msg);
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, channel->oldCallInfo.calledPartyNumber, skinny_calltype2str(channel->calltype), channel->callid);
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number:%s channel %d\n", device->id, dialedNumber, callid);
 }
 
 /*!
  * \brief Send DialedNumber Message (V18)
  *
  */
-static void sccp_protocol_sendDialedNumberV18(constDevicePtr device, constChannelPtr channel)
+static void sccp_protocol_sendDialedNumberV18(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const char dialedNumber[SCCP_MAX_EXTENSION])
 {
 	sccp_msg_t *msg = NULL;
-	uint8_t instance;
 
 	REQ(msg, DialedNumberMessage);
 
-	instance = sccp_device_find_index_for_line(device, channel->line->name);
+	sccp_copy_string(msg->data.DialedNumberMessage.v18.calledParty, dialedNumber, sizeof(msg->data.DialedNumberMessage.v18.calledParty));
 
-	sccp_copy_string(msg->data.DialedNumberMessage.v18.calledParty, channel->dialedNumber, sizeof(msg->data.DialedNumberMessage.v18.calledParty));
-
-	msg->data.DialedNumberMessage.v18.lel_lineInstance = htolel(instance);
-	msg->data.DialedNumberMessage.v18.lel_callReference = htolel(channel->callid);
+	msg->data.DialedNumberMessage.v18.lel_lineInstance = htolel(lineInstance);
+	msg->data.DialedNumberMessage.v18.lel_callReference = htolel(callid);
 
 	sccp_dev_send(device, msg);
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, channel->oldCallInfo.calledPartyNumber, skinny_calltype2str(channel->calltype), channel->callid);
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number:%s channel %d\n", device->id, dialedNumber, callid);
 }
 
 /* done - DialedNumber Message */
