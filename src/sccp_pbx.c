@@ -685,13 +685,13 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	pbx_update_use_count();
 
 	if (iPbx.set_callerid_number) {
-		iPbx.set_callerid_number(c, cid_num);	//c->oldCallInfo.callingPartyNumber);
+		iPbx.set_callerid_number(c, cid_num);
 	}
 	if (iPbx.set_callerid_ani) {
-		iPbx.set_callerid_ani(c, cid_num);	//c->oldCallInfo.callingPartyNumber);
+		iPbx.set_callerid_ani(c, cid_num);
 	}
 	if (iPbx.set_callerid_name) {
-		iPbx.set_callerid_name(c, cid_name);	//c->oldCallInfo.callingPartyName);
+		iPbx.set_callerid_name(c, cid_name);
 	}
 
 	/* call ast_channel_call_forward_set with the forward destination if this device is forwarded */
@@ -1048,11 +1048,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				goto EXIT_FUNC;									// leave simpleswitch without dial
 			case SCCP_SOFTSWITCH_DIAL:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension %s\n", d->id, shortenedNumber);
-
-<<<<<<< HEAD
-=======
 				//sccp_copy_string(c->oldCallInfo.calledPartyNumber, shortenedNumber, sizeof(c->oldCallInfo.calledPartyNumber));
->>>>>>> Renamed old sccp_callinfo_t to struct sccp_oldcallinfo. Display error when callinfo_ctor cannot allocate memory. Cleanup channel, if callinfo_ctor fails).
 				//sccp_channel_set_calledparty(c, NULL, shortenedNumber);
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 				break;

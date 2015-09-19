@@ -532,7 +532,9 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 		AUTO_RELEASE sccp_device_t *remoteDevice = sccp_device_retain(linedevice->device);
 
 		if (remoteDevice) {
-			uint8_t stateVisibility = (c->privacy || !c->oldCallInfo.presentation) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_DEFAULT;
+			sccp_calleridpresence_t presenceParameter = CALLERID_PRESENCE_ALLOWED;
+			sccp_callinfo_getter(ci, SCCP_CALLINFO_PRESENTATION, &presenceParameter, SCCP_CALLINFO_KEY_SENTINEL);
+			uint8_t stateVisibility = (c->privacy || !presenceParameter) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_DEFAULT;
 
 			/*! \note SKINNY_CALLINFO_VISIBILITY_HIDDEN on old devices: Dirty Hack to prevent showing the call twice (both incoming and outgoing) */
 			// stateVisibility = remoteDevice->protocolversion < 17 ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : stateVisibility;
@@ -583,23 +585,9 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 							switch (phonebookRecord) {
 								case SCCP_PHONEBOOK_RECEIVED:
 									remoteDevice->indicate->remoteOffhook(remoteDevice, lineInstance, callid);
-									//remoteDevice->indicate->dialing(remoteDevice, lineInstance, &tmpChannel, ci);
 									remoteDevice->indicate->dialing(remoteDevice, instance, callid, calltype, ci, dialedNumber);
 									remoteDevice->indicate->proceed(remoteDevice, lineInstance, callid, calltype, ci);
-
-									sccp_copy_string(tmpChannel.oldCallInfo.originalCalledPartyName, "originalCalledPartyName", sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
-									sccp_copy_string(tmpChannel.oldCallInfo.originalCalledPartyNumber, "originalCalledPartyNumber", sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
-									tmpChannel.oldCallInfo.originalCalledParty_valid = 1;
-
-									sccp_copy_string(tmpChannel.oldCallInfo.originalCallingPartyName, "originalCalledPartyName", sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
-									sccp_copy_string(tmpChannel.oldCallInfo.originalCallingPartyNumber, "originalCalledPartyNumber", sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
-									tmpChannel.oldCallInfo.originalCallingParty_valid = 1;
-
-									sccp_copy_string(tmpChannel.oldCallInfo.lastRedirectingPartyName, "originalCalledPartyName", sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
-									sccp_copy_string(tmpChannel.oldCallInfo.lastRedirectingPartyNumber, "originalCalledPartyNumber", sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
-
-									tmpChannel.oldCallInfo.lastRedirectingParty_valid = 1;
-									remoteDevice->indicate->connected(remoteDevice, lineInstance, callid, calltype, ci);	/*TODO add source device to phonebook entry */
+									remoteDevice->indicate->connected(remoteDevice, lineInstance, callid, calltype, ci);
 									break;
 								case SCCP_PHONEBOOK_MISSED:
 								case SCCP_PHONEBOOK_NONE:
@@ -631,19 +619,21 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 							break;
 					}
 
-					sccp_dev_set_ringer(remoteDevice, SKINNY_RINGTYPE_OFF, instance, tmpChannel.callid);
-					sccp_dev_clearprompt(remoteDevice, instance, tmpChannel.callid);
-					sccp_device_setLamp(remoteDevice, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
-					sccp_device_sendcallstate(remoteDevice, instance, tmpChannel.callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
-					remoteDevice->protocol->sendOldCallInfo(remoteDevice, &tmpChannel, instance);
-					// sccp_dev_set_keyset(remoteDevice, instance, tmpChannel.callid, KEYMODE_ONHOOKSTEALABLE);
-					sccp_dev_set_keyset(remoteDevice, instance, tmpChannel.callid, KEYMODE_EMPTY);	/* set NULL keymode -> No SoftKeys */
+					sccp_dev_set_ringer(remoteDevice, SKINNY_RINGTYPE_OFF, lineInstance, callid);
+					sccp_dev_clearprompt(remoteDevice, lineInstance, callid);
+					sccp_device_setLamp(remoteDevice, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
+					sccp_device_sendcallstate(remoteDevice, lineInstance, callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
+					if (remoteDevice->protocol && remoteDevice->protocol->sendCallInfo) {
+						remoteDevice->protocol->sendCallInfo(ci, callid, calltype, lineInstance, remoteDevice);
+					}
+					// sccp_dev_set_keyset(remoteDevice, lineInstance, tmpChannel.callid, KEYMODE_ONHOOKSTEALABLE);
+					sccp_dev_set_keyset(remoteDevice, lineInstance, callid, KEYMODE_EMPTY);	/* set NULL keymode -> No SoftKeys */
 					break;
 
 				case SCCP_CHANNELSTATE_HOLD:
 					if (c->channelStateReason == SCCP_CHANNELSTATEREASON_NORMAL) {
-						remoteDevice->indicate->remoteHold(remoteDevice, instance, tmpChannel.callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
-						remoteDevice->protocol->sendOldCallInfo(remoteDevice, &tmpChannel, instance);
+						remoteDevice->indicate->remoteHold(remoteDevice, lineInstance, callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
+						remoteDevice->protocol->sendCallInfo(ci, lineInstance, callid, calltype, remoteDevice);
 					} else {
 						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Skipped Remote Hold Indication for reason: %s\n", DEV_ID_LOG(device), sccp_channelstatereason2str(c->channelStateReason));
 					}
