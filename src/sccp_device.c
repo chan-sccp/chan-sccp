@@ -44,11 +44,11 @@ static void sccp_device_old_indicate_remoteHold(constDevicePtr device, uint8_t l
 static void sccp_device_new_indicate_remoteHold(constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy);
 static void sccp_device_indicate_offhook(constDevicePtr device, sccp_linedevices_t * linedevice, uint32_t callid);
 static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lineInstance, uint32_t callid);
-static void sccp_device_indicate_dialing(constDevicePtr device, const uint8_t lineInstance, const sccp_channel_t * channel);
-static void sccp_device_indicate_proceed(constDevicePtr device, const uint8_t lineInstance, const sccp_channel_t * channel);
-static void sccp_device_indicate_connected(constDevicePtr device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
-static void sccp_device_indicate_offhook_remote(constDevicePtr device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
-static void sccp_device_indicate_onhook_remote(constDevicePtr device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
+static void sccp_device_indicate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t const *callinfo, char dialedNumber[SCCP_MAX_EXTENSION]);
+static void sccp_device_indicate_proceed(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, const sccp_callinfo_t const *callinfo);
+static void sccp_device_indicate_connected(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, const sccp_callinfo_t * const callinfo);
+static void sccp_device_indicate_offhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
+static void sccp_device_indicate_onhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
 
 /* end indicate */
 static sccp_push_result_t sccp_device_pushURL(constDevicePtr device, const char *url, uint8_t priority, uint8_t tone);
@@ -2577,88 +2577,86 @@ static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lin
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
 }
 
-static void sccp_device_indicate_offhook_remote(constDevicePtr device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel)
+static void sccp_device_indicate_offhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
 {
-	sccp_device_sendcallstate(device, linedevice->lineInstance, channel->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	sccp_dev_set_keyset(device, linedevice->lineInstance, channel->callid, KEYMODE_OFFHOOK);
+	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_OFFHOOK);
 }
 
-static void sccp_device_indicate_onhook_remote(constDevicePtr device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel)
+static void sccp_device_indicate_onhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
 {
-
-	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, linedevice->lineInstance, SKINNY_LAMP_OFF);
+	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_OFF);
 	sccp_dev_cleardisplaynotify(device);
-	sccp_dev_clearprompt(device, linedevice->lineInstance, channel->callid);
-	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, linedevice->lineInstance, channel->callid);
-	sccp_device_sendcallstate(device, linedevice->lineInstance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	sccp_dev_set_keyset(device, linedevice->lineInstance, channel->callid, KEYMODE_ONHOOK);
-	sccp_dev_set_cplane(device, linedevice->lineInstance, 0);
-	sccp_dev_set_keyset(device, linedevice->lineInstance, channel->callid, KEYMODE_ONHOOK);
+	sccp_dev_clearprompt(device, lineInstance, callid);
+	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
+	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
+	sccp_dev_set_cplane(device, lineInstance, 0);
+	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
 
 	sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
 }
 
-static void sccp_device_indicate_connected(constDevicePtr device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel)
+//static void sccp_device_indicate_connected(constDevicePtr device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel)
+static void sccp_device_indicate_connected(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, const sccp_callinfo_t * const callinfo)
 {
-	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, linedevice->lineInstance, channel->callid);
+	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
-	sccp_dev_stoptone(device, linedevice->lineInstance, channel->callid);
-	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, linedevice->lineInstance, SKINNY_LAMP_ON);
-	sccp_device_sendcallstate(device, linedevice->lineInstance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	if (device->protocol && device->protocol->sendOldCallInfo) {
-		device->protocol->sendOldCallInfo(device, channel, linedevice->lineInstance);
+	sccp_dev_stoptone(device, lineInstance, callid);
+	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
+	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	if (device->protocol && device->protocol->sendCallInfo) {
+		device->protocol->sendCallInfo(callinfo, callid, calltype, lineInstance, device);
 	}
-	sccp_dev_set_cplane(device, linedevice->lineInstance, 1);
-	//sccp_dev_set_keyset(device, linedevice->lineInstance, channel->callid, KEYMODE_CONNECTED);              // moved back to sccp_indicate (re-used for connconf as well)
-	sccp_dev_displayprompt(device, linedevice->lineInstance, channel->callid, SKINNY_DISP_CONNECTED, GLOB(digittimeout));
+	sccp_dev_set_cplane(device, lineInstance, 1);
+	//sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_CONNECTED);              // moved back to sccp_indicate (re-used for connconf as well)
+	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_CONNECTED, GLOB(digittimeout));
 }
 
-static void __sccp_device_indicate_immediate_dialing(constDevicePtr device, const uint8_t lineInstance, const sccp_channel_t * channel)
+static void __sccp_device_indicate_immediate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
 {
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
-	sccp_dev_set_keyset(device, lineInstance, channel->callid, KEYMODE_OFFHOOK);
+	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_OFFHOOK);
 }
 
-static void __sccp_device_indicate_normal_dialing(constDevicePtr device, const uint8_t lineInstance, const sccp_channel_t * channel)
+static void __sccp_device_indicate_normal_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t const *callinfo, char dialedNumber[SCCP_MAX_EXTENSION])
 {
-	sccp_channel_t *c = (sccp_channel_t *) channel;
-
-	sccp_dev_stoptone(device, lineInstance, channel->callid);
+	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
-	sccp_channel_set_calledparty(c, NULL, c->dialedNumber);
+	sccp_callinfo_setCalledParty(callinfo, NULL, dialedNumber, NULL);
 	if (device->protocol) {
 		if (device->protocol->sendDialedNumber) {
-			device->protocol->sendDialedNumber(device, channel);
+			device->protocol->sendDialedNumber(device, lineInstance, callid, dialedNumber);
 		}
-		if (device->protocol->sendOldCallInfo) {
-			device->protocol->sendOldCallInfo(device, channel, lineInstance);
+		if (device->protocol->sendCallInfo) {
+			device->protocol->sendCallInfo(callinfo, callid, calltype, lineInstance, device);
 		}
 	}
-	sccp_dev_set_keyset(device, lineInstance, channel->callid, KEYMODE_RINGOUT);
-	sccp_device_sendcallstate(device, lineInstance, channel->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_RINGOUT);
+	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 }
 
 /*!
  * \todo sccp_device_indicate_dialing should be split in a early_immediate version and a standard version, to make this function more readable. We can bind the correct indication function during device
  * registration / sccp_channel_setDevice
  */
-static void sccp_device_indicate_dialing(constDevicePtr device, const uint8_t lineInstance, const sccp_channel_t * channel)
+static void sccp_device_indicate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t const *callinfo, char dialedNumber[SCCP_MAX_EXTENSION])
 {
-	if (device->earlyrtp != SCCP_EARLYRTP_IMMEDIATE) {
-		__sccp_device_indicate_normal_dialing(device, lineInstance, channel);
+	if (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
+		__sccp_device_indicate_immediate_dialing(device, lineInstance, callid);
 	} else {
-		__sccp_device_indicate_immediate_dialing(device, lineInstance, channel);
+		__sccp_device_indicate_normal_dialing(device, lineInstance, callid, calltype, callinfo, dialedNumber);
 	}
 }
 
-static void sccp_device_indicate_proceed(constDevicePtr device, const uint8_t lineInstance, const sccp_channel_t * channel)
+static void sccp_device_indicate_proceed(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, const sccp_callinfo_t const *callinfo)
 {
-	sccp_dev_stoptone(device, lineInstance, channel->callid);
-	sccp_device_sendcallstate(device, lineInstance, channel->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_dev_stoptone(device, lineInstance, callid);
+	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	if (device->protocol && device->protocol->sendOldCallInfo) {
-		device->protocol->sendOldCallInfo(device, channel, lineInstance);
+		device->protocol->sendCallInfo(callinfo, callid, calltype, lineInstance, device);
 	}
-	sccp_dev_displayprompt(device, lineInstance, channel->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
+	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 }
 
 /*!

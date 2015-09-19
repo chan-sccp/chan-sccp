@@ -671,7 +671,7 @@ static void sccp_sk_private(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 	if (channel->privacy) {
 		//sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_PRIVACY, SKINNY_DISP_PRIVATE);
 		sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_PRIVATE, 300);			// replaced with 5 min instead of always, just to make sure we return
-		channel->oldCallInfo.presentation = 0;
+		sccp_channel_set_calleridPresenceParameter(channel, CALLERID_PRESENCE_FORBIDDEN);
 	} else {
 		sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_ENTER_NUMBER, 1);
 		//sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_PRIVACY);
