@@ -264,8 +264,13 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 	va_start(ap, key);
 	dstkey=va_arg(ap, sccp_callinfo_key_t);
 
-	for (srckey = key; 	srckey > SCCP_CALLINFO_NONE && srckey < SCCP_CALLINFO_KEY_SENTINEL &&
-				dstkey > SCCP_CALLINFO_NONE && dstkey < SCCP_CALLINFO_KEY_SENTINEL; 
+	/* \todo function should also include copying the reasons and presentation */
+	/*for (srckey = key; 	srckey > SCCP_CALLINFO_NONE && srckey <= SCCP_CALLINFO_KEY_SENTINEL &&
+				dstkey > SCCP_CALLINFO_NONE && dstkey <= SCCP_CALLINFO_KEY_SENTINEL; 
+				srckey = va_arg(ap, sccp_callinfo_key_t), 
+				dstkey = va_arg(ap, sccp_callinfo_key_t)) {*/
+	for (srckey = key; 	srckey > SCCP_CALLINFO_NONE && srckey <= SCCP_CALLINFO_HUNT_PILOT_NUMBER &&
+				dstkey > SCCP_CALLINFO_NONE && dstkey <= SCCP_CALLINFO_HUNT_PILOT_NUMBER; 
 				srckey = va_arg(ap, sccp_callinfo_key_t), 
 				dstkey = va_arg(ap, sccp_callinfo_key_t)) {
 		struct callinfo_lookup src_entry = callinfo_lookup[srckey];
