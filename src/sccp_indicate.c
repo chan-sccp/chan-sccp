@@ -509,32 +509,14 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 	}
 	sccp_linedevices_t *linedevice = NULL;
 
-	/* old */
-	sccp_channel_t tmpChannel = {0};										/*!< use this channel to set original called/calling info */
-	tmpChannel.callid = c->callid;
-	if (c->privacy || !c->oldCallInfo.presentation) {
-		sccp_copy_string(tmpChannel.oldCallInfo.callingPartyName, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.oldCallInfo.callingPartyName));
-		sccp_copy_string(tmpChannel.oldCallInfo.calledPartyName, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.oldCallInfo.calledPartyName));
-		sccp_copy_string(tmpChannel.oldCallInfo.callingPartyNumber, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.oldCallInfo.callingPartyNumber));
-		sccp_copy_string(tmpChannel.oldCallInfo.calledPartyNumber, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
-	} else {
-		sccp_copy_string(tmpChannel.oldCallInfo.callingPartyName, c->oldCallInfo.callingPartyName, sizeof(tmpChannel.oldCallInfo.callingPartyName));
-		sccp_copy_string(tmpChannel.oldCallInfo.calledPartyName, c->oldCallInfo.calledPartyName, sizeof(tmpChannel.oldCallInfo.calledPartyName));
-		sccp_copy_string(tmpChannel.oldCallInfo.callingPartyNumber, c->oldCallInfo.callingPartyNumber, sizeof(tmpChannel.oldCallInfo.callingPartyNumber));
-		sccp_copy_string(tmpChannel.oldCallInfo.calledPartyNumber, c->oldCallInfo.calledPartyNumber, sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
-	}
-	tmpChannel.calltype = c->calltype;
-	tmpChannel.oldCallInfo.presentation = c->oldCallInfo.presentation;
-	tmpChannel.line = sccp_line_retain(c->line);
-
-	/* new */
+	/* copy temp variables, information to be send to remote device (in another thread) */
 	const uint32_t callid = c->callid;
 	const skinny_calltype_t calltype = c->calltype;
 	char dialedNumber[SCCP_MAX_EXTENSION];
 	sccp_copy_string(dialedNumber, c->dialedNumber, SCCP_MAX_EXTENSION);
 	sccp_callinfo_t *const ci = sccp_callinfo_copyCtor(sccp_channel_getCallInfo(c));
 
-	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Indicate state %s (%d) with reason: %s (%d) on remote devices for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, sccp_channelstatereason2str(tmpChannel.channelStateReason), tmpChannel.channelStateReason, c->designator, c->callid);
+	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Indicate state %s (%d) with reason: %s (%d) on remote devices for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, sccp_channelstatereason2str(c->channelStateReason), c->channelStateReason, c->designator, c->callid);
 	SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
 		if (!linedevice->device) {
 			pbx_log(LOG_NOTICE, "Strange to find a linedevice (%p) here without a valid device connected to it !", linedevice);
@@ -615,8 +597,8 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 
 									sccp_copy_string(tmpChannel.oldCallInfo.lastRedirectingPartyName, "originalCalledPartyName", sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
 									sccp_copy_string(tmpChannel.oldCallInfo.lastRedirectingPartyNumber, "originalCalledPartyNumber", sizeof(tmpChannel.oldCallInfo.calledPartyNumber));
-									tmpChannel.oldCallInfo.lastRedirectingParty_valid = 1;
 
+									tmpChannel.oldCallInfo.lastRedirectingParty_valid = 1;
 									remoteDevice->indicate->connected(remoteDevice, lineInstance, callid, calltype, ci);	/*TODO add source device to phonebook entry */
 									break;
 								case SCCP_PHONEBOOK_MISSED:
@@ -649,23 +631,23 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 							break;
 					}
 
-					sccp_dev_set_ringer(remoteDevice, SKINNY_RINGTYPE_OFF, lineInstance, tmpChannel.callid);
-					sccp_dev_clearprompt(remoteDevice, lineInstance, tmpChannel.callid);
+					sccp_dev_set_ringer(remoteDevice, SKINNY_RINGTYPE_OFF, lineInstance, callid);
+					sccp_dev_clearprompt(remoteDevice, lineInstance, callid);
 					sccp_device_setLamp(remoteDevice, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
-					sccp_device_sendcallstate(remoteDevice, lineInstance, tmpChannel.callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
+					sccp_device_sendcallstate(remoteDevice, lineInstance, callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
 					if (remoteDevice->protocol && remoteDevice->protocol->sendCallInfo) {
 						remoteDevice->protocol->sendCallInfo(ci, callid, calltype, lineInstance, remoteDevice);
 					}
 					// sccp_dev_set_keyset(remoteDevice, lineInstance, tmpChannel.callid, KEYMODE_ONHOOKSTEALABLE);
-					sccp_dev_set_keyset(remoteDevice, lineInstance, tmpChannel.callid, KEYMODE_EMPTY);	/* set NULL keymode -> No SoftKeys */
+					sccp_dev_set_keyset(remoteDevice, lineInstance, callid, KEYMODE_EMPTY);	/* set NULL keymode -> No SoftKeys */
 					break;
 
 				case SCCP_CHANNELSTATE_HOLD:
 					if (c->channelStateReason == SCCP_CHANNELSTATEREASON_NORMAL) {
-						remoteDevice->indicate->remoteHold(remoteDevice, lineInstance, tmpChannel.callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
-						remoteDevice->protocol->sendOldCallInfo(remoteDevice, &tmpChannel, lineInstance);
+						remoteDevice->indicate->remoteHold(remoteDevice, lineInstance, callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
+						remoteDevice->protocol->sendCallInfo(ci, lineInstance, callid, calltype, remoteDevice);
 					} else {
-						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Skipped Remote Hold Indication for reason: %s\n", DEV_ID_LOG(device), sccp_channelstatereason2str(tmpChannel.channelStateReason));
+						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Skipped Remote Hold Indication for reason: %s\n", DEV_ID_LOG(device), sccp_channelstatereason2str(c->channelStateReason));
 					}
 					break;
 
@@ -673,12 +655,11 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 					break;
 
 			}
-			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Finish Indicating state %s (%d) with reason: %s (%d) on remote device %s for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, sccp_channelstatereason2str(tmpChannel.channelStateReason), tmpChannel.channelStateReason, DEV_ID_LOG(remoteDevice), c->designator, c->callid);
+			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Finish Indicating state %s (%d) with reason: %s (%d) on remote device %s for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, sccp_channelstatereason2str(c->channelStateReason), c->channelStateReason, DEV_ID_LOG(remoteDevice), c->designator, c->callid);
 		}
 	}
 
-	tmpChannel.line = sccp_line_release(tmpChannel.line);				/* explicit release of line, retained when creating a copy of the channel above */
-	//sccp_callinfo_dtor(ci);
+	sccp_callinfo_dtor(ci);
 }
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
