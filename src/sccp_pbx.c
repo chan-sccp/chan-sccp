@@ -658,7 +658,6 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:  reduced preferences: \"%s\"\n", sccp_multiple_codecs2str(s2, sizeof(s2) - 1, channel->preferences.audio, SKINNY_MAX_CAPABILITIES));
 
 	/* This should definitely fix CDR */
-	//tmp = pbx_channel_alloc(1, AST_STATE_DOWN, c->oldCallInfo.callingPartyNumber, c->oldCallInfo.callingPartyName, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
 	iPbx.alloc_pbxChannel(c, ids, parentChannel, &tmp);
 	if (!tmp || !c->owner) {
 		pbx_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", l->id, l->name);
@@ -686,13 +685,13 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	pbx_update_use_count();
 
 	if (iPbx.set_callerid_number) {
-		iPbx.set_callerid_number(c, cid_num);	//cid_+c->oldCallInfo.callingPartyNumber);
+		iPbx.set_callerid_number(c, cid_num);
 	}
 	if (iPbx.set_callerid_ani) {
-		iPbx.set_callerid_ani(c, cid_num);	//c->oldCallInfo.callingPartyNumber);
+		iPbx.set_callerid_ani(c, cid_num);
 	}
 	if (iPbx.set_callerid_name) {
-		iPbx.set_callerid_name(c, cid_name);	//c->oldCallInfo.callingPartyName);
+		iPbx.set_callerid_name(c, cid_name);
 	}
 
 	/* call ast_channel_call_forward_set with the forward destination if this device is forwarded */
@@ -1050,7 +1049,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			case SCCP_SOFTSWITCH_DIAL:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension %s\n", d->id, shortenedNumber);
 
-				//sccp_copy_string(c->oldCallInfo.calledPartyNumber, shortenedNumber, sizeof(c->oldCallInfo.calledPartyNumber));
 				//sccp_channel_set_calledparty(c, NULL, shortenedNumber);
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 				break;
@@ -1118,7 +1116,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				/* found an extension, let's dial it */
 				sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 
-				sccp_copy_string(c->oldCallInfo.calledPartyNumber, shortenedNumber, sizeof(c->oldCallInfo.calledPartyNumber));
+				//sccp_channel_set_calledparty(c, NULL, shortenedNumber);
 				/* Answer dialplan command works only when in RINGING OR RING ast_state */
 				iPbx.set_callstate(c, AST_STATE_RING);
 

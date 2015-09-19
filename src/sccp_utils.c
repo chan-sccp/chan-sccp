@@ -19,9 +19,11 @@
 #include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_socket.h"
+
 #if HAVE_ICONV_H
 #include <iconv.h>
 #endif
+
 #ifdef DEBUG
 #ifdef HAVE_EXECINFO_H
 #include <execinfo.h>
@@ -2170,6 +2172,7 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 	return strings;
 }
 #endif  // HAVE_EXECINFO_H
+#endif
 
 void sccp_do_backtrace()
 {
@@ -2190,6 +2193,7 @@ void sccp_do_backtrace()
 	strings = __ast_bt_get_symbols(addresses, size);
 #else
 	strings = __sccp_bt_get_symbols(addresses, size);
+#endif
 
 	for (i = 1; i < size; i++) {
 		pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, " (bt) > %s\n", strings[i]);		

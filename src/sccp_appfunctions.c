@@ -577,10 +577,10 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 			return -1;
 		}
 	}
-
 	ast_str_reset(colnames);
 	ast_str_reset(coldata);
 	if (c) {
+		sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
 		strcat(colname, ",");
 		token = strtok(colname, ",");
 		while (token != NULL) {
@@ -603,33 +603,33 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 			} else if (!strcasecmp(token, "capability")) {
 				sccp_multiple_codecs2str(buf, buf_len - 1, c->capabilities.audio, ARRAY_LEN(c->capabilities.audio));
 			} else if (!strcasecmp(token, "calledPartyName")) {
-				sccp_copy_string(buf, c->oldCallInfo.calledPartyName, len);
+				sccp_callinfo_getter(ci, SCCP_CALLINFO_CALLEDPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "calledPartyNumber")) {
-				sccp_copy_string(buf, c->oldCallInfo.calledPartyNumber, len);
+				sccp_callinfo_getter(ci, SCCP_CALLINFO_CALLEDPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "callingPartyName")) {
-				sccp_copy_string(buf, c->oldCallInfo.callingPartyName, len);
+				sccp_callinfo_getter(ci, SCCP_CALLINFO_CALLINGPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "callingPartyNumber")) {
-				sccp_copy_string(buf, c->oldCallInfo.callingPartyNumber, len);
+				sccp_callinfo_getter(ci, SCCP_CALLINFO_CALLINGPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "originalCallingPartyName")) {
-				sccp_copy_string(buf, c->oldCallInfo.originalCallingPartyName, len);
+				sccp_callinfo_getter(ci, SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "originalCallingPartyNumber")) {
-				sccp_copy_string(buf, c->oldCallInfo.originalCallingPartyNumber, len);
+				sccp_callinfo_getter(ci, SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "originalCalledPartyName")) {
-				sccp_copy_string(buf, c->oldCallInfo.originalCalledPartyName, len);
+				sccp_callinfo_getter(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "originalCalledPartyNumber")) {
-				sccp_copy_string(buf, c->oldCallInfo.originalCalledPartyNumber, len);
+				sccp_callinfo_getter(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "lastRedirectingPartyName")) {
-				sccp_copy_string(buf, c->oldCallInfo.lastRedirectingPartyName, len);
+				sccp_callinfo_getter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "lastRedirectingPartyNumber")) {
-				sccp_copy_string(buf, c->oldCallInfo.lastRedirectingPartyNumber, len);
+				sccp_callinfo_getter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "cgpnVoiceMailbox")) {
-				sccp_copy_string(buf, c->oldCallInfo.cgpnVoiceMailbox, len);
+				sccp_callinfo_getter(ci, SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "cdpnVoiceMailbox")) {
-				sccp_copy_string(buf, c->oldCallInfo.cdpnVoiceMailbox, len);
+				sccp_callinfo_getter(ci, SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "originalCdpnVoiceMailbox")) {
-				sccp_copy_string(buf, c->oldCallInfo.originalCdpnVoiceMailbox, len);
+				sccp_callinfo_getter(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "lastRedirectingVoiceMailbox")) {
-				sccp_copy_string(buf, c->oldCallInfo.lastRedirectingVoiceMailbox, len);
+				sccp_callinfo_getter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "passthrupartyid")) {
 				snprintf(buf, buf_len, "%d", c->passthrupartyid);
 			} else if (!strcasecmp(token, "state")) {
