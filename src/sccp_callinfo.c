@@ -204,6 +204,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 				{
 					char *new_value = va_arg(ap, char *);
 					if (new_value) {
+						size_t size = 0;
 						char *dstPtr = NULL;
 						uint16_t *validPtr = NULL;
 						struct callinfo_lookup entry = callinfo_lookup[curkey];
@@ -211,20 +212,23 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 
 						switch(entry.type) {
 							case NAME:
+								size = StationMaxNameSize;
 								dstPtr = callinfo->Name;
 								validPtr = NULL;
 								break;
 							case NUMBER:
+								size = StationMaxDirnumSize;
 								dstPtr = callinfo->Number;
 								validPtr = &callinfo->NumberValid;
 								break;
 							case VOICEMAILBOX:
+								size = StationMaxDirnumSize;
 								dstPtr = callinfo->VoiceMailbox;
 								validPtr = &callinfo->VoiceMailboxValid;
 								break;
 						}
 						if (!sccp_strequals(dstPtr, new_value)) {
-							sccp_copy_string(dstPtr, new_value, StationMaxDirnumSize);
+							sccp_copy_string(dstPtr, new_value, size);
 							changes++;
 							if (validPtr) {
 								*validPtr = sccp_strlen_zero(new_value) ? 0 : 1;
@@ -296,26 +300,30 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 				break;
 		}
 		char *tmpPtr = NULL;
+		size_t size = 0;
 		switch(dst_entry.type) {
 			case NAME:
+				size = StationMaxNameSize;
 				tmpPtr = tmp_callinfo->Name;
 				break;
 			case NUMBER:
+				size = StationMaxDirnumSize;
 				tmpPtr = tmp_callinfo->Number;
 				break;
 			case VOICEMAILBOX:
+				size = StationMaxDirnumSize;
 				tmpPtr = tmp_callinfo->VoiceMailbox;
 				break;
 		}
 		if (validPtr) {
 			if (*validPtr) {
-				sccp_copy_string(tmpPtr, srcPtr, sizeof(tmpPtr));
+				sccp_copy_string(tmpPtr, srcPtr, size);
 				changes++;
 			} else {
 				tmpPtr[0] = '\0';
 			}
 		} else {
-			sccp_copy_string(tmpPtr, srcPtr, sizeof(tmpPtr));
+			sccp_copy_string(tmpPtr, srcPtr, size);
 		}
 	}
 
@@ -375,7 +383,8 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 			default:
 				{
 					char *dstPtr = va_arg(ap, char *);
-					if (*dstPtr) {
+					if (dstPtr) {
+						size_t size = 0;
 						char *srcPtr = NULL;
 						uint16_t *validPtr = NULL;
 						struct callinfo_lookup entry = callinfo_lookup[curkey];
@@ -383,27 +392,33 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 
 						switch(entry.type) {
 							case NAME:
+								size = StationMaxNameSize;
 								srcPtr = callinfo->Name;
 								validPtr = NULL;
 								break;
 							case NUMBER:
+								size = StationMaxDirnumSize;
 								srcPtr = callinfo->Number;
 								validPtr = &callinfo->NumberValid;
 								break;
 							case VOICEMAILBOX:
+								size = StationMaxDirnumSize;
 								srcPtr = callinfo->VoiceMailbox;
 								validPtr = &callinfo->VoiceMailboxValid;
 								break;
 						}
 						if (validPtr) {
-							if (*validPtr) {
-								sccp_copy_string(dstPtr, srcPtr, StationMaxDirnumSize);
-								changes++;
-							} else {
-								dstPtr[0] = '\0';
+							if (!*validPtr) {
+								if (dstPtr[0] != '\0') {
+									dstPtr[0] = '\0';
+									changes++;
+								}
+								break;
 							}
-						} else {
-							sccp_copy_string(dstPtr, srcPtr, StationMaxDirnumSize);
+						}
+						if (!sccp_strequals(dstPtr, srcPtr)) {
+							changes++;
+							sccp_copy_string(dstPtr, srcPtr, size);
 						}
 					}
 				}
