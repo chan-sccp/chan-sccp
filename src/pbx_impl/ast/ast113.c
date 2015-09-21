@@ -979,6 +979,46 @@ static void sccp_wrapper_asterisk113_setOwner(sccp_channel_t * channel, PBX_CHAN
 	}
 }
 
+static void __sccp_asterisk113_updateConnectedLine(PBX_CHANNEL_TYPE *pbx_channel, const char *number, const char *name, uint8_t reason)
+{
+	if (!pbx_channel) {
+		return;
+	}
+
+	struct ast_party_connected_line connected;
+	struct ast_set_party_connected_line update_connected;
+
+	memset(&update_connected, 0, sizeof(update_connected));
+	ast_party_connected_line_init(&connected);
+
+	if (!sccp_strlen_zero(connected.id.number.str)) {
+		ast_free(connected.id.number.str);
+	}
+	if (number) {
+		update_connected.id.number = 1;
+		connected.id.number.valid = 1;
+		connected.id.number.str = strdup(number);
+		connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
+	}
+
+	if (!sccp_strlen_zero(connected.id.name.str)) {
+		ast_free(connected.id.name.str);
+	}
+	if (name) {
+		update_connected.id.name = 1;
+		connected.id.name.valid = 1;
+		connected.id.name.str = strdup(name);
+		connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
+	}
+	if (update_connected.id.number || update_connected.id.name) {
+		ast_set_party_id_all(&update_connected.priv);
+		// connected.id.tag = NULL;
+		connected.source = reason;
+		ast_channel_queue_connected_line_update(pbx_channel, &connected, &update_connected);
+		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: do connected line for line '%s', name: %s ,num: %s\n", pbx_channel_name(pbx_channel), name ? name : "(NULL)", number ? number : "(NULL)");
+	}
+}
+
 static boolean_t sccp_wrapper_asterisk113_allocPBXChannel(sccp_channel_t * channel, const void *ids, const PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** _pbxDstChannel)
 {
 	const struct ast_assigned_ids *assignedids = NULL;
@@ -1625,6 +1665,9 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, stru
 
 	if (requestor) {
 		/* set calling party */
+		if (channel->line) {							/* we now know the name of the dialed line, sending update to remote side */
+			__sccp_asterisk113_updateConnectedLine((PBX_CHANNEL_TYPE *) requestor, NULL, channel->line->cid_name, AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN);
+		}
 		sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 		sccp_callinfo_setter(ci, 
 				SCCP_CALLINFO_CALLINGPARTY_NAME, ast_channel_caller((PBX_CHANNEL_TYPE *) requestor)->id.name.str,
@@ -2524,45 +2567,13 @@ static void sccp_wrapper_asterisk113_setRedirectedParty(constChannelPtr channel,
 	}
 }
 
+
 static void sccp_wrapper_asterisk113_updateConnectedLine(constChannelPtr channel, const char *number, const char *name, uint8_t reason)
 {
 	if (!channel || !channel->owner) {
 		return;
 	}
-
-	struct ast_party_connected_line connected;
-	struct ast_set_party_connected_line update_connected;
-
-	memset(&update_connected, 0, sizeof(update_connected));
-	ast_party_connected_line_init(&connected);
-
-	if (!sccp_strlen_zero(connected.id.number.str)) {
-		ast_free(connected.id.number.str);
-	}
-	if (number) {
-		update_connected.id.number = 1;
-		connected.id.number.valid = 1;
-		connected.id.number.str = strdup(number);
-		connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
-	}
-
-	if (!sccp_strlen_zero(connected.id.name.str)) {
-		ast_free(connected.id.name.str);
-	}
-	if (name) {
-		update_connected.id.name = 1;
-		connected.id.name.valid = 1;
-		connected.id.name.str = strdup(name);
-		connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
-	}
-	if (update_connected.id.number || update_connected.id.name) {
-		ast_set_party_id_all(&update_connected.priv);
-		// connected.id.tag = NULL;
-		connected.source = reason;
-		ast_channel_queue_connected_line_update(channel->owner, &connected, &update_connected);
-		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: do connected line for line '%s', name: %s ,num: %s\n", pbx_channel_name(channel->owner), name ? name : "(NULL)", number ? number : "(NULL)");
-	}
-
+	__sccp_asterisk113_updateConnectedLine(channel->owner, number,name, reason);
 }
 
 static int sccp_wrapper_asterisk113_sched_add(int when, sccp_sched_cb callback, const void *data)
