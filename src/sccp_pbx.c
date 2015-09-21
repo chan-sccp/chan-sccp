@@ -188,7 +188,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	) {
 		sccp_callinfo_setter(ci, 
 			SCCP_CALLINFO_CALLINGPARTY_NUMBER, (!sccp_strlen_zero(suffixedNumber) ? suffixedNumber : NULL), 
-			SCCP_CALLINFO_PRESENTATION, (pbx_presentation > -1) ? pbx_presentation : presentation,
+			SCCP_CALLINFO_PRESENTATION, (pbx_presentation > -1) ? !pbx_presentation : presentation,
 			SCCP_CALLINFO_KEY_SENTINEL);
 	}
 	sccp_channel_display_callInfo(c);
