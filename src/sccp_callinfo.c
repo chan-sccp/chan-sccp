@@ -438,66 +438,6 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 	return changes;
 }
 
-void sccp_callinfo_getStringArray(const sccp_callinfo_t * const ci, char strArray[16][StationMaxNameSize])
-{
-	assert(ci != NULL);
-
-	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
-	uint8_t arrEntry = 0;
-
-	sccp_callinfo_lock(ci);
-	for (curkey = SCCP_CALLINFO_CALLEDPARTY_NAME; curkey <= SCCP_CALLINFO_HUNT_PILOT_NUMBER; curkey++) {
-		char *srcPtr = NULL;
-		uint16_t *validPtr = NULL;
-		struct callinfo_lookup entry = callinfo_lookup[curkey];
-		callinfo_entry_t *callinfo = (callinfo_entry_t *const) &(ci->entries[entry.group]);
-
-		switch(entry.type) {
-			case NAME:
-				srcPtr = callinfo->Name;
-				validPtr = NULL;
-				break;
-			case NUMBER:
-				srcPtr = callinfo->Number;
-				validPtr = &callinfo->NumberValid;
-				break;
-			case VOICEMAILBOX:
-				srcPtr = callinfo->VoiceMailbox;
-				validPtr = &callinfo->VoiceMailboxValid;
-				break;
-		}
-		if (validPtr) {
-		struct sccp_callinfo_entry entry = sccp_callinfo_entries[curkey];
-		uint8_t len = 0;
-
-		entryStr = (char *) ci + entry.fieldOffset;
-		entries++;
-		if (entry.validOffset) {
-			uint8_t *validPtr = ((uint8_t *) ci) + entry.validOffset;
-			if (!*validPtr) {
-				pos += 1;
-				sccp_log(DEBUGCAT_CORE) ("SCCP: skipping newpos=%zu, srcPtr:%s\n", pos, srcPtr);
-				continue;
-			}
-		}
-		size_t len = sccp_strlen(srcPtr);
-		memcpy(&buffer[pos], srcPtr, len); 
-		pos += len + 1;
-		sccp_log(DEBUGCAT_CORE) ("SCCP: pos=%zu, str: %s, len=%zu, newpos=%zu\n", pos - (len + 1), srcPtr, len, pos);
-	}
-
-	va_end(ap);
-	sccp_callinfo_unlock(ci);
-
-	char *newstr = sccp_calloc(sizeof(char), pos);
-	if (newstr) {
-		memcpy(newstr, buffer, sizeof(char) * pos);
-		*newlen = pos;
-		return newstr;
-	} 
-	return NULL;
-}
-
 int sccp_callinfo_setCalledParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize])
 {
 	assert(ci != NULL);
