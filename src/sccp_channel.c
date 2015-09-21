@@ -200,7 +200,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	channel->line = sccp_line_retain(line);
 	//sccp_callinfo_setter(channel->privateData->callInfo, 
 	//	SCCP_CALLINFO_PRESENTATION, 
-	//	CALLERID_PRESENCE_ALLOWED, 
+	//	CALLERID_PRESENTATION_ALLOWED, 
 	//	SCCP_CALLINFO_KEY_SENTINEL);
 
 	/* this is for dialing scheduler */
@@ -215,7 +215,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	channel->answered_elsewhere = FALSE;
 
 	/* by default we allow callerid presentation */
-	channel->oldCallInfo.presentation = CALLERID_PRESENCE_ALLOWED;
+	channel->oldCallInfo.presentation = CALLERID_PRESENTATION_ALLOWED;
 
 	channel->callid = callid;
 	channel->passthrupartyid = callid ^ 0xFFFFFFFF;
@@ -2332,11 +2332,11 @@ EXIT:
  * \param channel SCCP Channel
  * \param presenceParameter SCCP CallerID Presence ENUM
  */
-void sccp_channel_set_calleridPresenceParameter(sccp_channel_t * channel, sccp_calleridpresence_t presenceParameter)
+void sccp_channel_set_calleridPresentation(sccp_channel_t * channel, sccp_callerid_presentation_t presentation)
 {
-	sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_PRESENTATION, presenceParameter, SCCP_CALLINFO_KEY_SENTINEL);
-	if (iPbx.set_callerid_presence) {
-		iPbx.set_callerid_presence(channel);
+	sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_PRESENTATION, presentation, SCCP_CALLINFO_KEY_SENTINEL);
+	if (iPbx.set_callerid_presentation) {
+		iPbx.set_callerid_presentation(channel, presentation);
 	}
 }
 
@@ -2344,9 +2344,9 @@ void sccp_channel_set_calleridPresenceParameter(sccp_channel_t * channel, sccp_c
  * \brief Reset Caller Id Presentation
  * \param channel SCCP Channel
  */
-void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * channel)
+void sccp_channel_reset_calleridPresentation(sccp_channel_t * channel)
 {
-	sccp_channel_set_calleridPresenceParameter(channel, CALLERID_PRESENCE_ALLOWED);
+	sccp_channel_set_calleridPresentation(channel, CALLERID_PRESENTATION_ALLOWED);
 }
 
 /*!

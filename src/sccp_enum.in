@@ -178,9 +178,9 @@ enum parkresult {
 	PARK_RESULT_SUCCESS,				,	"Park Successfull", 
 }
 
-enum calleridpresence {
-	CALLERID_PRESENCE_FORBIDDEN,			,	"CalledId Presence Forbidden",
-	CALLERID_PRESENCE_ALLOWED,			,	"CallerId Presence Allowed",
+enum callerid_presentation {
+	CALLERID_PRESENTATION_FORBIDDEN,		,	"CalledId Presentation Forbidden",
+	CALLERID_PRESENTATION_ALLOWED,			,	"CallerId Presentation Allowed",
 }
 
 enum rtp_status {

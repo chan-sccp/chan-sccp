@@ -389,22 +389,22 @@ char *sccp_parkresult_all_entries(void);
 /* = End =========================================================================================                sccp_parkresult === */
 
 
-/* = Begin =======================================================================================          sccp_calleridpresence === */
+/* = Begin =======================================================================================     sccp_callerid_presentation === */
 
 /*
- * \brief enum sccp_calleridpresence
+ * \brief enum sccp_callerid_presentation
  */
-typedef enum sccp_calleridpresence {
-	CALLERID_PRESENCE_FORBIDDEN,
-	CALLERID_PRESENCE_ALLOWED,
-	SCCP_CALLERIDPRESENCE_SENTINEL
-} sccp_calleridpresence_t;
-int sccp_calleridpresence_exists(int sccp_calleridpresence_int_value);
-const char * sccp_calleridpresence2str(sccp_calleridpresence_t enum_value);
-sccp_calleridpresence_t sccp_calleridpresence_str2val(const char *lookup_str);
-int sccp_calleridpresence_str2intval(const char *lookup_str);
-char *sccp_calleridpresence_all_entries(void);
-/* = End =========================================================================================          sccp_calleridpresence === */
+typedef enum sccp_callerid_presentation {
+	CALLERID_PRESENTATION_FORBIDDEN,
+	CALLERID_PRESENTATION_ALLOWED,
+	SCCP_CALLERID_PRESENTATION_SENTINEL
+} sccp_callerid_presentation_t;
+int sccp_callerid_presentation_exists(int sccp_callerid_presentation_int_value);
+const char * sccp_callerid_presentation2str(sccp_callerid_presentation_t enum_value);
+sccp_callerid_presentation_t sccp_callerid_presentation_str2val(const char *lookup_str);
+int sccp_callerid_presentation_str2intval(const char *lookup_str);
+char *sccp_callerid_presentation_all_entries(void);
+/* = End =========================================================================================     sccp_callerid_presentation === */
 
 
 /* = Begin =======================================================================================                sccp_rtp_status === */

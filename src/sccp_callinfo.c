@@ -57,7 +57,7 @@ struct sccp_callinfo {
 	callinfo_entry_t entries[HUNT_PILOT + 1];
 	uint32_t originalCdpnRedirectReason;									/*!< Original Called Party Redirect Reason */
 	uint32_t lastRedirectingReason;										/*!< Last Redirecting Reason */
-	sccp_calleridpresence_t presentation;									/*!< Should this callerinfo be shown (privacy) */
+	sccp_callerid_presentation_t presentation;									/*!< Should this callerinfo be shown (privacy) */
 };														/*!< SCCP CallInfo Structure */
 
 #define sccp_callinfo_lock(x) sccp_mutex_lock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
@@ -98,11 +98,11 @@ sccp_callinfo_t *const sccp_callinfo_ctor(void)
 	sccp_mutex_init(&ci->lock);
 
 	/* set defaults */
-	ci->presentation = CALLERID_PRESENCE_ALLOWED;
+	ci->presentation = CALLERID_PRESENTATION_ALLOWED;
 
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
 		#ifdef DEBUG
-		sccp_do_backtrace();
+		//sccp_do_backtrace();
 		#endif
 	}
 	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_1 "SCCP: callinfo constructor: %p\n", ci);
@@ -167,7 +167,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
 		#ifdef DEBUG
-		sccp_do_backtrace();
+		//sccp_do_backtrace();
 		#endif
 		sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_setter) before:");
 	}
@@ -193,7 +193,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 				break;
 			case SCCP_CALLINFO_PRESENTATION:
 				{
-					sccp_calleridpresence_t new_value = va_arg(ap, sccp_calleridpresence_t);
+					sccp_callerid_presentation_t new_value = va_arg(ap, sccp_callerid_presentation_t);
 					if (new_value != ci->presentation) {
 						ci->presentation = new_value;
 						changes++;
@@ -373,7 +373,7 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 				break;
 			case SCCP_CALLINFO_PRESENTATION:
 				{
-					sccp_calleridpresence_t *dstPtr = va_arg(ap, sccp_calleridpresence_t *);
+					sccp_callerid_presentation_t *dstPtr = va_arg(ap, sccp_callerid_presentation_t *);
 					if (*dstPtr != ci->presentation) {
 						*dstPtr = ci->presentation;
 						changes++;
@@ -431,7 +431,7 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
 		#ifdef DEBUG
-		sccp_do_backtrace();
+		//sccp_do_backtrace();
 		#endif
 		sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_getter)");
 	}
@@ -501,7 +501,7 @@ boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str
 	if (ci->entries[HUNT_PILOT].NumberValid) {
 		pbx_str_append(buf, 0, " - huntPilot: %s <%s>, valid\n", ci->entries[HUNT_PILOT].Name, ci->entries[HUNT_PILOT].Number);
 	}
-	pbx_str_append(buf, 0, " - presentation: %s\n\n", sccp_calleridpresence2str(ci->presentation));
+	pbx_str_append(buf, 0, " - presentation: %s\n\n", sccp_callerid_presentation2str(ci->presentation));
 	sccp_callinfo_unlock(ci);
 	return TRUE;
 }
@@ -522,9 +522,9 @@ void sccp_callinfo_print2log(const sccp_callinfo_t * const ci, const char *const
  */
 void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * channel)
 {
-	channel->callInfo.presentation = CALLERID_PRESENCE_ALLOWED;
-	if (iPbx.set_callerid_presence) {
-		iPbx.set_callerid_presence(channel);
+	channel->callInfo.presentation = CALLERID_PRESENTATION_ALLOWED;
+	if (iPbx.set_callerid_presentation) {
+		iPbx.set_callerid_presentation(channel);
 	}
 }
 
@@ -533,11 +533,11 @@ void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * channel)
  * \param channel SCCP Channel
  * \param presenceParameter SCCP CallerID Presence ENUM
  */
-void sccp_channel_set_calleridPresenceParameter(sccp_channel_t * channel, sccp_calleridpresence_t presenceParameter)
+void sccp_channel_set_calleridPresentation(sccp_channel_t * channel, sccp_callerid_presentation_t presenceParameter)
 {
 	channel->callInfo.presentation = presenceParameter;
-	if (iPbx.set_callerid_presence) {
-		iPbx.set_callerid_presence(channel);
+	if (iPbx.set_callerid_presentation) {
+		iPbx.set_callerid_presentation(channel);
 	}
 }
 #endif

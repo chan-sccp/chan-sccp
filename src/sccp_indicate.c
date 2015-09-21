@@ -532,7 +532,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 		AUTO_RELEASE sccp_device_t *remoteDevice = sccp_device_retain(linedevice->device);
 
 		if (remoteDevice) {
-			sccp_calleridpresence_t presenceParameter = CALLERID_PRESENCE_ALLOWED;
+			sccp_callerid_presentation_t presenceParameter = CALLERID_PRESENTATION_ALLOWED;
 			sccp_callinfo_getter(ci, SCCP_CALLINFO_PRESENTATION, &presenceParameter, SCCP_CALLINFO_KEY_SENTINEL);
 			uint8_t stateVisibility = (c->privacy || !presenceParameter) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_DEFAULT;
 

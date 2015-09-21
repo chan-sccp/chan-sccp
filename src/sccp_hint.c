@@ -740,7 +740,7 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
 					sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 					char cid_name[StationMaxNameSize] = {0};
 					char cid_num[StationMaxDirnumSize] = {0};
-					sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
+					sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
 
 					/* set cid name/numbe information according to the call direction */
 					if (SKINNY_CALLTYPE_INBOUND == channel->calltype) {
@@ -756,7 +756,7 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
 							SCCP_CALLINFO_PRESENTATION, &presentation, 
 							SCCP_CALLINFO_KEY_SENTINEL);
 					}
-					if (presentation == CALLERID_PRESENCE_FORBIDDEN) {
+					if (presentation == CALLERID_PRESENTATION_FORBIDDEN) {
 						sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyName));
 						sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
 					} else {
@@ -859,7 +859,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 				sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 				char cid_name[StationMaxNameSize] = {0};
 				char cid_num[StationMaxDirnumSize] = {0};
-				sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
+				sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
 				//if (dev_privacy == 0 || (dev_privacy == 1 && channel->privacy == FALSE)) {
 
 				/** set cid name/number information according to the call direction */
@@ -888,7 +888,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 					case SKINNY_CALLTYPE_SENTINEL:
 						break;
 				}
-				if (presentation == CALLERID_PRESENCE_FORBIDDEN) {
+				if (presentation == CALLERID_PRESENTATION_FORBIDDEN) {
 					sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyName));
 					sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
 				} else {
