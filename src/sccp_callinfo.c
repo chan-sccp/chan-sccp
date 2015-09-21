@@ -21,6 +21,7 @@
 #include <config.h>
 #include "common.h"
 #include "sccp_utils.h"
+#include "sccp_device.h"
 #include <stdarg.h>
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
@@ -57,7 +58,8 @@ struct sccp_callinfo {
 	callinfo_entry_t entries[HUNT_PILOT + 1];
 	uint32_t originalCdpnRedirectReason;									/*!< Original Called Party Redirect Reason */
 	uint32_t lastRedirectingReason;										/*!< Last Redirecting Reason */
-	sccp_callerid_presentation_t presentation;									/*!< Should this callerinfo be shown (privacy) */
+	sccp_callerid_presentation_t presentation;								/*!< Should this callerinfo be shown (privacy) */
+	boolean_t changed;											/*! Changes since last send */
 };														/*!< SCCP CallInfo Structure */
 
 #define sccp_callinfo_lock(x) sccp_mutex_lock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
@@ -99,6 +101,7 @@ sccp_callinfo_t *const sccp_callinfo_ctor(void)
 
 	/* by default we allow callerid presentation */
 	ci->presentation = CALLERID_PRESENTATION_ALLOWED;
+	ci->changed = TRUE;
 
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
 		#ifdef DEBUG
@@ -147,6 +150,7 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src_ci, sccp_callinfo
 
 		sccp_callinfo_lock(dst_ci);
 		memcpy(dst_ci, &tmp_ci, sizeof(sccp_callinfo_t));
+		dst_ci->changed = TRUE;
 		sccp_callinfo_unlock(dst_ci);
 
 		return TRUE;
@@ -241,11 +245,15 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 	}
 
 	va_end(ap);
+	if (changes) {
+		ci->changed = TRUE;
+	}
 	sccp_callinfo_unlock(ci);
 
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
 		sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_setter) after:");
 	}
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_setter) changes:%d\n", ci, changes);
 	return changes;
 }
 
@@ -345,7 +353,7 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 	assert(ci != NULL);
 
 	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
-	int changes = 0;
+	int entries = 0;
 
 	sccp_callinfo_lock(ci);
 	va_list ap;
@@ -358,7 +366,7 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 					int *dstPtr = va_arg(ap, int *);
 					if (*dstPtr != ci->originalCdpnRedirectReason) {
 						*dstPtr = ci->originalCdpnRedirectReason;
-						changes++;
+						entries++;
 					}
 				}
 				break;
@@ -367,7 +375,7 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 					int *dstPtr = va_arg(ap, int *);
 					if (*dstPtr != ci->lastRedirectingReason) {
 						*dstPtr = ci->lastRedirectingReason;
-						changes++;
+						entries++;
 					}
 				}
 				break;
@@ -376,7 +384,7 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 					sccp_callerid_presentation_t *dstPtr = va_arg(ap, sccp_callerid_presentation_t *);
 					if (*dstPtr != ci->presentation) {
 						*dstPtr = ci->presentation;
-						changes++;
+						entries++;
 					}
 				}
 				break;
@@ -411,13 +419,13 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 							if (!*validPtr) {
 								if (dstPtr[0] != '\0') {
 									dstPtr[0] = '\0';
-									changes++;
+									entries++;
 								}
 								break;
 							}
 						}
 						if (!sccp_strequals(dstPtr, srcPtr)) {
-							changes++;
+							entries++;
 							sccp_copy_string(dstPtr, srcPtr, size);
 						}
 					}
@@ -435,8 +443,27 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 		#endif
 		sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_getter)");
 	}
-	return changes;
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_getter) entries:%d\n", ci, entries);
+	return entries;
 }
+
+int sccp_callinfo_send(sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const sccp_device_t * const device, boolean_t force)
+{
+	if (ci->changed || force) {
+		if (device->protocol && device->protocol->sendCallInfo) {
+			device->protocol->sendCallInfo(ci, callid, calltype, lineInstance, device);
+			sccp_callinfo_lock(ci);
+			ci->changed = FALSE;
+			sccp_callinfo_unlock(ci);
+			return 1;
+		}
+	} else {
+		sccp_log(DEBUGCAT_NEWCODE) ("%p: (sccp_callinfo_send) ci has not changed since last send. Skipped sending\n", ci);
+	}
+	
+	return 0;
+}
+
 
 int sccp_callinfo_setCalledParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize])
 {

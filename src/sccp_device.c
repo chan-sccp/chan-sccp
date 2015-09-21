@@ -2605,9 +2605,10 @@ static void sccp_device_indicate_connected(constDevicePtr device, const uint8_t 
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	if (device->protocol && device->protocol->sendCallInfo) {
-		device->protocol->sendCallInfo(callinfo, callid, calltype, lineInstance, device);
-	}
+	//if (device->protocol && device->protocol->sendCallInfo) {
+	//	device->protocol->sendCallInfo(callinfo, callid, calltype, lineInstance, device);
+	//}
+	sccp_callinfo_send(callinfo, callid, calltype, lineInstance, device, FALSE);
 	sccp_dev_set_cplane(device, lineInstance, 1);
 	//sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_CONNECTED);              // moved back to sccp_indicate (re-used for connconf as well)
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_CONNECTED, GLOB(digittimeout));
@@ -2628,9 +2629,10 @@ static void __sccp_device_indicate_normal_dialing(constDevicePtr device, const u
 		if (device->protocol->sendDialedNumber) {
 			device->protocol->sendDialedNumber(device, lineInstance, callid, dialedNumber);
 		}
-		if (device->protocol->sendCallInfo) {
-			device->protocol->sendCallInfo(callinfo, callid, calltype, lineInstance, device);
-		}
+		//if (device->protocol->sendCallInfo) {
+		//	device->protocol->sendCallInfo(callinfo, callid, calltype, lineInstance, device);
+		//}
+		sccp_callinfo_send(callinfo, callid, calltype, lineInstance, device, FALSE);
 	}
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_RINGOUT);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -2653,9 +2655,10 @@ static void sccp_device_indicate_proceed(constDevicePtr device, const uint8_t li
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	if (device->protocol && device->protocol->sendCallInfo) {
-		device->protocol->sendCallInfo(callinfo, callid, calltype, lineInstance, device);
-	}
+	//if (device->protocol && device->protocol->sendCallInfo) {
+	//	device->protocol->sendCallInfo(callinfo, callid, calltype, lineInstance, device);
+	//}
+	sccp_callinfo_send(callinfo, callid, calltype, lineInstance, device, FALSE);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 }
 
