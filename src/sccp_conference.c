@@ -407,24 +407,31 @@ void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE 
 	char confstr[StationMaxNameSize] = "";
 
 	snprintf(confstr, StationMaxNameSize, "Conference %d", conferenceID);
+	sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 
 	switch (channel->calltype) {
 		case SKINNY_CALLTYPE_INBOUND:
-			sccp_copy_string(channel->oldCallInfo.originalCallingPartyName, channel->oldCallInfo.callingPartyName, sizeof(channel->oldCallInfo.originalCallingPartyName));
-			sccp_copy_string(participant->PartyName, channel->oldCallInfo.callingPartyName, sizeof(participant->PartyName));
-			sccp_copy_string(participant->PartyNumber, channel->oldCallInfo.callingPartyNumber, sizeof(participant->PartyNumber));
-			channel->oldCallInfo.originalCallingParty_valid = 1;
-			sccp_copy_string(channel->oldCallInfo.callingPartyName, confstr, sizeof(channel->oldCallInfo.callingPartyName));
-			channel->oldCallInfo.callingParty_valid = 1;
+			sccp_callinfo_getter(ci, 
+				SCCP_CALLINFO_CALLINGPARTY_NAME, &participant->PartyName,
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &participant->PartyNumber,
+				SCCP_CALLINFO_KEY_SENTINEL);
+			sccp_callinfo_setter(ci, 
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, participant->PartyName,
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, participant->PartyNumber,
+				SCCP_CALLINFO_CALLINGPARTY_NAME, confstr,
+				SCCP_CALLINFO_KEY_SENTINEL);
 			break;
 		case SKINNY_CALLTYPE_OUTBOUND:
 		case SKINNY_CALLTYPE_FORWARD:
-			sccp_copy_string(channel->oldCallInfo.originalCalledPartyName, channel->oldCallInfo.calledPartyName, sizeof(channel->oldCallInfo.originalCallingPartyName));
-			sccp_copy_string(participant->PartyName, channel->oldCallInfo.calledPartyName, sizeof(participant->PartyName));
-			sccp_copy_string(participant->PartyNumber, channel->oldCallInfo.calledPartyNumber, sizeof(participant->PartyNumber));
-			channel->oldCallInfo.originalCalledParty_valid = 1;
-			sccp_copy_string(channel->oldCallInfo.calledPartyName, confstr, sizeof(channel->oldCallInfo.calledPartyName));
-			channel->oldCallInfo.calledParty_valid = 1;
+			sccp_callinfo_getter(ci, 
+				SCCP_CALLINFO_CALLEDPARTY_NAME, &participant->PartyName,
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &participant->PartyNumber,
+				SCCP_CALLINFO_KEY_SENTINEL);
+			sccp_callinfo_setter(ci, 
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, participant->PartyName,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, participant->PartyNumber,
+				SCCP_CALLINFO_CALLEDPARTY_NAME, confstr,
+				SCCP_CALLINFO_KEY_SENTINEL);
 			break;
 		case SKINNY_CALLTYPE_SENTINEL:
 			break;

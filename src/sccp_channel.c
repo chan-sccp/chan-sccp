@@ -214,9 +214,6 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	channel->calltype = SKINNY_CALLTYPE_INBOUND;
 	channel->answered_elsewhere = FALSE;
 
-	/* by default we allow callerid presentation */
-	channel->oldCallInfo.presentation = CALLERID_PRESENTATION_ALLOWED;
-
 	channel->callid = callid;
 	channel->passthrupartyid = callid ^ 0xFFFFFFFF;
 
@@ -2225,57 +2222,58 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 	}
 
 	{
-		char *fromName = NULL;
-		char *fromNumber = NULL;
-		char *toName = NULL;
-		char *toNumber = NULL;
-
-		char *originalCallingPartyName = NULL;
-		char *originalCallingPartyNumber = NULL;
-
 		int connectedLineUpdateReason = (sccp_destination_local_channel->state == SCCP_CHANNELSTATE_RINGOUT) ? AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING : AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER;
 
-		/* update redirecting info line for source part */
-		fromNumber = sccp_destination_local_channel->oldCallInfo.callingPartyNumber;
-		fromName = sccp_destination_local_channel->oldCallInfo.callingPartyName;
-
-		toNumber = sccp_destination_local_channel->oldCallInfo.calledPartyNumber;
-		toName = sccp_destination_local_channel->oldCallInfo.calledPartyName;
-
+		char calling_number[StationMaxDirnumSize] = {0}, called_number[StationMaxDirnumSize] = {0}, orig_number[StationMaxDirnumSize] = {0};
+		char calling_name[StationMaxNameSize] = {0}, called_name[StationMaxNameSize] = {0}, orig_name[StationMaxNameSize] = {0};
 		if (sccp_source_local_channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-			originalCallingPartyName = sccp_source_local_channel->oldCallInfo.callingPartyName;
-			originalCallingPartyNumber = sccp_source_local_channel->oldCallInfo.callingPartyNumber;
+			sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_destination_local_channel), 
+				SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name,
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &calling_number,
+				SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_number,
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &orig_name,
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &orig_number,
+				SCCP_CALLINFO_KEY_SENTINEL);
 		} else {
-			originalCallingPartyName = sccp_source_local_channel->oldCallInfo.calledPartyName;
-			originalCallingPartyNumber = sccp_source_local_channel->oldCallInfo.calledPartyNumber;
+			sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_destination_local_channel), 
+				SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name,
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &calling_number,
+				SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_number,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &orig_name,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, &orig_number,
+				SCCP_CALLINFO_KEY_SENTINEL);
 		}
 
 		/* update our source part */
-		sccp_copy_string(sccp_source_local_channel->oldCallInfo.lastRedirectingPartyName, fromName ? fromName : "", sizeof(sccp_source_local_channel->oldCallInfo.callingPartyName));
-		sccp_copy_string(sccp_source_local_channel->oldCallInfo.lastRedirectingPartyNumber, fromNumber ? fromNumber : "", sizeof(sccp_source_local_channel->oldCallInfo.lastRedirectingPartyNumber));
-		sccp_source_local_channel->oldCallInfo.lastRedirectingParty_valid = 1;
+		sccp_callinfo_setter(sccp_channel_getCallInfo(sccp_source_local_channel), 
+			SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, calling_name,
+			SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, calling_number,
+			SCCP_CALLINFO_KEY_SENTINEL);
 		sccp_channel_display_callInfo(sccp_source_local_channel);
 
 		/* update our destination part */
-		sccp_copy_string(sccp_destination_local_channel->oldCallInfo.lastRedirectingPartyName, fromName ? fromName : "", sizeof(sccp_destination_local_channel->oldCallInfo.callingPartyName));
-		sccp_copy_string(sccp_destination_local_channel->oldCallInfo.lastRedirectingPartyNumber, fromNumber ? fromNumber : "", sizeof(sccp_destination_local_channel->oldCallInfo.lastRedirectingPartyNumber));
-		sccp_destination_local_channel->oldCallInfo.lastRedirectingParty_valid = 1;
+		sccp_callinfo_setter(sccp_channel_getCallInfo(sccp_destination_local_channel), 
+			SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, calling_name,
+			SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, calling_number,
+			SCCP_CALLINFO_KEY_SENTINEL);
 		sccp_destination_local_channel->calltype = SKINNY_CALLTYPE_FORWARD;
 		sccp_channel_display_callInfo(sccp_destination_local_channel);
 
 		/* update transferee */
-		iPbx.set_connected_line(sccp_source_local_channel, toNumber, toName, connectedLineUpdateReason);
+		iPbx.set_connected_line(sccp_source_local_channel, called_number, called_name, connectedLineUpdateReason);
 #if ASTERISK_VERSION_GROUP > 106										/*! \todo change to SCCP_REASON Codes, using mapping table */
 		if (iPbx.sendRedirectedUpdate) {
-			iPbx.sendRedirectedUpdate(sccp_source_local_channel, fromNumber, fromName, toNumber, toName, AST_REDIRECTING_REASON_UNCONDITIONAL);
+			iPbx.sendRedirectedUpdate(sccp_source_local_channel, calling_number, calling_name, called_number, called_name, AST_REDIRECTING_REASON_UNCONDITIONAL);
 		}
 #endif
 
 		/* update ringin channel directly */
-		iPbx.set_connected_line(sccp_destination_local_channel, originalCallingPartyNumber, originalCallingPartyName, connectedLineUpdateReason);
+		iPbx.set_connected_line(sccp_destination_local_channel, orig_number, orig_name, connectedLineUpdateReason);
 #if ASTERISK_VERSION_GROUP > 106										/*! \todo change to SCCP_REASON Codes, using mapping table */
 //		if (iPbx.sendRedirectedUpdate) {
-//			iPbx.sendRedirectedUpdate(sccp_destination_local_channel, fromNumber, fromName, toNumber, toName, AST_REDIRECTING_REASON_UNCONDITIONAL);
+//			iPbx.sendRedirectedUpdate(sccp_destination_local_channel, calling_number, calling_name, called_number, called_name, AST_REDIRECTING_REASON_UNCONDITIONAL);
 //		}
 #endif
 	}
@@ -2379,10 +2377,22 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	sccp_forwarding_channel->softswitch_action = SCCP_SOFTSWITCH_DIAL;					/* softswitch will catch the number to be dialed */
 	sccp_forwarding_channel->ss_data = 0;									// nothing to pass to action
 	sccp_forwarding_channel->calltype = SKINNY_CALLTYPE_OUTBOUND;
+	
+	char calling_name[StationMaxNameSize] = {0};
+	char calling_num[StationMaxDirnumSize] = {0};
+	char called_name[StationMaxNameSize] = {0};
+	char called_num[StationMaxDirnumSize] = {0};
+	sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_channel_parent), 
+		SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name,
+		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &calling_num,
+		SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,
+		SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_num,
+		SCCP_CALLINFO_KEY_SENTINEL);
 
 	/* copy the number to dial in the ast->exten */
 	sccp_copy_string(sccp_forwarding_channel->dialedNumber, dialedNumber, sizeof(sccp_forwarding_channel->dialedNumber));
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Incoming: %s (%s) Forwarded By: %s (%s) Forwarded To: %s\n", sccp_channel_parent->oldCallInfo.callingPartyName, sccp_channel_parent->oldCallInfo.callingPartyNumber, lineDevice->line->cid_name, lineDevice->line->cid_num, dialedNumber);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Incoming: %s (%s) Forwarded By: %s (%s) Forwarded To: %s\n", 
+		calling_name, calling_num, lineDevice->line->cid_name, lineDevice->line->cid_num, dialedNumber);
 
 	/* Copy Channel Capabilities From Predecessor */
 	memset(&sccp_forwarding_channel->remoteCapabilities.audio, 0, sizeof(sccp_forwarding_channel->remoteCapabilities.audio));
@@ -2408,11 +2418,11 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 
 	/* setting callerid */
 	if (iPbx.set_callerid_number) {
-		iPbx.set_callerid_number(sccp_forwarding_channel, sccp_channel_parent->oldCallInfo.callingPartyNumber);
+		iPbx.set_callerid_number(sccp_forwarding_channel, calling_num);
 	}
 
 	if (iPbx.set_callerid_name) {
-		iPbx.set_callerid_name(sccp_forwarding_channel, sccp_channel_parent->oldCallInfo.callingPartyName);
+		iPbx.set_callerid_name(sccp_forwarding_channel, calling_name);
 	}
 
 	if (iPbx.set_callerid_ani) {
@@ -2424,7 +2434,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	}
 
 	if (iPbx.set_callerid_redirectedParty) {
-		iPbx.set_callerid_redirectedParty(sccp_forwarding_channel, sccp_channel_parent->oldCallInfo.calledPartyNumber, sccp_channel_parent->oldCallInfo.calledPartyName);
+		iPbx.set_callerid_redirectedParty(sccp_forwarding_channel, called_num, called_name);
 	}
 
 	if (iPbx.set_callerid_redirectingParty) {

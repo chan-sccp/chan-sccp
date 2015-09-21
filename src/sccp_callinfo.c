@@ -97,7 +97,7 @@ sccp_callinfo_t *const sccp_callinfo_ctor(void)
 	}
 	sccp_mutex_init(&ci->lock);
 
-	/* set defaults */
+	/* by default we allow callerid presentation */
 	ci->presentation = CALLERID_PRESENTATION_ALLOWED;
 
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {

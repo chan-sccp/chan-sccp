@@ -155,8 +155,6 @@ struct sccp_channel {
 	boolean_t (*isMicrophoneEnabled) (void);
 
 	char *musicclass;											/*!< Music Class */
-
-	struct sccp_oldcallinfo oldCallInfo;
 	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
 
 #if ASTERISK_VERSION_GROUP >= 111
