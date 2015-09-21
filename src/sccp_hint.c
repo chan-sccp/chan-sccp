@@ -1307,7 +1307,8 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							SCCP_CALLINFO_CALLEDPARTY_NUMBER, hint->callInfo.partyNumber,
 							SCCP_CALLINFO_KEY_SENTINEL);
 						uint8_t calltype = (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? SKINNY_CALLTYPE_OUTBOUND : SKINNY_CALLTYPE_INBOUND;
-						d->protocol->sendCallInfo(ci, 0 /*callid*/, calltype, subscriber->instance, d);
+						//d->protocol->sendCallInfo(ci, 0 /*callid*/, calltype, subscriber->instance, d);
+						sccp_callinfo_send(ci, 0 /*callid*/, calltype, subscriber->instance, d, FALSE);
 						sccp_callinfo_dtor(ci);
 					}
 
