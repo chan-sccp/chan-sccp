@@ -188,8 +188,8 @@ void sccp_channel_set_callingparty(constChannelPtr c, const char *name, const ch
 void sccp_channel_set_calledparty(sccp_channel_t * c, const char *name, const char *number);
 boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *name, char *number);
 boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * c, char *name, char *number);
-void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * c);
-void sccp_channel_set_calleridPresenceParameter(sccp_channel_t * c, sccp_calleridpresence_t presenceParameter);
+void sccp_channel_reset_calleridPresentation(sccp_channel_t * c);
+void sccp_channel_set_calleridPresentation(sccp_channel_t * c, sccp_callerid_presentation_t presenceParameter);
 void sccp_channel_connect(sccp_channel_t * c);
 void sccp_channel_disconnect(sccp_channel_t * c);
 

@@ -900,11 +900,11 @@ static int sccp_wrapper_asterisk113_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 	return res;
 }
 
-static void sccp_wrapper_asterisk113_setCalleridPresence(constChannelPtr channel)
+static void sccp_wrapper_asterisk113_setCalleridPresentation(constChannelPtr channel, sccp_callerid_presentation_t presentation)
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
-	if (CALLERID_PRESENCE_FORBIDDEN == channel->oldCallInfo.presentation) {
+	if (CALLERID_PRESENTATION_FORBIDDEN == presentation) {
 		ast_channel_caller(pbx_channel)->id.name.presentation |= AST_PRES_PROHIB_USER_NUMBER_NOT_SCREENED;
 		ast_channel_caller(pbx_channel)->id.number.presentation |= AST_PRES_PROHIB_USER_NUMBER_NOT_SCREENED;
 	}
@@ -2226,7 +2226,7 @@ static int sccp_wrapper_asterisk113_callerid_rdnis(constChannelPtr channel, char
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
  */
-static int sccp_wrapper_asterisk113_callerid_presence(constChannelPtr channel)
+static int sccp_wrapper_asterisk113_callerid_presentation(constChannelPtr channel)
 {
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
@@ -2235,9 +2235,9 @@ static int sccp_wrapper_asterisk113_callerid_presence(constChannelPtr channel)
 	// }
 	// return 0;
 	if ((ast_party_id_presentation(&ast_channel_caller(pbx_chan)->id) & AST_PRES_RESTRICTION) == AST_PRES_ALLOWED) {
-		return CALLERID_PRESENCE_ALLOWED;
+		return CALLERID_PRESENTATION_ALLOWED;
 	}
-	return CALLERID_PRESENCE_FORBIDDEN;
+	return CALLERID_PRESENTATION_FORBIDDEN;
 }
 
 static boolean_t sccp_wrapper_asterisk113_create_audio_rtp(sccp_channel_t * c)
@@ -3372,7 +3372,7 @@ const PbxInterface iPbx = {
 	get_callerid_subaddr:		sccp_wrapper_asterisk113_callerid_subaddr,
 	get_callerid_dnid:		sccp_wrapper_asterisk113_callerid_dnid,
 	get_callerid_rdnis:		sccp_wrapper_asterisk113_callerid_rdnis,
-	get_callerid_presence:		sccp_wrapper_asterisk113_callerid_presence,
+	get_callerid_presentation:		sccp_wrapper_asterisk113_callerid_presentation,
 
 	set_callerid_name:		sccp_wrapper_asterisk113_setCalleridName,
 	set_dialed_number:		sccp_wrapper_asterisk13_setDialedNumber,
@@ -3381,7 +3381,7 @@ const PbxInterface iPbx = {
 	set_callerid_dnid:		NULL,
 	set_callerid_redirectingParty:	sccp_wrapper_asterisk113_setRedirectingParty,
 	set_callerid_redirectedParty:	sccp_wrapper_asterisk113_setRedirectedParty,
-	set_callerid_presence:		sccp_wrapper_asterisk113_setCalleridPresence,
+	set_callerid_presentation:		sccp_wrapper_asterisk113_setCalleridPresentation,
 	set_connected_line:		sccp_wrapper_asterisk113_updateConnectedLine,
 	sendRedirectedUpdate:		sccp_asterisk_sendRedirectedUpdate,
 
@@ -3508,7 +3508,7 @@ const PbxInterface iPbx = {
 	.get_callerid_subaddr 		= sccp_wrapper_asterisk113_callerid_subaddr,
 	.get_callerid_dnid 		= sccp_wrapper_asterisk113_callerid_dnid,
 	.get_callerid_rdnis 		= sccp_wrapper_asterisk113_callerid_rdnis,
-	.get_callerid_presence 		= sccp_wrapper_asterisk113_callerid_presence,
+	.get_callerid_presentation 		= sccp_wrapper_asterisk113_callerid_presentation,
 
 	.set_callerid_name 		= sccp_wrapper_asterisk113_setCalleridName,
 	.set_callerid_number 		= sccp_wrapper_asterisk113_setCalleridNumber,
@@ -3517,7 +3517,7 @@ const PbxInterface iPbx = {
 	.set_callerid_dnid 		= NULL,						//! \todo implement callback
 	.set_callerid_redirectingParty 	= sccp_wrapper_asterisk113_setRedirectingParty,
 	.set_callerid_redirectedParty 	= sccp_wrapper_asterisk113_setRedirectedParty,
-	.set_callerid_presence 		= sccp_wrapper_asterisk113_setCalleridPresence,
+	.set_callerid_presentation 		= sccp_wrapper_asterisk113_setCalleridPresentation,
 	.set_connected_line		= sccp_wrapper_asterisk113_updateConnectedLine,
 	.sendRedirectedUpdate		= sccp_asterisk_sendRedirectedUpdate,
 

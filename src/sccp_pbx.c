@@ -150,7 +150,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	char cid_name[StationMaxNameSize] = {0};
 	char cid_num[StationMaxDirnumSize] = {0};
 	char suffixedNumber[StationMaxDirnumSize] = {0};
-	sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
+	sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
 
 	sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
 	sccp_callinfo_getter(ci, 
@@ -182,13 +182,13 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	iPbx.set_connected_line(c, l->cid_num, l->cid_name, AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN);
 
 	//! \todo implement dnid, ani, ani2 and rdnis
-	int pbx_presentation = iPbx.get_callerid_presence ? iPbx.get_callerid_presence(c) : -1;
+	int pbx_presentation = iPbx.get_callerid_presentation ? iPbx.get_callerid_presentation(c) : -1;
 	if (	(!sccp_strequals(suffixedNumber, cid_num)) || 
 		(pbx_presentation > -1 && pbx_presentation != presentation)
 	) {
 		sccp_callinfo_setter(ci, 
 			SCCP_CALLINFO_CALLINGPARTY_NUMBER, (!sccp_strlen_zero(suffixedNumber) ? suffixedNumber : NULL), 
-			SCCP_CALLINFO_PRESENTATION, (pbx_presentation > -1) ? !pbx_presentation : presentation,
+			SCCP_CALLINFO_PRESENTATION, (pbx_presentation > -1) ? pbx_presentation : presentation,
 			SCCP_CALLINFO_KEY_SENTINEL);
 	}
 	sccp_channel_display_callInfo(c);
@@ -1063,7 +1063,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			if (c->privacy) {
 
 				//pbx_channel->cid.cid_pres = AST_PRES_PROHIB_USER_NUMBER_NOT_SCREENED;
-				sccp_channel_set_calleridPresenceParameter(c, CALLERID_PRESENCE_FORBIDDEN);
+				sccp_channel_set_calleridPresentation(c, CALLERID_PRESENTATION_FORBIDDEN);
 			}
 
 			uint32_t result = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;

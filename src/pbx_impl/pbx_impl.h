@@ -107,7 +107,7 @@ typedef struct _PbxInterface {
 	int (*const get_callerid_subaddr) (constChannelPtr channel, char **subaddr);
 	int (*const get_callerid_dnid) (constChannelPtr channel, char **dnid);
 	int (*const get_callerid_rdnis) (constChannelPtr channel, char **rdnis);
-	int (*const get_callerid_presence) (constChannelPtr channel);
+	int (*const get_callerid_presentation) (constChannelPtr channel);
 
 	void (*const set_callerid_name) (constChannelPtr channel, const char *name);
 	void (*const set_dialed_number) (constChannelPtr channel, const char *number);
@@ -116,7 +116,7 @@ typedef struct _PbxInterface {
 	void (*const set_callerid_dnid) (constChannelPtr channel, const char *dnid);
 	void (*const set_callerid_redirectingParty) (constChannelPtr channel, const char *number, const char *name);
 	void (*const set_callerid_redirectedParty) (constChannelPtr channel, const char *number, const char *name);
-	void (*const set_callerid_presence) (constChannelPtr channel);
+	void (*const set_callerid_presentation) (constChannelPtr channel, sccp_callerid_presentation_t presentation);
 	void (*const set_connected_line) (constChannelPtr channel, const char *number, const char *name, uint8_t reason);
 	void (*const sendRedirectedUpdate) (constChannelPtr channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason);
 

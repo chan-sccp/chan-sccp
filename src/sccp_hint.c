@@ -740,7 +740,7 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
 					sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 					char cid_name[StationMaxNameSize] = {0};
 					char cid_num[StationMaxDirnumSize] = {0};
-					sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
+					sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
 
 					/* set cid name/numbe information according to the call direction */
 					if (SKINNY_CALLTYPE_INBOUND == channel->calltype) {
@@ -756,7 +756,7 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
 							SCCP_CALLINFO_PRESENTATION, &presentation, 
 							SCCP_CALLINFO_KEY_SENTINEL);
 					}
-					if (presentation == CALLERID_PRESENCE_FORBIDDEN) {
+					if (presentation == CALLERID_PRESENTATION_FORBIDDEN) {
 						sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyName));
 						sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
 					} else {
@@ -859,7 +859,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 				sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 				char cid_name[StationMaxNameSize] = {0};
 				char cid_num[StationMaxDirnumSize] = {0};
-				sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
+				sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
 				//if (dev_privacy == 0 || (dev_privacy == 1 && channel->privacy == FALSE)) {
 
 				/** set cid name/number information according to the call direction */
@@ -888,7 +888,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 					case SKINNY_CALLTYPE_SENTINEL:
 						break;
 				}
-				if (presentation == CALLERID_PRESENCE_FORBIDDEN) {
+				if (presentation == CALLERID_PRESENTATION_FORBIDDEN) {
 					sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyName));
 					sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
 				} else {
@@ -1421,7 +1421,7 @@ int sccp_show_hint_lineStates(int fd, sccp_cli_totals_t *totals, struct mansessi
  		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	lineState->line->name)					\
  		CLI_AMI_TABLE_FIELD(State,		"-22.22",	s,	22,	sccp_channelstate2str(lineState->state))		\
  		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15",	s,	15,	lineState->callInfo.partyNumber)			\
- 		CLI_AMI_TABLE_FIELD(CallInfoName,	"-20.20",	s,	20,	lineState->callInfo.partyName)				\
+ 		CLI_AMI_TABLE_FIELD(CallInfoName,	"-30.30",	s,	30,	lineState->callInfo.partyName)				\
  		CLI_AMI_TABLE_FIELD(Direction,		"-10.10",	s,	10,	(!SCCP_CHANNELSTATE_Idling(lineState->state) && lineState->callInfo.calltype) ? skinny_calltype2str(lineState->callInfo.calltype) : "INACTIVE")
 
 #include "sccp_cli_table.h"
@@ -1464,9 +1464,9 @@ int sccp_show_hint_subscriptions(int fd, sccp_cli_totals_t *totals, struct manse
  		CLI_AMI_TABLE_FIELD(Hint,		"-15.15",	s,	15,	subscription->hint_dialplan)				\
  		CLI_AMI_TABLE_FIELD(State,		"-22.22",	s,	22,	sccp_channelstate2str(subscription->currentState))	\
  		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15",	s,	15,	subscription->callInfo.partyNumber)			\
- 		CLI_AMI_TABLE_FIELD(CallInfoName,	"-20.20",	s,	20,	subscription->callInfo.partyName)			\
+ 		CLI_AMI_TABLE_FIELD(CallInfoName,	"-30.30",	s,	30,	subscription->callInfo.partyName)			\
  		CLI_AMI_TABLE_FIELD(Direction,		"-10.10",	s,	10,	(subscription->callInfo.calltype && subscription->callInfo.calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(subscription->callInfo.calltype) : "") \
- 		CLI_AMI_TABLE_FIELD(Subs,		"-4",		d,		4,	SCCP_LIST_GETSIZE(&subscription->subscribers))
+ 		CLI_AMI_TABLE_FIELD(Subs,		"-4",		d,	4,	SCCP_LIST_GETSIZE(&subscription->subscribers))
 
 #include "sccp_cli_table.h"
 

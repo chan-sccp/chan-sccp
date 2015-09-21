@@ -270,7 +270,7 @@ static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, cons
 	REQ(msg, CallInfoMessage);
 	memset(msg, 0, sizeof(msg->data.CallInfoMessage));
 
-	sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
+	sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
 	sccp_callinfo_getter(ci,
 		SCCP_CALLINFO_CALLEDPARTY_NAME, &msg->data.CallInfoMessage.calledPartyName,
 		SCCP_CALLINFO_CALLEDPARTY_NUMBER, &msg->data.CallInfoMessage.calledParty,
@@ -313,7 +313,7 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 	
 	int originalCdpnRedirectReason = 0;
 	int lastRedirectingReason = 0;
-	sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
+	sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
 	sccp_callinfo_getter(ci,
 		SCCP_CALLINFO_CALLINGPARTY_NUMBER, data[0],
 		SCCP_CALLINFO_CALLEDPARTY_NUMBER, data[1],
@@ -395,7 +395,7 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	
 	int originalCdpnRedirectReason = 0;
 	int lastRedirectingReason = 0;
-	sccp_calleridpresence_t presentation = CALLERID_PRESENCE_ALLOWED;
+	sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
 	sccp_callinfo_getter(ci,
 		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &data[0],
 		SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &data[1],
