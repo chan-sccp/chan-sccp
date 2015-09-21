@@ -471,7 +471,6 @@ int sccp_callinfo_send(sccp_callinfo_t * const ci, const uint32_t callid, const 
 	return 0;
 }
 
-
 int sccp_callinfo_setCalledParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize])
 {
 	assert(ci != NULL);

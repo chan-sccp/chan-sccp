@@ -1347,7 +1347,20 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
 
 				} else {
-					sccp_callinfo_send(hint->callInfo, 0 /*callid*/, hint->calltype, subscriber->instance, d, TRUE);
+					if (!sccp_strlen_zero(hint->callInfo.partyNumber)) {
+						sccp_callinfo_t *ci = sccp_callinfo_ctor();
+						sccp_callinfo_setter(ci, 
+							SCCP_CALLINFO_CALLINGPARTY_NAME, hint->callInfo.partyName,
+							SCCP_CALLINFO_CALLINGPARTY_NUMBER, hint->callInfo.partyNumber,
+							SCCP_CALLINFO_CALLEDPARTY_NAME, hint->callInfo.partyName,
+							SCCP_CALLINFO_CALLEDPARTY_NUMBER, hint->callInfo.partyNumber,
+							SCCP_CALLINFO_KEY_SENTINEL);
+						uint8_t calltype = (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? SKINNY_CALLTYPE_OUTBOUND : SKINNY_CALLTYPE_INBOUND;
+						//d->protocol->sendCallInfo(ci, 0 /*callid*/, calltype, subscriber->instance, d);
+						sccp_callinfo_send(ci, 0 /*callid*/, calltype, subscriber->instance, d, FALSE);
+						sccp_callinfo_dtor(ci);
+					}
+
 					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_ON);
 					sccp_dev_set_keyset(d, subscriber->instance, 0 /*callid*/, KEYMODE_INUSEHINT);
 				}
