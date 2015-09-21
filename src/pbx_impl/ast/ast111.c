@@ -847,7 +847,7 @@ static int sccp_wrapper_asterisk111_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 	return res;
 }
 
-static void sccp_wrapper_asterisk111_setCalleridPresentation(const sccp_channel_t * channel)
+static void sccp_wrapper_asterisk111_setCalleridPresentation(const sccp_channel_t * channel, sccp_callerid_presentation_t presentation)
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 

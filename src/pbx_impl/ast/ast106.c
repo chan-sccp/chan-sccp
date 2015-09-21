@@ -756,7 +756,7 @@ static int sccp_wrapper_asterisk16_sendDigit(const sccp_channel_t * channel, con
 	return sccp_wrapper_asterisk16_sendDigits(channel, digits);
 }
 
-static void sccp_wrapper_asterisk16_setCalleridPresentation(const sccp_channel_t * channel)
+static void sccp_wrapper_asterisk16_setCalleridPresentation(const sccp_channel_t * channel, sccp_callerid_presentation_t presentation)
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
