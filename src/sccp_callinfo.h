@@ -36,7 +36,6 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
  * \returns: number of changed fields
  */
 int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...);
-void sccp_callinfo_getStringArray(const sccp_callinfo_t * const ci, char strArray[16][StationMaxNameSize]);
 
 /* helpers */
 int sccp_callinfo_setCalledParty(sccp_callinfo_t * const ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize]);
@@ -44,17 +43,6 @@ int sccp_callinfo_setCallingParty(sccp_callinfo_t * const ci, const char name[St
 int sccp_callinfo_setOrigCalledParty(sccp_callinfo_t * const ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize], const int reason);
 int sccp_callinfo_setOrigCallingParty(sccp_callinfo_t * const ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize]);
 int sccp_callinfo_setLastRedirectingParty(sccp_callinfo_t * const ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize], const int reason);
-
-/*!
- * \brief return all callinfo strings concatenated into one newly allocated string, null seperated
- * \note used by sccp_protocol.c sendCallInfo 
- * \note resulting buffer needs to be freed
- *
- * \usage: unsigned int x = sccp_callinfo_getString(ci, resultcharPtr, &result_data_len, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, SCCP_CALLINFO_KEY_SENTINEL);
- * SENTINEL is required to stop processing
- * \returns ptr to buffer
- */
-char __attribute__ ((malloc)) * sccp_callinfo_getString(const sccp_callinfo_t * const ci, int *newlen, sccp_callinfo_key_t key, ...);
 
 /* debug */
 boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str_t ** const buf);
