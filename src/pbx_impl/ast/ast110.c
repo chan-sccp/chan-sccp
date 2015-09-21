@@ -449,48 +449,51 @@ static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, const void *data)
 static void sccp_wrapper_asterisk110_connectedline(sccp_channel_t * channel, const void *data, size_t datalen)
 {
 	PBX_CHANNEL_TYPE *ast = channel->owner;
+	sccp_callinfo_t *const callInfo = sccp_channel_getCallInfo(channel);
 
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got connected line update, connected.id.number=%s, connected.id.name=%s, reason=%d\n", pbx_channel_name(ast), ast->connected.id.number.str ? ast->connected.id.number.str : "(nil)", ast->connected.id.name.str ? ast->connected.id.name.str : "(nil)", ast->connected.source);
 
-	// sccp_channel_display_callInfo(channel);
+	char tmpCallingNumber[StationMaxDirnumSize] = {0};
+	char tmpCallingName[StationMaxNameSize] = {0};
+	char tmpCalledNumber[StationMaxDirnumSize] = {0};
+	char tmpCalledName[StationMaxNameSize] = {0};
+	int tmpOrigCalledPartyRedirectReason = 0;
+	int tmpLastRedirectReason = 4;          /* \todo need to figure out more about these codes */
 
 	/* set the original calling/called party if the reason is a transfer */
+	sccp_callinfo_getter(callInfo,
+		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &tmpCallingNumber,
+		SCCP_CALLINFO_CALLINGPARTY_NAME, &tmpCallingName,
+		SCCP_CALLINFO_CALLEDPARTY_NUMBER, &tmpCalledNumber,
+		SCCP_CALLINFO_CALLEDPARTY_NAME, &tmpCalledName,
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &tmpOrigCalledPartyRedirectReason,
+		SCCP_CALLINFO_KEY_SENTINEL);
 	if (ast->connected.source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || ast->connected.source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Destination\n");
-			if (ast->connected.id.number.str && !sccp_strlen_zero(ast->connected.id.number.str)) {
-				sccp_copy_string(channel->oldCallInfo.originalCallingPartyNumber, ast->connected.id.number.str, sizeof(channel->oldCallInfo.originalCallingPartyNumber));
-				channel->oldCallInfo.originalCallingParty_valid = 1;
-			}
-			if (ast->connected.id.name.str && !sccp_strlen_zero(ast->connected.id.name.str)) {
-				sccp_copy_string(channel->oldCallInfo.originalCallingPartyName, ast->connected.id.name.str, sizeof(channel->oldCallInfo.originalCallingPartyName));
-			}
-			if (channel->oldCallInfo.callingParty_valid) {
-				sccp_copy_string(channel->oldCallInfo.originalCalledPartyNumber, channel->oldCallInfo.callingPartyNumber, sizeof(channel->oldCallInfo.originalCalledPartyNumber));
-				sccp_copy_string(channel->oldCallInfo.originalCalledPartyName, channel->oldCallInfo.callingPartyNumber, sizeof(channel->oldCallInfo.originalCalledPartyName));
-				channel->oldCallInfo.originalCalledParty_valid = 1;
-				sccp_copy_string(channel->oldCallInfo.lastRedirectingPartyName, channel->oldCallInfo.callingPartyName, sizeof(channel->oldCallInfo.lastRedirectingPartyName));
-				sccp_copy_string(channel->oldCallInfo.lastRedirectingPartyNumber, channel->oldCallInfo.callingPartyNumber, sizeof(channel->oldCallInfo.lastRedirectingPartyNumber));
-				channel->oldCallInfo.lastRedirectingParty_valid = 1;
-			}
+			sccp_callinfo_setter(callInfo, 
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, ast->connected.id.number.str,
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, ast->connected.id.name.str,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, tmpCallingNumber,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, tmpCallingName,
+				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, tmpCallingNumber,
+				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, tmpCallingNumber,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, tmpOrigCalledPartyRedirectReason,
+				SCCP_CALLINFO_LAST_REDIRECT_REASON, tmpLastRedirectReason,
+				SCCP_CALLINFO_KEY_SENTINEL);
 		} else {
 			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Transferee\n");
-			if (channel->oldCallInfo.callingParty_valid) {
-				sccp_copy_string(channel->oldCallInfo.originalCallingPartyNumber, channel->oldCallInfo.callingPartyNumber, sizeof(channel->oldCallInfo.originalCallingPartyNumber));
-				sccp_copy_string(channel->oldCallInfo.originalCallingPartyName, channel->oldCallInfo.callingPartyNumber, sizeof(channel->oldCallInfo.originalCallingPartyName));
-				channel->oldCallInfo.originalCallingParty_valid = 1;
-			}
-			if (channel->oldCallInfo.calledParty_valid) {
-				sccp_copy_string(channel->oldCallInfo.originalCalledPartyNumber, channel->oldCallInfo.calledPartyNumber, sizeof(channel->oldCallInfo.originalCalledPartyNumber));
-				sccp_copy_string(channel->oldCallInfo.originalCalledPartyName, channel->oldCallInfo.calledPartyNumber, sizeof(channel->oldCallInfo.originalCalledPartyName));
-				channel->oldCallInfo.originalCalledParty_valid = 1;
-				sccp_copy_string(channel->oldCallInfo.lastRedirectingPartyName, channel->oldCallInfo.calledPartyName, sizeof(channel->oldCallInfo.lastRedirectingPartyName));
-				sccp_copy_string(channel->oldCallInfo.lastRedirectingPartyNumber, channel->oldCallInfo.calledPartyNumber, sizeof(channel->oldCallInfo.lastRedirectingPartyNumber));
-				channel->oldCallInfo.lastRedirectingParty_valid = 1;
-			}
+			sccp_callinfo_setter(callInfo, 
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER,tmpCallingNumber,
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, tmpCallingName,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, ast->connected.id.number.str,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, ast->connected.id.name.str,
+				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, tmpCalledNumber,
+				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, tmpCalledNumber,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, tmpOrigCalledPartyRedirectReason,
+				SCCP_CALLINFO_LAST_REDIRECT_REASON, tmpLastRedirectReason,
+				SCCP_CALLINFO_KEY_SENTINEL);
 		}
-		channel->oldCallInfo.originalCdpnRedirectReason = channel->oldCallInfo.lastRedirectingReason;
-		channel->oldCallInfo.lastRedirectingReason = 4;							// need to figure out these codes
 	}
 
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
@@ -828,11 +831,11 @@ static int sccp_wrapper_asterisk110_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 	return res;
 }
 
-static void sccp_wrapper_asterisk110_setCalleridPresence(const sccp_channel_t * channel)
+static void sccp_wrapper_asterisk110_setCalleridPresentation(const sccp_channel_t * channel, sccp_callerid_presentation_t presentation)
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
-	if (CALLERID_PRESENCE_FORBIDDEN == channel->oldCallInfo.presentation) {
+	if (CALLERID_PRESENTATION_FORBIDDEN == presentation) {
 		pbx_channel->caller.id.name.presentation |= AST_PRES_PROHIB_USER_NUMBER_NOT_SCREENED;
 		pbx_channel->caller.id.number.presentation |= AST_PRES_PROHIB_USER_NUMBER_NOT_SCREENED;
 	}
@@ -873,6 +876,45 @@ static void sccp_wrapper_asterisk110_setOwner(sccp_channel_t * channel, PBX_CHAN
 	}
 	if (prev_owner) {
 		ast_channel_unref(prev_owner);
+	}
+}
+
+static void __sccp_wrapper_asterisk110_updateConnectedLine(PBX_CHANNEL_TYPE *pbx_channel, const char *number, const char *name, uint8_t reason)
+{
+	if (!pbx_channel) {
+		return;
+	}
+	struct ast_party_connected_line connected;
+	struct ast_set_party_connected_line update_connected;
+
+	memset(&update_connected, 0, sizeof(update_connected));
+	ast_party_connected_line_init(&connected);
+
+	if (!sccp_strlen_zero(connected.id.number.str)) {
+		ast_free(connected.id.number.str);
+	}
+	if (number) {
+		update_connected.id.number = 1;
+		connected.id.number.valid = 1;
+		connected.id.number.str = strdup(number);
+		connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
+	}
+
+	if (!sccp_strlen_zero(connected.id.name.str)) {
+		ast_free(connected.id.name.str);
+	}
+	if (name) {
+		update_connected.id.name = 1;
+		connected.id.name.valid = 1;
+		connected.id.name.str = strdup(name);
+		connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
+	}
+	if (update_connected.id.number || update_connected.id.name) {
+		//ast_set_party_id_all(&update_connected.priv);
+		// connected.id.tag = NULL;
+		connected.source = reason;
+		ast_channel_queue_connected_line_update(pbx_channel, &connected, &update_connected);
+		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: do connected line for line '%s', name: %s ,num: %s\n", pbx_channel_name(pbx_channel), name ? name : "(NULL)", number ? number : "(NULL)");
 	}
 }
 
@@ -1394,8 +1436,13 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 
 	if (requestor) {
 		/* set calling party */
-		sccp_channel_set_callingparty(channel, requestor->caller.id.name.str, requestor->caller.id.number.str);
-		sccp_channel_set_originalCalledparty(channel, requestor->redirecting.from.name.str, requestor->redirecting.from.number.str);
+		sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
+		sccp_callinfo_setter(ci, 
+				SCCP_CALLINFO_CALLINGPARTY_NAME, requestor->caller.id.name.str,
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, requestor->caller.id.number.str,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, requestor->redirecting.from.name.str,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, requestor->redirecting.from.number.str,
+				SCCP_CALLINFO_KEY_SENTINEL);
 
 		if (requestor->linkedid) {
 			ast_string_field_set(channel->owner, linkedid, requestor->linkedid);
@@ -1900,7 +1947,7 @@ static int sccp_wrapper_asterisk110_callerid_rdnis(const sccp_channel_t * channe
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
  */
-static int sccp_wrapper_asterisk110_callerid_presence(const sccp_channel_t * channel)
+static int sccp_wrapper_asterisk110_callerid_presentation(const sccp_channel_t * channel)
 {
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
@@ -1909,9 +1956,9 @@ static int sccp_wrapper_asterisk110_callerid_presence(const sccp_channel_t * cha
 	// }
 	// return 0;       
 	if ((ast_party_id_presentation(&pbx_chan->caller.id) & AST_PRES_RESTRICTION) == AST_PRES_ALLOWED) {
-		return CALLERID_PRESENCE_ALLOWED;
+		return CALLERID_PRESENTATION_ALLOWED;
 	}
-	return CALLERID_PRESENCE_FORBIDDEN;
+	return CALLERID_PRESENTATION_FORBIDDEN;
 }
 
 static boolean_t sccp_wrapper_asterisk110_create_audio_rtp(sccp_channel_t * c)
@@ -2196,38 +2243,7 @@ static void sccp_wrapper_asterisk110_updateConnectedLine(const sccp_channel_t * 
 	if (!channel || !channel->owner) {
 		return;
 	}
-	struct ast_party_connected_line connected;
-	struct ast_set_party_connected_line update_connected;
-
-	memset(&update_connected, 0, sizeof(update_connected));
-	ast_party_connected_line_init(&connected);
-
-	if (!sccp_strlen_zero(connected.id.number.str)) {
-		ast_free(connected.id.number.str);
-	}
-	if (number) {
-		update_connected.id.number = 1;
-		connected.id.number.valid = 1;
-		connected.id.number.str = strdup(number);
-		connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
-	}
-
-	if (!sccp_strlen_zero(connected.id.name.str)) {
-		ast_free(connected.id.name.str);
-	}
-	if (name) {
-		update_connected.id.name = 1;
-		connected.id.name.valid = 1;
-		connected.id.name.str = strdup(name);
-		connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
-	}
-	if (update_connected.id.number || update_connected.id.name) {
-		//ast_set_party_id_all(&update_connected.priv);
-		// connected.id.tag = NULL;
-		connected.source = reason;
-		ast_channel_queue_connected_line_update(channel->owner, &connected, &update_connected);
-		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: do connected line for line '%s', name: %s ,num: %s\n", pbx_channel_name(channel->owner), name ? name : "(NULL)", number ? number : "(NULL)");
-	}
+	__sccp_wrapper_asterisk110_updateConnectedLine(channel->owner, number, name, reason);
 }
 
 static int sccp_wrapper_asterisk110_sched_add(int when, sccp_sched_cb callback, const void *data)
@@ -2893,7 +2909,7 @@ const PbxInterface iPbx = {
 	get_callerid_subaddr:		sccp_wrapper_asterisk110_callerid_subaddr,
 	get_callerid_dnid:		sccp_wrapper_asterisk110_callerid_dnid,
 	get_callerid_rdnis:		sccp_wrapper_asterisk110_callerid_rdnis,
-	get_callerid_presence:		sccp_wrapper_asterisk110_callerid_presence,
+	get_callerid_presentation:	sccp_wrapper_asterisk110_callerid_presentation,
 
 	set_callerid_name:		sccp_wrapper_asterisk110_setCalleridName,
 	set_callerid_number:		sccp_wrapper_asterisk110_setCalleridNumber,
@@ -2901,7 +2917,7 @@ const PbxInterface iPbx = {
 	set_callerid_dnid:		NULL,
 	set_callerid_redirectingParty:	sccp_wrapper_asterisk110_setRedirectingParty,
 	set_callerid_redirectedParty:	sccp_wrapper_asterisk110_setRedirectedParty,
-	set_callerid_presence:		sccp_wrapper_asterisk110_setCalleridPresence,
+	set_callerid_presentation:	sccp_wrapper_asterisk110_setCalleridPresentation,
 	set_connected_line:		sccp_wrapper_asterisk110_updateConnectedLine,
 	sendRedirectedUpdate:		sccp_asterisk_sendRedirectedUpdate,
 
@@ -3022,14 +3038,14 @@ const PbxInterface iPbx = {
 	.get_callerid_subaddr 		= sccp_wrapper_asterisk110_callerid_subaddr,
 	.get_callerid_dnid 		= sccp_wrapper_asterisk110_callerid_dnid,
 	.get_callerid_rdnis 		= sccp_wrapper_asterisk110_callerid_rdnis,
-	.get_callerid_presence 		= sccp_wrapper_asterisk110_callerid_presence,
+	.get_callerid_presentation 		= sccp_wrapper_asterisk110_callerid_presentation,
 	.set_callerid_name 		= sccp_wrapper_asterisk110_setCalleridName,
 	.set_callerid_number 		= sccp_wrapper_asterisk110_setCalleridNumber,
 	.set_callerid_ani 		= sccp_wrapper_asterisk110_setCalleridAni,
 	.set_callerid_dnid 		= NULL,						//! \todo implement callback
 	.set_callerid_redirectingParty 	= sccp_wrapper_asterisk110_setRedirectingParty,
 	.set_callerid_redirectedParty 	= sccp_wrapper_asterisk110_setRedirectedParty,
-	.set_callerid_presence 		= sccp_wrapper_asterisk110_setCalleridPresence,
+	.set_callerid_presentation 		= sccp_wrapper_asterisk110_setCalleridPresentation,
 	.set_connected_line		= sccp_wrapper_asterisk110_updateConnectedLine,
 	.sendRedirectedUpdate		= sccp_asterisk_sendRedirectedUpdate,
 	

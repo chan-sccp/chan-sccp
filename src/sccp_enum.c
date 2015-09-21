@@ -1046,54 +1046,54 @@ char *sccp_parkresult_all_entries(void) {
 /* = End =========================================================================================                sccp_parkresult === */
 
 
-/* = Begin =======================================================================================          sccp_calleridpresence === */
+/* = Begin =======================================================================================     sccp_callerid_presentation === */
 
 
 /*
- * \brief enum sccp_calleridpresence
+ * \brief enum sccp_callerid_presentation
  */
-static const char *sccp_calleridpresence_map[] = {
-	[CALLERID_PRESENCE_FORBIDDEN] = "CalledId Presence Forbidden",
-	[CALLERID_PRESENCE_ALLOWED] = "CallerId Presence Allowed",
-	[SCCP_CALLERIDPRESENCE_SENTINEL] = "LOOKUPERROR"
+static const char *sccp_callerid_presentation_map[] = {
+	[CALLERID_PRESENTATION_FORBIDDEN] = "CalledId Presentation Forbidden",
+	[CALLERID_PRESENTATION_ALLOWED] = "CallerId Presentation Allowed",
+	[SCCP_CALLERID_PRESENTATION_SENTINEL] = "LOOKUPERROR"
 };
 
-int sccp_calleridpresence_exists(int sccp_calleridpresence_int_value) {
-	if ((CALLERID_PRESENCE_ALLOWED <=sccp_calleridpresence_int_value) && (sccp_calleridpresence_int_value < SCCP_CALLERIDPRESENCE_SENTINEL )) {
+int sccp_callerid_presentation_exists(int sccp_callerid_presentation_int_value) {
+	if ((CALLERID_PRESENTATION_ALLOWED <=sccp_callerid_presentation_int_value) && (sccp_callerid_presentation_int_value < SCCP_CALLERID_PRESENTATION_SENTINEL )) {
 		return 1;
 	}
 	return 0;
 }
 
-const char * sccp_calleridpresence2str(sccp_calleridpresence_t enum_value) {
-	if ((CALLERID_PRESENCE_FORBIDDEN <= enum_value) && (enum_value <= SCCP_CALLERIDPRESENCE_SENTINEL)) {
-		return sccp_calleridpresence_map[enum_value];
+const char * sccp_callerid_presentation2str(sccp_callerid_presentation_t enum_value) {
+	if ((CALLERID_PRESENTATION_FORBIDDEN <= enum_value) && (enum_value <= SCCP_CALLERID_PRESENTATION_SENTINEL)) {
+		return sccp_callerid_presentation_map[enum_value];
 	}
-	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_calleridpresence2str\n", enum_value);
-	return "SCCP: OutOfBounds Error during lookup of sccp_calleridpresence2str\n";
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_callerid_presentation2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_callerid_presentation2str\n";
 }
 
-sccp_calleridpresence_t sccp_calleridpresence_str2val(const char *lookup_str) {
+sccp_callerid_presentation_t sccp_callerid_presentation_str2val(const char *lookup_str) {
 	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_calleridpresence_map); idx++) {
-		if (sccp_strcaseequals(sccp_calleridpresence_map[idx], lookup_str)) {
+	for (idx = 0; idx < ARRAY_LEN(sccp_callerid_presentation_map); idx++) {
+		if (sccp_strcaseequals(sccp_callerid_presentation_map[idx], lookup_str)) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_calleridpresence_str2val(%s) not found\n", lookup_str);
-	return SCCP_CALLERIDPRESENCE_SENTINEL;
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_callerid_presentation_str2val(%s) not found\n", lookup_str);
+	return SCCP_CALLERID_PRESENTATION_SENTINEL;
 }
 
-int sccp_calleridpresence_str2intval(const char *lookup_str) {
-	int res = sccp_calleridpresence_str2val(lookup_str);
-	return (int)res != SCCP_CALLERIDPRESENCE_SENTINEL ? res : -1;
+int sccp_callerid_presentation_str2intval(const char *lookup_str) {
+	int res = sccp_callerid_presentation_str2val(lookup_str);
+	return (int)res != SCCP_CALLERID_PRESENTATION_SENTINEL ? res : -1;
 }
 
-char *sccp_calleridpresence_all_entries(void) {
-	static char res[] = "CalledId Presence Forbidden,CallerId Presence Allowed";
+char *sccp_callerid_presentation_all_entries(void) {
+	static char res[] = "CalledId Presentation Forbidden,CallerId Presentation Allowed";
 	return res;
 }
-/* = End =========================================================================================          sccp_calleridpresence === */
+/* = End =========================================================================================     sccp_callerid_presentation === */
 
 
 /* = Begin =======================================================================================                sccp_rtp_status === */
