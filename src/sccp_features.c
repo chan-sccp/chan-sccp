@@ -540,14 +540,7 @@ int sccp_feat_grouppickup(constLinePtr l, constDevicePtr d)
 
 	/* change the call direction, we know it is a pickup, so it should be an inbound call */
 	c->calltype = SKINNY_CALLTYPE_INBOUND;
-	/*
-	sccp_copy_string(c->oldCallInfo.calledPartyNumber, c->oldCallInfo.callingPartyNumber, sizeof(c->oldCallInfo.calledPartyNumber));
-	sccp_copy_string(c->oldCallInfo.calledPartyName, c->oldCallInfo.callingPartyName, sizeof(c->oldCallInfo.calledPartyName));
-	c->oldCallInfo.calledParty_valid = 1;
-	c->oldCallInfo.callingParty_valid = 0;
-	c->oldCallInfo.callingPartyName[0] = '\0';
-	c->oldCallInfo.callingPartyNumber[0] = '\0';
-	*/
+
 	char cid_name[StationMaxNameSize] = {0};
 	char cid_num[StationMaxDirnumSize] = {0};
 	sccp_callinfo_getter(sccp_channel_getCallInfo(c), 
