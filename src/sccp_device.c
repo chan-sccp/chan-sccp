@@ -2653,7 +2653,7 @@ static void sccp_device_indicate_proceed(constDevicePtr device, const uint8_t li
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	if (device->protocol && device->protocol->sendOldCallInfo) {
+	if (device->protocol && device->protocol->sendCallInfo) {
 		device->protocol->sendCallInfo(callinfo, callid, calltype, lineInstance, device);
 	}
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));

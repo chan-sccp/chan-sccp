@@ -677,7 +677,11 @@ void sccp_asterisk_moh_stop(PBX_CHANNEL_TYPE * pbx_channel)
 void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen)
 {
 	PBX_CHANNEL_TYPE *ast = channel->owner;
+	int redirectreason = 0;
 
+	sccp_callinfo_setter(sccp_channel_getCallInfo(channel), 
+		SCCP_CALLINFO_LAST_REDIRECT_REASON, &redirectreason,
+		SCCP_CALLINFO_KEY_SENTINEL);
 #if ASTERISK_VERSION_GROUP >106
 	struct ast_party_id redirecting_from = pbx_channel_redirecting_effective_from(ast);
 	struct ast_party_id redirecting_to = pbx_channel_redirecting_effective_to(ast);
@@ -685,19 +689,20 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>; To %s<%s>\n", pbx_channel_name(ast), (redirecting_from.name.valid && redirecting_from.name.str) ? redirecting_from.name.str : "", (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "", (redirecting_to.name.valid && redirecting_to.name.str) ? redirecting_to.name.str : "",
 				  (redirecting_to.number.valid && redirecting_to.number.str) ? redirecting_to.number.str : "");
 
-	if (redirecting_from.name.valid && redirecting_from.name.str) {
-		sccp_copy_string(channel->oldCallInfo.lastRedirectingPartyName, redirecting_from.name.str, sizeof(channel->oldCallInfo.callingPartyName));
-	}
+	sccp_callinfo_setter(sccp_channel_getCallInfo(channel), 
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, redirecting_from.name.valid && redirecting_from.name.str ? redirecting_from.name.str : NULL, 
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "",
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, redirectreason,
+		SCCP_CALLINFO_LAST_REDIRECT_REASON, 4,					// need to figure out these codes
+		SCCP_CALLINFO_KEY_SENTINEL);
 
-	sccp_copy_string(channel->oldCallInfo.lastRedirectingPartyNumber, (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "", sizeof(channel->oldCallInfo.lastRedirectingPartyNumber));
-	channel->oldCallInfo.lastRedirectingParty_valid = 1;
 #else
-	sccp_copy_string(channel->oldCallInfo.lastRedirectingPartyNumber, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : "", sizeof(channel->oldCallInfo.lastRedirectingPartyNumber));
-	channel->oldCallInfo.lastRedirectingParty_valid = 1;
+	sccp_callinfo_setter(sccp_channel_getCallInfo(channel), 
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : ""
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, redirectreason,
+		SCCP_CALLINFO_LAST_REDIRECT_REASON, 4,					// need to figure out these codes
+		SCCP_CALLINFO_KEY_SENTINEL);
 #endif
-	channel->oldCallInfo.originalCdpnRedirectReason = channel->oldCallInfo.lastRedirectingReason;
-	channel->oldCallInfo.lastRedirectingReason = 4;								// need to figure out these codes
-
 	sccp_channel_send_callinfo2(channel);
 }
 
