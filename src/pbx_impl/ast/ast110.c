@@ -3038,14 +3038,14 @@ const PbxInterface iPbx = {
 	.get_callerid_subaddr 		= sccp_wrapper_asterisk110_callerid_subaddr,
 	.get_callerid_dnid 		= sccp_wrapper_asterisk110_callerid_dnid,
 	.get_callerid_rdnis 		= sccp_wrapper_asterisk110_callerid_rdnis,
-	.get_callerid_presentation 		= sccp_wrapper_asterisk110_callerid_presentation,
+	.get_callerid_presentation 	= sccp_wrapper_asterisk110_callerid_presentation,
 	.set_callerid_name 		= sccp_wrapper_asterisk110_setCalleridName,
 	.set_callerid_number 		= sccp_wrapper_asterisk110_setCalleridNumber,
 	.set_callerid_ani 		= sccp_wrapper_asterisk110_setCalleridAni,
 	.set_callerid_dnid 		= NULL,						//! \todo implement callback
 	.set_callerid_redirectingParty 	= sccp_wrapper_asterisk110_setRedirectingParty,
 	.set_callerid_redirectedParty 	= sccp_wrapper_asterisk110_setRedirectedParty,
-	.set_callerid_presentation 		= sccp_wrapper_asterisk110_setCalleridPresentation,
+	.set_callerid_presentation 	= sccp_wrapper_asterisk110_setCalleridPresentation,
 	.set_connected_line		= sccp_wrapper_asterisk110_updateConnectedLine,
 	.sendRedirectedUpdate		= sccp_asterisk_sendRedirectedUpdate,
 	
