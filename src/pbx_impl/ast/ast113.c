@@ -511,9 +511,6 @@ static void sccp_wrapper_asterisk113_connectedline(sccp_channel_t * channel, con
 	int tmpOrigCalledPartyRedirectReason = 0;
 	int tmpLastRedirectReason = 4;		/* \todo need to figure out more about these codes */
 
-	sccp_channel_display_callInfo(channel);
-
-	/* set the original calling/called party if the reason is a transfer */
 	sccp_callinfo_getter(callInfo,
 		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &tmpCallingNumber,
 		SCCP_CALLINFO_CALLINGPARTY_NAME, &tmpCallingName,
@@ -521,6 +518,8 @@ static void sccp_wrapper_asterisk113_connectedline(sccp_channel_t * channel, con
 		SCCP_CALLINFO_CALLEDPARTY_NAME, &tmpCalledName,
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &tmpOrigCalledPartyRedirectReason,
 		SCCP_CALLINFO_KEY_SENTINEL);
+
+	/* set the original calling/called party if the reason is a transfer */
 	if (ast_channel_connected(ast)->source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || ast_channel_connected(ast)->source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Destination\n");
