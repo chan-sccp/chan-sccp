@@ -1436,9 +1436,6 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 
 	if (requestor) {
 		/* set calling party */
-		if (channel->line) {							/* we now know the name of the dialed line, sending update to remote side */
-			__sccp_wrapper_asterisk110_updateConnectedLine((PBX_CHANNEL_TYPE *) requestor, NULL, channel->line->cid_name, AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN);
-		}
 		sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 		sccp_callinfo_setter(ci, 
 				SCCP_CALLINFO_CALLINGPARTY_NAME, requestor->caller.id.name.str,
