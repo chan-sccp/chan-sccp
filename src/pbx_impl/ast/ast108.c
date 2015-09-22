@@ -2428,7 +2428,7 @@ static boolean_t sccp_wrapper_asterisk18_rtpGetPeer(PBX_RTP_TYPE * rtp, struct s
 		.ss = *address,
 	};
 
-	ast_rtp_get_peer(rtp, &tmpaddress.sin);
+	ast_rtp_instance_get_remote_address(rtp, &tmpaddress.sin);
 	address->ss_family = AF_INET;
 	return TRUE;
 }
@@ -2444,7 +2444,7 @@ static boolean_t sccp_wrapper_asterisk18_rtpGetUs(PBX_RTP_TYPE * rtp, struct soc
 		.ss = *address,
 	};
 
-	ast_rtp_get_us(rtp, &tmpaddress.sin);
+	ast_rtp_instance_get_local_address(rtp, &tmpaddress.sin);
 	address->ss_family = AF_INET;
 	return TRUE;
 }
