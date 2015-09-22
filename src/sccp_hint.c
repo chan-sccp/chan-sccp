@@ -981,6 +981,7 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 		case SCCP_CHANNELSTATE_ONHOOK:
 			newDeviceState = AST_DEVICE_NOT_INUSE;
 			break;
+		case SCCP_CHANNELSTATE_RINGOUT:
 		case SCCP_CHANNELSTATE_RINGING:
 			newDeviceState = AST_DEVICE_RINGING;
 			break;
@@ -999,7 +1000,6 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			break;
 		case SCCP_CHANNELSTATE_INVALIDNUMBER:
 		case SCCP_CHANNELSTATE_PROCEED:
-		case SCCP_CHANNELSTATE_RINGOUT:
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 		case SCCP_CHANNELSTATE_OFFHOOK:
 		case SCCP_CHANNELSTATE_GETDIGITS:
@@ -1347,20 +1347,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
 
 				} else {
-					if (!sccp_strlen_zero(hint->callInfo.partyNumber)) {
-						sccp_callinfo_t *ci = sccp_callinfo_ctor();
-						sccp_callinfo_setter(ci, 
-							SCCP_CALLINFO_CALLINGPARTY_NAME, hint->callInfo.partyName,
-							SCCP_CALLINFO_CALLINGPARTY_NUMBER, hint->callInfo.partyNumber,
-							SCCP_CALLINFO_CALLEDPARTY_NAME, hint->callInfo.partyName,
-							SCCP_CALLINFO_CALLEDPARTY_NUMBER, hint->callInfo.partyNumber,
-							SCCP_CALLINFO_KEY_SENTINEL);
-						uint8_t calltype = (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? SKINNY_CALLTYPE_OUTBOUND : SKINNY_CALLTYPE_INBOUND;
-						//d->protocol->sendCallInfo(ci, 0 /*callid*/, calltype, subscriber->instance, d);
-						sccp_callinfo_send(ci, 0 /*callid*/, calltype, subscriber->instance, d, FALSE);
-						sccp_callinfo_dtor(ci);
-					}
-
+					sccp_callinfo_send(hint->callInfo, 0 /*callid*/, hint->calltype, subscriber->instance, d, TRUE);
 					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_ON);
 					sccp_dev_set_keyset(d, subscriber->instance, 0 /*callid*/, KEYMODE_INUSEHINT);
 				}
