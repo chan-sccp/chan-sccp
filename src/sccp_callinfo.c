@@ -169,12 +169,14 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 	va_list ap;
 	va_start(ap, key);
 
+	/*
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
 		#ifdef DEBUG
-		//sccp_do_backtrace();
+		sccp_do_backtrace();
 		#endif
 		sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_setter) before:");
 	}
+	*/
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
 		switch (curkey) {
 			case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
@@ -250,10 +252,12 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 	}
 	sccp_callinfo_unlock(ci);
 
+	/*
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
 		sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_setter) after:");
 	}
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_setter) changes:%d\n", ci, changes);
+	*/
 	return changes;
 }
 
@@ -345,6 +349,7 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
 		sccp_callinfo_print2log(dst_ci, "SCCP: (sccp_callinfo_copyByKey) new dst_ci");
 	}
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_copyByKey) changes:%d\n", dst_ci, changes);
 	return changes;
 }
 
@@ -437,13 +442,15 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 	va_end(ap);
 	sccp_callinfo_unlock(ci);
 
+	/*
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
 		#ifdef DEBUG
-		//sccp_do_backtrace();
+		sccp_do_backtrace();
 		#endif
 		sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_getter)");
 	}
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_getter) entries:%d\n", ci, entries);
+	*/
 	return entries;
 }
 
@@ -499,7 +506,7 @@ boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str
 {
 	assert(ci != NULL);
 	sccp_callinfo_lock(ci);
-	pbx_str_append(buf, 0, "callinfo: %p:\n", ci);
+	pbx_str_append(buf, 0, "%p: (getCallInfoStr):\n", ci);
 	if (ci->entries[CALLED_PARTY].NumberValid || ci->entries[CALLED_PARTY].VoiceMailboxValid) {
 		pbx_str_append(buf, 0, " - calledParty: %s <%s>%s%s%s\n", ci->entries[CALLED_PARTY].Name, ci->entries[CALLED_PARTY].Number, 
 			(ci->entries[CALLED_PARTY].VoiceMailboxValid) ? " voicemail: " : "", ci->entries[CALLED_PARTY].VoiceMailbox, 
@@ -538,33 +545,7 @@ void sccp_callinfo_print2log(const sccp_callinfo_t * const ci, const char *const
 	pbx_str_t *buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 	sccp_callinfo_getCallInfoStr(ci, &buf);
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "%s:%s\n", header, pbx_str_buffer(buf));
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "%s: %s\n", header, pbx_str_buffer(buf));
 }
 
-#if 0
-/*!
- * \brief Reset Caller Id Presentation
- * \param channel SCCP Channel
- */
-void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * channel)
-{
-	channel->callInfo.presentation = CALLERID_PRESENTATION_ALLOWED;
-	if (iPbx.set_callerid_presentation) {
-		iPbx.set_callerid_presentation(channel);
-	}
-}
-
-/*!
- * \brief Set Caller Id Presentation
- * \param channel SCCP Channel
- * \param presenceParameter SCCP CallerID Presence ENUM
- */
-void sccp_channel_set_calleridPresentation(sccp_channel_t * channel, sccp_callerid_presentation_t presenceParameter)
-{
-	channel->callInfo.presentation = presenceParameter;
-	if (iPbx.set_callerid_presentation) {
-		iPbx.set_callerid_presentation(channel);
-	}
-}
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

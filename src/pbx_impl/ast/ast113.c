@@ -511,9 +511,6 @@ static void sccp_wrapper_asterisk113_connectedline(sccp_channel_t * channel, con
 	int tmpOrigCalledPartyRedirectReason = 0;
 	int tmpLastRedirectReason = 4;		/* \todo need to figure out more about these codes */
 
-	sccp_channel_display_callInfo(channel);
-
-	/* set the original calling/called party if the reason is a transfer */
 	sccp_callinfo_getter(callInfo,
 		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &tmpCallingNumber,
 		SCCP_CALLINFO_CALLINGPARTY_NAME, &tmpCallingName,
@@ -521,6 +518,8 @@ static void sccp_wrapper_asterisk113_connectedline(sccp_channel_t * channel, con
 		SCCP_CALLINFO_CALLEDPARTY_NAME, &tmpCalledName,
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &tmpOrigCalledPartyRedirectReason,
 		SCCP_CALLINFO_KEY_SENTINEL);
+
+	/* set the original calling/called party if the reason is a transfer */
 	if (ast_channel_connected(ast)->source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || ast_channel_connected(ast)->source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Destination\n");
@@ -1665,9 +1664,6 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, stru
 
 	if (requestor) {
 		/* set calling party */
-		if (channel->line) {							/* we now know the name of the dialed line, sending update to remote side */
-			__sccp_asterisk113_updateConnectedLine((PBX_CHANNEL_TYPE *) requestor, NULL, channel->line->cid_name, AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN);
-		}
 		sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 		sccp_callinfo_setter(ci, 
 				SCCP_CALLINFO_CALLINGPARTY_NAME, ast_channel_caller((PBX_CHANNEL_TYPE *) requestor)->id.name.str,
@@ -3372,7 +3368,7 @@ const PbxInterface iPbx = {
 	get_callerid_subaddr:		sccp_wrapper_asterisk113_callerid_subaddr,
 	get_callerid_dnid:		sccp_wrapper_asterisk113_callerid_dnid,
 	get_callerid_rdnis:		sccp_wrapper_asterisk113_callerid_rdnis,
-	get_callerid_presentation:		sccp_wrapper_asterisk113_callerid_presentation,
+	get_callerid_presentation:	sccp_wrapper_asterisk113_callerid_presentation,
 
 	set_callerid_name:		sccp_wrapper_asterisk113_setCalleridName,
 	set_dialed_number:		sccp_wrapper_asterisk13_setDialedNumber,
@@ -3381,7 +3377,7 @@ const PbxInterface iPbx = {
 	set_callerid_dnid:		NULL,
 	set_callerid_redirectingParty:	sccp_wrapper_asterisk113_setRedirectingParty,
 	set_callerid_redirectedParty:	sccp_wrapper_asterisk113_setRedirectedParty,
-	set_callerid_presentation:		sccp_wrapper_asterisk113_setCalleridPresentation,
+	set_callerid_presentation:	sccp_wrapper_asterisk113_setCalleridPresentation,
 	set_connected_line:		sccp_wrapper_asterisk113_updateConnectedLine,
 	sendRedirectedUpdate:		sccp_asterisk_sendRedirectedUpdate,
 
@@ -3508,7 +3504,7 @@ const PbxInterface iPbx = {
 	.get_callerid_subaddr 		= sccp_wrapper_asterisk113_callerid_subaddr,
 	.get_callerid_dnid 		= sccp_wrapper_asterisk113_callerid_dnid,
 	.get_callerid_rdnis 		= sccp_wrapper_asterisk113_callerid_rdnis,
-	.get_callerid_presentation 		= sccp_wrapper_asterisk113_callerid_presentation,
+	.get_callerid_presentation 	= sccp_wrapper_asterisk113_callerid_presentation,
 
 	.set_callerid_name 		= sccp_wrapper_asterisk113_setCalleridName,
 	.set_callerid_number 		= sccp_wrapper_asterisk113_setCalleridNumber,
@@ -3517,7 +3513,7 @@ const PbxInterface iPbx = {
 	.set_callerid_dnid 		= NULL,						//! \todo implement callback
 	.set_callerid_redirectingParty 	= sccp_wrapper_asterisk113_setRedirectingParty,
 	.set_callerid_redirectedParty 	= sccp_wrapper_asterisk113_setRedirectedParty,
-	.set_callerid_presentation 		= sccp_wrapper_asterisk113_setCalleridPresentation,
+	.set_callerid_presentation 	= sccp_wrapper_asterisk113_setCalleridPresentation,
 	.set_connected_line		= sccp_wrapper_asterisk113_updateConnectedLine,
 	.sendRedirectedUpdate		= sccp_asterisk_sendRedirectedUpdate,
 
