@@ -678,8 +678,9 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 {
 	PBX_CHANNEL_TYPE *ast = channel->owner;
 	int redirectreason = 0;
+	sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 
-	sccp_callinfo_setter(sccp_channel_getCallInfo(channel), 
+	sccp_callinfo_getter(ci, 
 		SCCP_CALLINFO_LAST_REDIRECT_REASON, &redirectreason,
 		SCCP_CALLINFO_KEY_SENTINEL);
 #if ASTERISK_VERSION_GROUP >106
@@ -689,7 +690,7 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>; To %s<%s>\n", pbx_channel_name(ast), (redirecting_from.name.valid && redirecting_from.name.str) ? redirecting_from.name.str : "", (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "", (redirecting_to.name.valid && redirecting_to.name.str) ? redirecting_to.name.str : "",
 				  (redirecting_to.number.valid && redirecting_to.number.str) ? redirecting_to.number.str : "");
 
-	sccp_callinfo_setter(sccp_channel_getCallInfo(channel), 
+	sccp_callinfo_setter(ci, 
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, redirecting_from.name.valid && redirecting_from.name.str ? redirecting_from.name.str : NULL, 
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "",
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, redirectreason,
@@ -697,8 +698,8 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 		SCCP_CALLINFO_KEY_SENTINEL);
 
 #else
-	sccp_callinfo_setter(sccp_channel_getCallInfo(channel), 
-		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : ""
+	sccp_callinfo_setter(ci, 
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : "",
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, redirectreason,
 		SCCP_CALLINFO_LAST_REDIRECT_REASON, 4,					// need to figure out these codes
 		SCCP_CALLINFO_KEY_SENTINEL);
