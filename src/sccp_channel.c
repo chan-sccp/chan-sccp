@@ -1908,6 +1908,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 			SCCP_LIST_LOCK(&d->selectedChannels);
 			sccp_selected_channel = SCCP_LIST_REMOVE(&d->selectedChannels, sccp_selected_channel, list);
 			SCCP_LIST_UNLOCK(&d->selectedChannels);
+			sccp_channel_release(sccp_selected_channel->channel);
 			sccp_free(sccp_selected_channel);
 		}
 		sccp_dev_setActiveLine(d, NULL);

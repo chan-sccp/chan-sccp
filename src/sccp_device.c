@@ -2136,6 +2136,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 		/* removing selected channels */
 		SCCP_LIST_LOCK(&d->selectedChannels);
 		while ((selectedChannel = SCCP_LIST_REMOVE_HEAD(&d->selectedChannels, list))) {
+			sccp_channel_release(selectedChannel->channel);
 			sccp_free(selectedChannel);
 		}
 		SCCP_LIST_UNLOCK(&d->selectedChannels);

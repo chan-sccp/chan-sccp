@@ -22,7 +22,7 @@ int sccp_feat_directed_pickup(channelPtr c, const char *exten);
 int sccp_feat_grouppickup(constLinePtr l, constDevicePtr d);
 #endif
 void sccp_feat_voicemail(constDevicePtr d, uint8_t line_instance);
-void sccp_feat_idivert(devicePtr d, linePtr l, channelPtr c);
+void sccp_feat_idivert(constDevicePtr d, constLinePtr l, constChannelPtr c);
 void sccp_feat_handle_conference(constDevicePtr d, constLinePtr l, uint8_t lineInstance, channelPtr c);
 void sccp_feat_conference_start(constDevicePtr d, const uint32_t lineInstance, channelPtr c);
 void sccp_feat_join(constDevicePtr d, constLinePtr l, uint8_t lineInstance, channelPtr c);
