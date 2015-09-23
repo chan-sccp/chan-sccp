@@ -654,7 +654,7 @@ void sccp_feat_voicemail(constDevicePtr d, uint8_t lineInstance)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_feat_idivert(devicePtr d, linePtr l, channelPtr c)
+void sccp_feat_idivert(constDevicePtr d, constLinePtr l, constChannelPtr c)
 {
 	int instance;
 
@@ -778,7 +778,7 @@ void sccp_feat_conference_start(constDevicePtr device, const uint32_t lineInstan
 		return;
 	}
 #ifdef CS_SCCP_CONFERENCE
-	sccp_channel_t *channel = NULL;
+	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	sccp_selectedchannel_t *selectedChannel = NULL;
 	boolean_t selectedFound = FALSE;
 	PBX_CHANNEL_TYPE *bridged_channel = NULL;
@@ -793,7 +793,7 @@ void sccp_feat_conference_start(constDevicePtr device, const uint32_t lineInstan
 
 		SCCP_LIST_LOCK(&d->selectedChannels);
 		SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
-			channel = selectedChannel->channel;
+			channel = sccp_channel_retain(selectedChannel->channel);
 			if (channel && channel != c) {
 				if (channel != d->active_channel && channel->state == SCCP_CHANNELSTATE_HOLD) {
 					if ((bridged_channel = iPbx.get_bridged_channel(channel->owner))) {
