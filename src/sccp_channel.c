@@ -454,18 +454,6 @@ sccp_callinfo_t * const sccp_channel_getCallInfo(const sccp_channel_t *const cha
 {
 	return (sccp_callinfo_t * const) channel->privateData->callInfo;			/* discard const because callinfo has a private implementation anyway */
 }
-/*!
- * \brief Set pointer to channels private callinfo
- */
-void sccp_channel_setCallInfo(const sccp_channel_t *const channel, sccp_callinfo_t * const callinfo)
-{
-	if (channel) {
-		if (channel->privateData->callInfo) {
-			channel->privateData->callInfo = sccp_callinfo_dtor(channel->privateData->callInfo);
-		}
-		channel->privateData->callInfo = callinfo;
-	}
-}
 
 /*!
  * \brief Send Call Information to Device/Channel
@@ -486,10 +474,7 @@ void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel
 
 	if (device && channel && channel->callid) {
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send callInfo of callid %d\n", DEV_ID_LOG(device), channel->callid);
-		//if (device->protocol && device->protocol->sendCallInfo) {
 		lineInstance = sccp_device_find_index_for_line(device, channel->line->name);
-		//	device->protocol->sendCallInfo(channel->privateData->callInfo, channel->callid, channel->calltype, lineInstance, device);
-		//}
 		sccp_callinfo_send(channel->privateData->callInfo, channel->callid, channel->calltype, lineInstance, device, FALSE);
 	}
 	
