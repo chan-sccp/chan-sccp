@@ -575,8 +575,9 @@ static void sccp_conference_removeParticipant(sccp_conference_t * conference, sc
 	if (SCCP_LIST_GETSIZE(&conference->participants) == 1 && !conference->finishing) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: There are no conference participants left, Ending conference.\n", conference->id);
 		sccp_conference_end(conference);
+	} else {
+		sccp_conference_update_conflist(conference);
 	}
-	sccp_conference_update_conflist(conference);
 }
 
 /*!
