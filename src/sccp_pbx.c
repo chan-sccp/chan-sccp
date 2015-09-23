@@ -200,6 +200,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	boolean_t hasDNDParticipant = FALSE;
 
 	sccp_linedevices_t *linedevice = NULL;
+	sccp_channelstate_t previousstate = c->previousChannelState;
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
@@ -229,6 +230,8 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 			continue;
 		}
 
+		/* reset channel state */
+		c->previousChannelState=previousstate;
 		AUTO_RELEASE sccp_channel_t *active_channel = sccp_device_getActiveChannel(linedevice->device);
 
 		if (active_channel) {
@@ -252,6 +255,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 				hasDNDParticipant = TRUE;
 				continue;
 			}
+			sccp_log(DEBUGCAT_CORE)("%s: Ringing (Shared) Line: %s on device:%s using channel:%s\n", linedevice->device->id, linedevice->device->id, linedevice->line->name, c->designator);
 			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
 			isRinging = TRUE;
 			if (c->autoanswer_type) {
