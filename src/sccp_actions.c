@@ -1142,11 +1142,8 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 
 	   int hdr_len = sizeof(dynamicR->data.ButtonTemplateMessageDynamic) - sizeof(dynamicR->data.ButtonTemplateMessageDynamic.dummy);
 	   int dummy_len = (lastUsedButtonPosition + 1) * sizeof(StationButtonDefinition);
-	   int padding = ((dummy_len + hdr_len) % 4);
 
-	   padding = (padding > 0) ? 4 - padding : 4;
-
-	   dynamicR = sccp_build_packet(ButtonTemplateMessage, hdr_len + dummy_len + padding);
+	   dynamicR = sccp_build_packet(ButtonTemplateMessage, hdr_len + dummy_len);
 	   dynamicR->data.ButtonTemplateMessageDynamic.lel_buttonOffset = 0;
 	   dynamicR->data.ButtonTemplateMessageDynamic.lel_buttonCount = htolel(buttonCount);
 	   dynamicR->data.ButtonTemplateMessageDynamic.lel_totalButtonCount = htolel(lastUsedButtonPosition + 1);
@@ -2022,12 +2019,9 @@ void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMess
 	int arrayLen = ARRAY_LEN(softkeysmap);
 	int dummy_len = arrayLen * (sizeof(StationSoftKeyDefinition));
 	int hdr_len = sizeof(msg_in->data.SoftKeyTemplateResMessage);
-	int padding = ((dummy_len + hdr_len) % 4);
-
-	padding = (padding > 0) ? 4 - padding : 4;
 
 	/* create message */
-	msg_out = sccp_build_packet(SoftKeyTemplateResMessage, hdr_len + dummy_len + padding);
+	msg_out = sccp_build_packet(SoftKeyTemplateResMessage, hdr_len + dummy_len);
 	msg_out->data.SoftKeyTemplateResMessage.lel_softKeyOffset = 0;
 
 	for (i = 0; i < arrayLen; i++) {
@@ -3391,11 +3385,8 @@ void sccp_handle_services_stat_req(constSessionPtr s, devicePtr d, constMessageP
 			int dummy_len = URL_len + label_len;
 
 			int hdr_len = sizeof(msg_in->data.ServiceURLStatDynamicMessage) - 1;
-			int padding = ((dummy_len + hdr_len) % 4);
 
-			padding = (padding > 0) ? 4 - padding : 0;
-
-			msg_out = sccp_build_packet(ServiceURLStatDynamicMessage, hdr_len + dummy_len + padding);
+			msg_out = sccp_build_packet(ServiceURLStatDynamicMessage, hdr_len + dummy_len);
 			msg_out->data.ServiceURLStatDynamicMessage.lel_serviceURLIndex = htolel(urlIndex);
 
 			if (dummy_len) {
