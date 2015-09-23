@@ -200,6 +200,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	boolean_t hasDNDParticipant = FALSE;
 
 	sccp_linedevices_t *linedevice = NULL;
+	sccp_channelstate_t previousstate = c->previousChannelState;
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
@@ -229,17 +230,17 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 			continue;
 		}
 
+		/* reset channel state (because we are offering the same call to multiple (shared) lines)*/
+		c->previousChannelState = previousstate;
 		AUTO_RELEASE sccp_channel_t *active_channel = sccp_device_getActiveChannel(linedevice->device);
 
 		if (active_channel) {
 			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_CALLWAITING);
 
 			/* display the new call on prompt */
-			{
-				AUTO_RELEASE sccp_linedevices_t *activeChannelLinedevice = sccp_linedevice_find(linedevice->device, active_channel->line);
-
+			AUTO_RELEASE sccp_linedevices_t *activeChannelLinedevice = sccp_linedevice_find(linedevice->device, active_channel->line);
+			if (activeChannelLinedevice) {
 				char prompt[100];
-
 				snprintf(prompt, sizeof(prompt), "%s: %s: %s", active_channel->line->name, SKINNY_DISP_FROM, cid_num);
 				sccp_dev_displayprompt(linedevice->device, activeChannelLinedevice->lineInstance, active_channel->callid, prompt, GLOB(digittimeout));
 			}
@@ -252,10 +253,11 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 				hasDNDParticipant = TRUE;
 				continue;
 			}
+			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Ringing (Shared) Line: %s on device:%s using channel:%s\n", linedevice->device->id, linedevice->device->id, linedevice->line->name, c->designator);
+			
 			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
 			isRinging = TRUE;
 			if (c->autoanswer_type) {
-
 				struct sccp_answer_conveyor_struct *conveyor = sccp_calloc(1, sizeof(struct sccp_answer_conveyor_struct));
 
 				if (conveyor) {
