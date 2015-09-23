@@ -721,10 +721,10 @@ static void sccp_sk_conflist(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_de
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Conflist Pressed\n", DEV_ID_LOG(d));
 #ifdef CS_SCCP_CONFERENCE
-	AUTO_RELEASE sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
-	if (line) {
-		sccp_feat_conflist(d, line, lineInstance, c);
-	}
+	//AUTO_RELEASE sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	//if (line) {
+	sccp_feat_conflist(d, lineInstance, c);
+	//}
 #else
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Conference was not compiled in\n");
