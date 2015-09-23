@@ -131,7 +131,9 @@ sccp_callinfo_t *sccp_callinfo_copyCtor(const sccp_callinfo_t * const src_ci)
 		if (!tmp_ci) {
 			return NULL;
 		}
-		memcpy(&tmp_ci, src_ci, sizeof(sccp_callinfo_t));
+		sccp_callinfo_lock(src_ci);
+		memcpy(tmp_ci, src_ci, sizeof(sccp_callinfo_t));
+		sccp_callinfo_unlock(src_ci);
 
 		return tmp_ci;
 	}
