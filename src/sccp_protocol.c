@@ -100,16 +100,10 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 	for (i = 0; i < dataSize; i++) {
 		data_len[i] = strlen(data[i]);
 		dummy_len += data_len[i];
-		//pbx_log(LOG_NOTICE, "sendCallInfoV7: data_len: %d, len:%zu, string:%s\n", data_len[i], strlen(data[i]), data[i]);
 	}
-	//pbx_log(LOG_NOTICE, "sendCallInfoV7: dummy_len: %d\n", dummy_len);
 
 	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) + (dataSize - 4);
-	int padding = ((dummy_len + hdr_len) % 4);
-	padding = (padding > 0) ? 4 - padding : 4;
-	//pbx_log(LOG_NOTICE, "sendCallInfoV7: dataSize: %d, dummy_len: %d, hdr_len: %d, padding: %d\n", dataSize, dummy_len, hdr_len, padding);
-
-	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len + padding);
+	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len);
 
 	msg->data.CallInfoDynamicMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.CallInfoDynamicMessage.lel_callReference = htolel(callid);
@@ -120,7 +114,6 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason = htolel(originalCdpnRedirectReason);
 	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(lastRedirectingReason);
 
-	//pbx_log(LOG_NOTICE, "sendCallInfoV7: dummy_len: %d, hdr_len: %d, padding: %d\n", dummy_len, hdr_len, padding);
 	if (dummy_len) {
 		int bufferSize = dummy_len + dataSize;
 		char buffer[bufferSize];
@@ -188,11 +181,8 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	}
 
 	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) + (dataSize - 4);
-	int padding = ((dummy_len + hdr_len) % 4);
-	padding = (padding > 0) ? 4 - padding : 4;
 
-	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len + padding);
-
+	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len);
 	msg->data.CallInfoDynamicMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.CallInfoDynamicMessage.lel_callReference = htolel(callid);
 	msg->data.CallInfoDynamicMessage.lel_callType = htolel(calltype);
@@ -295,10 +285,7 @@ static void sccp_protocol_sendDynamicDisplayprompt(constDevicePtr device, uint8_
 
 	int msg_len = strlen(message);
 	int hdr_len = sizeof(msg->data.DisplayDynamicPromptStatusMessage) - 3;
-	int padding = ((msg_len + hdr_len) % 4);
-
-	padding = (padding > 0) ? 4 - padding : 4;
-	msg = sccp_build_packet(DisplayDynamicPromptStatusMessage, hdr_len + msg_len + padding);
+	msg = sccp_build_packet(DisplayDynamicPromptStatusMessage, hdr_len + msg_len);
 	msg->data.DisplayDynamicPromptStatusMessage.lel_messageTimeout = htolel(timeout);
 	msg->data.DisplayDynamicPromptStatusMessage.lel_callReference = htolel(callid);
 	msg->data.DisplayDynamicPromptStatusMessage.lel_lineInstance = htolel(lineInstance);
@@ -336,11 +323,7 @@ static void sccp_protocol_sendDynamicDisplayNotify(constDevicePtr device, uint8_
 
 	int msg_len = strlen(message);
 	int hdr_len = sizeof(msg->data.DisplayDynamicNotifyMessage) - sizeof(msg->data.DisplayDynamicNotifyMessage.dummy);
-	int padding = ((msg_len + hdr_len) % 4);
-
-	padding = (padding > 0) ? 4 - padding : 4;
-
-	msg = sccp_build_packet(DisplayDynamicNotifyMessage, hdr_len + msg_len + padding);
+	msg = sccp_build_packet(DisplayDynamicNotifyMessage, hdr_len + msg_len);
 	msg->data.DisplayDynamicNotifyMessage.lel_displayTimeout = htolel(timeout);
 	memcpy(&msg->data.DisplayDynamicNotifyMessage.dummy, message, msg_len);
 
@@ -377,10 +360,7 @@ static void sccp_protocol_sendDynamicDisplayPriNotify(constDevicePtr device, uin
 
 	int msg_len = strlen(message);
 	int hdr_len = sizeof(msg->data.DisplayDynamicPriNotifyMessage) - 3;
-	int padding = ((msg_len + hdr_len) % 4);
-
-	padding = (padding > 0) ? 4 - padding : 4;
-	msg = sccp_build_packet(DisplayDynamicPriNotifyMessage, hdr_len + msg_len + padding);
+	msg = sccp_build_packet(DisplayDynamicPriNotifyMessage, hdr_len + msg_len);
 	msg->data.DisplayDynamicPriNotifyMessage.lel_displayTimeout = htolel(timeout);
 	msg->data.DisplayDynamicPriNotifyMessage.lel_priority = htolel(priority);
 	memcpy(&msg->data.DisplayDynamicPriNotifyMessage.dummy, message, msg_len);
@@ -932,7 +912,6 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr dev
 	int data_len = strlen(xmlData);
 	int msg_len = 0;
 	int hdr_len = 0;
-	int padding = 0;
 
 	if (device->protocolversion > 17) {
 		int num_segments = data_len / StationMaxXMLMessage + 1;
@@ -952,9 +931,7 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr dev
 			}
 			data_len -= msg_len;
 
-			padding = ((msg_len + hdr_len) % 4);
-			padding = (padding > 0) ? 4 - padding : 4;
-			msg[segment] = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len + padding);
+			msg[segment] = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len);
 			msg[segment]->data.UserToDeviceDataVersion1Message.lel_appID = htolel(appID);
 			msg[segment]->data.UserToDeviceDataVersion1Message.lel_lineInstance = htolel(lineInstance);
 			msg[segment]->data.UserToDeviceDataVersion1Message.lel_callReference = htolel(callReference);
@@ -975,7 +952,7 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr dev
 			}
 			sccp_dev_send(device, msg[segment]);
 			usleep(10);
-			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d/%d, padding: %d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, (int) strlen(xmlData), padding, hdr_len + msg_len + padding);
+			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d/%d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, (int) strlen(xmlData), hdr_len + msg_len);
 			segment++;
 		}
 	} else if (data_len < StationMaxXMLMessage) {
@@ -983,10 +960,8 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr dev
 
 		hdr_len = sizeof(msg->data.UserToDeviceDataVersion1Message);
 		msg_len = data_len;
-		padding = ((msg_len + hdr_len) % 4);
-		padding = (padding > 0) ? 4 - padding : 4;
 
-		msg = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len + padding);
+		msg = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len);
 		msg->data.UserToDeviceDataVersion1Message.lel_appID = htolel(appID);
 		msg->data.UserToDeviceDataVersion1Message.lel_lineInstance = htolel(lineInstance);
 		msg->data.UserToDeviceDataVersion1Message.lel_callReference = htolel(callReference);
@@ -999,7 +974,7 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr dev
 			memcpy(&msg->data.UserToDeviceDataVersion1Message.data, xmlData, msg_len);
 		}
 		sccp_dev_send(device, msg);
-		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d, padding: %d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, padding, hdr_len + msg_len + padding);
+		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, hdr_len + msg_len);
 	} else {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message to large to send to device  (msg-size: %d). Skipping !\n", DEV_ID_LOG(device), data_len);
 	}
