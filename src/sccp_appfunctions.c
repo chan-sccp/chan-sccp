@@ -122,15 +122,14 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			} else if (!strcasecmp(token, "image_version")) {
 				sccp_copy_string(buf, d->loadedimageversion, buf_len);
 			} else if (!strcasecmp(token, "accessory_status")) {
-				sccp_copy_string(buf, sccp_accessorystate2str(d->accessorystatus), buf_len);
+				sccp_accessory_t activeAccessory = sccp_device_getActiveAccessory(d);
+				snprintf(buf, buf_len, "%s:%s", sccp_accessory2str(activeAccessory), sccp_accessorystate2str(sccp_device_getAccessoryStatus(d, activeAccessory)));
 			} else if (!strcasecmp(token, "registration_state")) {
 				sccp_copy_string(buf, skinny_registrationstate2str(d->registrationState), buf_len);
 			} else if (!strcasecmp(token, "codecs")) {
 				sccp_multiple_codecs2str(buf, buf_len - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 			} else if (!strcasecmp(token, "capability")) {
 				sccp_multiple_codecs2str(buf, buf_len - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
-			} else if (!strcasecmp(token, "state")) {
-				sccp_copy_string(buf, sccp_accessorystate2str(d->accessorystatus), buf_len);
 			} else if (!strcasecmp(token, "lines_registered")) {
 				sccp_copy_string(buf, d->linesRegistered ? "yes" : "no", buf_len);
 			} else if (!strcasecmp(token, "lines_count")) {

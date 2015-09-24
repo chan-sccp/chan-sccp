@@ -206,7 +206,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 		/* do we have cfwd enabled? */
 		if (sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "BYPASS_CFWD"))) {
-			if (linedevice->cfwdAll.enabled || (linedevice->cfwdBusy.enabled && (linedevice->device->state != SCCP_DEVICESTATE_ONHOOK || linedevice->device->accessoryStatus.speaker))) {
+			if (linedevice->cfwdAll.enabled || (linedevice->cfwdBusy.enabled && (linedevice->device->state != SCCP_DEVICESTATE_ONHOOK || sccp_device_getActiveAccessory(linedevice->device)))) {
 				pbx_log(LOG_NOTICE, "%s: initialize cfwd%s for line %s\n", linedevice->device->id, (linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : "None")), l->name);
 				if (sccp_channel_forward(c, linedevice, linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : linedevice->cfwdBusy.number) == 0) {
 					sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -706,7 +706,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 				if (linedevice->cfwdAll.enabled) {
 					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: ast call forward channel_set: %s\n", c->designator, linedevice->cfwdAll.number);
 					iPbx.setChannelCallForward(c, linedevice->cfwdAll.number);
-				} else if (linedevice->cfwdBusy.enabled && (linedevice->device->state != SCCP_DEVICESTATE_ONHOOK || linedevice->device->accessoryStatus.speaker)) {
+				} else if (linedevice->cfwdBusy.enabled && (linedevice->device->state != SCCP_DEVICESTATE_ONHOOK || sccp_device_getActiveAccessory(linedevice->device))) {
 					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: ast call forward channel_set: %s\n", c->designator, linedevice->cfwdBusy.number);
 					iPbx.setChannelCallForward(c, linedevice->cfwdBusy.number);
 				}
@@ -726,7 +726,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			if (linedevice->line == l && (linedevice->cfwdAll.enabled || (linedevice->cfwdBusy.enabled && (linedevice->device->state != SCCP_DEVICESTATE_ONHOOK || linedevice->device->accessoryStatus.speaker)))
+			if (linedevice->line == l && (linedevice->cfwdAll.enabled || (linedevice->cfwdBusy.enabled && (linedevice->device->state != SCCP_DEVICESTATE_ONHOOK || sccp_device_getActiveAccessory(linedevice->device))))
 			    ) {
 				numforwards++;
 				if (sccp_strlen_zero(cfwdnum)) {
