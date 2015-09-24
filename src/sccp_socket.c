@@ -467,7 +467,7 @@ static void __sccp_session_stopthread(sessionPtr session, uint8_t newRegistratio
 
 	session->session_stop = TRUE;
 	if (session->device) {
-		session->device->registrationState = newRegistrationState;
+		sccp_device_setRegistrationState(session->device, newRegistrationState);
 	}
 	if (AST_PTHREADT_NULL != session->session_thread) {
 		shutdown(session->fds[0].fd, SHUT_RD);								// this will also wake up poll
@@ -760,7 +760,8 @@ static sccp_device_t *__sccp_session_removeDevice(sessionPtr session)
 			sccp_session_removeFromGlobals(session->device->session);
 		}
 		sccp_session_lock(session);
-		session->device->registrationState = SKINNY_DEVICE_RS_NONE;
+		sccp_device_setRegistrationState(session->device, SKINNY_DEVICE_RS_NONE);
+		
 		session->device->session = NULL;
 		sccp_copy_string(session->designator, sccp_socket_stringify(&session->ourip), sizeof(session->designator));
 		return_device = session->device;								// returning device reference
@@ -889,7 +890,7 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 
 		if (d) {
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
-			d->registrationState = SKINNY_DEVICE_RS_NONE;
+			sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_NONE);
 			d->needcheckringback = 0;
 			sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
 		}
@@ -1446,7 +1447,7 @@ static void sccp_session_crossdevice_cleanup(constSessionPtr current_session, se
 
 			if (d) {
 				sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Running Device Cleanup\n", DEV_ID_LOG(d));
-				d->registrationState = SKINNY_DEVICE_RS_NONE;
+				sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_NONE);
 				d->needcheckringback = 0;
 				sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 0);
 			}
@@ -1662,7 +1663,7 @@ int sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession 
 		CLI_AMI_TABLE_FIELD(DeviceName,		"15",		s,	15,	(d) ? d->id : "--")					\
 		CLI_AMI_TABLE_FIELD(State,		"-14.14",	s,	14,	(d) ? sccp_devicestate2str(d->state) : "--")		\
 		CLI_AMI_TABLE_FIELD(Type,		"-15.15",	s,	15,	(d) ? skinny_devicetype2str(d->skinny_type) : "--")	\
-		CLI_AMI_TABLE_FIELD(RegState,		"-10.10",	s,	10,	(d) ? skinny_registrationstate2str(d->registrationState) : "--")	\
+		CLI_AMI_TABLE_FIELD(RegState,		"-10.10",	s,	10,	(d) ? skinny_registrationstate2str(sccp_device_getRegistrationState(d)) : "--")	\
 		CLI_AMI_TABLE_FIELD(Token,		"-10.10",	s,	10,	d ? sccp_tokenstate2str(d->status.token) : "--")
 #include "sccp_cli_table.h"
 

@@ -317,7 +317,7 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 		messageMap_cb->messageHandler_cb(s, device, msg);
 	}
 
-	if (device && device->registrationState == SKINNY_DEVICE_RS_PROGRESS && mid == device->protocol->registrationFinishedMessageId) {
+	if (device && sccp_device_getRegistrationState(device) == SKINNY_DEVICE_RS_PROGRESS && mid == device->protocol->registrationFinishedMessageId) {
 		sccp_dev_set_registered(device, SKINNY_DEVICE_RS_OK);
 		char servername[StationMaxDisplayNotifySize];
 

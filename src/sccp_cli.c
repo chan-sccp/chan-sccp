@@ -118,7 +118,7 @@ static char *sccp_complete_connected_device(OLDCONST char *line, OLDCONST char *
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		if (!strncasecmp(word, d->id, wordlen) && d->registrationState != SKINNY_DEVICE_RS_NONE && ++which > state) {
+		if (!strncasecmp(word, d->id, wordlen) && sccp_device_getRegistrationState(d) != SKINNY_DEVICE_RS_NONE && ++which > state) {
 			ret = strdup(d->id);
 			break;
 		}
@@ -637,7 +637,7 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 		CLI_AMI_TABLE_FIELD(Descr,		"-25.25",	s,	25,	d->description ? d->description : "<not set>")								\
 		CLI_AMI_TABLE_FIELD(Address,		"44.44",	s,	44,	addrStr)								\
 		CLI_AMI_TABLE_FIELD(Mac,		"-16.16",	s,	16,	d->id)									\
-		CLI_AMI_TABLE_FIELD(RegState,		"-10.10",	s,	10, 	skinny_registrationstate2str(d->registrationState))			\
+		CLI_AMI_TABLE_FIELD(RegState,		"-10.10",	s,	10, 	skinny_registrationstate2str(sccp_device_getRegistrationState(d)))	\
 		CLI_AMI_TABLE_FIELD(Token,		"-5.5",		s,	5,	sccp_tokenstate2str(d->status.token)) 					\
 		CLI_AMI_TABLE_FIELD(RegTime,		"25.25",	s,	25, 	regtime)								\
 		CLI_AMI_TABLE_FIELD(Act,		"3.3",		s,	3, 	(d->active_channel) ? "Yes" : "No")					\
@@ -753,7 +753,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Device Features",		CLI_AMI_LIST_WIDTH, "%#1x,%s", d->device_features, sccp_dec2binstr(binstr, 40, d->device_features));
 	CLI_AMI_OUTPUT_PARAM("Tokenstate",		CLI_AMI_LIST_WIDTH, "%s", sccp_tokenstate2str(d->status.token));
 	CLI_AMI_OUTPUT_PARAM("Keepalive",		CLI_AMI_LIST_WIDTH, "%d", d->keepalive);
-	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_registrationstate2str(d->registrationState), d->registrationState);
+	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s", skinny_registrationstate2str(sccp_device_getRegistrationState(d)));
 	CLI_AMI_OUTPUT_PARAM("State",			CLI_AMI_LIST_WIDTH, "%s(%d)", sccp_devicestate2str(d->state), d->state);
 	CLI_AMI_OUTPUT_PARAM("MWI light",		CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_lampmode2str(d->mwilamp), d->mwilamp);
 	CLI_AMI_OUTPUT_PARAM("MWI handset light", 	CLI_AMI_LIST_WIDTH, "%s (%d)", sccp_dec2binstr(binstr, 32, d->mwilight), d->mwilight);
@@ -1931,7 +1931,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		pbx_log(LOG_NOTICE, "%s: Running Labels\n", d->id);
 
 		if (d) {
-			if (d->registrationState == SKINNY_DEVICE_RS_OK) {
+			if (sccp_device_getRegistrationState(d) == SKINNY_DEVICE_RS_OK) {
 				if (argc < 5) {
 					struct sockaddr_storage sas = { 0 };
 					sccp_session_getSas(d->session, &sas);
@@ -2990,7 +2990,7 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 		return RESULT_FAILURE;
 	}
 
-	if (!d->session || d->registrationState != SKINNY_DEVICE_RS_OK) {
+	if (!d->session || sccp_device_getRegistrationState(d) != SKINNY_DEVICE_RS_OK) {
 		pbx_cli(fd, "%s: device not registered\n", argv[2]);
 		return RESULT_FAILURE;
 	}
