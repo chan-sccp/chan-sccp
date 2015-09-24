@@ -426,33 +426,35 @@ void sccp_device_post_reload(void)
 /* getters / setters for privateData */
 const sccp_accessorystate_t sccp_device_getAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory)
 {
-	assert(d != NULL);
-	sccp_private_lock(&d->privateData);
+	assert(d != NULL && d->privateData != NULL);
+	sccp_private_lock(d->privateData);
 	sccp_accessorystate_t accessoryStatus = d->privateData->accessoryStatus[accessory];
-	sccp_private_unlock(&d->privateData);
+	sccp_private_unlock(d->privateData);
 	return accessoryStatus;
 }
 
 const sccp_accessory_t sccp_device_getActiveAccessory(constDevicePtr d)
 {
-	assert(d != NULL);
+	assert(d != NULL && d->privateData != NULL);
 	sccp_accessory_t accessory = SCCP_ACCESSORY_NONE;
-	sccp_private_lock(&d->privateData);
+	sccp_private_lock(d->privateData);
 	for (accessory = SCCP_ACCESSORY_NONE ; accessory < SCCP_ACCESSORY_SENTINEL; accessory++) {
 		if (d->privateData->accessoryStatus[accessory] == SCCP_ACCESSORYSTATE_OFFHOOK) {
 			break;
 		}
 	}
-	sccp_private_unlock(&d->privateData);
+	sccp_private_unlock(d->privateData);
 	return accessory;
 }
 
 int sccp_device_setAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory, const sccp_accessorystate_t state)
 {
-	assert(d != NULL);
-	sccp_private_lock(&d->privateData);
+	assert(d != NULL && d->privateData != NULL);
+	assert(accessory > SCCP_ACCESSORY_NONE && accessory < SCCP_ACCESSORY_SENTINEL && state > SCCP_ACCESSORYSTATE_NONE && state < SCCP_ACCESSORYSTATE_SENTINEL);
+	
+	sccp_private_lock(d->privateData);
 	d->privateData->accessoryStatus[accessory] = state;
-	sccp_private_unlock(&d->privateData);
+	sccp_private_unlock(d->privateData);
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s'\n", d->id, sccp_accessory2str(accessory), sccp_accessorystate2str(state));
 	return 1;
 }
@@ -2328,9 +2330,9 @@ int __sccp_device_destroy(const void *ptr)
 	}
 	
 	if (d->privateData) {
-		sccp_private_lock(&d->privateData);
+		sccp_private_lock(d->privateData);
 		sccp_mutex_destroy(&d->privateData->lock);
-		sccp_private_unlock(&d->privateData);
+		sccp_private_unlock(d->privateData);
 		sccp_free(d->privateData);
 	}
 	/*
