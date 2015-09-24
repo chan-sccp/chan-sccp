@@ -119,8 +119,8 @@ enum accessory {
 
 enum accessorystate {
         SCCP_ACCESSORYSTATE_NONE,			,	"None",
-        SCCP_ACCESSORYSTATE_ONHOOK,			,	"On Hook", 
-        SCCP_ACCESSORYSTATE_OFFHOOK,			,	"Off Hook",
+        SCCP_ACCESSORYSTATE_OFFHOOK,			,	"Off Hook", 
+        SCCP_ACCESSORYSTATE_ONHOOK,			,	"On Hook",
 }
 
 enum config_buttontype {
