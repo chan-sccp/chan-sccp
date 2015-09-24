@@ -44,7 +44,10 @@ int sccp_device_destroy(const void *ptr);
  */
 struct sccp_private_device_data {
 	sccp_mutex_t lock;
+	
 	sccp_accessorystate_t accessoryStatus[SCCP_ACCESSORY_SENTINEL];		
+	sccp_devicestate_t deviceState;											/*!< Device State */
+
 	skinny_registrationstate_t registrationState;
 };
 
@@ -464,6 +467,35 @@ int sccp_device_setAccessoryStatus(constDevicePtr d, const sccp_accessory_t acce
 	return changed;
 }
 
+const sccp_devicestate_t sccp_device_getDeviceState(constDevicePtr d)
+{
+	assert(d != NULL && d->privateData != NULL);
+	
+	sccp_devicestate_t state = SKINNY_REGISTRATIONSTATE_SENTINEL;
+
+	sccp_private_lock(d->privateData);
+	state = d->privateData->deviceState;
+	sccp_private_unlock(d->privateData);
+	
+	return state;
+}
+
+int sccp_device_setDeviceState(constDevicePtr d, const sccp_devicestate_t state)
+{
+	assert(d != NULL && d->privateData != NULL);
+	int changed = 0;
+
+	sccp_private_lock(d->privateData);
+	if (state != d->privateData->deviceState) {
+		d->privateData->deviceState = state;
+		changed=1;
+	}
+	sccp_private_unlock(d->privateData);
+	
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device State is '%s'\n", d->id, sccp_devicestate2str(state));
+	return changed;
+}
+
 const skinny_registrationstate_t sccp_device_getRegistrationState(constDevicePtr d)
 {
 	assert(d != NULL && d->privateData != NULL);
@@ -542,7 +574,7 @@ sccp_device_t *sccp_device_create(const char *id)
 
 //	d->softKeyConfiguration.modes = (softkey_modes *) SoftKeyModes;
 //	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
-	d->state = SCCP_DEVICESTATE_ONHOOK;
+	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_ONHOOK);
 	d->postregistration_thread = AST_PTHREADT_STOP;
 
 	// set minimum protocol levels
@@ -1960,7 +1992,7 @@ int sccp_device_check_ringback(devicePtr device)
 		return 0;
 	}
 	d->needcheckringback = 0;
-	if (d->state == SCCP_DEVICESTATE_OFFHOOK) {
+	if (SCCP_DEVICESTATE_OFFHOOK == sccp_device_getDeviceState(d)) {
 		return 0;
 	}
 	c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_CALLTRANSFER);
