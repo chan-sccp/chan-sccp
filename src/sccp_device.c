@@ -45,6 +45,7 @@ int sccp_device_destroy(const void *ptr);
 struct sccp_private_device_data {
 	sccp_mutex_t lock;
 	sccp_accessorystate_t accessoryStatus[SCCP_ACCESSORY_SENTINEL];		
+	skinny_registrationstate_t registrationState;
 };
 
 #define sccp_private_lock(x) sccp_mutex_lock(&((struct sccp_private_device_data * const)x)->lock)			/* discard const */
@@ -423,7 +424,7 @@ void sccp_device_post_reload(void)
 	SCCP_LIST_TRAVERSE_SAFE_END;
 }
 
-/* getters / setters for privateData */
+/* ====================================================================================================== start getters / setters for privateData */
 const sccp_accessorystate_t sccp_device_getAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory)
 {
 	assert(d != NULL && d->privateData != NULL);
@@ -451,14 +452,48 @@ int sccp_device_setAccessoryStatus(constDevicePtr d, const sccp_accessory_t acce
 {
 	assert(d != NULL && d->privateData != NULL);
 	assert(accessory > SCCP_ACCESSORY_NONE && accessory < SCCP_ACCESSORY_SENTINEL && state > SCCP_ACCESSORYSTATE_NONE && state < SCCP_ACCESSORYSTATE_SENTINEL);
+	int changed = 0;
 	
 	sccp_private_lock(d->privateData);
-	d->privateData->accessoryStatus[accessory] = state;
+	if (state != d->privateData->accessoryStatus[accessory]) {
+		d->privateData->accessoryStatus[accessory] = state;
+		changed=1;
+	}
 	sccp_private_unlock(d->privateData);
-	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s'\n", d->id, sccp_accessory2str(accessory), sccp_accessorystate2str(state));
-	return 1;
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s'\n", d->id, sccp_accessory2str(accessory), sccp_accessorystate2str(state));
+	return changed;
 }
 
+const skinny_registrationstate_t sccp_device_getRegistrationState(constDevicePtr d)
+{
+	assert(d != NULL && d->privateData != NULL);
+	
+	skinny_registrationstate_t state = SKINNY_REGISTRATIONSTATE_SENTINEL;
+
+	sccp_private_lock(d->privateData);
+	state = d->privateData->registrationState;
+	sccp_private_unlock(d->privateData);
+	
+	return state;
+}
+
+int sccp_device_setRegistrationState(constDevicePtr d, const skinny_registrationstate_t state)
+{
+	assert(d != NULL && d->privateData != NULL);
+	int changed = 0;
+
+	sccp_private_lock(d->privateData);
+	if (state != d->privateData->registrationState) {
+		d->privateData->registrationState = state;
+		changed=1;
+	}
+	sccp_private_unlock(d->privateData);
+	
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Registration State is '%s'\n", d->id, skinny_registrationstate2str(state));
+	return changed;
+}
+
+/* ======================================================================================================== end getters / setters for privateData */
 
 /*!
  * \brief create a device and adding default values.
@@ -487,6 +522,7 @@ sccp_device_t *sccp_device_create(const char *id)
 		return NULL;
 	}
 	d->privateData = private_data;
+	d->privateData->registrationState = SKINNY_DEVICE_RS_NONE;
 	sccp_mutex_init(&d->privateData->lock);
 		
 	sccp_copy_string(d->id, id, sizeof(d->id));
@@ -508,7 +544,6 @@ sccp_device_t *sccp_device_create(const char *id)
 //	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
 	d->state = SCCP_DEVICESTATE_ONHOOK;
 	d->postregistration_thread = AST_PTHREADT_STOP;
-	d->registrationState = SKINNY_DEVICE_RS_NONE;
 
 	// set minimum protocol levels
 	// d->protocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
@@ -1134,20 +1169,19 @@ void sccp_dev_sendmsg(constDevicePtr d, sccp_mid_t t)
  *
  * \note adds a retained device to the event.deviceRegistered.device
  */
-void sccp_dev_set_registered(devicePtr d, uint8_t opt)
+void sccp_dev_set_registered(devicePtr d, skinny_registrationstate_t state)
 {
 	sccp_event_t event = {{{ 0 }}};
 	sccp_msg_t *msg = NULL;
 
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (sccp_dev_set_registered) Setting Registered Status for Device from %s to %s\n", DEV_ID_LOG(d), skinny_registrationstate2str(d->registrationState), skinny_registrationstate2str(opt));
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (sccp_dev_set_registered) Setting Registered Status for Device from %s to %s\n", DEV_ID_LOG(d), skinny_registrationstate2str(sccp_device_getRegistrationState(d)), skinny_registrationstate2str(state));
 
-	if (d->registrationState == opt) {
+	if (!sccp_device_setRegistrationState(d, state)) {
 		return;
 	}
-	d->registrationState = opt;
 
 	/* Handle registration completion. */
-	if (opt == SKINNY_DEVICE_RS_OK) {
+	if (state == SKINNY_DEVICE_RS_OK) {
 		/* this message is mandatory to finish process */
 		REQ(msg, SetLampMessage);
 
@@ -1164,7 +1198,7 @@ void sccp_dev_set_registered(devicePtr d, uint8_t opt)
 		}
 
 		sccp_dev_postregistration(d);
-	} else if (opt == SKINNY_DEVICE_RS_PROGRESS) {
+	} else if (state == SKINNY_DEVICE_RS_PROGRESS) {
 		memset(&event, 0, sizeof(sccp_event_t));
 		event.type = SCCP_EVENT_DEVICE_PREREGISTERED;
 		event.event.deviceRegistered.device = sccp_device_retain(d);
@@ -1893,7 +1927,7 @@ void sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePt
 
 	//! \todo check for forward status during registration -MC
 	//! \todo Needs to be revised. Does not make sense to call sccp_handle_AvailableLines from here
-	if (device->registrationState != SKINNY_DEVICE_RS_OK) {
+	if (sccp_device_getRegistrationState(device) != SKINNY_DEVICE_RS_OK) {
 		if (!device->linesRegistered) {
 			AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 			if (d) {

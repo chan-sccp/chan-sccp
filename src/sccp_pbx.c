@@ -327,7 +327,7 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
 
-	if (d && c->state != SCCP_CHANNELSTATE_DOWN && SKINNY_DEVICE_RS_OK == d->registrationState) {
+	if (d && c->state != SCCP_CHANNELSTATE_DOWN && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d)) {
 		// if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_device_getActiveChannel_nolock(d))	/* Caused active channels never to be full released */
 		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == d->active_channel) {
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
@@ -380,7 +380,7 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 			/* find the first the device on which it is registered and hangup that one (__sccp_indicate_remote_device will do the rest) */
 			SCCP_LIST_LOCK(&l->devices);
 			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-				if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState) {
+				if (linedevice->device && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(linedevice->device)) {
 					d = sccp_device_retain(linedevice->device);
 					break;
 				}

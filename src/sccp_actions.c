@@ -280,7 +280,7 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getSas(s, &sas);
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&sas));
-		device->registrationState = SKINNY_DEVICE_RS_FAILED;
+	sccp_device_setRegistrationState(	device, SKINNY_DEVICE_RS_FAILED);
 		sccp_session_reject(s, "IP Not Authorized");
 		return;
 	}
@@ -350,7 +350,7 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 	/* some test to detect active calls */
 	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: serverPriority: %d, unknown: %d, active call? %s\n", deviceName, serverPriority, letohl(msg_in->data.RegisterTokenRequest.unknown), (letohl(msg_in->data.RegisterTokenRequest.unknown) & 0x6) ? "yes" : "no");
 
-	device->registrationState = SKINNY_DEVICE_RS_TOKEN;
+	sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_TOKEN);
 	if (sendAck) {
 		sccp_log_and((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Acknowledging phone token request\n", deviceName);
 		sccp_session_tokenAck(s);
@@ -451,7 +451,7 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getSas(s, &sas);
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&sas));
-		device->registrationState = SKINNY_DEVICE_RS_FAILED;
+		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 		sccp_session_tokenRejectSPCP(s, 60);
 		sccp_session_reject(s, "IP Not Authorized");
 		return;
@@ -459,7 +459,7 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 
 	if (device->session && device->session != s) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", device->id);
-		device->registrationState = SKINNY_DEVICE_RS_FAILED;
+		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 		sccp_session_tokenRejectSPCP(s, 60);
 		sccp_session_reject(s, "Crossover session not allowed");
 		device->session = sccp_session_reject(device->session, "Crossover session not allowed");
@@ -468,7 +468,7 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 
 	/* all checks passed, assign session to device */
 	// device->session = s;
-	device->registrationState = SKINNY_DEVICE_RS_TOKEN;
+	sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_TOKEN);
 	device->status.token = SCCP_TOKEN_STATE_ACK;
 
 	sccp_session_tokenAckSPCP(s, 65535);
@@ -523,11 +523,11 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 		device = sccp_device_find_byid(deviceName, TRUE);
 	} else {
 		device = sccp_device_retain(maybe_d);
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: cached device configuration (state: %s)\n", DEV_ID_LOG(device), device ? skinny_registrationstate2str(device->registrationState) : "UNKNOWN");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: cached device configuration (state: %s)\n", DEV_ID_LOG(device), device ? skinny_registrationstate2str(sccp_device_getRegistrationState(device)) : "UNKNOWN");
 	}
 
 	if (sccp_session_check_crossdevice(s, device)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration (state: %s)! Fixing up to new session\n", DEV_ID_LOG(device), skinny_registrationstate2str(device->registrationState));
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration (state: %s)! Fixing up to new session\n", DEV_ID_LOG(device), skinny_registrationstate2str(sccp_device_getRegistrationState(device)));
 		return;												// come back later
 	}
 
@@ -557,7 +557,7 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 			struct sockaddr_storage sas = { 0 };
 			sccp_session_getSas(s, &sas);
 			pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", deviceName, sccp_socket_stringify_addr(&sas));
-			device->registrationState = SKINNY_DEVICE_RS_FAILED;
+			sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 			sccp_session_reject(s, "IP Not Authorized");
 			return;
 		}
@@ -1026,7 +1026,8 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 
 	sccp_msg_t *msg_out = NULL;
 
-	if (d->registrationState != SKINNY_DEVICE_RS_PROGRESS && d->registrationState != SKINNY_DEVICE_RS_OK) {
+	skinny_registrationstate_t registrationState=sccp_device_getRegistrationState(d);
+	if (registrationState != SKINNY_DEVICE_RS_PROGRESS && registrationState != SKINNY_DEVICE_RS_OK) {
 		pbx_log(LOG_WARNING, "%s: Received a button template request from unregistered device\n", d->id);
 		sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 		return;

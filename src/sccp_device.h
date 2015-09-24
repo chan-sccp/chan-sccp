@@ -163,7 +163,7 @@ struct sccp_device {
 	uint16_t keepaliveinterval;										/*!< Currently set Keepalive Timeout */
 	uint8_t protocolversion;										/*!< Skinny Supported Protocol Version */
 	uint8_t inuseprotocolversion;										/*!< Skinny Used Protocol Version */
-	uint16_t registrationState;										/*!< If the device has been fully registered yet */
+	//uint16_t registrationState;										/*!< If the device has been fully registered yet */
 	sccp_nat_t nat;												/*!< Network Address Translation Support (Boolean, default=on) */
 	boolean_t directrtp;											/*!< Direct RTP Support (Boolean, default=on) */
 
@@ -391,6 +391,8 @@ void sccp_device_post_reload(void);
 const sccp_accessorystate_t sccp_device_getAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory);
 const sccp_accessory_t sccp_device_getActiveAccessory(constDevicePtr d);
 int sccp_device_setAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory, const sccp_accessorystate_t state);
+const skinny_registrationstate_t sccp_device_getRegistrationState(constDevicePtr d);
+int sccp_device_setRegistrationState(constDevicePtr d, const skinny_registrationstate_t state);
 
 /* live cycle */
 sccp_device_t *sccp_device_create(const char *id);
@@ -416,7 +418,7 @@ void sccp_dev_sendmsg(constDevicePtr d, sccp_mid_t t);
 void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid, uint8_t softKeySetIndex);
 void sccp_dev_set_ringer(constDevicePtr d, uint8_t opt, uint8_t lineInstance, uint32_t callid);
 void sccp_dev_cleardisplay(constDevicePtr d);
-void sccp_dev_set_registered(devicePtr d, uint8_t opt);
+void sccp_dev_set_registered(devicePtr d, skinny_registrationstate_t state);
 void sccp_dev_set_speaker(constDevicePtr d, uint8_t opt);
 void sccp_dev_set_microphone(devicePtr d, uint8_t opt);
 void sccp_dev_set_cplane(constDevicePtr device, uint8_t lineInstance, int status);
