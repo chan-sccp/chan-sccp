@@ -2328,9 +2328,9 @@ int __sccp_device_destroy(const void *ptr)
 	}
 	
 	if (d->privateData) {
-		sccp_private_lock(d->privateData);
+		sccp_private_lock(&d->privateData);
 		sccp_mutex_destroy(&d->privateData->lock);
-		sccp_private_unlock(d->privateData);
+		sccp_private_unlock(&d->privateData);
 		sccp_free(d->privateData);
 	}
 	/*
