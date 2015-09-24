@@ -155,7 +155,6 @@ struct sccp_device {
 	const sccp_deviceProtocol_t *protocol;									/*!< protocol the devices uses */
 	uint32_t skinny_type;											/*!< Model of this Phone sent by the station, devicetype */
 	uint32_t device_features;										/*!< device features (contains protocolversion in 8bit first segement */
-	sccp_devicestate_t state;										/*!< Device State (SCCP_DEVICE_ONHOOK or SCCP_DEVICE_OFFHOOK) */
 	sccp_earlyrtp_t earlyrtp;										/*!< RTP Channel State where to open the RTP Media Stream */
 	sccp_session_t *session;										/*!< Current Session */
 	SCCP_RWLIST_ENTRY (sccp_device_t) list;									/*!< Global Device Linked List */
@@ -163,7 +162,6 @@ struct sccp_device {
 	uint16_t keepaliveinterval;										/*!< Currently set Keepalive Timeout */
 	uint8_t protocolversion;										/*!< Skinny Supported Protocol Version */
 	uint8_t inuseprotocolversion;										/*!< Skinny Used Protocol Version */
-	//uint16_t registrationState;										/*!< If the device has been fully registered yet */
 	sccp_nat_t nat;												/*!< Network Address Translation Support (Boolean, default=on) */
 	boolean_t directrtp;											/*!< Direct RTP Support (Boolean, default=on) */
 
@@ -387,12 +385,15 @@ struct sccp_device_indication_cb {
 void sccp_device_pre_reload(void);
 void sccp_device_post_reload(void);
 
-/* private getters / setters */
+/* ====================================================================================================== start getters / setters for privateData */
 const sccp_accessorystate_t sccp_device_getAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory);
 const sccp_accessory_t sccp_device_getActiveAccessory(constDevicePtr d);
 int sccp_device_setAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory, const sccp_accessorystate_t state);
+const sccp_devicestate_t sccp_device_getDeviceState(constDevicePtr d);
+int sccp_device_setDeviceState(constDevicePtr d, const sccp_devicestate_t state);
 const skinny_registrationstate_t sccp_device_getRegistrationState(constDevicePtr d);
 int sccp_device_setRegistrationState(constDevicePtr d, const skinny_registrationstate_t state);
+/* ======================================================================================================== end getters / setters for privateData */
 
 /* live cycle */
 sccp_device_t *sccp_device_create(const char *id);

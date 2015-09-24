@@ -1825,7 +1825,7 @@ void sccp_handle_offhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 
 	/* we need this for callwaiting, hold, answer and stuff */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Taken Offhook\n", d->id);
-	d->state = SCCP_DEVICESTATE_OFFHOOK;
+	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_OFFHOOK);
 
 	/* checking for registered lines */
 	if (!d->configurationStatistic.numberOfLines) {
@@ -1904,7 +1904,7 @@ void sccp_handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	uint32_t callid = letohl(msg_in->data.OnHookMessage.lel_callReference);
 
 	/* we need this for callwaiting, hold, answer and stuff */
-	d->state = SCCP_DEVICESTATE_ONHOOK;
+	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_ONHOOK);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook\n", DEV_ID_LOG(d));
 
 	if (!(d->lineButtons.size > SCCP_FIRST_LINEINSTANCE)) {
