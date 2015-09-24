@@ -218,8 +218,8 @@ char *sccp_accessory_all_entries(void);
  */
 typedef enum sccp_accessorystate {
 	SCCP_ACCESSORYSTATE_NONE,
-	SCCP_ACCESSORYSTATE_ONHOOK,
 	SCCP_ACCESSORYSTATE_OFFHOOK,
+	SCCP_ACCESSORYSTATE_ONHOOK,
 	SCCP_ACCESSORYSTATE_SENTINEL
 } sccp_accessorystate_t;
 int sccp_accessorystate_exists(int sccp_accessorystate_int_value);

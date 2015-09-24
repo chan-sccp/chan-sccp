@@ -577,13 +577,13 @@ char *sccp_accessory_all_entries(void) {
  */
 static const char *sccp_accessorystate_map[] = {
 	[SCCP_ACCESSORYSTATE_NONE] = "None",
-	[SCCP_ACCESSORYSTATE_ONHOOK] = "On Hook",
 	[SCCP_ACCESSORYSTATE_OFFHOOK] = "Off Hook",
+	[SCCP_ACCESSORYSTATE_ONHOOK] = "On Hook",
 	[SCCP_ACCESSORYSTATE_SENTINEL] = "LOOKUPERROR"
 };
 
 int sccp_accessorystate_exists(int sccp_accessorystate_int_value) {
-	if ((SCCP_ACCESSORYSTATE_ONHOOK <=sccp_accessorystate_int_value) && (sccp_accessorystate_int_value < SCCP_ACCESSORYSTATE_SENTINEL )) {
+	if ((SCCP_ACCESSORYSTATE_OFFHOOK <=sccp_accessorystate_int_value) && (sccp_accessorystate_int_value < SCCP_ACCESSORYSTATE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -614,7 +614,7 @@ int sccp_accessorystate_str2intval(const char *lookup_str) {
 }
 
 char *sccp_accessorystate_all_entries(void) {
-	static char res[] = "None,On Hook,Off Hook";
+	static char res[] = "None,Off Hook,On Hook";
 	return res;
 }
 /* = End =========================================================================================            sccp_accessorystate === */
