@@ -981,28 +981,10 @@ void sccp_handle_AvailableLines(constSessionPtr s, devicePtr d, constMessagePtr 
  */
 void sccp_handle_accessorystatus_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
-	uint8_t id;
-	uint8_t status;
+	sccp_accessory_t accessory = letohl(msg_in->data.AccessoryStatusMessage.lel_AccessoryID);
+	sccp_accessorystate_t state = letohl(msg_in->data.AccessoryStatusMessage.lel_AccessoryStatus);
 
-	id = letohl(msg_in->data.AccessoryStatusMessage.lel_AccessoryID);
-	status = letohl(msg_in->data.AccessoryStatusMessage.lel_AccessoryStatus);
-
-	d->accessoryused = id;
-	d->accessorystatus = status;
-	switch (id) {
-		case 1:
-			d->accessoryStatus.headset = (status) ? TRUE : FALSE;
-			break;
-		case 2:
-			d->accessoryStatus.handset = (status) ? TRUE : FALSE;
-			break;
-		case 3:
-			d->accessoryStatus.speaker = (status) ? TRUE : FALSE;
-			// should we not also set d->state = SCCP_DEVICESTATE_OFFHOOK / SCCP_DEVICESTATE_ONHOOK
-			break;
-	}
-
-	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s'\n", DEV_ID_LOG(d), sccp_accessory2str(d->accessoryused), sccp_accessorystate2str(d->accessorystatus));
+	sccp_device_setAccessoryStatus(d, accessory, state);
 }
 
 /*!
