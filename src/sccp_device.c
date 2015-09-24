@@ -39,6 +39,17 @@ int __sccp_device_destroy(const void *ptr);
 void sccp_device_removeFromGlobals(devicePtr device);
 int sccp_device_destroy(const void *ptr);
 
+/*!
+ * \brief Private Device Data Structure
+ */
+struct sccp_private_device_data {
+	sccp_mutex_t lock;
+	sccp_accessorystate_t accessoryStatus[SCCP_ACCESSORY_SENTINEL];		
+};
+
+#define sccp_private_lock(x) sccp_mutex_lock(&((struct sccp_private_device_data * const)x)->lock)			/* discard const */
+#define sccp_private_unlock(x) sccp_mutex_unlock(&((struct sccp_private_device_data * const)x)->lock)			/* discard const */
+
 /* indicate definition */
 static void sccp_device_old_indicate_remoteHold(constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy);
 static void sccp_device_new_indicate_remoteHold(constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy);
@@ -412,6 +423,41 @@ void sccp_device_post_reload(void)
 	SCCP_LIST_TRAVERSE_SAFE_END;
 }
 
+/* getters / setters for privateData */
+const sccp_accessorystate_t sccp_device_getAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory)
+{
+	assert(d != NULL);
+	sccp_private_lock(&d->privateData);
+	sccp_accessorystate_t accessoryStatus = d->privateData->accessoryStatus[accessory];
+	sccp_private_unlock(&d->privateData);
+	return accessoryStatus;
+}
+
+const sccp_accessory_t sccp_device_getActiveAccessory(constDevicePtr d)
+{
+	assert(d != NULL);
+	sccp_accessory_t accessory = SCCP_ACCESSORY_NONE;
+	sccp_private_lock(&d->privateData);
+	for (accessory = SCCP_ACCESSORY_NONE ; accessory < SCCP_ACCESSORY_SENTINEL; accessory++) {
+		if (d->privateData->accessoryStatus[accessory] == SCCP_ACCESSORYSTATE_OFFHOOK) {
+			break;
+		}
+	}
+	sccp_private_unlock(&d->privateData);
+	return accessory;
+}
+
+int sccp_device_setAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory, const sccp_accessorystate_t state)
+{
+	assert(d != NULL);
+	sccp_private_lock(&d->privateData);
+	d->privateData->accessoryStatus[accessory] = state;
+	sccp_private_unlock(&d->privateData);
+	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s'\n", d->id, sccp_accessory2str(accessory), sccp_accessorystate2str(state));
+	return 1;
+}
+
+
 /*!
  * \brief create a device and adding default values.
  * \return retained device with default/global values
@@ -422,6 +468,8 @@ void sccp_device_post_reload(void)
 sccp_device_t *sccp_device_create(const char *id)
 {
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: Create Device\n");
+	struct sccp_private_device_data *private_data;
+	
 	sccp_device_t *d = (sccp_device_t *) sccp_refcount_object_alloc(sizeof(sccp_device_t), SCCP_REF_DEVICE, id, __sccp_device_destroy);
 
 	if (!d) {
@@ -429,7 +477,16 @@ sccp_device_t *sccp_device_create(const char *id)
 		return NULL;
 	}
 
-	memset(d, 0, sizeof(sccp_device_t));
+	//memset(d, 0, sizeof(sccp_device_t));
+	private_data = sccp_calloc(sizeof(struct sccp_private_device_data), 1);
+	if (!private_data) {
+		pbx_log(LOG_ERROR, "%s: No memory to allocate device private data\n", id);
+		d = sccp_device_release(d);
+		return NULL;
+	}
+	d->privateData = private_data;
+	sccp_mutex_init(&d->privateData->lock);
+		
 	sccp_copy_string(d->id, id, sizeof(d->id));
 	SCCP_LIST_HEAD_INIT(&d->buttonconfig);
 	SCCP_LIST_HEAD_INIT(&d->selectedChannels);
@@ -2268,6 +2325,13 @@ int __sccp_device_destroy(const void *ptr)
 	if (d->variables) {
 		pbx_variables_destroy(d->variables);
 		d->variables = NULL;
+	}
+	
+	if (d->privateData) {
+		sccp_private_lock(d->privateData);
+		sccp_mutex_destroy(&d->privateData->lock);
+		sccp_private_unlock(d->privateData);
+		sccp_free(d->privateData);
 	}
 	/*
 	if (PBX(endpoint_shutdown)) {
