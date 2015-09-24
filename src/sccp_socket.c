@@ -546,7 +546,7 @@ static void sccp_socket_get_error(constSessionPtr s)
  */
 static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 {
-	if (!s || s->session_stop || s->fds[0].fd <= 0) {
+	if (!s || s->session_stop || s->fds[0].fd <= 0 || !msg) {
 		return 0;
 	}
 	int socket = s->fds[0].fd;
