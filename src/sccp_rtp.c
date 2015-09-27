@@ -39,6 +39,8 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "we already have a rtp server, we use this one\n");
 		return TRUE;
 	}
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(c->rtp.audio);
+	struct sockaddr_storage *phone_remote = &audio->phone_remote;
 
 	if (iPbx.rtp_audio_create) {
 		rtpResult = (boolean_t) iPbx.rtp_audio_create((sccp_channel_t *) c);
@@ -47,30 +49,26 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 		return FALSE;
 	}
 
-	if (!sccp_rtp_getUs(&c->rtp.audio, &((sccp_channel_t *) c)->rtp.audio.phone_remote)) {
+	if (!sccp_rtp_getUs(audio, phone_remote)) {
 		pbx_log(LOG_WARNING, "%s: Did not get our rtp part\n", c->currentDeviceId);
 		return FALSE;
 	}
 
 	uint16_t port = sccp_rtp_getServerPort(&c->rtp.audio);
-
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "RTP Server Port: %d\n", port);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (createAudioServer) RTP Server Port: %d\n", c->currentDeviceId, port);
 
 	/* depending on the client connection, we us ipv4 or ipv6 */
 	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(c);
 
 	if (device) {
-		struct sockaddr_storage remote = c->rtp.audio.phone_remote;					/* discard const */
-		sccp_session_getSas(device->session, &remote);
-		sccp_socket_setPort(&remote, port);
+		sccp_session_getOurIP(device->session, phone_remote, 0);
+		sccp_socket_setPort(phone_remote, port);
+
+		char buf[NI_MAXHOST + NI_MAXSERV];
+		sccp_copy_string(buf, sccp_socket_stringify(phone_remote), sizeof(buf));
+		isMappedIPv4 = sccp_socket_ipv4_mapped(phone_remote, (struct sockaddr_storage *) phone_remote);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (createAudioServer) updated remote phone ip to : %s, family:%s, mapped: %s\n", device->id, buf, sccp_socket_is_IPv4(phone_remote) ? "IPv4" : "IPv6", isMappedIPv4 ? "True" : "False");
 	}
-
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "is IPv4: %d\n", sccp_socket_is_IPv4(&c->rtp.audio.phone_remote) ? 1 : 0);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "is IPv6: %d\n", sccp_socket_is_IPv6(&c->rtp.audio.phone_remote) ? 1 : 0);
-
-	isMappedIPv4 = sccp_socket_ipv4_mapped(&c->rtp.audio.phone_remote, (struct sockaddr_storage *) &c->rtp.audio.phone_remote);	/*!< this is absolute necessary */
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "is mapped: %d\n", isMappedIPv4 ? 1 : 0);
-
 	//struct sockaddr_in us;
 	//iPbx.rtp_setPeer(&c->rtp.audio, &c->rtp.audio.phone, device ? device->nat : 0);
 
