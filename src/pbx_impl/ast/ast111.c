@@ -820,12 +820,7 @@ static int sccp_wrapper_asterisk111_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
-#if DEBUG
-			AUTO_RELEASE sccp_device_t *device = c->getDevice_retained(c, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-#else
-			AUTO_RELEASE sccp_device_t *device = c->getDevice_retained(c);
-#endif
-			if (c->rtp.video.writeState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.rtp && device && c->state != SCCP_CHANNELSTATE_HOLD) {
+			if (c->rtp.video.writeState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.rtp && c->state != SCCP_CHANNELSTATE_HOLD) {
 				// int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
 				int codec = pbx_codec2skinny_codec(frame->subclass.format.id);
 
