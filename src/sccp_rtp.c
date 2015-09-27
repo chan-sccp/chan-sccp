@@ -27,7 +27,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
  * \brief create a new rtp server for audio data
  * \param c SCCP Channel
  */
-int sccp_rtp_createAudioServer(const sccp_channel_t * c)
+int sccp_rtp_createAudioServer(constChannelPtr c)
 {
 	boolean_t rtpResult = FALSE;
 	boolean_t isMappedIPv4;
@@ -79,7 +79,7 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
  * \brief create a new rtp server for video data
  * \param c SCCP Channel
  */
-int sccp_rtp_createVideoServer(const sccp_channel_t * c)
+int sccp_rtp_createVideoServer(constChannelPtr c)
 {
 	boolean_t rtpResult = FALSE;
 
@@ -130,12 +130,36 @@ void sccp_rtp_stop(constChannelPtr channel)
 }
 
 /*!
+ * \brief Destroy RTP Source.
+ * \param c SCCP Channel
+ */
+void sccp_rtp_destroy(constChannelPtr c)
+{
+	sccp_line_t *l = c->line;
+	
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(c->rtp.audio);
+	sccp_rtp_t *video = (sccp_rtp_t *) &(c->rtp.video);
+
+	if (audio->rtp) {
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX rtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
+		iPbx.rtp_destroy(audio->rtp);
+		audio->rtp = NULL;
+	}
+
+	if (video->rtp) {
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX vrtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
+		iPbx.rtp_destroy(video->rtp);
+		video->rtp = NULL;
+	}
+}
+
+/*!
  * \brief set the address the phone should send rtp media.
  * \param c SCCP Channel
  * \param rtp SCCP RTP
  * \param new_peer socket info to remote device
  */
-void sccp_rtp_set_peer(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer)
+void sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t * const rtp, struct sockaddr_storage *new_peer)
 {
 	/* validate socket */
 	if (sccp_socket_getPort(new_peer) == 0) {
@@ -144,7 +168,7 @@ void sccp_rtp_set_peer(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_stor
 	}
 
 	/* check if we have new infos */
-	if (socket_equals(new_peer, &c->rtp.audio.phone_remote)) {
+	if (socket_equals(new_peer, &rtp->phone_remote)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) remote information are equal to the current one, ignore change\n", c->currentDeviceId);
 		return;
 	}
@@ -174,7 +198,7 @@ void sccp_rtp_set_peer(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_stor
  * \param rtp SCCP RTP
  * \param new_peer socket info to remote device
  */
-void sccp_rtp_set_phone(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer)
+void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockaddr_storage *new_peer)
 {
 	/* validate socket */
 	if (sccp_socket_getPort(new_peer) == 0) {
@@ -212,7 +236,7 @@ void sccp_rtp_set_phone(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_sto
 	}
 }
 
-int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *rtp)
+int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp)
 {
 	int res = 0;
 	//sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
@@ -261,7 +285,7 @@ int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *rtp)
 /*!
  * \brief Get Audio Peer RTP Information
  */
-sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, sccp_rtp_t **rtp)
+sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(constChannelPtr c, sccp_rtp_t **rtp)
 {
 	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
 
@@ -284,7 +308,7 @@ sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, sccp_rtp_t *
 /*!
  * \brief Get Video Peer RTP Information
  */
-sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, sccp_rtp_t ** rtp)
+sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(constChannelPtr c, sccp_rtp_t ** rtp)
 {
 	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
 
@@ -304,66 +328,36 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, sccp_rtp_t *
 }
 
 /*!
- * \brief Get Payload Type
- */
-uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t * rtp, skinny_codec_t codec)
-{
-	if (iPbx.rtp_get_payloadType) {
-		return iPbx.rtp_get_payloadType(rtp, codec);
-	} else {
-		return 97;
-	}
-}
-
-/*!
- * \brief Get Sample Rate
- */
-int sccp_rtp_get_sampleRate(skinny_codec_t codec)
-{
-	if (iPbx.rtp_get_sampleRate) {
-		return iPbx.rtp_get_sampleRate(codec);
-	} else {
-		return 3840;
-	}
-}
-
-/*!
- * \brief Destroy RTP Source.
- * \param c SCCP Channel
- */
-void sccp_rtp_destroy(sccp_channel_t * c)
-{
-	sccp_line_t *l = c->line;
-
-	if (c->rtp.audio.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX rtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
-		iPbx.rtp_destroy(c->rtp.audio.rtp);
-		c->rtp.audio.rtp = NULL;
-	}
-
-	if (c->rtp.video.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX vrtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
-		iPbx.rtp_destroy(c->rtp.video.rtp);
-		c->rtp.video.rtp = NULL;
-	}
-}
-
-/*!
  * \brief Get Audio Peer
  */
-boolean_t sccp_rtp_getAudioPeer(sccp_channel_t * c, struct sockaddr_storage **new_peer)
+boolean_t sccp_rtp_getAudioPeer(constChannelPtr c, struct sockaddr_storage **new_peer)
 {
-	*new_peer = &c->rtp.audio.phone_remote;
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(c->rtp.audio);
+	*new_peer = &audio->phone_remote;
 	return TRUE;
 }
 
 /*!
  * \brief Get Video Peer
  */
-boolean_t sccp_rtp_getVideoPeer(sccp_channel_t * c, struct sockaddr_storage **new_peer)
+boolean_t sccp_rtp_getVideoPeer(constChannelPtr c, struct sockaddr_storage **new_peer)
 {
-	*new_peer = &c->rtp.video.phone_remote;
+	sccp_rtp_t *video = (sccp_rtp_t *) &(c->rtp.video);
+	*new_peer = &video->phone_remote;
 	return TRUE;
+}
+
+
+/*!
+ * \brief Get Payload Type
+ */
+uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t * const rtp, skinny_codec_t codec)
+{
+	if (iPbx.rtp_get_payloadType) {
+		return iPbx.rtp_get_payloadType(rtp, codec);
+	} else {
+		return 97;
+	}
 }
 
 /*!
@@ -380,7 +374,7 @@ boolean_t sccp_rtp_getUs(const sccp_rtp_t *rtp, struct sockaddr_storage *us)
 	}
 }
 
-uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * rtp)
+uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * const rtp)
 {
 	uint16_t port = 0;
 	struct sockaddr_storage sas;
@@ -394,7 +388,7 @@ uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * rtp)
 /*!
  * \brief Retrieve Phone Socket Information
  */
-boolean_t sccp_rtp_getPeer(const sccp_rtp_t *rtp, struct sockaddr_storage *them)
+boolean_t sccp_rtp_getPeer(const sccp_rtp_t * const rtp, struct sockaddr_storage *them)
 {
 	if (rtp->rtp) {
 		iPbx.rtp_getPeer(rtp->rtp, them);
@@ -403,5 +397,18 @@ boolean_t sccp_rtp_getPeer(const sccp_rtp_t *rtp, struct sockaddr_storage *them)
 		return FALSE;
 	}
 }
+
+/*!
+ * \brief Get Sample Rate
+ */
+int sccp_rtp_get_sampleRate(skinny_codec_t codec)
+{
+	if (iPbx.rtp_get_sampleRate) {
+		return iPbx.rtp_get_sampleRate(codec);
+	} else {
+		return 3840;
+	}
+}
+
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
