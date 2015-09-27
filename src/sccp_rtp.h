@@ -31,6 +31,7 @@ void sccp_rtp_stop(constChannelPtr channel);
 void sccp_rtp_destroy(sccp_channel_t * c);
 void sccp_rtp_set_peer(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer);
 void sccp_rtp_set_phone(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer);
+int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *rtp);
 boolean_t sccp_rtp_getAudioPeer(sccp_channel_t * c, struct sockaddr_storage **new_peer);
 boolean_t sccp_rtp_getVideoPeer(sccp_channel_t * c, struct sockaddr_storage **new_peer);
 uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t *rtp, skinny_codec_t codec);
