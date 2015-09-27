@@ -865,53 +865,17 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 	}
 
 	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
+	sccp_rtp_updateNatRemotePhone(channel, audio);
 
-	struct sockaddr_storage sus = { 0 };
-	sccp_session_getOurIP(d->session, &sus, 0);
-	uint16_t usFamily = sccp_socket_is_IPv6(&sus) ? AF_INET6 : AF_INET;
-	//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) us: %s, usFamily: %s\n", d->id, sccp_socket_stringify(&sus), (usFamily == AF_INET6) ? "IPv6" : "IPv4");
-
-	struct sockaddr_storage *phone_remote = &audio->phone_remote;
-	uint16_t remoteFamily = (audio->phone_remote.ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(phone_remote)) ? AF_INET6 : AF_INET;
-	//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) remote: %s, remoteFamily: %s\n", d->id, sccp_socket_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
-
-	/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
-	if (d->nat >= SCCP_NAT_ON) {
-		if ((usFamily == AF_INET) != remoteFamily) {						/* device needs correction for ipv6 address in remote */
-			uint16_t port = sccp_rtp_getServerPort(audio);					/* get rtp server port */
-
-			memcpy(phone_remote, &sus, sizeof(struct sockaddr_storage));			/* Not sure if this should not be the externip in case of nat */
-			sccp_socket_ipv4_mapped(phone_remote, phone_remote);				/*!< we need this to convert mapped IPv4 to real IPv4 address */
-			sccp_socket_setPort(phone_remote, port);
-
-		} else if ((usFamily == AF_INET6) != remoteFamily) {					/* the device can do IPv6 but should send it to IPv4 address (directrtp possible) */
-			struct sockaddr_storage sas;
-
-			memcpy(&sas, phone_remote, sizeof(struct sockaddr_storage));
-			sccp_socket_ipv4_mapped(&sas, &sas);
-		}
-	}
-	//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) new_remote: %s, new_remoteFamily: %s\n", d->id, sccp_socket_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
 	//sccp_channel_recalculateReadformat(channel);
 	if (channel->owner) {
 		iPbx.set_nativeAudioFormats(channel, &audio->readFormat, 1);
 		iPbx.rtp_setReadFormat(channel, audio->readFormat);
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) new remote: %s, new remoteFamily: %s\n", d->id, sccp_socket_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
-	
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(audio->readFormat), audio->readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
-
 	audio->readState |= SCCP_RTP_STATUS_PROGRESS;
 	d->protocol->sendStartMediaTransmission(d, channel);
 
-	char buf1[NI_MAXHOST + NI_MAXSERV];
-	char buf2[NI_MAXHOST + NI_MAXSERV];
-
-	sccp_copy_string(buf1, sccp_socket_stringify(&audio->phone), sizeof(buf1));
-	sccp_copy_string(buf2, sccp_socket_stringify(phone_remote), sizeof(buf2));
-
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(d), buf1, buf2, sccp_nat2str(d->nat));
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(audio->readFormat), audio->readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
 }
 
@@ -970,6 +934,7 @@ void sccp_channel_updateMediaTransmission(constChannelPtr channel)
 void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 {
 	int payloadType;
+	int bitRate = channel->maxBitRate;
 
 	ast_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
@@ -982,63 +947,46 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can't start vrtp media transmission, maybe channel is down %s-%08X\n", channel->currentDeviceId, channel->line->name, channel->callid);
 		return;
 	}
-	// int packetSize;
-	video->readFormat = SKINNY_CODEC_H264;
-	iPbx.set_nativeVideoFormats(channel, SKINNY_CODEC_H264);
-	//// packetSize = 3840;
-	// packetSize = 1920;
 
-	int bitRate = channel->maxBitRate;
+	sccp_rtp_updateNatRemotePhone(channel, video);
 
-	//channel->preferences.video[0] = SKINNY_CODEC_H264;
-	//channel->preferences.video[1] = SKINNY_CODEC_H263;
-	skinny_codec_t *preferences = (skinny_codec_t *) &(channel->preferences.video);
-	preferences[0] = SKINNY_CODEC_H264;
-
-	video->readFormat = sccp_utils_findBestCodec(channel->preferences.video, ARRAY_LEN(channel->preferences.video), channel->capabilities.video, ARRAY_LEN(channel->capabilities.video), channel->remoteCapabilities.video, ARRAY_LEN(channel->remoteCapabilities.video));
-
-	if (video->readFormat == 0) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: fall back to h264\n", DEV_ID_LOG(d));
+	// recalculate format;
+	{
+		// int packetSize;
 		video->readFormat = SKINNY_CODEC_H264;
-	}
+		iPbx.set_nativeVideoFormats(channel, SKINNY_CODEC_H264);
+		//// packetSize = 3840;
+		// packetSize = 1920;
 
-	/* lookup payloadType */
-	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, video->readFormat);
-	//! \todo handle payload error
-	//! \todo use rtp codec map
+		//channel->preferences.video[0] = SKINNY_CODEC_H264;
+		//channel->preferences.video[1] = SKINNY_CODEC_H263;
+		skinny_codec_t *preferences = (skinny_codec_t *) &(channel->preferences.video);
+		preferences[0] = SKINNY_CODEC_H264;
 
-	//check if bind address is an global bind address
-	/*
-	if (!video->phone_remote.sin_addr.s_addr) {
-		video->phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
-	}
-	*/
+		video->readFormat = sccp_utils_findBestCodec(channel->preferences.video, ARRAY_LEN(channel->preferences.video), channel->capabilities.video, ARRAY_LEN(channel->capabilities.video), channel->remoteCapabilities.video, ARRAY_LEN(channel->remoteCapabilities.video));
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
-
-	struct sockaddr_storage sus = { 0 }, *remote = &video->phone_remote;
-	sccp_session_getOurIP(d->session, &sus, 0);
-	uint16_t usFamily = sccp_socket_is_IPv6(&sus) ? AF_INET6 : AF_INET;
-	uint16_t remoteFamily = (remote->ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(remote)) ? AF_INET6 : AF_INET;
-
-	/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
-	if (d->nat >= SCCP_NAT_ON) {
-		if ((usFamily == AF_INET) != remoteFamily) {							/* device needs correction for ipv6 address in remote */
-			uint16_t port = sccp_rtp_getServerPort(&channel->rtp.audio);				/* get rtp server port */
-
-			memcpy(remote, &sus, sizeof(struct sockaddr_storage));					/* Not sure if this should not be the externip in case of nat */
-			sccp_socket_ipv4_mapped(remote, remote);						/*!< we need this to convert mapped IPv4 to real IPv4 address */
-			sccp_socket_setPort(remote, port);
-
-		} else if ((usFamily == AF_INET6) != remoteFamily) {						/* the device can do IPv6 but should send it to IPv4 address (directrtp possible) */
-			struct sockaddr_storage sas = { 0 };
-
-			memcpy(&sas, remote, sizeof(struct sockaddr_storage));
-			sccp_socket_ipv4_mapped(&sas, &sas);
+		if (video->readFormat == 0) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: fall back to h264\n", DEV_ID_LOG(d));
+			video->readFormat = SKINNY_CODEC_H264;
 		}
+
+		/* lookup payloadType */
+		payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, video->readFormat);
+		//! \todo handle payload error
+		//! \todo use rtp codec map
+
+		//check if bind address is an global bind address
+		/*
+		if (!video->phone_remote.sin_addr.s_addr) {
+			video->phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
+		}
+		*/
+
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
+
 	}
-	sccp_socket_ipv4_mapped(remote, remote);								/*!< we need this to convert mapped IPv4 to real IPv4 address */
+
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s with codec: %s(%d), payloadType %d, tos %d\n", d->id, sccp_socket_stringify(&video->phone_remote), codec2str(video->readFormat), video->readFormat, payloadType, d->audio_tos);
 
 	video->readState = SCCP_RTP_STATUS_PROGRESS;

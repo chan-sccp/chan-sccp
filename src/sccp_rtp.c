@@ -212,6 +212,52 @@ void sccp_rtp_set_phone(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_sto
 	}
 }
 
+int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *rtp)
+{
+	int res = 0;
+	//sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	if (d) {
+		struct sockaddr_storage sus = { 0 };
+		sccp_session_getOurIP(d->session, &sus, 0);
+		uint16_t usFamily = sccp_socket_is_IPv6(&sus) ? AF_INET6 : AF_INET;
+		//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) us: %s, usFamily: %s\n", d->id, sccp_socket_stringify(&sus), (usFamily == AF_INET6) ? "IPv6" : "IPv4");
+
+		struct sockaddr_storage *phone_remote = &rtp->phone_remote;
+		uint16_t remoteFamily = (rtp->phone_remote.ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(phone_remote)) ? AF_INET6 : AF_INET;
+		//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) remote: %s, remoteFamily: %s\n", d->id, sccp_socket_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
+
+		/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
+		if (d->nat >= SCCP_NAT_ON) {
+			if ((usFamily == AF_INET) != remoteFamily) {						/* device needs correction for ipv6 address in remote */
+				uint16_t port = sccp_rtp_getServerPort(rtp);					/* get rtp server port */
+
+				memcpy(phone_remote, &sus, sizeof(struct sockaddr_storage));			/* Not sure if this should not be the externip in case of nat */
+				sccp_socket_ipv4_mapped(phone_remote, phone_remote);				/*!< we need this to convert mapped IPv4 to real IPv4 address */
+				sccp_socket_setPort(phone_remote, port);
+
+			} else if ((usFamily == AF_INET6) != remoteFamily) {					/* the device can do IPv6 but should send it to IPv4 address (directrtp possible) */
+				struct sockaddr_storage sas;
+
+				memcpy(&sas, phone_remote, sizeof(struct sockaddr_storage));
+				sccp_socket_ipv4_mapped(&sas, &sas);
+			}
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) new remote: %s, new remoteFamily: %s\n", d->id, sccp_socket_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
+			res = 1;
+		}
+		
+		char buf1[NI_MAXHOST + NI_MAXSERV];
+		char buf2[NI_MAXHOST + NI_MAXSERV];
+
+		sccp_copy_string(buf1, sccp_socket_stringify(&rtp->phone), sizeof(buf1));
+		sccp_copy_string(buf2, sccp_socket_stringify(phone_remote), sizeof(buf2));
+
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(d), buf1, buf2, sccp_nat2str(d->nat));
+	}
+	return res;
+}
+
+
 /*!
  * \brief Get Audio Peer RTP Information
  */
