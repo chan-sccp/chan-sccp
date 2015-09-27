@@ -2720,17 +2720,19 @@ void sccp_handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constM
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting Phone RTP/UDP Transmission (State: %s[%d])\n", d->id, sccp_channelstate2str(channel->state), channel->state);
 		sccp_channel_setDevice(channel, d);
 		if (channel->rtp.audio.rtp) {
+			//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (open_receive_channel_ack) phone sas: %s (nat:%s)\n", d->id, sccp_socket_stringify(&sas), d->nat >= SCCP_NAT_ON  ? "TRUE": "FALSE");
 			if (d->nat >= SCCP_NAT_ON) {
-				/* Rewrite ip-addres to the outside source address via which the phone connection (device->sin) */
+				/* Rewrite ip-addres to the outside source address using the phones connection (device->sin) */
 				uint16_t port = sccp_socket_getPort(&sas);
 				sccp_session_getSas(s, &sas);
+				
 				sccp_socket_ipv4_mapped(&sas, &sas);
 				sccp_socket_setPort(&sas, port);
 
 			}
+			//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (open_receive_channel_ack) update phone to sas: %s (nat:%s)\n", d->id, sccp_socket_stringify(&sas), d->nat >= SCCP_NAT_ON  ? "TRUE": "FALSE");
 			sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
 			sccp_channel_updateMediaTransmission(channel);
-			//sccp_channel_startMediaTransmission(channel);
 
 			/* update status */
 			channel->rtp.audio.writeState = SCCP_RTP_STATUS_ACTIVE;
