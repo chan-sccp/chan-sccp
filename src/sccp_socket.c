@@ -556,7 +556,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	uint bytesToRead = 0;
 	uint bytesReadSoFar = 0;
 	int readlen = 0;
-	unsigned char buffer[SCCP_MAX_PACKET] = { 0 };
+	unsigned char buffer[SCCP_MAX_PACKET + 1] = { 0 };
 	unsigned char *dataptr;
 
 	errno = 0;
@@ -587,7 +587,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	dataptr = (unsigned char *) &msg->data;
 	while (bytesToRead > 0) {
 		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
-		readlen = read(socket, buffer, bytesToRead);						// use bufferptr instead
+		readlen = read(socket, buffer, bytesToRead > SCCP_MAX_PACKET ? SCCP_MAX_PACKET : bytesToRead);					// use bufferptr instead
 		if ((readlen < 0) && (tries++ < READ_RETRIES) && (errno == EINTR || errno == EAGAIN)) {
 			usleep(backoff);
 			backoff *= 2;
@@ -610,11 +610,11 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 //READ_SKIP:
 	if (UnreadBytesAccordingToPacket > 0) {									/* checking to prevent unneeded allocation of discardBuffer */
 		pbx_log(LOG_NOTICE, "%s: Going to Discard %d bytes of data for '%s' (%d) (Needs developer attention)\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
-		unsigned char discardBuffer[128];
+		unsigned char discardBuffer[SCCP_MAX_PACKET + 1];
 
 		bytesToRead = UnreadBytesAccordingToPacket;
 		while (bytesToRead > 0) {
-			readlen = read(socket, discardBuffer, (bytesToRead > sizeof(discardBuffer)) ? sizeof(discardBuffer) : bytesToRead);
+			readlen = read(socket, discardBuffer, (bytesToRead > SCCP_MAX_PACKET) ? SCCP_MAX_PACKET : bytesToRead);
 			if ((readlen < 0) && (tries++ < READ_RETRIES) && (errno == EINTR || errno == EAGAIN)) {
 				usleep(backoff);
 				backoff *= 2;
