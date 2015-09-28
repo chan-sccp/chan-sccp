@@ -22,7 +22,7 @@ chan_sccp_la_SOURCES	=	sccp_enum.h		sccp_callinfo.h		chan_sccp.h		sccp_cli.h		\
 				sccp_indicate.h		sccp_refcount.h		sccp_protocol.h 	sccp_dllists.h		\
 				sccp_management.h	sccp_mwi.h		common.h		sccp_rtp.h 		\
 				sccp_appfunctions.h	sccp_socket.h		sccp_cli_table.h	sccp_devstate.h		\
-				revision.h		pbx_impl/ast/include_asterisk_autoconfig.h	sccp_lock.h
+				revision.h		pbx_impl/ast/include_asterisk_autoconfig.h	sccp_atomic.h
                                                                 
 chan_sccp_la_SOURCES	+=	sccp_enum.c 		chan_sccp.c		sccp_callinfo.c 	sccp_channel.c		\
 				sccp_device.c		sccp_indicate.c 	sccp_pbx.c 		pbx_impl/pbx_impl.c	\
