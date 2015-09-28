@@ -164,14 +164,15 @@ struct sccp_device {
 	uint32_t skinny_type;											/*!< Model of this Phone sent by the station, devicetype */
 	uint32_t device_features;										/*!< device features (contains protocolversion in 8bit first segement */
 	sccp_earlyrtp_t earlyrtp;										/*!< RTP Channel State where to open the RTP Media Stream */
-	sccp_session_t *session;										/*!< Current Session */
-	SCCP_RWLIST_ENTRY (sccp_device_t) list;									/*!< Global Device Linked List */
 	uint16_t keepalive;											/*!< Station Specific Keepalive Timeout */
 	uint16_t keepaliveinterval;										/*!< Currently set Keepalive Timeout */
 	uint8_t protocolversion;										/*!< Skinny Supported Protocol Version */
 	uint8_t inuseprotocolversion;										/*!< Skinny Used Protocol Version */
+	uint16_t directrtp;											/*!< Direct RTP Support (Boolean, default=on) */
+
 	sccp_nat_t nat;												/*!< Network Address Translation Support (Boolean, default=on) */
-	boolean_t directrtp;											/*!< Direct RTP Support (Boolean, default=on) */
+	sccp_session_t *session;										/*!< Current Session */
+	SCCP_RWLIST_ENTRY (sccp_device_t) list;									/*!< Global Device Linked List */
 
 	sccp_private_device_data_t *privateData;
 	
