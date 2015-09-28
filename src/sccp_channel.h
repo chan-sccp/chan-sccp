@@ -26,44 +26,6 @@
 #define sccp_channel_refreplace(_x, _y)	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 
 /*!
- * \brief SCCP CallInfo Structure
- */
-struct sccp_oldcallinfo {
-	char calledPartyName[StationMaxNameSize];								/*!< Called Party Name */
-	char calledPartyNumber[StationMaxDirnumSize];								/*!< Called Party Number */
-	char cdpnVoiceMailbox[StationMaxDirnumSize];								/*!< Called Party Voicemail Box */
-
-	char callingPartyName[StationMaxNameSize];								/*!< Calling Party Name */
-	char callingPartyNumber[StationMaxDirnumSize];								/*!< Calling Party Number */
-	char cgpnVoiceMailbox[StationMaxDirnumSize];								/*!< Calling Party Voicemail Box */
-
-	char originalCalledPartyName[StationMaxNameSize];							/*!< Original Calling Party Name */
-	char originalCalledPartyNumber[StationMaxDirnumSize];							/*!< Original Calling Party ID */
-	char originalCdpnVoiceMailbox[StationMaxDirnumSize];							/*!< Original Called Party VoiceMail Box */
-
-	char originalCallingPartyName[StationMaxNameSize];							/*!< Original Calling Party Name */
-	char originalCallingPartyNumber[StationMaxDirnumSize];							/*!< Original Calling Party ID */
-
-	char lastRedirectingPartyName[StationMaxNameSize];							/*!< Original Called Party Name */
-	char lastRedirectingPartyNumber[StationMaxDirnumSize];							/*!< Original Called Party ID */
-	char lastRedirectingVoiceMailbox[StationMaxDirnumSize];							/*!< Last Redirecting VoiceMail Box */
-
-	uint32_t originalCdpnRedirectReason;									/*!< Original Called Party Redirect Reason */
-	uint32_t lastRedirectingReason;										/*!< Last Redirecting Reason */
-	int presentation;											/*!< Should this callerinfo be shown (privacy) */
-
-	unsigned int cdpnVoiceMailbox_valid:1;									/*!< TRUE if the name information is valid/present */
-	unsigned int calledParty_valid:1;									/*!< TRUE if the name information is valid/present */
-	unsigned int cgpnVoiceMailbox_valid:1;									/*!< TRUE if the name information is valid/present */
-	unsigned int callingParty_valid:1;									/*!< TRUE if the name information is valid/present */
-	unsigned int originalCdpnVoiceMailbox_valid:1;								/*!< TRUE if the name information is valid/present */
-	unsigned int originalCalledParty_valid:1;								/*!< TRUE if the name information is valid/present */
-	unsigned int originalCallingParty_valid:1;								/*!< TRUE if the name information is valid/present */
-	unsigned int lastRedirectingVoiceMailbox_valid:1;							/*!< TRUE if the name information is valid/present */
-	unsigned int lastRedirectingParty_valid:1;								/*!< TRUE if the name information is valid/present */
-};														/*!< SCCP CallInfo Structure */
-
-/*!
  * \brief SCCP Channel Structure
  * \note This contains the current channel information
  */
