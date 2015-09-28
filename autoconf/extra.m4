@@ -525,12 +525,12 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wimplicit-function-declaration dnl
 				-Wreturn-type dnl
 				-Wno-unused-parameter dnl
+				-Wsign-compare dnl
+				-Wstrict-prototypes dnl
+				-Wshadow dnl
+				-Wmissing-prototypes dnl
 				dnl
 				dnl // should be added and fixed dnl
-				dnl -Wsign-compare dnl
-				dnl -Wstrict-prototypes dnl
-				dnl -Wshadow dnl
-				dnl -Wmissing-prototypes dnl
 				dnl -Wswitch-enum 
 				dnl
 				dnl // very pedantic dnl

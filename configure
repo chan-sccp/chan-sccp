@@ -5715,7 +5715,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-for flag in  				-fstack-protector-all 				-Wmissing-declarations 				-Wnested-externs 				-Wno-long-long 				-Wnonnull 				-Wcast-align 				-Wno-unused-parameter 				-Wno-missing-field-initializers 				-Wold-style-definition 				-Wformat-security 				-Wstrict-aliasing 				-Wmissing-format-attribute 				-Wmissing-noreturn 				-Winit-self 				-Wmissing-include-dirs 				-Wunused-but-set-variable 				-Warray-bounds 				-Wimplicit-function-declaration 				-Wreturn-type 				-Wno-unused-parameter 																																																																																															; do
+for flag in  				-fstack-protector-all 				-Wmissing-declarations 				-Wnested-externs 				-Wno-long-long 				-Wnonnull 				-Wcast-align 				-Wno-unused-parameter 				-Wno-missing-field-initializers 				-Wold-style-definition 				-Wformat-security 				-Wstrict-aliasing 				-Wmissing-format-attribute 				-Wmissing-noreturn 				-Winit-self 				-Wmissing-include-dirs 				-Wunused-but-set-variable 				-Warray-bounds 				-Wimplicit-function-declaration 				-Wreturn-type 				-Wno-unused-parameter 				-Wsign-compare 				-Wstrict-prototypes 				-Wshadow 				-Wmissing-prototypes 																																																																															; do
   as_CACHEVAR=`$as_echo "ax_cv_check_cflags__$flag" | $as_tr_sh`
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts $flag" >&5
 $as_echo_n "checking whether C compiler accepts $flag... " >&6; }

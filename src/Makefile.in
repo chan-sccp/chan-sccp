@@ -1160,9 +1160,7 @@ gen_enum: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@test -z "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"							
-	echo "STRIP: $(strip_binaries)"
 	@if test "x$(strip_binaries)"=="xyes" ; then 										\
-		echo "HIERO";													\
 		$(OBJCOPY) --only-keep-debug ".libs/chan_sccp.so" ".libs/chan_sccp.so.dbg";					\
 	        $(INSTALL) -s ".libs/chan_sccp.so" "$(DESTDIR)$(csmoddir)"; 							\
 		$(OBJCOPY) --add-gnu-debuglink=".libs/chan_sccp.so.dbg" "$(DESTDIR)$(csmoddir)/chan_sccp.so";			\
