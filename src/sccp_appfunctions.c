@@ -179,7 +179,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				snprintf(buf, buf_len, "%s", d->conferencelist_active ? "ON" : "OFF");
 #endif
 			} else if (!strcasecmp(token, "current_line")) {
-				sccp_copy_string(buf, d->currentLine->id ? d->currentLine->id : "", buf_len);
+				sccp_copy_string(buf, d->currentLine->id, buf_len);
 			} else if (!strcasecmp(token, "button_config")) {
 				char tmp[1024] = "";
 				char lbuf[1024] = "";
@@ -400,9 +400,9 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				sccp_copy_string(buf, "not supported", len);
 #endif
 			} else if (!strcasecmp(token, "cid_name")) {
-				sccp_copy_string(buf, l->cid_name ? l->cid_name : "<not set>", len);
+				sccp_copy_string(buf, l->cid_name, len);
 			} else if (!strcasecmp(token, "cid_num")) {
-				sccp_copy_string(buf, l->cid_num ? l->cid_num : "<not set>", len);
+				sccp_copy_string(buf, l->cid_num, len);
 			} else if (!strcasecmp(token, "incoming_limit")) {
 				snprintf(buf, buf_len, "%d", l->incominglimit);
 			} else if (!strcasecmp(token, "channel_count")) {
@@ -452,7 +452,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				SCCP_LIST_LOCK(&l->devices);
 				SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 					if (linedevice) {
-						snprintf(tmp, sizeof(tmp), "[id:%s,cfwdAll:%s,num:%s,cfwdBusy:%s,num:%s]", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number ? linedevice->cfwdAll.number : "<not set>", linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number ? linedevice->cfwdBusy.number : "<not set>");
+						snprintf(tmp, sizeof(tmp), "[id:%s,cfwdAll:%s,num:%s,cfwdBusy:%s,num:%s]", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number, linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number);
 					}
 					if (strlen(lbuf)) {
 						strcat(lbuf, ",");
