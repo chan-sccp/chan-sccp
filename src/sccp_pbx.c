@@ -604,13 +604,13 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
 					snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, linedevice->subscriptionId.number);
 				} else {
-					snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
+					snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, l->defaultSubscriptionId.number);
 				}
 
 				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
 					snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, linedevice->subscriptionId.name);
 				} else {
-					snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
+					snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, l->defaultSubscriptionId.name);
 				}
 				sccp_callinfo_setter(ci, 
 					SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name, 
@@ -623,13 +623,13 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
 					snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, linedevice->subscriptionId.number);
 				} else {
-					snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
+					snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, l->defaultSubscriptionId.number);
 				}
 
 				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
 					snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, linedevice->subscriptionId.name);
 				} else {
-					snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
+					snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, l->defaultSubscriptionId.name);
 				}
 				sccp_callinfo_setter(ci, 
 					SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 

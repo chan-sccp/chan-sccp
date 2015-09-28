@@ -1158,14 +1158,14 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		return;
 	}
 
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) notify %u subscriber(s) of %s's state %s\n", hint->exten, SCCP_LIST_GETSIZE(&hint->subscribers), (hint->hint_dialplan) ? hint->hint_dialplan : "null", sccp_channelstate2str(hint->currentState));
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) notify %u subscriber(s) of %s's state %s\n", hint->exten, SCCP_LIST_GETSIZE(&hint->subscribers), hint->hint_dialplan, sccp_channelstate2str(hint->currentState));
 
 	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE(&hint->subscribers, subscriber, list) {
 		AUTO_RELEASE sccp_device_t *d = sccp_device_retain((sccp_device_t *) subscriber->device);
 
 		if (d) {
-			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, (hint->hint_dialplan) ? hint->hint_dialplan : "null", sccp_channelstate2str(hint->currentState), hint->currentState);
+			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, hint->hint_dialplan, sccp_channelstate2str(hint->currentState), hint->currentState);
 #ifdef CS_DYNAMIC_SPEEDDIAL
 			if (d->inuseprotocolversion >= 15) {
 				sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, TRUE, &k);

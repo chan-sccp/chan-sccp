@@ -1231,11 +1231,11 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 		local_line_total++;
 	}
 	/* *INDENT-OFF* */
-	CLI_AMI_OUTPUT_PARAM("Name", 			CLI_AMI_LIST_WIDTH, "%s", l->name ? l->name : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("Name", 			CLI_AMI_LIST_WIDTH, "%s", l->name);
 	CLI_AMI_OUTPUT_PARAM("Description", 		CLI_AMI_LIST_WIDTH, "%s", l->description ? l->description : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Label", 			CLI_AMI_LIST_WIDTH, "%s", l->label ? l->label : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("ID", 			CLI_AMI_LIST_WIDTH, "%s", l->id ? l->id : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("Pin", 			CLI_AMI_LIST_WIDTH, "%s", l->pin ? l->pin : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("ID", 			CLI_AMI_LIST_WIDTH, "%s", l->id);
+	CLI_AMI_OUTPUT_PARAM("Pin", 			CLI_AMI_LIST_WIDTH, "%s", l->pin);
 	CLI_AMI_OUTPUT_PARAM("VoiceMail number", 	CLI_AMI_LIST_WIDTH, "%s", l->vmnum ? l->vmnum : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Transfer to Voicemail",	CLI_AMI_LIST_WIDTH, "%s", l->trnsfvm ? l->trnsfvm : "No");
 	CLI_AMI_OUTPUT_BOOL("MeetMe enabled",		CLI_AMI_LIST_WIDTH, l->meetme);
@@ -1259,11 +1259,11 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	CLI_AMI_OUTPUT_PARAM("Named Pickup Group",	CLI_AMI_LIST_WIDTH, "%s", l->namedpickupgroup ? l->namedpickupgroup : "NONE");
 #endif
 	CLI_AMI_OUTPUT_PARAM("ParkingLot",		CLI_AMI_LIST_WIDTH, "%s", !sccp_strlen_zero(l->parkinglot) ? l->parkinglot : "default");
-	CLI_AMI_OUTPUT_PARAM("Caller ID name",		CLI_AMI_LIST_WIDTH, "%s", l->cid_name ? l->cid_name : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("Caller ID number",	CLI_AMI_LIST_WIDTH, "%s", l->cid_num ? l->cid_num : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("Caller ID name",		CLI_AMI_LIST_WIDTH, "%s", l->cid_name);
+	CLI_AMI_OUTPUT_PARAM("Caller ID number",	CLI_AMI_LIST_WIDTH, "%s", l->cid_num);
 	CLI_AMI_OUTPUT_PARAM("Incoming Calls limit",	CLI_AMI_LIST_WIDTH, "%d", l->incominglimit);
 	CLI_AMI_OUTPUT_PARAM("Active Channel Count",	CLI_AMI_LIST_WIDTH, "%d", SCCP_RWLIST_GETSIZE(&l->channels));
-	CLI_AMI_OUTPUT_PARAM("Sec. Dialtone Digits",	CLI_AMI_LIST_WIDTH, "%s", l->secondary_dialtone_digits ? l->secondary_dialtone_digits : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("Sec. Dialtone Digits",	CLI_AMI_LIST_WIDTH, "%s", l->secondary_dialtone_digits);
 	CLI_AMI_OUTPUT_PARAM("Sec. Dialtone",		CLI_AMI_LIST_WIDTH, "0x%02x", l->secondary_dialtone_tone);
 	CLI_AMI_OUTPUT_BOOL("Echo Cancellation",	CLI_AMI_LIST_WIDTH, l->echocancel);
 	CLI_AMI_OUTPUT_BOOL("Silence Suppression",	CLI_AMI_LIST_WIDTH, l->silencesuppression);

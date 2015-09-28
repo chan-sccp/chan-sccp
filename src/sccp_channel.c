@@ -1454,7 +1454,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			if (!sccp_strlen_zero(linedevice2->subscriptionId.number)) {
 				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, linedevice2->subscriptionId.number);
 			} else {
-				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
+				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, channel->line->defaultSubscriptionId.number);
 			}
 			sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_CALLEDPARTY_NUMBER, tmpNumber, SCCP_CALLINFO_KEY_SENTINEL);
 			iPbx.set_callerid_number(channel, tmpNumber);
@@ -1462,7 +1462,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			if (!sccp_strlen_zero(linedevice2->subscriptionId.name)) {
 				snprintf(tmpName, StationMaxNameSize,  "%s%s", channel->line->cid_name, linedevice2->subscriptionId.name);
 			} else {
-				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
+				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, channel->line->defaultSubscriptionId.name);
 			}
 			sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_CALLEDPARTY_NAME, tmpName, SCCP_CALLINFO_KEY_SENTINEL);
 			iPbx.set_callerid_name(channel, tmpName);
@@ -1757,13 +1757,13 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 			if (!sccp_strlen_zero(linedevice->subscriptionId.number)) {
 				snprintf(tmpNumber, StationMaxDirnumSize,  "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
 			} else {
-				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
+				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, channel->line->defaultSubscriptionId.number);
 			}
 
 			if (!sccp_strlen_zero(linedevice->subscriptionId.name)) {
 				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, linedevice->subscriptionId.name);
 			} else {
-				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
+				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, channel->line->defaultSubscriptionId.name);
 			}
 			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "TEST: SCCP: num:%s name:%s\n", tmpNumber, tmpName);
 			if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
