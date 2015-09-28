@@ -577,7 +577,7 @@ static int sccp_manager_device_set_dnd(struct mansession *s, const struct messag
 {
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *DNDState = astman_get_header(m, "DNDState");
-	int prevStatus = 0;
+	uint prevStatus = 0;
 	char retValStr[64] = "";
 
 	/** we need the device for resuming calls */

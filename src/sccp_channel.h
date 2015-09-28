@@ -110,7 +110,7 @@ struct sccp_channel {
 	} remoteCapabilities;
 
 	struct {
-		uint32_t digittimeout;										/*!< Digit Timeout on Dialing State (Enbloc-Emu) */
+		int digittimeout;										/*!< Digit Timeout on Dialing State (Enbloc-Emu) */
 		boolean_t deactivate;										/*!< Deactivate Enbloc-Emulation (Time Deviation Found) */
 		uint32_t totaldigittime;									/*!< Total Time used to enter Number (Enbloc-Emu) */
 		uint32_t totaldigittimesquared;									/*!< Total Time Squared used to enter Number (Enbloc-Emu) */

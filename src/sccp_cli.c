@@ -3566,7 +3566,7 @@ static struct pbx_cli_entry cli_entries[] = {
  */
 void sccp_register_cli(void)
 {
-	int i, res = 0;
+	uint i, res = 0;
 
 	for (i = 0; i < ARRAY_LEN(cli_entries); i++) {
 		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_2 "Cli registered action %s\n", (cli_entries + i)->_full_cmd);
@@ -3610,7 +3610,7 @@ void sccp_register_cli(void)
 void sccp_unregister_cli(void)
 {
 
-	int i, res = 0;
+	uint i, res = 0;
 
 	for (i = 0; i < ARRAY_LEN(cli_entries); i++) {
 		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_2 "Cli unregistered action %s\n", (cli_entries + i)->_full_cmd);

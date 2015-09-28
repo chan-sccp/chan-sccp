@@ -89,7 +89,7 @@ static void *sccp_event_processor(void *data)
 	struct sccp_event_aSyncEventProcessorThreadArg *args = data;
 	const struct sccp_event_subscriptions *subscribers = args->subscribers;
 	AUTO_RELEASE sccp_event_t *event = sccp_event_retain(args->event);
-	int n;
+	uint n;
 
 	if (subscribers && event) {
 		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Asynchronous Event %p of Type %s\n", event, sccp_event_type2str(event->type));
@@ -266,7 +266,7 @@ void sccp_event_fire(const sccp_event_t * event)
 	}
 
 	/* search for position in array */
-	int i, n;
+	uint i, n;
 	sccp_event_type_t eventType = event->type;
 
 	for (i = 0, n = 1 << i; i < NUMBER_OF_EVENT_TYPES; i++, n = 1 << i) {

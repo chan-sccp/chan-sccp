@@ -553,8 +553,8 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 
 	int msgDataSegmentSize = 0;										/* Size of sccp_data_t according to the sccp_msg_t */
 	int UnreadBytesAccordingToPacket = 0;									/* Size of sccp_data_t according to the incomming Packet */
-	int bytesToRead = 0;
-	int bytesReadSoFar = 0;
+	uint bytesToRead = 0;
+	uint bytesReadSoFar = 0;
 	int readlen = 0;
 	unsigned char buffer[SCCP_MAX_PACKET] = { 0 };
 	unsigned char *dataptr;
@@ -785,8 +785,8 @@ static int __sccp_session_addDevice(sessionPtr session, constDevicePtr device)
 		sccp_session_lock(session);
 		new_device = sccp_device_retain(device);			/* do this before releasing anything, to prevent device cleanup if the same */
 		if (session->device) {
-			AUTO_RELEASE sccp_device_t * device = NULL;
-			device = __sccp_session_removeDevice(session);		/* implicit release */
+			AUTO_RELEASE sccp_device_t * remDevice = NULL;
+			remDevice = __sccp_session_removeDevice(session);		/* implicit release */
 		}
 		if (device) {
 			if (new_device) {
@@ -1052,9 +1052,9 @@ void sccp_socket_setoptions(int new_socket)
 	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_PRIORITY, &value, sizeof(value));
 	
 	/* timeeo */
-	struct timeval tv = { SOCKET_TIMEOUT_SEC, SOCKET_TIMEOUT_MILLISEC };					/* timeout after seven seconds when trying to read/write from/to a socket */
-	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
-	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+	struct timeval mytv = { SOCKET_TIMEOUT_SEC, SOCKET_TIMEOUT_MILLISEC };					/* timeout after seven seconds when trying to read/write from/to a socket */
+	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &mytv, sizeof(tv));
+	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(tv));
 
 	/* keepalive */
 	int ip_keepidle  = SOCKET_KEEPALIVE_IDLE;								/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */

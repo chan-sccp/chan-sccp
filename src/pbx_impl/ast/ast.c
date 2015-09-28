@@ -381,13 +381,13 @@ ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec)
  *
  * \return bit array fmt/Format of ast_format_type (int)
  */
-int skinny_codecs2pbx_codecs(skinny_codec_t * skinny_codecs)
+int skinny_codecs2pbx_codecs(skinny_codec_t * codecs)
 {
 	uint32_t i;
 	int res_codec = 0;
 
 	for (i = 1; i < SKINNY_MAX_CAPABILITIES; i++) {
-		res_codec |= skinny_codec2pbx_codec(skinny_codecs[i]);
+		res_codec |= skinny_codec2pbx_codec(codecs[i]);
 	}
 	return res_codec;
 }
@@ -968,7 +968,7 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 	if (iPbx.getFeatureExtension(channel, &featexten)) {
 		if (featexten && !sccp_strlen_zero(featexten)) {
 			struct ast_frame f = { AST_FRAME_DTMF, };
-			int j;
+			uint j;
 
 			f.len = 100;
 			for (j = 0; j < strlen(featexten); j++) {

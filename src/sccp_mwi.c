@@ -508,9 +508,7 @@ void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice)
 	sccp_msg_t *msg = NULL;
 	sccp_line_t *l = lineDevice->line;
 	sccp_device_t *d = lineDevice->device;
-	int instance = 0;
-	uint8_t status = 0;
-	uint32_t mask;
+	uint32_t instance = 0, status = 0, mask = 0;
 
 	/* when l is defined we are switching on/off the button icon, otherwise the main mwi light */
 	if (l) {

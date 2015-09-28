@@ -2202,7 +2202,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 
 		/* hang up open channels and remove device from line */
 		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->type == LINE) {
 				AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(config->button.line.name, FALSE);
 
@@ -2229,6 +2229,8 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 				sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);
 				sccp_line_removeDevice(line, d);
 			}
+		}
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
 			config->instance = 0;									/* reset button configuration to rebuild template on register */
 			if (config->pendingDelete) {
 				SCCP_LIST_REMOVE_CURRENT(list);

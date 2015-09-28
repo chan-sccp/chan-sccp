@@ -148,7 +148,7 @@ static void __sccp_conference_participant_destroy(sccp_conference_participant_t 
 		   participant->conferenceBridgePeer ? pbx_channel_uniqueid(participant->conferenceBridgePeer) : "NULL"
 		   );
 		 */
-		manager_event(EVENT_FLAG_CALL, "SCCPConfLeave", "ConfId: %d\r\n" "PartId: %d\r\n", participant->conference ? participant->conference->id : -1, participant->id);
+		manager_event(EVENT_FLAG_CALL, "SCCPConfLeave", "ConfId: %d\r\n" "PartId: %d\r\n", participant->conference ? participant->conference->id : 0, participant->id);
 	}
 #endif
 	if (participant->channel) {
@@ -592,7 +592,7 @@ static void *sccp_conference_thread(void *data)
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: entering join thread.\n", participant->conference->id);
 #ifdef CS_MANAGER_EVENTS
 		if (GLOB(callevents)) {
-			manager_event(EVENT_FLAG_CALL, "SCCPConfEntered", "ConfId: %d\r\n" "PartId: %d\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", participant->conference ? participant->conference->id : -1, participant->id, participant->conferenceBridgePeer ? pbx_channel_name(participant->conferenceBridgePeer) : "NULL", participant->conferenceBridgePeer ? pbx_channel_uniqueid(participant->conferenceBridgePeer) : "NULL");
+			manager_event(EVENT_FLAG_CALL, "SCCPConfEntered", "ConfId: %d\r\n" "PartId: %d\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", participant->conference ? participant->conference->id : 0, participant->id, participant->conferenceBridgePeer ? pbx_channel_name(participant->conferenceBridgePeer) : "NULL", participant->conferenceBridgePeer ? pbx_channel_uniqueid(participant->conferenceBridgePeer) : "NULL");
 		}
 #endif
 		// Join the bridge
@@ -602,7 +602,7 @@ static void *sccp_conference_thread(void *data)
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Leaving pbx_bridge_join: %s as %d\n", participant->conference->id, pbx_channel_name(participant->conferenceBridgePeer), participant->id);
 #ifdef CS_MANAGER_EVENTS
 		if (GLOB(callevents)) {
-			manager_event(EVENT_FLAG_CALL, "SCCPConfLeft", "ConfId: %d\r\n" "PartId: %d\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", participant->conference ? participant->conference->id : -1, participant->id, participant->conferenceBridgePeer ? pbx_channel_name(participant->conferenceBridgePeer) : "NULL", participant->conferenceBridgePeer ? pbx_channel_uniqueid(participant->conferenceBridgePeer) : "NULL");
+			manager_event(EVENT_FLAG_CALL, "SCCPConfLeft", "ConfId: %d\r\n" "PartId: %d\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", participant->conference ? participant->conference->id : 0, participant->id, participant->conferenceBridgePeer ? pbx_channel_name(participant->conferenceBridgePeer) : "NULL", participant->conferenceBridgePeer ? pbx_channel_uniqueid(participant->conferenceBridgePeer) : "NULL");
 		}
 #endif
 		if (participant->channel && participant->device) {
@@ -1574,7 +1574,8 @@ void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_con
 char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
 	int conference_id = 0;
-	int wordlen = strlen(word), which = 0, i = 0;
+	int wordlen = strlen(word), which = 0;
+	uint i = 0;
 	char *ret = NULL;
 	char tmpname[20];
 	char *actions[5] = { "EndConf", "Kick", "Mute", "Invite", "Moderate" };
