@@ -1628,7 +1628,7 @@ int sccp_channel_hold(channelPtr channel)
 #endif
 
 	if (l) {
-		l->statistic.numberOfHoldChannels++;
+		l->statistic.numberOfHeldChannels++;
 	}
 
 	sccp_log_and((DEBUGCAT_CHANNEL + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "C partyID: %u state: %d\n", channel->passthrupartyid, channel->state);
@@ -1745,7 +1745,7 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 
 	/* state of channel is set down from the remoteDevices, so correct channel state */
 	channel->state = SCCP_CHANNELSTATE_CONNECTED;
-	l->statistic.numberOfHoldChannels--;
+	l->statistic.numberOfHeldChannels--;
 
 	/** set called party name */
 	{
