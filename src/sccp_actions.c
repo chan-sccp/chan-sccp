@@ -448,8 +448,6 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 	device->skinny_type = deviceType;
 
 	if (device->checkACL(device) == FALSE) {
-		struct sockaddr_storage sas = { 0 };
-		sccp_session_getSas(s, &sas);
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&sas));
 		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 		sccp_session_tokenRejectSPCP(s, 60);
@@ -2609,7 +2607,7 @@ void sccp_handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr 
 		return;
 	}
 
-	if ((int)event - 1 < 0 && (int)event - 1 > ARRAY_LEN(softkeysmap)) {
+	if ((int)event - 1 < 0 && (int)event - 1 > (int)ARRAY_LEN(softkeysmap)) {
 		pbx_log(LOG_ERROR, "SCCP: Received Softkey Event is out of bounds of softkeysmap (0 < %ld < %ld). Exiting\n", (long)(letohl(msg_in->data.SoftKeyEventMessage.lel_softKeyEvent) - 1), (long)ARRAY_LEN(softkeysmap));
 		return;
 	}

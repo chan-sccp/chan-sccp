@@ -183,7 +183,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 		switch (curkey) {
 			case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
 				{
-					int new_value = va_arg(ap, int);
+					uint new_value = va_arg(ap, uint);
 					if (new_value != ci->originalCdpnRedirectReason) {
 						ci->originalCdpnRedirectReason = new_value;
 						changes++;
@@ -192,7 +192,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 				break;
 			case SCCP_CALLINFO_LAST_REDIRECT_REASON:
 				{
-					int new_value = va_arg(ap, int);
+					uint new_value = va_arg(ap, uint);
 					if (new_value != ci->lastRedirectingReason) {
 						ci->lastRedirectingReason = new_value;
 						changes++;
@@ -370,7 +370,7 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 		switch (curkey) {
 			case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
 				{
-					int *dstPtr = va_arg(ap, int *);
+					uint *dstPtr = va_arg(ap, uint *);
 					if (*dstPtr != ci->originalCdpnRedirectReason) {
 						*dstPtr = ci->originalCdpnRedirectReason;
 						entries++;
@@ -379,7 +379,7 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 				break;
 			case SCCP_CALLINFO_LAST_REDIRECT_REASON:
 				{
-					int *dstPtr = va_arg(ap, int *);
+					uint *dstPtr = va_arg(ap, uint *);
 					if (*dstPtr != ci->lastRedirectingReason) {
 						*dstPtr = ci->lastRedirectingReason;
 						entries++;

@@ -805,7 +805,9 @@ sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line)
 		}
 
 	} else {
-		sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices);
+		SCCP_LIST_LOCK(&line->devices);
+		lineDevice = SCCP_LIST_FIRST(&line->devices);
+		SCCP_LIST_UNLOCK(&line->devices);
 
 		if (lineDevice) {
 			if (lineDevice->device->dndFeature.enabled && lineDevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {

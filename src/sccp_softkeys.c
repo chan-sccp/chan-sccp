@@ -567,7 +567,7 @@ static void sccp_sk_cfwdall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 {
 	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
 
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward All Pressed, line: %s, instance: %d, channel: %d\n", DEV_ID_LOG(d), l ? l->name : "(NULL)", lineInstance, c ? c->callid : -1);
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward All Pressed, line: %s, instance: %d, channel: %d\n", DEV_ID_LOG(d), l ? l->name : "(NULL)", lineInstance, c ? c->callid : 0);
 
 	if (line) {
 		sccp_feat_handle_callforward(line, d, SCCP_CFWD_ALL);
@@ -1074,7 +1074,7 @@ sccp_softkeyMap_cb_t __attribute__ ((malloc)) * sccp_softkeyMap_copyStaticallyMa
  */
 boolean_t sccp_softkeyMap_replaceCallBackByUriAction(sccp_softkeyMap_cb_t * const softkeyMap, uint32_t event, char *uriactionstr)
 {
-	int i;
+	uint i;
 
 	sccp_log(DEBUGCAT_SOFTKEY) (VERBOSE_PREFIX_3 "SCCP: (sccp_softkeyMap_replaceCallBackByUriHook) %p, event: %s, uriactionstr: %s\n", softkeyMap, label2str(event), uriactionstr);
 	for (i = 0; i < ARRAY_LEN(softkeyCbMap); i++) {

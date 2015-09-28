@@ -83,7 +83,7 @@ PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_findPickupChannelByExtenLocked(PBX_CH
 static inline skinny_codec_t sccp_asterisk113_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability)
 {
 	uint8_t i;
-	int formatPosition;
+	uint formatPosition;
 	skinny_codec_t codec = SKINNY_CODEC_NONE;
 	struct ast_format *format;
 	
@@ -112,7 +112,7 @@ static uint8_t sccp_asterisk113_getSkinnyFormatMultiple(struct ast_format_cap *a
 {
 	// struct ast_format tmp_fmt;
 	uint8_t i;
-	int formatPosition;
+	uint formatPosition;
 	uint8_t position = 0;
 	struct ast_str *codec_buf = ast_str_alloca(64);
 	struct ast_format *format;
