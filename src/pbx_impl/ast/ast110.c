@@ -286,10 +286,10 @@ static int sccp_wrapper_asterisk110_devicestate(void *data)
  *
  * \return bit array fmt/Format of ast_format_type (int)
  */
-int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref)
+int skinny_codecs2pbx_codec_pref(skinny_codec_t * codecs, struct ast_codec_pref *astCodecPref)
 {
 	struct ast_format *dst = NULL;
-	uint32_t codec = skinny_codecs2pbx_codecs(skinny_codecs);						// convert to bitfield
+	uint32_t codec = skinny_codecs2pbx_codecs(codecs);							// convert to bitfield
 
 	dst = ast_format_from_old_bitfield(dst, codec);								// convert bitfield to ast_format
 	return ast_codec_pref_append(astCodecPref, dst);							// return ast_codec_pref
