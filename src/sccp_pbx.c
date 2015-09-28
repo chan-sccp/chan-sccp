@@ -312,9 +312,7 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 
 	/* here the ast channel is locked */
 	//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to hangup channel %s\n", iPbx.getChannelName(c));
-	sccp_mutex_lock(&GLOB(usecnt_lock));
-	GLOB(usecnt)--;
-	sccp_mutex_unlock(&GLOB(usecnt_lock));
+	ATOMIC_DECR(&GLOB(usecnt), 1, &GLOB(usecnt_lock));
 
 	pbx_update_use_count();
 
@@ -681,10 +679,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	// \todo: Bridge?
 	// \todo: Transfer?
 
-	/* \todo: can be done using atomic function, maybe we should not be using this method at all */
-	sccp_mutex_lock(&GLOB(usecnt_lock));
-	GLOB(usecnt)++;
-	sccp_mutex_unlock(&GLOB(usecnt_lock));
+	ATOMIC_INCR(&GLOB(usecnt), 1, &GLOB(usecnt_lock));
 
 	pbx_update_use_count();
 

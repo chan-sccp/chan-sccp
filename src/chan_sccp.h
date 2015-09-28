@@ -354,7 +354,9 @@ struct sccp_global_vars {
 	SCCP_RWLIST_HEAD (, sccp_line_t) lines;									/*!< SCCP Lines */
 
 	sccp_mutex_t socket_lock;										/*!< Socket Lock */
+#ifndef SCCP_ATOMIC	
 	sccp_mutex_t usecnt_lock;										/*!< Use Counter Asterisk Lock */
+#endif
 	int usecnt;												/*!< Keep track of when we're in use. */
 	int amaflags;												/*!< AmaFlags */
 	pthread_t socket_thread;										/*!< Socket Thread */
