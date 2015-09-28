@@ -499,13 +499,10 @@ int sccp_feat_grouppickup(constLinePtr l, constDevicePtr d)
 	}
 
 	sccp_channel_stop_schedule_digittimout(c);
-	char *pickupexten;
 
-	if (iPbx.getPickupExtension(channel, &pickupexten)) {
-		sccp_copy_string(c->dialedNumber, pickupexten, sizeof(pickupexten));
+	if (iPbx.getPickupExtension(channel, c->dialedNumber)) {
 		sccp_pbx_softswitch(c);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) finished\n", DEV_ID_LOG(d));
-		sccp_free(pickupexten);
 		res = 0;
 	}
 #else

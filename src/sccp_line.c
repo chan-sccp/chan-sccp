@@ -727,7 +727,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 				continue;
 			}
 		} else {
-			context = strdup(GLOB(regcontext));
+			context = strdupa(GLOB(regcontext));
 		}
 		con = pbx_context_find_or_create(NULL, NULL, context, "SCCP");					/* make sure the context exists */
 		if (con) {

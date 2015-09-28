@@ -982,26 +982,26 @@ static void __sccp_asterisk113_updateConnectedLine(PBX_CHANNEL_TYPE *pbx_channel
 	struct ast_party_connected_line connected;
 	struct ast_set_party_connected_line update_connected;
 
-	memset(&update_connected, 0, sizeof(update_connected));
+	//memset(&update_connected, 0, sizeof(update_connected));
 	ast_party_connected_line_init(&connected);
 
-	if (!sccp_strlen_zero(connected.id.number.str)) {
-		ast_free(connected.id.number.str);
-	}
+	//if (!sccp_strlen_zero(connected.id.number.str)) {
+	//	ast_free(connected.id.number.str);
+	//}
 	if (number) {
 		update_connected.id.number = 1;
 		connected.id.number.valid = 1;
-		connected.id.number.str = strdup(number);
+		connected.id.number.str = strdupa(number);
 		connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
 
-	if (!sccp_strlen_zero(connected.id.name.str)) {
-		ast_free(connected.id.name.str);
-	}
+	//if (!sccp_strlen_zero(connected.id.name.str)) {
+	//	ast_free(connected.id.name.str);
+	//}
 	if (name) {
 		update_connected.id.name = 1;
 		connected.id.name.valid = 1;
-		connected.id.name.str = strdup(name);
+		connected.id.name.str = strdupa(name);
 		connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
 	if (update_connected.id.number || update_connected.id.name) {
@@ -1320,7 +1320,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk113_park(constChannelPtr hostChann
 	return res;
 }
 
-static boolean_t sccp_wrapper_asterisk113_getFeatureExtension(constChannelPtr channel, char **extension)
+static boolean_t sccp_wrapper_asterisk113_getFeatureExtension(constChannelPtr channel, char extension[SCCP_MAX_EXTENSION])
 {
 	char feat[AST_FEATURE_MAX_LEN];
 	int feat_res = -1;
@@ -1328,12 +1328,12 @@ static boolean_t sccp_wrapper_asterisk113_getFeatureExtension(constChannelPtr ch
 	feat_res = ast_get_feature(channel->owner, "automon", feat, sizeof(feat));
 
 	if (!feat_res && !ast_strlen_zero(feat)) {
-		*extension = strdup(feat);
+		sccp_copy_string(extension, feat, SCCP_MAX_EXTENSION);
 	}
 	return feat_res ? FALSE : TRUE;
 }
 
-static boolean_t sccp_wrapper_asterisk113_getPickupExtension(constChannelPtr channel, char **extension)
+static boolean_t sccp_wrapper_asterisk113_getPickupExtension(constChannelPtr channel, char extension[SCCP_MAX_EXTENSION])
 {
 	boolean_t res = FALSE;
 	struct ast_features_pickup_config *pickup_cfg = NULL;
@@ -1345,7 +1345,7 @@ static boolean_t sccp_wrapper_asterisk113_getPickupExtension(constChannelPtr cha
 			ast_log(LOG_ERROR, "Unable to retrieve pickup configuration options. Unable to detect call pickup extension\n");
 		} else {
 			if (!sccp_strlen_zero(pickup_cfg->pickupexten)) {
-				*extension = strdup(pickup_cfg->pickupexten);
+				sccp_copy_string(extension, pickup_cfg->pickupexten, SCCP_MAX_EXTENSION);
 				res = TRUE;
 			}
 			ast_channel_unref(pickup_cfg);
@@ -2503,11 +2503,12 @@ static void sccp_wrapper_asterisk113_setCalleridName(constChannelPtr channel, co
 static void sccp_wrapper_asterisk13_setDialedNumber(constChannelPtr channel, const char *number)
 {
 	struct ast_party_dialed dialed;
-
 	ast_party_dialed_init(&dialed);
-	dialed.number.str = ast_strdup(number);
-	ast_trim_blanks(dialed.number.str);
-	ast_party_dialed_set(ast_channel_dialed(channel->owner), &dialed);
+	if (number) {
+		dialed.number.str = ast_strdupa(number);
+		ast_trim_blanks(dialed.number.str);
+		ast_party_dialed_set(ast_channel_dialed(channel->owner), &dialed);
+	}
 }
 
 static void sccp_wrapper_asterisk113_setCalleridNumber(constChannelPtr channel, const char *number)
