@@ -102,7 +102,7 @@ void *sccp_socket_thread(void *ignore);
 /* ------------------------------------------------------------------------------------------------------- SESSION FUNCTIONS - */
 struct sccp_session;
 
-void sccp_session_terminateAll();
+void sccp_session_terminateAll(void);
 const char *const sccp_session_getDesignator(constSessionPtr session);
 void sccp_session_sendmsg(constDevicePtr device, sccp_mid_t t);
 int sccp_session_send(constDevicePtr device, const sccp_msg_t * msg);
