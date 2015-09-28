@@ -963,10 +963,10 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 {
 #if ASTERISK_VERSION_GROUP >= 112
-	char *featexten;
+	char featexten[SCCP_MAX_EXTENSION];
 
-	if (iPbx.getFeatureExtension(channel, &featexten)) {
-		if (featexten && !sccp_strlen_zero(featexten)) {
+	if (iPbx.getFeatureExtension(channel, featexten)) {
+		if (!sccp_strlen_zero(featexten)) {
 			struct ast_frame f = { AST_FRAME_DTMF, };
 			uint j;
 
@@ -975,7 +975,6 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 				f.subclass.integer = featexten[j];
 				ast_queue_frame(channel->owner, &f);
 			}
-			sccp_free(featexten);
 		} else {
 			pbx_log(LOG_ERROR, "SCCP: Monitor Feature Extension Not available\n");
 		}
@@ -1108,14 +1107,13 @@ enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 #endif
 		// check if the pickup extension was entered
 		const char *dialedNumber = iPbx.getChannelExten(channel);
-		char *pickupexten;
+		char pickupexten[SCCP_MAX_EXTENSION];
 
-		if (iPbx.getPickupExtension(channel, &pickupexten) && sccp_strequals(dialedNumber, pickupexten)) {
+		if (iPbx.getPickupExtension(channel, pickupexten) && sccp_strequals(dialedNumber, pickupexten)) {
 			if (sccp_asterisk_doPickup(pbx_channel)) {
 				res = AST_PBX_SUCCESS;
 			}
 			ast_channel_unlock(pbx_channel);
-			sccp_free(pickupexten);
 			goto EXIT;
 		}
 		// channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;

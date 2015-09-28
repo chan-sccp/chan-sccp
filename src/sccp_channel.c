@@ -1286,13 +1286,9 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 	/* copy the number to dial in the ast->exten */
 	if (dial) {
 		if (sccp_strequals(dial, "pickupexten")) {
-			char *pickupexten;
-
-			if (iPbx.getPickupExtension(channel, &pickupexten)) {
-				sccp_copy_string(channel->dialedNumber, pickupexten, sizeof(channel->dialedNumber));
+			if (iPbx.getPickupExtension(channel, channel->dialedNumber)) {
 				sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
 				iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
-				sccp_free(pickupexten);
 			}
 		} else {
 			sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));

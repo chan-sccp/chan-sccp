@@ -946,26 +946,26 @@ static void __sccp_asterisk18_updateConnectedLine(PBX_CHANNEL_TYPE *pbx_channel,
 	struct ast_party_connected_line connected;
 	struct ast_set_party_connected_line update_connected;
 
-	memset(&update_connected, 0, sizeof(update_connected));
+	//memset(&update_connected, 0, sizeof(update_connected));
 	ast_party_connected_line_init(&connected);
 
-	if (!sccp_strlen_zero(connected.id.number.str)) {
-		ast_free(connected.id.number.str);
-	}
+	//if (!sccp_strlen_zero(connected.id.number.str)) {
+	//	ast_free(connected.id.number.str);
+	//}
 	if (number) {
 		update_connected.id.number = 1;
 		connected.id.number.valid = 1;
-		connected.id.number.str = strdup(number);
+		connected.id.number.str = strdupa(number);
 		connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
 
-	if (!sccp_strlen_zero(connected.id.name.str)) {
-		ast_free(connected.id.name.str);
-	}
+	//if (!sccp_strlen_zero(connected.id.name.str)) {
+	//	ast_free(connected.id.name.str);
+	//}
 	if (name) {
 		update_connected.id.name = 1;
 		connected.id.name.valid = 1;
-		connected.id.name.str = strdup(name);
+		connected.id.name.str = strdupa(name);
 		connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
 	if (update_connected.id.number || update_connected.id.name) {
@@ -1270,7 +1270,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk18_park(const sccp_channel_t * hos
 
 }
 
-static boolean_t sccp_wrapper_asterisk18_getFeatureExtension(const sccp_channel_t * channel, char **extension)
+static boolean_t sccp_wrapper_asterisk18_getFeatureExtension(const sccp_channel_t * channel, char extension[SCCP_MAX_EXTENSION])
 {
 	struct ast_call_feature *feat;
 
@@ -1278,19 +1278,19 @@ static boolean_t sccp_wrapper_asterisk18_getFeatureExtension(const sccp_channel_
 	feat = ast_find_call_feature("automon");
 
 	if (feat) {
-		*extension = strdup(feat->exten);
+		sccp_copy_string(extension, feat->exten, SCCP_MAX_EXTENSION);
 	}
 	ast_unlock_call_features();
 
 	return feat ? TRUE : FALSE;
 }
 
-static boolean_t sccp_wrapper_asterisk18_getPickupExtension(const sccp_channel_t * channel, char **extension)
+static boolean_t sccp_wrapper_asterisk18_getPickupExtension(const sccp_channel_t * channel, char extension[SCCP_MAX_EXTENSION])
 {
 	boolean_t res = FALSE;
 
 	if (!sccp_strlen_zero(ast_pickup_ext())) {
-		*extension = strdup((char *) ast_pickup_ext());
+		sccp_copy_string(extension, ast_pickup_ext(), SCCP_MAX_EXTENSION);
 		res = TRUE;
 	}
 	return res;
