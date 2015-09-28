@@ -1,4 +1,3 @@
-dnl FILE: chan-sccp-b configure file
 dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
 dnl CREATED BY: Created by Diederik de Groot
 dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
@@ -13,14 +12,16 @@ MIN_ASTERISK_VERSION=106
 MAX_ASTERISK_VERSION=113
 
 AC_CONFIG_AUX_DIR([autoconf])
-dnl AC_USE_SYSTEM_EXTENSIONS must be called before any macros that run
-dnl the compiler (like AC_PROG_LIBTOOL) to avoid autoconf errors.
-AC_USE_SYSTEM_EXTENSIONS
-AC_CONFIG_MACRO_DIR([autoconf])
 
 CFLAGS_saved="${CFLAGS}"
 CPPFLAGS_saved="${CPPFLAGS}"
 LDFLAGS_saved="${LDFLAGS}"
+
+dnl AC_USE_SYSTEM_EXTENSIONS must be called before any macros that run
+dnl the compiler (like AC_PROG_LIBTOOL) to avoid autoconf errors.
+AC_USE_SYSTEM_EXTENSIONS
+
+AC_CONFIG_MACRO_DIR([autoconf])
 
 dnl cross-compile macros
 AC_CANONICAL_BUILD
@@ -66,7 +67,7 @@ AX_CHECK_ALIGNED_ACCESS_REQUIRED	dnl sparc64 alignment required
 AX_CHECK_UNALIGNED_BUSERROR		dnl sparc64 unaligned access
 CS_GET_VERSION([.])
 
-AC_PROG_CXX
+dnl AC_PROG_CXX
 
 CONFIGURE_PART([Checking host platform:])
 CS_SETUP_HOST_PLATFORM

@@ -272,10 +272,6 @@ CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CPU_OPTIONS = @CPU_OPTIONS@
 CUT = @CUT@
-CXX = @CXX@
-CXXCPP = @CXXCPP@
-CXXDEPMODE = @CXXDEPMODE@
-CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DATE = @DATE@
 DEBUG = @DEBUG@
@@ -424,7 +420,6 @@ abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
-ac_ct_CXX = @ac_ct_CXX@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
 acx_pthread_config = @acx_pthread_config@
 am__include = @am__include@
@@ -472,6 +467,7 @@ psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
+strip_binaries = @strip_binaries@
 subdirs = @subdirs@
 sys_symbol_underscore = @sys_symbol_underscore@
 sysconfdir = @sysconfdir@
@@ -1164,8 +1160,12 @@ gen_enum: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@test -z "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"							
+	echo "STRIP: $(strip_binaries)"
 	@if test "x$(strip_binaries)"=="xyes" ; then 										\
-	        $(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; 					\
+		echo "HIERO";													\
+		$(OBJCOPY) --only-keep-debug ".libs/chan_sccp.so" ".libs/chan_sccp.so.dbg";					\
+	        $(INSTALL) -s ".libs/chan_sccp.so" "$(DESTDIR)$(csmoddir)"; 							\
+		$(OBJCOPY) --add-gnu-debuglink=".libs/chan_sccp.so.dbg" "$(DESTDIR)$(csmoddir)/chan_sccp.so";			\
 	else 															\
 	        $(INSTALL) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; 								\
 	fi

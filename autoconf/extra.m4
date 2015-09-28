@@ -461,12 +461,15 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	AC_MSG_NOTICE([--enable-debug: ${enable_debug}])
 
 	LIBBFD=""
+ 	
 	if test -n "${CPPFLAGS_saved}"; then
 	 	CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE"
  	else 
  		CPPFLAGS_saved="-U_FORTIFY_SOURCE"
  	fi
+ 	
 	if test "$enable_optimization" == "no"; then 
+	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O[0-9]\ \?//g' -e 's/\-g\ \?//g'`"
 		strip_binaries="no"
 		optimize_flag="-O0"
 		case "${CC}" in
@@ -477,16 +480,17 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			;;
 		esac
 		CFLAGS_saved="${CFLAGS_saved} ${optimize_flag} "
-		CPPFLAGS_saved="${CPPFLAGS_saved} ${optimize_flag}"
 	else
 		strip_binaries="yes"
-		CFLAGS_saved="${CFLAGS_saved} -O2 "
-                CPPFLAGS_saved="${CPPFLAGS_saved} -O2 -D_FORTIFY_SOURCE=2"
+		dnl if [ -z "`echo \"${CFLAGS_saved}\" | grep -e '\-O[0-9]'`" ]; then
+		CFLAGS_saved="${CFLAGS_saved} -O3 "
+                dnl fi
+       	        CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
 		GDB_FLAGS=""
 	fi
 	
 	if test "${enable_debug}" = "yes"; then
-		AC_DEFINE([GC_DEBUG],[1],[Enable extra garbage collection debugging.])
+		dnl AC_DEFINE([GC_DEBUG],[1],[Enable extra garbage collection debugging.])
 		AC_DEFINE([DEBUG],[1],[Extra debugging.])
 		DEBUG=1
 		enable_do_crash="yes"
@@ -494,7 +498,6 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		strip_binaries="no"
 
 	 	dnl Remove leading/ending spaces
-		CFLAGS_saved="`echo ${CFLAGS_saved}|sed 's/^[ \t]*//;s/[ \t]*$//'`"
 		CFLAGS_saved="${CFLAGS_saved} -Wall"
 		GDB_FLAGS="-g3 -ggdb3"
 		
@@ -579,11 +582,13 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			], ax_warn_cflags_variable)
 		fi		
 	fi
+	CFLAGS_saved="`echo ${CFLAGS_saved}|sed 's/^[ \t]*//;s/[ \t]*$//'`"
 	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS="${CFLAGS_saved} "
 	CPPFLAGS="${CPPFLAGS_saved} -I. "
 	AC_SUBST([DEBUG])
 	AC_SUBST([GDB_FLAGS])
+	AC_SUBST([strip_binaries])
 	AC_SUBST([ax_warn_cflags_variable])
 	AC_SUBST([LIBBFD])
 ])

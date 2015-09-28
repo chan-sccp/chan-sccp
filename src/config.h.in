@@ -271,9 +271,6 @@
 /* No Extra debugging. */
 #undef DEBUG
 
-/* Enable extra garbage collection debugging. */
-#undef GC_DEBUG
-
 /* Define if pointers to integers require aligned access */
 #undef HAVE_ALIGNED_ACCESS_REQUIRED
 

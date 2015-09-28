@@ -84,7 +84,9 @@ install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@test -z "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"							
 	@if test "x$(strip_binaries)"=="xyes" ; then 										\
-	        $(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; 					\
+		$(OBJCOPY) --only-keep-debug ".libs/chan_sccp.so" ".libs/chan_sccp.so.dbg";					\
+	        $(INSTALL) -s ".libs/chan_sccp.so" "$(DESTDIR)$(csmoddir)"; 							\
+		$(OBJCOPY) --add-gnu-debuglink=".libs/chan_sccp.so.dbg" "$(DESTDIR)$(csmoddir)/chan_sccp.so";			\
 	else 															\
 	        $(INSTALL) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; 								\
 	fi
