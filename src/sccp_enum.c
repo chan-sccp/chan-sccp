@@ -1158,6 +1158,68 @@ char *sccp_rtp_status_all_entries(void) {
 /* = End =========================================================================================                sccp_rtp_status === */
 
 
+/* = Begin =======================================================================================             sccp_sccp_rtp_type === */
+
+
+/*
+ * \brief enum sccp_sccp_rtp_type
+ */
+static const char *sccp_sccp_rtp_type_map[] = {
+	"Audio RTP",
+	"Video RTP",
+	"Text RTP",
+	"LOOKUPERROR"
+};
+
+int sccp_sccp_rtp_type_exists(int sccp_sccp_rtp_type_int_value) {
+	int res = 0, i;
+	for (i = 0; i < SCCP_SCCP_RTP_TYPE_SENTINEL; i++) {
+		if ((sccp_sccp_rtp_type_int_value & 1 << i) == 1 << i) {
+			res |= 1;
+		}
+	}
+	return res;
+}
+
+const char * sccp_sccp_rtp_type2str(int sccp_sccp_rtp_type_int_value) {
+	static char res[186] = "";
+	uint32_t i;
+	int pos = 0;
+	for (i = 0; i < ARRAY_LEN(sccp_sccp_rtp_type_map) - 1; i++) {
+		if ((sccp_sccp_rtp_type_int_value & 1 << i) == 1 << i) {
+			pos += snprintf(res + pos, 186, "%s%s", pos ? "," : "", sccp_sccp_rtp_type_map[i]);
+		}
+	}
+	if (!strlen(res)) {
+		pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_sccp_rtp_type2str\n", sccp_sccp_rtp_type_int_value);
+		return "SCCP: OutOfBounds Error during lookup of sparse sccp_sccp_rtp_type2str\n";
+	}
+	return res;
+}
+
+sccp_sccp_rtp_type_t sccp_sccp_rtp_type_str2val(const char *lookup_str) {
+	uint32_t idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_sccp_rtp_type_map); idx++) {
+		if (sccp_strcaseequals(sccp_sccp_rtp_type_map[idx], lookup_str)) {
+			return 1 << idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_sccp_rtp_type_str2val(%s) not found\n", lookup_str);
+	return SCCP_SCCP_RTP_TYPE_SENTINEL;
+}
+
+int sccp_sccp_rtp_type_str2intval(const char *lookup_str) {
+	int res = sccp_sccp_rtp_type_str2val(lookup_str);
+	return (int)res != SCCP_SCCP_RTP_TYPE_SENTINEL ? res : -1;
+}
+
+char *sccp_sccp_rtp_type_all_entries(void) {
+	static char res[] = "Audio RTP,Video RTP,Text RTP";
+	return res;
+}
+/* = End =========================================================================================             sccp_sccp_rtp_type === */
+
+
 /* = Begin =======================================================================================          sccp_extension_status === */
 
 
@@ -1651,12 +1713,12 @@ int sccp_configurationchange_exists(int sccp_configurationchange_int_value) {
 }
 
 const char * sccp_configurationchange2str(int sccp_configurationchange_int_value) {
-	static char res[246] = "";
+	static char res[294] = "";
 	uint32_t i;
 	int pos = 0;
 	for (i = 0; i < ARRAY_LEN(sccp_configurationchange_map) - 1; i++) {
 		if ((sccp_configurationchange_int_value & 1 << i) == 1 << i) {
-			pos += snprintf(res + pos, 246, "%s%s", pos ? "," : "", sccp_configurationchange_map[i]);
+			pos += snprintf(res + pos, 294, "%s%s", pos ? "," : "", sccp_configurationchange_map[i]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1763,12 +1825,12 @@ int sccp_rtp_info_exists(int sccp_rtp_info_int_value) {
 }
 
 const char * sccp_rtp_info2str(int sccp_rtp_info_int_value) {
-	static char res[327] = "";
+	static char res[375] = "";
 	uint32_t i;
 	int pos = 0;
 	for (i = 0; i < ARRAY_LEN(sccp_rtp_info_map) - 1; i++) {
 		if ((sccp_rtp_info_int_value & 1 << i) == 1 << i) {
-			pos += snprintf(res + pos, 327, "%s%s", pos ? "," : "", sccp_rtp_info_map[i]);
+			pos += snprintf(res + pos, 375, "%s%s", pos ? "," : "", sccp_rtp_info_map[i]);
 		}
 	}
 	if (!strlen(res)) {

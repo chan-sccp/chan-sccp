@@ -189,6 +189,12 @@ enum rtp_status {
 	SCCP_RTP_STATUS_ACTIVE,				=1<<1,	"Rtp Active",
 }
 
+enum sccp_rtp_type {
+	SCCP_RTP_AUDIO,					= 0,	"Audio RTP",
+	SCCP_RTP_VIDEO,					= 1<<0,	"Video RTP",
+	SCCP_RTP_TEXT,					= 1<<2, "Text RTP",
+}
+
 enum extension_status {
 	SCCP_EXTENSION_NOTEXISTS, 			,	"Extension does not exist",
 	SCCP_EXTENSION_MATCHMORE, 			,	"Matches more than one extension",
