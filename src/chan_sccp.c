@@ -552,7 +552,9 @@ boolean_t sccp_prePBXLoad(void)
 	//SCCP_LIST_HEAD_INIT(&sccp_event_listeners->subscriber);
 
 	pbx_mutex_init(&GLOB(lock));
+#ifndef SCCP_ATOMIC	
 	pbx_mutex_init(&GLOB(usecnt_lock));
+#endif
 #if ASTERISK_VERSION_GROUP < 110
 	pbx_mutex_init(&GLOB(monitor_lock));
 #endif
@@ -762,7 +764,9 @@ int sccp_preUnload(void)
 	//}
 	sccp_config_cleanup_dynamically_allocated_memory(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
 
+#ifndef SCCP_ATOMIC
 	pbx_mutex_destroy(&GLOB(usecnt_lock));
+#endif	
 	pbx_mutex_destroy(&GLOB(lock));
 	//pbx_log(LOG_NOTICE, "SCCP chan_sccp unloaded\n");
 	return 0;
