@@ -256,7 +256,7 @@ int skinny_codecs2pbx_codec_pref(skinny_codec_t * codecs, struct ast_codec_pref 
 	int res_codec = 0;
 
 	for (i = 1; i < SKINNY_MAX_CAPABILITIES; i++) {
-		if (skinny_codecs[i]) {
+		if (codecs[i]) {
 			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "adding codec to ast_codec_pref\n");
 			res_codec |= ast_codec_pref_append(astCodecPref, skinny_codec2pbx_codec(codecs[i]));
 		}
