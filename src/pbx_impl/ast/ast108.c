@@ -245,7 +245,7 @@ static int sccp_wrapper_asterisk18_devicestate(void *data)
  *
  * \return bit array fmt/Format of ast_format_type (int)
  */
-int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref)
+int skinny_codecs2pbx_codec_pref(skinny_codec_t * codecs, struct ast_codec_pref *astCodecPref)
 {
 	uint32_t i;
 	int res_codec = 0;
@@ -253,7 +253,7 @@ int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_code
 	for (i = 1; i < SKINNY_MAX_CAPABILITIES; i++) {
 		if (skinny_codecs[i]) {
 			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "adding codec to ast_codec_pref\n");
-			res_codec |= ast_codec_pref_append(astCodecPref, skinny_codec2pbx_codec(skinny_codecs[i]));
+			res_codec |= ast_codec_pref_append(astCodecPref, skinny_codec2pbx_codec(codecs[i]));
 		}
 	}
 	return res_codec;

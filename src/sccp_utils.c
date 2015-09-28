@@ -2017,7 +2017,7 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 {
 	char **strings;
 #if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
-	int stackfr;
+	size_t stackfr;
 	bfd *bfdobj;           /* bfd.h */
 	Dl_info dli;           /* dlfcn.h */
 	long allocsize;
