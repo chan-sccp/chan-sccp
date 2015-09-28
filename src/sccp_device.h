@@ -93,6 +93,14 @@ struct sccp_speed {
 };
 
 /*!
+ * \brief Privacy Feature Enum
+ */
+enum sccp_privacyfeature {
+	SCCP_PRIVACYFEATURE_HINT 	= 1 << 1,
+	SCCP_PRIVACYFEATURE_CALLPRESENT	= 1 << 2,
+};
+
+/*!
  * \brief SCCP Feature Configuration Structure
  */
 struct sccp_feature_configuration {

@@ -311,13 +311,6 @@ static const struct sccp_debug_category {
 	/* *INDENT-ON* */
 };
 
-
-/*!
- * \brief Privacy Definition
- */
-#define SCCP_PRIVACYFEATURE_HINT 	1 << 1;
-#define SCCP_PRIVACYFEATURE_CALLPRESENT	1 << 2;
-
 /*!
  * \brief SCCP device-line subscriptionId
  * \note for addressing individual devices on shared line
