@@ -471,7 +471,7 @@ const sccp_devicestate_t sccp_device_getDeviceState(constDevicePtr d)
 {
 	assert(d != NULL && d->privateData != NULL);
 	
-	sccp_devicestate_t state = SKINNY_REGISTRATIONSTATE_SENTINEL;
+	sccp_devicestate_t state = SCCP_DEVICESTATE_SENTINEL;
 
 	sccp_private_lock(d->privateData);
 	state = d->privateData->deviceState;
