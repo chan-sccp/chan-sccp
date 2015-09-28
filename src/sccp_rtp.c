@@ -23,6 +23,10 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
+/* 
+ * we should use the new sccp_rtp_type enum to specify audio/video/text variety of functions below
+ */
+
 /*!
  * \brief create a new rtp server for audio data
  * \param c SCCP Channel
@@ -410,5 +414,169 @@ int sccp_rtp_get_sampleRate(skinny_codec_t codec)
 	}
 }
 
+/* new : allowing to internalize sccp_rtp struct */
+#define sccp_rtp_lock(x) sccp_mutex_lock(&((sccp_rtp_t * const)x)->lock)				/* discard const */
+#define sccp_rtp_unlock(x) sccp_mutex_unlock(&((sccp_rtp_t * const)x)->lock)				/* discard const */
+
+/*
+uint16_t sccp_rtp_getReadState(const sccp_rtp_t * const rtp)
+{
+	assert(rtp != NULL);
+	
+	sccp_rtp_lock(rtp);
+	uint16_t readState = rtp->readState;
+	sccp_rtp_unlock(rtp);
+	
+	return readState;
+}
+
+uint16_t sccp_rtp_getWriteState(const sccp_rtp_t * const rtp)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	uint16_t writeState = rtp->writeState;
+	sccp_rtp_unlock(rtp);
+
+	return writeState;
+}
+
+boolean_t sccp_rtp_isDirectMedia(const sccp_rtp_t * const rtp)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	boolean_t directMedia = rtp->directMedia;
+	sccp_rtp_unlock(rtp);
+	
+	return directMedia;
+}
+
+skinny_codec_t sccp_rtp_getReadFormat(const sccp_rtp_t * const rtp)
+{
+	assert(rtp != NULL);
+	
+	sccp_rtp_lock(rtp);
+	skinny_codec_t readFormat = rtp->readFormat;
+	sccp_rtp_unlock(rtp);
+
+	return readFormat;
+}
+skinny_codec_t sccp_rtp_getWriteFormat(const sccp_rtp_t * const rtp)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	skinny_codec_t writeFormat = rtp->writeFormat;
+	sccp_rtp_unlock(rtp);
+
+	return writeFormat;
+}
+
+int sccp_rtp_getPhoneAddress(const sccp_rtp_t * const rtp, struct sockaddr_storage *const sas)
+{
+	assert(rtp != NULL && sas != NULL);
+	int res = 0;
+
+	sccp_rtp_lock(rtp);
+	if (rtp->readState != SCCP_RTP_STATUS_INACTIVE) {
+		memcpy(sas, &rtp->phone, sizeof(struct sockaddr_storage));
+		res = 1;
+	}
+	sccp_rtp_unlock(rtp);
+
+	return res;
+}
+
+int sccp_rtp_getRemotePhoneAddress(const sccp_rtp_t * const rtp, struct sockaddr_storage *const sas)
+{
+	assert(rtp != NULL && sas != NULL);
+	int res = 0;
+
+	sccp_rtp_lock(rtp);
+	if (rtp->readState != SCCP_RTP_STATUS_INACTIVE) {
+		memcpy(sas, &rtp->phone_remote, sizeof(struct sockaddr_storage));
+		res = 1;
+	}
+	sccp_rtp_unlock(rtp);
+
+	return res;
+}
+
+sccp_rtp_setReadState(sccp_rtp_t * const rtp, uint16_t value)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	rtp->readState = value;
+	sccp_rtp_unlock(rtp);
+
+	return 1;
+}
+sccp_rtp_setWriteState(sccp_rtp_t * const rtp, uint16_t value)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	rtp->writeState = value;
+	sccp_rtp_unlock(rtp);
+
+	return 1;
+}
+
+sccp_rtp_setDirectMedia(sccp_rtp_t * const rtp, boolean_t direct)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	rtp->directMedia = direct;
+	sccp_rtp_unlock(rtp);
+
+	return 1;
+}
+
+sccp_rtp_setReadFormat(sccp_rtp_t * const rtp, skinny_codec_t codec)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	rtp->readFormat = codec;
+	sccp_rtp_unlock(rtp);
+
+	return 1;
+}
+sccp_rtp_setWriteFormat(sccp_rtp_t * const rtp, skinny_codec_t codec)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	rtp->writeFormat = codec;
+	sccp_rtp_unlock(rtp);
+
+	return 1;
+}
+
+sccp_rtp_setPhoneAddress(sccp_rtp_t * const rtp, const struct sockaddr_storage *const sas)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	memcpy(&rtp->phone, sas, sizeof(struct sockaddr_storage));
+	sccp_rtp_unlock(rtp);
+
+	return 1;
+}
+
+sccp_rtp_setRemotePhoneAddress(sccp_rtp_t * const rtp, const struct sockaddr_storage *const sas)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	memcpy(&rtp->phone_remote, sas, sizeof(struct sockaddr_storage));
+	sccp_rtp_unlock(rtp);
+
+	return 1;
+}
+*/
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
