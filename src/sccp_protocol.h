@@ -17,17 +17,18 @@
 #ifndef __SCCP_PROTOCOL_H
 #define __SCCP_PROTOCOL_H
 
-#if HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-#if HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <netinet/ip.h>
-#include <netinet/tcp.h>
-#endif
+//#if HAVE_SYS_SOCKET_H
+//#include <sys/socket.h>
+//#endif
+//#if HAVE_NETINET_IN_H
+//#include <netinet/in.h>
+//#include <netinet/in_systm.h>
+//#include <netinet/ip.h>
+//#include <netinet/tcp.h>
+//#endif
 
 #include "sccp_labels.h"
+#include "sccp_softkeys.h"
 
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW		3							/*!< At least we require protocol V.3 */
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH		22							/*!< We support up to protocol V.17 */
@@ -3446,9 +3447,6 @@ static const struct messagetype spcp_messagetypes[] = {
 	[UnknownVGMessage - SPCP_MESSAGE_OFFSET		] = {"Unknown Message (VG224)",			offsize(sccp_data_t, UnknownVGMessage)},
 	/* *INDENT-ON* */
 };
-
-#include "sccp_softkeys.h"
-#include "sccp_labels.h"
 
 static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_REDIAL,

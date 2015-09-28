@@ -15,7 +15,7 @@
 
 //#include <config.h>
 //#include "common.h"
-#include "chan_sccp.h"
+//#include "chan_sccp.h"
 
 #define NUMBER_OF_EVENT_TYPES 10
 

@@ -27,6 +27,14 @@
 #define sccp_alloca(size) __builtin_alloca(size)
 #define CS_BRIDGEPEERNAME "BRIDGEPEER"
 
+/* Lock Macro's */
+#define sccp_mutex_init(x)          		pbx_mutex_init(x)
+#define sccp_mutex_destroy(x)       		pbx_mutex_destroy(x)
+#define sccp_mutex_lock(x)			pbx_mutex_lock(x)
+#define sccp_mutex_lock_desc(x,y) 		pbx_mutex_lock(x)
+#define sccp_mutex_unlock(x)			pbx_mutex_unlock(x)
+#define sccp_mutex_trylock(x)			pbx_mutex_trylock(x)
+
 // codec / format redefinitions
 #define pbx_codec_pref_index ast_codec_pref_index
 #define pbx_codec_pref_getsize ast_codec_pref_getsize

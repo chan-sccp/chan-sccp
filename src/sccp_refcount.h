@@ -12,10 +12,10 @@
 #define __SCCP_REFCOUNT_H
 
 #if HAVE_SYS_TYPES_H
-#include <sys/types.h>
+//#include <sys/types.h>
 #endif
 
-#include <setjmp.h>
+//#include <setjmp.h>
 
 #define REFCOUNT_INDENTIFIER_SIZE 32
 enum sccp_refcounted_types {

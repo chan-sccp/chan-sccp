@@ -54,6 +54,11 @@ sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 
 #define SESSION_DEVICE_CLEANUP_TIME 10										/* wait time before destroying a device on thread exit */
 #define KEEPALIVE_ADDITIONAL_PERCENT 10										/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
+
+/* Lock Macro for Sessions */
+#define sccp_session_lock(x)			pbx_mutex_lock(&x->lock)
+#define sccp_session_unlock(x)			pbx_mutex_unlock(&x->lock)
+#define sccp_session_trylock(x)			pbx_mutex_trylock(&x->lock)
 /* */
 
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime);

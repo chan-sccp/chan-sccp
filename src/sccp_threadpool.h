@@ -14,7 +14,7 @@
 #ifndef SCCP_THREADPOOL_H_
 #define SCCP_THREADPOOL_H_
 
-#include <config.h>
+//#include <config.h>
 //#include "common.h"
 
 /* Description:         Library providing a threading pool where you can add work on the fly. The number

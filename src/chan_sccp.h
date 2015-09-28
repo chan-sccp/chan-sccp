@@ -31,19 +31,19 @@ extern "C" {
 #define gcc_inline
 #endif
 
-#include <config.h>
-//#include "common.h"
+//#include <config.h>
+////#include "common.h"
 
 #define sccp_mutex_t ast_mutex_t
 
 /* Add bswap function if necessary */
-#if HAVE_BYTESWAP_H
-#include <byteswap.h>
-#elif HAVE_SYS_BYTEORDER_H
-#include <sys/byteorder.h>
-#elif HAVE_SYS_ENDIAN_H
-#include <sys/endian.h>
-#endif
+//#if HAVE_BYTESWAP_H
+//#include <byteswap.h>
+//#elif HAVE_SYS_BYTEORDER_H
+//#include <sys/byteorder.h>
+//#elif HAVE_SYS_ENDIAN_H
+//#include <sys/endian.h>
+//#endif
 
 #ifndef HAVE_BSWAP_16
 static inline unsigned short bswap_16(unsigned short x)
@@ -140,6 +140,11 @@ char SCCP_REVISIONSTR[30];
 #define sccp_log_and(_x) if ((sccp_globals->debug & (_x)) == (_x)) sccp_log1
 
 #define GLOB(x) sccp_globals->x
+
+/* Lock Macro for Globals */
+#define sccp_globals_lock(x)			pbx_mutex_lock(&sccp_globals->x)
+#define sccp_globals_unlock(x)			pbx_mutex_unlock(&sccp_globals->x)
+#define sccp_globals_trylock(x)			pbx_mutex_trylock(&sccp_globals->x)
 
 #if defined(LOW_MEMORY)
 #define SCCP_FILE_VERSION(file, version)
