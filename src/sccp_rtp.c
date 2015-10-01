@@ -60,7 +60,9 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(c);
 
 	if (device) {
-		memcpy((void *) &c->rtp.audio.phone_remote, &device->session->ourip, sizeof(struct sockaddr_storage));
+		//memcpy((void *) &c->rtp.audio.phone_remote, &device->session->ourip, sizeof(struct sockaddr_storage));
+		struct sockaddr_storage remote = (struct sockaddr_storage) c->rtp.audio.phone_remote;
+		memcpy(&remote, &device->session->ourip, sizeof(struct sockaddr_storage ));
 		sccp_socket_setPort(&c->rtp.audio.phone_remote, port);
 	}
 
