@@ -481,10 +481,10 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		CFLAGS_saved="${CFLAGS_saved} ${optimize_flag} "
 	else
 		strip_binaries="yes"
-		dnl if [ -z "`echo \"${CFLAGS_saved}\" | grep -e '\-O[0-9]'`" ]; then
-		CFLAGS_saved="${CFLAGS_saved} -O3 "
-                dnl fi
-       	        CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
+		if [ -z "`echo \"${CFLAGS_saved}\" | grep -e '\-O[0-9]'`" ]; then
+			CFLAGS_saved="${CFLAGS_saved} -O3 "
+		fi
+	   	CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
 		GDB_FLAGS=""
 	fi
 	
@@ -549,7 +549,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl
 				dnl -Wno-unused-but-set-variable dnl
 			], ax_warn_cflags_variable)
-    		fi 
+			fi 
 
 		AC_CHECK_HEADER([execinfo.h],
 			[
