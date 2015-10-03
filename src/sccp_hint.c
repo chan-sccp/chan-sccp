@@ -1348,7 +1348,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 				} else {
 					sccp_callinfo_send(hint->callInfo, 0 /*callid*/, hint->calltype, subscriber->instance, d, TRUE);
-
 					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_ON);
 					sccp_dev_set_keyset(d, subscriber->instance, 0 /*callid*/, KEYMODE_INUSEHINT);
 				}

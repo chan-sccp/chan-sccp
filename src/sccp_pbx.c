@@ -1047,7 +1047,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				goto EXIT_FUNC;									// leave simpleswitch without dial
 			case SCCP_SOFTSWITCH_DIAL:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension %s\n", d->id, shortenedNumber);
-				//sccp_copy_string(c->oldCallInfo.calledPartyNumber, shortenedNumber, sizeof(c->oldCallInfo.calledPartyNumber));
+
 				//sccp_channel_set_calledparty(c, NULL, shortenedNumber);
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 				break;

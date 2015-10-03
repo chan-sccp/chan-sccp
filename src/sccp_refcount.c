@@ -182,7 +182,7 @@ int sccp_refcount_schedule_cleanup(const void *data)
 	return 0;
 }
 
-void * sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor)
+void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor)
 {
 	RefCountedObject *obj;
 	void *ptr = NULL;
@@ -438,7 +438,7 @@ void sccp_refcount_updateIdentifier(void *ptr, char *identifier)
 	}
 }
 
-gcc_inline void * sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func)
+gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func)
 {
 	RefCountedObject *obj = NULL;
 	volatile int refcountval;
@@ -468,7 +468,7 @@ gcc_inline void * sccp_refcount_retain(const void * const ptr, const char *filen
 	}
 }
 
-gcc_inline void * sccp_refcount_release(const void * const ptr, const char *filename, int lineno, const char *func)
+gcc_inline void * const sccp_refcount_release(const void * const ptr, const char *filename, int lineno, const char *func)
 {
 	RefCountedObject *obj = NULL;
 	volatile int refcountval;

@@ -261,8 +261,7 @@ int sccp_threadpool_add_work(sccp_threadpool_t * tp_p, void *(*function_p) (void
 		newJob = (sccp_threadpool_job_t *) sccp_malloc(sizeof(sccp_threadpool_job_t));			/* MALLOC job */
 		if (newJob == NULL) {
 			pbx_log(LOG_ERROR, "sccp_threadpool_add_work(): Could not allocate memory for new job\n");
-			//exit(1);
-			return 0;
+			exit(1);
 		}
 
 		/* add function and argument */
