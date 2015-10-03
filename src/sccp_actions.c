@@ -3615,7 +3615,7 @@ void sccp_handle_feature_action(constDevicePtr d, const int instance, const bool
 }
 
 #if defined(CS_SCCP_VIDEO) && defined(DEBUG) && DEBUG == 1
-static void sccp_handle_updatecapabilities_dissect_customPictureFormat(sccp_device_t *d, uint32_t customPictureFormatCount, customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES]) {
+static void sccp_handle_updatecapabilities_dissect_customPictureFormat(constDevicePtr d, uint32_t customPictureFormatCount, const customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES]) {
 	uint8_t video_customPictureFormat = 0;
 	if (customPictureFormatCount <= MAX_CUSTOM_PICTURES) {
 		for (video_customPictureFormat = 0; video_customPictureFormat < customPictureFormatCount; video_customPictureFormat++) {
@@ -3632,7 +3632,7 @@ static void sccp_handle_updatecapabilities_dissect_customPictureFormat(sccp_devi
 	}
 }
 
-static void sccp_handle_updatecapabilities_dissect_levelPreference(sccp_device_t *d, uint32_t levelPreferenceCount, levelPreference_t levelPreference[MAX_LEVEL_PREFERENCE]) {
+static void sccp_handle_updatecapabilities_dissect_levelPreference(constDevicePtr d, uint32_t levelPreferenceCount, const levelPreference_t levelPreference[MAX_LEVEL_PREFERENCE]) {
 	uint8_t level = 0;
 	if (levelPreferenceCount <= MAX_LEVEL_PREFERENCE) {
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7s Codec has %d levelPreferences:\n", DEV_ID_LOG(d), "", levelPreferenceCount);
@@ -3656,7 +3656,7 @@ static void sccp_handle_updatecapabilities_dissect_levelPreference(sccp_device_t
 	}
 }
 
-static void sccp_handle_updatecapabilities_dissect_videocapabiltyunion(sccp_device_t *d, uint32_t video_codec, videoCapabilityUnionV2_t *capability) {
+static void sccp_handle_updatecapabilities_dissect_videocapabiltyunion(constDevicePtr d, uint32_t video_codec, const videoCapabilityUnionV2_t *capability) {
 	switch (video_codec) {
 		case SKINNY_CODEC_H261:
 			{
