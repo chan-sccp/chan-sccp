@@ -426,23 +426,23 @@ char *sccp_rtp_status_all_entries(void);
 /* = End =========================================================================================                sccp_rtp_status === */
 
 
-/* = Begin =======================================================================================             sccp_sccp_rtp_type === */
+/* = Begin =======================================================================================                  sccp_rtp_type === */
 
 /*
- * \brief enum sccp_sccp_rtp_type
+ * \brief enum sccp_rtp_type
  */
-typedef enum sccp_sccp_rtp_type {
+typedef enum sccp_rtp_type {
 	SCCP_RTP_AUDIO=0,
-	SCCP_RTP_VIDEO=1<<0,
-	SCCP_RTP_TEXT=1<<2,
-	SCCP_SCCP_RTP_TYPE_SENTINEL = 1<<3
-} sccp_sccp_rtp_type_t;
-int sccp_sccp_rtp_type_exists(int sccp_sccp_rtp_type_int_value);
-const char * sccp_sccp_rtp_type2str(int sccp_sccp_rtp_type_int_value);
-sccp_sccp_rtp_type_t sccp_sccp_rtp_type_str2val(const char *lookup_str);
-int sccp_sccp_rtp_type_str2intval(const char *lookup_str);
-char *sccp_sccp_rtp_type_all_entries(void);
-/* = End =========================================================================================             sccp_sccp_rtp_type === */
+	SCCP_RTP_VIDEO=1,
+	SCCP_RTP_TEXT=2,
+	SCCP_RTP_TYPE_SENTINEL
+} sccp_rtp_type_t;
+int sccp_rtp_type_exists(int sccp_rtp_type_int_value);
+const char * sccp_rtp_type2str(sccp_rtp_type_t enum_value);
+sccp_rtp_type_t sccp_rtp_type_str2val(const char *lookup_str);
+int sccp_rtp_type_str2intval(const char *lookup_str);
+char *sccp_rtp_type_all_entries(void);
+/* = End =========================================================================================                  sccp_rtp_type === */
 
 
 /* = Begin =======================================================================================          sccp_extension_status === */

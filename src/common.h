@@ -87,6 +87,7 @@ typedef struct subscriptionId sccp_subscription_id_t;								/*!< SCCP Subscript
 typedef struct composedId sccp_composed_id_t;									/*!< SCCP ComposedId Structure */
 typedef struct sccp_conference sccp_conference_t;								/*!< SCCP Conference Structure */
 typedef struct sccp_rtp sccp_rtp_t;										/*!< SCCP RTP Struct Type */
+typedef struct sccp_rtp_new sccp_rtp_new_t;									/*!< SCCP RTP Struct Type */
 typedef struct sccp_private_channel_data sccp_private_channel_data_t;						/*!< SCCP Private Channel Data Structure */
 typedef struct sccp_private_device_data sccp_private_device_data_t;						/*!< SCCP Private Device Data Structure */
 typedef struct sccp_cfwd_information sccp_cfwd_information_t;							/*!< SCCP CallForward information Structure */

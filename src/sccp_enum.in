@@ -189,10 +189,10 @@ enum rtp_status {
 	SCCP_RTP_STATUS_ACTIVE,				=1<<1,	"Rtp Active",
 }
 
-enum sccp_rtp_type {
+enum rtp_type {
 	SCCP_RTP_AUDIO,					= 0,	"Audio RTP",
-	SCCP_RTP_VIDEO,					= 1<<0,	"Video RTP",
-	SCCP_RTP_TEXT,					= 1<<2, "Text RTP",
+	SCCP_RTP_VIDEO,					= 1,	"Video RTP",
+	SCCP_RTP_TEXT,					= 2,	"Text RTP",
 }
 
 enum extension_status {
