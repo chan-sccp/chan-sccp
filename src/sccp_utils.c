@@ -977,7 +977,7 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32
  * \retval 0 on diff
  * \retval 1 on equal
  */
-int socket_equals(struct sockaddr_storage *s0, struct sockaddr_storage *s1)
+int socket_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1)
 {
 	/*
 	if (s0->sin_addr.s_addr != s1->sin_addr.s_addr || s0->sin_port != s1->sin_port || s0->sin_family != s1->sin_family) {

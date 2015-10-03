@@ -26,6 +26,19 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 /* 
  * we should use the new sccp_rtp_type enum to specify audio/video/text variety of functions below
  */
+struct sccp_rtp_new {
+	sccp_mutex_t		lock;						/* This lock should only be used to get / set local variables, not function calls outside this class are allowed when holding this lock */
+	const sccp_channel_t 	*channel;
+	PBX_RTP_TYPE		*pbxrtp;
+	sccp_rtp_type_t		type;
+	uint16_t		readState;
+	uint16_t		writeState;
+	boolean_t		directMedia;
+	skinny_codec_t		readFormat;
+	skinny_codec_t		writeFormat;
+	struct sockaddr_storage	phone;
+	struct sockaddr_storage	phone_remote;
+};
 
 /*!
  * \brief create a new rtp server for audio data
@@ -417,6 +430,308 @@ int sccp_rtp_get_sampleRate(skinny_codec_t codec)
 /* new : allowing to internalize sccp_rtp struct */
 #define sccp_rtp_lock(x) sccp_mutex_lock(&((sccp_rtp_t * const)x)->lock)				/* discard const */
 #define sccp_rtp_unlock(x) sccp_mutex_unlock(&((sccp_rtp_t * const)x)->lock)				/* discard const */
+
+sccp_rtp_new_t __attribute__ ((malloc)) *const sccp_rtp_ctor(constChannelPtr channel, sccp_rtp_type_t type)
+{
+	assert(channel != NULL);
+	
+	sccp_rtp_new_t *const rtp = sccp_calloc(sizeof(sccp_rtp_new_t), 1);
+
+	if (!rtp) {
+		pbx_log(LOG_ERROR, "SCCP: No memory to allocate rtp object. Failing\n");
+		return NULL;
+	}
+	sccp_mutex_init(&rtp->lock);
+
+	// set defaults
+	if (channel) {
+		rtp->channel = sccp_channel_retain(channel);
+	}
+	if (SCCP_RTP_TYPE_SENTINEL != type) {						// skip createServer
+		if (!sccp_rtp_createServer(rtp)) {
+			return sccp_rtp_dtor(rtp);					// return NULL
+		}
+	}
+	rtp->type = type;
+	
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_1 "SCCP: rtp constructor: %p\n", rtp);
+	return rtp;
+}
+
+sccp_rtp_new_t *const sccp_rtp_dtor(sccp_rtp_new_t *rtp)
+{
+	assert(rtp != NULL && rtp->channel != NULL);
+	if (rtp->pbxrtp) {
+		sccp_rtp_destroyServer(rtp);
+	}
+
+	sccp_rtp_lock(rtp);
+	const sccp_channel_t *const channel = rtp->channel;
+	sccp_mutex_destroy(&rtp->lock);
+	sccp_rtp_unlock(rtp);
+	sccp_free(rtp);
+
+	sccp_channel_release(channel);
+	
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_2 "SCCP: rtp destructor\n");
+	return NULL;
+}
+
+boolean_t sccp_rtp_createServer(sccp_rtp_new_t *const rtp)
+{
+	assert(rtp != NULL && rtp->channel != NULL);
+	
+	if (rtp->pbxrtp) {
+		pbx_log(LOG_ERROR, "%s: we already have a %s rtp server, we should this that one one\n", rtp->channel->designator, sccp_rtp_type2str(rtp->type));
+		return TRUE;
+	}
+	if (rtp->readState || rtp->writeState) {
+		pbx_log(LOG_ERROR, "%s: %s rtp->state seems to be active already, cancelling create.\n", rtp->channel->designator, sccp_rtp_type2str(rtp->type));
+		return FALSE;
+	}
+
+	PBX_RTP_TYPE *pbxrtp = iPbx.rtp_createServer ? iPbx.rtp_createServer(rtp->channel, rtp->type) : NULL;
+	if (!pbxrtp) {
+		pbx_log(LOG_ERROR, "%s: we should start our own %s rtp server, but we dont have one\n", rtp->channel->designator, sccp_rtp_type2str(rtp->type));
+		return FALSE;
+	}
+
+	struct sockaddr_storage phone_remote = {0};	
+	if (!sccp_rtp_getOurSas(rtp, &phone_remote)) {
+		pbx_log(LOG_WARNING, "%s: Was not able to retrieve ourip for %s rtp\n", rtp->channel->designator, sccp_rtp_type2str(rtp->type));
+		pbxrtp = iPbx.rtp_destroy ? iPbx.rtp_destroyServer(pbxrtp) : NULL;
+		return FALSE;
+	}
+	uint16_t port = sccp_socket_getPort(&phone_remote);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (createServer) RTP Server Port: %d\n", rtp->channel->designator, port);
+
+	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(rtp->channel);
+	if (device) {
+		sccp_session_getOurIP(device->session, &phone_remote, 0);
+		sccp_socket_setPort(&phone_remote, port);
+
+		char buf[NI_MAXHOST + NI_MAXSERV];
+		sccp_copy_string(buf, sccp_socket_stringify(&phone_remote), sizeof(buf));
+		boolean_t isIPv4 = sccp_socket_is_IPv4(&phone_remote);
+		boolean_t isMappedIPv4 = sccp_socket_ipv4_mapped(&phone_remote, &phone_remote);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (createAudioServer) updated remote phone ip to : %s, family:%s, mapped: %s\n", rtp->channel->designator, buf, isIPv4 ? "IPv4" : "IPv6", isMappedIPv4 ? "True" : "False");
+	}
+
+	sccp_rtp_lock(rtp);
+	rtp->pbxrtp = pbxrtp;
+	memcpy(&rtp->phone_remote, &phone_remote, sizeof(struct sockaddr_storage));
+	sccp_rtp_unlock(rtp);
+
+	return TRUE;
+}
+
+boolean_t sccp_rtp_new_stop(sccp_rtp_new_t *const rtp)
+{
+	assert(rtp != NULL);
+	if (!rtp->pbxrtp) {
+		pbx_log(LOG_ERROR, "%s: we don't have a %s rtp server\n", rtp->channel->designator, sccp_rtp_type2str(rtp->type));
+		return FALSE;
+	}
+	if (!iPbx.rtp_stop) {
+		pbx_log(LOG_ERROR, "no pbx function connected to pbx_impl to stop rtp\n");
+		return FALSE;
+	}
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX audio rtp transmission\n", rtp->channel->designator);
+	#warning FIX
+	//return iPbx.rtp_stop(rtp->pbxrtp);
+	iPbx.rtp_stop(rtp->pbxrtp);
+	return TRUE;
+}
+
+boolean_t sccp_rtp_destroyServer(sccp_rtp_new_t *const rtp)
+{
+	assert(rtp != NULL);
+
+	if (!rtp->pbxrtp) {
+		pbx_log(LOG_ERROR, "%s: we don't have a %s rtp server, nothing to destroy\n", rtp->channel->designator, sccp_rtp_type2str(rtp->type));
+		return TRUE;
+	}
+	if (rtp->readState || rtp->writeState) {
+		pbx_log(LOG_ERROR, "%s: %s rtp->state seems to be active, cancelling destroy.\n", rtp->channel->designator, sccp_rtp_type2str(rtp->type));
+		return FALSE;
+	}
+	
+	sccp_rtp_lock(rtp);
+	PBX_RTP_TYPE *pbxrtp = rtp->pbxrtp;
+	sccp_rtp_unlock(rtp);
+
+	if (pbxrtp) {	
+		iPbx.rtp_stop(pbxrtp);
+		pbxrtp = iPbx.rtp_destroyServer ? iPbx.rtp_destroyServer(pbxrtp) : NULL;
+		
+		if (!pbxrtp) {
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroyed PBX %s rtp server\n", rtp->channel->designator, sccp_rtp_type2str(rtp->type));
+			
+			sccp_rtp_lock(rtp);
+			rtp->pbxrtp = NULL;
+			sccp_rtp_unlock(rtp);
+		}
+	}
+	
+	return TRUE;
+}
+
+boolean_t sccp_rtp_getOurSas(const sccp_rtp_new_t * const rtp, struct sockaddr_storage *const sas)
+{
+	assert(rtp != NULL);
+	
+	if (rtp->pbxrtp) {
+		// get locked
+		sccp_rtp_lock(rtp);
+		PBX_RTP_TYPE *pbxrtp = rtp->pbxrtp;
+		sccp_rtp_unlock(rtp);
+
+		return iPbx.rtp_getUs(pbxrtp, sas);
+	}
+	return FALSE;
+}
+
+boolean_t sccp_rtp_getPeerSas(const sccp_rtp_new_t *const rtp, struct sockaddr_storage *const sas)
+{
+	assert(rtp != NULL);
+
+	if (rtp->pbxrtp) {
+		// get locked
+		sccp_rtp_lock(rtp);
+		PBX_RTP_TYPE *pbxrtp = rtp->pbxrtp;
+		sccp_rtp_unlock(rtp);
+		
+		return iPbx.rtp_getPeer(pbxrtp, sas);
+	}
+	return FALSE;
+}
+
+boolean_t sccp_rtp_setPeer(sccp_rtp_new_t *const rtp, const struct sockaddr_storage *const sas)
+{
+	assert(rtp != NULL);
+
+	// validate socket
+	if (sccp_socket_getPort(sas) == 0) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: ( sccp_rtp_set_peer ) new information is invalid, dont change anything\n", rtp->channel->designator);
+		return FALSE;
+	}
+
+	// check if anything has changed, skip otherwise
+	if (socket_equals(sas, &rtp->phone_remote)) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_setPeer) remote information are equal to the current one, ignore change\n", rtp->channel->designator);
+		return FALSE;
+	}
+
+	// get / set locked
+	sccp_rtp_lock(rtp);
+	memcpy(&rtp->phone_remote, sas, sizeof(struct sockaddr_storage));
+	pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_setPeer ) Set remote address to %s\n", rtp->channel->designator, sccp_socket_stringify(&rtp->phone_remote));
+	constChannelPtr channel = rtp->channel;
+	uint16_t readState = rtp->readState;
+	sccp_rtp_unlock(rtp);
+
+	if (readState & SCCP_RTP_STATUS_ACTIVE) {
+		//! \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait)
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_setPeer) Stop media transmission\n", channel->designator);
+		sccp_channel_updateMediaTransmission(channel);
+	}
+	return TRUE;
+}
+
+boolean_t sccp_rtp_setPhone(sccp_rtp_new_t * const rtp, const struct sockaddr_storage *const sas)
+{
+	assert(rtp != NULL);
+	boolean_t res = FALSE;
+	/* validate socket */
+	if (sccp_socket_getPort(sas) == 0) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_setPhone) new information is invalid, dont change anything\n", rtp->channel->designator);
+		return FALSE;
+	}
+	
+	//! \note do not check if address has changed otherwise we get an audio issue when resume on the same device, so we need to force asterisk to update -MC
+
+	char buf1[NI_MAXHOST + NI_MAXSERV];
+	char buf2[NI_MAXHOST + NI_MAXSERV];
+
+	// get / set locked
+	sccp_rtp_lock(rtp);
+	memcpy(&rtp->phone, sas, sizeof(rtp->phone));
+	constChannelPtr c = rtp->channel;
+	sccp_copy_string(buf1, sccp_socket_stringify(&rtp->phone_remote), sizeof(buf1));
+	sccp_copy_string(buf2, sccp_socket_stringify(&rtp->phone), sizeof(buf2));
+	sccp_rtp_unlock(rtp);
+	
+	// update pbx
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	if (d) {
+		if (iPbx.rtp_setPhoneAddress) {
+			#warning FIX
+			//res = iPbx.rtp_setPhoneAddress(rtp->pbxrtp, sas, d->nat >= SCCP_NAT_ON ? 1 : 0);
+			res = TRUE;
+		}
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (NAT: %s)\n", rtp->channel->designator, buf1, buf2, sccp_nat2str(d->nat));
+	}
+	return res;
+}
+
+boolean_t sccp_rtp_updateRemoteNat(sccp_rtp_new_t *const rtp)
+{
+	assert(rtp != NULL);
+
+	boolean_t res = FALSE;
+
+	// set locked
+	sccp_rtp_lock(rtp);
+	struct sockaddr_storage phone_remote = {0};
+	memcpy(&phone_remote, &rtp->phone_remote, sizeof(struct sockaddr_storage));
+	constChannelPtr c = rtp->channel;
+	sccp_rtp_unlock(rtp);
+	
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	if (d) {
+		struct sockaddr_storage sus = { 0 };
+		sccp_session_getOurIP(d->session, &sus, 0);
+		uint16_t usFamily = sccp_socket_is_IPv6(&sus) ? AF_INET6 : AF_INET;
+		//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) us: %s, usFamily: %s\n", c->designator, sccp_socket_stringify(&sus), (usFamily == AF_INET6) ? "IPv6" : "IPv4");
+
+		uint16_t remoteFamily = (phone_remote.ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(&phone_remote)) ? AF_INET6 : AF_INET;
+		//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) remote: %s, remoteFamily: %s\n", c->designator, sccp_socket_stringify(&phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
+
+		//! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup
+		if (d->nat >= SCCP_NAT_ON) {
+			if ((usFamily == AF_INET) != remoteFamily) {						// device needs correction for ipv6 address in remote
+				uint16_t port = sccp_socket_getPort(&sus);					// get rtp server port
+				memcpy(&phone_remote, &sus, sizeof(struct sockaddr_storage));			// Not sure if this should not be the externip in case of nat
+				sccp_socket_ipv4_mapped(&phone_remote, &phone_remote);				//!< we need this to convert mapped IPv4 to real IPv4 address
+				sccp_socket_setPort(&phone_remote, port);
+			} else if ((usFamily == AF_INET6) != remoteFamily) {					// the device can do IPv6 but should send it to IPv4 address (directrtp possible)
+ 				struct sockaddr_storage sas;
+				memcpy(&sas, &phone_remote, sizeof(struct sockaddr_storage));
+				sccp_socket_ipv4_mapped(&sas, &sas);
+			}
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) new remote: %s, new remoteFamily: %s\n", c->designator, sccp_socket_stringify(&phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
+			//res = TRUE;
+		}
+		
+		char buf1[NI_MAXHOST + NI_MAXSERV];
+		char buf2[NI_MAXHOST + NI_MAXSERV];
+
+		sccp_copy_string(buf1, sccp_socket_stringify(&rtp->phone), sizeof(buf1));
+		sccp_copy_string(buf2, sccp_socket_stringify(&phone_remote), sizeof(buf2));
+
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from %s to %s (NAT: %s)\n", c->designator, buf1, buf2, sccp_nat2str(d->nat));
+	}
+
+	// set locked    
+	if (!socket_equals(&phone_remote, &rtp->phone_remote)) {
+		sccp_rtp_lock(rtp);
+		memcpy(&rtp->phone_remote, &phone_remote, sizeof(struct sockaddr_storage));
+		sccp_rtp_unlock(rtp);
+		res = TRUE;
+	}
+	
+	return res;
+}
 
 /*
 uint16_t sccp_rtp_getReadState(const sccp_rtp_t * const rtp)

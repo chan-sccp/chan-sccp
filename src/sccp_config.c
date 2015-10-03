@@ -3389,7 +3389,7 @@ int sccp_config_generate(char *filename, int configType)
 								}
 							}
 					    	} else {
-							snprintf(name_and_value, sizeof(name_and_value), "%s%s = %s", !sccp_strlen_zero(config[sccp_option].defaultValue) ? ";" : "", config[sccp_option].name, sccp_strlen_zero(config[sccp_option].defaultValue) ? "\"\"" : config[sccp_option].defaultValue);
+							snprintf(name_and_value, sizeof(name_and_value), "%s = %s", config[sccp_option].name, sccp_strlen_zero(config[sccp_option].defaultValue) ? "\"\"" : config[sccp_option].defaultValue);
 							fprintf(f, "%s", name_and_value);
 					    	}
 						linelen = (int) strlen(name_and_value);
