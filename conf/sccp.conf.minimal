@@ -1,0 +1,34 @@
+;!
+;! Creation Date: Tue Sep 29 01:19:06 2015
+;!
+
+;
+; general section
+;
+[general]
+deny = 0.0.0.0/0.0.0.0
+permit = internal 
+disallow = all
+allow = ulaw
+allow = alaw
+
+;
+; device section
+;
+[mydevice]
+type=device
+devicetype = 
+description = 
+button = line, myline
+
+;
+; line section
+;
+[myline]
+type=line
+id = 
+pin = 
+description = 
+context = 
+cid_num =
+cid_name = 

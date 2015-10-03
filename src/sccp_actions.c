@@ -3614,7 +3614,7 @@ void sccp_handle_feature_action(constDevicePtr d, const int instance, const bool
 	return;
 }
 
-#if defined(CS_SCCP_VIDEO) && defined(DEBUG)
+#if defined(CS_SCCP_VIDEO) && defined(DEBUG) && DEBUG == 1
 static void sccp_handle_updatecapabilities_dissect_customPictureFormat(sccp_device_t *d, uint32_t customPictureFormatCount, customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES]) {
 	uint8_t video_customPictureFormat = 0;
 	if (customPictureFormatCount <= MAX_CUSTOM_PICTURES) {
