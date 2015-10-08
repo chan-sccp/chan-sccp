@@ -195,7 +195,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"video_cos", 			D_OBJ_REF(video_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the video/rtp packets Class of Service (COS).\n"},
 	{"trustphoneip", 		D_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_DEPRECATED,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"The phone has a ip address. It could be private, so if the phone is behind NAT\n"
 																																					"we don't have to trust the phone ip address, but the ip address of the connection\n"},
-	{"nat", 			D_OBJ_REF(nat), 			TYPE_ENUM(sccp,nat),								SCCP_CONFIG_FLAG_DEPRECATED | SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"Device NAT support. Currently nat is automatically detected in most cases.\n"},
+	{"nat", 			D_OBJ_REF(nat), 			TYPE_ENUM(sccp,nat),								SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"Device NAT support. Currently nat is automatically detected in most cases.\n"},
 	{"directrtp", 			D_OBJ_REF(directrtp), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"This option allow devices to do direct RTP sessions.\n"},
 	{"earlyrtp", 			D_OBJ_REF(earlyrtp), 			TYPE_ENUM(sccp,earlyrtp),							SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"valid options: none, offhook, immediate, dial, ringout and progress.\n"
 																																					"The audio stream will be open in the progress and connected state by default. Immediate forces overlap dialing.\n"},
