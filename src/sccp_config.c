@@ -617,27 +617,26 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 			{
 				int enumValue = 0;
 				if (!sccp_strlen_zero(value)) {
-					if ((enumValue = sccpConfigOption->str2intval(value)) != -1) {
-						sccp_log(DEBUGCAT_HIGH) ("SCCP: Parse Other Value: %s -> %d\n", value, enumValue);
-					} else {
-						char *all_entries = sccpConfigOption->all_entries();
-						if (sccp_true(value)) {
-							if (strcasestr(all_entries, "On")) {
-								enumValue = sccpConfigOption->str2intval("On");
-							} else if (strcasestr(all_entries, "Yes")) {
-								enumValue = sccpConfigOption->str2intval("Yes");
-							} else if (strcasestr(all_entries, "True")) {
-								enumValue = sccpConfigOption->str2intval("True");
-							}
-						} else if (!sccp_true(value)) {
-							if (strcasestr(all_entries, "Off")) {
-								enumValue = sccpConfigOption->str2intval("Off");
-							} else if (strcasestr(all_entries, "No")) {
-								enumValue = sccpConfigOption->str2intval("No");
-							} else if (strcasestr(all_entries, "False")) {
-								enumValue = sccpConfigOption->str2intval("False");
-							}
+					char *all_entries = sccpConfigOption->all_entries();
+					if (sccp_true(value)) {
+						if (strcasestr(all_entries, "On")) {
+							enumValue = sccpConfigOption->str2intval("On");
+						} else if (strcasestr(all_entries, "Yes")) {
+							enumValue = sccpConfigOption->str2intval("Yes");
+						} else if (strcasestr(all_entries, "True")) {
+							enumValue = sccpConfigOption->str2intval("True");
 						}
+					} else if (!sccp_true(value)) {
+						if (strcasestr(all_entries, "Off")) {
+							enumValue = sccpConfigOption->str2intval("Off");
+						} else if (strcasestr(all_entries, "No")) {
+							enumValue = sccpConfigOption->str2intval("No");
+						} else if (strcasestr(all_entries, "False")) {
+							enumValue = sccpConfigOption->str2intval("False");
+						}
+					} else {
+						//if ((enumValue = sccpConfigOption->str2intval(value)) != -1) {
+						sccp_log(DEBUGCAT_HIGH) ("SCCP: Parse Other Value: %s -> %d\n", value, enumValue);
 					}
 					if (enumValue != -1) {
 						if (*(int *) dst != enumValue) {
