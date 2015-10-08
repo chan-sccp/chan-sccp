@@ -30,7 +30,11 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 {
 	boolean_t rtpResult = FALSE;
+#ifndef CS_EXPERIMENTAL
 	boolean_t isMappedIPv4;
+#else
+	boolean_t isMappedIPv4 = FALSE;
+#endif
 
 	if (!c) {
 		return FALSE;
@@ -54,27 +58,39 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 
 	uint16_t port = sccp_rtp_getServerPort(&c->rtp.audio);
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "RTP Server Port: %d\n", port);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "RTP Server Port: %d\n", port);
 
-	/* depending on the client connection, we us ipv4 or ipv6 */
+	/* depending on the clients connection, we us ipv4 or ipv6 */
 	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(c);
 
+#ifdef CS_EXPERIMENTAL
+	struct sockaddr_storage *phone_remote = (struct sockaddr_storage*) &c->rtp.audio.phone_remote;
+#endif
 	if (device) {
+#ifndef CS_EXPERIMENTAL
 		//memcpy((void *) &c->rtp.audio.phone_remote, &device->session->ourip, sizeof(struct sockaddr_storage));
 		struct sockaddr_storage remote = (struct sockaddr_storage) c->rtp.audio.phone_remote;
 		memcpy(&remote, &device->session->ourip, sizeof(struct sockaddr_storage ));
 		sccp_socket_setPort(&c->rtp.audio.phone_remote, port);
+#else
+		memcpy(phone_remote, &device->session->ourip, sizeof(struct sockaddr_storage));		/* fallback */
+		sccp_socket_setPort(phone_remote, port);
+#endif
 	}
 
+#ifndef CS_EXPERIMENTAL
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "is IPv4: %d\n", sccp_socket_is_IPv4(&c->rtp.audio.phone_remote) ? 1 : 0);
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "is IPv6: %d\n", sccp_socket_is_IPv6(&c->rtp.audio.phone_remote) ? 1 : 0);
-
 	isMappedIPv4 = sccp_socket_ipv4_mapped(&c->rtp.audio.phone_remote, (struct sockaddr_storage *) &c->rtp.audio.phone_remote);	/*!< this is absolute necessary */
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "is mapped: %d\n", isMappedIPv4 ? 1 : 0);
-
-	//struct sockaddr_in us;
-	//PBX(rtp_setPeer) (&c->rtp.audio, &c->rtp.audio.phone, device ? device->nat : 0);
-
+#else
+	uint8_t isIPv4 = sccp_socket_is_IPv4(phone_remote) ? 1 : 0;
+	uint8_t isIPv6 = sccp_socket_is_IPv6(phone_remote) ? 1 : 0;
+	if (isIPv6) {
+		isMappedIPv4 = sccp_socket_ipv4_mapped(phone_remote, (struct sockaddr_storage*) &c->rtp.audio.phone_remote);		/*!< this is absolute necessary */
+	}
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (createAudioServer) phone_remote: %s (IPv4: %d, IPv6: %d, Mapped: %d)\n", c->designator, sccp_socket_stringify(&c->rtp.audio.phone_remote), isIPv4, isIPv6, isMappedIPv4);
+#endif
 	return rtpResult;
 }
 
@@ -85,6 +101,9 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 int sccp_rtp_createVideoServer(const sccp_channel_t * c)
 {
 	boolean_t rtpResult = FALSE;
+#ifdef CS_EXPERIMENTAL
+	boolean_t isMappedIPv4 = FALSE;
+#endif
 
 	if (!c) {
 		return FALSE;
@@ -104,6 +123,25 @@ int sccp_rtp_createVideoServer(const sccp_channel_t * c)
 		pbx_log(LOG_WARNING, "%s: Did not get our rtp part\n", c->currentDeviceId);
 	}
 
+#ifdef CS_EXPERIMENTAL
+	uint16_t port = sccp_rtp_getServerPort(&c->rtp.video);
+	/* depending on the clients connection, we us ipv4 or ipv6 */
+	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(c);
+
+	struct sockaddr_storage *phone_remote = (struct sockaddr_storage*) &c->rtp.video.phone_remote;
+	if (device) {
+		memcpy(phone_remote, &device->session->ourip, sizeof(struct sockaddr_storage));		/* fallback */
+		sccp_socket_setPort(phone_remote, port);
+	}
+
+	uint8_t isIPv4 = sccp_socket_is_IPv4(phone_remote) ? 1 : 0;
+	uint8_t isIPv6 = sccp_socket_is_IPv6(phone_remote) ? 1 : 0;
+	if (isIPv6) {
+		isMappedIPv4 = sccp_socket_ipv4_mapped(phone_remote, (struct sockaddr_storage*) &c->rtp.video.phone_remote);		/*!< this is absolute necessary */
+	}
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (createVideoServer) phone_remote: %s (IPv4: %d, IPv6: %d, Mapped: %d)\n", c->designator, sccp_socket_stringify(&c->rtp.audio.phone_remote), isIPv4, isIPv6, isMappedIPv4);
+
+#endif
 	return rtpResult;
 }
 
@@ -179,7 +217,19 @@ void sccp_rtp_set_phone(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_sto
 	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(c);
 
 	if (device) {
+#ifdef CS_EXPERIMENTAL
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s\n", device->id, sccp_socket_stringify(new_peer));
+		if (device->nat >= SCCP_NAT_ON) {								/* Use connected server socket address instead */
+			uint16_t port = sccp_socket_getPort(new_peer);
+			memcpy(&rtp->phone, &device->session->sin, sizeof(struct sockaddr_storage));
+			sccp_socket_ipv4_mapped(&rtp->phone, &rtp->phone);
+			sccp_socket_setPort(&rtp->phone, port);
+		} else {
+			memcpy(&rtp->phone, new_peer, sizeof(struct sockaddr_storage));
+		}
+#endif
 
+#ifndef CS_EXPERIMENTAL
 		/* check if we have new infos */
 		/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
 		/*
@@ -191,21 +241,70 @@ void sccp_rtp_set_phone(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_sto
 
 		memcpy(&rtp->phone, new_peer, sizeof(rtp->phone));
 
+#endif
 		//update pbx
 		if (PBX(rtp_setPhoneAddress)) {
+#ifndef CS_EXPERIMENTAL
 			PBX(rtp_setPhoneAddress) (rtp, new_peer, device->nat >= SCCP_NAT_ON ? 1 : 0);
+#else
+			PBX(rtp_setPhoneAddress) (rtp, &rtp->phone, device->nat >= SCCP_NAT_ON ? 1 : 0);
+#endif
 		}
 
 		char buf1[NI_MAXHOST + NI_MAXSERV];
+#ifndef CS_EXPERIMENTAL
 
+#else
+		char buf2[NI_MAXHOST + NI_MAXSERV];
+#endif
 		sccp_copy_string(buf1, sccp_socket_stringify(&rtp->phone_remote), sizeof(buf1));
+#ifndef CS_EXPERIMENTAL
 		char buf2[NI_MAXHOST + NI_MAXSERV];
 
+#endif
 		sccp_copy_string(buf2, sccp_socket_stringify(&rtp->phone), sizeof(buf2));
+#ifndef CS_EXPERIMENTAL
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(device), buf1, buf2, sccp_nat2str(device->nat));
+#else
+		if (device->nat < SCCP_NAT_ON) {
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (No NAT)\n", DEV_ID_LOG(device), buf1, buf2);
+		} else {
+			char buf3[NI_MAXHOST + NI_MAXSERV];
+			sccp_copy_string(buf3, sccp_socket_stringify(new_peer), sizeof(buf3));
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(device), buf1, buf2, buf3);
+		}
+#endif
 	}
 }
 
+#ifdef CS_EXPERIMENTAL
+void sccp_rtp_updateNatAddress(sccp_channel_t *channel) 
+{
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
+	uint16_t usFamily = (d->session->ourip.ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(&d->session->ourip)) ? AF_INET6 : AF_INET;
+	uint16_t remoteFamily = (channel->rtp.audio.phone_remote.ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(&channel->rtp.audio.phone_remote)) ? AF_INET6 : AF_INET;
+
+	/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
+	if (d->nat >= SCCP_NAT_ON) {
+		if ((usFamily == AF_INET) != remoteFamily) {							/* device needs correction for ipv6 address in remote */
+			uint16_t port = sccp_rtp_getServerPort(&channel->rtp.audio);
+
+			if (!sccp_socket_getExternalAddr(&channel->rtp.audio.phone_remote)) {				/* Use externip (PBX behind NAT Firewall */
+				memcpy(&channel->rtp.audio.phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));	/* Fallback: use ip-address of incoming interface */
+			}
+			sccp_socket_ipv4_mapped(&channel->rtp.audio.phone_remote, &channel->rtp.audio.phone_remote);	/*!< we need this to convert mapped IPv4 to real IPv4 address */
+			sccp_socket_setPort(&channel->rtp.audio.phone_remote, port);
+
+		} else if ((usFamily == AF_INET6) != remoteFamily) {						/* the device can do IPv6 but should send it to IPv4 address (directrtp possible) */
+			struct sockaddr_storage sas;
+
+			memcpy(&sas, &channel->rtp.audio.phone_remote, sizeof(struct sockaddr_storage));
+			sccp_socket_ipv4_mapped(&sas, &sas);
+		}
+	}
+}
+
+#endif
 /*!
  * \brief Get Audio Peer RTP Information
  */
