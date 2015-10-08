@@ -615,27 +615,31 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 			break;
 		case SCCP_CONFIG_DATATYPE_ENUM:
 			{
-				int enumValue = 0;
+				int enumValue = -1;
 				if (!sccp_strlen_zero(value)) {
+					//pbx_log(LOG_NOTICE, "SCCP: ENUM name: %s, value: %s\n", name, value);
 					char *all_entries = sccpConfigOption->all_entries();
-					if (sccp_true(value)) {
-						if (strcasestr(all_entries, "On")) {
-							enumValue = sccpConfigOption->str2intval("On");
-						} else if (strcasestr(all_entries, "Yes")) {
-							enumValue = sccpConfigOption->str2intval("Yes");
-						} else if (strcasestr(all_entries, "True")) {
-							enumValue = sccpConfigOption->str2intval("True");
+					if (!strncasecmp(value, "On,Yes,True,Off,No,False", strlen(value))) {
+						//pbx_log(LOG_NOTICE, "SCCP: ENUM name: %s, value: %s is on/off\n", name, value);
+						if (sccp_true(value)) {
+							if (strcasestr(all_entries, "On")) {
+								enumValue = sccpConfigOption->str2intval("On");
+							} else if (strcasestr(all_entries, "Yes")) {
+								enumValue = sccpConfigOption->str2intval("Yes");
+							} else if (strcasestr(all_entries, "True")) {
+								enumValue = sccpConfigOption->str2intval("True");
+							}
+						} else if (!sccp_true(value)) {
+							if (strcasestr(all_entries, "Off")) {
+								enumValue = sccpConfigOption->str2intval("Off");
+							} else if (strcasestr(all_entries, "No")) {
+								enumValue = sccpConfigOption->str2intval("No");
+							} else if (strcasestr(all_entries, "False")) {
+								enumValue = sccpConfigOption->str2intval("False");
+							}
 						}
-					} else if (!sccp_true(value)) {
-						if (strcasestr(all_entries, "Off")) {
-							enumValue = sccpConfigOption->str2intval("Off");
-						} else if (strcasestr(all_entries, "No")) {
-							enumValue = sccpConfigOption->str2intval("No");
-						} else if (strcasestr(all_entries, "False")) {
-							enumValue = sccpConfigOption->str2intval("False");
-						}
-					} else {
-						//if ((enumValue = sccpConfigOption->str2intval(value)) != -1) {
+					} else if ((enumValue = sccpConfigOption->str2intval(value)) != -1) {
+						//pbx_log(LOG_NOTICE, "SCCP: ENUM name: %s, value: %s is other\n", name, value);
 						sccp_log(DEBUGCAT_HIGH) ("SCCP: Parse Other Value: %s -> %d\n", value, enumValue);
 					}
 					if (enumValue != -1) {
