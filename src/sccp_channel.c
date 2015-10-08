@@ -749,17 +749,7 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 	channel->rtp.audio.writeState = SCCP_RTP_STATUS_PROGRESS;
 
 	if (d->nat >= SCCP_NAT_ON) {										/* device is natted */
-#ifndef CS_EXPERIMENTAL
-		uint16_t port = sccp_rtp_getServerPort(&channel->rtp.audio);					/* get rtp server port */
-
-		if (!sccp_socket_getExternalAddr(&channel->rtp.audio.phone_remote)) {				/* Use externip (PBX behind NAT Firewall */
-			memcpy(&channel->rtp.audio.phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));	/* Fallback: use ip-address of incoming interface */
-		}
-		sccp_socket_ipv4_mapped(&channel->rtp.audio.phone_remote, &channel->rtp.audio.phone_remote);
-		sccp_socket_setPort(&channel->rtp.audio.phone_remote, port);
-#else
 		sccp_rtp_updateNatAddress(channel);
-#endif
 	}
 	
 	d->protocol->sendOpenReceiveChannel(d, channel);
@@ -932,26 +922,7 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
 	}
 
 	if (d->nat >= SCCP_NAT_ON) {
-#ifndef CS_EXPERIMENTAL
-		uint16_t usFamily = (d->session->ourip.ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(&d->session->ourip)) ? AF_INET6 : AF_INET;
-		uint16_t remoteFamily = (channel->rtp.audio.phone_remote.ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(&channel->rtp.audio.phone_remote)) ? AF_INET6 : AF_INET;
-		/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
-
-		if ((usFamily == AF_INET) != remoteFamily) {							/* device needs correction for ipv6 address in remote */
-			uint16_t port = sccp_rtp_getServerPort(&channel->rtp.audio);				/* get rtp server port */
-			memcpy(&channel->rtp.audio.phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));	/* Not sure if this should not be the externip in case of nat */
-			sccp_socket_ipv4_mapped(&channel->rtp.audio.phone_remote, &channel->rtp.audio.phone_remote);	/*!< we need this to convert mapped IPv4 to real IPv4 address */
-			sccp_socket_setPort(&channel->rtp.audio.phone_remote, port);
-
-		} else if ((usFamily == AF_INET6) != remoteFamily) {						/* the device can do IPv6 but should send it to IPv4 address (directrtp possible) */
-			struct sockaddr_storage sas;
-
-			memcpy(&sas, &channel->rtp.audio.phone_remote, sizeof(struct sockaddr_storage));
-			sccp_socket_ipv4_mapped(&sas, &sas);
-		}
-#else
 		sccp_rtp_updateNatAddress(channel);
-#endif
 	}
 
 	//sccp_channel_recalculateReadformat(channel);
