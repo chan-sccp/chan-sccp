@@ -12,6 +12,80 @@
  * $Revision$
  */
 
+/*! 
+ * =============================
+ * Example Networks
+ * =============================
+ * tokyo 200.0.0.254 / 172.20.0.0
+ * 7905:172.20.0.5
+ * 
+ * havana 150.0.0.254 / 192.168.0.0
+ * 7970:192.168.0.5
+ * 
+ * amsterdam 100.0.0.254 / 10.10.0.0 (IP-Forward) (NoNat)
+ * (PBX):100.0.0.1 & 10.10.0.1)
+ * 7941: 10.10.0.5
+ * 7942: 10.10.0.6
+ * 
+ * berlin 80.0.0.254 / 10.20.0.0 (Port Forward) (Nat) sccp.conf needs externip
+ * (PBX): 10.20.0.1
+ * 7941: 10.20.0.5
+ * 
+ * ====================================
+ * Example Calls
+ * ====================================
+ * amsterdam -> amsterdam via amsterdam : inDirectRTP
+ * 172.20.0.5 ->                                           10.0.0.1:PBX:10.0.0.1                                           -> 10.0.0.6
+ * leg1:                                                    us           them
+ * leg2:                                                   them           us
+ * 
+ * amsterdam -> amsterdam via amsterdam : DirectRTP
+ * 172.20.0.5 ->                                           10.0.0.1:PBX:10.0.0.1                                           -> 10.0.0.6
+ * leg1:us                                                                                                                      them
+ * leg2:them                                                                                                                     us
+ * 
+ * tokyo -> amsterdam via amsterdam (Single NAT : IP-Forward) inDirectRTP
+ * 172.20.0.5 -> 200.0.0.254 -> Internet ->               100.0.0.1:PBX:10.0.0.1                                           -> 10.0.0.5
+ * leg1:              us                                                  them
+ * leg2:                                                     them                                                                us
+ * 
+ * tokyo -> amsterdam via amsterdam (Single NAT : IP-Forward) DirectRTP
+ * 172.20.0.5 -> 200.0.0.254 -> Internet ->               100.0.0.1:PBX:10.0.0.1                                           -> 10.0.0.5
+ * leg1:              us                                                                                                        them
+ * leg2:             them                                                                                                        us
+ * 
+ * tokyo -> havana via amsterdam (Single NAT : IP-Forward) inDirectRTP
+ * 172.20.0.5 -> 200.0.0.254 -> Internet ->               100.0.0.1:PBX:100.0.0.1               -> Internet -> 150.0.0.254 -> 192.168.0.5
+ * leg1:              us                                                  them
+ * leg2:                                                    them                                                   us
+ * 
+ * tokyo -> havana via amsterdam (Single NAT : IP-Forward) DirectRTP
+ * 172.20.0.5 -> 200.0.0.254 -> Internet ->               100.0.0.1:PBX:100.0.0.1               -> Internet -> 150.0.0.254 -> 192.168.0.5
+ * leg1:              us                                                                                          them
+ * leg2:             them                                                                                          us
+ * 
+ * tokyo -> havana via berlin (Double Nat : Port-Forward on PBX Location) inDirectRTP
+ * 172.20.0.5 -> 200.0.0.254 -> Internet -> 80.0.0.254 -> 10.20.0.1:PBX:10.20.0.1 -> 80.0.0.254 -> Internet -> 150.0.0.254 -> 192.168.0.5
+ * leg1:              us                                                               them
+ * leg2:                                       them                                                                us
+ * 
+ * tokyo -> havana via berlin (Double Nat : Port-Forward on PBX Location) DirectRTP
+ * 172.20.0.5 -> 200.0.0.254 -> Internet -> 80.0.0.254 -> 10.20.0.1:PBX:10.20.0.1 -> 80.0.0.254 -> Internet -> 150.0.0.254 -> 192.168.0.5
+ * leg1:              us                                                                                          them
+ * leg2:             them                                                                                          us
+ * 
+ * ====================================
+ * How to name the addresses
+ * ====================================
+ * 172.20.0.5 / 192.168.0.5 = phone  			= physicalIP	=> (and phone_remote for the phone on the other side of the channel) This information does not get send to the pbx
+ * 200.0.0.254 / 150.0.0.254 = d->session->sin		= reachableVia	=> (can be equal to physicalIP), remote ip-address + port of the connection (gotten from physicalIP)
+									=> written to phone(us) during openreceivechannel
+									=> written to phone_remote(them) during startmediatransmission
+ * 100.0.0.254 / 100.0.0.254 = externalip		= rtp->remote	=> only required when double nat
+ * 100.0.0.1 / 100.0.0.1 = d->session->ourip		= rtp->remote	=> local ip-address + port of the phone's connection 
+ * 10.0.0.1 =  d->session->ourip			= rtp->remote	=> local ip-address + port of the phone's connection
+ */
+
 #include <config.h>
 #include "common.h"
 #include "sccp_channel.h"
