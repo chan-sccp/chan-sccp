@@ -647,6 +647,7 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
 CPU_OPTIONS
+PBX_DEBUGMODDIR
 csmoddir
 PBX_MODDIR
 LIBEXSLT_LIBS
@@ -25053,6 +25054,7 @@ else
 	    case "${host}" in
                         *-*-darwin*)
                                 PBX_MODDIR='/Library/Application Support/Asterisk/Modules/modules'
+                                PBX_DEBUGMODDIR='/Library/Application Support/Asterisk/Modules/modules'
                                 ;;
                         *)
                                 if test -d "${PBX_TEMPMODDIR}"; then
@@ -25071,12 +25073,14 @@ else
                                             ;;
                                     esac
                                 fi
+			        PBX_DEBUGMODDIR="${PBX_LIB}/debug/${PBX_MODDIR:${#PBX_LIB}}"
                                 ;;
              esac
 fi
 
 
         csmoddir=${PBX_MODDIR}
+
 
 
 

@@ -861,6 +861,7 @@ AC_DEFUN([CS_SETUP_MODULE_DIR], [
 	    case "${host}" in
                         *-*-darwin*)
                                 PBX_MODDIR='/Library/Application Support/Asterisk/Modules/modules'
+                                PBX_DEBUGMODDIR='/Library/Application Support/Asterisk/Modules/modules'
                                 ;;
                         *)
                                 if test -d "${PBX_TEMPMODDIR}"; then
@@ -879,11 +880,13 @@ AC_DEFUN([CS_SETUP_MODULE_DIR], [
                                             ;;
                                     esac
                                 fi
+			        PBX_DEBUGMODDIR="${PBX_LIB}/debug/${PBX_MODDIR:${#PBX_LIB}}"
                                 ;;
              esac])
         AC_SUBST([PBX_MODDIR]) 
         csmoddir=${PBX_MODDIR}
         AC_SUBST([csmoddir])
+        AC_SUBST([PBX_DEBUGMODDIR])
 ])
 
 AC_DEFUN([CS_PARSE_WITH_LIBEV], [

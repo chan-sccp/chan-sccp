@@ -376,6 +376,7 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PBX_CFLAGS = @PBX_CFLAGS@
+PBX_DEBUGMODDIR = @PBX_DEBUGMODDIR@
 PBX_ETC = @PBX_ETC@
 PBX_GENERAL = @PBX_GENERAL@
 PBX_INCLUDE = @PBX_INCLUDE@
@@ -1151,7 +1152,7 @@ sccp_enum.h: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 	fi
 
 gen_enum: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-	@if [ "$(GAWK)" != "No" ]; then 												\
+	@if [ "$(GAWK)" != "No" ]; then 											\
 		echo "  GEN      sccp_enum.h";											\
 		echo "  GEN      sccp_enum.c";											\
 		$(GAWK) -v out_header_file="@abs_builddir@/src/sccp_enum.h" -v out_source_file="@abs_builddir@/src/sccp_enum.c" -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" @abs_top_srcdir@/src/sccp_enum.in >/dev/null ;	\
@@ -1160,18 +1161,22 @@ gen_enum: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@test -z "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"							
-	@if test "x$(strip_binaries)"=="xyes" ; then 										\
-		$(OBJCOPY) --only-keep-debug ".libs/chan_sccp.so" ".libs/chan_sccp.so.dbg";					\
+	@if test "x$(strip_binaries)" == "xyes" ; then 										\
+		[ ! -d "$(DESTDIR)/$(PBX_DEBUGMODDIR)" ] && mkdir -p "$(DESTDIR)/$(PBX_DEBUGMODDIR)";				\
+		$(OBJCOPY) --only-keep-debug ".libs/chan_sccp.so" "$(DESTDIR)/$(PBX_DEBUGMODDIR)/chan_sccp.so.dbg";		\
 	        $(INSTALL) -s ".libs/chan_sccp.so" "$(DESTDIR)$(csmoddir)"; 							\
-		$(OBJCOPY) --add-gnu-debuglink=".libs/chan_sccp.so.dbg" "$(DESTDIR)$(csmoddir)/chan_sccp.so";			\
+		$(OBJCOPY) --add-gnu-debuglink="$(DESTDIR)/$(PBX_DEBUGMODDIR)/chan_sccp.so.dbg" "$(DESTDIR)$(csmoddir)/chan_sccp.so";	\
+		echo    "==============================================================================================="; 	\
+		echo    "Installed Stripped chan_sccp.so to '$(DESTDIR)$(csmoddir)'...";           				\
+		echo    "===============================================================================================";	\
 	else 															\
 	        $(INSTALL) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; 								\
-	fi
-	@if test -d "$(DESTDIR)$(csmoddir)"; then                                          					\
 		echo    "==============================================================================================="; 	\
 		echo    "Installed chan_sccp.so to '$(DESTDIR)$(csmoddir)'...";           					\
 		echo    "===============================================================================================";	\
-		echo    "Please restart asterisk to use the new version of chan_sccp.so"; 					\
+	fi
+	@if test -d "$(DESTDIR)$(csmoddir)"; then                                          					\
+		echo    "Please restart asterisk or reload the module to use the new version of chan_sccp.so"; 			\
 		echo    "==============================================================================================="; 	\
 	fi
 
