@@ -46,7 +46,6 @@ struct sccp_private_channel_data {
 	sccp_device_t *device;
 	sccp_callinfo_t *callInfo;
 	boolean_t microphone;											/*!< Flag to mute the microphone when calling a baby phone */
-	sccp_rtp_new_t *rtp[SCCP_RTP_TYPE_SENTINEL];
 };
 
 /*!
@@ -191,7 +190,6 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	channel->privateData->microphone = TRUE;
 	channel->privateData->device = NULL;
 	channel->privateData->callInfo = sccp_callinfo_ctor();
-	
 	if (!channel->privateData->callInfo) {
 		/* error allocating memory */
 		sccp_free(channel->privateData);
@@ -664,11 +662,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", d->id, channel->callid, codec2str(channel->rtp.audio.writeFormat), channel->line->echocancel ? "ON" : "OFF");
-	
-	if (!channel->privateData->rtp[SCCP_RTP_AUDIO]) {
-		channel->privateData->rtp[SCCP_RTP_AUDIO] = sccp_rtp_ctor(channel, SCCP_RTP_AUDIO);
-	}
-	
+
 	if (!channel->rtp.audio.rtp && !sccp_rtp_createAudioServer(channel)) {
 		pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s-%08X\n", DEV_ID_LOG(d), channel->line->name, channel->callid);
 
@@ -1856,19 +1850,8 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		}
 		sccp_dev_setActiveLine(d, NULL);
 	}
-	if (channel && channel->privateData) {
-		if (channel->privateData->rtp[SCCP_RTP_AUDIO]) {
-			channel->privateData->rtp[SCCP_RTP_AUDIO] = sccp_rtp_dtor(channel->privateData->rtp[SCCP_RTP_AUDIO]);
-		}
-		if (channel->privateData->rtp[SCCP_RTP_VIDEO]) {
-			channel->privateData->rtp[SCCP_RTP_VIDEO] = sccp_rtp_dtor(channel->privateData->rtp[SCCP_RTP_VIDEO]);
-		}
-		if (channel->privateData->rtp[SCCP_RTP_TEXT]) {
-			channel->privateData->rtp[SCCP_RTP_TEXT] = sccp_rtp_dtor(channel->privateData->rtp[SCCP_RTP_TEXT]);
-		}
-		if (channel->privateData->device) {
-			sccp_channel_setDevice(channel, NULL);
-		}
+	if (channel && channel->privateData && channel->privateData->device) {
+		sccp_channel_setDevice(channel, NULL);
 	}
 }
 
@@ -1896,15 +1879,6 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	if (channel->rtp.audio.rtp || channel->rtp.video.rtp) {
 		sccp_rtp_stop(channel);
 		sccp_rtp_destroy(channel);
-		if (channel->privateData->rtp[SCCP_RTP_AUDIO]) {
-			channel->privateData->rtp[SCCP_RTP_AUDIO] = sccp_rtp_dtor(channel->privateData->rtp[SCCP_RTP_AUDIO]);
-		}
-		if (channel->privateData->rtp[SCCP_RTP_VIDEO]) {
-			channel->privateData->rtp[SCCP_RTP_VIDEO] = sccp_rtp_dtor(channel->privateData->rtp[SCCP_RTP_VIDEO]);
-		}
-		if (channel->privateData->rtp[SCCP_RTP_TEXT]) {
-			channel->privateData->rtp[SCCP_RTP_TEXT] = sccp_rtp_dtor(channel->privateData->rtp[SCCP_RTP_TEXT]);
-		}
 	}
 	if (channel->line) {
 		sccp_line_release(channel->line);					/* explicit release to cleanup line reference */

@@ -2231,112 +2231,6 @@ static int sccp_wrapper_asterisk113_callerid_presentation(constChannelPtr channe
 	return CALLERID_PRESENTATION_FORBIDDEN;
 }
 
-static PBX_RTP_TYPE * sccp_wrapper_asterisk113_create_rtpServer(constChannelPtr c, sccp_rtp_type_t type)
-{
-	struct ast_sockaddr sock = { {0,} };
-
-	if (!c) {
-		return NULL;
-	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
-	if (!d) {
-		return NULL;
-	}
-
-	memcpy(&sock.ss, &GLOB(bindaddr), sizeof(struct sockaddr_storage));
-	if (GLOB(bindaddr).ss_family == AF_INET6) {
-		sock.ss.ss_family = AF_INET6;
-		sock.len = sizeof(struct sockaddr_in6);
-	} else {
-		sock.ss.ss_family = AF_INET;
-		sock.len = sizeof(struct sockaddr_in);
-	}
-	PBX_RTP_TYPE * pbxrtp;
-
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Requesting rtp server instance on %s\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock));
-	if ((pbxrtp = ast_rtp_instance_new("asterisk", sched, &sock, NULL))) {
-		struct ast_sockaddr instance_addr = { {0,} };
-		ast_rtp_instance_get_local_address(pbxrtp, &instance_addr);
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
-	} else {
-		return NULL;
-	}
-
-	if (c->owner) {
-		ast_rtp_instance_set_prop(pbxrtp, AST_RTP_PROPERTY_RTCP, 1);
-		ast_channel_set_fd(c->owner, 0, ast_rtp_instance_fd(pbxrtp, 0));
-		ast_channel_set_fd(c->owner, 1, ast_rtp_instance_fd(pbxrtp, 1));
-		ast_queue_frame(c->owner, &ast_null_frame);
-	}
-	
-	uint8_t i;
-	/* add payload mapping for skinny codecs */
-	struct ast_rtp_codecs *codecs = ast_rtp_instance_get_codecs(pbxrtp);
-	switch (type) {
-		case SCCP_RTP_AUDIO:
-			if (c->owner) {
-				ast_rtp_instance_set_prop(pbxrtp, AST_RTP_PROPERTY_DTMF, 1);
-				if (c->dtmfmode == SCCP_DTMFMODE_SKINNY) {
-					ast_rtp_instance_set_prop(pbxrtp, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
-					ast_rtp_instance_dtmf_mode_set(pbxrtp, AST_RTP_DTMF_MODE_INBAND);
-				}
-			}
-			ast_rtp_instance_set_qos(pbxrtp, (uint32_t)d->audio_tos, (uint32_t)d->audio_cos, "SCCP RTP");
-
-			for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
-				/* add audio codecs only */
-				if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == SKINNY_CODEC_TYPE_AUDIO) {
-					ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "audio", (char *) skinny_codecs[i].mimesubtype, (enum ast_rtp_options) 0, skinny_codecs[i].sample_rate);
-				}
-			}
-			if (SCCP_DTMFMODE_SKINNY == d->dtmfmode) {
-				// Add CISCO DTMF SKINNY payload type
-				ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(pbxrtp), pbxrtp, 96);
-				ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(pbxrtp), pbxrtp, 96, "audio", "telephone-event", 0);
-				ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(pbxrtp), pbxrtp, 101);
-				ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(pbxrtp), pbxrtp, 101, "audio", "telephone-event", 0);
-				ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(pbxrtp), pbxrtp, 105);
-				ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(pbxrtp), pbxrtp, 105, "audio", "cisco-telephone-event", 0);
-			}
-			break;
-		case SCCP_RTP_VIDEO:
-			ast_rtp_instance_set_qos(pbxrtp, (uint32_t)d->video_tos, (uint32_t)d->video_cos, "SCCP VRTP");
-			for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
-				/* add video codecs only */
-				if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == SKINNY_CODEC_TYPE_VIDEO) {
-					ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "video", (char *) skinny_codecs[i].mimesubtype, (enum ast_rtp_options) 0, skinny_codecs[i].sample_rate);
-				}
-			}
-			break;
-		case SCCP_RTP_TEXT:
-			sccp_log(DEBUGCAT_RTP)("%s: (create_rtp) SCCP_RTP_TEXT no implemented yet\n", d->id);
-			//ast_rtp_instance_set_qos(pbxrtp, (uint32_t)d->text_tos, (uint32_t)d->text_cos, "SCCP TEXT");
-			//for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
-			//	/* add video codecs only */
-			//	if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == SKINNY_CODEC_TYPE_TEXT) {
-			//		ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "text", (char *) skinny_codecs[i].mimesubtype, (enum ast_rtp_options) 0, skinny_codecs[i].sample_rate);
-			//	}
-			//}
-			break;
-		default:
-			pbx_log(LOG_ERROR, "SCCP: (create_rtp) Unsupported RTP Type");
-	}
-	if (c->owner) {
-		ast_queue_frame(c->owner, &ast_null_frame);
-	}
-
-	return pbxrtp;
-
-}
-
-static PBX_RTP_TYPE * sccp_wrapper_asterisk113_destroy_rtpServer(PBX_RTP_TYPE * rtp)
-{
-	int res;
-
-	res = ast_rtp_instance_destroy(rtp);
-	return (res) ? rtp /* failed */: NULL /* success */;
-}
-
 static boolean_t sccp_wrapper_asterisk113_create_audio_rtp(sccp_channel_t * c)
 {
 	struct ast_sockaddr sock = { {0,} };
@@ -3453,8 +3347,6 @@ const PbxInterface iPbx = {
 	rtp_setPhoneAddress:		sccp_wrapper_asterisk113_setPhoneRTPAddress,
 	rtp_setWriteFormat:		sccp_wrapper_asterisk113_setWriteFormat,
 	rtp_setReadFormat:		sccp_wrapper_asterisk113_setReadFormat,
-	rtp_createServer:		sccp_wrapper_asterisk113_create_rtpServer,
-	rtp_destroyServer:		sccp_wrapper_asterisk113_destroy_rtpServer,
 	rtp_destroy:			sccp_wrapper_asterisk113_destroyRTP,
 	rtp_stop:			ast_rtp_instance_stop(rtp),
 	rtp_codec:			NULL,
@@ -3590,8 +3482,6 @@ const PbxInterface iPbx = {
 	/* rtp */
 	.rtp_getPeer			= sccp_wrapper_asterisk113_rtpGetPeer,
 	.rtp_getUs 			= sccp_wrapper_asterisk113_rtpGetUs,
-	.rtp_createServer		= sccp_wrapper_asterisk113_create_rtpServer,
-	.rtp_destroyServer		= sccp_wrapper_asterisk113_destroy_rtpServer,
 	.rtp_stop			= ast_rtp_instance_stop,
 	.rtp_audio_create 		= sccp_wrapper_asterisk113_create_audio_rtp,
 	.rtp_video_create 		= sccp_wrapper_asterisk113_create_video_rtp,
