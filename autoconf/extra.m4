@@ -230,6 +230,9 @@ dnl	])
 	AC_CHECK_HEADERS([netinet/in.h])
 	AC_CHECK_HEADERS([pthread.h])
 	AC_CHECK_HEADERS([iconv.h])
+	AC_SEARCH_LIBS([iconv], [iconv], [
+		LIBICONV="-liconv"
+	])
 dnl	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcasecmp strchr strdup strerror strncasecmp strchr malloc calloc realloc free]) 
 	AC_CHECK_FUNCS([gethostbyname inet_ntoa mkdir]) 
 	AC_HEADER_STDC    
@@ -237,6 +240,7 @@ dnl	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep st
 	AC_CHECK_HEADERS([netinet/in.h fcntl.h sys/signal.h stdio.h errno.h ctype.h assert.h sys/sysinfo.h])
 	AC_STRUCT_TM
 	AC_STRUCT_TIMEZONE
+	AC_SUBST([LIBICONV])
 ])
 
 AC_DEFUN([CS_CHECK_CROSSCOMPILE],[
@@ -527,7 +531,6 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wno-unused-parameter dnl
 				-Wsign-compare dnl
 				-Wstrict-prototypes dnl
-				-Wshadow dnl
 				-Wmissing-prototypes dnl
 				dnl
 				dnl // should be added and fixed dnl
@@ -549,11 +552,21 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl
 				dnl -Wno-unused-but-set-variable dnl
 			], ax_warn_cflags_variable)
-			fi 
+		fi 
+		if test "x${AST_C_COMPILER_FAMILY}" = "xgcc"; then
+			AC_LANG_SAVE
+			AC_LANG_C
+			AX_APPEND_COMPILE_FLAGS([ dnl
+				-Wshadow dnl
+			], ax_warn_cflags_variable)
+		fi
 
 		AC_CHECK_HEADER([execinfo.h],
 			[
 				AC_DEFINE(HAVE_EXECINFO_H,1,[Found 'execinfo.h'])
+				AC_SEARCH_LIBS([execinfo], [execinfo], [
+					LIBEXECINFO="-lexecinfo"
+				])
 				AC_CHECK_HEADER([dlfcn.h], [AC_DEFINE(HAVE_DLADDR_H, 1, [Found 'dlfcn.h'])])
 				AC_SEARCH_LIBS([bfd_openr], [bfd], [
 					AC_CHECK_HEADER([bfd.h], [AC_DEFINE(HAVE_BFD_H, 1, [Found 'bfd.h'])])
@@ -591,6 +604,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	AC_SUBST([strip_binaries])
 	AC_SUBST([ax_warn_cflags_variable])
 	AC_SUBST([LIBBFD])
+	AC_SUBST([LIBEXECINFO])
 ])
 
 AC_DEFUN([CS_ENABLE_GCOV], [
@@ -880,7 +894,10 @@ AC_DEFUN([CS_SETUP_MODULE_DIR], [
                                             ;;
                                     esac
                                 fi
-			        PBX_DEBUGMODDIR="${PBX_LIB}/debug/${PBX_MODDIR:${#PBX_LIB}}"
+                                
+                                dnl Insert '/debug/' into path
+			        dnl PBX_DEBUGMODDIR="${PBX_LIB}/debug/${PBX_MODDIR:${#PBX_LIB}}"
+			        PBX_DEBUGMODDIR=`echo $PBX_MODDIR | sed "s!^${PBX_LIB}!${PBX_LIB}/debug/!g"`
                                 ;;
              esac])
         AC_SUBST([PBX_MODDIR]) 
