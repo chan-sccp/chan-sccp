@@ -1,3 +1,4 @@
+
 /*!
  * \file        chan_sccp.c
  * \brief       An implementation of Skinny Client Control Protocol (SCCP)
@@ -174,43 +175,34 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
  * \param deviceIsNecessary Is a valid device necessary for this message to be processed, if it is, the device is retain during execution of this particular message parser
  * \return -1 or retained Device;
  */
-inline static sccp_device_t *check_session_message_device(constSessionPtr s, constMessagePtr msg, const char *msgtypestr, boolean_t deviceIsNecessary)
+inline static sccp_device_t * const check_session_message_device(constSessionPtr s, constMessagePtr msg, const char *msgtypestr, boolean_t deviceIsNecessary)
 {
-	sccp_device_t *d = NULL;
-
-	if (!s || (s->fds[0].fd < 0)) {
-		pbx_log(LOG_ERROR, "(%s) Session no longer valid\n", msgtypestr);
-		goto EXIT;
-	}
-
+	int errors = 0;
 	if (!msg) {
 		pbx_log(LOG_ERROR, "(%s) No Message Provided\n", msgtypestr);
-		goto EXIT;
+		errors++;
 	}
 
-	if (deviceIsNecessary && !s->device) {
-		pbx_log(LOG_WARNING, "No valid Session Device available to handle %s for, but device is needed\n", msgtypestr);
-		goto EXIT;
-	}
-	if (deviceIsNecessary && !(d = sccp_device_retain(s->device))) {			/* explicit retain to return d to sccp_handle_message */
-		pbx_log(LOG_WARNING, "Session Device vould not be retained, to handle %s for, but device is needed\n", msgtypestr);
-		goto EXIT;
+ 	if (!sccp_session_isValid(s)) {
+		pbx_log(LOG_ERROR, "(%s) Session no longer valid\n", msgtypestr);
+		errors++;
 	}
 
-	if (deviceIsNecessary && d && d->session && s != d->session) {
-		pbx_log(LOG_WARNING, "(%s) Provided Session and Device Session are not the same. Rejecting message handling\n", msgtypestr);
-		sccp_session_crossdevice_cleanup(s, d->session, FALSE);
-		goto EXIT;
-	}
-
-EXIT:
 	if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) != 0) {
 		uint32_t mid = letohl(msg->header.lel_messageId);
-
-		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), msgtype2str(mid), mid, msg ? msg->header.length : 0);
+		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", sccp_session_getDesignator(s), msgtype2str(mid), mid, msg ? msg->header.length : 0);
 		sccp_dump_msg(msg);
 	}
-	return d;
+
+	if (!errors) {
+		sccp_device_t * const device = sccp_session_getDevice(s, deviceIsNecessary);
+		if (device) {
+			return device;
+		}  else if (deviceIsNecessary) {
+			pbx_log(LOG_WARNING, "Session Device vould not be retained, to handle %s for, but device is needed\n", msgtypestr);
+		}
+	}
+	return NULL;
 }
 
 /*!
@@ -294,7 +286,7 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 	}
 
 	if (!msg) {
-		pbx_log(LOG_ERROR, "%s: (sccp_handle_message) No Message Specified.\n which is required, Exiting sccp_handle_message !\n", DEV_ID_LOG(s->device));
+		pbx_log(LOG_ERROR, "%s: (sccp_handle_message) No Message Specified.\n which is required, Exiting sccp_handle_message !\n", sccp_session_getDesignator(s));
 		return -2;
 	}
 
@@ -306,7 +298,7 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 	} else {
 		messageMap_cb = &sccpMessagesCbMap[mid];
 	}
-	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (%x)\n", DEV_ID_LOG(s->device), msgtype2str(mid), mid);
+	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (0x%X)\n", sccp_session_getDesignator(s), msgtype2str(mid), mid);
 
 	/* we dont know how to handle event */
 	if (!messageMap_cb) {
@@ -325,7 +317,7 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 		messageMap_cb->messageHandler_cb(s, device, msg);
 	}
 
-	if (device && device->registrationState == SKINNY_DEVICE_RS_PROGRESS && mid == device->protocol->registrationFinishedMessageId) {
+	if (device && sccp_device_getRegistrationState(device) == SKINNY_DEVICE_RS_PROGRESS && mid == device->protocol->registrationFinishedMessageId) {
 		sccp_dev_set_registered(device, SKINNY_DEVICE_RS_OK);
 		char servername[StationMaxDisplayNotifySize];
 
@@ -560,7 +552,9 @@ boolean_t sccp_prePBXLoad(void)
 	//SCCP_LIST_HEAD_INIT(&sccp_event_listeners->subscriber);
 
 	pbx_mutex_init(&GLOB(lock));
+#ifndef SCCP_ATOMIC	
 	pbx_mutex_init(&GLOB(usecnt_lock));
+#endif
 #if ASTERISK_VERSION_GROUP < 110
 	pbx_mutex_init(&GLOB(monitor_lock));
 #endif
@@ -678,8 +672,6 @@ int sccp_preUnload(void)
 
 	sccp_device_t *d = NULL;
 	sccp_line_t *l = NULL;
-	sccp_session_t *s = NULL;
-
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 
 #if CS_TEST_FRAMEWORK
@@ -726,15 +718,8 @@ int sccp_preUnload(void)
 	}
 	usleep(100);												// wait for events to finalize
 
-	/* removing sessions */
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
-	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), s, list) {
-		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_NONE);
-	}
-	SCCP_RWLIST_TRAVERSE_SAFE_END;
-	if (SCCP_LIST_EMPTY(&GLOB(sessions))) {
-		SCCP_RWLIST_HEAD_DESTROY(&GLOB(sessions));
-	}
+	/* terminate all sessions */
+	sccp_session_terminateAll();
 
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killing the socket thread\n");
 	sccp_globals_lock(socket_lock);
@@ -779,7 +764,9 @@ int sccp_preUnload(void)
 	//}
 	sccp_config_cleanup_dynamically_allocated_memory(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
 
+#ifndef SCCP_ATOMIC
 	pbx_mutex_destroy(&GLOB(usecnt_lock));
+#endif	
 	pbx_mutex_destroy(&GLOB(lock));
 	//pbx_log(LOG_NOTICE, "SCCP chan_sccp unloaded\n");
 	return 0;

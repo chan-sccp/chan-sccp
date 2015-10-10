@@ -31,19 +31,19 @@ extern "C" {
 #define gcc_inline
 #endif
 
-#include <config.h>
-//#include "common.h"
+//#include <config.h>
+////#include "common.h"
 
 #define sccp_mutex_t ast_mutex_t
 
 /* Add bswap function if necessary */
-#if HAVE_BYTESWAP_H
-#include <byteswap.h>
-#elif HAVE_SYS_BYTEORDER_H
-#include <sys/byteorder.h>
-#elif HAVE_SYS_ENDIAN_H
-#include <sys/endian.h>
-#endif
+//#if HAVE_BYTESWAP_H
+//#include <byteswap.h>
+//#elif HAVE_SYS_BYTEORDER_H
+//#include <sys/byteorder.h>
+//#elif HAVE_SYS_ENDIAN_H
+//#include <sys/endian.h>
+//#endif
 
 #ifndef HAVE_BSWAP_16
 static inline unsigned short bswap_16(unsigned short x)
@@ -124,7 +124,7 @@ char SCCP_REVISIONSTR[30];
 
 #define CHANNEL_DESIGNATOR_SIZE 32
 #define SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT 2000									// ms
-#define SCCP_BACKTRACE_SIZE 32
+#define SCCP_BACKTRACE_SIZE 10
 
 #define DEFAULT_PBX_STR_BUFFERSIZE 512
 
@@ -140,6 +140,11 @@ char SCCP_REVISIONSTR[30];
 #define sccp_log_and(_x) if ((sccp_globals->debug & (_x)) == (_x)) sccp_log1
 
 #define GLOB(x) sccp_globals->x
+
+/* Lock Macro for Globals */
+#define sccp_globals_lock(x)			pbx_mutex_lock(&sccp_globals->x)
+#define sccp_globals_unlock(x)			pbx_mutex_unlock(&sccp_globals->x)
+#define sccp_globals_trylock(x)			pbx_mutex_trylock(&sccp_globals->x)
 
 #if defined(LOW_MEMORY)
 #define SCCP_FILE_VERSION(file, version)
@@ -311,13 +316,6 @@ static const struct sccp_debug_category {
 	/* *INDENT-ON* */
 };
 
-
-/*!
- * \brief Privacy Definition
- */
-#define SCCP_PRIVACYFEATURE_HINT 	1 << 1;
-#define SCCP_PRIVACYFEATURE_CALLPRESENT	1 << 2;
-
 /*!
  * \brief SCCP device-line subscriptionId
  * \note for addressing individual devices on shared line
@@ -361,7 +359,9 @@ struct sccp_global_vars {
 	SCCP_RWLIST_HEAD (, sccp_line_t) lines;									/*!< SCCP Lines */
 
 	sccp_mutex_t socket_lock;										/*!< Socket Lock */
+#ifndef SCCP_ATOMIC	
 	sccp_mutex_t usecnt_lock;										/*!< Use Counter Asterisk Lock */
+#endif
 	int usecnt;												/*!< Keep track of when we're in use. */
 	int amaflags;												/*!< AmaFlags */
 	pthread_t socket_thread;										/*!< Socket Thread */

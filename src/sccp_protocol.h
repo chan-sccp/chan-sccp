@@ -17,23 +17,25 @@
 #ifndef __SCCP_PROTOCOL_H
 #define __SCCP_PROTOCOL_H
 
-#if HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-#if HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <netinet/ip.h>
-#include <netinet/tcp.h>
-#endif
+//#if HAVE_SYS_SOCKET_H
+//#include <sys/socket.h>
+//#endif
+//#if HAVE_NETINET_IN_H
+//#include <netinet/in.h>
+//#include <netinet/in_systm.h>
+//#include <netinet/ip.h>
+//#include <netinet/tcp.h>
+//#endif
 
 #include "sccp_labels.h"
+#include "sccp_softkeys.h"
 
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW		3							/*!< At least we require protocol V.3 */
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH		22							/*!< We support up to protocol V.17 */
 
-#define SCCP_PROTOCOL					0
-#define SPCP_PROTOCOL					1
+#define UNKNOWN_PROTOCOL				0
+#define SCCP_PROTOCOL					1
+#define SPCP_PROTOCOL					2
 
 #define DEFAULT_SCCP_PORT				2000							/*!< SCCP uses port 2000. */
 #define DEFAULT_SCCP_SECURE_PORT			2443							/*!< SCCP secure port 2443. */
@@ -3446,9 +3448,6 @@ static const struct messagetype spcp_messagetypes[] = {
 	/* *INDENT-ON* */
 };
 
-#include "sccp_softkeys.h"
-#include "sccp_labels.h"
-
 static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_REDIAL,
 	SKINNY_LBL_NEWCALL,
@@ -3500,14 +3499,15 @@ typedef struct {
  * Connect Specific CallBack-Functions to Particular SCCP Protocol Versions
  */
 typedef struct {
-	const char *name;											/*! protocol name ( SCCP | SPCP ) */
+	//const char *name;											/*! protocol name ( SCCP | SPCP ) */
+	const uint16_t type;											/*! (SCCP_PROTOCOL | SPCP_PROTOCOL) */
 	const uint8_t version;											/*! the protocol version number */
 	const uint16_t registrationFinishedMessageId;								/*! use this message id to determine that the device is fully registered */
 
 	/* protocol callbacks */
 	/* send messages */
-	void (*const sendCallInfo) (constDevicePtr device, constChannelPtr channel, uint8_t instance);
-	void (*const sendDialedNumber) (constDevicePtr device, constChannelPtr channel);
+	void (*const sendCallInfo) (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, constDevicePtr device);
+	void (*const sendDialedNumber) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const char dialedNumber[SCCP_MAX_EXTENSION]);
 	void (*const sendRegisterAck) (constDevicePtr device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat);
 	void (*const displayPrompt) (constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message);
 	void (*const displayNotify) (constDevicePtr device, uint8_t timeout, const char *message);

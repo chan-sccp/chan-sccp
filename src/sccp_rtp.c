@@ -23,11 +23,15 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
+/* 
+ * we should use the new sccp_rtp_type enum to specify audio/video/text variety of functions below
+ */
+
 /*!
  * \brief create a new rtp server for audio data
  * \param c SCCP Channel
  */
-int sccp_rtp_createAudioServer(const sccp_channel_t * c)
+int sccp_rtp_createAudioServer(constChannelPtr c)
 {
 	boolean_t rtpResult = FALSE;
 	boolean_t isMappedIPv4;
@@ -39,6 +43,8 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "we already have a rtp server, we use this one\n");
 		return TRUE;
 	}
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(c->rtp.audio);
+	struct sockaddr_storage *phone_remote = &audio->phone_remote;
 
 	if (iPbx.rtp_audio_create) {
 		rtpResult = (boolean_t) iPbx.rtp_audio_create((sccp_channel_t *) c);
@@ -47,31 +53,26 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 		return FALSE;
 	}
 
-	if (!sccp_rtp_getUs(&c->rtp.audio, &((sccp_channel_t *) c)->rtp.audio.phone_remote)) {
+	if (!sccp_rtp_getUs(audio, phone_remote)) {
 		pbx_log(LOG_WARNING, "%s: Did not get our rtp part\n", c->currentDeviceId);
 		return FALSE;
 	}
 
 	uint16_t port = sccp_rtp_getServerPort(&c->rtp.audio);
-
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "RTP Server Port: %d\n", port);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (createAudioServer) RTP Server Port: %d\n", c->currentDeviceId, port);
 
 	/* depending on the client connection, we us ipv4 or ipv6 */
 	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(c);
 
 	if (device) {
-		//memcpy((void *) &c->rtp.audio.phone_remote, &device->session->ourip, sizeof(struct sockaddr_storage));
-		struct sockaddr_storage remote = (struct sockaddr_storage) c->rtp.audio.phone_remote;
-		memcpy(&remote, &device->session->ourip, sizeof(struct sockaddr_storage ));
-		sccp_socket_setPort(&c->rtp.audio.phone_remote, port);
+		sccp_session_getOurIP(device->session, phone_remote, 0);
+		sccp_socket_setPort(phone_remote, port);
+
+		char buf[NI_MAXHOST + NI_MAXSERV];
+		sccp_copy_string(buf, sccp_socket_stringify(phone_remote), sizeof(buf));
+		isMappedIPv4 = sccp_socket_ipv4_mapped(phone_remote, (struct sockaddr_storage *) phone_remote);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (createAudioServer) updated remote phone ip to : %s, family:%s, mapped: %s\n", device->id, buf, sccp_socket_is_IPv4(phone_remote) ? "IPv4" : "IPv6", isMappedIPv4 ? "True" : "False");
 	}
-
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "is IPv4: %d\n", sccp_socket_is_IPv4(&c->rtp.audio.phone_remote) ? 1 : 0);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "is IPv6: %d\n", sccp_socket_is_IPv6(&c->rtp.audio.phone_remote) ? 1 : 0);
-
-	isMappedIPv4 = sccp_socket_ipv4_mapped(&c->rtp.audio.phone_remote, (struct sockaddr_storage *) &c->rtp.audio.phone_remote);	/*!< this is absolute necessary */
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "is mapped: %d\n", isMappedIPv4 ? 1 : 0);
-
 	//struct sockaddr_in us;
 	//iPbx.rtp_setPeer(&c->rtp.audio, &c->rtp.audio.phone, device ? device->nat : 0);
 
@@ -82,7 +83,7 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
  * \brief create a new rtp server for video data
  * \param c SCCP Channel
  */
-int sccp_rtp_createVideoServer(const sccp_channel_t * c)
+int sccp_rtp_createVideoServer(constChannelPtr c)
 {
 	boolean_t rtpResult = FALSE;
 
@@ -111,15 +112,48 @@ int sccp_rtp_createVideoServer(const sccp_channel_t * c)
  * \brief Stop an RTP Source.
  * \param c SCCP Channel
  */
-void sccp_rtp_stop(sccp_channel_t * c)
+void sccp_rtp_stop(constChannelPtr channel)
 {
-	if (!c) {
+	if (!channel) {
 		return;
 	}
 	if (iPbx.rtp_stop) {
-		iPbx.rtp_stop(c);
+		if (channel->rtp.audio.rtp) {
+			PBX_RTP_TYPE *rtp = (PBX_RTP_TYPE *) channel->rtp.audio.rtp;		/* discard const */
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX audio rtp transmission on channel %08X\n", channel->currentDeviceId, channel->callid);
+			iPbx.rtp_stop(rtp);
+		}
+		if (channel->rtp.video.rtp) {
+			PBX_RTP_TYPE *rtp = (PBX_RTP_TYPE *) channel->rtp.video.rtp;		/* discard const */
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX video rtp transmission on channel %08X\n", channel->currentDeviceId, channel->callid);
+			iPbx.rtp_stop(rtp);
+		}
 	} else {
 		pbx_log(LOG_ERROR, "no pbx function to stop rtp\n");
+	}
+}
+
+/*!
+ * \brief Destroy RTP Source.
+ * \param c SCCP Channel
+ */
+void sccp_rtp_destroy(constChannelPtr c)
+{
+	sccp_line_t *l = c->line;
+	
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(c->rtp.audio);
+	sccp_rtp_t *video = (sccp_rtp_t *) &(c->rtp.video);
+
+	if (audio->rtp) {
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX rtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
+		iPbx.rtp_destroy(audio->rtp);
+		audio->rtp = NULL;
+	}
+
+	if (video->rtp) {
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX vrtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
+		iPbx.rtp_destroy(video->rtp);
+		video->rtp = NULL;
 	}
 }
 
@@ -129,7 +163,7 @@ void sccp_rtp_stop(sccp_channel_t * c)
  * \param rtp SCCP RTP
  * \param new_peer socket info to remote device
  */
-void sccp_rtp_set_peer(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer)
+void sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t * const rtp, struct sockaddr_storage *new_peer)
 {
 	/* validate socket */
 	if (sccp_socket_getPort(new_peer) == 0) {
@@ -138,7 +172,7 @@ void sccp_rtp_set_peer(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_stor
 	}
 
 	/* check if we have new infos */
-	if (socket_equals(new_peer, &c->rtp.audio.phone_remote)) {
+	if (socket_equals(new_peer, &rtp->phone_remote)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) remote information are equal to the current one, ignore change\n", c->currentDeviceId);
 		return;
 	}
@@ -168,7 +202,7 @@ void sccp_rtp_set_peer(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_stor
  * \param rtp SCCP RTP
  * \param new_peer socket info to remote device
  */
-void sccp_rtp_set_phone(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer)
+void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockaddr_storage *new_peer)
 {
 	/* validate socket */
 	if (sccp_socket_getPort(new_peer) == 0) {
@@ -206,10 +240,56 @@ void sccp_rtp_set_phone(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_sto
 	}
 }
 
+int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp)
+{
+	int res = 0;
+	//sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	if (d) {
+		struct sockaddr_storage sus = { 0 };
+		sccp_session_getOurIP(d->session, &sus, 0);
+		uint16_t usFamily = sccp_socket_is_IPv6(&sus) ? AF_INET6 : AF_INET;
+		//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) us: %s, usFamily: %s\n", d->id, sccp_socket_stringify(&sus), (usFamily == AF_INET6) ? "IPv6" : "IPv4");
+
+		struct sockaddr_storage *phone_remote = &rtp->phone_remote;
+		uint16_t remoteFamily = (rtp->phone_remote.ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(phone_remote)) ? AF_INET6 : AF_INET;
+		//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) remote: %s, remoteFamily: %s\n", d->id, sccp_socket_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
+
+		/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
+		if (d->nat >= SCCP_NAT_ON) {
+			if ((usFamily == AF_INET) != remoteFamily) {						/* device needs correction for ipv6 address in remote */
+				uint16_t port = sccp_rtp_getServerPort(rtp);					/* get rtp server port */
+
+				memcpy(phone_remote, &sus, sizeof(struct sockaddr_storage));			/* Not sure if this should not be the externip in case of nat */
+				sccp_socket_ipv4_mapped(phone_remote, phone_remote);				/*!< we need this to convert mapped IPv4 to real IPv4 address */
+				sccp_socket_setPort(phone_remote, port);
+
+			} else if ((usFamily == AF_INET6) != remoteFamily) {					/* the device can do IPv6 but should send it to IPv4 address (directrtp possible) */
+				struct sockaddr_storage sas;
+
+				memcpy(&sas, phone_remote, sizeof(struct sockaddr_storage));
+				sccp_socket_ipv4_mapped(&sas, &sas);
+			}
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) new remote: %s, new remoteFamily: %s\n", d->id, sccp_socket_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
+			res = 1;
+		}
+		
+		char buf1[NI_MAXHOST + NI_MAXSERV];
+		char buf2[NI_MAXHOST + NI_MAXSERV];
+
+		sccp_copy_string(buf1, sccp_socket_stringify(&rtp->phone), sizeof(buf1));
+		sccp_copy_string(buf2, sccp_socket_stringify(phone_remote), sizeof(buf2));
+
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(d), buf1, buf2, sccp_nat2str(d->nat));
+	}
+	return res;
+}
+
+
 /*!
  * \brief Get Audio Peer RTP Information
  */
-sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, sccp_rtp_t **rtp)
+sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(constChannelPtr c, sccp_rtp_t **rtp)
 {
 	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
 
@@ -232,7 +312,7 @@ sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, sccp_rtp_t *
 /*!
  * \brief Get Video Peer RTP Information
  */
-sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, sccp_rtp_t ** rtp)
+sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(constChannelPtr c, sccp_rtp_t ** rtp)
 {
 	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
 
@@ -252,66 +332,36 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, sccp_rtp_t *
 }
 
 /*!
- * \brief Get Payload Type
- */
-uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t * rtp, skinny_codec_t codec)
-{
-	if (iPbx.rtp_get_payloadType) {
-		return iPbx.rtp_get_payloadType(rtp, codec);
-	} else {
-		return 97;
-	}
-}
-
-/*!
- * \brief Get Sample Rate
- */
-int sccp_rtp_get_sampleRate(skinny_codec_t codec)
-{
-	if (iPbx.rtp_get_sampleRate) {
-		return iPbx.rtp_get_sampleRate(codec);
-	} else {
-		return 3840;
-	}
-}
-
-/*!
- * \brief Destroy RTP Source.
- * \param c SCCP Channel
- */
-void sccp_rtp_destroy(sccp_channel_t * c)
-{
-	sccp_line_t *l = c->line;
-
-	if (c->rtp.audio.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX rtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
-		iPbx.rtp_destroy(c->rtp.audio.rtp);
-		c->rtp.audio.rtp = NULL;
-	}
-
-	if (c->rtp.video.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX vrtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
-		iPbx.rtp_destroy(c->rtp.video.rtp);
-		c->rtp.video.rtp = NULL;
-	}
-}
-
-/*!
  * \brief Get Audio Peer
  */
-boolean_t sccp_rtp_getAudioPeer(sccp_channel_t * c, struct sockaddr_storage **new_peer)
+boolean_t sccp_rtp_getAudioPeer(constChannelPtr c, struct sockaddr_storage **new_peer)
 {
-	*new_peer = &c->rtp.audio.phone_remote;
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(c->rtp.audio);
+	*new_peer = &audio->phone_remote;
 	return TRUE;
 }
 
 /*!
  * \brief Get Video Peer
  */
-boolean_t sccp_rtp_getVideoPeer(sccp_channel_t * c, struct sockaddr_storage **new_peer)
+boolean_t sccp_rtp_getVideoPeer(constChannelPtr c, struct sockaddr_storage **new_peer)
 {
-	*new_peer = &c->rtp.video.phone_remote;
+	sccp_rtp_t *video = (sccp_rtp_t *) &(c->rtp.video);
+	*new_peer = &video->phone_remote;
 	return TRUE;
+}
+
+
+/*!
+ * \brief Get Payload Type
+ */
+uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t * const rtp, skinny_codec_t codec)
+{
+	if (iPbx.rtp_get_payloadType) {
+		return iPbx.rtp_get_payloadType(rtp, codec);
+	} else {
+		return 97;
+	}
 }
 
 /*!
@@ -328,7 +378,7 @@ boolean_t sccp_rtp_getUs(const sccp_rtp_t *rtp, struct sockaddr_storage *us)
 	}
 }
 
-uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * rtp)
+uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * const rtp)
 {
 	uint16_t port = 0;
 	struct sockaddr_storage sas;
@@ -342,7 +392,7 @@ uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * rtp)
 /*!
  * \brief Retrieve Phone Socket Information
  */
-boolean_t sccp_rtp_getPeer(const sccp_rtp_t *rtp, struct sockaddr_storage *them)
+boolean_t sccp_rtp_getPeer(const sccp_rtp_t * const rtp, struct sockaddr_storage *them)
 {
 	if (rtp->rtp) {
 		iPbx.rtp_getPeer(rtp->rtp, them);
@@ -351,5 +401,182 @@ boolean_t sccp_rtp_getPeer(const sccp_rtp_t *rtp, struct sockaddr_storage *them)
 		return FALSE;
 	}
 }
+
+/*!
+ * \brief Get Sample Rate
+ */
+int sccp_rtp_get_sampleRate(skinny_codec_t codec)
+{
+	if (iPbx.rtp_get_sampleRate) {
+		return iPbx.rtp_get_sampleRate(codec);
+	} else {
+		return 3840;
+	}
+}
+
+/* new : allowing to internalize sccp_rtp struct */
+#define sccp_rtp_lock(x) sccp_mutex_lock(&((sccp_rtp_t * const)x)->lock)				/* discard const */
+#define sccp_rtp_unlock(x) sccp_mutex_unlock(&((sccp_rtp_t * const)x)->lock)				/* discard const */
+
+/*
+uint16_t sccp_rtp_getReadState(const sccp_rtp_t * const rtp)
+{
+	assert(rtp != NULL);
+	
+	sccp_rtp_lock(rtp);
+	uint16_t readState = rtp->readState;
+	sccp_rtp_unlock(rtp);
+	
+	return readState;
+}
+
+uint16_t sccp_rtp_getWriteState(const sccp_rtp_t * const rtp)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	uint16_t writeState = rtp->writeState;
+	sccp_rtp_unlock(rtp);
+
+	return writeState;
+}
+
+boolean_t sccp_rtp_isDirectMedia(const sccp_rtp_t * const rtp)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	boolean_t directMedia = rtp->directMedia;
+	sccp_rtp_unlock(rtp);
+	
+	return directMedia;
+}
+
+skinny_codec_t sccp_rtp_getReadFormat(const sccp_rtp_t * const rtp)
+{
+	assert(rtp != NULL);
+	
+	sccp_rtp_lock(rtp);
+	skinny_codec_t readFormat = rtp->readFormat;
+	sccp_rtp_unlock(rtp);
+
+	return readFormat;
+}
+skinny_codec_t sccp_rtp_getWriteFormat(const sccp_rtp_t * const rtp)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	skinny_codec_t writeFormat = rtp->writeFormat;
+	sccp_rtp_unlock(rtp);
+
+	return writeFormat;
+}
+
+int sccp_rtp_getPhoneAddress(const sccp_rtp_t * const rtp, struct sockaddr_storage *const sas)
+{
+	assert(rtp != NULL && sas != NULL);
+	int res = 0;
+
+	sccp_rtp_lock(rtp);
+	if (rtp->readState != SCCP_RTP_STATUS_INACTIVE) {
+		memcpy(sas, &rtp->phone, sizeof(struct sockaddr_storage));
+		res = 1;
+	}
+	sccp_rtp_unlock(rtp);
+
+	return res;
+}
+
+int sccp_rtp_getRemotePhoneAddress(const sccp_rtp_t * const rtp, struct sockaddr_storage *const sas)
+{
+	assert(rtp != NULL && sas != NULL);
+	int res = 0;
+
+	sccp_rtp_lock(rtp);
+	if (rtp->readState != SCCP_RTP_STATUS_INACTIVE) {
+		memcpy(sas, &rtp->phone_remote, sizeof(struct sockaddr_storage));
+		res = 1;
+	}
+	sccp_rtp_unlock(rtp);
+
+	return res;
+}
+
+sccp_rtp_setReadState(sccp_rtp_t * const rtp, uint16_t value)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	rtp->readState = value;
+	sccp_rtp_unlock(rtp);
+
+	return 1;
+}
+sccp_rtp_setWriteState(sccp_rtp_t * const rtp, uint16_t value)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	rtp->writeState = value;
+	sccp_rtp_unlock(rtp);
+
+	return 1;
+}
+
+sccp_rtp_setDirectMedia(sccp_rtp_t * const rtp, boolean_t direct)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	rtp->directMedia = direct;
+	sccp_rtp_unlock(rtp);
+
+	return 1;
+}
+
+sccp_rtp_setReadFormat(sccp_rtp_t * const rtp, skinny_codec_t codec)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	rtp->readFormat = codec;
+	sccp_rtp_unlock(rtp);
+
+	return 1;
+}
+sccp_rtp_setWriteFormat(sccp_rtp_t * const rtp, skinny_codec_t codec)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	rtp->writeFormat = codec;
+	sccp_rtp_unlock(rtp);
+
+	return 1;
+}
+
+sccp_rtp_setPhoneAddress(sccp_rtp_t * const rtp, const struct sockaddr_storage *const sas)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	memcpy(&rtp->phone, sas, sizeof(struct sockaddr_storage));
+	sccp_rtp_unlock(rtp);
+
+	return 1;
+}
+
+sccp_rtp_setRemotePhoneAddress(sccp_rtp_t * const rtp, const struct sockaddr_storage *const sas)
+{
+	assert(rtp != NULL);
+
+	sccp_rtp_lock(rtp);
+	memcpy(&rtp->phone_remote, sas, sizeof(struct sockaddr_storage));
+	sccp_rtp_unlock(rtp);
+
+	return 1;
+}
+*/
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -13,9 +13,9 @@
 #define SCCP_MWI_H_
 
 #include "sccp_cli.h"
-#ifdef CS_AST_HAS_EVENT
-#include "asterisk/event.h"
-#endif
+//#ifdef CS_AST_HAS_EVENT
+//#include "asterisk/event.h"
+//#endif
 
 /*!
  * \brief SCCP Mailbox Structure

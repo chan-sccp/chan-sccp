@@ -16,6 +16,8 @@
 #ifndef __SCCP_CHANNEL_H
 #define __SCCP_CHANNEL_H
 
+#include "sccp_atomic.h"
+
 #ifdef DEBUG
 #define sccp_channel_retain(_x) 	({sccp_channel_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #define sccp_channel_release(_x) 	({sccp_channel_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
@@ -24,44 +26,6 @@
 #define sccp_channel_release(_x) 	({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #endif
 #define sccp_channel_refreplace(_x, _y)	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-
-/*!
- * \brief SCCP CallInfo Structure
- */
-struct sccp_callinfo {
-	char calledPartyName[StationMaxNameSize];								/*!< Called Party Name */
-	char calledPartyNumber[StationMaxDirnumSize];								/*!< Called Party Number */
-	char cdpnVoiceMailbox[StationMaxDirnumSize];								/*!< Called Party Voicemail Box */
-
-	char callingPartyName[StationMaxNameSize];								/*!< Calling Party Name */
-	char callingPartyNumber[StationMaxDirnumSize];								/*!< Calling Party Number */
-	char cgpnVoiceMailbox[StationMaxDirnumSize];								/*!< Calling Party Voicemail Box */
-
-	char originalCalledPartyName[StationMaxNameSize];							/*!< Original Calling Party Name */
-	char originalCalledPartyNumber[StationMaxDirnumSize];							/*!< Original Calling Party ID */
-	char originalCdpnVoiceMailbox[StationMaxDirnumSize];							/*!< Original Called Party VoiceMail Box */
-
-	char originalCallingPartyName[StationMaxNameSize];							/*!< Original Calling Party Name */
-	char originalCallingPartyNumber[StationMaxDirnumSize];							/*!< Original Calling Party ID */
-
-	char lastRedirectingPartyName[StationMaxNameSize];							/*!< Original Called Party Name */
-	char lastRedirectingPartyNumber[StationMaxDirnumSize];							/*!< Original Called Party ID */
-	char lastRedirectingVoiceMailbox[StationMaxDirnumSize];							/*!< Last Redirecting VoiceMail Box */
-
-	uint32_t originalCdpnRedirectReason;									/*!< Original Called Party Redirect Reason */
-	uint32_t lastRedirectingReason;										/*!< Last Redirecting Reason */
-	int presentation;											/*!< Should this callerinfo be shown (privacy) */
-
-	unsigned int cdpnVoiceMailbox_valid:1;									/*!< TRUE if the name information is valid/present */
-	unsigned int calledParty_valid:1;									/*!< TRUE if the name information is valid/present */
-	unsigned int cgpnVoiceMailbox_valid:1;									/*!< TRUE if the name information is valid/present */
-	unsigned int callingParty_valid:1;									/*!< TRUE if the name information is valid/present */
-	unsigned int originalCdpnVoiceMailbox_valid:1;								/*!< TRUE if the name information is valid/present */
-	unsigned int originalCalledParty_valid:1;								/*!< TRUE if the name information is valid/present */
-	unsigned int originalCallingParty_valid:1;								/*!< TRUE if the name information is valid/present */
-	unsigned int lastRedirectingVoiceMailbox_valid:1;							/*!< TRUE if the name information is valid/present */
-	unsigned int lastRedirectingParty_valid:1;								/*!< TRUE if the name information is valid/present */
-};														/*!< SCCP CallInfo Structure */
 
 /*!
  * \brief SCCP Channel Structure
@@ -110,7 +74,7 @@ struct sccp_channel {
 	} remoteCapabilities;
 
 	struct {
-		uint32_t digittimeout;										/*!< Digit Timeout on Dialing State (Enbloc-Emu) */
+		int digittimeout;										/*!< Digit Timeout on Dialing State (Enbloc-Emu) */
 		boolean_t deactivate;										/*!< Deactivate Enbloc-Emulation (Time Deviation Found) */
 		uint32_t totaldigittime;									/*!< Total Time used to enter Number (Enbloc-Emu) */
 		uint32_t totaldigittimesquared;									/*!< Total Time Squared used to enter Number (Enbloc-Emu) */
@@ -155,8 +119,6 @@ struct sccp_channel {
 	boolean_t (*isMicrophoneEnabled) (void);
 
 	char *musicclass;											/*!< Music Class */
-
-	sccp_callinfo_t callInfo;
 	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
 
 #if ASTERISK_VERSION_GROUP >= 111
@@ -178,16 +140,17 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 void sccp_channel_updateChannelDesignator(sccp_channel_t * c);
 void sccp_channel_updateMusicClass(sccp_channel_t * c, const sccp_line_t *l);
 void sccp_channel_updateChannelCapability(sccp_channel_t * channel);
+sccp_callinfo_t * const sccp_channel_getCallInfo(const sccp_channel_t *const channel);
 void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel_t * c);
 void sccp_channel_send_callinfo2(sccp_channel_t * c);
 void sccp_channel_setChannelstate(channelPtr channel, sccp_channelstate_t state);
 void sccp_channel_display_callInfo(sccp_channel_t * channel);
-void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number);
-void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number);
+void sccp_channel_set_callingparty(constChannelPtr c, const char *name, const char *number);
+void sccp_channel_set_calledparty(sccp_channel_t * c, const char *name, const char *number);
 boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *name, char *number);
 boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * c, char *name, char *number);
-void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * c);
-void sccp_channel_set_calleridPresenceParameter(sccp_channel_t * c, sccp_calleridpresence_t presenceParameter);
+void sccp_channel_reset_calleridPresentation(sccp_channel_t * c);
+void sccp_channel_set_calleridPresentation(sccp_channel_t * c, sccp_callerid_presentation_t presenceParameter);
 void sccp_channel_connect(sccp_channel_t * c);
 void sccp_channel_disconnect(sccp_channel_t * c);
 
@@ -205,7 +168,7 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel);
 void sccp_channel_stopMultiMediaTransmission(constChannelPtr channel, boolean_t KeepPortOpen);
 void sccp_channel_updateMultiMediaTransmission(constChannelPtr channel);
 
-void sccp_channel_closeAllMediaTransmitAndReceive(sccp_device_t * d, sccp_channel_t * channel);
+void sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannelPtr channel);
 
 boolean_t sccp_channel_transfer_on_hangup(constChannelPtr channel);
 gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel);

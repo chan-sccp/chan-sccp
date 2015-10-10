@@ -245,12 +245,8 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 	{
 		// Search for already known device-sessions
 		AUTO_RELEASE sccp_device_t *tmpdevice = sccp_device_find_byid(deviceName, TRUE);
-
-		if (tmpdevice) {
-			if (tmpdevice->session && tmpdevice->session != s) {
-				sccp_session_crossdevice_cleanup(s, tmpdevice->session, TRUE);
-				return;
-			}
+		if (sccp_session_check_crossdevice(s, tmpdevice)) {
+			return;
 		}
 	}
 
@@ -272,17 +268,19 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 		return;
 	}
 
-	{
-		sccp_session_t *session = (sccp_session_t * const) s;						// discard const session
-		session->protocolType = SCCP_PROTOCOL;
-		sccp_session_addDevice(session, device);								// retaining device in session
+	sccp_session_setProtocol(s, SCCP_PROTOCOL);
+	if (sccp_session_retainDevice(s, device) < 0) {
+		pbx_log(LOG_WARNING, "%s: Signing over the session to new device failed. Giving up.\n", DEV_ID_LOG(device));
+		return;
 	}
 	device->status.token = SCCP_TOKEN_STATE_REJ;
 	device->skinny_type = deviceType;
 
 	if (device->checkACL(device) == FALSE) {
-		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&s->sin));
-		device->registrationState = SKINNY_DEVICE_RS_FAILED;
+		struct sockaddr_storage sas = { 0 };
+		sccp_session_getSas(s, &sas);
+		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&sas));
+	sccp_device_setRegistrationState(	device, SKINNY_DEVICE_RS_FAILED);
 		sccp_session_reject(s, "IP Not Authorized");
 		return;
 	}
@@ -315,7 +313,9 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 				char buff[19] = "";
 				char output[20] = "";
 
-				snprintf(command, SCCP_PATH_MAX, "%s %s %s %s", GLOB(token_fallback), deviceName, sccp_socket_stringify_host(&s->sin), skinny_devicetype2str(deviceType));
+				struct sockaddr_storage sas = { 0 };
+				sccp_session_getSas(s, &sas);
+				snprintf(command, SCCP_PATH_MAX, "%s %s %s %s", GLOB(token_fallback), deviceName, sccp_socket_stringify_host(&sas), skinny_devicetype2str(deviceType));
 				FILE *pp;
 
 				sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: (token_request), executing '%s'\n", deviceName, (char *) command);
@@ -350,7 +350,7 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 	/* some test to detect active calls */
 	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: serverPriority: %d, unknown: %d, active call? %s\n", deviceName, serverPriority, letohl(msg_in->data.RegisterTokenRequest.unknown), (letohl(msg_in->data.RegisterTokenRequest.unknown) & 0x6) ? "yes" : "no");
 
-	device->registrationState = SKINNY_DEVICE_RS_TOKEN;
+	sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_TOKEN);
 	if (sendAck) {
 		sccp_log_and((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Acknowledging phone token request\n", deviceName);
 		sccp_session_tokenAck(s);
@@ -403,7 +403,9 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a token, Instance: %d, Type: %s (%d)\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, deviceInstance, skinny_devicetype2str(deviceType), deviceType);
 
 	/* ip address range check */
-	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &s->sin)) {
+	struct sockaddr_storage sas = { 0 };
+	sccp_session_getSas(s, &sas);
+	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &sas)) {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address denied\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName);
 		sccp_session_reject(s, "IP not authorized");
 		return;
@@ -412,12 +414,8 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 	{
 		// Search for already known device-sessions
 		AUTO_RELEASE sccp_device_t *tmpdevice = sccp_device_find_byid(deviceName, TRUE);
-
-		if (tmpdevice) {
-			if (tmpdevice->session && tmpdevice->session != s) {
-				sccp_session_crossdevice_cleanup(s, tmpdevice->session, TRUE);
-				return;
-			}
+		if (sccp_session_check_crossdevice(s, tmpdevice)) {
+			return;
 		}
 	}
 
@@ -440,17 +438,18 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 		sccp_session_reject(s, "Device not Accepted");
 		return;
 	}
-	{
-		sccp_session_t *session = (sccp_session_t * const) s;						// discard const session
-		session->protocolType = SPCP_PROTOCOL;
-		sccp_session_addDevice(session, device);								// retaining device in session
+
+	sccp_session_setProtocol(s, SPCP_PROTOCOL);
+	if (sccp_session_retainDevice(s, device) < 0) {
+		pbx_log(LOG_WARNING, "%s: Signing over the session to new device failed. Giving up.\n", DEV_ID_LOG(device));
+		return;
 	}
 	device->status.token = SCCP_TOKEN_STATE_REJ;
 	device->skinny_type = deviceType;
 
 	if (device->checkACL(device) == FALSE) {
-		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&s->sin));
-		device->registrationState = SKINNY_DEVICE_RS_FAILED;
+		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&sas));
+		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 		sccp_session_tokenRejectSPCP(s, 60);
 		sccp_session_reject(s, "IP Not Authorized");
 		return;
@@ -458,7 +457,7 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 
 	if (device->session && device->session != s) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", device->id);
-		device->registrationState = SKINNY_DEVICE_RS_FAILED;
+		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 		sccp_session_tokenRejectSPCP(s, 60);
 		sccp_session_reject(s, "Crossover session not allowed");
 		device->session = sccp_session_reject(device->session, "Crossover session not allowed");
@@ -467,7 +466,7 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 
 	/* all checks passed, assign session to device */
 	// device->session = s;
-	device->registrationState = SKINNY_DEVICE_RS_TOKEN;
+	sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_TOKEN);
 	device->status.token = SCCP_TOKEN_STATE_ACK;
 
 	sccp_session_tokenAckSPCP(s, 65535);
@@ -483,10 +482,8 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
  * \callgraph
  * \callergraph
  */
-void sccp_handle_register(constSessionPtr session, devicePtr maybe_d, constMessagePtr msg_in)
+void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_in)
 {
-	sccp_session_t * const s = (sccp_session_t * const) session;						// discard const session
-
 	AUTO_RELEASE sccp_device_t *device = NULL;
 	char *phone_ipv4 = NULL, *phone_ipv6 = NULL;
 
@@ -524,12 +521,11 @@ void sccp_handle_register(constSessionPtr session, devicePtr maybe_d, constMessa
 		device = sccp_device_find_byid(deviceName, TRUE);
 	} else {
 		device = sccp_device_retain(maybe_d);
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: cached device configuration (state: %s)\n", DEV_ID_LOG(device), device ? skinny_registrationstate2str(device->registrationState) : "UNKNOWN");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: cached device configuration (state: %s)\n", DEV_ID_LOG(device), device ? skinny_registrationstate2str(sccp_device_getRegistrationState(device)) : "UNKNOWN");
 	}
 
-	if (device && device->session && device->session != s) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration (state: %s)! Fixing up to new session\n", DEV_ID_LOG(device), skinny_registrationstate2str(device->registrationState));
-		sccp_session_crossdevice_cleanup(s, device->session, FALSE);
+	if (sccp_session_check_crossdevice(s, device)) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration (state: %s)! Fixing up to new session\n", DEV_ID_LOG(device), skinny_registrationstate2str(sccp_device_getRegistrationState(device)));
 		return;												// come back later
 	}
 
@@ -549,20 +545,17 @@ void sccp_handle_register(constSessionPtr session, devicePtr maybe_d, constMessa
 	}
 
 	if (device) {
-		if (!s->device || s->device != device) {
-			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", DEV_ID_LOG(device), s->fds[0].fd, sccp_socket_stringify_addr(&s->sin));
-			sccp_session_addDevice(s, device);							// retaining device in session
-		}
-
-		if (!device || !device->session || !s->device) {
+		if (sccp_session_retainDevice(s, device) < 0) {
 			pbx_log(LOG_WARNING, "%s: Signing over the session to new device failed. Giving up.\n", DEV_ID_LOG(device));
 			return;
 		}
 
 		/* check ACLs for this device */
 		if (device->checkACL(device) == FALSE) {
-			pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", deviceName, sccp_socket_stringify_addr(&s->sin));
-			device->registrationState = SKINNY_DEVICE_RS_FAILED;
+			struct sockaddr_storage sas = { 0 };
+			sccp_session_getSas(s, &sas);
+			pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", deviceName, sccp_socket_stringify_addr(&sas));
+			sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 			sccp_session_reject(s, "IP Not Authorized");
 			return;
 		}
@@ -584,16 +577,16 @@ void sccp_handle_register(constSessionPtr session, devicePtr maybe_d, constMessa
 		memcpy(&sin6->sin6_addr, &msg_in->data.RegisterMessage.ipv6Address, sizeof(sin6->sin6_addr));
 		phone_ipv6 = strdupa(sccp_socket_stringify_host(&register_sas));
 	}
-	register_sas.ss_family = AF_INET;
-	struct sockaddr_in *sin = (struct sockaddr_in *) &register_sas;
 
-	memcpy(&sin->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, sizeof(sin->sin_addr));
-	phone_ipv4 = strdupa(sccp_socket_stringify_host(&register_sas));
-
-	/* get our IPv4 address */
+	/* set our IPv4 address */
 	{
-		sccp_socket_getOurAddressfor(&register_sas, &s->ourIPv4);
-		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Our IPv4 Address %s\n", deviceName, sccp_socket_stringify(&s->ourIPv4));
+		register_sas.ss_family = AF_INET;
+		struct sockaddr_in *sin = (struct sockaddr_in *) &register_sas;
+		memcpy(&sin->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, sizeof(sin->sin_addr));
+		phone_ipv4 = strdupa(sccp_socket_stringify_host(&register_sas));
+		sccp_session_setOurIP4Address(s, &register_sas);
+		//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Our IPv4 Address %s\n", deviceName, sccp_socket_stringify(&s->ourIPv4));
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Our IPv4 Address %s\n", deviceName, sccp_socket_stringify(&register_sas));
 	}
 	/* */
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: device load_info='%s', maxNumberOfLines='%d', supports dynamic_messages='%s', supports abbr_dial='%s'\n", deviceName, msg_in->data.RegisterMessage.loadInfo, maxNumberOfLines, (device->device_features & SKINNY_PHONE_FEATURES_DYNAMIC_MESSAGES) == 0 ? "no" : "yes", (device->device_features & SKINNY_PHONE_FEATURES_ABBRDIAL) == 0 ? "no" : "yes");
@@ -603,9 +596,8 @@ void sccp_handle_register(constSessionPtr session, devicePtr maybe_d, constMessa
 	/* auto NAT detection if NAT is not set as device configuration */
 	if (device->nat == SCCP_NAT_AUTO && GLOB(localaddr)) {
 		device->nat = SCCP_NAT_AUTO_OFF;
-		struct sockaddr_storage session_sas;
-
-		memcpy(&session_sas, &s->sin, sizeof(struct sockaddr_storage));
+		struct sockaddr_storage session_sas = { 0 };
+		sccp_session_getSas(s, &session_sas);
 		sccp_socket_ipv4_mapped(&session_sas, &session_sas);
 		char *session_ipv4 = strdupa(sccp_socket_stringify_host(&session_sas));
 
@@ -631,7 +623,7 @@ void sccp_handle_register(constSessionPtr session, devicePtr maybe_d, constMessa
 	device->skinny_type = deviceType;
 
 	// device->session = s;
-	s->lastKeepAlive = time(0);
+	sccp_session_resetLastKeepAlive(s);
 	device->mwilight = 0;
 	device->protocolversion = protocolVer;
 	device->status.token = SCCP_TOKEN_STATE_NOTOKEN;
@@ -646,8 +638,8 @@ void sccp_handle_register(constSessionPtr session, devicePtr maybe_d, constMessa
 		device->protocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
 	}
 
-	device->protocol = sccp_protocol_getDeviceProtocol(device, s->protocolType);
-	uint8_t ourMaxProtocolCapability = sccp_protocol_getMaxSupportedVersionNumber(s->protocolType);
+	device->protocol = sccp_protocol_getDeviceProtocol(device, sccp_session_getProtocol(s));
+	uint8_t ourMaxProtocolCapability = sccp_protocol_getMaxSupportedVersionNumber(sccp_session_getProtocol(s));
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "%s: Asked for our protocol capability (%d).\n", DEV_ID_LOG(device), ourMaxProtocolCapability);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "%s: Phone protocol capability : %d\n", DEV_ID_LOG(device), protocolVer);
@@ -987,28 +979,10 @@ void sccp_handle_AvailableLines(constSessionPtr s, devicePtr d, constMessagePtr 
  */
 void sccp_handle_accessorystatus_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
-	uint8_t id;
-	uint8_t status;
+	sccp_accessory_t accessory = letohl(msg_in->data.AccessoryStatusMessage.lel_AccessoryID);
+	sccp_accessorystate_t state = letohl(msg_in->data.AccessoryStatusMessage.lel_AccessoryStatus);
 
-	id = letohl(msg_in->data.AccessoryStatusMessage.lel_AccessoryID);
-	status = letohl(msg_in->data.AccessoryStatusMessage.lel_AccessoryStatus);
-
-	d->accessoryused = id;
-	d->accessorystatus = status;
-	switch (id) {
-		case 1:
-			d->accessoryStatus.headset = (status) ? TRUE : FALSE;
-			break;
-		case 2:
-			d->accessoryStatus.handset = (status) ? TRUE : FALSE;
-			break;
-		case 3:
-			d->accessoryStatus.speaker = (status) ? TRUE : FALSE;
-			// should we not also set d->state = SCCP_DEVICESTATE_OFFHOOK / SCCP_DEVICESTATE_ONHOOK
-			break;
-	}
-
-	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s'\n", DEV_ID_LOG(d), sccp_accessory2str(d->accessoryused), sccp_accessorystate2str(d->accessorystatus));
+	sccp_device_setAccessoryStatus(d, accessory, state);
 }
 
 /*!
@@ -1030,7 +1004,7 @@ void sccp_handle_unregister(constSessionPtr s, devicePtr d, constMessagePtr msg_
 	sccp_session_send2(s, msg_out);								// send directly to session, skipping device check
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
 	
-	sccp_socket_stop_sessionthread((sessionPtr)s, SKINNY_DEVICE_RS_NONE);	/* discard const session */
+	sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
 }
 
 /*!
@@ -1050,9 +1024,10 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 
 	sccp_msg_t *msg_out = NULL;
 
-	if (d->registrationState != SKINNY_DEVICE_RS_PROGRESS && d->registrationState != SKINNY_DEVICE_RS_OK) {
+	skinny_registrationstate_t registrationState=sccp_device_getRegistrationState(d);
+	if (registrationState != SKINNY_DEVICE_RS_PROGRESS && registrationState != SKINNY_DEVICE_RS_OK) {
 		pbx_log(LOG_WARNING, "%s: Received a button template request from unregistered device\n", d->id);
-		sccp_socket_stop_sessionthread( (sessionPtr) s, SKINNY_DEVICE_RS_FAILED);		/* discard const */
+		sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 		return;
 	}
 
@@ -1067,7 +1042,7 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 
 	if (!btn) {
 		pbx_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
-		sccp_socket_stop_sessionthread( (sessionPtr) s, SKINNY_DEVICE_RS_FAILED);		/* discard const */
+		sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 		return;
 	}
 
@@ -1148,11 +1123,8 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 
 	   int hdr_len = sizeof(dynamicR->data.ButtonTemplateMessageDynamic) - sizeof(dynamicR->data.ButtonTemplateMessageDynamic.dummy);
 	   int dummy_len = (lastUsedButtonPosition + 1) * sizeof(StationButtonDefinition);
-	   int padding = ((dummy_len + hdr_len) % 4);
 
-	   padding = (padding > 0) ? 4 - padding : 4;
-
-	   dynamicR = sccp_build_packet(ButtonTemplateMessage, hdr_len + dummy_len + padding);
+	   dynamicR = sccp_build_packet(ButtonTemplateMessage, hdr_len + dummy_len);
 	   dynamicR->data.ButtonTemplateMessageDynamic.lel_buttonOffset = 0;
 	   dynamicR->data.ButtonTemplateMessageDynamic.lel_buttonCount = htolel(buttonCount);
 	   dynamicR->data.ButtonTemplateMessageDynamic.lel_totalButtonCount = htolel(lastUsedButtonPosition + 1);
@@ -1188,9 +1160,9 @@ void sccp_handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg
 
 	REQ(msg_out, LineStatMessage);
 	if (!l && !k.valid) {
-		pbx_log(LOG_ERROR, "%s: requested a line configuration for unknown line/speeddial %d\n", DEV_ID_LOG(s->device), lineNumber);
+		pbx_log(LOG_ERROR, "%s: requested a line configuration for unknown line/speeddial %d\n", sccp_session_getDesignator(s), lineNumber);
 		msg_out->data.LineStatMessage.lel_lineNumber = htolel(lineNumber);
-		sccp_dev_send(s->device, msg_out);
+		sccp_dev_send(d, msg_out);
 		return;
 	}
 	msg_out->data.LineStatMessage.lel_lineNumber = htolel(lineNumber);
@@ -1236,17 +1208,17 @@ void sccp_handle_speed_dial_stat_req(constSessionPtr s, devicePtr d, constMessag
 
 	int wanted = letohl(msg_in->data.SpeedDialStatReqMessage.lel_speedDialNumber);
 
-	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Speed Dial Request for Button %d\n", DEV_ID_LOG(s->device), wanted);
+	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Speed Dial Request for Button %d\n", sccp_session_getDesignator(s), wanted);
 
 	REQ(msg_out, SpeedDialStatMessage);
 	msg_out->data.SpeedDialStatMessage.lel_speedDialNumber = htolel(wanted);
 
-	sccp_dev_speed_find_byindex(s->device, wanted, FALSE, &k);
+	sccp_dev_speed_find_byindex(d, wanted, FALSE, &k);
 	if (k.valid) {
 		d->copyStr2Locale(d, msg_out->data.SpeedDialStatMessage.speedDialDirNumber, k.ext, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDirNumber));
 		d->copyStr2Locale(d, msg_out->data.SpeedDialStatMessage.speedDialDisplayName, k.name, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDisplayName));
 	} else {
-		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: speeddial %d unknown\n", DEV_ID_LOG(s->device), wanted);
+		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: speeddial %d unknown\n", sccp_session_getDesignator(s), wanted);
 	}
 
 	sccp_dev_send(d, msg_out);
@@ -1851,11 +1823,11 @@ void sccp_handle_offhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 
 	/* we need this for callwaiting, hold, answer and stuff */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Taken Offhook\n", d->id);
-	d->state = SCCP_DEVICESTATE_OFFHOOK;
+	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_OFFHOOK);
 
 	/* checking for registered lines */
 	if (!d->configurationStatistic.numberOfLines) {
-		pbx_log(LOG_NOTICE, "No lines registered on %s for take OffHook\n", DEV_ID_LOG(s->device));
+		pbx_log(LOG_NOTICE, "No lines registered on %s for take OffHook\n", sccp_session_getDesignator(s));
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_LINES_REGISTERED, SCCP_DISPLAYSTATUS_TIMEOUT);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
 		return;
@@ -1930,7 +1902,7 @@ void sccp_handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	uint32_t callid = letohl(msg_in->data.OnHookMessage.lel_callReference);
 
 	/* we need this for callwaiting, hold, answer and stuff */
-	d->state = SCCP_DEVICESTATE_ONHOOK;
+	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_ONHOOK);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook\n", DEV_ID_LOG(d));
 
 	if (!(d->lineButtons.size > SCCP_FIRST_LINEINSTANCE)) {
@@ -1974,7 +1946,7 @@ void sccp_handle_headset(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	 */
 	uint32_t headsetmode = letohl(msg_in->data.HeadsetStatusMessage.lel_hsMode);
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(s->device), sccp_accessory2str(SCCP_ACCESSORY_HEADSET), sccp_accessorystate2str(headsetmode), 0);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", sccp_session_getDesignator(s), sccp_accessory2str(SCCP_ACCESSORY_HEADSET), sccp_accessorystate2str(headsetmode), 0);
 }
 
 /*!
@@ -2028,12 +2000,9 @@ void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMess
 	int arrayLen = ARRAY_LEN(softkeysmap);
 	int dummy_len = arrayLen * (sizeof(StationSoftKeyDefinition));
 	int hdr_len = sizeof(msg_in->data.SoftKeyTemplateResMessage);
-	int padding = ((dummy_len + hdr_len) % 4);
-
-	padding = (padding > 0) ? 4 - padding : 4;
 
 	/* create message */
-	msg_out = sccp_build_packet(SoftKeyTemplateResMessage, hdr_len + dummy_len + padding);
+	msg_out = sccp_build_packet(SoftKeyTemplateResMessage, hdr_len + dummy_len);
 	msg_out->data.SoftKeyTemplateResMessage.lel_softKeyOffset = 0;
 
 	for (i = 0; i < arrayLen; i++) {
@@ -2397,8 +2366,8 @@ void sccp_handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr m
 	callid 		= letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
 	lineInstance 	= letohl(msg_in->data.KeypadButtonMessage.lel_lineInstance);
 	
-	//pbx_log(LOG_NOTICE, "%s: lineInstance %d\n", DEV_ID_LOG(s->device), lineInstance);
-	//pbx_log(LOG_NOTICE, "%s: callid %d\n", DEV_ID_LOG(s->device), callid);
+	//pbx_log(LOG_NOTICE, "%s: lineInstance %d\n", sccp_session_getDesignator(s), lineInstance);
+	//pbx_log(LOG_NOTICE, "%s: callid %d\n", sccp_session_getDesignator(s), callid);
 
 	if (!d) {												// should never be possible, d should have been retained in calling function
 		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but device is not specified! Exiting\n", DEV_ID_LOG(d));
@@ -2638,7 +2607,7 @@ void sccp_handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr 
 		return;
 	}
 
-	if ((int)event - 1 < 0 && (int)event - 1 > ARRAY_LEN(softkeysmap)) {
+	if ((int)event - 1 < 0 && (int)event - 1 > (int)ARRAY_LEN(softkeysmap)) {
 		pbx_log(LOG_ERROR, "SCCP: Received Softkey Event is out of bounds of softkeysmap (0 < %ld < %ld). Exiting\n", (long)(letohl(msg_in->data.SoftKeyEventMessage.lel_softKeyEvent) - 1), (long)ARRAY_LEN(softkeysmap));
 		return;
 	}
@@ -2749,18 +2718,19 @@ void sccp_handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constM
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting Phone RTP/UDP Transmission (State: %s[%d])\n", d->id, sccp_channelstate2str(channel->state), channel->state);
 		sccp_channel_setDevice(channel, d);
 		if (channel->rtp.audio.rtp) {
+			//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (open_receive_channel_ack) phone sas: %s (nat:%s)\n", d->id, sccp_socket_stringify(&sas), d->nat >= SCCP_NAT_ON  ? "TRUE": "FALSE");
 			if (d->nat >= SCCP_NAT_ON) {
-				/* Rewrite ip-addres to the outside source address via which the phone connection (device->sin) */
+				/* Rewrite ip-addres to the outside source address using the phones connection (device->sin) */
 				uint16_t port = sccp_socket_getPort(&sas);
-
-				memcpy(&sas, &d->session->sin, sizeof(struct sockaddr_storage));
+				sccp_session_getSas(s, &sas);
+				
 				sccp_socket_ipv4_mapped(&sas, &sas);
 				sccp_socket_setPort(&sas, port);
 
 			}
+			//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (open_receive_channel_ack) update phone to sas: %s (nat:%s)\n", d->id, sccp_socket_stringify(&sas), d->nat >= SCCP_NAT_ON  ? "TRUE": "FALSE");
 			sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
 			sccp_channel_updateMediaTransmission(channel);
-			//sccp_channel_startMediaTransmission(channel);
 
 			/* update status */
 			channel->rtp.audio.writeState = SCCP_RTP_STATUS_ACTIVE;
@@ -2829,8 +2799,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constM
 		if (channel->rtp.video.rtp || sccp_rtp_createVideoServer(channel)) {
 			if (d->nat >= SCCP_NAT_ON) {
 				uint16_t port = sccp_socket_getPort(&sas);
-
-				memcpy(&sas, &d->session->sin, sizeof(struct sockaddr_storage));
+				sccp_session_getSas(s, &sas);
 				sccp_socket_ipv4_mapped(&sas, &sas);
 				sccp_socket_setPort(&sas, port);
 			}
@@ -3190,25 +3159,17 @@ void sccp_handle_ServerResMessage(constSessionPtr s, devicePtr d, constMessagePt
 {
 	sccp_msg_t *msg_out = NULL;
 
-	if (sccp_socket_is_any_addr(&s->ourip)) {
-		pbx_log(LOG_ERROR, "%s: Session IP Unspecified\n", DEV_ID_LOG(d));
+	if (!sccp_session_isValid(s) || sccp_session_check_crossdevice(s, d)) {
+		pbx_log(LOG_ERROR, "%s: Wrong Session or Session Changed mid flight (%s)\n", DEV_ID_LOG(d), sccp_session_getDesignator(s));
 		return;
 	}
-
-	if (s->device && s->device->session != s) {
-		pbx_log(LOG_ERROR, "%s: Wrong Session or Session Changed mid flight (%s)\n", DEV_ID_LOG(d), sccp_socket_stringify(&s->ourip));
-		return;
-	}
-
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending servers message (%s)\n", DEV_ID_LOG(d), sccp_socket_stringify(&s->ourip));
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending servers message (%s)\n", DEV_ID_LOG(d), sccp_session_getDesignator(s));
 
 	REQ(msg_out, ServerResMessage);
-	sccp_copy_string(msg_out->data.ServerResMessage.server[0].serverName, sccp_socket_stringify_addr(&s->ourip), sizeof(msg_out->data.ServerResMessage.server[0].serverName));
+	struct sockaddr_storage sas = { 0 };
+	sccp_session_getOurIP(d->session, &sas, 0);
+	sccp_copy_string(msg_out->data.ServerResMessage.server[0].serverName, sccp_socket_stringify_addr(&sas), sizeof(msg_out->data.ServerResMessage.server[0].serverName));
 	msg_out->data.ServerResMessage.serverListenPort[0] = sccp_socket_getPort(&GLOB(bindaddr));
-
-	if (s->ourip.ss_family == AF_INET) {
-		msg_out->data.ServerResMessage.serverIpAddr[0] = ((struct sockaddr_in *) &s->ourip)->sin_addr.s_addr;
-	}
 
 	sccp_dev_send(d, msg_out);
 }
@@ -3393,7 +3354,7 @@ void sccp_handle_services_stat_req(constSessionPtr s, devicePtr d, constMessageP
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got ServiceURL Status Request.  Index = %d\n", d->id, urlIndex);
 
-	if ((config = sccp_dev_serviceURL_find_byindex(s->device, urlIndex))) {
+	if ((config = sccp_dev_serviceURL_find_byindex(d, urlIndex))) {
 		/* \todo move ServiceURLStatMessage impl to sccp_protocol.c */
 		if (d->inuseprotocolversion < 7) {
 			REQ(msg_out, ServiceURLStatMessage);
@@ -3407,11 +3368,8 @@ void sccp_handle_services_stat_req(constSessionPtr s, devicePtr d, constMessageP
 			int dummy_len = URL_len + label_len;
 
 			int hdr_len = sizeof(msg_in->data.ServiceURLStatDynamicMessage) - 1;
-			int padding = ((dummy_len + hdr_len) % 4);
 
-			padding = (padding > 0) ? 4 - padding : 0;
-
-			msg_out = sccp_build_packet(ServiceURLStatDynamicMessage, hdr_len + dummy_len + padding);
+			msg_out = sccp_build_packet(ServiceURLStatDynamicMessage, hdr_len + dummy_len);
 			msg_out->data.ServiceURLStatDynamicMessage.lel_serviceURLIndex = htolel(urlIndex);
 
 			if (dummy_len) {
@@ -3429,7 +3387,7 @@ void sccp_handle_services_stat_req(constSessionPtr s, devicePtr d, constMessageP
 		}
 		sccp_dev_send(d, msg_out);
 	} else {
-		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: serviceURL %d not assigned\n", DEV_ID_LOG(s->device), urlIndex);
+		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: serviceURL %d not assigned\n", sccp_session_getDesignator(s), urlIndex);
 	}
 }
 
@@ -3632,7 +3590,7 @@ static void sccp_handle_updatecapabilities_dissect_customPictureFormat(constDevi
 	}
 }
 
-static void sccp_handle_updatecapabilities_dissect_levelPreference(constDevicePtr d, uint32_t levelPreferenceCount, const levelPreference_t levelPreference[MAX_LEVEL_PREFERENCE]) {
+static void sccp_handle_updatecapabilities_dissect_levelPreference(sccp_device_t *d, uint32_t levelPreferenceCount, const levelPreference_t levelPreference[MAX_LEVEL_PREFERENCE]) {
 	uint8_t level = 0;
 	if (levelPreferenceCount <= MAX_LEVEL_PREFERENCE) {
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7s Codec has %d levelPreferences:\n", DEV_ID_LOG(d), "", levelPreferenceCount);

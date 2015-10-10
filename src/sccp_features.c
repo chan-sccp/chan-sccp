@@ -202,7 +202,7 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
  * \return SCCP Channel
  *
  */
-void sccp_feat_handle_directed_pickup(linePtr l, uint8_t lineInstance, devicePtr d)
+void sccp_feat_handle_directed_pickup(constLinePtr l, uint8_t lineInstance, constDevicePtr d)
 {
 
 	if (!l || !d || sccp_strlen(d->id) < 3) {
@@ -262,9 +262,6 @@ void sccp_feat_handle_directed_pickup(linePtr l, uint8_t lineInstance, devicePtr
 		sccp_channel_openReceiveChannel(c);
 	}
 }
-#endif
-
-#ifdef CS_SCCP_PICKUP
 
 /*!
  * \brief Handle Direct Pickup of Extension
@@ -275,7 +272,7 @@ void sccp_feat_handle_directed_pickup(linePtr l, uint8_t lineInstance, devicePtr
  * \lock
  *  - asterisk channel
  */
-int sccp_feat_directed_pickup(channelPtr c, char *exten)
+int sccp_feat_directed_pickup(channelPtr c, const char *exten)
 {
 	int res = -1;
 
@@ -469,7 +466,7 @@ int sccp_feat_directed_pickup(channelPtr c, char *exten)
  *
  * \todo Fix callerid setting before calling ast_pickup_call
  */
-int sccp_feat_grouppickup(linePtr l, devicePtr d)
+int sccp_feat_grouppickup(constLinePtr l, constDevicePtr d)
 {
 	int res = 0;
 
@@ -502,13 +499,10 @@ int sccp_feat_grouppickup(linePtr l, devicePtr d)
 	}
 
 	sccp_channel_stop_schedule_digittimout(c);
-	char *pickupexten;
 
-	if (iPbx.getPickupExtension(channel, &pickupexten)) {
-		sccp_copy_string(c->dialedNumber, pickupexten, sizeof(pickupexten));
+	if (iPbx.getPickupExtension(channel, c->dialedNumber)) {
 		sccp_pbx_softswitch(c);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) finished\n", DEV_ID_LOG(d));
-		sccp_free(pickupexten);
 		res = 0;
 	}
 #else
@@ -540,12 +534,19 @@ int sccp_feat_grouppickup(linePtr l, devicePtr d)
 
 	/* change the call direction, we know it is a pickup, so it should be an inbound call */
 	c->calltype = SKINNY_CALLTYPE_INBOUND;
-	sccp_copy_string(c->callInfo.calledPartyNumber, c->callInfo.callingPartyNumber, sizeof(c->callInfo.calledPartyNumber));
-	sccp_copy_string(c->callInfo.calledPartyName, c->callInfo.callingPartyName, sizeof(c->callInfo.calledPartyName));
-	c->callInfo.calledParty_valid = 1;
-	c->callInfo.callingParty_valid = 0;
-	c->callInfo.callingPartyName[0] = '\0';
-	c->callInfo.callingPartyNumber[0] = '\0';
+
+	char cid_name[StationMaxNameSize] = {0};
+	char cid_num[StationMaxDirnumSize] = {0};
+	sccp_callinfo_getter(sccp_channel_getCallInfo(c), 
+		SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name,
+		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num,
+		SCCP_CALLINFO_KEY_SENTINEL);
+	sccp_callinfo_setter(sccp_channel_getCallInfo(c),
+		SCCP_CALLINFO_CALLEDPARTY_NAME, cid_name,
+		SCCP_CALLINFO_CALLEDPARTY_NUMBER, cid_num,
+		SCCP_CALLINFO_CALLINGPARTY_NAME, "",
+		SCCP_CALLINFO_CALLINGPARTY_NUMBER, "",
+		SCCP_CALLINFO_KEY_SENTINEL);
 	/* done, change call direction */
 
 	c->state = SCCP_CHANNELSTATE_PROCEED;
@@ -581,40 +582,6 @@ int sccp_feat_grouppickup(linePtr l, devicePtr d)
 	return res;
 }
 #endif														// CS_SCCP_PICKUP
-
-/*!
- * \brief Update Caller ID
- * \param c SCCP Channel
- *
- * \callgraph
- * \callergraph
- */
-void sccp_feat_updatecid(channelPtr c)
-{
-	char *name = NULL, *number = NULL;
-
-	if (!c || !c->owner) {
-		return;
-	}
-	if ((c->calltype != SKINNY_CALLTYPE_OUTBOUND) && (!iPbx.channel_is_bridged(c))) {
-		return;
-	}
-
-	if (iPbx.get_callerid_name) {
-		iPbx.get_callerid_name(c, &name);
-	}
-	if (iPbx.get_callerid_number) {
-		iPbx.get_callerid_number(c, &number);
-	}
-	sccp_channel_set_callingparty(c, name, number);
-
-	if (name) {
-		sccp_free(name);
-	}
-	if (number) {
-		sccp_free(number);
-	}
-}
 
 /*!
  * \brief Handle VoiceMail
@@ -684,7 +651,7 @@ void sccp_feat_voicemail(constDevicePtr d, uint8_t lineInstance)
  * \param l SCCP Line
  * \param c SCCP Channel
  */
-void sccp_feat_idivert(devicePtr d, linePtr l, channelPtr c)
+void sccp_feat_idivert(constDevicePtr d, constLinePtr l, constChannelPtr c)
 {
 	int instance;
 
@@ -799,7 +766,7 @@ void sccp_feat_handle_conference(constDevicePtr d, constLinePtr l, uint8_t lineI
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
  */
-void sccp_feat_conference_start(devicePtr device, linePtr l, const uint32_t lineInstance, channelPtr c)
+void sccp_feat_conference_start(constDevicePtr device, const uint32_t lineInstance, channelPtr c)
 {
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 
@@ -808,13 +775,13 @@ void sccp_feat_conference_start(devicePtr device, linePtr l, const uint32_t line
 		return;
 	}
 #ifdef CS_SCCP_CONFERENCE
-	sccp_channel_t *channel = NULL;
+	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	sccp_selectedchannel_t *selectedChannel = NULL;
 	boolean_t selectedFound = FALSE;
 	PBX_CHANNEL_TYPE *bridged_channel = NULL;
 
 	uint8_t num = sccp_device_numberOfChannels(d);
-	int instance = sccp_device_find_index_for_line(d, l->name);
+	//int instance = sccp_device_find_index_for_line(d, l->name);
 
 	sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp_device_numberOfChannels %d.\n", DEV_ID_LOG(d), num);
 
@@ -823,7 +790,7 @@ void sccp_feat_conference_start(devicePtr device, linePtr l, const uint32_t line
 
 		SCCP_LIST_LOCK(&d->selectedChannels);
 		SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
-			channel = selectedChannel->channel;
+			channel = sccp_channel_retain(selectedChannel->channel);
 			if (channel && channel != c) {
 				if (channel != d->active_channel && channel->state == SCCP_CHANNELSTATE_HOLD) {
 					if ((bridged_channel = iPbx.get_bridged_channel(channel->owner))) {
@@ -877,7 +844,7 @@ void sccp_feat_conference_start(devicePtr device, linePtr l, const uint32_t line
 		}
 		sccp_conference_start(d->conference);
 	} else {
-		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_CONFERENCE, SCCP_DISPLAYSTATUS_TIMEOUT);
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_CONFERENCE, SCCP_DISPLAYSTATUS_TIMEOUT);
 		pbx_log(LOG_NOTICE, "%s: conference could not be created\n", DEV_ID_LOG(d));
 	}
 #else
@@ -896,7 +863,7 @@ void sccp_feat_conference_start(devicePtr device, linePtr l, const uint32_t line
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
-void sccp_feat_join(devicePtr device, linePtr l, uint8_t lineInstance, channelPtr c)
+void sccp_feat_join(constDevicePtr device, constLinePtr l, uint8_t lineInstance, channelPtr c)
 {
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 
@@ -925,13 +892,13 @@ void sccp_feat_join(devicePtr device, linePtr l, uint8_t lineInstance, channelPt
 		sccp_conference_hold(d->conference);								// make sure conference is on hold
 		newparticipant_channel = d->active_channel;
 
-		SCCP_LIST_LOCK(&l->channels);
+		SCCP_LIST_LOCK(&((sccp_line_t *const)l)->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, moderator_channel, list) {
 			if (d->conference == moderator_channel->conference) {
 				break;
 			}
 		}
-		SCCP_LIST_UNLOCK(&l->channels);
+		SCCP_LIST_UNLOCK(&((sccp_line_t *const)l)->channels);
 
 		if (moderator_channel != newparticipant_channel) {
 			if (moderator_channel && newparticipant_channel) {
@@ -948,7 +915,7 @@ void sccp_feat_join(devicePtr device, linePtr l, uint8_t lineInstance, channelPt
 					pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(newparticipant_channel->owner));
 				}
 
-				sccp_feat_conflist(d, moderator_channel->line, 0, moderator_channel);
+				sccp_feat_conflist(d, lineInstance, moderator_channel);
 				sccp_conference_update(d->conference);
 			} else {
 				pbx_log(LOG_NOTICE, "%s: conference moderator could not be found on this phone\n", DEV_ID_LOG(d));
@@ -974,7 +941,7 @@ void sccp_feat_join(devicePtr device, linePtr l, uint8_t lineInstance, channelPt
  * \param c SCCP Channel
  * \return Success as int
  */
-void sccp_feat_conflist(devicePtr d, linePtr l, uint8_t lineInstance, channelPtr c)
+void sccp_feat_conflist(devicePtr d, uint8_t lineInstance, constChannelPtr c)
 {
 	if (d) {
 #ifdef CS_SCCP_CONFERENCE
@@ -1001,7 +968,7 @@ void sccp_feat_conflist(devicePtr d, linePtr l, uint8_t lineInstance, channelPtr
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
  */
-void sccp_feat_handle_meetme(linePtr l, uint8_t lineInstance, devicePtr d)
+void sccp_feat_handle_meetme(constLinePtr l, uint8_t lineInstance, constDevicePtr d)
 {
 	if (!l || !d || sccp_strlen_zero(d->id)) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
@@ -1069,8 +1036,8 @@ void sccp_feat_handle_meetme(linePtr l, uint8_t lineInstance, devicePtr d)
  * \brief SCCP Meetme Application Config Structure
  */
 static struct meetmeAppConfig {
-	char *appName;
-	char *defaultMeetmeOption;
+	const char *appName;
+	const char *defaultMeetmeOption;
 } meetmeApps[] = {
 	/* *INDENT-OFF* */
 	{"MeetMe", 	"qd"}, 
@@ -1109,7 +1076,7 @@ static void *sccp_feat_meetme_thread(void *data)
 
 #define SCCP_CONF_SPACER '|'
 #endif
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(data);
+	AUTO_RELEASE sccp_channel_t * c = sccp_channel_retain(data);
 
 	if (!c) {
 		pbx_log(LOG_NOTICE, "SCCP: no channel provided for meetme feature. exiting\n");
@@ -1136,7 +1103,7 @@ static void *sccp_feat_meetme_thread(void *data)
 
 	if (!app) {												// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
 		pbx_log(LOG_WARNING, "SCCP: No MeetMe application available!\n");
-		c = sccp_channel_retain(c);
+		//c = sccp_channel_retain(c);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 		sccp_channel_set_calledparty(c, SKINNY_DISP_CONFERENCE, c->dialedNumber);
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
@@ -1205,7 +1172,7 @@ void sccp_feat_meetme_start(channelPtr c)
  * \return SCCP Channel
  *
  */
-void sccp_feat_handle_barge(linePtr l, uint8_t lineInstance, devicePtr d)
+void sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr d)
 {
 
 	if (!l || !d || sccp_strlen_zero(d->id)) {
@@ -1271,7 +1238,7 @@ void sccp_feat_handle_barge(linePtr l, uint8_t lineInstance, devicePtr d)
  * \param exten Extention as char
  * \return Success as int
  */
-int sccp_feat_barge(channelPtr c, char *exten)
+int sccp_feat_barge(constChannelPtr c, const char * const exten)
 {
 	/* sorry but this is private code -FS */
 	if (!c) {
@@ -1298,7 +1265,7 @@ int sccp_feat_barge(channelPtr c, char *exten)
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
  */
-void sccp_feat_handle_cbarge(linePtr l, uint8_t lineInstance, devicePtr d)
+void sccp_feat_handle_cbarge(constLinePtr l, uint8_t lineInstance, constDevicePtr d)
 {
 
 	if (!l || !d || sccp_strlen(d->id) < 3) {
@@ -1366,7 +1333,7 @@ void sccp_feat_handle_cbarge(linePtr l, uint8_t lineInstance, devicePtr d)
  * \param conferencenum Conference Number as char
  * \return Success as int
  */
-int sccp_feat_cbarge(channelPtr c, char *conferencenum)
+int sccp_feat_cbarge(constChannelPtr c, const char * const conferencenum)
 {
 	/* sorry but this is private code -FS */
 	if (!c) {
@@ -1430,7 +1397,7 @@ void sccp_feat_adhocDial(constDevicePtr d, constLinePtr line)
  * \param featureType SCCP Feature Type
  * 
  */
-void sccp_feat_changed(constDevicePtr device, sccp_linedevices_t * linedevice, sccp_feature_type_t featureType)
+void sccp_feat_changed(constDevicePtr device, const sccp_linedevices_t * const linedevice, sccp_feature_type_t featureType)
 {
 	if (device) {
 		sccp_featButton_changed(device, featureType);
@@ -1446,54 +1413,13 @@ void sccp_feat_changed(constDevicePtr device, sccp_linedevices_t * linedevice, s
 }
 
 /*!
- * \brief Handler to Notify Channel State has Changed
- * \param device SCCP Device
- * \param channel SCCP Channel
- */
-void sccp_feat_channelstateChanged(devicePtr device, channelPtr channel)
-{
-	uint8_t state;
-
-	if (!channel || !device) {
-		return;
-	}
-	state = channel->state;
-	switch (state) {
-		case SCCP_CHANNELSTATE_CONNECTED:
-			/* We must update the status here. Not change it. (DD) */
-			/*
-			   if (device->monitorFeature.enabled && device->monitorFeature.status != channel->monitorEnabled) {
-			   sccp_feat_monitor(device, channel);
-			   }
-			 */
-			break;
-		case SCCP_CHANNELSTATE_DOWN:
-			// case SCCP_CHANNELSTATE_ONHOOK:
-			// case SCCP_CHANNELSTATE_BUSY:
-			// case SCCP_CHANNELSTATE_CONGESTION:
-			// case SCCP_CHANNELSTATE_INVALIDNUMBER:
-			// case SCCP_CHANNELSTATE_ZOMBIE:
-			/* \todo: In the event a call is terminated,
-			   the channel monitor should be turned off (it implicitly is by ending the call),
-			   and the feature button should be reset to disabled state. */
-			// device->monitorFeature.status = 0;
-			// sccp_feat_changed(device, NULL, SCCP_FEATURE_MONITOR);
-			break;
-
-		default:
-			break;
-	}
-
-}
-
-/*!
  * \brief Feature Monitor
  * \param device SCCP Device
  * \param no_line NULL pointer
  * \param no_lineInstance 0 Value
  * \param channel SCCP Channel
  */
-void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_lineInstance, channelPtr channel)
+void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_lineInstance, constChannelPtr channel)
 {
 	sccp_featureConfiguration_t *monitorFeature = (sccp_featureConfiguration_t *)&device->monitorFeature;		/* discard const */
 	if (!channel) {
