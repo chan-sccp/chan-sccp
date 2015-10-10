@@ -17,23 +17,25 @@
 #ifndef __SCCP_PROTOCOL_H
 #define __SCCP_PROTOCOL_H
 
-#if HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-#if HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <netinet/ip.h>
-#include <netinet/tcp.h>
-#endif
+//#if HAVE_SYS_SOCKET_H
+//#include <sys/socket.h>
+//#endif
+//#if HAVE_NETINET_IN_H
+//#include <netinet/in.h>
+//#include <netinet/in_systm.h>
+//#include <netinet/ip.h>
+//#include <netinet/tcp.h>
+//#endif
 
 #include "sccp_labels.h"
+#include "sccp_softkeys.h"
 
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW		3							/*!< At least we require protocol V.3 */
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH		22							/*!< We support up to protocol V.17 */
 
-#define SCCP_PROTOCOL					0
-#define SPCP_PROTOCOL					1
+#define UNKNOWN_PROTOCOL				0
+#define SCCP_PROTOCOL					1
+#define SPCP_PROTOCOL					2
 
 #define DEFAULT_SCCP_PORT				2000							/*!< SCCP uses port 2000. */
 #define DEFAULT_SCCP_SECURE_PORT			2443							/*!< SCCP secure port 2443. */
@@ -2153,7 +2155,7 @@ typedef union {
 				uint32_t lel_millisecondPacketSize;						/*!< Packet Size per MilliSecond */
 				uint32_t lel_payloadType;							/*!< Media_PayloadType */
 				uint32_t lel_precedenceValue;							/*!< Precedence Value */
-				uint32_t lel_ssValue;								/*!< Simple String Value */
+				uint32_t lel_ssValue;								/*!< Silence Suppression Value */
 				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
 				uint32_t lel_g723BitRate;							/*!< only used with G.723 payload */
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
@@ -2190,7 +2192,7 @@ typedef union {
 				uint32_t lel_millisecondPacketSize;						/*!< Packet Size per Millisecond */
 				uint32_t lel_payloadType;							/*!< Media_PayloadType */
 				uint32_t lel_precedenceValue;							/*!< Precedence Value */
-				uint32_t lel_ssValue;								/*!< Simple String Value */
+				uint32_t lel_ssValue;								/*!< Silence Suppression Value */
 				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
 				uint32_t lel_g723BitRate;							/*!< G.723 BitRate (only used with G.723 payload) */
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
@@ -2214,7 +2216,7 @@ typedef union {
 				uint32_t lel_millisecondPacketSize;						/*!< Packet Size per Millisecond */
 				uint32_t lel_payloadType;							/*!< Media_PayloadType */
 				uint32_t lel_precedenceValue;							/*!< Precedence Value */
-				uint32_t lel_ssValue;								/*!< Simple String Value */
+				uint32_t lel_ssValue;								/*!< Silence Suppression Value */
 				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
 				uint32_t lel_g723BitRate;							/*!< G.723 BitRate (only used with G.723 payload) */
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
@@ -2594,7 +2596,7 @@ typedef union {
 				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
 				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
 				uint32_t lel_payloadType;							/*!< Media_Payload Type */
-				uint32_t lel_vadValue;								/*!< VAD Value */
+				uint32_t lel_vadValue;								/*!< Voice Activity Detection Value */
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
@@ -2626,7 +2628,7 @@ typedef union {
 				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
 				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
 				uint32_t lel_payloadType;							/*!< Media_Payload Type */
-				uint32_t lel_vadValue;								/*!< VAD Value */
+				uint32_t lel_vadValue;								/*!< Voice Activity Detection Value */
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
@@ -2649,7 +2651,7 @@ typedef union {
 				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
 				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
 				uint32_t lel_payloadType;							/*!< Media_Payload Type */
-				uint32_t lel_vadValue;								/*!< VAD Value */
+				uint32_t lel_vadValue;								/*!< Voice Activity Detection Value */
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
@@ -3244,6 +3246,9 @@ typedef struct {
 	sccp_data_t data;											/*!< Message [SCCP Data] */
 } sccp_msg_t;
 
+#define messagePtr sccp_msg_t * const
+#define constMessagePtr const sccp_msg_t * const
+
 /* So in theory, a message should never be bigger than this.
  * If it is, we abort the connection */
 #define SCCP_MAX_PACKET sizeof(sccp_msg_t)
@@ -3443,9 +3448,6 @@ static const struct messagetype spcp_messagetypes[] = {
 	/* *INDENT-ON* */
 };
 
-#include "sccp_softkeys.h"
-#include "sccp_labels.h"
-
 static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_REDIAL,
 	SKINNY_LBL_NEWCALL,
@@ -3497,38 +3499,39 @@ typedef struct {
  * Connect Specific CallBack-Functions to Particular SCCP Protocol Versions
  */
 typedef struct {
-	const char *name;											/*! protocol name ( SCCP | SPCP ) */
+	//const char *name;											/*! protocol name ( SCCP | SPCP ) */
+	const uint16_t type;											/*! (SCCP_PROTOCOL | SPCP_PROTOCOL) */
 	const uint8_t version;											/*! the protocol version number */
 	const uint16_t registrationFinishedMessageId;								/*! use this message id to determine that the device is fully registered */
 
 	/* protocol callbacks */
 	/* send messages */
-	void (*const sendCallInfo) (const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance);
-	void (*const sendDialedNumber) (const sccp_device_t * device, const sccp_channel_t * channel);
-	void (*const sendRegisterAck) (const sccp_device_t * device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat);
-	void (*const displayPrompt) (const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message);
-	void (*const displayNotify) (const sccp_device_t * device, uint8_t timeout, const char *message);
-	void (*const displayPriNotify) (const sccp_device_t * device, uint8_t priority, uint8_t timeout, const char *message);
-	void (*const sendCallforwardMessage) (const sccp_device_t * device, const sccp_linedevices_t * linedevice);
-	void (*const sendUserToDeviceDataVersionMessage) (const sccp_device_t * device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority);
-	void (*const sendFastPictureUpdate) (const sccp_device_t * device, const sccp_channel_t * channel);
-	void (*const sendOpenReceiveChannel) (const sccp_device_t * device, const sccp_channel_t * channel);
-	void (*const sendOpenMultiMediaChannel) (const sccp_device_t * device, const sccp_channel_t * channel, uint32_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
-	void (*const sendStartMultiMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel, int payloadType, int bitRate);
-	void (*const sendStartMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel);
-	void (*const sendConnectionStatisticsReq) (const sccp_device_t * device, const sccp_channel_t * channel, uint8_t clear);
+	void (*const sendCallInfo) (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, constDevicePtr device);
+	void (*const sendDialedNumber) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const char dialedNumber[SCCP_MAX_EXTENSION]);
+	void (*const sendRegisterAck) (constDevicePtr device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat);
+	void (*const displayPrompt) (constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message);
+	void (*const displayNotify) (constDevicePtr device, uint8_t timeout, const char *message);
+	void (*const displayPriNotify) (constDevicePtr device, uint8_t priority, uint8_t timeout, const char *message);
+	void (*const sendCallforwardMessage) (constDevicePtr device, const sccp_linedevices_t * linedevice);
+	void (*const sendUserToDeviceDataVersionMessage) (constDevicePtr device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority);
+	void (*const sendFastPictureUpdate) (constDevicePtr device, constChannelPtr channel);
+	void (*const sendOpenReceiveChannel) (constDevicePtr device, constChannelPtr channel);
+	void (*const sendOpenMultiMediaChannel) (constDevicePtr device, constChannelPtr channel, uint32_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
+	void (*const sendStartMultiMediaTransmission) (constDevicePtr device, constChannelPtr channel, int payloadType, int bitRate);
+	void (*const sendStartMediaTransmission) (constDevicePtr device, constChannelPtr channel);
+	void (*const sendConnectionStatisticsReq) (constDevicePtr device, constChannelPtr channel, uint8_t clear);
 
 	/* parse received messages */
-	void (*const parseOpenReceiveChannelAck) (const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
-	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
-	void (*const parseStartMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
-	void (*const parseStartMultiMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
-	void (*const parseEnblocCall) (const sccp_msg_t * msg, char *calledParty, uint32_t * lineInstance);
+	void (*const parseOpenReceiveChannelAck) (constMessagePtr msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
+	void (*const parseOpenMultiMediaReceiveChannelAck) (constMessagePtr msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
+	void (*const parseStartMediaTransmissionAck) (constMessagePtr msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
+	void (*const parseStartMultiMediaTransmissionAck) (constMessagePtr msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
+	void (*const parseEnblocCall) (constMessagePtr msg, char *calledParty, uint32_t * lineInstance);
 } sccp_deviceProtocol_t;											/*!< SCCP Device Protocol Callback Structure */
 
 boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version);
 uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);
-const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(const sccp_device_t * device, int type);
+const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(constDevicePtr device, int type);
 const char *skinny_keymode2longstr(skinny_keymode_t keymode);
 #endif														/* __SCCP_PROTOCOL_H */
 

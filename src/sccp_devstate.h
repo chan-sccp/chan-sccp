@@ -13,8 +13,8 @@
 #ifndef SCCP_DEVSTATE_H_
 #define SCCP_DEVSTATE_H_
 
-#include <config.h>
-#include "common.h"
+//#include <config.h>
+//#include "common.h"
 
 /*!
  * \brief SCCP DevState Specifier Structure

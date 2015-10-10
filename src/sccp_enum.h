@@ -218,8 +218,8 @@ char *sccp_accessory_all_entries(void);
  */
 typedef enum sccp_accessorystate {
 	SCCP_ACCESSORYSTATE_NONE,
-	SCCP_ACCESSORYSTATE_ONHOOK,
 	SCCP_ACCESSORYSTATE_OFFHOOK,
+	SCCP_ACCESSORYSTATE_ONHOOK,
 	SCCP_ACCESSORYSTATE_SENTINEL
 } sccp_accessorystate_t;
 int sccp_accessorystate_exists(int sccp_accessorystate_int_value);
@@ -389,22 +389,22 @@ char *sccp_parkresult_all_entries(void);
 /* = End =========================================================================================                sccp_parkresult === */
 
 
-/* = Begin =======================================================================================          sccp_calleridpresence === */
+/* = Begin =======================================================================================     sccp_callerid_presentation === */
 
 /*
- * \brief enum sccp_calleridpresence
+ * \brief enum sccp_callerid_presentation
  */
-typedef enum sccp_calleridpresence {
-	CALLERID_PRESENCE_FORBIDDEN,
-	CALLERID_PRESENCE_ALLOWED,
-	SCCP_CALLERIDPRESENCE_SENTINEL
-} sccp_calleridpresence_t;
-int sccp_calleridpresence_exists(int sccp_calleridpresence_int_value);
-const char * sccp_calleridpresence2str(sccp_calleridpresence_t enum_value);
-sccp_calleridpresence_t sccp_calleridpresence_str2val(const char *lookup_str);
-int sccp_calleridpresence_str2intval(const char *lookup_str);
-char *sccp_calleridpresence_all_entries(void);
-/* = End =========================================================================================          sccp_calleridpresence === */
+typedef enum sccp_callerid_presentation {
+	CALLERID_PRESENTATION_FORBIDDEN,
+	CALLERID_PRESENTATION_ALLOWED,
+	SCCP_CALLERID_PRESENTATION_SENTINEL
+} sccp_callerid_presentation_t;
+int sccp_callerid_presentation_exists(int sccp_callerid_presentation_int_value);
+const char * sccp_callerid_presentation2str(sccp_callerid_presentation_t enum_value);
+sccp_callerid_presentation_t sccp_callerid_presentation_str2val(const char *lookup_str);
+int sccp_callerid_presentation_str2intval(const char *lookup_str);
+char *sccp_callerid_presentation_all_entries(void);
+/* = End =========================================================================================     sccp_callerid_presentation === */
 
 
 /* = Begin =======================================================================================                sccp_rtp_status === */
@@ -424,6 +424,25 @@ sccp_rtp_status_t sccp_rtp_status_str2val(const char *lookup_str);
 int sccp_rtp_status_str2intval(const char *lookup_str);
 char *sccp_rtp_status_all_entries(void);
 /* = End =========================================================================================                sccp_rtp_status === */
+
+
+/* = Begin =======================================================================================             sccp_sccp_rtp_type === */
+
+/*
+ * \brief enum sccp_sccp_rtp_type
+ */
+typedef enum sccp_sccp_rtp_type {
+	SCCP_RTP_AUDIO=0,
+	SCCP_RTP_VIDEO=1<<0,
+	SCCP_RTP_TEXT=1<<2,
+	SCCP_SCCP_RTP_TYPE_SENTINEL = 1<<3
+} sccp_sccp_rtp_type_t;
+int sccp_sccp_rtp_type_exists(int sccp_sccp_rtp_type_int_value);
+const char * sccp_sccp_rtp_type2str(int sccp_sccp_rtp_type_int_value);
+sccp_sccp_rtp_type_t sccp_sccp_rtp_type_str2val(const char *lookup_str);
+int sccp_sccp_rtp_type_str2intval(const char *lookup_str);
+char *sccp_sccp_rtp_type_all_entries(void);
+/* = End =========================================================================================             sccp_sccp_rtp_type === */
 
 
 /* = Begin =======================================================================================          sccp_extension_status === */
@@ -711,6 +730,42 @@ sccp_feature_type_t sccp_feature_type_str2val(const char *lookup_str);
 int sccp_feature_type_str2intval(const char *lookup_str);
 char *sccp_feature_type_all_entries(void);
 /* = End =========================================================================================              sccp_feature_type === */
+
+
+/* = Begin =======================================================================================              sccp_callinfo_key === */
+
+/*
+ * \brief enum sccp_callinfo_key
+ */
+typedef enum sccp_callinfo_key {
+	SCCP_CALLINFO_NONE=0,
+	SCCP_CALLINFO_CALLEDPARTY_NAME,
+	SCCP_CALLINFO_CALLEDPARTY_NUMBER,
+	SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL,
+	SCCP_CALLINFO_CALLINGPARTY_NAME,
+	SCCP_CALLINFO_CALLINGPARTY_NUMBER,
+	SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL,
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME,
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER,
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL,
+	SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME,
+	SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER,
+	SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME,
+	SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER,
+	SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL,
+	SCCP_CALLINFO_HUNT_PILOT_NAME,
+	SCCP_CALLINFO_HUNT_PILOT_NUMBER,
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON,
+	SCCP_CALLINFO_LAST_REDIRECT_REASON,
+	SCCP_CALLINFO_PRESENTATION,
+	SCCP_CALLINFO_KEY_SENTINEL
+} sccp_callinfo_key_t;
+int sccp_callinfo_key_exists(int sccp_callinfo_key_int_value);
+const char * sccp_callinfo_key2str(sccp_callinfo_key_t enum_value);
+sccp_callinfo_key_t sccp_callinfo_key_str2val(const char *lookup_str);
+int sccp_callinfo_key_str2intval(const char *lookup_str);
+char *sccp_callinfo_key_all_entries(void);
+/* = End =========================================================================================              sccp_callinfo_key === */
 
 
 /* = Begin =======================================================================================                skinny_lampmode === */
