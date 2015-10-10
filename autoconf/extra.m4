@@ -70,7 +70,6 @@ AC_DEFUN([CS_SETUP_HOST_PLATFORM],[
 		use_poll_compat=yes
 		no_libcap=yes
 		ostype=bsd
-		LDFLAGS_saved="$LDFLAGS_saved /usr/lib/"
 		;;
 	  *-*-netbsd*)
 	    	AC_DEFINE([BSD], 1, [using BSD])
@@ -230,9 +229,12 @@ dnl	])
 	AC_CHECK_HEADERS([sys/socket.h])
 	AC_CHECK_HEADERS([netinet/in.h])
 	AC_CHECK_HEADERS([pthread.h])
-	AC_CHECK_HEADERS([iconv.h])
-	AC_SEARCH_LIBS([iconv], [iconv], [
+	AC_CHECK_LIB([iconv], [iconv_open], [
 		LIBICONV="-liconv"
+		AC_CHECK_HEADERS([iconv.h])
+	], [
+		LIBICONV=""; 
+		AC_MSG_NOTICE([The correct iconv library could not be found. Maybe you need to provide LDFLAGS.])
 	])
 dnl	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcasecmp strchr strdup strerror strncasecmp strchr malloc calloc realloc free]) 
 	AC_CHECK_FUNCS([gethostbyname inet_ntoa mkdir]) 
@@ -561,13 +563,10 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wshadow dnl
 			], ax_warn_cflags_variable)
 		fi
-
 		AC_CHECK_HEADER([execinfo.h],
 			[
 				AC_DEFINE(HAVE_EXECINFO_H,1,[Found 'execinfo.h'])
-				AC_SEARCH_LIBS([backtrace_symbols], [execinfo], [
-					LIBEXECINFO="-lexecinfo"
-				])
+				AC_CHECK_LIB([execinfo], [backtrace_symbols], [LIBEXECINFO="-lexecinfo"], [LIBEXECINFO=""])
 				AC_CHECK_HEADER([dlfcn.h], [AC_DEFINE(HAVE_DLADDR_H, 1, [Found 'dlfcn.h'])])
 				AC_SEARCH_LIBS([bfd_openr], [bfd], [
 					AC_CHECK_HEADER([bfd.h], [AC_DEFINE(HAVE_BFD_H, 1, [Found 'bfd.h'])])

@@ -5872,19 +5872,19 @@ fi
 done
 
 		fi
-
 		ac_fn_c_check_header_mongrel "$LINENO" "execinfo.h" "ac_cv_header_execinfo_h" "$ac_includes_default"
 if test "x$ac_cv_header_execinfo_h" = xyes; then :
 
 
 $as_echo "#define HAVE_EXECINFO_H 1" >>confdefs.h
 
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing backtrace_symbols" >&5
-$as_echo_n "checking for library containing backtrace_symbols... " >&6; }
-if ${ac_cv_search_backtrace_symbols+:} false; then :
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for backtrace_symbols in -lexecinfo" >&5
+$as_echo_n "checking for backtrace_symbols in -lexecinfo... " >&6; }
+if ${ac_cv_lib_execinfo_backtrace_symbols+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_func_search_save_LIBS=$LIBS
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lexecinfo  $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -5903,38 +5903,21 @@ return backtrace_symbols ();
   return 0;
 }
 _ACEOF
-for ac_lib in '' execinfo; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_backtrace_symbols=$ac_res
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_execinfo_backtrace_symbols=yes
+else
+  ac_cv_lib_execinfo_backtrace_symbols=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_backtrace_symbols+:} false; then :
-  break
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
 fi
-done
-if ${ac_cv_search_backtrace_symbols+:} false; then :
-
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_execinfo_backtrace_symbols" >&5
+$as_echo "$ac_cv_lib_execinfo_backtrace_symbols" >&6; }
+if test "x$ac_cv_lib_execinfo_backtrace_symbols" = xyes; then :
+  LIBEXECINFO="-lexecinfo"
 else
-  ac_cv_search_backtrace_symbols=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_backtrace_symbols" >&5
-$as_echo "$ac_cv_search_backtrace_symbols" >&6; }
-ac_res=$ac_cv_search_backtrace_symbols
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-					LIBEXECINFO="-lexecinfo"
-
+  LIBEXECINFO=""
 fi
 
 				ac_fn_c_check_header_mongrel "$LINENO" "dlfcn.h" "ac_cv_header_dlfcn_h" "$ac_includes_default"
@@ -6302,7 +6285,6 @@ $as_echo "#define BSD 1" >>confdefs.h
 		use_poll_compat=yes
 		no_libcap=yes
 		ostype=bsd
-		LDFLAGS_saved="$LDFLAGS_saved /usr/lib/"
 		;;
 	  *-*-netbsd*)
 
@@ -17844,7 +17826,46 @@ fi
 
 done
 
-	for ac_header in iconv.h
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for iconv_open in -liconv" >&5
+$as_echo_n "checking for iconv_open in -liconv... " >&6; }
+if ${ac_cv_lib_iconv_iconv_open+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-liconv  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char iconv_open ();
+int
+main ()
+{
+return iconv_open ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_iconv_iconv_open=yes
+else
+  ac_cv_lib_iconv_iconv_open=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_iconv_iconv_open" >&5
+$as_echo "$ac_cv_lib_iconv_iconv_open" >&6; }
+if test "x$ac_cv_lib_iconv_iconv_open" = xyes; then :
+
+		LIBICONV="-liconv"
+		for ac_header in iconv.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "iconv.h" "ac_cv_header_iconv_h" "$ac_includes_default"
 if test "x$ac_cv_header_iconv_h" = xyes; then :
@@ -17856,61 +17877,12 @@ fi
 
 done
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing iconv" >&5
-$as_echo_n "checking for library containing iconv... " >&6; }
-if ${ac_cv_search_iconv+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char iconv ();
-int
-main ()
-{
-return iconv ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' iconv; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_iconv=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_iconv+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_iconv+:} false; then :
 
 else
-  ac_cv_search_iconv=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_iconv" >&5
-$as_echo "$ac_cv_search_iconv" >&6; }
-ac_res=$ac_cv_search_iconv
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
-		LIBICONV="-liconv"
+		LIBICONV="";
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: The correct iconv library could not be found. Maybe you need to provide LDFLAGS." >&5
+$as_echo "$as_me: The correct iconv library could not be found. Maybe you need to provide LDFLAGS." >&6;}
 
 fi
 
@@ -27993,9 +27965,9 @@ echo "             CPP : ${CPP}"
 if test -n "$HOST_CC" ; then
 echo "         HOST_CC : ${CC}"
 fi
-echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS} ${ax_warn_cflags_variable} ${LIBBFD}"
+echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS} ${ax_warn_cflags_variable}"
 echo "        CPPFLAGS : ${CPPFLAGS} ${AM_CPPFLAGS} ${PBX_CPPFLAGS} ${GDB_FLAGS} ${PTHREAD_CPPFLAGS} ${COVERAGE_CPPFLAGS} ${EVENT_CPPFLAGS} ${LIBEXSLT_CPPFLAGS} ${LIBCURL_CPPFLAGS}"
-echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS}"
+echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS} ${LIBBFD} ${LIBEXECINFO} ${LIBICONV}"
 echo "        PBX_TYPE : ${PBX_TYPE}"
 echo "      PBX_PREFIX : ${PBX_PREFIX}"
 echo "         PBX_ETC : ${PBX_ETC}"
