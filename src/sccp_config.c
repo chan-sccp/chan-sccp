@@ -390,7 +390,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 
 	// check if already set during first pass (multi_entry)
 	if (sccpConfigOption->offset > 0 && SetEntries != NULL && ((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
-		int y;
+		uint y;
 
 		for (y = 0; y < sccpConfigSegment->config_size; y++) {
 			if (sccpConfigOption->offset == sccpConfigSegment->config[y].offset) {
@@ -673,7 +673,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 	if (SCCP_CONFIG_CHANGE_INVALIDVALUE != changed || ((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {	/* Multi_Entry could give back invalid for one of it's values */
 		/* if SetEntries is provided lookup the first offset of the struct variable we have set and note the index in SetEntries by changing the boolean_t to TRUE */
 		if (sccpConfigOption->offset > 0 && SetEntries != NULL) {
-			int x;
+			uint x;
 
 			for (x = 0; x < sccpConfigSegment->config_size; x++) {
 				if (sccpConfigOption->offset == sccpConfigSegment->config[x].offset) {
@@ -715,7 +715,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 	boolean_t referralValueFound = FALSE;
 
 	// already Set
-	int skip_elem;
+	uint skip_elem;
 	boolean_t skip = FALSE;
 
 	/* find the defaultValue, first check the reference, if no reference is specified, us the local defaultValue */
@@ -1696,7 +1696,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 	char k_button[256];
 	char *splitter;
 	sccp_config_buttontype_t type = EMPTY;									/* default to empty */
-	int buttonindex = 0;
+	uint buttonindex = 0;
 	
 	SCCP_LIST_HEAD (, sccp_buttonconfig_t) * buttonconfigList = dest;
 	sccp_buttonconfig_t *config = NULL;
@@ -2121,7 +2121,7 @@ static void sccp_config_add_default_softkeyset(void)
 	// create tempory "default" variable set to create "default" softkeyset, if not defined in sccp.conf
 	PBX_VARIABLE_TYPE * softkeyset_root = NULL;
 	PBX_VARIABLE_TYPE * tmp = NULL;
-	int cur_elem;
+	uint cur_elem;
 	const SCCPConfigOption *sccpConfigOption = sccpSoftKeyConfigOptions;
 	for (cur_elem = 0; cur_elem < ARRAY_LEN(sccpSoftKeyConfigOptions); cur_elem++) {
 		if (sccpConfigOption[cur_elem].defaultValue != NULL) {
@@ -2264,8 +2264,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	uint8_t device_count = 0;
 	uint8_t line_count = 0;
 
-	sccp_line_t *l = NULL;
-	sccp_device_t *d = NULL;
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Loading Devices and Lines from config\n");
 
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Checking Reading Type\n");
@@ -2308,7 +2306,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				// However, do not look into realtime, since
 				// we might have been asked to create a device for realtime addition,
 				// thus causing an infinite loop / recursion.
-				d = sccp_device_find_byid(cat, FALSE);
+				AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(cat, FALSE);
 
 				/* create new device with default values */
 				if (!d) {
@@ -2325,7 +2323,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found device %d: %s\n", device_count, cat);
 				/* load saved settings from ast db */
 				sccp_config_restoreDeviceFeatureStatus(d);
-				d = sccp_device_release(d);
 			}
 		} else if (!strcasecmp(utype, "line")) {
 			/* check minimum requirements for a line */
@@ -2336,19 +2333,17 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			line_count++;
 
 			v = ast_variable_browse(GLOB(cfg), cat);
+			AUTO_RELEASE sccp_line_t *l = sccp_line_find_byname(cat, FALSE);
 
 			/* check if we have this line already */
 			//    SCCP_RWLIST_WRLOCK(&GLOB(lines));
-			if ((l = sccp_line_find_byname(cat, FALSE))) {
+			if (l) {
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found line %d: %s, do update\n", line_count, cat);
 				sccp_config_buildLine(l, v, cat, FALSE);
-			} else {
-				if ((l = sccp_line_create(cat))) {
-					sccp_config_buildLine(l, v, cat, FALSE);
-					sccp_line_addToGlobals(l);						/* may find another line instance create by another thread, in that case the newly created line is going to be dropped when l is released */
-				}
+			} else if ((l = sccp_line_create(cat))) {
+				sccp_config_buildLine(l, v, cat, FALSE);
+				sccp_line_addToGlobals(l);						/* may find another line instance create by another thread, in that case the newly created line is going to be dropped when l is released */
 			}
-			l = l ? sccp_line_release(l) : NULL;							/* release either found / or newly created line. will remain retained in glob(lines) anyway. */
 			//    SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 		} else if (!strcasecmp(utype, "softkeyset")) {
@@ -2367,14 +2362,14 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 #ifdef CS_SCCP_REALTIME
 	/* reload realtime lines */
-	sccp_configurationchange_t res;
-
-	sccp_line_t *line = NULL;
+	sccp_configurationchange_t res = SCCP_CONFIG_NOUPDATENEEDED;
 	PBX_VARIABLE_TYPE *rv = NULL;
-
+	
+	sccp_line_t *l = NULL;
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-		if ((line = sccp_line_retain(l))) {
+		AUTO_RELEASE sccp_line_t *line = sccp_line_retain(l);
+		if (line) {
 			do {
 				if (line->realtime == TRUE && line != GLOB(hotline)->line) {
 					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", line->name);
@@ -2397,17 +2392,16 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 					pbx_variables_destroy(rv);
 				}
 			} while (0);
-			line = sccp_line_release(line);
 		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	/* finished realtime line reload */
 
-	sccp_device_t *device;
-
+	sccp_device_t *d = NULL;
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		if ((device = sccp_device_retain(d))) {
+		AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
+		if (device) {
 			do {
 				if (device->realtime == TRUE) {
 					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", device->id);
@@ -2430,7 +2424,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 					pbx_variables_destroy(rv);
 				}
 			} while (0);
-			device = sccp_device_release(device);
 		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
@@ -2438,12 +2431,11 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 	if (GLOB(reload_in_progress) && GLOB(pendingUpdate)) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Global param changed needing restart ->  Restart all device\n");
-		sccp_device_t *device;
 
 		SCCP_RWLIST_WRLOCK(&GLOB(devices));
-		SCCP_RWLIST_TRAVERSE(&GLOB(devices), device, list) {
-			if (!device->pendingDelete && !device->pendingUpdate) {
-				device->pendingUpdate = 1;
+		SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+			if (!d->pendingDelete && !d->pendingUpdate) {
+				d->pendingUpdate = 1;
 			}
 		}
 		SCCP_RWLIST_UNLOCK(&GLOB(devices));
@@ -2871,9 +2863,9 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	int timeout = 0;
 
 	/* Message */
-	if (PBX(feature_getFromDatabase) ("SCCP/message", "text", buffer, sizeof(buffer))) {
+	if (iPbx.feature_getFromDatabase("SCCP/message", "text", buffer, sizeof(buffer))) {
 		if (!sccp_strlen_zero(buffer)) {
-			if (PBX(feature_getFromDatabase) && PBX(feature_getFromDatabase) ("SCCP/message", "timeout", timebuffer, sizeof(timebuffer))) {
+			if (iPbx.feature_getFromDatabase && iPbx.feature_getFromDatabase("SCCP/message", "timeout", timebuffer, sizeof(timebuffer))) {
 				sscanf(timebuffer, "%i", &timeout);
 			}
 			if (timeout) {
@@ -2892,11 +2884,11 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	SCCP_LIST_LOCK(&device->devstateSpecifiers);
 	SCCP_LIST_TRAVERSE(&device->devstateSpecifiers, specifier, list) {
 		/* Check if there is already a devicestate entry */
-		if (PBX(feature_getFromDatabase) (devstate_db_family, specifier->specifier, buf, sizeof(buf))) {
+		if (iPbx.feature_getFromDatabase(devstate_db_family, specifier->specifier, buf, sizeof(buf))) {
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Found Existing Custom Devicestate Entry: %s, state: %s\n", device->id, specifier->specifier, buf);
 		} else {
 			/* If not present, add a new devicestate entry. Default: NOT_INUSE */
-			PBX(feature_addToDatabase) (devstate_db_family, specifier->specifier, "NOT_INUSE");
+			iPbx.feature_addToDatabase(devstate_db_family, specifier->specifier, "NOT_INUSE");
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Initialized Devicestate Entry: %s\n", device->id, specifier->specifier);
 		}
 		/* Register as generic hint watcher */
@@ -3074,10 +3066,10 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 {
 	const SCCPConfigSegment *sccpConfigSegment = NULL;
 	int total = 0;
-	int i;
+	uint i;
 	const char *id = astman_get_header(m, "ActionID");
 	const char *req_segment = astman_get_header(m, "Segment");
-	int comma = 0;
+	uint comma = 0;
 
 	if (sccp_strlen_zero(req_segment)) {										// return all segments
 		int sccp_config_revision = 0;
@@ -3193,7 +3185,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 				astman_append(s, "\"Segment\":\"%s\",", sccpConfigSegment->name);
 				astman_append(s, "\"Options\":[");
 				uint8_t cur_elem = 0;
-				int comma = 0;
+				comma = 0;
 
 				for (cur_elem = 0; cur_elem < sccpConfigSegment->config_size; cur_elem++) {
 					if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_IGNORE) != SCCP_CONFIG_FLAG_IGNORE) {
@@ -3400,7 +3392,7 @@ int sccp_config_generate(char *filename, int configType)
 								}
 							}
 					    	} else {
-							snprintf(name_and_value, sizeof(name_and_value), "%s = %s", config[sccp_option].name, sccp_strlen_zero(config[sccp_option].defaultValue) ? "\"\"" : config[sccp_option].defaultValue);
+							snprintf(name_and_value, sizeof(name_and_value), "%s%s = %s", !sccp_strlen_zero(config[sccp_option].defaultValue) ? ";" : "", config[sccp_option].name, sccp_strlen_zero(config[sccp_option].defaultValue) ? "\"\"" : config[sccp_option].defaultValue);
 							fprintf(f, "%s", name_and_value);
 					    	}
 						linelen = (int) strlen(name_and_value);

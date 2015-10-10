@@ -30,7 +30,7 @@
 #endif
 
 void sccp_dump_packet(unsigned char *messagebuffer, int len);
-void sccp_dump_msg(sccp_msg_t * msg);
+void sccp_dump_msg(const sccp_msg_t * const msg);
 int sccp_addons_taps(sccp_device_t * d);
 void sccp_addons_clear(sccp_device_t * d);
 void sccp_safe_sleep(int ms);
@@ -113,13 +113,13 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
 #endif
 
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr);
-sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage *sin);
+//sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage *sin);
 
 sccp_feature_type_t sccp_featureStr2featureID(const char *str);
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *SubscriptionIdNum);
 sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32_t type, const char *dirNum, const char *fqdn, const char *lineDisplayName);
 
-int socket_equals(struct sockaddr_storage *s0, struct sockaddr_storage *s1);
+int socket_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1);
 gcc_inline size_t sccp_strlen(const char *data);
 gcc_inline boolean_t sccp_strlen_zero(const char *data);
 gcc_inline boolean_t sccp_strequals(const char *data1, const char *data2);
@@ -148,7 +148,7 @@ void sccp_utils_register_tests(void);
 void sccp_utils_unregister_tests(void);
 #endif
 #ifdef DEBUG
-void sccp_do_backtrace();
+void sccp_do_backtrace(void);
 #endif
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

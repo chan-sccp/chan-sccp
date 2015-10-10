@@ -1,4 +1,3 @@
-dnl FILE: chan-sccp-b configure file
 dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
 dnl CREATED BY: Created by Diederik de Groot
 dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
@@ -21,6 +20,7 @@ LDFLAGS_saved="${LDFLAGS}"
 dnl AC_USE_SYSTEM_EXTENSIONS must be called before any macros that run
 dnl the compiler (like AC_PROG_LIBTOOL) to avoid autoconf errors.
 AC_USE_SYSTEM_EXTENSIONS
+
 AC_CONFIG_MACRO_DIR([autoconf])
 
 dnl cross-compile macros
@@ -67,7 +67,7 @@ AX_CHECK_ALIGNED_ACCESS_REQUIRED	dnl sparc64 alignment required
 AX_CHECK_UNALIGNED_BUSERROR		dnl sparc64 unaligned access
 CS_GET_VERSION([.])
 
-AC_PROG_CXX
+dnl AC_PROG_CXX
 
 CONFIGURE_PART([Checking host platform:])
 CS_SETUP_HOST_PLATFORM
@@ -90,7 +90,6 @@ CONFIGURE_PART([Checking for Required Libraries:])
 CS_FIND_LIBRARIES
 CS_CHECK_TYPES
 CS_CHECK_SVN2CL
-dnl CS_CHECK_LIBBFD
 CS_WITH_CHANGELOG_OLDEST
 
 CONFIGURE_PART([Checking Configure Options:])
@@ -151,7 +150,7 @@ echo "         HOST_CC : ${CC}"
 fi
 echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS} ${ax_warn_cflags_variable} ${LIBBFD}"
 echo "        CPPFLAGS : ${CPPFLAGS} ${AM_CPPFLAGS} ${PBX_CPPFLAGS} ${GDB_FLAGS} ${PTHREAD_CPPFLAGS} ${COVERAGE_CPPFLAGS} ${EVENT_CPPFLAGS} ${LIBEXSLT_CPPFLAGS} ${LIBCURL_CPPFLAGS}"
-echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS} ${LIBBFD}"
+echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS}"
 echo "        PBX_TYPE : ${PBX_TYPE}"
 echo "      PBX_PREFIX : ${PBX_PREFIX}"
 echo "         PBX_ETC : ${PBX_ETC}"

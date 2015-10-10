@@ -21,7 +21,7 @@ before_install:
      echo "deb http://security.ubuntu.com/ubuntu/ ${REPOS}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list;
      echo "deb http://archive.canonical.com/ubuntu/ ${REPOS} partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
      sudo apt-get update -qq;
-     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev asterisk asterisk-dev asterisk-config asterisk-modules;
+     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev asterisk asterisk-dev asterisk-config asterisk-modules binutils.dev libc6-dev;
    else
      echo "deb http://archive.ubuntu.com/ubuntu trusty main restricted universe multiverse"              | sudo tee -a /etc/apt/sources.list.d/trusty.list;
      echo "deb http://archive.ubuntu.com/ubuntu trusty-updates main restricted universe multiverse"      | sudo tee -a /etc/apt/sources.list.d/trusty.list;
@@ -31,7 +31,7 @@ before_install:
      echo "deb http://ppa.launchpad.net/jan-hoffmann/asterisk13/ubuntu trusty main"                      | sudo tee -a /etc/apt/sources.list.d/asterisk13.list;
      echo "deb-src http://ppa.launchpad.net/jan-hoffmann/asterisk13/ubuntu trusty main"			 | sudo tee -a /etc/apt/sources.list.d/asterisk13.list;
      sudo apt-get update -qq;
-     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 libpjsua2-2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg;
+     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 libpjsua2-2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg binutils.dev libc6-dev;
    fi
 
 # Prepare Configure Script
