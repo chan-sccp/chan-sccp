@@ -1,6 +1,6 @@
-# generated automatically by aclocal 1.15 -*- Autoconf -*-
+# generated automatically by aclocal 1.14.1 -*- Autoconf -*-
 
-# Copyright (C) 1996-2014 Free Software Foundation, Inc.
+# Copyright (C) 1996-2013 Free Software Foundation, Inc.
 
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -22,31 +22,33 @@ To do so, use the procedure documented by the package, typically 'autoreconf'.])
 
 # Portability macros for glibc argz.                    -*- Autoconf -*-
 #
-#   Copyright (C) 2004-2007, 2011-2015 Free Software Foundation, Inc.
+#   Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
 #   Written by Gary V. Vaughan <gary@gnu.org>
 #
 # This file is free software; the Free Software Foundation gives
 # unlimited permission to copy and/or distribute it, with or without
 # modifications, as long as this notice is preserved.
 
-# serial 1 ltargz.m4
+# serial 5 argz.m4
 
-AC_DEFUN([LT_FUNC_ARGZ], [
+AC_DEFUN([gl_FUNC_ARGZ],
+[gl_PREREQ_ARGZ
+
 AC_CHECK_HEADERS([argz.h], [], [], [AC_INCLUDES_DEFAULT])
 
 AC_CHECK_TYPES([error_t],
   [],
   [AC_DEFINE([error_t], [int],
-   [Define to a type to use for 'error_t' if it is not otherwise available.])
+   [Define to a type to use for `error_t' if it is not otherwise available.])
    AC_DEFINE([__error_t_defined], [1], [Define so that glibc/gnulib argp.h
     does not typedef error_t.])],
   [#if defined(HAVE_ARGZ_H)
 #  include <argz.h>
 #endif])
 
-LT_ARGZ_H=
+ARGZ_H=
 AC_CHECK_FUNCS([argz_add argz_append argz_count argz_create_sep argz_insert \
-	argz_next argz_stringify], [], [LT_ARGZ_H=lt__argz.h; AC_LIBOBJ([lt__argz])])
+	argz_next argz_stringify], [], [ARGZ_H=argz.h; AC_LIBOBJ([argz])])
 
 dnl if have system argz functions, allow forced use of
 dnl libltdl-supplied implementation (and default to do so
@@ -57,14 +59,14 @@ dnl     provides them, yet they are broken, is cygwin
 dnl     releases prior to 16-Mar-2007 (1.5.24 and earlier)
 dnl So, it's more straightforward simply to special case
 dnl this for known bad systems.
-AS_IF([test -z "$LT_ARGZ_H"],
+AS_IF([test -z "$ARGZ_H"],
     [AC_CACHE_CHECK(
         [if argz actually works],
         [lt_cv_sys_argz_works],
         [[case $host_os in #(
 	 *cygwin*)
 	   lt_cv_sys_argz_works=no
-	   if test no != "$cross_compiling"; then
+	   if test "$cross_compiling" != no; then
 	     lt_cv_sys_argz_works="guessing no"
 	   else
 	     lt_sed_extract_leading_digits='s/^\([0-9\.]*\).*/\1/'
@@ -75,36 +77,39 @@ AS_IF([test -z "$LT_ARGZ_H"],
 	     lt_os_major=${2-0}
 	     lt_os_minor=${3-0}
 	     lt_os_micro=${4-0}
-	     if test 1 -lt "$lt_os_major" \
-		|| { test 1 -eq "$lt_os_major" \
-		  && { test 5 -lt "$lt_os_minor" \
-		    || { test 5 -eq "$lt_os_minor" \
-		      && test 24 -lt "$lt_os_micro"; }; }; }; then
+	     if test "$lt_os_major" -gt 1 \
+		|| { test "$lt_os_major" -eq 1 \
+		  && { test "$lt_os_minor" -gt 5 \
+		    || { test "$lt_os_minor" -eq 5 \
+		      && test "$lt_os_micro" -gt 24; }; }; }; then
 	       lt_cv_sys_argz_works=yes
 	     fi
 	   fi
 	   ;; #(
 	 *) lt_cv_sys_argz_works=yes ;;
 	 esac]])
-     AS_IF([test yes = "$lt_cv_sys_argz_works"],
+     AS_IF([test "$lt_cv_sys_argz_works" = yes],
         [AC_DEFINE([HAVE_WORKING_ARGZ], 1,
                    [This value is set to 1 to indicate that the system argz facility works])],
-        [LT_ARGZ_H=lt__argz.h
-        AC_LIBOBJ([lt__argz])])])
+        [ARGZ_H=argz.h
+        AC_LIBOBJ([argz])])])
 
-AC_SUBST([LT_ARGZ_H])
+AC_SUBST([ARGZ_H])
 ])
+
+# Prerequisites of lib/argz.c.
+AC_DEFUN([gl_PREREQ_ARGZ], [:])
 
 # ltdl.m4 - Configure ltdl for the target system. -*-Autoconf-*-
 #
-#   Copyright (C) 1999-2008, 2011-2015 Free Software Foundation, Inc.
+#   Copyright (C) 1999-2006, 2007, 2008, 2011 Free Software Foundation, Inc.
 #   Written by Thomas Tanner, 1999
 #
 # This file is free software; the Free Software Foundation gives
 # unlimited permission to copy and/or distribute it, with or without
 # modifications, as long as this notice is preserved.
 
-# serial 20 LTDL_INIT
+# serial 18 LTDL_INIT
 
 # LT_CONFIG_LTDL_DIR(DIRECTORY, [LTDL-MODE])
 # ------------------------------------------
@@ -121,14 +126,14 @@ m4_defun([_LT_CONFIG_LTDL_DIR],
 [dnl remove trailing slashes
 m4_pushdef([_ARG_DIR], m4_bpatsubst([$1], [/*$]))
 m4_case(_LTDL_DIR,
-	[], [dnl only set lt_ltdl_dir if _ARG_DIR is not simply '.'
+	[], [dnl only set lt_ltdl_dir if _ARG_DIR is not simply `.'
 	     m4_if(_ARG_DIR, [.],
 	             [],
 		 [m4_define([_LTDL_DIR], _ARG_DIR)
 	          _LT_SHELL_INIT([lt_ltdl_dir=']_ARG_DIR['])])],
     [m4_if(_ARG_DIR, _LTDL_DIR,
 	    [],
-	[m4_fatal([multiple libltdl directories: ']_LTDL_DIR[', ']_ARG_DIR['])])])
+	[m4_fatal([multiple libltdl directories: `]_LTDL_DIR[', `]_ARG_DIR['])])])
 m4_popdef([_ARG_DIR])
 ])# _LT_CONFIG_LTDL_DIR
 
@@ -138,16 +143,16 @@ m4_define([_LTDL_DIR], [])
 
 # _LT_BUILD_PREFIX
 # ----------------
-# If Autoconf is new enough, expand to '$(top_build_prefix)', otherwise
-# to '$(top_builddir)/'.
+# If Autoconf is new enough, expand to `${top_build_prefix}', otherwise
+# to `${top_builddir}/'.
 m4_define([_LT_BUILD_PREFIX],
 [m4_ifdef([AC_AUTOCONF_VERSION],
    [m4_if(m4_version_compare(m4_defn([AC_AUTOCONF_VERSION]), [2.62]),
 	  [-1], [m4_ifdef([_AC_HAVE_TOP_BUILD_PREFIX],
-			  [$(top_build_prefix)],
-			  [$(top_builddir)/])],
-	  [$(top_build_prefix)])],
-   [$(top_builddir)/])[]dnl
+			  [${top_build_prefix}],
+			  [${top_builddir}/])],
+	  [${top_build_prefix}])],
+   [${top_builddir}/])[]dnl
 ])
 
 
@@ -157,8 +162,8 @@ m4_define([_LT_BUILD_PREFIX],
 # LTDLINCL to the include flags for the libltdl header and adds
 # --enable-ltdl-convenience to the configure arguments.  Note that
 # AC_CONFIG_SUBDIRS is not called here.  LIBLTDL will be prefixed with
-# '$(top_build_prefix)' if available, otherwise with '$(top_builddir)/',
-# and LTDLINCL will be prefixed with '$(top_srcdir)/' (note the single
+# '${top_build_prefix}' if available, otherwise with '${top_builddir}/',
+# and LTDLINCL will be prefixed with '${top_srcdir}/' (note the single
 # quotes!).  If your package is not flat and you're not using automake,
 # define top_build_prefix, top_builddir, and top_srcdir appropriately
 # in your Makefiles.
@@ -194,14 +199,14 @@ m4_defun([_LTDL_CONVENIENCE],
 esac
 LIBLTDL='_LT_BUILD_PREFIX'"${lt_ltdl_dir+$lt_ltdl_dir/}libltdlc.la"
 LTDLDEPS=$LIBLTDL
-LTDLINCL='-I$(top_srcdir)'"${lt_ltdl_dir+/$lt_ltdl_dir}"
+LTDLINCL='-I${top_srcdir}'"${lt_ltdl_dir+/$lt_ltdl_dir}"
 
 AC_SUBST([LIBLTDL])
 AC_SUBST([LTDLDEPS])
 AC_SUBST([LTDLINCL])
 
 # For backwards non-gettext consistent compatibility...
-INCLTDL=$LTDLINCL
+INCLTDL="$LTDLINCL"
 AC_SUBST([INCLTDL])
 ])# _LTDL_CONVENIENCE
 
@@ -212,9 +217,9 @@ AC_SUBST([INCLTDL])
 # and LTDLINCL to the include flags for the libltdl header and adds
 # --enable-ltdl-install to the configure arguments.  Note that
 # AC_CONFIG_SUBDIRS is not called from here.  If an installed libltdl
-# is not found, LIBLTDL will be prefixed with '$(top_build_prefix)' if
-# available, otherwise with '$(top_builddir)/', and LTDLINCL will be
-# prefixed with '$(top_srcdir)/' (note the single quotes!).  If your
+# is not found, LIBLTDL will be prefixed with '${top_build_prefix}' if
+# available, otherwise with '${top_builddir}/', and LTDLINCL will be
+# prefixed with '${top_srcdir}/' (note the single quotes!).  If your
 # package is not flat and you're not using automake, define top_build_prefix,
 # top_builddir, and top_srcdir appropriately in your Makefiles.
 # In the future, this macro may have to be called after LT_INIT.
@@ -243,18 +248,18 @@ dnl AC_DEFUN([AC_LIBLTDL_INSTALLABLE], [])
 # -----------------
 # Code shared by LTDL_INSTALLABLE and LTDL_INIT([installable]).
 m4_defun([_LTDL_INSTALLABLE],
-[if test -f "$prefix/lib/libltdl.la"; then
-  lt_save_LDFLAGS=$LDFLAGS
+[if test -f $prefix/lib/libltdl.la; then
+  lt_save_LDFLAGS="$LDFLAGS"
   LDFLAGS="-L$prefix/lib $LDFLAGS"
   AC_CHECK_LIB([ltdl], [lt_dlinit], [lt_lib_ltdl=yes])
-  LDFLAGS=$lt_save_LDFLAGS
-  if test yes = "${lt_lib_ltdl-no}"; then
-    if test yes != "$enable_ltdl_install"; then
+  LDFLAGS="$lt_save_LDFLAGS"
+  if test x"${lt_lib_ltdl-no}" = xyes; then
+    if test x"$enable_ltdl_install" != xyes; then
       # Don't overwrite $prefix/lib/libltdl.la without --enable-ltdl-install
-      AC_MSG_WARN([not overwriting libltdl at $prefix, force with '--enable-ltdl-install'])
+      AC_MSG_WARN([not overwriting libltdl at $prefix, force with `--enable-ltdl-install'])
       enable_ltdl_install=no
     fi
-  elif test no = "$enable_ltdl_install"; then
+  elif test x"$enable_ltdl_install" = xno; then
     AC_MSG_WARN([libltdl not installed, but installation disabled])
   fi
 fi
@@ -263,7 +268,7 @@ fi
 # with --disable-ltdl-install, we will install the shipped libltdl.
 case $enable_ltdl_install in
   no) ac_configure_args="$ac_configure_args --enable-ltdl-install=no"
-      LIBLTDL=-lltdl
+      LIBLTDL="-lltdl"
       LTDLDEPS=
       LTDLINCL=
       ;;
@@ -271,7 +276,7 @@ case $enable_ltdl_install in
       ac_configure_args="$ac_configure_args --enable-ltdl-install"
       LIBLTDL='_LT_BUILD_PREFIX'"${lt_ltdl_dir+$lt_ltdl_dir/}libltdl.la"
       LTDLDEPS=$LIBLTDL
-      LTDLINCL='-I$(top_srcdir)'"${lt_ltdl_dir+/$lt_ltdl_dir}"
+      LTDLINCL='-I${top_srcdir}'"${lt_ltdl_dir+/$lt_ltdl_dir}"
       ;;
 esac
 
@@ -280,7 +285,7 @@ AC_SUBST([LTDLDEPS])
 AC_SUBST([LTDLINCL])
 
 # For backwards non-gettext consistent compatibility...
-INCLTDL=$LTDLINCL
+INCLTDL="$LTDLINCL"
 AC_SUBST([INCLTDL])
 ])# LTDL_INSTALLABLE
 
@@ -288,14 +293,14 @@ AC_SUBST([INCLTDL])
 # _LTDL_MODE_DISPATCH
 # -------------------
 m4_define([_LTDL_MODE_DISPATCH],
-[dnl If _LTDL_DIR is '.', then we are configuring libltdl itself:
+[dnl If _LTDL_DIR is `.', then we are configuring libltdl itself:
 m4_if(_LTDL_DIR, [],
 	[],
-    dnl if _LTDL_MODE was not set already, the default value is 'subproject':
+    dnl if _LTDL_MODE was not set already, the default value is `subproject':
     [m4_case(m4_default(_LTDL_MODE, [subproject]),
 	  [subproject], [AC_CONFIG_SUBDIRS(_LTDL_DIR)
-			  _LT_SHELL_INIT([lt_dlopen_dir=$lt_ltdl_dir])],
-	  [nonrecursive], [_LT_SHELL_INIT([lt_dlopen_dir=$lt_ltdl_dir; lt_libobj_prefix=$lt_ltdl_dir/])],
+			  _LT_SHELL_INIT([lt_dlopen_dir="$lt_ltdl_dir"])],
+	  [nonrecursive], [_LT_SHELL_INIT([lt_dlopen_dir="$lt_ltdl_dir"; lt_libobj_prefix="$lt_ltdl_dir/"])],
 	  [recursive], [],
 	[m4_fatal([unknown libltdl mode: ]_LTDL_MODE)])])dnl
 dnl Be careful not to expand twice:
@@ -340,7 +345,7 @@ AC_ARG_WITH([included_ltdl],
     [AS_HELP_STRING([--with-included-ltdl],
                     [use the GNU ltdl sources included here])])
 
-if test yes != "$with_included_ltdl"; then
+if test "x$with_included_ltdl" != xyes; then
   # We are not being forced to use the included libltdl sources, so
   # decide whether there is a useful installed version we can use.
   AC_CHECK_HEADER([ltdl.h],
@@ -368,7 +373,7 @@ AC_ARG_WITH([ltdl_include],
 if test -n "$with_ltdl_include"; then
   if test -f "$with_ltdl_include/ltdl.h"; then :
   else
-    AC_MSG_ERROR([invalid ltdl include directory: '$with_ltdl_include'])
+    AC_MSG_ERROR([invalid ltdl include directory: `$with_ltdl_include'])
   fi
 else
   with_ltdl_include=no
@@ -381,7 +386,7 @@ AC_ARG_WITH([ltdl_lib],
 if test -n "$with_ltdl_lib"; then
   if test -f "$with_ltdl_lib/libltdl.la"; then :
   else
-    AC_MSG_ERROR([invalid ltdl library directory: '$with_ltdl_lib'])
+    AC_MSG_ERROR([invalid ltdl library directory: `$with_ltdl_lib'])
   fi
 else
   with_ltdl_lib=no
@@ -404,15 +409,15 @@ case ,$with_included_ltdl,$with_ltdl_include,$with_ltdl_lib, in
 	LTDLINCL=
 	;;
   ,no*,no,*)
-	AC_MSG_ERROR(['--with-ltdl-include' and '--with-ltdl-lib' options must be used together])
+	AC_MSG_ERROR([`--with-ltdl-include' and `--with-ltdl-lib' options must be used together])
 	;;
   *)	with_included_ltdl=no
 	LIBLTDL="-L$with_ltdl_lib -lltdl"
 	LTDLDEPS=
-	LTDLINCL=-I$with_ltdl_include
+	LTDLINCL="-I$with_ltdl_include"
 	;;
 esac
-INCLTDL=$LTDLINCL
+INCLTDL="$LTDLINCL"
 
 # Report our decision...
 AC_MSG_CHECKING([where to find libltdl headers])
@@ -470,7 +475,7 @@ AC_REQUIRE([LT_LIB_DLLOAD])dnl
 AC_REQUIRE([LT_SYS_SYMBOL_USCORE])dnl
 AC_REQUIRE([LT_FUNC_DLSYM_USCORE])dnl
 AC_REQUIRE([LT_SYS_DLOPEN_DEPLIBS])dnl
-AC_REQUIRE([LT_FUNC_ARGZ])dnl
+AC_REQUIRE([gl_FUNC_ARGZ])dnl
 
 m4_require([_LT_CHECK_OBJDIR])dnl
 m4_require([_LT_HEADER_DLFCN])dnl
@@ -494,7 +499,7 @@ m4_pattern_allow([^LT_CONFIG_H$])dnl
 m4_ifset([AH_HEADER],
     [LT_CONFIG_H=AH_HEADER],
     [m4_ifset([AC_LIST_HEADERS],
-	    [LT_CONFIG_H=`echo "AC_LIST_HEADERS" | $SED 's|^[[      ]]*||;s|[[ :]].*$||'`],
+	    [LT_CONFIG_H=`echo "AC_LIST_HEADERS" | $SED 's,^[[      ]]*,,;s,[[ :]].*$,,'`],
 	[])])])
 AC_SUBST([LT_CONFIG_H])
 
@@ -524,14 +529,14 @@ m4_define([_LT_ENABLE_INSTALL],
 [AC_ARG_ENABLE([ltdl-install],
     [AS_HELP_STRING([--enable-ltdl-install], [install libltdl])])
 
-case ,$enable_ltdl_install,$enable_ltdl_convenience in
+case ,${enable_ltdl_install},${enable_ltdl_convenience} in
   *yes*) ;;
   *) enable_ltdl_convenience=yes ;;
 esac
 
 m4_ifdef([AM_CONDITIONAL],
-[AM_CONDITIONAL(INSTALL_LTDL, test no != "${enable_ltdl_install-no}")
- AM_CONDITIONAL(CONVENIENCE_LTDL, test no != "${enable_ltdl_convenience-no}")])
+[AM_CONDITIONAL(INSTALL_LTDL, test x"${enable_ltdl_install-no}" != xno)
+ AM_CONDITIONAL(CONVENIENCE_LTDL, test x"${enable_ltdl_convenience-no}" != xno)])
 ])# _LT_ENABLE_INSTALL
 
 
@@ -549,7 +554,7 @@ AC_CACHE_CHECK([whether deplibs are loaded by dlopen],
   case $host_os in
   aix3*|aix4.1.*|aix4.2.*)
     # Unknown whether this is true for these versions of AIX, but
-    # we want this 'case' here to explicitly catch those versions.
+    # we want this `case' here to explicitly catch those versions.
     lt_cv_sys_dlopen_deplibs=unknown
     ;;
   aix[[4-9]]*)
@@ -561,9 +566,6 @@ AC_CACHE_CHECK([whether deplibs are loaded by dlopen],
       lt_cv_sys_dlopen_deplibs=no
       ;;
     esac
-    ;;
-  bitrig*)
-    lt_cv_sys_dlopen_deplibs=yes
     ;;
   darwin*)
     # Assuming the user has installed a libdl from somewhere, this is true
@@ -593,7 +595,7 @@ AC_CACHE_CHECK([whether deplibs are loaded by dlopen],
     # at 6.2 and later dlopen does load deplibs.
     lt_cv_sys_dlopen_deplibs=yes
     ;;
-  netbsd*)
+  netbsd* | netbsdelf*-gnu)
     lt_cv_sys_dlopen_deplibs=yes
     ;;
   openbsd*)
@@ -602,7 +604,7 @@ AC_CACHE_CHECK([whether deplibs are loaded by dlopen],
   osf[[1234]]*)
     # dlopen did load deplibs (at least at 4.x), but until the 5.x series,
     # it did *not* use an RPATH in a shared library to find objects the
-    # library depends on, so we explicitly say 'no'.
+    # library depends on, so we explicitly say `no'.
     lt_cv_sys_dlopen_deplibs=no
     ;;
   osf5.0|osf5.0a|osf5.1)
@@ -611,14 +613,14 @@ AC_CACHE_CHECK([whether deplibs are loaded by dlopen],
     # that the library depends on, but there's no easy way to know if that
     # patch is installed.  Since this is the case, all we can really
     # say is unknown -- it depends on the patch being installed.  If
-    # it is, this changes to 'yes'.  Without it, it would be 'no'.
+    # it is, this changes to `yes'.  Without it, it would be `no'.
     lt_cv_sys_dlopen_deplibs=unknown
     ;;
   osf*)
     # the two cases above should catch all versions of osf <= 5.1.  Read
     # the comments above for what we know about them.
     # At > 5.1, deplibs are loaded *and* any RPATH in a shared library
-    # is used to find them so we can finally say 'yes'.
+    # is used to find them so we can finally say `yes'.
     lt_cv_sys_dlopen_deplibs=yes
     ;;
   qnx*)
@@ -632,7 +634,7 @@ AC_CACHE_CHECK([whether deplibs are loaded by dlopen],
     ;;
   esac
   ])
-if test yes != "$lt_cv_sys_dlopen_deplibs"; then
+if test "$lt_cv_sys_dlopen_deplibs" != yes; then
  AC_DEFINE([LTDL_DLOPEN_DEPLIBS], [1],
     [Define if the OS needs help to load dependent libraries for dlopen().])
 fi
@@ -648,7 +650,7 @@ dnl AC_DEFUN([AC_LTDL_SYS_DLOPEN_DEPLIBS], [])
 # -----------------
 AC_DEFUN([LT_SYS_MODULE_EXT],
 [m4_require([_LT_SYS_DYNAMIC_LINKER])dnl
-AC_CACHE_CHECK([what extension is used for runtime loadable modules],
+AC_CACHE_CHECK([which extension is used for runtime loadable modules],
   [libltdl_cv_shlibext],
 [
 module=yes
@@ -666,11 +668,6 @@ if test "$libltdl_cv_shrext" != "$libltdl_cv_shlibext"; then
   AC_DEFINE_UNQUOTED([LT_SHARED_EXT], ["$libltdl_cv_shrext"],
     [Define to the shared library suffix, say, ".dylib".])
 fi
-if test -n "$shared_archive_member_spec"; then
-  m4_pattern_allow([LT_SHARED_LIB_MEMBER])dnl
-  AC_DEFINE_UNQUOTED([LT_SHARED_LIB_MEMBER], ["($shared_archive_member_spec.o)"],
-    [Define to the shared archive member specification, say "(shr.o)".])
-fi
 ])# LT_SYS_MODULE_EXT
 
 # Old name:
@@ -683,8 +680,8 @@ dnl AC_DEFUN([AC_LTDL_SHLIBEXT], [])
 # ------------------
 AC_DEFUN([LT_SYS_MODULE_PATH],
 [m4_require([_LT_SYS_DYNAMIC_LINKER])dnl
-AC_CACHE_CHECK([what variable specifies run-time module search path],
-  [lt_cv_module_path_var], [lt_cv_module_path_var=$shlibpath_var])
+AC_CACHE_CHECK([which variable specifies run-time module search path],
+  [lt_cv_module_path_var], [lt_cv_module_path_var="$shlibpath_var"])
 if test -n "$lt_cv_module_path_var"; then
   m4_pattern_allow([LT_MODULE_PATH_VAR])dnl
   AC_DEFINE_UNQUOTED([LT_MODULE_PATH_VAR], ["$lt_cv_module_path_var"],
@@ -704,14 +701,14 @@ AC_DEFUN([LT_SYS_DLSEARCH_PATH],
 [m4_require([_LT_SYS_DYNAMIC_LINKER])dnl
 AC_CACHE_CHECK([for the default library search path],
   [lt_cv_sys_dlsearch_path],
-  [lt_cv_sys_dlsearch_path=$sys_lib_dlsearch_path_spec])
+  [lt_cv_sys_dlsearch_path="$sys_lib_dlsearch_path_spec"])
 if test -n "$lt_cv_sys_dlsearch_path"; then
   sys_dlsearch_path=
   for dir in $lt_cv_sys_dlsearch_path; do
     if test -z "$sys_dlsearch_path"; then
-      sys_dlsearch_path=$dir
+      sys_dlsearch_path="$dir"
     else
-      sys_dlsearch_path=$sys_dlsearch_path$PATH_SEPARATOR$dir
+      sys_dlsearch_path="$sys_dlsearch_path$PATH_SEPARATOR$dir"
     fi
   done
   m4_pattern_allow([LT_DLSEARCH_PATH])dnl
@@ -738,7 +735,7 @@ AC_CACHE_CHECK([whether libtool supports -dlopen/-dlpreopen],
     libltdl_cv_preloaded_symbols=no
   fi
   ])
-if test yes = "$libltdl_cv_preloaded_symbols"; then
+if test x"$libltdl_cv_preloaded_symbols" = xyes; then
   AC_DEFINE([HAVE_PRELOADED_SYMBOLS], [1],
     [Define if libtool can extract symbol lists from object files.])
 fi
@@ -753,16 +750,15 @@ LT_DLLOADERS=
 AC_SUBST([LT_DLLOADERS])
 
 AC_LANG_PUSH([C])
-lt_dlload_save_LIBS=$LIBS
 
 LIBADD_DLOPEN=
 AC_SEARCH_LIBS([dlopen], [dl],
 	[AC_DEFINE([HAVE_LIBDL], [1],
 		   [Define if you have the libdl library or equivalent.])
-	if test "$ac_cv_search_dlopen" != "none required"; then
-	  LIBADD_DLOPEN=-ldl
+	if test "$ac_cv_search_dlopen" != "none required" ; then
+	  LIBADD_DLOPEN="-ldl"
 	fi
-	libltdl_cv_lib_dl_dlopen=yes
+	libltdl_cv_lib_dl_dlopen="yes"
 	LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}dlopen.la"],
     [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#if HAVE_DLFCN_H
 #  include <dlfcn.h>
@@ -770,19 +766,19 @@ AC_SEARCH_LIBS([dlopen], [dl],
     ]], [[dlopen(0, 0);]])],
 	    [AC_DEFINE([HAVE_LIBDL], [1],
 		       [Define if you have the libdl library or equivalent.])
-	    libltdl_cv_func_dlopen=yes
+	    libltdl_cv_func_dlopen="yes"
 	    LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}dlopen.la"],
 	[AC_CHECK_LIB([svld], [dlopen],
 		[AC_DEFINE([HAVE_LIBDL], [1],
 			 [Define if you have the libdl library or equivalent.])
-	        LIBADD_DLOPEN=-lsvld libltdl_cv_func_dlopen=yes
+	        LIBADD_DLOPEN="-lsvld" libltdl_cv_func_dlopen="yes"
 		LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}dlopen.la"])])])
-if test yes = "$libltdl_cv_func_dlopen" || test yes = "$libltdl_cv_lib_dl_dlopen"
+if test x"$libltdl_cv_func_dlopen" = xyes || test x"$libltdl_cv_lib_dl_dlopen" = xyes
 then
-  lt_save_LIBS=$LIBS
+  lt_save_LIBS="$LIBS"
   LIBS="$LIBS $LIBADD_DLOPEN"
   AC_CHECK_FUNCS([dlerror])
-  LIBS=$lt_save_LIBS
+  LIBS="$lt_save_LIBS"
 fi
 AC_SUBST([LIBADD_DLOPEN])
 
@@ -795,7 +791,7 @@ AC_CHECK_FUNC([shl_load],
 	    [AC_DEFINE([HAVE_SHL_LOAD], [1],
 		       [Define if you have the shl_load function.])
 	    LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}shl_load.la"
-	    LIBADD_SHL_LOAD=-ldld])])
+	    LIBADD_SHL_LOAD="-ldld"])])
 AC_SUBST([LIBADD_SHL_LOAD])
 
 case $host_os in
@@ -809,7 +805,7 @@ darwin[[1567]].*)
 beos*)
   LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}load_add_on.la"
   ;;
-cygwin* | mingw* | pw32*)
+cygwin* | mingw* | os2* | pw32*)
   AC_CHECK_DECLS([cygwin_conv_path], [], [], [[#include <sys/cygwin.h>]])
   LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}loadlibrary.la"
   ;;
@@ -837,7 +833,6 @@ dnl This isn't used anymore, but set it for backwards compatibility
 LIBADD_DL="$LIBADD_DLOPEN $LIBADD_SHL_LOAD"
 AC_SUBST([LIBADD_DL])
 
-LIBS=$lt_dlload_save_LIBS
 AC_LANG_POP
 ])# LT_LIB_DLLOAD
 
@@ -895,106 +890,24 @@ dnl AC_DEFUN([AC_LTDL_SYMBOL_USCORE], [])
 # LT_FUNC_DLSYM_USCORE
 # --------------------
 AC_DEFUN([LT_FUNC_DLSYM_USCORE],
-[AC_REQUIRE([_LT_COMPILER_PIC])dnl	for lt_prog_compiler_wl
-AC_REQUIRE([LT_SYS_SYMBOL_USCORE])dnl	for lt_cv_sys_symbol_underscore
-AC_REQUIRE([LT_SYS_MODULE_EXT])dnl	for libltdl_cv_shlibext
-if test yes = "$lt_cv_sys_symbol_underscore"; then
-  if test yes = "$libltdl_cv_func_dlopen" || test yes = "$libltdl_cv_lib_dl_dlopen"; then
-    AC_CACHE_CHECK([whether we have to add an underscore for dlsym],
-      [libltdl_cv_need_uscore],
-      [libltdl_cv_need_uscore=unknown
-      dlsym_uscore_save_LIBS=$LIBS
-      LIBS="$LIBS $LIBADD_DLOPEN"
-      libname=conftmod # stay within 8.3 filename limits!
-      cat >$libname.$ac_ext <<_LT_EOF
-[#line $LINENO "configure"
-#include "confdefs.h"
-/* When -fvisibility=hidden is used, assume the code has been annotated
-   correspondingly for the symbols needed.  */
-#if defined __GNUC__ && (((__GNUC__ == 3) && (__GNUC_MINOR__ >= 3)) || (__GNUC__ > 3))
-int fnord () __attribute__((visibility("default")));
-#endif
-int fnord () { return 42; }]
-_LT_EOF
-
-      # ltfn_module_cmds module_cmds
-      # Execute tilde-delimited MODULE_CMDS with environment primed for
-      # $module_cmds or $archive_cmds type content.
-      ltfn_module_cmds ()
-      {( # subshell avoids polluting parent global environment
-          module_cmds_save_ifs=$IFS; IFS='~'
-          for cmd in @S|@1; do
-            IFS=$module_cmds_save_ifs
-            libobjs=$libname.$ac_objext; lib=$libname$libltdl_cv_shlibext
-            rpath=/not-exists; soname=$libname$libltdl_cv_shlibext; output_objdir=.
-            major=; versuffix=; verstring=; deplibs=
-            ECHO=echo; wl=$lt_prog_compiler_wl; allow_undefined_flag=
-            eval $cmd
-          done
-          IFS=$module_cmds_save_ifs
-      )}
-
-      # Compile a loadable module using libtool macro expansion results.
-      $CC $pic_flag -c $libname.$ac_ext
-      ltfn_module_cmds "${module_cmds:-$archive_cmds}"
-
-      # Try to fetch fnord with dlsym().
-      libltdl_dlunknown=0; libltdl_dlnouscore=1; libltdl_dluscore=2
-      cat >conftest.$ac_ext <<_LT_EOF
-[#line $LINENO "configure"
-#include "confdefs.h"
-#if HAVE_DLFCN_H
-#include <dlfcn.h>
-#endif
-#include <stdio.h>
-#ifndef RTLD_GLOBAL
-#  ifdef DL_GLOBAL
-#    define RTLD_GLOBAL DL_GLOBAL
-#  else
-#    define RTLD_GLOBAL 0
-#  endif
-#endif
-#ifndef RTLD_NOW
-#  ifdef DL_NOW
-#    define RTLD_NOW DL_NOW
-#  else
-#    define RTLD_NOW 0
-#  endif
-#endif
-int main () {
-  void *handle = dlopen ("`pwd`/$libname$libltdl_cv_shlibext", RTLD_GLOBAL|RTLD_NOW);
-  int status = $libltdl_dlunknown;
-  if (handle) {
-    if (dlsym (handle, "fnord"))
-      status = $libltdl_dlnouscore;
-    else {
-      if (dlsym (handle, "_fnord"))
-        status = $libltdl_dluscore;
-      else
-	puts (dlerror ());
-    }
-    dlclose (handle);
-  } else
-    puts (dlerror ());
-  return status;
-}]
-_LT_EOF
-      if AC_TRY_EVAL(ac_link) && test -s "conftest$ac_exeext" 2>/dev/null; then
-        (./conftest; exit; ) >&AS_MESSAGE_LOG_FD 2>/dev/null
-        libltdl_status=$?
-        case x$libltdl_status in
-          x$libltdl_dlnouscore) libltdl_cv_need_uscore=no ;;
-	  x$libltdl_dluscore) libltdl_cv_need_uscore=yes ;;
-	  x*) libltdl_cv_need_uscore=unknown ;;
-        esac
-      fi
-      rm -rf conftest* $libname*
-      LIBS=$dlsym_uscore_save_LIBS
-    ])
+[AC_REQUIRE([LT_SYS_SYMBOL_USCORE])dnl
+if test x"$lt_cv_sys_symbol_underscore" = xyes; then
+  if test x"$libltdl_cv_func_dlopen" = xyes ||
+     test x"$libltdl_cv_lib_dl_dlopen" = xyes ; then
+	AC_CACHE_CHECK([whether we have to add an underscore for dlsym],
+	  [libltdl_cv_need_uscore],
+	  [libltdl_cv_need_uscore=unknown
+          save_LIBS="$LIBS"
+          LIBS="$LIBS $LIBADD_DLOPEN"
+	  _LT_TRY_DLOPEN_SELF(
+	    [libltdl_cv_need_uscore=no], [libltdl_cv_need_uscore=yes],
+	    [],				 [libltdl_cv_need_uscore=cross])
+	  LIBS="$save_LIBS"
+	])
   fi
 fi
 
-if test yes = "$libltdl_cv_need_uscore"; then
+if test x"$libltdl_cv_need_uscore" = xyes; then
   AC_DEFINE([NEED_USCORE], [1],
     [Define if dlsym() requires a leading underscore in symbol names.])
 fi
@@ -1005,7 +918,7 @@ AU_ALIAS([AC_LTDL_DLSYM_USCORE], [LT_FUNC_DLSYM_USCORE])
 dnl aclocal-1.4 backwards compatibility:
 dnl AC_DEFUN([AC_LTDL_DLSYM_USCORE], [])
 
-# Copyright (C) 2002-2014 Free Software Foundation, Inc.
+# Copyright (C) 2002-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1017,10 +930,10 @@ dnl AC_DEFUN([AC_LTDL_DLSYM_USCORE], [])
 # generated from the m4 files accompanying Automake X.Y.
 # (This private macro should not be called outside this file.)
 AC_DEFUN([AM_AUTOMAKE_VERSION],
-[am__api_version='1.15'
+[am__api_version='1.14'
 dnl Some users find AM_AUTOMAKE_VERSION and mistake it for a way to
 dnl require some minimum version.  Point them to the right macro.
-m4_if([$1], [1.15], [],
+m4_if([$1], [1.14.1], [],
       [AC_FATAL([Do not call $0, use AM_INIT_AUTOMAKE([$1]).])])dnl
 ])
 
@@ -1036,14 +949,14 @@ m4_define([_AM_AUTOCONF_VERSION], [])
 # Call AM_AUTOMAKE_VERSION and AM_AUTOMAKE_VERSION so they can be traced.
 # This function is AC_REQUIREd by AM_INIT_AUTOMAKE.
 AC_DEFUN([AM_SET_CURRENT_AUTOMAKE_VERSION],
-[AM_AUTOMAKE_VERSION([1.15])dnl
+[AM_AUTOMAKE_VERSION([1.14.1])dnl
 m4_ifndef([AC_AUTOCONF_VERSION],
   [m4_copy([m4_PACKAGE_VERSION], [AC_AUTOCONF_VERSION])])dnl
 _AM_AUTOCONF_VERSION(m4_defn([AC_AUTOCONF_VERSION]))])
 
 # AM_AUX_DIR_EXPAND                                         -*- Autoconf -*-
 
-# Copyright (C) 2001-2014 Free Software Foundation, Inc.
+# Copyright (C) 2001-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1088,14 +1001,15 @@ _AM_AUTOCONF_VERSION(m4_defn([AC_AUTOCONF_VERSION]))])
 # configured tree to be moved without reconfiguration.
 
 AC_DEFUN([AM_AUX_DIR_EXPAND],
-[AC_REQUIRE([AC_CONFIG_AUX_DIR_DEFAULT])dnl
-# Expand $ac_aux_dir to an absolute path.
-am_aux_dir=`cd "$ac_aux_dir" && pwd`
+[dnl Rely on autoconf to set up CDPATH properly.
+AC_PREREQ([2.50])dnl
+# expand $ac_aux_dir to an absolute path
+am_aux_dir=`cd $ac_aux_dir && pwd`
 ])
 
 # AM_CONDITIONAL                                            -*- Autoconf -*-
 
-# Copyright (C) 1997-2014 Free Software Foundation, Inc.
+# Copyright (C) 1997-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1126,7 +1040,7 @@ AC_CONFIG_COMMANDS_PRE(
 Usually this means the macro was only invoked conditionally.]])
 fi])])
 
-# Copyright (C) 1999-2014 Free Software Foundation, Inc.
+# Copyright (C) 1999-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1317,7 +1231,7 @@ _AM_SUBST_NOTMAKE([am__nodep])dnl
 
 # Generate code to set up dependency tracking.              -*- Autoconf -*-
 
-# Copyright (C) 1999-2014 Free Software Foundation, Inc.
+# Copyright (C) 1999-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1393,7 +1307,7 @@ AC_DEFUN([AM_OUTPUT_DEPENDENCY_COMMANDS],
 
 # Do all the work for Automake.                             -*- Autoconf -*-
 
-# Copyright (C) 1996-2014 Free Software Foundation, Inc.
+# Copyright (C) 1996-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1483,8 +1397,8 @@ AC_REQUIRE([AC_PROG_MKDIR_P])dnl
 # <http://lists.gnu.org/archive/html/automake/2012-07/msg00001.html>
 # <http://lists.gnu.org/archive/html/automake/2012-07/msg00014.html>
 AC_SUBST([mkdir_p], ['$(MKDIR_P)'])
-# We need awk for the "check" target (and possibly the TAP driver).  The
-# system "awk" is bad on some platforms.
+# We need awk for the "check" target.  The system "awk" is bad on
+# some platforms.
 AC_REQUIRE([AC_PROG_AWK])dnl
 AC_REQUIRE([AC_PROG_MAKE_SET])dnl
 AC_REQUIRE([AM_SET_LEADING_DOT])dnl
@@ -1557,11 +1471,7 @@ to "yes", and re-run configure.
 END
     AC_MSG_ERROR([Your 'rm' program is bad, sorry.])
   fi
-fi
-dnl The trailing newline in this macro's definition is deliberate, for
-dnl backward compatibility and to allow trailing 'dnl'-style comments
-dnl after the AM_INIT_AUTOMAKE invocation. See automake bug#16841.
-])
+fi])
 
 dnl Hook into '_AC_COMPILER_EXEEXT' early to learn its expansion.  Do not
 dnl add the conditional right here, as _AC_COMPILER_EXEEXT may be further
@@ -1590,7 +1500,7 @@ for _am_header in $config_headers :; do
 done
 echo "timestamp for $_am_arg" >`AS_DIRNAME(["$_am_arg"])`/stamp-h[]$_am_stamp_count])
 
-# Copyright (C) 2001-2014 Free Software Foundation, Inc.
+# Copyright (C) 2001-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1601,7 +1511,7 @@ echo "timestamp for $_am_arg" >`AS_DIRNAME(["$_am_arg"])`/stamp-h[]$_am_stamp_co
 # Define $install_sh.
 AC_DEFUN([AM_PROG_INSTALL_SH],
 [AC_REQUIRE([AM_AUX_DIR_EXPAND])dnl
-if test x"${install_sh+set}" != xset; then
+if test x"${install_sh}" != xset; then
   case $am_aux_dir in
   *\ * | *\	*)
     install_sh="\${SHELL} '$am_aux_dir/install-sh'" ;;
@@ -1611,7 +1521,7 @@ if test x"${install_sh+set}" != xset; then
 fi
 AC_SUBST([install_sh])])
 
-# Copyright (C) 2003-2014 Free Software Foundation, Inc.
+# Copyright (C) 2003-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1633,7 +1543,7 @@ AC_SUBST([am__leading_dot])])
 # Add --enable-maintainer-mode option to configure.         -*- Autoconf -*-
 # From Jim Meyering
 
-# Copyright (C) 1996-2014 Free Software Foundation, Inc.
+# Copyright (C) 1996-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1668,7 +1578,7 @@ AC_MSG_CHECKING([whether to enable maintainer-specific portions of Makefiles])
 
 # Check to see how 'make' treats includes.	            -*- Autoconf -*-
 
-# Copyright (C) 2001-2014 Free Software Foundation, Inc.
+# Copyright (C) 2001-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1718,7 +1628,7 @@ rm -f confinc confmf
 
 # Fake the existence of programs that GNU maintainers use.  -*- Autoconf -*-
 
-# Copyright (C) 1997-2014 Free Software Foundation, Inc.
+# Copyright (C) 1997-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1757,7 +1667,7 @@ fi
 
 # Helper functions for option handling.                     -*- Autoconf -*-
 
-# Copyright (C) 2001-2014 Free Software Foundation, Inc.
+# Copyright (C) 2001-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1786,7 +1696,7 @@ AC_DEFUN([_AM_SET_OPTIONS],
 AC_DEFUN([_AM_IF_OPTION],
 [m4_ifset(_AM_MANGLE_OPTION([$1]), [$2], [$3])])
 
-# Copyright (C) 1999-2014 Free Software Foundation, Inc.
+# Copyright (C) 1999-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1833,7 +1743,7 @@ AC_LANG_POP([C])])
 # For backward compatibility.
 AC_DEFUN_ONCE([AM_PROG_CC_C_O], [AC_REQUIRE([AC_PROG_CC])])
 
-# Copyright (C) 2001-2014 Free Software Foundation, Inc.
+# Copyright (C) 2001-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1852,7 +1762,7 @@ AC_DEFUN([AM_RUN_LOG],
 
 # Check to make sure that the build environment is sane.    -*- Autoconf -*-
 
-# Copyright (C) 1996-2014 Free Software Foundation, Inc.
+# Copyright (C) 1996-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1933,7 +1843,7 @@ AC_CONFIG_COMMANDS_PRE(
 rm -f conftest.file
 ])
 
-# Copyright (C) 2009-2014 Free Software Foundation, Inc.
+# Copyright (C) 2009-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -1993,7 +1903,7 @@ AC_SUBST([AM_BACKSLASH])dnl
 _AM_SUBST_NOTMAKE([AM_BACKSLASH])dnl
 ])
 
-# Copyright (C) 2001-2014 Free Software Foundation, Inc.
+# Copyright (C) 2001-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -2021,7 +1931,7 @@ fi
 INSTALL_STRIP_PROGRAM="\$(install_sh) -c -s"
 AC_SUBST([INSTALL_STRIP_PROGRAM])])
 
-# Copyright (C) 2006-2014 Free Software Foundation, Inc.
+# Copyright (C) 2006-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -2040,7 +1950,7 @@ AC_DEFUN([AM_SUBST_NOTMAKE], [_AM_SUBST_NOTMAKE($@)])
 
 # Check how to create a tarball.                            -*- Autoconf -*-
 
-# Copyright (C) 2004-2014 Free Software Foundation, Inc.
+# Copyright (C) 2004-2013 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,

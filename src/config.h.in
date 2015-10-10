@@ -668,9 +668,6 @@
 /* Define to the shared library suffix, say, ".dylib". */
 #undef LT_SHARED_EXT
 
-/* Define to the shared archive member specification, say "(shr.o)". */
-#undef LT_SHARED_LIB_MEMBER
-
 /* 'MAX_MUSICCLASS' replacement */
 #undef MAX_MUSICCLASS
 
@@ -866,7 +863,7 @@
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
-/* Define to a type to use for 'error_t' if it is not otherwise available. */
+/* Define to a type to use for `error_t' if it is not otherwise available. */
 #undef error_t
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
