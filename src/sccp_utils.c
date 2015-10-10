@@ -19,15 +19,20 @@
 #include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_socket.h"
+
 #if HAVE_ICONV_H
 #include <iconv.h>
 #endif
+
 #ifdef DEBUG
 #ifdef HAVE_EXECINFO_H
 #include <execinfo.h>
 #if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
 #include <dlfcn.h>
 #include <bfd.h>
+#endif
+#if ASTERISK_VERSION_GROUP >= 112 
+#include <asterisk/backtrace.h>
 #endif
 #endif
 #endif
@@ -118,7 +123,7 @@ int sccp_addons_taps(sccp_device_t * d)
 		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_SPA500S || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS) {
 			taps += 32;
 		}
-		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d->id ? d->id : "SCCP"), taps, cur->type);
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d ? d->id : "SCCP"), taps, cur->type);
 	}
 	SCCP_LIST_UNLOCK(&d->addons);
 
@@ -623,13 +628,16 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
  * 
  */
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr)
+/*
 sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage * sas)
 {
 	sccp_device_t *d = NULL;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		if (d->session && sccp_socket_cmp_addr(&d->session->sin, sas) == 0) {
+		struct sockaddr_storage sinsas = { 0 };
+		sccp_session_getSas(d->session, &sinsas);
+		if (d->session && sccp_socket_cmp_addr(&sas, sas) == 0) {
 			d = sccp_device_retain(d);
 			break;
 		}
@@ -637,6 +645,7 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage * sas)
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	return d;
 }
+*/
 
 /*!
  * \brief Handle Feature Change Event for persistent feature storage
@@ -932,24 +941,16 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32
 	int dummy_len = dirNum_len + FQDN_len + lineDisplayName_len;
 
 	int hdr_len = 8 - 1;
-	int padding = 4;											/* after each string + 1 */
-	int size = hdr_len + dummy_len + padding;
 
-	/* message size must be multiple of 4 */
-	if ((size % 4) > 0) {
-		size = size + (4 - (size % 4));
-	}
-
-	msg = sccp_build_packet(LineStatDynamicMessage, size);
+	msg = sccp_build_packet(LineStatDynamicMessage,hdr_len + dummy_len);
 	msg->data.LineStatDynamicMessage.lel_lineNumber = htolel(lineInstance);
 	//msg->data.LineStatDynamicMessage.lel_lineType = htolel(0x0f);
 	msg->data.LineStatDynamicMessage.lel_lineType = htolel(type);
 
 	if (dummy_len) {
-		char buffer[dummy_len + padding];
+		char buffer[dummy_len];
 
-		// memset(&buffer[0], 0, sizeof(buffer));
-		memset(&buffer[0], 0, dummy_len + padding);
+		memset(&buffer[0], 0, dummy_len);
 
 		if (dirNum_len) {
 			memcpy(&buffer[0], dirNum, dirNum_len);
@@ -960,9 +961,8 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32
 		if (lineDisplayName_len) {
 			memcpy(&buffer[dirNum_len + FQDN_len + 2], lineDisplayName, lineDisplayName_len);
 		}
-		// memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], sizeof(buffer));
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "LineStatDynamicMessage.dummy: %s\n", buffer);
-		memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], dummy_len + padding);
+		memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], dummy_len);
 	}
 
 	return msg;
@@ -977,7 +977,7 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32
  * \retval 0 on diff
  * \retval 1 on equal
  */
-int socket_equals(struct sockaddr_storage *s0, struct sockaddr_storage *s1)
+int socket_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1)
 {
 	/*
 	if (s0->sin_addr.s_addr != s1->sin_addr.s_addr || s0->sin_port != s1->sin_port || s0->sin_family != s1->sin_family) {
@@ -2011,12 +2011,13 @@ void sccp_utils_unregister_tests(void)
 #endif
 
 #ifdef DEBUG
+#if ASTERISK_VERSION_GROUP < 112 
 #if HAVE_EXECINFO_H
 static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 {
 	char **strings;
 #if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
-	int stackfr;
+	size_t stackfr;
 	bfd *bfdobj;           /* bfd.h */
 	Dl_info dli;           /* dlfcn.h */
 	long allocsize;
@@ -2162,6 +2163,7 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 	return strings;
 }
 #endif  // HAVE_EXECINFO_H
+#endif
 
 void sccp_do_backtrace()
 {
@@ -2178,7 +2180,11 @@ void sccp_do_backtrace()
 #endif		
 	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "--------------------------------------------------------------------------(bt)--\n");
 	size = backtrace(addresses, SCCP_BACKTRACE_SIZE);
+#if ASTERISK_VERSION_GROUP >= 112 
+	strings = __ast_bt_get_symbols(addresses, size);
+#else
 	strings = __sccp_bt_get_symbols(addresses, size);
+#endif
 
 	for (i = 1; i < size; i++) {
 		pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, " (bt) > %s\n", strings[i]);		

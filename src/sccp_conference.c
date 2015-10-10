@@ -58,7 +58,7 @@ int playback_to_channel(sccp_conference_participant_t * participant, const char 
 int playback_to_conference(sccp_conference_t * conference, const char *filename, int say_number);
 sccp_conference_t *sccp_conference_findByID(uint32_t identifier);
 sccp_conference_participant_t *sccp_conference_participant_findByID(sccp_conference_t * conference, uint32_t identifier);
-sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, sccp_channel_t * channel);
+sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, constChannelPtr channel);
 sccp_conference_participant_t *sccp_conference_participant_findByDevice(sccp_conference_t * conference, sccp_device_t * device);
 sccp_conference_participant_t *sccp_conference_participant_findByPBXChannel(sccp_conference_t * conference, PBX_CHANNEL_TYPE * channel);
 void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant, boolean_t start);
@@ -148,7 +148,7 @@ static void __sccp_conference_participant_destroy(sccp_conference_participant_t 
 		   participant->conferenceBridgePeer ? pbx_channel_uniqueid(participant->conferenceBridgePeer) : "NULL"
 		   );
 		 */
-		manager_event(EVENT_FLAG_CALL, "SCCPConfLeave", "ConfId: %d\r\n" "PartId: %d\r\n", participant->conference ? participant->conference->id : -1, participant->id);
+		manager_event(EVENT_FLAG_CALL, "SCCPConfLeave", "ConfId: %d\r\n" "PartId: %d\r\n", participant->conference ? participant->conference->id : 0, participant->id);
 	}
 #endif
 	if (participant->channel) {
@@ -407,24 +407,31 @@ void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE 
 	char confstr[StationMaxNameSize] = "";
 
 	snprintf(confstr, StationMaxNameSize, "Conference %d", conferenceID);
+	sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 
 	switch (channel->calltype) {
 		case SKINNY_CALLTYPE_INBOUND:
-			sccp_copy_string(channel->callInfo.originalCallingPartyName, channel->callInfo.callingPartyName, sizeof(channel->callInfo.originalCallingPartyName));
-			sccp_copy_string(participant->PartyName, channel->callInfo.callingPartyName, sizeof(participant->PartyName));
-			sccp_copy_string(participant->PartyNumber, channel->callInfo.callingPartyNumber, sizeof(participant->PartyNumber));
-			channel->callInfo.originalCallingParty_valid = 1;
-			sccp_copy_string(channel->callInfo.callingPartyName, confstr, sizeof(channel->callInfo.callingPartyName));
-			channel->callInfo.callingParty_valid = 1;
+			sccp_callinfo_getter(ci, 
+				SCCP_CALLINFO_CALLINGPARTY_NAME, &participant->PartyName,
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &participant->PartyNumber,
+				SCCP_CALLINFO_KEY_SENTINEL);
+			sccp_callinfo_setter(ci, 
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, participant->PartyName,
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, participant->PartyNumber,
+				SCCP_CALLINFO_CALLINGPARTY_NAME, confstr,
+				SCCP_CALLINFO_KEY_SENTINEL);
 			break;
 		case SKINNY_CALLTYPE_OUTBOUND:
 		case SKINNY_CALLTYPE_FORWARD:
-			sccp_copy_string(channel->callInfo.originalCalledPartyName, channel->callInfo.calledPartyName, sizeof(channel->callInfo.originalCallingPartyName));
-			sccp_copy_string(participant->PartyName, channel->callInfo.calledPartyName, sizeof(participant->PartyName));
-			sccp_copy_string(participant->PartyNumber, channel->callInfo.calledPartyNumber, sizeof(participant->PartyNumber));
-			channel->callInfo.originalCalledParty_valid = 1;
-			sccp_copy_string(channel->callInfo.calledPartyName, confstr, sizeof(channel->callInfo.calledPartyName));
-			channel->callInfo.calledParty_valid = 1;
+			sccp_callinfo_getter(ci, 
+				SCCP_CALLINFO_CALLEDPARTY_NAME, &participant->PartyName,
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &participant->PartyNumber,
+				SCCP_CALLINFO_KEY_SENTINEL);
+			sccp_callinfo_setter(ci, 
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, participant->PartyName,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, participant->PartyNumber,
+				SCCP_CALLINFO_CALLEDPARTY_NAME, confstr,
+				SCCP_CALLINFO_KEY_SENTINEL);
 			break;
 		case SKINNY_CALLTYPE_SENTINEL:
 			break;
@@ -568,8 +575,9 @@ static void sccp_conference_removeParticipant(sccp_conference_t * conference, sc
 	if (SCCP_LIST_GETSIZE(&conference->participants) == 1 && !conference->finishing) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: There are no conference participants left, Ending conference.\n", conference->id);
 		sccp_conference_end(conference);
+	} else {
+		sccp_conference_update_conflist(conference);
 	}
-	sccp_conference_update_conflist(conference);
 }
 
 /*!
@@ -584,7 +592,7 @@ static void *sccp_conference_thread(void *data)
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: entering join thread.\n", participant->conference->id);
 #ifdef CS_MANAGER_EVENTS
 		if (GLOB(callevents)) {
-			manager_event(EVENT_FLAG_CALL, "SCCPConfEntered", "ConfId: %d\r\n" "PartId: %d\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", participant->conference ? participant->conference->id : -1, participant->id, participant->conferenceBridgePeer ? pbx_channel_name(participant->conferenceBridgePeer) : "NULL", participant->conferenceBridgePeer ? pbx_channel_uniqueid(participant->conferenceBridgePeer) : "NULL");
+			manager_event(EVENT_FLAG_CALL, "SCCPConfEntered", "ConfId: %d\r\n" "PartId: %d\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", participant->conference ? participant->conference->id : 0, participant->id, participant->conferenceBridgePeer ? pbx_channel_name(participant->conferenceBridgePeer) : "NULL", participant->conferenceBridgePeer ? pbx_channel_uniqueid(participant->conferenceBridgePeer) : "NULL");
 		}
 #endif
 		// Join the bridge
@@ -594,7 +602,7 @@ static void *sccp_conference_thread(void *data)
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Leaving pbx_bridge_join: %s as %d\n", participant->conference->id, pbx_channel_name(participant->conferenceBridgePeer), participant->id);
 #ifdef CS_MANAGER_EVENTS
 		if (GLOB(callevents)) {
-			manager_event(EVENT_FLAG_CALL, "SCCPConfLeft", "ConfId: %d\r\n" "PartId: %d\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", participant->conference ? participant->conference->id : -1, participant->id, participant->conferenceBridgePeer ? pbx_channel_name(participant->conferenceBridgePeer) : "NULL", participant->conferenceBridgePeer ? pbx_channel_uniqueid(participant->conferenceBridgePeer) : "NULL");
+			manager_event(EVENT_FLAG_CALL, "SCCPConfLeft", "ConfId: %d\r\n" "PartId: %d\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", participant->conference ? participant->conference->id : 0, participant->id, participant->conferenceBridgePeer ? pbx_channel_name(participant->conferenceBridgePeer) : "NULL", participant->conferenceBridgePeer ? pbx_channel_uniqueid(participant->conferenceBridgePeer) : "NULL");
 		}
 #endif
 		if (participant->channel && participant->device) {
@@ -961,7 +969,7 @@ sccp_conference_participant_t *sccp_conference_participant_findByID(sccp_confere
 /*!
  * \brief Find participant by sccp channel
  */
-sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, sccp_channel_t * channel)
+sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, constChannelPtr channel)
 {
 	sccp_conference_participant_t *participant = NULL;
 
@@ -1032,7 +1040,7 @@ sccp_conference_participant_t *sccp_conference_participant_findByPBXChannel(sccp
  * UserCallDataSoftKey:STRING:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
  * UserCallData:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
  */
-void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * c)
+void sccp_conference_show_list(sccp_conference_t * conference, constChannelPtr channel)
 {
 	int use_icon = 0;
 
@@ -1041,7 +1049,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		return;
 	}
 
-	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
+	//AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
 
 	if (!channel) {												// only send this list to sccp phones
 		pbx_log(LOG_WARNING, "SCCPCONF/%04d: No channel available to display conferencelist for\n", conference->id);
@@ -1566,7 +1574,8 @@ void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_con
 char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
 	int conference_id = 0;
-	int wordlen = strlen(word), which = 0, i = 0;
+	int wordlen = strlen(word), which = 0;
+	uint i = 0;
 	char *ret = NULL;
 	char tmpname[20];
 	char *actions[5] = { "EndConf", "Kick", "Mute", "Invite", "Moderate" };

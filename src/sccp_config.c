@@ -390,7 +390,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 
 	// check if already set during first pass (multi_entry)
 	if (sccpConfigOption->offset > 0 && SetEntries != NULL && ((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
-		int y;
+		uint y;
 
 		for (y = 0; y < sccpConfigSegment->config_size; y++) {
 			if (sccpConfigOption->offset == sccpConfigSegment->config[y].offset) {
@@ -670,7 +670,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 	if (SCCP_CONFIG_CHANGE_INVALIDVALUE != changed || ((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {	/* Multi_Entry could give back invalid for one of it's values */
 		/* if SetEntries is provided lookup the first offset of the struct variable we have set and note the index in SetEntries by changing the boolean_t to TRUE */
 		if (sccpConfigOption->offset > 0 && SetEntries != NULL) {
-			int x;
+			uint x;
 
 			for (x = 0; x < sccpConfigSegment->config_size; x++) {
 				if (sccpConfigOption->offset == sccpConfigSegment->config[x].offset) {
@@ -712,7 +712,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 	boolean_t referralValueFound = FALSE;
 
 	// already Set
-	int skip_elem;
+	uint skip_elem;
 	boolean_t skip = FALSE;
 
 	/* find the defaultValue, first check the reference, if no reference is specified, us the local defaultValue */
@@ -1693,7 +1693,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 	char k_button[256];
 	char *splitter;
 	sccp_config_buttontype_t type = EMPTY;									/* default to empty */
-	int buttonindex = 0;
+	uint buttonindex = 0;
 	
 	SCCP_LIST_HEAD (, sccp_buttonconfig_t) * buttonconfigList = dest;
 	sccp_buttonconfig_t *config = NULL;
@@ -2118,7 +2118,7 @@ static void sccp_config_add_default_softkeyset(void)
 	// create tempory "default" variable set to create "default" softkeyset, if not defined in sccp.conf
 	PBX_VARIABLE_TYPE * softkeyset_root = NULL;
 	PBX_VARIABLE_TYPE * tmp = NULL;
-	int cur_elem;
+	uint cur_elem;
 	const SCCPConfigOption *sccpConfigOption = sccpSoftKeyConfigOptions;
 	for (cur_elem = 0; cur_elem < ARRAY_LEN(sccpSoftKeyConfigOptions); cur_elem++) {
 		if (sccpConfigOption[cur_elem].defaultValue != NULL) {
@@ -3063,10 +3063,10 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 {
 	const SCCPConfigSegment *sccpConfigSegment = NULL;
 	int total = 0;
-	int i;
+	uint i;
 	const char *id = astman_get_header(m, "ActionID");
 	const char *req_segment = astman_get_header(m, "Segment");
-	int comma = 0;
+	uint comma = 0;
 
 	if (sccp_strlen_zero(req_segment)) {										// return all segments
 		int sccp_config_revision = 0;
@@ -3182,7 +3182,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 				astman_append(s, "\"Segment\":\"%s\",", sccpConfigSegment->name);
 				astman_append(s, "\"Options\":[");
 				uint8_t cur_elem = 0;
-				int comma = 0;
+				comma = 0;
 
 				for (cur_elem = 0; cur_elem < sccpConfigSegment->config_size; cur_elem++) {
 					if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_IGNORE) != SCCP_CONFIG_FLAG_IGNORE) {
@@ -3389,7 +3389,7 @@ int sccp_config_generate(char *filename, int configType)
 								}
 							}
 					    	} else {
-							snprintf(name_and_value, sizeof(name_and_value), "%s = %s", config[sccp_option].name, sccp_strlen_zero(config[sccp_option].defaultValue) ? "\"\"" : config[sccp_option].defaultValue);
+							snprintf(name_and_value, sizeof(name_and_value), "%s%s = %s", !sccp_strlen_zero(config[sccp_option].defaultValue) ? ";" : "", config[sccp_option].name, sccp_strlen_zero(config[sccp_option].defaultValue) ? "\"\"" : config[sccp_option].defaultValue);
 							fprintf(f, "%s", name_and_value);
 					    	}
 						linelen = (int) strlen(name_and_value);

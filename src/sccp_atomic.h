@@ -1,7 +1,7 @@
 /*!
- * \file        sccp_lock.h
- * \brief       SCCP Lock Header
- * \author      Federico Santulli <fsantulli [at] users.sourceforge.net>
+ * \file        sccp_atomic.h
+ * \brief       SCCP Atomic Header
+ * \author      Diederik de Groot <ddegroot[at] users.sf.net>
  * \note        Mutex lock code derived from Asterisk 1.4
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
@@ -10,43 +10,12 @@
  * $Revision$
  */
 
-#ifndef __SCCP_LOCK_H
-#define __SCCP_LOCK_H
+#ifndef __SCCP_ATOMIC_H
+#define __SCCP_ATOMIC_H
 
 #ifdef HAVE_ATOMIC_OPS_H
 #include <atomic_ops.h>
 #endif
-
-#define sccp_mutex_init(x)          		pbx_mutex_init(x)
-#define sccp_mutex_destroy(x)       		pbx_mutex_destroy(x)
-
-/* Macro for Generic Mutex */
-#define sccp_mutex_lock(x)			pbx_mutex_lock(x)
-#define sccp_mutex_lock_desc(x,y) 		pbx_mutex_lock(x)
-#define sccp_mutex_unlock(x)			pbx_mutex_unlock(x)
-#define sccp_mutex_trylock(x)			pbx_mutex_trylock(x)
-
-/* Macro for Sessions */
-#define sccp_session_lock(x)			pbx_mutex_lock(&x->lock)
-#define sccp_session_unlock(x)			pbx_mutex_unlock(&x->lock)
-#define sccp_session_trylock(x)			pbx_mutex_trylock(&x->lock)
-
-/* Macro for Globals */
-#define sccp_globals_lock(x)			pbx_mutex_lock(&sccp_globals->x)
-#define sccp_globals_unlock(x)			pbx_mutex_unlock(&sccp_globals->x)
-#define sccp_globals_trylock(x)			pbx_mutex_trylock(&sccp_globals->x)
-
-/* Macro for Lists */
-#define SCCP_LIST_LOCK(x)			pbx_mutex_lock(&(x)->lock)
-#define SCCP_LIST_UNLOCK(x)			pbx_mutex_unlock(&(x)->lock)
-#define SCCP_LIST_TRYLOCK(x)			pbx_mutex_trylock(&(x)->lock)
-
-/* Macro for read/write Lists */
-#define SCCP_RWLIST_RDLOCK(x)			pbx_rwlock_rdlock(&(x)->lock)
-#define SCCP_RWLIST_WRLOCK(x)			pbx_rwlock_wrlock(&(x)->lock)
-#define SCCP_RWLIST_UNLOCK(x)			pbx_rwlock_unlock(&(x)->lock)
-#define SCCP_RWLIST_TRYRDLOCK(x)		pbx_rwlock_tryrdlock(&(x)->lock)
-#define SCCP_RWLIST_TRYWRLOCK(x)		pbx_rwlock_trywrlock(&(x)->lock)
 
 // Declare CAS32 / CAS_PTR and CAS_TYPE for easy reference in other functions
 #ifdef SCCP_ATOMIC
@@ -110,5 +79,5 @@
         })
 #endif														/* SCCP_ATOMIC */
 
-#endif														/* __SCCP_LOCK_H */
+#endif														/* __SCCP_ATOMIC_H */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -83,7 +83,7 @@ void sccp_conference_end(sccp_conference_t * conference);
 void sccp_conference_hold(sccp_conference_t * conference);
 
 /* conf list related */
-void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * channel);
+void sccp_conference_show_list(sccp_conference_t * conference, constChannelPtr channel);
 void sccp_conference_hide_list_ByDevice(sccp_device_t * device);
 void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t participantID);
 void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant);

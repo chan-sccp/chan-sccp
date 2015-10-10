@@ -577,13 +577,13 @@ char *sccp_accessory_all_entries(void) {
  */
 static const char *sccp_accessorystate_map[] = {
 	[SCCP_ACCESSORYSTATE_NONE] = "None",
-	[SCCP_ACCESSORYSTATE_ONHOOK] = "On Hook",
 	[SCCP_ACCESSORYSTATE_OFFHOOK] = "Off Hook",
+	[SCCP_ACCESSORYSTATE_ONHOOK] = "On Hook",
 	[SCCP_ACCESSORYSTATE_SENTINEL] = "LOOKUPERROR"
 };
 
 int sccp_accessorystate_exists(int sccp_accessorystate_int_value) {
-	if ((SCCP_ACCESSORYSTATE_ONHOOK <=sccp_accessorystate_int_value) && (sccp_accessorystate_int_value < SCCP_ACCESSORYSTATE_SENTINEL )) {
+	if ((SCCP_ACCESSORYSTATE_OFFHOOK <=sccp_accessorystate_int_value) && (sccp_accessorystate_int_value < SCCP_ACCESSORYSTATE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -614,7 +614,7 @@ int sccp_accessorystate_str2intval(const char *lookup_str) {
 }
 
 char *sccp_accessorystate_all_entries(void) {
-	static char res[] = "None,On Hook,Off Hook";
+	static char res[] = "None,Off Hook,On Hook";
 	return res;
 }
 /* = End =========================================================================================            sccp_accessorystate === */
@@ -1046,54 +1046,54 @@ char *sccp_parkresult_all_entries(void) {
 /* = End =========================================================================================                sccp_parkresult === */
 
 
-/* = Begin =======================================================================================          sccp_calleridpresence === */
+/* = Begin =======================================================================================     sccp_callerid_presentation === */
 
 
 /*
- * \brief enum sccp_calleridpresence
+ * \brief enum sccp_callerid_presentation
  */
-static const char *sccp_calleridpresence_map[] = {
-	[CALLERID_PRESENCE_FORBIDDEN] = "CalledId Presence Forbidden",
-	[CALLERID_PRESENCE_ALLOWED] = "CallerId Presence Allowed",
-	[SCCP_CALLERIDPRESENCE_SENTINEL] = "LOOKUPERROR"
+static const char *sccp_callerid_presentation_map[] = {
+	[CALLERID_PRESENTATION_FORBIDDEN] = "CalledId Presentation Forbidden",
+	[CALLERID_PRESENTATION_ALLOWED] = "CallerId Presentation Allowed",
+	[SCCP_CALLERID_PRESENTATION_SENTINEL] = "LOOKUPERROR"
 };
 
-int sccp_calleridpresence_exists(int sccp_calleridpresence_int_value) {
-	if ((CALLERID_PRESENCE_ALLOWED <=sccp_calleridpresence_int_value) && (sccp_calleridpresence_int_value < SCCP_CALLERIDPRESENCE_SENTINEL )) {
+int sccp_callerid_presentation_exists(int sccp_callerid_presentation_int_value) {
+	if ((CALLERID_PRESENTATION_ALLOWED <=sccp_callerid_presentation_int_value) && (sccp_callerid_presentation_int_value < SCCP_CALLERID_PRESENTATION_SENTINEL )) {
 		return 1;
 	}
 	return 0;
 }
 
-const char * sccp_calleridpresence2str(sccp_calleridpresence_t enum_value) {
-	if ((CALLERID_PRESENCE_FORBIDDEN <= enum_value) && (enum_value <= SCCP_CALLERIDPRESENCE_SENTINEL)) {
-		return sccp_calleridpresence_map[enum_value];
+const char * sccp_callerid_presentation2str(sccp_callerid_presentation_t enum_value) {
+	if ((CALLERID_PRESENTATION_FORBIDDEN <= enum_value) && (enum_value <= SCCP_CALLERID_PRESENTATION_SENTINEL)) {
+		return sccp_callerid_presentation_map[enum_value];
 	}
-	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_calleridpresence2str\n", enum_value);
-	return "SCCP: OutOfBounds Error during lookup of sccp_calleridpresence2str\n";
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_callerid_presentation2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_callerid_presentation2str\n";
 }
 
-sccp_calleridpresence_t sccp_calleridpresence_str2val(const char *lookup_str) {
+sccp_callerid_presentation_t sccp_callerid_presentation_str2val(const char *lookup_str) {
 	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_calleridpresence_map); idx++) {
-		if (sccp_strcaseequals(sccp_calleridpresence_map[idx], lookup_str)) {
+	for (idx = 0; idx < ARRAY_LEN(sccp_callerid_presentation_map); idx++) {
+		if (sccp_strcaseequals(sccp_callerid_presentation_map[idx], lookup_str)) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_calleridpresence_str2val(%s) not found\n", lookup_str);
-	return SCCP_CALLERIDPRESENCE_SENTINEL;
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_callerid_presentation_str2val(%s) not found\n", lookup_str);
+	return SCCP_CALLERID_PRESENTATION_SENTINEL;
 }
 
-int sccp_calleridpresence_str2intval(const char *lookup_str) {
-	int res = sccp_calleridpresence_str2val(lookup_str);
-	return (int)res != SCCP_CALLERIDPRESENCE_SENTINEL ? res : -1;
+int sccp_callerid_presentation_str2intval(const char *lookup_str) {
+	int res = sccp_callerid_presentation_str2val(lookup_str);
+	return (int)res != SCCP_CALLERID_PRESENTATION_SENTINEL ? res : -1;
 }
 
-char *sccp_calleridpresence_all_entries(void) {
-	static char res[] = "CalledId Presence Forbidden,CallerId Presence Allowed";
+char *sccp_callerid_presentation_all_entries(void) {
+	static char res[] = "CalledId Presentation Forbidden,CallerId Presentation Allowed";
 	return res;
 }
-/* = End =========================================================================================          sccp_calleridpresence === */
+/* = End =========================================================================================     sccp_callerid_presentation === */
 
 
 /* = Begin =======================================================================================                sccp_rtp_status === */
@@ -1156,6 +1156,68 @@ char *sccp_rtp_status_all_entries(void) {
 	return res;
 }
 /* = End =========================================================================================                sccp_rtp_status === */
+
+
+/* = Begin =======================================================================================             sccp_sccp_rtp_type === */
+
+
+/*
+ * \brief enum sccp_sccp_rtp_type
+ */
+static const char *sccp_sccp_rtp_type_map[] = {
+	"Audio RTP",
+	"Video RTP",
+	"Text RTP",
+	"LOOKUPERROR"
+};
+
+int sccp_sccp_rtp_type_exists(int sccp_sccp_rtp_type_int_value) {
+	int res = 0, i;
+	for (i = 0; i < SCCP_SCCP_RTP_TYPE_SENTINEL; i++) {
+		if ((sccp_sccp_rtp_type_int_value & 1 << i) == 1 << i) {
+			res |= 1;
+		}
+	}
+	return res;
+}
+
+const char * sccp_sccp_rtp_type2str(int sccp_sccp_rtp_type_int_value) {
+	static char res[186] = "";
+	uint32_t i;
+	int pos = 0;
+	for (i = 0; i < ARRAY_LEN(sccp_sccp_rtp_type_map) - 1; i++) {
+		if ((sccp_sccp_rtp_type_int_value & 1 << i) == 1 << i) {
+			pos += snprintf(res + pos, 186, "%s%s", pos ? "," : "", sccp_sccp_rtp_type_map[i]);
+		}
+	}
+	if (!strlen(res)) {
+		pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_sccp_rtp_type2str\n", sccp_sccp_rtp_type_int_value);
+		return "SCCP: OutOfBounds Error during lookup of sparse sccp_sccp_rtp_type2str\n";
+	}
+	return res;
+}
+
+sccp_sccp_rtp_type_t sccp_sccp_rtp_type_str2val(const char *lookup_str) {
+	uint32_t idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_sccp_rtp_type_map); idx++) {
+		if (sccp_strcaseequals(sccp_sccp_rtp_type_map[idx], lookup_str)) {
+			return 1 << idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_sccp_rtp_type_str2val(%s) not found\n", lookup_str);
+	return SCCP_SCCP_RTP_TYPE_SENTINEL;
+}
+
+int sccp_sccp_rtp_type_str2intval(const char *lookup_str) {
+	int res = sccp_sccp_rtp_type_str2val(lookup_str);
+	return (int)res != SCCP_SCCP_RTP_TYPE_SENTINEL ? res : -1;
+}
+
+char *sccp_sccp_rtp_type_all_entries(void) {
+	static char res[] = "Audio RTP,Video RTP,Text RTP";
+	return res;
+}
+/* = End =========================================================================================             sccp_sccp_rtp_type === */
 
 
 /* = Begin =======================================================================================          sccp_extension_status === */
@@ -1651,12 +1713,12 @@ int sccp_configurationchange_exists(int sccp_configurationchange_int_value) {
 }
 
 const char * sccp_configurationchange2str(int sccp_configurationchange_int_value) {
-	static char res[246] = "";
+	static char res[294] = "";
 	uint32_t i;
 	int pos = 0;
 	for (i = 0; i < ARRAY_LEN(sccp_configurationchange_map) - 1; i++) {
 		if ((sccp_configurationchange_int_value & 1 << i) == 1 << i) {
-			pos += snprintf(res + pos, 246, "%s%s", pos ? "," : "", sccp_configurationchange_map[i]);
+			pos += snprintf(res + pos, 294, "%s%s", pos ? "," : "", sccp_configurationchange_map[i]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1763,12 +1825,12 @@ int sccp_rtp_info_exists(int sccp_rtp_info_int_value) {
 }
 
 const char * sccp_rtp_info2str(int sccp_rtp_info_int_value) {
-	static char res[327] = "";
+	static char res[375] = "";
 	uint32_t i;
 	int pos = 0;
 	for (i = 0; i < ARRAY_LEN(sccp_rtp_info_map) - 1; i++) {
 		if ((sccp_rtp_info_int_value & 1 << i) == 1 << i) {
-			pos += snprintf(res + pos, 327, "%s%s", pos ? "," : "", sccp_rtp_info_map[i]);
+			pos += snprintf(res + pos, 375, "%s%s", pos ? "," : "", sccp_rtp_info_map[i]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1879,6 +1941,74 @@ char *sccp_feature_type_all_entries(void) {
 	return res;
 }
 /* = End =========================================================================================              sccp_feature_type === */
+
+
+/* = Begin =======================================================================================              sccp_callinfo_key === */
+
+
+/*
+ * \brief enum sccp_callinfo_key
+ */
+static const char *sccp_callinfo_key_map[] = {
+	[SCCP_CALLINFO_NONE] = "none",
+	[SCCP_CALLINFO_CALLEDPARTY_NAME] = "calledparty name",
+	[SCCP_CALLINFO_CALLEDPARTY_NUMBER] = "calledparty number",
+	[SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL] = "calledparty voicemail",
+	[SCCP_CALLINFO_CALLINGPARTY_NAME] = "callingparty name",
+	[SCCP_CALLINFO_CALLINGPARTY_NUMBER] = "callingparty number",
+	[SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL] = "callingparty voicemail",
+	[SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME] = "orig_calledparty name",
+	[SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER] = "orig_calledparty number",
+	[SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL] = "orig_calledparty voicemail",
+	[SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME] = "orig_callingparty name",
+	[SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER] = "orig_callingparty number",
+	[SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME] = "last_redirectingparty name",
+	[SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER] = "last_redirectingparty number",
+	[SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL] = "last_redirectingparty voicemail",
+	[SCCP_CALLINFO_HUNT_PILOT_NAME] = "hunt pilot name",
+	[SCCP_CALLINFO_HUNT_PILOT_NUMBER] = "hunt pilor number",
+	[SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON] = "orig_calledparty_redirect reason",
+	[SCCP_CALLINFO_LAST_REDIRECT_REASON] = "last_redirect reason",
+	[SCCP_CALLINFO_PRESENTATION] = "presentation",
+	[SCCP_CALLINFO_KEY_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_callinfo_key_exists(int sccp_callinfo_key_int_value) {
+	if ((SCCP_CALLINFO_CALLEDPARTY_NAME <=sccp_callinfo_key_int_value) && (sccp_callinfo_key_int_value < SCCP_CALLINFO_KEY_SENTINEL )) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_callinfo_key2str(sccp_callinfo_key_t enum_value) {
+	if ((SCCP_CALLINFO_NONE <= enum_value) && (enum_value <= SCCP_CALLINFO_KEY_SENTINEL)) {
+		return sccp_callinfo_key_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_callinfo_key2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_callinfo_key2str\n";
+}
+
+sccp_callinfo_key_t sccp_callinfo_key_str2val(const char *lookup_str) {
+	uint32_t idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_callinfo_key_map); idx++) {
+		if (sccp_strcaseequals(sccp_callinfo_key_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_callinfo_key_str2val(%s) not found\n", lookup_str);
+	return SCCP_CALLINFO_KEY_SENTINEL;
+}
+
+int sccp_callinfo_key_str2intval(const char *lookup_str) {
+	int res = sccp_callinfo_key_str2val(lookup_str);
+	return (int)res != SCCP_CALLINFO_KEY_SENTINEL ? res : -1;
+}
+
+char *sccp_callinfo_key_all_entries(void) {
+	static char res[] = "none,calledparty name,calledparty number,calledparty voicemail,callingparty name,callingparty number,callingparty voicemail,orig_calledparty name,orig_calledparty number,orig_calledparty voicemail,orig_callingparty name,orig_callingparty number,last_redirectingparty name,last_redirectingparty number,last_redirectingparty voicemail,hunt pilot name,hunt pilor number,orig_calledparty_redirect reason,last_redirect reason,presentation";
+	return res;
+}
+/* = End =========================================================================================              sccp_callinfo_key === */
 
 
 /* = Begin =======================================================================================                skinny_lampmode === */

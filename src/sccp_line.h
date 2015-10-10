@@ -28,13 +28,6 @@
 #endif
 #define sccp_linedevice_refreplace(_x, _y) ({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #define sccp_line_refreplace(_x, _y)	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-/*!
- * \brief SCCP cfwd information
- */
-struct sccp_cfwd_information {
-	boolean_t enabled;
-	char number[SCCP_MAX_EXTENSION];
-};
 
 /*!
  * \brief SCCP Line Structure
@@ -52,7 +45,7 @@ struct sccp_line {
 	struct {
 		uint8_t numberOfActiveDevices;									/*!< Number of Active Devices */
 		uint8_t numberOfActiveChannels;									/*!< Number of Active Channels */
-		uint8_t numberOfHoldChannels;									/*!< Number of Hold Channels */
+		uint8_t numberOfHeldChannels;									/*!< Number of Hold Channels */
 		uint8_t numberOfDNDDevices;									/*!< Number of DND Devices */
 	} statistic;												/*!< Statistics for Line Structure */
 
@@ -124,6 +117,14 @@ struct sccp_hotline {
 	sccp_line_t *line;											/*!< Line */
 	char exten[AST_MAX_EXTENSION];										/*!< Extension */
 };														/*!< SCCP Hotline Structure */
+
+/*!
+ * \brief SCCP cfwd information
+ */
+struct sccp_cfwd_information {
+	boolean_t enabled;
+	char number[SCCP_MAX_EXTENSION];
+};
 
 /*!
  * \brief SCCP Line-Devices Structure

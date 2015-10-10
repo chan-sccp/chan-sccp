@@ -381,13 +381,13 @@ ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec)
  *
  * \return bit array fmt/Format of ast_format_type (int)
  */
-int skinny_codecs2pbx_codecs(skinny_codec_t * skinny_codecs)
+int skinny_codecs2pbx_codecs(skinny_codec_t * codecs)
 {
 	uint32_t i;
 	int res_codec = 0;
 
 	for (i = 1; i < SKINNY_MAX_CAPABILITIES; i++) {
-		res_codec |= skinny_codec2pbx_codec(skinny_codecs[i]);
+		res_codec |= skinny_codec2pbx_codec(codecs[i]);
 	}
 	return res_codec;
 }
@@ -677,7 +677,12 @@ void sccp_asterisk_moh_stop(PBX_CHANNEL_TYPE * pbx_channel)
 void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen)
 {
 	PBX_CHANNEL_TYPE *ast = channel->owner;
+	int redirectreason = 0;
+	sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 
+	sccp_callinfo_getter(ci, 
+		SCCP_CALLINFO_LAST_REDIRECT_REASON, &redirectreason,
+		SCCP_CALLINFO_KEY_SENTINEL);
 #if ASTERISK_VERSION_GROUP >106
 	struct ast_party_id redirecting_from = pbx_channel_redirecting_effective_from(ast);
 	struct ast_party_id redirecting_to = pbx_channel_redirecting_effective_to(ast);
@@ -685,19 +690,20 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>; To %s<%s>\n", pbx_channel_name(ast), (redirecting_from.name.valid && redirecting_from.name.str) ? redirecting_from.name.str : "", (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "", (redirecting_to.name.valid && redirecting_to.name.str) ? redirecting_to.name.str : "",
 				  (redirecting_to.number.valid && redirecting_to.number.str) ? redirecting_to.number.str : "");
 
-	if (redirecting_from.name.valid && redirecting_from.name.str) {
-		sccp_copy_string(channel->callInfo.lastRedirectingPartyName, redirecting_from.name.str, sizeof(channel->callInfo.callingPartyName));
-	}
+	sccp_callinfo_setter(ci, 
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, redirecting_from.name.valid && redirecting_from.name.str ? redirecting_from.name.str : NULL, 
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "",
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, redirectreason,
+		SCCP_CALLINFO_LAST_REDIRECT_REASON, 4,					// need to figure out these codes
+		SCCP_CALLINFO_KEY_SENTINEL);
 
-	sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "", sizeof(channel->callInfo.lastRedirectingPartyNumber));
-	channel->callInfo.lastRedirectingParty_valid = 1;
 #else
-	sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : "", sizeof(channel->callInfo.lastRedirectingPartyNumber));
-	channel->callInfo.lastRedirectingParty_valid = 1;
+	sccp_callinfo_setter(ci, 
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : "",
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, redirectreason,
+		SCCP_CALLINFO_LAST_REDIRECT_REASON, 4,					// need to figure out these codes
+		SCCP_CALLINFO_KEY_SENTINEL);
 #endif
-	channel->callInfo.originalCdpnRedirectReason = channel->callInfo.lastRedirectingReason;
-	channel->callInfo.lastRedirectingReason = 4;								// need to figure out these codes
-
 	sccp_channel_send_callinfo2(channel);
 }
 
@@ -803,9 +809,19 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
 		if (d) {
 			if (!strcasecmp(args.param, "peerip")) {
-				sccp_copy_string(buf, sccp_socket_stringify(&d->session->sin), buflen);
+				struct sockaddr_storage sas = { 0 };
+				if (sccp_session_getOurIP(d->session, &sas, 0)) {
+					sccp_copy_string(buf, sccp_socket_stringify(&sas), buflen);
+				} else {
+					sccp_copy_string(buf, "--", buflen);
+				}
 			} else if (!strcasecmp(args.param, "recvip")) {
-				ast_copy_string(buf, sccp_socket_stringify(&d->session->sin), buflen);
+				struct sockaddr_storage sas = { 0 };
+				if (sccp_session_getSas(d->session, &sas)) {
+					sccp_copy_string(buf, sccp_socket_stringify(&sas), buflen);
+				} else {
+					sccp_copy_string(buf, "--", buflen);
+				}
 			} else if (!strcasecmp(args.param, "useragent")) {
 				sccp_copy_string(buf, skinny_devicetype2str(d->skinny_type), buflen);
 			} else if (!strcasecmp(args.param, "from")) {
@@ -947,19 +963,18 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 {
 #if ASTERISK_VERSION_GROUP >= 112
-	char *featexten;
+	char featexten[SCCP_MAX_EXTENSION];
 
-	if (iPbx.getFeatureExtension(channel, &featexten)) {
-		if (featexten && !sccp_strlen_zero(featexten)) {
+	if (iPbx.getFeatureExtension(channel, featexten)) {
+		if (!sccp_strlen_zero(featexten)) {
 			struct ast_frame f = { AST_FRAME_DTMF, };
-			int j;
+			uint j;
 
 			f.len = 100;
 			for (j = 0; j < strlen(featexten); j++) {
 				f.subclass.integer = featexten[j];
 				ast_queue_frame(channel->owner, &f);
 			}
-			sccp_free(featexten);
 		} else {
 			pbx_log(LOG_ERROR, "SCCP: Monitor Feature Extension Not available\n");
 		}
@@ -1092,14 +1107,13 @@ enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 #endif
 		// check if the pickup extension was entered
 		const char *dialedNumber = iPbx.getChannelExten(channel);
-		char *pickupexten;
+		char pickupexten[SCCP_MAX_EXTENSION];
 
-		if (iPbx.getPickupExtension(channel, &pickupexten) && sccp_strequals(dialedNumber, pickupexten)) {
+		if (iPbx.getPickupExtension(channel, pickupexten) && sccp_strequals(dialedNumber, pickupexten)) {
 			if (sccp_asterisk_doPickup(pbx_channel)) {
 				res = AST_PBX_SUCCESS;
 			}
 			ast_channel_unlock(pbx_channel);
-			sccp_free(pickupexten);
 			goto EXIT;
 		}
 		// channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;

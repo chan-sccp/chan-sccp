@@ -93,6 +93,14 @@ struct sccp_speed {
 };
 
 /*!
+ * \brief Privacy Feature Enum
+ */
+enum sccp_privacyfeature {
+	SCCP_PRIVACYFEATURE_HINT 	= 1 << 1,
+	SCCP_PRIVACYFEATURE_CALLPRESENT	= 1 << 2,
+};
+
+/*!
  * \brief SCCP Feature Configuration Structure
  */
 struct sccp_feature_configuration {
@@ -155,18 +163,19 @@ struct sccp_device {
 	const sccp_deviceProtocol_t *protocol;									/*!< protocol the devices uses */
 	uint32_t skinny_type;											/*!< Model of this Phone sent by the station, devicetype */
 	uint32_t device_features;										/*!< device features (contains protocolversion in 8bit first segement */
-	sccp_devicestate_t state;										/*!< Device State (SCCP_DEVICE_ONHOOK or SCCP_DEVICE_OFFHOOK) */
 	sccp_earlyrtp_t earlyrtp;										/*!< RTP Channel State where to open the RTP Media Stream */
-	sccp_session_t *session;										/*!< Current Session */
-	SCCP_RWLIST_ENTRY (sccp_device_t) list;									/*!< Global Device Linked List */
 	uint16_t keepalive;											/*!< Station Specific Keepalive Timeout */
 	uint16_t keepaliveinterval;										/*!< Currently set Keepalive Timeout */
 	uint8_t protocolversion;										/*!< Skinny Supported Protocol Version */
 	uint8_t inuseprotocolversion;										/*!< Skinny Used Protocol Version */
-	uint16_t registrationState;										/*!< If the device has been fully registered yet */
-	sccp_nat_t nat;												/*!< Network Address Translation Support (Boolean, default=on) */
-	boolean_t directrtp;											/*!< Direct RTP Support (Boolean, default=on) */
+	uint16_t directrtp;											/*!< Direct RTP Support (Boolean, default=on) */
 
+	sccp_nat_t nat;												/*!< Network Address Translation Support (Boolean, default=on) */
+	sccp_session_t *session;										/*!< Current Session */
+	SCCP_RWLIST_ENTRY (sccp_device_t) list;									/*!< Global Device Linked List */
+
+	sccp_private_device_data_t *privateData;
+	
 	sccp_channel_t *active_channel;										/*!< Active SCCP Channel */
 	sccp_line_t *currentLine;										/*!< Current Line */
 
@@ -181,8 +190,6 @@ struct sccp_device {
 	SCCP_LIST_HEAD (, sccp_hostname_t) permithosts;								/*!< Permit Registration to the Hostname/IP Address */
 
 	char *description;											/*!< Internal Description. Skinny protocol does not use it */
-	uint16_t accessoryused;											/*!< Accessory Used. This are for support of message 0x0073 AccessoryStatusMessage - Protocol v.11 CCM7 -FS */
-	uint16_t accessorystatus;										/*!< Accessory Status */
 	char imageversion[StationMaxImageVersionSize];								/*!< Version to Send to the phone */
 	char loadedimageversion[StationMaxImageVersionSize];							/*!< Loaded version on the phone */
 	char config_type[SCCP_MAX_DEVICE_CONFIG_TYPE];								/*!< Model of this Phone used for setting up features/softkeys/buttons etc. */
@@ -196,7 +203,6 @@ struct sccp_device {
 		char number[SCCP_MAX_EXTENSION];
 		uint16_t lineInstance;
 	} redialInformation;											/*!< Last Dialed Number */
-	boolean_t realtime;											/*!< is it a realtime configuration */
 	char *backgroundImage;											/*!< backgroundimage we will set after device registered */
 	char *ringtone;												/*!< ringtone we will set after device registered */
 
@@ -223,6 +229,7 @@ struct sccp_device {
 	boolean_t softkeysupport;										/*!< Soft Key Support (Boolean, default=on) */
 	uint32_t mwilight;											/*!< MWI/Light bit field to to store mwi light for each line and device (offset 0 is current device state) */
 
+	boolean_t realtime;											/*!< is it a realtime configuration */
 	boolean_t transfer;											/*!< Transfer Support (Boolean, default=on) */
 	boolean_t park;												/*!< Park Support (Boolean, default=on) */
 	boolean_t cfwdall;											/*!< Call Forward All Support (Boolean, default=on) */
@@ -237,6 +244,7 @@ struct sccp_device {
 	boolean_t directed_pickup_modeanswer;									/*!< Directed Pickup Mode Answer (Boolean, default on). Answer on directed pickup */
 	char directed_pickup_context[SCCP_MAX_CONTEXT];								/*!< Directed Pickup Context to Use in DialPlan */
 #endif
+	sccp_dndmode_t dndmode;											/*!< dnd mode: see SCCP_DNDMODE_* */
 	struct {
 		sccp_channel_t *transferee;									/*!< SCCP Channel which will be transferred */
 		sccp_channel_t *transferer;									/*!< SCCP Channel which initiated the transferee */
@@ -253,11 +261,6 @@ struct sccp_device {
 		uint8_t numberOfServices;									/*!< Number of Services */
 	} configurationStatistic;										/*!< Configuration Statistic Structure */
 
-	struct {
-		boolean_t headset;										/*!< HeadSet Support (Boolean) */
-		boolean_t handset;										/*!< HandSet Support (Boolean) */
-		boolean_t speaker;										/*!< Speaker Support (Boolean) */
-	} accessoryStatus;											/*!< Accesory Status Structure */
 	boolean_t isAnonymous;											/*!< Device is connected Anonymously (Guest) */
 	boolean_t mwiLight;											/*!< MWI/Light \todo third MWI/light entry in device ? */
 
@@ -271,7 +274,6 @@ struct sccp_device {
 	sccp_featureConfiguration_t overlapFeature;								/*!< Overlap Dial Feature */
 	sccp_featureConfiguration_t monitorFeature;								/*!< Monitor (automon) Feature */
 	sccp_featureConfiguration_t dndFeature;									/*!< dnd Feature */
-	sccp_dndmode_t dndmode;											/*!< dnd mode: see SCCP_DNDMODE_* */
 	sccp_featureConfiguration_t priFeature;									/*!< priority Feature */
 	sccp_featureConfiguration_t mobFeature;									/*!< priority Feature */
 
@@ -294,7 +296,7 @@ struct sccp_device {
 		int free;
 	} scheduleTasks;
 	#endif
-	
+
 	#if 0 /* unused */
 	char videoSink[MAXHOSTNAMELEN];										/*!< sink to send video */
 	#endif
@@ -375,13 +377,13 @@ struct sccp_addon {
  */
 struct sccp_device_indication_cb {
 	void (*const remoteHold) (constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy);
-	void (*const remoteOffhook) (constDevicePtr device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
-	void (*const remoteOnhook) (constDevicePtr device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
+	void (*const remoteOffhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
+	void (*const remoteOnhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
 	void (*const offhook) (constDevicePtr device, sccp_linedevices_t * linedevice, uint32_t callid);
 	void (*const onhook) (constDevicePtr device, const uint8_t lineInstance, uint32_t callid);
-	void (*const dialing) (constDevicePtr device, const uint8_t lineInstance, const sccp_channel_t * channel);
-	void (*const proceed) (constDevicePtr device, const uint8_t lineInstance, const sccp_channel_t * channel);
-	void (*const connected) (constDevicePtr device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
+	void (*const dialing) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION]);
+	void (*const proceed) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
+	void (*const connected) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
 };
 
 #define sccp_dev_display(p,q) sccp_dev_display_debug(p, q, __FILE__, __LINE__, __PRETTY_FUNCTION__)
@@ -391,6 +393,16 @@ struct sccp_device_indication_cb {
 
 void sccp_device_pre_reload(void);
 void sccp_device_post_reload(void);
+
+/* ====================================================================================================== start getters / setters for privateData */
+const sccp_accessorystate_t sccp_device_getAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory);
+const sccp_accessory_t sccp_device_getActiveAccessory(constDevicePtr d);
+int sccp_device_setAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory, const sccp_accessorystate_t state);
+const sccp_devicestate_t sccp_device_getDeviceState(constDevicePtr d);
+int sccp_device_setDeviceState(constDevicePtr d, const sccp_devicestate_t state);
+const skinny_registrationstate_t sccp_device_getRegistrationState(constDevicePtr d);
+int sccp_device_setRegistrationState(constDevicePtr d, const skinny_registrationstate_t state);
+/* ======================================================================================================== end getters / setters for privateData */
 
 /* live cycle */
 sccp_device_t *sccp_device_create(const char *id);
@@ -416,7 +428,7 @@ void sccp_dev_sendmsg(constDevicePtr d, sccp_mid_t t);
 void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid, uint8_t softKeySetIndex);
 void sccp_dev_set_ringer(constDevicePtr d, uint8_t opt, uint8_t lineInstance, uint32_t callid);
 void sccp_dev_cleardisplay(constDevicePtr d);
-void sccp_dev_set_registered(devicePtr d, uint8_t opt);
+void sccp_dev_set_registered(devicePtr d, skinny_registrationstate_t state);
 void sccp_dev_set_speaker(constDevicePtr d, uint8_t opt);
 void sccp_dev_set_microphone(devicePtr d, uint8_t opt);
 void sccp_dev_set_cplane(constDevicePtr device, uint8_t lineInstance, int status);

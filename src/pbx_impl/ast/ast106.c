@@ -250,15 +250,15 @@ static int sccp_wrapper_asterisk16_devicestate(void *data)
  *
  * \return bit array fmt/Format of ast_format_type (int)
  */
-int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref)
+int skinny_codecs2pbx_codec_pref(skinny_codec_t * codecs, struct ast_codec_pref *astCodecPref)
 {
 	uint32_t i;
 	int res_codec = 0;
 
 	for (i = 1; i < SKINNY_MAX_CAPABILITIES; i++) {
-		if (skinny_codecs[i]) {
+		if (codecs[i]) {
 			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "adding codec to ast_codec_pref\n");
-			res_codec |= ast_codec_pref_append(astCodecPref, skinny_codec2pbx_codec(skinny_codecs[i]));
+			res_codec |= ast_codec_pref_append(astCodecPref, skinny_codec2pbx_codec(codecs[i]));
 		}
 	}
 	return res_codec;
@@ -756,11 +756,11 @@ static int sccp_wrapper_asterisk16_sendDigit(const sccp_channel_t * channel, con
 	return sccp_wrapper_asterisk16_sendDigits(channel, digits);
 }
 
-static void sccp_wrapper_asterisk16_setCalleridPresence(const sccp_channel_t * channel)
+static void sccp_wrapper_asterisk16_setCalleridPresentation(const sccp_channel_t * channel, sccp_callerid_presentation_t presentation)
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
-	if (CALLERID_PRESENCE_FORBIDDEN == channel->callInfo.presentation) {
+	if (CALLERID_PRESENTATION_FORBIDDEN == presentation) {
 		pbx_channel->cid.cid_pres |= AST_PRES_PROHIB_USER_NUMBER_NOT_SCREENED;
 	}
 }
@@ -800,6 +800,7 @@ static void sccp_wrapper_asterisk106_setOwner(sccp_channel_t * channel, PBX_CHAN
 {
 	channel->owner = pbx_channel;
 }
+
 
 static boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channel, const void *ids, const PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** _pbxDstChannel)
 {
@@ -1160,24 +1161,24 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE * chan, PBX_CHANNEL_TYPE * target)
 	/* exchange callerid info */
 	if (c) {
 		if (chan && !sccp_strlen_zero(chan->cid.cid_name)) {
-			sccp_copy_string(c->callInfo.originalCalledPartyName, chan->cid.cid_name, sizeof(c->callInfo.originalCalledPartyName));
+			sccp_copy_string(c->oldCallInfo.originalCalledPartyName, chan->cid.cid_name, sizeof(c->oldCallInfo.originalCalledPartyName));
 		}
 		if (chan && !sccp_strlen_zero(chan->cid.cid_num)) {
-			sccp_copy_string(c->callInfo.originalCalledPartyNumber, chan->cid.cid_num, sizeof(c->callInfo.originalCalledPartyNumber));
+			sccp_copy_string(c->oldCallInfo.originalCalledPartyNumber, chan->cid.cid_num, sizeof(c->oldCallInfo.originalCalledPartyNumber));
 		}
 		if (!sccp_strlen_zero(target_cid_name)) {
-			sccp_copy_string(c->callInfo.calledPartyName, target_cid_name, sizeof(c->callInfo.callingPartyName));
+			sccp_copy_string(c->oldCallInfo.calledPartyName, target_cid_name, sizeof(c->oldCallInfo.callingPartyName));
 			sccp_free(target_cid_name);
 		}
 		if (!sccp_strlen_zero(target_cid_number)) {
-			sccp_copy_string(c->callInfo.calledPartyNumber, target_cid_number, sizeof(c->callInfo.callingPartyNumber));
+			sccp_copy_string(c->oldCallInfo.calledPartyNumber, target_cid_number, sizeof(c->oldCallInfo.callingPartyNumber));
 			sccp_free(target_cid_number);
 		}
 
 		/* we use the chan->cid.cid_name to do the magic */
 		if (!sccp_strlen_zero(target_cid_ani)) {
-			sccp_copy_string(c->callInfo.callingPartyNumber, target_cid_ani, sizeof(c->callInfo.callingPartyNumber));
-			sccp_copy_string(c->callInfo.callingPartyName, target_cid_ani, sizeof(c->callInfo.callingPartyName));
+			sccp_copy_string(c->oldCallInfo.callingPartyNumber, target_cid_ani, sizeof(c->oldCallInfo.callingPartyNumber));
+			sccp_copy_string(c->oldCallInfo.callingPartyName, target_cid_ani, sizeof(c->oldCallInfo.callingPartyName));
 			sccp_free(target_cid_ani);
 		}
 	}
@@ -1217,12 +1218,12 @@ pickup_failed:
 }
 #endif
 
-static boolean_t sccp_wrapper_asterisk16_getPickupExtension(const sccp_channel_t * channel, char **extension)
+static boolean_t sccp_wrapper_asterisk16_getPickupExtension(const sccp_channel_t * channel, char extension[SCCP_MAX_EXTENSION])
 {
 	boolean_t res = FALSE;
 
 	if (!sccp_strlen_zero(ast_pickup_ext())) {
-		*extension = strdup((char *) ast_pickup_ext());
+		sccp_copy_string(extension, ast_pickup_ext(), SCCP_MAX_EXTENSION);
 		res = TRUE;
 	}
 	return res;
@@ -1498,8 +1499,12 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_request(const char *type, int f
 	requestor = (channel && channel->owner) ? channel->owner : NULL;
 
 	// set calling party 
-	sccp_channel_set_callingparty(channel, requestor->cid.cid_name, requestor->cid.cid_num);
-	sccp_channel_set_originalCalledparty(channel, NULL, requestor->cid.cid_dnid);
+	sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
+	sccp_callinfo_setter(ci, 
+			SCCP_CALLINFO_CALLINGPARTY_NAME, requestor->cid.cid_name,
+			SCCP_CALLINFO_CALLINGPARTY_NUMBER, requestor->cid.cid_num,
+			SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, requestor->cid.cid_dnid,
+			SCCP_CALLINFO_KEY_SENTINEL);
 
 EXITFUNC:
 	if (lineName) {
@@ -1612,15 +1617,15 @@ static int sccp_wrapper_asterisk16_callerid_rdnis(const sccp_channel_t * channel
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
  */
-static int sccp_wrapper_asterisk16_callerid_presence(const sccp_channel_t * channel)
+static int sccp_wrapper_asterisk16_callerid_presentation(const sccp_channel_t * channel)
 {
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
 	// return pbx_chan->cid.cid_pres;
 	if (pbx_chan->cid.cid_pres) {
-		return CALLERID_PRESENCE_ALLOWED;
+		return CALLERID_PRESENTATION_ALLOWED;
 	}
-	return CALLERID_PRESENCE_FORBIDDEN;
+	return CALLERID_PRESENTATION_FORBIDDEN;
 }
 
 static int sccp_wrapper_asterisk16_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
@@ -1946,13 +1951,7 @@ static int sccp_wrapper_asterisk16_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 			ast_rtp_get_us(instance, &sin);
 			// sin.sin_addr.s_addr = sin.sin_addr.s_addr ? sin.sin_addr.s_addr : d->session->ourip.s_addr;
 			memcpy(&sas, &sin, sizeof(struct sockaddr_storage));
-			if (sccp_socket_is_any_addr(&sas)) {
-				if (sccp_socket_is_IPv4(&sas)) {
-					((struct sockaddr_in6 *) &sas)->sin6_addr = ((struct sockaddr_in6 *) &d->session->ourip)->sin6_addr;
-				} else {
-					((struct sockaddr_in *) &sas)->sin_addr = ((struct sockaddr_in *) &d->session->ourip)->sin_addr;
-				}
-			}
+			sccp_session_getOurIP(d->session, &sas, sccp_socket_is_IPv4(&sas) ? AF_INET : AF_INET6);
 		}
 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_update_rtp_peer) new remote rtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s) => directmedia=%s\n", c->currentDeviceId, sccp_socket_stringify(&sas), S_COR(d->directrtp, "yes", "no"),
@@ -1995,19 +1994,6 @@ static int sccp_wrapper_asterisk16_getCodec(PBX_CHANNEL_TYPE * ast)
 	}
 }
 
-static int sccp_wrapper_asterisk16_rtp_stop(sccp_channel_t * channel)
-{
-	if (channel->rtp.audio.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX audio rtp transmission on channel %08X\n", channel->currentDeviceId, channel->callid);
-		ast_rtp_stop(channel->rtp.audio.rtp);
-	}
-
-	if (channel->rtp.video.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX video rtp transmission on channel %08X\n", channel->currentDeviceId, channel->callid);
-		ast_rtp_stop(channel->rtp.video.rtp);
-	}
-	return 0;
-}
 
 static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(sccp_channel_t * c)
 {
@@ -2107,20 +2093,32 @@ static boolean_t sccp_wrapper_asterisk16_checkHangup(const sccp_channel_t * chan
 
 static boolean_t sccp_wrapper_asterisk16_rtpGetPeer(PBX_RTP_TYPE * rtp, struct sockaddr_storage *address)
 {
-	struct sockaddr_in *tmpaddress = (struct sockaddr_in *) address;
+	union sockaddr_union {
+	        struct sockaddr sa;
+	        struct sockaddr_storage ss;
+	        struct sockaddr_in sin;
+	        struct sockaddr_in6 sin6;
+	} tmpaddress = {
+		.ss = *address,
+	};
 
-	ast_rtp_get_peer(rtp, tmpaddress);
-	address = (struct sockaddr_storage *) tmpaddress;
+	ast_rtp_get_peer(rtp, &tmpaddress.sin);
 	address->ss_family = AF_INET;
 	return TRUE;
 }
 
 static boolean_t sccp_wrapper_asterisk16_rtpGetUs(PBX_RTP_TYPE * rtp, struct sockaddr_storage *address)
 {
-	struct sockaddr_in *tmpaddress = (struct sockaddr_in *) address;
+	union sockaddr_union {
+	        struct sockaddr sa;
+	        struct sockaddr_storage ss;
+	        struct sockaddr_in sin;
+	        struct sockaddr_in6 sin6;
+	} tmpaddress = {
+		.ss = *address,
+	};
 
-	ast_rtp_get_us(rtp, tmpaddress);
-	address = (struct sockaddr_storage *) tmpaddress;
+	ast_rtp_get_us(rtp, &tmpaddress.sin);
 	address->ss_family = AF_INET;
 	return TRUE;
 }
@@ -2992,7 +2990,7 @@ const PbxInterface iPbx = {
 	rtp_setWriteFormat:		sccp_wrapper_asterisk16_setWriteFormat,
 	rtp_setReadFormat:		sccp_wrapper_asterisk16_setReadFormat,
 	rtp_destroy:			sccp_wrapper_asterisk16_destroyRTP,
-	rtp_stop:			sccp_wrapper_asterisk16_rtp_stop,
+	rtp_stop:			ast_rtp_stop,
 	rtp_codec:			NULL,
 	rtp_audio_create:		sccp_wrapper_asterisk16_create_audio_rtp,
 	rtp_video_create:		sccp_wrapper_asterisk16_create_video_rtp,
@@ -3008,7 +3006,7 @@ const PbxInterface iPbx = {
 	get_callerid_subaddr:		NULL,
 	get_callerid_dnid:		sccp_wrapper_asterisk16_callerid_dnid,
 	get_callerid_rdnis:		sccp_wrapper_asterisk16_callerid_rdnis,
-	get_callerid_presence:		sccp_wrapper_asterisk16_callerid_presence,
+	get_callerid_presentation:	sccp_wrapper_asterisk16_callerid_presentation,
 
 	set_callerid_name:		sccp_wrapper_asterisk16_setCalleridName,
 	set_callerid_number:		sccp_wrapper_asterisk16_setCalleridNumber,
@@ -3017,7 +3015,7 @@ const PbxInterface iPbx = {
 	
 	set_callerid_redirectingParty:	sccp_wrapper_asterisk16_setRedirectingParty,
 	set_callerid_redirectedParty:	sccp_wrapper_asterisk16_setRedirectedParty,
-	set_callerid_presence:		sccp_wrapper_asterisk16_setCalleridPresence,
+	set_callerid_presentation:	sccp_wrapper_asterisk16_setCalleridPresentation,
 	set_connected_line:		sccp_wrapper_asterisk16_updateConnectedLine,
 	sendRedirectedUpdate:		sccp_asterisk_sendRedirectedUpdate,
 
@@ -3121,7 +3119,7 @@ const PbxInterface iPbx = {
 	/* rtp */
 	.rtp_getPeer			= sccp_wrapper_asterisk16_rtpGetPeer,
 	.rtp_getUs 			= sccp_wrapper_asterisk16_rtpGetUs,
-	.rtp_stop 			= sccp_wrapper_asterisk16_rtp_stop,
+	.rtp_stop			= ast_rtp_stop,
 	.rtp_audio_create 		= sccp_wrapper_asterisk16_create_audio_rtp,
 	.rtp_video_create 		= sccp_wrapper_asterisk16_create_video_rtp,
 	.rtp_get_payloadType 		= sccp_wrapper_asterisk16_get_payloadType,
@@ -3139,14 +3137,14 @@ const PbxInterface iPbx = {
 	.get_callerid_subaddr 		= NULL,
 	.get_callerid_dnid 		= sccp_wrapper_asterisk16_callerid_dnid,
 	.get_callerid_rdnis 		= sccp_wrapper_asterisk16_callerid_rdnis,
-	.get_callerid_presence 		= sccp_wrapper_asterisk16_callerid_presence,
+	.get_callerid_presentation 	= sccp_wrapper_asterisk16_callerid_presentation,
 	.set_callerid_name 		= sccp_wrapper_asterisk16_setCalleridName,
 	.set_callerid_number 		= sccp_wrapper_asterisk16_setCalleridNumber,
 	.set_callerid_ani		= sccp_wrapper_asterisk16_setCalleridAni,
 	.set_callerid_dnid 		= NULL,						//! \todo implement callback
 	.set_callerid_redirectingParty 	= sccp_wrapper_asterisk16_setRedirectingParty,
 	.set_callerid_redirectedParty 	= sccp_wrapper_asterisk16_setRedirectedParty,
-	.set_callerid_presence 		= sccp_wrapper_asterisk16_setCalleridPresence,
+	.set_callerid_presentation 	= sccp_wrapper_asterisk16_setCalleridPresentation,
 	.set_connected_line		= sccp_wrapper_asterisk16_updateConnectedLine,
 	.sendRedirectedUpdate		= sccp_asterisk_sendRedirectedUpdate,
 	

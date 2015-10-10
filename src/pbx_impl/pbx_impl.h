@@ -15,9 +15,9 @@
 #define __PBX_IMPL_H
 
 #include <config.h>
-#if HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
+//#if HAVE_SYS_SOCKET_H
+//#include <sys/socket.h>
+//#endif
 #include "../common.h"
 
 #ifdef HAVE_ASTERISK
@@ -90,8 +90,8 @@ typedef struct _PbxInterface {
 	int (*const rtp_setPhoneAddress) (const struct sccp_rtp * rtp, const struct sockaddr_storage * new_peer, int nat_active);
 	boolean_t(*const rtp_setWriteFormat) (constChannelPtr channel, skinny_codec_t codec);
 	boolean_t(*const rtp_setReadFormat) (constChannelPtr channel, skinny_codec_t codec);
-	boolean_t(*const rtp_destroy) (PBX_RTP_TYPE * tp);
-	int (*const rtp_stop) (sccp_channel_t * channel);
+	boolean_t(*const rtp_destroy) (PBX_RTP_TYPE * rtp);
+	void (*const rtp_stop) (PBX_RTP_TYPE *rtp);
 	int (*const rtp_codec) (sccp_channel_t * channel);
 	boolean_t(*const rtp_audio_create) (sccp_channel_t * channel);
 	boolean_t(*const rtp_video_create) (sccp_channel_t * channel);
@@ -107,7 +107,7 @@ typedef struct _PbxInterface {
 	int (*const get_callerid_subaddr) (constChannelPtr channel, char **subaddr);
 	int (*const get_callerid_dnid) (constChannelPtr channel, char **dnid);
 	int (*const get_callerid_rdnis) (constChannelPtr channel, char **rdnis);
-	int (*const get_callerid_presence) (constChannelPtr channel);
+	int (*const get_callerid_presentation) (constChannelPtr channel);
 
 	void (*const set_callerid_name) (constChannelPtr channel, const char *name);
 	void (*const set_dialed_number) (constChannelPtr channel, const char *number);
@@ -116,7 +116,7 @@ typedef struct _PbxInterface {
 	void (*const set_callerid_dnid) (constChannelPtr channel, const char *dnid);
 	void (*const set_callerid_redirectingParty) (constChannelPtr channel, const char *number, const char *name);
 	void (*const set_callerid_redirectedParty) (constChannelPtr channel, const char *number, const char *name);
-	void (*const set_callerid_presence) (constChannelPtr channel);
+	void (*const set_callerid_presentation) (constChannelPtr channel, sccp_callerid_presentation_t presentation);
 	void (*const set_connected_line) (constChannelPtr channel, const char *number, const char *name, uint8_t reason);
 	void (*const sendRedirectedUpdate) (constChannelPtr channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason);
 
@@ -128,8 +128,8 @@ typedef struct _PbxInterface {
 	boolean_t(*const feature_removeFromDatabase) (const char *family, const char *key);
 	boolean_t(*const feature_removeTreeFromDatabase) (const char *family, const char *key);
 	boolean_t(*const feature_monitor) (const sccp_channel_t *channel);
-	boolean_t(*const getFeatureExtension) (constChannelPtr channel, char **featureExtension);
-	boolean_t(*const getPickupExtension) (constChannelPtr channel, char **pickupExtension);
+	boolean_t(*const getFeatureExtension) (constChannelPtr channel, char featureExtension[SCCP_MAX_EXTENSION]);
+	boolean_t(*const getPickupExtension) (constChannelPtr channel, char pickupExtension[SCCP_MAX_EXTENSION]);
 	boolean_t(*const feature_pickup) (const sccp_channel_t *chan, PBX_CHANNEL_TYPE *target);
 
 	void *(*const eventSubscribe)(constChannelPtr channel, char **featureExtension);

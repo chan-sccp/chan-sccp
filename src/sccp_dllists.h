@@ -15,7 +15,17 @@
 #ifndef _SCCP_DLLISTS_H
 #define _SCCP_DLLISTS_H
 
-#include "sccp_lock.h"
+/* Lock Macro for Lists */
+#define SCCP_LIST_LOCK(x)			pbx_mutex_lock(&(x)->lock)
+#define SCCP_LIST_UNLOCK(x)			pbx_mutex_unlock(&(x)->lock)
+#define SCCP_LIST_TRYLOCK(x)			pbx_mutex_trylock(&(x)->lock)
+
+/* Lock Macro for read/write Lists */
+#define SCCP_RWLIST_RDLOCK(x)			pbx_rwlock_rdlock(&(x)->lock)
+#define SCCP_RWLIST_WRLOCK(x)			pbx_rwlock_wrlock(&(x)->lock)
+#define SCCP_RWLIST_UNLOCK(x)			pbx_rwlock_unlock(&(x)->lock)
+#define SCCP_RWLIST_TRYRDLOCK(x)		pbx_rwlock_tryrdlock(&(x)->lock)
+#define SCCP_RWLIST_TRYWRLOCK(x)		pbx_rwlock_trywrlock(&(x)->lock)
 
 /* Main list head */
 #define SCCP_LIST_HEAD(name, type)									\

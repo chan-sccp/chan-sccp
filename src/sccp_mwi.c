@@ -206,7 +206,7 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
 	if (!subscription || !event) {
 		return;
 	}
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received PBX mwi event for %s@%s\n", (subscription->mailbox) ? subscription->mailbox : "NULL", (subscription->context) ? subscription->context : "NULL");
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received PBX mwi event for %s@%s\n", subscription->mailbox, subscription->context);
 
 	/* for calculation store previous voicemail counts */
 	subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
@@ -508,9 +508,7 @@ void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice)
 	sccp_msg_t *msg = NULL;
 	sccp_line_t *l = lineDevice->line;
 	sccp_device_t *d = lineDevice->device;
-	int instance = 0;
-	uint8_t status = 0;
-	uint32_t mask;
+	uint32_t instance = 0, status = 0, mask = 0;
 
 	/* when l is defined we are switching on/off the button icon, otherwise the main mwi light */
 	if (l) {
