@@ -2181,18 +2181,20 @@ void sccp_do_backtrace()
 	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "--------------------------------------------------------------------------(bt)--\n");
 	size = backtrace(addresses, SCCP_BACKTRACE_SIZE);
 #if ASTERISK_VERSION_GROUP >= 112 
-	strings = __ast_bt_get_symbols(addresses, size);
+	strings = ast_bt_get_symbols(addresses, size);
 #else
 	strings = __sccp_bt_get_symbols(addresses, size);
 #endif
 
-	for (i = 1; i < size; i++) {
-		pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, " (bt) > %s\n", strings[i]);		
-	}
-	free(strings);	// malloced by backtrace_symbols
+	if (strings) {
+		for (i = 1; i < size; i++) {
+			pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, " (bt) > %s\n", strings[i]);		
+		}
+		free(strings);	// malloced by backtrace_symbols
 
-	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "================================================================================\n");
-	pbx_log(LOG_WARNING, "SCCP: (backtrace) \n%s\n", pbx_str_buffer(btbuf));
+		pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "================================================================================\n");
+		pbx_log(LOG_WARNING, "SCCP: (backtrace) \n%s\n", pbx_str_buffer(btbuf));
+	}
 #endif	// HAVE_EXECINFO_H
 }
 #endif  // DEBUG
