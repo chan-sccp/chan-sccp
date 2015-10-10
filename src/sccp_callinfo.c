@@ -144,11 +144,9 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src_ci, sccp_callinfo
 {
 	/* observing locking order. not locking both callinfo objects at the same time, using a tmp as go between */
 	if (src_ci && dst_ci) {
-#if defined(__llvm__)
-		sccp_callinfo_t tmp_ci = {{0}};
-#else		
-		sccp_callinfo_t tmp_ci = {{{{0}}}};
-#endif
+		//sccp_callinfo_t tmp_ci = {{{{0}}}};
+		sccp_callinfo_t tmp_ci;
+		memset(&tmp_ci, 0, sizeof(sccp_callinfo_t));
 
 		sccp_callinfo_lock(src_ci);
 		memcpy(&tmp_ci, src_ci, sizeof(sccp_callinfo_t));
@@ -270,12 +268,10 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, sccp_callinfo_key_t key, ...)
 {
 	assert(src_ci != NULL && dst_ci != NULL);
-#if defined(__llvm__)
-	sccp_callinfo_t tmp_ci = {{0}};
-#else		
-	sccp_callinfo_t tmp_ci = {{{{0}}}};
-#endif
-
+	//sccp_callinfo_t tmp_ci = {{{{0}}}};
+	sccp_callinfo_t tmp_ci;
+	memset(&tmp_ci, 0, sizeof(sccp_callinfo_t));
+	
 	sccp_callinfo_key_t srckey = SCCP_CALLINFO_NONE;
 	sccp_callinfo_key_t dstkey = SCCP_CALLINFO_NONE;
 	int changes = 0;
