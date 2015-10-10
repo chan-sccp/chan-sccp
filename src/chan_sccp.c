@@ -454,13 +454,13 @@ int load_config(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Platform byte order   : BIG ENDIAN\n");
 #endif
 	if (sccp_config_getConfig(TRUE) > CONFIG_STATUS_FILE_OK) {
-		pbx_log(LOG_ERROR, "Error loading configfile !");
+		pbx_log(LOG_ERROR, "Error loading configfile !\n");
 		return FALSE;
 	}
 
 	if (!sccp_config_general(SCCP_CONFIG_READINITIAL)) {
-		pbx_log(LOG_ERROR, "Error parsing configfile !");
-		return 0;
+		pbx_log(LOG_ERROR, "Error parsing configfile !\n");
+		return FALSE;
 	}
 	sccp_config_readDevicesLines(SCCP_CONFIG_READINITIAL);
 
@@ -490,31 +490,32 @@ int load_config(void)
 		sccp_copy_string(addrStr, sccp_socket_stringify_addr(&GLOB(bindaddr)), sizeof(addrStr));
 
 		if ((status = getaddrinfo(sccp_socket_stringify_addr(&GLOB(bindaddr)), port_str, &hints, &res)) != 0) {
-			pbx_log(LOG_WARNING, "Failed to get addressinfo for %s:%s, error: %s!\n", sccp_socket_stringify_addr(&GLOB(bindaddr)), port_str, gai_strerror(status));
+			pbx_log(LOG_ERROR, "Failed to get addressinfo for %s:%s, error: %s!\n", sccp_socket_stringify_addr(&GLOB(bindaddr)), port_str, gai_strerror(status));
 			close(GLOB(descriptor));
 			GLOB(descriptor) = -1;
-			return 0;
+			return FALSE;
 		}
 		GLOB(descriptor) = socket(res->ai_family, res->ai_socktype, res->ai_protocol);			// need to add code to handle multiple interfaces (multi homed server) -> multiple socket descriptors
 		if (GLOB(descriptor) < 0) {
-			pbx_log(LOG_WARNING, "Unable to create SCCP socket: %s\n", strerror(errno));
+			pbx_log(LOG_ERROR, "Unable to create SCCP socket: %s\n", strerror(errno));
+			return FALSE;
 		} else {
 			/* get ip-address string */
 			if (bind(GLOB(descriptor), res->ai_addr, res->ai_addrlen) < 0) {
-				pbx_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)), strerror(errno));
+				pbx_log(LOG_ERROR, "Failed to bind to %s:%d: %s!\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)), strerror(errno));
 				close(GLOB(descriptor));
 				GLOB(descriptor) = -1;
-				return 0;
+				return FALSE;
 			}
 			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)));
 
 			sccp_socket_setoptions(GLOB(descriptor));
 			
 			if (listen(GLOB(descriptor), DEFAULT_SCCP_BACKLOG)) {
-				pbx_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)), strerror(errno));
+				pbx_log(LOG_ERROR, "Failed to start listening to %s:%d: %s\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)), strerror(errno));
 				close(GLOB(descriptor));
 				GLOB(descriptor) = -1;
-				return 0;
+				return FALSE;
 			}
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)));
 			GLOB(reload_in_progress) = FALSE;
@@ -524,7 +525,7 @@ int load_config(void)
 		freeaddrinfo(res);
 	}
 
-	return 0;
+	return TRUE;
 }
 
 /*!
