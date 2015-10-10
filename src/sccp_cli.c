@@ -1980,10 +1980,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 			} else if (sccp_strcaseequals(argv[4], "OriginalCallingPartyName")) {
 				pbx_log(LOG_NOTICE, "%s: Setting Original Calling Party, '%s', '%s'\n", c->designator, argv[5], argv[6]);
 				sccp_channel_set_originalCalledparty(c, argv[5], argv[6]);
-			//} else if (sccp_strcaseequals(argv[4], "lastRedirectReason")) {
-			//	pbx_log(LOG_NOTICE, "%s: Setting RedirectReason '%d' -> '%s'\n", c->designator, c->oldCallInfo.lastRedirectingReason, argv[5]);
-			//	c->oldCallInfo.originalCdpnRedirectReason = c->oldCallInfo.lastRedirectingReason;
-			//	c->oldCallInfo.lastRedirectingReason = atoi(argv[5]);
 			}
 			return RESULT_SUCCESS;
 		} else {

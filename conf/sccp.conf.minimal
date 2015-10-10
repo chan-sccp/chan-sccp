@@ -16,9 +16,9 @@ allow = alaw
 ; device section
 ;
 [mydevice]
-type=device
-devicetype = 
-description = 
+type = device
+devicetype = 7940
+description = testdev
 button = line, myline
 
 ;
@@ -26,9 +26,11 @@ button = line, myline
 ;
 [myline]
 type=line
-id = 
-pin = 
-description = 
-context = 
-cid_num =
-cid_name = 
+id = 1
+pin = 1234
+label = myline
+description = myline
+context = sccp
+cid_num = 1234
+cid_name = myline
+

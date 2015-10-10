@@ -393,10 +393,11 @@ AC_DEFUN([CS_GET_VERSION], [
   SCCP_VERSION="unknown"
   SCCP_REVISION="unknown"
 
+  CURRENT=`pwd`
   BASE=`dirname $ac_dir`
-  pushd $BASE >/dev/null
+  cd $BASE >/dev/null
   . ./tools/versioncheck silent
-  popd >/dev/null
+  cd $CURRENT >/dev/null
 
   AC_DEFINE_UNQUOTED([SCCP_VERSION],  "${SCCP_VERSION}", [Define the SCCP Version])
   AC_DEFINE_UNQUOTED([SCCP_BRANCH],   "${SCCP_BRANCH}", [Define the SCCP Branch])

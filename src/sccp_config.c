@@ -2543,7 +2543,7 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force)
 	}
 	GLOB(cfg) = pbx_config_load(GLOB(config_file_name), "chan_sccp", config_flags);
 	if (GLOB(cfg) == CONFIG_STATUS_FILEMISSING) {
-		pbx_log(LOG_ERROR, "Config file '%s' not found, aborting reload.\n", GLOB(config_file_name));
+		pbx_log(LOG_ERROR, "Config file '%s' not found, aborting (re)load.\n", GLOB(config_file_name));
 		GLOB(cfg) = NULL;
 		if (GLOB(config_file_name)) {
 			sccp_free(GLOB(config_file_name));
@@ -2552,7 +2552,7 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force)
 		res = CONFIG_STATUS_FILE_NOT_FOUND;
 		goto FUNC_EXIT;
 	} else if (GLOB(cfg) == CONFIG_STATUS_FILEINVALID) {
-		pbx_log(LOG_ERROR, "Config file '%s' specified is not a valid config file, aborting reload.\n", GLOB(config_file_name));
+		pbx_log(LOG_ERROR, "Config file '%s' specified is not a valid config file, aborting (re)load.\n", GLOB(config_file_name));
 		GLOB(cfg) = NULL;
 		if (GLOB(config_file_name)) {
 			sccp_free(GLOB(config_file_name));
@@ -2565,7 +2565,7 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force)
 		pbx_clear_flag(&config_flags, CONFIG_FLAG_FILEUNCHANGED);
 		GLOB(cfg) = pbx_config_load(GLOB(config_file_name), "chan_sccp", config_flags);
 		if (!force) {
-			pbx_log(LOG_NOTICE, "Config file '%s' has not changed, aborting reload.\n", GLOB(config_file_name));
+			pbx_log(LOG_NOTICE, "Config file '%s' has not changed, aborting (re)load.\n", GLOB(config_file_name));
 			res = CONFIG_STATUS_FILE_NOT_CHANGED;
 			goto FUNC_EXIT;
 		} else {

@@ -683,16 +683,9 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 	audio->writeState = SCCP_RTP_STATUS_PROGRESS;
 
 	if (d->nat >= SCCP_NAT_ON) {										/* device is natted */
-		sccp_rtp_updateNatAddress(channel);
-// 		uint16_t port = sccp_rtp_getServerPort(&channel->rtp.audio);					/* get rtp server port */
-// 		if (!sccp_socket_getExternalAddr(&audio->phone_remote)) {				/* Use externip (PBX behind NAT Firewall */
-// 			//memcpy(&audio->phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));	/* Fallback: use ip-address of incoming interface */
-// 			sccp_session_getOurIP(d->session, &audio->phone_remote, 0);
-// 		}
-// 		sccp_socket_ipv4_mapped(&audio->phone_remote, &audio->phone_remote);
-// 		sccp_socket_setPort(&audio->phone_remote, port);
+		sccp_rtp_updateNatRemotePhone(channel, audio);
 	}
-	
+		
 	d->protocol->sendOpenReceiveChannel(d, channel);
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(d) && channel->videomode == SCCP_VIDEO_MODE_AUTO) {
@@ -777,6 +770,10 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 	if ((video->writeState & SCCP_RTP_STATUS_ACTIVE)) {
 		return;
 	}
+	
+	//if (d->nat >= SCCP_NAT_ON) {
+	//	sccp_rtp_updateNatRemotePhone(channel, video);
+	//}
 
 	video->writeState |= SCCP_RTP_STATUS_PROGRESS;
 	skinnyFormat = video->writeFormat;
@@ -865,11 +862,10 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 	}
 
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
 	if (d->nat >= SCCP_NAT_ON) {
-		sccp_rtp_updateNatAddress(channel);
+		sccp_rtp_updateNatRemotePhone(channel, audio);
 	}
-// 	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
-// 	sccp_rtp_updateNatRemotePhone(channel, audio);
 
 	//sccp_channel_recalculateReadformat(channel);
 	if (channel->owner) {
@@ -951,8 +947,9 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can't start vrtp media transmission, maybe channel is down %s-%08X\n", channel->currentDeviceId, channel->line->name, channel->callid);
 		return;
 	}
-
-	sccp_rtp_updateNatRemotePhone(channel, video);
+	if (d->nat >= SCCP_NAT_ON) {										/* device is natted */
+		sccp_rtp_updateNatRemotePhone(channel, video);
+	}
 
 	// recalculate format;
 	{

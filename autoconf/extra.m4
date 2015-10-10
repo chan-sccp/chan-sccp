@@ -229,7 +229,17 @@ dnl	])
 	AC_CHECK_HEADERS([sys/socket.h])
 	AC_CHECK_HEADERS([netinet/in.h])
 	AC_CHECK_HEADERS([pthread.h])
-	AC_CHECK_HEADERS([iconv.h])
+	AS_IF([test "X${ostype}" == "Xlinux"], [
+		AC_CHECK_HEADERS([iconv.h])
+	], [
+		AC_CHECK_LIB([iconv], [iconv_open], [
+			LIBICONV="-liconv"
+			AC_CHECK_HEADERS([iconv.h])
+		], [
+			LIBICONV=""; 
+			AC_MSG_NOTICE([The correct iconv library could not be found. Maybe you need to provide LDFLAGS.])
+		])
+	])
 dnl	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcasecmp strchr strdup strerror strncasecmp strchr malloc calloc realloc free]) 
 	AC_CHECK_FUNCS([gethostbyname inet_ntoa mkdir]) 
 	AC_HEADER_STDC    
@@ -237,6 +247,7 @@ dnl	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep st
 	AC_CHECK_HEADERS([netinet/in.h fcntl.h sys/signal.h stdio.h errno.h ctype.h assert.h sys/sysinfo.h])
 	AC_STRUCT_TM
 	AC_STRUCT_TIMEZONE
+	AC_SUBST([LIBICONV])
 ])
 
 AC_DEFUN([CS_CHECK_CROSSCOMPILE],[
@@ -367,7 +378,7 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 	dnl Now using Conditional-Libtool-Sources
 	if test "$PBX_TYPE" == "Asterisk"; then
 		PBX_GENERAL="chan_sccp_la-ast.lo"
-dnl		if [ test "${ASTERISK_REPOS_LOCATION}" == "TRUNK" ];then
+dnl		if test "${ASTERISK_REPOS_LOCATION}" = "TRUNK";then
 dnl                  PBX_MAJOR="chan_sccp_la-astTrunk.lo"
 dnl                else  
 	  	  PBX_MAJOR="chan_sccp_la-ast${ASTERISK_VER_GROUP}.lo"
@@ -468,9 +479,16 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
  		CPPFLAGS_saved="-U_FORTIFY_SOURCE"
  	fi
  	
-	if test "$enable_optimization" == "no"; then 
+ 	strip_binaries="no"
+	AS_IF([test "X$enable_optimization" == "Xyes"], [
+		strip_binaries="yes"
+		AS_IF([test -z "`echo \"${CFLAGS_saved}\" | grep -e '\-O[0-9]'`"], [
+			CFLAGS_saved="${CFLAGS_saved} -O3 "
+		])
+	   	CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
+		GDB_FLAGS=""
+	], [
 	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O[0-9]\ \?//g' -e 's/\-g\ \?//g'`"
-		strip_binaries="no"
 		optimize_flag="-O0"
 		case "${CC}" in
 			*gcc*)
@@ -480,28 +498,20 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			;;
 		esac
 		CFLAGS_saved="${CFLAGS_saved} ${optimize_flag} "
-	else
-		strip_binaries="yes"
-		if [ -z "`echo \"${CFLAGS_saved}\" | grep -e '\-O[0-9]'`" ]; then
-			CFLAGS_saved="${CFLAGS_saved} -O3 "
-		fi
-	   	CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
-		GDB_FLAGS=""
-	fi
+	])
 	
-	if test "${enable_debug}" = "yes"; then
+	AS_IF([test "X${enable_debug}" == "Xyes"], [
 		dnl AC_DEFINE([GC_DEBUG],[1],[Enable extra garbage collection debugging.])
 		AC_DEFINE([DEBUG],[1],[Extra debugging.])
 		DEBUG=1
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
-		strip_binaries="no"
 
 	 	dnl Remove leading/ending spaces
 		CFLAGS_saved="${CFLAGS_saved} -Wall"
 		GDB_FLAGS="-g3 -ggdb3"
 		
-		if test "x${GCC}" = "xyes"; then
+		AS_IF([test "x${GCC}" = "xyes"], [
 			AC_LANG_SAVE
 			AC_LANG_C
 			AX_APPEND_COMPILE_FLAGS([ dnl
@@ -527,7 +537,6 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wno-unused-parameter dnl
 				-Wsign-compare dnl
 				-Wstrict-prototypes dnl
-				-Wshadow dnl
 				-Wmissing-prototypes dnl
 				dnl
 				dnl // should be added and fixed dnl
@@ -549,11 +558,18 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl
 				dnl -Wno-unused-but-set-variable dnl
 			], ax_warn_cflags_variable)
-			fi 
-
+		])
+		AS_IF([test "x${AST_C_COMPILER_FAMILY}" = "xgcc"], [
+			AC_LANG_SAVE
+			AC_LANG_C
+			AX_APPEND_COMPILE_FLAGS([ dnl
+				-Wshadow dnl
+			], ax_warn_cflags_variable)
+		])
 		AC_CHECK_HEADER([execinfo.h],
 			[
 				AC_DEFINE(HAVE_EXECINFO_H,1,[Found 'execinfo.h'])
+				AC_CHECK_LIB([execinfo], [backtrace_symbols], [LIBEXECINFO="-lexecinfo"], [LIBEXECINFO=""])
 				AC_CHECK_HEADER([dlfcn.h], [AC_DEFINE(HAVE_DLADDR_H, 1, [Found 'dlfcn.h'])])
 				AC_SEARCH_LIBS([bfd_openr], [bfd], [
 					AC_CHECK_HEADER([bfd.h], [AC_DEFINE(HAVE_BFD_H, 1, [Found 'bfd.h'])])
@@ -561,13 +577,13 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				])
 			]
 		)
-	else
+	], [
 		AC_DEFINE([DEBUG],[0],[No Extra debugging.])
 		DEBUG=0
 		enable_do_crash="no"
 		enable_debug_mutex="no"
 		CFLAGS_saved="${CFLAGS_saved}"
-		if test "x${GCC}" = "xyes"; then
+		AS_IF([test "x${GCC}" = "xyes"], [
 			AC_LANG_SAVE
 			AC_LANG_C
 			AX_APPEND_COMPILE_FLAGS([ dnl
@@ -580,8 +596,8 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl
 				dnl -Wno-unused-but-set-variable dnl
 			], ax_warn_cflags_variable)
-		fi		
-	fi
+		])
+	])
 	CFLAGS_saved="`echo ${CFLAGS_saved}|sed 's/^[ \t]*//;s/[ \t]*$//'`"
 	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS="${CFLAGS_saved} "
@@ -591,6 +607,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	AC_SUBST([strip_binaries])
 	AC_SUBST([ax_warn_cflags_variable])
 	AC_SUBST([LIBBFD])
+	AC_SUBST([LIBEXECINFO])
 ])
 
 AC_DEFUN([CS_ENABLE_GCOV], [
@@ -880,7 +897,10 @@ AC_DEFUN([CS_SETUP_MODULE_DIR], [
                                             ;;
                                     esac
                                 fi
-			        PBX_DEBUGMODDIR="${PBX_LIB}/debug/${PBX_MODDIR:${#PBX_LIB}}"
+                                
+                                dnl Insert '/debug/' into path
+			        dnl PBX_DEBUGMODDIR="${PBX_LIB}/debug/${PBX_MODDIR:${#PBX_LIB}}"
+			        PBX_DEBUGMODDIR=`echo $PBX_MODDIR | sed "s!^${PBX_LIB}!${PBX_LIB}/debug/!g"`
                                 ;;
              esac])
         AC_SUBST([PBX_MODDIR]) 
