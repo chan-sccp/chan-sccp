@@ -2166,23 +2166,23 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 
 		char calling_number[StationMaxDirnumSize] = {0}, called_number[StationMaxDirnumSize] = {0}, orig_number[StationMaxDirnumSize] = {0};
 		char calling_name[StationMaxNameSize] = {0}, called_name[StationMaxNameSize] = {0}, orig_name[StationMaxNameSize] = {0};
+
+		sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_destination_local_channel), 
+			SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name,
+			SCCP_CALLINFO_CALLINGPARTY_NUMBER, &calling_number,
+			SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,
+			SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_number,
+			SCCP_CALLINFO_KEY_SENTINEL);
+
 		if (sccp_source_local_channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-			sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_destination_local_channel), 
-				SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name,
-				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &calling_number,
-				SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,
-				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_number,
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &orig_name,
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &orig_number,
+			sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_source_local_channel), 
+				SCCP_CALLINFO_CALLEDPARTY_NAME, &orig_name,
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &orig_number,
 				SCCP_CALLINFO_KEY_SENTINEL);
 		} else {
-			sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_destination_local_channel), 
-				SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name,
-				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &calling_number,
-				SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,
-				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_number,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &orig_name,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, &orig_number,
+			sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_source_local_channel), 
+				SCCP_CALLINFO_CALLINGPARTY_NAME, &orig_name,
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &orig_number,
 				SCCP_CALLINFO_KEY_SENTINEL);
 		}
 
@@ -2209,7 +2209,7 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 		}
 #endif
 
-		/* update ringin channel directly */
+		/* update ring-in channel directly */
 		iPbx.set_connected_line(sccp_destination_local_channel, orig_number, orig_name, connectedLineUpdateReason);
 #if ASTERISK_VERSION_GROUP > 106										/*! \todo change to SCCP_REASON Codes, using mapping table */
 //		if (iPbx.sendRedirectedUpdate) {
