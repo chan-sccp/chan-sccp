@@ -70,6 +70,7 @@ AC_DEFUN([CS_SETUP_HOST_PLATFORM],[
 		use_poll_compat=yes
 		no_libcap=yes
 		ostype=bsd
+		LDFLAGS_saved="$LDFLAGS_saved /usr/lib/"
 		;;
 	  *-*-netbsd*)
 	    	AC_DEFINE([BSD], 1, [using BSD])
@@ -564,7 +565,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		AC_CHECK_HEADER([execinfo.h],
 			[
 				AC_DEFINE(HAVE_EXECINFO_H,1,[Found 'execinfo.h'])
-				AC_SEARCH_LIBS([execinfo], [execinfo], [
+				AC_SEARCH_LIBS([backtrace_symbols], [execinfo], [
 					LIBEXECINFO="-lexecinfo"
 				])
 				AC_CHECK_HEADER([dlfcn.h], [AC_DEFINE(HAVE_DLADDR_H, 1, [Found 'dlfcn.h'])])
