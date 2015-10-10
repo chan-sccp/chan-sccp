@@ -15,6 +15,10 @@
 #ifndef __SCCP_SOCKET_H
 #define __SCCP_SOCKET_H
 
+#include "sccp_cli.h"
+
+/* ------------------------------------------------------------------------------------------------------- SOCKET FUNCTIONS - */
+
 /*!
  * \brief SCCP Host Access Rule Structure
  *
@@ -30,35 +34,12 @@ struct sccp_ha {
 	int sense;
 };
 
-/*!
- * \brief SCCP Session Structure
- * \note This contains the current session the phone is in
- */
-struct sccp_session {
-	time_t lastKeepAlive;											/*!< Last KeepAlive Time */
-	SCCP_RWLIST_ENTRY (sccp_session_t) list;								/*!< Linked List Entry for this Session */
-	sccp_device_t *device;											/*!< Associated Device */
-	struct pollfd fds[1];											/*!< File Descriptor */
-	struct sockaddr_storage sin;										/*!< Incoming Socket Address */
-	boolean_t needcheckringback;										/*!< Need Check Ring Back. (0/1) default 1 */
-	uint16_t protocolType;
-	uint8_t gone_missing;											/*!< KeepAlive received from an unregistered device */
-	volatile uint8_t session_stop;										/*!< Signal Session Stop */
-	sccp_mutex_t write_lock;										/*!< Prevent multiple threads writing to the socket at the same time */
-	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
-	pthread_t session_thread;										/*!< Session Thread */
-	struct sockaddr_storage ourip;										/*!< Our IP is for rtp use */
-	struct sockaddr_storage ourIPv4;
-};														/*!< SCCP Session Structure */
-
-
 boolean_t sccp_socket_is_IPv4(const struct sockaddr_storage *sockAddrStorage);
 boolean_t sccp_socket_is_IPv6(const struct sockaddr_storage *sockAddrStorage);
 uint16_t sccp_socket_getPort(const struct sockaddr_storage *sockAddrStorage);
 void sccp_socket_setPort(const struct sockaddr_storage *sockAddrStorage, uint16_t port);
 int sccp_socket_is_any_addr(const struct sockaddr_storage *sockAddrStorage);
 boolean_t sccp_socket_getExternalAddr(struct sockaddr_storage *sockAddrStorage);
-int sccp_socket_getOurAddressfor(const struct sockaddr_storage *them, struct sockaddr_storage *us);
 size_t sccp_socket_sizeof(const struct sockaddr_storage *sockAddrStorage);
 boolean_t sccp_socket_is_mapped_IPv4(const struct sockaddr_storage *sockAddrStorage);
 boolean_t sccp_socket_ipv4_mapped(const struct sockaddr_storage *sockAddrStorage, struct sockaddr_storage *sockAddrStorage_mapped);
@@ -115,20 +96,34 @@ static inline char *sccp_socket_stringify_port(const struct sockaddr_storage *so
 }
 
 /* end sccp_socket_stringify_fmt short cuts */
-
 void sccp_socket_setoptions(int new_socket);
 void *sccp_socket_thread(void *ignore);
-void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t);
-int sccp_session_send(const sccp_device_t * device, sccp_msg_t * msg);
-int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg);
-sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * device);
-sccp_device_t *sccp_session_removeDevice(sccp_session_t * session);
-sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message);
-void sccp_session_crossdevice_cleanup(sccp_session_t * current_session, sccp_session_t * previous_session, boolean_t token);
-void sccp_session_tokenReject(sccp_session_t * session, uint32_t backoff_time);
-void sccp_session_tokenAck(sccp_session_t * session);
-void sccp_session_tokenRejectSPCP(sccp_session_t * session, uint32_t features);
-void sccp_session_tokenAckSPCP(sccp_session_t * session, uint32_t features);
-void sccp_socket_stop_sessionthread(sccp_session_t * session, uint8_t newRegistrationState);
+
+/* ------------------------------------------------------------------------------------------------------- SESSION FUNCTIONS - */
+struct sccp_session;
+
+void sccp_session_terminateAll(void);
+const char *const sccp_session_getDesignator(constSessionPtr session);
+void sccp_session_sendmsg(constDevicePtr device, sccp_mid_t t);
+int sccp_session_send(constDevicePtr device, const sccp_msg_t * msg);
+int sccp_session_send2(constSessionPtr s, sccp_msg_t * msg);
+int sccp_session_retainDevice(constSessionPtr session, constDevicePtr device);
+void sccp_session_releaseDevice(constSessionPtr volatile session);
+sccp_session_t *sccp_session_reject(constSessionPtr session, char *message);
+void sccp_session_tokenReject(constSessionPtr session, uint32_t backoff_time);
+void sccp_session_tokenAck(constSessionPtr session);
+void sccp_session_tokenRejectSPCP(constSessionPtr session, uint32_t features);
+void sccp_session_tokenAckSPCP(constSessionPtr session, uint32_t features);
+void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState);
+void sccp_session_setProtocol(constSessionPtr session, uint16_t protocolType);
+uint16_t sccp_session_getProtocol(constSessionPtr session);
+boolean_t sccp_session_getOurIP(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage, int family);
+boolean_t sccp_session_getSas(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage);
+int sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr_storage *addr) ;
+void sccp_session_resetLastKeepAlive(constSessionPtr session);
+boolean_t sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr device);
+sccp_device_t * const sccp_session_getDevice(constSessionPtr session, boolean_t required);
+boolean_t sccp_session_isValid(constSessionPtr session);
+int sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

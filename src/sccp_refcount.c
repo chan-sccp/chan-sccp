@@ -29,7 +29,7 @@
  * - Rule 3: Functions that <b><em>receive an object pointer reference</em></b> via a function call expect the object <b><em>is being retained</em></b> in the calling function, during the time the called function lasts. 
  *   The object can <b><em>only</em></b> be released by the calling function not the called function,
  *
- * - Rule 4: When releasing an object the pointer we had toward the object should be nullified immediatly, either of these solutions is possible:
+ * - Rule 4: When releasing an object the pointer we had toward the object, should be nullified immediatly, either of these solutions is ok:
  *   \code
  *   d = sccp_device_release(d);                // sccp_release always returns NULL
  *   \endcode
@@ -57,6 +57,7 @@
 #include "sccp_socket.h"
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
+#include "sccp_atomic.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
@@ -181,7 +182,7 @@ int sccp_refcount_schedule_cleanup(const void *data)
 	return 0;
 }
 
-void * sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor)
+void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor)
 {
 	RefCountedObject *obj;
 	void *ptr = NULL;
@@ -247,7 +248,7 @@ void * sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, 
 }
 
 #if CS_REFCOUNT_DEBUG
-int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, int delta, const char *file, int line, const char *func)
+static gcc_inline int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, int delta, const char *file, int line, const char *func)
 {
 	if (!sccp_ref_debug_log) {
 		return -1;
@@ -437,7 +438,7 @@ void sccp_refcount_updateIdentifier(void *ptr, char *identifier)
 	}
 }
 
-gcc_inline void * sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func)
+gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func)
 {
 	RefCountedObject *obj = NULL;
 	volatile int refcountval;
@@ -458,7 +459,7 @@ gcc_inline void * sccp_refcount_retain(const void * const ptr, const char *filen
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) ptr, NULL, 1, filename, lineno, func);
 #endif
-		ast_log(__LOG_VERBOSE, __FILE__, 0, "retain", "SCCP: (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to retain a %s: %s (%p) with invalid memory reference! this should never happen !\n", filename, lineno, func, (obj) ? (&obj_info[obj->type])->datatype : "UNREF", (obj) ? obj->identifier : "UNREF", obj);
+		ast_log(__LOG_VERBOSE, __FILE__, 0, "retain", "SCCP: (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to retain a %s: %s (%p) with invalid memory reference! this should never happen !\n", filename, lineno, func, (obj) ? (&obj_info[obj->type])->datatype : "Unknown Type", (obj) ? obj->identifier : "NoID", obj);
 		ast_log(LOG_ERROR, "SCCP: (release) Refcount Object %p could not be found (Major Logic Error). Please report to developers\n", ptr);
 		#ifdef DEBUG
 		sccp_do_backtrace();
@@ -467,7 +468,7 @@ gcc_inline void * sccp_refcount_retain(const void * const ptr, const char *filen
 	}
 }
 
-gcc_inline void * sccp_refcount_release(const void * const ptr, const char *filename, int lineno, const char *func)
+gcc_inline void * const sccp_refcount_release(const void * const ptr, const char *filename, int lineno, const char *func)
 {
 	RefCountedObject *obj = NULL;
 	volatile int refcountval;
@@ -495,7 +496,7 @@ gcc_inline void * sccp_refcount_release(const void * const ptr, const char *file
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) ptr, NULL, -1, filename, lineno, func);
 #endif
-		ast_log(__LOG_VERBOSE, __FILE__, 0, "release", "SCCP (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to release a %s (%p) with invalid memory reference! this should never happen !\n", filename, lineno, func, (obj) ? obj->identifier : "UNREF", obj);
+		ast_log(__LOG_VERBOSE, __FILE__, 0, "release", "SCCP (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to release a %s (%p) with invalid memory reference! this should never happen !\n", filename, lineno, func, (obj) ? obj->identifier : "NoID", obj);
 		ast_log(LOG_ERROR, "SCCP: (release) Refcount Object %p could not be found (Major Logic Error). Please report to developers\n", ptr);
 		#ifdef DEBUG
 		sccp_do_backtrace();
@@ -504,25 +505,25 @@ gcc_inline void * sccp_refcount_release(const void * const ptr, const char *file
 	return NULL;
 }
 
-gcc_inline void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func)
+gcc_inline void sccp_refcount_replace(const void **replaceptr, const void *const newptr, const char *filename, int lineno, const char *func)
 {
 	if ((!replaceptr && !newptr) || (&newptr == replaceptr)) {						// nothing changed
 		return;
 	}
 
-	void *tmpNewPtr = NULL;											// retain new one first
-	void *oldPtr = *replaceptr;
+	const void *tmpNewPtr = NULL;											// retain new one first
+	const void *oldPtr = *replaceptr;
 
 	if (newptr) {
 		if ((tmpNewPtr = sccp_refcount_retain(newptr, filename, lineno, func))) {
 			*replaceptr = tmpNewPtr;
 			if (oldPtr) {										// release previous one after
-				sccp_refcount_release(oldPtr, filename, lineno, func);
+				sccp_refcount_release(oldPtr, filename, lineno, func);				/* explicit release */
 			}
 		}
 	} else {
 		if (oldPtr) {											// release previous one after
-			*replaceptr = sccp_refcount_release(oldPtr, filename, lineno, func);
+			*replaceptr = sccp_refcount_release(oldPtr, filename, lineno, func);			/* explicit release */
 		}
 	}
 }
@@ -532,10 +533,10 @@ gcc_inline void sccp_refcount_replace(void **replaceptr, void *newptr, const cha
  * Used together with the cleanup attribute, to handle the automatic reference release of an object when we leave the scope in which the 
  * reference was defined. 
  */
-void sccp_refcount_autorelease(void *ptr)
+gcc_inline void sccp_refcount_autorelease(void *ptr)
 {
 	if (*(void **) ptr) {
-		sccp_refcount_release(*(void **) ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+		sccp_refcount_release(*(void **) ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);			/* explicit release */
 	}
 }
 

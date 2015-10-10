@@ -261,8 +261,7 @@ int sccp_threadpool_add_work(sccp_threadpool_t * tp_p, void *(*function_p) (void
 		newJob = (sccp_threadpool_job_t *) sccp_malloc(sizeof(sccp_threadpool_job_t));			/* MALLOC job */
 		if (newJob == NULL) {
 			pbx_log(LOG_ERROR, "sccp_threadpool_add_work(): Could not allocate memory for new job\n");
-			//exit(1);
-			return 0;
+			exit(1);
 		}
 
 		/* add function and argument */
@@ -366,7 +365,7 @@ void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_
 	SCCP_LIST_INSERT_TAIL(&(tp_p->jobs), newjob_p, list);
 	SCCP_LIST_UNLOCK(&(tp_p->jobs));
 
-	if (SCCP_LIST_GETSIZE(&tp_p->jobs) > tp_p->job_high_water_mark) {
+	if ((int)SCCP_LIST_GETSIZE(&tp_p->jobs) > tp_p->job_high_water_mark) {
 		tp_p->job_high_water_mark = SCCP_LIST_GETSIZE(&tp_p->jobs);
 	}
 	ast_cond_signal(&(tp_p->work));

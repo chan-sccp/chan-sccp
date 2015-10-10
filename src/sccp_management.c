@@ -186,7 +186,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 			manager_event(EVENT_FLAG_CALL,
 				      "PeerStatus",
 				      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
-				      "ATTACHED", DEV_ID_LOG(device), linedevice && linedevice->line ? linedevice->line->name : "(null)", (linedevice && linedevice->line && linedevice->line->label) ? linedevice->line->label : "(null)", linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
+				      "ATTACHED", DEV_ID_LOG(device), linedevice && linedevice->line ? linedevice->line->name : "(null)", (linedevice && linedevice->line && linedevice->line->label) ? linedevice->line->label : "(null)", linedevice->subscriptionId.number, linedevice->subscriptionId.name);
 			break;
 
 		case SCCP_EVENT_DEVICE_DETACHED:
@@ -195,7 +195,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 			manager_event(EVENT_FLAG_CALL,
 				      "PeerStatus",
 				      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
-				      "DETACHED", DEV_ID_LOG(device), linedevice && linedevice->line ? linedevice->line->name : "(null)", (linedevice && linedevice->line && linedevice->line->label) ? linedevice->line->label : "(null)", linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
+				      "DETACHED", DEV_ID_LOG(device), linedevice && linedevice->line ? linedevice->line->name : "(null)", (linedevice && linedevice->line && linedevice->line->label) ? linedevice->line->label : "(null)", linedevice->subscriptionId.number, linedevice->subscriptionId.name);
 			break;
 
 		case SCCP_EVENT_FEATURE_CHANGED:
@@ -213,7 +213,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 						manager_event(EVENT_FLAG_CALL,
 							      "CallForward",
 							      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: %s\r\nExtension: %s\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n",
-							      sccp_feature_type2str(featureType), (SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.enabled) ? "On" : "Off") : ((linedevice->cfwdBusy.enabled) ? "On" : "Off"), (SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.number) ? linedevice->cfwdAll.number : "(null)") : ((linedevice->cfwdBusy.number) ? linedevice->cfwdBusy.number : "(null)"), (linedevice->line) ? linedevice->line->name : "(null)", DEV_ID_LOG(device)
+							      sccp_feature_type2str(featureType), (SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.enabled) ? "On" : "Off") : ((linedevice->cfwdBusy.enabled) ? "On" : "Off"), (SCCP_FEATURE_CFWDALL == featureType) ? linedevice->cfwdAll.number : linedevice->cfwdBusy.number, (linedevice->line) ? linedevice->line->name : "(null)", DEV_ID_LOG(device)
 						    );
 					}
 					break;
@@ -258,8 +258,9 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), device, list) {
 		timeinfo = localtime(&device->registrationTime);
 
-		if (device->session) {
-			sccp_copy_string(clientAddress, sccp_socket_stringify(&device->session->sin), sizeof(clientAddress));
+		struct sockaddr_storage sas = { 0 };
+		if (sccp_session_getSas(device->session, &sas)) {
+			sccp_copy_string(clientAddress, sccp_socket_stringify(&sas), sizeof(clientAddress));
 		} else {
 			sccp_copy_string(clientAddress, "--", sizeof(clientAddress));
 		}
@@ -271,7 +272,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 		astman_append(s, "ObjectType: device\r\n");
 		astman_append(s, "Description: %s\r\n", device->description  ? device->description : "<not set>");
 		astman_append(s, "IPaddress: %s\r\n", clientAddress);
-		astman_append(s, "Reg_Status: %s\r\n", skinny_registrationstate2str(device->registrationState));
+		astman_append(s, "Reg_Status: %s\r\n", skinny_registrationstate2str(sccp_device_getRegistrationState(device)));
 		astman_append(s, "Reg_Time: %s\r\n", regtime);
 		astman_append(s, "Active: %s\r\n", (device->active_channel) ? "Yes" : "No");
 		astman_append(s, "NumLines: %d\r\n\r\n", device->configurationStatistic.numberOfLines);
@@ -299,7 +300,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 static int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 {
 	const char *id = astman_get_header(m, "ActionID");
-	sccp_line_t *line;
+	sccp_line_t *line = NULL;
 	char idtext[256] = "";
 	int total = 0;
 
@@ -576,7 +577,7 @@ static int sccp_manager_device_set_dnd(struct mansession *s, const struct messag
 {
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *DNDState = astman_get_header(m, "DNDState");
-	int prevStatus = 0;
+	uint prevStatus = 0;
 	char retValStr[64] = "";
 
 	/** we need the device for resuming calls */
@@ -650,7 +651,7 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		if (d && d->defaultLineInstance > 0) {
 			line = sccp_line_find_byid(d, d->defaultLineInstance);
 		} else {
-			line = sccp_dev_get_activeline(d);
+			line = sccp_dev_getActiveLine(d);
 		}
 	} else {
 		line = sccp_line_find_byname(lineName, FALSE);
@@ -717,7 +718,7 @@ static int sccp_manager_answerCall2(struct mansession *s, const struct message *
 			if (c->state == SCCP_CHANNELSTATE_RINGING) {
 				sccp_channel_answer(d, c);
 				if (c->owner) {
-					PBX(queue_control) (c->owner, AST_CONTROL_ANSWER);
+					iPbx.queue_control(c->owner, AST_CONTROL_ANSWER);
 				}
 				snprintf(retValStr, sizeof(retValStr), "Answered channel '%s' on device '%s'\r\n", channelId, deviceName);
 				astman_send_ack(s, m, retValStr);
