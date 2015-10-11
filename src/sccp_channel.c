@@ -2176,13 +2176,13 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 
 		if (sccp_source_local_channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 			sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_source_local_channel), 
-				SCCP_CALLINFO_CALLEDPARTY_NAME, &orig_name,
-				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &orig_number,
+				SCCP_CALLINFO_CALLINGPARTY_NAME, &orig_name,
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &orig_number,
 				SCCP_CALLINFO_KEY_SENTINEL);
 		} else {
 			sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_source_local_channel), 
-				SCCP_CALLINFO_CALLINGPARTY_NAME, &orig_name,
-				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &orig_number,
+				SCCP_CALLINFO_CALLEDPARTY_NAME, &orig_name,
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &orig_number,
 				SCCP_CALLINFO_KEY_SENTINEL);
 		}
 
@@ -2208,7 +2208,6 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 			iPbx.sendRedirectedUpdate(sccp_source_local_channel, calling_number, calling_name, called_number, called_name, AST_REDIRECTING_REASON_UNCONDITIONAL);
 		}
 #endif
-
 		/* update ring-in channel directly */
 		iPbx.set_connected_line(sccp_destination_local_channel, orig_number, orig_name, connectedLineUpdateReason);
 #if ASTERISK_VERSION_GROUP > 106										/*! \todo change to SCCP_REASON Codes, using mapping table */
