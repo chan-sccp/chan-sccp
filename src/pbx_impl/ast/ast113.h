@@ -79,6 +79,8 @@ const char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format
 #undef pbx_channel_varshead
 #undef pbx_channel_redirecting_effective_from
 #undef pbx_channel_redirecting_effective_to
+#undef pbx_channel_connected_id
+#undef pbx_channel_connected_source
 #undef pbx_channel_monitor
 #undef pbx_channel_string2amaflag
 #undef pbx_channel_amaflags2string
@@ -121,6 +123,8 @@ const char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format
 #define pbx_channel_varshead(_a) ast_channel_varshead(_a)
 #define pbx_channel_redirecting_effective_from(_a) ast_channel_redirecting_effective_from(_a)
 #define pbx_channel_redirecting_effective_to(_a) ast_channel_redirecting_effective_to(_a)
+#define pbx_channel_connected_id(_a) ast_channel_connected(_a)->id
+#define pbx_channel_connected_source(_a) ast_channel_connected(_a)->source
 #define pbx_channel_monitor(_a) ast_channel_monitor(_a)
 #define pbx_channel_string2amaflag(_a) ast_channel_string2amaflag(_a)
 #define pbx_channel_amaflags2string(_a) ast_channel_amaflags2string(_a)

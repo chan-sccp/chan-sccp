@@ -718,7 +718,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	PBX_CHANNEL_TYPE *ast = channel->owner;
 	sccp_callinfo_t *const callInfo = sccp_channel_getCallInfo(channel);
 
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got connected line update, connected.id.number=%s, connected.id.name=%s, reason=%d\n", pbx_channel_name(ast), ast_channel_connected(ast)->id.number.str ? ast_channel_connected(ast)->id.number.str : "(nil)", ast_channel_connected(ast)->id.name.str ? ast_channel_connected(ast)->id.name.str : "(nil)", ast_channel_connected(ast)->source);
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got connected line update, connected.id.number=%s, connected.id.name=%s, reason=%d\n", pbx_channel_name(ast), pbx_channel_connected_id(ast).number.str ? pbx_channel_connected_id(ast).number.str : "(nil)", pbx_channel_connected_id(ast).name.str ? pbx_channel_connected_id(ast).name.str : "(nil)", pbx_channel_connected_source(ast));
 
 	char tmpCallingNumber[StationMaxDirnumSize] = {0};
 	char tmpCallingName[StationMaxNameSize] = {0};
@@ -736,12 +736,12 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 		SCCP_CALLINFO_KEY_SENTINEL);
 
 	/* set the original calling/called party if the reason is a transfer */
-	if (ast_channel_connected(ast)->source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || ast_channel_connected(ast)->source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
+	if (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Destination\n");
 			sccp_callinfo_setter(callInfo, 
-				SCCP_CALLINFO_CALLINGPARTY_NUMBER, ast_channel_connected(ast)->id.number.str,
-				SCCP_CALLINFO_CALLINGPARTY_NAME, ast_channel_connected(ast)->id.name.str,
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
+				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				
 				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, tmpCallingNumber,
 				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, tmpCallingNumber,
@@ -758,8 +758,8 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 		} else {
 			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Transferee\n");
 			sccp_callinfo_setter(callInfo, 	
-				SCCP_CALLINFO_CALLEDPARTY_NUMBER, ast_channel_connected(ast)->id.number.str,
-				SCCP_CALLINFO_CALLEDPARTY_NAME, ast_channel_connected(ast)->id.name.str,
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
+				SCCP_CALLINFO_CALLEDPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				
 				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, tmpCallingNumber,
 				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, tmpCallingName,
@@ -776,9 +776,9 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 		}
 	} else {
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-			sccp_channel_set_callingparty(channel, ast_channel_connected(ast)->id.name.str, ast_channel_connected(ast)->id.number.str);
+			sccp_channel_set_callingparty(channel, pbx_channel_connected_id(ast).name.str, pbx_channel_connected_id(ast).number.str);
 		} else {
-			sccp_channel_set_calledparty(channel, ast_channel_connected(ast)->id.name.str, ast_channel_connected(ast)->id.number.str);
+			sccp_channel_set_calledparty(channel, pbx_channel_connected_id(ast).name.str, pbx_channel_connected_id(ast).number.str);
 		}
 	}
 	sccp_channel_display_callInfo(channel);
@@ -788,45 +788,44 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason)
 {
 #if ASTERISK_VERSION_GROUP >106
-	struct ast_party_redirecting *redirecting;
+	struct ast_party_redirecting redirecting;
 	struct ast_set_party_redirecting update_redirecting;
 
-	redirecting = ast_channel_redirecting(channel->owner);
-	//ast_party_redirecting_init(redirecting);
+	ast_party_redirecting_init(&redirecting);
 	memset(&update_redirecting, 0, sizeof(update_redirecting));
 
 	/* update redirecting info line for source part */
 	if (fromNumber) {
 		update_redirecting.from.number = 1;
-		redirecting->from.number.valid = 1;
-		redirecting->from.number.str = strdup(fromNumber);
+		redirecting.from.number.valid = 1;
+		redirecting.from.number.str = strdup(fromNumber);
 	}
 
 	if (fromName) {
 		update_redirecting.from.name = 1;
-		redirecting->from.name.valid = 1;
-		redirecting->from.name.str = strdup(fromName);
+		redirecting.from.name.valid = 1;
+		redirecting.from.name.str = strdup(fromName);
 	}
 
 	if (toNumber) {
 		update_redirecting.to.number = 1;
-		redirecting->to.number.valid = 1;
-		redirecting->to.number.str = strdup(toNumber);
+		redirecting.to.number.valid = 1;
+		redirecting.to.number.str = strdup(toNumber);
 	}
 
 	if (toName) {
 		update_redirecting.to.name = 1;
-		redirecting->to.name.valid = 1;
-		redirecting->to.name.str = strdup(toName);
+		redirecting.to.name.valid = 1;
+		redirecting.to.name.str = strdup(toName);
 	}
 #if ASTERISK_VERSION_GROUP >111
-	redirecting->reason.code = reason;
+	redirecting.reason.code = reason;
 #else
-	redirecting->reason = reason;
+	redirecting.reason = reason;
 #endif
 
-	ast_channel_queue_redirecting_update(channel->owner, redirecting, &update_redirecting);
-	ast_party_redirecting_free(redirecting);
+	ast_channel_queue_redirecting_update(channel->owner, &redirecting, &update_redirecting);
+	ast_party_redirecting_free(&redirecting);
 #else
 	// set redirecting party (forwarder)
 	if (fromNumber) {
