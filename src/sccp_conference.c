@@ -569,7 +569,7 @@ static void sccp_conference_removeParticipant(sccp_conference_t * conference, sc
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Hanging up Participant %d (Channel: %s)\n", conference->id, participant->id, pbx_channel_name(participant->conferenceBridgePeer));
 	pbx_clear_flag(pbx_channel_flags(participant->conferenceBridgePeer), AST_FLAG_BLOCKING);
 	pbx_hangup(participant->conferenceBridgePeer);
-	participant = sccp_participant_release(participant);							/* explicit release */
+	participant = participant ? sccp_participant_release(participant) : NULL;							/* explicit release */
 
 	/* Conference end if the number of participants == 1 */
 	if (SCCP_LIST_GETSIZE(&conference->participants) == 1 && !conference->finishing) {
