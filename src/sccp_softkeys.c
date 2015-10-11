@@ -309,7 +309,11 @@ static void sccp_sk_dnd(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constD
 		return;
 	}
 
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	//AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE const sccp_line_t *line = NULL;
+	if (l) {
+		line = sccp_line_retain(l);
+	}
 	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
 	if (device) {
 		do {
