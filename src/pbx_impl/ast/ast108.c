@@ -435,7 +435,7 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 				//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n", DEV_ID_LOG(c->device), ast->name, pbx_getformatname(ast->nativeformats), ast->nativeformats, pbx_getformatname(frame->subclass), frame->subclass);
 				sccp_wrapper_asterisk18_setReadFormat(c, c->rtp.audio.readFormat);
 			}
-			if (frame->subclass.codec != (ast->nativeformats & AST_FORMAT_AUDIO_MASK)) {
+			if (frame->subclass.codec != (int)(ast->nativeformats & AST_FORMAT_AUDIO_MASK)) {
 				if (!(frame->subclass.codec & skinny_codecs2pbx_codecs(c->capabilities.audio))) {
 					ast_debug(1, "Bogus frame of format '%s' received from '%s'!\n", ast_getformatname(frame->subclass.codec), ast->name);
 					return &ast_null_frame;
@@ -2359,7 +2359,7 @@ static boolean_t sccp_wrapper_asterisk18_rtpGetPeer(PBX_RTP_TYPE * rtp, struct s
 		.ss = *address,
 	};
 
-	ast_rtp_instance_get_remote_address(rtp, &tmpaddress.sin);
+	ast_rtp_instance_get_remote_address(rtp, (struct ast_sockaddr *)&tmpaddress.sin);
 	address->ss_family = AF_INET;
 	return TRUE;
 }
@@ -2375,7 +2375,7 @@ static boolean_t sccp_wrapper_asterisk18_rtpGetUs(PBX_RTP_TYPE * rtp, struct soc
 		.ss = *address,
 	};
 
-	ast_rtp_instance_get_local_address(rtp, &tmpaddress.sin);
+	ast_rtp_instance_get_local_address(rtp, (struct ast_sockaddr *)&tmpaddress.sin);
 	address->ss_family = AF_INET;
 	return TRUE;
 }
