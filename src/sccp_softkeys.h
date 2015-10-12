@@ -11,8 +11,7 @@
  * $Date$
  * $Revision$  
  */
-#ifndef __SCCP_SOFTKEYS_H
-#define __SCCP_SOFTKEYS_H
+#pragma once
 typedef struct sccp_softkeyMap_cb sccp_softkeyMap_cb_t;
 
 void sccp_softkey_pre_reload(void);
@@ -23,5 +22,4 @@ sccp_softkeyMap_cb_t *sccp_softkeyMap_copyStaticallyMapped(void);
 boolean_t sccp_softkeyMap_replaceCallBackByUriAction(sccp_softkeyMap_cb_t * const softkeyMap, uint32_t event, char *hookstr);
 boolean_t sccp_SoftkeyMap_execCallbackByEvent(devicePtr d, linePtr l, uint32_t lineInstance, channelPtr c, uint32_t event);
 void sccp_softkey_setSoftkeyState(devicePtr device, uint8_t softKeySet, uint8_t softKey, boolean_t enable);
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

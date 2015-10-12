@@ -11,9 +11,7 @@
  * $Date$
  * $Revision$  
  */
-#ifndef __SCCP_PBX_WRAPPER_H
-#define __SCCP_PBX_WRAPPER_H
-
+#pragma once
 //#define REF_DEBUG 1
 
 #if ASTERISK_VERSION_NUMBER >= 10400
@@ -376,5 +374,4 @@ int sccp_wrapper_sendDigits(const sccp_channel_t * channel, const char *digits);
 int sccp_wrapper_sendDigit(const sccp_channel_t * channel, const char digit);
 #endif
 enum ast_pbx_result pbx_pbx_start(struct ast_channel *ast);
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

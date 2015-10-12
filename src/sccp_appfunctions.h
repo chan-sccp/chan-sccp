@@ -12,11 +12,7 @@
  * $Date: 2010-09-16 14:23:34 +0200 (Do, 16 Sep 2010) $
  * $Revision: 1867 $
  */
-
-#ifndef __SCCP_APPFUNCTIONS_H
-#define __SCCP_APPFUNCTIONS_H
-
+#pragma once
 int sccp_register_dialplan_functions(void);
 int sccp_unregister_dialplan_functions(void);
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -11,9 +11,7 @@
  * $Date$
  * $Revision$
  */
-
-#ifndef __SCCP_DEVICE_H
-#define __SCCP_DEVICE_H
+#pragma once
 
 #ifdef DEBUG
 #define sccp_device_retain(_x) 		({sccp_device_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
@@ -488,6 +486,4 @@ sccp_device_t *sccp_device_find_realtime(const char *name);
 #endif
 
 void sccp_device_setLamp(constDevicePtr device, skinny_stimulus_t stimulus, uint8_t instance, skinny_lampmode_t mode);
-
-#endif														/* __SCCP_DEVICE_H */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -8,8 +8,7 @@
  * $Date$
  * $Revision$  
  */
-#ifndef SCCP_AST_DEFINE_H_
-#define SCCP_AST_DEFINE_H_
+#pragma once
 
 // type redefinitions
 #define pbx_variable ast_variable
@@ -362,6 +361,4 @@ typedef struct ast_event pbx_event_t;
 #define pbx_channel_redirecting_effective_to(_a) (_a)->redirecting.to
 #define pbx_channel_connected_id(_a) (_a)->connected.id
 #define pbx_channel_connected_source(_a) (_a)->connected.source
-
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

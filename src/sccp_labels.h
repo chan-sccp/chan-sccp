@@ -14,10 +14,7 @@
  * $Date$
  * $Revision$  
  */
-
-#ifndef __SCCP_LABELS_H
-#define __SCCP_LABELS_H
-
+#pragma once
 #define SKINNY_LBL_EMPTY                                             	0					/*< fake button */
 #define SKINNY_LBL_REDIAL                                            	1
 #define SKINNY_LBL_NEWCALL                                           	2
@@ -460,6 +457,4 @@ static const struct skinny_label {
 #define SKINNY_DISP_PRIVATE_WITHOUT_LINE_CHANNEL			"Private without line or channel"
 #define SKINNY_DISP_NO_CHANNEL_TO_PERFORM_XXXXXXX_ON			"No Channel to perform %s on !"
 #define SKINNY_GIVING_UP						"Giving Up"
-
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

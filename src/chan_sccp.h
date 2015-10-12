@@ -17,8 +17,7 @@
  * $Revision$
  */
 
-#ifndef __CHAN_SCCP_H
-#define __CHAN_SCCP_H
+#pragma once
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
@@ -504,5 +503,4 @@ int sccp_updateExternIp(void);
 }
 #endif
 
-#endif														/* __CHAN_SCCP_H */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
