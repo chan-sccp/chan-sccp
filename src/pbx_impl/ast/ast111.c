@@ -842,7 +842,7 @@ static void __sccp_wrapper_asterisk111_updateConnectedLine(PBX_CHANNEL_TYPE *pbx
 		return;
 	}
 	struct ast_party_connected_line connected;
-	struct ast_set_party_connected_line update_connected;
+	struct ast_set_party_connected_line update_connected = {{0}};
 
 	//memset(&update_connected, 0, sizeof(update_connected));
 	ast_party_connected_line_init(&connected);
