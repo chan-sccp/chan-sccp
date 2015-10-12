@@ -18,12 +18,12 @@
 #include "sccp_pbx.h"
 #include "sccp_device.h"
 #include "sccp_channel.h"
-#include "sccp_indicate.h"
+//#include "sccp_indicate.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_features.h"
 #include "sccp_actions.h"
-#include "sccp_rtp.h"
+//#include "sccp_rtp.h"
 #include "sccp_socket.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");

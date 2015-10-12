@@ -34,9 +34,9 @@
 #include "sccp_features.h"
 #include "sccp_config.h"
 #include "sccp_conference.h"
-#include "sccp_socket.h"
 #include "sccp_indicate.h"
-#include "sccp_rtp.h"
+//#include "sccp_rtp.h"
+#include "sccp_socket.h"
 #include <asterisk/unaligned.h>
 #include <sys/stat.h>
 

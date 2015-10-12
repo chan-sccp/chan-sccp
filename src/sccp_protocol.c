@@ -17,7 +17,7 @@
 #include "sccp_line.h"
 #include "sccp_channel.h"
 #include "sccp_utils.h"
-#include "sccp_rtp.h"
+//#include "sccp_rtp.h"
 #include "sccp_socket.h"
 #include <asterisk/unaligned.h>
 
