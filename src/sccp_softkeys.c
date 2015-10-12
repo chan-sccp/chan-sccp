@@ -309,7 +309,11 @@ static void sccp_sk_dnd(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constD
 		return;
 	}
 
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	//AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE const sccp_line_t *line = NULL;
+	if (l) {
+		line = sccp_line_retain(l);
+	}
 	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
 	if (device) {
 		do {
@@ -660,10 +664,10 @@ static void sccp_sk_private(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Creating new PRIVATE channel\n", d->id);
 		if (line && device) {
-			instance = sccp_device_find_index_for_line(device, l->name);
-			sccp_dev_setActiveLine(device, l);
+			instance = sccp_device_find_index_for_line(device, line->name);
+			sccp_dev_setActiveLine(device, line);
 			sccp_dev_set_cplane(device, instance, 1);
-			channel = sccp_channel_newcall(l, device, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+			channel = sccp_channel_newcall(line, device, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		}
 	}
 

@@ -2990,25 +2990,22 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 		pbx_cli(fd, "%s: device not registered\n", argv[2]);
 		return RESULT_FAILURE;
 	}
+	
 	/* sccp_device_clean will check active channels */
 	/* \todo implement a check for active channels before sending reset */
 	//if (d->channelCount > 0) {
-	//pbx_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
-	//return RESULT_SUCCESS;
+	//	pbx_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
+	//	return RESULT_SUCCESS;
 	//}
+	
+	sccp_session_t * volatile s = d->session;
 	if (!restart) {
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESET);
 	} else {
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 	}
-
-	usleep(20);
-	sccp_session_t * volatile s = d->session;						/* make sure we reread d->session */
-	if (s) {
-		sccp_session_releaseDevice(s);							/* implicit release */
-	}
-	d->session = NULL;
-
+	sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
+	
 	return RESULT_SUCCESS;
 }
 

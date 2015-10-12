@@ -457,71 +457,6 @@ static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, const void *data)
 	return !pbx_channel_pbx(ast) && ast_channel_linkedid(ast) && (!strcasecmp(ast_channel_linkedid(ast), linkedId)) && !pbx_channel_masq(ast);
 }
 
-/*!
- * \brief Update Connected Line
- * \param channel Asterisk Channel as ast_channel
- * \param data Asterisk Data
- * \param datalen Asterisk Data Length
- */
-static void sccp_wrapper_asterisk112_connectedline(sccp_channel_t * channel, const void *data, size_t datalen)
-{
-	PBX_CHANNEL_TYPE *ast = channel->owner;
-	sccp_callinfo_t *const callInfo = sccp_channel_getCallInfo(channel);
-
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got connected line update, connected.id.number=%s, connected.id.name=%s, reason=%d\n", pbx_channel_name(ast), ast_channel_connected(ast)->id.number.str ? ast_channel_connected(ast)->id.number.str : "(nil)", ast_channel_connected(ast)->id.name.str ? ast_channel_connected(ast)->id.name.str : "(nil)", ast_channel_connected(ast)->source);
-
-	char tmpCallingNumber[StationMaxDirnumSize] = {0};
-	char tmpCallingName[StationMaxNameSize] = {0};
-	char tmpCalledNumber[StationMaxDirnumSize] = {0};
-	char tmpCalledName[StationMaxNameSize] = {0};
-	int tmpOrigCalledPartyRedirectReason = 0;
-	int tmpLastRedirectReason = 4;          /* \todo need to figure out more about these codes */
-
-	/* set the original calling/called party if the reason is a transfer */
-	sccp_callinfo_getter(callInfo,
-		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &tmpCallingNumber,
-		SCCP_CALLINFO_CALLINGPARTY_NAME, &tmpCallingName,
-		SCCP_CALLINFO_CALLEDPARTY_NUMBER, &tmpCalledNumber,
-		SCCP_CALLINFO_CALLEDPARTY_NAME, &tmpCalledName,
-		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &tmpOrigCalledPartyRedirectReason,
-		SCCP_CALLINFO_KEY_SENTINEL);
-	if (ast_channel_connected(ast)->source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || ast_channel_connected(ast)->source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
-		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Destination\n");
-			sccp_callinfo_setter(callInfo, 
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, ast_channel_connected(ast)->id.number.str,
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, ast_channel_connected(ast)->id.name.str,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, tmpCallingNumber,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, tmpCallingName,
-				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, tmpCallingNumber,
-				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, tmpCallingNumber,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, tmpOrigCalledPartyRedirectReason,
-				SCCP_CALLINFO_LAST_REDIRECT_REASON, tmpLastRedirectReason,
-				SCCP_CALLINFO_KEY_SENTINEL);
-		} else {
-			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Transferee\n");
-			sccp_callinfo_setter(callInfo, 
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER,tmpCallingNumber,
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, tmpCallingName,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, ast_channel_connected(ast)->id.number.str,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, ast_channel_connected(ast)->id.name.str,
-				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, tmpCalledNumber,
-				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, tmpCalledNumber,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, tmpOrigCalledPartyRedirectReason,
-				SCCP_CALLINFO_LAST_REDIRECT_REASON, tmpLastRedirectReason,
-				SCCP_CALLINFO_KEY_SENTINEL);
-		}
-	}
-
-	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-		sccp_channel_set_callingparty(channel, ast_channel_connected(ast)->id.name.str, ast_channel_connected(ast)->id.number.str);
-	} else {
-		sccp_channel_set_calledparty(channel, ast_channel_connected(ast)->id.name.str, ast_channel_connected(ast)->id.number.str);
-	}
-	sccp_channel_display_callInfo(channel);
-	sccp_channel_send_callinfo2(channel);
-}
-
 static const char *asterisk_indication2str(int ind)
 {
 	switch (ind) {
@@ -575,7 +510,7 @@ static int sccp_wrapper_asterisk112_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 	if (!d) {
 		switch (ind) {
 			case AST_CONTROL_CONNECTED_LINE:
-				sccp_wrapper_asterisk112_connectedline(c, data, datalen);
+				sccp_asterisk_connectedline(c, data, datalen);
 				res = 0;
 				break;
 			case AST_CONTROL_REDIRECTING:
@@ -722,7 +657,7 @@ static int sccp_wrapper_asterisk112_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			break;
 
 		case AST_CONTROL_CONNECTED_LINE:
-			sccp_wrapper_asterisk112_connectedline(c, data, datalen);
+			sccp_asterisk_connectedline(c, data, datalen);
 			sccp_indicate(d, c, c->state);
 
 			res = 0;
