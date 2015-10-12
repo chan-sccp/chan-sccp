@@ -301,8 +301,8 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 	char hintStr[AST_MAX_EXTENSION];
 	//const char *cidName;
 	//const char *cidNumber;
-	char cidName[StationMaxNameSize];
-	char cidNumber[StationMaxDirnumSize];
+	char cidName[StationMaxNameSize] = "";
+	char cidNumber[StationMaxDirnumSize] = "";
 
 	hint = (sccp_hint_list_t *) data;
 	ast_get_hint(hintStr, sizeof(hintStr), NULL, 0, NULL, hint->context, hint->exten);
@@ -328,7 +328,7 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 		case AST_EXTENSION_REMOVED:
 		case AST_EXTENSION_DEACTIVATED:
 		case AST_EXTENSION_UNAVAILABLE:
-			if (!strcasecmp(cidName, "DND")) {
+			if (!strncasecmp(cidName, "DND", 3)) {
 				hint->currentState = SCCP_CHANNELSTATE_DND;
 			} else {
 				hint->currentState = SCCP_CHANNELSTATE_CONGESTION;
@@ -345,7 +345,7 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 			}
 			break;
 		case AST_EXTENSION_BUSY:
-			if (!strcasecmp(cidName, "DND")) {
+			if (!strncasecmp(cidName, "DND", 3)) {
 				hint->currentState = SCCP_CHANNELSTATE_DND;
 			} else {
 				hint->currentState = SCCP_CHANNELSTATE_BUSY;
@@ -1172,8 +1172,8 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 				REQ(msg, FeatureStatDynamicMessage);
 				if (msg) {
-					char cidName[StationMaxNameSize];
-					char cidNumber[StationMaxDirnumSize];
+					char cidName[StationMaxNameSize] = "";
+					char cidNumber[StationMaxDirnumSize] = "";
 
 					switch (hint->currentState) {
 						case SCCP_CHANNELSTATE_ONHOOK:
