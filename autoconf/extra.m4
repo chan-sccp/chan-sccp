@@ -900,7 +900,7 @@ AC_DEFUN([CS_SETUP_MODULE_DIR], [
                                 
                                 dnl Insert '/debug/' into path
 			        dnl PBX_DEBUGMODDIR="${PBX_LIB}/debug/${PBX_MODDIR:${#PBX_LIB}}"
-			        PBX_DEBUGMODDIR=`echo $PBX_MODDIR | sed "s!^${PBX_LIB}!${PBX_LIB}/debug/!g"`
+			        PBX_DEBUGMODDIR=`echo $PBX_MODDIR | sed "s!^${PBX_LIB}!${PBX_LIB}/debug/${PBX_LIB}!g"`
                                 ;;
              esac])
         AC_SUBST([PBX_MODDIR]) 
