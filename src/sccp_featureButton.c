@@ -25,7 +25,7 @@
 #include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
-#include "sccp_mwi.h"
+//#include "sccp_mwi.h"
 
 #ifdef CS_DEVSTATE_FEATURE
 #include "sccp_devstate.h"

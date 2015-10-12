@@ -27,11 +27,11 @@
 #include "sccp_config.h"
 #include "sccp_actions.h"
 #include "sccp_features.h"
-#include "sccp_featureButton.h"
+//#include "sccp_featureButton.h"
 #include "sccp_socket.h"
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
-#include "sccp_rtp.h"
+//#include "sccp_rtp.h"
 #include "sccp_devstate.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");

@@ -33,7 +33,7 @@
 #include "sccp_utils.h"
 #include "sccp_conference.h"
 #include "sccp_indicate.h"
-#include "sccp_rtp.h"
+//#include "sccp_rtp.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
