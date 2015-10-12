@@ -11,8 +11,7 @@
  * $Date$
  * $Revision$
  */
-#ifndef __SCCP_CLI_H
-#define __SCCP_CLI_H
+#pragma once 
 
 #define CLI_AMI_LIST_WIDTH 46
 typedef struct sccp_cli_totals {
@@ -21,6 +20,4 @@ typedef struct sccp_cli_totals {
 } sccp_cli_totals_t;
 void sccp_register_cli(void);
 void sccp_unregister_cli(void);
-
-#endif														// __SCCP_CLI_H
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -9,9 +9,7 @@
  * $Date$
  * $Revision$  
  */
-
-#ifndef SCCP_AST_MAJOR_H_
-#define SCCP_AST_MAJOR_H_
+#pragma once
 
 #include <config.h>
 #ifdef CS_SCCP_CONFERENCE
@@ -223,5 +221,4 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 		}												\
 	};
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-#endif														/* SCCP_AST108_H_ */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

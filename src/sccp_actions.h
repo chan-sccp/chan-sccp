@@ -11,9 +11,7 @@
  * $Date$
  * $Revision$
  */
-
-#ifndef __SCCP_ACTIONS_H
-#define __SCCP_ACTIONS_H
+#pragma once
 //void sccp_init_device(sccp_device_t * d);
 void sccp_handle_unknown_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
 void sccp_handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
@@ -63,5 +61,4 @@ void sccp_handle_LocationInfoMessage(constSessionPtr s, devicePtr d, constMessag
 void sccp_handle_startmultimediatransmission_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
 void sccp_handle_mediatransmissionfailure(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
 void sccp_handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in);
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

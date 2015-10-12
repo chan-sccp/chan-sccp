@@ -11,8 +11,7 @@
  * $Date$
  * $Revision$
  */
-#ifndef __SCCP_UTILS_H
-#define __SCCP_UTILS_H
+#pragma once
 
 #ifdef strdupa
 #define sccp_strdupa strdupa
@@ -149,6 +148,5 @@ void sccp_utils_unregister_tests(void);
 #endif
 #ifdef DEBUG
 void sccp_do_backtrace(void);
-#endif
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

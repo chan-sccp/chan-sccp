@@ -11,9 +11,7 @@
  * $Date$
  * $Revision$
  */
-
-#ifndef __SCCP_LINE_H
-#define __SCCP_LINE_H
+#pragma once
 
 #ifdef DEBUG
 #define sccp_linedevice_retain(_x) 	({sccp_linedevices_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
@@ -187,6 +185,4 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 sccp_linedevices_t *__sccp_linedevice_findByLineinstance(const sccp_device_t * device, uint16_t instance, const char *filename, int lineno, const char *func);
 void sccp_line_createLineButtonsArray(sccp_device_t * device);
 void sccp_line_deleteLineButtonsArray(sccp_device_t * device);
-
-#endif														/* __SCCP_LINE_H */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
