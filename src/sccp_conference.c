@@ -45,6 +45,11 @@
 #define sccp_participant_release(_x) 	({ast_assert(_x != NULL);(sccp_conference_participant_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #endif
 
+#define constConferencePtr const sccp_conference_participant_t * const
+#define conferencePtr const sccp_conference_t *
+#define constParticipantPtr const sccp_conference_participant_t * const
+#define participantPtr const sccp_conference_participant_t *
+
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 static uint32_t lastConferenceID = 99;
 static const uint32_t appID = APPID_CONFERENCE;
@@ -162,7 +167,7 @@ static void __sccp_conference_participant_destroy(sccp_conference_participant_t 
 		participant->device->conference = participant->device->conference ? sccp_conference_release(participant->device->conference) : NULL;	/* explicit release */
 		participant->device = sccp_device_release(participant->device);										/* explicit release */
 	}
-	participant->conference = participant->conference ? sccp_conference_release(participant->conference) : NULL;					/* explicit release */
+	//participant->conference = participant->conference ? sccp_conference_release(participant->conference) : NULL;					/* explicit release */
 	return;
 }
 
@@ -543,7 +548,7 @@ boolean_t sccp_conference_addParticipatingChannel(sccp_conference_t * conference
 /*!
  * \brief Remove a specific participant from a conference
  */
-static void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
+static void sccp_conference_removeParticipant(sccp_conference_t * conference, participantPtr participant)
 {
 	sccp_conference_participant_t *tmp_participant = NULL;
 
@@ -554,7 +559,7 @@ static void sccp_conference_removeParticipant(sccp_conference_t * conference, sc
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Removing Participant %d.\n", conference->id, participant->id);
 
 	SCCP_LIST_LOCK(&conference->participants);
-	tmp_participant = SCCP_LIST_REMOVE(&conference->participants, participant, list);
+	tmp_participant = SCCP_LIST_REMOVE(&conference->participants, (sccp_conference_participant_t *)participant, list);
 	tmp_participant = sccp_participant_release(tmp_participant);						/* explicit release */
 	SCCP_LIST_UNLOCK(&conference->participants);
 
@@ -569,7 +574,7 @@ static void sccp_conference_removeParticipant(sccp_conference_t * conference, sc
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Hanging up Participant %d (Channel: %s)\n", conference->id, participant->id, pbx_channel_name(participant->conferenceBridgePeer));
 	pbx_clear_flag(pbx_channel_flags(participant->conferenceBridgePeer), AST_FLAG_BLOCKING);
 	pbx_hangup(participant->conferenceBridgePeer);
-	participant = participant ? sccp_participant_release(participant) : NULL;							/* explicit release */
+	//participant = participant ? sccp_participant_release(participant) : NULL;							/* release by caller */
 
 	/* Conference end if the number of participants == 1 */
 	if (SCCP_LIST_GETSIZE(&conference->participants) == 1 && !conference->finishing) {
@@ -1267,7 +1272,7 @@ static void sccp_conference_update_conflist(sccp_conference_t * conference)
 {
 	sccp_conference_participant_t *participant = NULL;
 
-	if (!conference) {
+	if (!conference || conference->finishing) {
 		return;
 	}
 	SCCP_LIST_LOCK(&conference->participants);
