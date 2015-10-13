@@ -381,19 +381,19 @@ struct {												\
 })
 #define SCCP_RWLIST_REMOVE SCCP_LIST_REMOVE
 
-#define SCCP_LIST_FIND(_head, _type, _var, _field, _compare, _retain, _file, _line, _func) ({			\
+#define SCCP_LIST_FIND(_head, _type, _var, _field, _compare, _retain, _file, _line, _func) ({		\
 	_type *_var;											\
 	_type *__tmp_##_var##_line;									\
-	for((_var) = (_head)->first; (_var); (_var) = (_var)->_field.next) {					\
-		__tmp_##_var##_line = sccp_refcount_retain((_var), _file, _line, _func);			\
+	for((_var) = (_head)->first; (_var); (_var) = ((_var) ? (_var)->_field.next : NULL)) {		\
+		__tmp_##_var##_line = sccp_refcount_retain((_var), _file, _line, _func);		\
 	        if (__tmp_##_var##_line) {								\
 	        	if (_compare) {									\
 	        		if (!_retain) {								\
-		 		        sccp_refcount_release(__tmp_##_var##_line, _file, _line, _func);	\
+		 		        sccp_refcount_release(__tmp_##_var##_line, _file, _line, _func);\
 	        		}									\
 				break;									\
 		        }										\
- 		        sccp_refcount_release(__tmp_##_var##_line, _file, _line, _func);			\
+ 		        sccp_refcount_release(__tmp_##_var##_line, _file, _line, _func);		\
 		} else {										\
 			pbx_log(LOG_ERROR, "SCCP (%s:%d:%s): Failed to get reference to variable during SCCP_LIST_FIND\n", _file, _line, _func);\
 			(_var) = NULL;									\
