@@ -310,6 +310,9 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 int __sccp_line_destroy(const void *ptr)
 {
 	sccp_line_t *l = (sccp_line_t *) ptr;
+	if (!l) {
+		return -1;
+	}
 
 	sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Line FREE\n", l->name);
 	
