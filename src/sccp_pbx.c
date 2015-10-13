@@ -325,12 +325,13 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
 
-	if (d && c->state != SCCP_CHANNELSTATE_DOWN && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d)) {
+	if (d && !SCCP_CHANNELSTATE_Idling(c->state) && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d)) {
 		// if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_device_getActiveChannel_nolock(d))	/* Caused active channels never to be full released */
-		if (GLOB(remotehangup_tone) && d && SCCP_DEVICESTATE_OFFHOOK == sccp_device_getDeviceState(d) && c == d->active_channel) {
-			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
+		if (GLOB(remotehangup_tone) && d && SCCP_DEVICESTATE_OFFHOOK == sccp_device_getDeviceState(d) && SCCP_CHANNELSTATE_IsConnected(c->state) && c == d->active_channel) {
+			uint16_t instance = sccp_device_find_index_for_line(d, c->line->name);
+			sccp_dev_starttone(d, GLOB(remotehangup_tone), instance, c->callid, 10);
 		}
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+		//sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 	}
 
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(c->line);
@@ -392,7 +393,9 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Reset monitor state after hangup\n", DEV_ID_LOG(d));
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+		if (SCCP_CHANNELSTATE_DOWN != c->state || SCCP_CHANNELSTATE_ONHOOK != c->state) {
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+		}
 
 		/* requesting statistics */
 		sccp_channel_StatisticsRequest(c);
