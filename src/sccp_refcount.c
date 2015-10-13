@@ -507,11 +507,11 @@ gcc_inline void * const sccp_refcount_release(const void * const ptr, const char
 
 gcc_inline void sccp_refcount_replace(const void **replaceptr, const void *const newptr, const char *filename, int lineno, const char *func)
 {
-	if ((!replaceptr && !newptr) || (&newptr == replaceptr)) {						// nothing changed
+	if (!replaceptr || (&newptr == replaceptr)) {								// nothing changed
 		return;
 	}
 
-	const void *tmpNewPtr = NULL;											// retain new one first
+	const void *tmpNewPtr = NULL;										// retain new one first
 	const void *oldPtr = *replaceptr;
 
 	if (newptr) {
