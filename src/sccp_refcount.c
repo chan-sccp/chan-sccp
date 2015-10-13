@@ -256,20 +256,20 @@ static gcc_inline int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, i
 
 	if (ptr == NULL) {
 		fprintf(sccp_ref_debug_log, "%p **PTR IS NULL !!** %s:%d:%s\n", ptr, file, line, func);
-		// ast_assert(0);
+		// pbx_assert(0);
 		fflush(sccp_ref_debug_log);
 		return -1;
 	}
 	if (obj == NULL) {
 		fprintf(sccp_ref_debug_log, "%p **OBJ ALREADY DESTROYED !!** %s:%d:%s\n", ptr, file, line, func);
-		// ast_assert(0);
+		// pbx_assert(0);
 		fflush(sccp_ref_debug_log);
 		return -1;
 	}
 
 	if (delta == 0 && obj->alive != SCCP_LIVE_MARKER) {
 		fprintf(sccp_ref_debug_log, "%p **OBJ Already destroyed and Declared DEAD !!** %s:%d:%s (%s:%s) [@%d] [%p]\n", ptr, file, line, func, (&obj_info[obj->type])->datatype, obj->identifier, obj->refcount, ptr);
-		// ast_assert(0);
+		// pbx_assert(0);
 		fflush(sccp_ref_debug_log);
 		return -1;
 	}

@@ -28,7 +28,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 /* =================================================================================================================== Send Messages */
 static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, constDevicePtr device)
 {
- 	assert(device != NULL);
+ 	pbx_assert(device != NULL);
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, CallInfoMessage);
@@ -64,7 +64,7 @@ static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, cons
 
 static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, constDevicePtr device)
 {
- 	assert(device != NULL);
+ 	pbx_assert(device != NULL);
 	sccp_msg_t *msg = NULL;
 
 	unsigned int dataSize = 12;
@@ -139,7 +139,7 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 
 static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, constDevicePtr device)
 {
- 	assert(device != NULL);
+ 	pbx_assert(device != NULL);
 	sccp_msg_t *msg = NULL;
 
 	unsigned int dataSize = 16;

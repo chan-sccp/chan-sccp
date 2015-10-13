@@ -430,7 +430,7 @@ void sccp_device_post_reload(void)
 /* ====================================================================================================== start getters / setters for privateData */
 const sccp_accessorystate_t sccp_device_getAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory)
 {
-	assert(d != NULL && d->privateData != NULL);
+	pbx_assert(d != NULL && d->privateData != NULL);
 	sccp_private_lock(d->privateData);
 	sccp_accessorystate_t accessoryStatus = d->privateData->accessoryStatus[accessory];
 	sccp_private_unlock(d->privateData);
@@ -439,7 +439,7 @@ const sccp_accessorystate_t sccp_device_getAccessoryStatus(constDevicePtr d, con
 
 const sccp_accessory_t sccp_device_getActiveAccessory(constDevicePtr d)
 {
-	assert(d != NULL && d->privateData != NULL);
+	pbx_assert(d != NULL && d->privateData != NULL);
 	sccp_accessory_t accessory = SCCP_ACCESSORY_NONE;
 	sccp_private_lock(d->privateData);
 	for (accessory = SCCP_ACCESSORY_NONE ; accessory < SCCP_ACCESSORY_SENTINEL; accessory++) {
@@ -453,8 +453,8 @@ const sccp_accessory_t sccp_device_getActiveAccessory(constDevicePtr d)
 
 int sccp_device_setAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory, const sccp_accessorystate_t state)
 {
-	assert(d != NULL && d->privateData != NULL);
-	assert(accessory > SCCP_ACCESSORY_NONE && accessory < SCCP_ACCESSORY_SENTINEL && state > SCCP_ACCESSORYSTATE_NONE && state < SCCP_ACCESSORYSTATE_SENTINEL);
+	pbx_assert(d != NULL && d->privateData != NULL);
+	pbx_assert(accessory > SCCP_ACCESSORY_NONE && accessory < SCCP_ACCESSORY_SENTINEL && state > SCCP_ACCESSORYSTATE_NONE && state < SCCP_ACCESSORYSTATE_SENTINEL);
 	int changed = 0;
 	
 	sccp_private_lock(d->privateData);
@@ -469,7 +469,7 @@ int sccp_device_setAccessoryStatus(constDevicePtr d, const sccp_accessory_t acce
 
 const sccp_devicestate_t sccp_device_getDeviceState(constDevicePtr d)
 {
-	assert(d != NULL && d->privateData != NULL);
+	pbx_assert(d != NULL && d->privateData != NULL);
 	
 	sccp_devicestate_t state = SCCP_DEVICESTATE_SENTINEL;
 
@@ -482,7 +482,7 @@ const sccp_devicestate_t sccp_device_getDeviceState(constDevicePtr d)
 
 int sccp_device_setDeviceState(constDevicePtr d, const sccp_devicestate_t state)
 {
-	assert(d != NULL && d->privateData != NULL);
+	pbx_assert(d != NULL && d->privateData != NULL);
 	int changed = 0;
 
 	sccp_private_lock(d->privateData);
@@ -498,7 +498,7 @@ int sccp_device_setDeviceState(constDevicePtr d, const sccp_devicestate_t state)
 
 const skinny_registrationstate_t sccp_device_getRegistrationState(constDevicePtr d)
 {
-	assert(d != NULL && d->privateData != NULL);
+	pbx_assert(d != NULL && d->privateData != NULL);
 	
 	skinny_registrationstate_t state = SKINNY_REGISTRATIONSTATE_SENTINEL;
 
@@ -511,7 +511,7 @@ const skinny_registrationstate_t sccp_device_getRegistrationState(constDevicePtr
 
 int sccp_device_setRegistrationState(constDevicePtr d, const skinny_registrationstate_t state)
 {
-	assert(d != NULL && d->privateData != NULL);
+	pbx_assert(d != NULL && d->privateData != NULL);
 	int changed = 0;
 
 	sccp_private_lock(d->privateData);

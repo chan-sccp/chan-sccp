@@ -248,6 +248,7 @@ void sccp_devstate_removeSubscriber(sccp_devstate_deviceState_t * deviceState, c
 
 void sccp_devstate_notifySubscriber(sccp_devstate_deviceState_t * deviceState, const sccp_devstate_SubscribingDevice_t * subscriber)
 {
+	pbx_assert(subscriber->device != NULL);
 	sccp_msg_t *msg = NULL;
 
 	if (subscriber->device->inuseprotocolversion >= 15) {

@@ -34,15 +34,15 @@
 #endif
 
 #ifdef DEBUG
-#define sccp_conference_retain(_x) 	({sccp_conference_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);(sccp_conference_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_conference_release(_x) 	({sccp_conference_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);(sccp_conference_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_participant_retain(_x) 	({sccp_conference_participant_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);(sccp_conference_participant_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_participant_release(_x) 	({sccp_conference_participant_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);(sccp_conference_participant_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_conference_retain(_x) 	({sccp_conference_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;pbx_assert(tmp_##__LINE__##X != NULL);(sccp_conference_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_conference_release(_x) 	({sccp_conference_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;pbx_assert(tmp_##__LINE__##X != NULL);(sccp_conference_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_participant_retain(_x) 	({sccp_conference_participant_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;pbx_assert(tmp_##__LINE__##X != NULL);(sccp_conference_participant_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_participant_release(_x) 	({sccp_conference_participant_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;pbx_assert(tmp_##__LINE__##X != NULL);(sccp_conference_participant_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #else
-#define sccp_conference_retain(_x) 	({ast_assert(_x != NULL);(sccp_conference_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_conference_release(_x) 	({ast_assert(_x != NULL);(sccp_conference_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_participant_retain(_x) 	({ast_assert(_x != NULL);(sccp_conference_participant_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_participant_release(_x) 	({ast_assert(_x != NULL);(sccp_conference_participant_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_conference_retain(_x) 	({pbx_assert(_x != NULL);(sccp_conference_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_conference_release(_x) 	({pbx_assert(_x != NULL);(sccp_conference_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_participant_retain(_x) 	({pbx_assert(_x != NULL);(sccp_conference_participant_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_participant_release(_x) 	({pbx_assert(_x != NULL);(sccp_conference_participant_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #endif
 
 #define constConferencePtr const sccp_conference_participant_t * const
@@ -802,7 +802,7 @@ int playback_to_channel(sccp_conference_participant_t * participant, const char 
 #if ASTERISK_VERSION_GROUP >= 112
 int playback_to_conference(sccp_conference_t * conference, const char *filename, int say_number)
 {
-	ast_assert(conference != NULL);
+	pbx_assert(conference != NULL);
 	if (!conference->playback_announcements) {
 		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Playback on conference suppressed\n", conference->id);
 		return 1;
