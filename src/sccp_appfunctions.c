@@ -61,7 +61,11 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
 	} else {
-		colname = "ip";
+		colname = sccp_alloca(16);
+		if (!colname) {
+			return -1;
+		}
+		sprintf(colname, "ip");
 	}
 
 	AUTO_RELEASE sccp_device_t *d = NULL;
@@ -314,7 +318,11 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
 	} else {
-		colname = "id";
+		colname = sccp_alloca(16);
+		if (!colname) {
+			return -1;
+		}
+		sprintf(colname, "id");
 	}
 	AUTO_RELEASE sccp_line_t *l = NULL;
 	AUTO_RELEASE sccp_channel_t *c = NULL;
@@ -556,7 +564,11 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
 	} else {
-		colname = "callid";
+		colname = sccp_alloca(16);
+		if (!colname) {
+			return -1;
+		}
+		sprintf(colname, "callid");
 	}
 
 	AUTO_RELEASE sccp_channel_t *c = NULL;
