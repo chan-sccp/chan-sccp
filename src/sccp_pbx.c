@@ -637,11 +637,11 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 			case SKINNY_CALLTYPE_SENTINEL:
 				break;
 		}
-		if (linedevice) {
-			memcpy(&c->capabilities.audio, &linedevice->device->capabilities.audio, sizeof(c->capabilities.audio));
-			memcpy(&c->capabilities.video, &linedevice->device->capabilities.video, sizeof(c->capabilities.video));
-			memcpy(&c->preferences.audio , &linedevice->device->preferences.audio , sizeof(c->preferences.audio));
-			memcpy(&c->preferences.video , &linedevice->device->preferences.video , sizeof(c->preferences.video));
+		if (d) {
+			memcpy(&c->capabilities.audio, &d->capabilities.audio, sizeof(c->capabilities.audio));
+			memcpy(&c->capabilities.video, &d->capabilities.video, sizeof(c->capabilities.video));
+			memcpy(&c->preferences.audio , &d->preferences.audio , sizeof(c->preferences.audio));
+			memcpy(&c->preferences.video , &d->preferences.video , sizeof(c->preferences.video));
 		} else {			/* shared line */
 			/* \todo we should be doing this when a device is attached to a line, and store the caps/prefs inside the sccp_line_t */
 			/* \todo it would be nice if we could set audio preferences by line instead of only per device, especially in case of shared line */
