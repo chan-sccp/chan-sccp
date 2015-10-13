@@ -526,7 +526,7 @@ void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward %s enabled on line %s to number %s\n", DEV_ID_LOG(device), sccp_callforward2str(type), line->name, number);
 			}
 		}
-		sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
+		sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, 0, 1);
 		sccp_feat_changed(linedevice->device, linedevice, feature_type);
 		sccp_dev_forward_status(linedevice->line, linedevice->lineInstance, device);
 	} else {
