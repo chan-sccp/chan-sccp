@@ -1367,7 +1367,7 @@ void sccp_dev_set_speaker(constDevicePtr d, uint8_t mode)
 	}
 	msg->data.SetSpeakerModeMessage.lel_speakerMode = htolel(mode);
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send speaker mode %d\n", d->id, mode);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send speaker mode '%s'\n", d->id, (mode == SKINNY_STATIONSPEAKER_ON ? "on" : (mode == SKINNY_STATIONSPEAKER_OFF ? "off" : "unknown")));
 }
 
 /*!
@@ -1388,7 +1388,7 @@ void sccp_dev_set_microphone(devicePtr d, uint8_t mode)
 	}
 	msg->data.SetMicroModeMessage.lel_micMode = htolel(mode);
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send microphone mode %d\n", d->id, mode);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send microphone mode '%s'\n", d->id, (mode == SKINNY_STATIONMIC_ON ? "on" : (mode == SKINNY_STATIONMIC_OFF ? "off" : "unknown")));
 }
 
 /*!
@@ -1519,7 +1519,7 @@ void sccp_dev_set_message(devicePtr d, const char *msg, const int timeout, const
 		sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_IDLE, msg);
 	}
 	if (beep) {
-		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
+		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 1);
 	}
 }
 
@@ -2712,7 +2712,10 @@ static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lin
 	sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
 	sccp_device_clearMessageFromStack((sccp_device_t *) device, SCCP_MESSAGE_PRIORITY_PRIVACY);
 	sccp_dev_check_displayprompt(device);									/* see if we need to display anything from the messageStack */
-	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
+	AUTO_RELEASE sccp_channel_t *c = sccp_device_getActiveChannel(device);
+	if (c->callid == callid) {  
+		sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
+	}
 }
 
 static void sccp_device_indicate_offhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
