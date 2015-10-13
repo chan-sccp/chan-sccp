@@ -114,7 +114,7 @@ sccp_callinfo_t *const sccp_callinfo_ctor(void)
 
 sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t * ci)
 {
-	assert(ci != NULL);
+	pbx_assert(ci != NULL);
 	sccp_callinfo_lock(ci);
 	sccp_mutex_destroy(&ci->lock);
 	sccp_callinfo_unlock(ci);
@@ -164,7 +164,7 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src_ci, sccp_callinfo
 
 int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...)
 {
-	assert(ci != NULL);
+	pbx_assert(ci != NULL);
 
 	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
 	int changes = 0;
@@ -267,7 +267,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 
 int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, sccp_callinfo_key_t key, ...)
 {
-	assert(src_ci != NULL && dst_ci != NULL);
+	pbx_assert(src_ci != NULL && dst_ci != NULL);
 	//sccp_callinfo_t tmp_ci = {{{{0}}}};
 	sccp_callinfo_t tmp_ci;
 	memset(&tmp_ci, 0, sizeof(sccp_callinfo_t));
@@ -361,7 +361,7 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 
 int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...)
 {
-	assert(ci != NULL);
+	pbx_assert(ci != NULL);
 
 	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
 	int entries = 0;
@@ -480,37 +480,37 @@ int sccp_callinfo_send(sccp_callinfo_t * const ci, const uint32_t callid, const 
 
 int sccp_callinfo_setCalledParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize])
 {
-	assert(ci != NULL);
+	pbx_assert(ci != NULL);
 	return sccp_callinfo_setter(ci, SCCP_CALLINFO_CALLEDPARTY_NAME, name, SCCP_CALLINFO_CALLEDPARTY_NUMBER, number, SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, voicemail, SCCP_CALLINFO_KEY_SENTINEL);
 }
 
 int sccp_callinfo_setCallingParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize])
 {
-	assert(ci != NULL);
+	pbx_assert(ci != NULL);
 	return sccp_callinfo_setter(ci, SCCP_CALLINFO_CALLINGPARTY_NAME, name, SCCP_CALLINFO_CALLINGPARTY_NUMBER, number, SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL, voicemail, SCCP_CALLINFO_KEY_SENTINEL);
 }
 
 int sccp_callinfo_setOrigCalledParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize], const int reason)
 {
-	assert(ci != NULL);
+	pbx_assert(ci != NULL);
 	return sccp_callinfo_setter(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, name, SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, number, SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL, voicemail, SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, reason, SCCP_CALLINFO_KEY_SENTINEL);
 }
 
 int sccp_callinfo_setOrigCallingParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize])
 {
-	assert(ci != NULL);
+	pbx_assert(ci != NULL);
 	return sccp_callinfo_setter(ci, SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, name, SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, number, SCCP_CALLINFO_KEY_SENTINEL);
 }
 
 int sccp_callinfo_setLastRedirectingParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize], const int reason)
 {
-	assert(ci != NULL);
+	pbx_assert(ci != NULL);
 	return sccp_callinfo_setter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, name, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, number, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, voicemail, SCCP_CALLINFO_LAST_REDIRECT_REASON, reason, SCCP_CALLINFO_KEY_SENTINEL);
 }
 
 boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str_t ** const buf)
 {
-	assert(ci != NULL);
+	pbx_assert(ci != NULL);
 	sccp_callinfo_lock(ci);
 	pbx_str_append(buf, 0, "%p: (getCallInfoStr):\n", ci);
 	if (ci->entries[CALLED_PARTY].NumberValid || ci->entries[CALLED_PARTY].VoiceMailboxValid) {
@@ -547,7 +547,7 @@ boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str
 }
 void sccp_callinfo_print2log(const sccp_callinfo_t * const ci, const char *const header)
 {
-	assert(ci != NULL);
+	pbx_assert(ci != NULL);
 	pbx_str_t *buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 	sccp_callinfo_getCallInfoStr(ci, &buf);

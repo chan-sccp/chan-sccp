@@ -26,6 +26,12 @@
 #define sccp_alloca(size) __builtin_alloca(size)
 #define CS_BRIDGEPEERNAME "BRIDGEPEER"
 
+#ifdef SCANBUILD
+#define pbx_assert assert
+#else
+#define pbx_assert ast_assert
+#endif
+
 /* Lock Macro's */
 #define sccp_mutex_init(x)          		pbx_mutex_init(x)
 #define sccp_mutex_destroy(x)       		pbx_mutex_destroy(x)

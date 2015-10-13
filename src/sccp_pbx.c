@@ -916,7 +916,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		sccp_copy_string(shortenedNumber, c->dialedNumber, sizeof(shortenedNumber));
 		unsigned int len = sccp_strlen(shortenedNumber);
 
-		assert(sccp_strlen(c->dialedNumber) == len);
+		pbx_assert(sccp_strlen(c->dialedNumber) == len);
 
 		if (len > 0 && GLOB(digittimeoutchar) == shortenedNumber[len - 1]) {
 			shortenedNumber[len - 1] = '\0';
