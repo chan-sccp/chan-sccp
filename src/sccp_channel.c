@@ -1120,7 +1120,7 @@ static int _sccp_channel_sched_endcall(const void *data)
 	if ((channel = sccp_channel_retain(data))) {
 		channel->scheduler.hangup = -1;
 		sccp_log(DEBUGCAT_CHANNEL) ("%s: Scheduled Hangup\n", channel->designator);
-		if (!channel->scheduler.deny) {										/* we cancelled all scheduled tasks, so we should not be hanging up this channel anymore */
+		if (ATOMIC_FETCH(&channel->scheduler.deny, &c->scheduler.lock) == 0) {					/* we cancelled all scheduled tasks, so we should not be hanging up this channel anymore */
 			sccp_channel_stop_and_deny_scheduled_tasks(channel);
 			sccp_channel_endcall(channel);
 		}
@@ -1179,16 +1179,14 @@ gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t * channel, uint
 void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel)
 {
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
-
-	if (c) {
-		ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock);
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks\n", c->designator);
-		if (c->scheduler.digittimeout > 0) {
-			iPbx.sched_del_ref(&c->scheduler.digittimeout, c);
-		}
-		if (c->scheduler.hangup > 0) {
-			iPbx.sched_del_ref(&c->scheduler.hangup, c);
-		}
+	if (c && (ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock) == 0)) {
+			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks\n", c->designator);
+			if (c->scheduler.digittimeout > 0) {
+				iPbx.sched_del_ref(&c->scheduler.digittimeout, c);
+			}
+			if (c->scheduler.hangup > 0) {
+				iPbx.sched_del_ref(&c->scheduler.hangup, c);
+			}
 	}
 }
 
@@ -1814,7 +1812,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		//iPbx.set_owner(channel, NULL);
 	}
 
-	if (channel->state != SCCP_CHANNELSTATE_DOWN) {
+	if (channel->state != SCCP_CHANNELSTATE_ONHOOK && channel->state != SCCP_CHANNELSTATE_DOWN) {
 		iPbx.set_callstate(channel, AST_STATE_DOWN);
 		sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
 	}
