@@ -802,7 +802,8 @@ int playback_to_channel(sccp_conference_participant_t * participant, const char 
 #if ASTERISK_VERSION_GROUP >= 112
 int playback_to_conference(sccp_conference_t * conference, const char *filename, int say_number)
 {
-	if (!conference || !conference->playback_announcements) {
+	ast_assert(conference != NULL);
+	if (!conference->playback_announcements) {
 		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Playback on conference suppressed\n", conference->id);
 		return 1;
 	}
