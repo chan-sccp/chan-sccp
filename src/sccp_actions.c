@@ -1905,7 +1905,7 @@ void sccp_handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_ONHOOK);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook\n", DEV_ID_LOG(d));
 
-	if (!(d->lineButtons.size > SCCP_FIRST_LINEINSTANCE)) {
+	if (d && !(d->lineButtons.size > SCCP_FIRST_LINEINSTANCE)) {
 		pbx_log(LOG_NOTICE, "No lines registered on %s to put OnHook\n", DEV_ID_LOG(d));
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_LINES_REGISTERED, SCCP_DISPLAYSTATUS_TIMEOUT);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
@@ -2934,9 +2934,9 @@ void sccp_handle_startmultimediatransmission_ack(constSessionPtr s, devicePtr d,
 		pbx_log(LOG_ERROR, "%s: (StartMultiMediaTransmissionAck) Device returned: '%s' (%d) !. Ending Call.\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
 		if (c) {
 			sccp_channel_endcall(c);
+			//sccp_dump_msg(msg_in);
+			c->rtp.video.readState = SCCP_RTP_STATUS_INACTIVE;
 		}
-		sccp_dump_msg(msg_in);
-		c->rtp.video.readState = SCCP_RTP_STATUS_INACTIVE;
 		return;
 	}
 
@@ -3169,7 +3169,7 @@ void sccp_handle_ServerResMessage(constSessionPtr s, devicePtr d, constMessagePt
 
 	REQ(msg_out, ServerResMessage);
 	struct sockaddr_storage sas = { 0 };
-	sccp_session_getOurIP(d->session, &sas, 0);
+	sccp_session_getOurIP(s, &sas, 0);
 	sccp_copy_string(msg_out->data.ServerResMessage.server[0].serverName, sccp_socket_stringify_addr(&sas), sizeof(msg_out->data.ServerResMessage.server[0].serverName));
 	msg_out->data.ServerResMessage.serverListenPort[0] = sccp_socket_getPort(&GLOB(bindaddr));
 
