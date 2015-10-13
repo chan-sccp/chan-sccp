@@ -3,11 +3,11 @@ make clean
 rm -rf config.cache scanbuild-output
 
 VER=3.8
-CCC_CC="/usr/bin/clang-${VER}"
-ANALYZER="/usr/share/clang/scan-build-${VER}/ccc-analyzer"
-CC="/usr/bin/clang-${VER}"
-CFLAGS=" -g --coverage -DAST_DEVMODE -DSCANBUILD" 
-SCANBUILD_FLAGS="-maxloop 10 
+export CCC_CC="/usr/bin/clang-${VER}"
+export ANALYZER="/usr/share/clang/scan-build-${VER}/ccc-analyzer"
+export CC="/usr/bin/clang-${VER}"
+export CFLAGS=" -g --coverage -DAST_DEVMODE -DSCANBUILD" 
+export SCANBUILD_FLAGS="-maxloop 10 
 	-disable-checker deadcode.DeadStores \
 	-enable-checker alpha.core.BoolAssignment \
 	-enable-checker alpha.core.CallAndMessageUnInitRefArg \
@@ -29,8 +29,22 @@ SCANBUILD_FLAGS="-maxloop 10
 	-enable-checker alpha.unix.Stream \
 	-enable-checker alpha.unix.cstring.BufferOverlap \
 	-enable-checker alpha.unix.cstring.NotNullTerminated \
-	-enable-checker alpha.unix.cstring.OutOfBounds"
-	
+	-enable-checker alpha.unix.cstring.OutOfBounds
+	-enable-checker alpha.core.DynamicTypeChecker \		# new
+	-enable-checker alpha.core.FixedAddr \
+	-enable-checker alpha.deadcode.UnreachableCode \
+	-enable-checker alpha.unix.Chroot \
+	-enable-checker alpha.unix.cstring.OutOfBounds \
+	-enable-checker llvm.Conventions \
+	-enable-checker nullability.NullableDereferenced \
+	-enable-checker nullability.NullablePassedToNonnull \
+	-enable-checker nullability.NullablePassedToNonnull \
+	"
+
+#	-enable-checker security.FloatLoopCounter \
+#	-enable-checker security.insecureAPI.rand \
+#	-enable-checker security.insecureAPI.strcpy \
+
 if [ -z "`grep fblocks ${ANALYZER}`" ];then
 	# fix analyzer
 	sudo cp ${ANALYZER} ${ANALYZER}.bak
@@ -38,5 +52,13 @@ if [ -z "`grep fblocks ${ANALYZER}`" ];then
 			-e "s!'--serialize-diagnostics' => 1!'--serialize-diagnostics' => 1, '-fblocks' => 0!g" \
 			-i ${ANALYZER}
 fi
-/usr/bin/scan-build-${VER} --use-cc="${CC}" -disable-checker deadcode.DeadStores -o scanbuild-output ./configure --without-ccache  --enable-video --enable-video-layer --enable-devdoc --enable-conference --enable-advanced-functions --enable-distributed-devicestate CFLAGS="${CFLAGS}" $*
-/usr/bin/scan-build-${VER} --use-cc="${CC}" -disable-checker deadcode.DeadStores -o scanbuild-output make
+/usr/bin/scan-build-${VER} --use-cc="${CC}" \
+	-disable-checker deadcode.DeadStores \
+	-o scanbuild-output \
+	./configure --without-ccache  --enable-video --enable-video-layer --enable-devdoc \
+			--enable-conference --enable-advanced-functions --enable-distributed-devicestate \
+			CFLAGS="${CFLAGS}" $*
+/usr/bin/scan-build-${VER} --use-cc="${CC}" \
+	-disable-checker deadcode.DeadStores \
+	-o scanbuild-output \
+	make
