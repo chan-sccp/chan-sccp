@@ -774,7 +774,7 @@ int sccp_pbx_sched_dial(const void * data)
 	if (data) {
 		sccp_channel_t * c = (sccp_channel_t *) data;						// channel already retained in data
 		c->scheduler.digittimeout = -1;
-		if (c->owner && !iPbx.getChannelPbx(c)) {
+		if (c->owner && !iPbx.getChannelPbx(c) && !sccp_strlen_zero(c->dialedNumber)) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Going to dial '%s'\n", c->callid, c->dialedNumber);
 			sccp_pbx_softswitch(c);
 		}
