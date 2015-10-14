@@ -2713,7 +2713,7 @@ static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lin
 	sccp_device_clearMessageFromStack((sccp_device_t *) device, SCCP_MESSAGE_PRIORITY_PRIVACY);
 	sccp_dev_check_displayprompt(device);									/* see if we need to display anything from the messageStack */
 	AUTO_RELEASE sccp_channel_t *c = sccp_device_getActiveChannel(device);
-	if (c->callid == callid) {  
+	if (c && c->callid == callid) {  
 		sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
 	}
 }
