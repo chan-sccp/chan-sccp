@@ -20,7 +20,7 @@
 #include <config.h>
 #include "common.h"
 
-#include "sccp_pbx.h"
+//#include "sccp_pbx.h"
 #include "sccp_protocol.h"
 #include "sccp_socket.h"
 #include "sccp_device.h"

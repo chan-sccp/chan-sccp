@@ -63,53 +63,6 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 #endif
 }
 
-/*
- * \brief iterate through locked pbx channels and search using specified match function
- * \param is_match match function
- * \param data paremeter data for match function
- * \return pbx_channel Locked Asterisk Channel
- *
- * \deprecated
- */
-PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match) (PBX_CHANNEL_TYPE *, void *), void *data)
-{
-	//#ifdef ast_channel_search_locked
-#if ASTERISK_VERSION_NUMBER < 10800
-	return ast_channel_search_locked(is_match, data);
-#else
-	boolean_t matched = FALSE;
-	PBX_CHANNEL_TYPE *pbx_channel = NULL;
-	PBX_CHANNEL_TYPE *tmp = NULL;
-
-	struct ast_channel_iterator *iter = NULL;
-
-	if (!(iter = ast_channel_iterator_all_new())) {
-		return NULL;
-	}
-
-	for (; iter && (tmp = ast_channel_iterator_next(iter)); tmp = pbx_channel_unref(tmp)) {
-		pbx_channel_lock(tmp);
-		if (is_match(tmp, data)) {
-			matched = TRUE;
-			break;
-		}
-		pbx_channel_unlock(tmp);
-	}
-
-	if (iter) {
-		ast_channel_iterator_destroy(iter);
-	}
-
-	if (matched) {
-		pbx_channel = tmp;
-		tmp = pbx_channel_unref(tmp);
-		return pbx_channel;
-	} else {
-		return NULL;
-	}
-#endif
-}
-
 /************************************************************************************************************** CONFIG **/
 
 /*
@@ -715,6 +668,7 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
  */
 void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, size_t datalen)
 {
+#if ASTERISK_VERSION_GROUP > 106
 	PBX_CHANNEL_TYPE *ast = channel->owner;
 	sccp_callinfo_t *const callInfo = sccp_channel_getCallInfo(channel);
 
@@ -783,6 +737,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	}
 	sccp_channel_display_callInfo(channel);
 	sccp_channel_send_callinfo2(channel);
+#endif
 }
 
 void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason)
