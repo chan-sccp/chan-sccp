@@ -25283,7 +25283,7 @@ else
                                     esac
                                 fi
 
-                                			        			        PBX_DEBUGMODDIR=`echo $PBX_MODDIR | sed "s!^${PBX_LIB}!${PBX_LIB}/debug/!g"`
+                                			        			        PBX_DEBUGMODDIR=`echo $PBX_MODDIR | sed "s!^${PBX_LIB}!${PBX_LIB}/debug/${PBX_LIB}!g"`
                                 ;;
              esac
 fi
@@ -25326,7 +25326,6 @@ ac_config_files="$ac_config_files Makefile README doc/Makefile src/Makefile cont
 VERSION="`echo ${SCCP_VERSION}_${SCCP_BRANCH}`"
 PACKAGE_STRING="`echo Chan_SCCP_${VERSION}`"
 PACKAGE_TARNAME="`echo Chan_SCCP_${VERSION}`"
-
 
 
 

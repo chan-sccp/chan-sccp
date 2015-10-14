@@ -7,9 +7,7 @@
  * $Date$
  * $Revision$
  */
-
-#ifndef __SCCP_REFCOUNT_H
-#define __SCCP_REFCOUNT_H
+#pragma once
 
 #if HAVE_SYS_TYPES_H
 //#include <sys/types.h>
@@ -85,7 +83,5 @@ int sccp_refcount_force_release(long findobj, char *identifier);
         typeof(_src) __TOKENPASTE(sccp_with_ref_,_line);											\
         __GET_WITH_REF(__TOKENPASTE(sccp_with_ref_,_line),_src,_file,_line,_func)
 #define WITHREF(_src) __WITH_REF(_src,__FILE__,__LINE__,__PRETTY_FUNCTION__)
-
 /* *INDENT-ON* */
-#endif														// __SCCP_REFCOUNT_H
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off

@@ -18,12 +18,12 @@
 #include "sccp_pbx.h"
 #include "sccp_device.h"
 #include "sccp_channel.h"
-#include "sccp_indicate.h"
+//#include "sccp_indicate.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_features.h"
 #include "sccp_actions.h"
-#include "sccp_rtp.h"
+//#include "sccp_rtp.h"
 #include "sccp_socket.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
@@ -69,7 +69,7 @@ static const sccp_line_t * sccp_sk_get_retained_line(constDevicePtr d, constLine
 		return line;
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", DEV_ID_LOG(d));
-	sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 1);
+	sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c ? c->callid : 0, 1);
 	sccp_dev_displayprompt(d, lineInstance, 0, error_str, SCCP_DISPLAYSTATUS_TIMEOUT);
 	return NULL;
 }

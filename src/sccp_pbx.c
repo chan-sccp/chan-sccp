@@ -325,12 +325,13 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
 
-	if (d && c->state != SCCP_CHANNELSTATE_DOWN && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d)) {
+	if (d && !SCCP_CHANNELSTATE_Idling(c->state) && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d)) {
 		// if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_device_getActiveChannel_nolock(d))	/* Caused active channels never to be full released */
-		if (GLOB(remotehangup_tone) && d && SCCP_DEVICESTATE_OFFHOOK == sccp_device_getDeviceState(d) && c == d->active_channel) {
-			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
+		if (GLOB(remotehangup_tone) && d && SCCP_DEVICESTATE_OFFHOOK == sccp_device_getDeviceState(d) && SCCP_CHANNELSTATE_IsConnected(c->state) && c == d->active_channel) {
+			uint16_t instance = sccp_device_find_index_for_line(d, c->line->name);
+			sccp_dev_starttone(d, GLOB(remotehangup_tone), instance, c->callid, 10);
 		}
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+		//sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 	}
 
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(c->line);
@@ -392,7 +393,9 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Reset monitor state after hangup\n", DEV_ID_LOG(d));
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+		if (SCCP_CHANNELSTATE_DOWN != c->state || SCCP_CHANNELSTATE_ONHOOK != c->state) {
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+		}
 
 		/* requesting statistics */
 		sccp_channel_StatisticsRequest(c);
@@ -637,11 +640,11 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 			case SKINNY_CALLTYPE_SENTINEL:
 				break;
 		}
-		if (linedevice) {
-			memcpy(&c->capabilities.audio, &linedevice->device->capabilities.audio, sizeof(c->capabilities.audio));
-			memcpy(&c->capabilities.video, &linedevice->device->capabilities.video, sizeof(c->capabilities.video));
-			memcpy(&c->preferences.audio , &linedevice->device->preferences.audio , sizeof(c->preferences.audio));
-			memcpy(&c->preferences.video , &linedevice->device->preferences.video , sizeof(c->preferences.video));
+		if (d) {
+			memcpy(&c->capabilities.audio, &d->capabilities.audio, sizeof(c->capabilities.audio));
+			memcpy(&c->capabilities.video, &d->capabilities.video, sizeof(c->capabilities.video));
+			memcpy(&c->preferences.audio , &d->preferences.audio , sizeof(c->preferences.audio));
+			memcpy(&c->preferences.video , &d->preferences.video , sizeof(c->preferences.video));
 		} else {			/* shared line */
 			/* \todo we should be doing this when a device is attached to a line, and store the caps/prefs inside the sccp_line_t */
 			/* \todo it would be nice if we could set audio preferences by line instead of only per device, especially in case of shared line */
@@ -771,7 +774,7 @@ int sccp_pbx_sched_dial(const void * data)
 	if (data) {
 		sccp_channel_t * c = (sccp_channel_t *) data;						// channel already retained in data
 		c->scheduler.digittimeout = -1;
-		if (c->owner && !iPbx.getChannelPbx(c)) {
+		if (c->owner && !iPbx.getChannelPbx(c) && !sccp_strlen_zero(c->dialedNumber)) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Going to dial '%s'\n", c->callid, c->dialedNumber);
 			sccp_pbx_softswitch(c);
 		}
@@ -916,7 +919,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		sccp_copy_string(shortenedNumber, c->dialedNumber, sizeof(shortenedNumber));
 		unsigned int len = sccp_strlen(shortenedNumber);
 
-		assert(sccp_strlen(c->dialedNumber) == len);
+		pbx_assert(sccp_strlen(c->dialedNumber) == len);
 
 		if (len > 0 && GLOB(digittimeoutchar) == shortenedNumber[len - 1]) {
 			shortenedNumber[len - 1] = '\0';

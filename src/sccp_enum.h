@@ -3,8 +3,7 @@
  * $Date: $
  * $Revision: $
  */
-#ifndef __SCCP_ENUM_GUARD_H
-#define __SCCP_ENUM_GUARD_H
+#pragma once
 typedef int (*sccp_enum_str2intval_t)(const char *lookup_str);
 typedef char *(*sccp_enum_all_entries_t)(void);
 
@@ -1515,4 +1514,4 @@ int skinny_miscCommandType_str2intval(const char *lookup_str);
 char *skinny_miscCommandType_all_entries(void);
 /* = End =========================================================================================         skinny_miscCommandType === */
 
-#endif /* __SCCP_ENUM_GUARD_H */
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

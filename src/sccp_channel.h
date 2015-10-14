@@ -13,8 +13,7 @@
  * $Revision$  
  */
 
-#ifndef __SCCP_CHANNEL_H
-#define __SCCP_CHANNEL_H
+#pragma once
 
 #include "sccp_atomic.h"
 
@@ -216,6 +215,4 @@ sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(constDevicePtr d, c
 sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(constDevicePtr d, uint32_t passthrupartyid);
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(constDevicePtr d, constChannelPtr c);
 uint8_t sccp_device_selectedchannels_count(constDevicePtr d);
-
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

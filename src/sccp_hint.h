@@ -9,10 +9,7 @@
  * $Date: 2010-11-17 12:03:44 +0100 (Wed, 17 Nov 2010) $
  * $Revision: 2130 $  
  */
-
-#ifndef SCCP_HINT_H_
-#define SCCP_HINT_H_
-
+#pragma once
 #include "sccp_cli.h"
 
 sccp_channelstate_t sccp_hint_getLinestate(const char *linename, const char *deviceId);
@@ -21,5 +18,4 @@ void sccp_hint_module_stop(void);
 
 int sccp_show_hint_lineStates(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 int sccp_show_hint_subscriptions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
-#endif														/* SCCP_HINT_H_ */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

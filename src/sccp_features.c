@@ -33,7 +33,7 @@
 #include "sccp_utils.h"
 #include "sccp_conference.h"
 #include "sccp_indicate.h"
-#include "sccp_rtp.h"
+//#include "sccp_rtp.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
@@ -111,7 +111,7 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 						sccp_line_cfwd(l, device, type, number);
 						pbx_log(LOG_ERROR, "%s: 4\n", DEV_ID_LOG(device));
 						// we are on call, so no tone has been played until now :)
-						sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, 0, 0);
+						sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, c->callid, 1);
 						sccp_channel_endcall(c);
 						sccp_free(number);
 						return;

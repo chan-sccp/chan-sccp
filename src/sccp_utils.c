@@ -780,14 +780,14 @@ struct composedId sccp_parseComposedId(const char *labelString, unsigned int max
 	int state = 0;
 	struct composedId id;
 
-	assert(NULL != labelString);
+	pbx_assert(NULL != labelString);
 
 	memset(&id, 0, sizeof(id));
 
 	for (stringIterator = labelString; stringIterator < labelString + maxLength && !endDetected; stringIterator++) {
 		switch (state) {
 			case 0:										// parsing of main id
-				assert(i < sizeof(id.mainId));
+				pbx_assert(i < sizeof(id.mainId));
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
@@ -811,7 +811,7 @@ struct composedId sccp_parseComposedId(const char *labelString, unsigned int max
 				break;
 
 			case 1:										// parsing of sub id number
-				assert(i < sizeof(id.subscriptionId.number));
+				pbx_assert(i < sizeof(id.subscriptionId.number));
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
@@ -835,7 +835,7 @@ struct composedId sccp_parseComposedId(const char *labelString, unsigned int max
 				break;
 
 			case 2:										// parsing of sub id name
-				assert(i < sizeof(id.subscriptionId.name));
+				pbx_assert(i < sizeof(id.subscriptionId.name));
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
@@ -854,7 +854,7 @@ struct composedId sccp_parseComposedId(const char *labelString, unsigned int max
 				break;
 
 			case 3:										// parsing of auxiliary parameter
-				assert(i < sizeof(id.subscriptionId.name));
+				pbx_assert(i < sizeof(id.subscriptionId.name));
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
@@ -868,7 +868,7 @@ struct composedId sccp_parseComposedId(const char *labelString, unsigned int max
 				break;
 
 			default:
-				assert(FALSE);
+				pbx_assert(FALSE);
 		}
 	}
 	return id;
@@ -1931,7 +1931,7 @@ char *sccp_dec2binstr(char *buf, size_t size, int value)
 
 gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size)
 {
-        assert(NULL != dst && NULL != src);
+        pbx_assert(NULL != dst && NULL != src);
 	if (size != 0) {
 		while (--size != 0) {
 			if ((*dst++ = *src++) == '\0') {

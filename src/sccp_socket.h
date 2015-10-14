@@ -11,10 +11,7 @@
  * $Date$
  * $Revision$  
  */
-
-#ifndef __SCCP_SOCKET_H
-#define __SCCP_SOCKET_H
-
+#pragma once
 #include "sccp_cli.h"
 
 /* ------------------------------------------------------------------------------------------------------- SOCKET FUNCTIONS - */
@@ -125,5 +122,4 @@ boolean_t sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr
 sccp_device_t * const sccp_session_getDevice(constSessionPtr session, boolean_t required);
 boolean_t sccp_session_isValid(constSessionPtr session);
 int sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

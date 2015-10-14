@@ -9,10 +9,7 @@
  * $Date$
  * $Revision$  
  */
-
-#ifndef __SCCP_FEATURES_H
-#define __SCCP_FEATURES_H
-
+#pragma once
 // callforward
 void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_callforward_t type);
 
@@ -36,5 +33,4 @@ int sccp_feat_cbarge(constChannelPtr c, const char *const conferencenum);
 void sccp_feat_adhocDial(constDevicePtr d, constLinePtr line);
 void sccp_feat_changed(constDevicePtr device, const sccp_linedevices_t * const linedevice, sccp_feature_type_t featureType);
 void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_lineInstance, constChannelPtr channel);
-#endif														/* __SCCP_FEATURES_H */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

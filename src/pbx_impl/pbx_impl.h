@@ -11,8 +11,7 @@
  * $Date$
  * $Revision$
  */
-#ifndef __PBX_IMPL_H
-#define __PBX_IMPL_H
+#pragma once
 
 #include <config.h>
 //#if HAVE_SYS_SOCKET_H
@@ -167,6 +166,4 @@ typedef struct _PbxInterface {
 } PbxInterface;
 
 extern const PbxInterface iPbx;
-
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

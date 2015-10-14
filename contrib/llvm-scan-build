@@ -1,8 +1,64 @@
 #!/bin/bash
 make clean
 rm -rf config.cache scanbuild-output
-CC="clang"
-CFLAGS=" -g --coverage" 
-SCANBUILD_FLAGS="-maxloop 10 -disable-checker deadcode.DeadStores -enable-checker alpha.core.BoolAssignment -enable-checker alpha.core.CallAndMessageUnInitRefArg -enable-checker alpha.core.CastSize -enable-checker alpha.core.CastToStruct -enable-checker alpha.core.IdenticalExpr -enable-checker alpha.core.PointerArithm -enable-checker alpha.core.PointerSub -enable-checker alpha.core.SizeofPtr -enable-checker alpha.core.TestAfterDivZero -enable-checker alpha.security.ArrayBound -enable-checker alpha.security.ArrayBoundV2 -enable-checker alpha.security.MallocOverflow -enable-checker alpha.security.ReturnPtrRange -enable-checker alpha.security.taint.TaintPropagation -enable-checker alpha.unix.MallocWithAnnotations -enable-checker alpha.unix.PthreadLock -enable-checker alpha.unix.SimpleStream -enable-checker alpha.unix.Stream -enable-checker alpha.unix.cstring.BufferOverlap -enable-checker alpha.unix.cstring.NotNullTerminated -enable-checker alpha.unix.cstring.OutOfBounds"
-scan-build $SCANBUILD_FLAGS -o scanbuild-output ./configure --without-ccache --enable-debug --disable-optimization --enable-refcount-debug --enable-experimental-mode --enable-distributed-devicestate--enable-conference $*
-scan-build $SCANBUILD_FLAGS -o scanbuild-output make
+
+VER=3.8
+export CCC_CC="/usr/bin/clang-${VER}"
+export ANALYZER="/usr/share/clang/scan-build-${VER}/ccc-analyzer"
+export CC="/usr/bin/clang-${VER}"
+export CFLAGS=" -g --coverage -DAST_DEVMODE -DSCANBUILD" 
+export SCANBUILD_FLAGS="-maxloop 10 
+	-disable-checker deadcode.DeadStores \
+	-enable-checker alpha.core.BoolAssignment \
+	-enable-checker alpha.core.CallAndMessageUnInitRefArg \
+	-enable-checker alpha.core.CastSize \
+	-enable-checker alpha.core.CastToStruct \
+	-enable-checker alpha.core.IdenticalExpr \
+	-enable-checker alpha.core.PointerArithm \
+	-enable-checker alpha.core.PointerSub \
+	-enable-checker alpha.core.SizeofPtr \
+	-enable-checker alpha.core.TestAfterDivZero \
+	-enable-checker alpha.security.ArrayBound \
+	-enable-checker alpha.security.ArrayBoundV2 \
+	-enable-checker alpha.security.MallocOverflow \
+	-enable-checker alpha.security.ReturnPtrRange \
+	-enable-checker alpha.security.taint.TaintPropagation \
+	-enable-checker alpha.unix.MallocWithAnnotations \
+	-enable-checker alpha.unix.PthreadLock \
+	-enable-checker alpha.unix.SimpleStream \
+	-enable-checker alpha.unix.Stream \
+	-enable-checker alpha.unix.cstring.BufferOverlap \
+	-enable-checker alpha.unix.cstring.NotNullTerminated \
+	-enable-checker alpha.unix.cstring.OutOfBounds
+	-enable-checker alpha.core.DynamicTypeChecker \		# new
+	-enable-checker alpha.core.FixedAddr \
+	-enable-checker alpha.deadcode.UnreachableCode \
+	-enable-checker alpha.unix.Chroot \
+	-enable-checker alpha.unix.cstring.OutOfBounds \
+	-enable-checker llvm.Conventions \
+	-enable-checker nullability.NullableDereferenced \
+	-enable-checker nullability.NullablePassedToNonnull \
+	-enable-checker nullability.NullablePassedToNonnull \
+	"
+
+#	-enable-checker security.FloatLoopCounter \
+#	-enable-checker security.insecureAPI.rand \
+#	-enable-checker security.insecureAPI.strcpy \
+
+if [ -z "`grep fblocks ${ANALYZER}`" ];then
+	# fix analyzer
+	sudo cp ${ANALYZER} ${ANALYZER}.bak
+	sudo sed 	-e "s!'-miphoneos-version-min' => 0!'-miphoneos-version-min' => 0, '-fblocks' => 0!g" \
+			-e "s!'--serialize-diagnostics' => 1!'--serialize-diagnostics' => 1, '-fblocks' => 0!g" \
+			-i ${ANALYZER}
+fi
+/usr/bin/scan-build-${VER} --use-cc="${CC}" \
+	-disable-checker deadcode.DeadStores \
+	-o scanbuild-output \
+	./configure --without-ccache  --enable-video --enable-video-layer --enable-devdoc \
+			--enable-conference --enable-advanced-functions --enable-distributed-devicestate \
+			CFLAGS="${CFLAGS}" $*
+/usr/bin/scan-build-${VER} --use-cc="${CC}" \
+	-disable-checker deadcode.DeadStores \
+	-o scanbuild-output \
+	make

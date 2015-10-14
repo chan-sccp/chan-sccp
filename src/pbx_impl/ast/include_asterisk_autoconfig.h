@@ -1,5 +1,4 @@
-#ifndef SCCP_INCLUDE_AST_AUTO_H
-#define SCCP_INCLUDE_AST_AUTO_H
+#pragma once
 #include <asterisk/autoconfig.h>
 
 /*
@@ -12,5 +11,3 @@
 #undef PACKAGE_BUGREPORT
 #undef PACKAGE_URL
 #undef PACKAGE_VERSION
-
-#endif /* SCCP_INCLUDE_AST_AUTO_H */
