@@ -403,7 +403,9 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t * c)
 	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
 
 	if (channel && channel->owner) {
+		pbx_channel_lock(channel->owner);
 		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
+		pbx_channel_unlock(channel->owner);
 
 		sccp_channel_stop_and_deny_scheduled_tasks(channel);
 
@@ -413,7 +415,15 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t * c)
 
 		/* recheck everything before going forward */
 		pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) processing hangup request, using carefull version. Standby.\n", pbx_channel_name(pbx_channel));
-		if (!pbx_check_hangup(pbx_channel)) {
+		if (!pbx_channel || ast_test_flag(ast_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
+			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Already Hungup. Forcing SCCP Remove Call.\n", pbx_channel_name(pbx_channel));
+			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
+
+			if (d) {
+				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
+			}
+			res = TRUE;
+		} else {
 			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Channel still active.\n", pbx_channel_name(pbx_channel));
 			if (pbx_channel_pbx(pbx_channel) || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING) || pbx_channel_state(pbx_channel) == AST_STATE_UP) {
 				pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Has PBX -> ast_queue_hangup.\n", pbx_channel_name(pbx_channel));
@@ -423,14 +433,6 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t * c)
 				ast_hangup(pbx_channel);
 				res = TRUE;
 			}
-		} else {
-			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Already Hungup. Forcing SCCP Remove Call.\n", pbx_channel_name(pbx_channel));
-			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
-
-			if (d) {
-				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
-			}
-			res = TRUE;
 		}
 		pbx_channel_unref(pbx_channel);
 	}
@@ -443,21 +445,22 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t * c)
 	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
 
 	if (channel) {
-		PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
+		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
 
 		sccp_channel_stop_and_deny_scheduled_tasks(channel);
 
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
-		if (!pbx_check_hangup(pbx_channel)) {								/* if channel is not already been hungup */
-			res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
-		} else {
+		if (!pbx_channel || ast_test_flag(ast_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
 			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_requestQueueHangup) Already Hungup\n", channel->designator);
 			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 			if (d) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
 			}
+		} else {
+			res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
 		}
+		pbx_channel_unref(pbx_channel);
 	}
 	return res;
 }
@@ -468,24 +471,26 @@ boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t * c)
 	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
 
 	if (channel) {
-		PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
+		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
 
 		sccp_channel_stop_and_deny_scheduled_tasks(channel);
-
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
-		if (!pbx_check_hangup(pbx_channel)) {
-			if (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING)) {
-				return sccp_wrapper_asterisk_requestQueueHangup(channel);
-			}
-			ast_hangup(pbx_channel);
-			res = TRUE;
-		} else {
+
+		if (!pbx_channel || ast_test_flag(ast_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
 			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 			if (d) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
 			}
+		} else {
+			if (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING)) {
+				res = sccp_wrapper_asterisk_requestQueueHangup(channel);
+			} else {
+				ast_hangup(pbx_channel);
+				res = TRUE;
+			}
 		}
+		pbx_channel_unref(pbx_channel);
 	}
 	return res;
 }

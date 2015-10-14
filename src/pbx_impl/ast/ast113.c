@@ -963,14 +963,14 @@ static boolean_t sccp_wrapper_asterisk113_allocPBXChannel(sccp_channel_t * chann
 	}
 
 	pbx_log(LOG_NOTICE, "SCCP: (allocPBXChannel) Create New Channel with name: SCCP/%s-%08X\n", line->name, channel->callid);
-	pbxDstChannel = ast_channel_alloc(0, AST_STATE_DOWN, line->cid_num, line->cid_name, line->accountcode, line->name, line->context, assignedids, pbxSrcChannel, line->amaflags, "SCCP/%s-%08X", line->name, channel->callid);
+	pbxDstChannel = ast_channel_alloc(0, AST_STATE_DOWN, line->cid_num, line->cid_name, line->accountcode, line->name, line->context, assignedids, pbxSrcChannel, line->amaflags, "%s", channel->designator);
 	if (pbxDstChannel == NULL) {
 		pbx_log(LOG_ERROR, "SCCP: (allocPBXChannel) ast_channel_alloc failed\n");
 		return FALSE;
 	}
+	ast_channel_stage_snapshot(pbxDstChannel);
 	sccp_wrapper_asterisk113_setOwner(channel, pbxDstChannel);
 
-	ast_channel_stage_snapshot(pbxDstChannel);
 	ast_channel_tech_set(pbxDstChannel, &sccp_tech);
 	ast_channel_tech_pvt_set(pbxDstChannel, sccp_channel_retain(channel));
 
@@ -2196,6 +2196,7 @@ static boolean_t sccp_wrapper_asterisk113_create_audio_rtp(sccp_channel_t * c)
 	}
 
 	if (c->owner) {
+		ast_channel_stage_snapshot(c->owner);
 		ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_RTCP, 1);
 
 		ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_DTMF, 1);
@@ -2230,7 +2231,9 @@ static boolean_t sccp_wrapper_asterisk113_create_audio_rtp(sccp_channel_t * c)
 		ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(c->rtp.audio.rtp), c->rtp.audio.rtp, 105);
 		ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(c->rtp.audio.rtp), c->rtp.audio.rtp, 105, "audio", "cisco-telephone-event", 0);
 	}
-
+	if (c->owner) {
+		ast_channel_stage_snapshot_done(c->owner);
+	}
 	return TRUE;
 }
 
@@ -2266,6 +2269,7 @@ static boolean_t sccp_wrapper_asterisk113_create_video_rtp(sccp_channel_t * c)
 	}
 
 	if (c->owner) {
+		ast_channel_stage_snapshot(c->owner);
 		ast_rtp_instance_set_prop(c->rtp.video.rtp, AST_RTP_PROPERTY_RTCP, 1);
 
 		ast_channel_set_fd(c->owner, 2, ast_rtp_instance_fd(c->rtp.video.rtp, 0));
@@ -2293,6 +2297,9 @@ static boolean_t sccp_wrapper_asterisk113_create_video_rtp(sccp_channel_t * c)
 		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == SKINNY_CODEC_TYPE_VIDEO) {
 			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "video", (char *) skinny_codecs[i].mimesubtype, (enum ast_rtp_options) 0, skinny_codecs[i].sample_rate);
 		}
+	}
+	if (c->owner) {
+		ast_channel_stage_snapshot_done(c->owner);
 	}
 
 	return TRUE;
