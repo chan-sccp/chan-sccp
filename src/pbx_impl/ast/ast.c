@@ -63,53 +63,6 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 #endif
 }
 
-/*
- * \brief iterate through locked pbx channels and search using specified match function
- * \param is_match match function
- * \param data paremeter data for match function
- * \return pbx_channel Locked Asterisk Channel
- *
- * \deprecated
- */
-PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match) (PBX_CHANNEL_TYPE *, void *), void *data)
-{
-	//#ifdef ast_channel_search_locked
-#if ASTERISK_VERSION_NUMBER < 10800
-	return ast_channel_search_locked(is_match, data);
-#else
-	boolean_t matched = FALSE;
-	PBX_CHANNEL_TYPE *pbx_channel = NULL;
-	PBX_CHANNEL_TYPE *tmp = NULL;
-
-	struct ast_channel_iterator *iter = NULL;
-
-	if (!(iter = ast_channel_iterator_all_new())) {
-		return NULL;
-	}
-
-	for (; iter && (tmp = ast_channel_iterator_next(iter)); tmp = pbx_channel_unref(tmp)) {
-		pbx_channel_lock(tmp);
-		if (is_match(tmp, data)) {
-			matched = TRUE;
-			break;
-		}
-		pbx_channel_unlock(tmp);
-	}
-
-	if (iter) {
-		ast_channel_iterator_destroy(iter);
-	}
-
-	if (matched) {
-		pbx_channel = tmp;
-		tmp = pbx_channel_unref(tmp);
-		return pbx_channel;
-	} else {
-		return NULL;
-	}
-#endif
-}
-
 /************************************************************************************************************** CONFIG **/
 
 /*
@@ -450,7 +403,9 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t * c)
 	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
 
 	if (channel && channel->owner) {
+		pbx_channel_lock(channel->owner);
 		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
+		pbx_channel_unlock(channel->owner);
 
 		sccp_channel_stop_and_deny_scheduled_tasks(channel);
 
@@ -460,7 +415,15 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t * c)
 
 		/* recheck everything before going forward */
 		pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) processing hangup request, using carefull version. Standby.\n", pbx_channel_name(pbx_channel));
-		if (!pbx_check_hangup(pbx_channel)) {
+		if (!pbx_channel || ast_test_flag(ast_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
+			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Already Hungup. Forcing SCCP Remove Call.\n", pbx_channel_name(pbx_channel));
+			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
+
+			if (d) {
+				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
+			}
+			res = TRUE;
+		} else {
 			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Channel still active.\n", pbx_channel_name(pbx_channel));
 			if (pbx_channel_pbx(pbx_channel) || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING) || pbx_channel_state(pbx_channel) == AST_STATE_UP) {
 				pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Has PBX -> ast_queue_hangup.\n", pbx_channel_name(pbx_channel));
@@ -470,14 +433,6 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t * c)
 				ast_hangup(pbx_channel);
 				res = TRUE;
 			}
-		} else {
-			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Already Hungup. Forcing SCCP Remove Call.\n", pbx_channel_name(pbx_channel));
-			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
-
-			if (d) {
-				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
-			}
-			res = TRUE;
 		}
 		pbx_channel_unref(pbx_channel);
 	}
@@ -490,21 +445,22 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t * c)
 	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
 
 	if (channel) {
-		PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
+		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
 
 		sccp_channel_stop_and_deny_scheduled_tasks(channel);
 
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
-		if (!pbx_check_hangup(pbx_channel)) {								/* if channel is not already been hungup */
-			res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
-		} else {
+		if (!pbx_channel || ast_test_flag(ast_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
 			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_requestQueueHangup) Already Hungup\n", channel->designator);
 			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 			if (d) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
 			}
+		} else {
+			res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
 		}
+		pbx_channel_unref(pbx_channel);
 	}
 	return res;
 }
@@ -515,24 +471,26 @@ boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t * c)
 	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
 
 	if (channel) {
-		PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
+		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
 
 		sccp_channel_stop_and_deny_scheduled_tasks(channel);
-
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
-		if (!pbx_check_hangup(pbx_channel)) {
-			if (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING)) {
-				return sccp_wrapper_asterisk_requestQueueHangup(channel);
-			}
-			ast_hangup(pbx_channel);
-			res = TRUE;
-		} else {
+
+		if (!pbx_channel || ast_test_flag(ast_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
 			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 			if (d) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
 			}
+		} else {
+			if (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING)) {
+				res = sccp_wrapper_asterisk_requestQueueHangup(channel);
+			} else {
+				ast_hangup(pbx_channel);
+				res = TRUE;
+			}
 		}
+		pbx_channel_unref(pbx_channel);
 	}
 	return res;
 }
@@ -715,6 +673,7 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
  */
 void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, size_t datalen)
 {
+#if ASTERISK_VERSION_GROUP > 106
 	PBX_CHANNEL_TYPE *ast = channel->owner;
 	sccp_callinfo_t *const callInfo = sccp_channel_getCallInfo(channel);
 
@@ -783,6 +742,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	}
 	sccp_channel_display_callInfo(channel);
 	sccp_channel_send_callinfo2(channel);
+#endif
 }
 
 void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason)

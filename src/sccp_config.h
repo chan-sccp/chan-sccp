@@ -11,9 +11,7 @@
  * $Date: 2010-11-17 12:03:44 +0100 (Wed, 17 Nov 2010) $
  * $Revision: 2130 $  
  */
-#ifndef __SCCP_CONFIG_H
-#define __SCCP_CONFIG_H
-
+#pragma once
 /*!
  * \brief Enum for Config Value Change Status
  */
@@ -66,6 +64,4 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name);
 void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device);
 
 int sccp_config_generate(char *filename, int configType);
-
-#endif	       /*__SCCP_CONFIG_H */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

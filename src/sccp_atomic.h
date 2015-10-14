@@ -9,9 +9,7 @@
  * $Date$
  * $Revision$
  */
-
-#ifndef __SCCP_ATOMIC_H
-#define __SCCP_ATOMIC_H
+#pragma once
 
 #ifdef HAVE_ATOMIC_OPS_H
 #include <atomic_ops.h>
@@ -21,11 +19,13 @@
 #ifdef SCCP_ATOMIC
 
 #ifdef SCCP_BUILTIN_INCR
-#define ATOMIC_INCR(_a,_b,_c) 		__sync_fetch_and_add(_a,_b)
-#define ATOMIC_DECR(_a,_b,_c) 		__sync_fetch_and_add(_a,-_b)
+#define ATOMIC_INCR(_a,_b,_c) 		__sync_fetch_and_add(_a, _b)
+#define ATOMIC_DECR(_a,_b,_c) 		__sync_fetch_and_add(_a, -_b)
+#define ATOMIC_FETCH(_a,_c) 		__sync_fetch_and_add(_a, 0)
 #else
-#define ATOMIC_INCR(_a,_b,_c) 		AO_fetch_and_add((volatile size_t *)_a,_b)
-#define ATOMIC_DECR(_a,_b,_c) 		AO_fetch_and_add((volatile size_t *)_a,-_b)
+#define ATOMIC_INCR(_a,_b,_c) 		AO_fetch_and_add((volatile size_t *)_a, _b)
+#define ATOMIC_DECR(_a,_b,_c) 		AO_fetch_and_add((volatile size_t *)_a, -_b)
+#define ATOMIC_FETCH(_a,_c)		AO_fetch_and_add((volatile size_t *)_a, 0)
 #endif
 
 #ifdef SCCP_BUILTIN_CAS32
@@ -55,6 +55,7 @@
                 res;				\
 	})
 #define ATOMIC_DECR(_a,_b,_c) 		ATOMIC_INCR(_a,-_b,_c)
+#define ATOMIC_FETCH(_a,_c) 		ATOMIC_INCR(_a,0,_c)
 #define CAS32(_a,_b,_c,_d)			\
         ({					\
                 CAS32_TYPE res=0;		\
@@ -78,6 +79,4 @@
                 res;				\
         })
 #endif														/* SCCP_ATOMIC */
-
-#endif														/* __SCCP_ATOMIC_H */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

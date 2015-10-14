@@ -11,9 +11,7 @@
  * $Date: 2010-11-17 12:03:44 +0100 (Wed, 17 Nov 2010) $
  * $Revision: 2130 $  
  */
-#ifndef SCCP_THREADPOOL_H_
-#define SCCP_THREADPOOL_H_
-
+#pragma once
 //#include <config.h>
 //#include "common.h"
 
@@ -150,6 +148,4 @@ void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_
  * \param tp_p pointer to threadpool
  */
 int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p);
-
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

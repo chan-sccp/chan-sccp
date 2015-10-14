@@ -47,16 +47,16 @@
 
 #include <config.h>
 #include "common.h"
-#include "sccp_channel.h"
-#include "sccp_device.h"
-#include "sccp_line.h"
+//#include "sccp_channel.h"
+//#include "sccp_device.h"
+//#include "sccp_line.h"
 #include "sccp_utils.h"
-#include "sccp_config.h"
-#include "sccp_actions.h"
-#include "sccp_features.h"
-#include "sccp_socket.h"
-#include "sccp_indicate.h"
-#include "sccp_mwi.h"
+//#include "sccp_config.h"
+//#include "sccp_actions.h"
+//#include "sccp_features.h"
+//#include "sccp_socket.h"
+//#include "sccp_indicate.h"
+//#include "sccp_mwi.h"
 #include "sccp_atomic.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
@@ -256,20 +256,20 @@ static gcc_inline int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, i
 
 	if (ptr == NULL) {
 		fprintf(sccp_ref_debug_log, "%p **PTR IS NULL !!** %s:%d:%s\n", ptr, file, line, func);
-		// ast_assert(0);
+		// pbx_assert(0);
 		fflush(sccp_ref_debug_log);
 		return -1;
 	}
 	if (obj == NULL) {
 		fprintf(sccp_ref_debug_log, "%p **OBJ ALREADY DESTROYED !!** %s:%d:%s\n", ptr, file, line, func);
-		// ast_assert(0);
+		// pbx_assert(0);
 		fflush(sccp_ref_debug_log);
 		return -1;
 	}
 
 	if (delta == 0 && obj->alive != SCCP_LIVE_MARKER) {
 		fprintf(sccp_ref_debug_log, "%p **OBJ Already destroyed and Declared DEAD !!** %s:%d:%s (%s:%s) [@%d] [%p]\n", ptr, file, line, func, (&obj_info[obj->type])->datatype, obj->identifier, obj->refcount, ptr);
-		// ast_assert(0);
+		// pbx_assert(0);
 		fflush(sccp_ref_debug_log);
 		return -1;
 	}
@@ -507,11 +507,11 @@ gcc_inline void * const sccp_refcount_release(const void * const ptr, const char
 
 gcc_inline void sccp_refcount_replace(const void **replaceptr, const void *const newptr, const char *filename, int lineno, const char *func)
 {
-	if ((!replaceptr && !newptr) || (&newptr == replaceptr)) {						// nothing changed
+	if (!replaceptr || (&newptr == replaceptr)) {								// nothing changed
 		return;
 	}
 
-	const void *tmpNewPtr = NULL;											// retain new one first
+	const void *tmpNewPtr = NULL;										// retain new one first
 	const void *oldPtr = *replaceptr;
 
 	if (newptr) {

@@ -27,11 +27,11 @@
 #include "sccp_config.h"
 #include "sccp_actions.h"
 #include "sccp_features.h"
-#include "sccp_featureButton.h"
+//#include "sccp_featureButton.h"
 #include "sccp_socket.h"
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
-#include "sccp_rtp.h"
+//#include "sccp_rtp.h"
 #include "sccp_devstate.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
@@ -430,7 +430,7 @@ void sccp_device_post_reload(void)
 /* ====================================================================================================== start getters / setters for privateData */
 const sccp_accessorystate_t sccp_device_getAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory)
 {
-	assert(d != NULL && d->privateData != NULL);
+	pbx_assert(d != NULL && d->privateData != NULL);
 	sccp_private_lock(d->privateData);
 	sccp_accessorystate_t accessoryStatus = d->privateData->accessoryStatus[accessory];
 	sccp_private_unlock(d->privateData);
@@ -439,7 +439,7 @@ const sccp_accessorystate_t sccp_device_getAccessoryStatus(constDevicePtr d, con
 
 const sccp_accessory_t sccp_device_getActiveAccessory(constDevicePtr d)
 {
-	assert(d != NULL && d->privateData != NULL);
+	pbx_assert(d != NULL && d->privateData != NULL);
 	sccp_accessory_t accessory = SCCP_ACCESSORY_NONE;
 	sccp_private_lock(d->privateData);
 	for (accessory = SCCP_ACCESSORY_NONE ; accessory < SCCP_ACCESSORY_SENTINEL; accessory++) {
@@ -453,8 +453,8 @@ const sccp_accessory_t sccp_device_getActiveAccessory(constDevicePtr d)
 
 int sccp_device_setAccessoryStatus(constDevicePtr d, const sccp_accessory_t accessory, const sccp_accessorystate_t state)
 {
-	assert(d != NULL && d->privateData != NULL);
-	assert(accessory > SCCP_ACCESSORY_NONE && accessory < SCCP_ACCESSORY_SENTINEL && state > SCCP_ACCESSORYSTATE_NONE && state < SCCP_ACCESSORYSTATE_SENTINEL);
+	pbx_assert(d != NULL && d->privateData != NULL);
+	pbx_assert(accessory > SCCP_ACCESSORY_NONE && accessory < SCCP_ACCESSORY_SENTINEL && state > SCCP_ACCESSORYSTATE_NONE && state < SCCP_ACCESSORYSTATE_SENTINEL);
 	int changed = 0;
 	
 	sccp_private_lock(d->privateData);
@@ -469,7 +469,7 @@ int sccp_device_setAccessoryStatus(constDevicePtr d, const sccp_accessory_t acce
 
 const sccp_devicestate_t sccp_device_getDeviceState(constDevicePtr d)
 {
-	assert(d != NULL && d->privateData != NULL);
+	pbx_assert(d != NULL && d->privateData != NULL);
 	
 	sccp_devicestate_t state = SCCP_DEVICESTATE_SENTINEL;
 
@@ -482,7 +482,7 @@ const sccp_devicestate_t sccp_device_getDeviceState(constDevicePtr d)
 
 int sccp_device_setDeviceState(constDevicePtr d, const sccp_devicestate_t state)
 {
-	assert(d != NULL && d->privateData != NULL);
+	pbx_assert(d != NULL && d->privateData != NULL);
 	int changed = 0;
 
 	sccp_private_lock(d->privateData);
@@ -498,7 +498,7 @@ int sccp_device_setDeviceState(constDevicePtr d, const sccp_devicestate_t state)
 
 const skinny_registrationstate_t sccp_device_getRegistrationState(constDevicePtr d)
 {
-	assert(d != NULL && d->privateData != NULL);
+	pbx_assert(d != NULL && d->privateData != NULL);
 	
 	skinny_registrationstate_t state = SKINNY_REGISTRATIONSTATE_SENTINEL;
 
@@ -511,7 +511,7 @@ const skinny_registrationstate_t sccp_device_getRegistrationState(constDevicePtr
 
 int sccp_device_setRegistrationState(constDevicePtr d, const skinny_registrationstate_t state)
 {
-	assert(d != NULL && d->privateData != NULL);
+	pbx_assert(d != NULL && d->privateData != NULL);
 	int changed = 0;
 
 	sccp_private_lock(d->privateData);
@@ -1367,7 +1367,7 @@ void sccp_dev_set_speaker(constDevicePtr d, uint8_t mode)
 	}
 	msg->data.SetSpeakerModeMessage.lel_speakerMode = htolel(mode);
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send speaker mode %d\n", d->id, mode);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send speaker mode '%s'\n", d->id, (mode == SKINNY_STATIONSPEAKER_ON ? "on" : (mode == SKINNY_STATIONSPEAKER_OFF ? "off" : "unknown")));
 }
 
 /*!
@@ -1388,7 +1388,7 @@ void sccp_dev_set_microphone(devicePtr d, uint8_t mode)
 	}
 	msg->data.SetMicroModeMessage.lel_micMode = htolel(mode);
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send microphone mode %d\n", d->id, mode);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send microphone mode '%s'\n", d->id, (mode == SKINNY_STATIONMIC_ON ? "on" : (mode == SKINNY_STATIONMIC_OFF ? "off" : "unknown")));
 }
 
 /*!
@@ -1519,7 +1519,7 @@ void sccp_dev_set_message(devicePtr d, const char *msg, const int timeout, const
 		sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_IDLE, msg);
 	}
 	if (beep) {
-		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 0);
+		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 1);
 	}
 }
 
@@ -2712,7 +2712,10 @@ static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lin
 	sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
 	sccp_device_clearMessageFromStack((sccp_device_t *) device, SCCP_MESSAGE_PRIORITY_PRIVACY);
 	sccp_dev_check_displayprompt(device);									/* see if we need to display anything from the messageStack */
-	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
+	AUTO_RELEASE sccp_channel_t *c = sccp_device_getActiveChannel(device);
+	if (c && c->callid == callid) {  
+		sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
+	}
 }
 
 static void sccp_device_indicate_offhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)

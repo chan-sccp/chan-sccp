@@ -115,7 +115,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
 			sccp_dev_set_cplane(d, instance, 1);
-			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, 0);
+			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, 1);
 			/* for earlyrtp take a look at sccp_feat_handle_callforward because we have no c->owner here */
 			break;
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
@@ -134,25 +134,12 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			break;
 		case SCCP_CHANNELSTATE_ONHOOK:
 			c->state = SCCP_CHANNELSTATE_DOWN;
-			//d->indicate->onhook(d, c, instance, c->callid);                       // reverted to old code, new one does not seem to work
-			sccp_dev_stoptone(d, instance, c->callid);
 			sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_OFF);
-			sccp_dev_cleardisplaynotify(d);
-			sccp_dev_clearprompt(d, instance, c->callid);
-
-			/** if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
 			if (c->answered_elsewhere) {
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 			}
-
-			sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, instance, c->callid);
-			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-			sccp_dev_set_cplane(d, instance, 0);
-			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOOK);
-
-			sccp_handle_time_date_req(d->session, d, NULL);	/** we need datetime on hangup for 7936 */
-			if (c == d->active_channel) {
-				sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
+			if (d->indicate && d->indicate->onhook) {
+				d->indicate->onhook(d, instance, c->callid);
 			}
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
@@ -172,10 +159,10 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 				*/ 
 				if( !sccp_strequals(c->dialedNumber, "s") ){
 					//d->protocol->sendDialedNumber(d, c);
-					d->protocol->sendDialedNumber(d, linedevice->lineInstance, c->callid, c->dialedNumber);
+					d->protocol->sendDialedNumber(d, instance, c->callid, c->dialedNumber);
 				}
 				//if (device->protocol && device->protocol->sendCallInfo) {
-				//	device->protocol->sendCallInfo(ci, c->callid, c->calltype, linedevice->lineInstance, device);
+				//	device->protocol->sendCallInfo(ci, c->callid, c->calltype, instance, device);
 				//}
 				sendCallInfo = SEND;
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -199,7 +186,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			//if (device->protocol && device->protocol->sendCallInfo) {
-			//	device->protocol->sendCallInfo(ci, c->callid, c->calltype, linedevice->lineInstance, device);
+			//	device->protocol->sendCallInfo(ci, c->callid, c->calltype, instance, device);
 			//}
 			sendCallInfo = FORCE_SEND;
 			sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_BLINK);
@@ -256,9 +243,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 // 			iPbx.set_callstate(c, AST_STATE_RINGING);						/*!\todo thats not the right place to update pbx state */
 			break;
 		case SCCP_CHANNELSTATE_CONNECTED:
-			if (linedevice) {
-				d->indicate->connected(d, linedevice->lineInstance, c->callid, c->calltype, ci);
-			}
+			d->indicate->connected(d, instance, c->callid, c->calltype, ci);
 			if (!c->rtp.audio.rtp || c->previousChannelState == SCCP_CHANNELSTATE_HOLD || c->previousChannelState == SCCP_CHANNELSTATE_CALLTRANSFER || c->previousChannelState == SCCP_CHANNELSTATE_CALLCONFERENCE || c->previousChannelState == SCCP_CHANNELSTATE_OFFHOOK) {
 				sccp_channel_openReceiveChannel(c);
 			} else if (c->rtp.audio.rtp) {
@@ -299,10 +284,10 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 				* (initial dial string in immeediate mode) -Pavel Troller
 				*/
 				if( !sccp_strequals(c->dialedNumber, "s") ){
-					d->protocol->sendDialedNumber(d, linedevice->lineInstance, c->callid, c->dialedNumber);
+					d->protocol->sendDialedNumber(d, instance, c->callid, c->dialedNumber);
 				}
 				//if (device->protocol && device->protocol->sendCallInfo[B) {
-				//	device->protocol->sendCallInfo(ci, c->callid, c->calltype, linedevice->lineInstance, device);
+				//	device->protocol->sendCallInfo(ci, c->callid, c->calltype, instance, device);
 				//}
 				sendCallInfo = SEND;
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
@@ -310,7 +295,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			/* done */
 			
 			////if (device->protocol && device->protocol->sendCallInfo) {
-			////	device->protocol->sendCallInfo(ci, c->callid, c->calltype, linedevice->lineInstance, device);
+			////	device->protocol->sendCallInfo(ci, c->callid, c->calltype, instance, device);
 			////}
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 			if (!c->rtp.audio.rtp && d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
@@ -329,7 +314,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_HOLD, GLOB(digittimeout));
 			//if (device->protocol && device->protocol->sendCallInfo) {
-			//	device->protocol->sendCallInfo(ci, c->callid, c->calltype, linedevice->lineInstance, device);
+			//	device->protocol->sendCallInfo(ci, c->callid, c->calltype, instance, device);
 			//}
 			sendCallInfo = FORCE_SEND;
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
@@ -341,7 +326,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
 			}
 			//if (device->protocol && device->protocol->sendCallInfo) {
-			//	device->protocol->sendCallInfo(ci, c->callid, c->calltype, linedevice->lineInstance, device);
+			//	device->protocol->sendCallInfo(ci, c->callid, c->calltype, instance, device);
 			//}
 			sendCallInfo = SEND;
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, GLOB(digittimeout));
@@ -364,7 +349,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 				sccp_channel_callwaiting_tone_interval(d, c);
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 				//if (device->protocol && device->protocol->sendCallInfo) {
-				//	device->protocol->sendCallInfo(ci, c->callid, c->calltype, linedevice->lineInstance, device);
+				//	device->protocol->sendCallInfo(ci, c->callid, c->calltype, instance, device);
 				//}
 				sendCallInfo = SEND;
 				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_WAITING, GLOB(digittimeout));
@@ -383,7 +368,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, instance, c->callid);
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CALLTRANSFER, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			//if (device->protocol && device->protocol->sendCallInfo) {
-			//	device->protocol->sendCallInfo(ci, c->callid, c->calltype, linedevice->lineInstance, device);
+			//	device->protocol->sendCallInfo(ci, c->callid, c->calltype, instance, device);
 			//}
 			sendCallInfo = SEND;
 			break;
@@ -403,16 +388,14 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			   sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 			   sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			   //if (device->protocol && device->protocol->sendCallInfo) {
-			   //	device->protocol->sendCallInfo(ci, c->callid, c->calltype, linedevice->lineInstance, device);
+			   //	device->protocol->sendCallInfo(ci, c->callid, c->calltype, instance, device);
 			   //}
 			   sccp_dev_set_cplane(d, instance, 1);
 			   sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_CONNCONF);
 			   sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CONNECTED, GLOB(digittimeout));
 			 */
 			// replaced by
-			if (linedevice) {
-				d->indicate->connected(d, linedevice->lineInstance, c->callid, c->calltype, ci);
-			}
+			d->indicate->connected(d, instance, c->callid, c->calltype, ci);
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_CONNCONF);
 
 			if (!c->rtp.audio.rtp) {
@@ -478,7 +461,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 	}
 
 	if (sendCallInfo) {
-		sccp_callinfo_send(ci, c->callid, c->calltype, linedevice->lineInstance, device, sendCallInfo == FORCE_SEND ? TRUE : FALSE);
+		sccp_callinfo_send(ci, c->callid, c->calltype, instance, device, sendCallInfo == FORCE_SEND ? TRUE : FALSE);
 	}
 	/* if channel state has changed, notify the others */
 	if (c->state != c->previousChannelState) {
@@ -500,6 +483,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 	}
 
 	sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s) on call %s-%08x. New state on channel: %s (%d)\n", d->id, sccp_channelstate2str(state), l->name, c->callid, sccp_channelstate2str(c->state), c->state);
+	//sccp_do_backtrace();
 }
 
 /*!
@@ -580,7 +564,9 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 				}
 			}
 
-			lineInstance = linedevice->lineInstance;							//sccp_device_find_index_for_line(remoteDevice, line->name);
+			if (linedevice) {
+				lineInstance = linedevice->lineInstance;							//sccp_device_find_index_for_line(remoteDevice, line->name);
+			}
 			switch (state) {
 				case SCCP_CHANNELSTATE_OFFHOOK:
 					/* do nothing here, we will do the offhook simulation in CONNECTED or ONHOOK -MC */
@@ -593,7 +579,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 							case SCCP_PHONEBOOK_RECEIVED:
 								pbx_log(LOG_NOTICE, "%s: call was answered elsewhere, record this as received call\n", DEV_ID_LOG(remoteDevice));
 								remoteDevice->indicate->remoteOffhook(remoteDevice, lineInstance, callid);
-								remoteDevice->indicate->connected(remoteDevice, linedevice->lineInstance, callid, calltype, ci);
+								remoteDevice->indicate->connected(remoteDevice, lineInstance, callid, calltype, ci);
 								break;
 							case SCCP_PHONEBOOK_NONE:
 								sccp_device_sendcallstate(remoteDevice, lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);

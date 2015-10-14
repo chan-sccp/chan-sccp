@@ -1,4 +1,260 @@
+2015-10-10  ddegroot
+
+	* [r6209] src/sccp_channel.c, src/sccp_protocol.c: Fix transfer
+	  callinfo. Reported by Benjamin Bush
+
+	* [r6208] aclocal.m4, autoconf/config.guess, autoconf/config.sub,
+	  autoconf/install-sh, configure, src/config.h.in: bootstrapped
+
+	* [r6207] autoconf/extra.m4, configure: Fix iconv library. Fix
+	  enable-optimization to strip binaries
+
+	* [r6206] autoconf/extra.m4, configure, configure.ac,
+	  src/sccp_callinfo.c: Fix libiconv / libexecinfo issue on Linux,
+	  after correction on BSD. Fix compile warning when initializing
+	  callinfo on older compilers
+
+	* [r6205] conf/sccp.conf.minimal: Correct sccp.conf.minimal
+
+	* [r6204] src/sccp_config.c: Correct module loading/reloading error
+	  message
+
+	* [r6203] src/chan_sccp.c, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c: Decline loading the chan_sccp module
+	  when no sccp.conf can be found
+
+	* [r6202] Makefile.in, autoconf/extra.m4, configure,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.am, src/Makefile.in: Fixes to compile cleanly on
+	  FreeBSD 10.X and produce a loadable module. Reported by Don Beal.
+
+	* [r6201] aclocal.m4, autoconf/acinclude.m4, autoconf/config.guess,
+	  autoconf/config.sub, autoconf/extra.m4, autoconf/install-sh,
+	  configure, src/Makefile.am, src/config.h.in, src/sccp_callinfo.c,
+	  src/sccp_utils.c: Fixes to compile cleanly on FreeBSD 10.X and
+	  produce a loadable module. Reported by Don Beal.
+
+	* [r6200] src/sccp_channel.c, src/sccp_cli.c, src/sccp_rtp.c,
+	  src/sccp_rtp.h: Corrections after merging feature/constpointer
+	  pull request from github
+
+2015-10-10  marcelloceschia
+
+	* [r6199] .travis.yml, Makefile.in, autoconf/extra.m4, configure,
+	  configure.ac, contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.am, src/Makefile.in, src/chan_sccp.c,
+	  src/chan_sccp.h, src/common.h, src/config.h.in,
+	  src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/pbx_impl/ast/define.h, src/pbx_impl/pbx_impl.h,
+	  src/sccp_actions.c, src/sccp_actions.h, src/sccp_appfunctions.c,
+	  src/sccp_atomic.h[CPY], src/sccp_callinfo.c[ADD],
+	  src/sccp_callinfo.h[ADD], src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_cli.c, src/sccp_conference.c, src/sccp_conference.h,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_device.h,
+	  src/sccp_devstate.c, src/sccp_devstate.h, src/sccp_dllists.h,
+	  src/sccp_enum.c, src/sccp_enum.h, src/sccp_enum.in,
+	  src/sccp_event.c, src/sccp_event.h, src/sccp_featureButton.c,
+	  src/sccp_featureButton.h, src/sccp_features.c,
+	  src/sccp_features.h, src/sccp_hint.c, src/sccp_indicate.c,
+	  src/sccp_indicate.h, src/sccp_line.c, src/sccp_line.h,
+	  src/sccp_lock.h[DEL], src/sccp_management.c, src/sccp_mwi.c,
+	  src/sccp_mwi.h, src/sccp_pbx.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h, src/sccp_refcount.c, src/sccp_refcount.h,
+	  src/sccp_rtp.c, src/sccp_rtp.h, src/sccp_socket.c,
+	  src/sccp_socket.h, src/sccp_softkeys.c, src/sccp_softkeys.h,
+	  src/sccp_threadpool.c, src/sccp_threadpool.h, src/sccp_utils.c,
+	  src/sccp_utils.h, tools/versioncheck: Merge branch 'develop'
+
+2015-10-08  ddegroot
+
+	* [r6198] src/sccp_config.c: Fix enum parsing (1).
+
+	* [r6197] src/sccp_rtp.c: Added nat examples documentation to
+	  sccp_rtp.c
+
+	* [r6196] src/sccp_config.c, src/sccp_config_entries.hh: Fix enum
+	  parsing. Removing Deprecated Flag from device-nat setting
+
+	* [r6195] src/sccp_channel.c, src/sccp_rtp.c: Removed EXPERIMENTAL
+	  Flag from Fix for nat issue. Reported and Tested by Dan Huynh.
+
+	* [r6194] src/pbx_impl/ast/ast108.c: Fixed the hangup issue,
+	  reported by Andreas Rebensdorf, causing issues with 'group()'
+	  being stuck. Does have a potential side effect when using
+	  conference with foreign channels (researching)
+
+	* [r6193] src/sccp_actions.c, src/sccp_channel.c, src/sccp_rtp.c,
+	  src/sccp_rtp.h: Fix for nat issue (Wrapped)
+
+2015-10-01  ddegroot
+
+	* [r6192] conf/sccp.conf.annotated, conf/sccp.conf.minimal[ADD]:
+	  Updated sccp.conf annotated and minimal
+
+	* [r6191] autoconf/extra.m4, configure: Fix configure indentation
+
+	* [r6190] src/sccp_rtp.c: Fix compiler warning about discarding
+	  constness
+
+2015-09-30  ddegroot
+
+	* [r6189] autoconf/extra.m4,
+	  conf/tftp/SEP0000000000.cnf.xml_annotated, configure,
+	  configure.ac: Allow setting CFLAG without overwrite
+
+	* [r6188] src/sccp_threadpool.c: Removed exit() from source
+
+	* [r6187] src/sccp_actions.c, src/sccp_hint.c, src/sccp_refcount.c,
+	  src/sccp_refcount.h: Fix compile warnings wenn compiling with
+	  --disable-debug and --enable-video. Fix compile warning about
+	  returning void * const pointer from refcount class.
+
+2015-09-19  ddegroot
+
+	* [r6186] src/sccp_hint.c: Fix: typo in sccp_hint
+
+2015-09-11  ddegroot
+
+	* [r6185] src/chan_sccp.c, src/pbx_impl/ast/ast.h,
+	  src/sccp_actions.c, src/sccp_actions.h, src/sccp_enum.c,
+	  src/sccp_enum.h, src/sccp_enum.in, src/sccp_protocol.h:
+	  Enhancement: Renamed WifiMessage to LocationInfoMessage. Skinny
+	  protocol updates for enums. Added Opus codec.
+
+	* [r6184] src/sccp_actions.c: Prevent segfault when handling
+	  softkey_event without a valid event value (out of bounds) (v2).
+	  Issues caused using VG224. Reported by Ahmet Zaim.
+
+2015-09-10  ddegroot
+
+	* [r6183] src/chan_sccp.c, src/sccp_protocol.h: Enh: New Unknown
+	  Message with message id=0xFF00. Discovered by Ahmet Zaim.
+
+	* [r6182] src/sccp_socket.c: Revert: Don't allow broken/unknown
+	  message though.
+
+	* [r6181] conf/tftp/XMLDefault.cnf.xml: Added new entries to
+	  XMLDefault, provided by Alexander Kholod
+
+2015-09-09  ddegroot
+
+	* [r6180] src/sccp_protocol.h: Enhancement: Completed skinny codec
+	  list
+
+	* [r6179] src/sccp_protocol.h: Enhancement/Fix: Added ulaw/g729
+	  modem codecs to protocol used by VG224 as one of it's
+	  capabilities. Reported by Ahmet Zaim
+
+	* [r6178] src/sccp_actions.c: Fix: Prevent segfault when handling
+	  softkey_event without a valid event value (out of bounds). Issues
+	  caused using VG224. Reported by Ahmet Zaim.
+
+2015-09-08  ddegroot
+
+	* [r6177] src/sccp_protocol.h, src/sccp_socket.c: Cleanup after
+	  adding new 0x0157 message
+
+	* [r6176] src/sccp_actions.c, src/sccp_protocol.h: Print Wifi
+	  Message when debug is set to device
+
+	* [r6175] src/chan_sccp.c, src/sccp_actions.c, src/sccp_actions.h,
+	  src/sccp_protocol.h, src/sccp_socket.c: Added new SCCP Message to
+	  deal with WifiMessage(157) sent by Wireless devices like 792X
+	  using newer firmware.
+
+2015-09-07  ddegroot
+
+	* [r6174] src/sccp_socket.c: Show messageId of oversize messages in
+	  debug output
+
+2015-09-06  ddegroot
+
+	* [r6173] src/sccp_device.c, src/sccp_enum.c, src/sccp_enum.h,
+	  src/sccp_enum.in, src/sccp_socket.c: Added device type 577 for
+	  7926. Requested by Kholod Alexander.
+
+	* [r6172] src/sccp_utils.c: Replace ast_std_... functions with
+	  sccp_... versions
+
+2015-08-31  ddegroot
+
+	* [r6170] contrib/gen_sccpconf/gen_sccpconf.h: Fix gen_sccpconf.h
+
+2015-08-29  ddegroot
+
+	* [r6169] conf/ldap[ADD], conf/ldap/asterisk.sccp.ldif[ADD],
+	  conf/ldap/asterisk.sccp.schema[ADD]: Experimental ldap realtime
+	  schema file
+
+	* [r6167] Makefile.am, Makefile.in, NEWS, src/Makefile.in: Update
+	  Makefile for small v in release number. Remove old V4.2 tag
+
+2015-08-29  marcelloceschia
+
+	* [r6162] .gitignore, .version, configure, configure.ac,
+	  src/chan_sccp.c, src/chan_sccp.h, src/common.h,
+	  src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_actions.c, src/sccp_appfunctions.c, src/sccp_channel.c,
+	  src/sccp_channel.h, src/sccp_cli.c, src/sccp_conference.c,
+	  src/sccp_config.c, src/sccp_config_entries.hh, src/sccp_device.c,
+	  src/sccp_device.h, src/sccp_devstate.c, src/sccp_devstate.h,
+	  src/sccp_enum.c, src/sccp_enum.h, src/sccp_enum.in,
+	  src/sccp_event.h, src/sccp_featureButton.c, src/sccp_features.c,
+	  src/sccp_hint.c, src/sccp_indicate.c, src/sccp_labels.h,
+	  src/sccp_line.c, src/sccp_line.h, src/sccp_management.c,
+	  src/sccp_mwi.h, src/sccp_pbx.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h, src/sccp_refcount.c, src/sccp_refcount.h,
+	  src/sccp_rtp.c, src/sccp_rtp.h, src/sccp_socket.h,
+	  src/sccp_softkeys.c, src/sccp_utils.c, src/sccp_utils.h,
+	  tools/bootstrap.sh, tools/gen_sccp_enum.awk: Merge pull request
+	  #264 from marcelloceschia/develop
+	  
+	  Develop
+
+	* [r6161] .travis.yml: add slack notification
+
+2015-08-27  ddegroot
+
+	* [r6160] src/sccp_enum.c, src/sccp_softkeys.c,
+	  tools/gen_sccp_enum.awk: Fix sccp_enum generator, exists function
+	  had two return values
+
+2015-08-26  ddegroot
+
+	* [r6159] src/sccp_cli.c, src/sccp_device.c, src/sccp_softkeys.c:
+	  Fix device softkeyset fixup after removing a whole softkeyset
+	  from the config file, without re-defining the devices softkeyset
+	  entry. This caused a segfault after sccp reload when using the
+	  device. Reported/Tested by Nikola Ciprich
+
+2015-08-06  ddegroot
+
+	* [r6158] conf/sccp.conf.annotated, src/sccp_config.c,
+	  src/sccp_config_entries.hh: Update sccp.conf sample file
+	  generatation (sccp config generate ...). Updated version of
+	  sccp.conf.annotated
+
+	* [r6157] conf/mysql-v5.sql: Fix trigger in sql sample file so that
+	  it will also work on older versions of mysql-v5
+
 2015-07-26  ddegroot
+
+	* [r6156] ChangeLog, autoconf/extra.m4, configure, configure.ac:
+	  Fix: Check if libbfd is installed before linking against it
+
+	* [r6155] src/sccp_utils.c: Fix sccp_utils/sccp_do_backtrace when
+	  libbfd is not available. Reported by Nikola.
+
+	* [r6154] src/sccp_utils.c: Enhancement: Improved
+	  sccp_do_backtrace() output
 
 	* [r6153] src/sccp_pbx.c: Fix: sccp_pbx_hangup (check if line was
 	  found before using it, null pointer dereference)

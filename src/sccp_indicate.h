@@ -11,9 +11,7 @@
  * $Date$
  * $Revision$  
  */
-#ifndef __SCCP_INDICATE_H
-#define __SCCP_INDICATE_H
-
+#pragma once
 #define SCCP_INDICATE_NOLOCK 	0
 #define SCCP_INDICATE_LOCK		1
 
@@ -36,6 +34,4 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 #else
 #define sccp_indicate(x, y, z)	__sccp_indicate(x, (channelPtr) y, z, 0, NULL, 0, NULL)
 #endif
-
-#endif														/* __SCCP_INDICATE_H */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

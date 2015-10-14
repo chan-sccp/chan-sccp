@@ -30,7 +30,7 @@
 #include "sccp_features.h"
 #include "sccp_line.h"
 #include "sccp_indicate.h"
-#include "sccp_rtp.h"
+//#include "sccp_rtp.h"
 #include "sccp_socket.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
@@ -266,7 +266,7 @@ sccp_device_t *__sccp_channel_getDevice_retained(const sccp_channel_t * channel,
 sccp_device_t *sccp_channel_getDevice_retained(const sccp_channel_t * channel)
 #endif
 {
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	if (channel->privateData && channel->privateData->device) {
 #if DEBUG
 		channel->privateData->device = sccp_refcount_retain((sccp_device_t *) channel->privateData->device, filename, lineno, func);
@@ -489,7 +489,7 @@ void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel
  */
 void sccp_channel_send_callinfo2(sccp_channel_t * channel)
 {
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 	AUTO_RELEASE sccp_line_t *line = sccp_line_retain(channel->line);
@@ -620,7 +620,7 @@ boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * channel, char *n
  */
 void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
 {
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
@@ -641,13 +641,13 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 {
 	uint16_t instance;
 
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
 		return;
 	}
-	ast_assert(channel->line != NULL);									/* should not be possible, but received a backtrace / report */
+	pbx_assert(channel->line != NULL);									/* should not be possible, but received a backtrace / report */
 
 	/* Mute mic feature: If previously set, mute the microphone prior receiving media is already open. */
 	/* This must be done in this exact order to work on popular phones like the 7975. It must also be done in other places for other phones. */
@@ -679,7 +679,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 		iPbx.rtp_setWriteFormat(channel, audio->writeFormat);
 	}
 
-	sccp_log((DEBUGCAT_RTP + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d], payload %d, echocancel: %d, passthrupartyid: %u, callid: %u\n", DEV_ID_LOG(d), codec2str(channel->rtp.audio.writeFormat), channel->rtp.audio.writeFormat, channel->rtp.audio.writeFormat, channel->line->echocancel, channel->passthrupartyid, channel->callid);
+	sccp_log((DEBUGCAT_RTP + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d], payload %d, echocancel: %s, passthrupartyid: %u, callid: %u\n", DEV_ID_LOG(d), codec2str(channel->rtp.audio.writeFormat), channel->rtp.audio.writeFormat, channel->rtp.audio.writeFormat, channel->line ? (channel->line->echocancel ? "YES" : "NO") : "(nil)>", channel->passthrupartyid, channel->callid);
 	audio->writeState = SCCP_RTP_STATUS_PROGRESS;
 
 	if (d->nat >= SCCP_NAT_ON) {										/* device is natted */
@@ -711,7 +711,7 @@ void sccp_channel_closeReceiveChannel(constChannelPtr channel, boolean_t KeepPor
 {
 	sccp_msg_t *msg = NULL;
 
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
@@ -759,7 +759,7 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 	uint8_t lineInstance;
 	int bitRate = 1500;
 
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
@@ -799,7 +799,7 @@ void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean
 {
 	sccp_msg_t *msg = NULL;
 
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
@@ -843,7 +843,7 @@ void sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel)
  */
 void sccp_channel_startMediaTransmission(constChannelPtr channel)
 {
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
@@ -891,7 +891,7 @@ void sccp_channel_stopMediaTransmission(constChannelPtr channel, boolean_t KeepP
 {
 	sccp_msg_t *msg = NULL;
 
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
@@ -936,7 +936,7 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 	int payloadType;
 	int bitRate = channel->maxBitRate;
 
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
@@ -1004,7 +1004,7 @@ void sccp_channel_stopMultiMediaTransmission(constChannelPtr channel, boolean_t 
 {
 	sccp_msg_t *msg = NULL;
 
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
@@ -1038,7 +1038,7 @@ void sccp_channel_updateMultiMediaTransmission(constChannelPtr channel)
 
 void sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannelPtr channel)
 {
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_closeAllMediaTransmitAndReceive) Stop All Media Reception and Transmission on channel %d\n", channel->currentDeviceId, channel->callid);
 	if (d && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d)) {
@@ -1120,7 +1120,7 @@ static int _sccp_channel_sched_endcall(const void *data)
 	if ((channel = sccp_channel_retain(data))) {
 		channel->scheduler.hangup = -1;
 		sccp_log(DEBUGCAT_CHANNEL) ("%s: Scheduled Hangup\n", channel->designator);
-		if (!channel->scheduler.deny) {										/* we cancelled all scheduled tasks, so we should not be hanging up this channel anymore */
+		if (ATOMIC_FETCH(&channel->scheduler.deny, &c->scheduler.lock) == 0) {					/* we cancelled all scheduled tasks, so we should not be hanging up this channel anymore */
 			sccp_channel_stop_and_deny_scheduled_tasks(channel);
 			sccp_channel_endcall(channel);
 		}
@@ -1179,16 +1179,14 @@ gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t * channel, uint
 void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel)
 {
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
-
-	if (c) {
-		ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock);
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks\n", c->designator);
-		if (c->scheduler.digittimeout > 0) {
-			iPbx.sched_del_ref(&c->scheduler.digittimeout, c);
-		}
-		if (c->scheduler.hangup > 0) {
-			iPbx.sched_del_ref(&c->scheduler.hangup, c);
-		}
+	if (c && (ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock) == 0)) {
+			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks\n", c->designator);
+			if (c->scheduler.digittimeout > 0) {
+				iPbx.sched_del_ref(&c->scheduler.digittimeout, c);
+			}
+			if (c->scheduler.hangup > 0) {
+				iPbx.sched_del_ref(&c->scheduler.hangup, c);
+			}
 	}
 }
 
@@ -1814,7 +1812,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		//iPbx.set_owner(channel, NULL);
 	}
 
-	if (channel->state != SCCP_CHANNELSTATE_DOWN) {
+	if (channel->state != SCCP_CHANNELSTATE_ONHOOK && channel->state != SCCP_CHANNELSTATE_DOWN) {
 		iPbx.set_callstate(channel, AST_STATE_DOWN);
 		sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
 	}
@@ -2254,7 +2252,7 @@ EXIT:
 	if (pbx_destination_remote_channel) {
 		pbx_channel_unref(pbx_destination_remote_channel);
 	}
-	if (!sccp_source_local_channel->owner) {
+	if (!sccp_source_local_channel || !sccp_source_local_channel->owner) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Peer owner disappeared! Can't free resources\n");
 		return;
 	}
@@ -2514,7 +2512,7 @@ int sccp_channel_callwaiting_tone_interval(sccp_device_t * device, sccp_channel_
 			AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
 
 			if (c) {
-				ast_assert(c->line != NULL);
+				pbx_assert(c->line != NULL);
 				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Handle Callwaiting Tone on channel %d\n", c->callid);
 				if (c && c->owner && (SCCP_CHANNELSTATE_CALLWAITING == c->state || SCCP_CHANNELSTATE_RINGING == c->state)) {
 					sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending Call Waiting Tone \n", DEV_ID_LOG(d));

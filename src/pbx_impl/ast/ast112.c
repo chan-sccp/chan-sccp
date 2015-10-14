@@ -849,7 +849,7 @@ static void __sccp_asterisk112_updateConnectedLine(PBX_CHANNEL_TYPE *pbx_channel
 	}
 
 	struct ast_party_connected_line connected;
-	struct ast_set_party_connected_line update_connected;
+	struct ast_set_party_connected_line update_connected = {{0}};
 
 	//memset(&update_connected, 0, sizeof(update_connected));
 	ast_party_connected_line_init(&connected);
@@ -901,9 +901,9 @@ static boolean_t sccp_wrapper_asterisk112_allocPBXChannel(sccp_channel_t * chann
 		pbx_log(LOG_ERROR, "SCCP: (allocPBXChannel) ast_channel_alloc failed\n");
 		return FALSE;
 	}
-	sccp_wrapper_asterisk112_setOwner(channel, pbxDstChannel);
-
 	ast_channel_stage_snapshot(pbxDstChannel);
+
+	sccp_wrapper_asterisk112_setOwner(channel, pbxDstChannel);
 	ast_channel_tech_set(pbxDstChannel, &sccp_tech);
 	ast_channel_tech_pvt_set(pbxDstChannel, sccp_channel_retain(channel));
 
@@ -2157,6 +2157,7 @@ static boolean_t sccp_wrapper_asterisk112_create_audio_rtp(sccp_channel_t * c)
 	}
 
 	if (c->owner) {
+		ast_channel_stage_snapshot(c->owner);
 		ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_RTCP, 1);
 
 		ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_DTMF, 1);
@@ -2192,6 +2193,9 @@ static boolean_t sccp_wrapper_asterisk112_create_audio_rtp(sccp_channel_t * c)
 		ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(c->rtp.audio.rtp), c->rtp.audio.rtp, 105, "audio", "cisco-telephone-event", 0);
 	}
 
+	if (c->owner) {
+		ast_channel_stage_snapshot_done(c->owner);
+	}
 	return TRUE;
 }
 
@@ -2227,6 +2231,7 @@ static boolean_t sccp_wrapper_asterisk112_create_video_rtp(sccp_channel_t * c)
 	}
 
 	if (c->owner) {
+		ast_channel_stage_snapshot(c->owner);
 		ast_rtp_instance_set_prop(c->rtp.video.rtp, AST_RTP_PROPERTY_RTCP, 1);
 
 		ast_channel_set_fd(c->owner, 2, ast_rtp_instance_fd(c->rtp.video.rtp, 0));
@@ -2253,6 +2258,9 @@ static boolean_t sccp_wrapper_asterisk112_create_video_rtp(sccp_channel_t * c)
 		}
 	}
 
+	if (c->owner) {
+		ast_channel_stage_snapshot_done(c->owner);
+	}
 	return TRUE;
 }
 

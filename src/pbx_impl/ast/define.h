@@ -8,8 +8,7 @@
  * $Date$
  * $Revision$  
  */
-#ifndef SCCP_AST_DEFINE_H_
-#define SCCP_AST_DEFINE_H_
+#pragma once
 
 // type redefinitions
 #define pbx_variable ast_variable
@@ -26,6 +25,12 @@
 #define sccp_calloc_cache ast_calloc_cache
 #define sccp_alloca(size) __builtin_alloca(size)
 #define CS_BRIDGEPEERNAME "BRIDGEPEER"
+
+#ifdef SCANBUILD
+#define pbx_assert assert
+#else
+#define pbx_assert ast_assert
+#endif
 
 /* Lock Macro's */
 #define sccp_mutex_init(x)          		pbx_mutex_init(x)
@@ -51,6 +56,7 @@
 
 // general redefinitions
 #define pbx_check_hangup ast_check_hangup
+#define pbx_check_hangup_locked ast_check_hangup_locked
 #define pbx_channel_lock ast_channel_lock
 #define pbx_channel_unlock ast_channel_unlock
 #define pbx_sched_wait ast_sched_wait
@@ -362,6 +368,4 @@ typedef struct ast_event pbx_event_t;
 #define pbx_channel_redirecting_effective_to(_a) (_a)->redirecting.to
 #define pbx_channel_connected_id(_a) (_a)->connected.id
 #define pbx_channel_connected_source(_a) (_a)->connected.source
-
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

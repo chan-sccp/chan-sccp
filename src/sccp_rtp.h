@@ -8,8 +8,7 @@
  * $Date$
  * $Revision$  
  */
-#ifndef __SCCP_RTP_H
-#define __SCCP_RTP_H
+#pragma once
 
 /*!
  * \brief SCCP RTP Structure
@@ -44,6 +43,4 @@ boolean_t sccp_rtp_getUs(const sccp_rtp_t * const rtp, struct sockaddr_storage *
 boolean_t sccp_rtp_getPeer(const sccp_rtp_t * const rtp, struct sockaddr_storage *us);
 uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * const rtp);
 int sccp_rtp_get_sampleRate(skinny_codec_t codec);
-
-#endif														// __SCCP_RTP_H
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
