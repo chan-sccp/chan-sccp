@@ -56,6 +56,7 @@
 
 // general redefinitions
 #define pbx_check_hangup ast_check_hangup
+#define pbx_check_hangup_locked ast_check_hangup_locked
 #define pbx_channel_lock ast_channel_lock
 #define pbx_channel_unlock ast_channel_unlock
 #define pbx_sched_wait ast_sched_wait
