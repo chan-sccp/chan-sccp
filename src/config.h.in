@@ -81,6 +81,9 @@
 /* building user */
 #undef BUILD_USER
 
+/* Running static analysis using clang scan-build */
+#undef CCC_ANALYZER
+
 /* advanced functions enabled */
 #undef CS_ADV_FEATURES
 
