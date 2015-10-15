@@ -415,7 +415,7 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t * c)
 
 		/* recheck everything before going forward */
 		pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) processing hangup request, using carefull version. Standby.\n", pbx_channel_name(pbx_channel));
-		if (!pbx_channel || ast_test_flag(ast_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
+		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
 			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Already Hungup. Forcing SCCP Remove Call.\n", pbx_channel_name(pbx_channel));
 			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
@@ -450,7 +450,7 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t * c)
 		sccp_channel_stop_and_deny_scheduled_tasks(channel);
 
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
-		if (!pbx_channel || ast_test_flag(ast_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
+		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
 			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_requestQueueHangup) Already Hungup\n", channel->designator);
 			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
@@ -476,7 +476,7 @@ boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t * c)
 		sccp_channel_stop_and_deny_scheduled_tasks(channel);
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
 
-		if (!pbx_channel || ast_test_flag(ast_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
+		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
 			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 			if (d) {
@@ -616,7 +616,7 @@ boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *k
  */
 int sccp_asterisk_moh_start(PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, const char *interpclass)
 {
-	if (!ast_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH)) {
+	if (!pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH)) {
 		pbx_set_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH);
 		return ast_moh_start((PBX_CHANNEL_TYPE *) pbx_channel, mclass, interpclass);
 	} else {
@@ -626,7 +626,7 @@ int sccp_asterisk_moh_start(PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, 
 
 void sccp_asterisk_moh_stop(PBX_CHANNEL_TYPE * pbx_channel)
 {
-	if (ast_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH)) {
+	if (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH)) {
 		pbx_clear_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH);
 		ast_moh_stop((PBX_CHANNEL_TYPE *) pbx_channel);
 	}

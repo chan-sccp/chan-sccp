@@ -48,6 +48,9 @@
 #define CONFIG_STATUS_FILEINVALID (void *)-2
 #endif
 
+#undef pbx_check_hangup_locked
+#define pbx_check_hangup_locked(_x) ({int res; ast_channel_lock(_x); res = ast_check_hangup(_x); ast_channel_unlock(_x); (res);})
+
 enum AST_CONNECTED_LINE_UPDATE_SOURCE {
 	/*! Update for unknown reason (May be interpreted to mean from answer) */
 	AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN,
