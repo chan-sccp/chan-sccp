@@ -115,6 +115,7 @@ AC_CONFIG_FILES([
    README
    doc/Makefile
    src/Makefile
+   tests/Makefile
    contrib/gen_sccpconf/Makefile
 ])
 
