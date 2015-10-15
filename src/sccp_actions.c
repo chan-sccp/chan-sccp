@@ -44,6 +44,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #include <math.h>
 #if ASTERISK_VERSION_NUMBER < 10400
 
+//void sccp_handle_speeddial(constDevicePtr d, const sccp_speed_t * const k);
+//void sccp_handle_feature_action(constDevicePtr d, const int instance, const boolean_t toggleState);
+
 /* !
  *\brief Host Access Rule Structure
  */
@@ -912,7 +915,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
  * \callgraph
  * \callergraph
  */
-void sccp_handle_AvailableLines(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+void sccp_handle_AvailableLines(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
 	uint8_t i = 0, line_count = 0;
 	btnlist *btn;
@@ -1016,7 +1019,7 @@ void sccp_handle_unregister(constSessionPtr s, devicePtr d, constMessagePtr msg_
  * \warning
  *   - device->buttonconfig is not always locked
  */
-void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
 	btnlist *btn;
 	int i;
@@ -1254,6 +1257,70 @@ static void sccp_handle_stimulus_lastnumberredial(constDevicePtr d, constLinePtr
 		channel = sccp_channel_newcall(l, d, d->redialInformation.number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 	}
 }
+
+/*!
+ * \brief Handle SpeedDial for Device
+ * \param d SCCP Device as sccp_device_t
+ * \param k SCCP SpeedDial as sccp_speed_t
+ */
+static void sccp_handle_speeddial(constDevicePtr d, const sccp_speed_t * k)
+{
+	int len;
+
+	if (!k || !d || !d->session) {
+		return;
+	}
+	AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
+
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Speeddial Button (%d) pressed, configured number is (%s)\n", d->id, k->instance, k->ext);
+	if (channel) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: channel state %d\n", DEV_ID_LOG(d), channel->state);
+
+		// Channel already in use
+		if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK)) {
+			len = sccp_strlen(channel->dialedNumber);
+			sccp_copy_string(channel->dialedNumber + len, k->ext, sizeof(channel->dialedNumber) - len);
+			sccp_pbx_softswitch(channel);
+			return;
+		} else if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_PROCEED) {
+			// automatically put on hold
+			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: automatically put call %d on hold %d\n", DEV_ID_LOG(d), channel->callid, channel->state);
+			sccp_channel_hold(channel);
+			AUTO_RELEASE sccp_line_t *l = sccp_dev_getActiveLine(d);
+
+			if (l) {
+				AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+
+				new_channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+			}
+			return;
+		}
+		// Channel not in use
+		if (iPbx.send_digits) {
+			iPbx.send_digits(channel, k->ext);
+		}
+	} else {
+		/* check Remote RINGING + gpickup */
+		AUTO_RELEASE sccp_line_t *l = NULL;
+
+		if (d->defaultLineInstance > 0) {
+			sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
+			l = sccp_line_find_byid(d, d->defaultLineInstance);
+		} else {
+			l = sccp_dev_getActiveLine(d);
+		}
+		if (!l) {
+			sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using first line with instance: %u", d->defaultLineInstance);
+			l = sccp_line_find_byid(d, SCCP_FIRST_LINEINSTANCE);
+		}
+		if (l) {
+			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+
+			new_channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+		}
+	}
+}
+
 
 /*!
  * \brief Handle Speeddial Stimulus
@@ -1612,6 +1679,187 @@ static void sccp_handle_stimulus_groupcallpickup(constDevicePtr d, constLinePtr 
 }
 
 /*!
+ * \brief Handle Feature Action for Device
+ * \param d SCCP Device as sccp_device_t
+ * \param instance Instance as int
+ * \param toggleState as boolean
+ *
+ * \warning
+ *   - device->buttonconfig is not always locked
+ */
+static void sccp_handle_feature_action(constDevicePtr d, const int instance, const boolean_t toggleState)
+{
+	sccp_buttonconfig_t *config = NULL;
+	sccp_callforward_t status = 0;										/* state of cfwd */
+	uint32_t featureStat1 = 0;
+	uint32_t featureStat2 = 0;
+	uint32_t featureStat3 = 0;
+	uint32_t res = 0;
+
+	if (!d) {
+		return;
+	}
+
+	sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: instance: %d, toggle: %s\n", d->id, instance, (toggleState) ? "yes" : "no");
+
+	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+		if (config->instance == instance && config->type == FEATURE) {
+			// sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: toggle status from %d", d->id, config->button.feature.status);
+			// config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
+			// sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 " to %d\n", config->button.feature.status);
+			break;
+		}
+
+	}
+
+	if (!config || !config->type || config->type != FEATURE) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Couldn find feature with ID = %d \n", d->id, instance);
+		return;
+	}
+
+	/* notice: we use this function for request and changing status -> so just change state if toggleState==TRUE -MC */
+	char featureOption[255];
+
+	if (!sccp_strlen_zero(config->button.feature.options)) {
+		sccp_copy_string(featureOption, config->button.feature.options, sizeof(featureOption));
+	}
+
+	sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s\n", d->id, config->button.feature.id, featureOption);
+	switch (config->button.feature.id) {
+
+		case SCCP_FEATURE_PRIVACY:
+
+			if (!d->privacyFeature.enabled) {
+				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: privacy feature is disabled, ignore this change\n", d->id);
+				break;
+			}
+
+			if (sccp_strcaseequals(config->button.feature.options, "callpresent")) {
+				res = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
+				sccp_featureConfiguration_t *privacyFeature = (sccp_featureConfiguration_t *)&d->privacyFeature;		/* discard const */
+
+				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
+				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result=%d\n", d->id, res);
+				if (res) {
+					/* switch off */
+					privacyFeature->status &= ~SCCP_PRIVACYFEATURE_CALLPRESENT;
+					config->button.feature.status = 0;
+				} else {
+					privacyFeature->status |= SCCP_PRIVACYFEATURE_CALLPRESENT;
+					config->button.feature.status = 1;
+				}
+				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
+			} else {
+				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: do not know how to handle %s\n", d->id, config->button.feature.options ? config->button.feature.options : "");
+			}
+
+			break;
+		case SCCP_FEATURE_CFWDALL:
+			status = SCCP_CFWD_NONE;
+			if (TRUE == toggleState) {
+				config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
+			}
+			// Ask for activation of the feature.
+			if (!sccp_strlen_zero(config->button.feature.options)) {
+				// Now set the feature status. Note that the button status has already been toggled above.
+				if (config->button.feature.status) {
+					status = SCCP_CFWD_ALL;
+				}
+			}
+
+			SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+				if (config->type == LINE) {
+					AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(config->button.line.name, FALSE);
+
+					if (line) {
+						sccp_line_cfwd(line, d, status, featureOption);
+					}
+				}
+			}
+
+			break;
+
+		case SCCP_FEATURE_DND:
+			if (TRUE == toggleState) {
+				config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
+			}
+
+			sccp_featureConfiguration_t *dndFeature = (sccp_featureConfiguration_t *)&d->dndFeature;		/* discard const */
+			if (sccp_strcaseequals(config->button.feature.options, "silent")) {
+				dndFeature->status = (config->button.feature.status) ? SCCP_DNDMODE_SILENT : SCCP_DNDMODE_OFF;
+			} else if (sccp_strcaseequals(config->button.feature.options, "busy")) {
+				dndFeature->status = (config->button.feature.status) ? SCCP_DNDMODE_REJECT : SCCP_DNDMODE_OFF;
+			}
+
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: dndmode %d is %s\n", d->id, d->dndFeature.status, (d->dndFeature.status) ? "on" : "off");
+			sccp_dev_check_displayprompt(d);
+			sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
+			break;
+#ifdef CS_SCCP_FEATURE_MONITOR
+		case SCCP_FEATURE_MONITOR:
+			if (TRUE == toggleState) {
+				AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
+
+				if (channel) {
+					sccp_feat_monitor(d, NULL, 0, channel);
+				}
+			}
+
+			break;
+#endif
+
+#ifdef CS_DEVSTATE_FEATURE
+
+		/**
+		  * Handling of custom devicestate toggle buttons.
+		  */
+		case SCCP_FEATURE_DEVSTATE:
+			sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Feature Change DevState: '%s', State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options ? config->button.feature.options : "", config->button.feature.status ? "On" : "Off");
+
+			if (TRUE == toggleState) {
+				if (!sccp_strlen_zero(config->button.feature.options)) {
+					enum ast_device_state newDeviceState = config->button.feature.status ? AST_DEVICE_NOT_INUSE : AST_DEVICE_INUSE;
+					ast_db_put("CustomDevstate", config->button.feature.options, ast_devstate_str(newDeviceState));
+					pbx_devstate_changed(newDeviceState, "Custom:%s", config->button.feature.options);
+				}
+			}
+
+			break;
+#endif
+		case SCCP_FEATURE_MULTIBLINK:
+			featureStat1 = (d->priFeature.status & 0xf) - 1;
+			featureStat2 = ((d->priFeature.status & 0xf00) >> 8) - 1;
+			featureStat3 = ((d->priFeature.status & 0xf0000) >> 16) - 1;
+
+			if (2 == featureStat2 && 6 == featureStat1) {
+				featureStat3 = (featureStat3 + 1) % 2;
+			}
+			if (6 == featureStat1) {
+				featureStat2 = (featureStat2 + 1) % 3;
+			}
+			featureStat1 = (featureStat1 + 1) % 7;
+
+			sccp_featureConfiguration_t *priFeature = (sccp_featureConfiguration_t *)&d->priFeature;		/* discard const */
+
+			priFeature->status = ((featureStat3 + 1) << 16) | ((featureStat2 + 1) << 8) | (featureStat1 + 1);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: priority feature status: %d, %d, %d, total: %d\n", d->id, featureStat3, featureStat2, featureStat1, priFeature->status);
+			break;
+
+		default:
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: unknown feature\n", d->id);
+			break;
+
+	}
+
+	if (config) {
+		sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Status: %d\n", d->id, instance, config->button.feature.status);
+		sccp_feat_changed(d, NULL, config->button.feature.id);
+	}
+
+	return;
+}
+
+/*!
  * \brief Handle Featere Action Stimulus
  * \param d SCCP Device
  * \param l SCCP Line
@@ -1735,69 +1983,6 @@ void sccp_handle_stimulus(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 		}
 	} else {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d), which does not have a handling function. Not Handled\n", d->id, skinny_stimulus2str(stimulus), stimulus);
-	}
-}
-
-/*!
- * \brief Handle SpeedDial for Device
- * \param d SCCP Device as sccp_device_t
- * \param k SCCP SpeedDial as sccp_speed_t
- */
-void sccp_handle_speeddial(constDevicePtr d, const sccp_speed_t * k)
-{
-	int len;
-
-	if (!k || !d || !d->session) {
-		return;
-	}
-	AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
-
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Speeddial Button (%d) pressed, configured number is (%s)\n", d->id, k->instance, k->ext);
-	if (channel) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: channel state %d\n", DEV_ID_LOG(d), channel->state);
-
-		// Channel already in use
-		if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK)) {
-			len = sccp_strlen(channel->dialedNumber);
-			sccp_copy_string(channel->dialedNumber + len, k->ext, sizeof(channel->dialedNumber) - len);
-			sccp_pbx_softswitch(channel);
-			return;
-		} else if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_PROCEED) {
-			// automatically put on hold
-			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: automatically put call %d on hold %d\n", DEV_ID_LOG(d), channel->callid, channel->state);
-			sccp_channel_hold(channel);
-			AUTO_RELEASE sccp_line_t *l = sccp_dev_getActiveLine(d);
-
-			if (l) {
-				AUTO_RELEASE sccp_channel_t *new_channel = NULL;
-
-				new_channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
-			}
-			return;
-		}
-		// Channel not in use
-		if (iPbx.send_digits) {
-			iPbx.send_digits(channel, k->ext);
-		}
-	} else {
-		/* check Remote RINGING + gpickup */
-		AUTO_RELEASE sccp_line_t *l = NULL;
-
-		if (d->defaultLineInstance > 0) {
-			sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
-			l = sccp_line_find_byid(d, d->defaultLineInstance);
-		} else {
-			l = sccp_dev_getActiveLine(d);
-		}
-		if (!l) {
-			sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using first line with instance: %u", d->defaultLineInstance);
-			l = sccp_line_find_byid(d, SCCP_FIRST_LINEINSTANCE);
-		}
-		if (l) {
-			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
-
-			new_channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
-		}
 	}
 }
 
@@ -1989,7 +2174,7 @@ void sccp_handle_capabilities_res(constSessionPtr s, devicePtr d, constMessagePt
  * \param d SCCP Device
  * \param msg_in SCCP Message
  */
-void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
 	uint8_t i;
 	sccp_msg_t *msg_out = NULL;
@@ -1999,7 +2184,7 @@ void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMess
 
 	int arrayLen = ARRAY_LEN(softkeysmap);
 	int dummy_len = arrayLen * (sizeof(StationSoftKeyDefinition));
-	int hdr_len = sizeof(msg_in->data.SoftKeyTemplateResMessage);
+	int hdr_len = sizeof(msg_out->data.SoftKeyTemplateResMessage);
 
 	/* create message */
 	msg_out = sccp_build_packet(SoftKeyTemplateResMessage, hdr_len + dummy_len);
@@ -2318,7 +2503,7 @@ void sccp_handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMe
  * \param d SCCP Device
  * \param msg_in SCCP Message
  */
-void sccp_handle_time_date_req(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+void sccp_handle_time_date_req(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
 	time_t timer = 0;
 	struct tm *cmtime = NULL;
@@ -3391,187 +3576,6 @@ void sccp_handle_services_stat_req(constSessionPtr s, devicePtr d, constMessageP
 	} else {
 		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: serviceURL %d not assigned\n", sccp_session_getDesignator(s), urlIndex);
 	}
-}
-
-/*!
- * \brief Handle Feature Action for Device
- * \param d SCCP Device as sccp_device_t
- * \param instance Instance as int
- * \param toggleState as boolean
- *
- * \warning
- *   - device->buttonconfig is not always locked
- */
-void sccp_handle_feature_action(constDevicePtr d, const int instance, const boolean_t toggleState)
-{
-	sccp_buttonconfig_t *config = NULL;
-	sccp_callforward_t status = 0;										/* state of cfwd */
-	uint32_t featureStat1 = 0;
-	uint32_t featureStat2 = 0;
-	uint32_t featureStat3 = 0;
-	uint32_t res = 0;
-
-	if (!d) {
-		return;
-	}
-
-	sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: instance: %d, toggle: %s\n", d->id, instance, (toggleState) ? "yes" : "no");
-
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		if (config->instance == instance && config->type == FEATURE) {
-			// sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: toggle status from %d", d->id, config->button.feature.status);
-			// config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
-			// sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 " to %d\n", config->button.feature.status);
-			break;
-		}
-
-	}
-
-	if (!config || !config->type || config->type != FEATURE) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Couldn find feature with ID = %d \n", d->id, instance);
-		return;
-	}
-
-	/* notice: we use this function for request and changing status -> so just change state if toggleState==TRUE -MC */
-	char featureOption[255];
-
-	if (!sccp_strlen_zero(config->button.feature.options)) {
-		sccp_copy_string(featureOption, config->button.feature.options, sizeof(featureOption));
-	}
-
-	sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s\n", d->id, config->button.feature.id, featureOption);
-	switch (config->button.feature.id) {
-
-		case SCCP_FEATURE_PRIVACY:
-
-			if (!d->privacyFeature.enabled) {
-				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: privacy feature is disabled, ignore this change\n", d->id);
-				break;
-			}
-
-			if (sccp_strcaseequals(config->button.feature.options, "callpresent")) {
-				res = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
-				sccp_featureConfiguration_t *privacyFeature = (sccp_featureConfiguration_t *)&d->privacyFeature;		/* discard const */
-
-				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
-				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result=%d\n", d->id, res);
-				if (res) {
-					/* switch off */
-					privacyFeature->status &= ~SCCP_PRIVACYFEATURE_CALLPRESENT;
-					config->button.feature.status = 0;
-				} else {
-					privacyFeature->status |= SCCP_PRIVACYFEATURE_CALLPRESENT;
-					config->button.feature.status = 1;
-				}
-				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
-			} else {
-				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: do not know how to handle %s\n", d->id, config->button.feature.options ? config->button.feature.options : "");
-			}
-
-			break;
-		case SCCP_FEATURE_CFWDALL:
-			status = SCCP_CFWD_NONE;
-			if (TRUE == toggleState) {
-				config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
-			}
-			// Ask for activation of the feature.
-			if (!sccp_strlen_zero(config->button.feature.options)) {
-				// Now set the feature status. Note that the button status has already been toggled above.
-				if (config->button.feature.status) {
-					status = SCCP_CFWD_ALL;
-				}
-			}
-
-			SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-				if (config->type == LINE) {
-					AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(config->button.line.name, FALSE);
-
-					if (line) {
-						sccp_line_cfwd(line, d, status, featureOption);
-					}
-				}
-			}
-
-			break;
-
-		case SCCP_FEATURE_DND:
-			if (TRUE == toggleState) {
-				config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
-			}
-
-			sccp_featureConfiguration_t *dndFeature = (sccp_featureConfiguration_t *)&d->dndFeature;		/* discard const */
-			if (sccp_strcaseequals(config->button.feature.options, "silent")) {
-				dndFeature->status = (config->button.feature.status) ? SCCP_DNDMODE_SILENT : SCCP_DNDMODE_OFF;
-			} else if (sccp_strcaseequals(config->button.feature.options, "busy")) {
-				dndFeature->status = (config->button.feature.status) ? SCCP_DNDMODE_REJECT : SCCP_DNDMODE_OFF;
-			}
-
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: dndmode %d is %s\n", d->id, d->dndFeature.status, (d->dndFeature.status) ? "on" : "off");
-			sccp_dev_check_displayprompt(d);
-			sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
-			break;
-#ifdef CS_SCCP_FEATURE_MONITOR
-		case SCCP_FEATURE_MONITOR:
-			if (TRUE == toggleState) {
-				AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
-
-				if (channel) {
-					sccp_feat_monitor(d, NULL, 0, channel);
-				}
-			}
-
-			break;
-#endif
-
-#ifdef CS_DEVSTATE_FEATURE
-
-		/**
-		  * Handling of custom devicestate toggle buttons.
-		  */
-		case SCCP_FEATURE_DEVSTATE:
-			sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Feature Change DevState: '%s', State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options ? config->button.feature.options : "", config->button.feature.status ? "On" : "Off");
-
-			if (TRUE == toggleState) {
-				if (!sccp_strlen_zero(config->button.feature.options)) {
-					enum ast_device_state newDeviceState = config->button.feature.status ? AST_DEVICE_NOT_INUSE : AST_DEVICE_INUSE;
-					ast_db_put("CustomDevstate", config->button.feature.options, ast_devstate_str(newDeviceState));
-					pbx_devstate_changed(newDeviceState, "Custom:%s", config->button.feature.options);
-				}
-			}
-
-			break;
-#endif
-		case SCCP_FEATURE_MULTIBLINK:
-			featureStat1 = (d->priFeature.status & 0xf) - 1;
-			featureStat2 = ((d->priFeature.status & 0xf00) >> 8) - 1;
-			featureStat3 = ((d->priFeature.status & 0xf0000) >> 16) - 1;
-
-			if (2 == featureStat2 && 6 == featureStat1) {
-				featureStat3 = (featureStat3 + 1) % 2;
-			}
-			if (6 == featureStat1) {
-				featureStat2 = (featureStat2 + 1) % 3;
-			}
-			featureStat1 = (featureStat1 + 1) % 7;
-
-			sccp_featureConfiguration_t *priFeature = (sccp_featureConfiguration_t *)&d->priFeature;		/* discard const */
-
-			priFeature->status = ((featureStat3 + 1) << 16) | ((featureStat2 + 1) << 8) | (featureStat1 + 1);
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: priority feature status: %d, %d, %d, total: %d\n", d->id, featureStat3, featureStat2, featureStat1, priFeature->status);
-			break;
-
-		default:
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: unknown feature\n", d->id);
-			break;
-
-	}
-
-	if (config) {
-		sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Status: %d\n", d->id, instance, config->button.feature.status);
-		sccp_feat_changed(d, NULL, config->button.feature.id);
-	}
-
-	return;
 }
 
 #if defined(CS_SCCP_VIDEO) && defined(DEBUG) && DEBUG == 1

@@ -15,6 +15,7 @@ SUBDIRS 			= src doc
 ACLOCAL_AMFLAGS			= -I autoconf
 AM_CPPFLAGS			= $(LTDLINCL)
 MOSTLYCLEANFILES		= coverage
+#VER				:= $(shell @abs_top_srcdir@/tools/autorevision -s VCS_TAG -o @abs_top_srcdir@/.revision)
 
 distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)_r$(SCCP_REVISION)
 	

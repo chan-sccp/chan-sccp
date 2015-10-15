@@ -61,13 +61,17 @@ typedef struct sccp_hint sccp_hint_t;										/*!< SCCP Hint Structure */
 typedef struct sccp_hostname sccp_hostname_t;									/*!< SCCP HostName Structure */
 
 #define sessionPtr sccp_session_t *const
-#define devicePtr sccp_device_t * const
+#define devicePtr sccp_device_t *const
 #define linePtr sccp_line_t *const
 #define channelPtr sccp_channel_t *const
-#define constSessionPtr const sccp_session_t * const
-#define constDevicePtr const sccp_device_t * const
-#define constLinePtr const sccp_line_t * const
-#define constChannelPtr const sccp_channel_t * const
+#define conferencePtr sccp_conference_t *const
+#define participantPtr sccp_conference_participant_t *const
+#define constSessionPtr const sccp_session_t *const
+#define constDevicePtr const sccp_device_t *const
+#define constLinePtr const sccp_line_t *const
+#define constChannelPtr const sccp_channel_t *const
+#define constConferencePtr const sccp_conference_participant_t *const
+#define constParticipantPtr const sccp_conference_participant_t *const
 
 #ifdef CS_DEVSTATE_FEATURE
 typedef struct sccp_devstate_specifier sccp_devstate_specifier_t;						/*!< SCCP Custom DeviceState Specifier Structure */
@@ -98,6 +102,13 @@ typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses T
 #else
 #define FALSE B_FALSE
 #define TRUE B_TRUE
+#endif
+
+/* CompileTime Annotations */
+#if defined(CCC_ANALYZER)
+#define NONENULL(...) __attribute__((nonnull(__VA_ARGS__)))
+#else
+#define NONENULL(...) 
 #endif
 
 /* callback function types */
