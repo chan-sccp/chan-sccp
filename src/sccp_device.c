@@ -2702,7 +2702,6 @@ static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lin
 	sccp_dev_cleardisplaynotify(device);
 	sccp_dev_clearprompt(device, lineInstance, callid);
 	sccp_dev_cleardisplay(device);
-	//sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);    /** if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
 
 	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -2712,8 +2711,7 @@ static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lin
 	sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
 	sccp_device_clearMessageFromStack((sccp_device_t *) device, SCCP_MESSAGE_PRIORITY_PRIVACY);
 	sccp_dev_check_displayprompt(device);									/* see if we need to display anything from the messageStack */
-	AUTO_RELEASE sccp_channel_t *c = sccp_device_getActiveChannel(device);
-	if (c && c->callid == callid) {  
+	if (device->active_channel && device->active_channel->callid == callid) {  
 		sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
 	}
 }
