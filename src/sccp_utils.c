@@ -1747,7 +1747,6 @@ RETURN_FAILURE:
 	}
 	return AST_TEST_FAIL;
 }
-
 #endif
 
 /*!
