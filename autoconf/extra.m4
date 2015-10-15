@@ -152,11 +152,7 @@ AC_DEFUN([CS_SETUP_HOST_PLATFORM],[
 AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 	AC_LANG_SAVE
 	AC_LANG_C
-dnl	AC_SYS_LARGEFILE
 	AC_DISABLE_STATIC
-dnl	AC_FUNC_ALLOCA
-dnl	AC_HEADER_RESOLV
-dnl	AC_GNU_SOURCE
 
 	CFLAGS_saved="$CFLAGS_saved -std=gnu89"
 	if test -z "`${CC} -std=gnu99 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'gnu89-inline'`"; then 
@@ -199,7 +195,6 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_PROG_AWK
 	AC_PROG_LN_S
 	AC_PROG_MAKE_SET
-dnl	AC_FUNC_STRERROR_R
 	AC_C_CONST
 	AC_C_INLINE
 	AC_PROG_LIBTOOL
@@ -240,7 +235,6 @@ dnl	])
 			AC_MSG_NOTICE([The correct iconv library could not be found. Maybe you need to provide LDFLAGS.])
 		])
 	])
-dnl	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcasecmp strchr strdup strerror strncasecmp strchr malloc calloc realloc free]) 
 	AC_CHECK_FUNCS([gethostbyname inet_ntoa mkdir]) 
 	AC_HEADER_STDC    
 	AC_HEADER_STDBOOL 
@@ -251,16 +245,11 @@ dnl	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep st
 ])
 
 AC_DEFUN([CS_CHECK_CROSSCOMPILE],[
-	dnl cross-compile checks (set HOST_CC)
 	if test "$host" = "$build"; then
 		HOST_CC="${CC}"
 	else
 		HOST_CC="${HOST_CC-gcc}"
 	fi
-dnl	AC_CHECK_PROG(have_host_cc, ${HOST_CC}, yes, no)
-dnl	if test "$have_host_cc" = "no"; then
-dnl		AC_MSG_ERROR(No valid host compiler set with HOST_CC)
-dnl	fi
 	AC_SUBST(HOST_CC)
 ])
 
@@ -279,7 +268,6 @@ AC_DEFUN([CS_WITH_CCACHE],[
 			AC_MSG_NOTICE([using ccache: ${ac_cv_use_ccache}])
 		else
 			CCACHE=""
-			dnl echo ccache not found
 		fi
 	])
 ])
@@ -348,7 +336,7 @@ AC_DEFUN([CS_CHECK_TYPES], [
                                                 [Define to 1 if] FUNC [is available.])
                                 AC_MSG_RESULT([yes])
                         ], [AC_MSG_RESULT([no])])
-                ])dnl
+                ])
         fi
 ])
 
@@ -378,13 +366,8 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 	dnl Now using Conditional-Libtool-Sources
 	if test "$PBX_TYPE" == "Asterisk"; then
 		PBX_GENERAL="chan_sccp_la-ast.lo"
-dnl		if test "${ASTERISK_REPOS_LOCATION}" = "TRUNK";then
-dnl                  PBX_MAJOR="chan_sccp_la-astTrunk.lo"
-dnl                else  
-	  	  PBX_MAJOR="chan_sccp_la-ast${ASTERISK_VER_GROUP}.lo"
-dnl	  	fi
+	  		PBX_MAJOR="chan_sccp_la-ast${ASTERISK_VER_GROUP}.lo"
 		if test ${ASTERISK_VER_GROUP} -gt 111;then
-dnl			PBX_MAJOR="${PBX_MAJOR} chan_sccp_la-ast${ASTERISK_VER_GROUP}_announce.lo"
 			PBX_MAJOR="${PBX_MAJOR} chan_sccp_la-ast112_announce.lo"
 		fi
                 if test -f src/pbx_impl/ast/ast${ASTERISK_VERSION_NUMBER}.c; then
@@ -431,7 +414,6 @@ AC_DEFUN([CS_WITH_PBX], [
 	elif test "${PBX_TYPE}" = "Callweaver"; then
 	   AC_DEFINE_UNQUOTED([PBX_TYPE],CALLWEAVER,[PBX Type])
 	   AC_DEFINE([HAVE_CALLWEAVER], 1, [Uses Callweaver as PBX])
-	   dnl Figure out the Asterisk Version
 	   echo "We are working on a Callweaver version"
 	else
 	   echo ""
@@ -501,7 +483,6 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	])
 	
 	AS_IF([test "X${enable_debug}" == "Xyes"], [
-		dnl AC_DEFINE([GC_DEBUG],[1],[Enable extra garbage collection debugging.])
 		AC_DEFINE([DEBUG],[1],[Extra debugging.])
 		DEBUG=1
 		enable_do_crash="yes"
@@ -534,29 +515,28 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Warray-bounds dnl
 				-Wimplicit-function-declaration dnl
 				-Wreturn-type dnl
-				-Wno-unused-parameter dnl
 				-Wsign-compare dnl
 				-Wstrict-prototypes dnl
 				-Wmissing-prototypes dnl
 				dnl
-				dnl // should be added and fixed dnl
+				dnl // should be added and fixed
 				dnl -Wswitch-enum 
 				dnl
-				dnl // very pedantic dnl
-				dnl -Wundef dnl
-				dnl -Wdeclaration-after-statement dnl
-				dnl -Wwrite-strings dnl
-				dnl -Wpointer-arith dnl
-				dnl -Wformat=2 dnl
-				dnl -Wformat-nonliteral dnl
-				dnl -Winline  dnl
-				dnl -Wpacked dnl
-				dnl -Wredundant-decls dnl
+				dnl // very pedantic
+				dnl -Wundef
+				dnl -Wdeclaration-after-statement
+				dnl -Wwrite-strings
+				dnl -Wpointer-arith
+				dnl -Wformat=2
+				dnl -Wformat-nonliteral
+				dnl -Winline 
+				dnl -Wpacked
+				dnl -Wredundant-decls
 				dnl -Wswitch-default 
 				dnl
-				dnl // do not add dnl
+				dnl // do not add
 				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl
-				dnl -Wno-unused-but-set-variable dnl
+				dnl -Wno-unused-but-set-variable
 			], ax_warn_cflags_variable)
 		])
 		AS_IF([test "x${AST_C_COMPILER_FAMILY}" = "xgcc"], [
@@ -565,6 +545,14 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			AX_APPEND_COMPILE_FLAGS([ dnl
 				-Wshadow dnl
 			], ax_warn_cflags_variable)
+		])
+		AS_IF([test ! -z "`grep ccc-analyzer ${CC}`"], [
+			AC_LANG_SAVE
+			AC_LANG_C
+			AX_APPEND_COMPILE_FLAGS([ dnl
+				 -Wno-pointer-bool-conversion dnl Compensate for including NONENULL() attribute, null pointer checks should however remain for other compiler types
+			], ax_warn_cflags_variable)
+			AC_DEFINE([CCC_ANALYZER], 1, [Running static analysis using clang scan-build])
 		])
 		AC_CHECK_HEADER([execinfo.h],
 			[
@@ -592,9 +580,9 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wno-unused-parameter dnl
 				-Wno-ignored-qualifiers dnl
 				dnl
-				dnl // do not add dnl
+				dnl // do not add
 				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl
-				dnl -Wno-unused-but-set-variable dnl
+				dnl -Wno-unused-but-set-variable
 			], ax_warn_cflags_variable)
 		])
 	])
