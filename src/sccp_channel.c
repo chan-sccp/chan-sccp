@@ -168,6 +168,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		callCount = 1;
 	}
 	snprintf(designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/%s-%08X", l->name, callid);
+	uint8_t callInstance = line->statistic.numberOfActiveChannels + line->statistic.numberOfHeldChannels + 1;
 	sccp_mutex_unlock(&callCountLock);
 
 	channel = (sccp_channel_t *) sccp_refcount_object_alloc(sizeof(sccp_channel_t), SCCP_REF_CHANNEL, designator, __sccp_channel_destroy);
@@ -189,7 +190,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	channel->privateData = private_data;
 	channel->privateData->microphone = TRUE;
 	channel->privateData->device = NULL;
-	channel->privateData->callInfo = sccp_callinfo_ctor();
+	channel->privateData->callInfo = sccp_callinfo_ctor(callInstance);
 	if (!channel->privateData->callInfo) {
 		/* error allocating memory */
 		sccp_free(channel->privateData);
@@ -473,8 +474,8 @@ void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel
 	uint8_t lineInstance = 0;
 
 	if (device && channel && channel->callid) {
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send callInfo of callid %d\n", DEV_ID_LOG(device), channel->callid);
 		lineInstance = sccp_device_find_index_for_line(device, channel->line->name);
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send callInfo of callid %d with lineInstance: %d\n", DEV_ID_LOG(device), channel->callid, lineInstance);
 		sccp_callinfo_send(channel->privateData->callInfo, channel->callid, channel->calltype, lineInstance, device, FALSE);
 	}
 	
@@ -1202,6 +1203,9 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 	if (!channel || !channel->line) {
 		pbx_log(LOG_WARNING, "No channel or line or device to hangup\n");
 		return;
+	}
+	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
+		channel->line->statistic.numberOfHeldChannels--;
 	}
 	sccp_channel_stop_and_deny_scheduled_tasks(channel);
 	/* end all call forwarded channels (our children) */
