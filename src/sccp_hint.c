@@ -119,6 +119,7 @@ static void sccp_hint_deviceRegistered(const sccp_device_t * device);
 static void sccp_hint_deviceUnRegistered(const char *deviceName);
 static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const char *hintStr, const uint8_t instance, const uint8_t positionOnDevice);
 static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device);
+static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device);
 static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event);
 static void sccp_hint_eventListener(const sccp_event_t * event);
 static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice);
@@ -398,6 +399,7 @@ static void sccp_hint_eventListener(const sccp_event_t * event)
 		case SCCP_EVENT_DEVICE_DETACHED:
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s: (sccp_hint_eventListener) device %s detached on line %s\n", DEV_ID_LOG(event->event.deviceAttached.linedevice->device), event->event.deviceAttached.linedevice->device->id, event->event.deviceAttached.linedevice->line->name);
 			sccp_hint_lineStatusChanged(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
+			sccp_hint_detachLine(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
 			break;
 		case SCCP_EVENT_DEVICE_ATTACHED:
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s: (sccp_hint_eventListener) device %s attached on line %s\n", DEV_ID_LOG(event->event.deviceAttached.linedevice->device), event->event.deviceAttached.linedevice->device->id, event->event.deviceAttached.linedevice->line->name);
@@ -689,6 +691,20 @@ static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * devi
 	}
 }
 
+static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device) 
+{
+	struct sccp_hint_lineState *lineState = NULL;
+
+	SCCP_LIST_LOCK(&lineStates);
+	SCCP_LIST_TRAVERSE(&lineStates, lineState, list) {
+		if (lineState->line == line) {
+			lineState->line = sccp_line_release(lineState->line);
+			// SCCP_LIST_REMOVE
+			break;
+		}
+	}
+	SCCP_LIST_UNLOCK(&lineStates);
+}
 /*!
  * \brief Handle Hint Status Update
  * \param lineState SCCP LineState
