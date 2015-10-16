@@ -171,15 +171,11 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Got new hint event %s, cidname: %s, cidnum: %s, originated from EID:'%s'\n", hint->hint_dialplan, cidName ? cidName : "NULL", cidNumber ? cidNumber : "NULL", eid_str);
 #endif
 	
-
-	//if (cidName) {
-	//	sccp_copy_string(hint->callInfo.partyName, cidName, sizeof(hint->callInfo.partyName));
-	//}
-
-	//if (cidNumber) {
-	//	sccp_copy_string(hint->callInfo.partyNumber, cidNumber, sizeof(hint->callInfo.partyNumber));
-	//}
-	sccp_callinfo_setter(hint->callInfo, SCCP_CALLINFO_CALLEDPARTY_NAME, cidName, SCCP_CALLINFO_CALLEDPARTY_NUMBER, cidNumber, SCCP_CALLINFO_KEY_SENTINEL);
+	if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
+		sccp_callinfo_setter(hint->callInfo, SCCP_CALLINFO_CALLINGPARTY_NAME, cidName, SCCP_CALLINFO_CALLINGPARTY_NUMBER, cidNumber, SCCP_CALLINFO_KEY_SENTINEL);
+	} else {
+		sccp_callinfo_setter(hint->callInfo, SCCP_CALLINFO_CALLEDPARTY_NAME, cidName, SCCP_CALLINFO_CALLEDPARTY_NUMBER, cidNumber, SCCP_CALLINFO_KEY_SENTINEL);
+	}
 
 	return;
 }
@@ -313,12 +309,17 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 	extensionState = state;
 #endif
 
-	////cidNumber = hint->callInfo.partyNumber;
-	//cidName = hint->callInfo.partyName;
-	sccp_callinfo_getter(hint->callInfo, 
-		SCCP_CALLINFO_CALLINGPARTY_NAME, &cidName, 
-		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cidNumber, 
-		SCCP_CALLINFO_KEY_SENTINEL);
+	if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
+		sccp_callinfo_getter(hint->callInfo, 
+			SCCP_CALLINFO_CALLINGPARTY_NAME, &cidName, 
+			SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cidNumber, 
+			SCCP_CALLINFO_KEY_SENTINEL);
+	} else {
+		sccp_callinfo_getter(hint->callInfo, 
+			SCCP_CALLINFO_CALLEDPARTY_NAME, &cidName, 
+			SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cidNumber, 
+			SCCP_CALLINFO_KEY_SENTINEL);
+	}
 
 	/* save previousState */
 	hint->previousState = hint->currentState;
@@ -849,6 +850,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 				lineState->callInfo.calltype = SKINNY_CALLTYPE_SENTINEL;
 				break;
 			case SCCP_CHANNELSTATE_DND:
+				lineState->callInfo.calltype = SKINNY_CALLTYPE_INBOUND;
 				sccp_copy_string(lineState->callInfo.partyName, "DND", sizeof(lineState->callInfo.partyName));
 				sccp_copy_string(lineState->callInfo.partyNumber, "DND", sizeof(lineState->callInfo.partyNumber));
 				break;
@@ -1061,6 +1063,7 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate '%s' (%d) on line 'SCCP/%s'\n", sccp_channelstate2str(lineState->state), lineState->state, lineState->line->name);
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) => asterisk: '%s' (%d) => '%s' (%d) on line SCCP/%s\n", pbxsccp_devicestate2str(oldDeviceState), oldDeviceState, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
+	//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) lineState->callInfo.partyName: %s, lineState->callInfo.partyNumber: %s\n", lineState->callInfo.partyName,lineState->callInfo.partyNumber);
 
 	// if pbx devicestate does not change, no need to inform (local) asterisk */
 	if (newDeviceState == oldDeviceState) {
@@ -1347,7 +1350,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
 
 				} else {
-					sccp_callinfo_send(hint->callInfo, 0 /*callid*/, hint->calltype, subscriber->instance, d, TRUE);
+					sccp_callinfo_send(hint->callInfo, 0 /*callid*/, (hint->calltype == SKINNY_CALLTYPE_OUTBOUND) ? SKINNY_CALLTYPE_OUTBOUND : SKINNY_CALLTYPE_INBOUND, subscriber->instance, d, TRUE);
 					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_ON);
 					sccp_dev_set_keyset(d, subscriber->instance, 0 /*callid*/, KEYMODE_INUSEHINT);
 				}
@@ -1403,6 +1406,7 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 		SCCP_LIST_UNLOCK(&line->devices);
 
 		if (allDevicesInDND) {
+			lineState->callInfo.calltype = SKINNY_CALLTYPE_INBOUND;
 			lineState->state = SCCP_CHANNELSTATE_DND;
 		}
 	} while (0);
