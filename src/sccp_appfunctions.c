@@ -152,6 +152,8 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				sccp_copy_string(buf, (d->dndFeature.enabled) ? "ON" : "OFF", buf_len);
 			} else if (!strcasecmp(token, "dnd_state")) {
 				sccp_copy_string(buf, sccp_dndmode2str(d->dndFeature.status), buf_len);
+			} else if (!strcasecmp(token, "dnd_action")) {
+				sccp_copy_string(buf, sccp_dndmode2str(d->dndmode), buf_len);
 			} else if (!strcasecmp(token, "dynamic") || !strcasecmp(token, "realtime")) {
 #ifdef CS_SCCP_REALTIME
 				sccp_copy_string(buf, d->realtime ? "yes" : "no", buf_len);
@@ -399,6 +401,8 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				sccp_copy_string(buf, l->musicclass, len);
 			} else if (!strcasecmp(token, "amaflags")) {
 				sccp_copy_string(buf, l->amaflags ? "yes" : "no", len);
+			} else if (!strcasecmp(token, "dnd_action")) {
+				sccp_copy_string(buf, sccp_dndmode2str(l->dndmode), buf_len);
 			} else if (!strcasecmp(token, "callgroup")) {
 				pbx_print_group(buf, buf_len, l->callgroup);
 			} else if (!strcasecmp(token, "pickupgroup")) {
