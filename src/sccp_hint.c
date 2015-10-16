@@ -118,8 +118,9 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint);
 static void sccp_hint_deviceRegistered(const sccp_device_t * device);
 static void sccp_hint_deviceUnRegistered(const char *deviceName);
 static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const char *hintStr, const uint8_t instance, const uint8_t positionOnDevice);
-static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device);
+static void sccp_hint_attachLine(sccp_line_t * line, sccp_device_t * device);
 static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device);
+static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device);
 static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event);
 static void sccp_hint_eventListener(const sccp_event_t * event);
 static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice);
@@ -396,14 +397,13 @@ static void sccp_hint_eventListener(const sccp_event_t * event)
 			}
 
 			break;
-		case SCCP_EVENT_DEVICE_DETACHED:
-			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s: (sccp_hint_eventListener) device %s detached on line %s\n", DEV_ID_LOG(event->event.deviceAttached.linedevice->device), event->event.deviceAttached.linedevice->device->id, event->event.deviceAttached.linedevice->line->name);
-			sccp_hint_lineStatusChanged(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
-			sccp_hint_detachLine(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
-			break;
 		case SCCP_EVENT_DEVICE_ATTACHED:
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s: (sccp_hint_eventListener) device %s attached on line %s\n", DEV_ID_LOG(event->event.deviceAttached.linedevice->device), event->event.deviceAttached.linedevice->device->id, event->event.deviceAttached.linedevice->line->name);
-			sccp_hint_lineStatusChanged(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
+			sccp_hint_attachLine(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
+			break;
+		case SCCP_EVENT_DEVICE_DETACHED:
+			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s: (sccp_hint_eventListener) device %s detached from line %s\n", DEV_ID_LOG(event->event.deviceAttached.linedevice->device), event->event.deviceAttached.linedevice->device->id, event->event.deviceAttached.linedevice->line->name);
+			sccp_hint_detachLine(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
 			break;
 		case SCCP_EVENT_LINESTATUS_CHANGED:
 			sccp_hint_lineStatusChanged(event->event.lineStatusChanged.line, event->event.lineStatusChanged.optional_device);
@@ -448,8 +448,7 @@ static void sccp_hint_deviceRegistered(const sccp_device_t * device)
 
 /*!
  * \brief Handle Hints for Device UnRegister
- * \param deviceName Device as Char
- *
+ * \param deviceName Device as Char *
  * \note device locked by parent
  *
  */
@@ -652,6 +651,56 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 }
 
 /* ========================================================================================================================= Event Handlers : LineState */
+static void sccp_hint_attachLine(sccp_line_t * line, sccp_device_t * device) 
+{
+	struct sccp_hint_lineState *lineState = NULL;
+
+	SCCP_LIST_LOCK(&lineStates);
+	SCCP_LIST_TRAVERSE(&lineStates, lineState, list) {
+		if (lineState->line == line) {
+			break;
+		}
+	}
+	if (!lineState) {		/* create new lineState if necessary */
+		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_attachLine) Create new hint_lineState for line: %s\n", DEV_ID_LOG(device), line->name);
+		lineState = sccp_calloc(sizeof(struct sccp_hint_lineState), 1);
+		if (!lineState) {
+			pbx_log(LOG_ERROR, "%s: (sccp_hint_lineStatusChanged) Memory Allocation Error while creating hint-lineState object for line %s\n", DEV_ID_LOG(device), line->name);
+			SCCP_LIST_UNLOCK(&lineStates);
+			return;
+		}
+		SCCP_LIST_INSERT_HEAD(&lineStates, lineState, list);
+	}
+
+	if (!lineState->line) {		/* retain one instance of line in lineState->line */
+		//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_attachLine) attaching line: %s\n", DEV_ID_LOG(device), line->name);
+		lineState->line = sccp_line_retain(line);
+	}
+	SCCP_LIST_UNLOCK(&lineStates);
+	
+	sccp_hint_lineStatusChanged(line, device);
+}
+
+static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device) 
+{
+	sccp_hint_lineStatusChanged(line, device);
+	struct sccp_hint_lineState *lineState = NULL;
+	
+	if (line->statistic.numberOfActiveDevices == 0) {		/* release last instance of lineState->line */
+		//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_detachLine) detaching line: %s, \n", DEV_ID_LOG(device), line->name);
+		SCCP_LIST_LOCK(&lineStates);
+		SCCP_LIST_TRAVERSE(&lineStates, lineState, list) {
+			if (lineState->line == line) {
+				//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_detachLine) line: %s detached\n", DEV_ID_LOG(device), line->name);
+				lineState->line = lineState->line ? sccp_line_release(lineState->line) : NULL;
+				// SCCP_LIST_REMOVE
+				break;
+			}
+		}
+		SCCP_LIST_UNLOCK(&lineStates);
+	}
+}
+
 /*!
  * \brief Handle line status change
  * \param line SCCP Line that was changed
@@ -668,43 +717,13 @@ static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * devi
 			break;
 		}
 	}
-
-	/** create new state holder for line */
-	if (!lineState) {
-		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_lineStatusChanged) Create new hint_lineState for line: %s\n", DEV_ID_LOG(device), line->name);
-		lineState = sccp_malloc(sizeof(struct sccp_hint_lineState));
-		if (!lineState) {
-			pbx_log(LOG_ERROR, "%s: (sccp_hint_lineStatusChanged) Memory Allocation Error while creating hint-lineState object for line %s\n", DEV_ID_LOG(device), line->name);
-			return;
-		}
-		memset(lineState, 0, sizeof(struct sccp_hint_lineState));
-		lineState->line = sccp_line_retain(line);
-
-		SCCP_LIST_INSERT_HEAD(&lineStates, lineState, list);
-	}
 	SCCP_LIST_UNLOCK(&lineStates);
-
+	
 	if (lineState && lineState->line) {
-
-		/** update line state */
 		sccp_hint_updateLineState(lineState);
 	}
 }
 
-static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device) 
-{
-	struct sccp_hint_lineState *lineState = NULL;
-
-	SCCP_LIST_LOCK(&lineStates);
-	SCCP_LIST_TRAVERSE(&lineStates, lineState, list) {
-		if (lineState->line == line) {
-			lineState->line = sccp_line_release(lineState->line);
-			// SCCP_LIST_REMOVE
-			break;
-		}
-	}
-	SCCP_LIST_UNLOCK(&lineStates);
-}
 /*!
  * \brief Handle Hint Status Update
  * \param lineState SCCP LineState
@@ -1440,7 +1459,7 @@ sccp_channelstate_t sccp_hint_getLinestate(const char *linename, const char *dev
 
 	SCCP_LIST_LOCK(&lineStates);
 	SCCP_LIST_TRAVERSE(&lineStates, lineState, list) {
-		if (sccp_strcaseequals(lineState->line->name, linename)) {
+		if (lineState->line && sccp_strcaseequals(lineState->line->name, linename)) {
 			state = lineState->state;
 			break;
 		}
