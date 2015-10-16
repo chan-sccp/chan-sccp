@@ -45,11 +45,6 @@
 #define sccp_participant_release(_x) 	({pbx_assert(_x != NULL);(sccp_conference_participant_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #endif
 
-#define constConferencePtr const sccp_conference_participant_t * const
-#define conferencePtr const sccp_conference_t *
-#define constParticipantPtr const sccp_conference_participant_t * const
-#define participantPtr const sccp_conference_participant_t *
-
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 static uint32_t lastConferenceID = 99;
 static const uint32_t appID = APPID_CONFERENCE;
