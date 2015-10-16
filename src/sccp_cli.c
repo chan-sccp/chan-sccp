@@ -1280,6 +1280,10 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	CLI_AMI_OUTPUT_BOOL("Adhoc Number Assigned",	CLI_AMI_LIST_WIDTH, l->adhocNumber ? l->adhocNumber : "No");
 	CLI_AMI_OUTPUT_PARAM("Message Waiting New.",	CLI_AMI_LIST_WIDTH, "%i", l->voicemailStatistic.newmsgs);
 	CLI_AMI_OUTPUT_PARAM("Message Waiting Old.",	CLI_AMI_LIST_WIDTH, "%i", l->voicemailStatistic.oldmsgs);
+	CLI_AMI_OUTPUT_PARAM("Active Devices", 		CLI_AMI_LIST_WIDTH, "%i", l->statistic.numberOfActiveDevices);
+	CLI_AMI_OUTPUT_PARAM("Active Channels",		CLI_AMI_LIST_WIDTH, "%i", l->statistic.numberOfActiveChannels);
+	CLI_AMI_OUTPUT_PARAM("Held Channels",		CLI_AMI_LIST_WIDTH, "%i", l->statistic.numberOfHeldChannels);
+	//CLI_AMI_OUTPUT_PARAM("DND Devices",		CLI_AMI_LIST_WIDTH, "%i", l->statistic.numberOfDNDDevices);
 	/* *INDENT-ON* */
 	if (s) {
 		astman_append(s, "\r\n");

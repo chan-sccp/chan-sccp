@@ -653,7 +653,7 @@ void sccp_line_addChannel(constLinePtr line, constChannelPtr channel)
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
 
 	if (l) {
-		l->statistic.numberOfActiveChannels++;
+		//l->statistic.numberOfActiveChannels++;
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = sccp_channel_retain(channel))) {							// Add into list retained
 			sccp_channel_updateChannelDesignator(c);
@@ -691,7 +691,7 @@ void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = SCCP_LIST_REMOVE(&l->channels, channel, list))) {
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Removing channel %d from line %s\n", c->callid, l->name);
-			l->statistic.numberOfActiveChannels--;
+			//l->statistic.numberOfActiveChannels--;
 			channel = sccp_channel_release(c);					/* explicit release of channel from list */
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
