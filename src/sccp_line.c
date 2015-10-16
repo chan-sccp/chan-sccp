@@ -171,7 +171,7 @@ void sccp_line_addToGlobals(sccp_line_t * line)
 	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	if (l) {
 		/* add to list */
-		l = sccp_line_retain(l);									/* add retained line to the list */
+		sccp_line_retain(l);										/* add retained line to the list */
 		SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), l, list, cid_num);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Added line '%s' to Glob(lines)\n", l->name);
 
@@ -196,25 +196,21 @@ void sccp_line_addToGlobals(sccp_line_t * line)
 void sccp_line_removeFromGlobals(sccp_line_t * line)
 {
 	sccp_line_t *removed_line = NULL;
+	if (line) {
+		SCCP_RWLIST_WRLOCK(&GLOB(lines));
+		removed_line = SCCP_RWLIST_REMOVE(&GLOB(lines), line, list);
+		SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
-	if (!line) {
-		pbx_log(LOG_ERROR, "Removing null from global line list is not allowed!\n");
-		return;
-	}
-	SCCP_RWLIST_WRLOCK(&GLOB(lines));
-	removed_line = SCCP_RWLIST_REMOVE(&GLOB(lines), line, list);
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
-
-	/* not sure if we should fire an event like this ? */
-	/*
-	   sccp_event_t event = {{{0}}}L;
-	   event.type = SCCP_EVENT_LINE_DELETED;
-	   event.event.lineCreated.line = sccp_line_retain(line);
-	   sccp_event_fire(&event);
-	 */
-	if (removed_line) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Removed line '%s' from Glob(lines)\n", removed_line->name);
-		sccp_line_release(removed_line);				/* explicit release of the line to be removed*/
+
+		//sccp_event_t event = {{{0}}};
+		//event.type = SCCP_EVENT_LINE_DELETED;
+		//event.event.lineCreated.line = sccp_line_retain(removed_line);
+		//sccp_event_fire(&event);
+		
+		sccp_line_release(removed_line);								/* explicit release */
+	} else {
+		pbx_log(LOG_ERROR, "Removing null from global line list is not allowed!\n");
 	}
 }
 
@@ -627,10 +623,15 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 			sccp_event_fire(&event);
 
 			sccp_linedevice_release(linedevice);				/* explicit release of list retained linedevice */
+
+			if (l->realtime && SCCP_LIST_GETSIZE(&l->devices) == 0 && SCCP_LIST_GETSIZE(&l->channels) == 0 ) {
+				sccp_line_removeFromGlobals(l);
+			}
 		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	SCCP_LIST_UNLOCK(&l->devices);
+	
 }
 
 /*!
