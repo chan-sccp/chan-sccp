@@ -380,25 +380,26 @@ int sccp_feat_directed_pickup(channelPtr c, const char *exten)
 			c->answered_elsewhere = TRUE;
 			AUTO_RELEASE sccp_device_t *orig_device = NULL;
 			AUTO_RELEASE sccp_channel_t *orig_channel = get_sccp_channel_from_pbx_channel(original);
-			if (orig_channel) {
-				orig_device = sccp_channel_getDevice_retained(orig_channel);
-			}
 
 			char picker_number[StationMaxDirnumSize] = {0}, called_number[StationMaxDirnumSize] = {0};
 			char picker_name[StationMaxNameSize] = {0}, called_name[StationMaxNameSize] = {0};
 
 			/* Gather CallInfo */
 			sccp_callinfo_t *callinfo_picker = sccp_channel_getCallInfo(c);
-			sccp_callinfo_t *callinfo_orig = sccp_channel_getCallInfo(orig_channel);
+			sccp_callinfo_t *callinfo_orig = NULL;
 			sccp_callinfo_getter(callinfo_picker,							/* picker */
 				SCCP_CALLINFO_CALLINGPARTY_NAME, &picker_name,					/* name of picker */
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &picker_number,
 				SCCP_CALLINFO_KEY_SENTINEL);
 
-			sccp_callinfo_getter(callinfo_orig,							/* picker */
-				SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,					/* name of picker */
-				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_number,
-				SCCP_CALLINFO_KEY_SENTINEL);
+			if (orig_channel) {
+				orig_device = sccp_channel_getDevice_retained(orig_channel);
+				callinfo_orig = sccp_channel_getCallInfo(orig_channel);
+				sccp_callinfo_getter(callinfo_orig,						/* picker */
+					SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,				/* name of picker */
+					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_number,
+					SCCP_CALLINFO_KEY_SENTINEL);
+			}
 
 			res = ast_do_pickup(original, target);
 			if (!res) {
@@ -417,17 +418,19 @@ int sccp_feat_directed_pickup(channelPtr c, const char *exten)
 				sccp_channel_updateChannelCapability(c);
 
 				/* Update CallInfo */
-				sccp_callinfo_t *callinfo_orig = sccp_channel_getCallInfo(orig_channel);
-				sccp_callinfo_setter(callinfo_orig, 							/* update calling end */
-					SCCP_CALLINFO_CALLEDPARTY_NAME, picker_name, 					/* channel picking up */
-					SCCP_CALLINFO_CALLEDPARTY_NUMBER, picker_number, 
-					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, called_name, 
-					SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, called_number, 
-					SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, 1,
-					SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, picker_name,
-					SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, picker_number,
-					SCCP_CALLINFO_LAST_REDIRECT_REASON, 4,
-					SCCP_CALLINFO_KEY_SENTINEL);
+				if (orig_channel) {
+					callinfo_orig = sccp_channel_getCallInfo(orig_channel);
+					sccp_callinfo_setter(callinfo_orig, 					/* update calling end */
+						SCCP_CALLINFO_CALLEDPARTY_NAME, picker_name, 			/* channel picking up */
+						SCCP_CALLINFO_CALLEDPARTY_NUMBER, picker_number, 
+						SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, called_name, 
+						SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, called_number, 
+						SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, 1,
+						SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, picker_name,
+						SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, picker_number,
+						SCCP_CALLINFO_LAST_REDIRECT_REASON, 4,
+						SCCP_CALLINFO_KEY_SENTINEL);
+				}
 					
 				if (d->directed_pickup_modeanswer) {
 					pbx_setstate(c->owner, AST_STATE_UP);
