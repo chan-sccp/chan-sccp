@@ -19,75 +19,21 @@ extern "C" {
 /* *INDENT-OFF* */
 #endif
 
-typedef struct sccp_conference_participant sccp_conference_participant_t;					/*!< SCCP Conference Participant Structure */
-
-/* structures */
-struct sccp_conference {
-	ast_mutex_t lock;											/*!< mutex */
-	uint32_t id;												/*!< conference id */
-	int32_t num_moderators;											/*!< Number of moderators for this conference */
-	const char *linkedid;											/*!< Conference LinkedId */
-	struct ast_bridge *bridge;										/*!< Shared Ast_Bridge used by this conference */
-	struct {
-		ast_mutex_t lock;										/*!< Mutex Lock for playing back sound files */
-		char language[SCCP_MAX_LANGUAGE];								/*!< Language to be used during playback */
-		PBX_CHANNEL_TYPE *channel;									/*!< Channel to playback sound file on */
-	} playback;
-
-	SCCP_LIST_HEAD (, sccp_conference_participant_t) participants;						/*!< participants in conference */
-	SCCP_LIST_ENTRY (sccp_conference_t) list;								/*!< Linked List Entry */
-
-	boolean_t finishing;											/*!< Indicates the conference is closing down */
-	boolean_t isLocked;											/*!< Indicates that no new participants are allowed */
-	boolean_t isOnHold;
-	boolean_t mute_on_entry;										/*!< Mute new participant when they enter the conference */
-	boolean_t playback_announcements;									/*!< general hear announcements */
-};
-
-struct sccp_conference_participant {
-	boolean_t pendingRemoval;										/*!< Pending Removal */
-	uint32_t id;												/*!< Numeric participant id. */
-	sccp_channel_t *channel;										/*!< sccp channel, non-null if the participant resides on an SCCP device */
-	sccp_device_t *device;											/*!< sccp device, non-null if the participant resides on an SCCP device */
-	PBX_CHANNEL_TYPE *conferenceBridgePeer;									/*!< the asterisk channel which joins the conference bridge */
-	struct ast_bridge_channel *bridge_channel;								/*!< Asterisk Conference Bridge Channel */
-	struct ast_bridge_features features;									/*!< Enabled features information */
-	pthread_t joinThread;											/*!< Running in this Thread */
-	sccp_conference_t *conference;										/*!< Conference this participant belongs to */
-	boolean_t isModerator;
-	boolean_t onMusicOnHold;										/*!< Participant is listening to Music on Hold */
-	boolean_t playback_announcements;									/*!< Does the Participant want to hear announcements */
-
-	/* conflist */
-	uint32_t callReference;
-	uint32_t lineInstance;
-	uint32_t transactionID;
-	
-	char PartyName[StationMaxNameSize];
-	char PartyNumber[StationMaxDirnumSize];
-
-	SCCP_LIST_ENTRY (sccp_conference_participant_t) list;							/*!< Linked List Entry */
-};
-
-/* prototype definition */
+/* prototype definitions */
 void sccp_conference_module_start(void);
 void sccp_conference_module_stop(void);
-sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t * channel);
-boolean_t sccp_conference_addParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * conferenceSCCPChannel, sccp_channel_t * originalSCCPChannel, PBX_CHANNEL_TYPE * pbxChannel);
-void sccp_conference_resume(sccp_conference_t * conference);
-void sccp_conference_start(sccp_conference_t * conference);
-void sccp_conference_update(sccp_conference_t * conference);
-void sccp_conference_end(sccp_conference_t * conference);
-void sccp_conference_hold(sccp_conference_t * conference);
+sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel);
+boolean_t sccp_conference_addParticipatingChannel(conferencePtr conference, constChannelPtr conferenceSCCPChannel, constChannelPtr originalSCCPChannel, PBX_CHANNEL_TYPE * pbxChannel);
+void sccp_conference_resume(conferencePtr conference);
+void sccp_conference_start(conferencePtr conference);
+void sccp_conference_update(constConferencePtr conference);
+void sccp_conference_end(sccp_conference_t * conference);							/* explicit release */
+void sccp_conference_hold(conferencePtr conference);
 
 /* conf list related */
-void sccp_conference_show_list(sccp_conference_t * conference, constChannelPtr channel);
-void sccp_conference_hide_list_ByDevice(sccp_device_t * device);
-void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t participantID);
-void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
-void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
-void sccp_conference_promote_participant(sccp_conference_t * conference, sccp_channel_t * channel);
-void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_channel_t * channel);
+void sccp_conference_show_list(constConferencePtr conference, constChannelPtr channel);
+void sccp_conference_hide_list_ByDevice(constDevicePtr device);
+void sccp_conference_handle_device_to_user(devicePtr d, uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t participantID);
 
 /* cli functions */
 char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos, int state);
