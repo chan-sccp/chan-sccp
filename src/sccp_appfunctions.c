@@ -165,8 +165,8 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			} else if (!strcasecmp(token, "transfer_channel")) {
 				snprintf(buf, buf_len, "%d", d->transferChannels.transferee->callid);
 #ifdef CS_SCCP_CONFERENCE
-			} else if (!strcasecmp(token, "conference_id")) {
-				snprintf(buf, buf_len, "%d", d->conference->id);
+//			} else if (!strcasecmp(token, "conference_id")) {
+//				snprintf(buf, buf_len, "%d", d->conference->id);
 			} else if (!strcasecmp(token, "allow_conference")) {
 				snprintf(buf, buf_len, "%s", d->allow_conference ? "ON" : "OFF");
 			} else if (!strcasecmp(token, "conf_play_general_announce")) {

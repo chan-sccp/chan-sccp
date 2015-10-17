@@ -65,13 +65,11 @@ typedef struct sccp_hostname sccp_hostname_t;									/*!< SCCP HostName Structu
 #define linePtr sccp_line_t *const
 #define channelPtr sccp_channel_t *const
 #define conferencePtr sccp_conference_t *const
-#define participantPtr sccp_conference_participant_t *const
 #define constSessionPtr const sccp_session_t *const
 #define constDevicePtr const sccp_device_t *const
 #define constLinePtr const sccp_line_t *const
 #define constChannelPtr const sccp_channel_t *const
-#define constConferencePtr const sccp_conference_participant_t *const
-#define constParticipantPtr const sccp_conference_participant_t *const
+#define constConferencePtr const sccp_conference_t *const
 
 #ifdef CS_DEVSTATE_FEATURE
 typedef struct sccp_devstate_specifier sccp_devstate_specifier_t;						/*!< SCCP Custom DeviceState Specifier Structure */
