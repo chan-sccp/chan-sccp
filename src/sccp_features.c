@@ -407,10 +407,10 @@ int sccp_feat_directed_pickup(channelPtr c, const char *exten)
 				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) pickup succeeded on call: %s\n", DEV_ID_LOG(d), c->designator);
 				sccp_rtp_stop(c);								/* stop previous audio */
 				pbx_channel_set_hangupcause(original, AST_CAUSE_ANSWERED_ELSEWHERE);
-				if (orig_device && orig_channel) {
+				//if (orig_device && orig_channel) {
 					//sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) hangup: %s\n", DEV_ID_LOG(orig_device), orig_channel->designator);
-					sccp_indicate(orig_device, orig_channel, SCCP_CHANNELSTATE_ONHOOK);
-				}
+					//sccp_indicate(orig_device, orig_channel, SCCP_CHANNELSTATE_ONHOOK);
+				//}
 				pbx_hangup(original);								/* hangup masqueraded zombie channel */
 
 				pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);		/* reset picked up channel */
