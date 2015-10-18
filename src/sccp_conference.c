@@ -86,6 +86,7 @@ struct sccp_participant {
 	boolean_t isModerator;
 	boolean_t onMusicOnHold;										/*!< Participant is listening to Music on Hold */
 	boolean_t playback_announcements;									/*!< Does the Participant want to hear announcements */
+	char final_announcement[StationMaxNameSize];
 
 	/* conflist */
 	uint32_t callReference;
@@ -367,6 +368,8 @@ static sccp_participant_t *sccp_conference_createParticipant(constConferencePtr 
 	}
 
 	pbx_bridge_features_init(&participant->features);
+	//ast_set_flag(&(participant->features.feature_flags), AST_BRIDGE_CHANNEL_FLAG_IMMOVABLE);
+
 	participant->id = participantID;
 	participant->conference = sccp_conference_retain(conference);
 	participant->conferenceBridgePeer = NULL;
@@ -621,7 +624,13 @@ static void sccp_conference_removeParticipant(conferencePtr conference, particip
 
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Hanging up Participant %d (Channel: %s)\n", conference->id, participant->id, pbx_channel_name(participant->conferenceBridgePeer));
 	pbx_clear_flag(pbx_channel_flags(participant->conferenceBridgePeer), AST_FLAG_BLOCKING);
-	pbx_hangup(participant->conferenceBridgePeer);
+	if (!sccp_strlen_zero(participant->final_announcement)) {
+		pbx_stream_and_wait(participant->conferenceBridgePeer, participant->final_announcement, "");
+	}
+	if (participant->conferenceBridgePeer) {
+		pbx_hangup(participant->conferenceBridgePeer);
+		participant->conferenceBridgePeer = NULL;
+	}
 	//participant = participant ? sccp_participant_release(participant) : NULL;							/* release by caller */
 
 	/* Conference end if the number of participants == 1 */
@@ -650,7 +659,12 @@ static void *sccp_conference_thread(void *data)
 #endif
 		// Join the bridge
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Entering pbx_bridge_join: %s as %d\n", participant->conference->id, pbx_channel_name(participant->conferenceBridgePeer), participant->id);
-		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, NULL);
+
+#if ASTERISK_VERSION_GROUP >= 113
+		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, AST_BRIDGE_IMPART_CHAN_DEPARTABLE, 0);
+#else
+		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, NULL, 0);
+#endif
 
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Leaving pbx_bridge_join: %s as %d\n", participant->conference->id, pbx_channel_name(participant->conferenceBridgePeer), participant->id);
 #ifdef CS_MANAGER_EVENTS
@@ -710,13 +724,17 @@ void sccp_conference_end(sccp_conference_t * conference)
 		// remove the participants first
 		SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
 			if (!participant->isModerator) {
-				pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
+				if (pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer)) {
+					pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to remove channel from conference\n", conference->id);
+				}
 			}
 		}
 		// and then remove the moderators
 		SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
 			if (participant->isModerator) {
-				pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
+				if (pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer)) {
+					pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to remove channel from conference\n", conference->id);
+				}
 			}
 		}
 	}
@@ -826,15 +844,20 @@ int playback_to_channel(participantPtr participant, const char *filename, int sa
 	}
 	if (participant->bridge_channel) {
 		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Playback %s %d for participant %d\n", participant->conference->id, filename, say_number, participant->id);
-		participant->bridge_channel->suspended = 1;
-		pbx_bridge_change_state(participant->bridge_channel, AST_BRIDGE_CHANNEL_STATE_WAIT);
-		if (stream_and_wait(participant->bridge_channel->chan, filename, say_number)) {
-			res = 1;
-		} else {
-			pbx_log(LOG_WARNING, "Failed to play %s or '%d'!\n", filename, say_number);
+		//participant->bridge_channel->suspended = 1;
+		pbx_bridge_lock(participant->conference->bridge);
+		if (!pbx_bridge_suspend(participant->conference->bridge, participant->conferenceBridgePeer)) {
+		//pbx_bridge_change_state(participant->bridge_channel, AST_BRIDGE_CHANNEL_STATE_WAIT);
+			if (stream_and_wait(participant->bridge_channel->chan, filename, say_number)) {
+				res = 1;
+			} else {
+				pbx_log(LOG_WARNING, "Failed to play %s or '%d'!\n", filename, say_number);
+			}
+			pbx_bridge_unsuspend(participant->conference->bridge, participant->conferenceBridgePeer);
 		}
-		participant->bridge_channel->suspended = 0;
-		pbx_bridge_change_state(participant->bridge_channel, AST_BRIDGE_CHANNEL_STATE_WAIT);
+		pbx_bridge_unlock(participant->conference->bridge);
+		//participant->bridge_channel->suspended = 0;
+		//pbx_bridge_change_state(participant->bridge_channel, AST_BRIDGE_CHANNEL_STATE_WAIT);
 	} else {
 		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: No bridge channel for playback\n", participant->conference->id);
 	}
@@ -856,7 +879,7 @@ int playback_to_conference(conferencePtr conference, const char *filename, int s
 
 	pbx_mutex_lock(&conference->playback.lock);
 
-	if (!sccp_strlen_zero(filename) && !pbx_fileexists(filename, NULL, NULL)) {
+	if (filename && !sccp_strlen_zero(filename) && !pbx_fileexists(filename, NULL, NULL)) {
 		pbx_log(LOG_WARNING, "File %s does not exists in any format\n", !sccp_strlen_zero(filename) ? filename : "<unknown>");
 		return 1;
 	}
@@ -880,10 +903,10 @@ int playback_to_conference(conferencePtr conference, const char *filename, int s
 	}
 
 	/* The channel is all under our control, in goes the prompt */
-	if (!ast_strlen_zero(filename)) {
-		ast_stream_and_wait(conference->playback.channel, filename, "");
+	if (filename && !sccp_strlen_zero(filename)) {
+		pbx_stream_and_wait(conference->playback.channel, filename, "");
 	} else if (say_number >= 0) {
-
+		pbx_say_number(conference->playback.channel, say_number, 0, conference->playback.language, "n");
 	}
 
 	sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Detaching Announcer from Conference\n", conference->id);
@@ -1077,6 +1100,7 @@ sccp_participant_t *sccp_participant_findByPBXChannel(constConferencePtr confere
 			break;
 		}
 	}
+
 	SCCP_LIST_UNLOCK(&((conferencePtr)conference)->participants);
 	return participant;
 }
@@ -1398,15 +1422,18 @@ void sccp_conference_kick_participant(constConferencePtr conference, participant
 {
 	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Kick Participant %d\n", conference->id, participant->id);
 	participant->pendingRemoval = TRUE;
-	playback_to_channel(participant, "conf-kicked", -1);
+	//if (pbx_bridge_kick(participant->conference->bridge, participant->conferenceBridgePeer)) {
+	if (pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer)) {
+		pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to remove channel from conference\n", conference->id);
+		participant->pendingRemoval = FALSE;
+		return;
+	}
+	sccp_copy_string(participant->final_announcement, "conf-kicked", sizeof(participant->final_announcement));
 #ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents)) {
 		manager_event(EVENT_FLAG_CALL, "SCCPConfParticipantKicked", "ConfId: %d\r\n" "PartId: %d\r\n", conference->id, participant->id);
 	}
 #endif
-	//sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Bridge Removing Participant:%d (%p, %p, %p)\n", conference->id, participant->id, conference->bridge, participant->bridge_channel, participant->conferenceBridgePeer);
-	pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
-	//sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Bridge Removed Participant:%d\n", conference->id, participant->id);
 }
 
 /*!
@@ -1470,21 +1497,28 @@ void sccp_conference_play_music_on_hold_to_participant(constConferencePtr confer
 	if (start) {
 		if (participant->onMusicOnHold == FALSE) {
 			if (!sccp_strlen_zero(participant->device->conf_music_on_hold_class)) {
-				iPbx.moh_start(participant->conferenceBridgePeer, participant->device->conf_music_on_hold_class, NULL);
-				participant->onMusicOnHold = TRUE;
-				//pbx_set_flag(participant->conferenceBridgePeer, AST_FLAG_MOH);
+				pbx_bridge_lock(((conferencePtr)conference)->bridge);
+				if (!pbx_bridge_suspend(conference->bridge, participant->conferenceBridgePeer)) {
+					iPbx.moh_start(participant->conferenceBridgePeer, participant->device->conf_music_on_hold_class, NULL);
+					participant->onMusicOnHold = TRUE;
+					//pbx_set_flag(participant->conferenceBridgePeer, AST_FLAG_MOH);
+					pbx_bridge_unsuspend(((conferencePtr)conference)->bridge, participant->conferenceBridgePeer);
+				}
+				pbx_bridge_unlock(((conferencePtr)conference)->bridge);
 			} else {
 				sccp_conference_toggle_mute_participant(conference, participant);
 			}
 		}
 	} else {
 		if (!sccp_strlen_zero(participant->device->conf_music_on_hold_class)) {
-			if (!ast_bridge_suspend(conference->bridge, participant->conferenceBridgePeer)) {
+			pbx_bridge_lock(((conferencePtr)conference)->bridge);
+			if (!pbx_bridge_suspend(conference->bridge, participant->conferenceBridgePeer)) {
 				iPbx.moh_stop(participant->conferenceBridgePeer);
-				//pbx_clear_flag(participant->conferenceBridgePeer, AST_FLAG_MOH);
-				ast_bridge_unsuspend(conference->bridge, participant->conferenceBridgePeer);
 				participant->onMusicOnHold = FALSE;
+				//pbx_clear_flag(participant->conferenceBridgePeer, AST_FLAG_MOH);
+				pbx_bridge_unsuspend(conference->bridge, participant->conferenceBridgePeer);
 			}
+			pbx_bridge_unlock(((conferencePtr)conference)->bridge);
 		} else {
 			sccp_conference_toggle_mute_participant(conference, participant);
 		}
