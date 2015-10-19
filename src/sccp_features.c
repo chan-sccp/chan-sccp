@@ -258,7 +258,7 @@ void sccp_feat_handle_directed_pickup(constLinePtr l, uint8_t lineInstance, cons
 
 	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 
-	if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.rtp) {
+	if (d->directed_pickup_modeanswer &&d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.rtp) {
 		sccp_channel_openReceiveChannel(c);
 	}
 }
@@ -341,7 +341,7 @@ int sccp_feat_directed_pickup(channelPtr c, const char *exten)
 	char *name = NULL;
 	char *number = NULL;
 
-	pbx_log(LOG_NOTICE, "SCCP: (directed_pickup)\n");
+	pbx_log(LOG_NOTICE, "SCCP: (directed_pickup) modeanswer: %d\n", d->directed_pickup_modeanswer);
 	target = iPbx.findPickupChannelByExtenLocked(original, exten, context);
 	if (target) {
 		/* fixup callinfo */
@@ -376,7 +376,7 @@ int sccp_feat_directed_pickup(channelPtr c, const char *exten)
 		if (res == 0) {
 			sccp_channel_stop_schedule_digittimout(c);
 			c->calltype = SKINNY_CALLTYPE_INBOUND;
-			c->state = SCCP_CHANNELSTATE_PROCEED;
+			c->state = d->directed_pickup_modeanswer ? SCCP_CHANNELSTATE_PROCEED : SCCP_CHANNELSTATE_RINGING;
 			c->answered_elsewhere = TRUE;
 			AUTO_RELEASE sccp_device_t *orig_device = NULL;
 			AUTO_RELEASE sccp_channel_t *orig_channel = get_sccp_channel_from_pbx_channel(original);
@@ -407,15 +407,11 @@ int sccp_feat_directed_pickup(channelPtr c, const char *exten)
 				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) pickup succeeded on call: %s\n", DEV_ID_LOG(d), c->designator);
 				sccp_rtp_stop(c);								/* stop previous audio */
 				pbx_channel_set_hangupcause(original, AST_CAUSE_ANSWERED_ELSEWHERE);
-				//if (orig_device && orig_channel) {
-					//sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) hangup: %s\n", DEV_ID_LOG(orig_device), orig_channel->designator);
-					//sccp_indicate(orig_device, orig_channel, SCCP_CHANNELSTATE_ONHOOK);
-				//}
-				pbx_hangup(original);								/* hangup masqueraded zombie channel */
-
+				pbx_hangup(original);
+				/* masqueraded zombie channel hungup */
+				
+				/* continue with masquaraded channel */
 				pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);		/* reset picked up channel */
-				sccp_channel_setDevice(c, d);
-				sccp_channel_updateChannelCapability(c);
 
 				/* Update CallInfo */
 				if (orig_channel) {
@@ -433,16 +429,18 @@ int sccp_feat_directed_pickup(channelPtr c, const char *exten)
 				}
 					
 				if (d->directed_pickup_modeanswer) {
+					sccp_channel_setDevice(c, d);
+					sccp_channel_updateChannelCapability(c);
 					pbx_setstate(c->owner, AST_STATE_UP);
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 					
 					/* force 7940/7960 to display the callplane (something is suppressing it along the way, have not been able to find what, yet) */
 					uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
 					sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+					iPbx.set_callstate(c, AST_STATE_UP);
 				} else {
-					uint8_t instance;
-
-					instance = sccp_device_find_index_for_line(d, c->line->name);
+					uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
+					sccp_channel_setDevice(c, NULL);
 					sccp_dev_stoptone(d, instance, c->callid);
 					sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 					c->ringermode = SKINNY_RINGTYPE_OUTSIDE;				// default ring
