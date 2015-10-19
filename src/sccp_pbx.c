@@ -960,8 +960,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					if (sccp_feat_directed_pickup(c, shortenedNumber)) {
 						sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 					}
-					
-					iPbx.set_callstate(c, AST_STATE_UP);
 				} else {
 					// without a number we can also close the call. Isn't it true ?
 					sccp_channel_endcall(c);
