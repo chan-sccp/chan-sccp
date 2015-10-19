@@ -199,7 +199,7 @@ inline static sccp_device_t * const check_session_message_device(constSessionPtr
 		if (device) {
 			return device;
 		}  else if (deviceIsNecessary) {
-			pbx_log(LOG_WARNING, "Session Device vould not be retained, to handle %s for, but device is needed\n", msgtypestr);
+			pbx_log(LOG_WARNING, "Session Device could not be retained, to handle %s for, but device is needed\n", msgtypestr);
 		}
 	}
 	return NULL;
