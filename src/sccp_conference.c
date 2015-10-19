@@ -86,7 +86,6 @@ struct sccp_participant {
 	boolean_t isModerator;
 	boolean_t onMusicOnHold;										/*!< Participant is listening to Music on Hold */
 	boolean_t playback_announcements;									/*!< Does the Participant want to hear announcements */
-	char final_announcement[StationMaxNameSize];
 
 	/* conflist */
 	uint32_t callReference;
@@ -310,6 +309,7 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 		participant->channel = sccp_channel_retain(channel);
 		participant->device = sccp_device_retain(device);
 		participant->conferenceBridgePeer = channel->owner;
+		sccp_conference_update_callInfo(channel, participant->conferenceBridgePeer, participant, conference->id);
 		if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
 			channel->hangupRequest(channel);
 			return NULL;
@@ -323,7 +323,6 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 
 		channel->calltype=SKINNY_CALLTYPE_INBOUND;
 		iPbx.setChannelLinkedId(participant->channel, conference->linkedid);
-		sccp_conference_update_callInfo(channel, participant->conferenceBridgePeer, participant, conference->id);
 		channel->calltype=SKINNY_CALLTYPE_OUTBOUND;
 		participant->isModerator = TRUE;
 		device->conferencelist_active = device->conf_show_conflist;					// Activate conflist
@@ -624,14 +623,10 @@ static void sccp_conference_removeParticipant(conferencePtr conference, particip
 
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Hanging up Participant %d (Channel: %s)\n", conference->id, participant->id, pbx_channel_name(participant->conferenceBridgePeer));
 	pbx_clear_flag(pbx_channel_flags(participant->conferenceBridgePeer), AST_FLAG_BLOCKING);
-	if (!sccp_strlen_zero(participant->final_announcement)) {
-		pbx_stream_and_wait(participant->conferenceBridgePeer, participant->final_announcement, "");
-	}
 	if (participant->conferenceBridgePeer) {
 		pbx_hangup(participant->conferenceBridgePeer);
 		participant->conferenceBridgePeer = NULL;
 	}
-	//participant = participant ? sccp_participant_release(participant) : NULL;							/* release by caller */
 
 	/* Conference end if the number of participants == 1 */
 	if (SCCP_LIST_GETSIZE(&conference->participants) == 1 && !ATOMIC_FETCH(&conference->finishing, &conference->lock)) {
@@ -721,22 +716,22 @@ void sccp_conference_end(sccp_conference_t * conference)
 	/* remove remaining participants / moderators */
 	SCCP_LIST_LOCK(&conference->participants);
 	if (SCCP_LIST_GETSIZE(&conference->participants) > 0) {
-		// remove the participants first
-		SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
-			if (!participant->isModerator) {
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&conference->participants, participant, list) {
+			if (!participant->isModerator) {						// remove the participants first
 				if (pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer)) {
 					pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to remove channel from conference\n", conference->id);
 				}
 			}
 		}
-		// and then remove the moderators
-		SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
-			if (participant->isModerator) {
+		SCCP_LIST_TRAVERSE_SAFE_END;  
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&conference->participants, participant, list) {
+			if (participant->isModerator) {							// and then remove the moderators
 				if (pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer)) {
 					pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to remove channel from conference\n", conference->id);
 				}
 			}
 		}
+		SCCP_LIST_TRAVERSE_SAFE_END;  
 	}
 	SCCP_LIST_UNLOCK(&conference->participants);
 
@@ -804,7 +799,7 @@ void sccp_conference_resume(conferencePtr conference)
 				}
 			}
 		}
-		SCCP_LIST_LOCK(&((conferencePtr)conference)->participants);
+		SCCP_LIST_UNLOCK(&((conferencePtr)conference)->participants);
 		conference->isOnHold = FALSE;
 	}
 }
@@ -1422,13 +1417,12 @@ void sccp_conference_kick_participant(constConferencePtr conference, participant
 {
 	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Kick Participant %d\n", conference->id, participant->id);
 	participant->pendingRemoval = TRUE;
-	//if (pbx_bridge_kick(participant->conference->bridge, participant->conferenceBridgePeer)) {
+	 playback_to_channel(participant, "conf-kicked", -1);
 	if (pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer)) {
 		pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to remove channel from conference\n", conference->id);
 		participant->pendingRemoval = FALSE;
 		return;
 	}
-	sccp_copy_string(participant->final_announcement, "conf-kicked", sizeof(participant->final_announcement));
 #ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents)) {
 		manager_event(EVENT_FLAG_CALL, "SCCPConfParticipantKicked", "ConfId: %d\r\n" "PartId: %d\r\n", conference->id, participant->id);

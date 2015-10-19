@@ -1062,8 +1062,14 @@ static boolean_t sccp_wrapper_asterisk113_masqueradeHelper(PBX_CHANNEL_TYPE * pb
 	if (!ast_channel_move(pbxTmpChannel, pbxChannel)) {
 		pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) move succeeded. Hanging up orphan: %s\n", ast_channel_name(pbxChannel));
 		/* Chan is now an orphaned zombie.  Destroy it. */
-		ast_hangup(pbxChannel);
+		if (pbx_test_flag(pbx_channel_flags(pbxChannel), AST_FLAG_BLOCKING)) {
+			ast_softhangup(pbxChannel, AST_SOFTHANGUP_DEV);
+		} else {
+			ast_hangup(pbxChannel);
+		}
 		res = TRUE;
+	} else {
+		ast_hangup(pbxTmpChannel);
 	}
 	pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) remove reference from pbxTmpChannel: %s\n", ast_channel_name(pbxTmpChannel));
 	pbxTmpChannel = ast_channel_unref(pbxTmpChannel);
@@ -1141,7 +1147,6 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_requestAnnouncementChannel(pbx
 
 	cap = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
 	if (!cap) {
-		ao2_cleanup(cap);
 		return NULL;
 	}
 	// TODO convert format_type to ast_format
@@ -1151,7 +1156,6 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_requestAnnouncementChannel(pbx
 	ast_format_cap_append(cap, ast_format, framing);
 	chan = ast_request("SCCPCBAnn", cap, NULL, NULL, (char *) data, &cause);
 	ao2_ref(cap, -1);
-	cap = NULL;
 
 	if (!chan) {
 		pbx_log(LOG_ERROR, "SCCP: Requested Unreal channel could not be created, cause: %d\n", cause);
