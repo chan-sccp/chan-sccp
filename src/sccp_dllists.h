@@ -381,6 +381,8 @@ struct {												\
 })
 #define SCCP_RWLIST_REMOVE SCCP_LIST_REMOVE
 
+/* Expensive SCCP_LIST_FIND version: only used during refcount issue finding */
+/*
 #define SCCP_LIST_FIND(_head, _type, _var, _field, _compare, _retain, _file, _line, _func) ({		\
 	_type *_var;											\
 	_type *__tmp_##_var##_line;									\
@@ -397,6 +399,19 @@ struct {												\
 		} else {										\
 			pbx_log(LOG_ERROR, "SCCP (%s:%d:%s): Failed to get reference to variable during SCCP_LIST_FIND\n", _file, _line, _func);\
 			(_var) = NULL;									\
+		}											\
+	}                                                                                               \
+	(_var);												\
+})
+*/
+#define SCCP_LIST_FIND(_head, _type, _var, _field, _compare, _retain, _file, _line, _func) ({		\
+	_type *_var;											\
+	for((_var) = (_head)->first; (_var); (_var) = ((_var) ? (_var)->_field.next : NULL)) {		\
+		if (_compare) {										\
+			if (_retain) {									\
+				sccp_refcount_retain((_var), _file, _line, _func);			\
+			}										\
+			break;										\
 		}											\
 	}                                                                                               \
 	(_var);												\

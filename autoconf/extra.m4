@@ -546,7 +546,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wshadow dnl
 			], ax_warn_cflags_variable)
 		])
-		AS_IF([test ! -z "`grep ccc-analyzer ${CC}`"], [
+		AS_IF([test ! -z "`echo ${CC} | grep ccc-analyzer`"], [
 			AC_LANG_SAVE
 			AC_LANG_C
 			AX_APPEND_COMPILE_FLAGS([ dnl

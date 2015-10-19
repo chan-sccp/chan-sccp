@@ -12,7 +12,7 @@
 #pragma once
 
 struct sccp_callinfo;
-sccp_callinfo_t __attribute__ ((malloc)) *const sccp_callinfo_ctor(void);
+sccp_callinfo_t __attribute__ ((malloc)) *const sccp_callinfo_ctor(uint8_t callInstance);
 sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t * ci);
 sccp_callinfo_t *sccp_callinfo_copyCtor(const sccp_callinfo_t * const src_ci);
 boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src, sccp_callinfo_t * const dst);

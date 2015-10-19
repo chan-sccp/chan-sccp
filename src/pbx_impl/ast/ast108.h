@@ -37,6 +37,11 @@ int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rt
 char *pbx_getformatname(format_t format);
 char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 
+#undef pbx_bridge_lock
+#undef pbx_bridge_unlock
+#define pbx_bridge_lock(_x) NULL
+#define pbx_bridge_unlock(_x) NULL
+
 #define pbx_channel_name(x) x->name
 
 #define NEWCONST const												// old functions used without const
