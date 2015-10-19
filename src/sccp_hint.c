@@ -893,6 +893,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 			case SCCP_CHANNELSTATE_GETDIGITS:
 			case SCCP_CHANNELSTATE_RINGOUT:
 			case SCCP_CHANNELSTATE_CONNECTED:
+			case SCCP_CHANNELSTATE_PROGRESS:
 			case SCCP_CHANNELSTATE_PROCEED:
 			case SCCP_CHANNELSTATE_RINGING:
 			case SCCP_CHANNELSTATE_DIALING:
@@ -951,7 +952,6 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 			case SCCP_CHANNELSTATE_BLINDTRANSFER:
 			case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
 			case SCCP_CHANNELSTATE_ZOMBIE:
-			case SCCP_CHANNELSTATE_PROGRESS:
 			case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 			case SCCP_CHANNELSTATE_SENTINEL:
 				/* unused states */
@@ -1027,6 +1027,11 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
 		case SCCP_CHANNELSTATE_DND:
+		case SCCP_CHANNELSTATE_PROCEED:
+		case SCCP_CHANNELSTATE_PROGRESS:
+		case SCCP_CHANNELSTATE_GETDIGITS:
+		case SCCP_CHANNELSTATE_DIALING:
+		case SCCP_CHANNELSTATE_DIGITSFOLL:
 			newDeviceState = AST_DEVICE_BUSY;
 			break;
 		case SCCP_CHANNELSTATE_ZOMBIE:
@@ -1036,14 +1041,9 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			newDeviceState = AST_DEVICE_UNAVAILABLE;
 			break;
 		case SCCP_CHANNELSTATE_INVALIDNUMBER:
-		case SCCP_CHANNELSTATE_PROCEED:
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 		case SCCP_CHANNELSTATE_OFFHOOK:
-		case SCCP_CHANNELSTATE_GETDIGITS:
 		case SCCP_CHANNELSTATE_CONNECTED:
-		case SCCP_CHANNELSTATE_DIALING:
-		case SCCP_CHANNELSTATE_DIGITSFOLL:
-		case SCCP_CHANNELSTATE_PROGRESS:
 		case SCCP_CHANNELSTATE_BLINDTRANSFER:
 		case SCCP_CHANNELSTATE_CALLWAITING:
 		case SCCP_CHANNELSTATE_CALLTRANSFER:
@@ -1183,7 +1183,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	sccp_speed_t k;
 	char displayMessage[80] = "";
-	int status;
+	int status = SCCP_CHANNELSTATE_SENTINEL;
 #endif
 
 	if (!hint) {
@@ -1224,32 +1224,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							status = SKINNY_BLF_STATUS_UNKNOWN;	/* default state */
 							break;
 
-						case SCCP_CHANNELSTATE_RINGING:
-							if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
-								if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
-									sccp_callinfo_getter(hint->callInfo, 
-										SCCP_CALLINFO_CALLINGPARTY_NAME, &cidName, 
-										SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cidNumber, 
-										SCCP_CALLINFO_KEY_SENTINEL);
-								} else {
-									sccp_callinfo_getter(hint->callInfo, 
-										SCCP_CALLINFO_CALLEDPARTY_NAME, &cidName, 
-										SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cidNumber, 
-										SCCP_CALLINFO_KEY_SENTINEL);
-								}
-								if (strlen(cidName) > 0) {
-									snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", cidName, (hint->calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
-								} else if (strlen(cidNumber) > 0) {
-									snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", cidNumber, (hint->calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
-								} else {
-									snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
-								}
-							} else {
-								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
-							}
-							status = SKINNY_BLF_STATUS_ALERTING;	/* ringin */
-							break;
-
 						case SCCP_CHANNELSTATE_DND:
 							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
 							status = SKINNY_BLF_STATUS_DND;	/* dnd */
@@ -1260,6 +1234,9 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							status = SKINNY_BLF_STATUS_UNKNOWN;	/* device/line not found */
 							break;
 
+						case SCCP_CHANNELSTATE_RINGING:
+							status = SKINNY_BLF_STATUS_ALERTING;	/* ringin */
+							/* fall through */
 						default:
 							if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
 								if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
@@ -1283,7 +1260,9 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							} else {
 								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							}
-							status = SKINNY_BLF_STATUS_INUSE;	/* connected */
+							if (status == SCCP_CHANNELSTATE_SENTINEL) {
+								status = SKINNY_BLF_STATUS_INUSE;	/* connected / progress / proceeding */
+							}
 							break;
 					}
 					sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) set display name to: \"%s\"\n", DEV_ID_LOG(d), displayMessage);
