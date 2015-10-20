@@ -1961,6 +1961,9 @@ void sccp_handle_stimulus(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	}
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d, callreference=%d, status=%d\n", d->id, skinny_stimulus2str(stimulus), stimulus, instance, callId, stimulusStatus);
+	if(!instance && stimulus == SKINNY_STIMULUS_LASTNUMBERREDIAL && d->redialInformation.lineInstance > 0) {
+		instance = d->redialInformation.lineInstance;
+	}
 	if (!instance) {											/*! \todo also use the callReference if available */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Instance 0 is not a valid instance. Trying the active line %d\n", d->id, instance);
 		if ((l = sccp_dev_getActiveLine(d))) {

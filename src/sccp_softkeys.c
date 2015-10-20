@@ -151,7 +151,7 @@ static void sccp_sk_redial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 		return;
 	}
 
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Get ready to redial number %s lineInstance: %d\n", d->id, d->redialInformation.number, d->redialInformation.lineInstance);
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Get ready to redial number %s lineInstance: %d\n", d->id, d->redialInformation.number, d->redialInformation.lineInstance ? d->redialInformation.lineInstance : lineInstance);
 	if (c) {
 		if (c->state == SCCP_CHANNELSTATE_OFFHOOK) {
 			/* we have a offhook channel */
@@ -161,9 +161,7 @@ static void sccp_sk_redial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 		/* here's a KEYMODE error. nothing to do */
 		return;
 	} else {
-		if (d->redialInformation.lineInstance > 0) {
-			line = sccp_sk_get_retained_line(d, l, d->redialInformation.lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
-		} else {
+		if (d->redialInformation.lineInstance == 0 || !(line = sccp_line_find_byid(d, d->redialInformation.lineInstance))) {
 			line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
 		}
 		if (line) {
