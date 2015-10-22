@@ -1316,6 +1316,14 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 		sccp_channel_openReceiveChannel(channel);
 	}
 
+/*
+	if (!dial && (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE)) {
+		sccp_copy_string(channel->dialedNumber, "s", sizeof(channel->dialedNumber));
+		sccp_pbx_softswitch(channel);
+		channel->dialedNumber[0] = 0;
+		return channel;
+	}
+*/
 	if (dial) {
 		sccp_pbx_softswitch(channel);
 		if (channel->dialedNumber[0] == 's') channel->dialedNumber[0] = '\0';				/* handle immediate 's' extension */
@@ -1678,7 +1686,7 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 		}
 	}
 
-	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_PROCEED) {
+	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED) {
 		if (!(sccp_channel_hold(channel))) {
 			pbx_log(LOG_WARNING, "SCCP: channel still connected before resuming, put on hold failed for channel %d. exiting\n", channel->callid);
 			return FALSE;
@@ -1732,7 +1740,11 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 #ifdef CS_AST_CONTROL_SRCUPDATE
 	iPbx.queue_control(channel->owner, AST_CONTROL_SRCUPDATE);						// notify changes e.g codec
 #endif
-	sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONNECTED);							// this will also reopen the RTP stream
+	if (channel->conference) {
+		sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);				// this will also reopen the RTP stream
+	} else {
+		sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONNECTED);						// this will also reopen the RTP stream
+	}
 
 #ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents)) {
@@ -1741,7 +1753,11 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 #endif
 
 	/* state of channel is set down from the remoteDevices, so correct channel state */
-	channel->state = SCCP_CHANNELSTATE_CONNECTED;
+	if (channel->conference) {
+		channel->state = SCCP_CHANNELSTATE_CONNECTEDCONFERENCE;
+	} else {
+		channel->state = SCCP_CHANNELSTATE_CONNECTED;
+	}
 	l->statistic.numberOfHeldChannels--;
 
 	/** set called party name */
