@@ -401,7 +401,7 @@ static void sccp_conference_connect_bridge_channels_to_participants(constConfere
 		sccp_log((DEBUGCAT_HIGH + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Bridge Channel %p.\n", conference->id, bridge_channel);
 		AUTO_RELEASE sccp_participant_t *participant = sccp_participant_findByPBXChannel(conference, bridge_channel->chan);
 
-		if (participant) {
+		if (participant && participant->bridge_channel != bridge_channel) {
 			sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Connecting Bridge Channel %p to Participant %d.\n", conference->id, bridge_channel, participant->id);
 			participant->bridge_channel = bridge_channel;
 		}
@@ -683,6 +683,7 @@ static void *sccp_conference_thread(void *data)
 
 void sccp_conference_update(constConferencePtr conference)
 {
+	usleep(100); /* need time to settle into bridge, before updating links */
 	sccp_conference_connect_bridge_channels_to_participants(conference);
 	sccp_conference_update_conflist(conference);
 }
