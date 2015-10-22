@@ -466,7 +466,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 	/* if channel state has changed, notify the others */
 	if (c->state != c->previousChannelState) {
 		/* if it is a shared line and a state of interest */
-		if ((SCCP_RWLIST_GETSIZE(&l->devices) > 1) && (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DOWN || c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_HOLD) && !c->conference) {
+		if ((SCCP_RWLIST_GETSIZE(&l->devices) > 1) && (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DOWN || c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_HOLD || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && !c->conference) {
 			/* notify all remote devices */
 			__sccp_indicate_remote_device(d, c, l, state);
 		}
@@ -541,7 +541,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 			// skip self
 			continue;
 		}
-
+		
 		/* check if we have one part of the remote channel */
 		AUTO_RELEASE sccp_device_t *remoteDevice = sccp_device_retain(linedevice->device);
 
@@ -574,7 +574,6 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 
 				case SCCP_CHANNELSTATE_DOWN:
 				case SCCP_CHANNELSTATE_ONHOOK:
-					break;
 					if (SKINNY_CALLTYPE_INBOUND == c->calltype && c->answered_elsewhere) {
 						switch (phonebookRecord) {
 							case SCCP_PHONEBOOK_RECEIVED:
@@ -595,6 +594,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 					remoteDevice->indicate->remoteOnhook(remoteDevice, lineInstance, callid);
 					break;
 
+				case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 				case SCCP_CHANNELSTATE_CONNECTED:
 					switch (c->calltype) {
 #if 0
