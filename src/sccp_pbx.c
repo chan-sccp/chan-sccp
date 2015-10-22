@@ -174,7 +174,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		   when using shared lines. */
 		int length = sccp_strlen(cid_num);
 		if (length && (length + 2  < StationMaxDirnumSize) && ('\0' == cid_num[0])) {
-			suffixedNumber[length + 0] = '#';
+			suffixedNumber[length + 0] = GLOB(digittimeoutchar);
 			suffixedNumber[length + 1] = '\0';
 		}
 		/* Set the channel calledParty Name and Number 7910 compatibility */
