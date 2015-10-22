@@ -1316,15 +1316,9 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 		sccp_channel_openReceiveChannel(channel);
 	}
 
-	if (!dial && (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE)) {
-		sccp_copy_string(channel->dialedNumber, "s", sizeof(channel->dialedNumber));
-		sccp_pbx_softswitch(channel);
-		channel->dialedNumber[0] = 0;
-		return channel;
-	}
-
 	if (dial) {
 		sccp_pbx_softswitch(channel);
+		if (channel->dialedNumber[0] == 's') channel->dialedNumber[0] = '\0';				/* handle immediate 's' extension */
 		return channel;
 	}
 	sccp_channel_schedule_digittimout(channel, GLOB(firstdigittimeout));
@@ -1460,7 +1454,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, channel->line->defaultSubscriptionId.number);
 			}
 			sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_CALLEDPARTY_NUMBER, tmpNumber, SCCP_CALLINFO_KEY_SENTINEL);
-			iPbx.set_callerid_number(channel, tmpNumber);
+			iPbx.set_callerid_number(channel->owner, tmpNumber);
 
 			if (!sccp_strlen_zero(linedevice2->subscriptionId.name)) {
 				snprintf(tmpName, StationMaxNameSize,  "%s%s", channel->line->cid_name, linedevice2->subscriptionId.name);
@@ -1468,7 +1462,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, channel->line->defaultSubscriptionId.name);
 			}
 			sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_CALLEDPARTY_NAME, tmpName, SCCP_CALLINFO_KEY_SENTINEL);
-			iPbx.set_callerid_name(channel, tmpName);
+			iPbx.set_callerid_name(channel->owner, tmpName);
 		}
 	}
 	/* done */
@@ -1985,14 +1979,14 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 			if (channel->state != SCCP_CHANNELSTATE_CALLTRANSFER) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);
 			}
-			AUTO_RELEASE sccp_channel_t *sccp_channel_new = sccp_channel_newcall(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, pbx_channel_owner, NULL);
+			AUTO_RELEASE sccp_channel_t *sccp_channel_new = sccp_channel_newcall(channel->line, d, ((d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) ? "s" : NULL), SKINNY_CALLTYPE_OUTBOUND, pbx_channel_owner, NULL);
 
 			if (sccp_channel_new && (pbx_channel_bridgepeer = iPbx.get_bridged_channel(pbx_channel_owner))) {
 				pbx_builtin_setvar_helper(sccp_channel_new->owner, "TRANSFEREE", pbx_channel_name(pbx_channel_bridgepeer));
 
 				sccp_dev_set_keyset(d, instance, channel->callid, KEYMODE_OFFHOOKFEAT);
 
-				/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER */
+				/* set a var for BLINDTRANSFER. It will be removed if the user manually answers the call Otherwise it is a real BLINDTRANSFER */
 #if 0
 				if (blindTransfer || (sccp_channel_new && sccp_channel_new->owner && pbx_channel_owner && pbx_channel_bridgepeer)) {
 					//! \todo use pbx impl
@@ -2275,7 +2269,7 @@ void sccp_channel_set_calleridPresentation(sccp_channel_t * channel, sccp_caller
 {
 	sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_PRESENTATION, presentation, SCCP_CALLINFO_KEY_SENTINEL);
 	if (iPbx.set_callerid_presentation) {
-		iPbx.set_callerid_presentation(channel, presentation);
+		iPbx.set_callerid_presentation(channel->owner, presentation);
 	}
 }
 
@@ -2359,27 +2353,27 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 
 	/* setting callerid */
 	if (iPbx.set_callerid_number) {
-		iPbx.set_callerid_number(sccp_forwarding_channel, calling_num);
+		iPbx.set_callerid_number(sccp_forwarding_channel->owner, calling_num);
 	}
 
 	if (iPbx.set_callerid_name) {
-		iPbx.set_callerid_name(sccp_forwarding_channel, calling_name);
+		iPbx.set_callerid_name(sccp_forwarding_channel->owner, calling_name);
 	}
 
 	if (iPbx.set_callerid_ani) {
-		iPbx.set_callerid_ani(sccp_forwarding_channel, dialedNumber);
+		iPbx.set_callerid_ani(sccp_forwarding_channel->owner, dialedNumber);
 	}
 
 	if (iPbx.set_callerid_dnid) {
-		iPbx.set_callerid_dnid(sccp_forwarding_channel, dialedNumber);
+		iPbx.set_callerid_dnid(sccp_forwarding_channel->owner, dialedNumber);
 	}
 
 	if (iPbx.set_callerid_redirectedParty) {
-		iPbx.set_callerid_redirectedParty(sccp_forwarding_channel, called_num, called_name);
+		iPbx.set_callerid_redirectedParty(sccp_forwarding_channel->owner, called_num, called_name);
 	}
 
 	if (iPbx.set_callerid_redirectingParty) {
-		iPbx.set_callerid_redirectingParty(sccp_forwarding_channel, sccp_forwarding_channel->line->cid_num, sccp_forwarding_channel->line->cid_name);
+		iPbx.set_callerid_redirectingParty(sccp_forwarding_channel->owner, sccp_forwarding_channel->line->cid_num, sccp_forwarding_channel->line->cid_name);
 	}
 
 	/* dial sccp_forwarding_channel */
