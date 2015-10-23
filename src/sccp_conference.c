@@ -68,7 +68,7 @@ struct sccp_conference {
 	boolean_t isOnHold;
 	boolean_t mute_on_entry;										/*!< Mute new participant when they enter the conference */
 	boolean_t playback_announcements;									/*!< general hear announcements */
-};
+};														/*!< SCCP Conference Structure */
 
 struct sccp_participant {
 	boolean_t pendingRemoval;										/*!< Pending Removal */
@@ -77,24 +77,23 @@ struct sccp_participant {
 	sccp_device_t *device;											/*!< sccp device, non-null if the participant resides on an SCCP device */
 	PBX_CHANNEL_TYPE *conferenceBridgePeer;									/*!< the asterisk channel which joins the conference bridge */
 	struct ast_bridge_channel *bridge_channel;								/*!< Asterisk Conference Bridge Channel */
-	struct ast_bridge_features features;									/*!< Enabled features information */
 	pthread_t joinThread;											/*!< Running in this Thread */
 	sccp_conference_t *conference;										/*!< Conference this participant belongs to */
-	boolean_t isModerator;
+	char *final_announcement;										/*!< Announcement playedback to participant after leaving the bridge */
+	boolean_t isModerator;											/*!< Is Participant a Moderator */
 	boolean_t onMusicOnHold;										/*!< Participant is listening to Music on Hold */
 	boolean_t playback_announcements;									/*!< Does the Participant want to hear announcements */
-	char *final_announcement;
+	uint32_t callReference;											/* used to push/update conflist */
+	uint32_t lineInstance;											/* used to push/update conflist */
+	uint32_t transactionID;											/* used to push/update conflist */
 
-	/* conflist */
-	uint32_t callReference;
-	uint32_t lineInstance;
-	uint32_t transactionID;
+	SCCP_RWLIST_ENTRY (sccp_participant_t) list;								/*!< Linked List Entry */
 	
 	char PartyName[StationMaxNameSize];
 	char PartyNumber[StationMaxDirnumSize];
 
-	SCCP_RWLIST_ENTRY (sccp_participant_t) list;								/*!< Linked List Entry */
-};
+	struct ast_bridge_features features;									/*!< Enabled features information */
+};														/*!< SCCP Conference Participant Structure */
 
 static SCCP_LIST_HEAD (, sccp_conference_t) conferences;							/*!< our list of conferences */
 
