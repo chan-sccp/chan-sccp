@@ -1778,7 +1778,6 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 			} else {
 				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, channel->line->defaultSubscriptionId.name);
 			}
-			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "TEST: SCCP: num:%s name:%s\n", tmpNumber, tmpName);
 			if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 				sccp_callinfo_setCallingParty(channel->privateData->callInfo, tmpNumber, tmpName, NULL);
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set callingPartyNumber '%s' callingPartyName '%s'\n", DEV_ID_LOG(d), tmpNumber, tmpName);
