@@ -50,6 +50,10 @@
 
 #undef pbx_check_hangup_locked
 #define pbx_check_hangup_locked(_x) ({int res; ast_channel_lock(_x); res = ast_check_hangup(_x); ast_channel_unlock(_x); (res);})
+#undef pbx_bridge_lock
+#undef pbx_bridge_unlock
+#define pbx_bridge_lock(_x) NULL
+#define pbx_bridge_unlock(_x) NULL
 
 enum AST_CONNECTED_LINE_UPDATE_SOURCE {
 	/*! Update for unknown reason (May be interpreted to mean from answer) */

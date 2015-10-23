@@ -79,12 +79,12 @@
 #define pbx_bridge_features_init ast_bridge_features_init
 
 #if ASTERISK_VERSION_NUMBER < 11010
-#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations) ast_bridge_join(_bridge, _channel, _replace, _features)
+#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags) ast_bridge_join(_bridge, _channel, _replace, _features)
 #else
 #ifndef CS_BRIDGE_JOIN_PASSREFERENCE
-#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations) ast_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations)
+#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags) ast_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations)
 #else
-#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations) ast_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, 0)
+#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags) ast_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags)
 #endif
 #endif
 
@@ -94,6 +94,7 @@
 #define pbx_bridge_new(_a,_b,_c,_d,_e) ast_bridge_base_new(_a, _b, _c, _d, _e)
 #endif
 #define pbx_bridge_remove ast_bridge_remove
+#define pbx_bridge_kick ast_bridge_kick
 #define pbx_bridge_result ast_bridge_result
 
 #if ASTERISK_VERSION_GROUP < 110
@@ -110,6 +111,10 @@
 #define pbx_bridge_destroy(_x, _y) ast_bridge_destroy(_x)
 #define pbx_bridge_features_cleanup ast_bridge_features_cleanup
 #define pbx_bridge_change_state ast_bridge_change_state
+#define pbx_bridge_lock ast_bridge_lock
+#define pbx_bridge_unlock ast_bridge_unlock
+#define pbx_bridge_suspend ast_bridge_suspend
+#define pbx_bridge_unsuspend ast_bridge_unsuspend
 
 #define pbx_request ast_request
 #define pbx_build_string ast_build_string

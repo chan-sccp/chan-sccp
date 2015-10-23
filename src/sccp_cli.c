@@ -774,7 +774,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Video COS",		CLI_AMI_LIST_WIDTH, "%d", d->video_cos);
 	CLI_AMI_OUTPUT_YES_NO("DND Feature enabled",	CLI_AMI_LIST_WIDTH, d->dndFeature.enabled);
 	CLI_AMI_OUTPUT_PARAM("DND Status",		CLI_AMI_LIST_WIDTH, "%s", (d->dndFeature.status) ? sccp_dndmode2str(d->dndFeature.status) : "Disabled");
-	CLI_AMI_OUTPUT_PARAM("DND Action", 		CLI_AMI_LIST_WIDTH, "%s", (d->dndmode) ? sccp_dndmode2str(d->dndmode) : "Disabled");
+	CLI_AMI_OUTPUT_PARAM("DND Action", 		CLI_AMI_LIST_WIDTH, "%s", (d->dndmode) ? sccp_dndmode2str(d->dndmode) : "Disabled / Cycle");
 	CLI_AMI_OUTPUT_BOOL("Can Transfer",		CLI_AMI_LIST_WIDTH, d->transfer);
 	CLI_AMI_OUTPUT_BOOL("Can Park",			CLI_AMI_LIST_WIDTH, d->park);
 	CLI_AMI_OUTPUT_BOOL("Can CFWDALL",		CLI_AMI_LIST_WIDTH, d->cfwdall);
@@ -1267,7 +1267,7 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	CLI_AMI_OUTPUT_BOOL("Echo Cancellation",	CLI_AMI_LIST_WIDTH, l->echocancel);
 	CLI_AMI_OUTPUT_BOOL("Silence Suppression",	CLI_AMI_LIST_WIDTH, l->silencesuppression);
 	CLI_AMI_OUTPUT_BOOL("Can Transfer",		CLI_AMI_LIST_WIDTH, l->transfer);
-	CLI_AMI_OUTPUT_PARAM("DND Action",		CLI_AMI_LIST_WIDTH, "%s", (l->dndmode) ? sccp_dndmode2str(l->dndmode) : "Disabled");
+	CLI_AMI_OUTPUT_PARAM("DND Action",		CLI_AMI_LIST_WIDTH, "%s", (l->dndmode) ? sccp_dndmode2str(l->dndmode) : "Disabled / Cycle");
 #ifdef CS_SCCP_REALTIME
 	CLI_AMI_OUTPUT_BOOL("Is Realtime Line",		CLI_AMI_LIST_WIDTH, l->realtime);
 #endif
@@ -1280,6 +1280,10 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	CLI_AMI_OUTPUT_BOOL("Adhoc Number Assigned",	CLI_AMI_LIST_WIDTH, l->adhocNumber ? l->adhocNumber : "No");
 	CLI_AMI_OUTPUT_PARAM("Message Waiting New.",	CLI_AMI_LIST_WIDTH, "%i", l->voicemailStatistic.newmsgs);
 	CLI_AMI_OUTPUT_PARAM("Message Waiting Old.",	CLI_AMI_LIST_WIDTH, "%i", l->voicemailStatistic.oldmsgs);
+	CLI_AMI_OUTPUT_PARAM("Active Devices", 		CLI_AMI_LIST_WIDTH, "%i", l->statistic.numberOfActiveDevices);
+	CLI_AMI_OUTPUT_PARAM("Active Channels",		CLI_AMI_LIST_WIDTH, "%i", l->statistic.numberOfActiveChannels);
+	CLI_AMI_OUTPUT_PARAM("Held Channels",		CLI_AMI_LIST_WIDTH, "%i", l->statistic.numberOfHeldChannels);
+	//CLI_AMI_OUTPUT_PARAM("DND Devices",		CLI_AMI_LIST_WIDTH, "%i", l->statistic.numberOfDNDDevices);
 	/* *INDENT-ON* */
 	if (s) {
 		astman_append(s, "\r\n");

@@ -284,7 +284,7 @@ EXIT:
  * \param port      [out] Pointer to the port component within \a str.
  * \param flags     If set to zero, a port MAY be present. If set to PARSE_PORT_IGNORE, a
  *                  port MAY be present but will be ignored. If set to PARSE_PORT_REQUIRE,
- *                  a port MUST be present. If set to PARSE_PORT_FORBID, a port MUST NOT  
+ *                  a port MUST be present. If set to PARSE_PORT_FORBID, a port MUST NOT
  *                  be present.
  *
  * \retval 1 Success
@@ -453,7 +453,7 @@ static int __sccp_socket_setOurAddressFromTheirs(const struct sockaddr_storage *
 	return 0;
 }
 
-int sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr_storage *addr) 
+int sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr_storage *addr)
 {
 	sccp_session_t * const s = (sccp_session_t * const)session;						/* discard const */
 	if (s) {
@@ -657,7 +657,7 @@ READ_ERROR:
  * \brief Find Session in Globals Lists
  * \param s SCCP Session
  * \return boolean
- * 
+ *
  * \lock
  *      - session
  */
@@ -681,7 +681,7 @@ static boolean_t sccp_session_findBySession(sccp_session_t * s)
  * \brief Add a session to the global sccp_sessions list
  * \param s SCCP Session
  * \return boolean
- * 
+ *
  * \lock
  *      - session
  */
@@ -704,7 +704,7 @@ static boolean_t sccp_session_addToGlobals(sccp_session_t * s)
  * \brief Removes a session from the global sccp_sessions list
  * \param s SCCP Session
  * \return boolean
- * 
+ *
  * \lock
  *      - sessions
  */
@@ -731,7 +731,7 @@ static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
 
 /*!
  * \brief Terminate all session
- * 
+ *
  * \lock
  *      - socket_lock
  *      - Glob(sessions)
@@ -739,13 +739,13 @@ static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
 void sccp_session_terminateAll()
 {
 	sccp_session_t *s = NULL;
-	
+
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), s, list) {
 		sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
-	
+
 	if (SCCP_LIST_EMPTY(&GLOB(sessions))) {
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(sessions));
 	}
@@ -766,7 +766,7 @@ static sccp_device_t *__sccp_session_removeDevice(sessionPtr session)
 		}
 		sccp_session_lock(session);
 		sccp_device_setRegistrationState(session->device, SKINNY_DEVICE_RS_NONE);
-		
+
 		session->device->session = NULL;
 		sccp_copy_string(session->designator, sccp_socket_stringify(&session->ourip), sizeof(session->designator));
 		return_device = session->device;								// returning device reference
@@ -797,7 +797,7 @@ static int __sccp_session_addDevice(sessionPtr session, constDevicePtr device)
 			if (new_device) {
 				session->device = new_device;				/* keep newly retained device */
 				session->device->session = session;			/* update device session pointer */
-				
+
 				char buf[16] = "";
 				snprintf(buf,16, "%s:%d", device->id, session->fds[0].fd);
 				sccp_copy_string(session->designator, buf, sizeof(session->designator));
@@ -1042,8 +1042,8 @@ void *sccp_socket_device_thread(void *session)
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket: " #_LEVEL ":" #_OPTIONNAME " error: '%s'\n", strerror(errno));	\
 		}															\
 	}
-	
-void sccp_socket_setoptions(int new_socket) 
+
+void sccp_socket_setoptions(int new_socket)
 {
 	int on = 1;
 	int value;
@@ -1055,7 +1055,7 @@ void sccp_socket_setoptions(int new_socket)
 #if defined(linux)
 	value = (int) GLOB(sccp_cos);
 	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_PRIORITY, &value, sizeof(value));
-	
+
 	/* timeeo */
 	struct timeval mytv = { SOCKET_TIMEOUT_SEC, SOCKET_TIMEOUT_MILLISEC };					/* timeout after seven seconds when trying to read/write from/to a socket */
 	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &mytv, sizeof(tv));
@@ -1073,7 +1073,7 @@ void sccp_socket_setoptions(int new_socket)
 	/* linger */
 	struct linger so_linger = {SOCKET_LINGER_ONOFF, SOCKET_LINGER_WAIT};					/* linger=on but wait 0 milliseconds before closing socket and discard all outboung messages */
 	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
-	
+
 	/* thin-tcp */
 #ifdef TCP_THIN_LINEAR_TIMEOUTS
 	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_TCP, TCP_THIN_LINEAR_TIMEOUTS, &on, sizeof(on));
@@ -1153,7 +1153,7 @@ static void sccp_accept_connection(void)
 		memcpy(&s->ourip, &GLOB(bindaddr), sizeof(s->ourip));
 	}
 	sccp_copy_string(s->designator, sccp_socket_stringify(&s->ourip), sizeof(s->designator));
-	
+
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Connected on server via %s\n", s->designator);
 
 	size_t stacksize = 0;
@@ -1173,7 +1173,7 @@ static void sccp_socket_cleanup_timed_out(void)
 {
 	sccp_session_t *session;
 
-	
+
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
 		if (session->lastKeepAlive == 0) {
 			// final resort
@@ -1533,7 +1533,7 @@ void sccp_session_tokenAckSPCP(constSessionPtr session, uint32_t features)
 gcc_inline void sccp_session_setProtocol(constSessionPtr session, uint16_t protocolType)
 {
 	sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
-	
+
 	if (s) {
 		s->protocolType = protocolType;
 	}
@@ -1561,7 +1561,7 @@ gcc_inline uint16_t sccp_session_getProtocol(constSessionPtr session)
 gcc_inline void sccp_session_resetLastKeepAlive(constSessionPtr session)
 {
 	sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
-	
+
 	if (s) {
 		s->lastKeepAlive = time(0);
 	}
@@ -1570,10 +1570,10 @@ gcc_inline void sccp_session_resetLastKeepAlive(constSessionPtr session)
 gcc_inline void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState)
 {
 	sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
-	
+
 	if (s) {
 		__sccp_session_stopthread(s, newRegistrationState);
-	}	
+	}
 }
 
 gcc_inline const char * const sccp_session_getDesignator(constSessionPtr session)
@@ -1602,7 +1602,7 @@ gcc_inline sccp_device_t * const sccp_session_getDevice(constSessionPtr session,
 	if (!session) {
 		return NULL;
 	}
-	sccp_device_t *device = (required || session->device) ? sccp_device_retain(session->device) : NULL;
+	sccp_device_t *device = (session->device) ? sccp_device_retain(session->device) : NULL;
 	if (required && !device) {
 		pbx_log(LOG_WARNING, "No valid Session Device available\n");
 		return NULL;
@@ -1632,9 +1632,9 @@ boolean_t sccp_session_isValid(constSessionPtr session)
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
- * 
+ *
  * \called_from_asterisk
- * 
+ *
  */
 int sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {

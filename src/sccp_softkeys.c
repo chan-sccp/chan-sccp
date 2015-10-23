@@ -151,7 +151,7 @@ static void sccp_sk_redial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 		return;
 	}
 
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Get ready to redial number %s lineInstance: %d\n", d->id, d->redialInformation.number, d->redialInformation.lineInstance);
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Get ready to redial number %s lineInstance: %d\n", d->id, d->redialInformation.number, d->redialInformation.lineInstance ? d->redialInformation.lineInstance : lineInstance);
 	if (c) {
 		if (c->state == SCCP_CHANNELSTATE_OFFHOOK) {
 			/* we have a offhook channel */
@@ -161,9 +161,7 @@ static void sccp_sk_redial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 		/* here's a KEYMODE error. nothing to do */
 		return;
 	} else {
-		if (d->redialInformation.lineInstance > 0) {
-			line = sccp_sk_get_retained_line(d, l, d->redialInformation.lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
-		} else {
+		if (d->redialInformation.lineInstance == 0 || !(line = sccp_line_find_byid(d, d->redialInformation.lineInstance))) {
 			line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
 		}
 		if (line) {
@@ -215,7 +213,7 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 	/* done */
 
 	AUTO_RELEASE sccp_channel_t *new_channel = NULL;
-	new_channel = sccp_channel_newcall(line, d, adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
+	new_channel = sccp_channel_newcall(line, d, ((d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE && !adhocNumber) ? "s" : adhocNumber),SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
 }
 
 /*!
@@ -670,7 +668,7 @@ static void sccp_sk_private(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 			instance = sccp_device_find_index_for_line(device, line->name);
 			sccp_dev_setActiveLine(device, line);
 			sccp_dev_set_cplane(device, instance, 1);
-			channel = sccp_channel_newcall(line, device, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+			channel = sccp_channel_newcall(line, device, (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) ? "s" : NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		}
 	}
 
@@ -1125,19 +1123,15 @@ void sccp_softkey_setSoftkeyState(devicePtr device, uint8_t softKeySet, uint8_t 
 {
 	uint8_t i;
 
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: softkey '%s' on %s to %s\n", DEV_ID_LOG(device), label2str(softKey), skinny_keymode2str(softKeySet), enable ? "on" : "off");
-
 	if (!device || !device->softKeyConfiguration.size) {
 		return;
 	}
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: softkey '%s' on %s to %s\n", DEV_ID_LOG(device), label2str(softKey), skinny_keymode2str(softKeySet), enable ? "on" : "off");
-
 	/* find softkey */
 	for (i = 0; i < device->softKeyConfiguration.modes[softKeySet].count; i++) {
 		if (device->softKeyConfiguration.modes[softKeySet].ptr && device->softKeyConfiguration.modes[softKeySet].ptr[i] == softKey) {
-			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: found softkey '%s' at %d\n", DEV_ID_LOG(device), label2str(device->softKeyConfiguration.modes[softKeySet].ptr[i]), i);
-
+			//sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_4 "%s: found softkey '%s' at %d\n", DEV_ID_LOG(device), label2str(device->softKeyConfiguration.modes[softKeySet].ptr[i]), i);
 			if (enable) {
 				device->softKeyConfiguration.activeMask[softKeySet] |= (1 << i);
 			} else {

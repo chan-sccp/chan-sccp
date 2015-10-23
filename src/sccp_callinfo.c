@@ -60,6 +60,7 @@ struct sccp_callinfo {
 	uint32_t lastRedirectingReason;										/*!< Last Redirecting Reason */
 	sccp_callerid_presentation_t presentation;								/*!< Should this callerinfo be shown (privacy) */
 	boolean_t changed;											/*! Changes since last send */
+	uint8_t callInstance;
 };														/*!< SCCP CallInfo Structure */
 
 #define sccp_callinfo_lock(x) sccp_mutex_lock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
@@ -89,7 +90,7 @@ struct callinfo_lookup {
 	/* *INDENT-ON* */
 };
 
-sccp_callinfo_t *const sccp_callinfo_ctor(void)
+sccp_callinfo_t *const sccp_callinfo_ctor(uint8_t callInstance)
 {
 	sccp_callinfo_t *const ci = sccp_calloc(sizeof(sccp_callinfo_t), 1);
 
@@ -102,6 +103,7 @@ sccp_callinfo_t *const sccp_callinfo_ctor(void)
 	/* by default we allow callerid presentation */
 	ci->presentation = CALLERID_PRESENTATION_ALLOWED;
 	ci->changed = TRUE;
+	ci->callInstance = callInstance;
 
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
 		#ifdef DEBUG
@@ -127,7 +129,7 @@ sccp_callinfo_t *sccp_callinfo_copyCtor(const sccp_callinfo_t * const src_ci)
 {
 	/* observing locking order. not locking both callinfo objects at the same time, using a tmp as go between */
 	if (src_ci) {
-		sccp_callinfo_t *tmp_ci = sccp_callinfo_ctor();
+		sccp_callinfo_t *tmp_ci = sccp_callinfo_ctor(0);
 		if (!tmp_ci) {
 			return NULL;
 		}
@@ -464,7 +466,7 @@ int sccp_callinfo_send(sccp_callinfo_t * const ci, const uint32_t callid, const 
 {
 	if (ci->changed || force) {
 		if (device->protocol && device->protocol->sendCallInfo) {
-			device->protocol->sendCallInfo(ci, callid, calltype, lineInstance, device);
+			device->protocol->sendCallInfo(ci, callid, calltype, lineInstance, ci->callInstance, device);
 			sccp_callinfo_lock(ci);
 			ci->changed = FALSE;
 			sccp_callinfo_unlock(ci);

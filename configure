@@ -5969,7 +5969,7 @@ done
 
 
 fi
-		if test ! -z "`grep ccc-analyzer ${CC}`"; then :
+		if test ! -z "`echo ${CC} | grep ccc-analyzer`"; then :
 
 
 			ac_ext=c

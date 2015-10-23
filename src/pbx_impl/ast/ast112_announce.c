@@ -148,11 +148,13 @@ int sccpconf_announce_channel_push(struct ast_channel *ast, struct ast_bridge *b
 		ast_channel_lock(ast);
 		p = ast_channel_tech_pvt(ast);
 		if (!p) {
+			ast_channel_unlock(ast);
 			return -1;
 		}
 		ao2_ref(p, +1);
 		chan = p->base.chan;
 		if (!chan) {
+			ast_channel_unlock(ast);
 			ao2_cleanup(p);
 			return -1;
 		}
