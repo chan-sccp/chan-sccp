@@ -1,3 +1,4 @@
+
 /*!
  * \file        sccp_conference.c
  * \brief       SCCP Conference for asterisk 10
@@ -34,13 +35,9 @@
 #endif
 
 #ifdef DEBUG
-#define sccp_conference_retain(_x) 	({sccp_conference_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;pbx_assert(tmp_##__LINE__##X != NULL);(sccp_conference_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_conference_release(_x) 	({sccp_conference_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;pbx_assert(tmp_##__LINE__##X != NULL);(sccp_conference_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #define sccp_participant_retain(_x) 	({sccp_participant_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;pbx_assert(tmp_##__LINE__##X != NULL);(sccp_participant_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #define sccp_participant_release(_x) 	({sccp_participant_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;pbx_assert(tmp_##__LINE__##X != NULL);(sccp_participant_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #else
-#define sccp_conference_retain(_x) 	({pbx_assert(_x != NULL);(sccp_conference_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_conference_release(_x) 	({pbx_assert(_x != NULL);(sccp_conference_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #define sccp_participant_retain(_x) 	({pbx_assert(_x != NULL);(sccp_participant_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #define sccp_participant_release(_x) 	({pbx_assert(_x != NULL);(sccp_participant_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #endif
@@ -117,7 +114,7 @@ void sccp_conference_play_music_on_hold_to_participant(constConferencePtr confer
 static sccp_participant_t *sccp_conference_createParticipant(constConferencePtr conference);
 static void sccp_conference_addParticipant_toList(constConferencePtr conference, constParticipantPtr participant);
 void pbx_builtin_setvar_int_helper(PBX_CHANNEL_TYPE * channel, const char *var_name, int intvalue);
-static void sccp_conference_connect_bridge_channels_to_participants(constConferencePtr conference);
+//static void sccp_conference_connect_bridge_channels_to_participants(constConferencePtr conference);
 static void sccp_conference_update_conflist(constConferencePtr conference);
 void __sccp_conference_hide_list(participantPtr participant);
 void sccp_conference_invite_participant(constConferencePtr conference, constParticipantPtr moderator);
@@ -1518,28 +1515,34 @@ void sccp_conference_play_music_on_hold_to_participant(constConferencePtr confer
 	if (start) {
 		if (participant->onMusicOnHold == FALSE) {
 			if (!sccp_strlen_zero(participant->device->conf_music_on_hold_class)) {
-				pbx_bridge_lock(((conferencePtr)conference)->bridge);
-				if (!pbx_bridge_suspend(conference->bridge, participant->conferenceBridgePeer)) {
+				pbx_bridge_lock(participant->conference->bridge);
+				int res = pbx_bridge_suspend(participant->conference->bridge, participant->conferenceBridgePeer);
+				pbx_bridge_unlock(participant->conference->bridge);
+				if (!res) {
 					iPbx.moh_start(participant->conferenceBridgePeer, participant->device->conf_music_on_hold_class, NULL);
 					participant->onMusicOnHold = TRUE;
 					//pbx_set_flag(participant->conferenceBridgePeer, AST_FLAG_MOH);
+					pbx_bridge_lock(((conferencePtr)conference)->bridge);
 					pbx_bridge_unsuspend(((conferencePtr)conference)->bridge, participant->conferenceBridgePeer);
+					pbx_bridge_unlock(((conferencePtr)conference)->bridge);
 				}
-				pbx_bridge_unlock(((conferencePtr)conference)->bridge);
 			} else {
 				sccp_conference_toggle_mute_participant(conference, participant);
 			}
 		}
 	} else {
 		if (!sccp_strlen_zero(participant->device->conf_music_on_hold_class)) {
-			pbx_bridge_lock(((conferencePtr)conference)->bridge);
-			if (!pbx_bridge_suspend(conference->bridge, participant->conferenceBridgePeer)) {
+			pbx_bridge_lock(participant->conference->bridge);
+			int res = pbx_bridge_suspend(participant->conference->bridge, participant->conferenceBridgePeer);
+			pbx_bridge_unlock(participant->conference->bridge);
+			if (!res) {
 				iPbx.moh_stop(participant->conferenceBridgePeer);
 				participant->onMusicOnHold = FALSE;
 				//pbx_clear_flag(participant->conferenceBridgePeer, AST_FLAG_MOH);
-				pbx_bridge_unsuspend(conference->bridge, participant->conferenceBridgePeer);
+				pbx_bridge_lock(((conferencePtr)conference)->bridge);
+				pbx_bridge_unsuspend(((conferencePtr)conference)->bridge, participant->conferenceBridgePeer);
+				pbx_bridge_unlock(((conferencePtr)conference)->bridge);
 			}
-			pbx_bridge_unlock(((conferencePtr)conference)->bridge);
 		} else {
 			sccp_conference_toggle_mute_participant(conference, participant);
 		}
