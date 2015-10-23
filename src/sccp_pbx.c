@@ -174,7 +174,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		   when using shared lines. */
 		int length = sccp_strlen(cid_num);
 		if (length && (length + 2  < StationMaxDirnumSize) && ('\0' == cid_num[0])) {
-			suffixedNumber[length + 0] = '#';
+			suffixedNumber[length + 0] = GLOB(digittimeoutchar);
 			suffixedNumber[length + 1] = '\0';
 		}
 		/* Set the channel calledParty Name and Number 7910 compatibility */
@@ -182,7 +182,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	iPbx.set_connected_line(c, l->cid_num, l->cid_name, AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN);
 
 	//! \todo implement dnid, ani, ani2 and rdnis
-	sccp_callerid_presentation_t pbx_presentation = iPbx.get_callerid_presentation ? iPbx.get_callerid_presentation(c) : SCCP_CALLERID_PRESENTATION_SENTINEL;
+	sccp_callerid_presentation_t pbx_presentation = iPbx.get_callerid_presentation ? iPbx.get_callerid_presentation(c->owner) : SCCP_CALLERID_PRESENTATION_SENTINEL;
 	if (	(!sccp_strequals(suffixedNumber, cid_num)) || 
 		(pbx_presentation != SCCP_CALLERID_PRESENTATION_SENTINEL && pbx_presentation != presentation)
 	) {
@@ -687,13 +687,13 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	pbx_update_use_count();
 
 	if (iPbx.set_callerid_number) {
-		iPbx.set_callerid_number(c, cid_num);
+		iPbx.set_callerid_number(c->owner, cid_num);
 	}
 	if (iPbx.set_callerid_ani) {
-		iPbx.set_callerid_ani(c, cid_num);
+		iPbx.set_callerid_ani(c->owner, cid_num);
 	}
 	if (iPbx.set_callerid_name) {
-		iPbx.set_callerid_name(c, cid_name);
+		iPbx.set_callerid_name(c->owner, cid_name);
 	}
 
 	/* call ast_channel_call_forward_set with the forward destination if this device is forwarded */
@@ -957,11 +957,9 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 
 				if (!sccp_strlen_zero(shortenedNumber)) {
  					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) Asterisk request to pickup exten '%s'\n", shortenedNumber);
-					if (sccp_feat_directed_pickup(c, shortenedNumber)) {
+					if (sccp_feat_directed_pickup(d, c, shortenedNumber)) {
 						sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 					}
-					
-					iPbx.set_callstate(c, AST_STATE_UP);
 				} else {
 					// without a number we can also close the call. Isn't it true ?
 					sccp_channel_endcall(c);

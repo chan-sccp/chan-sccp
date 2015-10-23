@@ -31,7 +31,7 @@ static char management_show_lines_desc[] = "Description: Lists SCCP lines in tex
 static char management_restart_devices_desc[] = "Description: restart a given device\n" "\n" "Variables:\n" "   Devicename: Name of device to restart\n";
 static char management_show_device_add_line_desc[] = "Description: Lists SCCP devices in text format with details on current status.\n" "\n" "DevicelistComplete.\n" "Variables: \n" "  Devicename: Name of device to restart.\n" "  Linename: Name of line";
 static char management_device_update_desc[] = "Description: restart a given device\n" "\n" "Variables:\n" "   Devicename: Name of device\n";
-static char management_device_set_dnd_desc[] = "Description: set dnd on device\n" "\n" "Variables:\n" "   Devicename: Name of device\n" "  DNDState: on (busy) / off / reject/ silent";
+static char management_device_set_dnd_desc[] = "Description: set dnd on device\n" "\n" "Variables:\n" "   Devicename: Name of device\n" "  DNDState: off / reject / silent";
 static char management_line_fwd_update_desc[] = "Description: update forward status for line\n" "\n" "Variables:\n" "  Devicename: Name of device\n" "  Linename: Name of line\n" "  Forwardtype: type of cfwd (all | busy | noAnswer)\n" "  Disable: yes Disable call forward (optional)\n" "  Number: number to forward calls (optional)";
 static char management_fetch_config_metadata_desc[] = "Description: fetch configuration metadata\n" "\n" "Variables:\n" "  segment: Config Segment Name (if empty returns all segments).\n";
 
@@ -595,7 +595,7 @@ static int sccp_manager_device_set_dnd(struct mansession *s, const struct messag
 	if (d) {
 		if (d->dndFeature.enabled) {
 			prevStatus = d->dndFeature.status;
-			if (sccp_strcaseequals("on", DNDState) || sccp_strcaseequals("reject", DNDState)) {
+			if (sccp_strcaseequals("reject", DNDState)) {
 				d->dndFeature.status = SCCP_DNDMODE_REJECT;
 			} else if (sccp_strcaseequals("silent", DNDState)) {
 				d->dndFeature.status = SCCP_DNDMODE_SILENT;
