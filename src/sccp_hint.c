@@ -1474,7 +1474,7 @@ int sccp_show_hint_lineStates(int fd, sccp_cli_totals_t *totals, struct mansessi
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 #define CLI_AMI_TABLE_FIELDS 															\
- 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	lineState->line->name)					\
+ 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	lineState->line ? lineState->line->name : "")		\
  		CLI_AMI_TABLE_FIELD(State,		"-22.22",	s,	22,	sccp_channelstate2str(lineState->state))		\
  		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15",	s,	15,	lineState->callInfo.partyNumber)			\
  		CLI_AMI_TABLE_FIELD(CallInfoName,	"-30.30",	s,	30,	lineState->callInfo.partyName)				\
