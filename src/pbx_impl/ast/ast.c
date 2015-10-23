@@ -805,6 +805,68 @@ void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const ch
 }
 
 /*!
+ * parse the DIAL options and store results by ref
+ */
+int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, uint8_t *autoanswer_cause, skinny_ringtype_t *ringermode)
+{
+	int res = 0;
+	int optc = 0;
+	char *optv[2];
+	int opti = 0;
+
+	/* parse options */
+	if (options && (optc = sccp_app_separate_args(options, '/', optv, sizeof(optv) / sizeof(optv[0])))) {
+		pbx_log(LOG_NOTICE, "parse options\n");
+		for (opti = 0; opti < optc; opti++) {
+			pbx_log(LOG_NOTICE, "parse option '%s'\n", optv[opti]);
+			if (!strncasecmp(optv[opti], "aa", 2)) {
+				/* let's use the old style auto answer aa1w and aa2w */
+				if (!strncasecmp(optv[opti], "aa1w", 4)) {
+					*autoanswer_type = SCCP_AUTOANSWER_1W;
+					optv[opti] += 4;
+				} else if (!strncasecmp(optv[opti], "aa2w", 4)) {
+					*autoanswer_type = SCCP_AUTOANSWER_2W;
+					optv[opti] += 4;
+				} else if (!strncasecmp(optv[opti], "aa=", 3)) {
+					optv[opti] += 3;
+					pbx_log(LOG_NOTICE, "parsing aa\n");
+					if (!strncasecmp(optv[opti], "1w", 2)) {
+						*autoanswer_type = SCCP_AUTOANSWER_1W;
+						optv[opti] += 2;
+					} else if (!strncasecmp(optv[opti], "2w", 2)) {
+						*autoanswer_type = SCCP_AUTOANSWER_2W;
+						pbx_log(LOG_NOTICE, "set aa to 2w\n");
+						optv[opti] += 2;
+					}
+				}
+
+				/* since the pbx ignores autoanswer_cause unless SCCP_RWLIST_GETSIZE(&l->channels) > 1, it is safe to set it if provided */
+				if (!sccp_strlen_zero(optv[opti]) && (autoanswer_cause)) {
+					if (!strcasecmp(optv[opti], "b")) {
+						*autoanswer_cause = AST_CAUSE_BUSY;
+					} else if (!strcasecmp(optv[opti], "u")) {
+						*autoanswer_cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
+					} else if (!strcasecmp(optv[opti], "c")) {
+						*autoanswer_cause = AST_CAUSE_CONGESTION;
+					}
+				}
+				/* check for ringer options */
+			} else if (!strncasecmp(optv[opti], "ringer=", 7)) {
+				optv[opti] += 7;
+				*ringermode = skinny_ringtype_str2val(optv[opti]);
+			} else {
+				pbx_log(LOG_WARNING, "SCCP: Unknown option %s\n", optv[opti]);
+				res = -1;
+			}
+		}
+	}
+	if (*ringermode == SKINNY_RINGTYPE_SENTINEL) {
+		*ringermode = SKINNY_RINGTYPE_OUTSIDE;
+	}
+	return res;
+}
+
+/*!
  * \brief ACF Channel Read callback
  *
  * \param ast Asterisk Channel

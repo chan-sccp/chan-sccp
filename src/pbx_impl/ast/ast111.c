@@ -1203,7 +1203,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 	skinny_codec_t codec = SKINNY_CODEC_G711_ULAW_64K;
 	sccp_autoanswer_t autoanswer_type = SCCP_AUTOANSWER_NONE;
 	uint8_t autoanswer_cause = AST_CAUSE_NOTDEFINED;
-	int ringermode = 0;
+	skinny_ringtype_t ringermode = SKINNY_RINGTYPE_OUTSIDE;
 
 	*cause = AST_CAUSE_NOTDEFINED;
 	if (!type) {
@@ -1221,98 +1221,24 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 	lineName = strdupa((const char *) dest);
 	/* parsing options string */
 	char *options = NULL;
-	int optc = 0;
-	char *optv[2];
-	int opti = 0;
-
 	if ((options = strchr(lineName, '/'))) {
 		*options = '\0';
 		options++;
 	}
 
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=" UI64FMT ", lineName=%s, options=%s, requestor: %s\n", type, (uint64_t) ast_format_cap_to_old_bitfield(format), lineName, (options) ? options : "", pbx_channel_name(requestor));
-
-	/* get ringer mode from ALERT_INFO */
-	const char *alert_info = NULL;
-
-	if (requestor) {
-		alert_info = pbx_builtin_getvar_helper((PBX_CHANNEL_TYPE *) requestor, "ALERT_INFO");
-	}
-	if (alert_info && !sccp_strlen_zero(alert_info)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", alert_info);
-		if (strcasecmp(alert_info, "inside") == 0) {
-			ringermode = SKINNY_RINGTYPE_INSIDE;
-		} else if (strcasecmp(alert_info, "feature") == 0) {
-			ringermode = SKINNY_RINGTYPE_FEATURE;
-		} else if (strcasecmp(alert_info, "silent") == 0) {
-			ringermode = SKINNY_RINGTYPE_SILENT;
-		} else if (strcasecmp(alert_info, "urgent") == 0) {
-			ringermode = SKINNY_RINGTYPE_URGENT;
-		}
-	}
-	/* done ALERT_INFO parsing */
-
-	/* parse options */
-	if (options && (optc = sccp_app_separate_args(options, '/', optv, sizeof(optv) / sizeof(optv[0])))) {
-		pbx_log(LOG_NOTICE, "parse options\n");
-		for (opti = 0; opti < optc; opti++) {
-			pbx_log(LOG_NOTICE, "parse option '%s'\n", optv[opti]);
-			if (!strncasecmp(optv[opti], "aa", 2)) {
-				/* let's use the old style auto answer aa1w and aa2w */
-				if (!strncasecmp(optv[opti], "aa1w", 4)) {
-					autoanswer_type = SCCP_AUTOANSWER_1W;
-					optv[opti] += 4;
-				} else if (!strncasecmp(optv[opti], "aa2w", 4)) {
-					autoanswer_type = SCCP_AUTOANSWER_2W;
-					optv[opti] += 4;
-				} else if (!strncasecmp(optv[opti], "aa=", 3)) {
-					optv[opti] += 3;
-					pbx_log(LOG_NOTICE, "parsing aa\n");
-					if (!strncasecmp(optv[opti], "1w", 2)) {
-						autoanswer_type = SCCP_AUTOANSWER_1W;
-						optv[opti] += 2;
-					} else if (!strncasecmp(optv[opti], "2w", 2)) {
-						autoanswer_type = SCCP_AUTOANSWER_2W;
-						pbx_log(LOG_NOTICE, "set aa to 2w\n");
-						optv[opti] += 2;
-					}
-				}
-
-				/* since the pbx ignores autoanswer_cause unless SCCP_RWLIST_GETSIZE(&l->channels) > 1, it is safe to set it if provided */
-				if (!sccp_strlen_zero(optv[opti]) && (autoanswer_cause)) {
-					if (!strcasecmp(optv[opti], "b")) {
-						autoanswer_cause = AST_CAUSE_BUSY;
-					} else if (!strcasecmp(optv[opti], "u")) {
-						autoanswer_cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
-					} else if (!strcasecmp(optv[opti], "c")) {
-						autoanswer_cause = AST_CAUSE_CONGESTION;
-					}
-				}
-				if (autoanswer_cause) {
-					*cause = autoanswer_cause;
-				}
-				/* check for ringer options */
-			} else if (!strncasecmp(optv[opti], "ringer=", 7)) {
-				optv[opti] += 7;
-				if (!strcasecmp(optv[opti], "inside")) {
-					ringermode = SKINNY_RINGTYPE_INSIDE;
-				} else if (!strcasecmp(optv[opti], "outside")) {
-					ringermode = SKINNY_RINGTYPE_OUTSIDE;
-				} else if (!strcasecmp(optv[opti], "feature")) {
-					ringermode = SKINNY_RINGTYPE_FEATURE;
-				} else if (!strcasecmp(optv[opti], "silent")) {
-					ringermode = SKINNY_RINGTYPE_SILENT;
-				} else if (!strcasecmp(optv[opti], "urgent")) {
-					ringermode = SKINNY_RINGTYPE_URGENT;
-				} else {
-					ringermode = SKINNY_RINGTYPE_OUTSIDE;
-				}
-			} else {
-				pbx_log(LOG_WARNING, "Wrong option %s\n", optv[opti]);
-			}
+	if (requestor) {							/* get ringer mode from ALERT_INFO */
+		const char *alert_info = pbx_builtin_getvar_helper((PBX_CHANNEL_TYPE *) requestor, "ALERT_INFO");
+		if (alert_info && !sccp_strlen_zero(alert_info)) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", alert_info);
+			ringermode = skinny_ringtype_str2val(alert_info);
 		}
 	}
 
+	sccp_parse_dial_options(options, &autoanswer_type, &autoanswer_cause, &ringermode);
+	if (autoanswer_cause) {
+		*cause = autoanswer_cause;
+	}
 	/* audio capabilities */
 	if (requestor) {
 		/** getting remote capabilities */
