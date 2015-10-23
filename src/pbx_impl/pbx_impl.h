@@ -99,23 +99,24 @@ typedef struct _PbxInterface {
 	uint8_t(*const rtp_bridgePeers) (PBX_CHANNEL_TYPE * c0, PBX_CHANNEL_TYPE * c1, int flags, struct ast_frame ** fo, PBX_CHANNEL_TYPE ** rc, int timeoutms);
 
 	/* callerid */
-	int (*const get_callerid_name) (constChannelPtr channel, char **cid_name);
-	int (*const get_callerid_number) (constChannelPtr channel, char **cid_number);
-	int (*const get_callerid_ton) (constChannelPtr channel, char **ton);
-	int (*const get_callerid_ani) (constChannelPtr channel, char **ani);
-	int (*const get_callerid_subaddr) (constChannelPtr channel, char **subaddr);
-	int (*const get_callerid_dnid) (constChannelPtr channel, char **dnid);
-	int (*const get_callerid_rdnis) (constChannelPtr channel, char **rdnis);
-	int (*const get_callerid_presentation) (constChannelPtr channel);
+	int (*const get_callerid_name) (PBX_CHANNEL_TYPE * pbxChannel, char **cid_name);
+	int (*const get_callerid_number) (PBX_CHANNEL_TYPE * pbxChannel, char **cid_number);
+	int (*const get_callerid_ton) (PBX_CHANNEL_TYPE * pbxChannel, int *ton);
+	int (*const get_callerid_ani) (PBX_CHANNEL_TYPE * pbxChannel, char **ani);
+	int (*const get_callerid_subaddr) (PBX_CHANNEL_TYPE * pbxChannel, char **subaddr);
+	int (*const get_callerid_dnid) (PBX_CHANNEL_TYPE * pbxChannel, char **dnid);
+	int (*const get_callerid_rdnis) (PBX_CHANNEL_TYPE * pbxChannel, char **rdnis);
+	int (*const get_callerid_presentation) (PBX_CHANNEL_TYPE * pbxChannel);
 
-	void (*const set_callerid_name) (constChannelPtr channel, const char *name);
-	void (*const set_dialed_number) (constChannelPtr channel, const char *number);
-	void (*const set_callerid_number) (constChannelPtr channel, const char *number);
-	void (*const set_callerid_ani) (constChannelPtr channel, const char *ani);
-	void (*const set_callerid_dnid) (constChannelPtr channel, const char *dnid);
-	void (*const set_callerid_redirectingParty) (constChannelPtr channel, const char *number, const char *name);
-	void (*const set_callerid_redirectedParty) (constChannelPtr channel, const char *number, const char *name);
-	void (*const set_callerid_presentation) (constChannelPtr channel, sccp_callerid_presentation_t presentation);
+	void (*const set_callerid_name) (PBX_CHANNEL_TYPE * pbxChannel, const char *name);
+	void (*const set_callerid_number) (PBX_CHANNEL_TYPE * pbxChannel, const char *number);
+	void (*const set_callerid_ani) (PBX_CHANNEL_TYPE * pbxChannel, const char *ani);
+	void (*const set_callerid_dnid) (PBX_CHANNEL_TYPE * pbxChannel, const char *dnid);
+	void (*const set_callerid_redirectingParty) (PBX_CHANNEL_TYPE * pbxChannel, const char *number, const char *name);
+	void (*const set_callerid_redirectedParty) (PBX_CHANNEL_TYPE * pbxChannel, const char *number, const char *name);
+	void (*const set_callerid_presentation) (PBX_CHANNEL_TYPE * pbxChannel, sccp_callerid_presentation_t presentation);
+	
+	void (*const set_dialed_number) (const sccp_channel_t *channel, const char *number);
 	void (*const set_connected_line) (constChannelPtr channel, const char *number, const char *name, uint8_t reason);
 	void (*const sendRedirectedUpdate) (constChannelPtr channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason);
 
@@ -129,7 +130,6 @@ typedef struct _PbxInterface {
 	boolean_t(*const feature_monitor) (const sccp_channel_t *channel);
 	boolean_t(*const getFeatureExtension) (constChannelPtr channel, char featureExtension[SCCP_MAX_EXTENSION]);
 	boolean_t(*const getPickupExtension) (constChannelPtr channel, char pickupExtension[SCCP_MAX_EXTENSION]);
-	boolean_t(*const feature_pickup) (const sccp_channel_t *chan, PBX_CHANNEL_TYPE *target);
 
 	void *(*const eventSubscribe)(constChannelPtr channel, char **featureExtension);
 	PBX_CHANNEL_TYPE *(*const findChannelByCallback)(int(*const found_cb)(PBX_CHANNEL_TYPE *c, void *data), void *data, boolean_t lock);
@@ -150,6 +150,7 @@ typedef struct _PbxInterface {
 	skinny_busylampfield_state_t (*const getExtensionState)(const char *extension, const char *context);
 
 	PBX_CHANNEL_TYPE *(*const findPickupChannelByExtenLocked)(PBX_CHANNEL_TYPE *chan, const char *exten, const char *context);
+	PBX_CHANNEL_TYPE *(*const findPickupChannelByGroupLocked)(PBX_CHANNEL_TYPE *chan);
 
 // 	PBX_ENDPOINT_TYPE *(*const endpoint_create)(const char *tech, const char *resource);
 //	void (*const endpoint_online)(PBX_ENDPOINT_TYPE *endpoint);

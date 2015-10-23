@@ -213,7 +213,7 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 	/* done */
 
 	AUTO_RELEASE sccp_channel_t *new_channel = NULL;
-	new_channel = sccp_channel_newcall(line, d, adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
+	new_channel = sccp_channel_newcall(line, d, ((d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE && !adhocNumber) ? "s" : adhocNumber),SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
 }
 
 /*!
@@ -668,7 +668,7 @@ static void sccp_sk_private(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 			instance = sccp_device_find_index_for_line(device, line->name);
 			sccp_dev_setActiveLine(device, line);
 			sccp_dev_set_cplane(device, instance, 1);
-			channel = sccp_channel_newcall(line, device, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+			channel = sccp_channel_newcall(line, device, (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) ? "s" : NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		}
 	}
 

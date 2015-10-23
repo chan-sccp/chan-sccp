@@ -381,29 +381,15 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			break;
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CONNECTEDCONFERENCE (%s)\n", d->id, sccp_channelstate2str(c->previousChannelState));
-			/*
-			   sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, instance, c->callid);
-			   sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
-			   sccp_dev_stoptone(d, instance, c->callid);
-			   sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
-			   sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-			   //if (device->protocol && device->protocol->sendCallInfo) {
-			   //	device->protocol->sendCallInfo(ci, c->callid, c->calltype, instance, device);
-			   //}
-			   sccp_dev_set_cplane(d, instance, 1);
-			   sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_CONNCONF);
-			   sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CONNECTED, GLOB(digittimeout));
-			 */
-			// replaced by
 			d->indicate->connected(d, instance, c->callid, c->calltype, ci);
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_CONNCONF);
 
-			if (!c->rtp.audio.rtp) {
+			if (!c->rtp.audio.rtp || c->previousChannelState == SCCP_CHANNELSTATE_HOLD || c->previousChannelState == SCCP_CHANNELSTATE_CALLTRANSFER || c->previousChannelState == SCCP_CHANNELSTATE_CALLCONFERENCE || c->previousChannelState == SCCP_CHANNELSTATE_OFFHOOK) {
 				sccp_channel_openReceiveChannel(c);
 			} else if (c->rtp.audio.rtp) {
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_channelstate2str(c->previousChannelState));
 			}
-
+			break;
 			break;
 		case SCCP_CHANNELSTATE_CALLPARK:
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CALLPARK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -466,7 +452,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 	/* if channel state has changed, notify the others */
 	if (c->state != c->previousChannelState) {
 		/* if it is a shared line and a state of interest */
-		if ((SCCP_RWLIST_GETSIZE(&l->devices) > 1) && (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DOWN || c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_HOLD)) {
+		if ((SCCP_RWLIST_GETSIZE(&l->devices) > 1) && (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DOWN || c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_HOLD || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && !c->conference) {
 			/* notify all remote devices */
 			__sccp_indicate_remote_device(d, c, l, state);
 		}
@@ -541,7 +527,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 			// skip self
 			continue;
 		}
-
+		
 		/* check if we have one part of the remote channel */
 		AUTO_RELEASE sccp_device_t *remoteDevice = sccp_device_retain(linedevice->device);
 
@@ -574,7 +560,6 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 
 				case SCCP_CHANNELSTATE_DOWN:
 				case SCCP_CHANNELSTATE_ONHOOK:
-					break;
 					if (SKINNY_CALLTYPE_INBOUND == c->calltype && c->answered_elsewhere) {
 						switch (phonebookRecord) {
 							case SCCP_PHONEBOOK_RECEIVED:
@@ -595,6 +580,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 					remoteDevice->indicate->remoteOnhook(remoteDevice, lineInstance, callid);
 					break;
 
+				case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 				case SCCP_CHANNELSTATE_CONNECTED:
 					switch (c->calltype) {
 #if 0
