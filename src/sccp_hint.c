@@ -1215,22 +1215,23 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 					switch (hint->currentState) {
 						case SCCP_CHANNELSTATE_ONHOOK:
-							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							status = SKINNY_BLF_STATUS_IDLE;
 							break;
 
 						case SCCP_CHANNELSTATE_DOWN:
-							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							status = SKINNY_BLF_STATUS_UNKNOWN;	/* default state */
 							break;
 
 						case SCCP_CHANNELSTATE_DND:
-							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							//snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							snprintf(displayMessage, sizeof(displayMessage), "(DND) %s", k.name);
 							status = SKINNY_BLF_STATUS_DND;	/* dnd */
 							break;
 
 						case SCCP_CHANNELSTATE_CONGESTION:
-							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							status = SKINNY_BLF_STATUS_UNKNOWN;	/* device/line not found */
 							break;
 
