@@ -513,13 +513,8 @@ top_srcdir = @top_srcdir@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
 #          See the LICENSE file at the top of the source tree.
-<<<<<<< HEAD
 # DATE:     $Date$
 # REVISION: $Revision$
-=======
-# DATE:     $Date: 2015-08-29 11:33:27 +0200 (za, 29 aug 2015) $
-# REVISION: $Revision: 6167 $
->>>>>>> cf2d74f5d39ec7821e26bc70fb483baea7076437
 # NOTE: Process this file with automake to produce a makefile.in script.
 
 #AUTOMAKE_OPTIONS		= gnu silent-rules
@@ -1062,9 +1057,6 @@ FORCE:
 #
 all:
 	cd src && $(MAKE) $(AM_MAKEFLAGS) all
-	@if test "$(TEST_FRAMEWORK)" == "yes"; then \
-		cd tests && $(MAKE) $(AM_MAKEFLAGS) all; \
-	fi
 
 #
 # install
@@ -1081,17 +1073,6 @@ isntall: install
 # Doxygen
 #
 doxygen: ChangeLog ChangeLog-HTML doxygen-doc
-
-#
-# tests
-#
-test:	
-	cd tests && $(MAKE) $(AM_MAKEFLAGS) all
-
-tests:	test
-
-tests_install:
-	cd tests && $(MAKE) $(AM_MAKEFLAGS) install
 
 #
 # coverage

@@ -3,8 +3,8 @@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date$
-# REVISION: $Revision$
+# DATE:     $Date: 2015-10-15 15:10:26 +0200 (do, 15 okt 2015) $
+# REVISION: $Revision: 6246 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 include $(top_srcdir)/amdoxygen.am
 
@@ -25,66 +25,6 @@ libtool: @LIBTOOL_DEPS@
 	$(SHELL) ./config.status --recheck
 	
 FORCE:
-
-#
-# all
-#
-all:
-	cd src && $(MAKE) $(AM_MAKEFLAGS) all
-	@if test "$(TEST_FRAMEWORK)" == "yes"; then \
-		cd tests && $(MAKE) $(AM_MAKEFLAGS) all; \
-	fi
-
-#
-# install
-#
-install:
-	cd src && $(MAKE) $(AM_MAKEFLAGS) install
-	@if test "$(TEST_FRAMEWORK)" == "yes"; then \
-		cd tests && $(MAKE) $(AM_MAKEFLAGS) install; \
-	fi
-
-isntall: install
-
-#
-# Doxygen
-#
-doxygen: ChangeLog ChangeLog-HTML doxygen-doc
-
-#
-# tests
-#
-test:	
-	cd tests && $(MAKE) $(AM_MAKEFLAGS) all
-
-tests:	test
-
-tests_install:
-	cd tests && $(MAKE) $(AM_MAKEFLAGS) install
-
-#
-# coverage
-#
-rmcoverage:
-	rm -rf coverage;
-
-coverage:
-	mkdir coverage; \
-	lcov --directory src/.libs -b src -c --o coverage/chan-sccp-b.info; \
-	genhtml -o coverage -f -t chan-sccp-b coverage/chan-sccp-b.info
-	
-coverage-zero: rmcoverage
-	lcov --directory src/.libs -b src -z;
-
-#
-# gen_sccpconf
-#
-gen_sccpconf:
-	cd contrib/gen_sccpconf && $(MAKE) $(AM_MAKEFLAGS) all
-
-gen_sccpconf_install:
-	cd contrib/gen_sccpconf && $(MAKE) $(AM_MAKEFLAGS) install
-
 
 # Update ChangeLog file from SVN Log
 ChangeLog:	FORCE
@@ -118,6 +58,9 @@ if ENABLE_SVN2CL
 	  fi; \
 	fi
 endif
+
+# Update ChangeLog Files and Generate Doxygen Documentation
+doxygen: ChangeLog ChangeLog-HTML doxygen-doc
 
 deb: 
 	dpkg-buildpackage -rfakeroot -us -uc
@@ -161,3 +104,29 @@ release:
 	fi 
 	@$(MAKE) dist-gzip
 
+gen_sccpconf:
+	cd contrib/gen_sccpconf && $(MAKE) $(AM_MAKEFLAGS) all
+
+gen_sccpconf_install:
+	cd contrib/gen_sccpconf && $(MAKE) $(AM_MAKEFLAGS) install
+
+isntall: install
+
+rmcoverage:
+	rm -rf coverage;
+
+coverage:
+	mkdir coverage; \
+	lcov --directory src/.libs -b src -c --o coverage/chan-sccp-b.info; \
+	genhtml -o coverage -f -t chan-sccp-b coverage/chan-sccp-b.info
+	
+coverage-zero: rmcoverage
+	lcov --directory src/.libs -b src -z;
+
+test:
+	@echo "Success"
+        
+#install-exec-hook:
+#	@if test "$(DEBUG)" == "1" && test -n "$(GDB)" && test tools/chan-sccp-b_backtrace -nt /usr/bin/chan-sccp-b_backtrace; then	\
+#		$(INSTALL) -C tools/chan-sccp-b_backtrace /usr/bin/chan-sccp-b_backtrace;						\
+#	fi
