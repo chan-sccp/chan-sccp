@@ -213,7 +213,7 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 	/* done */
 
 	AUTO_RELEASE sccp_channel_t *new_channel = NULL;
-	new_channel = sccp_channel_newcall(line, d, adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
+	new_channel = sccp_channel_newcall(line, d, ((d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE && !adhocNumber) ? "s" : adhocNumber),SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
 }
 
 /*!
