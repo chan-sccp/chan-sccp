@@ -679,7 +679,11 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 
 		case AST_CONTROL_CONNECTED_LINE:
 			sccp_asterisk_connectedline(c, data, datalen);
-			sccp_indicate(d, c, c->state);
+			if (SCCP_CHANNELSTATE_IsSettingUp(c->state)) {			// early connected_line update -> progress
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
+			} else if (c->state != SCCP_CHANNELSTATE_CONNECTED){		// connected after answer -> connected
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);	
+			}
 
 			res = 0;
 			break;
