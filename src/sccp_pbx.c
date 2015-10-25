@@ -253,7 +253,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 				hasDNDParticipant = TRUE;
 				continue;
 			}
-			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Ringing (Shared) Line: %s on device:%s using channel:%s\n", linedevice->device->id, linedevice->device->id, linedevice->line->name, c->designator);
+			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Ringing %sLine: %s on device:%s using channel:%s, ringermode:%s\n", linedevice->device->id, SCCP_LIST_GETSIZE(&l->devices) > 1 ? "Shared" : "",linedevice->device->id, linedevice->line->name, c->designator, skinny_ringtype2str(c->ringermode));
 			
 			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
 			isRinging = TRUE;
@@ -577,7 +577,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 		return 0;
 	}
 
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: try to allocate channel on line: %s\n", l->name);
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (pbx_channel_allocate) try to allocate %s channel on line: %s, \n", skinny_calltype2str(c->calltype), l->name);
 	/* Don't hold a sccp pvt lock while we allocate a channel */
 
 	char cid_name[StationMaxNameSize] = {0};
@@ -1046,15 +1046,15 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					sccp_channel_endcall(c);
 				}
 				goto EXIT_FUNC;									// leave simpleswitch without dial
-			case SCCP_SOFTSWITCH_DIAL:
-				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension %s\n", d->id, shortenedNumber);
-
-				//sccp_channel_set_calledparty(c, NULL, shortenedNumber);
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
-				break;
 			case SCCP_SOFTSWITCH_SENTINEL:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Unknown Softswitch Request\n", d->id);
 				goto EXIT_FUNC;
+			case SCCP_SOFTSWITCH_DIAL:
+				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension %s\n", d->id, shortenedNumber);
+				//sccp_channel_set_calledparty(c, NULL, shortenedNumber);
+				//sccp_channel_set_calledparty(c, "", c->dialedNumber);
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
+				/* fall through */
 		}
 
 		/* set private variable */
@@ -1093,9 +1093,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		}
 
 		iPbx.setChannelExten(c, shortenedNumber);
-
-		sccp_channel_set_calledparty(c, "", shortenedNumber);
-
 #if 0														/* Remarked out by Pavel Troller for the earlyrtp immediate implementation. Checking if there will be negative fall out.
 														   It might have to check the device->earlyrtp state, to do the correct thing (Let's see). */
 
@@ -1116,7 +1113,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				/* found an extension, let's dial it */
 				sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 
-				//sccp_channel_set_calledparty(c, NULL, shortenedNumber);
 				/* Answer dialplan command works only when in RINGING OR RING ast_state */
 				iPbx.set_callstate(c, AST_STATE_RING);
 
