@@ -1980,32 +1980,18 @@ static boolean_t sccp_wrapper_asterisk16_checkHangup(const sccp_channel_t * chan
 
 static boolean_t sccp_wrapper_asterisk16_rtpGetPeer(PBX_RTP_TYPE * rtp, struct sockaddr_storage *address)
 {
-	union sockaddr_union {
-	        struct sockaddr sa;
-	        struct sockaddr_storage ss;
-	        struct sockaddr_in sin;
-	        struct sockaddr_in6 sin6;
-	} tmpaddress = {
-		.ss = *address,
-	};
-
-	ast_rtp_get_peer(rtp, &tmpaddress.sin);
+	struct sockaddr_in tmp = {0};
+	ast_rtp_get_peer(rtp, &tmp);
+	memcpy(address, &tmp, sizeof(struct sockaddr_in));
 	address->ss_family = AF_INET;
 	return TRUE;
 }
 
 static boolean_t sccp_wrapper_asterisk16_rtpGetUs(PBX_RTP_TYPE * rtp, struct sockaddr_storage *address)
 {
-	union sockaddr_union {
-	        struct sockaddr sa;
-	        struct sockaddr_storage ss;
-	        struct sockaddr_in sin;
-	        struct sockaddr_in6 sin6;
-	} tmpaddress = {
-		.ss = *address,
-	};
-
-	ast_rtp_get_us(rtp, &tmpaddress.sin);
+	struct sockaddr_in tmp = {0};
+	ast_rtp_get_us(rtp, &tmp);
+	memcpy(address, &tmp, sizeof(struct sockaddr_in));
 	address->ss_family = AF_INET;
 	return TRUE;
 }
