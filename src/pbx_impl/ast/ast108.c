@@ -2225,33 +2225,17 @@ static boolean_t sccp_wrapper_asterisk18_checkHangup(const sccp_channel_t * chan
 
 static boolean_t sccp_wrapper_asterisk18_rtpGetPeer(PBX_RTP_TYPE * rtp, struct sockaddr_storage *address)
 {
-	union sockaddr_union {
-		struct sockaddr sa;
-		struct sockaddr_storage ss;
-		struct sockaddr_in sin;
-		struct sockaddr_in6 sin6;
-	} tmpaddress = {
-		.ss = *address,
-	};
-
-	ast_rtp_instance_get_remote_address(rtp, (struct ast_sockaddr *)&tmpaddress.sin);
-	address->ss_family = AF_INET;
+	struct ast_sockaddr tmp = {{0}};
+	ast_rtp_instance_get_remote_address(rtp, &tmp);
+	memcpy(address, &tmp.ss, tmp.len);
 	return TRUE;
 }
 
 static boolean_t sccp_wrapper_asterisk18_rtpGetUs(PBX_RTP_TYPE * rtp, struct sockaddr_storage *address)
 {
-	union sockaddr_union {
-		struct sockaddr sa;
-		struct sockaddr_storage ss;
-		struct sockaddr_in sin;
-		struct sockaddr_in6 sin6;
-	} tmpaddress = {
-		.ss = *address,
-	};
-
-	ast_rtp_instance_get_local_address(rtp, (struct ast_sockaddr *)&tmpaddress.sin);
-	address->ss_family = AF_INET;
+	struct ast_sockaddr tmp = {{0}};
+	ast_rtp_instance_get_local_address(rtp, &tmp);
+	memcpy(address, &tmp.ss, tmp.len);
 	return TRUE;
 }
 

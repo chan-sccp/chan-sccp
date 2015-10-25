@@ -644,7 +644,8 @@ static void *sccp_conference_thread(void *data)
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Entering pbx_bridge_join: %s as %d\n", participant->conference->id, pbx_channel_name(participant->conferenceBridgePeer), participant->id);
 
 #if ASTERISK_VERSION_GROUP >= 113
-		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, AST_BRIDGE_IMPART_CHAN_DEPARTABLE, 0);
+		enum ast_bridge_join_flags flags = 0; //AST_BRIDGE_JOIN_PASS_REFERENCE & AST_BRIDGE_JOIN_INHIBIT_JOIN_COLP;
+		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, NULL, flags);
 #else
 		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, NULL, 0);
 #endif
