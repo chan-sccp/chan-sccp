@@ -290,7 +290,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 	char tmpname[80];
 	char *ret = NULL;
 
-	char *types[] = { "device", "channel", "line", "fallback" };
+	char *types[] = { "device", "channel", "line", "fallback", "debug" };
 
 	char *properties_channel[] = { "hold" };
 	char *properties_device[] = { "ringtone", "backgroundImage" };
@@ -337,6 +337,8 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 						return strdup(properties_fallback[i]);
 					}
 				}
+			} else if (strstr(line, "debug") != NULL) {
+				return sccp_complete_debug(line, word, pos, state);
 			}
 			break;
 		case 4:											// properties
@@ -354,6 +356,8 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 						return strdup(properties_channel[i]);
 					}
 				}
+			} else if (strstr(line, "debug") != NULL) {
+				return sccp_complete_debug(line, word, pos, state);
 			}
 			break;
 		case 5:											// values_hold
@@ -364,6 +368,8 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 						return strdup(values_hold[i]);
 					}
 				}
+			} else if (strstr(line, "debug") != NULL) {
+				return sccp_complete_debug(line, word, pos, state);
 			}
 			break;
 		case 6:											// values_hold off device
@@ -371,6 +377,8 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				if (!strncasecmp(word, "device", wordlen) && ++which > state) {
 					return strdup("device");
 				}
+			} else if (strstr(line, "debug") != NULL) {
+				return sccp_complete_debug(line, word, pos, state);
 			}
 			break;
 		case 7:											// values_hold off device
@@ -383,9 +391,14 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 					}
 				}
 				SCCP_RWLIST_UNLOCK(&GLOB(devices));
+			} else if (strstr(line, "debug") != NULL) {
+				return sccp_complete_debug(line, word, pos, state);
 			}
 			break;
 		default:
+			if (strstr(line, "debug") != NULL) {
+				return sccp_complete_debug(line, word, pos, state);
+			}
 			break;
 	}
 	return ret;
@@ -3156,7 +3169,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 	if (pbx_strlen_zero(argv[2])) {
 		return RESULT_SHOWUSAGE;
 	}
-	if (!strcmp("channel", argv[2])) {
+	if (sccp_strcaseequals("channel", argv[2])) {
 		if (argc < 5) {
 			return RESULT_SHOWUSAGE;
 		}
@@ -3224,7 +3237,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 			}
 		} while (FALSE);
 
-	} else if (!strcmp("device", argv[2])) {
+	} else if (sccp_strcaseequals("device", argv[2])) {
 		if (argc < 6) {
 			return RESULT_SHOWUSAGE;
 		}
@@ -3297,12 +3310,37 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 			return RESULT_FAILURE;
 		}
 		pbx_cli(fd, "New global fallback value: %s\n", GLOB(token_fallback));
+	} else if (sccp_strcaseequals("debug", argv[2])) {
+		int32_t new_debug = GLOB(debug);
+		if (argc > 3) {
+			new_debug = sccp_parse_debugline(argv, 3, argc, new_debug);
+		}
+		char *debugcategories = sccp_get_debugcategories(new_debug);
+
+		if (argc > 3) {
+			pbx_cli(fd, "SCCP new debug status: (%d -> %d) %s\n", GLOB(debug), new_debug, debugcategories);
+		} else {
+			pbx_cli(fd, "SCCP debug status: (%d) %s\n", GLOB(debug), debugcategories);
+		}
+		sccp_free(debugcategories);
+
+		GLOB(debug) = new_debug;
+		return RESULT_SUCCESS;
+	} else {
+		pbx_cli(fd, "ERROR: 'sccp set %s', Unknown argument '%s'\n\n", argv[2], argv[2]);
+		return RESULT_SHOWUSAGE;
 	}
 
 	return cli_result;
 }
 
-static char set_object_usage[] = "Usage: sccp set channel|device|fallback settings\n" "sccp set channel <channelId> hold <on/off>|device <deviceId> [ringtone <ringtone>|backgroundImage <url>|variable <variable>]|fallback [true|false|odd|even|script path]\n";
+static char set_object_usage[] = "Usage: sccp set channel|device|fallback|debug settings\n" \
+				"sccp set " \
+				"channel <channelId> hold <on/off>" \
+				"|device <deviceId> [ringtone <ringtone>|backgroundImage <url>" \
+				"|variable <variable>]" \
+				"|fallback [true|false|odd|even|script path]" \
+				"|debug [[no] <debugcategory>|none]\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "set"
