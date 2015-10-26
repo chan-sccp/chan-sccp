@@ -118,8 +118,8 @@ sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t * ci)
 {
 	pbx_assert(ci != NULL);
 	sccp_callinfo_lock(ci);
-	sccp_mutex_destroy(&ci->lock);
 	sccp_callinfo_unlock(ci);
+	sccp_mutex_destroy(&ci->lock);
 	sccp_free(ci);
 	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "SCCP: callinfo destructor\n");
 	return NULL;
