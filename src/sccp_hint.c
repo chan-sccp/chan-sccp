@@ -296,14 +296,13 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 {
 	sccp_hint_list_t *hint;
 	int extensionState;
-	char hintStr[AST_MAX_EXTENSION];
+	//char hintStr[AST_MAX_EXTENSION];
 	//const char *cidName;
 	//const char *cidNumber;
 	char cidName[StationMaxNameSize] = "";
 	char cidNumber[StationMaxDirnumSize] = "";
 
 	hint = (sccp_hint_list_t *) data;
-	ast_get_hint(hintStr, sizeof(hintStr), NULL, 0, NULL, hint->context, hint->exten);
 
 #if ASTERISK_VERSION_GROUP >= 111
 	extensionState = info->exten_state;
@@ -585,10 +584,10 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	}
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_create) Create hint for exten: %s context: %s\n", hint_exten, hint_context);
 
-	pbx_get_hint(hint_dialplan, sizeof(hint_dialplan) - 1, NULL, 0, NULL, hint_context, hint_exten);
+	int res = pbx_get_hint(hint_dialplan, sizeof(hint_dialplan) - 1, NULL, 0, NULL, hint_context, hint_exten);
 	// CS_AST_HAS_NEW_HINT
 
-	if (sccp_strlen_zero(hint_dialplan)) {
+	if (!res || sccp_strlen_zero(hint_dialplan)) {
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_create) No hint configuration in the dialplan exten: %s and context: %s\n", hint_exten, hint_context);
 		return NULL;
 	}
@@ -689,14 +688,16 @@ static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device)
 	if (line->statistic.numberOfActiveDevices == 0) {		/* release last instance of lineState->line */
 		//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_detachLine) detaching line: %s, \n", DEV_ID_LOG(device), line->name);
 		SCCP_LIST_LOCK(&lineStates);
-		SCCP_LIST_TRAVERSE(&lineStates, lineState, list) {
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&lineStates, lineState, list) {
 			if (lineState->line == line) {
 				//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_detachLine) line: %s detached\n", DEV_ID_LOG(device), line->name);
 				lineState->line = lineState->line ? sccp_line_release(lineState->line) : NULL;
-				// SCCP_LIST_REMOVE
+				SCCP_LIST_REMOVE_CURRENT(list);
+				sccp_free(lineState)
 				break;
 			}
 		}
+		SCCP_LIST_TRAVERSE_SAFE_END;
 		SCCP_LIST_UNLOCK(&lineStates);
 	}
 }
@@ -1215,22 +1216,23 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 					switch (hint->currentState) {
 						case SCCP_CHANNELSTATE_ONHOOK:
-							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							status = SKINNY_BLF_STATUS_IDLE;
 							break;
 
 						case SCCP_CHANNELSTATE_DOWN:
-							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							status = SKINNY_BLF_STATUS_UNKNOWN;	/* default state */
 							break;
 
 						case SCCP_CHANNELSTATE_DND:
-							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							//snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							snprintf(displayMessage, sizeof(displayMessage), "(DND) %s", k.name);
 							status = SKINNY_BLF_STATUS_DND;	/* dnd */
 							break;
 
 						case SCCP_CHANNELSTATE_CONGESTION:
-							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							status = SKINNY_BLF_STATUS_UNKNOWN;	/* device/line not found */
 							break;
 
@@ -1473,7 +1475,7 @@ int sccp_show_hint_lineStates(int fd, sccp_cli_totals_t *totals, struct mansessi
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 #define CLI_AMI_TABLE_FIELDS 															\
- 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	lineState->line->name)					\
+ 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	lineState->line ? lineState->line->name : "")		\
  		CLI_AMI_TABLE_FIELD(State,		"-22.22",	s,	22,	sccp_channelstate2str(lineState->state))		\
  		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15",	s,	15,	lineState->callInfo.partyNumber)			\
  		CLI_AMI_TABLE_FIELD(CallInfoName,	"-30.30",	s,	30,	lineState->callInfo.partyName)				\
@@ -1518,8 +1520,8 @@ int sccp_show_hint_subscriptions(int fd, sccp_cli_totals_t *totals, struct manse
 	{																	\
 		char cidName[StationMaxNameSize];												\
 		char cidNumber[StationMaxDirnumSize];												\
-		if (subscription->calltype == SKINNY_CALLTYPE_INBOUND) {										\
-			sccp_callinfo_getter(subscription->callInfo, 											\
+		if (subscription->calltype == SKINNY_CALLTYPE_INBOUND) {									\
+			sccp_callinfo_getter(subscription->callInfo, 										\
 				SCCP_CALLINFO_CALLINGPARTY_NAME, &cidName, 									\
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cidNumber, 									\
 				SCCP_CALLINFO_KEY_SENTINEL);											\

@@ -2757,7 +2757,8 @@ void sccp_handle_dialtone(constDevicePtr d, constLinePtr l, constChannelPtr chan
 		return;
 	}
 
-	if (channel->softswitch_action != SCCP_SOFTSWITCH_DIAL || channel->scheduler.hangup) {
+	//pbx_log(LOG_WARNING, "%s: handle dialtone on %s. Current state: %s\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
+	if (channel->softswitch_action != SCCP_SOFTSWITCH_DIAL || channel->scheduler.hangup || channel->state == SCCP_CHANNELSTATE_DIALING) {
 		return;
 	}
 

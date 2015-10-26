@@ -309,6 +309,10 @@ typedef struct ast_event pbx_event_t;
 #define pbx_stream_and_wait ast_stream_and_wait
 #define pbx_say_number ast_say_number
 #define pbx_fileexists ast_fileexists
+#if ASTERISK_VERSION_GROUP < 111 && defined(__clang__)
+#undef AST_STRING_FIELD_ALLOCATION
+#define AST_STRING_FIELD_ALLOCATION(x) *((ast_string_field_allocation *) ((ast_string_field_allocation)x - __alignof__(ast_string_field_allocation)))
+#endif
 #define pbx_string_field_build ast_string_field_build
 #define pbx_string_field_set ast_string_field_set
 #define pbx_strip ast_strip
