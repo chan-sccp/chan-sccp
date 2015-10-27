@@ -54,7 +54,7 @@ enum callinfo_types {
  * \brief SCCP CallInfo Structure
  */
 struct sccp_callinfo {
-	sccp_mutex_t lock;
+	pbx_rwlock_t lock;
 	callinfo_entry_t entries[HUNT_PILOT + 1];
 	uint32_t originalCdpnRedirectReason;									/*!< Original Called Party Redirect Reason */
 	uint32_t lastRedirectingReason;										/*!< Last Redirecting Reason */
@@ -63,8 +63,9 @@ struct sccp_callinfo {
 	uint8_t callInstance;
 };														/*!< SCCP CallInfo Structure */
 
-#define sccp_callinfo_lock(x) sccp_mutex_lock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
-#define sccp_callinfo_unlock(x) sccp_mutex_unlock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
+#define sccp_callinfo_wrlock(x) pbx_rwlock_wrlock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
+#define sccp_callinfo_rdlock(x) pbx_rwlock_rdlock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
+#define sccp_callinfo_unlock(x) pbx_rwlock_unlock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
 
 struct callinfo_lookup {
 	const enum callinfo_groups group;
@@ -98,18 +99,13 @@ sccp_callinfo_t *const sccp_callinfo_ctor(uint8_t callInstance)
 		pbx_log(LOG_ERROR, "SCCP: No memory to allocate callinfo object. Failing\n");
 		return NULL;
 	}
-	sccp_mutex_init(&ci->lock);
+	pbx_rwlock_init(&ci->lock);
 
 	/* by default we allow callerid presentation */
 	ci->presentation = CALLERID_PRESENTATION_ALLOWED;
 	ci->changed = TRUE;
 	ci->callInstance = callInstance;
 
-	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
-		#ifdef DEBUG
-		//sccp_do_backtrace();
-		#endif
-	}
 	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_1 "SCCP: callinfo constructor: %p\n", ci);
 	return ci;
 }
@@ -117,9 +113,9 @@ sccp_callinfo_t *const sccp_callinfo_ctor(uint8_t callInstance)
 sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t * ci)
 {
 	pbx_assert(ci != NULL);
-	sccp_callinfo_lock(ci);
+	sccp_callinfo_wrlock(ci);
 	sccp_callinfo_unlock(ci);
-	sccp_mutex_destroy(&ci->lock);
+	pbx_rwlock_destroy(&ci->lock);
 	sccp_free(ci);
 	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "SCCP: callinfo destructor\n");
 	return NULL;
@@ -133,7 +129,7 @@ sccp_callinfo_t *sccp_callinfo_copyCtor(const sccp_callinfo_t * const src_ci)
 		if (!tmp_ci) {
 			return NULL;
 		}
-		sccp_callinfo_lock(src_ci);
+		sccp_callinfo_rdlock(src_ci);
 		memcpy(tmp_ci, src_ci, sizeof(sccp_callinfo_t));
 		sccp_callinfo_unlock(src_ci);
 
@@ -150,11 +146,11 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src_ci, sccp_callinfo
 		sccp_callinfo_t tmp_ci;
 		memset(&tmp_ci, 0, sizeof(sccp_callinfo_t));
 
-		sccp_callinfo_lock(src_ci);
+		sccp_callinfo_rdlock(src_ci);
 		memcpy(&tmp_ci, src_ci, sizeof(sccp_callinfo_t));
 		sccp_callinfo_unlock(src_ci);
 
-		sccp_callinfo_lock(dst_ci);
+		sccp_callinfo_wrlock(dst_ci);
 		memcpy(dst_ci, &tmp_ci, sizeof(sccp_callinfo_t));
 		dst_ci->changed = TRUE;
 		sccp_callinfo_unlock(dst_ci);
@@ -171,7 +167,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
 	int changes = 0;
 
-	sccp_callinfo_lock(ci);
+	sccp_callinfo_wrlock(ci);
 	va_list ap;
 	va_start(ap, key);
 
@@ -283,7 +279,7 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 		sccp_callinfo_print2log(src_ci, "SCCP: (sccp_callinfo_copyByKey) orig src_ci");
 		sccp_callinfo_print2log(dst_ci, "SCCP: (sccp_callinfo_copyByKey) orig dst_ci");
 	}
-	sccp_callinfo_lock(src_ci);
+	sccp_callinfo_rdlock(src_ci);
 	va_list ap;
 	va_start(ap, key);
 	dstkey=va_arg(ap, sccp_callinfo_key_t);
@@ -350,7 +346,7 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 	va_end(ap);
 	sccp_callinfo_unlock(src_ci);
 	
-	sccp_callinfo_lock(dst_ci);
+	sccp_callinfo_wrlock(dst_ci);
 	memcpy(dst_ci, &tmp_ci, sizeof(sccp_callinfo_t));
 	sccp_callinfo_unlock(dst_ci);
 
@@ -368,7 +364,7 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
 	int entries = 0;
 
-	sccp_callinfo_lock(ci);
+	sccp_callinfo_rdlock(ci);
 	va_list ap;
 	va_start(ap, key);
 
@@ -467,7 +463,7 @@ int sccp_callinfo_send(sccp_callinfo_t * const ci, const uint32_t callid, const 
 	if (ci->changed || force) {
 		if (device->protocol && device->protocol->sendCallInfo) {
 			device->protocol->sendCallInfo(ci, callid, calltype, lineInstance, ci->callInstance, device);
-			sccp_callinfo_lock(ci);
+			sccp_callinfo_wrlock(ci);
 			ci->changed = FALSE;
 			sccp_callinfo_unlock(ci);
 			return 1;
@@ -513,7 +509,7 @@ int sccp_callinfo_setLastRedirectingParty(sccp_callinfo_t * const ci, const char
 boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str_t ** const buf)
 {
 	pbx_assert(ci != NULL);
-	sccp_callinfo_lock(ci);
+	sccp_callinfo_rdlock(ci);
 	pbx_str_append(buf, 0, "%p: (getCallInfoStr):\n", ci);
 	if (ci->entries[CALLED_PARTY].NumberValid || ci->entries[CALLED_PARTY].VoiceMailboxValid) {
 		pbx_str_append(buf, 0, " - calledParty: %s <%s>%s%s%s\n", ci->entries[CALLED_PARTY].Name, ci->entries[CALLED_PARTY].Number, 

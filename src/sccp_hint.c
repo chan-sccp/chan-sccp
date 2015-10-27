@@ -664,7 +664,7 @@ static void sccp_hint_attachLine(sccp_line_t * line, sccp_device_t * device)
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_attachLine) Create new hint_lineState for line: %s\n", DEV_ID_LOG(device), line->name);
 		lineState = sccp_calloc(sizeof(struct sccp_hint_lineState), 1);
 		if (!lineState) {
-			pbx_log(LOG_ERROR, "%s: (sccp_hint_lineStatusChanged) Memory Allocation Error while creating hint-lineState object for line %s\n", DEV_ID_LOG(device), line->name);
+			pbx_log(LOG_ERROR, "%s: (sccp_hint_attachLine) Memory Allocation Error while creating hint-lineState object for line %s\n", DEV_ID_LOG(device), line->name);
 			SCCP_LIST_UNLOCK(&lineStates);
 			return;
 		}
