@@ -821,12 +821,9 @@ void sccp_feat_join(constDevicePtr device, constLinePtr l, uint8_t lineInstance,
 		}
 		SCCP_LIST_UNLOCK(&((sccp_line_t *const)l)->channels);
 
-		sccp_conference_hold(conference);								// make sure conference is on hold
-
+		sccp_conference_hold(conference);								// make sure conference is on hold (should already be on hold)
 		if (moderator_channel != newparticipant_channel) {
 			if (moderator_channel && newparticipant_channel) {
-				sccp_channel_resume(d, moderator_channel, FALSE);				// swap active channel
-
 				pbx_log(LOG_NOTICE, "%s: Joining new participant to conference\n", DEV_ID_LOG(d));
 				if ((bridged_channel = iPbx.get_bridged_channel(newparticipant_channel->owner))) {
 					sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), sccp_channelstate2str(newparticipant_channel->state));
@@ -847,7 +844,8 @@ void sccp_feat_join(constDevicePtr device, constLinePtr l, uint8_t lineInstance,
 			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
 		}
 		//sccp_feat_conflist(d, lineInstance, moderator_channel);
-		sccp_conference_resume(conference);							// done by resume already
+		//sccp_conference_resume(conference);							// done by resume already
+		sccp_channel_resume(d, moderator_channel, FALSE);				// swap active channel
 		sccp_conference_update(conference);
 		sccp_feat_conflist(d, lineInstance, moderator_channel);
 	}
