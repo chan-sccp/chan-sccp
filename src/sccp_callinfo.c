@@ -113,8 +113,8 @@ sccp_callinfo_t *const sccp_callinfo_ctor(uint8_t callInstance)
 sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t * ci)
 {
 	pbx_assert(ci != NULL);
-	sccp_callinfo_wrlock(ci);
-	sccp_callinfo_unlock(ci);
+	//sccp_callinfo_wrlock(ci);
+	//sccp_callinfo_unlock(ci);
 	pbx_rwlock_destroy(&ci->lock);
 	sccp_free(ci);
 	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "SCCP: callinfo destructor\n");
@@ -130,7 +130,13 @@ sccp_callinfo_t *sccp_callinfo_copyCtor(const sccp_callinfo_t * const src_ci)
 			return NULL;
 		}
 		sccp_callinfo_rdlock(src_ci);
-		memcpy(tmp_ci, src_ci, sizeof(sccp_callinfo_t));
+		//memcpy(tmp_ci, src_ci, sizeof(sccp_callinfo_t));					// don't do this, it will copy the lock state as well
+		memcpy(tmp_ci->entries, src_ci->entries, sizeof(callinfo_entry_t));
+		tmp_ci->originalCdpnRedirectReason = src_ci->originalCdpnRedirectReason;
+		tmp_ci->lastRedirectingReason = src_ci->lastRedirectingReason;
+		tmp_ci->presentation = src_ci->presentation;
+		tmp_ci->callInstance = src_ci->callInstance;
+		tmp_ci->changed = TRUE;
 		sccp_callinfo_unlock(src_ci);
 
 		return tmp_ci;
@@ -142,7 +148,6 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src_ci, sccp_callinfo
 {
 	/* observing locking order. not locking both callinfo objects at the same time, using a tmp as go between */
 	if (src_ci && dst_ci) {
-		//sccp_callinfo_t tmp_ci = {{{{0}}}};
 		sccp_callinfo_t tmp_ci;
 		memset(&tmp_ci, 0, sizeof(sccp_callinfo_t));
 
@@ -151,7 +156,12 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src_ci, sccp_callinfo
 		sccp_callinfo_unlock(src_ci);
 
 		sccp_callinfo_wrlock(dst_ci);
-		memcpy(dst_ci, &tmp_ci, sizeof(sccp_callinfo_t));
+		//memcpy(dst_ci, &tmp_ci, sizeof(sccp_callinfo_t));					// don't do this, it will copy the lock state as well
+		memcpy(dst_ci->entries, &tmp_ci.entries, sizeof(callinfo_entry_t));
+		dst_ci->originalCdpnRedirectReason = tmp_ci.originalCdpnRedirectReason;
+		dst_ci->lastRedirectingReason = tmp_ci.lastRedirectingReason;
+		dst_ci->presentation = tmp_ci.presentation;
+		dst_ci->callInstance = tmp_ci.callInstance;
 		dst_ci->changed = TRUE;
 		sccp_callinfo_unlock(dst_ci);
 
@@ -347,7 +357,13 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 	sccp_callinfo_unlock(src_ci);
 	
 	sccp_callinfo_wrlock(dst_ci);
-	memcpy(dst_ci, &tmp_ci, sizeof(sccp_callinfo_t));
+	//memcpy(dst_ci, &tmp_ci, sizeof(sccp_callinfo_t));					// don't do this, it will copy the lock state as well
+	memcpy(dst_ci->entries, &tmp_ci.entries, sizeof(callinfo_entry_t));
+	dst_ci->originalCdpnRedirectReason = tmp_ci.originalCdpnRedirectReason;
+	dst_ci->lastRedirectingReason = tmp_ci.lastRedirectingReason;
+	dst_ci->presentation = tmp_ci.presentation;
+	dst_ci->callInstance = tmp_ci.callInstance;
+	dst_ci->changed = TRUE;
 	sccp_callinfo_unlock(dst_ci);
 
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
