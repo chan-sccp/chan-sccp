@@ -704,8 +704,11 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, tmpCallingNumber,
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, tmpCallingNumber,
+				//SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, tmpCallingNumber,
+				//SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, tmpCallingNumber,
+			
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, tmpCalledNumber,
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, tmpCalledName,
