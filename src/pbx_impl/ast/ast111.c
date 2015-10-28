@@ -657,14 +657,18 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 
 		case AST_CONTROL_CONNECTED_LINE:
 			sccp_asterisk_connectedline(c, data, datalen);
+			res = 0;
+			break;
 
+		case AST_CONTROL_TRANSFER:
+			ast_log(LOG_NOTICE, "%s: Ast Control Transfer: %d", c->designator, *(int *)data);
+			//sccp_asterisk_connectedline(c, data, datalen);
 			res = 0;
 			break;
 
 		case AST_CONTROL_REDIRECTING:
 			sccp_asterisk_redirectedUpdate(c, data, datalen);
 			sccp_indicate(d, c, c->state);
-
 			res = 0;
 			break;
 
