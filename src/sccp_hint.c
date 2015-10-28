@@ -923,7 +923,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 							SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
 							SCCP_CALLINFO_PRESENTATION, &presentation, 
 							SCCP_CALLINFO_KEY_SENTINEL);
-						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speeddial partyName: '%s' (callingParty)\n", line->name, cid_name);
+						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: get speeddial party: '%s <%s>' (callingParty)\n", line->name, cid_name, cid_num);
 						break;
 					case SKINNY_CALLTYPE_OUTBOUND:
 						sccp_callinfo_getter(ci, 
@@ -931,12 +931,12 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 							SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cid_num, 
 							SCCP_CALLINFO_PRESENTATION, &presentation, 
 							SCCP_CALLINFO_KEY_SENTINEL);
-						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speeddial partyName: '%s' (calledParty)\n", line->name, cid_name);
+						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: get speeddial party: '%s <%s>' (calledParty)\n", line->name, cid_name, cid_num);
 						break;
 					case SKINNY_CALLTYPE_FORWARD:
 						sccp_copy_string(cid_name, "cfwd", sizeof(cid_name));
 						sccp_copy_string(cid_num, "cfwd", sizeof(cid_num));
-						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speedial partyName: cfwd\n", line->name);
+						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: get speedial partyName: cfwd\n", line->name);
 						break;
 					case SKINNY_CALLTYPE_SENTINEL:
 						break;

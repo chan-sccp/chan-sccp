@@ -19,6 +19,7 @@
 #include "../../sccp_indicate.h"
 #include "../../sccp_socket.h"
 #include "../../sccp_pbx.h"
+#include "../../sccp_line.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
@@ -675,6 +676,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 {
 #if ASTERISK_VERSION_GROUP > 106
 	PBX_CHANNEL_TYPE *ast = channel->owner;
+	int changes = 0;
 	sccp_callinfo_t *const callInfo = sccp_channel_getCallInfo(channel);
 
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got connected line update, connected.id.number=%s, connected.id.name=%s, reason=%d\n", pbx_channel_name(ast), pbx_channel_connected_id(ast).number.str ? pbx_channel_connected_id(ast).number.str : "(nil)", pbx_channel_connected_id(ast).name.str ? pbx_channel_connected_id(ast).name.str : "(nil)", pbx_channel_connected_source(ast));
@@ -698,7 +700,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	if (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Destination\n");
-			sccp_callinfo_setter(callInfo, 
+			changes = sccp_callinfo_setter(callInfo, 
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				
@@ -716,7 +718,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 				SCCP_CALLINFO_KEY_SENTINEL);
 		} else {
 			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Transferee\n");
-			sccp_callinfo_setter(callInfo, 	
+			changes = sccp_callinfo_setter(callInfo, 	
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLEDPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				
@@ -735,13 +737,24 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 		}
 	} else {
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-			sccp_channel_set_callingparty(channel, pbx_channel_connected_id(ast).name.str, pbx_channel_connected_id(ast).number.str);
+			changes = sccp_callinfo_setter(callInfo,
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
+				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
+				SCCP_CALLINFO_KEY_SENTINEL);
 		} else {
-			sccp_channel_set_calledparty(channel, pbx_channel_connected_id(ast).name.str, pbx_channel_connected_id(ast).number.str);
+			changes = sccp_callinfo_setter(callInfo,
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
+				SCCP_CALLINFO_CALLEDPARTY_NAME, pbx_channel_connected_id(ast).name.str,
+				SCCP_CALLINFO_KEY_SENTINEL);
 		}
 	}
 	sccp_channel_display_callInfo(channel);
 	sccp_channel_send_callinfo2(channel);
+
+	if (changes) {								/* only send indications if something changed */
+		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
+		sccp_indicate(d, channel, channel->state);
+	}
 #endif
 }
 
