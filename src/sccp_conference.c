@@ -753,13 +753,13 @@ void sccp_conference_hold(conferencePtr conference)
 {
 	sccp_participant_t *participant = NULL;
 
-	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Putting conference on hold.\n", conference->id);
-	if (!conference) {
+	if (!conference || conference->isOnHold) {
 		return;
 	}
+	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Putting conference on hold.\n", conference->id);
 
 	/* play music on hold to participants, if there is no moderator, currently active to the conference */
-	if (!conference->isOnHold && conference->num_moderators == 1) {
+	if (conference->num_moderators >= 1) {
 		SCCP_RWLIST_RDLOCK(&((conferencePtr)conference)->participants);
 		SCCP_RWLIST_TRAVERSE(&conference->participants, participant, list) {
 			if (participant->isModerator == FALSE) {
