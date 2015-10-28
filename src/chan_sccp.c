@@ -347,7 +347,7 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
 	if (sscanf((char *) arguments[startat], "%d", &new_debug_value) != 1) {
 		for (argi = startat; argi < argc; argi++) {
 			argument = (char *) arguments[argi];
-			if (!strncmp(argument, "none", 4)) {
+			if (!strncmp(argument, "none", 4) || !strncmp(argument, "off", 3)) {
 				new_debug_value = 0;
 				break;
 			} else if (!strncmp(argument, "no", 2)) {
@@ -361,6 +361,7 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
 				}
 			} else {
 				// parse comma separated debug_var
+				boolean_t matched = FALSE;
 				token = strtok(argument, delimiters);
 				while (token != NULL) {
 					// match debug level name to enum
@@ -369,13 +370,18 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
 							if (subtract) {
 								if ((new_debug_value & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
 									new_debug_value -= sccp_debug_categories[i].category;
+									matched=TRUE;
 								}
 							} else {
 								if ((new_debug_value & sccp_debug_categories[i].category) != sccp_debug_categories[i].category) {
 									new_debug_value += sccp_debug_categories[i].category;
+									matched=TRUE;
 								}
 							}
 						}
+					}
+					if (!matched) {
+						pbx_log(LOG_NOTICE, "SCCP: unknown debug value '%s'\n", token);
 					}
 					token = strtok(NULL, delimiters);
 				}
@@ -398,7 +404,7 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 	const char *sep = ",";
 	size_t size = 0;
 
-	for (i = 0; i < ARRAY_LEN(sccp_debug_categories); ++i) {
+	for (i = 2; i < ARRAY_LEN(sccp_debug_categories); ++i) {
 		if ((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
 			size_t new_size = size;
 
