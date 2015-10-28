@@ -227,7 +227,7 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 	int which = 0;
 	char *ret = NULL;
 	boolean_t debugno = 0;
-	char *extra_cmds[3] = { "no", "none", "all" };
+	char *extra_cmds[] = { "no", "none", "off", "all" };
 
 	// check if the sccp debug line contains no before the categories
 	if (!strncasecmp(line, "sccp debug no ", strlen("sccp debug no "))) {
@@ -246,7 +246,7 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 		}
 	}
 	// check categories
-	for (i = 0; i < ARRAY_LEN(sccp_debug_categories); i++) {
+	for (i =0; i < ARRAY_LEN(sccp_debug_categories); i++) {
 		// if in debugno mode
 		if (debugno) {
 			// then skip the categories which are not currently active
