@@ -271,5 +271,6 @@ regexten = ""                                                                   
 ;offhookfeat = redial,endcall                                                     ; (SIZE: 15) displayed wenn we went offhook using a feature
 ;onhint = redial,newcall,pickup,gpickup,barge                                     ; (SIZE: 15) displayed when a hint is activated
 ;onstealable = redial,newcall,cfwdall,pickup,gpickup,dnd,intrcpt                  ; (SIZE: 15) displayed when there is a call we could steal on one of the neighboring phones
-uriaction = ""                                                                    ; (MULTI-ENTRY) (SIZE: 7) softkey uri action to replace default handling. Format: uriaction = softkeyname, uri[,uri...]
+;holdconf = resume,newcall,endcall,join				                  ; (SIZE: 15) displayed when we are a conference moderator, have the conference on hold and have another active call
+;uriaction = ""                                                                   ; (MULTI-ENTRY) (SIZE: 7) softkey uri action to replace default handling. Format: uriaction = softkeyname, uri[,uri...]
                                                                                   ; . URI can be an embedded cisco action (like Key:Service, Play:1041.raw) or a URLIf uri is a url the following parameters will be added to it: devicename, linename, channelname, callid, linkedid, uniqueid, appid, transactionid
