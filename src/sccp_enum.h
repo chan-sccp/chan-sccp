@@ -3,7 +3,8 @@
  * $Date: $
  * $Revision: $
  */
-#pragma once
+#ifndef __SCCP_ENUM_GUARD_H
+#define __SCCP_ENUM_GUARD_H
 typedef int (*sccp_enum_str2intval_t)(const char *lookup_str);
 typedef char *(*sccp_enum_all_entries_t)(void);
 
@@ -1142,6 +1143,7 @@ typedef enum skinny_keymode {
 	KEYMODE_OFFHOOKFEAT,
 	KEYMODE_INUSEHINT,
 	KEYMODE_ONHOOKSTEALABLE,
+	KEYMODE_HOLDCONF,
 	KEYMODE_EMPTY,
 	SKINNY_KEYMODE_SENTINEL
 } skinny_keymode_t;
@@ -1514,4 +1516,4 @@ int skinny_miscCommandType_str2intval(const char *lookup_str);
 char *skinny_miscCommandType_all_entries(void);
 /* = End =========================================================================================         skinny_miscCommandType === */
 
-// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
+#endif /* __SCCP_ENUM_GUARD_H */
