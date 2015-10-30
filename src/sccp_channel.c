@@ -2582,6 +2582,30 @@ sccp_channel_t *sccp_find_channel_on_line_byid(constLinePtr l, uint32_t id)
 }
 
 /*!
+ * Find channel by lineId and CallId, connected to a particular device;
+ * \return *refcounted* SCCP Channel (can be null)
+ */
+sccp_channel_t *sccp_find_channel_by_buttonIndex_and_callid(const sccp_device_t * d, const uint32_t buttonIndex, const uint32_t callid)
+{
+	sccp_channel_t *c = NULL;
+
+	if (!d || !buttonIndex || !callid) {
+		return NULL;
+	}
+
+	AUTO_RELEASE sccp_line_t *l = sccp_line_find_byButtonIndex((sccp_device_t *) d, buttonIndex);
+	if (l) {
+		SCCP_LIST_LOCK(&l->channels);
+		c = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->callid == callid), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+		SCCP_LIST_UNLOCK(&l->channels);
+	}
+	if (!c) {
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Could not find channel for lineInstance:%u and callid:%d on device\n", DEV_ID_LOG(d), buttonIndex, callid);
+	}
+	return c;
+}
+
+/*!
  * Find channel by lineInstance and CallId, connected to a particular device;
  * \return *refcounted* SCCP Channel (can be null)
  */

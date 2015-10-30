@@ -212,6 +212,7 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid);
 sccp_channel_t *sccp_channel_find_bystate_on_line(constLinePtr l, sccp_channelstate_t state);
 sccp_channel_t *sccp_channel_find_bystate_on_device(constDevicePtr d, sccp_channelstate_t state);
 sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(constDevicePtr d, const uint32_t lineInstance, const uint32_t callid);
+sccp_channel_t *sccp_find_channel_by_buttonIndex_and_callid(const sccp_device_t * d, const uint32_t buttonIndex, const uint32_t callid);
 sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(constDevicePtr d, uint32_t passthrupartyid);
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(constDevicePtr d, constChannelPtr c);
 uint8_t sccp_device_selectedchannels_count(constDevicePtr d);
