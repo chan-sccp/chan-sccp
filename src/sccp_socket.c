@@ -533,10 +533,10 @@ static void sccp_socket_get_error(constSessionPtr s)
 	if (!s || s->fds[0].fd <= 0) {
 		return;
 	}
-	int socket = s->fds[0].fd;
+	int mysocket = s->fds[0].fd;
 	int error = 0;
 	socklen_t error_len = sizeof(error);
-	if ((socket && getsockopt(socket, SOL_SOCKET, SO_ERROR, &error, &error_len) == 0) && error != 0) {
+	if ((mysocket && getsockopt(mysocket, SOL_SOCKET, SO_ERROR, &error, &error_len) == 0) && error != 0) {
 		pbx_log(LOG_ERROR, "%s: SOL_SOCKET:SO_ERROR: %s (%d)\n", DEV_ID_LOG(s->device), strerror(error), error);
 	}
 }
@@ -554,7 +554,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	if (!s || s->session_stop || s->fds[0].fd <= 0 || !msg) {
 		return 0;
 	}
-	int socket = s->fds[0].fd;
+	int mysocket = s->fds[0].fd;
 
 	int msgDataSegmentSize = 0;										/* Size of sccp_data_t according to the sccp_msg_t */
 	int UnreadBytesAccordingToPacket = 0;									/* Size of sccp_data_t according to the incomming Packet */
@@ -570,7 +570,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 
 	// STAGE 1: read header
 	memset(msg, 0, SCCP_MAX_PACKET);
-	readlen = read(socket, (&msg->header), SCCP_PACKET_HEADER);
+	readlen = read(mysocket, (&msg->header), SCCP_PACKET_HEADER);
 	if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {
 		return 0;
 	} /* try again later, return TRUE with empty r */
@@ -592,7 +592,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	dataptr = (unsigned char *) &msg->data;
 	while (bytesToRead > 0) {
 		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
-		readlen = read(socket, buffer, bytesToRead > SCCP_MAX_PACKET ? SCCP_MAX_PACKET : bytesToRead);					// use bufferptr instead
+		readlen = read(mysocket, buffer, bytesToRead > SCCP_MAX_PACKET ? SCCP_MAX_PACKET : bytesToRead);					// use bufferptr instead
 		if ((readlen < 0) && (tries++ < READ_RETRIES) && (errno == EINTR || errno == EAGAIN)) {
 			usleep(backoff);
 			backoff *= 2;
@@ -619,7 +619,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 
 		bytesToRead = UnreadBytesAccordingToPacket;
 		while (bytesToRead > 0) {
-			readlen = read(socket, discardBuffer, (bytesToRead > SCCP_MAX_PACKET) ? SCCP_MAX_PACKET : bytesToRead);
+			readlen = read(mysocket, discardBuffer, (bytesToRead > SCCP_MAX_PACKET) ? SCCP_MAX_PACKET : bytesToRead);
 			if ((readlen < 0) && (tries++ < READ_RETRIES) && (errno == EINTR || errno == EAGAIN)) {
 				usleep(backoff);
 				backoff *= 2;
@@ -1317,7 +1317,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 		msg = NULL;
 		return -1;
 	}
-	int socket = s->fds[0].fd;
+	int mysocket = s->fds[0].fd;
 
 	if (msgid == KeepAliveAckMessage || msgid == RegisterAckMessage || msgid == UnregisterAckMessage) {
 		msg->header.lel_protocolVer = 0;
@@ -1342,7 +1342,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 	do {
 		try++;
 		pbx_mutex_lock(&s->write_lock);									/* prevent two threads writing at the same time. That should happen in a synchronized way */
-		res = write(socket, bufAddr + bytesSent, bufLen - bytesSent);
+		res = write(mysocket, bufAddr + bytesSent, bufLen - bytesSent);
 		pbx_mutex_unlock(&s->write_lock);
 		if (res < 0) {
 			if ((errno == EINTR || errno == EAGAIN) && try < WRITE_RETRIES) {
@@ -1359,7 +1359,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 			break;
 		}
 		bytesSent += res;
-	} while (bytesSent < bufLen && try < WRITE_RETRIES && s && !s->session_stop && socket > 0);
+	} while (bytesSent < bufLen && try < WRITE_RETRIES && s && !s->session_stop && mysocket > 0);
 
 	sccp_free(msg);
 	msg = NULL;
