@@ -2264,8 +2264,8 @@ typedef union {
 		char originalCalledParty[StationMaxDirnumSize];							/*!< Original Calling Party ID */
 		char lastRedirectingPartyName[StationMaxNameSize];						/*!< Original Called Party Name */
 		char lastRedirectingParty[StationMaxDirnumSize];						/*!< Original Called Party ID */
-		uint32_t originalCdpnRedirectReason;								/*!< Original Called Party Redirect Reason */
-		uint32_t lastRedirectingReason;									/*!< Last Redirecting Reason */
+		uint32_t lel_originalCdpnRedirectReason;								/*!< Original Called Party Redirect Reason */
+		uint32_t lel_lastRedirectingReason;									/*!< Last Redirecting Reason */
 		char cgpnVoiceMailbox[StationMaxDirnumSize];							/*!< Calling Party Voicemail Box */
 		char cdpnVoiceMailbox[StationMaxDirnumSize];							/*!< Called Party Voicemail Box */
 		char originalCdpnVoiceMailbox[StationMaxDirnumSize];						/*!< Original Called Party VoiceMail Box */

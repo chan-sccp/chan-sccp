@@ -29,12 +29,14 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const uint8_t callInstance, constDevicePtr device)
 {
  	pbx_assert(device != NULL);
-	sccp_msg_t *msg = NULL;
+	sccp_msg_t *msg;
 
 	REQ(msg, CallInfoMessage);
-	memset(msg, 0, sizeof(msg->data.CallInfoMessage));
 
+	int originalCdpnRedirectReason = 0;
+	int lastRedirectingReason = 0;
 	sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
+
 	sccp_callinfo_getter(ci,
 		SCCP_CALLINFO_CALLEDPARTY_NAME, &msg->data.CallInfoMessage.calledPartyName,
 		SCCP_CALLINFO_CALLEDPARTY_NUMBER, &msg->data.CallInfoMessage.calledParty,
@@ -48,18 +50,22 @@ static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, cons
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &msg->data.CallInfoMessage.lastRedirectingPartyName,
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, &msg->data.CallInfoMessage.lastRedirectingParty,
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, &msg->data.CallInfoMessage.lastRedirectingVoiceMailbox,
-		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &msg->data.CallInfoMessage.originalCdpnRedirectReason,
-		SCCP_CALLINFO_LAST_REDIRECT_REASON, &msg->data.CallInfoMessage.lastRedirectingReason,
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &originalCdpnRedirectReason,
+		SCCP_CALLINFO_LAST_REDIRECT_REASON, &lastRedirectingReason,
 		SCCP_CALLINFO_PRESENTATION, &presentation,
 		SCCP_CALLINFO_KEY_SENTINEL);
+
 	msg->data.CallInfoMessage.partyPIRestrictionBits = presentation ? 0xf : 0x0;
 	msg->data.CallInfoMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.CallInfoMessage.lel_callReference = htolel(callid);
 	msg->data.CallInfoMessage.lel_callType = htolel(calltype);
 	msg->data.CallInfoMessage.lel_callInstance = htolel(callInstance);
 	msg->data.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
+	msg->data.CallInfoMessage.lel_originalCdpnRedirectReason = htolel(originalCdpnRedirectReason);
+	msg->data.CallInfoMessage.lel_lastRedirectingReason = htolel(lastRedirectingReason);
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V3) for %s channel %d/%d on line instance %d" "\n\tcallingParty: %s <%s>" "\n\tcalledParty: %s <%s>", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance, msg->data.CallInfoMessage.callingParty, msg->data.CallInfoMessage.callingPartyName, msg->data.CallInfoMessage.calledParty, msg->data.CallInfoMessage.calledPartyName);
+	//sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 
