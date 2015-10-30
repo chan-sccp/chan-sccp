@@ -248,7 +248,7 @@ void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types t
 }
 
 #if CS_REFCOUNT_DEBUG
-static gcc_inline int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, int delta, const char *file, int line, const char *func)
+static gcc_inline int __sccp_refcount_debug(const void *ptr, RefCountedObject * obj, int delta, const char *file, int line, const char *func)
 {
 	if (!sccp_ref_debug_log) {
 		return -1;
