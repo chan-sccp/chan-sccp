@@ -742,6 +742,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	}
 
 	sccp_hostname_t *hostname;
+	sccp_accessory_t activeAccessory = sccp_device_getActiveAccessory(d);
+	sccp_accessorystate_t activeAccessoryState = sccp_device_getAccessoryStatus(d, activeAccessory);
 
 	SCCP_LIST_TRAVERSE(&d->permithosts, hostname, list) {
 		ast_str_append(&permithost_buf, DEFAULT_PBX_STR_BUFFERSIZE, "%s ", hostname->name);
@@ -806,8 +808,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit",		CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_PARAM("PermitHosts",		CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(permithost_buf));
 	CLI_AMI_OUTPUT_PARAM("Early RTP",		CLI_AMI_LIST_WIDTH, "%s", sccp_earlyrtp2str(d->earlyrtp));
-	sccp_accessory_t activeAccessory = sccp_device_getActiveAccessory(d);
-	CLI_AMI_OUTPUT_PARAM("Accessory State", 	CLI_AMI_LIST_WIDTH, "%s:%s", sccp_accessory2str(activeAccessory), sccp_accessorystate2str(sccp_device_getAccessoryStatus(d, activeAccessory)));
+	CLI_AMI_OUTPUT_PARAM("Accessory State", 	CLI_AMI_LIST_WIDTH, "%s:%s", activeAccessory ? sccp_accessory2str(activeAccessory) : "", activeAccessory ? sccp_accessorystate2str(activeAccessoryState) : "");
 	CLI_AMI_OUTPUT_PARAM("Last dialed number",	CLI_AMI_LIST_WIDTH, "%s (%d)", d->redialInformation.number, d->redialInformation.lineInstance);
 	CLI_AMI_OUTPUT_PARAM("Default line instance",	CLI_AMI_LIST_WIDTH, "%d", d->defaultLineInstance);
 	CLI_AMI_OUTPUT_PARAM("Custom Background Image",	CLI_AMI_LIST_WIDTH, "%s", d->backgroundImage ? d->backgroundImage : "---");
