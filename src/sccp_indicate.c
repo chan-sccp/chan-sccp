@@ -67,12 +67,13 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 		return;
 	}
 
-	AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, l);
+	AUTO_RELEASE sccp_linedevices_t *linedevice = NULL;
 
-	if (linedevice) {
+	if ((linedevice = sccp_linedevice_find(d, l))) {
 		instance = linedevice->lineInstance;
 	} else {
-		pbx_log(LOG_WARNING, "SCCP: The linedevice/instance for device %s and line %s belonging to channel %d could not be found\n", DEV_ID_LOG(d), l->name, c->callid);
+		pbx_log(LOG_ERROR, "%s: The linedevice/instance for device %s and line %s belonging to channel %d could not be found. Skipping indicate.\n", DEV_ID_LOG(d), DEV_ID_LOG(d), l->name, c->callid);
+		return;
 	}
 
 	/* all the check are ok. We can safely run all the dev functions with no more checks */
@@ -173,7 +174,6 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 				sccp_dev_starttone(d, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
 			}
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGOUT);
-
 			break;
 		case SCCP_CHANNELSTATE_RINGING:
 			sccp_dev_cleardisplaynotify(d);
