@@ -444,14 +444,14 @@ gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char 
 	volatile int refcountval;
 	int newrefcountval;
 
-	if ((obj = sccp_refcount_find_obj(ptr, filename, lineno, func))) {
+	if (do_expect((obj = sccp_refcount_find_obj(ptr, filename, lineno, func)) != NULL)) {
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug(ptr, obj, 1, filename, lineno, func);
 #endif
 		refcountval = ATOMIC_INCR((&obj->refcount), 1, &obj->lock);
 		newrefcountval = refcountval + 1;
 
-		if ((sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT)) {
+		if (dont_expect( (sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) {
 			ast_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) %*.*s> %*s refcount increased %.2d  +> %.2d for %10s: %s (%p)\n", filename, lineno, func, refcountval, refcountval, "--------------------", 20 - refcountval, " ", refcountval, newrefcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 		}
 		return (void * const) obj->data;
@@ -475,7 +475,7 @@ gcc_inline void * const sccp_refcount_release(const void * const ptr, const char
 	int newrefcountval, alive;
 	sccp_debug_category_t debugcat;
 
-	if ((obj = sccp_refcount_find_obj(ptr, filename, lineno, func))) {
+	if (do_expect( (obj = sccp_refcount_find_obj(ptr, filename, lineno, func)) != NULL)) {
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) ptr, obj, -1, filename, lineno, func);
 #endif
@@ -483,12 +483,12 @@ gcc_inline void * const sccp_refcount_release(const void * const ptr, const char
 
 		refcountval = ATOMIC_DECR((&obj->refcount), 1, &obj->lock);
 		newrefcountval = refcountval - 1;
-		if (newrefcountval == 0) {
+		if (dont_expect(newrefcountval == 0)) {
 			alive = ATOMIC_DECR(&obj->alive, SCCP_LIVE_MARKER, &obj->lock);
 			sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_1 "SCCP: %-15.15s:%-4.4d (%-25.25s)) (release) Finalizing %p (%p) (alive:%d)\n", filename, lineno, func, obj, ptr, alive);
 			sccp_refcount_remove_obj(ptr);
 		} else {
-			if ((sccp_globals->debug & ((debugcat + DEBUGCAT_REFCOUNT))) == (debugcat ^ DEBUGCAT_REFCOUNT)) {
+			if (dont_expect( (sccp_globals->debug & ((debugcat + DEBUGCAT_REFCOUNT))) == (debugcat ^ DEBUGCAT_REFCOUNT))) {
 				ast_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) <%*.*s %*s refcount decreased %.2d  <- %.2d for %10s: %s (%p)\n", filename, lineno, func, newrefcountval, newrefcountval, "--------------------", 20 - newrefcountval, " ", newrefcountval, refcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 			}
 		}
@@ -514,15 +514,15 @@ gcc_inline void sccp_refcount_replace(const void **replaceptr, const void *const
 	const void *tmpNewPtr = NULL;										// retain new one first
 	const void *oldPtr = *replaceptr;
 
-	if (newptr) {
-		if ((tmpNewPtr = sccp_refcount_retain(newptr, filename, lineno, func))) {
+	if (do_expect(newptr !=NULL)) {
+		if (do_expect( (tmpNewPtr = sccp_refcount_retain(newptr, filename, lineno, func)) != NULL)) {
 			*replaceptr = tmpNewPtr;
-			if (oldPtr) {										// release previous one after
+			if (do_expect(oldPtr != NULL)) {								// release previous one after
 				sccp_refcount_release(oldPtr, filename, lineno, func);				/* explicit release */
 			}
 		}
 	} else {
-		if (oldPtr) {											// release previous one after
+		if (do_expect(oldPtr != NULL)) {									// release previous one after
 			*replaceptr = sccp_refcount_release(oldPtr, filename, lineno, func);			/* explicit release */
 		}
 	}

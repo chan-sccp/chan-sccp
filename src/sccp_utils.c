@@ -1931,9 +1931,9 @@ char *sccp_dec2binstr(char *buf, size_t size, int value)
 gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size)
 {
         pbx_assert(NULL != dst && NULL != src);
-	if (size != 0) {
-		while (--size != 0) {
-			if ((*dst++ = *src++) == '\0') {
+	if (do_expect(size != 0)) {
+		while (do_expect(--size != 0)) {
+			if (+(*dst++ = *src++) == '\0') {
 				break;
 			}
 		}

@@ -103,6 +103,8 @@ typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses T
 #endif
 
 /* CompileTime Annotations */
+#define do_expect(_x) __builtin_expect(_x,1)
+#define dont_expect(_x) __builtin_expect(_x,0)
 #if defined(CCC_ANALYZER)
 #define NONENULL(...) __attribute__((nonnull(__VA_ARGS__)))
 #else
