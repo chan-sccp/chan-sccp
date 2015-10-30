@@ -967,6 +967,66 @@ sccp_line_t *sccp_line_find_byid(constDevicePtr d, uint16_t instance)
 }
 
 /*!
+ * \brief Find Line by ButtonIndex on device
+ *
+ * \todo No ID Specified only instance, should this function be renamed ?
+ *
+ * \callgraph
+ * \callergraph
+ * 
+ */
+#if DEBUG
+/*!
+ * \param d SCCP Device
+ * \param instance line instance as int
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return SCCP Line (can be null)
+ */
+sccp_line_t *__sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex, const char *filename, int lineno, const char *func)
+#else
+/*!
+ * \param d SCCP Device
+ * \param instance line instance as int
+ * \return SCCP Line (can be null)
+ */
+sccp_line_t *sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex)
+#endif
+{
+	sccp_line_t *l = NULL;
+	sccp_buttonconfig_t *config;
+
+	sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with buttonIndex %d.\n", DEV_ID_LOG(d), buttonIndex);
+
+	if (!d || buttonIndex == 0) {
+		return NULL;
+	}
+
+	SCCP_LIST_LOCK(&((devicePtr)d)->buttonconfig);
+	SCCP_LIST_TRAVERSE(&((devicePtr)d)->buttonconfig, config, list) {
+		if (buttonIndex == config->index + 1) {
+#if DEBUG
+			l = sccp_refcount_retain(d->lineButtons.instance[config->instance]->line, filename, lineno, func);
+#else
+			l = sccp_line_retain(d->lineButtons.instance[config->instance]->line);
+#endif
+			break;
+		}
+	}
+	SCCP_LIST_UNLOCK(&((devicePtr)d)->buttonconfig);
+		
+	if (!l) {
+		sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No line found with buttonIndex %d.\n", DEV_ID_LOG(d), buttonIndex);
+		return NULL;
+	}
+
+	sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Found line %s\n", "SCCP", l->name);
+
+	return l;
+}
+
+/*!
  * \brief Get Device Configuration
  * \param device SCCP Device
  * \param line SCCP Line
