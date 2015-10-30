@@ -2085,13 +2085,16 @@ void sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const u
  */
 void sccp_handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
-
 	uint32_t lineInstance = letohl(msg_in->data.OnHookMessage.lel_lineInstance);
 	uint32_t callid = letohl(msg_in->data.OnHookMessage.lel_callReference);
 
 	/* we need this for callwaiting, hold, answer and stuff */
 	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_ONHOOK);
+#ifndef CS_EXPERIMENTAL
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook\n", DEV_ID_LOG(d));
+#else
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook (buttonIndex: %d, callid: %d)\n", DEV_ID_LOG(d), lineInstance, callid);
+#endif
 
 	if (d && !(d->lineButtons.size > SCCP_FIRST_LINEINSTANCE)) {
 		pbx_log(LOG_NOTICE, "No lines registered on %s to put OnHook\n", DEV_ID_LOG(d));
@@ -2103,8 +2106,18 @@ void sccp_handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 
 	if (lineInstance && callid) {
+#ifndef CS_EXPERIMENTAL
 		channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid);
 	} else {
+#else
+		if (d->protocolversion < 15) {
+			channel = sccp_find_channel_by_buttonIndex_and_callid(d, lineInstance, callid);
+		} else {
+			channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid);
+		}
+	}
+	if (!channel) {
+#endif
 		channel = sccp_device_getActiveChannel(d);
 	}
 	if (channel) {
