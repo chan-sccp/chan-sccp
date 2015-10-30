@@ -525,7 +525,11 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				}
 			}
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
+#if CS_SCCP_CONFERENCE 
 			sccp_indicate(d, c, d->conference ? SCCP_CHANNELSTATE_CONNECTEDCONFERENCE : SCCP_CHANNELSTATE_CONNECTED);
+#else
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+#endif
 
 			/** check for monitor request */
 			if (d && (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {

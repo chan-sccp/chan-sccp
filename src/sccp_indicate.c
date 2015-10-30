@@ -299,9 +299,12 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_HOLD, GLOB(digittimeout));
 			sccp_callinfo_send(ci, c->callid, c->calltype, instance, device, TRUE);
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
+#if CS_SCCP_CONFERENCE
 			if (c->conference && d->conference) {
 				sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_HOLDCONF);
-			} else {
+			} else 
+#endif
+			{
 				sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOLD);
 			}
 			break;
