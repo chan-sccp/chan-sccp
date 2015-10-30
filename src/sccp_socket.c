@@ -93,12 +93,12 @@ union sockaddr_union {
 	struct sockaddr_in6 sin6;
 };
 
-boolean_t sccp_socket_is_IPv4(const struct sockaddr_storage *sockAddrStorage)
+gcc_inline boolean_t sccp_socket_is_IPv4(const struct sockaddr_storage *sockAddrStorage)
 {
 	return (sockAddrStorage->ss_family == AF_INET) ? TRUE : FALSE;
 }
 
-boolean_t sccp_socket_is_IPv6(const struct sockaddr_storage *sockAddrStorage)
+gcc_inline boolean_t sccp_socket_is_IPv6(const struct sockaddr_storage *sockAddrStorage)
 {
 	return (sockAddrStorage->ss_family == AF_INET6) ? TRUE : FALSE;
 }
@@ -1223,7 +1223,7 @@ void *sccp_socket_thread(void *ignore)
 
 	while (GLOB(descriptor) > -1) {
 		fds[0].fd = GLOB(descriptor);
-		res = sccp_socket_poll(fds, 1, GLOB(keepalive));
+		res = sccp_socket_poll(fds, 1, GLOB(keepalive) * 10);
 
 		if (res < 0) {
 			if (errno == EINTR || errno == EAGAIN) {
