@@ -1389,6 +1389,8 @@ const char *skinny_keymode2longstr(skinny_keymode_t keymode)
 			return "Hint is in use";
 		case KEYMODE_ONHOOKSTEALABLE:
 			return "On Hook with Stealable Call Present";
+		case KEYMODE_HOLDCONF:
+			return "Have a Conference On Hold";
 		default:
 			return "Unknown KeyMode";
 	}

@@ -3076,6 +3076,7 @@ static const char *skinny_keymode_map[] = {
 	[KEYMODE_OFFHOOKFEAT] = "OFFHOOKFEAT",
 	[KEYMODE_INUSEHINT] = "INUSEHINT",
 	[KEYMODE_ONHOOKSTEALABLE] = "ONHOOKSTEALABLE",
+	[KEYMODE_HOLDCONF] = "HOLDCONF",
 	[KEYMODE_EMPTY] = "",
 	[SKINNY_KEYMODE_SENTINEL] = "LOOKUPERROR"
 };
@@ -3112,7 +3113,7 @@ int skinny_keymode_str2intval(const char *lookup_str) {
 }
 
 char *skinny_keymode_all_entries(void) {
-	static char res[] = "ONHOOK,CONNECTED,ONHOLD,RINGIN,OFFHOOK,CONNTRANS,DIGITSFOLL,CONNCONF,RINGOUT,OFFHOOKFEAT,INUSEHINT,ONHOOKSTEALABLE,";
+	static char res[] = "ONHOOK,CONNECTED,ONHOLD,RINGIN,OFFHOOK,CONNTRANS,DIGITSFOLL,CONNCONF,RINGOUT,OFFHOOKFEAT,INUSEHINT,ONHOOKSTEALABLE,HOLDCONF,";
 	return res;
 }
 /* = End =========================================================================================                 skinny_keymode === */

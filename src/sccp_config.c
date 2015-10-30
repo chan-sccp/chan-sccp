@@ -2625,7 +2625,6 @@ static const struct softkeyConfigurationTemplate {
 	{"barge", 			SKINNY_LBL_BARGE},
 	{"cbarge", 			SKINNY_LBL_CBARGE},
 	{"back", 			SKINNY_LBL_BACKSPACE},
-	{"join", 			SKINNY_LBL_JOIN},
 	{"intrcpt", 			SKINNY_LBL_INTRCPT},
 	{"monitor", 			SKINNY_LBL_MONITOR},  
 	{"dial", 			SKINNY_LBL_DIAL},
@@ -2654,10 +2653,12 @@ static const struct softkeyConfigurationTemplate {
 #ifdef CS_SCCP_CONFERENCE
 	{"conf", 			SKINNY_LBL_CONFRN},
 	{"confrn",			SKINNY_LBL_CONFRN},
+	{"join", 			SKINNY_LBL_JOIN},
 	{"conflist", 			SKINNY_LBL_CONFLIST},
 #else
 	{"conf", 			-1},
 	{"confrn",			-1},
+	{"join",			-1},
 	{"conflist", 			-1},
 #endif	
 	{"empty", 			SKINNY_LBL_EMPTY},
@@ -2797,6 +2798,8 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 			keyMode = KEYMODE_INUSEHINT;
 		} else if (sccp_strcaseequals(variable->name, "onhookstealable") || sccp_strcaseequals(variable->name, "onstealable")) {
 			keyMode = KEYMODE_ONHOOKSTEALABLE;
+		} else if (sccp_strcaseequals(variable->name, "holdconf")) {
+			keyMode = KEYMODE_HOLDCONF;
 		}
 
 		if (keyMode != -1) {
