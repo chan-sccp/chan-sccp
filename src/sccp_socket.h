@@ -31,8 +31,8 @@ struct sccp_ha {
 	int sense;
 };
 
-boolean_t sccp_socket_is_IPv4(const struct sockaddr_storage *sockAddrStorage);
-boolean_t sccp_socket_is_IPv6(const struct sockaddr_storage *sockAddrStorage);
+gcc_inline boolean_t sccp_socket_is_IPv4(const struct sockaddr_storage *sockAddrStorage);
+gcc_inline boolean_t sccp_socket_is_IPv6(const struct sockaddr_storage *sockAddrStorage);
 uint16_t sccp_socket_getPort(const struct sockaddr_storage *sockAddrStorage);
 void sccp_socket_setPort(const struct sockaddr_storage *sockAddrStorage, uint16_t port);
 int sccp_socket_is_any_addr(const struct sockaddr_storage *sockAddrStorage);
