@@ -1602,10 +1602,8 @@ int sccp_channel_hold(channelPtr channel)
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hold the channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
 
 #ifdef CS_SCCP_CONFERENCE
-	if (d->conference) {
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Putting conference on hold.\n", d->id);
-		sccp_conference_hold(d->conference);
-		sccp_dev_set_keyset(d, instance, channel->callid, KEYMODE_ONHOLD);
+	if (channel->conference) {
+		sccp_conference_hold(channel->conference);
 	} else
 #endif
 	{
@@ -1686,6 +1684,7 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 		}
 	}
 
+//	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED) {
 	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED) {
 		if (!(sccp_channel_hold(channel))) {
 			pbx_log(LOG_WARNING, "SCCP: channel still connected before resuming, put on hold failed for channel %d. exiting\n", channel->callid);
@@ -1721,9 +1720,9 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 #endif														// ASTERISK_VERSION_GROUP >= 111
 
 #ifdef CS_SCCP_CONFERENCE
-	if (d->conference) {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Conference on the channel %s-%08X\n", d->id, l->name, channel->callid);
-		sccp_conference_resume(d->conference);
+	if (channel->conference) {
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume Conference on the channel %s-%08X\n", d->id, l->name, channel->callid);
+		sccp_conference_resume(channel->conference);
 		sccp_dev_set_keyset(d, instance, channel->callid, KEYMODE_CONNCONF);
 	} else
 #endif

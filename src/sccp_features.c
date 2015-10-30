@@ -793,7 +793,7 @@ void sccp_feat_join(constDevicePtr device, constLinePtr l, uint8_t lineInstance,
 		return;
 	}
 #if CS_SCCP_CONFERENCE
-	sccp_channel_t *newparticipant_channel = NULL;
+	AUTO_RELEASE sccp_channel_t *newparticipant_channel = sccp_device_getActiveChannel(d);
 	sccp_channel_t *moderator_channel = NULL;
 	PBX_CHANNEL_TYPE *bridged_channel = NULL;
 
@@ -803,15 +803,14 @@ void sccp_feat_join(constDevicePtr device, constLinePtr l, uint8_t lineInstance,
 	} else if (!d->conference) {
 		pbx_log(LOG_NOTICE, "%s: There is currently no active conference on this device. Start Conference First.\n", DEV_ID_LOG(d));
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_NO_CONFERENCE_BRIDGE, SCCP_DISPLAYSTATUS_TIMEOUT);
-	} else if (!d->active_channel) {
+	} else if (!newparticipant_channel) {
 		pbx_log(LOG_NOTICE, "%s: No active channel on device to join to the conference.\n", DEV_ID_LOG(d));
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_CONFERENCE, SCCP_DISPLAYSTATUS_TIMEOUT);
-	} else if (d->active_channel->conference) {
+	} else if (newparticipant_channel->conference) {
 		pbx_log(LOG_NOTICE, "%s: Channel is already part of a conference.\n", DEV_ID_LOG(d));
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_IN_CONFERENCE_ALREADY, SCCP_DISPLAYSTATUS_TIMEOUT);
 	} else {
 		AUTO_RELEASE sccp_conference_t *conference = sccp_conference_retain(d->conference);
-		newparticipant_channel = d->active_channel;
 
 		SCCP_LIST_LOCK(&((sccp_line_t *const)l)->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, moderator_channel, list) {
@@ -820,10 +819,10 @@ void sccp_feat_join(constDevicePtr device, constLinePtr l, uint8_t lineInstance,
 			}
 		}
 		SCCP_LIST_UNLOCK(&((sccp_line_t *const)l)->channels);
-
 		sccp_conference_hold(conference);								// make sure conference is on hold (should already be on hold)
-		if (moderator_channel != newparticipant_channel) {
-			if (moderator_channel && newparticipant_channel) {
+		if (moderator_channel) {
+			if (newparticipant_channel && moderator_channel != newparticipant_channel) {
+				sccp_channel_hold(newparticipant_channel);
 				pbx_log(LOG_NOTICE, "%s: Joining new participant to conference\n", DEV_ID_LOG(d));
 				if ((bridged_channel = iPbx.get_bridged_channel(newparticipant_channel->owner))) {
 					sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), sccp_channelstate2str(newparticipant_channel->state));
@@ -834,20 +833,16 @@ void sccp_feat_join(constDevicePtr device, constLinePtr l, uint8_t lineInstance,
 				} else {
 					pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(newparticipant_channel->owner));
 				}
-
 			} else {
 				pbx_log(LOG_NOTICE, "%s: conference moderator could not be found on this phone\n", DEV_ID_LOG(d));
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_INVALID_CONFERENCE_PARTICIPANT, SCCP_DISPLAYSTATUS_TIMEOUT);
 			}
+			sccp_conference_update(conference);
+			sccp_channel_resume(d, moderator_channel, FALSE);
 		} else {
 			pbx_log(LOG_NOTICE, "%s: Cannot use the JOIN button within a conference itself\n", DEV_ID_LOG(d));
 			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
 		}
-		//sccp_feat_conflist(d, lineInstance, moderator_channel);
-		//sccp_conference_resume(conference);							// done by resume already
-		sccp_channel_resume(d, moderator_channel, FALSE);				// swap active channel
-		sccp_conference_update(conference);
-		sccp_feat_conflist(d, lineInstance, moderator_channel);
 	}
 #else
 	pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
@@ -872,8 +867,10 @@ void sccp_feat_conflist(devicePtr d, uint8_t lineInstance, constChannelPtr c)
 			pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
 			return;
 		}
-		d->conferencelist_active = TRUE;
-		sccp_conference_show_list(c->conference, c);
+		if (c && c->conference) {
+			d->conferencelist_active = TRUE;
+			sccp_conference_show_list(c->conference, c);
+		}
 #else
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
 #endif
