@@ -457,9 +457,9 @@ static void sccp_conference_addParticipant_toList(constConferencePtr conference,
  */
 void sccp_conference_update_callInfo(constChannelPtr channel, PBX_CHANNEL_TYPE * pbxChannel, constParticipantPtr participant, uint32_t conferenceID)
 {
-	char confstr[StationMaxNameSize] = "";
+	char conf_str[StationMaxNameSize] = "";
 
-	snprintf(confstr, StationMaxNameSize, "Conference %d", conferenceID);
+	snprintf(conf_str, StationMaxNameSize, "Conference %d", conferenceID);
 	sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 
 	switch (channel->calltype) {
@@ -471,7 +471,7 @@ void sccp_conference_update_callInfo(constChannelPtr channel, PBX_CHANNEL_TYPE *
 			sccp_callinfo_setter(ci, 
 				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, participant->PartyName,
 				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, participant->PartyNumber,
-				SCCP_CALLINFO_CALLINGPARTY_NAME, confstr,
+				SCCP_CALLINFO_CALLINGPARTY_NAME, conf_str,
 				SCCP_CALLINFO_KEY_SENTINEL);
 			break;
 		case SKINNY_CALLTYPE_OUTBOUND:
@@ -483,7 +483,7 @@ void sccp_conference_update_callInfo(constChannelPtr channel, PBX_CHANNEL_TYPE *
 			sccp_callinfo_setter(ci, 
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, participant->PartyName,
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, participant->PartyNumber,
-				SCCP_CALLINFO_CALLEDPARTY_NAME, confstr,
+				SCCP_CALLINFO_CALLEDPARTY_NAME, conf_str,
 				SCCP_CALLINFO_KEY_SENTINEL);
 			break;
 		case SKINNY_CALLTYPE_SENTINEL:
@@ -501,12 +501,12 @@ void sccp_conference_update_callInfo(constChannelPtr channel, PBX_CHANNEL_TYPE *
 
 	update_connected.id.number = 1;
 	connected.id.number.valid = 1;
-	connected.id.number.str = confstr;
+	connected.id.number.str = conf_str;
 	connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 
 	update_connected.id.name = 1;
 	connected.id.name.valid = 1;
-	connected.id.name.str = confstr;
+	connected.id.name.str = conf_str;
 	connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 #if ASTERISK_VERSION_GROUP > 110
 	ast_set_party_id_all(&update_connected.priv);
@@ -516,7 +516,7 @@ void sccp_conference_update_callInfo(constChannelPtr channel, PBX_CHANNEL_TYPE *
 		ast_channel_set_connected_line(pbxChannel, &connected, &update_connected);
 	}
 #endif
-	iPbx.set_connected_line(channel, confstr, confstr, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
+	iPbx.set_connected_line(channel, conf_str, conf_str, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
 }
 
 /*!

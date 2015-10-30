@@ -194,7 +194,7 @@ sccp_value_changed_t sccp_config_parse_hotline_label(void *dest, const size_t si
 sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int index, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
+sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
 
 #include "sccp_config_entries.hh"
 
@@ -1781,7 +1781,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 /*!
  * \brief check a Button against the current ButtonConfig on a device
  * \param buttonconfig_head pointer to the device->buttonconfig list
- * \param index button index
+ * \param buttonindex button index
  * \param type type of button
  * \param name name
  * \param options options
@@ -1792,7 +1792,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
  * 
  * \todo Build a check to see if the button has changed
  */
-sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int index, sccp_config_buttontype_t type, const char *name, const char *options, const char *args)
+sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args)
 {
 	sccp_buttonconfig_t *config = NULL;
 
@@ -1804,8 +1804,8 @@ sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int index,
 	SCCP_LIST_LOCK(buttonconfigList);
 	SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
 		// check if the button is to be deleted to see if we need to replace it
-		if (config->index == index) {
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Found Button index at %d:%d\n", config->index, index);
+		if (config->index == buttonindex) {
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Found Button index at %d:%d\n", config->index, buttonindex);
 			break;
 		}
 	}
@@ -1853,7 +1853,7 @@ sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int index,
 				}
 				break;
 			case FEATURE:
-				if (FEATURE == config->type && index == config->index && sccp_strequals(config->label, name) && config->button.feature.id == sccp_feature_type_str2val(options)) {
+				if (FEATURE == config->type && buttonindex == config->index && sccp_strequals(config->label, name) && config->button.feature.id == sccp_feature_type_str2val(options)) {
 					if (!args || sccp_strequals(config->button.feature.options, args)) {
 						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Feature Button Definition remained the same\n");
 						changed = SCCP_CONFIG_CHANGE_NOCHANGE;
@@ -1884,7 +1884,7 @@ sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int index,
 /*!
  * \brief add a Button to a device
  * \param buttonconfig_head pointer to the device->buttonconfig list
- * \param index button index
+ * \param buttonindex button index
  * \param type type of button
  * \param name name
  * \param options options
@@ -1895,7 +1895,7 @@ sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int index,
  * 
  * \todo Build a check to see if the button has changed
  */
-sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, sccp_config_buttontype_t type, const char *name, const char *options, const char *args)
+sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args)
 {
 	sccp_buttonconfig_t *config = NULL;
 	SCCP_LIST_HEAD (, sccp_buttonconfig_t) * buttonconfigList = buttonconfig_head;
@@ -1912,15 +1912,15 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 		pbx_log(LOG_WARNING, "SCCP: sccp_config_addButton, memory allocation failed (calloc) failed\n");
 		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
-	config->index = index;
+	config->index = buttonindex;
 	config->type = type;
-	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "New %s Button '%s' at : %d:%d\n", sccp_config_buttontype2str(type), name, index, config->index);
+	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "New %s Button '%s' at : %d:%d\n", sccp_config_buttontype2str(type), name, buttonindex, config->index);
 	SCCP_LIST_INSERT_TAIL(buttonconfigList, config, list);
 	SCCP_LIST_UNLOCK(buttonconfigList);
 
 	/* replace faulty button declarations with an empty button */
 	if (type != EMPTY && (sccp_strlen_zero(name) || (type != LINE && !options))) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty %s Button Configuration found at index: %d, name: %s, options: %s, args: %s. Substituted with  EMPTY button\n", sccp_config_buttontype2str(type), config->index, name, options, args);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty %s Button Configuration found at buttonindex: %d, name: %s, options: %s, args: %s. Substituted with  EMPTY button\n", sccp_config_buttontype2str(type), config->index, name, options, args);
 		type = EMPTY;
 	}
 

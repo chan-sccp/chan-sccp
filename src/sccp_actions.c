@@ -584,8 +584,8 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 	/* set our IPv4 address */
 	{
 		register_sas.ss_family = AF_INET;
-		struct sockaddr_in *sin = (struct sockaddr_in *) &register_sas;
-		memcpy(&sin->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, sizeof(sin->sin_addr));
+		struct sockaddr_in *sin4 = (struct sockaddr_in *) &register_sas;
+		memcpy(&sin4->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, sizeof(sin4->sin_addr));
 		phone_ipv4 = strdupa(sccp_socket_stringify_host(&register_sas));
 		sccp_session_setOurIP4Address(s, &register_sas);
 		//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Our IPv4 Address %s\n", deviceName, sccp_socket_stringify(&s->ourIPv4));
@@ -2460,7 +2460,7 @@ void sccp_handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMe
 	char *subscriptionID = strdupa(msg_in->data.SubscriptionStatReqMessage.subscriptionID);
 
 	/* take transactionID apart */
-	uint32_t index = transactionID >> 4;								/* just 28 bits filled */
+	uint32_t tr_index = transactionID >> 4;								/* just 28 bits filled */
 	uint32_t unknown1 = (transactionID | 0xFFFFFFF0) ^ 0xFFFFFFF0;					/* just 4 bits filled */
 
 	// Sending 0x152 Ack Message.
@@ -2496,7 +2496,7 @@ void sccp_handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMe
 		msg_out->data.NotificationMessage.lel_status = htolel(status);
 		sccp_dev_send(d, msg_out);
 		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: send NotificationMessage for extension '%s', context '%s', state %d\n", DEV_ID_LOG(d), subscriptionID, line->context ? line->context : "<not set>", status);
-		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (timer:0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), index, unknown1, subscriptionID, timer, featureID);
+		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (timer:0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), tr_index, unknown1, subscriptionID, timer, featureID);
 	}
 }
 
@@ -3492,10 +3492,10 @@ void sccp_handle_feature_stat_req(constSessionPtr s, devicePtr d, constMessagePt
 {
 	sccp_buttonconfig_t *config = NULL;
 
-	int index = letohl(msg_in->data.FeatureStatReqMessage.lel_featureIndex);
+	int featureIndex = letohl(msg_in->data.FeatureStatReqMessage.lel_featureIndex);
 	int capabilities = letohl(msg_in->data.FeatureStatReqMessage.lel_featureCapabilities);
 
-	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Unknown = %d \n", d->id, index, capabilities);
+	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Unknown = %d \n", d->id, featureIndex, capabilities);
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	/*
@@ -3505,13 +3505,13 @@ void sccp_handle_feature_stat_req(constSessionPtr s, devicePtr d, constMessagePt
 	sccp_speed_t k;
 
 	if ((capabilities == 1 && d->inuseprotocolversion >= 15)) {
-		sccp_dev_speed_find_byindex(d, index, TRUE, &k);
+		sccp_dev_speed_find_byindex(d, featureIndex, TRUE, &k);
 
 		if (k.valid) {
 			sccp_msg_t *msg_out = NULL;
 
 			REQ(msg_out, FeatureStatDynamicMessage);
-			msg_out->data.FeatureStatDynamicMessage.lel_featureIndex = htolel(index);
+			msg_out->data.FeatureStatDynamicMessage.lel_featureIndex = htolel(featureIndex);
 			msg_out->data.FeatureStatDynamicMessage.lel_featureID = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
 			msg_out->data.FeatureStatDynamicMessage.lel_featureStatus = 0;
 
@@ -3524,7 +3524,7 @@ void sccp_handle_feature_stat_req(constSessionPtr s, devicePtr d, constMessagePt
 #endif
 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		if (config->instance == index && config->type == FEATURE) {
+		if (config->instance == featureIndex && config->type == FEATURE) {
 			sccp_feat_changed(d, NULL, config->button.feature.id);
 		}
 	}
@@ -4077,7 +4077,7 @@ void sccp_handle_device_to_user_response(constSessionPtr s, devicePtr d, constMe
 void sccp_handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	skinny_miscCommandType_t commandType;
-	struct sockaddr_in sin = { 0 };
+	struct sockaddr_in addr_in = { 0 };
 	uint32_t conferenceId = letohl(msg_in->data.MiscellaneousCommandMessage.lel_conferenceId);
 	uint32_t callReference = letohl(msg_in->data.MiscellaneousCommandMessage.lel_callReference);
 	uint32_t passThruPartyId = letohl(msg_in->data.MiscellaneousCommandMessage.lel_passThruPartyId);
@@ -4101,9 +4101,9 @@ void sccp_handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, con
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE:
 				break;
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE:
-				memcpy(&sin.sin_addr, &msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.bel_remoteIpAddr, sizeof(sin.sin_addr));
+				memcpy(&addr_in.sin_addr, &msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.bel_remoteIpAddr, sizeof(addr_in.sin_addr));
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: media statistic for %s, value1: %u, value2: %u, value3: %u, value4: %u\n",
-							  channel ? channel->currentDeviceId : "--", pbx_inet_ntoa(sin.sin_addr), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value1), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value2), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value3), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value4)
+							  channel ? channel->currentDeviceId : "--", pbx_inet_ntoa(addr_in.sin_addr), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value1), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value2), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value3), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value4)
 				    );
 				break;
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
