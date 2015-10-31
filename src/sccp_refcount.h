@@ -48,6 +48,11 @@ void sccp_refcount_replace(const void **replaceptr, const void *const newptr, co
 void sccp_refcount_print_hashtable(int fd);
 void sccp_refcount_autorelease(void *ptr);
 
+#if CS_TEST_FRAMEWORK
+void sccp_refcount_register_tests(void);
+void sccp_refcount_unregister_tests(void);
+#endif
+
 #define AUTO_RELEASE auto __attribute__((cleanup(sccp_refcount_autorelease)))
 #ifdef CS_EXPERIMENTAL
 int sccp_refcount_force_release(long findobj, char *identifier);

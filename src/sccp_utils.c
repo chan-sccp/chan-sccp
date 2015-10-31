@@ -1625,10 +1625,10 @@ AST_TEST_DEFINE(chan_sccp_ha_tests)
 
 	switch (cmd) {
 	case TEST_INIT:
-		info->name = "chan_sccp_ha_tests";
-		info->category = "/channels/chan_sccp/ha/";
-		info->summary = "chan-sccp-b ha test";
-		info->description = "chan-sccp-b ha tests";
+		info->name = "permit_deny";
+		info->category = "/channels/chan_sccp/";
+		info->summary = "chan-sccp-b ha / permit / deny test";
+		info->description = "chan-sccp-b ha / permit / deny parsing tests";
 		return AST_TEST_NOT_RUN;
 	case TEST_EXECUTE:
 		break;
