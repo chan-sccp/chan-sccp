@@ -645,6 +645,7 @@ boolean_t sccp_postPBX_load(void)
 
 #if CS_TEST_FRAMEWORK
 	sccp_utils_register_tests();
+	sccp_refcount_register_tests();
 #endif
 	GLOB(module_running) = TRUE;
 	sccp_refcount_schedule_cleanup((const void *) 0);
@@ -683,6 +684,7 @@ int sccp_preUnload(void)
 
 #if CS_TEST_FRAMEWORK
 	sccp_utils_unregister_tests();
+	sccp_refcount_unregister_tests();
 #endif
 
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay);

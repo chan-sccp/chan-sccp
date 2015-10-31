@@ -47,16 +47,7 @@
 
 #include <config.h>
 #include "common.h"
-//#include "sccp_channel.h"
-//#include "sccp_device.h"
-//#include "sccp_line.h"
 #include "sccp_utils.h"
-//#include "sccp_config.h"
-//#include "sccp_actions.h"
-//#include "sccp_features.h"
-//#include "sccp_socket.h"
-//#include "sccp_indicate.h"
-//#include "sccp_mwi.h"
 #include "sccp_atomic.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
@@ -539,5 +530,130 @@ gcc_inline void sccp_refcount_autorelease(void *ptr)
 		sccp_refcount_release(*(void **) ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);			/* explicit release */
 	}
 }
+
+#if CS_TEST_FRAMEWORK
+//#include "asterisk/test.h"
+#define NUM_LOOPS 20
+#define NUM_OBJECTS 100
+static struct refcount_test {
+	char *str;
+	int id;
+	int loop;
+	unsigned int threadid;
+} *object[NUM_OBJECTS];
+
+static void refcount_test_destroy(struct refcount_test *obj)
+{
+	sccp_free(object[obj->id]->str);
+	object[obj->id]->str = NULL;
+};
+
+static void *refcount_test_thread(void *data)
+{
+	struct refcount_test *obj = NULL, *obj1 = NULL;
+	int loop, objloop;
+	int random_object;
+
+	for (loop = 0; loop < NUM_LOOPS; loop++) {
+		for (objloop = 0; objloop < NUM_OBJECTS; objloop++) {
+			random_object = rand() % NUM_OBJECTS;
+			if ((obj = sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
+				usleep(random_object % 10);
+				if ((obj1 = sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
+					usleep(random_object % 10);
+					obj1 = sccp_refcount_release(obj1, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+				}
+				obj = sccp_refcount_release(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+			}
+		}
+	}
+
+	return NULL;
+}
+
+
+AST_TEST_DEFINE(sccp_refcount_tests)
+{
+	int thread;
+	
+	switch(cmd) {
+		case TEST_INIT:
+			info->name = "refcount";
+			info->category = "/channels/chan_sccp/";
+			info->summary = "chan-sccp-b refcount test";
+			info->description = "chan-sccp-b refcount tests";
+			return AST_TEST_NOT_RUN;
+	        case TEST_EXECUTE:
+	        	break;
+	}
+	
+	int num_threads = 10 /* parameterize */;
+
+	pthread_t t;
+	int loop;
+	char id[23];
+
+	ast_test_status_update(test, "Executing chan-sccp-b refcount tests...\n");
+	ast_test_status_update(test, "Create %d objects to work on...\n", NUM_OBJECTS);
+	for (loop = 0; loop < NUM_OBJECTS; loop++) {
+		snprintf(id, sizeof(id), "%d/%d", loop, (unsigned int) pthread_self());
+		object[loop] = (struct refcount_test *) sccp_refcount_object_alloc(sizeof(struct refcount_test), SCCP_REF_TEST, id, refcount_test_destroy);
+		object[loop]->id = loop;
+		object[loop]->threadid = (unsigned int) pthread_self();
+		object[loop]->str = strdup(id);
+		//ast_test_status_update(test, "created %d'\n", object[loop]->id);
+	}
+	sleep(1);
+
+	ast_test_status_update(test, "Run multithreaded retain/release/destroy at random in %d and %d threads loops...\n", NUM_LOOPS, num_threads);
+	for (thread = 0; thread < num_threads; thread++) {
+		pbx_pthread_create(&t, NULL, refcount_test_thread, test);
+	}
+	pthread_join(t, NULL);
+	sleep(1);
+
+	ast_test_status_update(test, "Finalize test / cleanup...\n");
+	for (loop = 0; loop < NUM_OBJECTS; loop++) {
+		if (object[loop]) {
+			//ast_test_status_update(test, "Final Release %d, thread: %d\n", object[loop]->id, (unsigned int) pthread_self());
+			sccp_refcount_release(object[loop], __FILE__, __LINE__, __PRETTY_FUNCTION__);
+		}
+	}
+	sleep(1);
+	
+	int found = 0;
+	ast_rwlock_rdlock(&objectslock);
+	RefCountedObject *obj = NULL;
+	for (loop = 0; loop < SCCP_HASH_PRIME; loop++) {
+		if (objects[loop]) {
+			SCCP_RWLIST_RDLOCK(&(objects[loop])->refCountedObjects);
+			SCCP_RWLIST_TRAVERSE(&(objects[loop])->refCountedObjects, obj, list) {
+				if (obj->type == SCCP_REF_TEST) {
+					ast_test_status_update(test, "ERROR: Found unreleased obj: %d\n", object[loop]->id);
+					found = 1;
+				}
+			}
+			SCCP_RWLIST_UNLOCK(&(objects[loop])->refCountedObjects);
+		}
+	}
+	ast_rwlock_unlock(&objectslock);
+	if (found) {
+		return AST_TEST_FAIL;
+	}
+	return AST_TEST_PASS;
+
+}
+
+void sccp_refcount_register_tests(void)
+{
+        AST_TEST_REGISTER(sccp_refcount_tests);
+}
+
+void sccp_refcount_unregister_tests(void)
+{
+        AST_TEST_UNREGISTER(sccp_refcount_tests);
+}
+#endif
+
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

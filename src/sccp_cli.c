@@ -1561,47 +1561,7 @@ CLI_AMI_ENTRY(show_hint_subscriptions, sccp_show_hint_subscriptions, "Show all S
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* -------------------------------------------------------------------------------------------------------TEST- */
-#define NUM_LOOPS 20
-#define NUM_OBJECTS 100
 #ifdef CS_EXPERIMENTAL
-static struct refcount_test {
-	char *test;
-	int id;
-	int loop;
-	unsigned int threadid;
-} *object[NUM_OBJECTS];
-
-static void sccp_cli_refcount_test_destroy(struct refcount_test *obj)
-{
-	sccp_log((DEBUGCAT_CORE)) ("TEST: Destroyed %d, thread: %d\n", obj->id, (unsigned int) pthread_self());
-	sccp_free(object[obj->id]->test);
-	object[obj->id]->test = NULL;
-};
-
-static void *sccp_cli_refcount_test_thread(void *data)
-{
-	struct refcount_test *obj = NULL, *obj1 = NULL;
-	int test, loop;
-	int random_object;
-
-	for (loop = 0; loop < NUM_LOOPS; loop++) {
-		for (test = 0; test < NUM_OBJECTS; test++) {
-			random_object = rand() % NUM_OBJECTS;
-			sccp_log((DEBUGCAT_CORE)) ("TEST: retain/release %d, loop: %d, thread: %d\n", random_object, loop, (unsigned int) pthread_self());
-			if ((obj = sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
-				usleep(random_object % 10);
-				if ((obj1 = sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
-					usleep(random_object % 10);
-					obj1 = sccp_refcount_release(obj1, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-				}
-				obj = sccp_refcount_release(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-			}
-		}
-	}
-
-	return NULL;
-}
-
 static void *sccp_cli_threadpool_test_thread(void *data)
 {
 	int loop;
@@ -1706,41 +1666,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 		}
 		return RESULT_SUCCESS;
 	}
-	if (!strcasecmp(argv[2], "refcount")) {
-		int thread;
-		int num_threads = (argc == 5) ? atoi(argv[3]) : 4;
-
-		pthread_t t;
-		int test;
-		char id[23];
-
-		for (test = 0; test < NUM_OBJECTS; test++) {
-			snprintf(id, sizeof(id), "%d/%d", test, (unsigned int) pthread_self());
-			object[test] = (struct refcount_test *) sccp_refcount_object_alloc(sizeof(struct refcount_test), SCCP_REF_TEST, id, sccp_cli_refcount_test_destroy);
-			object[test]->id = test;
-			object[test]->threadid = (unsigned int) pthread_self();
-			object[test]->test = strdup(id);
-			sccp_log((DEBUGCAT_CORE)) ("TEST: Created %d\n", object[test]->id);
-		}
-		sccp_refcount_print_hashtable(fd);
-		sleep(1);
-
-		for (thread = 0; thread < num_threads; thread++) {
-			pbx_pthread_create(&t, NULL, sccp_cli_refcount_test_thread, NULL);
-		}
-		pthread_join(t, NULL);
-		sleep(1);
-
-		for (test = 0; test < NUM_OBJECTS; test++) {
-			if (object[test]) {
-				sccp_log((DEBUGCAT_CORE)) ("TEST: Final Release %d, thread: %d\n", object[test]->id, (unsigned int) pthread_self());
-				sccp_refcount_release(object[test], __FILE__, __LINE__, __PRETTY_FUNCTION__);
-			}
-		}
-		sleep(1);
-		sccp_refcount_print_hashtable(fd);
-		return RESULT_SUCCESS;
-	}
 	if (!strcasecmp(argv[2], "threadpool")) {
 		int work;
 		int num_work = (argc == 5) ? atoi(argv[3]) : 4;
@@ -1775,101 +1700,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 			d->retrieveDeviceCapabilities(d);
 			pbx_log(LOG_NOTICE, "%s: Done\n", d->id);
 		}
-		return RESULT_SUCCESS;
-	}
-	if (!strcasecmp(argv[2], "ha")) {
-		struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-		int error;
-
-		pbx_cli(fd, "running ha path tests\n");
-
-		struct sockaddr_storage sas10, sas1014, sas1015, sas1016, sas172;
-
-		sccp_sockaddr_storage_parse(&sas10, "10.0.0.1", PARSE_PORT_FORBID);
-		sccp_sockaddr_storage_parse(&sas1014, "10.14.14.1", PARSE_PORT_FORBID);
-		sccp_sockaddr_storage_parse(&sas1015, "10.15.15.1", PARSE_PORT_FORBID);
-		sccp_sockaddr_storage_parse(&sas1016, "10.16.16.1", PARSE_PORT_FORBID);
-		sccp_sockaddr_storage_parse(&sas172, "172.16.0.1", PARSE_PORT_FORBID);
-
-		// test 1
-		// struct sccp_ha *ha = sccp_calloc(1, sizeof(struct sccp_ha));
-		struct sccp_ha *ha = NULL;
-
-		ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
-		pbx_cli(fd, "test 1: deny all\n");
-
-		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
-		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_ALLOW) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
-		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
-		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
-		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
-
-		// test 2
-		ha = sccp_append_ha("permit", "10.14.14.0/255.255.255.0", ha, &error);
-		pbx_cli(fd, "test 2: added permit 10.14.14.0/255.255.255.0\n");
-		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
-		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
-		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
-		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
-		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
-
-		// test 3
-		ha = sccp_append_ha("permit", "10.15.15.0/255.255.0.0", ha, &error);
-		pbx_cli(fd, "test 3: added permit 10.15.15.0/255.255.0.0\n");
-		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
-		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
-		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
-		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
-		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
-
-		// test 4
-		ha = sccp_append_ha("permit", "10.16.16.0/255.0.0.0", ha, &error);
-		pbx_cli(fd, "test 4: added permit 10.16.16.0/255.0.0.0\n");
-		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
-		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
-		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
-		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
-		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
-
-		// test 4
-		ha = sccp_append_ha("permit", "10.16.16.0/255.0.0.0", ha, &error);
-		pbx_cli(fd, "test 4: added permit 10.16.16.0/255.0.0.0\n");
-		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
-		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
-		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
-		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
-		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
-
-		sccp_free_ha(ha);
-
-		ha = NULL;
-		pbx_cli(fd, "test 5: clean path structure and only added permit 10.0.0.0/255.0.0.0 (localnet)\n");
-		ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, &error);
-		pbx_cli(fd, "cleaned path and only added permit 10.0.0.0/255.0.0.0 (localnet)\n");
-		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
-		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas10, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas10, AST_SENSE_DENY));
-		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1014, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1014, AST_SENSE_DENY));
-		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1015, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1015, AST_SENSE_DENY));
-		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1016, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1016, AST_SENSE_DENY));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas172, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas172, AST_SENSE_DENY));
-		sccp_free_ha(ha);
-
 		return RESULT_SUCCESS;
 	}
 	if (!strcasecmp(argv[2], "xml")) {									/*  WIP */
