@@ -1766,7 +1766,7 @@ typedef union {
 	 *       00000010 - 00 00 00 00                                       - ....
 	 */
 	struct {
-		uint32_t lel_lineInstance;
+		uint32_t lel_buttonIndex;									/*!< Button Index instead of lineInstance */
 		uint32_t lel_callReference;
 	} OnHookMessage;											/*!< On Hook Message Structure */
 
