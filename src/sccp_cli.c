@@ -1562,21 +1562,6 @@ CLI_AMI_ENTRY(show_hint_subscriptions, sccp_show_hint_subscriptions, "Show all S
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* -------------------------------------------------------------------------------------------------------TEST- */
 #ifdef CS_EXPERIMENTAL
-static void *sccp_cli_threadpool_test_thread(void *data)
-{
-	int loop;
-
-	// int num_loops=rand();
-	int num_loops = 1000;
-
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "Running work: %d, loops: %d\n", (unsigned int) pthread_self(), num_loops);
-	for (loop = 0; loop < num_loops; loop++) {
-		usleep(1);
-	}
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "Thread: %d Done\n", (unsigned int) pthread_self());
-	return 0;
-}
-
 /*!
  * \brief Test Message
  * \param fd Fd as int
@@ -1663,17 +1648,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 				}
 			}
 			SCCP_LIST_UNLOCK(&d->buttonconfig);
-		}
-		return RESULT_SUCCESS;
-	}
-	if (!strcasecmp(argv[2], "threadpool")) {
-		int work;
-		int num_work = (argc == 5) ? atoi(argv[3]) : 4;
-
-		for (work = 0; work < num_work; work++) {
-			if (!sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_cli_threadpool_test_thread, (void *) &work)) {
-				pbx_log(LOG_ERROR, "Could not add work to threadpool\n");
-			}
 		}
 		return RESULT_SUCCESS;
 	}

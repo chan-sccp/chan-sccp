@@ -488,7 +488,6 @@ int sccp_feat_grouppickup(constLinePtr l, constDevicePtr d)
 
 	if ((target = iPbx.findPickupChannelByGroupLocked(c->owner))) {
 		res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
-		pbx_channel_unlock(target);
 		target = pbx_channel_unref(target);
 		res = 0;
 	} else {
