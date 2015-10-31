@@ -598,6 +598,7 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	for (loop = 0; loop < NUM_OBJECTS; loop++) {
 		snprintf(id, sizeof(id), "%d/%d", loop, (unsigned int) pthread_self());
 		object[loop] = (struct refcount_test *) sccp_refcount_object_alloc(sizeof(struct refcount_test), SCCP_REF_TEST, id, refcount_test_destroy);
+		ast_test_validate(test, object[loop] != NULL);
 		object[loop]->id = loop;
 		object[loop]->threadid = (unsigned int) pthread_self();
 		object[loop]->str = strdup(id);
@@ -616,30 +617,25 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	for (loop = 0; loop < NUM_OBJECTS; loop++) {
 		if (object[loop]) {
 			//ast_test_status_update(test, "Final Release %d, thread: %d\n", object[loop]->id, (unsigned int) pthread_self());
-			sccp_refcount_release(object[loop], __FILE__, __LINE__, __PRETTY_FUNCTION__);
+			object[loop] = sccp_refcount_release(object[loop], __FILE__, __LINE__, __PRETTY_FUNCTION__);
+			ast_test_validate(test, object[loop] == NULL);
 		}
 	}
 	sleep(1);
-	
-	int found = 0;
+
+	/* peer directly inside refcounted objects to see if there are any stranded refcounted objects, which should have been destroyed */
 	ast_rwlock_rdlock(&objectslock);
 	RefCountedObject *obj = NULL;
 	for (loop = 0; loop < SCCP_HASH_PRIME; loop++) {
 		if (objects[loop]) {
 			SCCP_RWLIST_RDLOCK(&(objects[loop])->refCountedObjects);
 			SCCP_RWLIST_TRAVERSE(&(objects[loop])->refCountedObjects, obj, list) {
-				if (obj->type == SCCP_REF_TEST) {
-					ast_test_status_update(test, "ERROR: Found unreleased obj: %d\n", object[loop]->id);
-					found = 1;
-				}
+				ast_test_validate(test, obj->type != SCCP_REF_TEST);
 			}
 			SCCP_RWLIST_UNLOCK(&(objects[loop])->refCountedObjects);
 		}
 	}
 	ast_rwlock_unlock(&objectslock);
-	if (found) {
-		return AST_TEST_FAIL;
-	}
 	return AST_TEST_PASS;
 
 }
