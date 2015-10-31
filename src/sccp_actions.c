@@ -2082,19 +2082,20 @@ void sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const u
  *
  * \warning
  *   - device->buttonconfig is not always locked
+ *
+ * \note
+ *   - protocolversion < 15 phones send buttonIndex instead of lineInstance
+ *   - protocolversion >= 15 phones don't send lineInstance nor callif on onhook (more like device state)
  */
 void sccp_handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
-	uint32_t lineInstance = letohl(msg_in->data.OnHookMessage.lel_lineInstance);
+	uint32_t buttonIndex = letohl(msg_in->data.OnHookMessage.lel_buttonIndex);
 	uint32_t callid = letohl(msg_in->data.OnHookMessage.lel_callReference);
 
 	/* we need this for callwaiting, hold, answer and stuff */
 	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_ONHOOK);
-#ifndef CS_EXPERIMENTAL
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook\n", DEV_ID_LOG(d));
-#else
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook (buttonIndex: %d, callid: %d)\n", DEV_ID_LOG(d), lineInstance, callid);
-#endif
+
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook (buttonIndex: %d, callid: %d)\n", DEV_ID_LOG(d), buttonIndex, callid);
 
 	if (d && !(d->lineButtons.size > SCCP_FIRST_LINEINSTANCE)) {
 		pbx_log(LOG_NOTICE, "No lines registered on %s to put OnHook\n", DEV_ID_LOG(d));
@@ -2105,19 +2106,10 @@ void sccp_handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 
-	if (lineInstance && callid) {
-#ifndef CS_EXPERIMENTAL
-		channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid);
-	} else {
-#else
-		if (d->protocolversion < 15) {
-			channel = sccp_find_channel_by_buttonIndex_and_callid(d, lineInstance, callid);
-		} else {
-			channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid);
-		}
+	if (buttonIndex && callid) {
+		channel = sccp_find_channel_by_buttonIndex_and_callid(d, buttonIndex, callid);
 	}
 	if (!channel) {
-#endif
 		channel = sccp_device_getActiveChannel(d);
 	}
 	if (channel) {
@@ -2575,29 +2567,20 @@ void sccp_handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr m
 		return;
 	}
 	
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) digit:%08x, callid:%d, lineInstance:%d\n", DEV_ID_LOG(d), digit, callid, lineInstance);
-
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	AUTO_RELEASE sccp_line_t *l = NULL;
 	
-	/* Old phones like 7912 never uses callid
-	 * so we would have trouble finding the right channel
-	 */
-	if ((channel = sccp_device_getActiveChannel(d)) && (callid == 0 || channel->callid == callid)) {
-		l = sccp_line_retain(channel->line);
-		
-		/* 
-		 * older devices like 7960 are sending button index instead of lineInstance 
-		 * so we can not trust lineInstance in this case
-		 * 
-		 */
-		AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, l);
-		if(linedevice->lineInstance != lineInstance){
-		    pbx_log(LOG_NOTICE, "%s: linedevice->lineInstance != lineInstance (%d != %d)\n", DEV_ID_LOG(d), linedevice->lineInstance, lineInstance);
+	/* old devices (like 7960) send buttonIndex instead of lineInstance, convert buttonIndex to lineInstance */
+	if (d->protocolversion < 15 && lineInstance) {
+		uint16_t tmpLineInstance, buttonIndex = lineInstance;
+		if ((tmpLineInstance = sccp_device_buttonIndex2lineInstance(d, buttonIndex)) >= 0) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) digit:%08x, callid:%d, buttonIndex:%d => lineInstance:%d\n", DEV_ID_LOG(d), digit, callid, buttonIndex, tmpLineInstance);
+			lineInstance = tmpLineInstance;
 		}
+	} else {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) digit:%08x, callid:%d, lineInstance:%d\n", DEV_ID_LOG(d), digit, callid, lineInstance);
 	}
-
-	if (!channel && lineInstance) {
+	if (lineInstance) {
 		if (callid) {
 			if ((channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid)) && channel->line) {
 				l = sccp_line_retain(channel->line);
@@ -2609,8 +2592,12 @@ void sccp_handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr m
 				SCCP_LIST_UNLOCK(&l->channels);
 			}
 		}
-	} else if(!l && callid) {
+	} else if(callid) {
 		if ((channel = sccp_channel_find_byid(callid)) && channel->line) {
+			l = sccp_line_retain(channel->line);
+		}
+	} else { 
+		if ((channel = sccp_device_getActiveChannel(d)) && channel->line) {			/* Old phones like 7912 never uses callid so we would have trouble finding the right channel */
 			l = sccp_line_retain(channel->line);
 		}
 	}

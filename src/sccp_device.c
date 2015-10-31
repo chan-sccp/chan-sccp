@@ -3020,7 +3020,17 @@ static sccp_push_result_t sccp_device_pushTextMessage(constDevicePtr device, con
 	return SCCP_PUSH_RESULT_SUCCESS;
 }
 
+gcc_inline int16_t sccp_device_buttonIndex2lineInstance(constDevicePtr d, uint16_t buttonIndex)
+{
+	if (buttonIndex > 0 && buttonIndex < StationMaxButtonTemplateSize && d->buttonTemplate[buttonIndex - 1].instance) {
+		return d->buttonTemplate[buttonIndex - 1].instance;
+	}
+	pbx_log(LOG_ERROR, "%s: buttonIndex2lineInstance for buttonIndex:%d failed!\n", d->id, buttonIndex);
+	return -1;
+}
+
 /*=================================================================================== FIND FUNCTIONS ==============*/
+
 
 /*!
  * \brief Find Device by ID

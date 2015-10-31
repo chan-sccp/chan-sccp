@@ -178,8 +178,8 @@ struct sccp_device {
 	sccp_line_t *currentLine;										/*!< Current Line */
 
 	struct {
-		sccp_linedevices_t **instance;									/*!< used softkeySet */
-		uint8_t size;											/*!< how many softkeysets are provided by modes */
+		sccp_linedevices_t **instance;
+		uint8_t size;
 	} lineButtons;
 
 	SCCP_LIST_HEAD (, sccp_buttonconfig_t) buttonconfig;							/*!< SCCP Button Config Attached to this Device */
@@ -461,6 +461,7 @@ uint8_t sccp_device_numberOfChannels(constDevicePtr device);
 
 boolean_t sccp_device_isVideoSupported(constDevicePtr device);
 boolean_t sccp_device_check_update(devicePtr d);
+gcc_inline int16_t sccp_device_buttonIndex2lineInstance(constDevicePtr d, uint16_t buttonIndex);
 
 // find device
 sccp_device_t *sccp_device_find_byid(const char *id, boolean_t useRealtime);
