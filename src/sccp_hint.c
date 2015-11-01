@@ -405,7 +405,11 @@ static void sccp_hint_eventListener(const sccp_event_t * event)
 			sccp_hint_detachLine(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
 			break;
 		case SCCP_EVENT_LINESTATUS_CHANGED:
-			sccp_hint_lineStatusChanged(event->event.lineStatusChanged.line, event->event.lineStatusChanged.optional_device);
+			pbx_rwlock_rdlock(&GLOB(lock));
+			if (!GLOB(reload_in_progress)) {									/* skip processing hints when reloading */
+				sccp_hint_lineStatusChanged(event->event.lineStatusChanged.line, event->event.lineStatusChanged.optional_device);
+			}
+			pbx_rwlock_unlock(&GLOB(lock));
 			break;
 		case SCCP_EVENT_FEATURE_CHANGED:
 			sccp_hint_handleFeatureChangeEvent(event);
@@ -1068,7 +1072,15 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 {
 	sccp_hint_list_t *hint = NULL;
 	char lineName[StationMaxNameSize + 5];
-	sprintf(lineName, "SCCP/%s", lineState->line->name);
+
+	{
+		AUTO_RELEASE sccp_line_t *line = lineState->line ? sccp_line_retain(lineState->line) : NULL;
+		if (line) {
+			sprintf(lineName, "SCCP/%s", lineState->line->name);
+		} else {
+			return;
+		}
+	}
 
 	enum ast_device_state newDeviceState = sccp_hint_hint2DeviceState(lineState->state);
 	enum ast_device_state oldDeviceState = AST_DEVICE_UNAVAILABLE;

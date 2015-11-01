@@ -558,7 +558,7 @@ boolean_t sccp_prePBXLoad(void)
 	//memset(sccp_event_listeners, 0, sizeof(struct sccp_event_subscriptions));
 	//SCCP_LIST_HEAD_INIT(&sccp_event_listeners->subscriber);
 
-	pbx_mutex_init(&GLOB(lock));
+	pbx_rwlock_init(&GLOB(lock));
 #ifndef SCCP_ATOMIC	
 	pbx_mutex_init(&GLOB(usecnt_lock));
 #endif
@@ -629,7 +629,7 @@ boolean_t sccp_prePBXLoad(void)
 
 boolean_t sccp_postPBX_load(void)
 {
-	pbx_mutex_lock(&GLOB(lock));
+	pbx_rwlock_wrlock(&GLOB(lock));
 
 	// initialize SCCP_REVISIONSTR and SCCP_REVISIONSTR
 #ifdef VCS_SHORT_HASH
@@ -650,7 +650,7 @@ boolean_t sccp_postPBX_load(void)
 #endif
 	GLOB(module_running) = TRUE;
 	sccp_refcount_schedule_cleanup((const void *) 0);
-	pbx_mutex_unlock(&GLOB(lock));
+	pbx_rwlock_unlock(&GLOB(lock));
 	return TRUE;
 }
 
@@ -675,9 +675,9 @@ int sccp_sched_free(void *ptr)
  */
 int sccp_preUnload(void)
 {
-	pbx_mutex_lock(&GLOB(lock));
+	pbx_rwlock_wrlock(&GLOB(lock));
 	GLOB(module_running) = FALSE;
-	pbx_mutex_unlock(&GLOB(lock));
+	pbx_rwlock_unlock(&GLOB(lock));
 
 	sccp_device_t *d = NULL;
 	sccp_line_t *l = NULL;
@@ -778,7 +778,7 @@ int sccp_preUnload(void)
 #ifndef SCCP_ATOMIC
 	pbx_mutex_destroy(&GLOB(usecnt_lock));
 #endif	
-	pbx_mutex_destroy(&GLOB(lock));
+	pbx_rwlock_destroy(&GLOB(lock));
 	//pbx_log(LOG_NOTICE, "SCCP chan_sccp unloaded\n");
 	return 0;
 }
@@ -792,7 +792,7 @@ int sccp_reload(void)
 	sccp_readingtype_t readingtype;
 	int returnval = 0;
 
-	pbx_mutex_lock(&GLOB(lock));
+	pbx_rwlock_wrlock(&GLOB(lock));
 	if (GLOB(reload_in_progress) == TRUE) {
 		pbx_log(LOG_ERROR, "SCCP reloading already in progress.\n");
 		returnval = 1;
@@ -841,7 +841,7 @@ int sccp_reload(void)
 	}
 EXIT:
 	GLOB(reload_in_progress) = FALSE;
-	pbx_mutex_unlock(&GLOB(lock));
+	pbx_rwlock_unlock(&GLOB(lock));
 	return returnval;
 }
 

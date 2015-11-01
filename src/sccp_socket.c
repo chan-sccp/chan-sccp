@@ -973,11 +973,11 @@ void *sccp_socket_device_thread(void *session)
 		/* create cancellation point */
 		pthread_testcancel();
 		if (s->device) {
-			pbx_mutex_lock(&GLOB(lock));
+			pbx_rwlock_rdlock(&GLOB(lock));
 			if (GLOB(reload_in_progress) == FALSE && s && s->device && (!(s->device->pendingUpdate == FALSE && s->device->pendingDelete == FALSE))) {
 				sccp_device_check_update(s->device);
 			}
-			pbx_mutex_unlock(&GLOB(lock));
+			pbx_rwlock_unlock(&GLOB(lock));
 		}
 		/* calculate poll timout using keepalive interval */
 		maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
@@ -1173,22 +1173,21 @@ static void sccp_socket_cleanup_timed_out(void)
 {
 	sccp_session_t *session;
 
-
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
-		if (session->lastKeepAlive == 0) {
-			// final resort
-			destroy_session(session, 0);
-		} else if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive)) && (session->session_thread != AST_PTHREADT_NULL)) {
-			pbx_mutex_lock(&GLOB(lock));
-			if (GLOB(module_running) && !GLOB(reload_in_progress)) {
+	pbx_rwlock_rdlock(&GLOB(lock));
+	if (GLOB(module_running) && !GLOB(reload_in_progress)) {
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
+			if (session->lastKeepAlive == 0) {
+				// final resort
+				destroy_session(session, 0);
+			} else if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive)) && (session->session_thread != AST_PTHREADT_NULL)) {
 				__sccp_session_stopthread(session, SKINNY_DEVICE_RS_FAILED);
 				session->session_thread = AST_PTHREADT_NULL;
 				session->lastKeepAlive = 0;
 			}
-			pbx_mutex_unlock(&GLOB(lock));
 		}
+		SCCP_LIST_TRAVERSE_SAFE_END;
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
+	pbx_rwlock_unlock(&GLOB(lock));
 }
 
 /*!
@@ -1236,11 +1235,11 @@ void *sccp_socket_thread(void *ignore)
 			sccp_socket_cleanup_timed_out();
 		} else {
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
-			pbx_mutex_lock(&GLOB(lock));
+			pbx_rwlock_rdlock(&GLOB(lock));
 			if (GLOB(module_running) && !GLOB(reload_in_progress)) {
 				sccp_accept_connection();
 			}
-			pbx_mutex_unlock(&GLOB(lock));
+			pbx_rwlock_unlock(&GLOB(lock));
 		}
 	}
 
