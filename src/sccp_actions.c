@@ -1470,11 +1470,11 @@ static void sccp_handle_stimulus_line(constDevicePtr d, constLinePtr l, const ui
 				sccp_dev_setActiveLine(device, l);
 				sccp_dev_set_cplane(device, instance, 1);
 			}
-		} else {
-			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s for this phone\n -> New Call", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
+		} else {											/* remote phone on call, show onhookstealable, don't start new call */
+			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s for this phone, but remote has one or more-> ONHOOKSTEALABLE (INTERCPT)\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 			sccp_dev_setActiveLine(device, l);
-			sccp_dev_set_cplane(device, instance, 1);
-			tmpChannel = sccp_channel_newcall(l, device, ((device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) ? "s" : NULL), SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+			sccp_dev_set_cplane(device, instance, callId);
+			sccp_dev_set_keyset(device, instance, callId, KEYMODE_ONHOOKSTEALABLE);
 		}
 	}
 }
