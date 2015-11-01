@@ -1571,14 +1571,12 @@ int sccp_channel_hold(channelPtr channel)
 	}
 
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(channel->line);
-
 	if (!l) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no line attached to it\n", channel->callid);
 		return FALSE;
 	}
 
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
-
 	if (!d) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no device attached to it\n", channel->callid);
 		return FALSE;
@@ -1659,14 +1657,12 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 	}
 
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(channel->line);
-
 	if (!l) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no line on channel %d\n", channel->callid);
 		return FALSE;
 	}
 
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
-
 	if (!d) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no device attached to it\n", channel->callid);
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no device or device could not be retained on channel %d\n", channel->callid);
@@ -1684,7 +1680,6 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 		}
 	}
 
-//	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED) {
 	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED) {
 		if (!(sccp_channel_hold(channel))) {
 			pbx_log(LOG_WARNING, "SCCP: channel still connected before resuming, put on hold failed for channel %d. exiting\n", channel->callid);
