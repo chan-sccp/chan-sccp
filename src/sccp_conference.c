@@ -707,8 +707,11 @@ void sccp_conference_end(sccp_conference_t * conference)
 {
 	sccp_participant_t *participant = NULL;
 
+	if (ATOMIC_INCR(&conference->finishing, TRUE, &conference->lock)) {				// already ending
+		return;	
+	}
+	
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Ending Conference.\n", conference->id);
-	ATOMIC_INCR(&conference->finishing, TRUE, &conference->lock);
 
 	playback_to_conference(conference, "conf-leaderhasleft", -1);
 

@@ -154,9 +154,14 @@ AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 	AC_LANG_C
 	AC_DISABLE_STATIC
 
-	CFLAGS_saved="$CFLAGS_saved -std=gnu89"
-	if test -z "`${CC} -std=gnu99 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'gnu89-inline'`"; then 
-		CFLAGS_saved="$CFLAGS_saved -fgnu89-inline"
+	if test -z "`${CC} -std=gnu11 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'unrecognized command line option'`"; then 
+		CFLAGS_saved="$CFLAGS_saved -std=gnu11 -fgnu89-inline"
+	else
+		if test -z "`${CC} -std=gnu99 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'gnu89-inline'`"; then 
+			CFLAGS_saved="$CFLAGS_saved -fgnu89-inline"
+		else 
+			CFLAGS_saved="$CFLAGS_saved -std=gnu89"
+		fi
 	fi
 
 	if test "${cross_compiling}" = "yes"; 

@@ -41,6 +41,9 @@ extern "C" {
 #if HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
+#if HAVE_STDBOOL_H
+#include <stdbool.h>
+#endif
 
 /* global types */
 #if defined(HAVE_UNALIGNED_BUSERROR)										// for example sparc64
@@ -92,14 +95,16 @@ typedef struct sccp_private_device_data sccp_private_device_data_t;						/*!< SC
 typedef struct sccp_cfwd_information sccp_cfwd_information_t;							/*!< SCCP CallForward information Structure */
 
 #ifndef SOLARIS
-#if defined __STDC__ && defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
+#  if defined __STDC__ && defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
 typedef _Bool boolean_t;
-#else
+#    define FALSE false
+#    define TRUE true
+#  else
 typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses True and False; nice !! */
-#endif
+#  endif
 #else
-#define FALSE B_FALSE
-#define TRUE B_TRUE
+#  define FALSE B_FALSE
+#  define TRUE B_TRUE
 #endif
 
 /* CompileTime Annotations */
