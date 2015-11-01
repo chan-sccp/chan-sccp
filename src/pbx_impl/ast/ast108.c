@@ -3418,6 +3418,7 @@ struct ast_module_info *ast_module_info = &__mod_info;
 AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, SCCP_VERSIONSTR,.load = load_module,.unload = unload_module,.reload = module_reload,.load_pri = AST_MODPRI_DEFAULT,.nonoptreq = "chan_local");
 #endif
 
+#if UNUSEDCODE // 2015-11-01
 PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data)
 {
 	PBX_CHANNEL_TYPE *remotePeer;
@@ -3438,6 +3439,7 @@ PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANN
 	ast_channel_iterator_destroy(iterator);
 	return remotePeer;
 }
+#endif
 
 PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE * chan, const char *exten, const char *context)
 {

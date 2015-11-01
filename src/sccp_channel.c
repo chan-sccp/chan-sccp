@@ -735,6 +735,7 @@ void sccp_channel_closeReceiveChannel(constChannelPtr channel, boolean_t KeepPor
 	}
 }
 
+#if UNUSEDCODE // 2015-11-01
 void sccp_channel_updateReceiveChannel(constChannelPtr channel)
 {
 	/* \todo possible to skip the closing of the receive channel (needs testing) */
@@ -748,7 +749,7 @@ void sccp_channel_updateReceiveChannel(constChannelPtr channel)
 		sccp_channel_openReceiveChannel(channel);
 	}
 }
-
+#endif
 /*!
  * \brief Open Multi Media Channel (Video) on Channel
  * \param channel SCCP Channel
@@ -822,6 +823,7 @@ void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean
 	}
 }
 
+#if UNUSEDCODE // 2015-11-01
 void sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel)
 {
 	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.readState) {
@@ -833,7 +835,7 @@ void sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel)
 		sccp_channel_openMultiMediaReceiveChannel(channel);
 	}
 }
-
+#endif
 /*!
  * \brief Tell a Device to Start Media Transmission.
  *
@@ -1025,6 +1027,7 @@ void sccp_channel_stopMultiMediaTransmission(constChannelPtr channel, boolean_t 
 	}
 }
 
+#if UNUSEDCODE // 2015-11-01
 void sccp_channel_updateMultiMediaTransmission(constChannelPtr channel)
 {
 	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.readState) {
@@ -1036,6 +1039,7 @@ void sccp_channel_updateMultiMediaTransmission(constChannelPtr channel)
 		sccp_channel_startMultiMediaTransmission(channel);
 	}
 }
+#endif
 
 void sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannelPtr channel)
 {
@@ -2282,6 +2286,7 @@ void sccp_channel_set_calleridPresentation(sccp_channel_t * channel, sccp_caller
 	}
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Reset Caller Id Presentation
  * \param channel SCCP Channel
@@ -2290,7 +2295,7 @@ void sccp_channel_reset_calleridPresentation(sccp_channel_t * channel)
 {
 	sccp_channel_set_calleridPresentation(channel, CALLERID_PRESENTATION_ALLOWED);
 }
-
+#endif
 /*!
  * \brief Forward a Channel
  * \param sccp_channel_parent SCCP parent channel
@@ -2540,6 +2545,7 @@ int sccp_channel_callwaiting_tone_interval(sccp_device_t * device, sccp_channel_
 	return -1;
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Helper function to retrieve the pbx channel LinkedID
  */
@@ -2551,7 +2557,7 @@ const char *sccp_channel_getLinkedId(const sccp_channel_t * channel)
 
 	return iPbx.getChannelLinkedId(channel);
 }
-
+#endif
 /*=================================================================================== FIND FUNCTIONS ==============*/
 /*!
  * \brief Find Channel by ID, using a specific line

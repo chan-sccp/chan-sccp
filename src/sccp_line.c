@@ -26,7 +26,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptionId, int onoff);
 int __sccp_line_destroy(const void *ptr);
 int __sccp_lineDevice_destroy(const void *ptr);
-void sccp_line_delete_nolock(sccp_line_t * l);
 int sccp_line_destroy(const void *ptr);
 
 /*!
@@ -279,8 +278,6 @@ void sccp_line_kill_channels(sccp_line_t * l)
  * \param l SCCP Line
  * \param remove_from_global as boolean_t
  *
- * \todo integrate sccp_line_clean and sccp_line_delete_nolock into sccp_line_delete
- *
  * \callgraph
  * \callergraph
  * 
@@ -431,15 +428,6 @@ int sccp_line_destroy(const void *ptr)
 
 	sccp_line_removeFromGlobals(l);										// final release
 	return 0;
-}
-
-/*!
- * \brief Delete an SCCP line
- * \param l SCCP Line
- */
-void sccp_line_delete_nolock(sccp_line_t * l)
-{
-	sccp_line_clean(l, TRUE);
 }
 
 void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c)
@@ -776,6 +764,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 	}
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief check the DND status for single/shared lines
  * On shared line we will return dnd status if all devices in dnd only.
@@ -821,6 +810,7 @@ sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line)
 	}													// if(SCCP_LIST_GETSIZE(&line->devices) > 1)
 	return state;
 }
+#endif
 
 /*=================================================================================== FIND FUNCTIONS ==============*/
 

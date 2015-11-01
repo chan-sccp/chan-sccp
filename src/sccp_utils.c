@@ -178,6 +178,7 @@ void sccp_pbx_setcallstate(sccp_channel_t * channel, int state)
 	}
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Clean Asterisk Database Entries in the "SCCP" Family
  * 
@@ -215,6 +216,7 @@ void sccp_dev_dbclean(void)
 		pbx_db_freetree(entry);
 	}
 }
+#endif
 
 gcc_inline const char *msgtype2str(sccp_mid_t type)
 {														/* sccp_protocol.h */
@@ -239,10 +241,12 @@ gcc_inline const char *pbxsccp_devicestate2str(uint32_t value)
 	_ARR2STR(sccp_pbx_devicestates, devicestate, value, text);
 }
 
+#if UNUSEDCODE // 2015-11-01
 gcc_inline const char *extensionstatus2str(uint32_t value)
 {														/* pbx_impl/ast/ast.h */
 	_ARR2STR(sccp_extension_states, extension_state, value, text);
 }
+#endif
 
 gcc_inline const char *label2str(uint16_t value)
 {														/* sccp_labels.h */
@@ -254,6 +258,7 @@ gcc_inline const char *codec2str(skinny_codec_t value)
 	_ARR2STR(skinny_codecs, codec, value, text);
 }
 
+#if UNUSEDCODE // 2015-11-01
 gcc_inline int codec2payload(skinny_codec_t value)
 {														/* sccp_protocol.h */
 	_ARR2INT(skinny_codecs, codec, value, rtp_payload_type);
@@ -263,16 +268,19 @@ gcc_inline const char *codec2key(skinny_codec_t value)
 {														/* sccp_protocol.h */
 	_ARR2STR(skinny_codecs, codec, value, key);
 }
+#endif
 
 gcc_inline const char *codec2name(skinny_codec_t value)
 {														/* sccp_protocol.h */
 	_ARR2STR(skinny_codecs, codec, value, name);
 }
 
+#if UNUSEDCODE // 2015-11-01
 gcc_inline uint32_t debugcat2int(const char *str)
 {														/* chan_sccp.h */
 	_STRARR2INT(sccp_debug_categories, key, str, category);
 }
+#endif
 
 gcc_inline uint32_t labelstr2int(const char *str)
 {														/* chan_sccp.h */

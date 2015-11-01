@@ -486,7 +486,9 @@ extern const char devstate_db_family[];
 #endif
 
 /* Function Declarations */
+#if UNUSEDCODE // 2015-11-01
 int sccp_sched_free(void *ptr);
+#endif
 sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_codec_t requestedCodec, skinny_codec_t capabilities[], uint8_t capabilityLength, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel);
 int sccp_handle_message(constMessagePtr msg, constSessionPtr s);
 int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug);

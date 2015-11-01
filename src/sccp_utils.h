@@ -34,7 +34,9 @@ int sccp_addons_taps(sccp_device_t * d);
 void sccp_addons_clear(sccp_device_t * d);
 void sccp_safe_sleep(int ms);
 void sccp_pbx_setcallstate(sccp_channel_t * channel, int state);
+#if UNUSEDCODE // 2015-11-01
 void sccp_dev_dbclean(void);
+#endif
 
 #define _ARR2STR(arrayname, lookup_var, lookup_val, return_var) \
         ({ \
@@ -74,18 +76,19 @@ void sccp_dev_dbclean(void);
 gcc_inline const char *msgtype2str(sccp_mid_t type);
 gcc_inline size_t msgtype2size(sccp_mid_t type);
 gcc_inline const char *pbxsccp_devicestate2str(uint32_t value);
-gcc_inline const char *extensionstatus2str(uint32_t value);
-
 // SKINNY Lookups
 gcc_inline const char *label2str(uint16_t value);
 gcc_inline const char *codec2str(skinny_codec_t value);
-gcc_inline int codec2payload(skinny_codec_t value);
-gcc_inline const char *codec2key(skinny_codec_t value);
 gcc_inline const char *codec2name(skinny_codec_t value);
 gcc_inline const char *featureType2str(sccp_feature_type_t value);
 gcc_inline const char *debugcat_keys(void);
-gcc_inline uint32_t debugcat2int(const char *str);
 gcc_inline uint32_t labelstr2int(const char *str);
+#if UNUSEDCODE // 2015-11-01
+gcc_inline const char *extensionstatus2str(uint32_t value);
+gcc_inline int codec2payload(skinny_codec_t value);
+gcc_inline const char *codec2key(skinny_codec_t value);
+gcc_inline uint32_t debugcat2int(const char *str);
+#endif
 
 char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int length);
 int sccp_parse_allow_disallow(skinny_codec_t * sccp_codecs, const char *list, int allowing);

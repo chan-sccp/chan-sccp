@@ -1623,6 +1623,7 @@ void sccp_dev_cleardisplay(constDevicePtr d)
  * \callergraph
  */
 //void sccp_dev_display(devicePtr d, char *msg)
+#if UNUSEDCODE // 2015-11-01
 void sccp_dev_display_debug(constDevicePtr d, const char *msgstr, const char *file, const int lineno, const char *pretty_function)
 {
 #if DEBUG
@@ -1645,6 +1646,7 @@ void sccp_dev_display_debug(constDevicePtr d, const char *msgstr, const char *fi
 	sccp_dev_send(d, msg);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Display text\n", d->id);
 }
+#endif
 
 /*!
  * \brief Send Clear Display Notification to Device
@@ -1983,6 +1985,7 @@ void sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePt
  * \param device SCCP Device
  * \return Result as int
  */
+#if UNUSEDCODE // 2015-11-01
 int sccp_device_check_ringback(devicePtr device)
 {
 	AUTO_RELEASE sccp_channel_t *c = NULL;
@@ -2008,6 +2011,7 @@ int sccp_device_check_ringback(devicePtr device)
 	}
 	return 0;
 }
+#endif
 
 /*!
  * \brief Handle Post Device Registration
@@ -2411,6 +2415,7 @@ int __sccp_device_destroy(const void *ptr)
 	return 0;
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Free a Device as scheduled command
  * \param ptr SCCP Device Pointer
@@ -2429,6 +2434,7 @@ int sccp_device_destroy(const void *ptr)
 	sccp_device_removeFromGlobals(d);
 	return 0;
 }
+#endif
 
 /*!
  * \brief is Video Support on a Device
