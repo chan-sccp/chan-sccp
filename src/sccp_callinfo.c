@@ -55,12 +55,14 @@ enum callinfo_types {
  */
 struct sccp_callinfo {
 	pbx_rwlock_t lock;
-	callinfo_entry_t entries[HUNT_PILOT + 1];
-	uint32_t originalCdpnRedirectReason;									/*!< Original Called Party Redirect Reason */
-	uint32_t lastRedirectingReason;										/*!< Last Redirecting Reason */
-	sccp_callerid_presentation_t presentation;								/*!< Should this callerinfo be shown (privacy) */
-	boolean_t changed;											/*! Changes since last send */
-	uint8_t callInstance;
+	struct ci_content {
+		callinfo_entry_t entries[HUNT_PILOT + 1];
+		uint32_t originalCdpnRedirectReason;								/*!< Original Called Party Redirect Reason */
+		uint32_t lastRedirectingReason;									/*!< Last Redirecting Reason */
+		sccp_callerid_presentation_t presentation;							/*!< Should this callerinfo be shown (privacy) */
+		boolean_t changed;										/*! Changes since last send */
+		uint8_t callInstance;
+	} content;
 };														/*!< SCCP CallInfo Structure */
 
 #define sccp_callinfo_wrlock(x) pbx_rwlock_wrlock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
@@ -102,9 +104,9 @@ sccp_callinfo_t *const sccp_callinfo_ctor(uint8_t callInstance)
 	pbx_rwlock_init(&ci->lock);
 
 	/* by default we allow callerid presentation */
-	ci->presentation = CALLERID_PRESENTATION_ALLOWED;
-	ci->changed = TRUE;
-	ci->callInstance = callInstance;
+	ci->content.presentation = CALLERID_PRESENTATION_ALLOWED;
+	ci->content.changed = TRUE;
+	ci->content.callInstance = callInstance;
 
 	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_1 "SCCP: callinfo constructor: %p\n", ci);
 	return ci;
@@ -130,13 +132,8 @@ sccp_callinfo_t *sccp_callinfo_copyCtor(const sccp_callinfo_t * const src_ci)
 			return NULL;
 		}
 		sccp_callinfo_rdlock(src_ci);
-		//memcpy(tmp_ci, src_ci, sizeof(sccp_callinfo_t));					// don't do this, it will copy the lock state as well
-		memcpy(tmp_ci->entries, src_ci->entries, sizeof(callinfo_entry_t));
-		tmp_ci->originalCdpnRedirectReason = src_ci->originalCdpnRedirectReason;
-		tmp_ci->lastRedirectingReason = src_ci->lastRedirectingReason;
-		tmp_ci->presentation = src_ci->presentation;
-		tmp_ci->callInstance = src_ci->callInstance;
-		tmp_ci->changed = TRUE;
+		memcpy(&tmp_ci->content, &src_ci->content, sizeof(struct ci_content));
+		tmp_ci->content.changed = TRUE;
 		sccp_callinfo_unlock(src_ci);
 
 		return tmp_ci;
@@ -148,21 +145,16 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src_ci, sccp_callinfo
 {
 	/* observing locking order. not locking both callinfo objects at the same time, using a tmp as go between */
 	if (src_ci && dst_ci) {
-		sccp_callinfo_t tmp_ci;
-		memset(&tmp_ci, 0, sizeof(sccp_callinfo_t));
+		struct ci_content tmp_ci_content;
+		memset(&tmp_ci_content, 0, sizeof(struct ci_content));
 
 		sccp_callinfo_rdlock(src_ci);
-		memcpy(&tmp_ci, src_ci, sizeof(sccp_callinfo_t));
+		memcpy(&tmp_ci_content, &src_ci->content, sizeof(struct ci_content));
 		sccp_callinfo_unlock(src_ci);
 
 		sccp_callinfo_wrlock(dst_ci);
-		//memcpy(dst_ci, &tmp_ci, sizeof(sccp_callinfo_t));					// don't do this, it will copy the lock state as well
-		memcpy(dst_ci->entries, &tmp_ci.entries, sizeof(callinfo_entry_t));
-		dst_ci->originalCdpnRedirectReason = tmp_ci.originalCdpnRedirectReason;
-		dst_ci->lastRedirectingReason = tmp_ci.lastRedirectingReason;
-		dst_ci->presentation = tmp_ci.presentation;
-		dst_ci->callInstance = tmp_ci.callInstance;
-		dst_ci->changed = TRUE;
+		memcpy(&dst_ci->content, &tmp_ci_content, sizeof(struct ci_content));
+		dst_ci->content.changed = TRUE;
 		sccp_callinfo_unlock(dst_ci);
 
 		return TRUE;
@@ -194,8 +186,8 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 			case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
 				{
 					uint new_value = va_arg(ap, uint);
-					if (new_value != ci->originalCdpnRedirectReason) {
-						ci->originalCdpnRedirectReason = new_value;
+					if (new_value != ci->content.originalCdpnRedirectReason) {
+						ci->content.originalCdpnRedirectReason = new_value;
 						changes++;
 					}
 				}
@@ -203,8 +195,8 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 			case SCCP_CALLINFO_LAST_REDIRECT_REASON:
 				{
 					uint new_value = va_arg(ap, uint);
-					if (new_value != ci->lastRedirectingReason) {
-						ci->lastRedirectingReason = new_value;
+					if (new_value != ci->content.lastRedirectingReason) {
+						ci->content.lastRedirectingReason = new_value;
 						changes++;
 					}
 				}
@@ -212,8 +204,8 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 			case SCCP_CALLINFO_PRESENTATION:
 				{
 					sccp_callerid_presentation_t new_value = va_arg(ap, sccp_callerid_presentation_t);
-					if (new_value != ci->presentation) {
-						ci->presentation = new_value;
+					if (new_value != ci->content.presentation) {
+						ci->content.presentation = new_value;
 						changes++;
 					}
 				}
@@ -226,7 +218,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 						char *dstPtr = NULL;
 						uint16_t *validPtr = NULL;
 						struct callinfo_lookup entry = callinfo_lookup[curkey];
-						callinfo_entry_t *callinfo = &ci->entries[entry.group];
+						callinfo_entry_t *callinfo = &ci->content.entries[entry.group];
 
 						switch(entry.type) {
 							case NAME:
@@ -260,7 +252,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 
 	va_end(ap);
 	if (changes) {
-		ci->changed = TRUE;
+		ci->content.changed = TRUE;
 	}
 	sccp_callinfo_unlock(ci);
 
@@ -276,9 +268,8 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, sccp_callinfo_key_t key, ...)
 {
 	pbx_assert(src_ci != NULL && dst_ci != NULL);
-	//sccp_callinfo_t tmp_ci = {{{{0}}}};
-	sccp_callinfo_t tmp_ci;
-	memset(&tmp_ci, 0, sizeof(sccp_callinfo_t));
+	struct ci_content tmp_ci_content;
+	memset(&tmp_ci_content, 0, sizeof(struct ci_content));
 	
 	sccp_callinfo_key_t srckey = SCCP_CALLINFO_NONE;
 	sccp_callinfo_key_t dstkey = SCCP_CALLINFO_NONE;
@@ -306,8 +297,8 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 		struct callinfo_lookup src_entry = callinfo_lookup[srckey];
 		struct callinfo_lookup dst_entry = callinfo_lookup[dstkey];
 		
-		callinfo_entry_t *src_callinfo = (callinfo_entry_t *const) &src_ci->entries[src_entry.group];
-		callinfo_entry_t *tmp_callinfo = &tmp_ci.entries[dst_entry.group];
+		callinfo_entry_t *src_callinfo = (callinfo_entry_t *const) &src_ci->content.entries[src_entry.group];
+		callinfo_entry_t *tmp_callinfo = &tmp_ci_content.entries[dst_entry.group];
 
 		char *srcPtr = NULL;
 		uint16_t *validPtr = NULL;
@@ -357,13 +348,8 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 	sccp_callinfo_unlock(src_ci);
 	
 	sccp_callinfo_wrlock(dst_ci);
-	//memcpy(dst_ci, &tmp_ci, sizeof(sccp_callinfo_t));					// don't do this, it will copy the lock state as well
-	memcpy(dst_ci->entries, &tmp_ci.entries, sizeof(callinfo_entry_t));
-	dst_ci->originalCdpnRedirectReason = tmp_ci.originalCdpnRedirectReason;
-	dst_ci->lastRedirectingReason = tmp_ci.lastRedirectingReason;
-	dst_ci->presentation = tmp_ci.presentation;
-	dst_ci->callInstance = tmp_ci.callInstance;
-	dst_ci->changed = TRUE;
+	memcpy(&dst_ci->content, &tmp_ci_content, sizeof(struct ci_content));
+	dst_ci->content.changed = TRUE;
 	sccp_callinfo_unlock(dst_ci);
 
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
@@ -389,8 +375,8 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 			case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
 				{
 					uint *dstPtr = va_arg(ap, uint *);
-					if (*dstPtr != ci->originalCdpnRedirectReason) {
-						*dstPtr = ci->originalCdpnRedirectReason;
+					if (*dstPtr != ci->content.originalCdpnRedirectReason) {
+						*dstPtr = ci->content.originalCdpnRedirectReason;
 						entries++;
 					}
 				}
@@ -398,8 +384,8 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 			case SCCP_CALLINFO_LAST_REDIRECT_REASON:
 				{
 					uint *dstPtr = va_arg(ap, uint *);
-					if (*dstPtr != ci->lastRedirectingReason) {
-						*dstPtr = ci->lastRedirectingReason;
+					if (*dstPtr != ci->content.lastRedirectingReason) {
+						*dstPtr = ci->content.lastRedirectingReason;
 						entries++;
 					}
 				}
@@ -407,8 +393,8 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 			case SCCP_CALLINFO_PRESENTATION:
 				{
 					sccp_callerid_presentation_t *dstPtr = va_arg(ap, sccp_callerid_presentation_t *);
-					if (*dstPtr != ci->presentation) {
-						*dstPtr = ci->presentation;
+					if (*dstPtr != ci->content.presentation) {
+						*dstPtr = ci->content.presentation;
 						entries++;
 					}
 				}
@@ -421,7 +407,7 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 						char *srcPtr = NULL;
 						uint16_t *validPtr = NULL;
 						struct callinfo_lookup entry = callinfo_lookup[curkey];
-						callinfo_entry_t *callinfo = (callinfo_entry_t *const) &(ci->entries[entry.group]);
+						callinfo_entry_t *callinfo = (callinfo_entry_t *const) &(ci->content.entries[entry.group]);
 
 						switch(entry.type) {
 							case NAME:
@@ -476,11 +462,11 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 
 int sccp_callinfo_send(sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const sccp_device_t * const device, boolean_t force)
 {
-	if (ci->changed || force) {
+	if (ci->content.changed || force) {
 		if (device->protocol && device->protocol->sendCallInfo) {
-			device->protocol->sendCallInfo(ci, callid, calltype, lineInstance, ci->callInstance, device);
+			device->protocol->sendCallInfo(ci, callid, calltype, lineInstance, ci->content.callInstance, device);
 			sccp_callinfo_wrlock(ci);
-			ci->changed = FALSE;
+			ci->content.changed = FALSE;
 			sccp_callinfo_unlock(ci);
 			return 1;
 		}
@@ -527,35 +513,35 @@ boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str
 	pbx_assert(ci != NULL);
 	sccp_callinfo_rdlock(ci);
 	pbx_str_append(buf, 0, "%p: (getCallInfoStr):\n", ci);
-	if (ci->entries[CALLED_PARTY].NumberValid || ci->entries[CALLED_PARTY].VoiceMailboxValid) {
-		pbx_str_append(buf, 0, " - calledParty: %s <%s>%s%s%s\n", ci->entries[CALLED_PARTY].Name, ci->entries[CALLED_PARTY].Number, 
-			(ci->entries[CALLED_PARTY].VoiceMailboxValid) ? " voicemail: " : "", ci->entries[CALLED_PARTY].VoiceMailbox, 
-			(ci->entries[CALLED_PARTY].NumberValid) ? ", valid" : ", invalid");
+	if (ci->content.entries[CALLED_PARTY].NumberValid || ci->content.entries[CALLED_PARTY].VoiceMailboxValid) {
+		pbx_str_append(buf, 0, " - calledParty: %s <%s>%s%s%s\n", ci->content.entries[CALLED_PARTY].Name, ci->content.entries[CALLED_PARTY].Number, 
+			(ci->content.entries[CALLED_PARTY].VoiceMailboxValid) ? " voicemail: " : "", ci->content.entries[CALLED_PARTY].VoiceMailbox, 
+			(ci->content.entries[CALLED_PARTY].NumberValid) ? ", valid" : ", invalid");
 	}
-	if (ci->entries[CALLING_PARTY].NumberValid || ci->entries[CALLING_PARTY].VoiceMailboxValid) {
-		pbx_str_append(buf, 0, " - callingParty: %s <%s>%s%s%s\n", ci->entries[CALLING_PARTY].Name, ci->entries[CALLING_PARTY].Number, 
-			(ci->entries[CALLING_PARTY].VoiceMailboxValid) ? " voicemail: " : "", ci->entries[CALLING_PARTY].VoiceMailbox, 
-			(ci->entries[CALLING_PARTY].NumberValid) ? ", valid" : ", invalid");
+	if (ci->content.entries[CALLING_PARTY].NumberValid || ci->content.entries[CALLING_PARTY].VoiceMailboxValid) {
+		pbx_str_append(buf, 0, " - callingParty: %s <%s>%s%s%s\n", ci->content.entries[CALLING_PARTY].Name, ci->content.entries[CALLING_PARTY].Number, 
+			(ci->content.entries[CALLING_PARTY].VoiceMailboxValid) ? " voicemail: " : "", ci->content.entries[CALLING_PARTY].VoiceMailbox, 
+			(ci->content.entries[CALLING_PARTY].NumberValid) ? ", valid" : ", invalid");
 	}
-	if (ci->entries[ORIG_CALLED_PARTY].NumberValid || ci->entries[ORIG_CALLED_PARTY].VoiceMailboxValid) {
-		pbx_str_append(buf, 0, " - originalCalledParty: %s <%s>%s%s%s, reason: %d\n", ci->entries[ORIG_CALLED_PARTY].Name, ci->entries[ORIG_CALLED_PARTY].Number, 
-			(ci->entries[ORIG_CALLED_PARTY].VoiceMailboxValid) ? " voicemail: " : "", ci->entries[ORIG_CALLED_PARTY].VoiceMailbox, 
-			(ci->entries[ORIG_CALLED_PARTY].NumberValid) ? ", valid" : ", invalid",
-			ci->originalCdpnRedirectReason);
+	if (ci->content.entries[ORIG_CALLED_PARTY].NumberValid || ci->content.entries[ORIG_CALLED_PARTY].VoiceMailboxValid) {
+		pbx_str_append(buf, 0, " - originalCalledParty: %s <%s>%s%s%s, reason: %d\n", ci->content.entries[ORIG_CALLED_PARTY].Name, ci->content.entries[ORIG_CALLED_PARTY].Number, 
+			(ci->content.entries[ORIG_CALLED_PARTY].VoiceMailboxValid) ? " voicemail: " : "", ci->content.entries[ORIG_CALLED_PARTY].VoiceMailbox, 
+			(ci->content.entries[ORIG_CALLED_PARTY].NumberValid) ? ", valid" : ", invalid",
+			ci->content.originalCdpnRedirectReason);
 	}
-	if (ci->entries[ORIG_CALLING_PARTY].NumberValid) {
-		pbx_str_append(buf, 0, " - originalCallingParty: %s <%s>, valid\n", ci->entries[ORIG_CALLING_PARTY].Name, ci->entries[ORIG_CALLING_PARTY].Number);
+	if (ci->content.entries[ORIG_CALLING_PARTY].NumberValid) {
+		pbx_str_append(buf, 0, " - originalCallingParty: %s <%s>, valid\n", ci->content.entries[ORIG_CALLING_PARTY].Name, ci->content.entries[ORIG_CALLING_PARTY].Number);
 	}
-	if (ci->entries[LAST_REDIRECTING_PARTY].NumberValid || ci->entries[LAST_REDIRECTING_PARTY].VoiceMailboxValid) {
-		pbx_str_append(buf, 0, " - lastRedirectingParty: %s <%s>%s%s%s, reason: %d\n", ci->entries[LAST_REDIRECTING_PARTY].Name, ci->entries[LAST_REDIRECTING_PARTY].Number, 
-			(ci->entries[LAST_REDIRECTING_PARTY].VoiceMailboxValid) ? " voicemail: " : "", ci->entries[LAST_REDIRECTING_PARTY].VoiceMailbox, 
-			(ci->entries[LAST_REDIRECTING_PARTY].NumberValid) ? ", valid" : ", invalid",
-			ci->lastRedirectingReason);
+	if (ci->content.entries[LAST_REDIRECTING_PARTY].NumberValid || ci->content.entries[LAST_REDIRECTING_PARTY].VoiceMailboxValid) {
+		pbx_str_append(buf, 0, " - lastRedirectingParty: %s <%s>%s%s%s, reason: %d\n", ci->content.entries[LAST_REDIRECTING_PARTY].Name, ci->content.entries[LAST_REDIRECTING_PARTY].Number, 
+			(ci->content.entries[LAST_REDIRECTING_PARTY].VoiceMailboxValid) ? " voicemail: " : "", ci->content.entries[LAST_REDIRECTING_PARTY].VoiceMailbox, 
+			(ci->content.entries[LAST_REDIRECTING_PARTY].NumberValid) ? ", valid" : ", invalid",
+			ci->content.lastRedirectingReason);
 	}
-	if (ci->entries[HUNT_PILOT].NumberValid) {
-		pbx_str_append(buf, 0, " - huntPilot: %s <%s>, valid\n", ci->entries[HUNT_PILOT].Name, ci->entries[HUNT_PILOT].Number);
+	if (ci->content.entries[HUNT_PILOT].NumberValid) {
+		pbx_str_append(buf, 0, " - huntPilot: %s <%s>, valid\n", ci->content.entries[HUNT_PILOT].Name, ci->content.entries[HUNT_PILOT].Number);
 	}
-	pbx_str_append(buf, 0, " - presentation: %s\n\n", sccp_callerid_presentation2str(ci->presentation));
+	pbx_str_append(buf, 0, " - presentation: %s\n\n", sccp_callerid_presentation2str(ci->content.presentation));
 	sccp_callinfo_unlock(ci);
 	return TRUE;
 }
