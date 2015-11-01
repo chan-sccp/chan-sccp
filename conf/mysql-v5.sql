@@ -136,6 +136,9 @@ DELIMITER ;
 -- When altering sccpdevice or buttonconfig, this view needs to be dropped and recreated afterwards
 --
 --
+-- group_concat_max_len = 2048; in my.cnf
+--
+
 CREATE OR REPLACE
 ALGORITHM = MERGE
 VIEW sccpdeviceconfig AS
