@@ -384,7 +384,9 @@ struct sccp_device_indication_cb {
 	void (*const connected) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
 };
 
+#if UNUSEDCODE // 2015-11-01
 #define sccp_dev_display(p,q) sccp_dev_display_debug(p, q, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#endif
 #define sccp_dev_displayprompt(p, q, r, s, t) sccp_dev_displayprompt_debug(p, q, r, s, t, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_dev_displaynotify(p,q,r) sccp_dev_displaynotify_debug(p,q,r, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_dev_displayprinotify(p,q,r,s) sccp_dev_displayprinotify_debug(p,q,r,s,__FILE__, __LINE__, __PRETTY_FUNCTION__)
@@ -453,7 +455,9 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event);
 void sccp_device_sendcallstate(constDevicePtr d, uint8_t instance, uint32_t callid, skinny_callstate_t state, skinny_callpriority_t precedence_level, skinny_callinfo_visibility_t visibility);
 
 int sccp_dev_send(constDevicePtr d, sccp_msg_t * msg);
+#if UNUSEDCODE // 2015-11-01
 int sccp_device_check_ringback(devicePtr d);
+#endif
 int sccp_device_sendReset(devicePtr d, uint8_t reset_type);
 
 uint8_t sccp_device_find_index_for_line(constDevicePtr d, const char *lineName);

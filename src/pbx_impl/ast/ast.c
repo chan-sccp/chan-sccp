@@ -32,6 +32,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
  * \todo implement pbx_channel_walk_locked or replace
  * \deprecated
  */
+#if UNUSEDCODE // 2015-11-01
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 {
 #if ASTERISK_VERSION_NUMBER >= 10800
@@ -63,6 +64,7 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 	return ast_channel_walk_locked(target);
 #endif
 }
+#endif
 
 /************************************************************************************************************** CONFIG **/
 
@@ -77,7 +79,8 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
  *
  * \deprecated
  */
-struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast_ha *path, int *error)
+#if UNUSEDCODE // 2015-11-01
+pbx_channel_walk_lockedstruct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast_ha *path, int *error)
 {
 #if ASTERISK_VERSION_NUMBER < 10600
 	return ast_append_ha(sense, stuff, path);
@@ -85,6 +88,7 @@ struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast
 	return ast_append_ha(sense, stuff, path, error);
 #endif														// ASTERISK_VERSION_NUMBER
 }
+#endif
 
 /*
  * \brief Register a new context
@@ -257,6 +261,7 @@ int pbx_str2cos(const char *value, uint8_t *cos)
  * 
  * @{
  */
+#if UNUSEDCODE // 2015-11-01
 int pbx_context_remove_extension(const char *context, const char *extension, int priority, const char *registrar)
 {
 #if ASTERISK_VERSION_NUMBER >= 10600
@@ -270,6 +275,7 @@ int pbx_context_remove_extension(const char *context, const char *extension, int
 	return ast_context_remove_extension(context, extension, priority, registrar);
 #endif														// ASTERISK_VERSION_NUMBER
 }
+#endif
 
 /*!   
  * \brief Send ack in manager list transaction

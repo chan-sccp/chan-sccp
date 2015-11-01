@@ -141,6 +141,7 @@ sccp_callinfo_t *sccp_callinfo_copyCtor(const sccp_callinfo_t * const src_ci)
 	return NULL;
 }
 
+#if UNUSEDCODE // 2015-11-01
 boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci)
 {
 	/* observing locking order. not locking both callinfo objects at the same time, using a tmp as go between */
@@ -161,6 +162,7 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src_ci, sccp_callinfo
 	}
 	return FALSE;
 }
+#endif
 
 int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...)
 {
@@ -265,6 +267,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 	return changes;
 }
 
+#if UNUSEDCODE // 2015-11-01
 int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, sccp_callinfo_key_t key, ...)
 {
 	pbx_assert(src_ci != NULL && dst_ci != NULL);
@@ -358,6 +361,7 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_copyByKey) changes:%d\n", dst_ci, changes);
 	return changes;
 }
+#endif
 
 int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...)
 {

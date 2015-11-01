@@ -2001,7 +2001,7 @@ static boolean_t sccp_wrapper_asterisk16_getChannelByName(const char *name, PBX_
 	PBX_CHANNEL_TYPE *ast_channel = NULL;
 
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(iPbx.getChannelByName) searching for channel with identification %s\n", name);
-	while ((ast_channel = pbx_channel_walk_locked(ast_channel)) != NULL) {
+	while ((ast_channel = ast_channel_walk_locked(ast_channel)) != NULL) {
 		if (strlen(ast_channel->name) == strlen(name) && !strncmp(ast_channel->name, name, strlen(ast_channel->name))) {
 			*pbx_channel = ast_channel;
 			pbx_channel_unlock(ast_channel);
@@ -3233,6 +3233,7 @@ AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, SCCP_VERSIONSTR);
 #endif
 #endif
 
+#if UNUSEDCODE // 2015-11-01
 PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data)
 {
 	PBX_CHANNEL_TYPE *remotePeer;
@@ -3240,6 +3241,7 @@ PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANN
 	remotePeer = ast_channel_search_locked(found_cb, data);
 	return remotePeer;
 }
+#endif
 
 /* sccp_wrapper_asterisk16_findPickupChannelByExtenLocked helper functions */
 /* Helper function that determines whether a channel is capable of being picked up */

@@ -156,7 +156,9 @@ void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel);
 void sccp_line_clean(sccp_line_t * l, boolean_t destroy);
 void sccp_line_kill_channels(sccp_line_t * l);
 
+#if UNUSEDCODE // 2015-11-01
 sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line);
+#endif
 void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c);
 void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number);
 

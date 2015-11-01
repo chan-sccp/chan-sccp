@@ -654,6 +654,7 @@ boolean_t sccp_postPBX_load(void)
 	return TRUE;
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Schedule free memory
  * \param ptr pointer
@@ -668,7 +669,7 @@ int sccp_sched_free(void *ptr)
 	return 0;
 
 }
-
+#endif
 /*!
  * \brief PBX Independent Function to be called before unloading the module
  * \return Success as int
