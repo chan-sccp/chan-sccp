@@ -87,20 +87,16 @@ static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t 
 
 	c->privateData->microphone = enabled;
 
-	switch (enabled) {
-		case TRUE:
-			c->isMicrophoneEnabled = sccp_always_true;
-			if ((c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
-				sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
-			}
-
-			break;
-		case FALSE:
-			c->isMicrophoneEnabled = sccp_always_false;
-			if ((c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
-				sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
-			}
-			break;
+	if (enabled) {
+		c->isMicrophoneEnabled = sccp_always_true;
+		if ((c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
+			sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
+		}
+	} else {
+		c->isMicrophoneEnabled = sccp_always_false;
+		if ((c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
+			sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
+		}
 	}
 #else														/* show how WITHREF / GETWITHREF would/could work */
 	sccp_device_t *d = NULL;
@@ -109,20 +105,16 @@ static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t 
 		GETWITHREF(d, channel->privateData->device) {
 			channel->privateData->microphone = enabled;
 			pbx_log(LOG_NOTICE, "Within retain section\n");
-			switch (enabled) {
-				case TRUE:
-					channel->isMicrophoneEnabled = sccp_always_true;
-					if ((channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
-						sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
-					}
-
-					break;
-				case FALSE:
-					channel->isMicrophoneEnabled = sccp_always_false;
-					if ((channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
-						sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
-					}
-					break;
+			if (enabled) {
+				channel->isMicrophoneEnabled = sccp_always_true;
+				if ((channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
+					sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
+				}
+			} else {
+				channel->isMicrophoneEnabled = sccp_always_false;
+				if ((channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
+					sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
+				}
 			}
 		}
 	}
