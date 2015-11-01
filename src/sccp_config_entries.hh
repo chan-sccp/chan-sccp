@@ -205,7 +205,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"mwioncall", 			D_OBJ_REF(mwioncall), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the MWI on call.\n"},
 	{"meetme", 			D_OBJ_REF(meetme), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"enable/disable conferencing via app_meetme (on/off)\n"},
 	{"meetmeopts", 			D_OBJ_REF(meetmeopts), 			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"options to send the app_meetme application (default 'qd' = quiet,dynamic pin)\n"																																					"Other options (A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see app_meetme documentation\n"},
-	{"softkeyset", 			D_OBJ_REF(softkeyDefinition),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"default",			"use specified softkeyset with name softkeyset1\n"},
+	{"softkeyset", 			D_OBJ_REF(softkeyDefinition),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"default",			"use specified softkeyset with name 'default'\n"},
 #ifdef CS_ADV_FEATURES
 	{"useRedialMenu", 		D_OBJ_REF(useRedialMenu), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"show redial phone book list instead of dialing the last number (adv_feature). Requires a Phone Service block in SEP....cnf.xml to work correct on Java phones (See conf/tftp/SEP example files)\n"},
 #endif
@@ -311,7 +311,7 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
  * \brief List of SCCP Config Options for SCCP SoftKey
  */
 static const SCCPConfigOption sccpSoftKeyConfigOptions[] = {
-	{"type",			0,	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		"softkeyset",										""},
+	{"type",			0,	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"softkeyset",										"This should be set to softkeyset"},
 	{"name", 			0, 	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		"default",										"softkeyset name\n"},
 	{"onhook",			S_OBJ_REF(modes[KEYMODE_ONHOOK]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,newcall,cfwdall,dnd,pickup,gpickup,private",					"displayed when we are on hook"},
 	{"connected",			S_OBJ_REF(modes[KEYMODE_CONNECTED]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"hold,endcall,park,vidmode,select,cfwdall,cfwdbusy,idivert",				"displayed when we have a connected call"},
