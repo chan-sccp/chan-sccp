@@ -344,7 +344,7 @@ struct sccp_global_vars {
 	int keepalive;												/*!< KeepAlive */
 	int32_t debug;												/*!< Debug */
 	int module_running;
-	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
+	pbx_rwlock_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
 
 #if ASTERISK_VERSION_GROUP < 110
 	pthread_t monitor_thread;										/*!< Monitor Thread */

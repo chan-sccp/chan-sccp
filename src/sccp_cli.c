@@ -474,7 +474,7 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	int local_line_total = 0;
 	const char *actionid = "";
 
-	sccp_globals_lock(lock);
+	pbx_rwlock_rdlock(&GLOB(lock));
 
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, GLOB(global_preferences), ARRAY_LEN(GLOB(global_preferences)));
 	debugcategories = sccp_get_debugcategories(GLOB(debug));
@@ -574,7 +574,7 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("Threadpool Size", CLI_AMI_LIST_WIDTH, "%d/%d", sccp_threadpool_jobqueue_count(GLOB(general_threadpool)), sccp_threadpool_thread_count(GLOB(general_threadpool)));
 
 	sccp_free(debugcategories);
-	sccp_globals_unlock(lock);
+	pbx_rwlock_unlock(&GLOB(lock));
 
 	if (s) {
 		totals->lines = local_line_total;
@@ -2453,18 +2453,21 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	if (argc < 2 || argc > 4) {
 		return RESULT_SHOWUSAGE;
 	}
-	pbx_mutex_lock(&GLOB(lock));
+	pbx_rwlock_wrlock(&GLOB(lock));
 	if (GLOB(reload_in_progress) == TRUE) {
 		pbx_cli(fd, "SCCP reloading already in progress.\n");
+		pbx_rwlock_unlock(&GLOB(lock));
 		goto EXIT;
 	}
 
 	if (!GLOB(cfg)) {
 		pbx_log(LOG_NOTICE, "GLOB(cfg) not available. Skip loading default setting.\n");
+		pbx_rwlock_unlock(&GLOB(lock));
 		goto EXIT;
 	}
-
 	GLOB(reload_in_progress) = TRUE;
+	pbx_rwlock_unlock(&GLOB(lock));
+
 	if (argc > 2) {
 		if (sccp_strequals("device", argv[2])) {
 			if (argc == 4) {
@@ -2676,8 +2679,9 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			break;
 	}
 EXIT:
+	pbx_rwlock_wrlock(&GLOB(lock));
 	GLOB(reload_in_progress) = FALSE;
-	pbx_mutex_unlock(&GLOB(lock));
+	pbx_rwlock_unlock(&GLOB(lock));
 	return returnval;
 }
 
@@ -2687,6 +2691,9 @@ static char reload_usage[] = "Usage: SCCP reload [force|file filename|device dev
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_COMMAND "sccp", "reload"
 CLI_ENTRY(cli_reload, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
+#undef CLI_COMMAND
+#define CLI_COMMAND "sccp", "reload", "file"
+CLI_ENTRY(cli_reload_file, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
 #undef CLI_COMMAND
 #define CLI_COMMAND "sccp", "reload", "force"
     CLI_ENTRY(cli_reload_force, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
@@ -3378,6 +3385,7 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
 	AST_CLI_DEFINE(cli_config_generate, "SCCP generate config file."),
 	AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
+	AST_CLI_DEFINE(cli_reload_file, "SCCP module reload file."),
 	AST_CLI_DEFINE(cli_reload_force, "SCCP module reload force."),
 	AST_CLI_DEFINE(cli_reload_device, "SCCP module reload device."),
 	AST_CLI_DEFINE(cli_reload_line, "SCCP module reload line."),
