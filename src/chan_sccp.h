@@ -89,8 +89,9 @@ static inline unsigned long long bswap_64(unsigned long long x)
 #ifndef SCCP_BRANCH
 #define SCCP_BRANCH "trunk"
 #endif
-char SCCP_VERSIONSTR[300];
-char SCCP_REVISIONSTR[30];
+
+extern char SCCP_VERSIONSTR[300];
+extern char SCCP_REVISIONSTR[30];
 
 #define SCCP_FILENAME_MAX 80
 #if defined(PATH_MAX)
