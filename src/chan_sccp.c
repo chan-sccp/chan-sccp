@@ -72,6 +72,9 @@ static struct ast_jb_conf default_jbconf = {
 };
 #endif
 
+char SCCP_VERSIONSTR[300];
+char SCCP_REVISIONSTR[30];
+
 /*!
  * \brief       Global null frame
  */
@@ -632,6 +635,7 @@ boolean_t sccp_postPBX_load(void)
 	pbx_rwlock_wrlock(&GLOB(lock));
 
 	// initialize SCCP_REVISIONSTR and SCCP_REVISIONSTR
+	
 #ifdef VCS_SHORT_HASH
 #ifdef VCS_WC_MODIFIED
 	sprintf(SCCP_REVISIONSTR, "%sM", VCS_SHORT_HASH);
