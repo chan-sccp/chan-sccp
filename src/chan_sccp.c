@@ -175,7 +175,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
  * \param deviceIsNecessary Is a valid device necessary for this message to be processed, if it is, the device is retain during execution of this particular message parser
  * \return -1 or retained Device;
  */
-inline static sccp_device_t * const check_session_message_device(constSessionPtr s, constMessagePtr msg, const char *msgtypestr, boolean_t deviceIsNecessary)
+gcc_inline static sccp_device_t * const check_session_message_device(constSessionPtr s, constMessagePtr msg, const char *msgtypestr, boolean_t deviceIsNecessary)
 {
 	int errors = 0;
 	if (!msg) {
