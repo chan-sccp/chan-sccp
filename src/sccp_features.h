@@ -14,9 +14,9 @@
 void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_callforward_t type);
 
 #ifdef CS_SCCP_PICKUP
-void sccp_feat_handle_directed_pickup(constLinePtr l, uint8_t lineInstance, constDevicePtr d);
-int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, const char *exten);
-int sccp_feat_grouppickup(constLinePtr l, constDevicePtr d);
+void sccp_feat_handle_directed_pickup(constDevicePtr d, constLinePtr l, channelPtr maybe_c);
+int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInstance, const char *exten);
+int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstance, channelPtr maybe_c);
 #endif
 void sccp_feat_voicemail(constDevicePtr d, uint8_t line_instance);
 void sccp_feat_idivert(constDevicePtr d, constLinePtr l, constChannelPtr c);

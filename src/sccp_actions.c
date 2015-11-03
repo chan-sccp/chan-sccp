@@ -1453,7 +1453,7 @@ static void sccp_handle_stimulus_line(constDevicePtr d, constLinePtr l, const ui
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n -> New Call", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 			sccp_dev_setActiveLine(device, l);
 			sccp_dev_set_cplane(device, instance, 1);
-			tmpChannel = sccp_channel_newcall(l, device, ((device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) ? "s" : NULL), SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+			tmpChannel = sccp_channel_newcall(l, device, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		} else if ((tmpChannel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING))) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Answering incoming/ringing line %d", device->id, instance);
 			sccp_channel_answer(device, tmpChannel);
@@ -1668,11 +1668,23 @@ static void sccp_handle_stimulus_groupcallpickup(constDevicePtr d, constLinePtr 
 #ifdef CS_SCCP_PICKUP
 	/*! \todo use feature map or sccp_feat_handle_directed_pickup */
 	//sccp_feat_handle_directed_pickup(l, 1, d);
-	AUTO_RELEASE sccp_channel_t *new_channel = NULL;
-
-	if (!(new_channel = sccp_channel_newcall(l, d, "pickupexten", SKINNY_CALLTYPE_OUTBOUND, NULL, NULL))) {
-	        pbx_log(LOG_ERROR, "%s: (grouppickup) Cannot start a new channel\n", d->id);
+	AUTO_RELEASE sccp_channel_t *maybe_c = sccp_find_channel_by_lineInstance_and_callid(d, instance, callId);
+	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_getEmptyChannel(l, d, maybe_c, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+	if (channel) {
+		channel->softswitch_action = SCCP_SOFTSWITCH_DIAL;
+		channel->ss_data = 0;
+		iPbx.getPickupExtension(channel, channel->dialedNumber);
+		sccp_indicate(d, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
+		iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
+		if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.rtp) {
+			sccp_channel_openReceiveChannel(channel);
+		}
+		sccp_pbx_softswitch(channel);
 	}
+
+	//if (!(channel = sccp_channel_newcall(l, d, "pickupexten", SKINNY_CALLTYPE_OUTBOUND, NULL, NULL))) {
+	//        pbx_log(LOG_ERROR, "%s: (grouppickup) Cannot start a new channel\n", d->id);
+	//}
 #else
 	sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");
 #endif
@@ -2048,7 +2060,7 @@ void sccp_handle_offhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Using line %s\n", d->id, l->name);
 			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
 
-			new_channel = sccp_channel_newcall(l, d, (!sccp_strlen_zero(l->adhocNumber) ? l->adhocNumber : (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) ? "s" : NULL), SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+			new_channel = sccp_channel_newcall(l, d, (!sccp_strlen_zero(l->adhocNumber) ? l->adhocNumber : NULL), SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		}
 	}
 }

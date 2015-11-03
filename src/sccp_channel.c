@@ -1226,6 +1226,45 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 }
 
 /*!
+ * \brief get an SCCP Channel
+ * Retrieve unused or allocate a new channel
+ */
+channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
+{
+	pbx_assert(l != NULL && d != NULL);
+	sccp_channel_t *channel = NULL;
+	
+	{
+		AUTO_RELEASE sccp_channel_t *c = NULL;
+		if (!maybe_c || !(c=sccp_channel_retain(maybe_c))) {
+			c = sccp_device_getActiveChannel(d);
+		}
+		if (c) {
+			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {		// reuse unused channel
+				int lineInstance = sccp_device_find_index_for_line(d, c->line->name);
+				sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
+				channel = sccp_channel_retain(c);
+			} else if (!sccp_channel_hold(c)) {
+				pbx_log(LOG_ERROR, "%s: Putting Active Channel %s OnHold failed -> Cancelling new CaLL\n", d->id, l->name);
+				return NULL;
+			}
+		}
+	}
+	if (!channel && !(channel = sccp_channel_allocate(l, d))) {
+		pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", d->id, l->name);
+		return NULL;
+	}
+	channel->calltype = calltype;
+	if (!sccp_pbx_channel_allocate(channel, ids, parentChannel)) {
+		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", d->id, l->name);
+		sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
+		return NULL;
+	}
+	return channel;
+}
+
+
+/*!
  * \brief Allocate a new Outgoing Channel.
  *
  * \param l SCCP Line that owns this channel
@@ -1242,36 +1281,12 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
 {
 	/* handle outgoing calls */
-
-	if (!l) {
-		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if a line is not defined!\n");
+	if (!l || !device) {
+		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if device or line is not defined!\n");
 		return NULL;
 	}
 
-	if (!device) {
-		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if a device is not defined!\n");
-		return NULL;
-	}
-
-	/* look if we have a call to put on hold */
-	{
-		AUTO_RELEASE sccp_channel_t *c = sccp_device_getActiveChannel(device);
-
-		if ((c)
-#if CS_SCCP_CONFERENCE
-		    //&& (NULL == c->conference)
-#endif
-		    ) {
-			/* there is an active call, let's put it on hold first */
-			if (!sccp_channel_hold(c)) {
-				pbx_log(LOG_ERROR, "%s: Putting Active Channel %s OnHold failed -> Cancelling new CaLL\n", device->id, l->name);
-				return NULL;
-			}
-		}
-	}
-
-	sccp_channel_t * const channel = sccp_channel_allocate(l, device);
-
+	sccp_channel_t * const channel = sccp_channel_getEmptyChannel(l, device, NULL, calltype, parentChannel, ids);
 	if (!channel) {
 		pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", device->id, l->name);
 		return NULL;
@@ -1280,53 +1295,26 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 	channel->softswitch_action = SCCP_SOFTSWITCH_DIAL;							/* softswitch will catch the number to be dialed */
 	channel->ss_data = 0;											/* nothing to pass to action */
 
-	channel->calltype = calltype;
-
-	/* copy the number to dial in the ast->exten */
-	if (dial) {
-		if (sccp_strequals(dial, "pickupexten")) {
-			if (iPbx.getPickupExtension(channel, channel->dialedNumber)) {
-				sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
-				iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
-			}
-		} else {
-			sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
-			sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
-			iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
-		}
-	} else {
-		sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
-		iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
-	}
-
-	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(channel, ids, parentChannel)) {
-		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", device->id, l->name);
-		sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONGESTION);
-		return channel;
-	}
-
 	iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
-
 	if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.rtp) {
 		sccp_channel_openReceiveChannel(channel);
 	}
-
-/*
-	if (!dial && (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE)) {
-		sccp_copy_string(channel->dialedNumber, "s", sizeof(channel->dialedNumber));
-		sccp_pbx_softswitch(channel);
-		channel->dialedNumber[0] = 0;
-		return channel;
-	}
-*/
 	if (dial) {
+		sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
+		sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
 		sccp_pbx_softswitch(channel);
-		if (channel->dialedNumber[0] == 's') channel->dialedNumber[0] = '\0';				/* handle immediate 's' extension */
 		return channel;
+	} else {
+		sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
+		if (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
+			sccp_copy_string(channel->dialedNumber, "s", sizeof(channel->dialedNumber));
+			sccp_pbx_softswitch(channel);
+			channel->dialedNumber[0] = '\0';
+			return channel;
+		}
 	}
-	sccp_channel_schedule_digittimout(channel, GLOB(firstdigittimeout));
 
+	sccp_channel_schedule_digittimout(channel, GLOB(firstdigittimeout));
 	return channel;
 }
 
@@ -1984,7 +1972,7 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 			if (channel->state != SCCP_CHANNELSTATE_CALLTRANSFER) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);
 			}
-			AUTO_RELEASE sccp_channel_t *sccp_channel_new = sccp_channel_newcall(channel->line, d, ((d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) ? "s" : NULL), SKINNY_CALLTYPE_OUTBOUND, pbx_channel_owner, NULL);
+			AUTO_RELEASE sccp_channel_t *sccp_channel_new = sccp_channel_newcall(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, pbx_channel_owner, NULL);
 
 			if (sccp_channel_new && (pbx_channel_bridgepeer = iPbx.get_bridged_channel(pbx_channel_owner))) {
 				pbx_builtin_setvar_helper(sccp_channel_new->owner, "TRANSFEREE", pbx_channel_name(pbx_channel_bridgepeer));
