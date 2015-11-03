@@ -134,6 +134,7 @@ struct sccp_selectedchannel {
 };														/*!< SCCP Selected Channel Structure */
 /* live cycle */
 channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device);					// device is optional
+channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);	// retrieve or allocate new channel
 channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
 
 void sccp_channel_updateChannelDesignator(sccp_channel_t * c);
