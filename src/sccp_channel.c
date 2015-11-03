@@ -2068,23 +2068,23 @@ void sccp_channel_transfer_cancel(devicePtr d, channelPtr c)
 	 * 7960 loses callplane when cancel transfer (end call on other channel).
 	 * This script sets the hold state for transfered channel explicitly -MC
 	 */
-	if (d && d->transferChannels.transferee && d->transferChannels.transferee != c) {
-		if (d->transferChannels.transferer && d->transferChannels.transferer != c) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee %d %s by the Receiving Party. Cancelling Transfer and Putting transferee channel on Hold.\n", DEV_ID_LOG(d), d->transferChannels.transferee->callid, d->transferChannels.transferee->line->name);
-		} else {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee %d %s by the Transfering Party. Cancelling Transfer and Putting transferee channel on Hold.\n", DEV_ID_LOG(d), d->transferChannels.transferee->callid, d->transferChannels.transferee->line->name);
-		}
-
-		d->transferChannels.transferee->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
-		sccp_rtp_stop(d->transferChannels.transferee);
-		sccp_dev_setActiveLine(d, NULL);
-		sccp_indicate(d, d->transferChannels.transferee, SCCP_CHANNELSTATE_HOLD);
-		sccp_channel_setDevice(d->transferChannels.transferee, NULL);
+	if (d) {
+		AUTO_RELEASE sccp_channel_t *transferee = d->transferChannels.transferee ? sccp_channel_retain(d->transferChannels.transferee) : NULL;
+		if (transferee && transferee != c) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee %d %s by the Receiving Party. Cancelling Transfer and Putting transferee channel on Hold.\n", DEV_ID_LOG(d), transferee->callid, transferee->line->name);
+			transferee->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
+			sccp_rtp_stop(transferee);
+			sccp_dev_setActiveLine(d, NULL);
+			sccp_indicate(d, transferee, SCCP_CHANNELSTATE_HOLD);
+			sccp_channel_setDevice(transferee, NULL);
 #if ASTERISK_VERSION_GROUP >= 108
-		enum ast_control_transfer control_transfer_message = AST_TRANSFER_FAILED;
-		iPbx.queue_control_data(c->owner, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
+			enum ast_control_transfer control_transfer_message = AST_TRANSFER_FAILED;
+			iPbx.queue_control_data(c->owner, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
 #endif
-		sccp_channel_transfer_release(d, d->transferChannels.transferee);			/* explicit release */
+			sccp_channel_transfer_release(d, transferee);			/* explicit release */
+		} else {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee by the Transfering Party. Cancelling Transfer and Putting transferee channel on Hold.\n", DEV_ID_LOG(d));
+		}
 	}
 }
 
@@ -2234,6 +2234,7 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 		}
 	}
 
+	sccp_channel_transfer_release(d, d->transferChannels.transferee);					/* explicit release */
 	if (!iPbx.attended_transfer(sccp_destination_local_channel, sccp_source_local_channel)) {
 		pbx_log(LOG_WARNING, "SCCP: Failed to masquerade %s into %s\n", pbx_channel_name(pbx_destination_local_channel), pbx_channel_name(pbx_source_remote_channel));
 		sccp_dev_displayprompt(d, instance, sccp_destination_local_channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
@@ -2262,7 +2263,6 @@ EXIT:
 #if ASTERISK_VERSION_GROUP >= 108
 	iPbx.queue_control_data(sccp_source_local_channel->owner, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
 #endif
-	sccp_channel_transfer_release(d, d->transferChannels.transferee);			/* explicit release */
 }
 
 /*!
