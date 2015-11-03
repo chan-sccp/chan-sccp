@@ -24,10 +24,10 @@ extern "C" {
 /* *INDENT-OFF* */
 #endif
 
-#if defined(__GNUC__) && !defined(__clang__)
-#define gcc_inline __inline__
+#  if defined __STDC__ && defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L && defined(__GNUC__) && !defined(__clang__)
+	#define gcc_inline __inline__
 #else
-#define gcc_inline
+	#define gcc_inline
 #endif
 
 //#include <config.h>

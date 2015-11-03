@@ -2572,7 +2572,7 @@ void sccp_handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr m
 	
 	/* old devices (like 7960) send buttonIndex instead of lineInstance, convert buttonIndex to lineInstance */
 	if (d->protocolversion < 15 && lineInstance) {
-		uint16_t tmpLineInstance, buttonIndex = lineInstance;
+		int16_t tmpLineInstance, buttonIndex = lineInstance;
 		if ((tmpLineInstance = sccp_device_buttonIndex2lineInstance(d, buttonIndex)) >= 0) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) digit:%08x, callid:%d, buttonIndex:%d => lineInstance:%d\n", DEV_ID_LOG(d), digit, callid, buttonIndex, tmpLineInstance);
 			lineInstance = tmpLineInstance;
