@@ -373,14 +373,13 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
 							if (subtract) {
 								if ((new_debug_value & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
 									new_debug_value -= sccp_debug_categories[i].category;
-									matched=TRUE;
 								}
 							} else {
 								if ((new_debug_value & sccp_debug_categories[i].category) != sccp_debug_categories[i].category) {
 									new_debug_value += sccp_debug_categories[i].category;
-									matched=TRUE;
 								}
 							}
+							matched=TRUE;
 						}
 					}
 					if (!matched) {
