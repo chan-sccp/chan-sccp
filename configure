@@ -6700,12 +6700,12 @@ fi
 
 	if test -z "`${CC} -std=gnu11 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'unrecognized command line option'`"; then
 		CFLAGS_saved="$CFLAGS_saved -std=gnu11 -fgnu89-inline"
+	elif test -n "`${CC} -std=gnu99 -fgnu89-inline -Wno-ignored-qualifiers -dM -E - </dev/null 2>&1 |grep '__STDC_VERSION__ 1999'`"; then
+		CFLAGS_saved="$CFLAGS_saved -std=gnu99 -fgnu89-inline -Wno-ignored-qualifiers"
+	elif test -n "`${CC} -std=gnu99 -fgnu89-inline -Wno-return-type -dM -E - </dev/null 2>&1 |grep '__STDC_VERSION__ 1999'`"; then
+		CFLAGS_saved="$CFLAGS_saved -std=gnu99 -fgnu89-inline -Wno-return-type"
 	else
-		if test -z "`${CC} -std=gnu99 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'gnu89-inline'`"; then
-			CFLAGS_saved="$CFLAGS_saved -fgnu89-inline"
-		else
-			CFLAGS_saved="$CFLAGS_saved -std=gnu89"
-		fi
+		CFLAGS_saved="$CFLAGS_saved -std=gnu89 -Wno-return-type"
 	fi
 
 	if test "${cross_compiling}" = "yes";
