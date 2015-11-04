@@ -111,7 +111,7 @@ void sccp_session_tokenReject(constSessionPtr session, uint32_t backoff_time);
 void sccp_session_tokenAck(constSessionPtr session);
 void sccp_session_tokenRejectSPCP(constSessionPtr session, uint32_t features);
 void sccp_session_tokenAckSPCP(constSessionPtr session, uint32_t features);
-void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState);
+gcc_inline void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState);
 void sccp_session_setProtocol(constSessionPtr session, uint16_t protocolType);
 uint16_t sccp_session_getProtocol(constSessionPtr session);
 boolean_t sccp_session_getOurIP(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage, int family);
