@@ -152,7 +152,7 @@ int sccp_channelstate_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_CHANNELSTATE_SENTINEL ? res : -1;
 }
 
-char *sccp_channelstate_all_entries(void) {
+const char *sccp_channelstate_all_entries(void) {
 	static char res[] = "DOWN,ONHOOK,OFFHOOK,GETDIGITS,DIGITSFOLL,SPEEDDIAL,DIALING,RINGOUT,RINGING,PROCEED,PROGRESS,CONNECTED,CONNECTEDCONFERENCE,HOLD,CALLWAITING,CALLPARK,CALLREMOTEMULTILINE,CALLCONFERENCE,CALLTRANSFER,BLINDTRANSFER,DND,BUSY,CONGESTION,INVALIDNUMBER,INVALIDCONFERENCE,ZOMBIE";
 	return res;
 }
@@ -204,7 +204,7 @@ int sccp_channelstatereason_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_CHANNELSTATEREASON_SENTINEL ? res : -1;
 }
 
-char *sccp_channelstatereason_all_entries(void) {
+const char *sccp_channelstatereason_all_entries(void) {
 	static char res[] = "NORMAL,TRANSFER,CALLFORWARD,CONFERENCE";
 	return res;
 }
@@ -259,7 +259,7 @@ int sccp_earlyrtp_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_EARLYRTP_SENTINEL ? res : -1;
 }
 
-char *sccp_earlyrtp_all_entries(void) {
+const char *sccp_earlyrtp_all_entries(void) {
 	static char res[] = "Immediate,OffHook,Dialing,Ringout,Progress,None";
 	return res;
 }
@@ -313,7 +313,7 @@ int sccp_devicestate_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_DEVICESTATE_SENTINEL ? res : -1;
 }
 
-char *sccp_devicestate_all_entries(void) {
+const char *sccp_devicestate_all_entries(void) {
 	static char res[] = "On Hook,Off Hook,Unavailable,Do Not Disturb,Forward All";
 	return res;
 }
@@ -366,7 +366,7 @@ int sccp_callforward_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_CALLFORWARD_SENTINEL ? res : -1;
 }
 
-char *sccp_callforward_all_entries(void) {
+const char *sccp_callforward_all_entries(void) {
 	static char res[] = "None,All,Busy,NoAnswer";
 	return res;
 }
@@ -417,7 +417,7 @@ int sccp_dtmfmode_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_DTMFMODE_SENTINEL ? res : -1;
 }
 
-char *sccp_dtmfmode_all_entries(void) {
+const char *sccp_dtmfmode_all_entries(void) {
 	static char res[] = "AUTO,RFC2833,SKINNY";
 	return res;
 }
@@ -468,7 +468,7 @@ int sccp_autoanswer_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_AUTOANSWER_SENTINEL ? res : -1;
 }
 
-char *sccp_autoanswer_all_entries(void) {
+const char *sccp_autoanswer_all_entries(void) {
 	static char res[] = "AutoAnswer None,AutoAnswer 1-Way,AutoAnswer Both Ways";
 	return res;
 }
@@ -520,7 +520,7 @@ int sccp_dndmode_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_DNDMODE_SENTINEL ? res : -1;
 }
 
-char *sccp_dndmode_all_entries(void) {
+const char *sccp_dndmode_all_entries(void) {
 	static char res[] = "Off,Reject,Silent,UserDefined";
 	return res;
 }
@@ -573,7 +573,7 @@ int sccp_accessory_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_ACCESSORY_SENTINEL ? res : -1;
 }
 
-char *sccp_accessory_all_entries(void) {
+const char *sccp_accessory_all_entries(void) {
 	static char res[] = "None,Headset,Handset,Speaker";
 	return res;
 }
@@ -625,7 +625,7 @@ int sccp_accessorystate_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_ACCESSORYSTATE_SENTINEL ? res : -1;
 }
 
-char *sccp_accessorystate_all_entries(void) {
+const char *sccp_accessorystate_all_entries(void) {
 	static char res[] = "None,Off Hook,On Hook";
 	return res;
 }
@@ -679,7 +679,7 @@ int sccp_config_buttontype_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_CONFIG_BUTTONTYPE_SENTINEL ? res : -1;
 }
 
-char *sccp_config_buttontype_all_entries(void) {
+const char *sccp_config_buttontype_all_entries(void) {
 	static char res[] = "Line,Speeddial,Service,Feature,Empty";
 	return res;
 }
@@ -730,7 +730,7 @@ int sccp_devstate_state_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_DEVSTATE_STATE_SENTINEL ? res : -1;
 }
 
-char *sccp_devstate_state_all_entries(void) {
+const char *sccp_devstate_state_all_entries(void) {
 	static char res[] = "IDLE,INUSE";
 	return res;
 }
@@ -781,7 +781,7 @@ int sccp_blindtransferindication_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_BLINDTRANSFERINDICATION_SENTINEL ? res : -1;
 }
 
-char *sccp_blindtransferindication_all_entries(void) {
+const char *sccp_blindtransferindication_all_entries(void) {
 	static char res[] = "RING,MOH";
 	return res;
 }
@@ -832,7 +832,7 @@ int sccp_call_answer_order_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_CALL_ANSWER_ORDER_SENTINEL ? res : -1;
 }
 
-char *sccp_call_answer_order_all_entries(void) {
+const char *sccp_call_answer_order_all_entries(void) {
 	static char res[] = "OldestFirst,LastFirst";
 	return res;
 }
@@ -886,7 +886,7 @@ int sccp_nat_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_NAT_SENTINEL ? res : -1;
 }
 
-char *sccp_nat_all_entries(void) {
+const char *sccp_nat_all_entries(void) {
 	static char res[] = "Auto,Off,(Auto)Off,On,(Auto)On";
 	return res;
 }
@@ -938,7 +938,7 @@ int sccp_video_mode_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_VIDEO_MODE_SENTINEL ? res : -1;
 }
 
-char *sccp_video_mode_all_entries(void) {
+const char *sccp_video_mode_all_entries(void) {
 	static char res[] = "Off,User,Auto";
 	return res;
 }
@@ -1008,7 +1008,7 @@ int sccp_event_type_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_EVENT_TYPE_SENTINEL ? res : -1;
 }
 
-char *sccp_event_type_all_entries(void) {
+const char *sccp_event_type_all_entries(void) {
 	static char res[] = "Line Created,Line Changed,Line Deleted,Device Attached,Device Detached,Device Preregistered,Device Registered,Device Unregistered,Feature Changed,LineStatus Changed";
 	return res;
 }
@@ -1059,7 +1059,7 @@ int sccp_parkresult_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_PARKRESULT_SENTINEL ? res : -1;
 }
 
-char *sccp_parkresult_all_entries(void) {
+const char *sccp_parkresult_all_entries(void) {
 	static char res[] = "Park Failed,Park Successfull";
 	return res;
 }
@@ -1110,7 +1110,7 @@ int sccp_callerid_presentation_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_CALLERID_PRESENTATION_SENTINEL ? res : -1;
 }
 
-char *sccp_callerid_presentation_all_entries(void) {
+const char *sccp_callerid_presentation_all_entries(void) {
 	static char res[] = "CalledId Presentation Forbidden,CallerId Presentation Allowed";
 	return res;
 }
@@ -1173,7 +1173,7 @@ int sccp_rtp_status_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_RTP_STATUS_SENTINEL ? res : -1;
 }
 
-char *sccp_rtp_status_all_entries(void) {
+const char *sccp_rtp_status_all_entries(void) {
 	static char res[] = "Rtp Inactive,Rtp In Progress,Rtp Active";
 	return res;
 }
@@ -1236,7 +1236,7 @@ int sccp_sccp_rtp_type_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_SCCP_RTP_TYPE_SENTINEL ? res : -1;
 }
 
-char *sccp_sccp_rtp_type_all_entries(void) {
+const char *sccp_sccp_rtp_type_all_entries(void) {
 	static char res[] = "Audio RTP,Video RTP,Text RTP";
 	return res;
 }
@@ -1288,7 +1288,7 @@ int sccp_extension_status_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_EXTENSION_STATUS_SENTINEL ? res : -1;
 }
 
-char *sccp_extension_status_all_entries(void) {
+const char *sccp_extension_status_all_entries(void) {
 	static char res[] = "Extension does not exist,Matches more than one extension,Exact Extension Match";
 	return res;
 }
@@ -1341,7 +1341,7 @@ int sccp_channel_request_status_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_CHANNEL_REQUEST_STATUS_SENTINEL ? res : -1;
 }
 
-char *sccp_channel_request_status_all_entries(void) {
+const char *sccp_channel_request_status_all_entries(void) {
 	static char res[] = "Request Status Error,Request Line Unknown,Request Line Unavailable,Request Success";
 	return res;
 }
@@ -1396,7 +1396,7 @@ int sccp_message_priority_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_MESSAGE_PRIORITY_SENTINEL ? res : -1;
 }
 
-char *sccp_message_priority_all_entries(void) {
+const char *sccp_message_priority_all_entries(void) {
 	static char res[] = "Message Priority Idle,Message Priority Voicemail,Message Priority Monitor,Message Priority Privacy,Message Priority Do not disturb,Message Priority Call Forward";
 	return res;
 }
@@ -1448,7 +1448,7 @@ int sccp_push_result_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_PUSH_RESULT_SENTINEL ? res : -1;
 }
 
-char *sccp_push_result_all_entries(void) {
+const char *sccp_push_result_all_entries(void) {
 	static char res[] = "Push Failed,Push Not Supported,Pushed Successfully";
 	return res;
 }
@@ -1500,7 +1500,7 @@ int sccp_tokenstate_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_TOKENSTATE_SENTINEL ? res : -1;
 }
 
-char *sccp_tokenstate_all_entries(void) {
+const char *sccp_tokenstate_all_entries(void) {
 	static char res[] = "No Token,Token Acknowledged,Token Rejected";
 	return res;
 }
@@ -1560,7 +1560,7 @@ int sccp_softswitch_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_SOFTSWITCH_SENTINEL ? res : -1;
 }
 
-char *sccp_softswitch_all_entries(void) {
+const char *sccp_softswitch_all_entries(void) {
 	static char res[] = "Softswitch Dial,Softswitch Get Forward Extension,Token Rejected,Softswitch Get Pickup Extension,Softswitch Get Meetme Room,Softswitch Get Barge Extension,Softswitch Get CBarrge Room,Device Unregistered,Softswitch Get Conference Room";
 	return res;
 }
@@ -1612,7 +1612,7 @@ int sccp_phonebook_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_PHONEBOOK_SENTINEL ? res : -1;
 }
 
-char *sccp_phonebook_all_entries(void) {
+const char *sccp_phonebook_all_entries(void) {
 	static char res[] = "Phonebook None,Phonebook Missed,Phonebook Received";
 	return res;
 }
@@ -1664,7 +1664,7 @@ int sccp_feature_monitor_state_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_FEATURE_MONITOR_STATE_SENTINEL ? res : -1;
 }
 
-char *sccp_feature_monitor_state_all_entries(void) {
+const char *sccp_feature_monitor_state_all_entries(void) {
 	static char res[] = "Feature Monitor Disabled,Feature Monitor Active,Feature Monitor Requested";
 	return res;
 }
@@ -1714,7 +1714,7 @@ int sccp_readingtype_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_READINGTYPE_SENTINEL ? res : -1;
 }
 
-char *sccp_readingtype_all_entries(void) {
+const char *sccp_readingtype_all_entries(void) {
 	static char res[] = "Read Initial Config,Reloading Config";
 	return res;
 }
@@ -1777,7 +1777,7 @@ int sccp_configurationchange_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_CONFIGURATIONCHANGE_SENTINEL ? res : -1;
 }
 
-char *sccp_configurationchange_all_entries(void) {
+const char *sccp_configurationchange_all_entries(void) {
 	static char res[] = "Config: No Update Needed,Config: Device Reset Needed,Warning while reading Config,Error while reading Config";
 	return res;
 }
@@ -1828,7 +1828,7 @@ int sccp_call_statistics_type_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_CALL_STATISTICS_TYPE_SENTINEL ? res : -1;
 }
 
-char *sccp_call_statistics_type_all_entries(void) {
+const char *sccp_call_statistics_type_all_entries(void) {
 	static char res[] = "CallStatistics last Call,CallStatistics average";
 	return res;
 }
@@ -1891,7 +1891,7 @@ int sccp_rtp_info_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_RTP_INFO_SENTINEL ? res : -1;
 }
 
-char *sccp_rtp_info_all_entries(void) {
+const char *sccp_rtp_info_all_entries(void) {
 	static char res[] = "RTP Info: None,RTP Info: Available,RTP Info: Allow DirectMedia";
 	return res;
 }
@@ -1972,7 +1972,7 @@ int sccp_feature_type_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_FEATURE_TYPE_SENTINEL ? res : -1;
 }
 
-char *sccp_feature_type_all_entries(void) {
+const char *sccp_feature_type_all_entries(void) {
 	static char res[] = "FEATURE_UNKNOWN,cfwd off,cfwdall,cfwdbusy,dnd,privacy,monitor,hold,transfer,multiblink,mobility,conference,do not disturb,ConfList,RemoveLastParticipant,Hunt Group Log-in/out,QRT,CallBack,OtherPickup,VideoMode,NewCall,EndCall,FEATURE_TESTE,FEATURE_TESTF,FEATURE_TESTI,Messages,Directory,Application,,devstate,pickup";
 	return res;
 }
@@ -2041,7 +2041,7 @@ int sccp_callinfo_key_str2intval(const char *lookup_str) {
 	return (int)res != SCCP_CALLINFO_KEY_SENTINEL ? res : -1;
 }
 
-char *sccp_callinfo_key_all_entries(void) {
+const char *sccp_callinfo_key_all_entries(void) {
 	static char res[] = "none,calledparty name,calledparty number,calledparty voicemail,callingparty name,callingparty number,callingparty voicemail,orig_calledparty name,orig_calledparty number,orig_calledparty voicemail,orig_callingparty name,orig_callingparty number,last_redirectingparty name,last_redirectingparty number,last_redirectingparty voicemail,hunt pilot name,hunt pilor number,orig_calledparty_redirect reason,last_redirect reason,presentation";
 	return res;
 }
@@ -2094,7 +2094,7 @@ int skinny_lampmode_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_LAMPMODE_SENTINEL ? res : -1;
 }
 
-char *skinny_lampmode_all_entries(void) {
+const char *skinny_lampmode_all_entries(void) {
 	static char res[] = "Off,On,Wink,Flash,Blink";
 	return res;
 }
@@ -2145,7 +2145,7 @@ int skinny_calltype_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_CALLTYPE_SENTINEL ? res : -1;
 }
 
-char *skinny_calltype_all_entries(void) {
+const char *skinny_calltype_all_entries(void) {
 	static char res[] = "Inbound,Outbound,Forward";
 	return res;
 }
@@ -2210,7 +2210,7 @@ int skinny_callstate_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_CALLSTATE_SENTINEL ? res : -1;
 }
 
-char *skinny_callstate_all_entries(void) {
+const char *skinny_callstate_all_entries(void) {
 	static char res[] = "offhook,onhook,ring-out,ring-in,connected,busy,congestion,hold,call waiting,call transfer,call park,proceed,call remote multiline,invalid number,hold yellow,intercom one-way,hold red";
 	return res;
 }
@@ -2263,7 +2263,7 @@ int skinny_callpriority_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_CALLPRIORITY_SENTINEL ? res : -1;
 }
 
-char *skinny_callpriority_all_entries(void) {
+const char *skinny_callpriority_all_entries(void) {
 	static char res[] = "highest priority,high priority,medium priority,low priority,normal priority";
 	return res;
 }
@@ -2314,7 +2314,7 @@ int skinny_callinfo_visibility_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_CALLINFO_VISIBILITY_SENTINEL ? res : -1;
 }
 
-char *skinny_callinfo_visibility_all_entries(void) {
+const char *skinny_callinfo_visibility_all_entries(void) {
 	static char res[] = "default,collapsed,hidden";
 	return res;
 }
@@ -2365,7 +2365,7 @@ int skinny_callsecuritystate_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_CALLSECURITYSTATE_SENTINEL ? res : -1;
 }
 
-char *skinny_callsecuritystate_all_entries(void) {
+const char *skinny_callsecuritystate_all_entries(void) {
 	static char res[] = "unknown,not authenticated,authenticated";
 	return res;
 }
@@ -2418,7 +2418,7 @@ int skinny_busylampfield_state_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_BUSYLAMPFIELD_STATE_SENTINEL ? res : -1;
 }
 
-char *skinny_busylampfield_state_all_entries(void) {
+const char *skinny_busylampfield_state_all_entries(void) {
 	static char res[] = "Unknown,Not-in-use,In-use,DND,Alerting";
 	return res;
 }
@@ -2495,7 +2495,7 @@ int skinny_alarm_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_ALARM_SENTINEL ? res : -1;
 }
 
-char *skinny_alarm_all_entries(void) {
+const char *skinny_alarm_all_entries(void) {
 	static char res[] = "Critical,Warning,Informational,Unknown,Major,Minor,Marginal,TraceInfo";
 	return res;
 }
@@ -2912,7 +2912,7 @@ int skinny_tone_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_TONE_SENTINEL ? res : -1;
 }
 
-char *skinny_tone_all_entries(void) {
+const char *skinny_tone_all_entries(void) {
 	static char res[] = "Silence,DTMF 1,DTMF 2,DTMF 3,DTMF 4,DTMF 5,DTMF 6,DTMF 7,DTMF 8,DTMF 9,DTMF 0,DTMF Star,DTMF Pound,DTMF A,DTMF B,DTMF C,DTMF D,Inside Dial Tone,Outside Dial Tone,Line Busy Tone,Alerting Tone,Reorder Tone,Recorder Warning Tone,Recorder Detected Tone,Reverting Tone,Receiver OffHook Tone,Partial Dial Tone,No Such Number Tone,Busy Verification Tone,Call Waiting Tone,Confirmation Tone,Camp On Indication Tone,Recall Dial Tone,Zip Zip,Zip,Beep Bonk,Music Tone,Hold Tone,Test Tone,DT Monitor Warning Tone,Add Call Waiting,Priority Call Wait,Recall Dial,Barg In,Distinct Alert,Priority Alert,Reminder Ring,Precedence RingBank,Pre-EmptionTone,MF1,MF2,MF3,MF4,MF5,MF6,MF7,MF8,MF9,MF0,MFKP1,MFST,MFKP2,MFSTP,MFST3P,MILLIWATT,MILLIWATT TEST,HIGH TONE,FLASH OVERRIDE,FLASH,PRIORITY,IMMEDIATE,PRE-AMP WARN,2105 HZ,2600 HZ,440 HZ,300 HZ,MLPP Pala,MLPP Ica,MLPP Vca,MLPP Bpa,MLPP Bnea,MLPP Upa,No Tone,Meetme Greeting Tone,Meetme Number Invalid Tone,Meetme Number Failed Tone,Meetme Enter Pin Tone,Meetme Invalid Pin Tone,Meetme Failed Pin Tone,Meetme CFB Failed Tone,Meetme Enter Access Code Tone,Meetme Access Code Invalid Tone,Meetme Access Code Failed Tone";
 	return res;
 }
@@ -2989,7 +2989,7 @@ int skinny_videoformat_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_VIDEOFORMAT_SENTINEL ? res : -1;
 }
 
-char *skinny_videoformat_all_entries(void) {
+const char *skinny_videoformat_all_entries(void) {
 	static char res[] = "undefined,sqcif (128x96),qcif (176x144),cif (352x288),4cif (704x576),16cif (1408x1152),custom_base,unknown";
 	return res;
 }
@@ -3048,7 +3048,7 @@ int skinny_ringtype_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_RINGTYPE_SENTINEL ? res : -1;
 }
 
-char *skinny_ringtype_all_entries(void) {
+const char *skinny_ringtype_all_entries(void) {
 	static char res[] = "Ring Off,Inside,Outside,Feature,Silent,Urgent,Bellcore 1,Bellcore 2,Bellcore 3,Bellcore 4,Bellcore 5";
 	return res;
 }
@@ -3100,7 +3100,7 @@ int skinny_receivetransmit_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_RECEIVETRANSMIT_SENTINEL ? res : -1;
 }
 
-char *skinny_receivetransmit_all_entries(void) {
+const char *skinny_receivetransmit_all_entries(void) {
 	static char res[] = "None,Receive,Transmit,Transmit & Receive";
 	return res;
 }
@@ -3162,7 +3162,7 @@ int skinny_keymode_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_KEYMODE_SENTINEL ? res : -1;
 }
 
-char *skinny_keymode_all_entries(void) {
+const char *skinny_keymode_all_entries(void) {
 	static char res[] = "ONHOOK,CONNECTED,ONHOLD,RINGIN,OFFHOOK,CONNTRANS,DIGITSFOLL,CONNCONF,RINGOUT,OFFHOOKFEAT,INUSEHINT,ONHOOKSTEALABLE,HOLDCONF,";
 	return res;
 }
@@ -3216,7 +3216,7 @@ int skinny_registrationstate_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_REGISTRATIONSTATE_SENTINEL ? res : -1;
 }
 
-char *skinny_registrationstate_all_entries(void) {
+const char *skinny_registrationstate_all_entries(void) {
 	static char res[] = "Failed,Time Out,None,Token,Progress,OK";
 	return res;
 }
@@ -3277,7 +3277,7 @@ int skinny_mediastatus_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_MEDIASTATUS_SENTINEL ? res : -1;
 }
 
-char *skinny_mediastatus_all_entries(void) {
+const char *skinny_mediastatus_all_entries(void) {
 	static char res[] = "Media Status: OK,Media Error: Unknown,Media Error: Out of Channels,Media Error: Codec Too Complex,Media Error: Invalid Party ID,Media Error: Invalid Call Reference,Media Error: Invalid Codec,Media Error: Invalid Packet Size,Media Error: Out of Sockets,Media Error: Encoder Or Decoder Failed,Media Error: Invalid Dynamic Payload Type,Media Error: Requested IP Address Type if not available,Media Error: Device is on hook";
 	return res;
 }
@@ -3547,7 +3547,7 @@ int skinny_stimulus_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_STIMULUS_SENTINEL ? res : -1;
 }
 
-char *skinny_stimulus_all_entries(void) {
+const char *skinny_stimulus_all_entries(void) {
 	static char res[] = "Unused,Last Number Redial,SpeedDial,Hold,Transfer,Forward All,Forward Busy,Forward No Answer,Display,Line,T120 Chat,T120 Whiteboard,T120 Application Sharing,T120 File Transfer,Video,Voicemail,Answer Release,Auto Answer,Select,Feature,ServiceURL,BusyLampField Speeddial,Malicious Call,Generic App B1,Generic App B2,Generic App B3,Generic App B4,Generic App B5,Monitor/Multiblink,Meet Me Conference,Conference,Call Park,Call Pickup,Group Call Pickup,Mobility,DoNotDisturb,ConfList,RemoveLastParticipant,QRT,CallBack,OtherPickup,VideoMode,NewCall,EndCall,HLog,Queuing,Test E,Test F,Test I,Messages,Directory,Application,Headset,Keypad,Aec,Undefined";
 	return res;
 }
@@ -3809,7 +3809,7 @@ int skinny_buttontype_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_BUTTONTYPE_SENTINEL ? res : -1;
 }
 
-char *skinny_buttontype_all_entries(void) {
+const char *skinny_buttontype_all_entries(void) {
 	static char res[] = "Unused,Last Number Redial,SpeedDial,Hold,Transfer,Forward All,Forward Busy,Forward No Answer,Display,Line,T120 Chat,T120 Whiteboard,T120 Application Sharing,T120 File Transfer,Video,Voicemail,Answer Release,Auto Answer,Feature,ServiceURL,BusyLampField Speeddial,Generic App B1,Generic App B2,Generic App B3,Generic App B4,Generic App B5,Monitor/Multiblink,Meet Me Conference,Conference,Call Park,Call Pickup,Group Call Pickup,Mobility,DoNotDisturb,ConfList,RemoveLastParticipant,QRT,CallBack,OtherPickup,VideoMode,NewCall,EndCall,HLog,Queuing,Test E,Test F,Test I,Messages,Directory,Application,Headset,Keypad,Aec,Undefined";
 	return res;
 }
@@ -4278,7 +4278,7 @@ int skinny_devicetype_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_DEVICETYPE_SENTINEL ? res : -1;
 }
 
-char *skinny_devicetype_all_entries(void) {
+const char *skinny_devicetype_all_entries(void) {
 	static char res[] = "Undefined: Maybe you forgot the devicetype in your config,VGC,Cisco Ata 186,Cisco Ata 188,Virtual 30SP plus,Phone Application,Analog Access,Digital Access PRI,Digital Access T1,Digital Access Titan2,Analog Access Elvis,Digital Access Lennon,Conference Bridge,Conference Bridge Yoko,Conference Bridge Dixieland,Conference Bridge Summit,H225,H323 Phone,H323 Trunk,Music On Hold,Pilot,Tapi Port,Tapi Route Point,Voice In Box,Voice Inbox Admin,Line Annunciator,Line Annunciator,Line Annunciator,Line Annunciator,Route List,Load Simulator,Media Termination Point,Media Termination Point Yoko,Media Termination Point Dixieland,Media Termination Point Summit,MGCP Station,MGCP Trunk,RAS Proxy,Trunk,Annuciator,Monitor Bridge,Recorder,Monitor Bridge Yoko,Sip Trunk,Analog Gateway,BRI Gateway,30SP plus,12SP plus,12SP,12,30 VIP,Cisco 7902,Cisco 7905,Cisco 7906,Cisco 7910,Cisco 7911,Cisco 7912,Cisco 7920,Cisco 7921,Cisco 7925,Cisco 7926,Cisco 7931,Cisco 7935,Cisco 7936 Conference,Cisco 7937 Conference,Cisco 7940,Cisco 7941,Cisco 7941 GE,Cisco 7942,Cisco 7945,Cisco 7960,Cisco 7961,Cisco 7961 GE,Cisco 7962,Cisco 7965,Cisco 7970,Cisco 7971,Cisco 7975,Cisco 7985,Nokia E Series,Cisco IP Communicator,Nokia ICC client,Cisco 6901,Cisco 6911,Cisco 6921,Cisco 6941,Cisco 6945,Cisco 6961,Cisco 8941,Cisco 8945,Cisco SPA 303G,Cisco SPA 502G,Cisco SPA 504G,Cisco SPA 509G,Cisco SPA 521S,Cisco SPA 524SG,Cisco SPA 525G,Cisco SPA 525G2,Cisco 7914 AddOn,Cisco 7915 AddOn (12 Buttons),Cisco 7915 AddOn (24 Buttons),Cisco 7916 AddOn (12 Buttons),Cisco 7916 AddOn (24 Buttons),Cisco SPA500DS (32 Buttons),Cisco SPA500DS (32 Buttons),Cisco SPA932DS (32 Buttons)";
 	return res;
 }
@@ -4333,7 +4333,7 @@ int skinny_encryptionmethod_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_ENCRYPTIONMETHOD_SENTINEL ? res : -1;
 }
 
-char *skinny_encryptionmethod_all_entries(void) {
+const char *skinny_encryptionmethod_all_entries(void) {
 	static char res[] = "No Encryption,AES128 SHA1 32,AES128 SHA1 80,HMAC_SHA1_32,HMAC_SHA1_80,AES 128 GCM,AES 256 GCM";
 	return res;
 }
@@ -4389,7 +4389,7 @@ int skinny_miscCommandType_str2intval(const char *lookup_str) {
 	return (int)res != SKINNY_MISCCOMMANDTYPE_SENTINEL ? res : -1;
 }
 
-char *skinny_miscCommandType_all_entries(void) {
+const char *skinny_miscCommandType_all_entries(void) {
 	static char res[] = "videoFreezePicture,videoFastUpdatePicture,videoFastUpdateGOB,videoFastUpdateMB,lostPicture,lostPartialPicture,recoveryReferencePicture,temporalSpatialTradeOff";
 	return res;
 }

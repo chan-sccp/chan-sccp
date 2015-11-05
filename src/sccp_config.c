@@ -618,7 +618,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 				int enumValue = -1;
 				if (!sccp_strlen_zero(value)) {
 					//pbx_log(LOG_NOTICE, "SCCP: ENUM name: %s, value: %s\n", name, value);
-					char *all_entries = sccpConfigOption->all_entries();
+					const char *all_entries = sccpConfigOption->all_entries();
 					if (!strncasecmp(value, "On,Yes,True,Off,No,False", strlen(value))) {
 						//pbx_log(LOG_NOTICE, "SCCP: ENUM name: %s, value: %s is on/off\n", name, value);
 						if (sccp_true(value)) {

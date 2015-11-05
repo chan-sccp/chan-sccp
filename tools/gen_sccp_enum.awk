@@ -22,7 +22,7 @@ BEGIN {
 	print "#ifndef __SCCP_ENUM_GUARD_H" >out_header_file
 	print "#define __SCCP_ENUM_GUARD_H" >out_header_file 
 	print "typedef int (*sccp_enum_str2intval_t)(const char *lookup_str);" > out_header_file
-	print "typedef char *(*sccp_enum_all_entries_t)(void);" > out_header_file
+	print "typedef const char *(*sccp_enum_all_entries_t)(void);" > out_header_file
 	
 	#
         # gen enum sourcefile
@@ -157,7 +157,7 @@ codeSkip == 1			{ next }
 	}
 	print namespace "_" enum_name "_t " namespace "_" enum_name "_str2val(const char *lookup_str);" > out_header_file
 	print "int " namespace "_" enum_name "_str2intval(const char *lookup_str);" > out_header_file
-	print "char *" namespace "_" enum_name "_all_entries(void);" > out_header_file
+	print "const char *" namespace "_" enum_name "_all_entries(void);" > out_header_file
 
         print "/* = End ===" headerfooter >out_header_file
 
@@ -334,7 +334,7 @@ codeSkip == 1			{ next }
 	print "}\n" > out_source_file
 
 	# const char *sccp_channelstate_all_entries(char *buf, size_t buf_len, const char *separator) {
-	print "char *" namespace "_" enum_name "_all_entries(void) {" > out_source_file
+	print "const char *" namespace "_" enum_name "_all_entries(void) {" > out_source_file
 	long_str = ""
 	for ( i = 0; i < e; ++i) {
 		if (i < e-1) {
