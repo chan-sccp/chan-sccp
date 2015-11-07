@@ -54,4 +54,10 @@ int sccp_callinfo_setLastRedirectingParty(sccp_callinfo_t * const ci, const char
 /* debug */
 boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str_t ** const buf);
 void sccp_callinfo_print2log(const sccp_callinfo_t * const ci, const char *const header);
+
+/* tests */
+#if CS_TEST_FRAMEWORK
+void sccp_callinfo_register_tests(void);
+void sccp_callinfo_unregister_tests(void);
+#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
