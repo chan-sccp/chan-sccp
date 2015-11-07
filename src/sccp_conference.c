@@ -649,6 +649,7 @@ static void *sccp_conference_thread(void *data)
 #else
 		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, NULL, 0);
 #endif
+		participant->pendingRemoval = TRUE;
 
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Leaving pbx_bridge_join: %s as %d\n", participant->conference->id, pbx_channel_name(participant->conferenceBridgePeer), participant->id);
 #ifdef CS_MANAGER_EVENTS
@@ -659,8 +660,7 @@ static void *sccp_conference_thread(void *data)
 		if (participant->channel && participant->device) {
 			__sccp_conference_hide_list(participant);
 		}
-		participant->pendingRemoval = TRUE;
-
+	
 		if (participant->conferenceBridgePeer) {
 			if (participant->final_announcement) {
 				pbx_stream_and_wait(participant->conferenceBridgePeer, participant->final_announcement, "");
@@ -713,24 +713,24 @@ void sccp_conference_end(sccp_conference_t * conference)
 	
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Ending Conference.\n", conference->id);
 
-	playback_to_conference(conference, "conf-leaderhasleft", -1);
-
 	/* remove remaining participants / moderators */
 	SCCP_RWLIST_RDLOCK(&conference->participants);
-	if (SCCP_RWLIST_GETSIZE(&conference->participants) > 0) {
+	int num_participants = SCCP_RWLIST_GETSIZE(&conference->participants);
+	if (num_participants > 2) {
+		playback_to_conference(conference, "conf-leaderhasleft", -1);
+	}
+	if (num_participants > 0) {
 		SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&conference->participants, participant, list) {
-			if (!participant->isModerator) {						// remove the participants first
+			if (!participant->isModerator && !participant->pendingRemoval) {				// remove the participants first
 				if (pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer)) {
 					pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to remove channel from conference\n", conference->id);
 				}
 			}
 		}
-		SCCP_RWLIST_TRAVERSE_SAFE_END;  
+		SCCP_RWLIST_TRAVERSE_SAFE_END;
 		SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&conference->participants, participant, list) {
-			if (participant->isModerator) {							// and then remove the moderators
-				if (pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer)) {
-					pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to remove channel from conference\n", conference->id);
-				}
+			if (participant->isModerator && !participant->pendingRemoval) {					// and then remove the moderators
+				pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
 			}
 		}
 		SCCP_RWLIST_TRAVERSE_SAFE_END;  
