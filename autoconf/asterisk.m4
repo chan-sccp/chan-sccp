@@ -235,7 +235,6 @@ AC_DEFUN([AST_CHECK_HEADERS],[
                 [
                         lock_compiled=yes
                         AC_DEFINE(HAVE_PBX_LOCK_H,1,[Found 'asterisk/lock.h'])
-dnl			CS_CHECK_AST_TYPEDEF([struct ast_lock_track],[asterisk/lock.h],AC_DEFINE([CS_AST_LOCK_TRACK],1,[Asterisk Lock Track Support]))
                 ],[
                 	lock_compiled=no
                 ],[	
@@ -255,44 +254,26 @@ dnl			CS_CHECK_AST_TYPEDEF([struct ast_lock_track],[asterisk/lock.h],AC_DEFINE([
     )
     AC_CHECK_HEADER([asterisk/buildopts.h], 
 		[
-dnl			AC_DEFINE(HAVE_PBX_BUILDOPTS_H,1,[Found 'asterisk/buildopts.h'])
-dnl	                CS_CV_TRY_COMPILE_DEFINE([ - availability 'debug_channel_locks'...],[ac_cv_ast_debug_channel_locks],[
-dnl		                	$HEADER_INCLUDE
-dnl				], [
-dnl					int test_format = (int)DEBUG_CHANNEL_LOCKS;
-dnl				], [CS_AST_DEBUG_CHANNEL_LOCKS],
-dnl				['DEBUG_CHANNEL_LOCKS' available]
-dnl			)
-dnl	                CS_CV_TRY_COMPILE_DEFINE([ - availability 'debug_threads'...],[ac_cv_ast_debug_threads],[
-dnl		                	$HEADER_INCLUDE
-dnl				], [
-dnl					int test_format = (int)DEBUG_THREADS;
-dnl				], [CS_AST_DEBUG_THREADS],
-dnl				['DEBUG_THREADS' available]
-dnl			)
-dnl			dnl Trick to compile against asterisk 1.6.2 to fix AST_MUTEX_DEFINE_STATIC issue, cause by #include order
-dnl			if [ test ${ASTERISK_VER_GROUP} == 106 ]; then
-dnl				AC_DEFINE(DEBUG_THREADS,1,[Fake DEBUG_THREADS to please 'asterisk/lock.h' when compiling against asterisk 1.6.2])
-dnl			fi
                         AC_MSG_CHECKING([ - if asterisk was compiled with the 'LOW_MEMORY' buildoption...])                              
                         AC_EGREP_HEADER([yes], [
-                        #include <asterisk/buildopts.h>
-                        #ifdef LOW_MEMORY
-                        	yes
-                        #endif],
-                        [
+				#include <asterisk/buildopts.h>
+				#ifdef LOW_MEMORY
+					yes
+				#endif
+			],[
                                 AC_DEFINE([CS_LOW_MEMORY],1,[asterisk compiled with 'LOW_MEMORY'])
                                 AC_MSG_RESULT(yes)
                         ],[
                                 AC_MSG_RESULT(no)
                         ])             
 
+			AC_MSG_CHECKING([ - if asterisk was compiled with the 'TEST_FRAMEWORK' buildoption...])
                         AC_EGREP_HEADER([yes], [
-                        #include <asterisk/buildopts.h>
-                        #ifdef TEST_FRAMEWORK
-                        	yes
-                        #endif],
-                        [
+	                        #include <asterisk/buildopts.h>
+       	        		#ifdef TEST_FRAMEWORK
+       	                 		yes
+       		                 #endif
+       		        ], [
                                 AC_DEFINE([CS_TEST_FRAMEWORK],1,[asterisk compiled with 'TEST_FRAMEWORK'])
                                 TEST_FRAMEWORK=yes
                                 AC_MSG_RESULT(yes)
@@ -357,30 +338,6 @@ dnl			fi
 			#include <asterisk/linkedlists.h>
 			#endif		
     ])
-dnl    AC_CHECK_HEADER([asterisk/astdb.h],		
-dnl    		[
-dnl    			AC_DEFINE(HAVE_PBX_ASTDB_H,1,[Found 'asterisk/astdb.h'])
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl    ])
-dnl    AC_CHECK_HEADER([asterisk/network.h],
-dnl    		[
-dnl    			AC_DEFINE(HAVE_PBX_NETWORK_H,1,[Found 'asterisk/astdb.h'])
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl    ])
-dnl    AC_CHECK_HEADER([asterisk/callerid.h],
-dnl    		[
-dnl    			AC_DEFINE(HAVE_PBX_CALLERID_H,1,[Found 'asterisk/callerid.h'])
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl    ])
-dnl    AC_CHECK_HEADER([asterisk/causes.h],
-dnl    		[
-dnl    			AC_DEFINE(HAVE_PBX_CAUSES_H,1,[Found 'asterisk/causes.h'])
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl    ])
     AC_CHECK_HEADER([asterisk/channel.h],
 		[
 			AC_DEFINE(HAVE_PBX_CHANNEL_H,1,[Found 'asterisk/channel.h'])
@@ -459,7 +416,6 @@ dnl    ])
 				],
 				[AC_DEFINE([CS_AST_HAS_NAMEDGROUP],1,[Found 'ast_namedgroups' in asterisk/channel.h])],
 			)
-dnl			CS_CHECK_AST_TYPEDEF([ast_group_t],[asterisk/channel.h],AC_DEFINE([CS_AST_HAS_AST_GROUP_T],1,['ast_group_t' available]))
 		],,[
 			$HEADER_INCLUDE
     ])
@@ -496,15 +452,6 @@ dnl			CS_CHECK_AST_TYPEDEF([ast_group_t],[asterisk/channel.h],AC_DEFINE([CS_AST_
 		],[
 		    AC_CHECK_HEADER([asterisk/bridging.h],
 				[
-dnl					AC_CHECK_HEADER([asterisk/bridging_features.h], [
-dnl						AC_DEFINE(HAVE_PBX_BRIDGING_FEATURES_H,1,[Found 'asterisk/bridging_features.h'])
-dnl						],,[
-dnl						$HEADER_INCLUDE
-dnl						#include <asterisk/channel.h>
-dnl						#include <asterisk/linkedlists.h>
-dnl						#include <asterisk/astobj2.h>
-dnl						#include <asterisk/bridging.h>
-dnl					])
 					AC_CHECK_HEADER([asterisk/bridging_roles.h], [
 						AC_DEFINE(HAVE_PBX_BRIDGING_ROLES_H,1,[Found 'asterisk/bridging_roles.h'])
 						],,[
@@ -560,63 +507,13 @@ dnl					])
 		],[
 			$HEADER_INCLUDE
     ])
-dnl    AC_CHECK_HEADER([asterisk/bridge_features.h],
-dnl    		[
-dnl    		        AC_CHECK_HEADER([asterisk/bridge_features.h], [
-dnl    		                AC_DEFINE(HAVE_PBX_BRIDGING_FEATURES_H,1,[Found 'asterisk/bridge_features.h'])
-dnl    		                ],,[
-dnl                                $HEADER_INCLUDE
-dnl                                #include <asterisk/channel.h>
-dnl                                #include <asterisk/linkedlists.h>
-dnl                                #include <asterisk/astobj2.h>
-dnl                                #include <asterisk/bridging.h>
-dnl                        ])
-dnl		],,[
-dnl			$HEADER_INCLUDE
-dnl    ])
     AC_CHECK_HEADER([asterisk/channel_pvt.h],
     		[
     			AC_DEFINE(HAVE_PBX_CHANNEL_pvt_H,1,[Found 'asterisk/channel_pvt.h'])
 		],,[ 
 	               	$HEADER_INCLUDE
     ])
-dnl    AC_CHECK_HEADER([asterisk/cli.h],
-dnl		[
-dnl			AC_DEFINE(HAVE_PBX_CLI_H,1,[Found 'asterisk/cli.h'])
-dnl
-dnl			AC_MSG_CHECKING([ - availability 'ast_cli_generator'...])
-dnl dnl			AC_EGREP_HEADER([ast_cli_generator\(const], [asterisk/cli.h],
-dnl dnl			[
-dnl dnl				AC_DEFINE(CS_NEW_AST_CLI,1,[Found 'new ast_cli_generator definition' in asterisk/cli.h])
-dnl dnl				AC_MSG_RESULT(yes)
-dnl dnl			],[
-dnl dnl				AC_MSG_RESULT(no)
-dnl dnl			])
-dnl
-dnl dnl			AC_MSG_CHECKING([ - availability 'new ast cli using const.'...])
-dnl dnl			AC_EGREP_HEADER([const char \* const \*argv], [asterisk/cli.h],
-dnl dnl			[
-dnl dnl				AC_DEFINE(CS_NEW_AST_CLI_CONST,1,[Found 'const char * const *argv' in asterisk/cli.h])
-dnl dnl				AC_MSG_RESULT(yes)
-dnl dnl			],[
-dnl dnl				AC_MSG_RESULT(no)
-dnl dnl			])		
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl    ])
-dnl    AC_CHECK_HEADER([asterisk/config.h],
-dnl    		[
-dnl    			AC_DEFINE(HAVE_PBX_CONFIG_H,1,[Found 'asterisk/config.h'])
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl    ])
-dnl    AC_CHECK_HEADER([asterisk/extconf.h],
-dnl    		[
-dnl    			AC_DEFINE(HAVE_PBX_EXTCONF_H,1,[Found 'asterisk/extconf.h'])
-    			AC_DEFINE(PBX_VARIABLE_TYPE,[struct ast_variable],[Defined PBX_VARIABLE as 'struct ast_variable'])
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl    ])
+    AC_DEFINE(PBX_VARIABLE_TYPE,[struct ast_variable],[Defined PBX_VARIABLE as 'struct ast_variable'])
     AC_CHECK_HEADER([asterisk/devicestate.h],
 		[
 			AC_DEFINE(HAVE_PBX_DEVICESTATE_H,1,[Found 'asterisk/devicestate.h'])			
@@ -629,15 +526,6 @@ dnl    ])
 					ast_devstate_changed(AST_DEVICE_UNKNOWN, "SCCP/%s", "test");
 				], [CS_DEVICESTATE],['ast_devstate_changed' available]
 			)
-			
-dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_devstate_changed (with cache option)'...], [ac_cv_ast_devstate_changed_with_cache], [
-dnl			               	$HEADER_INCLUDE
-dnl					#include <asterisk/devicestate.h>
-dnl				], [
-dnl					int test_devicestate_changed = ast_devstate_changed(AST_DEVICE_UNKNOWN, AST_DEVSTATE_CACHABLE, "SCCP/%s", "test");
-dnl				], [CS_NEW_DEVICESTATE_WITH_CACHE],['ast_devstate_changed' available]
-dnl			)
-
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'cacheable ast_devstate_changed'...], [ac_cv_cacheable_ast_devstate_changed], [
 			               	$HEADER_INCLUDE
 					#include <asterisk/devicestate.h>
@@ -654,37 +542,6 @@ dnl			)
 				], [CS_AST_DEVICE_RINGING],['AST_DEVICE_RINGING' available]
 			)
 			
-dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_device_ringinuse'...], [ac_cv_ast_device_ringinuse], [
-dnl			               	$HEADER_INCLUDE
-dnl					#include <asterisk/devicestate.h>
-dnl				], [
-dnl					int test_device_ringinuse = (int)AST_DEVICE_RINGINUSE;
-dnl				], [CS_AST_DEVICE_RINGINUSE],['AST_DEVICE_RINGINUSE' available]
-dnl			)
-
-dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_device_onhold'...], [ac_cv_ast_device_onhold], [
-dnl			               	$HEADER_INCLUDE
-dnl					#include <asterisk/devicestate.h>
-dnl				], [
-dnl					int test_device_onhold = (int)AST_DEVICE_ONHOLD;
-dnl				], [CS_AST_DEVICE_ONHOLD],['AST_DEVICE_ONHOLD' available]
-dnl			)
-
-dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_device_total'...], [ac_cv_ast_device_total], [
-dnl			               	$HEADER_INCLUDE
-dnl					#include <asterisk/devicestate.h>
-dnl				], [
-dnl					int test_device_total = (int)AST_DEVICE_TOTAL;
-dnl				], [CS_AST_DEVICE_TOTAL],['AST_DEVICE_TOTAL' available]
-dnl			)
-
-dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_enable_distributed_devstate'...], [ac_cv_ast_enable_distributed_devstate], [
-dnl			               	$HEADER_INCLUDE
-dnl					#include <asterisk/devicestate.h>
-dnl				], [
-dnl					int test_device_total = (int)ast_enable_distributed_devstate();
-dnl				], [CS_AST_ENABLE_DISTRIBUTED_DEVSTATE],['CS_AST_ENABLE_DISTRIBUTED_DEVSTATE' available]
-dnl			)
 			AC_MSG_CHECKING([ - availability 'ast_enable_distributed_devstate'...])
 			AC_EGREP_HEADER([ast_enable_distributed_devstate], [asterisk/devicestate.h],
 			[
@@ -719,19 +576,6 @@ dnl			)
 		],,[ 
 	               	$HEADER_INCLUDE
     ])
-dnl    AC_CHECK_HEADER([asterisk/event_defs.h],	
-dnl    		[
-dnl    			AC_DEFINE(HAVE_PBX_EVENT_DEFS_CIDNAME_H,1,[Found 'asterisk/event_defs.h'])
-dnl dnl    			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ac_cv_ast_event_defs_cidname'...], [ac_cv_ast_event_defs_cidname], [
-dnl dnl			               	$HEADER_INCLUDE
-dnl dnl					#include <asterisk/event_defs.h>
-dnl dnl				], [
-dnl dnl					int data = AST_EVENT_IE_CEL_CIDNAME;				
-dnl dnl				], [CS_AST_HAS_EVENT_CIDNAME],['ac_cv_ast_event_defs_cidname' available]
-dnl dnl			)
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl    ])
     AC_CHECK_HEADER([asterisk/stasis.h],	
     		[
     			AC_DEFINE(HAVE_PBX_STASIS_H,1,[Found 'asterisk/stasis.h'])
@@ -792,38 +636,6 @@ dnl    ])
 				], [CS_AST_NEW_FRAME_STRUCT], [new frame data.ptr]
 			)
 
-dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_vidupdate' is available...], [ac_cv_ast_control_vidupdate], [
-dnl			               	$HEADER_INCLUDE
-dnl					#include <asterisk/frame.h>
-dnl				], [
-dnl					int test_control_vidupdate = (int)AST_CONTROL_VIDUPDATE;
-dnl				], [CS_AST_CONTROL_VIDUPDATE], ['AST_CONTROL_VIDUPDATE' available]
-dnl			)
-			
-dnl			CS_CV_TRY_COMPILE_IFELSE([ - availability 'ast_control_t38_parameters'...], [ac_cv_ast_control_t38_parameters], [
-dnl			               	$HEADER_INCLUDE
-dnl					#include <asterisk/frame.h>
-dnl				], [
-dnl					int test_control_T38_param = (int)AST_CONTROL_T38_PARAMETERS;
-dnl				], [AC_DEFINE(CS_AST_CONTROL_T38_PARAMETERS,1,['AST_CONTROL_T38_PARAMETERS' available])
-dnl				], [
-dnl				CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_t38'...], [ac_cv_ast_control_t38], [
-dnl				               	$HEADER_INCLUDE
-dnl						#include <asterisk/frame.h>
-dnl					], [
-dnl						int test_control_T38 = (int)AST_CONTROL_T38;
-dnl					], [CS_AST_CONTROL_T38], ['AST_CONTROL_T38_PARAMETERS' available]
-dnl				)
-dnl			])
-
-dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_srcupdate'...], [ac_cv_ast_control_srcupdate], [
-dnl			               	$HEADER_INCLUDE
-dnl					#include <asterisk/frame.h>
-dnl				], [
-dnl					int test_control_srcupdate = (int)AST_CONTROL_SRCUPDATE;
-dnl				], [CS_AST_CONTROL_SRCUPDATE], ['AST_CONTROL_SRCUPDATE' available]
-dnl			)
-
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_incomplete'...], [ac_cv_ast_control_incomplete], [
 			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
@@ -832,42 +644,6 @@ dnl			)
 				], [CS_AST_CONTROL_INCOMPLETE], ['AST_CONTROL_INCOMPLETE' available]
 			)
 			
-dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_hold'...], [ac_cv_ast_control_hold], [
-dnl			               	$HEADER_INCLUDE
-dnl					#include <asterisk/frame.h>
-dnl				], [
-dnl					int test_control_hold = (int)AST_CONTROL_HOLD;
-dnl				], [CS_AST_CONTROL_HOLD], ['AST_CONTROL_HOLD' available]
-dnl			)
-						
-dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_connected_line'...], [ac_cv_ast_control_connected_line], [
-dnl			               	$HEADER_INCLUDE
-dnl					#include <asterisk/frame.h>
-dnl				], [
-dnl					int test_control_connected_line = (int)AST_CONTROL_CONNECTED_LINE;
-dnl				], [CS_AST_CONTROL_CONNECTED_LINE], ['AST_CONTROL_CONNECTED_LINE' available]
-dnl			)
-			
-dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_format_siren7'...], [ac_cv_ast_format_siren7], [
-dnl			               	$HEADER_INCLUDE
-dnl					#include <asterisk/frame.h>
-dnl				], [
-dnl					int test_format_siren7 = (int)AST_FORMAT_SIREN7;
-dnl				], [CS_AST_FORMAT_SIREN7], [SIREN7 frmt available]
-dnl			)
-			
-dnl			if test x${ac_cv_ast_format_siren7} = xyes; then
-dnl			        AC_DEFINE([CS_CODEC_G722_1_24K],[1],[Found 'AST_FORMAT_SIREN7' in asterisk/frame.h])
-dnl		        fi
-
-dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_srcchange'...], [ac_cv_ast_control_srcchange], [
-dnl			               	$HEADER_INCLUDE
-dnl					#include <asterisk/frame.h>
-dnl				], [
-dnl					int test_control_srcchange = (int)AST_CONTROL_SRCCHANGE;
-dnl				], [CS_AST_CONTROL_SRCCHANGE], ['AST_CONTROL_SRCCHANGE' available]
-dnl			)
-
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_redirecting'...], [ac_cv_ast_control_redirecting], [
 			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>p
@@ -876,22 +652,9 @@ dnl			)
 				], [CS_AST_CONTROL_REDIRECTING], ['AST_CONTROL_REDIRECTING' available]
 			)
 
-dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_transfer'...], [ac_cv_ast_control_transfer], [
-dnl		               	$HEADER_INCLUDE
-dnl				#include <asterisk/frame.h>
-dnl				], [
-dnl					int test_control_transfer = (int)AST_CONTROL_TRANSFER;
-dnl				], [CS_AST_CONTROL_TRANSFER], ['AST_CONTROL_TRANSFER' available]
-dnl			)
 		],,[ 
 	               	$HEADER_INCLUDE
     ])
-dnl    AC_CHECK_HEADER([asterisk/logger.h],
-dnl    		[
-dnl    			AC_DEFINE(HAVE_PBX_LOGGER_H,1,[Found 'asterisk/logger.h'])
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl    ])
     AC_CHECK_HEADER([asterisk/manager.h],	
     		[
     			AC_DEFINE(HAVE_PBX_MANAGER_H,1,[Found 'asterisk/manager.h'])
@@ -908,33 +671,6 @@ dnl    ])
 			#include <asterisk/stringfields.h>
 		]
     )
-dnl    AC_CHECK_HEADER([asterisk/module.h],
-dnl		[
-dnl			AC_DEFINE(HAVE_PBX_MODULE_H,1,[Found 'asterisk/module.h'])
-dnl
-dnl dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_module_ref'...], [ac_cv_ast_module_ref], [
-dnl dnl		               	$HEADER_INCLUDE
-dnl dnl				#include <asterisk/module.h>
-dnl dnl				],[
-dnl dnl					struct ast_module *test_module_ref = ast_module_ref(NULL);
-dnl dnl				],[CS_AST_MODULE_REF],['ast_module_ref' available]
-dnl dnl			)
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl		]
-dnl    )
-dnl    AC_CHECK_HEADER([asterisk/musiconhold.h],
-dnl    		[
-dnl    			AC_DEFINE(HAVE_PBX_MUSICONHOLD_H,1,[Found 'asterisk/musiconhold.h'])
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl    ])
-dnl    AC_CHECK_HEADER([asterisk/options.h],
-dnl    		[
-dnl    			AC_DEFINE(HAVE_PBX_OPTIONS_H,1,[Found 'asterisk/options.h'])
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl    ])
     AC_CHECK_HEADER([asterisk/pbx.h],
 		[
 			AC_DEFINE(HAVE_PBX_PBX_H,1,[Found 'asterisk/pbx.h'])
@@ -1077,12 +813,6 @@ dnl    ])
 		],,[ 
 	               	$HEADER_INCLUDE
     ])
-dnl    AC_CHECK_HEADER([asterisk/translate.h],
-dnl    		[
-dnl    			AC_DEFINE(HAVE_PBX_TRANSLATE_H,1,[Found 'asterisk/translate.h'])
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl    ])
     AC_CHECK_HEADER([asterisk/utils.h],
 		[
 			AC_DEFINE(HAVE_PBX_UTILS_H,1,[Found 'asterisk/utils.h'])
@@ -1117,18 +847,6 @@ dnl    ])
 		],,[ 
 	               	$HEADER_INCLUDE
     ])
-dnl    AC_CHECK_HEADER([asterisk/astobj.h],
-dnl    		[
-dnl    			AC_DEFINE(HAVE_PBX_ASTOBJ2_H,1,[Found 'asterisk/astobj.h'])
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl    ])
-dnl    AC_CHECK_HEADER([asterisk/astobj2.h],
-dnl    		[
-dnl    			AC_DEFINE(HAVE_PBX_ASTOBJ2_H,1,[Found 'asterisk/astobj2.h'])
-dnl		],,[ 
-dnl	               	$HEADER_INCLUDE
-dnl    ])
     AC_CHECK_HEADER([asterisk/http.h],
     		[
     			AC_DEFINE(HAVE_PBX_HTTP_H,1,[Found 'asterisk/http.h'])
@@ -1137,81 +855,6 @@ dnl    ])
 		],,[ 
 	               	$HEADER_INCLUDE
     ])
-dnl    if test "${ASTERISK_VER_GROUP}" == "1.8"; then
-dnl	if test "${ac_cv_have_variable_fdset}x" = "0x"; then
-dnl		AC_RUN_IFELSE(
-dnl			[AC_LANG_PROGRAM([
-dnl			#include <unistd.h>
-dnl			#include <sys/types.h>
-dnl			#include <stdlib.h>
-dnl			], 
-dnl			[
-dnl			if (getuid() != 0) { exit(1); }
-dnl			])],
-dnl				AC_DEFINE([CONFIGURE_RAN_AS_ROOT], 1, [Some configure tests will unexpectedly fail if configure is run by a non-root user.  These may be able to be tested at runtime.]))
-dnl			fi
-dnl
-dnl	AC_MSG_CHECKING(if we can increase the maximum select-able file descriptor)
-dnl	AC_RUN_IFELSE(
-dnl		[AC_LANG_PROGRAM([
-dnl			#include <stdio.h>
-dnl			#include <sys/select.h>
-dnl			#include <sys/time.h>  
-dnl			#include <sys/resource.h>
-dnl			#include <string.h>
-dnl			#include <errno.h>     
-dnl			#include <stdlib.h>
-dnl			#include <sys/types.h>
-dnl			#include <sys/stat.h>  
-dnl			#include <fcntl.h>   
-dnl			#include <unistd.h>
-dnl			], [
-dnl				dnl run program
-dnl				[
-dnl				struct rlimit rlim = { FD_SETSIZE * 2, FD_SETSIZE * 2 };
-dnl				int fd0, fd1;
-dnl				struct timeval tv = { 0, };
-dnl				struct ast_fdset { long fds_bits[[1024]]; } fds = { { 0, } };
-dnl				if (setrlimit(RLIMIT_NOFILE, &rlim)) { exit(1); }
-dnl				if ((fd0 = open("/dev/null", O_RDONLY)) < 0) { exit(1); }
-dnl				if (dup2(fd0, (fd1 = FD_SETSIZE + 1)) < 0) { exit(1); }  
-dnl				FD_SET(fd0, (fd_set *) &fds);
-dnl				FD_SET(fd1, (fd_set *) &fds);
-dnl				if (select(FD_SETSIZE + 2, (fd_set *) &fds, NULL, NULL, &tv) < 0) { exit(1); }
-dnl				exit(0)
-dnl				]
-dnl			])],
-dnl			dnl if ok then yes
-dnl			AC_MSG_RESULT(yes)
-dnl			AC_DEFINE([HAVE_VARIABLE_FDSET], 1, [Define to 1 if your system can support larger than default select bitmasks.]),
-dnl			dnl if nok else no
-dnl			AC_MSG_RESULT(no),
-dnl			dnl print cross-compile
-dnl			AC_MSG_RESULT(cross-compile)
-dnl	)
-dnl
-dnl#	AC_CHECK_SIZEOF([int])
-dnl#	AC_CHECK_SIZEOF([long])
-dnl#	AC_CHECK_SIZEOF([long long])
-dnl#	AC_CHECK_SIZEOF([char *])
-dnl	AC_COMPUTE_INT([ac_cv_sizeof_fd_set_fds_bits], [sizeof(foo.fds_bits[[0]])], [$ac_includes_default fd_set foo;])
-dnl	# This doesn't actually work; what it does is to use the variable set in the
-dnl	# previous test as a cached value to set the right output variables.
-dnl	AC_CHECK_SIZEOF(fd_set.fds_bits)
-dnl
-dnl	# Set a type compatible with the previous.  We cannot just use a generic type
-dnl	# for these bits, because on big-endian systems, the bits won't match up
-dnl	# correctly if the size is wrong.  
-dnl	if test $ac_cv_sizeof_int = $ac_cv_sizeof_fd_set_fds_bits; then
-dnl	  AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [int], [Define to a type of the same size as fd_set.fds_bits[[0]]])
-dnl	  else if test $ac_cv_sizeof_long = $ac_cv_sizeof_fd_set_fds_bits; then
-dnl	    AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [long], [Define to a type of the same size as fd_set.fds_bits[[0]]])
-dnl	    else if test $ac_cv_sizeof_long_long = $ac_cv_sizeof_fd_set_fds_bits; then
-dnl	      AC_DEFINE([TYPEOF_FD_SET_FDS_BITS], [long long], [Define to a type of the same size as fd_set.fds_bits[[0]]])
-dnl	    fi
-dnl	  fi
-dnl	fi
-dnl    fi
   CFLAGS={$CFLAGS_backup}
   ],
   [

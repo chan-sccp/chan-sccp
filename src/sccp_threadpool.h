@@ -11,10 +11,8 @@
  * $Date: 2010-11-17 12:03:44 +0100 (Wed, 17 Nov 2010) $
  * $Revision: 2130 $  
  */
-#ifndef SCCP_THREADPOOL_H_
-#define SCCP_THREADPOOL_H_
-
-#include <config.h>
+#pragma once
+//#include <config.h>
 //#include "common.h"
 
 /* Description:         Library providing a threading pool where you can add work on the fly. The number
@@ -114,7 +112,7 @@ int sccp_threadpool_add_work(sccp_threadpool_t * tp_p, void *(*function_p) (void
  * 
  * \param tp_p threadpool a pointer to the threadpool structure you want to destroy
  */
-void sccp_threadpool_destroy(sccp_threadpool_t * tp_p);
+boolean_t sccp_threadpool_destroy(sccp_threadpool_t * tp_p);
 
 /*!
  * \brief Return number of currently allocate threads in the threadpool
@@ -151,5 +149,10 @@ void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_
  */
 int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p);
 
+
+#if CS_TEST_FRAMEWORK
+void sccp_threadpool_register_tests(void);
+void sccp_threadpool_unregister_tests(void);
 #endif
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

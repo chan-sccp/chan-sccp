@@ -15,17 +15,24 @@
 #include <config.h>
 #include "common.h"
 #include "sccp_device.h"
+#include "sccp_channel.h"
+#include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_socket.h"
+
 #if HAVE_ICONV_H
 #include <iconv.h>
 #endif
+
 #ifdef DEBUG
 #ifdef HAVE_EXECINFO_H
 #include <execinfo.h>
 #if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
 #include <dlfcn.h>
 #include <bfd.h>
+#endif
+#if ASTERISK_VERSION_GROUP >= 112 
+#include <asterisk/backtrace.h>
 #endif
 #endif
 #endif
@@ -41,7 +48,7 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 {
 	static const int numcolumns = 16;									// number output columns
 
-	if (len <= 0 || !messagebuffer || !strlen((const char *) messagebuffer)) {				// safe quard
+	if (len <= 0 || !messagebuffer || !sccp_strlen((const char *) messagebuffer)) {				// safe quard
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: messagebuffer is not valid. exiting sccp_dump_packet\n");
 		return;
 	}
@@ -77,7 +84,7 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 	} while (cur < (len - 1));
 }
 
-void sccp_dump_msg(sccp_msg_t * msg)
+void sccp_dump_msg(const sccp_msg_t * const msg)
 {
 	sccp_dump_packet((unsigned char *) msg, letohl(msg->header.length) + 8);
 }
@@ -116,7 +123,7 @@ int sccp_addons_taps(sccp_device_t * d)
 		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_SPA500S || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS) {
 			taps += 32;
 		}
-		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d->id ? d->id : "SCCP"), taps, cur->type);
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d ? d->id : "SCCP"), taps, cur->type);
 	}
 	SCCP_LIST_UNLOCK(&d->addons);
 
@@ -171,6 +178,7 @@ void sccp_pbx_setcallstate(sccp_channel_t * channel, int state)
 	}
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Clean Asterisk Database Entries in the "SCCP" Family
  * 
@@ -178,7 +186,7 @@ void sccp_pbx_setcallstate(sccp_channel_t * channel, int state)
 void sccp_dev_dbclean(void)
 {
 	struct ast_db_entry *entry = NULL;
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 	char key[256];
 
 	//! \todo write an pbx implementation for that
@@ -197,7 +205,7 @@ void sccp_dev_dbclean(void)
 			SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
 			if (!d) {
-				PBX(feature_removeFromDatabase) ("SCCP", key);
+				iPbx.feature_removeFromDatabase("SCCP", key);
 				sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: device '%s' removed from asterisk database\n", entry->key);
 			}
 
@@ -208,6 +216,7 @@ void sccp_dev_dbclean(void)
 		pbx_db_freetree(entry);
 	}
 }
+#endif
 
 gcc_inline const char *msgtype2str(sccp_mid_t type)
 {														/* sccp_protocol.h */
@@ -229,13 +238,15 @@ gcc_inline size_t msgtype2size(sccp_mid_t type)
 
 gcc_inline const char *pbxsccp_devicestate2str(uint32_t value)
 {														/* pbx_impl/ast/ast.h */
-	_ARR2STR(pbx_devicestates, devicestate, value, text);
+	_ARR2STR(sccp_pbx_devicestates, devicestate, value, text);
 }
 
+#if UNUSEDCODE // 2015-11-01
 gcc_inline const char *extensionstatus2str(uint32_t value)
 {														/* pbx_impl/ast/ast.h */
 	_ARR2STR(sccp_extension_states, extension_state, value, text);
 }
+#endif
 
 gcc_inline const char *label2str(uint16_t value)
 {														/* sccp_labels.h */
@@ -247,6 +258,7 @@ gcc_inline const char *codec2str(skinny_codec_t value)
 	_ARR2STR(skinny_codecs, codec, value, text);
 }
 
+#if UNUSEDCODE // 2015-11-01
 gcc_inline int codec2payload(skinny_codec_t value)
 {														/* sccp_protocol.h */
 	_ARR2INT(skinny_codecs, codec, value, rtp_payload_type);
@@ -256,21 +268,19 @@ gcc_inline const char *codec2key(skinny_codec_t value)
 {														/* sccp_protocol.h */
 	_ARR2STR(skinny_codecs, codec, value, key);
 }
+#endif
 
 gcc_inline const char *codec2name(skinny_codec_t value)
 {														/* sccp_protocol.h */
 	_ARR2STR(skinny_codecs, codec, value, name);
 }
 
-gcc_inline const char *featureType2str(sccp_feature_type_t value)
-{														/* chan_sccp.h */
-	_ARR2STR(sccp_feature_types, featureType, value, text);
-}
-
+#if UNUSEDCODE // 2015-11-01
 gcc_inline uint32_t debugcat2int(const char *str)
 {														/* chan_sccp.h */
 	_STRARR2INT(sccp_debug_categories, key, str, category);
 }
+#endif
 
 gcc_inline uint32_t labelstr2int(const char *str)
 {														/* chan_sccp.h */
@@ -603,6 +613,7 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
 }
 #endif
 
+#if 0 /* unused */
 /*!
  * \brief get the SoftKeyIndex for a given SoftKeyLabel on specified keymode
  * \param d SCCP Device
@@ -616,6 +627,7 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
 {
 	return -1;
 }
+#endif
 
 /*!
  * \brief This is used on device reconnect attempt
@@ -624,13 +636,16 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
  * 
  */
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr)
+/*
 sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage * sas)
 {
 	sccp_device_t *d = NULL;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		if (d->session && sccp_socket_cmp_addr(&d->session->sin, sas) == 0) {
+		struct sockaddr_storage sinsas = { 0 };
+		sccp_session_getSas(d->session, &sinsas);
+		if (d->session && sccp_socket_cmp_addr(&sas, sas) == 0) {
 			d = sccp_device_retain(d);
 			break;
 		}
@@ -638,26 +653,7 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage * sas)
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	return d;
 }
-
-/*!
- * \brief convert Feature String 2 Feature ID
- * \param str Feature Str as char
- * \return Feature Type
- */
-sccp_feature_type_t sccp_featureStr2featureID(const char *const str)
-{
-	if (!str) {
-		return SCCP_FEATURE_UNKNOWN;
-	}
-	uint32_t i;
-
-	for (i = 0; i < ARRAY_LEN(sccp_feature_types); i++) {
-		if (!strcasecmp(sccp_feature_types[i].text, str)) {
-			return sccp_feature_types[i].featureType;
-		}
-	}
-	return SCCP_FEATURE_UNKNOWN;
-}
+*/
 
 /*!
  * \brief Handle Feature Change Event for persistent feature storage
@@ -682,7 +678,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 		return;
 	}
 
-	sccp_log((DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: StorageBackend got Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), featureType2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
+	sccp_log((DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: StorageBackend got Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), sccp_feature_type2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
 	sprintf(family, "SCCP/%s", device->id);
 
 	switch (event->event.featureChanged.featureType) {
@@ -699,31 +695,31 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 				switch (event->event.featureChanged.featureType) {
 					case SCCP_FEATURE_CFWDALL:
 						if (linedevice->cfwdAll.enabled) {
-							PBX(feature_addToDatabase) (cfwdDeviceLineStore, "cfwdAll", linedevice->cfwdAll.number);
-							PBX(feature_addToDatabase) (cfwdLineDeviceStore, "cfwdAll", linedevice->cfwdAll.number);
+							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdAll", linedevice->cfwdAll.number);
+							iPbx.feature_addToDatabase(cfwdLineDeviceStore, "cfwdAll", linedevice->cfwdAll.number);
 							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						} else {
-							PBX(feature_removeFromDatabase) (cfwdDeviceLineStore, "cfwdAll");
-							PBX(feature_removeFromDatabase) (cfwdLineDeviceStore, "cfwdAll");
+							iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdAll");
+							iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, "cfwdAll");
 							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						}
 						break;
 					case SCCP_FEATURE_CFWDBUSY:
 						if (linedevice->cfwdBusy.enabled) {
-							PBX(feature_addToDatabase) (cfwdDeviceLineStore, "cfwdBusy", linedevice->cfwdBusy.number);
-							PBX(feature_addToDatabase) (cfwdLineDeviceStore, "cfwdBusy", linedevice->cfwdBusy.number);
+							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdBusy", linedevice->cfwdBusy.number);
+							iPbx.feature_addToDatabase(cfwdLineDeviceStore, "cfwdBusy", linedevice->cfwdBusy.number);
 							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						} else {
-							PBX(feature_removeFromDatabase) (cfwdDeviceLineStore, "cfwdBusy");
-							PBX(feature_removeFromDatabase) (cfwdLineDeviceStore, "cfwdBusy");
+							iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdBusy");
+							iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, "cfwdBusy");
 							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						}
 						break;
 					case SCCP_FEATURE_CFWDNONE:
-						PBX(feature_removeFromDatabase) (cfwdDeviceLineStore, "cfwdAll");
-						PBX(feature_removeFromDatabase) (cfwdDeviceLineStore, "cfwdBusy");
-						PBX(feature_removeFromDatabase) (cfwdLineDeviceStore, "cfwdAll");
-						PBX(feature_removeFromDatabase) (cfwdLineDeviceStore, "cfwdBusy");
+						iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdAll");
+						iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdBusy");
+						iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, "cfwdAll");
+						iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, "cfwdBusy");
 						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: cfwd cleared from db\n", DEV_ID_LOG(device));
 					default:
 						break;
@@ -735,14 +731,14 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 			if (device->dndFeature.previousStatus != device->dndFeature.status) {
 				if (!device->dndFeature.status) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to off\n", DEV_ID_LOG(device));
-					PBX(feature_removeFromDatabase) (family, "dnd");
+					iPbx.feature_removeFromDatabase(family, "dnd");
 				} else {
 					if (device->dndFeature.status == SCCP_DNDMODE_SILENT) {
 						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to silent\n", DEV_ID_LOG(device));
-						PBX(feature_addToDatabase) (family, "dnd", "silent");
+						iPbx.feature_addToDatabase(family, "dnd", "silent");
 					} else {
 						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to reject\n", DEV_ID_LOG(device));
-						PBX(feature_addToDatabase) (family, "dnd", "reject");
+						iPbx.feature_addToDatabase(family, "dnd", "reject");
 					}
 				}
 				device->dndFeature.previousStatus = device->dndFeature.status;
@@ -751,12 +747,12 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 		case SCCP_FEATURE_PRIVACY:
 			if (device->privacyFeature.previousStatus != device->privacyFeature.status) {
 				if (!device->privacyFeature.status) {
-					PBX(feature_removeFromDatabase) (family, "privacy");
+					iPbx.feature_removeFromDatabase(family, "privacy");
 				} else {
 					char data[256];
 
 					sprintf(data, "%d", device->privacyFeature.status);
-					PBX(feature_addToDatabase) (family, "privacy", data);
+					iPbx.feature_addToDatabase(family, "privacy", data);
 				}
 				device->privacyFeature.previousStatus = device->privacyFeature.status;
 			}
@@ -764,9 +760,9 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 		case SCCP_FEATURE_MONITOR:
 			if (device->monitorFeature.previousStatus != device->monitorFeature.status) {
 				if (device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) {
-					PBX(feature_addToDatabase) (family, "monitor", "on");
+					iPbx.feature_addToDatabase(family, "monitor", "on");
 				} else {
-					PBX(feature_removeFromDatabase) (family, "monitor");
+					iPbx.feature_removeFromDatabase(family, "monitor");
 				}
 				device->monitorFeature.previousStatus = device->monitorFeature.status;
 			}
@@ -792,14 +788,14 @@ struct composedId sccp_parseComposedId(const char *labelString, unsigned int max
 	int state = 0;
 	struct composedId id;
 
-	assert(NULL != labelString);
+	pbx_assert(NULL != labelString);
 
 	memset(&id, 0, sizeof(id));
 
 	for (stringIterator = labelString; stringIterator < labelString + maxLength && !endDetected; stringIterator++) {
 		switch (state) {
 			case 0:										// parsing of main id
-				assert(i < sizeof(id.mainId));
+				pbx_assert(i < sizeof(id.mainId));
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
@@ -823,7 +819,7 @@ struct composedId sccp_parseComposedId(const char *labelString, unsigned int max
 				break;
 
 			case 1:										// parsing of sub id number
-				assert(i < sizeof(id.subscriptionId.number));
+				pbx_assert(i < sizeof(id.subscriptionId.number));
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
@@ -847,7 +843,7 @@ struct composedId sccp_parseComposedId(const char *labelString, unsigned int max
 				break;
 
 			case 2:										// parsing of sub id name
-				assert(i < sizeof(id.subscriptionId.name));
+				pbx_assert(i < sizeof(id.subscriptionId.name));
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
@@ -866,7 +862,7 @@ struct composedId sccp_parseComposedId(const char *labelString, unsigned int max
 				break;
 
 			case 3:										// parsing of auxiliary parameter
-				assert(i < sizeof(id.subscriptionId.name));
+				pbx_assert(i < sizeof(id.subscriptionId.name));
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
@@ -880,7 +876,7 @@ struct composedId sccp_parseComposedId(const char *labelString, unsigned int max
 				break;
 
 			default:
-				assert(FALSE);
+				pbx_assert(FALSE);
 		}
 	}
 	return id;
@@ -908,9 +904,9 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 	filterPhones = FALSE;											/* set the default to call all phones */
 
 	/* First condition: Non-trivial subscriptionId specified for matching in call. */
-	if (strlen(channel->subscriptionId.number) != 0) {
+	if (sccp_strlen(channel->subscriptionId.number) != 0) {
 		/* Second condition: SubscriptionId does not match default subscriptionId of line. */
-		if (0 != strncasecmp(channel->subscriptionId.number, channel->line->defaultSubscriptionId.number, strlen(channel->subscriptionId.number))) {
+		if (0 != strncasecmp(channel->subscriptionId.number, channel->line->defaultSubscriptionId.number, sccp_strlen(channel->subscriptionId.number))) {
 			filterPhones = TRUE;
 		}
 	}
@@ -918,115 +914,18 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 	if (FALSE == filterPhones) {
 		/* Accept phone for calling if all phones shall be called. */
 		result = TRUE;
-	} else if (0 != strlen(subscriptionIdNum) &&								/* We already know that we won't search for a trivial subscriptionId. */
-		   (0 != strncasecmp(channel->subscriptionId.number, subscriptionIdNum, strlen(channel->subscriptionId.number)))) {	/* Do the match! */
+	} else if (0 != sccp_strlen(subscriptionIdNum) &&								/* We already know that we won't search for a trivial subscriptionId. */
+		   (0 != strncasecmp(channel->subscriptionId.number, subscriptionIdNum, sccp_strlen(channel->subscriptionId.number)))) {	/* Do the match! */
 		result = FALSE;
 	}
 #if 0
-	pbx_log(LOG_NOTICE, "sccp_channel->subscriptionId.number=%s, length=%d\n", channel->subscriptionId.number, strlen(channel->subscriptionId.number));
-	pbx_log(LOG_NOTICE, "subscriptionIdNum=%s, length=%d\n", subscriptionIdNum ? subscriptionIdNum : "NULL", subscriptionIdNum ? strlen(subscriptionIdNum) : -1);
+	pbx_log(LOG_NOTICE, "sccp_channel->subscriptionId.number=%s, length=%d\n", channel->subscriptionId.number, sccp_strlen(channel->subscriptionId.number));
+	pbx_log(LOG_NOTICE, "subscriptionIdNum=%s, length=%d\n", subscriptionIdNum ? subscriptionIdNum : "NULL", subscriptionIdNum ? sccp_strlen(subscriptionIdNum) : -1);
 
 	pbx_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: sccp_channel->subscriptionId.number=%s, SubscriptionId=%s\n", (channel->subscriptionId.number) ? channel->subscriptionId.number : "NULL", (subscriptionIdNum) ? subscriptionIdNum : "NULL");
 	pbx_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: result: %d\n", result);
 #endif
 	return result;
-}
-
-/*!
- * \brief Parse a debug categories line to debug int
- * \param arguments Array of Arguments
- * \param startat Start Point in the Arguments Array
- * \param argc Count of Arguments
- * \param new_debug_value as uint32_t
- * \return new_debug_value as uint32_t
- */
-int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug_value)
-{
-	int argi;
-	int32_t i;
-	char *argument = "";
-	char *token = "";
-	const char delimiters[] = " ,\t";
-	boolean_t subtract = 0;
-
-	if (sscanf((char *) arguments[startat], "%d", &new_debug_value) != 1) {
-		for (argi = startat; argi < argc; argi++) {
-			argument = (char *) arguments[argi];
-			if (!strncmp(argument, "none", 4)) {
-				new_debug_value = 0;
-				break;
-			} else if (!strncmp(argument, "no", 2)) {
-				subtract = 1;
-			} else if (!strncmp(argument, "all", 3)) {
-				new_debug_value = 0;
-				for (i = 0; i < ARRAY_LEN(sccp_debug_categories); i++) {
-					if (!subtract) {
-						new_debug_value += sccp_debug_categories[i].category;
-					}
-				}
-			} else {
-				// parse comma separated debug_var
-				token = strtok(argument, delimiters);
-				while (token != NULL) {
-					// match debug level name to enum
-					for (i = 0; i < ARRAY_LEN(sccp_debug_categories); i++) {
-						if (strcasecmp(token, sccp_debug_categories[i].key) == 0) {
-							if (subtract) {
-								if ((new_debug_value & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
-									new_debug_value -= sccp_debug_categories[i].category;
-								}
-							} else {
-								if ((new_debug_value & sccp_debug_categories[i].category) != sccp_debug_categories[i].category) {
-									new_debug_value += sccp_debug_categories[i].category;
-								}
-							}
-						}
-					}
-					token = strtok(NULL, delimiters);
-				}
-			}
-		}
-	}
-	return new_debug_value;
-}
-
-/*!
- * \brief Write the current debug value to debug categories
- * \param debugvalue DebugValue as uint32_t
- * \return string containing list of categories comma seperated (you need to free it)
- */
-char *sccp_get_debugcategories(int32_t debugvalue)
-{
-	int32_t i;
-	char *res = NULL;
-	char *tmpres = NULL;
-	const char *sep = ",";
-	size_t size = 0;
-
-	for (i = 0; i < ARRAY_LEN(sccp_debug_categories); ++i) {
-		if ((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
-			size_t new_size = size;
-
-			new_size += strlen(sccp_debug_categories[i].key) + 1 /*sizeof(sep) */  + 1;
-			tmpres = sccp_realloc(res, new_size);
-			if (tmpres == NULL) {
-				pbx_log(LOG_ERROR, "Memory Allocation Error\n");
-				sccp_free(res);
-				return NULL;
-			}
-			res = tmpres;
-			if (size == 0) {
-				strcpy(res, sccp_debug_categories[i].key);
-			} else {
-				strcat(res, sep);
-				strcat(res, sccp_debug_categories[i].key);
-			}
-
-			size = new_size;
-		}
-	}
-
-	return res;
 }
 
 /*!
@@ -1044,30 +943,22 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32_t type, const char *dirNum, const char *fqdn, const char *lineDisplayName)
 {
 	sccp_msg_t *msg = NULL;
-	int dirNum_len = (dirNum != NULL) ? strlen(dirNum) : 0;
-	int FQDN_len = (fqdn != NULL) ? strlen(fqdn) : 0;
-	int lineDisplayName_len = (lineDisplayName != NULL) ? strlen(lineDisplayName) : 0;
+	int dirNum_len = (dirNum != NULL) ? sccp_strlen(dirNum) : 0;
+	int FQDN_len = (fqdn != NULL) ? sccp_strlen(fqdn) : 0;
+	int lineDisplayName_len = (lineDisplayName != NULL) ? sccp_strlen(lineDisplayName) : 0;
 	int dummy_len = dirNum_len + FQDN_len + lineDisplayName_len;
 
 	int hdr_len = 8 - 1;
-	int padding = 4;											/* after each string + 1 */
-	int size = hdr_len + dummy_len + padding;
 
-	/* message size must be multiple of 4 */
-	if ((size % 4) > 0) {
-		size = size + (4 - (size % 4));
-	}
-
-	msg = sccp_build_packet(LineStatDynamicMessage, size);
+	msg = sccp_build_packet(LineStatDynamicMessage,hdr_len + dummy_len);
 	msg->data.LineStatDynamicMessage.lel_lineNumber = htolel(lineInstance);
 	//msg->data.LineStatDynamicMessage.lel_lineType = htolel(0x0f);
 	msg->data.LineStatDynamicMessage.lel_lineType = htolel(type);
 
 	if (dummy_len) {
-		char buffer[dummy_len + padding];
+		char buffer[dummy_len];
 
-		// memset(&buffer[0], 0, sizeof(buffer));
-		memset(&buffer[0], 0, dummy_len + padding);
+		memset(&buffer[0], 0, dummy_len);
 
 		if (dirNum_len) {
 			memcpy(&buffer[0], dirNum, dirNum_len);
@@ -1078,9 +969,8 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32
 		if (lineDisplayName_len) {
 			memcpy(&buffer[dirNum_len + FQDN_len + 2], lineDisplayName, lineDisplayName_len);
 		}
-		// memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], sizeof(buffer));
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "LineStatDynamicMessage.dummy: %s\n", buffer);
-		memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], dummy_len + padding);
+		memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], dummy_len);
 	}
 
 	return msg;
@@ -1095,7 +985,7 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32
  * \retval 0 on diff
  * \retval 1 on equal
  */
-int socket_equals(struct sockaddr_storage *s0, struct sockaddr_storage *s1)
+int socket_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1)
 {
 	/*
 	if (s0->sin_addr.s_addr != s1->sin_addr.s_addr || s0->sin_port != s1->sin_port || s0->sin_family != s1->sin_family) {
@@ -1735,18 +1625,18 @@ void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path)
 }
 
 #if CS_TEST_FRAMEWORK
-AST_TEST_DEFINE(chan_sccp_ha_tests)
+AST_TEST_DEFINE(chan_sccp_acl_tests)
 {
 	struct sccp_ha *ha = NULL;
-	struct sockaddr_storage sas10, sas1015, sas172;
-	int error;
+	struct sockaddr_storage sas10, sas1015, sas172, sas200, sasff, sasffff;
+	int error = 0;
 
 	switch (cmd) {
 	case TEST_INIT:
-		info->name = "chan_sccp_ha_tests";
-		info->category = "/channels/chan_sccp/ha/";
-		info->summary = "chan-sccp-b ha test";
-		info->description = "chan-sccp-b ha tests";
+		info->name = "permit_deny";
+		info->category = "/channels/chan_sccp/acl/";
+		info->summary = "chan-sccp-b ha / permit / deny test";
+		info->description = "chan-sccp-b ha / permit / deny parsing tests";
 		return AST_TEST_NOT_RUN;
 	case TEST_EXECUTE:
 		break;
@@ -1756,116 +1646,183 @@ AST_TEST_DEFINE(chan_sccp_ha_tests)
 
 	ast_test_status_update(test, "Setting up sockaddr_storage...\n");
 	sccp_sockaddr_storage_parse(&sas10, "10.0.0.1", PARSE_PORT_FORBID);
-	if (!sccp_socket_is_IPv4(&sas10)) {
-		ast_test_status_update(test, "creating sas10 failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_validate(test, sccp_socket_is_IPv4(&sas10));
+
 	sccp_sockaddr_storage_parse(&sas1015, "10.15.15.1", PARSE_PORT_FORBID);
-	if (!sccp_socket_is_IPv4(&sas1015)) {
-		ast_test_status_update(test, "creating sas1015 failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_validate(test, sccp_socket_is_IPv4(&sas1015));
+
 	sccp_sockaddr_storage_parse(&sas172, "172.16.0.1", PARSE_PORT_FORBID);
-	if (!sccp_socket_is_IPv4(&sas172)) {
-		ast_test_status_update(test, "creating sas172 failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_validate(test, sccp_socket_is_IPv4(&sas172));
+
+	sccp_sockaddr_storage_parse(&sas200, "200.200.100.100", PARSE_PORT_FORBID);
+	ast_test_validate(test, sccp_socket_is_IPv4(&sas200));
+
+	sccp_sockaddr_storage_parse(&sasff, "fe80::ffff:0:0:0", PARSE_PORT_FORBID);
+	ast_test_validate(test, sccp_socket_is_IPv6(&sasff));
+
+	sccp_sockaddr_storage_parse(&sasffff, "fe80::ffff:0:ffff:0", PARSE_PORT_FORBID);
+	ast_test_validate(test, sccp_socket_is_IPv6(&sasffff));
 
 	// test 1
 	ast_test_status_update(test, "test 1: ha deny all\n");
 	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_validate(test, error == 0);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 
 	// test 2
-	ast_test_status_update(test, "test 2: added permit 10.15.15.0/255.255.255.0\n");
+	ast_test_status_update(test, "test 2: previous + permit 10.15.15.0/255.255.255.0\n");
 	ha = sccp_append_ha("permit", "10.15.15.0/255.255.255.0", ha, &error);
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_validate(test, error == 0);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 
 	// test 3
-	ast_test_status_update(test, "test 3: added second permit 10.15.15.0/255.255.255.0\n");
+	ast_test_status_update(test, "test 3: previous + second permit 10.15.15.0/255.255.255.0\n");
 	ha = sccp_append_ha("permit", "10.15.15.0/255.255.255.0", ha, &error);
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_validate(test, error == 0);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 	sccp_free_ha(ha);
 	ha = NULL;
 
 	// test 4
-	ast_test_status_update(test, "test 4: deny all + permit 10.15.15.0/255.255.255.0\n");
+	ast_test_status_update(test, "test 4: deny all + permit 10.0.0.0/255.255.255.0\n");
 	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
+	ast_test_validate(test, error == 0);
 	ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, &error);
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_validate(test, error == 0);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 
 	// test 5
-	ast_test_status_update(test, "test 5: add deny_all at the end\n");
-	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_status_update(test, "test 5: previous + 172.16.0.0/255.255.0.0\n");
+	ha = sccp_append_ha("permit", "172.16.0.0/255.0.0.0", ha, &error);
+	ast_test_validate(test, error == 0);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 
+	// test 6
+	ast_test_status_update(test, "test 6: previous + deny_all at the end\n");
+	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
+	ast_test_validate(test, error == 0);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 	sccp_free_ha(ha);
 	ha = NULL;
-	return AST_TEST_PASS;
 
-RETURN_FAILURE:
-	if (ha) {
-		sccp_free_ha(ha);
-		ha = NULL;
-	}
-	return AST_TEST_FAIL;
+	// test 7: ipv6
+	ast_test_status_update(test, "test 7: IPv6: deny 0.0.0.0/0.0.0.0,::,::/0::\n");
+	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
+	ast_test_validate(test, error == 0);
+	ha = sccp_append_ha("deny", "::", ha, &error);
+	ast_test_validate(test, error == 0);
+	ha = sccp_append_ha("deny", "::/0", ha, &error);
+	ast_test_validate(test, error == 0);
+	//ast_test_status_update(test, "test 7: deny !fe80::/64\n");			/* we cannot parse this format yes (asterisk-13) */
+	//ha = sccp_append_ha("deny", "!fe80::/64", ha, &error);
+	//ast_test_validate(test, error == 0);
+	ast_test_status_update(test, "      : previous + permit fe80::ffff:0:0:0/80\n");
+	ha = sccp_append_ha("permit", "fe80::ffff:0:0:0/80", ha, &error);
+	ast_test_validate(test, error == 0);
+	ast_test_status_update(test, "      : previous + permit fe80::ffff:0:ffff:0/112\n");
+	ha = sccp_append_ha("permit", "fe80::ffff:0:ffff:0/112", ha, &error);
+	ast_test_validate(test, error == 0);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sasff) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sasffff) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
+	sccp_free_ha(ha);
+	ha = NULL;
+
+	return AST_TEST_PASS;
 }
 
+AST_TEST_DEFINE(chan_sccp_acl_invalid_tests)
+{
+	struct sccp_ha *ha = NULL;
+	enum ast_test_result_state res = AST_TEST_PASS;
+
+	switch (cmd) {
+	case TEST_INIT:
+		info->name = "invalid";
+		info->category = "/channels/chan_sccp/acl/";
+		info->summary = "Invalid ACL unit test";
+		info->description = "Ensures that garbage ACL values are not accepted";
+		return AST_TEST_NOT_RUN;
+	case TEST_EXECUTE:
+		break;
+	}
+
+	ast_test_status_update(test, "Executing invalid acl test tests...\n");
+
+	// test invalid
+	const char * invalid_acls[] = {
+		/* Negative netmask */
+		"1.3.3.7/-1",
+		/* Netmask too large */
+		"1.3.3.7/33",
+		/* Netmask waaaay too large */
+		"1.3.3.7/92342348927389492307420",
+		/* Netmask non-numeric */
+		"1.3.3.7/California",
+		/* Too many octets in Netmask */
+		"1.3.3.7/255.255.255.255.255",
+		/* Octets in IP address exceed 255 */
+		"57.60.278.900/31",
+		/* Octets in IP address exceed 255 and are negative */
+		"400.32.201029.-6/24",
+		/* Invalidly formatted IP address */
+		"EGGSOFDEATH/4000",
+		/* Too many octets in IP address */
+		"33.4.7.8.3/300030",
+		/* Too many octets in Netmask */
+		"1.2.3.4/6.7.8.9.0",
+		/* Too many octets in IP address */
+		"3.1.4.1.5.9/3",
+		/* IPv6 address has multiple double colons */
+		"ff::ff::ff/3",
+		/* IPv6 address is too long */
+		"1234:5678:90ab:cdef:1234:5678:90ab:cdef:1234/56",
+		/* IPv6 netmask is too large */
+		"::ffff/129",
+		/* IPv4-mapped IPv6 address has too few octets */
+		"::ffff:255.255.255/128",
+		/* Leading and trailing colons for IPv6 address */
+		":1234:/15",
+		/* IPv6 address and IPv4 netmask */
+		"fe80::1234/255.255.255.0",
+	};
+	uint8_t i;
+        for (i = 0; i < ARRAY_LEN(invalid_acls); ++i) {
+        	int error = 0;
+                ha = sccp_append_ha("permit", invalid_acls[i], ha, &error);
+                if (ha || !error) {
+                        ast_test_status_update(test, "ACL %s accepted even though it is total garbage.\n",
+                                        invalid_acls[i]);
+                        if (ha) {
+				sccp_free_ha(ha);
+                        }
+                        res = AST_TEST_FAIL;
+                }
+        }
+	sccp_free_ha(ha);
+	ha = NULL;
+
+	return res;
+}
 #endif
 
 /*!
@@ -2049,10 +2006,10 @@ char *sccp_dec2binstr(char *buf, size_t size, int value)
 
 gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size)
 {
-        assert(NULL != dst && NULL != src);
-	if (size != 0) {
-		while (--size != 0) {
-			if ((*dst++ = *src++) == '\0') {
+        pbx_assert(NULL != dst && NULL != src);
+	if (do_expect(size != 0)) {
+		while (do_expect(--size != 0)) {
+			if (+(*dst++ = *src++) == '\0') {
 				break;
 			}
 		}
@@ -2080,7 +2037,7 @@ char *sccp_trimwhitespace(char *str)
 		return str;
 	}
 	// Trim trailing space
-	end = str + strlen(str) - 1;
+	end = str + sccp_strlen(str) - 1;
 	while (end > str && isspace(*end)) {
 		end--;
 	}
@@ -2093,7 +2050,7 @@ char *sccp_trimwhitespace(char *str)
 gcc_inline boolean_t sccp_utils_convUtf8toLatin1(const char *utf8str, char *buf, size_t len) {
 	iconv_t cd;
 	size_t incount, outcount = len;
-	incount = strlen(utf8str);
+	incount = sccp_strlen(utf8str);
 	if (incount) {
 		cd = iconv_open("ISO8859-1", "UTF-8");
 		if (cd == (iconv_t) -1) {
@@ -2119,22 +2076,25 @@ gcc_inline boolean_t sccp_utils_convUtf8toLatin1(const char *utf8str, char *buf,
 #if CS_TEST_FRAMEWORK
 void sccp_utils_register_tests(void)
 {
-        AST_TEST_REGISTER(chan_sccp_ha_tests);
+        AST_TEST_REGISTER(chan_sccp_acl_tests);
+        AST_TEST_REGISTER(chan_sccp_acl_invalid_tests);
 }
 
 void sccp_utils_unregister_tests(void)
 {
-        AST_TEST_UNREGISTER(chan_sccp_ha_tests);
+        AST_TEST_UNREGISTER(chan_sccp_acl_tests);
+        AST_TEST_UNREGISTER(chan_sccp_acl_invalid_tests);
 }
 #endif
 
 #ifdef DEBUG
+#if ASTERISK_VERSION_GROUP < 112 
 #if HAVE_EXECINFO_H
 static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 {
 	char **strings;
 #if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
-	int stackfr;
+	size_t stackfr;
 	bfd *bfdobj;           /* bfd.h */
 	Dl_info dli;           /* dlfcn.h */
 	long allocsize;
@@ -2151,11 +2111,11 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 
 	strings_size = num_frames * sizeof(*strings);
 
-	eachlen = ast_std_calloc(num_frames, sizeof(*eachlen));
-	strings = ast_std_calloc(num_frames, sizeof(*strings));
+	eachlen = sccp_calloc(num_frames, sizeof(*eachlen));
+	strings = sccp_calloc(num_frames, sizeof(*strings));
 	if (!eachlen || !strings) {
-		ast_std_free(eachlen);
-		ast_std_free(strings);
+		sccp_free(eachlen);
+		sccp_free(strings);
 		return NULL;
 	}
 
@@ -2181,7 +2141,7 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 		if ((bfdobj = bfd_openr(dli.dli_fname, NULL)) &&
 			bfd_check_format(bfdobj, bfd_object) &&
 			(allocsize = bfd_get_symtab_upper_bound(bfdobj)) > 0 &&
-			(syms = ast_std_malloc(allocsize)) &&
+			(syms = sccp_malloc(allocsize)) &&
 			(symbolcount = bfd_canonicalize_symtab(bfdobj, syms))) {
 
 			if (bfdobj->flags & DYNAMIC) {
@@ -2232,7 +2192,7 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 		}
 		if (bfdobj) {
 			bfd_close(bfdobj);
-			ast_std_free(syms);
+			sccp_free(syms);
 		}
 
 		/* Default output, if we cannot find the information within BFD */
@@ -2254,8 +2214,8 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 			char **tmp;
 
 			eachlen[stackfr] = strlen(msg) + 1;
-			if (!(tmp = ast_std_realloc(strings, strings_size + eachlen[stackfr]))) {
-				ast_std_free(strings);
+			if (!(tmp = sccp_realloc(strings, strings_size + eachlen[stackfr]))) {
+				sccp_free(strings);
 				strings = NULL;
 				break; /* out of stack frame iteration */
 			}
@@ -2273,13 +2233,14 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 			strings[stackfr] = strings[stackfr - 1] + eachlen[stackfr - 1];
 		}
 	}
-	ast_std_free(eachlen);
+	sccp_free(eachlen);
 #else
 	strings = backtrace_symbols(addresses, num_frames);
 #endif  // defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
 	return strings;
 }
 #endif  // HAVE_EXECINFO_H
+#endif
 
 void sccp_do_backtrace()
 {
@@ -2296,15 +2257,21 @@ void sccp_do_backtrace()
 #endif		
 	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "--------------------------------------------------------------------------(bt)--\n");
 	size = backtrace(addresses, SCCP_BACKTRACE_SIZE);
+#if ASTERISK_VERSION_GROUP >= 112 
+	strings = ast_bt_get_symbols(addresses, size);
+#else
 	strings = __sccp_bt_get_symbols(addresses, size);
+#endif
 
-	for (i = 1; i < size; i++) {
-		pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, " (bt) > %s\n", strings[i]);		
+	if (strings) {
+		for (i = 1; i < size; i++) {
+			pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, " (bt) > %s\n", strings[i]);		
+		}
+		free(strings);	// malloced by backtrace_symbols
+
+		pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "================================================================================\n");
+		pbx_log(LOG_WARNING, "SCCP: (backtrace) \n%s\n", pbx_str_buffer(btbuf));
 	}
-	free(strings);	// malloced by backtrace_symbols
-
-	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "================================================================================\n");
-	pbx_log(LOG_WARNING, "SCCP: (backtrace) \n%s\n", pbx_str_buffer(btbuf));
 #endif	// HAVE_EXECINFO_H
 }
 #endif  // DEBUG

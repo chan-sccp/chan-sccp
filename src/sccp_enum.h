@@ -6,7 +6,7 @@
 #ifndef __SCCP_ENUM_GUARD_H
 #define __SCCP_ENUM_GUARD_H
 typedef int (*sccp_enum_str2intval_t)(const char *lookup_str);
-typedef char *(*sccp_enum_all_entries_t)(void);
+typedef const char *(*sccp_enum_all_entries_t)(void);
 
 /* = Begin =======================================================================================       sparse sccp_channelstate === */
 
@@ -46,7 +46,7 @@ int sccp_channelstate_exists(int sccp_channelstate_int_value);
 const char * sccp_channelstate2str(sccp_channelstate_t enum_value);
 sccp_channelstate_t sccp_channelstate_str2val(const char *lookup_str);
 int sccp_channelstate_str2intval(const char *lookup_str);
-char *sccp_channelstate_all_entries(void);
+const char *sccp_channelstate_all_entries(void);
 /* = End =========================================================================================       sparse sccp_channelstate === */
 
 
@@ -66,7 +66,7 @@ int sccp_channelstatereason_exists(int sccp_channelstatereason_int_value);
 const char * sccp_channelstatereason2str(sccp_channelstatereason_t enum_value);
 sccp_channelstatereason_t sccp_channelstatereason_str2val(const char *lookup_str);
 int sccp_channelstatereason_str2intval(const char *lookup_str);
-char *sccp_channelstatereason_all_entries(void);
+const char *sccp_channelstatereason_all_entries(void);
 /* = End =========================================================================================        sccp_channelstatereason === */
 
 
@@ -88,7 +88,7 @@ int sccp_earlyrtp_exists(int sccp_earlyrtp_int_value);
 const char * sccp_earlyrtp2str(sccp_earlyrtp_t enum_value);
 sccp_earlyrtp_t sccp_earlyrtp_str2val(const char *lookup_str);
 int sccp_earlyrtp_str2intval(const char *lookup_str);
-char *sccp_earlyrtp_all_entries(void);
+const char *sccp_earlyrtp_all_entries(void);
 /* = End =========================================================================================                  sccp_earlyrtp === */
 
 
@@ -109,7 +109,7 @@ int sccp_devicestate_exists(int sccp_devicestate_int_value);
 const char * sccp_devicestate2str(sccp_devicestate_t enum_value);
 sccp_devicestate_t sccp_devicestate_str2val(const char *lookup_str);
 int sccp_devicestate_str2intval(const char *lookup_str);
-char *sccp_devicestate_all_entries(void);
+const char *sccp_devicestate_all_entries(void);
 /* = End =========================================================================================               sccp_devicestate === */
 
 
@@ -129,7 +129,7 @@ int sccp_callforward_exists(int sccp_callforward_int_value);
 const char * sccp_callforward2str(sccp_callforward_t enum_value);
 sccp_callforward_t sccp_callforward_str2val(const char *lookup_str);
 int sccp_callforward_str2intval(const char *lookup_str);
-char *sccp_callforward_all_entries(void);
+const char *sccp_callforward_all_entries(void);
 /* = End =========================================================================================               sccp_callforward === */
 
 
@@ -148,7 +148,7 @@ int sccp_dtmfmode_exists(int sccp_dtmfmode_int_value);
 const char * sccp_dtmfmode2str(sccp_dtmfmode_t enum_value);
 sccp_dtmfmode_t sccp_dtmfmode_str2val(const char *lookup_str);
 int sccp_dtmfmode_str2intval(const char *lookup_str);
-char *sccp_dtmfmode_all_entries(void);
+const char *sccp_dtmfmode_all_entries(void);
 /* = End =========================================================================================                  sccp_dtmfmode === */
 
 
@@ -167,7 +167,7 @@ int sccp_autoanswer_exists(int sccp_autoanswer_int_value);
 const char * sccp_autoanswer2str(sccp_autoanswer_t enum_value);
 sccp_autoanswer_t sccp_autoanswer_str2val(const char *lookup_str);
 int sccp_autoanswer_str2intval(const char *lookup_str);
-char *sccp_autoanswer_all_entries(void);
+const char *sccp_autoanswer_all_entries(void);
 /* = End =========================================================================================                sccp_autoanswer === */
 
 
@@ -187,7 +187,7 @@ int sccp_dndmode_exists(int sccp_dndmode_int_value);
 const char * sccp_dndmode2str(sccp_dndmode_t enum_value);
 sccp_dndmode_t sccp_dndmode_str2val(const char *lookup_str);
 int sccp_dndmode_str2intval(const char *lookup_str);
-char *sccp_dndmode_all_entries(void);
+const char *sccp_dndmode_all_entries(void);
 /* = End =========================================================================================                   sccp_dndmode === */
 
 
@@ -207,7 +207,7 @@ int sccp_accessory_exists(int sccp_accessory_int_value);
 const char * sccp_accessory2str(sccp_accessory_t enum_value);
 sccp_accessory_t sccp_accessory_str2val(const char *lookup_str);
 int sccp_accessory_str2intval(const char *lookup_str);
-char *sccp_accessory_all_entries(void);
+const char *sccp_accessory_all_entries(void);
 /* = End =========================================================================================                 sccp_accessory === */
 
 
@@ -218,15 +218,15 @@ char *sccp_accessory_all_entries(void);
  */
 typedef enum sccp_accessorystate {
 	SCCP_ACCESSORYSTATE_NONE,
-	SCCP_ACCESSORYSTATE_ONHOOK,
 	SCCP_ACCESSORYSTATE_OFFHOOK,
+	SCCP_ACCESSORYSTATE_ONHOOK,
 	SCCP_ACCESSORYSTATE_SENTINEL
 } sccp_accessorystate_t;
 int sccp_accessorystate_exists(int sccp_accessorystate_int_value);
 const char * sccp_accessorystate2str(sccp_accessorystate_t enum_value);
 sccp_accessorystate_t sccp_accessorystate_str2val(const char *lookup_str);
 int sccp_accessorystate_str2intval(const char *lookup_str);
-char *sccp_accessorystate_all_entries(void);
+const char *sccp_accessorystate_all_entries(void);
 /* = End =========================================================================================            sccp_accessorystate === */
 
 
@@ -247,7 +247,7 @@ int sccp_config_buttontype_exists(int sccp_config_buttontype_int_value);
 const char * sccp_config_buttontype2str(sccp_config_buttontype_t enum_value);
 sccp_config_buttontype_t sccp_config_buttontype_str2val(const char *lookup_str);
 int sccp_config_buttontype_str2intval(const char *lookup_str);
-char *sccp_config_buttontype_all_entries(void);
+const char *sccp_config_buttontype_all_entries(void);
 /* = End =========================================================================================         sccp_config_buttontype === */
 
 
@@ -265,7 +265,7 @@ int sccp_devstate_state_exists(int sccp_devstate_state_int_value);
 const char * sccp_devstate_state2str(sccp_devstate_state_t enum_value);
 sccp_devstate_state_t sccp_devstate_state_str2val(const char *lookup_str);
 int sccp_devstate_state_str2intval(const char *lookup_str);
-char *sccp_devstate_state_all_entries(void);
+const char *sccp_devstate_state_all_entries(void);
 /* = End =========================================================================================            sccp_devstate_state === */
 
 
@@ -283,7 +283,7 @@ int sccp_blindtransferindication_exists(int sccp_blindtransferindication_int_val
 const char * sccp_blindtransferindication2str(sccp_blindtransferindication_t enum_value);
 sccp_blindtransferindication_t sccp_blindtransferindication_str2val(const char *lookup_str);
 int sccp_blindtransferindication_str2intval(const char *lookup_str);
-char *sccp_blindtransferindication_all_entries(void);
+const char *sccp_blindtransferindication_all_entries(void);
 /* = End =========================================================================================   sccp_blindtransferindication === */
 
 
@@ -301,7 +301,7 @@ int sccp_call_answer_order_exists(int sccp_call_answer_order_int_value);
 const char * sccp_call_answer_order2str(sccp_call_answer_order_t enum_value);
 sccp_call_answer_order_t sccp_call_answer_order_str2val(const char *lookup_str);
 int sccp_call_answer_order_str2intval(const char *lookup_str);
-char *sccp_call_answer_order_all_entries(void);
+const char *sccp_call_answer_order_all_entries(void);
 /* = End =========================================================================================         sccp_call_answer_order === */
 
 
@@ -322,7 +322,7 @@ int sccp_nat_exists(int sccp_nat_int_value);
 const char * sccp_nat2str(sccp_nat_t enum_value);
 sccp_nat_t sccp_nat_str2val(const char *lookup_str);
 int sccp_nat_str2intval(const char *lookup_str);
-char *sccp_nat_all_entries(void);
+const char *sccp_nat_all_entries(void);
 /* = End =========================================================================================                       sccp_nat === */
 
 
@@ -341,7 +341,7 @@ int sccp_video_mode_exists(int sccp_video_mode_int_value);
 const char * sccp_video_mode2str(sccp_video_mode_t enum_value);
 sccp_video_mode_t sccp_video_mode_str2val(const char *lookup_str);
 int sccp_video_mode_str2intval(const char *lookup_str);
-char *sccp_video_mode_all_entries(void);
+const char *sccp_video_mode_all_entries(void);
 /* = End =========================================================================================                sccp_video_mode === */
 
 
@@ -367,7 +367,7 @@ int sccp_event_type_exists(int sccp_event_type_int_value);
 const char * sccp_event_type2str(int sccp_event_type_int_value);
 sccp_event_type_t sccp_event_type_str2val(const char *lookup_str);
 int sccp_event_type_str2intval(const char *lookup_str);
-char *sccp_event_type_all_entries(void);
+const char *sccp_event_type_all_entries(void);
 /* = End =========================================================================================                sccp_event_type === */
 
 
@@ -385,26 +385,26 @@ int sccp_parkresult_exists(int sccp_parkresult_int_value);
 const char * sccp_parkresult2str(sccp_parkresult_t enum_value);
 sccp_parkresult_t sccp_parkresult_str2val(const char *lookup_str);
 int sccp_parkresult_str2intval(const char *lookup_str);
-char *sccp_parkresult_all_entries(void);
+const char *sccp_parkresult_all_entries(void);
 /* = End =========================================================================================                sccp_parkresult === */
 
 
-/* = Begin =======================================================================================          sccp_calleridpresence === */
+/* = Begin =======================================================================================     sccp_callerid_presentation === */
 
 /*
- * \brief enum sccp_calleridpresence
+ * \brief enum sccp_callerid_presentation
  */
-typedef enum sccp_calleridpresence {
-	CALLERID_PRESENCE_FORBIDDEN,
-	CALLERID_PRESENCE_ALLOWED,
-	SCCP_CALLERIDPRESENCE_SENTINEL
-} sccp_calleridpresence_t;
-int sccp_calleridpresence_exists(int sccp_calleridpresence_int_value);
-const char * sccp_calleridpresence2str(sccp_calleridpresence_t enum_value);
-sccp_calleridpresence_t sccp_calleridpresence_str2val(const char *lookup_str);
-int sccp_calleridpresence_str2intval(const char *lookup_str);
-char *sccp_calleridpresence_all_entries(void);
-/* = End =========================================================================================          sccp_calleridpresence === */
+typedef enum sccp_callerid_presentation {
+	CALLERID_PRESENTATION_FORBIDDEN,
+	CALLERID_PRESENTATION_ALLOWED,
+	SCCP_CALLERID_PRESENTATION_SENTINEL
+} sccp_callerid_presentation_t;
+int sccp_callerid_presentation_exists(int sccp_callerid_presentation_int_value);
+const char * sccp_callerid_presentation2str(sccp_callerid_presentation_t enum_value);
+sccp_callerid_presentation_t sccp_callerid_presentation_str2val(const char *lookup_str);
+int sccp_callerid_presentation_str2intval(const char *lookup_str);
+const char *sccp_callerid_presentation_all_entries(void);
+/* = End =========================================================================================     sccp_callerid_presentation === */
 
 
 /* = Begin =======================================================================================                sccp_rtp_status === */
@@ -422,8 +422,27 @@ int sccp_rtp_status_exists(int sccp_rtp_status_int_value);
 const char * sccp_rtp_status2str(int sccp_rtp_status_int_value);
 sccp_rtp_status_t sccp_rtp_status_str2val(const char *lookup_str);
 int sccp_rtp_status_str2intval(const char *lookup_str);
-char *sccp_rtp_status_all_entries(void);
+const char *sccp_rtp_status_all_entries(void);
 /* = End =========================================================================================                sccp_rtp_status === */
+
+
+/* = Begin =======================================================================================             sccp_sccp_rtp_type === */
+
+/*
+ * \brief enum sccp_sccp_rtp_type
+ */
+typedef enum sccp_sccp_rtp_type {
+	SCCP_RTP_AUDIO=0,
+	SCCP_RTP_VIDEO=1<<0,
+	SCCP_RTP_TEXT=1<<2,
+	SCCP_SCCP_RTP_TYPE_SENTINEL = 1<<3
+} sccp_sccp_rtp_type_t;
+int sccp_sccp_rtp_type_exists(int sccp_sccp_rtp_type_int_value);
+const char * sccp_sccp_rtp_type2str(int sccp_sccp_rtp_type_int_value);
+sccp_sccp_rtp_type_t sccp_sccp_rtp_type_str2val(const char *lookup_str);
+int sccp_sccp_rtp_type_str2intval(const char *lookup_str);
+const char *sccp_sccp_rtp_type_all_entries(void);
+/* = End =========================================================================================             sccp_sccp_rtp_type === */
 
 
 /* = Begin =======================================================================================          sccp_extension_status === */
@@ -441,7 +460,7 @@ int sccp_extension_status_exists(int sccp_extension_status_int_value);
 const char * sccp_extension_status2str(sccp_extension_status_t enum_value);
 sccp_extension_status_t sccp_extension_status_str2val(const char *lookup_str);
 int sccp_extension_status_str2intval(const char *lookup_str);
-char *sccp_extension_status_all_entries(void);
+const char *sccp_extension_status_all_entries(void);
 /* = End =========================================================================================          sccp_extension_status === */
 
 
@@ -461,7 +480,7 @@ int sccp_channel_request_status_exists(int sccp_channel_request_status_int_value
 const char * sccp_channel_request_status2str(sccp_channel_request_status_t enum_value);
 sccp_channel_request_status_t sccp_channel_request_status_str2val(const char *lookup_str);
 int sccp_channel_request_status_str2intval(const char *lookup_str);
-char *sccp_channel_request_status_all_entries(void);
+const char *sccp_channel_request_status_all_entries(void);
 /* = End =========================================================================================    sccp_channel_request_status === */
 
 
@@ -483,7 +502,7 @@ int sccp_message_priority_exists(int sccp_message_priority_int_value);
 const char * sccp_message_priority2str(sccp_message_priority_t enum_value);
 sccp_message_priority_t sccp_message_priority_str2val(const char *lookup_str);
 int sccp_message_priority_str2intval(const char *lookup_str);
-char *sccp_message_priority_all_entries(void);
+const char *sccp_message_priority_all_entries(void);
 /* = End =========================================================================================          sccp_message_priority === */
 
 
@@ -502,7 +521,7 @@ int sccp_push_result_exists(int sccp_push_result_int_value);
 const char * sccp_push_result2str(sccp_push_result_t enum_value);
 sccp_push_result_t sccp_push_result_str2val(const char *lookup_str);
 int sccp_push_result_str2intval(const char *lookup_str);
-char *sccp_push_result_all_entries(void);
+const char *sccp_push_result_all_entries(void);
 /* = End =========================================================================================               sccp_push_result === */
 
 
@@ -521,7 +540,7 @@ int sccp_tokenstate_exists(int sccp_tokenstate_int_value);
 const char * sccp_tokenstate2str(sccp_tokenstate_t enum_value);
 sccp_tokenstate_t sccp_tokenstate_str2val(const char *lookup_str);
 int sccp_tokenstate_str2intval(const char *lookup_str);
-char *sccp_tokenstate_all_entries(void);
+const char *sccp_tokenstate_all_entries(void);
 /* = End =========================================================================================                sccp_tokenstate === */
 
 
@@ -548,7 +567,7 @@ int sccp_softswitch_exists(int sccp_softswitch_int_value);
 const char * sccp_softswitch2str(sccp_softswitch_t enum_value);
 sccp_softswitch_t sccp_softswitch_str2val(const char *lookup_str);
 int sccp_softswitch_str2intval(const char *lookup_str);
-char *sccp_softswitch_all_entries(void);
+const char *sccp_softswitch_all_entries(void);
 /* = End =========================================================================================                sccp_softswitch === */
 
 
@@ -567,7 +586,7 @@ int sccp_phonebook_exists(int sccp_phonebook_int_value);
 const char * sccp_phonebook2str(sccp_phonebook_t enum_value);
 sccp_phonebook_t sccp_phonebook_str2val(const char *lookup_str);
 int sccp_phonebook_str2intval(const char *lookup_str);
-char *sccp_phonebook_all_entries(void);
+const char *sccp_phonebook_all_entries(void);
 /* = End =========================================================================================                 sccp_phonebook === */
 
 
@@ -586,7 +605,7 @@ int sccp_feature_monitor_state_exists(int sccp_feature_monitor_state_int_value);
 const char * sccp_feature_monitor_state2str(sccp_feature_monitor_state_t enum_value);
 sccp_feature_monitor_state_t sccp_feature_monitor_state_str2val(const char *lookup_str);
 int sccp_feature_monitor_state_str2intval(const char *lookup_str);
-char *sccp_feature_monitor_state_all_entries(void);
+const char *sccp_feature_monitor_state_all_entries(void);
 /* = End =========================================================================================     sccp_feature_monitor_state === */
 
 
@@ -604,7 +623,7 @@ int sccp_readingtype_exists(int sccp_readingtype_int_value);
 const char * sccp_readingtype2str(sccp_readingtype_t enum_value);
 sccp_readingtype_t sccp_readingtype_str2val(const char *lookup_str);
 int sccp_readingtype_str2intval(const char *lookup_str);
-char *sccp_readingtype_all_entries(void);
+const char *sccp_readingtype_all_entries(void);
 /* = End =========================================================================================               sccp_readingtype === */
 
 
@@ -624,7 +643,7 @@ int sccp_configurationchange_exists(int sccp_configurationchange_int_value);
 const char * sccp_configurationchange2str(int sccp_configurationchange_int_value);
 sccp_configurationchange_t sccp_configurationchange_str2val(const char *lookup_str);
 int sccp_configurationchange_str2intval(const char *lookup_str);
-char *sccp_configurationchange_all_entries(void);
+const char *sccp_configurationchange_all_entries(void);
 /* = End =========================================================================================       sccp_configurationchange === */
 
 
@@ -642,7 +661,7 @@ int sccp_call_statistics_type_exists(int sccp_call_statistics_type_int_value);
 const char * sccp_call_statistics_type2str(sccp_call_statistics_type_t enum_value);
 sccp_call_statistics_type_t sccp_call_statistics_type_str2val(const char *lookup_str);
 int sccp_call_statistics_type_str2intval(const char *lookup_str);
-char *sccp_call_statistics_type_all_entries(void);
+const char *sccp_call_statistics_type_all_entries(void);
 /* = End =========================================================================================      sccp_call_statistics_type === */
 
 
@@ -661,8 +680,92 @@ int sccp_rtp_info_exists(int sccp_rtp_info_int_value);
 const char * sccp_rtp_info2str(int sccp_rtp_info_int_value);
 sccp_rtp_info_t sccp_rtp_info_str2val(const char *lookup_str);
 int sccp_rtp_info_str2intval(const char *lookup_str);
-char *sccp_rtp_info_all_entries(void);
+const char *sccp_rtp_info_all_entries(void);
 /* = End =========================================================================================                  sccp_rtp_info === */
+
+
+/* = Begin =======================================================================================              sccp_feature_type === */
+
+/*
+ * \brief enum sccp_feature_type
+ */
+typedef enum sccp_feature_type {
+	SCCP_FEATURE_UNKNOWN,
+	SCCP_FEATURE_CFWDNONE,
+	SCCP_FEATURE_CFWDALL,
+	SCCP_FEATURE_CFWDBUSY,
+	SCCP_FEATURE_DND,
+	SCCP_FEATURE_PRIVACY,
+	SCCP_FEATURE_MONITOR,
+	SCCP_FEATURE_HOLD,
+	SCCP_FEATURE_TRANSFER,
+	SCCP_FEATURE_MULTIBLINK,
+	SCCP_FEATURE_MOBILITY,
+	SCCP_FEATURE_CONFERENCE,
+	SCCP_FEATURE_DO_NOT_DISTURB,
+	SCCP_FEATURE_CONF_LIST,
+	SCCP_FEATURE_REMOVE_LAST_PARTICIPANT,
+	SCCP_FEATURE_HLOG,
+	SCCP_FEATURE_QRT,
+	SCCP_FEATURE_CALLBACK,
+	SCCP_FEATURE_OTHER_PICKUP,
+	SCCP_FEATURE_VIDEO_MODE,
+	SCCP_FEATURE_NEW_CALL,
+	SCCP_FEATURE_END_CALL,
+	SCCP_FEATURE_TESTE,
+	SCCP_FEATURE_TESTF,
+	SCCP_FEATURE_TESTI,
+	SCCP_FEATURE_TESTG,
+	SCCP_FEATURE_TESTH,
+	SCCP_FEATURE_TESTJ,
+#ifdef CS_DEVSTATE_FEATURE
+	SCCP_FEATURE_DEVSTATE,
+#endif
+	SCCP_FEATURE_PICKUP,
+	SCCP_FEATURE_TYPE_SENTINEL
+} sccp_feature_type_t;
+int sccp_feature_type_exists(int sccp_feature_type_int_value);
+const char * sccp_feature_type2str(sccp_feature_type_t enum_value);
+sccp_feature_type_t sccp_feature_type_str2val(const char *lookup_str);
+int sccp_feature_type_str2intval(const char *lookup_str);
+const char *sccp_feature_type_all_entries(void);
+/* = End =========================================================================================              sccp_feature_type === */
+
+
+/* = Begin =======================================================================================              sccp_callinfo_key === */
+
+/*
+ * \brief enum sccp_callinfo_key
+ */
+typedef enum sccp_callinfo_key {
+	SCCP_CALLINFO_NONE=0,
+	SCCP_CALLINFO_CALLEDPARTY_NAME,
+	SCCP_CALLINFO_CALLEDPARTY_NUMBER,
+	SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL,
+	SCCP_CALLINFO_CALLINGPARTY_NAME,
+	SCCP_CALLINFO_CALLINGPARTY_NUMBER,
+	SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL,
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME,
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER,
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL,
+	SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME,
+	SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER,
+	SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME,
+	SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER,
+	SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL,
+	SCCP_CALLINFO_HUNT_PILOT_NAME,
+	SCCP_CALLINFO_HUNT_PILOT_NUMBER,
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON,
+	SCCP_CALLINFO_LAST_REDIRECT_REASON,
+	SCCP_CALLINFO_PRESENTATION,
+	SCCP_CALLINFO_KEY_SENTINEL
+} sccp_callinfo_key_t;
+int sccp_callinfo_key_exists(int sccp_callinfo_key_int_value);
+const char * sccp_callinfo_key2str(sccp_callinfo_key_t enum_value);
+sccp_callinfo_key_t sccp_callinfo_key_str2val(const char *lookup_str);
+int sccp_callinfo_key_str2intval(const char *lookup_str);
+const char *sccp_callinfo_key_all_entries(void);
+/* = End =========================================================================================              sccp_callinfo_key === */
 
 
 /* = Begin =======================================================================================                skinny_lampmode === */
@@ -682,7 +785,7 @@ int skinny_lampmode_exists(int skinny_lampmode_int_value);
 const char * skinny_lampmode2str(skinny_lampmode_t enum_value);
 skinny_lampmode_t skinny_lampmode_str2val(const char *lookup_str);
 int skinny_lampmode_str2intval(const char *lookup_str);
-char *skinny_lampmode_all_entries(void);
+const char *skinny_lampmode_all_entries(void);
 /* = End =========================================================================================                skinny_lampmode === */
 
 
@@ -701,7 +804,7 @@ int skinny_calltype_exists(int skinny_calltype_int_value);
 const char * skinny_calltype2str(skinny_calltype_t enum_value);
 skinny_calltype_t skinny_calltype_str2val(const char *lookup_str);
 int skinny_calltype_str2intval(const char *lookup_str);
-char *skinny_calltype_all_entries(void);
+const char *skinny_calltype_all_entries(void);
 /* = End =========================================================================================                skinny_calltype === */
 
 
@@ -734,7 +837,7 @@ int skinny_callstate_exists(int skinny_callstate_int_value);
 const char * skinny_callstate2str(skinny_callstate_t enum_value);
 skinny_callstate_t skinny_callstate_str2val(const char *lookup_str);
 int skinny_callstate_str2intval(const char *lookup_str);
-char *skinny_callstate_all_entries(void);
+const char *skinny_callstate_all_entries(void);
 /* = End =========================================================================================               skinny_callstate === */
 
 
@@ -755,7 +858,7 @@ int skinny_callpriority_exists(int skinny_callpriority_int_value);
 const char * skinny_callpriority2str(skinny_callpriority_t enum_value);
 skinny_callpriority_t skinny_callpriority_str2val(const char *lookup_str);
 int skinny_callpriority_str2intval(const char *lookup_str);
-char *skinny_callpriority_all_entries(void);
+const char *skinny_callpriority_all_entries(void);
 /* = End =========================================================================================            skinny_callpriority === */
 
 
@@ -774,7 +877,7 @@ int skinny_callinfo_visibility_exists(int skinny_callinfo_visibility_int_value);
 const char * skinny_callinfo_visibility2str(skinny_callinfo_visibility_t enum_value);
 skinny_callinfo_visibility_t skinny_callinfo_visibility_str2val(const char *lookup_str);
 int skinny_callinfo_visibility_str2intval(const char *lookup_str);
-char *skinny_callinfo_visibility_all_entries(void);
+const char *skinny_callinfo_visibility_all_entries(void);
 /* = End =========================================================================================     skinny_callinfo_visibility === */
 
 
@@ -793,7 +896,7 @@ int skinny_callsecuritystate_exists(int skinny_callsecuritystate_int_value);
 const char * skinny_callsecuritystate2str(skinny_callsecuritystate_t enum_value);
 skinny_callsecuritystate_t skinny_callsecuritystate_str2val(const char *lookup_str);
 int skinny_callsecuritystate_str2intval(const char *lookup_str);
-char *skinny_callsecuritystate_all_entries(void);
+const char *skinny_callsecuritystate_all_entries(void);
 /* = End =========================================================================================       skinny_callsecuritystate === */
 
 
@@ -814,7 +917,7 @@ int skinny_busylampfield_state_exists(int skinny_busylampfield_state_int_value);
 const char * skinny_busylampfield_state2str(skinny_busylampfield_state_t enum_value);
 skinny_busylampfield_state_t skinny_busylampfield_state_str2val(const char *lookup_str);
 int skinny_busylampfield_state_str2intval(const char *lookup_str);
-char *skinny_busylampfield_state_all_entries(void);
+const char *skinny_busylampfield_state_all_entries(void);
 /* = End =========================================================================================     skinny_busylampfield_state === */
 
 
@@ -838,7 +941,7 @@ int skinny_alarm_exists(int skinny_alarm_int_value);
 const char * skinny_alarm2str(skinny_alarm_t enum_value);
 skinny_alarm_t skinny_alarm_str2val(const char *lookup_str);
 int skinny_alarm_str2intval(const char *lookup_str);
-char *skinny_alarm_all_entries(void);
+const char *skinny_alarm_all_entries(void);
 /* = End =========================================================================================            sparse skinny_alarm === */
 
 
@@ -931,13 +1034,23 @@ typedef enum skinny_tone {
 	SKINNY_TONE_MLPP_BNEA=0x7B,
 	SKINNY_TONE_MLPP_UPA=0x7C,
 	SKINNY_TONE_NOTONE=0x7F,
+	SKINNY_TONE_MEETME_GREETING=0x80,
+	SKINNY_TONE_MEETME_NUMBER_INVALID=0x81,
+	SKINNY_TONE_MEETME_NUMBER_FAILED=0x82,
+	SKINNY_TONE_MEETME_ENTER_PIN=0x83,
+	SKINNY_TONE_MEETME_INVALID_PIN=0x84,
+	SKINNY_TONE_MEETME_FAILED_PIN=0x85,
+	SKINNY_TONE_MEETME_CFB_FAILED=0x86,
+	SKINNY_TONE_MEETME_ENTER_ACCESS_CODE=0x87,
+	SKINNY_TONE_MEETME_ACCESS_CODE_INVALID=0x88,
+	SKINNY_TONE_MEETME_ACCESS_CODE_FAILED=0x89,
 	SKINNY_TONE_SENTINEL
 } skinny_tone_t;
 int skinny_tone_exists(int skinny_tone_int_value);
 const char * skinny_tone2str(skinny_tone_t enum_value);
 skinny_tone_t skinny_tone_str2val(const char *lookup_str);
 int skinny_tone_str2intval(const char *lookup_str);
-char *skinny_tone_all_entries(void);
+const char *skinny_tone_all_entries(void);
 /* = End =========================================================================================             sparse skinny_tone === */
 
 
@@ -961,7 +1074,7 @@ int skinny_videoformat_exists(int skinny_videoformat_int_value);
 const char * skinny_videoformat2str(skinny_videoformat_t enum_value);
 skinny_videoformat_t skinny_videoformat_str2val(const char *lookup_str);
 int skinny_videoformat_str2intval(const char *lookup_str);
-char *skinny_videoformat_all_entries(void);
+const char *skinny_videoformat_all_entries(void);
 /* = End =========================================================================================      sparse skinny_videoformat === */
 
 
@@ -988,7 +1101,7 @@ int skinny_ringtype_exists(int skinny_ringtype_int_value);
 const char * skinny_ringtype2str(skinny_ringtype_t enum_value);
 skinny_ringtype_t skinny_ringtype_str2val(const char *lookup_str);
 int skinny_ringtype_str2intval(const char *lookup_str);
-char *skinny_ringtype_all_entries(void);
+const char *skinny_ringtype_all_entries(void);
 /* = End =========================================================================================                skinny_ringtype === */
 
 
@@ -1008,7 +1121,7 @@ int skinny_receivetransmit_exists(int skinny_receivetransmit_int_value);
 const char * skinny_receivetransmit2str(skinny_receivetransmit_t enum_value);
 skinny_receivetransmit_t skinny_receivetransmit_str2val(const char *lookup_str);
 int skinny_receivetransmit_str2intval(const char *lookup_str);
-char *skinny_receivetransmit_all_entries(void);
+const char *skinny_receivetransmit_all_entries(void);
 /* = End =========================================================================================         skinny_receivetransmit === */
 
 
@@ -1030,6 +1143,7 @@ typedef enum skinny_keymode {
 	KEYMODE_OFFHOOKFEAT,
 	KEYMODE_INUSEHINT,
 	KEYMODE_ONHOOKSTEALABLE,
+	KEYMODE_HOLDCONF,
 	KEYMODE_EMPTY,
 	SKINNY_KEYMODE_SENTINEL
 } skinny_keymode_t;
@@ -1037,7 +1151,7 @@ int skinny_keymode_exists(int skinny_keymode_int_value);
 const char * skinny_keymode2str(skinny_keymode_t enum_value);
 skinny_keymode_t skinny_keymode_str2val(const char *lookup_str);
 int skinny_keymode_str2intval(const char *lookup_str);
-char *skinny_keymode_all_entries(void);
+const char *skinny_keymode_all_entries(void);
 /* = End =========================================================================================                 skinny_keymode === */
 
 
@@ -1059,7 +1173,7 @@ int skinny_registrationstate_exists(int skinny_registrationstate_int_value);
 const char * skinny_registrationstate2str(skinny_registrationstate_t enum_value);
 skinny_registrationstate_t skinny_registrationstate_str2val(const char *lookup_str);
 int skinny_registrationstate_str2intval(const char *lookup_str);
-char *skinny_registrationstate_all_entries(void);
+const char *skinny_registrationstate_all_entries(void);
 /* = End =========================================================================================       skinny_registrationstate === */
 
 
@@ -1088,7 +1202,7 @@ int skinny_mediastatus_exists(int skinny_mediastatus_int_value);
 const char * skinny_mediastatus2str(skinny_mediastatus_t enum_value);
 skinny_mediastatus_t skinny_mediastatus_str2val(const char *lookup_str);
 int skinny_mediastatus_str2intval(const char *lookup_str);
-char *skinny_mediastatus_all_entries(void);
+const char *skinny_mediastatus_all_entries(void);
 /* = End =========================================================================================             skinny_mediastatus === */
 
 
@@ -1160,7 +1274,7 @@ int skinny_stimulus_exists(int skinny_stimulus_int_value);
 const char * skinny_stimulus2str(skinny_stimulus_t enum_value);
 skinny_stimulus_t skinny_stimulus_str2val(const char *lookup_str);
 int skinny_stimulus_str2intval(const char *lookup_str);
-char *skinny_stimulus_all_entries(void);
+const char *skinny_stimulus_all_entries(void);
 /* = End =========================================================================================         sparse skinny_stimulus === */
 
 
@@ -1230,7 +1344,7 @@ int skinny_buttontype_exists(int skinny_buttontype_int_value);
 const char * skinny_buttontype2str(skinny_buttontype_t enum_value);
 skinny_buttontype_t skinny_buttontype_str2val(const char *lookup_str);
 int skinny_buttontype_str2intval(const char *lookup_str);
-char *skinny_buttontype_all_entries(void);
+const char *skinny_buttontype_all_entries(void);
 /* = End =========================================================================================       sparse skinny_buttontype === */
 
 
@@ -1300,6 +1414,7 @@ typedef enum skinny_devicetype {
 	SKINNY_DEVICETYPE_CISCO7920=30002,
 	SKINNY_DEVICETYPE_CISCO7921=365,
 	SKINNY_DEVICETYPE_CISCO7925=484,
+	SKINNY_DEVICETYPE_CISCO7926=577,
 	SKINNY_DEVICETYPE_CISCO7931=348,
 	SKINNY_DEVICETYPE_CISCO7935=9,
 	SKINNY_DEVICETYPE_CISCO7936=30019,
@@ -1351,29 +1466,31 @@ int skinny_devicetype_exists(int skinny_devicetype_int_value);
 const char * skinny_devicetype2str(skinny_devicetype_t enum_value);
 skinny_devicetype_t skinny_devicetype_str2val(const char *lookup_str);
 int skinny_devicetype_str2intval(const char *lookup_str);
-char *skinny_devicetype_all_entries(void);
+const char *skinny_devicetype_all_entries(void);
 /* = End =========================================================================================       sparse skinny_devicetype === */
 
 
-/* = Begin =======================================================================================          skinny_encryptiontype === */
+/* = Begin =======================================================================================        skinny_encryptionmethod === */
 
 /*
- * \brief enum skinny_encryptiontype
+ * \brief enum skinny_encryptionmethod
  */
-typedef enum skinny_encryptiontype {
-	NO_ENCRYPTION=0x0,
-	AES_128_HMAC_SHA1_32=0x1,
-	AES_128_HMAC_SHA1_80=0x2,
-	CCM_F8_128_HMAC_SHA1_32=0x3,
-	CCM_F8_128_HMAC_SHA1_80=0x4,
-	SKINNY_ENCRYPTIONTYPE_SENTINEL
-} skinny_encryptiontype_t;
-int skinny_encryptiontype_exists(int skinny_encryptiontype_int_value);
-const char * skinny_encryptiontype2str(skinny_encryptiontype_t enum_value);
-skinny_encryptiontype_t skinny_encryptiontype_str2val(const char *lookup_str);
-int skinny_encryptiontype_str2intval(const char *lookup_str);
-char *skinny_encryptiontype_all_entries(void);
-/* = End =========================================================================================          skinny_encryptiontype === */
+typedef enum skinny_encryptionmethod {
+	SKINNY_ENCRYPTIONMETHOD_NONE=0x0,
+	SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_32=0x1,
+	SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_80=0x2,
+	SKINNY_ENCRYPTIONMETHOD_F8_128_HMAC_SHA1_32=0x3,
+	SKINNY_ENCRYPTIONMETHOD_F8_128_HMAC_SHA1_80=0x4,
+	SKINNY_ENCRYPTIONMETHOD_AEAD_AES_128_GCM=0x5,
+	SKINNY_ENCRYPTIONMETHOD_AEAD_AES_256_GCM=0x6,
+	SKINNY_ENCRYPTIONMETHOD_SENTINEL
+} skinny_encryptionmethod_t;
+int skinny_encryptionmethod_exists(int skinny_encryptionmethod_int_value);
+const char * skinny_encryptionmethod2str(skinny_encryptionmethod_t enum_value);
+skinny_encryptionmethod_t skinny_encryptionmethod_str2val(const char *lookup_str);
+int skinny_encryptionmethod_str2intval(const char *lookup_str);
+const char *skinny_encryptionmethod_all_entries(void);
+/* = End =========================================================================================        skinny_encryptionmethod === */
 
 
 /* = Begin =======================================================================================         skinny_miscCommandType === */
@@ -1396,7 +1513,7 @@ int skinny_miscCommandType_exists(int skinny_miscCommandType_int_value);
 const char * skinny_miscCommandType2str(skinny_miscCommandType_t enum_value);
 skinny_miscCommandType_t skinny_miscCommandType_str2val(const char *lookup_str);
 int skinny_miscCommandType_str2intval(const char *lookup_str);
-char *skinny_miscCommandType_all_entries(void);
+const char *skinny_miscCommandType_all_entries(void);
 /* = End =========================================================================================         skinny_miscCommandType === */
 
 #endif /* __SCCP_ENUM_GUARD_H */

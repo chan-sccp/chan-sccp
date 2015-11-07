@@ -9,9 +9,7 @@
  * $Date$
  * $Revision$  
  */
-
-#ifndef SCCP_AST_MAJOR_H_
-#define SCCP_AST_MAJOR_H_
+#pragma once
 
 #include <config.h>
 #ifdef CS_SCCP_CONFERENCE
@@ -38,6 +36,11 @@ int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rt
 //int sccp_restart_monitor(void);
 char *pbx_getformatname(format_t format);
 char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
+
+#undef pbx_bridge_lock
+#undef pbx_bridge_unlock
+#define pbx_bridge_lock(_x) NULL
+#define pbx_bridge_unlock(_x) NULL
 
 #define pbx_channel_name(x) x->name
 
@@ -223,5 +226,4 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 		}												\
 	};
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-#endif														/* SCCP_AST108_H_ */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

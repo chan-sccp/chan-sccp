@@ -11,8 +11,7 @@
  * $Date$
  * $Revision$
  */
-#ifndef __SCCP_UTILS_H
-#define __SCCP_UTILS_H
+#pragma once
 
 #ifdef strdupa
 #define sccp_strdupa strdupa
@@ -30,12 +29,14 @@
 #endif
 
 void sccp_dump_packet(unsigned char *messagebuffer, int len);
-void sccp_dump_msg(sccp_msg_t * msg);
+void sccp_dump_msg(const sccp_msg_t * const msg);
 int sccp_addons_taps(sccp_device_t * d);
 void sccp_addons_clear(sccp_device_t * d);
 void sccp_safe_sleep(int ms);
 void sccp_pbx_setcallstate(sccp_channel_t * channel, int state);
+#if UNUSEDCODE // 2015-11-01
 void sccp_dev_dbclean(void);
+#endif
 
 #define _ARR2STR(arrayname, lookup_var, lookup_val, return_var) \
         ({ \
@@ -75,18 +76,19 @@ void sccp_dev_dbclean(void);
 gcc_inline const char *msgtype2str(sccp_mid_t type);
 gcc_inline size_t msgtype2size(sccp_mid_t type);
 gcc_inline const char *pbxsccp_devicestate2str(uint32_t value);
-gcc_inline const char *extensionstatus2str(uint32_t value);
-
 // SKINNY Lookups
 gcc_inline const char *label2str(uint16_t value);
 gcc_inline const char *codec2str(skinny_codec_t value);
-gcc_inline int codec2payload(skinny_codec_t value);
-gcc_inline const char *codec2key(skinny_codec_t value);
 gcc_inline const char *codec2name(skinny_codec_t value);
 gcc_inline const char *featureType2str(sccp_feature_type_t value);
 gcc_inline const char *debugcat_keys(void);
-gcc_inline uint32_t debugcat2int(const char *str);
 gcc_inline uint32_t labelstr2int(const char *str);
+#if UNUSEDCODE // 2015-11-01
+gcc_inline const char *extensionstatus2str(uint32_t value);
+gcc_inline int codec2payload(skinny_codec_t value);
+gcc_inline const char *codec2key(skinny_codec_t value);
+gcc_inline uint32_t debugcat2int(const char *str);
+#endif
 
 char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int length);
 int sccp_parse_allow_disallow(skinny_codec_t * sccp_codecs, const char *list, int allowing);
@@ -108,18 +110,18 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
 #endif
 
 void sccp_util_featureStorageBackend(const sccp_event_t * e);
+#if 0 /* unused */
 int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey);
+#endif
 
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr);
-sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage *sin);
+//sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage *sin);
 
 sccp_feature_type_t sccp_featureStr2featureID(const char *str);
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *SubscriptionIdNum);
-int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug);
-char *sccp_get_debugcategories(int32_t debugvalue);
 sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32_t type, const char *dirNum, const char *fqdn, const char *lineDisplayName);
 
-int socket_equals(struct sockaddr_storage *s0, struct sockaddr_storage *s1);
+int socket_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1);
 gcc_inline size_t sccp_strlen(const char *data);
 gcc_inline boolean_t sccp_strlen_zero(const char *data);
 gcc_inline boolean_t sccp_strequals(const char *data1, const char *data2);
@@ -148,7 +150,6 @@ void sccp_utils_register_tests(void);
 void sccp_utils_unregister_tests(void);
 #endif
 #ifdef DEBUG
-void sccp_do_backtrace();
-#endif
+void sccp_do_backtrace(void);
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -13,27 +13,27 @@
  * $Date$
  * $Revision$  
  */
+#pragma once
 
-#ifndef __SCCP_PROTOCOL_H
-#define __SCCP_PROTOCOL_H
-
-#if HAVE_SYS_SOCKET_H
-#include <sys/socket.h>
-#endif
-#if HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <netinet/ip.h>
-#include <netinet/tcp.h>
-#endif
+//#if HAVE_SYS_SOCKET_H
+//#include <sys/socket.h>
+//#endif
+//#if HAVE_NETINET_IN_H
+//#include <netinet/in.h>
+//#include <netinet/in_systm.h>
+//#include <netinet/ip.h>
+//#include <netinet/tcp.h>
+//#endif
 
 #include "sccp_labels.h"
+#include "sccp_softkeys.h"
 
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW		3							/*!< At least we require protocol V.3 */
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH		22							/*!< We support up to protocol V.17 */
 
-#define SCCP_PROTOCOL					0
-#define SPCP_PROTOCOL					1
+#define UNKNOWN_PROTOCOL				0
+#define SCCP_PROTOCOL					1
+#define SPCP_PROTOCOL					2
 
 #define DEFAULT_SCCP_PORT				2000							/*!< SCCP uses port 2000. */
 #define DEFAULT_SCCP_SECURE_PORT			2443							/*!< SCCP secure port 2443. */
@@ -134,52 +134,78 @@
  */
 typedef enum {
 	/* *INDENT-OFF* */
-	SKINNY_CODEC_NONE 				= 0,
-	SKINNY_CODEC_NONSTANDARD 			= 1,
-	SKINNY_CODEC_G711_ALAW_64K 			= 2,
-	SKINNY_CODEC_G711_ALAW_56K 			= 3,
-	SKINNY_CODEC_G711_ULAW_64K 			= 4,
-	SKINNY_CODEC_G711_ULAW_56K 			= 5,
-	SKINNY_CODEC_G722_64K 				= 6,
-	SKINNY_CODEC_G722_56K 				= 7,
-	SKINNY_CODEC_G722_48K 				= 8,
-	SKINNY_CODEC_G723_1 				= 9,
-	SKINNY_CODEC_G728 				= 10,
-	SKINNY_CODEC_G729 				= 11,
-	SKINNY_CODEC_G729_A 				= 12,
-	SKINNY_CODEC_IS11172 				= 13,
-	SKINNY_CODEC_IS13818 				= 14,
-	SKINNY_CODEC_G729_B 				= 15,
-	SKINNY_CODEC_G729_AB 				= 16,
-	SKINNY_CODEC_GSM_FULLRATE 			= 18,
-	SKINNY_CODEC_GSM_HALFRATE 			= 19,
-	SKINNY_CODEC_GSM_ENH_FULLRATE 			= 20,
-	SKINNY_CODEC_WIDEBAND_256K 			= 25,
-	SKINNY_CODEC_DATA_64K 				= 32,
-	SKINNY_CODEC_DATA_56K 				= 33,
-	SKINNY_CODEC_G722_1_32K 			= 40,
-	SKINNY_CODEC_G722_1_24K 			= 41,
-	SKINNY_CODEC_AAC 				= 42,
-	SKINNY_CODEC_GSM 				= 80,
-	SKINNY_CODEC_ACTIVEVOICE 			= 81,
-	SKINNY_CODEC_G726_32K 				= 82,
-	SKINNY_CODEC_G726_24K 				= 83,
-	SKINNY_CODEC_G726_16K 				= 84,
-	SKINNY_CODEC_G729_ANNEX_B 			= 85,
-	SKINNY_CODEC_G729_B_LOW 			= 86,
-	SKINNY_CODEC_ISAC 				= 89,
-	SKINNY_CODEC_H261 				= 100,
-	SKINNY_CODEC_H263 				= 101,
-	SKINNY_CODEC_H263P 				= 102,
-	SKINNY_CODEC_H264 				= 103,
-	SKINNY_CODEC_T120 				= 105,
-	SKINNY_CODEC_H224 				= 106,
-	SKINNY_CODEC_DTMF_OOB_RFC2833			= 257,		// DTMF 0x101
-	SKINNY_CODEC_DTMF_PASSTHROUGH			= 258,
-	SKINNY_CODEC_DTMF_DYNAMIC    			= 259,
-	SKINNY_CODEC_DTMF_OOB				= 260,
-	SKINNY_CODEC_DTMF_IB_RFC2833			= 261,
-	SKINNY_CODEC_DTMF_NOAUDIO  			= 299,
+	SKINNY_CODEC_NONE 				= 0x0000,
+	SKINNY_CODEC_NONSTANDARD 			= 0x0001,
+	SKINNY_CODEC_G711_ALAW_64K 			= 0x0002,
+	SKINNY_CODEC_G711_ALAW_56K 			= 0x0003,
+	SKINNY_CODEC_G711_ULAW_64K 			= 0x0004,
+	SKINNY_CODEC_G711_ULAW_56K 			= 0x0005,
+	SKINNY_CODEC_G722_64K 				= 0x0006,
+	SKINNY_CODEC_G722_56K 				= 0x0007,
+	SKINNY_CODEC_G722_48K 				= 0x0008,
+	SKINNY_CODEC_G723_1 				= 0x0009,
+	SKINNY_CODEC_G728 				= 0x000A,
+	SKINNY_CODEC_G729 				= 0x000B,
+	SKINNY_CODEC_G729_A 				= 0x000C,
+	SKINNY_CODEC_IS11172 				= 0x000D,
+	SKINNY_CODEC_IS13818 				= 0x000E,
+	SKINNY_CODEC_G729_B 				= 0x000F,
+	SKINNY_CODEC_G729_AB 				= 0x0010,
+	SKINNY_CODEC_GSM_FULLRATE 			= 0x0012,
+	SKINNY_CODEC_GSM_HALFRATE 			= 0x0013,
+	SKINNY_CODEC_GSM_ENH_FULLRATE 			= 0x0014,
+	SKINNY_CODEC_WIDEBAND_256K 			= 0x0019,
+	SKINNY_CODEC_DATA_64K 				= 0x0020,
+	SKINNY_CODEC_DATA_56K 				= 0x0021,
+	SKINNY_CODEC_G722_1_32K 			= 0x0028,
+	SKINNY_CODEC_G722_1_24K 			= 0x0029,
+	SKINNY_CODEC_AAC 				= 0x002A,
+	SKINNY_CODEC_MP4A_LATM_128 			= 0x002B,		// AAC-LD
+	SKINNY_CODEC_MP4A_LATM_64 			= 0x002C,
+	SKINNY_CODEC_MP4A_LATM_56 			= 0x002D,
+	SKINNY_CODEC_MP4A_LATM_48 			= 0x002E,
+	SKINNY_CODEC_MP4A_LATM_32 			= 0x002F,
+	SKINNY_CODEC_MP4A_LATM_24 			= 0x0030,
+	SKINNY_CODEC_MP4A_LATM_NA 			= 0x0031,
+	SKINNY_CODEC_GSM 				= 0x0050,
+	SKINNY_CODEC_ACTIVEVOICE 			= 0x0051,
+	SKINNY_CODEC_G726_32K 				= 0x0052,
+	SKINNY_CODEC_G726_24K 				= 0x0053,
+	SKINNY_CODEC_G726_16K 				= 0x0054,
+	SKINNY_CODEC_G729_ANNEX_B 			= 0x0055,
+	SKINNY_CODEC_G729_B_LOW 			= 0x0056,		// ILBC
+	SKINNY_CODEC_ISAC 				= 0x0059,
+	SKINNY_CODEC_OPUS				= 0x005a,		// New
+	SKINNY_CODEC_AMR				= 0x0061,
+	SKINNY_CODEC_AMR_WB				= 0x0062,
+	SKINNY_CODEC_H261 				= 0x0064,
+	SKINNY_CODEC_H263 				= 0x0065,
+	SKINNY_CODEC_H263P 				= 0x0066,
+	SKINNY_CODEC_H264 				= 0x0067,
+	SKINNY_CODEC_H264_SVC				= 0x0068,
+	SKINNY_CODEC_T120 				= 0x0069,
+	SKINNY_CODEC_H224 				= 0x006A,
+	SKINNY_CODEC_T38FAX				= 0x006B,
+	SKINNY_CODEC_TOTE				= 0x006C,
+	SKINNY_CODEC_H265				= 0x006D,
+	SKINNY_CODEC_H264_UC  				= 0x006E,
+	SKINNY_CODEC_XV150_MR_711U			= 0x006F,
+	SKINNY_CODEC_NSE_VBD_711U			= 0x0070,
+	SKINNY_CODEC_XV150_MR_729A			= 0x0071,
+	SKINNY_CODEC_NSE_VBD_729A			= 0x0072,
+	SKINNY_CODEC_H264_FEC				= 0x0073,
+	SKINNY_CODEC_CLEAR_CHAN				= 0x0078,
+	SKINNY_CODEC_UNIVERSAL_XCODER			= 0x00DE,
+	SKINNY_CODEC_DTMF_OOB_RFC2833			= 0x0101,		// OUTOFBAND / DTMF 0x101 / RFC2833_DYNAMIC_PAYLOAD
+	SKINNY_CODEC_DTMF_PASSTHROUGH			= 0x0102,
+	SKINNY_CODEC_DTMF_DYNAMIC    			= 0x0103,
+	SKINNY_CODEC_DTMF_OOB				= 0x0104,		// OUTOFBAND
+	SKINNY_CODEC_DTMF_IB_RFC2833			= 0x0105,		// INBAND
+	SKINNY_CODEC_CFB_TONES				= 0x0106,
+	SKINNY_CODEC_DTMF_NOAUDIO  			= 0x012B,
+	SKINNY_CODEC_V150_LC_MODEM_RELAY		= 0x012C,
+	SKINNY_CODEC_V150_LC_SPRT			= 0x012D,
+	SKINNY_CODEC_V150_LC_SSE			= 0x012E,
 	/* *INDENT-ON* */
 } skinny_codec_t;
 
@@ -210,7 +236,9 @@ struct skinny_codec {
 	unsigned int sample_rate;
 	unsigned int sound_quality;
 	unsigned int rtp_payload_type;
-} static const skinny_codecs[] = {
+};
+
+static const struct skinny_codec skinny_codecs[] = {
 	/* *INDENT-OFF* */
 	{SKINNY_CODEC_NONE,		SKINNY_CODEC_TYPE_UNKNOWN, 	"",		"",		"No codec", 				NULL,		0,	0,	0},	//payload unknown
 	{SKINNY_CODEC_NONSTANDARD,	SKINNY_CODEC_TYPE_UNKNOWN,	"",		"",		"Non-standard codec", 			NULL,		0,	0,	0},	//payload unknown
@@ -243,21 +271,48 @@ struct skinny_codec {
 	{SKINNY_CODEC_G729_AB,		SKINNY_CODEC_TYPE_AUDIO,	"g729",		"g729ab",	"G.729 Annex A + B", 			NULL,		8000,	1,	18},
 	{SKINNY_CODEC_G729_ANNEX_B,	SKINNY_CODEC_TYPE_AUDIO, 	"g729",		"g729/annex/b",	"G.729 Annex B", 			NULL,		8000,	1,	18},
 	{SKINNY_CODEC_ISAC,		SKINNY_CODEC_TYPE_AUDIO,	"isac",		"isac",		"iSAC", 				NULL,		8000,	1,	0},	//payload unknown
+	{SKINNY_CODEC_OPUS,		SKINNY_CODEC_TYPE_AUDIO,	"opus",		"opus",		"Opus", 				NULL,		16000,	1,	0},	//new opus payload support
 	{SKINNY_CODEC_H224,		SKINNY_CODEC_TYPE_AUDIO,	"h224",		"h224",		"H.224", 				NULL,		8000,	1,	31},
+	{SKINNY_CODEC_AAC,		SKINNY_CODEC_TYPE_AUDIO, 	"aac",		"aac",		"AAC", 					NULL,		8000,	1,	0},
+	{SKINNY_CODEC_MP4A_LATM_128,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_128","mp4a_latm_128","mp4a latm 128k",			NULL,		128000,	1,	0},
+	{SKINNY_CODEC_MP4A_LATM_64,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_64",	"mp4a_latm_64",	"mp4a latm 64k",			NULL,		64000,	1,	0},
+	{SKINNY_CODEC_MP4A_LATM_56,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_56",	"mp4a_latm_56",	"mp4a latm 56k",			NULL,		56000,	1,	0},
+	{SKINNY_CODEC_MP4A_LATM_48,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_48",	"mp4a_latm_48",	"mp4a latm 48k",			NULL,		48000,	1,	0},
+	{SKINNY_CODEC_MP4A_LATM_32,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_32",	"mp4a_latm_32",	"mp4a latm 32k",			NULL,		32000,	1,	0},
+	{SKINNY_CODEC_MP4A_LATM_24,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_24",	"mp4a_latm_24",	"mp4a latm 24k",			NULL,		24000,	1,	0},
+	{SKINNY_CODEC_MP4A_LATM_NA,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_na",	"mp4a_latm_na",	"mp4a latm nak",			NULL,		8000,	1,	0},
+	{SKINNY_CODEC_AMR,		SKINNY_CODEC_TYPE_AUDIO,	"amr",		"amr",		"amr",					NULL,		8000,	1,	0},
+	{SKINNY_CODEC_AMR_WB,		SKINNY_CODEC_TYPE_AUDIO,	"amr_wb",	"amr_wb",	"amr_wb",				NULL,		8000,	1,	0},
 	{SKINNY_CODEC_H261,		SKINNY_CODEC_TYPE_VIDEO,	"h261",		"h261",		"H.261", 				NULL,		90000,	1,	34},
 	{SKINNY_CODEC_H263,		SKINNY_CODEC_TYPE_VIDEO,	"h263",		"h263",		"H.263", 				"H263",		90000,	1,	34},
 	{SKINNY_CODEC_H263P,		SKINNY_CODEC_TYPE_VIDEO,	"h263",		"h263p",	"Vieo H.263+", 				NULL,		90000,	1,	98},
 	{SKINNY_CODEC_H264,		SKINNY_CODEC_TYPE_VIDEO,	"h264",		"h264",		"H.264", 				"H264",		90000,	1,	99},
+	{SKINNY_CODEC_H264_SVC,		SKINNY_CODEC_TYPE_VIDEO,	"h264_svc",	"h264_svc",	"h264_svc",				NULL,		90000,	1,	0},
+	{SKINNY_CODEC_H265,		SKINNY_CODEC_TYPE_VIDEO,	"h265",		"h265",		"h265",					NULL,		90000,	1,	0},
+	{SKINNY_CODEC_H264_FEC,		SKINNY_CODEC_TYPE_VIDEO,	"h264f",	"h264f",	"h264_fec", 				NULL,		90000,	1,	0},	//unknown codec type
+	{SKINNY_CODEC_H264_UC,		SKINNY_CODEC_TYPE_VIDEO,	"h264uc",	"h264uc",	"h264_uc",				NULL,		90000,	1,	0},
 	{SKINNY_CODEC_T120,		SKINNY_CODEC_TYPE_TEXT, 	"t120",		"t120",		"T.140", 				NULL,		1000,	1,	0},	//payload unknown
-	{SKINNY_CODEC_DTMF_OOB_RFC2833,	SKINNY_CODEC_TYPE_MIXED,	"rfc2833",	"rfc2833",	"DTMF RFC 2833 Dyn Pay Load",		NULL,		1000,	1,	0},
-	{SKINNY_CODEC_DTMF_PASSTHROUGH,	SKINNY_CODEC_TYPE_MIXED,	"passthrough",	"passthrough",	"DTMF Passthrough",			NULL,		1000,	1,	0},
-	{SKINNY_CODEC_DTMF_DYNAMIC,	SKINNY_CODEC_TYPE_MIXED,	"dynamic",	"dynamic",	"DTMF Dynamic",				NULL,		1000,	1,	0},
-	{SKINNY_CODEC_DTMF_OOB,		SKINNY_CODEC_TYPE_MIXED,	"oob",		"oob",		"DTMF Out of Band",			NULL,		1000,	1,	0},
-	{SKINNY_CODEC_DTMF_IB_RFC2833,	SKINNY_CODEC_TYPE_MIXED,	"rfc2833(ib)",	"rfc2833(ib)",	"DTMF RFC2833 In band",			NULL,		1000,	1,	0},
-	{SKINNY_CODEC_DTMF_NOAUDIO,	SKINNY_CODEC_TYPE_MIXED,	"noaudio",	"noaudio",	"DTMF NoAudio",				NULL,		1000,	1,	0},
 	{SKINNY_CODEC_DATA_64K,		SKINNY_CODEC_TYPE_DATA, 	"data",		"data/64k",	"Data 64k", 				NULL,		1000,	1,	0},	//payload unknown
 	{SKINNY_CODEC_DATA_56K,		SKINNY_CODEC_TYPE_DATA, 	"data",		"data/56k",	"Data 56k", 				NULL,		1000,	1,	0},	//payload unknown
-	{SKINNY_CODEC_AAC,		SKINNY_CODEC_TYPE_DATA, 	"aac",		"aac",		"AAC", 					NULL,		1000,	1,	0},	//payload unknown
+	{SKINNY_CODEC_H224,		SKINNY_CODEC_TYPE_DATA,		"h224",		"h224",		"h224, far-end camera control",		NULL,		1000,	1,	0},
+	{SKINNY_CODEC_T38FAX,		SKINNY_CODEC_TYPE_DATA,		"t38fax",	"t38fax",	"T38 fax",				NULL,		1000,	1,	0},
+	{SKINNY_CODEC_TOTE,		SKINNY_CODEC_TYPE_DATA,		"tote",		"tote",		"tote",					NULL,		1000,	1,	0},	// unknown codec type
+	{SKINNY_CODEC_XV150_MR_711U,	SKINNY_CODEC_TYPE_MIXED,	"xv711u",	"xv711u",	"xv150_mr_711u", 			NULL,		0,	1,	0},	//used for modem traffic over vg224
+	{SKINNY_CODEC_NSE_VBD_711U,	SKINNY_CODEC_TYPE_MIXED,	"v711u",	"v711u",	"nse vbd 711u", 			NULL,		0,	1,	0},	//unknown codec type
+	{SKINNY_CODEC_XV150_MR_729A,	SKINNY_CODEC_TYPE_MIXED,	"xv729a",	"xv729a",	"xv150_mr_711u", 			NULL,		0,	1,	0},	//used for modem traffic over vg224
+	{SKINNY_CODEC_NSE_VBD_729A,	SKINNY_CODEC_TYPE_MIXED,	"v729a",	"v729a",	"nse_vbd_729a", 			NULL,		0,	1,	0},	//unknown codec type
+	{SKINNY_CODEC_CLEAR_CHAN,	SKINNY_CODEC_TYPE_MIXED,	"clear_chan",	"clear_chan",	"clear_chan",				NULL,		0,	1,	0},
+	{SKINNY_CODEC_UNIVERSAL_XCODER,	SKINNY_CODEC_TYPE_MIXED,	"univ_xcoder",	"univ_xcoder", 	"univ_xcoder",				NULL,		0,	1,	0},
+	{SKINNY_CODEC_DTMF_OOB_RFC2833,	SKINNY_CODEC_TYPE_MIXED,	"rfc2833",	"rfc2833",	"DTMF RFC 2833 Dyn Pay Load",		NULL,		0,	1,	0},
+	{SKINNY_CODEC_DTMF_PASSTHROUGH,	SKINNY_CODEC_TYPE_MIXED,	"passthrough",	"passthrough",	"DTMF Passthrough",			NULL,		0,	1,	0},
+	{SKINNY_CODEC_DTMF_DYNAMIC,	SKINNY_CODEC_TYPE_MIXED,	"dynamic",	"dynamic",	"DTMF Dynamic",				NULL,		0,	1,	0},
+	{SKINNY_CODEC_DTMF_OOB,		SKINNY_CODEC_TYPE_MIXED,	"oob",		"oob",		"DTMF Out of Band",			NULL,		0,	1,	0},
+	{SKINNY_CODEC_DTMF_IB_RFC2833,	SKINNY_CODEC_TYPE_MIXED,	"rfc2833(ib)",	"rfc2833(ib)",	"DTMF RFC2833 In band",			NULL,		0,	1,	0},
+	{SKINNY_CODEC_CFB_TONES,	SKINNY_CODEC_TYPE_MIXED,	"cfb",		"cfb",		"CFB Tones",				NULL,		0,	1,	0},
+	{SKINNY_CODEC_DTMF_NOAUDIO,	SKINNY_CODEC_TYPE_MIXED,	"noaudio",	"noaudio",	"DTMF NoAudio",				NULL,		0,	1,	0},
+	{SKINNY_CODEC_V150_LC_MODEM_RELAY,SKINNY_CODEC_TYPE_MIXED,	"v150_modem",	"v150_modem", 	"v150_lc_modem_relay",			NULL,		0,	1,	0},
+	{SKINNY_CODEC_V150_LC_SPRT,	SKINNY_CODEC_TYPE_MIXED,	"v150_sprt",	"v150_sprt",	"v150_lc_sprt",				NULL,		0,	1,	0},
+	{SKINNY_CODEC_V150_LC_SSE,	SKINNY_CODEC_TYPE_MIXED,	"v150_sse",	"v150_sse",	"v150_lc_sse",				NULL,		0,	1,	0},
 	/* *INDENT-ON* */
 };
 
@@ -472,6 +527,7 @@ typedef enum {
 	StartMediaTransmissionAck 			= 0x0154,
 	StartMultiMediaTransmissionAck 			= 0x0155,
 	CallHistoryInfoMessage 				= 0x0156,
+	LocationInfoMessage				= 0x0157,	/* new (2015-09-08), send by 7925/7926 using firmware version 1.4.7.3 */
 
 	MwiResponseMessage 				= 0x0158,	/*new (2013-12-9)*/
 	ExtensionDeviceCaps 				= 0x0159,
@@ -485,6 +541,8 @@ typedef enum {
 	/* SPCP server -> client */
 	SPCPRegisterTokenAck 				= 0x8100,
 	SPCPRegisterTokenReject 			= 0x8101,
+
+	UnknownVGMessage				= 0xFF00,	/* Unknown Message (VG224). Reported by Ahmet Zaim */
 /*
 	SPCPPlatformInfoGetReq				= 0xFF02,
 	SPCPPlatformInfoGetRsp				= 0xFF03,
@@ -518,7 +576,7 @@ typedef struct {
 } EncryptionKey;
 
 typedef struct {
-	skinny_encryptiontype_t algorithm;
+	skinny_encryptionmethod_t algorithm;
 	uint16_t keylen;
 	uint16_t saltlen;
 	EncryptionKey keyData;
@@ -1610,6 +1668,7 @@ typedef union {
 		char ipv6Address[16];
 		uint32_t lel_ipV6AddressScope;
 		char loadInfo[32];
+		char configVersionStamp[48];									/* New since 11.5 */
 
 		/* 7910:
 		   02 00 00 00 // protocolVer (1st bit)
@@ -1707,7 +1766,7 @@ typedef union {
 	 *       00000010 - 00 00 00 00                                       - ....
 	 */
 	struct {
-		uint32_t lel_lineInstance;
+		uint32_t lel_buttonIndex;									/*!< Button Index instead of lineInstance */
 		uint32_t lel_callReference;
 	} OnHookMessage;											/*!< On Hook Message Structure */
 
@@ -2094,7 +2153,7 @@ typedef union {
 				uint32_t lel_millisecondPacketSize;						/*!< Packet Size per MilliSecond */
 				uint32_t lel_payloadType;							/*!< Media_PayloadType */
 				uint32_t lel_precedenceValue;							/*!< Precedence Value */
-				uint32_t lel_ssValue;								/*!< Simple String Value */
+				uint32_t lel_ssValue;								/*!< Silence Suppression Value */
 				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
 				uint32_t lel_g723BitRate;							/*!< only used with G.723 payload */
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
@@ -2131,7 +2190,7 @@ typedef union {
 				uint32_t lel_millisecondPacketSize;						/*!< Packet Size per Millisecond */
 				uint32_t lel_payloadType;							/*!< Media_PayloadType */
 				uint32_t lel_precedenceValue;							/*!< Precedence Value */
-				uint32_t lel_ssValue;								/*!< Simple String Value */
+				uint32_t lel_ssValue;								/*!< Silence Suppression Value */
 				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
 				uint32_t lel_g723BitRate;							/*!< G.723 BitRate (only used with G.723 payload) */
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
@@ -2155,7 +2214,7 @@ typedef union {
 				uint32_t lel_millisecondPacketSize;						/*!< Packet Size per Millisecond */
 				uint32_t lel_payloadType;							/*!< Media_PayloadType */
 				uint32_t lel_precedenceValue;							/*!< Precedence Value */
-				uint32_t lel_ssValue;								/*!< Simple String Value */
+				uint32_t lel_ssValue;								/*!< Silence Suppression Value */
 				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
 				uint32_t lel_g723BitRate;							/*!< G.723 BitRate (only used with G.723 payload) */
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
@@ -2205,8 +2264,8 @@ typedef union {
 		char originalCalledParty[StationMaxDirnumSize];							/*!< Original Calling Party ID */
 		char lastRedirectingPartyName[StationMaxNameSize];						/*!< Original Called Party Name */
 		char lastRedirectingParty[StationMaxDirnumSize];						/*!< Original Called Party ID */
-		uint32_t originalCdpnRedirectReason;								/*!< Original Called Party Redirect Reason */
-		uint32_t lastRedirectingReason;									/*!< Last Redirecting Reason */
+		uint32_t lel_originalCdpnRedirectReason;								/*!< Original Called Party Redirect Reason */
+		uint32_t lel_lastRedirectingReason;									/*!< Last Redirecting Reason */
 		char cgpnVoiceMailbox[StationMaxDirnumSize];							/*!< Calling Party Voicemail Box */
 		char cdpnVoiceMailbox[StationMaxDirnumSize];							/*!< Called Party Voicemail Box */
 		char originalCdpnVoiceMailbox[StationMaxDirnumSize];						/*!< Original Called Party VoiceMail Box */
@@ -2535,7 +2594,7 @@ typedef union {
 				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
 				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
 				uint32_t lel_payloadType;							/*!< Media_Payload Type */
-				uint32_t lel_vadValue;								/*!< VAD Value */
+				uint32_t lel_vadValue;								/*!< Voice Activity Detection Value */
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
@@ -2567,7 +2626,7 @@ typedef union {
 				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
 				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
 				uint32_t lel_payloadType;							/*!< Media_Payload Type */
-				uint32_t lel_vadValue;								/*!< VAD Value */
+				uint32_t lel_vadValue;								/*!< Voice Activity Detection Value */
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
@@ -2590,7 +2649,7 @@ typedef union {
 				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
 				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
 				uint32_t lel_payloadType;							/*!< Media_Payload Type */
-				uint32_t lel_vadValue;								/*!< VAD Value */
+				uint32_t lel_vadValue;								/*!< Voice Activity Detection Value */
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
@@ -2931,6 +2990,26 @@ typedef union {
 		uint32_t lel_unknown;
 	} CallHistoryInfoMessage;
 
+	/*
+	 * Fixed Size XML Message
+	 * 00000000 - 68 09 00 00 00 00 00 00  57 01 00 00 3C 49 6E 74  - h.......W...<Int
+	 * 00000010 - 65 72 66 61 63 65 31 3E  3C 77 69 66 69 3E 3C 42  - erface1><wifi><B
+	 * 00000020 - 53 53 49 44 3E 45 38 3A  45 44 3A 46 33 3A 31 30  - SSID>E8:ED:F3:10
+	 * 00000030 - 3A 32 39 3A 46 44 3C 2F  42 53 53 49 44 3E 3C 53  - :29:FD</BSSID><S
+	 * 00000040 - 53 49 44 3E 77 70 61 5F  70 68 79 3C 2F 53 53 49  - SID>wpa_phy</SSI
+	 * 00000050 - 44 3E 3C 41 50 4E 61 6D  65 3E 4D 6F 73 5F 41 50  - D><APName>Mos_AP
+	 * 00000060 - 33 5F 37 63 36 39 2E 66  36 3C 2F 41 50 4E 61 6D  - 3_7c69.f6</APNam
+	 * 00000070 - 65 3E 3C 2F 77 69 66 69  3E 3C 4F 66 66 50 72 65  - e></wifi><OffPre
+	 * 00000080 - 6D 3E 3C 2F 4F 66 66 50  72 65 6D 3E 3C 2F 49 6E  - m></OffPrem></In
+	 * 00000090 - 74 65 72 66 61 63 65 31  3E 00 00 00 00 00 00 00  - terface1>.......
+	 * 000000A0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+	 * ...
+	 * 00000960 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+	 */
+	struct {
+		char xmldata[2404];
+	} LocationInfoMessage;
+
 	// empty / unresearched structs
 	// 00000000 - 08 00 00 00 00 00 00 00  2D 00 00 00 00 00 00 00  // 7960 -- 6 buttons
 	// 00000000 - 08 00 00 00 16 00 00 00  2D 00 00 00 02 00 00 00  // 7962 -- 6 buttons
@@ -3144,6 +3223,8 @@ typedef union {
 		uint32_t lel_status;
 	} RecordingStatusMessage;										/*!< Recording Status Message Structure */
 
+	struct {
+	} UnknownVGMessage;
 } sccp_data_t;													/*!< SKINNY Data Structure */
 
 /*!
@@ -3162,6 +3243,9 @@ typedef struct {
 	sccp_header_t header;											/*!< Message Header */
 	sccp_data_t data;											/*!< Message [SCCP Data] */
 } sccp_msg_t;
+
+#define messagePtr sccp_msg_t * const
+#define constMessagePtr const sccp_msg_t * const
 
 /* So in theory, a message should never be bigger than this.
  * If it is, we abort the connection */
@@ -3328,6 +3412,7 @@ static const struct messagetype sccp_messagetypes[] = {
 	[StartMediaTransmissionAck] = { 		"Start Media Transmission Acknowledge", 	offsize(sccp_data_t, StartMediaTransmissionAck)},
 	[StartMultiMediaTransmissionAck] = { 		"Start Media Transmission Acknowledge", 	offsize(sccp_data_t, StartMultiMediaTransmissionAck)},
 	[CallHistoryInfoMessage] = { 			"Call History Info", 				offsize(sccp_data_t, CallHistoryInfoMessage)},
+	[LocationInfoMessage] = {			"Location/Wifi Information",			offsize(sccp_data_t, LocationInfoMessage)},
 	[ExtensionDeviceCaps] = { 			"Extension Device Capabilities Message", 	offsize(sccp_data_t, ExtensionDeviceCaps)},
 	[XMLAlarmMessage] = { 				"XML-AlarmMessage", 				offsize(sccp_data_t, XMLAlarmMessage)},
 	[MediaPathCapabilityMessage] = {		"MediaPath Capability Message",			offsize(sccp_data_t, MediaPathCapabilityMessage)},
@@ -3349,7 +3434,6 @@ static const struct messagetype sccp_messagetypes[] = {
 	[MwiResponseMessage] = {			"Mwi Response Message",				offsize(sccp_data_t, MwiResponseMessage)},
 	[CallCountRespMessage] = {			"CallCount Response Message",			offsize(sccp_data_t, CallCountRespMessage)},
 	[RecordingStatusMessage] = {			"Recording Status Message",			offsize(sccp_data_t, RecordingStatusMessage)},
-
 	/* *INDENT-ON* */
 };
 
@@ -3358,11 +3442,9 @@ static const struct messagetype spcp_messagetypes[] = {
 	[SPCPRegisterTokenRequest - SPCP_MESSAGE_OFFSET	] = {"SPCP Register Token Request", 		offsize(sccp_data_t, SPCPRegisterTokenRequest)},
 	[SPCPRegisterTokenAck - SPCP_MESSAGE_OFFSET	] = {"SPCP RegisterMessageACK", 		offsize(sccp_data_t, SPCPRegisterTokenAck)},
 	[SPCPRegisterTokenReject - SPCP_MESSAGE_OFFSET	] = {"SPCP RegisterMessageReject", 		offsize(sccp_data_t, SPCPRegisterTokenReject)},
+	[UnknownVGMessage - SPCP_MESSAGE_OFFSET		] = {"Unknown Message (VG224)",			offsize(sccp_data_t, UnknownVGMessage)},
 	/* *INDENT-ON* */
 };
-
-#include "sccp_softkeys.h"
-#include "sccp_labels.h"
 
 static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_REDIAL,
@@ -3404,12 +3486,10 @@ static const uint8_t softkeysmap[] = {
  * \brief SKINNY Soft Key Modes Structure
  */
 typedef struct {
-	uint8_t id;												/*!< Soft Key ID */
 	uint8_t *ptr;												/*!< Point to next Mode */
+	uint8_t id;												/*!< Soft Key ID */
 	uint8_t count;												/*!< Soft Key Count */
 } softkey_modes;												/*!< SKINNY Soft Key Modes Structure */
-
-static const softkey_modes SoftKeyModes[StationMaxSoftKeySetDefinition];
 
 /*!
  * \brief SCCP Device Protocol Callback Structure
@@ -3417,39 +3497,38 @@ static const softkey_modes SoftKeyModes[StationMaxSoftKeySetDefinition];
  * Connect Specific CallBack-Functions to Particular SCCP Protocol Versions
  */
 typedef struct {
-	const char *name;											/*! protocol name ( SCCP | SPCP ) */
+	//const char *name;											/*! protocol name ( SCCP | SPCP ) */
+	const uint16_t type;											/*! (SCCP_PROTOCOL | SPCP_PROTOCOL) */
 	const uint8_t version;											/*! the protocol version number */
 	const uint16_t registrationFinishedMessageId;								/*! use this message id to determine that the device is fully registered */
 
 	/* protocol callbacks */
 	/* send messages */
-	void (*const sendCallInfo) (const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance);
-	void (*const sendDialedNumber) (const sccp_device_t * device, const sccp_channel_t * channel);
-	void (*const sendRegisterAck) (const sccp_device_t * device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat);
-	void (*const displayPrompt) (const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message);
-	void (*const displayNotify) (const sccp_device_t * device, uint8_t timeout, const char *message);
-	void (*const displayPriNotify) (const sccp_device_t * device, uint8_t priority, uint8_t timeout, const char *message);
-	void (*const sendCallforwardMessage) (const sccp_device_t * device, const sccp_linedevices_t * linedevice);
-	void (*const sendUserToDeviceDataVersionMessage) (const sccp_device_t * device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority);
-	void (*const sendFastPictureUpdate) (const sccp_device_t * device, const sccp_channel_t * channel);
-	void (*const sendOpenReceiveChannel) (const sccp_device_t * device, const sccp_channel_t * channel);
-	void (*const sendOpenMultiMediaChannel) (const sccp_device_t * device, const sccp_channel_t * channel, uint32_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
-	void (*const sendStartMultiMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel, int payloadType, int bitRate);
-	void (*const sendStartMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel);
-	void (*const sendConnectionStatisticsReq) (const sccp_device_t * device, const sccp_channel_t * channel, uint8_t clear);
+	void (*const sendCallInfo) (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const uint8_t callInstance, constDevicePtr device);
+	void (*const sendDialedNumber) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const char dialedNumber[SCCP_MAX_EXTENSION]);
+	void (*const sendRegisterAck) (constDevicePtr device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat);
+	void (*const displayPrompt) (constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message);
+	void (*const displayNotify) (constDevicePtr device, uint8_t timeout, const char *message);
+	void (*const displayPriNotify) (constDevicePtr device, uint8_t priority, uint8_t timeout, const char *message);
+	void (*const sendCallforwardMessage) (constDevicePtr device, const sccp_linedevices_t * linedevice);
+	void (*const sendUserToDeviceDataVersionMessage) (constDevicePtr device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority);
+	void (*const sendFastPictureUpdate) (constDevicePtr device, constChannelPtr channel);
+	void (*const sendOpenReceiveChannel) (constDevicePtr device, constChannelPtr channel);
+	void (*const sendOpenMultiMediaChannel) (constDevicePtr device, constChannelPtr channel, uint32_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
+	void (*const sendStartMultiMediaTransmission) (constDevicePtr device, constChannelPtr channel, int payloadType, int bitRate);
+	void (*const sendStartMediaTransmission) (constDevicePtr device, constChannelPtr channel);
+	void (*const sendConnectionStatisticsReq) (constDevicePtr device, constChannelPtr channel, uint8_t clear);
 
 	/* parse received messages */
-	void (*const parseOpenReceiveChannelAck) (const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
-	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
-	void (*const parseStartMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
-	void (*const parseStartMultiMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
-	void (*const parseEnblocCall) (const sccp_msg_t * msg, char *calledParty, uint32_t * lineInstance);
+	void (*const parseOpenReceiveChannelAck) (constMessagePtr msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
+	void (*const parseOpenMultiMediaReceiveChannelAck) (constMessagePtr msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
+	void (*const parseStartMediaTransmissionAck) (constMessagePtr msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
+	void (*const parseStartMultiMediaTransmissionAck) (constMessagePtr msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
+	void (*const parseEnblocCall) (constMessagePtr msg, char *calledParty, uint32_t * lineInstance);
 } sccp_deviceProtocol_t;											/*!< SCCP Device Protocol Callback Structure */
 
 boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version);
 uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);
-const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(const sccp_device_t * device, int type);
+const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(constDevicePtr device, int type);
 const char *skinny_keymode2longstr(skinny_keymode_t keymode);
-#endif														/* __SCCP_PROTOCOL_H */
-
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

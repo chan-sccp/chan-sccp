@@ -9,9 +9,7 @@
  * $Date$
  * $Revision$  
  */
-
-#ifndef SCCP_AST_MAJOR_H_
-#define SCCP_AST_MAJOR_H_
+#pragma once
 
 #include <config.h>
 #ifdef CS_SCCP_CONFERENCE
@@ -70,6 +68,8 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #undef pbx_channel_varshead
 #undef pbx_channel_redirecting_effective_from
 #undef pbx_channel_redirecting_effective_to
+#undef pbx_channel_connected_id
+#undef pbx_channel_connected_source
 #undef pbx_channel_monitor
 
 #define pbx_channel_uniqueid(_a) ast_channel_uniqueid(_a)
@@ -103,6 +103,8 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #define pbx_channel_varshead(_a) ast_channel_varshead(_a)
 #define pbx_channel_redirecting_effective_from(_a) ast_channel_redirecting_effective_from(_a)
 #define pbx_channel_redirecting_effective_to(_a) ast_channel_redirecting_effective_to(_a)
+#define pbx_channel_connected_id(_a) ast_channel_connected(_a)->id
+#define pbx_channel_connected_source(_a) ast_channel_connected(_a)->source
 #define pbx_channel_monitor(_a) ast_channel_monitor(_a)
 
 int pbx_manager_register(const char *action, int authority, int (*func) (struct mansession * s, const struct message * m), const char *synopsis, const char *description);
@@ -299,5 +301,4 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 		}												\
 	};
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-#endif														/* SCCP_AST108_H_ */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

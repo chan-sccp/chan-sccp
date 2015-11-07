@@ -30,7 +30,7 @@
 #include "sccp_features.h"
 #include "sccp_line.h"
 #include "sccp_indicate.h"
-#include "sccp_rtp.h"
+//#include "sccp_rtp.h"
 #include "sccp_socket.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
@@ -44,6 +44,7 @@ AST_MUTEX_DEFINE_STATIC(callCountLock);
  */
 struct sccp_private_channel_data {
 	sccp_device_t *device;
+	sccp_callinfo_t *callInfo;
 	boolean_t microphone;											/*!< Flag to mute the microphone when calling a baby phone */
 };
 
@@ -86,20 +87,16 @@ static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t 
 
 	c->privateData->microphone = enabled;
 
-	switch (enabled) {
-		case TRUE:
-			c->isMicrophoneEnabled = sccp_always_true;
-			if ((c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
-				sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
-			}
-
-			break;
-		case FALSE:
-			c->isMicrophoneEnabled = sccp_always_false;
-			if ((c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
-				sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
-			}
-			break;
+	if (enabled) {
+		c->isMicrophoneEnabled = sccp_always_true;
+		if ((c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
+			sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
+		}
+	} else {
+		c->isMicrophoneEnabled = sccp_always_false;
+		if ((c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
+			sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
+		}
 	}
 #else														/* show how WITHREF / GETWITHREF would/could work */
 	sccp_device_t *d = NULL;
@@ -108,20 +105,16 @@ static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t 
 		GETWITHREF(d, channel->privateData->device) {
 			channel->privateData->microphone = enabled;
 			pbx_log(LOG_NOTICE, "Within retain section\n");
-			switch (enabled) {
-				case TRUE:
-					channel->isMicrophoneEnabled = sccp_always_true;
-					if ((channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
-						sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
-					}
-
-					break;
-				case FALSE:
-					channel->isMicrophoneEnabled = sccp_always_false;
-					if ((channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
-						sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
-					}
-					break;
+			if (enabled) {
+				channel->isMicrophoneEnabled = sccp_always_true;
+				if ((channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
+					sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
+				}
+			} else {
+				channel->isMicrophoneEnabled = sccp_always_false;
+				if ((channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
+					sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
+				}
 			}
 		}
 	}
@@ -131,7 +124,7 @@ static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t 
 /*!
  * \brief Allocate SCCP Channel on Device
  * \param l SCCP Line
- * \param device SCCP Device
+ * \param device SCCP Device (optional)
  * \return a *retained* SCCP Channel
  *
  * \callgraph
@@ -140,10 +133,10 @@ static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t 
  * \lock
  *  - callCountLock
  */
-sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
+channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 {
 	/* this just allocate a sccp channel (not the asterisk channel, for that look at sccp_pbx_channel_allocate) */
-	sccp_channel_t *channel;
+	sccp_channel_t *channel = NULL;
 	char designator[CHANNEL_DESIGNATOR_SIZE];
 	struct sccp_private_channel_data *private_data;
 	AUTO_RELEASE sccp_line_t *line = sccp_line_retain(l);
@@ -167,6 +160,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 		callCount = 1;
 	}
 	snprintf(designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/%s-%08X", l->name, callid);
+	uint8_t callInstance = line->statistic.numberOfActiveChannels + line->statistic.numberOfHeldChannels + 1;
 	sccp_mutex_unlock(&callCountLock);
 
 	channel = (sccp_channel_t *) sccp_refcount_object_alloc(sizeof(sccp_channel_t), SCCP_REF_CHANNEL, designator, __sccp_channel_destroy);
@@ -175,37 +169,43 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 		pbx_log(LOG_ERROR, "%s: No memory to allocate channel on line %s\n", l->id, l->name);
 		return NULL;
 	}
-	memset(channel, 0, sizeof(sccp_channel_t));
 	//ast_mutex_init(&channel->lock);
 	sccp_copy_string(channel->designator, designator, sizeof(channel->designator));
 
-	private_data = sccp_malloc(sizeof(struct sccp_private_channel_data));
+	private_data = sccp_calloc(sizeof(struct sccp_private_channel_data), 1);
 	if (!private_data) {
 		/* error allocating memory */
 		pbx_log(LOG_ERROR, "%s: No memory to allocate channel private data on line %s\n", l->id, l->name);
-		channel = sccp_channel_release(channel);
+		channel = sccp_channel_release(channel);				/* explicit release when private_data could not be created */
 		return NULL;
 	}
-	memset(private_data, 0, sizeof(struct sccp_private_channel_data));
 	channel->privateData = private_data;
 	channel->privateData->microphone = TRUE;
 	channel->privateData->device = NULL;
+	channel->privateData->callInfo = sccp_callinfo_ctor(callInstance);
+	if (!channel->privateData->callInfo) {
+		/* error allocating memory */
+		sccp_free(channel->privateData);
+		channel = sccp_channel_release(channel);				/* explicit release when private_data could not be created */
+		return NULL;
+	}
 
 	channel->line = sccp_line_retain(line);
+	//sccp_callinfo_setter(channel->privateData->callInfo, 
+	//	SCCP_CALLINFO_PRESENTATION, 
+	//	CALLERID_PRESENTATION_ALLOWED, 
+	//	SCCP_CALLINFO_KEY_SENTINEL);
 
 	/* this is for dialing scheduler */
 	channel->scheduler.digittimeout = -1;
 	channel->enbloc.digittimeout = GLOB(digittimeout);
 
-	PBX(set_owner) (channel, NULL);
+	iPbx.set_owner(channel, NULL);
 	/* default ringermode SKINNY_RINGTYPE_OUTSIDE. Change it with SCCPRingerMode app */
 	channel->ringermode = SKINNY_RINGTYPE_OUTSIDE;
 	/* inbound for now. It will be changed later on outgoing calls */
 	channel->calltype = SKINNY_CALLTYPE_INBOUND;
 	channel->answered_elsewhere = FALSE;
-
-	/* by default we allow callerid presentation */
-	channel->callInfo.presentation = CALLERID_PRESENCE_ALLOWED;
 
 	channel->callid = callid;
 	channel->passthrupartyid = callid ^ 0xFFFFFFFF;
@@ -213,9 +213,6 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->peerIsSCCP = 0;
 	channel->maxBitRate = 15000;
 	channel->videomode = SCCP_VIDEO_MODE_AUTO;
-
-	sccp_channel_setDevice(channel, device);
-	sccp_line_addChannel(l, channel);
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: New channel number: %d on line %s\n", l->id, channel->callid, l->name);
 #if DEBUG
@@ -229,6 +226,9 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	} else {
 		channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
 	}
+
+	sccp_line_addChannel(l, channel);
+	channel->setDevice(channel, device);
 
 	channel->isMicrophoneEnabled = sccp_always_true;
 	channel->setMicrophone = sccp_channel_setMicrophoneState;
@@ -259,7 +259,7 @@ sccp_device_t *__sccp_channel_getDevice_retained(const sccp_channel_t * channel,
 sccp_device_t *sccp_channel_getDevice_retained(const sccp_channel_t * channel)
 #endif
 {
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	if (channel->privateData && channel->privateData->device) {
 #if DEBUG
 		channel->privateData->device = sccp_refcount_retain((sccp_device_t *) channel->privateData->device, filename, lineno, func);
@@ -325,7 +325,7 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
 	if (channel->rtp.audio.writeState != SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.writeFormat != SKINNY_CODEC_NONE) {
 		//pbx_log(LOG_NOTICE, "we already have a write format, dont change codec\n");
 		channel->rtp.audio.readFormat = channel->rtp.audio.writeFormat;
-		PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
+		iPbx.rtp_setReadFormat(channel, channel->rtp.audio.readFormat);
 		return;
 	}
 	/* check if remote set a preferred format that is compatible */
@@ -342,10 +342,10 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
 
 			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "can not calculate readFormat, fall back to %s (%d)\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, &channel->rtp.audio.readFormat, 1), channel->rtp.audio.readFormat);
 		}
-		//PBX(set_nativeAudioFormats)(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
+		//iPbx.set_nativeAudioFormats(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
 		skinny_codec_t codecs[] = { channel->rtp.audio.readFormat };
-		PBX(set_nativeAudioFormats) (channel, codecs, 1);
-		PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
+		iPbx.set_nativeAudioFormats(channel, codecs, 1);
+		iPbx.rtp_setReadFormat(channel, channel->rtp.audio.readFormat);
 
 	}
 	char s1[512], s2[512], s3[512], s4[512];
@@ -366,7 +366,7 @@ static void sccp_channel_recalculateWriteformat(sccp_channel_t * channel)
 	//pbx_log(LOG_NOTICE, "writeState %d\n", channel->rtp.audio.writeState);
 	if (channel->rtp.audio.readState != SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.readFormat != SKINNY_CODEC_NONE) {
 		channel->rtp.audio.writeFormat = channel->rtp.audio.readFormat;
-		PBX(rtp_setWriteFormat) (channel, channel->rtp.audio.writeFormat);
+		iPbx.rtp_setWriteFormat(channel, channel->rtp.audio.writeFormat);
 		return;
 	}
 	/* check if remote set a preferred format that is compatible */
@@ -384,10 +384,10 @@ static void sccp_channel_recalculateWriteformat(sccp_channel_t * channel)
 
 			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "can not calculate writeFormat, fall back to %s (%d)\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, &channel->rtp.audio.writeFormat, 1), channel->rtp.audio.writeFormat);
 		}
-		//PBX(set_nativeAudioFormats)(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
+		//iPbx.set_nativeAudioFormats(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
 		skinny_codec_t codecs[] = { channel->rtp.audio.readFormat };
-		PBX(set_nativeAudioFormats) (channel, codecs, 1);
-		PBX(rtp_setWriteFormat) (channel, channel->rtp.audio.writeFormat);
+		iPbx.set_nativeAudioFormats(channel, codecs, 1);
+		iPbx.rtp_setWriteFormat(channel, channel->rtp.audio.writeFormat);
 	} else {
 		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: audio.writeState already active %d\n", channel->currentDeviceId, channel->rtp.audio.writeState);
 	}
@@ -416,6 +416,20 @@ void sccp_channel_updateChannelDesignator(sccp_channel_t * c)
 	}
 }
 
+void sccp_channel_updateMusicClass(sccp_channel_t * c, const sccp_line_t *l)
+{
+	if (c) {
+		if (c->musicclass) {
+			sccp_free(c->musicclass);
+		}
+		if (!sccp_strlen_zero(l->musicclass)) {
+			c->musicclass = strdup(l->musicclass);
+		} else if (!sccp_strlen_zero(GLOB(musicclass))) {
+			c->musicclass = strdup(GLOB(musicclass));
+		}
+	}
+}
+
 /*!
  * \brief Update Channel Capability
  * \param channel a *retained* SCCP Channel
@@ -424,6 +438,14 @@ void sccp_channel_updateChannelCapability(sccp_channel_t * channel)
 {
 	sccp_channel_recalculateReadformat(channel);
 	sccp_channel_recalculateWriteformat(channel);
+}
+
+/*!
+ * \brief Get const pointer to channels private callinfo
+ */
+sccp_callinfo_t * const sccp_channel_getCallInfo(const sccp_channel_t *const channel)
+{
+	return (sccp_callinfo_t * const) channel->privateData->callInfo;			/* discard const because callinfo has a private implementation anyway */
 }
 
 /*!
@@ -441,15 +463,14 @@ void sccp_channel_updateChannelCapability(sccp_channel_t * channel)
  */
 void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel_t * channel)
 {
-	uint8_t instance = 0;
+	uint8_t lineInstance = 0;
 
 	if (device && channel && channel->callid) {
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send callInfo of callid %d\n", DEV_ID_LOG(device), channel->callid);
-		if (device->protocol && device->protocol->sendCallInfo) {
-			instance = sccp_device_find_index_for_line(device, channel->line->name);
-			device->protocol->sendCallInfo(device, channel, instance);
-		}
+		lineInstance = sccp_device_find_index_for_line(device, channel->line->name);
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send callInfo of callid %d with lineInstance: %d\n", DEV_ID_LOG(device), channel->callid, lineInstance);
+		sccp_callinfo_send(channel->privateData->callInfo, channel->callid, channel->calltype, lineInstance, device, FALSE);
 	}
+	
 }
 
 /*!
@@ -461,7 +482,7 @@ void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel
  */
 void sccp_channel_send_callinfo2(sccp_channel_t * channel)
 {
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 	AUTO_RELEASE sccp_line_t *line = sccp_line_retain(channel->line);
@@ -469,7 +490,7 @@ void sccp_channel_send_callinfo2(sccp_channel_t * channel)
 	if (d) {
 		sccp_channel_send_callinfo(d, channel);
 	} else if (line) {
-		sccp_linedevices_t *linedevice;
+		sccp_linedevices_t *linedevice = NULL;
 
 		SCCP_LIST_LOCK(&line->devices);
 		SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
@@ -489,7 +510,7 @@ void sccp_channel_send_callinfo2(sccp_channel_t * channel)
  * \callgraph
  * \callergraph
  */
-void sccp_channel_setChannelstate(sccp_channel_t * channel, sccp_channelstate_t state)
+void sccp_channel_setChannelstate(channelPtr channel, sccp_channelstate_t state)
 {
 	channel->previousChannelState = channel->state;
 	channel->state = state;
@@ -504,13 +525,7 @@ void sccp_channel_setChannelstate(sccp_channel_t * channel, sccp_channelstate_t 
  */
 void sccp_channel_display_callInfo(sccp_channel_t * channel)
 {
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x callInfo:\n", channel->line->name, channel->callid);
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - calledParty: %s <%s>, valid: %s\n", (channel->callInfo.calledPartyName) ? channel->callInfo.calledPartyName : "", (channel->callInfo.calledPartyNumber) ? channel->callInfo.calledPartyNumber : "", (channel->callInfo.calledParty_valid) ? "TRUE" : "FALSE");
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - callingParty: %s <%s>, valid: %s\n", (channel->callInfo.callingPartyName) ? channel->callInfo.callingPartyName : "", (channel->callInfo.callingPartyNumber) ? channel->callInfo.callingPartyNumber : "", (channel->callInfo.callingParty_valid) ? "TRUE" : "FALSE");
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - originalCalledParty: %s <%s>, valid: %s\n", (channel->callInfo.originalCalledPartyName) ? channel->callInfo.originalCalledPartyName : "", (channel->callInfo.originalCalledPartyNumber) ? channel->callInfo.originalCalledPartyNumber : "", (channel->callInfo.originalCalledParty_valid) ? "TRUE" : "FALSE");
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - originalCallingParty: %s <%s>, valid: %s\n", (channel->callInfo.originalCallingPartyName) ? channel->callInfo.originalCallingPartyName : "", (channel->callInfo.originalCallingPartyNumber) ? channel->callInfo.originalCallingPartyNumber : "", (channel->callInfo.originalCallingParty_valid) ? "TRUE" : "FALSE");
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - lastRedirectingParty: %s <%s>, valid: %s\n", (channel->callInfo.lastRedirectingPartyName) ? channel->callInfo.lastRedirectingPartyName : "", (channel->callInfo.lastRedirectingPartyNumber) ? channel->callInfo.lastRedirectingPartyNumber : "", (channel->callInfo.lastRedirectingParty_valid) ? "TRUE" : "FALSE");
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 " - originalCalledPartyRedirectReason: %d, lastRedirectingReason: %d, CallInfo Presentation: %s\n\n", channel->callInfo.originalCdpnRedirectReason, channel->callInfo.lastRedirectingReason, channel->callInfo.presentation ? "ALLOWED" : "FORBIDDEN");
+	sccp_callinfo_print2log(channel->privateData->callInfo, channel->designator);
 }
 
 /*!
@@ -522,31 +537,13 @@ void sccp_channel_display_callInfo(sccp_channel_t * channel)
  * \callgraph
  * \callergraph
  */
-void sccp_channel_set_callingparty(sccp_channel_t * channel, char *name, char *number)
+void sccp_channel_set_callingparty(constChannelPtr channel, const char *name, const char *number)
 {
 	if (!channel) {
 		return;
 	}
-
-	/* in case we want to clear out the current name or number use "" instead of NULL */
-	if (name) {
-		if (!sccp_strlen_zero(name)) {
-			sccp_copy_string(channel->callInfo.callingPartyName, name, sizeof(channel->callInfo.callingPartyName));
-		} else {
-			channel->callInfo.callingPartyName[0] = '\0';
-		}
-	}
-
-	if (number) {
-		if (!sccp_strlen_zero(number)) {
-			sccp_copy_string(channel->callInfo.callingPartyNumber, number, sizeof(channel->callInfo.callingPartyNumber));
-			channel->callInfo.callingParty_valid = 1;
-		} else {
-			channel->callInfo.callingPartyNumber[0] = '\0';
-			channel->callInfo.callingParty_valid = 0;
-		}
-	}
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_callingparty) Set callingParty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyName, channel->callInfo.calledPartyNumber, channel->callid);
+	sccp_callinfo_setCallingParty(channel->privateData->callInfo, name, number, NULL);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_callingparty) Set callingParty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, name, number, channel->callid);
 }
 
 /*!
@@ -565,27 +562,9 @@ boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *
 	if (!channel) {
 		return FALSE;
 	}
-	/* in case we want to clear out the current name or number use "" instead of NULL */
-	if (name && strncmp(name, channel->callInfo.originalCallingPartyName, StationMaxNameSize - 1)) {
-		if (!sccp_strlen_zero(name)) {
-			sccp_copy_string(channel->callInfo.originalCallingPartyName, name, sizeof(channel->callInfo.originalCallingPartyName));
-		} else {
-			channel->callInfo.originalCallingPartyName[0] = '\0';
-		}
-		changed = TRUE;
-	}
 
-	if (number && strncmp(number, channel->callInfo.originalCallingPartyNumber, StationMaxNameSize - 1)) {
-		if (!sccp_strlen_zero(number)) {
-			sccp_copy_string(channel->callInfo.originalCallingPartyNumber, number, sizeof(channel->callInfo.originalCallingPartyNumber));
-			channel->callInfo.originalCallingParty_valid = 1;
-		} else {
-			channel->callInfo.originalCallingPartyNumber[0] = '\0';
-			channel->callInfo.originalCallingParty_valid = 0;
-		}
-		changed = TRUE;
-	}
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_originalCallingparty) Set originalCallingparty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.originalCallingPartyName, channel->callInfo.originalCallingPartyNumber, channel->callid);
+	changed = sccp_callinfo_setOrigCallingParty(channel->privateData->callInfo, name, number);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_originalCallingparty) Set originalCallingparty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, name, number, channel->callid);
 	return changed;
 }
 
@@ -598,32 +577,12 @@ boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *
  * \callgraph
  * \callergraph
  */
-void sccp_channel_set_calledparty(sccp_channel_t * channel, char *name, char *number)
+void sccp_channel_set_calledparty(sccp_channel_t * channel, const char *name, const char *number)
 {
 	if (!channel || sccp_strequals(number, "s") /* skip update for immediate earlyrtp + s-extension */ ) {
 		return;
 	}
-
-	/* in case we want to clear out the current name or number use "" instead of NULL */
-	if (name) {
-		if (!sccp_strlen_zero(name)) {
-			sccp_copy_string(channel->callInfo.calledPartyName, name, sizeof(channel->callInfo.calledPartyName));
-		} else {
-			channel->callInfo.calledPartyName[0] = '\0';
-		}
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Name '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyName, channel->callid);
-	}
-
-	if (number) {
-		if (!sccp_strlen_zero(number)) {
-			sccp_copy_string(channel->callInfo.calledPartyNumber, number, sizeof(channel->callInfo.calledPartyNumber));
-			channel->callInfo.calledParty_valid = 1;
-		} else {
-			channel->callInfo.calledPartyNumber[0] = '\0';
-			channel->callInfo.calledParty_valid = 0;
-		}
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Number '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyNumber, channel->callid);
-	}
+	sccp_callinfo_setCalledParty(channel->privateData->callInfo, name, number, NULL);
 }
 
 /*!
@@ -642,27 +601,8 @@ boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * channel, char *n
 	if (!channel) {
 		return FALSE;
 	}
-	/* in case we want to clear out the current name or number use "" instead of NULL */
-	if (name && strncmp(name, channel->callInfo.originalCalledPartyName, StationMaxNameSize - 1)) {
-		if (!sccp_strlen_zero(name)) {
-			sccp_copy_string(channel->callInfo.originalCalledPartyName, name, sizeof(channel->callInfo.originalCalledPartyName));
-		} else {
-			channel->callInfo.originalCalledPartyName[0] = '\0';
-		}
-		changed = TRUE;
-	}
-
-	if (number && strncmp(number, channel->callInfo.originalCalledPartyNumber, StationMaxNameSize - 1)) {
-		if (!sccp_strlen_zero(number)) {
-			sccp_copy_string(channel->callInfo.originalCalledPartyNumber, number, sizeof(channel->callInfo.originalCalledPartyNumber));
-			channel->callInfo.originalCalledParty_valid = 1;
-		} else {
-			channel->callInfo.originalCalledPartyNumber[0] = '\0';
-			channel->callInfo.originalCalledParty_valid = 0;
-		}
-		changed = TRUE;
-	}
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_originalCalledparty) Set originalCalledparty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.originalCalledPartyName, channel->callInfo.originalCalledPartyNumber, channel->callid);
+	changed = sccp_callinfo_setOrigCalledParty(channel->privateData->callInfo, name, number, NULL, 4);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_originalCalledparty) Set originalCalledparty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, name, number, channel->callid);
 	return changed;
 
 }
@@ -673,7 +613,7 @@ boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * channel, char *n
  */
 void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
 {
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
@@ -690,17 +630,17 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
  * We will get a OpenReceiveChannelAck message that includes all information.
  *
  */
-void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
+void sccp_channel_openReceiveChannel(constChannelPtr channel)
 {
 	uint16_t instance;
 
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
 		return;
 	}
-	ast_assert(channel->line != NULL);									/* should not be possible, but received a backtrace / report */
+	pbx_assert(channel->line != NULL);									/* should not be possible, but received a backtrace / report */
 
 	/* Mute mic feature: If previously set, mute the microphone prior receiving media is already open. */
 	/* This must be done in this exact order to work on popular phones like the 7975. It must also be done in other places for other phones. */
@@ -711,7 +651,7 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 	/* calculating format at this point doesn work, because asterisk needs a nativeformat to be set before dial */
 	//sccp_channel_recalculateWriteformat(channel);
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: channel %s payloadType %d\n", DEV_ID_LOG(d), PBX(getChannelName) (channel), channel->rtp.audio.writeFormat);
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: channel %s payloadType %d\n", DEV_ID_LOG(d), iPbx.getChannelName(channel), channel->rtp.audio.writeFormat);
 
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", d->id, channel->callid, codec2str(channel->rtp.audio.writeFormat), channel->line->echocancel ? "ON" : "OFF");
@@ -726,24 +666,19 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Started RTP on channel %s-%08X\n", DEV_ID_LOG(d), channel->line->name, channel->callid);
 	}
 
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
 	if (channel->owner) {
-		PBX(set_nativeAudioFormats) (channel, &channel->rtp.audio.writeFormat, 1);
-		PBX(rtp_setWriteFormat) (channel, channel->rtp.audio.writeFormat);
+		iPbx.set_nativeAudioFormats(channel, &audio->writeFormat, 1);
+		iPbx.rtp_setWriteFormat(channel, audio->writeFormat);
 	}
 
-	sccp_log((DEBUGCAT_RTP + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d], payload %d, echocancel: %d, passthrupartyid: %u, callid: %u\n", DEV_ID_LOG(d), codec2str(channel->rtp.audio.writeFormat), channel->rtp.audio.writeFormat, channel->rtp.audio.writeFormat, channel->line->echocancel, channel->passthrupartyid, channel->callid);
-	channel->rtp.audio.writeState = SCCP_RTP_STATUS_PROGRESS;
+	sccp_log((DEBUGCAT_RTP + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d], payload %d, echocancel: %s, passthrupartyid: %u, callid: %u\n", DEV_ID_LOG(d), codec2str(channel->rtp.audio.writeFormat), channel->rtp.audio.writeFormat, channel->rtp.audio.writeFormat, channel->line ? (channel->line->echocancel ? "YES" : "NO") : "(nil)>", channel->passthrupartyid, channel->callid);
+	audio->writeState = SCCP_RTP_STATUS_PROGRESS;
 
 	if (d->nat >= SCCP_NAT_ON) {										/* device is natted */
-		uint16_t port = sccp_rtp_getServerPort(&channel->rtp.audio);					/* get rtp server port */
-
-		if (!sccp_socket_getExternalAddr(&channel->rtp.audio.phone_remote)) {				/* Use externip (PBX behind NAT Firewall */
-			memcpy(&channel->rtp.audio.phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));	/* Fallback: use ip-address of incoming interface */
-		}
-		sccp_socket_ipv4_mapped(&channel->rtp.audio.phone_remote, &channel->rtp.audio.phone_remote);
-		sccp_socket_setPort(&channel->rtp.audio.phone_remote, port);
+		sccp_rtp_updateNatRemotePhone(channel, audio);
 	}
-
+		
 	d->protocol->sendOpenReceiveChannel(d, channel);
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(d) && channel->videomode == SCCP_VIDEO_MODE_AUTO) {
@@ -765,11 +700,11 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
  * \note sccp_channel_stopMediaTransmission is explicit call within this function!
  * 
  */
-void sccp_channel_closeReceiveChannel(sccp_channel_t * channel, boolean_t KeepPortOpen)
+void sccp_channel_closeReceiveChannel(constChannelPtr channel, boolean_t KeepPortOpen)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
@@ -779,7 +714,8 @@ void sccp_channel_closeReceiveChannel(sccp_channel_t * channel, boolean_t KeepPo
 	sccp_channel_stopMediaTransmission(channel, KeepPortOpen);
 	//sccp_rtp_stop(channel);
 
-	if (channel->rtp.audio.writeState) {
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
+	if (audio->writeState) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Close receivechannel on channel %d (KeepPortOpen: %s)\n", DEV_ID_LOG(d), channel->callid, KeepPortOpen ? "YES" : "NO");
 		REQ(msg, CloseReceiveChannel);
 		msg->data.CloseReceiveChannel.lel_conferenceId = htolel(channel->callid);
@@ -787,11 +723,12 @@ void sccp_channel_closeReceiveChannel(sccp_channel_t * channel, boolean_t KeepPo
 		msg->data.CloseReceiveChannel.lel_callReference = htolel(channel->callid);
 		msg->data.CloseReceiveChannel.lel_portHandlingFlag = htolel(KeepPortOpen);
 		sccp_dev_send(d, msg);
-		channel->rtp.audio.writeState = SCCP_RTP_STATUS_INACTIVE;
+		audio->writeState = SCCP_RTP_STATUS_INACTIVE;
 	}
 }
 
-void sccp_channel_updateReceiveChannel(sccp_channel_t * channel)
+#if UNUSEDCODE // 2015-11-01
+void sccp_channel_updateReceiveChannel(constChannelPtr channel)
 {
 	/* \todo possible to skip the closing of the receive channel (needs testing) */
 	/* \todo if this works without closing, this would make changing codecs on the fly possible */
@@ -804,41 +741,46 @@ void sccp_channel_updateReceiveChannel(sccp_channel_t * channel)
 		sccp_channel_openReceiveChannel(channel);
 	}
 }
-
+#endif
 /*!
  * \brief Open Multi Media Channel (Video) on Channel
  * \param channel SCCP Channel
  */
-void sccp_channel_openMultiMediaReceiveChannel(sccp_channel_t * channel)
+void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 {
 	uint32_t skinnyFormat;
 	int payloadType;
 	uint8_t lineInstance;
 	int bitRate = 1500;
 
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
 		return;
 	}
 
-	if ((channel->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE)) {
+	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
+	if ((video->writeState & SCCP_RTP_STATUS_ACTIVE)) {
 		return;
 	}
+	
+	//if (d->nat >= SCCP_NAT_ON) {
+	//	sccp_rtp_updateNatRemotePhone(channel, video);
+	//}
 
-	channel->rtp.video.writeState |= SCCP_RTP_STATUS_PROGRESS;
-	skinnyFormat = channel->rtp.video.writeFormat;
+	video->writeState |= SCCP_RTP_STATUS_PROGRESS;
+	skinnyFormat = video->writeFormat;
 
 	if (skinnyFormat == 0) {
-		pbx_log(LOG_NOTICE, "SCCP: Unable to find skinny format for %d\n", channel->rtp.video.writeFormat);
+		pbx_log(LOG_NOTICE, "SCCP: Unable to find skinny format for %d\n", video->writeFormat);
 		return;
 	}
 
-	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, channel->rtp.video.writeFormat);
+	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, video->writeFormat);
 	lineInstance = sccp_device_find_index_for_line(d, channel->line->name);
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d] skinnyFormat %s[%d], payload %d\n", DEV_ID_LOG(d), codec2str(channel->rtp.video.writeFormat), channel->rtp.video.writeFormat, codec2str(skinnyFormat), skinnyFormat, payloadType);
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d] skinnyFormat %s[%d], payload %d\n", DEV_ID_LOG(d), codec2str(video->writeFormat), video->writeFormat, codec2str(skinnyFormat), skinnyFormat, payloadType);
 	d->protocol->sendOpenMultiMediaChannel(d, channel, skinnyFormat, payloadType, lineInstance, bitRate);
 }
 
@@ -847,11 +789,11 @@ void sccp_channel_openMultiMediaReceiveChannel(sccp_channel_t * channel)
  * \param channel SCCP Channel
  * \param KeepPortOpen Boolean
  */
-void sccp_channel_closeMultiMediaReceiveChannel(sccp_channel_t * channel, boolean_t KeepPortOpen)
+void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean_t KeepPortOpen)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
@@ -860,7 +802,8 @@ void sccp_channel_closeMultiMediaReceiveChannel(sccp_channel_t * channel, boolea
 	// stop transmitting before closing receivechannel (\note maybe we should not be doing this here)
 	sccp_channel_stopMediaTransmission(channel, KeepPortOpen);
 
-	if (channel->rtp.video.writeState) {
+	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
+	if (video->writeState) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Close multimedia receive channel on channel %d (KeepPortOpen: %s)\n", DEV_ID_LOG(d), channel->callid, KeepPortOpen ? "YES" : "NO");
 		REQ(msg, CloseMultiMediaReceiveChannel);
 		msg->data.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(channel->callid);
@@ -868,11 +811,12 @@ void sccp_channel_closeMultiMediaReceiveChannel(sccp_channel_t * channel, boolea
 		msg->data.CloseMultiMediaReceiveChannel.lel_callReference = htolel(channel->callid);
 		msg->data.CloseMultiMediaReceiveChannel.lel_portHandlingFlag = htolel(KeepPortOpen);
 		sccp_dev_send(d, msg);
-		channel->rtp.video.writeState = SCCP_RTP_STATUS_INACTIVE;
+		video->writeState = SCCP_RTP_STATUS_INACTIVE;
 	}
 }
 
-void sccp_channel_updateMultiMediaReceiveChannel(sccp_channel_t * channel)
+#if UNUSEDCODE // 2015-11-01
+void sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel)
 {
 	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.readState) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateMultiMediaReceiveChannel) Stop multimedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
@@ -883,7 +827,7 @@ void sccp_channel_updateMultiMediaReceiveChannel(sccp_channel_t * channel)
 		sccp_channel_openMultiMediaReceiveChannel(channel);
 	}
 }
-
+#endif
 /*!
  * \brief Tell a Device to Start Media Transmission.
  *
@@ -892,9 +836,9 @@ void sccp_channel_updateMultiMediaReceiveChannel(sccp_channel_t * channel)
  * \param channel SCCP Channel
  * \note rtp should be started before, otherwise we do not start transmission
  */
-void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
+void sccp_channel_startMediaTransmission(constChannelPtr channel)
 {
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
@@ -912,43 +856,22 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
 	if (!channel->isMicrophoneEnabled()) {
 		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 	}
-	uint16_t usFamily = (d->session->ourip.ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(&d->session->ourip)) ? AF_INET6 : AF_INET;
-	uint16_t remoteFamily = (channel->rtp.audio.phone_remote.ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(&channel->rtp.audio.phone_remote)) ? AF_INET6 : AF_INET;
 
-	/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
 	if (d->nat >= SCCP_NAT_ON) {
-		if ((usFamily == AF_INET) != remoteFamily) {							/* device needs correction for ipv6 address in remote */
-			uint16_t port = sccp_rtp_getServerPort(&channel->rtp.audio);				/* get rtp server port */
-
-			memcpy(&channel->rtp.audio.phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));	/* Not sure if this should not be the externip in case of nat */
-			sccp_socket_ipv4_mapped(&channel->rtp.audio.phone_remote, &channel->rtp.audio.phone_remote);	/*!< we need this to convert mapped IPv4 to real IPv4 address */
-			sccp_socket_setPort(&channel->rtp.audio.phone_remote, port);
-
-		} else if ((usFamily == AF_INET6) != remoteFamily) {						/* the device can do IPv6 but should send it to IPv4 address (directrtp possible) */
-			struct sockaddr_storage sas;
-
-			memcpy(&sas, &channel->rtp.audio.phone_remote, sizeof(struct sockaddr_storage));
-			sccp_socket_ipv4_mapped(&sas, &sas);
-		}
+		sccp_rtp_updateNatRemotePhone(channel, audio);
 	}
+
 	//sccp_channel_recalculateReadformat(channel);
 	if (channel->owner) {
-		PBX(set_nativeAudioFormats) (channel, &channel->rtp.audio.readFormat, 1);
-		PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
+		iPbx.set_nativeAudioFormats(channel, &audio->readFormat, 1);
+		iPbx.rtp_setReadFormat(channel, audio->readFormat);
 	}
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
 
-	channel->rtp.audio.readState |= SCCP_RTP_STATUS_PROGRESS;
+	audio->readState |= SCCP_RTP_STATUS_PROGRESS;
 	d->protocol->sendStartMediaTransmission(d, channel);
 
-	char buf1[NI_MAXHOST + NI_MAXSERV];
-	char buf2[NI_MAXHOST + NI_MAXSERV];
-
-	sccp_copy_string(buf1, sccp_socket_stringify(&channel->rtp.audio.phone), sizeof(buf1));
-	sccp_copy_string(buf2, sccp_socket_stringify(&channel->rtp.audio.phone_remote), sizeof(buf2));
-
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(d), buf1, buf2, sccp_nat2str(d->nat));
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(audio->readFormat), audio->readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
 }
 
 /*!
@@ -959,18 +882,19 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
  * \param KeepPortOpen Boolean
  * 
  */
-void sccp_channel_stopMediaTransmission(sccp_channel_t * channel, boolean_t KeepPortOpen)
+void sccp_channel_stopMediaTransmission(constChannelPtr channel, boolean_t KeepPortOpen)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
 		return;
 	}
 	// stopping phone rtp
-	if (channel->rtp.audio.readState) {
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
+	if (audio->readState) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop mediatransmission on channel %d (KeepPortOpen: %s)\n", DEV_ID_LOG(d), channel->callid, KeepPortOpen ? "YES" : "NO");
 		REQ(msg, StopMediaTransmission);
 		msg->data.StopMediaTransmission.lel_conferenceId = htolel(channel->callid);
@@ -978,11 +902,11 @@ void sccp_channel_stopMediaTransmission(sccp_channel_t * channel, boolean_t Keep
 		msg->data.StopMediaTransmission.lel_callReference = htolel(channel->callid);
 		msg->data.StopMediaTransmission.lel_portHandlingFlag = htolel(KeepPortOpen);
 		sccp_dev_send(d, msg);
-		channel->rtp.audio.readState = SCCP_RTP_STATUS_INACTIVE;
+		audio->readState = SCCP_RTP_STATUS_INACTIVE;
 	}
 }
 
-void sccp_channel_updateMediaTransmission(sccp_channel_t * channel)
+void sccp_channel_updateMediaTransmission(constChannelPtr channel)
 {
 	/* \note apparently startmediatransmission allows us to change the ip-information midflight without stopping mediatransmission beforehand */
 	/* \note this would indicate that it should also be possible to change codecs midflight ! */
@@ -1002,98 +926,68 @@ void sccp_channel_updateMediaTransmission(sccp_channel_t * channel)
  * \brief Start Multi Media Transmission (Video) on Channel
  * \param channel SCCP Channel
  */
-void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
+void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 {
 	int payloadType;
+	int bitRate = channel->maxBitRate;
 
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
 		return;
 	}
-	// int packetSize;
-	channel->rtp.video.readFormat = SKINNY_CODEC_H264;
-	PBX(set_nativeVideoFormats) (channel, SKINNY_CODEC_H264);
-	//// packetSize = 3840;
-	// packetSize = 1920;
-
-	int bitRate = channel->maxBitRate;
-
-	if (!channel->rtp.video.rtp) {
+	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
+	if (!video->rtp) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can't start vrtp media transmission, maybe channel is down %s-%08X\n", channel->currentDeviceId, channel->line->name, channel->callid);
 		return;
 	}
-
-	channel->preferences.video[0] = SKINNY_CODEC_H264;
-	//channel->preferences.video[0] = SKINNY_CODEC_H263;
-
-	channel->rtp.video.readFormat = sccp_utils_findBestCodec(channel->preferences.video, ARRAY_LEN(channel->preferences.video), channel->capabilities.video, ARRAY_LEN(channel->capabilities.video), channel->remoteCapabilities.video, ARRAY_LEN(channel->remoteCapabilities.video));
-
-	if (channel->rtp.video.readFormat == 0) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: fall back to h264\n", DEV_ID_LOG(d));
-		channel->rtp.video.readFormat = SKINNY_CODEC_H264;
+	if (d->nat >= SCCP_NAT_ON) {										/* device is natted */
+		sccp_rtp_updateNatRemotePhone(channel, video);
 	}
 
-	/* lookup payloadType */
-	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, channel->rtp.video.readFormat);
-	//! \todo handle payload error
-	//! \todo use rtp codec map
+	// recalculate format;
+	{
+		// int packetSize;
+		video->readFormat = SKINNY_CODEC_H264;
+		iPbx.set_nativeVideoFormats(channel, SKINNY_CODEC_H264);
+		//// packetSize = 3840;
+		// packetSize = 1920;
 
-	//check if bind address is an global bind address
-	/*
-	if (!channel->rtp.video.phone_remote.sin_addr.s_addr) {
-		channel->rtp.video.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
-	}
-	*/
+		//channel->preferences.video[0] = SKINNY_CODEC_H264;
+		//channel->preferences.video[1] = SKINNY_CODEC_H263;
+		skinny_codec_t *preferences = (skinny_codec_t *) &(channel->preferences.video);
+		preferences[0] = SKINNY_CODEC_H264;
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
+		video->readFormat = sccp_utils_findBestCodec(channel->preferences.video, ARRAY_LEN(channel->preferences.video), channel->capabilities.video, ARRAY_LEN(channel->capabilities.video), channel->remoteCapabilities.video, ARRAY_LEN(channel->remoteCapabilities.video));
 
-	uint16_t usFamily = (d->session->ourip.ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(&d->session->ourip)) ? AF_INET6 : AF_INET;
-	uint16_t remoteFamily = (channel->rtp.audio.phone_remote.ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(&channel->rtp.audio.phone_remote)) ? AF_INET6 : AF_INET;
-
-	/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
-	if (AF_INET6 == remoteFamily && usFamily == AF_INET6) {
-		/* we do not support video over IPv6 -> fallback to indirect media and use ourIPv4 as destination */
-		uint16_t port = sccp_rtp_getServerPort(&channel->rtp.video);					/* get rtp server port */
-
-		memcpy(&channel->rtp.video.phone_remote, &d->session->ourIPv4, sizeof(struct sockaddr_storage));	/* use ourip as destination (rtp server) */
-		sccp_socket_ipv4_mapped(&channel->rtp.video.phone_remote, &channel->rtp.video.phone_remote);	/*!< we need this to convert mapped IPv4 to real IPv4 address */
-		sccp_socket_setPort(&channel->rtp.video.phone_remote, port);
-	} else if (d->nat >= SCCP_NAT_ON || ((usFamily == AF_INET) != remoteFamily)) {				/* natted or needs correction for ipv6 address in remote */
-		uint16_t port = sccp_rtp_getServerPort(&channel->rtp.video);					/* get rtp server port */
-
-		memcpy(&channel->rtp.video.phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));	/* use ourip as destination (rtp server) */
-		sccp_socket_ipv4_mapped(&channel->rtp.video.phone_remote, &channel->rtp.video.phone_remote);	/*!< we need this to convert mapped IPv4 to real IPv4 address */
-		sccp_socket_setPort(&channel->rtp.video.phone_remote, port);
-
-	} else if ((usFamily == AF_INET6) != remoteFamily) {							/* the device can do IPv6 but should send it to IPv4 address (directrtp posible) */
-		struct sockaddr_storage sas;
-
-		memcpy(&sas, &channel->rtp.video.phone_remote, sizeof(struct sockaddr_storage));
-		sccp_socket_ipv4_mapped(&sas, &sas);
-
-	} else if (!d->directrtp) {
-		/* I think we do not need this part, because phone_remote will be set on sccp_rtp_createAudioServer -MC */
-		/*
-		sccp_rtp_getUs(&channel->rtp.audio, &channel->rtp.audio.phone_remote);
-
-		if(sccp_socket_is_any_addr(&channel->rtp.audio.phone_remote) && channel->rtp.audio.phone_remote.ss_family == AF_INET6){
-			struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)&channel->rtp.audio.phone_remote;
-			memcpy(&in6->sin6_addr, &((struct sockaddr_in6 *)&d->session->ourip)->sin6_addr, 16);
+		if (video->readFormat == 0) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: fall back to h264\n", DEV_ID_LOG(d));
+			video->readFormat = SKINNY_CODEC_H264;
 		}
-		channel->rtp.audio.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
-		memcpy(&channel->rtp.audio.phone_remote, &d->session->ourip, sizeof(channel->rtp.audio.phone_remote));
+
+		/* lookup payloadType */
+		payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, video->readFormat);
+		//! \todo handle payload error
+		//! \todo use rtp codec map
+
+		//check if bind address is an global bind address
+		/*
+		if (!video->phone_remote.sin_addr.s_addr) {
+			video->phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
+		}
 		*/
+
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
+
 	}
 
-	sccp_socket_ipv4_mapped(&channel->rtp.video.phone_remote, &channel->rtp.video.phone_remote);		/*!< we need this to convert mapped IPv4 to real IPv4 address */
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s with codec: %s(%d), payloadType %d, tos %d\n", d->id, sccp_socket_stringify(&channel->rtp.video.phone_remote), codec2str(channel->rtp.video.readFormat), channel->rtp.video.readFormat, payloadType, d->audio_tos);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s with codec: %s(%d), payloadType %d, tos %d\n", d->id, sccp_socket_stringify(&video->phone_remote), codec2str(video->readFormat), video->readFormat, payloadType, d->audio_tos);
 
-	channel->rtp.video.readState = SCCP_RTP_STATUS_PROGRESS;
+	video->readState = SCCP_RTP_STATUS_PROGRESS;
 	d->protocol->sendStartMultiMediaTransmission(d, channel, payloadType, bitRate);
-	PBX(queue_control) (channel->owner, AST_CONTROL_VIDUPDATE);
+	iPbx.queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
 }
 
 /*!
@@ -1101,18 +995,19 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
  * \param channel SCCP Channel
  * \param KeepPortOpen Boolean
  */
-void sccp_channel_stopMultiMediaTransmission(sccp_channel_t * channel, boolean_t KeepPortOpen)
+void sccp_channel_stopMultiMediaTransmission(constChannelPtr channel, boolean_t KeepPortOpen)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 	if (!d) {
 		return;
 	}
 	// stopping phone vrtp
-	if (channel->rtp.video.readState) {
+	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
+	if (video->readState) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop multimediatransmission on channel %d (KeepPortOpen: %s)\n", DEV_ID_LOG(d), channel->callid, KeepPortOpen ? "YES" : "NO");
 		REQ(msg, StopMultiMediaTransmission);
 		msg->data.StopMultiMediaTransmission.lel_conferenceId = htolel(channel->callid);
@@ -1120,11 +1015,12 @@ void sccp_channel_stopMultiMediaTransmission(sccp_channel_t * channel, boolean_t
 		msg->data.StopMultiMediaTransmission.lel_callReference = htolel(channel->callid);
 		msg->data.StopMultiMediaTransmission.lel_portHandlingFlag = htolel(KeepPortOpen);
 		sccp_dev_send(d, msg);
-		channel->rtp.video.readState = SCCP_RTP_STATUS_INACTIVE;
+		video->readState = SCCP_RTP_STATUS_INACTIVE;
 	}
 }
 
-void sccp_channel_updateMultiMediaTransmission(sccp_channel_t * channel)
+#if UNUSEDCODE // 2015-11-01
+void sccp_channel_updateMultiMediaTransmission(constChannelPtr channel)
 {
 	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.readState) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (updateMultiMediaTransmission) Stop multiemedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
@@ -1135,13 +1031,14 @@ void sccp_channel_updateMultiMediaTransmission(sccp_channel_t * channel)
 		sccp_channel_startMultiMediaTransmission(channel);
 	}
 }
+#endif
 
-void sccp_channel_closeAllMediaTransmitAndReceive(sccp_device_t * d, sccp_channel_t * channel)
+void sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannelPtr channel)
 {
-	ast_assert(channel != NULL);
+	pbx_assert(channel != NULL);
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_closeAllMediaTransmitAndReceive) Stop All Media Reception and Transmission on channel %d\n", channel->currentDeviceId, channel->callid);
-	if (d && SKINNY_DEVICE_RS_OK == d->registrationState) {
+	if (d && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d)) {
 		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.readState) {
 			sccp_channel_stopMediaTransmission(channel, FALSE);
 		}
@@ -1163,7 +1060,7 @@ void sccp_channel_closeAllMediaTransmitAndReceive(sccp_device_t * d, sccp_channe
 /*
  * \brief Check if we are in the middle of a transfer and if transfer on hangup is wanted, function is only called by sccp_handle_onhook for now 
  */
-boolean_t sccp_channel_transfer_on_hangup(sccp_channel_t * channel)
+boolean_t sccp_channel_transfer_on_hangup(constChannelPtr channel)
 {
 	boolean_t result = FALSE;
 
@@ -1196,7 +1093,7 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t * orig_channel)
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&orig_channel->line->channels, c, list) {
 		if (c->parentChannel == orig_channel) {
 			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_end_forwarding_channel) Send Hangup to CallForwarding Channel\n", c->designator);
-			c->parentChannel = sccp_channel_release(c->parentChannel);				/* release refcounted parentChannel */
+			c->parentChannel = sccp_channel_release(c->parentChannel);				/* explicit release refcounted parentChannel */
 			/* make sure a ZOMBIE channel is hungup using requestHangup if it is still available after the masquerade */
 			c->hangupRequest = sccp_wrapper_asterisk_requestHangup;
 			/* need to use scheduled hangup, so that we clear any outstanding locks (during masquerade) before calling hangup */
@@ -1212,18 +1109,20 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t * orig_channel)
  */
 static int _sccp_channel_sched_endcall(const void *data)
 {
-	sccp_channel_t *channel = (sccp_channel_t *) data;
-
-	if (!channel) {
+	AUTO_RELEASE sccp_channel_t *channel = NULL;
+	if (!data) {
 		return -1;
 	}
-	channel->scheduler.hangup = -1;
-	sccp_log(DEBUGCAT_CHANNEL) ("%s: Scheduled Hangup\n", channel->designator);
-	if (!channel->scheduler.deny) {										/* we cancelled all scheduled tasks, so we should not be hanging up this channel anymore */
-		sccp_channel_stop_and_deny_scheduled_tasks(channel);
-		sccp_channel_endcall(channel);
+
+	if ((channel = sccp_channel_retain(data))) {
+		channel->scheduler.hangup = -1;
+		sccp_log(DEBUGCAT_CHANNEL) ("%s: Scheduled Hangup\n", channel->designator);
+		if (ATOMIC_FETCH(&channel->scheduler.deny, &c->scheduler.lock) == 0) {					/* we cancelled all scheduled tasks, so we should not be hanging up this channel anymore */
+			sccp_channel_stop_and_deny_scheduled_tasks(channel);
+			sccp_channel_endcall(channel);
+		}
+		sccp_channel_release(channel);										/* explicit release of the ref taken when creating the scheduled hangup */
 	}
-	sccp_channel_release(channel);										/* releasing the ref taken when creating the scheduled hangup */
 	return 0;
 }
 
@@ -1236,7 +1135,7 @@ gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel)
 
 	if (c) {
 		if (c->scheduler.digittimeout > 0) {
-			PBX(sched_del_ref) (&c->scheduler.digittimeout, c);
+			iPbx.sched_del_ref(&c->scheduler.digittimeout, c);
 		}
 	}
 }
@@ -1251,7 +1150,7 @@ gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t * channel, uint time
 
 	if (c) {
 		if (c && !c->scheduler.deny && !c->scheduler.hangup) {						/* only schedule if allowed and not already scheduled */
-			if (PBX(sched_add_ref) (&c->scheduler.hangup, timeout, _sccp_channel_sched_endcall, c) < 0) {
+			if (iPbx.sched_add_ref(&c->scheduler.hangup, timeout, _sccp_channel_sched_endcall, c) < 0) {
 				pbx_log(LOG_NOTICE, "%s: Unable to schedule dialing in '%d' ms\n", c->designator, timeout);
 			}
 		}
@@ -1269,7 +1168,7 @@ gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t * channel, uint
 	if (c) {
 		if (!c->scheduler.deny) {									/* only schedule if allowed and not already scheduled */
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: schedule digittimeout %d\n", c->designator, timeout);
-			PBX(sched_replace_ref) (&c->scheduler.digittimeout, timeout * 1000, sccp_pbx_sched_dial, c);
+			iPbx.sched_replace_ref(&c->scheduler.digittimeout, timeout * 1000, sccp_pbx_sched_dial, c);
 		}
 	}
 }
@@ -1277,16 +1176,14 @@ gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t * channel, uint
 void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel)
 {
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
-
-	if (c) {
-		ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock);
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks\n", c->designator);
-		if (c->scheduler.digittimeout > 0) {
-			PBX(sched_del_ref) (&c->scheduler.digittimeout, c);
-		}
-		if (c->scheduler.hangup > 0) {
-			PBX(sched_del_ref) (&c->scheduler.hangup, c);
-		}
+	if (c && (ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock) == 0)) {
+			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks\n", c->designator);
+			if (c->scheduler.digittimeout > 0) {
+				iPbx.sched_del_ref(&c->scheduler.digittimeout, c);
+			}
+			if (c->scheduler.hangup > 0) {
+				iPbx.sched_del_ref(&c->scheduler.hangup, c);
+			}
 	}
 }
 
@@ -1303,6 +1200,9 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 		pbx_log(LOG_WARNING, "No channel or line or device to hangup\n");
 		return;
 	}
+	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
+		channel->line->statistic.numberOfHeldChannels--;
+	}
 	sccp_channel_stop_and_deny_scheduled_tasks(channel);
 	/* end all call forwarded channels (our children) */
 	sccp_channel_end_forwarding_channel(channel);
@@ -1314,7 +1214,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %s (state:%s)\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
 		if (channel->privateData->device) {
 			sccp_channel_transfer_cancel(channel->privateData->device, channel);
-			sccp_channel_transfer_release(channel->privateData->device, channel);
+			sccp_channel_transfer_release(channel->privateData->device, channel);				/* explicit release */
 		}
 	}
 	if (channel->owner) {
@@ -1324,6 +1224,45 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %s\n", DEV_ID_LOG(d), channel->designator);
 	}
 }
+
+/*!
+ * \brief get an SCCP Channel
+ * Retrieve unused or allocate a new channel
+ */
+channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
+{
+	pbx_assert(l != NULL && d != NULL);
+	sccp_channel_t *channel = NULL;
+	
+	{
+		AUTO_RELEASE sccp_channel_t *c = NULL;
+		if (!maybe_c || !(c=sccp_channel_retain(maybe_c))) {
+			c = sccp_device_getActiveChannel(d);
+		}
+		if (c) {
+			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {		// reuse unused channel
+				int lineInstance = sccp_device_find_index_for_line(d, c->line->name);
+				sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
+				channel = sccp_channel_retain(c);
+			} else if (!sccp_channel_hold(c)) {
+				pbx_log(LOG_ERROR, "%s: Putting Active Channel %s OnHold failed -> Cancelling new CaLL\n", d->id, l->name);
+				return NULL;
+			}
+		}
+	}
+	if (!channel && !(channel = sccp_channel_allocate(l, d))) {
+		pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", d->id, l->name);
+		return NULL;
+	}
+	channel->calltype = calltype;
+	if (!sccp_pbx_channel_allocate(channel, ids, parentChannel)) {
+		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", d->id, l->name);
+		sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
+		return NULL;
+	}
+	return channel;
+}
+
 
 /*!
  * \brief Allocate a new Outgoing Channel.
@@ -1339,40 +1278,15 @@ void sccp_channel_endcall(sccp_channel_t * channel)
  * \callergraph
  * 
  */
-sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
+channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
 {
 	/* handle outgoing calls */
-	sccp_channel_t *channel;
-
-	if (!l) {
-		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if a line is not defined!\n");
+	if (!l || !device) {
+		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if device or line is not defined!\n");
 		return NULL;
 	}
 
-	if (!device) {
-		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if a device is not defined!\n");
-		return NULL;
-	}
-
-	/* look if we have a call to put on hold */
-	{
-		AUTO_RELEASE sccp_channel_t *c = sccp_device_getActiveChannel(device);
-
-		if ((c)
-#if CS_SCCP_CONFERENCE
-		    //&& (NULL == c->conference)
-#endif
-		    ) {
-			/* there is an active call, let's put it on hold first */
-			if (!sccp_channel_hold(c)) {
-				pbx_log(LOG_ERROR, "%s: Putting Active Channel %s OnHold failed -> Cancelling new CaLL\n", device->id, l->name);
-				return NULL;
-			}
-		}
-	}
-
-	channel = sccp_channel_allocate(l, device);
-
+	sccp_channel_t * const channel = sccp_channel_getEmptyChannel(l, device, NULL, calltype, parentChannel, ids);
 	if (!channel) {
 		pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", device->id, l->name);
 		return NULL;
@@ -1381,55 +1295,26 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 	channel->softswitch_action = SCCP_SOFTSWITCH_DIAL;							/* softswitch will catch the number to be dialed */
 	channel->ss_data = 0;											/* nothing to pass to action */
 
-	channel->calltype = calltype;
-
-	/* copy the number to dial in the ast->exten */
-	if (dial) {
-		if (sccp_strequals(dial, "pickupexten")) {
-			char *pickupexten;
-
-			if (PBX(getPickupExtension) (channel, &pickupexten)) {
-				sccp_copy_string(channel->dialedNumber, pickupexten, sizeof(channel->dialedNumber));
-				sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
-				PBX(set_callstate) (channel, AST_STATE_OFFHOOK);
-				sccp_free(pickupexten);
-			}
-		} else {
-			sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
-			sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
-			PBX(set_callstate) (channel, AST_STATE_OFFHOOK);
-		}
-	} else {
-		sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
-		PBX(set_callstate) (channel, AST_STATE_OFFHOOK);
-	}
-
-	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(channel, ids, parentChannel)) {
-		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", device->id, l->name);
-		sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONGESTION);
-		return channel;
-	}
-
-	PBX(set_callstate) (channel, AST_STATE_OFFHOOK);
-
+	iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
 	if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.rtp) {
 		sccp_channel_openReceiveChannel(channel);
 	}
-
-	if (!dial && (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE)) {
-		sccp_copy_string(channel->dialedNumber, "s", sizeof(channel->dialedNumber));
-		sccp_pbx_softswitch(channel);
-		channel->dialedNumber[0] = 0;
-		return channel;
-	}
-
 	if (dial) {
+		sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
+		sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
 		sccp_pbx_softswitch(channel);
 		return channel;
+	} else {
+		sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
+		if (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
+			sccp_copy_string(channel->dialedNumber, "s", sizeof(channel->dialedNumber));
+			sccp_pbx_softswitch(channel);
+			channel->dialedNumber[0] = '\0';
+			return channel;
+		}
 	}
-	sccp_channel_schedule_digittimout(channel, GLOB(firstdigittimeout));
 
+	sccp_channel_schedule_digittimout(channel, GLOB(firstdigittimeout));
 	return channel;
 }
 
@@ -1484,7 +1369,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		if (!linedevice1) {
 
 			/** this device does not have the original line, mybe it is pickedup with cli or ami function */
-			AUTO_RELEASE sccp_line_t *activeLine = sccp_dev_get_activeline(device);
+			AUTO_RELEASE sccp_line_t *activeLine = sccp_dev_getActiveLine(device);
 
 			if (!activeLine) {
 				return;
@@ -1553,20 +1438,23 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		AUTO_RELEASE sccp_linedevices_t *linedevice2 = sccp_linedevice_find(device, channel->line);
 
 		if (linedevice2) {
+			char tmpNumber[StationMaxDirnumSize] = {0};
+			char tmpName[StationMaxNameSize] = {0};
 			if (!sccp_strlen_zero(linedevice2->subscriptionId.number)) {
-				sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, linedevice2->subscriptionId.number);
+				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, linedevice2->subscriptionId.number);
 			} else {
-				sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
+				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, channel->line->defaultSubscriptionId.number);
 			}
+			sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_CALLEDPARTY_NUMBER, tmpNumber, SCCP_CALLINFO_KEY_SENTINEL);
+			iPbx.set_callerid_number(channel->owner, tmpNumber);
 
 			if (!sccp_strlen_zero(linedevice2->subscriptionId.name)) {
-				sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, linedevice2->subscriptionId.name);
+				snprintf(tmpName, StationMaxNameSize,  "%s%s", channel->line->cid_name, linedevice2->subscriptionId.name);
 			} else {
-				sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
+				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, channel->line->defaultSubscriptionId.name);
 			}
-
-			PBX(set_callerid_number) (channel, channel->callInfo.calledPartyNumber);
-			PBX(set_callerid_name) (channel, channel->callInfo.calledPartyName);
+			sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_CALLEDPARTY_NAME, tmpName, SCCP_CALLINFO_KEY_SENTINEL);
+			iPbx.set_callerid_name(channel->owner, tmpName);
 		}
 	}
 	/* done */
@@ -1576,15 +1464,15 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 
 		if (d) {
 			sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Set Active Line\n", d->id);
-			sccp_dev_set_activeline(d, channel->line);
+			sccp_dev_setActiveLine(d, channel->line);
 
 			/* the old channel state could be CALLTRANSFER, so the bridged channel is on hold */
 			/* do we need this ? -FS */
 #ifdef CS_AST_HAS_FLAG_MOH
 			sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Stop Music On Hold\n", d->id);
-			PBX_CHANNEL_TYPE *pbx_bridged_channel = PBX(get_bridged_channel)(channel->owner);
+			PBX_CHANNEL_TYPE *pbx_bridged_channel = iPbx.get_bridged_channel(channel->owner);
 			if (pbx_bridged_channel && pbx_test_flag(pbx_channel_flags(pbx_bridged_channel), AST_FLAG_MOH)) {
-				PBX(moh_stop) (pbx_bridged_channel);						//! \todo use pbx impl
+				iPbx.moh_stop(pbx_bridged_channel);						//! \todo use pbx impl
 				pbx_clear_flag(pbx_channel_flags(pbx_bridged_channel), AST_FLAG_MOH);
 				pbx_channel_unref(pbx_bridged_channel);
 			}
@@ -1594,7 +1482,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Go OffHook\n", d->id);
 			if (channel->state != SCCP_CHANNELSTATE_OFFHOOK) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_OFFHOOK);
-				PBX(set_callstate) (channel, AST_STATE_OFFHOOK);
+				iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
 			}
 
 			/* set devicevariables */
@@ -1607,8 +1495,15 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			}
 
 			sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Set Connected Line\n", d->id);
-			PBX(set_connected_line) (channel, channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
-
+		        char tmpCalledNumber[StationMaxDirnumSize] = {0};
+		        char tmpCalledName[StationMaxNameSize] = {0};
+	                sccp_callinfo_getter(channel->privateData->callInfo,
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &tmpCalledNumber,
+				SCCP_CALLINFO_CALLEDPARTY_NAME, &tmpCalledName,
+				SCCP_CALLINFO_KEY_SENTINEL);
+			
+			iPbx.set_connected_line(channel, tmpCalledNumber, tmpCalledName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
+			
 			/** check for monitor request */
 			if ((device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
 				pbx_log(LOG_NOTICE, "%s: request monitor\n", device->id);
@@ -1619,8 +1514,20 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONNECTED);
 #ifdef CS_MANAGER_EVENTS
 			if (GLOB(callevents)) {
+			        char tmpCallingNumber[StationMaxDirnumSize] = {0};
+			        char tmpCallingName[StationMaxNameSize] = {0};
+			        char tmpOrigCallingName[StationMaxNameSize] = {0};
+			        char tmpLastRedirectingName[StationMaxNameSize] = {0};
+	        	        sccp_callinfo_getter(channel->privateData->callInfo,
+					SCCP_CALLINFO_CALLINGPARTY_NUMBER, &tmpCallingNumber,
+					SCCP_CALLINFO_CALLINGPARTY_NAME, &tmpCallingName,
+					SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &tmpOrigCallingName,
+					SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &tmpLastRedirectingName,
+					SCCP_CALLINFO_KEY_SENTINEL);
 				manager_event(EVENT_FLAG_CALL, "CallAnswered", "Channel: %s\r\n" "SCCPLine: %s\r\n" "SCCPDevice: %s\r\n"
-					      "Uniqueid: %s\r\n" "CallingPartyNumber: %s\r\n" "CallingPartyName: %s\r\n" "originalCallingParty: %s\r\n" "lastRedirectingParty: %s\r\n", channel->designator, l->name, d->id, PBX(getChannelUniqueID) (channel), channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName, channel->callInfo.originalCallingPartyName, channel->callInfo.lastRedirectingPartyName);
+					      "Uniqueid: %s\r\n" "CallingPartyNumber: %s\r\n" "CallingPartyName: %s\r\n" "originalCallingParty: %s\r\n" "lastRedirectingParty: %s\r\n", 
+					      channel->designator, l->name, d->id, iPbx.getChannelUniqueID(channel), 
+					      tmpCallingNumber,tmpCallingName,tmpOrigCallingName,tmpLastRedirectingName);
 			}
 #endif
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answered channel %s on line %s\n", d->id, channel->designator, l->name);
@@ -1638,7 +1545,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
  * \callgraph
  * \callergraph
  */
-int sccp_channel_hold(sccp_channel_t * channel)
+int sccp_channel_hold(channelPtr channel)
 {
 	uint16_t instance;
 
@@ -1648,14 +1555,12 @@ int sccp_channel_hold(sccp_channel_t * channel)
 	}
 
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(channel->line);
-
 	if (!l) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no line attached to it\n", channel->callid);
 		return FALSE;
 	}
 
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
-
 	if (!d) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no device attached to it\n", channel->callid);
 		return FALSE;
@@ -1679,30 +1584,36 @@ int sccp_channel_hold(sccp_channel_t * channel)
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hold the channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
 
 #ifdef CS_SCCP_CONFERENCE
-	if (d->conference) {
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Putting conference on hold.\n", d->id);
-		sccp_conference_hold(d->conference);
-		sccp_dev_set_keyset(d, instance, channel->callid, KEYMODE_ONHOLD);
+	if (channel->conference) {
+		sccp_conference_hold(channel->conference);
 	} else
 #endif
 	{
 		if (channel->owner) {
-			PBX(queue_control_data) (channel->owner, AST_CONTROL_HOLD, S_OR(l->musicclass, NULL), !sccp_strlen_zero(l->musicclass) ? strlen(l->musicclass) + 1 : 0);
+			if (!sccp_strlen_zero(channel->musicclass)) {
+				iPbx.queue_control_data(channel->owner, AST_CONTROL_HOLD, channel->musicclass, sccp_strlen(channel->musicclass) + 1);
+			} else if (!sccp_strlen_zero(l->musicclass)) {
+				iPbx.queue_control_data(channel->owner, AST_CONTROL_HOLD, l->musicclass, sccp_strlen(l->musicclass) + 1);
+			} else if (!sccp_strlen_zero(GLOB(musicclass))) {
+				iPbx.queue_control_data(channel->owner, AST_CONTROL_HOLD, GLOB(musicclass), sccp_strlen(GLOB(musicclass)) + 1);
+			} else {
+				iPbx.queue_control_data(channel->owner, AST_CONTROL_HOLD, NULL, 0);
+			}
 		}
 	}
 	//sccp_rtp_stop(channel);
-	sccp_dev_set_activeline(d, NULL);
+	sccp_dev_setActiveLine(d, NULL);
 	sccp_indicate(d, channel, SCCP_CHANNELSTATE_HOLD);							// this will also close (but not destroy) the RTP stream
 	sccp_channel_setDevice(channel, NULL);
 
 #ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents)) {
-		manager_event(EVENT_FLAG_CALL, "Hold", "Status: On\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", PBX(getChannelName) (channel), PBX(getChannelUniqueID) (channel));
+		manager_event(EVENT_FLAG_CALL, "Hold", "Status: On\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", iPbx.getChannelName(channel), iPbx.getChannelUniqueID(channel));
 	}
 #endif
 
 	if (l) {
-		l->statistic.numberOfHoldChannels++;
+		l->statistic.numberOfHeldChannels++;
 	}
 
 	sccp_log_and((DEBUGCAT_CHANNEL + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "C partyID: %u state: %d\n", channel->passthrupartyid, channel->state);
@@ -1720,7 +1631,7 @@ int sccp_channel_hold(sccp_channel_t * channel)
  * \callergraph
  * 
  */
-int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolean_t swap_channels)
+int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swap_channels)
 {
 	uint16_t instance;
 
@@ -1730,14 +1641,12 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 	}
 
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(channel->line);
-
 	if (!l) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no line on channel %d\n", channel->callid);
 		return FALSE;
 	}
 
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
-
 	if (!d) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no device attached to it\n", channel->callid);
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no device or device could not be retained on channel %d\n", channel->callid);
@@ -1746,16 +1655,16 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 
 	/* look if we have a call to put on hold */
 	if (swap_channels) {
-		AUTO_RELEASE sccp_channel_t *sccp_channel_on_hold = sccp_device_getActiveChannel(d);
+		AUTO_RELEASE sccp_channel_t *sccp_active_channel = sccp_device_getActiveChannel(d);
 
 		/* there is an active call, let's put it on hold first */
-		if (sccp_channel_on_hold && !(sccp_channel_hold(sccp_channel_on_hold))) {
-			pbx_log(LOG_WARNING, "SCCP: swap_channels failed to put channel %d on hold. exiting\n", sccp_channel_on_hold->callid);
+		if (sccp_active_channel && !(sccp_channel_hold(sccp_active_channel))) {
+			pbx_log(LOG_WARNING, "SCCP: swap_channels failed to put channel %d on hold. exiting\n", sccp_active_channel->callid);
 			return FALSE;
 		}
 	}
 
-	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_PROCEED) {
+	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED) {
 		if (!(sccp_channel_hold(channel))) {
 			pbx_log(LOG_WARNING, "SCCP: channel still connected before resuming, put on hold failed for channel %d. exiting\n", channel->callid);
 			return FALSE;
@@ -1771,8 +1680,7 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 		return FALSE;
 	}
 
-	/* release transfer if we are in the middle of a transfer */
-	sccp_channel_transfer_release(d, channel);
+	sccp_channel_transfer_release(d, channel);			/* explicitly release transfer if we are in the middle of a transfer */
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08X\n", d->id, l->name, channel->callid);
 	sccp_channel_setDevice(channel, d);
@@ -1791,15 +1699,15 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 #endif														// ASTERISK_VERSION_GROUP >= 111
 
 #ifdef CS_SCCP_CONFERENCE
-	if (d->conference) {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Conference on the channel %s-%08X\n", d->id, l->name, channel->callid);
-		sccp_conference_resume(d->conference);
+	if (channel->conference) {
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume Conference on the channel %s-%08X\n", d->id, l->name, channel->callid);
+		sccp_conference_resume(channel->conference);
 		sccp_dev_set_keyset(d, instance, channel->callid, KEYMODE_CONNCONF);
 	} else
 #endif
 	{
 		if (channel->owner) {
-			PBX(queue_control) (channel->owner, AST_CONTROL_UNHOLD);
+			iPbx.queue_control(channel->owner, AST_CONTROL_UNHOLD);
 		}
 	}
 
@@ -1808,57 +1716,54 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 
 	channel->state = SCCP_CHANNELSTATE_HOLD;
 #ifdef CS_AST_CONTROL_SRCUPDATE
-	PBX(queue_control) (channel->owner, AST_CONTROL_SRCUPDATE);						// notify changes e.g codec
+	iPbx.queue_control(channel->owner, AST_CONTROL_SRCUPDATE);						// notify changes e.g codec
 #endif
-	sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONNECTED);							// this will also reopen the RTP stream
+	if (channel->conference) {
+		sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);				// this will also reopen the RTP stream
+	} else {
+		sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONNECTED);						// this will also reopen the RTP stream
+	}
 
 #ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents)) {
-		manager_event(EVENT_FLAG_CALL, "Hold", "Status: Off\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", PBX(getChannelName) (channel), PBX(getChannelUniqueID) (channel));
+		manager_event(EVENT_FLAG_CALL, "Hold", "Status: Off\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", iPbx.getChannelName(channel), iPbx.getChannelUniqueID(channel));
 	}
 #endif
 
 	/* state of channel is set down from the remoteDevices, so correct channel state */
-	channel->state = SCCP_CHANNELSTATE_CONNECTED;
-	l->statistic.numberOfHoldChannels--;
+	if (channel->conference) {
+		channel->state = SCCP_CHANNELSTATE_CONNECTEDCONFERENCE;
+	} else {
+		channel->state = SCCP_CHANNELSTATE_CONNECTED;
+	}
+	l->statistic.numberOfHeldChannels--;
 
 	/** set called party name */
 	{
 		AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, l);
 
 		if (linedevice) {
-			if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-
-				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
-					sprintf(channel->callInfo.callingPartyNumber, "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
-				} else {
-					sprintf(channel->callInfo.callingPartyNumber, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
-				}
-
-				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
-					sprintf(channel->callInfo.callingPartyName, "%s%s", channel->line->cid_name, linedevice->subscriptionId.name);
-				} else {
-					sprintf(channel->callInfo.callingPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
-				}
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set callingPartyNumber '%s' callingPartyName '%s'\n", DEV_ID_LOG(d), channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName);
-				PBX(set_connected_line) (channel, channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
-
-			} else if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-
-				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
-					sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
-				} else {
-					sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, (channel->line->defaultSubscriptionId.number) ? channel->line->defaultSubscriptionId.number : "");
-				}
-
-				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
-					sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, linedevice->subscriptionId.name);
-				} else {
-					sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
-				}
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set calledPartyNumber '%s' calledPartyName '%s'\n", DEV_ID_LOG(d), channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName);
-				PBX(set_connected_line) (channel, channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
+			char tmpNumber[StationMaxDirnumSize] = {0};
+			char tmpName[StationMaxNameSize] = {0};
+			if (!sccp_strlen_zero(linedevice->subscriptionId.number)) {
+				snprintf(tmpNumber, StationMaxDirnumSize,  "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
+			} else {
+				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, channel->line->defaultSubscriptionId.number);
 			}
+
+			if (!sccp_strlen_zero(linedevice->subscriptionId.name)) {
+				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, linedevice->subscriptionId.name);
+			} else {
+				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, channel->line->defaultSubscriptionId.name);
+			}
+			if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
+				sccp_callinfo_setCallingParty(channel->privateData->callInfo, tmpNumber, tmpName, NULL);
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set callingPartyNumber '%s' callingPartyName '%s'\n", DEV_ID_LOG(d), tmpNumber, tmpName);
+			} else if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
+				sccp_callinfo_setCalledParty(channel->privateData->callInfo, tmpNumber, tmpName, NULL);
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set calledPartyNumber '%s' calledPartyName '%s'\n", DEV_ID_LOG(d), tmpNumber, tmpName);
+			}
+			iPbx.set_connected_line(channel, tmpNumber, tmpName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
 		}
 	}
 	/* */
@@ -1895,11 +1800,11 @@ void sccp_channel_clean(sccp_channel_t * channel)
 	if (channel->owner) {
 		pbx_setstate(channel->owner, AST_STATE_DOWN);
 		/* postponing ast_channel_unref to sccp_channel destructor */
-		//PBX(set_owner)(channel, NULL);
+		//iPbx.set_owner(channel, NULL);
 	}
 
-	if (channel->state != SCCP_CHANNELSTATE_DOWN) {
-		PBX(set_callstate) (channel, AST_STATE_DOWN);
+	if (channel->state != SCCP_CHANNELSTATE_ONHOOK && channel->state != SCCP_CHANNELSTATE_DOWN) {
+		iPbx.set_callstate(channel, AST_STATE_DOWN);
 		sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
 	}
 
@@ -1911,13 +1816,13 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		if (d->active_channel == channel) {
 			sccp_channel_setDevice(channel, NULL);
 		}
-		sccp_channel_transfer_release(d, channel);
+		sccp_channel_transfer_release(d, channel);										/* explicitly release transfer when cleaning up channel */
 #ifdef CS_SCCP_CONFERENCE
 		if (d->conference && d->conference == channel->conference) {
-			d->conference = sccp_refcount_release(d->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+			d->conference = sccp_refcount_release(d->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);			/* explicit release of conference */
 		}
 		if (channel->conference) {
-			channel->conference = sccp_refcount_release(channel->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+			channel->conference = sccp_refcount_release(channel->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);	/* explicit release of conference */
 		}
 #endif
 		if (channel->privacy) {
@@ -1930,9 +1835,10 @@ void sccp_channel_clean(sccp_channel_t * channel)
 			SCCP_LIST_LOCK(&d->selectedChannels);
 			sccp_selected_channel = SCCP_LIST_REMOVE(&d->selectedChannels, sccp_selected_channel, list);
 			SCCP_LIST_UNLOCK(&d->selectedChannels);
+			sccp_channel_release(sccp_selected_channel->channel);
 			sccp_free(sccp_selected_channel);
 		}
-		sccp_dev_set_activeline(d, NULL);
+		sccp_dev_setActiveLine(d, NULL);
 	}
 	if (channel && channel->privateData && channel->privateData->device) {
 		sccp_channel_setDevice(channel, NULL);
@@ -1957,17 +1863,27 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	}
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Destroying channel %08x\n", channel->callid);
+	if (channel->musicclass) {
+		sccp_free(channel->musicclass);
+	}
 	if (channel->rtp.audio.rtp || channel->rtp.video.rtp) {
 		sccp_rtp_stop(channel);
 		sccp_rtp_destroy(channel);
 	}
-	sccp_channel_release(channel->line);
+	if (channel->line) {
+		sccp_line_release(channel->line);					/* explicit release to cleanup line reference */
+	}
+
 	if (channel->owner) {
-		PBX(set_owner) (channel, NULL);
+		iPbx.set_owner(channel, NULL);
 	}
 	if (channel->privateData) {
+		if (channel->privateData->callInfo) {
+			sccp_callinfo_dtor(channel->privateData->callInfo);
+		}
 		sccp_free(channel->privateData);
 	}
+	
 #ifndef SCCP_ATOMIC
 	ast_mutex_destroy(&channel->scheduler.lock);
 #endif
@@ -1983,7 +1899,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
  * \callgraph
  * \callergraph
  */
-void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
+void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 {
 	uint8_t prev_channel_state = 0;
 	uint32_t blindTransfer = 0;
@@ -2025,11 +1941,12 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 		return;
 	}
 	/* exceptional case, we need to release half transfer before retaking, should never occur */
+	/* \todo check out if this should be reactiveated or removed */
 	// if (d->transferChannels.transferee && !d->transferChannels.transferer) {
-	//d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+	//d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);			/* explicit release */
 	// }
 	if (!d->transferChannels.transferee && d->transferChannels.transferer) {
-		d->transferChannels.transferer = sccp_channel_release(d->transferChannels.transferer);
+		d->transferChannels.transferer = sccp_channel_release(d->transferChannels.transferer);			/* explicit release */
 	}
 
 	if ((d->transferChannels.transferee = sccp_channel_retain(channel))) {								/** channel to be transfered */
@@ -2046,7 +1963,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 
 			if (!sccp_channel_hold(channel)) {							/* hold failed, restore */
 				channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
-				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);	/* explicit release */
 				return;
 			}
 		}
@@ -2057,12 +1974,12 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 			}
 			AUTO_RELEASE sccp_channel_t *sccp_channel_new = sccp_channel_newcall(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, pbx_channel_owner, NULL);
 
-			if (sccp_channel_new && (pbx_channel_bridgepeer = PBX(get_bridged_channel)(pbx_channel_owner))) {
+			if (sccp_channel_new && (pbx_channel_bridgepeer = iPbx.get_bridged_channel(pbx_channel_owner))) {
 				pbx_builtin_setvar_helper(sccp_channel_new->owner, "TRANSFEREE", pbx_channel_name(pbx_channel_bridgepeer));
 
 				sccp_dev_set_keyset(d, instance, channel->callid, KEYMODE_OFFHOOKFEAT);
 
-				/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER */
+				/* set a var for BLINDTRANSFER. It will be removed if the user manually answers the call Otherwise it is a real BLINDTRANSFER */
 #if 0
 				if (blindTransfer || (sccp_channel_new && sccp_channel_new->owner && pbx_channel_owner && pbx_channel_bridgepeer)) {
 					//! \todo use pbx impl
@@ -2083,7 +2000,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 				sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 				channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
-				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);	/* explicit release */
 			} else {
 				// giving up
 				if (!sccp_channel_new) {
@@ -2094,7 +2011,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 				sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 				channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
-				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);	/* explicit release */
 			}
 			pbx_channel_owner = pbx_channel_unref(pbx_channel_owner);
 		} else {
@@ -2103,7 +2020,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 			sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 			channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 			sccp_indicate(d, channel, prev_channel_state);
-			d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+			d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);		/* explicit release */
 		}
 	}
 }
@@ -2111,15 +2028,15 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 /*!
  * \brief Release Transfer Variables
  */
-void sccp_channel_transfer_release(sccp_device_t * d, sccp_channel_t * c)
+void sccp_channel_transfer_release(devicePtr d, channelPtr c)
 {
 	if (!d || !c) {
 		return;
 	}
 
 	if ((d->transferChannels.transferee && c == d->transferChannels.transferee) || (d->transferChannels.transferer && c == d->transferChannels.transferer)) {
-		d->transferChannels.transferee = d->transferChannels.transferee ? sccp_channel_release(d->transferChannels.transferee) : NULL;
-		d->transferChannels.transferer = d->transferChannels.transferer ? sccp_channel_release(d->transferChannels.transferer) : NULL;
+		d->transferChannels.transferee = d->transferChannels.transferee ? sccp_channel_release(d->transferChannels.transferee) : NULL;	/* explicit release */
+		d->transferChannels.transferer = d->transferChannels.transferer ? sccp_channel_release(d->transferChannels.transferer) : NULL;	/* explicit release */
 		sccp_log_and((DEBUGCAT_CHANNEL + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08X released\n", d->id, c->line->name, c->callid);
 	}
 	c->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
@@ -2128,7 +2045,7 @@ void sccp_channel_transfer_release(sccp_device_t * d, sccp_channel_t * c)
 /*!
  * \brief Cancel Transfer
  */
-void sccp_channel_transfer_cancel(sccp_device_t * d, sccp_channel_t * c)
+void sccp_channel_transfer_cancel(devicePtr d, channelPtr c)
 {
 	if (!d || !c || !d->transferChannels.transferee) {
 		return;
@@ -2139,23 +2056,23 @@ void sccp_channel_transfer_cancel(sccp_device_t * d, sccp_channel_t * c)
 	 * 7960 loses callplane when cancel transfer (end call on other channel).
 	 * This script sets the hold state for transfered channel explicitly -MC
 	 */
-	if (d && d->transferChannels.transferee && d->transferChannels.transferee != c) {
-		if (d->transferChannels.transferer && d->transferChannels.transferer != c) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee %d %s by the Receiving Party. Cancelling Transfer and Putting transferee channel on Hold.\n", DEV_ID_LOG(d), d->transferChannels.transferee->callid, d->transferChannels.transferee->line->name);
-		} else {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee %d %s by the Transfering Party. Cancelling Transfer and Putting transferee channel on Hold.\n", DEV_ID_LOG(d), d->transferChannels.transferee->callid, d->transferChannels.transferee->line->name);
-		}
-
-		d->transferChannels.transferee->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
-		sccp_rtp_stop(d->transferChannels.transferee);
-		sccp_dev_set_activeline(d, NULL);
-		sccp_indicate(d, d->transferChannels.transferee, SCCP_CHANNELSTATE_HOLD);
-		sccp_channel_setDevice(d->transferChannels.transferee, NULL);
+	if (d) {
+		AUTO_RELEASE sccp_channel_t *transferee = d->transferChannels.transferee ? sccp_channel_retain(d->transferChannels.transferee) : NULL;
+		if (transferee && transferee != c) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee %d %s by the Receiving Party. Cancelling Transfer and Putting transferee channel on Hold.\n", DEV_ID_LOG(d), transferee->callid, transferee->line->name);
+			transferee->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
+			sccp_rtp_stop(transferee);
+			sccp_dev_setActiveLine(d, NULL);
+			sccp_indicate(d, transferee, SCCP_CHANNELSTATE_HOLD);
+			sccp_channel_setDevice(transferee, NULL);
 #if ASTERISK_VERSION_GROUP >= 108
-		enum ast_control_transfer control_transfer_message = AST_TRANSFER_FAILED;
-		PBX(queue_control_data) (c->owner, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
+			enum ast_control_transfer control_transfer_message = AST_TRANSFER_FAILED;
+			iPbx.queue_control_data(c->owner, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
 #endif
-		sccp_channel_transfer_release(d, d->transferChannels.transferee);
+			sccp_channel_transfer_release(d, transferee);			/* explicit release */
+		} else {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee by the Transfering Party. Cancelling Transfer and Putting transferee channel on Hold.\n", DEV_ID_LOG(d));
+		}
 	}
 }
 
@@ -2167,7 +2084,7 @@ void sccp_channel_transfer_cancel(sccp_device_t * d, sccp_channel_t * c)
  * \callgraph
  * \callergraph
  */
-void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_channel)
+void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 {
 	PBX_CHANNEL_TYPE *pbx_source_local_channel = NULL;
 	PBX_CHANNEL_TYPE *pbx_source_remote_channel = NULL;
@@ -2214,8 +2131,8 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 	}
 
 	pbx_source_local_channel = sccp_source_local_channel->owner;
-	pbx_source_remote_channel = PBX(get_bridged_channel)(sccp_source_local_channel->owner);
-	pbx_destination_remote_channel = PBX(get_bridged_channel)(sccp_destination_local_channel->owner);
+	pbx_source_remote_channel = iPbx.get_bridged_channel(sccp_source_local_channel->owner);
+	pbx_destination_remote_channel = iPbx.get_bridged_channel(sccp_destination_local_channel->owner);
 	pbx_destination_local_channel = sccp_destination_local_channel->owner;
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: pbx_source_local_channel       %s\n", d->id, pbx_source_local_channel ? pbx_channel_name(pbx_source_local_channel) : "NULL");
@@ -2234,57 +2151,57 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 	}
 
 	{
-		char *fromName = NULL;
-		char *fromNumber = NULL;
-		char *toName = NULL;
-		char *toNumber = NULL;
-
-		char *originalCallingPartyName = NULL;
-		char *originalCallingPartyNumber = NULL;
-
 		int connectedLineUpdateReason = (sccp_destination_local_channel->state == SCCP_CHANNELSTATE_RINGOUT) ? AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING : AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER;
 
-		/* update redirecting info line for source part */
-		fromNumber = sccp_destination_local_channel->callInfo.callingPartyNumber;
-		fromName = sccp_destination_local_channel->callInfo.callingPartyName;
+		char calling_number[StationMaxDirnumSize] = {0}, called_number[StationMaxDirnumSize] = {0}, orig_number[StationMaxDirnumSize] = {0};
+		char calling_name[StationMaxNameSize] = {0}, called_name[StationMaxNameSize] = {0}, orig_name[StationMaxNameSize] = {0};
 
-		toNumber = sccp_destination_local_channel->callInfo.calledPartyNumber;
-		toName = sccp_destination_local_channel->callInfo.calledPartyName;
+		sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_destination_local_channel), 
+			SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name,
+			SCCP_CALLINFO_CALLINGPARTY_NUMBER, &calling_number,
+			SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,
+			SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_number,
+			SCCP_CALLINFO_KEY_SENTINEL);
 
 		if (sccp_source_local_channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-			originalCallingPartyName = sccp_source_local_channel->callInfo.callingPartyName;
-			originalCallingPartyNumber = sccp_source_local_channel->callInfo.callingPartyNumber;
+			sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_source_local_channel), 
+				SCCP_CALLINFO_CALLINGPARTY_NAME, &orig_name,
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &orig_number,
+				SCCP_CALLINFO_KEY_SENTINEL);
 		} else {
-			originalCallingPartyName = sccp_source_local_channel->callInfo.calledPartyName;
-			originalCallingPartyNumber = sccp_source_local_channel->callInfo.calledPartyNumber;
+			sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_source_local_channel), 
+				SCCP_CALLINFO_CALLEDPARTY_NAME, &orig_name,
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &orig_number,
+				SCCP_CALLINFO_KEY_SENTINEL);
 		}
 
 		/* update our source part */
-		sccp_copy_string(sccp_source_local_channel->callInfo.lastRedirectingPartyName, fromName ? fromName : "", sizeof(sccp_source_local_channel->callInfo.callingPartyName));
-		sccp_copy_string(sccp_source_local_channel->callInfo.lastRedirectingPartyNumber, fromNumber ? fromNumber : "", sizeof(sccp_source_local_channel->callInfo.lastRedirectingPartyNumber));
-		sccp_source_local_channel->callInfo.lastRedirectingParty_valid = 1;
+		sccp_callinfo_setter(sccp_channel_getCallInfo(sccp_source_local_channel), 
+			SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, calling_name,
+			SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, calling_number,
+			SCCP_CALLINFO_KEY_SENTINEL);
 		sccp_channel_display_callInfo(sccp_source_local_channel);
 
 		/* update our destination part */
-		sccp_copy_string(sccp_destination_local_channel->callInfo.lastRedirectingPartyName, fromName ? fromName : "", sizeof(sccp_destination_local_channel->callInfo.callingPartyName));
-		sccp_copy_string(sccp_destination_local_channel->callInfo.lastRedirectingPartyNumber, fromNumber ? fromNumber : "", sizeof(sccp_destination_local_channel->callInfo.lastRedirectingPartyNumber));
-		sccp_destination_local_channel->callInfo.lastRedirectingParty_valid = 1;
+		sccp_callinfo_setter(sccp_channel_getCallInfo(sccp_destination_local_channel), 
+			SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, calling_name,
+			SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, calling_number,
+			SCCP_CALLINFO_KEY_SENTINEL);
 		sccp_destination_local_channel->calltype = SKINNY_CALLTYPE_FORWARD;
 		sccp_channel_display_callInfo(sccp_destination_local_channel);
 
 		/* update transferee */
-		PBX(set_connected_line) (sccp_source_local_channel, toNumber, toName, connectedLineUpdateReason);
+		iPbx.set_connected_line(sccp_source_local_channel, called_number, called_name, connectedLineUpdateReason);
 #if ASTERISK_VERSION_GROUP > 106										/*! \todo change to SCCP_REASON Codes, using mapping table */
-		if (PBX(sendRedirectedUpdate)) {
-			PBX(sendRedirectedUpdate) (sccp_source_local_channel, fromNumber, fromName, toNumber, toName, AST_REDIRECTING_REASON_UNCONDITIONAL);
+		if (iPbx.sendRedirectedUpdate) {
+			iPbx.sendRedirectedUpdate(sccp_source_local_channel, calling_number, calling_name, called_number, called_name, AST_REDIRECTING_REASON_UNCONDITIONAL);
 		}
 #endif
-
-		/* update ringin channel directly */
-		PBX(set_connected_line) (sccp_destination_local_channel, originalCallingPartyNumber, originalCallingPartyName, connectedLineUpdateReason);
+		/* update ring-in channel directly */
+		iPbx.set_connected_line(sccp_destination_local_channel, orig_number, orig_name, connectedLineUpdateReason);
 #if ASTERISK_VERSION_GROUP > 106										/*! \todo change to SCCP_REASON Codes, using mapping table */
-//		if (PBX(sendRedirectedUpdate)) {
-//			PBX(sendRedirectedUpdate) (sccp_destination_local_channel, fromNumber, fromName, toNumber, toName, AST_REDIRECTING_REASON_UNCONDITIONAL);
+//		if (iPbx.sendRedirectedUpdate) {
+//			iPbx.sendRedirectedUpdate(sccp_destination_local_channel, calling_number, calling_name, called_number, called_name, AST_REDIRECTING_REASON_UNCONDITIONAL);
 //		}
 #endif
 	}
@@ -2301,11 +2218,12 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 			pbx_indicate(pbx_source_remote_channel, AST_CONTROL_RINGING);
 		} else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH) {
 			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_complete) Started music on hold for channel %s\n", pbx_channel_name(pbx_source_remote_channel));
-			PBX(moh_start) (pbx_source_remote_channel, NULL, NULL);					//! \todo use pbx impl
+			iPbx.moh_start(pbx_source_remote_channel, NULL, NULL);					//! \todo use pbx impl
 		}
 	}
 
-	if (!PBX(attended_transfer) (sccp_destination_local_channel, sccp_source_local_channel)) {
+	sccp_channel_transfer_release(d, d->transferChannels.transferee);					/* explicit release */
+	if (!iPbx.attended_transfer(sccp_destination_local_channel, sccp_source_local_channel)) {
 		pbx_log(LOG_WARNING, "SCCP: Failed to masquerade %s into %s\n", pbx_channel_name(pbx_destination_local_channel), pbx_channel_name(pbx_source_remote_channel));
 		sccp_dev_displayprompt(d, instance, sccp_destination_local_channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 		goto EXIT;
@@ -2326,26 +2244,13 @@ EXIT:
 	if (pbx_destination_remote_channel) {
 		pbx_channel_unref(pbx_destination_remote_channel);
 	}
-	if (!sccp_source_local_channel->owner) {
+	if (!sccp_source_local_channel || !sccp_source_local_channel->owner) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Peer owner disappeared! Can't free resources\n");
 		return;
 	}
 #if ASTERISK_VERSION_GROUP >= 108
-	PBX(queue_control_data) (sccp_source_local_channel->owner, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
+	iPbx.queue_control_data(sccp_source_local_channel->owner, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
 #endif
-	sccp_channel_transfer_release(d, d->transferChannels.transferee);
-}
-
-/*!
- * \brief Reset Caller Id Presentation
- * \param channel SCCP Channel
- */
-void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * channel)
-{
-	channel->callInfo.presentation = CALLERID_PRESENCE_ALLOWED;
-	if (PBX(set_callerid_presence)) {
-		PBX(set_callerid_presence) (channel);
-	}
 }
 
 /*!
@@ -2353,14 +2258,24 @@ void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * channel)
  * \param channel SCCP Channel
  * \param presenceParameter SCCP CallerID Presence ENUM
  */
-void sccp_channel_set_calleridPresenceParameter(sccp_channel_t * channel, sccp_calleridpresence_t presenceParameter)
+void sccp_channel_set_calleridPresentation(sccp_channel_t * channel, sccp_callerid_presentation_t presentation)
 {
-	channel->callInfo.presentation = presenceParameter;
-	if (PBX(set_callerid_presence)) {
-		PBX(set_callerid_presence) (channel);
+	sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_PRESENTATION, presentation, SCCP_CALLINFO_KEY_SENTINEL);
+	if (iPbx.set_callerid_presentation) {
+		iPbx.set_callerid_presentation(channel->owner, presentation);
 	}
 }
 
+#if UNUSEDCODE // 2015-11-01
+/*!
+ * \brief Reset Caller Id Presentation
+ * \param channel SCCP Channel
+ */
+void sccp_channel_reset_calleridPresentation(sccp_channel_t * channel)
+{
+	sccp_channel_set_calleridPresentation(channel, CALLERID_PRESENTATION_ALLOWED);
+}
+#endif
 /*!
  * \brief Forward a Channel
  * \param sccp_channel_parent SCCP parent channel
@@ -2391,10 +2306,22 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	sccp_forwarding_channel->softswitch_action = SCCP_SOFTSWITCH_DIAL;					/* softswitch will catch the number to be dialed */
 	sccp_forwarding_channel->ss_data = 0;									// nothing to pass to action
 	sccp_forwarding_channel->calltype = SKINNY_CALLTYPE_OUTBOUND;
+	
+	char calling_name[StationMaxNameSize] = {0};
+	char calling_num[StationMaxDirnumSize] = {0};
+	char called_name[StationMaxNameSize] = {0};
+	char called_num[StationMaxDirnumSize] = {0};
+	sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_channel_parent), 
+		SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name,
+		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &calling_num,
+		SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,
+		SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_num,
+		SCCP_CALLINFO_KEY_SENTINEL);
 
 	/* copy the number to dial in the ast->exten */
 	sccp_copy_string(sccp_forwarding_channel->dialedNumber, dialedNumber, sizeof(sccp_forwarding_channel->dialedNumber));
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Incoming: %s (%s) Forwarded By: %s (%s) Forwarded To: %s\n", sccp_channel_parent->callInfo.callingPartyName, sccp_channel_parent->callInfo.callingPartyNumber, lineDevice->line->cid_name, lineDevice->line->cid_num, dialedNumber);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Incoming: %s (%s) Forwarded By: %s (%s) Forwarded To: %s\n", 
+		calling_name, calling_num, lineDevice->line->cid_name, lineDevice->line->cid_num, dialedNumber);
 
 	/* Copy Channel Capabilities From Predecessor */
 	memset(&sccp_forwarding_channel->remoteCapabilities.audio, 0, sizeof(sccp_forwarding_channel->remoteCapabilities.audio));
@@ -2413,51 +2340,51 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	}
 	/* Update rtp setting to match predecessor */
 	skinny_codec_t codecs[] = { SKINNY_CODEC_WIDEBAND_256K };
-	PBX(set_nativeAudioFormats) (sccp_forwarding_channel, codecs, 1);
-	PBX(rtp_setWriteFormat) (sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
-	PBX(rtp_setWriteFormat) (sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
+	iPbx.set_nativeAudioFormats(sccp_forwarding_channel, codecs, 1);
+	iPbx.rtp_setWriteFormat(sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
+	iPbx.rtp_setWriteFormat(sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
 	sccp_channel_updateChannelCapability(sccp_forwarding_channel);
 
 	/* setting callerid */
-	if (PBX(set_callerid_number)) {
-		PBX(set_callerid_number) (sccp_forwarding_channel, sccp_channel_parent->callInfo.callingPartyNumber);
+	if (iPbx.set_callerid_number) {
+		iPbx.set_callerid_number(sccp_forwarding_channel->owner, calling_num);
 	}
 
-	if (PBX(set_callerid_name)) {
-		PBX(set_callerid_name) (sccp_forwarding_channel, sccp_channel_parent->callInfo.callingPartyName);
+	if (iPbx.set_callerid_name) {
+		iPbx.set_callerid_name(sccp_forwarding_channel->owner, calling_name);
 	}
 
-	if (PBX(set_callerid_ani)) {
-		PBX(set_callerid_ani) (sccp_forwarding_channel, dialedNumber);
+	if (iPbx.set_callerid_ani) {
+		iPbx.set_callerid_ani(sccp_forwarding_channel->owner, dialedNumber);
 	}
 
-	if (PBX(set_callerid_dnid)) {
-		PBX(set_callerid_dnid) (sccp_forwarding_channel, dialedNumber);
+	if (iPbx.set_callerid_dnid) {
+		iPbx.set_callerid_dnid(sccp_forwarding_channel->owner, dialedNumber);
 	}
 
-	if (PBX(set_callerid_redirectedParty)) {
-		PBX(set_callerid_redirectedParty) (sccp_forwarding_channel, sccp_channel_parent->callInfo.calledPartyNumber, sccp_channel_parent->callInfo.calledPartyName);
+	if (iPbx.set_callerid_redirectedParty) {
+		iPbx.set_callerid_redirectedParty(sccp_forwarding_channel->owner, called_num, called_name);
 	}
 
-	if (PBX(set_callerid_redirectingParty)) {
-		PBX(set_callerid_redirectingParty) (sccp_forwarding_channel, sccp_forwarding_channel->line->cid_num, sccp_forwarding_channel->line->cid_name);
+	if (iPbx.set_callerid_redirectingParty) {
+		iPbx.set_callerid_redirectingParty(sccp_forwarding_channel->owner, sccp_forwarding_channel->line->cid_num, sccp_forwarding_channel->line->cid_name);
 	}
 
 	/* dial sccp_forwarding_channel */
-	PBX(setChannelExten) (sccp_forwarding_channel, dialedNumber);
+	iPbx.setChannelExten(sccp_forwarding_channel, dialedNumber);
 
 	/* \todo copy device line setvar variables from parent channel to forwarder->owner */
-	PBX(set_callstate) (sccp_forwarding_channel, AST_STATE_OFFHOOK);
+	iPbx.set_callstate(sccp_forwarding_channel, AST_STATE_OFFHOOK);
 	if (!sccp_strlen_zero(dialedNumber)
-	    && PBX(checkhangup) (sccp_forwarding_channel)
-	    && pbx_exists_extension(sccp_forwarding_channel->owner, sccp_forwarding_channel->line->context, dialedNumber, 1, sccp_forwarding_channel->line->cid_num)) {
+	    && iPbx.checkhangup(sccp_forwarding_channel)
+	    && pbx_exists_extension(sccp_forwarding_channel->owner, sccp_forwarding_channel->line->context ? sccp_forwarding_channel->line->context : "", dialedNumber, 1, sccp_forwarding_channel->line->cid_num)) {
 		/* found an extension, let's dial it */
 		pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x is dialing number %s\n", "SCCP", sccp_forwarding_channel->line->name, sccp_forwarding_channel->callid, dialedNumber);
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
-		PBX(set_callstate) (sccp_forwarding_channel, AST_STATE_RING);
+		iPbx.set_callstate(sccp_forwarding_channel, AST_STATE_RING);
 		pbx_channel_call_forward_set(sccp_forwarding_channel->owner, dialedNumber);
 #if CS_AST_CONTROL_REDIRECTING
-		PBX(queue_control) (sccp_forwarding_channel->owner, AST_CONTROL_REDIRECTING);
+		iPbx.queue_control(sccp_forwarding_channel->owner, AST_CONTROL_REDIRECTING);
 #endif
 		if (pbx_pbx_start(sccp_forwarding_channel->owner)) {
 			pbx_log(LOG_WARNING, "%s: invalid number\n", "SCCP");
@@ -2465,7 +2392,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		return 0;
 	} else {
 		pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x cannot dial this number %s\n", "SCCP", sccp_forwarding_channel->line->name, sccp_forwarding_channel->callid, dialedNumber);
-		sccp_forwarding_channel->parentChannel = sccp_channel_release(sccp_forwarding_channel->parentChannel);
+		sccp_forwarding_channel->parentChannel = sccp_channel_release(sccp_forwarding_channel->parentChannel);	/* explicit release */
 		sccp_channel_endcall(sccp_forwarding_channel);
 		return -1;
 	}
@@ -2480,13 +2407,13 @@ void sccp_channel_park(sccp_channel_t * channel)
 {
 	sccp_parkresult_t result;
 
-	if (!PBX(feature_park)) {
+	if (!iPbx.feature_park) {
 		pbx_log(LOG_WARNING, "SCCP, parking feature not implemented\n");
 		return;
 	}
 
 	/* let the pbx implementation do the rest */
-	result = PBX(feature_park) (channel);
+	result = iPbx.feature_park(channel);
 
 	if (PARK_RESULT_SUCCESS != result) {
 		char extstr[20];
@@ -2577,7 +2504,7 @@ int sccp_channel_callwaiting_tone_interval(sccp_device_t * device, sccp_channel_
 			AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
 
 			if (c) {
-				ast_assert(c->line != NULL);
+				pbx_assert(c->line != NULL);
 				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Handle Callwaiting Tone on channel %d\n", c->callid);
 				if (c && c->owner && (SCCP_CHANNELSTATE_CALLWAITING == c->state || SCCP_CHANNELSTATE_RINGING == c->state)) {
 					sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending Call Waiting Tone \n", DEV_ID_LOG(d));
@@ -2598,18 +2525,19 @@ int sccp_channel_callwaiting_tone_interval(sccp_device_t * device, sccp_channel_
 	return -1;
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Helper function to retrieve the pbx channel LinkedID
  */
 const char *sccp_channel_getLinkedId(const sccp_channel_t * channel)
 {
-	if (!PBX(getChannelLinkedId)) {
+	if (!iPbx.getChannelLinkedId) {
 		return NULL;
 	}
 
-	return PBX(getChannelLinkedId) (channel);
+	return iPbx.getChannelLinkedId(channel);
 }
-
+#endif
 /*=================================================================================== FIND FUNCTIONS ==============*/
 /*!
  * \brief Find Channel by ID, using a specific line
@@ -2622,15 +2550,39 @@ const char *sccp_channel_getLinkedId(const sccp_channel_t * channel)
  * \return *refcounted* SCCP Channel (can be null)
  * \todo rename function to include that it checks the channelstate != DOWN
  */
-sccp_channel_t *sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id)
+sccp_channel_t *sccp_find_channel_on_line_byid(constLinePtr l, uint32_t id)
 {
 	sccp_channel_t *c = NULL;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", id);
 
-	SCCP_LIST_LOCK(&l->channels);
+	SCCP_LIST_LOCK(&((linePtr)l)->channels);
 	c = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->callid == id && tmpc->state != SCCP_CHANNELSTATE_DOWN), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	SCCP_LIST_UNLOCK(&l->channels);
+	SCCP_LIST_UNLOCK(&((linePtr)l)->channels);
+	return c;
+}
+
+/*!
+ * Find channel by lineId and CallId, connected to a particular device;
+ * \return *refcounted* SCCP Channel (can be null)
+ */
+sccp_channel_t *sccp_find_channel_by_buttonIndex_and_callid(const sccp_device_t * d, const uint32_t buttonIndex, const uint32_t callid)
+{
+	sccp_channel_t *c = NULL;
+
+	if (!d || !buttonIndex || !callid) {
+		return NULL;
+	}
+
+	AUTO_RELEASE sccp_line_t *l = sccp_line_find_byButtonIndex((sccp_device_t *) d, buttonIndex);
+	if (l) {
+		SCCP_LIST_LOCK(&l->channels);
+		c = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->callid == callid), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+		SCCP_LIST_UNLOCK(&l->channels);
+	}
+	if (!c) {
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Could not find channel for lineInstance:%u and callid:%d on device\n", DEV_ID_LOG(d), buttonIndex, callid);
+	}
 	return c;
 }
 
@@ -2742,7 +2694,7 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
  * \callergraph
  * 
  */
-sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d, uint32_t passthrupartyid)
+sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(constDevicePtr d, uint32_t passthrupartyid)
 {
 	sccp_channel_t *c = NULL;
 
@@ -2787,15 +2739,15 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
  * \param state State
  * \return *refcounted* SCCP Channel
  */
-sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, sccp_channelstate_t state)
+sccp_channel_t *sccp_channel_find_bystate_on_line(constLinePtr l, sccp_channelstate_t state)
 {
 	sccp_channel_t *c = NULL;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
-	SCCP_LIST_LOCK(&l->channels);
+	SCCP_LIST_LOCK(&((linePtr)l)->channels);
 	c = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->state == state), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	SCCP_LIST_UNLOCK(&l->channels);
+	SCCP_LIST_UNLOCK(&((linePtr)l)->channels);
 
 	if (!c) {
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Could not find active channel with state %s(%u) on line\n", l->id, sccp_channelstate2str(state), state);
@@ -2814,7 +2766,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, sccp_channels
  * \param state State as int
  * \return *refcounted* SCCP Channel
  */
-sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * device, sccp_channelstate_t state)
+sccp_channel_t *sccp_channel_find_bystate_on_device(constDevicePtr device, sccp_channelstate_t state)
 {
 	sccp_channel_t *c = NULL;
 
@@ -2859,7 +2811,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * device, sccp
  * 
  * \todo Currently this returns the selectedchannel unretained (there is no retain/release for selectedchannel at the moment)
  */
-sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * channel)
+sccp_selectedchannel_t *sccp_device_find_selectedchannel(constDevicePtr d, constChannelPtr channel)
 {
 	if (!d) {
 		return NULL;
@@ -2868,9 +2820,9 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channel (%d)\n", DEV_ID_LOG(d), channel->callid);
 
-	SCCP_LIST_LOCK(&d->selectedChannels);
+	SCCP_LIST_LOCK(&((devicePtr)d)->selectedChannels);
 	sc = SCCP_LIST_FIND(&d->selectedChannels, sccp_selectedchannel_t, tmpsc, list, (tmpsc->channel == channel), FALSE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	SCCP_LIST_UNLOCK(&d->selectedChannels);
+	SCCP_LIST_UNLOCK(&((devicePtr)d)->selectedChannels);
 	return sc;
 }
 
@@ -2880,14 +2832,14 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
  * \return count Number of Selected Channels
  * 
  */
-uint8_t sccp_device_selectedchannels_count(sccp_device_t * device)
+uint8_t sccp_device_selectedchannels_count(constDevicePtr device)
 {
 	uint8_t count = 0;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channels count\n", device->id);
-	SCCP_LIST_LOCK(&device->selectedChannels);
+	SCCP_LIST_LOCK(&((devicePtr)device)->selectedChannels);
 	count = SCCP_LIST_GETSIZE(&device->selectedChannels);
-	SCCP_LIST_UNLOCK(&device->selectedChannels);
+	SCCP_LIST_UNLOCK(&((devicePtr)device)->selectedChannels);
 
 	return count;
 }

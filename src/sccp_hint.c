@@ -46,19 +46,19 @@ typedef struct sccp_hint_list sccp_hint_list_t;
 static char default_eid_str[32];
 #endif
 
-struct sccp_hint_SubscribingDevice {
-
+struct sccp_hint_SubscribingDevice 
+{
+	SCCP_LIST_ENTRY (sccp_hint_SubscribingDevice_t) list;							/*!< Hint Subscribing Device Linked List Entry */
 	const sccp_device_t *device;										/*!< SCCP Device */
 	uint8_t instance;											/*!< Instance */
 	uint8_t positionOnDevice;										/*!< Instance */
-
-	SCCP_LIST_ENTRY (sccp_hint_SubscribingDevice_t) list;							/*!< Hint Subscribing Device Linked List Entry */
 };														/*!< SCCP Hint Subscribing Device Structure */
 
 /*!
  *\brief SCCP Hint Line State Structure
  */
-struct sccp_hint_lineState {
+struct sccp_hint_lineState 
+{
 	sccp_line_t *line;
 	sccp_channelstate_t state;
 
@@ -90,11 +90,13 @@ struct sccp_hint_list {
 	/*!
 	 * \brief Call Information Structure
 	 */
-	struct {
-		char partyNumber[StationMaxNameSize];								/*!< Calling Party Name */
-		char partyName[StationMaxNameSize];								/*!< Called Party Name */
-		skinny_calltype_t calltype;									/*!< Skinny Call Type */
-	} callInfo;												/*!< Call Information Structure */
+	//struct {
+	//	char partyNumber[StationMaxNameSize];								/*!< Calling Party Name */
+	//	char partyName[StationMaxNameSize];								/*!< Called Party Name */
+	//	skinny_calltype_t calltype;									/*!< Skinny Call Type */
+	//} callInfo;												/*!< Call Information Structure */
+	sccp_callinfo_t *callInfo;
+	skinny_calltype_t calltype;										/*!< Skinny Call Type */
 
 	int stateid;												/*!< subscription id in asterisk */
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
@@ -116,10 +118,12 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint);
 static void sccp_hint_deviceRegistered(const sccp_device_t * device);
 static void sccp_hint_deviceUnRegistered(const char *deviceName);
 static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const char *hintStr, const uint8_t instance, const uint8_t positionOnDevice);
+static void sccp_hint_attachLine(sccp_line_t * line, sccp_device_t * device);
+static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device);
 static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device);
 static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event);
 static void sccp_hint_eventListener(const sccp_event_t * event);
-static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice);
+static gcc_inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice);
 
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 #if ASTERISK_VERSION_GROUP >= 112
@@ -169,13 +173,10 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Got new hint event %s, cidname: %s, cidnum: %s, originated from EID:'%s'\n", hint->hint_dialplan, cidName ? cidName : "NULL", cidNumber ? cidNumber : "NULL", eid_str);
 #endif
 	
-
-	if (cidName) {
-		sccp_copy_string(hint->callInfo.partyName, cidName, sizeof(hint->callInfo.partyName));
-	}
-
-	if (cidNumber) {
-		sccp_copy_string(hint->callInfo.partyNumber, cidNumber, sizeof(hint->callInfo.partyNumber));
+	if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
+		sccp_callinfo_setter(hint->callInfo, SCCP_CALLINFO_CALLINGPARTY_NAME, cidName, SCCP_CALLINFO_CALLINGPARTY_NUMBER, cidNumber, SCCP_CALLINFO_KEY_SENTINEL);
+	} else {
+		sccp_callinfo_setter(hint->callInfo, SCCP_CALLINFO_CALLEDPARTY_NAME, cidName, SCCP_CALLINFO_CALLEDPARTY_NUMBER, cidNumber, SCCP_CALLINFO_KEY_SENTINEL);
 	}
 
 	return;
@@ -221,7 +222,7 @@ void sccp_hint_module_stop(void)
 
 		SCCP_LIST_LOCK(&lineStates);
 		while ((lineState = SCCP_LIST_REMOVE_HEAD(&lineStates, list))) {
-			lineState->line = lineState->line ? sccp_line_release(lineState->line) : NULL;
+			lineState->line = lineState->line ? sccp_line_release(lineState->line) : NULL;		/* explicit release*/
 			sccp_free(lineState);
 		}
 		SCCP_LIST_UNLOCK(&lineStates);
@@ -244,12 +245,13 @@ void sccp_hint_module_stop(void)
 				AUTO_RELEASE sccp_device_t *device = sccp_device_retain((sccp_device_t *) subscriber->device);
 
 				if (device) {
-					subscriber->device = sccp_device_release(subscriber->device);
+					subscriber->device = sccp_device_release(subscriber->device);		/* explicit release*/
 					sccp_free(subscriber);
 				}
 			}
 			SCCP_LIST_UNLOCK(&hint->subscribers);
 			SCCP_LIST_HEAD_DESTROY(&hint->subscribers);
+			sccp_callinfo_dtor(hint->callInfo);
 			sccp_free(hint);
 		}
 		SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
@@ -294,13 +296,13 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 {
 	sccp_hint_list_t *hint;
 	int extensionState;
-	char hintStr[AST_MAX_EXTENSION];
-	const char *cidName;
-
+	//char hintStr[AST_MAX_EXTENSION];
+	//const char *cidName;
 	//const char *cidNumber;
+	char cidName[StationMaxNameSize] = "";
+	char cidNumber[StationMaxDirnumSize] = "";
 
 	hint = (sccp_hint_list_t *) data;
-	ast_get_hint(hintStr, sizeof(hintStr), NULL, 0, NULL, hint->context, hint->exten);
 
 #if ASTERISK_VERSION_GROUP >= 111
 	extensionState = info->exten_state;
@@ -308,18 +310,27 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 	extensionState = state;
 #endif
 
-	cidName = hint->callInfo.partyName;
-	//cidNumber = hint->callInfo.partyNumber;
+	if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
+		sccp_callinfo_getter(hint->callInfo, 
+			SCCP_CALLINFO_CALLINGPARTY_NAME, &cidName, 
+			SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cidNumber, 
+			SCCP_CALLINFO_KEY_SENTINEL);
+	} else {
+		sccp_callinfo_getter(hint->callInfo, 
+			SCCP_CALLINFO_CALLEDPARTY_NAME, &cidName, 
+			SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cidNumber, 
+			SCCP_CALLINFO_KEY_SENTINEL);
+	}
 
 	/* save previousState */
 	hint->previousState = hint->currentState;
 
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s: (sccp_hint_devstate_cb) Got new hint event %s, state: %d (%s), cidname: %s, cidnum: %s\n", hint->exten, hint->hint_dialplan, extensionState, ast_extension_state2str(extensionState), hint->callInfo.partyName, hint->callInfo.partyNumber);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s: (sccp_hint_devstate_cb) Got new hint event %s, state: %d (%s), cidname: %s, cidnum: %s\n", hint->exten, hint->hint_dialplan, extensionState, ast_extension_state2str(extensionState), cidName, cidNumber);
 	switch (extensionState) {
 		case AST_EXTENSION_REMOVED:
 		case AST_EXTENSION_DEACTIVATED:
 		case AST_EXTENSION_UNAVAILABLE:
-			if (cidName && !strcasecmp(cidName, "DND")) {
+			if (!strncasecmp(cidName, "DND", 3)) {
 				hint->currentState = SCCP_CHANNELSTATE_DND;
 			} else {
 				hint->currentState = SCCP_CHANNELSTATE_CONGESTION;
@@ -336,7 +347,7 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 			}
 			break;
 		case AST_EXTENSION_BUSY:
-			if (cidName && !strcasecmp(cidName, "DND")) {
+			if (!strncasecmp(cidName, "DND", 3)) {
 				hint->currentState = SCCP_CHANNELSTATE_DND;
 			} else {
 				hint->currentState = SCCP_CHANNELSTATE_BUSY;
@@ -364,7 +375,7 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
  */
 static void sccp_hint_eventListener(const sccp_event_t * event)
 {
-	sccp_device_t *device;
+	sccp_device_t *device = NULL;
 
 	if (!event) {
 		return;
@@ -385,16 +396,20 @@ static void sccp_hint_eventListener(const sccp_event_t * event)
 			}
 
 			break;
-		case SCCP_EVENT_DEVICE_DETACHED:
-			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s: (sccp_hint_eventListener) device %s detached on line %s\n", DEV_ID_LOG(event->event.deviceAttached.linedevice->device), event->event.deviceAttached.linedevice->device->id, event->event.deviceAttached.linedevice->line->name);
-			sccp_hint_lineStatusChanged(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
-			break;
 		case SCCP_EVENT_DEVICE_ATTACHED:
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s: (sccp_hint_eventListener) device %s attached on line %s\n", DEV_ID_LOG(event->event.deviceAttached.linedevice->device), event->event.deviceAttached.linedevice->device->id, event->event.deviceAttached.linedevice->line->name);
-			sccp_hint_lineStatusChanged(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
+			sccp_hint_attachLine(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
+			break;
+		case SCCP_EVENT_DEVICE_DETACHED:
+			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s: (sccp_hint_eventListener) device %s detached from line %s\n", DEV_ID_LOG(event->event.deviceAttached.linedevice->device), event->event.deviceAttached.linedevice->device->id, event->event.deviceAttached.linedevice->line->name);
+			sccp_hint_detachLine(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
 			break;
 		case SCCP_EVENT_LINESTATUS_CHANGED:
-			sccp_hint_lineStatusChanged(event->event.lineStatusChanged.line, event->event.lineStatusChanged.optional_device);
+			pbx_rwlock_rdlock(&GLOB(lock));
+			if (!GLOB(reload_in_progress)) {									/* skip processing hints when reloading */
+				sccp_hint_lineStatusChanged(event->event.lineStatusChanged.line, event->event.lineStatusChanged.optional_device);
+			}
+			pbx_rwlock_unlock(&GLOB(lock));
 			break;
 		case SCCP_EVENT_FEATURE_CHANGED:
 			sccp_hint_handleFeatureChangeEvent(event);
@@ -427,10 +442,7 @@ static void sccp_hint_deviceRegistered(const sccp_device_t * device)
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			positionOnDevice++;
 
-			if (config->type == SPEEDDIAL) {
-				if (sccp_strlen_zero(config->button.speeddial.hint)) {
-					continue;
-				}
+			if (config->type == SPEEDDIAL && !sccp_strlen_zero(config->button.speeddial.hint)) {
 				sccp_hint_addSubscription4Device(device, config->button.speeddial.hint, config->instance, positionOnDevice);
 			}
 		}
@@ -439,8 +451,7 @@ static void sccp_hint_deviceRegistered(const sccp_device_t * device)
 
 /*!
  * \brief Handle Hints for Device UnRegister
- * \param deviceName Device as Char
- *
+ * \param deviceName Device as Char *
  * \note device locked by parent
  *
  */
@@ -458,7 +469,7 @@ static void sccp_hint_deviceUnRegistered(const char *deviceName)
 			if (subscriber->device && !strcasecmp(subscriber->device->id, deviceName)) {
 				sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s: Freeing subscriber from hint exten: %s in %s\n", deviceName, hint->exten, hint->context);
 				SCCP_LIST_REMOVE_CURRENT(list);
-				subscriber->device = sccp_device_release(subscriber->device);
+				subscriber->device = sccp_device_release(subscriber->device);		/* explicit release*/
 				sccp_free(subscriber);
 			}
 		}
@@ -577,10 +588,10 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	}
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_create) Create hint for exten: %s context: %s\n", hint_exten, hint_context);
 
-	pbx_get_hint(hint_dialplan, sizeof(hint_dialplan) - 1, NULL, 0, NULL, hint_context, hint_exten);
+	int res = pbx_get_hint(hint_dialplan, sizeof(hint_dialplan) - 1, NULL, 0, NULL, hint_context, hint_exten);
 	// CS_AST_HAS_NEW_HINT
 
-	if (sccp_strlen_zero(hint_dialplan)) {
+	if (!res || sccp_strlen_zero(hint_dialplan)) {
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_create) No hint configuration in the dialplan exten: %s and context: %s\n", hint_exten, hint_context);
 		return NULL;
 	}
@@ -594,12 +605,15 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 		}
 	}
 
-	hint = sccp_malloc(sizeof(sccp_hint_list_t));
+	hint = sccp_calloc(sizeof(sccp_hint_list_t), 1);
 	if (!hint) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_hint_create) Memory Allocation Error while creating hint list for hint: %s@%s\n", hint_exten, hint_context);
 		return NULL;
 	}
-	memset(hint, 0, sizeof(sccp_hint_list_t));
+	if (!(hint->callInfo = sccp_callinfo_ctor(0))) {
+		return NULL;
+	}
+	hint->calltype = SKINNY_CALLTYPE_SENTINEL;
 
 	SCCP_LIST_HEAD_INIT(&hint->subscribers);
 	//sccp_mutex_init(&hint->lock);
@@ -640,6 +654,58 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 }
 
 /* ========================================================================================================================= Event Handlers : LineState */
+static void sccp_hint_attachLine(sccp_line_t * line, sccp_device_t * device) 
+{
+	struct sccp_hint_lineState *lineState = NULL;
+
+	SCCP_LIST_LOCK(&lineStates);
+	SCCP_LIST_TRAVERSE(&lineStates, lineState, list) {
+		if (lineState->line == line) {
+			break;
+		}
+	}
+	if (!lineState) {		/* create new lineState if necessary */
+		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_attachLine) Create new hint_lineState for line: %s\n", DEV_ID_LOG(device), line->name);
+		lineState = sccp_calloc(sizeof(struct sccp_hint_lineState), 1);
+		if (!lineState) {
+			pbx_log(LOG_ERROR, "%s: (sccp_hint_attachLine) Memory Allocation Error while creating hint-lineState object for line %s\n", DEV_ID_LOG(device), line->name);
+			SCCP_LIST_UNLOCK(&lineStates);
+			return;
+		}
+		SCCP_LIST_INSERT_HEAD(&lineStates, lineState, list);
+	}
+
+	if (!lineState->line) {		/* retain one instance of line in lineState->line */
+		//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_attachLine) attaching line: %s\n", DEV_ID_LOG(device), line->name);
+		lineState->line = sccp_line_retain(line);
+	}
+	SCCP_LIST_UNLOCK(&lineStates);
+	
+	sccp_hint_lineStatusChanged(line, device);
+}
+
+static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device) 
+{
+	sccp_hint_lineStatusChanged(line, device);
+	struct sccp_hint_lineState *lineState = NULL;
+	
+	if (line->statistic.numberOfActiveDevices == 0) {		/* release last instance of lineState->line */
+		//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_detachLine) detaching line: %s, \n", DEV_ID_LOG(device), line->name);
+		SCCP_LIST_LOCK(&lineStates);
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&lineStates, lineState, list) {
+			if (lineState->line == line) {
+				//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_detachLine) line: %s detached\n", DEV_ID_LOG(device), line->name);
+				lineState->line = lineState->line ? sccp_line_release(lineState->line) : NULL;
+				SCCP_LIST_REMOVE_CURRENT(list);
+				sccp_free(lineState)
+				break;
+			}
+		}
+		SCCP_LIST_TRAVERSE_SAFE_END;
+		SCCP_LIST_UNLOCK(&lineStates);
+	}
+}
+
 /*!
  * \brief Handle line status change
  * \param line SCCP Line that was changed
@@ -656,25 +722,9 @@ static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * devi
 			break;
 		}
 	}
-
-	/** create new state holder for line */
-	if (!lineState) {
-		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_lineStatusChanged) Create new hint_lineState for line: %s\n", DEV_ID_LOG(device), line->name);
-		lineState = sccp_malloc(sizeof(struct sccp_hint_lineState));
-		if (!lineState) {
-			pbx_log(LOG_ERROR, "%s: (sccp_hint_lineStatusChanged) Memory Allocation Error while creating hint-lineState object for line %s\n", DEV_ID_LOG(device), line->name);
-			return;
-		}
-		memset(lineState, 0, sizeof(struct sccp_hint_lineState));
-		lineState->line = sccp_line_retain(line);
-
-		SCCP_LIST_INSERT_HEAD(&lineStates, lineState, list);
-	}
 	SCCP_LIST_UNLOCK(&lineStates);
-
+	
 	if (lineState && lineState->line) {
-
-		/** update line state */
 		sccp_hint_updateLineState(lineState);
 	}
 }
@@ -732,6 +782,7 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
 			AUTO_RELEASE sccp_channel_t *channel = SCCP_LIST_FIRST(&line->channels) ? sccp_channel_retain(SCCP_LIST_FIRST(&line->channels)) : NULL;
 
 			SCCP_LIST_UNLOCK(&line->channels);
+			lineState->callInfo.calltype = SKINNY_CALLTYPE_SENTINEL;
 
 			if (channel) {
 				lineState->callInfo.calltype = channel->calltype;
@@ -739,23 +790,31 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
 				if (channel->state != SCCP_CHANNELSTATE_ONHOOK && channel->state != SCCP_CHANNELSTATE_DOWN) {
 					lineState->state = channel->state;
 
+					sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
+					char cid_name[StationMaxNameSize] = {0};
+					char cid_num[StationMaxDirnumSize] = {0};
+					sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
+
 					/* set cid name/numbe information according to the call direction */
 					if (SKINNY_CALLTYPE_INBOUND == channel->calltype) {
-						if (channel->privacy || !channel->callInfo.presentation) {
-							sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyName));
-							sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
-						} else {
-							sccp_copy_string(lineState->callInfo.partyName, channel->callInfo.callingPartyName, sizeof(lineState->callInfo.partyName));
-							sccp_copy_string(lineState->callInfo.partyNumber, channel->callInfo.callingPartyName, sizeof(lineState->callInfo.partyNumber));
-						}
+						sccp_callinfo_getter(ci, 
+							SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
+							SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
+							SCCP_CALLINFO_PRESENTATION, &presentation, 
+							SCCP_CALLINFO_KEY_SENTINEL);
 					} else {
-						if (channel->privacy || !channel->callInfo.presentation) {
-							sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyName));
-							sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
-						} else {
-							sccp_copy_string(lineState->callInfo.partyName, channel->callInfo.calledPartyName, sizeof(lineState->callInfo.partyName));
-							sccp_copy_string(lineState->callInfo.partyNumber, channel->callInfo.calledPartyNumber, sizeof(lineState->callInfo.partyNumber));
-						}
+						sccp_callinfo_getter(ci, 
+							SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name, 
+							SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cid_num, 
+							SCCP_CALLINFO_PRESENTATION, &presentation, 
+							SCCP_CALLINFO_KEY_SENTINEL);
+					}
+					if (presentation == CALLERID_PRESENTATION_FORBIDDEN) {
+						sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyName));
+						sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
+					} else {
+						sccp_copy_string(lineState->callInfo.partyName, cid_name, sizeof(lineState->callInfo.partyName));
+						sccp_copy_string(lineState->callInfo.partyNumber, cid_num, sizeof(lineState->callInfo.partyNumber));
 					}
 				} else {
 					lineState->state = SCCP_CHANNELSTATE_ONHOOK;
@@ -823,12 +882,15 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 		switch (state) {
 			case SCCP_CHANNELSTATE_DOWN:
 				state = SCCP_CHANNELSTATE_ONHOOK;
+				lineState->callInfo.calltype = SKINNY_CALLTYPE_SENTINEL;
 				break;
 			case SCCP_CHANNELSTATE_SPEEDDIAL:
 				break;
 			case SCCP_CHANNELSTATE_ONHOOK:
+				lineState->callInfo.calltype = SKINNY_CALLTYPE_SENTINEL;
 				break;
 			case SCCP_CHANNELSTATE_DND:
+				lineState->callInfo.calltype = SKINNY_CALLTYPE_INBOUND;
 				sccp_copy_string(lineState->callInfo.partyName, "DND", sizeof(lineState->callInfo.partyName));
 				sccp_copy_string(lineState->callInfo.partyNumber, "DND", sizeof(lineState->callInfo.partyNumber));
 				break;
@@ -836,6 +898,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 			case SCCP_CHANNELSTATE_GETDIGITS:
 			case SCCP_CHANNELSTATE_RINGOUT:
 			case SCCP_CHANNELSTATE_CONNECTED:
+			case SCCP_CHANNELSTATE_PROGRESS:
 			case SCCP_CHANNELSTATE_PROCEED:
 			case SCCP_CHANNELSTATE_RINGING:
 			case SCCP_CHANNELSTATE_DIALING:
@@ -848,44 +911,52 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 			case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
 			case SCCP_CHANNELSTATE_INVALIDNUMBER:
 			case SCCP_CHANNELSTATE_CALLCONFERENCE:
-			case SCCP_CHANNELSTATE_CALLTRANSFER:
+			case SCCP_CHANNELSTATE_CALLTRANSFER: 
+			{
+				sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
+				char cid_name[StationMaxNameSize] = {0};
+				char cid_num[StationMaxDirnumSize] = {0};
+				sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
 				//if (dev_privacy == 0 || (dev_privacy == 1 && channel->privacy == FALSE)) {
 
 				/** set cid name/number information according to the call direction */
 				switch (channel->calltype) {
 					case SKINNY_CALLTYPE_INBOUND:
-						if (channel->privacy || !channel->callInfo.presentation) {
-							sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyName));
-							sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
-						} else {
-							sccp_copy_string(lineState->callInfo.partyName, channel->callInfo.callingPartyName, sizeof(lineState->callInfo.partyName));
-							sccp_copy_string(lineState->callInfo.partyNumber, channel->callInfo.callingPartyNumber, sizeof(lineState->callInfo.partyNumber));
-						}
-						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speeddial partyName: '%s' (callingParty)\n", line->name, channel->callInfo.callingPartyName);
+						sccp_callinfo_getter(ci, 
+							SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
+							SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
+							SCCP_CALLINFO_PRESENTATION, &presentation, 
+							SCCP_CALLINFO_KEY_SENTINEL);
+						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: get speeddial party: '%s <%s>' (callingParty)\n", line->name, cid_name, cid_num);
 						break;
 					case SKINNY_CALLTYPE_OUTBOUND:
-						if (channel->privacy || !channel->callInfo.presentation) {
-							sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyName));
-							sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
-						} else {
-							sccp_copy_string(lineState->callInfo.partyName, channel->callInfo.calledPartyName, sizeof(lineState->callInfo.partyName));
-							sccp_copy_string(lineState->callInfo.partyNumber, channel->callInfo.calledPartyNumber, sizeof(lineState->callInfo.partyNumber));
-						}
-						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speeddial partyName: '%s' (calledParty)\n", line->name, channel->callInfo.calledPartyName);
+						sccp_callinfo_getter(ci, 
+							SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name, 
+							SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cid_num, 
+							SCCP_CALLINFO_PRESENTATION, &presentation, 
+							SCCP_CALLINFO_KEY_SENTINEL);
+						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: get speeddial party: '%s <%s>' (calledParty)\n", line->name, cid_name, cid_num);
 						break;
 					case SKINNY_CALLTYPE_FORWARD:
-						sccp_copy_string(lineState->callInfo.partyName, "cfwd", sizeof(lineState->callInfo.partyName));
-						sccp_copy_string(lineState->callInfo.partyNumber, "cfwd", sizeof(lineState->callInfo.partyNumber));
-						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speedial partyName: cfwd\n", line->name);
+						sccp_copy_string(cid_name, "cfwd", sizeof(cid_name));
+						sccp_copy_string(cid_num, "cfwd", sizeof(cid_num));
+						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: get speedial partyName: cfwd\n", line->name);
 						break;
 					case SKINNY_CALLTYPE_SENTINEL:
 						break;
 				}
+				if (presentation == CALLERID_PRESENTATION_FORBIDDEN) {
+					sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyName));
+					sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_PRIVATE, sizeof(lineState->callInfo.partyNumber));
+				} else {
+					sccp_copy_string(lineState->callInfo.partyName, cid_name, sizeof(lineState->callInfo.partyName));
+					sccp_copy_string(lineState->callInfo.partyNumber, cid_num, sizeof(lineState->callInfo.partyNumber));
+				}
+			}
 				break;
 			case SCCP_CHANNELSTATE_BLINDTRANSFER:
 			case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
 			case SCCP_CHANNELSTATE_ZOMBIE:
-			case SCCP_CHANNELSTATE_PROGRESS:
 			case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 			case SCCP_CHANNELSTATE_SENTINEL:
 				/* unused states */
@@ -898,6 +969,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 	} else {
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSingleChannel) NO CHANNEL\n", line->name);
 		lineState->state = SCCP_CHANNELSTATE_ONHOOK;
+		lineState->callInfo.calltype = SKINNY_CALLTYPE_SENTINEL;
 		sccp_hint_checkForDND(lineState);
 	}													// if(channel)
 
@@ -951,6 +1023,7 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 		case SCCP_CHANNELSTATE_ONHOOK:
 			newDeviceState = AST_DEVICE_NOT_INUSE;
 			break;
+		case SCCP_CHANNELSTATE_RINGOUT:
 		case SCCP_CHANNELSTATE_RINGING:
 			newDeviceState = AST_DEVICE_RINGING;
 			break;
@@ -959,6 +1032,11 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
 		case SCCP_CHANNELSTATE_DND:
+		case SCCP_CHANNELSTATE_PROCEED:
+		case SCCP_CHANNELSTATE_PROGRESS:
+		case SCCP_CHANNELSTATE_GETDIGITS:
+		case SCCP_CHANNELSTATE_DIALING:
+		case SCCP_CHANNELSTATE_DIGITSFOLL:
 			newDeviceState = AST_DEVICE_BUSY;
 			break;
 		case SCCP_CHANNELSTATE_ZOMBIE:
@@ -968,15 +1046,9 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			newDeviceState = AST_DEVICE_UNAVAILABLE;
 			break;
 		case SCCP_CHANNELSTATE_INVALIDNUMBER:
-		case SCCP_CHANNELSTATE_PROCEED:
-		case SCCP_CHANNELSTATE_RINGOUT:
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 		case SCCP_CHANNELSTATE_OFFHOOK:
-		case SCCP_CHANNELSTATE_GETDIGITS:
 		case SCCP_CHANNELSTATE_CONNECTED:
-		case SCCP_CHANNELSTATE_DIALING:
-		case SCCP_CHANNELSTATE_DIGITSFOLL:
-		case SCCP_CHANNELSTATE_PROGRESS:
 		case SCCP_CHANNELSTATE_BLINDTRANSFER:
 		case SCCP_CHANNELSTATE_CALLWAITING:
 		case SCCP_CHANNELSTATE_CALLTRANSFER:
@@ -1000,7 +1072,15 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 {
 	sccp_hint_list_t *hint = NULL;
 	char lineName[StationMaxNameSize + 5];
-	sprintf(lineName, "SCCP/%s", lineState->line->name);
+
+	{
+		AUTO_RELEASE sccp_line_t *line = lineState->line ? sccp_line_retain(lineState->line) : NULL;
+		if (line) {
+			sprintf(lineName, "SCCP/%s", lineState->line->name);
+		} else {
+			return;
+		}
+	}
 
 	enum ast_device_state newDeviceState = sccp_hint_hint2DeviceState(lineState->state);
 	enum ast_device_state oldDeviceState = AST_DEVICE_UNAVAILABLE;
@@ -1009,10 +1089,21 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
 		if (sccp_strcaseequals(lineName, hint->hint_dialplan)) {
-			sccp_copy_string(hint->callInfo.partyName, lineState->callInfo.partyName, sizeof(hint->callInfo.partyName));
-			sccp_copy_string(hint->callInfo.partyNumber, lineState->callInfo.partyNumber, sizeof(hint->callInfo.partyNumber));
+			//sccp_copy_string(hint->callInfo.partyName, lineState->callInfo.partyName, sizeof(hint->callInfo.partyName));
+			//sccp_copy_string(hint->callInfo.partyNumber, lineState->callInfo.partyNumber, sizeof(hint->callInfo.partyNumber));
+			hint->calltype = lineState->callInfo.calltype;
+			if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
+				sccp_callinfo_setter(hint->callInfo, 
+					SCCP_CALLINFO_CALLINGPARTY_NAME, lineState->callInfo.partyName,
+					SCCP_CALLINFO_CALLINGPARTY_NUMBER, lineState->callInfo.partyNumber,
+					SCCP_CALLINFO_KEY_SENTINEL);
+			} else {
+				sccp_callinfo_setter(hint->callInfo, 
+					SCCP_CALLINFO_CALLEDPARTY_NAME, lineState->callInfo.partyName,
+					SCCP_CALLINFO_CALLEDPARTY_NUMBER, lineState->callInfo.partyNumber,
+					SCCP_CALLINFO_KEY_SENTINEL);
+			}
 
-			hint->callInfo.calltype = lineState->callInfo.calltype;
 			oldDeviceState = sccp_hint_hint2DeviceState(hint->currentState);
 			break;
 		}
@@ -1020,6 +1111,7 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate '%s' (%d) on line 'SCCP/%s'\n", sccp_channelstate2str(lineState->state), lineState->state, lineState->line->name);
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) => asterisk: '%s' (%d) => '%s' (%d) on line SCCP/%s\n", pbxsccp_devicestate2str(oldDeviceState), oldDeviceState, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
+	//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) lineState->callInfo.partyName: %s, lineState->callInfo.partyNumber: %s\n", lineState->callInfo.partyName,lineState->callInfo.partyNumber);
 
 	// if pbx devicestate does not change, no need to inform (local) asterisk */
 	if (newDeviceState == oldDeviceState) {
@@ -1099,12 +1191,12 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 {
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	sccp_speed_t k;
 	char displayMessage[80] = "";
-	int status;
+	int status = SCCP_CHANNELSTATE_SENTINEL;
 #endif
 
 	if (!hint) {
@@ -1117,71 +1209,74 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		return;
 	}
 
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) notify %u subscriber(s) of %s's state %s\n", hint->exten, SCCP_LIST_GETSIZE(&hint->subscribers), (hint->hint_dialplan) ? hint->hint_dialplan : "null", sccp_channelstate2str(hint->currentState));
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) notify %u subscriber(s) of %s's state %s\n", hint->exten, SCCP_LIST_GETSIZE(&hint->subscribers), hint->hint_dialplan, sccp_channelstate2str(hint->currentState));
 
 	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE(&hint->subscribers, subscriber, list) {
 		AUTO_RELEASE sccp_device_t *d = sccp_device_retain((sccp_device_t *) subscriber->device);
 
 		if (d) {
-			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, (hint->hint_dialplan) ? hint->hint_dialplan : "null", sccp_channelstate2str(hint->currentState), hint->currentState);
+			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, hint->hint_dialplan, sccp_channelstate2str(hint->currentState), hint->currentState);
 #ifdef CS_DYNAMIC_SPEEDDIAL
 			if (d->inuseprotocolversion >= 15) {
 				sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, TRUE, &k);
 
 				REQ(msg, FeatureStatDynamicMessage);
 				if (msg) {
-					
+					char cidName[StationMaxNameSize] = "";
+					char cidNumber[StationMaxDirnumSize] = "";
 
 					switch (hint->currentState) {
 						case SCCP_CHANNELSTATE_ONHOOK:
-							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							status = SKINNY_BLF_STATUS_IDLE;
 							break;
 
 						case SCCP_CHANNELSTATE_DOWN:
-							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							status = SKINNY_BLF_STATUS_UNKNOWN;	/* default state */
 							break;
 
-						case SCCP_CHANNELSTATE_RINGING:
-							if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
-								if (strlen(hint->callInfo.partyName) > 0) {
-									snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
-								} else if (strlen(hint->callInfo.partyNumber) > 0) {
-									snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyNumber, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
-								} else {
-									snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
-								}
-							} else {
-								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
-							}
-							status = SKINNY_BLF_STATUS_ALERTING;	/* ringin */
-							break;
-
 						case SCCP_CHANNELSTATE_DND:
-							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							//snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							snprintf(displayMessage, sizeof(displayMessage), "(DND) %s", k.name);
 							status = SKINNY_BLF_STATUS_DND;	/* dnd */
 							break;
 
 						case SCCP_CHANNELSTATE_CONGESTION:
-							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							status = SKINNY_BLF_STATUS_UNKNOWN;	/* device/line not found */
 							break;
 
+						case SCCP_CHANNELSTATE_RINGING:
+							status = SKINNY_BLF_STATUS_ALERTING;	/* ringin */
+							/* fall through */
 						default:
 							if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
-								if (strlen(hint->callInfo.partyName) > 0) {
-									snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "<->", k.name);
-								} else if (strlen(hint->callInfo.partyNumber) > 0) {
-									snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyNumber, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "<->", k.name);
+								if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
+									sccp_callinfo_getter(hint->callInfo, 
+										SCCP_CALLINFO_CALLINGPARTY_NAME, &cidName, 
+										SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cidNumber, 
+										SCCP_CALLINFO_KEY_SENTINEL);
+								} else {
+									sccp_callinfo_getter(hint->callInfo, 
+										SCCP_CALLINFO_CALLEDPARTY_NAME, &cidName, 
+										SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cidNumber, 
+										SCCP_CALLINFO_KEY_SENTINEL);
+								}
+								if (strlen(cidName) > 0) {
+									snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", cidName, (SCCP_CHANNELSTATE_CONNECTED == hint->currentState) ? "<=>" : ((hint->calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->"), k.name);
+								} else if (strlen(cidNumber) > 0) {
+									snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", cidNumber, (SCCP_CHANNELSTATE_CONNECTED == hint->currentState) ? "<=>" : ((hint->calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->"), k.name);
 								} else {
 									snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 								}
 							} else {
 								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							}
-							status = SKINNY_BLF_STATUS_INUSE;	/* connected */
+							if (status == SCCP_CHANNELSTATE_SENTINEL) {
+								status = SKINNY_BLF_STATUS_INUSE;	/* connected / progress / proceeding */
+							}
 							break;
 					}
 					sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) set display name to: \"%s\"\n", DEV_ID_LOG(d), displayMessage);
@@ -1283,18 +1378,9 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
 
 				} else {
-					/* use a temporary channel as fallback for non dynamic speeddial devices */
-					sccp_channel_t tmpChannel = { 0 };
-					sccp_copy_string(tmpChannel.callInfo.callingPartyName, hint->callInfo.partyName, sizeof(tmpChannel.callInfo.callingPartyName));
-					sccp_copy_string(tmpChannel.callInfo.calledPartyName, hint->callInfo.partyName, sizeof(tmpChannel.callInfo.calledPartyName));
-					sccp_copy_string(tmpChannel.callInfo.callingPartyNumber, hint->callInfo.partyNumber, sizeof(tmpChannel.callInfo.callingPartyNumber));
-					sccp_copy_string(tmpChannel.callInfo.calledPartyNumber, hint->callInfo.partyNumber, sizeof(tmpChannel.callInfo.calledPartyNumber));
-					tmpChannel.calltype = (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? SKINNY_CALLTYPE_OUTBOUND : SKINNY_CALLTYPE_INBOUND;
-					/* done */
-
-					d->protocol->sendCallInfo(d, &tmpChannel, subscriber->instance);
+					sccp_callinfo_send(hint->callInfo, 0 /*callid*/, (hint->calltype == SKINNY_CALLTYPE_OUTBOUND) ? SKINNY_CALLTYPE_OUTBOUND : SKINNY_CALLTYPE_INBOUND, subscriber->instance, d, TRUE);
 					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_ON);
-					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
+					sccp_dev_set_keyset(d, subscriber->instance, 0 /*callid*/, KEYMODE_INUSEHINT);
 				}
 			}
 		} else {
@@ -1309,7 +1395,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 /*
  * model information should be moved to sccp_dev_build_buttontemplate, or some other place
  */
-static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice)
+static gcc_inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice)
 {
 #ifdef CS_DYNAMIC_SPEEDDIAL_CID
 	if (positionOnDevice <= 8 && (device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7971 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7985 || device->skinny_type == SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR)) {
@@ -1331,7 +1417,7 @@ static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, co
 
 static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 {
-	sccp_linedevices_t *lineDevice;
+	sccp_linedevices_t *lineDevice = NULL;
 	sccp_line_t *line = lineState->line;
 
 	do {
@@ -1348,6 +1434,7 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 		SCCP_LIST_UNLOCK(&line->devices);
 
 		if (allDevicesInDND) {
+			lineState->callInfo.calltype = SKINNY_CALLTYPE_INBOUND;
 			lineState->state = SCCP_CHANNELSTATE_DND;
 		}
 	} while (0);
@@ -1365,7 +1452,7 @@ sccp_channelstate_t sccp_hint_getLinestate(const char *linename, const char *dev
 
 	SCCP_LIST_LOCK(&lineStates);
 	SCCP_LIST_TRAVERSE(&lineStates, lineState, list) {
-		if (sccp_strcaseequals(lineState->line->name, linename)) {
+		if (lineState->line && sccp_strcaseequals(lineState->line->name, linename)) {
 			state = lineState->state;
 			break;
 		}
@@ -1400,10 +1487,10 @@ int sccp_show_hint_lineStates(int fd, sccp_cli_totals_t *totals, struct mansessi
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 #define CLI_AMI_TABLE_FIELDS 															\
- 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	lineState->line->name)					\
+ 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	lineState->line ? lineState->line->name : "")		\
  		CLI_AMI_TABLE_FIELD(State,		"-22.22",	s,	22,	sccp_channelstate2str(lineState->state))		\
  		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15",	s,	15,	lineState->callInfo.partyNumber)			\
- 		CLI_AMI_TABLE_FIELD(CallInfoName,	"-20.20",	s,	20,	lineState->callInfo.partyName)				\
+ 		CLI_AMI_TABLE_FIELD(CallInfoName,	"-30.30",	s,	30,	lineState->callInfo.partyName)				\
  		CLI_AMI_TABLE_FIELD(Direction,		"-10.10",	s,	10,	(!SCCP_CHANNELSTATE_Idling(lineState->state) && lineState->callInfo.calltype) ? skinny_calltype2str(lineState->callInfo.calltype) : "INACTIVE")
 
 #include "sccp_cli_table.h"
@@ -1431,6 +1518,7 @@ int sccp_show_hint_lineStates(int fd, sccp_cli_totals_t *totals, struct mansessi
 int sccp_show_hint_subscriptions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	int local_line_total = 0;
+	
 
 #define CLI_AMI_TABLE_NAME HintSubscriptions
 #define CLI_AMI_TABLE_PER_ENTRY_NAME HintSubscription
@@ -1440,15 +1528,32 @@ int sccp_show_hint_subscriptions(int fd, sccp_cli_totals_t *totals, struct manse
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+#define CLI_AMI_TABLE_BEFORE_ITERATION														\
+	{																	\
+		char cidName[StationMaxNameSize];												\
+		char cidNumber[StationMaxDirnumSize];												\
+		if (subscription->calltype == SKINNY_CALLTYPE_INBOUND) {									\
+			sccp_callinfo_getter(subscription->callInfo, 										\
+				SCCP_CALLINFO_CALLINGPARTY_NAME, &cidName, 									\
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cidNumber, 									\
+				SCCP_CALLINFO_KEY_SENTINEL);											\
+		} else {															\
+			sccp_callinfo_getter(subscription->callInfo, 											\
+				SCCP_CALLINFO_CALLEDPARTY_NAME, &cidName, 									\
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cidNumber, 									\
+				SCCP_CALLINFO_KEY_SENTINEL);											\
+		}
+#define CLI_AMI_TABLE_AFTER_ITERATION 														\
+	}
 #define CLI_AMI_TABLE_FIELDS 															\
  		CLI_AMI_TABLE_FIELD(Exten,		"-10.10",	s,	10,	subscription->exten)					\
  		CLI_AMI_TABLE_FIELD(Context,		"-10.10",	s,	10,	subscription->context)					\
  		CLI_AMI_TABLE_FIELD(Hint,		"-15.15",	s,	15,	subscription->hint_dialplan)				\
  		CLI_AMI_TABLE_FIELD(State,		"-22.22",	s,	22,	sccp_channelstate2str(subscription->currentState))	\
- 		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15",	s,	15,	subscription->callInfo.partyNumber)			\
- 		CLI_AMI_TABLE_FIELD(CallInfoName,	"-20.20",	s,	20,	subscription->callInfo.partyName)			\
- 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10",	s,	10,	(subscription->callInfo.calltype && subscription->callInfo.calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(subscription->callInfo.calltype) : "") \
- 		CLI_AMI_TABLE_FIELD(Subs,		"-4",		d,		4,	SCCP_LIST_GETSIZE(&subscription->subscribers))
+ 		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15",	s,	15,	cidNumber)			\
+ 		CLI_AMI_TABLE_FIELD(CallInfoName,	"-30.30",	s,	30,	cidName)			\
+ 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10",	s,	10,	(subscription->calltype && subscription->calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(subscription->calltype) : "") \
+ 		CLI_AMI_TABLE_FIELD(Subs,		"-4",		d,	4,	SCCP_LIST_GETSIZE(&subscription->subscribers))
 
 #include "sccp_cli_table.h"
 

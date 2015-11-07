@@ -119,8 +119,8 @@ enum accessory {
 
 enum accessorystate {
         SCCP_ACCESSORYSTATE_NONE,			,	"None",
-        SCCP_ACCESSORYSTATE_ONHOOK,			,	"On Hook", 
-        SCCP_ACCESSORYSTATE_OFFHOOK,			,	"Off Hook",
+        SCCP_ACCESSORYSTATE_OFFHOOK,			,	"Off Hook", 
+        SCCP_ACCESSORYSTATE_ONHOOK,			,	"On Hook",
 }
 
 enum config_buttontype {
@@ -178,15 +178,21 @@ enum parkresult {
 	PARK_RESULT_SUCCESS,				,	"Park Successfull", 
 }
 
-enum calleridpresence {
-	CALLERID_PRESENCE_FORBIDDEN,			,	"CalledId Presence Forbidden",
-	CALLERID_PRESENCE_ALLOWED,			,	"CallerId Presence Allowed",
+enum callerid_presentation {
+	CALLERID_PRESENTATION_FORBIDDEN,		,	"CalledId Presentation Forbidden",
+	CALLERID_PRESENTATION_ALLOWED,			,	"CallerId Presentation Allowed",
 }
 
 enum rtp_status {
 	SCCP_RTP_STATUS_INACTIVE, 			=0,	"Rtp Inactive",
 	SCCP_RTP_STATUS_PROGRESS, 			=1<<0,	"Rtp In Progress",
 	SCCP_RTP_STATUS_ACTIVE,				=1<<1,	"Rtp Active",
+}
+
+enum sccp_rtp_type {
+	SCCP_RTP_AUDIO,					= 0,	"Audio RTP",
+	SCCP_RTP_VIDEO,					= 1<<0,	"Video RTP",
+	SCCP_RTP_TEXT,					= 1<<2, "Text RTP",
 }
 
 enum extension_status {
@@ -278,6 +284,70 @@ enum rtp_info {
 	SCCP_RTP_INFO_AVAILABLE,			=1<<1,	"RTP Info: Available",
 	SCCP_RTP_INFO_ALLOW_DIRECTRTP,			=1<<2,	"RTP Info: Allow DirectMedia",
 }
+
+enum feature_type
+	SCCP_FEATURE_UNKNOWN,				,	"FEATURE_UNKNOWN",
+	SCCP_FEATURE_CFWDNONE,				,	"cfwd off",
+	SCCP_FEATURE_CFWDALL,				,	"cfwdall",
+	SCCP_FEATURE_CFWDBUSY,				,	"cfwdbusy",
+	SCCP_FEATURE_DND,				,	"dnd",
+	SCCP_FEATURE_PRIVACY,				,	"privacy",
+	SCCP_FEATURE_MONITOR,				,	"monitor",
+	SCCP_FEATURE_HOLD,				,	"hold",
+	SCCP_FEATURE_TRANSFER,				,	"transfer",
+	SCCP_FEATURE_MULTIBLINK,			,	"multiblink",
+	SCCP_FEATURE_MOBILITY,				,	"mobility",
+	SCCP_FEATURE_CONFERENCE,			,	"conference",
+	SCCP_FEATURE_DO_NOT_DISTURB,			,	"do not disturb",
+	SCCP_FEATURE_CONF_LIST,				,	"ConfList",
+	SCCP_FEATURE_REMOVE_LAST_PARTICIPANT,		,	"RemoveLastParticipant",
+	SCCP_FEATURE_HLOG,				,	"Hunt Group Log-in/out",
+	SCCP_FEATURE_QRT,				,	"QRT",
+	SCCP_FEATURE_CALLBACK,				,	"CallBack",
+	SCCP_FEATURE_OTHER_PICKUP,			,	"OtherPickup",
+	SCCP_FEATURE_VIDEO_MODE,			,	"VideoMode",
+	SCCP_FEATURE_NEW_CALL,				,	"NewCall",
+	SCCP_FEATURE_END_CALL,				,	"EndCall",
+	SCCP_FEATURE_TESTE,				,	"FEATURE_TESTE",
+	SCCP_FEATURE_TESTF,				,	"FEATURE_TESTF",
+	SCCP_FEATURE_TESTI,				,	"FEATURE_TESTI",
+	SCCP_FEATURE_TESTG,				,	"Messages",
+	SCCP_FEATURE_TESTH,				,	"Directory",
+	SCCP_FEATURE_TESTJ,				,	"Application",
+#ifdef CS_DEVSTATE_FEATURE
+	SCCP_FEATURE_DEVSTATE,				,	"devstate",
+#endif
+	SCCP_FEATURE_PICKUP,				,	"pickup",
+}
+
+enum callinfo_key {
+	SCCP_CALLINFO_NONE,				= 0,	"none",
+	SCCP_CALLINFO_CALLEDPARTY_NAME	,		,	"calledparty name",
+	SCCP_CALLINFO_CALLEDPARTY_NUMBER,		,	"calledparty number",
+	SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL,		,	"calledparty voicemail",
+	
+	SCCP_CALLINFO_CALLINGPARTY_NAME,		,	"callingparty name",
+	SCCP_CALLINFO_CALLINGPARTY_NUMBER,		,	"callingparty number",
+	SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL,		,	"callingparty voicemail",
+	
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME,		,	"orig_calledparty name",
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER,		,	"orig_calledparty number",
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL,	,	"orig_calledparty voicemail",
+	
+	SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME,		,	"orig_callingparty name",
+	SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER,		,	"orig_callingparty number",
+
+	SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME,	,	"last_redirectingparty name",
+	SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER,	,	"last_redirectingparty number",
+	SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL,	,	"last_redirectingparty voicemail",
+
+	SCCP_CALLINFO_HUNT_PILOT_NAME,			,	"hunt pilot name",
+	SCCP_CALLINFO_HUNT_PILOT_NUMBER,		,	"hunt pilor number",
+	
+	SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON,	,	"orig_calledparty_redirect reason",
+	SCCP_CALLINFO_LAST_REDIRECT_REASON,		,	"last_redirect reason",
+	SCCP_CALLINFO_PRESENTATION,			,	"presentation",
+};
 
 } /* NAMESPACE sccp */
 
@@ -467,6 +537,16 @@ enum tone {
 	SKINNY_TONE_MLPP_BNEA,				=0x7B,	"MLPP Bnea",
 	SKINNY_TONE_MLPP_UPA,				=0x7C,	"MLPP Upa", 
 	SKINNY_TONE_NOTONE,				=0x7F,	"No Tone",
+	SKINNY_TONE_MEETME_GREETING,			=0x80,	"Meetme Greeting Tone",
+	SKINNY_TONE_MEETME_NUMBER_INVALID,		=0x81,	"Meetme Number Invalid Tone",
+	SKINNY_TONE_MEETME_NUMBER_FAILED,		=0x82,	"Meetme Number Failed Tone",
+	SKINNY_TONE_MEETME_ENTER_PIN,			=0x83,	"Meetme Enter Pin Tone",
+	SKINNY_TONE_MEETME_INVALID_PIN,			=0x84,	"Meetme Invalid Pin Tone",
+	SKINNY_TONE_MEETME_FAILED_PIN,			=0x85,	"Meetme Failed Pin Tone",
+	SKINNY_TONE_MEETME_CFB_FAILED,			=0x86,	"Meetme CFB Failed Tone",
+	SKINNY_TONE_MEETME_ENTER_ACCESS_CODE,		=0x87,	"Meetme Enter Access Code Tone",
+	SKINNY_TONE_MEETME_ACCESS_CODE_INVALID,		=0x88,	"Meetme Access Code Invalid Tone",
+	SKINNY_TONE_MEETME_ACCESS_CODE_FAILED,		=0x89,	"Meetme Access Code Failed Tone",
 }
 
 /*!
@@ -526,6 +606,7 @@ enum keymode {
 	KEYMODE_OFFHOOKFEAT,				,	"OFFHOOKFEAT",
 	KEYMODE_INUSEHINT,				,	"INUSEHINT",
 	KEYMODE_ONHOOKSTEALABLE,			,	"ONHOOKSTEALABLE",
+	KEYMODE_HOLDCONF,				,	"HOLDCONF",
 	KEYMODE_EMPTY,					,	"",
 }
 
@@ -756,7 +837,7 @@ enum devicetype {
 	SKINNY_DEVICETYPE_CISCO7920 			,=30002,"Cisco 7920",
 	SKINNY_DEVICETYPE_CISCO7921,			=365,	"Cisco 7921",
 	SKINNY_DEVICETYPE_CISCO7925,			=484,	"Cisco 7925",
-//	SKINNY_DEVICETYPE_CISCO7926,			=,	"Cisco 7926",
+	SKINNY_DEVICETYPE_CISCO7926,			=577,	"Cisco 7926",
 	SKINNY_DEVICETYPE_CISCO7931,			=348,	"Cisco 7931",
 	SKINNY_DEVICETYPE_CISCO7935,			=9,	"Cisco 7935",
 	SKINNY_DEVICETYPE_CISCO7936 			,=30019,"Cisco 7936 Conference",
@@ -818,26 +899,28 @@ enum devicetype {
 /*!
  * \brief Skinny Device Registration (ENUM)
  */
-enum encryptiontype {
-	NO_ENCRYPTION,					=0x0,	"No Encryption",
-	AES_128_HMAC_SHA1_32,				=0x1,	"AES128 SHA1 32",
-	AES_128_HMAC_SHA1_80,				=0x2,	"AES128 SHA1 80",
-	CCM_F8_128_HMAC_SHA1_32,			=0x3,	"HMAC_SHA1_32",
-	CCM_F8_128_HMAC_SHA1_80,			=0x4,	"HMAC_SHA1_80",
+enum encryptionmethod {
+	SKINNY_ENCRYPTIONMETHOD_NONE,			=0x0,	"No Encryption",
+	SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_32,	=0x1,	"AES128 SHA1 32",
+	SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_80,	=0x2,	"AES128 SHA1 80",
+	SKINNY_ENCRYPTIONMETHOD_F8_128_HMAC_SHA1_32,	=0x3,	"HMAC_SHA1_32",
+	SKINNY_ENCRYPTIONMETHOD_F8_128_HMAC_SHA1_80,	=0x4,	"HMAC_SHA1_80",
+	SKINNY_ENCRYPTIONMETHOD_AEAD_AES_128_GCM,	=0x5,	"AES 128 GCM",
+	SKINNY_ENCRYPTIONMETHOD_AEAD_AES_256_GCM,	=0x6,	"AES 256 GCM",
 }
 
 /*!
  * \brief Skinny Miscellaneous Command Type (Enum)
  */
 enum miscCommandType {
-        SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE,	=0x0,	"videoFreezePicture", 
-        SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE,	=0x1,	"videoFastUpdatePicture", 
-        SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB,	=0x2,	"videoFastUpdateGOB", 
-        SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB,	=0x3,	"videoFastUpdateMB", 
-        SKINNY_MISCCOMMANDTYPE_LOSTPICTURE,		=0x4,	"lostPicture", 
-        SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE,	=0x5,	"lostPartialPicture", 
-        SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE,=0x6,	"recoveryReferencePicture", 
-        SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF,	=0x7,	"temporalSpatialTradeOff", 
+	SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE,	=0x0,	"videoFreezePicture", 
+	SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE,	=0x1,	"videoFastUpdatePicture", 
+	SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB,	=0x2,	"videoFastUpdateGOB", 
+	SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB,	=0x3,	"videoFastUpdateMB", 
+	SKINNY_MISCCOMMANDTYPE_LOSTPICTURE,		=0x4,	"lostPicture", 
+	SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE,	=0x5,	"lostPartialPicture", 
+	SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE,=0x6,	"recoveryReferencePicture", 
+	SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF,	=0x7,	"temporalSpatialTradeOff", 
 }
 
 } /* NAMESPACE skinny */

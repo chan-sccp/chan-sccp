@@ -1,0 +1,36 @@
+;!
+;! Creation Date: Tue Sep 29 01:19:06 2015
+;!
+
+;
+; general section
+;
+[general]
+deny = 0.0.0.0/0.0.0.0
+permit = internal 
+disallow = all
+allow = ulaw
+allow = alaw
+
+;
+; device section
+;
+[mydevice]
+type = device
+devicetype = 7940
+description = testdev
+button = line, myline
+
+;
+; line section
+;
+[myline]
+type=line
+id = 1
+pin = 1234
+label = myline
+description = myline
+context = sccp
+cid_num = 1234
+cid_name = myline
+

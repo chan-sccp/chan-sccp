@@ -12,34 +12,33 @@
 
 #include <config.h>
 #include "common.h"
-#include "sccp_device.h"
 #include "sccp_devstate.h"
-#include "sccp_event.h"
+#include "sccp_device.h"
+//#include "sccp_event.h"
 #include "sccp_utils.h"
-#include "sccp_mwi.h"
+//#include "sccp_mwi.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
 typedef struct sccp_devstate_SubscribingDevice sccp_devstate_SubscribingDevice_t;
 
-struct sccp_devstate_SubscribingDevice {
+struct sccp_devstate_SubscribingDevice 
+{
+	SCCP_LIST_ENTRY (sccp_devstate_SubscribingDevice_t) list;
 	const sccp_device_t *device;										/*!< SCCP Device */
-	uint8_t instance;											/*!< Instance */
 	sccp_buttonconfig_t *buttonConfig;
 	char label[StationMaxNameSize];
-
-	SCCP_LIST_ENTRY (sccp_devstate_SubscribingDevice_t) list;
+	uint8_t instance;											/*!< Instance */
 };
 
 typedef struct sccp_devstate_deviceState sccp_devstate_deviceState_t;
-struct sccp_devstate_deviceState {
-
+struct sccp_devstate_deviceState 
+{
+	SCCP_LIST_HEAD (, sccp_devstate_SubscribingDevice_t) subscribers;
+	SCCP_LIST_ENTRY (struct sccp_devstate_deviceState) list;
 	char devicestate[StationMaxNameSize];
 	PBX_EVENT_SUBSCRIPTION *sub;
 	uint32_t featureState;
-	SCCP_LIST_HEAD (, sccp_devstate_SubscribingDevice_t) subscribers;
-
-	SCCP_LIST_ENTRY (struct sccp_devstate_deviceState) list;
 };
 
 static SCCP_LIST_HEAD (, struct sccp_devstate_deviceState) deviceStates;
@@ -78,7 +77,7 @@ void sccp_devstate_module_stop(void)
 
 			SCCP_LIST_LOCK(&deviceState->subscribers);
 			while ((subscriber = SCCP_LIST_REMOVE_HEAD(&deviceState->subscribers, list))) {
-				subscriber->device = sccp_device_release(subscriber->device);
+				subscriber->device = sccp_device_release(subscriber->device);		/* explicit release */
 			}
 			SCCP_LIST_UNLOCK(&deviceState->subscribers);
 			SCCP_LIST_HEAD_DESTROY(&deviceState->subscribers);
@@ -105,12 +104,14 @@ static void sccp_devstate_deviceRegistered(const sccp_device_t * device)
 
 				SCCP_LIST_LOCK(&deviceStates);
 				deviceState = sccp_devstate_getDeviceStateHandler(config->button.feature.options);
-				if (!deviceState) {
+				if (!deviceState && config->button.feature.options) {
 					deviceState = sccp_devstate_createDeviceStateHandler(config->button.feature.options);
 				}
 				SCCP_LIST_UNLOCK(&deviceStates);
 
-				sccp_devstate_addSubscriber(deviceState, device, config);
+				if (deviceState) {
+					sccp_devstate_addSubscriber(deviceState, device, config);
+				}
 			}
 		}
 	}
@@ -142,7 +143,7 @@ static void sccp_devstate_deviceUnRegistered(const sccp_device_t * device)
 
 void sccp_devstate_deviceRegisterListener(const sccp_event_t * event)
 {
-	sccp_device_t *device;
+	sccp_device_t *device = NULL;
 
 	if (!event) {
 		return;
@@ -165,6 +166,10 @@ void sccp_devstate_deviceRegisterListener(const sccp_event_t * event)
 
 sccp_devstate_deviceState_t *sccp_devstate_getDeviceStateHandler(const char *devstate)
 {
+	if (!devstate) {
+		return NULL;
+	}
+
 	sccp_devstate_deviceState_t *deviceState = NULL;
 
 	SCCP_LIST_TRAVERSE(&deviceStates, deviceState, list) {
@@ -178,6 +183,10 @@ sccp_devstate_deviceState_t *sccp_devstate_getDeviceStateHandler(const char *dev
 
 sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *devstate)
 {
+	if (!devstate) {
+		return NULL;
+	}
+
 	sccp_devstate_deviceState_t *deviceState = NULL;
 	char buf[256] = "";
 
@@ -230,7 +239,7 @@ void sccp_devstate_removeSubscriber(sccp_devstate_deviceState_t * deviceState, c
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&deviceState->subscribers, subscriber, list) {
 		if (subscriber->device == device) {
 			SCCP_LIST_REMOVE_CURRENT(list);
-			subscriber->device = sccp_device_release(subscriber->device);
+			subscriber->device = sccp_device_release(subscriber->device);				/* explicit release */
 		}
 
 	}
@@ -239,6 +248,7 @@ void sccp_devstate_removeSubscriber(sccp_devstate_deviceState_t * deviceState, c
 
 void sccp_devstate_notifySubscriber(sccp_devstate_deviceState_t * deviceState, const sccp_devstate_SubscribingDevice_t * subscriber)
 {
+	pbx_assert(subscriber->device != NULL);
 	sccp_msg_t *msg = NULL;
 
 	if (subscriber->device->inuseprotocolversion >= 15) {

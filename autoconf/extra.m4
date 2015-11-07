@@ -152,15 +152,16 @@ AC_DEFUN([CS_SETUP_HOST_PLATFORM],[
 AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 	AC_LANG_SAVE
 	AC_LANG_C
-dnl	AC_SYS_LARGEFILE
 	AC_DISABLE_STATIC
-dnl	AC_FUNC_ALLOCA
-dnl	AC_HEADER_RESOLV
-dnl	AC_GNU_SOURCE
 
-	CFLAGS_saved="$CFLAGS_saved -std=gnu89"
-	if test -z "`${CC} -std=gnu99 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'gnu89-inline'`"; then 
-		CFLAGS_saved="$CFLAGS_saved -fgnu89-inline"
+	if test -z "`${CC} -std=gnu11 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'unrecognized command line option'`"; then 
+		CFLAGS_saved="$CFLAGS_saved -std=gnu11 -fgnu89-inline"
+	elif test -n "`${CC} -std=gnu99 -fgnu89-inline -Wno-ignored-qualifiers -dM -E - </dev/null 2>&1 |grep '__STDC_VERSION__ 1999'`"; then 
+		CFLAGS_saved="$CFLAGS_saved -std=gnu99 -fgnu89-inline -Wno-ignored-qualifiers"
+	elif test -n "`${CC} -std=gnu99 -fgnu89-inline -Wno-return-type -dM -E - </dev/null 2>&1 |grep '__STDC_VERSION__ 1999'`"; then 
+		CFLAGS_saved="$CFLAGS_saved -std=gnu99 -fgnu89-inline -Wno-return-type"
+	else 
+		CFLAGS_saved="$CFLAGS_saved -std=gnu89 -Wno-return-type"
 	fi
 
 	if test "${cross_compiling}" = "yes"; 
@@ -199,7 +200,6 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_PROG_AWK
 	AC_PROG_LN_S
 	AC_PROG_MAKE_SET
-dnl	AC_FUNC_STRERROR_R
 	AC_C_CONST
 	AC_C_INLINE
 	AC_PROG_LIBTOOL
@@ -229,27 +229,32 @@ dnl	])
 	AC_CHECK_HEADERS([sys/socket.h])
 	AC_CHECK_HEADERS([netinet/in.h])
 	AC_CHECK_HEADERS([pthread.h])
-	AC_CHECK_HEADERS([iconv.h])
-dnl	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcasecmp strchr strdup strerror strncasecmp strchr malloc calloc realloc free]) 
+	AS_IF([test "X${ostype}" == "Xlinux"], [
+		AC_CHECK_HEADERS([iconv.h])
+	], [
+		AC_CHECK_LIB([iconv], [iconv_open], [
+			LIBICONV="-liconv"
+			AC_CHECK_HEADERS([iconv.h])
+		], [
+			LIBICONV=""; 
+			AC_MSG_NOTICE([The correct iconv library could not be found. Maybe you need to provide LDFLAGS.])
+		])
+	])
 	AC_CHECK_FUNCS([gethostbyname inet_ntoa mkdir]) 
 	AC_HEADER_STDC    
 	AC_HEADER_STDBOOL 
 	AC_CHECK_HEADERS([netinet/in.h fcntl.h sys/signal.h stdio.h errno.h ctype.h assert.h sys/sysinfo.h])
 	AC_STRUCT_TM
 	AC_STRUCT_TIMEZONE
+	AC_SUBST([LIBICONV])
 ])
 
 AC_DEFUN([CS_CHECK_CROSSCOMPILE],[
-	dnl cross-compile checks (set HOST_CC)
 	if test "$host" = "$build"; then
 		HOST_CC="${CC}"
 	else
 		HOST_CC="${HOST_CC-gcc}"
 	fi
-dnl	AC_CHECK_PROG(have_host_cc, ${HOST_CC}, yes, no)
-dnl	if test "$have_host_cc" = "no"; then
-dnl		AC_MSG_ERROR(No valid host compiler set with HOST_CC)
-dnl	fi
 	AC_SUBST(HOST_CC)
 ])
 
@@ -268,7 +273,6 @@ AC_DEFUN([CS_WITH_CCACHE],[
 			AC_MSG_NOTICE([using ccache: ${ac_cv_use_ccache}])
 		else
 			CCACHE=""
-			dnl echo ccache not found
 		fi
 	])
 ])
@@ -337,7 +341,7 @@ AC_DEFUN([CS_CHECK_TYPES], [
                                                 [Define to 1 if] FUNC [is available.])
                                 AC_MSG_RESULT([yes])
                         ], [AC_MSG_RESULT([no])])
-                ])dnl
+                ])
         fi
 ])
 
@@ -367,13 +371,8 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 	dnl Now using Conditional-Libtool-Sources
 	if test "$PBX_TYPE" == "Asterisk"; then
 		PBX_GENERAL="chan_sccp_la-ast.lo"
-dnl		if [ test "${ASTERISK_REPOS_LOCATION}" == "TRUNK" ];then
-dnl                  PBX_MAJOR="chan_sccp_la-astTrunk.lo"
-dnl                else  
-	  	  PBX_MAJOR="chan_sccp_la-ast${ASTERISK_VER_GROUP}.lo"
-dnl	  	fi
+	  		PBX_MAJOR="chan_sccp_la-ast${ASTERISK_VER_GROUP}.lo"
 		if test ${ASTERISK_VER_GROUP} -gt 111;then
-dnl			PBX_MAJOR="${PBX_MAJOR} chan_sccp_la-ast${ASTERISK_VER_GROUP}_announce.lo"
 			PBX_MAJOR="${PBX_MAJOR} chan_sccp_la-ast112_announce.lo"
 		fi
                 if test -f src/pbx_impl/ast/ast${ASTERISK_VERSION_NUMBER}.c; then
@@ -420,7 +419,6 @@ AC_DEFUN([CS_WITH_PBX], [
 	elif test "${PBX_TYPE}" = "Callweaver"; then
 	   AC_DEFINE_UNQUOTED([PBX_TYPE],CALLWEAVER,[PBX Type])
 	   AC_DEFINE([HAVE_CALLWEAVER], 1, [Uses Callweaver as PBX])
-	   dnl Figure out the Asterisk Version
 	   echo "We are working on a Callweaver version"
 	else
 	   echo ""
@@ -461,13 +459,23 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	AC_MSG_NOTICE([--enable-debug: ${enable_debug}])
 
 	LIBBFD=""
+ 	
 	if test -n "${CPPFLAGS_saved}"; then
 	 	CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE"
  	else 
  		CPPFLAGS_saved="-U_FORTIFY_SOURCE"
  	fi
-	if test "$enable_optimization" == "no"; then 
-		strip_binaries="no"
+ 	
+ 	strip_binaries="no"
+	AS_IF([test "X$enable_optimization" == "Xyes"], [
+		strip_binaries="yes"
+		AS_IF([test -z "`echo \"${CFLAGS_saved}\" | grep -e '\-O[0-9]'`"], [
+			CFLAGS_saved="${CFLAGS_saved} -O3 "
+		])
+	   	CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
+		GDB_FLAGS=""
+	], [
+	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O[0-9]\ \?//g' -e 's/\-g\ \?//g'`"
 		optimize_flag="-O0"
 		case "${CC}" in
 			*gcc*)
@@ -477,28 +485,19 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			;;
 		esac
 		CFLAGS_saved="${CFLAGS_saved} ${optimize_flag} "
-		CPPFLAGS_saved="${CPPFLAGS_saved} ${optimize_flag}"
-	else
-		strip_binaries="yes"
-		CFLAGS_saved="${CFLAGS_saved} -O2 "
-                CPPFLAGS_saved="${CPPFLAGS_saved} -O2 -D_FORTIFY_SOURCE=2"
-		GDB_FLAGS=""
-	fi
+	])
 	
-	if test "${enable_debug}" = "yes"; then
-		AC_DEFINE([GC_DEBUG],[1],[Enable extra garbage collection debugging.])
+	AS_IF([test "X${enable_debug}" == "Xyes"], [
 		AC_DEFINE([DEBUG],[1],[Extra debugging.])
 		DEBUG=1
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
-		strip_binaries="no"
 
 	 	dnl Remove leading/ending spaces
-		CFLAGS_saved="`echo ${CFLAGS_saved}|sed 's/^[ \t]*//;s/[ \t]*$//'`"
 		CFLAGS_saved="${CFLAGS_saved} -Wall"
 		GDB_FLAGS="-g3 -ggdb3"
 		
-		if test "x${GCC}" = "xyes"; then
+		AS_IF([test "x${GCC}" = "xyes"], [
 			AC_LANG_SAVE
 			AC_LANG_C
 			AX_APPEND_COMPILE_FLAGS([ dnl
@@ -521,36 +520,49 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Warray-bounds dnl
 				-Wimplicit-function-declaration dnl
 				-Wreturn-type dnl
-				-Wno-unused-parameter dnl
+				-Wsign-compare dnl
+				-Wstrict-prototypes dnl
+				-Wmissing-prototypes dnl
 				dnl
-				dnl // should be added and fixed dnl
-				dnl -Wsign-compare dnl
-				dnl -Wstrict-prototypes dnl
-				dnl -Wshadow dnl
-				dnl -Wmissing-prototypes dnl
+				dnl // should be added and fixed
 				dnl -Wswitch-enum 
 				dnl
-				dnl // very pedantic dnl
-				dnl -Wundef dnl
-				dnl -Wdeclaration-after-statement dnl
-				dnl -Wwrite-strings dnl
-				dnl -Wpointer-arith dnl
-				dnl -Wformat=2 dnl
-				dnl -Wformat-nonliteral dnl
-				dnl -Winline  dnl
-				dnl -Wpacked dnl
-				dnl -Wredundant-decls dnl
+				dnl // very pedantic
+				dnl -Wundef
+				dnl -Wdeclaration-after-statement
+				dnl -Wwrite-strings
+				dnl -Wpointer-arith
+				dnl -Wformat=2
+				dnl -Wformat-nonliteral
+				dnl -Winline 
+				dnl -Wpacked
+				dnl -Wredundant-decls
 				dnl -Wswitch-default 
 				dnl
-				dnl // do not add dnl
+				dnl // do not add
 				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl
-				dnl -Wno-unused-but-set-variable dnl
+				dnl -Wno-unused-but-set-variable
 			], ax_warn_cflags_variable)
-    		fi 
-
+		])
+		AS_IF([test "x${AST_C_COMPILER_FAMILY}" = "xgcc"], [
+			AC_LANG_SAVE
+			AC_LANG_C
+			AX_APPEND_COMPILE_FLAGS([ dnl
+				-Wshadow dnl
+			], ax_warn_cflags_variable)
+		])
+		AS_IF([test ! -z "`echo ${CC} | grep ccc-analyzer`"], [
+			AC_LANG_SAVE
+			AC_LANG_C
+			AX_APPEND_COMPILE_FLAGS([ dnl
+				 -Wno-pointer-bool-conversion dnl Compensate for including NONENULL() attribute, null pointer checks should however remain for other compiler types
+			], ax_warn_cflags_variable)
+			AC_DEFINE([CCC_ANALYZER], 1, [Running static analysis using clang scan-build])
+		])
 		AC_CHECK_HEADER([execinfo.h],
 			[
 				AC_DEFINE(HAVE_EXECINFO_H,1,[Found 'execinfo.h'])
+				AC_CHECK_LIB([execinfo], [backtrace_symbols], [LIBEXECINFO="-lexecinfo"], [LIBEXECINFO=""])
 				AC_CHECK_HEADER([dlfcn.h], [AC_DEFINE(HAVE_DLADDR_H, 1, [Found 'dlfcn.h'])])
 				AC_SEARCH_LIBS([bfd_openr], [bfd], [
 					AC_CHECK_HEADER([bfd.h], [AC_DEFINE(HAVE_BFD_H, 1, [Found 'bfd.h'])])
@@ -558,13 +570,13 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				])
 			]
 		)
-	else
+	], [
 		AC_DEFINE([DEBUG],[0],[No Extra debugging.])
 		DEBUG=0
 		enable_do_crash="no"
 		enable_debug_mutex="no"
 		CFLAGS_saved="${CFLAGS_saved}"
-		if test "x${GCC}" = "xyes"; then
+		AS_IF([test "x${GCC}" = "xyes"], [
 			AC_LANG_SAVE
 			AC_LANG_C
 			AX_APPEND_COMPILE_FLAGS([ dnl
@@ -573,19 +585,31 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wno-unused-parameter dnl
 				-Wno-ignored-qualifiers dnl
 				dnl
-				dnl // do not add dnl
+				dnl // do not add
 				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl
-				dnl -Wno-unused-but-set-variable dnl
+				dnl -Wno-unused-but-set-variable
 			], ax_warn_cflags_variable)
-		fi		
-	fi
+		])
+	])
+	
+	AC_LANG_SAVE
+	AC_LANG_C
+	AX_APPEND_COMPILE_FLAGS([ dnl
+		dnl-fdata-section dnl
+		-ffunction-sections dnl
+	], ax_warn_cflags_variable)
+	LDFLAGS="${LDFLAGS} -Wl,-gc-sections"		dnl automatically strip dead/unused code
+
+	CFLAGS_saved="`echo ${CFLAGS_saved}|sed 's/^[ \t]*//;s/[ \t]*$//'`"
 	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS="${CFLAGS_saved} "
 	CPPFLAGS="${CPPFLAGS_saved} -I. "
 	AC_SUBST([DEBUG])
 	AC_SUBST([GDB_FLAGS])
+	AC_SUBST([strip_binaries])
 	AC_SUBST([ax_warn_cflags_variable])
 	AC_SUBST([LIBBFD])
+	AC_SUBST([LIBEXECINFO])
 ])
 
 AC_DEFUN([CS_ENABLE_GCOV], [
@@ -856,6 +880,7 @@ AC_DEFUN([CS_SETUP_MODULE_DIR], [
 	    case "${host}" in
                         *-*-darwin*)
                                 PBX_MODDIR='/Library/Application Support/Asterisk/Modules/modules'
+                                PBX_DEBUGMODDIR='/Library/Application Support/Asterisk/Modules/modules'
                                 ;;
                         *)
                                 if test -d "${PBX_TEMPMODDIR}"; then
@@ -874,11 +899,16 @@ AC_DEFUN([CS_SETUP_MODULE_DIR], [
                                             ;;
                                     esac
                                 fi
+                                
+                                dnl Insert '/debug/' into path
+			        dnl PBX_DEBUGMODDIR="${PBX_LIB}/debug/${PBX_MODDIR:${#PBX_LIB}}"
+			        PBX_DEBUGMODDIR=`echo $PBX_MODDIR | sed "s!^${PBX_LIB}!${PBX_LIB}/debug/${PBX_LIB}!g"`
                                 ;;
              esac])
         AC_SUBST([PBX_MODDIR]) 
         csmoddir=${PBX_MODDIR}
         AC_SUBST([csmoddir])
+        AC_SUBST([PBX_DEBUGMODDIR])
 ])
 
 AC_DEFUN([CS_PARSE_WITH_LIBEV], [

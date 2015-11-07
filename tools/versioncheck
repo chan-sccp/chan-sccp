@@ -6,10 +6,10 @@ REPOS_TYPE="unknown"
 
 if test -d .svn || test -d ../.svn || test -d ../../.svn;then
   if test ! -z "`which svn`"; then
-    if test "`basename $(svn info .| grep -i ^URL: | cut -d ' ' -f 2)`" != "trunk"; then
-        SCCP_VERSION="`basename $(svn info .| grep -i ^URL: | cut -d ' ' -f 2)`"
-        SCCP_BRANCH="STABLE"
-    else
+    #if test "`basename $(svn info .| grep -i ^URL: | cut -d ' ' -f 2)`" != "trunk"; then
+    #    SCCP_VERSION="`basename $(svn info .| grep -i ^URL: | cut -d ' ' -f 2)`"
+    #    SCCP_BRANCH="STABLE"
+    #else
       if test -f .version; then
         SCCP_VERSION="`cat .version|cut -d_ -f1`"
         SCCP_BRANCH="`cat .version|cut -d_ -f2`"
@@ -20,7 +20,7 @@ if test -d .svn || test -d ../.svn || test -d ../../.svn;then
       if test "$SCCP_VERSION" = "$SCCP_BRANCH"; then
         SCCP_BRANCH="TRUNK"
       fi
-    fi
+    #fi
     SCCP_REVISION="`svnversion . |cut -d: -f2 | cut -dM -f1`"
     REPOS_TYPE="SVN"
   fi
@@ -41,7 +41,7 @@ elif test -d .git || test -d ../.git || test -d ../../.git;then
     if test "`git branch | awk '{print $2}' | sed 's/\n//g'`" = "master"; then
       SCCP_BRANCH="TRUNK"
     else 
-      SCCP_BRANCH="`git branch| grep "*" |awk '{print $2}' | sed s/\\n//g`"
+      SCCP_BRANCH="`git branch| grep "*" |awk '{print $2}' | sed 's/\\n//g'`"
     fi
     SCCP_REVISION="`git describe --always`"
     REPOS_TYPE="GIT"

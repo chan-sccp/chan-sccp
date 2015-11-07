@@ -8,26 +8,22 @@
  * $Date: 2010-11-17 12:03:44 +0100 (Wed, 17 Nov 2010) $
  * $Revision: 2130 $  
  */
+#pragma once
 
 #ifdef CS_SCCP_MANAGER
-
 /*
  * sccp_management.h
  *
  *  Created on: 22.11.2008
  *      Author: marcello
  */
-
-#ifndef __SCCP_MANAGEMENT_H
-#define __SCCP_MANAGEMENT_H
-
 int sccp_register_management(void);
 int sccp_unregister_management(void);
 void sccp_manager_module_start(void);
 void sccp_manager_module_stop(void);
 
+#if UNUSEDCODE // 2015-11-01
 int sccp_manager_action2pbx_str(struct ast_str *outStr, const char *manager_command);
-
-#endif														/* SCCP_MANAGEMENT_H_ */
+#endif
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

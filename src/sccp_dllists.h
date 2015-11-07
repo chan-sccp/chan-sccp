@@ -11,11 +11,19 @@
  * $Date$
  * $Revision$
  */
+#pragma once
 
-#ifndef _SCCP_DLLISTS_H
-#define _SCCP_DLLISTS_H
+/* Lock Macro for Lists */
+#define SCCP_LIST_LOCK(x)			pbx_mutex_lock(&(x)->lock)
+#define SCCP_LIST_UNLOCK(x)			pbx_mutex_unlock(&(x)->lock)
+#define SCCP_LIST_TRYLOCK(x)			pbx_mutex_trylock(&(x)->lock)
 
-#include "sccp_lock.h"
+/* Lock Macro for read/write Lists */
+#define SCCP_RWLIST_RDLOCK(x)			pbx_rwlock_rdlock(&(x)->lock)
+#define SCCP_RWLIST_WRLOCK(x)			pbx_rwlock_wrlock(&(x)->lock)
+#define SCCP_RWLIST_UNLOCK(x)			pbx_rwlock_unlock(&(x)->lock)
+#define SCCP_RWLIST_TRYRDLOCK(x)		pbx_rwlock_tryrdlock(&(x)->lock)
+#define SCCP_RWLIST_TRYWRLOCK(x)		pbx_rwlock_trywrlock(&(x)->lock)
 
 /* Main list head */
 #define SCCP_LIST_HEAD(name, type)									\
@@ -373,22 +381,37 @@ struct {												\
 })
 #define SCCP_RWLIST_REMOVE SCCP_LIST_REMOVE
 
-#define SCCP_LIST_FIND(_head, _type, _var, _field, _compare, _retain, _file, _line, _func) ({			\
+/* Expensive SCCP_LIST_FIND version: only used during refcount issue finding */
+/*
+#define SCCP_LIST_FIND(_head, _type, _var, _field, _compare, _retain, _file, _line, _func) ({		\
 	_type *_var;											\
 	_type *__tmp_##_var##_line;									\
-	for((_var) = (_head)->first; (_var); (_var) = (_var)->_field.next) {					\
-		__tmp_##_var##_line = sccp_refcount_retain((_var), _file, _line, _func);			\
+	for((_var) = (_head)->first; (_var); (_var) = ((_var) ? (_var)->_field.next : NULL)) {		\
+		__tmp_##_var##_line = sccp_refcount_retain((_var), _file, _line, _func);		\
 	        if (__tmp_##_var##_line) {								\
 	        	if (_compare) {									\
 	        		if (!_retain) {								\
-		 		        sccp_refcount_release(__tmp_##_var##_line, _file, _line, _func);	\
+		 		        sccp_refcount_release(__tmp_##_var##_line, _file, _line, _func);\
 	        		}									\
 				break;									\
 		        }										\
- 		        sccp_refcount_release(__tmp_##_var##_line, _file, _line, _func);			\
+ 		        sccp_refcount_release(__tmp_##_var##_line, _file, _line, _func);		\
 		} else {										\
 			pbx_log(LOG_ERROR, "SCCP (%s:%d:%s): Failed to get reference to variable during SCCP_LIST_FIND\n", _file, _line, _func);\
 			(_var) = NULL;									\
+		}											\
+	}                                                                                               \
+	(_var);												\
+})
+*/
+#define SCCP_LIST_FIND(_head, _type, _var, _field, _compare, _retain, _file, _line, _func) ({		\
+	_type *_var;											\
+	for((_var) = (_head)->first; (_var); (_var) = ((_var) ? (_var)->_field.next : NULL)) {		\
+		if (_compare) {										\
+			if (_retain) {									\
+				sccp_refcount_retain((_var), _file, _line, _func);			\
+			}										\
+			break;										\
 		}											\
 	}                                                                                               \
 	(_var);												\
@@ -398,5 +421,4 @@ struct {												\
 
 #define SCCP_LIST_GETSIZE(head) (head)->size
 #define SCCP_RWLIST_GETSIZE SCCP_LIST_GETSIZE
-#endif														/* _SCCP_DLLISTS_H */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

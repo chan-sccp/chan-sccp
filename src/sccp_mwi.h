@@ -8,15 +8,21 @@
  * $Date$
  * $Revision$
  */
-
-#ifndef SCCP_MWI_H_
-#define SCCP_MWI_H_
+#pragma once
 
 #include "sccp_cli.h"
-#ifdef CS_AST_HAS_EVENT
-#include "asterisk/event.h"
-#endif
+//#ifdef CS_AST_HAS_EVENT
+//#include "asterisk/event.h"
+//#endif
 
+/*!
+ * \brief SCCP Mailbox Structure
+ */
+struct sccp_mailbox {
+	char *mailbox;												/*!< Mailbox */
+	char *context;												/*!< Context */
+	SCCP_LIST_ENTRY (sccp_mailbox_t) list;									/*!< Mailbox Linked List Entry */
+};														/*!< SCCP Mailbox Structure */
 
 void sccp_mwi_module_start(void);
 void sccp_mwi_module_stop(void);
@@ -32,6 +38,4 @@ void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stas
 int sccp_mwi_checksubscription(const void *ptr);
 #endif
 int sccp_show_mwi_subscriptions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
-
-#endif														/*SCCP_MWI_H_ */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

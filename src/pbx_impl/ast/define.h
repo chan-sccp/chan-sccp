@@ -8,8 +8,7 @@
  * $Date$
  * $Revision$  
  */
-#ifndef SCCP_AST_DEFINE_H_
-#define SCCP_AST_DEFINE_H_
+#pragma once
 
 // type redefinitions
 #define pbx_variable ast_variable
@@ -27,6 +26,20 @@
 #define sccp_alloca(size) __builtin_alloca(size)
 #define CS_BRIDGEPEERNAME "BRIDGEPEER"
 
+#ifdef SCANBUILD
+#define pbx_assert assert
+#else
+#define pbx_assert ast_assert
+#endif
+
+/* Lock Macro's */
+#define sccp_mutex_init(x)          		pbx_mutex_init(x)
+#define sccp_mutex_destroy(x)       		pbx_mutex_destroy(x)
+#define sccp_mutex_lock(x)			pbx_mutex_lock(x)
+#define sccp_mutex_lock_desc(x,y) 		pbx_mutex_lock(x)
+#define sccp_mutex_unlock(x)			pbx_mutex_unlock(x)
+#define sccp_mutex_trylock(x)			pbx_mutex_trylock(x)
+
 // codec / format redefinitions
 #define pbx_codec_pref_index ast_codec_pref_index
 #define pbx_codec_pref_getsize ast_codec_pref_getsize
@@ -43,6 +56,7 @@
 
 // general redefinitions
 #define pbx_check_hangup ast_check_hangup
+#define pbx_check_hangup_locked ast_check_hangup_locked
 #define pbx_channel_lock ast_channel_lock
 #define pbx_channel_unlock ast_channel_unlock
 #define pbx_sched_wait ast_sched_wait
@@ -65,12 +79,12 @@
 #define pbx_bridge_features_init ast_bridge_features_init
 
 #if ASTERISK_VERSION_NUMBER < 11010
-#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations) ast_bridge_join(_bridge, _channel, _replace, _features)
+#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags) ast_bridge_join(_bridge, _channel, _replace, _features)
 #else
 #ifndef CS_BRIDGE_JOIN_PASSREFERENCE
-#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations) ast_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations)
+#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags) ast_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations)
 #else
-#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations) ast_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, 0)
+#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags) ast_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags)
 #endif
 #endif
 
@@ -80,6 +94,7 @@
 #define pbx_bridge_new(_a,_b,_c,_d,_e) ast_bridge_base_new(_a, _b, _c, _d, _e)
 #endif
 #define pbx_bridge_remove ast_bridge_remove
+#define pbx_bridge_kick ast_bridge_kick
 #define pbx_bridge_result ast_bridge_result
 
 #if ASTERISK_VERSION_GROUP < 110
@@ -96,6 +111,10 @@
 #define pbx_bridge_destroy(_x, _y) ast_bridge_destroy(_x)
 #define pbx_bridge_features_cleanup ast_bridge_features_cleanup
 #define pbx_bridge_change_state ast_bridge_change_state
+#define pbx_bridge_lock ast_bridge_lock
+#define pbx_bridge_unlock ast_bridge_unlock
+#define pbx_bridge_suspend ast_bridge_suspend
+#define pbx_bridge_unsuspend ast_bridge_unsuspend
 
 #define pbx_request ast_request
 #define pbx_build_string ast_build_string
@@ -280,6 +299,7 @@ typedef struct ast_event pbx_event_t;
 #define pbx_sockaddr_port ast_sockaddr_port
 #define pbx_sockaddr_to_sin ast_sockaddr_to_sin
 #define pbx_state2str ast_state2str
+#define pbx_str_t struct ast_str
 #define pbx_str_alloca ast_str_alloca
 #define pbx_str_append ast_str_append
 #define pbx_str_append_escapecommas ast_str_append_escapecommas
@@ -289,6 +309,10 @@ typedef struct ast_event pbx_event_t;
 #define pbx_stream_and_wait ast_stream_and_wait
 #define pbx_say_number ast_say_number
 #define pbx_fileexists ast_fileexists
+#if ASTERISK_VERSION_GROUP < 111 && defined(__clang__)
+#undef AST_STRING_FIELD_ALLOCATION
+#define AST_STRING_FIELD_ALLOCATION(x) *((ast_string_field_allocation *) ((ast_string_field_allocation)x - __alignof__(ast_string_field_allocation)))
+#endif
 #define pbx_string_field_build ast_string_field_build
 #define pbx_string_field_set ast_string_field_set
 #define pbx_strip ast_strip
@@ -351,6 +375,6 @@ typedef struct ast_event pbx_event_t;
 #define pbx_bridge_change_state ast_bridge_change_state
 #define pbx_channel_redirecting_effective_from(_a) (_a)->redirecting.from
 #define pbx_channel_redirecting_effective_to(_a) (_a)->redirecting.to
-
-#endif
+#define pbx_channel_connected_id(_a) (_a)->connected.id
+#define pbx_channel_connected_source(_a) (_a)->connected.source
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

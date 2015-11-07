@@ -53,26 +53,26 @@ void sccp_event_destroy(sccp_event_t * event)
 		case SCCP_EVENT_DEVICE_REGISTERED:
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
 		case SCCP_EVENT_DEVICE_PREREGISTERED:
-			event->event.deviceRegistered.device = sccp_device_release(event->event.deviceRegistered.device);
+			event->event.deviceRegistered.device = sccp_device_release(event->event.deviceRegistered.device);	/* explicit release */
 			break;
 
 		case SCCP_EVENT_LINE_CREATED:
-			event->event.lineCreated.line = sccp_line_release(event->event.lineCreated.line);
+			event->event.lineCreated.line = sccp_line_release(event->event.lineCreated.line);			/* explicit release */
 			break;
 
 		case SCCP_EVENT_DEVICE_ATTACHED:
 		case SCCP_EVENT_DEVICE_DETACHED:
-			event->event.deviceAttached.linedevice = sccp_linedevice_release(event->event.deviceAttached.linedevice);
+			event->event.deviceAttached.linedevice = sccp_linedevice_release(event->event.deviceAttached.linedevice);	/* explicit release */
 			break;
 
 		case SCCP_EVENT_FEATURE_CHANGED:
-			event->event.featureChanged.device = sccp_device_release(event->event.featureChanged.device);
-			event->event.featureChanged.optional_linedevice = event->event.featureChanged.optional_linedevice ? sccp_linedevice_release(event->event.featureChanged.optional_linedevice) : NULL;
+			event->event.featureChanged.device = sccp_device_release(event->event.featureChanged.device);		/* explicit release */
+			event->event.featureChanged.optional_linedevice = event->event.featureChanged.optional_linedevice ? sccp_linedevice_release(event->event.featureChanged.optional_linedevice) : NULL;	/* explicit release */
 			break;
 
 		case SCCP_EVENT_LINESTATUS_CHANGED:
-			event->event.lineStatusChanged.line = sccp_line_release(event->event.lineStatusChanged.line);
-			event->event.lineStatusChanged.optional_device = event->event.lineStatusChanged.optional_device ? sccp_device_release(event->event.lineStatusChanged.optional_device) : NULL;
+			event->event.lineStatusChanged.line = sccp_line_release(event->event.lineStatusChanged.line);		/* explicit release */
+			event->event.lineStatusChanged.optional_device = event->event.lineStatusChanged.optional_device ? sccp_device_release(event->event.lineStatusChanged.optional_device) : NULL;	/* explicit release */
 			break;
 
 		case SCCP_EVENT_LINE_CHANGED:
@@ -89,7 +89,7 @@ static void *sccp_event_processor(void *data)
 	struct sccp_event_aSyncEventProcessorThreadArg *args = data;
 	const struct sccp_event_subscriptions *subscribers = args->subscribers;
 	AUTO_RELEASE sccp_event_t *event = sccp_event_retain(args->event);
-	int n;
+	uint n;
 
 	if (subscribers && event) {
 		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Asynchronous Event %p of Type %s\n", event, sccp_event_type2str(event->type));
@@ -102,7 +102,7 @@ static void *sccp_event_processor(void *data)
 	} else {
 		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Could not retain event\n");
 	}
-	sccp_event_release(args->event);									//finale release
+	sccp_event_release(args->event);									/* explicit final release */
 	sccp_free(data);
 	return NULL;
 }
@@ -266,7 +266,7 @@ void sccp_event_fire(const sccp_event_t * event)
 	}
 
 	/* search for position in array */
-	int i, n;
+	uint i, n;
 	sccp_event_type_t eventType = event->type;
 
 	for (i = 0, n = 1 << i; i < NUMBER_OF_EVENT_TYPES; i++, n = 1 << i) {
@@ -295,7 +295,7 @@ void sccp_event_fire(const sccp_event_t * event)
 					sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Adding work to threadpool for event: %p, type: %s\n", event, sccp_event_type2str(event->type));
 					if (!sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_event_processor, (void *) arg)) {
 						pbx_log(LOG_ERROR, "Could not add work to threadpool for event: %p, type: %s for processing\n", event, sccp_event_type2str(event->type));
-						arg->event = sccp_event_release(arg->event);
+						arg->event = sccp_event_release(arg->event);			/* explicit failure release */
 						sccp_free(arg);
 					}
 				} else {

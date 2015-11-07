@@ -7,17 +7,15 @@
  * $Date$
  * $Revision$
  */
-
-#ifndef __SCCP_REFCOUNT_H
-#define __SCCP_REFCOUNT_H
+#pragma once
 
 #if HAVE_SYS_TYPES_H
-#include <sys/types.h>
+//#include <sys/types.h>
 #endif
 
-#include <setjmp.h>
+//#include <setjmp.h>
 
-#define REFCOUNT_INDENTIFIER_SIZE 25
+#define REFCOUNT_INDENTIFIER_SIZE 32
 enum sccp_refcounted_types {
 	SCCP_REF_DEVICE = 1,
 	SCCP_REF_LINE,
@@ -45,9 +43,15 @@ void * const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types 
 void sccp_refcount_updateIdentifier(void *ptr, char *identifier);
 void * const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func);
 void * const sccp_refcount_release(const void * const ptr, const char *filename, int lineno, const char *func);
-void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func);
+//void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func);
+void sccp_refcount_replace(const void **replaceptr, const void *const newptr, const char *filename, int lineno, const char *func);
 void sccp_refcount_print_hashtable(int fd);
 void sccp_refcount_autorelease(void *ptr);
+
+#if CS_TEST_FRAMEWORK
+void sccp_refcount_register_tests(void);
+void sccp_refcount_unregister_tests(void);
+#endif
 
 #define AUTO_RELEASE auto __attribute__((cleanup(sccp_refcount_autorelease)))
 #ifdef CS_EXPERIMENTAL
@@ -84,7 +88,5 @@ int sccp_refcount_force_release(long findobj, char *identifier);
         typeof(_src) __TOKENPASTE(sccp_with_ref_,_line);											\
         __GET_WITH_REF(__TOKENPASTE(sccp_with_ref_,_line),_src,_file,_line,_func)
 #define WITHREF(_src) __WITH_REF(_src,__FILE__,__LINE__,__PRETTY_FUNCTION__)
-
 /* *INDENT-ON* */
-#endif														// __SCCP_REFCOUNT_H
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off

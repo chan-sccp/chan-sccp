@@ -9,34 +9,28 @@
  * $Date$
  * $Revision$  
  */
-
-#ifndef __SCCP_FEATURES_H
-#define __SCCP_FEATURES_H
-
+#pragma once
 // callforward
-void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_callforward_t type);
+void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_callforward_t type);
 
 #ifdef CS_SCCP_PICKUP
-int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d);
-int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten);
-void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d);
+void sccp_feat_handle_directed_pickup(constDevicePtr d, constLinePtr l, channelPtr maybe_c);
+int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInstance, const char *exten);
+int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstance, channelPtr maybe_c);
 #endif
-void sccp_feat_conflist(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c);
-void sccp_feat_updatecid(sccp_channel_t * c);
-void sccp_feat_meetme_start(sccp_channel_t * c);
-void sccp_feat_voicemail(sccp_device_t * d, uint8_t line_instance);
-void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
-void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c);
-void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
-void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c);
-void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line);
-void sccp_feat_changed(sccp_device_t * device, sccp_linedevices_t * linedevice, sccp_feature_type_t featureType);
-void sccp_feat_monitor(sccp_device_t * device, sccp_line_t * no_line, uint32_t no_lineInstance, sccp_channel_t * channel);
-void sccp_feat_channelstateChanged(sccp_device_t * device, sccp_channel_t * channel);
-void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d);
-void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d);
-int sccp_feat_barge(sccp_channel_t * c, char *exten);
-void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d);
-int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum);
-#endif														/* __SCCP_FEATURES_H */
+void sccp_feat_voicemail(constDevicePtr d, uint8_t line_instance);
+void sccp_feat_idivert(constDevicePtr d, constLinePtr l, constChannelPtr c);
+void sccp_feat_handle_conference(constDevicePtr d, constLinePtr l, uint8_t lineInstance, channelPtr c);
+void sccp_feat_conference_start(constDevicePtr d, const uint32_t lineInstance, channelPtr c);
+void sccp_feat_join(constDevicePtr d, constLinePtr l, uint8_t lineInstance, channelPtr c);
+void sccp_feat_conflist(devicePtr d, uint8_t lineInstance, constChannelPtr c);
+void sccp_feat_handle_meetme(constLinePtr l, uint8_t lineInstance, constDevicePtr d);
+void sccp_feat_meetme_start(channelPtr c);
+void sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr d);
+int sccp_feat_barge(constChannelPtr c, const char *const exten);
+void sccp_feat_handle_cbarge(constLinePtr l, uint8_t lineInstance, constDevicePtr d);
+int sccp_feat_cbarge(constChannelPtr c, const char *const conferencenum);
+void sccp_feat_adhocDial(constDevicePtr d, constLinePtr line);
+void sccp_feat_changed(constDevicePtr device, const sccp_linedevices_t * const linedevice, sccp_feature_type_t featureType);
+void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_lineInstance, constChannelPtr channel);
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

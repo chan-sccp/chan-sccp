@@ -9,9 +9,7 @@
  * $Date$
  * $Revision$  
  */
-
-#ifndef SCCP_AST_MAJOR_H_
-#define SCCP_AST_MAJOR_H_
+#pragma once
 
 #include <config.h>
 
@@ -49,6 +47,13 @@
 #ifndef CONFIG_STATUS_FILEINVALID
 #define CONFIG_STATUS_FILEINVALID (void *)-2
 #endif
+
+#undef pbx_check_hangup_locked
+#define pbx_check_hangup_locked(_x) ({int res; ast_channel_lock(_x); res = ast_check_hangup(_x); ast_channel_unlock(_x); (res);})
+#undef pbx_bridge_lock
+#undef pbx_bridge_unlock
+#define pbx_bridge_lock(_x) NULL
+#define pbx_bridge_unlock(_x) NULL
 
 enum AST_CONNECTED_LINE_UPDATE_SOURCE {
 	/*! Update for unknown reason (May be interpreted to mean from answer) */
@@ -256,5 +261,4 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 		}												\
 	};
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-#endif														/* SCCP_ASTERISK19_PBX_H_ */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

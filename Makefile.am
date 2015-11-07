@@ -15,6 +15,7 @@ SUBDIRS 			= src doc
 ACLOCAL_AMFLAGS			= -I autoconf
 AM_CPPFLAGS			= $(LTDLINCL)
 MOSTLYCLEANFILES		= coverage
+#VER				:= $(shell @abs_top_srcdir@/tools/autorevision -s VCS_TAG -o @abs_top_srcdir@/.revision)
 
 distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)_r$(SCCP_REVISION)
 	
@@ -114,9 +115,9 @@ isntall: install
 rmcoverage:
 	rm -rf coverage;
 
-coverage:
+coverage: src/.libs/chan_sccp.so
 	mkdir coverage; \
-	lcov --directory src/.libs -b src -c --o coverage/chan-sccp-b.info; \
+	lcov --directory src/.libs -b src -c --o coverage/chan-sccp-b.info ; \
 	genhtml -o coverage -f -t chan-sccp-b coverage/chan-sccp-b.info
 	
 coverage-zero: rmcoverage

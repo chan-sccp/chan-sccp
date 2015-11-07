@@ -31,7 +31,7 @@ static char management_show_lines_desc[] = "Description: Lists SCCP lines in tex
 static char management_restart_devices_desc[] = "Description: restart a given device\n" "\n" "Variables:\n" "   Devicename: Name of device to restart\n";
 static char management_show_device_add_line_desc[] = "Description: Lists SCCP devices in text format with details on current status.\n" "\n" "DevicelistComplete.\n" "Variables: \n" "  Devicename: Name of device to restart.\n" "  Linename: Name of line";
 static char management_device_update_desc[] = "Description: restart a given device\n" "\n" "Variables:\n" "   Devicename: Name of device\n";
-static char management_device_set_dnd_desc[] = "Description: set dnd on device\n" "\n" "Variables:\n" "   Devicename: Name of device\n" "  DNDState: on (busy) / off / reject/ silent";
+static char management_device_set_dnd_desc[] = "Description: set dnd on device\n" "\n" "Variables:\n" "   Devicename: Name of device\n" "  DNDState: off / reject / silent";
 static char management_line_fwd_update_desc[] = "Description: update forward status for line\n" "\n" "Variables:\n" "  Devicename: Name of device\n" "  Linename: Name of line\n" "  Forwardtype: type of cfwd (all | busy | noAnswer)\n" "  Disable: yes Disable call forward (optional)\n" "  Number: number to forward calls (optional)";
 static char management_fetch_config_metadata_desc[] = "Description: fetch configuration metadata\n" "\n" "Variables:\n" "  segment: Config Segment Name (if empty returns all segments).\n";
 
@@ -186,7 +186,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 			manager_event(EVENT_FLAG_CALL,
 				      "PeerStatus",
 				      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
-				      "ATTACHED", DEV_ID_LOG(device), linedevice && linedevice->line ? linedevice->line->name : "(null)", linedevice && linedevice->line ? linedevice->line->label : "(null)", linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
+				      "ATTACHED", DEV_ID_LOG(device), linedevice && linedevice->line ? linedevice->line->name : "(null)", (linedevice && linedevice->line && linedevice->line->label) ? linedevice->line->label : "(null)", linedevice->subscriptionId.number, linedevice->subscriptionId.name);
 			break;
 
 		case SCCP_EVENT_DEVICE_DETACHED:
@@ -195,7 +195,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 			manager_event(EVENT_FLAG_CALL,
 				      "PeerStatus",
 				      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
-				      "DETACHED", DEV_ID_LOG(device), linedevice && linedevice->line ? linedevice->line->name : "(null)", linedevice && linedevice->line ? linedevice->line->label : "(null)", linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
+				      "DETACHED", DEV_ID_LOG(device), linedevice && linedevice->line ? linedevice->line->name : "(null)", (linedevice && linedevice->line && linedevice->line->label) ? linedevice->line->label : "(null)", linedevice->subscriptionId.number, linedevice->subscriptionId.name);
 			break;
 
 		case SCCP_EVENT_FEATURE_CHANGED:
@@ -205,7 +205,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 
 			switch (featureType) {
 				case SCCP_FEATURE_DND:
-					manager_event(EVENT_FLAG_CALL, "DND", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nFeature: %s\r\nStatus: %s\r\nSCCPDevice: %s\r\n", featureType2str(SCCP_FEATURE_DND), sccp_dndmode2str(device->dndFeature.status), DEV_ID_LOG(device));
+					manager_event(EVENT_FLAG_CALL, "DND", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nFeature: %s\r\nStatus: %s\r\nSCCPDevice: %s\r\n", sccp_feature_type2str(SCCP_FEATURE_DND), sccp_dndmode2str(device->dndFeature.status), DEV_ID_LOG(device));
 					break;
 				case SCCP_FEATURE_CFWDALL:
 				case SCCP_FEATURE_CFWDBUSY:
@@ -213,12 +213,12 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 						manager_event(EVENT_FLAG_CALL,
 							      "CallForward",
 							      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: %s\r\nExtension: %s\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n",
-							      featureType2str(featureType), (SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.enabled) ? "On" : "Off") : ((linedevice->cfwdBusy.enabled) ? "On" : "Off"), (SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.number) ? linedevice->cfwdAll.number : "(null)") : ((linedevice->cfwdBusy.number) ? linedevice->cfwdBusy.number : "(null)"), (linedevice->line) ? linedevice->line->name : "(null)", DEV_ID_LOG(device)
+							      sccp_feature_type2str(featureType), (SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.enabled) ? "On" : "Off") : ((linedevice->cfwdBusy.enabled) ? "On" : "Off"), (SCCP_FEATURE_CFWDALL == featureType) ? linedevice->cfwdAll.number : linedevice->cfwdBusy.number, (linedevice->line) ? linedevice->line->name : "(null)", DEV_ID_LOG(device)
 						    );
 					}
 					break;
 				case SCCP_FEATURE_CFWDNONE:
-					manager_event(EVENT_FLAG_CALL, "CallForward", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: Off\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n", featureType2str(featureType), (linedevice && linedevice->line) ? linedevice->line->name : "(null)", DEV_ID_LOG(device));
+					manager_event(EVENT_FLAG_CALL, "CallForward", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: Off\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n", sccp_feature_type2str(featureType), (linedevice && linedevice->line) ? linedevice->line->name : "(null)", DEV_ID_LOG(device));
 					break;
 				default:
 					break;
@@ -258,8 +258,9 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), device, list) {
 		timeinfo = localtime(&device->registrationTime);
 
-		if (device->session) {
-			sccp_copy_string(clientAddress, sccp_socket_stringify(&device->session->sin), sizeof(clientAddress));
+		struct sockaddr_storage sas = { 0 };
+		if (sccp_session_getSas(device->session, &sas)) {
+			sccp_copy_string(clientAddress, sccp_socket_stringify(&sas), sizeof(clientAddress));
 		} else {
 			sccp_copy_string(clientAddress, "--", sizeof(clientAddress));
 		}
@@ -269,9 +270,9 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 		astman_append(s, "ChannelType: SCCP\r\n");
 		astman_append(s, "ObjectId: %s\r\n", device->id);
 		astman_append(s, "ObjectType: device\r\n");
-		astman_append(s, "Description: %s\r\n", device->description);
+		astman_append(s, "Description: %s\r\n", device->description  ? device->description : "<not set>");
 		astman_append(s, "IPaddress: %s\r\n", clientAddress);
-		astman_append(s, "Reg_Status: %s\r\n", skinny_registrationstate2str(device->registrationState));
+		astman_append(s, "Reg_Status: %s\r\n", skinny_registrationstate2str(sccp_device_getRegistrationState(device)));
 		astman_append(s, "Reg_Time: %s\r\n", regtime);
 		astman_append(s, "Active: %s\r\n", (device->active_channel) ? "Yes" : "No");
 		astman_append(s, "NumLines: %d\r\n\r\n", device->configurationStatistic.numberOfLines);
@@ -299,7 +300,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 static int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 {
 	const char *id = astman_get_header(m, "ActionID");
-	sccp_line_t *line;
+	sccp_line_t *line = NULL;
 	char idtext[256] = "";
 	int total = 0;
 
@@ -314,7 +315,7 @@ static int sccp_manager_show_lines(struct mansession *s, const struct message *m
 		astman_append(s, "ObjectId: %s\r\n", line->id);
 		astman_append(s, "ObjectType: line\r\n");
 		astman_append(s, "Name: %s\r\n", line->name);
-		astman_append(s, "Description: %s\r\n", line->description);
+		astman_append(s, "Description: %s\r\n", line->description  ? line->description : "<not set>");
 		astman_append(s, "Num_Channels: %d\r\n\r\n", SCCP_RWLIST_GETSIZE(&line->channels));
 		total++;
 	}
@@ -576,7 +577,7 @@ static int sccp_manager_device_set_dnd(struct mansession *s, const struct messag
 {
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *DNDState = astman_get_header(m, "DNDState");
-	int prevStatus = 0;
+	uint prevStatus = 0;
 	char retValStr[64] = "";
 
 	/** we need the device for resuming calls */
@@ -594,7 +595,7 @@ static int sccp_manager_device_set_dnd(struct mansession *s, const struct messag
 	if (d) {
 		if (d->dndFeature.enabled) {
 			prevStatus = d->dndFeature.status;
-			if (sccp_strcaseequals("on", DNDState) || sccp_strcaseequals("reject", DNDState)) {
+			if (sccp_strcaseequals("reject", DNDState)) {
 				d->dndFeature.status = SCCP_DNDMODE_REJECT;
 			} else if (sccp_strcaseequals("silent", DNDState)) {
 				d->dndFeature.status = SCCP_DNDMODE_SILENT;
@@ -650,7 +651,7 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		if (d && d->defaultLineInstance > 0) {
 			line = sccp_line_find_byid(d, d->defaultLineInstance);
 		} else {
-			line = sccp_dev_get_activeline(d);
+			line = sccp_dev_getActiveLine(d);
 		}
 	} else {
 		line = sccp_line_find_byname(lineName, FALSE);
@@ -668,8 +669,8 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		.uniqueid = astman_get_header(m, "ChannelId"),
 		//.uniqueid2 = astman_get_header(m, "OtherChannelId")
 	};
-	if ((ids.uniqueid && AST_MAX_PUBLIC_UNIQUEID < strlen(ids.uniqueid))
-	    //|| (ids.uniqueid2 && AST_MAX_PUBLIC_UNIQUEID < strlen(ids.uniqueid2))
+	if ((ids.uniqueid && AST_MAX_PUBLIC_UNIQUEID < sccp_strlen(ids.uniqueid))
+	    //|| (ids.uniqueid2 && AST_MAX_PUBLIC_UNIQUEID < sccp_strlen(ids.uniqueid2))
 	    ) {
 		astman_send_error_va(s, m, "Uniqueid length exceeds maximum of %d\n", AST_MAX_PUBLIC_UNIQUEID);
 		return 0;
@@ -717,7 +718,7 @@ static int sccp_manager_answerCall2(struct mansession *s, const struct message *
 			if (c->state == SCCP_CHANNELSTATE_RINGING) {
 				sccp_channel_answer(d, c);
 				if (c->owner) {
-					PBX(queue_control) (c->owner, AST_CONTROL_ANSWER);
+					iPbx.queue_control(c->owner, AST_CONTROL_ANSWER);
 				}
 				snprintf(retValStr, sizeof(retValStr), "Answered channel '%s' on device '%s'\r\n", channelId, deviceName);
 				astman_send_ack(s, m, retValStr);
@@ -839,7 +840,7 @@ static void sccp_asterisk_parseStrToAstMessage(char *str, struct message *m)
 	int x = 0;
 	int curlen;
 
-	curlen = strlen(str);
+	curlen = sccp_strlen(str);
 	for (x = 0; x < curlen; x++) {
 		int cr;												/* set if we have \r */
 
@@ -924,6 +925,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 	return 0;
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Call an AMI/Manager Function and Wait for the Result
  * 
@@ -966,6 +968,7 @@ void example_function() {
 }*/
 
 #endif														/* HAVE_PBX_MANAGER_HOOK_H */
+#endif
 
 #endif														/* CS_SCCP_MANAGER */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
