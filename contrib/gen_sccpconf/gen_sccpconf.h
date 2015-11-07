@@ -138,7 +138,7 @@ typedef struct SCCPConfigOption {
 //#define sccp_config_parse_dnd_wrapper "(dnd)=reject|silent|user|on|off"
 
 int (sccp_enum_str2intval) (const char *lookup_str);
-char *(sccp_enum_all_entries) (void);
+const char *(sccp_enum_all_entries) (void);
 
 #define sccp_earlyrtp_str2intval sccp_enum_str2intval
 #define skinny_lampmode_str2intval sccp_enum_str2intval
