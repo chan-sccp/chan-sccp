@@ -38,7 +38,7 @@ int (sccp_enum_str2intval)(const char *lookup_str)
 	return 1;
 }
 
-char *(sccp_enum_all_entries)(void) 
+const char *(sccp_enum_all_entries)(void) 
 {
 	return NULL;
 }
