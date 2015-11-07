@@ -1,5 +1,8 @@
 2015-11-07  ddegroot
 
+	* [r6350] ChangeLog, NEWS, configure, debian/changelog: Updated
+	  news / changelog for release
+
 	* [r6349] .version, ChangeLog, Makefile.am, Makefile.in,
 	  autoconf/acinclude.m4, autoconf/asterisk.m4, autoconf/extra.m4,
 	  conf/ldap[ADD], conf/ldap/asterisk.sccp.ldif[ADD],
