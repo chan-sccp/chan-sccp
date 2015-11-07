@@ -1,3 +1,14 @@
+Version: v4.2.1_STABLE
+=====================
+New Features in V4.2.1
+ - Added CallInfo Structure
+ - Passing Readonly variables to most functions (constification)
+
+Bug Fixes
+ - Fixed Asterisk-13 issues
+ - Fixed Conference issues
+ - Fixes pickup/gpickup issues
+
 Version: v4.2_STABLE
 =====================
 New Features in V4.2
@@ -184,3 +195,5 @@ Fixed/Improved:
  - Group pickup
  - Call parking
 
+
+Version: 4.2.1_STABLE
