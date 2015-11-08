@@ -1,3 +1,457 @@
+2015-10-30  ddegroot
+
+	* [r6305] src/common.h, src/sccp_refcount.c, src/sccp_utils.c: Enh:
+	  Added expects callflow to reduce cost of conditions in refcount
+	  and sccp_copy_string.
+
+	* [r6304] src/sccp_socket.c, src/sccp_socket.h: Enh: inline is_IPv?
+	  function. Reduce number of calls to socket_cleanup_timedout.
+
+	* [r6303] src/sccp_cli.c: Fix: show multiple channel info in sccp
+	  show line dealing with shared line. Reported by Steven.
+
+2015-10-28  ddegroot
+
+	* [r6302] src/chan_sccp.c, src/sccp_cli.c: Fix: 'sccp debug'
+	  completetion, Added 'sccp debug off', 'sccp debug' should not
+	  include 'none' when reporting curren state. Issue reported by
+	  Pavel.
+
+	* [r6301] src/sccp_conference.c, src/sccp_features.c,
+	  src/sccp_pbx.c: Fix conference resume during joining with
+	  multiple partners already present.
+
+	* [r6300] src/pbx_impl/ast/ast111.c, src/sccp_callinfo.c: Fix
+	  locking issue in sccp_callinfo, caused when copying over the
+	  locking state. Reported by Rafal
+
+	* [r6299] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c: Added
+	  AST_CONTROL_TRANSFER entry to sccp_wrapper_asterisk???_indicate
+
+	* [r6298] src/pbx_impl/ast/ast.c: Fix phonebook entry on attended
+	  call transfer. Reported by Frederic.
+
+	* [r6297] src/pbx_impl/ast/ast.c, src/sccp_hint.c,
+	  src/sccp_indicate.c: Revert of previous change in sccp_indicate,
+	  whereby the callinfo ended up being send after
+	  sccp_device_sendcallstate. Issue reported/Tested by Pavel.
+	  Move of sccp_indication called by CONTROL_CONNECTED_LINE_UPDATE
+	  to the connectedline_update function.
+
+2015-10-27  ddegroot
+
+	* [r6296] src/sccp_callinfo.c, src/sccp_hint.c: Fix (reentrant)
+	  locking issue in sccp_callinfo by switching to rwlocks (hint
+	  events are updated in a seperated thread using an event, and most
+	  callinfo events are read events when dealing with hint.
+
+	* [r6295] debian/rules: Enable video / conference and advanced in
+	  debian/ubuntu builds
+
+2015-10-25  ddegroot
+
+	* [r6294] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/define.h, src/sccp_conference.c: Suppress
+	  Cast-Align Warning when using clang and asterisk <= 10 by
+	  replacing AST_STRING_FIELD_ALLOCATION macro. Fix rtpGetUs /
+	  rtpGetThem function on asterisk <= 1.8 (inaccurate cast, using
+	  locale variable instead). Fix warning about using the wrong flags
+	  on conference bridge_join
+
+	* [r6293] src/sccp_config_entries.hh: Extend useRedialMenu help
+	  text
+
+	* [r6292] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c: Fix previous change. When handling
+	  AST_CONTOL_CONNECTED_LINE we should not call sccp_indicate at
+	  all.
+
+	* [r6291] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c: Fix: Connected_Line_Update before
+	  channel has been answered, should indicate PROGRESS not
+	  CONNECTED. Partial Fix for CallerID issue reported by Frederic.
+
+	* [r6290] src/sccp_actions.c, src/sccp_pbx.c: Fix:Prevent offhook
+	  dialing from indicating CHANNELSTATE_DIGITSFOLL after
+	  CHANNELSTATE_DIALING. (Issue reported by Frederic, where offhook
+	  dialing and enblock/redial do different things).
+
+	* [r6289] src/sccp_protocol.c: Enh: include more information in
+	  sendCallInfo debug
+
+	* [r6288] src/sccp_cli.c: Fix: CLI-COMMAND 'sccp set' should return
+	  error when given unknown parameter. Enh:Included debug in
+	  CLI:'sccp set' as one of it's accepted parameters. Reported and
+	  Requested from Pavel.
+
+	* [r6287] src/sccp_callinfo.c: Fix: sccp_callinfo dtor locking
+	  order on destroy when using asterisk-1.8, It does not allow us to
+	  destroy mutex while locked
+
+2015-10-24  ddegroot
+
+	* [r6286] src/sccp_hint.c: Fix: Remove lineState state entry when a
+	  line is detached. Fixes issue when using 'sccp show hint
+	  lineState'.
+
+2015-10-23  ddegroot
+
+	* [r6285] src/sccp_hint.c: Fix: potential segfault
+
+	* [r6284] src/sccp_hint.c: Fix: hint update displayMessage.
+	  Enh:When indicating DND on protocolVersion > 15 phones include
+	  the text '(DND)'
+
+	* [r6283] src/sccp_conference.c: Update conference structure order
+	  to fill holes
+
+	* [r6282] src/sccp_channel.c, src/sccp_conference.c,
+	  src/sccp_conference.h, src/sccp_features.c, src/sccp_indicate.c:
+	  Fix: conference join, leaving the moderator with audio. Reported
+	  by Rafal and Pavel.
+
+	* [r6281] src/sccp_protocol.c: Enh: Re-enable setting callInstance
+	  in sendCallInfoV3 (1)
+
+	* [r6280] src/sccp_protocol.c: Enh: Re-enable setting callInstance
+	  in sendCallInfoV3
+
+	* [r6279] src/sccp_features.c, src/sccp_features.h, src/sccp_pbx.c,
+	  src/sccp_softkeys.c: Enh: Reduce steps in pickup/gpickup. Cleanup
+	  none used code. Fix: gpickup in immediate mode (Reported by
+	  Pavel).
+
+	* [r6278] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c: Enh: Remove
+	  duplicate code by moving dial option parsing to seperate helper
+	  function
+
+2015-10-22  ddegroot
+
+	* [r6277] src/sccp_channel.c, src/sccp_conference.c,
+	  src/sccp_config_entries.hh: - Added newcall to connconf menu
+	  - hold/resume conference indication should set
+	  CONNECTEDCONFERENCE
+	  - after join a little wait time is need before linking up bridge
+	  channels for new participants
+
+	* [r6276] src/sccp_conference.c, src/sccp_indicate.c: Fix: using
+	  conference on shared line
+	  Fix: Suppress remote indications when conference is used on
+	  shared line
+	  - Fix: set CONNECTEDCONFERENCE indication on channel being
+	  masqueraded out, to prevent announcing channel to remote shared
+	  line members.
+	  Fix: refcount causing conference not to be cleaned up
+	  Fix: suspend participant from bridge before kicking the channel,
+	  allows conference to continue in the meantime
+	  Fix: playback to participant channel in seperate thread so that
+	  conference does not have to wait.
+	  
+	  Issue(s) reported by Rafal & Pavel
+
+	* [r6275] src/sccp_pbx.c: Fix: adding digittimeoutchar
+
+	* [r6274] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/pbx_impl/pbx_impl.h, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_features.c, src/sccp_indicate.c, src/sccp_pbx.c,
+	  src/sccp_softkeys.c: Fix: rewrite / integration of pickup /
+	  gpickup
+	  Enhancement: callinfo exchange during pickup
+	  Enhancement: better locking during pickup
+	  Enhancement: failure handling / error reporting
+	  Enhancement: pbx_impl get/set callerid function use
+	  PBX_CHANNEL_TYPE instead of sccp_channel_t, so that they can be
+	  called on foreign channel type if necessary
+	  Fix: for immediate mode, dealing with 's' extension and
+	  sccp_channel_new_call (Patch provided by Pavel).
+
+2015-10-20  ddegroot
+
+	* [r6273] src/sccp_indicate.c: Fix: empty callplane (without
+	  callinfo) during CALLWAITING and in remote_indications. Reported
+	  by Rafal.
+
+	* [r6272] src/sccp_actions.c, src/sccp_softkeys.c: Fix: redial
+	  using redialInformation.lineinstance when dialing.
+
+	* [r6271] src/sccp_protocol.c: Fix: 7921 callinfo display. Reported
+	  by Rafal.
+
+2015-10-19  ddegroot
+
+	* [r6270] src/sccp_features.c, src/sccp_pbx.c: Fix: directed pickup
+	  when using modeanswer=off
+
+	* [r6269] src/sccp_conference.c: Enh: Speed up conference handling,
+	  by using RWLIST for conference->participants. Cleanup CallerID
+	  information for the initial conference moderator.
+
+	* [r6268] src/pbx_impl/ast/ast112_announce.c,
+	  src/pbx_impl/ast/ast113.c, src/sccp_conference.c: Fix: conference
+	  kick announcement on foreign channels drivers. Fix
+	  conference_resume locking issue (also prevented conference join
+	  to hangup). cleanup announcement channel driver. Kick issue
+	  reported by Rafal.
+
+	* [r6267] src/sccp_hint.c: Fix: Hint issues during
+	  progress/proceeding. Reported and Patched by Pavel Troller.
+
+2015-10-19  marcelloceschia
+
+	* [r6266] src/sccp_socket.c: Merge commit
+	  '1847a62f6880d5cc40f0ffcd825c479603b3e910'
+	  
+	  * commit '1847a62f6880d5cc40f0ffcd825c479603b3e910':
+	  fixes retain issue in sccp_session_getDevice
+
+	* [r6265] src/chan_sccp.c: Merge commit
+	  '2f3b7afc8728c5281bdf3fdc0b604da5d8c51892'
+	  
+	  * commit '2f3b7afc8728c5281bdf3fdc0b604da5d8c51892':
+	  fix spelling
+
+2015-10-18  ddegroot
+
+	* [r6264] src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.h,
+	  src/pbx_impl/ast/define.h, src/sccp_conference.c: Fix: conference
+	  issue(s) when running with asterisk-13. Reported by Rafal
+	  Jurczak.
+
+	* [r6263] src/pbx_impl/ast/ast110.c: Fix: compile warning (ast-10)
+
+	* [r6262] autoconf/extra.m4, configure: Fix: grep error on stdout
+	  from configure
+
+2015-10-17  ddegroot
+
+	* [r6261] src/sccp_features.c: Fix: Remove onhook action during
+	  directed picku (with modeanswer=on)
+
+	* [r6260] src/common.h, src/sccp_appfunctions.c,
+	  src/sccp_conference.c, src/sccp_conference.h,
+	  src/sccp_features.c: Enhancements: privatised conference structs.
+	  Constified sccp_conference.c. Renamed
+	  sccp_conference_partificpant to sccp_participant.
+
+2015-10-16  ddegroot
+
+	* [r6259] src/sccp_line.c: Release line when last device leaves ->
+	  freeing the line
+
+	* [r6258] src/sccp_hint.c: Fix: line refcount issue in sccp_hint.c
+	  (follow up for rev 6256)
+
+	* [r6257] src/sccp_dllists.h: Enh: Replaced SCCP_LIST_FIND with
+	  cheaper version
+
+	* [r6256] src/sccp_hint.c: Fix: line refcount issue.
+
+	* [r6255] src/sccp_device.c, src/sccp_softkeys.c: Fix: Error
+	  message about Destruction of device->privateData Lock.
+	  Enh: Reduce softkey logging
+
+	* [r6254] src/sccp_hint.c: Fix: DND callinfo needed a calltype to
+	  be presented correctly. Reported by Steve Hanselman.
+
+	* [r6253] src/sccp_callinfo.c, src/sccp_callinfo.h,
+	  src/sccp_channel.c, src/sccp_hint.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h: Fix: callInstance number displayed in
+	  callplane. Reported by Pavel Troller.
+
+	* [r6252] src/sccp_cli.c, src/sccp_line.c: Fix: Correct line
+	  statistics (Active & Held Channel Count)
+
+	* [r6251] src/sccp_appfunctions.c, src/sccp_cli.c,
+	  src/sccp_config_entries.hh, src/sccp_management.c: Fix: DND not
+	  cycling by defaultr. Issue reported by Steve Hanselman.
+
+	* [r6250] src/sccp_conference.c, src/sccp_features.c: Fix: double
+	  definition warning. Fix: shadow warning
+
+2015-10-15  ddegroot
+
+	* [r6249] src/sccp_device.c: Fix: switch speaker off on older
+	  devices when onhook is indicated
+
+	* [r6248] autoconf/asterisk.m4, autoconf/extra.m4, configure,
+	  configure.ac, src/common.h, src/config.h.in: Cleanup
+	  configure/autoconf. Added check to see if we are running in
+	  scan-build/ccc-analyzer. Added define for NONENULL attribute
+	  check when using ccc-analyzer
+
+	* [r6247] src/Makefile.am, src/Makefile.in: Enhancement: Update
+	  Makefile.am
+
+	* [r6246] Makefile.am, Makefile.in, src/Makefile.am,
+	  src/Makefile.in, tools/autorevision: Update: autorevision
+
+	* [r6245] src/sccp_actions.c, src/sccp_actions.h,
+	  src/sccp_softkeys.c, src/sccp_utils.c: Enhancement:
+	  checked/corrected sccp_action.c function for potential calls with
+	  null pointers
+
+2015-10-14  ddegroot
+
+	* [r6244] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast106.h: Fix
+	  asterisk 1.6.2 compilation
+
+	* [r6243] src/sccp_pbx.c: Fix dial timeout without a number.
+	  Reported by Niklas Larsson.
+
+	* [r6242] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/pbx_impl/ast/define.h: Fixes the
+	  sporadic issue where an ast_channel is still shown in 'core show
+	  channels' after hangup has finished (hangup cli function does not
+	  have any effect). Finally found the cause in stasis/snapshot
+	  being taken before having set the c->owner and not updating the
+	  snapshow when adding rtp_server to the channel. Reported by
+	  Niklas Larsson (references #205 references #107)
+
+	* [r6241] src/chan_sccp.c, src/pbx_impl/ast/ast.c: Fix compilation
+	  against asterisk-1.6.2
+
+	* [r6240] src/sccp_device.c: Fix indicate->onhook
+
+2015-10-13  ddegroot
+
+	* [r6239] src/sccp_pbx.c: Fix dialtone issue when taken offhook and
+	  using endcall button (also happens when resuming a call).
+	  Reported by Dan Huynh.
+
+	* [r6238] src/sccp_line.c: Provide starttone with lineInstance and
+	  callid possible
+
+	* [r6237] src/sccp_indicate.c: Use d->indicate->onhook to handle
+	  onhook indication
+
+	* [r6236] src/sccp_features.c, src/sccp_softkeys.c: Provide
+	  starttone with lineInstance and callid possible
+
+	* [r6235] src/sccp_device.c: Check activeChannel during
+	  indicate->onhook
+
+	* [r6234] src/sccp_atomic.h, src/sccp_channel.c: Fix cancelling
+	  scheduled task being executed twice. Added ATOMIC_FETCH. Prevent
+	  onhook indication being send by sccp_channel_cleanup, when this
+	  state is already active.
+
+	* [r6233] src/sccp_channel.c: Fix compile warning.
+
+	* [r6232] contrib/llvm-scan-build: Expand the number of checks run
+	  during llvm-scan-build
+
+	* [r6231] contrib/llvm-scan-build, src/pbx_impl/ast/define.h,
+	  src/sccp_callinfo.c, src/sccp_channel.c, src/sccp_conference.c,
+	  src/sccp_device.c, src/sccp_devstate.c, src/sccp_pbx.c,
+	  src/sccp_protocol.c, src/sccp_refcount.c, src/sccp_utils.c: Added
+	  define for pbx_assert. Pass -DSCANBUILD in llvm-scan-build.
+	  Renamed assert and ast_assert to pbx_assert in all functions
+
+	* [r6230] src/sccp_conference.c: Fix null pointer dereference
+	  (static analysis)
+
+	* [r6229] src/sccp_refcount.c: Fix potential null pointer
+	  dereference (static analysis)
+
+	* [r6228] src/sccp_dllists.h: Fix potential null pointer
+	  dereference (static analysis)
+
+	* [r6227] src/sccp_channel.c: Fix potential null pointer
+	  dereference (static analysis)
+
+	* [r6226] src/sccp_pbx.c: Fix potential null pointer dereference of
+	  linedevice->device where d was available (static analysis)
+
+	* [r6225] src/sccp_line.c: Fix potential null pointer dereference
+	  (static analysis)
+
+	* [r6224] src/sccp_actions.c: Fix potential null pointer
+	  dereference (static analysis)
+
+	* [r6223] src/sccp_appfunctions.c: Fix Out-of-bound array access
+	  (static analysis)
+
+	* [r6222] src/sccp_indicate.c: Fix potential null pointer
+	  dereference of linedevice->lineInstance (static analysis)
+
+2015-10-12  ddegroot
+
+	* [r6221] src/sccp_conference.c: Preliminary fix for
+	  sccp_conference refcount. More testing/checking required
+
+	* [r6220] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/sccp_hint.c: Fix Conditional jump
+	  or move depends on uninitialised value (valgrind)
+
+	* [r6219] src/chan_sccp.c, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_conference.c, src/sccp_device.c,
+	  src/sccp_devstate.c, src/sccp_featureButton.c,
+	  src/sccp_features.c, src/sccp_protocol.c, src/sccp_refcount.c,
+	  src/sccp_softkeys.c, src/sccp_threadpool.c: Remove include
+	  entries when not needed (anymore)
+
+	* [r6218] src/chan_sccp.h, src/common.h, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.h,
+	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/ast111.h,
+	  src/pbx_impl/ast/ast112.h, src/pbx_impl/ast/ast112_announce.h,
+	  src/pbx_impl/ast/ast113.h, src/pbx_impl/ast/define.h,
+	  src/pbx_impl/ast/include_asterisk_autoconfig.h,
+	  src/pbx_impl/pbx_impl.h, src/sccp_actions.h,
+	  src/sccp_appfunctions.h, src/sccp_atomic.h, src/sccp_callinfo.h,
+	  src/sccp_channel.h, src/sccp_cli.h, src/sccp_conference.h,
+	  src/sccp_config.h, src/sccp_device.h, src/sccp_devstate.h,
+	  src/sccp_dllists.h, src/sccp_enum.h, src/sccp_event.h,
+	  src/sccp_featureButton.h, src/sccp_features.h, src/sccp_hint.h,
+	  src/sccp_indicate.h, src/sccp_labels.h, src/sccp_line.h,
+	  src/sccp_management.h, src/sccp_mwi.h, src/sccp_pbx.h,
+	  src/sccp_protocol.h, src/sccp_refcount.h, src/sccp_rtp.h,
+	  src/sccp_socket.h, src/sccp_softkeys.h, src/sccp_threadpool.h,
+	  src/sccp_utils.h: Use #pragma once instead of classic include
+	  guards -> speeds up gcc and clang compilation.
+
+	* [r6217] ChangeLog, autoconf/extra.m4, configure, configure.ac,
+	  src/config.h.in: Revised the lib/debug path when stripping
+	  symbols. Use pragma once instead of classic include guards
+
+2015-10-11  ddegroot
+
+	* [r6216] src/sccp_cli.c: Fix CLI device restart/reset
+
+	* [r6215] src/sccp_conference.c: Fix conference explit release of
+	  participant
+
+	* [r6214] src/sccp_softkeys.c: Fix DND Softkey handling. Reported
+	  by Benjamin Bush.
+
+	* [r6213] src/sccp_softkeys.c: Fix 'private' softkey segfault
+
+	* [r6212] src/sccp_features.c: Fix pickup feature (Channel Needs to
+	  be set to UP in time). Enhance CallInfo Exchange on pickup
+
+	* [r6211] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast111.h, src/pbx_impl/ast/ast112.h,
+	  src/pbx_impl/ast/ast113.h, src/pbx_impl/ast/define.h: Fix compile
+	  issue with asterisk < v10
+
+	* [r6210] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/sccp_channel.c: Fix callinfo
+	  exchange during transfer. Moved
+	  sccp_wrapper_asterisk???_connectedline implementation to
+	  pbx_impl/ast/ast.c to reduce code duplication. Fix transfer
+	  callinfo completion. Issue Reported by Benjamin Bush.
+
 2015-10-10  ddegroot
 
 	* [r6209] src/sccp_channel.c, src/sccp_protocol.c: Fix transfer

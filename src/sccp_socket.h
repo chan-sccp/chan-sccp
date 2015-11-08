@@ -31,8 +31,8 @@ struct sccp_ha {
 	int sense;
 };
 
-boolean_t sccp_socket_is_IPv4(const struct sockaddr_storage *sockAddrStorage);
-boolean_t sccp_socket_is_IPv6(const struct sockaddr_storage *sockAddrStorage);
+gcc_inline boolean_t sccp_socket_is_IPv4(const struct sockaddr_storage *sockAddrStorage);
+gcc_inline boolean_t sccp_socket_is_IPv6(const struct sockaddr_storage *sockAddrStorage);
 uint16_t sccp_socket_getPort(const struct sockaddr_storage *sockAddrStorage);
 void sccp_socket_setPort(const struct sockaddr_storage *sockAddrStorage, uint16_t port);
 int sccp_socket_is_any_addr(const struct sockaddr_storage *sockAddrStorage);
@@ -111,7 +111,7 @@ void sccp_session_tokenReject(constSessionPtr session, uint32_t backoff_time);
 void sccp_session_tokenAck(constSessionPtr session);
 void sccp_session_tokenRejectSPCP(constSessionPtr session, uint32_t features);
 void sccp_session_tokenAckSPCP(constSessionPtr session, uint32_t features);
-void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState);
+gcc_inline void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState);
 void sccp_session_setProtocol(constSessionPtr session, uint16_t protocolType);
 uint16_t sccp_session_getProtocol(constSessionPtr session);
 boolean_t sccp_session_getOurIP(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage, int family);

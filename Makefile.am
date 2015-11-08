@@ -115,9 +115,9 @@ isntall: install
 rmcoverage:
 	rm -rf coverage;
 
-coverage:
+coverage: src/.libs/chan_sccp.so
 	mkdir coverage; \
-	lcov --directory src/.libs -b src -c --o coverage/chan-sccp-b.info; \
+	lcov --directory src/.libs -b src -c --o coverage/chan-sccp-b.info ; \
 	genhtml -o coverage -f -t chan-sccp-b coverage/chan-sccp-b.info
 	
 coverage-zero: rmcoverage

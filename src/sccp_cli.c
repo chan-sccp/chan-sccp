@@ -227,7 +227,7 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 	int which = 0;
 	char *ret = NULL;
 	boolean_t debugno = 0;
-	char *extra_cmds[3] = { "no", "none", "all" };
+	char *extra_cmds[] = { "no", "none", "off", "all" };
 
 	// check if the sccp debug line contains no before the categories
 	if (!strncasecmp(line, "sccp debug no ", strlen("sccp debug no "))) {
@@ -246,7 +246,7 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 		}
 	}
 	// check categories
-	for (i = 0; i < ARRAY_LEN(sccp_debug_categories); i++) {
+	for (i =0; i < ARRAY_LEN(sccp_debug_categories); i++) {
 		// if in debugno mode
 		if (debugno) {
 			// then skip the categories which are not currently active
@@ -474,7 +474,7 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	int local_line_total = 0;
 	const char *actionid = "";
 
-	sccp_globals_lock(lock);
+	pbx_rwlock_rdlock(&GLOB(lock));
 
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, GLOB(global_preferences), ARRAY_LEN(GLOB(global_preferences)));
 	debugcategories = sccp_get_debugcategories(GLOB(debug));
@@ -574,7 +574,7 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("Threadpool Size", CLI_AMI_LIST_WIDTH, "%d/%d", sccp_threadpool_jobqueue_count(GLOB(general_threadpool)), sccp_threadpool_thread_count(GLOB(general_threadpool)));
 
 	sccp_free(debugcategories);
-	sccp_globals_unlock(lock);
+	pbx_rwlock_unlock(&GLOB(lock));
 
 	if (s) {
 		totals->lines = local_line_total;
@@ -742,6 +742,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	}
 
 	sccp_hostname_t *hostname;
+	sccp_accessory_t activeAccessory = sccp_device_getActiveAccessory(d);
+	sccp_accessorystate_t activeAccessoryState = sccp_device_getAccessoryStatus(d, activeAccessory);
 
 	SCCP_LIST_TRAVERSE(&d->permithosts, hostname, list) {
 		ast_str_append(&permithost_buf, DEFAULT_PBX_STR_BUFFERSIZE, "%s ", hostname->name);
@@ -806,8 +808,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit",		CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_PARAM("PermitHosts",		CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(permithost_buf));
 	CLI_AMI_OUTPUT_PARAM("Early RTP",		CLI_AMI_LIST_WIDTH, "%s", sccp_earlyrtp2str(d->earlyrtp));
-	sccp_accessory_t activeAccessory = sccp_device_getActiveAccessory(d);
-	CLI_AMI_OUTPUT_PARAM("Accessory State", 	CLI_AMI_LIST_WIDTH, "%s:%s", sccp_accessory2str(activeAccessory), sccp_accessorystate2str(sccp_device_getAccessoryStatus(d, activeAccessory)));
+	CLI_AMI_OUTPUT_PARAM("Accessory State", 	CLI_AMI_LIST_WIDTH, "%s:%s", activeAccessory ? sccp_accessory2str(activeAccessory) : "", activeAccessory ? sccp_accessorystate2str(activeAccessoryState) : "");
 	CLI_AMI_OUTPUT_PARAM("Last dialed number",	CLI_AMI_LIST_WIDTH, "%s (%d)", d->redialInformation.number, d->redialInformation.lineInstance);
 	CLI_AMI_OUTPUT_PARAM("Default line instance",	CLI_AMI_LIST_WIDTH, "%d", d->defaultLineInstance);
 	CLI_AMI_OUTPUT_PARAM("Custom Background Image",	CLI_AMI_LIST_WIDTH, "%s", d->backgroundImage ? d->backgroundImage : "---");
@@ -1063,7 +1064,8 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 				
 				SCCP_LIST_LOCK(&l->channels);
 				SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
-					if (channel && (channel->state != SCCP_CHANNELSTATE_CONNECTED || sccp_strequals(channel->currentDeviceId, d->id))) {
+					//if (channel && (channel->state != SCCP_CHANNELSTATE_CONNECTED || sccp_strequals(channel->currentDeviceId, d->id))) {
+					if (channel && (channel->state == SCCP_CHANNELSTATE_HOLD || sccp_strequals(channel->currentDeviceId, d->id))) {
 						if (channel->owner) {
 							pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), pbx_channel_nativeformats(channel->owner));
 						}
@@ -1143,10 +1145,10 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 			}
 		}
 		if (!s) {
-			for (v = l->variables; v; v = v->next)
+			for (v = l->variables; v; v = v->next) {
 				pbx_cli(fd, "| %-13s %-9s %-30s = %-84.84s |\n", "", "Variable:", v->name, v->value);
-
-			if (strcmp(l->defaultSubscriptionId.number, "") || strcmp(l->defaultSubscriptionId.name, "")) {
+			}
+			if (!sccp_strlen_zero(l->defaultSubscriptionId.number) || !sccp_strlen_zero(l->defaultSubscriptionId.name)) {
 				pbx_cli(fd, "| %-13s %-9s %-30s %-86.86s |\n", "", "SubscrId:", l->defaultSubscriptionId.number, l->defaultSubscriptionId.name);
 			}
 		}
@@ -1559,62 +1561,7 @@ CLI_AMI_ENTRY(show_hint_subscriptions, sccp_show_hint_subscriptions, "Show all S
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* -------------------------------------------------------------------------------------------------------TEST- */
-#define NUM_LOOPS 20
-#define NUM_OBJECTS 100
 #ifdef CS_EXPERIMENTAL
-static struct refcount_test {
-	char *test;
-	int id;
-	int loop;
-	unsigned int threadid;
-} *object[NUM_OBJECTS];
-
-static void sccp_cli_refcount_test_destroy(struct refcount_test *obj)
-{
-	sccp_log((DEBUGCAT_CORE)) ("TEST: Destroyed %d, thread: %d\n", obj->id, (unsigned int) pthread_self());
-	sccp_free(object[obj->id]->test);
-	object[obj->id]->test = NULL;
-};
-
-static void *sccp_cli_refcount_test_thread(void *data)
-{
-	struct refcount_test *obj = NULL, *obj1 = NULL;
-	int test, loop;
-	int random_object;
-
-	for (loop = 0; loop < NUM_LOOPS; loop++) {
-		for (test = 0; test < NUM_OBJECTS; test++) {
-			random_object = rand() % NUM_OBJECTS;
-			sccp_log((DEBUGCAT_CORE)) ("TEST: retain/release %d, loop: %d, thread: %d\n", random_object, loop, (unsigned int) pthread_self());
-			if ((obj = sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
-				usleep(random_object % 10);
-				if ((obj1 = sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
-					usleep(random_object % 10);
-					obj1 = sccp_refcount_release(obj1, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-				}
-				obj = sccp_refcount_release(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-			}
-		}
-	}
-
-	return NULL;
-}
-
-static void *sccp_cli_threadpool_test_thread(void *data)
-{
-	int loop;
-
-	// int num_loops=rand();
-	int num_loops = 1000;
-
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "Running work: %d, loops: %d\n", (unsigned int) pthread_self(), num_loops);
-	for (loop = 0; loop < num_loops; loop++) {
-		usleep(1);
-	}
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "Thread: %d Done\n", (unsigned int) pthread_self());
-	return 0;
-}
-
 /*!
  * \brief Test Message
  * \param fd Fd as int
@@ -1704,52 +1651,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 		}
 		return RESULT_SUCCESS;
 	}
-	if (!strcasecmp(argv[2], "refcount")) {
-		int thread;
-		int num_threads = (argc == 5) ? atoi(argv[3]) : 4;
-
-		pthread_t t;
-		int test;
-		char id[23];
-
-		for (test = 0; test < NUM_OBJECTS; test++) {
-			snprintf(id, sizeof(id), "%d/%d", test, (unsigned int) pthread_self());
-			object[test] = (struct refcount_test *) sccp_refcount_object_alloc(sizeof(struct refcount_test), SCCP_REF_TEST, id, sccp_cli_refcount_test_destroy);
-			object[test]->id = test;
-			object[test]->threadid = (unsigned int) pthread_self();
-			object[test]->test = strdup(id);
-			sccp_log((DEBUGCAT_CORE)) ("TEST: Created %d\n", object[test]->id);
-		}
-		sccp_refcount_print_hashtable(fd);
-		sleep(1);
-
-		for (thread = 0; thread < num_threads; thread++) {
-			pbx_pthread_create(&t, NULL, sccp_cli_refcount_test_thread, NULL);
-		}
-		pthread_join(t, NULL);
-		sleep(1);
-
-		for (test = 0; test < NUM_OBJECTS; test++) {
-			if (object[test]) {
-				sccp_log((DEBUGCAT_CORE)) ("TEST: Final Release %d, thread: %d\n", object[test]->id, (unsigned int) pthread_self());
-				sccp_refcount_release(object[test], __FILE__, __LINE__, __PRETTY_FUNCTION__);
-			}
-		}
-		sleep(1);
-		sccp_refcount_print_hashtable(fd);
-		return RESULT_SUCCESS;
-	}
-	if (!strcasecmp(argv[2], "threadpool")) {
-		int work;
-		int num_work = (argc == 5) ? atoi(argv[3]) : 4;
-
-		for (work = 0; work < num_work; work++) {
-			if (!sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_cli_threadpool_test_thread, (void *) &work)) {
-				pbx_log(LOG_ERROR, "Could not add work to threadpool\n");
-			}
-		}
-		return RESULT_SUCCESS;
-	}
 	if (!strcasecmp(argv[2], "hint")) {
 		int state = (argc == 6) ? atoi(argv[4]) : 0;
 
@@ -1773,101 +1674,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 			d->retrieveDeviceCapabilities(d);
 			pbx_log(LOG_NOTICE, "%s: Done\n", d->id);
 		}
-		return RESULT_SUCCESS;
-	}
-	if (!strcasecmp(argv[2], "ha")) {
-		struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-		int error;
-
-		pbx_cli(fd, "running ha path tests\n");
-
-		struct sockaddr_storage sas10, sas1014, sas1015, sas1016, sas172;
-
-		sccp_sockaddr_storage_parse(&sas10, "10.0.0.1", PARSE_PORT_FORBID);
-		sccp_sockaddr_storage_parse(&sas1014, "10.14.14.1", PARSE_PORT_FORBID);
-		sccp_sockaddr_storage_parse(&sas1015, "10.15.15.1", PARSE_PORT_FORBID);
-		sccp_sockaddr_storage_parse(&sas1016, "10.16.16.1", PARSE_PORT_FORBID);
-		sccp_sockaddr_storage_parse(&sas172, "172.16.0.1", PARSE_PORT_FORBID);
-
-		// test 1
-		// struct sccp_ha *ha = sccp_calloc(1, sizeof(struct sccp_ha));
-		struct sccp_ha *ha = NULL;
-
-		ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
-		pbx_cli(fd, "test 1: deny all\n");
-
-		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
-		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_ALLOW) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
-		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
-		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
-		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
-
-		// test 2
-		ha = sccp_append_ha("permit", "10.14.14.0/255.255.255.0", ha, &error);
-		pbx_cli(fd, "test 2: added permit 10.14.14.0/255.255.255.0\n");
-		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
-		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
-		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
-		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
-		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
-
-		// test 3
-		ha = sccp_append_ha("permit", "10.15.15.0/255.255.0.0", ha, &error);
-		pbx_cli(fd, "test 3: added permit 10.15.15.0/255.255.0.0\n");
-		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
-		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
-		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
-		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
-		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
-
-		// test 4
-		ha = sccp_append_ha("permit", "10.16.16.0/255.0.0.0", ha, &error);
-		pbx_cli(fd, "test 4: added permit 10.16.16.0/255.0.0.0\n");
-		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
-		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
-		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
-		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
-		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
-
-		// test 4
-		ha = sccp_append_ha("permit", "10.16.16.0/255.0.0.0", ha, &error);
-		pbx_cli(fd, "test 4: added permit 10.16.16.0/255.0.0.0\n");
-		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
-		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
-		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
-		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
-		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
-
-		sccp_free_ha(ha);
-
-		ha = NULL;
-		pbx_cli(fd, "test 5: clean path structure and only added permit 10.0.0.0/255.0.0.0 (localnet)\n");
-		ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, &error);
-		pbx_cli(fd, "cleaned path and only added permit 10.0.0.0/255.0.0.0 (localnet)\n");
-		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
-		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas10, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas10, AST_SENSE_DENY));
-		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1014, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1014, AST_SENSE_DENY));
-		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1015, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1015, AST_SENSE_DENY));
-		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1016, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1016, AST_SENSE_DENY));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas172, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas172, AST_SENSE_DENY));
-		sccp_free_ha(ha);
-
 		return RESULT_SUCCESS;
 	}
 	if (!strcasecmp(argv[2], "xml")) {									/*  WIP */
@@ -2647,18 +2453,21 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	if (argc < 2 || argc > 4) {
 		return RESULT_SHOWUSAGE;
 	}
-	pbx_mutex_lock(&GLOB(lock));
+	pbx_rwlock_wrlock(&GLOB(lock));
 	if (GLOB(reload_in_progress) == TRUE) {
 		pbx_cli(fd, "SCCP reloading already in progress.\n");
+		pbx_rwlock_unlock(&GLOB(lock));
 		goto EXIT;
 	}
 
 	if (!GLOB(cfg)) {
 		pbx_log(LOG_NOTICE, "GLOB(cfg) not available. Skip loading default setting.\n");
+		pbx_rwlock_unlock(&GLOB(lock));
 		goto EXIT;
 	}
-
 	GLOB(reload_in_progress) = TRUE;
+	pbx_rwlock_unlock(&GLOB(lock));
+
 	if (argc > 2) {
 		if (sccp_strequals("device", argv[2])) {
 			if (argc == 4) {
@@ -2870,8 +2679,9 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			break;
 	}
 EXIT:
+	pbx_rwlock_wrlock(&GLOB(lock));
 	GLOB(reload_in_progress) = FALSE;
-	pbx_mutex_unlock(&GLOB(lock));
+	pbx_rwlock_unlock(&GLOB(lock));
 	return returnval;
 }
 
@@ -2881,6 +2691,9 @@ static char reload_usage[] = "Usage: SCCP reload [force|file filename|device dev
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_COMMAND "sccp", "reload"
 CLI_ENTRY(cli_reload, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
+#undef CLI_COMMAND
+#define CLI_COMMAND "sccp", "reload", "file"
+CLI_ENTRY(cli_reload_file, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
 #undef CLI_COMMAND
 #define CLI_COMMAND "sccp", "reload", "force"
     CLI_ENTRY(cli_reload_force, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
@@ -3572,6 +3385,7 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
 	AST_CLI_DEFINE(cli_config_generate, "SCCP generate config file."),
 	AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
+	AST_CLI_DEFINE(cli_reload_file, "SCCP module reload file."),
 	AST_CLI_DEFINE(cli_reload_force, "SCCP module reload force."),
 	AST_CLI_DEFINE(cli_reload_device, "SCCP module reload device."),
 	AST_CLI_DEFINE(cli_reload_line, "SCCP module reload line."),

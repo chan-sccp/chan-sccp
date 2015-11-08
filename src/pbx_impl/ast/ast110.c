@@ -652,14 +652,18 @@ static int sccp_wrapper_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 
 		case AST_CONTROL_CONNECTED_LINE:
 			sccp_asterisk_connectedline(c, data, datalen);
+			res = 0;
+			break;
 
+		case AST_CONTROL_TRANSFER:
+			ast_log(LOG_NOTICE, "%s: Ast Control Transfer: %d", c->designator, *(int *)data);
+			//sccp_asterisk_connectedline(c, data, datalen);
 			res = 0;
 			break;
 
 		case AST_CONTROL_REDIRECTING:
 			sccp_asterisk_redirectedUpdate(c, data, datalen);
 			sccp_indicate(d, c, c->state);
-
 			res = 0;
 			break;
 
@@ -3063,6 +3067,7 @@ AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, SCCP_VERSIONSTR,.load 
 		.nonoptreq = "chan_local");
 #endif
 
+#if UNUSEDCODE // 2015-11-01
 PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data)
 {
 	PBX_CHANNEL_TYPE *remotePeer;
@@ -3082,6 +3087,7 @@ PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANN
 	ast_channel_iterator_destroy(iterator);
 	return remotePeer;
 }
+#endif
 
 PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE * chan, const char *exten, const char *context)
 {

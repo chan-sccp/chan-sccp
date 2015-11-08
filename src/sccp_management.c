@@ -925,6 +925,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 	return 0;
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Call an AMI/Manager Function and Wait for the Result
  * 
@@ -967,6 +968,7 @@ void example_function() {
 }*/
 
 #endif														/* HAVE_PBX_MANAGER_HOOK_H */
+#endif
 
 #endif														/* CS_SCCP_MANAGER */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

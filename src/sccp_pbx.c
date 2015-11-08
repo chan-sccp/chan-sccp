@@ -525,7 +525,11 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				}
 			}
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
+#if CS_SCCP_CONFERENCE 
+			sccp_indicate(d, c, d->conference ? SCCP_CHANNELSTATE_CONNECTEDCONFERENCE : SCCP_CHANNELSTATE_CONNECTED);
+#else
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+#endif
 
 			/** check for monitor request */
 			if (d && (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
@@ -870,7 +874,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		pbx_channel = pbx_channel_ref(c->owner);
 
 		/* we should just process outbound calls, let's check calltype */
-		if (c->calltype != SKINNY_CALLTYPE_OUTBOUND) {
+		if (c->calltype != SKINNY_CALLTYPE_OUTBOUND && c->softswitch_action == SCCP_SOFTSWITCH_DIAL) {
 			pbx_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) This function is for outbound calls only. Exiting\n");
 			goto EXIT_FUNC;
 		}
@@ -957,7 +961,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 
 				if (!sccp_strlen_zero(shortenedNumber)) {
  					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) Asterisk request to pickup exten '%s'\n", shortenedNumber);
-					if (sccp_feat_directed_pickup(d, c, shortenedNumber)) {
+					if (sccp_feat_directed_pickup(d, c, instance, shortenedNumber)) {
 						sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 					}
 				} else {
@@ -970,7 +974,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			case SCCP_SOFTSWITCH_GETCONFERENCEROOM:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Conference request\n", d->id);
 				if (c->owner && !pbx_check_hangup(c->owner)) {
-					sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 					sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 					sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
 					iPbx.set_callstate(channel, AST_STATE_UP);
