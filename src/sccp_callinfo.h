@@ -15,7 +15,9 @@ struct sccp_callinfo;
 sccp_callinfo_t __attribute__ ((malloc)) *const sccp_callinfo_ctor(uint8_t callInstance);
 sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t * ci);
 sccp_callinfo_t *sccp_callinfo_copyCtor(const sccp_callinfo_t * const src_ci);
+#if UNUSEDCODE // 2015-11-01
 boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src, sccp_callinfo_t * const dst);
+#endif
 
 /*
  * \brief callinfo setter with variable number of arguments
@@ -25,8 +27,9 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src, sccp_callinfo_t 
  * \returns: number of changed fields
  */
 int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...);
+#if UNUSEDCODE // 2015-11-01
 int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, sccp_callinfo_key_t key, ...);
-
+#endif
 /*
  * \brief send callinfo to device
  */
@@ -51,4 +54,10 @@ int sccp_callinfo_setLastRedirectingParty(sccp_callinfo_t * const ci, const char
 /* debug */
 boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str_t ** const buf);
 void sccp_callinfo_print2log(const sccp_callinfo_t * const ci, const char *const header);
+
+/* tests */
+#if CS_TEST_FRAMEWORK
+void sccp_callinfo_register_tests(void);
+void sccp_callinfo_unregister_tests(void);
+#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -23,7 +23,7 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
-	./configure --enable-debug
+	./configure --enable-debug  --enable-video --enable-video-layer --enable-conference --enable-advanced-functions
 	touch configure-stamp
 
 

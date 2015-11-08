@@ -156,7 +156,9 @@ void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel);
 void sccp_line_clean(sccp_line_t * l, boolean_t destroy);
 void sccp_line_kill_channels(sccp_line_t * l);
 
+#if UNUSEDCODE // 2015-11-01
 sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line);
+#endif
 void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c);
 void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number);
 
@@ -167,12 +169,15 @@ sccp_line_t *sccp_line_find_byname(const char *name, uint8_t realtime);
 #define sccp_line_find_byid(_x,_y) __sccp_line_find_byid(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_line_t *__sccp_line_find_byid(constDevicePtr d, uint16_t instance, const char *filename, int lineno, const char *func);
 
+#define sccp_line_find_byButtonIndex(_x, _y) __sccp_line_find_byButtonIndex(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+sccp_line_t *__sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex, const char *filename, int lineno, const char *func);
 #ifdef CS_SCCP_REALTIME
 #define sccp_line_find_realtime_byname(_x) __sccp_line_find_realtime_byname(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_line_t *__sccp_line_find_realtime_byname(const char *name, const char *filename, int lineno, const char *func);
 #endif														// CS_SCCP_REALTIME
 #else														// DEBUG
 sccp_line_t *sccp_line_find_byid(constDevicePtr d, uint16_t instance);
+sccp_line_t *sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex);
 
 #ifdef CS_SCCP_REALTIME
 sccp_line_t *sccp_line_find_realtime_byname(const char *name);

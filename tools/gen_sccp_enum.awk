@@ -22,7 +22,7 @@ BEGIN {
 	print "#ifndef __SCCP_ENUM_GUARD_H" >out_header_file
 	print "#define __SCCP_ENUM_GUARD_H" >out_header_file 
 	print "typedef int (*sccp_enum_str2intval_t)(const char *lookup_str);" > out_header_file
-	print "typedef char *(*sccp_enum_all_entries_t)(void);" > out_header_file
+	print "typedef const char *(*sccp_enum_all_entries_t)(void);" > out_header_file
 	
 	#
         # gen enum sourcefile
@@ -37,6 +37,10 @@ BEGIN {
 	print "#include \"common.h\"" > out_source_file
 	print "#include \"sccp_enum.h\"" > out_source_file
 	print "#include \"sccp_utils.h\"" > out_source_file
+	
+	print "static const char *ERROR_2str_STR = \"SCCP: Error during lookup of \";" > out_source_file
+	print "static const char *LOOKUPERROR_STR = \"SCCP: LOOKUP ERROR, \";" > out_source_file
+
 	enum_name = ""
 	Comment = ""
 	comment = 0
@@ -153,7 +157,7 @@ codeSkip == 1			{ next }
 	}
 	print namespace "_" enum_name "_t " namespace "_" enum_name "_str2val(const char *lookup_str);" > out_header_file
 	print "int " namespace "_" enum_name "_str2intval(const char *lookup_str);" > out_header_file
-	print "char *" namespace "_" enum_name "_all_entries(void);" > out_header_file
+	print "const char *" namespace "_" enum_name "_all_entries(void);" > out_header_file
 
         print "/* = End ===" headerfooter >out_header_file
 
@@ -176,6 +180,7 @@ codeSkip == 1			{ next }
 	}
 
         # static const char *sccp_channelstate_map[] = {
+        print "static const char *__" namespace "_" enum_name "_str = \"" namespace "_" enum_name "\";"  > out_source_file
         if (sparse == 0) {
 		print "static const char *" namespace "_" enum_name "_map[] = {" > out_source_file
 		for ( i = 0; i < e; ++i) {
@@ -260,8 +265,8 @@ codeSkip == 1			{ next }
 			print "\tif ((" Entry_id[0] " <= enum_value) && (enum_value <= " toupper(namespace) "_" toupper(enum_name) "_SENTINEL)) {" >out_source_file
 			print "\t\treturn " namespace "_" enum_name "_map[enum_value];" >out_source_file
 			print "\t}" >out_source_file
-			print "\tpbx_log(LOG_ERROR, \"SCCP: Error during lookup of '%d' in " namespace "_" enum_name "2str\\n\", enum_value);" > out_source_file
-			print "\treturn \"SCCP: OutOfBounds Error during lookup of " namespace "_" enum_name "2str\\n\";" > out_source_file
+			print "\tpbx_log(LOG_ERROR, \"%s '%d' in %s2str\\n\", ERROR_2str_STR, enum_value, __" namespace "_" enum_name "_str);" > out_source_file
+			print "\treturn \"OutOfBounds: " namespace "_" enum_name "2str\\n\";" > out_source_file
 		} else {
 			for ( i = 0; i < e; i++) {
 				totlen += length(Entry_text[e]) + 1
@@ -276,8 +281,8 @@ codeSkip == 1			{ next }
 			print "\t\t}" >out_source_file
 			print "\t}" >out_source_file
 			print "\tif (!strlen(res)) {" >out_source_file
-			print "\t\tpbx_log(LOG_ERROR, \"SCCP: Error during lookup of '%d' in " namespace "_" enum_name "2str\\n\", " namespace "_" enum_name "_int_value);" > out_source_file
-			print "\t\treturn \"SCCP: OutOfBounds Error during lookup of sparse " namespace "_" enum_name "2str\\n\";" > out_source_file
+			print "\t\tpbx_log(LOG_ERROR, \"%s '%d' in %s2str\\n\", ERROR_2str_STR, " namespace "_" enum_name "_int_value, __" namespace "_" enum_name "_str);" > out_source_file
+			print "\t\treturn \"OutOfBounds: sparse " namespace "_" enum_name "2str\\n\";" > out_source_file
 			print "\t}" >out_source_file
 			print "\treturn res;" >out_source_file
 		}
@@ -288,8 +293,8 @@ codeSkip == 1			{ next }
 			print "\t\tcase " Entry_id[i] ": return " namespace "_" enum_name "_map[" i "];" > out_source_file
 		}
 		print "\t\tdefault:" > out_source_file
-		print "\t\t\tpbx_log(LOG_ERROR, \"SCCP: Error during lookup of '%d' in " namespace "_" enum_name "2str\\n\", enum_value);" > out_source_file
-		print "\t\t\treturn \"SCCP: OutOfBounds Error during lookup of sparse " namespace "_" enum_name "2str\\n\";" > out_source_file
+		print "\t\t\tpbx_log(LOG_ERROR, \"%s '%d' in %s2str\\n\", ERROR_2str_STR, enum_value, __" namespace "_" enum_name "_str);" > out_source_file
+		print "\t\t\treturn \"OutOfBounds: sparse " namespace "_" enum_name "2str\\n\";" > out_source_file
 		print "\t}" >out_source_file
 	}
 	print "}\n" > out_source_file
@@ -318,7 +323,7 @@ codeSkip == 1			{ next }
 		}
 		print "\t}" > out_source_file
 	}
-	print "\tpbx_log(LOG_ERROR, \"SCCP: LOOKUP ERROR, " namespace "_" enum_name "_str2val(%s) not found\\n\", lookup_str);" > out_source_file
+	print "\tpbx_log(LOG_ERROR, \"%s %s_str2val(%s) not found\\n\", LOOKUPERROR_STR, __" namespace "_" enum_name "_str, lookup_str);" > out_source_file
 	print "\treturn "toupper(namespace) "_" toupper(enum_name) "_SENTINEL;" > out_source_file
 	print "}\n" > out_source_file
 
@@ -329,7 +334,7 @@ codeSkip == 1			{ next }
 	print "}\n" > out_source_file
 
 	# const char *sccp_channelstate_all_entries(char *buf, size_t buf_len, const char *separator) {
-	print "char *" namespace "_" enum_name "_all_entries(void) {" > out_source_file
+	print "const char *" namespace "_" enum_name "_all_entries(void) {" > out_source_file
 	long_str = ""
 	for ( i = 0; i < e; ++i) {
 		if (i < e-1) {

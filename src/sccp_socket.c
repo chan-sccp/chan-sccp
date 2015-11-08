@@ -93,12 +93,12 @@ union sockaddr_union {
 	struct sockaddr_in6 sin6;
 };
 
-boolean_t sccp_socket_is_IPv4(const struct sockaddr_storage *sockAddrStorage)
+gcc_inline boolean_t sccp_socket_is_IPv4(const struct sockaddr_storage *sockAddrStorage)
 {
 	return (sockAddrStorage->ss_family == AF_INET) ? TRUE : FALSE;
 }
 
-boolean_t sccp_socket_is_IPv6(const struct sockaddr_storage *sockAddrStorage)
+gcc_inline boolean_t sccp_socket_is_IPv6(const struct sockaddr_storage *sockAddrStorage)
 {
 	return (sockAddrStorage->ss_family == AF_INET6) ? TRUE : FALSE;
 }
@@ -533,10 +533,10 @@ static void sccp_socket_get_error(constSessionPtr s)
 	if (!s || s->fds[0].fd <= 0) {
 		return;
 	}
-	int socket = s->fds[0].fd;
+	int mysocket = s->fds[0].fd;
 	int error = 0;
 	socklen_t error_len = sizeof(error);
-	if ((socket && getsockopt(socket, SOL_SOCKET, SO_ERROR, &error, &error_len) == 0) && error != 0) {
+	if ((mysocket && getsockopt(mysocket, SOL_SOCKET, SO_ERROR, &error, &error_len) == 0) && error != 0) {
 		pbx_log(LOG_ERROR, "%s: SOL_SOCKET:SO_ERROR: %s (%d)\n", DEV_ID_LOG(s->device), strerror(error), error);
 	}
 }
@@ -554,7 +554,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	if (!s || s->session_stop || s->fds[0].fd <= 0 || !msg) {
 		return 0;
 	}
-	int socket = s->fds[0].fd;
+	int mysocket = s->fds[0].fd;
 
 	int msgDataSegmentSize = 0;										/* Size of sccp_data_t according to the sccp_msg_t */
 	int UnreadBytesAccordingToPacket = 0;									/* Size of sccp_data_t according to the incomming Packet */
@@ -570,7 +570,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 
 	// STAGE 1: read header
 	memset(msg, 0, SCCP_MAX_PACKET);
-	readlen = read(socket, (&msg->header), SCCP_PACKET_HEADER);
+	readlen = read(mysocket, (&msg->header), SCCP_PACKET_HEADER);
 	if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {
 		return 0;
 	} /* try again later, return TRUE with empty r */
@@ -592,7 +592,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	dataptr = (unsigned char *) &msg->data;
 	while (bytesToRead > 0) {
 		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
-		readlen = read(socket, buffer, bytesToRead > SCCP_MAX_PACKET ? SCCP_MAX_PACKET : bytesToRead);					// use bufferptr instead
+		readlen = read(mysocket, buffer, bytesToRead > SCCP_MAX_PACKET ? SCCP_MAX_PACKET : bytesToRead);					// use bufferptr instead
 		if ((readlen < 0) && (tries++ < READ_RETRIES) && (errno == EINTR || errno == EAGAIN)) {
 			usleep(backoff);
 			backoff *= 2;
@@ -619,7 +619,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 
 		bytesToRead = UnreadBytesAccordingToPacket;
 		while (bytesToRead > 0) {
-			readlen = read(socket, discardBuffer, (bytesToRead > SCCP_MAX_PACKET) ? SCCP_MAX_PACKET : bytesToRead);
+			readlen = read(mysocket, discardBuffer, (bytesToRead > SCCP_MAX_PACKET) ? SCCP_MAX_PACKET : bytesToRead);
 			if ((readlen < 0) && (tries++ < READ_RETRIES) && (errno == EINTR || errno == EAGAIN)) {
 				usleep(backoff);
 				backoff *= 2;
@@ -973,11 +973,11 @@ void *sccp_socket_device_thread(void *session)
 		/* create cancellation point */
 		pthread_testcancel();
 		if (s->device) {
-			pbx_mutex_lock(&GLOB(lock));
+			pbx_rwlock_rdlock(&GLOB(lock));
 			if (GLOB(reload_in_progress) == FALSE && s && s->device && (!(s->device->pendingUpdate == FALSE && s->device->pendingDelete == FALSE))) {
 				sccp_device_check_update(s->device);
 			}
-			pbx_mutex_unlock(&GLOB(lock));
+			pbx_rwlock_unlock(&GLOB(lock));
 		}
 		/* calculate poll timout using keepalive interval */
 		maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
@@ -1173,22 +1173,21 @@ static void sccp_socket_cleanup_timed_out(void)
 {
 	sccp_session_t *session;
 
-
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
-		if (session->lastKeepAlive == 0) {
-			// final resort
-			destroy_session(session, 0);
-		} else if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive)) && (session->session_thread != AST_PTHREADT_NULL)) {
-			pbx_mutex_lock(&GLOB(lock));
-			if (GLOB(module_running) && !GLOB(reload_in_progress)) {
+	pbx_rwlock_rdlock(&GLOB(lock));
+	if (GLOB(module_running) && !GLOB(reload_in_progress)) {
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
+			if (session->lastKeepAlive == 0) {
+				// final resort
+				destroy_session(session, 0);
+			} else if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive)) && (session->session_thread != AST_PTHREADT_NULL)) {
 				__sccp_session_stopthread(session, SKINNY_DEVICE_RS_FAILED);
 				session->session_thread = AST_PTHREADT_NULL;
 				session->lastKeepAlive = 0;
 			}
-			pbx_mutex_unlock(&GLOB(lock));
 		}
+		SCCP_LIST_TRAVERSE_SAFE_END;
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
+	pbx_rwlock_unlock(&GLOB(lock));
 }
 
 /*!
@@ -1223,7 +1222,7 @@ void *sccp_socket_thread(void *ignore)
 
 	while (GLOB(descriptor) > -1) {
 		fds[0].fd = GLOB(descriptor);
-		res = sccp_socket_poll(fds, 1, GLOB(keepalive));
+		res = sccp_socket_poll(fds, 1, GLOB(keepalive) * 10);
 
 		if (res < 0) {
 			if (errno == EINTR || errno == EAGAIN) {
@@ -1236,11 +1235,11 @@ void *sccp_socket_thread(void *ignore)
 			sccp_socket_cleanup_timed_out();
 		} else {
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
-			pbx_mutex_lock(&GLOB(lock));
+			pbx_rwlock_rdlock(&GLOB(lock));
 			if (GLOB(module_running) && !GLOB(reload_in_progress)) {
 				sccp_accept_connection();
 			}
-			pbx_mutex_unlock(&GLOB(lock));
+			pbx_rwlock_unlock(&GLOB(lock));
 		}
 	}
 
@@ -1317,7 +1316,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 		msg = NULL;
 		return -1;
 	}
-	int socket = s->fds[0].fd;
+	int mysocket = s->fds[0].fd;
 
 	if (msgid == KeepAliveAckMessage || msgid == RegisterAckMessage || msgid == UnregisterAckMessage) {
 		msg->header.lel_protocolVer = 0;
@@ -1342,7 +1341,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 	do {
 		try++;
 		pbx_mutex_lock(&s->write_lock);									/* prevent two threads writing at the same time. That should happen in a synchronized way */
-		res = write(socket, bufAddr + bytesSent, bufLen - bytesSent);
+		res = write(mysocket, bufAddr + bytesSent, bufLen - bytesSent);
 		pbx_mutex_unlock(&s->write_lock);
 		if (res < 0) {
 			if ((errno == EINTR || errno == EAGAIN) && try < WRITE_RETRIES) {
@@ -1359,7 +1358,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 			break;
 		}
 		bytesSent += res;
-	} while (bytesSent < bufLen && try < WRITE_RETRIES && s && !s->session_stop && socket > 0);
+	} while (bytesSent < bufLen && try < WRITE_RETRIES && s && !s->session_stop && mysocket > 0);
 
 	sccp_free(msg);
 	msg = NULL;

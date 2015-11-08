@@ -24,25 +24,22 @@ extern "C" {
 /* *INDENT-OFF* */
 #endif
 
-#if defined(__GNUC__) && !defined(__clang__)
-#define gcc_inline __inline__
+#  if defined __STDC__ && defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L && defined(__GNUC__) && !defined(__clang__)
+	#define gcc_inline __inline__
 #else
-#define gcc_inline
+	#define gcc_inline
 #endif
-
-//#include <config.h>
-////#include "common.h"
 
 #define sccp_mutex_t ast_mutex_t
 
 /* Add bswap function if necessary */
-//#if HAVE_BYTESWAP_H
-//#include <byteswap.h>
-//#elif HAVE_SYS_BYTEORDER_H
-//#include <sys/byteorder.h>
-//#elif HAVE_SYS_ENDIAN_H
-//#include <sys/endian.h>
-//#endif
+#if HAVE_BYTESWAP_H
+#include <byteswap.h>
+#elif HAVE_SYS_BYTEORDER_H
+#include <sys/byteorder.h>
+#elif HAVE_SYS_ENDIAN_H
+#include <sys/endian.h>
+#endif
 
 #ifndef HAVE_BSWAP_16
 static inline unsigned short bswap_16(unsigned short x)
@@ -89,8 +86,9 @@ static inline unsigned long long bswap_64(unsigned long long x)
 #ifndef SCCP_BRANCH
 #define SCCP_BRANCH "trunk"
 #endif
-char SCCP_VERSIONSTR[300];
-char SCCP_REVISIONSTR[30];
+
+extern char SCCP_VERSIONSTR[300];
+extern char SCCP_REVISIONSTR[30];
 
 #define SCCP_FILENAME_MAX 80
 #if defined(PATH_MAX)
@@ -344,7 +342,7 @@ struct sccp_global_vars {
 	int keepalive;												/*!< KeepAlive */
 	int32_t debug;												/*!< Debug */
 	int module_running;
-	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
+	pbx_rwlock_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
 
 #if ASTERISK_VERSION_GROUP < 110
 	pthread_t monitor_thread;										/*!< Monitor Thread */
@@ -486,7 +484,9 @@ extern const char devstate_db_family[];
 #endif
 
 /* Function Declarations */
+#if UNUSEDCODE // 2015-11-01
 int sccp_sched_free(void *ptr);
+#endif
 sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_codec_t requestedCodec, skinny_codec_t capabilities[], uint8_t capabilityLength, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel);
 int sccp_handle_message(constMessagePtr msg, constSessionPtr s);
 int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug);

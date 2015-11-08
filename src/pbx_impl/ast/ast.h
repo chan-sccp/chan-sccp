@@ -15,63 +15,83 @@
 //#define REF_DEBUG 1
 
 #if ASTERISK_VERSION_NUMBER >= 10400
-#include <asterisk.h>
-#include <asterisk/abstract_jb.h>
+#  include <asterisk.h>
+#  ifdef HAVE_PBX_ABSTRACT_JB_H
+#    include <asterisk/abstract_jb.h>
+#  endif
 #endif
 #include <asterisk/options.h>
 #include <asterisk/buildopts.h>
 #include <asterisk/autoconfig.h>
 #include <asterisk/compiler.h>
-#include <asterisk/utils.h>
+#ifdef HAVE_PBX_UTILS_H
+#  include <asterisk/utils.h>
+#endif
 #include <asterisk/threadstorage.h>
 #include <asterisk/strings.h>
 #include <asterisk/pbx.h>
-#include <asterisk/acl.h>
+#ifdef HAVE_PBX_ACL_H
+#  include <asterisk/acl.h>
+#endif
 #include <asterisk/module.h>
 #include <asterisk/logger.h>
 #include <asterisk/config.h>
-#include <asterisk/sched.h>
+#ifdef HAVE_PBX_SCHED_H
+#  include <asterisk/sched.h>
+#endif
 #include <asterisk/causes.h>
-#include <asterisk/frame.h>
-#include <asterisk/lock.h>
-#include <asterisk/channel.h>
-#include <asterisk/app.h>
+#ifdef HAVE_PBX_FRAME_H
+#  include <asterisk/frame.h>
+#endif
+#ifdef HAVE_PBX_LOCK_H
+#  include <asterisk/lock.h>
+#endif
+#ifdef HAVE_PBX_CHANNEL_H
+#  include <asterisk/channel.h>
+#endif
+#ifdef HAVE_PBX_APP_H
+#  include <asterisk/app.h>
+#endif
 #include <asterisk/callerid.h>
 #include <asterisk/musiconhold.h>
 #include <asterisk/astdb.h>
-#include <asterisk/features.h>
+#ifdef HAVE_PBX_FEATURES_H
+#  include <asterisk/features.h>
+#endif
 #ifdef HAVE_PBX_EVENT_H
-#include <asterisk/event.h>
+#  include <asterisk/event.h>
 #endif
 #ifdef HAVE_PBX_CHANNEL_pvt_H
-#ifndef CS_AST_HAS_TECH_PVT
-#include <asterisk/channel_pvt.h>
-#endif
+#  ifndef CS_AST_HAS_TECH_PVT
+#    include <asterisk/channel_pvt.h>
+#  endif
 #endif
 #ifdef HAVE_PBX_DEVICESTATE_H
-#include <asterisk/devicestate.h>
+#  include <asterisk/devicestate.h>
 #endif
 #ifdef AST_EVENT_IE_CIDNAME
-#include <asterisk/event.h>
-#include <asterisk/event_defs.h>
+#  ifdef HAVE_PBX_EVENT_H
+#    include <asterisk/event.h>
+#  endif
+#  include <asterisk/event_defs.h>
 #endif
-#ifdef CS_AST_HAS_AST_STRING_FIELD
-#include <asterisk/stringfields.h>
+#if defined(CS_AST_HAS_AST_STRING_FIELD) && defined(HAVE_PBX_STRINGFIELDS_H)
+#  include <asterisk/stringfields.h>
 #endif
-#ifdef CS_MANAGER_EVENTS
-#include <asterisk/manager.h>
+#if defined(CS_MANAGER_EVENTS) && defined(HAVE_PBX_MANAGER_H)
+#  include <asterisk/manager.h>
 #endif
 #ifdef CS_AST_HAS_ENDIAN
-#include <asterisk/endian.h>
+#  include <asterisk/endian.h>
 #endif
 #include <asterisk/translate.h>
 #ifdef HAVE_PBX_RTP_ENGINE_H
-#include <asterisk/rtp_engine.h>
+#  include <asterisk/rtp_engine.h>
 #else
-#include <asterisk/rtp.h>
+#  include <asterisk/rtp.h>
 #endif
 #ifdef CS_DEVSTATE_FEATURE
-#include <asterisk/event_defs.h>
+#  include <asterisk/event_defs.h>
 #endif
 #include <asterisk/indications.h>
 #include <asterisk/ast_version.h>
@@ -307,15 +327,21 @@ static const struct pbx_skinny_cause {
 #endif
 
 int set_pbx_callerid(PBX_CHANNEL_TYPE * ast_chan, sccp_callinfo_t * callInfo);
+#if UNUSEDCODE // 2015-11-01
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target);
+#endif
 PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match) (PBX_CHANNEL_TYPE *, void *), void *data);
+#if UNUSEDCODE // 2015-11-01
 struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast_ha *path, int *error);
+#endif
 struct ast_context *pbx_context_find_or_create(struct ast_context **extcontexts, struct ast_hashtab *exttable, const char *name, const char *registrar);
 struct ast_config *pbx_config_load(const char *filename, const char *who_asked, struct ast_flags flags);
 const char *pbx_inet_ntoa(struct in_addr ia);
 int pbx_str2cos(const char *value, uint8_t *cos);
 int pbx_str2tos(const char *value, uint8_t *tos);
+#if UNUSEDCODE // 2015-11-01
 int pbx_context_remove_extension(const char *context, const char *extension, int priority, const char *registrar);
+#endif
 void pbxman_send_listack(struct mansession *s, const struct message *m, char *msg, char *listflag);
 int pbx_moh_start(PBX_CHANNEL_TYPE * chan, const char *mclass, const char *interpclass);
 PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data);

@@ -123,7 +123,7 @@ static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device);
 static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device);
 static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event);
 static void sccp_hint_eventListener(const sccp_event_t * event);
-static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice);
+static gcc_inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice);
 
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 #if ASTERISK_VERSION_GROUP >= 112
@@ -405,7 +405,11 @@ static void sccp_hint_eventListener(const sccp_event_t * event)
 			sccp_hint_detachLine(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
 			break;
 		case SCCP_EVENT_LINESTATUS_CHANGED:
-			sccp_hint_lineStatusChanged(event->event.lineStatusChanged.line, event->event.lineStatusChanged.optional_device);
+			pbx_rwlock_rdlock(&GLOB(lock));
+			if (!GLOB(reload_in_progress)) {									/* skip processing hints when reloading */
+				sccp_hint_lineStatusChanged(event->event.lineStatusChanged.line, event->event.lineStatusChanged.optional_device);
+			}
+			pbx_rwlock_unlock(&GLOB(lock));
 			break;
 		case SCCP_EVENT_FEATURE_CHANGED:
 			sccp_hint_handleFeatureChangeEvent(event);
@@ -664,7 +668,7 @@ static void sccp_hint_attachLine(sccp_line_t * line, sccp_device_t * device)
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_attachLine) Create new hint_lineState for line: %s\n", DEV_ID_LOG(device), line->name);
 		lineState = sccp_calloc(sizeof(struct sccp_hint_lineState), 1);
 		if (!lineState) {
-			pbx_log(LOG_ERROR, "%s: (sccp_hint_lineStatusChanged) Memory Allocation Error while creating hint-lineState object for line %s\n", DEV_ID_LOG(device), line->name);
+			pbx_log(LOG_ERROR, "%s: (sccp_hint_attachLine) Memory Allocation Error while creating hint-lineState object for line %s\n", DEV_ID_LOG(device), line->name);
 			SCCP_LIST_UNLOCK(&lineStates);
 			return;
 		}
@@ -923,7 +927,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 							SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
 							SCCP_CALLINFO_PRESENTATION, &presentation, 
 							SCCP_CALLINFO_KEY_SENTINEL);
-						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speeddial partyName: '%s' (callingParty)\n", line->name, cid_name);
+						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: get speeddial party: '%s <%s>' (callingParty)\n", line->name, cid_name, cid_num);
 						break;
 					case SKINNY_CALLTYPE_OUTBOUND:
 						sccp_callinfo_getter(ci, 
@@ -931,12 +935,12 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 							SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cid_num, 
 							SCCP_CALLINFO_PRESENTATION, &presentation, 
 							SCCP_CALLINFO_KEY_SENTINEL);
-						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speeddial partyName: '%s' (calledParty)\n", line->name, cid_name);
+						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: get speeddial party: '%s <%s>' (calledParty)\n", line->name, cid_name, cid_num);
 						break;
 					case SKINNY_CALLTYPE_FORWARD:
 						sccp_copy_string(cid_name, "cfwd", sizeof(cid_name));
 						sccp_copy_string(cid_num, "cfwd", sizeof(cid_num));
-						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speedial partyName: cfwd\n", line->name);
+						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: get speedial partyName: cfwd\n", line->name);
 						break;
 					case SKINNY_CALLTYPE_SENTINEL:
 						break;
@@ -1068,7 +1072,15 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 {
 	sccp_hint_list_t *hint = NULL;
 	char lineName[StationMaxNameSize + 5];
-	sprintf(lineName, "SCCP/%s", lineState->line->name);
+
+	{
+		AUTO_RELEASE sccp_line_t *line = lineState->line ? sccp_line_retain(lineState->line) : NULL;
+		if (line) {
+			sprintf(lineName, "SCCP/%s", lineState->line->name);
+		} else {
+			return;
+		}
+	}
 
 	enum ast_device_state newDeviceState = sccp_hint_hint2DeviceState(lineState->state);
 	enum ast_device_state oldDeviceState = AST_DEVICE_UNAVAILABLE;
@@ -1383,7 +1395,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 /*
  * model information should be moved to sccp_dev_build_buttontemplate, or some other place
  */
-static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice)
+static gcc_inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice)
 {
 #ifdef CS_DYNAMIC_SPEEDDIAL_CID
 	if (positionOnDevice <= 8 && (device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7971 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7985 || device->skinny_type == SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR)) {
