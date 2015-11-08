@@ -178,6 +178,7 @@ void sccp_pbx_setcallstate(sccp_channel_t * channel, int state)
 	}
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Clean Asterisk Database Entries in the "SCCP" Family
  * 
@@ -215,6 +216,7 @@ void sccp_dev_dbclean(void)
 		pbx_db_freetree(entry);
 	}
 }
+#endif
 
 gcc_inline const char *msgtype2str(sccp_mid_t type)
 {														/* sccp_protocol.h */
@@ -239,10 +241,12 @@ gcc_inline const char *pbxsccp_devicestate2str(uint32_t value)
 	_ARR2STR(sccp_pbx_devicestates, devicestate, value, text);
 }
 
+#if UNUSEDCODE // 2015-11-01
 gcc_inline const char *extensionstatus2str(uint32_t value)
 {														/* pbx_impl/ast/ast.h */
 	_ARR2STR(sccp_extension_states, extension_state, value, text);
 }
+#endif
 
 gcc_inline const char *label2str(uint16_t value)
 {														/* sccp_labels.h */
@@ -254,6 +258,7 @@ gcc_inline const char *codec2str(skinny_codec_t value)
 	_ARR2STR(skinny_codecs, codec, value, text);
 }
 
+#if UNUSEDCODE // 2015-11-01
 gcc_inline int codec2payload(skinny_codec_t value)
 {														/* sccp_protocol.h */
 	_ARR2INT(skinny_codecs, codec, value, rtp_payload_type);
@@ -263,16 +268,19 @@ gcc_inline const char *codec2key(skinny_codec_t value)
 {														/* sccp_protocol.h */
 	_ARR2STR(skinny_codecs, codec, value, key);
 }
+#endif
 
 gcc_inline const char *codec2name(skinny_codec_t value)
 {														/* sccp_protocol.h */
 	_ARR2STR(skinny_codecs, codec, value, name);
 }
 
+#if UNUSEDCODE // 2015-11-01
 gcc_inline uint32_t debugcat2int(const char *str)
 {														/* chan_sccp.h */
 	_STRARR2INT(sccp_debug_categories, key, str, category);
 }
+#endif
 
 gcc_inline uint32_t labelstr2int(const char *str)
 {														/* chan_sccp.h */
@@ -1617,18 +1625,18 @@ void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path)
 }
 
 #if CS_TEST_FRAMEWORK
-AST_TEST_DEFINE(chan_sccp_ha_tests)
+AST_TEST_DEFINE(chan_sccp_acl_tests)
 {
 	struct sccp_ha *ha = NULL;
-	struct sockaddr_storage sas10, sas1015, sas172;
-	int error;
+	struct sockaddr_storage sas10, sas1015, sas172, sas200, sasff, sasffff;
+	int error = 0;
 
 	switch (cmd) {
 	case TEST_INIT:
-		info->name = "chan_sccp_ha_tests";
-		info->category = "/channels/chan_sccp/ha/";
-		info->summary = "chan-sccp-b ha test";
-		info->description = "chan-sccp-b ha tests";
+		info->name = "permit_deny";
+		info->category = "/channels/chan_sccp/acl/";
+		info->summary = "chan-sccp-b ha / permit / deny test";
+		info->description = "chan-sccp-b ha / permit / deny parsing tests";
 		return AST_TEST_NOT_RUN;
 	case TEST_EXECUTE:
 		break;
@@ -1638,114 +1646,182 @@ AST_TEST_DEFINE(chan_sccp_ha_tests)
 
 	ast_test_status_update(test, "Setting up sockaddr_storage...\n");
 	sccp_sockaddr_storage_parse(&sas10, "10.0.0.1", PARSE_PORT_FORBID);
-	if (!sccp_socket_is_IPv4(&sas10)) {
-		ast_test_status_update(test, "creating sas10 failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_validate(test, sccp_socket_is_IPv4(&sas10));
+
 	sccp_sockaddr_storage_parse(&sas1015, "10.15.15.1", PARSE_PORT_FORBID);
-	if (!sccp_socket_is_IPv4(&sas1015)) {
-		ast_test_status_update(test, "creating sas1015 failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_validate(test, sccp_socket_is_IPv4(&sas1015));
+
 	sccp_sockaddr_storage_parse(&sas172, "172.16.0.1", PARSE_PORT_FORBID);
-	if (!sccp_socket_is_IPv4(&sas172)) {
-		ast_test_status_update(test, "creating sas172 failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_validate(test, sccp_socket_is_IPv4(&sas172));
+
+	sccp_sockaddr_storage_parse(&sas200, "200.200.100.100", PARSE_PORT_FORBID);
+	ast_test_validate(test, sccp_socket_is_IPv4(&sas200));
+
+	sccp_sockaddr_storage_parse(&sasff, "fe80::ffff:0:0:0", PARSE_PORT_FORBID);
+	ast_test_validate(test, sccp_socket_is_IPv6(&sasff));
+
+	sccp_sockaddr_storage_parse(&sasffff, "fe80::ffff:0:ffff:0", PARSE_PORT_FORBID);
+	ast_test_validate(test, sccp_socket_is_IPv6(&sasffff));
 
 	// test 1
 	ast_test_status_update(test, "test 1: ha deny all\n");
 	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_validate(test, error == 0);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 
 	// test 2
-	ast_test_status_update(test, "test 2: added permit 10.15.15.0/255.255.255.0\n");
+	ast_test_status_update(test, "test 2: previous + permit 10.15.15.0/255.255.255.0\n");
 	ha = sccp_append_ha("permit", "10.15.15.0/255.255.255.0", ha, &error);
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_validate(test, error == 0);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 
 	// test 3
-	ast_test_status_update(test, "test 3: added second permit 10.15.15.0/255.255.255.0\n");
+	ast_test_status_update(test, "test 3: previous + second permit 10.15.15.0/255.255.255.0\n");
 	ha = sccp_append_ha("permit", "10.15.15.0/255.255.255.0", ha, &error);
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_validate(test, error == 0);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 	sccp_free_ha(ha);
 	ha = NULL;
 
 	// test 4
-	ast_test_status_update(test, "test 4: deny all + permit 10.15.15.0/255.255.255.0\n");
+	ast_test_status_update(test, "test 4: deny all + permit 10.0.0.0/255.255.255.0\n");
 	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
+	ast_test_validate(test, error == 0);
 	ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, &error);
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_validate(test, error == 0);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 
 	// test 5
-	ast_test_status_update(test, "test 5: add deny_all at the end\n");
-	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
-	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
-		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
-		goto RETURN_FAILURE;
-	}
+	ast_test_status_update(test, "test 5: previous + 172.16.0.0/255.255.0.0\n");
+	ha = sccp_append_ha("permit", "172.16.0.0/255.0.0.0", ha, &error);
+	ast_test_validate(test, error == 0);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 
+	// test 6
+	ast_test_status_update(test, "test 6: previous + deny_all at the end\n");
+	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
+	ast_test_validate(test, error == 0);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 	sccp_free_ha(ha);
 	ha = NULL;
-	return AST_TEST_PASS;
 
-RETURN_FAILURE:
-	if (ha) {
-		sccp_free_ha(ha);
-		ha = NULL;
+	// test 7: ipv6
+	ast_test_status_update(test, "test 7: IPv6: deny 0.0.0.0/0.0.0.0,::,::/0::\n");
+	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
+	ast_test_validate(test, error == 0);
+	ha = sccp_append_ha("deny", "::", ha, &error);
+	ast_test_validate(test, error == 0);
+	ha = sccp_append_ha("deny", "::/0", ha, &error);
+	ast_test_validate(test, error == 0);
+	//ast_test_status_update(test, "test 7: deny !fe80::/64\n");			/* we cannot parse this format yes (asterisk-13) */
+	//ha = sccp_append_ha("deny", "!fe80::/64", ha, &error);
+	//ast_test_validate(test, error == 0);
+	ast_test_status_update(test, "      : previous + permit fe80::ffff:0:0:0/80\n");
+	ha = sccp_append_ha("permit", "fe80::ffff:0:0:0/80", ha, &error);
+	ast_test_validate(test, error == 0);
+	ast_test_status_update(test, "      : previous + permit fe80::ffff:0:ffff:0/112\n");
+	ha = sccp_append_ha("permit", "fe80::ffff:0:ffff:0/112", ha, &error);
+	ast_test_validate(test, error == 0);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sasff) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sasffff) != AST_SENSE_DENY);
+	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
+	sccp_free_ha(ha);
+	ha = NULL;
+
+	return AST_TEST_PASS;
+}
+
+AST_TEST_DEFINE(chan_sccp_acl_invalid_tests)
+{
+	struct sccp_ha *ha = NULL;
+	enum ast_test_result_state res = AST_TEST_PASS;
+
+	switch (cmd) {
+	case TEST_INIT:
+		info->name = "invalid";
+		info->category = "/channels/chan_sccp/acl/";
+		info->summary = "Invalid ACL unit test";
+		info->description = "Ensures that garbage ACL values are not accepted";
+		return AST_TEST_NOT_RUN;
+	case TEST_EXECUTE:
+		break;
 	}
-	return AST_TEST_FAIL;
+
+	ast_test_status_update(test, "Executing invalid acl test tests...\n");
+
+	// test invalid
+	const char * invalid_acls[] = {
+		/* Negative netmask */
+		"1.3.3.7/-1",
+		/* Netmask too large */
+		"1.3.3.7/33",
+		/* Netmask waaaay too large */
+		"1.3.3.7/92342348927389492307420",
+		/* Netmask non-numeric */
+		"1.3.3.7/California",
+		/* Too many octets in Netmask */
+		"1.3.3.7/255.255.255.255.255",
+		/* Octets in IP address exceed 255 */
+		"57.60.278.900/31",
+		/* Octets in IP address exceed 255 and are negative */
+		"400.32.201029.-6/24",
+		/* Invalidly formatted IP address */
+		"EGGSOFDEATH/4000",
+		/* Too many octets in IP address */
+		"33.4.7.8.3/300030",
+		/* Too many octets in Netmask */
+		"1.2.3.4/6.7.8.9.0",
+		/* Too many octets in IP address */
+		"3.1.4.1.5.9/3",
+		/* IPv6 address has multiple double colons */
+		"ff::ff::ff/3",
+		/* IPv6 address is too long */
+		"1234:5678:90ab:cdef:1234:5678:90ab:cdef:1234/56",
+		/* IPv6 netmask is too large */
+		"::ffff/129",
+		/* IPv4-mapped IPv6 address has too few octets */
+		"::ffff:255.255.255/128",
+		/* Leading and trailing colons for IPv6 address */
+		":1234:/15",
+		/* IPv6 address and IPv4 netmask */
+		"fe80::1234/255.255.255.0",
+	};
+	uint8_t i;
+        for (i = 0; i < ARRAY_LEN(invalid_acls); ++i) {
+        	int error = 0;
+                ha = sccp_append_ha("permit", invalid_acls[i], ha, &error);
+                if (ha || !error) {
+                        ast_test_status_update(test, "ACL %s accepted even though it is total garbage.\n",
+                                        invalid_acls[i]);
+                        if (ha) {
+				sccp_free_ha(ha);
+                        }
+                        res = AST_TEST_FAIL;
+                }
+        }
+	sccp_free_ha(ha);
+	ha = NULL;
+
+	return res;
 }
 #endif
 
@@ -1931,9 +2007,9 @@ char *sccp_dec2binstr(char *buf, size_t size, int value)
 gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size)
 {
         pbx_assert(NULL != dst && NULL != src);
-	if (size != 0) {
-		while (--size != 0) {
-			if ((*dst++ = *src++) == '\0') {
+	if (do_expect(size != 0)) {
+		while (do_expect(--size != 0)) {
+			if (+(*dst++ = *src++) == '\0') {
 				break;
 			}
 		}
@@ -2000,12 +2076,14 @@ gcc_inline boolean_t sccp_utils_convUtf8toLatin1(const char *utf8str, char *buf,
 #if CS_TEST_FRAMEWORK
 void sccp_utils_register_tests(void)
 {
-        AST_TEST_REGISTER(chan_sccp_ha_tests);
+        AST_TEST_REGISTER(chan_sccp_acl_tests);
+        AST_TEST_REGISTER(chan_sccp_acl_invalid_tests);
 }
 
 void sccp_utils_unregister_tests(void)
 {
-        AST_TEST_UNREGISTER(chan_sccp_ha_tests);
+        AST_TEST_UNREGISTER(chan_sccp_acl_tests);
+        AST_TEST_UNREGISTER(chan_sccp_acl_invalid_tests);
 }
 #endif
 

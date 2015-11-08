@@ -26,7 +26,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptionId, int onoff);
 int __sccp_line_destroy(const void *ptr);
 int __sccp_lineDevice_destroy(const void *ptr);
-void sccp_line_delete_nolock(sccp_line_t * l);
 int sccp_line_destroy(const void *ptr);
 
 /*!
@@ -279,8 +278,6 @@ void sccp_line_kill_channels(sccp_line_t * l)
  * \param l SCCP Line
  * \param remove_from_global as boolean_t
  *
- * \todo integrate sccp_line_clean and sccp_line_delete_nolock into sccp_line_delete
- *
  * \callgraph
  * \callergraph
  * 
@@ -431,15 +428,6 @@ int sccp_line_destroy(const void *ptr)
 
 	sccp_line_removeFromGlobals(l);										// final release
 	return 0;
-}
-
-/*!
- * \brief Delete an SCCP line
- * \param l SCCP Line
- */
-void sccp_line_delete_nolock(sccp_line_t * l)
-{
-	sccp_line_clean(l, TRUE);
 }
 
 void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c)
@@ -776,6 +764,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 	}
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief check the DND status for single/shared lines
  * On shared line we will return dnd status if all devices in dnd only.
@@ -821,6 +810,7 @@ sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line)
 	}													// if(SCCP_LIST_GETSIZE(&line->devices) > 1)
 	return state;
 }
+#endif
 
 /*=================================================================================== FIND FUNCTIONS ==============*/
 
@@ -955,9 +945,61 @@ sccp_line_t *sccp_line_find_byid(constDevicePtr d, uint16_t instance)
 		l = sccp_line_retain(d->lineButtons.instance[instance]->line);
 #endif
 	}
-
 	if (!l) {
 		sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No line found with instance %d.\n", DEV_ID_LOG(d), instance);
+		return NULL;
+	}
+
+	sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Found line %s\n", "SCCP", l->name);
+
+	return l;
+}
+
+/*!
+ * \brief Find Line by ButtonIndex on device
+ *
+ * \todo No ID Specified only instance, should this function be renamed ?
+ *
+ * \callgraph
+ * \callergraph
+ * 
+ */
+#if DEBUG
+/*!
+ * \param d SCCP Device
+ * \param instance line instance as int
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return SCCP Line (can be null)
+ */
+sccp_line_t *__sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex, const char *filename, int lineno, const char *func)
+#else
+/*!
+ * \param d SCCP Device
+ * \param instance line instance as int
+ * \return SCCP Line (can be null)
+ */
+sccp_line_t *sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex)
+#endif
+{
+	sccp_line_t *l = NULL;
+
+	sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with buttonIndex %d.\n", DEV_ID_LOG(d), buttonIndex);
+
+	if (!d || buttonIndex == 0) {
+		return NULL;
+	}
+	
+	if (buttonIndex > 0 && buttonIndex < StationMaxButtonTemplateSize && d->buttonTemplate[buttonIndex - 1].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[buttonIndex - 1].ptr ) {
+#if DEBUG
+		l = sccp_refcount_retain(d->buttonTemplate[buttonIndex - 1].ptr, filename, lineno, func);
+#else
+		l = sccp_line_retain(d->buttonTemplate[buttonIndex - 1].ptr);
+#endif
+	}
+	if (!l) {
+		sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No line found with buttonIndex %d.\n", DEV_ID_LOG(d), buttonIndex);
 		return NULL;
 	}
 

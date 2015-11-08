@@ -154,9 +154,14 @@ AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 	AC_LANG_C
 	AC_DISABLE_STATIC
 
-	CFLAGS_saved="$CFLAGS_saved -std=gnu89"
-	if test -z "`${CC} -std=gnu99 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'gnu89-inline'`"; then 
-		CFLAGS_saved="$CFLAGS_saved -fgnu89-inline"
+	if test -z "`${CC} -std=gnu11 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'unrecognized command line option'`"; then 
+		CFLAGS_saved="$CFLAGS_saved -std=gnu11 -fgnu89-inline"
+	elif test -n "`${CC} -std=gnu99 -fgnu89-inline -Wno-ignored-qualifiers -dM -E - </dev/null 2>&1 |grep '__STDC_VERSION__ 1999'`"; then 
+		CFLAGS_saved="$CFLAGS_saved -std=gnu99 -fgnu89-inline -Wno-ignored-qualifiers"
+	elif test -n "`${CC} -std=gnu99 -fgnu89-inline -Wno-return-type -dM -E - </dev/null 2>&1 |grep '__STDC_VERSION__ 1999'`"; then 
+		CFLAGS_saved="$CFLAGS_saved -std=gnu99 -fgnu89-inline -Wno-return-type"
+	else 
+		CFLAGS_saved="$CFLAGS_saved -std=gnu89 -Wno-return-type"
 	fi
 
 	if test "${cross_compiling}" = "yes"; 
@@ -586,6 +591,15 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			], ax_warn_cflags_variable)
 		])
 	])
+	
+	AC_LANG_SAVE
+	AC_LANG_C
+	AX_APPEND_COMPILE_FLAGS([ dnl
+		dnl-fdata-section dnl
+		-ffunction-sections dnl
+	], ax_warn_cflags_variable)
+	LDFLAGS="${LDFLAGS} -Wl,-gc-sections"		dnl automatically strip dead/unused code
+
 	CFLAGS_saved="`echo ${CFLAGS_saved}|sed 's/^[ \t]*//;s/[ \t]*$//'`"
 	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS="${CFLAGS_saved} "

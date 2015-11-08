@@ -134,6 +134,7 @@ struct sccp_selectedchannel {
 };														/*!< SCCP Selected Channel Structure */
 /* live cycle */
 channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device);					// device is optional
+channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);	// retrieve or allocate new channel
 channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
 
 void sccp_channel_updateChannelDesignator(sccp_channel_t * c);
@@ -148,24 +149,31 @@ void sccp_channel_set_callingparty(constChannelPtr c, const char *name, const ch
 void sccp_channel_set_calledparty(sccp_channel_t * c, const char *name, const char *number);
 boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *name, char *number);
 boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * c, char *name, char *number);
+#if UNUSEDCODE // 2015-11-01
 void sccp_channel_reset_calleridPresentation(sccp_channel_t * c);
+#endif
 void sccp_channel_set_calleridPresentation(sccp_channel_t * c, sccp_callerid_presentation_t presenceParameter);
 void sccp_channel_connect(sccp_channel_t * c);
 void sccp_channel_disconnect(sccp_channel_t * c);
 
 void sccp_channel_openReceiveChannel(constChannelPtr c);
 void sccp_channel_closeReceiveChannel(constChannelPtr c, boolean_t KeepPortOpen);
+#if UNUSEDCODE // 2015-11-01
 void sccp_channel_updateReceiveChannel(constChannelPtr c);
+#endif
 void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel);
 void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean_t KeepPortOpen);
+#if UNUSEDCODE // 2015-11-01
 void sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel);
-
+#endif
 void sccp_channel_startMediaTransmission(constChannelPtr c);
 void sccp_channel_stopMediaTransmission(constChannelPtr c, boolean_t KeepPortOpen);
 void sccp_channel_updateMediaTransmission(constChannelPtr channel);
 void sccp_channel_startMultiMediaTransmission(constChannelPtr channel);
 void sccp_channel_stopMultiMediaTransmission(constChannelPtr channel, boolean_t KeepPortOpen);
+#if UNUSEDCODE // 2015-11-01
 void sccp_channel_updateMultiMediaTransmission(constChannelPtr channel);
+#endif
 
 void sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannelPtr channel);
 
@@ -203,8 +211,9 @@ void sccp_channel_park(sccp_channel_t * c);
 boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data);
 boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const void *data);
 int sccp_channel_callwaiting_tone_interval(sccp_device_t * d, sccp_channel_t * c);
+#if UNUSEDCODE // 2015-11-01
 const char *sccp_channel_getLinkedId(const sccp_channel_t * channel);
-
+#endif
 // find channel
 sccp_channel_t *sccp_channel_find_byid(uint32_t id);
 sccp_channel_t *sccp_find_channel_on_line_byid(constLinePtr l, uint32_t id);
@@ -212,6 +221,7 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid);
 sccp_channel_t *sccp_channel_find_bystate_on_line(constLinePtr l, sccp_channelstate_t state);
 sccp_channel_t *sccp_channel_find_bystate_on_device(constDevicePtr d, sccp_channelstate_t state);
 sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(constDevicePtr d, const uint32_t lineInstance, const uint32_t callid);
+sccp_channel_t *sccp_find_channel_by_buttonIndex_and_callid(const sccp_device_t * d, const uint32_t buttonIndex, const uint32_t callid);
 sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(constDevicePtr d, uint32_t passthrupartyid);
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(constDevicePtr d, constChannelPtr c);
 uint8_t sccp_device_selectedchannels_count(constDevicePtr d);

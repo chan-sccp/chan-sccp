@@ -72,6 +72,9 @@ static struct ast_jb_conf default_jbconf = {
 };
 #endif
 
+char SCCP_VERSIONSTR[300];
+char SCCP_REVISIONSTR[30];
+
 /*!
  * \brief       Global null frame
  */
@@ -175,7 +178,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
  * \param deviceIsNecessary Is a valid device necessary for this message to be processed, if it is, the device is retain during execution of this particular message parser
  * \return -1 or retained Device;
  */
-inline static sccp_device_t * const check_session_message_device(constSessionPtr s, constMessagePtr msg, const char *msgtypestr, boolean_t deviceIsNecessary)
+gcc_inline static sccp_device_t * const check_session_message_device(constSessionPtr s, constMessagePtr msg, const char *msgtypestr, boolean_t deviceIsNecessary)
 {
 	int errors = 0;
 	if (!msg) {
@@ -347,7 +350,7 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
 	if (sscanf((char *) arguments[startat], "%d", &new_debug_value) != 1) {
 		for (argi = startat; argi < argc; argi++) {
 			argument = (char *) arguments[argi];
-			if (!strncmp(argument, "none", 4)) {
+			if (!strncmp(argument, "none", 4) || !strncmp(argument, "off", 3)) {
 				new_debug_value = 0;
 				break;
 			} else if (!strncmp(argument, "no", 2)) {
@@ -361,6 +364,7 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
 				}
 			} else {
 				// parse comma separated debug_var
+				boolean_t matched = FALSE;
 				token = strtok(argument, delimiters);
 				while (token != NULL) {
 					// match debug level name to enum
@@ -375,7 +379,11 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
 									new_debug_value += sccp_debug_categories[i].category;
 								}
 							}
+							matched=TRUE;
 						}
+					}
+					if (!matched) {
+						pbx_log(LOG_NOTICE, "SCCP: unknown debug value '%s'\n", token);
 					}
 					token = strtok(NULL, delimiters);
 				}
@@ -398,7 +406,7 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 	const char *sep = ",";
 	size_t size = 0;
 
-	for (i = 0; i < ARRAY_LEN(sccp_debug_categories); ++i) {
+	for (i = 2; i < ARRAY_LEN(sccp_debug_categories); ++i) {
 		if ((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
 			size_t new_size = size;
 
@@ -552,7 +560,7 @@ boolean_t sccp_prePBXLoad(void)
 	//memset(sccp_event_listeners, 0, sizeof(struct sccp_event_subscriptions));
 	//SCCP_LIST_HEAD_INIT(&sccp_event_listeners->subscriber);
 
-	pbx_mutex_init(&GLOB(lock));
+	pbx_rwlock_init(&GLOB(lock));
 #ifndef SCCP_ATOMIC	
 	pbx_mutex_init(&GLOB(usecnt_lock));
 #endif
@@ -623,9 +631,10 @@ boolean_t sccp_prePBXLoad(void)
 
 boolean_t sccp_postPBX_load(void)
 {
-	pbx_mutex_lock(&GLOB(lock));
+	pbx_rwlock_wrlock(&GLOB(lock));
 
 	// initialize SCCP_REVISIONSTR and SCCP_REVISIONSTR
+	
 #ifdef VCS_SHORT_HASH
 #ifdef VCS_WC_MODIFIED
 	sprintf(SCCP_REVISIONSTR, "%sM", VCS_SHORT_HASH);
@@ -639,13 +648,17 @@ boolean_t sccp_postPBX_load(void)
 
 #if CS_TEST_FRAMEWORK
 	sccp_utils_register_tests();
+	sccp_refcount_register_tests();
+	sccp_threadpool_register_tests();
+	sccp_callinfo_register_tests();
 #endif
 	GLOB(module_running) = TRUE;
 	sccp_refcount_schedule_cleanup((const void *) 0);
-	pbx_mutex_unlock(&GLOB(lock));
+	pbx_rwlock_unlock(&GLOB(lock));
 	return TRUE;
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Schedule free memory
  * \param ptr pointer
@@ -660,23 +673,26 @@ int sccp_sched_free(void *ptr)
 	return 0;
 
 }
-
+#endif
 /*!
  * \brief PBX Independent Function to be called before unloading the module
  * \return Success as int
  */
 int sccp_preUnload(void)
 {
-	pbx_mutex_lock(&GLOB(lock));
+	pbx_rwlock_wrlock(&GLOB(lock));
 	GLOB(module_running) = FALSE;
-	pbx_mutex_unlock(&GLOB(lock));
+	pbx_rwlock_unlock(&GLOB(lock));
 
 	sccp_device_t *d = NULL;
 	sccp_line_t *l = NULL;
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 
 #if CS_TEST_FRAMEWORK
+	sccp_callinfo_unregister_tests();
 	sccp_utils_unregister_tests();
+	sccp_refcount_unregister_tests();
+	sccp_threadpool_unregister_tests();
 #endif
 
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay);
@@ -768,7 +784,7 @@ int sccp_preUnload(void)
 #ifndef SCCP_ATOMIC
 	pbx_mutex_destroy(&GLOB(usecnt_lock));
 #endif	
-	pbx_mutex_destroy(&GLOB(lock));
+	pbx_rwlock_destroy(&GLOB(lock));
 	//pbx_log(LOG_NOTICE, "SCCP chan_sccp unloaded\n");
 	return 0;
 }
@@ -782,7 +798,7 @@ int sccp_reload(void)
 	sccp_readingtype_t readingtype;
 	int returnval = 0;
 
-	pbx_mutex_lock(&GLOB(lock));
+	pbx_rwlock_wrlock(&GLOB(lock));
 	if (GLOB(reload_in_progress) == TRUE) {
 		pbx_log(LOG_ERROR, "SCCP reloading already in progress.\n");
 		returnval = 1;
@@ -831,7 +847,7 @@ int sccp_reload(void)
 	}
 EXIT:
 	GLOB(reload_in_progress) = FALSE;
-	pbx_mutex_unlock(&GLOB(lock));
+	pbx_rwlock_unlock(&GLOB(lock));
 	return returnval;
 }
 

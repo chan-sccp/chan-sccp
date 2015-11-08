@@ -19,6 +19,7 @@
 #include "../../sccp_indicate.h"
 #include "../../sccp_socket.h"
 #include "../../sccp_pbx.h"
+#include "../../sccp_line.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
@@ -31,6 +32,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
  * \todo implement pbx_channel_walk_locked or replace
  * \deprecated
  */
+#if UNUSEDCODE // 2015-11-01
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 {
 #if ASTERISK_VERSION_NUMBER >= 10800
@@ -62,6 +64,7 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 	return ast_channel_walk_locked(target);
 #endif
 }
+#endif
 
 /************************************************************************************************************** CONFIG **/
 
@@ -76,7 +79,8 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
  *
  * \deprecated
  */
-struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast_ha *path, int *error)
+#if UNUSEDCODE // 2015-11-01
+pbx_channel_walk_lockedstruct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast_ha *path, int *error)
 {
 #if ASTERISK_VERSION_NUMBER < 10600
 	return ast_append_ha(sense, stuff, path);
@@ -84,6 +88,7 @@ struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast
 	return ast_append_ha(sense, stuff, path, error);
 #endif														// ASTERISK_VERSION_NUMBER
 }
+#endif
 
 /*
  * \brief Register a new context
@@ -256,6 +261,7 @@ int pbx_str2cos(const char *value, uint8_t *cos)
  * 
  * @{
  */
+#if UNUSEDCODE // 2015-11-01
 int pbx_context_remove_extension(const char *context, const char *extension, int priority, const char *registrar)
 {
 #if ASTERISK_VERSION_NUMBER >= 10600
@@ -269,6 +275,7 @@ int pbx_context_remove_extension(const char *context, const char *extension, int
 	return ast_context_remove_extension(context, extension, priority, registrar);
 #endif														// ASTERISK_VERSION_NUMBER
 }
+#endif
 
 /*!   
  * \brief Send ack in manager list transaction
@@ -675,6 +682,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 {
 #if ASTERISK_VERSION_GROUP > 106
 	PBX_CHANNEL_TYPE *ast = channel->owner;
+	int changes = 0;
 	sccp_callinfo_t *const callInfo = sccp_channel_getCallInfo(channel);
 
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got connected line update, connected.id.number=%s, connected.id.name=%s, reason=%d\n", pbx_channel_name(ast), pbx_channel_connected_id(ast).number.str ? pbx_channel_connected_id(ast).number.str : "(nil)", pbx_channel_connected_id(ast).name.str ? pbx_channel_connected_id(ast).name.str : "(nil)", pbx_channel_connected_source(ast));
@@ -698,12 +706,15 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	if (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Destination\n");
-			sccp_callinfo_setter(callInfo, 
+			changes = sccp_callinfo_setter(callInfo, 
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, tmpCallingNumber,
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, tmpCallingNumber,
+				//SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, tmpCallingNumber,		// gives wrong result in phonebook, should be line below
+				//SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, tmpCallingNumber,
+			
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, tmpCalledNumber,
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, tmpCalledName,
@@ -716,7 +727,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 				SCCP_CALLINFO_KEY_SENTINEL);
 		} else {
 			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Transferee\n");
-			sccp_callinfo_setter(callInfo, 	
+			changes = sccp_callinfo_setter(callInfo, 	
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLEDPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				
@@ -735,13 +746,24 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 		}
 	} else {
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-			sccp_channel_set_callingparty(channel, pbx_channel_connected_id(ast).name.str, pbx_channel_connected_id(ast).number.str);
+			changes = sccp_callinfo_setter(callInfo,
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
+				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
+				SCCP_CALLINFO_KEY_SENTINEL);
 		} else {
-			sccp_channel_set_calledparty(channel, pbx_channel_connected_id(ast).name.str, pbx_channel_connected_id(ast).number.str);
+			changes = sccp_callinfo_setter(callInfo,
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
+				SCCP_CALLINFO_CALLEDPARTY_NAME, pbx_channel_connected_id(ast).name.str,
+				SCCP_CALLINFO_KEY_SENTINEL);
 		}
 	}
 	sccp_channel_display_callInfo(channel);
 	sccp_channel_send_callinfo2(channel);
+
+	if (changes) {								/* only send indications if something changed */
+		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
+		sccp_indicate(d, channel, channel->state);
+	}
 #endif
 }
 

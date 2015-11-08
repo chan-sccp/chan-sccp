@@ -38,7 +38,7 @@ int (sccp_enum_str2intval)(const char *lookup_str)
 	return 1;
 }
 
-char *(sccp_enum_all_entries)(void) 
+const char *(sccp_enum_all_entries)(void) 
 {
 	return NULL;
 }
@@ -84,7 +84,9 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 		fprintf(f, " * Generator: gen_sccpconf\n");
 		fprintf(f, " * Creation Date: %s", date);
 		fprintf(f, " * Version: %s\n", SCCP_VERSION);
+#ifdef SCCP_REVISION
 		fprintf(f, " * Revision: %s\n", SCCP_REVISION);
+#endif
 		fprintf(f, " * SQLType: %s\n", (CONFIG_TYPE_MYSQL == config_type) ? "Mysql" : ((CONFIG_TYPE_SQLITE == config_type) ? "SqlLite" : "Postgresql"));
 		fprintf(f, " */\n");
 
@@ -347,7 +349,9 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 		fprintf(f, "<?xml version=\"1.0\"?>\n");
 		fprintf(f, "<sccp>\n");
 		fprintf(f, "  <version>%s</version>\n", SCCP_VERSION);
+#ifdef SCCP_REVISION
 		fprintf(f, "  <revision>%s</revision>\n", SCCP_REVISION);
+#endif
 		for (segment = SCCP_CONFIG_GLOBAL_SEGMENT; segment <= SCCP_CONFIG_SOFTKEY_SEGMENT; segment++) {
 			sccpConfigSegment = sccp_find_segment(segment);
 			printf("info:" "adding [%s] section\n", sccpConfigSegment->name);
