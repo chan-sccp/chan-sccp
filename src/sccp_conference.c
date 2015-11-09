@@ -264,8 +264,8 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 #endif
 #endif
 	/* using the SMART flag results in issues when removing forgeign participant, because it try to create a new conference and merge into it. Which seems to be more complex then necessary */
-#if ASTERISK_VERSION_GROUP >= 113
-	conference->bridge = pbx_bridge_new(bridgeCapabilities, AST_BRIDGE_FLAG_DISSOLVE_HANGUP, channel->designator, conferenceIdentifier, NULL);
+#if ASTERISK_VERSION_GROUP >= 112
+	conference->bridge = pbx_bridge_new(bridgeCapabilities, AST_BRIDGE_FLAG_DISSOLVE_EMPTY | AST_BRIDGE_FLAG_MASQUERADE_ONLY | AST_BRIDGE_FLAG_TRANSFER_PROHIBITED, channel->designator, conferenceIdentifier, NULL);
 #else
 	conference->bridge = pbx_bridge_new(bridgeCapabilities, 0, channel->designator, conferenceIdentifier, NULL);
 #endif
@@ -309,6 +309,8 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 		participant->conferenceBridgePeer = channel->owner;
 		sccp_conference_update_callInfo(channel, participant->conferenceBridgePeer, participant, conference->id);
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
+		//ast_set_flag(&(participant->features.feature_flags), AST_BRIDGE_CHANNEL_FLAG_DISSOLVE_HANGUP);
+		
 		if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
 			channel->hangupRequest(channel);
 			return NULL;
@@ -1563,6 +1565,7 @@ void sccp_conference_promote_demote_participant(conferencePtr conference, partic
 	if (participant->device && participant->channel) {
 		if (!participant->isModerator) {								// promote
 			participant->isModerator = TRUE;
+			//ast_set_flag(&(participant->features.feature_flags), AST_BRIDGE_CHANNEL_FLAG_DISSOLVE_HANGUP);
 			conference->num_moderators++;
 			participant->device->conferencelist_active = TRUE;
 			participant->device->conference = sccp_conference_retain(conference);
@@ -1572,6 +1575,7 @@ void sccp_conference_promote_demote_participant(conferencePtr conference, partic
 		} else {
 			if (conference->num_moderators > 1) {							// demote
 				participant->isModerator = FALSE;
+				//ast_clear_flag(&(participant->features.feature_flags), AST_BRIDGE_CHANNEL_FLAG_DISSOLVE_HANGUP);
 				conference->num_moderators++;
 				participant->device->conference = sccp_conference_release(participant->device->conference);	/* explicit release */
 				sccp_softkey_setSoftkeyState(participant->device, KEYMODE_CONNCONF, SKINNY_LBL_JOIN, FALSE);
