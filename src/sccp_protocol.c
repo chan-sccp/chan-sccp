@@ -1204,12 +1204,28 @@ static void sccp_protocol_parseEnblocCallV17(constMessagePtr msg, char *calledPa
 
 static void sccp_protocol_parseEnblocCallV22(constMessagePtr msg, char *calledParty, uint32_t * lineInstance)
 {
-	sccp_copy_string(calledParty, msg->data.EnblocCallMessage.v18.calledParty, 25);
+	sccp_copy_string(calledParty, msg->data.EnblocCallMessage.v18u.calledParty, 25);
+
+	/* message exists in both packed and unpacked version */
+	/* 8945 v22 unpacked */
+	// 00000000 - 24 00 00 00 16 00 00 00  04 00 00 00 39 38 30 31  - $...........9801
+	// 00000010 - 31 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - 1...............
+	// 00000020 - 00 00 00 00 00 00 00 00  01 00 00 00              - ............
+	
+	/* 7970 v22 packed*/
+	// 00000000 - 24 00 00 00 16 00 00 00  04 00 00 00 39 38 30 31  - $...........9801
+	// 00000010 - 31 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - 1...............
+	// 00000020 - 00 00 00 00 00 01 00 00  00 00 00 00              - ............
+	
+	if (letohl(msg->data.EnblocCallMessage.v18u.lel_lineInstance) > 0) {
+		*lineInstance = letohl(msg->data.EnblocCallMessage.v18u.lel_lineInstance);
+	} else {
 #if defined(HAVE_UNALIGNED_BUSERROR)
-	*lineInstance = letohl(get_unaligned_uint32((const void *) &msg->data.EnblocCallMessage.v18.lel_lineInstance));
+		*lineInstance = letohl(get_unaligned_uint32((const void *) &msg->data.EnblocCallMessage.v18p.lel_lineInstance));
 #else
-	*lineInstance = letohl(msg->data.EnblocCallMessage.v18.lel_lineInstance);
+		*lineInstance = letohl(msg->data.EnblocCallMessage.v18p.lel_lineInstance);
 #endif
+	}
 }
 
 /* =================================================================================================================== Map Messages to Protocol Version */
