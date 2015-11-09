@@ -3433,13 +3433,14 @@ void sccp_handle_EnblocCallMessage(constSessionPtr s, devicePtr d, constMessageP
 
 			if (channel) {
 				if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK)) {
-					/* for anonymous devices we just want to call the extension defined in hotine->exten -> ignore dialed number -MC */
+					/* for anonymous devices we just want to call the extension defined in hotline->exten -> ignore dialed number -MC */
 					if (d->isAnonymous) {
 						return;
 					}
 
 					len = sccp_strlen(channel->dialedNumber);
 					sccp_copy_string(channel->dialedNumber + len, calledParty, sizeof(channel->dialedNumber) - len);
+					sccp_channel_stop_schedule_digittimout(channel);
 					sccp_pbx_softswitch(channel);
 					return;
 				}
@@ -3451,12 +3452,12 @@ void sccp_handle_EnblocCallMessage(constSessionPtr s, devicePtr d, constMessageP
 			if (!lineInstance) {									// v3 - v16 don't provide lineinstance during enbloc
 				lineInstance = d->defaultLineInstance ? d->defaultLineInstance : SCCP_FIRST_LINEINSTANCE;
 			}
-			AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_findByLineinstance(d, lineInstance);
 
+			AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_findByLineinstance(d, lineInstance);
 			if (linedevice) {
 				AUTO_RELEASE sccp_channel_t *new_channel = NULL;
-
 				new_channel = sccp_channel_newcall(linedevice->line, d, calledParty, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+				sccp_channel_stop_schedule_digittimout(new_channel);
 			}
 
 		}
