@@ -1007,7 +1007,7 @@ static void *sccp_feat_meetme_thread(void *data)
 		//  sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_PROCEED);
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
 		sccp_channel_send_callinfo(d, c);
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
+		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 
 		if (pbx_pbx_run(c->owner)) {
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDCONFERENCE);

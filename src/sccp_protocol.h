@@ -1717,6 +1717,16 @@ typedef union {
 		uint32_t lel_callReference;									/*!< Call Reference - current channel identifier */
 	} KeypadButtonMessage;											/*!< KeyPad Button Message - Client -> Server */
 
+	/* 8945 v22 unpacked */
+	// 00000000 - 24 00 00 00 16 00 00 00  04 00 00 00 39 38 30 31  - $...........9801
+	// 00000010 - 31 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - 1...............
+	// 00000020 - 00 00 00 00 00 00 00 00  01 00 00 00              - ............
+	
+	/* 7970 v22 packed*/
+	// 00000000 - 24 00 00 00 16 00 00 00  04 00 00 00 39 38 30 31  - $...........9801
+	// 00000010 - 31 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - 1...............
+	// 00000020 - 00 00 00 00 00 01 00 00  00 00 00 00              - ............
+
 	struct {
 		union {
 			struct {
@@ -1726,10 +1736,16 @@ typedef union {
 				char calledParty[StationMaxDirnumSize];						/*!< Called Party */
 				uint32_t lel_lineInstance;
 			} v17;
+			/* 8945 */
+			struct {										/* packing needed because of char[25] */
+				char calledParty[25];								/*!< Called Party */
+				uint32_t lel_lineInstance;
+			} v18u;
+			/* 7970 */
 			struct __attribute__ ((__packed__)) {							/* packing needed because of char[25] */
 				char calledParty[25];								/*!< Called Party */
 				uint32_t lel_lineInstance;
-			} v18;
+			} v18p;
 		};
 	} EnblocCallMessage;											/*!< Enbloc Call Message - Client -> Server */
 
