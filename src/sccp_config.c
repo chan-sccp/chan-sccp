@@ -3470,4 +3470,159 @@ int sccp_config_generate(char *filename, int configType)
 	return 0;
 };
 
+#if CS_TEST_FRAMEWORK
+AST_TEST_DEFINE(sccp_config_base_functions)
+{
+	switch(cmd) {
+		case TEST_INIT:
+			info->name = "base_functions";
+			info->category = "/channels/chan_sccp/config";
+			info->summary = "chan-sccp-b config test";
+			info->description = "chan-sccp-b config tests";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
+	}
+	
+	ast_test_status_update(test, "Executing chan-sccp-b config tests...\n");
+
+	ast_test_status_update(test, "sccp_find_segment...\n");
+	ast_test_validate(test, sccp_find_segment(SCCP_CONFIG_GLOBAL_SEGMENT) == &sccpConfigSegments[0]);
+
+	ast_test_status_update(test, "sccp_fine_config...\n");
+	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(SCCP_CONFIG_GLOBAL_SEGMENT);
+	ast_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "debug") == &sccpConfigSegment->config[2]);
+	ast_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "disallow") == &sccpConfigSegment->config[7]);
+
+	return AST_TEST_PASS;
+}
+AST_TEST_DEFINE(sccp_config_multientry)
+{
+	switch(cmd) {
+		case TEST_INIT:
+			info->name = "MultiEntryParameters";
+			info->category = "/channels/chan_sccp/config";
+			info->summary = "chan-sccp-b config test";
+			info->description = "chan-sccp-b config tests";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
+	}
+	
+	ast_test_status_update(test, "createVariableSetForMultiEntryParameters...\n");
+	PBX_VARIABLE_TYPE *varset = NULL, *v = NULL,*root = NULL;
+	root = ast_variable_new("disallow", "0.0.0.0/0.0.0.0", "");
+	root->next = ast_variable_new("allow", "10.10.10.0/255.255.255.0", "");
+	
+	v = varset = createVariableSetForMultiEntryParameters(root, "disallow|allow", varset);
+	ast_test_validate(test, v != NULL);
+	ast_test_status_update(test, "Test disallow == 0.0.0.0/0.0.0.0\n");
+	ast_test_validate(test, (!strcasecmp((const char *) "disallow", v->name) && !strcasecmp((const char *) "0.0.0.0/0.0.0.0", v->value)));
+	v = v->next;
+	ast_test_validate(test, v != NULL);
+	ast_test_status_update(test, "Test allow == 10.10.10.10/255.255.255.255\n");
+	ast_test_validate(test, (!strcasecmp((const char *) "allow", v->name) && !strcasecmp((const char *) "10.10.10.0/255.255.255.0", v->value)));
+	v = v->next;
+	ast_test_validate(test, v == NULL);
+	
+	pbx_variables_destroy(varset);
+	pbx_variables_destroy(root);
+
+	return AST_TEST_PASS;
+}
+
+AST_TEST_DEFINE(sccp_config_tokenized_default)
+{
+	switch(cmd) {
+		case TEST_INIT:
+			info->name = "TokenizedDefault";
+			info->category = "/channels/chan_sccp/config";
+			info->summary = "chan-sccp-b config test";
+			info->description = "chan-sccp-b config tests";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
+	}
+
+	ast_test_status_update(test, "createVariableSetForTokenizedDefault...\n");
+	PBX_VARIABLE_TYPE *varset = NULL, *v = NULL;
+	v = varset = createVariableSetForTokenizedDefault("disallow|allow", "0.0.0.0/0.0.0.0|10.10.10.0/255.255.255.0", NULL);
+	
+	ast_test_validate(test, v != NULL);
+	ast_test_status_update(test, "Test disallow == 0.0.0.0\n");
+	ast_test_validate(test, (!strcasecmp((const char *) "disallow", v->name) && !strcasecmp((const char *) "0.0.0.0/0.0.0.0", v->value)));
+	v = v->next;
+	ast_test_validate(test, v != NULL);
+	ast_test_status_update(test, "Test allow == 10.10.10.0/255.255.255.0\n");
+	ast_test_validate(test, (!strcasecmp((const char *) "allow", v->name) && !strcasecmp((const char *) "10.10.10.0/255.255.255.0", v->value)));
+	
+	pbx_variables_destroy(varset);
+	
+	//ast_test_status_update(test, "sccp_config_object_setValue...\n");
+	//static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VARIABLE_TYPE * cat_root, const char *name, const char *value, int lineno, const sccp_config_segment_t segment, boolean_t *SetEntries)
+	//ast_test_status_update(test, "sccp_config_set_defaults...\n");
+	//static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, boolean_t *SetEntries)
+
+	return AST_TEST_PASS;
+}
+
+/*
+AST_TEST_DEFINE(sccp_config_setValue)
+{
+	switch(cmd) {
+		case TEST_INIT:
+			info->name = "setValue";
+			info->category = "/channels/chan_sccp/config";
+			info->summary = "chan-sccp-b config test";
+			info->description = "chan-sccp-b config tests";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
+	}
+	
+	//ast_test_status_update(test, "sccp_config_object_setValue...\n");
+	//static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VARIABLE_TYPE * cat_root, const char *name, const char *value, int lineno, const sccp_config_segment_t segment, boolean_t *SetEntries)
+
+	return AST_TEST_PASS;
+}
+
+AST_TEST_DEFINE(sccp_config_setDefault)
+{
+	switch(cmd) {
+		case TEST_INIT:
+			info->name = "setDefault";
+			info->category = "/channels/chan_sccp/config";
+			info->summary = "chan-sccp-b config test";
+			info->description = "chan-sccp-b config tests";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
+	}
+	
+	//ast_test_status_update(test, "sccp_config_set_defaults...\n");
+	//static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, boolean_t *SetEntries)
+
+	return AST_TEST_PASS;
+}
+*/
+
+void sccp_config_register_tests(void)
+{
+	AST_TEST_REGISTER(sccp_config_base_functions);
+	AST_TEST_REGISTER(sccp_config_multientry);
+	AST_TEST_REGISTER(sccp_config_tokenized_default);
+	//AST_TEST_REGISTER(sccp_config_setValue);
+	//AST_TEST_REGISTER(sccp_config_setDefault);
+}
+
+void sccp_config_unregister_tests(void)
+{
+	AST_TEST_UNREGISTER(sccp_config_base_functions);
+	AST_TEST_UNREGISTER(sccp_config_multientry);
+	AST_TEST_UNREGISTER(sccp_config_tokenized_default);
+	//AST_TEST_UNREGISTER(sccp_config_setValue);
+	//AST_TEST_UNREGISTER(sccp_config_setDefault);
+}
+#endif
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
