@@ -651,6 +651,7 @@ boolean_t sccp_postPBX_load(void)
 	sccp_refcount_register_tests();
 	sccp_threadpool_register_tests();
 	sccp_callinfo_register_tests();
+	sccp_config_register_tests();
 #endif
 	GLOB(module_running) = TRUE;
 	sccp_refcount_schedule_cleanup((const void *) 0);
@@ -689,6 +690,7 @@ int sccp_preUnload(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 
 #if CS_TEST_FRAMEWORK
+	sccp_config_unregister_tests();
 	sccp_callinfo_unregister_tests();
 	sccp_utils_unregister_tests();
 	sccp_refcount_unregister_tests();
