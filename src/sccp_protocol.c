@@ -64,7 +64,8 @@ static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, cons
 	msg->data.CallInfoMessage.lel_originalCdpnRedirectReason = htolel(originalCdpnRedirectReason);
 	msg->data.CallInfoMessage.lel_lastRedirectingReason = htolel(lastRedirectingReason);
 
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V3) for %s channel %d/%d on line instance %d" "\n\tcallingParty: %s <%s>" "\n\tcalledParty: %s <%s>", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance, msg->data.CallInfoMessage.callingParty, msg->data.CallInfoMessage.callingPartyName, msg->data.CallInfoMessage.calledParty, msg->data.CallInfoMessage.calledPartyName);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V3) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
+	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV3)");
 	//sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
@@ -139,9 +140,10 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 		memcpy(&msg->data.CallInfoDynamicMessage.dummy, &buffer[0], bufferSize);
 	}
 
-	//sccp_dump_msg(msg);
+	sccp_dump_msg(msg);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V7) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
+	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV7)");
 	sccp_dev_send(device, msg);
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V7) for %s channel %d/%d on line instance %d" "\n\tcallingParty: %s <%s>" "\n\tcalledParty: %s <%s>\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance, data[8], data[0], data[9], data[1]);
 }
 
 static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const uint8_t callInstance, constDevicePtr device)
@@ -172,9 +174,11 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, &data[8],
 		SCCP_CALLINFO_CALLINGPARTY_NAME, &data[9],
 		SCCP_CALLINFO_CALLEDPARTY_NAME, &data[10],
-		SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &data[11],
+		SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &data[11],
+//		SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &data[11],
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &data[12],
-		SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &data[13],
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &data[13],
+//		SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &data[13],
 		SCCP_CALLINFO_HUNT_PILOT_NUMBER, &data[14],
 		SCCP_CALLINFO_HUNT_PILOT_NAME, &data[15],
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &originalCdpnRedirectReason,
@@ -217,9 +221,10 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 		memcpy(&msg->data.CallInfoDynamicMessage.dummy, &buffer[0], bufferSize);
 	}
 
-	//sccp_dump_msg(msg);
+	sccp_dump_msg(msg);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V16) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
+	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV16)");
 	sccp_dev_send(device, msg);
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V16) for %s channel %d/%d on line instance %d" "\n\tcallingParty: %s <%s>" "\n\tcalledParty: %s <%s>\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance, data[9], data[0], data[10], data[2]);
 }
 /* done - CallInfoMessage */
 
