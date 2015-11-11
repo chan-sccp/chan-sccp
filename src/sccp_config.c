@@ -3476,7 +3476,7 @@ AST_TEST_DEFINE(sccp_config_base_functions)
 	switch(cmd) {
 		case TEST_INIT:
 			info->name = "base_functions";
-			info->category = "/channels/chan_sccp/config";
+			info->category = "/channels/chan_sccp/config/";
 			info->summary = "chan-sccp-b config test";
 			info->description = "chan-sccp-b config tests";
 			return AST_TEST_NOT_RUN;
@@ -3496,12 +3496,13 @@ AST_TEST_DEFINE(sccp_config_base_functions)
 
 	return AST_TEST_PASS;
 }
+
 AST_TEST_DEFINE(sccp_config_multientry)
 {
 	switch(cmd) {
 		case TEST_INIT:
 			info->name = "MultiEntryParameters";
-			info->category = "/channels/chan_sccp/config";
+			info->category = "/channels/chan_sccp/config/";
 			info->summary = "chan-sccp-b config test";
 			info->description = "chan-sccp-b config tests";
 			return AST_TEST_NOT_RUN;
@@ -3536,7 +3537,7 @@ AST_TEST_DEFINE(sccp_config_tokenized_default)
 	switch(cmd) {
 		case TEST_INIT:
 			info->name = "TokenizedDefault";
-			info->category = "/channels/chan_sccp/config";
+			info->category = "/channels/chan_sccp/config/";
 			info->summary = "chan-sccp-b config test";
 			info->description = "chan-sccp-b config tests";
 			return AST_TEST_NOT_RUN;
@@ -3557,11 +3558,6 @@ AST_TEST_DEFINE(sccp_config_tokenized_default)
 	ast_test_validate(test, (!strcasecmp((const char *) "allow", v->name) && !strcasecmp((const char *) "10.10.10.0/255.255.255.0", v->value)));
 	
 	pbx_variables_destroy(varset);
-	
-	//ast_test_status_update(test, "sccp_config_object_setValue...\n");
-	//static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VARIABLE_TYPE * cat_root, const char *name, const char *value, int lineno, const sccp_config_segment_t segment, boolean_t *SetEntries)
-	//ast_test_status_update(test, "sccp_config_set_defaults...\n");
-	//static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, boolean_t *SetEntries)
 
 	return AST_TEST_PASS;
 }
@@ -3572,7 +3568,7 @@ AST_TEST_DEFINE(sccp_config_setValue)
 	switch(cmd) {
 		case TEST_INIT:
 			info->name = "setValue";
-			info->category = "/channels/chan_sccp/config";
+			info->category = "/channels/chan_sccp/config/";
 			info->summary = "chan-sccp-b config test";
 			info->description = "chan-sccp-b config tests";
 			return AST_TEST_NOT_RUN;
@@ -3591,7 +3587,7 @@ AST_TEST_DEFINE(sccp_config_setDefault)
 	switch(cmd) {
 		case TEST_INIT:
 			info->name = "setDefault";
-			info->category = "/channels/chan_sccp/config";
+			info->category = "/channels/chan_sccp/config/";
 			info->summary = "chan-sccp-b config test";
 			info->description = "chan-sccp-b config tests";
 			return AST_TEST_NOT_RUN;
