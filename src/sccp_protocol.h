@@ -1572,6 +1572,24 @@ typedef union {
 														 char HuntPilotNumber[StationDynamicDirnumSize];		// 24 - 25
 														 char HuntPilotName[StationDynamicNameSize];			// 40 - 121
 														 */
+														 
+														/* V2 (XML)
+														char callingParty[25];
+														char AlternateCallingParty[25];
+														char calledParty[25];
+														char originalCalledParty[25];
+														char lastRedirectingParty[25];
+														char cgpnVoiceMailbox[25];
+														char cdpnVoiceMailbox[25];
+														char originalCdpnVoiceMailbox[25];
+														char lastRedirectingVoiceMailbox[25];
+														char callingPartyName[121];
+														char calledPartyName[121];
+														char originalCalledPartyName[121];
+														char lastRedirectingPartyName[121];
+														char HuntPilotNumber[25];
+														char HuntPilotName[121];
+														*/
 	} CallInfoDynamicMessage;										/*!< Call Information Dynamic Message Structure */
 
 	struct {
