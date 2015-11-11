@@ -725,7 +725,7 @@ int sccp_preUnload(void)
 	if (GLOB(hotline)) {
 		if (GLOB(hotline)->line) {
 			sccp_line_removeFromGlobals(GLOB(hotline)->line);
-			GLOB(hotline)->line = sccp_line_release(GLOB(hotline)->line);						/* explicit release of hotline->line */
+			GLOB(hotline)->line = GLOB(hotline)->line ? sccp_line_release(GLOB(hotline)->line) : NULL;	/* explicit release of hotline->line */
 		}
 		sccp_free(GLOB(hotline));
 	}
