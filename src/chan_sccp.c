@@ -722,9 +722,13 @@ int sccp_preUnload(void)
 	/* hotline will be removed by line removing function */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Lines\n");
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing Hotline\n");
-	sccp_line_removeFromGlobals(GLOB(hotline)->line);
-	GLOB(hotline)->line = sccp_line_release(GLOB(hotline)->line);						/* explicit release of hotline->line */
-	sccp_free(GLOB(hotline));
+	if (GLOB(hotline)) {
+		if (GLOB(hotline)->line) {
+			sccp_line_removeFromGlobals(GLOB(hotline)->line);
+			GLOB(hotline)->line = sccp_line_release(GLOB(hotline)->line);						/* explicit release of hotline->line */
+		}
+		sccp_free(GLOB(hotline));
+	}
 
 	/* removing lines */
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {
