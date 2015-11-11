@@ -1117,7 +1117,7 @@ static int _sccp_channel_sched_endcall(const void *data)
 	if ((channel = sccp_channel_retain(data))) {
 		channel->scheduler.hangup = -1;
 		sccp_log(DEBUGCAT_CHANNEL) ("%s: Scheduled Hangup\n", channel->designator);
-		if (ATOMIC_FETCH(&channel->scheduler.deny, &c->scheduler.lock) == 0) {					/* we cancelled all scheduled tasks, so we should not be hanging up this channel anymore */
+		if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {					/* we cancelled all scheduled tasks, so we should not be hanging up this channel anymore */
 			sccp_channel_stop_and_deny_scheduled_tasks(channel);
 			sccp_channel_endcall(channel);
 		}
