@@ -635,10 +635,10 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 			struct sockaddr_storage sas = { 0 };													\
 			timeinfo = localtime(&d->registrationTime); 												\
 			strftime(regtime, sizeof(regtime), "%c ", timeinfo);											\
-        	        if(d->session) {															\
-        	        	sccp_session_getSas(d->session, &sas);											 	\
-	        		sccp_copy_string(addrStr,sccp_socket_stringify(&sas),sizeof(addrStr));								\
-	                } else {addrStr[0] = '-'; addrStr[1] = '-';addrStr[2] = '\0';}                                                                          \
+			if(d->session) {															\
+				sccp_session_getSas(d->session, &sas);											 	\
+				sccp_copy_string(addrStr,sccp_socket_stringify(&sas),sizeof(addrStr));								\
+			} else {addrStr[0] = '-'; addrStr[1] = '-';addrStr[2] = '\0';}									  	\
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 																\
 		}																		\
@@ -1415,11 +1415,11 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 		SCCP_LIST_UNLOCK(&l->channels);											\
 
 #define CLI_AMI_TABLE_FIELDS 															\
-		CLI_AMI_TABLE_FIELD(ID,			"-5",		d,		5,	channel->callid)				\
+		CLI_AMI_TABLE_FIELD(ID,			"-5",		d,	5,	channel->callid)					\
 		CLI_AMI_TABLE_FIELD(Name,		"-25.25",	s,	25,	strdupa(tmpname))					\
 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	channel->line->name)					\
-		CLI_AMI_TABLE_FIELD(DeviceName,		"-16",		s,		16,	d ? d->id : "(unknown)")			\
-		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10",	s,	10,	channel->dialedNumber)			\
+		CLI_AMI_TABLE_FIELD(DeviceName,		"-16",		s,	16,	d ? d->id : "(unknown)")				\
+		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10",	s,	10,	channel->dialedNumber)					\
 		CLI_AMI_TABLE_FIELD(PBX State,		"-10.10",	s,	10,	(channel->owner) ? pbx_state2str(iPbx.getChannelState(channel)) : "(none)")	\
 		CLI_AMI_TABLE_FIELD(SCCP State,		"-10.10",	s,	10,	sccp_channelstate2str(channel->state))			\
 		CLI_AMI_TABLE_FIELD(ReadCodec,		"-10.10",	s,	10,	codec2name(channel->rtp.audio.readFormat))		\
@@ -1949,7 +1949,7 @@ static int sccp_show_softkeysets(int fd, sccp_cli_totals_t *totals, struct manse
 				CLI_AMI_TABLE_FIELD(Mode,		"-12.12",	s,	12,	skinny_keymode2str(i))		\
 				CLI_AMI_TABLE_FIELD(Description,	"-40.40",	s,	40,	skinny_keymode2longstr(i))	\
 				CLI_AMI_TABLE_FIELD(LblID,		"-5",		d,	5,	c)				\
-				CLI_AMI_TABLE_FIELD(Label,              "-15.15",	s,	15,     label2str(b[c]))
+				CLI_AMI_TABLE_FIELD(Label,	      "-15.15",	s,	15,     label2str(b[c]))
 #include "sccp_cli_table.h"
 
 	if (s) {
@@ -2287,18 +2287,18 @@ CLI_AMI_ENTRY(dnd_device, sccp_dnd_device, "Set/Unset DND on an SCCP Device", cl
 static int sccp_remove_line_from_device(int fd, int argc, char *argv[])
 {
 	int res = RESULT_FAILURE;
-        AUTO_RELEASE sccp_device_t *d = NULL;
+	AUTO_RELEASE sccp_device_t *d = NULL;
 	AUTO_RELEASE sccp_line_t *line = NULL;
 
 	if (3 > argc || argc > 5) {
 		return RESULT_SHOWUSAGE;
 	}
-        if ((d = sccp_device_find_byid(argv[3], FALSE))) {						// don't create new realtime devices by searching for them
+	if ((d = sccp_device_find_byid(argv[3], FALSE))) {						// don't create new realtime devices by searching for them
 		if ((line = sccp_line_find_byname(argv[4], FALSE))) {					// don't create new realtime lines by searching for them
-		        sccp_line_removeDevice(line, d);
+			sccp_line_removeDevice(line, d);
 			pbx_cli(fd, "Line %s has been removed from device %s. Reloading Device...\n", line->name, d->id);
 			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART); 
-		        res = RESULT_SUCCESS;
+			res = RESULT_SUCCESS;
 		} else {
 			pbx_log(LOG_ERROR, "Error: Line %s not found\n", argv[4]);
 		}
@@ -2995,7 +2995,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 			int channel;
 
 			sscanf(argv[3], "SCCP/%[^-]-%08x", line, &channel);
-			// c = sccp_find_channel_on_line_byid(l, channeId);        // possible replacement, to also check if the line provided can be matched up.
+			// c = sccp_find_channel_on_line_byid(l, channeId);	// possible replacement, to also check if the line provided can be matched up.
 			c = sccp_channel_find_byid(channel);
 		} else {
 			c = sccp_channel_find_byid(atoi(argv[3]));
@@ -3192,7 +3192,7 @@ static int sccp_answercall(int fd, sccp_cli_totals_t *totals, struct mansession 
 		int channelId;
 
 		sscanf(argv[2], "SCCP/%[^-]-%08x", line, &channelId);
-		// c = sccp_find_channel_on_line_byid(l, channeId);        // possible replacement, to also check if the line provided can be matched up.
+		// c = sccp_find_channel_on_line_byid(l, channeId);	// possible replacement, to also check if the line provided can be matched up.
 		c = sccp_channel_find_byid(channelId);
 	} else {
 		c = sccp_channel_find_byid(atoi(argv[2]));
