@@ -1433,11 +1433,11 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 	sccp_channel_end_forwarding_channel(channel);
 
 	/** set called party name */
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Set CallInfo\n", DEV_ID_LOG(device));
 	{
 		AUTO_RELEASE sccp_linedevices_t *linedevice2 = sccp_linedevice_find(device, channel->line);
-
 		if (linedevice2) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Set Called Party\n", DEV_ID_LOG(device));
+
 			char tmpNumber[StationMaxDirnumSize] = {0};
 			char tmpName[StationMaxNameSize] = {0};
 			if (!sccp_strlen_zero(linedevice2->subscriptionId.number)) {
@@ -1445,15 +1445,17 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			} else {
 				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, channel->line->defaultSubscriptionId.number);
 			}
-			sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_CALLEDPARTY_NUMBER, tmpNumber, SCCP_CALLINFO_KEY_SENTINEL);
-			iPbx.set_callerid_number(channel->owner, tmpNumber);
 
 			if (!sccp_strlen_zero(linedevice2->subscriptionId.name)) {
 				snprintf(tmpName, StationMaxNameSize,  "%s%s", channel->line->cid_name, linedevice2->subscriptionId.name);
 			} else {
 				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, channel->line->defaultSubscriptionId.name);
 			}
-			sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_CALLEDPARTY_NAME, tmpName, SCCP_CALLINFO_KEY_SENTINEL);
+			sccp_callinfo_setter(channel->privateData->callInfo, 
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, tmpNumber, 
+				SCCP_CALLINFO_CALLEDPARTY_NAME, tmpName,
+				SCCP_CALLINFO_KEY_SENTINEL);
+			iPbx.set_callerid_number(channel->owner, tmpNumber);
 			iPbx.set_callerid_name(channel->owner, tmpName);
 		}
 	}
