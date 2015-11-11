@@ -6286,7 +6286,12 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-for flag in  				-ffunction-sections 	; do
+	case "${host}" in
+		*-*-darwin*)
+						;;
+		*)
+			LDFLAGS="${LDFLAGS} -Wl,-gc-sections"
+for flag in  				-ffunction-sections 			; do
   as_CACHEVAR=`$as_echo "ax_cv_check_cflags__$flag" | $as_tr_sh`
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts $flag" >&5
 $as_echo_n "checking whether C compiler accepts $flag... " >&6; }
@@ -6357,7 +6362,9 @@ fi
 
 done
 
-	LDFLAGS="${LDFLAGS} -Wl,-gc-sections"
+			;;
+	esac
+
 	CFLAGS_saved="`echo ${CFLAGS_saved}|sed 's/^ \t*//;s/ \t*$//'`"
 	CFLAGS_saved="${CFLAGS_saved} -I."			CFLAGS="${CFLAGS_saved} "
 	CPPFLAGS="${CPPFLAGS_saved} -I. "

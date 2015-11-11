@@ -1,4 +1,273 @@
+2015-11-11  ddegroot
+
+	* [r6379] src/sccp_channel.c: Fix #261: compile issue on OS-X.
+	  Reported by Alexander Ocheretin.
+
+	* [r6378] src/pbx_impl/ast/ast.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h: Fix: Set(REDIRECTING(orig-??, i). Issue
+	  Reported by Cody Miller-Kelly.
+
+	* [r6377] src/sccp_channel.c: Enh: reorder set called party so that
+	  we only call sccp_callinfo_setter once
+
+	* [r6376] src/pbx_impl/ast/ast111.h, src/pbx_impl/ast/ast112.h,
+	  src/pbx_impl/ast/ast113.h, src/pbx_impl/ast/define.h: Enh: Added
+	  pbx_channel_redirecting_effective_orig
+
+	* [r6375] src/sccp_indicate.c: Fix: displaymessage with orig_called
+	  number/name during RINGING (typo). Reported by Cody.
+
+	* [r6374] src/chan_sccp.c: Fix: release of GLOB(hotline)->line.
+	  Reported by Cody Miller.
+
+	* [r6373] src/chan_sccp.c: Fix: PreUnload releasing hotline->line
+
+	* [r6372] src/sccp_cli.c, src/sccp_config.c: Module load warning on
+	  tests. Cleanup tabs in sccp_cli.c.
+
+2015-11-10  ddegroot
+
+	* [r6371] src/chan_sccp.c, src/sccp_config.c, src/sccp_config.h:
+	  Enh: started adding unittests to sccp_config.
+
+2015-11-09  ddegroot
+
+	* [r6367] src/sccp_indicate.c: Enh: OFFHOOK indication
+
+	* [r6366] src/sccp_conference.c: Fix: conference + asterisk-13
+	  hangup when a normal participant hangs up the conference should
+	  continue.
+
+	* [r6365] src/sccp_actions.c: Fix: sccp_handle_EnblocCallMessage to
+	  make sure scheduled digittimeout is cancelled.
+
+	* [r6364] src/sccp_features.c: Fix: don't mix conference and meetme
+	  indications
+
+	* [r6363] src/sccp_protocol.c, src/sccp_protocol.h: Fix:
+	  EnblocMessages V22 comes in two different flavours (packed(797x)
+	  and unpacked (8945)), this needs to be handled seperately to
+	  gather the correct lineInstance.
+
+2015-11-08  ddegroot
+
+	* [r6361] src/sccp_rtp.c: Fix: directrtp with nat=auto
+
+2015-11-07  ddegroot
+
+	* [r6358] src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.h,
+	  tools/versioncheck: Fix compile warnings when used outside of svn
+	  repository. Fix compile warning for empty definition of
+	  ast_bridge_lock in asterisk < 10
+
+	* [r6357] contrib/gen_sccpconf/gen_sccpconf.c: Fix: empty
+	  SCCP_REVISION string (when compiling outside svn repository)
+
+	* [r6352] contrib/gen_sccpconf/gen_sccpconf.c,
+	  contrib/gen_sccpconf/gen_sccpconf.h: Fix building gen_sccpconf
+
+	* [r6348] src/sccp_conference.c: Fix: conference endcall ordering
+	  during onhook event. Reported by Rafal.
+
+	* [r6347] src/chan_sccp.c, src/sccp_callinfo.c,
+	  src/sccp_callinfo.h: Enh: Added test cases to sccp_callinfo
+
+2015-11-06  ddegroot
+
+	* [r6346] src/chan_sccp.h, src/pbx_impl/ast/ast.h: Enh: check
+	  defines before including
+
+	* [r6345] src/sccp_indicate.c: Enh: Suppress remote (double)
+	  indication of conference using shared line where phone is already
+	  part of the conference.
+
+2015-11-05  ddegroot
+
+	* [r6344] src/sccp_config.c, src/sccp_enum.c, src/sccp_enum.h,
+	  tools/gen_sccp_enum.awk: Enh: enum_all_entries should return
+	  const char *
+
+2015-11-04  ddegroot
+
+	* [r6343] src/sccp_socket.h: Fix compiler warning about inlining
+
+	* [r6342] autoconf/extra.m4, configure: Fixing compile warnings
+	  when using gcc < 4.3.
+
+2015-11-03  ddegroot
+
+	* [r6341] src/sccp_features.c: Fix: removal of double ast_channel
+	  unlock.
+
+	* [r6340] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_channel.h, src/sccp_features.c, src/sccp_features.h,
+	  src/sccp_pbx.c, src/sccp_softkeys.c: Enh:
+	  - Introduction of sccp_channel_getEmptyChannel as a seperate
+	  function.
+	  - sccp_channel_newcall, uses sccp_channel_getEmptyChannel to
+	  allocate and setup a channel to call softswitch on.
+	  
+	  It allows other functions like gpickup to only request an empty
+	  (dummy) channel,
+	  instead of actually going through sccp_channel_newcall ->
+	  softswitch,
+	  for a channel that will be masqueraded out anyway.
+	  
+	  Tested by Pavel and Benjamin.
+
+	* [r6339] src/sccp_channel.c: Fix: sccp_channel_transfer_cancel
+	  should check if it can retain the channel it's going to try and
+	  release. Move sccp_channel_transfer_cancel to an earlier location
+	  to prevent sccp_channel_transfer_cancel being called twice
+	  (masquaraded channel -> hangup -> destroy ->
+	  sccp_channel_transfer_cancel.
+
+	* [r6338] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c: Fix
+	  'sccp set debug' repeating a value already set. Fix check on
+	  refurn value of sccp_device_buttonIndex2lineInstance. Fix inline
+	  quailifier check for older compilers
+
+2015-11-02  ddegroot
+
+	* [r6337] src/chan_sccp.c, src/chan_sccp.h: Fix duplicate symbol
+	  declaration. Patch provided by Alexander Ocheretin (#260)
+
+	* [r6336] src/chan_sccp.c, src/sccp_hint.c: Change inline to
+	  gcc_inline, to prevent warnings on really old gcc compilers
+
+2015-11-01  ddegroot
+
+	* [r6335] autoconf/extra.m4, configure, src/common.h,
+	  src/sccp_channel.c, src/sccp_conference.c: Enh: Use cc
+	  -std=gnu11, keep fallback to -std=gnu98 if necessary
+
+	* [r6334] src/sccp_enum.c, tools/gen_sccp_enum.awk: Enh: Schrink
+	  size of sccp_enum.c generated output, by reusing strings if
+	  possible
+
+	* [r6333] autoconf/extra.m4, configure: Enh: Make the compiler
+	  remove dead/unused code during linking stange
+
+	* [r6332] src/chan_sccp.c, src/chan_sccp.h, src/pbx_impl/ast/ast.c,
+	  src/pbx_impl/ast/ast.h, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/sccp_callinfo.c,
+	  src/sccp_callinfo.h, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_device.c, src/sccp_device.h, src/sccp_line.c,
+	  src/sccp_line.h, src/sccp_management.c, src/sccp_management.h,
+	  src/sccp_utils.c, src/sccp_utils.h: Dead Code/Unused Functions
+	  remarked out (first step before later removal).
+
+	* [r6331] src/chan_sccp.c, src/chan_sccp.h, src/sccp_cli.c,
+	  src/sccp_hint.c, src/sccp_socket.c: Fix locking issue when
+	  running a (quick) sequence of 'sccp reload file xxx'-s. During a
+	  reload hint lineStateUpdates should be suspended.
+
+	* [r6330] src/sccp_actions.c: Fix: make intercpt work on newer
+	  devices with shared line, should show onhookstealable instead of
+	  starting a new call, when another call is already active on the
+	  shared line.
+
+	* [r6329] src/sccp_callinfo.c: Fix: sccp_callinfo_copyCtor to
+	  include all of the content except the lock (changed the builtup
+	  of the structure to make that obvious). Issue involving remote
+	  indication, which showed this reported by Rafal.
+
+	* [r6328] ChangeLog, Makefile.am, Makefile.in,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in: Eng: make
+	  coverage
+
+	* [r6327] src/Makefile.in, src/sccp_channel.c: remove comment
+
+	* [r6326] src/sccp_channel.c: Renamed a weird variable name
+
+	* [r6325] conf/mysql-v5.sql: Fix: added comment about setting
+	  group_concat_max_len in my.cnf for mysql-v5 users (with addons).
+	  Reported by Cody
+
+	* [r6324] conf/sccp.conf.annotated, src/sccp_config.c,
+	  src/sccp_config_entries.hh: Fix: sccp.conf.annotated content in
+	  regard to softkeysets. Reported by Rafal.
+
+2015-10-31  ddegroot
+
+	* [r6323] src/sccp_utils.c: Enh: Extended the ACL / permit_deny
+	  tests to include invalid format checks, error checking and IPv6
+	  addresses
+
+	* [r6322] src/sccp_refcount.c, src/sccp_utils.c: Enh: Simplify test
+	  cases
+
+	* [r6321] src/chan_sccp.c, src/sccp_cli.c, src/sccp_features.c,
+	  src/sccp_threadpool.c, src/sccp_threadpool.h: Enh: Move cli
+	  threadpool test case to sccp_threadpool.c. Fix:
+	  sccp_threadpool_shuttingdown to be set per threadpool (multiple
+	  allowed). Fix: threadpool grow/shrink by amount. Extend test
+	  cases to test create/destroy/addWork/grow/shrink
+
+	* [r6320] src/chan_sccp.c, src/sccp_cli.c, src/sccp_refcount.c,
+	  src/sccp_refcount.h, src/sccp_utils.c: Moved cli based test to
+	  sccp_refcount using the TEST_FRAMEWORK
+
+	* [r6319] src/sccp_actions.c, src/sccp_device.c, src/sccp_device.h,
+	  src/sccp_line.c, src/sccp_protocol.h: Fix: Old Devices (7960)
+	  sending buttonIndex instead of lineInstance in OnHook and KeyPad
+	  Messages, using new buttonIndex2lineInstance convertor function.
+	  Fixes: #281. Reported by Jonas Wilkening
+
 2015-10-30  ddegroot
+
+	* [r6318] src/sccp_actions.c: Fix: Older devices send buttonIndex
+	  instead of lineInstance in the onhook message. Maybe newer
+	  devices as well (research).
+
+	* [r6317] src/sccp_channel.c, src/sccp_channel.h, src/sccp_line.c,
+	  src/sccp_line.h: Enh: Added find functions
+	  sccp_line_by_buttonIndex and
+	  sccp_channel_byButtonIndex_and_callid.
+
+	* [r6316] src/sccp_cli.c: Fix: CLI output for accessoryState
+
+	* [r6315] src/sccp_protocol.c: Add support for protocol version 8
+	  (7912)
+
+	* [r6314] src/sccp_indicate.c: Enh: Check linedevice_find inline
+
+	* [r6313] src/sccp_refcount.c: Fix: compiler about constness when
+	  configured with --enable-refcount-debug
+
+	* [r6312] src/sccp_protocol.c, src/sccp_protocol.h: Fix:
+	  sendCallInfoV3 for lower protocol level phones. Issue reported by
+	  Jonas Wilkening.
+
+	* [r6311] src/sccp_indicate.c, src/sccp_pbx.c: Fix compile when
+	  running without conference support
+
+	* [r6310] src/sccp_channel.c, src/sccp_conference.c,
+	  src/sccp_features.c, src/sccp_indicate.c: Fix conference-join
+	  feature when used in offhook mode. Issue reported by Pavel.
+	  Requires previous 'holdconf' keymode in softkey, will fallback to
+	  default value if not supplied.
+
+	* [r6309] conf/sccp.conf.annotated: Show use of holdconf in example
+	  file
+
+	* [r6308] src/sccp_config.c, src/sccp_config_entries.hh,
+	  src/sccp_enum.c, src/sccp_enum.h, src/sccp_enum.in,
+	  src/sccp_protocol.c: Added new keymode 'holdconf' required to be
+	  able to indicate a conference on
+	  hold, while having a potential call which could be joined to the
+	  conference.
+	  This keymode should only be use on a moderator device.
+
+	* [r6307] src/sccp_indicate.c: Fix: Shared lines not showing 'in
+	  use' on other handsets. Reported by Steven Haigh
+
+	* [r6306] src/sccp_actions.c, src/sccp_conference.c,
+	  src/sccp_config.c, src/sccp_socket.c: Fix (false) warnings about
+	  local variable shadowing global declarations when using gcc <=
+	  4.8
 
 	* [r6305] src/common.h, src/sccp_refcount.c, src/sccp_utils.c: Enh:
 	  Added expects callflow to reduce cost of conditions in refcount
