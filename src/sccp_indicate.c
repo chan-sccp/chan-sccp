@@ -216,7 +216,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 				SCCP_CALLINFO_KEY_SENTINEL);
 			snprintf(prompt, sizeof(prompt), "%s%s: %s", 
 				(c->ringermode == SKINNY_RINGTYPE_URGENT) ? SKINNY_DISP_FLASH : "", 
-				!sccp_strlen_zero(orig_called_name) ? orig_called_num : SKINNY_DISP_FROM, 
+				!sccp_strlen_zero(orig_called_name) ? orig_called_name : (!sccp_strlen_zero(orig_called_num) ? orig_called_num : SKINNY_DISP_FROM), 
 				!sccp_strlen_zero(calling_name) ? calling_name : calling_num);
 			sccp_dev_displayprompt(d, instance, c->callid, prompt, GLOB(digittimeout));
 			/*
