@@ -778,16 +778,17 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
  */
 int sccp_pbx_sched_dial(const void * data)
 {
-	sccp_channel_t * c = (sccp_channel_t *) data;							// channel already retained in data
-	if (c) {
-		c->scheduler.digittimeout = -1;
+	sccp_channel_t * c = (sccp_channel_t *) data;							// channel already retained in data, unlocked at end of sched_replace_ref
+	if (c && c->scheduler.hangup_id == -1) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Digittimeout for call '%d'\n", c->callid);
 		if (c->owner && !iPbx.getChannelPbx(c) && !sccp_strlen_zero(c->dialedNumber)) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Going to dial '%s'\n", c->callid, c->dialedNumber);
 			sccp_pbx_softswitch(c);
-			sccp_channel_release(c);							// explicit release
 			return 0;
 		}
 		// fall through
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Nothing to dial -> INVALIDNUMBER\n", c->callid);
+		c->dialedNumber[0] = '\0';
 		sccp_indicate(NULL, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 	}
 	return -1;
@@ -850,9 +851,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			pbx_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <channel> available. Returning from dial thread.\n");
 			goto EXIT_FUNC;
 		}
-		/* removing scheduled dialing */
-		sccp_channel_stop_schedule_digittimout(c);
-
 		/* Reset Enbloc Dial Emulation */
 		c->enbloc.deactivate = 0;
 		c->enbloc.totaldigittime = 0;
@@ -1175,9 +1173,10 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			}
 		}
 
-		sccp_log((DEBUGCAT_PBX + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) quit\n", DEV_ID_LOG(d));
+		sccp_log((DEBUGCAT_PBX + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) finished\n", DEV_ID_LOG(d));
 	}
 EXIT_FUNC:
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "SCCP: (sccp_pbx_softswitch) exit\n");
 	if (pbx_channel) {
 		pbx_channel_unref(pbx_channel);
 	}

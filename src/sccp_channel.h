@@ -84,8 +84,8 @@ struct sccp_channel {
 		sccp_mutex_t lock;
 #endif
 		volatile CAS32_TYPE deny;
-		int digittimeout;										/*!< Schedule for Timeout on Dialing State */
-		int hangup;											/*!< Automatic hangup after invalid/congested indication */
+		int digittimeout_id;										/*!< Schedule for Timeout on Dialing State */
+		int hangup_id;											/*!< Automatic hangup after invalid/congested indication */
 	} scheduler;
 
 	sccp_dtmfmode_t dtmfmode;										/*!< DTMF Mode (0 inband - 1 outofband) */

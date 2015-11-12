@@ -402,7 +402,7 @@ static void sccp_sk_backspace(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 
 	if (len >= 1) {
 		c->dialedNumber[len - 1] = '\0';
-		sccp_channel_schedule_digittimout(c, (len >= 1) ? GLOB(digittimeout) : GLOB(digittimeout));
+		sccp_channel_schedule_digittimout(c, (len >= 1) ? GLOB(digittimeout) : GLOB(firstdigittimeout));
 	}
 	// sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: backspacing dial number %s\n", c->device->id, c->dialedNumber);
 	sccp_handle_dialtone(d, line, c);

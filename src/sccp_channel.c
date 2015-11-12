@@ -197,7 +197,8 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	//	SCCP_CALLINFO_KEY_SENTINEL);
 
 	/* this is for dialing scheduler */
-	channel->scheduler.digittimeout = -1;
+	channel->scheduler.digittimeout_id = -1;
+	channel->scheduler.hangup_id = -1;
 	channel->enbloc.digittimeout = GLOB(digittimeout);
 
 	iPbx.set_owner(channel, NULL);
@@ -1115,7 +1116,7 @@ static int _sccp_channel_sched_endcall(const void *data)
 	}
 
 	if ((channel = sccp_channel_retain(data))) {
-		channel->scheduler.hangup = -1;
+		channel->scheduler.hangup_id = -3;
 		sccp_log(DEBUGCAT_CHANNEL) ("%s: Scheduled Hangup\n", channel->designator);
 		if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {					/* we cancelled all scheduled tasks, so we should not be hanging up this channel anymore */
 			sccp_channel_stop_and_deny_scheduled_tasks(channel);
@@ -1133,10 +1134,8 @@ gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel)
 {
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
 
-	if (c) {
-		if (c->scheduler.digittimeout > 0) {
-			iPbx.sched_del_ref(&c->scheduler.digittimeout, c);
-		}
+	if (c && c->scheduler.digittimeout_id > -1 && iPbx.sched_wait(channel->scheduler.digittimeout_id) > 0) {
+		iPbx.sched_del_ref(&c->scheduler.digittimeout_id, c);
 	}
 }
 
@@ -1147,12 +1146,13 @@ gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel)
 gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t * channel, uint timeout)
 {
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
+	int res = 0;
 
-	if (c) {
-		if (c && !c->scheduler.deny && !c->scheduler.hangup) {						/* only schedule if allowed and not already scheduled */
-			if (iPbx.sched_add_ref(&c->scheduler.hangup, timeout, _sccp_channel_sched_endcall, c) < 0) {
-				pbx_log(LOG_NOTICE, "%s: Unable to schedule dialing in '%d' ms\n", c->designator, timeout);
-			}
+	/* only schedule if allowed and not already scheduled */
+	if (c && c->scheduler.hangup_id == -1 && !ATOMIC_FETCH(&c->scheduler.deny, &c->scheduler.lock)) {	
+		res = iPbx.sched_add_ref(&c->scheduler.hangup_id, timeout, _sccp_channel_sched_endcall, c);
+		if (res < 0) {
+			pbx_log(LOG_NOTICE, "%s: Unable to schedule dialing in '%d' ms\n", c->designator, timeout);
 		}
 	}
 }
@@ -1165,11 +1165,10 @@ gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t * channel, uint
 {
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
 
-	if (c) {
-		if (!c->scheduler.deny) {									/* only schedule if allowed and not already scheduled */
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: schedule digittimeout %d\n", c->designator, timeout);
-			iPbx.sched_replace_ref(&c->scheduler.digittimeout, timeout * 1000, sccp_pbx_sched_dial, c);
-		}
+	/* only schedule if allowed and not already scheduled */
+	if (c && c->scheduler.hangup_id == -1 && !ATOMIC_FETCH(&c->scheduler.deny, &c->scheduler.lock)) {	
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: schedule digittimeout %d\n", c->designator, timeout);
+		iPbx.sched_replace_ref(&c->scheduler.digittimeout_id, timeout * 1000, sccp_pbx_sched_dial, c);
 	}
 }
 
@@ -1178,11 +1177,11 @@ void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel)
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
 	if (c && (ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock) == 0)) {
 			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks\n", c->designator);
-			if (c->scheduler.digittimeout > 0) {
-				iPbx.sched_del_ref(&c->scheduler.digittimeout, c);
+			if (c->scheduler.digittimeout_id > -1) {
+				iPbx.sched_del_ref(&c->scheduler.digittimeout_id, c);
 			}
-			if (c->scheduler.hangup > 0) {
-				iPbx.sched_del_ref(&c->scheduler.hangup, c);
+			if (c->scheduler.hangup_id > -1) {
+				iPbx.sched_del_ref(&c->scheduler.hangup_id, c);
 			}
 	}
 }
