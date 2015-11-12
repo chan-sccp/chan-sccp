@@ -732,7 +732,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 			SCCP_CALLINFO_KEY_SENTINEL);
 	} else {
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-#if ASTERISK_VERSION_GROUP > 108
+#if ASTERISK_VERSION_GROUP >= 111
 			struct ast_party_id redirecting_orig = pbx_channel_redirecting_effective_orig(ast);
 			if (!redirecting_orig.name.valid && !redirecting_orig.number.valid) {
 				changes = sccp_callinfo_setter(callInfo,
