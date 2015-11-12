@@ -932,7 +932,7 @@ sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t s
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
-	sccp_featureConfiguration_t privacyFeature;								// = malloc(sizeof(sccp_featureConfiguration_t));
+	sccp_featureConfiguration_t privacyFeature = {0};
 
 	if (sccp_strcaseequals(value, "full")) {
 		privacyFeature.status = ~0;
@@ -946,7 +946,8 @@ sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t s
 	}
 
 	if (privacyFeature.status != (*(sccp_featureConfiguration_t *) dest).status || privacyFeature.enabled != (*(sccp_featureConfiguration_t *) dest).enabled) {
-		*(sccp_featureConfiguration_t *) dest = privacyFeature;
+		//*(sccp_featureConfiguration_t *) dest = privacyFeature;
+		memcpy(dest, &privacyFeature, sizeof(sccp_featureConfiguration_t));
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
