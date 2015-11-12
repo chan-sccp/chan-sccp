@@ -2630,7 +2630,7 @@ void sccp_handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr m
 		return;
 	}
 
-	if (channel->scheduler.hangup) {
+	if (channel->scheduler.hangup_id > -1) {
 		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Channel to be hungup shortly, giving up on sending more digits %d\n", DEV_ID_LOG(d), digit);
 		return;
 	}
@@ -2683,10 +2683,10 @@ void sccp_handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr m
 		int number_of_digits = len;
 		int timeout_if_enbloc = SCCP_SIM_ENBLOC_TIMEOUT;						// new timeout if we have established we should enbloc dialing
 
-		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digittimeout '%d' ms, sched_wait '%d' ms\n", channel->enbloc.digittimeout, iPbx.sched_wait(channel->scheduler.digittimeout));
+		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digittimeout '%d' ms, sched_wait '%d' ms\n", channel->enbloc.digittimeout, iPbx.sched_wait(channel->scheduler.digittimeout_id));
 		if (GLOB(simulate_enbloc) && !channel->enbloc.deactivate && number_of_digits >= 1) {		// skip the first digit (first digit had longer delay than the rest)
-			if ((channel->enbloc.digittimeout) < (iPbx.sched_wait(channel->scheduler.digittimeout))) {
-				lpbx_digit_usecs = (channel->enbloc.digittimeout) - (iPbx.sched_wait(channel->scheduler.digittimeout));
+			if ((channel->enbloc.digittimeout) < (iPbx.sched_wait(channel->scheduler.digittimeout_id))) {
+				lpbx_digit_usecs = (channel->enbloc.digittimeout) - (iPbx.sched_wait(channel->scheduler.digittimeout_id));
 			} else {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU Cancelled (past digittimeout)\n");
 				channel->enbloc.deactivate = 1;
@@ -2770,7 +2770,7 @@ void sccp_handle_dialtone(constDevicePtr d, constLinePtr l, constChannelPtr chan
 	}
 
 	//pbx_log(LOG_WARNING, "%s: handle dialtone on %s. Current state: %s\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
-	if (channel->softswitch_action != SCCP_SOFTSWITCH_DIAL || channel->scheduler.hangup || channel->state == SCCP_CHANNELSTATE_DIALING) {
+	if (channel->softswitch_action != SCCP_SOFTSWITCH_DIAL || channel->scheduler.hangup_id > -1 || channel->state == SCCP_CHANNELSTATE_DIALING) {
 		return;
 	}
 
