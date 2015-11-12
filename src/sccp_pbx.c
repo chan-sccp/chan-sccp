@@ -205,8 +205,11 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 		/* do we have cfwd enabled? */
+		//pbx_log(LOG_NOTICE, "%s: BYPASS_CFWD: %s\n", linedevice->device->id, pbx_builtin_getvar_helper(c->owner, "BYPASS_CFWD"));
 		if (sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "BYPASS_CFWD"))) {
-			if (linedevice->cfwdAll.enabled || (linedevice->cfwdBusy.enabled && (sccp_device_getDeviceState(linedevice->device) != SCCP_DEVICESTATE_ONHOOK || sccp_device_getActiveAccessory(linedevice->device)))) {
+			if (	linedevice->cfwdAll.enabled || 
+				(linedevice->cfwdBusy.enabled && (sccp_device_getDeviceState(linedevice->device) != SCCP_DEVICESTATE_ONHOOK || sccp_device_getActiveAccessory(linedevice->device)))
+			) {
 				pbx_log(LOG_NOTICE, "%s: initialize cfwd%s for line %s\n", linedevice->device->id, (linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : "None")), l->name);
 				if (sccp_channel_forward(c, linedevice, linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : linedevice->cfwdBusy.number) == 0) {
 					sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -775,16 +778,19 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
  */
 int sccp_pbx_sched_dial(const void * data)
 {
-	if (data) {
-		sccp_channel_t * c = (sccp_channel_t *) data;						// channel already retained in data
+	sccp_channel_t * c = (sccp_channel_t *) data;							// channel already retained in data
+	if (c) {
 		c->scheduler.digittimeout = -1;
 		if (c->owner && !iPbx.getChannelPbx(c) && !sccp_strlen_zero(c->dialedNumber)) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Going to dial '%s'\n", c->callid, c->dialedNumber);
 			sccp_pbx_softswitch(c);
+			sccp_channel_release(c);							// explicit release
+			return 0;
 		}
-		sccp_channel_release(c);								// explicitly release scheduled dial channel (take by scheduled digit timed out)
+		// fall through
+		sccp_indicate(NULL, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 	}
-	return 0;
+	return -1;
 }
 
 /*!
