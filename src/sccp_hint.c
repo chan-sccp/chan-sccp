@@ -204,7 +204,8 @@ void sccp_hint_module_start(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Starting hint system\n");
 	SCCP_LIST_HEAD_INIT(&lineStates);
 	SCCP_LIST_HEAD_INIT(&sccp_hint_subscriptions);
-	sccp_event_subscribe(SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED | SCCP_EVENT_DEVICE_DETACHED | SCCP_EVENT_DEVICE_ATTACHED | SCCP_EVENT_LINESTATUS_CHANGED | SCCP_EVENT_FEATURE_CHANGED, sccp_hint_eventListener, TRUE);
+	sccp_event_subscribe(SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED | SCCP_EVENT_DEVICE_DETACHED | SCCP_EVENT_DEVICE_ATTACHED | SCCP_EVENT_LINESTATUS_CHANGED, sccp_hint_eventListener, TRUE);
+	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_hint_handleFeatureChangeEvent, TRUE);
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 	ast_eid_to_str(default_eid_str, sizeof(default_eid_str), &ast_eid_default);
 #endif
@@ -410,9 +411,6 @@ static void sccp_hint_eventListener(const sccp_event_t * event)
 				sccp_hint_lineStatusChanged(event->event.lineStatusChanged.line, event->event.lineStatusChanged.optional_device);
 			}
 			pbx_rwlock_unlock(&GLOB(lock));
-			break;
-		case SCCP_EVENT_FEATURE_CHANGED:
-			sccp_hint_handleFeatureChangeEvent(event);
 			break;
 		default:
 			break;
