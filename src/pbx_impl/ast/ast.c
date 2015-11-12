@@ -668,7 +668,7 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 		SCCP_CALLINFO_KEY_SENTINEL);
 
 #else
-	pbx_log(LOG_NOTICE "%s: Got redirecting update. From <%s>\n", pbx_channel_name(ast), ast->cid.cid_rdnis);
+	pbx_log(LOG_NOTICE "%s: Got redirecting update. From <%s>\n", pbx_channel_name(ast), ast->cid.cid_rdnis));
 	sccp_callinfo_setter(ci, 
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : "",
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : NULL,
