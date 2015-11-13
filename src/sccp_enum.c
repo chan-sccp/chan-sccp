@@ -3009,11 +3009,11 @@ static const char *skinny_ringtype_map[] = {
 	[SKINNY_RINGTYPE_FEATURE] = "Feature",
 	[SKINNY_RINGTYPE_SILENT] = "Silent",
 	[SKINNY_RINGTYPE_URGENT] = "Urgent",
-	[SKINNY_RINGTYPE_BELLCORE_1] = "Bellcore 1",
-	[SKINNY_RINGTYPE_BELLCORE_2] = "Bellcore 2",
-	[SKINNY_RINGTYPE_BELLCORE_3] = "Bellcore 3",
-	[SKINNY_RINGTYPE_BELLCORE_4] = "Bellcore 4",
-	[SKINNY_RINGTYPE_BELLCORE_5] = "Bellcore 5",
+	[SKINNY_RINGTYPE_BELLCORE_1] = "Bellcore1",
+	[SKINNY_RINGTYPE_BELLCORE_2] = "Bellcore2",
+	[SKINNY_RINGTYPE_BELLCORE_3] = "Bellcore3",
+	[SKINNY_RINGTYPE_BELLCORE_4] = "Bellcore4",
+	[SKINNY_RINGTYPE_BELLCORE_5] = "Bellcore5",
 	[SKINNY_RINGTYPE_SENTINEL] = "LOOKUPERROR"
 };
 
@@ -3049,7 +3049,7 @@ int skinny_ringtype_str2intval(const char *lookup_str) {
 }
 
 const char *skinny_ringtype_all_entries(void) {
-	static char res[] = "Ring Off,Inside,Outside,Feature,Silent,Urgent,Bellcore 1,Bellcore 2,Bellcore 3,Bellcore 4,Bellcore 5";
+	static char res[] = "Ring Off,Inside,Outside,Feature,Silent,Urgent,Bellcore1,Bellcore2,Bellcore3,Bellcore4,Bellcore5";
 	return res;
 }
 /* = End =========================================================================================                skinny_ringtype === */

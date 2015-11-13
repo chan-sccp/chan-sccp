@@ -573,11 +573,11 @@ enum ringtype {
 	SKINNY_RINGTYPE_FEATURE,			,	"Feature",
 	SKINNY_RINGTYPE_SILENT,				,	"Silent", 
 	SKINNY_RINGTYPE_URGENT,				,	"Urgent",
-	SKINNY_RINGTYPE_BELLCORE_1,			,	"Bellcore 1",
-	SKINNY_RINGTYPE_BELLCORE_2,			,	"Bellcore 2",
-	SKINNY_RINGTYPE_BELLCORE_3,			,	"Bellcore 3",
-	SKINNY_RINGTYPE_BELLCORE_4,			,	"Bellcore 4",
-	SKINNY_RINGTYPE_BELLCORE_5,			,	"Bellcore 5",
+	SKINNY_RINGTYPE_BELLCORE_1,			,	"Bellcore1",
+	SKINNY_RINGTYPE_BELLCORE_2,			,	"Bellcore2",
+	SKINNY_RINGTYPE_BELLCORE_3,			,	"Bellcore3",
+	SKINNY_RINGTYPE_BELLCORE_4,			,	"Bellcore4",
+	SKINNY_RINGTYPE_BELLCORE_5,			,	"Bellcore5",
 }
 
 /*!
