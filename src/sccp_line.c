@@ -342,7 +342,7 @@ int __sccp_line_destroy(const void *ptr)
 		if (!mailbox) {
 			break;
 		}
-		sccp_mwi_unsubscribeMailbox(&mailbox);
+		sccp_mwi_unsubscribeMailbox(mailbox);
 		if (mailbox->mailbox) {
 			sccp_free(mailbox->mailbox);
 		}
