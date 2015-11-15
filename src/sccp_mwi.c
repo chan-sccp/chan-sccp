@@ -307,7 +307,7 @@ void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t * mailbox)
 		return;
 	}
 
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: unsubscribe mailbox: %s@%s\n", mailbox->mailbox, mailbox->context);
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "SCCP: unsubscribe mailbox: %s@%s\n", mailbox->mailbox, mailbox->context);
 	sccp_mailbox_subscriber_list_t *subscription = NULL;
 
 	SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
@@ -332,7 +332,7 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 		return;
 	}
 
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_deviceAttachedEvent) Get deviceAttachedEvent\n");
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "SCCP: (mwi_deviceAttachedEvent) Get deviceAttachedEvent\n");
 
 	sccp_linedevices_t *linedevice = event->event.deviceAttached.linedevice;
 	sccp_line_t *line = linedevice->line;
@@ -358,7 +358,7 @@ void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
 		return;
 	}
 
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_lineStatusChangedEvent) Get lineStatusChangedEvent\n");
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "SCCP: (mwi_lineStatusChangedEvent) Get lineStatusChangedEvent\n");
 	/* these are the only events we are interested in */
 	if (	event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_DOWN || \
 		event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_ONHOOK || \
@@ -386,7 +386,7 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t * event)
 	sccp_mailbox_t *mailbox = NULL;
 	sccp_line_t *line = event->event.lineCreated.line;
 
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_linecreatedEvent) Get linecreatedEvent\n");
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "SCCP: (mwi_linecreatedEvent) Get linecreatedEvent\n");
 
 	if (line && (&line->mailboxes) != NULL) {
 		SCCP_LIST_TRAVERSE(&line->mailboxes, mailbox, list) {

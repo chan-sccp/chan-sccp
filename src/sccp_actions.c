@@ -1831,7 +1831,9 @@ static void sccp_handle_feature_action(constDevicePtr d, const int instance, con
 			if (TRUE == toggleState) {
 				if (!sccp_strlen_zero(config->button.feature.options)) {
 					enum ast_device_state newDeviceState = config->button.feature.status ? AST_DEVICE_NOT_INUSE : AST_DEVICE_INUSE;
-					ast_db_put("CustomDevstate", config->button.feature.options, ast_devstate_str(newDeviceState));
+					if (iPbx.feature_addToDatabase) {
+						iPbx.feature_addToDatabase("CustomDevstate", config->button.feature.options, ast_devstate_str(newDeviceState));
+					}
 					pbx_devstate_changed(newDeviceState, "Custom:%s", config->button.feature.options);
 				}
 			}
