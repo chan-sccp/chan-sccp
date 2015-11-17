@@ -668,11 +668,15 @@ static int sccp_wrapper_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			break;
 
 		case AST_CONTROL_VIDUPDATE:									/* Request a video frame update */
-			if (c->rtp.video.rtp && d && sccp_device_isVideoSupported(d)) {
+#ifdef CS_SCCP_VIDEO
+			if (c->rtp.video.rtp && d && sccp_device_isVideoSupported(d) && c->videomode != SCCP_VIDEO_MODE_OFF) {
 				d->protocol->sendFastPictureUpdate(d, c);
 				res = 0;
-			} else
+			} else 
+#endif
+			{
 				res = -1;
+			}
 			break;
 #ifdef CS_AST_CONTROL_INCOMPLETE
 		case AST_CONTROL_INCOMPLETE:									/*!< Indication that the extension dialed is incomplete */
@@ -1164,6 +1168,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 	sccp_autoanswer_t autoanswer_type = SCCP_AUTOANSWER_NONE;
 	uint8_t autoanswer_cause = AST_CAUSE_NOTDEFINED;
 	skinny_ringtype_t ringermode = SKINNY_RINGTYPE_OUTSIDE;
+	sccp_video_mode_t video_mode = SCCP_VIDEO_MODE_AUTO;
 
 	*cause = AST_CAUSE_NOTDEFINED;
 	if (!type) {
@@ -1194,7 +1199,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 			ringermode = skinny_ringtype_str2val(alert_info);
 		}
 	}
-	sccp_parse_dial_options(options, &autoanswer_type, &autoanswer_cause, &ringermode);
+	sccp_parse_dial_options(options, &autoanswer_type, &autoanswer_cause, &ringermode, &video_mode);
 	if (autoanswer_cause) {
 		*cause = autoanswer_cause;
 	}
@@ -1232,6 +1237,9 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, videoCapabilities, ARRAY_LEN(videoCapabilities));
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote video caps: %s\n", cap_buf);
 
+#if CS_SCCP_VIDEO
+	sccp_channel_setVideoMode(channel, &video_mode);
+#endif
 	/** done */
 
 	/** get requested format */
@@ -1333,6 +1341,10 @@ static int sccp_wrapper_asterisk110_call(PBX_CHANNEL_TYPE * ast, char *dest, int
 			sccp_asterisk_pbx_fktChannelWrite(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
 		} else if (!strcasecmp(ast_var_name(current), "MaxCallBR")) {
 			sccp_asterisk_pbx_fktChannelWrite(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
+#if CS_SCCP_VIDEO
+		} else if (!strcasecmp(ast_var_name(current), "SCCP_VIDEO_MODE")) {
+			sccp_channel_setVideoMode(c, ast_var_value(current));
+#endif
 		}
 	}
 

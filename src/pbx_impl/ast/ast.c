@@ -521,6 +521,7 @@ int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcna
 			res = sccp_channel_setPreferredCodec(c, value);
 			
 		} else if (!strcasecmp(args, "video")) {
+			pbx_builtin_setvar_helper(ast, "_SCCP_VIDEO_MODE", value);
 			res = sccp_channel_setVideoMode(c, value);
 			
 		} else if (!strcasecmp(args, "CallingParty")) {
@@ -836,7 +837,7 @@ void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const ch
 /*!
  * parse the DIAL options and store results by ref
  */
-int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, uint8_t *autoanswer_cause, skinny_ringtype_t *ringermode)
+int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, uint8_t *autoanswer_cause, skinny_ringtype_t *ringermode, sccp_video_mode_t *video_mode)
 {
 	int res = 0;
 	int optc = 0;
@@ -883,6 +884,9 @@ int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, u
 			} else if (!strncasecmp(optv[opti], "ringer=", 7)) {
 				optv[opti] += 7;
 				*ringermode = skinny_ringtype_str2val(optv[opti]);
+			} else if (!strncasecmp(optv[opti], "video=", 6)) {
+				optv[opti] += 6;
+				*video_mode = sccp_video_mode_str2val(optv[opti]);
 			} else {
 				pbx_log(LOG_WARNING, "SCCP: Unknown option %s\n", optv[opti]);
 				res = -1;

@@ -253,9 +253,6 @@
 /* Using streaming video */
 #undef CS_SCCP_VIDEO
 
-/* Using video layer */
-#undef CS_SCCP_VIDEOLAYER
-
 /* asterisk compiled with 'TEST_FRAMEWORK' */
 #undef CS_TEST_FRAMEWORK
 
