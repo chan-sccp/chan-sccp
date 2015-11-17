@@ -2479,18 +2479,18 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data)
 boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const void *data){
 	boolean_t res = TRUE;
 	
+#if CS_SCCP_VIDEO
 	if (!strcasecmp(data, "off")) {
 		c->videomode = SCCP_VIDEO_MODE_OFF;
 	} else if (!strcasecmp(data, "user")) {
 		c->videomode = SCCP_VIDEO_MODE_USER;
 	} else if (!strcasecmp(data, "auto")) {
 		c->videomode = SCCP_VIDEO_MODE_AUTO;
-	}else {
-		res = TRUE;
+	} else 
+#endif
+	{
+		res = FALSE;
 	}
-
-	
-
 	return res;
 }
 

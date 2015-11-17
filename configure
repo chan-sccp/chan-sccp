@@ -978,7 +978,6 @@ enable_devstate_feature
 enable_dynamic_speeddial
 enable_dynamic_speeddial_cid
 enable_video
-enable_videolayer
 enable_distributed_devicestate
 enable_experimental_mode
 enable_experimental_xml
@@ -1678,7 +1677,6 @@ Optional Features:
   --disable-dynamic-speeddial-cid
                           disable dynamic speeddials with call info
   --enable-video          enable streaming video (experimental)
-  --enable-videolayer     enable video layer (experimental)
   --enable-distributed-devicestate
                           enable distributed devicestate (>ast 1.6.2)
   --enable-experimental-mode
@@ -25089,22 +25087,6 @@ $as_echo "#define CS_SCCP_VIDEO 1" >>confdefs.h
 fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-video: ${ac_cv_streaming_video}" >&5
 $as_echo "$as_me: --enable-video: ${ac_cv_streaming_video}" >&6;}
-
-
-	# Check whether --enable-videolayer was given.
-if test "${enable_videolayer+set}" = set; then :
-  enableval=$enable_videolayer; ac_cv_streaming_videolayer=$enableval
-else
-  ac_cv_streaming_videolayer=no
-fi
-
-	if test "${ac_cv_streaming_videolayer}" == "yes"; then :
-
-$as_echo "#define CS_SCCP_VIDEOLAYER 1" >>confdefs.h
-
-fi
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-videolayer: ${ac_cv_streaming_videolayer}" >&5
-$as_echo "$as_me: --enable-videolayer: ${ac_cv_streaming_videolayer}" >&6;}
 
 
 	# Check whether --enable-distributed_devicestate was given.
