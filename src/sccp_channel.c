@@ -288,7 +288,7 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 	if (!device) {
 		if (!channel->privateData->device) {
 			/* channel->privateData->device was already set to NULL */
-			return;
+			goto EXIT;
 		}
 		sccp_device_setActiveChannel(channel->privateData->device, NULL);
 	}
@@ -306,6 +306,7 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 		channel->dtmfmode = channel->privateData->device->getDtmfMode(channel->privateData->device);
 		return;
 	}
+EXIT:
 	/* \todo instead of copying caps / prefs from global */
 	memcpy(&channel->preferences.audio, &GLOB(global_preferences), sizeof(channel->preferences.audio));
 	memcpy(&channel->capabilities.audio, &GLOB(global_preferences), sizeof(channel->capabilities.audio));
