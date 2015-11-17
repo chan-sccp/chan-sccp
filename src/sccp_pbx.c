@@ -119,10 +119,8 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		sccp_linedevices_t *linedevice = NULL;
 
 		SCCP_LIST_LOCK(&l->devices);
+		c->subscribers = SCCP_LIST_GETSIZE(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-
-			c->subscribers++;
-
 			if (linedevice->device->session) {
 				hasSession = TRUE;
 			}
@@ -217,12 +215,14 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 					sccp_channel_send_callinfo(linedevice->device, c);
 					isRinging = TRUE;
 				}
+				c->subscribers--; 
 				continue;
 			}
 		}
 
 		if (!linedevice->device->session) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: line device has no session\n", DEV_ID_LOG(linedevice->device));
+			c->subscribers--; 
 			continue;
 		}
 
@@ -231,6 +231,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		   which match the specified subscription id in the dial parameters. */
 		if (!sccp_util_matchSubscriptionId(c, linedevice->subscriptionId.number)) {
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: device does not match subscriptionId.number c->subscriptionId.number: '%s', deviceSubscriptionID: '%s'\n", DEV_ID_LOG(linedevice->device), c->subscriptionId.number, linedevice->subscriptionId.number);
+			c->subscribers--; 
 			continue;
 		}
 
@@ -386,12 +387,14 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	sccp_channelstate_t previousstate = c->previousChannelState;
 
 	SCCP_LIST_LOCK(&l->devices);
+	c->subscribers = SCCP_LIST_GETSIZE(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 		AUTO_RELEASE sccp_channel_t *active_channel = sccp_device_getActiveChannel(linedevice->device);
 
 		// skip incoming call on a shared line from the originator. (sharedline calling same sharedline)
 		if (active_channel && active_channel != c && sccp_strequals(iPbx.getChannelLinkedId(active_channel), iPbx.getChannelLinkedId(c))) {
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) skip ringing on %s\n", linedevice->device->id);
+			c->subscribers--;
 			continue;
 		}
 		/* do we have cfwd enabled? */
@@ -403,13 +406,14 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 			) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward active on line %s\n", linedevice->device->id, linedevice->line->name);
 				ForwardingLineDevice = linedevice;
+				c->subscribers--;
 				continue;
 			}
 		}
-		c->subscribers++;
 
 		if (!linedevice->device->session) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: line device has no session\n", DEV_ID_LOG(linedevice->device));
+			c->subscribers--;
 			continue;
 		}
 
