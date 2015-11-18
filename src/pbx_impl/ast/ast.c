@@ -1081,9 +1081,10 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 {
 #if ASTERISK_VERSION_GROUP >= 112
-	char featexten[SCCP_MAX_EXTENSION];
+	char featexten[SCCP_MAX_EXTENSION] = "";
 
-	if (iPbx.getFeatureExtension(channel, featexten) && (!sccp_strlen_zero(featexten)) {
+	if (iPbx.getFeatureExtension(channel, featexten) && !sccp_strlen_zero(featexten)) {
+		pbx_log(LOG_ERROR, "%s: Sending DTMF:'%s' to switch Monitor Feature\n", channel->designator, featexten);
 		struct ast_frame f = { AST_FRAME_DTMF, };
 		uint j;
 
