@@ -1083,21 +1083,19 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 #if ASTERISK_VERSION_GROUP >= 112
 	char featexten[SCCP_MAX_EXTENSION];
 
-	if (iPbx.getFeatureExtension(channel, featexten)) {
-		if (!sccp_strlen_zero(featexten)) {
-			struct ast_frame f = { AST_FRAME_DTMF, };
-			uint j;
+	if (iPbx.getFeatureExtension(channel, featexten) && (!sccp_strlen_zero(featexten)) {
+		struct ast_frame f = { AST_FRAME_DTMF, };
+		uint j;
 
-			f.len = 100;
-			for (j = 0; j < strlen(featexten); j++) {
-				f.subclass.integer = featexten[j];
-				ast_queue_frame(channel->owner, &f);
-			}
-		} else {
-			pbx_log(LOG_ERROR, "SCCP: Monitor Feature Extension Not available\n");
+		f.len = 100;
+		for (j = 0; j < strlen(featexten); j++) {
+			f.subclass.integer = featexten[j];
+			ast_queue_frame(channel->owner, &f);
 		}
 		return TRUE;
 	}
+	pbx_log(LOG_ERROR, "SCCP: Monitor Feature Extension Not available\n");
+	return FALSE;
 #else
 #ifdef CS_EXPERIMENTAL		// Added 2015/01/24
 	ast_rdlock_call_features();
@@ -1113,9 +1111,7 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 			pbx_log(LOG_ERROR, "SCCP: No bridgepeer available\n");
 		}
 		return TRUE;
-	} else {
-		pbx_log(LOG_ERROR, "SCCP: Monitor Feature 'automixmon' not available\n");
-	}	
+	}
 #else				// Old Impl
 	ast_rdlock_call_features();
 	struct ast_call_feature *feature = ast_find_call_feature("automon");
@@ -1124,14 +1120,11 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 	if (feature) {
 		feature->operation(channel->owner, channel->owner, NULL, "monitor button", 0, NULL);
 		return TRUE;
-	} else {
-		pbx_log(LOG_ERROR, "SCCP: Monitor Feature 'automon' not available\n");
-	}
-#endif
+	} 
 #endif
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Automon not available in features.conf/n", channel->designator);
 	return FALSE;
-
+#endif
 }
 
 #if !defined(AST_DEFAULT_EMULATE_DTMF_DURATION)
