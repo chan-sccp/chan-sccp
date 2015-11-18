@@ -1220,6 +1220,21 @@ pickup_failed:
 }
 #endif
 
+static boolean_t sccp_wrapper_asterisk16_getFeatureExtension(const sccp_channel_t * channel, char extension[SCCP_MAX_EXTENSION])
+{
+	struct ast_call_feature *feat;
+
+	ast_rdlock_call_features();
+	feat = ast_find_call_feature("automon");
+
+	if (feat) {
+		sccp_copy_string(extension, feat->exten, SCCP_MAX_EXTENSION);
+	}
+	ast_unlock_call_features();
+
+	return feat ? TRUE : FALSE;
+}
+
 static boolean_t sccp_wrapper_asterisk16_getPickupExtension(const sccp_channel_t * channel, char extension[SCCP_MAX_EXTENSION])
 {
 	boolean_t res = FALSE;
@@ -2900,7 +2915,7 @@ const PbxInterface iPbx = {
 	feature_removeFromDatabase:	sccp_asterisk_removeFromDatabase,
 	feature_removeTreeFromDatabase:	sccp_asterisk_removeTreeFromDatabase,
 	feature_monitor:		sccp_wrapper_asterisk_featureMonitor,
-	getFeatureExtension:		NULL,
+	getFeatureExtension:		sccp_wrapper_asterisk16_getFeatureExtension,
 	getPickupExtension:		sccp_wrapper_asterisk16_getPickupExtension,
 
 	eventSubscribe:			NULL,
@@ -3030,6 +3045,7 @@ const PbxInterface iPbx = {
 	
 	
 	.feature_park			= sccp_wrapper_asterisk16_park,
+	.getFeatureExtension		= sccp_wrapper_asterisk16_getFeatureExtension,
 	.getPickupExtension		= sccp_wrapper_asterisk16_getPickupExtension,
 	
 	.findChannelByCallback		= sccp_wrapper_asterisk16_findChannelWithCallback,

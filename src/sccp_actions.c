@@ -1730,9 +1730,9 @@ static void sccp_handle_feature_action(constDevicePtr d, const int instance, con
 	}
 
 	/* notice: we use this function for request and changing status -> so just change state if toggleState==TRUE -MC */
-	char featureOption[255];
+	char featureOption[255] = "";
 
-	if (!sccp_strlen_zero(config->button.feature.options)) {
+	if (config->button.feature.options && !sccp_strlen_zero(config->button.feature.options)) {
 		sccp_copy_string(featureOption, config->button.feature.options, sizeof(featureOption));
 	}
 

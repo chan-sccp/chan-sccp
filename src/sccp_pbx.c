@@ -604,8 +604,6 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 		/* requesting statistics */
 		sccp_channel_StatisticsRequest(c);
 		sccp_channel_clean(c);
-
-		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);						// update monitor feature status
 		return 0;
 	}
 	return -1;
