@@ -232,6 +232,11 @@ codeSkip == 1			{ next }
 			print "\t}" > out_source_file
 			print "\treturn 0;" > out_source_file
 		} else {
+			if (Entry_val[0] == 0) {
+				print "\tif (" namespace "_" enum_name "_int_value == 0) {" > out_source_file
+				print "\t\treturn 1;" > out_source_file
+				print "\t}" > out_source_file
+			}
 			print "\tint res = 0, i;" > out_source_file
 			print "\tfor (i = 0; i < " toupper(namespace) "_" toupper(enum_name) "_SENTINEL; i++) {" >out_source_file
 			print "\t\tif ((" namespace "_" enum_name "_int_value & 1 << i) == 1 << i) {" > out_source_file
@@ -273,8 +278,14 @@ codeSkip == 1			{ next }
 			}
 			print "const char * " namespace "_" enum_name "2str(int " namespace "_" enum_name "_int_value) {" > out_source_file
 			print "\tstatic char res[" totlen "] = \"\";" >out_source_file
-			print "\tuint32_t i;" >out_source_file
 			print "\tint pos = 0;" >out_source_file
+			if (Entry_val[0] == 0) {
+				print "\tif (" namespace "_" enum_name "_int_value == 0) {" > out_source_file
+				print "\t\tpos += snprintf(res + pos, " totlen ", \"%s%s\", pos ? \",\" : \"\", " namespace "_" enum_name "_map[0]);" >out_source_file
+				print "\t\treturn res;" > out_source_file
+				print "\t}" > out_source_file
+			}
+			print "\tuint32_t i;" >out_source_file
 			print "\tfor (i = 0; i < ARRAY_LEN(" namespace "_" enum_name "_map) - 1; i++) {" >out_source_file
 			print "\t\tif (("namespace "_" enum_name "_int_value & 1 << i) == 1 << i) {" >out_source_file
 			print "\t\t\tpos += snprintf(res + pos, " totlen ", \"%s%s\", pos ? \",\" : \"\", " namespace "_" enum_name "_map[i]);" >out_source_file
