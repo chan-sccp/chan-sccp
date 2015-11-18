@@ -1101,28 +1101,31 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 #else
 #ifdef CS_EXPERIMENTAL		// Added 2015/01/24
 	ast_rdlock_call_features();
-	
 	struct ast_call_feature *feature = ast_find_call_feature("automixmon");
+	ast_unlock_call_features();
 
 	if (feature) {
-		struct ast_call_feature feat;
-		memcpy(&feat, feature, sizeof(feat));
-		ast_unlock_call_features();
 		PBX_CHANNEL_TYPE *bridgePeer = iPbx.get_bridged_channel(channel->owner);
 		if (bridgePeer) {
-			feat.operation(channel->owner, bridgePeer, NULL, "monitor button", FEATURE_SENSE_CHAN | FEATURE_SENSE_PEER, NULL);
+			feature->operation(channel->owner, bridgePeer, NULL, "monitor button", FEATURE_SENSE_CHAN | FEATURE_SENSE_PEER, NULL);
 			pbx_channel_unref(bridgePeer);
 		} else {
 			pbx_log(LOG_ERROR, "SCCP: No bridgepeer available\n");
 		}
 		return TRUE;
-	}
+	} else {
+		pbx_log(LOG_ERROR, "SCCP: Monitor Feature 'automixmon' not available\n");
+	}	
 #else				// Old Impl
+	ast_rdlock_call_features();
 	struct ast_call_feature *feature = ast_find_call_feature("automon");
+	ast_unlock_call_features();
 
 	if (feature) {
 		feature->operation(channel->owner, channel->owner, NULL, "monitor button", 0, NULL);
 		return TRUE;
+	} else {
+		pbx_log(LOG_ERROR, "SCCP: Monitor Feature 'automon' not available\n");
 	}
 #endif
 #endif
