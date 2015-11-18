@@ -1401,7 +1401,6 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, stru
 	sccp_autoanswer_t autoanswer_type = SCCP_AUTOANSWER_NONE;
 	uint8_t autoanswer_cause = AST_CAUSE_NOTDEFINED;
 	skinny_ringtype_t ringermode = SKINNY_RINGTYPE_OUTSIDE;
-	sccp_video_mode_t video_mode = SCCP_VIDEO_MODE_AUTO;
 
 	if (!(ast_format_cap_has_type(cap, AST_MEDIA_TYPE_AUDIO))) {
 		ast_log(LOG_NOTICE, "Asked to get a channel with an unsupported format '%s'\n", ast_format_cap_get_names(cap, &codec_buf));
@@ -1442,7 +1441,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, stru
 		}
 	}
 
-	sccp_parse_dial_options(options, &autoanswer_type, &autoanswer_cause, &ringermode, &video_mode);
+	sccp_parse_dial_options(options, &autoanswer_type, &autoanswer_cause, &ringermode);
 	if (autoanswer_cause) {
 		*cause = autoanswer_cause;
 	}
@@ -1545,9 +1544,6 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, stru
 	/* get remote codecs from channel driver */
 	//ast_rtp_instance_get_codecs(c->rtp.adio.rtp);
 	//ast_rtp_instance_get_codecs(c->rtp.video.rtp);
-#if CS_SCCP_VIDEO
-	sccp_channel_setVideoMode(channel, &video_mode);
-#endif
 	/** done */
 
 EXITFUNC:
