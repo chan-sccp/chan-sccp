@@ -28,6 +28,7 @@ AC_DEFUN([CS_CHECK_RAII], [
 				]
 			)
 			AC_SUBST([AST_NESTED_FUNCTIONS])
+			AC_DEFINE([GCC_NESTED], [1], [Compiler supports nested functions])
 			AST_C_COMPILER_FAMILY="gcc"
 		],[
 			AC_MSG_CHECKING([for clang -fblocks])
@@ -46,6 +47,7 @@ AC_DEFUN([CS_CHECK_RAII], [
 			CFLAGS_saved="${CFLAGS_saved} ${AST_CLANG_BLOCKS}"
 			AC_SUBST([AST_CLANG_BLOCKS_LIBS])
 			AC_SUBST([AST_CLANG_BLOCKS])
+			AC_DEFINE([CLANG_BLOCKS], [1], [Compiler supports clang blocks])
 			AST_C_COMPILER_FAMILY="clang"
 		]
 	)
