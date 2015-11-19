@@ -259,6 +259,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 				continue;
 			}
 			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Ringing %sLine: %s on device:%s using channel:%s, ringermode:%s\n", linedevice->device->id, SCCP_LIST_GETSIZE(&l->devices) > 1 ? "Shared" : "",linedevice->line->name, linedevice->device->id, c->designator, skinny_ringtype2str(c->ringermode));
+			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
 			isRinging = TRUE;
 			if (c->autoanswer_type) {
 				struct sccp_answer_conveyor_struct *conveyor = sccp_calloc(1, sizeof(struct sccp_answer_conveyor_struct));
@@ -277,7 +278,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 	//sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: isRinging:%d, hadDNDParticipant:%d\n", c->designator, isRinging, hasDNDParticipant);
 	if (isRinging) {
-		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_RINGING);
+		//sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_RINGING);
 		iPbx.queue_control(c->owner, AST_CONTROL_RINGING);
 	} else if (hasDNDParticipant) {
 		pbx_setstate(c->owner, AST_STATE_BUSY);
@@ -449,7 +450,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 			}
 			ForwardingLineDevice = NULL;	/* reset cfwd if shared */
 			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Ringing %sLine: %s on device:%s using channel:%s, ringermode:%s\n", linedevice->device->id, SCCP_LIST_GETSIZE(&l->devices) > 1 ? "Shared" : "",linedevice->line->name, linedevice->device->id, c->designator, skinny_ringtype2str(c->ringermode));
-			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
+			//sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
 			isRinging = TRUE;
 			if (c->autoanswer_type) {
 				struct sccp_answer_conveyor_struct *conveyor = sccp_calloc(1, sizeof(struct sccp_answer_conveyor_struct));
@@ -469,6 +470,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	//sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: isRinging:%d, hadDNDParticipant:%d, ForwardingLineDevice:%p\n", c->designator, isRinging, hasDNDParticipant, ForwardingLineDevice);
 	if (isRinging) {
 		//sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_RINGING);
+		sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
 		iPbx.queue_control(c->owner, AST_CONTROL_RINGING);
 	} else if (ForwardingLineDevice) {
 		pbx_log(LOG_NOTICE, "%s: initialize cfwd%s for line %s\n", ForwardingLineDevice->device->id, (ForwardingLineDevice->cfwdAll.enabled ? "All" : (ForwardingLineDevice->cfwdBusy.enabled ? "Busy" : "None")), l->name);
