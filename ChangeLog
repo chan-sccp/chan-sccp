@@ -1,4 +1,174 @@
+2015-11-19  ddegroot
+
+	* [r6406] src/sccp_pbx.c: Revert further change to sccp_pbx_call,
+	  causing phones not to ring on incoming call. Reported by Pavel.
+
+	* [r6405] src/sccp_pbx.c: Revert accidental change to
+	  sccp_pbx_call, causing phones not to ring on incoming call.
+	  Reported by Pavel.
+
+2015-11-18  ddegroot
+
+	* [r6404] src/pbx_impl/ast/ast106.c, src/sccp_actions.c,
+	  src/sccp_config_entries.hh, src/sccp_pbx.c,
+	  tools/gen_sccp_enum.awk: Fix: sccp_actions.c log output when
+	  pressing feature button and no arguments have been set
+	  Fix: gen_sccp_enum.awk (exists and 2str) for bitfield enums with
+	  0 value
+	  Fix: sccp_pbx.c: duplicate call to sccp_feat_changed during
+	  hangup handling
+	  Enh: add monitor button to default softkeysets in 'connected'
+	  keymode
+	  Enh: implemented asterisk16_getFeatureExtension
+
+	* [r6403] src/pbx_impl/ast/ast.c: Fix: Restructured
+	  sccp_wrapper_asterisk_featureMonitor
+
+	* [r6402] src/pbx_impl/ast/ast.c: Enh: Restructured
+	  sccp_wrapper_asterisk_featureMonitor
+
+	* [r6401] src/pbx_impl/ast/ast.c: Fix: call features not always
+	  unlocked when requesting automixmon / mixmon. Causing sporadic
+	  hangs/locks when requesting to monitor a call. Reported by Cody
+	  Miller-Kelly.
+
+	* [r6400] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c: Partial
+	  Retrackion of patch 6398: removing the dialstring 'video='
+	  addition.
+	  which would result in multiple ways to perform the same action.
+	  We opted for
+	  the Channel() method only.
+	  
+	  Set(Channel(video=off)) will be forwarded to the remote channel
+	  instance once, by
+	  adding _SCCP_VIDEO_MODE=off to the current channel for you
+	  Alternatively you can set(SCCP_VIDEO_MODE=off) yourselves in the
+	  dialplan.
+	  
+	  Both deliver the same functionality.
+	  
+	  Issue reported by Cody Miller-Kelly.
+
+2015-11-17  ddegroot
+
+	* [r6399] src/sccp_pbx.c: Fix: debug logging in sccp_pbx_call.
+
+	* [r6398] autoconf/extra.m4, configure, src/config.h.in,
+	  src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_channel.c: Enhancement:
+	  Interpret channel variable:SCCP_VIDEO_MODE (off/user/auto)
+	  
+	  When CHANNEL(video=???) is set it will also add variable
+	  '_SCCP_VIDEO_MODE'
+	  with the same value to the call, so that this state can be picked
+	  up by the
+	  other side.
+	  
+	  Also added Dial option video=??? as in
+	  Dial(SCCP/1234/video=off,20,W), to only
+	  change the video mode on one side of the call.
+	  
+	  This will allow you to activate or suppress video both on
+	  incoming and outcoming
+	  calls by using one of these additional dialplan options.
+
+	* [r6397] src/sccp_indicate.c: Fix: sccp_indicate hold should check
+	  if openreceive was initialized (\!SCCP_RTP_STATUS_INACTIVE), and
+	  not if it was actually realized, may have been in progress
+
+	* [r6396] src/sccp_channel.c, src/sccp_pbx.c: Enh: update counting
+	  of c->subscribers. Fix: sccp_channel_setDevice when used from
+	  sccp_channel_allocate, it should set default values if no device
+	  provided.
+
+2015-11-16  ddegroot
+
+	* [r6395] src/sccp_pbx.c: Added reworked version of sccp_pbx_call
+	  (only active if compiled with --enabled-experimental-mode).
+	  
+	  Contains:
+	  improved sharedline handling
+	  - calculate c->subscribers correctly (also used when handling
+	  sccp_softkey_onhook, to define behaviour)
+	  - handle dnd and callforward after calculating c->subscribers
+	  - use asterisk local channel to resolve forward, which obsoletes:
+	  * sccp_channel_callforward
+	  * sccp_channel_end_forwarding_channel
+	  * c->parentChannel
+	  * masquerading in sccp_pbx_answer
+
+	* [r6394] src/pbx_impl/ast/ast106.h: Fix asterisk-1.6.2 compilation
+
+2015-11-15  ddegroot
+
+	* [r6393] src/sccp_line.c: Fix: No need to walk through the
+	  l->device list to lookup first.
+
+	* [r6392] src/sccp_line.c, src/sccp_utils.c, src/sccp_utils.h: Fix:
+	  reduceCodecSet and combineCodecSets. Added Unittests for both
+	  functions to verify behaviour. Issue reported by Modulis
+
+	* [r6391] src/sccp_actions.c, src/sccp_mwi.c: Enh: use
+	  feature_addToDatabase instead of directly calling ast_db_put.
+	  Change debug prefix level
+
+2015-11-13  ddegroot
+
+	* [r6390] src/sccp_enum.c, src/sccp_enum.in: Enh: Update RingType
+	  Strings so they can be set using 'ringer='
+
+	* [r6389] src/sccp_line.c, src/sccp_mwi.c, src/sccp_mwi.h: Fix
+	  spurious mwi error during module unload, by implementing
+	  sccp_mwi_unsubscribeMailbox
+
+2015-11-12  ddegroot
+
+	* [r6388] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_actions.c, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_pbx.c, src/sccp_softkeys.c: Fix: revised/refactored the
+	  scheduled digittimeout, hangup system.
+	  Fixes:refcount issue created by fix in 6384, which revealed the
+	  schedule issue.
+	  
+	  Note: Because of the returned value of ast_sched_add_ref (-1 for
+	  now schedule and > 0 for a new schedule_id), most of the checks
+	  needed to be fixed (as well).
+	  Scheduler id's start at 0, which negated most of the checks when
+	  testing for it, delivering different results on the first call
+	  (on newly started astereisk)
+	  then compared to later calls.
+
+	* [r6387] src/pbx_impl/ast/ast.c: Fix: Compilation on ast1.6.2
+
+	* [r6386] src/pbx_impl/ast/ast.c: Fix: Compilation on ast1.6.2
+
+	* [r6385] src/sccp_hint.c: Enh: refactor
+	  sccp_hint_handleFeatureChangeEvent.
+
+	* [r6384] src/sccp_pbx.c: Fix: indicate invalid number after
+	  firstdigittimeout interval ends.
+
+	* [r6383] src/sccp_config.c: Fix: initialize variable. memcpy
+	  structure content, instead of assignment.
+
+	* [r6382] src/pbx_impl/ast/ast.c: Fix compilation on asterisk-10
+
 2015-11-11  ddegroot
+
+	* [r6381] src/pbx_impl/ast/ast.c: Fix: compile issue with
+	  asterisk-1.8 and below.
+
+	* [r6380] ChangeLog, autoconf/extra.m4, configure: Fix #261:
+	  Suspend adding '-Wl,-gc-sections' on OSX. Reported by Alexander
+	  Ocheretin.
 
 	* [r6379] src/sccp_channel.c: Fix #261: compile issue on OS-X.
 	  Reported by Alexander Ocheretin.
