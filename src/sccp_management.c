@@ -925,7 +925,6 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 	return 0;
 }
 
-#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Call an AMI/Manager Function and Wait for the Result
  * 
@@ -938,6 +937,7 @@ int sccp_manager_action2pbx_str(struct ast_str *outStr, const char *manager_comm
         int result = 0;
         
         if (!outStr || sccp_strlen_zero(manager_command)) {
+		pbx_log(LOG_ERROR, "SCCP: No OutStr or Command Provided\n");
         	return -2;
         }
 #if defined(GCC_NESTED) || defined(CLANG_BLOCKS)
@@ -953,7 +953,10 @@ int sccp_manager_action2pbx_str(struct ast_str *outStr, const char *manager_comm
         };
 #  endif
         struct manager_custom_hook hook = {__FILE__, hookresult};
+	sccp_log(DEBUGCAT_CORE)("SCCP: Sending AMI Command: %s\n", manager_command);
         result = ast_hook_send_action(&hook, manager_command);							/* "Action: ParkedCalls\r\n" */
+#else
+	pbx_log(LOG_NOTICE, "SCCP: Modern compiler required: gcc with nested function or clang with blocks support\n");
 #endif														/* defined(GCC_NESTED) || defined(CLANG_BLOCKS) */
         return result;
 }
@@ -968,7 +971,6 @@ void example_function() {
 }*/
 
 #endif														/* HAVE_PBX_MANAGER_HOOK_H */
-#endif
 
 #endif														/* CS_SCCP_MANAGER */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
