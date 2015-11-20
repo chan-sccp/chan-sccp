@@ -117,7 +117,17 @@ static boolean_t sccp_device_falseResult(void)
 
 static void sccp_device_retrieveDeviceCapabilities(constDevicePtr device)
 {
-	char *xmlStr = "<getDeviceCaps></getDeviceCaps>";
+	//char *xmlStr = "<getDeviceCaps></getDeviceCaps>";
+	char *xmlStr = "<CiscoIPPhoneRingList></CiscoIPPhoneRingList>";
+	//char *xmlStr = "<device></device>";
+	//char *xmlStr = "<Glyphs></Glyphs>";
+	//char *xmlStr = "<phrases></phrases>";
+	//char *xmlStr = "<Default></Default>";
+	//char *xmlStr = "<CiscoIPPhoneResponse></CiscoIPPhoneResponse>";
+	//char *xmlStr = "<selectLists></selectLists>";
+	//char *xmlStr = "<tones></tones>";
+	//char *xmlStr = "<softKeyCfg></softKeyCfg>";
+	//char *xmlStr = "<skin></skin>";
 	unsigned int transactionID = random();
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_DEVICECAPABILITIES, 1, 0, transactionID, xmlStr, 2);
@@ -2204,6 +2214,13 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 			iPbx.feature_addToDatabase(family, "lastDialedNumber", buffer);
 		}
 
+		if (d->active_channel) {
+			sccp_device_setActiveChannel(d, NULL);
+		}
+
+		if (d->currentLine) {
+			sccp_dev_setActiveLine(d, NULL);
+		}
 		/* hang up open channels and remove device from line */
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {

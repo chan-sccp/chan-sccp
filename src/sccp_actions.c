@@ -1465,14 +1465,13 @@ static void sccp_handle_stimulus_line(constDevicePtr d, constLinePtr l, const ui
 				sccp_dev_setActiveLine(device, l);
 				sccp_channel_resume(device, tmpChannel, TRUE);
 				sccp_dev_set_cplane(device, instance, 1);
-			} else {										/* not sure which channel to make activem let the user decide */
+			} else {										/* not sure which channel to make active, let the user decide */
 				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Switch to line %d", device->id, instance);
 				sccp_dev_setActiveLine(device, l);
 				sccp_dev_set_cplane(device, instance, 1);
 			}
 		} else {											/* remote phone on call, show onhookstealable, don't start new call */
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s for this phone, but remote has one or more-> ONHOOKSTEALABLE (INTERCPT)\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
-			sccp_dev_setActiveLine(device, l);
 			sccp_dev_set_cplane(device, instance, callId);
 			sccp_dev_set_keyset(device, instance, callId, KEYMODE_ONHOOKSTEALABLE);
 		}

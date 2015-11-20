@@ -1815,8 +1815,11 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
 
 		/* deactive the active call if needed */
-		if (d->active_channel == channel) {
+		if (channel->privateData->device) {
 			sccp_channel_setDevice(channel, NULL);
+		}
+		if (d->active_channel == channel) {
+			sccp_device_setActiveChannel(d, NULL);
 		}
 		sccp_channel_transfer_release(d, channel);										/* explicitly release transfer when cleaning up channel */
 #ifdef CS_SCCP_CONFERENCE
