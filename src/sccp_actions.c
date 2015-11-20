@@ -1810,11 +1810,8 @@ static void sccp_handle_feature_action(constDevicePtr d, const int instance, con
 #ifdef CS_SCCP_FEATURE_MONITOR
 		case SCCP_FEATURE_MONITOR:
 			if (TRUE == toggleState) {
-				AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
-
-				if (channel) {
-					sccp_feat_monitor(d, NULL, 0, channel);
-				}
+				AUTO_RELEASE sccp_channel_t *maybe_channel = sccp_device_getActiveChannel(d);
+				sccp_feat_monitor(d, NULL, 0, maybe_channel);
 			}
 
 			break;
