@@ -1274,16 +1274,9 @@ static sccp_parkresult_t sccp_wrapper_asterisk113_park(constChannelPtr hostChann
 	return res;
 }
 
-static boolean_t sccp_wrapper_asterisk113_getFeatureExtension(constChannelPtr channel, char extension[SCCP_MAX_EXTENSION])
+static boolean_t sccp_wrapper_asterisk113_getFeatureExtension(constChannelPtr channel, const char *featureName, char extension[SCCP_MAX_EXTENSION])
 {
-	char feat[AST_FEATURE_MAX_LEN];
-	int feat_res = -1;
-
-	feat_res = ast_get_feature(channel->owner, "automon", feat, sizeof(feat));
-
-	if (!feat_res && !ast_strlen_zero(feat)) {
-		sccp_copy_string(extension, feat, SCCP_MAX_EXTENSION);
-	}
+	int feat_res = ast_get_feature(channel->owner, featureName, extension, SCCP_MAX_EXTENSION);
 	return feat_res ? FALSE : TRUE;
 }
 

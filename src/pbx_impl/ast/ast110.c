@@ -1069,13 +1069,12 @@ static sccp_parkresult_t sccp_wrapper_asterisk110_park(const sccp_channel_t * ho
 	return res;
 }
 
-static boolean_t sccp_asterisk110_getFeatureExtension(const sccp_channel_t * channel, char extension[SCCP_MAX_EXTENSION])
+static boolean_t sccp_asterisk110_getFeatureExtension(const sccp_channel_t * channel, const char *featureName, char extension[SCCP_MAX_EXTENSION])
 {
 	struct ast_call_feature *feat;
 
 	ast_rdlock_call_features();
-	feat = ast_find_call_feature("automon");
-
+	feat = ast_find_call_feature(featureName);
 	if (feat) {
 		sccp_copy_string(extension, feat->exten, SCCP_MAX_EXTENSION);
 	}

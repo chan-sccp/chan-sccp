@@ -128,7 +128,7 @@ typedef struct _PbxInterface {
 	boolean_t(*const feature_removeFromDatabase) (const char *family, const char *key);
 	boolean_t(*const feature_removeTreeFromDatabase) (const char *family, const char *key);
 	boolean_t(*const feature_monitor) (const sccp_channel_t *channel);
-	boolean_t(*const getFeatureExtension) (constChannelPtr channel, char featureExtension[SCCP_MAX_EXTENSION]);
+	boolean_t(*const getFeatureExtension) (constChannelPtr channel, const char *featureName, char featureExtension[SCCP_MAX_EXTENSION]);
 	boolean_t(*const getPickupExtension) (constChannelPtr channel, char pickupExtension[SCCP_MAX_EXTENSION]);
 
 	void *(*const eventSubscribe)(constChannelPtr channel, char **featureExtension);
