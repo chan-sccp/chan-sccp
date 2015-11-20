@@ -1098,7 +1098,6 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 	pbx_log(LOG_ERROR, "SCCP: Monitor Feature Extension Not available\n");
 	return FALSE;
 #else
-#ifdef CS_EXPERIMENTAL		// Added 2015/01/24
 	ast_rdlock_call_features();
 	struct ast_call_feature *feature = ast_find_call_feature("automixmon");
 	ast_unlock_call_features();
@@ -1113,16 +1112,6 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 		}
 		return TRUE;
 	}
-#else				// Old Impl
-	ast_rdlock_call_features();
-	struct ast_call_feature *feature = ast_find_call_feature("automon");
-	ast_unlock_call_features();
-
-	if (feature) {
-		feature->operation(channel->owner, channel->owner, NULL, "monitor button", 0, NULL);
-		return TRUE;
-	} 
-#endif
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Automon not available in features.conf/n", channel->designator);
 	return FALSE;
 #endif

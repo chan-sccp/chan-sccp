@@ -2948,9 +2948,10 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 			}
 			break;
 		case SCCP_FEATURE_MONITOR:
-			if (device->monitorFeature.status) {
-				//sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_MONITOR, SKINNY_DISP_MONITOR);
+			if (device->monitorFeature.status & (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
 				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_MONITOR, SKINNY_DISP_RECORDING);
+			} else if (device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) {
+				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_MONITOR, SKINNY_DISP_RECORDING_AWAITING_CALL_TO_BE_ACTIVE);
 			} else {
 				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_MONITOR);
 			}

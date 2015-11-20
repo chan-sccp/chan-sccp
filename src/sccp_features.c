@@ -1283,10 +1283,10 @@ void sccp_feat_changed(constDevicePtr device, const sccp_linedevices_t * const l
  * \param no_lineInstance 0 Value
  * \param channel SCCP Channel
  */
-void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_lineInstance, constChannelPtr channel)
+void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_lineInstance, constChannelPtr maybe_channel)
 {
 	sccp_featureConfiguration_t *monitorFeature = (sccp_featureConfiguration_t *)&device->monitorFeature;		/* discard const */
-	if (!channel) {
+	if (!maybe_channel) {
 		if (monitorFeature->status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) {
 			monitorFeature->status &= ~SCCP_FEATURE_MONITOR_STATE_REQUESTED;
 		} else {
@@ -1294,14 +1294,7 @@ void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_
 		}
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) No active channel to monitor, setting monitor state to requested (%d)\n", device->id, monitorFeature->status);
 	} else {
-		/* check if we need to start or stop monitor */
-		/*
-		   if (((monitorFeature->status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) >> 1) == (monitorFeature->status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
-		   sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: no need to update monitor state (%d)\n", device->id, monitorFeature->status);
-		   return;
-		   }
-		 */
-		if (iPbx.feature_monitor(channel)) {
+		if (iPbx.feature_monitor(maybe_channel)) {
 			if (monitorFeature->status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) {		// Just toggle the state, we don't get information back about the asterisk monitor status (async call)
 				monitorFeature->status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 			} else {
