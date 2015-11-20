@@ -504,9 +504,6 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 			sccp_callinfo_getter(ci, SCCP_CALLINFO_PRESENTATION, &presenceParameter, SCCP_CALLINFO_KEY_SENTINEL);
 			uint8_t stateVisibility = (c->privacy || !presenceParameter) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_DEFAULT;
 
-			/*! \note SKINNY_CALLINFO_VISIBILITY_HIDDEN on old devices: Dirty Hack to prevent showing the call twice (both incoming and outgoing) */
-			//stateVisibility = remoteDevice->protocolversion < 17 ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : stateVisibility;
-
 			/* Remarking the next piece out, solves the transfer issue when using sharedline as default on the transferer. Don't know why though (yet) */
 			if (state != SCCP_CHANNELSTATE_ONHOOK) {
 				AUTO_RELEASE sccp_channel_t *activeChannel = sccp_device_getActiveChannel(remoteDevice);
@@ -597,7 +594,6 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 				case SCCP_CHANNELSTATE_HOLD:
 					if (c->channelStateReason == SCCP_CHANNELSTATEREASON_NORMAL) {
 						remoteDevice->indicate->remoteHold(remoteDevice, lineInstance, callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
-						//remoteDevice->protocol->sendCallInfo(ci, lineInstance, callid, calltype, remoteDevice);
 						sccp_callinfo_send(ci, callid, calltype, lineInstance, remoteDevice, TRUE);
 					} else {
 						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Skipped Remote Hold Indication for reason: %s\n", DEV_ID_LOG(device), sccp_channelstatereason2str(c->channelStateReason));

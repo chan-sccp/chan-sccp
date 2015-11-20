@@ -2662,6 +2662,7 @@ void sccp_dev_keypadbutton(devicePtr d, char digit, uint8_t line, uint32_t calli
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (sccp_dev_keypadbutton) Sending keypad '%02X'\n", DEV_ID_LOG(d), digit);
 }
 
+/* Local Device Indications */
 static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lineInstance, uint32_t callid)
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
@@ -2714,10 +2715,6 @@ static void __sccp_device_indicate_normal_dialing(constDevicePtr device, const u
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 }
 
-/*!
- * \todo sccp_device_indicate_dialing should be split in a early_immediate version and a standard version, to make this function more readable. We can bind the correct indication function during device
- * registration / sccp_channel_setDevice
- */
 static void sccp_device_indicate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION])
 {
 	if (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
@@ -2746,6 +2743,38 @@ static void sccp_device_indicate_connected(constDevicePtr device, const uint8_t 
 	sccp_dev_set_cplane(device, lineInstance, 1);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_CONNECTED, GLOB(digittimeout));
 }
+/** End Local Device Indications **/
+
+/* Remote Device Indications */
+static void sccp_device_indicate_onhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
+{
+	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_OFF);
+	sccp_dev_cleardisplaynotify(device);
+	sccp_dev_clearprompt(device, lineInstance, callid);
+	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
+	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
+	sccp_dev_set_cplane(device, lineInstance, 0);
+	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
+
+	sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
+}
+
+static void sccp_device_indicate_offhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
+{
+	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_OFFHOOK);
+}
+
+
+static void sccp_device_indicate_connected_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, skinny_callinfo_visibility_t visibility)
+{
+	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
+	sccp_dev_clearprompt(device, lineInstance, callid);
+	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
+	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, visibility);
+	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOKSTEALABLE);
+}
 
 /*!
  * \brief Indicate to device that remote side has been put on hold (old).
@@ -2766,36 +2795,7 @@ static void sccp_device_new_indicate_remoteHold(constDevicePtr device, uint8_t l
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOLD);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_HOLD, GLOB(digittimeout));
 }
-
-static void sccp_device_indicate_connected_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, skinny_callinfo_visibility_t visibility)
-{
-	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
-	sccp_dev_clearprompt(device, lineInstance, callid);
-	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, visibility);
-	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOKSTEALABLE);
-}
-
-static void sccp_device_indicate_offhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
-{
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_OFFHOOK);
-}
-
-static void sccp_device_indicate_onhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
-{
-	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_OFF);
-	sccp_dev_cleardisplaynotify(device);
-	sccp_dev_clearprompt(device, lineInstance, callid);
-	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
-	sccp_dev_set_cplane(device, lineInstance, 0);
-	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
-
-	sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
-}
-
+/** End Remote Device Indications **/
 
 /*!
  * \brief Add message to the MessageStack to be shown on the Status Line of the SCCP Device
