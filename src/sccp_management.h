@@ -22,6 +22,6 @@ int sccp_unregister_management(void);
 void sccp_manager_module_start(void);
 void sccp_manager_module_stop(void);
 
-int sccp_manager_action2pbx_str(struct ast_str *outStr, const char *manager_command);
+int sccp_manager_action2str(const char *manager_command, char **outStr);
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
