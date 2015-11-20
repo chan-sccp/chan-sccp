@@ -590,13 +590,8 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 							break;
 					}
 
-					sccp_dev_set_ringer(remoteDevice, SKINNY_RINGTYPE_OFF, lineInstance, callid);
-					sccp_dev_clearprompt(remoteDevice, lineInstance, callid);
-					sccp_device_setLamp(remoteDevice, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
-					sccp_device_sendcallstate(remoteDevice, lineInstance, callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
+					remoteDevice->indicate->remoteConnected(remoteDevice, lineInstance, callid, stateVisibility);
 					sccp_callinfo_send(ci, callid, calltype, lineInstance, remoteDevice, TRUE);
-					
-					sccp_dev_set_keyset(remoteDevice, lineInstance, callid, KEYMODE_ONHOOKSTEALABLE);
 					break;
 
 				case SCCP_CHANNELSTATE_HOLD:
