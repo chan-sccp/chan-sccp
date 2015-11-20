@@ -928,11 +928,11 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 /*!
  * \brief Call an AMI/Manager Function and Wait for the Result
  * 
- * @param out 			allocated struct ast_str (created/destroyed by the calling function)
  * @param manager_command	const char * containing Something like "Action: ParkedCalls\r\n"
+ * @param outStr		unallocated char * (will be allocated if successfull, must be freed after call)
  * @return int (-1 on failure | return value from called function)
  */
-int sccp_manager_action2pbx_str(struct ast_str *outStr, const char *manager_command) 
+int sccp_manager_action2str(const char *manager_command, char **outStr) 
 {
         int result = 0;
         
@@ -942,19 +942,25 @@ int sccp_manager_action2pbx_str(struct ast_str *outStr, const char *manager_comm
         }
 #if defined(GCC_NESTED) || defined(CLANG_BLOCKS)
 #  ifdef GCC_NESTED
+	struct ast_str *tmpStr = ast_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
         int hookresult(int category, const char *event, char *content) {
-                ast_str_append(&outStr, 0, "%s", content);
-                return 0;
+                ast_str_append(&tmpStr, 0, "%s", content);
+                return 1;
         };
-#  else 
-        int (^hookresult)(int category, const char *event, char *content) = ^(int category, const char *event, char *content) {
-                ast_str_append(&outStr, 0, "%s", content);
-                return 0;
-        };
-#  endif
         struct manager_custom_hook hook = {__FILE__, hookresult};
+#  else 
+	__block struct ast_str *tmpStr = ast_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+        int (^hookresult)(int category, const char *event, char *content) = ^(int category, const char *event, char *content) {
+                ast_str_append(&tmpStr, 0, "%s", content);
+                return 1;
+        };
+        struct manager_custom_hook hook = {__FILE__, (int (*)(int, const char *, char *))hookresult};
+#  endif
 	sccp_log(DEBUGCAT_CORE)("SCCP: Sending AMI Command: %s\n", manager_command);
         result = ast_hook_send_action(&hook, manager_command);							/* "Action: ParkedCalls\r\n" */
+        if (result) {
+        	*outStr = strdup(pbx_str_buffer(tmpStr)); 
+        }
 #else
 	pbx_log(LOG_NOTICE, "SCCP: Modern compiler required: gcc with nested function or clang with blocks support\n");
 #endif														/* defined(GCC_NESTED) || defined(CLANG_BLOCKS) */
@@ -962,12 +968,12 @@ int sccp_manager_action2pbx_str(struct ast_str *outStr, const char *manager_comm
 }
 /* example use
 void example_function() {
-	struct ast_str *outStr = ast_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
+	char *outStr;
 	char *manager_command = "Action: ParkedCalls\r\n";
-	if (sccp_manager_action2pbx_str(outStr, manager_command) >= 0) {
-		sccp_log(DEBUGCAT_CORE)("SCCP: hook result: %s\n", pbx_str_buffer(outStr));
+	if (sccp_manager_action2str(manager_command, &outStr) >= 0) {
+		sccp_log(DEBUGCAT_CORE)("SCCP: hook result: %s\n", outStr);
+		sccp_free(outStr);
 	}
-	sccp_free(outStr);
 }*/
 
 #endif														/* HAVE_PBX_MANAGER_HOOK_H */
