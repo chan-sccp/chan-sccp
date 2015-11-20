@@ -1449,7 +1449,7 @@ static void sccp_handle_stimulus_line(constDevicePtr d, constLinePtr l, const ui
 		AUTO_RELEASE sccp_channel_t *tmpChannel = NULL;
 		AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
 
-		if (!SCCP_RWLIST_GETSIZE(&l->channels)) {
+		if (!SCCP_LIST_GETSIZE(&l->channels)) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n -> New Call", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 			sccp_dev_setActiveLine(device, l);
 			sccp_dev_set_cplane(device, instance, 1);
@@ -1459,21 +1459,29 @@ static void sccp_handle_stimulus_line(constDevicePtr d, constLinePtr l, const ui
 			sccp_channel_answer(device, tmpChannel);
 		} else if ((tmpChannel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", device->id, instance, SCCP_RWLIST_GETSIZE(&l->channels));
-			if (SCCP_RWLIST_GETSIZE(&l->channels) == 1) {						/* only one call on hold, so resume that one */
-				//channel = SCCP_LIST_FIRST(&l->channels);
+			if (SCCP_LIST_GETSIZE(&l->channels) == 1) {						/* only one call on hold, so resume that one */
 				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d", device->id, tmpChannel->callid, instance);
 				sccp_dev_setActiveLine(device, l);
 				sccp_channel_resume(device, tmpChannel, TRUE);
-				sccp_dev_set_cplane(device, instance, 1);
+				sccp_dev_set_cplane(device, instance, tmpChannel->callid);
 			} else {										/* not sure which channel to make active, let the user decide */
 				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Switch to line %d", device->id, instance);
 				sccp_dev_setActiveLine(device, l);
 				sccp_dev_set_cplane(device, instance, 1);
 			}
-		} else {											/* remote phone on call, show onhookstealable, don't start new call */
-			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s for this phone, but remote has one or more-> ONHOOKSTEALABLE (INTERCPT)\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
-			sccp_dev_set_cplane(device, instance, callId);
-			sccp_dev_set_keyset(device, instance, callId, KEYMODE_ONHOOKSTEALABLE);
+		} else if ((tmpChannel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))) {
+			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s for this phone, but remote has one or more-> %s ONHOOKSTEALABLE\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)", d->currentLine ? "hide" : "show");
+			if (d->currentLine == NULL) {	/* remote phone is on call, show remote call */
+				sccp_dev_setActiveLine(device, l);
+				sccp_device_sendcallstate(d, instance, tmpChannel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			} else {			/* remote phone is on call, hide remote call */
+				sccp_dev_setActiveLine(device, NULL);
+				sccp_device_sendcallstate(d, instance, tmpChannel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			}
+		} else {
+			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Don't know what the user wants to do, just switch to line %d", device->id, instance);
+			sccp_dev_setActiveLine(device, l);
+			sccp_dev_set_cplane(device, instance, 1);
 		}
 	}
 }
@@ -1482,7 +1490,7 @@ static void sccp_handle_stimulus_line(constDevicePtr d, constLinePtr l, const ui
  * \brief Handle Hold Stimulus
  * \param d SCCP Device
  * \param l SCCP Line
- * \param instance uint8_t
+ * \param instance uint8_t 
  * \param callId uint32_t
  * \param stimulusstatus uint32_t
  */
