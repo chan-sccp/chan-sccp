@@ -752,6 +752,7 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_MODE], [
 AC_DEFUN([CS_ENABLE_EXPERIMENTAL_XML], [
 	AC_LANG_SAVE
 	AC_LANG_C
+	CFLAGS_save=${CFLAGS}
 	AC_ARG_ENABLE(experimental_xml, 
 	  AC_HELP_STRING([--enable-experimental-xml], [enable experimental xml (only for developers)]), 
 	    ac_cv_experimental_xml=$enableval, ac_cv_experimental_xml=no
@@ -760,7 +761,7 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_XML], [
 	AS_IF([test "_${ac_cv_experimental_xml}" == "_yes" ], [
 		LIBEXSLT_CFLAGS=`${PKGCONFIG} libexslt --cflags`
 		LIBEXSLT_LIBS=`${PKGCONFIG} libexslt --libs`
-		CPPFLAGS="${CPPFLAGS} $LIBEXSLT_CFLAGS"
+		CFLAGS="${CFLAGS} $LIBEXSLT_CFLAGS "
 		AC_CHECK_LIB([xml2],[xmlInitParser],[HAVE_LIBXML2=yes],[HAVE_LIBXML2=no])
 		AC_CHECK_HEADERS([libxml/tree.h]) 
 		AC_CHECK_HEADERS([libxml/parser.h]) 
@@ -788,6 +789,7 @@ dnl			AC_MSG_ERROR([libxslt required to enable-experimental-xml])
 		])
 	])
 	AC_MSG_NOTICE([--enable-experimental-xml: ${ac_cv_experimental_xml} (only for developers)])
+	CFLAGS=${CFLAGS_save}
 ])
 
 AC_DEFUN([CS_DISABLE_DEVSTATE_FEATURE], [
