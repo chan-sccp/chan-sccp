@@ -334,7 +334,7 @@ codeSkip == 1			{ next }
 		}
 		print "\t}" > out_source_file
 	}
-	print "\tpbx_log(LOG_ERROR, \"%s %s_str2val(%s) not found\\n\", LOOKUPERROR_STR, __" namespace "_" enum_name "_str, lookup_str);" > out_source_file
+	print "\tpbx_log(LOG_ERROR, \"%s %s_str2val('%s') not found\\n\", LOOKUPERROR_STR, __" namespace "_" enum_name "_str, lookup_str);" > out_source_file
 	print "\treturn "toupper(namespace) "_" toupper(enum_name) "_SENTINEL;" > out_source_file
 	print "}\n" > out_source_file
 

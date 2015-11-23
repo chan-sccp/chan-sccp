@@ -143,7 +143,7 @@ sccp_channelstate_t sccp_channelstate_str2val(const char *lookup_str) {
 	} else if (sccp_strcaseequals(sccp_channelstate_map[25], lookup_str)) {
 		return SCCP_CHANNELSTATE_ZOMBIE;
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_channelstate_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_channelstate_str, lookup_str);
 	return SCCP_CHANNELSTATE_SENTINEL;
 }
 
@@ -195,7 +195,7 @@ sccp_channelstatereason_t sccp_channelstatereason_str2val(const char *lookup_str
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_channelstatereason_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_channelstatereason_str, lookup_str);
 	return SCCP_CHANNELSTATEREASON_SENTINEL;
 }
 
@@ -250,7 +250,7 @@ sccp_earlyrtp_t sccp_earlyrtp_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_earlyrtp_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_earlyrtp_str, lookup_str);
 	return SCCP_EARLYRTP_SENTINEL;
 }
 
@@ -304,7 +304,7 @@ sccp_devicestate_t sccp_devicestate_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_devicestate_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_devicestate_str, lookup_str);
 	return SCCP_DEVICESTATE_SENTINEL;
 }
 
@@ -357,7 +357,7 @@ sccp_callforward_t sccp_callforward_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_callforward_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_callforward_str, lookup_str);
 	return SCCP_CALLFORWARD_SENTINEL;
 }
 
@@ -408,7 +408,7 @@ sccp_dtmfmode_t sccp_dtmfmode_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_dtmfmode_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_dtmfmode_str, lookup_str);
 	return SCCP_DTMFMODE_SENTINEL;
 }
 
@@ -459,7 +459,7 @@ sccp_autoanswer_t sccp_autoanswer_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_autoanswer_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_autoanswer_str, lookup_str);
 	return SCCP_AUTOANSWER_SENTINEL;
 }
 
@@ -511,7 +511,7 @@ sccp_dndmode_t sccp_dndmode_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_dndmode_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_dndmode_str, lookup_str);
 	return SCCP_DNDMODE_SENTINEL;
 }
 
@@ -564,7 +564,7 @@ sccp_accessory_t sccp_accessory_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_accessory_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_accessory_str, lookup_str);
 	return SCCP_ACCESSORY_SENTINEL;
 }
 
@@ -616,7 +616,7 @@ sccp_accessorystate_t sccp_accessorystate_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_accessorystate_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_accessorystate_str, lookup_str);
 	return SCCP_ACCESSORYSTATE_SENTINEL;
 }
 
@@ -670,7 +670,7 @@ sccp_config_buttontype_t sccp_config_buttontype_str2val(const char *lookup_str) 
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_config_buttontype_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_config_buttontype_str, lookup_str);
 	return SCCP_CONFIG_BUTTONTYPE_SENTINEL;
 }
 
@@ -721,7 +721,7 @@ sccp_devstate_state_t sccp_devstate_state_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_devstate_state_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_devstate_state_str, lookup_str);
 	return SCCP_DEVSTATE_STATE_SENTINEL;
 }
 
@@ -772,7 +772,7 @@ sccp_blindtransferindication_t sccp_blindtransferindication_str2val(const char *
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_blindtransferindication_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_blindtransferindication_str, lookup_str);
 	return SCCP_BLINDTRANSFERINDICATION_SENTINEL;
 }
 
@@ -823,7 +823,7 @@ sccp_call_answer_order_t sccp_call_answer_order_str2val(const char *lookup_str) 
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_call_answer_order_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_call_answer_order_str, lookup_str);
 	return SCCP_CALL_ANSWER_ORDER_SENTINEL;
 }
 
@@ -877,7 +877,7 @@ sccp_nat_t sccp_nat_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_nat_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_nat_str, lookup_str);
 	return SCCP_NAT_SENTINEL;
 }
 
@@ -929,7 +929,7 @@ sccp_video_mode_t sccp_video_mode_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_video_mode_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_video_mode_str, lookup_str);
 	return SCCP_VIDEO_MODE_SENTINEL;
 }
 
@@ -978,8 +978,8 @@ int sccp_event_type_exists(int sccp_event_type_int_value) {
 
 const char * sccp_event_type2str(int sccp_event_type_int_value) {
 	static char res[90] = "";
-	uint32_t i;
 	int pos = 0;
+	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_event_type_map) - 1; i++) {
 		if ((sccp_event_type_int_value & 1 << i) == 1 << i) {
 			pos += snprintf(res + pos, 90, "%s%s", pos ? "," : "", sccp_event_type_map[i]);
@@ -999,7 +999,7 @@ sccp_event_type_t sccp_event_type_str2val(const char *lookup_str) {
 			return 1 << idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_event_type_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_event_type_str, lookup_str);
 	return SCCP_EVENT_TYPE_SENTINEL;
 }
 
@@ -1050,7 +1050,7 @@ sccp_parkresult_t sccp_parkresult_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_parkresult_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_parkresult_str, lookup_str);
 	return SCCP_PARKRESULT_SENTINEL;
 }
 
@@ -1101,7 +1101,7 @@ sccp_callerid_presentation_t sccp_callerid_presentation_str2val(const char *look
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_callerid_presentation_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_callerid_presentation_str, lookup_str);
 	return SCCP_CALLERID_PRESENTATION_SENTINEL;
 }
 
@@ -1132,6 +1132,9 @@ static const char *sccp_rtp_status_map[] = {
 };
 
 int sccp_rtp_status_exists(int sccp_rtp_status_int_value) {
+	if (sccp_rtp_status_int_value == 0) {
+		return 1;
+	}
 	int res = 0, i;
 	for (i = 0; i < SCCP_RTP_STATUS_SENTINEL; i++) {
 		if ((sccp_rtp_status_int_value & 1 << i) == 1 << i) {
@@ -1143,8 +1146,12 @@ int sccp_rtp_status_exists(int sccp_rtp_status_int_value) {
 
 const char * sccp_rtp_status2str(int sccp_rtp_status_int_value) {
 	static char res[138] = "";
-	uint32_t i;
 	int pos = 0;
+	if (sccp_rtp_status_int_value == 0) {
+		pos += snprintf(res + pos, 138, "%s%s", pos ? "," : "", sccp_rtp_status_map[0]);
+		return res;
+	}
+	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_rtp_status_map) - 1; i++) {
 		if ((sccp_rtp_status_int_value & 1 << i) == 1 << i) {
 			pos += snprintf(res + pos, 138, "%s%s", pos ? "," : "", sccp_rtp_status_map[i]);
@@ -1164,7 +1171,7 @@ sccp_rtp_status_t sccp_rtp_status_str2val(const char *lookup_str) {
 			return 1 << idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_rtp_status_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_rtp_status_str, lookup_str);
 	return SCCP_RTP_STATUS_SENTINEL;
 }
 
@@ -1195,6 +1202,9 @@ static const char *sccp_sccp_rtp_type_map[] = {
 };
 
 int sccp_sccp_rtp_type_exists(int sccp_sccp_rtp_type_int_value) {
+	if (sccp_sccp_rtp_type_int_value == 0) {
+		return 1;
+	}
 	int res = 0, i;
 	for (i = 0; i < SCCP_SCCP_RTP_TYPE_SENTINEL; i++) {
 		if ((sccp_sccp_rtp_type_int_value & 1 << i) == 1 << i) {
@@ -1206,8 +1216,12 @@ int sccp_sccp_rtp_type_exists(int sccp_sccp_rtp_type_int_value) {
 
 const char * sccp_sccp_rtp_type2str(int sccp_sccp_rtp_type_int_value) {
 	static char res[186] = "";
-	uint32_t i;
 	int pos = 0;
+	if (sccp_sccp_rtp_type_int_value == 0) {
+		pos += snprintf(res + pos, 186, "%s%s", pos ? "," : "", sccp_sccp_rtp_type_map[0]);
+		return res;
+	}
+	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_sccp_rtp_type_map) - 1; i++) {
 		if ((sccp_sccp_rtp_type_int_value & 1 << i) == 1 << i) {
 			pos += snprintf(res + pos, 186, "%s%s", pos ? "," : "", sccp_sccp_rtp_type_map[i]);
@@ -1227,7 +1241,7 @@ sccp_sccp_rtp_type_t sccp_sccp_rtp_type_str2val(const char *lookup_str) {
 			return 1 << idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_sccp_rtp_type_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_sccp_rtp_type_str, lookup_str);
 	return SCCP_SCCP_RTP_TYPE_SENTINEL;
 }
 
@@ -1279,7 +1293,7 @@ sccp_extension_status_t sccp_extension_status_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_extension_status_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_extension_status_str, lookup_str);
 	return SCCP_EXTENSION_STATUS_SENTINEL;
 }
 
@@ -1332,7 +1346,7 @@ sccp_channel_request_status_t sccp_channel_request_status_str2val(const char *lo
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_channel_request_status_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_channel_request_status_str, lookup_str);
 	return SCCP_CHANNEL_REQUEST_STATUS_SENTINEL;
 }
 
@@ -1387,7 +1401,7 @@ sccp_message_priority_t sccp_message_priority_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_message_priority_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_message_priority_str, lookup_str);
 	return SCCP_MESSAGE_PRIORITY_SENTINEL;
 }
 
@@ -1439,7 +1453,7 @@ sccp_push_result_t sccp_push_result_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_push_result_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_push_result_str, lookup_str);
 	return SCCP_PUSH_RESULT_SENTINEL;
 }
 
@@ -1491,7 +1505,7 @@ sccp_tokenstate_t sccp_tokenstate_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_tokenstate_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_tokenstate_str, lookup_str);
 	return SCCP_TOKENSTATE_SENTINEL;
 }
 
@@ -1551,7 +1565,7 @@ sccp_softswitch_t sccp_softswitch_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_softswitch_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_softswitch_str, lookup_str);
 	return SCCP_SOFTSWITCH_SENTINEL;
 }
 
@@ -1603,7 +1617,7 @@ sccp_phonebook_t sccp_phonebook_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_phonebook_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_phonebook_str, lookup_str);
 	return SCCP_PHONEBOOK_SENTINEL;
 }
 
@@ -1655,7 +1669,7 @@ sccp_feature_monitor_state_t sccp_feature_monitor_state_str2val(const char *look
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_feature_monitor_state_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_feature_monitor_state_str, lookup_str);
 	return SCCP_FEATURE_MONITOR_STATE_SENTINEL;
 }
 
@@ -1705,7 +1719,7 @@ sccp_readingtype_t sccp_readingtype_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_readingtype_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_readingtype_str, lookup_str);
 	return SCCP_READINGTYPE_SENTINEL;
 }
 
@@ -1736,6 +1750,9 @@ static const char *sccp_configurationchange_map[] = {
 };
 
 int sccp_configurationchange_exists(int sccp_configurationchange_int_value) {
+	if (sccp_configurationchange_int_value == 0) {
+		return 1;
+	}
 	int res = 0, i;
 	for (i = 0; i < SCCP_CONFIGURATIONCHANGE_SENTINEL; i++) {
 		if ((sccp_configurationchange_int_value & 1 << i) == 1 << i) {
@@ -1747,8 +1764,12 @@ int sccp_configurationchange_exists(int sccp_configurationchange_int_value) {
 
 const char * sccp_configurationchange2str(int sccp_configurationchange_int_value) {
 	static char res[294] = "";
-	uint32_t i;
 	int pos = 0;
+	if (sccp_configurationchange_int_value == 0) {
+		pos += snprintf(res + pos, 294, "%s%s", pos ? "," : "", sccp_configurationchange_map[0]);
+		return res;
+	}
+	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_configurationchange_map) - 1; i++) {
 		if ((sccp_configurationchange_int_value & 1 << i) == 1 << i) {
 			pos += snprintf(res + pos, 294, "%s%s", pos ? "," : "", sccp_configurationchange_map[i]);
@@ -1768,7 +1789,7 @@ sccp_configurationchange_t sccp_configurationchange_str2val(const char *lookup_s
 			return 1 << idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_configurationchange_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_configurationchange_str, lookup_str);
 	return SCCP_CONFIGURATIONCHANGE_SENTINEL;
 }
 
@@ -1819,7 +1840,7 @@ sccp_call_statistics_type_t sccp_call_statistics_type_str2val(const char *lookup
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_call_statistics_type_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_call_statistics_type_str, lookup_str);
 	return SCCP_CALL_STATISTICS_TYPE_SENTINEL;
 }
 
@@ -1850,6 +1871,9 @@ static const char *sccp_rtp_info_map[] = {
 };
 
 int sccp_rtp_info_exists(int sccp_rtp_info_int_value) {
+	if (sccp_rtp_info_int_value == 0) {
+		return 1;
+	}
 	int res = 0, i;
 	for (i = 0; i < SCCP_RTP_INFO_SENTINEL; i++) {
 		if ((sccp_rtp_info_int_value & 1 << i) == 1 << i) {
@@ -1861,8 +1885,12 @@ int sccp_rtp_info_exists(int sccp_rtp_info_int_value) {
 
 const char * sccp_rtp_info2str(int sccp_rtp_info_int_value) {
 	static char res[375] = "";
-	uint32_t i;
 	int pos = 0;
+	if (sccp_rtp_info_int_value == 0) {
+		pos += snprintf(res + pos, 375, "%s%s", pos ? "," : "", sccp_rtp_info_map[0]);
+		return res;
+	}
+	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_rtp_info_map) - 1; i++) {
 		if ((sccp_rtp_info_int_value & 1 << i) == 1 << i) {
 			pos += snprintf(res + pos, 375, "%s%s", pos ? "," : "", sccp_rtp_info_map[i]);
@@ -1882,7 +1910,7 @@ sccp_rtp_info_t sccp_rtp_info_str2val(const char *lookup_str) {
 			return 1 << idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_rtp_info_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_rtp_info_str, lookup_str);
 	return SCCP_RTP_INFO_SENTINEL;
 }
 
@@ -1963,7 +1991,7 @@ sccp_feature_type_t sccp_feature_type_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_feature_type_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_feature_type_str, lookup_str);
 	return SCCP_FEATURE_TYPE_SENTINEL;
 }
 
@@ -2032,7 +2060,7 @@ sccp_callinfo_key_t sccp_callinfo_key_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __sccp_callinfo_key_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_callinfo_key_str, lookup_str);
 	return SCCP_CALLINFO_KEY_SENTINEL;
 }
 
@@ -2085,7 +2113,7 @@ skinny_lampmode_t skinny_lampmode_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_lampmode_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_lampmode_str, lookup_str);
 	return SKINNY_LAMPMODE_SENTINEL;
 }
 
@@ -2136,7 +2164,7 @@ skinny_calltype_t skinny_calltype_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_calltype_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_calltype_str, lookup_str);
 	return SKINNY_CALLTYPE_SENTINEL;
 }
 
@@ -2201,7 +2229,7 @@ skinny_callstate_t skinny_callstate_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_callstate_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_callstate_str, lookup_str);
 	return SKINNY_CALLSTATE_SENTINEL;
 }
 
@@ -2254,7 +2282,7 @@ skinny_callpriority_t skinny_callpriority_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_callpriority_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_callpriority_str, lookup_str);
 	return SKINNY_CALLPRIORITY_SENTINEL;
 }
 
@@ -2305,7 +2333,7 @@ skinny_callinfo_visibility_t skinny_callinfo_visibility_str2val(const char *look
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_callinfo_visibility_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_callinfo_visibility_str, lookup_str);
 	return SKINNY_CALLINFO_VISIBILITY_SENTINEL;
 }
 
@@ -2356,7 +2384,7 @@ skinny_callsecuritystate_t skinny_callsecuritystate_str2val(const char *lookup_s
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_callsecuritystate_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_callsecuritystate_str, lookup_str);
 	return SKINNY_CALLSECURITYSTATE_SENTINEL;
 }
 
@@ -2409,7 +2437,7 @@ skinny_busylampfield_state_t skinny_busylampfield_state_str2val(const char *look
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_busylampfield_state_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_busylampfield_state_str, lookup_str);
 	return SKINNY_BUSYLAMPFIELD_STATE_SENTINEL;
 }
 
@@ -2486,7 +2514,7 @@ skinny_alarm_t skinny_alarm_str2val(const char *lookup_str) {
 	} else if (sccp_strcaseequals(skinny_alarm_map[7], lookup_str)) {
 		return SKINNY_ALARM_TRACEINFO;
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_alarm_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_alarm_str, lookup_str);
 	return SKINNY_ALARM_SENTINEL;
 }
 
@@ -2903,7 +2931,7 @@ skinny_tone_t skinny_tone_str2val(const char *lookup_str) {
 	} else if (sccp_strcaseequals(skinny_tone_map[92], lookup_str)) {
 		return SKINNY_TONE_MEETME_ACCESS_CODE_FAILED;
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_tone_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_tone_str, lookup_str);
 	return SKINNY_TONE_SENTINEL;
 }
 
@@ -2980,7 +3008,7 @@ skinny_videoformat_t skinny_videoformat_str2val(const char *lookup_str) {
 	} else if (sccp_strcaseequals(skinny_videoformat_map[7], lookup_str)) {
 		return SKINNY_VIDEOFORMAT_UNKNOWN;
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_videoformat_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_videoformat_str, lookup_str);
 	return SKINNY_VIDEOFORMAT_SENTINEL;
 }
 
@@ -3039,7 +3067,7 @@ skinny_ringtype_t skinny_ringtype_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_ringtype_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_ringtype_str, lookup_str);
 	return SKINNY_RINGTYPE_SENTINEL;
 }
 
@@ -3091,7 +3119,7 @@ skinny_receivetransmit_t skinny_receivetransmit_str2val(const char *lookup_str) 
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_receivetransmit_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_receivetransmit_str, lookup_str);
 	return SKINNY_RECEIVETRANSMIT_SENTINEL;
 }
 
@@ -3153,7 +3181,7 @@ skinny_keymode_t skinny_keymode_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_keymode_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_keymode_str, lookup_str);
 	return SKINNY_KEYMODE_SENTINEL;
 }
 
@@ -3207,7 +3235,7 @@ skinny_registrationstate_t skinny_registrationstate_str2val(const char *lookup_s
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_registrationstate_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_registrationstate_str, lookup_str);
 	return SKINNY_REGISTRATIONSTATE_SENTINEL;
 }
 
@@ -3268,7 +3296,7 @@ skinny_mediastatus_t skinny_mediastatus_str2val(const char *lookup_str) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_mediastatus_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_mediastatus_str, lookup_str);
 	return SKINNY_MEDIASTATUS_SENTINEL;
 }
 
@@ -3538,7 +3566,7 @@ skinny_stimulus_t skinny_stimulus_str2val(const char *lookup_str) {
 	} else if (sccp_strcaseequals(skinny_stimulus_map[55], lookup_str)) {
 		return SKINNY_STIMULUS_UNDEFINED;
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_stimulus_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_stimulus_str, lookup_str);
 	return SKINNY_STIMULUS_SENTINEL;
 }
 
@@ -3800,7 +3828,7 @@ skinny_buttontype_t skinny_buttontype_str2val(const char *lookup_str) {
 	} else if (sccp_strcaseequals(skinny_buttontype_map[53], lookup_str)) {
 		return SKINNY_BUTTONTYPE_UNDEFINED;
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_buttontype_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_buttontype_str, lookup_str);
 	return SKINNY_BUTTONTYPE_SENTINEL;
 }
 
@@ -4269,7 +4297,7 @@ skinny_devicetype_t skinny_devicetype_str2val(const char *lookup_str) {
 	} else if (sccp_strcaseequals(skinny_devicetype_map[105], lookup_str)) {
 		return SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS;
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_devicetype_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_devicetype_str, lookup_str);
 	return SKINNY_DEVICETYPE_SENTINEL;
 }
 
@@ -4324,7 +4352,7 @@ skinny_encryptionmethod_t skinny_encryptionmethod_str2val(const char *lookup_str
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_encryptionmethod_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_encryptionmethod_str, lookup_str);
 	return SKINNY_ENCRYPTIONMETHOD_SENTINEL;
 }
 
@@ -4380,7 +4408,7 @@ skinny_miscCommandType_t skinny_miscCommandType_str2val(const char *lookup_str) 
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val(%s) not found\n", LOOKUPERROR_STR, __skinny_miscCommandType_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_miscCommandType_str, lookup_str);
 	return SKINNY_MISCCOMMANDTYPE_SENTINEL;
 }
 
