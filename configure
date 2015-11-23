@@ -18951,7 +18951,12 @@ $as_echo_n "checking pkg-config asterisk... " >&6; }
 			if test -n "${PBX_ETC}"; then
 				PBX_INCLUDE="${PBX_PREFIX}/usr/include"
 				PBX_CFLAGS="-I${PBX_INCLUDE} $(${PKGCONFIG} --cflags asterisk)"
-				PBX_CPPFLAGS="-I${PBX_CFLAGS}"
+				if test -n "`echo ${PBX_CFLAGS} | grep libxml2-g3`"; then								{ $as_echo "$as_me:${as_lineno-$LINENO}: Fixed fauly asterisk.pc pkg-config file. Advise:Youought to update your asterisk version" >&5
+$as_echo "$as_me: Fixed fauly asterisk.pc pkg-config file. Advise:Youought to update your asterisk version" >&6;}
+					PBX_CFLAGS="`echo ${PBX_CFLAGS} | ${SED} 's/libxml2-g3/libxml2/'`"
+					echo "PBX_CFLAGS=${PBX_CFLAGS}"
+				fi
+				PBX_CPPFLAGS="${PBX_CFLAGS}"
 				CFLAGS="${CFLAGS} ${PBX_CFLAGS}"
 				CPPFLAGS="${CPPFLAGS} ${PBX_CPPFLAGS}"
 	 			PBX_LIB="$(${PKGCONFIG} --variable=libdir asterisk)"
