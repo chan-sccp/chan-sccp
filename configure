@@ -25136,6 +25136,7 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
+	CFLAGS_save=${CFLAGS}
 	# Check whether --enable-experimental_xml was given.
 if test "${enable_experimental_xml+set}" = set; then :
   enableval=$enable_experimental_xml; ac_cv_experimental_xml=$enableval
@@ -25156,7 +25157,7 @@ fi
 
 		LIBEXSLT_CFLAGS=`${PKGCONFIG} libexslt --cflags`
 		LIBEXSLT_LIBS=`${PKGCONFIG} libexslt --libs`
-		CPPFLAGS="${CPPFLAGS} $LIBEXSLT_CFLAGS"
+		CFLAGS="${CFLAGS} $LIBEXSLT_CFLAGS "
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xmlInitParser in -lxml2" >&5
 $as_echo_n "checking for xmlInitParser in -lxml2... " >&6; }
 if ${ac_cv_lib_xml2_xmlInitParser+:} false; then :
@@ -25407,6 +25408,7 @@ fi
 fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-experimental-xml: ${ac_cv_experimental_xml} (only for developers)" >&5
 $as_echo "$as_me: --enable-experimental-xml: ${ac_cv_experimental_xml} (only for developers)" >&6;}
+	CFLAGS=${CFLAGS_save}
 
 
 

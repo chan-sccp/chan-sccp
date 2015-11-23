@@ -1,4 +1,64 @@
+2015-11-20  ddegroot
+
+	* [r6417] src/sccp_featureButton.c: Enh: Clarify that the
+	  config->button.feature.status value consist of three parts by
+	  using the hex representation.
+
+	* [r6416] src/sccp_actions.c, src/sccp_device.c,
+	  src/sccp_indicate.c: Fix: Toggle between showing/hiding remote
+	  channel information when (shared)line button is pressed and there
+	  is a CONNECTED call on a remote Device
+	  Enh: Sort Remote Device Indication functions in sccp_device.c
+	  Enh: Remove some old commented lines from sccp_indicate.c
+
+	* [r6415] src/sccp_device.c, src/sccp_device.h,
+	  src/sccp_indicate.c: Enh: Added device->indicate->remoteConnected
+	  and Moved implementation of remote connected indication from
+	  sccp_indicate.c to sccp_device.c
+	  Enh: Sorted/Regrouped device->indicate functions
+
+	* [r6414] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_device.c: Fix: refcount issue when observing remote call
+	  on shared line
+	  Fix: remove sccp_dev_setActiveLine whem observinc remote call on
+	  shared line, line is not really active, just visible.
+	  
+	  Reported by Pavel.
+
+	* [r6413] src/sccp_management.c, src/sccp_management.h: Fix:
+	  clang-3.7+ compilation blocks call requires cast to be accepted
+	  by ami hooks function.
+	  Fix: clang-3.8+ Passing a local variable is converted to const if
+	  not tagged with __block storage qualifier
+	  Enh: Changed sccp_manager_action2char to return an allocated char
+	  *, which needs to be freed (only if returning success)
+
+	* [r6411] src/sccp_management.c, src/sccp_management.h: Enh:
+	  Reenable possible use of sccp_manager_action2pbx_str.
+
+	* [r6410] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/pbx_impl/pbx_impl.h: Enh:
+	  Implement iPbx.getFeatureExtension according to the function name
+	  (not only usable to get automon / autmixmon).
+	  Enh: Use iPbx.getFeatureExtension appropriately to get the
+	  automixmon dtmf sequence.
+
+	* [r6408] src/pbx_impl/ast/ast.c, src/sccp_actions.c,
+	  src/sccp_device.c, src/sccp_features.c, src/sccp_features.h: Enh:
+	  use automixmon instead of automon (pbx_impl/ast/ast.c)
+	  Fix: call sccp_feat_monitor with and without a channel (REQUESTED
+	  State)
+	  Enh: Show Requested state in DisplayMessage (sccp_device.c)
+
 2015-11-19  ddegroot
+
+	* [r6407] ChangeLog, autoconf/acinclude.m4, autoconf/check_raii.m4,
+	  configure, src/config.h.in: Fixes #283: setting PBX_VARLIB.
+	  Reported by lynt-smitka.
+	  Fixes sccp_manager_action2pbx_str by adding GCC_NESTED or
+	  CLANG_BLOCK if found.
 
 	* [r6406] src/sccp_pbx.c: Revert further change to sccp_pbx_call,
 	  causing phones not to ring on incoming call. Reported by Pavel.
