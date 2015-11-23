@@ -1708,7 +1708,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Checking Button Config\n");
 		/* check if the number of buttons got reduced */
-		for (v = first_var; v; v = v->next) {										/* check buttons against currently loaded set*/
+		for (v = first_var; v && !sccp_strlen_zero(v->value); v = v->next) {				/* check buttons against currently loaded set*/
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Checking button: %s\n", v->value);
 			sccp_copy_string(k_button, v->value, sizeof(k_button));
 			splitter = k_button;
@@ -1750,7 +1750,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 	if (changed) {
 		buttonindex = 0;										/* buttonconfig has changed. Load all buttons as new ones */
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "Discarding Previous ButtonConfig Completely\n");
-		for (v = first_var; v; v = v->next) {
+		for (v = first_var; v && !sccp_strlen_zero(v->value); v = v->next) {
 			sccp_copy_string(k_button, v->value, sizeof(k_button));
 			splitter = k_button;
 			buttonType = strsep(&splitter, ",");
