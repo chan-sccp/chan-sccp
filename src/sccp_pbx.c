@@ -1050,6 +1050,8 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			pbx_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <channel> available. Returning from dial thread.\n");
 			goto EXIT_FUNC;
 		}
+		sccp_channel_stop_schedule_digittimout(c);
+		
 		/* Reset Enbloc Dial Emulation */
 		c->enbloc.deactivate = 0;
 		c->enbloc.totaldigittime = 0;

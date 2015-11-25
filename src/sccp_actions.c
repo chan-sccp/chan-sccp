@@ -1247,6 +1247,7 @@ static void sccp_handle_stimulus_lastnumberredial(constDevicePtr d, constLinePtr
 
 	if (channel) {
 		if (channel->state == SCCP_CHANNELSTATE_OFFHOOK) {
+			sccp_channel_stop_schedule_digittimout(channel);
 			sccp_copy_string(channel->dialedNumber, d->redialInformation.number, sizeof(d->redialInformation.number));
 			sccp_pbx_softswitch(channel);
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Redial the number %s\n", d->id, d->redialInformation.number);
@@ -1274,10 +1275,11 @@ static void sccp_handle_speeddial(constDevicePtr d, const sccp_speed_t * k)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Speeddial Button (%d) pressed, configured number is (%s)\n", d->id, k->instance, k->ext);
 	if (channel) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: channel state %d\n", DEV_ID_LOG(d), channel->state);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: channel state %s\n", DEV_ID_LOG(d), sccp_channelstate2str(channel->state));
 
 		// Channel already in use
 		if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK)) {
+			sccp_channel_stop_schedule_digittimout(channel);
 			len = sccp_strlen(channel->dialedNumber);
 			sccp_copy_string(channel->dialedNumber + len, k->ext, sizeof(channel->dialedNumber) - len);
 			sccp_pbx_softswitch(channel);
@@ -3444,9 +3446,9 @@ void sccp_handle_EnblocCallMessage(constSessionPtr s, devicePtr d, constMessageP
 						return;
 					}
 
+					sccp_channel_stop_schedule_digittimout(channel);
 					len = sccp_strlen(channel->dialedNumber);
 					sccp_copy_string(channel->dialedNumber + len, calledParty, sizeof(channel->dialedNumber) - len);
-					sccp_channel_stop_schedule_digittimout(channel);
 					sccp_pbx_softswitch(channel);
 					return;
 				}
