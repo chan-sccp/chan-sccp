@@ -1136,6 +1136,7 @@ gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel)
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
 
 	if (c && c->scheduler.digittimeout_id > -1 && iPbx.sched_wait(channel->scheduler.digittimeout_id) > 0) {
+		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: stop schedule digittimeout %d\n", c->designator, c->scheduler.digittimeout_id);
 		iPbx.sched_del_ref(&c->scheduler.digittimeout_id, c);
 	}
 }
