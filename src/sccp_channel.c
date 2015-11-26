@@ -1065,11 +1065,14 @@ void sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannel
 boolean_t sccp_channel_transfer_on_hangup(constChannelPtr channel)
 {
 	boolean_t result = FALSE;
+	if (!channel || !GLOB(transfer_on_hangup)) {
+		return result;
+	}
+	AUTO_RELEASE sccp_device_t *d = channel->privateData->device ? sccp_device_retain(channel->privateData->device) : NULL;
 
-	if (GLOB(transfer_on_hangup) &&										/* Complete transfer when one is in progress */
-	    (channel->state != SCCP_CHANNELSTATE_BUSY || channel->state != SCCP_CHANNELSTATE_INVALIDNUMBER || channel->state != SCCP_CHANNELSTATE_CONGESTION)) {
-		sccp_channel_t *transferee = channel->privateData->device->transferChannels.transferee;
-		sccp_channel_t *transferer = channel->privateData->device->transferChannels.transferer;
+	if (d && (SCCP_CHANNELSTATE_IsSettingUp(channel->state) || SCCP_CHANNELSTATE_IsConnected(channel->state))) {	/* Complete transfer when one is in progress */
+		sccp_channel_t *transferee = d->transferChannels.transferee;
+		sccp_channel_t *transferer = d->transferChannels.transferer;
 
 		if ((transferee && transferer) && (channel == transferer) && (pbx_channel_state(transferer->owner) == AST_STATE_UP || pbx_channel_state(transferer->owner) == AST_STATE_RING)
 		    ) {
