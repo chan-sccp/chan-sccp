@@ -416,7 +416,7 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, const char *l
 			all = sccp_strcaseequals(token, "all") ? TRUE : FALSE;
 			if (all && !allowing) {									// disallowing all
 				memset(skinny_codec_prefs, 0, SKINNY_MAX_CAPABILITIES);
-				sccp_log((DEBUGCAT_CODEC)) ("SCCP: disallow=all => reset codecs\n");
+				//sccp_log((DEBUGCAT_CODEC)) ("SCCP: disallow=all => reset codecs\n");
 				break;
 			}
 			for (x = 0; x < ARRAY_LEN(skinny_codecs); x++) {
