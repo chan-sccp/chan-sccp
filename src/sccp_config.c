@@ -1976,7 +1976,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int buttonin
 			config->button.feature.id = sccp_feature_type_str2val(options);
 			if (args) {
 				config->button.feature.options = strdup(args);
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Arguments present on feature button: %d\n", config->instance);
+				sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "Arguments present on feature button: %d\n", config->instance);
 			} else {
 				config->button.feature.options = NULL;
 			}
