@@ -140,7 +140,7 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 		memcpy(&msg->data.CallInfoDynamicMessage.dummy, &buffer[0], bufferSize);
 	}
 
-	sccp_dump_msg(msg);
+	//sccp_dump_msg(msg);
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V7) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
 	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV7)");
 	sccp_dev_send(device, msg);
@@ -221,7 +221,7 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 		memcpy(&msg->data.CallInfoDynamicMessage.dummy, &buffer[0], bufferSize);
 	}
 
-	sccp_dump_msg(msg);
+	//sccp_dump_msg(msg);
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V16) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
 	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV16)");
 	sccp_dev_send(device, msg);
@@ -893,7 +893,7 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV17(constDevicePtr devi
 
 		memcpy(&msg->data.StartMultiMediaTransmission.v17.bel_remoteIpAddr, &in->sin_addr, 4);
 	}
-	sccp_dump_msg(msg);
+	//sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 
