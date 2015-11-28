@@ -349,7 +349,7 @@ static gcc_inline void sccp_refcount_remove_obj(const void *ptr)
 			obj = NULL;
 		}
 	}
-	if (cleanup_objects && objects[hash]) {
+	if (cleanup_objects && runState == SCCP_REF_RUNNING && objects[hash]) {
 		ast_rwlock_wrlock(&objectslock);
 		SCCP_RWLIST_WRLOCK(&(objects[hash])->refCountedObjects);
 		if (SCCP_RWLIST_GETSIZE(&(objects[hash])->refCountedObjects) == 0) {			/* recheck size */
