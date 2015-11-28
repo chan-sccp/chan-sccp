@@ -1249,7 +1249,7 @@ channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channe
 				sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
 				channel = sccp_channel_retain(c);
 			} else if (!sccp_channel_hold(c)) {
-				pbx_log(LOG_ERROR, "%s: Putting Active Channel %s OnHold failed -> Cancelling new CaLL\n", d->id, l->name);
+				pbx_log(LOG_ERROR, "%s: Putting Active Channel %s OnHold failed -> Cancelling new CaLL\n", d->id, c->designator);
 				return NULL;
 			}
 		}

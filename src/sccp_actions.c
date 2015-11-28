@@ -478,7 +478,8 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_in)
 {
 	AUTO_RELEASE sccp_device_t *device = NULL;
-	char *phone_ipv4 = NULL, *phone_ipv6 = NULL;
+	char *phone_ipv4 = NULL;
+	//char *phone_ipv6 = NULL;
 
 	uint32_t deviceInstance = letohl(msg_in->data.RegisterMessage.sId.lel_instance);
 	uint32_t userid = letohl(msg_in->data.RegisterMessage.sId.lel_userid);
@@ -486,17 +487,17 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 
 	sccp_copy_string(deviceName, msg_in->data.RegisterMessage.sId.deviceName, StationMaxDeviceNameSize);
 	uint32_t deviceType = letohl(msg_in->data.RegisterMessage.lel_deviceType);
-	uint32_t maxStreams = letohl(msg_in->data.RegisterMessage.lel_maxStreams);
-	uint32_t activeStreams = letohl(msg_in->data.RegisterMessage.lel_activeStreams);
+	//uint32_t maxStreams = letohl(msg_in->data.RegisterMessage.lel_maxStreams);
+	//uint32_t activeStreams = letohl(msg_in->data.RegisterMessage.lel_activeStreams);
 	uint8_t protocolVer = letohl(msg_in->data.RegisterMessage.phone_features) & SKINNY_PHONE_FEATURES_PROTOCOLVERSION;
-	uint32_t maxConferences = letohl(msg_in->data.RegisterMessage.lel_maxConferences);
-	uint32_t activeConferences = letohl(msg_in->data.RegisterMessage.lel_activeConferences);
+	//uint32_t maxConferences = letohl(msg_in->data.RegisterMessage.lel_maxConferences);
+	//uint32_t activeConferences = letohl(msg_in->data.RegisterMessage.lel_activeConferences);
 	uint8_t macAddress[12];
 
 	memcpy(macAddress, msg_in->data.RegisterMessage.macAddress, 12);
-	uint32_t ipV4AddressScope = letohl(msg_in->data.RegisterMessage.lel_ipV4AddressScope);
-	uint32_t maxNumberOfLines = letohl(msg_in->data.RegisterMessage.lel_maxNumberOfLines);
-	uint32_t ipV6AddressScope = letohl(msg_in->data.RegisterMessage.lel_ipV6AddressScope);
+	//uint32_t ipV4AddressScope = letohl(msg_in->data.RegisterMessage.lel_ipV4AddressScope);
+	//uint32_t maxNumberOfLines = letohl(msg_in->data.RegisterMessage.lel_maxNumberOfLines);
+	//uint32_t ipV6AddressScope = letohl(msg_in->data.RegisterMessage.lel_ipV6AddressScope);
 
 	if (GLOB(reload_in_progress)) {
 		pbx_log(LOG_NOTICE, "SCCP: Reload in progress. Come back later.\n");
@@ -568,7 +569,7 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) &register_sas;
 
 		memcpy(&sin6->sin6_addr, &msg_in->data.RegisterMessage.ipv6Address, sizeof(sin6->sin6_addr));
-		phone_ipv6 = strdupa(sccp_socket_stringify_host(&register_sas));
+		//phone_ipv6 = strdupa(sccp_socket_stringify_host(&register_sas));
 	}
 
 	/* set our IPv4 address */
@@ -1232,7 +1233,10 @@ static void sccp_handle_speeddial(constDevicePtr d, const sccp_speed_t * k)
 		} else if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_PROCEED) {
 			// automatically put on hold
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: automatically put call %d on hold %d\n", DEV_ID_LOG(d), channel->callid, channel->state);
-			sccp_channel_hold(channel);
+			if (!sccp_channel_hold(channel)) {
+				pbx_log(LOG_ERROR, "%s: Putting Active Channel %s OnHold failed -> Cancelling new CaLL\n", d->id, channel->designator);
+				return;
+			}
 			AUTO_RELEASE sccp_line_t *l = sccp_dev_getActiveLine(d);
 
 			if (l) {
