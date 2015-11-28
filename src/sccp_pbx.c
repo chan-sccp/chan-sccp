@@ -979,14 +979,13 @@ int sccp_pbx_sched_dial(const void * data)
 {
 	sccp_channel_t * c = (sccp_channel_t *) data;							// channel already retained in data, unlocked at end of sched_replace_ref
 	if (c && c->scheduler.hangup_id == -1) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Digittimeout for call '%d'\n", c->callid);
 		if (c->owner && !iPbx.getChannelPbx(c) && !sccp_strlen_zero(c->dialedNumber)) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Going to dial '%s'\n", c->callid, c->dialedNumber);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%s'. Going to dial '%s'\n", c->designator, c->dialedNumber);
 			sccp_pbx_softswitch(c);
 			return 0;
 		}
 		// fall through
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Nothing to dial -> INVALIDNUMBER\n", c->callid);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%s'. Nothing to dial -> INVALIDNUMBER\n", c->designator);
 		c->dialedNumber[0] = '\0';
 		sccp_indicate(NULL, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 	}
