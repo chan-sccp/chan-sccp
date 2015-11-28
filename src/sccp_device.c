@@ -122,16 +122,6 @@ static boolean_t sccp_device_falseResult(void)
 static void sccp_device_retrieveDeviceCapabilities(constDevicePtr device)
 {
 	char *xmlStr = "<getDeviceCaps></getDeviceCaps>";
-	//char *xmlStr = "<CiscoIPPhoneRingList></CiscoIPPhoneRingList>";
-	//char *xmlStr = "<device></device>";
-	//char *xmlStr = "<Glyphs></Glyphs>";
-	//char *xmlStr = "<phrases></phrases>";
-	//char *xmlStr = "<Default></Default>";
-	//char *xmlStr = "<CiscoIPPhoneResponse></CiscoIPPhoneResponse>";
-	//char *xmlStr = "<selectLists></selectLists>";
-	//char *xmlStr = "<tones></tones>";
-	//char *xmlStr = "<softKeyCfg></softKeyCfg>";
-	//char *xmlStr = "<skin></skin>";
 	unsigned int transactionID = random();
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_DEVICECAPABILITIES, 1, 0, transactionID, xmlStr, 2);
