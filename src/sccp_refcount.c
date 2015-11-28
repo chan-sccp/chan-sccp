@@ -310,6 +310,7 @@ static gcc_inline RefCountedObject *sccp_refcount_find_obj(const void *ptr, cons
 static gcc_inline void sccp_refcount_remove_obj(const void *ptr)
 {
 	RefCountedObject *obj = NULL;
+	boolean_t cleanup_objects = FALSE;
 
 	if (ptr == NULL) {
 		return;
@@ -328,6 +329,9 @@ static gcc_inline void sccp_refcount_remove_obj(const void *ptr)
 			}
 		}
 		SCCP_RWLIST_TRAVERSE_SAFE_END;
+		if (SCCP_RWLIST_GETSIZE(&(objects[hash])->refCountedObjects) == 0) {
+			cleanup_objects = TRUE;
+		}
 		SCCP_RWLIST_UNLOCK(&(objects[hash])->refCountedObjects);
 	}
 	if (obj) {
@@ -344,6 +348,18 @@ static gcc_inline void sccp_refcount_remove_obj(const void *ptr)
 			sccp_free(obj);
 			obj = NULL;
 		}
+	}
+	if (cleanup_objects && objects[hash]) {
+		ast_rwlock_wrlock(&objectslock);
+		SCCP_RWLIST_WRLOCK(&(objects[hash])->refCountedObjects);
+		if (SCCP_RWLIST_GETSIZE(&(objects[hash])->refCountedObjects) == 0) {			/* recheck size */
+			SCCP_RWLIST_HEAD_DESTROY(&(objects[hash])->refCountedObjects);
+			sccp_free(objects[hash]);
+			objects[hash] = NULL;
+		} else {
+			SCCP_RWLIST_UNLOCK(&(objects[hash])->refCountedObjects);
+		}
+		ast_rwlock_unlock(&objectslock);
 	}
 }
 
@@ -533,8 +549,9 @@ gcc_inline void sccp_refcount_autorelease(void *ptr)
 
 #if CS_TEST_FRAMEWORK
 //#include "asterisk/test.h"
-#define NUM_LOOPS 20
-#define NUM_OBJECTS 100
+#define NUM_LOOPS 50
+#define NUM_OBJECTS 5000
+#define NUM_THREADS 10
 static struct refcount_test {
 	char *str;
 	int id;
@@ -550,10 +567,12 @@ static void refcount_test_destroy(struct refcount_test *obj)
 
 static void *refcount_test_thread(void *data)
 {
+	struct ast_test *test = data;
 	struct refcount_test *obj = NULL, *obj1 = NULL;
 	int loop, objloop;
 	int random_object;
 
+	ast_test_status_update(test, "%d: Thread running...\n", (unsigned int) pthread_self());
 	for (loop = 0; loop < NUM_LOOPS; loop++) {
 		for (objloop = 0; objloop < NUM_OBJECTS; objloop++) {
 			random_object = rand() % NUM_OBJECTS;
@@ -567,6 +586,8 @@ static void *refcount_test_thread(void *data)
 			}
 		}
 	}
+
+	ast_test_status_update(test, "%d: Thread finished...\n", (unsigned int) pthread_self());
 
 	return NULL;
 }
@@ -587,8 +608,6 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	        	break;
 	}
 	
-	int num_threads = 10 /* parameterize */;
-
 	pthread_t t;
 	int loop;
 	char id[23];
@@ -606,8 +625,8 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	}
 	sleep(1);
 
-	ast_test_status_update(test, "Run multithreaded retain/release/destroy at random in %d and %d threads loops...\n", NUM_LOOPS, num_threads);
-	for (thread = 0; thread < num_threads; thread++) {
+	ast_test_status_update(test, "Run multithreaded retain/release/destroy at random in %d loops and %d threads...\n", NUM_LOOPS, NUM_THREADS);
+	for (thread = 0; thread < NUM_THREADS; thread++) {
 		pbx_pthread_create(&t, NULL, refcount_test_thread, test);
 	}
 	pthread_join(t, NULL);
