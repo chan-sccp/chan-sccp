@@ -1922,6 +1922,7 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 
 	if (!(channel->line)) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no line on channel %d\n", channel->callid);
+		sccp_dev_displayprompt(device, 0, channel->callid, SKINNY_DISP_NO_LINE_TO_TRANSFER, GLOB(digittimeout));
 		return;
 	}
 
@@ -1931,8 +1932,19 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 		/* transfer was pressed on first (transferee) channel, check if is our transferee channel and continue with d <= device */
 		if (channel == device->transferChannels.transferee && device->transferChannels.transferer) {
 			d = sccp_device_retain(device);
+		} else if (channel->state == SCCP_CHANNELSTATE_HOLD) {
+			if (SCCP_LIST_GETSIZE(&channel->line->devices) == 1) {
+				d = sccp_device_retain(device);
+			} else {
+				pbx_log(LOG_WARNING, "%s: The channel %s is not attached to a particular device (hold on shared line, resume first)\n", DEV_ID_LOG(device), channel->designator);
+				instance = sccp_device_find_index_for_line(device, channel->line->name);
+				sccp_dev_displayprompt(device, instance, channel->callid, SKINNY_DISP_NO_LINE_TO_TRANSFER, GLOB(digittimeout));
+				return;
+			}
 		} else {
-			pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no device on channel %d\n", channel->callid);
+			pbx_log(LOG_WARNING, "%s: The channel %s state is unclear. giving up\n", DEV_ID_LOG(device), channel->designator);
+			instance = sccp_device_find_index_for_line(device, channel->line->name);
+			sccp_dev_displayprompt(device, instance, channel->callid, SKINNY_DISP_NO_LINE_TO_TRANSFER, GLOB(digittimeout));
 			return;
 		}
 	}
@@ -1940,6 +1952,7 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 
 	if (!d->transfer || !channel->line->transfer) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer disabled on device or line\n", DEV_ID_LOG(d));
+		sccp_dev_displayprompt(device, instance, channel->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, GLOB(digittimeout));
 		return;
 	}
 
@@ -2099,10 +2112,11 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 	PBX_CHANNEL_TYPE *pbx_source_remote_channel = NULL;
 	PBX_CHANNEL_TYPE *pbx_destination_local_channel = NULL;
 	PBX_CHANNEL_TYPE *pbx_destination_remote_channel = NULL;
+	boolean_t result = FALSE;
 #if ASTERISK_VERSION_GROUP >= 108
 	enum ast_control_transfer control_transfer_message = AST_TRANSFER_FAILED;
 #endif
-	uint16_t instance;
+	uint16_t instance = 0;
 
 	if (!sccp_destination_local_channel) {
 		return;
@@ -2111,11 +2125,12 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(sccp_destination_local_channel);
 
 	if (!d) {
-		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has or device on channel %d\n", sccp_destination_local_channel->callid);
+		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no device on channel %d\n", sccp_destination_local_channel->callid);
 		return;
 	}
 	if (!sccp_destination_local_channel->line) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no line on channel %d\n", sccp_destination_local_channel->callid);
+		sccp_dev_displayprompt(d, instance, sccp_destination_local_channel ? sccp_destination_local_channel->callid : 0, SKINNY_DISP_NO_LINE_TO_TRANSFER, GLOB(digittimeout));
 		return;
 	}
 	// Obtain the source channel on that device
@@ -2126,8 +2141,6 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 
 	if (sccp_destination_local_channel->state != SCCP_CHANNELSTATE_RINGOUT && sccp_destination_local_channel->state != SCCP_CHANNELSTATE_CONNECTED && sccp_destination_local_channel->state != SCCP_CHANNELSTATE_PROGRESS) {
 		pbx_log(LOG_WARNING, "SCCP: Failed to complete transfer. The channel is not ringing or connected. ChannelState: %s (%d)\n", sccp_channelstate2str(sccp_destination_local_channel->state), sccp_destination_local_channel->state);
-		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, instance, sccp_destination_local_channel->callid, 0);
-		sccp_dev_displayprompt(d, instance, sccp_destination_local_channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 		goto EXIT;
 	}
 
@@ -2154,8 +2167,6 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 
 	if (!(pbx_source_remote_channel && pbx_destination_local_channel)) {
 		pbx_log(LOG_WARNING, "SCCP: Failed to complete transfer. Missing asterisk transferred or transferee channel\n");
-
-		sccp_dev_displayprompt(d, instance, sccp_destination_local_channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 		goto EXIT;
 	}
 
@@ -2234,7 +2245,6 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 	sccp_channel_transfer_release(d, d->transferChannels.transferee);					/* explicit release */
 	if (!iPbx.attended_transfer(sccp_destination_local_channel, sccp_source_local_channel)) {
 		pbx_log(LOG_WARNING, "SCCP: Failed to masquerade %s into %s\n", pbx_channel_name(pbx_destination_local_channel), pbx_channel_name(pbx_source_remote_channel));
-		sccp_dev_displayprompt(d, instance, sccp_destination_local_channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 		goto EXIT;
 	}
 	
@@ -2246,12 +2256,17 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 #if ASTERISK_VERSION_GROUP >= 108
 	control_transfer_message = AST_TRANSFER_SUCCESS;
 #endif
+	result = TRUE;
 EXIT:
 	if (pbx_source_remote_channel) {
 		pbx_channel_unref(pbx_source_remote_channel);
 	}
 	if (pbx_destination_remote_channel) {
 		pbx_channel_unref(pbx_destination_remote_channel);
+	}
+	if (result == FALSE) {
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, instance, sccp_destination_local_channel->callid, 0);
+		sccp_dev_displayprompt(d, instance, sccp_destination_local_channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 	}
 	if (!sccp_source_local_channel || !sccp_source_local_channel->owner) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Peer owner disappeared! Can't free resources\n");
