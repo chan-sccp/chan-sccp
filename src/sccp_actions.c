@@ -1217,61 +1217,56 @@ static void sccp_handle_speeddial(constDevicePtr d, const sccp_speed_t * k)
 	if (!k || !d || !d->session) {
 		return;
 	}
-	AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
-
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Speeddial Button (%d) pressed, configured number is (%s)\n", d->id, k->instance, k->ext);
-	if (channel) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: channel state %s\n", DEV_ID_LOG(d), sccp_channelstate2str(channel->state));
 
-		// Channel already in use
-		if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK)) {
+	AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
+	if (channel) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: applying to channel:%s with state %s\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
+		if (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) {				/* already dialing digits following, add the speedial extension */
+			if (iPbx.send_digits) {
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: sending digits: %s\n", channel->designator, k->ext);
+				iPbx.send_digits(channel, k->ext);
+			}
+			return;
+		} else if (channel->state == SCCP_CHANNELSTATE_OFFHOOK || channel->state == SCCP_CHANNELSTATE_GETDIGITS || channel->state == SCCP_CHANNELSTATE_SPEEDDIAL) {
 			sccp_channel_stop_schedule_digittimout(channel);
 			len = sccp_strlen(channel->dialedNumber);
 			sccp_copy_string(channel->dialedNumber + len, k->ext, sizeof(channel->dialedNumber) - len);
 			sccp_pbx_softswitch(channel);
 			return;
-		} else if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_PROCEED) {
-			// automatically put on hold
-			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: automatically put call %d on hold %d\n", DEV_ID_LOG(d), channel->callid, channel->state);
+		} else if (channel->state >= SCCP_CHANNELSTATE_DIALING && channel->state <= SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) {
+			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: put call %d on hold %d\n", DEV_ID_LOG(d), channel->callid, channel->state);
 			if (!sccp_channel_hold(channel)) {
 				pbx_log(LOG_ERROR, "%s: Putting Active Channel %s OnHold failed -> Cancelling new CaLL\n", d->id, channel->designator);
 				return;
 			}
-			AUTO_RELEASE sccp_line_t *l = sccp_dev_getActiveLine(d);
-
-			if (l) {
-				AUTO_RELEASE sccp_channel_t *new_channel = NULL;
-
-				new_channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
-			}
+			/* fall through to start new call */
+		} else if (channel->state == SCCP_CHANNELSTATE_HOLD || channel->state == SCCP_CHANNELSTATE_ONHOOK || channel->state == SCCP_CHANNELSTATE_DOWN) {
+			/* fall through to start new call */
+		} else {
+			pbx_log(LOG_WARNING, "%s: Received speedial while in a channel->state '%s', where that did not make sense, skipping!\n", d->id, sccp_channelstate2str(channel->state)); 
 			return;
 		}
-		// Channel not in use
-		if (iPbx.send_digits) {
-			iPbx.send_digits(channel, k->ext);
-		}
+	}
+
+	/* \todo check Remote RINGING + gpickup */
+	AUTO_RELEASE sccp_line_t *l = NULL;
+
+	if (d->defaultLineInstance > 0) {
+		sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
+		l = sccp_line_find_byid(d, d->defaultLineInstance);
 	} else {
-		/* check Remote RINGING + gpickup */
-		AUTO_RELEASE sccp_line_t *l = NULL;
-
-		if (d->defaultLineInstance > 0) {
-			sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
-			l = sccp_line_find_byid(d, d->defaultLineInstance);
-		} else {
-			l = sccp_dev_getActiveLine(d);
-		}
-		if (!l) {
-			sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using first line with instance: %u", d->defaultLineInstance);
-			l = sccp_line_find_byid(d, SCCP_FIRST_LINEINSTANCE);
-		}
-		if (l) {
-			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
-
-			new_channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
-		}
+		l = sccp_dev_getActiveLine(d);
+	}
+	if (!l) {
+		sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using first line with instance: %u", d->defaultLineInstance);
+		l = sccp_line_find_byid(d, SCCP_FIRST_LINEINSTANCE);
+	}
+	if (l) {
+		AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+		new_channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 	}
 }
-
 
 /*!
  * \brief Handle Speeddial Stimulus
