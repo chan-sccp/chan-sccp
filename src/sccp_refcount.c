@@ -121,7 +121,8 @@ void sccp_refcount_destroy(void)
 	uint32_t x, type;
 	RefCountedObject *obj;
 
-	pbx_log(LOG_NOTICE, "SCCP: (Refcount) destroying...\n");
+	pbx_log(LOG_NOTICE, "SCCP: (Refcount) Shutting Down. Checking Clean Shutdown...\n");
+	int numObjects = 0;
 	runState = SCCP_REF_STOPPED;
 
 	sched_yield();												//make sure all other threads can finish their work first.
@@ -144,6 +145,7 @@ void sccp_refcount_destroy(void)
 					sccp_free(obj);
 					obj = NULL;
 					SCCP_RWLIST_REMOVE_CURRENT(list);
+					numObjects++;
 				}
 			}
 			SCCP_RWLIST_TRAVERSE_SAFE_END;
@@ -156,6 +158,9 @@ void sccp_refcount_destroy(void)
 	}
 	ast_rwlock_unlock(&objectslock);
 	pbx_rwlock_destroy(&objectslock);
+	if (numObjects) {
+		pbx_log(LOG_WARNING, "SCCP: (Refcount) Note: We found %d objects which had to be forcefulfy removed during refcount shutdown, see above.\n", numObjects);
+	}
 #if CS_REFCOUNT_DEBUG
 	if (sccp_ref_debug_log) {
 		fclose(sccp_ref_debug_log);
