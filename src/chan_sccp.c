@@ -191,7 +191,7 @@ gcc_inline static sccp_device_t * const check_session_message_device(constSessio
 		errors++;
 	}
 
-	if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) != 0) {
+	if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE)) != 0) {
 		uint32_t mid = letohl(msg->header.lel_messageId);
 		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", sccp_session_getDesignator(s), msgtype2str(mid), mid, msg ? msg->header.length : 0);
 		sccp_dump_msg(msg);
