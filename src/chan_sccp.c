@@ -545,7 +545,7 @@ boolean_t sccp_prePBXLoad(void)
 	pbx_log(LOG_NOTICE, "preloading pbx module\n");
 
 	/* make globals */
-	sccp_globals = (struct sccp_global_vars *) sccp_malloc(sizeof(struct sccp_global_vars));
+	sccp_globals = sccp_calloc(sizeof *sccp_globals, 1);
 	if (!sccp_globals) {
 		pbx_log(LOG_ERROR, "No free memory for SCCP global vars. SCCP channel type disabled\n");
 		return FALSE;
@@ -553,12 +553,7 @@ boolean_t sccp_prePBXLoad(void)
 
 	/* Initialize memory */
 	memset(&sccp_null_frame, 0, sizeof(sccp_null_frame));
-	memset(sccp_globals, 0, sizeof(struct sccp_global_vars));
 	GLOB(debug) = DEBUGCAT_CORE;
-
-	//sccp_event_listeners = (struct sccp_event_subscriptions *)sccp_malloc(sizeof(struct sccp_event_subscriptions));
-	//memset(sccp_event_listeners, 0, sizeof(struct sccp_event_subscriptions));
-	//SCCP_LIST_HEAD_INIT(&sccp_event_listeners->subscriber);
 
 	pbx_rwlock_init(&GLOB(lock));
 #ifndef SCCP_ATOMIC	

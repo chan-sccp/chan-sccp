@@ -561,7 +561,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	}
 
 	//memset(d, 0, sizeof(sccp_device_t));
-	private_data = sccp_calloc(sizeof(struct sccp_private_device_data), 1);
+	private_data = sccp_calloc(sizeof *private_data, 1);
 	if (!private_data) {
 		pbx_log(LOG_ERROR, "%s: No memory to allocate device private data\n", id);
 		d = sccp_device_release(d);
