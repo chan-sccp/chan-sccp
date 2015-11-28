@@ -64,14 +64,14 @@ static struct sccp_refcount_obj_info {
 	sccp_debug_category_t debugcat;
 } obj_info[] = {
 /* *INDENT-OFF* */
-	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
-	[SCCP_REF_LINE] = {NULL, "line", DEBUGCAT_LINE},
+	[SCCP_REF_PARTICIPANT] = {NULL, "participant", DEBUGCAT_CONFERENCE},
+	[SCCP_REF_CONFERENCE] = {NULL, "conference", DEBUGCAT_CONFERENCE},
+	[SCCP_REF_EVENT] = {NULL, "event", DEBUGCAT_EVENT},
 	[SCCP_REF_CHANNEL] = {NULL, "channel", DEBUGCAT_CHANNEL},
 	[SCCP_REF_LINEDEVICE] = {NULL, "linedevice", DEBUGCAT_LINE},
-	[SCCP_REF_EVENT] = {NULL, "event", DEBUGCAT_EVENT},
+	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
+	[SCCP_REF_LINE] = {NULL, "line", DEBUGCAT_LINE},
 	[SCCP_REF_TEST] = {NULL, "test", DEBUGCAT_HIGH},
-	[SCCP_REF_CONFERENCE] = {NULL, "conference", DEBUGCAT_CONFERENCE},
-	[SCCP_REF_PARTICIPANT] = {NULL, "participant", DEBUGCAT_CONFERENCE},
 /* *INDENT-ON* */
 };
 
@@ -118,7 +118,7 @@ void sccp_refcount_init(void)
 
 void sccp_refcount_destroy(void)
 {
-	int x;
+	uint32_t x, type;
 	RefCountedObject *obj;
 
 	pbx_log(LOG_NOTICE, "SCCP: (Refcount) destroying...\n");
@@ -128,21 +128,25 @@ void sccp_refcount_destroy(void)
 
 	// cleanup if necessary, if everything is well, this should not be necessary
 	ast_rwlock_wrlock(&objectslock);
-	for (x = 0; x < SCCP_HASH_PRIME; x++) {
-		if (objects[x]) {
+	for (type = 0; type < ARRAY_LEN(obj_info); type++) { 							// unwind in order of type priority
+		for (x = 0; x < SCCP_HASH_PRIME && objects[x]; x++) {
 			SCCP_RWLIST_WRLOCK(&(objects[x])->refCountedObjects);
-			while ((obj = SCCP_RWLIST_REMOVE_HEAD(&(objects[x])->refCountedObjects, list))) {
-				pbx_log(LOG_NOTICE, "Cleaning up [%3d]=type:%17s, id:%25s, ptr:%15p, refcount:%4d, alive:%4s, size:%4d\n", x, (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", obj->len);
-				if ((&obj_info[obj->type])->destructor) {
-					(&obj_info[obj->type])->destructor(obj->data);
-				}
+			SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&(objects[x])->refCountedObjects, obj, list) {
+				if (obj->type == type) {
+					pbx_log(LOG_NOTICE, "Cleaning up [%3d]=type:%17s, id:%25s, ptr:%15p, refcount:%4d, alive:%4s, size:%4d\n", x, (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", obj->len);
+					if ((&obj_info[obj->type])->destructor) {
+						(&obj_info[obj->type])->destructor(obj->data);
+					}
 #ifndef SCCP_ATOMIC
-				ast_mutex_destroy(&obj->lock);
+					ast_mutex_destroy(&obj->lock);
 #endif
-				memset(obj, 0, sizeof(RefCountedObject));
-				sccp_free(obj);
-				obj = NULL;
+					memset(obj, 0, sizeof(RefCountedObject));
+					sccp_free(obj);
+					obj = NULL;
+					SCCP_RWLIST_REMOVE_CURRENT(list);
+				}
 			}
+			SCCP_RWLIST_TRAVERSE_SAFE_END;
 			SCCP_RWLIST_UNLOCK(&(objects[x])->refCountedObjects);
 			SCCP_RWLIST_HEAD_DESTROY(&(objects[x])->refCountedObjects);
 
