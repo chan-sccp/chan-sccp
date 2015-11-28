@@ -2838,12 +2838,15 @@ void sccp_handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constM
 	}
 
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
-
-	if ((d->active_channel && d->active_channel->passthrupartyid == passThruPartyId) || !passThruPartyId) {	// reduce the amount of searching by first checking active_channel
-		channel = sccp_channel_retain(d->active_channel);
-	} else {
+	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
+		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
+			channel = sccp_channel_release(channel);
+		}
+	}
+	if (!channel && passThruPartyId) {
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
 	}
+
 	if (mediastatus) {
 		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned: '%s' (%d) !. Giving up.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
 		if (channel) {
@@ -2937,10 +2940,12 @@ void sccp_handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constM
 	}
 
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
-
-	if ((d->active_channel && d->active_channel->passthrupartyid == passThruPartyId) || !passThruPartyId) {	// reduce the amount of searching by first checking active_channel
-		channel = sccp_channel_retain(d->active_channel);
-	} else {
+	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
+		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
+			channel = sccp_channel_release(channel);
+		}
+	}
+	if (!channel && passThruPartyId) {
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
 	}
 	if (channel) {												// && sccp_channel->state != SCCP_CHANNELSTATE_DOWN) {
@@ -3023,13 +3028,14 @@ void sccp_handle_startmediatransmission_ack(constSessionPtr s, devicePtr d, cons
 	}
 
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
-
-	if ((d->active_channel && d->active_channel->passthrupartyid == passthrupartyid) || !passthrupartyid) {
-		channel = sccp_channel_retain(d->active_channel);
-	} else {
+	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
+		if (channel->passthrupartyid != passthrupartyid || channel->callid != callID) {		// make sure this is the intended channel
+			channel = sccp_channel_release(channel);
+		}
+	}
+	if (!channel && passthrupartyid) {
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passthrupartyid);
 	}
-
 	if (!channel) {
 		pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u / callid %u / callid1 %u not found, please report this to developer\n", DEV_ID_LOG(d), partyID, callID, callID1);
 		return;
