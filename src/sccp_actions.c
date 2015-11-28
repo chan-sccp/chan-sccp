@@ -682,11 +682,9 @@ static btnlist *sccp_make_button_template(devicePtr d)
 	if (!d) {
 		return NULL;
 	}
-	if (!(btn = sccp_malloc(sizeof(btnlist) * StationMaxButtonTemplateSize))) {
+	if (!(btn = sccp_calloc(sizeof *btn, StationMaxButtonTemplateSize))) {
 		return NULL;
 	}
-
-	memset(btn, 0, sizeof(btnlist) * StationMaxButtonTemplateSize);
 	sccp_dev_build_buttontemplate(d, btn);
 
 	uint16_t speeddialInstance = SCCP_FIRST_SPEEDDIALINSTANCE;						/* starting instance for speeddial is 1 */

@@ -1505,7 +1505,7 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 		path = path->next;
 	}
 
-	if (!(ha = sccp_calloc(1, sizeof(*ha)))) {
+	if (!(ha = sccp_calloc(sizeof *ha, 1))) {
 		if (error) {
 			*error = 1;
 		}
@@ -2256,8 +2256,8 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 
 	strings_size = num_frames * sizeof(*strings);
 
-	eachlen = sccp_calloc(num_frames, sizeof(*eachlen));
-	strings = sccp_calloc(num_frames, sizeof(*strings));
+	eachlen = sccp_calloc(sizeof *eachlen, num_frames);
+	strings = sccp_calloc(sizeof *strings, num_frames);
 	if (!eachlen || !strings) {
 		sccp_free(eachlen);
 		sccp_free(strings);

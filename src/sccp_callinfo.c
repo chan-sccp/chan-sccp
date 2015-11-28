@@ -95,7 +95,7 @@ struct callinfo_lookup {
 
 sccp_callinfo_t *const sccp_callinfo_ctor(uint8_t callInstance)
 {
-	sccp_callinfo_t *const ci = sccp_calloc(sizeof(sccp_callinfo_t), 1);
+	sccp_callinfo_t *const ci = sccp_calloc(sizeof *ci, 1);
 
 	if (!ci) {
 		pbx_log(LOG_ERROR, "SCCP: No memory to allocate callinfo object. Failing\n");

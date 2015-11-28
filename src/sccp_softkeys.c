@@ -520,7 +520,7 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Select Pressed\n", DEV_ID_LOG(d));
-	sccp_selectedchannel_t *x = NULL;
+	sccp_selectedchannel_t *selectedchannel = NULL;
 	sccp_msg_t *msg = NULL;
 	uint8_t numSelectedChannels = 0, status = 0;
 
@@ -535,18 +535,18 @@ static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 
 	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
 	if (device) {
-		if ((x = sccp_device_find_selectedchannel(device, c))) {
+		if ((selectedchannel = sccp_device_find_selectedchannel(device, c))) {
 			SCCP_LIST_LOCK(&device->selectedChannels);
-			x = SCCP_LIST_REMOVE(&device->selectedChannels, x, list);
+			selectedchannel = SCCP_LIST_REMOVE(&device->selectedChannels, selectedchannel, list);
 			SCCP_LIST_UNLOCK(&device->selectedChannels);
-			sccp_channel_release(x->channel);
-			sccp_free(x);
+			sccp_channel_release(selectedchannel->channel);
+			sccp_free(selectedchannel);
 		} else {
-			x = sccp_malloc(sizeof(sccp_selectedchannel_t));
-			if (x != NULL) {
-				x->channel = sccp_channel_retain(c);
+			selectedchannel = sccp_calloc(sizeof *selectedchannel, 1);
+			if (selectedchannel != NULL) {
+				selectedchannel->channel = sccp_channel_retain(c);
 				SCCP_LIST_LOCK(&device->selectedChannels);
-				SCCP_LIST_INSERT_HEAD(&device->selectedChannels, x, list);
+				SCCP_LIST_INSERT_HEAD(&device->selectedChannels, selectedchannel, list);
 				SCCP_LIST_UNLOCK(&device->selectedChannels);
 				status = 1;
 			}
@@ -1057,8 +1057,7 @@ void sccp_softkey_clear(void)
  */
 sccp_softkeyMap_cb_t __attribute__ ((malloc)) * sccp_softkeyMap_copyStaticallyMapped(void)
 {
-	sccp_softkeyMap_cb_t *newSoftKeyMap = sccp_malloc(ARRAY_LEN(softkeyCbMap) * sizeof(sccp_softkeyMap_cb_t));
-
+	sccp_softkeyMap_cb_t *newSoftKeyMap = sccp_malloc((sizeof *newSoftKeyMap) * ARRAY_LEN(softkeyCbMap));
 	if (!newSoftKeyMap) {
 		return NULL;
 	}

@@ -172,7 +172,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	//ast_mutex_init(&channel->lock);
 	sccp_copy_string(channel->designator, designator, sizeof(channel->designator));
 
-	private_data = sccp_calloc(sizeof(struct sccp_private_channel_data), 1);
+	private_data = sccp_calloc(sizeof *private_data, 1);
 	if (!private_data) {
 		/* error allocating memory */
 		pbx_log(LOG_ERROR, "%s: No memory to allocate channel private data on line %s\n", l->id, l->name);
