@@ -2874,7 +2874,6 @@ void sccp_handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constM
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting Phone RTP/UDP Transmission (State: %s[%d])\n", d->id, sccp_channelstate2str(channel->state), channel->state);
 		sccp_channel_setDevice(channel, d);
 		if (channel->rtp.audio.rtp) {
-#ifndef CS_EXPERIMENTAL
 			if (d->nat >= SCCP_NAT_ON) {
 				/* Rewrite ip-addres to the outside source address using the phones connection (device->sin) */
 				uint16_t port = sccp_socket_getPort(&sas);
@@ -2884,7 +2883,6 @@ void sccp_handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constM
 				sccp_socket_setPort(&sas, port);
 
 			}
-#endif
 			sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
 			sccp_channel_updateMediaTransmission(channel);
 
@@ -2955,7 +2953,6 @@ void sccp_handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constM
 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting device rtp transmission with state %s(%d)\n", d->id, sccp_channelstate2str(channel->state), channel->state);
 		if (channel->rtp.video.rtp || sccp_rtp_createVideoServer(channel)) {
-#ifndef CS_EXPERIMENTAL
 			if (d->nat >= SCCP_NAT_ON) {
 				uint16_t port = sccp_socket_getPort(&sas);
 				sccp_session_getSas(s, &sas);
@@ -2964,8 +2961,6 @@ void sccp_handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constM
 			}
 
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s\n", d->id, sccp_socket_stringify(&sas));
-
-#endif
 			sccp_rtp_set_phone(channel, &channel->rtp.video, &sas);
 			channel->rtp.video.writeState = SCCP_RTP_STATUS_ACTIVE;
 
