@@ -402,9 +402,20 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 				linedevice->cfwdAll.enabled || 
 				(linedevice->cfwdBusy.enabled && (sccp_device_getDeviceState(linedevice->device) != SCCP_DEVICESTATE_ONHOOK || sccp_device_getActiveAccessory(linedevice->device)))
 			) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward active on line %s\n", linedevice->device->id, linedevice->line->name);
-				ForwardingLineDevice = linedevice;
-				c->subscribers--;
+				if (SCCP_LIST_GETSIZE(&l->devices) == 1) {
+					/* when single line -> use asterisk functionality directly, without creating new channel + masquerade */
+					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward active on line %s\n", linedevice->device->id, linedevice->line->name);
+					ForwardingLineDevice = linedevice;
+				} else {
+					/* shared line -> create a temp channel to call forward destination and tie them together */
+					pbx_log(LOG_NOTICE, "%s: initialize cfwd%s for line %s\n", linedevice->device->id, (linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : "None")), l->name);
+					if (sccp_channel_forward(c, linedevice, linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : linedevice->cfwdBusy.number) == 0) {
+						sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+						sccp_channel_send_callinfo(linedevice->device, c);
+						isRinging = TRUE;
+					}
+				}
+				c->subscribers--; 
 				continue;
 			}
 		}
@@ -471,6 +482,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_RINGING);
 		iPbx.queue_control(c->owner, AST_CONTROL_RINGING);
 	} else if (ForwardingLineDevice) {
+		/* when single line -> use asterisk functionality directly, without creating new channel + masquerade */
 		pbx_log(LOG_NOTICE, "%s: initialize cfwd%s for line %s\n", ForwardingLineDevice->device->id, (ForwardingLineDevice->cfwdAll.enabled ? "All" : (ForwardingLineDevice->cfwdBusy.enabled ? "Busy" : "None")), l->name);
 #if CS_AST_CONTROL_REDIRECTING
 		iPbx.queue_control(c->owner, AST_CONTROL_REDIRECTING);
