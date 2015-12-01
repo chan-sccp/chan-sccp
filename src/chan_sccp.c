@@ -223,6 +223,7 @@ static const struct messageMap_cb sccpMessagesCbMap[] = {
 	[OffHookMessage] = {sccp_handle_offhook, TRUE},
 	[OnHookMessage] = {sccp_handle_onhook, TRUE},
 	[SoftKeyEventMessage] = {sccp_handle_soft_key_event, TRUE},
+	[PortResponseMessage] = {sccp_handle_port_response, TRUE},
 	[OpenReceiveChannelAck] = {sccp_handle_open_receive_channel_ack, TRUE},
 	[OpenMultiMediaReceiveChannelAckMessage] = {sccp_handle_OpenMultiMediaReceiveAck, TRUE},
 	[StartMediaTransmissionAck] = {sccp_handle_startmediatransmission_ack, TRUE},

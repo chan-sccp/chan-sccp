@@ -27,6 +27,7 @@
 
 #include "sccp_labels.h"
 #include "sccp_softkeys.h"
+#include "sccp_enum.h"
 
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW		3							/*!< At least we require protocol V.3 */
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH		22							/*!< We support up to protocol V.17 */
@@ -396,7 +397,7 @@ typedef enum {
 	UpdateCapabilitiesV2Message 			= 0x0043,	/*new (2013-12-9)*/
 	UpdateCapabilitiesV3Message			= 0x0044,	/* DynamicUpdateCapabilitiesMessage */ /*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181/ */
 	
-	PortResMessage 					= 0x0045,	/*new (2013-12-9)*/
+	PortResponseMessage				= 0x0045,	/*new (2013-12-9)*/
 	QoSResvNotifyMessage 				= 0x0046,	/*new (2013-12-9)*/
 	QoSErrorNotifyMessage 				= 0x0047,	/*new (2013-12-9)*/
 
@@ -513,7 +514,7 @@ typedef enum {
 	SpeedDialStatDynamicMessage 			= 0x0149,
 	CallInfoDynamicMessage 				= 0x014A,
 	
-	PortReqMessage					= 0x014B,	/*new (2013-12-9)*/
+	PortRequestMessage				= 0x014B,	/*new (2013-12-9)*/
 	PortCloseMessage 				= 0x014C,	/*new (2013-12-9)*/
 	QoSListenMessage 				= 0x014D,	/*new (2013-12-9)*/
 	QoSPathMessage 					= 0x014E,	/*new (2013-12-9)*/
@@ -576,7 +577,7 @@ typedef struct {
 } EncryptionKey;
 
 typedef struct {
-	skinny_encryptionmethod_t algorithm;
+	skinny_encryptionMethod_t algorithm;
 	uint16_t keylen;
 	uint16_t saltlen;
 	EncryptionKey keyData;
@@ -3217,7 +3218,43 @@ typedef union {
 	} AnnouncementFinishMessage;
 
 	struct {
-	} PortResMessage;											/*!< Port Response Message Structure */
+		uint32_t lel_conferenceId;									/*!< Conference ID */
+		uint32_t lel_callReference;									/*!< Call Reference */
+		uint32_t lel_passThruPartyId;									/*!< Pass Through ID*/
+		uint32_t lel_mediaTransportType;								/*!< Skinny mediaTransportType Enum */
+		uint32_t lel_ipv46;										/*!< ipv4 / ipv6 */
+		uint32_t lel_mediaType;										/*!< Skinny mediaType Enum */
+	} PortRequestMessage;											/*!< Port Request Message Structure */
+
+	struct {
+		union {
+			struct {
+				uint32_t lel_conferenceId;							/*!< Conference ID */
+				uint32_t lel_callReference;							/*!< Call Reference */
+				uint32_t lel_passThruPartyId;							/*!< Pass Through ID*/
+				uint32_t bel_ipAddr;								/*!< Ip Address Array (This field is apparently in big-endian format, even though most other fields are in little-endian format.) */
+				uint32_t lel_portNumber;							/*!< Port Number */
+				uint32_t lel_RTCPPortNumber;							/*!< RTCP Port Number */
+			} v3;
+			struct {
+				uint32_t lel_conferenceId;							/*!< Conference ID */
+				uint32_t lel_callReference;							/*!< Call Reference */
+				uint32_t lel_passThruPartyId;							/*!< Pass Through ID*/
+				uint32_t lel_ipv46;								/*!< ipv4 / ipv6 */
+				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
+				uint32_t lel_portNumber;							/*!< Port Number */
+				uint32_t lel_RTCPPortNumber;							/*!< RTCP Port Number */
+				uint32_t lel_mediaType;								/*!< Skinny Media Type (Enum) */
+			} v19;
+		};
+	} PortResponseMessage;											/*!< Port Response Message Structure */
+
+	struct {
+		uint32_t lel_conferenceId;									/*!< Conference ID */
+		uint32_t lel_callReference;									/*!< Call Reference */
+		uint32_t lel_passThruPartyId;									/*!< Pass Through ID*/
+		uint32_t lel_mediaType;										/*!< Skinny Media Type (Enum) */
+	} PortCloseMessage;											/*!< Port Close Message Structure */
 
 	struct {
 	} QoSResvNotifyMessage;											/*!< QoS Resv Notify Message Structure */
@@ -3225,11 +3262,6 @@ typedef union {
 	struct {
 	} QoSErrorNotifyMessage;										/*!< QoS Error Notify Message Structure */
 
-	struct {
-	} PortReqMessage;											/*!< Port Request Message Structure */
-
-	struct {
-	} PortCloseMessage;											/*!< Port Close Message Structure */
 
 	struct {
 	} QoSListenMessage;											/*!< QoS Listen Message Structure */
@@ -3455,10 +3487,10 @@ static const struct messagetype sccp_messagetypes[] = {
 /*new*/
 	[UpdateCapabilitiesV2Message] = {		"Update Capabilities V2",			offsize(sccp_data_t, UpdateCapabilitiesV2Message)},
 	[UpdateCapabilitiesV3Message] = {		"Update Capabilities V3",			offsize(sccp_data_t, UpdateCapabilitiesV3Message)},
-	[PortResMessage] = {				"Port Response Message",			offsize(sccp_data_t, PortResMessage)},
+	[PortResponseMessage] = {			"Port Response Message",			offsize(sccp_data_t, PortResponseMessage)},
 	[QoSResvNotifyMessage] = {			"QoS Resv Notify Message",			offsize(sccp_data_t, QoSResvNotifyMessage)},
 	[QoSErrorNotifyMessage] = {			"QoS Error Notify Message",			offsize(sccp_data_t, QoSErrorNotifyMessage)},
-	[PortReqMessage] = {				"Port Request Message",				offsize(sccp_data_t, PortReqMessage)},
+	[PortRequestMessage] = {			"Port Request Message",				offsize(sccp_data_t, PortRequestMessage)},
 	[PortCloseMessage] = {				"Port Close Message",				offsize(sccp_data_t, PortCloseMessage)},
 	[QoSListenMessage] = {				"QoS Listen Message",				offsize(sccp_data_t, QoSListenMessage)},
 	[QoSPathMessage] = {				"QoS Path Message",				offsize(sccp_data_t, QoSPathMessage)},
@@ -3552,6 +3584,8 @@ typedef struct {
 	void (*const sendStartMultiMediaTransmission) (constDevicePtr device, constChannelPtr channel, int payloadType, int bitRate);
 	void (*const sendStartMediaTransmission) (constDevicePtr device, constChannelPtr channel);
 	void (*const sendConnectionStatisticsReq) (constDevicePtr device, constChannelPtr channel, uint8_t clear);
+	void (*const sendPortRequest) (constDevicePtr device, constChannelPtr channel, skinny_mediaTransportType_t mediaTransportType, skinny_mediaType_t mediaType);
+	void (*const sendPortClose) (constDevicePtr device, constChannelPtr channel, skinny_mediaType_t mediaType);
 
 	/* parse received messages */
 	void (*const parseOpenReceiveChannelAck) (constMessagePtr msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
@@ -3559,6 +3593,7 @@ typedef struct {
 	void (*const parseStartMediaTransmissionAck) (constMessagePtr msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
 	void (*const parseStartMultiMediaTransmissionAck) (constMessagePtr msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
 	void (*const parseEnblocCall) (constMessagePtr msg, char *calledParty, uint32_t * lineInstance);
+	void (*const parsePortResponse) (constMessagePtr msg, uint32_t *conferenceId, uint32_t *callReference, uint32_t *passThruPartyId, struct sockaddr_storage *ss, uint32_t * RTCPPortNumber, skinny_mediaType_t *mediaType);
 } sccp_deviceProtocol_t;											/*!< SCCP Device Protocol Callback Structure */
 
 boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version);

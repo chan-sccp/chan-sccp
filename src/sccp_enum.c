@@ -4313,13 +4313,13 @@ const char *skinny_devicetype_all_entries(void) {
 /* = End =========================================================================================       sparse skinny_devicetype === */
 
 
-/* = Begin =======================================================================================        skinny_encryptionmethod === */
+/* = Begin =======================================================================================        skinny_encryptionMethod === */
 
 /*!
  * \brief Skinny Device Registration (ENUM)
  */
-static const char *__skinny_encryptionmethod_str = "skinny_encryptionmethod";
-static const char *skinny_encryptionmethod_map[] = {
+static const char *__skinny_encryptionMethod_str = "skinny_encryptionMethod";
+static const char *skinny_encryptionMethod_map[] = {
 	[SKINNY_ENCRYPTIONMETHOD_NONE] = "No Encryption",
 	[SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_32] = "AES128 SHA1 32",
 	[SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_80] = "AES128 SHA1 80",
@@ -4330,42 +4330,42 @@ static const char *skinny_encryptionmethod_map[] = {
 	[SKINNY_ENCRYPTIONMETHOD_SENTINEL] = "LOOKUPERROR"
 };
 
-int skinny_encryptionmethod_exists(int skinny_encryptionmethod_int_value) {
-	if ((SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_32 <=skinny_encryptionmethod_int_value) && (skinny_encryptionmethod_int_value < SKINNY_ENCRYPTIONMETHOD_SENTINEL )) {
+int skinny_encryptionMethod_exists(int skinny_encryptionMethod_int_value) {
+	if ((SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_32 <=skinny_encryptionMethod_int_value) && (skinny_encryptionMethod_int_value < SKINNY_ENCRYPTIONMETHOD_SENTINEL )) {
 		return 1;
 	}
 	return 0;
 }
 
-const char * skinny_encryptionmethod2str(skinny_encryptionmethod_t enum_value) {
+const char * skinny_encryptionMethod2str(skinny_encryptionMethod_t enum_value) {
 	if ((SKINNY_ENCRYPTIONMETHOD_NONE <= enum_value) && (enum_value <= SKINNY_ENCRYPTIONMETHOD_SENTINEL)) {
-		return skinny_encryptionmethod_map[enum_value];
+		return skinny_encryptionMethod_map[enum_value];
 	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __skinny_encryptionmethod_str);
-	return "OutOfBounds: skinny_encryptionmethod2str\n";
+	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __skinny_encryptionMethod_str);
+	return "OutOfBounds: skinny_encryptionMethod2str\n";
 }
 
-skinny_encryptionmethod_t skinny_encryptionmethod_str2val(const char *lookup_str) {
+skinny_encryptionMethod_t skinny_encryptionMethod_str2val(const char *lookup_str) {
 	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(skinny_encryptionmethod_map); idx++) {
-		if (sccp_strcaseequals(skinny_encryptionmethod_map[idx], lookup_str)) {
+	for (idx = 0; idx < ARRAY_LEN(skinny_encryptionMethod_map); idx++) {
+		if (sccp_strcaseequals(skinny_encryptionMethod_map[idx], lookup_str)) {
 			return idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_encryptionmethod_str, lookup_str);
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_encryptionMethod_str, lookup_str);
 	return SKINNY_ENCRYPTIONMETHOD_SENTINEL;
 }
 
-int skinny_encryptionmethod_str2intval(const char *lookup_str) {
-	int res = skinny_encryptionmethod_str2val(lookup_str);
+int skinny_encryptionMethod_str2intval(const char *lookup_str) {
+	int res = skinny_encryptionMethod_str2val(lookup_str);
 	return (int)res != SKINNY_ENCRYPTIONMETHOD_SENTINEL ? res : -1;
 }
 
-const char *skinny_encryptionmethod_all_entries(void) {
+const char *skinny_encryptionMethod_all_entries(void) {
 	static char res[] = "No Encryption,AES128 SHA1 32,AES128 SHA1 80,HMAC_SHA1_32,HMAC_SHA1_80,AES 128 GCM,AES 256 GCM";
 	return res;
 }
-/* = End =========================================================================================        skinny_encryptionmethod === */
+/* = End =========================================================================================        skinny_encryptionMethod === */
 
 
 /* = Begin =======================================================================================         skinny_miscCommandType === */
@@ -4422,4 +4422,111 @@ const char *skinny_miscCommandType_all_entries(void) {
 	return res;
 }
 /* = End =========================================================================================         skinny_miscCommandType === */
+
+
+/* = Begin =======================================================================================      skinny_mediaTransportType === */
+
+/*!
+ * \brief Skinny MediaTransportType
+ */
+static const char *__skinny_mediaTransportType_str = "skinny_mediaTransportType";
+static const char *skinny_mediaTransportType_map[] = {
+	[SKINNY_MEDIA_TRANSPORT_TYPE_RTP] = "Rtp",
+	[SKINNY_MEDIA_TRANSPORT_TYPE_UDP] = "Udp",
+	[SKINNY_MEDIA_TRANSPORT_TYPE_TCP] = "Tcp",
+	[SKINNY_MEDIATRANSPORTTYPE_SENTINEL] = "LOOKUPERROR"
+};
+
+int skinny_mediaTransportType_exists(int skinny_mediaTransportType_int_value) {
+	if ((SKINNY_MEDIA_TRANSPORT_TYPE_UDP <=skinny_mediaTransportType_int_value) && (skinny_mediaTransportType_int_value < SKINNY_MEDIATRANSPORTTYPE_SENTINEL )) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * skinny_mediaTransportType2str(skinny_mediaTransportType_t enum_value) {
+	if ((SKINNY_MEDIA_TRANSPORT_TYPE_RTP <= enum_value) && (enum_value <= SKINNY_MEDIATRANSPORTTYPE_SENTINEL)) {
+		return skinny_mediaTransportType_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __skinny_mediaTransportType_str);
+	return "OutOfBounds: skinny_mediaTransportType2str\n";
+}
+
+skinny_mediaTransportType_t skinny_mediaTransportType_str2val(const char *lookup_str) {
+	uint32_t idx;
+	for (idx = 0; idx < ARRAY_LEN(skinny_mediaTransportType_map); idx++) {
+		if (sccp_strcaseequals(skinny_mediaTransportType_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_mediaTransportType_str, lookup_str);
+	return SKINNY_MEDIATRANSPORTTYPE_SENTINEL;
+}
+
+int skinny_mediaTransportType_str2intval(const char *lookup_str) {
+	int res = skinny_mediaTransportType_str2val(lookup_str);
+	return (int)res != SKINNY_MEDIATRANSPORTTYPE_SENTINEL ? res : -1;
+}
+
+const char *skinny_mediaTransportType_all_entries(void) {
+	static char res[] = "Rtp,Udp,Tcp";
+	return res;
+}
+/* = End =========================================================================================      skinny_mediaTransportType === */
+
+
+/* = Begin =======================================================================================               skinny_mediaType === */
+
+/*!
+ * \brief Skinny MediaType
+ */
+static const char *__skinny_mediaType_str = "skinny_mediaType";
+static const char *skinny_mediaType_map[] = {
+	[SKINNY_MEDIA_TYPE_INVALID] = "Invalid",
+	[SKINNY_MEDIA_TYPE_AUDIO] = "Audio",
+	[SKINNY_MEDIA_TYPE_MAIN_VIDEO] = "Main Video",
+	[SKINNY_MEDIA_TYPE_FECC] = "FECC",
+	[SKINNY_MEDIA_TYPE_PRESENTATION_VIDEO] = "Presentation Video",
+	[SKINNY_MEDIA_TYPE_DATA_APP_BFCP] = "DataApp_BFCP",
+	[SKINNY_MEDIA_TYPE_DATA_APP_IXCHANNEL] = "DataApp_IxChannel",
+	[SKINNY_MEDIA_TYPE_T38] = "T38",
+	[SKINNY_MEDIATYPE_SENTINEL] = "LOOKUPERROR"
+};
+
+int skinny_mediaType_exists(int skinny_mediaType_int_value) {
+	if ((SKINNY_MEDIA_TYPE_AUDIO <=skinny_mediaType_int_value) && (skinny_mediaType_int_value < SKINNY_MEDIATYPE_SENTINEL )) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * skinny_mediaType2str(skinny_mediaType_t enum_value) {
+	if ((SKINNY_MEDIA_TYPE_INVALID <= enum_value) && (enum_value <= SKINNY_MEDIATYPE_SENTINEL)) {
+		return skinny_mediaType_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __skinny_mediaType_str);
+	return "OutOfBounds: skinny_mediaType2str\n";
+}
+
+skinny_mediaType_t skinny_mediaType_str2val(const char *lookup_str) {
+	uint32_t idx;
+	for (idx = 0; idx < ARRAY_LEN(skinny_mediaType_map); idx++) {
+		if (sccp_strcaseequals(skinny_mediaType_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_mediaType_str, lookup_str);
+	return SKINNY_MEDIATYPE_SENTINEL;
+}
+
+int skinny_mediaType_str2intval(const char *lookup_str) {
+	int res = skinny_mediaType_str2val(lookup_str);
+	return (int)res != SKINNY_MEDIATYPE_SENTINEL ? res : -1;
+}
+
+const char *skinny_mediaType_all_entries(void) {
+	static char res[] = "Invalid,Audio,Main Video,FECC,Presentation Video,DataApp_BFCP,DataApp_IxChannel,T38";
+	return res;
+}
+/* = End =========================================================================================               skinny_mediaType === */
 
