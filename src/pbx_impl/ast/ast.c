@@ -846,9 +846,7 @@ int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, u
 
 	/* parse options */
 	if (options && (optc = sccp_app_separate_args(options, '/', optv, sizeof(optv) / sizeof(optv[0])))) {
-		pbx_log(LOG_NOTICE, "parse options\n");
 		for (opti = 0; opti < optc; opti++) {
-			pbx_log(LOG_NOTICE, "parse option '%s'\n", optv[opti]);
 			if (!strncasecmp(optv[opti], "aa", 2)) {
 				/* let's use the old style auto answer aa1w and aa2w */
 				if (!strncasecmp(optv[opti], "aa1w", 4)) {
