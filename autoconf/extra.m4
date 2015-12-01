@@ -595,17 +595,18 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	AC_LANG_SAVE
 	AC_LANG_C
 	
-	case "${host}" in
-		*-*-darwin*)
-			dnl OSX compiler doesn't like the gc-sections setting, might be gcc version dependent instead. Waiting for version info.
-			;;
-		*)
-			LDFLAGS="${LDFLAGS} -Wl,-gc-sections"		dnl automatically strip dead/unused code
-			AX_APPEND_COMPILE_FLAGS([ dnl
-				-ffunction-sections dnl
-			], ax_warn_cflags_variable)
-			;;
-	esac
+dnl	case "${host}" in
+dnl	 	*-*-darwin*)
+dnl	 		dnl OSX compiler doesn't like the gc-sections setting, might be gcc version dependent instead. Waiting for version info.
+dnl	 		;;
+dnl	 	*)
+dnl	 		LDFLAGS="${LDFLAGS} --gc-sections"		dnl automatically strip dead/unused code
+dnl	 		AX_APPEND_COMPILE_FLAGS([ dnl
+dnl	 			-ffunction-sections dnl
+dnl				dnl -fdata-sections dnl
+dnl	 		], ax_warn_cflags_variable)
+dnl	 		;;
+dnl	esac
 
 	CFLAGS_saved="`echo ${CFLAGS_saved}|sed 's/^[ \t]*//;s/[ \t]*$//'`"
 	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
