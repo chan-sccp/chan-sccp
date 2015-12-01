@@ -240,7 +240,7 @@ void sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t * const rtp, struct sockadd
 	}
 
 	/* check if we have new information, which requires us to update */
-	if (socket_equals(new_peer, &rtp->phone_remote)) {
+	if (sccp_socket_equals(new_peer, &rtp->phone_remote)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) remote information is equal to the current info, ignore change\n", c->currentDeviceId);
 		return;
 	}
@@ -279,7 +279,7 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 		/* check if we have new infos */
 		/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
 		/*
-		if (socket_equals(new_peer, &c->rtp.audio.phone)) {
+		if (sccp_socket_equals(new_peer, &c->rtp.audio.phone)) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equal to the current one, ignore change\n", c->currentDeviceId);
 			//return;
 		} 

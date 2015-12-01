@@ -980,23 +980,16 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32
  * \param s1 Socket Information
  * \return success as int
  *
- * \retval 0 on diff
- * \retval 1 on equal
+ * \retval FALSE on diff
+ * \retval TRUE on equal
  */
-int socket_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1)
+gcc_inline boolean_t sccp_socket_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1)
 {
-	/*
-	if (s0->sin_addr.s_addr != s1->sin_addr.s_addr || s0->sin_port != s1->sin_port || s0->sin_family != s1->sin_family) {
-		return 0;
-	}
-	*/
-
-	//if (IN6_ARE_ADDR_EQUAL(s0, s1) && s0->ss_family == s1->ss_family ){
 	if (s0->ss_family == s1->ss_family && sccp_socket_cmp_addr(s0, s1) == 0 ) {
-		return 1;
+		return TRUE;
 	} 
 
-	return 0;
+	return FALSE;
 }
 
 /*!

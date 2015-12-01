@@ -121,7 +121,7 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *str);
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *SubscriptionIdNum);
 sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32_t type, const char *dirNum, const char *fqdn, const char *lineDisplayName);
 
-int socket_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1);
+gcc_inline boolean_t sccp_socket_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1);
 gcc_inline size_t sccp_strlen(const char *data);
 gcc_inline boolean_t sccp_strlen_zero(const char *data);
 gcc_inline boolean_t sccp_strequals(const char *data1, const char *data2);
