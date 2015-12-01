@@ -491,6 +491,31 @@ static void sccp_protocol_sendRegisterAckV4(constDevicePtr device, uint8_t keepA
 	sccp_dev_send(device, msg);
 }
 
+/*!
+ * \brief Send Register Acknowledgement Message (V11)
+ */
+static void sccp_protocol_sendRegisterAckV11(constDevicePtr device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat)
+{
+	sccp_msg_t *msg = NULL;
+
+	REQ(msg, RegisterAckMessage);
+
+	msg->data.RegisterAckMessage.protocolVer2 = 0x20;							// 0x20;
+	msg->data.RegisterAckMessage.phoneFeatures1 = 0xF1;							// 0xF1;
+	msg->data.RegisterAckMessage.phoneFeatures2 = 0xFF;							// 0xFF;
+
+	msg->data.RegisterAckMessage.maxProtocolVer = device->protocol->version;
+	msg->data.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
+	msg->data.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel(secondaryKeepAlive);
+
+	if (!sccp_strlen_zero(dateformat)) {
+		sccp_copy_string(msg->data.RegisterAckMessage.dateTemplate, dateformat, sizeof(msg->data.RegisterAckMessage.dateTemplate));
+	} else {
+		sccp_copy_string(msg->data.RegisterAckMessage.dateTemplate, "M/D/Y", sizeof(msg->data.RegisterAckMessage.dateTemplate));
+	}
+	sccp_dev_send(device, msg);
+}
+/* done - registerACK */
 
 /*!
  * \brief Send Open Receive Channel (V3)
@@ -1005,31 +1030,6 @@ static void sccp_protocol_sendConnectionStatisticsReqV19(constDevicePtr device, 
 }
 /* done - sendUserToDeviceData */
 
-/*!
- * \brief Send Register Acknowledgement Message (V11)
- */
-static void sccp_protocol_sendRegisterAckV11(constDevicePtr device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat)
-{
-	sccp_msg_t *msg = NULL;
-
-	REQ(msg, RegisterAckMessage);
-
-	msg->data.RegisterAckMessage.protocolVer2 = 0x20;							// 0x20;
-	msg->data.RegisterAckMessage.phoneFeatures1 = 0xF1;							// 0xF1;
-	msg->data.RegisterAckMessage.phoneFeatures2 = 0xFF;							// 0xFF;
-
-	msg->data.RegisterAckMessage.maxProtocolVer = device->protocol->version;
-	msg->data.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
-	msg->data.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel(secondaryKeepAlive);
-
-	if (!sccp_strlen_zero(dateformat)) {
-		sccp_copy_string(msg->data.RegisterAckMessage.dateTemplate, dateformat, sizeof(msg->data.RegisterAckMessage.dateTemplate));
-	} else {
-		sccp_copy_string(msg->data.RegisterAckMessage.dateTemplate, "M/D/Y", sizeof(msg->data.RegisterAckMessage.dateTemplate));
-	}
-	sccp_dev_send(device, msg);
-}
-/* done - registerACK */
 
 /* sendPortRequest */
 /*!
