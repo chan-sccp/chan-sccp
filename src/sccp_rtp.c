@@ -226,7 +226,7 @@ void sccp_rtp_destroy(constChannelPtr c)
 }
 
 /*!
- * \brief set the address the phone should send rtp media.
+ * \brief update the phones destination address (it's peer)
  * \param c SCCP Channel
  * \param rtp SCCP RTP
  * \param new_peer socket info to remote device
@@ -239,33 +239,27 @@ void sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t * const rtp, struct sockadd
 		return;
 	}
 
-	/* check if we have new infos */
+	/* check if we have new information, which requires us to update */
 	if (socket_equals(new_peer, &rtp->phone_remote)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) remote information are equal to the current one, ignore change\n", c->currentDeviceId);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) remote information is equal to the current info, ignore change\n", c->currentDeviceId);
 		return;
 	}
-	//memcpy(&c->rtp.audio.phone_remote, new_peer, sizeof(c->rtp.audio.phone_remote));
-	memcpy(&rtp->phone_remote, new_peer, sizeof(rtp->phone_remote));
+	
+	memcpy(&rtp->phone_remote, new_peer, sizeof rtp->phone_remote);
+	pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_peer ) Set new remote address to %s\n", c->currentDeviceId, sccp_socket_stringify(&rtp->phone_remote));
 
-	// inet_ntop(rtp->phone_remote.ss_family, sccp_socket_getAddr(&rtp->phone_remote), addressString, sizeof(addressString));
-	// pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_peer ) Set remote address to %s:%d\n", c->currentDeviceId, addressString, sccp_socket_getPort(new_peer));
-	pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_peer ) Set remote address to %s\n", c->currentDeviceId, sccp_socket_stringify(&rtp->phone_remote));
-
-	if (rtp->readState & SCCP_RTP_STATUS_ACTIVE) {
+	if (rtp->readState != SCCP_RTP_STATUS_INACTIVE) {
 		/* Shutdown any early-media or previous media on re-invite */
 		/*! \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Stop media transmission on channel %d\n", c->currentDeviceId, c->callid);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Restart media transmission on channel %d\n", c->currentDeviceId, c->callid);
 
-		/*! \todo we should check if this is a video or autio rtp */
-		// sccp_channel_stopmediatransmission(c);
-		// sccp_channel_startMediaTransmission(c);
+		/*! \todo we should check if this is a video or audio rtp */
 		sccp_channel_updateMediaTransmission(c);
 	}
-
 }
 
 /*!
- * \brief set the address where the phone should send rtp media.
+ * \brief update phones source rtp address
  * \param c SCCP Channel
  * \param rtp SCCP RTP
  * \param new_peer socket info to remote device
@@ -299,10 +293,8 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 		}
 
 		char buf1[NI_MAXHOST + NI_MAXSERV];
-
 		sccp_copy_string(buf1, sccp_socket_stringify(&rtp->phone_remote), sizeof(buf1));
 		char buf2[NI_MAXHOST + NI_MAXSERV];
-
 		sccp_copy_string(buf2, sccp_socket_stringify(&rtp->phone), sizeof(buf2));
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(device), buf1, buf2, sccp_nat2str(device->nat));
 	}
