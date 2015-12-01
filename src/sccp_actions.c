@@ -2822,6 +2822,67 @@ void sccp_handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr 
  * \param d SCCP Device
  * \param msg_in SCCP Message
  */
+void sccp_handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+{
+	AUTO_RELEASE sccp_channel_t *channel = NULL;
+	uint32_t conferenceId = 0, callReference = 0, passThruPartyId = 0, RTCPPortNumber = 0;
+	skinny_mediaType_t mediaType = SKINNY_MEDIATYPE_SENTINEL;
+	struct sockaddr_storage sas = { 0 };
+
+	d->protocol->parsePortResponse((const sccp_msg_t *) msg_in, &conferenceId, &callReference, &passThruPartyId, &sas, &RTCPPortNumber, &mediaType);
+
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (PortResponse) Got PortResponse Remote RTP/UDP '%s', ConferenceId:%d, PassThruPartyId:%u, CallID:%u, RTCPPortNumber:%d, mediaType:%s\n", d->id, 
+		sccp_socket_stringify(&sas), conferenceId, passThruPartyId, callReference, RTCPPortNumber, skinny_mediaType2str(mediaType));
+
+		
+	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
+		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
+			channel = sccp_channel_release(channel);
+		}
+	}
+	if (!channel && passThruPartyId) {
+		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
+	}
+	
+	if (channel) {
+		sccp_rtp_t *rtp = NULL;
+		switch(mediaType) {
+			case SKINNY_MEDIA_TYPE_AUDIO:
+				rtp = &(channel->rtp.audio);
+				break;
+			case SKINNY_MEDIA_TYPE_MAIN_VIDEO:
+				rtp = &(channel->rtp.video);
+				break;
+			case SKINNY_MEDIA_TYPE_INVALID:
+				pbx_log(LOG_ERROR, "%s: PortReponse is Invalid. Skipping Request\n", d->id);
+				return;
+			default:
+				pbx_log(LOG_ERROR, "%s: Cannot handling incoming PortResponse MediaType:%s (yet)!\n", d->id, skinny_mediaType2str(mediaType));
+				return;
+		}
+		
+		if (channel && !sccp_socket_equals(&sas, &rtp->phone_remote)) {
+			if (d->nat >= SCCP_NAT_ON) {
+				/* Rewrite ip-addres to the outside source address using the phones connection (device->sin) */
+				uint16_t port = sccp_socket_getPort(&sas);
+				sccp_session_getSas(s, &sas);
+				
+				sccp_socket_ipv4_mapped(&sas, &sas);
+				sccp_socket_setPort(&sas, port);
+
+			}
+			sccp_rtp_set_phone(channel, rtp, &sas);
+			//rtp->writeState = SCCP_RTP_STATUS_PORTSET;
+		}
+	}
+}
+
+/*!
+ * \brief Handle Start Media Transmission Acknowledgement for Session
+ * \param s SCCP Session
+ * \param d SCCP Device
+ * \param msg_in SCCP Message
+ */
 void sccp_handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
