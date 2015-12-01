@@ -1229,7 +1229,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 		options++;
 	}
 
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=" UI64FMT ", lineName=%s, options=%s, requestor: %s\n", type, (uint64_t) ast_format_cap_to_old_bitfield(format), lineName, (options) ? options : "", pbx_channel_name(requestor));
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=" UI64FMT ", lineName=%s, options=%s, requestor: %s\n", type, (ULONG) ast_format_cap_to_old_bitfield(format), lineName, (options) ? options : "", pbx_channel_name(requestor));
 	if (requestor) {							/* get ringer mode from ALERT_INFO */
 		const char *alert_info = pbx_builtin_getvar_helper((PBX_CHANNEL_TYPE *) requestor, "ALERT_INFO");
 		if (alert_info && !sccp_strlen_zero(alert_info)) {
