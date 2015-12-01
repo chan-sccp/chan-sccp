@@ -992,9 +992,9 @@ int socket_equals(const struct sockaddr_storage * const s0, const struct sockadd
 	*/
 
 	//if (IN6_ARE_ADDR_EQUAL(s0, s1) && s0->ss_family == s1->ss_family ){
-	if (sccp_socket_cmp_addr(s0, s1) && s0->ss_family == s1->ss_family) {
+	if (s0->ss_family == s1->ss_family && sccp_socket_cmp_addr(s0, s1) == 0 ) {
 		return 1;
-	}
+	} 
 
 	return 0;
 }
