@@ -22,6 +22,8 @@ AC_DEFUN([CS_SETUP_BUILD],[
 	AC_PATH_PROGS(AWK,awk,No)
 	AC_PATH_PROGS(GAWK,gawk,No)
 	AC_PATH_PROGS(PKGCONFIG,pkg-config,No)
+	AC_PATH_PROGS(RPMBUILD,rpmbuild,No)
+	AM_CONDITIONAL(ENABLE_RPMBUILD, test x$RPMBUILD != xNo)
 
 	if test ! x"${UNAME}" = xNo; then
 	    if test -n $BUILD_OS ; then
@@ -465,6 +467,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
  	else 
  		CPPFLAGS_saved="-U_FORTIFY_SOURCE"
  	fi
+ 	LDFLAGS_saved="${LDFLAGS}"
  	
  	strip_binaries="no"
 	AS_IF([test "X$enable_optimization" == "Xyes"], [
@@ -475,7 +478,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	   	CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
 		GDB_FLAGS=""
 	], [
-	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O[0-9]\ \?//g' -e 's/\-g[$|\ ]//g'`"
+	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O[0-9]\ \?//g' -e 's/[^|\ ]\-g[$|\ ]//g'`"
 	 	dnl CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O[0-9]\ \?//g'`"
 		optimize_flag="-O0"
 		case "${CC}" in
@@ -604,7 +607,7 @@ dnl	 	*)
 dnl	 		LDFLAGS="${LDFLAGS} --gc-sections"		dnl automatically strip dead/unused code
 dnl	 		AX_APPEND_COMPILE_FLAGS([ dnl
 dnl	 			-ffunction-sections dnl
-dnl				dnl -fdata-sections dnl
+dnl				-fdata-sections dnl
 dnl	 		], ax_warn_cflags_variable)
 dnl	 		;;
 dnl	esac
@@ -613,6 +616,7 @@ dnl	esac
 	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS="${CFLAGS_saved} "
 	CPPFLAGS="${CPPFLAGS_saved} -I. "
+	LDFLAGS="${LDFLAGS_saved}"
 	AC_SUBST([DEBUG])
 	AC_SUBST([GDB_FLAGS])
 	AC_SUBST([strip_binaries])
