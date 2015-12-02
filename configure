@@ -5748,8 +5748,8 @@ fi
 
 else
 
-	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O0-9\ \?//g' -e 's/\-g\ \?//g'`"
-		optimize_flag="-O0"
+	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O0-9\ \?//g' -e 's/\-g$|\ //g'`"
+	 			optimize_flag="-O0"
 		case "${CC}" in
 			*gcc*)
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Og" >&5

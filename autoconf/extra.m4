@@ -475,7 +475,8 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	   	CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
 		GDB_FLAGS=""
 	], [
-	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O[0-9]\ \?//g' -e 's/\-g\ \?//g'`"
+	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O[0-9]\ \?//g' -e 's/\-g[$|\ ]//g'`"
+	 	dnl CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O[0-9]\ \?//g'`"
 		optimize_flag="-O0"
 		case "${CC}" in
 			*gcc*)
