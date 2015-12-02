@@ -65,7 +65,7 @@ doxygen: ChangeLog ChangeLog-HTML doxygen-doc
 deb: 
 	dpkg-buildpackage -rfakeroot -us -uc
 
-rpm:    dist-gzip	#release
+rpm:    release
 if ENABLE_RPMBUILD
 	@if [ ! -d ~/rpmbuild/BUILD ]; then mkdir -p ~/rpmbuild/BUILD;fi
 	@if [ ! -d ~/rpmbuild/SOURCES ]; then mkdir -p ~/rpmbuild/SOURCES;fi
