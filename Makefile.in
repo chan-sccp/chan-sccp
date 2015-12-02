@@ -513,8 +513,8 @@ top_srcdir = @top_srcdir@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2015-11-01 04:00:09 +0100 (zo, 01 nov 2015) $
-# REVISION: $Revision: 6328 $
+# DATE:     $Date: 2015-12-02 14:49:49 +0100 (wo, 02 dec 2015) $
+# REVISION: $Revision: 6453 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 
 #AUTOMAKE_OPTIONS		= gnu silent-rules
@@ -1087,7 +1087,7 @@ doxygen: ChangeLog ChangeLog-HTML doxygen-doc
 deb: 
 	dpkg-buildpackage -rfakeroot -us -uc
 
-rpm:    dist-gzip#release
+rpm:    release
 @ENABLE_RPMBUILD_TRUE@	@if [ ! -d ~/rpmbuild/BUILD ]; then mkdir -p ~/rpmbuild/BUILD;fi
 @ENABLE_RPMBUILD_TRUE@	@if [ ! -d ~/rpmbuild/SOURCES ]; then mkdir -p ~/rpmbuild/SOURCES;fi
 @ENABLE_RPMBUILD_TRUE@	@if [ ! -d ~/rpmbuild/SPECS ]; then mkdir -p ~/rpmbuild/SPECS;fi

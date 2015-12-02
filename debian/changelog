@@ -1,3 +1,11 @@
+chan-sccp-b (4.3.0-4ubuntu1) UNRELEASED; urgency=medium
+
+  * WIP:
+    - Fixed direcrtp
+    - Revised handling shared line during incoming call
+    - Revised callinfo
+
+ -- Diederik de Groot <ddegroot@talon.nl>  Wed, 02 Dec 2015 14:52:46 +0100
 
 chan-sccp-b (4.2.0-4) stable; urgency=high
 
