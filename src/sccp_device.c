@@ -2263,6 +2263,10 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 		event.event.deviceRegistered.device = sccp_device_retain(d);
 		sccp_event_fire(&event);
 
+		if ((SCCP_NAT_AUTO == d->nat || SCCP_NAT_AUTO_OFF == d->nat || SCCP_NAT_AUTO_ON == d->nat)) {
+			d->nat = SCCP_NAT_AUTO;
+		}
+
 		/* cleanup statistics */
 		memset(&d->configurationStatistic, 0, sizeof(d->configurationStatistic));
 
@@ -2310,10 +2314,6 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 
 		sccp_line_deleteLineButtonsArray(d);
 		
-		if (SCCP_NAT_AUTO == d->nat || SCCP_NAT_AUTO_OFF == d->nat || SCCP_NAT_AUTO_ON == d->nat) {
-			d->nat = SCCP_NAT_AUTO;
-		}
-
 #if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
 		/* Unregister event subscriptions originating from devstate feature */
 		SCCP_LIST_LOCK(&d->devstateSpecifiers);
