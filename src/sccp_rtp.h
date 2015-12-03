@@ -25,8 +25,11 @@ struct sccp_rtp {
 	struct sockaddr_storage phone_remote;									/*!< phone destination address (starttransmission) */
 };														/*!< SCCP RTP Structure */
 
-int sccp_rtp_createAudioServer(constChannelPtr c);
-int sccp_rtp_createVideoServer(constChannelPtr c);
+int sccp_rtp_createAudioServer(constDevicePtr d, constChannelPtr c);
+#ifdef CS_SCCP_VIDEO
+int sccp_rtp_createVideoServer(constDevicePtr d, constChannelPtr c);
+#endif
+int sccp_rtp_requestRTPPorts(constDevicePtr device, constChannelPtr channel);
 void sccp_rtp_stop(constChannelPtr c);
 void sccp_rtp_destroy(constChannelPtr c);
 void sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer);
@@ -34,9 +37,11 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t *rtp, struct sockaddr_stor
 int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp);
 
 boolean_t sccp_rtp_getAudioPeer(constChannelPtr c, struct sockaddr_storage **new_peer);
-boolean_t sccp_rtp_getVideoPeer(constChannelPtr c, struct sockaddr_storage **new_peer);
 sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(constChannelPtr c, sccp_rtp_t **rtp);
+#ifdef CS_SCCP_VIDEO
+boolean_t sccp_rtp_getVideoPeer(constChannelPtr c, struct sockaddr_storage **new_peer);
 sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(constChannelPtr c, sccp_rtp_t **rtp);
+#endif
 
 uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t *const rtp, skinny_codec_t codec);
 boolean_t sccp_rtp_getUs(const sccp_rtp_t * const rtp, struct sockaddr_storage *us);

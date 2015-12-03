@@ -780,7 +780,6 @@ LIBTOOL
 LN_S
 GDB
 OBJCOPY
-RPMBUILD
 TR
 CAT
 SED
@@ -814,6 +813,9 @@ BUILD_HOSTNAME
 BUILD_MACHINE
 BUILD_OS
 BUILD_DATE
+ENABLE_RPMBUILD_FALSE
+ENABLE_RPMBUILD_TRUE
+RPMBUILD
 PKGCONFIG
 GAWK
 CUT
@@ -978,7 +980,6 @@ enable_devstate_feature
 enable_dynamic_speeddial
 enable_dynamic_speeddial_cid
 enable_video
-enable_videolayer
 enable_distributed_devicestate
 enable_experimental_mode
 enable_experimental_xml
@@ -1678,7 +1679,6 @@ Optional Features:
   --disable-dynamic-speeddial-cid
                           disable dynamic speeddials with call info
   --enable-video          enable streaming video (experimental)
-  --enable-videolayer     enable video layer (experimental)
   --enable-distributed-devicestate
                           enable distributed devicestate (>ast 1.6.2)
   --enable-experimental-mode
@@ -5551,6 +5551,60 @@ fi
 done
 test -n "$PKGCONFIG" || PKGCONFIG="No"
 
+	for ac_prog in rpmbuild
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_RPMBUILD+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $RPMBUILD in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_RPMBUILD="$RPMBUILD" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_RPMBUILD="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+RPMBUILD=$ac_cv_path_RPMBUILD
+if test -n "$RPMBUILD"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $RPMBUILD" >&5
+$as_echo "$RPMBUILD" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$RPMBUILD" && break
+done
+test -n "$RPMBUILD" || RPMBUILD="No"
+
+	 if test x$RPMBUILD != xNo; then
+  ENABLE_RPMBUILD_TRUE=
+  ENABLE_RPMBUILD_FALSE='#'
+else
+  ENABLE_RPMBUILD_TRUE='#'
+  ENABLE_RPMBUILD_FALSE=
+fi
+
 
 	if test ! x"${UNAME}" = xNo; then
 	    if test -n $BUILD_OS ; then
@@ -5668,6 +5722,9 @@ $as_echo "yes" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
+
+$as_echo "#define GCC_NESTED 1" >>confdefs.h
+
 			AST_C_COMPILER_FAMILY="gcc"
 
 else
@@ -5690,6 +5747,9 @@ $as_echo "yes" >&6; }
 			fi
 			CFLAGS_saved="${CFLAGS_saved} ${AST_CLANG_BLOCKS}"
 
+
+
+$as_echo "#define CLANG_BLOCKS 1" >>confdefs.h
 
 			AST_C_COMPILER_FAMILY="clang"
 
@@ -5729,6 +5789,7 @@ $as_echo "$as_me: --enable-debug: ${enable_debug}" >&6;}
  	else
  		CPPFLAGS_saved="-U_FORTIFY_SOURCE"
  	fi
+ 	LDFLAGS_saved="${LDFLAGS}"
 
  	strip_binaries="no"
 	if test "X$enable_optimization" == "Xyes"; then :
@@ -5744,8 +5805,8 @@ fi
 
 else
 
-	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O0-9\ \?//g' -e 's/\-g\ \?//g'`"
-		optimize_flag="-O0"
+	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O0-9\ \?//g' -e 's/^|\ \-g$|\ //g'`"
+	 			optimize_flag="-O0"
 		case "${CC}" in
 			*gcc*)
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Og" >&5
@@ -6286,81 +6347,11 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-for flag in  				-ffunction-sections 	; do
-  as_CACHEVAR=`$as_echo "ax_cv_check_cflags__$flag" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts $flag" >&5
-$as_echo_n "checking whether C compiler accepts $flag... " >&6; }
-if eval \${$as_CACHEVAR+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
 
-  ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS  $flag -Werror"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  eval "$as_CACHEVAR=yes"
-else
-  eval "$as_CACHEVAR=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  CFLAGS=$ax_check_save_flags
-fi
-eval ac_res=\$$as_CACHEVAR
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_CACHEVAR"\" = x"yes"; then :
-
-if ${ax_warn_cflags_variable+:} false; then :
-
-  case " $ax_warn_cflags_variable " in #(
-  *" $flag "*) :
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: : ax_warn_cflags_variable already contains \$flag"; } >&5
-  (: ax_warn_cflags_variable already contains $flag) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } ;; #(
-  *) :
-
-     as_fn_append ax_warn_cflags_variable " $flag"
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: : ax_warn_cflags_variable=\"\$ax_warn_cflags_variable\""; } >&5
-  (: ax_warn_cflags_variable="$ax_warn_cflags_variable") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }
-     ;;
-esac
-
-else
-
-  ax_warn_cflags_variable=$flag
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: : ax_warn_cflags_variable=\"\$ax_warn_cflags_variable\""; } >&5
-  (: ax_warn_cflags_variable="$ax_warn_cflags_variable") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }
-
-fi
-
-else
-  :
-fi
-
-done
-
-	LDFLAGS="${LDFLAGS} -Wl,-gc-sections"
 	CFLAGS_saved="`echo ${CFLAGS_saved}|sed 's/^ \t*//;s/ \t*$//'`"
 	CFLAGS_saved="${CFLAGS_saved} -I."			CFLAGS="${CFLAGS_saved} "
 	CPPFLAGS="${CPPFLAGS_saved} -I. "
+	LDFLAGS="${LDFLAGS_saved}"
 
 
 
@@ -18940,7 +18931,11 @@ $as_echo_n "checking pkg-config asterisk... " >&6; }
 			if test -n "${PBX_ETC}"; then
 				PBX_INCLUDE="${PBX_PREFIX}/usr/include"
 				PBX_CFLAGS="-I${PBX_INCLUDE} $(${PKGCONFIG} --cflags asterisk)"
-				PBX_CPPFLAGS="-I${PBX_CFLAGS}"
+				if test -n "`echo ${PBX_CFLAGS} | grep libxml2-g3`"; then								{ $as_echo "$as_me:${as_lineno-$LINENO}: Fixed fauly asterisk.pc pkg-config file. Advise:Youought to update your asterisk version" >&5
+$as_echo "$as_me: Fixed fauly asterisk.pc pkg-config file. Advise:Youought to update your asterisk version" >&6;}
+					PBX_CFLAGS="`echo ${PBX_CFLAGS} | ${SED} 's/libxml2-g3/libxml2/'`"
+				fi
+				PBX_CPPFLAGS="${PBX_CFLAGS}"
 				CFLAGS="${CFLAGS} ${PBX_CFLAGS}"
 				CPPFLAGS="${CPPFLAGS} ${PBX_CPPFLAGS}"
 	 			PBX_LIB="$(${PKGCONFIG} --variable=libdir asterisk)"
@@ -19014,9 +19009,11 @@ $as_echo "Asterisk found in ${checkdir}" >&6; }
 				if test -f "${checkdir}/etc/asterisk/asterisk.conf"; then
 					PBX_PREFIX="${checkdir}"
 					PBX_ETC="${checkdir}/etc/asterisk"
-				elif test -f "/etc/asterisk.conf"; then
+					PBX_VARLIB="{checkdir}/var/lib/asterisk"
+				elif test -f "/etc/asterisk/asterisk.conf"; then
 					PBX_PREFIX=""
 					PBX_ETC="/etc/asterisk"
+					PBX_VARLIB="/var/lib/asterisk"
 				fi
 				if test -n "${PBX_ETC}"; then
 					PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
@@ -19036,7 +19033,7 @@ $as_echo "Asterisk found in ${checkdir}" >&6; }
 					PBX_TEMPMODDIR="${PBX_LIB}/asterisk/modules"
 				fi
 				if test -z "${PBX_VARLIB}"; then
-					PBX_VARLIB="${checkdir}/var/lib/asterisk"
+					PBX_VARLIB="/var/lib/asterisk"
 				fi
 
 				LDFLAGS="$PBX_LDFLAGS"
@@ -19342,14 +19339,14 @@ else
 		ac_fn_c_check_header_mongrel "$LINENO" "asterisk/ast_version.h" "ac_cv_header_asterisk_ast_version_h" "$ac_includes_default"
 if test "x$ac_cv_header_asterisk_ast_version_h" = xyes; then :
 
-                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
 $as_echo "found" >&6; }
-                                ac_fn_c_check_header_mongrel "$LINENO" "asterisk/format_cache.h" "ac_cv_header_asterisk_format_cache_h" "$ac_includes_default"
+			ac_fn_c_check_header_mongrel "$LINENO" "asterisk/format_cache.h" "ac_cv_header_asterisk_format_cache_h" "$ac_includes_default"
 if test "x$ac_cv_header_asterisk_format_cache_h" = xyes; then :
 
-					ASTERISK_VER_GROUP=113
-					ASTERISK_VERSION_NUMBER=11300
-					ASTERISK_REPOS_LOCATION=TRUNK
+				ASTERISK_VER_GROUP=113
+				ASTERISK_VERSION_NUMBER=11300
+				ASTERISK_REPOS_LOCATION=TRUNK
 
 
 $as_echo "#define ASTERISK_CONF_1_13 1" >>confdefs.h
@@ -19364,20 +19361,20 @@ $as_echo "#define ASTERISK_VERSION_GROUP 113" >>confdefs.h
 $as_echo "#define ASTERISK_REPOS_LOCATION \"TRUNK\"" >>confdefs.h
 
 
-					version_found=1
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
+				version_found=1
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
 $as_echo "done" >&6; }
-										{ $as_echo "$as_me:${as_lineno-$LINENO}: result: WARNING: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&5
+								{ $as_echo "$as_me:${as_lineno-$LINENO}: result: WARNING: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&5
 $as_echo "WARNING: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&6; }
 
 else
 
-					ac_fn_c_check_header_mongrel "$LINENO" "asterisk/uuid.h" "ac_cv_header_asterisk_uuid_h" "$ac_includes_default"
+				ac_fn_c_check_header_mongrel "$LINENO" "asterisk/uuid.h" "ac_cv_header_asterisk_uuid_h" "$ac_includes_default"
 if test "x$ac_cv_header_asterisk_uuid_h" = xyes; then :
 
-							ASTERISK_VER_GROUP=112
-							ASTERISK_VERSION_NUMBER=11200
-							ASTERISK_REPOS_LOCATION=TRUNK
+					ASTERISK_VER_GROUP=112
+					ASTERISK_VERSION_NUMBER=11200
+					ASTERISK_REPOS_LOCATION=TRUNK
 
 
 $as_echo "#define ASTERISK_CONF_1_12 1" >>confdefs.h
@@ -19392,15 +19389,15 @@ $as_echo "#define ASTERISK_VERSION_GROUP 112" >>confdefs.h
 $as_echo "#define ASTERISK_REPOS_LOCATION \"TRUNK\"" >>confdefs.h
 
 
-							version_found=1
-							{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
+					version_found=1
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
 $as_echo "done" >&6; }
 
 else
 
-							ASTERISK_VER_GROUP=111
-							ASTERISK_VERSION_NUMBER=11100
-							ASTERISK_REPOS_LOCATION=BRANCH
+					ASTERISK_VER_GROUP=111
+					ASTERISK_VERSION_NUMBER=11100
+					ASTERISK_REPOS_LOCATION=BRANCH
 
 
 $as_echo "#define ASTERISK_CONF_1_11 1" >>confdefs.h
@@ -19415,12 +19412,11 @@ $as_echo "#define ASTERISK_VERSION_GROUP 111" >>confdefs.h
 $as_echo "#define ASTERISK_REPOS_LOCATION \"BRANCH\"" >>confdefs.h
 
 
-							version_found=1
-							{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
+					version_found=1
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
 $as_echo "done" >&6; }
-							{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version 11'" >&5
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version 11'" >&5
 $as_echo "Found 'Asterisk Version 11'" >&6; }
-
 
 fi
 
@@ -19432,11 +19428,10 @@ fi
 
 else
 
-                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: 'ASTERISK_VERSION could not be established'" >&5
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: 'ASTERISK_VERSION could not be established'" >&5
 $as_echo "'ASTERISK_VERSION could not be established'" >&6; }
-
 
 fi
 
@@ -19452,6 +19447,10 @@ fi
 		echo "==================================="
 		echo "Either install asterisk and asterisk-devel packages"
 		echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=path"
+		echo ""
+		echo "=================================== config.log"
+		cat config.log
+		echo "=================================== config.log"
 		exit
 	fi
 
@@ -25084,22 +25083,6 @@ fi
 $as_echo "$as_me: --enable-video: ${ac_cv_streaming_video}" >&6;}
 
 
-	# Check whether --enable-videolayer was given.
-if test "${enable_videolayer+set}" = set; then :
-  enableval=$enable_videolayer; ac_cv_streaming_videolayer=$enableval
-else
-  ac_cv_streaming_videolayer=no
-fi
-
-	if test "${ac_cv_streaming_videolayer}" == "yes"; then :
-
-$as_echo "#define CS_SCCP_VIDEOLAYER 1" >>confdefs.h
-
-fi
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-videolayer: ${ac_cv_streaming_videolayer}" >&5
-$as_echo "$as_me: --enable-videolayer: ${ac_cv_streaming_videolayer}" >&6;}
-
-
 	# Check whether --enable-distributed_devicestate was given.
 if test "${enable_distributed_devicestate+set}" = set; then :
   enableval=$enable_distributed_devicestate; ac_cv_use_distributed_devicestate=$enableval
@@ -25139,6 +25122,7 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
+	CFLAGS_save=${CFLAGS}
 	# Check whether --enable-experimental_xml was given.
 if test "${enable_experimental_xml+set}" = set; then :
   enableval=$enable_experimental_xml; ac_cv_experimental_xml=$enableval
@@ -25159,7 +25143,7 @@ fi
 
 		LIBEXSLT_CFLAGS=`${PKGCONFIG} libexslt --cflags`
 		LIBEXSLT_LIBS=`${PKGCONFIG} libexslt --libs`
-		CPPFLAGS="${CPPFLAGS} $LIBEXSLT_CFLAGS"
+		CFLAGS="${CFLAGS} $LIBEXSLT_CFLAGS "
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xmlInitParser in -lxml2" >&5
 $as_echo_n "checking for xmlInitParser in -lxml2... " >&6; }
 if ${ac_cv_lib_xml2_xmlInitParser+:} false; then :
@@ -25410,6 +25394,7 @@ fi
 fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-experimental-xml: ${ac_cv_experimental_xml} (only for developers)" >&5
 $as_echo "$as_me: --enable-experimental-xml: ${ac_cv_experimental_xml} (only for developers)" >&6;}
+	CFLAGS=${CFLAGS_save}
 
 
 
@@ -25632,6 +25617,10 @@ else
   am__EXEEXT_FALSE=
 fi
 
+if test -z "${ENABLE_RPMBUILD_TRUE}" && test -z "${ENABLE_RPMBUILD_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_RPMBUILD\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${INSTALL_LTDL_TRUE}" && test -z "${INSTALL_LTDL_FALSE}"; then
   as_fn_error $? "conditional \"INSTALL_LTDL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5

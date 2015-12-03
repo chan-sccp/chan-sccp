@@ -22,6 +22,8 @@ AC_DEFUN([CS_SETUP_BUILD],[
 	AC_PATH_PROGS(AWK,awk,No)
 	AC_PATH_PROGS(GAWK,gawk,No)
 	AC_PATH_PROGS(PKGCONFIG,pkg-config,No)
+	AC_PATH_PROGS(RPMBUILD,rpmbuild,No)
+	AM_CONDITIONAL(ENABLE_RPMBUILD, test x$RPMBUILD != xNo)
 
 	if test ! x"${UNAME}" = xNo; then
 	    if test -n $BUILD_OS ; then
@@ -465,6 +467,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
  	else 
  		CPPFLAGS_saved="-U_FORTIFY_SOURCE"
  	fi
+ 	LDFLAGS_saved="${LDFLAGS}"
  	
  	strip_binaries="no"
 	AS_IF([test "X$enable_optimization" == "Xyes"], [
@@ -475,7 +478,8 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	   	CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
 		GDB_FLAGS=""
 	], [
-	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O[0-9]\ \?//g' -e 's/\-g\ \?//g'`"
+	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O[0-9]\ \?//g' -e 's/[^|\ ]\-g[$|\ ]//g'`"
+	 	dnl CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O[0-9]\ \?//g'`"
 		optimize_flag="-O0"
 		case "${CC}" in
 			*gcc*)
@@ -594,16 +598,25 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	
 	AC_LANG_SAVE
 	AC_LANG_C
-	AX_APPEND_COMPILE_FLAGS([ dnl
-		dnl-fdata-section dnl
-		-ffunction-sections dnl
-	], ax_warn_cflags_variable)
-	LDFLAGS="${LDFLAGS} -Wl,-gc-sections"		dnl automatically strip dead/unused code
+	
+dnl	case "${host}" in
+dnl	 	*-*-darwin*)
+dnl	 		dnl OSX compiler doesn't like the gc-sections setting, might be gcc version dependent instead. Waiting for version info.
+dnl	 		;;
+dnl	 	*)
+dnl	 		LDFLAGS="${LDFLAGS} --gc-sections"		dnl automatically strip dead/unused code
+dnl	 		AX_APPEND_COMPILE_FLAGS([ dnl
+dnl	 			-ffunction-sections dnl
+dnl				-fdata-sections dnl
+dnl	 		], ax_warn_cflags_variable)
+dnl	 		;;
+dnl	esac
 
 	CFLAGS_saved="`echo ${CFLAGS_saved}|sed 's/^[ \t]*//;s/[ \t]*$//'`"
 	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS="${CFLAGS_saved} "
 	CPPFLAGS="${CPPFLAGS_saved} -I. "
+	LDFLAGS="${LDFLAGS_saved}"
 	AC_SUBST([DEBUG])
 	AC_SUBST([GDB_FLAGS])
 	AC_SUBST([strip_binaries])
@@ -745,6 +758,7 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_MODE], [
 AC_DEFUN([CS_ENABLE_EXPERIMENTAL_XML], [
 	AC_LANG_SAVE
 	AC_LANG_C
+	CFLAGS_save=${CFLAGS}
 	AC_ARG_ENABLE(experimental_xml, 
 	  AC_HELP_STRING([--enable-experimental-xml], [enable experimental xml (only for developers)]), 
 	    ac_cv_experimental_xml=$enableval, ac_cv_experimental_xml=no
@@ -753,7 +767,7 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_XML], [
 	AS_IF([test "_${ac_cv_experimental_xml}" == "_yes" ], [
 		LIBEXSLT_CFLAGS=`${PKGCONFIG} libexslt --cflags`
 		LIBEXSLT_LIBS=`${PKGCONFIG} libexslt --libs`
-		CPPFLAGS="${CPPFLAGS} $LIBEXSLT_CFLAGS"
+		CFLAGS="${CFLAGS} $LIBEXSLT_CFLAGS "
 		AC_CHECK_LIB([xml2],[xmlInitParser],[HAVE_LIBXML2=yes],[HAVE_LIBXML2=no])
 		AC_CHECK_HEADERS([libxml/tree.h]) 
 		AC_CHECK_HEADERS([libxml/parser.h]) 
@@ -781,6 +795,7 @@ dnl			AC_MSG_ERROR([libxslt required to enable-experimental-xml])
 		])
 	])
 	AC_MSG_NOTICE([--enable-experimental-xml: ${ac_cv_experimental_xml} (only for developers)])
+	CFLAGS=${CFLAGS_save}
 ])
 
 AC_DEFUN([CS_DISABLE_DEVSTATE_FEATURE], [
@@ -821,14 +836,6 @@ AC_DEFUN([CS_ENABLE_VIDEO], [
 	AC_MSG_NOTICE([--enable-video: ${ac_cv_streaming_video}])
 ])
 
-AC_DEFUN([CS_ENABLE_VIDEOLAYER], [
-	AC_ARG_ENABLE(videolayer, 
-	  AC_HELP_STRING([--enable-videolayer], [enable video layer (experimental)]), 
-	  ac_cv_streaming_videolayer=$enableval, ac_cv_streaming_videolayer=no)
-	AS_IF([test "${ac_cv_streaming_videolayer}" == "yes"], [AC_DEFINE(CS_SCCP_VIDEOLAYER, 1, [Using video layer])])
-	AC_MSG_NOTICE([--enable-videolayer: ${ac_cv_streaming_videolayer}])
-])
-
 AC_DEFUN([CS_ENABLE_DISTRIBUTED_DEVSTATE], [
 	AC_ARG_ENABLE(distributed_devicestate, 
 	  AC_HELP_STRING([--enable-distributed-devicestate], [enable distributed devicestate (>ast 1.6.2)]), 
@@ -866,7 +873,6 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_DISABLE_DYNAMIC_SPEEDDIAL
 	CS_DISABLE_DYNAMIC_SPEEDDIAL_CID
 	CS_ENABLE_VIDEO
-	CS_ENABLE_VIDEOLAYER
 	CS_ENABLE_DISTRIBUTED_DEVSTATE
 	CS_ENABLE_EXPERIMENTAL_MODE
 	CS_ENABLE_EXPERIMENTAL_XML

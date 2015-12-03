@@ -51,7 +51,7 @@
 static inline void __do_nothing(void) {}									// will be optimized out
 
 #undef pbx_check_hangup_locked
-#define pbx_check_hangup_locked(_x) ({int res; ast_channel_lock(_x); res = ast_check_hangup(_x); ast_channel_unlock(_x); (res);})
+#define pbx_check_hangup_locked(_x) ({int res##__LINE__; ast_channel_lock(_x); res##__LINE__ = ast_check_hangup(_x); ast_channel_unlock(_x); (res##__LINE__);})
 #undef pbx_bridge_lock
 #undef pbx_bridge_unlock
 #define pbx_bridge_lock(x) __do_nothing()

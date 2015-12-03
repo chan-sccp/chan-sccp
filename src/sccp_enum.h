@@ -1470,12 +1470,12 @@ const char *skinny_devicetype_all_entries(void);
 /* = End =========================================================================================       sparse skinny_devicetype === */
 
 
-/* = Begin =======================================================================================        skinny_encryptionmethod === */
+/* = Begin =======================================================================================        skinny_encryptionMethod === */
 
 /*
- * \brief enum skinny_encryptionmethod
+ * \brief enum skinny_encryptionMethod
  */
-typedef enum skinny_encryptionmethod {
+typedef enum skinny_encryptionMethod {
 	SKINNY_ENCRYPTIONMETHOD_NONE=0x0,
 	SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_32=0x1,
 	SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_80=0x2,
@@ -1484,13 +1484,13 @@ typedef enum skinny_encryptionmethod {
 	SKINNY_ENCRYPTIONMETHOD_AEAD_AES_128_GCM=0x5,
 	SKINNY_ENCRYPTIONMETHOD_AEAD_AES_256_GCM=0x6,
 	SKINNY_ENCRYPTIONMETHOD_SENTINEL
-} skinny_encryptionmethod_t;
-int skinny_encryptionmethod_exists(int skinny_encryptionmethod_int_value);
-const char * skinny_encryptionmethod2str(skinny_encryptionmethod_t enum_value);
-skinny_encryptionmethod_t skinny_encryptionmethod_str2val(const char *lookup_str);
-int skinny_encryptionmethod_str2intval(const char *lookup_str);
-const char *skinny_encryptionmethod_all_entries(void);
-/* = End =========================================================================================        skinny_encryptionmethod === */
+} skinny_encryptionMethod_t;
+int skinny_encryptionMethod_exists(int skinny_encryptionMethod_int_value);
+const char * skinny_encryptionMethod2str(skinny_encryptionMethod_t enum_value);
+skinny_encryptionMethod_t skinny_encryptionMethod_str2val(const char *lookup_str);
+int skinny_encryptionMethod_str2intval(const char *lookup_str);
+const char *skinny_encryptionMethod_all_entries(void);
+/* = End =========================================================================================        skinny_encryptionMethod === */
 
 
 /* = Begin =======================================================================================         skinny_miscCommandType === */
@@ -1515,5 +1515,48 @@ skinny_miscCommandType_t skinny_miscCommandType_str2val(const char *lookup_str);
 int skinny_miscCommandType_str2intval(const char *lookup_str);
 const char *skinny_miscCommandType_all_entries(void);
 /* = End =========================================================================================         skinny_miscCommandType === */
+
+
+/* = Begin =======================================================================================      skinny_mediaTransportType === */
+
+/*
+ * \brief enum skinny_mediaTransportType
+ */
+typedef enum skinny_mediaTransportType {
+	SKINNY_MEDIA_TRANSPORT_TYPE_RTP=0x1,
+	SKINNY_MEDIA_TRANSPORT_TYPE_UDP,
+	SKINNY_MEDIA_TRANSPORT_TYPE_TCP,
+	SKINNY_MEDIATRANSPORTTYPE_SENTINEL
+} skinny_mediaTransportType_t;
+int skinny_mediaTransportType_exists(int skinny_mediaTransportType_int_value);
+const char * skinny_mediaTransportType2str(skinny_mediaTransportType_t enum_value);
+skinny_mediaTransportType_t skinny_mediaTransportType_str2val(const char *lookup_str);
+int skinny_mediaTransportType_str2intval(const char *lookup_str);
+const char *skinny_mediaTransportType_all_entries(void);
+/* = End =========================================================================================      skinny_mediaTransportType === */
+
+
+/* = Begin =======================================================================================               skinny_mediaType === */
+
+/*
+ * \brief enum skinny_mediaType
+ */
+typedef enum skinny_mediaType {
+	SKINNY_MEDIA_TYPE_INVALID=0x0,
+	SKINNY_MEDIA_TYPE_AUDIO,
+	SKINNY_MEDIA_TYPE_MAIN_VIDEO,
+	SKINNY_MEDIA_TYPE_FECC,
+	SKINNY_MEDIA_TYPE_PRESENTATION_VIDEO,
+	SKINNY_MEDIA_TYPE_DATA_APP_BFCP,
+	SKINNY_MEDIA_TYPE_DATA_APP_IXCHANNEL,
+	SKINNY_MEDIA_TYPE_T38,
+	SKINNY_MEDIATYPE_SENTINEL
+} skinny_mediaType_t;
+int skinny_mediaType_exists(int skinny_mediaType_int_value);
+const char * skinny_mediaType2str(skinny_mediaType_t enum_value);
+skinny_mediaType_t skinny_mediaType_str2val(const char *lookup_str);
+int skinny_mediaType_str2intval(const char *lookup_str);
+const char *skinny_mediaType_all_entries(void);
+/* = End =========================================================================================               skinny_mediaType === */
 
 #endif /* __SCCP_ENUM_GUARD_H */

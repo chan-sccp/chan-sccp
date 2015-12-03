@@ -41,7 +41,7 @@ if ENABLE_SVN2CL
 	  fi; \
 	fi
 else
-	svn log -r$(CHANGELOG_OLDEST):HEAD > ChangeLog
+	svn log -r$(CHANGELOG_OLDEST):HEAD > ChangeLog 
 endif
 
 # Update doc/html/ChangeLog.html from SVN Log
@@ -66,27 +66,27 @@ deb:
 	dpkg-buildpackage -rfakeroot -us -uc
 
 rpm:    release
-	@if test ! -z "$(RPMBUILD)" ; then \
-	  cp $(distdir).tar.gz /usr/src/packages/SOURCES/; \
-	  cp tools/chan-sccp-b.spec /usr/src/packages/SOURCES/; \
-	  export DISTDIR=${distdir}; \
-	  if [ -f /etc/SuSE-release ]; then \
-                  if [ "$(ASTERISK_VER)" == "1.4" ]; then \
-                          export ASTERISKVER=""; \
-                  else \
-                          export ASTERISKVER="`echo $(ASTERISK_VER)|sed 's/\.//g'`"; \
-                  fi; \
-	  fi; \
-          export RPMVERSION="$(SCCP_VERSION)"; \
-          export RPMBRANCH="$(SCCP_BRANCH)"; \
-          export RPMREVISION="$(SCCP_REVISION"; \
-          cd /usr/src/packages/SOURCES/ && rpmbuild -bb chan-sccp-b.spec; \
-        else \
-	  echo ""; \
-	  echo "RPM Build on your platform not (yet) supported !"; \
-	  echo "If you like you could send us the required package build file for your platform"; \
-	  echo ""; \
-	fi
+if ENABLE_RPMBUILD
+	@if [ ! -d ~/rpmbuild/BUILD ]; then mkdir -p ~/rpmbuild/BUILD;fi
+	@if [ ! -d ~/rpmbuild/SOURCES ]; then mkdir -p ~/rpmbuild/SOURCES;fi
+	@if [ ! -d ~/rpmbuild/SPECS ]; then mkdir -p ~/rpmbuild/SPECS;fi
+	@if [ ! -d ~/rpmbuild/RPMS ]; then mkdir -p ~/rpmbuild/RPMS;fi
+	@if [ ! -d ~/rpmbuild/SRPMS ]; then mkdir -p ~/rpmbuild/SRPMS;fi
+	@cp $(distdir).tar.gz ~/rpmbuild/SOURCES/;
+	@cp tools/chan-sccp-b.spec ~/rpmbuild/SOURCES/;
+	@if [ -f /etc/SuSE-release ]; then \
+		export ASTERISKVER="`echo $(ASTERISK_VER)|sed 's/\.//g'`"; \
+	fi;
+	@export RPMVERSION=$(SCCP_VERSION);
+	@export RPMBRANCH=$(SCCP_BRANCH);
+	@export RPMREVISION=$(SCCP_REVISION);
+	@cd /usr/src/packages/SOURCES/ && SOURCEDIR="Chan_SCCP-4.3.0_TRUNK_r6452" rpmbuild -bb chan-sccp-b.spec --define="_usr ~/rpmbuild/";
+else
+	@echo ""; \
+	echo "RPM Build on your platform not (yet) supported !"; \
+	echo "If you like you could send us the required package build file for your platform"; \
+	echo "";
+endif
 
 release:
 	@rm -f ChangeLog

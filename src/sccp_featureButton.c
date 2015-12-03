@@ -141,13 +141,13 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 								config->button.feature.status = 0;
 								break;
 							case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
-								config->button.feature.status = 131586;		// old BUTTONTYPE_FEATURE interprets this a simple TRUE value
+								config->button.feature.status = 0x020202;
 								break;
 							case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
-								config->button.feature.status = 131843;
+								config->button.feature.status = 0x020303;
 								break;
 							case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
-								config->button.feature.status = 131589;
+								config->button.feature.status = 0x020205;
 								break;
 						}
 					} else {

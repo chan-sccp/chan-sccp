@@ -28,7 +28,7 @@ void sccp_mwi_module_start(void);
 void sccp_mwi_module_stop(void);
 void sccp_mwi_check(sccp_device_t * device);
 
-void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t ** mailbox);
+void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t *mailbox);
 
 #if defined( CS_AST_HAS_EVENT )
 void sccp_mwi_event(const struct ast_event *event, void *data);

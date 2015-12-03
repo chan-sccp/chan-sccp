@@ -471,38 +471,38 @@ static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, const void *data)
 static const char *asterisk_indication2str(int ind)
 {
 	switch (ind) {
-		case AST_CONTROL_HANGUP: return "Other end has hungup";
-		case AST_CONTROL_RING: return "Local ring";
-		case AST_CONTROL_RINGING: return "Remote end is ringing";
-		case AST_CONTROL_ANSWER: return "Remote end has answered";
-		case AST_CONTROL_BUSY: return "Remote end is busy";
-		case AST_CONTROL_TAKEOFFHOOK: return "Make it go off hook";
-		case AST_CONTROL_OFFHOOK: return "Line is off hook";
-		case AST_CONTROL_CONGESTION: return "Congestion (circuits busy)";
-		case AST_CONTROL_FLASH: return "Flash hook";
-		case AST_CONTROL_WINK: return "Wink";
-		case AST_CONTROL_OPTION: return "Set a low-level option";
-		case AST_CONTROL_RADIO_KEY: return "Key Radio";
-		case AST_CONTROL_RADIO_UNKEY: return "Un-Key Radio";
-		case AST_CONTROL_PROGRESS: return "Indicate PROGRESS";
-		case AST_CONTROL_PROCEEDING: return "Indicate CALL PROCEEDING";
-		case AST_CONTROL_HOLD: return "Indicate call is placed on hold";
-		case AST_CONTROL_UNHOLD: return "Indicate call left hold";
-		case AST_CONTROL_VIDUPDATE: return "Indicate video frame update";
-		case _XXX_AST_CONTROL_T38: return "T38 state change request/notification. Deprecated This is no longer supported. Use AST_CONTROL_T38_PARAMETERS instead.";
-		case AST_CONTROL_SRCUPDATE: return "Indicate source of media has changed";
-		case AST_CONTROL_TRANSFER: return "Indicate status of a transfer request";
-		case AST_CONTROL_CONNECTED_LINE: return "Indicate connected line has changed";
-		case AST_CONTROL_REDIRECTING: return "Indicate redirecting id has changed";
-		case AST_CONTROL_T38_PARAMETERS: return "T38 state change request/notification with parameters";
-		case AST_CONTROL_CC: return "Indication that Call completion service is possible";
-		case AST_CONTROL_SRCCHANGE: return "Media source has changed and requires a new RTP SSRC";
-		case AST_CONTROL_READ_ACTION: return "Tell ast_read to take a specific action";
-		case AST_CONTROL_AOC: return "Advice of Charge with encoded generic AOC payload";
-		case AST_CONTROL_END_OF_Q: return "Indicate that this position was the end of the channel queue for a softhangup.";
-		case AST_CONTROL_INCOMPLETE: return "Indication that the extension dialed is incomplete";
-		case AST_CONTROL_UPDATE_RTP_PEER: return "Interrupt the bridge and have it update the peer";
-		case -1: return "-1 / CHANNEL PROD";
+		case AST_CONTROL_HANGUP: return "AST_CONTROL_HANGUP: Other end has hungup";
+		case AST_CONTROL_RING: return "AST_CONTROL_RING: Local ring";
+		case AST_CONTROL_RINGING: return "AST_CONTROL_RINGING: Remote end is ringing";
+		case AST_CONTROL_ANSWER: return "AST_CONTROL_ANSWER: Remote end has answered";
+		case AST_CONTROL_BUSY: return "AST_CONTROL_BUSY: Remote end is busy";
+		case AST_CONTROL_TAKEOFFHOOK: return "AST_CONTROL_TAKEOFFHOOK: Make it go off hook";
+		case AST_CONTROL_OFFHOOK: return "AST_CONTROL_OFFHOOK: Line is off hook";
+		case AST_CONTROL_CONGESTION: return "AST_CONTROL_CONGESTION: Congestion (circuits busy)";
+		case AST_CONTROL_FLASH: return "AST_CONTROL_FLASH: Flash hook";
+		case AST_CONTROL_WINK: return "AST_CONTROL_WINK: Wink";
+		case AST_CONTROL_OPTION: return "AST_CONTROL_OPTION: Set a low-level option";
+		case AST_CONTROL_RADIO_KEY: return "AST_CONTROL_RADIO_KEY: Key Radio";
+		case AST_CONTROL_RADIO_UNKEY: return "AST_CONTROL_RADIO_UNKEY: Un-Key Radio";
+		case AST_CONTROL_PROGRESS: return "AST_CONTROL_PROGRESS: Indicate PROGRESS";
+		case AST_CONTROL_PROCEEDING: return "AST_CONTROL_PROCEEDING: Indicate CALL PROCEEDING";
+		case AST_CONTROL_HOLD: return "AST_CONTROL_HOLD: Indicate call is placed on hold";
+		case AST_CONTROL_UNHOLD: return "AST_CONTROL_UNHOLD: Indicate call left hold";
+		case AST_CONTROL_VIDUPDATE: return "AST_CONTROL_VIDUPDATE: Indicate video frame update";
+		case _XXX_AST_CONTROL_T38: return "_XXX_AST_CONTROL_T38: T38 state change request/notification. Deprecated This is no longer supported. Use AST_CONTROL_T38_PARAMETERS instead.";
+		case AST_CONTROL_SRCUPDATE: return "AST_CONTROL_SRCUPDATE: Indicate source of media has changed";
+		case AST_CONTROL_TRANSFER: return "AST_CONTROL_TRANSFER: Indicate status of a transfer request";
+		case AST_CONTROL_CONNECTED_LINE: return "AST_CONTROL_CONNECTED_LINE: Indicate connected line has changed";
+		case AST_CONTROL_REDIRECTING: return "AST_CONTROL_REDIRECTING: Indicate redirecting id has changed";
+		case AST_CONTROL_T38_PARAMETERS: return "AST_CONTROL_T38_PARAMETERS: T38 state change request/notification with parameters";
+		case AST_CONTROL_CC: return "AST_CONTROL_CC: Indication that Call completion service is possible";
+		case AST_CONTROL_SRCCHANGE: return "AST_CONTROL_SRCCHANGE: Media source has changed and requires a new RTP SSRC";
+		case AST_CONTROL_READ_ACTION: return "AST_CONTROL_READ_ACTION: Tell ast_read to take a specific action";
+		case AST_CONTROL_AOC: return "AST_CONTROL_AOC: Advice of Charge with encoded generic AOC payload";
+		case AST_CONTROL_END_OF_Q: return "AST_CONTROL_END_OF_Q: Indicate that this position was the end of the channel queue for a softhangup.";
+		case AST_CONTROL_INCOMPLETE: return "AST_CONTROL_INCOMPLETE: Indication that the extension dialed is incomplete";
+		case AST_CONTROL_UPDATE_RTP_PEER: return "AST_CONTROL_UPDATE_RTP_PEER: Interrupt the bridge and have it update the peer";
+		case -1: return "AST_CONTROL_PROD: Kick remote channel";
 	}
 	return "Unknown/Unhandled/IAX Indication";
 }
@@ -537,14 +537,9 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 		return -1;											/* Tell asterisk to provide inband signalling */
 	}
 
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Asterisk indicate '%s' (%d) condition on channel %s\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast));
-
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
 	res = (((c->rtp.audio.readState != SCCP_RTP_STATUS_INACTIVE) || (d && d->earlyrtp)) ? -1 : 0);
-
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL + DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: readState: %d\n", DEV_ID_LOG(d), c->rtp.audio.readState);
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL + DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: res: %d\n", DEV_ID_LOG(d), res);
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL + DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: rtp?: %s\n", DEV_ID_LOG(d), (c->rtp.audio.rtp) ? "yes" : "no");
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (readStat:%d, writeState:%d, rtp:%s, default res:%s (%d))\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.readState, c->rtp.audio.writeState, (c->rtp.audio.rtp) ? "yes" : "no", res ? "inband signaling" : "outofband signaling", res);
 
 	switch (ind) {
 		case AST_CONTROL_RINGING:
@@ -696,7 +691,7 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 
 		case AST_CONTROL_VIDUPDATE:									/* Request a video frame update */
 #ifdef CS_SCCP_VIDEO
-			if (c->rtp.video.rtp && d && sccp_device_isVideoSupported(d)) {
+			if (c->rtp.video.rtp && d && sccp_device_isVideoSupported(d) && c->videomode != SCCP_VIDEO_MODE_OFF) {
 				d->protocol->sendFastPictureUpdate(d, c);
 				res = 0;
 			} else
@@ -729,15 +724,17 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 			break;
 #endif
 		case -1:											// Asterisk prod the channel
+			if (c->line && c->state > SCCP_GROUPED_CHANNELSTATE_DIALING) {
+				uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
+				sccp_dev_stoptone(d, instance, c->callid);
+			}
 			res = -1;
 			break;
 		default:
-			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Don't know how to indicate condition '%s' (%d)\n", asterisk_indication2str(ind), ind);
-			res = -1;
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) Don't know how to indicate condition '%s' (%d)\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind)
+			break;
 	}
-	//ast_cond_signal(&c->astStateCond);
-
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP (pbx_indicate): send asterisk result '%s' (%d)\n", res ? "inband signaling" : "outofband signaling", res);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_2 "%s: (pbx_indicate) finish: send indication '%s' (%d)\n", DEV_ID_LOG(d), res ? "inband signaling" : "outofband signaling", res);
 	return res;
 }
 
@@ -1205,13 +1202,12 @@ static sccp_parkresult_t sccp_wrapper_asterisk18_park(const sccp_channel_t * hos
 
 }
 
-static boolean_t sccp_wrapper_asterisk18_getFeatureExtension(const sccp_channel_t * channel, char extension[SCCP_MAX_EXTENSION])
+static boolean_t sccp_wrapper_asterisk18_getFeatureExtension(const sccp_channel_t * channel, const char *featureName, char extension[SCCP_MAX_EXTENSION])
 {
 	struct ast_call_feature *feat;
 
 	ast_rdlock_call_features();
-	feat = ast_find_call_feature("automon");
-
+	feat = ast_find_call_feature(featureName);
 	if (feat) {
 		sccp_copy_string(extension, feat->exten, SCCP_MAX_EXTENSION);
 	}
@@ -1535,6 +1531,10 @@ static int sccp_wrapper_asterisk18_call(PBX_CHANNEL_TYPE * ast, char *dest, int 
 			sccp_asterisk_pbx_fktChannelWrite(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
 		} else if (!strcasecmp(ast_var_name(current), "MaxCallBR")) {
 			sccp_asterisk_pbx_fktChannelWrite(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
+#if CS_SCCP_VIDEO
+		} else if (!strcasecmp(ast_var_name(current), "SCCP_VIDEO_MODE")) {
+			sccp_channel_setVideoMode(c, ast_var_value(current));
+#endif
 		}
 	}
 
@@ -1659,7 +1659,7 @@ static enum ast_rtp_glue_result sccp_wrapper_asterisk18_get_rtp_info(PBX_CHANNEL
 {
 	//AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);				// not following the refcount rules... channel is already retained
 	sccp_channel_t *c = NULL;
-	sccp_rtp_info_t rtpInfo;
+	sccp_rtp_info_t rtpInfo = SCCP_RTP_INFO_NORTP;
 	struct sccp_rtp *audioRTP = NULL;
 	enum ast_rtp_glue_result res = AST_RTP_GLUE_RESULT_REMOTE;
 
@@ -1706,7 +1706,7 @@ static enum ast_rtp_glue_result sccp_wrapper_asterisk18_get_vrtp_info(PBX_CHANNE
 {
 	//AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);				// not following the refcount rules... channel is already retained
 	sccp_channel_t *c = NULL;
-	sccp_rtp_info_t rtpInfo;
+	sccp_rtp_info_t rtpInfo = SCCP_RTP_INFO_NORTP;
 	struct sccp_rtp *videoRTP = NULL;
 	enum ast_rtp_glue_result res = AST_RTP_GLUE_RESULT_REMOTE;
 
@@ -1720,7 +1720,9 @@ static enum ast_rtp_glue_result sccp_wrapper_asterisk18_get_vrtp_info(PBX_CHANNE
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk18_get_vrtp_info) Asterisk requested RTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
 	}
 
+#ifdef CS_SCCP_VIDEO
 	rtpInfo = sccp_rtp_getVideoPeerInfo(c, &videoRTP);
+#endif
 	if (rtpInfo == SCCP_RTP_INFO_NORTP) {
 		return AST_RTP_GLUE_RESULT_FORBID;
 	}
@@ -1770,7 +1772,7 @@ static int sccp_wrapper_asterisk18_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 			break;
 		}
 		ast_getformatname_multiple(codec_buf, sizeof(codec_buf) - 1, codecs);
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (asterisk18_update_rtp_peer) stage: %s, codecs capabilty: %s (%lu), nat_active: %d\n", c->currentDeviceId, S_COR(AST_STATE_UP == pbx_channel_state(ast), "RTP", "EarlyRTP"), codec_buf, (long unsigned int) codecs, nat_active);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (asterisk18_update_rtp_peer) stage: %s, remote codecs capabilty: %s (%lu), nat_active: %d\n", c->currentDeviceId, S_COR(AST_STATE_UP == pbx_channel_state(ast), "RTP", "EarlyRTP"), codec_buf, (long unsigned int) codecs, nat_active);
 		if (!c->line) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk18_update_rtp_peer) NO LINE\n", c->currentDeviceId);
 			result = -1;
@@ -2072,16 +2074,12 @@ static int sccp_wrapper_asterisk18_callerid_presentation(PBX_CHANNEL_TYPE *pbx_c
 	return CALLERID_PRESENTATION_FORBIDDEN;
 }
 
-static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
+static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(constDevicePtr d, sccp_channel_t * c)
 {
 	struct ast_sockaddr sock = { {0,} };
 	struct ast_codec_pref astCodecPref;
 
-	if (!c) {
-		return FALSE;
-	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
-	if (!d) {
+	if (!c || !d) {
 		return FALSE;
 	}
 	memcpy(&sock.ss, &GLOB(bindaddr), sizeof(struct sockaddr_storage));
@@ -2093,16 +2091,16 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 		sock.len = sizeof(struct sockaddr_in);
 	}
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Requesting rtp server instance on %s\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock));
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Requesting rtp server instance on %s\n", c->designator, ast_sockaddr_stringify_host(&sock));
 	if ((c->rtp.audio.rtp = ast_rtp_instance_new("asterisk", sched, &sock, NULL))) {
 		struct ast_sockaddr instance_addr = { {0,} };
 		ast_rtp_instance_get_local_address(c->rtp.audio.rtp, &instance_addr);
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", c->designator, ast_sockaddr_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
 	} else {
 		return FALSE;
 	}
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: rtp server created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock), ast_sockaddr_port(&sock));
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: rtp server created at %s:%d\n", c->designator, ast_sockaddr_stringify_host(&sock), ast_sockaddr_port(&sock));
 	if (c->owner) {
 		ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_RTCP, 1);
 
@@ -2147,16 +2145,12 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 	return TRUE;
 }
 
-static boolean_t sccp_wrapper_asterisk18_create_video_rtp(sccp_channel_t * c)
+static boolean_t sccp_wrapper_asterisk18_create_video_rtp(constDevicePtr d, sccp_channel_t * c)
 {
 	struct ast_sockaddr sock = { {0,} };
 	struct ast_codec_pref astCodecPref;
 
-	if (!c) {
-		return FALSE;
-	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
-	if (!d) {
+	if (!c || !d) {
 		return FALSE;
 	}
 	memcpy(&sock.ss, &GLOB(bindaddr), sizeof(struct sockaddr_storage));
@@ -2168,16 +2162,16 @@ static boolean_t sccp_wrapper_asterisk18_create_video_rtp(sccp_channel_t * c)
 		sock.len = sizeof(struct sockaddr_in);
 	}
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Requesting vrtp server instance on %s\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock));
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Requesting vrtp server instance on %s\n", c->designator, ast_sockaddr_stringify_host(&sock));
 	if ((c->rtp.video.rtp = ast_rtp_instance_new("asterisk", sched, &sock, NULL))) {
 		struct ast_sockaddr instance_addr = { {0,} };
 		ast_rtp_instance_get_local_address(c->rtp.video.rtp, &instance_addr);
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", c->designator, ast_sockaddr_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
 	} else {
 		return FALSE;
 	}
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: vrtp created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock), ast_sockaddr_port(&sock));
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: vrtp created at %s:%d\n", c->designator, ast_sockaddr_stringify_host(&sock), ast_sockaddr_port(&sock));
 	if (c->owner) {
 		ast_rtp_instance_set_prop(c->rtp.video.rtp, AST_RTP_PROPERTY_RTCP, 1);
 
@@ -2432,40 +2426,23 @@ static int sccp_wrapper_asterisk18_sched_add_ref(int *id, int when, sccp_sched_c
 		sccp_channel_t *c = sccp_channel_retain(channel);
 
 		if (c) {
-			*id = ast_sched_add(sched, when, callback, c);
-			if (*id == -1) {
-				// sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: sched add id:%d, when:%d, failed\n", c->designator, *id, when);
+			if ((*id  = ast_sched_add(sched, when, callback, c)) < 0) {
+				sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: sched add id:%d, when:%d, failed\n", c->designator, *id, when);
 				sccp_channel_release(channel);			/* explicit release during failure */
-			} else {
-				// sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: sched add id:%d, when:%d\n", c->designator, *id, when);
 			}
 			return *id;
 		}
 	}
-	return -1;
+	return -2;
 }
 
-static int sccp_wrapper_asterisk18_sched_del_ref(int *oldid, const sccp_channel_t * channel)
+static int sccp_wrapper_asterisk18_sched_del_ref(int *id, const sccp_channel_t * channel)
 {
 	if (sched) {
-		int _count = 0, id = *oldid, res = 1;
-
-		*oldid = -1;
-		while (id > -1 && (res = ast_sched_del(sched, id)) && ++_count < 10) {
-			// sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_del_ref) sched del id:%d\n", channel->designator, id);
-			usleep(1);
-		}
-		if (_count == 10) {
-			pbx_log(LOG_WARNING, "Unable to cancel schedule ID %d.  This is probably a bug (%s: %s, line %d).\n", id, __FILE__, __PRETTY_FUNCTION__, __LINE__);
-		}
-		if (!res && channel) {
-			// sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_del_ref) channel release (id: %d)\n", channel->designator, id);
-			sccp_channel_release(channel);				/* explicit release during delete */
-		}
-		// sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_del_ref) returning id: %d\n", channel->designator, *oldid);
-		return *oldid;
+		AST_SCHED_DEL_UNREF(sched, *id, sccp_channel_release(channel));
+		return *id;
 	}
-	return -1;
+	return -2;
 }
 
 static int sccp_wrapper_asterisk18_sched_replace_ref(int *id, int when, ast_sched_cb callback, sccp_channel_t * channel)
@@ -2476,7 +2453,7 @@ static int sccp_wrapper_asterisk18_sched_replace_ref(int *id, int when, ast_sche
 		// sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_replace_ref) returning id: %d\n", channel->designator, *id);
 		return *id;
 	}
-	return -1;
+	return -2;
 }
 
 static long sccp_wrapper_asterisk18_sched_when(int id)

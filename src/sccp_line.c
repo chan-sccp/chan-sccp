@@ -342,7 +342,7 @@ int __sccp_line_destroy(const void *ptr)
 		if (!mailbox) {
 			break;
 		}
-		sccp_mwi_unsubscribeMailbox(&mailbox);
+		sccp_mwi_unsubscribeMailbox(mailbox);
 		if (mailbox->mailbox) {
 			sccp_free(mailbox->mailbox);
 		}
@@ -433,22 +433,24 @@ int sccp_line_destroy(const void *ptr)
 void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c)
 {
 	sccp_linedevices_t *linedevice = NULL;
+	boolean_t first=TRUE;
 	if (!l || !c) {
 		return;
 	}
 	/* combine all capabilities */
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-		if (linedevice == SCCP_LIST_FIRST(&l->devices)) {
+		if (first) {
 			memcpy(&c->capabilities.audio, &linedevice->device->capabilities.audio, sizeof(c->capabilities.audio));
 			memcpy(&c->capabilities.video, &linedevice->device->capabilities.video, sizeof(c->capabilities.video));
 			memcpy(&c->preferences.audio , &linedevice->device->preferences.audio , sizeof(c->preferences.audio));
 			memcpy(&c->preferences.video , &linedevice->device->preferences.video , sizeof(c->preferences.video));
+			first = FALSE;
 		} else {
-			sccp_utils_combineCodecSets(&c->capabilities.audio, linedevice->device->capabilities.audio);
-			sccp_utils_combineCodecSets(&c->capabilities.video, linedevice->device->capabilities.video);
-			sccp_utils_reduceCodecSet(&c->preferences.audio , linedevice->device->preferences.audio);
-			sccp_utils_reduceCodecSet(&c->preferences.video , linedevice->device->preferences.video);
+			sccp_utils_combineCodecSets(c->capabilities.audio, linedevice->device->capabilities.audio);
+			sccp_utils_combineCodecSets(c->capabilities.video, linedevice->device->capabilities.video);
+			sccp_utils_reduceCodecSet(c->preferences.audio , linedevice->device->preferences.audio);
+			sccp_utils_reduceCodecSet(c->preferences.video , linedevice->device->preferences.video);
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
