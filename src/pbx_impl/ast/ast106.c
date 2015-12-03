@@ -1700,7 +1700,7 @@ static enum ast_rtp_get_result sccp_wrapper_asterisk16_get_rtp_info(PBX_CHANNEL_
 {
 	//AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);				// not following the refcount rules... channel is already retained
 	sccp_channel_t *c = NULL;
-	sccp_rtp_info_t rtpInfo;
+	sccp_rtp_info_t rtpInfo = SCCP_RTP_INFO_NORTP;
 	struct sccp_rtp *audioRTP = NULL;
 	enum ast_rtp_get_result res = AST_RTP_TRY_NATIVE;
 
@@ -1747,7 +1747,7 @@ static enum ast_rtp_get_result sccp_wrapper_asterisk16_get_vrtp_info(PBX_CHANNEL
 {
 	//AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);				// not following the refcount rules... channel is already retained
 	sccp_channel_t *c = NULL;
-	sccp_rtp_info_t rtpInfo;
+	sccp_rtp_info_t rtpInfo = SCCP_RTP_INFO_NORTP;
 	struct sccp_rtp *audioRTP = NULL;
 	enum ast_rtp_get_result res = AST_RTP_TRY_NATIVE;
 
@@ -1761,7 +1761,9 @@ static enum ast_rtp_get_result sccp_wrapper_asterisk16_get_vrtp_info(PBX_CHANNEL
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk16_get_vrtp_info) Asterisk requested RTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
 	}
 
-	rtpInfo = sccp_rtp_getAudioPeerInfo(c, &audioRTP);							//! \todo should this not be getVideoPeerInfo
+#ifdef CS_SCCP_VIDEO
+	rtpInfo = sccp_rtp_getVideoPeerInfo(c, &audioRTP);							//! \todo should this not be getVideoPeerInfo
+#endif
 	if (rtpInfo == SCCP_RTP_INFO_NORTP) {
 		return AST_RTP_GET_FAILED;
 	}
@@ -1804,7 +1806,7 @@ static int sccp_wrapper_asterisk16_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 			result = -1;
 			break;
 		}
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (asterisk111_update_rtp_peer) stage: %s, codecs capabilty: %lu, nat_active: %d\n", c->currentDeviceId, S_COR(AST_STATE_UP == pbx_channel_state(ast), "RTP", "EarlyRTP"), (long unsigned int) codecs, nat_active);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (asterisk111_update_rtp_peer) stage: %s, remote codecs capabilty: %lu, nat_active: %d\n", c->currentDeviceId, S_COR(AST_STATE_UP == pbx_channel_state(ast), "RTP", "EarlyRTP"), (long unsigned int) codecs, nat_active);
 		if (!c->line) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk16_update_rtp_peer) NO LINE\n", c->currentDeviceId);
 			result = -1;
@@ -1901,20 +1903,14 @@ static int sccp_wrapper_asterisk16_getCodec(PBX_CHANNEL_TYPE * ast)
 }
 
 
-static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(sccp_channel_t * c)
+static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(constDevicePtr d, sccp_channel_t * c)
 {
 	struct sockaddr_storage sock = { 0, };
 	struct sockaddr_in *sin;
 
-	if (!c) {
+	if (!c || !d) {
 		return FALSE;
 	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
-	if (!d) {
-		return FALSE;
-	}
-	//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "%s: (asterisk16_create_audio_rtp) format: %d\n", DEV_ID_LOG(d), (int) codecs);
-
 	if (GLOB(bindaddr).ss_family == AF_INET6) {
 		pbx_log(LOG_ERROR, "asterisk 1.6 does not support ipv6, returning FALSE\n");
 		return FALSE;
@@ -1923,11 +1919,11 @@ static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(sccp_channel_t * c)
 		sin = (struct sockaddr_in *) &sock;
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Requesting rtp server instance on %s\n", DEV_ID_LOG(d), sccp_socket_stringify_host(&sock));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Requesting rtp server instance on %s\n", c->designator, sccp_socket_stringify_host(&sock));
 	if ((c->rtp.audio.rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, sin->sin_addr))) {
 		// struct sockaddr_storage instance_addr = {0,};
 		// ast_rtp_get_us(c->rtp.audio.rtp, &instance_addr);
-		// sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", DEV_ID_LOG(d), sccp_socket_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
+		// sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", c->designator, sccp_socket_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
 	} else {
 		return FALSE;
 	}
@@ -1943,16 +1939,12 @@ static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(sccp_channel_t * c)
 	return TRUE;
 }
 
-static boolean_t sccp_wrapper_asterisk16_create_video_rtp(sccp_channel_t * c)
+static boolean_t sccp_wrapper_asterisk16_create_video_rtp(constDevicePtr d, sccp_channel_t * c)
 {
 	struct sockaddr_storage sock = { 0, };
 	struct sockaddr_in *sin;
 
-	if (!c) {
-		return FALSE;
-	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
-	if (!d) {
+	if (!c || !d) {
 		return FALSE;
 	}
 	if (GLOB(bindaddr).ss_family == AF_INET6) {
@@ -1963,16 +1955,16 @@ static boolean_t sccp_wrapper_asterisk16_create_video_rtp(sccp_channel_t * c)
 		sin = (struct sockaddr_in *) &sock;
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Requesting vrtp server instance on %s\n", DEV_ID_LOG(d), sccp_socket_stringify_host(&sock));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Requesting vrtp server instance on %s\n", c->designator, sccp_socket_stringify_host(&sock));
 	if ((c->rtp.video.rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, sin->sin_addr))) {
 		// struct sockaddr_storage instance_addr = {0,};
 		// ast_rtp_get_us(c->rtp.audio.rtp, &instance_addr);
-		// sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: vrtp server instance created at %s:%d\n", DEV_ID_LOG(d), sccp_socket_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
+		// sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: vrtp server instance created at %s:%d\n", c->designator, sccp_socket_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
 	} else {
 		return FALSE;
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: vrtp created\n", DEV_ID_LOG(d));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: vrtp created\n", c->designator);
 	if (c->owner) {
 		ast_channel_set_fd(c->owner, 2, ast_rtp_fd(c->rtp.video.rtp));
 		ast_channel_set_fd(c->owner, 3, ast_rtcp_fd(c->rtp.video.rtp));

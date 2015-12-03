@@ -234,7 +234,6 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	channel->isMicrophoneEnabled = sccp_always_true;
 	channel->setMicrophone = sccp_channel_setMicrophoneState;
 	channel->hangupRequest = sccp_wrapper_asterisk_requestHangup;
-	//sccp_rtp_createAudioServer(channel);
 #ifndef SCCP_ATOMIC
 	ast_mutex_init(&channel->scheduler.lock);
 #endif
@@ -658,7 +657,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", d->id, channel->callid, codec2str(channel->rtp.audio.writeFormat), channel->line->echocancel ? "ON" : "OFF");
 
-	if (!channel->rtp.audio.rtp && !sccp_rtp_createAudioServer(channel)) {
+	if (!channel->rtp.audio.rtp && !sccp_rtp_createAudioServer(d, channel)) {
 		pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s-%08X\n", DEV_ID_LOG(d), channel->line->name, channel->callid);
 
 		instance = sccp_device_find_index_for_line(d, channel->line->name);
@@ -685,7 +684,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(d) && channel->videomode == SCCP_VIDEO_MODE_AUTO) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(d));
-		if (!channel->rtp.video.rtp && !sccp_rtp_createVideoServer(channel)) {
+		if (!channel->rtp.video.rtp && !sccp_rtp_createVideoServer(d, channel)) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(d));
 		} else {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: video rtp started\n", DEV_ID_LOG(d));
