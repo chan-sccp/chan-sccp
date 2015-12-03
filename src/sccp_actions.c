@@ -229,7 +229,6 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 		sccp_session_tokenReject(s, 5);
 		return;
 	}
-	// sccp_dump_msg(msg_in);
 	if (!skinny_devicetype_exists(deviceType)) {
 		pbx_log(LOG_NOTICE, "%s: We currently do not (fully) support this device type (%d).\n" "Please send this device type number plus the information about the phone model you are using to one of our developers.\n" "Be Warned you should Expect Trouble Ahead\nWe will try to go ahead (Without any guarantees)\n", deviceName, deviceType);
 	}
@@ -3001,7 +3000,6 @@ void sccp_handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constM
 		if (mediastatus == SKINNY_MEDIASTATUS_OutOfChannels || mediastatus == SKINNY_MEDIASTATUS_OutOfSockets) {
 			pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
 		}
-		sccp_dump_msg(msg_in);
 		return;
 	}
 
@@ -3020,7 +3018,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constM
 		}
 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting device rtp transmission with state %s(%d)\n", d->id, sccp_channelstate2str(channel->state), channel->state);
-		if (channel->rtp.video.rtp || sccp_rtp_createVideoServer(channel)) {
+		if (channel->rtp.video.rtp || sccp_rtp_createVideoServer(d, channel)) {
 			if (d->nat >= SCCP_NAT_ON) {
 				uint16_t port = sccp_socket_getPort(&sas);
 				sccp_session_getSas(s, &sas);
@@ -3108,7 +3106,6 @@ void sccp_handle_startmediatransmission_ack(constSessionPtr s, devicePtr d, cons
 		if (mediastatus == SKINNY_MEDIASTATUS_OutOfChannels || mediastatus == SKINNY_MEDIASTATUS_OutOfSockets) {
 			pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
 		}
-		sccp_dump_msg(msg_in);
 		sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
 		sccp_channel_endcall(channel);
 	} else {
@@ -3156,7 +3153,6 @@ void sccp_handle_startmultimediatransmission_ack(constSessionPtr s, devicePtr d,
 		pbx_log(LOG_ERROR, "%s: (StartMultiMediaTransmissionAck) Device returned: '%s' (%d) !. Ending Call.\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
 		if (c) {
 			sccp_channel_endcall(c);
-			//sccp_dump_msg(msg_in);
 			c->rtp.video.readState = SCCP_RTP_STATUS_INACTIVE;
 		}
 		return;
@@ -3252,7 +3248,6 @@ void sccp_handle_ConnectionStatistics(constSessionPtr s, devicePtr device, const
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 
 	if (d) {
-		// sccp_dump_msg(msg_in);
 		// update last_call_statistics
 		sccp_call_statistics_t *call_stats = d->call_statistics;
 
@@ -4136,7 +4131,7 @@ void sccp_handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, con
 				break;
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE:
 				memcpy(&addr_in.sin_addr, &msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.bel_remoteIpAddr, sizeof(addr_in.sin_addr));
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: media statistic for %s, value1: %u, value2: %u, value3: %u, value4: %u\n",
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: videoFastUpdatePicture ip:%s, value1: %u, value2: %u, value3: %u, value4: %u\n",
 							  channel ? channel->currentDeviceId : "--", pbx_inet_ntoa(addr_in.sin_addr), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value1), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value2), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value3), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value4)
 				    );
 				break;
@@ -4201,7 +4196,6 @@ void sccp_handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, con
 		return;
 	}
 	pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u could not be found (callRef: %u/ confId: %u)\n", DEV_ID_LOG(d), passThruPartyId, callReference, conferenceId);
-	sccp_dump_msg(msg_in);
 	return;
 }
 
