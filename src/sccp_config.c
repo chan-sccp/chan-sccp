@@ -2308,6 +2308,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				// we might have been asked to create a device for realtime addition,
 				// thus causing an infinite loop / recursion.
 				AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(cat, FALSE);
+				sccp_nat_t nat = SCCP_NAT_AUTO;
 
 				/* create new device with default values */
 				if (!d) {
@@ -2317,6 +2318,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 					device_count++;
 				} else {
 					if (d->pendingDelete) {
+						nat = d->nat;
 						d->pendingDelete = 0;
 					}
 				}
@@ -2324,6 +2326,10 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found device %d: %s\n", device_count, cat);
 				/* load saved settings from ast db */
 				sccp_config_restoreDeviceFeatureStatus(d);
+				
+				if (0 == d->pendingDelete && sccp_device_getRegistrationState(d) != SKINNY_DEVICE_RS_NONE) {		/* restore nat status */
+					d->nat = nat;
+				}
 			}
 		} else if (!strcasecmp(utype, "line")) {
 			/* check minimum requirements for a line */

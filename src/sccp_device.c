@@ -2263,7 +2263,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 		event.event.deviceRegistered.device = sccp_device_retain(d);
 		sccp_event_fire(&event);
 
-		if ((SCCP_NAT_AUTO == d->nat || SCCP_NAT_AUTO_OFF == d->nat || SCCP_NAT_AUTO_ON == d->nat)) {
+		if (SCCP_NAT_AUTO == d->nat || SCCP_NAT_AUTO_OFF == d->nat || SCCP_NAT_AUTO_ON == d->nat) {
 			d->nat = SCCP_NAT_AUTO;
 		}
 
