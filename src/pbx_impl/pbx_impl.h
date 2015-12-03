@@ -67,7 +67,6 @@ typedef struct _PbxInterface {
 	boolean_t(*const getRemoteChannel) (const sccp_channel_t *channel, PBX_CHANNEL_TYPE **pbx_channel);
 	void *(*const getChannelByCallback) (int (*is_match)(PBX_CHANNEL_TYPE *, void *),void *data);
 
-
 	int (*const set_nativeAudioFormats) (constChannelPtr channel, skinny_codec_t codec[], int length);
 	int (*const set_nativeVideoFormats) (constChannelPtr channel, uint32_t);
 	int (*const getPeerCodecCapabilities) (constChannelPtr channel, void **capabilities);
@@ -92,8 +91,8 @@ typedef struct _PbxInterface {
 	boolean_t(*const rtp_destroy) (PBX_RTP_TYPE * rtp);
 	void (*const rtp_stop) (PBX_RTP_TYPE *rtp);
 	int (*const rtp_codec) (sccp_channel_t * channel);
-	boolean_t(*const rtp_audio_create) (sccp_channel_t * channel);
-	boolean_t(*const rtp_video_create) (sccp_channel_t * channel);
+	boolean_t(*const rtp_audio_create) (constDevicePtr d, sccp_channel_t * channel);
+	boolean_t(*const rtp_video_create) (constDevicePtr d, sccp_channel_t * channel);
 	uint8_t(*const rtp_get_payloadType) (const struct sccp_rtp * rtp, skinny_codec_t codec);
 	int(*const rtp_get_sampleRate) (skinny_codec_t codec);
 	uint8_t(*const rtp_bridgePeers) (PBX_CHANNEL_TYPE * c0, PBX_CHANNEL_TYPE * c1, int flags, struct ast_frame ** fo, PBX_CHANNEL_TYPE ** rc, int timeoutms);
@@ -128,7 +127,7 @@ typedef struct _PbxInterface {
 	boolean_t(*const feature_removeFromDatabase) (const char *family, const char *key);
 	boolean_t(*const feature_removeTreeFromDatabase) (const char *family, const char *key);
 	boolean_t(*const feature_monitor) (const sccp_channel_t *channel);
-	boolean_t(*const getFeatureExtension) (constChannelPtr channel, char featureExtension[SCCP_MAX_EXTENSION]);
+	boolean_t(*const getFeatureExtension) (constChannelPtr channel, const char *featureName, char featureExtension[SCCP_MAX_EXTENSION]);
 	boolean_t(*const getPickupExtension) (constChannelPtr channel, char pickupExtension[SCCP_MAX_EXTENSION]);
 
 	void *(*const eventSubscribe)(constChannelPtr channel, char **featureExtension);

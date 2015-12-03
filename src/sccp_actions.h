@@ -37,6 +37,7 @@ void sccp_handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePt
 void sccp_handle_time_date_req(constSessionPtr s, devicePtr d, constMessagePtr none)			/* __attribute__((nonnull(1,2))) */;
 void sccp_handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			/* __attribute__((nonnull(1,2,3))) */;
 void sccp_handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_in) 		/* __attribute__((nonnull(1,2,3))) */;
+void sccp_handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			/* __attribute__((nonnull(1,2,3))) */;
 void sccp_handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in)	/* __attribute__((nonnull(1,2,3))) */;
 void sccp_handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)	/* __attribute__((nonnull(1,2,3))) */;
 void sccp_handle_ConnectionStatistics(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		/* __attribute__((nonnull(1,2,3))) */;

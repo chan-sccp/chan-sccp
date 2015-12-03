@@ -95,7 +95,7 @@ struct callinfo_lookup {
 
 sccp_callinfo_t *const sccp_callinfo_ctor(uint8_t callInstance)
 {
-	sccp_callinfo_t *const ci = sccp_calloc(sizeof(sccp_callinfo_t), 1);
+	sccp_callinfo_t *const ci = sccp_calloc(sizeof *ci, 1);
 
 	if (!ci) {
 		pbx_log(LOG_ERROR, "SCCP: No memory to allocate callinfo object. Failing\n");
@@ -186,70 +186,70 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 	va_start(ap, key);
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
 		switch (curkey) {
-			case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
-				{
-					uint new_value = va_arg(ap, uint);
-					if (new_value != ci->content.originalCdpnRedirectReason) {
-						ci->content.originalCdpnRedirectReason = new_value;
-						changes++;
-					}
+		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
+			{
+				uint new_value = va_arg(ap, uint);
+				if (new_value != ci->content.originalCdpnRedirectReason) {
+					ci->content.originalCdpnRedirectReason = new_value;
+					changes++;
 				}
-				break;
-			case SCCP_CALLINFO_LAST_REDIRECT_REASON:
-				{
-					uint new_value = va_arg(ap, uint);
-					if (new_value != ci->content.lastRedirectingReason) {
-						ci->content.lastRedirectingReason = new_value;
-						changes++;
-					}
+			}
+			break;
+		case SCCP_CALLINFO_LAST_REDIRECT_REASON:
+			{
+				uint new_value = va_arg(ap, uint);
+				if (new_value != ci->content.lastRedirectingReason) {
+					ci->content.lastRedirectingReason = new_value;
+					changes++;
 				}
-				break;
-			case SCCP_CALLINFO_PRESENTATION:
-				{
-					sccp_callerid_presentation_t new_value = va_arg(ap, sccp_callerid_presentation_t);
-					if (new_value != ci->content.presentation) {
-						ci->content.presentation = new_value;
-						changes++;
-					}
+			}
+			break;
+		case SCCP_CALLINFO_PRESENTATION:
+			{
+				sccp_callerid_presentation_t new_value = va_arg(ap, sccp_callerid_presentation_t);
+				if (new_value != ci->content.presentation) {
+					ci->content.presentation = new_value;
+					changes++;
 				}
-				break;
-			default:
-				{
-					char *new_value = va_arg(ap, char *);
-					if (new_value) {
-						size_t size = 0;
-						char *dstPtr = NULL;
-						uint16_t *validPtr = NULL;
-						struct callinfo_lookup entry = callinfo_lookup[curkey];
-						callinfo_entry_t *callinfo = &ci->content.entries[entry.group];
+			}
+			break;
+		default:
+			{
+				char *new_value = va_arg(ap, char *);
+				if (new_value) {
+					size_t size = 0;
+					char *dstPtr = NULL;
+					uint16_t *validPtr = NULL;
+					struct callinfo_lookup entry = callinfo_lookup[curkey];
+					callinfo_entry_t *callinfo = &ci->content.entries[entry.group];
 
-						switch(entry.type) {
-							case NAME:
-								size = StationMaxNameSize;
-								dstPtr = callinfo->Name;
-								validPtr = NULL;
-								break;
-							case NUMBER:
-								size = StationMaxDirnumSize;
-								dstPtr = callinfo->Number;
-								validPtr = &callinfo->NumberValid;
-								break;
-							case VOICEMAILBOX:
-								size = StationMaxDirnumSize;
-								dstPtr = callinfo->VoiceMailbox;
-								validPtr = &callinfo->VoiceMailboxValid;
-								break;
-						}
-						if (!sccp_strequals(dstPtr, new_value)) {
-							sccp_copy_string(dstPtr, new_value, size);
-							changes++;
-							if (validPtr) {
-								*validPtr = sccp_strlen_zero(new_value) ? 0 : 1;
-							}
+					switch(entry.type) {
+						case NAME:
+							size = StationMaxNameSize;
+							dstPtr = callinfo->Name;
+							validPtr = NULL;
+							break;
+						case NUMBER:
+							size = StationMaxDirnumSize;
+							dstPtr = callinfo->Number;
+							validPtr = &callinfo->NumberValid;
+							break;
+						case VOICEMAILBOX:
+							size = StationMaxDirnumSize;
+							dstPtr = callinfo->VoiceMailbox;
+							validPtr = &callinfo->VoiceMailboxValid;
+							break;
+					}
+					if (!sccp_strequals(dstPtr, new_value)) {
+						sccp_copy_string(dstPtr, new_value, size);
+						changes++;
+						if (validPtr) {
+							*validPtr = sccp_strlen_zero(new_value) ? 0 : 1;
 						}
 					}
 				}
-				break;
+			}
+			break;
 		}
 	}
 
@@ -269,7 +269,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 	return changes;
 }
 
-#if UNUSEDCODE // 2015-11-01
+//#if UNUSEDCODE // 2015-11-01
 int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, sccp_callinfo_key_t key, ...)
 {
 	pbx_assert(src_ci != NULL && dst_ci != NULL);
@@ -281,74 +281,119 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 	int changes = 0;
 
 	/* observing locking order. not locking both callinfo objects at the same time, using a tmp_ci as go between */
+	/*
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
 		sccp_callinfo_print2log(src_ci, "SCCP: (sccp_callinfo_copyByKey) orig src_ci");
 		sccp_callinfo_print2log(dst_ci, "SCCP: (sccp_callinfo_copyByKey) orig dst_ci");
 	}
+	*/
 	sccp_callinfo_rdlock(src_ci);
 	va_list ap;
 	va_start(ap, key);
 	dstkey=va_arg(ap, sccp_callinfo_key_t);
 
-	/* \todo function should also include copying the reasons and presentation */
-	/*for (srckey = key; 	srckey > SCCP_CALLINFO_NONE && srckey <= SCCP_CALLINFO_KEY_SENTINEL &&
-				dstkey > SCCP_CALLINFO_NONE && dstkey <= SCCP_CALLINFO_KEY_SENTINEL; 
-				srckey = va_arg(ap, sccp_callinfo_key_t), 
-				dstkey = va_arg(ap, sccp_callinfo_key_t)) {*/
-	for (srckey = key; 	srckey > SCCP_CALLINFO_NONE && srckey <= SCCP_CALLINFO_HUNT_PILOT_NUMBER &&
-				dstkey > SCCP_CALLINFO_NONE && dstkey <= SCCP_CALLINFO_HUNT_PILOT_NUMBER; 
-				srckey = va_arg(ap, sccp_callinfo_key_t), 
-				dstkey = va_arg(ap, sccp_callinfo_key_t)) {
-		struct callinfo_lookup src_entry = callinfo_lookup[srckey];
-		struct callinfo_lookup dst_entry = callinfo_lookup[dstkey];
-		
-		callinfo_entry_t *src_callinfo = (callinfo_entry_t *const) &src_ci->content.entries[src_entry.group];
-		callinfo_entry_t *tmp_callinfo = &tmp_ci_content.entries[dst_entry.group];
-
-		char *srcPtr = NULL;
-		uint16_t *validPtr = NULL;
-		switch(src_entry.type) {
-			case NAME:
-				srcPtr = src_callinfo->Name;
-				validPtr = NULL;
-				break;
-			case NUMBER:
-				srcPtr = src_callinfo->Number;
-				validPtr = &src_callinfo->NumberValid;
-				break;
-			case VOICEMAILBOX:
-				srcPtr = src_callinfo->VoiceMailbox;
-				validPtr = &src_callinfo->VoiceMailboxValid;
-				break;
-		}
-		char *tmpPtr = NULL;
-		size_t size = 0;
-		switch(dst_entry.type) {
-			case NAME:
-				size = StationMaxNameSize;
-				tmpPtr = tmp_callinfo->Name;
-				break;
-			case NUMBER:
-				size = StationMaxDirnumSize;
-				tmpPtr = tmp_callinfo->Number;
-				break;
-			case VOICEMAILBOX:
-				size = StationMaxDirnumSize;
-				tmpPtr = tmp_callinfo->VoiceMailbox;
-				break;
-		}
-		if (validPtr) {
-			if (*validPtr) {
-				sccp_copy_string(tmpPtr, srcPtr, size);
-				changes++;
-			} else {
-				tmpPtr[0] = '\0';
+	for (	srckey = key; 	
+		srckey > SCCP_CALLINFO_NONE && dstkey > SCCP_CALLINFO_NONE && srckey < SCCP_CALLINFO_KEY_SENTINEL;
+		srckey = va_arg(ap, sccp_callinfo_key_t), dstkey = va_arg(ap, sccp_callinfo_key_t)
+	) {
+		switch (srckey) {
+		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
+			{
+				if (srckey == dstkey) {
+					if (tmp_ci_content.originalCdpnRedirectReason != src_ci->content.originalCdpnRedirectReason) {
+						tmp_ci_content.originalCdpnRedirectReason = src_ci->content.originalCdpnRedirectReason;
+						changes++;
+					}
+				} else {
+					pbx_log(LOG_WARNING, "SCCP: can only assigned src originalCdpnRedirectReason to dst originalCdpnRedirectReason\n");
+				}
 			}
-		} else {
-			sccp_copy_string(tmpPtr, srcPtr, size);
+			break;
+		case SCCP_CALLINFO_LAST_REDIRECT_REASON:
+			{
+				if (srckey == dstkey) {
+					if (tmp_ci_content.lastRedirectingReason != src_ci->content.lastRedirectingReason) {
+						tmp_ci_content.lastRedirectingReason = src_ci->content.lastRedirectingReason;
+						changes++;
+					}
+				} else {
+					pbx_log(LOG_WARNING, "SCCP: can only assigned src lastRedirectReason to dst lastRedirectReason\n");
+				}
+			}
+			break;
+		case SCCP_CALLINFO_PRESENTATION:
+			{
+				if (srckey == dstkey) {
+					if (tmp_ci_content.presentation != src_ci->content.presentation) {
+						tmp_ci_content.presentation = src_ci->content.presentation;
+						changes++;
+					}
+				} else {
+					pbx_log(LOG_WARNING, "SCCP: can only assigned src presentation to dst presentation\n");
+				}
+			}
+			break;
+		default:
+			{
+				struct callinfo_lookup src_entry = callinfo_lookup[srckey];
+				struct callinfo_lookup tmp_entry = callinfo_lookup[dstkey];
+				callinfo_entry_t *src_callinfo = (callinfo_entry_t *const) &src_ci->content.entries[src_entry.group];
+				callinfo_entry_t *tmp_callinfo = (callinfo_entry_t *)      &tmp_ci_content.entries[tmp_entry.group];
+				
+				srckey = (sccp_callinfo_key_t)srckey;
+				char *srcPtr = NULL;
+				uint16_t *validPtr = NULL;
+				switch(src_entry.type) {
+					case NAME:
+						srcPtr = src_callinfo->Name;
+						validPtr = NULL;
+						break;
+					case NUMBER:
+						srcPtr = src_callinfo->Number;
+						validPtr = &src_callinfo->NumberValid;
+						break;
+					case VOICEMAILBOX:
+						srcPtr = src_callinfo->VoiceMailbox;
+						validPtr = &src_callinfo->VoiceMailboxValid;
+						break;
+				}
+				char *tmpPtr = NULL;
+				uint16_t *tmpValidPtr = NULL;
+				size_t size = 0;
+				switch(tmp_entry.type) {
+					case NAME:
+						size = StationMaxNameSize;
+						tmpPtr = tmp_callinfo->Name;
+						tmpValidPtr = NULL;
+						break;
+					case NUMBER:
+						size = StationMaxDirnumSize;
+						tmpPtr = tmp_callinfo->Number;
+						tmpValidPtr = &(tmp_callinfo->NumberValid);
+						break;
+					case VOICEMAILBOX:
+						size = StationMaxDirnumSize;
+						tmpPtr = tmp_callinfo->VoiceMailbox;
+						tmpValidPtr = &(tmp_callinfo->VoiceMailboxValid);
+						break;
+				}
+				if (validPtr) {
+					if (*validPtr) {
+						sccp_copy_string(tmpPtr, srcPtr, size);
+						if (tmpValidPtr) {
+							*tmpValidPtr = 1;
+						}
+						changes++;
+					} else {
+						tmpPtr[0] = '\0';
+					}
+				} else {
+					sccp_copy_string(tmpPtr, srcPtr, size);
+					changes++;
+				}
+			}
 		}
 	}
-
 	va_end(ap);
 	sccp_callinfo_unlock(src_ci);
 	
@@ -356,14 +401,16 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 	memcpy(&dst_ci->content, &tmp_ci_content, sizeof(struct ci_content));
 	dst_ci->content.changed = TRUE;
 	sccp_callinfo_unlock(dst_ci);
-
+	
+	/*
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
 		sccp_callinfo_print2log(dst_ci, "SCCP: (sccp_callinfo_copyByKey) new dst_ci");
 	}
+	*/
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_copyByKey) changes:%d\n", dst_ci, changes);
 	return changes;
 }
-#endif
+//#endif
 
 int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...)
 {
@@ -378,76 +425,76 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
 		switch (curkey) {
-			case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
-				{
-					uint *dstPtr = va_arg(ap, uint *);
-					if (*dstPtr != ci->content.originalCdpnRedirectReason) {
-						*dstPtr = ci->content.originalCdpnRedirectReason;
-						entries++;
-					}
+		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
+			{
+				uint *dstPtr = va_arg(ap, uint *);
+				if (*dstPtr != ci->content.originalCdpnRedirectReason) {
+					*dstPtr = ci->content.originalCdpnRedirectReason;
+					entries++;
 				}
-				break;
-			case SCCP_CALLINFO_LAST_REDIRECT_REASON:
-				{
-					uint *dstPtr = va_arg(ap, uint *);
-					if (*dstPtr != ci->content.lastRedirectingReason) {
-						*dstPtr = ci->content.lastRedirectingReason;
-						entries++;
-					}
+			}
+			break;
+		case SCCP_CALLINFO_LAST_REDIRECT_REASON:
+			{
+				uint *dstPtr = va_arg(ap, uint *);
+				if (*dstPtr != ci->content.lastRedirectingReason) {
+					*dstPtr = ci->content.lastRedirectingReason;
+					entries++;
 				}
-				break;
-			case SCCP_CALLINFO_PRESENTATION:
-				{
-					sccp_callerid_presentation_t *dstPtr = va_arg(ap, sccp_callerid_presentation_t *);
-					if (*dstPtr != ci->content.presentation) {
-						*dstPtr = ci->content.presentation;
-						entries++;
-					}
+			}
+			break;
+		case SCCP_CALLINFO_PRESENTATION:
+			{
+				sccp_callerid_presentation_t *dstPtr = va_arg(ap, sccp_callerid_presentation_t *);
+				if (*dstPtr != ci->content.presentation) {
+					*dstPtr = ci->content.presentation;
+					entries++;
 				}
-				break;
-			default:
-				{
-					char *dstPtr = va_arg(ap, char *);
-					if (dstPtr) {
-						size_t size = 0;
-						char *srcPtr = NULL;
-						uint16_t *validPtr = NULL;
-						struct callinfo_lookup entry = callinfo_lookup[curkey];
-						callinfo_entry_t *callinfo = (callinfo_entry_t *const) &(ci->content.entries[entry.group]);
+			}
+			break;
+		default:
+			{
+				char *dstPtr = va_arg(ap, char *);
+				if (dstPtr) {
+					size_t size = 0;
+					char *srcPtr = NULL;
+					uint16_t *validPtr = NULL;
+					struct callinfo_lookup entry = callinfo_lookup[curkey];
+					callinfo_entry_t *callinfo = (callinfo_entry_t *const) &(ci->content.entries[entry.group]);
 
-						switch(entry.type) {
-							case NAME:
-								size = StationMaxNameSize;
-								srcPtr = callinfo->Name;
-								validPtr = NULL;
-								break;
-							case NUMBER:
-								size = StationMaxDirnumSize;
-								srcPtr = callinfo->Number;
-								validPtr = &callinfo->NumberValid;
-								break;
-							case VOICEMAILBOX:
-								size = StationMaxDirnumSize;
-								srcPtr = callinfo->VoiceMailbox;
-								validPtr = &callinfo->VoiceMailboxValid;
-								break;
-						}
-						if (validPtr) {
-							if (!*validPtr) {
-								if (dstPtr[0] != '\0') {
-									dstPtr[0] = '\0';
-									entries++;
-								}
-								break;
+					switch(entry.type) {
+						case NAME:
+							size = StationMaxNameSize;
+							srcPtr = callinfo->Name;
+							validPtr = NULL;
+							break;
+						case NUMBER:
+							size = StationMaxDirnumSize;
+							srcPtr = callinfo->Number;
+							validPtr = &callinfo->NumberValid;
+							break;
+						case VOICEMAILBOX:
+							size = StationMaxDirnumSize;
+							srcPtr = callinfo->VoiceMailbox;
+							validPtr = &callinfo->VoiceMailboxValid;
+							break;
+					}
+					if (validPtr) {
+						if (!*validPtr) {
+							if (dstPtr[0] != '\0') {
+								dstPtr[0] = '\0';
+								entries++;
 							}
-						}
-						if (!sccp_strequals(dstPtr, srcPtr)) {
-							entries++;
-							sccp_copy_string(dstPtr, srcPtr, size);
+							break;
 						}
 					}
+					if (!sccp_strequals(dstPtr, srcPtr)) {
+						entries++;
+						sccp_copy_string(dstPtr, srcPtr, size);
+					}
 				}
-				break;
+			}
+			break;
 		}
 	}
 
@@ -631,7 +678,6 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &reason,
 					SCCP_CALLINFO_PRESENTATION, &presentation,
 					SCCP_CALLINFO_KEY_SENTINEL);
-	pbx_log(LOG_NOTICE, "callinfo chnages:%d, reason:%d\n", changes, reason);
 	ast_test_validate(test, changes == 8);
 	ast_test_validate(test, !strcmp(name, "name"));
 	ast_test_validate(test, !strcmp(number, "number"));
@@ -654,7 +700,6 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &reason,
 					SCCP_CALLINFO_PRESENTATION, &presentation,
 					SCCP_CALLINFO_KEY_SENTINEL);
-	pbx_log(LOG_NOTICE, "callinfo chnages:%d, reason:%d\n", changes, reason);
 	ast_test_validate(test, changes == 8);
 	ast_test_validate(test, !strcmp(name, "name"));
 	ast_test_validate(test, !strcmp(number, "number"));
@@ -664,6 +709,37 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	ast_test_validate(test, !strcmp(origvoicemail, "origvm"));
 	ast_test_validate(test, reason == 4);
 
+	ast_test_status_update(test, "Callinfo copyByKey...\n");
+	name[0]='\0'; number[0]='\0'; voicemail[0]='\0'; nullstr[0]='\0'; origname[0]='\0'; orignumber[0]='\0'; origvoicemail[0]='\0'; changes = 0; reason = 0; presentation = CALLERID_PRESENTATION_ALLOWED;
+	sccp_callinfo_t *citest2 = sccp_callinfo_ctor(16);
+	changes = sccp_callinfo_copyByKey(citest1, citest2, 
+					SCCP_CALLINFO_CALLEDPARTY_NAME, SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME,
+					SCCP_CALLINFO_CALLEDPARTY_NUMBER, SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER,
+					SCCP_CALLINFO_PRESENTATION, SCCP_CALLINFO_PRESENTATION,
+					SCCP_CALLINFO_KEY_SENTINEL);
+	ast_test_validate(test, changes == 2);
+	changes = sccp_callinfo_getter(citest2, SCCP_CALLINFO_CALLEDPARTY_NAME, &name, 
+					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &number, 
+					SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, &voicemail, 
+					SCCP_CALLINFO_CALLINGPARTY_NAME, &nullstr,
+					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &origname, 
+					SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, &orignumber, 
+					SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL, &origvoicemail, 
+					SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &reason,
+					SCCP_CALLINFO_PRESENTATION, &presentation,
+					SCCP_CALLINFO_KEY_SENTINEL);
+	ast_test_validate(test, changes == 3);
+	ast_test_validate(test, sccp_strlen_zero(name));
+	ast_test_validate(test, sccp_strlen_zero(number));
+	ast_test_validate(test, sccp_strlen_zero(voicemail));
+	ast_test_validate(test, !strcmp(origname, "name"));
+	ast_test_validate(test, !strcmp(orignumber, "number"));
+	ast_test_validate(test, sccp_strlen_zero(origvoicemail));
+	ast_test_validate(test, presentation == CALLERID_PRESENTATION_FORBIDDEN);
+	ast_test_validate(test, reason == 0);
+	citest2 = sccp_callinfo_dtor(citest2);
+	ast_test_validate(test, citest2 == NULL);
+	
 	ast_test_status_update(test, "Callinfo Test Destructor...\n");
 	citest = sccp_callinfo_dtor(citest);
 	ast_test_validate(test, citest == NULL);

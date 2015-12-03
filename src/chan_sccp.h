@@ -35,29 +35,30 @@ extern "C" {
 /* Add bswap function if necessary */
 #if HAVE_BYTESWAP_H
 #include <byteswap.h>
-#elif HAVE_SYS_BYTEORDER_H
+#else
+#if HAVE_SYS_BYTEORDER_H
 #include <sys/byteorder.h>
 #elif HAVE_SYS_ENDIAN_H
 #include <sys/endian.h>
 #endif
-
 #ifndef HAVE_BSWAP_16
-static inline unsigned short bswap_16(unsigned short x)
+static inline unsigned short __bswap_16(unsigned short x)
 {
 	return (x >> 8) | (x << 8);
 }
 #endif
 #ifndef HAVE_BSWAP_32
-static inline unsigned int bswap_32(unsigned int x)
+static inline unsigned int __bswap_32(unsigned int x)
 {
 	return (bswap_16(x & 0xffff) << 16) | (bswap_16(x >> 16));
 }
 #endif
 #ifndef HAVE_BSWAP_64
-static inline unsigned long long bswap_64(unsigned long long x)
+static inline unsigned long long __bswap_64(unsigned long long x)
 {
 	return (((unsigned long long) bswap_32(x & 0xffffffffull)) << 32) | (bswap_32(x >> 32));
 }
+#endif
 #endif
 
 /* Byte swap based on platform endianes */
@@ -67,10 +68,10 @@ static inline unsigned long long bswap_64(unsigned long long x)
 #define htolel(x) (x)
 #define htoles(x) (x)
 #else
-#define letohs(x) bswap_16(x)
-#define htoles(x) bswap_16(x)
-#define letohl(x) bswap_32(x)
-#define htolel(x) bswap_32(x)
+#define letohs(x) __bswap_16(x)
+#define htoles(x) __bswap_16(x)
+#define letohl(x) __bswap_32(x)
+#define htolel(x) __bswap_32(x)
 #endif
 
 #define SCCP_TECHTYPE_STR "SCCP"

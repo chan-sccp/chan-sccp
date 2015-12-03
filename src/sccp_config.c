@@ -932,7 +932,7 @@ sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t s
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
-	sccp_featureConfiguration_t privacyFeature;								// = malloc(sizeof(sccp_featureConfiguration_t));
+	sccp_featureConfiguration_t privacyFeature = {0};
 
 	if (sccp_strcaseequals(value, "full")) {
 		privacyFeature.status = ~0;
@@ -946,7 +946,8 @@ sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t s
 	}
 
 	if (privacyFeature.status != (*(sccp_featureConfiguration_t *) dest).status || privacyFeature.enabled != (*(sccp_featureConfiguration_t *) dest).enabled) {
-		*(sccp_featureConfiguration_t *) dest = privacyFeature;
+		//*(sccp_featureConfiguration_t *) dest = privacyFeature;
+		memcpy(dest, &privacyFeature, sizeof(sccp_featureConfiguration_t));
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
@@ -1707,7 +1708,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Checking Button Config\n");
 		/* check if the number of buttons got reduced */
-		for (v = first_var; v; v = v->next) {										/* check buttons against currently loaded set*/
+		for (v = first_var; v && !sccp_strlen_zero(v->value); v = v->next) {				/* check buttons against currently loaded set*/
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Checking button: %s\n", v->value);
 			sccp_copy_string(k_button, v->value, sizeof(k_button));
 			splitter = k_button;
@@ -1749,7 +1750,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 	if (changed) {
 		buttonindex = 0;										/* buttonconfig has changed. Load all buttons as new ones */
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "Discarding Previous ButtonConfig Completely\n");
-		for (v = first_var; v; v = v->next) {
+		for (v = first_var; v && !sccp_strlen_zero(v->value); v = v->next) {
 			sccp_copy_string(k_button, v->value, sizeof(k_button));
 			splitter = k_button;
 			buttonType = strsep(&splitter, ",");
@@ -1975,7 +1976,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int buttonin
 			config->button.feature.id = sccp_feature_type_str2val(options);
 			if (args) {
 				config->button.feature.options = strdup(args);
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Arguments present on feature button: %d\n", config->instance);
+				sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "Arguments present on feature button: %d\n", config->instance);
 			} else {
 				config->button.feature.options = NULL;
 			}
@@ -2307,6 +2308,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				// we might have been asked to create a device for realtime addition,
 				// thus causing an infinite loop / recursion.
 				AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(cat, FALSE);
+				sccp_nat_t nat = SCCP_NAT_AUTO;
 
 				/* create new device with default values */
 				if (!d) {
@@ -2316,6 +2318,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 					device_count++;
 				} else {
 					if (d->pendingDelete) {
+						nat = d->nat;
 						d->pendingDelete = 0;
 					}
 				}
@@ -2323,6 +2326,10 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found device %d: %s\n", device_count, cat);
 				/* load saved settings from ast db */
 				sccp_config_restoreDeviceFeatureStatus(d);
+				
+				if (0 == d->pendingDelete && sccp_device_getRegistrationState(d) != SKINNY_DEVICE_RS_NONE) {		/* restore nat status */
+					d->nat = nat;
+				}
 			}
 		} else if (!strcasecmp(utype, "line")) {
 			/* check minimum requirements for a line */
@@ -3469,5 +3476,156 @@ int sccp_config_generate(char *filename, int configType)
 
 	return 0;
 };
+
+#if CS_TEST_FRAMEWORK
+AST_TEST_DEFINE(sccp_config_base_functions)
+{
+	switch(cmd) {
+		case TEST_INIT:
+			info->name = "base_functions";
+			info->category = "/channels/chan_sccp/config/";
+			info->summary = "chan-sccp-b config test";
+			info->description = "chan-sccp-b config tests";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
+	}
+	
+	ast_test_status_update(test, "Executing chan-sccp-b config tests...\n");
+
+	ast_test_status_update(test, "sccp_find_segment...\n");
+	ast_test_validate(test, sccp_find_segment(SCCP_CONFIG_GLOBAL_SEGMENT) == &sccpConfigSegments[0]);
+
+	ast_test_status_update(test, "sccp_fine_config...\n");
+	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(SCCP_CONFIG_GLOBAL_SEGMENT);
+	ast_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "debug") == &sccpConfigSegment->config[2]);
+	ast_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "disallow") == &sccpConfigSegment->config[7]);
+
+	return AST_TEST_PASS;
+}
+
+AST_TEST_DEFINE(sccp_config_multientry)
+{
+	switch(cmd) {
+		case TEST_INIT:
+			info->name = "MultiEntryParameters";
+			info->category = "/channels/chan_sccp/config/";
+			info->summary = "chan-sccp-b config test";
+			info->description = "chan-sccp-b config tests";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
+	}
+	
+	ast_test_status_update(test, "createVariableSetForMultiEntryParameters...\n");
+	PBX_VARIABLE_TYPE *varset = NULL, *v = NULL,*root = NULL;
+	root = ast_variable_new("disallow", "0.0.0.0/0.0.0.0", "");
+	root->next = ast_variable_new("allow", "10.10.10.0/255.255.255.0", "");
+	
+	v = varset = createVariableSetForMultiEntryParameters(root, "disallow|allow", varset);
+	ast_test_validate(test, v != NULL);
+	ast_test_status_update(test, "Test disallow == 0.0.0.0/0.0.0.0\n");
+	ast_test_validate(test, (!strcasecmp((const char *) "disallow", v->name) && !strcasecmp((const char *) "0.0.0.0/0.0.0.0", v->value)));
+	v = v->next;
+	ast_test_validate(test, v != NULL);
+	ast_test_status_update(test, "Test allow == 10.10.10.10/255.255.255.255\n");
+	ast_test_validate(test, (!strcasecmp((const char *) "allow", v->name) && !strcasecmp((const char *) "10.10.10.0/255.255.255.0", v->value)));
+	v = v->next;
+	ast_test_validate(test, v == NULL);
+	
+	pbx_variables_destroy(varset);
+	pbx_variables_destroy(root);
+
+	return AST_TEST_PASS;
+}
+
+AST_TEST_DEFINE(sccp_config_tokenized_default)
+{
+	switch(cmd) {
+		case TEST_INIT:
+			info->name = "TokenizedDefault";
+			info->category = "/channels/chan_sccp/config/";
+			info->summary = "chan-sccp-b config test";
+			info->description = "chan-sccp-b config tests";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
+	}
+
+	ast_test_status_update(test, "createVariableSetForTokenizedDefault...\n");
+	PBX_VARIABLE_TYPE *varset = NULL, *v = NULL;
+	v = varset = createVariableSetForTokenizedDefault("disallow|allow", "0.0.0.0/0.0.0.0|10.10.10.0/255.255.255.0", NULL);
+	
+	ast_test_validate(test, v != NULL);
+	ast_test_status_update(test, "Test disallow == 0.0.0.0\n");
+	ast_test_validate(test, (!strcasecmp((const char *) "disallow", v->name) && !strcasecmp((const char *) "0.0.0.0/0.0.0.0", v->value)));
+	v = v->next;
+	ast_test_validate(test, v != NULL);
+	ast_test_status_update(test, "Test allow == 10.10.10.0/255.255.255.0\n");
+	ast_test_validate(test, (!strcasecmp((const char *) "allow", v->name) && !strcasecmp((const char *) "10.10.10.0/255.255.255.0", v->value)));
+	
+	pbx_variables_destroy(varset);
+
+	return AST_TEST_PASS;
+}
+
+/*
+AST_TEST_DEFINE(sccp_config_setValue)
+{
+	switch(cmd) {
+		case TEST_INIT:
+			info->name = "setValue";
+			info->category = "/channels/chan_sccp/config/";
+			info->summary = "chan-sccp-b config test";
+			info->description = "chan-sccp-b config tests";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
+	}
+	
+	//ast_test_status_update(test, "sccp_config_object_setValue...\n");
+	//static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VARIABLE_TYPE * cat_root, const char *name, const char *value, int lineno, const sccp_config_segment_t segment, boolean_t *SetEntries)
+
+	return AST_TEST_PASS;
+}
+
+AST_TEST_DEFINE(sccp_config_setDefault)
+{
+	switch(cmd) {
+		case TEST_INIT:
+			info->name = "setDefault";
+			info->category = "/channels/chan_sccp/config/";
+			info->summary = "chan-sccp-b config test";
+			info->description = "chan-sccp-b config tests";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
+	}
+	
+	//ast_test_status_update(test, "sccp_config_set_defaults...\n");
+	//static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, boolean_t *SetEntries)
+
+	return AST_TEST_PASS;
+}
+*/
+
+void sccp_config_register_tests(void)
+{
+	AST_TEST_REGISTER(sccp_config_base_functions);
+	AST_TEST_REGISTER(sccp_config_multientry);
+	AST_TEST_REGISTER(sccp_config_tokenized_default);
+	//AST_TEST_REGISTER(sccp_config_setValue);
+	//AST_TEST_REGISTER(sccp_config_setDefault);
+}
+
+void sccp_config_unregister_tests(void)
+{
+	AST_TEST_UNREGISTER(sccp_config_base_functions);
+	AST_TEST_UNREGISTER(sccp_config_multientry);
+	AST_TEST_UNREGISTER(sccp_config_tokenized_default);
+	//AST_TEST_UNREGISTER(sccp_config_setValue);
+	//AST_TEST_UNREGISTER(sccp_config_setDefault);
+}
+#endif
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -513,8 +513,8 @@ top_srcdir = @top_srcdir@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2015-10-15 15:10:26 +0200 (do, 15 okt 2015) $
-# REVISION: $Revision: 6246 $
+# DATE:     $Date: 2015-12-02 14:49:49 +0100 (wo, 02 dec 2015) $
+# REVISION: $Revision: 6453 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 
 #AUTOMAKE_OPTIONS		= gnu silent-rules
@@ -1066,7 +1066,7 @@ ChangeLog:	FORCE
 @ENABLE_SVN2CL_TRUE@              	--revision HEAD:$(CHANGELOG_OLDEST); \
 @ENABLE_SVN2CL_TRUE@	  fi; \
 @ENABLE_SVN2CL_TRUE@	fi
-@ENABLE_SVN2CL_FALSE@	svn log -r$(CHANGELOG_OLDEST):HEAD > ChangeLog
+@ENABLE_SVN2CL_FALSE@	svn log -r$(CHANGELOG_OLDEST):HEAD > ChangeLog 
 
 # Update doc/html/ChangeLog.html from SVN Log
 ChangeLog-HTML:	FORCE
@@ -1088,27 +1088,24 @@ deb:
 	dpkg-buildpackage -rfakeroot -us -uc
 
 rpm:    release
-	@if test ! -z "$(RPMBUILD)" ; then \
-	  cp $(distdir).tar.gz /usr/src/packages/SOURCES/; \
-	  cp tools/chan-sccp-b.spec /usr/src/packages/SOURCES/; \
-	  export DISTDIR=${distdir}; \
-	  if [ -f /etc/SuSE-release ]; then \
-                  if [ "$(ASTERISK_VER)" == "1.4" ]; then \
-                          export ASTERISKVER=""; \
-                  else \
-                          export ASTERISKVER="`echo $(ASTERISK_VER)|sed 's/\.//g'`"; \
-                  fi; \
-	  fi; \
-          export RPMVERSION="$(SCCP_VERSION)"; \
-          export RPMBRANCH="$(SCCP_BRANCH)"; \
-          export RPMREVISION="$(SCCP_REVISION"; \
-          cd /usr/src/packages/SOURCES/ && rpmbuild -bb chan-sccp-b.spec; \
-        else \
-	  echo ""; \
-	  echo "RPM Build on your platform not (yet) supported !"; \
-	  echo "If you like you could send us the required package build file for your platform"; \
-	  echo ""; \
-	fi
+@ENABLE_RPMBUILD_TRUE@	@if [ ! -d ~/rpmbuild/BUILD ]; then mkdir -p ~/rpmbuild/BUILD;fi
+@ENABLE_RPMBUILD_TRUE@	@if [ ! -d ~/rpmbuild/SOURCES ]; then mkdir -p ~/rpmbuild/SOURCES;fi
+@ENABLE_RPMBUILD_TRUE@	@if [ ! -d ~/rpmbuild/SPECS ]; then mkdir -p ~/rpmbuild/SPECS;fi
+@ENABLE_RPMBUILD_TRUE@	@if [ ! -d ~/rpmbuild/RPMS ]; then mkdir -p ~/rpmbuild/RPMS;fi
+@ENABLE_RPMBUILD_TRUE@	@if [ ! -d ~/rpmbuild/SRPMS ]; then mkdir -p ~/rpmbuild/SRPMS;fi
+@ENABLE_RPMBUILD_TRUE@	@cp $(distdir).tar.gz ~/rpmbuild/SOURCES/;
+@ENABLE_RPMBUILD_TRUE@	@cp tools/chan-sccp-b.spec ~/rpmbuild/SOURCES/;
+@ENABLE_RPMBUILD_TRUE@	@if [ -f /etc/SuSE-release ]; then \
+@ENABLE_RPMBUILD_TRUE@		export ASTERISKVER="`echo $(ASTERISK_VER)|sed 's/\.//g'`"; \
+@ENABLE_RPMBUILD_TRUE@	fi;
+@ENABLE_RPMBUILD_TRUE@	@export RPMVERSION=$(SCCP_VERSION);
+@ENABLE_RPMBUILD_TRUE@	@export RPMBRANCH=$(SCCP_BRANCH);
+@ENABLE_RPMBUILD_TRUE@	@export RPMREVISION=$(SCCP_REVISION);
+@ENABLE_RPMBUILD_TRUE@	@cd /usr/src/packages/SOURCES/ && SOURCEDIR="Chan_SCCP-4.3.0_TRUNK_r6452" rpmbuild -bb chan-sccp-b.spec --define="_usr ~/rpmbuild/";
+@ENABLE_RPMBUILD_FALSE@	@echo ""; \
+@ENABLE_RPMBUILD_FALSE@	echo "RPM Build on your platform not (yet) supported !"; \
+@ENABLE_RPMBUILD_FALSE@	echo "If you like you could send us the required package build file for your platform"; \
+@ENABLE_RPMBUILD_FALSE@	echo "";
 
 release:
 	@rm -f ChangeLog

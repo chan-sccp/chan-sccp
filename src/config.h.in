@@ -84,6 +84,9 @@
 /* Running static analysis using clang scan-build */
 #undef CCC_ANALYZER
 
+/* Compiler supports clang blocks */
+#undef CLANG_BLOCKS
+
 /* advanced functions enabled */
 #undef CS_ADV_FEATURES
 
@@ -253,9 +256,6 @@
 /* Using streaming video */
 #undef CS_SCCP_VIDEO
 
-/* Using video layer */
-#undef CS_SCCP_VIDEOLAYER
-
 /* asterisk compiled with 'TEST_FRAMEWORK' */
 #undef CS_TEST_FRAMEWORK
 
@@ -270,6 +270,9 @@
 
 /* No Extra debugging. */
 #undef DEBUG
+
+/* Compiler supports nested functions */
+#undef GCC_NESTED
 
 /* Define if pointers to integers require aligned access */
 #undef HAVE_ALIGNED_ACCESS_REQUIRED

@@ -374,14 +374,15 @@ struct sccp_addon {
  * \brief SCCP Device Indication Callback Structure
  */
 struct sccp_device_indication_cb {
-	void (*const remoteHold) (constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy);
-	void (*const remoteOffhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
-	void (*const remoteOnhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
-	void (*const offhook) (constDevicePtr device, sccp_linedevices_t * linedevice, uint32_t callid);
 	void (*const onhook) (constDevicePtr device, const uint8_t lineInstance, uint32_t callid);
+	void (*const offhook) (constDevicePtr device, sccp_linedevices_t * linedevice, uint32_t callid);
 	void (*const dialing) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION]);
 	void (*const proceed) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
 	void (*const connected) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
+	void (*const remoteOnhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
+	void (*const remoteOffhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
+	void (*const remoteConnected) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, skinny_callinfo_visibility_t visibility);
+	void (*const remoteHold) (constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, skinny_callinfo_visibility_t visibility);
 };
 
 #if UNUSEDCODE // 2015-11-01

@@ -23,7 +23,11 @@ AC_DEFUN([CS_CHECK_PBX], [
 			if test -n "${PBX_ETC}"; then
 				PBX_INCLUDE="${PBX_PREFIX}/usr/include"
 				PBX_CFLAGS="-I${PBX_INCLUDE} $(${PKGCONFIG} --cflags asterisk)"
-				PBX_CPPFLAGS="-I${PBX_CFLAGS}"
+				if test -n "`echo ${PBX_CFLAGS} | grep libxml2-g3`"; then			dnl fix old errornous asterisk.pc (asterisk < 11.13)
+					AC_MSG_NOTICE([Fixed fauly asterisk.pc pkg-config file. Advise:Youought to update your asterisk version])
+					PBX_CFLAGS="`echo ${PBX_CFLAGS} | ${SED} 's/libxml2-g3/libxml2/'`"
+				fi
+				PBX_CPPFLAGS="${PBX_CFLAGS}"
 				CFLAGS="${CFLAGS} ${PBX_CFLAGS}"
 				CPPFLAGS="${CPPFLAGS} ${PBX_CPPFLAGS}"
 	 			PBX_LIB="$(${PKGCONFIG} --variable=libdir asterisk)"
@@ -88,9 +92,11 @@ AC_DEFUN([CS_CHECK_PBX], [
 				if test -f "${checkdir}/etc/asterisk/asterisk.conf"; then
 					PBX_PREFIX="${checkdir}"
 					PBX_ETC="${checkdir}/etc/asterisk"
-				elif test -f "/etc/asterisk.conf"; then
+					PBX_VARLIB="{checkdir}/var/lib/asterisk"
+				elif test -f "/etc/asterisk/asterisk.conf"; then
 					PBX_PREFIX=""
 					PBX_ETC="/etc/asterisk"
+					PBX_VARLIB="/var/lib/asterisk"
 				fi
 				if test -n "${PBX_ETC}"; then
 					PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
@@ -110,7 +116,7 @@ AC_DEFUN([CS_CHECK_PBX], [
 					PBX_TEMPMODDIR="${PBX_LIB}/asterisk/modules"
 				fi
 				if test -z "${PBX_VARLIB}"; then
-					PBX_VARLIB="${checkdir}/var/lib/asterisk"
+					PBX_VARLIB="/var/lib/asterisk"
 				fi 
 
 				LDFLAGS="$PBX_LDFLAGS"
