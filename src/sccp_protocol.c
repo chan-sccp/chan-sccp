@@ -66,7 +66,6 @@ static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, cons
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V3) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
 	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV3)");
-	//sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 
@@ -140,7 +139,6 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 		memcpy(&msg->data.CallInfoDynamicMessage.dummy, &buffer[0], bufferSize);
 	}
 
-	//sccp_dump_msg(msg);
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V7) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
 	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV7)");
 	sccp_dev_send(device, msg);
@@ -221,7 +219,6 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 		memcpy(&msg->data.CallInfoDynamicMessage.dummy, &buffer[0], bufferSize);
 	}
 
-	//sccp_dump_msg(msg);
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V16) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
 	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV16)");
 	sccp_dev_send(device, msg);
@@ -892,7 +889,6 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV17(constDevicePtr devi
 
 		memcpy(&msg->data.StartMultiMediaTransmission.v17.bel_remoteIpAddr, &in->sin_addr, 4);
 	}
-	//sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 
@@ -1048,7 +1044,6 @@ static void sccp_protocol_sendPortRequest(constDevicePtr device, constChannelPtr
 	msg->data.PortRequestMessage.lel_ipv46 = htolel(sccp_socket_is_IPv6(&sas) ? 1 : 0);
 	msg->data.PortRequestMessage.lel_mediaType = htolel(mediaType);
 
-	sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 /* done - sendPortRequest */
@@ -1066,7 +1061,6 @@ static void sccp_protocol_sendPortClose(constDevicePtr device, constChannelPtr c
 	msg->data.PortCloseMessage.lel_callReference = htolel(channel->callid);
 	msg->data.PortCloseMessage.lel_mediaType = htolel(mediaType);
 
-	sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 /* done - sendPortClose */
@@ -1113,7 +1107,6 @@ static void sccp_protocol_parseOpenReceiveChannelAckV17(constMessagePtr msg, ski
 		memcpy(&sin6->sin6_addr, &msg->data.OpenReceiveChannelAck.v17.bel_ipAddr, sizeof(sin6->sin6_addr));
 		sin6->sin6_port = htons(htolel(msg->data.OpenReceiveChannelAck.v17.lel_portNumber));
 	}
-	//sccp_dump_msg((sccp_msg_t *)msg);
 }
 
 static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV3(constMessagePtr msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
@@ -1275,7 +1268,6 @@ static void sccp_protocol_parseEnblocCallV22(constMessagePtr msg, char *calledPa
 /* sendPortResponse */
 static void sccp_protocol_parsePortResponseV3(constMessagePtr msg, uint32_t *conferenceId, uint32_t *callReference, uint32_t *passThruPartyId, struct sockaddr_storage *ss, uint32_t * RTCPPortNumber, skinny_mediaType_t *mediaType)
 {
-	sccp_dump_msg(msg);
 	*conferenceId = letohl(msg->data.PortResponseMessage.v3.lel_conferenceId);
 	*callReference = letohl(msg->data.PortResponseMessage.v3.lel_callReference);
 	*passThruPartyId = letohl(msg->data.PortResponseMessage.v3.lel_passThruPartyId);
@@ -1291,7 +1283,6 @@ static void sccp_protocol_parsePortResponseV3(constMessagePtr msg, uint32_t *con
 
 static void sccp_protocol_parsePortResponseV19(constMessagePtr msg, uint32_t *conferenceId, uint32_t *callReference, uint32_t *passThruPartyId, struct sockaddr_storage *ss, uint32_t * RTCPPortNumber, skinny_mediaType_t *mediaType)
 {
-	sccp_dump_msg(msg);
 	*conferenceId = letohl(msg->data.PortResponseMessage.v19.lel_conferenceId);
 	*callReference = letohl(msg->data.PortResponseMessage.v19.lel_callReference);
 	*passThruPartyId = letohl(msg->data.PortResponseMessage.v19.lel_passThruPartyId);
