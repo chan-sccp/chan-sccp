@@ -35,12 +35,12 @@ extern "C" {
 /* Add bswap function if necessary */
 #if HAVE_BYTESWAP_H
 #include <byteswap.h>
-#elif HAVE_SYS_BYTEORDER_H
+#else
+#if HAVE_SYS_BYTEORDER_H
 #include <sys/byteorder.h>
 #elif HAVE_SYS_ENDIAN_H
 #include <sys/endian.h>
 #endif
-
 #ifndef HAVE_BSWAP_16
 static inline unsigned short __bswap_16(unsigned short x)
 {
@@ -58,6 +58,7 @@ static inline unsigned long long __bswap_64(unsigned long long x)
 {
 	return (((unsigned long long) bswap_32(x & 0xffffffffull)) << 32) | (bswap_32(x >> 32));
 }
+#endif
 #endif
 
 /* Byte swap based on platform endianes */
