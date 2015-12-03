@@ -375,6 +375,7 @@ typedef struct ast_event pbx_event_t;
 #define pbx_bridge_change_state ast_bridge_change_state
 #define pbx_channel_redirecting_effective_from(_a) (_a)->redirecting.from
 #define pbx_channel_redirecting_effective_to(_a) (_a)->redirecting.to
+#define pbx_channel_redirecting_effective_orig(_a) (_a)->redirecting.orig
 #define pbx_channel_connected_id(_a) (_a)->connected.id
 #define pbx_channel_connected_source(_a) (_a)->connected.source
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -191,7 +191,7 @@ gcc_inline static sccp_device_t * const check_session_message_device(constSessio
 		errors++;
 	}
 
-	if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) != 0) {
+	if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE)) != 0) {
 		uint32_t mid = letohl(msg->header.lel_messageId);
 		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", sccp_session_getDesignator(s), msgtype2str(mid), mid, msg ? msg->header.length : 0);
 		sccp_dump_msg(msg);
@@ -223,6 +223,7 @@ static const struct messageMap_cb sccpMessagesCbMap[] = {
 	[OffHookMessage] = {sccp_handle_offhook, TRUE},
 	[OnHookMessage] = {sccp_handle_onhook, TRUE},
 	[SoftKeyEventMessage] = {sccp_handle_soft_key_event, TRUE},
+	[PortResponseMessage] = {sccp_handle_port_response, TRUE},
 	[OpenReceiveChannelAck] = {sccp_handle_open_receive_channel_ack, TRUE},
 	[OpenMultiMediaReceiveChannelAckMessage] = {sccp_handle_OpenMultiMediaReceiveAck, TRUE},
 	[StartMediaTransmissionAck] = {sccp_handle_startmediatransmission_ack, TRUE},
@@ -545,7 +546,7 @@ boolean_t sccp_prePBXLoad(void)
 	pbx_log(LOG_NOTICE, "preloading pbx module\n");
 
 	/* make globals */
-	sccp_globals = (struct sccp_global_vars *) sccp_malloc(sizeof(struct sccp_global_vars));
+	sccp_globals = sccp_calloc(sizeof *sccp_globals, 1);
 	if (!sccp_globals) {
 		pbx_log(LOG_ERROR, "No free memory for SCCP global vars. SCCP channel type disabled\n");
 		return FALSE;
@@ -553,12 +554,7 @@ boolean_t sccp_prePBXLoad(void)
 
 	/* Initialize memory */
 	memset(&sccp_null_frame, 0, sizeof(sccp_null_frame));
-	memset(sccp_globals, 0, sizeof(struct sccp_global_vars));
 	GLOB(debug) = DEBUGCAT_CORE;
-
-	//sccp_event_listeners = (struct sccp_event_subscriptions *)sccp_malloc(sizeof(struct sccp_event_subscriptions));
-	//memset(sccp_event_listeners, 0, sizeof(struct sccp_event_subscriptions));
-	//SCCP_LIST_HEAD_INIT(&sccp_event_listeners->subscriber);
 
 	pbx_rwlock_init(&GLOB(lock));
 #ifndef SCCP_ATOMIC	
@@ -651,6 +647,7 @@ boolean_t sccp_postPBX_load(void)
 	sccp_refcount_register_tests();
 	sccp_threadpool_register_tests();
 	sccp_callinfo_register_tests();
+	sccp_config_register_tests();
 #endif
 	GLOB(module_running) = TRUE;
 	sccp_refcount_schedule_cleanup((const void *) 0);
@@ -689,6 +686,7 @@ int sccp_preUnload(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 
 #if CS_TEST_FRAMEWORK
+	sccp_config_unregister_tests();
 	sccp_callinfo_unregister_tests();
 	sccp_utils_unregister_tests();
 	sccp_refcount_unregister_tests();
@@ -720,9 +718,13 @@ int sccp_preUnload(void)
 	/* hotline will be removed by line removing function */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Lines\n");
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing Hotline\n");
-	sccp_line_removeFromGlobals(GLOB(hotline)->line);
-	GLOB(hotline)->line = sccp_line_release(GLOB(hotline)->line);						/* explicit release of hotline->line */
-	sccp_free(GLOB(hotline));
+	if (GLOB(hotline)) {
+		if (GLOB(hotline)->line) {
+			sccp_line_removeFromGlobals(GLOB(hotline)->line);
+			GLOB(hotline)->line = GLOB(hotline)->line ? sccp_line_release(GLOB(hotline)->line) : NULL;	/* explicit release of hotline->line */
+		}
+		sccp_free(GLOB(hotline));
+	}
 
 	/* removing lines */
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {

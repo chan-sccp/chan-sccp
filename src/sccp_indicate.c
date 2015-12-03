@@ -216,7 +216,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 				SCCP_CALLINFO_KEY_SENTINEL);
 			snprintf(prompt, sizeof(prompt), "%s%s: %s", 
 				(c->ringermode == SKINNY_RINGTYPE_URGENT) ? SKINNY_DISP_FLASH : "", 
-				!sccp_strlen_zero(orig_called_name) ? orig_called_num : SKINNY_DISP_FROM, 
+				!sccp_strlen_zero(orig_called_name) ? orig_called_name : (!sccp_strlen_zero(orig_called_num) ? orig_called_num : SKINNY_DISP_FROM), 
 				!sccp_strlen_zero(calling_name) ? calling_name : calling_num);
 			sccp_dev_displayprompt(d, instance, c->callid, prompt, GLOB(digittimeout));
 			/*
@@ -279,10 +279,10 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			}
 			break;
 		case SCCP_CHANNELSTATE_HOLD:
-			if (c->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
+			if (c->rtp.audio.writeState != SCCP_RTP_STATUS_INACTIVE) {
 				sccp_channel_closeReceiveChannel(c, TRUE);
 			}
-			if (c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) {
+			if (c->rtp.video.writeState != SCCP_RTP_STATUS_INACTIVE) {
 				sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
 			}
 			sccp_handle_time_date_req(d->session, d, NULL);
@@ -504,9 +504,6 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 			sccp_callinfo_getter(ci, SCCP_CALLINFO_PRESENTATION, &presenceParameter, SCCP_CALLINFO_KEY_SENTINEL);
 			uint8_t stateVisibility = (c->privacy || !presenceParameter) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_DEFAULT;
 
-			/*! \note SKINNY_CALLINFO_VISIBILITY_HIDDEN on old devices: Dirty Hack to prevent showing the call twice (both incoming and outgoing) */
-			//stateVisibility = remoteDevice->protocolversion < 17 ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : stateVisibility;
-
 			/* Remarking the next piece out, solves the transfer issue when using sharedline as default on the transferer. Don't know why though (yet) */
 			if (state != SCCP_CHANNELSTATE_ONHOOK) {
 				AUTO_RELEASE sccp_channel_t *activeChannel = sccp_device_getActiveChannel(remoteDevice);
@@ -590,19 +587,13 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 							break;
 					}
 
-					sccp_dev_set_ringer(remoteDevice, SKINNY_RINGTYPE_OFF, lineInstance, callid);
-					sccp_dev_clearprompt(remoteDevice, lineInstance, callid);
-					sccp_device_setLamp(remoteDevice, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
-					sccp_device_sendcallstate(remoteDevice, lineInstance, callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
+					remoteDevice->indicate->remoteConnected(remoteDevice, lineInstance, callid, stateVisibility);
 					sccp_callinfo_send(ci, callid, calltype, lineInstance, remoteDevice, TRUE);
-					
-					sccp_dev_set_keyset(remoteDevice, lineInstance, callid, KEYMODE_ONHOOKSTEALABLE);
 					break;
 
 				case SCCP_CHANNELSTATE_HOLD:
 					if (c->channelStateReason == SCCP_CHANNELSTATEREASON_NORMAL) {
 						remoteDevice->indicate->remoteHold(remoteDevice, lineInstance, callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
-						//remoteDevice->protocol->sendCallInfo(ci, lineInstance, callid, calltype, remoteDevice);
 						sccp_callinfo_send(ci, callid, calltype, lineInstance, remoteDevice, TRUE);
 					} else {
 						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Skipped Remote Hold Indication for reason: %s\n", DEV_ID_LOG(device), sccp_channelstatereason2str(c->channelStateReason));

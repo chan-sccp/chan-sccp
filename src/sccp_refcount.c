@@ -64,14 +64,14 @@ static struct sccp_refcount_obj_info {
 	sccp_debug_category_t debugcat;
 } obj_info[] = {
 /* *INDENT-OFF* */
-	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
-	[SCCP_REF_LINE] = {NULL, "line", DEBUGCAT_LINE},
+	[SCCP_REF_PARTICIPANT] = {NULL, "participant", DEBUGCAT_CONFERENCE},
+	[SCCP_REF_CONFERENCE] = {NULL, "conference", DEBUGCAT_CONFERENCE},
+	[SCCP_REF_EVENT] = {NULL, "event", DEBUGCAT_EVENT},
 	[SCCP_REF_CHANNEL] = {NULL, "channel", DEBUGCAT_CHANNEL},
 	[SCCP_REF_LINEDEVICE] = {NULL, "linedevice", DEBUGCAT_LINE},
-	[SCCP_REF_EVENT] = {NULL, "event", DEBUGCAT_EVENT},
+	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
+	[SCCP_REF_LINE] = {NULL, "line", DEBUGCAT_LINE},
 	[SCCP_REF_TEST] = {NULL, "test", DEBUGCAT_HIGH},
-	[SCCP_REF_CONFERENCE] = {NULL, "conference", DEBUGCAT_CONFERENCE},
-	[SCCP_REF_PARTICIPANT] = {NULL, "participant", DEBUGCAT_CONFERENCE},
 /* *INDENT-ON* */
 };
 
@@ -118,31 +118,37 @@ void sccp_refcount_init(void)
 
 void sccp_refcount_destroy(void)
 {
-	int x;
+	uint32_t x, type;
 	RefCountedObject *obj;
 
-	pbx_log(LOG_NOTICE, "SCCP: (Refcount) destroying...\n");
+	pbx_log(LOG_NOTICE, "SCCP: (Refcount) Shutting Down. Checking Clean Shutdown...\n");
+	int numObjects = 0;
 	runState = SCCP_REF_STOPPED;
 
 	sched_yield();												//make sure all other threads can finish their work first.
 
 	// cleanup if necessary, if everything is well, this should not be necessary
 	ast_rwlock_wrlock(&objectslock);
-	for (x = 0; x < SCCP_HASH_PRIME; x++) {
-		if (objects[x]) {
+	for (type = 0; type < ARRAY_LEN(obj_info); type++) { 							// unwind in order of type priority
+		for (x = 0; x < SCCP_HASH_PRIME && objects[x]; x++) {
 			SCCP_RWLIST_WRLOCK(&(objects[x])->refCountedObjects);
-			while ((obj = SCCP_RWLIST_REMOVE_HEAD(&(objects[x])->refCountedObjects, list))) {
-				pbx_log(LOG_NOTICE, "Cleaning up [%3d]=type:%17s, id:%25s, ptr:%15p, refcount:%4d, alive:%4s, size:%4d\n", x, (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", obj->len);
-				if ((&obj_info[obj->type])->destructor) {
-					(&obj_info[obj->type])->destructor(obj->data);
-				}
+			SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&(objects[x])->refCountedObjects, obj, list) {
+				if (obj->type == type) {
+					pbx_log(LOG_NOTICE, "Cleaning up [%3d]=type:%17s, id:%25s, ptr:%15p, refcount:%4d, alive:%4s, size:%4d\n", x, (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", obj->len);
+					if ((&obj_info[obj->type])->destructor) {
+						(&obj_info[obj->type])->destructor(obj->data);
+					}
 #ifndef SCCP_ATOMIC
-				ast_mutex_destroy(&obj->lock);
+					ast_mutex_destroy(&obj->lock);
 #endif
-				memset(obj, 0, sizeof(RefCountedObject));
-				sccp_free(obj);
-				obj = NULL;
+					memset(obj, 0, sizeof(RefCountedObject));
+					sccp_free(obj);
+					obj = NULL;
+					SCCP_RWLIST_REMOVE_CURRENT(list);
+					numObjects++;
+				}
 			}
+			SCCP_RWLIST_TRAVERSE_SAFE_END;
 			SCCP_RWLIST_UNLOCK(&(objects[x])->refCountedObjects);
 			SCCP_RWLIST_HEAD_DESTROY(&(objects[x])->refCountedObjects);
 
@@ -152,6 +158,9 @@ void sccp_refcount_destroy(void)
 	}
 	ast_rwlock_unlock(&objectslock);
 	pbx_rwlock_destroy(&objectslock);
+	if (numObjects) {
+		pbx_log(LOG_WARNING, "SCCP: (Refcount) Note: We found %d objects which had to be forcefulfy removed during refcount shutdown, see above.\n", numObjects);
+	}
 #if CS_REFCOUNT_DEBUG
 	if (sccp_ref_debug_log) {
 		fclose(sccp_ref_debug_log);
@@ -184,7 +193,7 @@ void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types t
 		return NULL;
 	}
 
-	if (!(obj = sccp_calloc(1, size + sizeof(*obj)))) {
+	if (!(obj = sccp_calloc(size + (sizeof *obj), 1) )) {
 		ast_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Memory allocation failure (obj)");
 		return NULL;
 	}
@@ -209,7 +218,7 @@ void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types t
 		// create new hashtable head when necessary (should this possibly be moved to refcount_init, to avoid raceconditions ?)
 		ast_rwlock_wrlock(&objectslock);
 		if (!objects[hash]) {										// check again after getting the lock, to see if another thread did not create the head already
-			if (!(objects[hash] = sccp_malloc(sizeof(struct refcount_objentry)))) {
+			if (!(objects[hash] = sccp_calloc(sizeof *objects[hash], 1))) {
 				ast_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Memory allocation failure (hashtable)");
 				sccp_free(obj);
 				obj = NULL;
@@ -310,6 +319,7 @@ static gcc_inline RefCountedObject *sccp_refcount_find_obj(const void *ptr, cons
 static gcc_inline void sccp_refcount_remove_obj(const void *ptr)
 {
 	RefCountedObject *obj = NULL;
+	boolean_t cleanup_objects = FALSE;
 
 	if (ptr == NULL) {
 		return;
@@ -328,6 +338,9 @@ static gcc_inline void sccp_refcount_remove_obj(const void *ptr)
 			}
 		}
 		SCCP_RWLIST_TRAVERSE_SAFE_END;
+		if (SCCP_RWLIST_GETSIZE(&(objects[hash])->refCountedObjects) == 0) {
+			cleanup_objects = TRUE;
+		}
 		SCCP_RWLIST_UNLOCK(&(objects[hash])->refCountedObjects);
 	}
 	if (obj) {
@@ -344,6 +357,18 @@ static gcc_inline void sccp_refcount_remove_obj(const void *ptr)
 			sccp_free(obj);
 			obj = NULL;
 		}
+	}
+	if (cleanup_objects && runState == SCCP_REF_RUNNING && objects[hash]) {
+		ast_rwlock_wrlock(&objectslock);
+		SCCP_RWLIST_WRLOCK(&(objects[hash])->refCountedObjects);
+		if (SCCP_RWLIST_GETSIZE(&(objects[hash])->refCountedObjects) == 0) {			/* recheck size */
+			SCCP_RWLIST_HEAD_DESTROY(&(objects[hash])->refCountedObjects);
+			sccp_free(objects[hash]);
+			objects[hash] = NULL;
+		} else {
+			SCCP_RWLIST_UNLOCK(&(objects[hash])->refCountedObjects);
+		}
+		ast_rwlock_unlock(&objectslock);
 	}
 }
 
@@ -533,8 +558,9 @@ gcc_inline void sccp_refcount_autorelease(void *ptr)
 
 #if CS_TEST_FRAMEWORK
 //#include "asterisk/test.h"
-#define NUM_LOOPS 20
-#define NUM_OBJECTS 100
+#define NUM_LOOPS 50
+#define NUM_OBJECTS 5000
+#define NUM_THREADS 10
 static struct refcount_test {
 	char *str;
 	int id;
@@ -550,10 +576,12 @@ static void refcount_test_destroy(struct refcount_test *obj)
 
 static void *refcount_test_thread(void *data)
 {
+	struct ast_test *test = data;
 	struct refcount_test *obj = NULL, *obj1 = NULL;
 	int loop, objloop;
 	int random_object;
 
+	ast_test_status_update(test, "%d: Thread running...\n", (unsigned int) pthread_self());
 	for (loop = 0; loop < NUM_LOOPS; loop++) {
 		for (objloop = 0; objloop < NUM_OBJECTS; objloop++) {
 			random_object = rand() % NUM_OBJECTS;
@@ -567,6 +595,8 @@ static void *refcount_test_thread(void *data)
 			}
 		}
 	}
+
+	ast_test_status_update(test, "%d: Thread finished...\n", (unsigned int) pthread_self());
 
 	return NULL;
 }
@@ -587,8 +617,6 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	        	break;
 	}
 	
-	int num_threads = 10 /* parameterize */;
-
 	pthread_t t;
 	int loop;
 	char id[23];
@@ -606,8 +634,8 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	}
 	sleep(1);
 
-	ast_test_status_update(test, "Run multithreaded retain/release/destroy at random in %d and %d threads loops...\n", NUM_LOOPS, num_threads);
-	for (thread = 0; thread < num_threads; thread++) {
+	ast_test_status_update(test, "Run multithreaded retain/release/destroy at random in %d loops and %d threads...\n", NUM_LOOPS, NUM_THREADS);
+	for (thread = 0; thread < NUM_THREADS; thread++) {
 		pbx_pthread_create(&t, NULL, refcount_test_thread, test);
 	}
 	pthread_join(t, NULL);

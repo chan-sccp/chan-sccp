@@ -193,13 +193,11 @@ sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *
 	snprintf(buf, 254, "Custom:%s", devstate);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "%s: (sccp_devstate_createDeviceStateHandler) create handler for %s/%s\n", "SCCP", devstate, buf);
 
-	deviceState = sccp_malloc(sizeof(sccp_devstate_deviceState_t));
+	deviceState = sccp_calloc(sizeof *deviceState, 1);
 	if (!deviceState) {
 		pbx_log(LOG_ERROR, "Memory Allocation for deviceState failed!\n");
 		return NULL;
 	}
-	memset(deviceState, 0, sizeof(sccp_devstate_deviceState_t));
-
 	SCCP_LIST_HEAD_INIT(&deviceState->subscribers);
 	sccp_copy_string(deviceState->devicestate, devstate, sizeof(deviceState->devicestate));
 #if ASTERISK_VERSION_GROUP >= 112
@@ -219,9 +217,7 @@ void sccp_devstate_addSubscriber(sccp_devstate_deviceState_t * deviceState, cons
 {
 	sccp_devstate_SubscribingDevice_t *subscriber;
 
-	subscriber = sccp_malloc(sizeof(sccp_devstate_SubscribingDevice_t));
-	memset(subscriber, 0, sizeof(sccp_devstate_SubscribingDevice_t));
-
+	subscriber = sccp_calloc(sizeof *subscriber, 1);
 	subscriber->device = sccp_device_retain((sccp_device_t *) device);
 	subscriber->instance = buttonConfig->instance;
 	subscriber->buttonConfig = buttonConfig;

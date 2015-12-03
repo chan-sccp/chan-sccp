@@ -86,10 +86,8 @@ struct sccp_mailbox_subscriber_list {
 #endif
 };																/*!< SCCP Mailbox Subscriber List Structure */
 
-
-
-
 void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice);
+void sccp_mwi_destroySubscription(sccp_mailbox_subscriber_list_t *subscription);
 void sccp_mwi_linecreatedEvent(const sccp_event_t * event);
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event);
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t * line);
@@ -116,41 +114,17 @@ void sccp_mwi_module_start(void)
 void sccp_mwi_module_stop(void)
 {
 	sccp_mailbox_subscriber_list_t *subscription = NULL;
-	sccp_mailboxLine_t *sccp_mailboxLine = NULL;
-
-	SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
-	while ((subscription = SCCP_LIST_REMOVE_HEAD(&sccp_mailbox_subscriptions, list))) {
-
-		/* removing lines */
-		SCCP_LIST_LOCK(&subscription->sccp_mailboxLine);
-		while ((sccp_mailboxLine = SCCP_LIST_REMOVE_HEAD(&subscription->sccp_mailboxLine, list))) {
-			sccp_free(sccp_mailboxLine);
-		}
-		SCCP_LIST_UNLOCK(&subscription->sccp_mailboxLine);
-		SCCP_LIST_HEAD_DESTROY(&subscription->sccp_mailboxLine);
-
-		/* unsubscribe asterisk event */
-#if defined(CS_AST_HAS_EVENT)
-		if (subscription->event_sub) {
-			pbx_event_unsubscribe(subscription->event_sub);
-		}
-#elif defined(CS_AST_HAS_STASIS)
-		if (subscription->event_sub) {
-			stasis_unsubscribe(subscription->event_sub);
-		}
-#else
-		subscription->schedUpdate = SCCP_SCHED_DEL(subscription->schedUpdate);
-#endif
-		/* end unsubscribe asterisk event */
-
-		sccp_free(subscription);
-	}
-	SCCP_LIST_UNLOCK(&sccp_mailbox_subscriptions);
-	SCCP_LIST_HEAD_DESTROY(&sccp_mailbox_subscriptions);
 
 	sccp_event_unsubscribe(SCCP_EVENT_LINE_CREATED, sccp_mwi_linecreatedEvent);
 	sccp_event_unsubscribe(SCCP_EVENT_DEVICE_ATTACHED, sccp_mwi_deviceAttachedEvent);
 	sccp_event_unsubscribe(SCCP_EVENT_LINESTATUS_CHANGED, sccp_mwi_lineStatusChangedEvent);
+
+	SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
+	while ((subscription = SCCP_LIST_REMOVE_HEAD(&sccp_mailbox_subscriptions, list))) {
+		sccp_mwi_destroySubscription(subscription);
+	}
+	SCCP_LIST_UNLOCK(&sccp_mailbox_subscriptions);
+	SCCP_LIST_HEAD_DESTROY(&sccp_mailbox_subscriptions);
 }
 
 /*!
@@ -202,8 +176,7 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
 {
 	sccp_mailbox_subscriber_list_t *subscription = data;
 
-	pbx_log(LOG_NOTICE, "Got mwi-event\n");
-	if (!subscription || !event) {
+	if (!subscription || !event || !GLOB(module_running)) {
 		return;
 	}
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received PBX mwi event for %s@%s\n", subscription->mailbox, subscription->context);
@@ -231,10 +204,10 @@ void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stas
 {
 	sccp_mailbox_subscriber_list_t *subscription = userdata;
 
-	sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_1 "Got mwi-event\n");
-	if (!subscription || !sub) {
+	if (!subscription || !GLOB(module_running)) {
 		return;
 	}
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received PBX mwi event for %s@%s\n", subscription->mailbox, subscription->context);
 
 	if (msg && ast_mwi_state_type() == stasis_message_type(msg)) {
 		struct ast_mwi_state *mwi_state = stasis_message_data(msg);
@@ -248,8 +221,6 @@ void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stas
 		if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
 			sccp_mwi_updatecount(subscription);
 		}
-	//} else {
-	//	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received STASIS Message that did not contain mwi state\n");
 	}
 }
 
@@ -268,7 +239,7 @@ int sccp_mwi_checksubscription(const void *ptr)
 {
 	sccp_mailbox_subscriber_list_t *subscription = (sccp_mailbox_subscriber_list_t *) ptr;
 
-	if (!subscription) {
+	if (!subscription || !GLOB(module_running)) {
 		return -1;
 	}
 	subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
@@ -294,14 +265,60 @@ int sccp_mwi_checksubscription(const void *ptr)
 #endif
 
 /*!
+ * \brief Free Mailbox Subscription
+ */
+void sccp_mwi_destroySubscription(sccp_mailbox_subscriber_list_t *subscription)
+{
+	pbx_assert(subscription != NULL);
+	sccp_mailboxLine_t *mailboxLine = NULL;
+	
+	SCCP_LIST_LOCK(&subscription->sccp_mailboxLine);
+	while ((mailboxLine = SCCP_LIST_REMOVE_HEAD(&subscription->sccp_mailboxLine, list))) {
+		sccp_free(mailboxLine);
+	}
+	SCCP_LIST_UNLOCK(&subscription->sccp_mailboxLine);
+	SCCP_LIST_HEAD_DESTROY(&subscription->sccp_mailboxLine);
+			
+#if defined(CS_AST_HAS_EVENT)
+	if (subscription->event_sub) {
+		pbx_event_unsubscribe(subscription->event_sub);
+	}
+#elif defined(CS_AST_HAS_STASIS)
+	if (subscription->event_sub) {
+		stasis_unsubscribe(subscription->event_sub);
+	}
+#else
+	if (subscription->schedUpdate > -1) {
+		subscription->schedUpdate = SCCP_SCHED_DEL(subscription->schedUpdate);
+	}
+#endif
+	free(subscription);
+}
+
+/*!
  * \brief Remove Mailbox Subscription
  * \param mailbox SCCP Mailbox
  * \todo Implement sccp_mwi_unsubscribeMailbox ( \todo Marcello)
  */
-void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t ** mailbox)
+void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t * mailbox)
 {
-	// \todo implement sccp_mwi_unsubscribeMailbox
-	return;
+	if (!mailbox) {
+		pbx_log(LOG_ERROR, "(sccp_mwi_unsubscribeMailbox) mailbox not provided\n");
+		return;
+	}
+
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "SCCP: unsubscribe mailbox: %s@%s\n", mailbox->mailbox, mailbox->context);
+	sccp_mailbox_subscriber_list_t *subscription = NULL;
+
+	SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&sccp_mailbox_subscriptions, subscription, list) {
+		if (sccp_strequals(mailbox->mailbox, subscription->mailbox) && sccp_strequals(mailbox->context, subscription->context)) {
+			SCCP_LIST_REMOVE_CURRENT(list);
+			sccp_mwi_destroySubscription(subscription);
+		}
+	}
+	SCCP_LIST_TRAVERSE_SAFE_END;
+	SCCP_LIST_UNLOCK(&sccp_mailbox_subscriptions);
 }
 
 /*!
@@ -315,7 +332,7 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 		return;
 	}
 
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_deviceAttachedEvent) Get deviceAttachedEvent\n");
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "SCCP: (mwi_deviceAttachedEvent) Get deviceAttachedEvent\n");
 
 	sccp_linedevices_t *linedevice = event->event.deviceAttached.linedevice;
 	sccp_line_t *line = linedevice->line;
@@ -341,7 +358,7 @@ void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
 		return;
 	}
 
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_lineStatusChangedEvent) Get lineStatusChangedEvent\n");
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "SCCP: (mwi_lineStatusChangedEvent) Get lineStatusChangedEvent\n");
 	/* these are the only events we are interested in */
 	if (	event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_DOWN || \
 		event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_ONHOOK || \
@@ -369,15 +386,14 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t * event)
 	sccp_mailbox_t *mailbox = NULL;
 	sccp_line_t *line = event->event.lineCreated.line;
 
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_linecreatedEvent) Get linecreatedEvent\n");
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "SCCP: (mwi_linecreatedEvent) Get linecreatedEvent\n");
 
 	if (line && (&line->mailboxes) != NULL) {
 		SCCP_LIST_TRAVERSE(&line->mailboxes, mailbox, list) {
-			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "line: '%s' mailbox: %s@%s\n", line->name, mailbox->mailbox, mailbox->context);
+			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "line: '%s' subscribe mailbox: %s@%s\n", line->name, mailbox->mailbox, mailbox->context);
 			sccp_mwi_addMailboxSubscription(mailbox->mailbox, mailbox->context, line);
 		}
 	}
-	return;
 }
 
 /*!
@@ -407,13 +423,11 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 	SCCP_LIST_UNLOCK(&sccp_mailbox_subscriptions);
 
 	if (!subscription) {
-		subscription = sccp_malloc(sizeof(sccp_mailbox_subscriber_list_t));
+		subscription = sccp_calloc(sizeof *subscription, 1);
 		if (!subscription) {
 			pbx_log(LOG_ERROR, "SCCP: (mwi_addMailboxSubscription) Error allocating memory for sccp_mwi_addMailboxSubscription");
 			return;
 		}
-		memset(subscription, 0, sizeof(sccp_mailbox_subscriber_list_t));
-
 		SCCP_LIST_HEAD_INIT(&subscription->sccp_mailboxLine);
 
 		sccp_copy_string(subscription->mailbox, mailbox, sizeof(subscription->mailbox));
@@ -481,12 +495,11 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 	}
 
 	if (!mailboxLine) {
-		mailboxLine = sccp_malloc(sizeof(sccp_mailboxLine_t));
+		mailboxLine = sccp_calloc(sizeof *mailboxLine, 1);
 		if (!mailboxLine) {
 			pbx_log(LOG_ERROR, "SCCP: (mwi_addMailboxSubscription) Error allocating memory for mailboxLine");
 			return;
 		}
-		memset(mailboxLine, 0, sizeof(sccp_mailboxLine_t));
 
 		mailboxLine->line = line;
 

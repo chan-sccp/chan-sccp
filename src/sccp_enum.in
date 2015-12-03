@@ -573,11 +573,11 @@ enum ringtype {
 	SKINNY_RINGTYPE_FEATURE,			,	"Feature",
 	SKINNY_RINGTYPE_SILENT,				,	"Silent", 
 	SKINNY_RINGTYPE_URGENT,				,	"Urgent",
-	SKINNY_RINGTYPE_BELLCORE_1,			,	"Bellcore 1",
-	SKINNY_RINGTYPE_BELLCORE_2,			,	"Bellcore 2",
-	SKINNY_RINGTYPE_BELLCORE_3,			,	"Bellcore 3",
-	SKINNY_RINGTYPE_BELLCORE_4,			,	"Bellcore 4",
-	SKINNY_RINGTYPE_BELLCORE_5,			,	"Bellcore 5",
+	SKINNY_RINGTYPE_BELLCORE_1,			,	"Bellcore1",
+	SKINNY_RINGTYPE_BELLCORE_2,			,	"Bellcore2",
+	SKINNY_RINGTYPE_BELLCORE_3,			,	"Bellcore3",
+	SKINNY_RINGTYPE_BELLCORE_4,			,	"Bellcore4",
+	SKINNY_RINGTYPE_BELLCORE_5,			,	"Bellcore5",
 }
 
 /*!
@@ -899,7 +899,7 @@ enum devicetype {
 /*!
  * \brief Skinny Device Registration (ENUM)
  */
-enum encryptionmethod {
+enum encryptionMethod {
 	SKINNY_ENCRYPTIONMETHOD_NONE,			=0x0,	"No Encryption",
 	SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_32,	=0x1,	"AES128 SHA1 32",
 	SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_80,	=0x2,	"AES128 SHA1 80",
@@ -921,6 +921,29 @@ enum miscCommandType {
 	SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE,	=0x5,	"lostPartialPicture", 
 	SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE,=0x6,	"recoveryReferencePicture", 
 	SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF,	=0x7,	"temporalSpatialTradeOff", 
+}
+
+/*!
+ * \brief Skinny MediaTransportType
+ */
+enum mediaTransportType {
+	SKINNY_MEDIA_TRANSPORT_TYPE_RTP,		=0x1,	"Rtp", 
+	SKINNY_MEDIA_TRANSPORT_TYPE_UDP,		,	"Udp", 
+	SKINNY_MEDIA_TRANSPORT_TYPE_TCP,		,	"Tcp", 
+}
+
+/*!
+ * \brief Skinny MediaType
+ */
+enum mediaType {
+	SKINNY_MEDIA_TYPE_INVALID,			=0x0,	"Invalid", 
+	SKINNY_MEDIA_TYPE_AUDIO,			,	"Audio", 
+	SKINNY_MEDIA_TYPE_MAIN_VIDEO,			,	"Main Video", 
+	SKINNY_MEDIA_TYPE_FECC,				,	"FECC", 
+	SKINNY_MEDIA_TYPE_PRESENTATION_VIDEO,		,	"Presentation Video", 
+	SKINNY_MEDIA_TYPE_DATA_APP_BFCP,		,	"DataApp_BFCP", 
+	SKINNY_MEDIA_TYPE_DATA_APP_IXCHANNEL,		,	"DataApp_IxChannel", 
+	SKINNY_MEDIA_TYPE_T38,				,	"T38", 
 }
 
 } /* NAMESPACE skinny */

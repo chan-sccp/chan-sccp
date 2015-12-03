@@ -27,9 +27,7 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src, sccp_callinfo_t 
  * \returns: number of changed fields
  */
 int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...);
-#if UNUSEDCODE // 2015-11-01
 int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, sccp_callinfo_key_t key, ...);
-#endif
 /*
  * \brief send callinfo to device
  */

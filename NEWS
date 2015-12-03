@@ -1,3 +1,10 @@
+Version: v4.3.0_TRUNK
+=====================
+WIP
+ - Fixed direcrtp
+ - Revised handling shared line during incoming call
+ - Revised callinfo
+
 Version: v4.2_STABLE
 =====================
 New Features in V4.2
@@ -184,3 +191,5 @@ Fixed/Improved:
  - Group pickup
  - Call parking
 
+
+Version: 4.3.0_TRUNK

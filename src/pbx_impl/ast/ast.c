@@ -521,6 +521,7 @@ int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcna
 			res = sccp_channel_setPreferredCodec(c, value);
 			
 		} else if (!strcasecmp(args, "video")) {
+			pbx_builtin_setvar_helper(ast, "_SCCP_VIDEO_MODE", value);
 			res = sccp_channel_setVideoMode(c, value);
 			
 		} else if (!strcasecmp(args, "CallingParty")) {
@@ -652,23 +653,32 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 	struct ast_party_id redirecting_from = pbx_channel_redirecting_effective_from(ast);
 	struct ast_party_id redirecting_to = pbx_channel_redirecting_effective_to(ast);
 
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>; To %s<%s>\n", pbx_channel_name(ast), (redirecting_from.name.valid && redirecting_from.name.str) ? redirecting_from.name.str : "", (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "", (redirecting_to.name.valid && redirecting_to.name.str) ? redirecting_to.name.str : "",
-				  (redirecting_to.number.valid && redirecting_to.number.str) ? redirecting_to.number.str : "");
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>; To %s<%s>\n", pbx_channel_name(ast),
+				(redirecting_from.name.valid && redirecting_from.name.str) ? redirecting_from.name.str : "", 
+				(redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "", 
+				(redirecting_to.name.valid && redirecting_to.name.str) ? redirecting_to.name.str : "",
+				(redirecting_to.number.valid && redirecting_to.number.str) ? redirecting_to.number.str : "");
 
 	sccp_callinfo_setter(ci, 
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, redirecting_from.name.valid && redirecting_from.name.str ? redirecting_from.name.str : NULL, 
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "",
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "",
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, redirecting_from.name.valid && redirecting_from.name.str ? redirecting_from.name.str : NULL,
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, redirectreason,
 		SCCP_CALLINFO_LAST_REDIRECT_REASON, 4,					// need to figure out these codes
 		SCCP_CALLINFO_KEY_SENTINEL);
 
 #else
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From <%s>\n", pbx_channel_name(ast), ast->cid.cid_rdnis);
 	sccp_callinfo_setter(ci, 
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : "",
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : NULL,
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, redirectreason,
 		SCCP_CALLINFO_LAST_REDIRECT_REASON, 4,					// need to figure out these codes
 		SCCP_CALLINFO_KEY_SENTINEL);
 #endif
+
+	sccp_channel_display_callInfo(channel);
 	sccp_channel_send_callinfo2(channel);
 }
 
@@ -703,59 +713,55 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 		SCCP_CALLINFO_KEY_SENTINEL);
 
 	/* set the original calling/called party if the reason is a transfer */
-	if (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
-		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Destination\n");
-			changes = sccp_callinfo_setter(callInfo, 
-				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
-				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
-				
-				//SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, tmpCallingNumber,		// gives wrong result in phonebook, should be line below
-				//SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, tmpCallingNumber,
-			
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
-				
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, tmpCalledNumber,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, tmpCalledName,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, tmpOrigCalledPartyRedirectReason,
-				
-				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, tmpCallingNumber,
-				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, tmpCallingNumber,
-				SCCP_CALLINFO_LAST_REDIRECT_REASON, tmpLastRedirectReason,
-				
-				SCCP_CALLINFO_KEY_SENTINEL);
-		} else {
-			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Transferee\n");
-			changes = sccp_callinfo_setter(callInfo, 	
-				SCCP_CALLINFO_CALLEDPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
-				SCCP_CALLINFO_CALLEDPARTY_NAME, pbx_channel_connected_id(ast).name.str,
-				
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, tmpCallingNumber,
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, tmpCallingName,
-				
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, tmpCalledNumber,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, tmpCalledNumber,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, tmpOrigCalledPartyRedirectReason,
-				
-				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, tmpCalledNumber, 
-				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, tmpCalledName,
-				SCCP_CALLINFO_LAST_REDIRECT_REASON, tmpLastRedirectReason,
-				
-				SCCP_CALLINFO_KEY_SENTINEL);
-		}
+	if (channel->calltype == SKINNY_CALLTYPE_INBOUND && (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING)) {
+		sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Destination\n");
+		changes = sccp_callinfo_setter(callInfo, 
+			SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
+			SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
+
+			SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
+			SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
+
+			SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, tmpCallingNumber,
+			SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, tmpCallingName,
+			SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, tmpOrigCalledPartyRedirectReason,
+
+			SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, tmpCallingNumber,
+			SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, tmpCallingNumber,
+			SCCP_CALLINFO_LAST_REDIRECT_REASON, tmpLastRedirectReason,
+
+			SCCP_CALLINFO_KEY_SENTINEL);
 	} else {
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
+#if ASTERISK_VERSION_GROUP >= 111
+			struct ast_party_id redirecting_orig = pbx_channel_redirecting_effective_orig(ast);
+			if (!redirecting_orig.name.valid && !redirecting_orig.number.valid) {
+				changes = sccp_callinfo_setter(callInfo,
+					SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
+					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
+					SCCP_CALLINFO_KEY_SENTINEL);
+			} else {
+				changes = sccp_callinfo_setter(callInfo,
+					SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
+					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
+					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, redirecting_orig.name.valid ? ast_channel_redirecting(ast)->orig.name.str : "",
+					SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, redirecting_orig.number.valid ? ast_channel_redirecting(ast)->orig.number.str : "",
+					SCCP_CALLINFO_KEY_SENTINEL);
+			}
+#else
 			changes = sccp_callinfo_setter(callInfo,
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				SCCP_CALLINFO_KEY_SENTINEL);
+#endif
 		} else {
 			changes = sccp_callinfo_setter(callInfo,
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLEDPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				SCCP_CALLINFO_KEY_SENTINEL);
 		}
+
+
 	}
 	sccp_channel_display_callInfo(channel);
 	sccp_channel_send_callinfo2(channel);
@@ -772,6 +778,8 @@ void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const ch
 #if ASTERISK_VERSION_GROUP >106
 	struct ast_party_redirecting redirecting;
 	struct ast_set_party_redirecting update_redirecting;
+
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Send Redirected Update. From %s<%s>, To: %s<%s>\n", channel->designator, fromName, fromNumber, toName, toNumber);
 
 	ast_party_redirecting_init(&redirecting);
 	memset(&update_redirecting, 0, sizeof(update_redirecting));
@@ -838,9 +846,7 @@ int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, u
 
 	/* parse options */
 	if (options && (optc = sccp_app_separate_args(options, '/', optv, sizeof(optv) / sizeof(optv[0])))) {
-		pbx_log(LOG_NOTICE, "parse options\n");
 		for (opti = 0; opti < optc; opti++) {
-			pbx_log(LOG_NOTICE, "parse option '%s'\n", optv[opti]);
 			if (!strncasecmp(optv[opti], "aa", 2)) {
 				/* let's use the old style auto answer aa1w and aa2w */
 				if (!strncasecmp(optv[opti], "aa1w", 4)) {
@@ -1073,54 +1079,40 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 {
 #if ASTERISK_VERSION_GROUP >= 112
-	char featexten[SCCP_MAX_EXTENSION];
+	char featexten[SCCP_MAX_EXTENSION] = "";
 
-	if (iPbx.getFeatureExtension(channel, featexten)) {
-		if (!sccp_strlen_zero(featexten)) {
-			struct ast_frame f = { AST_FRAME_DTMF, };
-			uint j;
+	if (iPbx.getFeatureExtension(channel, "automixmon", featexten) && !sccp_strlen_zero(featexten)) {
+		pbx_log(LOG_ERROR, "%s: Sending DTMF:'%s' to switch Monitor Feature\n", channel->designator, featexten);
+		struct ast_frame f = { AST_FRAME_DTMF, };
+		uint j;
 
-			f.len = 100;
-			for (j = 0; j < strlen(featexten); j++) {
-				f.subclass.integer = featexten[j];
-				ast_queue_frame(channel->owner, &f);
-			}
-		} else {
-			pbx_log(LOG_ERROR, "SCCP: Monitor Feature Extension Not available\n");
+		f.len = 100;
+		for (j = 0; j < strlen(featexten); j++) {
+			f.subclass.integer = featexten[j];
+			ast_queue_frame(channel->owner, &f);
 		}
 		return TRUE;
 	}
+	pbx_log(LOG_ERROR, "SCCP: Monitor Feature Extension Not available\n");
+	return FALSE;
 #else
-#ifdef CS_EXPERIMENTAL		// Added 2015/01/24
 	ast_rdlock_call_features();
-	
 	struct ast_call_feature *feature = ast_find_call_feature("automixmon");
+	ast_unlock_call_features();
 
 	if (feature) {
-		struct ast_call_feature feat;
-		memcpy(&feat, feature, sizeof(feat));
-		ast_unlock_call_features();
 		PBX_CHANNEL_TYPE *bridgePeer = iPbx.get_bridged_channel(channel->owner);
 		if (bridgePeer) {
-			feat.operation(channel->owner, bridgePeer, NULL, "monitor button", FEATURE_SENSE_CHAN | FEATURE_SENSE_PEER, NULL);
+			feature->operation(channel->owner, bridgePeer, NULL, "monitor button", FEATURE_SENSE_CHAN | FEATURE_SENSE_PEER, NULL);
 			pbx_channel_unref(bridgePeer);
 		} else {
 			pbx_log(LOG_ERROR, "SCCP: No bridgepeer available\n");
 		}
 		return TRUE;
 	}
-#else				// Old Impl
-	struct ast_call_feature *feature = ast_find_call_feature("automon");
-
-	if (feature) {
-		feature->operation(channel->owner, channel->owner, NULL, "monitor button", 0, NULL);
-		return TRUE;
-	}
-#endif
-#endif
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Automon not available in features.conf/n", channel->designator);
 	return FALSE;
-
+#endif
 }
 
 #if !defined(AST_DEFAULT_EMULATE_DTMF_DURATION)

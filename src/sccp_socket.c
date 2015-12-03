@@ -1111,8 +1111,7 @@ static void sccp_accept_connection(void)
 	}
 	sccp_socket_setoptions(new_socket);
 
-	s = sccp_malloc(sizeof(struct sccp_session));
-	memset(s, 0, sizeof(sccp_session_t));
+	s = sccp_calloc(sizeof *s, 1);
 	memcpy(&s->sin, &incoming, sizeof(s->sin));
 	sccp_mutex_init(&s->lock);
 

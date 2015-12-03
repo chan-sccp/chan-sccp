@@ -113,8 +113,8 @@ void sccp_event_module_start(void)
 
 	if (!sccp_event_running) {
 		for (i = 0; i < NUMBER_OF_EVENT_TYPES; i++) {
-			subscriptions[i].async = (sccp_event_subscriber_t *) sccp_malloc(sizeof(sccp_event_subscriber_t));
-			subscriptions[i].sync = (sccp_event_subscriber_t *) sccp_malloc(sizeof(sccp_event_subscriber_t));
+			subscriptions[i].async = sccp_calloc(sizeof *subscriptions[i].async, 1);
+			subscriptions[i].sync = sccp_calloc(sizeof *subscriptions[i].sync, 1);
 		}
 		sccp_event_running = TRUE;
 	}
