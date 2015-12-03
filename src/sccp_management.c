@@ -936,6 +936,7 @@ int sccp_manager_action2str(const char *manager_command, char **outStr)
 {
         int result = 0;
         
+#if ASTERISK_VERSION_GROUP > 108
         if (!outStr || sccp_strlen_zero(manager_command)) {
 		pbx_log(LOG_ERROR, "SCCP: No OutStr or Command Provided\n");
         	return -2;
@@ -964,6 +965,7 @@ int sccp_manager_action2str(const char *manager_command, char **outStr)
 #else
 	pbx_log(LOG_NOTICE, "SCCP: Modern compiler required: gcc with nested function or clang with blocks support\n");
 #endif														/* defined(GCC_NESTED) || defined(CLANG_BLOCKS) */
+#endif
         return result;
 }
 /* example use
