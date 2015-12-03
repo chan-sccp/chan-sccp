@@ -588,7 +588,7 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 	//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: maxStreams: %d, activeStreams: %d, maxConferences: %d, activeConferences: %d\n", deviceName, maxStreams, activeStreams, maxConferences, activeConferences);
 
 	/* auto NAT detection if NAT is not set as device configuration */
-	if (device->nat == SCCP_NAT_AUTO && GLOB(localaddr)) {
+	if (SCCP_NAT_AUTO == device->nat || SCCP_NAT_AUTO_OFF == device->nat || SCCP_NAT_AUTO_ON == device->nat) {
 		device->nat = SCCP_NAT_AUTO_OFF;
 		struct sockaddr_storage session_sas = { 0 };
 		sccp_session_getSas(s, &session_sas);
@@ -600,7 +600,7 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 		sccp_print_ha(ha_localnet_buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(localaddr));
 
 		if (session_sas.ss_family == AF_INET) {
-			if (sccp_apply_ha_default(GLOB(localaddr), &session_sas, AST_SENSE_DENY) != AST_SENSE_ALLOW) {	// if device->sin falls in localnet scope
+			if (GLOB(localaddr) && sccp_apply_ha_default(GLOB(localaddr), &session_sas, AST_SENSE_DENY) != AST_SENSE_ALLOW) {	// if device->sin falls in localnet scope
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected NAT. Session IP '%s' (Phone: '%s') is outside of localnet('%s') scope. We will use externip or externhost for the RTP stream\n", deviceName, session_ipv4, phone_ipv4, pbx_str_buffer(ha_localnet_buf));
 				device->nat = SCCP_NAT_AUTO_ON;
 			} else if (sccp_socket_cmp_addr(&session_sas, &register_sas)) {				// compare device->sin to the phones reported ipaddr
@@ -610,8 +610,11 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device Not NATTED. Device IP '%s' falls in localnet scope\n", deviceName, session_ipv4);
 			}
 		} else {
+			
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: NAT Autodetection Skipped for IPv6.\n", deviceName);
 		}
+	} else {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: nat=%s set manually in config file\n", deviceName, sccp_nat2str(device->nat));
 	}
 
 	device->skinny_type = deviceType;
