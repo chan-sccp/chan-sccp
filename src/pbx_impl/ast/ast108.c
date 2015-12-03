@@ -1659,7 +1659,7 @@ static enum ast_rtp_glue_result sccp_wrapper_asterisk18_get_rtp_info(PBX_CHANNEL
 {
 	//AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);				// not following the refcount rules... channel is already retained
 	sccp_channel_t *c = NULL;
-	sccp_rtp_info_t rtpInfo;
+	sccp_rtp_info_t rtpInfo = SCCP_RTP_INFO_NORTP;
 	struct sccp_rtp *audioRTP = NULL;
 	enum ast_rtp_glue_result res = AST_RTP_GLUE_RESULT_REMOTE;
 
@@ -1706,7 +1706,7 @@ static enum ast_rtp_glue_result sccp_wrapper_asterisk18_get_vrtp_info(PBX_CHANNE
 {
 	//AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);				// not following the refcount rules... channel is already retained
 	sccp_channel_t *c = NULL;
-	sccp_rtp_info_t rtpInfo;
+	sccp_rtp_info_t rtpInfo = SCCP_RTP_INFO_NORTP;
 	struct sccp_rtp *videoRTP = NULL;
 	enum ast_rtp_glue_result res = AST_RTP_GLUE_RESULT_REMOTE;
 
@@ -1720,7 +1720,9 @@ static enum ast_rtp_glue_result sccp_wrapper_asterisk18_get_vrtp_info(PBX_CHANNE
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk18_get_vrtp_info) Asterisk requested RTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
 	}
 
+#ifdef CS_SCCP_VIDEO
 	rtpInfo = sccp_rtp_getVideoPeerInfo(c, &videoRTP);
+#endif
 	if (rtpInfo == SCCP_RTP_INFO_NORTP) {
 		return AST_RTP_GLUE_RESULT_FORBID;
 	}
@@ -1770,7 +1772,7 @@ static int sccp_wrapper_asterisk18_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 			break;
 		}
 		ast_getformatname_multiple(codec_buf, sizeof(codec_buf) - 1, codecs);
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (asterisk18_update_rtp_peer) stage: %s, codecs capabilty: %s (%lu), nat_active: %d\n", c->currentDeviceId, S_COR(AST_STATE_UP == pbx_channel_state(ast), "RTP", "EarlyRTP"), codec_buf, (long unsigned int) codecs, nat_active);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (asterisk18_update_rtp_peer) stage: %s, remote codecs capabilty: %s (%lu), nat_active: %d\n", c->currentDeviceId, S_COR(AST_STATE_UP == pbx_channel_state(ast), "RTP", "EarlyRTP"), codec_buf, (long unsigned int) codecs, nat_active);
 		if (!c->line) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk18_update_rtp_peer) NO LINE\n", c->currentDeviceId);
 			result = -1;
@@ -2072,16 +2074,12 @@ static int sccp_wrapper_asterisk18_callerid_presentation(PBX_CHANNEL_TYPE *pbx_c
 	return CALLERID_PRESENTATION_FORBIDDEN;
 }
 
-static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
+static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(constDevicePtr d, sccp_channel_t * c)
 {
 	struct ast_sockaddr sock = { {0,} };
 	struct ast_codec_pref astCodecPref;
 
-	if (!c) {
-		return FALSE;
-	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
-	if (!d) {
+	if (!c || !d) {
 		return FALSE;
 	}
 	memcpy(&sock.ss, &GLOB(bindaddr), sizeof(struct sockaddr_storage));
@@ -2093,16 +2091,16 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 		sock.len = sizeof(struct sockaddr_in);
 	}
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Requesting rtp server instance on %s\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock));
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Requesting rtp server instance on %s\n", c->designator, ast_sockaddr_stringify_host(&sock));
 	if ((c->rtp.audio.rtp = ast_rtp_instance_new("asterisk", sched, &sock, NULL))) {
 		struct ast_sockaddr instance_addr = { {0,} };
 		ast_rtp_instance_get_local_address(c->rtp.audio.rtp, &instance_addr);
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", c->designator, ast_sockaddr_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
 	} else {
 		return FALSE;
 	}
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: rtp server created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock), ast_sockaddr_port(&sock));
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: rtp server created at %s:%d\n", c->designator, ast_sockaddr_stringify_host(&sock), ast_sockaddr_port(&sock));
 	if (c->owner) {
 		ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_RTCP, 1);
 
@@ -2147,16 +2145,12 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 	return TRUE;
 }
 
-static boolean_t sccp_wrapper_asterisk18_create_video_rtp(sccp_channel_t * c)
+static boolean_t sccp_wrapper_asterisk18_create_video_rtp(constDevicePtr d, sccp_channel_t * c)
 {
 	struct ast_sockaddr sock = { {0,} };
 	struct ast_codec_pref astCodecPref;
 
-	if (!c) {
-		return FALSE;
-	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
-	if (!d) {
+	if (!c || !d) {
 		return FALSE;
 	}
 	memcpy(&sock.ss, &GLOB(bindaddr), sizeof(struct sockaddr_storage));
@@ -2168,16 +2162,16 @@ static boolean_t sccp_wrapper_asterisk18_create_video_rtp(sccp_channel_t * c)
 		sock.len = sizeof(struct sockaddr_in);
 	}
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Requesting vrtp server instance on %s\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock));
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Requesting vrtp server instance on %s\n", c->designator, ast_sockaddr_stringify_host(&sock));
 	if ((c->rtp.video.rtp = ast_rtp_instance_new("asterisk", sched, &sock, NULL))) {
 		struct ast_sockaddr instance_addr = { {0,} };
 		ast_rtp_instance_get_local_address(c->rtp.video.rtp, &instance_addr);
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", c->designator, ast_sockaddr_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
 	} else {
 		return FALSE;
 	}
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: vrtp created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock), ast_sockaddr_port(&sock));
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: vrtp created at %s:%d\n", c->designator, ast_sockaddr_stringify_host(&sock), ast_sockaddr_port(&sock));
 	if (c->owner) {
 		ast_rtp_instance_set_prop(c->rtp.video.rtp, AST_RTP_PROPERTY_RTCP, 1);
 
