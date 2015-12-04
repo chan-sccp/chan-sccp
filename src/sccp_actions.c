@@ -1424,6 +1424,7 @@ static void sccp_handle_stimulus_line(constDevicePtr d, constLinePtr l, const ui
 			}
 		} else if ((tmpChannel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s for this phone, but remote has one or more-> %s ONHOOKSTEALABLE\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)", d->currentLine ? "hide" : "show");
+			sccp_device_sendCallHistoryDisposition(d, instance, tmpChannel->callid, SKINNY_CALL_HISTORY_DISPOSITION_IGNORE);
 			if (d->currentLine == NULL) {	/* remote phone is on call, show remote call */
 				sccp_dev_setActiveLine(device, l);
 				sccp_device_sendcallstate(d, instance, tmpChannel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
