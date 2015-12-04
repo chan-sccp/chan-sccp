@@ -946,6 +946,17 @@ enum mediaType {
 	SKINNY_MEDIA_TYPE_T38,				,	"T38", 
 }
 
+/*!
+ * \brief Skinny Call History Disposition
+ */
+enum callHistoryDisposition {
+	SKINNY_CALL_HISTORY_DISPOSITION_IGNORE,		=0x0,	"Ignore",
+	SKINNY_CALL_HISTORY_DISPOSITION_PLACED_CALLS,	,	"Placed Calls",
+	SKINNY_CALL_HISTORY_DISPOSITION_RECEIVED_CALLS,	,	"Received Calls",
+	SKINNY_CALL_HISTORY_DISPOSITION_MISSED_CALLS,	,	"Missed Calls",
+	SKINNY_CALL_HISTORY_DISPOSITION_UNKNOWN,	=0xfffffffe,	"Unknown",		// should have been 0xffffffff, use SENTINEL instead (gen_sccp_enum.awk issue)
+}
+
 } /* NAMESPACE skinny */
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
