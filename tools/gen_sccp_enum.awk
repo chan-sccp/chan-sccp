@@ -21,7 +21,7 @@ BEGIN {
 	print " */" >out_header_file 
 	print "#ifndef __SCCP_ENUM_GUARD_H" >out_header_file
 	print "#define __SCCP_ENUM_GUARD_H" >out_header_file 
-	print "typedef int (*sccp_enum_str2intval_t)(const char *lookup_str);" > out_header_file
+	print "typedef uint32_t (*sccp_enum_str2intval_t)(const char *lookup_str);" > out_header_file
 	print "typedef const char *(*sccp_enum_all_entries_t)(void);" > out_header_file
 	
 	#
@@ -156,7 +156,7 @@ codeSkip == 1			{ next }
 		print "const char * " namespace "_" enum_name "2str(int " namespace "_" enum_name "_int_value);" > out_header_file
 	}
 	print namespace "_" enum_name "_t " namespace "_" enum_name "_str2val(const char *lookup_str);" > out_header_file
-	print "int " namespace "_" enum_name "_str2intval(const char *lookup_str);" > out_header_file
+	print "uint32_t " namespace "_" enum_name "_str2intval(const char *lookup_str);" > out_header_file
 	print "const char *" namespace "_" enum_name "_all_entries(void);" > out_header_file
 
         print "/* = End ===" headerfooter >out_header_file
@@ -339,9 +339,9 @@ codeSkip == 1			{ next }
 	print "}\n" > out_source_file
 
 	# sccp_channelstate_t sccp_channelstate_str2intval(const char *lookup_str) {
-	print "int " namespace "_" enum_name "_str2intval(const char *lookup_str) {" > out_source_file
-	print "\tint res = "namespace "_" enum_name "_str2val(lookup_str);" > out_source_file
-	print "\treturn (int)res != " toupper(namespace) "_" toupper(enum_name) "_SENTINEL ? res : -1;"> out_source_file
+	print "uint32_t " namespace "_" enum_name "_str2intval(const char *lookup_str) {" > out_source_file
+	print "\tuint32_t res = "namespace "_" enum_name "_str2val(lookup_str);" > out_source_file
+	print "\treturn res;"> out_source_file
 	print "}\n" > out_source_file
 
 	# const char *sccp_channelstate_all_entries(char *buf, size_t buf_len, const char *separator) {
