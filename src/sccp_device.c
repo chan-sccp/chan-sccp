@@ -2578,6 +2578,26 @@ void sccp_device_sendcallstate(constDevicePtr d, uint8_t instance, uint32_t call
 }
 
 /*!
+ * \brief Send Call History Disposition
+ */
+void sccp_device_sendCallHistoryDisposition(constDevicePtr d, uint8_t lineInstance, uint32_t callid, skinny_callHistoryDisposition_t disposition)
+{
+	sccp_msg_t *msg = NULL;
+	if (!d) {
+		return;
+	}
+	REQ(msg, CallHistoryDispositionMessage);
+	if (!msg) {
+		return;
+	}
+	msg->data.CallHistoryDispositionMessage.lel_disposition = htolel(disposition);
+	msg->data.CallHistoryDispositionMessage.lel_lineInstance = htolel(lineInstance);
+	msg->data.CallHistoryDispositionMessage.lel_callReference = htolel(callid);
+	sccp_dev_send(d, msg);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send Call History Disposition:%s on call %d\n", d->id, skinny_callHistoryDisposition2str(disposition), callid);
+}
+
+/*!
  * \brief Get the number of channels that the device owns
  * \param device sccp device
  * \note device should be locked by parent functions
