@@ -25,11 +25,8 @@ struct sccp_rtp {
 	struct sockaddr_storage phone_remote;									/*!< phone destination address (starttransmission) */
 };														/*!< SCCP RTP Structure */
 
-int sccp_rtp_createAudioServer(constDevicePtr d, constChannelPtr c);
-#ifdef CS_SCCP_VIDEO
-int sccp_rtp_createVideoServer(constDevicePtr d, constChannelPtr c);
-#endif
-int sccp_rtp_requestRTPPorts(constDevicePtr device, constChannelPtr channel);
+boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t type);
+int sccp_rtp_requestRTPPorts(constDevicePtr device, channelPtr channel);
 void sccp_rtp_stop(constChannelPtr c);
 void sccp_rtp_destroy(constChannelPtr c);
 void sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer);
