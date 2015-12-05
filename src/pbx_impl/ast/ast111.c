@@ -1854,6 +1854,99 @@ static int sccp_wrapper_asterisk111_callerid_presentation(PBX_CHANNEL_TYPE *pbx_
 	return CALLERID_PRESENTATION_FORBIDDEN;
 }
 
+#if CS_EXPERIMENTAL
+static boolean_t sccp_wrapper_asterisk111_create_rtpInstance(constDevicePtr d, sccp_channel_t * c, sccp_rtp_t *rtp)
+{
+	struct ast_sockaddr sock = { {0,} };
+	uint32_t tos = 0, cos = 0;
+	
+	if (!c || !d) {
+		return FALSE;
+	}
+	memcpy(&sock.ss, &GLOB(bindaddr), sizeof(struct sockaddr_storage));
+	if (GLOB(bindaddr).ss_family == AF_INET6) {
+		sock.ss.ss_family = AF_INET6;
+		sock.len = sizeof(struct sockaddr_in6);
+	} else {
+		sock.ss.ss_family = AF_INET;
+		sock.len = sizeof(struct sockaddr_in);
+	}
+
+	if ((rtp->instance = ast_rtp_instance_new("asterisk", sched, &sock, NULL))) {
+		struct ast_sockaddr instance_addr = { {0,} };
+		ast_rtp_instance_get_local_address(rtp->instance, &instance_addr);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s\n", c->designator, ast_sockaddr_stringify(&instance_addr));
+	} else {
+		return FALSE;
+	}
+
+	/* rest below should be moved out of here (refactoring required) */
+	PBX_RTP_TYPE *instance = rtp->instance;
+	char *rtp_map_filter = NULL;
+	int fd_offset = 0;
+	skinny_payload_type_t codec_type;
+	switch(rtp->type) {
+		case SCCP_RTP_AUDIO:
+			tos = d->audio_tos;
+			cos = d->audio_cos;
+			rtp_map_filter = "audio";
+			codec_type = SKINNY_CODEC_TYPE_AUDIO;
+			break;
+			
+#if CS_SCCP_VIDEO
+		case SCCP_RTP_VIDEO:
+			tos = d->video_tos;
+			cos = d->video_cos;
+			rtp_map_filter = "video";
+			fd_offset = 2;
+			codec_type = SKINNY_CODEC_TYPE_VIDEO;
+			break;
+#endif			
+		default:
+			pbx_log(LOG_ERROR, "%s: (wrapper_create_rtp) unknown/unhandled rtp type, returning instance for now\n", c->designator);
+			return TRUE;
+	}
+
+	if (c->owner) {
+		ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_RTCP, 1);
+
+		ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_DTMF, 1);
+		if (c->dtmfmode == SCCP_DTMFMODE_SKINNY) {
+			ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
+			ast_rtp_instance_dtmf_mode_set(instance, AST_RTP_DTMF_MODE_INBAND);
+		}
+		ast_channel_set_fd(c->owner, fd_offset, ast_rtp_instance_fd(instance, 0));		// RTP
+		ast_channel_set_fd(c->owner, fd_offset + 1, ast_rtp_instance_fd(instance, 1));		// RTCP
+		ast_queue_frame(c->owner, &ast_null_frame);
+	}
+
+	ast_rtp_instance_set_qos(instance, tos, cos, "SCCP RTP");
+
+	/* should be moved out of here */
+	uint8_t i;
+	struct ast_rtp_codecs *codecs = ast_rtp_instance_get_codecs(instance);
+	for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
+		/* add audio codecs only */
+		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == codec_type) {
+			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, rtp_map_filter, (char *) skinny_codecs[i].mimesubtype, (enum ast_rtp_options) 0, skinny_codecs[i].sample_rate);
+		}
+	}
+
+	return TRUE;
+}
+
+static boolean_t sccp_wrapper_asterisk111_create_audio_rtp(constDevicePtr d, sccp_channel_t * c)
+{
+	return sccp_wrapper_asterisk111_create_rtpInstance(d, c, &(c->rtp.audio));
+}
+
+
+static boolean_t sccp_wrapper_asterisk111_create_video_rtp(constDevicePtr d, sccp_channel_t * c)
+{
+	return sccp_wrapper_asterisk111_create_rtpInstance(d, c, &(c->rtp.video));
+}
+
+#else
 static boolean_t sccp_wrapper_asterisk111_create_audio_rtp(constDevicePtr d, sccp_channel_t * c)
 {
 	struct ast_sockaddr sock = { {0,} };
@@ -1964,6 +2057,7 @@ static boolean_t sccp_wrapper_asterisk111_create_video_rtp(constDevicePtr d, scc
 
 	return TRUE;
 }
+#endif
 
 static boolean_t sccp_wrapper_asterisk111_destroyRTP(PBX_RTP_TYPE * rtp)
 {
