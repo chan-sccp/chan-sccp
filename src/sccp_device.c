@@ -339,7 +339,7 @@ void sccp_device_pre_reload(void)
 
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: Setting Device to Pending Delete=1\n", d->id);
+		//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: Setting Device to Pending Delete=1\n", d->id);
 		if (!d->realtime) {										/* don't want to reset hotline devices. */
 			d->pendingDelete = 1;
 		}
