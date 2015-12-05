@@ -1187,74 +1187,74 @@ const char *sccp_rtp_status_all_entries(void) {
 /* = End =========================================================================================                sccp_rtp_status === */
 
 
-/* = Begin =======================================================================================             sccp_sccp_rtp_type === */
+/* = Begin =======================================================================================                  sccp_rtp_type === */
 
 
 /*
- * \brief enum sccp_sccp_rtp_type
+ * \brief enum sccp_rtp_type
  */
-static const char *__sccp_sccp_rtp_type_str = "sccp_sccp_rtp_type";
-static const char *sccp_sccp_rtp_type_map[] = {
+static const char *__sccp_rtp_type_str = "sccp_rtp_type";
+static const char *sccp_rtp_type_map[] = {
 	"Audio RTP",
 	"Video RTP",
 	"Text RTP",
 	"LOOKUPERROR"
 };
 
-int sccp_sccp_rtp_type_exists(int sccp_sccp_rtp_type_int_value) {
-	if (sccp_sccp_rtp_type_int_value == 0) {
+int sccp_rtp_type_exists(int sccp_rtp_type_int_value) {
+	if (sccp_rtp_type_int_value == 0) {
 		return 1;
 	}
 	int res = 0, i;
-	for (i = 0; i < SCCP_SCCP_RTP_TYPE_SENTINEL; i++) {
-		if ((sccp_sccp_rtp_type_int_value & 1 << i) == 1 << i) {
+	for (i = 0; i < SCCP_RTP_TYPE_SENTINEL; i++) {
+		if ((sccp_rtp_type_int_value & 1 << i) == 1 << i) {
 			res |= 1;
 		}
 	}
 	return res;
 }
 
-const char * sccp_sccp_rtp_type2str(int sccp_sccp_rtp_type_int_value) {
+const char * sccp_rtp_type2str(int sccp_rtp_type_int_value) {
 	static char res[186] = "";
 	int pos = 0;
-	if (sccp_sccp_rtp_type_int_value == 0) {
-		pos += snprintf(res + pos, 186, "%s%s", pos ? "," : "", sccp_sccp_rtp_type_map[0]);
+	if (sccp_rtp_type_int_value == 0) {
+		pos += snprintf(res + pos, 186, "%s%s", pos ? "," : "", sccp_rtp_type_map[0]);
 		return res;
 	}
 	uint32_t i;
-	for (i = 0; i < ARRAY_LEN(sccp_sccp_rtp_type_map) - 1; i++) {
-		if ((sccp_sccp_rtp_type_int_value & 1 << i) == 1 << i) {
-			pos += snprintf(res + pos, 186, "%s%s", pos ? "," : "", sccp_sccp_rtp_type_map[i]);
+	for (i = 0; i < ARRAY_LEN(sccp_rtp_type_map) - 1; i++) {
+		if ((sccp_rtp_type_int_value & 1 << i) == 1 << i) {
+			pos += snprintf(res + pos, 186, "%s%s", pos ? "," : "", sccp_rtp_type_map[i]);
 		}
 	}
 	if (!strlen(res)) {
-		pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, sccp_sccp_rtp_type_int_value, __sccp_sccp_rtp_type_str);
-		return "OutOfBounds: sparse sccp_sccp_rtp_type2str\n";
+		pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, sccp_rtp_type_int_value, __sccp_rtp_type_str);
+		return "OutOfBounds: sparse sccp_rtp_type2str\n";
 	}
 	return res;
 }
 
-sccp_sccp_rtp_type_t sccp_sccp_rtp_type_str2val(const char *lookup_str) {
+sccp_rtp_type_t sccp_rtp_type_str2val(const char *lookup_str) {
 	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_sccp_rtp_type_map); idx++) {
-		if (sccp_strcaseequals(sccp_sccp_rtp_type_map[idx], lookup_str)) {
+	for (idx = 0; idx < ARRAY_LEN(sccp_rtp_type_map); idx++) {
+		if (sccp_strcaseequals(sccp_rtp_type_map[idx], lookup_str)) {
 			return 1 << idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_sccp_rtp_type_str, lookup_str);
-	return SCCP_SCCP_RTP_TYPE_SENTINEL;
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_rtp_type_str, lookup_str);
+	return SCCP_RTP_TYPE_SENTINEL;
 }
 
-uint32_t sccp_sccp_rtp_type_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_sccp_rtp_type_str2val(lookup_str);
+uint32_t sccp_rtp_type_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_rtp_type_str2val(lookup_str);
 	return res;
 }
 
-const char *sccp_sccp_rtp_type_all_entries(void) {
+const char *sccp_rtp_type_all_entries(void) {
 	static char res[] = "Audio RTP,Video RTP,Text RTP";
 	return res;
 }
-/* = End =========================================================================================             sccp_sccp_rtp_type === */
+/* = End =========================================================================================                  sccp_rtp_type === */
 
 
 /* = Begin =======================================================================================          sccp_extension_status === */
