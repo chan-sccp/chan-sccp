@@ -657,7 +657,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", d->id, channel->callid, codec2str(channel->rtp.audio.writeFormat), channel->line->echocancel ? "ON" : "OFF");
 
-	if (!channel->rtp.audio.rtp && !sccp_rtp_createServer(d, (sccp_channel_t *)channel, SCCP_RTP_AUDIO)) {	// discard const
+	if (!channel->rtp.audio.instance && !sccp_rtp_createServer(d, (sccp_channel_t *)channel, SCCP_RTP_AUDIO)) {	// discard const
 		pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s-%08X\n", DEV_ID_LOG(d), channel->line->name, channel->callid);
 
 		instance = sccp_device_find_index_for_line(d, channel->line->name);
@@ -684,7 +684,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(d) && channel->videomode == SCCP_VIDEO_MODE_AUTO) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(d));
-		if (!channel->rtp.video.rtp && !sccp_rtp_createServer(d, (sccp_channel_t *)channel, SCCP_RTP_VIDEO)) {	// discard const
+		if (!channel->rtp.video.instance && !sccp_rtp_createServer(d, (sccp_channel_t *)channel, SCCP_RTP_VIDEO)) {	// discard const
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(d));
 		} else {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: video rtp started\n", DEV_ID_LOG(d));
@@ -850,7 +850,7 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 		return;
 	}
 
-	if (!channel->rtp.audio.rtp) {
+	if (!channel->rtp.audio.instance) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can't start rtp media transmission, maybe channel is down %s-%08X\n", channel->currentDeviceId, channel->line->name, channel->callid);
 		return;
 	}
@@ -945,7 +945,7 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 		return;
 	}
 	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
-	if (!video->rtp) {
+	if (!video->instance) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can't start vrtp media transmission, maybe channel is down %s-%08X\n", channel->currentDeviceId, channel->line->name, channel->callid);
 		return;
 	}
@@ -1059,7 +1059,7 @@ void sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannel
 			sccp_channel_closeMultiMediaReceiveChannel(channel, FALSE);
 		}
 	}
-	if (channel->rtp.audio.rtp || channel->rtp.video.rtp) {
+	if (channel->rtp.audio.instance || channel->rtp.video.instance) {
 		sccp_rtp_stop(channel);
 	}
 }
@@ -1310,7 +1310,7 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 	channel->ss_data = 0;											/* nothing to pass to action */
 
 	iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
-	if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.rtp) {
+	if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
 		sccp_channel_openReceiveChannel(channel);
 	}
 	if (dial) {
@@ -1885,7 +1885,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	if (channel->musicclass) {
 		sccp_free(channel->musicclass);
 	}
-	if (channel->rtp.audio.rtp || channel->rtp.video.rtp) {
+	if (channel->rtp.audio.instance || channel->rtp.video.instance) {
 		sccp_rtp_stop(channel);
 		sccp_rtp_destroy(channel);
 	}

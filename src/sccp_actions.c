@@ -1637,7 +1637,7 @@ static void sccp_handle_stimulus_groupcallpickup(constDevicePtr d, constLinePtr 
 		iPbx.getPickupExtension(channel, channel->dialedNumber);
 		sccp_indicate(d, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
 		iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
-		if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.rtp) {
+		if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
 			sccp_channel_openReceiveChannel(channel);
 		}
 		sccp_pbx_softswitch(channel);
@@ -2942,7 +2942,7 @@ void sccp_handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constM
 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting Phone RTP/UDP Transmission (State: %s[%d])\n", d->id, sccp_channelstate2str(channel->state), channel->state);
 		sccp_channel_setDevice(channel, d);
-		if (channel->rtp.audio.rtp) {
+		if (channel->rtp.audio.instance) {
 			if (d->nat >= SCCP_NAT_ON) {
 				/* Rewrite ip-addres to the outside source address using the phones connection (device->sin) */
 				uint16_t port = sccp_socket_getPort(&sas);
@@ -3020,7 +3020,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constM
 		}
 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting device rtp transmission with state %s(%d)\n", d->id, sccp_channelstate2str(channel->state), channel->state);
-		if (channel->rtp.video.rtp || sccp_rtp_createServer(d, channel, SCCP_RTP_VIDEO)) {
+		if (channel->rtp.video.instance || sccp_rtp_createServer(d, channel, SCCP_RTP_VIDEO)) {
 			if (d->nat >= SCCP_NAT_ON) {
 				uint16_t port = sccp_socket_getPort(&sas);
 				sccp_session_getSas(s, &sas);
