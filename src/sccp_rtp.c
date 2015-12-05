@@ -100,38 +100,38 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 /*!
  * \brief create a new rtp server
  * \todo refactor iPbx.rtp_???_server to include sccp_rtp_type_t
- * \todo refactor calling function to call this function directly instead of sccp_rtp_createAudioServer / sccp_rtp_createVideoServer
  */
-static int __sccp_rtp_createRTPServer(constDevicePtr d, constChannelPtr channel, sccp_rtp_type_t type)
+boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t type)
 {
 	boolean_t rtpResult = FALSE;
-	if (!channel || !d) {
-		return FALSE;
-	}
-	if (channel->rtp.audio.rtp) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "we already have a rtp server, we use this one\n");
-		return TRUE;
-	}
-	
-	sccp_channel_t *c = (sccp_channel_t *) channel;									// discarding const
-	
-
 	boolean_t(*rtp_create) (constDevicePtr device, sccp_channel_t * channel) = NULL;
 	sccp_rtp_t *rtp = NULL;
+
+	if (!c || !d) {
+		return FALSE;
+	}
+
 	switch(type) {
 		case SCCP_RTP_AUDIO:
 			rtp = &(c->rtp.audio);
 			rtp_create = iPbx.rtp_audio_create;
 			break;
+#if CS_SCCP_VIDEO
 		case SCCP_RTP_VIDEO:
 			rtp = &(c->rtp.video);
 			rtp_create = iPbx.rtp_video_create;
 			break;
-		case SCCP_RTP_TEXT:
-		case SCCP_RTP_TYPE_SENTINEL:
+#endif			
+		default:
 			pbx_log(LOG_ERROR, "%s: (sccp_rtp_createRTPServer) unknown/unhandled rtp type, cancelling\n", c->designator);
 			return FALSE;
 	}
+	
+	if (rtp->rtp) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: we already have a %s server, we use this one\n", c->designator, sccp_rtp_type2str(type));
+		return TRUE;
+	}
+
 	if (rtp_create) {
 		rtpResult = rtp_create(d, c);
 	} else {
@@ -157,30 +157,10 @@ static int __sccp_rtp_createRTPServer(constDevicePtr d, constChannelPtr channel,
 	return rtpResult;
 }
 
-
-/*!
- * \brief create a new rtp server for audio data
- */
-int sccp_rtp_createAudioServer(constDevicePtr d, constChannelPtr c)
-{
-	return __sccp_rtp_createRTPServer(d, c, SCCP_RTP_AUDIO);
-}
-
-/*!
- * \brief create a new rtp server for video data
- */
-#ifdef CS_SCCP_VIDEO
-int sccp_rtp_createVideoServer(constDevicePtr d, constChannelPtr c)
-{
-	return	__sccp_rtp_createRTPServer(d, c, SCCP_RTP_VIDEO);
-}
-#endif
-
-
 /*!
  * \brief request the port to be used for RTP, early on, so that we can use it during bridging, even before open_receive_ack has been received (directrtp) 
  */
-int sccp_rtp_requestRTPPorts(constDevicePtr device, constChannelPtr channel)
+int sccp_rtp_requestRTPPorts(constDevicePtr device, channelPtr channel)
 {
 	pbx_assert(device != NULL && channel != NULL);
 	
@@ -190,7 +170,7 @@ int sccp_rtp_requestRTPPorts(constDevicePtr device, constChannelPtr channel)
 #ifdef CS_SCCP_VIDEO
  	if (sccp_device_isVideoSupported(device) && channel->videomode != SCCP_VIDEO_MODE_OFF) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (requestRTPPort) request vrtp port from phone\n", device->id);
-		if (channel->rtp.video.rtp || sccp_rtp_createVideoServer(device, channel)) {
+		if (channel->rtp.video.rtp || sccp_rtp_createServer(device, channel, SCCP_RTP_VIDEO)) {
 			device->protocol->sendPortRequest(device, channel, SKINNY_MEDIA_TRANSPORT_TYPE_RTP, SKINNY_MEDIA_TYPE_MAIN_VIDEO);
 		}
 	}

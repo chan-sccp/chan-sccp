@@ -657,7 +657,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Ask the device to open a RTP port on channel %d. Codec: %s, echocancel: %s\n", d->id, channel->callid, codec2str(channel->rtp.audio.writeFormat), channel->line->echocancel ? "ON" : "OFF");
 
-	if (!channel->rtp.audio.rtp && !sccp_rtp_createAudioServer(d, channel)) {
+	if (!channel->rtp.audio.rtp && !sccp_rtp_createServer(d, (sccp_channel_t *)channel, SCCP_RTP_AUDIO)) {	// discard const
 		pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s-%08X\n", DEV_ID_LOG(d), channel->line->name, channel->callid);
 
 		instance = sccp_device_find_index_for_line(d, channel->line->name);
@@ -684,7 +684,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(d) && channel->videomode == SCCP_VIDEO_MODE_AUTO) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(d));
-		if (!channel->rtp.video.rtp && !sccp_rtp_createVideoServer(d, channel)) {
+		if (!channel->rtp.video.rtp && !sccp_rtp_createServer(d, (sccp_channel_t *)channel, SCCP_RTP_VIDEO)) {	// discard const
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(d));
 		} else {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: video rtp started\n", DEV_ID_LOG(d));
@@ -813,6 +813,9 @@ void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean
 		msg->data.CloseMultiMediaReceiveChannel.lel_portHandlingFlag = htolel(KeepPortOpen);
 		sccp_dev_send(d, msg);
 		video->writeState = SCCP_RTP_STATUS_INACTIVE;
+#ifdef CS_EXPERIMENTAL
+		d->protocol->sendPortClose(d, channel, SKINNY_MEDIA_TYPE_MAIN_VIDEO);
+#endif		
 	}
 }
 
@@ -904,6 +907,9 @@ void sccp_channel_stopMediaTransmission(constChannelPtr channel, boolean_t KeepP
 		msg->data.StopMediaTransmission.lel_portHandlingFlag = htolel(KeepPortOpen);
 		sccp_dev_send(d, msg);
 		audio->readState = SCCP_RTP_STATUS_INACTIVE;
+#ifdef CS_EXPERIMENTAL
+		d->protocol->sendPortClose(d, channel, SKINNY_MEDIA_TYPE_AUDIO);
+#endif
 	}
 }
 
