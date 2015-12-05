@@ -127,10 +127,11 @@ boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t 
 			return FALSE;
 	}
 	
-	if (rtp->rtp) {
+	if (rtp->instance) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: we already have a %s server, we use this one\n", c->designator, sccp_rtp_type2str(type));
 		return TRUE;
 	}
+	rtp->type = type;
 
 	if (rtp_create) {
 		rtpResult = rtp_create(d, c);
@@ -170,7 +171,7 @@ int sccp_rtp_requestRTPPorts(constDevicePtr device, channelPtr channel)
 #ifdef CS_SCCP_VIDEO
  	if (sccp_device_isVideoSupported(device) && channel->videomode != SCCP_VIDEO_MODE_OFF) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (requestRTPPort) request vrtp port from phone\n", device->id);
-		if (channel->rtp.video.rtp || sccp_rtp_createServer(device, channel, SCCP_RTP_VIDEO)) {
+		if (channel->rtp.video.instance || sccp_rtp_createServer(device, channel, SCCP_RTP_VIDEO)) {
 			device->protocol->sendPortRequest(device, channel, SKINNY_MEDIA_TRANSPORT_TYPE_RTP, SKINNY_MEDIA_TYPE_MAIN_VIDEO);
 		}
 	}
@@ -188,13 +189,13 @@ void sccp_rtp_stop(constChannelPtr channel)
 		return;
 	}
 	if (iPbx.rtp_stop) {
-		if (channel->rtp.audio.rtp) {
-			PBX_RTP_TYPE *rtp = (PBX_RTP_TYPE *) channel->rtp.audio.rtp;		/* discard const */
+		if (channel->rtp.audio.instance) {
+			PBX_RTP_TYPE *rtp = (PBX_RTP_TYPE *) channel->rtp.audio.instance;		/* discard const */
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX audio rtp transmission on channel %08X\n", channel->currentDeviceId, channel->callid);
 			iPbx.rtp_stop(rtp);
 		}
-		if (channel->rtp.video.rtp) {
-			PBX_RTP_TYPE *rtp = (PBX_RTP_TYPE *) channel->rtp.video.rtp;		/* discard const */
+		if (channel->rtp.video.instance) {
+			PBX_RTP_TYPE *rtp = (PBX_RTP_TYPE *) channel->rtp.video.instance;		/* discard const */
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX video rtp transmission on channel %08X\n", channel->currentDeviceId, channel->callid);
 			iPbx.rtp_stop(rtp);
 		}
@@ -214,16 +215,16 @@ void sccp_rtp_destroy(constChannelPtr c)
 	sccp_rtp_t *audio = (sccp_rtp_t *) &(c->rtp.audio);
 	sccp_rtp_t *video = (sccp_rtp_t *) &(c->rtp.video);
 
-	if (audio->rtp) {
+	if (audio->instance) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX rtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
-		iPbx.rtp_destroy(audio->rtp);
-		audio->rtp = NULL;
+		iPbx.rtp_destroy(audio->instance);
+		audio->instance = NULL;
 	}
 
-	if (video->rtp) {
+	if (video->instance) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX vrtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
-		iPbx.rtp_destroy(video->rtp);
-		video->rtp = NULL;
+		iPbx.rtp_destroy(video->instance);
+		video->instance = NULL;
 	}
 }
 
@@ -433,8 +434,8 @@ uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t * const rtp, skinny_codec_t co
  */
 boolean_t sccp_rtp_getUs(const sccp_rtp_t *rtp, struct sockaddr_storage *us)
 {
-	if (rtp->rtp) {
-		iPbx.rtp_getUs(rtp->rtp, us);
+	if (rtp->instance) {
+		iPbx.rtp_getUs(rtp->instance, us);
 		return TRUE;
 	} else {
 		// us = &rtp->phone_remote;
@@ -458,8 +459,8 @@ uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * const rtp)
  */
 boolean_t sccp_rtp_getPeer(const sccp_rtp_t * const rtp, struct sockaddr_storage *them)
 {
-	if (rtp->rtp) {
-		iPbx.rtp_getPeer(rtp->rtp, them);
+	if (rtp->instance) {
+		iPbx.rtp_getPeer(rtp->instance, them);
 		return TRUE;
 	} else {
 		return FALSE;

@@ -187,7 +187,7 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 
 	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 
-	if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.rtp) {
+	if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
 		sccp_channel_openReceiveChannel(c);
 	}
 }
@@ -327,7 +327,7 @@ void sccp_feat_handle_directed_pickup(constDevicePtr d, constLinePtr l, channelP
 		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 		sccp_channel_stop_schedule_digittimout(c);
 
-		if (d->directed_pickup_modeanswer && d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.rtp) {
+		if (d->directed_pickup_modeanswer && d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
 			sccp_channel_openReceiveChannel(c);
 		}
 	}
@@ -610,7 +610,7 @@ void sccp_feat_handle_conference(constDevicePtr d, constLinePtr l, uint8_t lineI
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 		sccp_channel_stop_schedule_digittimout(c);
-		if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.rtp) {
+		if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
 			sccp_channel_openReceiveChannel(c);
 	 	}
 		sccp_pbx_softswitch(c);
@@ -888,7 +888,7 @@ void sccp_feat_handle_meetme(constLinePtr l, uint8_t lineInstance, constDevicePt
 
 	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 
-	if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.rtp) {
+	if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
 		sccp_channel_openReceiveChannel(c);
 	}
 
@@ -1091,7 +1091,7 @@ void sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr
 
 	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 
-	if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.rtp) {
+	if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
 		sccp_channel_openReceiveChannel(c);
 	}
 }
@@ -1186,7 +1186,7 @@ void sccp_feat_handle_cbarge(constLinePtr l, uint8_t lineInstance, constDevicePt
 
 	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 
-	if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.rtp) {
+	if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
 		sccp_channel_openReceiveChannel(c);
 	}
 }

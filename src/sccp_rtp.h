@@ -15,7 +15,8 @@
  */
 struct sccp_rtp {
 	sccp_mutex_t lock;
-	PBX_RTP_TYPE *rtp;											/*!< pbx rtp pointer */
+	PBX_RTP_TYPE *instance;											/*!< pbx rtp instance pointer */
+	sccp_rtp_type_t type;
 	uint16_t readState;											/*!< current read state */
 	uint16_t writeState;											/*!< current write state */
 	boolean_t directMedia;											/*!< Show if we are running in directmedia mode (set in pbx_impl during rtp bridging) */
