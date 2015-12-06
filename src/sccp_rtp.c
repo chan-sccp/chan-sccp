@@ -104,7 +104,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t type)
 {
 	boolean_t rtpResult = FALSE;
-	boolean_t(*rtp_create) (constDevicePtr device, sccp_channel_t * channel) = NULL;
 	sccp_rtp_t *rtp = NULL;
 
 	if (!c || !d) {
@@ -114,12 +113,10 @@ boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t 
 	switch(type) {
 		case SCCP_RTP_AUDIO:
 			rtp = &(c->rtp.audio);
-			rtp_create = iPbx.rtp_audio_create;
 			break;
 #if CS_SCCP_VIDEO
 		case SCCP_RTP_VIDEO:
 			rtp = &(c->rtp.video);
-			rtp_create = iPbx.rtp_video_create;
 			break;
 #endif			
 		default:
@@ -133,8 +130,8 @@ boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t 
 	}
 	rtp->type = type;
 
-	if (rtp_create) {
-		rtpResult = rtp_create(d, c);
+	if (iPbx.rtp_create_instance) {
+		rtpResult = iPbx.rtp_create_instance(d, c, rtp);
 	} else {
 		pbx_log(LOG_ERROR, "we should start our own rtp server, but we don't have one\n");
 		return FALSE;
