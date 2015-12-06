@@ -91,8 +91,7 @@ typedef struct _PbxInterface {
 	boolean_t(*const rtp_destroy) (PBX_RTP_TYPE * rtp);
 	void (*const rtp_stop) (PBX_RTP_TYPE *rtp);
 	int (*const rtp_codec) (sccp_channel_t * channel);
-	boolean_t(*const rtp_audio_create) (constDevicePtr d, sccp_channel_t * channel);
-	boolean_t(*const rtp_video_create) (constDevicePtr d, sccp_channel_t * channel);
+	boolean_t(*const rtp_create_instance) (constDevicePtr d, constChannelPtr c, sccp_rtp_t *rtp);
 	uint8_t(*const rtp_get_payloadType) (const struct sccp_rtp * rtp, skinny_codec_t codec);
 	int(*const rtp_get_sampleRate) (skinny_codec_t codec);
 	uint8_t(*const rtp_bridgePeers) (PBX_CHANNEL_TYPE * c0, PBX_CHANNEL_TYPE * c1, int flags, struct ast_frame ** fo, PBX_CHANNEL_TYPE ** rc, int timeoutms);

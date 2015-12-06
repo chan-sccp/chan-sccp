@@ -951,12 +951,12 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 				}
 
 				if (sccp_strcaseequals(args.type, "audio")) {
-					rtp = c->rtp.audio.rtp;
+					rtp = c->rtp.audio.instance;
 				} else if (sccp_strcaseequals(args.type, "video")) {
-					rtp = c->rtp.video.rtp;
+					rtp = c->rtp.video.instance;
 				/*
 				} else if (sccp_strcaseequals(args.type, "text")) {
-					rtp = c->rtp.text.rtp;
+					rtp = c->rtp.text.instance;
 				*/
 				} else {
 					return -1;

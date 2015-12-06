@@ -527,7 +527,7 @@ typedef enum {
 	NotificationMessage 				= 0x0153,	/* Notification Message  / CallListStateUpdate*/
 	StartMediaTransmissionAck 			= 0x0154,
 	StartMultiMediaTransmissionAck 			= 0x0155,
-	CallHistoryInfoMessage 				= 0x0156,
+	CallHistoryDispositionMessage 			= 0x0156,
 	LocationInfoMessage				= 0x0157,	/* new (2015-09-08), send by 7925/7926 using firmware version 1.4.7.3 */
 
 	MwiResponseMessage 				= 0x0158,	/*new (2013-12-9)*/
@@ -3022,8 +3022,10 @@ typedef union {
 	} ExtensionDeviceCaps;
 
 	struct {
-		uint32_t lel_unknown;
-	} CallHistoryInfoMessage;
+		uint32_t lel_disposition;									/*!< Call History Disposition Enum */
+		uint32_t lel_lineInstance;									
+		uint32_t lel_callReference;
+	} CallHistoryDispositionMessage;
 
 	/*
 	 * Fixed Size XML Message
@@ -3477,7 +3479,7 @@ static const struct messagetype sccp_messagetypes[] = {
 	[NotificationMessage] = { 			"Notify Call List (CallListStatusUpdate)",	offsize(sccp_data_t, NotificationMessage)},
 	[StartMediaTransmissionAck] = { 		"Start Media Transmission Acknowledge", 	offsize(sccp_data_t, StartMediaTransmissionAck)},
 	[StartMultiMediaTransmissionAck] = { 		"Start Media Transmission Acknowledge", 	offsize(sccp_data_t, StartMultiMediaTransmissionAck)},
-	[CallHistoryInfoMessage] = { 			"Call History Info", 				offsize(sccp_data_t, CallHistoryInfoMessage)},
+	[CallHistoryDispositionMessage] = { 		"Call History Disposition", 			offsize(sccp_data_t, CallHistoryDispositionMessage)},
 	[LocationInfoMessage] = {			"Location/Wifi Information",			offsize(sccp_data_t, LocationInfoMessage)},
 	[ExtensionDeviceCaps] = { 			"Extension Device Capabilities Message", 	offsize(sccp_data_t, ExtensionDeviceCaps)},
 	[XMLAlarmMessage] = { 				"XML-AlarmMessage", 				offsize(sccp_data_t, XMLAlarmMessage)},
