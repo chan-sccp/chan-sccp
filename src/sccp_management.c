@@ -20,6 +20,7 @@
 #include "sccp_features.h"
 #include "sccp_actions.h"
 #include "sccp_socket.h"
+#include "asterisk/threadstorage.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
@@ -925,58 +926,68 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 	return 0;
 }
 
+AST_THREADSTORAGE(hookresult_threadbuf);
+#define HOOKRESULT_INITSIZE   DEFAULT_PBX_STR_BUFFERSIZE
+/*
+ * \brief helper function to concatenate the result from a ami hook send action using a threadlocal buffer
+ */
+static int __sccp_manager_hookresult(int category, const char *event, char *content) {
+        struct ast_str *buf = ast_str_thread_get(&hookresult_threadbuf, HOOKRESULT_INITSIZE);;
+	if (buf) {
+		pbx_str_append(&buf, 0, "%s\r\n", content);
+	}
+	return 0;
+}
 /*!
  * \brief Call an AMI/Manager Function and Wait for the Result
  * 
  * @param manager_command	const char * containing Something like "Action: ParkedCalls\r\n"
  * @param outStr		unallocated char * (will be allocated if successfull, must be freed after call)
  * @return int (-1 on failure | return value from called function)
+ *
+ * \todo implement using thread_local instead
  */
-int sccp_manager_action2str(const char *manager_command, char **outStr) 
+boolean_t sccp_manager_action2str(const char *manager_command, char **outStr) 
 {
-        int result = 0;
+        int failure = 0;
+        struct ast_str *buf;
         
-#if ASTERISK_VERSION_GROUP > 108
-        if (!outStr || sccp_strlen_zero(manager_command)) {
+        if (!outStr || sccp_strlen_zero(manager_command) || !(buf = ast_str_thread_get(&hookresult_threadbuf, HOOKRESULT_INITSIZE))) {
 		pbx_log(LOG_ERROR, "SCCP: No OutStr or Command Provided\n");
         	return -2;
         }
-#if defined(GCC_NESTED) || defined(CLANG_BLOCKS)
-#  ifdef GCC_NESTED
-	struct ast_str *tmpStr = ast_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-        int hookresult(int category, const char *event, char *content) {
-                ast_str_append(&tmpStr, 0, "%s", content);
-                return 1;
-        };
-        struct manager_custom_hook hook = {__FILE__, hookresult};
-#  else 
-	__block struct ast_str *tmpStr = ast_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-        int (^hookresult)(int category, const char *event, char *content) = ^(int category, const char *event, char *content) {
-                ast_str_append(&tmpStr, 0, "%s", content);
-                return 1;
-        };
-        struct manager_custom_hook hook = {__FILE__, (int (*)(int, const char *, char *))hookresult};
-#  endif
+
+	struct manager_custom_hook hook = {__FILE__, __sccp_manager_hookresult};
 	sccp_log(DEBUGCAT_CORE)("SCCP: Sending AMI Command: %s\n", manager_command);
-        result = ast_hook_send_action(&hook, manager_command);							/* "Action: ParkedCalls\r\n" */
-        if (result) {
-        	*outStr = strdup(pbx_str_buffer(tmpStr)); 
+        failure = ast_hook_send_action(&hook, manager_command);							/* "Action: ParkedCalls\r\n" */
+        if (!failure) {
+		sccp_log(DEBUGCAT_CORE)("SCCP: Sending AMI Result String: %s\n", pbx_str_buffer(buf));
+        	*outStr = strdup(pbx_str_buffer(buf));
         }
-#else
-	pbx_log(LOG_NOTICE, "SCCP: Modern compiler required: gcc with nested function or clang with blocks support\n");
-#endif														/* defined(GCC_NESTED) || defined(CLANG_BLOCKS) */
-#endif
-        return result;
+        return !failure ? TRUE : FALSE;
 }
+
 /* example use
 void example_function() {
 	char *outStr;
 	char *manager_command = "Action: ParkedCalls\r\n";
-	if (sccp_manager_action2str(manager_command, &outStr) >= 0) {
+	if (sccp_manager_action2str(manager_command, &outStr) >= 0 && outStr) {
 		sccp_log(DEBUGCAT_CORE)("SCCP: hook result: %s\n", outStr);
 		sccp_free(outStr);
 	}
-}*/
+
+	struct ast_str *amiCommandStr = ast_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	pbx_str_append(&amiCommandStr,0 ,"Action: MixMonitor\r\n");
+	pbx_str_append(&amiCommandStr,0 ,"Channel: SCCP/98031-00000001\r\n");
+	pbx_str_append(&amiCommandStr,0 ,"File: mixmonitor-test.wav\r\n");
+	pbx_str_append(&amiCommandStr,0 ,"Options: ab\r\n\r\n");
+	
+	if (sccp_manager_action2str(pbx_str_buffer(amiCommandStr), &outStr) >= 0 && outStr) {
+		sccp_log(DEBUGCAT_CORE)("SCCP: hook result: %s\n", outStr);
+		sccp_free(outStr);
+	}
+}
+*/
 
 #endif														/* HAVE_PBX_MANAGER_HOOK_H */
 
