@@ -339,7 +339,7 @@ void sccp_device_pre_reload(void)
 
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: Setting Device to Pending Delete=1\n", d->id);
+		//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: Setting Device to Pending Delete=1\n", d->id);
 		if (!d->realtime) {										/* don't want to reset hotline devices. */
 			d->pendingDelete = 1;
 		}
@@ -2575,6 +2575,26 @@ void sccp_device_sendcallstate(constDevicePtr d, uint8_t instance, uint32_t call
 	/*msg->data.CallStateMessage.precedency.lel_domain = htolel(2); */
 	sccp_dev_send(d, msg);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send and Set the call state %s(%d) on call %d (visibility:%s)\n", d->id, skinny_callstate2str(state), state, callid, skinny_callinfo_visibility2str(visibility));
+}
+
+/*!
+ * \brief Send Call History Disposition
+ */
+void sccp_device_sendCallHistoryDisposition(constDevicePtr d, uint8_t lineInstance, uint32_t callid, skinny_callHistoryDisposition_t disposition)
+{
+	sccp_msg_t *msg = NULL;
+	if (!d) {
+		return;
+	}
+	REQ(msg, CallHistoryDispositionMessage);
+	if (!msg) {
+		return;
+	}
+	msg->data.CallHistoryDispositionMessage.lel_disposition = htolel(disposition);
+	msg->data.CallHistoryDispositionMessage.lel_lineInstance = htolel(lineInstance);
+	msg->data.CallHistoryDispositionMessage.lel_callReference = htolel(callid);
+	sccp_dev_send(d, msg);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send Call History Disposition:%s on call %d\n", d->id, skinny_callHistoryDisposition2str(disposition), callid);
 }
 
 /*!
