@@ -454,6 +454,7 @@ void sccp_device_addMessageToStack(devicePtr device, const uint8_t priority, con
 void sccp_device_clearMessageFromStack(devicePtr device, const uint8_t priority);
 void sccp_device_featureChangedDisplay(const sccp_event_t * event);
 void sccp_device_sendcallstate(constDevicePtr d, uint8_t instance, uint32_t callid, skinny_callstate_t state, skinny_callpriority_t precedence_level, skinny_callinfo_visibility_t visibility);
+void sccp_device_sendCallHistoryDisposition(constDevicePtr d, uint8_t lineInstance, uint32_t callid, skinny_callHistoryDisposition_t disposition);
 
 int sccp_dev_send(constDevicePtr d, sccp_msg_t * msg);
 #if UNUSEDCODE // 2015-11-01

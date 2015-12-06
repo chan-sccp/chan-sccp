@@ -1,3 +1,287 @@
+2015-12-05  ddegroot
+
+	* [r6473] src/sccp_device.c: Fix: remove warning about going to
+	  delete device (could be misinterpreted by users)
+
+	* [r6472] src/sccp_hint.c: Revert accidental inclusion of
+	  outstanding hint patch in previous commit
+
+	* [r6471] src/pbx_impl/ast/ast111.c, src/sccp_hint.c: Enh:
+	  Refactored implmentation of
+	  sccp_wrapper_asterisk111_create_rtpInstance(constDevicePtr d,
+	  sccp_channel_t * c, sccp_rtp_t *rtp) (experimental-mode only),
+	  allowing one single function to create multiple kinds of
+	  rtp_server_instances.
+
+	* [r6470] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/sccp_actions.c,
+	  src/sccp_channel.c, src/sccp_features.c, src/sccp_indicate.c,
+	  src/sccp_rtp.c, src/sccp_rtp.h, src/sccp_softkeys.c: Enh: renamed
+	  sccp_rtp_t.rtp to sccp_rtp_t.instance, preventing ackward
+	  definitions like rtp->rtp or c->rtp.audio.rtp but have
+	  rtp->instance and
+	  c->rtp.audio.instance instead
+	  Enh: added sccp_rtp_type_t to sccp_rtp_t so that we can later
+	  make
+	  sccp_rtp_t opaque. The type can be passed on into the pbx_impl
+	  later, to
+	  prevent having to tell it seperatly what rtp type passing,
+	  allowing
+	  refactoring ast_wrapper_create_audio_server to
+	  ast_wrapper_create_rtp_server
+
+	* [r6469] src/sccp_actions.c, src/sccp_channel.c, src/sccp_rtp.c,
+	  src/sccp_rtp.h, src/sccp_softkeys.c: Enh: Refactored
+	  sccp_rtp_createAudioServer / sccp_rtp_createVideoServer out in
+	  favor of sccp_rtp_createServer (step 2)
+
+	* [r6468] src/sccp_enum.c, src/sccp_enum.h, src/sccp_enum.in,
+	  src/sccp_rtp.c: Fix: renamed sccp_sccp_rtp_type_t to
+	  sccp_rtp_type_t (sccp_enum.in)
+	  Enh: Refactored sccp_rtp_createAudioServer /
+	  sccp_rtp_createVideoServer (step 1)
+
+	* [r6467] src/sccp_rtp.c: Fix: regression cause by r6460. Issue
+	  reported by Andy Bradford.
+
+2015-12-04  ddegroot
+
+	* [r6466] src/sccp_actions.c: Fix: Suppress phonebook entry when
+	  looking at remote call on shared line
+
+	* [r6465] src/sccp_protocol.h: Enh: Added
+	  CallHistoryDispositionMessage to protocol (2)
+
+	* [r6464] src/sccp_device.c, src/sccp_device.h: Enh: Added
+	  CallHistoryDispositionMessage to protocol
+	  Enh: Added sendCallHistoryDisposition message build function
+
+	* [r6463] src/sccp_enum.c, src/sccp_enum.h, src/sccp_enum.in,
+	  tools/gen_sccp_enum.awk: Enh: Added skinny_CallHistoryDisposition
+	  enum
+	  Fix: enum_str2intval should return a uint32_t to allow for bigger
+	  enum values
+
+	* [r6462] src/sccp_actions.c: Fix memory leak
+
+2015-12-03  ddegroot
+
+	* [r6461] src/chan_sccp.h: Fix: byteswap inclusion (non x86)
+
+	* [r6460] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/pbx_impl/pbx_impl.h, src/sccp_channel.c, src/sccp_rtp.c,
+	  src/sccp_rtp.h, src/sccp_softkeys.c: Enh: Update call to
+	  sccp_rtp_createAudioServer to include device
+	  Enh: Pass-on device from sccp_rtp_createAudioServer to
+	  iPbx.rtp_audio_create(d, c)
+	  Enh: Update sccp_rtp_createVideoServer to follow the same pattern
+	  as sccp_rtp_createAudioServer
+
+	* [r6459] src/sccp_management.c: Fix: Asterisk-162:
+	  ast_hook_send_action not available
+
+	* [r6458] src/sccp_actions.c, src/sccp_protocol.c: Cleanup: remove
+	  sccp_dump_msg from several locations.
+
+	* [r6457] src/sccp_config.c, src/sccp_device.c: Fix: set nat status
+	  back when reload sccp.conf and nothing has changed (3). Device
+	  restart issue with auto nat detection, reported by Pavel.
+
+	* [r6456] src/sccp_actions.c, src/sccp_device.c: Fix: reset
+	  nat=auto during device cleanup/unregister, so that we can
+	  re-evalute it's nat status during registration (2). Device
+	  restart issue with auto nat detection, reported by Pavel.
+
+	* [r6455] src/sccp_actions.c, src/sccp_device.c: Fix: reset
+	  nat=auto during device cleanup/unregister, so that we can
+	  re-evalute it's nat status during registration. Device restart
+	  issue with auto nat detection, reported by Pavel.
+
+2015-12-02  ddegroot
+
+	* [r6454] Makefile.am, Makefile.in, NEWS, debian/changelog: Update
+	  NEWS and changelog to allow build rpm/release from trunk
+	  directory
+
+	* [r6453] Makefile.am, Makefile.in, autoconf/extra.m4, configure,
+	  tools/chan-sccp-b.spec: Updated 'make rpm' command and
+	  tools/chan-sccp-b.spec file (Thank Steven)
+
+	* [r6451] autoconf/extra.m4, configure: Fix removal of '-g' CFLAGS
+	  option in autoconf/extra.m4 (so that -grecord-gcc-switches does
+	  not get corrupted into recordcc-switches by accident)
+
+2015-12-01  ddegroot
+
+	* [r6449] src/chan_sccp.h: Use compiled buildin functions for
+	  byteswap when available by renaming the replacement functions
+
+	* [r6448] src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c: When using UI64FMT it should be
+	  accompanied by casting using ULONG
+
+	* [r6447] autoconf/extra.m4, configure: Remove use of
+	  -ffunction-sections / --gc-sections from configure script
+
+	* [r6446] autoconf/asterisk.m4, configure: Cat config.log on remote
+	  server when ast_version.h cannot be compiled by configure (OBS)
+
+	* [r6445] src/pbx_impl/ast/ast.c: Enh: Remove notice when parsing
+	  dial options
+
+	* [r6444] src/sccp_protocol.c: Fix: Moved
+	  sccp_protocol_sendRegisterAckV11 to orignal location
+	  (accidentally moved).
+
+	* [r6443] src/chan_sccp.c, src/sccp_actions.c, src/sccp_actions.h,
+	  src/sccp_enum.c, src/sccp_enum.h, src/sccp_enum.in,
+	  src/sccp_protocol.c, src/sccp_protocol.h: Enh: Added support for
+	  PortRequestMessage, PortReponseMessage and PortCloseMessage
+	  
+	  Working on using these to get the RTP port from the device,
+	  before actually
+	  opening rtp reception. This will allow us to use the ip:port
+	  information during
+	  bridging, but postponing the activation of rtp flow to the latest
+	  stage
+	  possible (when codec type has been established. When using
+	  direcrtp we need
+	  to know the peer ip:port early, so that we do now have to change
+	  source
+	  addresses during bridging.
+
+	* [r6442] src/sccp_rtp.c, src/sccp_utils.c, src/sccp_utils.h: Fix:
+	  rename and inline socket_equals to sccp_socket_equals
+
+	* [r6441] src/sccp_rtp.c, src/sccp_utils.c: Fix: socket_equals
+	  function returning TRUE in almost all cases, which was definitly
+	  not correct. Enh:Updated comments sccp_rtp (spelling mistakes and
+	  clarifications)
+
+2015-11-30  ddegroot
+
+	* [r6440] src/sccp_pbx.c: ExpFix: callforward handling during
+	  incoming call on shared line (Based on remark by Marcello).
+
+2015-11-29  ddegroot
+
+	* [r6439] src/sccp_actions.c: Fix: Remove Experimental flag
+
+2015-11-28  ddegroot
+
+	* [r6438] src/sccp_actions.c: Fix: We should use
+	  sccp_device_getActiveChannel instead of
+	  sccp_channel_retain(d->active_channel). We should move
+	  d->active_channel to d->privateData->active_channel, to make
+	  direct interaction not possible anymore.
+
+	* [r6437] src/sccp_actions.c: Enh: Revised version of speeddial
+	  handling to cover all possible channel->states
+
+	* [r6436] src/sccp_channel.c, src/sccp_refcount.c: Enh: Report
+	  issue when having problems during module unload
+	  Fix: Refcount issue when entering digits in immediate mode caused
+	  by sched_replace_ref instead of sched_add_ref (This would keep an
+	  extra channel retained).
+
+	* [r6435] src/chan_sccp.c: Enh: Only dump_msg when debug level
+	  includes message
+
+	* [r6434] src/sccp_refcount.c, src/sccp_refcount.h: Fix/Enh: When
+	  unloading the module and when we have any left over reference
+	  (indicating a problem), they should nevertheless be cleaned up in
+	  order of priority to prevent any alarms being raised by cleaning
+	  up references.
+
+	* [r6433] src/sccp_pbx.c: Enh: show channel designator insteal of
+	  callid.
+
+	* [r6432] src/sccp_refcount.c: Fix: refcount cleanup during module
+	  stop
+
+	* [r6431] src/sccp_actions.c, src/sccp_channel.c: Remove unused
+	  variable
+	  Check if hold when handling speeddial succeeded or return error
+
+	* [r6430] src/sccp_actions.c, src/sccp_device.c: Fix: stop
+	  digittimeout when redialing number
+	  Enh: cleanup usused source code
+	  Enh: Remark out some debug log statements
+
+	* [r6429] src/sccp_refcount.c: Enhancement: sccp_refcount cleans up
+	  unused objects[hash] entries when
+	  after removing an object and the hash entry is empty, instead of
+	  allocating when
+	  needed but freeing only at module unload. The old behaviour
+	  looked like a
+	  memory leak, which was not really the case.
+	  
+	  Updated refcount test to make sure that retain/release and
+	  cleanup works
+	  correctly even in cases of over allocation of the hash table by
+	  inserting
+	  5000 elements.
+
+	* [r6428] src/chan_sccp.c, src/sccp_actions.c, src/sccp_callinfo.c,
+	  src/sccp_channel.c, src/sccp_device.c, src/sccp_devstate.c,
+	  src/sccp_event.c, src/sccp_hint.c, src/sccp_mwi.c,
+	  src/sccp_refcount.c, src/sccp_socket.c, src/sccp_softkeys.c,
+	  src/sccp_threadpool.c, src/sccp_utils.c: Enhancements:
+	  - Use sccp_calloc(size, count) instead of sccp_malloc + memset
+	  - Use sizeof *variable instead of sizeof(type) in sccp_malloc /
+	  sccp_calloc (following the idiom of SIZEOF_TO_VARIABLES)
+
+	* [r6427] src/sccp_channel.c: Fix: allow transfer of channel on
+	  hold (again) when line is not shared). Set displayprompt on
+	  transfer failure to indicate what went wrong.
+
+2015-11-27  ddegroot
+
+	* [r6426] src/sccp_callinfo.c, src/sccp_callinfo.h: Enh: Update
+	  implementation of sccp_callinfo_copyByKey. Extend unittest to
+	  include test of sccp_callinfo_copyByKey to verify behaviour.
+
+	* [r6425] src/sccp_protocol.c: Enh: Remark out sccp_dump_msg from
+	  sccp_protocol.c
+
+2015-11-26  ddegroot
+
+	* [r6424] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c: Enh: Add
+	  stoptone when we receive asterisk prod indication. Fixes issue
+	  reported/tested by Anatoli and Pavel.
+
+	* [r6423] src/sccp_config.c, src/sccp_device.c, src/sccp_utils.c:
+	  Enh: Change debuglevel on some logging
+
+	* [r6422] src/sccp_channel.c: Enh: Make transfer_on_hangup valid
+	  from more channel states
+
+2015-11-25  ddegroot
+
+	* [r6421] src/sccp_actions.c, src/sccp_channel.c, src/sccp_pbx.c:
+	  Fix: digittimeout / invaluid nummer when using speeddial to
+	  trasnfer a call (issue could have popped up in other use cases as
+	  well). Reported by Cody.
+
+2015-11-23  ddegroot
+
+	* [r6420] src/sccp_config.c, src/sccp_enum.c,
+	  tools/gen_sccp_enum.awk: Fix: skip empty default button entry,
+	  when loading sccp.conf
+
+	* [r6419] autoconf/acinclude.m4, configure: Detect old asterisk-11
+	  version with broken asterisk.pc pkg-config file and
+	  correct it retro-actively. Issue reported by Jeffrey Otterson.
+
+	* [r6418] ChangeLog, Makefile.in, autoconf/extra.m4, configure:
+	  Fix: Add space after libxml cflag. Reported by Jeffrey Otterson
+
 2015-11-20  ddegroot
 
 	* [r6417] src/sccp_featureButton.c: Enh: Clarify that the

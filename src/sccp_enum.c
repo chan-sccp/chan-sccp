@@ -147,9 +147,9 @@ sccp_channelstate_t sccp_channelstate_str2val(const char *lookup_str) {
 	return SCCP_CHANNELSTATE_SENTINEL;
 }
 
-int sccp_channelstate_str2intval(const char *lookup_str) {
-	int res = sccp_channelstate_str2val(lookup_str);
-	return (int)res != SCCP_CHANNELSTATE_SENTINEL ? res : -1;
+uint32_t sccp_channelstate_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_channelstate_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_channelstate_all_entries(void) {
@@ -199,9 +199,9 @@ sccp_channelstatereason_t sccp_channelstatereason_str2val(const char *lookup_str
 	return SCCP_CHANNELSTATEREASON_SENTINEL;
 }
 
-int sccp_channelstatereason_str2intval(const char *lookup_str) {
-	int res = sccp_channelstatereason_str2val(lookup_str);
-	return (int)res != SCCP_CHANNELSTATEREASON_SENTINEL ? res : -1;
+uint32_t sccp_channelstatereason_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_channelstatereason_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_channelstatereason_all_entries(void) {
@@ -254,9 +254,9 @@ sccp_earlyrtp_t sccp_earlyrtp_str2val(const char *lookup_str) {
 	return SCCP_EARLYRTP_SENTINEL;
 }
 
-int sccp_earlyrtp_str2intval(const char *lookup_str) {
-	int res = sccp_earlyrtp_str2val(lookup_str);
-	return (int)res != SCCP_EARLYRTP_SENTINEL ? res : -1;
+uint32_t sccp_earlyrtp_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_earlyrtp_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_earlyrtp_all_entries(void) {
@@ -308,9 +308,9 @@ sccp_devicestate_t sccp_devicestate_str2val(const char *lookup_str) {
 	return SCCP_DEVICESTATE_SENTINEL;
 }
 
-int sccp_devicestate_str2intval(const char *lookup_str) {
-	int res = sccp_devicestate_str2val(lookup_str);
-	return (int)res != SCCP_DEVICESTATE_SENTINEL ? res : -1;
+uint32_t sccp_devicestate_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_devicestate_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_devicestate_all_entries(void) {
@@ -361,9 +361,9 @@ sccp_callforward_t sccp_callforward_str2val(const char *lookup_str) {
 	return SCCP_CALLFORWARD_SENTINEL;
 }
 
-int sccp_callforward_str2intval(const char *lookup_str) {
-	int res = sccp_callforward_str2val(lookup_str);
-	return (int)res != SCCP_CALLFORWARD_SENTINEL ? res : -1;
+uint32_t sccp_callforward_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_callforward_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_callforward_all_entries(void) {
@@ -412,9 +412,9 @@ sccp_dtmfmode_t sccp_dtmfmode_str2val(const char *lookup_str) {
 	return SCCP_DTMFMODE_SENTINEL;
 }
 
-int sccp_dtmfmode_str2intval(const char *lookup_str) {
-	int res = sccp_dtmfmode_str2val(lookup_str);
-	return (int)res != SCCP_DTMFMODE_SENTINEL ? res : -1;
+uint32_t sccp_dtmfmode_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_dtmfmode_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_dtmfmode_all_entries(void) {
@@ -463,9 +463,9 @@ sccp_autoanswer_t sccp_autoanswer_str2val(const char *lookup_str) {
 	return SCCP_AUTOANSWER_SENTINEL;
 }
 
-int sccp_autoanswer_str2intval(const char *lookup_str) {
-	int res = sccp_autoanswer_str2val(lookup_str);
-	return (int)res != SCCP_AUTOANSWER_SENTINEL ? res : -1;
+uint32_t sccp_autoanswer_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_autoanswer_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_autoanswer_all_entries(void) {
@@ -515,9 +515,9 @@ sccp_dndmode_t sccp_dndmode_str2val(const char *lookup_str) {
 	return SCCP_DNDMODE_SENTINEL;
 }
 
-int sccp_dndmode_str2intval(const char *lookup_str) {
-	int res = sccp_dndmode_str2val(lookup_str);
-	return (int)res != SCCP_DNDMODE_SENTINEL ? res : -1;
+uint32_t sccp_dndmode_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_dndmode_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_dndmode_all_entries(void) {
@@ -568,9 +568,9 @@ sccp_accessory_t sccp_accessory_str2val(const char *lookup_str) {
 	return SCCP_ACCESSORY_SENTINEL;
 }
 
-int sccp_accessory_str2intval(const char *lookup_str) {
-	int res = sccp_accessory_str2val(lookup_str);
-	return (int)res != SCCP_ACCESSORY_SENTINEL ? res : -1;
+uint32_t sccp_accessory_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_accessory_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_accessory_all_entries(void) {
@@ -620,9 +620,9 @@ sccp_accessorystate_t sccp_accessorystate_str2val(const char *lookup_str) {
 	return SCCP_ACCESSORYSTATE_SENTINEL;
 }
 
-int sccp_accessorystate_str2intval(const char *lookup_str) {
-	int res = sccp_accessorystate_str2val(lookup_str);
-	return (int)res != SCCP_ACCESSORYSTATE_SENTINEL ? res : -1;
+uint32_t sccp_accessorystate_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_accessorystate_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_accessorystate_all_entries(void) {
@@ -674,9 +674,9 @@ sccp_config_buttontype_t sccp_config_buttontype_str2val(const char *lookup_str) 
 	return SCCP_CONFIG_BUTTONTYPE_SENTINEL;
 }
 
-int sccp_config_buttontype_str2intval(const char *lookup_str) {
-	int res = sccp_config_buttontype_str2val(lookup_str);
-	return (int)res != SCCP_CONFIG_BUTTONTYPE_SENTINEL ? res : -1;
+uint32_t sccp_config_buttontype_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_config_buttontype_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_config_buttontype_all_entries(void) {
@@ -725,9 +725,9 @@ sccp_devstate_state_t sccp_devstate_state_str2val(const char *lookup_str) {
 	return SCCP_DEVSTATE_STATE_SENTINEL;
 }
 
-int sccp_devstate_state_str2intval(const char *lookup_str) {
-	int res = sccp_devstate_state_str2val(lookup_str);
-	return (int)res != SCCP_DEVSTATE_STATE_SENTINEL ? res : -1;
+uint32_t sccp_devstate_state_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_devstate_state_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_devstate_state_all_entries(void) {
@@ -776,9 +776,9 @@ sccp_blindtransferindication_t sccp_blindtransferindication_str2val(const char *
 	return SCCP_BLINDTRANSFERINDICATION_SENTINEL;
 }
 
-int sccp_blindtransferindication_str2intval(const char *lookup_str) {
-	int res = sccp_blindtransferindication_str2val(lookup_str);
-	return (int)res != SCCP_BLINDTRANSFERINDICATION_SENTINEL ? res : -1;
+uint32_t sccp_blindtransferindication_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_blindtransferindication_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_blindtransferindication_all_entries(void) {
@@ -827,9 +827,9 @@ sccp_call_answer_order_t sccp_call_answer_order_str2val(const char *lookup_str) 
 	return SCCP_CALL_ANSWER_ORDER_SENTINEL;
 }
 
-int sccp_call_answer_order_str2intval(const char *lookup_str) {
-	int res = sccp_call_answer_order_str2val(lookup_str);
-	return (int)res != SCCP_CALL_ANSWER_ORDER_SENTINEL ? res : -1;
+uint32_t sccp_call_answer_order_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_call_answer_order_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_call_answer_order_all_entries(void) {
@@ -881,9 +881,9 @@ sccp_nat_t sccp_nat_str2val(const char *lookup_str) {
 	return SCCP_NAT_SENTINEL;
 }
 
-int sccp_nat_str2intval(const char *lookup_str) {
-	int res = sccp_nat_str2val(lookup_str);
-	return (int)res != SCCP_NAT_SENTINEL ? res : -1;
+uint32_t sccp_nat_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_nat_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_nat_all_entries(void) {
@@ -933,9 +933,9 @@ sccp_video_mode_t sccp_video_mode_str2val(const char *lookup_str) {
 	return SCCP_VIDEO_MODE_SENTINEL;
 }
 
-int sccp_video_mode_str2intval(const char *lookup_str) {
-	int res = sccp_video_mode_str2val(lookup_str);
-	return (int)res != SCCP_VIDEO_MODE_SENTINEL ? res : -1;
+uint32_t sccp_video_mode_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_video_mode_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_video_mode_all_entries(void) {
@@ -1003,9 +1003,9 @@ sccp_event_type_t sccp_event_type_str2val(const char *lookup_str) {
 	return SCCP_EVENT_TYPE_SENTINEL;
 }
 
-int sccp_event_type_str2intval(const char *lookup_str) {
-	int res = sccp_event_type_str2val(lookup_str);
-	return (int)res != SCCP_EVENT_TYPE_SENTINEL ? res : -1;
+uint32_t sccp_event_type_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_event_type_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_event_type_all_entries(void) {
@@ -1054,9 +1054,9 @@ sccp_parkresult_t sccp_parkresult_str2val(const char *lookup_str) {
 	return SCCP_PARKRESULT_SENTINEL;
 }
 
-int sccp_parkresult_str2intval(const char *lookup_str) {
-	int res = sccp_parkresult_str2val(lookup_str);
-	return (int)res != SCCP_PARKRESULT_SENTINEL ? res : -1;
+uint32_t sccp_parkresult_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_parkresult_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_parkresult_all_entries(void) {
@@ -1105,9 +1105,9 @@ sccp_callerid_presentation_t sccp_callerid_presentation_str2val(const char *look
 	return SCCP_CALLERID_PRESENTATION_SENTINEL;
 }
 
-int sccp_callerid_presentation_str2intval(const char *lookup_str) {
-	int res = sccp_callerid_presentation_str2val(lookup_str);
-	return (int)res != SCCP_CALLERID_PRESENTATION_SENTINEL ? res : -1;
+uint32_t sccp_callerid_presentation_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_callerid_presentation_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_callerid_presentation_all_entries(void) {
@@ -1175,9 +1175,9 @@ sccp_rtp_status_t sccp_rtp_status_str2val(const char *lookup_str) {
 	return SCCP_RTP_STATUS_SENTINEL;
 }
 
-int sccp_rtp_status_str2intval(const char *lookup_str) {
-	int res = sccp_rtp_status_str2val(lookup_str);
-	return (int)res != SCCP_RTP_STATUS_SENTINEL ? res : -1;
+uint32_t sccp_rtp_status_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_rtp_status_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_rtp_status_all_entries(void) {
@@ -1187,74 +1187,74 @@ const char *sccp_rtp_status_all_entries(void) {
 /* = End =========================================================================================                sccp_rtp_status === */
 
 
-/* = Begin =======================================================================================             sccp_sccp_rtp_type === */
+/* = Begin =======================================================================================                  sccp_rtp_type === */
 
 
 /*
- * \brief enum sccp_sccp_rtp_type
+ * \brief enum sccp_rtp_type
  */
-static const char *__sccp_sccp_rtp_type_str = "sccp_sccp_rtp_type";
-static const char *sccp_sccp_rtp_type_map[] = {
+static const char *__sccp_rtp_type_str = "sccp_rtp_type";
+static const char *sccp_rtp_type_map[] = {
 	"Audio RTP",
 	"Video RTP",
 	"Text RTP",
 	"LOOKUPERROR"
 };
 
-int sccp_sccp_rtp_type_exists(int sccp_sccp_rtp_type_int_value) {
-	if (sccp_sccp_rtp_type_int_value == 0) {
+int sccp_rtp_type_exists(int sccp_rtp_type_int_value) {
+	if (sccp_rtp_type_int_value == 0) {
 		return 1;
 	}
 	int res = 0, i;
-	for (i = 0; i < SCCP_SCCP_RTP_TYPE_SENTINEL; i++) {
-		if ((sccp_sccp_rtp_type_int_value & 1 << i) == 1 << i) {
+	for (i = 0; i < SCCP_RTP_TYPE_SENTINEL; i++) {
+		if ((sccp_rtp_type_int_value & 1 << i) == 1 << i) {
 			res |= 1;
 		}
 	}
 	return res;
 }
 
-const char * sccp_sccp_rtp_type2str(int sccp_sccp_rtp_type_int_value) {
+const char * sccp_rtp_type2str(int sccp_rtp_type_int_value) {
 	static char res[186] = "";
 	int pos = 0;
-	if (sccp_sccp_rtp_type_int_value == 0) {
-		pos += snprintf(res + pos, 186, "%s%s", pos ? "," : "", sccp_sccp_rtp_type_map[0]);
+	if (sccp_rtp_type_int_value == 0) {
+		pos += snprintf(res + pos, 186, "%s%s", pos ? "," : "", sccp_rtp_type_map[0]);
 		return res;
 	}
 	uint32_t i;
-	for (i = 0; i < ARRAY_LEN(sccp_sccp_rtp_type_map) - 1; i++) {
-		if ((sccp_sccp_rtp_type_int_value & 1 << i) == 1 << i) {
-			pos += snprintf(res + pos, 186, "%s%s", pos ? "," : "", sccp_sccp_rtp_type_map[i]);
+	for (i = 0; i < ARRAY_LEN(sccp_rtp_type_map) - 1; i++) {
+		if ((sccp_rtp_type_int_value & 1 << i) == 1 << i) {
+			pos += snprintf(res + pos, 186, "%s%s", pos ? "," : "", sccp_rtp_type_map[i]);
 		}
 	}
 	if (!strlen(res)) {
-		pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, sccp_sccp_rtp_type_int_value, __sccp_sccp_rtp_type_str);
-		return "OutOfBounds: sparse sccp_sccp_rtp_type2str\n";
+		pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, sccp_rtp_type_int_value, __sccp_rtp_type_str);
+		return "OutOfBounds: sparse sccp_rtp_type2str\n";
 	}
 	return res;
 }
 
-sccp_sccp_rtp_type_t sccp_sccp_rtp_type_str2val(const char *lookup_str) {
+sccp_rtp_type_t sccp_rtp_type_str2val(const char *lookup_str) {
 	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_sccp_rtp_type_map); idx++) {
-		if (sccp_strcaseequals(sccp_sccp_rtp_type_map[idx], lookup_str)) {
+	for (idx = 0; idx < ARRAY_LEN(sccp_rtp_type_map); idx++) {
+		if (sccp_strcaseequals(sccp_rtp_type_map[idx], lookup_str)) {
 			return 1 << idx;
 		}
 	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_sccp_rtp_type_str, lookup_str);
-	return SCCP_SCCP_RTP_TYPE_SENTINEL;
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_rtp_type_str, lookup_str);
+	return SCCP_RTP_TYPE_SENTINEL;
 }
 
-int sccp_sccp_rtp_type_str2intval(const char *lookup_str) {
-	int res = sccp_sccp_rtp_type_str2val(lookup_str);
-	return (int)res != SCCP_SCCP_RTP_TYPE_SENTINEL ? res : -1;
+uint32_t sccp_rtp_type_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_rtp_type_str2val(lookup_str);
+	return res;
 }
 
-const char *sccp_sccp_rtp_type_all_entries(void) {
+const char *sccp_rtp_type_all_entries(void) {
 	static char res[] = "Audio RTP,Video RTP,Text RTP";
 	return res;
 }
-/* = End =========================================================================================             sccp_sccp_rtp_type === */
+/* = End =========================================================================================                  sccp_rtp_type === */
 
 
 /* = Begin =======================================================================================          sccp_extension_status === */
@@ -1297,9 +1297,9 @@ sccp_extension_status_t sccp_extension_status_str2val(const char *lookup_str) {
 	return SCCP_EXTENSION_STATUS_SENTINEL;
 }
 
-int sccp_extension_status_str2intval(const char *lookup_str) {
-	int res = sccp_extension_status_str2val(lookup_str);
-	return (int)res != SCCP_EXTENSION_STATUS_SENTINEL ? res : -1;
+uint32_t sccp_extension_status_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_extension_status_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_extension_status_all_entries(void) {
@@ -1350,9 +1350,9 @@ sccp_channel_request_status_t sccp_channel_request_status_str2val(const char *lo
 	return SCCP_CHANNEL_REQUEST_STATUS_SENTINEL;
 }
 
-int sccp_channel_request_status_str2intval(const char *lookup_str) {
-	int res = sccp_channel_request_status_str2val(lookup_str);
-	return (int)res != SCCP_CHANNEL_REQUEST_STATUS_SENTINEL ? res : -1;
+uint32_t sccp_channel_request_status_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_channel_request_status_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_channel_request_status_all_entries(void) {
@@ -1405,9 +1405,9 @@ sccp_message_priority_t sccp_message_priority_str2val(const char *lookup_str) {
 	return SCCP_MESSAGE_PRIORITY_SENTINEL;
 }
 
-int sccp_message_priority_str2intval(const char *lookup_str) {
-	int res = sccp_message_priority_str2val(lookup_str);
-	return (int)res != SCCP_MESSAGE_PRIORITY_SENTINEL ? res : -1;
+uint32_t sccp_message_priority_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_message_priority_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_message_priority_all_entries(void) {
@@ -1457,9 +1457,9 @@ sccp_push_result_t sccp_push_result_str2val(const char *lookup_str) {
 	return SCCP_PUSH_RESULT_SENTINEL;
 }
 
-int sccp_push_result_str2intval(const char *lookup_str) {
-	int res = sccp_push_result_str2val(lookup_str);
-	return (int)res != SCCP_PUSH_RESULT_SENTINEL ? res : -1;
+uint32_t sccp_push_result_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_push_result_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_push_result_all_entries(void) {
@@ -1509,9 +1509,9 @@ sccp_tokenstate_t sccp_tokenstate_str2val(const char *lookup_str) {
 	return SCCP_TOKENSTATE_SENTINEL;
 }
 
-int sccp_tokenstate_str2intval(const char *lookup_str) {
-	int res = sccp_tokenstate_str2val(lookup_str);
-	return (int)res != SCCP_TOKENSTATE_SENTINEL ? res : -1;
+uint32_t sccp_tokenstate_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_tokenstate_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_tokenstate_all_entries(void) {
@@ -1569,9 +1569,9 @@ sccp_softswitch_t sccp_softswitch_str2val(const char *lookup_str) {
 	return SCCP_SOFTSWITCH_SENTINEL;
 }
 
-int sccp_softswitch_str2intval(const char *lookup_str) {
-	int res = sccp_softswitch_str2val(lookup_str);
-	return (int)res != SCCP_SOFTSWITCH_SENTINEL ? res : -1;
+uint32_t sccp_softswitch_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_softswitch_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_softswitch_all_entries(void) {
@@ -1621,9 +1621,9 @@ sccp_phonebook_t sccp_phonebook_str2val(const char *lookup_str) {
 	return SCCP_PHONEBOOK_SENTINEL;
 }
 
-int sccp_phonebook_str2intval(const char *lookup_str) {
-	int res = sccp_phonebook_str2val(lookup_str);
-	return (int)res != SCCP_PHONEBOOK_SENTINEL ? res : -1;
+uint32_t sccp_phonebook_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_phonebook_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_phonebook_all_entries(void) {
@@ -1673,9 +1673,9 @@ sccp_feature_monitor_state_t sccp_feature_monitor_state_str2val(const char *look
 	return SCCP_FEATURE_MONITOR_STATE_SENTINEL;
 }
 
-int sccp_feature_monitor_state_str2intval(const char *lookup_str) {
-	int res = sccp_feature_monitor_state_str2val(lookup_str);
-	return (int)res != SCCP_FEATURE_MONITOR_STATE_SENTINEL ? res : -1;
+uint32_t sccp_feature_monitor_state_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_feature_monitor_state_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_feature_monitor_state_all_entries(void) {
@@ -1723,9 +1723,9 @@ sccp_readingtype_t sccp_readingtype_str2val(const char *lookup_str) {
 	return SCCP_READINGTYPE_SENTINEL;
 }
 
-int sccp_readingtype_str2intval(const char *lookup_str) {
-	int res = sccp_readingtype_str2val(lookup_str);
-	return (int)res != SCCP_READINGTYPE_SENTINEL ? res : -1;
+uint32_t sccp_readingtype_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_readingtype_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_readingtype_all_entries(void) {
@@ -1793,9 +1793,9 @@ sccp_configurationchange_t sccp_configurationchange_str2val(const char *lookup_s
 	return SCCP_CONFIGURATIONCHANGE_SENTINEL;
 }
 
-int sccp_configurationchange_str2intval(const char *lookup_str) {
-	int res = sccp_configurationchange_str2val(lookup_str);
-	return (int)res != SCCP_CONFIGURATIONCHANGE_SENTINEL ? res : -1;
+uint32_t sccp_configurationchange_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_configurationchange_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_configurationchange_all_entries(void) {
@@ -1844,9 +1844,9 @@ sccp_call_statistics_type_t sccp_call_statistics_type_str2val(const char *lookup
 	return SCCP_CALL_STATISTICS_TYPE_SENTINEL;
 }
 
-int sccp_call_statistics_type_str2intval(const char *lookup_str) {
-	int res = sccp_call_statistics_type_str2val(lookup_str);
-	return (int)res != SCCP_CALL_STATISTICS_TYPE_SENTINEL ? res : -1;
+uint32_t sccp_call_statistics_type_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_call_statistics_type_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_call_statistics_type_all_entries(void) {
@@ -1914,9 +1914,9 @@ sccp_rtp_info_t sccp_rtp_info_str2val(const char *lookup_str) {
 	return SCCP_RTP_INFO_SENTINEL;
 }
 
-int sccp_rtp_info_str2intval(const char *lookup_str) {
-	int res = sccp_rtp_info_str2val(lookup_str);
-	return (int)res != SCCP_RTP_INFO_SENTINEL ? res : -1;
+uint32_t sccp_rtp_info_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_rtp_info_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_rtp_info_all_entries(void) {
@@ -1995,9 +1995,9 @@ sccp_feature_type_t sccp_feature_type_str2val(const char *lookup_str) {
 	return SCCP_FEATURE_TYPE_SENTINEL;
 }
 
-int sccp_feature_type_str2intval(const char *lookup_str) {
-	int res = sccp_feature_type_str2val(lookup_str);
-	return (int)res != SCCP_FEATURE_TYPE_SENTINEL ? res : -1;
+uint32_t sccp_feature_type_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_feature_type_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_feature_type_all_entries(void) {
@@ -2064,9 +2064,9 @@ sccp_callinfo_key_t sccp_callinfo_key_str2val(const char *lookup_str) {
 	return SCCP_CALLINFO_KEY_SENTINEL;
 }
 
-int sccp_callinfo_key_str2intval(const char *lookup_str) {
-	int res = sccp_callinfo_key_str2val(lookup_str);
-	return (int)res != SCCP_CALLINFO_KEY_SENTINEL ? res : -1;
+uint32_t sccp_callinfo_key_str2intval(const char *lookup_str) {
+	uint32_t res = sccp_callinfo_key_str2val(lookup_str);
+	return res;
 }
 
 const char *sccp_callinfo_key_all_entries(void) {
@@ -2117,9 +2117,9 @@ skinny_lampmode_t skinny_lampmode_str2val(const char *lookup_str) {
 	return SKINNY_LAMPMODE_SENTINEL;
 }
 
-int skinny_lampmode_str2intval(const char *lookup_str) {
-	int res = skinny_lampmode_str2val(lookup_str);
-	return (int)res != SKINNY_LAMPMODE_SENTINEL ? res : -1;
+uint32_t skinny_lampmode_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_lampmode_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_lampmode_all_entries(void) {
@@ -2168,9 +2168,9 @@ skinny_calltype_t skinny_calltype_str2val(const char *lookup_str) {
 	return SKINNY_CALLTYPE_SENTINEL;
 }
 
-int skinny_calltype_str2intval(const char *lookup_str) {
-	int res = skinny_calltype_str2val(lookup_str);
-	return (int)res != SKINNY_CALLTYPE_SENTINEL ? res : -1;
+uint32_t skinny_calltype_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_calltype_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_calltype_all_entries(void) {
@@ -2233,9 +2233,9 @@ skinny_callstate_t skinny_callstate_str2val(const char *lookup_str) {
 	return SKINNY_CALLSTATE_SENTINEL;
 }
 
-int skinny_callstate_str2intval(const char *lookup_str) {
-	int res = skinny_callstate_str2val(lookup_str);
-	return (int)res != SKINNY_CALLSTATE_SENTINEL ? res : -1;
+uint32_t skinny_callstate_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_callstate_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_callstate_all_entries(void) {
@@ -2286,9 +2286,9 @@ skinny_callpriority_t skinny_callpriority_str2val(const char *lookup_str) {
 	return SKINNY_CALLPRIORITY_SENTINEL;
 }
 
-int skinny_callpriority_str2intval(const char *lookup_str) {
-	int res = skinny_callpriority_str2val(lookup_str);
-	return (int)res != SKINNY_CALLPRIORITY_SENTINEL ? res : -1;
+uint32_t skinny_callpriority_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_callpriority_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_callpriority_all_entries(void) {
@@ -2337,9 +2337,9 @@ skinny_callinfo_visibility_t skinny_callinfo_visibility_str2val(const char *look
 	return SKINNY_CALLINFO_VISIBILITY_SENTINEL;
 }
 
-int skinny_callinfo_visibility_str2intval(const char *lookup_str) {
-	int res = skinny_callinfo_visibility_str2val(lookup_str);
-	return (int)res != SKINNY_CALLINFO_VISIBILITY_SENTINEL ? res : -1;
+uint32_t skinny_callinfo_visibility_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_callinfo_visibility_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_callinfo_visibility_all_entries(void) {
@@ -2388,9 +2388,9 @@ skinny_callsecuritystate_t skinny_callsecuritystate_str2val(const char *lookup_s
 	return SKINNY_CALLSECURITYSTATE_SENTINEL;
 }
 
-int skinny_callsecuritystate_str2intval(const char *lookup_str) {
-	int res = skinny_callsecuritystate_str2val(lookup_str);
-	return (int)res != SKINNY_CALLSECURITYSTATE_SENTINEL ? res : -1;
+uint32_t skinny_callsecuritystate_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_callsecuritystate_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_callsecuritystate_all_entries(void) {
@@ -2441,9 +2441,9 @@ skinny_busylampfield_state_t skinny_busylampfield_state_str2val(const char *look
 	return SKINNY_BUSYLAMPFIELD_STATE_SENTINEL;
 }
 
-int skinny_busylampfield_state_str2intval(const char *lookup_str) {
-	int res = skinny_busylampfield_state_str2val(lookup_str);
-	return (int)res != SKINNY_BUSYLAMPFIELD_STATE_SENTINEL ? res : -1;
+uint32_t skinny_busylampfield_state_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_busylampfield_state_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_busylampfield_state_all_entries(void) {
@@ -2518,9 +2518,9 @@ skinny_alarm_t skinny_alarm_str2val(const char *lookup_str) {
 	return SKINNY_ALARM_SENTINEL;
 }
 
-int skinny_alarm_str2intval(const char *lookup_str) {
-	int res = skinny_alarm_str2val(lookup_str);
-	return (int)res != SKINNY_ALARM_SENTINEL ? res : -1;
+uint32_t skinny_alarm_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_alarm_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_alarm_all_entries(void) {
@@ -2935,9 +2935,9 @@ skinny_tone_t skinny_tone_str2val(const char *lookup_str) {
 	return SKINNY_TONE_SENTINEL;
 }
 
-int skinny_tone_str2intval(const char *lookup_str) {
-	int res = skinny_tone_str2val(lookup_str);
-	return (int)res != SKINNY_TONE_SENTINEL ? res : -1;
+uint32_t skinny_tone_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_tone_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_tone_all_entries(void) {
@@ -3012,9 +3012,9 @@ skinny_videoformat_t skinny_videoformat_str2val(const char *lookup_str) {
 	return SKINNY_VIDEOFORMAT_SENTINEL;
 }
 
-int skinny_videoformat_str2intval(const char *lookup_str) {
-	int res = skinny_videoformat_str2val(lookup_str);
-	return (int)res != SKINNY_VIDEOFORMAT_SENTINEL ? res : -1;
+uint32_t skinny_videoformat_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_videoformat_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_videoformat_all_entries(void) {
@@ -3071,9 +3071,9 @@ skinny_ringtype_t skinny_ringtype_str2val(const char *lookup_str) {
 	return SKINNY_RINGTYPE_SENTINEL;
 }
 
-int skinny_ringtype_str2intval(const char *lookup_str) {
-	int res = skinny_ringtype_str2val(lookup_str);
-	return (int)res != SKINNY_RINGTYPE_SENTINEL ? res : -1;
+uint32_t skinny_ringtype_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_ringtype_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_ringtype_all_entries(void) {
@@ -3123,9 +3123,9 @@ skinny_receivetransmit_t skinny_receivetransmit_str2val(const char *lookup_str) 
 	return SKINNY_RECEIVETRANSMIT_SENTINEL;
 }
 
-int skinny_receivetransmit_str2intval(const char *lookup_str) {
-	int res = skinny_receivetransmit_str2val(lookup_str);
-	return (int)res != SKINNY_RECEIVETRANSMIT_SENTINEL ? res : -1;
+uint32_t skinny_receivetransmit_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_receivetransmit_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_receivetransmit_all_entries(void) {
@@ -3185,9 +3185,9 @@ skinny_keymode_t skinny_keymode_str2val(const char *lookup_str) {
 	return SKINNY_KEYMODE_SENTINEL;
 }
 
-int skinny_keymode_str2intval(const char *lookup_str) {
-	int res = skinny_keymode_str2val(lookup_str);
-	return (int)res != SKINNY_KEYMODE_SENTINEL ? res : -1;
+uint32_t skinny_keymode_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_keymode_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_keymode_all_entries(void) {
@@ -3239,9 +3239,9 @@ skinny_registrationstate_t skinny_registrationstate_str2val(const char *lookup_s
 	return SKINNY_REGISTRATIONSTATE_SENTINEL;
 }
 
-int skinny_registrationstate_str2intval(const char *lookup_str) {
-	int res = skinny_registrationstate_str2val(lookup_str);
-	return (int)res != SKINNY_REGISTRATIONSTATE_SENTINEL ? res : -1;
+uint32_t skinny_registrationstate_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_registrationstate_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_registrationstate_all_entries(void) {
@@ -3300,9 +3300,9 @@ skinny_mediastatus_t skinny_mediastatus_str2val(const char *lookup_str) {
 	return SKINNY_MEDIASTATUS_SENTINEL;
 }
 
-int skinny_mediastatus_str2intval(const char *lookup_str) {
-	int res = skinny_mediastatus_str2val(lookup_str);
-	return (int)res != SKINNY_MEDIASTATUS_SENTINEL ? res : -1;
+uint32_t skinny_mediastatus_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_mediastatus_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_mediastatus_all_entries(void) {
@@ -3570,9 +3570,9 @@ skinny_stimulus_t skinny_stimulus_str2val(const char *lookup_str) {
 	return SKINNY_STIMULUS_SENTINEL;
 }
 
-int skinny_stimulus_str2intval(const char *lookup_str) {
-	int res = skinny_stimulus_str2val(lookup_str);
-	return (int)res != SKINNY_STIMULUS_SENTINEL ? res : -1;
+uint32_t skinny_stimulus_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_stimulus_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_stimulus_all_entries(void) {
@@ -3832,9 +3832,9 @@ skinny_buttontype_t skinny_buttontype_str2val(const char *lookup_str) {
 	return SKINNY_BUTTONTYPE_SENTINEL;
 }
 
-int skinny_buttontype_str2intval(const char *lookup_str) {
-	int res = skinny_buttontype_str2val(lookup_str);
-	return (int)res != SKINNY_BUTTONTYPE_SENTINEL ? res : -1;
+uint32_t skinny_buttontype_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_buttontype_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_buttontype_all_entries(void) {
@@ -4301,9 +4301,9 @@ skinny_devicetype_t skinny_devicetype_str2val(const char *lookup_str) {
 	return SKINNY_DEVICETYPE_SENTINEL;
 }
 
-int skinny_devicetype_str2intval(const char *lookup_str) {
-	int res = skinny_devicetype_str2val(lookup_str);
-	return (int)res != SKINNY_DEVICETYPE_SENTINEL ? res : -1;
+uint32_t skinny_devicetype_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_devicetype_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_devicetype_all_entries(void) {
@@ -4356,9 +4356,9 @@ skinny_encryptionMethod_t skinny_encryptionMethod_str2val(const char *lookup_str
 	return SKINNY_ENCRYPTIONMETHOD_SENTINEL;
 }
 
-int skinny_encryptionMethod_str2intval(const char *lookup_str) {
-	int res = skinny_encryptionMethod_str2val(lookup_str);
-	return (int)res != SKINNY_ENCRYPTIONMETHOD_SENTINEL ? res : -1;
+uint32_t skinny_encryptionMethod_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_encryptionMethod_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_encryptionMethod_all_entries(void) {
@@ -4412,9 +4412,9 @@ skinny_miscCommandType_t skinny_miscCommandType_str2val(const char *lookup_str) 
 	return SKINNY_MISCCOMMANDTYPE_SENTINEL;
 }
 
-int skinny_miscCommandType_str2intval(const char *lookup_str) {
-	int res = skinny_miscCommandType_str2val(lookup_str);
-	return (int)res != SKINNY_MISCCOMMANDTYPE_SENTINEL ? res : -1;
+uint32_t skinny_miscCommandType_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_miscCommandType_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_miscCommandType_all_entries(void) {
@@ -4463,9 +4463,9 @@ skinny_mediaTransportType_t skinny_mediaTransportType_str2val(const char *lookup
 	return SKINNY_MEDIATRANSPORTTYPE_SENTINEL;
 }
 
-int skinny_mediaTransportType_str2intval(const char *lookup_str) {
-	int res = skinny_mediaTransportType_str2val(lookup_str);
-	return (int)res != SKINNY_MEDIATRANSPORTTYPE_SENTINEL ? res : -1;
+uint32_t skinny_mediaTransportType_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_mediaTransportType_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_mediaTransportType_all_entries(void) {
@@ -4519,9 +4519,9 @@ skinny_mediaType_t skinny_mediaType_str2val(const char *lookup_str) {
 	return SKINNY_MEDIATYPE_SENTINEL;
 }
 
-int skinny_mediaType_str2intval(const char *lookup_str) {
-	int res = skinny_mediaType_str2val(lookup_str);
-	return (int)res != SKINNY_MEDIATYPE_SENTINEL ? res : -1;
+uint32_t skinny_mediaType_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_mediaType_str2val(lookup_str);
+	return res;
 }
 
 const char *skinny_mediaType_all_entries(void) {
@@ -4529,4 +4529,69 @@ const char *skinny_mediaType_all_entries(void) {
 	return res;
 }
 /* = End =========================================================================================               skinny_mediaType === */
+
+
+/* = Begin ======================================================================================= sparse skinny_callHistoryDisposition === */
+
+/*!
+ * \brief Skinny Call History Disposition
+ */
+static const char *__skinny_callHistoryDisposition_str = "skinny_callHistoryDisposition";
+static const char *skinny_callHistoryDisposition_map[] = {"Ignore",
+"Placed Calls",
+"Received Calls",
+"Missed Calls",
+"Unknown",
+};
+
+int skinny_callHistoryDisposition_exists(int skinny_callHistoryDisposition_int_value) {
+	static const int skinny_callHistoryDispositions[] = {SKINNY_CALL_HISTORY_DISPOSITION_IGNORE,SKINNY_CALL_HISTORY_DISPOSITION_PLACED_CALLS,SKINNY_CALL_HISTORY_DISPOSITION_RECEIVED_CALLS,SKINNY_CALL_HISTORY_DISPOSITION_MISSED_CALLS,SKINNY_CALL_HISTORY_DISPOSITION_UNKNOWN,};
+	uint32_t idx;
+	for (idx=0; idx < ARRAY_LEN(skinny_callHistoryDispositions); idx++) {
+		if (skinny_callHistoryDispositions[idx]==skinny_callHistoryDisposition_int_value) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+const char * skinny_callHistoryDisposition2str(skinny_callHistoryDisposition_t enum_value) {
+	switch(enum_value) {
+		case SKINNY_CALL_HISTORY_DISPOSITION_IGNORE: return skinny_callHistoryDisposition_map[0];
+		case SKINNY_CALL_HISTORY_DISPOSITION_PLACED_CALLS: return skinny_callHistoryDisposition_map[1];
+		case SKINNY_CALL_HISTORY_DISPOSITION_RECEIVED_CALLS: return skinny_callHistoryDisposition_map[2];
+		case SKINNY_CALL_HISTORY_DISPOSITION_MISSED_CALLS: return skinny_callHistoryDisposition_map[3];
+		case SKINNY_CALL_HISTORY_DISPOSITION_UNKNOWN: return skinny_callHistoryDisposition_map[4];
+		default:
+			pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __skinny_callHistoryDisposition_str);
+			return "OutOfBounds: sparse skinny_callHistoryDisposition2str\n";
+	}
+}
+
+skinny_callHistoryDisposition_t skinny_callHistoryDisposition_str2val(const char *lookup_str) {
+	if        (sccp_strcaseequals(skinny_callHistoryDisposition_map[0], lookup_str)) {
+		return SKINNY_CALL_HISTORY_DISPOSITION_IGNORE;
+	} else if (sccp_strcaseequals(skinny_callHistoryDisposition_map[1], lookup_str)) {
+		return SKINNY_CALL_HISTORY_DISPOSITION_PLACED_CALLS;
+	} else if (sccp_strcaseequals(skinny_callHistoryDisposition_map[2], lookup_str)) {
+		return SKINNY_CALL_HISTORY_DISPOSITION_RECEIVED_CALLS;
+	} else if (sccp_strcaseequals(skinny_callHistoryDisposition_map[3], lookup_str)) {
+		return SKINNY_CALL_HISTORY_DISPOSITION_MISSED_CALLS;
+	} else if (sccp_strcaseequals(skinny_callHistoryDisposition_map[4], lookup_str)) {
+		return SKINNY_CALL_HISTORY_DISPOSITION_UNKNOWN;
+	}
+	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_callHistoryDisposition_str, lookup_str);
+	return SKINNY_CALLHISTORYDISPOSITION_SENTINEL;
+}
+
+uint32_t skinny_callHistoryDisposition_str2intval(const char *lookup_str) {
+	uint32_t res = skinny_callHistoryDisposition_str2val(lookup_str);
+	return res;
+}
+
+const char *skinny_callHistoryDisposition_all_entries(void) {
+	static char res[] = "Ignore,Placed Calls,Received Calls,Missed Calls,Unknown";
+	return res;
+}
+/* = End ========================================================================================= sparse skinny_callHistoryDisposition === */
 
