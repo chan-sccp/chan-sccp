@@ -1277,11 +1277,12 @@ void sccp_feat_changed(constDevicePtr device, const sccp_linedevices_t * const l
 }
 
 /*!
- * \brief Feature Monitor
- * \param device SCCP Device
- * \param no_line NULL pointer
- * \param no_lineInstance 0 Value
- * \param channel SCCP Channel
+ * \brief Switch Monitor Feature on/off
+ *
+ * \note: iPbx.feature_monitor will ask asterisk to start/stop automon
+ * \note: asterisk ami events are evaluated and callback via sccp_asterisk_managerHookHelper upon change, which
+ *        will in turn call sccp_feat_changed to update the monitor state (if such a state change happens)
+ * \see: sccp_management.c for more information
  */
 void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_lineInstance, constChannelPtr maybe_channel)
 {
