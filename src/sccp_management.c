@@ -891,8 +891,10 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 				PBX_CHANNEL_TYPE *pbxBridge = NULL;
 				if ((CS_AST_CHANNEL_PVT_IS_SCCP(pbxchannel))) {
 					channel = get_sccp_channel_from_pbx_channel(pbxchannel);
-				} else if (((pbxBridge = pbx_channel_get_by_name(pbx_builtin_getvar_helper(pbxchannel, "BRIDGEPEER"))) != NULL) && (CS_AST_CHANNEL_PVT_IS_SCCP(pbxBridge))) {
-					channel = get_sccp_channel_from_pbx_channel(pbxBridge);
+				} else if ( (pbxBridge = pbx_channel_get_by_name(pbx_builtin_getvar_helper(pbxchannel, "BRIDGEPEER"))) ) {
+					if ((CS_AST_CHANNEL_PVT_IS_SCCP(pbxBridge))) {
+						channel = get_sccp_channel_from_pbx_channel(pbxBridge);
+					}
 #if ASTERISK_VERSION_GROUP == 106
 					pbx_channel_unlock(pbxBridge);
 #else
