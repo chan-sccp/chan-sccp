@@ -605,9 +605,11 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 	}
 
 	if (d) {
-		d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
-		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Reset monitor state after hangup\n", DEV_ID_LOG(d));
-		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
+		if (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) {
+			d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Reset monitor state after hangup\n", DEV_ID_LOG(d));
+			sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
+		}
 
 		if (SCCP_CHANNELSTATE_DOWN != c->state || SCCP_CHANNELSTATE_ONHOOK != c->state) {
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
