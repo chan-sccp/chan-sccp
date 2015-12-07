@@ -934,7 +934,7 @@ AST_THREADSTORAGE(hookresult_threadbuf);
 static int __sccp_manager_hookresult(int category, const char *event, char *content) {
         struct ast_str *buf = ast_str_thread_get(&hookresult_threadbuf, HOOKRESULT_INITSIZE);;
 	if (buf) {
-		pbx_str_append(&buf, 0, "%s\r\n", content);
+		pbx_str_append(&buf, 0, "%s", content);
 	}
 	return 0;
 }
