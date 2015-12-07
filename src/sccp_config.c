@@ -1178,9 +1178,9 @@ sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PB
 	if (!sccp_strcaseequals(str, value)) {
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 		pbx_copy_string(dest, value, size);
-		if (!sccp_strlen_zero(value) && !pbx_context_find((const char *) dest)) {
-			pbx_log(LOG_WARNING, "The context '%s' you specified might not be available in the dialplan. Please check the sccp.conf\n", (char *) dest);
-		}
+		//if (!sccp_strlen_zero(value) && !pbx_context_find((const char *) dest)) {
+		//	pbx_log(LOG_WARNING, "The context '%s' you specified might not be available in the dialplan. Please check the sccp.conf\n", (char *) dest);
+		//}
 	} else {
 		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	}
