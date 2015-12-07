@@ -78,6 +78,7 @@ void sccp_event_destroy(sccp_event_t * event)
 		case SCCP_EVENT_LINE_CHANGED:
 		case SCCP_EVENT_LINE_DELETED:
 			break;
+		case SCCP_EVENT_NULL:
 		case SCCP_EVENT_TYPE_SENTINEL:
 			break;
 	}
@@ -261,6 +262,7 @@ void sccp_event_fire(const sccp_event_t * event)
 		case SCCP_EVENT_LINE_CHANGED:
 		case SCCP_EVENT_LINE_DELETED:
 			break;
+		case SCCP_EVENT_NULL:
 		case SCCP_EVENT_TYPE_SENTINEL:
 			break;
 	}
