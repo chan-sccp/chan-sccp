@@ -963,12 +963,13 @@ boolean_t sccp_manager_action2str(const char *manager_command, char **outStr)
         }
 
 	struct manager_custom_hook hook = {__FILE__, __sccp_manager_hookresult};
-	sccp_log(DEBUGCAT_CORE)("SCCP: Sending AMI Command: %s\n", manager_command);
+	//sccp_log(DEBUGCAT_CORE)("SCCP: Sending AMI Command: %s\n", manager_command);
         failure = ast_hook_send_action(&hook, manager_command);							/* "Action: ParkedCalls\r\n" */
         if (!failure) {
-		sccp_log(DEBUGCAT_CORE)("SCCP: Sending AMI Result String: %s\n", pbx_str_buffer(buf));
+		sccp_log(DEBUGCAT_CORE)("SCCP: Sending AMI Result:\n[%s]\n", pbx_str_buffer(buf));
         	*outStr = strdup(pbx_str_buffer(buf));
         }
+       	ast_str_reset(buf);
         return !failure ? TRUE : FALSE;
 }
 
