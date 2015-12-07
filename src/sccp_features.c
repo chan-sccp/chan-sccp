@@ -1312,10 +1312,14 @@ void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_
 			//monitorFeature->status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 		}
 		if (sccp_manager_action2str(pbx_str_buffer(amiCommandStr), &outStr) >= 0 && outStr) {
-			if (!strncmp(outStr, "Response: Success", 17)) {
-				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) AMI monitor request sent.\n", DEV_ID_LOG(device));
+			if (	
+				sccp_strequals(outStr, "Response: Success\r\nMessage: Started monitoring channel\r\n\r\n") ||
+				sccp_strequals(outStr, "Response: Success\r\nMessage: Stopped monitoring channel\r\n\r\n")
+			) {
+				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) AMI monitor request sent successfully.\n", DEV_ID_LOG(device));
 				// sccp_asterisk_managerHookHelper will catch the result and update the softkey / featureButton accordingly.
 			} else {
+				sccp_dev_displayprinotify(device, SKINNY_DISP_RECORDING_FAILED, SCCP_MESSAGE_PRIORITY_MONITOR, SCCP_DISPLAYSTATUS_TIMEOUT*3);
 				pbx_log(LOG_ERROR, "%s: (sccp_feat_monitor) AMI monitor request failed.\n", DEV_ID_LOG(device));
 				monitorFeature->status = SCCP_FEATURE_MONITOR_STATE_DISABLED;
 			}
