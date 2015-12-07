@@ -526,7 +526,9 @@ void sccp_channel_setChannelstate(channelPtr channel, sccp_channelstate_t state)
  */
 void sccp_channel_display_callInfo(sccp_channel_t * channel)
 {
-	sccp_callinfo_print2log(channel->privateData->callInfo, channel->designator);
+	if ((GLOB(debug) & (DEBUGCAT_CHANNEL)) != 0) {
+		sccp_callinfo_print2log(channel->privateData->callInfo, channel->designator);
+	}
 }
 
 /*!
