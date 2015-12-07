@@ -2327,8 +2327,11 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				/* load saved settings from ast db */
 				sccp_config_restoreDeviceFeatureStatus(d);
 				
-				if (0 == d->pendingDelete && sccp_device_getRegistrationState(d) != SKINNY_DEVICE_RS_NONE) {		/* restore nat status */
-					d->nat = nat;
+				/* restore current nat status, if device does not get restarted */
+				if (0 == d->pendingDelete && sccp_device_getRegistrationState(d) != SKINNY_DEVICE_RS_NONE) {
+					if (SCCP_NAT_AUTO == d->nat && (SCCP_NAT_AUTO == nat || SCCP_NAT_AUTO_OFF == nat || SCCP_NAT_AUTO_ON == nat)) {
+						d->nat = nat;
+					}
 				}
 			}
 		} else if (!strcasecmp(utype, "line")) {
