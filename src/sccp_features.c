@@ -33,7 +33,7 @@
 #include "sccp_utils.h"
 #include "sccp_conference.h"
 #include "sccp_indicate.h"
-//#include "sccp_rtp.h"
+#include "sccp_management.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
@@ -1293,19 +1293,39 @@ void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_
 		} else {
 			monitorFeature->status |= SCCP_FEATURE_MONITOR_STATE_REQUESTED;
 		}
-		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) No active channel to monitor, setting monitor state to requested (%d)\n", device->id, monitorFeature->status);
 	} else {
-		if (iPbx.feature_monitor(maybe_channel)) {
-			if (monitorFeature->status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) {		// Just toggle the state, we don't get information back about the asterisk monitor status (async call)
-				monitorFeature->status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
+		constChannelPtr channel = maybe_channel;
+		struct ast_str *amiCommandStr = ast_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+		char *outStr;
+		if (!(monitorFeature->status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
+			pbx_str_append(&amiCommandStr,0 ,"Action: Monitor\r\n");
+			pbx_str_append(&amiCommandStr,0 ,"Channel: %s\r\n", pbx_channel_name(channel->owner));
+			pbx_str_append(&amiCommandStr,0 ,"File: mixmonitor-%s-%d_%s.wav\r\n", channel->line->name, channel->callid, iPbx.getChannelUniqueID(channel));
+			pbx_str_append(&amiCommandStr,0 ,"Format: wav\r\n");
+			pbx_str_append(&amiCommandStr,0 ,"Mix: true\r\n");
+			pbx_str_append(&amiCommandStr,0 ,"\r\n");
+			//monitorFeature->status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;					/* no need to change status, will be done by sccp_asterisk_managerHookHelper */
+		} else {
+			pbx_str_append(&amiCommandStr,0 ,"Action: StopMonitor\r\n");
+			pbx_str_append(&amiCommandStr,0 ,"Channel: %s\r\n", pbx_channel_name(channel->owner));
+			pbx_str_append(&amiCommandStr,0 ,"\r\n");
+			//monitorFeature->status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
+		}
+		if (sccp_manager_action2str(pbx_str_buffer(amiCommandStr), &outStr) >= 0 && outStr) {
+			if (!strncmp(outStr, "Response: Success", 17)) {
+				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) AMI monitor request sent.\n", DEV_ID_LOG(device));
+				// sccp_asterisk_managerHookHelper will catch the result and update the softkey / featureButton accordingly.
 			} else {
-				monitorFeature->status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
+				pbx_log(LOG_ERROR, "%s: (sccp_feat_monitor) AMI monitor request failed.\n", DEV_ID_LOG(device));
+				monitorFeature->status = SCCP_FEATURE_MONITOR_STATE_DISABLED;
 			}
-		} else {											// monitor feature missing
+			sccp_free(outStr);
+		} else {
+			pbx_log(LOG_ERROR, "%s: (sccp_feat_monitor) AMI monitor request failed.\n", DEV_ID_LOG(device));
 			monitorFeature->status = SCCP_FEATURE_MONITOR_STATE_DISABLED;
 		}
 	}
-	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) monitor status: %d\n", device->id, monitorFeature->status);
+	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) new monitor status:%s (%d)\n", device->id, sccp_feature_monitor_state2str(monitorFeature->status), monitorFeature->status);
 }
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
