@@ -300,11 +300,12 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 // improved sharedline handling
 // - calculate c->subscribers correctly			(using when handling sccp_softkey_onhook, to define behaviour)
 // - handle dnd and callforward after calculating c->subscribers
-// - use asterisk local channel to resolve forward, which obsoletes:
+// - use asterisk local channel to resolve forward bei non-shared line, which does evade
 //   * sccp_channel_callforward
 //   * sccp_channel_end_forwarding_channel
 //   * c->parentChannel
 //   * masquerading in sccp_pbx_answer
+//   in that case
 int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 {
 	if (!c) {

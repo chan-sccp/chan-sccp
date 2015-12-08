@@ -3387,11 +3387,22 @@ void sccp_handle_ServerResMessage(constSessionPtr s, devicePtr d, constMessagePt
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending servers message (%s)\n", DEV_ID_LOG(d), sccp_session_getDesignator(s));
 
 	REQ(msg_out, ServerResMessage);
-	struct sockaddr_storage sas = { 0 };
-	sccp_session_getOurIP(s, &sas, 0);
-	sccp_copy_string(msg_out->data.ServerResMessage.server[0].serverName, sccp_socket_stringify_addr(&sas), sizeof(msg_out->data.ServerResMessage.server[0].serverName));
-	msg_out->data.ServerResMessage.serverListenPort[0] = sccp_socket_getPort(&GLOB(bindaddr));
-
+	if (d->protocolversion < 17) {
+		struct sockaddr_storage sas = { 0 };
+		sccp_session_getOurIP(s, &sas, 0);
+		sccp_copy_string(msg_out->data.ServerResMessage.v3.server[0].serverName, GLOB(servername), sizeof(msg_out->data.ServerResMessage.v3.server[0].serverName));
+		msg_out->data.ServerResMessage.v3.serverListenPort[0] = sccp_socket_getPort(&GLOB(bindaddr));
+		struct sockaddr_in *in = (struct sockaddr_in *) &sas;
+		memcpy(&msg_out->data.ServerResMessage.v3.serverIpAddr[0], &in->sin_addr, 4);
+	} else {
+		struct sockaddr_storage sas = { 0 };
+		sccp_session_getOurIP(s, &sas, 0);
+		sccp_copy_string(msg_out->data.ServerResMessage.v17.server[0].serverName, GLOB(servername), sizeof(msg_out->data.ServerResMessage.v17.server[0].serverName));
+		msg_out->data.ServerResMessage.v17.serverListenPort[0] = sccp_socket_getPort(&GLOB(bindaddr));
+		msg_out->data.ServerResMessage.v17.serverIpAddr[0].lel_ipv46 = htolel(sas.ss_family == AF_INET6 ? 1 : 0);
+		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *) &sas;
+		memcpy(&msg_out->data.ServerResMessage.v17.serverIpAddr[0].bel_ipAddr, &in6->sin6_addr, 16);
+	}
 	sccp_dev_send(d, msg_out);
 }
 

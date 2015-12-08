@@ -2462,9 +2462,21 @@ typedef union {
 	} RegisterRejectMessage;										/*!< Register Reject Message Structure */
 
 	struct {
-		ServerIdentifier server[StationMaxServers];							/*!< Server Identifier */
-		uint32_t serverListenPort[StationMaxServers];							/*!< Server is Listening on Port */
-		uint32_t serverIpAddr[StationMaxServers];							/*!< Server IP Port */
+		union {
+			struct {
+				ServerIdentifier server[StationMaxServers];							/*!< Server Identifier */
+				uint32_t serverListenPort[StationMaxServers];							/*!< Server is Listening on Port */
+				uint32_t serverIpAddr[StationMaxServers];							/*!< Server IP Port */
+			} v3;
+			struct {
+				ServerIdentifier server[StationMaxServers];							/*!< Server Identifier */
+				uint32_t serverListenPort[StationMaxServers];							/*!< Server is Listening on Port */
+				struct {
+					uint32_t lel_ipv46;								/*!< ipv4 / ipv6 */
+					char bel_ipAddr[16];								/*!< Multicast IP Address */
+				} serverIpAddr[StationMaxServers];
+			} v17;			
+		};
 	} ServerResMessage;											/*!< Server Result Message Structure */
 
 	struct {
