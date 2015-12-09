@@ -1112,14 +1112,13 @@ void sccp_handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg
 		sccp_dev_speed_find_byindex(d, lineNumber, TRUE, &k);
 	}
 
+	REQ(msg_out, LineStatMessage);
 	if (!l && !k.valid) {
 		pbx_log(LOG_ERROR, "%s: requested a line configuration for unknown line/speeddial %d\n", sccp_session_getDesignator(s), lineNumber);
 		msg_out->data.LineStatMessage.lel_lineNumber = htolel(lineNumber);
 		sccp_dev_send(d, msg_out);
 		return;
 	}
-
-	REQ(msg_out, LineStatMessage);
 	msg_out->data.LineStatMessage.lel_lineNumber = htolel(lineNumber);
 
 	d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineDirNumber, ((l) ? l->name : k.name), sizeof(msg_out->data.LineStatMessage.lineDirNumber));
