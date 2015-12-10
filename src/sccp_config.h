@@ -12,6 +12,10 @@
  * $Revision: 2130 $  
  */
 #pragma once
+
+// sccp_buttonconfig_list_t externally declared in sccp_device.h, required by sccp_config_addButton
+extern struct sccp_buttonconfig_list sccp_buttonconfig_list;
+
 /*!
  * \brief Enum for Config Value Change Status
  */
@@ -34,7 +38,7 @@ typedef enum {
 void sccp_copy_defaultValue(const char *name, void *obj, const sccp_device_t * device, const sccp_config_segment_t segment);
 int sccp_manager_config_metadata(struct mansession *s, const struct message *m);
 void sccp_config_cleanup_dynamically_allocated_memory(void *obj, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
+sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfigList, int index, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
 boolean_t sccp_config_general(sccp_readingtype_t readingtype);
 void cleanup_stale_contexts(char *newContext, char *oldContext);
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype);

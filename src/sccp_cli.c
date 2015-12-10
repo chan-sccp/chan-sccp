@@ -2343,7 +2343,7 @@ static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 			pbx_log(LOG_ERROR, "Error: Line %s not found\n", argv[4]);
 			return RESULT_FAILURE;
 		}
-		sccp_config_addButton(d, -1, LINE, l->name, NULL, NULL);
+		sccp_config_addButton(&d->buttonconfig, -1, LINE, l->name, NULL, NULL);
 		pbx_cli(fd, "Line %s has been added to device %s\n", l->name, d->id);
 	} else {
 		pbx_log(LOG_ERROR, "Error: Device %s not found\n", argv[3]);
