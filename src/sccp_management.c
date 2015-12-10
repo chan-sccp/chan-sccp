@@ -417,7 +417,7 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
 		astman_send_error(s, m, "Line not found");
 		return 0;
 	}
-	sccp_config_addButton(d, -1, LINE, line->name, NULL, NULL);
+	sccp_config_addButton(&d->buttonconfig, -1, LINE, line->name, NULL, NULL);
 	astman_append(s, "Done\r\n");
 	astman_append(s, "\r\n");
 	return 0;

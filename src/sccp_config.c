@@ -194,7 +194,7 @@ sccp_value_changed_t sccp_config_parse_hotline_label(void *dest, const size_t si
 sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
+sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttonconfigList, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
 
 #include "sccp_config_entries.hh"
 
@@ -1699,7 +1699,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 	sccp_config_buttontype_t type = EMPTY;									/* default to empty */
 	uint buttonindex = 0;
 	
-	SCCP_LIST_HEAD (, sccp_buttonconfig_t) * buttonconfigList = dest;
+	sccp_buttonconfig_list_t *buttonconfigList = dest;
 	sccp_buttonconfig_t *config = NULL;
 	PBX_VARIABLE_TYPE * first_var = vars;
 	PBX_VARIABLE_TYPE * v = NULL;
@@ -1723,7 +1723,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 				changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 				type = EMPTY;
 			}
-			if ((changed = sccp_config_checkButton(dest, buttonindex, type, buttonName ? pbx_strip(buttonName) : NULL, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL))) {
+			if ((changed = sccp_config_checkButton(buttonconfigList, buttonindex, type, buttonName ? pbx_strip(buttonName) : NULL, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL))) {
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Button: %s changed. Giving up on checking buttonchanges, reloading all of them.\n", v->value);
 				break;
 			}
@@ -1764,7 +1764,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 				changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 				type = EMPTY;
 			}
-			sccp_config_addButton(dest, buttonindex, type, buttonName ? pbx_strip(buttonName) : NULL, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL);
+			sccp_config_addButton(buttonconfigList, buttonindex, type, buttonName ? pbx_strip(buttonName) : NULL, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL);
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Added button: %s\n", v->value);
 			buttonindex++;
 		}
@@ -1793,14 +1793,12 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
  * 
  * \todo Build a check to see if the button has changed
  */
-sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args)
+sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttonconfigList, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args)
 {
 	sccp_buttonconfig_t *config = NULL;
 
 	// boolean_t is_new = FALSE;
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-
-	SCCP_LIST_HEAD (, sccp_buttonconfig_t) * buttonconfigList = buttonconfig_head;
 
 	SCCP_LIST_LOCK(buttonconfigList);
 	SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
@@ -1896,11 +1894,9 @@ sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int button
  * 
  * \todo Build a check to see if the button has changed
  */
-sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args)
+sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfigList, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args)
 {
 	sccp_buttonconfig_t *config = NULL;
-	SCCP_LIST_HEAD (, sccp_buttonconfig_t) * buttonconfigList = buttonconfig_head;
-
 	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Loading New Button Config\n");
 	
 	if (type != LINE && type != SPEEDDIAL && type != SERVICE && type != FEATURE && type != EMPTY) {
