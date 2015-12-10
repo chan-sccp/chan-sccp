@@ -2295,9 +2295,21 @@ static int sccp_remove_line_from_device(int fd, int argc, char *argv[])
 	}
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {						// don't create new realtime devices by searching for them
 		if ((line = sccp_line_find_byname(argv[4], FALSE))) {					// don't create new realtime lines by searching for them
-			sccp_line_removeDevice(line, d);
+			sccp_buttonconfig_t *config;
+
+			d->pendingUpdate = 1;
+			SCCP_LIST_LOCK(&d->buttonconfig);
+			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
+				if (config->type == LINE && sccp_strequals(config->button.line.name,line->name)) {
+					config->pendingDelete = 1;
+					pbx_cli(fd, "Found at ButtonIndex %d => Line %s, removing...\n", config->index, line->name);
+				}
+			}
+			SCCP_LIST_TRAVERSE_SAFE_END;
+			SCCP_LIST_UNLOCK(&d->buttonconfig);
+			
 			pbx_cli(fd, "Line %s has been removed from device %s. Reloading Device...\n", line->name, d->id);
-			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART); 
+			sccp_device_check_update(d);
 			res = RESULT_SUCCESS;
 		} else {
 			pbx_log(LOG_ERROR, "Error: Line %s not found\n", argv[4]);
@@ -2329,6 +2341,7 @@ CLI_ENTRY(cli_remove_line_from_device, sccp_remove_line_from_device, "Remove a l
      */
 static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 {
+	int res = RESULT_FAILURE;
 	if (argc < 5) {
 		return RESULT_SHOWUSAGE;
 	}
@@ -2341,16 +2354,20 @@ static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 		AUTO_RELEASE sccp_line_t *l = sccp_line_find_byname(argv[4], FALSE);
 		if (!l) {
 			pbx_log(LOG_ERROR, "Error: Line %s not found\n", argv[4]);
-			return RESULT_FAILURE;
 		}
-		sccp_config_addButton(&d->buttonconfig, -1, LINE, l->name, NULL, NULL);
-		pbx_cli(fd, "Line %s has been added to device %s\n", l->name, d->id);
+ 		d->pendingUpdate = 1;
+		if (sccp_config_addButton(&d->buttonconfig, -1, LINE, l->name, NULL, NULL) == SCCP_CONFIG_CHANGE_CHANGED) {
+			pbx_cli(fd, "Line %s has been added to device %s\n", l->name, d->id);
+			sccp_device_check_update(d);
+			res = RESULT_SUCCESS;
+		} else {
+	 		d->pendingUpdate = 0;;
+		}
 	} else {
 		pbx_log(LOG_ERROR, "Error: Device %s not found\n", argv[3]);
-		return RESULT_FAILURE;
 	}
 
-	return RESULT_SUCCESS;
+	return res;
 }
 
 static char add_line_to_device_usage[] = "Usage: sccp add line <deviceID> <lineID>\n" "       Add a line to a device.\n";
