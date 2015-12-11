@@ -32,8 +32,16 @@ AC_DEFUN([CS_CHECK_PBX], [
 				CPPFLAGS="${CPPFLAGS} ${PBX_CPPFLAGS}"
 	 			PBX_LIB="$(${PKGCONFIG} --variable=libdir asterisk)"
 		 		if test -f "${PBX_ETC}/asterisk.conf"; then
-		 			PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
-		 			PBX_VARLIB="$(${GREP} 'astvarlibdir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
+					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					if test -z "$PBX_TEMPMODDIR"; then
+						echo ""
+						AC_MSG_ERROR([astmoddir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='])
+					fi
+					PBX_VARLIB="`${SED} -n 's/astvarlibdir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					if test -z "$PBX_VARLIB"; then
+						echo ""
+						AC_MSG_ERROR([astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='])
+					fi
 		 		else
 		 			PBX_TEMPMODDIR="$(${PKGCONFIG} --variable=moddir asterisk)"
 		 			PBX_VARLIB="$(${PKGCONFIG} --variable=varlibdir asterisk)"
@@ -99,8 +107,16 @@ AC_DEFUN([CS_CHECK_PBX], [
 					PBX_VARLIB="/var/lib/asterisk"
 				fi
 				if test -n "${PBX_ETC}"; then
-					PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
-					PBX_VARLIB="$(${GREP} 'astvarlibdir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
+					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					if test -z "$PBX_TEMPMODDIR"; then
+						echo ""
+						AC_MSG_ERROR([astmoddir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='])
+					fi
+					PBX_VARLIB="`${SED} -n 's/astvarlibdir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					if test -z "$PBX_VARLIB"; then
+						echo ""
+						AC_MSG_ERROR([astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='])
+					fi
 				fi
 				PBX_LIB="${checkdir}/lib"
 				PBX_LDFLAGS="$LDFLAGS -L${checkdir}/lib"
@@ -124,6 +140,14 @@ AC_DEFUN([CS_CHECK_PBX], [
 				AC_MSG_RESULT(done)
 			fi
 		fi
+	fi
+	if test -z "$PBX_TEMPMODDIR"; then
+		echo ""
+		AC_MSG_ERROR([astmoddir could not be established, giving up])
+	fi
+	if test -z "$PBX_VARLIB"; then
+		echo ""
+		AC_MSG_ERROR([astvarlib could not be established, giving up])
 	fi
 	AC_DEFINE_UNQUOTED([PBX_ETC],"$PBX_ETC",[Define PBX_ETC])
 	AC_DEFINE_UNQUOTED([PBX_PREFIX],"$PBX_PREFIX",[Define PBX_PREFIX])

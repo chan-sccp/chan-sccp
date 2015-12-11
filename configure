@@ -18940,8 +18940,16 @@ $as_echo "$as_me: Fixed fauly asterisk.pc pkg-config file. Advise:Youought to up
 				CPPFLAGS="${CPPFLAGS} ${PBX_CPPFLAGS}"
 	 			PBX_LIB="$(${PKGCONFIG} --variable=libdir asterisk)"
 		 		if test -f "${PBX_ETC}/asterisk.conf"; then
-		 			PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
-		 			PBX_VARLIB="$(${GREP} 'astvarlibdir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
+					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					if test -z "$PBX_TEMPMODDIR"; then
+						echo ""
+						as_fn_error $? "astmoddir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='" "$LINENO" 5
+					fi
+					PBX_VARLIB="`${SED} -n 's/astvarlibdir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					if test -z "$PBX_VARLIB"; then
+						echo ""
+						as_fn_error $? "astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='" "$LINENO" 5
+					fi
 		 		else
 		 			PBX_TEMPMODDIR="$(${PKGCONFIG} --variable=moddir asterisk)"
 		 			PBX_VARLIB="$(${PKGCONFIG} --variable=varlibdir asterisk)"
@@ -19016,8 +19024,16 @@ $as_echo "Asterisk found in ${checkdir}" >&6; }
 					PBX_VARLIB="/var/lib/asterisk"
 				fi
 				if test -n "${PBX_ETC}"; then
-					PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
-					PBX_VARLIB="$(${GREP} 'astvarlibdir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
+					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					if test -z "$PBX_TEMPMODDIR"; then
+						echo ""
+						as_fn_error $? "astmoddir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='" "$LINENO" 5
+					fi
+					PBX_VARLIB="`${SED} -n 's/astvarlibdir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					if test -z "$PBX_VARLIB"; then
+						echo ""
+						as_fn_error $? "astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='" "$LINENO" 5
+					fi
 				fi
 				PBX_LIB="${checkdir}/lib"
 				PBX_LDFLAGS="$LDFLAGS -L${checkdir}/lib"
@@ -19042,6 +19058,14 @@ $as_echo "Asterisk found in ${checkdir}" >&6; }
 $as_echo "done" >&6; }
 			fi
 		fi
+	fi
+	if test -z "$PBX_TEMPMODDIR"; then
+		echo ""
+		as_fn_error $? "astmoddir could not be established, giving up" "$LINENO" 5
+	fi
+	if test -z "$PBX_VARLIB"; then
+		echo ""
+		as_fn_error $? "astvarlib could not be established, giving up" "$LINENO" 5
 	fi
 
 cat >>confdefs.h <<_ACEOF
