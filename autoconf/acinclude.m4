@@ -35,12 +35,12 @@ AC_DEFUN([CS_CHECK_PBX], [
 					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 					if test -z "$PBX_TEMPMODDIR"; then
 						echo ""
-						AC_MSG_ERROR([astmoddir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='])
+						AC_MSG_NOTICE([astmoddir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='])
 					fi
 					PBX_VARLIB="`${SED} -n 's/astvarlibdir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 					if test -z "$PBX_VARLIB"; then
 						echo ""
-						AC_MSG_ERROR([astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='])
+						AC_MSG_NOTICE([astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='])
 					fi
 		 		else
 		 			PBX_TEMPMODDIR="$(${PKGCONFIG} --variable=moddir asterisk)"
@@ -110,12 +110,12 @@ AC_DEFUN([CS_CHECK_PBX], [
 					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 					if test -z "$PBX_TEMPMODDIR"; then
 						echo ""
-						AC_MSG_ERROR([astmoddir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='])
+						AC_MSG_NOTICE([astmoddir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='])
 					fi
 					PBX_VARLIB="`${SED} -n 's/astvarlibdir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 					if test -z "$PBX_VARLIB"; then
 						echo ""
-						AC_MSG_ERROR([astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='])
+						AC_MSG_NOTICE([astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='])
 					fi
 				fi
 				PBX_LIB="${checkdir}/lib"

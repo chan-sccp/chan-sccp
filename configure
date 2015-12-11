@@ -18943,12 +18943,14 @@ $as_echo "$as_me: Fixed fauly asterisk.pc pkg-config file. Advise:Youought to up
 					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 					if test -z "$PBX_TEMPMODDIR"; then
 						echo ""
-						as_fn_error $? "astmoddir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='" "$LINENO" 5
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: astmoddir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&5
+$as_echo "$as_me: astmoddir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&6;}
 					fi
 					PBX_VARLIB="`${SED} -n 's/astvarlibdir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 					if test -z "$PBX_VARLIB"; then
 						echo ""
-						as_fn_error $? "astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='" "$LINENO" 5
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&5
+$as_echo "$as_me: astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&6;}
 					fi
 		 		else
 		 			PBX_TEMPMODDIR="$(${PKGCONFIG} --variable=moddir asterisk)"
@@ -19027,12 +19029,14 @@ $as_echo "Asterisk found in ${checkdir}" >&6; }
 					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 					if test -z "$PBX_TEMPMODDIR"; then
 						echo ""
-						as_fn_error $? "astmoddir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='" "$LINENO" 5
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: astmoddir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&5
+$as_echo "$as_me: astmoddir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&6;}
 					fi
 					PBX_VARLIB="`${SED} -n 's/astvarlibdir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 					if test -z "$PBX_VARLIB"; then
 						echo ""
-						as_fn_error $? "astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty). Note: Path seperators use '=>', not '='" "$LINENO" 5
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&5
+$as_echo "$as_me: astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&6;}
 					fi
 				fi
 				PBX_LIB="${checkdir}/lib"
