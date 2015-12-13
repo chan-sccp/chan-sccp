@@ -1311,26 +1311,27 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 	channel->softswitch_action = SCCP_SOFTSWITCH_DIAL;							/* softswitch will catch the number to be dialed */
 	channel->ss_data = 0;											/* nothing to pass to action */
 
+	/* copy the number to dial in the ast->exten */
+	iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
 	if (dial) {
-		sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
-		sccp_pbx_softswitch(channel);
-		goto exit_func;
+		if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
+			sccp_channel_openReceiveChannel(channel);
+		}
+		sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
+		sccp_pbx_softswitch(channel);									/* we know the number to dial -> softswitch */
 	} else {
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
+		if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
+			sccp_channel_openReceiveChannel(channel);
+		}
 		if (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
 			sccp_copy_string(channel->dialedNumber, "s", sizeof(channel->dialedNumber));
 			sccp_pbx_softswitch(channel);
 			channel->dialedNumber[0] = '\0';
-			goto exit_func;
+		} else {
+			sccp_channel_schedule_digittimout(channel, GLOB(firstdigittimeout));
 		}
-	}
-
-	sccp_channel_schedule_digittimout(channel, GLOB(firstdigittimeout));
-exit_func:
-	iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
-	if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
-		sccp_channel_openReceiveChannel(channel);
 	}
 
 	return channel;
