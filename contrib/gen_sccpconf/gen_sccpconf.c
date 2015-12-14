@@ -11,6 +11,7 @@
 
 //#include <asterisk/paths.h>
 #include <sys/types.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,12 +34,12 @@
 //#define CONFIG_TYPE_JSON 5
 char *replace(const char *s, const char *old, const char *new);
 
-int (sccp_enum_str2intval)(const char *lookup_str) 
+uint32_t (sccp_enum_str2intval)(const char *lookup_str) 
 {
 	return 1;
 }
 
-const char *(sccp_enum_all_entries)(void) 
+const char *(sccp_enum_all_entries)(void)
 {
 	return NULL;
 }
