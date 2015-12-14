@@ -1078,10 +1078,10 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 
 boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 {
-#if ASTERISK_VERSION_GROUP >= 112
+#if ASTERISK_VERSION_GROUP >= 113
 	char featexten[SCCP_MAX_EXTENSION] = "";
 
-	if (iPbx.getFeatureExtension(channel, "automixmon", featexten) && !sccp_strlen_zero(featexten)) {
+	if (iPbx.getFeatureExtension(channel, "automon", featexten) && !sccp_strlen_zero(featexten)) {
 		pbx_log(LOG_ERROR, "%s: Sending DTMF:'%s' to switch Monitor Feature\n", channel->designator, featexten);
 		struct ast_frame f = { AST_FRAME_DTMF, };
 		uint j;
@@ -1097,7 +1097,7 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 	return FALSE;
 #else
 	ast_rdlock_call_features();
-	struct ast_call_feature *feature = ast_find_call_feature("automixmon");
+	struct ast_call_feature *feature = ast_find_call_feature("automon");
 	ast_unlock_call_features();
 
 	if (feature) {
