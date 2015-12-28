@@ -1228,7 +1228,7 @@ static void sccp_handle_speeddial(constDevicePtr d, const sccp_speed_t * k)
 	AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
 	if (channel) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: applying to channel:%s with state %s\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
-		if (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) {				/* already dialing digits following, add the speedial extension */
+		if (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL || (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE && channel->state == SCCP_CHANNELSTATE_DIALING)) { /* already dialing digits following, add the speedial extension */
 			if (iPbx.send_digits) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: sending digits: %s\n", channel->designator, k->ext);
 				iPbx.send_digits(channel, k->ext);
