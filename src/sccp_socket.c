@@ -1075,10 +1075,10 @@ void sccp_socket_setoptions(int new_socket)
 	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
 
 	/* thin-tcp */
-#ifdef TCP_THIN_LINEAR_TIMEOUTS
-	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_TCP, TCP_THIN_LINEAR_TIMEOUTS, &on, sizeof(on));
-	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_TCP, TCP_THIN_DUPACK, &on, sizeof(on));
-#endif
+//#ifdef TCP_THIN_LINEAR_TIMEOUTS
+//	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_TCP, TCP_THIN_LINEAR_TIMEOUTS, &on, sizeof(on));
+//	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_TCP, TCP_THIN_DUPACK, &on, sizeof(on));
+//#endif
 	/* */
 	/* rcvbuf / sndbug */
 	int so_rcvbuf = SOCKET_RCVBUF;
