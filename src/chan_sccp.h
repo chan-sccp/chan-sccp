@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include "config.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
@@ -42,6 +43,7 @@ extern "C" {
 #include <sys/endian.h>
 #endif
 #ifndef HAVE_BSWAP_16
+#warn HAVE_BSWAP_16
 static inline unsigned short __bswap_16(unsigned short x)
 {
 	return (x >> 8) | (x << 8);
@@ -62,7 +64,7 @@ static inline unsigned long long __bswap_64(unsigned long long x)
 #endif
 
 /* Byte swap based on platform endianes */
-#if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
+#if SCCP_LITTLE_ENDIAN == 1
 #define letohl(x) (x)
 #define letohs(x) (x)
 #define htolel(x) (x)
