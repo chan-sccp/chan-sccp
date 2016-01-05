@@ -747,6 +747,9 @@
 /* Found Atomic Ops Library */
 #undef SCCP_ATOMIC_OPS
 
+/* Big Endian */
+#undef SCCP_BIG_ENDIAN
+
 /* Define the SCCP Branch */
 #undef SCCP_BRANCH
 
@@ -768,14 +771,14 @@
 /* defined SCCP_HASH_PRIME */
 #undef SCCP_HASH_PRIME
 
+/* Little Endian */
+#undef SCCP_LITTLE_ENDIAN
+
 /* Not Found 'AST_MAX_ACCOUNT_CODE' in asterisk/channel.h */
 #undef SCCP_MAX_ACCOUNT_CODE
 
 /* if this header is necessary for builtin atomics */
 #undef SCCP_NEEDS_INTEL_INTRIN
-
-/* SCCP_PLATFORM_BYTE_ORDER */
-#undef SCCP_PLATFORM_BYTE_ORDER
 
 /* Define the SCCP Revision */
 #undef SCCP_REVISION

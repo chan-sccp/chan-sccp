@@ -323,7 +323,7 @@ AC_DEFUN([CS_CHECK_TYPES], [
                 AC_MSG_RESULT([no])
         ])
 	# Big Endian / Little Endian	
-	AC_C_BIGENDIAN(AC_DEFINE(SCCP_PLATFORM_BYTE_ORDER,SCCP_BIG_ENDIAN,[SCCP_PLATFORM_BYTE_ORDER]),AC_DEFINE(SCCP_PLATFORM_BYTE_ORDER,SCCP_LITTLE_ENDIAN,[SCCP_PLATFORM_BYTE_ORDER]))
+	AC_C_BIGENDIAN(AC_DEFINE([SCCP_BIG_ENDIAN],1,[Big Endian]),AC_DEFINE([SCCP_LITTLE_ENDIAN],1,[Little Endian]))
 
         AC_CHECK_HEADERS([byteswap.h sys/endian.h sys/byteorder.h], [break])
         # Even if we have byteswap.h, we may lack the specific macros/functions.
