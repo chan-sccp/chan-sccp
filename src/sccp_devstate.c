@@ -201,11 +201,11 @@ sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *
 	SCCP_LIST_HEAD_INIT(&deviceState->subscribers);
 	sccp_copy_string(deviceState->devicestate, devstate, sizeof(deviceState->devicestate));
 #if ASTERISK_VERSION_GROUP >= 112
-	struct stasis_topic *devstate_specific_topic = ast_device_state_topic(strdup(buf));
+	struct stasis_topic *devstate_specific_topic = ast_device_state_topic(pbx_strdup(buf));
 
 	deviceState->sub = stasis_subscribe(devstate_specific_topic, sccp_devstate_changed_cb, deviceState);
 #else
-	deviceState->sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE_CHANGE, sccp_devstate_changed_cb, "sccp_devstate_changed_cb", deviceState, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, strdup(buf), AST_EVENT_IE_END);
+	deviceState->sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE_CHANGE, sccp_devstate_changed_cb, "sccp_devstate_changed_cb", deviceState, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, pbx_strdup(buf), AST_EVENT_IE_END);
 #endif
 	deviceState->featureState = (ast_device_state(buf) == AST_DEVICE_NOT_INUSE) ? 0 : 1;
 

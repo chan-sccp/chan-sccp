@@ -424,9 +424,9 @@ void sccp_channel_updateMusicClass(sccp_channel_t * c, const sccp_line_t *l)
 			sccp_free(c->musicclass);
 		}
 		if (!sccp_strlen_zero(l->musicclass)) {
-			c->musicclass = strdup(l->musicclass);
+			c->musicclass = pbx_strdup(l->musicclass);
 		} else if (!sccp_strlen_zero(GLOB(musicclass))) {
-			c->musicclass = strdup(GLOB(musicclass));
+			c->musicclass = pbx_strdup(GLOB(musicclass));
 		}
 	}
 }

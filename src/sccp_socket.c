@@ -235,8 +235,8 @@ boolean_t sccp_socket_ipv4_mapped(const struct sockaddr_storage *sockAddrStorage
  */
 int sccp_socket_cmp_addr(const struct sockaddr_storage *a, const struct sockaddr_storage *b)
 {
-	//char *stra = ast_strdupa(sccp_socket_stringify_addr(a));
-	//char *strb = ast_strdupa(sccp_socket_stringify_addr(b));
+	//char *stra = pbx_strdupa(sccp_socket_stringify_addr(a));
+	//char *strb = pbx_strdupa(sccp_socket_stringify_addr(b));
 
 	const struct sockaddr_storage *a_tmp, *b_tmp;
 	struct sockaddr_storage ipv4_mapped;
