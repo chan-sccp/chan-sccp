@@ -231,6 +231,19 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 	#include <asterisk/autoconfig.h>
 	#include <asterisk/buildopts.h>
   "
+  AC_CHECK_HEADER([asterisk.h],
+    		[
+			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_register_file_version'...],[ac_cv_ast_register_file_version],[
+		                	$HEADER_INCLUDE
+				], [
+					ast_register_file_version(__FILE__, "123");
+				], 
+				[CS_AST_REGISTER_FILE_VERSION],['CS_AST_REGISTER_FILE_VERSION' available]
+			)						
+		],,[ 
+	               	$HEADER_INCLUDE
+	           ]
+  )
   AC_CHECK_HEADER([asterisk/lock.h],
                 [
                         lock_compiled=yes

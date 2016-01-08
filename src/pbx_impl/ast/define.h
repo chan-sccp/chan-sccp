@@ -260,7 +260,6 @@ typedef struct ast_event pbx_event_t;
 #define pbx_queue_hangup ast_queue_hangup
 #define pbx_random ast_random
 #define pbx_realloc ast_realloc
-#define pbx_register_file_version ast_register_file_version
 #define pbx_rtp_bridge ast_rtp_bridge
 #define pbx_rtp_codecs_payloads_set_rtpmap_type_rate ast_rtp_codecs_payloads_set_rtpmap_type_rate
 #define pbx_rtp_glue_register ast_rtp_glue_register
@@ -320,7 +319,10 @@ typedef struct ast_event pbx_event_t;
 #define pbx_true ast_true
 #define pbx_false ast_false
 #define pbx_tvnow ast_tvnow
+#if CS_AST_REGISTER_FILE_VERSION
+#define pbx_register_file_version ast_register_file_version
 #define pbx_unregister_file_version ast_unregister_file_version
+#endif
 #define pbx_update_use_count ast_update_use_count
 #define pbx_variable_browse ast_variable_browse
 #define pbx_variable_new ast_variable_new

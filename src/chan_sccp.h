@@ -149,6 +149,7 @@ extern char SCCP_REVISIONSTR[30];
 #if defined(LOW_MEMORY)
 #define SCCP_FILE_VERSION(file, version)
 #else
+#if CS_AST_REGISTER_FILE_VERSION
 #define SCCP_FILE_VERSION(file, version) \
 static void __attribute__((constructor)) __register_file_version(void) \
 { \
@@ -158,6 +159,9 @@ static void __attribute__((destructor)) __unregister_file_version(void) \
 { \
 	pbx_unregister_file_version(file); \
 }
+#else
+#define SCCP_FILE_VERSION(file, version) ASTERISK_FILE_VERSION()
+#endif
 #endif
 
 #define DEV_ID_LOG(x) (x && !sccp_strlen_zero(x->id)) ? x->id : "SCCP"

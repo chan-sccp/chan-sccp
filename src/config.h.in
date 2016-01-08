@@ -165,6 +165,9 @@
 /* new frame data.ptr */
 #undef CS_AST_NEW_FRAME_STRUCT
 
+/* 'CS_AST_REGISTER_FILE_VERSION' available */
+#undef CS_AST_REGISTER_FILE_VERSION
+
 /* 'ast_rtp_change_source' available */
 #undef CS_AST_RTP_CHANGE_SOURCE
 
