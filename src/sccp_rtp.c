@@ -332,17 +332,9 @@ int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp)
 				memcpy(&sas, phone_remote, sizeof(struct sockaddr_storage));
 				sccp_socket_ipv4_mapped(&sas, &sas);
 			}
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) new remote: %s, new remoteFamily: %s\n", d->id, sccp_socket_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (updateNatRemotePhone) new remote: %s, new remoteFamily: %s\n", d->id, sccp_socket_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
 			res = 1;
 		}
-
-		char buf1[NI_MAXHOST + NI_MAXSERV];
-		char buf2[NI_MAXHOST + NI_MAXSERV];
-
-		sccp_copy_string(buf1, sccp_socket_stringify(&rtp->phone), sizeof(buf1));
-		sccp_copy_string(buf2, sccp_socket_stringify(phone_remote), sizeof(buf2));
-
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(d), buf1, buf2, sccp_nat2str(d->nat));
 	}
 	return res;
 }
