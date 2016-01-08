@@ -410,7 +410,7 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, const char *l
 	char *parse = NULL, *token = NULL;
 	skinny_codec_t codec;
 
-	parse = sccp_strdupa(list);
+	parse = pbx_strdupa(list);
 	while ((token = strsep(&parse, ","))) {
 		if (!sccp_strlen_zero(token)) {
 			all = sccp_strcaseequals(token, "all") ? TRUE : FALSE;
@@ -1218,8 +1218,8 @@ static int apply_netmask(const struct sockaddr_storage *netaddr, const struct so
 {
 	int res = 0;
 
-	char *straddr = ast_strdupa(sccp_socket_stringify_addr(netaddr));
-	char *strmask = ast_strdupa(sccp_socket_stringify_addr(netmask));
+	char *straddr = pbx_strdupa(sccp_socket_stringify_addr(netaddr));
+	char *strmask = pbx_strdupa(sccp_socket_stringify_addr(netmask));
 
 	sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (apply_netmask) applying netmask to %s/%s\n", straddr, strmask);
 
@@ -1317,8 +1317,8 @@ int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storag
 				continue;
 			}
 		}
-		// char *straddr = ast_strdupa(sccp_socket_stringify_addr(&current_ha->netaddr));
-		// char *strmask = ast_strdupa(sccp_socket_stringify_addr(&current_ha->netmask));
+		// char *straddr = pbx_strdupa(sccp_socket_stringify_addr(&current_ha->netaddr));
+		// char *strmask = pbx_strdupa(sccp_socket_stringify_addr(&current_ha->netmask));
 		// sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s:%s/%s\n", AST_SENSE_DENY == current_ha->sense ? "deny" : "permit", straddr, strmask);
 
 		/* For each rule, if this address and the netmask = the net address
@@ -1373,7 +1373,7 @@ int sccp_sockaddr_storage_parse(struct sockaddr_storage *addr, const char *str, 
 	char *port;
 	int e;
 
-	s = sccp_strdupa(str);
+	s = pbx_strdupa(str);
 	if (!sccp_socket_split_hostport(s, &host, &port, flags)) {
 		return 0;
 	}
@@ -1488,7 +1488,7 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 	struct sccp_ha *ha;
 	struct sccp_ha *prev = NULL;
 	struct sccp_ha *ret;
-	char *tmp = ast_strdupa(stuff);
+	char *tmp = pbx_strdupa(stuff);
 	char *address = NULL, *mask = NULL;
 	int addr_is_v4;
 
@@ -1574,8 +1574,8 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 		/* This shouldn't happen because ast_sockaddr_parse would
 		 * have failed much earlier on an unsupported address scheme
 		 */
-		char *failaddr = ast_strdupa(sccp_socket_stringify_addr(&ha->netaddr));
-		char *failmask = ast_strdupa(sccp_socket_stringify_addr(&ha->netmask));
+		char *failaddr = pbx_strdupa(sccp_socket_stringify_addr(&ha->netaddr));
+		char *failmask = pbx_strdupa(sccp_socket_stringify_addr(&ha->netmask));
 
 		pbx_log(LOG_WARNING, "Unable to apply netmask %s to address %s\n", failaddr, failmask);
 		sccp_free_ha(ha);
@@ -1595,8 +1595,8 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 	}
 
 	{
-		char *straddr = ast_strdupa(sccp_socket_stringify_addr(&ha->netaddr));
-		char *strmask = ast_strdupa(sccp_socket_stringify_addr(&ha->netmask));
+		char *straddr = pbx_strdupa(sccp_socket_stringify_addr(&ha->netaddr));
+		char *strmask = pbx_strdupa(sccp_socket_stringify_addr(&ha->netmask));
 
 		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "%s/%s sense %d appended to acl for peer\n", straddr, strmask, ha->sense);
 	}
@@ -1607,8 +1607,8 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path)
 {
 	while (path) {
-		char *straddr = ast_strdupa(sccp_socket_stringify_addr(&path->netaddr));
-		char *strmask = ast_strdupa(sccp_socket_stringify_addr(&path->netmask));
+		char *straddr = pbx_strdupa(sccp_socket_stringify_addr(&path->netaddr));
+		char *strmask = pbx_strdupa(sccp_socket_stringify_addr(&path->netmask));
 
 		pbx_str_append(&buf, buflen, "%s:%s/%s,", AST_SENSE_DENY == path->sense ? "deny" : "permit", straddr, strmask);
 		path = path->next;

@@ -194,11 +194,11 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 		/* handle dummy speeddial */
 		sccp_dev_speed_find_byindex(d, lineInstance, TRUE, &k);
 		if (sccp_strlen(k.ext) > 0) {
-			adhocNumber = strdupa(k.ext);
+			adhocNumber = pbx_strdupa(k.ext);
 		}
 	}
 	if (!adhocNumber && !sccp_strlen_zero(line->adhocNumber)) {
-		adhocNumber = strdupa(line->adhocNumber);
+		adhocNumber = pbx_strdupa(line->adhocNumber);
 	}
 
 	/* check if we have an active channel on an other line, that does not have any dialed number 
@@ -884,7 +884,7 @@ static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 	ast_str_append(&xmlStr, DEFAULT_PBX_STR_BUFFERSIZE, "%s", "<CiscoIPPhoneExecute>");
 
 	char delims[] = ",";
-	char *uris = strdupa(softkeyMap_cb->uriactionstr);
+	char *uris = pbx_strdupa(softkeyMap_cb->uriactionstr);
 	char *token = strtok(uris, delims);
 
 	while (token) {
@@ -1068,7 +1068,7 @@ sccp_softkeyMap_cb_t __attribute__ ((malloc)) * sccp_softkeyMap_copyStaticallyMa
 
 /*!
  * \brief Replace a specific softkey callback entry by sccp_sk_uriaction and fill it's uriactionstr
- * \note strdup, needs to be freed
+ * \note pbx_strdup, needs to be freed
  */
 boolean_t sccp_softkeyMap_replaceCallBackByUriAction(sccp_softkeyMap_cb_t * const softkeyMap, uint32_t event, char *uriactionstr)
 {
@@ -1078,7 +1078,7 @@ boolean_t sccp_softkeyMap_replaceCallBackByUriAction(sccp_softkeyMap_cb_t * cons
 	for (i = 0; i < ARRAY_LEN(softkeyCbMap); i++) {
 		if (event == softkeyMap[i].event) {
 			softkeyMap[i].softkeyEvent_cb = sccp_sk_uriaction;
-			softkeyMap[i].uriactionstr = strdup(sccp_trimwhitespace(uriactionstr));
+			softkeyMap[i].uriactionstr = pbx_strdup(sccp_trimwhitespace(uriactionstr));
 			return TRUE;
 		}
 	}

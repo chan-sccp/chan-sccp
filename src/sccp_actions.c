@@ -131,7 +131,7 @@ void sccp_handle_XMLAlarmMessage(constSessionPtr s, devicePtr no_d, constMessage
 	   char neighborPortID[StationMaxNameSize];
 	 */
 
-	char *xmlData = sccp_strdupa((char *) &msg_in->data.XMLAlarmMessage);
+	char *xmlData = pbx_strdupa((char *) &msg_in->data.XMLAlarmMessage);
 	char *state = "";
 	char *line = "";
 
@@ -187,7 +187,7 @@ void sccp_handle_XMLAlarmMessage(constSessionPtr s, devicePtr no_d, constMessage
  */
 void sccp_handle_LocationInfoMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
-	char *xmldata = sccp_strdupa(msg_in->data.LocationInfoMessage.xmldata);
+	char *xmldata = pbx_strdupa(msg_in->data.LocationInfoMessage.xmldata);
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_2 "SCCP: LocationInfo (WIFI) Message: %s\n", xmldata);
 	
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
@@ -220,7 +220,7 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 	uint32_t deviceInstance = 0;
 	uint32_t deviceType = 0;
 
-	deviceName = sccp_strdupa(msg_in->data.RegisterTokenRequest.sId.deviceName);
+	deviceName = pbx_strdupa(msg_in->data.RegisterTokenRequest.sId.deviceName);
 	deviceInstance = letohl(msg_in->data.RegisterTokenRequest.sId.lel_instance);
 	deviceType = letohl(msg_in->data.RegisterTokenRequest.lel_deviceType);
 
@@ -380,7 +380,7 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 	uint32_t deviceType = 0;
 
 	deviceInstance = letohl(msg_in->data.SPCPRegisterTokenRequest.sId.lel_instance);
-	deviceName = sccp_strdupa(msg_in->data.RegisterTokenRequest.sId.deviceName);
+	deviceName = pbx_strdupa(msg_in->data.RegisterTokenRequest.sId.deviceName);
 	deviceType = letohl(msg_in->data.SPCPRegisterTokenRequest.lel_deviceType);
 
 	if (GLOB(reload_in_progress)) {
@@ -567,7 +567,7 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 		register_sasIPv6.ss_family = AF_INET6;
 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) &register_sasIPv6;
 		memcpy(&sin6->sin6_addr, &msg_in->data.RegisterMessage.ipv6Address, sizeof(sin6->sin6_addr));
-		phone_ipv6 = strdupa(sccp_socket_stringify_host(&register_sasIPv6));
+		phone_ipv6 = pbx_strdupa(sccp_socket_stringify_host(&register_sasIPv6));
 	}
 
 	/* set our IPv4 address */
@@ -576,7 +576,7 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 		register_sasIPv4.ss_family = AF_INET;
 		struct sockaddr_in *sin4 = (struct sockaddr_in *) &register_sasIPv4;
 		memcpy(&sin4->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, sizeof(sin4->sin_addr));
-		phone_ipv4 = strdupa(sccp_socket_stringify_host(&register_sasIPv4));
+		phone_ipv4 = pbx_strdupa(sccp_socket_stringify_host(&register_sasIPv4));
 		sccp_session_setOurIP4Address(s, &register_sasIPv4);
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Our Session IP4 Address %s\n", deviceName, sccp_socket_stringify(&register_sasIPv4));
 	}
@@ -597,7 +597,7 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 		sccp_print_ha(ha_localnet_buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(localaddr));
 
 		if (session_sas.ss_family == AF_INET) {
-			char *session_ipv4 = strdupa(sccp_socket_stringify_host(&session_sas));
+			char *session_ipv4 = pbx_strdupa(sccp_socket_stringify_host(&session_sas));
 			if (GLOB(localaddr) && sccp_apply_ha_default(GLOB(localaddr), &session_sas, AST_SENSE_DENY) != AST_SENSE_ALLOW) {	// if device->sin falls in localnet scope
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected NAT. Session IP '%s' (Phone: '%s') is outside of localnet('%s') scope. We will use externip or externhost for the RTP stream\n", deviceName, session_ipv4, phone_ipv4, pbx_str_buffer(ha_localnet_buf));
 				device->nat = SCCP_NAT_AUTO_ON;
@@ -608,7 +608,7 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device Not NATTED. Device IP '%s' falls in localnet scope\n", deviceName, phone_ipv4);
 			}
 		} else {
-			char *session_ipv6 = strdupa(sccp_socket_stringify_host(&session_sas));
+			char *session_ipv6 = pbx_strdupa(sccp_socket_stringify_host(&session_sas));
 			if (sccp_socket_cmp_addr(&session_sas, &register_sasIPv6)) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected Remote NAT. Session IP '%s' does not match IpAddr '%s' Reported by Device.  We will use externip or externhost for the RTP stream\n", deviceName, session_ipv6, phone_ipv6);
 				device->nat = SCCP_NAT_AUTO_ON;
@@ -2433,7 +2433,7 @@ void sccp_handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMe
 	uint32_t transactionID = letohl(msg_in->data.SubscriptionStatReqMessage.lel_transactionID);										
 	uint32_t featureID = letohl(msg_in->data.SubscriptionStatReqMessage.lel_featureID);		/* LineInstance / BLF: 0x01 */
 	uint32_t timer = letohl(msg_in->data.SubscriptionStatReqMessage.lel_timer);			/* all 32 bits used */
-	char *subscriptionID = strdupa(msg_in->data.SubscriptionStatReqMessage.subscriptionID);
+	char *subscriptionID = pbx_strdupa(msg_in->data.SubscriptionStatReqMessage.subscriptionID);
 
 	/* take transactionID apart */
 	uint32_t tr_index = transactionID >> 4;								/* just 28 bits filled */
@@ -4066,7 +4066,7 @@ void sccp_handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr 
 
 			if (sscanf(data, "%[^/]/%s", str_action, str_transactionID) > 0) {
 				sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s, %s\n", d->id, str_action, str_transactionID);
-				d->dtu_softkey.action = strdup(str_action);
+				d->dtu_softkey.action = pbx_strdup(str_action);
 				d->dtu_softkey.transactionID = atoi(str_transactionID);
 			} else {
 				pbx_log(LOG_NOTICE, "%s: Failure parsing DTU Softkey Button: %s\n", d->id, data);

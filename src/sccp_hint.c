@@ -391,7 +391,7 @@ static void sccp_hint_eventListener(const sccp_event_t * event)
 			device = event->event.deviceRegistered.device;
 
 			if (device) {
-				char *deviceName = strdupa(device->id);
+				char *deviceName = pbx_strdupa(device->id);
 
 				sccp_hint_deviceUnRegistered(deviceName);
 			}

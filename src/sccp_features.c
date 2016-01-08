@@ -375,9 +375,9 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 		*context++ = '\0';
 	} else {
 		if (!sccp_strlen_zero(d->directed_pickup_context)) {
-			context = (char *) strdupa(d->directed_pickup_context);
+			context = (char *) pbx_strdupa(d->directed_pickup_context);
 		} else {
-			context = (char *) strdupa(pbx_channel_context(c->owner));
+			context = (char *) pbx_strdupa(pbx_channel_context(c->owner));
 		}
 	}
 	if (sccp_strlen_zero(context)) {

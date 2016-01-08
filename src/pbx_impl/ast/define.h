@@ -18,7 +18,7 @@
 #define sccp_malloc ast_malloc
 #define sccp_calloc ast_calloc
 #define sccp_realloc ast_realloc
-#define sccp_strdup ast_strdup
+//#define sccp_strdup ast_strdup
 #define sccp_free(x) {ast_free((void *)x); (x) = NULL; }
 #define sccp_asprintf ast_asprintf
 #define sccp_vasprintf ast_vasprintf

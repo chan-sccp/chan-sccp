@@ -788,25 +788,25 @@ void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const ch
 	if (fromNumber) {
 		update_redirecting.from.number = 1;
 		redirecting.from.number.valid = 1;
-		redirecting.from.number.str = strdup(fromNumber);
+		redirecting.from.number.str = pbx_strdup(fromNumber);
 	}
 
 	if (fromName) {
 		update_redirecting.from.name = 1;
 		redirecting.from.name.valid = 1;
-		redirecting.from.name.str = strdup(fromName);
+		redirecting.from.name.str = pbx_strdup(fromName);
 	}
 
 	if (toNumber) {
 		update_redirecting.to.number = 1;
 		redirecting.to.number.valid = 1;
-		redirecting.to.number.str = strdup(toNumber);
+		redirecting.to.number.str = pbx_strdup(toNumber);
 	}
 
 	if (toName) {
 		update_redirecting.to.name = 1;
 		redirecting.to.name.valid = 1;
-		redirecting.to.name.str = strdup(toName);
+		redirecting.to.name.str = pbx_strdup(toName);
 	}
 #if ASTERISK_VERSION_GROUP >111
 	redirecting.reason.code = reason;
@@ -822,14 +822,14 @@ void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const ch
 		if (channel->owner->cid.cid_rdnis) {
 			ast_free(channel->owner->cid.cid_rdnis);
 		}
-		channel->owner->cid.cid_rdnis = ast_strdup(fromNumber);
+		channel->owner->cid.cid_rdnis = pbx_strdup(fromNumber);
 	}
 	// where is the call going to now
 	if (toNumber) {
 		if (channel->owner->cid.cid_dnid) {
 			ast_free(channel->owner->cid.cid_dnid);
 		}
-		channel->owner->cid.cid_dnid = ast_strdup(toNumber);
+		channel->owner->cid.cid_dnid = pbx_strdup(toNumber);
 	}
 #endif
 }
@@ -910,7 +910,7 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 {
 	int res = 0;
 
-	char *parse = sccp_strdupa(preparse);
+	char *parse = pbx_strdupa(preparse);
 
 	AST_DECLARE_APP_ARGS(args, AST_APP_ARG(param); AST_APP_ARG(type); AST_APP_ARG(field););
 	AST_STANDARD_APP_ARGS(args, parse);
