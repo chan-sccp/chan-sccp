@@ -11,8 +11,13 @@
  */
 
 #include <asterisk.h>
+#include "../../config.h"
 
+#if CS_AST_REGISTER_FILE_VERSION
 ASTERISK_FILE_VERSION(__FILE__, "$Revision$");
+#else
+ASTERISK_FILE_VERSION()
+#endif
 #include <asterisk/channel.h>
 #include <asterisk/bridge.h>
 #include <asterisk/core_unreal.h>
