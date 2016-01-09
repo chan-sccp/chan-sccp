@@ -232,17 +232,14 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 	#include <asterisk/buildopts.h>
   "
   AC_CHECK_HEADER([asterisk.h],
-    		[
-			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_register_file_version'...],[ac_cv_ast_register_file_version],[
-		                	$HEADER_INCLUDE
-				], [
-					ast_register_file_version(__FILE__, "123");
-				], 
-				[CS_AST_REGISTER_FILE_VERSION],['CS_AST_REGISTER_FILE_VERSION' available]
-			)						
-		],,[ 
-	               	$HEADER_INCLUDE
-	           ]
+                AC_MSG_CHECKING([ - if asterisk provides ast_register_file_version...])
+		AC_EGREP_HEADER([ast_register_file_version], [asterisk.h],
+		[
+			AC_DEFINE([CS_AST_REGISTER_FILE_VERSION],1,['CS_AST_REGISTER_FILE_VERSION' available])
+			AC_MSG_RESULT(yes)
+		],[
+			AC_MSG_RESULT(no)
+		])
   )
   AC_CHECK_HEADER([asterisk/lock.h],
                 [
