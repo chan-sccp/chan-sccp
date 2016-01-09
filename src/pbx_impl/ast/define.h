@@ -9,6 +9,7 @@
  * $Revision$  
  */
 #pragma once
+#include "../../config.h"
 
 // type redefinitions
 #define pbx_variable ast_variable
@@ -39,6 +40,17 @@
 #define sccp_mutex_lock_desc(x,y) 		pbx_mutex_lock(x)
 #define sccp_mutex_unlock(x)			pbx_mutex_unlock(x)
 #define sccp_mutex_trylock(x)			pbx_mutex_trylock(x)
+
+// SCCP_FILE_VERSION definition
+#if defined(LOW_MEMORY)
+#define SCCP_FILE_VERSION(_file, _version)
+#else
+#if CS_AST_REGISTER_FILE_VERSION
+#define SCCP_FILE_VERSION(_file, _version) ASTERISK_FILE_VERSION(_file, _version)
+#else
+#define SCCP_FILE_VERSION(_file, _version) ASTERISK_REGISTER_FILE()
+#endif
+#endif
 
 // codec / format redefinitions
 #define pbx_codec_pref_index ast_codec_pref_index

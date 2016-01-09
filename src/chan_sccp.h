@@ -146,24 +146,6 @@ extern char SCCP_REVISIONSTR[30];
 #define sccp_globals_unlock(x)			pbx_mutex_unlock(&sccp_globals->x)
 #define sccp_globals_trylock(x)			pbx_mutex_trylock(&sccp_globals->x)
 
-#if defined(LOW_MEMORY)
-#define SCCP_FILE_VERSION(file, version)
-#else
-#if CS_AST_REGISTER_FILE_VERSION
-#define SCCP_FILE_VERSION(file, version) \
-static void __attribute__((constructor)) __register_file_version(void) \
-{ \
-	pbx_register_file_version(file, version); \
-} \
-static void __attribute__((destructor)) __unregister_file_version(void) \
-{ \
-	pbx_unregister_file_version(file); \
-}
-#else
-#define SCCP_FILE_VERSION(file, version) ASTERISK_FILE_VERSION()
-#endif
-#endif
-
 #define DEV_ID_LOG(x) (x && !sccp_strlen_zero(x->id)) ? x->id : "SCCP"
 
 #ifdef CS_AST_HAS_TECH_PVT
