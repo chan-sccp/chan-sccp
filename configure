@@ -714,6 +714,8 @@ PBX_GENERAL
 BUILD_AST_FALSE
 BUILD_AST_TRUE
 HAVE_PBX_HTTP
+SANITIZE_LDFLAGS
+SANITIZE_CFLAGS
 TEST_FRAMEWORK
 ASTERISK_REPOS_LOCATION
 ASTERISK_VERSION_NUMBER
@@ -6345,7 +6347,6 @@ ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
 
 
 	CFLAGS_saved="`echo ${CFLAGS_saved}|sed 's/^ \t*//;s/ \t*$//'`"
@@ -19529,7 +19530,8 @@ if test "x$ac_cv_header_asterisk_h" = xyes; then :
 $as_echo_n "checking  - if asterisk provides ast_register_file_version...... " >&6; }
 		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <asterisk.h>
+
+	               	$HEADER_INCLUDE
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
@@ -19589,11 +19591,14 @@ if test "x$ac_cv_header_asterisk_acl_h" = xyes; then :
 $as_echo "#define HAVE_PBX_ACL_H 1" >>confdefs.h
 
 
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  - checking for typedef 'struct ast_ha'..." >&5
+$as_echo_n "checking  - checking for typedef 'struct ast_ha'...... " >&6; }
 	ac_lib_var=`echo struct ast_ha'_'asterisk/acl.h | sed 'y%./+- %__p__%'`
 	if eval \${ac_cv_lib_$ac_lib_var+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-   eval "ac_cv_type_$ac_lib_var='not-found'"
+
+	  eval "ac_cv_type_$ac_lib_var='not-found'"
 	  ac_cv_check_typedef_header=`echo asterisk/acl.h`
 	  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -19606,15 +19611,25 @@ else
 int
 main ()
 {
-int x = sizeof(struct ast_ha); x = x;
+
+			int x = sizeof(struct ast_ha); x = x;
+
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
-  eval "ac_cv_type_$ac_lib_var=yes"
+
+	        	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	        	eval "ac_cv_type_$ac_lib_var=yes"
+
 else
-  eval "ac_cv_type_$ac_lib_var=no"
+
+	        	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	        	eval "ac_cv_type_$ac_lib_var=no"
+
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 	  if test `eval echo '$ac_cv_type_'$ac_lib_var` = "no" ; then
@@ -19638,16 +19653,15 @@ fi
 "
 if test "x$ac_cv_header_asterisk_buildopts_h" = xyes; then :
 
-                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - if asterisk was compiled with the 'LOW_MEMORY' buildoption..." >&5
-$as_echo_n "checking  - if asterisk was compiled with the 'LOW_MEMORY' buildoption...... " >&6; }
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - if asterisk was compiled with the 'LOW_MEMORY' buildoptions..." >&5
+$as_echo_n "checking  - if asterisk was compiled with the 'LOW_MEMORY' buildoptions...... " >&6; }
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <
-				#include <asterisk/buildopts.h>
-				#ifdef LOW_MEMORY
+
+                        	include "asterisk/buildopts.h"
+				#if defined(LOW_MEMORY)
 					yes
 				#endif
-			>
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
@@ -19668,16 +19682,15 @@ fi
 rm -f conftest*
 
 
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  - if asterisk was compiled with the 'TEST_FRAMEWORK' buildoption..." >&5
-$as_echo_n "checking  - if asterisk was compiled with the 'TEST_FRAMEWORK' buildoption...... " >&6; }
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  - if asterisk was compiled with the 'TEST_FRAMEWORK' buildoptions..." >&5
+$as_echo_n "checking  - if asterisk was compiled with the 'TEST_FRAMEWORK' buildoptions...... " >&6; }
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <
-	                        #include <asterisk/buildopts.h>
-       	        		#ifdef TEST_FRAMEWORK
+
+	                        #include "asterisk/buildopts.h"
+       	        		#if defined(TEST_FRAMEWORK)
        	                 		yes
        		                 #endif
-       		        >
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
@@ -19698,6 +19711,115 @@ $as_echo "no" >&6; }
 
 fi
 rm -f conftest*
+
+
+
+			SANITIZE_CFLAGS=""
+			SANITIZE_LDFLAGS=""
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  - checking for ADDRESS_SANITIZER in buildoptions..." >&5
+$as_echo_n "checking  - checking for ADDRESS_SANITIZER in buildoptions...... " >&6; }
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+				#include "asterisk/buildopts.h"
+				#if defined(ADDRESS_SANITIZER)
+					yes
+				#endif
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+
+				SANITIZE_CFLAGS="-fsanitize=address"
+				SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=address"
+                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+else
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  - checking for THREAD_SANITIZER in buildoptions..." >&5
+$as_echo_n "checking  - checking for THREAD_SANITIZER in buildoptions...... " >&6; }
+				cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+					#include "asterisk/buildopts.h"
+					#if defined(THREAD_SANITIZER)
+						yes
+					#endif
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+
+					SANITIZE_CFLAGS="-fsanitize=thread -pie -fPIE"
+					SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=thread"
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+else
+
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  - checking for LEAK_SANITIZER in buildoptions..." >&5
+$as_echo_n "checking  - checking for LEAK_SANITIZER in buildoptions...... " >&6; }
+					cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+						#include "asterisk/buildopts.h"
+						#if defined(LEAK_SANITIZER)
+							yes
+						#endif
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+
+						SANITIZE_CFLAGS="-fsanitize=leak"
+						SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=leak"
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+else
+
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  - checking for UNDEFINED_SANITIZER in buildoptions..." >&5
+$as_echo_n "checking  - checking for UNDEFINED_SANITIZER in buildoptions...... " >&6; }
+						cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+							#include "asterisk/buildopts.h"
+							#if defined(UNDEFINED_SANITIZER)
+								yes
+							#endif
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+
+							SANITIZE_CFLAGS="-fsanitize=undefined"
+							SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=undefined"
+							{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+else
+
+							{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+rm -f conftest*
+
+
+fi
+rm -f conftest*
+
+
+fi
+rm -f conftest*
+
+
+fi
+rm -f conftest*
+
 
 
 
@@ -19985,11 +20107,14 @@ $as_echo "#define HAVE_PBX_CHANNEL_H 1" >>confdefs.h
 
 
 
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  - checking for typedef 'struct ast_channel_tech'..." >&5
+$as_echo_n "checking  - checking for typedef 'struct ast_channel_tech'...... " >&6; }
 	ac_lib_var=`echo struct ast_channel_tech'_'asterisk/channel.h | sed 'y%./+- %__p__%'`
 	if eval \${ac_cv_lib_$ac_lib_var+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-   eval "ac_cv_type_$ac_lib_var='not-found'"
+
+	  eval "ac_cv_type_$ac_lib_var='not-found'"
 	  ac_cv_check_typedef_header=`echo asterisk/channel.h`
 	  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -20002,15 +20127,25 @@ else
 int
 main ()
 {
-int x = sizeof(struct ast_channel_tech); x = x;
+
+			int x = sizeof(struct ast_channel_tech); x = x;
+
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
-  eval "ac_cv_type_$ac_lib_var=yes"
+
+	        	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	        	eval "ac_cv_type_$ac_lib_var=yes"
+
 else
-  eval "ac_cv_type_$ac_lib_var=no"
+
+	        	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	        	eval "ac_cv_type_$ac_lib_var=no"
+
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 	  if test `eval echo '$ac_cv_type_'$ac_lib_var` = "no" ; then
@@ -20101,7 +20236,9 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 $as_echo_n "checking  - availability 'ast_channel_bridge_peer' in asterisk/channel.h...... " >&6; }
 			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <asterisk/channel.h>
+
+				$HEADER_INCLUDE
+				#include <asterisk/channel.h>
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
@@ -20126,7 +20263,9 @@ rm -f conftest*
 $as_echo_n "checking  - availability 'ast_channel_get_bridge_channel' in asterisk/channel.h...... " >&6; }
 			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <asterisk/channel.h>
+
+				$HEADER_INCLUDE
+				#include <asterisk/channel.h>
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
@@ -20148,11 +20287,14 @@ rm -f conftest*
 
 
 
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  - checking for typedef 'struct ast_callerid'..." >&5
+$as_echo_n "checking  - checking for typedef 'struct ast_callerid'...... " >&6; }
 	ac_lib_var=`echo struct ast_callerid'_'asterisk/channel.h | sed 'y%./+- %__p__%'`
 	if eval \${ac_cv_lib_$ac_lib_var+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-   eval "ac_cv_type_$ac_lib_var='not-found'"
+
+	  eval "ac_cv_type_$ac_lib_var='not-found'"
 	  ac_cv_check_typedef_header=`echo asterisk/channel.h`
 	  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -20165,15 +20307,25 @@ else
 int
 main ()
 {
-int x = sizeof(struct ast_callerid); x = x;
+
+			int x = sizeof(struct ast_callerid); x = x;
+
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
-  eval "ac_cv_type_$ac_lib_var=yes"
+
+	        	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	        	eval "ac_cv_type_$ac_lib_var=yes"
+
 else
-  eval "ac_cv_type_$ac_lib_var=no"
+
+	        	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	        	eval "ac_cv_type_$ac_lib_var=no"
+
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 	  if test `eval echo '$ac_cv_type_'$ac_lib_var` = "no" ; then
@@ -20549,6 +20701,58 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  - checking for typedef 'ast_callid'..." >&5
+$as_echo_n "checking  - checking for typedef 'ast_callid'...... " >&6; }
+	ac_lib_var=`echo ast_callid'_'asterisk/channel.h | sed 'y%./+- %__p__%'`
+	if eval \${ac_cv_lib_$ac_lib_var+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+	  eval "ac_cv_type_$ac_lib_var='not-found'"
+	  ac_cv_check_typedef_header=`echo asterisk/channel.h`
+	  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+		        #if ASTERISK_VERSION_NUMBER >= 10400
+		        #include <asterisk.h>
+		        #endif
+			#include <$ac_cv_check_typedef_header>
+
+int
+main ()
+{
+
+			int x = sizeof(ast_callid); x = x;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+	        	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	        	eval "ac_cv_type_$ac_lib_var=yes"
+
+else
+
+	        	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	        	eval "ac_cv_type_$ac_lib_var=no"
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+	  if test `eval echo '$ac_cv_type_'$ac_lib_var` = "no" ; then
+	    :
+	    else
+$as_echo "#define CS_AST_CHANNEL_CALLID_TYPEDEF 1" >>confdefs.h
+
+	  fi
+
+fi
+
+
+
 fi
 
 
@@ -20562,7 +20766,12 @@ if test "x$ac_cv_header_asterisk_bridge_h" = xyes; then :
 $as_echo_n "checking  - availability 'ast_bridge_base_new' in asterisk/bridge.h...... " >&6; }
 			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <asterisk/bridge.h>
+
+				$HEADER_INCLUDE
+                                #include <asterisk/channel.h>
+                                #include <asterisk/linkedlists.h>
+                                #include <asterisk/astobj2.h>
+				#include <asterisk/bridge.h>
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
@@ -20586,7 +20795,12 @@ rm -f conftest*
 $as_echo_n "checking  - availability 'AST_BRIDGE_JOIN_PASS_REFERENCE' in ast_bridge_join...... " >&6; }
 			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <asterisk/bridge.h>
+
+				$HEADER_INCLUDE
+                                #include <asterisk/channel.h>
+                                #include <asterisk/linkedlists.h>
+                                #include <asterisk/astobj2.h>
+				#include <asterisk/bridge.h>
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
@@ -20713,7 +20927,12 @@ fi
 $as_echo_n "checking  - availability 'ast_bridge_base_new' in asterisk/bridging.h...... " >&6; }
 					cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <asterisk/bridging.h>
+
+						$HEADER_INCLUDE
+						#include <asterisk/channel.h>
+						#include <asterisk/linkedlists.h>
+						#include <asterisk/astobj2.h>
+						#include <asterisk/bridging.h>
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
@@ -20737,7 +20956,12 @@ rm -f conftest*
 $as_echo_n "checking  - availability 'AST_BRIDGE_CAPABILITY_MULTITHREADED' in asterisk/bridging.h...... " >&6; }
 					cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <asterisk/bridging.h>
+
+						$HEADER_INCLUDE
+						#include <asterisk/channel.h>
+						#include <asterisk/linkedlists.h>
+						#include <asterisk/astobj2.h>
+						#include <asterisk/bridging.h>
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
@@ -20761,7 +20985,12 @@ rm -f conftest*
 $as_echo_n "checking  - availability 'pass_reference' in ast_bridge_join...... " >&6; }
 					cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <asterisk/bridging.h>
+
+						$HEADER_INCLUDE
+						#include <asterisk/channel.h>
+						#include <asterisk/linkedlists.h>
+						#include <asterisk/astobj2.h>
+						#include <asterisk/bridging.h>
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
@@ -21113,7 +21342,9 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 $as_echo_n "checking  - availability 'ast_enable_distributed_devstate'...... " >&6; }
 			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <asterisk/devicestate.h>
+
+			               	$HEADER_INCLUDE
+					#include <asterisk/devicestate.h>
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
@@ -21375,7 +21606,9 @@ $as_echo "#define HAVE_PBX_FEATURES_H 1" >>confdefs.h
 $as_echo_n "checking  - availability 'ast_do_pickup'...... " >&6; }
 				cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <asterisk/features.h>
+
+			               	$HEADER_INCLUDE
+					#include <asterisk/features.h>
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
@@ -22053,7 +22286,9 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 $as_echo_n "checking  - availability 'ast_rtp_instance_bridge'...... " >&6; }
 			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <asterisk/rtp_engine.h>
+
+		               	$HEADER_INCLUDE
+				#include <asterisk/rtp_engine.h>
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
@@ -22382,7 +22617,9 @@ $as_echo "#define HAVE_PBX_CEL_H 1" >>confdefs.h
 $as_echo_n "checking  - availability 'ast_cel_linkedid_ref'...... " >&6; }
 			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <asterisk/cel.h>
+
+		               	$HEADER_INCLUDE
+				#include <asterisk/cel.h>
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |

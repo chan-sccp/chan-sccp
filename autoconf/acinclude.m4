@@ -215,9 +215,11 @@ AC_DEFUN([CS_CV_TRY_COMPILE_DEFINE],
 dnl CS_CHECK_AST_TYPEDEF(TYPEDEF, HEADER [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND ]])
 AC_DEFUN([CS_CHECK_AST_TYPEDEF],
 [
+	AC_MSG_CHECKING([ - checking for typedef '$1'...])
 	ac_lib_var=`echo $1['_']$2 | sed 'y%./+- %__p__%'`
 	AC_CACHE_VAL(ac_cv_lib_$ac_lib_var,
-	[ eval "ac_cv_type_$ac_lib_var='not-found'"
+	[
+	  eval "ac_cv_type_$ac_lib_var='not-found'"
 	  ac_cv_check_typedef_header=`echo ifelse([$2], , stddef.h, $2)`
 	  AC_TRY_COMPILE(
 	  	[
@@ -225,9 +227,15 @@ AC_DEFUN([CS_CHECK_AST_TYPEDEF],
 		        #include <asterisk.h>
 		        #endif
 			#include <$ac_cv_check_typedef_header>
-		], [int x = sizeof($1); x = x;],
-	        eval "ac_cv_type_$ac_lib_var=yes" ,
-	        eval "ac_cv_type_$ac_lib_var=no" )
+		],[
+			int x = sizeof($1); x = x;
+		],[
+	        	AC_MSG_RESULT(yes)
+	        	eval "ac_cv_type_$ac_lib_var=yes"
+	        ],[
+	        	AC_MSG_RESULT(no)
+	        	eval "ac_cv_type_$ac_lib_var=no" 
+	       	])
 	  if test `eval echo '$ac_cv_type_'$ac_lib_var` = "no" ; then
 	    m4_ifvaln([$4],[$4],[:])dnl
 	    m4_ifvaln([$3],[else $3])dnl
