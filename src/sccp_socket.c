@@ -1058,8 +1058,8 @@ void sccp_socket_setoptions(int new_socket)
 
 	/* timeeo */
 	struct timeval mytv = { SOCKET_TIMEOUT_SEC, SOCKET_TIMEOUT_MILLISEC };					/* timeout after seven seconds when trying to read/write from/to a socket */
-	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &mytv, sizeof(tv));
-	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(tv));
+	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &mytv, sizeof(mytv));
+	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(mytv));
 
 	/* keepalive */
 	int ip_keepidle  = SOCKET_KEEPALIVE_IDLE;								/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
