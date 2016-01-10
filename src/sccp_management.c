@@ -955,6 +955,7 @@ static int __sccp_manager_hookresult(int category, const char *event, char *cont
  */
 boolean_t sccp_manager_action2str(const char *manager_command, char **outStr) 
 {
+#if ASTERISK_VERSION_GROUP >= 106
         int failure = 0;
         struct ast_str *buf;
         
@@ -971,6 +972,10 @@ boolean_t sccp_manager_action2str(const char *manager_command, char **outStr)
         	*outStr = pbx_strdup(pbx_str_buffer(buf));
         }
         return !failure ? TRUE : FALSE;
+#else
+	sccp_log(DEBUGCAT_CORE)("SCCP: ast_hook_send_action is not available in asterisk-1.6\n");
+	return FALSE
+#endif
 }
 
 /* example use
