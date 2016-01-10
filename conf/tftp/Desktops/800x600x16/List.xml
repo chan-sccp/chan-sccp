@@ -1,0 +1,11 @@
+<CiscoIPPhoneImageList>
+<!--
+Image = Thumbnail (size 80x49x12 color png format) ??
+URL = Backgroup (size 800x600x16 color png format)
+
+Example:
+<ImageItem Image="TFTP:Desktops/800x600x16/TN-Fountain.png" URL="TFTP:Desktops/800x600x16/Fountain.png"/> 
+<ImageItem Image="TFTP:Desktops/800x600x16/TN-FullMoon.png" URL="TFTP:Desktops/800x600x16/FullMoon.png"/> 
+-->
+<ImageItem Image="TFTP:Desktops/800x600x16/Chan-SCCP-b_thumb.png" URL="TFTP:Desktops/800x600x16/Chan-SCCP-b.png"/>
+</CiscoIPPhoneImageList>
