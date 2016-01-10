@@ -955,7 +955,7 @@ static int __sccp_manager_hookresult(int category, const char *event, char *cont
  */
 boolean_t sccp_manager_action2str(const char *manager_command, char **outStr) 
 {
-#if ASTERISK_VERSION_GROUP >= 106
+#if ASTERISK_VERSION_GROUP >= 108
         int failure = 0;
         struct ast_str *buf;
         
