@@ -1078,7 +1078,7 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 
 boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 {
-#if ASTERISK_VERSION_GROUP >= 113
+#if ASTERISK_VERSION_GROUP >= 112
 	char featexten[SCCP_MAX_EXTENSION] = "";
 
 	if (iPbx.getFeatureExtension(channel, "automon", featexten) && !sccp_strlen_zero(featexten)) {
