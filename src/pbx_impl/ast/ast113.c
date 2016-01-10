@@ -1190,9 +1190,14 @@ int sccp_wrapper_asterisk113_hangup(PBX_CHANNEL_TYPE * ast_channel)
 {
 	// ast_channel_stage_snapshot(ast_channel);
 	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast_channel);
-	int res = -1;
-	struct ast_callid *callid = ast_channel_callid(ast_channel);
 	int callid_created = 0;
+	int res = -1;
+
+#if !defined(CS_AST_CHANNEL_CALLID_TYPEDEF)
+	struct ast_callid *callid = ast_channel_callid(ast_channel);
+#else	
+	ast_callid callid = ast_channel_callid(ast_channel);
+#endif
 
 	if (c) {
 		callid_created = c->pbx_callid_created;
@@ -1377,8 +1382,11 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, stru
 	sccp_channel_request_status_t requestStatus;
 	PBX_CHANNEL_TYPE *result_ast_channel = NULL;
 	struct ast_str *codec_buf = ast_str_alloca(64);
-	struct ast_callid *callid;
-
+#if !defined(CS_AST_CHANNEL_CALLID_TYPEDEF)
+	struct ast_callid *callid = NULL;
+#else
+	ast_callid callid = 0;
+#endif
 	skinny_codec_t audioCapabilities[SKINNY_MAX_CAPABILITIES];
 	skinny_codec_t videoCapabilities[SKINNY_MAX_CAPABILITIES];
 
@@ -1477,9 +1485,9 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, stru
 	//codec = pbx_codec2skinny_codec(ast_format_compatibility_format2bitfield(format));
 	codec = sccp_asterisk113_getSkinnyFormatSingle(cap);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "SCCP: requestedCodec in Skinny Format: %d\n", codec);
-	//callid = ast_read_threadstorage_callid();
+
 	int callid_created = ast_callid_threadstorage_auto(&callid);
-	
+
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	requestStatus = sccp_requestChannel(lineName, codec, audioCapabilities, ARRAY_LEN(audioCapabilities), autoanswer_type, autoanswer_cause, ringermode, &channel);
 	switch (requestStatus) {
@@ -1544,7 +1552,9 @@ EXITFUNC:
 		}
 		channel->pbx_callid_created = callid_created;
 	} else if (callid) {
+#if !defined(CS_AST_CHANNEL_CALLID_TYPEDEF)
 		ast_callid_unref(callid);
+#endif
 	}
 	return result_ast_channel;
 }
