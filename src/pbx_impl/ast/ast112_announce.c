@@ -11,13 +11,9 @@
  */
 
 #include <asterisk.h>
-#include "../../config.h"
+#include "define.h"
 
-#if CS_AST_REGISTER_FILE_VERSION
-ASTERISK_FILE_VERSION(__FILE__, "$Revision$");
-#else
-ASTERISK_FILE_VERSION()
-#endif
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #include <asterisk/channel.h>
 #include <asterisk/bridge.h>
 #include <asterisk/core_unreal.h>
@@ -77,7 +73,11 @@ static struct ast_channel *announce_request(const char *type, struct ast_format_
 	ast_set_flag(&pvt->base, AST_UNREAL_NO_OPTIMIZATION);
 	ast_copy_string(pvt->base.name, conf_name, sizeof(pvt->base.name));
 
+#if !defined(CS_AST_CHANNEL_CALLID_TYPEDEF)
 	chan = ast_unreal_new_channels(&pvt->base, sccpconf_announce_get_tech(), AST_STATE_UP, AST_STATE_UP, NULL, NULL, assignedids, requestor, NULL);
+#else
+	chan = ast_unreal_new_channels(&pvt->base, sccpconf_announce_get_tech(), AST_STATE_UP, AST_STATE_UP, NULL, NULL, assignedids, requestor, 0);
+#endif
 	if (chan) {
 		ast_answer(pvt->base.owner);
 		ast_answer(pvt->base.chan);
