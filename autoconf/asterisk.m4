@@ -233,8 +233,9 @@ AC_DEFUN([AST_CHECK_HEADERS],[
   "
   AC_CHECK_HEADER([asterisk.h],
                 AC_MSG_CHECKING([ - if asterisk provides ast_register_file_version...])
-		AC_EGREP_HEADER([ast_register_file_version], [asterisk.h],
-		[
+		AC_EGREP_CPP([ast_register_file_version], [
+	               	$HEADER_INCLUDE
+		],[
 			AC_DEFINE([CS_AST_REGISTER_FILE_VERSION],1,['CS_AST_REGISTER_FILE_VERSION' available])
 			AC_MSG_RESULT(yes)
 		],[
@@ -264,10 +265,10 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     )
     AC_CHECK_HEADER([asterisk/buildopts.h], 
 		[
-                        AC_MSG_CHECKING([ - if asterisk was compiled with the 'LOW_MEMORY' buildoption...])                              
-                        AC_EGREP_HEADER([yes], [
-				#include <asterisk/buildopts.h>
-				#ifdef LOW_MEMORY
+                        AC_MSG_CHECKING([ - if asterisk was compiled with the 'LOW_MEMORY' buildoptions...])                              
+                        AC_EGREP_CPP([yes], [
+                        	include "asterisk/buildopts.h"
+				#if defined(LOW_MEMORY)
 					yes
 				#endif
 			],[
@@ -277,10 +278,10 @@ AC_DEFUN([AST_CHECK_HEADERS],[
                                 AC_MSG_RESULT(no)
                         ])             
 
-			AC_MSG_CHECKING([ - if asterisk was compiled with the 'TEST_FRAMEWORK' buildoption...])
-                        AC_EGREP_HEADER([yes], [
-	                        #include <asterisk/buildopts.h>
-       	        		#ifdef TEST_FRAMEWORK
+			AC_MSG_CHECKING([ - if asterisk was compiled with the 'TEST_FRAMEWORK' buildoptions...])
+                        AC_EGREP_CPP([yes], [
+	                        #include "asterisk/buildopts.h"
+       	        		#if defined(TEST_FRAMEWORK)
        	                 		yes
        		                 #endif
        		        ], [
@@ -292,6 +293,63 @@ AC_DEFUN([AST_CHECK_HEADERS],[
                                 TEST_FRAMEWORK=no
                         ])
                         AC_SUBST([TEST_FRAMEWORK])
+
+			SANITIZE_CFLAGS=""
+			SANITIZE_LDFLAGS=""
+			AC_MSG_CHECKING([ - checking for ADDRESS_SANITIZER in buildoptions...])
+			AC_EGREP_CPP([yes],   [
+				#include "asterisk/buildopts.h"
+				#if defined(ADDRESS_SANITIZER)
+					yes
+				#endif], 
+			[
+				SANITIZE_CFLAGS="-fsanitize=address"
+				SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=address"
+                                AC_MSG_RESULT(yes)
+			], [
+				AC_MSG_RESULT(no)
+				AC_MSG_CHECKING([ - checking for THREAD_SANITIZER in buildoptions...])
+				AC_EGREP_CPP([yes],   [
+					#include "asterisk/buildopts.h"
+					#if defined(THREAD_SANITIZER)
+						yes
+					#endif], 
+				[
+					SANITIZE_CFLAGS="-fsanitize=thread -pie -fPIE"
+					SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=thread"
+					AC_MSG_RESULT(yes)
+				], [
+					AC_MSG_RESULT(no)
+					AC_MSG_CHECKING([ - checking for LEAK_SANITIZER in buildoptions...])
+					AC_EGREP_CPP([yes],   [
+						#include "asterisk/buildopts.h"
+						#if defined(LEAK_SANITIZER)
+							yes
+						#endif], 
+					[
+						SANITIZE_CFLAGS="-fsanitize=leak"
+						SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=leak"
+						AC_MSG_RESULT(yes)
+					], [
+						AC_MSG_RESULT(no)
+						AC_MSG_CHECKING([ - checking for UNDEFINED_SANITIZER in buildoptions...])
+						AC_EGREP_CPP([yes],   [
+							#include "asterisk/buildopts.h"
+							#if defined(UNDEFINED_SANITIZER)
+								yes
+							#endif], 
+						[
+							SANITIZE_CFLAGS="-fsanitize=undefined"
+							SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=undefined"
+							AC_MSG_RESULT(yes)
+						], [
+							AC_MSG_RESULT(no)
+						])
+					])
+				])
+			])
+			AC_SUBST([SANITIZE_CFLAGS])
+			AC_SUBST([SANITIZE_LDFLAGS])
 		],,[
 	               	$HEADER_INCLUDE
 		]
@@ -363,8 +421,10 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 
 			AC_MSG_CHECKING([ - availability 'ast_channel_bridge_peer' in asterisk/channel.h...])
-			AC_EGREP_HEADER([ast_channel_bridge_peer], [asterisk/channel.h],
-			[
+			AC_EGREP_CPP([ast_channel_bridge_peer], [
+				$HEADER_INCLUDE
+				#include <asterisk/channel.h>
+			],[
                                 AC_DEFINE([CS_AST_HAS_CHANNEL_BRIDGE_PEER],1,['ast_channel_bridge_peer' available])
 				AC_MSG_RESULT(yes)
 			],[
@@ -372,8 +432,10 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			])
 
 			AC_MSG_CHECKING([ - availability 'ast_channel_get_bridge_channel' in asterisk/channel.h...])
-			AC_EGREP_HEADER([ast_channel_get_bridge_channel], [asterisk/channel.h],
-			[
+			AC_EGREP_CPP([ast_channel_get_bridge_channel], [
+				$HEADER_INCLUDE
+				#include <asterisk/channel.h>
+			],[
                                 AC_DEFINE([CS_AST_HAS_CHANNEL_GET_BRIDGE_CHANNEL], 1 ,['ast_channel_get_bridge_channel' available])
 				AC_MSG_RESULT(yes)
 			],[
@@ -426,22 +488,33 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				],
 				[AC_DEFINE([CS_AST_HAS_NAMEDGROUP],1,[Found 'ast_namedgroups' in asterisk/channel.h])],
 			)
+			CS_CHECK_AST_TYPEDEF([ast_callid],[asterisk/channel.h], AC_DEFINE(CS_AST_CHANNEL_CALLID_TYPEDEF,1,['ast_channel_callid' returns struct]))
 		],,[
 			$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/bridge.h],
     		[
 			AC_MSG_CHECKING([ - availability 'ast_bridge_base_new' in asterisk/bridge.h...])
-			AC_EGREP_HEADER([ast_bridge_base_new], [asterisk/bridge.h],
-			[
+			AC_EGREP_CPP([ast_bridge_base_new], [
+				$HEADER_INCLUDE
+                                #include <asterisk/channel.h>
+                                #include <asterisk/linkedlists.h>
+                                #include <asterisk/astobj2.h>
+				#include <asterisk/bridge.h>
+			],[
 				AC_DEFINE(CS_BRIDGE_BASE_NEW,1,[Found 'ast_bridge_base_new' in asterisk/bridge.h])
 				AC_MSG_RESULT(yes)
 			],[
 				AC_MSG_RESULT(no)
 			])
 			AC_MSG_CHECKING([ - availability 'AST_BRIDGE_JOIN_PASS_REFERENCE' in ast_bridge_join...])
-			AC_EGREP_HEADER([AST_BRIDGE_JOIN_PASS_REFERENCE], [asterisk/bridge.h],
-			[
+			AC_EGREP_CPP([AST_BRIDGE_JOIN_PASS_REFERENCE], [
+				$HEADER_INCLUDE
+                                #include <asterisk/channel.h>
+                                #include <asterisk/linkedlists.h>
+                                #include <asterisk/astobj2.h>
+				#include <asterisk/bridge.h>
+			],[
 				AC_DEFINE(CS_BRIDGE_JOIN_PASSREFERENCE,1,[Found 'AST_BRIDGE_JOIN_PASS_REFERENCE' in definition of ast_bridge_join' in asterisk/bridge.h])
 				AC_MSG_RESULT(yes)
 			],[
@@ -472,24 +545,39 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 						#include <asterisk/bridging.h>
 					])
 					AC_MSG_CHECKING([ - availability 'ast_bridge_base_new' in asterisk/bridging.h...])
-					AC_EGREP_HEADER([ast_bridge_base_new], [asterisk/bridging.h],
-					[
+					AC_EGREP_CPP([ast_bridge_base_new], [
+						$HEADER_INCLUDE
+						#include <asterisk/channel.h>
+						#include <asterisk/linkedlists.h>
+						#include <asterisk/astobj2.h>
+						#include <asterisk/bridging.h>
+					],[
 						AC_DEFINE(CS_BRIDGE_BASE_NEW,1,[Found 'ast_bridge_base_new' in asterisk/bridging.h])
 						AC_MSG_RESULT(yes)
 					],[
 						AC_MSG_RESULT(no)
 					])
 					AC_MSG_CHECKING([ - availability 'AST_BRIDGE_CAPABILITY_MULTITHREADED' in asterisk/bridging.h...])
-					AC_EGREP_HEADER([AST_BRIDGE_CAPABILITY_MULTITHREADED], [asterisk/bridging.h],
-					[
+					AC_EGREP_CPP([AST_BRIDGE_CAPABILITY_MULTITHREADED], [
+						$HEADER_INCLUDE
+						#include <asterisk/channel.h>
+						#include <asterisk/linkedlists.h>
+						#include <asterisk/astobj2.h>
+						#include <asterisk/bridging.h>
+					],[
 						AC_DEFINE(CS_BRIDGE_CAPABILITY_MULTITHREADED,1,[Found 'AST_BRIDGE_CAPABILITY_MULTITHREADED' in asterisk/bridging.h])
 						AC_MSG_RESULT(yes)
 					],[
 						AC_MSG_RESULT(no)
 					])
 					AC_MSG_CHECKING([ - availability 'pass_reference' in ast_bridge_join...])
-					AC_EGREP_HEADER([int pass_reference], [asterisk/bridging.h],
-					[
+					AC_EGREP_CPP([int pass_reference], [
+						$HEADER_INCLUDE
+						#include <asterisk/channel.h>
+						#include <asterisk/linkedlists.h>
+						#include <asterisk/astobj2.h>
+						#include <asterisk/bridging.h>
+					],[
 						AC_DEFINE(CS_BRIDGE_JOIN_PASSREFERENCE,1,[Found 'pass_reference' in definition of ast_bridge_join' in asterisk/bridging.h])
 						AC_MSG_RESULT(yes)
 					],[
@@ -553,8 +641,10 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 			
 			AC_MSG_CHECKING([ - availability 'ast_enable_distributed_devstate'...])
-			AC_EGREP_HEADER([ast_enable_distributed_devstate], [asterisk/devicestate.h],
-			[
+			AC_EGREP_CPP([ast_enable_distributed_devstate], [
+			               	$HEADER_INCLUDE
+					#include <asterisk/devicestate.h>
+			],[
 				AC_DEFINE(CS_AST_ENABLE_DISTRIBUTED_DEVSTATE,1,[Found 'ast_enable_distributed_devstate' in asterisk/devicestate.h])
 				AC_MSG_RESULT(yes)
 			],[
@@ -622,8 +712,10 @@ AC_DEFUN([AST_CHECK_HEADERS],[
    			
 			AS_IF([test "${ast_pickup_h}" == 0], [
 				AC_MSG_CHECKING([ - availability 'ast_do_pickup'...])
-				AC_EGREP_HEADER([ast_do_pickup], [asterisk/features.h],
-				[
+				AC_EGREP_CPP([ast_do_pickup], [
+			               	$HEADER_INCLUDE
+					#include <asterisk/features.h>
+				],[
 					AC_DEFINE(CS_AST_DO_PICKUP,1,[Found 'ast_do_pickup' in asterisk/features.h])
 					AC_MSG_RESULT(yes)
 				],[
@@ -729,8 +821,10 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				], [CS_AST_RTP_INSTANCE_NEW],[Found 'void ast_rtp_instance_new' in asterisk/rtp_engine.h]
 			)
 			AC_MSG_CHECKING([ - availability 'ast_rtp_instance_bridge'...])
-			AC_EGREP_HEADER([ast_rtp_instance_bridge], [asterisk/rtp_engine.h],
-			[
+			AC_EGREP_CPP([ast_rtp_instance_bridge], [
+		               	$HEADER_INCLUDE
+				#include <asterisk/rtp_engine.h>
+			],[
 				AC_DEFINE(CS_AST_RTP_INSTANCE_BRIDGE,1,[Found 'ast_rtp_instance_bridge' in asterisk/bridging.h])
 				AC_MSG_RESULT(yes)
 			],[
@@ -807,8 +901,10 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     			AC_DEFINE(HAVE_PBX_CEL_H,1,[Found 'asterisk/stringfields.h'])
 
 			AC_MSG_CHECKING([ - availability 'ast_cel_linkedid_ref'...])
-			AC_EGREP_HEADER([ast_cel_linkedid_ref], [asterisk/cel.h],
-			[
+			AC_EGREP_CPP([ast_cel_linkedid_ref], [
+		               	$HEADER_INCLUDE
+				#include <asterisk/cel.h>
+			],[
 				AC_DEFINE(CS_AST_CEL_LINKEDID_REF,1,[Found 'ast_cel_linkedid_ref' in asterisk/cel.h])
 				AC_MSG_RESULT(yes)
 			],[

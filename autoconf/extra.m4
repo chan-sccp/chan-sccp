@@ -595,7 +595,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			], ax_warn_cflags_variable)
 		])
 	])
-	
+
 	AC_LANG_SAVE
 	AC_LANG_C
 	
@@ -611,7 +611,6 @@ dnl				-fdata-sections dnl
 dnl	 		], ax_warn_cflags_variable)
 dnl	 		;;
 dnl	esac
-
 	CFLAGS_saved="`echo ${CFLAGS_saved}|sed 's/^[ \t]*//;s/[ \t]*$//'`"
 	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS="${CFLAGS_saved} "

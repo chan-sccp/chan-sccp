@@ -93,6 +93,9 @@
 /* Found 'ast_cel_linkedid_ref' in asterisk/cel.h */
 #undef CS_AST_CEL_LINKEDID_REF
 
+/* 'ast_channel_callid' returns struct */
+#undef CS_AST_CHANNEL_CALLID_TYPEDEF
+
 /* 'struct ast_callerid' available */
 #undef CS_AST_CHANNEL_HAS_CID
 
