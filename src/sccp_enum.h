@@ -599,9 +599,9 @@ const char *sccp_phonebook_all_entries(void);
  */
 typedef enum sccp_feature_monitor_state {
 	SCCP_FEATURE_MONITOR_STATE_DISABLED=0,
-	SCCP_FEATURE_MONITOR_STATE_REQUESTED=1<<0,
-	SCCP_FEATURE_MONITOR_STATE_ACTIVE=1<<1,
-	SCCP_FEATURE_MONITOR_STATE_SENTINEL = 1<<2
+	SCCP_FEATURE_MONITOR_STATE_REQUESTED=1<<1,
+	SCCP_FEATURE_MONITOR_STATE_ACTIVE=1<<2,
+	SCCP_FEATURE_MONITOR_STATE_SENTINEL = 1<<3
 } sccp_feature_monitor_state_t;
 int sccp_feature_monitor_state_exists(int sccp_feature_monitor_state_int_value);
 const char * sccp_feature_monitor_state2str(int sccp_feature_monitor_state_int_value);
