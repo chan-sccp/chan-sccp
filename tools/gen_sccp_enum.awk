@@ -287,8 +287,8 @@ codeSkip == 1			{ next }
 			}
 			print "\tuint32_t i;" >out_source_file
 			print "\tfor (i = 0; i < ARRAY_LEN(" namespace "_" enum_name "_map) - 1; i++) {" >out_source_file
-			print "\t\tif (("namespace "_" enum_name "_int_value & 1 << i) == 1 << i) {" >out_source_file
-			print "\t\t\tpos += snprintf(res + pos, " totlen ", \"%s%s\", pos ? \",\" : \"\", " namespace "_" enum_name "_map[i]);" >out_source_file
+			print "\t\tif (("namespace "_" enum_name "_int_value & (1 << i)) == (1 << i)) {" >out_source_file
+			print "\t\t\tpos += snprintf(res + pos, " totlen ", \"%s%s\", pos ? \",\" : \"\", " namespace "_" enum_name "_map[i + 1]);" >out_source_file
 			print "\t\t}" >out_source_file
 			print "\t}" >out_source_file
 			print "\tif (!strlen(res)) {" >out_source_file

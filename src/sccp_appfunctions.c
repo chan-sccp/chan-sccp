@@ -851,7 +851,7 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 	int timeout = 0;
 	int priority = -1;
 
-        char *parse = sccp_strdupa(data);
+        char *parse = pbx_strdupa(data);
         AST_DECLARE_APP_ARGS(args,
                 AST_APP_ARG(text);
                 AST_APP_ARG(timeout);

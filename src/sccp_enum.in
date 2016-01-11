@@ -161,6 +161,7 @@ enum video_mode {
 }
 
 enum event_type {
+        SCCP_EVENT_NULL,				=0,	"Null Event",
         SCCP_EVENT_LINE_CREATED,			=1<<0,	"Line Created",
         SCCP_EVENT_LINE_CHANGED,			=1<<1,	"Line Changed",
         SCCP_EVENT_LINE_DELETED,			=1<<2,	"Line Deleted",
@@ -190,8 +191,9 @@ enum rtp_status {
 }
 
 enum rtp_type {
-	SCCP_RTP_AUDIO,					= 0,	"Audio RTP",
-	SCCP_RTP_VIDEO,					= 1<<0,	"Video RTP",
+	SCCP_RTP_NULL,					= 0,	"RTP NULL",
+	SCCP_RTP_AUDIO,					= 1<<0,	"Audio RTP",
+	SCCP_RTP_VIDEO,					= 1<<1,	"Video RTP",
 	SCCP_RTP_TEXT,					= 1<<2, "Text RTP",
 }
 
@@ -251,9 +253,9 @@ enum phonebook {
 }
 
 enum feature_monitor_state {
-	SCCP_FEATURE_MONITOR_STATE_DISABLED,		,	"Feature Monitor Disabled",
-	SCCP_FEATURE_MONITOR_STATE_ACTIVE,		,	"Feature Monitor Active",
-	SCCP_FEATURE_MONITOR_STATE_REQUESTED, 		,	"Feature Monitor Requested",
+	SCCP_FEATURE_MONITOR_STATE_DISABLED,		= 0,	"Feature Monitor Disabled",
+	SCCP_FEATURE_MONITOR_STATE_REQUESTED, 		= 1<<0,	"Feature Monitor Requested",
+	SCCP_FEATURE_MONITOR_STATE_ACTIVE,		= 1<<1,	"Feature Monitor Active",
 }
 
 /*!
@@ -269,9 +271,9 @@ enum readingtype {
  */
 enum configurationchange {
 	SCCP_CONFIG_NOUPDATENEEDED,		 	= 0,	"Config: No Update Needed",
-	SCCP_CONFIG_NEEDDEVICERESET, 			= 1<<1,	"Config: Device Reset Needed",
-	SCCP_CONFIG_WARNING, 				= 1<<2,	"Warning while reading Config",
-	SCCP_CONFIG_ERROR, 				= 1<<3,	"Error while reading Config",
+	SCCP_CONFIG_NEEDDEVICERESET, 			= 1<<0,	"Config: Device Reset Needed",
+	SCCP_CONFIG_WARNING, 				= 1<<1,	"Warning while reading Config",
+	SCCP_CONFIG_ERROR, 				= 1<<2,	"Error while reading Config",
 }
 
 enum call_statistics_type {
@@ -281,8 +283,8 @@ enum call_statistics_type {
 
 enum rtp_info {
 	SCCP_RTP_INFO_NORTP,				=0,	"RTP Info: None",
-	SCCP_RTP_INFO_AVAILABLE,			=1<<1,	"RTP Info: Available",
-	SCCP_RTP_INFO_ALLOW_DIRECTRTP,			=1<<2,	"RTP Info: Allow DirectMedia",
+	SCCP_RTP_INFO_AVAILABLE,			=1<<0,	"RTP Info: Available",
+	SCCP_RTP_INFO_ALLOW_DIRECTRTP,			=1<<1,	"RTP Info: Allow DirectMedia",
 }
 
 enum feature_type
