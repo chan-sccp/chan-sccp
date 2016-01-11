@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include "config.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
@@ -42,6 +43,7 @@ extern "C" {
 #include <sys/endian.h>
 #endif
 #ifndef HAVE_BSWAP_16
+#warn HAVE_BSWAP_16
 static inline unsigned short __bswap_16(unsigned short x)
 {
 	return (x >> 8) | (x << 8);
@@ -62,7 +64,7 @@ static inline unsigned long long __bswap_64(unsigned long long x)
 #endif
 
 /* Byte swap based on platform endianes */
-#if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
+#if SCCP_LITTLE_ENDIAN == 1
 #define letohl(x) (x)
 #define letohs(x) (x)
 #define htolel(x) (x)
@@ -143,20 +145,6 @@ extern char SCCP_REVISIONSTR[30];
 #define sccp_globals_lock(x)			pbx_mutex_lock(&sccp_globals->x)
 #define sccp_globals_unlock(x)			pbx_mutex_unlock(&sccp_globals->x)
 #define sccp_globals_trylock(x)			pbx_mutex_trylock(&sccp_globals->x)
-
-#if defined(LOW_MEMORY)
-#define SCCP_FILE_VERSION(file, version)
-#else
-#define SCCP_FILE_VERSION(file, version) \
-static void __attribute__((constructor)) __register_file_version(void) \
-{ \
-	pbx_register_file_version(file, version); \
-} \
-static void __attribute__((destructor)) __unregister_file_version(void) \
-{ \
-	pbx_unregister_file_version(file); \
-}
-#endif
 
 #define DEV_ID_LOG(x) (x && !sccp_strlen_zero(x->id)) ? x->id : "SCCP"
 

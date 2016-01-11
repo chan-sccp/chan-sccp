@@ -16,6 +16,8 @@ typedef enum { FALSE = 0, TRUE = 1 } boolean_t;
 #undef offsize
 #define offsize(T, F) 0
 
+#include <sys/types.h>
+#include <stdint.h>
 #include "../../src/sccp_enum.h"
 
 /*
@@ -137,8 +139,8 @@ typedef struct SCCPConfigOption {
 #define sccp_config_parse_hotline_label ""
 //#define sccp_config_parse_dnd_wrapper "(dnd)=reject|silent|user|on|off"
 
-int (sccp_enum_str2intval) (const char *lookup_str);
-const char *(sccp_enum_all_entries) (void);
+uint32_t (sccp_enum_str2intval) (const char *lookup_str);
+const char *(sccp_enum_all_entries)(void);
 
 #define sccp_earlyrtp_str2intval sccp_enum_str2intval
 #define skinny_lampmode_str2intval sccp_enum_str2intval
@@ -192,4 +194,3 @@ static const SCCPConfigSegment *sccp_find_segment(const sccp_config_segment_t se
 	}
 	return NULL;
 }
-

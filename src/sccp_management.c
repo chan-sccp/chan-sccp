@@ -417,9 +417,15 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
 		astman_send_error(s, m, "Line not found");
 		return 0;
 	}
-	sccp_config_addButton(d, -1, LINE, line->name, NULL, NULL);
-	astman_append(s, "Done\r\n");
-	astman_append(s, "\r\n");
+	if (sccp_config_addButton(&d->buttonconfig, -1, LINE, line->name, NULL, NULL) == SCCP_CONFIG_CHANGE_CHANGED) {
+		d->pendingUpdate = 1;
+		sccp_config_addButton(&d->buttonconfig, -1, LINE, line->name, NULL, NULL);
+		sccp_device_check_update(d);
+		astman_append(s, "Done\r\n");
+		astman_append(s, "\r\n");
+	} else {
+		astman_send_error(s, m, "Adding line button to device failed");
+	}
 	return 0;
 }
 
@@ -880,7 +886,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 		if (!strcasecmp("MonitorStart", event) || !strcasecmp("MonitorStop", event)) {
 			struct message m = { 0 };
 
-			str = dupStr = sccp_strdupa(content); /** need a dup, because converter to message structure will modify the str */
+			str = dupStr = pbx_strdupa(content); /** need a dup, because converter to message structure will modify the str */
 
 			sccp_asterisk_parseStrToAstMessage(str, &m); /** convert to message structure to use the astman_get_header function */
 			const char *channelName = astman_get_header(&m, "Channel");
@@ -949,6 +955,7 @@ static int __sccp_manager_hookresult(int category, const char *event, char *cont
  */
 boolean_t sccp_manager_action2str(const char *manager_command, char **outStr) 
 {
+#if ASTERISK_VERSION_GROUP >= 108
         int failure = 0;
         struct ast_str *buf;
         
@@ -962,9 +969,13 @@ boolean_t sccp_manager_action2str(const char *manager_command, char **outStr)
         failure = ast_hook_send_action(&hook, manager_command);							/* "Action: ParkedCalls\r\n" */
         if (!failure) {
 		sccp_log(DEBUGCAT_CORE)("SCCP: Sending AMI Result String: %s\n", pbx_str_buffer(buf));
-        	*outStr = strdup(pbx_str_buffer(buf));
+        	*outStr = pbx_strdup(pbx_str_buffer(buf));
         }
         return !failure ? TRUE : FALSE;
+#else
+	sccp_log(DEBUGCAT_CORE)("SCCP: ast_hook_send_action is not available in asterisk-1.6\n");
+	return FALSE
+#endif
 }
 
 /* example use

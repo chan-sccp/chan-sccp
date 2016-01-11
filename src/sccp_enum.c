@@ -953,6 +953,7 @@ const char *sccp_video_mode_all_entries(void) {
  */
 static const char *__sccp_event_type_str = "sccp_event_type";
 static const char *sccp_event_type_map[] = {
+	"Null Event",
 	"Line Created",
 	"Line Changed",
 	"Line Deleted",
@@ -967,6 +968,9 @@ static const char *sccp_event_type_map[] = {
 };
 
 int sccp_event_type_exists(int sccp_event_type_int_value) {
+	if (sccp_event_type_int_value == 0) {
+		return 1;
+	}
 	int res = 0, i;
 	for (i = 0; i < SCCP_EVENT_TYPE_SENTINEL; i++) {
 		if ((sccp_event_type_int_value & 1 << i) == 1 << i) {
@@ -977,12 +981,16 @@ int sccp_event_type_exists(int sccp_event_type_int_value) {
 }
 
 const char * sccp_event_type2str(int sccp_event_type_int_value) {
-	static char res[90] = "";
+	static char res[110] = "";
 	int pos = 0;
+	if (sccp_event_type_int_value == 0) {
+		pos += snprintf(res + pos, 110, "%s%s", pos ? "," : "", sccp_event_type_map[0]);
+		return res;
+	}
 	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_event_type_map) - 1; i++) {
-		if ((sccp_event_type_int_value & 1 << i) == 1 << i) {
-			pos += snprintf(res + pos, 90, "%s%s", pos ? "," : "", sccp_event_type_map[i]);
+		if ((sccp_event_type_int_value & (1 << i)) == (1 << i)) {
+			pos += snprintf(res + pos, 110, "%s%s", pos ? "," : "", sccp_event_type_map[i + 1]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1009,7 +1017,7 @@ uint32_t sccp_event_type_str2intval(const char *lookup_str) {
 }
 
 const char *sccp_event_type_all_entries(void) {
-	static char res[] = "Line Created,Line Changed,Line Deleted,Device Attached,Device Detached,Device Preregistered,Device Registered,Device Unregistered,Feature Changed,LineStatus Changed";
+	static char res[] = "Null Event,Line Created,Line Changed,Line Deleted,Device Attached,Device Detached,Device Preregistered,Device Registered,Device Unregistered,Feature Changed,LineStatus Changed";
 	return res;
 }
 /* = End =========================================================================================                sccp_event_type === */
@@ -1145,16 +1153,16 @@ int sccp_rtp_status_exists(int sccp_rtp_status_int_value) {
 }
 
 const char * sccp_rtp_status2str(int sccp_rtp_status_int_value) {
-	static char res[138] = "";
+	static char res[149] = "";
 	int pos = 0;
 	if (sccp_rtp_status_int_value == 0) {
-		pos += snprintf(res + pos, 138, "%s%s", pos ? "," : "", sccp_rtp_status_map[0]);
+		pos += snprintf(res + pos, 149, "%s%s", pos ? "," : "", sccp_rtp_status_map[0]);
 		return res;
 	}
 	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_rtp_status_map) - 1; i++) {
-		if ((sccp_rtp_status_int_value & 1 << i) == 1 << i) {
-			pos += snprintf(res + pos, 138, "%s%s", pos ? "," : "", sccp_rtp_status_map[i]);
+		if ((sccp_rtp_status_int_value & (1 << i)) == (1 << i)) {
+			pos += snprintf(res + pos, 149, "%s%s", pos ? "," : "", sccp_rtp_status_map[i + 1]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1195,6 +1203,7 @@ const char *sccp_rtp_status_all_entries(void) {
  */
 static const char *__sccp_rtp_type_str = "sccp_rtp_type";
 static const char *sccp_rtp_type_map[] = {
+	"RTP NULL",
 	"Audio RTP",
 	"Video RTP",
 	"Text RTP",
@@ -1215,16 +1224,16 @@ int sccp_rtp_type_exists(int sccp_rtp_type_int_value) {
 }
 
 const char * sccp_rtp_type2str(int sccp_rtp_type_int_value) {
-	static char res[186] = "";
+	static char res[213] = "";
 	int pos = 0;
 	if (sccp_rtp_type_int_value == 0) {
-		pos += snprintf(res + pos, 186, "%s%s", pos ? "," : "", sccp_rtp_type_map[0]);
+		pos += snprintf(res + pos, 213, "%s%s", pos ? "," : "", sccp_rtp_type_map[0]);
 		return res;
 	}
 	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_rtp_type_map) - 1; i++) {
-		if ((sccp_rtp_type_int_value & 1 << i) == 1 << i) {
-			pos += snprintf(res + pos, 186, "%s%s", pos ? "," : "", sccp_rtp_type_map[i]);
+		if ((sccp_rtp_type_int_value & (1 << i)) == (1 << i)) {
+			pos += snprintf(res + pos, 213, "%s%s", pos ? "," : "", sccp_rtp_type_map[i + 1]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1251,7 +1260,7 @@ uint32_t sccp_rtp_type_str2intval(const char *lookup_str) {
 }
 
 const char *sccp_rtp_type_all_entries(void) {
-	static char res[] = "Audio RTP,Video RTP,Text RTP";
+	static char res[] = "RTP NULL,Audio RTP,Video RTP,Text RTP";
 	return res;
 }
 /* = End =========================================================================================                  sccp_rtp_type === */
@@ -1575,7 +1584,7 @@ uint32_t sccp_softswitch_str2intval(const char *lookup_str) {
 }
 
 const char *sccp_softswitch_all_entries(void) {
-	static char res[] = "Softswitch Dial,Softswitch Get Forward Extension,Token Rejected,Softswitch Get Pickup Extension,Softswitch Get Meetme Room,Softswitch Get Barge Extension,Softswitch Get CBarrge Room,Device Unregistered,Softswitch Get Conference Room";
+	static char res[] = "Softswitch Dial,Softswitch Get Forward Extension,Token Rejected,Softswitch Get Pickup Extension,Softswitch Get Meetme Room,Softswitch Get Barge Extension,Softswitch Get CBarrge Room,Device Registered,Softswitch Get Conference Room";
 	return res;
 }
 /* = End =========================================================================================                sccp_softswitch === */
@@ -1641,32 +1650,50 @@ const char *sccp_phonebook_all_entries(void) {
  */
 static const char *__sccp_feature_monitor_state_str = "sccp_feature_monitor_state";
 static const char *sccp_feature_monitor_state_map[] = {
-	[SCCP_FEATURE_MONITOR_STATE_DISABLED] = "Feature Monitor Disabled",
-	[SCCP_FEATURE_MONITOR_STATE_ACTIVE] = "Feature Monitor Active",
-	[SCCP_FEATURE_MONITOR_STATE_REQUESTED] = "Feature Monitor Requested",
-	[SCCP_FEATURE_MONITOR_STATE_SENTINEL] = "LOOKUPERROR"
+	"Feature Monitor Disabled",
+	"Feature Monitor Requested",
+	"Feature Monitor Active",
+	"LOOKUPERROR"
 };
 
 int sccp_feature_monitor_state_exists(int sccp_feature_monitor_state_int_value) {
-	if ((SCCP_FEATURE_MONITOR_STATE_ACTIVE <=sccp_feature_monitor_state_int_value) && (sccp_feature_monitor_state_int_value < SCCP_FEATURE_MONITOR_STATE_SENTINEL )) {
+	if (sccp_feature_monitor_state_int_value == 0) {
 		return 1;
 	}
-	return 0;
+	int res = 0, i;
+	for (i = 0; i < SCCP_FEATURE_MONITOR_STATE_SENTINEL; i++) {
+		if ((sccp_feature_monitor_state_int_value & 1 << i) == 1 << i) {
+			res |= 1;
+		}
+	}
+	return res;
 }
 
-const char * sccp_feature_monitor_state2str(sccp_feature_monitor_state_t enum_value) {
-	if ((SCCP_FEATURE_MONITOR_STATE_DISABLED <= enum_value) && (enum_value <= SCCP_FEATURE_MONITOR_STATE_SENTINEL)) {
-		return sccp_feature_monitor_state_map[enum_value];
+const char * sccp_feature_monitor_state2str(int sccp_feature_monitor_state_int_value) {
+	static char res[309] = "";
+	int pos = 0;
+	if (sccp_feature_monitor_state_int_value == 0) {
+		pos += snprintf(res + pos, 309, "%s%s", pos ? "," : "", sccp_feature_monitor_state_map[0]);
+		return res;
 	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __sccp_feature_monitor_state_str);
-	return "OutOfBounds: sccp_feature_monitor_state2str\n";
+	uint32_t i;
+	for (i = 0; i < ARRAY_LEN(sccp_feature_monitor_state_map) - 1; i++) {
+		if ((sccp_feature_monitor_state_int_value & (1 << i)) == (1 << i)) {
+			pos += snprintf(res + pos, 309, "%s%s", pos ? "," : "", sccp_feature_monitor_state_map[i + 1]);
+		}
+	}
+	if (!strlen(res)) {
+		pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, sccp_feature_monitor_state_int_value, __sccp_feature_monitor_state_str);
+		return "OutOfBounds: sparse sccp_feature_monitor_state2str\n";
+	}
+	return res;
 }
 
 sccp_feature_monitor_state_t sccp_feature_monitor_state_str2val(const char *lookup_str) {
 	uint32_t idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_feature_monitor_state_map); idx++) {
 		if (sccp_strcaseequals(sccp_feature_monitor_state_map[idx], lookup_str)) {
-			return idx;
+			return 1 << idx;
 		}
 	}
 	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_feature_monitor_state_str, lookup_str);
@@ -1679,7 +1706,7 @@ uint32_t sccp_feature_monitor_state_str2intval(const char *lookup_str) {
 }
 
 const char *sccp_feature_monitor_state_all_entries(void) {
-	static char res[] = "Feature Monitor Disabled,Feature Monitor Active,Feature Monitor Requested";
+	static char res[] = "Feature Monitor Disabled,Feature Monitor Requested,Feature Monitor Active";
 	return res;
 }
 /* = End =========================================================================================     sccp_feature_monitor_state === */
@@ -1763,16 +1790,16 @@ int sccp_configurationchange_exists(int sccp_configurationchange_int_value) {
 }
 
 const char * sccp_configurationchange2str(int sccp_configurationchange_int_value) {
-	static char res[294] = "";
+	static char res[417] = "";
 	int pos = 0;
 	if (sccp_configurationchange_int_value == 0) {
-		pos += snprintf(res + pos, 294, "%s%s", pos ? "," : "", sccp_configurationchange_map[0]);
+		pos += snprintf(res + pos, 417, "%s%s", pos ? "," : "", sccp_configurationchange_map[0]);
 		return res;
 	}
 	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_configurationchange_map) - 1; i++) {
-		if ((sccp_configurationchange_int_value & 1 << i) == 1 << i) {
-			pos += snprintf(res + pos, 294, "%s%s", pos ? "," : "", sccp_configurationchange_map[i]);
+		if ((sccp_configurationchange_int_value & (1 << i)) == (1 << i)) {
+			pos += snprintf(res + pos, 417, "%s%s", pos ? "," : "", sccp_configurationchange_map[i + 1]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1884,16 +1911,16 @@ int sccp_rtp_info_exists(int sccp_rtp_info_int_value) {
 }
 
 const char * sccp_rtp_info2str(int sccp_rtp_info_int_value) {
-	static char res[375] = "";
+	static char res[498] = "";
 	int pos = 0;
 	if (sccp_rtp_info_int_value == 0) {
-		pos += snprintf(res + pos, 375, "%s%s", pos ? "," : "", sccp_rtp_info_map[0]);
+		pos += snprintf(res + pos, 498, "%s%s", pos ? "," : "", sccp_rtp_info_map[0]);
 		return res;
 	}
 	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_rtp_info_map) - 1; i++) {
-		if ((sccp_rtp_info_int_value & 1 << i) == 1 << i) {
-			pos += snprintf(res + pos, 375, "%s%s", pos ? "," : "", sccp_rtp_info_map[i]);
+		if ((sccp_rtp_info_int_value & (1 << i)) == (1 << i)) {
+			pos += snprintf(res + pos, 498, "%s%s", pos ? "," : "", sccp_rtp_info_map[i + 1]);
 		}
 	}
 	if (!strlen(res)) {

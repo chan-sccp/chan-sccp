@@ -323,7 +323,7 @@ AC_DEFUN([CS_CHECK_TYPES], [
                 AC_MSG_RESULT([no])
         ])
 	# Big Endian / Little Endian	
-	AC_C_BIGENDIAN(AC_DEFINE(SCCP_PLATFORM_BYTE_ORDER,SCCP_BIG_ENDIAN,[SCCP_PLATFORM_BYTE_ORDER]),AC_DEFINE(SCCP_PLATFORM_BYTE_ORDER,SCCP_LITTLE_ENDIAN,[SCCP_PLATFORM_BYTE_ORDER]))
+	AC_C_BIGENDIAN(AC_DEFINE([SCCP_BIG_ENDIAN],1,[Big Endian]),AC_DEFINE([SCCP_LITTLE_ENDIAN],1,[Little Endian]))
 
         AC_CHECK_HEADERS([byteswap.h sys/endian.h sys/byteorder.h], [break])
         # Even if we have byteswap.h, we may lack the specific macros/functions.
@@ -595,7 +595,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			], ax_warn_cflags_variable)
 		])
 	])
-	
+
 	AC_LANG_SAVE
 	AC_LANG_C
 	
@@ -611,7 +611,6 @@ dnl				-fdata-sections dnl
 dnl	 		], ax_warn_cflags_variable)
 dnl	 		;;
 dnl	esac
-
 	CFLAGS_saved="`echo ${CFLAGS_saved}|sed 's/^[ \t]*//;s/[ \t]*$//'`"
 	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS="${CFLAGS_saved} "
