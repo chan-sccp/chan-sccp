@@ -1076,6 +1076,10 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 	return res;
 }
 
+/*!
+ * \brief Call asterisk automon feature
+ * \obsolete, using sccp_manager_action2str method instead
+ */
 boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 {
 #if ASTERISK_VERSION_GROUP >= 112
