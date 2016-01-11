@@ -100,7 +100,7 @@ static char *sccp_complete_device(OLDCONST char *line, OLDCONST char *word, int 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		if (!strncasecmp(word, d->id, wordlen) && ++which > state) {
-			ret = strdup(d->id);
+			ret = pbx_strdup(d->id);
 			break;
 		}
 	}
@@ -118,7 +118,7 @@ static char *sccp_complete_connected_device(OLDCONST char *line, OLDCONST char *
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		if (!strncasecmp(word, d->id, wordlen) && sccp_device_getRegistrationState(d) != SKINNY_DEVICE_RS_NONE && ++which > state) {
-			ret = strdup(d->id);
+			ret = pbx_strdup(d->id);
 			break;
 		}
 	}
@@ -147,7 +147,7 @@ static char *sccp_complete_line(OLDCONST char *line, OLDCONST char *word, int po
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		if (!strncasecmp(word, l->name, wordlen) && ++which > state) {
-			ret = strdup(l->name);
+			ret = pbx_strdup(l->name);
 			break;
 		}
 	}
@@ -165,7 +165,7 @@ static char *sccp_complete_connected_line(OLDCONST char *line, OLDCONST char *wo
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		if (!strncasecmp(word, l->name, wordlen) && SCCP_LIST_GETSIZE(&l->devices) > 0 && ++which > state) {
-			ret = strdup(l->name);
+			ret = pbx_strdup(l->name);
 			break;
 		}
 	}
@@ -199,7 +199,7 @@ static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 			snprintf(tmpname, sizeof(tmpname), "SCCP/%s-%08x", l->name, c->callid);
 			if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
-				ret = strdup(tmpname);
+				ret = pbx_strdup(tmpname);
 				break;
 			}
 		}
@@ -241,7 +241,7 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 				continue;
 			}
 			if (++which > state) {
-				return strdup(extra_cmds[i]);
+				return pbx_strdup(extra_cmds[i]);
 			}
 		}
 	}
@@ -262,7 +262,7 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 		// find a match with partial category
 		if (!strncasecmp(word, sccp_debug_categories[i].key, wordlen)) {
 			if (++which > state) {
-				return strdup(sccp_debug_categories[i].key);
+				return pbx_strdup(sccp_debug_categories[i].key);
 			}
 		}
 	}
@@ -302,7 +302,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 		case 2:											// type
 			for (i = 0; i < ARRAY_LEN(types); i++) {
 				if (!strncasecmp(word, types[i], wordlen) && ++which > state) {
-					return strdup(types[i]);
+					return pbx_strdup(types[i]);
 				}
 			}
 			break;
@@ -311,7 +311,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				SCCP_RWLIST_RDLOCK(&GLOB(devices));
 				SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 					if (!strncasecmp(word, d->id, wordlen) && ++which > state) {
-						ret = strdup(d->id);
+						ret = pbx_strdup(d->id);
 						break;
 					}
 				}
@@ -324,7 +324,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 					SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 						snprintf(tmpname, sizeof(tmpname), "SCCP/%s-%08x", l->name, c->callid);
 						if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
-							ret = strdup(tmpname);
+							ret = pbx_strdup(tmpname);
 							break;
 						}
 					}
@@ -334,7 +334,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 			} else if (strstr(line, "fallback") != NULL) {
 				for (i = 0; i < ARRAY_LEN(properties_fallback); i++) {
 					if (!strncasecmp(word, properties_fallback[i], wordlen) && ++which > state) {
-						return strdup(properties_fallback[i]);
+						return pbx_strdup(properties_fallback[i]);
 					}
 				}
 			} else if (strstr(line, "debug") != NULL) {
@@ -346,14 +346,14 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 			if (strstr(line, "device") != NULL) {
 				for (i = 0; i < ARRAY_LEN(properties_device); i++) {
 					if (!strncasecmp(word, properties_device[i], wordlen) && ++which > state) {
-						return strdup(properties_device[i]);
+						return pbx_strdup(properties_device[i]);
 					}
 				}
 
 			} else if (strstr(line, "channel") != NULL) {
 				for (i = 0; i < ARRAY_LEN(properties_channel); i++) {
 					if (!strncasecmp(word, properties_channel[i], wordlen) && ++which > state) {
-						return strdup(properties_channel[i]);
+						return pbx_strdup(properties_channel[i]);
 					}
 				}
 			} else if (strstr(line, "debug") != NULL) {
@@ -365,7 +365,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 			if (strstr(line, "channel") != NULL && strstr(line, "hold") != NULL) {
 				for (i = 0; i < ARRAY_LEN(values_hold); i++) {
 					if (!strncasecmp(word, values_hold[i], wordlen) && ++which > state) {
-						return strdup(values_hold[i]);
+						return pbx_strdup(values_hold[i]);
 					}
 				}
 			} else if (strstr(line, "debug") != NULL) {
@@ -375,7 +375,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 		case 6:											// values_hold off device
 			if (strstr(line, "channel") != NULL && strstr(line, "hold off") != NULL) {
 				if (!strncasecmp(word, "device", wordlen) && ++which > state) {
-					return strdup("device");
+					return pbx_strdup("device");
 				}
 			} else if (strstr(line, "debug") != NULL) {
 				return sccp_complete_debug(line, word, pos, state);
@@ -386,7 +386,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				SCCP_RWLIST_RDLOCK(&GLOB(devices));
 				SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 					if (!strncasecmp(word, d->id, wordlen) && ++which > state) {
-						ret = strdup(d->id);
+						ret = pbx_strdup(d->id);
 						break;
 					}
 				}
@@ -714,7 +714,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 		pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
 		CLI_AMI_RETURN_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
 	}
-	dev = sccp_strdupa(argv[3]);
+	dev = pbx_strdupa(argv[3]);
 	if (pbx_strlen_zero(dev)) {
 		pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
 		CLI_AMI_RETURN_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
@@ -1226,7 +1226,7 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 		pbx_log(LOG_WARNING, "LineName needs to be supplied\n");
 		CLI_AMI_RETURN_ERROR(fd, s, m, "LineName needs to be supplied %s\n", "");
 	}
-	line = sccp_strdupa(argv[3]);
+	line = pbx_strdupa(argv[3]);
 	AUTO_RELEASE sccp_line_t *l = sccp_line_find_byname(line, FALSE);
 
 	if (!l) {
@@ -1416,7 +1416,7 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 
 #define CLI_AMI_TABLE_FIELDS 															\
 		CLI_AMI_TABLE_FIELD(ID,			"-5",		d,	5,	channel->callid)					\
-		CLI_AMI_TABLE_FIELD(Name,		"-25.25",	s,	25,	strdupa(tmpname))					\
+		CLI_AMI_TABLE_FIELD(Name,		"-25.25",	s,	25,	pbx_strdupa(tmpname))					\
 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	channel->line->name)					\
 		CLI_AMI_TABLE_FIELD(DeviceName,		"-16",		s,	16,	d ? d->id : "(unknown)")				\
 		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10",	s,	10,	channel->dialedNumber)					\
@@ -1849,7 +1849,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		pbx_cli(fd, "%d, %d\n", sccp_channelstate_str2val("CONGESTION"), SCCP_CHANNELSTATE_CONGESTION);
 		pbx_cli(fd, "%d, %d\n", sccp_channelstate_str2intval("CONGESTION"), SCCP_CHANNELSTATE_CONGESTION);
 		pbx_cli(fd, "%s\n", sccp_channelstate_all_entries());
- 		char *all_entries = strdupa(sccp_channelstate_all_entries());
+ 		char *all_entries = pbx_strdupa(sccp_channelstate_all_entries());
 		pbx_cli(fd, "%s (%d)\n", all_entries, (int)strlen(all_entries));
 		while (*all_entries) {
 			if (*all_entries == ',') {
@@ -2295,9 +2295,21 @@ static int sccp_remove_line_from_device(int fd, int argc, char *argv[])
 	}
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {						// don't create new realtime devices by searching for them
 		if ((line = sccp_line_find_byname(argv[4], FALSE))) {					// don't create new realtime lines by searching for them
-			sccp_line_removeDevice(line, d);
+			sccp_buttonconfig_t *config;
+
+			d->pendingUpdate = 1;
+			SCCP_LIST_LOCK(&d->buttonconfig);
+			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
+				if (config->type == LINE && sccp_strequals(config->button.line.name,line->name)) {
+					config->pendingDelete = 1;
+					pbx_cli(fd, "Found at ButtonIndex %d => Line %s, removing...\n", config->index, line->name);
+				}
+			}
+			SCCP_LIST_TRAVERSE_SAFE_END;
+			SCCP_LIST_UNLOCK(&d->buttonconfig);
+			
 			pbx_cli(fd, "Line %s has been removed from device %s. Reloading Device...\n", line->name, d->id);
-			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART); 
+			sccp_device_check_update(d);
 			res = RESULT_SUCCESS;
 		} else {
 			pbx_log(LOG_ERROR, "Error: Line %s not found\n", argv[4]);
@@ -2329,6 +2341,7 @@ CLI_ENTRY(cli_remove_line_from_device, sccp_remove_line_from_device, "Remove a l
      */
 static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 {
+	int res = RESULT_FAILURE;
 	if (argc < 5) {
 		return RESULT_SHOWUSAGE;
 	}
@@ -2341,16 +2354,20 @@ static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 		AUTO_RELEASE sccp_line_t *l = sccp_line_find_byname(argv[4], FALSE);
 		if (!l) {
 			pbx_log(LOG_ERROR, "Error: Line %s not found\n", argv[4]);
-			return RESULT_FAILURE;
 		}
-		sccp_config_addButton(d, -1, LINE, l->name, NULL, NULL);
-		pbx_cli(fd, "Line %s has been added to device %s\n", l->name, d->id);
+ 		d->pendingUpdate = 1;
+		if (sccp_config_addButton(&d->buttonconfig, -1, LINE, l->name, NULL, NULL) == SCCP_CONFIG_CHANGE_CHANGED) {
+			pbx_cli(fd, "Line %s has been added to device %s\n", l->name, d->id);
+			sccp_device_check_update(d);
+			res = RESULT_SUCCESS;
+		} else {
+	 		d->pendingUpdate = 0;;
+		}
 	} else {
 		pbx_log(LOG_ERROR, "Error: Device %s not found\n", argv[3]);
-		return RESULT_FAILURE;
 	}
 
-	return RESULT_SUCCESS;
+	return res;
 }
 
 static char add_line_to_device_usage[] = "Usage: sccp add line <deviceID> <lineID>\n" "       Add a line to a device.\n";
@@ -2613,7 +2630,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					buf = alloca(buflen);
 					snprintf(buf, buflen, "%s/%s", ast_config_AST_CONFIG_DIR, argv[3]);
 				} else {
-					buf = strdupa(argv[3]);
+					buf = pbx_strdupa(argv[3]);
 				}
 				// check file exists
 				struct stat sb = { 0 };
@@ -2630,7 +2647,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				if (GLOB(config_file_name)) {
 					sccp_free(GLOB(config_file_name));
 				}
-				GLOB(config_file_name) = sccp_strdup(buf);
+				GLOB(config_file_name) = pbx_strdup(buf);
 			} else {
 				pbx_cli(fd, "Usage: sccp reload file [filename], filename is required\n");
 				goto EXIT;
@@ -2731,7 +2748,7 @@ static int sccp_cli_config_generate(int fd, int argc, char *argv[])
 	pbx_cli(fd, "SCCP: Generating new config file.\n");
 
 	if (argc == 4) {
-		config_file = sccp_strdupa(argv[3]);
+		config_file = pbx_strdupa(argv[3]);
 	}
 	if (!sccp_config_generate(config_file, 0)) {
 		returnval = RESULT_SUCCESS;
@@ -3025,9 +3042,9 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 					char *dev;
 
 					if (sccp_strcaseequals("device", argv[6])) {				/* 'device' str is optional during 'hold off' (to match old behaviour) */
-						dev = sccp_strdupa(argv[7]);
+						dev = pbx_strdupa(argv[7]);
 					} else {
-						dev = sccp_strdupa(argv[6]);
+						dev = pbx_strdupa(argv[6]);
 					}
 					if (pbx_strlen_zero(dev)) {
 						pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
@@ -3058,7 +3075,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 			return RESULT_SHOWUSAGE;
 		}
 
-		char *dev = sccp_strdupa(argv[3]);
+		char *dev = pbx_strdupa(argv[3]);
 
 		if (pbx_strlen_zero(dev)) {
 			pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
@@ -3096,13 +3113,13 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 		if (pbx_strlen_zero(argv[3])) {
 			return RESULT_SHOWUSAGE;
 		}
-		char *fallback_option = sccp_strdupa(argv[3]);
+		char *fallback_option = pbx_strdupa(argv[3]);
 
 		if (sccp_strcaseequals(fallback_option, "odd") || sccp_strcaseequals(fallback_option, "even") || sccp_true(fallback_option) || sccp_false(fallback_option)) {
 			if (GLOB(token_fallback)) {
 				sccp_free(GLOB(token_fallback));
 			}
-			GLOB(token_fallback) = strdup(fallback_option);
+			GLOB(token_fallback) = pbx_strdup(fallback_option);
 		} else if (strstr(fallback_option, "/") != NULL) {
 			struct stat sb;
 
@@ -3110,7 +3127,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 				if (GLOB(token_fallback)) {
 					sccp_free(GLOB(token_fallback));
 				}
-				GLOB(token_fallback) = strdup(fallback_option);
+				GLOB(token_fallback) = pbx_strdup(fallback_option);
 			} else {
 				pbx_log(LOG_WARNING, "Script %s, either not found or not executable by this user\n", fallback_option);
 				return RESULT_FAILURE;
@@ -3316,7 +3333,7 @@ static int sccp_tokenack(int fd, sccp_cli_totals_t *totals, struct mansession *s
 	if (argc < 3 || sccp_strlen_zero(argv[2])) {
 		return RESULT_SHOWUSAGE;
 	}
-	dev = sccp_strdupa(argv[2]);
+	dev = pbx_strdupa(argv[2]);
 	
 	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(dev, FALSE);
 	if (!d) {

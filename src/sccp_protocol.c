@@ -64,8 +64,10 @@ static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, cons
 	msg->data.CallInfoMessage.lel_originalCdpnRedirectReason = htolel(originalCdpnRedirectReason);
 	msg->data.CallInfoMessage.lel_lastRedirectingReason = htolel(lastRedirectingReason);
 
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V3) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
-	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV3)");
+	//sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V3) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
+	//if ((GLOB(debug) & (DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) != 0) {
+	//	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV3)");
+	//}
 	sccp_dev_send(device, msg);
 }
 
@@ -128,7 +130,6 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 
 		memset(&buffer[0], 0, bufferSize);
 		for (i = 0; i < dataSize; i++) {
-			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
 			if (data_len[i]) {
 				memcpy(&buffer[pos], data[i], data_len[i]);
 				pos += data_len[i] + 1;
@@ -139,8 +140,10 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 		memcpy(&msg->data.CallInfoDynamicMessage.dummy, &buffer[0], bufferSize);
 	}
 
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V7) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
-	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV7)");
+	//sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V7) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
+	//if ((GLOB(debug) & (DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) != 0) {
+	//	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV7)");
+	//}
 	sccp_dev_send(device, msg);
 }
 
@@ -173,10 +176,8 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 		SCCP_CALLINFO_CALLINGPARTY_NAME, &data[9],
 		SCCP_CALLINFO_CALLEDPARTY_NAME, &data[10],
 		SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &data[11],
-//		SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &data[11],
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &data[12],
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &data[13],
-//		SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &data[13],
 		SCCP_CALLINFO_HUNT_PILOT_NUMBER, &data[14],
 		SCCP_CALLINFO_HUNT_PILOT_NAME, &data[15],
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &originalCdpnRedirectReason,
@@ -208,7 +209,6 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 
 		memset(&buffer[0], 0, bufferSize);
 		for (i = 0; i < dataSize; i++) {
-			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
 			if (data_len[i]) {
 				memcpy(&buffer[pos], data[i], data_len[i]);
 				pos += data_len[i] + 1;
@@ -219,8 +219,10 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 		memcpy(&msg->data.CallInfoDynamicMessage.dummy, &buffer[0], bufferSize);
 	}
 
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V16) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
-	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV16)");
+	//sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V16) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
+	//if ((GLOB(debug) & (DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) != 0) {
+	//	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV16)");
+	//}
 	sccp_dev_send(device, msg);
 }
 /* done - CallInfoMessage */

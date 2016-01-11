@@ -16,7 +16,7 @@
 #ifdef strdupa
 #define sccp_strdupa strdupa
 #else
-#define sccp_strdupa(s)						\
+#define pbx_strdupa(s)						\
 	(__extension__						\
 	({							\
 		const char *__old = (s);			\

@@ -244,7 +244,7 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 	conference->finishing = FALSE;
 	conference->isLocked = FALSE;
 	conference->isOnHold = FALSE;
-	conference->linkedid = strdup(iPbx.getChannelLinkedId(channel));
+	conference->linkedid = pbx_strdup(iPbx.getChannelLinkedId(channel));
 	if (device->conf_mute_on_entry) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCP: Device: %s Mute on Entry: On -> All participant of conference: SCCPCONF/%04d, will be muted\n", DEV_ID_LOG(device), conferenceID);
 		conference->mute_on_entry = device->conf_mute_on_entry;
@@ -1432,7 +1432,7 @@ void sccp_conference_kick_participant(constConferencePtr conference, participant
 	pbx_bridge_suspend(participant->conference->bridge, participant->conferenceBridgePeer);
 	pbx_bridge_unlock(participant->conference->bridge);
 
-	participant->final_announcement = strdup("conf-kicked");
+	participant->final_announcement = pbx_strdup("conf-kicked");
 	//pbx_stream_and_wait(participant->conferenceBridgePeer, "conf-kicked", "");
 	//ast_streamfile(participant->conferenceBridgePeer, "conf-kicked", conference->playback.language);
 	if (pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer)) {
@@ -1704,7 +1704,7 @@ char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos
 			{
 				for (i = 0; i < ARRAY_LEN(actions); i++) {
 					if (!strncasecmp(word, actions[i], wordlen) && ++which > state) {
-						return strdup(actions[i]);
+						return pbx_strdup(actions[i]);
 					}
 				}
 				break;
@@ -1717,7 +1717,7 @@ char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos
 				SCCP_LIST_TRAVERSE(&conferences, conference, list) {
 					snprintf(tmpname, sizeof(tmpname), "%d", conference->id);
 					if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
-						ret = strdup(tmpname);
+						ret = pbx_strdup(tmpname);
 						break;
 					}
 				}
@@ -1736,7 +1736,7 @@ char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos
 						SCCP_RWLIST_TRAVERSE(&conference->participants, participant, list) {
 							snprintf(tmpname, sizeof(tmpname), "%d", participant->id);
 							if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
-								ret = strdup(tmpname);
+								ret = pbx_strdup(tmpname);
 								break;
 							}
 						}

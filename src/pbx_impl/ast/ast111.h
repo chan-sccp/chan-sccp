@@ -149,7 +149,7 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 
 #define CLI_AMI_OUTPUT_PARAM(param, width, fmt, ...) 								\
 	if (NULL != s) {											\
-		char *camelParam = ast_strdupa(param);								\
+		char *camelParam = pbx_strdupa(param);								\
 		CLI_AMI_CAMEL_PARAM(param, camelParam);								\
 		astman_append(s, "%s: " fmt "\r\n", camelParam, __VA_ARGS__);					\
 		local_line_total++;										\
@@ -159,7 +159,7 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 
 #define CLI_AMI_OUTPUT_BOOL(param, width, value) 								\
 	if (NULL != s) {											\
-		char *camelParam = ast_strdupa(param);								\
+		char *camelParam = pbx_strdupa(param);								\
 		CLI_AMI_CAMEL_PARAM(param, camelParam);								\
 		astman_append(s, "%s: %s\r\n", camelParam, ((value) ? "on" : "off"));				\
 		local_line_total++;										\
@@ -169,7 +169,7 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 
 #define CLI_AMI_OUTPUT_YES_NO(param, width, value) 								\
 	if (NULL != s) {											\
-		char *camelParam = ast_strdupa(param);								\
+		char *camelParam = pbx_strdupa(param);								\
 		CLI_AMI_CAMEL_PARAM(param, camelParam);								\
 		astman_append(s, "%s: %s\r\n", camelParam, ((value) ? "yes" : "no"));				\
 		local_line_total++;										\

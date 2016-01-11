@@ -629,7 +629,7 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 		ast_test_validate(test, object[loop] != NULL);
 		object[loop]->id = loop;
 		object[loop]->threadid = (unsigned int) pthread_self();
-		object[loop]->str = strdup(id);
+		object[loop]->str = pbx_strdup(id);
 		//ast_test_status_update(test, "created %d'\n", object[loop]->id);
 	}
 	sleep(1);

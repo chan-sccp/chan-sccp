@@ -75,6 +75,7 @@ struct sccp_buttonconfig {
 	boolean_t pendingUpdate;
 };														/*!< SCCP Button Configuration Structure */
 
+SCCP_LIST_HEAD (sccp_buttonconfig_list, sccp_buttonconfig_t);
 /*!
  * \brief SCCP SpeedDial Button Structure
  * \todo replace ext/hint with charptr (save 80)
@@ -182,7 +183,8 @@ struct sccp_device {
 		uint8_t size;
 	} lineButtons;
 
-	SCCP_LIST_HEAD (, sccp_buttonconfig_t) buttonconfig;							/*!< SCCP Button Config Attached to this Device */
+	//SCCP_LIST_HEAD (, sccp_buttonconfig_t) buttonconfig;							/*!< SCCP Button Config Attached to this Device */
+	sccp_buttonconfig_list_t buttonconfig;									/*!< SCCP Button Config Attached to this Device */
 	SCCP_LIST_HEAD (, sccp_selectedchannel_t) selectedChannels;						/*!< Selected Channel List */
 	SCCP_LIST_HEAD (, sccp_addon_t) addons;									/*!< Add-Ons connect to this Device */
 	SCCP_LIST_HEAD (, sccp_hostname_t) permithosts;								/*!< Permit Registration to the Hostname/IP Address */

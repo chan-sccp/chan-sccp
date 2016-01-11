@@ -9,6 +9,7 @@
  * $Revision$  
  */
 #pragma once
+#include "../../config.h"
 
 // type redefinitions
 #define pbx_variable ast_variable
@@ -18,7 +19,7 @@
 #define sccp_malloc ast_malloc
 #define sccp_calloc ast_calloc
 #define sccp_realloc ast_realloc
-#define sccp_strdup ast_strdup
+//#define sccp_strdup ast_strdup
 #define sccp_free(x) {ast_free((void *)x); (x) = NULL; }
 #define sccp_asprintf ast_asprintf
 #define sccp_vasprintf ast_vasprintf
@@ -39,6 +40,17 @@
 #define sccp_mutex_lock_desc(x,y) 		pbx_mutex_lock(x)
 #define sccp_mutex_unlock(x)			pbx_mutex_unlock(x)
 #define sccp_mutex_trylock(x)			pbx_mutex_trylock(x)
+
+// SCCP_FILE_VERSION definition
+#if defined(LOW_MEMORY)
+#define SCCP_FILE_VERSION(_file, _version)
+#else
+#if CS_AST_REGISTER_FILE_VERSION
+#define SCCP_FILE_VERSION(_file, _version) ASTERISK_FILE_VERSION(_file, _version)
+#else
+#define SCCP_FILE_VERSION(_file, _version) ASTERISK_REGISTER_FILE()
+#endif
+#endif
 
 // codec / format redefinitions
 #define pbx_codec_pref_index ast_codec_pref_index
@@ -260,7 +272,6 @@ typedef struct ast_event pbx_event_t;
 #define pbx_queue_hangup ast_queue_hangup
 #define pbx_random ast_random
 #define pbx_realloc ast_realloc
-#define pbx_register_file_version ast_register_file_version
 #define pbx_rtp_bridge ast_rtp_bridge
 #define pbx_rtp_codecs_payloads_set_rtpmap_type_rate ast_rtp_codecs_payloads_set_rtpmap_type_rate
 #define pbx_rtp_glue_register ast_rtp_glue_register
@@ -320,7 +331,10 @@ typedef struct ast_event pbx_event_t;
 #define pbx_true ast_true
 #define pbx_false ast_false
 #define pbx_tvnow ast_tvnow
+#if CS_AST_REGISTER_FILE_VERSION
+#define pbx_register_file_version ast_register_file_version
 #define pbx_unregister_file_version ast_unregister_file_version
+#endif
 #define pbx_update_use_count ast_update_use_count
 #define pbx_variable_browse ast_variable_browse
 #define pbx_variable_new ast_variable_new

@@ -180,16 +180,19 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
 		return;
 	}
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received PBX mwi event for %s@%s\n", subscription->mailbox, subscription->context);
+	int newmsgs = pbx_event_get_ie_uint(event, AST_EVENT_IE_NEWMSGS);
+	int oldmsgs = pbx_event_get_ie_uint(event, AST_EVENT_IE_OLDMSGS);
 
 	/* for calculation store previous voicemail counts */
 	subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
 	subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
 
-	subscription->currentVoicemailStatistic.newmsgs = pbx_event_get_ie_uint(event, AST_EVENT_IE_NEWMSGS);
-	subscription->currentVoicemailStatistic.oldmsgs = pbx_event_get_ie_uint(event, AST_EVENT_IE_OLDMSGS);
-
-	if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
-		sccp_mwi_updatecount(subscription);
+	if (newmsgs != -1 && oldmsgs != -1) {
+		subscription->currentVoicemailStatistic.newmsgs = newmsgs;
+		subscription->currentVoicemailStatistic.oldmsgs = oldmsgs;
+		if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs && subscription->currentVoicemailStatistic.newmsgs != -1) {
+			sccp_mwi_updatecount(subscription);
+		}
 	}
 }
 
@@ -211,15 +214,17 @@ void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stas
 
 	if (msg && ast_mwi_state_type() == stasis_message_type(msg)) {
 		struct ast_mwi_state *mwi_state = stasis_message_data(msg);
+		int newmsgs = mwi_state->new_msgs, oldmsgs = mwi_state->old_msgs;
 
 		subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
 		subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
 
-		subscription->currentVoicemailStatistic.newmsgs = mwi_state->new_msgs;
-		subscription->currentVoicemailStatistic.oldmsgs = mwi_state->old_msgs;
-
-		if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
-			sccp_mwi_updatecount(subscription);
+		if (newmsgs != -1 && oldmsgs != -1) {
+			subscription->currentVoicemailStatistic.newmsgs = newmsgs;
+			subscription->currentVoicemailStatistic.oldmsgs = oldmsgs;
+			if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
+				sccp_mwi_updatecount(subscription);
+			}
 		}
 	}
 }
@@ -246,20 +251,30 @@ int sccp_mwi_checksubscription(const void *ptr)
 	subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
 
 	char buffer[512];
+	int newmsgs = 0, oldmsgs = 0;
+	int interval = SCCP_MWI_CHECK_INTERVAL;
 
 	snprintf(buffer, 512, "%s@%s", subscription->mailbox, subscription->context);
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_4 "SCCP: checking mailbox: %s\n", buffer);
-	pbx_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
+	if (pbx_app_inboxcount(buffer, &newmsgs, &oldmsgs) == 0) {
+		if (newmsgs != -1 && oldmsgs != -1) {
+			subscription->currentVoicemailStatistic.newmsgs = newmsgs;
+			subscription->currentVoicemailStatistic.oldmsgs = oldmsgs;
 
-	/* update devices if something changed */
-	if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
-		sccp_mwi_updatecount(subscription);
-	}
+			/* update devices if something changed */
+			if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
+				sccp_mwi_updatecount(subscription);
+			}
+		}
+	} else {
+		interval = SCCP_MWI_CHECK_INTERVAL * 10;			/* if we failed, slow down polling */
+	}	
 
 	/* reschedule my self */
-	if ((subscription->schedUpdate = iPbx.sched_add(SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
+	if ((subscription->schedUpdate = iPbx.sched_add(interval * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
 		pbx_log(LOG_ERROR, "Error creating mailbox subscription.\n");
 	}
+
 	return 0;
 }
 #endif
@@ -447,16 +462,26 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 							       AST_EVENT_IE_END);
 
 		if (event) {
-			subscription->currentVoicemailStatistic.newmsgs = ast_event_get_ie_uint(event, AST_EVENT_IE_NEWMSGS);
-			subscription->currentVoicemailStatistic.oldmsgs = ast_event_get_ie_uint(event, AST_EVENT_IE_OLDMSGS);
+			int newmsgs = pbx_event_get_ie_uint(event, AST_EVENT_IE_NEWMSGS);
+			int oldmsgs = pbx_event_get_ie_uint(event, AST_EVENT_IE_OLDMSGS);
+			if (newmsgs != -1 && oldmsgs != -1) {
+				subscription->currentVoicemailStatistic.newmsgs = newmsgs;
+				subscription->currentVoicemailStatistic.oldmsgs = oldmsgs;
+			}
 			ast_event_destroy(event);
 		} else
 #endif
 		{												/* Fall back on checking the mailbox directly */
 			char buffer[512];
+			int newmsgs = 0, oldmsgs = 0;
 
 			snprintf(buffer, 512, "%s@%s", subscription->mailbox, subscription->context);
-			pbx_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
+			if (pbx_app_inboxcount(buffer, &newmsgs, &oldmsgs) == 0) {
+				if (newmsgs != -1 && oldmsgs != -1) {
+					subscription->currentVoicemailStatistic.newmsgs = newmsgs;
+					subscription->currentVoicemailStatistic.oldmsgs = oldmsgs;
+				}
+			}
 		}
 
 		/* register asterisk event */

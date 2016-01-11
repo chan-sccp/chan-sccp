@@ -424,9 +424,9 @@ void sccp_channel_updateMusicClass(sccp_channel_t * c, const sccp_line_t *l)
 			sccp_free(c->musicclass);
 		}
 		if (!sccp_strlen_zero(l->musicclass)) {
-			c->musicclass = strdup(l->musicclass);
+			c->musicclass = pbx_strdup(l->musicclass);
 		} else if (!sccp_strlen_zero(GLOB(musicclass))) {
-			c->musicclass = strdup(GLOB(musicclass));
+			c->musicclass = pbx_strdup(GLOB(musicclass));
 		}
 	}
 }
@@ -526,7 +526,9 @@ void sccp_channel_setChannelstate(channelPtr channel, sccp_channelstate_t state)
  */
 void sccp_channel_display_callInfo(sccp_channel_t * channel)
 {
-	sccp_callinfo_print2log(channel->privateData->callInfo, channel->designator);
+	if ((GLOB(debug) & (DEBUGCAT_CHANNEL)) != 0) {
+		sccp_callinfo_print2log(channel->privateData->callInfo, channel->designator);
+	}
 }
 
 /*!
@@ -875,7 +877,13 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 	audio->readState |= SCCP_RTP_STATUS_PROGRESS;
 	d->protocol->sendStartMediaTransmission(d, channel);
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(audio->readFormat), audio->readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
+	char buf1[NI_MAXHOST + NI_MAXSERV];
+	char buf2[NI_MAXHOST + NI_MAXSERV];
+	sccp_copy_string(buf1, sccp_socket_stringify(&audio->phone), sizeof(buf1));
+	sccp_copy_string(buf2, sccp_socket_stringify(&audio->phone_remote), sizeof(buf2));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) Tell Phone to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(d), buf1, buf2, sccp_nat2str(d->nat));
+
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(audio->readFormat), audio->readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
 }
 
 /*!
@@ -989,11 +997,17 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
 
 	}
-
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s with codec: %s(%d), payloadType %d, tos %d\n", d->id, sccp_socket_stringify(&video->phone_remote), codec2str(video->readFormat), video->readFormat, payloadType, d->audio_tos);
-
 	video->readState = SCCP_RTP_STATUS_PROGRESS;
 	d->protocol->sendStartMultiMediaTransmission(d, channel, payloadType, bitRate);
+
+	char buf1[NI_MAXHOST + NI_MAXSERV];
+	char buf2[NI_MAXHOST + NI_MAXSERV];
+	sccp_copy_string(buf1, sccp_socket_stringify(&video->phone), sizeof(buf1));
+	sccp_copy_string(buf2, sccp_socket_stringify(&video->phone_remote), sizeof(buf2));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMultiMediaTransmission) Tell Phone to send VRTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(d), buf1, buf2, sccp_nat2str(d->nat));
+
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (StartMultiMediaTransmission) Using codec: %s(%d), TOS %d for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(video->readFormat), video->readFormat, d->video_tos, channel->passthrupartyid, channel->callid);
+
 	iPbx.queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
 }
 
@@ -1309,26 +1323,29 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 	channel->softswitch_action = SCCP_SOFTSWITCH_DIAL;							/* softswitch will catch the number to be dialed */
 	channel->ss_data = 0;											/* nothing to pass to action */
 
+	/* copy the number to dial in the ast->exten */
 	iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
-	if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
-		sccp_channel_openReceiveChannel(channel);
-	}
 	if (dial) {
-		sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
-		sccp_pbx_softswitch(channel);
-		return channel;
+		if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
+			sccp_channel_openReceiveChannel(channel);
+		}
+		sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
+		sccp_pbx_softswitch(channel);									/* we know the number to dial -> softswitch */
 	} else {
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
+		if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
+			sccp_channel_openReceiveChannel(channel);
+		}
 		if (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
 			sccp_copy_string(channel->dialedNumber, "s", sizeof(channel->dialedNumber));
 			sccp_pbx_softswitch(channel);
 			channel->dialedNumber[0] = '\0';
-			return channel;
+		} else {
+			sccp_channel_schedule_digittimout(channel, GLOB(firstdigittimeout));
 		}
 	}
 
-	sccp_channel_schedule_digittimout(channel, GLOB(firstdigittimeout));
 	return channel;
 }
 

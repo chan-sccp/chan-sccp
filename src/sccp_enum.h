@@ -351,6 +351,7 @@ const char *sccp_video_mode_all_entries(void);
  * \brief enum sccp_event_type
  */
 typedef enum sccp_event_type {
+	SCCP_EVENT_NULL=0,
 	SCCP_EVENT_LINE_CREATED=1<<0,
 	SCCP_EVENT_LINE_CHANGED=1<<1,
 	SCCP_EVENT_LINE_DELETED=1<<2,
@@ -432,8 +433,9 @@ const char *sccp_rtp_status_all_entries(void);
  * \brief enum sccp_rtp_type
  */
 typedef enum sccp_rtp_type {
-	SCCP_RTP_AUDIO=0,
-	SCCP_RTP_VIDEO=1<<0,
+	SCCP_RTP_NULL=0,
+	SCCP_RTP_AUDIO=1<<0,
+	SCCP_RTP_VIDEO=1<<1,
 	SCCP_RTP_TEXT=1<<2,
 	SCCP_RTP_TYPE_SENTINEL = 1<<3
 } sccp_rtp_type_t;
@@ -596,13 +598,13 @@ const char *sccp_phonebook_all_entries(void);
  * \brief enum sccp_feature_monitor_state
  */
 typedef enum sccp_feature_monitor_state {
-	SCCP_FEATURE_MONITOR_STATE_DISABLED,
-	SCCP_FEATURE_MONITOR_STATE_ACTIVE,
-	SCCP_FEATURE_MONITOR_STATE_REQUESTED,
-	SCCP_FEATURE_MONITOR_STATE_SENTINEL
+	SCCP_FEATURE_MONITOR_STATE_DISABLED=0,
+	SCCP_FEATURE_MONITOR_STATE_REQUESTED=1<<0,
+	SCCP_FEATURE_MONITOR_STATE_ACTIVE=1<<1,
+	SCCP_FEATURE_MONITOR_STATE_SENTINEL = 1<<2
 } sccp_feature_monitor_state_t;
 int sccp_feature_monitor_state_exists(int sccp_feature_monitor_state_int_value);
-const char * sccp_feature_monitor_state2str(sccp_feature_monitor_state_t enum_value);
+const char * sccp_feature_monitor_state2str(int sccp_feature_monitor_state_int_value);
 sccp_feature_monitor_state_t sccp_feature_monitor_state_str2val(const char *lookup_str);
 uint32_t sccp_feature_monitor_state_str2intval(const char *lookup_str);
 const char *sccp_feature_monitor_state_all_entries(void);
@@ -634,10 +636,10 @@ const char *sccp_readingtype_all_entries(void);
  */
 typedef enum sccp_configurationchange {
 	SCCP_CONFIG_NOUPDATENEEDED=0,
-	SCCP_CONFIG_NEEDDEVICERESET=1<<1,
-	SCCP_CONFIG_WARNING=1<<2,
-	SCCP_CONFIG_ERROR=1<<3,
-	SCCP_CONFIGURATIONCHANGE_SENTINEL = 1<<4
+	SCCP_CONFIG_NEEDDEVICERESET=1<<0,
+	SCCP_CONFIG_WARNING=1<<1,
+	SCCP_CONFIG_ERROR=1<<2,
+	SCCP_CONFIGURATIONCHANGE_SENTINEL = 1<<3
 } sccp_configurationchange_t;
 int sccp_configurationchange_exists(int sccp_configurationchange_int_value);
 const char * sccp_configurationchange2str(int sccp_configurationchange_int_value);
@@ -672,9 +674,9 @@ const char *sccp_call_statistics_type_all_entries(void);
  */
 typedef enum sccp_rtp_info {
 	SCCP_RTP_INFO_NORTP=0,
-	SCCP_RTP_INFO_AVAILABLE=1<<1,
-	SCCP_RTP_INFO_ALLOW_DIRECTRTP=1<<2,
-	SCCP_RTP_INFO_SENTINEL = 1<<3
+	SCCP_RTP_INFO_AVAILABLE=1<<0,
+	SCCP_RTP_INFO_ALLOW_DIRECTRTP=1<<1,
+	SCCP_RTP_INFO_SENTINEL = 1<<2
 } sccp_rtp_info_t;
 int sccp_rtp_info_exists(int sccp_rtp_info_int_value);
 const char * sccp_rtp_info2str(int sccp_rtp_info_int_value);

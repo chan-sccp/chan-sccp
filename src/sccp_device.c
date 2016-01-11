@@ -1513,7 +1513,7 @@ void sccp_dev_set_message(devicePtr d, const char *msg, const int timeout, const
 		char msgtimeout[10];
 
 		sprintf(msgtimeout, "%d", timeout);
-		iPbx.feature_addToDatabase("SCCP/message", "timeout", strdup(msgtimeout));
+		iPbx.feature_addToDatabase("SCCP/message", "timeout", pbx_strdup(msgtimeout));
 		iPbx.feature_addToDatabase("SCCP/message", "text", msg);
 	}
 
@@ -2823,7 +2823,7 @@ void sccp_device_addMessageToStack(devicePtr device, const uint8_t priority, con
 	char *newValue = NULL;
 	char *oldValue = NULL;
 
-	newValue = strdup(message);
+	newValue = pbx_strdup(message);
 
 	do {
 		oldValue = device->messageStack.messages[priority];
