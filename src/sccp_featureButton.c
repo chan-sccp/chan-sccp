@@ -6,8 +6,8 @@
  *              See the LICENSE file at the top of the source tree.
  * \since       2009-06-15
  *
- * $Date$
- * $Revision$
+ * $Date: 2015-11-21 00:29:06 +0100 (za, 21 nov 2015) $
+ * $Revision: 6417 $
  */
 
 /*!
@@ -31,7 +31,7 @@
 #include "sccp_devstate.h"
 #endif
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "$Revision: 6417 $");
 
 /*!
  * \brief Feature Button Changed
@@ -59,7 +59,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 	SCCP_LIST_LOCK(&((devicePtr)device)->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		if (config->type == FEATURE && config->button.feature.id == featureType) {
-			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s\n", DEV_ID_LOG(device), config->button.feature.id, (config->button.feature.options) ? config->button.feature.options : "(none)");
+			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) FeatureID = %d, Option: %s\n", DEV_ID_LOG(device), config->button.feature.id, (config->button.feature.options) ? config->button.feature.options : "(none)");
 			instance = config->instance;
 
 			switch (config->button.feature.id) {
@@ -133,7 +133,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 					}
 					break;
 				case SCCP_FEATURE_MONITOR:
-					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: monitor feature state: %d\n", DEV_ID_LOG(device), device->monitorFeature.status);
+					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) monitor featureButton new state:%s (%d)\n", DEV_ID_LOG(device), sccp_feature_monitor_state2str(device->monitorFeature.status), device->monitorFeature.status);
 					if (device->inuseprotocolversion > 15) {				// multiple States
 						buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 						switch (device->monitorFeature.status) {
@@ -151,7 +151,6 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 								break;
 						}
 					} else {
-						sccp_log(DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "%s: (featButton_changed) state %d\n", device->id, device->monitorFeature.status);
 						switch (device->monitorFeature.status) {
 							case SCCP_FEATURE_MONITOR_STATE_DISABLED:
 								config->button.feature.status = 0;
@@ -294,7 +293,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 				sccp_copy_string(msg->data.FeatureStatMessage.featureTextLabel, config->label, sizeof(msg->data.FeatureStatDynamicMessage.featureTextLabel));
 			}
 			sccp_dev_send(device, msg);
-			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) Got Feature Status Request. Instance = %d, Label: '%s', Status: %d, Nota bene: Config pointer: %p\n", DEV_ID_LOG(device), instance, config->label, config->button.feature.status, config);
+			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) Got Feature Status Request. Instance = %d, Label: '%s', Status: %d\n", DEV_ID_LOG(device), instance, config->label, config->button.feature.status);
 		}
 	}
 	SCCP_LIST_UNLOCK(&((devicePtr)device)->buttonconfig);
