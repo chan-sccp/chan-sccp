@@ -5,8 +5,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  * 
- * $Date: 2015-12-06 23:58:48 +0100 (zo, 06 dec 2015) $
- * $Revision: 6476 $  
+ * $Date$
+ * $Revision$  
  */
 #include <config.h>
 #ifdef CS_SCCP_MANAGER
@@ -22,7 +22,7 @@
 #include "sccp_socket.h"
 #include "asterisk/threadstorage.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 6476 $");
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
 /*
  * Descriptions
@@ -923,7 +923,6 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 					} else {
 						d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 					}
-
 					sccp_msg_t *msg_out = NULL;
 					REQ(msg_out, RecordingStatusMessage);
 					msg_out->data.RecordingStatusMessage.lel_callReference = htolel(channel->callid);
@@ -971,11 +970,10 @@ boolean_t sccp_manager_action2str(const char *manager_command, char **outStr)
         }
 
 	struct manager_custom_hook hook = {__FILE__, __sccp_manager_hookresult};
-	//sccp_log(DEBUGCAT_CORE)("SCCP: Sending AMI Command: %s\n", manager_command);
         failure = ast_hook_send_action(&hook, manager_command);							/* "Action: ParkedCalls\r\n" */
         if (!failure) {
-		sccp_log(DEBUGCAT_CORE)("SCCP: Sending AMI Result:\n[%s]\n", pbx_str_buffer(buf));
-        	*outStr = strdup(pbx_str_buffer(buf));
+		sccp_log(DEBUGCAT_CORE)("SCCP: Sending AMI Result String: %s\n", pbx_str_buffer(buf));
+        	*outStr = pbx_strdup(pbx_str_buffer(buf));
         }
        	ast_str_reset(buf);
         return !failure ? TRUE : FALSE;

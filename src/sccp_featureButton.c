@@ -31,7 +31,7 @@
 #include "sccp_devstate.h"
 #endif
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 6417 $");
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
 /*!
  * \brief Feature Button Changed
