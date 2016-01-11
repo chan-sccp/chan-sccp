@@ -3,8 +3,8 @@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date$
-# REVISION: $Revision$
+# DATE:     $Date: 2015-10-15 15:10:26 +0200 (do, 15 okt 2015) $
+# REVISION: $Revision: 6246 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 include $(top_srcdir)/amdoxygen.am
 
