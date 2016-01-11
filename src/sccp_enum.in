@@ -254,8 +254,8 @@ enum phonebook {
 
 enum feature_monitor_state {
 	SCCP_FEATURE_MONITOR_STATE_DISABLED,		= 0,	"Feature Monitor Disabled",
-	SCCP_FEATURE_MONITOR_STATE_REQUESTED, 		= 1<<0,	"Feature Monitor Requested",
-	SCCP_FEATURE_MONITOR_STATE_ACTIVE,		= 1<<1,	"Feature Monitor Active",
+	SCCP_FEATURE_MONITOR_STATE_REQUESTED, 		= 1<<1,	"Feature Monitor Requested",
+	SCCP_FEATURE_MONITOR_STATE_ACTIVE,		= 1<<2,	"Feature Monitor Active",
 }
 
 /*!
