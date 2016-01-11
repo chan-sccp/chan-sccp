@@ -878,48 +878,53 @@ static void sccp_asterisk_parseStrToAstMessage(char *str, struct message *m)
  */
 static int sccp_asterisk_managerHookHelper(int category, const char *event, char *content)
 {
-	PBX_CHANNEL_TYPE *pbxchannel = NULL;
-	PBX_CHANNEL_TYPE *pbxBridge = NULL;
 	char *str, *dupStr;
 
 	if (EVENT_FLAG_CALL == category) {
 		if (!strcasecmp("MonitorStart", event) || !strcasecmp("MonitorStop", event)) {
+			AUTO_RELEASE sccp_channel_t *channel = NULL;
 			struct message m = { 0 };
 
 			str = dupStr = pbx_strdupa(content); /** need a dup, because converter to message structure will modify the str */
+			sccp_log(DEBUGCAT_CORE)("SCCP: (managerHookHelper) MonitorStart/MonitorStop Received\ncontent:[%s]\n", content);	/* temp */
 
 			sccp_asterisk_parseStrToAstMessage(str, &m); /** convert to message structure to use the astman_get_header function */
 			const char *channelName = astman_get_header(&m, "Channel");
 
-			pbxchannel = pbx_channel_get_by_name(channelName);
+			PBX_CHANNEL_TYPE *pbxchannel = pbx_channel_get_by_name(channelName);							/* returns reffed */
+			if (pbxchannel) {
+				PBX_CHANNEL_TYPE *pbxBridge = NULL;
+				if ((CS_AST_CHANNEL_PVT_IS_SCCP(pbxchannel))) {
+					channel = get_sccp_channel_from_pbx_channel(pbxchannel);
+				} else if ( (pbxBridge = pbx_channel_get_by_name(pbx_builtin_getvar_helper(pbxchannel, "BRIDGEPEER"))) ) {
+					if ((CS_AST_CHANNEL_PVT_IS_SCCP(pbxBridge))) {
+						channel = get_sccp_channel_from_pbx_channel(pbxBridge);
+					}
 #if ASTERISK_VERSION_GROUP == 106
-			pbx_channel_unlock(pbxchannel);
+					pbx_channel_unlock(pbxBridge);
+#else
+					pbxBridge = ast_channel_unref(pbxBridge);
 #endif
-
-			AUTO_RELEASE sccp_channel_t *channel = NULL;
-
-			if (pbxchannel && (CS_AST_CHANNEL_PVT_IS_SCCP(pbxchannel))) {
-				channel = get_sccp_channel_from_pbx_channel(pbxchannel);
-			} else if (pbxchannel && ((pbxBridge = pbx_channel_get_by_name(pbx_builtin_getvar_helper(pbxchannel, "BRIDGEPEER"))) != NULL) && (CS_AST_CHANNEL_PVT_IS_SCCP(pbxBridge))) {
-				channel = get_sccp_channel_from_pbx_channel(pbxBridge);
+				}
 #if ASTERISK_VERSION_GROUP == 106
-				pbx_channel_unlock(pbxBridge);
+				pbx_channel_unlock(pbxchannel);
+#else
+				pbxchannel = ast_channel_unref(pbxchannel);
 #endif
 			}
 
 			if (channel) {
+				sccp_log(DEBUGCAT_CORE)("%s: (managerHookHelper) MonitorStart/MonitorStop Received\n", channel->designator);	/* temp */
 				AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
-
 				if (d) {
+					sccp_log(DEBUGCAT_CORE)("%s: (managerHookHelper) MonitorStart/MonitorStop on Device: %s\n", channel->designator, d->id);	/* temp */
 					if (!strcasecmp("MonitorStart", event)) {
 						d->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 					} else {
 						d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 					}
 					sccp_msg_t *msg_out = NULL;
-
 					REQ(msg_out, RecordingStatusMessage);
-
 					msg_out->data.RecordingStatusMessage.lel_callReference = htolel(channel->callid);
 					msg_out->data.RecordingStatusMessage.lel_status = (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) ? htolel(1) : htolel(0);
 					sccp_dev_send(d, msg_out);
@@ -965,12 +970,12 @@ boolean_t sccp_manager_action2str(const char *manager_command, char **outStr)
         }
 
 	struct manager_custom_hook hook = {__FILE__, __sccp_manager_hookresult};
-	sccp_log(DEBUGCAT_CORE)("SCCP: Sending AMI Command: %s\n", manager_command);
         failure = ast_hook_send_action(&hook, manager_command);							/* "Action: ParkedCalls\r\n" */
         if (!failure) {
 		sccp_log(DEBUGCAT_CORE)("SCCP: Sending AMI Result String: %s\n", pbx_str_buffer(buf));
         	*outStr = pbx_strdup(pbx_str_buffer(buf));
         }
+       	ast_str_reset(buf);
         return !failure ? TRUE : FALSE;
 #else
 	sccp_log(DEBUGCAT_CORE)("SCCP: ast_hook_send_action is not available in asterisk-1.6\n");
