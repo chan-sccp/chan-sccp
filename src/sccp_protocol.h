@@ -82,6 +82,10 @@
 #define APPID_PROVISION					9083
 #define APPID_DEVICECAPABILITIES			9084
 #define APPID_URIHOOK					9085
+#define APPID_BACKGROUND				9086
+#define APPID_RINGTONE					9087
+#define APPID_STREAM					9088
+#define APPID_PUSH					9089
 
 /*
  * \todo Merge sccp_button_type_t / sccp_buttontypes[] and this define
