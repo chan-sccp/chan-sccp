@@ -426,7 +426,7 @@ sccp_msg_t *sccp_build_packet(sccp_mid_t t, size_t pkt_len);
 void sccp_dev_check_displayprompt(constDevicePtr d);
 void sccp_device_setLastNumberDialed(devicePtr device, const char *lastNumberDialed, const sccp_linedevices_t *linedevice);
 void sccp_device_preregistration(devicePtr device);
-void sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn);
+uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn);
 void sccp_dev_sendmsg(constDevicePtr d, sccp_mid_t t);
 void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid, uint8_t softKeySetIndex);
 void sccp_dev_set_ringer(constDevicePtr d, uint8_t opt, uint8_t lineInstance, uint32_t callid);

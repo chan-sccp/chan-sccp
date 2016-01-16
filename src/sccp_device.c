@@ -787,9 +787,10 @@ void sccp_device_removeFromGlobals(devicePtr device)
  * \param d device
  * \param btn buttonlist
  */
-void sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
+uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 {
 	uint8_t i;
+	uint8_t index=0;
 
 	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Building button template %s(%d), user config %s\n", d->id, skinny_devicetype2str(d->skinny_type), d->skinny_type, d->config_type);
 
@@ -798,19 +799,19 @@ void sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 		case SKINNY_DEVICETYPE_30VIP:
 			/* 13 rows, 2 columns */
 			for (i = 0; i < 4; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			/* Column 2 */
-			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
-			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
-			(btn++)->type = SKINNY_BUTTONTYPE_CALLPARK;
-			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
-			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
+			btn[index++].type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
+			btn[index++].type = SKINNY_BUTTONTYPE_VOICEMAIL;
+			btn[index++].type = SKINNY_BUTTONTYPE_CALLPARK;
+			btn[index++].type = SKINNY_BUTTONTYPE_FORWARDALL;
+			btn[index++].type = SKINNY_BUTTONTYPE_CONFERENCE;
 			for (i = 0; i < 4; i++) {
-				(btn++)->type = SKINNY_BUTTONTYPE_UNDEFINED;
+				btn[index++].type = SKINNY_BUTTONTYPE_UNDEFINED;
 			}
 			for (i = 0; i < 13; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_12SPPLUS:
@@ -818,64 +819,64 @@ void sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 		case SKINNY_DEVICETYPE_12:
 			/* 6 rows, 2 columns */
 			for (i = 0; i < 2; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_LINE;
+				btn[index++].type = SCCP_BUTTONTYPE_LINE;
 			}
 			for (i = 0; i < 4; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+				btn[index++].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
-			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
-			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
-			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
-			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
-			(btn++)->type = SKINNY_BUTTONTYPE_CALLPARK;
-			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
+			btn[index++].type = SKINNY_BUTTONTYPE_HOLD;
+			btn[index++].type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
+			btn[index++].type = SKINNY_BUTTONTYPE_TRANSFER;
+			btn[index++].type = SKINNY_BUTTONTYPE_FORWARDALL;
+			btn[index++].type = SKINNY_BUTTONTYPE_CALLPARK;
+			btn[index++].type = SKINNY_BUTTONTYPE_VOICEMAIL;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7902:
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
-			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
-			(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
-			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
-			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
-			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
+			btn[index++].type = SCCP_BUTTONTYPE_LINE;
+			btn[index++].type = SKINNY_BUTTONTYPE_HOLD;
+			btn[index++].type = SKINNY_BUTTONTYPE_TRANSFER;
+			btn[index++].type = SKINNY_BUTTONTYPE_DISPLAY;
+			btn[index++].type = SKINNY_BUTTONTYPE_VOICEMAIL;
+			btn[index++].type = SKINNY_BUTTONTYPE_CONFERENCE;
+			btn[index++].type = SKINNY_BUTTONTYPE_FORWARDALL;
 			for (i = 0; i < 4; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+				btn[index++].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
-			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
+			btn[index++].type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7910:
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
-			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
-			(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
-			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
-			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
-			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
+			btn[index++].type = SCCP_BUTTONTYPE_LINE;
+			btn[index++].type = SKINNY_BUTTONTYPE_HOLD;
+			btn[index++].type = SKINNY_BUTTONTYPE_TRANSFER;
+			btn[index++].type = SKINNY_BUTTONTYPE_DISPLAY;
+			btn[index++].type = SKINNY_BUTTONTYPE_VOICEMAIL;
+			btn[index++].type = SKINNY_BUTTONTYPE_CONFERENCE;
+			btn[index++].type = SKINNY_BUTTONTYPE_FORWARDALL;
 			for (i = 0; i < 2; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+				btn[index++].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
-			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
+			btn[index++].type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7906:
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+			btn[index++].type = SCCP_BUTTONTYPE_LINE;
+			btn[index++].type = SKINNY_BUTTONTYPE_HOLD;
 			for (i = 0; i < 9; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+				btn[index++].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7911:
 		case SKINNY_DEVICETYPE_CISCO7905:
 		case SKINNY_DEVICETYPE_CISCO7912:
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+			btn[index++].type = SCCP_BUTTONTYPE_LINE;
+			btn[index++].type = SKINNY_BUTTONTYPE_HOLD;
 			for (i = 0; i < 9; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+				btn[index++].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
 			d->hasEnhancedIconMenuSupport = sccp_device_trueResult;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7920:
 			for (i = 0; i < 4; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7931:
@@ -896,14 +897,14 @@ void sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 		case SKINNY_DEVICETYPE_CISCO7936:
 		case SKINNY_DEVICETYPE_CISCO7937:
 			for (i = 0; i < 2; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_LINE;
+				btn[index++].type = SCCP_BUTTONTYPE_LINE;
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7921:
 		case SKINNY_DEVICETYPE_CISCO7925:
 		case SKINNY_DEVICETYPE_CISCO7926:
 			for (i = 0; i < 6; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7940:
@@ -912,7 +913,7 @@ void sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			d->pushURL = sccp_device_pushURL;
 
 			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7941:
@@ -925,7 +926,7 @@ void sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			d->hasEnhancedIconMenuSupport = sccp_device_trueResult;
 
 			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7960:
@@ -937,7 +938,7 @@ void sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			d->setRingTone = sccp_device_setRingtone;
 
 			for (i = 6 + sccp_addons_taps(d); i > 0; i--) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7961:
@@ -953,7 +954,7 @@ void sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			d->hasEnhancedIconMenuSupport = sccp_device_trueResult;
 
 			for (i = 6 + sccp_addons_taps(d); i > 0; i--) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7970:
@@ -961,10 +962,10 @@ void sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 		case SKINNY_DEVICETYPE_CISCO7975:
 			/* the nokia icc client identifies it self as SKINNY_DEVICETYPE_CISCO7970, but it can only have one line  */
 			if (!strcasecmp(d->config_type, "nokia-icc")) {						// this is for nokia icc legacy support (Old releases) -FS
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			} else {
 				for (i = 8 + sccp_addons_taps(d); i > 0; i--) {
-					(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+					btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 				}
 
 				/* add text message support */
@@ -979,10 +980,10 @@ void sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 		case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
 			/* the nokia icc client identifies it self as SKINNY_DEVICETYPE_CISCO7970, but it can only have one line  */
 			if (!strcasecmp(d->config_type, "nokia-icc")) {						// this is for nokia icc legacy support (Old releases) -FS
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			} else {
 				for (i = 8 + sccp_addons_taps(d); i > 0; i--) {
-					(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+					btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 				}
 
 				/* add text message support */
@@ -1000,30 +1001,30 @@ void sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
 #endif
 			for (i = 0; i < 1; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_NOKIA_ICC:
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			break;
 		case SKINNY_DEVICETYPE_NOKIA_E_SERIES:
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			btn[index++].type = SCCP_BUTTONTYPE_LINE;
+			btn[index++].type = SCCP_BUTTONTYPE_LINE;
 			for (i = 0; i < 5; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+				btn[index++].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
 			break;
 		case SKINNY_DEVICETYPE_VGC:
 		case SKINNY_DEVICETYPE_ANALOG_GATEWAY:
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			btn[index++].type = SCCP_BUTTONTYPE_LINE;
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			break;
 		case SKINNY_DEVICETYPE_ATA188:
 		case SKINNY_DEVICETYPE_ATA186:
 			//case SKINNY_DEVICETYPE_ATA188:
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			btn[index++].type = SCCP_BUTTONTYPE_LINE;
 			for (i = 0; i < 4; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+				btn[index++].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			break;
@@ -1036,108 +1037,113 @@ void sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 #endif
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			for (i = 0; i < 10; i++) {								// 4 visible, 6 in dropdown
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			/*
 			for (i = 5; i <= 10; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+				btn[index++].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
 			*/
-			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
-			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
-			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
-			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
+			btn[index++].type = SKINNY_BUTTONTYPE_CONFERENCE;
+			btn[index++].type = SKINNY_BUTTONTYPE_HOLD;
+			btn[index++].type = SKINNY_BUTTONTYPE_TRANSFER;
+			btn[index++].type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
 			break;
 
 		case SKINNY_DEVICETYPE_SPA_502G:
 		case SKINNY_DEVICETYPE_SPA_521S:
 			for (i = 0; i < 1; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_SPA_303G:
 			for (i = 0; i < 3; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_SPA_504G:
 		case SKINNY_DEVICETYPE_SPA_524SG:
 			for (i = 0; i < 4; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_SPA_509G:
 			for (i = 0; i < 12; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
-			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
-			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+			btn[index++].type = SKINNY_BUTTONTYPE_VOICEMAIL;
+			btn[index++].type = SKINNY_BUTTONTYPE_HOLD;
 			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_SPA_525G2:
 			for (i = 0; i < 8; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO6901:
 		case SKINNY_DEVICETYPE_CISCO6911:
 			d->hasDisplayPrompt = sccp_device_falseResult;
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			break;
 		case SKINNY_DEVICETYPE_CISCO6921:
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			for (i = 0; i < 2; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			/*
 			for (i = 0; i < 6; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+				btn[index++].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
-			(btn++)->type = SKINNY_BUTTONTYPE_NONE;
-			(btn++)->type = SKINNY_BUTTONTYPE_PRIVACY;
-			(btn++)->type = SKINNY_BUTTONTYPE_DO_NOT_DISTURB;
-			(btn++)->type = SKINNY_BUTTONTYPE_HLOG;                       // hunt group logout
+			btn[index++].type = SKINNY_BUTTONTYPE_NONE;
+			btn[index++].type = SKINNY_BUTTONTYPE_PRIVACY;
+			btn[index++].type = SKINNY_BUTTONTYPE_DO_NOT_DISTURB;
+			btn[index++].type = SKINNY_BUTTONTYPE_HLOG;                       // hunt group logout
 			*/
 			break;
 		case SKINNY_DEVICETYPE_CISCO6941:
 		case SKINNY_DEVICETYPE_CISCO6945:
 			for (i = 0; i < 4; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			break;
 		case SKINNY_DEVICETYPE_CISCO6961:
 			for (i = 0; i < 12; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				btn[index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			break;
 		default:
 			pbx_log(LOG_WARNING, "Unknown device type '%d' found.\n", d->skinny_type);
 			/* at least one line */
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			btn[index++].type = SCCP_BUTTONTYPE_LINE;
 			break;
 	}
 
 	if (d->skinny_type < 6 || sccp_strcaseequals(d->config_type, "kirk")) {
 		d->hasDisplayPrompt = sccp_device_falseResult;
 	}
+	// fill the rest with abbreviated dial buttons
+	for (i = index; i< StationMaxButtonTemplateSize; i++) {
+		btn[i].type = SCCP_BUTTONTYPE_ABBRDIAL;	
+	}
 
-	return;
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocated '%d' buttons.\n", d->id, index);
+	return index;
 }
 
 /*!

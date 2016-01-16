@@ -3668,12 +3668,17 @@ static const char *skinny_buttontype_map[] = {"Unused",
 "Application",
 "Headset",
 "Keypad",
+"Placeholder Multi",
+"Placeholder Line",
+"Placeholder Speeddial",
+"Placeholder Hint",
+"Placeholder Abbreviated Dial",
 "Aec",
 "Undefined",
 };
 
 int skinny_buttontype_exists(int skinny_buttontype_int_value) {
-	static const int skinny_buttontypes[] = {SKINNY_BUTTONTYPE_UNUSED,SKINNY_BUTTONTYPE_LASTNUMBERREDIAL,SKINNY_BUTTONTYPE_SPEEDDIAL,SKINNY_BUTTONTYPE_HOLD,SKINNY_BUTTONTYPE_TRANSFER,SKINNY_BUTTONTYPE_FORWARDALL,SKINNY_BUTTONTYPE_FORWARDBUSY,SKINNY_BUTTONTYPE_FORWARDNOANSWER,SKINNY_BUTTONTYPE_DISPLAY,SKINNY_BUTTONTYPE_LINE,SKINNY_BUTTONTYPE_T120CHAT,SKINNY_BUTTONTYPE_T120WHITEBOARD,SKINNY_BUTTONTYPE_T120APPLICATIONSHARING,SKINNY_BUTTONTYPE_T120FILETRANSFER,SKINNY_BUTTONTYPE_VIDEO,SKINNY_BUTTONTYPE_VOICEMAIL,SKINNY_BUTTONTYPE_ANSWERRELEASE,SKINNY_BUTTONTYPE_AUTOANSWER,SKINNY_BUTTONTYPE_FEATURE,SKINNY_BUTTONTYPE_SERVICEURL,SKINNY_BUTTONTYPE_BLFSPEEDDIAL,SKINNY_BUTTONTYPE_GENERICAPPB1,SKINNY_BUTTONTYPE_GENERICAPPB2,SKINNY_BUTTONTYPE_GENERICAPPB3,SKINNY_BUTTONTYPE_GENERICAPPB4,SKINNY_BUTTONTYPE_GENERICAPPB5,SKINNY_BUTTONTYPE_MULTIBLINKFEATURE,SKINNY_BUTTONTYPE_MEETMECONFERENCE,SKINNY_BUTTONTYPE_CONFERENCE,SKINNY_BUTTONTYPE_CALLPARK,SKINNY_BUTTONTYPE_CALLPICKUP,SKINNY_BUTTONTYPE_GROUPCALLPICKUP,SKINNY_BUTTONTYPE_MOBILITY,SKINNY_BUTTONTYPE_DO_NOT_DISTURB,SKINNY_BUTTONTYPE_CONF_LIST,SKINNY_BUTTONTYPE_REMOVE_LAST_PARTICIPANT,SKINNY_BUTTONTYPE_QRT,SKINNY_BUTTONTYPE_CALLBACK,SKINNY_BUTTONTYPE_OTHER_PICKUP,SKINNY_BUTTONTYPE_VIDEO_MODE,SKINNY_BUTTONTYPE_NEW_CALL,SKINNY_BUTTONTYPE_END_CALL,SKINNY_BUTTONTYPE_HLOG,SKINNY_BUTTONTYPE_QUEUING,SKINNY_BUTTONTYPE_TESTE,SKINNY_BUTTONTYPE_TESTF,SKINNY_BUTTONTYPE_TESTI,SKINNY_BUTTONTYPE_MESSAGES,SKINNY_BUTTONTYPE_DIRECTORY,SKINNY_BUTTONTYPE_APPLICATION,SKINNY_BUTTONTYPE_HEADSET,SKINNY_BUTTONTYPE_KEYPAD,SKINNY_BUTTONTYPE_AEC,SKINNY_BUTTONTYPE_UNDEFINED,};
+	static const int skinny_buttontypes[] = {SKINNY_BUTTONTYPE_UNUSED,SKINNY_BUTTONTYPE_LASTNUMBERREDIAL,SKINNY_BUTTONTYPE_SPEEDDIAL,SKINNY_BUTTONTYPE_HOLD,SKINNY_BUTTONTYPE_TRANSFER,SKINNY_BUTTONTYPE_FORWARDALL,SKINNY_BUTTONTYPE_FORWARDBUSY,SKINNY_BUTTONTYPE_FORWARDNOANSWER,SKINNY_BUTTONTYPE_DISPLAY,SKINNY_BUTTONTYPE_LINE,SKINNY_BUTTONTYPE_T120CHAT,SKINNY_BUTTONTYPE_T120WHITEBOARD,SKINNY_BUTTONTYPE_T120APPLICATIONSHARING,SKINNY_BUTTONTYPE_T120FILETRANSFER,SKINNY_BUTTONTYPE_VIDEO,SKINNY_BUTTONTYPE_VOICEMAIL,SKINNY_BUTTONTYPE_ANSWERRELEASE,SKINNY_BUTTONTYPE_AUTOANSWER,SKINNY_BUTTONTYPE_FEATURE,SKINNY_BUTTONTYPE_SERVICEURL,SKINNY_BUTTONTYPE_BLFSPEEDDIAL,SKINNY_BUTTONTYPE_GENERICAPPB1,SKINNY_BUTTONTYPE_GENERICAPPB2,SKINNY_BUTTONTYPE_GENERICAPPB3,SKINNY_BUTTONTYPE_GENERICAPPB4,SKINNY_BUTTONTYPE_GENERICAPPB5,SKINNY_BUTTONTYPE_MULTIBLINKFEATURE,SKINNY_BUTTONTYPE_MEETMECONFERENCE,SKINNY_BUTTONTYPE_CONFERENCE,SKINNY_BUTTONTYPE_CALLPARK,SKINNY_BUTTONTYPE_CALLPICKUP,SKINNY_BUTTONTYPE_GROUPCALLPICKUP,SKINNY_BUTTONTYPE_MOBILITY,SKINNY_BUTTONTYPE_DO_NOT_DISTURB,SKINNY_BUTTONTYPE_CONF_LIST,SKINNY_BUTTONTYPE_REMOVE_LAST_PARTICIPANT,SKINNY_BUTTONTYPE_QRT,SKINNY_BUTTONTYPE_CALLBACK,SKINNY_BUTTONTYPE_OTHER_PICKUP,SKINNY_BUTTONTYPE_VIDEO_MODE,SKINNY_BUTTONTYPE_NEW_CALL,SKINNY_BUTTONTYPE_END_CALL,SKINNY_BUTTONTYPE_HLOG,SKINNY_BUTTONTYPE_QUEUING,SKINNY_BUTTONTYPE_TESTE,SKINNY_BUTTONTYPE_TESTF,SKINNY_BUTTONTYPE_TESTI,SKINNY_BUTTONTYPE_MESSAGES,SKINNY_BUTTONTYPE_DIRECTORY,SKINNY_BUTTONTYPE_APPLICATION,SKINNY_BUTTONTYPE_HEADSET,SKINNY_BUTTONTYPE_KEYPAD,SKINNY_BUTTONTYPE_PLACEHOLDER_MULTI,SKINNY_BUTTONTYPE_PLACEHOLDER_LINE,SKINNY_BUTTONTYPE_PLACEHOLDER_SPEEDIAL,SKINNY_BUTTONTYPE_PLACEHOLDER_HINT,SKINNY_BUTTONTYPE_PLACEHOLDER_ABBRDIAL,SKINNY_BUTTONTYPE_AEC,SKINNY_BUTTONTYPE_UNDEFINED,};
 	uint32_t idx;
 	for (idx=0; idx < ARRAY_LEN(skinny_buttontypes); idx++) {
 		if (skinny_buttontypes[idx]==skinny_buttontype_int_value) {
@@ -3737,8 +3742,13 @@ const char * skinny_buttontype2str(skinny_buttontype_t enum_value) {
 		case SKINNY_BUTTONTYPE_APPLICATION: return skinny_buttontype_map[49];
 		case SKINNY_BUTTONTYPE_HEADSET: return skinny_buttontype_map[50];
 		case SKINNY_BUTTONTYPE_KEYPAD: return skinny_buttontype_map[51];
-		case SKINNY_BUTTONTYPE_AEC: return skinny_buttontype_map[52];
-		case SKINNY_BUTTONTYPE_UNDEFINED: return skinny_buttontype_map[53];
+		case SKINNY_BUTTONTYPE_PLACEHOLDER_MULTI: return skinny_buttontype_map[52];
+		case SKINNY_BUTTONTYPE_PLACEHOLDER_LINE: return skinny_buttontype_map[53];
+		case SKINNY_BUTTONTYPE_PLACEHOLDER_SPEEDIAL: return skinny_buttontype_map[54];
+		case SKINNY_BUTTONTYPE_PLACEHOLDER_HINT: return skinny_buttontype_map[55];
+		case SKINNY_BUTTONTYPE_PLACEHOLDER_ABBRDIAL: return skinny_buttontype_map[56];
+		case SKINNY_BUTTONTYPE_AEC: return skinny_buttontype_map[57];
+		case SKINNY_BUTTONTYPE_UNDEFINED: return skinny_buttontype_map[58];
 		default:
 			pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __skinny_buttontype_str);
 			return "OutOfBounds: sparse skinny_buttontype2str\n";
@@ -3851,8 +3861,18 @@ skinny_buttontype_t skinny_buttontype_str2val(const char *lookup_str) {
 	} else if (sccp_strcaseequals(skinny_buttontype_map[51], lookup_str)) {
 		return SKINNY_BUTTONTYPE_KEYPAD;
 	} else if (sccp_strcaseequals(skinny_buttontype_map[52], lookup_str)) {
-		return SKINNY_BUTTONTYPE_AEC;
+		return SKINNY_BUTTONTYPE_PLACEHOLDER_MULTI;
 	} else if (sccp_strcaseequals(skinny_buttontype_map[53], lookup_str)) {
+		return SKINNY_BUTTONTYPE_PLACEHOLDER_LINE;
+	} else if (sccp_strcaseequals(skinny_buttontype_map[54], lookup_str)) {
+		return SKINNY_BUTTONTYPE_PLACEHOLDER_SPEEDIAL;
+	} else if (sccp_strcaseequals(skinny_buttontype_map[55], lookup_str)) {
+		return SKINNY_BUTTONTYPE_PLACEHOLDER_HINT;
+	} else if (sccp_strcaseequals(skinny_buttontype_map[56], lookup_str)) {
+		return SKINNY_BUTTONTYPE_PLACEHOLDER_ABBRDIAL;
+	} else if (sccp_strcaseequals(skinny_buttontype_map[57], lookup_str)) {
+		return SKINNY_BUTTONTYPE_AEC;
+	} else if (sccp_strcaseequals(skinny_buttontype_map[58], lookup_str)) {
 		return SKINNY_BUTTONTYPE_UNDEFINED;
 	}
 	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_buttontype_str, lookup_str);
@@ -3865,7 +3885,7 @@ uint32_t skinny_buttontype_str2intval(const char *lookup_str) {
 }
 
 const char *skinny_buttontype_all_entries(void) {
-	static char res[] = "Unused,Last Number Redial,SpeedDial,Hold,Transfer,Forward All,Forward Busy,Forward No Answer,Display,Line,T120 Chat,T120 Whiteboard,T120 Application Sharing,T120 File Transfer,Video,Voicemail,Answer Release,Auto Answer,Feature,ServiceURL,BusyLampField Speeddial,Generic App B1,Generic App B2,Generic App B3,Generic App B4,Generic App B5,Monitor/Multiblink,Meet Me Conference,Conference,Call Park,Call Pickup,Group Call Pickup,Mobility,DoNotDisturb,ConfList,RemoveLastParticipant,QRT,CallBack,OtherPickup,VideoMode,NewCall,EndCall,HLog,Queuing,Test E,Test F,Test I,Messages,Directory,Application,Headset,Keypad,Aec,Undefined";
+	static char res[] = "Unused,Last Number Redial,SpeedDial,Hold,Transfer,Forward All,Forward Busy,Forward No Answer,Display,Line,T120 Chat,T120 Whiteboard,T120 Application Sharing,T120 File Transfer,Video,Voicemail,Answer Release,Auto Answer,Feature,ServiceURL,BusyLampField Speeddial,Generic App B1,Generic App B2,Generic App B3,Generic App B4,Generic App B5,Monitor/Multiblink,Meet Me Conference,Conference,Call Park,Call Pickup,Group Call Pickup,Mobility,DoNotDisturb,ConfList,RemoveLastParticipant,QRT,CallBack,OtherPickup,VideoMode,NewCall,EndCall,HLog,Queuing,Test E,Test F,Test I,Messages,Directory,Application,Headset,Keypad,Placeholder Multi,Placeholder Line,Placeholder Speeddial,Placeholder Hint,Placeholder Abbreviated Dial,Aec,Undefined";
 	return res;
 }
 /* = End =========================================================================================       sparse skinny_buttontype === */
