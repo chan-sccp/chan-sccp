@@ -1158,7 +1158,7 @@ gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel)
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
 
 	if (c && c->scheduler.digittimeout_id > -1 && iPbx.sched_wait(channel->scheduler.digittimeout_id) > 0) {
-		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: stop schedule digittimeout %d\n", c->designator, c->scheduler.digittimeout_id);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: stop schedule digittimeout %d\n", c->designator, c->scheduler.digittimeout_id);
 		iPbx.sched_del_ref(&c->scheduler.digittimeout_id, c);
 	}
 }
@@ -1205,7 +1205,7 @@ void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel)
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
 	if (c) {
 		ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock);
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks\n", c->designator);
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks (digittimeout_id:%d) (hangup_id:%d)\n", c->designator, c->scheduler.digittimeout_id, c->scheduler.hangup_id);
 		if (c->scheduler.digittimeout_id > -1) {
 			iPbx.sched_del_ref(&c->scheduler.digittimeout_id, c);
 		}
@@ -1231,7 +1231,9 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
 		channel->line->statistic.numberOfHeldChannels--;
 	}
-	sccp_channel_stop_and_deny_scheduled_tasks(channel);
+	if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
+		sccp_channel_stop_and_deny_scheduled_tasks(channel);
+	}
 	/* end all call forwarded channels (our children) */
 	sccp_channel_end_forwarding_channel(channel);
 
@@ -1827,7 +1829,9 @@ void sccp_channel_clean(sccp_channel_t * channel)
 	// l = channel->line;
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Cleaning channel %08x\n", channel->callid);
 
-	sccp_channel_stop_and_deny_scheduled_tasks(channel);
+	if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
+		sccp_channel_stop_and_deny_scheduled_tasks(channel);
+	}
 
 	/* mark the channel DOWN so any pending thread will terminate */
 	if (channel->owner) {

@@ -414,7 +414,9 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t * c)
 		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
 		pbx_channel_unlock(channel->owner);
 
-		sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
+			sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		}
 
 		/* let's wait for a bit, for the dust to settle */
 		sched_yield();
@@ -454,7 +456,9 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t * c)
 	if (channel) {
 		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
 
-		sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
+			sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		}
 
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
 		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
@@ -480,7 +484,9 @@ boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t * c)
 	if (channel) {
 		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
 
-		sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
+			sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		}
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
 
 		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
