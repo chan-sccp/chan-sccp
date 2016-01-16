@@ -1145,7 +1145,7 @@ static int _sccp_channel_sched_endcall(const void *data)
 			sccp_channel_stop_and_deny_scheduled_tasks(channel);
 			sccp_channel_endcall(channel);
 		}
-		sccp_channel_release(channel);										/* explicit release of the ref taken when creating the scheduled hangup */
+		sccp_channel_release(data);											/* explicit release of the ref taken when creating the scheduled hangup */
 	}
 	return 0;
 }
