@@ -992,7 +992,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
  */
 int sccp_pbx_sched_dial(const void * data)
 {
-	AUTO_RELEASE sccp_channel_t * c = (sccp_channel_t *) data;							// channel already retained in data, unlocked at end of sched_replace_ref
+	sccp_channel_t * c = (sccp_channel_t *) data;							// channel already retained in data, unlocked at end of sched_replace_ref
 	if (c) {
 		c->scheduler.digittimeout_id = -3;
 		if (c->scheduler.hangup_id == -1) {
