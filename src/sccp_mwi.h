@@ -37,5 +37,6 @@ void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stas
 #else
 int sccp_mwi_checksubscription(const void *ptr);
 #endif
+void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice);
 int sccp_show_mwi_subscriptions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
