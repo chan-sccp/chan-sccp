@@ -924,6 +924,9 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			d->pushTextMessage = sccp_device_pushTextMessage;
 			d->pushURL = sccp_device_pushURL;
 			d->hasEnhancedIconMenuSupport = sccp_device_trueResult;
+			d->setBackgroundImage = sccp_device_setBackgroundImage;
+			d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreview;
+			d->setRingTone = sccp_device_setRingtone;
 
 			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
