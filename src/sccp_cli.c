@@ -770,7 +770,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s", skinny_registrationstate2str(sccp_device_getRegistrationState(d)));
 	CLI_AMI_OUTPUT_PARAM("State",			CLI_AMI_LIST_WIDTH, "%s", sccp_devicestate2str(sccp_device_getDeviceState(d)));
 	CLI_AMI_OUTPUT_PARAM("MWI light",		CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_lampmode2str(d->mwilamp), d->mwilamp);
-	CLI_AMI_OUTPUT_PARAM("MWI handset light", 	CLI_AMI_LIST_WIDTH, "%s (%d)", sccp_dec2binstr(binstr, 32, d->mwilight), d->mwilight);
+	CLI_AMI_OUTPUT_PARAM("MWI handset light", 	CLI_AMI_LIST_WIDTH, "%s", sccp_dec2binstr(binstr, 64, d->mwilight));
 	CLI_AMI_OUTPUT_PARAM("MWI During call",		CLI_AMI_LIST_WIDTH, "%s", d->mwioncall ? "keep on" : "turn off");
 	CLI_AMI_OUTPUT_PARAM("Description",		CLI_AMI_LIST_WIDTH, "%s", d->description ? d->description : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Config Phone Type",	CLI_AMI_LIST_WIDTH, "%s", d->config_type);

@@ -1217,7 +1217,6 @@ void sccp_dev_sendmsg(constDevicePtr d, sccp_mid_t t)
 void sccp_dev_set_registered(devicePtr d, skinny_registrationstate_t state)
 {
 	sccp_event_t event = {{{ 0 }}};
-	sccp_msg_t *msg = NULL;
 
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (sccp_dev_set_registered) Setting Registered Status for Device from %s to %s\n", DEV_ID_LOG(d), skinny_registrationstate2str(sccp_device_getRegistrationState(d)), skinny_registrationstate2str(state));
 
@@ -1227,16 +1226,6 @@ void sccp_dev_set_registered(devicePtr d, skinny_registrationstate_t state)
 
 	/* Handle registration completion. */
 	if (state == SKINNY_DEVICE_RS_OK) {
-		/* this message is mandatory to finish process */
-		REQ(msg, SetLampMessage);
-
-		if (msg) {
-			msg->data.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-			msg->data.SetLampMessage.lel_stimulusInstance = 0;
-			msg->data.SetLampMessage.lel_lampMode = (d->mwilight & ~(1 << 0)) ? htolel(d->mwilamp) : htolel(SKINNY_LAMP_OFF);
-			// d->mwilight &= ~(1 << 0);
-			sccp_dev_send(d, msg);
-		}
 		if (!d->linesRegistered) {
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(d));
 			sccp_handle_AvailableLines(d->session, d, NULL);
@@ -2119,6 +2108,15 @@ void sccp_dev_postregistration(void *data)
 
 	sccp_dev_check_displayprompt(d);
 
+	d->mwilight = 0;
+	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
+		if (d->lineButtons.instance[instance]) {
+			AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_retain(d->lineButtons.instance[instance]);
+			if (linedevice) {
+				sccp_mwi_setMWILineStatus(linedevice);
+			}
+		}
+	}
 	sccp_mwi_check(d);
 
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
@@ -2279,7 +2277,6 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 		/* cleanup statistics */
 		memset(&d->configurationStatistic, 0, sizeof(d->configurationStatistic));
 
-		d->mwilight = 0;										/* cleanup mwi status */
 		d->status.token = SCCP_TOKEN_STATE_NOTOKEN;
 		d->registrationTime = time(0);
 
