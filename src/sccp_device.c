@@ -881,7 +881,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			break;
 		case SKINNY_DEVICETYPE_CISCO7931:
 			for (i = 0; i < 20; i++) {
-				btn[i].type = SCCP_BUTTONTYPE_MULTI;
+				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			btn[20].type = SKINNY_BUTTONTYPE_MESSAGES;
 			btn[20].instance = 21;
