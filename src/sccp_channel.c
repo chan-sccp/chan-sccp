@@ -1134,10 +1134,6 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t * orig_channel)
 static int _sccp_channel_sched_endcall(const void *data)
 {
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
-	if (!data) {
-		return -1;
-	}
-
 	if ((channel = sccp_channel_retain(data))) {
 		channel->scheduler.hangup_id = -3;
 		sccp_log(DEBUGCAT_CHANNEL) ("%s: Scheduled Hangup\n", channel->designator);
@@ -1145,9 +1141,9 @@ static int _sccp_channel_sched_endcall(const void *data)
 			sccp_channel_stop_and_deny_scheduled_tasks(channel);
 			sccp_channel_endcall(channel);
 		}
-		sccp_channel_release(data);											/* explicit release of the ref taken when creating the scheduled hangup */
+		sccp_channel_release(data);			// release channel retained in scheduled event
 	}
-	return 0;
+	return 0;						// return 0 to release schedule
 }
 
 /* 

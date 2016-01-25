@@ -992,23 +992,22 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
  */
 int sccp_pbx_sched_dial(const void * data)
 {
-	sccp_channel_t * c = (sccp_channel_t *) data;							// channel already retained in data, unlocked at end of sched_replace_ref
-	if (c) {
-		c->scheduler.digittimeout_id = -3;
-		if (c->scheduler.hangup_id == -1) {
-			if (c->owner && !iPbx.getChannelPbx(c) && !sccp_strlen_zero(c->dialedNumber)) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%s'. Going to dial '%s'\n", c->designator, c->dialedNumber);
-				sccp_pbx_softswitch(c);
-				return 0;
+	AUTO_RELEASE sccp_channel_t *channel = NULL;
+	if ((channel = sccp_channel_retain(data))) {
+		if ((ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) && channel->scheduler.hangup_id == -1) {
+			channel->scheduler.digittimeout_id = -3;	/* prevent further digittimeout scheduling */
+			if (channel->owner && !iPbx.getChannelPbx(channel) && !sccp_strlen_zero(channel->dialedNumber)) {
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%s'. Going to dial '%s'\n", channel->designator, channel->dialedNumber);
+				sccp_pbx_softswitch(channel);
+			} else {
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%s'. Nothing to dial -> INVALIDNUMBER\n", channel->designator);
+				channel->dialedNumber[0] = '\0';
+				sccp_indicate(NULL, channel, SCCP_CHANNELSTATE_INVALIDNUMBER);
 			}
-			// fall through
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%s'. Nothing to dial -> INVALIDNUMBER\n", c->designator);
-			c->dialedNumber[0] = '\0';
-			sccp_indicate(NULL, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
-			sccp_channel_release(c);
 		}
+		sccp_channel_release(data);			// release channel retained in scheduled event
 	}
-	return -1;
+	return 0;						// return 0 to release schedule
 }
 
 /*!
