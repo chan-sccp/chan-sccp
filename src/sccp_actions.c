@@ -235,10 +235,22 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Device Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, skinny_devicetype2str(deviceType), deviceType);
 
 	{
-		// Search for already known device-sessions
+		// Search for already known device->sessions
 		AUTO_RELEASE sccp_device_t *tmpdevice = sccp_device_find_byid(deviceName, TRUE);
-		if (sccp_session_check_crossdevice(s, tmpdevice)) {
-			return;
+		if (tmpdevice) {
+			skinny_registrationstate_t state = sccp_device_getRegistrationState(tmpdevice);
+			if (sccp_session_check_crossdevice(s, tmpdevice)) {
+				return;
+			}
+			if ((state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
+				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
+				sccp_session_tokenReject(s, 60);
+				return;
+			}
+			if (state == SKINNY_DEVICE_RS_TOKEN) {
+				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
+				return;
+			}
 		}
 	}
 
@@ -272,7 +284,7 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getSas(s, &sas);
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&sas));
-	sccp_device_setRegistrationState(	device, SKINNY_DEVICE_RS_FAILED);
+		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 		sccp_session_reject(s, "IP Not Authorized");
 		return;
 	}
@@ -406,8 +418,20 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 	{
 		// Search for already known device-sessions
 		AUTO_RELEASE sccp_device_t *tmpdevice = sccp_device_find_byid(deviceName, TRUE);
-		if (sccp_session_check_crossdevice(s, tmpdevice)) {
-			return;
+		if (tmpdevice) {
+			skinny_registrationstate_t state = sccp_device_getRegistrationState(tmpdevice);
+			if (sccp_session_check_crossdevice(s, tmpdevice)) {
+				return;
+			}
+			if ((state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
+				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
+				sccp_session_tokenRejectSPCP(s, 60);
+				return;
+			}
+			if (state == SKINNY_DEVICE_RS_TOKEN) {
+				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
+				return;
+			}
 		}
 	}
 
@@ -516,10 +540,19 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 		device = sccp_device_retain(maybe_d);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: cached device configuration (state: %s)\n", DEV_ID_LOG(device), device ? skinny_registrationstate2str(sccp_device_getRegistrationState(device)) : "UNKNOWN");
 	}
-
-	if (sccp_session_check_crossdevice(s, device)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration (state: %s)! Fixing up to new session\n", DEV_ID_LOG(device), skinny_registrationstate2str(sccp_device_getRegistrationState(device)));
-		return;												// come back later
+	if (device) {
+		skinny_registrationstate_t state = sccp_device_getRegistrationState(device);
+		if (sccp_session_check_crossdevice(s, device)) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration (state: %s)! Fixing up to new session\n", DEV_ID_LOG(device), skinny_registrationstate2str(sccp_device_getRegistrationState(device)));
+			return;
+		}
+		if (	state == SKINNY_DEVICE_RS_PROGRESS || state == SKINNY_DEVICE_RS_OK || 
+			state == SKINNY_DEVICE_RS_TIMEOUT || state == SKINNY_DEVICE_RS_CLEANING || 
+			(state == SKINNY_DEVICE_RS_TOKEN && time(0) - device->registrationTime > 60)) {
+			pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
+			sccp_session_reject(s, "Cleaning previous session, come back later");
+			return;
+		}
 	}
 
 	/*! \todo We need a fix here. If deviceName was provided and specified in sccp.conf we should not continue to anonymous,

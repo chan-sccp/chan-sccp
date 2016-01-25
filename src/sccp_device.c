@@ -2200,7 +2200,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 
 	if (d) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "SCCP: Clean Device %s\n", d->id);
-		sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);						/* set correct register state */
+		sccp_dev_set_registered(d, SKINNY_DEVICE_RS_CLEANING);						/* set correct register state */
 		if (remove_from_global) {
 			sccp_device_removeFromGlobals(d);
 		}
