@@ -1005,6 +1005,7 @@ int sccp_pbx_sched_dial(const void * data)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%s'. Nothing to dial -> INVALIDNUMBER\n", c->designator);
 			c->dialedNumber[0] = '\0';
 			sccp_indicate(NULL, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
+			sccp_channel_release(c);
 		}
 	}
 	return -1;
