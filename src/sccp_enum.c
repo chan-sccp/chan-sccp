@@ -3233,6 +3233,7 @@ static const char *__skinny_registrationstate_str = "skinny_registrationstate";
 static const char *skinny_registrationstate_map[] = {
 	[SKINNY_DEVICE_RS_FAILED] = "Failed",
 	[SKINNY_DEVICE_RS_TIMEOUT] = "Time Out",
+	[SKINNY_DEVICE_RS_CLEANING] = "Cleaning",
 	[SKINNY_DEVICE_RS_NONE] = "None",
 	[SKINNY_DEVICE_RS_TOKEN] = "Token",
 	[SKINNY_DEVICE_RS_PROGRESS] = "Progress",
@@ -3272,7 +3273,7 @@ uint32_t skinny_registrationstate_str2intval(const char *lookup_str) {
 }
 
 const char *skinny_registrationstate_all_entries(void) {
-	static char res[] = "Failed,Time Out,None,Token,Progress,OK";
+	static char res[] = "Failed,Time Out,Cleaning,None,Token,Progress,OK";
 	return res;
 }
 /* = End =========================================================================================       skinny_registrationstate === */

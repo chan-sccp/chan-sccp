@@ -618,6 +618,7 @@ enum keymode {
 enum registrationstate {
 	SKINNY_DEVICE_RS_FAILED,			,	"Failed",
 	SKINNY_DEVICE_RS_TIMEOUT,			,	"Time Out",
+	SKINNY_DEVICE_RS_CLEANING,			,	"Cleaning", 
 	SKINNY_DEVICE_RS_NONE,				,	"None",
 	SKINNY_DEVICE_RS_TOKEN,				,	"Token",
 	SKINNY_DEVICE_RS_PROGRESS,			,	"Progress",

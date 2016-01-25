@@ -1165,6 +1165,7 @@ const char *skinny_keymode_all_entries(void);
 typedef enum skinny_registrationstate {
 	SKINNY_DEVICE_RS_FAILED,
 	SKINNY_DEVICE_RS_TIMEOUT,
+	SKINNY_DEVICE_RS_CLEANING,
 	SKINNY_DEVICE_RS_NONE,
 	SKINNY_DEVICE_RS_TOKEN,
 	SKINNY_DEVICE_RS_PROGRESS,
