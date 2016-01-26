@@ -157,7 +157,13 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
 			if (allowASyncExecution) {
 				size = subscriptions[i].aSyncSize;
 				if (size) {
-					subscriptions[i].async = (sccp_event_subscriber_t *) sccp_realloc(subscriptions[i].async, (size + 1) * sizeof(sccp_event_subscriber_t));
+					sccp_event_subscriber_t *tmp;
+					tmp = (sccp_event_subscriber_t *) sccp_realloc(subscriptions[i].async, (size + 1) * sizeof(sccp_event_subscriber_t));
+					if (!tmp) {
+						pbx_log(LOG_ERROR, "SCCP: (sccp_event_subscribe) memory allocation error, skipping async subscription\n");
+						return;
+					}
+					subscriptions[i].async = tmp;
 				}
 				subscriptions[i].async[size].callback_function = cb;
 				subscriptions[i].async[size].eventType = eventType;
@@ -165,7 +171,13 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
 			} else {
 				size = subscriptions[i].syncSize;
 				if (size) {
-					subscriptions[i].sync = (sccp_event_subscriber_t *) sccp_realloc(subscriptions[i].async, (size + 1) * sizeof(sccp_event_subscriber_t));
+					sccp_event_subscriber_t *tmp;
+					tmp = (sccp_event_subscriber_t *) sccp_realloc(subscriptions[i].async, (size + 1) * sizeof(sccp_event_subscriber_t));
+					if (!tmp) {
+						pbx_log(LOG_ERROR, "SCCP: (sccp_event_subscribe) memory allocation error, skipping sync subscription\n");
+						return;
+					}
+					subscriptions[i].sync = tmp;
 				}
 				subscriptions[i].sync[size].callback_function = cb;
 				subscriptions[i].sync[size].eventType = eventType;
