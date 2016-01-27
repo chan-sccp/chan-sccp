@@ -457,7 +457,9 @@ int load_config(void)
 	memset(&GLOB(bindaddr), 0, sizeof(GLOB(bindaddr)));
 	GLOB(allowAnonymous) = TRUE;
 
-#if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
+#if defined(SCCP_LITTLE_ENDIAN) && defined(SCCP_BIG_ENDIAN)
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Platform byte order   : LITTLE/BIG ENDIAN\n");
+#elif defined(SCCP_LITTLE_ENDIAN)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Platform byte order   : LITTLE ENDIAN\n");
 #else
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Platform byte order   : BIG ENDIAN\n");
