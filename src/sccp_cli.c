@@ -493,7 +493,9 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 		local_line_total++;
 	}
 	CLI_AMI_OUTPUT_PARAM("Config File", CLI_AMI_LIST_WIDTH, "%s", GLOB(config_file_name));
-#if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
+#if defined(SCCP_LITTLE_ENDIAN) && defined(SCCP_BIG_ENDIAN)
+	CLI_AMI_OUTPUT_PARAM("Platform byte order", CLI_AMI_LIST_WIDTH, "%s", "LITTLE/BIG ENDIAN");
+#elif defined(SCCP_LITTLE_ENDIAN)
 	CLI_AMI_OUTPUT_PARAM("Platform byte order", CLI_AMI_LIST_WIDTH, "%s", "LITTLE ENDIAN");
 #else
 	CLI_AMI_OUTPUT_PARAM("Platform byte order", CLI_AMI_LIST_WIDTH, "%s", "BIG ENDIAN");
