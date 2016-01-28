@@ -20,7 +20,7 @@
 #include "sccp_utils.h"
 #include "sccp_socket.h"
 
-#if HAVE_ICONV_H
+#if HAVE_ICONV
 #include <iconv.h>
 #endif
 
@@ -2180,18 +2180,39 @@ char *sccp_trimwhitespace(char *str)
 	return str;
 }
 
-#if HAVE_ICONV_H
-gcc_inline boolean_t sccp_utils_convUtf8toLatin1(const char *utf8str, char *buf, size_t len) {
-	iconv_t cd;
+#if HAVE_ICONV
+static iconv_t __sccp_iconv = (iconv_t) -1;
+static sccp_mutex_t __iconv_lock;
+
+static void __attribute__((constructor)) __start_iconv(void)
+{
+	__sccp_iconv = iconv_open("ISO8859-1", "UTF-8");
+	if (__sccp_iconv == (iconv_t) -1) {
+		pbx_log(LOG_ERROR, "SCCP:conversion from 'UTF-8' to 'ISO8859-1' not available.\n");
+	}
+	pbx_mutex_init_notracking(&__iconv_lock);
+}
+
+static void __attribute__((destructor)) __stop_iconv(void)
+{
+	if (__sccp_iconv) {
+		pbx_mutex_destroy(&__iconv_lock);
+		iconv_close(__sccp_iconv);
+	}
+}
+
+gcc_inline boolean_t sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char *buf, size_t len) 
+{
+	if (__sccp_iconv == (iconv_t) -1) {
+		// fallback to plain string copy
+		sccp_copy_string(buf, utf8str, len);
+		return TRUE;
+	}
 	size_t incount, outcount = len;
 	incount = sccp_strlen(utf8str);
 	if (incount) {
-		cd = iconv_open("ISO8859-1", "UTF-8");
-		if (cd == (iconv_t) -1) {
-			pbx_log(LOG_ERROR, "conversion from 'UTF-8' to 'ISO8859-1' not available.\n");
-			return FALSE;
-		}
-		if (iconv(cd, (void *) &utf8str, &incount, &buf, &outcount) == (size_t) -1) {
+		pbx_mutex_lock(&__iconv_lock);
+		if (iconv(__sccp_iconv, &utf8str, &incount, &buf, &outcount) == (size_t) -1) {
 			if (errno == E2BIG)
 				pbx_log(LOG_WARNING, "SCCP: Iconv: output buffer too small.\n");
 			else if (errno == EILSEQ)
@@ -2201,7 +2222,7 @@ gcc_inline boolean_t sccp_utils_convUtf8toLatin1(const char *utf8str, char *buf,
 			else
 				pbx_log(LOG_WARNING,  "SCCP: Iconv: error %d: %s.\n", errno, strerror(errno));
 		}
-		iconv_close(cd);
+		pbx_mutex_unlock(&__iconv_lock);
 	}
 	return TRUE;
 }

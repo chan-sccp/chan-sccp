@@ -20,903 +20,1397 @@ You have another version of autoconf.  It may work, but is not guaranteed to.
 If you have problems, you may need to regenerate the build system entirely.
 To do so, use the procedure documented by the package, typically 'autoreconf'.])])
 
-# Portability macros for glibc argz.                    -*- Autoconf -*-
-#
-#   Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
-#   Written by Gary V. Vaughan <gary@gnu.org>
-#
-# This file is free software; the Free Software Foundation gives
-# unlimited permission to copy and/or distribute it, with or without
-# modifications, as long as this notice is preserved.
+# iconv.m4 serial 18 (gettext-0.18.2)
+dnl Copyright (C) 2000-2002, 2007-2013 Free Software Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
 
-# serial 5 argz.m4
+dnl From Bruno Haible.
 
-AC_DEFUN([gl_FUNC_ARGZ],
-[gl_PREREQ_ARGZ
+AC_DEFUN([AM_ICONV_LINKFLAGS_BODY],
+[
+  dnl Prerequisites of AC_LIB_LINKFLAGS_BODY.
+  AC_REQUIRE([AC_LIB_PREPARE_PREFIX])
+  AC_REQUIRE([AC_LIB_RPATH])
 
-AC_CHECK_HEADERS([argz.h], [], [], [AC_INCLUDES_DEFAULT])
-
-AC_CHECK_TYPES([error_t],
-  [],
-  [AC_DEFINE([error_t], [int],
-   [Define to a type to use for `error_t' if it is not otherwise available.])
-   AC_DEFINE([__error_t_defined], [1], [Define so that glibc/gnulib argp.h
-    does not typedef error_t.])],
-  [#if defined(HAVE_ARGZ_H)
-#  include <argz.h>
-#endif])
-
-ARGZ_H=
-AC_CHECK_FUNCS([argz_add argz_append argz_count argz_create_sep argz_insert \
-	argz_next argz_stringify], [], [ARGZ_H=argz.h; AC_LIBOBJ([argz])])
-
-dnl if have system argz functions, allow forced use of
-dnl libltdl-supplied implementation (and default to do so
-dnl on "known bad" systems). Could use a runtime check, but
-dnl (a) detecting malloc issues is notoriously unreliable
-dnl (b) only known system that declares argz functions,
-dnl     provides them, yet they are broken, is cygwin
-dnl     releases prior to 16-Mar-2007 (1.5.24 and earlier)
-dnl So, it's more straightforward simply to special case
-dnl this for known bad systems.
-AS_IF([test -z "$ARGZ_H"],
-    [AC_CACHE_CHECK(
-        [if argz actually works],
-        [lt_cv_sys_argz_works],
-        [[case $host_os in #(
-	 *cygwin*)
-	   lt_cv_sys_argz_works=no
-	   if test "$cross_compiling" != no; then
-	     lt_cv_sys_argz_works="guessing no"
-	   else
-	     lt_sed_extract_leading_digits='s/^\([0-9\.]*\).*/\1/'
-	     save_IFS=$IFS
-	     IFS=-.
-	     set x `uname -r | sed -e "$lt_sed_extract_leading_digits"`
-	     IFS=$save_IFS
-	     lt_os_major=${2-0}
-	     lt_os_minor=${3-0}
-	     lt_os_micro=${4-0}
-	     if test "$lt_os_major" -gt 1 \
-		|| { test "$lt_os_major" -eq 1 \
-		  && { test "$lt_os_minor" -gt 5 \
-		    || { test "$lt_os_minor" -eq 5 \
-		      && test "$lt_os_micro" -gt 24; }; }; }; then
-	       lt_cv_sys_argz_works=yes
-	     fi
-	   fi
-	   ;; #(
-	 *) lt_cv_sys_argz_works=yes ;;
-	 esac]])
-     AS_IF([test "$lt_cv_sys_argz_works" = yes],
-        [AC_DEFINE([HAVE_WORKING_ARGZ], 1,
-                   [This value is set to 1 to indicate that the system argz facility works])],
-        [ARGZ_H=argz.h
-        AC_LIBOBJ([argz])])])
-
-AC_SUBST([ARGZ_H])
+  dnl Search for libiconv and define LIBICONV, LTLIBICONV and INCICONV
+  dnl accordingly.
+  AC_LIB_LINKFLAGS_BODY([iconv])
 ])
 
-# Prerequisites of lib/argz.c.
-AC_DEFUN([gl_PREREQ_ARGZ], [:])
+AC_DEFUN([AM_ICONV_LINK],
+[
+  dnl Some systems have iconv in libc, some have it in libiconv (OSF/1 and
+  dnl those with the standalone portable GNU libiconv installed).
+  AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
 
-# ltdl.m4 - Configure ltdl for the target system. -*-Autoconf-*-
-#
-#   Copyright (C) 1999-2006, 2007, 2008, 2011 Free Software Foundation, Inc.
-#   Written by Thomas Tanner, 1999
-#
-# This file is free software; the Free Software Foundation gives
-# unlimited permission to copy and/or distribute it, with or without
-# modifications, as long as this notice is preserved.
+  dnl Search for libiconv and define LIBICONV, LTLIBICONV and INCICONV
+  dnl accordingly.
+  AC_REQUIRE([AM_ICONV_LINKFLAGS_BODY])
 
-# serial 18 LTDL_INIT
+  dnl Add $INCICONV to CPPFLAGS before performing the following checks,
+  dnl because if the user has installed libiconv and not disabled its use
+  dnl via --without-libiconv-prefix, he wants to use it. The first
+  dnl AC_LINK_IFELSE will then fail, the second AC_LINK_IFELSE will succeed.
+  am_save_CPPFLAGS="$CPPFLAGS"
+  AC_LIB_APPENDTOVAR([CPPFLAGS], [$INCICONV])
 
-# LT_CONFIG_LTDL_DIR(DIRECTORY, [LTDL-MODE])
-# ------------------------------------------
-# DIRECTORY contains the libltdl sources.  It is okay to call this
-# function multiple times, as long as the same DIRECTORY is always given.
-AC_DEFUN([LT_CONFIG_LTDL_DIR],
-[AC_BEFORE([$0], [LTDL_INIT])
-_$0($*)
-])# LT_CONFIG_LTDL_DIR
-
-# We break this out into a separate macro, so that we can call it safely
-# internally without being caught accidentally by the sed scan in libtoolize.
-m4_defun([_LT_CONFIG_LTDL_DIR],
-[dnl remove trailing slashes
-m4_pushdef([_ARG_DIR], m4_bpatsubst([$1], [/*$]))
-m4_case(_LTDL_DIR,
-	[], [dnl only set lt_ltdl_dir if _ARG_DIR is not simply `.'
-	     m4_if(_ARG_DIR, [.],
-	             [],
-		 [m4_define([_LTDL_DIR], _ARG_DIR)
-	          _LT_SHELL_INIT([lt_ltdl_dir=']_ARG_DIR['])])],
-    [m4_if(_ARG_DIR, _LTDL_DIR,
-	    [],
-	[m4_fatal([multiple libltdl directories: `]_LTDL_DIR[', `]_ARG_DIR['])])])
-m4_popdef([_ARG_DIR])
-])# _LT_CONFIG_LTDL_DIR
-
-# Initialise:
-m4_define([_LTDL_DIR], [])
-
-
-# _LT_BUILD_PREFIX
-# ----------------
-# If Autoconf is new enough, expand to `${top_build_prefix}', otherwise
-# to `${top_builddir}/'.
-m4_define([_LT_BUILD_PREFIX],
-[m4_ifdef([AC_AUTOCONF_VERSION],
-   [m4_if(m4_version_compare(m4_defn([AC_AUTOCONF_VERSION]), [2.62]),
-	  [-1], [m4_ifdef([_AC_HAVE_TOP_BUILD_PREFIX],
-			  [${top_build_prefix}],
-			  [${top_builddir}/])],
-	  [${top_build_prefix}])],
-   [${top_builddir}/])[]dnl
-])
-
-
-# LTDL_CONVENIENCE
-# ----------------
-# sets LIBLTDL to the link flags for the libltdl convenience library and
-# LTDLINCL to the include flags for the libltdl header and adds
-# --enable-ltdl-convenience to the configure arguments.  Note that
-# AC_CONFIG_SUBDIRS is not called here.  LIBLTDL will be prefixed with
-# '${top_build_prefix}' if available, otherwise with '${top_builddir}/',
-# and LTDLINCL will be prefixed with '${top_srcdir}/' (note the single
-# quotes!).  If your package is not flat and you're not using automake,
-# define top_build_prefix, top_builddir, and top_srcdir appropriately
-# in your Makefiles.
-AC_DEFUN([LTDL_CONVENIENCE],
-[AC_BEFORE([$0], [LTDL_INIT])dnl
-dnl Although the argument is deprecated and no longer documented,
-dnl LTDL_CONVENIENCE used to take a DIRECTORY orgument, if we have one
-dnl here make sure it is the same as any other declaration of libltdl's
-dnl location!  This also ensures lt_ltdl_dir is set when configure.ac is
-dnl not yet using an explicit LT_CONFIG_LTDL_DIR.
-m4_ifval([$1], [_LT_CONFIG_LTDL_DIR([$1])])dnl
-_$0()
-])# LTDL_CONVENIENCE
-
-# AC_LIBLTDL_CONVENIENCE accepted a directory argument in older libtools,
-# now we have LT_CONFIG_LTDL_DIR:
-AU_DEFUN([AC_LIBLTDL_CONVENIENCE],
-[_LT_CONFIG_LTDL_DIR([m4_default([$1], [libltdl])])
-_LTDL_CONVENIENCE])
-
-dnl aclocal-1.4 backwards compatibility:
-dnl AC_DEFUN([AC_LIBLTDL_CONVENIENCE], [])
-
-
-# _LTDL_CONVENIENCE
-# -----------------
-# Code shared by LTDL_CONVENIENCE and LTDL_INIT([convenience]).
-m4_defun([_LTDL_CONVENIENCE],
-[case $enable_ltdl_convenience in
-  no) AC_MSG_ERROR([this package needs a convenience libltdl]) ;;
-  "") enable_ltdl_convenience=yes
-      ac_configure_args="$ac_configure_args --enable-ltdl-convenience" ;;
-esac
-LIBLTDL='_LT_BUILD_PREFIX'"${lt_ltdl_dir+$lt_ltdl_dir/}libltdlc.la"
-LTDLDEPS=$LIBLTDL
-LTDLINCL='-I${top_srcdir}'"${lt_ltdl_dir+/$lt_ltdl_dir}"
-
-AC_SUBST([LIBLTDL])
-AC_SUBST([LTDLDEPS])
-AC_SUBST([LTDLINCL])
-
-# For backwards non-gettext consistent compatibility...
-INCLTDL="$LTDLINCL"
-AC_SUBST([INCLTDL])
-])# _LTDL_CONVENIENCE
-
-
-# LTDL_INSTALLABLE
-# ----------------
-# sets LIBLTDL to the link flags for the libltdl installable library
-# and LTDLINCL to the include flags for the libltdl header and adds
-# --enable-ltdl-install to the configure arguments.  Note that
-# AC_CONFIG_SUBDIRS is not called from here.  If an installed libltdl
-# is not found, LIBLTDL will be prefixed with '${top_build_prefix}' if
-# available, otherwise with '${top_builddir}/', and LTDLINCL will be
-# prefixed with '${top_srcdir}/' (note the single quotes!).  If your
-# package is not flat and you're not using automake, define top_build_prefix,
-# top_builddir, and top_srcdir appropriately in your Makefiles.
-# In the future, this macro may have to be called after LT_INIT.
-AC_DEFUN([LTDL_INSTALLABLE],
-[AC_BEFORE([$0], [LTDL_INIT])dnl
-dnl Although the argument is deprecated and no longer documented,
-dnl LTDL_INSTALLABLE used to take a DIRECTORY orgument, if we have one
-dnl here make sure it is the same as any other declaration of libltdl's
-dnl location!  This also ensures lt_ltdl_dir is set when configure.ac is
-dnl not yet using an explicit LT_CONFIG_LTDL_DIR.
-m4_ifval([$1], [_LT_CONFIG_LTDL_DIR([$1])])dnl
-_$0()
-])# LTDL_INSTALLABLE
-
-# AC_LIBLTDL_INSTALLABLE accepted a directory argument in older libtools,
-# now we have LT_CONFIG_LTDL_DIR:
-AU_DEFUN([AC_LIBLTDL_INSTALLABLE],
-[_LT_CONFIG_LTDL_DIR([m4_default([$1], [libltdl])])
-_LTDL_INSTALLABLE])
-
-dnl aclocal-1.4 backwards compatibility:
-dnl AC_DEFUN([AC_LIBLTDL_INSTALLABLE], [])
-
-
-# _LTDL_INSTALLABLE
-# -----------------
-# Code shared by LTDL_INSTALLABLE and LTDL_INIT([installable]).
-m4_defun([_LTDL_INSTALLABLE],
-[if test -f $prefix/lib/libltdl.la; then
-  lt_save_LDFLAGS="$LDFLAGS"
-  LDFLAGS="-L$prefix/lib $LDFLAGS"
-  AC_CHECK_LIB([ltdl], [lt_dlinit], [lt_lib_ltdl=yes])
-  LDFLAGS="$lt_save_LDFLAGS"
-  if test x"${lt_lib_ltdl-no}" = xyes; then
-    if test x"$enable_ltdl_install" != xyes; then
-      # Don't overwrite $prefix/lib/libltdl.la without --enable-ltdl-install
-      AC_MSG_WARN([not overwriting libltdl at $prefix, force with `--enable-ltdl-install'])
-      enable_ltdl_install=no
+  AC_CACHE_CHECK([for iconv], [am_cv_func_iconv], [
+    am_cv_func_iconv="no, consider installing GNU libiconv"
+    am_cv_lib_iconv=no
+    AC_LINK_IFELSE(
+      [AC_LANG_PROGRAM(
+         [[
+#include <stdlib.h>
+#include <iconv.h>
+         ]],
+         [[iconv_t cd = iconv_open("","");
+           iconv(cd,NULL,NULL,NULL,NULL);
+           iconv_close(cd);]])],
+      [am_cv_func_iconv=yes])
+    if test "$am_cv_func_iconv" != yes; then
+      am_save_LIBS="$LIBS"
+      LIBS="$LIBS $LIBICONV"
+      AC_LINK_IFELSE(
+        [AC_LANG_PROGRAM(
+           [[
+#include <stdlib.h>
+#include <iconv.h>
+           ]],
+           [[iconv_t cd = iconv_open("","");
+             iconv(cd,NULL,NULL,NULL,NULL);
+             iconv_close(cd);]])],
+        [am_cv_lib_iconv=yes]
+        [am_cv_func_iconv=yes])
+      LIBS="$am_save_LIBS"
     fi
-  elif test x"$enable_ltdl_install" = xno; then
-    AC_MSG_WARN([libltdl not installed, but installation disabled])
-  fi
-fi
-
-# If configure.ac declared an installable ltdl, and the user didn't override
-# with --disable-ltdl-install, we will install the shipped libltdl.
-case $enable_ltdl_install in
-  no) ac_configure_args="$ac_configure_args --enable-ltdl-install=no"
-      LIBLTDL="-lltdl"
-      LTDLDEPS=
-      LTDLINCL=
-      ;;
-  *)  enable_ltdl_install=yes
-      ac_configure_args="$ac_configure_args --enable-ltdl-install"
-      LIBLTDL='_LT_BUILD_PREFIX'"${lt_ltdl_dir+$lt_ltdl_dir/}libltdl.la"
-      LTDLDEPS=$LIBLTDL
-      LTDLINCL='-I${top_srcdir}'"${lt_ltdl_dir+/$lt_ltdl_dir}"
-      ;;
-esac
-
-AC_SUBST([LIBLTDL])
-AC_SUBST([LTDLDEPS])
-AC_SUBST([LTDLINCL])
-
-# For backwards non-gettext consistent compatibility...
-INCLTDL="$LTDLINCL"
-AC_SUBST([INCLTDL])
-])# LTDL_INSTALLABLE
-
-
-# _LTDL_MODE_DISPATCH
-# -------------------
-m4_define([_LTDL_MODE_DISPATCH],
-[dnl If _LTDL_DIR is `.', then we are configuring libltdl itself:
-m4_if(_LTDL_DIR, [],
-	[],
-    dnl if _LTDL_MODE was not set already, the default value is `subproject':
-    [m4_case(m4_default(_LTDL_MODE, [subproject]),
-	  [subproject], [AC_CONFIG_SUBDIRS(_LTDL_DIR)
-			  _LT_SHELL_INIT([lt_dlopen_dir="$lt_ltdl_dir"])],
-	  [nonrecursive], [_LT_SHELL_INIT([lt_dlopen_dir="$lt_ltdl_dir"; lt_libobj_prefix="$lt_ltdl_dir/"])],
-	  [recursive], [],
-	[m4_fatal([unknown libltdl mode: ]_LTDL_MODE)])])dnl
-dnl Be careful not to expand twice:
-m4_define([$0], [])
-])# _LTDL_MODE_DISPATCH
-
-
-# _LT_LIBOBJ(MODULE_NAME)
-# -----------------------
-# Like AC_LIBOBJ, except that MODULE_NAME goes into _LT_LIBOBJS instead
-# of into LIBOBJS.
-AC_DEFUN([_LT_LIBOBJ], [
-  m4_pattern_allow([^_LT_LIBOBJS$])
-  _LT_LIBOBJS="$_LT_LIBOBJS $1.$ac_objext"
-])# _LT_LIBOBJS
-
-
-# LTDL_INIT([OPTIONS])
-# --------------------
-# Clients of libltdl can use this macro to allow the installer to
-# choose between a shipped copy of the ltdl sources or a preinstalled
-# version of the library.  If the shipped ltdl sources are not in a
-# subdirectory named libltdl, the directory name must be given by
-# LT_CONFIG_LTDL_DIR.
-AC_DEFUN([LTDL_INIT],
-[dnl Parse OPTIONS
-_LT_SET_OPTIONS([$0], [$1])
-
-dnl We need to keep our own list of libobjs separate from our parent project,
-dnl and the easiest way to do that is redefine the AC_LIBOBJs macro while
-dnl we look for our own LIBOBJs.
-m4_pushdef([AC_LIBOBJ], m4_defn([_LT_LIBOBJ]))
-m4_pushdef([AC_LIBSOURCES])
-
-dnl If not otherwise defined, default to the 1.5.x compatible subproject mode:
-m4_if(_LTDL_MODE, [],
-        [m4_define([_LTDL_MODE], m4_default([$2], [subproject]))
-        m4_if([-1], [m4_bregexp(_LTDL_MODE, [\(subproject\|\(non\)?recursive\)])],
-                [m4_fatal([unknown libltdl mode: ]_LTDL_MODE)])])
-
-AC_ARG_WITH([included_ltdl],
-    [AS_HELP_STRING([--with-included-ltdl],
-                    [use the GNU ltdl sources included here])])
-
-if test "x$with_included_ltdl" != xyes; then
-  # We are not being forced to use the included libltdl sources, so
-  # decide whether there is a useful installed version we can use.
-  AC_CHECK_HEADER([ltdl.h],
-      [AC_CHECK_DECL([lt_dlinterface_register],
-	   [AC_CHECK_LIB([ltdl], [lt_dladvise_preload],
-	       [with_included_ltdl=no],
-	       [with_included_ltdl=yes])],
-	   [with_included_ltdl=yes],
-	   [AC_INCLUDES_DEFAULT
-	    #include <ltdl.h>])],
-      [with_included_ltdl=yes],
-      [AC_INCLUDES_DEFAULT]
-  )
-fi
-
-dnl If neither LT_CONFIG_LTDL_DIR, LTDL_CONVENIENCE nor LTDL_INSTALLABLE
-dnl was called yet, then for old times' sake, we assume libltdl is in an
-dnl eponymous directory:
-AC_PROVIDE_IFELSE([LT_CONFIG_LTDL_DIR], [], [_LT_CONFIG_LTDL_DIR([libltdl])])
-
-AC_ARG_WITH([ltdl_include],
-    [AS_HELP_STRING([--with-ltdl-include=DIR],
-                    [use the ltdl headers installed in DIR])])
-
-if test -n "$with_ltdl_include"; then
-  if test -f "$with_ltdl_include/ltdl.h"; then :
-  else
-    AC_MSG_ERROR([invalid ltdl include directory: `$with_ltdl_include'])
-  fi
-else
-  with_ltdl_include=no
-fi
-
-AC_ARG_WITH([ltdl_lib],
-    [AS_HELP_STRING([--with-ltdl-lib=DIR],
-                    [use the libltdl.la installed in DIR])])
-
-if test -n "$with_ltdl_lib"; then
-  if test -f "$with_ltdl_lib/libltdl.la"; then :
-  else
-    AC_MSG_ERROR([invalid ltdl library directory: `$with_ltdl_lib'])
-  fi
-else
-  with_ltdl_lib=no
-fi
-
-case ,$with_included_ltdl,$with_ltdl_include,$with_ltdl_lib, in
-  ,yes,no,no,)
-	m4_case(m4_default(_LTDL_TYPE, [convenience]),
-	    [convenience], [_LTDL_CONVENIENCE],
-	    [installable], [_LTDL_INSTALLABLE],
-	  [m4_fatal([unknown libltdl build type: ]_LTDL_TYPE)])
-	;;
-  ,no,no,no,)
-	# If the included ltdl is not to be used, then use the
-	# preinstalled libltdl we found.
-	AC_DEFINE([HAVE_LTDL], [1],
-	  [Define this if a modern libltdl is already installed])
-	LIBLTDL=-lltdl
-	LTDLDEPS=
-	LTDLINCL=
-	;;
-  ,no*,no,*)
-	AC_MSG_ERROR([`--with-ltdl-include' and `--with-ltdl-lib' options must be used together])
-	;;
-  *)	with_included_ltdl=no
-	LIBLTDL="-L$with_ltdl_lib -lltdl"
-	LTDLDEPS=
-	LTDLINCL="-I$with_ltdl_include"
-	;;
-esac
-INCLTDL="$LTDLINCL"
-
-# Report our decision...
-AC_MSG_CHECKING([where to find libltdl headers])
-AC_MSG_RESULT([$LTDLINCL])
-AC_MSG_CHECKING([where to find libltdl library])
-AC_MSG_RESULT([$LIBLTDL])
-
-_LTDL_SETUP
-
-dnl restore autoconf definition.
-m4_popdef([AC_LIBOBJ])
-m4_popdef([AC_LIBSOURCES])
-
-AC_CONFIG_COMMANDS_PRE([
-    _ltdl_libobjs=
-    _ltdl_ltlibobjs=
-    if test -n "$_LT_LIBOBJS"; then
-      # Remove the extension.
-      _lt_sed_drop_objext='s/\.o$//;s/\.obj$//'
-      for i in `for i in $_LT_LIBOBJS; do echo "$i"; done | sed "$_lt_sed_drop_objext" | sort -u`; do
-        _ltdl_libobjs="$_ltdl_libobjs $lt_libobj_prefix$i.$ac_objext"
-        _ltdl_ltlibobjs="$_ltdl_ltlibobjs $lt_libobj_prefix$i.lo"
-      done
-    fi
-    AC_SUBST([ltdl_LIBOBJS], [$_ltdl_libobjs])
-    AC_SUBST([ltdl_LTLIBOBJS], [$_ltdl_ltlibobjs])
-])
-
-# Only expand once:
-m4_define([LTDL_INIT])
-])# LTDL_INIT
-
-# Old names:
-AU_DEFUN([AC_LIB_LTDL], [LTDL_INIT($@)])
-AU_DEFUN([AC_WITH_LTDL], [LTDL_INIT($@)])
-AU_DEFUN([LT_WITH_LTDL], [LTDL_INIT($@)])
-dnl aclocal-1.4 backwards compatibility:
-dnl AC_DEFUN([AC_LIB_LTDL], [])
-dnl AC_DEFUN([AC_WITH_LTDL], [])
-dnl AC_DEFUN([LT_WITH_LTDL], [])
-
-
-# _LTDL_SETUP
-# -----------
-# Perform all the checks necessary for compilation of the ltdl objects
-#  -- including compiler checks and header checks.  This is a public
-# interface  mainly for the benefit of libltdl's own configure.ac, most
-# other users should call LTDL_INIT instead.
-AC_DEFUN([_LTDL_SETUP],
-[AC_REQUIRE([AC_PROG_CC])dnl
-AC_REQUIRE([LT_SYS_MODULE_EXT])dnl
-AC_REQUIRE([LT_SYS_MODULE_PATH])dnl
-AC_REQUIRE([LT_SYS_DLSEARCH_PATH])dnl
-AC_REQUIRE([LT_LIB_DLLOAD])dnl
-AC_REQUIRE([LT_SYS_SYMBOL_USCORE])dnl
-AC_REQUIRE([LT_FUNC_DLSYM_USCORE])dnl
-AC_REQUIRE([LT_SYS_DLOPEN_DEPLIBS])dnl
-AC_REQUIRE([gl_FUNC_ARGZ])dnl
-
-m4_require([_LT_CHECK_OBJDIR])dnl
-m4_require([_LT_HEADER_DLFCN])dnl
-m4_require([_LT_CHECK_DLPREOPEN])dnl
-m4_require([_LT_DECL_SED])dnl
-
-dnl Don't require this, or it will be expanded earlier than the code
-dnl that sets the variables it relies on:
-_LT_ENABLE_INSTALL
-
-dnl _LTDL_MODE specific code must be called at least once:
-_LTDL_MODE_DISPATCH
-
-# In order that ltdl.c can compile, find out the first AC_CONFIG_HEADERS
-# the user used.  This is so that ltdl.h can pick up the parent projects
-# config.h file, The first file in AC_CONFIG_HEADERS must contain the
-# definitions required by ltdl.c.
-# FIXME: Remove use of undocumented AC_LIST_HEADERS (2.59 compatibility).
-AC_CONFIG_COMMANDS_PRE([dnl
-m4_pattern_allow([^LT_CONFIG_H$])dnl
-m4_ifset([AH_HEADER],
-    [LT_CONFIG_H=AH_HEADER],
-    [m4_ifset([AC_LIST_HEADERS],
-	    [LT_CONFIG_H=`echo "AC_LIST_HEADERS" | $SED 's,^[[      ]]*,,;s,[[ :]].*$,,'`],
-	[])])])
-AC_SUBST([LT_CONFIG_H])
-
-AC_CHECK_HEADERS([unistd.h dl.h sys/dl.h dld.h mach-o/dyld.h dirent.h],
-	[], [], [AC_INCLUDES_DEFAULT])
-
-AC_CHECK_FUNCS([closedir opendir readdir], [], [AC_LIBOBJ([lt__dirent])])
-AC_CHECK_FUNCS([strlcat strlcpy], [], [AC_LIBOBJ([lt__strl])])
-
-m4_pattern_allow([LT_LIBEXT])dnl
-AC_DEFINE_UNQUOTED([LT_LIBEXT],["$libext"],[The archive extension])
-
-name=
-eval "lt_libprefix=\"$libname_spec\""
-m4_pattern_allow([LT_LIBPREFIX])dnl
-AC_DEFINE_UNQUOTED([LT_LIBPREFIX],["$lt_libprefix"],[The archive prefix])
-
-name=ltdl
-eval "LTDLOPEN=\"$libname_spec\""
-AC_SUBST([LTDLOPEN])
-])# _LTDL_SETUP
-
-
-# _LT_ENABLE_INSTALL
-# ------------------
-m4_define([_LT_ENABLE_INSTALL],
-[AC_ARG_ENABLE([ltdl-install],
-    [AS_HELP_STRING([--enable-ltdl-install], [install libltdl])])
-
-case ,${enable_ltdl_install},${enable_ltdl_convenience} in
-  *yes*) ;;
-  *) enable_ltdl_convenience=yes ;;
-esac
-
-m4_ifdef([AM_CONDITIONAL],
-[AM_CONDITIONAL(INSTALL_LTDL, test x"${enable_ltdl_install-no}" != xno)
- AM_CONDITIONAL(CONVENIENCE_LTDL, test x"${enable_ltdl_convenience-no}" != xno)])
-])# _LT_ENABLE_INSTALL
-
-
-# LT_SYS_DLOPEN_DEPLIBS
-# ---------------------
-AC_DEFUN([LT_SYS_DLOPEN_DEPLIBS],
-[AC_REQUIRE([AC_CANONICAL_HOST])dnl
-AC_CACHE_CHECK([whether deplibs are loaded by dlopen],
-  [lt_cv_sys_dlopen_deplibs],
-  [# PORTME does your system automatically load deplibs for dlopen?
-  # or its logical equivalent (e.g. shl_load for HP-UX < 11)
-  # For now, we just catch OSes we know something about -- in the
-  # future, we'll try test this programmatically.
-  lt_cv_sys_dlopen_deplibs=unknown
-  case $host_os in
-  aix3*|aix4.1.*|aix4.2.*)
-    # Unknown whether this is true for these versions of AIX, but
-    # we want this `case' here to explicitly catch those versions.
-    lt_cv_sys_dlopen_deplibs=unknown
-    ;;
-  aix[[4-9]]*)
-    lt_cv_sys_dlopen_deplibs=yes
-    ;;
-  amigaos*)
-    case $host_cpu in
-    powerpc)
-      lt_cv_sys_dlopen_deplibs=no
-      ;;
+  ])
+  if test "$am_cv_func_iconv" = yes; then
+    AC_CACHE_CHECK([for working iconv], [am_cv_func_iconv_works], [
+      dnl This tests against bugs in AIX 5.1, AIX 6.1..7.1, HP-UX 11.11,
+      dnl Solaris 10.
+      am_save_LIBS="$LIBS"
+      if test $am_cv_lib_iconv = yes; then
+        LIBS="$LIBS $LIBICONV"
+      fi
+      AC_RUN_IFELSE(
+        [AC_LANG_SOURCE([[
+#include <iconv.h>
+#include <string.h>
+int main ()
+{
+  int result = 0;
+  /* Test against AIX 5.1 bug: Failures are not distinguishable from successful
+     returns.  */
+  {
+    iconv_t cd_utf8_to_88591 = iconv_open ("ISO8859-1", "UTF-8");
+    if (cd_utf8_to_88591 != (iconv_t)(-1))
+      {
+        static const char input[] = "\342\202\254"; /* EURO SIGN */
+        char buf[10];
+        const char *inptr = input;
+        size_t inbytesleft = strlen (input);
+        char *outptr = buf;
+        size_t outbytesleft = sizeof (buf);
+        size_t res = iconv (cd_utf8_to_88591,
+                            (char **) &inptr, &inbytesleft,
+                            &outptr, &outbytesleft);
+        if (res == 0)
+          result |= 1;
+        iconv_close (cd_utf8_to_88591);
+      }
+  }
+  /* Test against Solaris 10 bug: Failures are not distinguishable from
+     successful returns.  */
+  {
+    iconv_t cd_ascii_to_88591 = iconv_open ("ISO8859-1", "646");
+    if (cd_ascii_to_88591 != (iconv_t)(-1))
+      {
+        static const char input[] = "\263";
+        char buf[10];
+        const char *inptr = input;
+        size_t inbytesleft = strlen (input);
+        char *outptr = buf;
+        size_t outbytesleft = sizeof (buf);
+        size_t res = iconv (cd_ascii_to_88591,
+                            (char **) &inptr, &inbytesleft,
+                            &outptr, &outbytesleft);
+        if (res == 0)
+          result |= 2;
+        iconv_close (cd_ascii_to_88591);
+      }
+  }
+  /* Test against AIX 6.1..7.1 bug: Buffer overrun.  */
+  {
+    iconv_t cd_88591_to_utf8 = iconv_open ("UTF-8", "ISO-8859-1");
+    if (cd_88591_to_utf8 != (iconv_t)(-1))
+      {
+        static const char input[] = "\304";
+        static char buf[2] = { (char)0xDE, (char)0xAD };
+        const char *inptr = input;
+        size_t inbytesleft = 1;
+        char *outptr = buf;
+        size_t outbytesleft = 1;
+        size_t res = iconv (cd_88591_to_utf8,
+                            (char **) &inptr, &inbytesleft,
+                            &outptr, &outbytesleft);
+        if (res != (size_t)(-1) || outptr - buf > 1 || buf[1] != (char)0xAD)
+          result |= 4;
+        iconv_close (cd_88591_to_utf8);
+      }
+  }
+#if 0 /* This bug could be worked around by the caller.  */
+  /* Test against HP-UX 11.11 bug: Positive return value instead of 0.  */
+  {
+    iconv_t cd_88591_to_utf8 = iconv_open ("utf8", "iso88591");
+    if (cd_88591_to_utf8 != (iconv_t)(-1))
+      {
+        static const char input[] = "\304rger mit b\366sen B\374bchen ohne Augenma\337";
+        char buf[50];
+        const char *inptr = input;
+        size_t inbytesleft = strlen (input);
+        char *outptr = buf;
+        size_t outbytesleft = sizeof (buf);
+        size_t res = iconv (cd_88591_to_utf8,
+                            (char **) &inptr, &inbytesleft,
+                            &outptr, &outbytesleft);
+        if ((int)res > 0)
+          result |= 8;
+        iconv_close (cd_88591_to_utf8);
+      }
+  }
+#endif
+  /* Test against HP-UX 11.11 bug: No converter from EUC-JP to UTF-8 is
+     provided.  */
+  if (/* Try standardized names.  */
+      iconv_open ("UTF-8", "EUC-JP") == (iconv_t)(-1)
+      /* Try IRIX, OSF/1 names.  */
+      && iconv_open ("UTF-8", "eucJP") == (iconv_t)(-1)
+      /* Try AIX names.  */
+      && iconv_open ("UTF-8", "IBM-eucJP") == (iconv_t)(-1)
+      /* Try HP-UX names.  */
+      && iconv_open ("utf8", "eucJP") == (iconv_t)(-1))
+    result |= 16;
+  return result;
+}]])],
+        [am_cv_func_iconv_works=yes],
+        [am_cv_func_iconv_works=no],
+        [
+changequote(,)dnl
+         case "$host_os" in
+           aix* | hpux*) am_cv_func_iconv_works="guessing no" ;;
+           *)            am_cv_func_iconv_works="guessing yes" ;;
+         esac
+changequote([,])dnl
+        ])
+      LIBS="$am_save_LIBS"
+    ])
+    case "$am_cv_func_iconv_works" in
+      *no) am_func_iconv=no am_cv_lib_iconv=no ;;
+      *)   am_func_iconv=yes ;;
     esac
+  else
+    am_func_iconv=no am_cv_lib_iconv=no
+  fi
+  if test "$am_func_iconv" = yes; then
+    AC_DEFINE([HAVE_ICONV], [1],
+      [Define if you have the iconv() function and it works.])
+  fi
+  if test "$am_cv_lib_iconv" = yes; then
+    AC_MSG_CHECKING([how to link with libiconv])
+    AC_MSG_RESULT([$LIBICONV])
+  else
+    dnl If $LIBICONV didn't lead to a usable library, we don't need $INCICONV
+    dnl either.
+    CPPFLAGS="$am_save_CPPFLAGS"
+    LIBICONV=
+    LTLIBICONV=
+  fi
+  AC_SUBST([LIBICONV])
+  AC_SUBST([LTLIBICONV])
+])
+
+dnl Define AM_ICONV using AC_DEFUN_ONCE for Autoconf >= 2.64, in order to
+dnl avoid warnings like
+dnl "warning: AC_REQUIRE: `AM_ICONV' was expanded before it was required".
+dnl This is tricky because of the way 'aclocal' is implemented:
+dnl - It requires defining an auxiliary macro whose name ends in AC_DEFUN.
+dnl   Otherwise aclocal's initial scan pass would miss the macro definition.
+dnl - It requires a line break inside the AC_DEFUN_ONCE and AC_DEFUN expansions.
+dnl   Otherwise aclocal would emit many "Use of uninitialized value $1"
+dnl   warnings.
+m4_define([gl_iconv_AC_DEFUN],
+  m4_version_prereq([2.64],
+    [[AC_DEFUN_ONCE(
+        [$1], [$2])]],
+    [m4_ifdef([gl_00GNULIB],
+       [[AC_DEFUN_ONCE(
+           [$1], [$2])]],
+       [[AC_DEFUN(
+           [$1], [$2])]])]))
+gl_iconv_AC_DEFUN([AM_ICONV],
+[
+  AM_ICONV_LINK
+  if test "$am_cv_func_iconv" = yes; then
+    AC_MSG_CHECKING([for iconv declaration])
+    AC_CACHE_VAL([am_cv_proto_iconv], [
+      AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM(
+           [[
+#include <stdlib.h>
+#include <iconv.h>
+extern
+#ifdef __cplusplus
+"C"
+#endif
+#if defined(__STDC__) || defined(_MSC_VER) || defined(__cplusplus)
+size_t iconv (iconv_t cd, char * *inbuf, size_t *inbytesleft, char * *outbuf, size_t *outbytesleft);
+#else
+size_t iconv();
+#endif
+           ]],
+           [[]])],
+        [am_cv_proto_iconv_arg1=""],
+        [am_cv_proto_iconv_arg1="const"])
+      am_cv_proto_iconv="extern size_t iconv (iconv_t cd, $am_cv_proto_iconv_arg1 char * *inbuf, size_t *inbytesleft, char * *outbuf, size_t *outbytesleft);"])
+    am_cv_proto_iconv=`echo "[$]am_cv_proto_iconv" | tr -s ' ' | sed -e 's/( /(/'`
+    AC_MSG_RESULT([
+         $am_cv_proto_iconv])
+    AC_DEFINE_UNQUOTED([ICONV_CONST], [$am_cv_proto_iconv_arg1],
+      [Define as const if the declaration of iconv() needs const.])
+    dnl Also substitute ICONV_CONST in the gnulib generated <iconv.h>.
+    m4_ifdef([gl_ICONV_H_DEFAULTS],
+      [AC_REQUIRE([gl_ICONV_H_DEFAULTS])
+       if test -n "$am_cv_proto_iconv_arg1"; then
+         ICONV_CONST="const"
+       fi
+      ])
+  fi
+])
+
+# lib-ld.m4 serial 6
+dnl Copyright (C) 1996-2003, 2009-2013 Free Software Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
+
+dnl Subroutines of libtool.m4,
+dnl with replacements s/_*LT_PATH/AC_LIB_PROG/ and s/lt_/acl_/ to avoid
+dnl collision with libtool.m4.
+
+dnl From libtool-2.4. Sets the variable with_gnu_ld to yes or no.
+AC_DEFUN([AC_LIB_PROG_LD_GNU],
+[AC_CACHE_CHECK([if the linker ($LD) is GNU ld], [acl_cv_prog_gnu_ld],
+[# I'd rather use --version here, but apparently some GNU lds only accept -v.
+case `$LD -v 2>&1 </dev/null` in
+*GNU* | *'with BFD'*)
+  acl_cv_prog_gnu_ld=yes
+  ;;
+*)
+  acl_cv_prog_gnu_ld=no
+  ;;
+esac])
+with_gnu_ld=$acl_cv_prog_gnu_ld
+])
+
+dnl From libtool-2.4. Sets the variable LD.
+AC_DEFUN([AC_LIB_PROG_LD],
+[AC_REQUIRE([AC_PROG_CC])dnl
+AC_REQUIRE([AC_CANONICAL_HOST])dnl
+
+AC_ARG_WITH([gnu-ld],
+    [AS_HELP_STRING([--with-gnu-ld],
+        [assume the C compiler uses GNU ld [default=no]])],
+    [test "$withval" = no || with_gnu_ld=yes],
+    [with_gnu_ld=no])dnl
+
+# Prepare PATH_SEPARATOR.
+# The user is always right.
+if test "${PATH_SEPARATOR+set}" != set; then
+  # Determine PATH_SEPARATOR by trying to find /bin/sh in a PATH which
+  # contains only /bin. Note that ksh looks also at the FPATH variable,
+  # so we have to set that as well for the test.
+  PATH_SEPARATOR=:
+  (PATH='/bin;/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 \
+    && { (PATH='/bin:/bin'; FPATH=$PATH; sh -c :) >/dev/null 2>&1 \
+           || PATH_SEPARATOR=';'
+       }
+fi
+
+ac_prog=ld
+if test "$GCC" = yes; then
+  # Check if gcc -print-prog-name=ld gives a path.
+  AC_MSG_CHECKING([for ld used by $CC])
+  case $host in
+  *-*-mingw*)
+    # gcc leaves a trailing carriage return which upsets mingw
+    ac_prog=`($CC -print-prog-name=ld) 2>&5 | tr -d '\015'` ;;
+  *)
+    ac_prog=`($CC -print-prog-name=ld) 2>&5` ;;
+  esac
+  case $ac_prog in
+    # Accept absolute paths.
+    [[\\/]]* | ?:[[\\/]]*)
+      re_direlt='/[[^/]][[^/]]*/\.\./'
+      # Canonicalize the pathname of ld
+      ac_prog=`echo "$ac_prog"| sed 's%\\\\%/%g'`
+      while echo "$ac_prog" | grep "$re_direlt" > /dev/null 2>&1; do
+        ac_prog=`echo $ac_prog| sed "s%$re_direlt%/%"`
+      done
+      test -z "$LD" && LD="$ac_prog"
+      ;;
+  "")
+    # If it fails, then pretend we aren't using GCC.
+    ac_prog=ld
     ;;
-  darwin*)
-    # Assuming the user has installed a libdl from somewhere, this is true
-    # If you are looking for one http://www.opendarwin.org/projects/dlcompat
-    lt_cv_sys_dlopen_deplibs=yes
-    ;;
-  freebsd* | dragonfly*)
-    lt_cv_sys_dlopen_deplibs=yes
-    ;;
-  gnu* | linux* | k*bsd*-gnu | kopensolaris*-gnu)
-    # GNU and its variants, using gnu ld.so (Glibc)
-    lt_cv_sys_dlopen_deplibs=yes
-    ;;
-  hpux10*|hpux11*)
-    lt_cv_sys_dlopen_deplibs=yes
-    ;;
-  interix*)
-    lt_cv_sys_dlopen_deplibs=yes
-    ;;
-  irix[[12345]]*|irix6.[[01]]*)
-    # Catch all versions of IRIX before 6.2, and indicate that we don't
-    # know how it worked for any of those versions.
-    lt_cv_sys_dlopen_deplibs=unknown
-    ;;
-  irix*)
-    # The case above catches anything before 6.2, and it's known that
-    # at 6.2 and later dlopen does load deplibs.
-    lt_cv_sys_dlopen_deplibs=yes
-    ;;
-  netbsd* | netbsdelf*-gnu)
-    lt_cv_sys_dlopen_deplibs=yes
-    ;;
-  openbsd*)
-    lt_cv_sys_dlopen_deplibs=yes
-    ;;
-  osf[[1234]]*)
-    # dlopen did load deplibs (at least at 4.x), but until the 5.x series,
-    # it did *not* use an RPATH in a shared library to find objects the
-    # library depends on, so we explicitly say `no'.
-    lt_cv_sys_dlopen_deplibs=no
-    ;;
-  osf5.0|osf5.0a|osf5.1)
-    # dlopen *does* load deplibs and with the right loader patch applied
-    # it even uses RPATH in a shared library to search for shared objects
-    # that the library depends on, but there's no easy way to know if that
-    # patch is installed.  Since this is the case, all we can really
-    # say is unknown -- it depends on the patch being installed.  If
-    # it is, this changes to `yes'.  Without it, it would be `no'.
-    lt_cv_sys_dlopen_deplibs=unknown
-    ;;
-  osf*)
-    # the two cases above should catch all versions of osf <= 5.1.  Read
-    # the comments above for what we know about them.
-    # At > 5.1, deplibs are loaded *and* any RPATH in a shared library
-    # is used to find them so we can finally say `yes'.
-    lt_cv_sys_dlopen_deplibs=yes
-    ;;
-  qnx*)
-    lt_cv_sys_dlopen_deplibs=yes
-    ;;
-  solaris*)
-    lt_cv_sys_dlopen_deplibs=yes
-    ;;
-  sysv5* | sco3.2v5* | sco5v6* | unixware* | OpenUNIX* | sysv4*uw2*)
-    libltdl_cv_sys_dlopen_deplibs=yes
+  *)
+    # If it is relative, then search for the first ld in PATH.
+    with_gnu_ld=unknown
     ;;
   esac
-  ])
-if test "$lt_cv_sys_dlopen_deplibs" != yes; then
- AC_DEFINE([LTDL_DLOPEN_DEPLIBS], [1],
-    [Define if the OS needs help to load dependent libraries for dlopen().])
+elif test "$with_gnu_ld" = yes; then
+  AC_MSG_CHECKING([for GNU ld])
+else
+  AC_MSG_CHECKING([for non-GNU ld])
 fi
-])# LT_SYS_DLOPEN_DEPLIBS
-
-# Old name:
-AU_ALIAS([AC_LTDL_SYS_DLOPEN_DEPLIBS], [LT_SYS_DLOPEN_DEPLIBS])
-dnl aclocal-1.4 backwards compatibility:
-dnl AC_DEFUN([AC_LTDL_SYS_DLOPEN_DEPLIBS], [])
-
-
-# LT_SYS_MODULE_EXT
-# -----------------
-AC_DEFUN([LT_SYS_MODULE_EXT],
-[m4_require([_LT_SYS_DYNAMIC_LINKER])dnl
-AC_CACHE_CHECK([which extension is used for runtime loadable modules],
-  [libltdl_cv_shlibext],
-[
-module=yes
-eval libltdl_cv_shlibext=$shrext_cmds
-module=no
-eval libltdl_cv_shrext=$shrext_cmds
-  ])
-if test -n "$libltdl_cv_shlibext"; then
-  m4_pattern_allow([LT_MODULE_EXT])dnl
-  AC_DEFINE_UNQUOTED([LT_MODULE_EXT], ["$libltdl_cv_shlibext"],
-    [Define to the extension used for runtime loadable modules, say, ".so".])
-fi
-if test "$libltdl_cv_shrext" != "$libltdl_cv_shlibext"; then
-  m4_pattern_allow([LT_SHARED_EXT])dnl
-  AC_DEFINE_UNQUOTED([LT_SHARED_EXT], ["$libltdl_cv_shrext"],
-    [Define to the shared library suffix, say, ".dylib".])
-fi
-])# LT_SYS_MODULE_EXT
-
-# Old name:
-AU_ALIAS([AC_LTDL_SHLIBEXT], [LT_SYS_MODULE_EXT])
-dnl aclocal-1.4 backwards compatibility:
-dnl AC_DEFUN([AC_LTDL_SHLIBEXT], [])
-
-
-# LT_SYS_MODULE_PATH
-# ------------------
-AC_DEFUN([LT_SYS_MODULE_PATH],
-[m4_require([_LT_SYS_DYNAMIC_LINKER])dnl
-AC_CACHE_CHECK([which variable specifies run-time module search path],
-  [lt_cv_module_path_var], [lt_cv_module_path_var="$shlibpath_var"])
-if test -n "$lt_cv_module_path_var"; then
-  m4_pattern_allow([LT_MODULE_PATH_VAR])dnl
-  AC_DEFINE_UNQUOTED([LT_MODULE_PATH_VAR], ["$lt_cv_module_path_var"],
-    [Define to the name of the environment variable that determines the run-time module search path.])
-fi
-])# LT_SYS_MODULE_PATH
-
-# Old name:
-AU_ALIAS([AC_LTDL_SHLIBPATH], [LT_SYS_MODULE_PATH])
-dnl aclocal-1.4 backwards compatibility:
-dnl AC_DEFUN([AC_LTDL_SHLIBPATH], [])
-
-
-# LT_SYS_DLSEARCH_PATH
-# --------------------
-AC_DEFUN([LT_SYS_DLSEARCH_PATH],
-[m4_require([_LT_SYS_DYNAMIC_LINKER])dnl
-AC_CACHE_CHECK([for the default library search path],
-  [lt_cv_sys_dlsearch_path],
-  [lt_cv_sys_dlsearch_path="$sys_lib_dlsearch_path_spec"])
-if test -n "$lt_cv_sys_dlsearch_path"; then
-  sys_dlsearch_path=
-  for dir in $lt_cv_sys_dlsearch_path; do
-    if test -z "$sys_dlsearch_path"; then
-      sys_dlsearch_path="$dir"
-    else
-      sys_dlsearch_path="$sys_dlsearch_path$PATH_SEPARATOR$dir"
+AC_CACHE_VAL([acl_cv_path_LD],
+[if test -z "$LD"; then
+  acl_save_ifs="$IFS"; IFS=$PATH_SEPARATOR
+  for ac_dir in $PATH; do
+    IFS="$acl_save_ifs"
+    test -z "$ac_dir" && ac_dir=.
+    if test -f "$ac_dir/$ac_prog" || test -f "$ac_dir/$ac_prog$ac_exeext"; then
+      acl_cv_path_LD="$ac_dir/$ac_prog"
+      # Check to see if the program is GNU ld.  I'd rather use --version,
+      # but apparently some variants of GNU ld only accept -v.
+      # Break only if it was the GNU/non-GNU ld that we prefer.
+      case `"$acl_cv_path_LD" -v 2>&1 </dev/null` in
+      *GNU* | *'with BFD'*)
+        test "$with_gnu_ld" != no && break
+        ;;
+      *)
+        test "$with_gnu_ld" != yes && break
+        ;;
+      esac
     fi
   done
-  m4_pattern_allow([LT_DLSEARCH_PATH])dnl
-  AC_DEFINE_UNQUOTED([LT_DLSEARCH_PATH], ["$sys_dlsearch_path"],
-    [Define to the system default library search path.])
+  IFS="$acl_save_ifs"
+else
+  acl_cv_path_LD="$LD" # Let the user override the test with a path.
+fi])
+LD="$acl_cv_path_LD"
+if test -n "$LD"; then
+  AC_MSG_RESULT([$LD])
+else
+  AC_MSG_RESULT([no])
 fi
-])# LT_SYS_DLSEARCH_PATH
+test -z "$LD" && AC_MSG_ERROR([no acceptable ld found in \$PATH])
+AC_LIB_PROG_LD_GNU
+])
 
-# Old name:
-AU_ALIAS([AC_LTDL_SYSSEARCHPATH], [LT_SYS_DLSEARCH_PATH])
-dnl aclocal-1.4 backwards compatibility:
-dnl AC_DEFUN([AC_LTDL_SYSSEARCHPATH], [])
+# lib-link.m4 serial 26 (gettext-0.18.2)
+dnl Copyright (C) 2001-2013 Free Software Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
 
+dnl From Bruno Haible.
 
-# _LT_CHECK_DLPREOPEN
-# -------------------
-m4_defun([_LT_CHECK_DLPREOPEN],
-[m4_require([_LT_CMD_GLOBAL_SYMBOLS])dnl
-AC_CACHE_CHECK([whether libtool supports -dlopen/-dlpreopen],
-  [libltdl_cv_preloaded_symbols],
-  [if test -n "$lt_cv_sys_global_symbol_pipe"; then
-    libltdl_cv_preloaded_symbols=yes
-  else
-    libltdl_cv_preloaded_symbols=no
-  fi
+AC_PREREQ([2.54])
+
+dnl AC_LIB_LINKFLAGS(name [, dependencies]) searches for libname and
+dnl the libraries corresponding to explicit and implicit dependencies.
+dnl Sets and AC_SUBSTs the LIB${NAME} and LTLIB${NAME} variables and
+dnl augments the CPPFLAGS variable.
+dnl Sets and AC_SUBSTs the LIB${NAME}_PREFIX variable to nonempty if libname
+dnl was found in ${LIB${NAME}_PREFIX}/$acl_libdirstem.
+AC_DEFUN([AC_LIB_LINKFLAGS],
+[
+  AC_REQUIRE([AC_LIB_PREPARE_PREFIX])
+  AC_REQUIRE([AC_LIB_RPATH])
+  pushdef([Name],[m4_translit([$1],[./+-], [____])])
+  pushdef([NAME],[m4_translit([$1],[abcdefghijklmnopqrstuvwxyz./+-],
+                                   [ABCDEFGHIJKLMNOPQRSTUVWXYZ____])])
+  AC_CACHE_CHECK([how to link with lib[]$1], [ac_cv_lib[]Name[]_libs], [
+    AC_LIB_LINKFLAGS_BODY([$1], [$2])
+    ac_cv_lib[]Name[]_libs="$LIB[]NAME"
+    ac_cv_lib[]Name[]_ltlibs="$LTLIB[]NAME"
+    ac_cv_lib[]Name[]_cppflags="$INC[]NAME"
+    ac_cv_lib[]Name[]_prefix="$LIB[]NAME[]_PREFIX"
   ])
-if test x"$libltdl_cv_preloaded_symbols" = xyes; then
-  AC_DEFINE([HAVE_PRELOADED_SYMBOLS], [1],
-    [Define if libtool can extract symbol lists from object files.])
-fi
-])# _LT_CHECK_DLPREOPEN
+  LIB[]NAME="$ac_cv_lib[]Name[]_libs"
+  LTLIB[]NAME="$ac_cv_lib[]Name[]_ltlibs"
+  INC[]NAME="$ac_cv_lib[]Name[]_cppflags"
+  LIB[]NAME[]_PREFIX="$ac_cv_lib[]Name[]_prefix"
+  AC_LIB_APPENDTOVAR([CPPFLAGS], [$INC]NAME)
+  AC_SUBST([LIB]NAME)
+  AC_SUBST([LTLIB]NAME)
+  AC_SUBST([LIB]NAME[_PREFIX])
+  dnl Also set HAVE_LIB[]NAME so that AC_LIB_HAVE_LINKFLAGS can reuse the
+  dnl results of this search when this library appears as a dependency.
+  HAVE_LIB[]NAME=yes
+  popdef([NAME])
+  popdef([Name])
+])
 
+dnl AC_LIB_HAVE_LINKFLAGS(name, dependencies, includes, testcode, [missing-message])
+dnl searches for libname and the libraries corresponding to explicit and
+dnl implicit dependencies, together with the specified include files and
+dnl the ability to compile and link the specified testcode. The missing-message
+dnl defaults to 'no' and may contain additional hints for the user.
+dnl If found, it sets and AC_SUBSTs HAVE_LIB${NAME}=yes and the LIB${NAME}
+dnl and LTLIB${NAME} variables and augments the CPPFLAGS variable, and
+dnl #defines HAVE_LIB${NAME} to 1. Otherwise, it sets and AC_SUBSTs
+dnl HAVE_LIB${NAME}=no and LIB${NAME} and LTLIB${NAME} to empty.
+dnl Sets and AC_SUBSTs the LIB${NAME}_PREFIX variable to nonempty if libname
+dnl was found in ${LIB${NAME}_PREFIX}/$acl_libdirstem.
+AC_DEFUN([AC_LIB_HAVE_LINKFLAGS],
+[
+  AC_REQUIRE([AC_LIB_PREPARE_PREFIX])
+  AC_REQUIRE([AC_LIB_RPATH])
+  pushdef([Name],[m4_translit([$1],[./+-], [____])])
+  pushdef([NAME],[m4_translit([$1],[abcdefghijklmnopqrstuvwxyz./+-],
+                                   [ABCDEFGHIJKLMNOPQRSTUVWXYZ____])])
 
-# LT_LIB_DLLOAD
-# -------------
-AC_DEFUN([LT_LIB_DLLOAD],
-[m4_pattern_allow([^LT_DLLOADERS$])
-LT_DLLOADERS=
-AC_SUBST([LT_DLLOADERS])
+  dnl Search for lib[]Name and define LIB[]NAME, LTLIB[]NAME and INC[]NAME
+  dnl accordingly.
+  AC_LIB_LINKFLAGS_BODY([$1], [$2])
 
-AC_LANG_PUSH([C])
+  dnl Add $INC[]NAME to CPPFLAGS before performing the following checks,
+  dnl because if the user has installed lib[]Name and not disabled its use
+  dnl via --without-lib[]Name-prefix, he wants to use it.
+  ac_save_CPPFLAGS="$CPPFLAGS"
+  AC_LIB_APPENDTOVAR([CPPFLAGS], [$INC]NAME)
 
-LIBADD_DLOPEN=
-AC_SEARCH_LIBS([dlopen], [dl],
-	[AC_DEFINE([HAVE_LIBDL], [1],
-		   [Define if you have the libdl library or equivalent.])
-	if test "$ac_cv_search_dlopen" != "none required" ; then
-	  LIBADD_DLOPEN="-ldl"
-	fi
-	libltdl_cv_lib_dl_dlopen="yes"
-	LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}dlopen.la"],
-    [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#if HAVE_DLFCN_H
-#  include <dlfcn.h>
-#endif
-    ]], [[dlopen(0, 0);]])],
-	    [AC_DEFINE([HAVE_LIBDL], [1],
-		       [Define if you have the libdl library or equivalent.])
-	    libltdl_cv_func_dlopen="yes"
-	    LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}dlopen.la"],
-	[AC_CHECK_LIB([svld], [dlopen],
-		[AC_DEFINE([HAVE_LIBDL], [1],
-			 [Define if you have the libdl library or equivalent.])
-	        LIBADD_DLOPEN="-lsvld" libltdl_cv_func_dlopen="yes"
-		LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}dlopen.la"])])])
-if test x"$libltdl_cv_func_dlopen" = xyes || test x"$libltdl_cv_lib_dl_dlopen" = xyes
-then
-  lt_save_LIBS="$LIBS"
-  LIBS="$LIBS $LIBADD_DLOPEN"
-  AC_CHECK_FUNCS([dlerror])
-  LIBS="$lt_save_LIBS"
-fi
-AC_SUBST([LIBADD_DLOPEN])
+  AC_CACHE_CHECK([for lib[]$1], [ac_cv_lib[]Name], [
+    ac_save_LIBS="$LIBS"
+    dnl If $LIB[]NAME contains some -l options, add it to the end of LIBS,
+    dnl because these -l options might require -L options that are present in
+    dnl LIBS. -l options benefit only from the -L options listed before it.
+    dnl Otherwise, add it to the front of LIBS, because it may be a static
+    dnl library that depends on another static library that is present in LIBS.
+    dnl Static libraries benefit only from the static libraries listed after
+    dnl it.
+    case " $LIB[]NAME" in
+      *" -l"*) LIBS="$LIBS $LIB[]NAME" ;;
+      *)       LIBS="$LIB[]NAME $LIBS" ;;
+    esac
+    AC_LINK_IFELSE(
+      [AC_LANG_PROGRAM([[$3]], [[$4]])],
+      [ac_cv_lib[]Name=yes],
+      [ac_cv_lib[]Name='m4_if([$5], [], [no], [[$5]])'])
+    LIBS="$ac_save_LIBS"
+  ])
+  if test "$ac_cv_lib[]Name" = yes; then
+    HAVE_LIB[]NAME=yes
+    AC_DEFINE([HAVE_LIB]NAME, 1, [Define if you have the lib][$1 library.])
+    AC_MSG_CHECKING([how to link with lib[]$1])
+    AC_MSG_RESULT([$LIB[]NAME])
+  else
+    HAVE_LIB[]NAME=no
+    dnl If $LIB[]NAME didn't lead to a usable library, we don't need
+    dnl $INC[]NAME either.
+    CPPFLAGS="$ac_save_CPPFLAGS"
+    LIB[]NAME=
+    LTLIB[]NAME=
+    LIB[]NAME[]_PREFIX=
+  fi
+  AC_SUBST([HAVE_LIB]NAME)
+  AC_SUBST([LIB]NAME)
+  AC_SUBST([LTLIB]NAME)
+  AC_SUBST([LIB]NAME[_PREFIX])
+  popdef([NAME])
+  popdef([Name])
+])
 
-LIBADD_SHL_LOAD=
-AC_CHECK_FUNC([shl_load],
-	[AC_DEFINE([HAVE_SHL_LOAD], [1],
-		   [Define if you have the shl_load function.])
-	LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}shl_load.la"],
-    [AC_CHECK_LIB([dld], [shl_load],
-	    [AC_DEFINE([HAVE_SHL_LOAD], [1],
-		       [Define if you have the shl_load function.])
-	    LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}shl_load.la"
-	    LIBADD_SHL_LOAD="-ldld"])])
-AC_SUBST([LIBADD_SHL_LOAD])
+dnl Determine the platform dependent parameters needed to use rpath:
+dnl   acl_libext,
+dnl   acl_shlibext,
+dnl   acl_libname_spec,
+dnl   acl_library_names_spec,
+dnl   acl_hardcode_libdir_flag_spec,
+dnl   acl_hardcode_libdir_separator,
+dnl   acl_hardcode_direct,
+dnl   acl_hardcode_minus_L.
+AC_DEFUN([AC_LIB_RPATH],
+[
+  dnl Tell automake >= 1.10 to complain if config.rpath is missing.
+  m4_ifdef([AC_REQUIRE_AUX_FILE], [AC_REQUIRE_AUX_FILE([config.rpath])])
+  AC_REQUIRE([AC_PROG_CC])                dnl we use $CC, $GCC, $LDFLAGS
+  AC_REQUIRE([AC_LIB_PROG_LD])            dnl we use $LD, $with_gnu_ld
+  AC_REQUIRE([AC_CANONICAL_HOST])         dnl we use $host
+  AC_REQUIRE([AC_CONFIG_AUX_DIR_DEFAULT]) dnl we use $ac_aux_dir
+  AC_CACHE_CHECK([for shared library run path origin], [acl_cv_rpath], [
+    CC="$CC" GCC="$GCC" LDFLAGS="$LDFLAGS" LD="$LD" with_gnu_ld="$with_gnu_ld" \
+    ${CONFIG_SHELL-/bin/sh} "$ac_aux_dir/config.rpath" "$host" > conftest.sh
+    . ./conftest.sh
+    rm -f ./conftest.sh
+    acl_cv_rpath=done
+  ])
+  wl="$acl_cv_wl"
+  acl_libext="$acl_cv_libext"
+  acl_shlibext="$acl_cv_shlibext"
+  acl_libname_spec="$acl_cv_libname_spec"
+  acl_library_names_spec="$acl_cv_library_names_spec"
+  acl_hardcode_libdir_flag_spec="$acl_cv_hardcode_libdir_flag_spec"
+  acl_hardcode_libdir_separator="$acl_cv_hardcode_libdir_separator"
+  acl_hardcode_direct="$acl_cv_hardcode_direct"
+  acl_hardcode_minus_L="$acl_cv_hardcode_minus_L"
+  dnl Determine whether the user wants rpath handling at all.
+  AC_ARG_ENABLE([rpath],
+    [  --disable-rpath         do not hardcode runtime library paths],
+    :, enable_rpath=yes)
+])
 
-case $host_os in
-darwin[[1567]].*)
-# We only want this for pre-Mac OS X 10.4.
-  AC_CHECK_FUNC([_dyld_func_lookup],
-	[AC_DEFINE([HAVE_DYLD], [1],
-		   [Define if you have the _dyld_func_lookup function.])
-	LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}dyld.la"])
-  ;;
-beos*)
-  LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}load_add_on.la"
-  ;;
-cygwin* | mingw* | os2* | pw32*)
-  AC_CHECK_DECLS([cygwin_conv_path], [], [], [[#include <sys/cygwin.h>]])
-  LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}loadlibrary.la"
-  ;;
-esac
+dnl AC_LIB_FROMPACKAGE(name, package)
+dnl declares that libname comes from the given package. The configure file
+dnl will then not have a --with-libname-prefix option but a
+dnl --with-package-prefix option. Several libraries can come from the same
+dnl package. This declaration must occur before an AC_LIB_LINKFLAGS or similar
+dnl macro call that searches for libname.
+AC_DEFUN([AC_LIB_FROMPACKAGE],
+[
+  pushdef([NAME],[m4_translit([$1],[abcdefghijklmnopqrstuvwxyz./+-],
+                                   [ABCDEFGHIJKLMNOPQRSTUVWXYZ____])])
+  define([acl_frompackage_]NAME, [$2])
+  popdef([NAME])
+  pushdef([PACK],[$2])
+  pushdef([PACKUP],[m4_translit(PACK,[abcdefghijklmnopqrstuvwxyz./+-],
+                                     [ABCDEFGHIJKLMNOPQRSTUVWXYZ____])])
+  define([acl_libsinpackage_]PACKUP,
+    m4_ifdef([acl_libsinpackage_]PACKUP, [m4_defn([acl_libsinpackage_]PACKUP)[, ]],)[lib$1])
+  popdef([PACKUP])
+  popdef([PACK])
+])
 
-AC_CHECK_LIB([dld], [dld_link],
-	[AC_DEFINE([HAVE_DLD], [1],
-		   [Define if you have the GNU dld library.])
-		LT_DLLOADERS="$LT_DLLOADERS ${lt_dlopen_dir+$lt_dlopen_dir/}dld_link.la"])
-AC_SUBST([LIBADD_DLD_LINK])
-
-m4_pattern_allow([^LT_DLPREOPEN$])
-LT_DLPREOPEN=
-if test -n "$LT_DLLOADERS"
-then
-  for lt_loader in $LT_DLLOADERS; do
-    LT_DLPREOPEN="$LT_DLPREOPEN-dlpreopen $lt_loader "
-  done
-  AC_DEFINE([HAVE_LIBDLLOADER], [1],
-            [Define if libdlloader will be built on this platform])
-fi
-AC_SUBST([LT_DLPREOPEN])
-
-dnl This isn't used anymore, but set it for backwards compatibility
-LIBADD_DL="$LIBADD_DLOPEN $LIBADD_SHL_LOAD"
-AC_SUBST([LIBADD_DL])
-
-AC_LANG_POP
-])# LT_LIB_DLLOAD
-
-# Old name:
-AU_ALIAS([AC_LTDL_DLLIB], [LT_LIB_DLLOAD])
-dnl aclocal-1.4 backwards compatibility:
-dnl AC_DEFUN([AC_LTDL_DLLIB], [])
-
-
-# LT_SYS_SYMBOL_USCORE
-# --------------------
-# does the compiler prefix global symbols with an underscore?
-AC_DEFUN([LT_SYS_SYMBOL_USCORE],
-[m4_require([_LT_CMD_GLOBAL_SYMBOLS])dnl
-AC_CACHE_CHECK([for _ prefix in compiled symbols],
-  [lt_cv_sys_symbol_underscore],
-  [lt_cv_sys_symbol_underscore=no
-  cat > conftest.$ac_ext <<_LT_EOF
-void nm_test_func(){}
-int main(){nm_test_func;return 0;}
-_LT_EOF
-  if AC_TRY_EVAL(ac_compile); then
-    # Now try to grab the symbols.
-    ac_nlist=conftest.nm
-    if AC_TRY_EVAL(NM conftest.$ac_objext \| $lt_cv_sys_global_symbol_pipe \> $ac_nlist) && test -s "$ac_nlist"; then
-      # See whether the symbols have a leading underscore.
-      if grep '^. _nm_test_func' "$ac_nlist" >/dev/null; then
-        lt_cv_sys_symbol_underscore=yes
+dnl AC_LIB_LINKFLAGS_BODY(name [, dependencies]) searches for libname and
+dnl the libraries corresponding to explicit and implicit dependencies.
+dnl Sets the LIB${NAME}, LTLIB${NAME} and INC${NAME} variables.
+dnl Also, sets the LIB${NAME}_PREFIX variable to nonempty if libname was found
+dnl in ${LIB${NAME}_PREFIX}/$acl_libdirstem.
+AC_DEFUN([AC_LIB_LINKFLAGS_BODY],
+[
+  AC_REQUIRE([AC_LIB_PREPARE_MULTILIB])
+  pushdef([NAME],[m4_translit([$1],[abcdefghijklmnopqrstuvwxyz./+-],
+                                   [ABCDEFGHIJKLMNOPQRSTUVWXYZ____])])
+  pushdef([PACK],[m4_ifdef([acl_frompackage_]NAME, [acl_frompackage_]NAME, lib[$1])])
+  pushdef([PACKUP],[m4_translit(PACK,[abcdefghijklmnopqrstuvwxyz./+-],
+                                     [ABCDEFGHIJKLMNOPQRSTUVWXYZ____])])
+  pushdef([PACKLIBS],[m4_ifdef([acl_frompackage_]NAME, [acl_libsinpackage_]PACKUP, lib[$1])])
+  dnl Autoconf >= 2.61 supports dots in --with options.
+  pushdef([P_A_C_K],[m4_if(m4_version_compare(m4_defn([m4_PACKAGE_VERSION]),[2.61]),[-1],[m4_translit(PACK,[.],[_])],PACK)])
+  dnl By default, look in $includedir and $libdir.
+  use_additional=yes
+  AC_LIB_WITH_FINAL_PREFIX([
+    eval additional_includedir=\"$includedir\"
+    eval additional_libdir=\"$libdir\"
+  ])
+  AC_ARG_WITH(P_A_C_K[-prefix],
+[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+[
+    if test "X$withval" = "Xno"; then
+      use_additional=no
+    else
+      if test "X$withval" = "X"; then
+        AC_LIB_WITH_FINAL_PREFIX([
+          eval additional_includedir=\"$includedir\"
+          eval additional_libdir=\"$libdir\"
+        ])
       else
-        if grep '^. nm_test_func ' "$ac_nlist" >/dev/null; then
-	  :
-        else
-	  echo "configure: cannot find nm_test_func in $ac_nlist" >&AS_MESSAGE_LOG_FD
+        additional_includedir="$withval/include"
+        additional_libdir="$withval/$acl_libdirstem"
+        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+           && ! test -d "$withval/$acl_libdirstem"; then
+          additional_libdir="$withval/$acl_libdirstem2"
         fi
       fi
-    else
-      echo "configure: cannot run $lt_cv_sys_global_symbol_pipe" >&AS_MESSAGE_LOG_FD
     fi
-  else
-    echo "configure: failed program was:" >&AS_MESSAGE_LOG_FD
-    cat conftest.c >&AS_MESSAGE_LOG_FD
+])
+  dnl Search the library and its dependencies in $additional_libdir and
+  dnl $LDFLAGS. Using breadth-first-seach.
+  LIB[]NAME=
+  LTLIB[]NAME=
+  INC[]NAME=
+  LIB[]NAME[]_PREFIX=
+  dnl HAVE_LIB${NAME} is an indicator that LIB${NAME}, LTLIB${NAME} have been
+  dnl computed. So it has to be reset here.
+  HAVE_LIB[]NAME=
+  rpathdirs=
+  ltrpathdirs=
+  names_already_handled=
+  names_next_round='$1 $2'
+  while test -n "$names_next_round"; do
+    names_this_round="$names_next_round"
+    names_next_round=
+    for name in $names_this_round; do
+      already_handled=
+      for n in $names_already_handled; do
+        if test "$n" = "$name"; then
+          already_handled=yes
+          break
+        fi
+      done
+      if test -z "$already_handled"; then
+        names_already_handled="$names_already_handled $name"
+        dnl See if it was already located by an earlier AC_LIB_LINKFLAGS
+        dnl or AC_LIB_HAVE_LINKFLAGS call.
+        uppername=`echo "$name" | sed -e 'y|abcdefghijklmnopqrstuvwxyz./+-|ABCDEFGHIJKLMNOPQRSTUVWXYZ____|'`
+        eval value=\"\$HAVE_LIB$uppername\"
+        if test -n "$value"; then
+          if test "$value" = yes; then
+            eval value=\"\$LIB$uppername\"
+            test -z "$value" || LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$value"
+            eval value=\"\$LTLIB$uppername\"
+            test -z "$value" || LTLIB[]NAME="${LTLIB[]NAME}${LTLIB[]NAME:+ }$value"
+          else
+            dnl An earlier call to AC_LIB_HAVE_LINKFLAGS has determined
+            dnl that this library doesn't exist. So just drop it.
+            :
+          fi
+        else
+          dnl Search the library lib$name in $additional_libdir and $LDFLAGS
+          dnl and the already constructed $LIBNAME/$LTLIBNAME.
+          found_dir=
+          found_la=
+          found_so=
+          found_a=
+          eval libname=\"$acl_libname_spec\"    # typically: libname=lib$name
+          if test -n "$acl_shlibext"; then
+            shrext=".$acl_shlibext"             # typically: shrext=.so
+          else
+            shrext=
+          fi
+          if test $use_additional = yes; then
+            dir="$additional_libdir"
+            dnl The same code as in the loop below:
+            dnl First look for a shared library.
+            if test -n "$acl_shlibext"; then
+              if test -f "$dir/$libname$shrext"; then
+                found_dir="$dir"
+                found_so="$dir/$libname$shrext"
+              else
+                if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
+                  ver=`(cd "$dir" && \
+                        for f in "$libname$shrext".*; do echo "$f"; done \
+                        | sed -e "s,^$libname$shrext\\\\.,," \
+                        | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
+                        | sed 1q ) 2>/dev/null`
+                  if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
+                    found_dir="$dir"
+                    found_so="$dir/$libname$shrext.$ver"
+                  fi
+                else
+                  eval library_names=\"$acl_library_names_spec\"
+                  for f in $library_names; do
+                    if test -f "$dir/$f"; then
+                      found_dir="$dir"
+                      found_so="$dir/$f"
+                      break
+                    fi
+                  done
+                fi
+              fi
+            fi
+            dnl Then look for a static library.
+            if test "X$found_dir" = "X"; then
+              if test -f "$dir/$libname.$acl_libext"; then
+                found_dir="$dir"
+                found_a="$dir/$libname.$acl_libext"
+              fi
+            fi
+            if test "X$found_dir" != "X"; then
+              if test -f "$dir/$libname.la"; then
+                found_la="$dir/$libname.la"
+              fi
+            fi
+          fi
+          if test "X$found_dir" = "X"; then
+            for x in $LDFLAGS $LTLIB[]NAME; do
+              AC_LIB_WITH_FINAL_PREFIX([eval x=\"$x\"])
+              case "$x" in
+                -L*)
+                  dir=`echo "X$x" | sed -e 's/^X-L//'`
+                  dnl First look for a shared library.
+                  if test -n "$acl_shlibext"; then
+                    if test -f "$dir/$libname$shrext"; then
+                      found_dir="$dir"
+                      found_so="$dir/$libname$shrext"
+                    else
+                      if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
+                        ver=`(cd "$dir" && \
+                              for f in "$libname$shrext".*; do echo "$f"; done \
+                              | sed -e "s,^$libname$shrext\\\\.,," \
+                              | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
+                              | sed 1q ) 2>/dev/null`
+                        if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
+                          found_dir="$dir"
+                          found_so="$dir/$libname$shrext.$ver"
+                        fi
+                      else
+                        eval library_names=\"$acl_library_names_spec\"
+                        for f in $library_names; do
+                          if test -f "$dir/$f"; then
+                            found_dir="$dir"
+                            found_so="$dir/$f"
+                            break
+                          fi
+                        done
+                      fi
+                    fi
+                  fi
+                  dnl Then look for a static library.
+                  if test "X$found_dir" = "X"; then
+                    if test -f "$dir/$libname.$acl_libext"; then
+                      found_dir="$dir"
+                      found_a="$dir/$libname.$acl_libext"
+                    fi
+                  fi
+                  if test "X$found_dir" != "X"; then
+                    if test -f "$dir/$libname.la"; then
+                      found_la="$dir/$libname.la"
+                    fi
+                  fi
+                  ;;
+              esac
+              if test "X$found_dir" != "X"; then
+                break
+              fi
+            done
+          fi
+          if test "X$found_dir" != "X"; then
+            dnl Found the library.
+            LTLIB[]NAME="${LTLIB[]NAME}${LTLIB[]NAME:+ }-L$found_dir -l$name"
+            if test "X$found_so" != "X"; then
+              dnl Linking with a shared library. We attempt to hardcode its
+              dnl directory into the executable's runpath, unless it's the
+              dnl standard /usr/lib.
+              if test "$enable_rpath" = no \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
+                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
+                dnl No hardcoding is needed.
+                LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$found_so"
+              else
+                dnl Use an explicit option to hardcode DIR into the resulting
+                dnl binary.
+                dnl Potentially add DIR to ltrpathdirs.
+                dnl The ltrpathdirs will be appended to $LTLIBNAME at the end.
+                haveit=
+                for x in $ltrpathdirs; do
+                  if test "X$x" = "X$found_dir"; then
+                    haveit=yes
+                    break
+                  fi
+                done
+                if test -z "$haveit"; then
+                  ltrpathdirs="$ltrpathdirs $found_dir"
+                fi
+                dnl The hardcoding into $LIBNAME is system dependent.
+                if test "$acl_hardcode_direct" = yes; then
+                  dnl Using DIR/libNAME.so during linking hardcodes DIR into the
+                  dnl resulting binary.
+                  LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$found_so"
+                else
+                  if test -n "$acl_hardcode_libdir_flag_spec" && test "$acl_hardcode_minus_L" = no; then
+                    dnl Use an explicit option to hardcode DIR into the resulting
+                    dnl binary.
+                    LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$found_so"
+                    dnl Potentially add DIR to rpathdirs.
+                    dnl The rpathdirs will be appended to $LIBNAME at the end.
+                    haveit=
+                    for x in $rpathdirs; do
+                      if test "X$x" = "X$found_dir"; then
+                        haveit=yes
+                        break
+                      fi
+                    done
+                    if test -z "$haveit"; then
+                      rpathdirs="$rpathdirs $found_dir"
+                    fi
+                  else
+                    dnl Rely on "-L$found_dir".
+                    dnl But don't add it if it's already contained in the LDFLAGS
+                    dnl or the already constructed $LIBNAME
+                    haveit=
+                    for x in $LDFLAGS $LIB[]NAME; do
+                      AC_LIB_WITH_FINAL_PREFIX([eval x=\"$x\"])
+                      if test "X$x" = "X-L$found_dir"; then
+                        haveit=yes
+                        break
+                      fi
+                    done
+                    if test -z "$haveit"; then
+                      LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }-L$found_dir"
+                    fi
+                    if test "$acl_hardcode_minus_L" != no; then
+                      dnl FIXME: Not sure whether we should use
+                      dnl "-L$found_dir -l$name" or "-L$found_dir $found_so"
+                      dnl here.
+                      LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$found_so"
+                    else
+                      dnl We cannot use $acl_hardcode_runpath_var and LD_RUN_PATH
+                      dnl here, because this doesn't fit in flags passed to the
+                      dnl compiler. So give up. No hardcoding. This affects only
+                      dnl very old systems.
+                      dnl FIXME: Not sure whether we should use
+                      dnl "-L$found_dir -l$name" or "-L$found_dir $found_so"
+                      dnl here.
+                      LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }-l$name"
+                    fi
+                  fi
+                fi
+              fi
+            else
+              if test "X$found_a" != "X"; then
+                dnl Linking with a static library.
+                LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$found_a"
+              else
+                dnl We shouldn't come here, but anyway it's good to have a
+                dnl fallback.
+                LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }-L$found_dir -l$name"
+              fi
+            fi
+            dnl Assume the include files are nearby.
+            additional_includedir=
+            case "$found_dir" in
+              */$acl_libdirstem | */$acl_libdirstem/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
+                if test "$name" = '$1'; then
+                  LIB[]NAME[]_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+              */$acl_libdirstem2 | */$acl_libdirstem2/)
+                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
+                if test "$name" = '$1'; then
+                  LIB[]NAME[]_PREFIX="$basedir"
+                fi
+                additional_includedir="$basedir/include"
+                ;;
+            esac
+            if test "X$additional_includedir" != "X"; then
+              dnl Potentially add $additional_includedir to $INCNAME.
+              dnl But don't add it
+              dnl   1. if it's the standard /usr/include,
+              dnl   2. if it's /usr/local/include and we are using GCC on Linux,
+              dnl   3. if it's already present in $CPPFLAGS or the already
+              dnl      constructed $INCNAME,
+              dnl   4. if it doesn't exist as a directory.
+              if test "X$additional_includedir" != "X/usr/include"; then
+                haveit=
+                if test "X$additional_includedir" = "X/usr/local/include"; then
+                  if test -n "$GCC"; then
+                    case $host_os in
+                      linux* | gnu* | k*bsd*-gnu) haveit=yes;;
+                    esac
+                  fi
+                fi
+                if test -z "$haveit"; then
+                  for x in $CPPFLAGS $INC[]NAME; do
+                    AC_LIB_WITH_FINAL_PREFIX([eval x=\"$x\"])
+                    if test "X$x" = "X-I$additional_includedir"; then
+                      haveit=yes
+                      break
+                    fi
+                  done
+                  if test -z "$haveit"; then
+                    if test -d "$additional_includedir"; then
+                      dnl Really add $additional_includedir to $INCNAME.
+                      INC[]NAME="${INC[]NAME}${INC[]NAME:+ }-I$additional_includedir"
+                    fi
+                  fi
+                fi
+              fi
+            fi
+            dnl Look for dependencies.
+            if test -n "$found_la"; then
+              dnl Read the .la file. It defines the variables
+              dnl dlname, library_names, old_library, dependency_libs, current,
+              dnl age, revision, installed, dlopen, dlpreopen, libdir.
+              save_libdir="$libdir"
+              case "$found_la" in
+                */* | *\\*) . "$found_la" ;;
+                *) . "./$found_la" ;;
+              esac
+              libdir="$save_libdir"
+              dnl We use only dependency_libs.
+              for dep in $dependency_libs; do
+                case "$dep" in
+                  -L*)
+                    additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
+                    dnl Potentially add $additional_libdir to $LIBNAME and $LTLIBNAME.
+                    dnl But don't add it
+                    dnl   1. if it's the standard /usr/lib,
+                    dnl   2. if it's /usr/local/lib and we are using GCC on Linux,
+                    dnl   3. if it's already present in $LDFLAGS or the already
+                    dnl      constructed $LIBNAME,
+                    dnl   4. if it doesn't exist as a directory.
+                    if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
+                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
+                      haveit=
+                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
+                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
+                        if test -n "$GCC"; then
+                          case $host_os in
+                            linux* | gnu* | k*bsd*-gnu) haveit=yes;;
+                          esac
+                        fi
+                      fi
+                      if test -z "$haveit"; then
+                        haveit=
+                        for x in $LDFLAGS $LIB[]NAME; do
+                          AC_LIB_WITH_FINAL_PREFIX([eval x=\"$x\"])
+                          if test "X$x" = "X-L$additional_libdir"; then
+                            haveit=yes
+                            break
+                          fi
+                        done
+                        if test -z "$haveit"; then
+                          if test -d "$additional_libdir"; then
+                            dnl Really add $additional_libdir to $LIBNAME.
+                            LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }-L$additional_libdir"
+                          fi
+                        fi
+                        haveit=
+                        for x in $LDFLAGS $LTLIB[]NAME; do
+                          AC_LIB_WITH_FINAL_PREFIX([eval x=\"$x\"])
+                          if test "X$x" = "X-L$additional_libdir"; then
+                            haveit=yes
+                            break
+                          fi
+                        done
+                        if test -z "$haveit"; then
+                          if test -d "$additional_libdir"; then
+                            dnl Really add $additional_libdir to $LTLIBNAME.
+                            LTLIB[]NAME="${LTLIB[]NAME}${LTLIB[]NAME:+ }-L$additional_libdir"
+                          fi
+                        fi
+                      fi
+                    fi
+                    ;;
+                  -R*)
+                    dir=`echo "X$dep" | sed -e 's/^X-R//'`
+                    if test "$enable_rpath" != no; then
+                      dnl Potentially add DIR to rpathdirs.
+                      dnl The rpathdirs will be appended to $LIBNAME at the end.
+                      haveit=
+                      for x in $rpathdirs; do
+                        if test "X$x" = "X$dir"; then
+                          haveit=yes
+                          break
+                        fi
+                      done
+                      if test -z "$haveit"; then
+                        rpathdirs="$rpathdirs $dir"
+                      fi
+                      dnl Potentially add DIR to ltrpathdirs.
+                      dnl The ltrpathdirs will be appended to $LTLIBNAME at the end.
+                      haveit=
+                      for x in $ltrpathdirs; do
+                        if test "X$x" = "X$dir"; then
+                          haveit=yes
+                          break
+                        fi
+                      done
+                      if test -z "$haveit"; then
+                        ltrpathdirs="$ltrpathdirs $dir"
+                      fi
+                    fi
+                    ;;
+                  -l*)
+                    dnl Handle this in the next round.
+                    names_next_round="$names_next_round "`echo "X$dep" | sed -e 's/^X-l//'`
+                    ;;
+                  *.la)
+                    dnl Handle this in the next round. Throw away the .la's
+                    dnl directory; it is already contained in a preceding -L
+                    dnl option.
+                    names_next_round="$names_next_round "`echo "X$dep" | sed -e 's,^X.*/,,' -e 's,^lib,,' -e 's,\.la$,,'`
+                    ;;
+                  *)
+                    dnl Most likely an immediate library name.
+                    LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$dep"
+                    LTLIB[]NAME="${LTLIB[]NAME}${LTLIB[]NAME:+ }$dep"
+                    ;;
+                esac
+              done
+            fi
+          else
+            dnl Didn't find the library; assume it is in the system directories
+            dnl known to the linker and runtime loader. (All the system
+            dnl directories known to the linker should also be known to the
+            dnl runtime loader, otherwise the system is severely misconfigured.)
+            LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }-l$name"
+            LTLIB[]NAME="${LTLIB[]NAME}${LTLIB[]NAME:+ }-l$name"
+          fi
+        fi
+      fi
+    done
+  done
+  if test "X$rpathdirs" != "X"; then
+    if test -n "$acl_hardcode_libdir_separator"; then
+      dnl Weird platform: only the last -rpath option counts, the user must
+      dnl pass all path elements in one option. We can arrange that for a
+      dnl single library, but not when more than one $LIBNAMEs are used.
+      alldirs=
+      for found_dir in $rpathdirs; do
+        alldirs="${alldirs}${alldirs:+$acl_hardcode_libdir_separator}$found_dir"
+      done
+      dnl Note: acl_hardcode_libdir_flag_spec uses $libdir and $wl.
+      acl_save_libdir="$libdir"
+      libdir="$alldirs"
+      eval flag=\"$acl_hardcode_libdir_flag_spec\"
+      libdir="$acl_save_libdir"
+      LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$flag"
+    else
+      dnl The -rpath options are cumulative.
+      for found_dir in $rpathdirs; do
+        acl_save_libdir="$libdir"
+        libdir="$found_dir"
+        eval flag=\"$acl_hardcode_libdir_flag_spec\"
+        libdir="$acl_save_libdir"
+        LIB[]NAME="${LIB[]NAME}${LIB[]NAME:+ }$flag"
+      done
+    fi
   fi
-  rm -rf conftest*
+  if test "X$ltrpathdirs" != "X"; then
+    dnl When using libtool, the option that works for both libraries and
+    dnl executables is -R. The -R options are cumulative.
+    for found_dir in $ltrpathdirs; do
+      LTLIB[]NAME="${LTLIB[]NAME}${LTLIB[]NAME:+ }-R$found_dir"
+    done
+  fi
+  popdef([P_A_C_K])
+  popdef([PACKLIBS])
+  popdef([PACKUP])
+  popdef([PACK])
+  popdef([NAME])
+])
+
+dnl AC_LIB_APPENDTOVAR(VAR, CONTENTS) appends the elements of CONTENTS to VAR,
+dnl unless already present in VAR.
+dnl Works only for CPPFLAGS, not for LIB* variables because that sometimes
+dnl contains two or three consecutive elements that belong together.
+AC_DEFUN([AC_LIB_APPENDTOVAR],
+[
+  for element in [$2]; do
+    haveit=
+    for x in $[$1]; do
+      AC_LIB_WITH_FINAL_PREFIX([eval x=\"$x\"])
+      if test "X$x" = "X$element"; then
+        haveit=yes
+        break
+      fi
+    done
+    if test -z "$haveit"; then
+      [$1]="${[$1]}${[$1]:+ }$element"
+    fi
+  done
+])
+
+dnl For those cases where a variable contains several -L and -l options
+dnl referring to unknown libraries and directories, this macro determines the
+dnl necessary additional linker options for the runtime path.
+dnl AC_LIB_LINKFLAGS_FROM_LIBS([LDADDVAR], [LIBSVALUE], [USE-LIBTOOL])
+dnl sets LDADDVAR to linker options needed together with LIBSVALUE.
+dnl If USE-LIBTOOL evaluates to non-empty, linking with libtool is assumed,
+dnl otherwise linking without libtool is assumed.
+AC_DEFUN([AC_LIB_LINKFLAGS_FROM_LIBS],
+[
+  AC_REQUIRE([AC_LIB_RPATH])
+  AC_REQUIRE([AC_LIB_PREPARE_MULTILIB])
+  $1=
+  if test "$enable_rpath" != no; then
+    if test -n "$acl_hardcode_libdir_flag_spec" && test "$acl_hardcode_minus_L" = no; then
+      dnl Use an explicit option to hardcode directories into the resulting
+      dnl binary.
+      rpathdirs=
+      next=
+      for opt in $2; do
+        if test -n "$next"; then
+          dir="$next"
+          dnl No need to hardcode the standard /usr/lib.
+          if test "X$dir" != "X/usr/$acl_libdirstem" \
+             && test "X$dir" != "X/usr/$acl_libdirstem2"; then
+            rpathdirs="$rpathdirs $dir"
+          fi
+          next=
+        else
+          case $opt in
+            -L) next=yes ;;
+            -L*) dir=`echo "X$opt" | sed -e 's,^X-L,,'`
+                 dnl No need to hardcode the standard /usr/lib.
+                 if test "X$dir" != "X/usr/$acl_libdirstem" \
+                    && test "X$dir" != "X/usr/$acl_libdirstem2"; then
+                   rpathdirs="$rpathdirs $dir"
+                 fi
+                 next= ;;
+            *) next= ;;
+          esac
+        fi
+      done
+      if test "X$rpathdirs" != "X"; then
+        if test -n ""$3""; then
+          dnl libtool is used for linking. Use -R options.
+          for dir in $rpathdirs; do
+            $1="${$1}${$1:+ }-R$dir"
+          done
+        else
+          dnl The linker is used for linking directly.
+          if test -n "$acl_hardcode_libdir_separator"; then
+            dnl Weird platform: only the last -rpath option counts, the user
+            dnl must pass all path elements in one option.
+            alldirs=
+            for dir in $rpathdirs; do
+              alldirs="${alldirs}${alldirs:+$acl_hardcode_libdir_separator}$dir"
+            done
+            acl_save_libdir="$libdir"
+            libdir="$alldirs"
+            eval flag=\"$acl_hardcode_libdir_flag_spec\"
+            libdir="$acl_save_libdir"
+            $1="$flag"
+          else
+            dnl The -rpath options are cumulative.
+            for dir in $rpathdirs; do
+              acl_save_libdir="$libdir"
+              libdir="$dir"
+              eval flag=\"$acl_hardcode_libdir_flag_spec\"
+              libdir="$acl_save_libdir"
+              $1="${$1}${$1:+ }$flag"
+            done
+          fi
+        fi
+      fi
+    fi
+  fi
+  AC_SUBST([$1])
+])
+
+# lib-prefix.m4 serial 7 (gettext-0.18)
+dnl Copyright (C) 2001-2005, 2008-2013 Free Software Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
+
+dnl From Bruno Haible.
+
+dnl AC_LIB_ARG_WITH is synonymous to AC_ARG_WITH in autoconf-2.13, and
+dnl similar to AC_ARG_WITH in autoconf 2.52...2.57 except that is doesn't
+dnl require excessive bracketing.
+ifdef([AC_HELP_STRING],
+[AC_DEFUN([AC_LIB_ARG_WITH], [AC_ARG_WITH([$1],[[$2]],[$3],[$4])])],
+[AC_DEFUN([AC_][LIB_ARG_WITH], [AC_ARG_WITH([$1],[$2],[$3],[$4])])])
+
+dnl AC_LIB_PREFIX adds to the CPPFLAGS and LDFLAGS the flags that are needed
+dnl to access previously installed libraries. The basic assumption is that
+dnl a user will want packages to use other packages he previously installed
+dnl with the same --prefix option.
+dnl This macro is not needed if only AC_LIB_LINKFLAGS is used to locate
+dnl libraries, but is otherwise very convenient.
+AC_DEFUN([AC_LIB_PREFIX],
+[
+  AC_BEFORE([$0], [AC_LIB_LINKFLAGS])
+  AC_REQUIRE([AC_PROG_CC])
+  AC_REQUIRE([AC_CANONICAL_HOST])
+  AC_REQUIRE([AC_LIB_PREPARE_MULTILIB])
+  AC_REQUIRE([AC_LIB_PREPARE_PREFIX])
+  dnl By default, look in $includedir and $libdir.
+  use_additional=yes
+  AC_LIB_WITH_FINAL_PREFIX([
+    eval additional_includedir=\"$includedir\"
+    eval additional_libdir=\"$libdir\"
   ])
-  sys_symbol_underscore=$lt_cv_sys_symbol_underscore
-  AC_SUBST([sys_symbol_underscore])
-])# LT_SYS_SYMBOL_USCORE
-
-# Old name:
-AU_ALIAS([AC_LTDL_SYMBOL_USCORE], [LT_SYS_SYMBOL_USCORE])
-dnl aclocal-1.4 backwards compatibility:
-dnl AC_DEFUN([AC_LTDL_SYMBOL_USCORE], [])
-
-
-# LT_FUNC_DLSYM_USCORE
-# --------------------
-AC_DEFUN([LT_FUNC_DLSYM_USCORE],
-[AC_REQUIRE([LT_SYS_SYMBOL_USCORE])dnl
-if test x"$lt_cv_sys_symbol_underscore" = xyes; then
-  if test x"$libltdl_cv_func_dlopen" = xyes ||
-     test x"$libltdl_cv_lib_dl_dlopen" = xyes ; then
-	AC_CACHE_CHECK([whether we have to add an underscore for dlsym],
-	  [libltdl_cv_need_uscore],
-	  [libltdl_cv_need_uscore=unknown
-          save_LIBS="$LIBS"
-          LIBS="$LIBS $LIBADD_DLOPEN"
-	  _LT_TRY_DLOPEN_SELF(
-	    [libltdl_cv_need_uscore=no], [libltdl_cv_need_uscore=yes],
-	    [],				 [libltdl_cv_need_uscore=cross])
-	  LIBS="$save_LIBS"
-	])
+  AC_LIB_ARG_WITH([lib-prefix],
+[  --with-lib-prefix[=DIR] search for libraries in DIR/include and DIR/lib
+  --without-lib-prefix    don't search for libraries in includedir and libdir],
+[
+    if test "X$withval" = "Xno"; then
+      use_additional=no
+    else
+      if test "X$withval" = "X"; then
+        AC_LIB_WITH_FINAL_PREFIX([
+          eval additional_includedir=\"$includedir\"
+          eval additional_libdir=\"$libdir\"
+        ])
+      else
+        additional_includedir="$withval/include"
+        additional_libdir="$withval/$acl_libdirstem"
+      fi
+    fi
+])
+  if test $use_additional = yes; then
+    dnl Potentially add $additional_includedir to $CPPFLAGS.
+    dnl But don't add it
+    dnl   1. if it's the standard /usr/include,
+    dnl   2. if it's already present in $CPPFLAGS,
+    dnl   3. if it's /usr/local/include and we are using GCC on Linux,
+    dnl   4. if it doesn't exist as a directory.
+    if test "X$additional_includedir" != "X/usr/include"; then
+      haveit=
+      for x in $CPPFLAGS; do
+        AC_LIB_WITH_FINAL_PREFIX([eval x=\"$x\"])
+        if test "X$x" = "X-I$additional_includedir"; then
+          haveit=yes
+          break
+        fi
+      done
+      if test -z "$haveit"; then
+        if test "X$additional_includedir" = "X/usr/local/include"; then
+          if test -n "$GCC"; then
+            case $host_os in
+              linux* | gnu* | k*bsd*-gnu) haveit=yes;;
+            esac
+          fi
+        fi
+        if test -z "$haveit"; then
+          if test -d "$additional_includedir"; then
+            dnl Really add $additional_includedir to $CPPFLAGS.
+            CPPFLAGS="${CPPFLAGS}${CPPFLAGS:+ }-I$additional_includedir"
+          fi
+        fi
+      fi
+    fi
+    dnl Potentially add $additional_libdir to $LDFLAGS.
+    dnl But don't add it
+    dnl   1. if it's the standard /usr/lib,
+    dnl   2. if it's already present in $LDFLAGS,
+    dnl   3. if it's /usr/local/lib and we are using GCC on Linux,
+    dnl   4. if it doesn't exist as a directory.
+    if test "X$additional_libdir" != "X/usr/$acl_libdirstem"; then
+      haveit=
+      for x in $LDFLAGS; do
+        AC_LIB_WITH_FINAL_PREFIX([eval x=\"$x\"])
+        if test "X$x" = "X-L$additional_libdir"; then
+          haveit=yes
+          break
+        fi
+      done
+      if test -z "$haveit"; then
+        if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem"; then
+          if test -n "$GCC"; then
+            case $host_os in
+              linux*) haveit=yes;;
+            esac
+          fi
+        fi
+        if test -z "$haveit"; then
+          if test -d "$additional_libdir"; then
+            dnl Really add $additional_libdir to $LDFLAGS.
+            LDFLAGS="${LDFLAGS}${LDFLAGS:+ }-L$additional_libdir"
+          fi
+        fi
+      fi
+    fi
   fi
-fi
+])
 
-if test x"$libltdl_cv_need_uscore" = xyes; then
-  AC_DEFINE([NEED_USCORE], [1],
-    [Define if dlsym() requires a leading underscore in symbol names.])
-fi
-])# LT_FUNC_DLSYM_USCORE
+dnl AC_LIB_PREPARE_PREFIX creates variables acl_final_prefix,
+dnl acl_final_exec_prefix, containing the values to which $prefix and
+dnl $exec_prefix will expand at the end of the configure script.
+AC_DEFUN([AC_LIB_PREPARE_PREFIX],
+[
+  dnl Unfortunately, prefix and exec_prefix get only finally determined
+  dnl at the end of configure.
+  if test "X$prefix" = "XNONE"; then
+    acl_final_prefix="$ac_default_prefix"
+  else
+    acl_final_prefix="$prefix"
+  fi
+  if test "X$exec_prefix" = "XNONE"; then
+    acl_final_exec_prefix='${prefix}'
+  else
+    acl_final_exec_prefix="$exec_prefix"
+  fi
+  acl_save_prefix="$prefix"
+  prefix="$acl_final_prefix"
+  eval acl_final_exec_prefix=\"$acl_final_exec_prefix\"
+  prefix="$acl_save_prefix"
+])
 
-# Old name:
-AU_ALIAS([AC_LTDL_DLSYM_USCORE], [LT_FUNC_DLSYM_USCORE])
-dnl aclocal-1.4 backwards compatibility:
-dnl AC_DEFUN([AC_LTDL_DLSYM_USCORE], [])
+dnl AC_LIB_WITH_FINAL_PREFIX([statement]) evaluates statement, with the
+dnl variables prefix and exec_prefix bound to the values they will have
+dnl at the end of the configure script.
+AC_DEFUN([AC_LIB_WITH_FINAL_PREFIX],
+[
+  acl_save_prefix="$prefix"
+  prefix="$acl_final_prefix"
+  acl_save_exec_prefix="$exec_prefix"
+  exec_prefix="$acl_final_exec_prefix"
+  $1
+  exec_prefix="$acl_save_exec_prefix"
+  prefix="$acl_save_prefix"
+])
+
+dnl AC_LIB_PREPARE_MULTILIB creates
+dnl - a variable acl_libdirstem, containing the basename of the libdir, either
+dnl   "lib" or "lib64" or "lib/64",
+dnl - a variable acl_libdirstem2, as a secondary possible value for
+dnl   acl_libdirstem, either the same as acl_libdirstem or "lib/sparcv9" or
+dnl   "lib/amd64".
+AC_DEFUN([AC_LIB_PREPARE_MULTILIB],
+[
+  dnl There is no formal standard regarding lib and lib64.
+  dnl On glibc systems, the current practice is that on a system supporting
+  dnl 32-bit and 64-bit instruction sets or ABIs, 64-bit libraries go under
+  dnl $prefix/lib64 and 32-bit libraries go under $prefix/lib. We determine
+  dnl the compiler's default mode by looking at the compiler's library search
+  dnl path. If at least one of its elements ends in /lib64 or points to a
+  dnl directory whose absolute pathname ends in /lib64, we assume a 64-bit ABI.
+  dnl Otherwise we use the default, namely "lib".
+  dnl On Solaris systems, the current practice is that on a system supporting
+  dnl 32-bit and 64-bit instruction sets or ABIs, 64-bit libraries go under
+  dnl $prefix/lib/64 (which is a symlink to either $prefix/lib/sparcv9 or
+  dnl $prefix/lib/amd64) and 32-bit libraries go under $prefix/lib.
+  AC_REQUIRE([AC_CANONICAL_HOST])
+  acl_libdirstem=lib
+  acl_libdirstem2=
+  case "$host_os" in
+    solaris*)
+      dnl See Solaris 10 Software Developer Collection > Solaris 64-bit Developer's Guide > The Development Environment
+      dnl <http://docs.sun.com/app/docs/doc/816-5138/dev-env?l=en&a=view>.
+      dnl "Portable Makefiles should refer to any library directories using the 64 symbolic link."
+      dnl But we want to recognize the sparcv9 or amd64 subdirectory also if the
+      dnl symlink is missing, so we set acl_libdirstem2 too.
+      AC_CACHE_CHECK([for 64-bit host], [gl_cv_solaris_64bit],
+        [AC_EGREP_CPP([sixtyfour bits], [
+#ifdef _LP64
+sixtyfour bits
+#endif
+           ], [gl_cv_solaris_64bit=yes], [gl_cv_solaris_64bit=no])
+        ])
+      if test $gl_cv_solaris_64bit = yes; then
+        acl_libdirstem=lib/64
+        case "$host_cpu" in
+          sparc*)        acl_libdirstem2=lib/sparcv9 ;;
+          i*86 | x86_64) acl_libdirstem2=lib/amd64 ;;
+        esac
+      fi
+      ;;
+    *)
+      searchpath=`(LC_ALL=C $CC -print-search-dirs) 2>/dev/null | sed -n -e 's,^libraries: ,,p' | sed -e 's,^=,,'`
+      if test -n "$searchpath"; then
+        acl_save_IFS="${IFS= 	}"; IFS=":"
+        for searchdir in $searchpath; do
+          if test -d "$searchdir"; then
+            case "$searchdir" in
+              */lib64/ | */lib64 ) acl_libdirstem=lib64 ;;
+              */../ | */.. )
+                # Better ignore directories of this form. They are misleading.
+                ;;
+              *) searchdir=`cd "$searchdir" && pwd`
+                 case "$searchdir" in
+                   */lib64 ) acl_libdirstem=lib64 ;;
+                 esac ;;
+            esac
+          fi
+        done
+        IFS="$acl_save_IFS"
+      fi
+      ;;
+  esac
+  test -n "$acl_libdirstem2" || acl_libdirstem2="$acl_libdirstem"
+])
 
 # Copyright (C) 2002-2013 Free Software Foundation, Inc.
 #
