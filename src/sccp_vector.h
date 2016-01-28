@@ -21,7 +21,7 @@
 #define SCCP_VECTOR_RW_RDLOCK_TIMED(vec, timespec) pbx_rwlock_timedrdlock(&(vec)->lock, timespec)
 #define SCCP_VECTOR_RW_WRLOCK_TIMED(vec, timespec) pbx_rwlock_timedwrlock(&(vec)->lock, timespec)
 
-#if HAVE_PBX_VECTOR_H
+#if defined(HAVE_PBX_VECTOR_H) && ASTERISK_VERSION_GROUP >= 112
 // map sccp_vector to ast_vector functions
 #define SCCP_VECTOR AST_VECTOR
 #define SCCP_VECTOR_RW AST_VECTOR_RW
@@ -54,7 +54,7 @@
 #define SCCP_VECTOR_CALLBACK_MULTIPLE AST_VECTOR_CALLBACK_MULTIPLE
 #define SCCP_VECTOR_CALLBACK_VOID AST_VECTOR_CALLBACK_VOID
 #else // !HAVE_PBX_VECTOR_H
-// local implementation provided as fallback when ast_vector.h is not provided
+// local implementation provided as fallback when a complete ast_vector.h is not provided by asterisk
 
 /*! \file
  *
@@ -680,7 +680,6 @@
 		callback((vec)->elems[__sccp_vector_idx], ##__VA_ARGS__);				\
 	}					\
 })
-
 #endif // HAVE_PBX_VECTOR_H
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
