@@ -1,3 +1,371 @@
+2016-01-28  ddegroot
+
+	* [r6537] src/sccp_socket.c: Enh: Minor cleanup (debug entry, use
+	  pbx_log, maxWaitTime should be int instead of double)
+
+	* [r6536] src/sccp_actions.c: Enh: Minor cleanup (indentation / old
+	  debug entry)
+
+2016-01-27  ddegroot
+
+	* [r6535] src/chan_sccp.c, src/sccp_cli.c: Fix: printout of
+	  endianness
+
+2016-01-26  ddegroot
+
+	* [r6534] src/sccp_event.c: Fix: Reimplementation of revision 6528,
+	  to check realloc result before using it.
+
+	* [r6533] src/sccp_cli.c, src/sccp_event.c: Fix: Revert of revision
+	  6528. Reported by Niklas.
+
+2016-01-25  ddegroot
+
+	* [r6532] src/sccp_channel.c, src/sccp_pbx.c: Fix: make shure
+	  scheduled events return 0 when exiting, so that the event is
+	  cancelled. Take and Release and extra ref during when returning
+	  from a scheduled event to re-check if the object still exists.
+	  Release both the scheduled obj reference and the locally takes
+	  reference, before exiting the scheduled function.
+
+	* [r6531] src/sccp_pbx.c: Fix: digittimeout without a number added
+	  causes a refcount off by one issue for chanels -> correction.
+
+	* [r6530] src/sccp_actions.c, src/sccp_device.c, src/sccp_enum.c,
+	  src/sccp_enum.h, src/sccp_enum.in: Fix: Prevent new registration
+	  from overhauling a device which is currently still being cleaned,
+	  causing the refcount to be increased by 1 after registratin
+	  finished. Added a new skinny_registrationstate to signal device
+	  being cleaned, to hold off a new registration.
+
+	* [r6529] src/sccp_device.c: Fix: 7931 in dev_build_buttontemplate.
+	  Issue raised by Niklas Larsson.
+
+	* [r6528] src/sccp_event.c: Fix: Check returned pointer during
+	  realloc before.
+
+2016-01-20  ddegroot
+
+	* [r6527] src/chan_sccp.h, src/sccp_cli.c, src/sccp_device.c,
+	  src/sccp_mwi.c, src/sccp_mwi.h: Fix: mwi issues reported by
+	  modulis
+	  - module load/unload causing inaccurate mwi counts because of
+	  event handling (Updateing before counting).
+	  This caused logic inversion when a lot of devices where
+	  registering at the same time, makeing for inaccurate mwi counts
+	  on display and cli
+	  - Forced mwi recount after device is registered completely (Fixup
+	  for the previous inversion, bit of an ugly crutch (should be
+	  revised)).
+	  - Used device->lineButtons instead of walking through all device
+	  buttons (mwi_check).
+	  - Cleaned up sccp_mwi_setMWILineStatus
+	  - Cleaned up sccp_mwi_check
+
+	* [r6526] src/sccp_pbx.c: Fix: refcount on digittimeout
+
+	* [r6525] src/sccp_device.c: Applied Patch #22: Allow background
+	  and ringtone setting on >7941 phones. Supplied by Niklas Larsson
+
+2016-01-19  ddegroot
+
+	* [r6524] src/sccp_device.c: Fix: Compile warning about shadow
+	  variable
+
+2016-01-16  ddegroot
+
+	* [r6523] src/sccp_channel.c, src/sccp_pbx.c: Fix: timeout handling
+	  on scheduled hangup, forcing release of channel.
+
+	* [r6522] src/pbx_impl/ast/ast.c, src/sccp_channel.c,
+	  src/sccp_pbx.c: Fix: timeout handling on scheduled hangup,
+	  preventing calling sccp_channel_stop_and_deny_scheduled_tasks
+	  multiple times.
+
+	* [r6521] src/sccp_actions.c, src/sccp_device.c,
+	  src/sccp_protocol.h: Enh: Print debug when sending background
+	  image to device. Print Device2User result to debug log (debug:
+	  action|message|device).
+
+	* [r6520] src/sccp_actions.c, src/sccp_device.c, src/sccp_device.h,
+	  src/sccp_enum.c, src/sccp_enum.h, src/sccp_enum.in,
+	  src/sccp_protocol.h: Enhancement:
+	  Added SCCP_BUTTONTYPE_ABBRDIAL device template type
+	  Fill up the device template with Abbreviated Dial Buttons
+	  When there are more Speeddials then screen/addon positions, they
+	  will be assigned to Abbreviated Dial Buttons
+
+2016-01-11  ddegroot
+
+	* [r6519] src/pbx_impl/ast/ast.c: Enh: Added obsolete flag to
+	  sccp_wrapper_asterisk_featureMonitor
+
+	* [r6518] Makefile.am, configure.ac, doc/Makefile.in,
+	  src/Makefile.in, src/sccp_enum.h, src/sccp_enum.in,
+	  src/sccp_featureButton.c, src/sccp_features.c,
+	  src/sccp_management.c, src/sccp_pbx.c: Merge feature/monitor into
+	  git-svn
+
+2016-01-10  ddegroot
+
+	* [r6517] conf/tftp/Desktops/320x196x4/Chan-SCCP-b.png[ADD],
+	  conf/tftp/Desktops/320x196x4/Chan-SCCP-b_thumb.png[ADD],
+	  conf/tftp/Desktops/320x196x4/List.xml,
+	  conf/tftp/Desktops/320x212x12/Chan-SCCP-b.png[ADD],
+	  conf/tftp/Desktops/320x212x12/Chan-SCCP-b_thumb.png[ADD],
+	  conf/tftp/Desktops/320x212x12/List.xml,
+	  conf/tftp/Desktops/320x212x16[ADD],
+	  conf/tftp/Desktops/320x212x16/Chan-SCCP-b.png[ADD],
+	  conf/tftp/Desktops/320x212x16/Chan-SCCP-b_thumb.png[ADD],
+	  conf/tftp/Desktops/320x212x16/List.xml[ADD],
+	  conf/tftp/Desktops/640x480x24[ADD],
+	  conf/tftp/Desktops/640x480x24/Chan-SCCP-b.png[ADD],
+	  conf/tftp/Desktops/640x480x24/Chan-SCCP-b_thumb.png[ADD],
+	  conf/tftp/Desktops/640x480x24/List.xml[ADD],
+	  conf/tftp/Desktops/800x600x16[ADD],
+	  conf/tftp/Desktops/800x600x16/Chan-SCCP-b.png[ADD],
+	  conf/tftp/Desktops/800x600x16/Chan-SCCP-b_thumb.png[ADD],
+	  conf/tftp/Desktops/800x600x16/List.xml[ADD]: Enh: New/Modern
+	  example desktop/background file created by Benjamin Busch
+	  (Thanks)
+
+	* [r6516] conf/tftp/Desktops/320x196x4/Chan-SCCP-b.png[DEL],
+	  conf/tftp/Desktops/320x196x4/Chan-SCCP-b_old.png[CPY],
+	  conf/tftp/Desktops/320x196x4/Chan-SCCP-b_old_thumb.png[CPY],
+	  conf/tftp/Desktops/320x196x4/Chan-SCCP-b_thumb.png[DEL],
+	  conf/tftp/Desktops/320x212x12/Chan-SCCP-b.png[DEL],
+	  conf/tftp/Desktops/320x212x12/Chan-SCCP-b_old.png[CPY],
+	  conf/tftp/Desktops/320x212x12/Chan-SCCP-b_old_thumb.png[CPY],
+	  conf/tftp/Desktops/320x212x12/Chan-SCCP-b_thumb.png[DEL]:
+	  Moved/Renamed old Desktop samples to old
+
+	* [r6515] src/pbx_impl/ast/ast.c: Fix: Compile warning for
+	  sccp_wrapper_asterisk_featureMonitor hen compiling against
+	  asterisk-12-branch
+
+	* [r6514] src/sccp_management.c: Fix: Compile warning for
+	  ast_hook_send_action when compiling against asterisk-1.6
+
+	* [r6513] src/sccp_management.c: Fix: Compile warning for
+	  ast_hook_send_action when compiling against asterisk-1.6
+
+	* [r6512] src/pbx_impl/ast/ast.c,
+	  src/pbx_impl/ast/ast112_announce.c, src/pbx_impl/ast/ast113.c:
+	  Fix: compilation against asterisk-trunk instead of
+	  asterisk-13-branch. They differ in the returntype and cleanup of
+	  ast_channel_callid and related functions
+
+	* [r6511] Makefile.in, autoconf/acinclude.m4, autoconf/asterisk.m4,
+	  autoconf/extra.m4, configure, contrib/gen_sccpconf/Makefile.in,
+	  doc/Makefile.in, src/Makefile.am, src/Makefile.in,
+	  src/config.h.in: Enh: (autoconf) Added debug output to m4
+	  CS_CHECK_AST_TYPEDEF macro
+	  Fix: (autoconf) Use AC_EGREP_CPP instead of AC_EGREP_HEADER,
+	  which allows multiple dependent header to be added, before
+	  performing the grep function
+	  Enh: (autoconf) Added check for used compiler sanitizers during
+	  asterisk build
+	  Enh: (automake) Use the same sanitizers for chan-sccp-b as
+	  asterisk
+	  Enh: (autoconf) Added check for callid typedef (changed from
+	  struct to typedef in asterisk-trunk)
+
+	* [r6510] src/sccp_socket.c: Fix: SCCP_SETSOCKETOPTION using
+	  globally declared tv instead of locally declared mytv.
+
+2016-01-09  ddegroot
+
+	* [r6509] autoconf/asterisk.m4, configure, src/chan_sccp.h,
+	  src/pbx_impl/ast/define.h: Fix: asterisk_register_file /
+	  asterisk_file_version detection (asterisk-trunk)
+	  Enh: move SCCP_FILE_VERSION definition to pbx_impl/ast/define.h
+
+2016-01-08  ddegroot
+
+	* [r6508] src/pbx_impl/ast/ast112_announce.c: Fix:
+	  ASTERISK_FILE_VERION call changed in asterisk trunk
+
+	* [r6507] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast108.h, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast111.h, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast112.h, src/pbx_impl/ast/ast113.c,
+	  src/pbx_impl/ast/ast113.h, src/pbx_impl/ast/define.h,
+	  src/sccp_actions.c, src/sccp_appfunctions.c, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_conference.c, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_devstate.c, src/sccp_features.c,
+	  src/sccp_hint.c, src/sccp_line.c, src/sccp_management.c,
+	  src/sccp_refcount.c, src/sccp_socket.c, src/sccp_softkeys.c,
+	  src/sccp_utils.c, src/sccp_utils.h: Enh: calling strdup instead
+	  of ast_strdup(a) not supported anymore by asterisk
+	  trunk. Replaced all instances with pbx_strdup(a), which points to
+	  ast_strdup in
+	  define.h
+
+	* [r6506] autoconf/asterisk.m4, configure, src/chan_sccp.h,
+	  src/config.h.in, src/pbx_impl/ast/define.h: Fix: Asterisk trunk
+	  does not provide ast_register_file_version /
+	  ast_unregister_file_version any more, added test
+	  for this condition to configure and adapted chan_sccp.h
+	  accordingly.
+
+	* [r6505] src/sccp_channel.c, src/sccp_rtp.c: Fix: moved debug
+	  logging with regard to used ip-address and port to
+	  startMediaTransmission, so that it always get's shown even when
+	  it has
+	  not been altered by nat. (Requested by Marcello)
+
+2016-01-05  ddegroot
+
+	* [r6504] autoconf/extra.m4, configure, src/chan_sccp.h,
+	  src/config.h.in: Fix: big / little endian use in chan_sccp.h.
+	  Issue Reported by Kai Schmitz on Powerpc spe/e500
+
+	* [r6503] src/sccp_socket.c: Enh: removal of unused socketopions:
+	  TCP_THIN_LINEAR_TIMEOUTS and TCP_THIN_DUPACK. causing warning on
+	  powerpcspe
+
+2016-01-04  ddegroot
+
+	* [r6502] src/sccp_socket.c: Fix: debug output when dissecting
+	  incoming packet. Reported by Kai Schmitz
+
+2015-12-28  ddegroot
+
+	* [r6501] src/sccp_actions.c: Fix: boundscheck in
+	  sccp_handle_soft_key_event. Issue Reported by Ahmed Zaim
+
+	* [r6500] src/sccp_actions.c: Fix: Small Speeddial button fix for
+	  immediate mode. Patch by Pavel
+
+2015-12-14  ddegroot
+
+	* [r6495] contrib/gen_sccpconf/gen_sccpconf.c,
+	  contrib/gen_sccpconf/gen_sccpconf.h: Fix: gen_sccpconf
+	  compilation
+
+	* [r6492] src/pbx_impl/ast/ast.c: Switching back to automon instead
+	  of automixmon, so that sccp_management.c
+	  AMI event moniring works again.
+
+2015-12-13  ddegroot
+
+	* [r6491] src/sccp_mwi.c: Fix: skip updating voicemail msgcount
+	  when pbx_app_inboxcount/event returns -1. Issue reported by Jozef
+	  Maticky
+
+	* [r6490] src/sccp_channel.c: Fix: audio issue reported by Jozef
+	  Maticky when using speeddial.
+
+2015-12-12  ddegroot
+
+	* [r6489] src/sccp_channel.c: Fix: Reordered sccp_channel_newcall
+	  to make 69XX and SCCPPhone (android) work in immediate/offhook
+	  rtp mode again. Reported by Pavel.
+
+2015-12-11  ddegroot
+
+	* [r6488] autoconf/acinclude.m4, configure: Fix: issue when running
+	  configure as non-root and you don't have enough rights to read
+	  /etc/asterisk/asterisk.conf -> issue NOTICE and continue
+	  searching.
+
+	* [r6487] autoconf/acinclude.m4, configure: Fix: Prevent a faulty
+	  etc/asterisk/asterisk.conf file from being parsed and causing
+	  link errors down the line (should be backported).
+	  Issue reported by Raymond Guzman.
+
+2015-12-10  ddegroot
+
+	* [r6486] src/sccp_cli.c, src/sccp_management.c: Enh: Implemented
+	  CLI: sccp remove line <devicename> <linename>
+	  Enh: Check if addButton call succeeded
+	  Enh: Run sccp_device_check_update, which will cleanup device and
+	  run device restart if necessary
+	  Todo: Implement remove functionality for AMI call as well
+
+	* [r6485] src/common.h, src/sccp_cli.c, src/sccp_config.c,
+	  src/sccp_config.h, src/sccp_device.h, src/sccp_management.c:
+	  Issue: using 'sccp add line [devicename] [linename], causes
+	  segfault
+	  Enh: use non-anonymous struct for sccp_buttonconfig_list
+	  Enh: declare a type for sccp_buttonconfig_list as
+	  sccp_buttonconfig_list_t
+	  Enh: use new sccp_buttonconfig_list_t in device struct
+	  Enh: pass buttonconfig as sccp_buttonconfig_list_t* instead of
+	  void* in sccp_config_checkButton / sccp_config_addButton
+	  Fix: sccp_cli.c / sccp_management.c when calling
+	  sccp_config_addButton, a pointer to the buttonconfig should be
+	  passed in, not the device
+	  
+	  (Issue reported by Cody-Miller)
+
+2015-12-10  marcelloceschia
+
+	* [r6484] src/sccp_rtp.c: fixes compile issue when compiling
+	  without video support; issue reported by Ray
+
+2015-12-09  ddegroot
+
+	* [r6483] src/sccp_actions.c: Revert r6462. Issue reported by Dan
+	  Huynh and Anatoli
+
+2015-12-08  ddegroot
+
+	* [r6482] src/sccp_actions.c, src/sccp_pbx.c, src/sccp_protocol.h:
+	  Fix/Upd: ServerRes Message to format protocolversion>17 responses
+	  correctly
+	  Enh: Update comment in sccp_pbx.c
+
+2015-12-07  ddegroot
+
+	* [r6481] src/sccp_channel.c, src/sccp_protocol.c: Enh: Suppress
+	  callinfo logging when not required/requested via sccp debug
+
+	* [r6480] src/sccp_enum.c, src/sccp_enum.h, src/sccp_enum.in,
+	  src/sccp_event.c, tools/gen_sccp_enum.awk: Fix: enum bitflag
+	  issue, producing incorrect representations for the actual value
+
+	* [r6479] src/sccp_config.c: Fix: when reloading sccp.conf the nat
+	  status should only be restored to current status if it was
+	  originally set to auto and remains to be set to auto. In a future
+	  revision we should split the setting and the actual state, so
+	  that this recovery is not required.
+
+2015-12-06  ddegroot
+
+	* [r6478] src/sccp_features.c: Added implementation reference note
+	  to sccp_feat_monitor, to clarify flow of events
+
+	* [r6477] src/sccp_config.c: Fix: Remove warning about context
+	  missing when losing sccp.conf
+
+	* [r6476] src/sccp_config.c, src/sccp_management.c: Enh: Only warn
+	  when a specific dialplan context cannot be found, during a reload
+	  (not during initial module load, because we cannot be sure the
+	  dialplan has finished loading at that time).
+	  Fix: Don't append '\r\n' wenn concatenating string in
+	  __sccp_manager_hookresult
+
+	* [r6475] src/sccp_management.c, src/sccp_management.h: Enh/Fix:
+	  use thread local storage instead of gcc nested function/clang
+	  blocks in sccp_manager_action2str
+	  - Supported by older gcc versions
+	  - Does not require special compiler functionality
+	  - Prevents module load issue when asterisk was compiled with gcc
+	  and chan-sccp-b with clang -> not supporting blocksruntime in
+	  asterisk
+	  - Cleaner implementation without ifdef blocks
+
+	* [r6474] ChangeLog, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/pbx_impl/pbx_impl.h,
+	  src/sccp_rtp.c: Enh: Refactored wrapper_rtp_audio_create and
+	  wrapper_rtp_video_create into wrapper-createRtpInstance, adapted
+	  sccp_rtp.c accordingly (step 3 finished).
+
 2015-12-05  ddegroot
 
 	* [r6473] src/sccp_device.c: Fix: remove warning about going to

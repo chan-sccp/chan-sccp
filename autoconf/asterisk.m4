@@ -691,6 +691,12 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 		],,[ 
 	               	$HEADER_INCLUDE
     ])
+    AC_CHECK_HEADER([asterisk/vector.h],	
+    		[
+    			AC_DEFINE(HAVE_PBX_VECTOR_H,1,[Found 'asterisk/vector.h'])
+		],,[ 
+	               	$HEADER_INCLUDE
+    ])
     AC_CHECK_HEADER([asterisk/parking.h],
     [
 		AC_DEFINE(HAVE_PBX_FEATURES_H,1,[Found 'asterisk/parking.h'])
