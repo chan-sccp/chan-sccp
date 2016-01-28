@@ -12,50 +12,6 @@
  */
 #pragma once
 
-/* local definition */
-#define SCCP_VECTOR_RW_RDLOCK(vec) pbx_rwlock_rdlock(&(vec)->lock)
-#define SCCP_VECTOR_RW_WRLOCK(vec) pbx_rwlock_wrlock(&(vec)->lock)
-#define SCCP_VECTOR_RW_UNLOCK(vec) pbx_rwlock_unlock(&(vec)->lock)
-#define SCCP_VECTOR_RW_RDLOCK_TRY(vec) pbx_rwlock_tryrdlock(&(vec)->lock)
-#define SCCP_VECTOR_RW_WRLOCK_TRY(vec) pbx_rwlock_trywrlock(&(vec)->lock)
-#define SCCP_VECTOR_RW_RDLOCK_TIMED(vec, timespec) pbx_rwlock_timedrdlock(&(vec)->lock, timespec)
-#define SCCP_VECTOR_RW_WRLOCK_TIMED(vec, timespec) pbx_rwlock_timedwrlock(&(vec)->lock, timespec)
-
-#if defined(HAVE_PBX_VECTOR_H) && ASTERISK_VERSION_GROUP >= 112
-// map sccp_vector to ast_vector functions
-#define SCCP_VECTOR AST_VECTOR
-#define SCCP_VECTOR_RW AST_VECTOR_RW
-#define SCCP_VECTOR_INIT AST_VECTOR_INIT
-#define SCCP_VECTOR_RW_INIT AST_VECTOR_RW_INIT
-#define SCCP_VECTOR_FREE AST_VECTOR_FREE
-#define SCCP_VECTOR_PTR_FREE AST_VECTOR_PTR_FREE
-#define SCCP_VECTOR_RW_FREE AST_VECTOR_RW_FREE
-#define SCCP_VECTOR_RW_PTR_FREE AST_VECTOR_RW_PTR_FREE
-#define SCCP_VECTOR_APPEND AST_VECTOR_APPEND
-#define SCCP_VECTOR_REPLACE AST_VECTOR_REPLACE
-#define SCCP_VECTOR_INSERT_AT AST_VECTOR_INSERT_AT
-#define SCCP_VECTOR_ADD_SORTED AST_VECTOR_ADD_SORTED
-#define SCCP_VECTOR_REMOVE AST_VECTOR_REMOVE
-#define SCCP_VECTOR_REMOVE_UNORDERED AST_VECTOR_REMOVE_UNORDERED
-#define SCCP_VECTOR_REMOVE_ORDERED AST_VECTOR_REMOVE_ORDERED
-#define SCCP_VECTOR_REMOVE_CMP_UNORDERED AST_VECTOR_REMOVE_CMP_UNORDERED
-#define SCCP_VECTOR_REMOVE_CMP_ORDERED AST_VECTOR_REMOVE_CMP_ORDERED
-#define SCCP_VECTOR_ELEM_DEFAULT_CMP AST_VECTOR_ELEM_DEFAULT_CMP
-#define SCCP_VECTOR_ELEM_CLEANUP_NOOP AST_VECTOR_ELEM_CLEANUP_NOOP
-#define SCCP_VECTOR_REMOVE_ELEM_UNORDERED AST_VECTOR_REMOVE_ELEM_UNORDERED
-#define SCCP_VECTOR_REMOVE_ELEM_ORDERED AST_VECTOR_REMOVE_ELEM_ORDERED
-#define SCCP_VECTOR_SIZE AST_VECTOR_SIZE
-#define SCCP_VECTOR_RESET AST_VECTOR_RESET
-#define SCCP_VECTOR_GET_ADDR AST_VECTOR_GET_ADDR
-#define SCCP_VECTOR_GET AST_VECTOR_GET
-#define SCCP_VECTOR_GET_CMP AST_VECTOR_GET_CMP
-#define SCCP_VECTOR_MATCH_ALL AST_VECTOR_MATCH_ALL
-#define SCCP_VECTOR_CALLBACK AST_VECTOR_CALLBACK
-#define SCCP_VECTOR_CALLBACK_MULTIPLE AST_VECTOR_CALLBACK_MULTIPLE
-#define SCCP_VECTOR_CALLBACK_VOID AST_VECTOR_CALLBACK_VOID
-#else // !HAVE_PBX_VECTOR_H
-// local implementation provided as fallback when a complete ast_vector.h is not provided by asterisk
-
 /*! \file
  *
  * \brief Vector container support.
@@ -199,7 +155,7 @@
 /*!
  * \internal
  */
-#define __make_room(idx, vec) ({ \
+#define __sccp_make_room(idx, vec) ({ \
 	int __sccp_vector_res1 = 0;									\
 	do {												\
 		if ((idx) >= (vec)->max) {								\
@@ -233,7 +189,7 @@
 #define SCCP_VECTOR_APPEND(vec, elem) ({								\
 	int __sccp_vector_res = 0;									\
 	do {												\
-		if (__make_room((vec)->current, vec) != 0) { 						\
+		if (__sccp_make_room((vec)->current, vec) != 0) { 					\
 			__sccp_vector_res = -1;								\
 			break;										\
 		} 											\
@@ -261,7 +217,7 @@
 #define SCCP_VECTOR_REPLACE(vec, idx, elem) ({								\
 	int __sccp_vector_res = 0;									\
 	do {												\
-		if (__make_room((idx), vec) != 0) {							\
+		if (__sccp_make_room((idx), vec) != 0) {						\
 			__sccp_vector_res = -1;								\
 			break;										\
 		}											\
@@ -293,7 +249,7 @@
 	int __sccp_vector_res = 0;									\
 	size_t __move;											\
 	do {												\
-		if (__make_room(((idx) > (vec)->current ? (idx) : (vec)->current), vec) != 0) {		\
+		if (__sccp_make_room(((idx) > (vec)->current ? (idx) : (vec)->current), vec) != 0) {	\
 			__sccp_vector_res = -1;								\
 			break;										\
 		}											\
@@ -323,7 +279,7 @@
 	int __sccp_vector_res = 0;									\
 	size_t __sccp_vector_idx = (vec)->current;							\
 	do {												\
-		if (__make_room((vec)->current, vec) != 0) {						\
+		if (__sccp_make_room((vec)->current, vec) != 0) {					\
 			__sccp_vector_res = -1;								\
 			break;										\
 		}											\
@@ -680,6 +636,14 @@
 		callback((vec)->elems[__sccp_vector_idx], ##__VA_ARGS__);				\
 	}					\
 })
-#endif // HAVE_PBX_VECTOR_H
+
+#define SCCP_VECTOR_RW_RDLOCK(vec) pbx_rwlock_rdlock(&(vec)->lock)
+#define SCCP_VECTOR_RW_WRLOCK(vec) pbx_rwlock_wrlock(&(vec)->lock)
+#define SCCP_VECTOR_RW_UNLOCK(vec) pbx_rwlock_unlock(&(vec)->lock)
+#define SCCP_VECTOR_RW_RDLOCK_TRY(vec) pbx_rwlock_tryrdlock(&(vec)->lock)
+#define SCCP_VECTOR_RW_WRLOCK_TRY(vec) pbx_rwlock_trywrlock(&(vec)->lock)
+#define SCCP_VECTOR_RW_RDLOCK_TIMED(vec, timespec) pbx_rwlock_timedrdlock(&(vec)->lock, timespec)
+#define SCCP_VECTOR_RW_WRLOCK_TIMED(vec, timespec) pbx_rwlock_timedwrlock(&(vec)->lock, timespec)
+
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
