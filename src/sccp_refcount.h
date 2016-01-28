@@ -9,17 +9,12 @@
  */
 #pragma once
 
-#if HAVE_SYS_TYPES_H
-//#include <sys/types.h>
-#endif
-
-//#include <setjmp.h>
+#include "sccp_cli.h"
 
 #define REFCOUNT_INDENTIFIER_SIZE 32
 enum sccp_refcounted_types {
 	SCCP_REF_PARTICIPANT = 1,
 	SCCP_REF_CONFERENCE,
-	SCCP_REF_EVENT,
 	SCCP_REF_CHANNEL,
 	SCCP_REF_LINEDEVICE,
 	SCCP_REF_LINE,
@@ -46,6 +41,7 @@ void * const sccp_refcount_release(const void * const ptr, const char *filename,
 //void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func);
 void sccp_refcount_replace(const void **replaceptr, const void *const newptr, const char *filename, int lineno, const char *func);
 void sccp_refcount_print_hashtable(int fd);
+int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 void sccp_refcount_autorelease(void *ptr);
 
 #if CS_TEST_FRAMEWORK
