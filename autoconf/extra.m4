@@ -231,24 +231,25 @@ dnl	])
 	AC_CHECK_HEADERS([sys/socket.h])
 	AC_CHECK_HEADERS([netinet/in.h])
 	AC_CHECK_HEADERS([pthread.h])
-	AS_IF([test "X${ostype}" == "Xlinux"], [
-		AC_CHECK_HEADERS([iconv.h])
-	], [
-		AC_CHECK_LIB([iconv], [iconv_open], [
-			LIBICONV="-liconv"
-			AC_CHECK_HEADERS([iconv.h])
-		], [
-			LIBICONV=""; 
-			AC_MSG_NOTICE([The correct iconv library could not be found. Maybe you need to provide LDFLAGS.])
-		])
-	])
+dnl	AS_IF([test "X${ostype}" == "Xlinux"], [
+dnl		AC_CHECK_HEADERS([iconv.h])
+dnl	], [
+dnl		AC_CHECK_LIB([iconv], [iconv_open], [
+dnl			LIBICONV="-liconv"
+dnl			AC_CHECK_HEADERS([iconv.h])
+dnl		], [
+dnl			LIBICONV=""; 
+dnl			AC_MSG_NOTICE([The correct iconv library could not be found. Maybe you need to provide LDFLAGS.])
+dnl		])
+dnl	])
+	AM_ICONV
 	AC_CHECK_FUNCS([gethostbyname inet_ntoa mkdir]) 
 	AC_HEADER_STDC    
 	AC_HEADER_STDBOOL 
 	AC_CHECK_HEADERS([netinet/in.h fcntl.h sys/signal.h stdio.h errno.h ctype.h assert.h sys/sysinfo.h])
 	AC_STRUCT_TM
 	AC_STRUCT_TIMEZONE
-	AC_SUBST([LIBICONV])
+dnl	AC_SUBST([LIBICONV])
 ])
 
 AC_DEFUN([CS_CHECK_CROSSCOMPILE],[

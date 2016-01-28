@@ -214,7 +214,7 @@ static void sccp_device_setRingtone(constDevicePtr device, const char *url)
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_RINGTONE, 0, 0, transactionID, xmlStr, 0);
 }
 
-static void sccp_device_copyStr2Locale_UTF8(constDevicePtr d, char *dst, const char *src, size_t dst_size)
+static void sccp_device_copyStr2Locale_UTF8(constDevicePtr d, char *dst, ICONV_CONST char *src, size_t dst_size)
 {
 	if (!dst || !src) {
 		return;
@@ -222,8 +222,8 @@ static void sccp_device_copyStr2Locale_UTF8(constDevicePtr d, char *dst, const c
 	sccp_copy_string(dst, src, dst_size);
 }
 
-#if HAVE_ICONV_H
-static void sccp_device_copyStr2Locale_Convert(constDevicePtr d, char *dst, const char *src, size_t dst_size)
+#if HAVE_ICONV
+static void sccp_device_copyStr2Locale_Convert(constDevicePtr d, char *dst, ICONV_CONST char *src, size_t dst_size)
 {
 	if (!dst || !src) {
 		return;
@@ -728,7 +728,7 @@ void sccp_device_preregistration(devicePtr device)
 			device->indicate = &sccp_device_indication_olderDevices;
 			break;
 	}
-#if HAVE_ICONV_H
+#if HAVE_ICONV
 	if (device && !(device->device_features & SKINNY_PHONE_FEATURES_UTF8)) {
 		device->copyStr2Locale = sccp_device_copyStr2Locale_Convert;
 	}

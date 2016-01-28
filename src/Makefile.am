@@ -50,12 +50,12 @@ if BUILD_AST
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast113.h   pbx_impl/ast/ast113.c pbx_impl/ast/ast112_announce.h pbx_impl/ast/ast112_announce.c
 endif
 
-chan_sccp_la_LIBADD	  = $(PTHREAD_CFLAGS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR) $(CLANG_BLOCKS_LIBS) $(LIBBFD) $(LIBEXECINFO) $(LIBICONV)
+chan_sccp_la_LIBADD	  = $(PTHREAD_CFLAGS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR) $(CLANG_BLOCKS_LIBS) $(LIBBFD) $(LIBEXECINFO) $(LTLIBICONV)
 chan_sccp_la_DEPENDENCIES = $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR) revision.h
 chan_sccp_la_CFLAGS       = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(COVERAGE_CFLAGS) $(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) $(LIBCURL_CFLAGS) $(ax_warn_cflags_variable)
 chan_sccp_la_CFLAGS      += -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall -DAST_MODULE_SELF_SYM=__internal_chan_sccp_self -DAST_MODULE=\"chan_sccp\"
 #chan_sccp_la_CFLAGS      += $(SANITIZE_CFLAGS)
-chan_sccp_la_LDFLAGS      = -avoid-version -module $(PBX_LDFLAGS) $(SANITIZE_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS) $(LIBBFD) $(LIBEXECINFO) $(LIBICONV)
+chan_sccp_la_LDFLAGS      = -avoid-version -module $(PBX_LDFLAGS) $(SANITIZE_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS) $(LIBBFD) $(LIBEXECINFO) $(LTLIBICONV)
 
 revision.h: .revision
 	@cd "@abs_top_srcdir@/src"

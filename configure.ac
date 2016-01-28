@@ -2,8 +2,8 @@ dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
 dnl CREATED BY: Created by Diederik de Groot
 dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
 dnl          See the LICENSE file at the top of the source tree.
-dnl DATE: $Date: 2015-10-15 18:45:56 +0200 (do, 15 okt 2015) $
-dnl REVISION: $Revision: 6248 $
+dnl DATE: $Date$
+dnl REVISION: $Revision$
 dnl NOTE: Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.64])
 AC_INIT([Chan_SCCP],m4_esyscmd([cat .version |tr -d '\n']),[https://sourceforge.net/projects/chan-sccp-b/],[Chan_SCCP])
@@ -54,7 +54,7 @@ AC_DISABLE_STATIC([])
 
 AC_CONFIG_SRCDIR([src/chan_sccp.c]) 
 AC_COPYRIGHT("Chan_SCCP")
-AC_REVISION($Revision: 6248 $) 
+AC_REVISION($Revision$) 
 
 CONFIGURE_PART([Checking build environment:])
 CS_SETUP_BUILD
@@ -64,7 +64,6 @@ CS_ENABLE_OPTIMIZATION
 AX_CHECK_ALIGNED_ACCESS_REQUIRED	dnl sparc64 alignment required
 AX_CHECK_UNALIGNED_BUSERROR		dnl sparc64 unaligned access
 CS_GET_VERSION([.])
-
 dnl AC_PROG_CXX
 
 CONFIGURE_PART([Checking host platform:])
