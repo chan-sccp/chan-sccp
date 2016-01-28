@@ -390,7 +390,7 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 
 	if (argc == 4) {
 		if (sccp_strcaseequals(argv[3],"show")) {
-		        check_inuse = 1;
+			check_inuse = 1;
 		} else if (sccp_strcaseequals(argv[3],"suppress")) {
 			check_inuse = 2;
 		}
@@ -415,22 +415,29 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 					sprintf(bucketstr, "%d", bucket);						\
 				}											\
 				inuse = FALSE;										\
-				if (check_inuse && obj->alive) {									\
+				if (check_inuse && obj->alive) {							\
+					union {	/* little union trick to prevent cast-alignment warning	*/		\
+						unsigned char *cdata;							\
+						sccp_device_t *device;							\
+						sccp_line_t *line;							\
+						sccp_linedevices_t *linedevice;						\
+						sccp_channel_t *channel;						\
+					} data = {									\
+						.cdata = obj->data,							\
+					};										\
 					if (obj->type == SCCP_REF_DEVICE) {						\
-						sccp_device_t *device = (sccp_device_t *)obj->data;			\
-						if (device && device->session && device->active_channel) {		\
+						if (data.device && data.device->session && data.device->active_channel) {\
 							inuse = TRUE;							\
 						}									\
 					} else if (obj->type == SCCP_REF_LINE) {					\
-						sccp_line_t *line = (sccp_line_t *)obj->data;				\
-						if (line && (								\
-							line->statistic.numberOfActiveChannels || 			\
-							line->statistic.numberOfHeldChannels)				\
+						if (data.line && (							\
+							data.line->statistic.numberOfActiveChannels || 			\
+							data.line->statistic.numberOfHeldChannels)			\
 						) {									\
 							inuse = TRUE;							\
 						}									\
 					} else if (obj->type == SCCP_REF_LINEDEVICE) {					\
-						sccp_linedevices_t *linedevice = (sccp_linedevices_t *)obj->data;	\
+						sccp_linedevices_t *linedevice = data.linedevice;			\
 						if (linedevice && linedevice->device && linedevice->line &&		\
 							linedevice->device->session && linedevice->device->active_channel && \
 							(linedevice->line->statistic.numberOfActiveChannels ||		\
@@ -439,8 +446,7 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 							inuse = TRUE;							\
 						}									\
 					} else if (obj->type == SCCP_REF_CHANNEL) {					\
-						sccp_channel_t *channel= (sccp_channel_t *)obj->data;					\
-						if (channel && channel->owner) {					\
+						if (data.channel && data.channel->owner) {				\
 							inuse = TRUE;							\
 						}									\
 					}										\
@@ -700,8 +706,8 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 			info->summary = "chan-sccp-b refcount test";
 			info->description = "chan-sccp-b refcount tests";
 			return AST_TEST_NOT_RUN;
-	        case TEST_EXECUTE:
-	        	break;
+		case TEST_EXECUTE:
+			break;
 	}
 	
 	pthread_t t;
@@ -757,12 +763,12 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 
 void sccp_refcount_register_tests(void)
 {
-        AST_TEST_REGISTER(sccp_refcount_tests);
+	AST_TEST_REGISTER(sccp_refcount_tests);
 }
 
 void sccp_refcount_unregister_tests(void)
 {
-        AST_TEST_UNREGISTER(sccp_refcount_tests);
+	AST_TEST_UNREGISTER(sccp_refcount_tests);
 }
 #endif
 
