@@ -101,6 +101,7 @@ void sccp_mwi_module_start(void)
 {
 	/* */
 	SCCP_LIST_HEAD_INIT(&sccp_mailbox_subscriptions);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Starting MWI system\n");
 
 	sccp_event_subscribe(SCCP_EVENT_LINE_CREATED, sccp_mwi_linecreatedEvent, TRUE);
 	sccp_event_subscribe(SCCP_EVENT_DEVICE_ATTACHED, sccp_mwi_deviceAttachedEvent, TRUE);
@@ -113,6 +114,7 @@ void sccp_mwi_module_start(void)
 void sccp_mwi_module_stop(void)
 {
 	sccp_mailbox_subscriber_list_t *subscription = NULL;
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Stopping MWI system\n");
 
 	sccp_event_unsubscribe(SCCP_EVENT_LINE_CREATED, sccp_mwi_linecreatedEvent);
 	sccp_event_unsubscribe(SCCP_EVENT_DEVICE_ATTACHED, sccp_mwi_deviceAttachedEvent);
