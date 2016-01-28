@@ -406,7 +406,7 @@ char *sccp_socket_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, 
 			ast_str_set(&str, 0, "%s", port);
 			break;
 		default:
-			ast_log(LOG_ERROR, "Invalid format\n");
+			pbx_log(LOG_ERROR, "Invalid format\n");
 			return "";
 	}
 
@@ -953,7 +953,7 @@ void *sccp_socket_device_thread(void *session)
 	}
 	uint8_t keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT;
 	int res;
-	double maxWaitTime;
+	int maxWaitTime;
 	int pollTimeout;
 	int read_result = 0;
 	sccp_msg_t msg = { {0,} };
@@ -984,7 +984,7 @@ void *sccp_socket_device_thread(void *session)
 		maxWaitTime += (maxWaitTime / 100) * keepaliveAdditionalTimePercent;
 		pollTimeout = maxWaitTime * 1000;
 
-		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d/%d for session %d\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout / 1000, s->fds[0].fd);
+		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d for session %d\n", DEV_ID_LOG(s->device), (int) maxWaitTime, s->fds[0].fd);
 
 		pthread_testcancel();										/* poll is also a cancellation point */
 		res = sccp_socket_poll(s->fds, 1, pollTimeout);
@@ -998,10 +998,9 @@ void *sccp_socket_device_thread(void *session)
 				break;
 			}
 		} else if (0 == res) {										/* poll timeout */
-			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Timeout.\n", DEV_ID_LOG(s->device));
-			if (((int) time(0) > ((int) s->lastKeepAlive + (int) maxWaitTime))) {
+			if (((int) time(0) >= ((int) s->lastKeepAlive + (int) maxWaitTime))) {
 				sccp_copy_string(addrStr, sccp_socket_stringify_addr(&s->sin), sizeof(addrStr));
-				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d) (ip-address: %s).\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout, addrStr);
+				pbx_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (ip-address: %s).\n", DEV_ID_LOG(s->device), (int) maxWaitTime, addrStr);
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_TIMEOUT);
 				break;
 			}
@@ -1363,7 +1362,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 	msg = NULL;
 
 	if (bytesSent < bufLen) {
-		ast_log(LOG_ERROR, "%s: Could only send %d of %d bytes!\n", DEV_ID_LOG(s->device), (int) bytesSent, (int) bufLen);
+		pbx_log(LOG_ERROR, "%s: Could only send %d of %d bytes!\n", DEV_ID_LOG(s->device), (int) bytesSent, (int) bufLen);
 		res = -1;
 	}
 
