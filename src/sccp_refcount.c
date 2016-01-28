@@ -49,6 +49,7 @@
 #include "common.h"
 #include "sccp_utils.h"
 #include "sccp_atomic.h"
+#include <asterisk/cli.h>
 
 // required for refcount inuse checking
 #include "sccp_device.h"
