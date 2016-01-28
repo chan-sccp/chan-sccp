@@ -821,11 +821,11 @@ static btnlist *sccp_make_button_template(devicePtr d)
 							case SCCP_FEATURE_HOLD:
 								btn[i].type = SKINNY_BUTTONTYPE_HOLD;
 								break;
-	#ifdef CS_DEVSTATE_FEATURE
+#ifdef CS_DEVSTATE_FEATURE
 								// case SCCP_FEATURE_DEVSTATE:
 								//btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 								//break;
-	#endif
+#endif
 							case SCCP_FEATURE_TRANSFER:
 								btn[i].type = SKINNY_BUTTONTYPE_TRANSFER;
 								break;
@@ -935,7 +935,6 @@ static btnlist *sccp_make_button_template(devicePtr d)
 				}
 			}
 			sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured %d Phone Button [%.2d] = %s(%d), label:%s\n", d->id, buttonconfig->index + 1, buttonconfig->instance, skinny_buttontype2str(btn[i].type), btn[i].type, buttonconfig->label);
-			//sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured %d Phone Button [%.2d] = (%d), label:%s\n", d->id, buttonconfig->index + 1, buttonconfig->instance, btn[i].type, buttonconfig->label);
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 
