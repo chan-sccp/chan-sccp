@@ -553,6 +553,9 @@
 /* Found 'asterisk/utils.h' */
 #undef HAVE_PBX_UTILS_H
 
+/* Found 'asterisk/vector.h' */
+#undef HAVE_PBX_VECTOR_H
+
 /* Define if libtool can extract symbol lists from object files. */
 #undef HAVE_PRELOADED_SYMBOLS
 
