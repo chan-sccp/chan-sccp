@@ -75,6 +75,7 @@ static struct sccp_refcount_obj_info {
 	[SCCP_REF_LINEDEVICE] = {NULL, "linedevice", DEBUGCAT_LINE},
 	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
 	[SCCP_REF_LINE] = {NULL, "line", DEBUGCAT_LINE},
+	[SCCP_REF_EVENT] = {NULL, "event", DEBUGCAT_EVENT},
 	[SCCP_REF_TEST] = {NULL, "test", DEBUGCAT_HIGH},
 /* *INDENT-ON* */
 };
