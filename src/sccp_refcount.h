@@ -19,6 +19,7 @@ enum sccp_refcounted_types {
 	SCCP_REF_LINEDEVICE,
 	SCCP_REF_LINE,
 	SCCP_REF_DEVICE,
+	SCCP_REF_EVENT,
 	SCCP_REF_TEST,
 };
 
