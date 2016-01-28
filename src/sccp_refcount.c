@@ -50,6 +50,11 @@
 #include "sccp_utils.h"
 #include "sccp_atomic.h"
 
+// required for refcount inuse checking
+#include "sccp_device.h"
+#include "sccp_line.h"
+#include "sccp_channel.h"
+
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
 //nb: SCCP_HASH_PRIME defined in config.h, default 563
@@ -66,7 +71,6 @@ static struct sccp_refcount_obj_info {
 /* *INDENT-OFF* */
 	[SCCP_REF_PARTICIPANT] = {NULL, "participant", DEBUGCAT_CONFERENCE},
 	[SCCP_REF_CONFERENCE] = {NULL, "conference", DEBUGCAT_CONFERENCE},
-	[SCCP_REF_EVENT] = {NULL, "event", DEBUGCAT_EVENT},
 	[SCCP_REF_CHANNEL] = {NULL, "channel", DEBUGCAT_CHANNEL},
 	[SCCP_REF_LINEDEVICE] = {NULL, "linedevice", DEBUGCAT_LINE},
 	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
@@ -372,46 +376,128 @@ static gcc_inline void sccp_refcount_remove_obj(const void *ptr)
 	}
 }
 
-#include <asterisk/cli.h>
-void sccp_refcount_print_hashtable(int fd)
+int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	int x, prev = 0;
+	int local_line_total = 0;
+	int bucket, prev = 0;
 	RefCountedObject *obj = NULL;
 	unsigned int maxdepth = 0;
 	unsigned int numentries = 0;
+	int check_inuse = 0;
+	boolean_t inuse = FALSE;
 	float fillfactor = 0.00;
 
-	pbx_cli(fd, "+==============================================================================================+\n");
-	pbx_cli(fd, "| %5s | %17s | %25s | %15s | %4s | %4s | %4s |\n", "hash", "type", "id", "ptr", "refc", "live", "size");
-	pbx_cli(fd, "|==============================================================================================|\n");
-	ast_rwlock_rdlock(&objectslock);
-	for (x = 0; x < SCCP_HASH_PRIME; x++) {
-		if (objects[x]) {
-			SCCP_RWLIST_RDLOCK(&(objects[x])->refCountedObjects);
-			SCCP_RWLIST_TRAVERSE(&(objects[x])->refCountedObjects, obj, list) {
-				if (prev == x) {
-					pbx_cli(fd, "|  +->  ");
-				} else {
-					pbx_cli(fd, "| [%3d] ", x);
-				}
-				pbx_cli(fd, "| %17s | %25s | %15p | %4d | %4s | %4d |\n", (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", obj->len);
-				prev = x;
-				numentries++;
-			}
-			if (maxdepth < SCCP_RWLIST_GETSIZE(&(objects[x])->refCountedObjects)) {
-				maxdepth = SCCP_RWLIST_GETSIZE(&(objects[x])->refCountedObjects);
-			}
-			SCCP_RWLIST_UNLOCK(&(objects[x])->refCountedObjects);
+	if (argc == 4) {
+		if (sccp_strcaseequals(argv[3],"show")) {
+		        check_inuse = 1;
+		} else if (sccp_strcaseequals(argv[3],"suppress")) {
+			check_inuse = 2;
 		}
 	}
+
+	ast_rwlock_rdlock(&objectslock);
+#define CLI_AMI_TABLE_NAME Refcount
+#define CLI_AMI_TABLE_PER_ENTRY_NAME Entry
+#define CLI_AMI_TABLE_ITERATOR for(bucket = 0; bucket < SCCP_HASH_PRIME; bucket++)
+#define CLI_AMI_TABLE_BEFORE_ITERATION 											\
+		if (objects[bucket]) {											\
+			SCCP_RWLIST_RDLOCK(&(objects[bucket])->refCountedObjects);					\
+			SCCP_RWLIST_TRAVERSE(&(objects[bucket])->refCountedObjects, obj, list) {			\
+				char bucketstr[5];									\
+				if (!s) {										\
+					if (prev == bucket) {								\
+						sprintf(bucketstr, " +-> ");						\
+					} else {									\
+						sprintf(bucketstr, "[%3d]", bucket);					\
+					}										\
+				} else {										\
+					sprintf(bucketstr, "%d", bucket);						\
+				}											\
+				inuse = FALSE;										\
+				if (check_inuse && obj->alive) {									\
+					if (obj->type == SCCP_REF_DEVICE) {						\
+						sccp_device_t *device = (sccp_device_t *)obj->data;			\
+						if (device && device->session && device->active_channel) {		\
+							inuse = TRUE;							\
+						}									\
+					} else if (obj->type == SCCP_REF_LINE) {					\
+						sccp_line_t *line = (sccp_line_t *)obj->data;				\
+						if (line && (								\
+							line->statistic.numberOfActiveChannels || 			\
+							line->statistic.numberOfHeldChannels)				\
+						) {									\
+							inuse = TRUE;							\
+						}									\
+					} else if (obj->type == SCCP_REF_LINEDEVICE) {					\
+						sccp_linedevices_t *linedevice = (sccp_linedevices_t *)obj->data;	\
+						if (linedevice && linedevice->device && linedevice->line &&		\
+							linedevice->device->session && linedevice->device->active_channel && \
+							(linedevice->line->statistic.numberOfActiveChannels ||		\
+							linedevice->line->statistic.numberOfHeldChannels)		\
+						) {									\
+							inuse = TRUE;							\
+						}									\
+					} else if (obj->type == SCCP_REF_CHANNEL) {					\
+						sccp_channel_t *channel= (sccp_channel_t *)obj->data;					\
+						if (channel && channel->owner) {					\
+							inuse = TRUE;							\
+						}									\
+					}										\
+				}											\
+				if (check_inuse == 2 && inuse) {							\
+					continue;									\
+				}
+				
+#define CLI_AMI_TABLE_AFTER_ITERATION											\
+				prev = bucket;										\
+				numentries++;										\
+			}												\
+			if (maxdepth < SCCP_RWLIST_GETSIZE(&(objects[bucket])->refCountedObjects)) {			\
+				maxdepth = SCCP_RWLIST_GETSIZE(&(objects[bucket])->refCountedObjects);			\
+			}												\
+			SCCP_RWLIST_UNLOCK(&(objects[bucket])->refCountedObjects);					\
+		}
+
+#define CLI_AMI_TABLE_FIELDS 												\
+	CLI_AMI_TABLE_FIELD(Hash,	"-5.5",		s,	5,	bucketstr)					\
+	CLI_AMI_TABLE_FIELD(Type,	"-17.17",	s,	17,	(obj_info[obj->type]).datatype)			\
+	CLI_AMI_TABLE_FIELD(Id,		"-25.25",	s,	25,	obj->identifier)				\
+	CLI_AMI_TABLE_FIELD(Ptr,	"-15",		p,	15,	obj)						\
+	CLI_AMI_TABLE_FIELD(Refc,	"-4.4",		d,	4,	obj->refcount)					\
+	CLI_AMI_TABLE_FIELD(Alive,	"-5.5",		s,	5,	SCCP_LIVE_MARKER == obj->alive ? "yes" : "no")	\
+	CLI_AMI_TABLE_FIELD(InUse,	"-5.5",		s,	5,	check_inuse ? (inuse ? "yes" : "no") : "off")	\
+	CLI_AMI_TABLE_FIELD(Size,	"-4.4",		d,	4,	obj->len)
+#include "sccp_cli_table.h"
+	local_line_total++;
 	ast_rwlock_unlock(&objectslock);
+
+	// FillFactor
 	fillfactor = (float) numentries / SCCP_HASH_PRIME;
-	pbx_cli(fd, "+==============================================================================================+\n");
-	pbx_cli(fd, "| fillfactor = (%03d / %03d) = %02.2f, maxdepth = %02d                                               |\n", numentries, SCCP_HASH_PRIME, fillfactor, maxdepth);
+	int once;
+#define CLI_AMI_TABLE_NAME FillFactor
+#define CLI_AMI_TABLE_PER_ENTRY_NAME Factor
+#define CLI_AMI_TABLE_ITERATOR for(once=0;once<1;once++)
+#define CLI_AMI_TABLE_FIELDS 												\
+	CLI_AMI_TABLE_FIELD(Entries,		"-8.8",		d,	8,	numentries)				\
+	CLI_AMI_TABLE_FIELD(Buckets,		"-8.8",		d,	8,	SCCP_HASH_PRIME)			\
+	CLI_AMI_TABLE_FIELD(Factor,		"08.02",	f,	8,	fillfactor)				\
+	CLI_AMI_TABLE_FIELD(MaxDepth,		"-8.8",		d,	8,	maxdepth)
+#include "sccp_cli_table.h"
+	local_line_total++;
 	if (fillfactor > 1.00) {
-		pbx_cli(fd, "| \033[1m\033[41m\033[37mPlease keep fillfactor below 1.00. Check ./configure --with-hash-size.\033[0m                       |\n");
+		if (!s) {
+			pbx_cli(fd, "\033[1m\033[41m\033[37mPlease keep fillfactor below 1.00. Check ./configure --with-hash-size.\033[0m\n");
+		} else {
+			astman_append(s, "Please keep fillfactor below 1.00. Check ./configure --with-hash-size.\r\n");
+			local_line_total++;
+		}
 	}
-	pbx_cli(fd, "+==============================================================================================+\n");
+
+	if (s) {
+		totals->lines = local_line_total;
+		totals->tables = 2;
+	}
+	return RESULT_SUCCESS;
 }
 
 #ifdef CS_EXPERIMENTAL

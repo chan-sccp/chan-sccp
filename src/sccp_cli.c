@@ -1879,34 +1879,23 @@ CLI_ENTRY(cli_test, sccp_test, "Test", cli_test_usage, FALSE)
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif														// CS_EXPERIMENTAL
-    /* ------------------------------------------------------------------------------------------------------- REFCOUNT - */
-    /*!
-     * \brief Print Refcount Hash Table
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     */
-static int sccp_show_refcount(int fd, int argc, char *argv[])
-{
-	if (argc < 3) {
-		return RESULT_SHOWUSAGE;
-	}
-	sccp_refcount_print_hashtable(fd);
-	return RESULT_SUCCESS;
-}
 
-static char cli_show_refcount_usage[] = "Usage: sccp show refcount [sortorder]\n" "	Show Refcount Hash Table. sortorder can be hash or type\n";
+    /* ---------------------------------------------------------------------------------------------SHOW_REFCOUNT - */
+static char cli_show_refcount_usage[] = "Usage: sccp show refcount [show|suppress]\n" "	Show All SCCP Refcount Entries.\n";
+static char ami_show_refcount_usage[] = "Usage: SCCPShowRefcount\n" "Show All Refcount Entries.\n\n" "Optional PARAMS: inuse [show, suppress]\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "show", "refcount"
+#define AMI_COMMAND "SCCPShowRefcount"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
-CLI_ENTRY(cli_show_refcount, sccp_show_refcount, "Test a Message", cli_show_refcount_usage, FALSE)
+#define CLI_AMI_PARAMS "inuse"
+CLI_AMI_ENTRY(show_refcount, sccp_show_refcount, "Show all Refcount Entries", cli_show_refcount_usage, FALSE, TRUE)
+#undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
+#undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
     /* --------------------------------------------------------------------------------------------------SHOW_SOKFTKEYSETS- */
     /*!
      * \brief Show Sessions
@@ -3469,6 +3458,7 @@ void sccp_register_cli(void)
 #endif
 	pbx_manager_register("SCCPShowHintLineStates", _MAN_REP_FLAGS, manager_show_hint_lineStates, "show hint lineStates", ami_show_hint_lineStates_usage);
 	pbx_manager_register("SCCPShowHintSubscriptions", _MAN_REP_FLAGS, manager_show_hint_subscriptions, "show hint subscriptions", ami_show_hint_subscriptions_usage);
+	pbx_manager_register("SCCPShowRefcount", _MAN_REP_FLAGS, manager_show_refcount, "show refcount", ami_show_refcount_usage);
 }
 
 /*!
@@ -3505,6 +3495,7 @@ void sccp_unregister_cli(void)
 #endif
 	pbx_manager_unregister("SCCPShowHintLineStates");
 	pbx_manager_unregister("SCCPShowHintSubscriptions");
+	pbx_manager_unregister("SCCPShowRefcount");
 }
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
