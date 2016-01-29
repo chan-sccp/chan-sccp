@@ -47,36 +47,36 @@
 #define CAS32_TYPE 				int
 #define ATOMIC_INCR(_a,_b,_c)			\
 	({					\
-                CAS32_TYPE res=0;		\
+                CAS32_TYPE __res=0;		\
                 pbx_mutex_lock(_c);		\
-                res = *_a;			\
+                __res = *_a;			\
                 *_a += _b;			\
                 pbx_mutex_unlock(_c);		\
-                res;				\
+                __res;				\
 	})
 #define ATOMIC_DECR(_a,_b,_c) 		ATOMIC_INCR(_a,-_b,_c)
 #define ATOMIC_FETCH(_a,_c) 		ATOMIC_INCR(_a,0,_c)
 #define CAS32(_a,_b,_c,_d)			\
         ({					\
-                CAS32_TYPE res=0;		\
+                CAS32_TYPE __res=0;		\
                 pbx_mutex_lock(_d);		\
                 if (*_a == _b) {		\
-                        res = _b;		\
+                        __res = _b;		\
                         *_a = _c;		\
                 }				\
                 pbx_mutex_unlock(_d);		\
-                res;				\
+                __res;				\
         })
 #define CAS_PTR(_a,_b,_c,_d) 		\
         ({					\
-                boolean_t res = 0;		\
+                boolean_t __res = 0;		\
                 pbx_mutex_lock(_d);		\
                 if (*_a == _b)	{		\
-                        res = 1;		\
+                        __res = 1;		\
                         *_a = _c;		\
                 }				\
                 pbx_mutex_unlock(_d);		\
-                res;				\
+                __res;				\
         })
 #endif														/* SCCP_ATOMIC */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
