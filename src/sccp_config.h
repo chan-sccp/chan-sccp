@@ -69,9 +69,4 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device);
 
 int sccp_config_generate(char *filename, int configType);
 
-#if CS_TEST_FRAMEWORK
-void sccp_config_register_tests(void);
-void sccp_config_unregister_tests(void);
-#endif
-
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

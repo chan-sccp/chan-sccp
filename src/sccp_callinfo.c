@@ -749,12 +749,12 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	return AST_TEST_PASS;
 }
 
-void sccp_callinfo_register_tests(void)
+static void __attribute__((constructor)) sccp_register_tests(void)
 {
         AST_TEST_REGISTER(sccp_callinfo_tests);
 }
 
-void sccp_callinfo_unregister_tests(void)
+static void __attribute__((destructor)) sccp_unregister_tests(void)
 {
         AST_TEST_UNREGISTER(sccp_callinfo_tests);
 }

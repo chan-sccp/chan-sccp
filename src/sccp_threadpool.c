@@ -212,7 +212,7 @@ void sccp_threadpool_thread_do(void *p)
 
 	int jobs = 0, threads = 0;
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Starting Threadpool JobQueue\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Starting Threadpool JobQueue:%p\n", thread);
 	while (1) {
 		pthread_testcancel();
 		jobs = SCCP_LIST_GETSIZE(&tp_p->jobs);
@@ -488,13 +488,13 @@ AST_TEST_DEFINE(sccp_threadpool_work)
 	return AST_TEST_PASS;
 }
 
-void sccp_threadpool_register_tests(void)
+static void __attribute__((constructor)) sccp_register_tests(void)
 {
         AST_TEST_REGISTER(sccp_threadpool_create_destroy);
         AST_TEST_REGISTER(sccp_threadpool_work);
 }
 
-void sccp_threadpool_unregister_tests(void)
+static void __attribute__((destructor)) sccp_unregister_tests(void)
 {
         AST_TEST_UNREGISTER(sccp_threadpool_create_destroy);
         AST_TEST_UNREGISTER(sccp_threadpool_work);

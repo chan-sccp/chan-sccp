@@ -2229,7 +2229,7 @@ gcc_inline boolean_t sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char
 #endif
 
 #if CS_TEST_FRAMEWORK
-void sccp_utils_register_tests(void)
+static void __attribute__((constructor)) sccp_register_tests(void)
 {
         AST_TEST_REGISTER(chan_sccp_acl_tests);
         AST_TEST_REGISTER(chan_sccp_acl_invalid_tests);
@@ -2237,7 +2237,7 @@ void sccp_utils_register_tests(void)
         AST_TEST_REGISTER(chan_sccp_combine_codec_sets);
 }
 
-void sccp_utils_unregister_tests(void)
+static void __attribute__((destructor)) sccp_unregister_tests(void)
 {
         AST_TEST_UNREGISTER(chan_sccp_acl_tests);
         AST_TEST_UNREGISTER(chan_sccp_acl_invalid_tests);

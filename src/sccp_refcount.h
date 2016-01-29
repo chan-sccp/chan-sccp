@@ -20,7 +20,9 @@ enum sccp_refcounted_types {
 	SCCP_REF_LINEDEVICE,
 	SCCP_REF_LINE,
 	SCCP_REF_DEVICE,
+#if CS_TEST_FRAMEWORK
 	SCCP_REF_TEST,
+#endif
 };
 
 enum sccp_refcount_runstate {
@@ -44,11 +46,6 @@ void sccp_refcount_replace(const void **replaceptr, const void *const newptr, co
 void sccp_refcount_print_hashtable(int fd);
 int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 void sccp_refcount_autorelease(void *ptr);
-
-#if CS_TEST_FRAMEWORK
-void sccp_refcount_register_tests(void);
-void sccp_refcount_unregister_tests(void);
-#endif
 
 #define AUTO_RELEASE auto __attribute__((cleanup(sccp_refcount_autorelease)))
 #ifdef CS_EXPERIMENTAL

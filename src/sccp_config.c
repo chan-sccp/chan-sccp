@@ -3608,7 +3608,7 @@ AST_TEST_DEFINE(sccp_config_setDefault)
 }
 */
 
-void sccp_config_register_tests(void)
+static void __attribute__((constructor)) sccp_register_tests(void)
 {
 	AST_TEST_REGISTER(sccp_config_base_functions);
 	AST_TEST_REGISTER(sccp_config_multientry);
@@ -3617,7 +3617,7 @@ void sccp_config_register_tests(void)
 	//AST_TEST_REGISTER(sccp_config_setDefault);
 }
 
-void sccp_config_unregister_tests(void)
+static void __attribute__((destructor)) sccp_unregister_tests(void)
 {
 	AST_TEST_UNREGISTER(sccp_config_base_functions);
 	AST_TEST_UNREGISTER(sccp_config_multientry);

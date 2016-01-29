@@ -77,7 +77,9 @@ static struct sccp_refcount_obj_info {
 	[SCCP_REF_LINEDEVICE] = {NULL, "linedevice", DEBUGCAT_LINE},
 	[SCCP_REF_LINE] = {NULL, "line", DEBUGCAT_LINE},
 	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
+#if CS_TEST_FRAMEWORK
 	[SCCP_REF_TEST] = {NULL, "test", DEBUGCAT_HIGH},
+#endif
 /* *INDENT-ON* */
 };
 
@@ -653,7 +655,6 @@ gcc_inline void sccp_refcount_autorelease(void *ptr)
 }
 
 #if CS_TEST_FRAMEWORK
-//#include "asterisk/test.h"
 #define NUM_LOOPS 50
 #define NUM_OBJECTS 5000
 #define NUM_THREADS 10
@@ -790,12 +791,12 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 
 }
 
-void sccp_refcount_register_tests(void)
+static void __attribute__((constructor)) sccp_register_tests(void)
 {
 	AST_TEST_REGISTER(sccp_refcount_tests);
 }
 
-void sccp_refcount_unregister_tests(void)
+static void __attribute__((destructor)) sccp_unregister_tests(void)
 {
 	AST_TEST_UNREGISTER(sccp_refcount_tests);
 }
