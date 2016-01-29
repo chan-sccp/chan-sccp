@@ -953,7 +953,7 @@ const char *sccp_video_mode_all_entries(void) {
  */
 static const char *__sccp_event_type_str = "sccp_event_type";
 static const char *sccp_event_type_map[] = {
-	"Null Event",
+	"Null Event / To be removed",
 	"Line Created",
 	"Line Changed",
 	"Line Deleted",
@@ -964,6 +964,9 @@ static const char *sccp_event_type_map[] = {
 	"Device Unregistered",
 	"Feature Changed",
 	"LineStatus Changed",
+#ifdef CS_TEST_FRAMEWORK
+	"Test Event",
+#endif
 	"LOOKUPERROR"
 };
 
@@ -981,16 +984,16 @@ int sccp_event_type_exists(int sccp_event_type_int_value) {
 }
 
 const char * sccp_event_type2str(int sccp_event_type_int_value) {
-	static char res[110] = "";
+	static char res[65] = "";
 	int pos = 0;
 	if (sccp_event_type_int_value == 0) {
-		pos += snprintf(res + pos, 110, "%s%s", pos ? "," : "", sccp_event_type_map[0]);
+		pos += snprintf(res + pos, 65, "%s%s", pos ? "," : "", sccp_event_type_map[0]);
 		return res;
 	}
 	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_event_type_map) - 1; i++) {
 		if ((sccp_event_type_int_value & (1 << i)) == (1 << i)) {
-			pos += snprintf(res + pos, 110, "%s%s", pos ? "," : "", sccp_event_type_map[i + 1]);
+			pos += snprintf(res + pos, 65, "%s%s", pos ? "," : "", sccp_event_type_map[i + 1]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1017,7 +1020,7 @@ uint32_t sccp_event_type_str2intval(const char *lookup_str) {
 }
 
 const char *sccp_event_type_all_entries(void) {
-	static char res[] = "Null Event,Line Created,Line Changed,Line Deleted,Device Attached,Device Detached,Device Preregistered,Device Registered,Device Unregistered,Feature Changed,LineStatus Changed";
+	static char res[] = "Null Event / To be removed,Line Created,Line Changed,Line Deleted,Device Attached,Device Detached,Device Preregistered,Device Registered,Device Unregistered,Feature Changed,LineStatus Changed,CONNECTED,Test Event";
 	return res;
 }
 /* = End =========================================================================================                sccp_event_type === */
@@ -1153,16 +1156,16 @@ int sccp_rtp_status_exists(int sccp_rtp_status_int_value) {
 }
 
 const char * sccp_rtp_status2str(int sccp_rtp_status_int_value) {
-	static char res[149] = "";
+	static char res[104] = "";
 	int pos = 0;
 	if (sccp_rtp_status_int_value == 0) {
-		pos += snprintf(res + pos, 149, "%s%s", pos ? "," : "", sccp_rtp_status_map[0]);
+		pos += snprintf(res + pos, 104, "%s%s", pos ? "," : "", sccp_rtp_status_map[0]);
 		return res;
 	}
 	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_rtp_status_map) - 1; i++) {
 		if ((sccp_rtp_status_int_value & (1 << i)) == (1 << i)) {
-			pos += snprintf(res + pos, 149, "%s%s", pos ? "," : "", sccp_rtp_status_map[i + 1]);
+			pos += snprintf(res + pos, 104, "%s%s", pos ? "," : "", sccp_rtp_status_map[i + 1]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1224,16 +1227,16 @@ int sccp_rtp_type_exists(int sccp_rtp_type_int_value) {
 }
 
 const char * sccp_rtp_type2str(int sccp_rtp_type_int_value) {
-	static char res[213] = "";
+	static char res[168] = "";
 	int pos = 0;
 	if (sccp_rtp_type_int_value == 0) {
-		pos += snprintf(res + pos, 213, "%s%s", pos ? "," : "", sccp_rtp_type_map[0]);
+		pos += snprintf(res + pos, 168, "%s%s", pos ? "," : "", sccp_rtp_type_map[0]);
 		return res;
 	}
 	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_rtp_type_map) - 1; i++) {
 		if ((sccp_rtp_type_int_value & (1 << i)) == (1 << i)) {
-			pos += snprintf(res + pos, 213, "%s%s", pos ? "," : "", sccp_rtp_type_map[i + 1]);
+			pos += snprintf(res + pos, 168, "%s%s", pos ? "," : "", sccp_rtp_type_map[i + 1]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1670,16 +1673,16 @@ int sccp_feature_monitor_state_exists(int sccp_feature_monitor_state_int_value) 
 }
 
 const char * sccp_feature_monitor_state2str(int sccp_feature_monitor_state_int_value) {
-	static char res[309] = "";
+	static char res[264] = "";
 	int pos = 0;
 	if (sccp_feature_monitor_state_int_value == 0) {
-		pos += snprintf(res + pos, 309, "%s%s", pos ? "," : "", sccp_feature_monitor_state_map[0]);
+		pos += snprintf(res + pos, 264, "%s%s", pos ? "," : "", sccp_feature_monitor_state_map[0]);
 		return res;
 	}
 	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_feature_monitor_state_map) - 1; i++) {
 		if ((sccp_feature_monitor_state_int_value & (1 << i)) == (1 << i)) {
-			pos += snprintf(res + pos, 309, "%s%s", pos ? "," : "", sccp_feature_monitor_state_map[i + 1]);
+			pos += snprintf(res + pos, 264, "%s%s", pos ? "," : "", sccp_feature_monitor_state_map[i + 1]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1790,16 +1793,16 @@ int sccp_configurationchange_exists(int sccp_configurationchange_int_value) {
 }
 
 const char * sccp_configurationchange2str(int sccp_configurationchange_int_value) {
-	static char res[417] = "";
+	static char res[372] = "";
 	int pos = 0;
 	if (sccp_configurationchange_int_value == 0) {
-		pos += snprintf(res + pos, 417, "%s%s", pos ? "," : "", sccp_configurationchange_map[0]);
+		pos += snprintf(res + pos, 372, "%s%s", pos ? "," : "", sccp_configurationchange_map[0]);
 		return res;
 	}
 	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_configurationchange_map) - 1; i++) {
 		if ((sccp_configurationchange_int_value & (1 << i)) == (1 << i)) {
-			pos += snprintf(res + pos, 417, "%s%s", pos ? "," : "", sccp_configurationchange_map[i + 1]);
+			pos += snprintf(res + pos, 372, "%s%s", pos ? "," : "", sccp_configurationchange_map[i + 1]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1911,16 +1914,16 @@ int sccp_rtp_info_exists(int sccp_rtp_info_int_value) {
 }
 
 const char * sccp_rtp_info2str(int sccp_rtp_info_int_value) {
-	static char res[498] = "";
+	static char res[453] = "";
 	int pos = 0;
 	if (sccp_rtp_info_int_value == 0) {
-		pos += snprintf(res + pos, 498, "%s%s", pos ? "," : "", sccp_rtp_info_map[0]);
+		pos += snprintf(res + pos, 453, "%s%s", pos ? "," : "", sccp_rtp_info_map[0]);
 		return res;
 	}
 	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_rtp_info_map) - 1; i++) {
 		if ((sccp_rtp_info_int_value & (1 << i)) == (1 << i)) {
-			pos += snprintf(res + pos, 498, "%s%s", pos ? "," : "", sccp_rtp_info_map[i + 1]);
+			pos += snprintf(res + pos, 453, "%s%s", pos ? "," : "", sccp_rtp_info_map[i + 1]);
 		}
 	}
 	if (!strlen(res)) {
