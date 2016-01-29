@@ -362,7 +362,10 @@ typedef enum sccp_event_type {
 	SCCP_EVENT_DEVICE_UNREGISTERED=1<<7,
 	SCCP_EVENT_FEATURE_CHANGED=1<<8,
 	SCCP_EVENT_LINESTATUS_CHANGED=1<<9,
-	SCCP_EVENT_TYPE_SENTINEL = 1<<10
+#ifdef CS_TEST_FRAMEWORK
+	SCCP_EVENT_TEST=1<<10,
+#endif
+	SCCP_EVENT_TYPE_SENTINEL=1<<11
 } sccp_event_type_t;
 int sccp_event_type_exists(int sccp_event_type_int_value);
 const char * sccp_event_type2str(int sccp_event_type_int_value);
@@ -417,7 +420,7 @@ typedef enum sccp_rtp_status {
 	SCCP_RTP_STATUS_INACTIVE=0,
 	SCCP_RTP_STATUS_PROGRESS=1<<0,
 	SCCP_RTP_STATUS_ACTIVE=1<<1,
-	SCCP_RTP_STATUS_SENTINEL = 1<<2
+	SCCP_RTP_STATUS_SENTINEL=1<<2
 } sccp_rtp_status_t;
 int sccp_rtp_status_exists(int sccp_rtp_status_int_value);
 const char * sccp_rtp_status2str(int sccp_rtp_status_int_value);
@@ -437,7 +440,7 @@ typedef enum sccp_rtp_type {
 	SCCP_RTP_AUDIO=1<<0,
 	SCCP_RTP_VIDEO=1<<1,
 	SCCP_RTP_TEXT=1<<2,
-	SCCP_RTP_TYPE_SENTINEL = 1<<3
+	SCCP_RTP_TYPE_SENTINEL=1<<3
 } sccp_rtp_type_t;
 int sccp_rtp_type_exists(int sccp_rtp_type_int_value);
 const char * sccp_rtp_type2str(int sccp_rtp_type_int_value);
@@ -601,7 +604,7 @@ typedef enum sccp_feature_monitor_state {
 	SCCP_FEATURE_MONITOR_STATE_DISABLED=0,
 	SCCP_FEATURE_MONITOR_STATE_REQUESTED=1<<1,
 	SCCP_FEATURE_MONITOR_STATE_ACTIVE=1<<2,
-	SCCP_FEATURE_MONITOR_STATE_SENTINEL = 1<<3
+	SCCP_FEATURE_MONITOR_STATE_SENTINEL=1<<3
 } sccp_feature_monitor_state_t;
 int sccp_feature_monitor_state_exists(int sccp_feature_monitor_state_int_value);
 const char * sccp_feature_monitor_state2str(int sccp_feature_monitor_state_int_value);
@@ -639,7 +642,7 @@ typedef enum sccp_configurationchange {
 	SCCP_CONFIG_NEEDDEVICERESET=1<<0,
 	SCCP_CONFIG_WARNING=1<<1,
 	SCCP_CONFIG_ERROR=1<<2,
-	SCCP_CONFIGURATIONCHANGE_SENTINEL = 1<<3
+	SCCP_CONFIGURATIONCHANGE_SENTINEL=1<<3
 } sccp_configurationchange_t;
 int sccp_configurationchange_exists(int sccp_configurationchange_int_value);
 const char * sccp_configurationchange2str(int sccp_configurationchange_int_value);
@@ -676,7 +679,7 @@ typedef enum sccp_rtp_info {
 	SCCP_RTP_INFO_NORTP=0,
 	SCCP_RTP_INFO_AVAILABLE=1<<0,
 	SCCP_RTP_INFO_ALLOW_DIRECTRTP=1<<1,
-	SCCP_RTP_INFO_SENTINEL = 1<<2
+	SCCP_RTP_INFO_SENTINEL=1<<2
 } sccp_rtp_info_t;
 int sccp_rtp_info_exists(int sccp_rtp_info_int_value);
 const char * sccp_rtp_info2str(int sccp_rtp_info_int_value);

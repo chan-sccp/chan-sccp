@@ -103,6 +103,7 @@ codeSkip == 1			{ next }
 /^}/ {		
         codeSkip = 1
         bitval = ""
+        bitval1 = 0
         
         #
         # gen enum header
@@ -130,20 +131,35 @@ codeSkip == 1			{ next }
 			print "#ifdef " Entry_ifdef[i] > out_header_file
 			ifdef = 1
 		} else {
-			if (Entry_val[i] != "") print "\t" Entry_id[i] "=" Entry_val[i] "," > out_header_file
-			else print "\t" Entry_id[i] "," > out_header_file
+			if (bitfield) {
+				bitval1 = Entry_val[i]
+				if (bitval1 ~ /1<</) {		# is bitval provided in source file, use that value
+					gsub(/1<</, "", bitval1); # strip
+					bitval = bitval1 + 0;	# convert to integer
+				} else {			# we need to calculate the next value so we can fill it in automatically if not provided in source
+					if (bitval != ""){
+						bitval++;
+					}
+				}
+			}
+			if (Entry_val[i] != "") {
+				print "\t" Entry_id[i] "=" Entry_val[i] "," > out_header_file
+			} else {
+				if (!bitfield) {
+					print "\t" Entry_id[i] "," > out_header_file
+				} else {
+					print "\t" Entry_id[i] "=1<<" bitval "," > out_header_file
+				}
+			}
 		}
 		if (ifdef && Entry_ifdef[i] == "") {
 			print "#endif" > out_header_file
 			ifdef = 0
 		}
-		if (bitfield) {
-			bitval = Entry_val[i]
-			gsub(/1<</, "", bitval);
-		}
 	}
 	if (bitfield) {
-		print "\t" toupper(namespace) "_" toupper(enum_name) "_SENTINEL = 1<<" bitval + 1 > out_header_file
+		bitval++;
+		print "\t" toupper(namespace) "_" toupper(enum_name) "_SENTINEL=1<<" bitval> out_header_file
 	} else {
 		print "\t" toupper(namespace) "_" toupper(enum_name) "_SENTINEL" > out_header_file
 	}
