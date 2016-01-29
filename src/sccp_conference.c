@@ -114,7 +114,7 @@ static sccp_participant_t *sccp_conference_createParticipant(constConferencePtr 
 static void sccp_conference_addParticipant_toList(constConferencePtr conference, constParticipantPtr participant);
 void pbx_builtin_setvar_int_helper(PBX_CHANNEL_TYPE * channel, const char *var_name, int intvalue);
 //static void sccp_conference_connect_bridge_channels_to_participants(constConferencePtr conference);
-static void sccp_conference_update_conflist(constConferencePtr conference);
+static void sccp_conference_update_conflist(conferencePtr conference);
 void __sccp_conference_hide_list(participantPtr participant);
 void sccp_conference_invite_participant(constConferencePtr conference, constParticipantPtr moderator);
 void sccp_conference_kick_participant(constConferencePtr conference, participantPtr participant);
@@ -1343,20 +1343,20 @@ void sccp_conference_hide_list_ByDevice(constDevicePtr device)
 /*!
  * \brief Update ConfList on all phones displaying the list
  */
-static void sccp_conference_update_conflist(constConferencePtr conference)
+static void sccp_conference_update_conflist(conferencePtr conference)
 {
 	sccp_participant_t *participant = NULL;
 
-	if (!conference || ATOMIC_FETCH(&((conferencePtr)conference)->finishing, &conference->lock)) {
+	if (!conference || ATOMIC_FETCH(&(conference)->finishing, &conference->lock)) {
 		return;
 	}
-	SCCP_RWLIST_RDLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_RDLOCK(&(conference)->participants);
 	SCCP_RWLIST_TRAVERSE(&conference->participants, participant, list) {
 		if (participant->channel && participant->device && (participant->device->conferencelist_active || (participant->isModerator && !conference->isOnHold))) {
 			sccp_conference_show_list(conference, participant->channel);
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_UNLOCK(&(conference)->participants);
 }
 
 /*!
@@ -1502,7 +1502,7 @@ void sccp_conference_toggle_mute_participant(constConferencePtr conference, part
 		manager_event(EVENT_FLAG_CALL, "SCCPConfParticipantMute", "ConfId: %d\r\n" "PartId: %d\r\n" "Mute: %s\r\n", conference->id, participant->id, participant->features.mute ? "Yes" : "No");
 	}
 #endif
-	sccp_conference_update_conflist(conference);
+	sccp_conference_update_conflist((conferencePtr)conference);
 }
 
 /*!
@@ -1551,7 +1551,7 @@ void sccp_conference_play_music_on_hold_to_participant(constConferencePtr confer
 		}
 	}
 	if (!conference->isOnHold) {
-		sccp_conference_update_conflist(conference);
+		sccp_conference_update_conflist((conferencePtr)conference);
 	}
 }
 
