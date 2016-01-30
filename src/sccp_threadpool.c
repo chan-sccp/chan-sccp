@@ -75,9 +75,8 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 		threadsN = THREADPOOL_MAX_SIZE;
 	}
 	/* Make new thread pool */
-	tp_p = sccp_calloc(sizeof *tp_p, 1);
-	if (tp_p == NULL) {
-		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Could not allocate memory for thread pool\n");
+	if (!(tp_p = sccp_calloc(sizeof *tp_p, 1))) {
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		return NULL;
 	}
 
@@ -113,9 +112,8 @@ void sccp_threadpool_grow(sccp_threadpool_t * tp_p, int amount)
 
 	if (tp_p && !tp_p->sccp_threadpool_shuttingdown) {
 		for (t = 0; t < amount; t++) {
-			tp_thread = sccp_calloc(sizeof *tp_thread, 1);
-			if (tp_thread == NULL) {
-				pbx_log(LOG_ERROR, "sccp_threadpool_init(): Could not allocate memory for thread\n");
+			if (!(tp_thread = sccp_calloc(sizeof *tp_thread, 1))) {
+                		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 				return;
 			}
 			tp_thread->die = FALSE;
@@ -268,9 +266,8 @@ int sccp_threadpool_add_work(sccp_threadpool_t * tp_p, void *(*function_p) (void
 	if (!tp_p->sccp_threadpool_shuttingdown) {
 		sccp_threadpool_job_t *newJob;
 
-		newJob = sccp_calloc(sizeof *newJob, 1);
-		if (newJob == NULL) {
-			pbx_log(LOG_ERROR, "sccp_threadpool_add_work(): Could not allocate memory for new job\n");
+		if (!(newJob = sccp_calloc(sizeof *newJob, 1))) {
+        		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 			exit(1);
 		}
 

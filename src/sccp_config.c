@@ -271,10 +271,14 @@ static PBX_VARIABLE_TYPE *createVariableSetForMultiEntryParameters(PBX_VARIABLE_
 {
 	PBX_VARIABLE_TYPE *v = cat_root;
 	PBX_VARIABLE_TYPE *tmp = NULL;
-
 	char delims[] = "|";
 	char *token = NULL;
-	char *option_name = alloca(sccp_strlen(configOptionName) + 1);
+	char *option_name;
+
+	if (!(option_name = alloca(sccp_strlen(configOptionName) + 1))) {
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+		return NULL;
+	}
 
 	sprintf(option_name, "%s%s", configOptionName, delims);							// add delims to string
 	token = strtok(option_name, delims);
@@ -670,7 +674,9 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 		changes = sccpConfigOption->change;
 	}
 
-	if (SCCP_CONFIG_CHANGE_INVALIDVALUE != changed || ((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {	/* Multi_Entry could give back invalid for one of it's values */
+	if ((SCCP_CONFIG_CHANGE_INVALIDVALUE != changed && SCCP_CONFIG_CHANGE_ERROR != changed) || 
+		((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)		/* Multi_Entry could give back invalid for one of it's values */
+	) {
 		/* if SetEntries is provided lookup the first offset of the struct variable we have set and note the index in SetEntries by changing the boolean_t to TRUE */
 		if (sccpConfigOption->offset > 0 && SetEntries != NULL) {
 			uint x;
@@ -685,6 +691,9 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 	}
 	if (SCCP_CONFIG_CHANGE_INVALIDVALUE == changed) {
 		pbx_log(LOG_NOTICE, "SCCP: Option Description: %s\n", sccpConfigOption->description);
+	}
+	if (SCCP_CONFIG_CHANGE_ERROR == changed) {
+		pbx_log(LOG_NOTICE, "SCCP: Exception/Error during parsing of: %s\n", sccpConfigOption->description);
 	}
 	return changes;
 }
@@ -762,16 +771,19 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 				/* tokenize all option parameters */
 				PBX_VARIABLE_TYPE *v;
 				PBX_VARIABLE_TYPE *cat_root;
+				char *option_tokens;
 
 				referralValueFound = FALSE;
 
 				/* tokenparsing */
-				char *option_tokens = alloca(sccp_strlen(sccpDstConfig[cur_elem].name) + 1);
+				if (!(option_tokens = alloca(sccp_strlen(sccpDstConfig[cur_elem].name) + 1))) {
+					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+					break;;
+				}
 
 				sprintf(option_tokens, "%s|", sccpDstConfig[cur_elem].name);
 				char *option_tokens_saveptr = NULL;
 				char *option_name = strtok_r(option_tokens, "|", &option_tokens_saveptr);
-
 				do {
 					/* search for the default values in the referred segment, if found break so we can pass on the cat_root */
 					for (cat_root = v = ast_variable_browse(GLOB(cfg), referral_cat); v; v = v->next) {
@@ -1401,30 +1413,31 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
 	if (!error) {
 		// compare ha elements
 		struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-
-		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
 		struct ast_str *prev_ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-
-		sccp_print_ha(prev_ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, prev_ha);
-
-		if (!sccp_strequals(pbx_str_buffer(ha_buf), pbx_str_buffer(prev_ha_buf))) {
-			sccp_log_and(DEBUGCAT_CONFIG + DEBUGCAT_HIGH) ("hal: %s\nprev_ha: %s\n", pbx_str_buffer(ha_buf), pbx_str_buffer(prev_ha_buf));
-			if (prev_ha) {
-				sccp_free_ha(prev_ha);
+		if (ha_buf && prev_ha_buf) {
+			sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
+			sccp_print_ha(prev_ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, prev_ha);
+			if (!sccp_strequals(pbx_str_buffer(ha_buf), pbx_str_buffer(prev_ha_buf))) {
+				sccp_log_and(DEBUGCAT_CONFIG + DEBUGCAT_HIGH) ("hal: %s\nprev_ha: %s\n", pbx_str_buffer(ha_buf), pbx_str_buffer(prev_ha_buf));
+				if (prev_ha) {
+					sccp_free_ha(prev_ha);
+				}
+				*(struct sccp_ha **) dest = ha;
+				changed = SCCP_CONFIG_CHANGE_CHANGED;
+				ha = NULL;					// passed on to dest, will not be freed at exit
 			}
-			*(struct sccp_ha **) dest = ha;
-			changed = SCCP_CONFIG_CHANGE_CHANGED;
 		} else {
-			if (ha) {
-				sccp_free_ha(ha);
-			}
+			pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+			changed = SCCP_CONFIG_CHANGE_ERROR;
 		}
 	} else {
 		sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_parse_deny_permit) Invalid\n");
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-		if (ha) {
-			sccp_free_ha(ha);
-		}
+	}
+
+	/* cleanup resources when not passed on to dest */
+	if (ha) {
+		sccp_free_ha(ha);
 	}
 	sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_parse_deny_permit) Return: %d\n", changed);
 	return changed;
@@ -1466,8 +1479,8 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
 		}
 		for (v = vroot; v; v = v->next) {
 			if (!(permithost = sccp_calloc(1, sizeof(sccp_hostname_t)))) {
-				pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new permithost\n");
-				break;
+				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+				return SCCP_CONFIG_CHANGE_ERROR;
 			}
 			sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
 			SCCP_LIST_INSERT_TAIL(permithostList, permithost, list);
@@ -1544,8 +1557,8 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX
 				if ((addon_type = addonstr2enum(v->value))) {
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new addon: %d\n", addon_type);
 					if (!(addon = sccp_calloc(1, sizeof(sccp_addon_t)))) {
-						pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new addon\n");
-						break;
+						pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+						return SCCP_CONFIG_CHANGE_ERROR;
 					}
 					addon->type = addon_type;
 					SCCP_LIST_INSERT_TAIL(addonList, addon, list);
@@ -1618,8 +1631,8 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
 				}
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new mailbox: %s@%s\n", mbox, context);
 				if (!(mailbox = sccp_calloc(1, sizeof(sccp_mailbox_t)))) {
-					pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new mailbox\n");
-					break;
+					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+					return SCCP_CONFIG_CHANGE_ERROR;
 				}
 				mailbox->mailbox = pbx_strdup(mbox);
 				mailbox->context = pbx_strdup(context);
@@ -1660,14 +1673,14 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new variable: %s=%s\n", var_name, var_value);
 			if (!variable) {
 				if (!(variableList = pbx_variable_new(var_name, var_value, ""))) {
-					pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new variable\n");
+					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 					variableList = NULL;
 					break;
 				}
 				variable = variableList;
 			} else {
 				if (!(variable->next = pbx_variable_new(var_name, var_value, ""))) {
-					pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new variable\n");
+					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 					pbx_variables_destroy(variableList);
 					variableList = NULL;
 					break;
@@ -1906,8 +1919,8 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 	
 	SCCP_LIST_LOCK(buttonconfigList);
 	if (!(config = sccp_calloc(1, sizeof(sccp_buttonconfig_t)))) {
-		pbx_log(LOG_WARNING, "SCCP: sccp_config_addButton, memory allocation failed (calloc) failed\n");
-		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+		return SCCP_CONFIG_CHANGE_ERROR;
 	}
 	config->index = buttonindex;
 	config->type = type;
@@ -1934,11 +1947,14 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 			config->label = pbx_strdup(name);
 			config->button.line.name = pbx_strdup(composedLineRegistrationId.mainId);
 			sccp_subscription_id_t *subscriptionId;
-			if ((subscriptionId = malloc(sizeof(sccp_subscription_id_t)))) {
+			if ((subscriptionId = sccp_malloc(sizeof(sccp_subscription_id_t)))) {
 				sccp_copy_string(subscriptionId->number, composedLineRegistrationId.subscriptionId.number, sizeof(subscriptionId->number));
 				sccp_copy_string(subscriptionId->name, composedLineRegistrationId.subscriptionId.name, sizeof(subscriptionId->name));
 				sccp_copy_string(subscriptionId->aux, composedLineRegistrationId.subscriptionId.aux, sizeof(subscriptionId->aux));
 				config->button.line.subscriptionId = subscriptionId;
+			} else {
+				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+				return SCCP_CONFIG_CHANGE_ERROR;
 			}
 			if (options) {
 				config->button.line.options = pbx_strdup(options);
@@ -2049,15 +2065,15 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
 		if (config->type == FEATURE) {
 			/* Check for the presence of a devicestate specifier and register in device list. */
 			if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && !sccp_strlen_zero(config->button.feature.options)) {
-				dspec = sccp_calloc(1, sizeof(sccp_devstate_specifier_t));
-				if (!dspec) {
-					pbx_log(LOG_ERROR, "error while allocating memory for devicestate specifier");
-				} else {
+				if (( dspec = sccp_calloc(1, sizeof dspec) )) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
 					SCCP_LIST_LOCK(&d->devstateSpecifiers);
 					sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(dspec->specifier));
 					SCCP_LIST_INSERT_TAIL(&d->devstateSpecifiers, dspec, list);
 					SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
+				} else {
+					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+					break;
 				}
 			}
 		}
