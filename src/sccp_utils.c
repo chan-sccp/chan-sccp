@@ -1499,6 +1499,7 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 	}
 
 	if (!(ha = sccp_calloc(sizeof *ha, 1))) {
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		if (error) {
 			*error = 1;
 		}
@@ -2273,6 +2274,7 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 	eachlen = sccp_calloc(sizeof *eachlen, num_frames);
 	strings = sccp_calloc(sizeof *strings, num_frames);
 	if (!eachlen || !strings) {
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		sccp_free(eachlen);
 		sccp_free(strings);
 		return NULL;
@@ -2374,6 +2376,7 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 
 			eachlen[stackfr] = strlen(msg) + 1;
 			if (!(tmp = sccp_realloc(strings, strings_size + eachlen[stackfr]))) {
+				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 				sccp_free(strings);
 				strings = NULL;
 				break; /* out of stack frame iteration */
@@ -2407,7 +2410,11 @@ void sccp_do_backtrace()
 	void	*addresses[SCCP_BACKTRACE_SIZE];
 	size_t  size, i;
 	char     **strings;
-	struct ast_str *btbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE * 2);
+	struct ast_str *btbuf;
+	if (!(btbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE * 2))) {
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+		return;
+	}
 	
 	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "================================================================================\n");
 	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "OPERATING SYSTEM: %s, ARCHITECTURE: %s, KERNEL: %s\nASTERISK: %s\nCHAN-SCCP-b: %s\n", BUILD_OS, BUILD_MACHINE, BUILD_KERNEL, pbx_get_version(), SCCP_VERSIONSTR);

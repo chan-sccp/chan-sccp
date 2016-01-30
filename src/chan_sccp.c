@@ -414,7 +414,7 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 			new_size += strlen(sccp_debug_categories[i].key) + 1 /*sizeof(sep) */  + 1;
 			tmpres = sccp_realloc(res, new_size);
 			if (tmpres == NULL) {
-				pbx_log(LOG_ERROR, "Memory Allocation Error\n");
+				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 				sccp_free(res);
 				return NULL;
 			}
@@ -550,7 +550,7 @@ boolean_t sccp_prePBXLoad(void)
 	/* make globals */
 	sccp_globals = sccp_calloc(sizeof *sccp_globals, 1);
 	if (!sccp_globals) {
-		pbx_log(LOG_ERROR, "No free memory for SCCP global vars. SCCP channel type disabled\n");
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		return FALSE;
 	}
 

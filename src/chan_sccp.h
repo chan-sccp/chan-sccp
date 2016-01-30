@@ -129,6 +129,9 @@ extern char SCCP_REVISIONSTR[30];
 
 #define DEFAULT_PBX_STR_BUFFERSIZE 512
 
+/* static const error/debug strings */
+static const char SS_Memory_Allocation_Error[] = "%s: Memory Allocation Error.\n";
+
 /*! \todo I don't like the -1 returned value */
 #define sccp_true(x) (pbx_true(x) ? 1 : 0)
 #define sccp_false(x) (pbx_false(x) ? 1 : 0)
