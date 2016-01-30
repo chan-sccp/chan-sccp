@@ -409,7 +409,7 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 		if (objects[bucket]) {											\
 			SCCP_RWLIST_RDLOCK(&(objects[bucket])->refCountedObjects);					\
 			SCCP_RWLIST_TRAVERSE(&(objects[bucket])->refCountedObjects, obj, list) {			\
-				char bucketstr[5];									\
+				char bucketstr[6];									\
 				if (!s) {										\
 					if (prev == bucket) {								\
 						sprintf(bucketstr, " +-> ");						\
