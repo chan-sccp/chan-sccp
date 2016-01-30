@@ -7,16 +7,16 @@
 #include "common.h"
 #include "sccp_enum.h"
 #include "sccp_utils.h"
-static const char *ERROR_2str_STR = "SCCP: Error during lookup of ";
-static const char *LOOKUPERROR_STR = "SCCP: LOOKUP ERROR, ";
+static const char ERROR_2str_STR[] = "SCCP: Error during lookup of ";
+static const char LOOKUPERROR_STR[] = "SCCP: LOOKUP ERROR, ";
 
 /* = Begin =======================================================================================       sparse sccp_channelstate === */
 
 /*
  * SCCP Channel State
  */
-static const char *__sccp_channelstate_str = "sccp_channelstate";
-static const char *sccp_channelstate_map[] = {"DOWN",
+static const char __sccp_channelstate_str[] = "sccp_channelstate";
+static const char *const sccp_channelstate_map[] = {"DOWN",
 "ONHOOK",
 "OFFHOOK",
 "GETDIGITS",
@@ -164,8 +164,8 @@ const char *sccp_channelstate_all_entries(void) {
 /*
  * \brief internal chan_sccp call state (c->callstate) (Enum)
  */
-static const char *__sccp_channelstatereason_str = "sccp_channelstatereason";
-static const char *sccp_channelstatereason_map[] = {
+static const char __sccp_channelstatereason_str[] = "sccp_channelstatereason";
+static const char *const sccp_channelstatereason_map[] = {
 	[SCCP_CHANNELSTATEREASON_NORMAL] = "NORMAL",
 	[SCCP_CHANNELSTATEREASON_TRANSFER] = "TRANSFER",
 	[SCCP_CHANNELSTATEREASON_CALLFORWARD] = "CALLFORWARD",
@@ -217,8 +217,8 @@ const char *sccp_channelstatereason_all_entries(void) {
 /*
  * \brief enum sccp_earlyrtp
  */
-static const char *__sccp_earlyrtp_str = "sccp_earlyrtp";
-static const char *sccp_earlyrtp_map[] = {
+static const char __sccp_earlyrtp_str[] = "sccp_earlyrtp";
+static const char *const sccp_earlyrtp_map[] = {
 	[SCCP_EARLYRTP_IMMEDIATE] = "Immediate",
 	[SCCP_EARLYRTP_OFFHOOK] = "OffHook",
 	[SCCP_EARLYRTP_DIALING] = "Dialing",
@@ -272,8 +272,8 @@ const char *sccp_earlyrtp_all_entries(void) {
 /*
  * \brief enum sccp_devicestate
  */
-static const char *__sccp_devicestate_str = "sccp_devicestate";
-static const char *sccp_devicestate_map[] = {
+static const char __sccp_devicestate_str[] = "sccp_devicestate";
+static const char *const sccp_devicestate_map[] = {
 	[SCCP_DEVICESTATE_ONHOOK] = "On Hook",
 	[SCCP_DEVICESTATE_OFFHOOK] = "Off Hook",
 	[SCCP_DEVICESTATE_UNAVAILABLE] = "Unavailable",
@@ -326,8 +326,8 @@ const char *sccp_devicestate_all_entries(void) {
 /*
  * \brief enum sccp_callforward
  */
-static const char *__sccp_callforward_str = "sccp_callforward";
-static const char *sccp_callforward_map[] = {
+static const char __sccp_callforward_str[] = "sccp_callforward";
+static const char *const sccp_callforward_map[] = {
 	[SCCP_CFWD_NONE] = "None",
 	[SCCP_CFWD_ALL] = "All",
 	[SCCP_CFWD_BUSY] = "Busy",
@@ -378,8 +378,8 @@ const char *sccp_callforward_all_entries(void) {
 /*!
  * \brief SCCP Dtmf Mode (ENUM)
  */
-static const char *__sccp_dtmfmode_str = "sccp_dtmfmode";
-static const char *sccp_dtmfmode_map[] = {
+static const char __sccp_dtmfmode_str[] = "sccp_dtmfmode";
+static const char *const sccp_dtmfmode_map[] = {
 	[SCCP_DTMFMODE_AUTO] = "AUTO",
 	[SCCP_DTMFMODE_RFC2833] = "RFC2833",
 	[SCCP_DTMFMODE_SKINNY] = "SKINNY",
@@ -424,64 +424,13 @@ const char *sccp_dtmfmode_all_entries(void) {
 /* = End =========================================================================================                  sccp_dtmfmode === */
 
 
-/* = Begin =======================================================================================                sccp_autoanswer === */
-
-/*!
- * \brief SCCP Autoanswer (ENUM)
- */
-static const char *__sccp_autoanswer_str = "sccp_autoanswer";
-static const char *sccp_autoanswer_map[] = {
-	[SCCP_AUTOANSWER_NONE] = "AutoAnswer None",
-	[SCCP_AUTOANSWER_1W] = "AutoAnswer 1-Way",
-	[SCCP_AUTOANSWER_2W] = "AutoAnswer Both Ways",
-	[SCCP_AUTOANSWER_SENTINEL] = "LOOKUPERROR"
-};
-
-int sccp_autoanswer_exists(int sccp_autoanswer_int_value) {
-	if ((SCCP_AUTOANSWER_1W <=sccp_autoanswer_int_value) && (sccp_autoanswer_int_value < SCCP_AUTOANSWER_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * sccp_autoanswer2str(sccp_autoanswer_t enum_value) {
-	if ((SCCP_AUTOANSWER_NONE <= enum_value) && (enum_value <= SCCP_AUTOANSWER_SENTINEL)) {
-		return sccp_autoanswer_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __sccp_autoanswer_str);
-	return "OutOfBounds: sccp_autoanswer2str\n";
-}
-
-sccp_autoanswer_t sccp_autoanswer_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_autoanswer_map); idx++) {
-		if (sccp_strcaseequals(sccp_autoanswer_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_autoanswer_str, lookup_str);
-	return SCCP_AUTOANSWER_SENTINEL;
-}
-
-uint32_t sccp_autoanswer_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_autoanswer_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_autoanswer_all_entries(void) {
-	static char res[] = "AutoAnswer None,AutoAnswer 1-Way,AutoAnswer Both Ways";
-	return res;
-}
-/* = End =========================================================================================                sccp_autoanswer === */
-
-
 /* = Begin =======================================================================================                   sccp_dndmode === */
 
 /*!
  * \brief SCCP DNDMode (ENUM)
  */
-static const char *__sccp_dndmode_str = "sccp_dndmode";
-static const char *sccp_dndmode_map[] = {
+static const char __sccp_dndmode_str[] = "sccp_dndmode";
+static const char *const sccp_dndmode_map[] = {
 	[SCCP_DNDMODE_OFF] = "Off",
 	[SCCP_DNDMODE_REJECT] = "Reject",
 	[SCCP_DNDMODE_SILENT] = "Silent",
@@ -533,8 +482,8 @@ const char *sccp_dndmode_all_entries(void) {
 /*
  * \brief enum sccp_accessory
  */
-static const char *__sccp_accessory_str = "sccp_accessory";
-static const char *sccp_accessory_map[] = {
+static const char __sccp_accessory_str[] = "sccp_accessory";
+static const char *const sccp_accessory_map[] = {
 	[SCCP_ACCESSORY_NONE] = "None",
 	[SCCP_ACCESSORY_HEADSET] = "Headset",
 	[SCCP_ACCESSORY_HANDSET] = "Handset",
@@ -586,8 +535,8 @@ const char *sccp_accessory_all_entries(void) {
 /*
  * \brief enum sccp_accessorystate
  */
-static const char *__sccp_accessorystate_str = "sccp_accessorystate";
-static const char *sccp_accessorystate_map[] = {
+static const char __sccp_accessorystate_str[] = "sccp_accessorystate";
+static const char *const sccp_accessorystate_map[] = {
 	[SCCP_ACCESSORYSTATE_NONE] = "None",
 	[SCCP_ACCESSORYSTATE_OFFHOOK] = "Off Hook",
 	[SCCP_ACCESSORYSTATE_ONHOOK] = "On Hook",
@@ -638,8 +587,8 @@ const char *sccp_accessorystate_all_entries(void) {
 /*
  * \brief enum sccp_config_buttontype
  */
-static const char *__sccp_config_buttontype_str = "sccp_config_buttontype";
-static const char *sccp_config_buttontype_map[] = {
+static const char __sccp_config_buttontype_str[] = "sccp_config_buttontype";
+static const char *const sccp_config_buttontype_map[] = {
 	[LINE] = "Line",
 	[SPEEDDIAL] = "Speeddial",
 	[SERVICE] = "Service",
@@ -686,65 +635,14 @@ const char *sccp_config_buttontype_all_entries(void) {
 /* = End =========================================================================================         sccp_config_buttontype === */
 
 
-/* = Begin =======================================================================================            sccp_devstate_state === */
-
-
-/*
- * \brief enum sccp_devstate_state
- */
-static const char *__sccp_devstate_state_str = "sccp_devstate_state";
-static const char *sccp_devstate_state_map[] = {
-	[SCCP_DEVSTATE_IDLE] = "IDLE",
-	[SCCP_DEVSTATE_INUSE] = "INUSE",
-	[SCCP_DEVSTATE_STATE_SENTINEL] = "LOOKUPERROR"
-};
-
-int sccp_devstate_state_exists(int sccp_devstate_state_int_value) {
-	if ((SCCP_DEVSTATE_INUSE <=sccp_devstate_state_int_value) && (sccp_devstate_state_int_value < SCCP_DEVSTATE_STATE_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * sccp_devstate_state2str(sccp_devstate_state_t enum_value) {
-	if ((SCCP_DEVSTATE_IDLE <= enum_value) && (enum_value <= SCCP_DEVSTATE_STATE_SENTINEL)) {
-		return sccp_devstate_state_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __sccp_devstate_state_str);
-	return "OutOfBounds: sccp_devstate_state2str\n";
-}
-
-sccp_devstate_state_t sccp_devstate_state_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_devstate_state_map); idx++) {
-		if (sccp_strcaseequals(sccp_devstate_state_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_devstate_state_str, lookup_str);
-	return SCCP_DEVSTATE_STATE_SENTINEL;
-}
-
-uint32_t sccp_devstate_state_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_devstate_state_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_devstate_state_all_entries(void) {
-	static char res[] = "IDLE,INUSE";
-	return res;
-}
-/* = End =========================================================================================            sccp_devstate_state === */
-
-
 /* = Begin =======================================================================================   sccp_blindtransferindication === */
 
 
 /*
  * \brief enum sccp_blindtransferindication
  */
-static const char *__sccp_blindtransferindication_str = "sccp_blindtransferindication";
-static const char *sccp_blindtransferindication_map[] = {
+static const char __sccp_blindtransferindication_str[] = "sccp_blindtransferindication";
+static const char *const sccp_blindtransferindication_map[] = {
 	[SCCP_BLINDTRANSFER_RING] = "RING",
 	[SCCP_BLINDTRANSFER_MOH] = "MOH",
 	[SCCP_BLINDTRANSFERINDICATION_SENTINEL] = "LOOKUPERROR"
@@ -794,8 +692,8 @@ const char *sccp_blindtransferindication_all_entries(void) {
 /*
  * \brief enum sccp_call_answer_order
  */
-static const char *__sccp_call_answer_order_str = "sccp_call_answer_order";
-static const char *sccp_call_answer_order_map[] = {
+static const char __sccp_call_answer_order_str[] = "sccp_call_answer_order";
+static const char *const sccp_call_answer_order_map[] = {
 	[SCCP_ANSWER_OLDEST_FIRST] = "OldestFirst",
 	[SCCP_ANSWER_LAST_FIRST] = "LastFirst",
 	[SCCP_CALL_ANSWER_ORDER_SENTINEL] = "LOOKUPERROR"
@@ -845,8 +743,8 @@ const char *sccp_call_answer_order_all_entries(void) {
 /*
  * \brief enum sccp_nat
  */
-static const char *__sccp_nat_str = "sccp_nat";
-static const char *sccp_nat_map[] = {
+static const char __sccp_nat_str[] = "sccp_nat";
+static const char *const sccp_nat_map[] = {
 	[SCCP_NAT_AUTO] = "Auto",
 	[SCCP_NAT_OFF] = "Off",
 	[SCCP_NAT_AUTO_OFF] = "(Auto)Off",
@@ -893,66 +791,14 @@ const char *sccp_nat_all_entries(void) {
 /* = End =========================================================================================                       sccp_nat === */
 
 
-/* = Begin =======================================================================================                sccp_video_mode === */
-
-
-/*
- * \brief enum sccp_video_mode
- */
-static const char *__sccp_video_mode_str = "sccp_video_mode";
-static const char *sccp_video_mode_map[] = {
-	[SCCP_VIDEO_MODE_OFF] = "Off",
-	[SCCP_VIDEO_MODE_USER] = "User",
-	[SCCP_VIDEO_MODE_AUTO] = "Auto",
-	[SCCP_VIDEO_MODE_SENTINEL] = "LOOKUPERROR"
-};
-
-int sccp_video_mode_exists(int sccp_video_mode_int_value) {
-	if ((SCCP_VIDEO_MODE_USER <=sccp_video_mode_int_value) && (sccp_video_mode_int_value < SCCP_VIDEO_MODE_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * sccp_video_mode2str(sccp_video_mode_t enum_value) {
-	if ((SCCP_VIDEO_MODE_OFF <= enum_value) && (enum_value <= SCCP_VIDEO_MODE_SENTINEL)) {
-		return sccp_video_mode_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __sccp_video_mode_str);
-	return "OutOfBounds: sccp_video_mode2str\n";
-}
-
-sccp_video_mode_t sccp_video_mode_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_video_mode_map); idx++) {
-		if (sccp_strcaseequals(sccp_video_mode_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_video_mode_str, lookup_str);
-	return SCCP_VIDEO_MODE_SENTINEL;
-}
-
-uint32_t sccp_video_mode_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_video_mode_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_video_mode_all_entries(void) {
-	static char res[] = "Off,User,Auto";
-	return res;
-}
-/* = End =========================================================================================                sccp_video_mode === */
-
-
 /* = Begin =======================================================================================                sccp_event_type === */
 
 
 /*
  * \brief enum sccp_event_type
  */
-static const char *__sccp_event_type_str = "sccp_event_type";
-static const char *sccp_event_type_map[] = {
+static const char __sccp_event_type_str[] = "sccp_event_type";
+static const char *const sccp_event_type_map[] = {
 	"Null Event / To be removed",
 	"Line Created",
 	"Line Changed",
@@ -1026,65 +872,14 @@ const char *sccp_event_type_all_entries(void) {
 /* = End =========================================================================================                sccp_event_type === */
 
 
-/* = Begin =======================================================================================                sccp_parkresult === */
-
-
-/*
- * \brief enum sccp_parkresult
- */
-static const char *__sccp_parkresult_str = "sccp_parkresult";
-static const char *sccp_parkresult_map[] = {
-	[PARK_RESULT_FAIL] = "Park Failed",
-	[PARK_RESULT_SUCCESS] = "Park Successfull",
-	[SCCP_PARKRESULT_SENTINEL] = "LOOKUPERROR"
-};
-
-int sccp_parkresult_exists(int sccp_parkresult_int_value) {
-	if ((PARK_RESULT_SUCCESS <=sccp_parkresult_int_value) && (sccp_parkresult_int_value < SCCP_PARKRESULT_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * sccp_parkresult2str(sccp_parkresult_t enum_value) {
-	if ((PARK_RESULT_FAIL <= enum_value) && (enum_value <= SCCP_PARKRESULT_SENTINEL)) {
-		return sccp_parkresult_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __sccp_parkresult_str);
-	return "OutOfBounds: sccp_parkresult2str\n";
-}
-
-sccp_parkresult_t sccp_parkresult_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_parkresult_map); idx++) {
-		if (sccp_strcaseequals(sccp_parkresult_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_parkresult_str, lookup_str);
-	return SCCP_PARKRESULT_SENTINEL;
-}
-
-uint32_t sccp_parkresult_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_parkresult_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_parkresult_all_entries(void) {
-	static char res[] = "Park Failed,Park Successfull";
-	return res;
-}
-/* = End =========================================================================================                sccp_parkresult === */
-
-
 /* = Begin =======================================================================================     sccp_callerid_presentation === */
 
 
 /*
  * \brief enum sccp_callerid_presentation
  */
-static const char *__sccp_callerid_presentation_str = "sccp_callerid_presentation";
-static const char *sccp_callerid_presentation_map[] = {
+static const char __sccp_callerid_presentation_str[] = "sccp_callerid_presentation";
+static const char *const sccp_callerid_presentation_map[] = {
 	[CALLERID_PRESENTATION_FORBIDDEN] = "CalledId Presentation Forbidden",
 	[CALLERID_PRESENTATION_ALLOWED] = "CallerId Presentation Allowed",
 	[SCCP_CALLERID_PRESENTATION_SENTINEL] = "LOOKUPERROR"
@@ -1128,84 +923,14 @@ const char *sccp_callerid_presentation_all_entries(void) {
 /* = End =========================================================================================     sccp_callerid_presentation === */
 
 
-/* = Begin =======================================================================================                sccp_rtp_status === */
-
-
-/*
- * \brief enum sccp_rtp_status
- */
-static const char *__sccp_rtp_status_str = "sccp_rtp_status";
-static const char *sccp_rtp_status_map[] = {
-	"Rtp Inactive",
-	"Rtp In Progress",
-	"Rtp Active",
-	"LOOKUPERROR"
-};
-
-int sccp_rtp_status_exists(int sccp_rtp_status_int_value) {
-	if (sccp_rtp_status_int_value == 0) {
-		return 1;
-	}
-	int res = 0, i;
-	for (i = 0; i < SCCP_RTP_STATUS_SENTINEL; i++) {
-		if ((sccp_rtp_status_int_value & 1 << i) == 1 << i) {
-			res |= 1;
-		}
-	}
-	return res;
-}
-
-const char * sccp_rtp_status2str(int sccp_rtp_status_int_value) {
-	static char res[104] = "";
-	int pos = 0;
-	if (sccp_rtp_status_int_value == 0) {
-		pos += snprintf(res + pos, 104, "%s%s", pos ? "," : "", sccp_rtp_status_map[0]);
-		return res;
-	}
-	uint32_t i;
-	for (i = 0; i < ARRAY_LEN(sccp_rtp_status_map) - 1; i++) {
-		if ((sccp_rtp_status_int_value & (1 << i)) == (1 << i)) {
-			pos += snprintf(res + pos, 104, "%s%s", pos ? "," : "", sccp_rtp_status_map[i + 1]);
-		}
-	}
-	if (!strlen(res)) {
-		pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, sccp_rtp_status_int_value, __sccp_rtp_status_str);
-		return "OutOfBounds: sparse sccp_rtp_status2str\n";
-	}
-	return res;
-}
-
-sccp_rtp_status_t sccp_rtp_status_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_rtp_status_map); idx++) {
-		if (sccp_strcaseequals(sccp_rtp_status_map[idx], lookup_str)) {
-			return 1 << idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_rtp_status_str, lookup_str);
-	return SCCP_RTP_STATUS_SENTINEL;
-}
-
-uint32_t sccp_rtp_status_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_rtp_status_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_rtp_status_all_entries(void) {
-	static char res[] = "Rtp Inactive,Rtp In Progress,Rtp Active";
-	return res;
-}
-/* = End =========================================================================================                sccp_rtp_status === */
-
-
 /* = Begin =======================================================================================                  sccp_rtp_type === */
 
 
 /*
  * \brief enum sccp_rtp_type
  */
-static const char *__sccp_rtp_type_str = "sccp_rtp_type";
-static const char *sccp_rtp_type_map[] = {
+static const char __sccp_rtp_type_str[] = "sccp_rtp_type";
+static const char *const sccp_rtp_type_map[] = {
 	"RTP NULL",
 	"Audio RTP",
 	"Video RTP",
@@ -1227,16 +952,16 @@ int sccp_rtp_type_exists(int sccp_rtp_type_int_value) {
 }
 
 const char * sccp_rtp_type2str(int sccp_rtp_type_int_value) {
-	static char res[168] = "";
+	static char res[129] = "";
 	int pos = 0;
 	if (sccp_rtp_type_int_value == 0) {
-		pos += snprintf(res + pos, 168, "%s%s", pos ? "," : "", sccp_rtp_type_map[0]);
+		pos += snprintf(res + pos, 129, "%s%s", pos ? "," : "", sccp_rtp_type_map[0]);
 		return res;
 	}
 	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_rtp_type_map) - 1; i++) {
 		if ((sccp_rtp_type_int_value & (1 << i)) == (1 << i)) {
-			pos += snprintf(res + pos, 168, "%s%s", pos ? "," : "", sccp_rtp_type_map[i + 1]);
+			pos += snprintf(res + pos, 129, "%s%s", pos ? "," : "", sccp_rtp_type_map[i + 1]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1269,226 +994,14 @@ const char *sccp_rtp_type_all_entries(void) {
 /* = End =========================================================================================                  sccp_rtp_type === */
 
 
-/* = Begin =======================================================================================          sccp_extension_status === */
-
-
-/*
- * \brief enum sccp_extension_status
- */
-static const char *__sccp_extension_status_str = "sccp_extension_status";
-static const char *sccp_extension_status_map[] = {
-	[SCCP_EXTENSION_NOTEXISTS] = "Extension does not exist",
-	[SCCP_EXTENSION_MATCHMORE] = "Matches more than one extension",
-	[SCCP_EXTENSION_EXACTMATCH] = "Exact Extension Match",
-	[SCCP_EXTENSION_STATUS_SENTINEL] = "LOOKUPERROR"
-};
-
-int sccp_extension_status_exists(int sccp_extension_status_int_value) {
-	if ((SCCP_EXTENSION_MATCHMORE <=sccp_extension_status_int_value) && (sccp_extension_status_int_value < SCCP_EXTENSION_STATUS_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * sccp_extension_status2str(sccp_extension_status_t enum_value) {
-	if ((SCCP_EXTENSION_NOTEXISTS <= enum_value) && (enum_value <= SCCP_EXTENSION_STATUS_SENTINEL)) {
-		return sccp_extension_status_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __sccp_extension_status_str);
-	return "OutOfBounds: sccp_extension_status2str\n";
-}
-
-sccp_extension_status_t sccp_extension_status_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_extension_status_map); idx++) {
-		if (sccp_strcaseequals(sccp_extension_status_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_extension_status_str, lookup_str);
-	return SCCP_EXTENSION_STATUS_SENTINEL;
-}
-
-uint32_t sccp_extension_status_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_extension_status_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_extension_status_all_entries(void) {
-	static char res[] = "Extension does not exist,Matches more than one extension,Exact Extension Match";
-	return res;
-}
-/* = End =========================================================================================          sccp_extension_status === */
-
-
-/* = Begin =======================================================================================    sccp_channel_request_status === */
-
-
-/*
- * \brief enum sccp_channel_request_status
- */
-static const char *__sccp_channel_request_status_str = "sccp_channel_request_status";
-static const char *sccp_channel_request_status_map[] = {
-	[SCCP_REQUEST_STATUS_ERROR] = "Request Status Error",
-	[SCCP_REQUEST_STATUS_LINEUNKNOWN] = "Request Line Unknown",
-	[SCCP_REQUEST_STATUS_LINEUNAVAIL] = "Request Line Unavailable",
-	[SCCP_REQUEST_STATUS_SUCCESS] = "Request Success",
-	[SCCP_CHANNEL_REQUEST_STATUS_SENTINEL] = "LOOKUPERROR"
-};
-
-int sccp_channel_request_status_exists(int sccp_channel_request_status_int_value) {
-	if ((SCCP_REQUEST_STATUS_LINEUNKNOWN <=sccp_channel_request_status_int_value) && (sccp_channel_request_status_int_value < SCCP_CHANNEL_REQUEST_STATUS_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * sccp_channel_request_status2str(sccp_channel_request_status_t enum_value) {
-	if ((SCCP_REQUEST_STATUS_ERROR <= enum_value) && (enum_value <= SCCP_CHANNEL_REQUEST_STATUS_SENTINEL)) {
-		return sccp_channel_request_status_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __sccp_channel_request_status_str);
-	return "OutOfBounds: sccp_channel_request_status2str\n";
-}
-
-sccp_channel_request_status_t sccp_channel_request_status_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_channel_request_status_map); idx++) {
-		if (sccp_strcaseequals(sccp_channel_request_status_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_channel_request_status_str, lookup_str);
-	return SCCP_CHANNEL_REQUEST_STATUS_SENTINEL;
-}
-
-uint32_t sccp_channel_request_status_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_channel_request_status_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_channel_request_status_all_entries(void) {
-	static char res[] = "Request Status Error,Request Line Unknown,Request Line Unavailable,Request Success";
-	return res;
-}
-/* = End =========================================================================================    sccp_channel_request_status === */
-
-
-/* = Begin =======================================================================================          sccp_message_priority === */
-
-
-/*
- * \brief enum sccp_message_priority
- */
-static const char *__sccp_message_priority_str = "sccp_message_priority";
-static const char *sccp_message_priority_map[] = {
-	[SCCP_MESSAGE_PRIORITY_IDLE] = "Message Priority Idle",
-	[SCCP_MESSAGE_PRIORITY_VOICEMAIL] = "Message Priority Voicemail",
-	[SCCP_MESSAGE_PRIORITY_MONITOR] = "Message Priority Monitor",
-	[SCCP_MESSAGE_PRIORITY_PRIVACY] = "Message Priority Privacy",
-	[SCCP_MESSAGE_PRIORITY_DND] = "Message Priority Do not disturb",
-	[SCCP_MESSAGE_PRIORITY_CFWD] = "Message Priority Call Forward",
-	[SCCP_MESSAGE_PRIORITY_SENTINEL] = "LOOKUPERROR"
-};
-
-int sccp_message_priority_exists(int sccp_message_priority_int_value) {
-	if ((SCCP_MESSAGE_PRIORITY_VOICEMAIL <=sccp_message_priority_int_value) && (sccp_message_priority_int_value < SCCP_MESSAGE_PRIORITY_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * sccp_message_priority2str(sccp_message_priority_t enum_value) {
-	if ((SCCP_MESSAGE_PRIORITY_IDLE <= enum_value) && (enum_value <= SCCP_MESSAGE_PRIORITY_SENTINEL)) {
-		return sccp_message_priority_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __sccp_message_priority_str);
-	return "OutOfBounds: sccp_message_priority2str\n";
-}
-
-sccp_message_priority_t sccp_message_priority_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_message_priority_map); idx++) {
-		if (sccp_strcaseequals(sccp_message_priority_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_message_priority_str, lookup_str);
-	return SCCP_MESSAGE_PRIORITY_SENTINEL;
-}
-
-uint32_t sccp_message_priority_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_message_priority_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_message_priority_all_entries(void) {
-	static char res[] = "Message Priority Idle,Message Priority Voicemail,Message Priority Monitor,Message Priority Privacy,Message Priority Do not disturb,Message Priority Call Forward";
-	return res;
-}
-/* = End =========================================================================================          sccp_message_priority === */
-
-
-/* = Begin =======================================================================================               sccp_push_result === */
-
-
-/*
- * \brief enum sccp_push_result
- */
-static const char *__sccp_push_result_str = "sccp_push_result";
-static const char *sccp_push_result_map[] = {
-	[SCCP_PUSH_RESULT_FAIL] = "Push Failed",
-	[SCCP_PUSH_RESULT_NOT_SUPPORTED] = "Push Not Supported",
-	[SCCP_PUSH_RESULT_SUCCESS] = "Pushed Successfully",
-	[SCCP_PUSH_RESULT_SENTINEL] = "LOOKUPERROR"
-};
-
-int sccp_push_result_exists(int sccp_push_result_int_value) {
-	if ((SCCP_PUSH_RESULT_NOT_SUPPORTED <=sccp_push_result_int_value) && (sccp_push_result_int_value < SCCP_PUSH_RESULT_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * sccp_push_result2str(sccp_push_result_t enum_value) {
-	if ((SCCP_PUSH_RESULT_FAIL <= enum_value) && (enum_value <= SCCP_PUSH_RESULT_SENTINEL)) {
-		return sccp_push_result_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __sccp_push_result_str);
-	return "OutOfBounds: sccp_push_result2str\n";
-}
-
-sccp_push_result_t sccp_push_result_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_push_result_map); idx++) {
-		if (sccp_strcaseequals(sccp_push_result_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_push_result_str, lookup_str);
-	return SCCP_PUSH_RESULT_SENTINEL;
-}
-
-uint32_t sccp_push_result_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_push_result_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_push_result_all_entries(void) {
-	static char res[] = "Push Failed,Push Not Supported,Pushed Successfully";
-	return res;
-}
-/* = End =========================================================================================               sccp_push_result === */
-
-
 /* = Begin =======================================================================================                sccp_tokenstate === */
 
 
 /*
  * \brief enum sccp_tokenstate
  */
-static const char *__sccp_tokenstate_str = "sccp_tokenstate";
-static const char *sccp_tokenstate_map[] = {
+static const char __sccp_tokenstate_str[] = "sccp_tokenstate";
+static const char *const sccp_tokenstate_map[] = {
 	[SCCP_TOKEN_STATE_NOTOKEN] = "No Token",
 	[SCCP_TOKEN_STATE_ACK] = "Token Acknowledged",
 	[SCCP_TOKEN_STATE_REJ] = "Token Rejected",
@@ -1539,8 +1052,8 @@ const char *sccp_tokenstate_all_entries(void) {
 /*
  * \brief enum sccp_softswitch
  */
-static const char *__sccp_softswitch_str = "sccp_softswitch";
-static const char *sccp_softswitch_map[] = {
+static const char __sccp_softswitch_str[] = "sccp_softswitch";
+static const char *const sccp_softswitch_map[] = {
 	[SCCP_SOFTSWITCH_DIAL] = "Softswitch Dial",
 	[SCCP_SOFTSWITCH_GETFORWARDEXTEN] = "Softswitch Get Forward Extension",
 #ifdef CS_SCCP_PICKUP
@@ -1593,66 +1106,14 @@ const char *sccp_softswitch_all_entries(void) {
 /* = End =========================================================================================                sccp_softswitch === */
 
 
-/* = Begin =======================================================================================                 sccp_phonebook === */
-
-
-/*
- * \brief enum sccp_phonebook
- */
-static const char *__sccp_phonebook_str = "sccp_phonebook";
-static const char *sccp_phonebook_map[] = {
-	[SCCP_PHONEBOOK_NONE] = "Phonebook None",
-	[SCCP_PHONEBOOK_MISSED] = "Phonebook Missed",
-	[SCCP_PHONEBOOK_RECEIVED] = "Phonebook Received",
-	[SCCP_PHONEBOOK_SENTINEL] = "LOOKUPERROR"
-};
-
-int sccp_phonebook_exists(int sccp_phonebook_int_value) {
-	if ((SCCP_PHONEBOOK_MISSED <=sccp_phonebook_int_value) && (sccp_phonebook_int_value < SCCP_PHONEBOOK_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * sccp_phonebook2str(sccp_phonebook_t enum_value) {
-	if ((SCCP_PHONEBOOK_NONE <= enum_value) && (enum_value <= SCCP_PHONEBOOK_SENTINEL)) {
-		return sccp_phonebook_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __sccp_phonebook_str);
-	return "OutOfBounds: sccp_phonebook2str\n";
-}
-
-sccp_phonebook_t sccp_phonebook_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_phonebook_map); idx++) {
-		if (sccp_strcaseequals(sccp_phonebook_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_phonebook_str, lookup_str);
-	return SCCP_PHONEBOOK_SENTINEL;
-}
-
-uint32_t sccp_phonebook_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_phonebook_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_phonebook_all_entries(void) {
-	static char res[] = "Phonebook None,Phonebook Missed,Phonebook Received";
-	return res;
-}
-/* = End =========================================================================================                 sccp_phonebook === */
-
-
 /* = Begin =======================================================================================     sccp_feature_monitor_state === */
 
 
 /*
  * \brief enum sccp_feature_monitor_state
  */
-static const char *__sccp_feature_monitor_state_str = "sccp_feature_monitor_state";
-static const char *sccp_feature_monitor_state_map[] = {
+static const char __sccp_feature_monitor_state_str[] = "sccp_feature_monitor_state";
+static const char *const sccp_feature_monitor_state_map[] = {
 	"Feature Monitor Disabled",
 	"Feature Monitor Requested",
 	"Feature Monitor Active",
@@ -1673,16 +1134,16 @@ int sccp_feature_monitor_state_exists(int sccp_feature_monitor_state_int_value) 
 }
 
 const char * sccp_feature_monitor_state2str(int sccp_feature_monitor_state_int_value) {
-	static char res[264] = "";
+	static char res[225] = "";
 	int pos = 0;
 	if (sccp_feature_monitor_state_int_value == 0) {
-		pos += snprintf(res + pos, 264, "%s%s", pos ? "," : "", sccp_feature_monitor_state_map[0]);
+		pos += snprintf(res + pos, 225, "%s%s", pos ? "," : "", sccp_feature_monitor_state_map[0]);
 		return res;
 	}
 	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(sccp_feature_monitor_state_map) - 1; i++) {
 		if ((sccp_feature_monitor_state_int_value & (1 << i)) == (1 << i)) {
-			pos += snprintf(res + pos, 264, "%s%s", pos ? "," : "", sccp_feature_monitor_state_map[i + 1]);
+			pos += snprintf(res + pos, 225, "%s%s", pos ? "," : "", sccp_feature_monitor_state_map[i + 1]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1715,255 +1176,14 @@ const char *sccp_feature_monitor_state_all_entries(void) {
 /* = End =========================================================================================     sccp_feature_monitor_state === */
 
 
-/* = Begin =======================================================================================               sccp_readingtype === */
-
-/*!
- * \brief Config Reading Type Enum
- */
-static const char *__sccp_readingtype_str = "sccp_readingtype";
-static const char *sccp_readingtype_map[] = {
-	[SCCP_CONFIG_READINITIAL] = "Read Initial Config",
-	[SCCP_CONFIG_READRELOAD] = "Reloading Config",
-	[SCCP_READINGTYPE_SENTINEL] = "LOOKUPERROR"
-};
-
-int sccp_readingtype_exists(int sccp_readingtype_int_value) {
-	if ((SCCP_CONFIG_READRELOAD <=sccp_readingtype_int_value) && (sccp_readingtype_int_value < SCCP_READINGTYPE_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * sccp_readingtype2str(sccp_readingtype_t enum_value) {
-	if ((SCCP_CONFIG_READINITIAL <= enum_value) && (enum_value <= SCCP_READINGTYPE_SENTINEL)) {
-		return sccp_readingtype_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __sccp_readingtype_str);
-	return "OutOfBounds: sccp_readingtype2str\n";
-}
-
-sccp_readingtype_t sccp_readingtype_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_readingtype_map); idx++) {
-		if (sccp_strcaseequals(sccp_readingtype_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_readingtype_str, lookup_str);
-	return SCCP_READINGTYPE_SENTINEL;
-}
-
-uint32_t sccp_readingtype_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_readingtype_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_readingtype_all_entries(void) {
-	static char res[] = "Read Initial Config,Reloading Config";
-	return res;
-}
-/* = End =========================================================================================               sccp_readingtype === */
-
-
-/* = Begin =======================================================================================       sccp_configurationchange === */
-
-/*!
- * \brief Status of configuration change
- */
-static const char *__sccp_configurationchange_str = "sccp_configurationchange";
-static const char *sccp_configurationchange_map[] = {
-	"Config: No Update Needed",
-	"Config: Device Reset Needed",
-	"Warning while reading Config",
-	"Error while reading Config",
-	"LOOKUPERROR"
-};
-
-int sccp_configurationchange_exists(int sccp_configurationchange_int_value) {
-	if (sccp_configurationchange_int_value == 0) {
-		return 1;
-	}
-	int res = 0, i;
-	for (i = 0; i < SCCP_CONFIGURATIONCHANGE_SENTINEL; i++) {
-		if ((sccp_configurationchange_int_value & 1 << i) == 1 << i) {
-			res |= 1;
-		}
-	}
-	return res;
-}
-
-const char * sccp_configurationchange2str(int sccp_configurationchange_int_value) {
-	static char res[372] = "";
-	int pos = 0;
-	if (sccp_configurationchange_int_value == 0) {
-		pos += snprintf(res + pos, 372, "%s%s", pos ? "," : "", sccp_configurationchange_map[0]);
-		return res;
-	}
-	uint32_t i;
-	for (i = 0; i < ARRAY_LEN(sccp_configurationchange_map) - 1; i++) {
-		if ((sccp_configurationchange_int_value & (1 << i)) == (1 << i)) {
-			pos += snprintf(res + pos, 372, "%s%s", pos ? "," : "", sccp_configurationchange_map[i + 1]);
-		}
-	}
-	if (!strlen(res)) {
-		pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, sccp_configurationchange_int_value, __sccp_configurationchange_str);
-		return "OutOfBounds: sparse sccp_configurationchange2str\n";
-	}
-	return res;
-}
-
-sccp_configurationchange_t sccp_configurationchange_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_configurationchange_map); idx++) {
-		if (sccp_strcaseequals(sccp_configurationchange_map[idx], lookup_str)) {
-			return 1 << idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_configurationchange_str, lookup_str);
-	return SCCP_CONFIGURATIONCHANGE_SENTINEL;
-}
-
-uint32_t sccp_configurationchange_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_configurationchange_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_configurationchange_all_entries(void) {
-	static char res[] = "Config: No Update Needed,Config: Device Reset Needed,Warning while reading Config,Error while reading Config";
-	return res;
-}
-/* = End =========================================================================================       sccp_configurationchange === */
-
-
-/* = Begin =======================================================================================      sccp_call_statistics_type === */
-
-
-/*
- * \brief enum sccp_call_statistics_type
- */
-static const char *__sccp_call_statistics_type_str = "sccp_call_statistics_type";
-static const char *sccp_call_statistics_type_map[] = {
-	[SCCP_CALLSTATISTIC_LAST] = "CallStatistics last Call",
-	[SCCP_CALLSTATISTIC_AVG] = "CallStatistics average",
-	[SCCP_CALL_STATISTICS_TYPE_SENTINEL] = "LOOKUPERROR"
-};
-
-int sccp_call_statistics_type_exists(int sccp_call_statistics_type_int_value) {
-	if ((SCCP_CALLSTATISTIC_AVG <=sccp_call_statistics_type_int_value) && (sccp_call_statistics_type_int_value < SCCP_CALL_STATISTICS_TYPE_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * sccp_call_statistics_type2str(sccp_call_statistics_type_t enum_value) {
-	if ((SCCP_CALLSTATISTIC_LAST <= enum_value) && (enum_value <= SCCP_CALL_STATISTICS_TYPE_SENTINEL)) {
-		return sccp_call_statistics_type_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __sccp_call_statistics_type_str);
-	return "OutOfBounds: sccp_call_statistics_type2str\n";
-}
-
-sccp_call_statistics_type_t sccp_call_statistics_type_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_call_statistics_type_map); idx++) {
-		if (sccp_strcaseequals(sccp_call_statistics_type_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_call_statistics_type_str, lookup_str);
-	return SCCP_CALL_STATISTICS_TYPE_SENTINEL;
-}
-
-uint32_t sccp_call_statistics_type_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_call_statistics_type_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_call_statistics_type_all_entries(void) {
-	static char res[] = "CallStatistics last Call,CallStatistics average";
-	return res;
-}
-/* = End =========================================================================================      sccp_call_statistics_type === */
-
-
-/* = Begin =======================================================================================                  sccp_rtp_info === */
-
-
-/*
- * \brief enum sccp_rtp_info
- */
-static const char *__sccp_rtp_info_str = "sccp_rtp_info";
-static const char *sccp_rtp_info_map[] = {
-	"RTP Info: None",
-	"RTP Info: Available",
-	"RTP Info: Allow DirectMedia",
-	"LOOKUPERROR"
-};
-
-int sccp_rtp_info_exists(int sccp_rtp_info_int_value) {
-	if (sccp_rtp_info_int_value == 0) {
-		return 1;
-	}
-	int res = 0, i;
-	for (i = 0; i < SCCP_RTP_INFO_SENTINEL; i++) {
-		if ((sccp_rtp_info_int_value & 1 << i) == 1 << i) {
-			res |= 1;
-		}
-	}
-	return res;
-}
-
-const char * sccp_rtp_info2str(int sccp_rtp_info_int_value) {
-	static char res[453] = "";
-	int pos = 0;
-	if (sccp_rtp_info_int_value == 0) {
-		pos += snprintf(res + pos, 453, "%s%s", pos ? "," : "", sccp_rtp_info_map[0]);
-		return res;
-	}
-	uint32_t i;
-	for (i = 0; i < ARRAY_LEN(sccp_rtp_info_map) - 1; i++) {
-		if ((sccp_rtp_info_int_value & (1 << i)) == (1 << i)) {
-			pos += snprintf(res + pos, 453, "%s%s", pos ? "," : "", sccp_rtp_info_map[i + 1]);
-		}
-	}
-	if (!strlen(res)) {
-		pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, sccp_rtp_info_int_value, __sccp_rtp_info_str);
-		return "OutOfBounds: sparse sccp_rtp_info2str\n";
-	}
-	return res;
-}
-
-sccp_rtp_info_t sccp_rtp_info_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_rtp_info_map); idx++) {
-		if (sccp_strcaseequals(sccp_rtp_info_map[idx], lookup_str)) {
-			return 1 << idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_rtp_info_str, lookup_str);
-	return SCCP_RTP_INFO_SENTINEL;
-}
-
-uint32_t sccp_rtp_info_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_rtp_info_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_rtp_info_all_entries(void) {
-	static char res[] = "RTP Info: None,RTP Info: Available,RTP Info: Allow DirectMedia";
-	return res;
-}
-/* = End =========================================================================================                  sccp_rtp_info === */
-
-
 /* = Begin =======================================================================================              sccp_feature_type === */
 
 
 /*
  * \brief enum sccp_feature_type
  */
-static const char *__sccp_feature_type_str = "sccp_feature_type";
-static const char *sccp_feature_type_map[] = {
+static const char __sccp_feature_type_str[] = "sccp_feature_type";
+static const char *const sccp_feature_type_map[] = {
 	[SCCP_FEATURE_UNKNOWN] = "FEATURE_UNKNOWN",
 	[SCCP_FEATURE_CFWDNONE] = "cfwd off",
 	[SCCP_FEATURE_CFWDALL] = "cfwdall",
@@ -2037,82 +1257,13 @@ const char *sccp_feature_type_all_entries(void) {
 /* = End =========================================================================================              sccp_feature_type === */
 
 
-/* = Begin =======================================================================================              sccp_callinfo_key === */
-
-
-/*
- * \brief enum sccp_callinfo_key
- */
-static const char *__sccp_callinfo_key_str = "sccp_callinfo_key";
-static const char *sccp_callinfo_key_map[] = {
-	[SCCP_CALLINFO_NONE] = "none",
-	[SCCP_CALLINFO_CALLEDPARTY_NAME] = "calledparty name",
-	[SCCP_CALLINFO_CALLEDPARTY_NUMBER] = "calledparty number",
-	[SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL] = "calledparty voicemail",
-	[SCCP_CALLINFO_CALLINGPARTY_NAME] = "callingparty name",
-	[SCCP_CALLINFO_CALLINGPARTY_NUMBER] = "callingparty number",
-	[SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL] = "callingparty voicemail",
-	[SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME] = "orig_calledparty name",
-	[SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER] = "orig_calledparty number",
-	[SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL] = "orig_calledparty voicemail",
-	[SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME] = "orig_callingparty name",
-	[SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER] = "orig_callingparty number",
-	[SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME] = "last_redirectingparty name",
-	[SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER] = "last_redirectingparty number",
-	[SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL] = "last_redirectingparty voicemail",
-	[SCCP_CALLINFO_HUNT_PILOT_NAME] = "hunt pilot name",
-	[SCCP_CALLINFO_HUNT_PILOT_NUMBER] = "hunt pilor number",
-	[SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON] = "orig_calledparty_redirect reason",
-	[SCCP_CALLINFO_LAST_REDIRECT_REASON] = "last_redirect reason",
-	[SCCP_CALLINFO_PRESENTATION] = "presentation",
-	[SCCP_CALLINFO_KEY_SENTINEL] = "LOOKUPERROR"
-};
-
-int sccp_callinfo_key_exists(int sccp_callinfo_key_int_value) {
-	if ((SCCP_CALLINFO_CALLEDPARTY_NAME <=sccp_callinfo_key_int_value) && (sccp_callinfo_key_int_value < SCCP_CALLINFO_KEY_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * sccp_callinfo_key2str(sccp_callinfo_key_t enum_value) {
-	if ((SCCP_CALLINFO_NONE <= enum_value) && (enum_value <= SCCP_CALLINFO_KEY_SENTINEL)) {
-		return sccp_callinfo_key_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __sccp_callinfo_key_str);
-	return "OutOfBounds: sccp_callinfo_key2str\n";
-}
-
-sccp_callinfo_key_t sccp_callinfo_key_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_callinfo_key_map); idx++) {
-		if (sccp_strcaseequals(sccp_callinfo_key_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __sccp_callinfo_key_str, lookup_str);
-	return SCCP_CALLINFO_KEY_SENTINEL;
-}
-
-uint32_t sccp_callinfo_key_str2intval(const char *lookup_str) {
-	uint32_t res = sccp_callinfo_key_str2val(lookup_str);
-	return res;
-}
-
-const char *sccp_callinfo_key_all_entries(void) {
-	static char res[] = "none,calledparty name,calledparty number,calledparty voicemail,callingparty name,callingparty number,callingparty voicemail,orig_calledparty name,orig_calledparty number,orig_calledparty voicemail,orig_callingparty name,orig_callingparty number,last_redirectingparty name,last_redirectingparty number,last_redirectingparty voicemail,hunt pilot name,hunt pilor number,orig_calledparty_redirect reason,last_redirect reason,presentation";
-	return res;
-}
-/* = End =========================================================================================              sccp_callinfo_key === */
-
-
 /* = Begin =======================================================================================                skinny_lampmode === */
 
 /*!
  * \brief Skinny Lamp Mode (ENUM)
  */
-static const char *__skinny_lampmode_str = "skinny_lampmode";
-static const char *skinny_lampmode_map[] = {
+static const char __skinny_lampmode_str[] = "skinny_lampmode";
+static const char *const skinny_lampmode_map[] = {
 	[SKINNY_LAMP_OFF] = "Off",
 	[SKINNY_LAMP_ON] = "On",
 	[SKINNY_LAMP_WINK] = "Wink",
@@ -2164,8 +1315,8 @@ const char *skinny_lampmode_all_entries(void) {
 /*!
  * \brief Skinny Protocol Call Type (ENUM)
  */
-static const char *__skinny_calltype_str = "skinny_calltype";
-static const char *skinny_calltype_map[] = {
+static const char __skinny_calltype_str[] = "skinny_calltype";
+static const char *const skinny_calltype_map[] = {
 	[SKINNY_CALLTYPE_INBOUND] = "Inbound",
 	[SKINNY_CALLTYPE_OUTBOUND] = "Outbound",
 	[SKINNY_CALLTYPE_FORWARD] = "Forward",
@@ -2215,8 +1366,8 @@ const char *skinny_calltype_all_entries(void) {
 /*!
  * \brief Skinny Protocol Call Type (ENUM)
  */
-static const char *__skinny_callstate_str = "skinny_callstate";
-static const char *skinny_callstate_map[] = {
+static const char __skinny_callstate_str[] = "skinny_callstate";
+static const char *const skinny_callstate_map[] = {
 	[SKINNY_CALLSTATE_OFFHOOK] = "offhook",
 	[SKINNY_CALLSTATE_ONHOOK] = "onhook",
 	[SKINNY_CALLSTATE_RINGOUT] = "ring-out",
@@ -2275,66 +1426,13 @@ const char *skinny_callstate_all_entries(void) {
 /* = End =========================================================================================               skinny_callstate === */
 
 
-/* = Begin =======================================================================================            skinny_callpriority === */
-
-/*!
- * \brief Skinny Protocol Call Priority (ENUM)
- */
-static const char *__skinny_callpriority_str = "skinny_callpriority";
-static const char *skinny_callpriority_map[] = {
-	[SKINNY_CALLPRIORITY_HIGHEST] = "highest priority",
-	[SKINNY_CALLPRIORITY_HIGH] = "high priority",
-	[SKINNY_CALLPRIORITY_MEDIUM] = "medium priority",
-	[SKINNY_CALLPRIORITY_LOW] = "low priority",
-	[SKINNY_CALLPRIORITY_NORMAL] = "normal priority",
-	[SKINNY_CALLPRIORITY_SENTINEL] = "LOOKUPERROR"
-};
-
-int skinny_callpriority_exists(int skinny_callpriority_int_value) {
-	if ((SKINNY_CALLPRIORITY_HIGH <=skinny_callpriority_int_value) && (skinny_callpriority_int_value < SKINNY_CALLPRIORITY_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * skinny_callpriority2str(skinny_callpriority_t enum_value) {
-	if ((SKINNY_CALLPRIORITY_HIGHEST <= enum_value) && (enum_value <= SKINNY_CALLPRIORITY_SENTINEL)) {
-		return skinny_callpriority_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __skinny_callpriority_str);
-	return "OutOfBounds: skinny_callpriority2str\n";
-}
-
-skinny_callpriority_t skinny_callpriority_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(skinny_callpriority_map); idx++) {
-		if (sccp_strcaseequals(skinny_callpriority_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_callpriority_str, lookup_str);
-	return SKINNY_CALLPRIORITY_SENTINEL;
-}
-
-uint32_t skinny_callpriority_str2intval(const char *lookup_str) {
-	uint32_t res = skinny_callpriority_str2val(lookup_str);
-	return res;
-}
-
-const char *skinny_callpriority_all_entries(void) {
-	static char res[] = "highest priority,high priority,medium priority,low priority,normal priority";
-	return res;
-}
-/* = End =========================================================================================            skinny_callpriority === */
-
-
 /* = Begin =======================================================================================     skinny_callinfo_visibility === */
 
 /*!
  * \brief Skinny Protocol CallInfo Visibility (ENUM)
  */
-static const char *__skinny_callinfo_visibility_str = "skinny_callinfo_visibility";
-static const char *skinny_callinfo_visibility_map[] = {
+static const char __skinny_callinfo_visibility_str[] = "skinny_callinfo_visibility";
+static const char *const skinny_callinfo_visibility_map[] = {
 	[SKINNY_CALLINFO_VISIBILITY_DEFAULT] = "default",
 	[SKINNY_CALLINFO_VISIBILITY_COLLAPSED] = "collapsed",
 	[SKINNY_CALLINFO_VISIBILITY_HIDDEN] = "hidden",
@@ -2379,117 +1477,13 @@ const char *skinny_callinfo_visibility_all_entries(void) {
 /* = End =========================================================================================     skinny_callinfo_visibility === */
 
 
-/* = Begin =======================================================================================       skinny_callsecuritystate === */
-
-/*!
- * \brief Skinny Protocol Call Security State (ENUM)
- */
-static const char *__skinny_callsecuritystate_str = "skinny_callsecuritystate";
-static const char *skinny_callsecuritystate_map[] = {
-	[SKINNY_CALLSECURITYSTATE_UNKNOWN] = "unknown",
-	[SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED] = "not authenticated",
-	[SKINNY_CALLSECURITYSTATE_AUTHENTICATED] = "authenticated",
-	[SKINNY_CALLSECURITYSTATE_SENTINEL] = "LOOKUPERROR"
-};
-
-int skinny_callsecuritystate_exists(int skinny_callsecuritystate_int_value) {
-	if ((SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED <=skinny_callsecuritystate_int_value) && (skinny_callsecuritystate_int_value < SKINNY_CALLSECURITYSTATE_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * skinny_callsecuritystate2str(skinny_callsecuritystate_t enum_value) {
-	if ((SKINNY_CALLSECURITYSTATE_UNKNOWN <= enum_value) && (enum_value <= SKINNY_CALLSECURITYSTATE_SENTINEL)) {
-		return skinny_callsecuritystate_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __skinny_callsecuritystate_str);
-	return "OutOfBounds: skinny_callsecuritystate2str\n";
-}
-
-skinny_callsecuritystate_t skinny_callsecuritystate_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(skinny_callsecuritystate_map); idx++) {
-		if (sccp_strcaseequals(skinny_callsecuritystate_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_callsecuritystate_str, lookup_str);
-	return SKINNY_CALLSECURITYSTATE_SENTINEL;
-}
-
-uint32_t skinny_callsecuritystate_str2intval(const char *lookup_str) {
-	uint32_t res = skinny_callsecuritystate_str2val(lookup_str);
-	return res;
-}
-
-const char *skinny_callsecuritystate_all_entries(void) {
-	static char res[] = "unknown,not authenticated,authenticated";
-	return res;
-}
-/* = End =========================================================================================       skinny_callsecuritystate === */
-
-
-/* = Begin =======================================================================================     skinny_busylampfield_state === */
-
-/*!
- * \brief Skinny Busy Lamp Field Status (ENUM)
- */
-static const char *__skinny_busylampfield_state_str = "skinny_busylampfield_state";
-static const char *skinny_busylampfield_state_map[] = {
-	[SKINNY_BLF_STATUS_UNKNOWN] = "Unknown",
-	[SKINNY_BLF_STATUS_IDLE] = "Not-in-use",
-	[SKINNY_BLF_STATUS_INUSE] = "In-use",
-	[SKINNY_BLF_STATUS_DND] = "DND",
-	[SKINNY_BLF_STATUS_ALERTING] = "Alerting",
-	[SKINNY_BUSYLAMPFIELD_STATE_SENTINEL] = "LOOKUPERROR"
-};
-
-int skinny_busylampfield_state_exists(int skinny_busylampfield_state_int_value) {
-	if ((SKINNY_BLF_STATUS_IDLE <=skinny_busylampfield_state_int_value) && (skinny_busylampfield_state_int_value < SKINNY_BUSYLAMPFIELD_STATE_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * skinny_busylampfield_state2str(skinny_busylampfield_state_t enum_value) {
-	if ((SKINNY_BLF_STATUS_UNKNOWN <= enum_value) && (enum_value <= SKINNY_BUSYLAMPFIELD_STATE_SENTINEL)) {
-		return skinny_busylampfield_state_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __skinny_busylampfield_state_str);
-	return "OutOfBounds: skinny_busylampfield_state2str\n";
-}
-
-skinny_busylampfield_state_t skinny_busylampfield_state_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(skinny_busylampfield_state_map); idx++) {
-		if (sccp_strcaseequals(skinny_busylampfield_state_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_busylampfield_state_str, lookup_str);
-	return SKINNY_BUSYLAMPFIELD_STATE_SENTINEL;
-}
-
-uint32_t skinny_busylampfield_state_str2intval(const char *lookup_str) {
-	uint32_t res = skinny_busylampfield_state_str2val(lookup_str);
-	return res;
-}
-
-const char *skinny_busylampfield_state_all_entries(void) {
-	static char res[] = "Unknown,Not-in-use,In-use,DND,Alerting";
-	return res;
-}
-/* = End =========================================================================================     skinny_busylampfield_state === */
-
-
 /* = Begin =======================================================================================            sparse skinny_alarm === */
 
 /*!
  * \brief Skinny Busy Lamp Field Status (ENUM)
  */
-static const char *__skinny_alarm_str = "skinny_alarm";
-static const char *skinny_alarm_map[] = {"Critical",
+static const char __skinny_alarm_str[] = "skinny_alarm";
+static const char *const skinny_alarm_map[] = {"Critical",
 "Warning",
 "Informational",
 "Unknown",
@@ -2565,8 +1559,8 @@ const char *skinny_alarm_all_entries(void) {
 /*!
  * \brief Skinny Tone (ENUM)
  */
-static const char *__skinny_tone_str = "skinny_tone";
-static const char *skinny_tone_map[] = {"Silence",
+static const char __skinny_tone_str[] = "skinny_tone";
+static const char *const skinny_tone_map[] = {"Silence",
 "DTMF 1",
 "DTMF 2",
 "DTMF 3",
@@ -2982,8 +1976,8 @@ const char *skinny_tone_all_entries(void) {
 /*!
  * \brief Skinny Video Format (ENUM)
  */
-static const char *__skinny_videoformat_str = "skinny_videoformat";
-static const char *skinny_videoformat_map[] = {"undefined",
+static const char __skinny_videoformat_str[] = "skinny_videoformat";
+static const char *const skinny_videoformat_map[] = {"undefined",
 "sqcif (128x96)",
 "qcif (176x144)",
 "cif (352x288)",
@@ -3059,8 +2053,8 @@ const char *skinny_videoformat_all_entries(void) {
 /*!
  * \brief Skinny Video Format (ENUM)
  */
-static const char *__skinny_ringtype_str = "skinny_ringtype";
-static const char *skinny_ringtype_map[] = {
+static const char __skinny_ringtype_str[] = "skinny_ringtype";
+static const char *const skinny_ringtype_map[] = {
 	[SKINNY_RINGTYPE_OFF] = "Ring Off",
 	[SKINNY_RINGTYPE_INSIDE] = "Inside",
 	[SKINNY_RINGTYPE_OUTSIDE] = "Outside",
@@ -3113,65 +2107,13 @@ const char *skinny_ringtype_all_entries(void) {
 /* = End =========================================================================================                skinny_ringtype === */
 
 
-/* = Begin =======================================================================================         skinny_receivetransmit === */
-
-/*!
- * \brief Skinny Station Receive/Transmit (ENUM)
- */
-static const char *__skinny_receivetransmit_str = "skinny_receivetransmit";
-static const char *skinny_receivetransmit_map[] = {
-	[SKINNY_TRANSMITRECEIVE_NONE] = "None",
-	[SKINNY_TRANSMITRECEIVE_RECEIVE] = "Receive",
-	[SKINNY_TRANSMITRECEIVE_TRANSMIT] = "Transmit",
-	[SKINNY_TRANSMITRECEIVE_BOTH] = "Transmit & Receive",
-	[SKINNY_RECEIVETRANSMIT_SENTINEL] = "LOOKUPERROR"
-};
-
-int skinny_receivetransmit_exists(int skinny_receivetransmit_int_value) {
-	if ((SKINNY_TRANSMITRECEIVE_RECEIVE <=skinny_receivetransmit_int_value) && (skinny_receivetransmit_int_value < SKINNY_RECEIVETRANSMIT_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * skinny_receivetransmit2str(skinny_receivetransmit_t enum_value) {
-	if ((SKINNY_TRANSMITRECEIVE_NONE <= enum_value) && (enum_value <= SKINNY_RECEIVETRANSMIT_SENTINEL)) {
-		return skinny_receivetransmit_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __skinny_receivetransmit_str);
-	return "OutOfBounds: skinny_receivetransmit2str\n";
-}
-
-skinny_receivetransmit_t skinny_receivetransmit_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(skinny_receivetransmit_map); idx++) {
-		if (sccp_strcaseequals(skinny_receivetransmit_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_receivetransmit_str, lookup_str);
-	return SKINNY_RECEIVETRANSMIT_SENTINEL;
-}
-
-uint32_t skinny_receivetransmit_str2intval(const char *lookup_str) {
-	uint32_t res = skinny_receivetransmit_str2val(lookup_str);
-	return res;
-}
-
-const char *skinny_receivetransmit_all_entries(void) {
-	static char res[] = "None,Receive,Transmit,Transmit & Receive";
-	return res;
-}
-/* = End =========================================================================================         skinny_receivetransmit === */
-
-
 /* = Begin =======================================================================================                 skinny_keymode === */
 
 /*!
  * \brief Skinny KeyMode (ENUM)
  */
-static const char *__skinny_keymode_str = "skinny_keymode";
-static const char *skinny_keymode_map[] = {
+static const char __skinny_keymode_str[] = "skinny_keymode";
+static const char *const skinny_keymode_map[] = {
 	[KEYMODE_ONHOOK] = "ONHOOK",
 	[KEYMODE_CONNECTED] = "CONNECTED",
 	[KEYMODE_ONHOLD] = "ONHOLD",
@@ -3232,8 +2174,8 @@ const char *skinny_keymode_all_entries(void) {
 /*!
  * \brief Skinny Device Registration (ENUM)
  */
-static const char *__skinny_registrationstate_str = "skinny_registrationstate";
-static const char *skinny_registrationstate_map[] = {
+static const char __skinny_registrationstate_str[] = "skinny_registrationstate";
+static const char *const skinny_registrationstate_map[] = {
 	[SKINNY_DEVICE_RS_FAILED] = "Failed",
 	[SKINNY_DEVICE_RS_TIMEOUT] = "Time Out",
 	[SKINNY_DEVICE_RS_CLEANING] = "Cleaning",
@@ -3287,8 +2229,8 @@ const char *skinny_registrationstate_all_entries(void) {
 /*!
  * \brief Skinny Media Status (Enum)
  */
-static const char *__skinny_mediastatus_str = "skinny_mediastatus";
-static const char *skinny_mediastatus_map[] = {
+static const char __skinny_mediastatus_str[] = "skinny_mediastatus";
+static const char *const skinny_mediastatus_map[] = {
 	[SKINNY_MEDIASTATUS_Ok] = "Media Status: OK",
 	[SKINNY_MEDIASTATUS_Unknown] = "Media Error: Unknown",
 	[SKINNY_MEDIASTATUS_OutOfChannels] = "Media Error: Out of Channels",
@@ -3349,8 +2291,8 @@ const char *skinny_mediastatus_all_entries(void) {
  * \brief Skinny Stimulus (ENUM)
  * Almost the same as Skinny buttontype !!
  */
-static const char *__skinny_stimulus_str = "skinny_stimulus";
-static const char *skinny_stimulus_map[] = {"Unused",
+static const char __skinny_stimulus_str[] = "skinny_stimulus";
+static const char *const skinny_stimulus_map[] = {"Unused",
 "Last Number Redial",
 "SpeedDial",
 "Hold",
@@ -3619,8 +2561,8 @@ const char *skinny_stimulus_all_entries(void) {
  * \brief Skinny ButtonType (ENUM)
  * Almost the same as Skinny Stimulus !!
  */
-static const char *__skinny_buttontype_str = "skinny_buttontype";
-static const char *skinny_buttontype_map[] = {"Unused",
+static const char __skinny_buttontype_str[] = "skinny_buttontype";
+static const char *const skinny_buttontype_map[] = {"Unused",
 "Last Number Redial",
 "SpeedDial",
 "Hold",
@@ -3900,8 +2842,8 @@ const char *skinny_buttontype_all_entries(void) {
 /*!
  * \brief Skinny DeviceType (ENUM)
  */
-static const char *__skinny_devicetype_str = "skinny_devicetype";
-static const char *skinny_devicetype_map[] = {"Undefined: Maybe you forgot the devicetype in your config",
+static const char __skinny_devicetype_str[] = "skinny_devicetype";
+static const char *const skinny_devicetype_map[] = {"Undefined: Maybe you forgot the devicetype in your config",
 "VGC",
 "Cisco Ata 186",
 "Cisco Ata 188",
@@ -4364,175 +3306,13 @@ const char *skinny_devicetype_all_entries(void) {
 /* = End =========================================================================================       sparse skinny_devicetype === */
 
 
-/* = Begin =======================================================================================        skinny_encryptionMethod === */
-
-/*!
- * \brief Skinny Device Registration (ENUM)
- */
-static const char *__skinny_encryptionMethod_str = "skinny_encryptionMethod";
-static const char *skinny_encryptionMethod_map[] = {
-	[SKINNY_ENCRYPTIONMETHOD_NONE] = "No Encryption",
-	[SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_32] = "AES128 SHA1 32",
-	[SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_80] = "AES128 SHA1 80",
-	[SKINNY_ENCRYPTIONMETHOD_F8_128_HMAC_SHA1_32] = "HMAC_SHA1_32",
-	[SKINNY_ENCRYPTIONMETHOD_F8_128_HMAC_SHA1_80] = "HMAC_SHA1_80",
-	[SKINNY_ENCRYPTIONMETHOD_AEAD_AES_128_GCM] = "AES 128 GCM",
-	[SKINNY_ENCRYPTIONMETHOD_AEAD_AES_256_GCM] = "AES 256 GCM",
-	[SKINNY_ENCRYPTIONMETHOD_SENTINEL] = "LOOKUPERROR"
-};
-
-int skinny_encryptionMethod_exists(int skinny_encryptionMethod_int_value) {
-	if ((SKINNY_ENCRYPTIONMETHOD_AES_128_HMAC_SHA1_32 <=skinny_encryptionMethod_int_value) && (skinny_encryptionMethod_int_value < SKINNY_ENCRYPTIONMETHOD_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * skinny_encryptionMethod2str(skinny_encryptionMethod_t enum_value) {
-	if ((SKINNY_ENCRYPTIONMETHOD_NONE <= enum_value) && (enum_value <= SKINNY_ENCRYPTIONMETHOD_SENTINEL)) {
-		return skinny_encryptionMethod_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __skinny_encryptionMethod_str);
-	return "OutOfBounds: skinny_encryptionMethod2str\n";
-}
-
-skinny_encryptionMethod_t skinny_encryptionMethod_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(skinny_encryptionMethod_map); idx++) {
-		if (sccp_strcaseequals(skinny_encryptionMethod_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_encryptionMethod_str, lookup_str);
-	return SKINNY_ENCRYPTIONMETHOD_SENTINEL;
-}
-
-uint32_t skinny_encryptionMethod_str2intval(const char *lookup_str) {
-	uint32_t res = skinny_encryptionMethod_str2val(lookup_str);
-	return res;
-}
-
-const char *skinny_encryptionMethod_all_entries(void) {
-	static char res[] = "No Encryption,AES128 SHA1 32,AES128 SHA1 80,HMAC_SHA1_32,HMAC_SHA1_80,AES 128 GCM,AES 256 GCM";
-	return res;
-}
-/* = End =========================================================================================        skinny_encryptionMethod === */
-
-
-/* = Begin =======================================================================================         skinny_miscCommandType === */
-
-/*!
- * \brief Skinny Miscellaneous Command Type (Enum)
- */
-static const char *__skinny_miscCommandType_str = "skinny_miscCommandType";
-static const char *skinny_miscCommandType_map[] = {
-	[SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE] = "videoFreezePicture",
-	[SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE] = "videoFastUpdatePicture",
-	[SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB] = "videoFastUpdateGOB",
-	[SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB] = "videoFastUpdateMB",
-	[SKINNY_MISCCOMMANDTYPE_LOSTPICTURE] = "lostPicture",
-	[SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE] = "lostPartialPicture",
-	[SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE] = "recoveryReferencePicture",
-	[SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF] = "temporalSpatialTradeOff",
-	[SKINNY_MISCCOMMANDTYPE_SENTINEL] = "LOOKUPERROR"
-};
-
-int skinny_miscCommandType_exists(int skinny_miscCommandType_int_value) {
-	if ((SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE <=skinny_miscCommandType_int_value) && (skinny_miscCommandType_int_value < SKINNY_MISCCOMMANDTYPE_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * skinny_miscCommandType2str(skinny_miscCommandType_t enum_value) {
-	if ((SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE <= enum_value) && (enum_value <= SKINNY_MISCCOMMANDTYPE_SENTINEL)) {
-		return skinny_miscCommandType_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __skinny_miscCommandType_str);
-	return "OutOfBounds: skinny_miscCommandType2str\n";
-}
-
-skinny_miscCommandType_t skinny_miscCommandType_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(skinny_miscCommandType_map); idx++) {
-		if (sccp_strcaseequals(skinny_miscCommandType_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_miscCommandType_str, lookup_str);
-	return SKINNY_MISCCOMMANDTYPE_SENTINEL;
-}
-
-uint32_t skinny_miscCommandType_str2intval(const char *lookup_str) {
-	uint32_t res = skinny_miscCommandType_str2val(lookup_str);
-	return res;
-}
-
-const char *skinny_miscCommandType_all_entries(void) {
-	static char res[] = "videoFreezePicture,videoFastUpdatePicture,videoFastUpdateGOB,videoFastUpdateMB,lostPicture,lostPartialPicture,recoveryReferencePicture,temporalSpatialTradeOff";
-	return res;
-}
-/* = End =========================================================================================         skinny_miscCommandType === */
-
-
-/* = Begin =======================================================================================      skinny_mediaTransportType === */
-
-/*!
- * \brief Skinny MediaTransportType
- */
-static const char *__skinny_mediaTransportType_str = "skinny_mediaTransportType";
-static const char *skinny_mediaTransportType_map[] = {
-	[SKINNY_MEDIA_TRANSPORT_TYPE_RTP] = "Rtp",
-	[SKINNY_MEDIA_TRANSPORT_TYPE_UDP] = "Udp",
-	[SKINNY_MEDIA_TRANSPORT_TYPE_TCP] = "Tcp",
-	[SKINNY_MEDIATRANSPORTTYPE_SENTINEL] = "LOOKUPERROR"
-};
-
-int skinny_mediaTransportType_exists(int skinny_mediaTransportType_int_value) {
-	if ((SKINNY_MEDIA_TRANSPORT_TYPE_UDP <=skinny_mediaTransportType_int_value) && (skinny_mediaTransportType_int_value < SKINNY_MEDIATRANSPORTTYPE_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * skinny_mediaTransportType2str(skinny_mediaTransportType_t enum_value) {
-	if ((SKINNY_MEDIA_TRANSPORT_TYPE_RTP <= enum_value) && (enum_value <= SKINNY_MEDIATRANSPORTTYPE_SENTINEL)) {
-		return skinny_mediaTransportType_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "%s '%d' in %s2str\n", ERROR_2str_STR, enum_value, __skinny_mediaTransportType_str);
-	return "OutOfBounds: skinny_mediaTransportType2str\n";
-}
-
-skinny_mediaTransportType_t skinny_mediaTransportType_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(skinny_mediaTransportType_map); idx++) {
-		if (sccp_strcaseequals(skinny_mediaTransportType_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "%s %s_str2val('%s') not found\n", LOOKUPERROR_STR, __skinny_mediaTransportType_str, lookup_str);
-	return SKINNY_MEDIATRANSPORTTYPE_SENTINEL;
-}
-
-uint32_t skinny_mediaTransportType_str2intval(const char *lookup_str) {
-	uint32_t res = skinny_mediaTransportType_str2val(lookup_str);
-	return res;
-}
-
-const char *skinny_mediaTransportType_all_entries(void) {
-	static char res[] = "Rtp,Udp,Tcp";
-	return res;
-}
-/* = End =========================================================================================      skinny_mediaTransportType === */
-
-
 /* = Begin =======================================================================================               skinny_mediaType === */
 
 /*!
  * \brief Skinny MediaType
  */
-static const char *__skinny_mediaType_str = "skinny_mediaType";
-static const char *skinny_mediaType_map[] = {
+static const char __skinny_mediaType_str[] = "skinny_mediaType";
+static const char *const skinny_mediaType_map[] = {
 	[SKINNY_MEDIA_TYPE_INVALID] = "Invalid",
 	[SKINNY_MEDIA_TYPE_AUDIO] = "Audio",
 	[SKINNY_MEDIA_TYPE_MAIN_VIDEO] = "Main Video",
@@ -4587,8 +3367,8 @@ const char *skinny_mediaType_all_entries(void) {
 /*!
  * \brief Skinny Call History Disposition
  */
-static const char *__skinny_callHistoryDisposition_str = "skinny_callHistoryDisposition";
-static const char *skinny_callHistoryDisposition_map[] = {"Ignore",
+static const char __skinny_callHistoryDisposition_str[] = "skinny_callHistoryDisposition";
+static const char *const skinny_callHistoryDisposition_map[] = {"Ignore",
 "Placed Calls",
 "Received Calls",
 "Missed Calls",

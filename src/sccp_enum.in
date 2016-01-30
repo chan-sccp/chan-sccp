@@ -15,7 +15,7 @@ namespace sccp {
 /*
  * SCCP Channel State
  */
-enum channelstate {
+strenum channelstate {
 	SCCP_CHANNELSTATE_DOWN,				= 0, 	"DOWN",
 	SCCP_CHANNELSTATE_ONHOOK,			= 1, 	"ONHOOK",
 
@@ -51,14 +51,14 @@ enum channelstate {
 /*
  * \brief internal chan_sccp call state (c->callstate) (Enum)
  */
-enum channelstatereason {
+strenum channelstatereason {
 	SCCP_CHANNELSTATEREASON_NORMAL,			=0,	"NORMAL",
 	SCCP_CHANNELSTATEREASON_TRANSFER,		,	"TRANSFER",
         SCCP_CHANNELSTATEREASON_CALLFORWARD,		,	"CALLFORWARD",
         SCCP_CHANNELSTATEREASON_CONFERENCE,		,	"CONFERENCE",
 }
 
-enum earlyrtp {
+strenum earlyrtp {
         SCCP_EARLYRTP_IMMEDIATE,			,	"Immediate",
         SCCP_EARLYRTP_OFFHOOK,				,	"OffHook",
         SCCP_EARLYRTP_DIALING,				,	"Dialing",
@@ -67,7 +67,7 @@ enum earlyrtp {
         SCCP_EARLYRTP_NONE,				,	"None",
 }												/*!< internal Chan_SCCP Call State c->callstate */
 
-enum devicestate {
+strenum devicestate {
         SCCP_DEVICESTATE_ONHOOK,			,	"On Hook"
         SCCP_DEVICESTATE_OFFHOOK,			,	"Off Hook"
         SCCP_DEVICESTATE_UNAVAILABLE,			,	"Unavailable"
@@ -75,7 +75,7 @@ enum devicestate {
         SCCP_DEVICESTATE_FWDALL,			,	"Forward All"
 }
 
-enum callforward {
+strenum callforward {
         SCCP_CFWD_NONE,					,	"None",
         SCCP_CFWD_ALL,					,	"All",
         SCCP_CFWD_BUSY,					,	"Busy",
@@ -85,7 +85,7 @@ enum callforward {
 /*!
  * \brief SCCP Dtmf Mode (ENUM)
  */
-enum dtmfmode {
+strenum dtmfmode {
 	SCCP_DTMFMODE_AUTO,				,	"AUTO",
 	SCCP_DTMFMODE_RFC2833,				,	"RFC2833",
 	SCCP_DTMFMODE_SKINNY,				,	"SKINNY",
@@ -103,27 +103,27 @@ enum autoanswer {
 /*!
  * \brief SCCP DNDMode (ENUM)
  */
-enum dndmode {
+strenum dndmode {
         SCCP_DNDMODE_OFF,				,	"Off",
         SCCP_DNDMODE_REJECT,				,	"Reject",
         SCCP_DNDMODE_SILENT,				,	"Silent",
         SCCP_DNDMODE_USERDEFINED,			,	"UserDefined",
 }
 
-enum accessory {
+strenum accessory {
         SCCP_ACCESSORY_NONE,				,	"None",
         SCCP_ACCESSORY_HEADSET,				,	"Headset",
         SCCP_ACCESSORY_HANDSET,				,	"Handset", 
         SCCP_ACCESSORY_SPEAKER,				,	"Speaker",
 }
 
-enum accessorystate {
+strenum accessorystate {
         SCCP_ACCESSORYSTATE_NONE,			,	"None",
         SCCP_ACCESSORYSTATE_OFFHOOK,			,	"Off Hook", 
         SCCP_ACCESSORYSTATE_ONHOOK,			,	"On Hook",
 }
 
-enum config_buttontype {
+strenum config_buttontype {
         LINE,						,	"Line",
         SPEEDDIAL,					,	"Speeddial", 
         SERVICE,					,	"Service",
@@ -136,17 +136,17 @@ enum devstate_state {
         SCCP_DEVSTATE_INUSE,				=1,	"INUSE",
 }
 
-enum blindtransferindication {
+strenum blindtransferindication {
         SCCP_BLINDTRANSFER_RING,			=0,	"RING",
         SCCP_BLINDTRANSFER_MOH,				,	"MOH",
 }
 
-enum call_answer_order {
+strenum call_answer_order {
         SCCP_ANSWER_OLDEST_FIRST,			=0,	"OldestFirst",
         SCCP_ANSWER_LAST_FIRST,				,	"LastFirst",
 }
 
-enum nat {
+strenum nat {
         SCCP_NAT_AUTO,					= 0,	"Auto",
         SCCP_NAT_OFF,					,	"Off",
         SCCP_NAT_AUTO_OFF,				,	"(Auto)Off",
@@ -160,7 +160,7 @@ enum video_mode {
 	SCCP_VIDEO_MODE_AUTO,				,	"Auto",
 }
 
-enum event_type {
+strenum event_type {
         SCCP_EVENT_NULL,				=0,	"Null Event / To be removed",
         SCCP_EVENT_LINE_CREATED,			=1<<0,	"Line Created",
         SCCP_EVENT_LINE_CHANGED,			,	"Line Changed",
@@ -182,7 +182,7 @@ enum parkresult {
 	PARK_RESULT_SUCCESS,				,	"Park Successfull", 
 }
 
-enum callerid_presentation {
+strenum callerid_presentation {
 	CALLERID_PRESENTATION_FORBIDDEN,		,	"CalledId Presentation Forbidden",
 	CALLERID_PRESENTATION_ALLOWED,			,	"CallerId Presentation Allowed",
 }
@@ -193,7 +193,7 @@ enum rtp_status {
 	SCCP_RTP_STATUS_ACTIVE,				=1<<1,	"Rtp Active",
 }
 
-enum rtp_type {
+strenum rtp_type {
 	SCCP_RTP_NULL,					= 0,	"RTP NULL",
 	SCCP_RTP_AUDIO,					= 1<<0,	"Audio RTP",
 	SCCP_RTP_VIDEO,					= 1<<1,	"Video RTP",
@@ -228,13 +228,13 @@ enum push_result {
 	SCCP_PUSH_RESULT_SUCCESS,			,	"Pushed Successfully",
 }
 
-enum tokenstate {
+strenum tokenstate {
 	SCCP_TOKEN_STATE_NOTOKEN,			,	"No Token",
 	SCCP_TOKEN_STATE_ACK,				,	"Token Acknowledged",
 	SCCP_TOKEN_STATE_REJ,				,	"Token Rejected",
 }
 
-enum softswitch {
+strenum softswitch {
 	SCCP_SOFTSWITCH_DIAL,				,	"Softswitch Dial",
 	SCCP_SOFTSWITCH_GETFORWARDEXTEN,		,	"Softswitch Get Forward Extension",
 #ifdef CS_SCCP_PICKUP
@@ -255,7 +255,7 @@ enum phonebook {
 	//SCCP_PHONEBOOK_PLACED,			,	"Phonebook Placed",
 }
 
-enum feature_monitor_state {
+strenum feature_monitor_state {
 	SCCP_FEATURE_MONITOR_STATE_DISABLED,		= 0,	"Feature Monitor Disabled",
 	SCCP_FEATURE_MONITOR_STATE_REQUESTED, 		= 1<<1,	"Feature Monitor Requested",
 	SCCP_FEATURE_MONITOR_STATE_ACTIVE,		= 1<<2,	"Feature Monitor Active",
@@ -290,7 +290,7 @@ enum rtp_info {
 	SCCP_RTP_INFO_ALLOW_DIRECTRTP,			=1<<1,	"RTP Info: Allow DirectMedia",
 }
 
-enum feature_type
+strenum feature_type
 	SCCP_FEATURE_UNKNOWN,				,	"FEATURE_UNKNOWN",
 	SCCP_FEATURE_CFWDNONE,				,	"cfwd off",
 	SCCP_FEATURE_CFWDALL,				,	"cfwdall",
@@ -361,7 +361,7 @@ namespace skinny {
 /*!
  * \brief Skinny Lamp Mode (ENUM)
  */
-enum lampmode {
+strenum lampmode {
 	SKINNY_LAMP_OFF,				=1,	"Off",
 	SKINNY_LAMP_ON,					,	"On",
 	SKINNY_LAMP_WINK,				,	"Wink",
@@ -372,7 +372,7 @@ enum lampmode {
 /*!
  * \brief Skinny Protocol Call Type (ENUM)
  */
-enum calltype {
+strenum calltype {
 	SKINNY_CALLTYPE_INBOUND,			=1,	"Inbound",
 	SKINNY_CALLTYPE_OUTBOUND,			,	"Outbound", 
 	SKINNY_CALLTYPE_FORWARD,			,	"Forward",
@@ -381,7 +381,7 @@ enum calltype {
 /*!
  * \brief Skinny Protocol Call Type (ENUM)
  */
-enum callstate {
+strenum callstate {
 	SKINNY_CALLSTATE_OFFHOOK,			=1,	"offhook",
 	SKINNY_CALLSTATE_ONHOOK,			,	"onhook",
 	SKINNY_CALLSTATE_RINGOUT,			,	"ring-out",
@@ -415,7 +415,7 @@ enum callpriority {
 /*!
  * \brief Skinny Protocol CallInfo Visibility (ENUM)
  */
-enum callinfo_visibility {
+strenum callinfo_visibility {
 	SKINNY_CALLINFO_VISIBILITY_DEFAULT,		,	"default",		/* None */
 	SKINNY_CALLINFO_VISIBILITY_COLLAPSED,		,	"collapsed",		/* Limited */
 	SKINNY_CALLINFO_VISIBILITY_HIDDEN,		,	"hidden",		/* Full */
@@ -444,7 +444,7 @@ enum busylampfield_state {
 /*!
  * \brief Skinny Busy Lamp Field Status (ENUM)
  */
-enum alarm {
+strenum alarm {
 	SKINNY_ALARM_CRITICAL,				=0,	"Critical",
 	SKINNY_ALARM_WARNING,				=1,	"Warning",
 	SKINNY_ALARM_INFORMATIONAL,			=2,	"Informational",
@@ -458,7 +458,7 @@ enum alarm {
 /*!
  * \brief Skinny Tone (ENUM)
  */
-enum tone {
+strenum tone {
 	SKINNY_TONE_SILENCE,				=0x00,	"Silence",
 	SKINNY_TONE_DTMF1,				=0x01,	"DTMF 1",
 	SKINNY_TONE_DTMF2,				=0x02,	"DTMF 2",
@@ -557,7 +557,7 @@ enum tone {
 /*!
  * \brief Skinny Video Format (ENUM)
  */
-enum videoformat {
+strenum videoformat {
 	SKINNY_VIDEOFORMAT_UNDEFINED,			=0,	"undefined", 
 	SKINNY_VIDEOFORMAT_SQCIF,			=1,	"sqcif (128x96)", 
 	SKINNY_VIDEOFORMAT_QCIF,			=2,	"qcif (176x144)", 
@@ -571,7 +571,7 @@ enum videoformat {
 /*!
  * \brief Skinny Video Format (ENUM)
  */
-enum ringtype {
+strenum ringtype {
 	SKINNY_RINGTYPE_OFF,				=1,	"Ring Off",
 	SKINNY_RINGTYPE_INSIDE,				,	"Inside",
 	SKINNY_RINGTYPE_OUTSIDE,			,	"Outside",
@@ -598,7 +598,7 @@ enum receivetransmit {
 /*!
  * \brief Skinny KeyMode (ENUM)
  */
-enum keymode {
+strenum keymode {
 	KEYMODE_ONHOOK,					,	"ONHOOK",
 	KEYMODE_CONNECTED,				,	"CONNECTED",
 	KEYMODE_ONHOLD,					,	"ONHOLD",
@@ -618,7 +618,7 @@ enum keymode {
 /*!
  * \brief Skinny Device Registration (ENUM)
  */
-enum registrationstate {
+strenum registrationstate {
 	SKINNY_DEVICE_RS_FAILED,			,	"Failed",
 	SKINNY_DEVICE_RS_TIMEOUT,			,	"Time Out",
 	SKINNY_DEVICE_RS_CLEANING,			,	"Cleaning", 
@@ -631,7 +631,7 @@ enum registrationstate {
 /*!
  * \brief Skinny Media Status (Enum)
  */
-enum mediastatus {
+strenum mediastatus {
 	SKINNY_MEDIASTATUS_Ok,					,	"Media Status: OK", 
 	SKINNY_MEDIASTATUS_Unknown,				,	"Media Error: Unknown", 
 	SKINNY_MEDIASTATUS_OutOfChannels,			,	"Media Error: Out of Channels", 
@@ -651,7 +651,7 @@ enum mediastatus {
  * \brief Skinny Stimulus (ENUM)
  * Almost the same as Skinny buttontype !!
  */
-enum stimulus {
+strenum stimulus {
 	SKINNY_STIMULUS_UNUSED,				=0x00,	"Unused",
 	SKINNY_STIMULUS_LASTNUMBERREDIAL,		=0x01,	"Last Number Redial",
 	SKINNY_STIMULUS_SPEEDDIAL,			=0x02,	"SpeedDial",
@@ -714,7 +714,7 @@ enum stimulus {
  * \brief Skinny ButtonType (ENUM)
  * Almost the same as Skinny Stimulus !!
  */
-enum buttontype {
+strenum buttontype {
 	SKINNY_BUTTONTYPE_UNUSED,			=0x00,	"Unused",
 	SKINNY_BUTTONTYPE_LASTNUMBERREDIAL,		=0x01,	"Last Number Redial",
 	SKINNY_BUTTONTYPE_SPEEDDIAL,			=0x02,	"SpeedDial",
@@ -781,7 +781,7 @@ enum buttontype {
 /*!
  * \brief Skinny DeviceType (ENUM)
  */
-enum devicetype {
+strenum devicetype {
 	/* SCCP Devices */
 	SKINNY_DEVICETYPE_UNDEFINED,			=00,	"Undefined: Maybe you forgot the devicetype in your config",
 //      SKINNY_DEVICETYPE_TELECASTER,			=06,	"Telecaster",
@@ -946,7 +946,7 @@ enum mediaTransportType {
 /*!
  * \brief Skinny MediaType
  */
-enum mediaType {
+strenum mediaType {
 	SKINNY_MEDIA_TYPE_INVALID,			=0x0,	"Invalid", 
 	SKINNY_MEDIA_TYPE_AUDIO,			,	"Audio", 
 	SKINNY_MEDIA_TYPE_MAIN_VIDEO,			,	"Main Video", 
@@ -960,7 +960,7 @@ enum mediaType {
 /*!
  * \brief Skinny Call History Disposition
  */
-enum callHistoryDisposition {
+strenum callHistoryDisposition {
 	SKINNY_CALL_HISTORY_DISPOSITION_IGNORE,		=0x0,	"Ignore",
 	SKINNY_CALL_HISTORY_DISPOSITION_PLACED_CALLS,	,	"Placed Calls",
 	SKINNY_CALL_HISTORY_DISPOSITION_RECEIVED_CALLS,	,	"Received Calls",
