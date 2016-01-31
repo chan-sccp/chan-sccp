@@ -14,7 +14,7 @@
 #include <config.h>
 #include <asterisk/format_compatibility.h>
 
-#include "../ast_announce/ast_announce.h"
+#include "ast_announce.h"
 
 #undef pbx_channel_ref
 #define pbx_channel_ref ast_channel_ref
