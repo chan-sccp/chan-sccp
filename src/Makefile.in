@@ -616,21 +616,6 @@ $(srcdir)/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 distclean-hdr:
 	-rm -f config.h stamp-h1
 
-install-csmodLTLIBRARIES: $(csmod_LTLIBRARIES)
-	@$(NORMAL_INSTALL)
-	@list='$(csmod_LTLIBRARIES)'; test -n "$(csmoddir)" || list=; \
-	list2=; for p in $$list; do \
-	  if test -f $$p; then \
-	    list2="$$list2 $$p"; \
-	  else :; fi; \
-	done; \
-	test -z "$$list2" || { \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(csmoddir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(csmoddir)" || exit 1; \
-	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 '$(DESTDIR)$(csmoddir)'"; \
-	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 "$(DESTDIR)$(csmoddir)"; \
-	}
-
 uninstall-csmodLTLIBRARIES:
 	@$(NORMAL_UNINSTALL)
 	@list='$(csmod_LTLIBRARIES)'; test -n "$(csmoddir)" || list=; \
@@ -1203,7 +1188,7 @@ uninstall-am: uninstall-csmodLTLIBRARIES
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-csmodLTLIBRARIES
 
-.PHONY: 		.revision gen_enum sccp_enum.h sccp_enum.c
+#.PHONY: 		.revision gen_enum sccp_enum.h sccp_enum.c
 
 # generated files
 revision.h: 		.revision
@@ -1216,20 +1201,42 @@ revision.h: 		.revision
 				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/src/revision.h" 2>/dev/null;	\
 			fi
 
-sccp_enum.h:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk stamp-h1
+sccp_enum.h:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 			@if [ sccp_enum.in -nt $@ ] || [ @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ ]; then						\
 				$(MAKE) gen_enum;														\
 			fi
 
-sccp_enum.c:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk stamp-h1
+sccp_enum.c:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 			@if [ sccp_enum.in -nt $@ ] || [ @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ ]; then						\
 				$(MAKE) gen_enum;														\
 			fi
 
-gen_enum:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk stamp-h1
+gen_enum:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 			echo "  GEN      sccp_enum.h";														\
 			echo "  GEN      sccp_enum.c";														\
 			@$(GAWK) "@abs_top_srcdir@/tools/gen_sccp_enum.awk" @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
+
+install-csmodLTLIBRARIES:
+	@$(NORMAL_INSTALL)
+	@test -d "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"							
+	@if test "x$(strip_binaries)" == "xyes" ; then 											\
+		@test -d "$(DESTDIR)$(PBX_DEBUGMODDIR)" || $(MKDIR_P) "$(DESTDIR)$(PBX_DEBUGMODDIR)";					\
+		$(OBJCOPY) --only-keep-debug ".libs/chan_sccp.so" "$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so.dbg";			\
+		$(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) -s ".libs/chan_sccp.so" "$(DESTDIR)$(csmoddir)";\
+		$(OBJCOPY) --add-gnu-debuglink="$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so.dbg" "$(DESTDIR)$(csmoddir)/chan_sccp.so";	\
+		echo    "==============================================================================================="; 		\
+		echo    "Installed Stripped chan_sccp.so to '$(DESTDIR)$(csmoddir)'...";           					\
+		echo    "===============================================================================================";		\
+	else 																\
+		$(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) ".libs/chan_sccp.so" "$(DESTDIR)$(csmoddir)"; \
+ 		echo    "==============================================================================================="; 		\
+		echo    "Installed chan_sccp.so to '$(DESTDIR)$(csmoddir)'...";           						\
+		echo    "===============================================================================================";		\
+	fi
+	@if test -d "$(DESTDIR)$(csmoddir)"; then                                          						\
+		echo    "Please restart asterisk or reload the module to use the new version of chan_sccp.so"; 				\
+		echo    "==============================================================================================="; 		\
+	fi
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
