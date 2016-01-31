@@ -5,9 +5,6 @@
  * \note        Referencing ConfBridge Announcement Channel Created by Richard Mudgett <rmudgett@digium.com>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- *
- * $Date: 2015-10-12 11:51:15 +0200 (ma, 12 okt 2015) $
- * $Revision: 6218 $  
  */
 #pragma once
 struct ast_channel_tech *sccpconf_announce_get_tech(void);

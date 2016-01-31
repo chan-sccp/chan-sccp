@@ -5,9 +5,6 @@
  * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- *
- * $Date$
- * $Revision$  
  */
 
 #include <config.h>
@@ -27,7 +24,7 @@
 #include "sccp_socket.h"
 #include "ast106.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
 
 __BEGIN_EXTERN__
 #ifdef HAVE_PBX_ACL_H

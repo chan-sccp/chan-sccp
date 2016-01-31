@@ -9,8 +9,6 @@
  *              See the LICENSE file at the top of the source tree.
  * 
  * \note        Thank you Federico Santulli for SPCP support
- *
- * $Revision$  
  */
 #pragma once
 

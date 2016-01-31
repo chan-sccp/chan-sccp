@@ -5,15 +5,13 @@
  * \note        Referencing ConfBridge Announcement Channel Created by Richard Mudgett <rmudgett@digium.com>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- *
- * $Date: 2016-01-10 12:16:17 +0100 (zo, 10 jan 2016) $
- * $Revision: 6512 $  
  */
 
 #include <asterisk.h>
 #include "define.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 6512 $");
+SCCP_FILE_VERSION(__FILE__, "");
+
 #include <asterisk/channel.h>
 #include <asterisk/bridge.h>
 #include <asterisk/core_unreal.h>
