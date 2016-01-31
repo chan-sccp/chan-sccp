@@ -12,16 +12,10 @@
 #pragma once
 
 #include <config.h>
-
-#ifdef CS_SCCP_CONFERENCE
-#include "asterisk/bridging.h"
-#include "asterisk/bridging_features.h"
-#ifdef HAVE_PBX_BRIDGING_ROLES_H
-#include "asterisk/bridging_roles.h"
-#endif
-#endif
+#include <asterisk/astobj2.h>
 
 #define sccp_sched_context_destroy sched_context_destroy
+//#warning "HERE"
 #if ASTERISK_VERSION_NUMBER >= 10601
 #define pbx_channel_unref(c) ({ ao2_ref(c, -1); (PBX_CHANNEL_TYPE *) (NULL); })
 #define pbx_channel_ref(c) ({ ao2_ref(c, 1); (PBX_CHANNEL_TYPE *) c; })

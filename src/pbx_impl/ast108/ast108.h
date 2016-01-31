@@ -12,13 +12,6 @@
 #pragma once
 
 #include <config.h>
-#ifdef CS_SCCP_CONFERENCE
-#include "asterisk/bridging.h"
-#include "asterisk/bridging_features.h"
-#ifdef HAVE_PBX_BRIDGING_ROLES_H
-#include "asterisk/bridging_roles.h"
-#endif
-#endif
 
 #define pbx_channel_unref(c) ({ ao2_ref(c, -1); (PBX_CHANNEL_TYPE *) (NULL); })
 #define pbx_channel_ref(c) ({ ao2_ref(c, 1); (PBX_CHANNEL_TYPE *) c; })

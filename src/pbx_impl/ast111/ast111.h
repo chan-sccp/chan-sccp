@@ -12,13 +12,6 @@
 #pragma once
 
 #include <config.h>
-#ifdef CS_SCCP_CONFERENCE
-#include "asterisk/bridging.h"
-#include "asterisk/bridging_features.h"
-#ifdef HAVE_PBX_BRIDGING_ROLES_H
-#include "asterisk/bridging_roles.h"
-#endif
-#endif
 
 #undef pbx_channel_ref
 #define pbx_channel_ref ast_channel_ref
@@ -121,6 +114,17 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 
 #define NEWCONST const												// old functions used without const
 #define OLDCONST												// new function used with const
+
+#if CS_TEST_FRAMEWORK
+#undef pbx_test_validate_cleanup
+#define pbx_test_validate_cleanup(test, condition, rc_variable, cleanup_label) ({				\
+        if (!(condition)) {											\
+                pbx_test_status_update((test), "%s: %s\n", "Condition failed", #condition);			\
+                rc_variable = 2 /*AST_TEST_FAIL*/;								\
+                goto cleanup_label;										\
+        }													\
+})
+#endif
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_AMI_OUTPUT(fd, s, ...) 										\
