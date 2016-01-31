@@ -8,11 +8,11 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  * 
- * $Date: 2010-11-17 12:03:44 +0100 (Wed, 17 Nov 2010) $
  * $Revision: 2130 $  
  */
 #pragma once
 
+__BEGIN_EXTERN__
 // sccp_buttonconfig_list_t externally declared in sccp_device.h, required by sccp_config_addButton
 extern struct sccp_buttonconfig_list sccp_buttonconfig_list;
 
@@ -69,5 +69,5 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name);
 void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device);
 
 int sccp_config_generate(char *filename, int configType);
-
+__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

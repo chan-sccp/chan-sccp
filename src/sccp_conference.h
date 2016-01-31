@@ -5,19 +5,11 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  * 
- * $Date$
  * $Revision$  
  */
 #pragma once
 
-#ifdef CS_SCCP_CONFERENCE
-
 #include "sccp_cli.h"
-
-#if defined(__cplusplus) || defined(c_plusplus)
-extern "C" {
-/* *INDENT-OFF* */
-#endif
 
 #ifdef DEBUG
 #define sccp_conference_retain(_x) 	({sccp_conference_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;pbx_assert(tmp_##__LINE__##X != NULL);(sccp_conference_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
@@ -27,6 +19,7 @@ extern "C" {
 #define sccp_conference_release(_x) 	({pbx_assert(_x != NULL);(sccp_conference_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #endif
 
+__BEGIN_EXTERN__
 /* prototype definitions */
 void sccp_conference_module_start(void);
 void sccp_conference_module_stop(void);
@@ -48,10 +41,5 @@ char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos
 int sccp_cli_show_conferences(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 int sccp_cli_show_conference(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 int sccp_cli_conference_command(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
-
-#if defined(__cplusplus) || defined(c_plusplus)
-/* *INDENT-ON* */
-}
-#endif
-#endif														/* CS_SCCP_CONFERENCE */
+__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

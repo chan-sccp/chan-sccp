@@ -112,10 +112,12 @@ DIST_COMMON = $(top_srcdir)/amdoxygen.am INSTALL NEWS README AUTHORS \
 	ChangeLog $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
 	$(srcdir)/README.in COPYING autoconf/compile \
-	autoconf/config.guess autoconf/config.sub autoconf/depcomp \
-	autoconf/install-sh autoconf/missing autoconf/ltmain.sh \
+	autoconf/config.guess autoconf/config.rpath \
+	autoconf/config.sub autoconf/depcomp autoconf/install-sh \
+	autoconf/missing autoconf/ltmain.sh \
 	$(top_srcdir)/autoconf/compile \
 	$(top_srcdir)/autoconf/config.guess \
+	$(top_srcdir)/autoconf/config.rpath \
 	$(top_srcdir)/autoconf/config.sub \
 	$(top_srcdir)/autoconf/install-sh \
 	$(top_srcdir)/autoconf/ltmain.sh \
@@ -243,7 +245,6 @@ ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
-ARGZ_H = @ARGZ_H@
 ASTERISK_REPOS_LOCATION = @ASTERISK_REPOS_LOCATION@
 ASTERISK_VERSION_NUMBER = @ASTERISK_VERSION_NUMBER@
 ASTERISK_VER_GROUP = @ASTERISK_VER_GROUP@
@@ -327,7 +328,6 @@ HAVE_PBX_HTTP = @HAVE_PBX_HTTP@
 HEAD = @HEAD@
 HG = @HG@
 HOST_CC = @HOST_CC@
-INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -335,29 +335,19 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
-LIBADD_DL = @LIBADD_DL@
-LIBADD_DLD_LINK = @LIBADD_DLD_LINK@
-LIBADD_DLOPEN = @LIBADD_DLOPEN@
-LIBADD_SHL_LOAD = @LIBADD_SHL_LOAD@
 LIBBFD = @LIBBFD@
 LIBEXECINFO = @LIBEXECINFO@
 LIBEXSLT_CFLAGS = @LIBEXSLT_CFLAGS@
 LIBEXSLT_LIBS = @LIBEXSLT_LIBS@
 LIBICONV = @LIBICONV@
-LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LIPO = @LIPO@
 LN_S = @LN_S@
-LTDLDEPS = @LTDLDEPS@
-LTDLINCL = @LTDLINCL@
-LTDLOPEN = @LTDLOPEN@
+LTLIBICONV = @LTLIBICONV@
 LTLIBOBJS = @LTLIBOBJS@
-LT_CONFIG_H = @LT_CONFIG_H@
-LT_DLLOADERS = @LT_DLLOADERS@
-LT_DLPREOPEN = @LT_DLPREOPEN@
 M4 = @M4@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
@@ -378,15 +368,18 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PBXVER_COND_ANNOUNCE_LIBADD = @PBXVER_COND_ANNOUNCE_LIBADD@
+PBXVER_COND_ANNOUNCE_SUBDIR = @PBXVER_COND_ANNOUNCE_SUBDIR@
+PBXVER_COND_LIBADD = @PBXVER_COND_LIBADD@
+PBXVER_COND_SUBDIR = @PBXVER_COND_SUBDIR@
 PBX_CFLAGS = @PBX_CFLAGS@
+PBX_COND_LIBADD = @PBX_COND_LIBADD@
+PBX_COND_SUBDIR = @PBX_COND_SUBDIR@
 PBX_DEBUGMODDIR = @PBX_DEBUGMODDIR@
 PBX_ETC = @PBX_ETC@
-PBX_GENERAL = @PBX_GENERAL@
 PBX_INCLUDE = @PBX_INCLUDE@
 PBX_LDFLAGS = @PBX_LDFLAGS@
 PBX_LIB = @PBX_LIB@
-PBX_MAJOR = @PBX_MAJOR@
-PBX_MINOR = @PBX_MINOR@
 PBX_MODDIR = @PBX_MODDIR@
 PBX_PATH = @PBX_PATH@
 PBX_PREFIX = @PBX_PREFIX@
@@ -460,8 +453,6 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
-ltdl_LIBOBJS = @ltdl_LIBOBJS@
-ltdl_LTLIBOBJS = @ltdl_LTLIBOBJS@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
@@ -474,8 +465,6 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 strip_binaries = @strip_binaries@
-subdirs = @subdirs@
-sys_symbol_underscore = @sys_symbol_underscore@
 sysconfdir = @sysconfdir@
 target = @target@
 target_alias = @target_alias@
@@ -510,23 +499,17 @@ top_srcdir = @top_srcdir@
 @DX_COND_doc_TRUE@    $(DX_CLEAN_LATEX)
 
 
-# FILE: AutoMake Makefile for chan-sccp-b
-# COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
-# CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
-# LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
-#          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2016-01-11 11:43:06 +0100 (ma, 11 jan 2016) $
-# REVISION: $Revision: 6518 $
-# NOTE: Process this file with automake to produce a makefile.in script.
-
-#AUTOMAKE_OPTIONS		= gnu silent-rules
+# FILE:			AutoMake Makefile for chan-sccp-b
+# COPYRIGHT:		chan-sccp-b.sourceforge.net group 2009
+# CREATED BY:		Diederik de Groot <ddegroot@sourceforge.net>
+# LICENSE:		This program is free software and may be modified and distributed under the terms of the GNU Public License.
+# 			See the LICENSE file at the top of the source tree.
+# NOTE:			Process this file with automake to produce a makefile.in script.
 AUTOMAKE_OPTIONS = gnu
 EXTRA_DIST = .version tools conf contrib/gen_sccpconf .revision
 SUBDIRS = src doc
 ACLOCAL_AMFLAGS = -I autoconf
 AM_CPPFLAGS = $(LTDLINCL)
-MOSTLYCLEANFILES = coverage
-#VER				:= $(shell @abs_top_srcdir@/tools/autorevision -s VCS_TAG -o @abs_top_srcdir@/.revision)
 distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)_r$(SCCP_REVISION)
 all: all-recursive
 
@@ -902,7 +885,6 @@ install-strip:
 	    "INSTALL_PROGRAM_ENV=STRIPPROG='$(STRIP)'" install; \
 	fi
 mostlyclean-generic:
-	-test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
 
 clean-generic:
 
@@ -1049,14 +1031,14 @@ uninstall-am:
 @DX_COND_doc_TRUE@	$(DX_ENV) $(DX_DOXYGEN) $(srcdir)/$(DX_CONFIG)
 
 # Update libtool if necessary	
-libtool: @LIBTOOL_DEPS@
-	cd $(srcdir) && \
-	$(SHELL) ./config.status --recheck
+libtool: 		@LIBTOOL_DEPS@
+			cd $(srcdir) && \
+			$(SHELL) ./config.status --recheck
 
 FORCE:
 
 # Update ChangeLog file from SVN Log
-ChangeLog:	FORCE
+ChangeLog:		FORCE
 @ENABLE_SVN2CL_TRUE@	@if svnrev=`cat .revision |grep VCS_SHORT_HASH|awk -F= '{print "r" $2}'|tr -d '"'`; then \
 @ENABLE_SVN2CL_TRUE@	  if [ -z "`cat ChangeLog 2>/dev/null| grep "\[${svnrev}\]"`" ];then \
 @ENABLE_SVN2CL_TRUE@            echo "Generating ChangeLog from SVN $(CHANGELOG_OLDEST)->HEAD"; \
@@ -1070,21 +1052,8 @@ ChangeLog:	FORCE
 @ENABLE_SVN2CL_TRUE@	fi
 @ENABLE_SVN2CL_FALSE@	svn log -r$(CHANGELOG_OLDEST):HEAD > ChangeLog 
 
-# Update doc/html/ChangeLog.html from SVN Log
-ChangeLog-HTML:	FORCE
-@ENABLE_SVN2CL_TRUE@	@if svnrev=`cat .revision |grep VCS_SHORT_HASH|awk -F= '{print "r" $2}'|tr -d '"'`; then \
-@ENABLE_SVN2CL_TRUE@	  if [ -z "`cat doc/html/ChangeLog_SVN2CL.html 2>/dev/null| grep "\[r${svnrev}\]"`" ];then \
-@ENABLE_SVN2CL_TRUE@            echo "Generating doc/html/ChangeLog_SVN2CL.html from SVN $(CHANGELOG_OLDEST)->HEAD"; \
-@ENABLE_SVN2CL_TRUE@            if [ ! -d doc/html ]; then mkdir doc/html;fi; \
-@ENABLE_SVN2CL_TRUE@            $(SVN2CL) --include-actions -i -a --group-by-day --title "Chan_SCCP-b ChangeLog" --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST) --html -o doc/html/ChangeLog_SVN2CL.html \
-@ENABLE_SVN2CL_TRUE@            --revision-link 'http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b?view=rev&revision=' \
-@ENABLE_SVN2CL_TRUE@            --ticket-link='http://sourceforge.net/tracker/?func=detail&group_id=186378&atid=917045&aid='; \
-@ENABLE_SVN2CL_TRUE@            cp autoconf/svn2html.css doc/html/; \
-@ENABLE_SVN2CL_TRUE@	  fi; \
-@ENABLE_SVN2CL_TRUE@	fi
-
 # Update ChangeLog Files and Generate Doxygen Documentation
-doxygen: ChangeLog ChangeLog-HTML doxygen-doc
+doxygen: ChangeLog doxygen-doc
 
 deb: 
 	dpkg-buildpackage -rfakeroot -us -uc
@@ -1134,7 +1103,7 @@ gen_sccpconf_install:
 isntall: install
 
 rmcoverage:
-	rm -rf coverage;
+	[ -d coverage ] && rm -rf coverage;
 
 coverage: src/.libs/chan_sccp.so
 	mkdir coverage; \

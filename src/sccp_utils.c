@@ -8,8 +8,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
  */
 
 #include <config.h>
@@ -20,24 +18,26 @@
 #include "sccp_utils.h"
 #include "sccp_socket.h"
 
+SCCP_FILE_VERSION(__FILE__, "");
+
+#if defined(DEBUG) && defined(HAVE_EXECINFO_H)
+#  include <execinfo.h>
+#  if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
+#    include <dlfcn.h>
+#    include <bfd.h>
+#  endif
+#  if ASTERISK_VERSION_GROUP >= 112 
+#    include <asterisk/backtrace.h>
+#  endif
+#endif
+#include <asterisk/ast_version.h>		// ast_get_version
+#ifdef HAVE_PBX_ACL_H				// ast_ha, AST_SENSE_ALLOW
+#  include <asterisk/acl.h>
+#endif
+
 #if HAVE_ICONV
 #include <iconv.h>
 #endif
-
-#ifdef DEBUG
-#ifdef HAVE_EXECINFO_H
-#include <execinfo.h>
-#if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
-#include <dlfcn.h>
-#include <bfd.h>
-#endif
-#if ASTERISK_VERSION_GROUP >= 112 
-#include <asterisk/backtrace.h>
-#endif
-#endif
-#endif
-
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
 /*!
  * \brief Print out a messagebuffer
@@ -1617,6 +1617,7 @@ void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path)
 }
 
 #if CS_TEST_FRAMEWORK
+#include <asterisk/test.h>
 AST_TEST_DEFINE(chan_sccp_acl_tests)
 {
 	struct sccp_ha *ha = NULL;
@@ -1634,108 +1635,108 @@ AST_TEST_DEFINE(chan_sccp_acl_tests)
 		break;
 	}
 
-	ast_test_status_update(test, "Executing chan-sccp-b ha path tests...\n");
+	pbx_test_status_update(test, "Executing chan-sccp-b ha path tests...\n");
 
-	ast_test_status_update(test, "Setting up sockaddr_storage...\n");
+	pbx_test_status_update(test, "Setting up sockaddr_storage...\n");
 	sccp_sockaddr_storage_parse(&sas10, "10.0.0.1", PARSE_PORT_FORBID);
-	ast_test_validate(test, sccp_socket_is_IPv4(&sas10));
+	pbx_test_validate(test, sccp_socket_is_IPv4(&sas10));
 
 	sccp_sockaddr_storage_parse(&sas1015, "10.15.15.1", PARSE_PORT_FORBID);
-	ast_test_validate(test, sccp_socket_is_IPv4(&sas1015));
+	pbx_test_validate(test, sccp_socket_is_IPv4(&sas1015));
 
 	sccp_sockaddr_storage_parse(&sas172, "172.16.0.1", PARSE_PORT_FORBID);
-	ast_test_validate(test, sccp_socket_is_IPv4(&sas172));
+	pbx_test_validate(test, sccp_socket_is_IPv4(&sas172));
 
 	sccp_sockaddr_storage_parse(&sas200, "200.200.100.100", PARSE_PORT_FORBID);
-	ast_test_validate(test, sccp_socket_is_IPv4(&sas200));
+	pbx_test_validate(test, sccp_socket_is_IPv4(&sas200));
 
 	sccp_sockaddr_storage_parse(&sasff, "fe80::ffff:0:0:0", PARSE_PORT_FORBID);
-	ast_test_validate(test, sccp_socket_is_IPv6(&sasff));
+	pbx_test_validate(test, sccp_socket_is_IPv6(&sasff));
 
 	sccp_sockaddr_storage_parse(&sasffff, "fe80::ffff:0:ffff:0", PARSE_PORT_FORBID);
-	ast_test_validate(test, sccp_socket_is_IPv6(&sasffff));
+	pbx_test_validate(test, sccp_socket_is_IPv6(&sasffff));
 
 	// test 1
-	ast_test_status_update(test, "test 1: ha deny all\n");
+	pbx_test_status_update(test, "test 1: ha deny all\n");
 	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
-	ast_test_validate(test, error == 0);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
+	pbx_test_validate(test, error == 0);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 
 	// test 2
-	ast_test_status_update(test, "test 2: previous + permit 10.15.15.0/255.255.255.0\n");
+	pbx_test_status_update(test, "test 2: previous + permit 10.15.15.0/255.255.255.0\n");
 	ha = sccp_append_ha("permit", "10.15.15.0/255.255.255.0", ha, &error);
-	ast_test_validate(test, error == 0);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
+	pbx_test_validate(test, error == 0);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 
 	// test 3
-	ast_test_status_update(test, "test 3: previous + second permit 10.15.15.0/255.255.255.0\n");
+	pbx_test_status_update(test, "test 3: previous + second permit 10.15.15.0/255.255.255.0\n");
 	ha = sccp_append_ha("permit", "10.15.15.0/255.255.255.0", ha, &error);
-	ast_test_validate(test, error == 0);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
+	pbx_test_validate(test, error == 0);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 	sccp_free_ha(ha);
 	ha = NULL;
 
 	// test 4
-	ast_test_status_update(test, "test 4: deny all + permit 10.0.0.0/255.255.255.0\n");
+	pbx_test_status_update(test, "test 4: deny all + permit 10.0.0.0/255.255.255.0\n");
 	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
-	ast_test_validate(test, error == 0);
+	pbx_test_validate(test, error == 0);
 	ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, &error);
-	ast_test_validate(test, error == 0);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
+	pbx_test_validate(test, error == 0);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 
 	// test 5
-	ast_test_status_update(test, "test 5: previous + 172.16.0.0/255.255.0.0\n");
+	pbx_test_status_update(test, "test 5: previous + 172.16.0.0/255.255.0.0\n");
 	ha = sccp_append_ha("permit", "172.16.0.0/255.0.0.0", ha, &error);
-	ast_test_validate(test, error == 0);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
+	pbx_test_validate(test, error == 0);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 
 	// test 6
-	ast_test_status_update(test, "test 6: previous + deny_all at the end\n");
+	pbx_test_status_update(test, "test 6: previous + deny_all at the end\n");
 	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
-	ast_test_validate(test, error == 0);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
+	pbx_test_validate(test, error == 0);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 	sccp_free_ha(ha);
 	ha = NULL;
 
 	// test 7: ipv6
-	ast_test_status_update(test, "test 7: IPv6: deny 0.0.0.0/0.0.0.0,::,::/0::\n");
+	pbx_test_status_update(test, "test 7: IPv6: deny 0.0.0.0/0.0.0.0,::,::/0::\n");
 	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
-	ast_test_validate(test, error == 0);
+	pbx_test_validate(test, error == 0);
 	ha = sccp_append_ha("deny", "::", ha, &error);
-	ast_test_validate(test, error == 0);
+	pbx_test_validate(test, error == 0);
 	ha = sccp_append_ha("deny", "::/0", ha, &error);
-	ast_test_validate(test, error == 0);
-	//ast_test_status_update(test, "test 7: deny !fe80::/64\n");			/* we cannot parse this format yes (asterisk-13) */
+	pbx_test_validate(test, error == 0);
+	//pbx_test_status_update(test, "test 7: deny !fe80::/64\n");			/* we cannot parse this format yes (asterisk-13) */
 	//ha = sccp_append_ha("deny", "!fe80::/64", ha, &error);
-	//ast_test_validate(test, error == 0);
-	ast_test_status_update(test, "      : previous + permit fe80::ffff:0:0:0/80\n");
+	//pbx_test_validate(test, error == 0);
+	pbx_test_status_update(test, "      : previous + permit fe80::ffff:0:0:0/80\n");
 	ha = sccp_append_ha("permit", "fe80::ffff:0:0:0/80", ha, &error);
-	ast_test_validate(test, error == 0);
-	ast_test_status_update(test, "      : previous + permit fe80::ffff:0:ffff:0/112\n");
+	pbx_test_validate(test, error == 0);
+	pbx_test_status_update(test, "      : previous + permit fe80::ffff:0:ffff:0/112\n");
 	ha = sccp_append_ha("permit", "fe80::ffff:0:ffff:0/112", ha, &error);
-	ast_test_validate(test, error == 0);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sasff) != AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sasffff) != AST_SENSE_DENY);
-	ast_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
+	pbx_test_validate(test, error == 0);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sasff) != AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sasffff) != AST_SENSE_DENY);
+	pbx_test_validate(test, sccp_apply_ha(ha, (struct sockaddr_storage *) &sas200) == AST_SENSE_DENY);
 	sccp_free_ha(ha);
 	ha = NULL;
 
@@ -1758,7 +1759,7 @@ AST_TEST_DEFINE(chan_sccp_acl_invalid_tests)
 		break;
 	}
 
-	ast_test_status_update(test, "Executing invalid acl test tests...\n");
+	pbx_test_status_update(test, "Executing invalid acl test tests...\n");
 
 	// test invalid
 	const char * invalid_acls[] = {
@@ -1802,7 +1803,7 @@ AST_TEST_DEFINE(chan_sccp_acl_invalid_tests)
         	int error = 0;
                 ha = sccp_append_ha("permit", invalid_acls[i], ha, &error);
                 if (ha || !error) {
-                        ast_test_status_update(test, "ACL %s accepted even though it is total garbage.\n",
+                        pbx_test_status_update(test, "ACL %s accepted even though it is total garbage.\n",
                                         invalid_acls[i]);
                         if (ha) {
 				sccp_free_ha(ha);
@@ -1834,27 +1835,27 @@ AST_TEST_DEFINE(chan_sccp_reduce_codec_set)
 	const skinny_codec_t short2[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G722_64K,SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_G722_48K,SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_NONE};
 	const skinny_codec_t long1[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_G729_A,SKINNY_CODEC_G729,SKINNY_CODEC_G728,SKINNY_CODEC_G723_1,SKINNY_CODEC_G722_48K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G722_64K,SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_IS11172,SKINNY_CODEC_IS13818,SKINNY_CODEC_G729_B,SKINNY_CODEC_G729_AB,SKINNY_CODEC_GSM_FULLRATE,SKINNY_CODEC_GSM_HALFRATE,SKINNY_CODEC_WIDEBAND_256K};
 	
-	ast_test_status_update(test, "Executing reduceCodecSet on two default codecArrays...\n");
+	pbx_test_status_update(test, "Executing reduceCodecSet on two default codecArrays...\n");
 	{
 		uint8_t x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = {0};
 		sccp_utils_reduceCodecSet(baseCodecArray, empty);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-			ast_test_validate(test, baseCodecArray[x] == SKINNY_CODEC_NONE);
+			pbx_test_validate(test, baseCodecArray[x] == SKINNY_CODEC_NONE);
 		}
 	}
-	ast_test_status_update(test, "Executing reduceCodecSet on one partially filled and one empty codecArray...\n");
+	pbx_test_status_update(test, "Executing reduceCodecSet on one partially filled and one empty codecArray...\n");
 	{
 		uint8_t x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
 		memcpy(baseCodecArray, short1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 		sccp_utils_reduceCodecSet(baseCodecArray, empty);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-			ast_test_validate(test, baseCodecArray[x] == SKINNY_CODEC_NONE);
+			pbx_test_validate(test, baseCodecArray[x] == SKINNY_CODEC_NONE);
 		}
 	}
 	
-	ast_test_status_update(test, "Executing reduceCodecSet on two partially filled codecArrays...\n");
+	pbx_test_status_update(test, "Executing reduceCodecSet on two partially filled codecArrays...\n");
 	{
 		uint8_t x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
@@ -1862,11 +1863,11 @@ AST_TEST_DEFINE(chan_sccp_reduce_codec_set)
 		const skinny_codec_t result[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_G711_ALAW_64K, SKINNY_CODEC_G711_ALAW_56K, SKINNY_CODEC_G711_ULAW_64K, SKINNY_CODEC_G711_ULAW_56K, SKINNY_CODEC_NONE,};
 		sccp_utils_reduceCodecSet(baseCodecArray, short2);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-			//ast_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
-			ast_test_validate(test, baseCodecArray[x] == result[x]);
+			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
+			pbx_test_validate(test, baseCodecArray[x] == result[x]);
 		}
 	}
-	ast_test_status_update(test, "Executing reduceCodecSet one fully filled and one partially filled codecArrays...\n");
+	pbx_test_status_update(test, "Executing reduceCodecSet one fully filled and one partially filled codecArrays...\n");
 	{
 		uint8_t x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
@@ -1874,8 +1875,8 @@ AST_TEST_DEFINE(chan_sccp_reduce_codec_set)
 		const skinny_codec_t result[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_G722_48K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G722_64K,SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_NONE,};
 		sccp_utils_reduceCodecSet(baseCodecArray, short2);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-			//ast_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
-			ast_test_validate(test, baseCodecArray[x] == result[x]);
+			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
+			pbx_test_validate(test, baseCodecArray[x] == result[x]);
 		}
 	}
 	return AST_TEST_PASS;
@@ -1899,29 +1900,29 @@ AST_TEST_DEFINE(chan_sccp_combine_codec_sets)
 	const skinny_codec_t short2[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G722_64K,SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_G722_48K,SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_NONE};
 	const skinny_codec_t long1[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_G729_A,SKINNY_CODEC_G729,SKINNY_CODEC_G728,SKINNY_CODEC_G723_1,SKINNY_CODEC_G722_48K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G722_64K,SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_IS11172,SKINNY_CODEC_IS13818,SKINNY_CODEC_G729_B,SKINNY_CODEC_G729_AB,SKINNY_CODEC_GSM_FULLRATE,SKINNY_CODEC_GSM_HALFRATE,SKINNY_CODEC_WIDEBAND_256K};
 	
-	ast_test_status_update(test, "Executing combineCodecSet on two empty codecArrays...\n");
+	pbx_test_status_update(test, "Executing combineCodecSet on two empty codecArrays...\n");
 	{
 		uint8_t x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = {0};
 		sccp_utils_combineCodecSets(baseCodecArray, empty);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-			ast_test_validate(test, baseCodecArray[x] == SKINNY_CODEC_NONE);
+			pbx_test_validate(test, baseCodecArray[x] == SKINNY_CODEC_NONE);
 		}
 	}
 
-	ast_test_status_update(test, "Executing combineCodecSet on one partially filled and one empty codecArray...\n");
+	pbx_test_status_update(test, "Executing combineCodecSet on one partially filled and one empty codecArray...\n");
 	{
 		uint8_t x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
 		memcpy(baseCodecArray, short1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 		sccp_utils_combineCodecSets(baseCodecArray, empty);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-			//ast_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(short1[x]));
-			ast_test_validate(test, baseCodecArray[x] == short1[x]);
+			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(short1[x]));
+			pbx_test_validate(test, baseCodecArray[x] == short1[x]);
 		}
 	}
 
-	ast_test_status_update(test, "Executing combineCodecSet on two partially filled codecArrays...\n");
+	pbx_test_status_update(test, "Executing combineCodecSet on two partially filled codecArrays...\n");
 	{
 		uint8_t x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
@@ -1929,22 +1930,22 @@ AST_TEST_DEFINE(chan_sccp_combine_codec_sets)
 		const skinny_codec_t result[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONSTANDARD,SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G722_64K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G722_48K,SKINNY_CODEC_NONE,};
 		sccp_utils_combineCodecSets(baseCodecArray, short2);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-			//ast_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
-			ast_test_validate(test, baseCodecArray[x] == result[x]);
+			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
+			pbx_test_validate(test, baseCodecArray[x] == result[x]);
 		}
 	}
-	ast_test_status_update(test, "Executing combineCodecSet on one fully and one partially filled codecArray...\n");
+	pbx_test_status_update(test, "Executing combineCodecSet on one fully and one partially filled codecArray...\n");
 	{
 		uint8_t x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
 		memcpy(baseCodecArray, long1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 		sccp_utils_combineCodecSets(baseCodecArray, short2);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-			//ast_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(long1[x]));
-			ast_test_validate(test, baseCodecArray[x] == long1[x]);
+			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(long1[x]));
+			pbx_test_validate(test, baseCodecArray[x] == long1[x]);
 		}
 	}
-	ast_test_status_update(test, "Executing combineCodecSet on one partially and one fully filled codecArray...\n");
+	pbx_test_status_update(test, "Executing combineCodecSet on one partially and one fully filled codecArray...\n");
 	{
 		uint8_t x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
@@ -1952,8 +1953,8 @@ AST_TEST_DEFINE(chan_sccp_combine_codec_sets)
 		const skinny_codec_t result[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONSTANDARD,SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G729_A,SKINNY_CODEC_G729,SKINNY_CODEC_G728,SKINNY_CODEC_G723_1,SKINNY_CODEC_G722_48K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G722_64K,SKINNY_CODEC_IS11172,SKINNY_CODEC_IS13818,SKINNY_CODEC_G729_B,SKINNY_CODEC_G729_AB,SKINNY_CODEC_GSM_FULLRATE,SKINNY_CODEC_GSM_HALFRATE};
 		sccp_utils_combineCodecSets(baseCodecArray, long1);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-			//ast_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
-			ast_test_validate(test, baseCodecArray[x] == result[x]);
+			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
+			pbx_test_validate(test, baseCodecArray[x] == result[x]);
 		}
 	}
 	return AST_TEST_PASS;

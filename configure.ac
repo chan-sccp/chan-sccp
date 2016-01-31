@@ -48,7 +48,7 @@ AM_MAINTAINER_MODE([disable])								dnl Switches off auto-regeneration on confi
 											dnl make sure to run tool/bootstrap.sh before checking in configure changes to svn
 
 dnl AM_INIT_AUTOMAKE([1.14 -Wno-portability check-news dist-bzip2 nostdinc subdir-objects])
-AM_INIT_AUTOMAKE([1.10 -Wno-portability check-news dist-bzip2 nostdinc])
+AM_INIT_AUTOMAKE([1.10 -Wno-portability check-news dist-bzip2 nostdinc subdir-objects])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 AC_DISABLE_STATIC([])
 
@@ -107,6 +107,15 @@ dnl set substitutes
 AC_SUBST(CPU_OPTIONS)
 AC_SUBST(prefix)
 
+dnl PBXVER_COND_SUBDIR=pbx_impl/ast113
+dnl PBXVER_COND_LIBADD=pbx_impl/ast113/libast113.la
+dnl PBXVER_COND_ANNOUNCE_SUBDIR=pbx_impl/ast_announce
+dnl PBXVER_COND_ANNOUNCE_LIBADD=pbx_impl/ast_announce/libast_announce.la
+dnl AC_SUBST([PBXVER_COND_SUBDIR])
+dnl AC_SUBST([PBXVER_COND_LIBADD])
+dnl AC_SUBST([PBXVER_COND_ANNOUNCE_SUBDIR])
+dnl AC_SUBST([PBXVER_COND_ANNOUNCE_LIBADD])
+
 CONFIGURE_PART([Generating Configuration and Makefiles])
 AC_CONFIG_COMMANDS([tools/autorevision], [cd ${ac_abs_top_srcdir};${ac_abs_top_srcdir}/tools/autorevision -t h -o ${ac_abs_top_srcdir}/.revision > ${ac_abs_top_builddir}/src/revision.h 2>/dev/null])
 AC_CONFIG_FILES([
@@ -114,6 +123,15 @@ AC_CONFIG_FILES([
    README
    doc/Makefile
    src/Makefile
+   src/pbx_impl/Makefile
+   src/pbx_impl/ast/Makefile
+   src/pbx_impl/ast106/Makefile
+   src/pbx_impl/ast108/Makefile
+   src/pbx_impl/ast110/Makefile
+   src/pbx_impl/ast111/Makefile
+   src/pbx_impl/ast112/Makefile
+   src/pbx_impl/ast113/Makefile
+   src/pbx_impl/ast_announce/Makefile
    contrib/gen_sccpconf/Makefile
 ])
 

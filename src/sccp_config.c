@@ -10,8 +10,6 @@
  * \note        To find out more about the reload function see \ref sccp_config_reload
  * \remarks     Only methods directly related to chan-sccp configuration should be stored in this source file.
  *
- * $Date$
- * $Revision$
  */
 
 /*!
@@ -94,9 +92,14 @@
 #include "sccp_mwi.h"
 #include "sccp_socket.h"
 #include "sccp_devstate.h"
-#include <asterisk/paths.h>
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
+#include <asterisk/paths.h>
+#if defined(CS_AST_HAS_EVENT) && defined(HAVE_PBX_EVENT_H) && (defined(CS_DEVICESTATE) || defined(CS_CACHEABLE_DEVICESTATE))	// ast_event_subscribe
+#  include <asterisk/event.h>
+#endif
+
 #ifndef offsetof
 #if defined(__GNUC__) && __GNUC__ > 3
 #define offsetof(type, member)  __builtin_offsetof (type, member)
@@ -3493,6 +3496,7 @@ int sccp_config_generate(char *filename, int configType)
 };
 
 #if CS_TEST_FRAMEWORK
+#include <asterisk/test.h>
 AST_TEST_DEFINE(sccp_config_base_functions)
 {
 	switch(cmd) {
@@ -3506,15 +3510,15 @@ AST_TEST_DEFINE(sccp_config_base_functions)
 			break;
 	}
 	
-	ast_test_status_update(test, "Executing chan-sccp-b config tests...\n");
+	pbx_test_status_update(test, "Executing chan-sccp-b config tests...\n");
 
-	ast_test_status_update(test, "sccp_find_segment...\n");
-	ast_test_validate(test, sccp_find_segment(SCCP_CONFIG_GLOBAL_SEGMENT) == &sccpConfigSegments[0]);
+	pbx_test_status_update(test, "sccp_find_segment...\n");
+	pbx_test_validate(test, sccp_find_segment(SCCP_CONFIG_GLOBAL_SEGMENT) == &sccpConfigSegments[0]);
 
-	ast_test_status_update(test, "sccp_fine_config...\n");
+	pbx_test_status_update(test, "sccp_fine_config...\n");
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(SCCP_CONFIG_GLOBAL_SEGMENT);
-	ast_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "debug") == &sccpConfigSegment->config[2]);
-	ast_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "disallow") == &sccpConfigSegment->config[7]);
+	pbx_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "debug") == &sccpConfigSegment->config[2]);
+	pbx_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "disallow") == &sccpConfigSegment->config[7]);
 
 	return AST_TEST_PASS;
 }
@@ -3532,21 +3536,21 @@ AST_TEST_DEFINE(sccp_config_multientry)
 			break;
 	}
 	
-	ast_test_status_update(test, "createVariableSetForMultiEntryParameters...\n");
+	pbx_test_status_update(test, "createVariableSetForMultiEntryParameters...\n");
 	PBX_VARIABLE_TYPE *varset = NULL, *v = NULL,*root = NULL;
 	root = ast_variable_new("disallow", "0.0.0.0/0.0.0.0", "");
 	root->next = ast_variable_new("allow", "10.10.10.0/255.255.255.0", "");
 	
 	v = varset = createVariableSetForMultiEntryParameters(root, "disallow|allow", varset);
-	ast_test_validate(test, v != NULL);
-	ast_test_status_update(test, "Test disallow == 0.0.0.0/0.0.0.0\n");
-	ast_test_validate(test, (!strcasecmp((const char *) "disallow", v->name) && !strcasecmp((const char *) "0.0.0.0/0.0.0.0", v->value)));
+	pbx_test_validate(test, v != NULL);
+	pbx_test_status_update(test, "Test disallow == 0.0.0.0/0.0.0.0\n");
+	pbx_test_validate(test, (!strcasecmp((const char *) "disallow", v->name) && !strcasecmp((const char *) "0.0.0.0/0.0.0.0", v->value)));
 	v = v->next;
-	ast_test_validate(test, v != NULL);
-	ast_test_status_update(test, "Test allow == 10.10.10.10/255.255.255.255\n");
-	ast_test_validate(test, (!strcasecmp((const char *) "allow", v->name) && !strcasecmp((const char *) "10.10.10.0/255.255.255.0", v->value)));
+	pbx_test_validate(test, v != NULL);
+	pbx_test_status_update(test, "Test allow == 10.10.10.10/255.255.255.255\n");
+	pbx_test_validate(test, (!strcasecmp((const char *) "allow", v->name) && !strcasecmp((const char *) "10.10.10.0/255.255.255.0", v->value)));
 	v = v->next;
-	ast_test_validate(test, v == NULL);
+	pbx_test_validate(test, v == NULL);
 	
 	pbx_variables_destroy(varset);
 	pbx_variables_destroy(root);
@@ -3567,17 +3571,17 @@ AST_TEST_DEFINE(sccp_config_tokenized_default)
 			break;
 	}
 
-	ast_test_status_update(test, "createVariableSetForTokenizedDefault...\n");
+	pbx_test_status_update(test, "createVariableSetForTokenizedDefault...\n");
 	PBX_VARIABLE_TYPE *varset = NULL, *v = NULL;
 	v = varset = createVariableSetForTokenizedDefault("disallow|allow", "0.0.0.0/0.0.0.0|10.10.10.0/255.255.255.0", NULL);
 	
-	ast_test_validate(test, v != NULL);
-	ast_test_status_update(test, "Test disallow == 0.0.0.0\n");
-	ast_test_validate(test, (!strcasecmp((const char *) "disallow", v->name) && !strcasecmp((const char *) "0.0.0.0/0.0.0.0", v->value)));
+	pbx_test_validate(test, v != NULL);
+	pbx_test_status_update(test, "Test disallow == 0.0.0.0\n");
+	pbx_test_validate(test, (!strcasecmp((const char *) "disallow", v->name) && !strcasecmp((const char *) "0.0.0.0/0.0.0.0", v->value)));
 	v = v->next;
-	ast_test_validate(test, v != NULL);
-	ast_test_status_update(test, "Test allow == 10.10.10.0/255.255.255.0\n");
-	ast_test_validate(test, (!strcasecmp((const char *) "allow", v->name) && !strcasecmp((const char *) "10.10.10.0/255.255.255.0", v->value)));
+	pbx_test_validate(test, v != NULL);
+	pbx_test_status_update(test, "Test allow == 10.10.10.0/255.255.255.0\n");
+	pbx_test_validate(test, (!strcasecmp((const char *) "allow", v->name) && !strcasecmp((const char *) "10.10.10.0/255.255.255.0", v->value)));
 	
 	pbx_variables_destroy(varset);
 
@@ -3598,7 +3602,7 @@ AST_TEST_DEFINE(sccp_config_setValue)
 			break;
 	}
 	
-	//ast_test_status_update(test, "sccp_config_object_setValue...\n");
+	//pbx_test_status_update(test, "sccp_config_object_setValue...\n");
 	//static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VARIABLE_TYPE * cat_root, const char *name, const char *value, int lineno, const sccp_config_segment_t segment, boolean_t *SetEntries)
 
 	return AST_TEST_PASS;
@@ -3617,7 +3621,7 @@ AST_TEST_DEFINE(sccp_config_setDefault)
 			break;
 	}
 	
-	//ast_test_status_update(test, "sccp_config_set_defaults...\n");
+	//pbx_test_status_update(test, "sccp_config_set_defaults...\n");
 	//static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, boolean_t *SetEntries)
 
 	return AST_TEST_PASS;

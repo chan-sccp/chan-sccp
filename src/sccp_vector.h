@@ -6,9 +6,6 @@
  * \author 	David M. Lee, II <dlee@digium.com>
  * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
- *
- * \date	$Date: 2016-01-25 20:20:41 +0100 (Mon, 25 Jan 2016) $
- * \version     $Revision: 6530 $
  */
 #pragma once
 

@@ -4,9 +4,6 @@
  * \author      Marcello Ceschia <marcello [at] ceschia.de>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- * 
- * $Date$
- * $Revision$  
  */
 #include <config.h>
 #ifdef CS_SCCP_MANAGER
@@ -20,9 +17,9 @@
 #include "sccp_features.h"
 #include "sccp_actions.h"
 #include "sccp_socket.h"
-#include "asterisk/threadstorage.h"
+#include <asterisk/threadstorage.h>
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
 
 /*
  * Descriptions
@@ -939,6 +936,8 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 
 AST_THREADSTORAGE(hookresult_threadbuf);
 #define HOOKRESULT_INITSIZE   DEFAULT_PBX_STR_BUFFERSIZE
+
+#if ASTERISK_VERSION_GROUP >= 108
 /*
  * \brief helper function to concatenate the result from a ami hook send action using a threadlocal buffer
  */
@@ -949,6 +948,7 @@ static int __sccp_manager_hookresult(int category, const char *event, char *cont
 	}
 	return 0;
 }
+#endif
 /*!
  * \brief Call an AMI/Manager Function and Wait for the Result
  * 
@@ -979,7 +979,7 @@ boolean_t sccp_manager_action2str(const char *manager_command, char **outStr)
         return !failure ? TRUE : FALSE;
 #else
 	sccp_log(DEBUGCAT_CORE)("SCCP: ast_hook_send_action is not available in asterisk-1.6\n");
-	return FALSE
+	return FALSE;
 #endif
 }
 

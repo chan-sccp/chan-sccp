@@ -49,8 +49,11 @@ elif test -d .git || test -d ../.git || test -d ../../.git;then
 fi
 
 if test "$SCCP_VERSION" = "unknown"; then
-  SCCP_BRANCH="`cat .version|cut -d_ -f2`"
+  SCCP_BRANCH="TRUNK"
   SCCP_VERSION="`cat .version|cut -d_ -f1`"
+  if test ! -z "`grep '_' .version`" ; then
+    SCCP_BRANCH="`cat .version|cut -d_ -f2`"
+  fi
   if test -f .revision; then
     SCCP_REVISION=`cat .revision |grep VCS_NUM |cut -d= -f2|cut -d\" -f2`
   fi

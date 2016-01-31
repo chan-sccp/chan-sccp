@@ -6,7 +6,6 @@
  *              See the LICENSE file at the top of the source tree.
  * \since       2009-01-16
  *
- * $Date$
  * $Revision$  
  */
 #pragma once

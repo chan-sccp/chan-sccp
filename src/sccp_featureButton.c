@@ -6,8 +6,6 @@
  *              See the LICENSE file at the top of the source tree.
  * \since       2009-06-15
  *
- * $Date: 2015-11-21 00:29:06 +0100 (za, 21 nov 2015) $
- * $Revision: 6417 $
  */
 
 /*!
@@ -25,13 +23,16 @@
 #include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
-//#include "sccp_mwi.h"
 
 #ifdef CS_DEVSTATE_FEATURE
 #include "sccp_devstate.h"
 #endif
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
+#if defined(CS_AST_HAS_EVENT) && defined(HAVE_PBX_EVENT_H) 	// ast_event_subscribe
+#  include <asterisk/event.h>
+#endif
 
 /*!
  * \brief Feature Button Changed

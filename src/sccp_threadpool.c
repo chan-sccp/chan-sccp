@@ -8,14 +8,12 @@
  *              Library providing a threading pool where you can add work. 
  * \since       2009-01-16
  *
- * $Date$
- * $Revision$
  */
 
 #include <config.h>
 #include "common.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_threadpool.h"
 #include <signal.h>
 #undef pthread_create
@@ -391,6 +389,7 @@ int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p)
 
 
 #if CS_TEST_FRAMEWORK
+#include <asterisk/test.h>
 #define NUM_WORK 50
 #define test_category "/channels/chan_sccp/threadpool/"
 static void *sccp_cli_threadpool_test_thread(void *data)
@@ -417,27 +416,27 @@ AST_TEST_DEFINE(sccp_threadpool_create_destroy)
 	}
 	sccp_threadpool_t *test_threadpool = NULL;
 
-	ast_test_status_update(test, "Destroy non-existing threadpool: %p\n", test_threadpool);
+	pbx_test_status_update(test, "Destroy non-existing threadpool: %p\n", test_threadpool);
 	sccp_threadpool_destroy(test_threadpool);
-	ast_test_validate(test, sccp_threadpool_destroy(test_threadpool) == FALSE);
+	pbx_test_validate(test, sccp_threadpool_destroy(test_threadpool) == FALSE);
 
-	ast_test_status_update(test, "Create threadpool\n");
+	pbx_test_status_update(test, "Create threadpool\n");
 	test_threadpool = sccp_threadpool_init(THREADPOOL_MIN_SIZE);
-	ast_test_validate(test, NULL != test_threadpool);
+	pbx_test_validate(test, NULL != test_threadpool);
 
 	int current_size = sccp_threadpool_thread_count(test_threadpool);
-	ast_test_status_update(test, "Grow threadpool by 3, current %d\n", current_size);
+	pbx_test_status_update(test, "Grow threadpool by 3, current %d\n", current_size);
 	sccp_threadpool_grow(test_threadpool, 3);
-	ast_test_validate(test, sccp_threadpool_thread_count(test_threadpool) == current_size + 3); 
+	pbx_test_validate(test, sccp_threadpool_thread_count(test_threadpool) == current_size + 3); 
 
 	current_size = sccp_threadpool_thread_count(test_threadpool);
-	ast_test_status_update(test, "Shrink threadpool by 2, current %d\n", current_size);
+	pbx_test_status_update(test, "Shrink threadpool by 2, current %d\n", current_size);
 	sccp_threadpool_shrink(test_threadpool, 2);
 	sleep(1);
-	ast_test_validate(test, sccp_threadpool_thread_count(test_threadpool) == current_size - 2); 
+	pbx_test_validate(test, sccp_threadpool_thread_count(test_threadpool) == current_size - 2); 
 
-	ast_test_status_update(test, "Destroy threadpool: %p\n", test_threadpool);
-	ast_test_validate(test, sccp_threadpool_destroy(test_threadpool) == TRUE);
+	pbx_test_status_update(test, "Destroy threadpool: %p\n", test_threadpool);
+	pbx_test_validate(test, sccp_threadpool_destroy(test_threadpool) == TRUE);
 
 	return AST_TEST_PASS;
 }
@@ -456,30 +455,30 @@ AST_TEST_DEFINE(sccp_threadpool_work)
 	}
 	sccp_threadpool_t *test_threadpool = NULL;
 	
-	ast_test_status_update(test, "Create Test threadpool\n");
+	pbx_test_status_update(test, "Create Test threadpool\n");
 	test_threadpool = sccp_threadpool_init(THREADPOOL_MIN_SIZE);
-	ast_test_validate(test, NULL != test_threadpool);
+	pbx_test_validate(test, NULL != test_threadpool);
 
 	int current_size = sccp_threadpool_thread_count(test_threadpool);
-	ast_test_status_update(test, "Grow threadpool by 3\n");
+	pbx_test_status_update(test, "Grow threadpool by 3\n");
 	sccp_threadpool_grow(test_threadpool, 3);
-	ast_test_validate(test, sccp_threadpool_thread_count(test_threadpool) == current_size + 3); 
+	pbx_test_validate(test, sccp_threadpool_thread_count(test_threadpool) == current_size + 3); 
 	
 	if (test_threadpool) {
-		ast_test_status_update(test, "Adding work to Test threadpool\n");
+		pbx_test_status_update(test, "Adding work to Test threadpool\n");
 		int work, loopcount=0;
 		for (work = 0; work < NUM_WORK; work++) {
-			ast_test_validate(test, sccp_threadpool_add_work(test_threadpool, (void *) sccp_cli_threadpool_test_thread, test) > 0);
+			pbx_test_validate(test, sccp_threadpool_add_work(test_threadpool, (void *) sccp_cli_threadpool_test_thread, test) > 0);
 		}
 
-		ast_test_status_update(test, "Waiting for work to finishg in Test threadpool\n");
+		pbx_test_status_update(test, "Waiting for work to finishg in Test threadpool\n");
 		while (sccp_threadpool_jobqueue_count(test_threadpool) > 0 && loopcount++ < 20) {
-			ast_test_status_update(test, "Job Queue: %d, Threads: %d\n", sccp_threadpool_jobqueue_count(test_threadpool), sccp_threadpool_thread_count(test_threadpool));
+			pbx_test_status_update(test, "Job Queue: %d, Threads: %d\n", sccp_threadpool_jobqueue_count(test_threadpool), sccp_threadpool_thread_count(test_threadpool));
 			sleep(1);
 		}
-		ast_test_validate(test, sccp_threadpool_jobqueue_count(test_threadpool) == 0); 
+		pbx_test_validate(test, sccp_threadpool_jobqueue_count(test_threadpool) == 0); 
 
-		ast_test_status_update(test, "Destroy Test threadpool\n");
+		pbx_test_status_update(test, "Destroy Test threadpool\n");
 		sccp_threadpool_destroy(test_threadpool);
 	}
 	return AST_TEST_PASS;

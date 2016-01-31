@@ -5,8 +5,6 @@
  * \author      Marcello Ceschia <marcelloceschia [at] users.sorceforge.net>
  * \note        Reworked, but based on chan_sccp code.
  *
- * $Date$
- * $Revision$
  */
 
 #include <config.h>
@@ -16,23 +14,25 @@
 #include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_channel.h"
-//#include "sccp_cli.h"
 #include "sccp_indicate.h"
 #include <asterisk/say.h>
 
 #ifdef CS_SCCP_CONFERENCE
 
 #if ASTERISK_VERSION_GROUP < 112
-#include "asterisk/bridging.h"
-#include "asterisk/bridging_features.h"
+#include <asterisk/bridging.h>
+#include <asterisk/bridging_features.h>
 #else
-#include "asterisk/bridge.h"
-#include "asterisk/bridge_technology.h"
-#include "asterisk/bridge_features.h"
+#include <asterisk/bridge.h>
+#include <asterisk/bridge_technology.h>
+#include <asterisk/bridge_features.h>
+#include <asterisk/bridge_channel.h>
 #endif
 #ifdef HAVE_PBX_BRIDGING_ROLES_H
-#include "asterisk/bridging_roles.h"
+#include <asterisk/bridging_roles.h>
 #endif
+#include <asterisk/callerid.h>
+#include <asterisk/causes.h>		// AST_CAUSE_NORMAL_CLEARING
 
 #ifdef DEBUG
 #define sccp_participant_retain(_x) 	({sccp_participant_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;pbx_assert(tmp_##__LINE__##X != NULL);(sccp_participant_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
@@ -42,7 +42,7 @@
 #define sccp_participant_release(_x) 	({pbx_assert(_x != NULL);(sccp_participant_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #endif
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
 static uint32_t lastConferenceID = 99;
 static const uint32_t appID = APPID_CONFERENCE;
 typedef struct sccp_participant sccp_participant_t;								/*!< SCCP Conference Participant Structure */

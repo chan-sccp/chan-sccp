@@ -8,19 +8,14 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
  */
 #pragma once
 
 #include <config.h>
-//#if HAVE_SYS_SOCKET_H
-//#include <sys/socket.h>
-//#endif
-#include "../common.h"
+#include "common.h"
 
 #ifdef HAVE_ASTERISK
-#include "ast/ast.h"
+#include "ast.h"
 #endif
 
 #define PBX_BRIDGE_TYPE struct ast_bridge

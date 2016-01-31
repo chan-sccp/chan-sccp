@@ -11,9 +11,7 @@
  */
 #pragma once
 
-//#include <config.h>
-//#include "common.h"
-
+__BEGIN_EXTERN__
 /*!
  * \brief SCCP DevState Specifier Structure
  * Recording number of Device State Registrations Per Device
@@ -30,4 +28,5 @@ struct sccp_devstate_specifier {
 
 void sccp_devstate_module_start(void);
 void sccp_devstate_module_stop(void);
+__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

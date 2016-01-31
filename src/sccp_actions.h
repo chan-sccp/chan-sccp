@@ -8,10 +8,9 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  * 
- * $Date$
- * $Revision$
  */
 #pragma once
+__BEGIN_EXTERN__
 void sccp_handle_unknown_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		/* __attribute__((nonnull(1,2,3))) */;
 void sccp_handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)	/* __attribute__((nonnull(1,2,3))) */;
 void sccp_handle_alarm(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				/* __attribute__((nonnull(1,3))) */;
@@ -59,4 +58,5 @@ void sccp_handle_LocationInfoMessage(constSessionPtr s, devicePtr d, constMessag
 void sccp_handle_startmultimediatransmission_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in)/* __attribute__((nonnull(1,2,3))) */;
 void sccp_handle_mediatransmissionfailure(constSessionPtr s, devicePtr d, constMessagePtr msg_in)	/* __attribute__((nonnull(1,2,3))) */;
 void sccp_handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)	/* __attribute__((nonnull(1,2,3))) */;
+__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

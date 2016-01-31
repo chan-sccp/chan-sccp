@@ -1,7 +1,5 @@
 /*
  * Auto-Generated File, do not modify. Changes will be destroyed.
- * $Date: $
- * $Revision: $
  */
 #include <config.h>
 #include "common.h"
