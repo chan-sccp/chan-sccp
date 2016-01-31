@@ -20,7 +20,7 @@
 #include "sccp_device.h"
 #include "sccp_line.h"
 
-+SCCP_FILE_VERSION(__FILE__, "");
+SCCP_FILE_VERSION(__FILE__, "");
 
 void sccp_event_destroy(sccp_event_t * event);
 
@@ -75,6 +75,10 @@ void sccp_event_destroy(sccp_event_t * event)
 		case SCCP_EVENT_LINE_CHANGED:
 		case SCCP_EVENT_LINE_DELETED:
 			break;
+#ifdef CS_TEST_FRAMEWORK
+		case SCCP_EVENT_TEST:
+			break;
+#endif
 		case SCCP_EVENT_NULL:
 		case SCCP_EVENT_TYPE_SENTINEL:
 			break;
@@ -271,6 +275,10 @@ void sccp_event_fire(const sccp_event_t * event)
 		case SCCP_EVENT_LINE_CHANGED:
 		case SCCP_EVENT_LINE_DELETED:
 			break;
+#ifdef CS_TEST_FRAMEWORK
+		case SCCP_EVENT_TEST:
+			break;
+#endif
 		case SCCP_EVENT_NULL:
 		case SCCP_EVENT_TYPE_SENTINEL:
 			break;
