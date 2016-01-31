@@ -11,46 +11,58 @@
  */
 
 #include <config.h>
-#include "../../common.h"
-#include "../../sccp_pbx.h"
-#include "../../sccp_device.h"
-#include "../../sccp_channel.h"
-#include "../../sccp_line.h"
-#include "../../sccp_cli.h"
-#include "../../sccp_utils.h"
-#include "../../sccp_indicate.h"
-#include "../../sccp_hint.h"
-#include "../../sccp_mwi.h"
-#include "../../sccp_appfunctions.h"
-#include "../../sccp_management.h"
-#include "../../sccp_rtp.h"
-#include "../../sccp_socket.h"
+#include "common.h"
+#include "sccp_pbx.h"
+#include "sccp_device.h"
+#include "sccp_channel.h"
+#include "sccp_line.h"
+#include "sccp_cli.h"
+#include "sccp_utils.h"
+#include "sccp_indicate.h"
+#include "sccp_hint.h"
+#include "sccp_mwi.h"
+#include "sccp_appfunctions.h"
+#include "sccp_management.h"
+#include "sccp_rtp.h"
+#include "sccp_socket.h"
 #include "ast113.h"
-#include "ast112_announce.h"
+#include "ast_announce.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-#if defined(__cplusplus) || defined(c_plusplus)
-extern "C" {
+__BEGIN_EXTERN__
+#ifdef HAVE_PBX_ACL_H
+#  include <asterisk/acl.h>
 #endif
-#include <asterisk/sched.h>
+#include <asterisk/module.h>
+#include <asterisk/causes.h>
+#include <asterisk/callerid.h>
+#include <asterisk/musiconhold.h>
+#ifdef HAVE_PBX_FEATURES_H
+#  include <asterisk/features_config.h>
+#  include <asterisk/features.h>
+#  include <asterisk/pickup.h>
+#  include <asterisk/parking.h>
+#endif
+#ifdef HAVE_PBX_APP_H
+#  include <asterisk/app.h>
+#endif
+#include <asterisk/translate.h>
+#include <asterisk/indications.h>
 #include <asterisk/netsock2.h>
 #include <asterisk/cel.h>
-#include <asterisk/parking.h>
 #include <asterisk/pickup.h>
+#include <asterisk/stasis.h>
 #include <asterisk/stasis_channels.h>
 #include <asterisk/stasis_endpoints.h>
 #include <asterisk/bridge_channel.h>
 #include <asterisk/bridge_after.h>
-#include <asterisk/format_compatibility.h>
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
 #undef new
+__END_EXTERN__
 
-#if defined(__cplusplus) || defined(c_plusplus)
-}
-#endif
 struct ast_sched_context *sched = 0;
 struct io_context *io = 0;
 

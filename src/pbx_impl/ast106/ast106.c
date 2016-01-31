@@ -11,45 +11,52 @@
  */
 
 #include <config.h>
-#include "../../common.h"
-#include "../../sccp_pbx.h"
-#include "../../sccp_device.h"
-#include "../../sccp_channel.h"
-#include "../../sccp_line.h"
-#include "../../sccp_cli.h"
-#include "../../sccp_utils.h"
-#include "../../sccp_indicate.h"
-#include "../../sccp_hint.h"
-#include "../../sccp_mwi.h"
-#include "../../sccp_appfunctions.h"
-#include "../../sccp_management.h"
-#include "../../sccp_rtp.h"
-#include "../../sccp_socket.h"
+#include "common.h"
+#include "sccp_pbx.h"
+#include "sccp_device.h"
+#include "sccp_channel.h"
+#include "sccp_line.h"
+#include "sccp_cli.h"
+#include "sccp_utils.h"
+#include "sccp_indicate.h"
+#include "sccp_hint.h"
+#include "sccp_mwi.h"
+#include "sccp_appfunctions.h"
+#include "sccp_management.h"
+#include "sccp_rtp.h"
+#include "sccp_socket.h"
 #include "ast106.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-#if defined(__cplusplus) || defined(c_plusplus)
-extern "C" {
+__BEGIN_EXTERN__
+#ifdef HAVE_PBX_ACL_H
+#  include <asterisk/acl.h>
 #endif
-#include <asterisk/sched.h>
+#include <asterisk/module.h>
+#include <asterisk/causes.h>
+#include <asterisk/callerid.h>
+#include <asterisk/musiconhold.h>
+#ifdef HAVE_PBX_FEATURES_H
+#  include <asterisk/features.h>
+#endif
+#include <asterisk/indications.h>
 #include <asterisk/netsock.h>
-
-#if HAVE_SYS_SIGNAL_H
-#include <sys/signal.h>
-#endif
+#include <asterisk/translate.h>
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp.h>
 #undef new
 
+#if HAVE_SYS_SIGNAL_H
+#include <sys/signal.h>
+#endif
+
 #ifndef CS_AST_RTP_INSTANCE_NEW
 #define ast_rtp_instance_read(_x, _y) ast_rtp_read(_x)
 #endif
 
-#if defined(__cplusplus) || defined(c_plusplus)
-}
-#endif
+__END_EXTERN__
 static struct sched_context *sched = 0;
 static struct io_context *io = 0;
 
@@ -1926,12 +1933,10 @@ static boolean_t sccp_wrapper_asterisk16_createRtpInstance(constDevicePtr d, con
 
 	/* rest below should be moved out of here (refactoring required) */
 	PBX_RTP_TYPE *instance = rtp->instance;
-	skinny_payload_type_t codec_type;
 	switch(rtp->type) {
 		case SCCP_RTP_AUDIO:
 			tos = d->audio_tos;
 			cos = d->audio_cos;
-			codec_type = SKINNY_CODEC_TYPE_AUDIO;
 			break;
 		default:
 			pbx_log(LOG_ERROR, "%s: (wrapper_create_rtp) unknown/unhandled rtp type, returning instance for now\n", c->designator);

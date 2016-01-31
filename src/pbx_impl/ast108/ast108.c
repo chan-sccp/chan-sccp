@@ -11,46 +11,46 @@
  */
 
 #include <config.h>
-#include "../../common.h"
-#include "../../sccp_pbx.h"
-#include "../../sccp_device.h"
-#include "../../sccp_channel.h"
-#include "../../sccp_line.h"
-#include "../../sccp_cli.h"
-#include "../../sccp_utils.h"
-#include "../../sccp_indicate.h"
-#include "../../sccp_hint.h"
-#include "../../sccp_mwi.h"
-#include "../../sccp_appfunctions.h"
-#include "../../sccp_management.h"
-#include "../../sccp_rtp.h"
-#include "../../sccp_socket.h"
+#include "common.h"
+#include "sccp_pbx.h"
+#include "sccp_device.h"
+#include "sccp_channel.h"
+#include "sccp_line.h"
+#include "sccp_cli.h"
+#include "sccp_utils.h"
+#include "sccp_indicate.h"
+#include "sccp_hint.h"
+#include "sccp_mwi.h"
+#include "sccp_appfunctions.h"
+#include "sccp_management.h"
+#include "sccp_rtp.h"
+#include "sccp_socket.h"
 #include "ast108.h"
 #include <signal.h>
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-#if defined(__cplusplus) || defined(c_plusplus)
-extern "C" {
+__BEGIN_EXTERN__
+#ifdef HAVE_PBX_ACL_H
+#  include <asterisk/acl.h>
 #endif
-#include <asterisk/sched.h>
+#include <asterisk/module.h>
+#include <asterisk/causes.h>
+#include <asterisk/callerid.h>
+#include <asterisk/musiconhold.h>
+#ifdef HAVE_PBX_FEATURES_H
+#  include <asterisk/features.h>
+#endif
+#include <asterisk/indications.h>
 #include <asterisk/netsock2.h>
-
-#if HAVE_SYS_SIGNAL_H
-#include <sys/signal.h>
-#endif
-
-#if HAVE_PBX_CEL_H
 #include <asterisk/cel.h>
-#endif
+#include <asterisk/translate.h>
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
 #undef new
 
-#if defined(__cplusplus) || defined(c_plusplus)
-}
-#endif
+__END_EXTERN__
 #undef HAVE_PBX_MESSAGE_H
 static struct sched_context *sched = 0;
 static struct io_context *io = 0;

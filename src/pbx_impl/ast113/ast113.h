@@ -12,19 +12,9 @@
 #pragma once
 
 #include <config.h>
-#include <asterisk/features_config.h>
-#include <asterisk/pickup.h>
-#include <asterisk/stasis.h>
 #include <asterisk/format_compatibility.h>
 
-#ifdef CS_SCCP_CONFERENCE
-#include "asterisk/bridge.h"
-#include "asterisk/bridge_technology.h"
-#include "asterisk/bridge_features.h"
-#include "asterisk/bridge_channel.h"
-#endif
-
-#include "pbx_impl/ast/ast112_announce.h"
+#include "../ast_announce/ast_announce.h"
 
 #undef pbx_channel_ref
 #define pbx_channel_ref ast_channel_ref
