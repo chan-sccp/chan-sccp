@@ -8,8 +8,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  * 
- * $Date$
- * $Revision$
  */
 #pragma once
 
@@ -27,6 +25,7 @@
 #define sccp_linedevice_refreplace(_x, _y) ({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #define sccp_line_refreplace(_x, _y)	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 
+__BEGIN_EXTERN__
 /*!
  * \brief SCCP Line Structure
  * \note A line is the equivalent of a 'phone line' going to the phone.
@@ -190,4 +189,5 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 sccp_linedevices_t *__sccp_linedevice_findByLineinstance(const sccp_device_t * device, uint16_t instance, const char *filename, int lineno, const char *func);
 void sccp_line_createLineButtonsArray(sccp_device_t * device);
 void sccp_line_deleteLineButtonsArray(sccp_device_t * device);
+__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

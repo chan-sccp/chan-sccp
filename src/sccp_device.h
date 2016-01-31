@@ -8,8 +8,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
  */
 #pragma once
 
@@ -21,6 +19,8 @@
 #define sccp_device_release(_x) 	({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #endif
 #define sccp_device_refreplace(_x, _y) 	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+
+__BEGIN_EXTERN__
 /*!
  * \brief SCCP Button Configuration Structure
  */
@@ -495,4 +495,5 @@ sccp_device_t *sccp_device_find_realtime(const char *name);
 #endif
 
 void sccp_device_setLamp(constDevicePtr device, skinny_stimulus_t stimulus, uint8_t instance, skinny_lampmode_t mode);
+__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

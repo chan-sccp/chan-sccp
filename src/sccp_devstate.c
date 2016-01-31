@@ -5,20 +5,19 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  * \since       2013-08-15
- *
- * $Date$
- * $Revision$  
  */
 
 #include <config.h>
 #include "common.h"
 #include "sccp_devstate.h"
 #include "sccp_device.h"
-//#include "sccp_event.h"
 #include "sccp_utils.h"
-//#include "sccp_mwi.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
+#if defined(CS_AST_HAS_EVENT) && defined(HAVE_PBX_EVENT_H)							// ast_event_subscribe
+#  include <asterisk/event.h>
+#endif
 
 typedef struct sccp_devstate_SubscribingDevice sccp_devstate_SubscribingDevice_t;
 

@@ -9,8 +9,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
  */
 
 /*!
@@ -30,10 +28,13 @@
 #include "sccp_features.h"
 #include "sccp_line.h"
 #include "sccp_indicate.h"
-//#include "sccp_rtp.h"
 #include "sccp_socket.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
+#include <asterisk/callerid.h>			// sccp_channel, sccp_callinfo
+#include <asterisk/pbx.h>			// AST_EXTENSION_NOT_INUSE
+
 static uint32_t callCount = 1;
 void __sccp_channel_destroy(sccp_channel_t * channel);
 

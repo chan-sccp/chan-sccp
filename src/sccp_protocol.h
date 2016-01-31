@@ -10,7 +10,6 @@
  * 
  * \note        Thank you Federico Santulli for SPCP support
  *
- * $Date$
  * $Revision$  
  */
 #pragma once

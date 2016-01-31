@@ -8,8 +8,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
  */
 
 /*!
@@ -62,7 +60,7 @@
 #include "sccp_hint.h"
 #include "sys/stat.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
 
 #include <asterisk/cli.h>
 #include <asterisk/paths.h>

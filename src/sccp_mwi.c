@@ -5,8 +5,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
  */
 
 #include <config.h>
@@ -17,7 +15,16 @@
 #include "sccp_line.h"
 #include "sccp_utils.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
+#ifdef HAVE_PBX_APP_H				// ast_mwi_state_type
+#  include <asterisk/app.h>
+#endif
+#if defined(CS_AST_HAS_EVENT) && defined(HAVE_PBX_EVENT_H) 	// ast_event_subscribe
+#  include <asterisk/event.h>
+#endif
+
+__BEGIN_EXTERN__
 #ifndef CS_AST_HAS_EVENT
 #define SCCP_MWI_CHECK_INTERVAL 30
 #endif
@@ -739,4 +746,5 @@ int sccp_show_mwi_subscriptions(int fd, sccp_cli_totals_t *totals, struct manses
 	return RESULT_SUCCESS;
 }
 
+__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

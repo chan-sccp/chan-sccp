@@ -9,8 +9,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
  */
 
 /*!
@@ -35,12 +33,16 @@
 #include "sccp_conference.h"
 #include "sccp_indicate.h"
 #include "sccp_socket.h"
+
+SCCP_FILE_VERSION(__FILE__, "");
+
 #if defined(HAVE_UNALIGNED_BUSERROR)
 #include <asterisk/unaligned.h>
 #endif
 #include <sys/stat.h>
-
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+#ifdef HAVE_PBX_ACL_H				// AST_SENSE_ALLOW
+#  include <asterisk/acl.h>
+#endif
 #include <math.h>
 
 /*!

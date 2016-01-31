@@ -1,10 +1,9 @@
 /*
  * Auto-Generated File, do not modify.  Changes will be destroyed.
- * $Date: $
- * $Revision: $
+ * Date: 
  */
-#ifndef __SCCP_ENUM_GUARD_H
-#define __SCCP_ENUM_GUARD_H
+#pragma once
+__BEGIN_EXTERN__
 typedef uint32_t (*sccp_enum_str2intval_t)(const char *lookup_str);
 typedef const char *(*sccp_enum_all_entries_t)(void);
 
@@ -1481,4 +1480,4 @@ uint32_t skinny_callHistoryDisposition_str2intval(const char *lookup_str);
 const char *skinny_callHistoryDisposition_all_entries(void);
 /* = End ========================================================================================= sparse skinny_callHistoryDisposition === */
 
-#endif /* __SCCP_ENUM_GUARD_H */
+__END_EXTERN__

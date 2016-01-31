@@ -9,10 +9,10 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License. 
  *              See the LICENSE file at the top of the source tree.
  * 
- * $Date: 2010-09-16 14:23:34 +0200 (Do, 16 Sep 2010) $
- * $Revision: 1867 $
  */
 #pragma once
+__BEGIN_EXTERN__
 int sccp_register_dialplan_functions(void);
 int sccp_unregister_dialplan_functions(void);
+__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

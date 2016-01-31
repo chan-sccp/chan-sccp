@@ -1,33 +1,28 @@
-# FILE: AutoMake Makefile for chan-sccp-b
-# COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
-# CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
-# LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
-#          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2015-10-15 15:10:26 +0200 (do, 15 okt 2015) $
-# REVISION: $Revision: 6246 $
-# NOTE: Process this file with automake to produce a makefile.in script.
-include $(top_srcdir)/amdoxygen.am
+# FILE:			AutoMake Makefile for chan-sccp-b
+# COPYRIGHT:		chan-sccp-b.sourceforge.net group 2009
+# CREATED BY:		Diederik de Groot <ddegroot@sourceforge.net>
+# LICENSE:		This program is free software and may be modified and distributed under the terms of the GNU Public License.
+# 			See the LICENSE file at the top of the source tree.
+# NOTE:			Process this file with automake to produce a makefile.in script.
+include 		$(top_srcdir)/amdoxygen.am
 
-#AUTOMAKE_OPTIONS		= gnu silent-rules
-AUTOMAKE_OPTIONS		= gnu
-EXTRA_DIST 			= .version tools conf contrib/gen_sccpconf .revision
-SUBDIRS 			= src doc
-ACLOCAL_AMFLAGS			= -I autoconf
-AM_CPPFLAGS			= $(LTDLINCL)
-MOSTLYCLEANFILES		= coverage
-#VER				:= $(shell @abs_top_srcdir@/tools/autorevision -s VCS_TAG -o @abs_top_srcdir@/.revision)
+AUTOMAKE_OPTIONS	= gnu
+EXTRA_DIST 		= .version tools conf contrib/gen_sccpconf .revision
+SUBDIRS 		= src doc
+ACLOCAL_AMFLAGS		= -I autoconf
+AM_CPPFLAGS		= $(LTDLINCL)
 
-distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)_r$(SCCP_REVISION)
+distdir 		= $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)_r$(SCCP_REVISION)
 	
 # Update libtool if necessary	
-libtool: @LIBTOOL_DEPS@
-	cd $(srcdir) && \
-	$(SHELL) ./config.status --recheck
+libtool: 		@LIBTOOL_DEPS@
+			cd $(srcdir) && \
+			$(SHELL) ./config.status --recheck
 	
 FORCE:
 
 # Update ChangeLog file from SVN Log
-ChangeLog:	FORCE
+ChangeLog:		FORCE
 if ENABLE_SVN2CL
 	@if svnrev=`cat .revision |grep VCS_SHORT_HASH|awk -F= '{print "r" $2}'|tr -d '"'`; then \
 	  if [ -z "`cat ChangeLog 2>/dev/null| grep "\[${svnrev}\]"`" ];then \
@@ -44,23 +39,8 @@ else
 	svn log -r$(CHANGELOG_OLDEST):HEAD > ChangeLog 
 endif
 
-# Update doc/html/ChangeLog.html from SVN Log
-ChangeLog-HTML:	FORCE
-if ENABLE_SVN2CL
-	@if svnrev=`cat .revision |grep VCS_SHORT_HASH|awk -F= '{print "r" $2}'|tr -d '"'`; then \
-	  if [ -z "`cat doc/html/ChangeLog_SVN2CL.html 2>/dev/null| grep "\[r${svnrev}\]"`" ];then \
-            echo "Generating doc/html/ChangeLog_SVN2CL.html from SVN $(CHANGELOG_OLDEST)->HEAD"; \
-            if [ ! -d doc/html ]; then mkdir doc/html;fi; \
-            $(SVN2CL) --include-actions -i -a --group-by-day --title "Chan_SCCP-b ChangeLog" --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST) --html -o doc/html/ChangeLog_SVN2CL.html \
-            --revision-link 'http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b?view=rev&revision=' \
-            --ticket-link='http://sourceforge.net/tracker/?func=detail&group_id=186378&atid=917045&aid='; \
-            cp autoconf/svn2html.css doc/html/; \
-	  fi; \
-	fi
-endif
-
 # Update ChangeLog Files and Generate Doxygen Documentation
-doxygen: ChangeLog ChangeLog-HTML doxygen-doc
+doxygen: ChangeLog doxygen-doc
 
 deb: 
 	dpkg-buildpackage -rfakeroot -us -uc
@@ -113,7 +93,7 @@ gen_sccpconf_install:
 isntall: install
 
 rmcoverage:
-	rm -rf coverage;
+	[ -d coverage ] && rm -rf coverage;
 
 coverage: src/.libs/chan_sccp.so
 	mkdir coverage; \

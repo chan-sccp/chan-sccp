@@ -8,8 +8,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
  */
 #ifndef __PBX_IMPL_C
 #define __PBX_IMPL_C
@@ -26,7 +24,11 @@
 #include "sccp_indicate.h"
 #include "sccp_socket.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
+#include <asterisk/callerid.h>
+#include <asterisk/module.h>		// ast_update_use_count
+#include <asterisk/causes.h>		// AST_CAUSE_NORMAL_CLEARING
 
 /*!
  * \brief SCCP Structure to pass data to the pbx answer thread

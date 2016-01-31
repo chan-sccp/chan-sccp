@@ -5,15 +5,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  * \since       2009-09-02
- *
- * $Date$
- * $Revision$  
  */
 #pragma once
-
-//#include <config.h>
-//#include "common.h"
-//#include "chan_sccp.h"
 
 #define NUMBER_OF_EVENT_TYPES 10
 
@@ -24,6 +17,8 @@
 #define sccp_event_retain(_x) 		({ast_assert(_x != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #define sccp_event_release(_x) 		({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #endif
+
+__BEGIN_EXTERN__
 /*!
  * \brief SCCP Event Structure
  */
@@ -84,4 +79,5 @@ void sccp_event_module_start(void);
 void sccp_event_module_stop(void);
 
 void sccp_event_fire(const sccp_event_t * event);
+__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

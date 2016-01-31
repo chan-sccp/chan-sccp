@@ -13,9 +13,6 @@
  * When to use: Only methods directly related to sccp devices should be stored in this source file.
  * Relations:   SCCP Device -> SCCP DeviceLine -> SCCP Line
  *              SCCP Line -> SCCP ButtonConfig -> SCCP Device
- *
- * \date        $Date$
- * \version     $Revision$
  */
 
 #include <config.h>
@@ -27,14 +24,20 @@
 #include "sccp_config.h"
 #include "sccp_actions.h"
 #include "sccp_features.h"
-//#include "sccp_featureButton.h"
 #include "sccp_socket.h"
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
-//#include "sccp_rtp.h"
 #include "sccp_devstate.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
+#ifdef HAVE_PBX_ACL_H				// AST_SENSE_ALLOW
+#  include <asterisk/acl.h>
+#endif
+#if defined(CS_AST_HAS_EVENT) && defined(HAVE_PBX_EVENT_H) 	// ast_event_subscribe
+#  include <asterisk/event.h>
+#endif
+
 int __sccp_device_destroy(const void *ptr);
 void sccp_device_removeFromGlobals(devicePtr device);
 int sccp_device_destroy(const void *ptr);

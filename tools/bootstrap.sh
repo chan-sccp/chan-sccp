@@ -55,6 +55,7 @@ echo "   automake:   $(automake --version | head -1)"
 #chmod +x version.sh
 rm -rf autom4te.cache
 
+touch autoconf/config.rpath
 aclocal $AL_OPTS
 autoconf $AC_OPTS
 autoheader $AH_OPTS

@@ -7,15 +7,21 @@
  */
 #pragma once
 
+#if defined(__cplusplus) || defined(c_plusplus)
+#  define __BEGIN_EXTERN__ 		\
+extern "C" {
+#  define __END_EXTERN__ }		\
+}
+#else
+#  define __BEGIN_EXTERN__ 
+#  define __END_EXTERN__ 
+#endif
+
 #define ENUMMACRO_GENHEADER	1
 #define ENUMMACRO_GENFUNCTION	2
 #define ENUMMACRO_SPARSE 	1
 #define ENUMMACRO_INCREMENTAL 	0
 
-#if defined(__cplusplus) || defined(c_plusplus)
-extern "C" {
-/* *INDENT-OFF* */
-#endif
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -44,6 +50,8 @@ extern "C" {
 #if HAVE_STDBOOL_H
 #include <stdbool.h>
 #endif
+
+__BEGIN_EXTERN__
 
 /* global types */
 #if defined(HAVE_UNALIGNED_BUSERROR)										// for example sparc64
@@ -121,6 +129,8 @@ typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses T
 typedef void sk_func(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 typedef int (*sccp_sched_cb) (const void *data);
 
+__END_EXTERN__
+
 #include "sccp_enum.h"
 #include "sccp_dllists.h"
 #include "sccp_threadpool.h"
@@ -131,8 +141,4 @@ typedef int (*sccp_sched_cb) (const void *data);
 #include "pbx_impl/pbx_impl.h"
 #include "sccp_callinfo.h"
 
-#if defined(__cplusplus) || defined(c_plusplus)
-/* *INDENT-ON* */
-}
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

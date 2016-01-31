@@ -9,8 +9,6 @@
  * \remarks     Purpose:        SCCP Hint
  *              When to use:    Does the business of hint status
  *
- * $Date$
- * $Revision$
  */
 
 /*!
@@ -34,7 +32,11 @@
 #include "sccp_utils.h"
 #include "sccp_indicate.h"											// only for SCCP_CHANNELSTATE_Idling
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
+#if defined(CS_AST_HAS_EVENT) && defined(HAVE_PBX_EVENT_H) 	// ast_event_subscribe
+#  include <asterisk/event.h>
+#endif
 
 /* ========================================================================================================================= Struct Definitions */
 /*!

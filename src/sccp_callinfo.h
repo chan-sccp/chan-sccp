@@ -10,7 +10,7 @@
  * $revision$  
  */
 #pragma once
-
+__BEGIN_EXTERN__
 struct sccp_callinfo;
 sccp_callinfo_t __attribute__ ((malloc)) *const sccp_callinfo_ctor(uint8_t callInstance);
 sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t * ci);
@@ -52,4 +52,5 @@ int sccp_callinfo_setLastRedirectingParty(sccp_callinfo_t * const ci, const char
 /* debug */
 boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str_t ** const buf);
 void sccp_callinfo_print2log(const sccp_callinfo_t * const ci, const char *const header);
+__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

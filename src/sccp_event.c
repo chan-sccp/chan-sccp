@@ -5,9 +5,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  * \since       2009-09-02
- * 
- * $Date$
- * $Revision$  
  */
 
 /*!
@@ -23,7 +20,7 @@
 #include "sccp_device.h"
 #include "sccp_line.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
++SCCP_FILE_VERSION(__FILE__, "");
 
 void sccp_event_destroy(sccp_event_t * event);
 

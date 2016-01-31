@@ -16,11 +16,11 @@ BEGIN {
         #
 	print "/*" > out_header_file
 	print " * Auto-Generated File, do not modify.  Changes will be destroyed." > out_header_file 
-        print " * $Date: $" > out_header_file
-        print " * $Revision: $" > out_header_file
+	# date = (date)
+	# print " * Date: " $date > out_header_file
 	print " */" >out_header_file 
-	print "#ifndef __SCCP_ENUM_GUARD_H" >out_header_file
-	print "#define __SCCP_ENUM_GUARD_H" >out_header_file 
+	print "#pragma once" >out_header_file
+	print "__BEGIN_EXTERN__" >out_header_file 
 	print "typedef uint32_t (*sccp_enum_str2intval_t)(const char *lookup_str);" > out_header_file
 	print "typedef const char *(*sccp_enum_all_entries_t)(void);" > out_header_file
 	
@@ -29,8 +29,8 @@ BEGIN {
         #
 	print "/*" > out_source_file
 	print " * Auto-Generated File, do not modify. Changes will be destroyed." > out_source_file
-        print " * $Date: $" > out_source_file
-        print " * $Revision: $" > out_source_file
+	# date = (date)
+	# print " * Date: " $date > out_header_file
 	print " */" > out_source_file
 	#print "#define ARRAY_LEN(a) (size_t) (sizeof(a) / sizeof(0[a]))" >out_source_file
 	print "#include <config.h>" > out_source_file
@@ -389,5 +389,5 @@ codeSkip == 1			{ next }
 
 END {
 	# add guard
-	print "#endif /* __SCCP_ENUM_GUARD_H */" > out_header_file
+	print "__END_EXTERN__" >out_header_file 
 }

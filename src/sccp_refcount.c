@@ -3,9 +3,6 @@
  * \brief       SCCP Refcount Class
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- * 
- * $Date$
- * $Revision$  
  */
 
 /*!
@@ -56,7 +53,7 @@
 #include "sccp_line.h"
 #include "sccp_channel.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
 
 //nb: SCCP_HASH_PRIME defined in config.h, default 563
 #define SCCP_SIMPLE_HASH(_a) (((unsigned long)(_a)) % SCCP_HASH_PRIME)
@@ -655,6 +652,7 @@ gcc_inline void sccp_refcount_autorelease(void *ptr)
 }
 
 #if CS_TEST_FRAMEWORK
+#include <asterisk/test.h>
 #define NUM_LOOPS 50
 #define NUM_OBJECTS 5000
 #define NUM_THREADS 10
@@ -740,36 +738,36 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	char id[23];
 	enum ast_test_result_state test_result[NUM_THREADS] = {AST_TEST_PASS};
 
-	ast_test_status_update(test, "Executing chan-sccp-b refcount tests...\n");
-	ast_test_status_update(test, "Create %d objects to work on...\n", NUM_OBJECTS);
+	pbx_test_status_update(test, "Executing chan-sccp-b refcount tests...\n");
+	pbx_test_status_update(test, "Create %d objects to work on...\n", NUM_OBJECTS);
 	for (loop = 0; loop < NUM_OBJECTS; loop++) {
 		snprintf(id, sizeof(id), "%d/%d", loop, (unsigned int) pthread_self());
 		object[loop] = (struct refcount_test *) sccp_refcount_object_alloc(sizeof(struct refcount_test), SCCP_REF_TEST, id, refcount_test_destroy);
-		ast_test_validate(test, object[loop] != NULL);
+		pbx_test_validate(test, object[loop] != NULL);
 		object[loop]->id = loop;
 		object[loop]->threadid = (unsigned int) pthread_self();
 		object[loop]->str = pbx_strdup(id);
-		//ast_test_status_update(test, "created %d'\n", object[loop]->id);
+		//pbx_test_status_update(test, "created %d'\n", object[loop]->id);
 	}
 	sleep(1);
 
-	ast_test_status_update(test, "Run multithreaded retain/release/destroy at random in %d loops and %d threads...\n", NUM_LOOPS, NUM_THREADS);
+	pbx_test_status_update(test, "Run multithreaded retain/release/destroy at random in %d loops and %d threads...\n", NUM_LOOPS, NUM_THREADS);
 	for (thread = 0; thread < NUM_THREADS; thread++) {
 		pbx_pthread_create(&t[thread], NULL, refcount_test_thread, &test_result[thread]);
 	}
 	for (thread = 0; thread < NUM_THREADS; thread++) {
 		pthread_join(t[thread], NULL);
-		ast_test_validate(test, test_result[thread] == AST_TEST_PASS);
-		ast_test_status_update(test, "thread %d finished with %s\n", thread, test_result[thread] == AST_TEST_PASS ? "Success" : "Failure");
+		pbx_test_validate(test, test_result[thread] == AST_TEST_PASS);
+		pbx_test_status_update(test, "thread %d finished with %s\n", thread, test_result[thread] == AST_TEST_PASS ? "Success" : "Failure");
 	}
 	sleep(1);
 
-	ast_test_status_update(test, "Finalize test / cleanup...\n");
+	pbx_test_status_update(test, "Finalize test / cleanup...\n");
 	for (loop = 0; loop < NUM_OBJECTS; loop++) {
 		if (object[loop]) {
-			//ast_test_status_update(test, "Final Release %d, thread: %d\n", object[loop]->id, (unsigned int) pthread_self());
+			//pbx_test_status_update(test, "Final Release %d, thread: %d\n", object[loop]->id, (unsigned int) pthread_self());
 			object[loop] = sccp_refcount_release(object[loop], __FILE__, __LINE__, __PRETTY_FUNCTION__);
-			ast_test_validate(test, object[loop] == NULL);
+			pbx_test_validate(test, object[loop] == NULL);
 		}
 	}
 	sleep(1);
@@ -781,7 +779,7 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 		if (objects[loop]) {
 			SCCP_RWLIST_RDLOCK(&(objects[loop])->refCountedObjects);
 			SCCP_RWLIST_TRAVERSE(&(objects[loop])->refCountedObjects, obj, list) {
-				ast_test_validate(test, obj->type != SCCP_REF_TEST);
+				pbx_test_validate(test, obj->type != SCCP_REF_TEST);
 			}
 			SCCP_RWLIST_UNLOCK(&(objects[loop])->refCountedObjects);
 		}

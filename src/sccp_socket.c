@@ -8,8 +8,6 @@
  * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
  */
 
 #include <netinet/in.h>
@@ -20,7 +18,8 @@
 #include "sccp_utils.h"
 #include "sccp_cli.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
 #ifndef CS_USE_POLL_COMPAT
 #include <poll.h>
 #include <sys/poll.h>
@@ -32,6 +31,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #define sccp_socket_poll pbx_poll
 #else
 #define sccp_socket_poll poll
+#endif
+#ifdef HAVE_PBX_ACL_H				// AST_SENSE_ALLOW
+#  include <asterisk/acl.h>
 #endif
 #include <asterisk/cli.h>
 sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);

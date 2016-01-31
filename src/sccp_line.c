@@ -8,8 +8,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
  */
 
 #include <config.h>
@@ -22,7 +20,8 @@
 #include "sccp_config.h"
 #include "sccp_mwi.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
 static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptionId, int onoff);
 int __sccp_line_destroy(const void *ptr);
 int __sccp_lineDevice_destroy(const void *ptr);

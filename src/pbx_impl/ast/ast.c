@@ -8,20 +8,38 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
  * $Revision$  
  */
 #include <config.h>
-#include "../../common.h"
-#include "../../sccp_device.h"
-#include "../../sccp_channel.h"
-#include "../../sccp_utils.h"
-#include "../../sccp_indicate.h"
-#include "../../sccp_socket.h"
-#include "../../sccp_pbx.h"
-#include "../../sccp_line.h"
+#include "common.h"
+#include "sccp_device.h"
+#include "sccp_channel.h"
+#include "sccp_utils.h"
+#include "sccp_indicate.h"
+#include "sccp_socket.h"
+#include "sccp_pbx.h"
+#include "sccp_line.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
+#include <asterisk.h>
+#ifdef HAVE_PBX_ACL_H				// ast_str2cos ast_str2tos
+#  include <asterisk/acl.h>
+#endif
+#include <asterisk/causes.h>
+#ifdef HAVE_PBX_APP_H
+#  include <asterisk/app.h>
+#endif
+#include <asterisk/callerid.h>
+#include <asterisk/musiconhold.h>
+#include <asterisk/astdb.h>
+#ifdef HAVE_PBX_FEATURES_H
+#  include <asterisk/features.h>
+#endif
+#if ASTERISK_VERSION_GROUP >= 112
+#include <asterisk/features_config.h>
+#include <asterisk/pickup.h>
+#endif
 
 /*
  * \brief itterate through locked pbx channels
