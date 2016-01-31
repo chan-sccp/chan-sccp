@@ -26,7 +26,7 @@
 #include "sccp_rtp.h"
 #include "sccp_socket.h"
 #include "ast112.h"
-#include "ast112_announce.h"
+#include "ast_announce.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 

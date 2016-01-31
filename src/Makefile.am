@@ -10,7 +10,35 @@ include 		$(top_srcdir)/src//Makefile.inc.am
 SUBDIRS			= pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) .
 DIST_SUBDIRS		= pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast_announce .
 EXTRA_DIST 		= sccp_enum.in sccp_config_entries.hh
+.PHONY: 		.revision gen_enum sccp_enum.h sccp_enum.c
 
+# generated files
+revision.h: 		.revision
+			@cd "@abs_top_srcdir@/src"
+
+.revision:
+			@cd "@abs_top_srcdir@/src";														\
+			if [ ! -f @abs_builddir@/revision.h ] || [ ! -z "`find @abs_builddir@/revision.h -mmin +60`" ] ; then					\
+				echo "  REV      revision.h";													\
+				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/src/revision.h" 2>/dev/null;	\
+			fi
+
+sccp_enum.h:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk stamp-h1
+			@if [ sccp_enum.in -nt $@ ] || [ @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ ]; then						\
+				$(MAKE) gen_enum;														\
+			fi
+
+sccp_enum.c:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk stamp-h1
+			@if [ sccp_enum.in -nt $@ ] || [ @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ ]; then						\
+				$(MAKE) gen_enum;														\
+			fi
+
+gen_enum:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk stamp-h1
+			echo "  GEN      sccp_enum.h";														\
+			echo "  GEN      sccp_enum.c";														\
+			@$(GAWK) "@abs_top_srcdir@/tools/gen_sccp_enum.awk" @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
+
+# libsccp.la and chan_sccp.so
 noinst_LTLIBRARIES	= libsccp.la
 csmod_LTLIBRARIES	= chan_sccp.la
 
@@ -18,23 +46,23 @@ noinst_HEADERS		= chan_sccp.h		sccp_actions.h		sccp_cli.h		sccp_devstate.h		\
 			  sccp_featureButton.h	sccp_line.h		sccp_refcount.h		sccp_utils.h		\
 			  common.h		sccp_appfunctions.h	sccp_cli_table.h	sccp_dllists.h		\
 			  sccp_features.h	sccp_management.h	sccp_rtp.h		sccp_vector.h		\
-			  sccp_atomic.h		sccp_conference.h	sccp_enum.h		sccp_threadpool.h	\
+			  sccp_atomic.h		sccp_conference.h	sccp_threadpool.h	\
 			  sccp_hint.h		sccp_mwi.h		sccp_socket.h	 	sccp_callinfo.h		\
 			  sccp_config.h		sccp_indicate.h		sccp_pbx.h		sccp_softkeys.h 	\
 			  revision.h		sccp_channel.h		sccp_device.h		sccp_event.h		\
-			  sccp_labels.h		sccp_protocol.h
+			  sccp_labels.h		sccp_protocol.h		sccp_enum.h
 
-libsccp_la_SOURCES	= sccp_enum.c 		sccp_callinfo.c 	sccp_channel.c		sccp_device.c		\
+libsccp_la_SOURCES	= sccp_callinfo.c 	sccp_channel.c		sccp_device.c		\
 			  sccp_indicate.c 	sccp_pbx.c 		sccp_socket.c		sccp_threadpool.c	\
 			  sccp_softkeys.c	sccp_featureButton.c	sccp_line.c		sccp_utils.c		\
 			  sccp_actions.c	sccp_cli.c		sccp_features.c 	sccp_config.c		\
 			  sccp_hint.c 		sccp_refcount.c		sccp_management.c	sccp_mwi.c		\
 			  sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
-			  sccp_devstate.c	sccp_event.c
-				
+			  sccp_devstate.c	sccp_event.c		sccp_enum.c
+			  
 chan_sccp_la_SOURCES	= chan_sccp.c
 
-libsccp_la_DEPENDENCIES = revision.h
+libsccp_la_DEPENDENCIES = revision.h sccp_enum.h sccp_enum.c
 libsccp_la_CFLAGS       = $(AM_CFLAGS)
 libsccp_la_LDFLAGS	= $(AM_LDFLAGS)
 
@@ -42,28 +70,5 @@ chan_sccp_la_LIBADD	=  libsccp.la pbx_impl/libpbximpl.la $(PBX_COND_LIBADD) $(PB
 chan_sccp_la_DEPENDENCIES = revision.h $(chan_sccp_la_LIBADD)
 chan_sccp_la_CFLAGS     = $(AM_CFLAGS) -DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self -DAST_MODULE=\"chan_sccp\"
 chan_sccp_la_LDFLAGS	= $(AM_LDFLAGS) $(PBX_LDFLAGS) $(SANITIZE_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS) $(LIBBFD) $(LIBEXECINFO) $(LTLIBICONV)
-chan_sccp_la_LDFLAGS	+= -avoid-version -module
+chan_sccp_la_LDFLAGS	+= -avoid-version -module -ldl -lm -s -rdynamic
 
-.PHONY: 		.revision gen_enum
-revision.h: 		.revision
-			@cd "@abs_top_srcdir@/src"
-
-.revision:
-			@cd "@abs_top_srcdir@/src";													\
-			if [ ! -f @abs_builddir@/revision.h ] || [ ! -z "`find @abs_builddir@/revision.h -mmin +60`" ] ; then				\
-				echo "  REV      revision.h";												\
-				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/revision.h" 2>/dev/null;	\
-			fi
-
-sccp_enum.h: 		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-			@if [ sccp_enum.in -nt $@ ] || [ @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ ]; then				\
-				$(MAKE) gen_enum;												\
-			fi
-
-gen_enum: 		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-			@if [ "$(GAWK)" != "No" ]; then 											\
-				echo "  GEN      sccp_enum.h";											\
-				echo "  GEN      sccp_enum.c";											\
-				$(GAWK) -v out_header_file="@abs_builddir@/src/sccp_enum.h" -v out_source_file="@abs_builddir@/src/sccp_enum.c" -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" @abs_top_srcdir@/src/sccp_enum.in >/dev/null ;	\
-			fi
-			

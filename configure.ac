@@ -117,7 +117,8 @@ dnl AC_SUBST([PBXVER_COND_ANNOUNCE_SUBDIR])
 dnl AC_SUBST([PBXVER_COND_ANNOUNCE_LIBADD])
 
 CONFIGURE_PART([Generating Configuration and Makefiles])
-AC_CONFIG_COMMANDS([tools/autorevision], [cd ${ac_abs_top_srcdir};${ac_abs_top_srcdir}/tools/autorevision -t h -o ${ac_abs_top_srcdir}/.revision > ${ac_abs_top_builddir}/src/revision.h 2>/dev/null])
+AC_CONFIG_COMMANDS([tools/autorevision], [${ac_abs_top_srcdir}/tools/autorevision -t h -o ${ac_abs_top_srcdir}/.revision > ${ac_abs_top_builddir}/src/revision.h 2>/dev/null])
+AC_CONFIG_COMMANDS([gen_enum], [cd ${ac_abs_top_builddir}/src; gawk -f "${ac_abs_top_srcdir}/tools/gen_sccp_enum.awk" ${ac_abs_top_srcdir}/src/sccp_enum.in])
 AC_CONFIG_FILES([
    Makefile
    README

@@ -12,7 +12,7 @@
 #pragma once
 
 #include <config.h>
-#include "pbx_impl/ast/ast112_announce.h"
+#include "ast_announce.h"
 
 #undef pbx_channel_ref
 #define pbx_channel_ref ast_channel_ref
