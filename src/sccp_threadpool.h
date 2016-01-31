@@ -7,8 +7,6 @@
  * \note        Based on the work of Johan Hanssen Seferidis
  *              Library providing a threading pool where you can add work. 
  * \since       2009-01-16
- *
- * $Revision: 2130 $  
  */
 #pragma once
 //#include <config.h>

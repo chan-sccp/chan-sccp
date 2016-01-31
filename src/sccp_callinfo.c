@@ -24,7 +24,7 @@
 #include "sccp_device.h"
 #include <stdarg.h>
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
 
 #include <asterisk/callerid.h>
 

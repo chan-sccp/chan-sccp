@@ -1,4 +1,3 @@
-
 /*!
  * \file        sccp_conference.c
  * \brief       SCCP Conference for asterisk 10

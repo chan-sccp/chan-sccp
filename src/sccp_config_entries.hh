@@ -4,9 +4,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  * \remarks     Only paramaters directly related to chan-sccp configuration should be stored in this source file.
- *
- * $Date$
- * $Revision$
  */
 
 /* dyn config */

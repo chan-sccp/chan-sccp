@@ -3,9 +3,6 @@
  * \brief       SCCP RefCount Header
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- *
- * $Date$
- * $Revision$
  */
 #pragma once
 

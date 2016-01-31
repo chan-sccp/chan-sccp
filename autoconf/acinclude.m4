@@ -1,11 +1,8 @@
-
 dnl FILE: acinclude.m4
 dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
 dnl CREATED BY: Created by Diederik de Groot
 dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 dnl          See the LICENSE file at the top of the source tree.
-dnl DATE: $Date: $
-dnl REVISION: $Revision: $
 
 ## ------------------##
 ## CS_Check_PBX	(DdG)##
