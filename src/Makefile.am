@@ -5,7 +5,7 @@
 # 			See the LICENSE file at the top of the source tree.
 # NOTE:			Process this file with automake to produce a makefile.in script.
 
-include 		$(top_srcdir)/src//Makefile.inc.am
+include 		$(top_srcdir)/src/Makefile.inc.am
 
 SUBDIRS			= pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) .
 DIST_SUBDIRS		= pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast_announce .
