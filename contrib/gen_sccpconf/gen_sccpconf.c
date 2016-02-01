@@ -16,9 +16,9 @@
 #include <ctype.h>
 #include <time.h>
 #include <sys/time.h>
+#include "gen_sccpconf.h"
 #include "../../src/config.h"
 #include "../../src/sccp_enum.h"
-#include "gen_sccpconf.h"
 
 #define CONFIG_TYPE_ALL 0
 #define CONFIG_TYPE_DEFAULTS 1
