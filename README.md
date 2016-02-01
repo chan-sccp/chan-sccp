@@ -1,7 +1,9 @@
 ## Welcome to Chan_SCCP
 Travis Continues Integration Status: [![Travis](http://img.shields.io/travis/marcelloceschia/chan-sccp-b.svg?style=flat)](https://travis-ci.org/marcelloceschia/chan-sccp-b)
+Coverity: [![Coverity](https://img.shields.io/coverity/scan/7795.svg)(https://scan.coverity.com/projects/dkgroot-chan-sccp-b)] 
 
 [![Download Chan-SCCP channel driver for Asterisk](https://sourceforge.net/sflogo.php?type=8&group_id=186378)](https://sourceforge.net/p/chan-sccp-b/): [![Download Chan-SCCP channel driver for Asterisk](https://img.shields.io/sourceforge/dt/chan-sccp-b.svg)](https://sourceforge.net/projects/chan-sccp-b/files/latest/download)
+
 
 Chan_SCCP is free software. Please see the file COPYING for details.
 For documentation, please see the files in the doc subdirectory.
