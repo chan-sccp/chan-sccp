@@ -425,7 +425,6 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = gnu 
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov
-#AM_CFLAGS      		+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall -ldl -lm -s -rdynamic
 AM_CFLAGS = $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	$(COVERAGE_CFLAGS) $(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) \
 	$(LIBCURL_CFLAGS) $(ax_warn_cflags_variable) -I. \
