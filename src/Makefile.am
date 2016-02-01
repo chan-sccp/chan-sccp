@@ -18,9 +18,9 @@ revision.h: 		.revision
 
 .revision:
 			@cd "@abs_top_srcdir@/src";														\
-			if [ ! -f @abs_builddir@/revision.h ] || [ ! -z "`find @abs_builddir@/revision.h -mmin +60`" ] ; then					\
+			if [ ! -f @abs_top_builddir@/src/revision.h ] || [ ! -z "`find @abs_builddir@/revision.h -mmin +60`" ] ; then					\
 				echo "  REV      revision.h";													\
-				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/src/revision.h" 2>/dev/null;	\
+				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_top_builddir@/src/revision.h" 2>/dev/null;	\
 			fi
 
 sccp_enum.h:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
