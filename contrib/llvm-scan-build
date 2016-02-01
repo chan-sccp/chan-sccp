@@ -4,7 +4,7 @@ rm -rf config.cache scanbuild-output
 
 VER=3.8
 export CCC_CC="/usr/bin/clang-${VER}"
-export ANALYZER="/usr/share/clang/scan-build-${VER}/ccc-analyzer"
+export ANALYZER="/usr/share/clang/scan-build-${VER}/libexec/ccc-analyzer"
 export CC="/usr/bin/clang-${VER}"
 export CFLAGS=" -g --coverage -DAST_DEVMODE -DSCANBUILD" 
 export SCANBUILD_FLAGS="-maxloop 10 
@@ -46,19 +46,15 @@ export SCANBUILD_FLAGS="-maxloop 10
 #	-enable-checker security.insecureAPI.strcpy \
 
 if [ -z "`grep fblocks ${ANALYZER}`" ];then
-	# fix analyzer
+	# patch/fix analyzer
 	sudo cp ${ANALYZER} ${ANALYZER}.bak
 	sudo sed 	-e "s!'-miphoneos-version-min' => 0!'-miphoneos-version-min' => 0, '-fblocks' => 0!g" \
 			-e "s!'--serialize-diagnostics' => 1!'--serialize-diagnostics' => 1, '-fblocks' => 0!g" \
 			-i ${ANALYZER}
 fi
-/usr/bin/scan-build-${VER} --use-cc="${CC}" \
-	-disable-checker deadcode.DeadStores \
-	-o scanbuild-output \
-	./configure --without-ccache  --enable-video --enable-video-layer --enable-devdoc \
-			--enable-conference --enable-advanced-functions --enable-distributed-devicestate \
-			CFLAGS="${CFLAGS}" $*
-/usr/bin/scan-build-${VER} --use-cc="${CC}" \
-	-disable-checker deadcode.DeadStores \
-	-o scanbuild-output \
-	make
+/usr/bin/scan-build-${VER} --use-cc="${CC}" -disable-checker deadcode.DeadStores -o scanbuild-output \
+	./configure --without-ccache  --enable-video --enable-devdoc \
+			--enable-conference --enable-advanced-functions --enable-distributed-devicestate $* CFLAGS="${CFLAGS}" 
+if [ $? == 0 ]; then
+	/usr/bin/scan-build-${VER} --use-cc="${CC}" -disable-checker deadcode.DeadStores -o scanbuild-output make
+fi
