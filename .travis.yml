@@ -5,11 +5,14 @@ compiler:
  - clang
  - gcc
 env:
+  global:
+    # COVERITY_SCAN_TOKEN
+    - secure: "JDdGOmj9jw2-oYEssxTABw"
 # - REPOS=lucid
- - REPOS=precise
- - REPOS=trusty
- - REPOS=trusty13
- - REPOS=utopic
+  - REPOS=precise
+  - REPOS=trusty
+  - REPOS=trusty13
+  - REPOS=utopic
 # - REPOS=vivid
 
 # Install Required Devel Packages
@@ -50,3 +53,14 @@ notifications:
 #  exclude:
 #      - os: osx
 #        compiler: gcc
+
+addons:
+  coverity_scan:
+    project:
+      name: dkgroot/chan-sccp-b
+      version: 4.3
+      description: Chan-sccp-b
+    notification_email: info@talon.nl[B
+    build_command_prepend: ./configure
+    build_command: make
+    branch_pattern: coverity_scan
