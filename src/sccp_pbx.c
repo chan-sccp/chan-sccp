@@ -105,200 +105,6 @@ FINAL:
  *
  * \note called with c retained
  */
-#if !CS_EXPERIMENTAL
-/* old behaviour */
-int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
-{
-	if (!c) {
-		return -1;
-	}
-
-	boolean_t hasSession = FALSE;
-
-	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(c->line);
-
-	if (l) {
-		sccp_linedevices_t *linedevice = NULL;
-
-		SCCP_LIST_LOCK(&l->devices);
-		c->subscribers = SCCP_LIST_GETSIZE(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			if (linedevice->device->session) {
-				hasSession = TRUE;
-			}
-		}
-		SCCP_LIST_UNLOCK(&l->devices);
-		if (!hasSession) {
-			pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no device connected to this line or device has no valid session\n", (c->callid));
-			return -1;
-		}
-	} else {
-		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no line\n", (c->callid));
-		return -1;
-	}
-
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", l->name, iPbx.getChannelName(c));
-
-	/* if incoming call limit is reached send BUSY */
-	if ((l->incominglimit && SCCP_RWLIST_GETSIZE(&l->channels) > l->incominglimit)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
-		pbx_setstate(c->owner, AST_STATE_BUSY);
-		iPbx.queue_control(c->owner, AST_CONTROL_BUSY);
-		return 0;
-	}
-
-	/* Reinstated this call instead of the following lines */
-	char cid_name[StationMaxNameSize] = {0};
-	char cid_num[StationMaxDirnumSize] = {0};
-	char suffixedNumber[StationMaxDirnumSize] = {0};
-	sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
-
-	sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
-	sccp_callinfo_getter(ci, 
-		SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
-		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
-		SCCP_CALLINFO_PRESENTATION, &presentation, 
-		SCCP_CALLINFO_KEY_SENTINEL);
-	sccp_copy_string(suffixedNumber, cid_num, sizeof(suffixedNumber));
-	//! \todo implement dnid, ani, ani2 and rdnis
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk callerid='%s <%s>'\n", cid_name, cid_num);
-
-	/* Set the channel callingParty Name and Number, called Party Name and Number, original CalledParty Name and Number, Presentation */
-	if (GLOB(recorddigittimeoutchar)) {
-		/* The hack to add the # at the end of the incoming number
-		   is only applied for numbers beginning with a 0,
-		   which is appropriate for Germany and other countries using similar numbering plan.
-		   The option should be generalized, moved to the dialplan, or otherwise be replaced. */
-		/* Also, we require an option whether to add the timeout suffix to certain
-		   enbloc dialed numbers (such as via 7970 enbloc dialing) if they match a certain pattern.
-		   This would help users dial from call history lists on other phones, which do not have enbloc dialing,
-		   when using shared lines. */
-		int length = sccp_strlen(cid_num);
-		if (length && (length + 2  < StationMaxDirnumSize) && ('\0' == cid_num[0])) {
-			suffixedNumber[length + 0] = GLOB(digittimeoutchar);
-			suffixedNumber[length + 1] = '\0';
-		}
-		/* Set the channel calledParty Name and Number 7910 compatibility */
-	}
-	iPbx.set_connected_line(c, l->cid_num, l->cid_name, AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN);
-
-	//! \todo implement dnid, ani, ani2 and rdnis
-	sccp_callerid_presentation_t pbx_presentation = iPbx.get_callerid_presentation ? iPbx.get_callerid_presentation(c->owner) : SCCP_CALLERID_PRESENTATION_SENTINEL;
-	if (	(!sccp_strequals(suffixedNumber, cid_num)) || 
-		(pbx_presentation != SCCP_CALLERID_PRESENTATION_SENTINEL && pbx_presentation != presentation)
-	) {
-		sccp_callinfo_setter(ci, 
-			SCCP_CALLINFO_CALLINGPARTY_NUMBER, (!sccp_strlen_zero(suffixedNumber) ? suffixedNumber : NULL), 
-			SCCP_CALLINFO_PRESENTATION, (pbx_presentation != SCCP_CALLERID_PRESENTATION_SENTINEL) ? pbx_presentation : presentation,
-			SCCP_CALLINFO_KEY_SENTINEL);
-	}
-	sccp_channel_display_callInfo(c);
-
-	if (!c->ringermode) {
-		c->ringermode = SKINNY_RINGTYPE_OUTSIDE;
-	}
-	boolean_t isRinging = FALSE;
-	boolean_t hasDNDParticipant = FALSE;
-
-	sccp_linedevices_t *linedevice = NULL;
-	sccp_channelstate_t previousstate = c->previousChannelState;
-
-	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-		/* do we have cfwd enabled? */
-		//pbx_log(LOG_NOTICE, "%s: BYPASS_CFWD: %s\n", linedevice->device->id, pbx_builtin_getvar_helper(c->owner, "BYPASS_CFWD"));
-		if (sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "BYPASS_CFWD"))) {
-			if (	linedevice->cfwdAll.enabled || 
-				(linedevice->cfwdBusy.enabled && (sccp_device_getDeviceState(linedevice->device) != SCCP_DEVICESTATE_ONHOOK || sccp_device_getActiveAccessory(linedevice->device)))
-			) {
-				pbx_log(LOG_NOTICE, "%s: initialize cfwd%s for line %s\n", linedevice->device->id, (linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : "None")), l->name);
-				if (sccp_channel_forward(c, linedevice, linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : linedevice->cfwdBusy.number) == 0) {
-					sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-					sccp_channel_send_callinfo(linedevice->device, c);
-					isRinging = TRUE;
-				}
-				c->subscribers--; 
-				continue;
-			}
-		}
-
-		if (!linedevice->device->session) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: line device has no session\n", DEV_ID_LOG(linedevice->device));
-			c->subscribers--; 
-			continue;
-		}
-
-		/* check if c->subscriptionId.number is matching deviceSubscriptionID */
-		/* This means that we call only those devices on a shared line
-		   which match the specified subscription id in the dial parameters. */
-		if (!sccp_util_matchSubscriptionId(c, linedevice->subscriptionId.number)) {
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: device does not match subscriptionId.number c->subscriptionId.number: '%s', deviceSubscriptionID: '%s'\n", DEV_ID_LOG(linedevice->device), c->subscriptionId.number, linedevice->subscriptionId.number);
-			c->subscribers--; 
-			continue;
-		}
-
-		/* reset channel state (because we are offering the same call to multiple (shared) lines)*/
-		c->previousChannelState = previousstate;
-		AUTO_RELEASE sccp_channel_t *active_channel = sccp_device_getActiveChannel(linedevice->device);
-
-		if (active_channel) {
-			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_CALLWAITING);
-
-			/* display the new call on prompt */
-			AUTO_RELEASE sccp_linedevices_t *activeChannelLinedevice = sccp_linedevice_find(linedevice->device, active_channel->line);
-			if (activeChannelLinedevice) {
-				char prompt[100];
-				snprintf(prompt, sizeof(prompt), "%s: %s: %s", active_channel->line->name, SKINNY_DISP_FROM, cid_num);
-				sccp_dev_displayprompt(linedevice->device, activeChannelLinedevice->lineInstance, active_channel->callid, prompt, GLOB(digittimeout));
-			}
-			isRinging = TRUE;
-		} else {
-			/** check if ringermode is not urgent and device enabled dnd in reject mode */
-			if (SKINNY_RINGTYPE_URGENT != c->ringermode && linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: DND active on line %s, returning Busy\n", linedevice->device->id, linedevice->line->name);
-				hasDNDParticipant = TRUE;
-				continue;
-			}
-			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Ringing %sLine: %s on device:%s using channel:%s, ringermode:%s\n", linedevice->device->id, SCCP_LIST_GETSIZE(&l->devices) > 1 ? "Shared" : "",linedevice->line->name, linedevice->device->id, c->designator, skinny_ringtype2str(c->ringermode));
-			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
-			isRinging = TRUE;
-			if (c->autoanswer_type) {
-				struct sccp_answer_conveyor_struct *conveyor = sccp_calloc(1, sizeof(struct sccp_answer_conveyor_struct));
-
-				if (conveyor) {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", DEV_ID_LOG(linedevice->device), iPbx.getChannelName(c));
-					conveyor->callid = c->callid;
-					conveyor->linedevice = sccp_linedevice_retain(linedevice);
-
-					sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_pbx_call_autoanswer_thread, (void *) conveyor);
-				}
-			}
-		}
-	}
-	SCCP_LIST_UNLOCK(&l->devices);
-
-	//sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: isRinging:%d, hadDNDParticipant:%d\n", c->designator, isRinging, hasDNDParticipant);
-	if (isRinging) {
-		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_RINGING);
-		iPbx.queue_control(c->owner, AST_CONTROL_RINGING);
-	} else if (hasDNDParticipant) {
-		pbx_setstate(c->owner, AST_STATE_BUSY);
-		iPbx.queue_control(c->owner, AST_CONTROL_BUSY);
-	} else {
-		iPbx.queue_control(c->owner, AST_CONTROL_CONGESTION);
-	}
-
-	/* set linevariables */
-	PBX_VARIABLE_TYPE *v = ((l) ? l->variables : NULL);
-
-	while (c->owner && !pbx_check_hangup(c->owner) && l && v) {
-		pbx_builtin_setvar_helper(c->owner, v->name, v->value);
-		v = v->next;
-	}
-
-	return isRinging != TRUE;
-}
-#else
 // improved sharedline handling
 // - calculate c->subscribers correctly			(using when handling sccp_softkey_onhook, to define behaviour)
 // - handle dnd and callforward after calculating c->subscribers
@@ -467,13 +273,14 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 			isRinging = TRUE;
 			if (c->autoanswer_type) {
 				struct sccp_answer_conveyor_struct *conveyor = sccp_calloc(1, sizeof(struct sccp_answer_conveyor_struct));
-
 				if (conveyor) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", DEV_ID_LOG(linedevice->device), iPbx.getChannelName(c));
 					conveyor->callid = c->callid;
 					conveyor->linedevice = sccp_linedevice_retain(linedevice);
 
 					sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_pbx_call_autoanswer_thread, (void *) conveyor);
+				} else {
+					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, c->designator);
 				}
 			}
 		}
@@ -511,7 +318,6 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 	return isRinging != TRUE;
 }
-#endif
 
 /*!
  * \brief Handle Hangup Request by Asterisk
@@ -793,7 +599,6 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 #endif														// CS_AST_CHANNEL_HAS_CID
 
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(c->line);
-
 	if (!l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_channel_allocate) Unable to find line for channel %s\n", c->designator);
 		pbx_log(LOG_ERROR, "SCCP: Unable to allocate asterisk channel... returning 0\n");
@@ -888,7 +693,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	/* This should definitely fix CDR */
 	iPbx.alloc_pbxChannel(c, ids, parentChannel, &tmp);
 	if (!tmp || !c->owner) {
-		pbx_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", l->id, l->name);
+		pbx_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", c->designator, l->name);
 		return 0;
 	}
        	sccp_channel_updateChannelCapability(c);

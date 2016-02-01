@@ -142,7 +142,7 @@ sccp_line_t *sccp_line_create(const char *name)
 	
 	l = (sccp_line_t *) sccp_refcount_object_alloc(sizeof(sccp_line_t), SCCP_REF_LINE, name, __sccp_line_destroy);
 	if (!l) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Unable to allocate memory for a line\n");
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, name);
 		return NULL;
 	}
 	memset(l, 0, sizeof(sccp_line_t));
@@ -221,7 +221,7 @@ void *sccp_create_hotline(void)
 
 	GLOB(hotline) = (sccp_hotline_t *) sccp_malloc(sizeof(sccp_hotline_t));
 	if (!GLOB(hotline)) {
-		pbx_log(LOG_ERROR, "Error allocating memory for GLOB(hotline)");
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		return NULL;
 	}
 	memset(GLOB(hotline), 0, sizeof(sccp_hotline_t));
@@ -550,6 +550,10 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 
 	snprintf(ld_id, REFCOUNT_INDENTIFIER_SIZE, "%s/%s", device->id, l->name);
 	linedevice = (sccp_linedevices_t *) sccp_refcount_object_alloc(sizeof(sccp_linedevices_t), SCCP_REF_LINEDEVICE, ld_id, __sccp_lineDevice_destroy);
+	if (!linedevice) {
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, ld_id);
+		return;
+	}
 	memset(linedevice, 0, sizeof(sccp_linedevices_t));
 
 	linedevice->device = sccp_device_retain(device);
@@ -1091,8 +1095,12 @@ void sccp_line_createLineButtonsArray(sccp_device_t * device)
 		}
 	}
 
+	device->lineButtons.instance = sccp_calloc(lineInstances + SCCP_FIRST_LINEINSTANCE, sizeof(sccp_linedevices_t *));
+	if (!device->lineButtons.instance) {
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, device->id);
+		return;
+	}
 	device->lineButtons.size = lineInstances + SCCP_FIRST_LINEINSTANCE;					/* add the offset of SCCP_FIRST_LINEINSTANCE for explicit access */
-	device->lineButtons.instance = sccp_calloc(device->lineButtons.size, sizeof(sccp_linedevices_t *));
 
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr) {

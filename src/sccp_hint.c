@@ -767,6 +767,9 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineState *lineState)
 {
 	sccp_line_t *line = lineState->line;
+	if (!lineState || !line) {
+		return;
+	}
 
 	memset(lineState->callInfo.partyName, 0, sizeof(lineState->callInfo.partyName));
 	memset(lineState->callInfo.partyNumber, 0, sizeof(lineState->callInfo.partyNumber));
@@ -845,6 +848,9 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 {
 	sccp_line_t *line = lineState->line;
 	sccp_channelstate_t state;
+	if (!lineState || !line) {
+		return;
+	}
 
 	//boolean_t dev_privacy = FALSE;
 

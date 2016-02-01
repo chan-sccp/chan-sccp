@@ -5,22 +5,20 @@
 # 			See the LICENSE file at the top of the source tree.
 # NOTE:			Process this file with automake to produce a makefile.in script.
 
-include 		$(top_srcdir)/src//Makefile.inc.am
+include 		$(top_srcdir)/src/Makefile.inc.am
 
 SUBDIRS			= pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) .
 DIST_SUBDIRS		= pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast_announce .
 EXTRA_DIST 		= sccp_enum.in sccp_config_entries.hh
-#.PHONY: 		.revision gen_enum sccp_enum.h sccp_enum.c
+.PHONY: 		.revision
 
 # generated files
 revision.h: 		.revision
-			@cd "@abs_top_srcdir@/src"
 
 .revision:
-			@cd "@abs_top_srcdir@/src";														\
-			if [ ! -f @abs_builddir@/revision.h ] || [ ! -z "`find @abs_builddir@/revision.h -mmin +60`" ] ; then					\
+			@if [ ! -f @abs_top_builddir@/src/revision.h ] || [ ! -z "`find @abs_top_builddir@/src/revision.h -mmin +60`" ] ; then			\
 				echo "  REV      revision.h";													\
-				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/src/revision.h" 2>/dev/null;	\
+				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_top_builddir@/src/revision.h" 2>/dev/null;	\
 			fi
 
 sccp_enum.h:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
@@ -34,9 +32,9 @@ sccp_enum.c:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 			fi
 
 gen_enum:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-			echo "  GEN      sccp_enum.h";														\
-			echo "  GEN      sccp_enum.c";														\
-			@$(GAWK) "@abs_top_srcdir@/tools/gen_sccp_enum.awk" @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
+	@echo "  GEN      sccp_enum.h";
+	@echo "  GEN      sccp_enum.c";
+	@$(GAWK) -O -v out_header_file=sccp_enum.h -v out_source_file=sccp_enum.c -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" < @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
 
 # libsccp.la and chan_sccp.so
 noinst_LTLIBRARIES	= libsccp.la
@@ -74,9 +72,9 @@ chan_sccp_la_LDFLAGS	+= -avoid-version -module -ldl -lm -s -rdynamic
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
-	@test -d "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"							
+	@test -d "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"
 	@if test "x$(strip_binaries)" == "xyes" ; then 											\
-		@test -d "$(DESTDIR)$(PBX_DEBUGMODDIR)" || $(MKDIR_P) "$(DESTDIR)$(PBX_DEBUGMODDIR)";					\
+		test -d "$(DESTDIR)$(PBX_DEBUGMODDIR)" || $(MKDIR_P) "$(DESTDIR)$(PBX_DEBUGMODDIR)";					\
 		$(OBJCOPY) --only-keep-debug ".libs/chan_sccp.so" "$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so.dbg";			\
 		$(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) -s ".libs/chan_sccp.so" "$(DESTDIR)$(csmoddir)";\
 		$(OBJCOPY) --add-gnu-debuglink="$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so.dbg" "$(DESTDIR)$(csmoddir)/chan_sccp.so";	\

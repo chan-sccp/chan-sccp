@@ -1256,7 +1256,7 @@ void sccp_conference_show_list(constConferencePtr conference, constChannelPtr ch
 			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:MODERATE/%d</URL>", 4, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
-#if CS_EXPERIMENTAL
+#if 0 /* INVITE */
 			strcat(xmlStr, "<SoftKeyItem>");
 			strcat(xmlStr, "<Name>Invite</Name>");
 			strcat(xmlStr, "<Position>6</Position>");
@@ -1399,7 +1399,7 @@ void sccp_conference_handle_device_to_user(devicePtr d, uint32_t callReference, 
 			}
 		} else if (!strcmp(d->dtu_softkey.action, "EXIT")) {
 			d->conferencelist_active = FALSE;
-#if CS_EXPERIMENTAL
+#if 0 /* INVITE */
 		} else if (!strcmp(d->dtu_softkey.action, "INVITE")) {
 			sccp_conference_invite_participant(conference, moderator);
 #endif

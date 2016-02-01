@@ -19,7 +19,7 @@
 #  include <asterisk/rtp.h>
 #endif
 #  include <asterisk/manager.h>
-
+#include <asterisk/causes.h>
 #include "define.h"
 #include "sccp_protocol.h"
 

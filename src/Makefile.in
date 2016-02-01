@@ -94,7 +94,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-DIST_COMMON = $(top_srcdir)/src//Makefile.inc.am $(srcdir)/Makefile.in \
+DIST_COMMON = $(top_srcdir)/src/Makefile.inc.am $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am $(srcdir)/config.h.in \
 	$(top_srcdir)/autoconf/depcomp $(noinst_HEADERS)
 subdir = src
@@ -514,7 +514,6 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = gnu 
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov
-#AM_CFLAGS      		+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall -ldl -lm -s -rdynamic
 AM_CFLAGS = $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	$(COVERAGE_CFLAGS) $(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) \
 	$(LIBCURL_CFLAGS) $(ax_warn_cflags_variable) -I. \
@@ -569,7 +568,7 @@ all: config.h
 
 .SUFFIXES:
 .SUFFIXES: .c .lo .o .obj
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/src//Makefile.inc.am $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/src/Makefile.inc.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -590,7 +589,7 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)'; \
 	    cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe);; \
 	esac;
-$(top_srcdir)/src//Makefile.inc.am:
+$(top_srcdir)/src/Makefile.inc.am:
 
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
@@ -1188,17 +1187,15 @@ uninstall-am: uninstall-csmodLTLIBRARIES
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-csmodLTLIBRARIES
 
-#.PHONY: 		.revision gen_enum sccp_enum.h sccp_enum.c
+.PHONY: 		.revision
 
 # generated files
 revision.h: 		.revision
-			@cd "@abs_top_srcdir@/src"
 
 .revision:
-			@cd "@abs_top_srcdir@/src";														\
-			if [ ! -f @abs_builddir@/revision.h ] || [ ! -z "`find @abs_builddir@/revision.h -mmin +60`" ] ; then					\
+			@if [ ! -f @abs_top_builddir@/src/revision.h ] || [ ! -z "`find @abs_top_builddir@/src/revision.h -mmin +60`" ] ; then			\
 				echo "  REV      revision.h";													\
-				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/src/revision.h" 2>/dev/null;	\
+				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_top_builddir@/src/revision.h" 2>/dev/null;	\
 			fi
 
 sccp_enum.h:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
@@ -1212,15 +1209,15 @@ sccp_enum.c:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 			fi
 
 gen_enum:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-			echo "  GEN      sccp_enum.h";														\
-			echo "  GEN      sccp_enum.c";														\
-			@$(GAWK) "@abs_top_srcdir@/tools/gen_sccp_enum.awk" @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
+	@echo "  GEN      sccp_enum.h";
+	@echo "  GEN      sccp_enum.c";
+	@$(GAWK) -O -v out_header_file=sccp_enum.h -v out_source_file=sccp_enum.c -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" < @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
-	@test -d "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"							
+	@test -d "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"
 	@if test "x$(strip_binaries)" == "xyes" ; then 											\
-		@test -d "$(DESTDIR)$(PBX_DEBUGMODDIR)" || $(MKDIR_P) "$(DESTDIR)$(PBX_DEBUGMODDIR)";					\
+		test -d "$(DESTDIR)$(PBX_DEBUGMODDIR)" || $(MKDIR_P) "$(DESTDIR)$(PBX_DEBUGMODDIR)";					\
 		$(OBJCOPY) --only-keep-debug ".libs/chan_sccp.so" "$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so.dbg";			\
 		$(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) -s ".libs/chan_sccp.so" "$(DESTDIR)$(csmoddir)";\
 		$(OBJCOPY) --add-gnu-debuglink="$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so.dbg" "$(DESTDIR)$(csmoddir)/chan_sccp.so";	\
