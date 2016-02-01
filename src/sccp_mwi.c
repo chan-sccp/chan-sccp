@@ -643,7 +643,7 @@ void sccp_mwi_check(sccp_device_t * d)
 	}
 	/* check current device mwi light status*/
 	uint32_t devicemask = (1 << SCCP_DEVICE_MWILIGHT);
-	uint32_t devicestate = d->mwilight;
+	uint32_t devicestate = device->mwilight;
 	uint32_t devicenewstate = (((newmsgs && !suppress_lamp) ? 1 : 0) << SCCP_DEVICE_MWILIGHT);
 
 	//char binstr1[41] = "", binstr2[41] = "";
@@ -661,13 +661,13 @@ void sccp_mwi_check(sccp_device_t * d)
 			device->mwilight |= (1 << SCCP_DEVICE_MWILIGHT);								/* activate */
 			//devicelamp_active = TRUE;
 		}
-		//sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_check) new d->mwilight:%s\n", DEV_ID_LOG(device), sccp_dec2binstr(binstr1, 32, device->mwilight));
+		//sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_check) new device->mwilight:%s\n", DEV_ID_LOG(device), sccp_dec2binstr(binstr1, 32, device->mwilight));
 		sccp_msg_t *msg = NULL;
 
 		REQ(msg, SetLampMessage);
 		msg->data.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
 		msg->data.SetLampMessage.lel_stimulusInstance = 0;
-		msg->data.SetLampMessage.lel_lampMode = (d->mwilight & (1 << SCCP_DEVICE_MWILIGHT)) ? htolel(device->mwilamp) : htolel(SKINNY_LAMP_OFF);
+		msg->data.SetLampMessage.lel_lampMode = (device->mwilight & (1 << SCCP_DEVICE_MWILIGHT)) ? htolel(device->mwilamp) : htolel(SKINNY_LAMP_OFF);
 		//msg->data.SetLampMessage.lel_lampMode = devicelamp_active ? htolel(device->mwilamp) : htolel(SKINNY_LAMP_OFF);
 		sccp_dev_send(device, msg);
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_check) Turn %s the MWI light (newmsgs: %d->%d)\n", DEV_ID_LOG(device), (device->mwilight & (1 << SCCP_DEVICE_MWILIGHT)) ? "ON" : "OFF", newmsgs,  device->voicemailStatistic.newmsgs);
