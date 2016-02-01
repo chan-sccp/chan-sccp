@@ -147,10 +147,12 @@ void sccp_threadpool_shrink(sccp_threadpool_t * tp_p, int amount)
 				}
 			}
 			SCCP_LIST_UNLOCK(&(tp_p->threads));
-
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending die signal to thread %p in pool \n", (void *) tp_thread->thread);
-			// wake up all threads
-			ast_cond_broadcast(&(tp_p->work));
+			
+			if (tp_thread) {
+				// wake up all threads
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending die signal to thread %p in pool \n", (void *) tp_thread->thread);
+				ast_cond_broadcast(&(tp_p->work));
+			}
 		}
 	}
 }

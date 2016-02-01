@@ -3445,7 +3445,7 @@ void sccp_handle_ServerResMessage(constSessionPtr s, devicePtr d, constMessagePt
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending servers message (%s)\n", DEV_ID_LOG(d), sccp_session_getDesignator(s));
 
 	REQ(msg_out, ServerResMessage);
-	if (d->protocolversion < 17) {
+	if (d && d->protocolversion < 17) {
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getOurIP(s, &sas, 0);
 		sccp_copy_string(msg_out->data.ServerResMessage.v3.server[0].serverName, GLOB(servername), sizeof(msg_out->data.ServerResMessage.v3.server[0].serverName));
