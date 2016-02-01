@@ -25598,16 +25598,17 @@ $as_echo "" >&6; }
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${T_MD}Generating Configuration and Makefiles${T_ME}" >&5
 $as_echo "${T_MD}Generating Configuration and Makefiles${T_ME}" >&6; }
 
+ac_config_files="$ac_config_files Makefile README doc/Makefile src/Makefile src/pbx_impl/Makefile src/pbx_impl/ast/Makefile src/pbx_impl/ast106/Makefile src/pbx_impl/ast108/Makefile src/pbx_impl/ast110/Makefile src/pbx_impl/ast111/Makefile src/pbx_impl/ast112/Makefile src/pbx_impl/ast113/Makefile src/pbx_impl/ast_announce/Makefile contrib/gen_sccpconf/Makefile"
+
 ac_config_commands="$ac_config_commands tools/autorevision"
 
 ac_config_commands="$ac_config_commands gen_enum"
-
-ac_config_files="$ac_config_files Makefile README doc/Makefile src/Makefile src/pbx_impl/Makefile src/pbx_impl/ast/Makefile src/pbx_impl/ast106/Makefile src/pbx_impl/ast108/Makefile src/pbx_impl/ast110/Makefile src/pbx_impl/ast111/Makefile src/pbx_impl/ast112/Makefile src/pbx_impl/ast113/Makefile src/pbx_impl/ast_announce/Makefile contrib/gen_sccpconf/Makefile"
 
 
 VERSION="`echo ${SCCP_VERSION}_${SCCP_BRANCH}`"
 PACKAGE_STRING="`echo Chan_SCCP_${VERSION}`"
 PACKAGE_TARNAME="`echo Chan_SCCP_${VERSION}`"
+
 
 
 
@@ -26731,8 +26732,6 @@ do
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
-    "tools/autorevision") CONFIG_COMMANDS="$CONFIG_COMMANDS tools/autorevision" ;;
-    "gen_enum") CONFIG_COMMANDS="$CONFIG_COMMANDS gen_enum" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "README") CONFIG_FILES="$CONFIG_FILES README" ;;
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
@@ -26747,6 +26746,8 @@ do
     "src/pbx_impl/ast113/Makefile") CONFIG_FILES="$CONFIG_FILES src/pbx_impl/ast113/Makefile" ;;
     "src/pbx_impl/ast_announce/Makefile") CONFIG_FILES="$CONFIG_FILES src/pbx_impl/ast_announce/Makefile" ;;
     "contrib/gen_sccpconf/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/gen_sccpconf/Makefile" ;;
+    "tools/autorevision") CONFIG_COMMANDS="$CONFIG_COMMANDS tools/autorevision" ;;
+    "gen_enum") CONFIG_COMMANDS="$CONFIG_COMMANDS gen_enum" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -28066,7 +28067,7 @@ fi
 
  ;;
     "tools/autorevision":C) ${ac_abs_top_srcdir}/tools/autorevision -t h -o ${ac_abs_top_srcdir}/.revision > ${ac_abs_top_builddir}/src/revision.h 2>/dev/null ;;
-    "gen_enum":C) cd ${ac_abs_top_builddir}/src; gawk -f "${ac_abs_top_srcdir}/tools/gen_sccp_enum.awk" ${ac_abs_top_srcdir}/src/sccp_enum.in ;;
+    "gen_enum":C) gawk -O -v out_header_file=src/sccp_enum.h -v out_source_file=src/sccp_enum.c -f "${ac_abs_top_srcdir}/tools/gen_sccp_enum.awk" < ${ac_abs_top_srcdir}/src/sccp_enum.in ;;
 
   esac
 done # for ac_tag

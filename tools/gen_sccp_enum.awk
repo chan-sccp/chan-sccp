@@ -8,8 +8,8 @@
 #
 
 BEGIN {
-        out_header_file = "sccp_enum.h"
-        out_source_file = "sccp_enum.c"
+	#out_header_file = "sccp_enum.h"
+	#out_source_file = "sccp_enum.c"
 
         #
         # gen enum headerfile
@@ -105,6 +105,7 @@ codeSkip == 1			{ next }
         codeSkip = 1
         bitval = ""
         bitval1 = 0
+        ifdef = 0
         
         #
         # gen enum header
@@ -290,6 +291,7 @@ codeSkip == 1			{ next }
 				print "\tpbx_log(LOG_ERROR, \"%s '%d' in %s2str\\n\", ERROR_2str_STR, enum_value, __" namespace "_" enum_name "_str);" > out_source_file
 				print "\treturn \"OutOfBounds: " namespace "_" enum_name "2str\\n\";" > out_source_file
 			} else {
+				totlen = 0
 				for ( i = 0; i < e; i++) {
 					totlen += length(Entry_text[e]) + 1
 				}
@@ -390,4 +392,6 @@ codeSkip == 1			{ next }
 END {
 	# add guard
 	print "__END_EXTERN__" >out_header_file 
+	close (out_header_file)
+	close (out_source_file)
 }
