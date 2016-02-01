@@ -209,7 +209,6 @@ ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
-ARGZ_H = @ARGZ_H@
 ASTERISK_REPOS_LOCATION = @ASTERISK_REPOS_LOCATION@
 ASTERISK_VERSION_NUMBER = @ASTERISK_VERSION_NUMBER@
 ASTERISK_VER_GROUP = @ASTERISK_VER_GROUP@
@@ -293,7 +292,6 @@ HAVE_PBX_HTTP = @HAVE_PBX_HTTP@
 HEAD = @HEAD@
 HG = @HG@
 HOST_CC = @HOST_CC@
-INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -301,29 +299,19 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
-LIBADD_DL = @LIBADD_DL@
-LIBADD_DLD_LINK = @LIBADD_DLD_LINK@
-LIBADD_DLOPEN = @LIBADD_DLOPEN@
-LIBADD_SHL_LOAD = @LIBADD_SHL_LOAD@
 LIBBFD = @LIBBFD@
 LIBEXECINFO = @LIBEXECINFO@
 LIBEXSLT_CFLAGS = @LIBEXSLT_CFLAGS@
 LIBEXSLT_LIBS = @LIBEXSLT_LIBS@
 LIBICONV = @LIBICONV@
-LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LIPO = @LIPO@
 LN_S = @LN_S@
-LTDLDEPS = @LTDLDEPS@
-LTDLINCL = @LTDLINCL@
-LTDLOPEN = @LTDLOPEN@
+LTLIBICONV = @LTLIBICONV@
 LTLIBOBJS = @LTLIBOBJS@
-LT_CONFIG_H = @LT_CONFIG_H@
-LT_DLLOADERS = @LT_DLLOADERS@
-LT_DLPREOPEN = @LT_DLPREOPEN@
 M4 = @M4@
 MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
@@ -344,15 +332,18 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PBXVER_COND_ANNOUNCE_LIBADD = @PBXVER_COND_ANNOUNCE_LIBADD@
+PBXVER_COND_ANNOUNCE_SUBDIR = @PBXVER_COND_ANNOUNCE_SUBDIR@
+PBXVER_COND_LIBADD = @PBXVER_COND_LIBADD@
+PBXVER_COND_SUBDIR = @PBXVER_COND_SUBDIR@
 PBX_CFLAGS = @PBX_CFLAGS@
+PBX_COND_LIBADD = @PBX_COND_LIBADD@
+PBX_COND_SUBDIR = @PBX_COND_SUBDIR@
 PBX_DEBUGMODDIR = @PBX_DEBUGMODDIR@
 PBX_ETC = @PBX_ETC@
-PBX_GENERAL = @PBX_GENERAL@
 PBX_INCLUDE = @PBX_INCLUDE@
 PBX_LDFLAGS = @PBX_LDFLAGS@
 PBX_LIB = @PBX_LIB@
-PBX_MAJOR = @PBX_MAJOR@
-PBX_MINOR = @PBX_MINOR@
 PBX_MODDIR = @PBX_MODDIR@
 PBX_PATH = @PBX_PATH@
 PBX_PREFIX = @PBX_PREFIX@
@@ -426,8 +417,6 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
-ltdl_LIBOBJS = @ltdl_LIBOBJS@
-ltdl_LTLIBOBJS = @ltdl_LTLIBOBJS@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
@@ -440,8 +429,6 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 strip_binaries = @strip_binaries@
-subdirs = @subdirs@
-sys_symbol_underscore = @sys_symbol_underscore@
 sysconfdir = @sysconfdir@
 target = @target@
 target_alias = @target_alias@
@@ -457,8 +444,6 @@ top_srcdir = @top_srcdir@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2011-08-31 17:04:17 +0000 (Mi, 31. Aug 2011) $
-# REVISION: $Revision: 2728 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 AUTOMAKE_OPTS = gnu silent-rules
 man_MANS = gen_sccpconf.1
@@ -565,22 +550,25 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gen_sccpconf-gen_sccpconf.Po@am__quote@
 
 .c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<

@@ -3,17 +3,10 @@
  * \brief       SCCP RefCount Header
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- *
- * $Date$
- * $Revision$
  */
 #pragma once
 
-#if HAVE_SYS_TYPES_H
-//#include <sys/types.h>
-#endif
-
-//#include <setjmp.h>
+#include "sccp_cli.h"
 
 #define REFCOUNT_INDENTIFIER_SIZE 32
 enum sccp_refcounted_types {
@@ -24,7 +17,9 @@ enum sccp_refcounted_types {
 	SCCP_REF_LINEDEVICE,
 	SCCP_REF_LINE,
 	SCCP_REF_DEVICE,
+#if CS_TEST_FRAMEWORK
 	SCCP_REF_TEST,
+#endif
 };
 
 enum sccp_refcount_runstate {
@@ -46,12 +41,8 @@ void * const sccp_refcount_release(const void * const ptr, const char *filename,
 //void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func);
 void sccp_refcount_replace(const void **replaceptr, const void *const newptr, const char *filename, int lineno, const char *func);
 void sccp_refcount_print_hashtable(int fd);
+int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 void sccp_refcount_autorelease(void *ptr);
-
-#if CS_TEST_FRAMEWORK
-void sccp_refcount_register_tests(void);
-void sccp_refcount_unregister_tests(void);
-#endif
 
 #define AUTO_RELEASE auto __attribute__((cleanup(sccp_refcount_autorelease)))
 #ifdef CS_EXPERIMENTAL

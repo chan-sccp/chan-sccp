@@ -9,8 +9,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
  */
 
 /*!
@@ -35,12 +33,16 @@
 #include "sccp_conference.h"
 #include "sccp_indicate.h"
 #include "sccp_socket.h"
+
+SCCP_FILE_VERSION(__FILE__, "");
+
 #if defined(HAVE_UNALIGNED_BUSERROR)
 #include <asterisk/unaligned.h>
 #endif
 #include <sys/stat.h>
-
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+#ifdef HAVE_PBX_ACL_H				// AST_SENSE_ALLOW
+#  include <asterisk/acl.h>
+#endif
 #include <math.h>
 
 /*!
@@ -235,10 +237,22 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Device Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, skinny_devicetype2str(deviceType), deviceType);
 
 	{
-		// Search for already known device-sessions
+		// Search for already known device->sessions
 		AUTO_RELEASE sccp_device_t *tmpdevice = sccp_device_find_byid(deviceName, TRUE);
-		if (sccp_session_check_crossdevice(s, tmpdevice)) {
-			return;
+		if (tmpdevice) {
+			skinny_registrationstate_t state = sccp_device_getRegistrationState(tmpdevice);
+			if (sccp_session_check_crossdevice(s, tmpdevice)) {
+				return;
+			}
+			if ((state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
+				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
+				sccp_session_tokenReject(s, 60);
+				return;
+			}
+			if (state == SKINNY_DEVICE_RS_TOKEN) {
+				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
+				return;
+			}
 		}
 	}
 
@@ -272,7 +286,7 @@ void sccp_handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePt
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getSas(s, &sas);
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&sas));
-	sccp_device_setRegistrationState(	device, SKINNY_DEVICE_RS_FAILED);
+		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 		sccp_session_reject(s, "IP Not Authorized");
 		return;
 	}
@@ -406,8 +420,20 @@ void sccp_handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr
 	{
 		// Search for already known device-sessions
 		AUTO_RELEASE sccp_device_t *tmpdevice = sccp_device_find_byid(deviceName, TRUE);
-		if (sccp_session_check_crossdevice(s, tmpdevice)) {
-			return;
+		if (tmpdevice) {
+			skinny_registrationstate_t state = sccp_device_getRegistrationState(tmpdevice);
+			if (sccp_session_check_crossdevice(s, tmpdevice)) {
+				return;
+			}
+			if ((state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
+				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
+				sccp_session_tokenRejectSPCP(s, 60);
+				return;
+			}
+			if (state == SKINNY_DEVICE_RS_TOKEN) {
+				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
+				return;
+			}
 		}
 	}
 
@@ -516,10 +542,19 @@ void sccp_handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr 
 		device = sccp_device_retain(maybe_d);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: cached device configuration (state: %s)\n", DEV_ID_LOG(device), device ? skinny_registrationstate2str(sccp_device_getRegistrationState(device)) : "UNKNOWN");
 	}
-
-	if (sccp_session_check_crossdevice(s, device)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration (state: %s)! Fixing up to new session\n", DEV_ID_LOG(device), skinny_registrationstate2str(sccp_device_getRegistrationState(device)));
-		return;												// come back later
+	if (device) {
+		skinny_registrationstate_t state = sccp_device_getRegistrationState(device);
+		if (sccp_session_check_crossdevice(s, device)) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration (state: %s)! Fixing up to new session\n", DEV_ID_LOG(device), skinny_registrationstate2str(sccp_device_getRegistrationState(device)));
+			return;
+		}
+		if (	state == SKINNY_DEVICE_RS_PROGRESS || state == SKINNY_DEVICE_RS_OK || 
+			state == SKINNY_DEVICE_RS_TIMEOUT || state == SKINNY_DEVICE_RS_CLEANING || 
+			(state == SKINNY_DEVICE_RS_TOKEN && time(0) - device->registrationTime > 60)) {
+			pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
+			sccp_session_reject(s, "Cleaning previous session, come back later");
+			return;
+		}
 	}
 
 	/*! \todo We need a fix here. If deviceName was provided and specified in sccp.conf we should not continue to anonymous,
@@ -696,195 +731,218 @@ static btnlist *sccp_make_button_template(devicePtr d)
 			if (buttonconfig->instance > 0) {
 				continue;
 			}
-			//if (buttonconfig->type == LINE) {
-			//	sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: searching for line position for line '%s'\n", DEV_ID_LOG(d), buttonconfig->button.line.name);
-			//}
-
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-				//sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: btn[%.2d].type = %d\n", DEV_ID_LOG(d), i, btn[i].type);
+				if (!(btn[i].type >= SCCP_BUTTONTYPE_MULTI && btn[i].type <= SCCP_BUTTONTYPE_ABBRDIAL)) { 
+					// skip already used up buttons
+					continue;
+				}
 
-				if (buttonconfig->type == LINE && !sccp_strlen_zero(buttonconfig->button.line.name)
-				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE)) {
+				if (buttonconfig->type == LINE && !sccp_strlen_zero(buttonconfig->button.line.name)) {
+					if (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE) {
+						btn[i].type = SKINNY_BUTTONTYPE_LINE;
 
-					btn[i].type = SKINNY_BUTTONTYPE_LINE;
-
-					/* search line (create new line, if necessary (realtime)) */
-					/*! retains new line in btn[i].ptr, finally released in sccp_dev_clean */
-					if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name, TRUE))) {
-						buttonconfig->instance = btn[i].instance = lineInstance++;
-						sccp_line_addDevice((sccp_line_t *) btn[i].ptr, d, btn[i].instance, buttonconfig->button.line.subscriptionId);
-						if (FALSE == defaultLineSet && !d->defaultLineInstance) {
-							d->defaultLineInstance = buttonconfig->instance;
-							defaultLineSet = TRUE;
+						/* search line (create new line, if necessary (realtime)) */
+						/*! retains new line in btn[i].ptr, finally released in sccp_dev_clean */
+						if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name, TRUE))) {
+							buttonconfig->instance = btn[i].instance = lineInstance++;
+							sccp_line_addDevice((sccp_line_t *) btn[i].ptr, d, btn[i].instance, buttonconfig->button.line.subscriptionId);
+							if (FALSE == defaultLineSet && !d->defaultLineInstance) {
+								d->defaultLineInstance = buttonconfig->instance;
+								defaultLineSet = TRUE;
+							}
+						} else {
+							btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
+							buttonconfig->instance = btn[i].instance = 0;
+							pbx_log(LOG_WARNING, "%s: line %s does not exists\n", DEV_ID_LOG(d), buttonconfig->button.line.name);
 						}
+
+						sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: Add line %s on position %d\n", DEV_ID_LOG(d), buttonconfig->button.line.name, buttonconfig->instance);
 					} else {
+						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Cannot handle line %d with label:%s (No regular buttons left). Skipped\n", d->id, buttonconfig->index + 1, buttonconfig->label);
+						btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
+					}
+					break;
+
+				} else if (buttonconfig->type == EMPTY) {
+					if (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE || btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL) {
 						btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
 						buttonconfig->instance = btn[i].instance = 0;
-						pbx_log(LOG_WARNING, "%s: line %s does not exists\n", DEV_ID_LOG(d), buttonconfig->button.line.name);
-					}
-
-					sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: Add line %s on position %d\n", DEV_ID_LOG(d), buttonconfig->button.line.name, buttonconfig->instance);
-					break;
-
-				} else if (buttonconfig->type == EMPTY && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE || btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL)) {
-					btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
-					buttonconfig->instance = btn[i].instance = 0;
-					break;
-
-				} else if (buttonconfig->type == SERVICE && (btn[i].type == SCCP_BUTTONTYPE_MULTI)) {
-					btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
-					buttonconfig->instance = btn[i].instance = serviceInstance++;
-					break;
-
-				} else if (buttonconfig->type == SPEEDDIAL && !sccp_strlen_zero(buttonconfig->label)
-					   && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL)) {
-
-//					buttonconfig->instance = btn[i].instance = i + 1;
-					if (!sccp_strlen_zero(buttonconfig->button.speeddial.hint)
-					    && btn[i].type == SCCP_BUTTONTYPE_MULTI				/* we can set our feature */
-					    ) {
-#ifdef CS_DYNAMIC_SPEEDDIAL
-						if (d->inuseprotocolversion >= 15) {
-							btn[i].type = 0x15;
-							buttonconfig->instance = btn[i].instance = speeddialInstance++;
-						} else 
-#endif
-						{
-							btn[i].type = SKINNY_BUTTONTYPE_LINE;
-							buttonconfig->instance = btn[i].instance = lineInstance++;
-						}
 					} else {
+						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Cannot handle empty %d with label:%s (No regular buttons left). Skipped\n", d->id, buttonconfig->index + 1, buttonconfig->label);
+						btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
+					}
+					break;
+
+				} else if (buttonconfig->type == SERVICE) {
+					if (btn[i].type == SCCP_BUTTONTYPE_MULTI) {
+						btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
+						buttonconfig->instance = btn[i].instance = serviceInstance++;
+					} else {
+						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Cannot handle service %d with label:%s (No regular buttons left). Skipped\n", d->id, buttonconfig->index + 1, buttonconfig->label);
+						btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
+					}
+					break;
+
+				} else if (buttonconfig->type == SPEEDDIAL && !sccp_strlen_zero(buttonconfig->label)) {
+					if ((btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL)) {
+
+//						buttonconfig->instance = btn[i].instance = i + 1;
+						if (!sccp_strlen_zero(buttonconfig->button.speeddial.hint)
+						    && btn[i].type == SCCP_BUTTONTYPE_MULTI				/* we can set our feature */
+						    ) {
+#ifdef CS_DYNAMIC_SPEEDDIAL
+							if (d->inuseprotocolversion >= 15) {
+								btn[i].type = SKINNY_BUTTONTYPE_BLFSPEEDDIAL;
+								buttonconfig->instance = btn[i].instance = speeddialInstance++;
+							} else 
+#endif
+							{
+								btn[i].type = SKINNY_BUTTONTYPE_LINE;
+								buttonconfig->instance = btn[i].instance = lineInstance++;
+							}
+						} else {
+							btn[i].type = SKINNY_BUTTONTYPE_SPEEDDIAL;
+							buttonconfig->instance = btn[i].instance = speeddialInstance++;
+
+						}
+					} else if (btn[i].type == SCCP_BUTTONTYPE_ABBRDIAL) {
 						btn[i].type = SKINNY_BUTTONTYPE_SPEEDDIAL;
 						buttonconfig->instance = btn[i].instance = speeddialInstance++;
-
+	 					sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_2 "%s: Assigned Speeddial %d to AbbrDial %d\n", d->id, i, buttonconfig->instance);
+					} else {
+						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Cannot handle speeddial %d with label:%s (No button left). Skipped\n", d->id, buttonconfig->index + 1, buttonconfig->label);
+						btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
 					}
-					break;
+ 					break;
 
-				} else if (buttonconfig->type == FEATURE && !sccp_strlen_zero(buttonconfig->label)
-					   && (btn[i].type == SCCP_BUTTONTYPE_MULTI)) {
+				} else if (buttonconfig->type == FEATURE && !sccp_strlen_zero(buttonconfig->label)) {
+					if (btn[i].type == SCCP_BUTTONTYPE_MULTI) {
+						buttonconfig->instance = btn[i].instance = speeddialInstance++;
 
-					buttonconfig->instance = btn[i].instance = speeddialInstance++;
-
-					switch (buttonconfig->button.feature.id) {
-						case SCCP_FEATURE_HOLD:
-							btn[i].type = SKINNY_BUTTONTYPE_HOLD;
-							break;
+						switch (buttonconfig->button.feature.id) {
+							case SCCP_FEATURE_HOLD:
+								btn[i].type = SKINNY_BUTTONTYPE_HOLD;
+								break;
 #ifdef CS_DEVSTATE_FEATURE
-							// case SCCP_FEATURE_DEVSTATE:
-							//btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
-							//break;
+								// case SCCP_FEATURE_DEVSTATE:
+								//btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+								//break;
 #endif
-						case SCCP_FEATURE_TRANSFER:
-							btn[i].type = SKINNY_BUTTONTYPE_TRANSFER;
-							break;
+							case SCCP_FEATURE_TRANSFER:
+								btn[i].type = SKINNY_BUTTONTYPE_TRANSFER;
+								break;
 
-						case SCCP_FEATURE_MONITOR:
-							if (d->inuseprotocolversion > 15) {
-								btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
-							} else {
+							case SCCP_FEATURE_MONITOR:
+								if (d->inuseprotocolversion > 15) {
+									btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+								} else {
+									btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
+								}
+								break;
+
+							case SCCP_FEATURE_MULTIBLINK:
+								if (d->inuseprotocolversion >= 15) {
+									btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+								} else {
+									btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
+								}
+								break;
+
+							case SCCP_FEATURE_MOBILITY:
+								btn[i].type = SKINNY_BUTTONTYPE_MOBILITY;
+								break;
+
+							case SCCP_FEATURE_CONFERENCE:
+								btn[i].type = SKINNY_BUTTONTYPE_CONFERENCE;
+								break;
+
+							case SCCP_FEATURE_PICKUP:
+								btn[i].type = SKINNY_STIMULUS_GROUPCALLPICKUP;
+								break;
+
+							case SCCP_FEATURE_DO_NOT_DISTURB:
+								btn[i].type = SKINNY_BUTTONTYPE_DO_NOT_DISTURB;
+								break;
+
+							case SCCP_FEATURE_CONF_LIST:
+								btn[i].type = SKINNY_BUTTONTYPE_CONF_LIST;
+								break;
+
+							case SCCP_FEATURE_REMOVE_LAST_PARTICIPANT:
+								btn[i].type = SKINNY_BUTTONTYPE_REMOVE_LAST_PARTICIPANT;
+								break;
+
+							case SCCP_FEATURE_HLOG:
+								btn[i].type = SKINNY_BUTTONTYPE_HLOG;
+								break;
+
+							case SCCP_FEATURE_QRT:
+								btn[i].type = SKINNY_BUTTONTYPE_QRT;
+								break;
+
+							case SCCP_FEATURE_CALLBACK:
+								btn[i].type = SKINNY_BUTTONTYPE_CALLBACK;
+								break;
+
+							case SCCP_FEATURE_OTHER_PICKUP:
+								btn[i].type = SKINNY_BUTTONTYPE_OTHER_PICKUP;
+								break;
+
+							case SCCP_FEATURE_VIDEO_MODE:
+								btn[i].type = SKINNY_BUTTONTYPE_VIDEO_MODE;
+								break;
+
+							case SCCP_FEATURE_NEW_CALL:
+								btn[i].type = SKINNY_BUTTONTYPE_NEW_CALL;
+								break;
+
+							case SCCP_FEATURE_END_CALL:
+								btn[i].type = SKINNY_BUTTONTYPE_END_CALL;
+								break;
+
+							case SCCP_FEATURE_TESTE:
+								btn[i].type = SKINNY_BUTTONTYPE_TESTE;
+								break;
+
+							case SCCP_FEATURE_TESTF:
+								btn[i].type = SKINNY_BUTTONTYPE_TESTF;
+								break;
+
+							case SCCP_FEATURE_TESTI:
+								btn[i].type = SKINNY_BUTTONTYPE_TESTI;
+								break;
+
+							case SCCP_FEATURE_TESTG:
+								btn[i].type = SKINNY_BUTTONTYPE_MESSAGES;
+								break;
+
+							case SCCP_FEATURE_TESTH:
+								btn[i].type = SKINNY_BUTTONTYPE_DIRECTORY;
+								break;
+
+							case SCCP_FEATURE_TESTJ:
+								btn[i].type = SKINNY_BUTTONTYPE_APPLICATION;
+								break;
+
+							default:
 								btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
-							}
-							break;
+								break;
 
-						case SCCP_FEATURE_MULTIBLINK:
-							if (d->inuseprotocolversion >= 15) {
-								btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
-							} else {
-								btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
-							}
-							break;
-
-						case SCCP_FEATURE_MOBILITY:
-							btn[i].type = SKINNY_BUTTONTYPE_MOBILITY;
-							break;
-
-						case SCCP_FEATURE_CONFERENCE:
-							btn[i].type = SKINNY_BUTTONTYPE_CONFERENCE;
-							break;
-
-						case SCCP_FEATURE_PICKUP:
-							btn[i].type = SKINNY_STIMULUS_GROUPCALLPICKUP;
-							break;
-
-						case SCCP_FEATURE_DO_NOT_DISTURB:
-							btn[i].type = SKINNY_BUTTONTYPE_DO_NOT_DISTURB;
-							break;
-
-						case SCCP_FEATURE_CONF_LIST:
-							btn[i].type = SKINNY_BUTTONTYPE_CONF_LIST;
-							break;
-
-						case SCCP_FEATURE_REMOVE_LAST_PARTICIPANT:
-							btn[i].type = SKINNY_BUTTONTYPE_REMOVE_LAST_PARTICIPANT;
-							break;
-
-						case SCCP_FEATURE_HLOG:
-							btn[i].type = SKINNY_BUTTONTYPE_HLOG;
-							break;
-
-						case SCCP_FEATURE_QRT:
-							btn[i].type = SKINNY_BUTTONTYPE_QRT;
-							break;
-
-						case SCCP_FEATURE_CALLBACK:
-							btn[i].type = SKINNY_BUTTONTYPE_CALLBACK;
-							break;
-
-						case SCCP_FEATURE_OTHER_PICKUP:
-							btn[i].type = SKINNY_BUTTONTYPE_OTHER_PICKUP;
-							break;
-
-						case SCCP_FEATURE_VIDEO_MODE:
-							btn[i].type = SKINNY_BUTTONTYPE_VIDEO_MODE;
-							break;
-
-						case SCCP_FEATURE_NEW_CALL:
-							btn[i].type = SKINNY_BUTTONTYPE_NEW_CALL;
-							break;
-
-						case SCCP_FEATURE_END_CALL:
-							btn[i].type = SKINNY_BUTTONTYPE_END_CALL;
-							break;
-
-						case SCCP_FEATURE_TESTE:
-							btn[i].type = SKINNY_BUTTONTYPE_TESTE;
-							break;
-
-						case SCCP_FEATURE_TESTF:
-							btn[i].type = SKINNY_BUTTONTYPE_TESTF;
-							break;
-
-						case SCCP_FEATURE_TESTI:
-							btn[i].type = SKINNY_BUTTONTYPE_TESTI;
-							break;
-
-						case SCCP_FEATURE_TESTG:
-							btn[i].type = SKINNY_BUTTONTYPE_MESSAGES;
-							break;
-
-						case SCCP_FEATURE_TESTH:
-							btn[i].type = SKINNY_BUTTONTYPE_DIRECTORY;
-							break;
-
-						case SCCP_FEATURE_TESTJ:
-							btn[i].type = SKINNY_BUTTONTYPE_APPLICATION;
-							break;
-
-						default:
-							btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
-							break;
-
+						}
+					} else {
+						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Cannot handle feature %d with label:%s (No regular buttons left). Skipped\n", d->id, buttonconfig->index + 1, buttonconfig->label);
+						btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
 					}
 					break;
 				}
 			}
-			sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured %d Phone Button [%.2d] = %s (%s)\n", d->id, buttonconfig->index + 1, buttonconfig->instance, skinny_buttontype2str(btn[i].type), buttonconfig->label);
+			sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured %d Phone Button [%.2d] = %s(%d), label:%s\n", d->id, buttonconfig->index + 1, buttonconfig->instance, skinny_buttontype2str(btn[i].type), btn[i].type, buttonconfig->label);
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 
 		// all non defined buttons are set to UNUSED
 		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-			if (btn[i].type == SCCP_BUTTONTYPE_MULTI) {
+			if (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_ABBRDIAL) {
 				btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
 			}
 		}
@@ -1061,8 +1119,9 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 				msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition = btn[i].type;
 				break;
 		}
-		sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %d (%d)\n", d->id, i + 1, msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition, msg_out->data.ButtonTemplateMessage.definition[i].instanceNumber);
-
+		if (msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition < SKINNY_BUTTONTYPE_UNDEFINED) {
+			sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s(%d) with instance:%d\n", d->id, i + 1, skinny_buttontype2str(msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition), msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition, msg_out->data.ButtonTemplateMessage.definition[i].instanceNumber);
+		}
 	}
 
 	msg_out->data.ButtonTemplateMessage.lel_buttonOffset = 0;
@@ -4101,8 +4160,8 @@ void sccp_handle_device_to_user_response(constSessionPtr s, devicePtr d, constMe
 		sccp_copy_string(data, msg_in->data.DeviceToUserDataVersion1Message.data, dataLength);
 	}
 
-	sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: DTU Response: AppID %d , LineInstance %d, CallID %d, Transaction %d\n", d->id, appID, lineInstance, callReference, transactionID);
-	sccp_log_and((DEBUGCAT_MESSAGE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: DTU Response: Data %s\n", d->id, data);
+	sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Device2User Response: AppID %d , LineInstance %d, CallID %d, Transaction %d\n", d->id, appID, lineInstance, callReference, transactionID);
+	sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device2User Response (XML)Data:\n%s\n", d->id, data);
 
 	if (appID == APPID_DEVICECAPABILITIES) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device Capabilities Response '%s'\n", d->id, data);

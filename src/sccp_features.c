@@ -6,8 +6,6 @@
  *              See the LICENSE file at the top of the source tree.
  * \since       2009-01-16
  *
- * $Date$
- * $Revision$
  */
 
 /*!
@@ -35,7 +33,18 @@
 #include "sccp_indicate.h"
 #include "sccp_management.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
+#include <asterisk/causes.h>		//AST_CAUSE_NORMAL_CLEARING
+
+#if CS_SCCP_PICKUP
+#  if defined(CS_AST_DO_PICKUP) && defined(HAVE_PBX_FEATURES_H)
+#    include <asterisk/features.h>
+#    if ASTERISK_VERSION_GROUP >= 112
+#      include <asterisk/pickup.h>
+#    endif
+#  endif
+#endif
 
 /*!
  * \brief Handle Call Forwarding
@@ -1311,7 +1320,7 @@ void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_
 			pbx_str_append(&amiCommandStr,0 ,"\r\n");
 			//monitorFeature->status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 		}
-		if (sccp_manager_action2str(pbx_str_buffer(amiCommandStr), &outStr) >= 0 && outStr) {
+		if (sccp_manager_action2str(pbx_str_buffer(amiCommandStr), &outStr) && outStr) {
 			if (	
 				sccp_strequals(outStr, "Response: Success\r\nMessage: Started monitoring channel\r\n\r\n") ||
 				sccp_strequals(outStr, "Response: Success\r\nMessage: Stopped monitoring channel\r\n\r\n")

@@ -5,9 +5,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  * \since       2009-09-02
- * 
- * $Date$
- * $Revision$  
  */
 
 /*!
@@ -23,7 +20,7 @@
 #include "sccp_device.h"
 #include "sccp_line.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
 
 void sccp_event_destroy(sccp_event_t * event);
 
@@ -78,6 +75,10 @@ void sccp_event_destroy(sccp_event_t * event)
 		case SCCP_EVENT_LINE_CHANGED:
 		case SCCP_EVENT_LINE_DELETED:
 			break;
+#ifdef CS_TEST_FRAMEWORK
+		case SCCP_EVENT_TEST:
+			break;
+#endif
 		case SCCP_EVENT_NULL:
 		case SCCP_EVENT_TYPE_SENTINEL:
 			break;
@@ -157,7 +158,13 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
 			if (allowASyncExecution) {
 				size = subscriptions[i].aSyncSize;
 				if (size) {
-					subscriptions[i].async = (sccp_event_subscriber_t *) sccp_realloc(subscriptions[i].async, (size + 1) * sizeof(sccp_event_subscriber_t));
+					sccp_event_subscriber_t *tmp;
+					tmp = (sccp_event_subscriber_t *) sccp_realloc(subscriptions[i].async, (size + 1) * sizeof(sccp_event_subscriber_t));
+					if (!tmp) {
+						pbx_log(LOG_ERROR, "SCCP: (sccp_event_subscribe) memory allocation error, skipping async subscription\n");
+						return;
+					}
+					subscriptions[i].async = tmp;
 				}
 				subscriptions[i].async[size].callback_function = cb;
 				subscriptions[i].async[size].eventType = eventType;
@@ -165,7 +172,13 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
 			} else {
 				size = subscriptions[i].syncSize;
 				if (size) {
-					subscriptions[i].sync = (sccp_event_subscriber_t *) sccp_realloc(subscriptions[i].async, (size + 1) * sizeof(sccp_event_subscriber_t));
+					sccp_event_subscriber_t *tmp;
+					tmp = (sccp_event_subscriber_t *) sccp_realloc(subscriptions[i].async, (size + 1) * sizeof(sccp_event_subscriber_t));
+					if (!tmp) {
+						pbx_log(LOG_ERROR, "SCCP: (sccp_event_subscribe) memory allocation error, skipping sync subscription\n");
+						return;
+					}
+					subscriptions[i].sync = tmp;
 				}
 				subscriptions[i].sync[size].callback_function = cb;
 				subscriptions[i].sync[size].eventType = eventType;
@@ -262,6 +275,10 @@ void sccp_event_fire(const sccp_event_t * event)
 		case SCCP_EVENT_LINE_CHANGED:
 		case SCCP_EVENT_LINE_DELETED:
 			break;
+#ifdef CS_TEST_FRAMEWORK
+		case SCCP_EVENT_TEST:
+			break;
+#endif
 		case SCCP_EVENT_NULL:
 		case SCCP_EVENT_TYPE_SENTINEL:
 			break;

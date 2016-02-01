@@ -8,8 +8,6 @@
  * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
  */
 
 #include <netinet/in.h>
@@ -20,7 +18,8 @@
 #include "sccp_utils.h"
 #include "sccp_cli.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
 #ifndef CS_USE_POLL_COMPAT
 #include <poll.h>
 #include <sys/poll.h>
@@ -32,6 +31,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #define sccp_socket_poll pbx_poll
 #else
 #define sccp_socket_poll poll
+#endif
+#ifdef HAVE_PBX_ACL_H				// AST_SENSE_ALLOW
+#  include <asterisk/acl.h>
 #endif
 #include <asterisk/cli.h>
 sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
@@ -83,7 +85,7 @@ struct sccp_session {
 	pthread_t session_thread;										/*!< Session Thread */
 	struct sockaddr_storage ourip;										/*!< Our IP is for rtp use */
 	struct sockaddr_storage ourIPv4;
-	char designator[32];
+	char designator[40];
 };														/*!< SCCP Session Structure */
 
 union sockaddr_union {
@@ -406,7 +408,7 @@ char *sccp_socket_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, 
 			ast_str_set(&str, 0, "%s", port);
 			break;
 		default:
-			ast_log(LOG_ERROR, "Invalid format\n");
+			pbx_log(LOG_ERROR, "Invalid format\n");
 			return "";
 	}
 
@@ -953,7 +955,7 @@ void *sccp_socket_device_thread(void *session)
 	}
 	uint8_t keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT;
 	int res;
-	double maxWaitTime;
+	int maxWaitTime;
 	int pollTimeout;
 	int read_result = 0;
 	sccp_msg_t msg = { {0,} };
@@ -984,7 +986,7 @@ void *sccp_socket_device_thread(void *session)
 		maxWaitTime += (maxWaitTime / 100) * keepaliveAdditionalTimePercent;
 		pollTimeout = maxWaitTime * 1000;
 
-		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d/%d for session %d\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout / 1000, s->fds[0].fd);
+		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d for session %d\n", DEV_ID_LOG(s->device), (int) maxWaitTime, s->fds[0].fd);
 
 		pthread_testcancel();										/* poll is also a cancellation point */
 		res = sccp_socket_poll(s->fds, 1, pollTimeout);
@@ -998,10 +1000,9 @@ void *sccp_socket_device_thread(void *session)
 				break;
 			}
 		} else if (0 == res) {										/* poll timeout */
-			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Timeout.\n", DEV_ID_LOG(s->device));
-			if (((int) time(0) > ((int) s->lastKeepAlive + (int) maxWaitTime))) {
+			if (((int) time(0) >= ((int) s->lastKeepAlive + (int) maxWaitTime))) {
 				sccp_copy_string(addrStr, sccp_socket_stringify_addr(&s->sin), sizeof(addrStr));
-				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d) (ip-address: %s).\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout, addrStr);
+				pbx_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (ip-address: %s).\n", DEV_ID_LOG(s->device), (int) maxWaitTime, addrStr);
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_TIMEOUT);
 				break;
 			}
@@ -1363,7 +1364,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 	msg = NULL;
 
 	if (bytesSent < bufLen) {
-		ast_log(LOG_ERROR, "%s: Could only send %d of %d bytes!\n", DEV_ID_LOG(s->device), (int) bytesSent, (int) bufLen);
+		pbx_log(LOG_ERROR, "%s: Could only send %d of %d bytes!\n", DEV_ID_LOG(s->device), (int) bytesSent, (int) bufLen);
 		res = -1;
 	}
 

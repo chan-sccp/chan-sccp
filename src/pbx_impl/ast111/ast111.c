@@ -5,34 +5,39 @@
  * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- *
- * $Date$
- * $Revision$
  */
 
 #include <config.h>
-#include "../../common.h"
-#include "../../sccp_pbx.h"
-#include "../../sccp_device.h"
-#include "../../sccp_channel.h"
-#include "../../sccp_line.h"
-#include "../../sccp_cli.h"
-#include "../../sccp_utils.h"
-#include "../../sccp_indicate.h"
-#include "../../sccp_hint.h"
-#include "../../sccp_mwi.h"
-#include "../../sccp_appfunctions.h"
-#include "../../sccp_management.h"
-#include "../../sccp_rtp.h"
-#include "../../sccp_socket.h"
+#include "common.h"
+#include "sccp_pbx.h"
+#include "sccp_device.h"
+#include "sccp_channel.h"
+#include "sccp_line.h"
+#include "sccp_cli.h"
+#include "sccp_utils.h"
+#include "sccp_indicate.h"
+#include "sccp_hint.h"
+#include "sccp_mwi.h"
+#include "sccp_appfunctions.h"
+#include "sccp_management.h"
+#include "sccp_rtp.h"
+#include "sccp_socket.h"
 #include "ast111.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
 
-#if defined(__cplusplus) || defined(c_plusplus)
-extern "C" {
+__BEGIN_EXTERN__
+#ifdef HAVE_PBX_ACL_H
+#  include <asterisk/acl.h>
 #endif
-#include <asterisk/sched.h>
+#include <asterisk/module.h>
+#include <asterisk/causes.h>
+#include <asterisk/callerid.h>
+#include <asterisk/musiconhold.h>
+#ifdef HAVE_PBX_FEATURES_H
+#  include <asterisk/features.h>
+#endif
+#include <asterisk/indications.h>
 #include <asterisk/netsock2.h>
 #include <asterisk/cel.h>
 
@@ -40,9 +45,77 @@ extern "C" {
 #include <asterisk/rtp_engine.h>
 #undef new
 
-#if defined(__cplusplus) || defined(c_plusplus)
-}
-#endif
+//#include <asterisk.h>
+//#ifdef HAVE_PBX_ABSTRACT_JB_H
+//#  include <asterisk/abstract_jb.h>
+//#endif
+//#include <asterisk/options.h>
+//#include <asterisk/buildopts.h>
+//#include <asterisk/autoconfig.h>
+//#include <asterisk/compiler.h>
+//#ifdef HAVE_PBX_UTILS_H
+//#  include <asterisk/utils.h>
+//#endif
+//#include <asterisk/threadstorage.h>
+//#include <asterisk/strings.h>
+//#include <asterisk/pbx.h>
+//#include <asterisk/logger.h>
+//#include <asterisk/config.h>
+//#ifdef HAVE_PBX_SCHED_H
+//#  include <asterisk/sched.h>
+//#endif
+//#ifdef HAVE_PBX_FRAME_H
+//#  include <asterisk/frame.h>
+//#endif
+//#ifdef HAVE_PBX_LOCK_H
+//#  include <asterisk/lock.h>
+//#endif
+//#ifdef HAVE_PBX_CHANNEL_H
+//#  include <asterisk/channel.h>
+//#endif
+//#ifdef HAVE_PBX_APP_H
+//#  include <asterisk/app.h>
+//#endif
+//#include <asterisk/astdb.h>
+//#ifdef HAVE_PBX_EVENT_H
+//#  include <asterisk/event.h>
+//#endif
+//#ifdef HAVE_PBX_CHANNEL_pvt_H
+//#  ifndef CS_AST_HAS_TECH_PVT
+//#    include <asterisk/channel_pvt.h>
+//#  endif
+//#endif
+//#ifdef HAVE_PBX_DEVICESTATE_H
+//#  include <asterisk/devicestate.h>
+//#endif
+//#ifdef AST_EVENT_IE_CIDNAME
+//#  ifdef HAVE_PBX_EVENT_H
+//#    include <asterisk/event.h>
+//#  endif
+//#  include <asterisk/event_defs.h>
+//#endif
+//#if defined(CS_AST_HAS_AST_STRING_FIELD) && defined(HAVE_PBX_STRINGFIELDS_H)
+//#  include <asterisk/stringfields.h>
+//#endif
+//#if defined(CS_MANAGER_EVENTS) && defined(HAVE_PBX_MANAGER_H)
+//#  include <asterisk/manager.h>
+//#endif
+//#ifdef CS_AST_HAS_ENDIAN
+//#  include <asterisk/endian.h>
+//#endif
+//#include <asterisk/translate.h>
+//#ifdef HAVE_PBX_RTP_ENGINE_H
+//#  include <asterisk/rtp_engine.h>
+//#else
+//#  include <asterisk/rtp.h>
+//#endif
+//#ifdef CS_DEVSTATE_FEATURE
+//#  include <asterisk/event_defs.h>
+//#endif
+//#include <asterisk/ast_version.h>
+//#include <asterisk/file.h>
+__END_EXTERN__
+
 static struct ast_sched_context *sched = 0;
 static struct io_context *io = 0;
 

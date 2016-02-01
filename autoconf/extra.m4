@@ -231,24 +231,25 @@ dnl	])
 	AC_CHECK_HEADERS([sys/socket.h])
 	AC_CHECK_HEADERS([netinet/in.h])
 	AC_CHECK_HEADERS([pthread.h])
-	AS_IF([test "X${ostype}" == "Xlinux"], [
-		AC_CHECK_HEADERS([iconv.h])
-	], [
-		AC_CHECK_LIB([iconv], [iconv_open], [
-			LIBICONV="-liconv"
-			AC_CHECK_HEADERS([iconv.h])
-		], [
-			LIBICONV=""; 
-			AC_MSG_NOTICE([The correct iconv library could not be found. Maybe you need to provide LDFLAGS.])
-		])
-	])
+dnl	AS_IF([test "X${ostype}" == "Xlinux"], [
+dnl		AC_CHECK_HEADERS([iconv.h])
+dnl	], [
+dnl		AC_CHECK_LIB([iconv], [iconv_open], [
+dnl			LIBICONV="-liconv"
+dnl			AC_CHECK_HEADERS([iconv.h])
+dnl		], [
+dnl			LIBICONV=""; 
+dnl			AC_MSG_NOTICE([The correct iconv library could not be found. Maybe you need to provide LDFLAGS.])
+dnl		])
+dnl	])
+	AM_ICONV
 	AC_CHECK_FUNCS([gethostbyname inet_ntoa mkdir]) 
 	AC_HEADER_STDC    
 	AC_HEADER_STDBOOL 
 	AC_CHECK_HEADERS([netinet/in.h fcntl.h sys/signal.h stdio.h errno.h ctype.h assert.h sys/sysinfo.h])
 	AC_STRUCT_TM
 	AC_STRUCT_TIMEZONE
-	AC_SUBST([LIBICONV])
+dnl	AC_SUBST([LIBICONV])
 ])
 
 AC_DEFUN([CS_CHECK_CROSSCOMPILE],[
@@ -371,25 +372,28 @@ dnl Conditional Makefile.am Macros
 AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 	AM_CONDITIONAL([BUILD_AST], test "$PBX_TYPE" == "Asterisk")
 	dnl Now using Conditional-Libtool-Sources
+	PBX_COND_SUBDIR=
+	PBX_COND_LIBADD=
+	PBXVER_COND_SUBDIR=
+	PBXVER_COND_LIBADD=
+	PBXVER_COND_ANNOUNCE_SUBDIR=
+	PBXVER_COND_ANNOUNCE_LIBADD=
 	if test "$PBX_TYPE" == "Asterisk"; then
-		PBX_GENERAL="chan_sccp_la-ast.lo"
-	  		PBX_MAJOR="chan_sccp_la-ast${ASTERISK_VER_GROUP}.lo"
+		PBX_COND_SUBDIR=pbx_impl/ast
+		PBX_COND_LIBADD=pbx_impl/ast/libast.la
+		PBXVER_COND_SUBDIR=pbx_impl/ast${ASTERISK_VER_GROUP}/
+		PBXVER_COND_LIBADD=pbx_impl/ast${ASTERISK_VER_GROUP}/libast${ASTERISK_VER_GROUP}.la
 		if test ${ASTERISK_VER_GROUP} -gt 111;then
-			PBX_MAJOR="${PBX_MAJOR} chan_sccp_la-ast112_announce.lo"
+			PBXVER_COND_ANNOUNCE_SUBDIR=pbx_impl/ast_announce
+			PBXVER_COND_ANNOUNCE_LIBADD=pbx_impl/ast_announce/libast_announce.la
 		fi
-                if test -f src/pbx_impl/ast/ast${ASTERISK_VERSION_NUMBER}.c; then
-                  PBX_MINOR="chan_sccp_la-ast${ASTERISK_VERSION_NUMBER}.lo"
-                else
-                  PBX_MINOR=""
-                fi
-	else
-		PBX_GENERAL=""
-		PBX_MAJOR=""
-		PBX_MINOR=""
 	fi
-	AC_SUBST([PBX_GENERAL])
-	AC_SUBST([PBX_MAJOR])
-	AC_SUBST([PBX_MINOR])
+	AC_SUBST([PBX_COND_SUBDIR])
+	AC_SUBST([PBX_COND_LIBADD])
+	AC_SUBST([PBXVER_COND_SUBDIR])
+	AC_SUBST([PBXVER_COND_LIBADD])
+	AC_SUBST([PBXVER_COND_ANNOUNCE_SUBDIR])
+	AC_SUBST([PBXVER_COND_ANNOUNCE_LIBADD])
 ])
 
 AC_DEFUN([CS_WITH_PBX], [
@@ -506,6 +510,8 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			AC_LANG_C
 			AX_APPEND_COMPILE_FLAGS([ dnl
 				-fstack-protector-all dnl
+				-fvisibility=hidden dnl
+				-fvisibility-inlines-hidden dnl
 				-Wmissing-declarations dnl
 				-Wnested-externs dnl
 				-Wno-long-long dnl

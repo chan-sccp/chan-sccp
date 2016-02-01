@@ -9,8 +9,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License. 
  *              See the LICENSE file at the top of the source tree.
  * 
- * $Date$
- * $Revision$
  */
 #include <config.h>
 #include "common.h"
@@ -23,7 +21,13 @@
 #include "sccp_conference.h"
 #include "sccp_socket.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
+#include <asterisk/callerid.h>
+#include <asterisk/module.h>		// ast_register_application2
+#ifdef HAVE_PBX_APP_H
+#  include <asterisk/app.h>
+#endif
 
 AST_THREADSTORAGE(coldata_buf);
 AST_THREADSTORAGE(colnames_buf);

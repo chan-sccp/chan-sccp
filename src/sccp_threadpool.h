@@ -7,9 +7,6 @@
  * \note        Based on the work of Johan Hanssen Seferidis
  *              Library providing a threading pool where you can add work. 
  * \since       2009-01-16
- *
- * $Date: 2010-11-17 12:03:44 +0100 (Wed, 17 Nov 2010) $
- * $Revision: 2130 $  
  */
 #pragma once
 //#include <config.h>
@@ -148,11 +145,5 @@ void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_
  * \param tp_p pointer to threadpool
  */
 int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p);
-
-
-#if CS_TEST_FRAMEWORK
-void sccp_threadpool_register_tests(void);
-void sccp_threadpool_unregister_tests(void);
-#endif
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

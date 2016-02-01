@@ -9,9 +9,6 @@
  *              See the LICENSE file at the top of the source tree.
  * 
  * \note        Thank you Federico Santulli for SPCP support
- *
- * $Date$
- * $Revision$  
  */
 #pragma once
 
@@ -82,6 +79,10 @@
 #define APPID_PROVISION					9083
 #define APPID_DEVICECAPABILITIES			9084
 #define APPID_URIHOOK					9085
+#define APPID_BACKGROUND				9086
+#define APPID_RINGTONE					9087
+#define APPID_STREAM					9088
+#define APPID_PUSH					9089
 
 /*
  * \todo Merge sccp_button_type_t / sccp_buttontypes[] and this define
@@ -90,6 +91,7 @@
 #define SCCP_BUTTONTYPE_LINE				0xF2
 #define SCCP_BUTTONTYPE_SPEEDDIAL			0xF3
 #define SCCP_BUTTONTYPE_HINT				0xF4
+#define SCCP_BUTTONTYPE_ABBRDIAL			0xF5
 
 /* unregister */
 #define SKINNY_UNREGISTERSTATUS_OK			0

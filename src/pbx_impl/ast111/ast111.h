@@ -1,29 +1,14 @@
 /*!
- * \file        ast112.h
+ * \file        ast111.h
  * \brief       SCCP PBX Asterisk Header
  * \author      Marcello Ceshia
  * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- *
- * $Date$
- * $Revision$  
  */
 #pragma once
 
 #include <config.h>
-#include <asterisk/features_config.h>
-#include <asterisk/pickup.h>
-#include <asterisk/stasis.h>
-
-#ifdef CS_SCCP_CONFERENCE
-#include "asterisk/bridge.h"
-#include "asterisk/bridge_technology.h"
-#include "asterisk/bridge_features.h"
-#include "asterisk/bridge_channel.h"
-#endif
-
-#include "pbx_impl/ast/ast112_announce.h"
 
 #undef pbx_channel_ref
 #define pbx_channel_ref ast_channel_ref
@@ -31,8 +16,8 @@
 #define pbx_channel_unref ast_channel_unref
 #define sccp_sched_context_destroy sched_context_destroy
 
-#define PBX_ENDPOINT_TYPE struct ast_endpoint
-#define PBX_EVENT_SUBSCRIPTION struct stasis_subscription
+#define PBX_ENDPOINT_TYPE void
+#define PBX_EVENT_SUBSCRIPTION struct ast_event_sub
 
 typedef struct ast_format_cap ast_format_t;
 int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref);
@@ -43,7 +28,6 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 /* Redefinitions for asterisk-trunk, need to be sorted  */
 #define pbx_channel_name(x) ast_channel_name(x)
 
-#undef CS_BRIDGEPEERNAME
 #undef pbx_channel_uniqueid
 #undef pbx_channel_flags
 #undef pbx_channel_call_forward
@@ -69,7 +53,6 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #undef pbx_channel_bridge
 #undef pbx_channel_set_bridge
 #undef pbx_channel_language
-#undef pbx_channel_language_set
 #undef pbx_channel_cdr
 #undef pbx_channel_call_forward_set
 #undef pbx_channel_varshead
@@ -79,15 +62,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #undef pbx_channel_connected_id
 #undef pbx_channel_connected_source
 #undef pbx_channel_monitor
-#undef pbx_channel_string2amaflag
-#undef pbx_channel_amaflags2string
-#undef pbx_event_subscribe
-#undef pbx_event_unsubscribe
-#undef pbx_bridge_destroy
-#undef pbx_bridge_new
-#undef pbx_bridge_change_state
 
-#define CS_BRIDGEPEERNAME "DIALEDPEERNAME"
 #define pbx_channel_uniqueid(_a) ast_channel_uniqueid(_a)
 #define pbx_channel_flags(_a) ast_channel_flags(_a)
 #define pbx_channel_call_forward(_a) ast_channel_call_forward(_a)
@@ -114,7 +89,6 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #define pbx_channel_bridge(_a) ast_channel_bridge(_a)
 #define pbx_channel_set_bridge(_a, _b) ast_channel_internal_bridge_set(_a, _b)
 #define pbx_channel_language(_a) ast_channel_language(_a)
-#define pbx_channel_language_set(_a,_b) ast_channel_language_set(_a,_b)
 #define pbx_channel_cdr(_a) ast_channel_cdr(_a)
 #define pbx_channel_call_forward_set ast_channel_call_forward_set
 #define pbx_channel_varshead(_a) ast_channel_varshead(_a)
@@ -124,14 +98,6 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #define pbx_channel_connected_id(_a) ast_channel_connected(_a)->id
 #define pbx_channel_connected_source(_a) ast_channel_connected(_a)->source
 #define pbx_channel_monitor(_a) ast_channel_monitor(_a)
-#define pbx_channel_string2amaflag(_a) ast_channel_string2amaflag(_a)
-#define pbx_channel_amaflags2string(_a) ast_channel_amaflags2string(_a)
-#define pbx_event_subscribe(_a) _a = stasis_subscribe(_a)
-#define pbx_event_unsubscribe(_a) _a = stasis_unsubscribe(_a)
-#define pbx_bridge_destroy(_x, _y) ast_bridge_destroy(_x, _y)
-#define pbx_bridge_new(_a, _b, _c, _d, _e) ast_bridge_base_new(_a, _b, _c, _d, _e)
-#define AST_BRIDGE_CHANNEL_STATE_WAIT BRIDGE_CHANNEL_STATE_WAIT
-#define pbx_bridge_change_state(_a, _b) (_a->state) = _b
 
 int pbx_manager_register(const char *action, int authority, int (*func) (struct mansession * s, const struct message * m), const char *synopsis, const char *description);
 
@@ -145,6 +111,17 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 
 #define NEWCONST const												// old functions used without const
 #define OLDCONST												// new function used with const
+
+#if CS_TEST_FRAMEWORK
+#undef pbx_test_validate_cleanup
+#define pbx_test_validate_cleanup(test, condition, rc_variable, cleanup_label) ({				\
+        if (!(condition)) {											\
+                pbx_test_status_update((test), "%s: %s\n", "Condition failed", #condition);			\
+                rc_variable = 2 /*AST_TEST_FAIL*/;								\
+                goto cleanup_label;										\
+        }													\
+})
+#endif
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_AMI_OUTPUT(fd, s, ...) 										\
@@ -200,6 +177,7 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 	} else {												\
 		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "yes" : "no")); 		\
 	}
+
 #define _CLI_AMI_RETURN_ERROR(fd, s, m, line, fmt, ...) 							\
         /*pbx_log(LOG_WARNING, "SCCP CLI ERROR: " fmt, __VA_ARGS__);*/						\
 	if (NULL != s) {											\

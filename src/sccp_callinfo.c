@@ -24,7 +24,11 @@
 #include "sccp_device.h"
 #include <stdarg.h>
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
+#include <asterisk/callerid.h>
+
+__BEGIN_EXTERN__
 
 /* local definitions */
 typedef struct callinfo_entry {
@@ -608,6 +612,7 @@ void sccp_callinfo_print2log(const sccp_callinfo_t * const ci, const char *const
 }
 
 #if CS_TEST_FRAMEWORK
+#include <asterisk/test.h>
 AST_TEST_DEFINE(sccp_callinfo_tests)
 {
 	switch(cmd) {
@@ -621,7 +626,7 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	        	break;
 	}
 	
-	ast_test_status_update(test, "Executing chan-sccp-b callinfo tests...\n");
+	pbx_test_status_update(test, "Executing chan-sccp-b callinfo tests...\n");
 
 	sccp_callinfo_t *citest = NULL;
 	int changes = 0;
@@ -630,24 +635,24 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	char name[StationMaxNameSize], number[StationMaxNameSize], voicemail[StationMaxNameSize], nullstr[StationMaxNameSize];
 	char origname[StationMaxNameSize], orignumber[StationMaxNameSize], origvoicemail[StationMaxNameSize];
 
-	ast_test_status_update(test, "Callinfo Constructor...\n");
+	pbx_test_status_update(test, "Callinfo Constructor...\n");
 	citest = sccp_callinfo_ctor(15);
-	ast_test_validate(test, citest != NULL);
+	pbx_test_validate(test, citest != NULL);
 
-	ast_test_status_update(test, "Callinfo Destructor...\n");
+	pbx_test_status_update(test, "Callinfo Destructor...\n");
 	citest = sccp_callinfo_dtor(citest);
-	ast_test_validate(test, citest == NULL);
+	pbx_test_validate(test, citest == NULL);
 
-	ast_test_status_update(test, "Callinfo Setter CalledParty...\n");
+	pbx_test_status_update(test, "Callinfo Setter CalledParty...\n");
 	citest = sccp_callinfo_ctor(15);
 	changes = sccp_callinfo_setter(citest, SCCP_CALLINFO_CALLEDPARTY_NAME, "name", 
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, "number", 
 					SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, "voicemail", 
 					SCCP_CALLINFO_PRESENTATION, CALLERID_PRESENTATION_FORBIDDEN,
 					SCCP_CALLINFO_KEY_SENTINEL);
-	ast_test_validate(test, changes == 4);
+	pbx_test_validate(test, changes == 4);
 
-	ast_test_status_update(test, "Callinfo Getter CalledParty...\n");
+	pbx_test_status_update(test, "Callinfo Getter CalledParty...\n");
 	name[0]='\0'; number[0]='\0'; voicemail[0]='\0'; nullstr[0]='\0'; origname[0]='\0'; orignumber[0]='\0'; origvoicemail[0]='\0'; changes = 0; reason = 0; presentation = CALLERID_PRESENTATION_ALLOWED;
 	changes = sccp_callinfo_getter(citest, SCCP_CALLINFO_CALLEDPARTY_NAME, &name, 
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &number, 
@@ -655,18 +660,18 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 					SCCP_CALLINFO_CALLINGPARTY_NAME, &nullstr,
 					SCCP_CALLINFO_PRESENTATION, &presentation,
 					SCCP_CALLINFO_KEY_SENTINEL);
-	ast_test_validate(test, changes == 4);
-	ast_test_validate(test, !strcmp(name, "name"));
-	ast_test_validate(test, !strcmp(number, "number"));
-	ast_test_validate(test, !strcmp(voicemail, "voicemail"));
-	ast_test_validate(test, !strcmp(nullstr, ""));
+	pbx_test_validate(test, changes == 4);
+	pbx_test_validate(test, !strcmp(name, "name"));
+	pbx_test_validate(test, !strcmp(number, "number"));
+	pbx_test_validate(test, !strcmp(voicemail, "voicemail"));
+	pbx_test_validate(test, !strcmp(nullstr, ""));
 	
-	ast_test_status_update(test, "Callinfo Setter add OrigCalledParty...\n");
+	pbx_test_status_update(test, "Callinfo Setter add OrigCalledParty...\n");
 	changes = 0;
 	changes = sccp_callinfo_setOrigCalledParty(citest, "origname", "orignumber", "origvm", 4);
-	ast_test_validate(test, changes == 4);
+	pbx_test_validate(test, changes == 4);
 	
-	ast_test_status_update(test, "Callinfo Getter OrigCalledParty...\n");
+	pbx_test_status_update(test, "Callinfo Getter OrigCalledParty...\n");
 	name[0]='\0'; number[0]='\0'; voicemail[0]='\0'; nullstr[0]='\0'; origname[0]='\0'; orignumber[0]='\0'; origvoicemail[0]='\0'; changes = 0; reason = 0; presentation = CALLERID_PRESENTATION_ALLOWED;
 	changes = sccp_callinfo_getter(citest, SCCP_CALLINFO_CALLEDPARTY_NAME, &name, 
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &number, 
@@ -678,16 +683,16 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &reason,
 					SCCP_CALLINFO_PRESENTATION, &presentation,
 					SCCP_CALLINFO_KEY_SENTINEL);
-	ast_test_validate(test, changes == 8);
-	ast_test_validate(test, !strcmp(name, "name"));
-	ast_test_validate(test, !strcmp(number, "number"));
-	ast_test_validate(test, !strcmp(voicemail, "voicemail"));
-	ast_test_validate(test, !strcmp(origname, "origname"));
-	ast_test_validate(test, !strcmp(orignumber, "orignumber"));
-	ast_test_validate(test, !strcmp(origvoicemail, "origvm"));
-	ast_test_validate(test, reason == 4);
+	pbx_test_validate(test, changes == 8);
+	pbx_test_validate(test, !strcmp(name, "name"));
+	pbx_test_validate(test, !strcmp(number, "number"));
+	pbx_test_validate(test, !strcmp(voicemail, "voicemail"));
+	pbx_test_validate(test, !strcmp(origname, "origname"));
+	pbx_test_validate(test, !strcmp(orignumber, "orignumber"));
+	pbx_test_validate(test, !strcmp(origvoicemail, "origvm"));
+	pbx_test_validate(test, reason == 4);
 	
-	ast_test_status_update(test, "Callinfo copyCtor...\n");
+	pbx_test_status_update(test, "Callinfo copyCtor...\n");
 	name[0]='\0'; number[0]='\0'; voicemail[0]='\0'; nullstr[0]='\0'; origname[0]='\0'; orignumber[0]='\0'; origvoicemail[0]='\0'; changes = 0; reason = 0; presentation = CALLERID_PRESENTATION_ALLOWED;
 	sccp_callinfo_t *citest1 = sccp_callinfo_copyCtor(citest);
 	changes = sccp_callinfo_getter(citest1, SCCP_CALLINFO_CALLEDPARTY_NAME, &name, 
@@ -700,16 +705,16 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &reason,
 					SCCP_CALLINFO_PRESENTATION, &presentation,
 					SCCP_CALLINFO_KEY_SENTINEL);
-	ast_test_validate(test, changes == 8);
-	ast_test_validate(test, !strcmp(name, "name"));
-	ast_test_validate(test, !strcmp(number, "number"));
-	ast_test_validate(test, !strcmp(voicemail, "voicemail"));
-	ast_test_validate(test, !strcmp(origname, "origname"));
-	ast_test_validate(test, !strcmp(orignumber, "orignumber"));
-	ast_test_validate(test, !strcmp(origvoicemail, "origvm"));
-	ast_test_validate(test, reason == 4);
+	pbx_test_validate(test, changes == 8);
+	pbx_test_validate(test, !strcmp(name, "name"));
+	pbx_test_validate(test, !strcmp(number, "number"));
+	pbx_test_validate(test, !strcmp(voicemail, "voicemail"));
+	pbx_test_validate(test, !strcmp(origname, "origname"));
+	pbx_test_validate(test, !strcmp(orignumber, "orignumber"));
+	pbx_test_validate(test, !strcmp(origvoicemail, "origvm"));
+	pbx_test_validate(test, reason == 4);
 
-	ast_test_status_update(test, "Callinfo copyByKey...\n");
+	pbx_test_status_update(test, "Callinfo copyByKey...\n");
 	name[0]='\0'; number[0]='\0'; voicemail[0]='\0'; nullstr[0]='\0'; origname[0]='\0'; orignumber[0]='\0'; origvoicemail[0]='\0'; changes = 0; reason = 0; presentation = CALLERID_PRESENTATION_ALLOWED;
 	sccp_callinfo_t *citest2 = sccp_callinfo_ctor(16);
 	changes = sccp_callinfo_copyByKey(citest1, citest2, 
@@ -717,7 +722,7 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER,
 					SCCP_CALLINFO_PRESENTATION, SCCP_CALLINFO_PRESENTATION,
 					SCCP_CALLINFO_KEY_SENTINEL);
-	ast_test_validate(test, changes == 2);
+	pbx_test_validate(test, changes == 2);
 	changes = sccp_callinfo_getter(citest2, SCCP_CALLINFO_CALLEDPARTY_NAME, &name, 
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &number, 
 					SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, &voicemail, 
@@ -728,36 +733,36 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &reason,
 					SCCP_CALLINFO_PRESENTATION, &presentation,
 					SCCP_CALLINFO_KEY_SENTINEL);
-	ast_test_validate(test, changes == 3);
-	ast_test_validate(test, sccp_strlen_zero(name));
-	ast_test_validate(test, sccp_strlen_zero(number));
-	ast_test_validate(test, sccp_strlen_zero(voicemail));
-	ast_test_validate(test, !strcmp(origname, "name"));
-	ast_test_validate(test, !strcmp(orignumber, "number"));
-	ast_test_validate(test, sccp_strlen_zero(origvoicemail));
-	ast_test_validate(test, presentation == CALLERID_PRESENTATION_FORBIDDEN);
-	ast_test_validate(test, reason == 0);
+	pbx_test_validate(test, changes == 3);
+	pbx_test_validate(test, sccp_strlen_zero(name));
+	pbx_test_validate(test, sccp_strlen_zero(number));
+	pbx_test_validate(test, sccp_strlen_zero(voicemail));
+	pbx_test_validate(test, !strcmp(origname, "name"));
+	pbx_test_validate(test, !strcmp(orignumber, "number"));
+	pbx_test_validate(test, sccp_strlen_zero(origvoicemail));
+	pbx_test_validate(test, presentation == CALLERID_PRESENTATION_FORBIDDEN);
+	pbx_test_validate(test, reason == 0);
 	citest2 = sccp_callinfo_dtor(citest2);
-	ast_test_validate(test, citest2 == NULL);
+	pbx_test_validate(test, citest2 == NULL);
 	
-	ast_test_status_update(test, "Callinfo Test Destructor...\n");
+	pbx_test_status_update(test, "Callinfo Test Destructor...\n");
 	citest = sccp_callinfo_dtor(citest);
-	ast_test_validate(test, citest == NULL);
+	pbx_test_validate(test, citest == NULL);
 	citest1 = sccp_callinfo_dtor(citest1);
-	ast_test_validate(test, citest1 == NULL);
+	pbx_test_validate(test, citest1 == NULL);
 
 	return AST_TEST_PASS;
 }
 
-void sccp_callinfo_register_tests(void)
+static void __attribute__((constructor)) sccp_register_tests(void)
 {
         AST_TEST_REGISTER(sccp_callinfo_tests);
 }
 
-void sccp_callinfo_unregister_tests(void)
+static void __attribute__((destructor)) sccp_unregister_tests(void)
 {
         AST_TEST_UNREGISTER(sccp_callinfo_tests);
 }
 #endif
-
+__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

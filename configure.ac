@@ -2,8 +2,6 @@ dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
 dnl CREATED BY: Created by Diederik de Groot
 dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
 dnl          See the LICENSE file at the top of the source tree.
-dnl DATE: $Date: 2015-10-15 18:45:56 +0200 (do, 15 okt 2015) $
-dnl REVISION: $Revision: 6248 $
 dnl NOTE: Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.64])
 AC_INIT([Chan_SCCP],m4_esyscmd([cat .version |tr -d '\n']),[https://sourceforge.net/projects/chan-sccp-b/],[Chan_SCCP])
@@ -48,13 +46,13 @@ AM_MAINTAINER_MODE([disable])								dnl Switches off auto-regeneration on confi
 											dnl make sure to run tool/bootstrap.sh before checking in configure changes to svn
 
 dnl AM_INIT_AUTOMAKE([1.14 -Wno-portability check-news dist-bzip2 nostdinc subdir-objects])
-AM_INIT_AUTOMAKE([1.10 -Wno-portability check-news dist-bzip2 nostdinc])
+AM_INIT_AUTOMAKE([1.10 -Wno-portability check-news dist-bzip2 nostdinc subdir-objects])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 AC_DISABLE_STATIC([])
 
 AC_CONFIG_SRCDIR([src/chan_sccp.c]) 
 AC_COPYRIGHT("Chan_SCCP")
-AC_REVISION($Revision: 6248 $) 
+AC_REVISION($Revision$) 
 
 CONFIGURE_PART([Checking build environment:])
 CS_SETUP_BUILD
@@ -64,7 +62,6 @@ CS_ENABLE_OPTIMIZATION
 AX_CHECK_ALIGNED_ACCESS_REQUIRED	dnl sparc64 alignment required
 AX_CHECK_UNALIGNED_BUSERROR		dnl sparc64 unaligned access
 CS_GET_VERSION([.])
-
 dnl AC_PROG_CXX
 
 CONFIGURE_PART([Checking host platform:])
@@ -108,13 +105,32 @@ dnl set substitutes
 AC_SUBST(CPU_OPTIONS)
 AC_SUBST(prefix)
 
+dnl PBXVER_COND_SUBDIR=pbx_impl/ast113
+dnl PBXVER_COND_LIBADD=pbx_impl/ast113/libast113.la
+dnl PBXVER_COND_ANNOUNCE_SUBDIR=pbx_impl/ast_announce
+dnl PBXVER_COND_ANNOUNCE_LIBADD=pbx_impl/ast_announce/libast_announce.la
+dnl AC_SUBST([PBXVER_COND_SUBDIR])
+dnl AC_SUBST([PBXVER_COND_LIBADD])
+dnl AC_SUBST([PBXVER_COND_ANNOUNCE_SUBDIR])
+dnl AC_SUBST([PBXVER_COND_ANNOUNCE_LIBADD])
+
 CONFIGURE_PART([Generating Configuration and Makefiles])
-AC_CONFIG_COMMANDS([tools/autorevision], [cd ${ac_abs_top_srcdir};${ac_abs_top_srcdir}/tools/autorevision -t h -o ${ac_abs_top_srcdir}/.revision > ${ac_abs_top_builddir}/src/revision.h 2>/dev/null])
+AC_CONFIG_COMMANDS([tools/autorevision], [${ac_abs_top_srcdir}/tools/autorevision -t h -o ${ac_abs_top_srcdir}/.revision > ${ac_abs_top_builddir}/src/revision.h 2>/dev/null])
+AC_CONFIG_COMMANDS([gen_enum], [cd ${ac_abs_top_builddir}/src; gawk -f "${ac_abs_top_srcdir}/tools/gen_sccp_enum.awk" ${ac_abs_top_srcdir}/src/sccp_enum.in])
 AC_CONFIG_FILES([
    Makefile
    README
    doc/Makefile
    src/Makefile
+   src/pbx_impl/Makefile
+   src/pbx_impl/ast/Makefile
+   src/pbx_impl/ast106/Makefile
+   src/pbx_impl/ast108/Makefile
+   src/pbx_impl/ast110/Makefile
+   src/pbx_impl/ast111/Makefile
+   src/pbx_impl/ast112/Makefile
+   src/pbx_impl/ast113/Makefile
+   src/pbx_impl/ast_announce/Makefile
    contrib/gen_sccpconf/Makefile
 ])
 

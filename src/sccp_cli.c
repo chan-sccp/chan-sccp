@@ -8,8 +8,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
  */
 
 /*!
@@ -62,7 +60,7 @@
 #include "sccp_hint.h"
 #include "sys/stat.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
 
 #include <asterisk/cli.h>
 #include <asterisk/paths.h>
@@ -493,7 +491,9 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 		local_line_total++;
 	}
 	CLI_AMI_OUTPUT_PARAM("Config File", CLI_AMI_LIST_WIDTH, "%s", GLOB(config_file_name));
-#if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
+#if defined(SCCP_LITTLE_ENDIAN) && defined(SCCP_BIG_ENDIAN)
+	CLI_AMI_OUTPUT_PARAM("Platform byte order", CLI_AMI_LIST_WIDTH, "%s", "LITTLE/BIG ENDIAN");
+#elif defined(SCCP_LITTLE_ENDIAN)
 	CLI_AMI_OUTPUT_PARAM("Platform byte order", CLI_AMI_LIST_WIDTH, "%s", "LITTLE ENDIAN");
 #else
 	CLI_AMI_OUTPUT_PARAM("Platform byte order", CLI_AMI_LIST_WIDTH, "%s", "BIG ENDIAN");
@@ -770,7 +770,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s", skinny_registrationstate2str(sccp_device_getRegistrationState(d)));
 	CLI_AMI_OUTPUT_PARAM("State",			CLI_AMI_LIST_WIDTH, "%s", sccp_devicestate2str(sccp_device_getDeviceState(d)));
 	CLI_AMI_OUTPUT_PARAM("MWI light",		CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_lampmode2str(d->mwilamp), d->mwilamp);
-	CLI_AMI_OUTPUT_PARAM("MWI handset light", 	CLI_AMI_LIST_WIDTH, "%s (%d)", sccp_dec2binstr(binstr, 32, d->mwilight), d->mwilight);
+	CLI_AMI_OUTPUT_PARAM("MWI handset light", 	CLI_AMI_LIST_WIDTH, "%s", sccp_dec2binstr(binstr, 64, d->mwilight));
 	CLI_AMI_OUTPUT_PARAM("MWI During call",		CLI_AMI_LIST_WIDTH, "%s", d->mwioncall ? "keep on" : "turn off");
 	CLI_AMI_OUTPUT_PARAM("Description",		CLI_AMI_LIST_WIDTH, "%s", d->description ? d->description : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Config Phone Type",	CLI_AMI_LIST_WIDTH, "%s", d->config_type);
@@ -1877,34 +1877,23 @@ CLI_ENTRY(cli_test, sccp_test, "Test", cli_test_usage, FALSE)
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 
 #endif														// CS_EXPERIMENTAL
-    /* ------------------------------------------------------------------------------------------------------- REFCOUNT - */
-    /*!
-     * \brief Print Refcount Hash Table
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     */
-static int sccp_show_refcount(int fd, int argc, char *argv[])
-{
-	if (argc < 3) {
-		return RESULT_SHOWUSAGE;
-	}
-	sccp_refcount_print_hashtable(fd);
-	return RESULT_SUCCESS;
-}
 
-static char cli_show_refcount_usage[] = "Usage: sccp show refcount [sortorder]\n" "	Show Refcount Hash Table. sortorder can be hash or type\n";
+    /* ---------------------------------------------------------------------------------------------SHOW_REFCOUNT - */
+static char cli_show_refcount_usage[] = "Usage: sccp show refcount [show|suppress]\n" "	Show All SCCP Refcount Entries.\n";
+static char ami_show_refcount_usage[] = "Usage: SCCPShowRefcount\n" "Show All Refcount Entries.\n\n" "Optional PARAMS: inuse [show, suppress]\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "show", "refcount"
+#define AMI_COMMAND "SCCPShowRefcount"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
-CLI_ENTRY(cli_show_refcount, sccp_show_refcount, "Test a Message", cli_show_refcount_usage, FALSE)
+#define CLI_AMI_PARAMS "inuse"
+CLI_AMI_ENTRY(show_refcount, sccp_show_refcount, "Show all Refcount Entries", cli_show_refcount_usage, FALSE, TRUE)
+#undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
+#undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
     /* --------------------------------------------------------------------------------------------------SHOW_SOKFTKEYSETS- */
     /*!
      * \brief Show Sessions
@@ -2661,7 +2650,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
-			pbx_cli(fd, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));
+			pbx_cli(fd, "config file '%s' has not changed, skipping reload.\n", GLOB(config_file_name));
 			returnval = RESULT_SUCCESS;
 			break;
 		case CONFIG_STATUS_FILE_OK:
@@ -3467,6 +3456,7 @@ void sccp_register_cli(void)
 #endif
 	pbx_manager_register("SCCPShowHintLineStates", _MAN_REP_FLAGS, manager_show_hint_lineStates, "show hint lineStates", ami_show_hint_lineStates_usage);
 	pbx_manager_register("SCCPShowHintSubscriptions", _MAN_REP_FLAGS, manager_show_hint_subscriptions, "show hint subscriptions", ami_show_hint_subscriptions_usage);
+	pbx_manager_register("SCCPShowRefcount", _MAN_REP_FLAGS, manager_show_refcount, "show refcount", ami_show_refcount_usage);
 }
 
 /*!
@@ -3503,6 +3493,7 @@ void sccp_unregister_cli(void)
 #endif
 	pbx_manager_unregister("SCCPShowHintLineStates");
 	pbx_manager_unregister("SCCPShowHintSubscriptions");
+	pbx_manager_unregister("SCCPShowRefcount");
 }
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

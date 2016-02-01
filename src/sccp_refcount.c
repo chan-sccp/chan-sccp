@@ -3,9 +3,6 @@
  * \brief       SCCP Refcount Class
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- * 
- * $Date$
- * $Revision$  
  */
 
 /*!
@@ -49,8 +46,14 @@
 #include "common.h"
 #include "sccp_utils.h"
 #include "sccp_atomic.h"
+#include <asterisk/cli.h>
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+// required for refcount inuse checking
+#include "sccp_device.h"
+#include "sccp_line.h"
+#include "sccp_channel.h"
+
+SCCP_FILE_VERSION(__FILE__, "");
 
 //nb: SCCP_HASH_PRIME defined in config.h, default 563
 #define SCCP_SIMPLE_HASH(_a) (((unsigned long)(_a)) % SCCP_HASH_PRIME)
@@ -69,9 +72,11 @@ static struct sccp_refcount_obj_info {
 	[SCCP_REF_EVENT] = {NULL, "event", DEBUGCAT_EVENT},
 	[SCCP_REF_CHANNEL] = {NULL, "channel", DEBUGCAT_CHANNEL},
 	[SCCP_REF_LINEDEVICE] = {NULL, "linedevice", DEBUGCAT_LINE},
-	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
 	[SCCP_REF_LINE] = {NULL, "line", DEBUGCAT_LINE},
+	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
+#if CS_TEST_FRAMEWORK
 	[SCCP_REF_TEST] = {NULL, "test", DEBUGCAT_HIGH},
+#endif
 /* *INDENT-ON* */
 };
 
@@ -118,7 +123,7 @@ void sccp_refcount_init(void)
 
 void sccp_refcount_destroy(void)
 {
-	uint32_t x, type;
+	uint32_t hash, type;
 	RefCountedObject *obj;
 
 	pbx_log(LOG_NOTICE, "SCCP: (Refcount) Shutting Down. Checking Clean Shutdown...\n");
@@ -130,11 +135,11 @@ void sccp_refcount_destroy(void)
 	// cleanup if necessary, if everything is well, this should not be necessary
 	ast_rwlock_wrlock(&objectslock);
 	for (type = 0; type < ARRAY_LEN(obj_info); type++) { 							// unwind in order of type priority
-		for (x = 0; x < SCCP_HASH_PRIME && objects[x]; x++) {
-			SCCP_RWLIST_WRLOCK(&(objects[x])->refCountedObjects);
-			SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&(objects[x])->refCountedObjects, obj, list) {
+		for (hash = 0; hash < SCCP_HASH_PRIME && objects[hash]; hash++) {
+			SCCP_RWLIST_WRLOCK(&(objects[hash]->refCountedObjects));
+			SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&(objects[hash]->refCountedObjects), obj, list) {
 				if (obj->type == type) {
-					pbx_log(LOG_NOTICE, "Cleaning up [%3d]=type:%17s, id:%25s, ptr:%15p, refcount:%4d, alive:%4s, size:%4d\n", x, (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", obj->len);
+					pbx_log(LOG_NOTICE, "Cleaning up [%3d]=type:%17s, id:%25s, ptr:%15p, refcount:%4d, alive:%4s, size:%4d\n", hash, (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", obj->len);
 					if ((&obj_info[obj->type])->destructor) {
 						(&obj_info[obj->type])->destructor(obj->data);
 					}
@@ -149,11 +154,11 @@ void sccp_refcount_destroy(void)
 				}
 			}
 			SCCP_RWLIST_TRAVERSE_SAFE_END;
-			SCCP_RWLIST_UNLOCK(&(objects[x])->refCountedObjects);
-			SCCP_RWLIST_HEAD_DESTROY(&(objects[x])->refCountedObjects);
+			SCCP_RWLIST_UNLOCK(&(objects[hash]->refCountedObjects));
+			SCCP_RWLIST_HEAD_DESTROY(&(objects[hash]->refCountedObjects));
 
-			sccp_free(objects[x]);									// free hashtable entry
-			objects[x] = NULL;
+			sccp_free(objects[hash]);								// free hashtable entry
+			objects[hash] = NULL;
 		}
 	}
 	ast_rwlock_unlock(&objectslock);
@@ -186,15 +191,15 @@ void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types t
 {
 	RefCountedObject *obj;
 	void *ptr = NULL;
-	int hash;
+	uint32_t hash;
 
 	if (!runState) {
-		ast_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Not Running Yet!\n");
+		pbx_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Not Running Yet!\n");
 		return NULL;
 	}
 
 	if (!(obj = sccp_calloc(size + (sizeof *obj), 1) )) {
-		ast_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Memory allocation failure (obj)");
+		pbx_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Memory allocation failure (obj)");
 		return NULL;
 	}
 
@@ -219,20 +224,22 @@ void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types t
 		ast_rwlock_wrlock(&objectslock);
 		if (!objects[hash]) {										// check again after getting the lock, to see if another thread did not create the head already
 			if (!(objects[hash] = sccp_calloc(sizeof *objects[hash], 1))) {
-				ast_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Memory allocation failure (hashtable)");
+				pbx_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Memory allocation failure (hashtable)");
 				sccp_free(obj);
 				obj = NULL;
 				ast_rwlock_unlock(&objectslock);
 				return NULL;
 			}
-			SCCP_RWLIST_HEAD_INIT(&(objects[hash])->refCountedObjects);
+			SCCP_RWLIST_HEAD_INIT(&(objects[hash]->refCountedObjects));
+			SCCP_RWLIST_INSERT_HEAD(&(objects[hash]->refCountedObjects), obj, list);
 		}
 		ast_rwlock_unlock(&objectslock);
+	} else {
+		// add object to hash table
+		SCCP_RWLIST_WRLOCK(&(objects[hash]->refCountedObjects));
+		SCCP_RWLIST_INSERT_HEAD(&(objects[hash]->refCountedObjects), obj, list);
+		SCCP_RWLIST_UNLOCK(&(objects[hash]->refCountedObjects));
 	}
-	// add object to hash table
-	SCCP_RWLIST_WRLOCK(&(objects[hash])->refCountedObjects);
-	SCCP_RWLIST_INSERT_HEAD(&(objects[hash])->refCountedObjects, obj, list);
-	SCCP_RWLIST_UNLOCK(&(objects[hash])->refCountedObjects);
 
 	sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_1 "SCCP: (alloc_obj) Creating new %s %s (%p) inside %p at hash: %d\n", (&obj_info[obj->type])->datatype, identifier, ptr, obj, hash);
 	obj->alive = SCCP_LIVE_MARKER;
@@ -372,65 +379,153 @@ static gcc_inline void sccp_refcount_remove_obj(const void *ptr)
 	}
 }
 
-#include <asterisk/cli.h>
-void sccp_refcount_print_hashtable(int fd)
+int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	int x, prev = 0;
+	int local_line_total = 0;
+	int bucket, prev = 0;
 	RefCountedObject *obj = NULL;
 	unsigned int maxdepth = 0;
 	unsigned int numentries = 0;
+	int check_inuse = 0;
+	boolean_t inuse = FALSE;
 	float fillfactor = 0.00;
 
-	pbx_cli(fd, "+==============================================================================================+\n");
-	pbx_cli(fd, "| %5s | %17s | %25s | %15s | %4s | %4s | %4s |\n", "hash", "type", "id", "ptr", "refc", "live", "size");
-	pbx_cli(fd, "|==============================================================================================|\n");
-	ast_rwlock_rdlock(&objectslock);
-	for (x = 0; x < SCCP_HASH_PRIME; x++) {
-		if (objects[x]) {
-			SCCP_RWLIST_RDLOCK(&(objects[x])->refCountedObjects);
-			SCCP_RWLIST_TRAVERSE(&(objects[x])->refCountedObjects, obj, list) {
-				if (prev == x) {
-					pbx_cli(fd, "|  +->  ");
-				} else {
-					pbx_cli(fd, "| [%3d] ", x);
-				}
-				pbx_cli(fd, "| %17s | %25s | %15p | %4d | %4s | %4d |\n", (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", obj->len);
-				prev = x;
-				numentries++;
-			}
-			if (maxdepth < SCCP_RWLIST_GETSIZE(&(objects[x])->refCountedObjects)) {
-				maxdepth = SCCP_RWLIST_GETSIZE(&(objects[x])->refCountedObjects);
-			}
-			SCCP_RWLIST_UNLOCK(&(objects[x])->refCountedObjects);
+	if (argc == 4) {
+		if (sccp_strcaseequals(argv[3],"show")) {
+			check_inuse = 1;
+		} else if (sccp_strcaseequals(argv[3],"suppress")) {
+			check_inuse = 2;
 		}
 	}
+
+	ast_rwlock_rdlock(&objectslock);
+#define CLI_AMI_TABLE_NAME Refcount
+#define CLI_AMI_TABLE_PER_ENTRY_NAME Entry
+#define CLI_AMI_TABLE_ITERATOR for(bucket = 0; bucket < SCCP_HASH_PRIME; bucket++)
+#define CLI_AMI_TABLE_BEFORE_ITERATION 											\
+		if (objects[bucket]) {											\
+			SCCP_RWLIST_RDLOCK(&(objects[bucket])->refCountedObjects);					\
+			SCCP_RWLIST_TRAVERSE(&(objects[bucket])->refCountedObjects, obj, list) {			\
+				char bucketstr[6];									\
+				if (!s) {										\
+					if (prev == bucket) {								\
+						sprintf(bucketstr, " +-> ");						\
+					} else {									\
+						sprintf(bucketstr, "[%3d]", bucket);					\
+					}										\
+				} else {										\
+					sprintf(bucketstr, "%d", bucket);						\
+				}											\
+				inuse = FALSE;										\
+				if (check_inuse && obj->alive) {							\
+					union {	/* little union trick to prevent cast-alignment warning	*/		\
+						unsigned char *cdata;							\
+						sccp_device_t *device;							\
+						sccp_line_t *line;							\
+						sccp_linedevices_t *linedevice;						\
+						sccp_channel_t *channel;						\
+					} data = {									\
+						.cdata = obj->data,							\
+					};										\
+					if (obj->type == SCCP_REF_DEVICE) {						\
+						if (data.device && data.device->session && data.device->active_channel) {\
+							inuse = TRUE;							\
+						}									\
+					} else if (obj->type == SCCP_REF_LINE) {					\
+						if (data.line && (							\
+							data.line->statistic.numberOfActiveChannels || 			\
+							data.line->statistic.numberOfHeldChannels)			\
+						) {									\
+							inuse = TRUE;							\
+						}									\
+					} else if (obj->type == SCCP_REF_LINEDEVICE) {					\
+						sccp_linedevices_t *linedevice = data.linedevice;			\
+						if (linedevice && linedevice->device && linedevice->line &&		\
+							linedevice->device->session && linedevice->device->active_channel && \
+							(linedevice->line->statistic.numberOfActiveChannels ||		\
+							linedevice->line->statistic.numberOfHeldChannels)		\
+						) {									\
+							inuse = TRUE;							\
+						}									\
+					} else if (obj->type == SCCP_REF_CHANNEL) {					\
+						if (data.channel && data.channel->owner) {				\
+							inuse = TRUE;							\
+						}									\
+					}										\
+				}											\
+				if (check_inuse == 2 && inuse) {							\
+					continue;									\
+				}
+				
+#define CLI_AMI_TABLE_AFTER_ITERATION											\
+				prev = bucket;										\
+				numentries++;										\
+			}												\
+			if (maxdepth < SCCP_RWLIST_GETSIZE(&(objects[bucket])->refCountedObjects)) {			\
+				maxdepth = SCCP_RWLIST_GETSIZE(&(objects[bucket])->refCountedObjects);			\
+			}												\
+			SCCP_RWLIST_UNLOCK(&(objects[bucket])->refCountedObjects);					\
+		}
+
+#define CLI_AMI_TABLE_FIELDS 												\
+	CLI_AMI_TABLE_FIELD(Hash,	"-5.5",		s,	5,	bucketstr)					\
+	CLI_AMI_TABLE_FIELD(Type,	"-17.17",	s,	17,	(obj_info[obj->type]).datatype)			\
+	CLI_AMI_TABLE_FIELD(Id,		"-25.25",	s,	25,	obj->identifier)				\
+	CLI_AMI_TABLE_FIELD(Ptr,	"-15",		p,	15,	obj)						\
+	CLI_AMI_TABLE_FIELD(Refc,	"-4.4",		d,	4,	obj->refcount)					\
+	CLI_AMI_TABLE_FIELD(Alive,	"-5.5",		s,	5,	SCCP_LIVE_MARKER == obj->alive ? "yes" : "no")	\
+	CLI_AMI_TABLE_FIELD(InUse,	"-5.5",		s,	5,	check_inuse ? (inuse ? "yes" : "no") : "off")	\
+	CLI_AMI_TABLE_FIELD(Size,	"-4.4",		d,	4,	obj->len)
+#include "sccp_cli_table.h"
+	local_line_total++;
 	ast_rwlock_unlock(&objectslock);
+
+	// FillFactor
 	fillfactor = (float) numentries / SCCP_HASH_PRIME;
-	pbx_cli(fd, "+==============================================================================================+\n");
-	pbx_cli(fd, "| fillfactor = (%03d / %03d) = %02.2f, maxdepth = %02d                                               |\n", numentries, SCCP_HASH_PRIME, fillfactor, maxdepth);
+	int once;
+#define CLI_AMI_TABLE_NAME FillFactor
+#define CLI_AMI_TABLE_PER_ENTRY_NAME Factor
+#define CLI_AMI_TABLE_ITERATOR for(once=0;once<1;once++)
+#define CLI_AMI_TABLE_FIELDS 												\
+	CLI_AMI_TABLE_FIELD(Entries,		"-8.8",		d,	8,	numentries)				\
+	CLI_AMI_TABLE_FIELD(Buckets,		"-8.8",		d,	8,	SCCP_HASH_PRIME)			\
+	CLI_AMI_TABLE_FIELD(Factor,		"08.02",	f,	8,	fillfactor)				\
+	CLI_AMI_TABLE_FIELD(MaxDepth,		"-8.8",		d,	8,	maxdepth)
+#include "sccp_cli_table.h"
+	local_line_total++;
 	if (fillfactor > 1.00) {
-		pbx_cli(fd, "| \033[1m\033[41m\033[37mPlease keep fillfactor below 1.00. Check ./configure --with-hash-size.\033[0m                       |\n");
+		if (!s) {
+			pbx_cli(fd, "\033[1m\033[41m\033[37mPlease keep fillfactor below 1.00. Check ./configure --with-hash-size.\033[0m\n");
+		} else {
+			astman_append(s, "Please keep fillfactor below 1.00. Check ./configure --with-hash-size.\r\n");
+			local_line_total++;
+		}
 	}
-	pbx_cli(fd, "+==============================================================================================+\n");
+
+	if (s) {
+		totals->lines = local_line_total;
+		totals->tables = 2;
+	}
+	return RESULT_SUCCESS;
 }
 
 #ifdef CS_EXPERIMENTAL
 int sccp_refcount_force_release(long findobj, char *identifier)
 {
-	int x = 0;
+	uint32_t hash;
 	RefCountedObject *obj = NULL;
 	void *ptr = NULL;
 
 	ast_rwlock_rdlock(&objectslock);
-	for (x = 0; x < SCCP_HASH_PRIME; x++) {
-		if (objects[x]) {
-			SCCP_RWLIST_RDLOCK(&(objects[x])->refCountedObjects);
-			SCCP_RWLIST_TRAVERSE(&(objects[x])->refCountedObjects, obj, list) {
+	for (hash = 0; hash < SCCP_HASH_PRIME; hash++) {
+		if (objects[hash]) {
+			SCCP_RWLIST_RDLOCK(&(objects[hash]->refCountedObjects));
+			SCCP_RWLIST_TRAVERSE(&(objects[hash]->refCountedObjects), obj, list) {
 				if (sccp_strequals(obj->identifier, identifier) && (long) obj == findobj) {
 					ptr = obj->data;
 				}
 			}
-			SCCP_RWLIST_UNLOCK(&(objects[x])->refCountedObjects);
+			SCCP_RWLIST_UNLOCK(&(objects[hash]->refCountedObjects));
 		}
 	}
 	ast_rwlock_unlock(&objectslock);
@@ -450,7 +545,7 @@ void sccp_refcount_updateIdentifier(void *ptr, char *identifier)
 	if ((obj = sccp_refcount_find_obj(ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
 		sccp_copy_string(obj->identifier, identifier, sizeof(obj->identifier));
 	} else {
-		ast_log(LOG_ERROR, "SCCP: (updateIdentifief) Refcount Object %p could not be found\n", ptr);
+		pbx_log(LOG_ERROR, "SCCP: (updateIdentifief) Refcount Object %p could not be found\n", ptr);
 	}
 }
 
@@ -468,15 +563,15 @@ gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char 
 		newrefcountval = refcountval + 1;
 
 		if (dont_expect( (sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) {
-			ast_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) %*.*s> %*s refcount increased %.2d  +> %.2d for %10s: %s (%p)\n", filename, lineno, func, refcountval, refcountval, "--------------------", 20 - refcountval, " ", refcountval, newrefcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
+			pbx_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) %*.*s> %*s refcount increased %.2d  +> %.2d for %10s: %s (%p)\n", filename, lineno, func, refcountval, refcountval, "--------------------", 20 - refcountval, " ", refcountval, newrefcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 		}
 		return (void * const) obj->data;
 	} else {
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) ptr, NULL, 1, filename, lineno, func);
 #endif
-		ast_log(__LOG_VERBOSE, __FILE__, 0, "retain", "SCCP: (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to retain a %s: %s (%p) with invalid memory reference! this should never happen !\n", filename, lineno, func, (obj) ? (&obj_info[obj->type])->datatype : "Unknown Type", (obj) ? obj->identifier : "NoID", obj);
-		ast_log(LOG_ERROR, "SCCP: (release) Refcount Object %p could not be found (Major Logic Error). Please report to developers\n", ptr);
+		pbx_log(__LOG_VERBOSE, __FILE__, 0, "retain", "SCCP: (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to retain a %s: %s (%p) with invalid memory reference! this should never happen !\n", filename, lineno, func, (obj) ? (&obj_info[obj->type])->datatype : "Unknown Type", (obj) ? obj->identifier : "NoID", obj);
+		pbx_log(LOG_ERROR, "SCCP: (release) Refcount Object %p could not be found (Major Logic Error). Please report to developers\n", ptr);
 		#ifdef DEBUG
 		sccp_do_backtrace();
 		#endif
@@ -505,15 +600,15 @@ gcc_inline void * const sccp_refcount_release(const void * const ptr, const char
 			sccp_refcount_remove_obj(ptr);
 		} else {
 			if (dont_expect( (sccp_globals->debug & ((debugcat + DEBUGCAT_REFCOUNT))) == (debugcat ^ DEBUGCAT_REFCOUNT))) {
-				ast_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) <%*.*s %*s refcount decreased %.2d  <- %.2d for %10s: %s (%p)\n", filename, lineno, func, newrefcountval, newrefcountval, "--------------------", 20 - newrefcountval, " ", newrefcountval, refcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
+				pbx_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) <%*.*s %*s refcount decreased %.2d  <- %.2d for %10s: %s (%p)\n", filename, lineno, func, newrefcountval, newrefcountval, "--------------------", 20 - newrefcountval, " ", newrefcountval, refcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 			}
 		}
 	} else {
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) ptr, NULL, -1, filename, lineno, func);
 #endif
-		ast_log(__LOG_VERBOSE, __FILE__, 0, "release", "SCCP (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to release a %s (%p) with invalid memory reference! this should never happen !\n", filename, lineno, func, (obj) ? obj->identifier : "NoID", obj);
-		ast_log(LOG_ERROR, "SCCP: (release) Refcount Object %p could not be found (Major Logic Error). Please report to developers\n", ptr);
+		pbx_log(__LOG_VERBOSE, __FILE__, 0, "release", "SCCP (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to release a %s (%p) with invalid memory reference! this should never happen !\n", filename, lineno, func, (obj) ? obj->identifier : "NoID", obj);
+		pbx_log(LOG_ERROR, "SCCP: (release) Refcount Object %p could not be found (Major Logic Error). Please report to developers\n", ptr);
 		#ifdef DEBUG
 		sccp_do_backtrace();
 		#endif
@@ -557,7 +652,7 @@ gcc_inline void sccp_refcount_autorelease(void *ptr)
 }
 
 #if CS_TEST_FRAMEWORK
-//#include "asterisk/test.h"
+#include <asterisk/test.h>
 #define NUM_LOOPS 50
 #define NUM_OBJECTS 5000
 #define NUM_THREADS 10
@@ -576,28 +671,49 @@ static void refcount_test_destroy(struct refcount_test *obj)
 
 static void *refcount_test_thread(void *data)
 {
-	struct ast_test *test = data;
+	enum ast_test_result_state *test_result = data;
 	struct refcount_test *obj = NULL, *obj1 = NULL;
 	int loop, objloop;
 	int random_object;
+	int threadid = (unsigned int) pthread_self();
+	
+	*test_result = AST_TEST_PASS;
 
-	ast_test_status_update(test, "%d: Thread running...\n", (unsigned int) pthread_self());
+	pbx_log(LOG_NOTICE, "%d: Thread running...\n", threadid);
 	for (loop = 0; loop < NUM_LOOPS; loop++) {
 		for (objloop = 0; objloop < NUM_OBJECTS; objloop++) {
 			random_object = rand() % NUM_OBJECTS;
 			if ((obj = sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
-				usleep(random_object % 10);
 				if ((obj1 = sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
-					usleep(random_object % 10);
-					obj1 = sccp_refcount_release(obj1, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+					if ((obj1 = sccp_refcount_release(obj1, __FILE__, __LINE__, __PRETTY_FUNCTION__)) != NULL) {
+						pbx_log(LOG_NOTICE, "%d: release obj1 failed\n", threadid);
+						*test_result = AST_TEST_FAIL;
+						break;
+					}
+				} else {
+					pbx_log(LOG_NOTICE, "%d: retain obj1 failed\n", threadid);
+					*test_result = AST_TEST_FAIL;
+					break;
 				}
-				obj = sccp_refcount_release(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+				if ((obj = sccp_refcount_release(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__)) != NULL) {
+					pbx_log(LOG_NOTICE, "%d: release obj failed\n", threadid);
+					*test_result = AST_TEST_FAIL;
+					break;
+				}
+			} else {
+				pbx_log(LOG_NOTICE, "%d: retain obj failed\n", threadid);
+				*test_result = AST_TEST_FAIL;
+				break;
 			}
 		}
+		if (*test_result == AST_TEST_FAIL) {
+			break;
+		}
+		if (loop % 10) {
+			pbx_log(LOG_NOTICE, "%d: loop:%d: retained/released %d objects\n", threadid, loop, loop * NUM_OBJECTS);
+		}
 	}
-
-	ast_test_status_update(test, "%d: Thread finished...\n", (unsigned int) pthread_self());
-
+	pbx_log(LOG_NOTICE, "%d: Thread finished: %s\n", threadid, *test_result ? "Success" : "Failed");
 	return NULL;
 }
 
@@ -613,40 +729,45 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 			info->summary = "chan-sccp-b refcount test";
 			info->description = "chan-sccp-b refcount tests";
 			return AST_TEST_NOT_RUN;
-	        case TEST_EXECUTE:
-	        	break;
+		case TEST_EXECUTE:
+			break;
 	}
 	
-	pthread_t t;
+	pthread_t t[NUM_THREADS];
 	int loop;
 	char id[23];
+	enum ast_test_result_state test_result[NUM_THREADS] = {AST_TEST_PASS};
 
-	ast_test_status_update(test, "Executing chan-sccp-b refcount tests...\n");
-	ast_test_status_update(test, "Create %d objects to work on...\n", NUM_OBJECTS);
+	pbx_test_status_update(test, "Executing chan-sccp-b refcount tests...\n");
+	pbx_test_status_update(test, "Create %d objects to work on...\n", NUM_OBJECTS);
 	for (loop = 0; loop < NUM_OBJECTS; loop++) {
 		snprintf(id, sizeof(id), "%d/%d", loop, (unsigned int) pthread_self());
 		object[loop] = (struct refcount_test *) sccp_refcount_object_alloc(sizeof(struct refcount_test), SCCP_REF_TEST, id, refcount_test_destroy);
-		ast_test_validate(test, object[loop] != NULL);
+		pbx_test_validate(test, object[loop] != NULL);
 		object[loop]->id = loop;
 		object[loop]->threadid = (unsigned int) pthread_self();
 		object[loop]->str = pbx_strdup(id);
-		//ast_test_status_update(test, "created %d'\n", object[loop]->id);
+		//pbx_test_status_update(test, "created %d'\n", object[loop]->id);
 	}
 	sleep(1);
 
-	ast_test_status_update(test, "Run multithreaded retain/release/destroy at random in %d loops and %d threads...\n", NUM_LOOPS, NUM_THREADS);
+	pbx_test_status_update(test, "Run multithreaded retain/release/destroy at random in %d loops and %d threads...\n", NUM_LOOPS, NUM_THREADS);
 	for (thread = 0; thread < NUM_THREADS; thread++) {
-		pbx_pthread_create(&t, NULL, refcount_test_thread, test);
+		pbx_pthread_create(&t[thread], NULL, refcount_test_thread, &test_result[thread]);
 	}
-	pthread_join(t, NULL);
+	for (thread = 0; thread < NUM_THREADS; thread++) {
+		pthread_join(t[thread], NULL);
+		pbx_test_validate(test, test_result[thread] == AST_TEST_PASS);
+		pbx_test_status_update(test, "thread %d finished with %s\n", thread, test_result[thread] == AST_TEST_PASS ? "Success" : "Failure");
+	}
 	sleep(1);
 
-	ast_test_status_update(test, "Finalize test / cleanup...\n");
+	pbx_test_status_update(test, "Finalize test / cleanup...\n");
 	for (loop = 0; loop < NUM_OBJECTS; loop++) {
 		if (object[loop]) {
-			//ast_test_status_update(test, "Final Release %d, thread: %d\n", object[loop]->id, (unsigned int) pthread_self());
+			//pbx_test_status_update(test, "Final Release %d, thread: %d\n", object[loop]->id, (unsigned int) pthread_self());
 			object[loop] = sccp_refcount_release(object[loop], __FILE__, __LINE__, __PRETTY_FUNCTION__);
-			ast_test_validate(test, object[loop] == NULL);
+			pbx_test_validate(test, object[loop] == NULL);
 		}
 	}
 	sleep(1);
@@ -658,7 +779,7 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 		if (objects[loop]) {
 			SCCP_RWLIST_RDLOCK(&(objects[loop])->refCountedObjects);
 			SCCP_RWLIST_TRAVERSE(&(objects[loop])->refCountedObjects, obj, list) {
-				ast_test_validate(test, obj->type != SCCP_REF_TEST);
+				pbx_test_validate(test, obj->type != SCCP_REF_TEST);
 			}
 			SCCP_RWLIST_UNLOCK(&(objects[loop])->refCountedObjects);
 		}
@@ -668,16 +789,15 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 
 }
 
-void sccp_refcount_register_tests(void)
+static void __attribute__((constructor)) sccp_register_tests(void)
 {
-        AST_TEST_REGISTER(sccp_refcount_tests);
+	AST_TEST_REGISTER(sccp_refcount_tests);
 }
 
-void sccp_refcount_unregister_tests(void)
+static void __attribute__((destructor)) sccp_unregister_tests(void)
 {
-        AST_TEST_UNREGISTER(sccp_refcount_tests);
+	AST_TEST_UNREGISTER(sccp_refcount_tests);
 }
 #endif
-
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

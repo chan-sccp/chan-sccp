@@ -7,9 +7,6 @@
  *              Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- * 
- * $Date$
- * $Revision$  
  */
 #pragma once
 #define SCCP_INDICATE_NOLOCK 	0

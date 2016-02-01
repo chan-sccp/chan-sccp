@@ -4,12 +4,9 @@
  * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- *
- * $Date$
- * $Revision$  
  */
 #pragma once
-#include "../../config.h"
+#include <config.h>
 
 // type redefinitions
 #define pbx_variable ast_variable
@@ -392,4 +389,11 @@ typedef struct ast_event pbx_event_t;
 #define pbx_channel_redirecting_effective_orig(_a) (_a)->redirecting.orig
 #define pbx_channel_connected_id(_a) (_a)->connected.id
 #define pbx_channel_connected_source(_a) (_a)->connected.source
+
+#if CS_TEST_FRAMEWORK
+#define pbx_test_validate_cleanup ast_test_validate_cleanup
+#define pbx_test_validate ast_test_validate
+#define pbx_test_status_update ast_test_status_update
+#endif
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

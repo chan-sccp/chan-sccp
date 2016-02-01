@@ -8,8 +8,6 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
  */
 #pragma once
 
@@ -21,6 +19,8 @@
 #define sccp_device_release(_x) 	({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #endif
 #define sccp_device_refreplace(_x, _y) 	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+
+__BEGIN_EXTERN__
 /*!
  * \brief SCCP Button Configuration Structure
  */
@@ -335,7 +335,7 @@ struct sccp_device {
 	sccp_call_statistics_t call_statistics[2];								/*!< Call statistics */
 	char *softkeyDefinition;										/*!< requested softKey configuration */
 	sccp_softKeySetConfiguration_t *softkeyset;								/*!< Allow for a copy of the softkeyset, if any of the softkeys needs to be redefined, for example for urihook/uriaction */
-	void (*copyStr2Locale) (constDevicePtr d, char *dst, const char *src, size_t dst_size);		/*!< copy string to device converted to locale if necessary */
+	void (*copyStr2Locale) (constDevicePtr d, char *dst, ICONV_CONST char *src, size_t dst_size);		/*!< copy string to device converted to locale if necessary */
 
 #ifdef CS_SCCP_CONFERENCE
 	sccp_conference_t *conference;										/*!< conference we are part of */ /*! \todo to be removed in favor of conference_id */
@@ -426,7 +426,7 @@ sccp_msg_t *sccp_build_packet(sccp_mid_t t, size_t pkt_len);
 void sccp_dev_check_displayprompt(constDevicePtr d);
 void sccp_device_setLastNumberDialed(devicePtr device, const char *lastNumberDialed, const sccp_linedevices_t *linedevice);
 void sccp_device_preregistration(devicePtr device);
-void sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn);
+uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn);
 void sccp_dev_sendmsg(constDevicePtr d, sccp_mid_t t);
 void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid, uint8_t softKeySetIndex);
 void sccp_dev_set_ringer(constDevicePtr d, uint8_t opt, uint8_t lineInstance, uint32_t callid);
@@ -495,4 +495,5 @@ sccp_device_t *sccp_device_find_realtime(const char *name);
 #endif
 
 void sccp_device_setLamp(constDevicePtr device, skinny_stimulus_t stimulus, uint8_t instance, skinny_lampmode_t mode);
+__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

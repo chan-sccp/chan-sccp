@@ -1,47 +1,30 @@
 /*!
- * \file        ast108.h
+ * \file        ast110.h
  * \brief       SCCP PBX Asterisk Header
  * \author      Marcello Ceshia
  * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- *
- * $Date$
- * $Revision$  
  */
 #pragma once
 
 #include <config.h>
-#ifdef CS_SCCP_CONFERENCE
-#include "asterisk/bridging.h"
-#include "asterisk/bridging_features.h"
-#ifdef HAVE_PBX_BRIDGING_ROLES_H
-#include "asterisk/bridging_roles.h"
-#endif
-#endif
 
-#define pbx_channel_unref(c) ({ ao2_ref(c, -1); (PBX_CHANNEL_TYPE *) (NULL); })
-#define pbx_channel_ref(c) ({ ao2_ref(c, 1); (PBX_CHANNEL_TYPE *) c; })
+#undef pbx_channel_ref
+#define pbx_channel_ref ast_channel_ref
+#undef pbx_channel_unref
+#define pbx_channel_unref ast_channel_unref
 #define sccp_sched_context_destroy sched_context_destroy
 #define pbx_manager_register ast_manager_register2
 
 #define PBX_ENDPOINT_TYPE void
 #define PBX_EVENT_SUBSCRIPTION struct ast_event_sub
 
-typedef int64_t ast_format_t;
+typedef struct ast_format_cap ast_format_t;
 int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref);
 int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, PBX_RTP_TYPE * trtp, int codecs, int nat_active);
-
-//void *sccp_do_monitor(void *data);
-//int sccp_restart_monitor(void);
-char *pbx_getformatname(format_t format);
-char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
-static inline void __do_nothing(void) {}									// will be optimized out
-
-#undef pbx_bridge_lock
-#undef pbx_bridge_unlock
-#define pbx_bridge_lock(x) __do_nothing()
-#define pbx_bridge_unlock(x) __do_nothing()
+const char *pbx_getformatname(const struct ast_format *format);
+char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *format);
 
 #define pbx_channel_name(x) x->name
 
@@ -102,6 +85,7 @@ static inline void __do_nothing(void) {}									// will be optimized out
 	} else {												\
 		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "yes" : "no")); 		\
 	}
+
 #define _CLI_AMI_RETURN_ERROR(fd, s, m, line, fmt, ...) 							\
         /*pbx_log(LOG_WARNING, "SCCP CLI ERROR: " fmt, __VA_ARGS__);*/						\
 	if (NULL != s) {											\
@@ -201,10 +185,10 @@ static inline void __do_nothing(void) {}									// will be optimized out
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {			\
 		const char *cli_command[] = { CLI_COMMAND, NULL };						\
 		static sccp_cli_completer_t cli_complete[] = { CLI_COMPLETE };					\
-		static char command[80]="";									\
+		static char command[80]="";										\
 		if (cmd == CLI_INIT) {										\
 		 	ast_join(command, sizeof(command), cli_command);					\
-			e->command = command;									\
+			e->command = command;								\
 			e->usage = _USAGE;									\
 			return NULL;										\
 		} else if (cmd == CLI_GENERATE) {								\

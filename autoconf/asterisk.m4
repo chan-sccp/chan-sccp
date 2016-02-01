@@ -3,8 +3,6 @@ dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
 dnl CREATED BY: Created by Diederik de Groot
 dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 dnl          See the LICENSE file at the top of the source tree.
-dnl DATE: $Date: $
-dnl REVISION: $Revision: $
 
 AC_DEFUN([AST_GET_VERSION], [
 	CONFIGURE_PART([Checking Asterisk Version:])
@@ -688,6 +686,12 @@ AC_DEFUN([AST_CHECK_HEADERS],[
                                         struct stasis_subscription *stasis_sub = stasis_subscribe(stasis_topic, data, data);
 				], [CS_AST_HAS_STASIS],['stasis_subscribe' available]
 			)
+		],,[ 
+	               	$HEADER_INCLUDE
+    ])
+    AC_CHECK_HEADER([asterisk/vector.h],	
+    		[
+    			AC_DEFINE(HAVE_PBX_VECTOR_H,1,[Found 'asterisk/vector.h'])
 		],,[ 
 	               	$HEADER_INCLUDE
     ])

@@ -4,10 +4,18 @@
  * \author      Diederik de Groot <ddegroot [at] sf.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
- *
- * $Date: 2010-11-17 18:10:34 +0100 (Wed, 17 Nov 2010) $
- * $Revision: 2154 $
  */
+#pragma once
+#if defined(__cplusplus) || defined(c_plusplus)
+#  define __BEGIN_EXTERN__ 		\
+extern "C" {
+#  define __END_EXTERN__ }		\
+}
+#else
+#  define __BEGIN_EXTERN__ 
+#  define __END_EXTERN__ 
+#endif
+
 #define ARRAY_LEN(a) (size_t) (sizeof(a) / sizeof(0[a]))
 typedef enum { FALSE = 0, TRUE = 1 } boolean_t;
 

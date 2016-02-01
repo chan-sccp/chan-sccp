@@ -7,101 +7,22 @@
  *              Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- *
- * $Date$
- * $Revision$  
  */
 #pragma once
 //#define REF_DEBUG 1
 
-#if ASTERISK_VERSION_NUMBER >= 10400
-#  include <asterisk.h>
-#  ifdef HAVE_PBX_ABSTRACT_JB_H
-#    include <asterisk/abstract_jb.h>
-#  endif
-#endif
-#include <asterisk/options.h>
-#include <asterisk/buildopts.h>
-#include <asterisk/autoconfig.h>
-#include <asterisk/compiler.h>
-#ifdef HAVE_PBX_UTILS_H
-#  include <asterisk/utils.h>
-#endif
-#include <asterisk/threadstorage.h>
-#include <asterisk/strings.h>
-#include <asterisk/pbx.h>
-#ifdef HAVE_PBX_ACL_H
-#  include <asterisk/acl.h>
-#endif
-#include <asterisk/module.h>
-#include <asterisk/logger.h>
-#include <asterisk/config.h>
-#ifdef HAVE_PBX_SCHED_H
-#  include <asterisk/sched.h>
-#endif
-#include <asterisk/causes.h>
-#ifdef HAVE_PBX_FRAME_H
-#  include <asterisk/frame.h>
-#endif
-#ifdef HAVE_PBX_LOCK_H
-#  include <asterisk/lock.h>
-#endif
-#ifdef HAVE_PBX_CHANNEL_H
-#  include <asterisk/channel.h>
-#endif
-#ifdef HAVE_PBX_APP_H
-#  include <asterisk/app.h>
-#endif
-#include <asterisk/callerid.h>
-#include <asterisk/musiconhold.h>
-#include <asterisk/astdb.h>
-#ifdef HAVE_PBX_FEATURES_H
-#  include <asterisk/features.h>
-#endif
-#ifdef HAVE_PBX_EVENT_H
-#  include <asterisk/event.h>
-#endif
-#ifdef HAVE_PBX_CHANNEL_pvt_H
-#  ifndef CS_AST_HAS_TECH_PVT
-#    include <asterisk/channel_pvt.h>
-#  endif
-#endif
-#ifdef HAVE_PBX_DEVICESTATE_H
-#  include <asterisk/devicestate.h>
-#endif
-#ifdef AST_EVENT_IE_CIDNAME
-#  ifdef HAVE_PBX_EVENT_H
-#    include <asterisk/event.h>
-#  endif
-#  include <asterisk/event_defs.h>
-#endif
-#if defined(CS_AST_HAS_AST_STRING_FIELD) && defined(HAVE_PBX_STRINGFIELDS_H)
-#  include <asterisk/stringfields.h>
-#endif
-#if defined(CS_MANAGER_EVENTS) && defined(HAVE_PBX_MANAGER_H)
-#  include <asterisk/manager.h>
-#endif
-#ifdef CS_AST_HAS_ENDIAN
-#  include <asterisk/endian.h>
-#endif
-#include <asterisk/translate.h>
-#ifdef HAVE_PBX_RTP_ENGINE_H
+#include <asterisk.h>
+#include <asterisk/pbx.h>			// AST_EXTENSION_NOT_INUSE in mapping below
+#ifdef HAVE_PBX_RTP_ENGINE_H			// sccp_callinfo, sccp_rtp
 #  include <asterisk/rtp_engine.h>
 #else
 #  include <asterisk/rtp.h>
 #endif
-#ifdef CS_DEVSTATE_FEATURE
-#  include <asterisk/event_defs.h>
-#endif
-#include <asterisk/indications.h>
-#include <asterisk/ast_version.h>
-
-#if CS_TEST_FRAMEWORK
-#include "asterisk/test.h"
-#endif
+#  include <asterisk/manager.h>
 
 #include "define.h"
-#include "../../sccp_protocol.h"
+#include "sccp_protocol.h"
+
 #ifdef ASTERISK_CONF_1_6
 #include "ast106.h"
 #endif
@@ -109,19 +30,17 @@
 #include "ast108.h"
 #endif
 #ifdef ASTERISK_CONF_1_10
-#	include "ast110.h"
+#include "ast110.h"
 #endif
 #ifdef ASTERISK_CONF_1_11
-#	include "ast111.h"
+#include "ast111.h"
 #endif
 #ifdef ASTERISK_CONF_1_12
-#	include "ast112.h"
+#include "ast112.h"
 #endif
 #ifdef ASTERISK_CONF_1_13
-#	include "ast113.h"
+#include "ast113.h"
 #endif
-#include <asterisk/file.h>
-
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 #ifndef AST_CAUSE_ANSWERED_ELSEWHERE

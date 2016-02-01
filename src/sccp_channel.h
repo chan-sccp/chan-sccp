@@ -8,9 +8,6 @@
  *              Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- *
- * $Date$
- * $Revision$  
  */
 
 #pragma once
@@ -26,6 +23,7 @@
 #endif
 #define sccp_channel_refreplace(_x, _y)	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 
+__BEGIN_EXTERN__
 /*!
  * \brief SCCP Channel Structure
  * \note This contains the current channel information
@@ -225,4 +223,5 @@ sccp_channel_t *sccp_find_channel_by_buttonIndex_and_callid(const sccp_device_t 
 sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(constDevicePtr d, uint32_t passthrupartyid);
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(constDevicePtr d, constChannelPtr c);
 uint8_t sccp_device_selectedchannels_count(constDevicePtr d);
+__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -1,12 +1,9 @@
-
 /*!
  * \file        sccp_conference.c
  * \brief       SCCP Conference for asterisk 10
  * \author      Marcello Ceschia <marcelloceschia [at] users.sorceforge.net>
  * \note        Reworked, but based on chan_sccp code.
  *
- * $Date$
- * $Revision$
  */
 
 #include <config.h>
@@ -16,23 +13,25 @@
 #include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_channel.h"
-//#include "sccp_cli.h"
 #include "sccp_indicate.h"
 #include <asterisk/say.h>
 
 #ifdef CS_SCCP_CONFERENCE
 
 #if ASTERISK_VERSION_GROUP < 112
-#include "asterisk/bridging.h"
-#include "asterisk/bridging_features.h"
+#include <asterisk/bridging.h>
+#include <asterisk/bridging_features.h>
 #else
-#include "asterisk/bridge.h"
-#include "asterisk/bridge_technology.h"
-#include "asterisk/bridge_features.h"
+#include <asterisk/bridge.h>
+#include <asterisk/bridge_technology.h>
+#include <asterisk/bridge_features.h>
+#include <asterisk/bridge_channel.h>
 #endif
 #ifdef HAVE_PBX_BRIDGING_ROLES_H
-#include "asterisk/bridging_roles.h"
+#include <asterisk/bridging_roles.h>
 #endif
+#include <asterisk/callerid.h>
+#include <asterisk/causes.h>		// AST_CAUSE_NORMAL_CLEARING
 
 #ifdef DEBUG
 #define sccp_participant_retain(_x) 	({sccp_participant_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;pbx_assert(tmp_##__LINE__##X != NULL);(sccp_participant_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
@@ -42,7 +41,7 @@
 #define sccp_participant_release(_x) 	({pbx_assert(_x != NULL);(sccp_participant_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #endif
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
 static uint32_t lastConferenceID = 99;
 static const uint32_t appID = APPID_CONFERENCE;
 typedef struct sccp_participant sccp_participant_t;								/*!< SCCP Conference Participant Structure */
@@ -114,7 +113,7 @@ static sccp_participant_t *sccp_conference_createParticipant(constConferencePtr 
 static void sccp_conference_addParticipant_toList(constConferencePtr conference, constParticipantPtr participant);
 void pbx_builtin_setvar_int_helper(PBX_CHANNEL_TYPE * channel, const char *var_name, int intvalue);
 //static void sccp_conference_connect_bridge_channels_to_participants(constConferencePtr conference);
-static void sccp_conference_update_conflist(constConferencePtr conference);
+static void sccp_conference_update_conflist(conferencePtr conference);
 void __sccp_conference_hide_list(participantPtr participant);
 void sccp_conference_invite_participant(constConferencePtr conference, constParticipantPtr moderator);
 void sccp_conference_kick_participant(constConferencePtr conference, participantPtr participant);
@@ -1343,20 +1342,20 @@ void sccp_conference_hide_list_ByDevice(constDevicePtr device)
 /*!
  * \brief Update ConfList on all phones displaying the list
  */
-static void sccp_conference_update_conflist(constConferencePtr conference)
+static void sccp_conference_update_conflist(conferencePtr conference)
 {
 	sccp_participant_t *participant = NULL;
 
-	if (!conference || ATOMIC_FETCH(&((conferencePtr)conference)->finishing, &conference->lock)) {
+	if (!conference || ATOMIC_FETCH(&(conference)->finishing, &conference->lock)) {
 		return;
 	}
-	SCCP_RWLIST_RDLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_RDLOCK(&(conference)->participants);
 	SCCP_RWLIST_TRAVERSE(&conference->participants, participant, list) {
 		if (participant->channel && participant->device && (participant->device->conferencelist_active || (participant->isModerator && !conference->isOnHold))) {
 			sccp_conference_show_list(conference, participant->channel);
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_UNLOCK(&(conference)->participants);
 }
 
 /*!
@@ -1502,7 +1501,7 @@ void sccp_conference_toggle_mute_participant(constConferencePtr conference, part
 		manager_event(EVENT_FLAG_CALL, "SCCPConfParticipantMute", "ConfId: %d\r\n" "PartId: %d\r\n" "Mute: %s\r\n", conference->id, participant->id, participant->features.mute ? "Yes" : "No");
 	}
 #endif
-	sccp_conference_update_conflist(conference);
+	sccp_conference_update_conflist((conferencePtr)conference);
 }
 
 /*!
@@ -1551,7 +1550,7 @@ void sccp_conference_play_music_on_hold_to_participant(constConferencePtr confer
 		}
 	}
 	if (!conference->isOnHold) {
-		sccp_conference_update_conflist(conference);
+		sccp_conference_update_conflist((conferencePtr)conference);
 	}
 }
 

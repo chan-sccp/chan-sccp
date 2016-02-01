@@ -1,11 +1,8 @@
-
 dnl FILE: acinclude.m4
 dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
 dnl CREATED BY: Created by Diederik de Groot
 dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 dnl          See the LICENSE file at the top of the source tree.
-dnl DATE: $Date: $
-dnl REVISION: $Revision: $
 
 ## ------------------##
 ## CS_Check_PBX	(DdG)##
@@ -24,9 +21,10 @@ AC_DEFUN([CS_CHECK_PBX], [
 				PBX_INCLUDE="${PBX_PREFIX}/usr/include"
 				PBX_CFLAGS="-I${PBX_INCLUDE} $(${PKGCONFIG} --cflags asterisk)"
 				if test -n "`echo ${PBX_CFLAGS} | grep libxml2-g3`"; then			dnl fix old errornous asterisk.pc (asterisk < 11.13)
-					AC_MSG_NOTICE([Fixed fauly asterisk.pc pkg-config file. Advise:Youought to update your asterisk version])
+					AC_MSG_NOTICE([Fixed fauly asterisk.pc pkg-config file. Advise:You ought to update your asterisk version])
 					PBX_CFLAGS="`echo ${PBX_CFLAGS} | ${SED} 's/libxml2-g3/libxml2/'`"
 				fi
+				PBX_CFLAGS="`echo ${PBX_CFLAGS} | ${SED} 's/-I/-isystem /'`"
 				PBX_CPPFLAGS="${PBX_CFLAGS}"
 				CFLAGS="${CFLAGS} ${PBX_CFLAGS}"
 				CPPFLAGS="${CPPFLAGS} ${PBX_CPPFLAGS}"
@@ -68,10 +66,10 @@ AC_DEFUN([CS_CHECK_PBX], [
 				found_asterisk="yes";
 				PBX_TYPE="Asterisk"
 				PBX_INCLUDE="${checkdir}/include/asterisk"
-				PBX_CFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
-				PBX_CPPFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
-				CFLAGS="$CFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
-				CPPFLAGS="$CPPFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
+				PBX_CFLAGS="-isystem ${checkdir}/include -DHAVE_ASTERISK";
+				PBX_CPPFLAGS="-isystem ${checkdir}/include -DHAVE_ASTERISK";
+				CFLAGS="$CFLAGS -isystem ${checkdir}/include -DHAVE_ASTERISK";
+				CPPFLAGS="$CPPFLAGS -isystem ${checkdir}/include -DHAVE_ASTERISK";
 				AC_MSG_RESULT(found)
 				break;
 			fi
@@ -80,10 +78,10 @@ AC_DEFUN([CS_CHECK_PBX], [
 				found_asterisk="yes";
 				PBX_TYPE="Asterisk"
 				PBX_INCLUDE="${checkdir}/include/asterisk"
-				PBX_CFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
-				PBX_CPPFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
-				CFLAGS="$CFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
-				CPPFLAGS="$CPPFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
+				PBX_CFLAGS="-isystem ${checkdir}/include -DHAVE_ASTERISK";
+				PBX_CPPFLAGS="-isystem ${checkdir}/include -DHAVE_ASTERISK";
+				CFLAGS="$CFLAGS -isystem ${checkdir}/include -DHAVE_ASTERISK";
+				CPPFLAGS="$CPPFLAGS -isystem ${checkdir}/include -DHAVE_ASTERISK";
 				AC_MSG_RESULT(found)
 				break
 			fi

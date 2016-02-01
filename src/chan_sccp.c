@@ -1,4 +1,3 @@
-
 /*!
  * \file        chan_sccp.c
  * \brief       An implementation of Skinny Client Control Protocol (SCCP)
@@ -14,38 +13,27 @@
  * When to use: Methods communicating to asterisk about module initialization, status, destruction
  * Relations:   Main hub for all other sourcefiles.
  *
- * $Date$
- * $Revision$
  */
 #include <config.h>
 #include "common.h"
 
-//#include "sccp_pbx.h"
 #include "sccp_protocol.h"
 #include "sccp_socket.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_channel.h"
-//#include "sccp_features.h"
 #include "sccp_utils.h"
-//#include "sccp_indicate.h"
 #include "sccp_hint.h"
 #include "sccp_actions.h"
-//#include "sccp_featureButton.h"
 #include "sccp_mwi.h"
 #include "sccp_config.h"
 #include "sccp_conference.h"
-//#include "sccp_labels.h"
-//#include "sccp_softkeys.h"
-//#include "sccp_cli.h"
-//#include "sccp_appfunctions.h"
 #include "sccp_management.h"
-//#include "sccp_rtp.h"
 #include "sccp_devstate.h"
 #include "revision.h"
 #include <signal.h>
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
 
 /*!
  * \brief       Buffer for Jitterbuffer use
@@ -414,7 +402,7 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 			new_size += strlen(sccp_debug_categories[i].key) + 1 /*sizeof(sep) */  + 1;
 			tmpres = sccp_realloc(res, new_size);
 			if (tmpres == NULL) {
-				pbx_log(LOG_ERROR, "Memory Allocation Error\n");
+				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 				sccp_free(res);
 				return NULL;
 			}
@@ -457,7 +445,9 @@ int load_config(void)
 	memset(&GLOB(bindaddr), 0, sizeof(GLOB(bindaddr)));
 	GLOB(allowAnonymous) = TRUE;
 
-#if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
+#if defined(SCCP_LITTLE_ENDIAN) && defined(SCCP_BIG_ENDIAN)
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Platform byte order   : LITTLE/BIG ENDIAN\n");
+#elif defined(SCCP_LITTLE_ENDIAN)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Platform byte order   : LITTLE ENDIAN\n");
 #else
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Platform byte order   : BIG ENDIAN\n");
@@ -548,7 +538,7 @@ boolean_t sccp_prePBXLoad(void)
 	/* make globals */
 	sccp_globals = sccp_calloc(sizeof *sccp_globals, 1);
 	if (!sccp_globals) {
-		pbx_log(LOG_ERROR, "No free memory for SCCP global vars. SCCP channel type disabled\n");
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		return FALSE;
 	}
 
@@ -642,13 +632,6 @@ boolean_t sccp_postPBX_load(void)
 #endif
 	sprintf(SCCP_VERSIONSTR, "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, SCCP_REVISIONSTR, BUILD_USER, BUILD_DATE);
 
-#if CS_TEST_FRAMEWORK
-	sccp_utils_register_tests();
-	sccp_refcount_register_tests();
-	sccp_threadpool_register_tests();
-	sccp_callinfo_register_tests();
-	sccp_config_register_tests();
-#endif
 	GLOB(module_running) = TRUE;
 	sccp_refcount_schedule_cleanup((const void *) 0);
 	pbx_rwlock_unlock(&GLOB(lock));
@@ -684,14 +667,6 @@ int sccp_preUnload(void)
 	sccp_device_t *d = NULL;
 	sccp_line_t *l = NULL;
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
-
-#if CS_TEST_FRAMEWORK
-	sccp_config_unregister_tests();
-	sccp_callinfo_unregister_tests();
-	sccp_utils_unregister_tests();
-	sccp_refcount_unregister_tests();
-	sccp_threadpool_unregister_tests();
-#endif
 
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay);
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_featureStorageBackend);

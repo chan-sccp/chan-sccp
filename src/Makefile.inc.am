@@ -1,0 +1,15 @@
+# FILE:			AutoMake Makefile for chan-sccp-b
+# COPYRIGHT:		chan-sccp-b.sourceforge.net group 2011
+# CREATED BY:		Diederik de Groot <ddegroot@sourceforge.net>
+# LICENSE: 		This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
+# 			See the LICENSE file at the top of the source tree.
+# NOTE:			Process this file with automake to produce a makefile.in script.
+
+AUTOMAKE_OPTIONS	= gnu 
+MOSTLYCLEANFILES	= *.gcda *.gcno *.gcov
+AM_CFLAGS		= $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(COVERAGE_CFLAGS) $(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) $(LIBCURL_CFLAGS) $(ax_warn_cflags_variable)
+AM_CFLAGS 		+= -I. -I$(top_builddir)/src/ -I$(top_srcdir)/src/ -I$(top_srcdir)/src/pbx_impl/ -I$(top_srcdir)/src/pbx_impl/ast/ -I$(top_srcdir)/src/$(PBX_COND_SUBDIR) -I$(top_srcdir)/src/$(PBXVER_COND_SUBDIR) -I$(top_srcdir)/src/$(PBXVER_COND_ANNOUNCE_SUBDIR)
+#AM_CFLAGS      		+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall -ldl -lm -s -rdynamic
+AM_CFLAGS      		+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
+AM_LDFLAGS		= -z muldefs @LTLIBOBJS@
+

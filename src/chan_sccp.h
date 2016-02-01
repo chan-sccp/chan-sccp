@@ -13,17 +13,22 @@
  *              See the LICENSE file at the top of the source tree.
  * \warning     File has been Lined up using 8 Space TABS
  *
- * $Date$
- * $Revision$
  */
 
 #pragma once
 #include "config.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)
+#  define __BEGIN_EXTERN__ 		\
 extern "C" {
-/* *INDENT-OFF* */
+#  define __END_EXTERN__ }		\
+}
+#else
+#  define __BEGIN_EXTERN__ 
+#  define __END_EXTERN__ 
 #endif
+
+__BEGIN_EXTERN__
 
 #  if defined __STDC__ && defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L && defined(__GNUC__) && !defined(__clang__)
 	#define gcc_inline __inline__
@@ -125,8 +130,12 @@ extern char SCCP_REVISIONSTR[30];
 #define CHANNEL_DESIGNATOR_SIZE 32
 #define SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT 2000									// ms
 #define SCCP_BACKTRACE_SIZE 10
+#define SCCP_DEVICE_MWILIGHT 31
 
 #define DEFAULT_PBX_STR_BUFFERSIZE 512
+
+/* static const error/debug strings */
+static const char SS_Memory_Allocation_Error[] = "%s: Memory Allocation Error.\n";
 
 /*! \todo I don't like the -1 returned value */
 #define sccp_true(x) (pbx_true(x) ? 1 : 0)
@@ -487,9 +496,5 @@ boolean_t sccp_prePBXLoad(void);
 boolean_t sccp_postPBX_load(void);
 int sccp_updateExternIp(void);
 
-#if defined(__cplusplus) || defined(c_plusplus)
-/* *INDENT-ON* */
-}
-#endif
-
+__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

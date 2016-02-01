@@ -7,21 +7,37 @@
  *              Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
- *
- * $Date$
- * $Revision$  
  */
 #include <config.h>
-#include "../../common.h"
-#include "../../sccp_device.h"
-#include "../../sccp_channel.h"
-#include "../../sccp_utils.h"
-#include "../../sccp_indicate.h"
-#include "../../sccp_socket.h"
-#include "../../sccp_pbx.h"
-#include "../../sccp_line.h"
+#include "common.h"
+#include "sccp_device.h"
+#include "sccp_channel.h"
+#include "sccp_utils.h"
+#include "sccp_indicate.h"
+#include "sccp_socket.h"
+#include "sccp_pbx.h"
+#include "sccp_line.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "");
+
+#include <asterisk.h>
+#ifdef HAVE_PBX_ACL_H				// ast_str2cos ast_str2tos
+#  include <asterisk/acl.h>
+#endif
+#include <asterisk/causes.h>
+#ifdef HAVE_PBX_APP_H
+#  include <asterisk/app.h>
+#endif
+#include <asterisk/callerid.h>
+#include <asterisk/musiconhold.h>
+#include <asterisk/astdb.h>
+#ifdef HAVE_PBX_FEATURES_H
+#  include <asterisk/features.h>
+#endif
+#if ASTERISK_VERSION_GROUP >= 112
+#include <asterisk/features_config.h>
+#include <asterisk/pickup.h>
+#endif
 
 /*
  * \brief itterate through locked pbx channels
@@ -414,7 +430,9 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t * c)
 		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
 		pbx_channel_unlock(channel->owner);
 
-		sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
+			sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		}
 
 		/* let's wait for a bit, for the dust to settle */
 		sched_yield();
@@ -454,7 +472,9 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t * c)
 	if (channel) {
 		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
 
-		sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
+			sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		}
 
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
 		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
@@ -480,7 +500,9 @@ boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t * c)
 	if (channel) {
 		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
 
-		sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
+			sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		}
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
 
 		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
