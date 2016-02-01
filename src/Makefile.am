@@ -10,15 +10,13 @@ include 		$(top_srcdir)/src//Makefile.inc.am
 SUBDIRS			= pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) .
 DIST_SUBDIRS		= pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast_announce .
 EXTRA_DIST 		= sccp_enum.in sccp_config_entries.hh
-#.PHONY: 		.revision gen_enum sccp_enum.h sccp_enum.c
+.PHONY: 		.revision
 
 # generated files
 revision.h: 		.revision
-			@cd "@abs_top_srcdir@/src"
 
 .revision:
-			@cd "@abs_top_srcdir@/src";														\
-			if [ ! -f @abs_top_builddir@/src/revision.h ] || [ ! -z "`find @abs_builddir@/revision.h -mmin +60`" ] ; then					\
+			@if [ ! -f @abs_top_builddir@/src/revision.h ] || [ ! -z "`find @abs_top_builddir@/src/revision.h -mmin +60`" ] ; then			\
 				echo "  REV      revision.h";													\
 				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_top_builddir@/src/revision.h" 2>/dev/null;	\
 			fi

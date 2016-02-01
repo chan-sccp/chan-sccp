@@ -1188,15 +1188,13 @@ uninstall-am: uninstall-csmodLTLIBRARIES
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-csmodLTLIBRARIES
 
-#.PHONY: 		.revision gen_enum sccp_enum.h sccp_enum.c
+.PHONY: 		.revision
 
 # generated files
 revision.h: 		.revision
-			@cd "@abs_top_srcdir@/src"
 
 .revision:
-			@cd "@abs_top_srcdir@/src";														\
-			if [ ! -f @abs_top_builddir@/src/revision.h ] || [ ! -z "`find @abs_builddir@/revision.h -mmin +60`" ] ; then					\
+			@if [ ! -f @abs_top_builddir@/src/revision.h ] || [ ! -z "`find @abs_top_builddir@/src/revision.h -mmin +60`" ] ; then			\
 				echo "  REV      revision.h";													\
 				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_top_builddir@/src/revision.h" 2>/dev/null;	\
 			fi
