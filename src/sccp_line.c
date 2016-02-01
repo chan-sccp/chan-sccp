@@ -1096,7 +1096,7 @@ void sccp_line_createLineButtonsArray(sccp_device_t * device)
 	}
 
 	device->lineButtons.instance = sccp_calloc(lineInstances + SCCP_FIRST_LINEINSTANCE, sizeof(sccp_linedevices_t *));
-	if (device->lineButtons.instance) {
+	if (!device->lineButtons.instance) {
 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, device->id);
 		return;
 	}
