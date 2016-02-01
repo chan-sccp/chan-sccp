@@ -547,7 +547,10 @@ static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 				SCCP_LIST_INSERT_HEAD(&device->selectedChannels, selectedchannel, list);
 				SCCP_LIST_UNLOCK(&device->selectedChannels);
 				status = 1;
-			}
+			} else {
+				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+				return;
+			}	
 		}
 		numSelectedChannels = sccp_device_selectedchannels_count(device);
 		
@@ -559,7 +562,6 @@ static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 		msg->data.CallSelectStatMessage.lel_callReference = htolel(c->callid);
 		sccp_dev_send(d, msg);
 	}
-
 }
 
 /*!
@@ -856,7 +858,10 @@ static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 
 	/* build parameters */
 	struct ast_str *paramStr = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-
+	if (!paramStr) {
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+		return;
+	}
 	ast_str_append(&paramStr, DEFAULT_PBX_STR_BUFFERSIZE, "name=%s", d->id);
 	ast_str_append(&paramStr, DEFAULT_PBX_STR_BUFFERSIZE, "&amp;softkey=%s", label2str(softkeyMap_cb->event));
 	if (l) {
@@ -878,6 +883,10 @@ static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 
 	/* build xmlStr */
 	struct ast_str *xmlStr = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	if (!xmlStr) {
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+		return;
+	}
 
 	ast_str_append(&xmlStr, DEFAULT_PBX_STR_BUFFERSIZE, "%s", "<CiscoIPPhoneExecute>");
 
@@ -1057,6 +1066,7 @@ sccp_softkeyMap_cb_t __attribute__ ((malloc)) * sccp_softkeyMap_copyStaticallyMa
 {
 	sccp_softkeyMap_cb_t *newSoftKeyMap = sccp_malloc((sizeof *newSoftKeyMap) * ARRAY_LEN(softkeyCbMap));
 	if (!newSoftKeyMap) {
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		return NULL;
 	}
 	memcpy(newSoftKeyMap, softkeyCbMap, ARRAY_LEN(softkeyCbMap) * sizeof(sccp_softkeyMap_cb_t));
