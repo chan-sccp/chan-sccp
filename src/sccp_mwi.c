@@ -456,7 +456,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 	if (!subscription) {
 		subscription = sccp_calloc(sizeof *subscription, 1);
 		if (!subscription) {
-			pbx_log(LOG_ERROR, "SCCP: (mwi_addMailboxSubscription) Error allocating memory for sccp_mwi_addMailboxSubscription");
+			pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, line->name);
 			return;
 		}
 		SCCP_LIST_HEAD_INIT(&subscription->sccp_mailboxLine);
@@ -538,7 +538,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 	if (!mailboxLine) {
 		mailboxLine = sccp_calloc(sizeof *mailboxLine, 1);
 		if (!mailboxLine) {
-			pbx_log(LOG_ERROR, "SCCP: (mwi_addMailboxSubscription) Error allocating memory for mailboxLine");
+			pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, line->name);
 			return;
 		}
 

@@ -199,7 +199,7 @@ void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types t
 	}
 
 	if (!(obj = sccp_calloc(size + (sizeof *obj), 1) )) {
-		pbx_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Memory allocation failure (obj)");
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP: obj");
 		return NULL;
 	}
 
@@ -224,7 +224,7 @@ void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types t
 		ast_rwlock_wrlock(&objectslock);
 		if (!objects[hash]) {										// check again after getting the lock, to see if another thread did not create the head already
 			if (!(objects[hash] = sccp_calloc(sizeof *objects[hash], 1))) {
-				pbx_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Memory allocation failure (hashtable)");
+				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCC: hashtable");
 				sccp_free(obj);
 				obj = NULL;
 				ast_rwlock_unlock(&objectslock);

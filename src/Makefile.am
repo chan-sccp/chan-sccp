@@ -72,9 +72,9 @@ chan_sccp_la_LDFLAGS	+= -avoid-version -module -ldl -lm -s -rdynamic
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
-	@test -d "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"							
+	@test -d "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"
 	@if test "x$(strip_binaries)" == "xyes" ; then 											\
-		@test -d "$(DESTDIR)$(PBX_DEBUGMODDIR)" || $(MKDIR_P) "$(DESTDIR)$(PBX_DEBUGMODDIR)";					\
+		test -d "$(DESTDIR)$(PBX_DEBUGMODDIR)" || $(MKDIR_P) "$(DESTDIR)$(PBX_DEBUGMODDIR)";					\
 		$(OBJCOPY) --only-keep-debug ".libs/chan_sccp.so" "$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so.dbg";			\
 		$(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) -s ".libs/chan_sccp.so" "$(DESTDIR)$(csmoddir)";\
 		$(OBJCOPY) --add-gnu-debuglink="$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so.dbg" "$(DESTDIR)$(csmoddir)/chan_sccp.so";	\
