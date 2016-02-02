@@ -336,9 +336,9 @@ codeSkip == 1			{ next }
 			print "\tfor (idx = 0; idx < ARRAY_LEN(" namespace "_" enum_name "_map); idx++) {" > out_source_file
 			print "\t\tif (sccp_strcaseequals(" namespace "_" enum_name "_map[idx], lookup_str)) {" > out_source_file
 			if (bitfield == 0) {
-				print "\t\t\treturn idx;" > out_source_file
+				print "\t\t\treturn ("namespace "_" enum_name "_t) idx;" > out_source_file
 			} else {
-				print "\t\t\treturn 1 << idx;" > out_source_file
+				print "\t\t\treturn ("namespace "_" enum_name "_t) (1 << idx);" > out_source_file
 			}
 			print "\t\t}" > out_source_file
 			print "\t}" > out_source_file

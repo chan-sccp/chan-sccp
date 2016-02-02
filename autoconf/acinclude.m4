@@ -10,12 +10,7 @@ dnl          See the LICENSE file at the top of the source tree.
 AC_DEFUN([CS_CHECK_PBX], [
 	found_pbx="no";
 	found_asterisk="no";
-	replace_include_with_isystem=0;
-	${CC} -isystem /usr/include -dM -E - </dev/null 2>&1 >/dev/null
-	if $? == 0; then
-		replace_include_with_isystem=1;
-	fi
-	 
+	AS_IF([test -z "`${CC} -isystem /usr/include -dM -E - </dev/null 2>&1 >/dev/null`" && $? == 0],[replace_include_with_isystem=1],[replace_include_with_isystem=0])
 	if test -z "$NEW_PBX_PATH" && test ! x"${PKGCONFIG}" = xNo; then
 		AC_MSG_CHECKING([pkg-config asterisk])
 	 	if $(${PKGCONFIG} --exists asterisk); then
@@ -30,7 +25,7 @@ AC_DEFUN([CS_CHECK_PBX], [
 					AC_MSG_NOTICE([Fixed fauly asterisk.pc pkg-config file. Advise:You ought to update your asterisk version])
 					PBX_CFLAGS="`echo ${PBX_CFLAGS} | ${SED} 's/libxml2-g3/libxml2/'`"
 				fi
-				if [ $replace_include_with_isystem == 1 ]; then
+				if test$replace_include_with_isystem -eq 1; then
 					PBX_CFLAGS="`echo ${PBX_CFLAGS} | ${SED} 's/-I/-isystem /'`"
 				fi
 				PBX_CPPFLAGS="${PBX_CFLAGS}"
@@ -74,7 +69,7 @@ AC_DEFUN([CS_CHECK_PBX], [
 				found_asterisk="yes";
 				PBX_TYPE="Asterisk"
 				PBX_INCLUDE="${checkdir}/include/asterisk"
-				if [ $replace_include_with_isystem == 1 ]; then
+				if test $replace_include_with_isystem -eq 1; then
 					PBX_CFLAGS="-isystem ${checkdir}/include -DHAVE_ASTERISK";
 					PBX_CPPFLAGS="-isystem ${checkdir}/include -DHAVE_ASTERISK";
 					CFLAGS="$CFLAGS -isystem ${checkdir}/include -DHAVE_ASTERISK";
@@ -93,7 +88,7 @@ AC_DEFUN([CS_CHECK_PBX], [
 				found_asterisk="yes";
 				PBX_TYPE="Asterisk"
 				PBX_INCLUDE="${checkdir}/include/asterisk"
-				if [ $replace_include_with_isystem == 1 ]; then
+				if test $replace_include_with_isystem -eq 1; then
 					PBX_CFLAGS="-isystem ${checkdir}/include -DHAVE_ASTERISK";
 					PBX_CPPFLAGS="-isystem ${checkdir}/include -DHAVE_ASTERISK";
 					CFLAGS="$CFLAGS -isystem ${checkdir}/include -DHAVE_ASTERISK";

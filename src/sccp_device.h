@@ -160,7 +160,7 @@ struct softKeySetConfiguration {
 struct sccp_device {
 	char id[StationMaxDeviceNameSize];									/*!< SEP<macAddress> of the device. */
 	const sccp_deviceProtocol_t *protocol;									/*!< protocol the devices uses */
-	uint32_t skinny_type;											/*!< Model of this Phone sent by the station, devicetype */
+	skinny_devicetype_t skinny_type;									/*!< Model of this Phone sent by the station, devicetype */
 	uint32_t device_features;										/*!< device features (contains protocolversion in 8bit first segement */
 	sccp_earlyrtp_t earlyrtp;										/*!< RTP Channel State where to open the RTP Media Stream */
 	uint16_t keepalive;											/*!< Station Specific Keepalive Timeout */

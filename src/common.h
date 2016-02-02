@@ -8,14 +8,16 @@
 #pragma once
 
 #if defined(__cplusplus) || defined(c_plusplus)
-#  define __BEGIN_EXTERN__ 		\
+#  define __BEGIN_C_EXTERN__ 		\
 extern "C" {
-#  define __END_EXTERN__ }		\
+#  define __END_C_EXTERN__ 		\
 }
 #else
-#  define __BEGIN_EXTERN__ 
-#  define __END_EXTERN__ 
+#  define __BEGIN_C_EXTERN__ 
+#  define __END_C_EXTERN__ 
 #endif
+#  define __BEGIN_EXTERN__ __BEGIN_C_EXTERN__
+#  define __END_EXTERN__ __END_C_EXTERN__
 
 #define ENUMMACRO_GENHEADER	1
 #define ENUMMACRO_GENFUNCTION	2
@@ -51,7 +53,7 @@ extern "C" {
 #include <stdbool.h>
 #endif
 
-__BEGIN_EXTERN__
+__BEGIN_C_EXTERN__
 
 /* global types */
 #if defined(HAVE_UNALIGNED_BUSERROR)										// for example sparc64
@@ -129,7 +131,7 @@ typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses T
 typedef void sk_func(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
 typedef int (*sccp_sched_cb) (const void *data);
 
-__END_EXTERN__
+__END_C_EXTERN__
 
 #include "sccp_enum.h"
 #include "sccp_dllists.h"
