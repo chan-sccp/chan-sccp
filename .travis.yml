@@ -4,40 +4,29 @@ language: c
 compiler: 
  - clang
  - gcc
+
 env:
   global:
-    - secure: "JDdGOmj9jw2-oYEssxTABw"
-  matrix:
-    - REPOS=precise
-    - REPOS=trusty
-    - REPOS=trusty13
-    - REPOS=utopic
+    secure: "JDdGOmj9jw2-oYEssxTABw"
+
+branch_pattern: coverity_scan
 
 # Install Required Devel Packages
 before_install:
- - if [ "${REPOS}" != "trusty13" ]; 
-   then
-     echo "deb http://archive.ubuntu.com/ubuntu ${REPOS} main restricted universe multiverse"            | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     echo "deb http://archive.ubuntu.com/ubuntu ${REPOS}-updates main restricted universe multiverse"    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     echo "deb http://security.ubuntu.com/ubuntu/ ${REPOS}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     echo "deb http://archive.canonical.com/ubuntu/ ${REPOS} partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     sudo apt-get update -qq;
-     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev asterisk asterisk-dev asterisk-config asterisk-modules binutils.dev libc6-dev;
-   else
-     echo "deb http://archive.ubuntu.com/ubuntu trusty main restricted universe multiverse"              | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     echo "deb http://archive.ubuntu.com/ubuntu trusty-updates main restricted universe multiverse"      | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     echo "deb http://security.ubuntu.com/ubuntu/ trusty-security main restricted universe multiverse"   | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     echo "deb http://archive.canonical.com/ubuntu/ trusty partner"                                      | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 9C245DE2;
-     echo "deb http://ppa.launchpad.net/jan-hoffmann/asterisk13/ubuntu trusty main"                      | sudo tee -a /etc/apt/sources.list.d/asterisk13.list;
-     echo "deb-src http://ppa.launchpad.net/jan-hoffmann/asterisk13/ubuntu trusty main"			 | sudo tee -a /etc/apt/sources.list.d/asterisk13.list;
-     sudo apt-get update -qq;
-     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 libpjsua2-2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg binutils.dev libc6-dev;
-   fi
+  echo "deb http://archive.ubuntu.com/ubuntu ${REPO} main restricted universe multiverse"            | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+  echo "deb http://archive.ubuntu.com/ubuntu ${REPO}-updates main restricted universe multiverse"    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+  echo "deb http://security.ubuntu.com/ubuntu/ ${REPO}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+  echo "deb http://archive.canonical.com/ubuntu/ ${REPO} partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+  sudo apt-get update -qq;
+  sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev asterisk asterisk-dev asterisk-config asterisk-modules binutils.dev libc6-dev;
 
 # Prepare Configure Script
-before_script:
- - autoreconf -fi
+before_script: autoreconf -fi
+
+build_command_prepend: ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-devdoc --enable-advanced-functions
+
+build_command: make
+
 
 # Report Results
 notifications:
@@ -54,7 +43,7 @@ notifications:
 
 addons:
   coverity_scan:
-    notification_email: info@talon.nl
-    build_command_prepend: ./configure
-    build_command: make
-    branch_pattern: coverity_scan
+    project:
+      name: dkgroot/chan-sccp-b
+      version: 4.3
+      description: Asterisk SCCP Channel
