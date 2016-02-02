@@ -5,7 +5,7 @@ dist: trusty
 
 install:
   - sudo apt-get update -qq
-  - sudo apt-get install -yq asterisk asterisk-dev asterisk-config asterisk-modules binutils.dev libc6-dev install build-essential make 
+  - sudo apt-get install -qq asterisk asterisk-dev asterisk-config asterisk-modules binutils.dev libc6-dev build-essential make 
 
 after_install:
   - gcc --version
