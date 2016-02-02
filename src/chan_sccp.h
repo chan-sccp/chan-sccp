@@ -18,17 +18,21 @@
 #pragma once
 #include "config.h"
 
+#undef __BEGIN_EXTERN__
+#undef __END_EXTERN__
 #if defined(__cplusplus) || defined(c_plusplus)
-#  define __BEGIN_EXTERN__ 		\
+#  define __BEGIN_C_EXTERN__ 		\
 extern "C" {
-#  define __END_EXTERN__ }		\
+#  define __END_C_EXTERN__ 		\
 }
 #else
-#  define __BEGIN_EXTERN__ 
-#  define __END_EXTERN__ 
+#  define __BEGIN_C_EXTERN__ 
+#  define __END_C_EXTERN__ 
 #endif
+#  define __BEGIN_EXTERN__ __BEGIN_C_EXTERN__
+#  define __END_EXTERN__ __END_C_EXTERN__
 
-__BEGIN_EXTERN__
+__BEGIN_C_EXTERN__
 
 #  if defined __STDC__ && defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L && defined(__GNUC__) && !defined(__clang__)
 	#define gcc_inline __inline__
@@ -234,6 +238,7 @@ static const char SS_Memory_Allocation_Error[] = "%s: Memory Allocation Error.\n
  */
 typedef enum {
 	/* *INDENT-OFF* */
+	DEBUGCAT_NONE			= 0,
 	DEBUGCAT_CORE 			= 1 << 0,
 	DEBUGCAT_SCCP 			= 1 << 1,
 	DEBUGCAT_HINT 			= 1 << 2,
@@ -264,6 +269,7 @@ typedef enum {
 	DEBUGCAT_THPOOL			= 1 << 27,
 	DEBUGCAT_FILELINEFUNC		= 1 << 28,
 	DEBUGCAT_HIGH 			= 1 << 29,
+	DEBUGCAT_ALL 			= 0xffffffff,
 	/* *INDENT-ON* */
 } sccp_debug_category_t;											/*!< SCCP Debug Category Enum (saved in global_vars:debug = uint32_t) */
 
@@ -276,8 +282,8 @@ static const struct sccp_debug_category {
 	sccp_debug_category_t category;
 } sccp_debug_categories[] = {
 	/* *INDENT-OFF* */
-	{"all",			"all debug levels", 			0xffffffff,},
-	{"none",		"all debug levels", 			0x00000000,},
+	{"all",			"all debug levels", 			DEBUGCAT_ALL,},
+	{"none",		"all debug levels", 			DEBUGCAT_NONE,},
 	{"core",		"core debug level", 			DEBUGCAT_CORE},
 	{"sccp",		"sccp debug level", 			DEBUGCAT_SCCP},
 	{"hint",		"hint debug level", 			DEBUGCAT_HINT},
@@ -496,5 +502,5 @@ boolean_t sccp_prePBXLoad(void);
 boolean_t sccp_postPBX_load(void);
 int sccp_updateExternIp(void);
 
-__END_EXTERN__
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
