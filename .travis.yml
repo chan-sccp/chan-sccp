@@ -2,7 +2,6 @@ language: c
 
 # Setup Build Matrix
 compiler: 
- - clang
  - gcc
 
 env:
@@ -13,33 +12,27 @@ branch_pattern: coverity_scan
 
 # Install Required Devel Packages
 before_install:
-  echo "deb http://archive.ubuntu.com/ubuntu ${REPO} main restricted universe multiverse"            | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-  echo "deb http://archive.ubuntu.com/ubuntu ${REPO}-updates main restricted universe multiverse"    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-  echo "deb http://security.ubuntu.com/ubuntu/ ${REPO}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-  echo "deb http://archive.canonical.com/ubuntu/ ${REPO} partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-  sudo apt-get update -qq;
-  sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev asterisk asterisk-dev asterisk-config asterisk-modules binutils.dev libc6-dev;
+  if test 1 -eq 1: then
+    echo "deb http://archive.ubuntu.com/ubuntu ${REPO} main restricted universe multiverse"            | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+    echo "deb http://archive.ubuntu.com/ubuntu ${REPO}-updates main restricted universe multiverse"    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+    echo "deb http://security.ubuntu.com/ubuntu/ ${REPO}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+    echo "deb http://archive.canonical.com/ubuntu/ ${REPO} partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+    sudo apt-get update -qq;
+    sudo apt-get install -qq asterisk asterisk-dev asterisk-config asterisk-modules binutils.dev libc6-dev;
+  fi
 
-# Prepare Configure Script
 before_script: autoreconf -fi
 
 build_command_prepend: ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-devdoc --enable-advanced-functions
 
 build_command: make
 
-
-# Report Results
 notifications:
  slack: chan-sccp:yfQzKYTnTf4cD1iHElnTYsXD
  email:
     recipients:
       - ddegroot@talon.nl
       - marcelloceschia@users.sourceforge.net
-
-#matrix:
-#  exclude:
-#      - os: osx
-#        compiler: gcc
 
 addons:
   coverity_scan:
