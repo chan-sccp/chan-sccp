@@ -1,31 +1,45 @@
-language: c
-
-# Setup Build Matrix
-compiler: 
- - gcc
-
-env:
-  global:
-    secure: "JDdGOmj9jw2-oYEssxTABw"
-
-branch_pattern: coverity_scan
-
-# Install Required Devel Packages
+language: cpp
+compiler: gcc
+sudo: required
 before_install:
-  if test 1 -eq 1: then
-    echo "deb http://archive.ubuntu.com/ubuntu ${REPO} main restricted universe multiverse"            | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-    echo "deb http://archive.ubuntu.com/ubuntu ${REPO}-updates main restricted universe multiverse"    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-    echo "deb http://security.ubuntu.com/ubuntu/ ${REPO}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-    echo "deb http://archive.canonical.com/ubuntu/ ${REPO} partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-    sudo apt-get update -qq;
-    sudo apt-get install -qq asterisk asterisk-dev asterisk-config asterisk-modules binutils.dev libc6-dev;
-  fi
+  - echo "deb http://archive.ubuntu.com/ubuntu ${REPO} main restricted universe multiverse"            | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+  - echo "deb http://archive.ubuntu.com/ubuntu ${REPO}-updates main restricted universe multiverse"    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+  - echo "deb http://security.ubuntu.com/ubuntu/ ${REPO}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+  - echo "deb http://archive.canonical.com/ubuntu/ ${REPO} partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+
+install:
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq
+  - sudo apt-get install -yq asterisk asterisk-dev asterisk-config asterisk-modules binutils.dev libc6-dev install -yq build-essential gcc-4.8 g++-4.8 cmake make bison flex libpthread-stubs0-dev
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.6 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.6
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 40 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
+  - echo 2 | sudo update-alternatives --config gcc
+
+after_install:
+  - gcc --version
 
 before_script: autoreconf -fi
 
-build_command_prepend: ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-devdoc --enable-advanced-functions
+script:
+  - ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-devdoc --enable-advanced-functions
+  - make -j2
+  - make install
 
-build_command: make
+env:
+  global:
+    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created using:
+    # travis encrypt COVERITY_SCAN_TOKEN=xxxxxxx-xxxxxxx -r dkgroot/chan-sccp-b
+    -secure: "YSLFGUzoTn4FolsN06b1e5aYGfFFVEC9CaPLgUpPcfOdUWx4CMwf5NqbpV1xIpDdEmU/48Vts/z+T49tvz6CoLxRtC8IVqdtTVKVgxWs/BSrLsqTZ5Xo8Ls7fH37JppzUZyaNQhjZqAT2yxAcAiM0B4IP50sIYkYxf3SExLmiRUJUuCy+Iq018PIUfkzAVLahYBaKEac+BV2qcUScvu51CXkSAtGHrk0qlZ+cULS22iIKBLOsH3iXWFqQLAU46oDDrZWV4GN/hqLXro7EICELKtQMZIscU0aVVVNCXPqef4X8uGTed7vwhtP4eOb7KA2pygWeLE4l6mGnR2tfGd644yiKKyG75VL5BoCgU+chmwvy6J6yr/GxUzeVOxS8b8I+Dr5EsxrcmQfpwLLEHU3gOSWc/ZX7kC5eRyqkUNSAJnScLBIEYQuBoVQ7vtvWr7CFgKKsYMwO8Xrs9PEGky1I01GUS5rPVhUkkFldgKZn8EAfqANDkrABxIw1HaT5CTn1BDT8sOBb4SynmFGYJV+oEWv9LN3ftPwxdAQbI+GXjSvRZK1G/kzL2sGzBX0wd/h3vQedg3NMDlARczUNCVopUrPY9+1bt8T05LWHq5pDTUvB+XSl64CdvdFncrmSlroDYFHTx4ogVtuc5jcqv4EgdAB+eQXpGR4Th1s1XK/yQA="
+
+addons:
+  coverity_scan:
+    project:
+      name: "dkgroot/chan-sccp-b"
+      description: "Asterisk SCCP Channel Addon"
+    notification_email: info@talon.nl
+    build_command_prepend: "./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-devdoc --enable-advanced-functions"
+    build_command: "make -j2"
+    branch_pattern: coverity_scan
 
 notifications:
  slack: chan-sccp:yfQzKYTnTf4cD1iHElnTYsXD
@@ -33,10 +47,3 @@ notifications:
     recipients:
       - ddegroot@talon.nl
       - marcelloceschia@users.sourceforge.net
-
-addons:
-  coverity_scan:
-    project:
-      name: dkgroot/chan-sccp-b
-      version: 4.3
-      description: Asterisk SCCP Channel
