@@ -1,11 +1,13 @@
 language: cpp
 compiler: gcc
 sudo: required
-before_install:
-  - echo "deb http://archive.ubuntu.com/ubuntu ${REPO} main restricted universe multiverse"            | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-  - echo "deb http://archive.ubuntu.com/ubuntu ${REPO}-updates main restricted universe multiverse"    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-  - echo "deb http://security.ubuntu.com/ubuntu/ ${REPO}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-  - echo "deb http://archive.canonical.com/ubuntu/ ${REPO} partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+dist: trusty
+
+#before_install:
+#  - echo "deb http://archive.ubuntu.com/ubuntu ${REPO} main restricted universe multiverse"            | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+#  - echo "deb http://archive.ubuntu.com/ubuntu ${REPO}-updates main restricted universe multiverse"    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+#  - echo "deb http://security.ubuntu.com/ubuntu/ ${REPO}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+#  - echo "deb http://archive.canonical.com/ubuntu/ ${REPO} partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
 
 install:
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
