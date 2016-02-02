@@ -149,7 +149,7 @@ static const struct sccp_pbx_devicestate {
  */
 static const struct sccp_extension_state {
 	const char *const text;
-	uint16_t extension_state;
+	int extension_state;
 } sccp_extension_states[] = {
 	/* *INDENT-OFF* */
 	{"Extension Removed",					AST_EXTENSION_REMOVED},

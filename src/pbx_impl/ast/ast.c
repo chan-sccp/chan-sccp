@@ -997,74 +997,48 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 					} else {
 						struct ast_rtp_instance_stats stats;
 						int i;
+						enum __int_double { __INT, __DBL };
 						struct {
 							const char *name;
-							enum { INT, DBL } type;
+							enum __int_double type;
 							union {
 								unsigned int *i4;
 								double *d8;
 							};
 						} lookup[] = {
-							{
-								"txcount", INT, {
-							.i4 = &stats.txcount,},}, {
-								"rxcount", INT, {
-							.i4 = &stats.rxcount,},}, {
-								"txjitter", DBL, {
-							.d8 = &stats.txjitter,},}, {
-								"rxjitter", DBL, {
-							.d8 = &stats.rxjitter,},}, {
-								"remote_maxjitter", DBL, {
-							.d8 = &stats.remote_maxjitter,},}, {
-								"remote_minjitter", DBL, {
-							.d8 = &stats.remote_minjitter,},}, {
-								"remote_normdevjitter", DBL, {
-							.d8 = &stats.remote_normdevjitter,},}, {
-								"remote_stdevjitter", DBL, {
-							.d8 = &stats.remote_stdevjitter,},}, {
-								"local_maxjitter", DBL, {
-							.d8 = &stats.local_maxjitter,},}, {
-								"local_minjitter", DBL, {
-							.d8 = &stats.local_minjitter,},}, {
-								"local_normdevjitter", DBL, {
-							.d8 = &stats.local_normdevjitter,},}, {
-								"local_stdevjitter", DBL, {
-							.d8 = &stats.local_stdevjitter,},}, {
-								"txploss", INT, {
-							.i4 = &stats.txploss,},}, {
-								"rxploss", INT, {
-							.i4 = &stats.rxploss,},}, {
-								"remote_maxrxploss", DBL, {
-							.d8 = &stats.remote_maxrxploss,},}, {
-								"remote_minrxploss", DBL, {
-							.d8 = &stats.remote_minrxploss,},}, {
-								"remote_normdevrxploss", DBL, {
-							.d8 = &stats.remote_normdevrxploss,},}, {
-								"remote_stdevrxploss", DBL, {
-							.d8 = &stats.remote_stdevrxploss,},}, {
-								"local_maxrxploss", DBL, {
-							.d8 = &stats.local_maxrxploss,},}, {
-								"local_minrxploss", DBL, {
-							.d8 = &stats.local_minrxploss,},}, {
-								"local_normdevrxploss", DBL, {
-							.d8 = &stats.local_normdevrxploss,},}, {
-								"local_stdevrxploss", DBL, {
-							.d8 = &stats.local_stdevrxploss,},}, {
-								"rtt", DBL, {
-							.d8 = &stats.rtt,},}, {
-								"maxrtt", DBL, {
-							.d8 = &stats.maxrtt,},}, {
-								"minrtt", DBL, {
-							.d8 = &stats.minrtt,},}, {
-								"normdevrtt", DBL, {
-							.d8 = &stats.normdevrtt,},}, {
-								"stdevrtt", DBL, {
-							.d8 = &stats.stdevrtt,},}, {
-								"local_ssrc", INT, {
-							.i4 = &stats.local_ssrc,},}, {
-								"remote_ssrc", INT, {
-							.i4 = &stats.remote_ssrc,},}, {
-						NULL,},};
+							/* *INDENT-OFF* */
+							{"txcount", 		__INT, {.i4 = &stats.txcount},}, 
+							{"rxcount", 		__INT, {.i4 = &stats.rxcount,},}, 
+							{"txjitter", 		__DBL, {.d8 = &stats.txjitter,},}, 
+							{"rxjitter", 		__DBL, {.d8 = &stats.rxjitter,},},
+							{"remote_maxjitter", 	__DBL, {.d8 = &stats.remote_maxjitter,},},
+							{"remote_minjitter", 	__DBL, {.d8 = &stats.remote_minjitter,},},
+							{"remote_normdevjitter",__DBL, {.d8 = &stats.remote_normdevjitter,},},
+							{"remote_stdevjitter", 	__DBL, {.d8 = &stats.remote_stdevjitter,},},
+							{"local_maxjitter",	__DBL, {.d8 = &stats.local_maxjitter,},},
+							{"local_minjitter", 	__DBL, {.d8 = &stats.local_minjitter,},},
+							{"local_normdevjitter", __DBL, {.d8 = &stats.local_normdevjitter,},},
+							{"local_stdevjitter", 	__DBL, {.d8 = &stats.local_stdevjitter,},},
+							{"txploss", 		__INT, {.i4 = &stats.txploss,},},
+							{"rxploss", 		__INT, {.i4 = &stats.rxploss,},},
+							{"remote_maxrxploss", 	__DBL, {.d8 = &stats.remote_maxrxploss,},},
+							{"remote_minrxploss", 	__DBL, {.d8 = &stats.remote_minrxploss,},},
+							{"remote_normdevrxploss",__DBL, {.d8 = &stats.remote_normdevrxploss,},},
+							{"remote_stdevrxploss", __DBL, {.d8 = &stats.remote_stdevrxploss,},},
+							{"local_maxrxploss", 	__DBL, {.d8 = &stats.local_maxrxploss,},},
+							{"local_minrxploss", 	__DBL, {.d8 = &stats.local_minrxploss,},},
+							{"local_normdevrxploss",__DBL, {.d8 = &stats.local_normdevrxploss,},},
+							{"local_stdevrxploss", 	__DBL, {.d8 = &stats.local_stdevrxploss,},},
+							{"rtt", 		__DBL, {.d8 = &stats.rtt,},},
+							{"maxrtt", 		__DBL, {.d8 = &stats.maxrtt,},},
+							{"minrtt", 		__DBL, {.d8 = &stats.minrtt,},},
+							{"normdevrtt", 		__DBL, {.d8 = &stats.normdevrtt,},},
+							{"stdevrtt", 		__DBL, {.d8 = &stats.stdevrtt,},},
+							{"local_ssrc", 		__INT, {.i4 = &stats.local_ssrc,},},
+							{"remote_ssrc", 	__INT, {.i4 = &stats.remote_ssrc,},},
+							{NULL,},
+							/* *INDENT-ON* */
+						};
 
 						if (ast_rtp_instance_get_stats(rtp, &stats, AST_RTP_INSTANCE_STAT_ALL)) {
 							return -1;
@@ -1072,7 +1046,7 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 
 						for (i = 0; !sccp_strlen_zero(lookup[i].name); i++) {
 							if (sccp_strcaseequals(args.field, lookup[i].name)) {
-								if (lookup[i].type == INT) {
+								if (lookup[i].type == __INT) {
 									snprintf(buf, buflen, "%u", *lookup[i].i4);
 								} else {
 									snprintf(buf, buflen, "%f", *lookup[i].d8);
