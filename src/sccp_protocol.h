@@ -12,20 +12,23 @@
  */
 #pragma once
 
-//#if HAVE_SYS_SOCKET_H
-//#include <sys/socket.h>
-//#endif
-//#if HAVE_NETINET_IN_H
-//#include <netinet/in.h>
-//#include <netinet/in_systm.h>
-//#include <netinet/ip.h>
-//#include <netinet/tcp.h>
-//#endif
+#if defined(__cplusplus) || defined(c_plusplus)
+#  define __BEGIN_C_EXTERN__ 		\
+extern "C" {
+#  define __END_C_EXTERN__ 		\
+}
+#else
+#  define __BEGIN_C_EXTERN__ 
+#  define __END_C_EXTERN__ 
+#endif
+#  define __BEGIN_EXTERN__ __BEGIN_C_EXTERN__
+#  define __END_EXTERN__ __END_C_EXTERN__
 
 #include "sccp_labels.h"
 #include "sccp_softkeys.h"
 #include "sccp_enum.h"
 
+__BEGIN_C_EXTERN__
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW		3							/*!< At least we require protocol V.3 */
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH		22							/*!< We support up to protocol V.17 */
 
@@ -3616,4 +3619,5 @@ boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version);
 uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);
 const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(constDevicePtr device, int type);
 const char *skinny_keymode2longstr(skinny_keymode_t keymode);
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
