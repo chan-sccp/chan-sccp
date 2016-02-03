@@ -55,6 +55,12 @@ extern "C" {
 #endif
 #endif
 
+#if defined(RUNNING_STATIC_ANALYSIS) && defined(SCAN_BUILD)
+#define __NONNULL(...) __attribute__((nonnull(__VA_ARGS__)))
+#else
+#define __NONNULL(...) 
+#endif
+
 #define sccp_mutex_t pbx_mutex_t
 
 /* Add bswap function if necessary */

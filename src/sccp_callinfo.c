@@ -557,7 +557,7 @@ static int callinfo_SetLastRedirectingParty(sccp_callinfo_t * const ci, const ch
 	return iCallInfo.Setter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, name, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, number, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, voicemail, SCCP_CALLINFO_LAST_REDIRECT_REASON, reason, SCCP_CALLINFO_KEY_SENTINEL);
 }
 
-static boolean_t __GetCallInfoStr(const sccp_callinfo_t * const ci, pbx_str_t ** const buf)
+static gcc_inline boolean_t __GetCallInfoStr(const sccp_callinfo_t * const ci, pbx_str_t ** const buf)
 {
 	pbx_assert(ci != NULL);
 	sccp_callinfo_rdlock(ci);
