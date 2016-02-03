@@ -1288,8 +1288,8 @@ static sccp_value_changed_t sccp_config_parse_jbflags(void *dest, const size_t s
 
 	struct ast_jb_conf *jb = *(struct ast_jb_conf **) dest;
 
-	if (pbx_test_flag(jb, flag) != (unsigned) ast_true(value)) {
-		pbx_set2_flag(jb, ast_true(value), flag);
+	if (pbx_test_flag(jb, flag) != (unsigned) sccp_true(value)) {
+		pbx_set2_flag(jb, sccp_true(value), flag);
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
