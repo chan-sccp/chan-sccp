@@ -220,19 +220,23 @@ void sccp_dev_dbclean(void)
 
 gcc_inline const char *msgtype2str(sccp_mid_t type)
 {														/* sccp_protocol.h */
-	if (type >= SPCP_MESSAGE_OFFSET) {
+	if (type >= SPCP_MESSAGE_OFFSET && type <= (ARRAY_LEN(spcp_messagetypes) + SPCP_MESSAGE_OFFSET)) {
 		return spcp_messagetypes[type - SPCP_MESSAGE_OFFSET].text;
-	} else {
+	} else if (type <= ARRAY_LEN(sccp_messagetypes)) {
 		return sccp_messagetypes[type].text;
+	} else {
+		return "SCCP: Message type does not exist";
 	}
 }
 
 gcc_inline size_t msgtype2size(sccp_mid_t type)
 {														/* sccp_protocol.h */
-	if (type >= SPCP_MESSAGE_OFFSET) {
+	if (type >= SPCP_MESSAGE_OFFSET && type <= (ARRAY_LEN(spcp_messagetypes) + SPCP_MESSAGE_OFFSET)) {
 		return spcp_messagetypes[type - SPCP_MESSAGE_OFFSET].size + SCCP_PACKET_HEADER;
-	} else {
+	} else if (type <= ARRAY_LEN(sccp_messagetypes)) {
 		return sccp_messagetypes[type].size + SCCP_PACKET_HEADER;
+	} else {
+		return 0;
 	}
 }
 
