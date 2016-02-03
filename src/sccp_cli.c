@@ -202,6 +202,9 @@ static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
+		if (ret) {
+			break;								// break out of outer look, prevent leaking memory by strdup
+		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
