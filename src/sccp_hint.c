@@ -847,11 +847,11 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
  */
 static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState *lineState)
 {
-	sccp_line_t *line = lineState->line;
-	sccp_channelstate_t state;
-	if (!lineState || !line) {
+	if (!lineState || !lineState->line) {
 		return;
 	}
+	sccp_line_t *line = lineState->line;
+	sccp_channelstate_t state;
 
 	//boolean_t dev_privacy = FALSE;
 
