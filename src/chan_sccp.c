@@ -16,19 +16,18 @@
  */
 #include <config.h>
 #include "common.h"
-
-#include "sccp_protocol.h"
-#include "sccp_socket.h"
+#include "chan_sccp.h"
+#include "sccp_globals.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_channel.h"
 #include "sccp_utils.h"
-#include "sccp_hint.h"
-#include "sccp_actions.h"
-#include "sccp_mwi.h"
 #include "sccp_config.h"
-#include "sccp_conference.h"
-#include "sccp_management.h"
+#include "sccp_mwi.h"		// use __constructor__ to remove this entry
+#include "sccp_socket.h"	// use __constructor__ to remove this entry
+#include "sccp_hint.h"		// use __constructor__ to remove this entry
+#include "sccp_conference.h"	// use __constructor__ to remove this entry
+#include "sccp_management.h"	// use __constructor__ to remove this entry
 #include "sccp_devstate.h"
 #include "revision.h"
 #include <signal.h>
@@ -36,390 +35,9 @@
 SCCP_FILE_VERSION(__FILE__, "");
 
 /*!
- * \brief       Buffer for Jitterbuffer use
- */
-#if defined(__cplusplus) || defined(c_plusplus)
-static ast_jb_conf default_jbconf = {
-flags:	0,
-max_size:-1,
-resync_threshold:-1,
-impl:	"",
-#ifdef CS_AST_JB_TARGETEXTRA
-target_extra:-1,
-#endif
-};
-#else
-static struct ast_jb_conf default_jbconf = {
-	.flags = 0,
-	.max_size = -1,
-	.resync_threshold = -1,
-	.impl = "",
-#ifdef CS_AST_JB_TARGETEXTRA
-	.target_extra = -1,
-#endif
-};
-#endif
-
-char SCCP_VERSIONSTR[300];
-char SCCP_REVISIONSTR[30];
-
-/*!
  * \brief       Global null frame
  */
 static PBX_FRAME_TYPE sccp_null_frame;										/*!< Asterisk Structure */
-
-/*!
- * \brief       Global variables
- */
-struct sccp_global_vars *sccp_globals = 0;
-
-/*!
- * \brief SCCP Request Channel
- * \param lineName              Line Name as Char
- * \param requestedCodec        Requested Skinny Codec
- * \param capabilities          Array of Skinny Codec Capabilities
- * \param capabilityLength      Length of Capabilities Array
- * \param autoanswer_type       SCCP Auto Answer Type
- * \param autoanswer_cause      SCCP Auto Answer Cause
- * \param ringermode            Ringer Mode
- * \param channel               SCCP Channel
- * \return SCCP Channel Request Status
- * 
- * \called_from_asterisk
- */
-sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_codec_t requestedCodec, skinny_codec_t capabilities[], uint8_t capabilityLength, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel)
-{
-	struct composedId lineSubscriptionId;
-	sccp_channel_t *my_sccp_channel = NULL;
-	AUTO_RELEASE sccp_line_t *l = NULL;
-
-	memset(&lineSubscriptionId, 0, sizeof(struct composedId));
-
-	if (!lineName) {
-		return SCCP_REQUEST_STATUS_ERROR;
-	}
-
-	lineSubscriptionId = sccp_parseComposedId(lineName, 80);
-
-	l = sccp_line_find_byname(lineSubscriptionId.mainId, FALSE);
-
-	if (!l) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP/%s does not exist!\n", lineSubscriptionId.mainId);
-		return SCCP_REQUEST_STATUS_LINEUNKNOWN;
-	}
-	sccp_log_and((DEBUGCAT_SCCP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	if (SCCP_RWLIST_GETSIZE(&l->devices) == 0) {
-		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
-		return SCCP_REQUEST_STATUS_LINEUNAVAIL;
-	}
-	sccp_log_and((DEBUGCAT_SCCP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	/* call forward check */
-
-	// Allocate a new SCCP channel.
-	/* on multiline phone we set the line when answering or switching lines */
-	*channel = my_sccp_channel = sccp_channel_allocate(l, NULL);
-
-	if (!my_sccp_channel) {
-		return SCCP_REQUEST_STATUS_ERROR;
-	}
-
-	/* set subscriberId for individual device addressing */
-	if (!sccp_strlen_zero(lineSubscriptionId.subscriptionId.number)) {
-		sccp_copy_string(my_sccp_channel->subscriptionId.number, lineSubscriptionId.subscriptionId.number, sizeof(my_sccp_channel->subscriptionId.number));
-		if (!sccp_strlen_zero(lineSubscriptionId.subscriptionId.name)) {
-			sccp_copy_string(my_sccp_channel->subscriptionId.name, lineSubscriptionId.subscriptionId.name, sizeof(my_sccp_channel->subscriptionId.name));
-		} else {
-			//pbx_log(LOG_NOTICE, "%s: calling subscriber id=%s\n", l->id, my_sccp_channel->subscriptionId.number);
-		}
-	} else {
-		sccp_copy_string(my_sccp_channel->subscriptionId.number, l->defaultSubscriptionId.number, sizeof(my_sccp_channel->subscriptionId.number));
-		sccp_copy_string(my_sccp_channel->subscriptionId.name, l->defaultSubscriptionId.name, sizeof(my_sccp_channel->subscriptionId.name));
-		//pbx_log(LOG_NOTICE, "%s: calling all subscribers\n", l->id);
-	}
-
-	uint8_t size = (capabilityLength < sizeof(my_sccp_channel->remoteCapabilities.audio)) ? capabilityLength : sizeof(my_sccp_channel->remoteCapabilities.audio);
-
-	memset(&my_sccp_channel->remoteCapabilities.audio, 0, sizeof(my_sccp_channel->remoteCapabilities.audio));
-	memcpy(&my_sccp_channel->remoteCapabilities.audio, capabilities, size);
-
-	/** set requested codec as prefered codec */
-	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "prefered audio codec (%d)\n", requestedCodec);
-	if (requestedCodec != SKINNY_CODEC_NONE) {
-		my_sccp_channel->preferences.audio[0] = requestedCodec;
-		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "SCCP: prefered audio codec (%d)\n", my_sccp_channel->preferences.audio[0]);
-	}
-
-	/** done */
-
-	my_sccp_channel->autoanswer_type = autoanswer_type;
-	my_sccp_channel->autoanswer_cause = autoanswer_cause;
-	my_sccp_channel->ringermode = ringermode;
-	my_sccp_channel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
-	return SCCP_REQUEST_STATUS_SUCCESS;
-}
-
-/*!
- * \brief Local Function to check for Valid Session, Message and Device
- * \param s SCCP Session
- * \param msg SCCP Msg
- * \param msgtypestr Message
- * \param deviceIsNecessary Is a valid device necessary for this message to be processed, if it is, the device is retain during execution of this particular message parser
- * \return -1 or retained Device;
- */
-gcc_inline static sccp_device_t * const check_session_message_device(constSessionPtr s, constMessagePtr msg, const char *msgtypestr, boolean_t deviceIsNecessary)
-{
-	int errors = 0;
-	if (!msg) {
-		pbx_log(LOG_ERROR, "(%s) No Message Provided\n", msgtypestr);
-		errors++;
-	}
-
- 	if (!sccp_session_isValid(s)) {
-		pbx_log(LOG_ERROR, "(%s) Session no longer valid\n", msgtypestr);
-		errors++;
-	}
-
-	if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE)) != 0) {
-		uint32_t mid = letohl(msg->header.lel_messageId);
-		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", sccp_session_getDesignator(s), msgtype2str(mid), mid, msg ? msg->header.length : 0);
-		sccp_dump_msg(msg);
-	}
-
-	if (!errors) {
-		sccp_device_t * const device = sccp_session_getDevice(s, deviceIsNecessary);
-		if (device) {
-			return device;
-		}  else if (deviceIsNecessary) {
-			pbx_log(LOG_WARNING, "Session Device could not be retained, to handle %s for, but device is needed\n", msgtypestr);
-		}
-	}
-	return NULL;
-}
-
-/*!
- * \brief SCCP Message Handler Callback
- *
- * Used to map SKinny Message Id's to their Handling Implementations
- */
-struct messageMap_cb {
-	void (*const messageHandler_cb) (const sccp_session_t * const s, sccp_device_t * const d, const sccp_msg_t * const msg);
-	boolean_t deviceIsNecessary;
-};
-
-static const struct messageMap_cb sccpMessagesCbMap[] = {
-	[KeepAliveMessage] = {sccp_handle_KeepAliveMessage, FALSE},						// on 7985,6911 phones and tokenmsg, a KeepAliveMessage is send before register/token 
-	[OffHookMessage] = {sccp_handle_offhook, TRUE},
-	[OnHookMessage] = {sccp_handle_onhook, TRUE},
-	[SoftKeyEventMessage] = {sccp_handle_soft_key_event, TRUE},
-	[PortResponseMessage] = {sccp_handle_port_response, TRUE},
-	[OpenReceiveChannelAck] = {sccp_handle_open_receive_channel_ack, TRUE},
-	[OpenMultiMediaReceiveChannelAckMessage] = {sccp_handle_OpenMultiMediaReceiveAck, TRUE},
-	[StartMediaTransmissionAck] = {sccp_handle_startmediatransmission_ack, TRUE},
-	[IpPortMessage] = {NULL, TRUE},
-	[VersionReqMessage] = {sccp_handle_version, TRUE},
-	[CapabilitiesResMessage] = {sccp_handle_capabilities_res, TRUE},
-	[ButtonTemplateReqMessage] = {sccp_handle_button_template_req, TRUE},
-	[SoftKeyTemplateReqMessage] = {sccp_handle_soft_key_template_req, TRUE},
-	[SoftKeySetReqMessage] = {sccp_handle_soft_key_set_req, TRUE},
-	[LineStatReqMessage] = {sccp_handle_line_number, TRUE},
-	[SpeedDialStatReqMessage] = {sccp_handle_speed_dial_stat_req, TRUE},
-	[StimulusMessage] = {sccp_handle_stimulus, TRUE},
-	[HeadsetStatusMessage] = {sccp_handle_headset, TRUE},
-	[TimeDateReqMessage] = {sccp_handle_time_date_req, TRUE},
-	[KeypadButtonMessage] = {sccp_handle_keypad_button, TRUE},
-	[ConnectionStatisticsRes] = {sccp_handle_ConnectionStatistics, TRUE},
-	[ServerReqMessage] = {sccp_handle_ServerResMessage, TRUE},
-	[ConfigStatReqMessage] = {sccp_handle_ConfigStatMessage, TRUE},
-	[EnblocCallMessage] = {sccp_handle_EnblocCallMessage, TRUE},
-	[RegisterAvailableLinesMessage] = {sccp_handle_AvailableLines, TRUE},
-	[ForwardStatReqMessage] = {sccp_handle_forward_stat_req, TRUE},
-	[FeatureStatReqMessage] = {sccp_handle_feature_stat_req, TRUE},
-	[ServiceURLStatReqMessage] = {sccp_handle_services_stat_req, TRUE},
-	[AccessoryStatusMessage] = {sccp_handle_accessorystatus_message, TRUE},
-	[SubscriptionStatReqMessage] = {sccp_handle_dialedphonebook_message, TRUE},
-	[UpdateCapabilitiesMessage] = {sccp_handle_updatecapabilities_message, TRUE},
-	[UpdateCapabilitiesV2Message] = {sccp_handle_updatecapabilities_V2_message, TRUE},
-	[UpdateCapabilitiesV3Message] = {sccp_handle_updatecapabilities_V3_message, TRUE},
-	[MediaPathCapabilityMessage] = {sccp_handle_unknown_message, TRUE},
-	[DisplayDynamicNotifyMessage] = {sccp_handle_unknown_message, TRUE},
-	[DisplayDynamicPriNotifyMessage] = {sccp_handle_unknown_message, TRUE},
-	[ExtensionDeviceCaps] = {sccp_handle_unknown_message, TRUE},
-	[DeviceToUserDataVersion1Message] = {sccp_handle_device_to_user, TRUE},
-	[DeviceToUserDataResponseVersion1Message] = {sccp_handle_device_to_user_response, TRUE},
-	[RegisterTokenRequest] = {sccp_handle_token_request, FALSE},
-	[UnregisterMessage] = {sccp_handle_unregister, FALSE},
-	[RegisterMessage] = {sccp_handle_register, FALSE},
-	[AlarmMessage] = {sccp_handle_alarm, FALSE},
-	[XMLAlarmMessage] = {sccp_handle_XMLAlarmMessage, FALSE},
-	[LocationInfoMessage] = {sccp_handle_LocationInfoMessage, FALSE},
-	[StartMultiMediaTransmissionAck] = {sccp_handle_startmultimediatransmission_ack, TRUE},
-	[MediaTransmissionFailure] = {sccp_handle_mediatransmissionfailure, TRUE},
-	[MiscellaneousCommandMessage] = {sccp_handle_miscellaneousCommandMessage, TRUE},
-};
-
-static const struct messageMap_cb spcpMessagesCbMap[] = {
-	[SPCPRegisterTokenRequest - SPCP_MESSAGE_OFFSET] = {sccp_handle_SPCPTokenReq, FALSE},
-	[UnknownVGMessage - SPCP_MESSAGE_OFFSET] = {NULL, FALSE},
-};
-/*!
- * \brief       Controller function to handle Received Messages
- * \param       msg Message as sccp_msg_t
- * \param       s Session as sccp_session_t
- */
-int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
-{
-	const struct messageMap_cb *messageMap_cb = NULL;
-	uint32_t mid = 0;
-	AUTO_RELEASE sccp_device_t *device = NULL;
-
-	if (!s) {
-		pbx_log(LOG_ERROR, "SCCP: (sccp_handle_message) Client does not have a session which is required. Exiting sccp_handle_message !\n");
-		return -1;
-	}
-
-	if (!msg) {
-		pbx_log(LOG_ERROR, "%s: (sccp_handle_message) No Message Specified.\n which is required, Exiting sccp_handle_message !\n", sccp_session_getDesignator(s));
-		return -2;
-	}
-
-	mid = letohl(msg->header.lel_messageId);
-
-	/* search for message handler */
-	if (mid >= SPCP_MESSAGE_OFFSET) {
-		messageMap_cb = &spcpMessagesCbMap[mid - SPCP_MESSAGE_OFFSET]; 
-	} else {
-		messageMap_cb = &sccpMessagesCbMap[mid];
-	}
-	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (0x%X)\n", sccp_session_getDesignator(s), msgtype2str(mid), mid);
-
-	/* we dont know how to handle event */
-	if (!messageMap_cb) {
-		pbx_log(LOG_WARNING, "SCCP: Unknown Message %x. Don't know how to handle it. Skipping.\n", mid);
-		sccp_handle_unknown_message(s, device, msg);
-		return 0;
-	}
-
-	device = check_session_message_device(s, msg, msgtype2str(mid), messageMap_cb->deviceIsNecessary);	/* retained device returned */
-
-	if (messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !device) {
-		pbx_log(LOG_ERROR, "SCCP: Device is required to handle this message %s(%x), but none is provided. Exiting sccp_handle_message\n", msgtype2str(mid), mid);
-		return -3;
-	}
-	if (messageMap_cb->messageHandler_cb) {
-		messageMap_cb->messageHandler_cb(s, device, msg);
-	}
-
-	if (device && sccp_device_getRegistrationState(device) == SKINNY_DEVICE_RS_PROGRESS && mid == device->protocol->registrationFinishedMessageId) {
-		sccp_dev_set_registered(device, SKINNY_DEVICE_RS_OK);
-		char servername[StationMaxDisplayNotifySize];
-
-		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
-		sccp_dev_displaynotify(device, servername, 5);
-	}
-	return 0;
-}
-
-/*!
- * \brief Parse a debug categories line to debug int
- * \param arguments Array of Arguments
- * \param startat Start Point in the Arguments Array
- * \param argc Count of Arguments
- * \param new_debug_value as uint32_t
- * \return new_debug_value as uint32_t
- */
-int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug_value)
-{
-	int argi;
-	uint32_t i;
-	char *argument = "";
-	char *token = "";
-	const char delimiters[] = " ,\t";
-	boolean_t subtract = 0;
-
-	if (sscanf((char *) arguments[startat], "%d", &new_debug_value) != 1) {
-		for (argi = startat; argi < argc; argi++) {
-			argument = (char *) arguments[argi];
-			if (!strncmp(argument, "none", 4) || !strncmp(argument, "off", 3)) {
-				new_debug_value = 0;
-				break;
-			} else if (!strncmp(argument, "no", 2)) {
-				subtract = 1;
-			} else if (!strncmp(argument, "all", 3)) {
-				new_debug_value = 0;
-				for (i = 0; i < ARRAY_LEN(sccp_debug_categories); i++) {
-					if (!subtract) {
-						new_debug_value += sccp_debug_categories[i].category;
-					}
-				}
-			} else {
-				// parse comma separated debug_var
-				boolean_t matched = FALSE;
-				token = strtok(argument, delimiters);
-				while (token != NULL) {
-					// match debug level name to enum
-					for (i = 0; i < ARRAY_LEN(sccp_debug_categories); i++) {
-						if (strcasecmp(token, sccp_debug_categories[i].key) == 0) {
-							if (subtract) {
-								if ((new_debug_value & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
-									new_debug_value -= sccp_debug_categories[i].category;
-								}
-							} else {
-								if ((new_debug_value & sccp_debug_categories[i].category) != sccp_debug_categories[i].category) {
-									new_debug_value += sccp_debug_categories[i].category;
-								}
-							}
-							matched=TRUE;
-						}
-					}
-					if (!matched) {
-						pbx_log(LOG_NOTICE, "SCCP: unknown debug value '%s'\n", token);
-					}
-					token = strtok(NULL, delimiters);
-				}
-			}
-		}
-	}
-	return new_debug_value;
-}
-
-/*!
- * \brief Write the current debug value to debug categories
- * \param debugvalue DebugValue as uint32_t
- * \return string containing list of categories comma seperated (you need to free it)
- */
-char *sccp_get_debugcategories(int32_t debugvalue)
-{
-	uint32_t i;
-	char *res = NULL;
-	char *tmpres = NULL;
-	const char *sep = ",";
-	size_t size = 0;
-
-	for (i = 2; i < ARRAY_LEN(sccp_debug_categories); ++i) {
-		if ((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
-			size_t new_size = size;
-
-			new_size += strlen(sccp_debug_categories[i].key) + 1 /*sizeof(sep) */  + 1;
-			tmpres = sccp_realloc(res, new_size);
-			if (tmpres == NULL) {
-				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
-				sccp_free(res);
-				return NULL;
-			}
-			res = tmpres;
-			if (size == 0) {
-				strcpy(res, sccp_debug_categories[i].key);
-			} else {
-				strcat(res, sep);
-				strcat(res, sccp_debug_categories[i].key);
-			}
-
-			size = new_size;
-		}
-	}
-
-	return res;
-}
 
 /**
  * \brief load the configuration from sccp.conf
@@ -433,9 +51,6 @@ int load_config(void)
 	char addrStr[INET6_ADDRSTRLEN];
 
 	oldPort = sccp_socket_getPort(&GLOB(bindaddr));
-
-	/* Copy the default jb config over global_jbconf */
-	memcpy(&GLOB(global_jbconf), &default_jbconf, sizeof(struct ast_jb_conf));
 
 	/* Setup the monitor thread default */
 #if ASTERISK_VERSION_GROUP < 110
@@ -613,6 +228,15 @@ boolean_t sccp_prePBXLoad(void)
 	GLOB(callanswerorder) = SCCP_ANSWER_OLDEST_FIRST;
 	GLOB(socket_thread) = AST_PTHREADT_NULL;
 	GLOB(earlyrtp) = SCCP_EARLYRTP_PROGRESS;
+	GLOB(global_jbconf) = sccp_calloc(sizeof(struct ast_jb_conf),1);
+	if (GLOB(global_jbconf)) {
+		GLOB(global_jbconf)->max_size = -1;
+		GLOB(global_jbconf)->resync_threshold = -1;
+#ifdef CS_AST_JB_TARGETEXTRA
+		GLOB(global_jbconf)->target_extra = -1;
+#endif
+	}
+
 	sccp_create_hotline();
 	return TRUE;
 }
@@ -676,6 +300,10 @@ int sccp_preUnload(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
 	close(GLOB(descriptor));
 	GLOB(descriptor) = -1;
+	if (GLOB(global_jbconf)) {
+		sccp_free(GLOB(global_jbconf));
+	}
+
 
 	//! \todo make this pbx independend
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");
@@ -833,27 +461,5 @@ EXIT:
 #ifdef CS_DEVSTATE_FEATURE
 const char devstate_db_family[] = "CustomDevstate";
 #endif
-
-/*
- * deprecated
- */
-int sccp_updateExternIp(void)
-{
-	/* setup hostname -> externip */
-	/*! \todo change using singular h_addr to h_addr_list (name may resolve to multiple ip-addresses */
-	/*
-	   struct ast_hostent ahp;
-	   struct hostent *hp;
-	   if (!sccp_strlen_zero(GLOB(externhost))) {
-	   if (!(hp = pbx_gethostbyname(GLOB(externhost), &ahp))) {
-	   pbx_log(LOG_WARNING, "Invalid address resolution for externhost keyword: %s\n", GLOB(externhost));
-	   } else {
-	   memcpy(&GLOB(externip.sin_addr), hp->h_addr, sizeof(GLOB(externip.sin_addr)));
-	   time(&GLOB(externexpire));
-	   }
-	   }
-	 */
-	return 0;
-}
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

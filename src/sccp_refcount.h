@@ -8,6 +8,10 @@
 
 #include "sccp_cli.h"
 
+/* forward declarations */
+struct mansession;
+struct message;
+
 #define REFCOUNT_INDENTIFIER_SIZE 32
 enum sccp_refcounted_types {
 	SCCP_REF_PARTICIPANT = 1,

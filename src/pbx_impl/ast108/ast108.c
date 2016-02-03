@@ -9,6 +9,7 @@
 
 #include <config.h>
 #include "common.h"
+#include "chan_sccp.h"
 #include "sccp_pbx.h"
 #include "sccp_device.h"
 #include "sccp_channel.h"
@@ -27,7 +28,7 @@
 
 SCCP_FILE_VERSION(__FILE__, "");
 
-__BEGIN_EXTERN__
+__BEGIN_C_EXTERN__
 #ifdef HAVE_PBX_ACL_H
 #  include <asterisk/acl.h>
 #endif
@@ -47,7 +48,7 @@ __BEGIN_EXTERN__
 #include <asterisk/rtp_engine.h>
 #undef new
 
-__END_EXTERN__
+__END_C_EXTERN__
 #undef HAVE_PBX_MESSAGE_H
 static struct sched_context *sched = 0;
 static struct io_context *io = 0;
@@ -1686,7 +1687,7 @@ static enum ast_rtp_glue_result sccp_wrapper_asterisk18_get_rtp_info(PBX_CHANNEL
 #ifdef HAVE_PBX_RTP_ENGINE_H
 	ao2_ref(*rtp, +1);
 #endif
-	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
+	if (ast_test_flag(GLOB(global_jbconf), AST_JB_FORCED)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk18_get_rtp_info) JitterBuffer is Forced. AST_RTP_GET_FAILED\n", c->currentDeviceId);
 		return AST_RTP_GLUE_RESULT_FORBID;
 	}
@@ -1735,7 +1736,7 @@ static enum ast_rtp_glue_result sccp_wrapper_asterisk18_get_vrtp_info(PBX_CHANNE
 #ifdef HAVE_PBX_RTP_ENGINE_H
 	ao2_ref(*rtp, +1);
 #endif
-	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
+	if (ast_test_flag(GLOB(global_jbconf), AST_JB_FORCED)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk18_get_vrtp_info) JitterBuffer is Forced. AST_RTP_GET_FAILED\n", c->currentDeviceId);
 		return AST_RTP_GLUE_RESULT_FORBID;
 	}

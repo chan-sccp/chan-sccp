@@ -7,6 +7,12 @@
  */
 #pragma once
 
+#include "sccp_codec.h"
+
+/* can be removed in favor of forward declaration if we change phone and phone_remote to pointers instead */
+#include <netinet/in.h>
+//struct sockaddr_storage;
+
 /*!
  * \brief SCCP RTP Structure
  */

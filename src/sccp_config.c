@@ -197,6 +197,9 @@ sccp_value_changed_t sccp_config_parse_hotline_label(void *dest, const size_t si
 sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_maxsize(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_impl(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_jbresyncthreshold(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttonconfigList, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
 
 #include "sccp_config_entries.hh"
@@ -1282,10 +1285,11 @@ sccp_value_changed_t sccp_config_parse_hotline_label(void *dest, const size_t si
 static sccp_value_changed_t sccp_config_parse_jbflags(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment, const unsigned int flag)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	struct ast_jb_conf jb = *(struct ast_jb_conf *) dest;
 
-	if (pbx_test_flag(&jb, flag) != (unsigned) ast_true(value)) {
-		pbx_set2_flag(&GLOB(global_jbconf), ast_true(value), flag);
+	struct ast_jb_conf *jb = *(struct ast_jb_conf **) dest;
+
+	if (pbx_test_flag(jb, flag) != (unsigned) ast_true(value)) {
+		pbx_set2_flag(jb, ast_true(value), flag);
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
@@ -1310,6 +1314,45 @@ sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size
 	char *value = pbx_strdupa(v->value);
 
 	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_LOG);
+}
+
+sccp_value_changed_t sccp_config_parse_jbflags_maxsize(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	int value = atoi(v->value);
+	struct ast_jb_conf *jb = *(struct ast_jb_conf **) dest;
+	
+	if (jb->max_size != value) {
+		jb->max_size = value;
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
+	return changed;
+}
+
+sccp_value_changed_t sccp_config_parse_jbflags_jbresyncthreshold(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	int value = atoi(v->value);
+	struct ast_jb_conf *jb = *(struct ast_jb_conf **) dest;
+	
+	if (jb->resync_threshold != value) {
+		jb->resync_threshold = value;
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
+	return changed;
+}
+
+sccp_value_changed_t sccp_config_parse_jbflags_impl(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char * value = strdupa(v->value);
+	struct ast_jb_conf *jb = *(struct ast_jb_conf **) dest;
+	
+	if (!sccp_strcaseequals(jb->impl,value)) {
+		sccp_copy_string(jb->impl, value, sizeof jb->impl);
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
+	return changed;
 }
 
 /*!
@@ -2201,9 +2244,6 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 	} else {
 		GLOB(pendingUpdate = 0);
 	}
-
-	/* setup hostname -> externip */
-	sccp_updateExternIp();											/* deprecated, not needed any more */
 
 	if (GLOB(regcontext)) {
                 /* setup regcontext */
