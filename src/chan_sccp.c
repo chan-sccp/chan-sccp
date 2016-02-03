@@ -107,8 +107,6 @@ int load_config(void)
 
 		if ((status = getaddrinfo(sccp_netsock_stringify_addr(&GLOB(bindaddr)), port_str, &hints, &res)) != 0) {
 			pbx_log(LOG_ERROR, "Failed to get addressinfo for %s:%s, error: %s!\n", sccp_netsock_stringify_addr(&GLOB(bindaddr)), port_str, gai_strerror(status));
-			close(GLOB(descriptor));
-			GLOB(descriptor) = -1;
 			return FALSE;
 		}
 		do {
@@ -119,29 +117,30 @@ int load_config(void)
 			} else {
 				/* get ip-address string */
 				if (bind(GLOB(descriptor), res->ai_addr, res->ai_addrlen) < 0) {
-					pbx_log(LOG_ERROR, "Failed to bind to %s:%d: %s!\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)), strerror(errno));
+					pbx_log(LOG_ERROR, "Failed to bind to %s:%d: %s!\n", addrStr, sccp_netsock_getPort(&GLOB(bindaddr)), strerror(errno));
 					close(GLOB(descriptor));
 					GLOB(descriptor) = -1;
 					break;
 				}
-				ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)));
+				ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", addrStr, sccp_netsock_getPort(&GLOB(bindaddr)));
 
-				sccp_socket_setoptions(GLOB(descriptor));
+				sccp_netsock_setoptions(GLOB(descriptor));
 				
 				if (listen(GLOB(descriptor), DEFAULT_SCCP_BACKLOG)) {
-					pbx_log(LOG_ERROR, "Failed to start listening to %s:%d: %s\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)), strerror(errno));
+					pbx_log(LOG_ERROR, "Failed to start listening to %s:%d: %s\n", addrStr, sccp_netsock_getPort(&GLOB(bindaddr)), strerror(errno));
 					close(GLOB(descriptor));
 					GLOB(descriptor) = -1;
 					break;
 				}
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)));
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", addrStr, sccp_netsock_getPort(&GLOB(bindaddr)));
 				GLOB(reload_in_progress) = FALSE;
-				pbx_pthread_create(&GLOB(socket_thread), NULL, sccp_socket_thread, NULL);
+				pbx_pthread_create(&GLOB(socket_thread), NULL, sccp_netsock_thread, NULL);
 				returnvalue = TRUE;
 			}
 		} while(0);
 		freeaddrinfo(res);
 	}
+
 	return returnvalue;
 }
 

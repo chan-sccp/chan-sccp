@@ -154,7 +154,7 @@ static int __sccp_session_setOurAddressFromTheirs(const struct sockaddr_storage 
 	}
 
 	if (connect(sock, &tmp_addr.sa, sizeof(tmp_addr))) {
-		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Failed to connect to %s\n", sccp_socket_stringify(them));
+		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Failed to connect to %s\n", sccp_netsock_stringify(them));
 		close(sock);
 		return -1;
 	}
@@ -827,17 +827,13 @@ static void sccp_accept_connection(void)
 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		return;
 	}
-<<<<<<< HEAD:src/sccp_socket.c
-=======
-	sccp_netsock_setoptions(new_socket);
->>>>>>> Enh: Split sccp_socket to sccp_session and sccp_netsock:src/sccp_session.c
 
 	if ((new_socket = accept(GLOB(descriptor), (struct sockaddr *) &incoming, &length)) < 0) {
 		pbx_log(LOG_ERROR, "Error accepting new socket %s\n", strerror(errno));
 		sccp_free(s);
 		return;
 	}
-	sccp_socket_setoptions(new_socket);
+	sccp_netsock_setoptions(new_socket);
 	
 	memcpy(&s->sin, &incoming, sizeof(s->sin));
 	sccp_mutex_init(&s->lock);
