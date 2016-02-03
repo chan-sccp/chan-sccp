@@ -352,13 +352,13 @@ static void *sccp_do_monitor(void *data)
 		if (res > 20) {
 			ast_debug(1, "SCCP: ast_io_wait ran %d all at once\n", res);
 		}
-		ast_mutex_lock(&GLOB(monitor_lock));
+		pbx_mutex_lock(&GLOB(monitor_lock));
 
 		res = ast_sched_runq(sched);
 		if (res >= 20) {
 			ast_debug(1, "SCCP: ast_sched_runq ran %d all at once\n", res);
 		}
-		ast_mutex_unlock(&GLOB(monitor_lock));
+		pbx_mutex_unlock(&GLOB(monitor_lock));
 
 		if (GLOB(monitor_thread) == AST_PTHREADT_STOP) {
 			return 0;
@@ -374,9 +374,9 @@ static int sccp_restart_monitor()
 	if (GLOB(monitor_thread) == AST_PTHREADT_STOP) {
 		return 0;
 	}
-	ast_mutex_lock(&GLOB(monitor_lock));
+	pbx_mutex_lock(&GLOB(monitor_lock));
 	if (GLOB(monitor_thread) == pthread_self()) {
-		ast_mutex_unlock(&GLOB(monitor_lock));
+		pbx_mutex_unlock(&GLOB(monitor_lock));
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP: (sccp_restart_monitor) Cannot kill myself\n");
 		return -1;
 	}
@@ -386,12 +386,12 @@ static int sccp_restart_monitor()
 	} else {
 		/* Start a new monitor */
 		if (ast_pthread_create_background(&GLOB(monitor_thread), NULL, sccp_do_monitor, NULL) < 0) {
-			ast_mutex_unlock(&GLOB(monitor_lock));
+			pbx_mutex_unlock(&GLOB(monitor_lock));
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP: (sccp_restart_monitor) Unable to start monitor thread.\n");
 			return -1;
 		}
 	}
-	ast_mutex_unlock(&GLOB(monitor_lock));
+	pbx_mutex_unlock(&GLOB(monitor_lock));
 	return 0;
 }
 
