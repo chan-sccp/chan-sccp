@@ -16,7 +16,7 @@
 #include "sccp_channel.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
-#include "sccp_socket.h"
+#include "sccp_session.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -643,7 +643,7 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage * sas)
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		struct sockaddr_storage sinsas = { 0 };
 		sccp_session_getSas(d->session, &sinsas);
-		if (d->session && sccp_socket_cmp_addr(&sas, sas) == 0) {
+		if (d->session && sccp_netsock_cmp_addr(&sas, sas) == 0) {
 			d = sccp_device_retain(d);
 			break;
 		}
@@ -983,9 +983,9 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32
  * \retval FALSE on diff
  * \retval TRUE on equal
  */
-gcc_inline boolean_t sccp_socket_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1)
+gcc_inline boolean_t sccp_netsock_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1)
 {
-	if (s0->ss_family == s1->ss_family && sccp_socket_cmp_addr(s0, s1) == 0 ) {
+	if (s0->ss_family == s1->ss_family && sccp_netsock_cmp_addr(s0, s1) == 0 ) {
 		return TRUE;
 	} 
 
@@ -1218,8 +1218,8 @@ static int apply_netmask(const struct sockaddr_storage *netaddr, const struct so
 {
 	int res = 0;
 
-	char *straddr = pbx_strdupa(sccp_socket_stringify_addr(netaddr));
-	char *strmask = pbx_strdupa(sccp_socket_stringify_addr(netmask));
+	char *straddr = pbx_strdupa(sccp_netsock_stringify_addr(netaddr));
+	char *strmask = pbx_strdupa(sccp_netsock_stringify_addr(netmask));
 
 	sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (apply_netmask) applying netmask to %s/%s\n", straddr, strmask);
 
@@ -1247,7 +1247,7 @@ static int apply_netmask(const struct sockaddr_storage *netaddr, const struct so
 		/* Unsupported address scheme */
 		res = -1;
 	}
-	sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (apply_netmask) result applied netmask %s\n", sccp_socket_stringify_addr(result));
+	sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (apply_netmask) result applied netmask %s\n", sccp_netsock_stringify_addr(result));
 
 	return res;
 }
@@ -1293,11 +1293,11 @@ int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storag
 		struct sockaddr_storage mapped_addr;
 		const struct sockaddr_storage *addr_to_use;
 
-		if (sccp_socket_is_IPv4(&ha->netaddr)) {
-			if (sccp_socket_is_IPv6(addr)) {
-				if (sccp_socket_is_mapped_IPv4(addr)) {
-					if (!sccp_socket_ipv4_mapped(addr, &mapped_addr)) {
-						pbx_log(LOG_ERROR, "%s provided to ast_sockaddr_ipv4_mapped could not be converted. That shouldn't be possible\n", sccp_socket_stringify_addr(addr));
+		if (sccp_netsock_is_IPv4(&ha->netaddr)) {
+			if (sccp_netsock_is_IPv6(addr)) {
+				if (sccp_netsock_is_mapped_IPv4(addr)) {
+					if (!sccp_netsock_ipv4_mapped(addr, &mapped_addr)) {
+						pbx_log(LOG_ERROR, "%s provided to ast_sockaddr_ipv4_mapped could not be converted. That shouldn't be possible\n", sccp_netsock_stringify_addr(addr));
 						continue;
 					}
 					addr_to_use = &mapped_addr;
@@ -1310,15 +1310,15 @@ int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storag
 				addr_to_use = addr;
 			}
 		} else {
-			if (sccp_socket_is_IPv6(addr) && !sccp_socket_is_mapped_IPv4(addr)) {
+			if (sccp_netsock_is_IPv6(addr) && !sccp_netsock_is_mapped_IPv4(addr)) {
 				addr_to_use = addr;
 			} else {
 				/* Address is IPv4 or IPv4 mapped but ACL is IPv6. Skip */
 				continue;
 			}
 		}
-		// char *straddr = pbx_strdupa(sccp_socket_stringify_addr(&current_ha->netaddr));
-		// char *strmask = pbx_strdupa(sccp_socket_stringify_addr(&current_ha->netmask));
+		// char *straddr = pbx_strdupa(sccp_netsock_stringify_addr(&current_ha->netaddr));
+		// char *strmask = pbx_strdupa(sccp_netsock_stringify_addr(&current_ha->netmask));
 		// sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s:%s/%s\n", AST_SENSE_DENY == current_ha->sense ? "deny" : "permit", straddr, strmask);
 
 		/* For each rule, if this address and the netmask = the net address
@@ -1327,9 +1327,9 @@ int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storag
 			/* Unlikely to happen since we know the address to be IPv4 or IPv6 */
 			continue;
 		}
-		if (sccp_socket_cmp_addr(&result, &current_ha->netaddr) == 0) {
-			//sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "SCCP: apply_ha_default: result: %s\n", sccp_socket_stringify_addr(&result));
-			//sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "SCCP: apply_ha_default: current_ha->netaddr: %s\n", sccp_socket_stringify_addr(&current_ha->netaddr));
+		if (sccp_netsock_cmp_addr(&result, &current_ha->netaddr) == 0) {
+			//sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "SCCP: apply_ha_default: result: %s\n", sccp_netsock_stringify_addr(&result));
+			//sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "SCCP: apply_ha_default: current_ha->netaddr: %s\n", sccp_netsock_stringify_addr(&current_ha->netaddr));
 			res = current_ha->sense;
 		}
 	}
@@ -1374,7 +1374,7 @@ int sccp_sockaddr_storage_parse(struct sockaddr_storage *addr, const char *str, 
 	int e;
 
 	s = pbx_strdupa(str);
-	if (!sccp_socket_split_hostport(s, &host, &port, flags)) {
+	if (!sccp_netsock_split_hostport(s, &host, &port, flags)) {
 		return 0;
 	}
 
@@ -1404,7 +1404,7 @@ int sccp_sockaddr_storage_parse(struct sockaddr_storage *addr, const char *str, 
 
 	if (addr) {
 		memcpy(addr, res->ai_addr, (res->ai_family == AF_INET6) ? sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in));
-		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (sccp_sockaddr_storage_parse) addr:%s\n", sccp_socket_stringify_addr(addr));
+		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (sccp_sockaddr_storage_parse) addr:%s\n", sccp_netsock_stringify_addr(addr));
 	}
 
 	freeaddrinfo(res);
@@ -1521,16 +1521,16 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 		return ret;
 	}
 	/*
-	   sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_2 "SCCP: (sccp_append_ha) netaddr:%s\n", sccp_socket_stringify_addr(&ha->netaddr));
+	   sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_2 "SCCP: (sccp_append_ha) netaddr:%s\n", sccp_netsock_stringify_addr(&ha->netaddr));
 	 */
 	/* If someone specifies an IPv4-mapped IPv6 address,
 	 * we just convert this to an IPv4 ACL
 	 */
-	if (sccp_socket_ipv4_mapped(&ha->netaddr, &ha->netaddr)) {
+	if (sccp_netsock_ipv4_mapped(&ha->netaddr, &ha->netaddr)) {
 		pbx_log(LOG_NOTICE, "IPv4-mapped ACL network address specified. " "Converting to an IPv4 ACL network address.\n");
 	}
 
-	addr_is_v4 = sccp_socket_is_IPv4(&ha->netaddr);
+	addr_is_v4 = sccp_netsock_is_IPv4(&ha->netaddr);
 
 	if (!mask) {
 		parse_cidr_mask(&ha->netmask, addr_is_v4, addr_is_v4 ? "32" : "128");
@@ -1547,14 +1547,14 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 			}
 			return ret;
 		}
-		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (sccp_append_ha) strmask:%s, netmask:%s\n", mask, sccp_socket_stringify_addr(&ha->netmask));
+		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (sccp_append_ha) strmask:%s, netmask:%s\n", mask, sccp_netsock_stringify_addr(&ha->netmask));
 		/* If someone specifies an IPv4-mapped IPv6 netmask,
 		 * we just convert this to an IPv4 ACL
 		 */
-		if (sccp_socket_ipv4_mapped(&ha->netmask, &ha->netmask)) {
+		if (sccp_netsock_ipv4_mapped(&ha->netmask, &ha->netmask)) {
 			ast_log(LOG_NOTICE, "IPv4-mapped ACL netmask specified. " "Converting to an IPv4 ACL netmask.\n");
 		}
-		mask_is_v4 = sccp_socket_is_IPv4(&ha->netmask);
+		mask_is_v4 = sccp_netsock_is_IPv4(&ha->netmask);
 		if (addr_is_v4 ^ mask_is_v4) {
 			pbx_log(LOG_WARNING, "Address and mask are not using same address scheme (%d / %d)\n", addr_is_v4, mask_is_v4);
 			sccp_free_ha(ha);
@@ -1575,8 +1575,8 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 		/* This shouldn't happen because ast_sockaddr_parse would
 		 * have failed much earlier on an unsupported address scheme
 		 */
-		char *failaddr = pbx_strdupa(sccp_socket_stringify_addr(&ha->netaddr));
-		char *failmask = pbx_strdupa(sccp_socket_stringify_addr(&ha->netmask));
+		char *failaddr = pbx_strdupa(sccp_netsock_stringify_addr(&ha->netaddr));
+		char *failmask = pbx_strdupa(sccp_netsock_stringify_addr(&ha->netmask));
 
 		pbx_log(LOG_WARNING, "Unable to apply netmask %s to address %s\n", failaddr, failmask);
 		sccp_free_ha(ha);
@@ -1596,8 +1596,8 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 	}
 
 	{
-		char *straddr = pbx_strdupa(sccp_socket_stringify_addr(&ha->netaddr));
-		char *strmask = pbx_strdupa(sccp_socket_stringify_addr(&ha->netmask));
+		char *straddr = pbx_strdupa(sccp_netsock_stringify_addr(&ha->netaddr));
+		char *strmask = pbx_strdupa(sccp_netsock_stringify_addr(&ha->netmask));
 
 		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "%s/%s sense %d appended to acl for peer\n", straddr, strmask, ha->sense);
 	}
@@ -1608,8 +1608,8 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path)
 {
 	while (path) {
-		char *straddr = pbx_strdupa(sccp_socket_stringify_addr(&path->netaddr));
-		char *strmask = pbx_strdupa(sccp_socket_stringify_addr(&path->netmask));
+		char *straddr = pbx_strdupa(sccp_netsock_stringify_addr(&path->netaddr));
+		char *strmask = pbx_strdupa(sccp_netsock_stringify_addr(&path->netmask));
 
 		pbx_str_append(&buf, buflen, "%s:%s/%s,", AST_SENSE_DENY == path->sense ? "deny" : "permit", straddr, strmask);
 		path = path->next;
@@ -1639,22 +1639,22 @@ AST_TEST_DEFINE(chan_sccp_acl_tests)
 
 	pbx_test_status_update(test, "Setting up sockaddr_storage...\n");
 	sccp_sockaddr_storage_parse(&sas10, "10.0.0.1", PARSE_PORT_FORBID);
-	pbx_test_validate(test, sccp_socket_is_IPv4(&sas10));
+	pbx_test_validate(test, sccp_netsock_is_IPv4(&sas10));
 
 	sccp_sockaddr_storage_parse(&sas1015, "10.15.15.1", PARSE_PORT_FORBID);
-	pbx_test_validate(test, sccp_socket_is_IPv4(&sas1015));
+	pbx_test_validate(test, sccp_netsock_is_IPv4(&sas1015));
 
 	sccp_sockaddr_storage_parse(&sas172, "172.16.0.1", PARSE_PORT_FORBID);
-	pbx_test_validate(test, sccp_socket_is_IPv4(&sas172));
+	pbx_test_validate(test, sccp_netsock_is_IPv4(&sas172));
 
 	sccp_sockaddr_storage_parse(&sas200, "200.200.100.100", PARSE_PORT_FORBID);
-	pbx_test_validate(test, sccp_socket_is_IPv4(&sas200));
+	pbx_test_validate(test, sccp_netsock_is_IPv4(&sas200));
 
 	sccp_sockaddr_storage_parse(&sasff, "fe80::ffff:0:0:0", PARSE_PORT_FORBID);
-	pbx_test_validate(test, sccp_socket_is_IPv6(&sasff));
+	pbx_test_validate(test, sccp_netsock_is_IPv6(&sasff));
 
 	sccp_sockaddr_storage_parse(&sasffff, "fe80::ffff:0:ffff:0", PARSE_PORT_FORBID);
-	pbx_test_validate(test, sccp_socket_is_IPv6(&sasffff));
+	pbx_test_validate(test, sccp_netsock_is_IPv6(&sasffff));
 
 	// test 1
 	pbx_test_status_update(test, "test 1: ha deny all\n");

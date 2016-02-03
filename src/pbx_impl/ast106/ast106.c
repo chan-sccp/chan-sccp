@@ -9,6 +9,7 @@
 
 #include <config.h>
 #include "common.h"
+#include "chan_sccp.h"
 #include "sccp_pbx.h"
 #include "sccp_device.h"
 #include "sccp_channel.h"
@@ -21,12 +22,13 @@
 #include "sccp_appfunctions.h"
 #include "sccp_management.h"
 #include "sccp_rtp.h"
-#include "sccp_socket.h"
+#include "sccp_netsock.h"
+#include "sccp_session.h"		// required for sccp_session_getOurIP
 #include "ast106.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
-__BEGIN_EXTERN__
+__BEGIN_C_EXTERN__
 #ifdef HAVE_PBX_ACL_H
 #  include <asterisk/acl.h>
 #endif
@@ -53,7 +55,7 @@ __BEGIN_EXTERN__
 #define ast_rtp_instance_read(_x, _y) ast_rtp_read(_x)
 #endif
 
-__END_EXTERN__
+__END_C_EXTERN__
 static struct sched_context *sched = 0;
 static struct io_context *io = 0;
 
@@ -350,13 +352,13 @@ static void *sccp_do_monitor(void *data)
 		if (res > 20) {
 			ast_debug(1, "SCCP: ast_io_wait ran %d all at once\n", res);
 		}
-		ast_mutex_lock(&GLOB(monitor_lock));
+		pbx_mutex_lock(&GLOB(monitor_lock));
 
 		res = ast_sched_runq(sched);
 		if (res >= 20) {
 			ast_debug(1, "SCCP: ast_sched_runq ran %d all at once\n", res);
 		}
-		ast_mutex_unlock(&GLOB(monitor_lock));
+		pbx_mutex_unlock(&GLOB(monitor_lock));
 
 		if (GLOB(monitor_thread) == AST_PTHREADT_STOP) {
 			return 0;
@@ -372,9 +374,9 @@ static int sccp_restart_monitor()
 	if (GLOB(monitor_thread) == AST_PTHREADT_STOP) {
 		return 0;
 	}
-	ast_mutex_lock(&GLOB(monitor_lock));
+	pbx_mutex_lock(&GLOB(monitor_lock));
 	if (GLOB(monitor_thread) == pthread_self()) {
-		ast_mutex_unlock(&GLOB(monitor_lock));
+		pbx_mutex_unlock(&GLOB(monitor_lock));
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP: (sccp_restart_monitor) Cannot kill myself\n");
 		return -1;
 	}
@@ -384,12 +386,12 @@ static int sccp_restart_monitor()
 	} else {
 		/* Start a new monitor */
 		if (ast_pthread_create_background(&GLOB(monitor_thread), NULL, sccp_do_monitor, NULL) < 0) {
-			ast_mutex_unlock(&GLOB(monitor_lock));
+			pbx_mutex_unlock(&GLOB(monitor_lock));
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP: (sccp_restart_monitor) Unable to start monitor thread.\n");
 			return -1;
 		}
 	}
-	ast_mutex_unlock(&GLOB(monitor_lock));
+	pbx_mutex_unlock(&GLOB(monitor_lock));
 	return 0;
 }
 
@@ -1416,7 +1418,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_request(const char *type, int f
 
 	// set calling party 
 	sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
-	sccp_callinfo_setter(ci, 
+	iCallInfo.Setter(ci, 
 			SCCP_CALLINFO_CALLINGPARTY_NAME, requestor->cid.cid_name,
 			SCCP_CALLINFO_CALLINGPARTY_NUMBER, requestor->cid.cid_num,
 			SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, requestor->cid.cid_dnid,
@@ -1734,7 +1736,7 @@ static enum ast_rtp_get_result sccp_wrapper_asterisk16_get_rtp_info(PBX_CHANNEL_
 #ifdef HAVE_PBX_RTP_ENGINE_H
 	ao2_ref(*rtp, +1);
 #endif
-	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
+	if (ast_test_flag(GLOB(global_jbconf), AST_JB_FORCED)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk16_get_rtp_info) JitterBuffer is Forced. AST_RTP_GET_FAILED\n", c->currentDeviceId);
 		return AST_RTP_GET_FAILED;
 	}
@@ -1783,7 +1785,7 @@ static enum ast_rtp_get_result sccp_wrapper_asterisk16_get_vrtp_info(PBX_CHANNEL
 #ifdef HAVE_PBX_RTP_ENGINE_H
 	ao2_ref(*rtp, +1);
 #endif
-	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
+	if (ast_test_flag(GLOB(global_jbconf), AST_JB_FORCED)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk16_get_vrtp_info) JitterBuffer is Forced. AST_RTP_GET_FAILED\n", c->currentDeviceId);
 		return AST_RTP_TRY_PARTIAL;
 	}
@@ -1863,10 +1865,10 @@ static int sccp_wrapper_asterisk16_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 			ast_rtp_get_us(instance, &sin);
 			// sin.sin_addr.s_addr = sin.sin_addr.s_addr ? sin.sin_addr.s_addr : d->session->ourip.s_addr;
 			memcpy(&sas, &sin, sizeof(struct sockaddr_storage));
-			sccp_session_getOurIP(d->session, &sas, sccp_socket_is_IPv4(&sas) ? AF_INET : AF_INET6);
+			sccp_session_getOurIP(d->session, &sas, sccp_netsock_is_IPv4(&sas) ? AF_INET : AF_INET6);
 		}
 
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_update_rtp_peer) new remote rtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s) => directmedia=%s\n", c->currentDeviceId, sccp_socket_stringify(&sas), S_COR(d->directrtp, "yes", "no"),
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_update_rtp_peer) new remote rtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s) => directmedia=%s\n", c->currentDeviceId, sccp_netsock_stringify(&sas), S_COR(d->directrtp, "yes", "no"),
 					  sccp_nat2str(d->nat),
 					  S_COR(!nat_active, "yes", "no"), S_COR(directmedia, "yes", "no"), S_COR(directmedia, "yes", "no")
 		    );

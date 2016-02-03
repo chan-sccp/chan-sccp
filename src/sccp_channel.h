@@ -23,7 +23,7 @@
 #endif
 #define sccp_channel_refreplace(_x, _y)	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 
-__BEGIN_EXTERN__
+__BEGIN_C_EXTERN__
 /*!
  * \brief SCCP Channel Structure
  * \note This contains the current channel information
@@ -94,7 +94,7 @@ struct sccp_channel {
 		uint8_t peer_dtmfmode;
 	} rtp;
 
-	uint16_t ringermode;											/*!< Ringer Mode */
+	skinny_ringtype_t ringermode;										/*!< Ringer Mode */
 	uint16_t autoanswer_cause;										/*!< Auto Answer Cause */
 	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */
 
@@ -131,97 +131,97 @@ struct sccp_selectedchannel {
 	SCCP_LIST_ENTRY (sccp_selectedchannel_t) list;								/*!< Selected Channel Linked List Entry */
 };														/*!< SCCP Selected Channel Structure */
 /* live cycle */
-channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device);					// device is optional
-channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);	// retrieve or allocate new channel
-channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
+SCCP_API channelPtr SCCP_CALL sccp_channel_allocate(constLinePtr l, constDevicePtr device);			// device is optional
+SCCP_API channelPtr SCCP_CALL sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);	// retrieve or allocate new channel
+SCCP_API channelPtr SCCP_CALL sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
 
-void sccp_channel_updateChannelDesignator(sccp_channel_t * c);
-void sccp_channel_updateMusicClass(sccp_channel_t * c, const sccp_line_t *l);
-void sccp_channel_updateChannelCapability(sccp_channel_t * channel);
-sccp_callinfo_t * const sccp_channel_getCallInfo(const sccp_channel_t *const channel);
-void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel_t * c);
-void sccp_channel_send_callinfo2(sccp_channel_t * c);
-void sccp_channel_setChannelstate(channelPtr channel, sccp_channelstate_t state);
-void sccp_channel_display_callInfo(sccp_channel_t * channel);
-void sccp_channel_set_callingparty(constChannelPtr c, const char *name, const char *number);
-void sccp_channel_set_calledparty(sccp_channel_t * c, const char *name, const char *number);
-boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *name, char *number);
-boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * c, char *name, char *number);
+SCCP_API void SCCP_CALL sccp_channel_updateChannelDesignator(sccp_channel_t * c);
+SCCP_API void SCCP_CALL sccp_channel_updateMusicClass(sccp_channel_t * c, const sccp_line_t *l);
+SCCP_API void SCCP_CALL sccp_channel_updateChannelCapability(sccp_channel_t * channel);
+SCCP_API sccp_callinfo_t * const SCCP_CALL sccp_channel_getCallInfo(const sccp_channel_t *const channel);
+SCCP_API void SCCP_CALL sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel_t * c);
+SCCP_API void SCCP_CALL sccp_channel_send_callinfo2(sccp_channel_t * c);
+SCCP_API void SCCP_CALL sccp_channel_setChannelstate(channelPtr channel, sccp_channelstate_t state);
+SCCP_API void SCCP_CALL sccp_channel_display_callInfo(sccp_channel_t * channel);
+SCCP_API void SCCP_CALL sccp_channel_set_callingparty(constChannelPtr c, const char *name, const char *number);
+SCCP_API void SCCP_CALL sccp_channel_set_calledparty(sccp_channel_t * c, const char *name, const char *number);
+SCCP_API boolean_t SCCP_CALL sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *name, char *number);
+SCCP_API boolean_t SCCP_CALL sccp_channel_set_originalCalledparty(sccp_channel_t * c, char *name, char *number);
 #if UNUSEDCODE // 2015-11-01
-void sccp_channel_reset_calleridPresentation(sccp_channel_t * c);
+SCCP_API void SCCP_CALL sccp_channel_reset_calleridPresentation(sccp_channel_t * c);
 #endif
-void sccp_channel_set_calleridPresentation(sccp_channel_t * c, sccp_callerid_presentation_t presenceParameter);
-void sccp_channel_connect(sccp_channel_t * c);
-void sccp_channel_disconnect(sccp_channel_t * c);
+SCCP_API void SCCP_CALL sccp_channel_set_calleridPresentation(sccp_channel_t * c, sccp_callerid_presentation_t presenceParameter);
+SCCP_API void SCCP_CALL sccp_channel_connect(sccp_channel_t * c);
+SCCP_API void SCCP_CALL sccp_channel_disconnect(sccp_channel_t * c);
 
-void sccp_channel_openReceiveChannel(constChannelPtr c);
-void sccp_channel_closeReceiveChannel(constChannelPtr c, boolean_t KeepPortOpen);
+SCCP_API void SCCP_CALL sccp_channel_openReceiveChannel(constChannelPtr c);
+SCCP_API void SCCP_CALL sccp_channel_closeReceiveChannel(constChannelPtr c, boolean_t KeepPortOpen);
 #if UNUSEDCODE // 2015-11-01
-void sccp_channel_updateReceiveChannel(constChannelPtr c);
+SCCP_API void SCCP_CALL sccp_channel_updateReceiveChannel(constChannelPtr c);
 #endif
-void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel);
-void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean_t KeepPortOpen);
+SCCP_API void SCCP_CALL sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel);
+SCCP_API void SCCP_CALL sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean_t KeepPortOpen);
 #if UNUSEDCODE // 2015-11-01
-void sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel);
+SCCP_API void SCCP_CALL sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel);
 #endif
-void sccp_channel_startMediaTransmission(constChannelPtr c);
-void sccp_channel_stopMediaTransmission(constChannelPtr c, boolean_t KeepPortOpen);
-void sccp_channel_updateMediaTransmission(constChannelPtr channel);
-void sccp_channel_startMultiMediaTransmission(constChannelPtr channel);
-void sccp_channel_stopMultiMediaTransmission(constChannelPtr channel, boolean_t KeepPortOpen);
+SCCP_API void SCCP_CALL sccp_channel_startMediaTransmission(constChannelPtr c);
+SCCP_API void SCCP_CALL sccp_channel_stopMediaTransmission(constChannelPtr c, boolean_t KeepPortOpen);
+SCCP_API void SCCP_CALL sccp_channel_updateMediaTransmission(constChannelPtr channel);
+SCCP_API void SCCP_CALL sccp_channel_startMultiMediaTransmission(constChannelPtr channel);
+SCCP_API void SCCP_CALL sccp_channel_stopMultiMediaTransmission(constChannelPtr channel, boolean_t KeepPortOpen);
 #if UNUSEDCODE // 2015-11-01
-void sccp_channel_updateMultiMediaTransmission(constChannelPtr channel);
+SCCP_API void SCCP_CALL sccp_channel_updateMultiMediaTransmission(constChannelPtr channel);
 #endif
 
-void sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannelPtr channel);
+SCCP_API void SCCP_CALL sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannelPtr channel);
 
-boolean_t sccp_channel_transfer_on_hangup(constChannelPtr channel);
-gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel);
-gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t * channel, uint timeout);
-gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t * channel, uint timeout);
-void sccp_channel_end_forwarding_channel(sccp_channel_t * channel);
-void sccp_channel_endcall(sccp_channel_t * c);
-void sccp_channel_StatisticsRequest(sccp_channel_t * c);
-void sccp_channel_answer(const sccp_device_t * d, sccp_channel_t * c);
-void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel);
-void sccp_channel_clean(sccp_channel_t * c);
-void sccp_channel_transfer(channelPtr channel, constDevicePtr device);
-void sccp_channel_transfer_release(devicePtr d, channelPtr c);
-void sccp_channel_transfer_cancel(devicePtr d, channelPtr c);
-void sccp_channel_transfer_complete(channelPtr c);
-int sccp_channel_hold(channelPtr c);
-int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swap_channels);
-int sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
+SCCP_API boolean_t SCCP_CALL sccp_channel_transfer_on_hangup(constChannelPtr channel);
+SCCP_INLINE void SCCP_CALL sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel);
+SCCP_INLINE void SCCP_CALL sccp_channel_schedule_hangup(sccp_channel_t * channel, uint timeout);
+SCCP_INLINE void SCCP_CALL sccp_channel_schedule_digittimout(sccp_channel_t * channel, uint timeout);
+SCCP_API void SCCP_CALL sccp_channel_end_forwarding_channel(sccp_channel_t * channel);
+SCCP_API void SCCP_CALL sccp_channel_endcall(sccp_channel_t * c);
+SCCP_API void SCCP_CALL sccp_channel_StatisticsRequest(sccp_channel_t * c);
+SCCP_API void SCCP_CALL sccp_channel_answer(const sccp_device_t * d, sccp_channel_t * c);
+SCCP_API void SCCP_CALL sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel);
+SCCP_API void SCCP_CALL sccp_channel_clean(sccp_channel_t * c);
+SCCP_API void SCCP_CALL sccp_channel_transfer(channelPtr channel, constDevicePtr device);
+SCCP_API void SCCP_CALL sccp_channel_transfer_release(devicePtr d, channelPtr c);
+SCCP_API void SCCP_CALL sccp_channel_transfer_cancel(devicePtr d, channelPtr c);
+SCCP_API void SCCP_CALL sccp_channel_transfer_complete(channelPtr c);
+SCCP_API int SCCP_CALL sccp_channel_hold(channelPtr c);
+SCCP_API int SCCP_CALL sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swap_channels);
+SCCP_API int SCCP_CALL sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
 
 #if DEBUG
 #define sccp_channel_getDevice_retained(_x) __sccp_channel_getDevice_retained(_x, __FILE__,__LINE__,__PRETTY_FUNCTION__)
-sccp_device_t *__sccp_channel_getDevice_retained(const sccp_channel_t * channel, const char *filename, int lineno, const char *func);
+SCCP_API sccp_device_t * SCCP_CALL __sccp_channel_getDevice_retained(const sccp_channel_t * channel, const char *filename, int lineno, const char *func);
 #else
-sccp_device_t *sccp_channel_getDevice_retained(const sccp_channel_t * channel);
+SCCP_API sccp_device_t * SCCP_CALL sccp_channel_getDevice_retained(const sccp_channel_t * channel);
 #endif
-void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * device);
-const char *sccp_channel_device_id(const sccp_channel_t * channel);
+SCCP_API void SCCP_CALL sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * device);
+SCCP_API const char * SCCP_CALL sccp_channel_device_id(const sccp_channel_t * channel);
 
 #ifdef CS_SCCP_PARK
-void sccp_channel_park(sccp_channel_t * c);
+SCCP_API void SCCP_CALL sccp_channel_park(sccp_channel_t * c);
 #endif
 
-boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data);
-boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const void *data);
-int sccp_channel_callwaiting_tone_interval(sccp_device_t * d, sccp_channel_t * c);
+SCCP_API boolean_t SCCP_CALL sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data);
+SCCP_API boolean_t SCCP_CALL sccp_channel_setVideoMode(sccp_channel_t * c, const void *data);
+SCCP_API int SCCP_CALL sccp_channel_callwaiting_tone_interval(sccp_device_t * d, sccp_channel_t * c);
 #if UNUSEDCODE // 2015-11-01
-const char *sccp_channel_getLinkedId(const sccp_channel_t * channel);
+SCCP_API const char *sccp_channel_getLinkedId(const sccp_channel_t * channel);
 #endif
 // find channel
-sccp_channel_t *sccp_channel_find_byid(uint32_t id);
-sccp_channel_t *sccp_find_channel_on_line_byid(constLinePtr l, uint32_t id);
-sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid);
-sccp_channel_t *sccp_channel_find_bystate_on_line(constLinePtr l, sccp_channelstate_t state);
-sccp_channel_t *sccp_channel_find_bystate_on_device(constDevicePtr d, sccp_channelstate_t state);
-sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(constDevicePtr d, const uint32_t lineInstance, const uint32_t callid);
-sccp_channel_t *sccp_find_channel_by_buttonIndex_and_callid(const sccp_device_t * d, const uint32_t buttonIndex, const uint32_t callid);
-sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(constDevicePtr d, uint32_t passthrupartyid);
-sccp_selectedchannel_t *sccp_device_find_selectedchannel(constDevicePtr d, constChannelPtr c);
-uint8_t sccp_device_selectedchannels_count(constDevicePtr d);
-__END_EXTERN__
+SCCP_API sccp_channel_t * SCCP_CALL sccp_channel_find_byid(uint32_t id);
+SCCP_API sccp_channel_t * SCCP_CALL sccp_find_channel_on_line_byid(constLinePtr l, uint32_t id);
+SCCP_API sccp_channel_t * SCCP_CALL sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid);
+SCCP_API sccp_channel_t * SCCP_CALL sccp_channel_find_bystate_on_line(constLinePtr l, sccp_channelstate_t state);
+SCCP_API sccp_channel_t * SCCP_CALL sccp_channel_find_bystate_on_device(constDevicePtr d, sccp_channelstate_t state);
+SCCP_API sccp_channel_t * SCCP_CALL sccp_find_channel_by_lineInstance_and_callid(constDevicePtr d, const uint32_t lineInstance, const uint32_t callid);
+SCCP_API sccp_channel_t * SCCP_CALL sccp_find_channel_by_buttonIndex_and_callid(const sccp_device_t * d, const uint32_t buttonIndex, const uint32_t callid);
+SCCP_API sccp_channel_t * SCCP_CALL sccp_channel_find_on_device_bypassthrupartyid(constDevicePtr d, uint32_t passthrupartyid);
+SCCP_API sccp_selectedchannel_t * SCCP_CALL sccp_device_find_selectedchannel(constDevicePtr d, constChannelPtr c);
+SCCP_API uint8_t SCCP_CALL sccp_device_selectedchannels_count(constDevicePtr d);
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

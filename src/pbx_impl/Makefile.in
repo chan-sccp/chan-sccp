@@ -119,15 +119,15 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libpbximpl_la_LIBADD =
-am_libpbximpl_la_OBJECTS = libpbximpl_la-pbx_impl.lo
+am_libpbximpl_la_OBJECTS = pbx_impl.lo
 libpbximpl_la_OBJECTS = $(am_libpbximpl_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
 libpbximpl_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libpbximpl_la_CFLAGS) \
-	$(CFLAGS) $(libpbximpl_la_LDFLAGS) $(LDFLAGS) -o $@
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(libpbximpl_la_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -436,10 +436,12 @@ AM_CFLAGS = $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	-I$(top_srcdir)/src/$(PBXVER_COND_ANNOUNCE_SUBDIR) \
 	-D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
 AM_LDFLAGS = -z muldefs @LTLIBOBJS@
+
+#CC = G++
 noinst_LTLIBRARIES = libpbximpl.la
 noinst_HEADERS = pbx_impl.h
 libpbximpl_la_SOURCES = pbx_impl.c
-libpbximpl_la_CFLAGS = $(AM_CFLAGS)
+libpbximpl_la_CXXFLAGS = $(AM_CFLAGS) #-Wc++-compat
 libpbximpl_la_LDFLAGS = $(AM_LDFLAGS)
 all: all-am
 
@@ -497,7 +499,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpbximpl_la-pbx_impl.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pbx_impl.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -522,13 +524,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
-
-libpbximpl_la-pbx_impl.lo: pbx_impl.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpbximpl_la_CFLAGS) $(CFLAGS) -MT libpbximpl_la-pbx_impl.lo -MD -MP -MF $(DEPDIR)/libpbximpl_la-pbx_impl.Tpo -c -o libpbximpl_la-pbx_impl.lo `test -f 'pbx_impl.c' || echo '$(srcdir)/'`pbx_impl.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libpbximpl_la-pbx_impl.Tpo $(DEPDIR)/libpbximpl_la-pbx_impl.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pbx_impl.c' object='libpbximpl_la-pbx_impl.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libpbximpl_la_CFLAGS) $(CFLAGS) -c -o libpbximpl_la-pbx_impl.lo `test -f 'pbx_impl.c' || echo '$(srcdir)/'`pbx_impl.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

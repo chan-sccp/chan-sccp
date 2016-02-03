@@ -6,7 +6,7 @@ VER=3.8
 export CCC_CC="/usr/bin/clang-${VER}"
 export ANALYZER="/usr/share/clang/scan-build-${VER}/libexec/ccc-analyzer"
 export CC="/usr/bin/clang-${VER}"
-export CFLAGS=" -g --coverage -DAST_DEVMODE -DSCANBUILD" 
+export CFLAGS=" -g --coverage -DAST_DEVMODE -DSCANBUILD -DRUNNING_STATIC_ANALYSIS" 
 export SCANBUILD_FLAGS="-maxloop 10 
 	-disable-checker deadcode.DeadStores \
 	-enable-checker alpha.core.BoolAssignment \
@@ -40,13 +40,11 @@ export SCANBUILD_FLAGS="-maxloop 10
 	-enable-checker nullability.NullablePassedToNonnull \
 	-enable-checker nullability.NullablePassedToNonnull \
 	"
-
 #	-enable-checker security.FloatLoopCounter \
 #	-enable-checker security.insecureAPI.rand \
 #	-enable-checker security.insecureAPI.strcpy \
 
-if [ -z "`grep fblocks ${ANALYZER}`" ];then
-	# patch/fix analyzer
+if [ -z "`grep fblocks ${ANALYZER}`" ];then				# patch/fix analyzer
 	sudo cp ${ANALYZER} ${ANALYZER}.bak
 	sudo sed 	-e "s!'-miphoneos-version-min' => 0!'-miphoneos-version-min' => 0, '-fblocks' => 0!g" \
 			-e "s!'--serialize-diagnostics' => 1!'--serialize-diagnostics' => 1, '-fblocks' => 0!g" \

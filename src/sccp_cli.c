@@ -51,7 +51,7 @@
 #include "sccp_channel.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
-#include "sccp_socket.h"
+#include "sccp_session.h"
 #include "sccp_features.h"
 #include "sccp_config.h"
 #include "sccp_conference.h"
@@ -202,6 +202,9 @@ static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
+		if (ret) {
+			break;								// break out of outer look, prevent leaking memory by strdup
+		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
@@ -327,6 +330,9 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 						}
 					}
 					SCCP_LIST_UNLOCK(&l->channels);
+					if (ret) {
+						break;							// break out of outer look, prevent leaking memory by strdup
+					}
 				}
 				SCCP_RWLIST_UNLOCK(&GLOB(lines));
 			} else if (strstr(line, "fallback") != NULL) {
@@ -499,8 +505,8 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("Platform byte order", CLI_AMI_LIST_WIDTH, "%s", "BIG ENDIAN");
 #endif
 	CLI_AMI_OUTPUT_PARAM("Server Name", CLI_AMI_LIST_WIDTH, "%s", GLOB(servername));
-	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_socket_stringify(&GLOB(bindaddr)));
-	CLI_AMI_OUTPUT_PARAM("Extern IP", CLI_AMI_LIST_WIDTH, "%s", !sccp_socket_is_any_addr(&GLOB(externip)) ? sccp_socket_stringify(&GLOB(externip)) : "Not Set -> Using Incoming IP-addres.");
+	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_netsock_stringify(&GLOB(bindaddr)));
+	CLI_AMI_OUTPUT_PARAM("Extern IP", CLI_AMI_LIST_WIDTH, "%s", !sccp_netsock_is_any_addr(&GLOB(externip)) ? sccp_netsock_stringify(&GLOB(externip)) : "Not Set -> Using Incoming IP-addres.");
 	CLI_AMI_OUTPUT_PARAM("Localnet", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_localnet_buf));
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_BOOL("Direct RTP", CLI_AMI_LIST_WIDTH, GLOB(directrtp));
@@ -557,14 +563,14 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("Callwaiting tone", CLI_AMI_LIST_WIDTH, "%d", GLOB(callwaiting_tone));
 	CLI_AMI_OUTPUT_PARAM("Callwaiting interval", CLI_AMI_LIST_WIDTH, "%d", GLOB(callwaiting_interval));
 	CLI_AMI_OUTPUT_PARAM("Registration Context", CLI_AMI_LIST_WIDTH, "%s", GLOB(regcontext) ? GLOB(regcontext) : "Unset");
-	CLI_AMI_OUTPUT_BOOL("Jitterbuffer enabled ", CLI_AMI_LIST_WIDTH, pbx_test_flag(&GLOB(global_jbconf), AST_JB_ENABLED));
-	CLI_AMI_OUTPUT_BOOL("Jitterbuffer forced ", CLI_AMI_LIST_WIDTH, pbx_test_flag(&GLOB(global_jbconf), AST_JB_FORCED));
-	CLI_AMI_OUTPUT_PARAM("Jitterbuffer max size", CLI_AMI_LIST_WIDTH, "%ld", GLOB(global_jbconf).max_size);
-	CLI_AMI_OUTPUT_PARAM("Jitterbuffer resync", CLI_AMI_LIST_WIDTH, "%ld", GLOB(global_jbconf).resync_threshold);
-	CLI_AMI_OUTPUT_PARAM("Jitterbuffer impl", CLI_AMI_LIST_WIDTH, "%s", GLOB(global_jbconf).impl);
-	CLI_AMI_OUTPUT_BOOL("Jitterbuffer log  ", CLI_AMI_LIST_WIDTH, pbx_test_flag(&GLOB(global_jbconf), AST_JB_LOG));
+	CLI_AMI_OUTPUT_BOOL("Jitterbuffer enabled ", CLI_AMI_LIST_WIDTH, pbx_test_flag(GLOB(global_jbconf), AST_JB_ENABLED));
+	CLI_AMI_OUTPUT_BOOL("Jitterbuffer forced ", CLI_AMI_LIST_WIDTH, pbx_test_flag(GLOB(global_jbconf), AST_JB_FORCED));
+	CLI_AMI_OUTPUT_PARAM("Jitterbuffer max size", CLI_AMI_LIST_WIDTH, "%ld", GLOB(global_jbconf)->max_size);
+	CLI_AMI_OUTPUT_PARAM("Jitterbuffer resync", CLI_AMI_LIST_WIDTH, "%ld", GLOB(global_jbconf)->resync_threshold);
+	CLI_AMI_OUTPUT_PARAM("Jitterbuffer impl", CLI_AMI_LIST_WIDTH, "%s", GLOB(global_jbconf)->impl);
+	CLI_AMI_OUTPUT_BOOL("Jitterbuffer log  ", CLI_AMI_LIST_WIDTH, pbx_test_flag(GLOB(global_jbconf), AST_JB_LOG));
 #ifdef CS_AST_JB_TARGET_EXTRA
-	CLI_AMI_OUTPUT_PARAM("Jitterbuf target extra", CLI_AMI_LIST_WIDTH, "%ld", GLOB(global_jbconf).target_extra);
+	CLI_AMI_OUTPUT_PARAM("Jitterbuf target extra", CLI_AMI_LIST_WIDTH, "%ld", GLOB(global_jbconf)->target_extra);
 #endif
 	CLI_AMI_OUTPUT_PARAM("Token FallBack", CLI_AMI_LIST_WIDTH, "%s", GLOB(token_fallback));
 	CLI_AMI_OUTPUT_PARAM("Token Backoff-Time", CLI_AMI_LIST_WIDTH, "%d", GLOB(token_backoff_time));
@@ -637,7 +643,7 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 			strftime(regtime, sizeof(regtime), "%c ", timeinfo);											\
 			if(d->session) {															\
 				sccp_session_getSas(d->session, &sas);											 	\
-				sccp_copy_string(addrStr,sccp_socket_stringify(&sas),sizeof(addrStr));								\
+				sccp_copy_string(addrStr,sccp_netsock_stringify(&sas),sizeof(addrStr));								\
 			} else {addrStr[0] = '-'; addrStr[1] = '-';addrStr[2] = '\0';}									  	\
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 																\
@@ -732,10 +738,10 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	if (d->session) {
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getSas(d->session, &sas);
-		sccp_copy_string(clientAddress, sccp_socket_stringify(&sas), sizeof(clientAddress));
+		sccp_copy_string(clientAddress, sccp_netsock_stringify(&sas), sizeof(clientAddress));
 		struct sockaddr_storage ourip = { 0 };
 		sccp_session_getOurIP(d->session, &ourip, 0);
-		sccp_copy_string(serverAddress, sccp_socket_stringify(&ourip), sizeof(serverAddress));
+		sccp_copy_string(serverAddress, sccp_netsock_stringify(&ourip), sizeof(serverAddress));
 	} else {
 		sprintf(clientAddress, "%s", "???.???.???.???");
 		sprintf(serverAddress, "%s", "???.???.???.???");
@@ -770,7 +776,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s", skinny_registrationstate2str(sccp_device_getRegistrationState(d)));
 	CLI_AMI_OUTPUT_PARAM("State",			CLI_AMI_LIST_WIDTH, "%s", sccp_devicestate2str(sccp_device_getDeviceState(d)));
 	CLI_AMI_OUTPUT_PARAM("MWI light",		CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_lampmode2str(d->mwilamp), d->mwilamp);
-	CLI_AMI_OUTPUT_PARAM("MWI handset light", 	CLI_AMI_LIST_WIDTH, "%s", sccp_dec2binstr(binstr, 64, d->mwilight));
+	CLI_AMI_OUTPUT_PARAM("MWI handset light", 	CLI_AMI_LIST_WIDTH, "%s", sccp_dec2binstr(binstr, 40, d->mwilight));
 	CLI_AMI_OUTPUT_PARAM("MWI During call",		CLI_AMI_LIST_WIDTH, "%s", d->mwioncall ? "keep on" : "turn off");
 	CLI_AMI_OUTPUT_PARAM("Description",		CLI_AMI_LIST_WIDTH, "%s", d->description ? d->description : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Config Phone Type",	CLI_AMI_LIST_WIDTH, "%s", d->config_type);
@@ -1070,11 +1076,11 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 							pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), pbx_channel_nativeformats(channel->owner));
 						}
 						if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-							sccp_callinfo_getter(sccp_channel_getCallInfo(channel), 
+							iCallInfo.Getter(sccp_channel_getCallInfo(channel), 
 								SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name,
 								SCCP_CALLINFO_KEY_SENTINEL);
 						} else {
-							sccp_callinfo_getter(sccp_channel_getCallInfo(channel), 
+							iCallInfo.Getter(sccp_channel_getCallInfo(channel), 
 								SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name,
 								SCCP_CALLINFO_KEY_SENTINEL);
 						}
@@ -1407,7 +1413,7 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 				snprintf(tmpname, sizeof(tmpname), "SCCP/%s-%08x", l->name, channel->callid);			\
 			}													\
 			if (&channel->rtp) {											\
-				sccp_copy_string(addrStr,sccp_socket_stringify(&channel->rtp.audio.phone), sizeof(addrStr));	\
+				sccp_copy_string(addrStr,sccp_netsock_stringify(&channel->rtp.audio.phone), sizeof(addrStr));	\
 			}
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 												\
@@ -1728,7 +1734,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 
 			struct sockaddr_storage ourip = { 0 };
 			sccp_session_getOurIP(d->session, &ourip, 0);
-			sprintf(xmlData2, xmlData1, sccp_socket_stringify(&ourip));
+			sprintf(xmlData2, xmlData1, sccp_netsock_stringify(&ourip));
 
 			d->protocol->sendUserToDeviceDataVersionMessage(d, 1, 0, 0, 1, xmlData2, 1);
 			pbx_log(LOG_NOTICE, "%s: Done1\n", d->id);
@@ -1757,7 +1763,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 				if (argc < 5) {
 					struct sockaddr_storage sas = { 0 };
 					sccp_session_getSas(d->session, &sas);
-					sccp_copy_string(clientAddress, sccp_socket_stringify_addr(&sas), sizeof(clientAddress));
+					sccp_copy_string(clientAddress, sccp_netsock_stringify_addr(&sas), sizeof(clientAddress));
 				} else {
 					sccp_copy_string(clientAddress, argv[6], sizeof(clientAddress));
 				}

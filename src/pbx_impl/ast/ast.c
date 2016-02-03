@@ -14,7 +14,8 @@
 #include "sccp_channel.h"
 #include "sccp_utils.h"
 #include "sccp_indicate.h"
-#include "sccp_socket.h"
+#include "sccp_netsock.h"
+#include "sccp_session.h"
 #include "sccp_pbx.h"
 #include "sccp_line.h"
 
@@ -668,7 +669,7 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 	int redirectreason = 0;
 	sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 
-	sccp_callinfo_getter(ci, 
+	iCallInfo.Getter(ci, 
 		SCCP_CALLINFO_LAST_REDIRECT_REASON, &redirectreason,
 		SCCP_CALLINFO_KEY_SENTINEL);
 #if ASTERISK_VERSION_GROUP >106
@@ -681,7 +682,7 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 				(redirecting_to.name.valid && redirecting_to.name.str) ? redirecting_to.name.str : "",
 				(redirecting_to.number.valid && redirecting_to.number.str) ? redirecting_to.number.str : "");
 
-	sccp_callinfo_setter(ci, 
+	iCallInfo.Setter(ci, 
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, redirecting_from.name.valid && redirecting_from.name.str ? redirecting_from.name.str : NULL, 
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "",
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "",
@@ -692,7 +693,7 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 
 #else
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From <%s>\n", pbx_channel_name(ast), ast->cid.cid_rdnis);
-	sccp_callinfo_setter(ci, 
+	iCallInfo.Setter(ci, 
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : "",
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : NULL,
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, redirectreason,
@@ -726,7 +727,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	int tmpOrigCalledPartyRedirectReason = 0;
 	int tmpLastRedirectReason = 4;		/* \todo need to figure out more about these codes */
 
-	sccp_callinfo_getter(callInfo,
+	iCallInfo.Getter(callInfo,
 		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &tmpCallingNumber,
 		SCCP_CALLINFO_CALLINGPARTY_NAME, &tmpCallingName,
 		SCCP_CALLINFO_CALLEDPARTY_NUMBER, &tmpCalledNumber,
@@ -737,7 +738,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	/* set the original calling/called party if the reason is a transfer */
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND && (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING)) {
 		sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Destination\n");
-		changes = sccp_callinfo_setter(callInfo, 
+		changes = iCallInfo.Setter(callInfo, 
 			SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 			SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 
@@ -758,12 +759,12 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 #if ASTERISK_VERSION_GROUP >= 111
 			struct ast_party_id redirecting_orig = pbx_channel_redirecting_effective_orig(ast);
 			if (!redirecting_orig.name.valid && !redirecting_orig.number.valid) {
-				changes = sccp_callinfo_setter(callInfo,
+				changes = iCallInfo.Setter(callInfo,
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 					SCCP_CALLINFO_KEY_SENTINEL);
 			} else {
-				changes = sccp_callinfo_setter(callInfo,
+				changes = iCallInfo.Setter(callInfo,
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, redirecting_orig.name.valid ? ast_channel_redirecting(ast)->orig.name.str : "",
@@ -771,13 +772,13 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 					SCCP_CALLINFO_KEY_SENTINEL);
 			}
 #else
-			changes = sccp_callinfo_setter(callInfo,
+			changes = iCallInfo.Setter(callInfo,
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				SCCP_CALLINFO_KEY_SENTINEL);
 #endif
 		} else {
-			changes = sccp_callinfo_setter(callInfo,
+			changes = iCallInfo.Setter(callInfo,
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLEDPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				SCCP_CALLINFO_KEY_SENTINEL);
@@ -949,14 +950,14 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 			if (!strcasecmp(args.param, "peerip")) {
 				struct sockaddr_storage sas = { 0 };
 				if (sccp_session_getOurIP(d->session, &sas, 0)) {
-					sccp_copy_string(buf, sccp_socket_stringify(&sas), buflen);
+					sccp_copy_string(buf, sccp_netsock_stringify(&sas), buflen);
 				} else {
 					sccp_copy_string(buf, "--", buflen);
 				}
 			} else if (!strcasecmp(args.param, "recvip")) {
 				struct sockaddr_storage sas = { 0 };
 				if (sccp_session_getSas(d->session, &sas)) {
-					sccp_copy_string(buf, sccp_socket_stringify(&sas), buflen);
+					sccp_copy_string(buf, sccp_netsock_stringify(&sas), buflen);
 				} else {
 					sccp_copy_string(buf, "--", buflen);
 				}

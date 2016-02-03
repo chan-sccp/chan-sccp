@@ -465,11 +465,11 @@ void sccp_conference_update_callInfo(constChannelPtr channel, PBX_CHANNEL_TYPE *
 
 	switch (channel->calltype) {
 		case SKINNY_CALLTYPE_INBOUND:
-			sccp_callinfo_getter(ci, 
+			iCallInfo.Getter(ci, 
 				SCCP_CALLINFO_CALLINGPARTY_NAME, &participant->PartyName,
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &participant->PartyNumber,
 				SCCP_CALLINFO_KEY_SENTINEL);
-			sccp_callinfo_setter(ci, 
+			iCallInfo.Setter(ci, 
 				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, participant->PartyName,
 				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, participant->PartyNumber,
 				SCCP_CALLINFO_CALLINGPARTY_NAME, conf_str,
@@ -477,11 +477,11 @@ void sccp_conference_update_callInfo(constChannelPtr channel, PBX_CHANNEL_TYPE *
 			break;
 		case SKINNY_CALLTYPE_OUTBOUND:
 		case SKINNY_CALLTYPE_FORWARD:
-			sccp_callinfo_getter(ci, 
+			iCallInfo.Getter(ci, 
 				SCCP_CALLINFO_CALLEDPARTY_NAME, &participant->PartyName,
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &participant->PartyNumber,
 				SCCP_CALLINFO_KEY_SENTINEL);
-			sccp_callinfo_setter(ci, 
+			iCallInfo.Setter(ci, 
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, participant->PartyName,
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, participant->PartyNumber,
 				SCCP_CALLINFO_CALLEDPARTY_NAME, conf_str,

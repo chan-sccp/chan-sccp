@@ -22,13 +22,99 @@
 #include "sccp_features.h"
 #include "sccp_conference.h"
 #include "sccp_indicate.h"
-#include "sccp_socket.h"
+#include "sccp_netsock.h"
+#include "sccp_session.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
 #include <asterisk/callerid.h>
 #include <asterisk/module.h>		// ast_update_use_count
 #include <asterisk/causes.h>		// AST_CAUSE_NORMAL_CLEARING
+
+/*!
+ * \brief SCCP Request Channel
+ * \param lineName              Line Name as Char
+ * \param requestedCodec        Requested Skinny Codec
+ * \param capabilities          Array of Skinny Codec Capabilities
+ * \param capabilityLength      Length of Capabilities Array
+ * \param autoanswer_type       SCCP Auto Answer Type
+ * \param autoanswer_cause      SCCP Auto Answer Cause
+ * \param ringermode            Ringer Mode
+ * \param channel               SCCP Channel
+ * \return SCCP Channel Request Status
+ * 
+ * \called_from_asterisk
+ */
+sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_codec_t requestedCodec, skinny_codec_t capabilities[], uint8_t capabilityLength, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel)
+{
+	struct composedId lineSubscriptionId;
+	sccp_channel_t *my_sccp_channel = NULL;
+	AUTO_RELEASE sccp_line_t *l = NULL;
+
+	memset(&lineSubscriptionId, 0, sizeof(struct composedId));
+
+	if (!lineName) {
+		return SCCP_REQUEST_STATUS_ERROR;
+	}
+
+	lineSubscriptionId = sccp_parseComposedId(lineName, 80);
+
+	l = sccp_line_find_byname(lineSubscriptionId.mainId, FALSE);
+
+	if (!l) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP/%s does not exist!\n", lineSubscriptionId.mainId);
+		return SCCP_REQUEST_STATUS_LINEUNKNOWN;
+	}
+	sccp_log_and((DEBUGCAT_SCCP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	if (SCCP_RWLIST_GETSIZE(&l->devices) == 0) {
+		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
+		return SCCP_REQUEST_STATUS_LINEUNAVAIL;
+	}
+	sccp_log_and((DEBUGCAT_SCCP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	/* call forward check */
+
+	// Allocate a new SCCP channel.
+	/* on multiline phone we set the line when answering or switching lines */
+	*channel = my_sccp_channel = sccp_channel_allocate(l, NULL);
+
+	if (!my_sccp_channel) {
+		return SCCP_REQUEST_STATUS_ERROR;
+	}
+
+	/* set subscriberId for individual device addressing */
+	if (!sccp_strlen_zero(lineSubscriptionId.subscriptionId.number)) {
+		sccp_copy_string(my_sccp_channel->subscriptionId.number, lineSubscriptionId.subscriptionId.number, sizeof(my_sccp_channel->subscriptionId.number));
+		if (!sccp_strlen_zero(lineSubscriptionId.subscriptionId.name)) {
+			sccp_copy_string(my_sccp_channel->subscriptionId.name, lineSubscriptionId.subscriptionId.name, sizeof(my_sccp_channel->subscriptionId.name));
+		} else {
+			//pbx_log(LOG_NOTICE, "%s: calling subscriber id=%s\n", l->id, my_sccp_channel->subscriptionId.number);
+		}
+	} else {
+		sccp_copy_string(my_sccp_channel->subscriptionId.number, l->defaultSubscriptionId.number, sizeof(my_sccp_channel->subscriptionId.number));
+		sccp_copy_string(my_sccp_channel->subscriptionId.name, l->defaultSubscriptionId.name, sizeof(my_sccp_channel->subscriptionId.name));
+		//pbx_log(LOG_NOTICE, "%s: calling all subscribers\n", l->id);
+	}
+
+	uint8_t size = (capabilityLength < sizeof(my_sccp_channel->remoteCapabilities.audio)) ? capabilityLength : sizeof(my_sccp_channel->remoteCapabilities.audio);
+
+	memset(&my_sccp_channel->remoteCapabilities.audio, 0, sizeof(my_sccp_channel->remoteCapabilities.audio));
+	memcpy(&my_sccp_channel->remoteCapabilities.audio, capabilities, size);
+
+	/** set requested codec as prefered codec */
+	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "prefered audio codec (%d)\n", requestedCodec);
+	if (requestedCodec != SKINNY_CODEC_NONE) {
+		my_sccp_channel->preferences.audio[0] = requestedCodec;
+		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "SCCP: prefered audio codec (%d)\n", my_sccp_channel->preferences.audio[0]);
+	}
+
+	/** done */
+
+	my_sccp_channel->autoanswer_type = autoanswer_type;
+	my_sccp_channel->autoanswer_cause = autoanswer_cause;
+	my_sccp_channel->ringermode = ringermode;
+	my_sccp_channel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
+	return SCCP_REQUEST_STATUS_SUCCESS;
+}
 
 /*!
  * \brief SCCP Structure to pass data to the pbx answer thread
@@ -143,7 +229,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
 
 	sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
-	sccp_callinfo_getter(ci, 
+	iCallInfo.Getter(ci, 
 		SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
 		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
 		SCCP_CALLINFO_PRESENTATION, &presentation, 
@@ -176,7 +262,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	if (	(!sccp_strequals(suffixedNumber, cid_num)) || 
 		(pbx_presentation != SCCP_CALLERID_PRESENTATION_SENTINEL && pbx_presentation != presentation)
 	) {
-		sccp_callinfo_setter(ci, 
+		iCallInfo.Setter(ci, 
 			SCCP_CALLINFO_CALLINGPARTY_NUMBER, (!sccp_strlen_zero(suffixedNumber) ? suffixedNumber : NULL), 
 			SCCP_CALLINFO_PRESENTATION, (pbx_presentation != SCCP_CALLERID_PRESENTATION_SENTINEL) ? pbx_presentation : presentation,
 			SCCP_CALLINFO_KEY_SENTINEL);
@@ -641,7 +727,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 				} else {
 					snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, l->defaultSubscriptionId.name);
 				}
-				sccp_callinfo_setter(ci, 
+				iCallInfo.Setter(ci, 
 					SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name, 
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cid_num,  
 					SCCP_CALLINFO_KEY_SENTINEL);
@@ -660,7 +746,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 				} else {
 					snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, l->defaultSubscriptionId.name);
 				}
-				sccp_callinfo_setter(ci, 
+				iCallInfo.Setter(ci, 
 					SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
 					SCCP_CALLINFO_KEY_SENTINEL);
@@ -705,7 +791,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	snprintf(tmpName, sizeof(tmpName), "SCCP/%s-%08x", l->name, c->callid);
 	iPbx.setChannelName(c, tmpName);
 
-	pbx_jb_configure(tmp, &GLOB(global_jbconf));
+	pbx_jb_configure(tmp, GLOB(global_jbconf));
 
 	// \todo: Bridge?
 	// \todo: Transfer?
@@ -783,7 +869,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_MAC", d->id);
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getSas(d->session, &sas);
-		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP", d->session ? sccp_socket_stringify_addr(&sas) : "");
+		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP", d->session ? sccp_netsock_stringify_addr(&sas) : "");
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", skinny_devicetype2str(d->skinny_type));
 	}
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%d\n", (l) ? l->id : "(null)", (l) ? l->name : "(null)", c->callid);
