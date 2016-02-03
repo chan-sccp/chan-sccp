@@ -322,7 +322,7 @@ strenum feature_type
 	SCCP_FEATURE_PICKUP,				,	"pickup",
 }
 
-enum callinfo_key {
+strenum callinfo_key {
 	SCCP_CALLINFO_NONE,				= 0,	"none",
 	SCCP_CALLINFO_CALLEDPARTY_NAME	,		,	"calledparty name",
 	SCCP_CALLINFO_CALLEDPARTY_NUMBER,		,	"calledparty number",
