@@ -160,11 +160,6 @@ static SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define sccp_true(x) (pbx_true(x) ? 1 : 0)
 #define sccp_false(x) (pbx_false(x) ? 1 : 0)
 
-// When DEBUGCAT_HIGH is set, we use ast_log instead of ast_verbose
-#define sccp_log1(...) { if ((sccp_globals->debug & (DEBUGCAT_FILELINEFUNC)) == DEBUGCAT_FILELINEFUNC) { ast_log(AST_LOG_NOTICE, __VA_ARGS__); } else { ast_verbose(__VA_ARGS__); } }
-#define sccp_log(_x) if ((sccp_globals->debug & (_x))) sccp_log1
-#define sccp_log_and(_x) if ((sccp_globals->debug & (_x)) == (_x)) sccp_log1
-
 #define GLOB(x) sccp_globals->x
 
 /* Lock Macro for Globals */
@@ -173,74 +168,6 @@ static SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define sccp_globals_trylock(x)			pbx_mutex_trylock(&sccp_globals->x)
 
 #define DEV_ID_LOG(x) (x && !sccp_strlen_zero(x->id)) ? x->id : "SCCP"
-
-#ifdef CS_AST_HAS_TECH_PVT
-#define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)x->tech_pvt)
-#else
-#define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)x->pvt->pvt)
-#endif
-
-#ifdef CS_AST_HAS_TECH_PVT
-#define CS_AST_CHANNEL_PVT_TYPE(x) x->tech->type
-#else
-#define CS_AST_CHANNEL_PVT_TYPE(x) x->type
-#endif
-
-#ifdef CS_AST_HAS_TECH_PVT
-#define CS_AST_CHANNEL_PVT_CMP_TYPE(x,y) !strncasecmp(x->tech->type, y, strlen(y))
-#else
-#define CS_AST_CHANNEL_PVT_CMP_TYPE(x,y) !strncasecmp(x->type, y, strlen(y))
-#endif
-
-#define CS_AST_CHANNEL_PVT_IS_SCCP(x) CS_AST_CHANNEL_PVT_CMP_TYPE(x,"SCCP")
-
-#ifdef AST_MAX_EXTENSION
-#define SCCP_MAX_EXTENSION AST_MAX_EXTENSION
-#else
-#define SCCP_MAX_EXTENSION 80
-#endif
-#define SCCP_MAX_AUX 16
-
-#ifdef AST_MAX_CONTEXT
-#define SCCP_MAX_CONTEXT AST_MAX_CONTEXT
-#else
-#define SCCP_MAX_CONTEXT 80
-#endif
-
-#ifdef MAX_LANGUAGE
-#define SCCP_MAX_LANGUAGE MAX_LANGUAGE
-#else
-#define SCCP_MAX_LANGUAGE 20
-#endif
-
-#undef SCCP_MAX_ACCOUNT_CODE
-#ifdef AST_MAX_ACCOUNT_CODE
-#define SCCP_MAX_ACCOUNT_CODE AST_MAX_ACCOUNT_CODE
-#else
-#define SCCP_MAX_ACCOUNT_CODE 50
-#endif
-
-#ifdef MAX_MUSICCLASS
-#define SCCP_MAX_MUSICCLASS MAX_MUSICCLASS
-#else
-#define SCCP_MAX_MUSICCLASS 80
-#endif
-
-#define SCCP_MAX_HOSTNAME_LEN SCCP_MAX_EXTENSION 
-#define SCCP_MAX_MESSAGESTACK 10
-#define SCCP_MAX_SOFTKEYSET_NAME 48
-#define SCCP_MAX_SOFTKEY_MASK 16
-#define SCCP_MAX_SOFTKEY_MODES 16
-#define SCCP_MAX_DEVICE_DESCRIPTION 40
-#define SCCP_MAX_DEVICE_CONFIG_TYPE 16
-#define SCCP_MAX_LABEL SCCP_MAX_EXTENSION
-#define SCCP_MAX_BUTTON_OPTIONS 256
-#define SCCP_MAX_DEVSTATE_SPECIFIER 256
-#define SCCP_MAX_LINE_ID 8
-#define SCCP_MAX_LINE_PIN 8
-#define SCCP_MAX_SECONDARY_DIALTONE_DIGITS 10
-#define SCCP_MAX_DATE_FORMAT 8
-#define SCCP_MAX_REALTIME_TABLE_NAME 45
 
 /* (temporary) forward declarations */
 /* this can be removed by using a pointer version of mutex and rwlock in structures below */

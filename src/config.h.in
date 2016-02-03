@@ -57,9 +57,6 @@
 /* ASTERISK Version Number */
 #undef ASTERISK_VERSION_NUMBER
 
-/* 'AST_MAX_CONTEXT' replacement */
-#undef AST_MAX_CONTEXT
-
 /* using BSD */
 #undef BSD
 
@@ -98,6 +95,18 @@
 
 /* 'struct ast_callerid' available */
 #undef CS_AST_CHANNEL_HAS_CID
+
+/* 'defined channel pvt' */
+#undef CS_AST_CHANNEL_PVT
+
+/* 'defined cmp_type' */
+#undef CS_AST_CHANNEL_PVT_CMP_TYPE
+
+/* 'defined pvt_is_sccp' */
+#undef CS_AST_CHANNEL_PVT_IS_SCCP
+
+/* 'defined channel_pvt_type' */
+#undef CS_AST_CHANNEL_PVT_TYPE
 
 /* 'AST_CONTROL_INCOMPLETE' available */
 #undef CS_AST_CONTROL_INCOMPLETE
@@ -159,7 +168,7 @@
 /* 'stasis_subscribe' available */
 #undef CS_AST_HAS_STASIS
 
-/* 'struct ast_channel_tech' available */
+/* 'struct ast_channel_tech' available' */
 #undef CS_AST_HAS_TECH_PVT
 
 /* 'CS_AST_JB_TARGETEXTRA' available */
@@ -573,9 +582,6 @@
    */
 #undef LT_OBJDIR
 
-/* 'MAX_MUSICCLASS' replacement */
-#undef MAX_MUSICCLASS
-
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 #undef NO_MINUS_C_MINUS_O
 
@@ -673,8 +679,68 @@
 /* Little Endian */
 #undef SCCP_LITTLE_ENDIAN
 
-/* Not Found 'AST_MAX_ACCOUNT_CODE' in asterisk/channel.h */
+/* 'AST_MAX_ACCOUNT_CODE' replacement = 50 */
 #undef SCCP_MAX_ACCOUNT_CODE
+
+/* 'defined SCCP_MAX_AUX = 16' */
+#undef SCCP_MAX_AUX
+
+/* 'defined SCCP_MAX_BUTTON_OPTIONS = 256' */
+#undef SCCP_MAX_BUTTON_OPTIONS
+
+/* 'defined SCCP_MAX_CONTEXT = SCCP_MAX_EXTENSION' */
+#undef SCCP_MAX_CONTEXT
+
+/* 'defined SCCP_MAX_DATE_FORMAT = 8' */
+#undef SCCP_MAX_DATE_FORMAT
+
+/* 'defined SCCP_MAX_DEVICE_CONFIG_TYPE = 16' */
+#undef SCCP_MAX_DEVICE_CONFIG_TYPE
+
+/* 'defined SCCP_MAX_DEVICE_DESCRIPTION = 40' */
+#undef SCCP_MAX_DEVICE_DESCRIPTION
+
+/* 'defined SCCP_MAX_DEVSTATE_SPECIFIER = 256' */
+#undef SCCP_MAX_DEVSTATE_SPECIFIER
+
+/* 'defined SCCP_MAX_EXTENSION = 80' */
+#undef SCCP_MAX_EXTENSION
+
+/* 'defined SCCP_MAX_HOSTNAME_LEN = SCCP_MAX_EXTENSION' */
+#undef SCCP_MAX_HOSTNAME_LEN
+
+/* 'defined SCCP_MAX_LABEL = SCCP_MAX_EXTENSION' */
+#undef SCCP_MAX_LABEL
+
+/* 'MAX_MUSICCLASS' = SCCP_MAX_EXTENSION */
+#undef SCCP_MAX_LANGUAGE
+
+/* 'defined SCCP_MAX_LINE_ID = 8' */
+#undef SCCP_MAX_LINE_ID
+
+/* 'defined SCCP_MAX_LINE_PIN = 8' */
+#undef SCCP_MAX_LINE_PIN
+
+/* 'defined SCCP_MAX_MESSAGESTACK = 10' */
+#undef SCCP_MAX_MESSAGESTACK
+
+/* 'MAX_MUSICCLASS' = SCCP_MAX_EXTENSION */
+#undef SCCP_MAX_MUSICCLASS
+
+/* 'defined SCCP_MAX_REALTIME_TABLE_NAME = 45' */
+#undef SCCP_MAX_REALTIME_TABLE_NAME
+
+/* 'defined SCCP_MAX_SECONDARY_DIALTONE_DIGITS = 10' */
+#undef SCCP_MAX_SECONDARY_DIALTONE_DIGITS
+
+/* 'defined SCCP_MAX_SOFTKEYSET_NAME = 48' */
+#undef SCCP_MAX_SOFTKEYSET_NAME
+
+/* 'defined SCCP_MAX_SOFTKEY_MASK = 16' */
+#undef SCCP_MAX_SOFTKEY_MASK
+
+/* 'defined SCCP_MAX_SOFTKEY_MODES = 16' */
+#undef SCCP_MAX_SOFTKEY_MODES
 
 /* if this header is necessary for builtin atomics */
 #undef SCCP_NEEDS_INTEL_INTRIN
