@@ -7,23 +7,10 @@
  */
 #pragma once
 
-#if defined(__cplusplus) || defined(c_plusplus)
-#  define __BEGIN_C_EXTERN__ 		\
-extern "C" {
-#  define __END_C_EXTERN__ 		\
-}
-#else
-#  define __BEGIN_C_EXTERN__ 
-#  define __END_C_EXTERN__ 
-#endif
-#  define __BEGIN_EXTERN__ __BEGIN_C_EXTERN__
-#  define __END_EXTERN__ __END_C_EXTERN__
-
 #define ENUMMACRO_GENHEADER	1
 #define ENUMMACRO_GENFUNCTION	2
 #define ENUMMACRO_SPARSE 	1
 #define ENUMMACRO_INCREMENTAL 	0
-
 
 #if HAVE_STRING_H
 #include <string.h>
@@ -53,6 +40,7 @@ extern "C" {
 #include <stdbool.h>
 #endif
 
+#include "define.h"
 __BEGIN_C_EXTERN__
 
 /* global types */
@@ -72,6 +60,8 @@ typedef struct sccp_service sccp_service_t;									/*!< SCCP Service Structure 
 typedef struct sccp_addon sccp_addon_t;										/*!< SCCP Add-On Structure */
 typedef struct sccp_hint sccp_hint_t;										/*!< SCCP Hint Structure */
 typedef struct sccp_hostname sccp_hostname_t;									/*!< SCCP HostName Structure */
+typedef struct sccp_header sccp_header_t;
+typedef struct sccp_msg sccp_msg_t;
 
 #define sessionPtr sccp_session_t *const
 #define devicePtr sccp_device_t *const
@@ -83,6 +73,8 @@ typedef struct sccp_hostname sccp_hostname_t;									/*!< SCCP HostName Structu
 #define constLinePtr const sccp_line_t *const
 #define constChannelPtr const sccp_channel_t *const
 #define constConferencePtr const sccp_conference_t *const
+#define messagePtr sccp_msg_t * const
+#define constMessagePtr const sccp_msg_t * const
 
 #ifdef CS_DEVSTATE_FEATURE
 typedef struct sccp_devstate_specifier sccp_devstate_specifier_t;						/*!< SCCP Custom DeviceState Specifier Structure */
@@ -136,7 +128,9 @@ __END_C_EXTERN__
 #include "sccp_enum.h"
 #include "sccp_dllists.h"
 #include "sccp_threadpool.h"
-#include "chan_sccp.h"
+#include "sccp_debug.h"
+#include "sccp_globals.h"
+//#include "chan_sccp.h"
 #include "sccp_rtp.h"
 #include "sccp_refcount.h"
 #include "sccp_event.h"

@@ -14,9 +14,11 @@
 #include <config.h>
 #include "common.h"
 
+__BEGIN_EXTERN__
 #ifdef HAVE_ASTERISK
 #include "ast.h"
 #endif
+__END_EXTERN__
 
 #define PBX_BRIDGE_TYPE struct ast_bridge
 
