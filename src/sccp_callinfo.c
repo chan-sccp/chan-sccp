@@ -31,7 +31,6 @@ typedef struct callinfo_entry {
 } callinfo_entry_t;
 
 enum callinfo_groups {
-	cgNONE,
 	CALLED_PARTY,
 	CALLING_PARTY,
 	ORIG_CALLED_PARTY,
@@ -70,7 +69,6 @@ struct callinfo_lookup {
 	const enum callinfo_types type;
 } static const callinfo_lookup[] = {
 	/* *INDENT-OFF* */
-	[SCCP_CALLINFO_NONE]				= {cgNONE,0},
 	[SCCP_CALLINFO_CALLEDPARTY_NAME]		= {CALLED_PARTY, NAME},
 	[SCCP_CALLINFO_CALLEDPARTY_NUMBER]		= {CALLED_PARTY, NUMBER},
 	[SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL]		= {CALLED_PARTY, VOICEMAILBOX},
@@ -87,10 +85,6 @@ struct callinfo_lookup {
 	[SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL]	= {LAST_REDIRECTING_PARTY, VOICEMAILBOX},
 	[SCCP_CALLINFO_HUNT_PILOT_NAME]			= {HUNT_PILOT, NAME},
 	[SCCP_CALLINFO_HUNT_PILOT_NUMBER]		= {HUNT_PILOT, NUMBER},
-	[SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON]= {cgNONE,0},
-	[SCCP_CALLINFO_LAST_REDIRECT_REASON]		= {cgNONE,0},
-	[SCCP_CALLINFO_PRESENTATION]			= {cgNONE,0},
-	[SCCP_CALLINFO_KEY_SENTINEL]			= {cgNONE,0},
 	/* *INDENT-ON* */
 };
 
@@ -187,9 +181,6 @@ static int callinfo_Setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, 
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
 		//sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: curkey:%s (%d)\n", sccp_callinfo_key2str(curkey), curkey);
 		switch (curkey) {
-		case SCCP_CALLINFO_NONE:
-		case SCCP_CALLINFO_KEY_SENTINEL:
-			break;
 		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
 			{
 				uint new_value = va_arg(ap, uint);
@@ -217,7 +208,7 @@ static int callinfo_Setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, 
 				}
 			}
 			break;
-		default:
+		case SCCP_CALLINFO_CALLEDPARTY_NAME...SCCP_CALLINFO_HUNT_PILOT_NUMBER:
 			{
 				char *new_value = va_arg(ap, char *);
 				if (new_value) {
@@ -225,9 +216,6 @@ static int callinfo_Setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, 
 					char *dstPtr = NULL;
 					uint16_t *validPtr = NULL;
 					struct callinfo_lookup entry = callinfo_lookup[curkey];
-					if (entry.group == cgNONE) {
-						break;
-					}
 					callinfo_entry_t *callinfo = &ci->content.entries[entry.group];
 
 					switch(entry.type) {
@@ -256,6 +244,9 @@ static int callinfo_Setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, 
 					}
 				}
 			}
+			break;
+		case SCCP_CALLINFO_NONE:
+		case SCCP_CALLINFO_KEY_SENTINEL:
 			break;
 		}
 	}
@@ -304,9 +295,6 @@ static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinf
 		srckey = va_arg(ap, sccp_callinfo_key_t), dstkey = va_arg(ap, sccp_callinfo_key_t)
 	) {
 		switch (srckey) {
-		case SCCP_CALLINFO_NONE:
-		case SCCP_CALLINFO_KEY_SENTINEL:
-			break;
 		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
 			{
 				if (srckey == dstkey) {
@@ -343,13 +331,10 @@ static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinf
 				}
 			}
 			break;
-		default:
+		case SCCP_CALLINFO_CALLEDPARTY_NAME...SCCP_CALLINFO_HUNT_PILOT_NUMBER:
 			{
 				struct callinfo_lookup src_entry = callinfo_lookup[srckey];
 				struct callinfo_lookup tmp_entry = callinfo_lookup[dstkey];
-				if (src_entry.group == cgNONE || tmp_entry.group == cgNONE) {
-					break;
-				}
 				callinfo_entry_t *src_callinfo = (callinfo_entry_t *const) &src_ci->content.entries[src_entry.group];
 				callinfo_entry_t *tmp_callinfo = (callinfo_entry_t *)      &tmp_ci_content.entries[tmp_entry.group];
 				
@@ -405,6 +390,10 @@ static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinf
 					changes++;
 				}
 			}
+			break;
+		case SCCP_CALLINFO_NONE:
+		case SCCP_CALLINFO_KEY_SENTINEL:
+			break;
 		}
 	}
 	va_end(ap);
@@ -439,9 +428,6 @@ static int callinfo_Getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
 		//sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: curkey:%s (%d)\n", sccp_callinfo_key2str(curkey), curkey);
 		switch (curkey) {
-		case SCCP_CALLINFO_NONE:
-		case SCCP_CALLINFO_KEY_SENTINEL:
-			break;
 		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
 			{
 				uint *dstPtr = va_arg(ap, uint *);
@@ -469,7 +455,7 @@ static int callinfo_Getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t
 				}
 			}
 			break;
-		default:
+		case SCCP_CALLINFO_CALLEDPARTY_NAME...SCCP_CALLINFO_HUNT_PILOT_NUMBER:
 			{
 				char *dstPtr = va_arg(ap, char *);
 				if (dstPtr) {
@@ -477,9 +463,6 @@ static int callinfo_Getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t
 					char *srcPtr = NULL;
 					uint16_t *validPtr = NULL;
 					struct callinfo_lookup entry = callinfo_lookup[curkey];
-					if (entry.group == cgNONE) {
-						break;
-					}
 					callinfo_entry_t *callinfo = (callinfo_entry_t *const) &(ci->content.entries[entry.group]);
 
 					switch(entry.type) {
@@ -514,6 +497,9 @@ static int callinfo_Getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t
 					}
 				}
 			}
+			break;
+		case SCCP_CALLINFO_NONE:
+		case SCCP_CALLINFO_KEY_SENTINEL:
 			break;
 		}
 	}
