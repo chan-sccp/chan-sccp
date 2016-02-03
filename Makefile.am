@@ -105,7 +105,21 @@ coverage-zero: rmcoverage
 
 test:
 	@echo "Success"
-        
+
+install-data-local:
+	test -d $(DESTDIR)$(PBX_ETC) || $(mkinstalldirs) $(DESTDIR)$(PBX_ETC)
+	test -f $(DESTDIR)$(PBX_ETC)/sccp.conf || $(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC)
+
+load:	install
+	test -f $(PBX_SBIN)/asterisk && $(PBX_SBIN)/asterisk -rx "module load chan_sccp.so"
+	
+unload:	install
+	test -f $(PBX_SBIN)/asterisk && $(PBX_SBIN)/asterisk -rx "module load chan_sccp.so"
+	
+reload: install
+	$(MAKE) unload
+	$(MAKE) load
+
 #install-exec-hook:
 #	@if test "$(DEBUG)" == "1" && test -n "$(GDB)" && test tools/chan-sccp-b_backtrace -nt /usr/bin/chan-sccp-b_backtrace; then	\
 #		$(INSTALL) -C tools/chan-sccp-b_backtrace /usr/bin/chan-sccp-b_backtrace;						\
