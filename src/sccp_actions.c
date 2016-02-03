@@ -515,13 +515,13 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 			if (sccp_session_check_crossdevice(s, tmpdevice)) {
 				return;
 			}
+			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + 60) {
+				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
+				return;
+			}
 			if ((state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
 				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
 				sccp_session_tokenReject(s, 60);
-				return;
-			}
-			if (state == SKINNY_DEVICE_RS_TOKEN) {
-				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
 				return;
 			}
 		}
@@ -696,13 +696,13 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 			if (sccp_session_check_crossdevice(s, tmpdevice)) {
 				return;
 			}
+			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + 60) {
+				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
+				return;
+			}
 			if ((state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
 				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
 				sccp_session_tokenRejectSPCP(s, 60);
-				return;
-			}
-			if (state == SKINNY_DEVICE_RS_TOKEN) {
-				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
 				return;
 			}
 		}
@@ -2373,17 +2373,16 @@ void handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	uint32_t buttonIndex = letohl(msg_in->data.OnHookMessage.lel_buttonIndex);
 	uint32_t callid = letohl(msg_in->data.OnHookMessage.lel_callReference);
 
-	/* we need this for callwaiting, hold, answer and stuff */
-	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_ONHOOK);
-
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook (buttonIndex: %d, callid: %d)\n", DEV_ID_LOG(d), buttonIndex, callid);
-
 	if (d && !(d->lineButtons.size > SCCP_FIRST_LINEINSTANCE)) {
 		pbx_log(LOG_NOTICE, "No lines registered on %s to put OnHook\n", DEV_ID_LOG(d));
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_LINES_REGISTERED, SCCP_DISPLAYSTATUS_TIMEOUT);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
 		return;
 	}
+
+	/* we need this for callwaiting, hold, answer and stuff */
+	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_ONHOOK);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook (buttonIndex: %d, callid: %d)\n", DEV_ID_LOG(d), buttonIndex, callid);
 
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 

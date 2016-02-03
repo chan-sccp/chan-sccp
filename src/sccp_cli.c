@@ -2208,7 +2208,7 @@ CLI_AMI_ENTRY(system_message, sccp_system_message, "Send a system wide message t
      */
 static int sccp_dnd_device(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	int res = RESULT_SUCCESS;
+	int res = RESULT_FAILURE;
 
 	int local_line_total = 0;
 
@@ -2242,9 +2242,9 @@ static int sccp_dnd_device(int fd, sccp_cli_totals_t *totals, struct mansession 
 				CLI_AMI_OUTPUT(fd, s, "Set/Unset DND Failed\r\n");
 			}
 		}
+		res = RESULT_SUCCESS;
 	} else {
 		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find device %s\n", argv[3]);
-		res = RESULT_FAILURE;
 	}
 
 	if (s) {
