@@ -911,9 +911,10 @@ int sccp_pbx_sched_dial(const void * data)
 sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 {
 	sccp_extension_status_t extensionStatus;
+	int dialedLen = sccp_strlen(c->dialedNumber);
 
-	if (!sccp_strlen_zero(c->dialedNumber)) {
-		if (GLOB(recorddigittimeoutchar) && GLOB(digittimeoutchar) == c->dialedNumber[sccp_strlen(c->dialedNumber) - 1]) {
+	if (dialedLen > 1) {
+		if (GLOB(recorddigittimeoutchar) && GLOB(digittimeoutchar) == c->dialedNumber[dialedLen - 1]) {
 			/* we finished dialing with digit timeout char */
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: We finished dialing with digit timeout char %s\n", c->designator, c->dialedNumber);
 			return SCCP_EXTENSION_EXACTMATCH;
