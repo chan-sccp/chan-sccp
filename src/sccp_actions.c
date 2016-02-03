@@ -515,13 +515,13 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 			if (sccp_session_check_crossdevice(s, tmpdevice)) {
 				return;
 			}
+			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + 60) {
+				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
+				return;
+			}
 			if ((state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
 				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
 				sccp_session_tokenReject(s, 60);
-				return;
-			}
-			if (state == SKINNY_DEVICE_RS_TOKEN) {
-				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
 				return;
 			}
 		}
@@ -696,13 +696,13 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 			if (sccp_session_check_crossdevice(s, tmpdevice)) {
 				return;
 			}
+			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + 60) {
+				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
+				return;
+			}
 			if ((state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
 				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
 				sccp_session_tokenRejectSPCP(s, 60);
-				return;
-			}
-			if (state == SKINNY_DEVICE_RS_TOKEN) {
-				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
 				return;
 			}
 		}
