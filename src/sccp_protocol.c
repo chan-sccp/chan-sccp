@@ -35,7 +35,7 @@ static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, cons
 	int lastRedirectingReason = 0;
 	sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
 
-	sccp_callinfo_getter(ci,
+	iCallInfo.Getter(ci,
 		SCCP_CALLINFO_CALLEDPARTY_NAME, &msg->data.CallInfoMessage.calledPartyName,
 		SCCP_CALLINFO_CALLEDPARTY_NUMBER, &msg->data.CallInfoMessage.calledParty,
 		SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, &msg->data.CallInfoMessage.cdpnVoiceMailbox,
@@ -64,7 +64,7 @@ static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, cons
 
 	//sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V3) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
 	//if ((GLOB(debug) & (DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) != 0) {
-	//	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV3)");
+	//	iCallInfo.Print2log(ci, "SCCP: (sendCallInfoV3)");
 	//}
 	sccp_dev_send(device, msg);
 }
@@ -85,7 +85,7 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 	int originalCdpnRedirectReason = 0;
 	int lastRedirectingReason = 0;
 	sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
-	sccp_callinfo_getter(ci,
+	iCallInfo.Getter(ci,
 		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &data[0],
 		SCCP_CALLINFO_CALLEDPARTY_NUMBER, &data[1],
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, &data[2],
@@ -140,7 +140,7 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 
 	//sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V7) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
 	//if ((GLOB(debug) & (DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) != 0) {
-	//	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV7)");
+	//	iCallInfo.Print2log(ci, "SCCP: (sendCallInfoV7)");
 	//}
 	sccp_dev_send(device, msg);
 }
@@ -161,7 +161,7 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	int originalCdpnRedirectReason = 0;
 	int lastRedirectingReason = 0;
 	sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
-	sccp_callinfo_getter(ci,
+	iCallInfo.Getter(ci,
 		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &data[0],
 		SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &data[1],
 		SCCP_CALLINFO_CALLEDPARTY_NUMBER, &data[2],
@@ -219,7 +219,7 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 
 	//sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V16) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
 	//if ((GLOB(debug) & (DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) != 0) {
-	//	sccp_callinfo_print2log(ci, "SCCP: (sendCallInfoV16)");
+	//	iCallInfo.Print2log(ci, "SCCP: (sendCallInfoV16)");
 	//}
 	sccp_dev_send(device, msg);
 }
@@ -997,9 +997,9 @@ static void sccp_protocol_sendConnectionStatisticsReqV3(constDevicePtr device, c
 {
 	sccp_msg_t *msg = sccp_build_packet(ConnectionStatisticsReq, sizeof(msg->data.ConnectionStatisticsReq.v3));
 	if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-		sccp_callinfo_getter(sccp_channel_getCallInfo(channel),	SCCP_CALLINFO_CALLEDPARTY_NUMBER, &msg->data.ConnectionStatisticsReq.v3.DirectoryNumber, SCCP_CALLINFO_KEY_SENTINEL);
+		iCallInfo.Getter(sccp_channel_getCallInfo(channel),	SCCP_CALLINFO_CALLEDPARTY_NUMBER, &msg->data.ConnectionStatisticsReq.v3.DirectoryNumber, SCCP_CALLINFO_KEY_SENTINEL);
 	} else {
-		sccp_callinfo_getter(sccp_channel_getCallInfo(channel),	SCCP_CALLINFO_CALLINGPARTY_NUMBER, &msg->data.ConnectionStatisticsReq.v3.DirectoryNumber, SCCP_CALLINFO_KEY_SENTINEL);
+		iCallInfo.Getter(sccp_channel_getCallInfo(channel),	SCCP_CALLINFO_CALLINGPARTY_NUMBER, &msg->data.ConnectionStatisticsReq.v3.DirectoryNumber, SCCP_CALLINFO_KEY_SENTINEL);
 	}
 	msg->data.ConnectionStatisticsReq.v3.lel_callReference = htolel((channel) ? channel->callid : 0);
 	msg->data.ConnectionStatisticsReq.v3.lel_StatsProcessing = htolel(clear);
@@ -1015,9 +1015,9 @@ static void sccp_protocol_sendConnectionStatisticsReqV19(constDevicePtr device, 
 	sccp_msg_t *msg = sccp_build_packet(ConnectionStatisticsReq, sizeof(msg->data.ConnectionStatisticsReq.v19));
 
 	if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-		sccp_callinfo_getter(sccp_channel_getCallInfo(channel),	SCCP_CALLINFO_CALLEDPARTY_NUMBER,  &msg->data.ConnectionStatisticsReq.v19.DirectoryNumber, SCCP_CALLINFO_KEY_SENTINEL);
+		iCallInfo.Getter(sccp_channel_getCallInfo(channel),	SCCP_CALLINFO_CALLEDPARTY_NUMBER,  &msg->data.ConnectionStatisticsReq.v19.DirectoryNumber, SCCP_CALLINFO_KEY_SENTINEL);
 	} else {
-		sccp_callinfo_getter(sccp_channel_getCallInfo(channel),	SCCP_CALLINFO_CALLINGPARTY_NUMBER, &msg->data.ConnectionStatisticsReq.v19.DirectoryNumber, SCCP_CALLINFO_KEY_SENTINEL);
+		iCallInfo.Getter(sccp_channel_getCallInfo(channel),	SCCP_CALLINFO_CALLINGPARTY_NUMBER, &msg->data.ConnectionStatisticsReq.v19.DirectoryNumber, SCCP_CALLINFO_KEY_SENTINEL);
 	}
 	msg->data.ConnectionStatisticsReq.v19.lel_callReference = htolel((channel) ? channel->callid : 0);
 	msg->data.ConnectionStatisticsReq.v19.lel_StatsProcessing = htolel(clear);

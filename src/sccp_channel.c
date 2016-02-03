@@ -183,7 +183,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	channel->privateData = private_data;
 	channel->privateData->microphone = TRUE;
 	channel->privateData->device = NULL;
-	channel->privateData->callInfo = sccp_callinfo_ctor(callInstance);
+	channel->privateData->callInfo = iCallInfo.Constructor(callInstance);
 	if (!channel->privateData->callInfo) {
 		/* error allocating memory */
 		sccp_free(channel->privateData);
@@ -192,7 +192,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	}
 
 	channel->line = sccp_line_retain(line);
-	//sccp_callinfo_setter(channel->privateData->callInfo, 
+	//iCallInfo.Setter(channel->privateData->callInfo, 
 	//	SCCP_CALLINFO_PRESENTATION, 
 	//	CALLERID_PRESENTATION_ALLOWED, 
 	//	SCCP_CALLINFO_KEY_SENTINEL);
@@ -470,7 +470,7 @@ void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel
 	if (device && channel && channel->callid) {
 		lineInstance = sccp_device_find_index_for_line(device, channel->line->name);
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send callInfo of callid %d with lineInstance: %d\n", DEV_ID_LOG(device), channel->callid, lineInstance);
-		sccp_callinfo_send(channel->privateData->callInfo, channel->callid, channel->calltype, lineInstance, device, FALSE);
+		iCallInfo.Send(channel->privateData->callInfo, channel->callid, channel->calltype, lineInstance, device, FALSE);
 	}
 	
 }
@@ -528,7 +528,7 @@ void sccp_channel_setChannelstate(channelPtr channel, sccp_channelstate_t state)
 void sccp_channel_display_callInfo(sccp_channel_t * channel)
 {
 	if ((GLOB(debug) & (DEBUGCAT_CHANNEL)) != 0) {
-		sccp_callinfo_print2log(channel->privateData->callInfo, channel->designator);
+		iCallInfo.Print2log(channel->privateData->callInfo, channel->designator);
 	}
 }
 
@@ -546,7 +546,7 @@ void sccp_channel_set_callingparty(constChannelPtr channel, const char *name, co
 	if (!channel) {
 		return;
 	}
-	sccp_callinfo_setCallingParty(channel->privateData->callInfo, name, number, NULL);
+	iCallInfo.SetCallingParty(channel->privateData->callInfo, name, number, NULL);
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_callingparty) Set callingParty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, name, number, channel->callid);
 }
 
@@ -567,7 +567,7 @@ boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *
 		return FALSE;
 	}
 
-	changed = sccp_callinfo_setOrigCallingParty(channel->privateData->callInfo, name, number);
+	changed = iCallInfo.SetOrigCallingParty(channel->privateData->callInfo, name, number);
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_originalCallingparty) Set originalCallingparty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, name, number, channel->callid);
 	return changed;
 }
@@ -586,7 +586,7 @@ void sccp_channel_set_calledparty(sccp_channel_t * channel, const char *name, co
 	if (!channel || sccp_strequals(number, "s") /* skip update for immediate earlyrtp + s-extension */ ) {
 		return;
 	}
-	sccp_callinfo_setCalledParty(channel->privateData->callInfo, name, number, NULL);
+	iCallInfo.SetCalledParty(channel->privateData->callInfo, name, number, NULL);
 }
 
 /*!
@@ -605,7 +605,7 @@ boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * channel, char *n
 	if (!channel) {
 		return FALSE;
 	}
-	changed = sccp_callinfo_setOrigCalledParty(channel->privateData->callInfo, name, number, NULL, 4);
+	changed = iCallInfo.SetOrigCalledParty(channel->privateData->callInfo, name, number, NULL, 4);
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_originalCalledparty) Set originalCalledparty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, name, number, channel->callid);
 	return changed;
 
@@ -1481,7 +1481,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			} else {
 				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, channel->line->defaultSubscriptionId.name);
 			}
-			sccp_callinfo_setter(channel->privateData->callInfo, 
+			iCallInfo.Setter(channel->privateData->callInfo, 
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, tmpNumber, 
 				SCCP_CALLINFO_CALLEDPARTY_NAME, tmpName,
 				SCCP_CALLINFO_KEY_SENTINEL);
@@ -1529,7 +1529,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Set Connected Line\n", d->id);
 		        char tmpCalledNumber[StationMaxDirnumSize] = {0};
 		        char tmpCalledName[StationMaxNameSize] = {0};
-	                sccp_callinfo_getter(channel->privateData->callInfo,
+	                iCallInfo.Getter(channel->privateData->callInfo,
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &tmpCalledNumber,
 				SCCP_CALLINFO_CALLEDPARTY_NAME, &tmpCalledName,
 				SCCP_CALLINFO_KEY_SENTINEL);
@@ -1550,7 +1550,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			        char tmpCallingName[StationMaxNameSize] = {0};
 			        char tmpOrigCallingName[StationMaxNameSize] = {0};
 			        char tmpLastRedirectingName[StationMaxNameSize] = {0};
-	        	        sccp_callinfo_getter(channel->privateData->callInfo,
+	        	        iCallInfo.Getter(channel->privateData->callInfo,
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER, &tmpCallingNumber,
 					SCCP_CALLINFO_CALLINGPARTY_NAME, &tmpCallingName,
 					SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &tmpOrigCallingName,
@@ -1789,10 +1789,10 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, channel->line->defaultSubscriptionId.name);
 			}
 			if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-				sccp_callinfo_setCallingParty(channel->privateData->callInfo, tmpNumber, tmpName, NULL);
+				iCallInfo.SetCallingParty(channel->privateData->callInfo, tmpNumber, tmpName, NULL);
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set callingPartyNumber '%s' callingPartyName '%s'\n", DEV_ID_LOG(d), tmpNumber, tmpName);
 			} else if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-				sccp_callinfo_setCalledParty(channel->privateData->callInfo, tmpNumber, tmpName, NULL);
+				iCallInfo.SetCalledParty(channel->privateData->callInfo, tmpNumber, tmpName, NULL);
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set calledPartyNumber '%s' calledPartyName '%s'\n", DEV_ID_LOG(d), tmpNumber, tmpName);
 			}
 			iPbx.set_connected_line(channel, tmpNumber, tmpName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
@@ -1916,7 +1916,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	}
 	if (channel->privateData) {
 		if (channel->privateData->callInfo) {
-			sccp_callinfo_dtor(channel->privateData->callInfo);
+			iCallInfo.Destructor(channel->privateData->callInfo);
 		}
 		sccp_free(channel->privateData);
 	}
@@ -2204,7 +2204,7 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 		char calling_number[StationMaxDirnumSize] = {0}, called_number[StationMaxDirnumSize] = {0}, orig_number[StationMaxDirnumSize] = {0};
 		char calling_name[StationMaxNameSize] = {0}, called_name[StationMaxNameSize] = {0}, orig_name[StationMaxNameSize] = {0};
 
-		sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_destination_local_channel), 
+		iCallInfo.Getter(sccp_channel_getCallInfo(sccp_destination_local_channel), 
 			SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name,
 			SCCP_CALLINFO_CALLINGPARTY_NUMBER, &calling_number,
 			SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,
@@ -2212,26 +2212,26 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 			SCCP_CALLINFO_KEY_SENTINEL);
 
 		if (sccp_source_local_channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-			sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_source_local_channel), 
+			iCallInfo.Getter(sccp_channel_getCallInfo(sccp_source_local_channel), 
 				SCCP_CALLINFO_CALLINGPARTY_NAME, &orig_name,
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &orig_number,
 				SCCP_CALLINFO_KEY_SENTINEL);
 		} else {
-			sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_source_local_channel), 
+			iCallInfo.Getter(sccp_channel_getCallInfo(sccp_source_local_channel), 
 				SCCP_CALLINFO_CALLEDPARTY_NAME, &orig_name,
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &orig_number,
 				SCCP_CALLINFO_KEY_SENTINEL);
 		}
 
 		/* update our source part */
-		sccp_callinfo_setter(sccp_channel_getCallInfo(sccp_source_local_channel), 
+		iCallInfo.Setter(sccp_channel_getCallInfo(sccp_source_local_channel), 
 			SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, calling_name,
 			SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, calling_number,
 			SCCP_CALLINFO_KEY_SENTINEL);
 		sccp_channel_display_callInfo(sccp_source_local_channel);
 
 		/* update our destination part */
-		sccp_callinfo_setter(sccp_channel_getCallInfo(sccp_destination_local_channel), 
+		iCallInfo.Setter(sccp_channel_getCallInfo(sccp_destination_local_channel), 
 			SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, calling_name,
 			SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, calling_number,
 			SCCP_CALLINFO_KEY_SENTINEL);
@@ -2312,7 +2312,7 @@ EXIT:
  */
 void sccp_channel_set_calleridPresentation(sccp_channel_t * channel, sccp_callerid_presentation_t presentation)
 {
-	sccp_callinfo_setter(channel->privateData->callInfo, SCCP_CALLINFO_PRESENTATION, presentation, SCCP_CALLINFO_KEY_SENTINEL);
+	iCallInfo.Setter(channel->privateData->callInfo, SCCP_CALLINFO_PRESENTATION, presentation, SCCP_CALLINFO_KEY_SENTINEL);
 	if (iPbx.set_callerid_presentation) {
 		iPbx.set_callerid_presentation(channel->owner, presentation);
 	}
@@ -2363,7 +2363,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	char calling_num[StationMaxDirnumSize] = {0};
 	char called_name[StationMaxNameSize] = {0};
 	char called_num[StationMaxDirnumSize] = {0};
-	sccp_callinfo_getter(sccp_channel_getCallInfo(sccp_channel_parent), 
+	iCallInfo.Getter(sccp_channel_getCallInfo(sccp_channel_parent), 
 		SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name,
 		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &calling_num,
 		SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,
