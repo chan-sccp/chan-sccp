@@ -2111,7 +2111,7 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
 		if (config->type == FEATURE) {
 			/* Check for the presence of a devicestate specifier and register in device list. */
 			if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && !sccp_strlen_zero(config->button.feature.options)) {
-				if (( dspec = sccp_calloc(1, sizeof dspec) )) {
+				if (( dspec = sccp_calloc(1, sizeof *dspec) )) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
 					SCCP_LIST_LOCK(&d->devstateSpecifiers);
 					sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(dspec->specifier));
