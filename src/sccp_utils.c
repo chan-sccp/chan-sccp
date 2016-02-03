@@ -1,12 +1,12 @@
 /*!
- * \file        sccp_utils.c
+ * \file	sccp_utils.c
  * \brief       SCCP Utils Class
  * \author      Sergio Chersovani <mlists [at] c-net.it>
- * \note        Reworked, but based on chan_sccp code.
- *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *              Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
+ * \note	Reworked, but based on chan_sccp code.
+ *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *		Modified by Jan Czmok and Julien Goodwin
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		See the LICENSE file at the top of the source tree.
  *
  */
 
@@ -220,19 +220,23 @@ void sccp_dev_dbclean(void)
 
 gcc_inline const char *msgtype2str(sccp_mid_t type)
 {														/* sccp_protocol.h */
-	if (type >= SPCP_MESSAGE_OFFSET) {
+	if (type >= SPCP_MESSAGE_OFFSET && type <= (ARRAY_LEN(spcp_messagetypes) + SPCP_MESSAGE_OFFSET)) {
 		return spcp_messagetypes[type - SPCP_MESSAGE_OFFSET].text;
-	} else {
+	} else if (type <= ARRAY_LEN(sccp_messagetypes)) {
 		return sccp_messagetypes[type].text;
+	} else {
+		return "SCCP: Message type does not exist";
 	}
 }
 
 gcc_inline size_t msgtype2size(sccp_mid_t type)
 {														/* sccp_protocol.h */
-	if (type >= SPCP_MESSAGE_OFFSET) {
+	if (type >= SPCP_MESSAGE_OFFSET && type <= (ARRAY_LEN(spcp_messagetypes) + SPCP_MESSAGE_OFFSET)) {
 		return spcp_messagetypes[type - SPCP_MESSAGE_OFFSET].size + SCCP_PACKET_HEADER;
-	} else {
+	} else if (type <= ARRAY_LEN(sccp_messagetypes)) {
 		return sccp_messagetypes[type].size + SCCP_PACKET_HEADER;
+	} else {
+		return 0;
 	}
 }
 
@@ -1799,18 +1803,17 @@ AST_TEST_DEFINE(chan_sccp_acl_invalid_tests)
 		"fe80::1234/255.255.255.0",
 	};
 	uint8_t i;
-        for (i = 0; i < ARRAY_LEN(invalid_acls); ++i) {
-        	int error = 0;
-                ha = sccp_append_ha("permit", invalid_acls[i], ha, &error);
-                if (ha || !error) {
-                        pbx_test_status_update(test, "ACL %s accepted even though it is total garbage.\n",
-                                        invalid_acls[i]);
-                        if (ha) {
+	for (i = 0; i < ARRAY_LEN(invalid_acls); ++i) {
+		int error = 0;
+		ha = sccp_append_ha("permit", invalid_acls[i], ha, &error);
+		if (ha || !error) {
+			pbx_test_status_update(test, "ACL %s accepted even though it is total garbage.\n", invalid_acls[i]);
+			if (ha) {
 				sccp_free_ha(ha);
-                        }
-                        res = AST_TEST_FAIL;
-                }
-        }
+			}
+			res = AST_TEST_FAIL;
+		}
+	}
 	sccp_free_ha(ha);
 	ha = NULL;
 
@@ -2142,7 +2145,7 @@ char *sccp_dec2binstr(char *buf, size_t size, int value)
 
 gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size)
 {
-        pbx_assert(NULL != dst && NULL != src);
+	pbx_assert(NULL != dst && NULL != src);
 	if (do_expect(size != 0)) {
 		while (do_expect(--size != 0)) {
 			if (+(*dst++ = *src++) == '\0') {
@@ -2233,18 +2236,18 @@ gcc_inline boolean_t sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char
 #if CS_TEST_FRAMEWORK
 static void __attribute__((constructor)) sccp_register_tests(void)
 {
-        AST_TEST_REGISTER(chan_sccp_acl_tests);
-        AST_TEST_REGISTER(chan_sccp_acl_invalid_tests);
-        AST_TEST_REGISTER(chan_sccp_reduce_codec_set);
-        AST_TEST_REGISTER(chan_sccp_combine_codec_sets);
+	AST_TEST_REGISTER(chan_sccp_acl_tests);
+	AST_TEST_REGISTER(chan_sccp_acl_invalid_tests);
+	AST_TEST_REGISTER(chan_sccp_reduce_codec_set);
+	AST_TEST_REGISTER(chan_sccp_combine_codec_sets);
 }
 
 static void __attribute__((destructor)) sccp_unregister_tests(void)
 {
-        AST_TEST_UNREGISTER(chan_sccp_acl_tests);
-        AST_TEST_UNREGISTER(chan_sccp_acl_invalid_tests);
-        AST_TEST_UNREGISTER(chan_sccp_reduce_codec_set);
-        AST_TEST_UNREGISTER(chan_sccp_combine_codec_sets);
+	AST_TEST_UNREGISTER(chan_sccp_acl_tests);
+	AST_TEST_UNREGISTER(chan_sccp_acl_invalid_tests);
+	AST_TEST_UNREGISTER(chan_sccp_reduce_codec_set);
+	AST_TEST_UNREGISTER(chan_sccp_combine_codec_sets);
 }
 #endif
 
@@ -2256,11 +2259,11 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 	char **strings;
 #if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
 	size_t stackfr;
-	bfd *bfdobj;           /* bfd.h */
-	Dl_info dli;           /* dlfcn.h */
+	bfd *bfdobj;		/* bfd.h */
+	Dl_info dli;		/* dlfcn.h */
 	long allocsize;
-	asymbol **syms = NULL; /* bfd.h */
-	bfd_vma offset;        /* bfd.h */
+	asymbol **syms = NULL;	/* bfd.h */
+	bfd_vma offset;		/* bfd.h */
 	const char *lastslash;
 	asection *section;
 	const char *file, *func;

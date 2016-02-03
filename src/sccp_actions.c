@@ -221,10 +221,13 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 	mid = letohl(msg->header.lel_messageId);
 
 	/* search for message handler */
-	if (mid >= SPCP_MESSAGE_OFFSET) {
+	if (mid >= SPCP_MESSAGE_OFFSET && mid <= (ARRAY_LEN(spcp_messagetypes) + SPCP_MESSAGE_OFFSET)) {
 		messageMap_cb = &spcpMessagesCbMap[mid - SPCP_MESSAGE_OFFSET]; 
-	} else {
+	} else if (mid >= 0 && mid <= ARRAY_LEN(sccp_messagetypes)) {
 		messageMap_cb = &sccpMessagesCbMap[mid];
+	} else {
+		pbx_log(LOG_ERROR, "SCCP: Message Type ID: %d does not exist", mid);
+		return 0;
 	}
 	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (0x%X)\n", sccp_session_getDesignator(s), msgtype2str(mid), mid);
 
@@ -3040,7 +3043,7 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 		return;
 	}
 
-	if ((int)event - 1 < 0 || (int)event - 1 > (int)ARRAY_LEN(softkeysmap)) {
+	if ((int)event - 1 < 0 || (int)event - 1 > (int)ARRAY_LEN(softkeysmap) - 1) {
 		pbx_log(LOG_ERROR, "SCCP: Received Softkey Event is out of bounds of softkeysmap (0 < %ld < %ld). Exiting\n", (long)(letohl(msg_in->data.SoftKeyEventMessage.lel_softKeyEvent) - 1), (long)ARRAY_LEN(softkeysmap));
 		return;
 	}
