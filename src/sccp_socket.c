@@ -904,20 +904,22 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 			sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
 		}
 	}
+	
+	if (s) {	/* re-evaluate s after sccp_dev_clean */
+		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Destroy Session %s\n", addrStr);
+		/* closing fd's */
+		sccp_session_lock(s);
+		if (s->fds[0].fd > 0) {
+			close(s->fds[0].fd);
+			s->fds[0].fd = -1;
+		}
+		sccp_session_unlock(s);
 
-	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Destroy Session %s\n", addrStr);
-	/* closing fd's */
-	sccp_session_lock(s);
-	if (s->fds[0].fd > 0) {
-		close(s->fds[0].fd);
-		s->fds[0].fd = -1;
+		/* destroying mutex and cleaning the session */
+		sccp_mutex_destroy(&s->lock);
+		sccp_free(s);
+		s = NULL;
 	}
-	sccp_session_unlock(s);
-
-	/* destroying mutex and cleaning the session */
-	sccp_mutex_destroy(&s->lock);
-	sccp_free(s);
-	s = NULL;
 }
 
 /*!
@@ -1189,6 +1191,7 @@ static void sccp_socket_cleanup_timed_out(void)
 			if (session->lastKeepAlive == 0) {
 				// final resort
 				destroy_session(session, 0);
+				break;
 			} else if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive)) && (session->session_thread != AST_PTHREADT_NULL)) {
 				__sccp_session_stopthread(session, SKINNY_DEVICE_RS_FAILED);
 				session->session_thread = AST_PTHREADT_NULL;
