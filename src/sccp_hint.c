@@ -610,6 +610,7 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 		return NULL;
 	}
 	if (!(hint->callInfo = iCallInfo.Constructor(0))) {
+		sccp_free(hint);
 		return NULL;
 	}
 	hint->calltype = SKINNY_CALLTYPE_SENTINEL;
