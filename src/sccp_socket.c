@@ -444,6 +444,7 @@ static int __sccp_socket_setOurAddressFromTheirs(const struct sockaddr_storage *
 
 	if (connect(sock, &tmp_addr.sa, sizeof(tmp_addr))) {
 		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Failed to connect to %s\n", sccp_socket_stringify(them));
+		close(sock);
 		return -1;
 	}
 	if (getsockname(sock, &tmp_addr.sa, &slen)) {
@@ -617,7 +618,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 //READ_SKIP:
 	if (UnreadBytesAccordingToPacket > 0) {									/* checking to prevent unneeded allocation of discardBuffer */
 		pbx_log(LOG_NOTICE, "%s: Going to Discard %d bytes of data for '%s' (%d) (Needs developer attention)\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
-		unsigned char discardBuffer[SCCP_MAX_PACKET + 1];
+		unsigned char discardBuffer[SCCP_MAX_PACKET + 1] = {0};
 
 		bytesToRead = UnreadBytesAccordingToPacket;
 		while (bytesToRead > 0) {
@@ -631,6 +632,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 				break;
 			}											/* if we read EOF, just break reading (invalid packet information) */
 			bytesToRead -= readlen;
+			discardBuffer[readlen + 1] = '\0';							/* terminate discardBuffer */
 			sccp_dump_packet((unsigned char *) discardBuffer, readlen);				/* dump the discarded bytes, for analysis */
 		}
 		pbx_log(LOG_NOTICE, "%s: Discarded %d bytes of data for '%s' (%d) (Needs developer attention)\nReturning Only:\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
@@ -1106,16 +1108,17 @@ static void sccp_accept_connection(void)
 
 	socklen_t length = (socklen_t) (sizeof(struct sockaddr_storage));
 
-	if ((new_socket = accept(GLOB(descriptor), (struct sockaddr *) &incoming, &length)) < 0) {
-		pbx_log(LOG_ERROR, "Error accepting new socket %s\n", strerror(errno));
-		return;
-	}
-	sccp_socket_setoptions(new_socket);
-
 	if (!(s = sccp_calloc(sizeof *s, 1))) {
 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		return;
 	}
+
+	if ((new_socket = accept(GLOB(descriptor), (struct sockaddr *) &incoming, &length)) < 0) {
+		pbx_log(LOG_ERROR, "Error accepting new socket %s\n", strerror(errno));
+		sccp_free(s);
+		return;
+	}
+	sccp_socket_setoptions(new_socket);
 	
 	memcpy(&s->sin, &incoming, sizeof(s->sin));
 	sccp_mutex_init(&s->lock);
