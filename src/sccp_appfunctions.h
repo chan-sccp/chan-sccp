@@ -11,8 +11,8 @@
  * 
  */
 #pragma once
-__BEGIN_EXTERN__
+__BEGIN_C_EXTERN__
 int sccp_register_dialplan_functions(void);
 int sccp_unregister_dialplan_functions(void);
-__END_EXTERN__
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

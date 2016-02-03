@@ -1076,11 +1076,11 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 							pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), pbx_channel_nativeformats(channel->owner));
 						}
 						if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-							sccp_callinfo_getter(sccp_channel_getCallInfo(channel), 
+							iCallInfo.Getter(sccp_channel_getCallInfo(channel), 
 								SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name,
 								SCCP_CALLINFO_KEY_SENTINEL);
 						} else {
-							sccp_callinfo_getter(sccp_channel_getCallInfo(channel), 
+							iCallInfo.Getter(sccp_channel_getCallInfo(channel), 
 								SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name,
 								SCCP_CALLINFO_KEY_SENTINEL);
 						}

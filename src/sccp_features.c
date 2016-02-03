@@ -244,7 +244,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 		/* Gather CallInfo */
 		sccp_callinfo_t *callinfo_picker = sccp_channel_getCallInfo(c);
 		sccp_callinfo_t *callinfo_orig = NULL;
-		sccp_callinfo_getter(callinfo_picker,							/* picker */
+		iCallInfo.Getter(callinfo_picker,							/* picker */
 			SCCP_CALLINFO_CALLINGPARTY_NAME, &picker_name,					/* name of picker */
 			SCCP_CALLINFO_CALLINGPARTY_NUMBER, &picker_number,
 			SCCP_CALLINFO_KEY_SENTINEL);
@@ -252,7 +252,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 		if (orig_channel) {
 			orig_device = sccp_channel_getDevice_retained(orig_channel);
 			callinfo_orig = sccp_channel_getCallInfo(orig_channel);
-			sccp_callinfo_getter(callinfo_orig,						/* picker */
+			iCallInfo.Getter(callinfo_orig,						/* picker */
 				SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,				/* name of picker */
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_number,
 				SCCP_CALLINFO_KEY_SENTINEL);
@@ -272,7 +272,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 
 			if (orig_channel) {
 				callinfo_orig = sccp_channel_getCallInfo(orig_channel);
-				sccp_callinfo_setter(callinfo_orig, 					/* update calling end */
+				iCallInfo.Setter(callinfo_orig, 					/* update calling end */
 					SCCP_CALLINFO_CALLEDPARTY_NAME, picker_name, 			/* channel picking up */
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, picker_number, 
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, called_name, 

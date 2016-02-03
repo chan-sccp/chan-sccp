@@ -1417,7 +1417,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_request(const char *type, int f
 
 	// set calling party 
 	sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
-	sccp_callinfo_setter(ci, 
+	iCallInfo.Setter(ci, 
 			SCCP_CALLINFO_CALLINGPARTY_NAME, requestor->cid.cid_name,
 			SCCP_CALLINFO_CALLINGPARTY_NUMBER, requestor->cid.cid_num,
 			SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, requestor->cid.cid_dnid,

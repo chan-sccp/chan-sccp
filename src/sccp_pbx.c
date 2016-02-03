@@ -228,7 +228,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
 
 	sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
-	sccp_callinfo_getter(ci, 
+	iCallInfo.Getter(ci, 
 		SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
 		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
 		SCCP_CALLINFO_PRESENTATION, &presentation, 
@@ -261,7 +261,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	if (	(!sccp_strequals(suffixedNumber, cid_num)) || 
 		(pbx_presentation != SCCP_CALLERID_PRESENTATION_SENTINEL && pbx_presentation != presentation)
 	) {
-		sccp_callinfo_setter(ci, 
+		iCallInfo.Setter(ci, 
 			SCCP_CALLINFO_CALLINGPARTY_NUMBER, (!sccp_strlen_zero(suffixedNumber) ? suffixedNumber : NULL), 
 			SCCP_CALLINFO_PRESENTATION, (pbx_presentation != SCCP_CALLERID_PRESENTATION_SENTINEL) ? pbx_presentation : presentation,
 			SCCP_CALLINFO_KEY_SENTINEL);
@@ -726,7 +726,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 				} else {
 					snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, l->defaultSubscriptionId.name);
 				}
-				sccp_callinfo_setter(ci, 
+				iCallInfo.Setter(ci, 
 					SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name, 
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cid_num,  
 					SCCP_CALLINFO_KEY_SENTINEL);
@@ -745,7 +745,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 				} else {
 					snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, l->defaultSubscriptionId.name);
 				}
-				sccp_callinfo_setter(ci, 
+				iCallInfo.Setter(ci, 
 					SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
 					SCCP_CALLINFO_KEY_SENTINEL);

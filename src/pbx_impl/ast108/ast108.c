@@ -1482,7 +1482,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 	if (requestor) {
 		/* set calling party */
 		sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
-		sccp_callinfo_setter(ci, 
+		iCallInfo.Setter(ci, 
 				SCCP_CALLINFO_CALLINGPARTY_NAME, requestor->caller.id.name.str,
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, requestor->caller.id.number.str,
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, requestor->redirecting.from.name.str,
