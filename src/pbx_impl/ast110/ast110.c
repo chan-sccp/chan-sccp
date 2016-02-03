@@ -1645,10 +1645,10 @@ static int sccp_wrapper_asterisk110_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 			c->rtp.audio.directMedia = directmedia;
 		} else if (vrtp) {
 			sccp_rtp_set_peer(c, &c->rtp.video, &sas);
-			c->rtp.audio.directMedia = directmedia;
+			c->rtp.video.directMedia = directmedia;
 		} else {
 			//sccp_rtp_set_peer(c, &c->rtp.text, &sas);
-			//c->rtp.audio.directMedia = directmedia;
+			//c->rtp.text.directMedia = directmedia;
 		}
 	} while (0);
 
