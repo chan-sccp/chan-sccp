@@ -284,12 +284,19 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 
 	// STAGE 1: read header
 	memset(msg, 0, SCCP_MAX_PACKET);
-	readlen = read(mysocket, (&msg->header), SCCP_PACKET_HEADER);
-	if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {
-		return 0;
-	} /* try again later, return TRUE with empty r */
-	else if (readlen <= 0) {
-		goto READ_ERROR;
+	dataptr = (unsigned char *) &msg->header;
+	bytesToRead = SCCP_PACKET_HEADER;
+	while (bytesToRead > 0) {
+		readlen = read(mysocket, buffer, bytesToRead);
+		if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {
+			return 0;										 /* try again later, go poll again */
+		} else if (readlen <= 0) {
+			goto READ_ERROR;
+		}
+		bytesReadSoFar += readlen;
+		bytesToRead -= readlen;										// if bytesToRead then more segments to read
+		memcpy(dataptr, buffer, readlen);
+		dataptr += readlen;
 	}
 	/* error || client closed socket */
 	msg->header.length = letohl(msg->header.length);
