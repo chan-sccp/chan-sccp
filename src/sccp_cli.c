@@ -327,6 +327,9 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 						}
 					}
 					SCCP_LIST_UNLOCK(&l->channels);
+					if (ret) {
+						break;							// break out of outer look, prevent leaking memory by strdup
+					}
 				}
 				SCCP_RWLIST_UNLOCK(&GLOB(lines));
 			} else if (strstr(line, "fallback") != NULL) {
