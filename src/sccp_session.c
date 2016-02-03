@@ -902,6 +902,7 @@ static void sccp_netsock_cleanup_timed_out(void)
 			if (session->lastKeepAlive == 0) {
 				// final resort
 				destroy_session(session, 0);
+				session = NULL;
 			} else if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive)) && (session->session_thread != AST_PTHREADT_NULL)) {
 				__sccp_session_stopthread(session, SKINNY_DEVICE_RS_FAILED);
 				session->session_thread = AST_PTHREADT_NULL;
