@@ -130,7 +130,6 @@ __END_C_EXTERN__
 #include "sccp_threadpool.h"
 #include "sccp_debug.h"
 #include "sccp_globals.h"
-//#include "chan_sccp.h"
 #include "sccp_rtp.h"
 #include "sccp_refcount.h"
 #include "sccp_event.h"

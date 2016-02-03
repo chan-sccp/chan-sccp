@@ -16,7 +16,7 @@
 #include "sccp_channel.h"
 #include "sccp_utils.h"
 #include "sccp_enum.h"
-#include "sccp_socket.h"
+#include "sccp_session.h"
 #include <asterisk/unaligned.h>
 
 SCCP_FILE_VERSION(__FILE__, "");
@@ -540,12 +540,12 @@ static void sccp_protocol_sendOpenReceiveChannelV3(constDevicePtr device, constC
 	struct sockaddr_storage sas;
 
 	memcpy(&sas, &channel->rtp.audio.phone_remote, sizeof(struct sockaddr_storage));
-	sccp_socket_ipv4_mapped(&sas, &sas);
+	sccp_netsock_ipv4_mapped(&sas, &sas);
 
 	struct sockaddr_in *in = (struct sockaddr_in *) &sas;
 
 	memcpy(&msg->data.OpenReceiveChannel.v3.bel_remoteIpAddr, &in->sin_addr, 4);
-	msg->data.OpenReceiveChannel.v3.lel_remotePortNumber = htolel(sccp_socket_getPort(&sas));
+	msg->data.OpenReceiveChannel.v3.lel_remotePortNumber = htolel(sccp_netsock_getPort(&sas));
 
 	sccp_dev_send(device, msg);
 }
@@ -576,7 +576,7 @@ static void sccp_protocol_sendOpenReceiveChannelV17(constDevicePtr device, const
 
 	//memcpy(&sas, &device->session->sin, sizeof(struct sockaddr_storage));
 	memcpy(&sas, &channel->rtp.audio.phone_remote, sizeof(struct sockaddr_storage));
-	sccp_socket_ipv4_mapped(&sas, &sas);
+	sccp_netsock_ipv4_mapped(&sas, &sas);
 
 	if (sas.ss_family == AF_INET6) {
 		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *) &sas;
@@ -589,7 +589,7 @@ static void sccp_protocol_sendOpenReceiveChannelV17(constDevicePtr device, const
 
 		memcpy(&msg->data.OpenReceiveChannel.v17.bel_remoteIpAddr, &in->sin_addr, 4);
 	}
-	msg->data.OpenReceiveChannel.v17.lel_remotePortNumber = htolel(sccp_socket_getPort(&sas));
+	msg->data.OpenReceiveChannel.v17.lel_remotePortNumber = htolel(sccp_netsock_getPort(&sas));
 	sccp_dev_send(device, msg);
 }
 
@@ -619,7 +619,7 @@ static void sccp_protocol_sendOpenReceiveChannelv22(constDevicePtr device, const
 
 	//memcpy(&sas, &device->session->sin, sizeof(struct sockaddr_storage));
 	memcpy(&sas, &channel->rtp.audio.phone_remote, sizeof(struct sockaddr_storage));
-	sccp_socket_ipv4_mapped(&sas, &sas);
+	sccp_netsock_ipv4_mapped(&sas, &sas);
 
 	if (sas.ss_family == AF_INET6) {
 		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *) &sas;
@@ -632,7 +632,7 @@ static void sccp_protocol_sendOpenReceiveChannelv22(constDevicePtr device, const
 
 		memcpy(&msg->data.OpenReceiveChannel.v22.bel_remoteIpAddr, &in->sin_addr, 4);
 	}
-	msg->data.OpenReceiveChannel.v22.lel_remotePortNumber = htolel(sccp_socket_getPort(&sas));
+	msg->data.OpenReceiveChannel.v22.lel_remotePortNumber = htolel(sccp_netsock_getPort(&sas));
 	sccp_dev_send(device, msg);
 }
 
@@ -730,7 +730,7 @@ static void sccp_protocol_sendStartMediaTransmissionV3(constDevicePtr device, co
 	} else {
 		/* \todo add warning */
 	}
-	msg->data.StartMediaTransmission.v3.lel_remotePortNumber = htolel(sccp_socket_getPort(&channel->rtp.audio.phone_remote));
+	msg->data.StartMediaTransmission.v3.lel_remotePortNumber = htolel(sccp_netsock_getPort(&channel->rtp.audio.phone_remote));
 
 	sccp_dev_send(device, msg);
 }
@@ -768,7 +768,7 @@ static void sccp_protocol_sendStartMediaTransmissionV17(constDevicePtr device, c
 
 		memcpy(&msg->data.StartMediaTransmission.v17.bel_remoteIpAddr, &in->sin_addr, 4);
 	}
-	msg->data.StartMediaTransmission.v17.lel_remotePortNumber = htolel(sccp_socket_getPort(&channel->rtp.audio.phone_remote));
+	msg->data.StartMediaTransmission.v17.lel_remotePortNumber = htolel(sccp_netsock_getPort(&channel->rtp.audio.phone_remote));
 	sccp_dev_send(device, msg);
 }
 
@@ -805,7 +805,7 @@ static void sccp_protocol_sendStartMediaTransmissionv22(constDevicePtr device, c
 
 		memcpy(&msg->data.StartMediaTransmission.v22.bel_remoteIpAddr, &in->sin_addr, 4);
 	}
-	msg->data.StartMediaTransmission.v22.lel_remotePortNumber = htolel(sccp_socket_getPort(&channel->rtp.audio.phone_remote));
+	msg->data.StartMediaTransmission.v22.lel_remotePortNumber = htolel(sccp_netsock_getPort(&channel->rtp.audio.phone_remote));
 	sccp_dev_send(device, msg);
 }
 
@@ -833,7 +833,7 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV3(constDevicePtr devic
 	msg->data.StartMultiMediaTransmission.v3.videoParameter.decpicbuf = htolel(8100);
 	msg->data.StartMultiMediaTransmission.v3.videoParameter.brandcpb = htolel(10000);
 	msg->data.StartMultiMediaTransmission.v3.videoParameter.confServiceNum = htolel(channel->callid);
-	msg->data.StartMultiMediaTransmission.v3.lel_remotePortNumber = htolel(sccp_socket_getPort(&channel->rtp.video.phone_remote));
+	msg->data.StartMultiMediaTransmission.v3.lel_remotePortNumber = htolel(sccp_netsock_getPort(&channel->rtp.video.phone_remote));
 	if (channel->rtp.video.phone_remote.ss_family == AF_INET) {
 		struct sockaddr_in *in = (struct sockaddr_in *) &channel->rtp.video.phone_remote;
 
@@ -878,7 +878,7 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV17(constDevicePtr devi
 	//msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy7 = htolel(7);
 	//msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy8 = htolel(8);
 
-	msg->data.StartMultiMediaTransmission.v17.lel_remotePortNumber = htolel(sccp_socket_getPort(&channel->rtp.video.phone_remote));
+	msg->data.StartMultiMediaTransmission.v17.lel_remotePortNumber = htolel(sccp_netsock_getPort(&channel->rtp.video.phone_remote));
 	if (channel->rtp.video.phone_remote.ss_family == AF_INET6) {
 		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *) &channel->rtp.video.phone_remote;
 
@@ -1041,7 +1041,7 @@ static void sccp_protocol_sendPortRequest(constDevicePtr device, constChannelPtr
 	msg->data.PortRequestMessage.lel_callReference = htolel(channel->callid);
 	msg->data.PortRequestMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
 	msg->data.PortRequestMessage.lel_mediaTransportType = htolel(mediaTransportType);
-	msg->data.PortRequestMessage.lel_ipv46 = htolel(sccp_socket_is_IPv6(&sas) ? 1 : 0);
+	msg->data.PortRequestMessage.lel_ipv46 = htolel(sccp_netsock_is_IPv6(&sas) ? 1 : 0);
 	msg->data.PortRequestMessage.lel_mediaType = htolel(mediaType);
 
 	sccp_dev_send(device, msg);

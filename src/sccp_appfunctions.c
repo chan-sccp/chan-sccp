@@ -19,7 +19,7 @@
 #include "sccp_mwi.h"
 #include "sccp_utils.h"
 #include "sccp_conference.h"
-#include "sccp_socket.h"
+#include "sccp_session.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -113,7 +113,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				if (s) {
 					struct sockaddr_storage sas = { 0 };
 					sccp_session_getOurIP(s, &sas, 0);
-					sccp_copy_string(buf, sccp_socket_stringify(&sas), buf_len);
+					sccp_copy_string(buf, sccp_netsock_stringify(&sas), buf_len);
 				}
 			} else if (!strcasecmp(token, "id")) {
 				sccp_copy_string(buf, d->id, buf_len);
@@ -692,14 +692,14 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 				if ((d = sccp_channel_getDevice_retained(c))) {
 					struct sockaddr_storage sas = { 0 };
 					sccp_session_getOurIP(d->session, &sas, 0);
-					sccp_copy_string(buf, sccp_socket_stringify(&sas), len);
+					sccp_copy_string(buf, sccp_netsock_stringify(&sas), len);
 				}
 			} else if (!strcasecmp(token, "recvip")) {							// NAT (Actual Source IP-Address Reported by the phone upon registration)
 				AUTO_RELEASE sccp_device_t *d = NULL;
 				if ((d = sccp_channel_getDevice_retained(c))) {
 					struct sockaddr_storage sas = { 0 };
 					sccp_session_getSas(d->session, &sas);
-					sccp_copy_string(buf, sccp_socket_stringify(&sas), len);
+					sccp_copy_string(buf, sccp_netsock_stringify(&sas), len);
 				}
 			} else if (!strcasecmp(colname, "rtpqos")) {
 				AUTO_RELEASE sccp_device_t *d = NULL;

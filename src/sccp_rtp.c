@@ -91,7 +91,7 @@
 #include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_rtp.h"
-#include "sccp_socket.h"
+#include "sccp_session.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -143,12 +143,12 @@ boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t 
 
 	uint16_t port = sccp_rtp_getServerPort(rtp);
 	sccp_session_getOurIP(d->session, phone_remote, 0);
-	sccp_socket_setPort(phone_remote, port);
+	sccp_netsock_setPort(phone_remote, port);
 
 	char buf[NI_MAXHOST + NI_MAXSERV];
-	sccp_copy_string(buf, sccp_socket_stringify(phone_remote), sizeof(buf));
-	boolean_t isMappedIPv4 = sccp_socket_ipv4_mapped(phone_remote, (struct sockaddr_storage *) phone_remote);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (createAudioServer) updated phone %s destination to : %s, family:%s, mapped: %s\n", c->designator, sccp_rtp_type2str(type), buf, sccp_socket_is_IPv4(phone_remote) ? "IPv4" : "IPv6", isMappedIPv4 ? "True" : "False");
+	sccp_copy_string(buf, sccp_netsock_stringify(phone_remote), sizeof(buf));
+	boolean_t isMappedIPv4 = sccp_netsock_ipv4_mapped(phone_remote, (struct sockaddr_storage *) phone_remote);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (createAudioServer) updated phone %s destination to : %s, family:%s, mapped: %s\n", c->designator, sccp_rtp_type2str(type), buf, sccp_netsock_is_IPv4(phone_remote) ? "IPv4" : "IPv6", isMappedIPv4 ? "True" : "False");
 
 	return rtpResult;
 }
@@ -232,19 +232,19 @@ void sccp_rtp_destroy(constChannelPtr c)
 void sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t * const rtp, struct sockaddr_storage *new_peer)
 {
 	/* validate socket */
-	if (sccp_socket_getPort(new_peer) == 0) {
+	if (sccp_netsock_getPort(new_peer) == 0) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: ( sccp_rtp_set_peer ) remote information are invalid, don't change anything\n", c->currentDeviceId);
 		return;
 	}
 
 	/* check if we have new information, which requires us to update */
-	if (sccp_socket_equals(new_peer, &rtp->phone_remote)) {
+	if (sccp_netsock_equals(new_peer, &rtp->phone_remote)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) remote information is equal to the current info, ignore change\n", c->currentDeviceId);
 		return;
 	}
 
 	memcpy(&rtp->phone_remote, new_peer, sizeof rtp->phone_remote);
-	pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_peer ) Set new remote address to %s\n", c->currentDeviceId, sccp_socket_stringify(&rtp->phone_remote));
+	pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_peer ) Set new remote address to %s\n", c->currentDeviceId, sccp_netsock_stringify(&rtp->phone_remote));
 
 	if (rtp->readState != SCCP_RTP_STATUS_INACTIVE) {
 		/* Shutdown any early-media or previous media on re-invite */
@@ -265,7 +265,7 @@ void sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t * const rtp, struct sockadd
 void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockaddr_storage *new_peer)
 {
 	/* validate socket */
-	if (sccp_socket_getPort(new_peer) == 0) {
+	if (sccp_netsock_getPort(new_peer) == 0) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are invalid, don't change anything\n", c->currentDeviceId);
 		return;
 	}
@@ -277,7 +277,7 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 		/* check if we have new infos */
 		/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
 		/*
-		if (sccp_socket_equals(new_peer, &c->rtp.audio.phone)) {
+		if (sccp_netsock_equals(new_peer, &c->rtp.audio.phone)) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equal to the current one, ignore change\n", c->currentDeviceId);
 			//return;
 		}
@@ -291,9 +291,9 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 		}
 
 		char buf1[NI_MAXHOST + NI_MAXSERV];
-		sccp_copy_string(buf1, sccp_socket_stringify(&rtp->phone_remote), sizeof(buf1));
+		sccp_copy_string(buf1, sccp_netsock_stringify(&rtp->phone_remote), sizeof(buf1));
 		char buf2[NI_MAXHOST + NI_MAXSERV];
-		sccp_copy_string(buf2, sccp_socket_stringify(&rtp->phone), sizeof(buf2));
+		sccp_copy_string(buf2, sccp_netsock_stringify(&rtp->phone), sizeof(buf2));
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(device), buf1, buf2, sccp_nat2str(device->nat));
 	}
 }
@@ -306,31 +306,31 @@ int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp)
 	if (d) {
 		struct sockaddr_storage sus = { 0 };
 		sccp_session_getOurIP(d->session, &sus, 0);
-		uint16_t usFamily = sccp_socket_is_IPv6(&sus) ? AF_INET6 : AF_INET;
-		//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) us: %s, usFamily: %s\n", d->id, sccp_socket_stringify(&sus), (usFamily == AF_INET6) ? "IPv6" : "IPv4");
+		uint16_t usFamily = sccp_netsock_is_IPv6(&sus) ? AF_INET6 : AF_INET;
+		//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) us: %s, usFamily: %s\n", d->id, sccp_netsock_stringify(&sus), (usFamily == AF_INET6) ? "IPv6" : "IPv4");
 
 		struct sockaddr_storage *phone_remote = &rtp->phone_remote;
-		uint16_t remoteFamily = (rtp->phone_remote.ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(phone_remote)) ? AF_INET6 : AF_INET;
-		//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) remote: %s, remoteFamily: %s\n", d->id, sccp_socket_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
+		uint16_t remoteFamily = (rtp->phone_remote.ss_family == AF_INET6 && !sccp_netsock_is_mapped_IPv4(phone_remote)) ? AF_INET6 : AF_INET;
+		//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) remote: %s, remoteFamily: %s\n", d->id, sccp_netsock_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
 
 		/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
 		if (d->nat >= SCCP_NAT_ON) {
 			if ((usFamily == AF_INET) != remoteFamily) {						/* device needs correction for ipv6 address in remote */
 				uint16_t port = sccp_rtp_getServerPort(rtp);					/* get rtp server port */
 
-				if (!sccp_socket_getExternalAddr(phone_remote)) {				/* Use externip (PBX behind NAT Firewall */
+				if (!sccp_netsock_getExternalAddr(phone_remote)) {				/* Use externip (PBX behind NAT Firewall */
 					memcpy(phone_remote, &sus, sizeof(struct sockaddr_storage));		/* Fallback: use ip-address of incoming interface */
 				}
-				sccp_socket_ipv4_mapped(phone_remote, phone_remote);				/*!< we need this to convert mapped IPv4 to real IPv4 address */
-				sccp_socket_setPort(phone_remote, port);
+				sccp_netsock_ipv4_mapped(phone_remote, phone_remote);				/*!< we need this to convert mapped IPv4 to real IPv4 address */
+				sccp_netsock_setPort(phone_remote, port);
 
 			} else if ((usFamily == AF_INET6) != remoteFamily) {					/* the device can do IPv6 but should send it to IPv4 address (directrtp possible) */
 				struct sockaddr_storage sas;
 
 				memcpy(&sas, phone_remote, sizeof(struct sockaddr_storage));
-				sccp_socket_ipv4_mapped(&sas, &sas);
+				sccp_netsock_ipv4_mapped(&sas, &sas);
 			}
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (updateNatRemotePhone) new remote: %s, new remoteFamily: %s\n", d->id, sccp_socket_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (updateNatRemotePhone) new remote: %s, new remoteFamily: %s\n", d->id, sccp_netsock_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
 			res = 1;
 		}
 	}
@@ -438,7 +438,7 @@ uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * const rtp)
 
 	sccp_rtp_getUs(rtp, &sas);
 
-	port = sccp_socket_getPort(&sas);
+	port = sccp_netsock_getPort(&sas);
 	return port;
 }
 

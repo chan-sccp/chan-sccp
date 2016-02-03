@@ -10,6 +10,11 @@
  *              See the LICENSE file at the top of the source tree.
  *
  */
+#include <config.h>
+#include "common.h"
+#include "sccp_channel.h"
+
+SCCP_FILE_VERSION(__FILE__, "");
 
 /*!
  * \remarks
@@ -17,21 +22,14 @@
  * When to use: Only methods directly related to sccp channels should be stored in this source file.
  * Relations:   SCCP Channels connect Asterisk Channels to SCCP Lines
  */
-
-#include <config.h>
-#include "common.h"
 #include "sccp_device.h"
 #include "sccp_pbx.h"
-#include "sccp_channel.h"
 #include "sccp_utils.h"
 #include "sccp_conference.h"
 #include "sccp_features.h"
 #include "sccp_line.h"
 #include "sccp_indicate.h"
-#include "sccp_socket.h"
-
-SCCP_FILE_VERSION(__FILE__, "");
-
+#include "sccp_netsock.h"
 #include <asterisk/callerid.h>			// sccp_channel, sccp_callinfo
 #include <asterisk/pbx.h>			// AST_EXTENSION_NOT_INUSE
 
@@ -880,8 +878,8 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 
 	char buf1[NI_MAXHOST + NI_MAXSERV];
 	char buf2[NI_MAXHOST + NI_MAXSERV];
-	sccp_copy_string(buf1, sccp_socket_stringify(&audio->phone), sizeof(buf1));
-	sccp_copy_string(buf2, sccp_socket_stringify(&audio->phone_remote), sizeof(buf2));
+	sccp_copy_string(buf1, sccp_netsock_stringify(&audio->phone), sizeof(buf1));
+	sccp_copy_string(buf2, sccp_netsock_stringify(&audio->phone_remote), sizeof(buf2));
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) Tell Phone to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(d), buf1, buf2, sccp_nat2str(d->nat));
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(audio->readFormat), audio->readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
@@ -1003,8 +1001,8 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 
 	char buf1[NI_MAXHOST + NI_MAXSERV];
 	char buf2[NI_MAXHOST + NI_MAXSERV];
-	sccp_copy_string(buf1, sccp_socket_stringify(&video->phone), sizeof(buf1));
-	sccp_copy_string(buf2, sccp_socket_stringify(&video->phone_remote), sizeof(buf2));
+	sccp_copy_string(buf1, sccp_netsock_stringify(&video->phone), sizeof(buf1));
+	sccp_copy_string(buf2, sccp_netsock_stringify(&video->phone_remote), sizeof(buf2));
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMultiMediaTransmission) Tell Phone to send VRTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(d), buf1, buf2, sccp_nat2str(d->nat));
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (StartMultiMediaTransmission) Using codec: %s(%d), TOS %d for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(video->readFormat), video->readFormat, d->video_tos, channel->passthrupartyid, channel->callid);
