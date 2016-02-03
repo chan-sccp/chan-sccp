@@ -10,7 +10,6 @@
  * $revision$  
  */
 #pragma once
-__BEGIN_C_EXTERN__
 
 /*!
  * \remarks
@@ -18,6 +17,8 @@ __BEGIN_C_EXTERN__
  * When to use: To Allocate / Destruct / Get & Set Callinfo fields
  * Relations:   
  */
+
+__BEGIN_C_EXTERN__
 
 /* forward declaration */
 struct sccp_callinfo;
