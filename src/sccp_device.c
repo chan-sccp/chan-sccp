@@ -689,6 +689,9 @@ void sccp_device_setLastNumberDialed(devicePtr device, const char *lastNumberDia
  */
 void sccp_device_preregistration(devicePtr device)
 {
+	if (!device) {
+		return;
+	}
 	/*! \todo use device->device_features to detect devices capabilities, instead of hardcoded list of devices */
 	switch (device->skinny_type) {
 			// case SKINNY_DEVICETYPE_30SPPLUS:
@@ -732,7 +735,7 @@ void sccp_device_preregistration(devicePtr device)
 			break;
 	}
 #if HAVE_ICONV
-	if (device && !(device->device_features & SKINNY_PHONE_FEATURES_UTF8)) {
+	if (!(device->device_features & SKINNY_PHONE_FEATURES_UTF8)) {
 		device->copyStr2Locale = sccp_device_copyStr2Locale_Convert;
 	}
 #endif

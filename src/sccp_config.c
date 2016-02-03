@@ -793,7 +793,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 				do {
 					/* search for the default values in the referred segment, if found break so we can pass on the cat_root */
 					for (cat_root = v = ast_variable_browse(GLOB(cfg), referral_cat); v; v = v->next) {
-						if (!strcasecmp((const char *) option_name, v->name)) {
+						if (sccp_strcaseequals((const char *) option_name, v->name)) {
 							sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "Found name:'%s', value:'%s', use referred config-file value from segment '%s'\n", option_name, v->value, referral_cat);
 							referralValueFound = TRUE;
 							break;
