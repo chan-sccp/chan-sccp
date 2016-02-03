@@ -296,11 +296,11 @@ codeSkip == 1			{ next }
 					totlen += length(Entry_text[e]) + 1
 				}
 				print "const char * " namespace "_" enum_name "2str(int " namespace "_" enum_name "_int_value) {" > out_source_file
-				print "\tstatic char res[" totlen "] = \"\";" >out_source_file
+				print "\tstatic char res[" totlen " + 1] = \"\";" >out_source_file
 				print "\tint pos = 0;" >out_source_file
 				if (Entry_val[0] == 0) {
 					print "\tif (" namespace "_" enum_name "_int_value == 0) {" > out_source_file
-					print "\t\tpos += snprintf(res + pos, " totlen ", \"%s%s\", pos ? \",\" : \"\", " namespace "_" enum_name "_map[0]);" >out_source_file
+					print "\t\tpos += snprintf(res, " totlen ", \"%s%s\", pos ? \",\" : \"\", " namespace "_" enum_name "_map[0]);" >out_source_file
 					print "\t\treturn res;" > out_source_file
 					print "\t}" > out_source_file
 				}
