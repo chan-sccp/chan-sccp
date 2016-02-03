@@ -23,8 +23,9 @@
 #include "sccp_channel.h"
 #include "sccp_utils.h"
 #include "sccp_config.h"
+#include "sccp_netsock.h"
 #include "sccp_mwi.h"		// use __constructor__ to remove this entry
-#include "sccp_socket.h"	// use __constructor__ to remove this entry
+#include "sccp_session.h"	// use __constructor__ to remove this entry
 #include "sccp_hint.h"		// use __constructor__ to remove this entry
 #include "sccp_conference.h"	// use __constructor__ to remove this entry
 #include "sccp_management.h"	// use __constructor__ to remove this entry
@@ -49,7 +50,7 @@ int load_config(void)
 	int newPort = 0;
 	char addrStr[INET6_ADDRSTRLEN];
 
-	oldPort = sccp_socket_getPort(&GLOB(bindaddr));
+	oldPort = sccp_netsock_getPort(&GLOB(bindaddr));
 
 	/* Setup the monitor thread default */
 #if ASTERISK_VERSION_GROUP < 110
@@ -79,7 +80,7 @@ int load_config(void)
 	sccp_config_readDevicesLines(SCCP_CONFIG_READINITIAL);
 
 	/* ok the config parse is done */
-	newPort = sccp_socket_getPort(&GLOB(bindaddr));
+	newPort = sccp_netsock_getPort(&GLOB(bindaddr));
 	if ((GLOB(descriptor) > -1) && (newPort != oldPort)) {
 		close(GLOB(descriptor));
 		GLOB(descriptor) = -1;
@@ -95,16 +96,16 @@ int load_config(void)
 		hints.ai_socktype = SOCK_STREAM;								// TCP stream sockets
 		hints.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;					// fill in my IP for me
 
-		if (sccp_socket_getPort(&GLOB(bindaddr)) > 0) {
-			snprintf(port_str, sizeof(port_str), "%d", sccp_socket_getPort(&GLOB(bindaddr)));
+		if (sccp_netsock_getPort(&GLOB(bindaddr)) > 0) {
+			snprintf(port_str, sizeof(port_str), "%d", sccp_netsock_getPort(&GLOB(bindaddr)));
 		} else {
 			snprintf(port_str, sizeof(port_str), "%s", "cisco-sccp");
 		}
 
-		sccp_copy_string(addrStr, sccp_socket_stringify_addr(&GLOB(bindaddr)), sizeof(addrStr));
+		sccp_copy_string(addrStr, sccp_netsock_stringify_addr(&GLOB(bindaddr)), sizeof(addrStr));
 
-		if ((status = getaddrinfo(sccp_socket_stringify_addr(&GLOB(bindaddr)), port_str, &hints, &res)) != 0) {
-			pbx_log(LOG_ERROR, "Failed to get addressinfo for %s:%s, error: %s!\n", sccp_socket_stringify_addr(&GLOB(bindaddr)), port_str, gai_strerror(status));
+		if ((status = getaddrinfo(sccp_netsock_stringify_addr(&GLOB(bindaddr)), port_str, &hints, &res)) != 0) {
+			pbx_log(LOG_ERROR, "Failed to get addressinfo for %s:%s, error: %s!\n", sccp_netsock_stringify_addr(&GLOB(bindaddr)), port_str, gai_strerror(status));
 			close(GLOB(descriptor));
 			GLOB(descriptor) = -1;
 			return FALSE;
@@ -116,24 +117,24 @@ int load_config(void)
 		} else {
 			/* get ip-address string */
 			if (bind(GLOB(descriptor), res->ai_addr, res->ai_addrlen) < 0) {
-				pbx_log(LOG_ERROR, "Failed to bind to %s:%d: %s!\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)), strerror(errno));
+				pbx_log(LOG_ERROR, "Failed to bind to %s:%d: %s!\n", addrStr, sccp_netsock_getPort(&GLOB(bindaddr)), strerror(errno));
 				close(GLOB(descriptor));
 				GLOB(descriptor) = -1;
 				return FALSE;
 			}
-			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)));
+			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", addrStr, sccp_netsock_getPort(&GLOB(bindaddr)));
 
-			sccp_socket_setoptions(GLOB(descriptor));
+			sccp_netsock_setoptions(GLOB(descriptor));
 			
 			if (listen(GLOB(descriptor), DEFAULT_SCCP_BACKLOG)) {
-				pbx_log(LOG_ERROR, "Failed to start listening to %s:%d: %s\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)), strerror(errno));
+				pbx_log(LOG_ERROR, "Failed to start listening to %s:%d: %s\n", addrStr, sccp_netsock_getPort(&GLOB(bindaddr)), strerror(errno));
 				close(GLOB(descriptor));
 				GLOB(descriptor) = -1;
 				return FALSE;
 			}
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)));
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", addrStr, sccp_netsock_getPort(&GLOB(bindaddr)));
 			GLOB(reload_in_progress) = FALSE;
-			pbx_pthread_create(&GLOB(socket_thread), NULL, sccp_socket_thread, NULL);
+			pbx_pthread_create(&GLOB(socket_thread), NULL, sccp_netsock_thread, NULL);
 
 		}
 		freeaddrinfo(res);

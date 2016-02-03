@@ -19,7 +19,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_actions.h"
 #include "sccp_device.h"
 #include "sccp_utils.h"
-#include "sccp_socket.h"
+#include "sccp_session.h"
 #include "sccp_channel.h"
 #include "sccp_pbx.h"
 #include "sccp_line.h"
@@ -553,7 +553,7 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 	if (device->checkACL(device) == FALSE) {
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getSas(s, &sas);
-		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&sas));
+		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterTokenRequest.sId.deviceName, sccp_netsock_stringify_addr(&sas));
 		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 		sccp_session_reject(s, "IP Not Authorized");
 		return;
@@ -589,7 +589,7 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 
 				struct sockaddr_storage sas = { 0 };
 				sccp_session_getSas(s, &sas);
-				snprintf(command, SCCP_PATH_MAX, "%s %s %s %s", GLOB(token_fallback), deviceName, sccp_socket_stringify_host(&sas), skinny_devicetype2str(deviceType));
+				snprintf(command, SCCP_PATH_MAX, "%s %s %s %s", GLOB(token_fallback), deviceName, sccp_netsock_stringify_host(&sas), skinny_devicetype2str(deviceType));
 				FILE *pp;
 
 				//sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: (token_request), executing '%s'\n", deviceName, (char *) command);
@@ -734,7 +734,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 	device->skinny_type = deviceType;
 
 	if (device->checkACL(device) == FALSE) {
-		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&sas));
+		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, sccp_netsock_stringify_addr(&sas));
 		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 		sccp_session_tokenRejectSPCP(s, 60);
 		sccp_session_reject(s, "IP Not Authorized");
@@ -850,7 +850,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 		if (device->checkACL(device) == FALSE) {
 			struct sockaddr_storage sas = { 0 };
 			sccp_session_getSas(s, &sas);
-			pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", deviceName, sccp_socket_stringify_addr(&sas));
+			pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", deviceName, sccp_netsock_stringify_addr(&sas));
 			sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 			sccp_session_reject(s, "IP Not Authorized");
 			return;
@@ -870,7 +870,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 		register_sasIPv6.ss_family = AF_INET6;
 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) &register_sasIPv6;
 		memcpy(&sin6->sin6_addr, &msg_in->data.RegisterMessage.ipv6Address, sizeof(sin6->sin6_addr));
-		phone_ipv6 = pbx_strdupa(sccp_socket_stringify_host(&register_sasIPv6));
+		phone_ipv6 = pbx_strdupa(sccp_netsock_stringify_host(&register_sasIPv6));
 	}
 
 	/* set our IPv4 address */
@@ -879,9 +879,9 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 		register_sasIPv4.ss_family = AF_INET;
 		struct sockaddr_in *sin4 = (struct sockaddr_in *) &register_sasIPv4;
 		memcpy(&sin4->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, sizeof(sin4->sin_addr));
-		phone_ipv4 = pbx_strdupa(sccp_socket_stringify_host(&register_sasIPv4));
+		phone_ipv4 = pbx_strdupa(sccp_netsock_stringify_host(&register_sasIPv4));
 		sccp_session_setOurIP4Address(s, &register_sasIPv4);
-		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Our Session IP4 Address %s\n", deviceName, sccp_socket_stringify(&register_sasIPv4));
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Our Session IP4 Address %s\n", deviceName, sccp_netsock_stringify(&register_sasIPv4));
 	}
 	
 	/* */
@@ -894,25 +894,25 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 		device->nat = SCCP_NAT_AUTO_OFF;
 		struct sockaddr_storage session_sas = { 0 };
 		sccp_session_getSas(s, &session_sas);
-		sccp_socket_ipv4_mapped(&session_sas, &session_sas);
+		sccp_netsock_ipv4_mapped(&session_sas, &session_sas);
 
 		struct ast_str *ha_localnet_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 		sccp_print_ha(ha_localnet_buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(localaddr));
 
 		if (session_sas.ss_family == AF_INET) {
-			char *session_ipv4 = pbx_strdupa(sccp_socket_stringify_host(&session_sas));
+			char *session_ipv4 = pbx_strdupa(sccp_netsock_stringify_host(&session_sas));
 			if (GLOB(localaddr) && sccp_apply_ha_default(GLOB(localaddr), &session_sas, AST_SENSE_DENY) != AST_SENSE_ALLOW) {	// if device->sin falls in localnet scope
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected NAT. Session IP '%s' (Phone: '%s') is outside of localnet('%s') scope. We will use externip or externhost for the RTP stream\n", deviceName, session_ipv4, phone_ipv4, pbx_str_buffer(ha_localnet_buf));
 				device->nat = SCCP_NAT_AUTO_ON;
-			} else if (sccp_socket_cmp_addr(&session_sas, &register_sasIPv4)) {				// compare device->sin to the phones reported ipaddr
+			} else if (sccp_netsock_cmp_addr(&session_sas, &register_sasIPv4)) {				// compare device->sin to the phones reported ipaddr
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected Remote NAT. Session IP '%s' does not match IpAddr '%s' Reported by Device.  We will use externip or externhost for the RTP stream\n", deviceName, session_ipv4, phone_ipv4);
 				device->nat = SCCP_NAT_AUTO_ON;
 			} else {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device Not NATTED. Device IP '%s' falls in localnet scope\n", deviceName, phone_ipv4);
 			}
 		} else {
-			char *session_ipv6 = pbx_strdupa(sccp_socket_stringify_host(&session_sas));
-			if (sccp_socket_cmp_addr(&session_sas, &register_sasIPv6)) {
+			char *session_ipv6 = pbx_strdupa(sccp_netsock_stringify_host(&session_sas));
+			if (sccp_netsock_cmp_addr(&session_sas, &register_sasIPv6)) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected Remote NAT. Session IP '%s' does not match IpAddr '%s' Reported by Device.  We will use externip or externhost for the RTP stream\n", deviceName, session_ipv6, phone_ipv6);
 				device->nat = SCCP_NAT_AUTO_ON;
 			} else {
@@ -3112,7 +3112,7 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	d->protocol->parsePortResponse((const sccp_msg_t *) msg_in, &conferenceId, &callReference, &passThruPartyId, &sas, &RTCPPortNumber, &mediaType);
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (PortResponse) Got PortResponse Remote RTP/UDP '%s', ConferenceId:%d, PassThruPartyId:%u, CallID:%u, RTCPPortNumber:%d, mediaType:%s\n", d->id, 
-		sccp_socket_stringify(&sas), conferenceId, passThruPartyId, callReference, RTCPPortNumber, skinny_mediaType2str(mediaType));
+		sccp_netsock_stringify(&sas), conferenceId, passThruPartyId, callReference, RTCPPortNumber, skinny_mediaType2str(mediaType));
 
 		
 	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
@@ -3141,14 +3141,14 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 				return;
 		}
 		
-		if (channel && !sccp_socket_equals(&sas, &rtp->phone_remote)) {
+		if (channel && !sccp_netsock_equals(&sas, &rtp->phone_remote)) {
 			if (d->nat >= SCCP_NAT_ON) {
 				/* Rewrite ip-addres to the outside source address using the phones connection (device->sin) */
-				uint16_t port = sccp_socket_getPort(&sas);
+				uint16_t port = sccp_netsock_getPort(&sas);
 				sccp_session_getSas(s, &sas);
 				
-				sccp_socket_ipv4_mapped(&sas, &sas);
-				sccp_socket_setPort(&sas, port);
+				sccp_netsock_ipv4_mapped(&sas, &sas);
+				sccp_netsock_setPort(&sas, port);
 
 			}
 			sccp_rtp_set_phone(channel, rtp, &sas);
@@ -3171,7 +3171,7 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 	struct sockaddr_storage sas = { 0 };
 	d->protocol->parseOpenReceiveChannelAck((const sccp_msg_t *) msg_in, &mediastatus, &sas, &passThruPartyId, &callReference);
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: '%s' (%d), Remote RTP/UDP '%s', Type: %s, PassThruPartyId: %u, CallID: %u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_socket_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: '%s' (%d), Remote RTP/UDP '%s', Type: %s, PassThruPartyId: %u, CallID: %u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 
 	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passThruPartyId) {
 		passThruPartyId = 0xFFFFFFFF - callReference;
@@ -3217,11 +3217,11 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 		if (channel->rtp.audio.instance) {
 			if (d->nat >= SCCP_NAT_ON) {
 				/* Rewrite ip-addres to the outside source address using the phones connection (device->sin) */
-				uint16_t port = sccp_socket_getPort(&sas);
+				uint16_t port = sccp_netsock_getPort(&sas);
 				sccp_session_getSas(s, &sas);
 				
-				sccp_socket_ipv4_mapped(&sas, &sas);
-				sccp_socket_setPort(&sas, port);
+				sccp_netsock_ipv4_mapped(&sas, &sas);
+				sccp_netsock_setPort(&sas, port);
 
 			}
 			sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
@@ -3237,7 +3237,7 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 				iPbx.set_callstate(channel, AST_STATE_UP);
 			}
 		} else {
-			pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Can't set the RTP media address to %s, no asterisk rtp channel!\n", d->id, sccp_socket_stringify(&sas));
+			pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Can't set the RTP media address to %s, no asterisk rtp channel!\n", d->id, sccp_netsock_stringify(&sas));
 			sccp_channel_endcall(channel);								// FS - 350
 		}
 	} else {
@@ -3265,7 +3265,7 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 	uint32_t partyID = 0, passThruPartyId = 0, callReference;
 
 	d->protocol->parseOpenMultiMediaReceiveChannelAck((const sccp_msg_t *) msg_in, &mediastatus, &sas, &passThruPartyId, &callReference);
-	sccp_copy_string(addrStr, sccp_socket_stringify(&sas), sizeof(addrStr));
+	sccp_copy_string(addrStr, sccp_netsock_stringify(&sas), sizeof(addrStr));
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: '%s' (%d), Remote RTP/UDP '%s', Type: %s, PassThruId: %u, CallID: %u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, addrStr, (d->directrtp ? "DirectRTP" : "Indirect RTP"), partyID, callReference);
 	if (mediastatus) {
@@ -3294,13 +3294,13 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting device rtp transmission with state %s(%d)\n", d->id, sccp_channelstate2str(channel->state), channel->state);
 		if (channel->rtp.video.instance || sccp_rtp_createServer(d, channel, SCCP_RTP_VIDEO)) {
 			if (d->nat >= SCCP_NAT_ON) {
-				uint16_t port = sccp_socket_getPort(&sas);
+				uint16_t port = sccp_netsock_getPort(&sas);
 				sccp_session_getSas(s, &sas);
-				sccp_socket_ipv4_mapped(&sas, &sas);
-				sccp_socket_setPort(&sas, port);
+				sccp_netsock_ipv4_mapped(&sas, &sas);
+				sccp_netsock_setPort(&sas, port);
 			}
 
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s\n", d->id, sccp_socket_stringify(&sas));
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s\n", d->id, sccp_netsock_stringify(&sas));
 			sccp_rtp_set_phone(channel, &channel->rtp.video, &sas);
 			channel->rtp.video.writeState = SCCP_RTP_STATUS_ACTIVE;
 
@@ -3394,7 +3394,7 @@ void handle_startmediatransmission_ack(constSessionPtr s, devicePtr d, constMess
 			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
 				iPbx.set_callstate(channel, AST_STATE_UP);
 			}
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: '%s' (%d), Remote TCP/IP: '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus, sccp_socket_stringify(&sas), callID, callID1, partyID);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: '%s' (%d), Remote TCP/IP: '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), callID, callID1, partyID);
 		} else {
 			pbx_log(LOG_WARNING, "%s: (sccp_handle_startmediatransmission_ack) Channel already down (%d). Hanging up\n", DEV_ID_LOG(d), channel->state);
 			sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
@@ -3435,7 +3435,7 @@ void handle_startmultimediatransmission_ack(constSessionPtr s, devicePtr d, cons
 	if (c) {
 		/* update status */
 		c->rtp.video.readState = SCCP_RTP_STATUS_ACTIVE;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK. Remote TCP/IP '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), sccp_socket_stringify(&ss), callID, callID1, partyID);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK. Remote TCP/IP '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), sccp_netsock_stringify(&ss), callID, callID1, partyID);
 		return;
 	}
 	pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u could not be found, please report this to developer\n", DEV_ID_LOG(d), partyID);
@@ -3663,14 +3663,14 @@ void handle_ServerResMessage(constSessionPtr s, devicePtr d, constMessagePtr msg
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getOurIP(s, &sas, 0);
 		sccp_copy_string(msg_out->data.ServerResMessage.v3.server[0].serverName, GLOB(servername), sizeof(msg_out->data.ServerResMessage.v3.server[0].serverName));
-		msg_out->data.ServerResMessage.v3.serverListenPort[0] = sccp_socket_getPort(&GLOB(bindaddr));
+		msg_out->data.ServerResMessage.v3.serverListenPort[0] = sccp_netsock_getPort(&GLOB(bindaddr));
 		struct sockaddr_in *in = (struct sockaddr_in *) &sas;
 		memcpy(&msg_out->data.ServerResMessage.v3.serverIpAddr[0], &in->sin_addr, 4);
 	} else {
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getOurIP(s, &sas, 0);
 		sccp_copy_string(msg_out->data.ServerResMessage.v17.server[0].serverName, GLOB(servername), sizeof(msg_out->data.ServerResMessage.v17.server[0].serverName));
-		msg_out->data.ServerResMessage.v17.serverListenPort[0] = sccp_socket_getPort(&GLOB(bindaddr));
+		msg_out->data.ServerResMessage.v17.serverListenPort[0] = sccp_netsock_getPort(&GLOB(bindaddr));
 		msg_out->data.ServerResMessage.v17.serverIpAddr[0].lel_ipv46 = htolel(sas.ss_family == AF_INET6 ? 1 : 0);
 		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *) &sas;
 		memcpy(&msg_out->data.ServerResMessage.v17.serverIpAddr[0].bel_ipAddr, &in6->sin6_addr, 16);

@@ -14,7 +14,8 @@
 #include "sccp_channel.h"
 #include "sccp_utils.h"
 #include "sccp_indicate.h"
-#include "sccp_socket.h"
+#include "sccp_netsock.h"
+#include "sccp_session.h"
 #include "sccp_pbx.h"
 #include "sccp_line.h"
 
@@ -949,14 +950,14 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 			if (!strcasecmp(args.param, "peerip")) {
 				struct sockaddr_storage sas = { 0 };
 				if (sccp_session_getOurIP(d->session, &sas, 0)) {
-					sccp_copy_string(buf, sccp_socket_stringify(&sas), buflen);
+					sccp_copy_string(buf, sccp_netsock_stringify(&sas), buflen);
 				} else {
 					sccp_copy_string(buf, "--", buflen);
 				}
 			} else if (!strcasecmp(args.param, "recvip")) {
 				struct sockaddr_storage sas = { 0 };
 				if (sccp_session_getSas(d->session, &sas)) {
-					sccp_copy_string(buf, sccp_socket_stringify(&sas), buflen);
+					sccp_copy_string(buf, sccp_netsock_stringify(&sas), buflen);
 				} else {
 					sccp_copy_string(buf, "--", buflen);
 				}

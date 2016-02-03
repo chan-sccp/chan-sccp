@@ -90,7 +90,7 @@
 #include "sccp_utils.h"
 #include "sccp_featureButton.h"
 #include "sccp_mwi.h"
-#include "sccp_socket.h"
+#include "sccp_session.h"
 #include "sccp_devstate.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
@@ -881,7 +881,7 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
 		pbx_log(LOG_WARNING, "Invalid IP address: %s\n", value);
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	} else {
-		if (sccp_socket_cmp_addr(&bindaddr_prev, &bindaddr_new)) {					// 0 = equal
+		if (sccp_netsock_cmp_addr(&bindaddr_prev, &bindaddr_new)) {					// 0 = equal
 			memcpy(&(*(struct sockaddr_storage *) dest), &bindaddr_new, sizeof(bindaddr_new));
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
 		}
@@ -2224,7 +2224,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 	// sccp_config_set_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
 
 	/* setup bindaddress */
-	if (!sccp_socket_getPort(&GLOB(bindaddr))) {
+	if (!sccp_netsock_getPort(&GLOB(bindaddr))) {
 		struct sockaddr_in *in = (struct sockaddr_in *) &GLOB(bindaddr);
 
 		in->sin_port = ntohs(DEFAULT_SCCP_PORT);
@@ -2234,8 +2234,8 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 	sccp_configurationchange_t res = sccp_config_applyGlobalConfiguration(v);
 
 	/* setup bind-port */
-	if (!sccp_socket_getPort(&GLOB(bindaddr))) {
-		sccp_socket_setPort(&GLOB(bindaddr), DEFAULT_SCCP_PORT);
+	if (!sccp_netsock_getPort(&GLOB(bindaddr))) {
+		sccp_netsock_setPort(&GLOB(bindaddr), DEFAULT_SCCP_PORT);
 	}
 
 	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET) {

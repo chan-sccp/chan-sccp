@@ -51,7 +51,7 @@
 #include "sccp_channel.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
-#include "sccp_socket.h"
+#include "sccp_session.h"
 #include "sccp_features.h"
 #include "sccp_config.h"
 #include "sccp_conference.h"
@@ -499,8 +499,8 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("Platform byte order", CLI_AMI_LIST_WIDTH, "%s", "BIG ENDIAN");
 #endif
 	CLI_AMI_OUTPUT_PARAM("Server Name", CLI_AMI_LIST_WIDTH, "%s", GLOB(servername));
-	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_socket_stringify(&GLOB(bindaddr)));
-	CLI_AMI_OUTPUT_PARAM("Extern IP", CLI_AMI_LIST_WIDTH, "%s", !sccp_socket_is_any_addr(&GLOB(externip)) ? sccp_socket_stringify(&GLOB(externip)) : "Not Set -> Using Incoming IP-addres.");
+	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_netsock_stringify(&GLOB(bindaddr)));
+	CLI_AMI_OUTPUT_PARAM("Extern IP", CLI_AMI_LIST_WIDTH, "%s", !sccp_netsock_is_any_addr(&GLOB(externip)) ? sccp_netsock_stringify(&GLOB(externip)) : "Not Set -> Using Incoming IP-addres.");
 	CLI_AMI_OUTPUT_PARAM("Localnet", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_localnet_buf));
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_BOOL("Direct RTP", CLI_AMI_LIST_WIDTH, GLOB(directrtp));
@@ -637,7 +637,7 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 			strftime(regtime, sizeof(regtime), "%c ", timeinfo);											\
 			if(d->session) {															\
 				sccp_session_getSas(d->session, &sas);											 	\
-				sccp_copy_string(addrStr,sccp_socket_stringify(&sas),sizeof(addrStr));								\
+				sccp_copy_string(addrStr,sccp_netsock_stringify(&sas),sizeof(addrStr));								\
 			} else {addrStr[0] = '-'; addrStr[1] = '-';addrStr[2] = '\0';}									  	\
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 																\
@@ -732,10 +732,10 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	if (d->session) {
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getSas(d->session, &sas);
-		sccp_copy_string(clientAddress, sccp_socket_stringify(&sas), sizeof(clientAddress));
+		sccp_copy_string(clientAddress, sccp_netsock_stringify(&sas), sizeof(clientAddress));
 		struct sockaddr_storage ourip = { 0 };
 		sccp_session_getOurIP(d->session, &ourip, 0);
-		sccp_copy_string(serverAddress, sccp_socket_stringify(&ourip), sizeof(serverAddress));
+		sccp_copy_string(serverAddress, sccp_netsock_stringify(&ourip), sizeof(serverAddress));
 	} else {
 		sprintf(clientAddress, "%s", "???.???.???.???");
 		sprintf(serverAddress, "%s", "???.???.???.???");
@@ -1407,7 +1407,7 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 				snprintf(tmpname, sizeof(tmpname), "SCCP/%s-%08x", l->name, channel->callid);			\
 			}													\
 			if (&channel->rtp) {											\
-				sccp_copy_string(addrStr,sccp_socket_stringify(&channel->rtp.audio.phone), sizeof(addrStr));	\
+				sccp_copy_string(addrStr,sccp_netsock_stringify(&channel->rtp.audio.phone), sizeof(addrStr));	\
 			}
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 												\
@@ -1728,7 +1728,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 
 			struct sockaddr_storage ourip = { 0 };
 			sccp_session_getOurIP(d->session, &ourip, 0);
-			sprintf(xmlData2, xmlData1, sccp_socket_stringify(&ourip));
+			sprintf(xmlData2, xmlData1, sccp_netsock_stringify(&ourip));
 
 			d->protocol->sendUserToDeviceDataVersionMessage(d, 1, 0, 0, 1, xmlData2, 1);
 			pbx_log(LOG_NOTICE, "%s: Done1\n", d->id);
@@ -1757,7 +1757,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 				if (argc < 5) {
 					struct sockaddr_storage sas = { 0 };
 					sccp_session_getSas(d->session, &sas);
-					sccp_copy_string(clientAddress, sccp_socket_stringify_addr(&sas), sizeof(clientAddress));
+					sccp_copy_string(clientAddress, sccp_netsock_stringify_addr(&sas), sizeof(clientAddress));
 				} else {
 					sccp_copy_string(clientAddress, argv[6], sizeof(clientAddress));
 				}

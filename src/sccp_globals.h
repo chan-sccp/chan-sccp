@@ -10,7 +10,7 @@
 #include "config.h"
 #include "define.h"
 #include "sccp_codec.h"
-#include <netinet/in.h>
+#include "sccp_netsock.h"
 
 __BEGIN_C_EXTERN__
 SCCP_API char SCCP_VERSIONSTR[300];

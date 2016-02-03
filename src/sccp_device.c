@@ -24,7 +24,7 @@
 #include "sccp_config.h"
 #include "sccp_actions.h"
 #include "sccp_features.h"
-#include "sccp_socket.h"
+#include "sccp_session.h"
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
 #include "sccp_devstate.h"
