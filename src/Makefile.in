@@ -1148,7 +1148,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-csmodLTLIBRARIES
+install-data-am: install-csmodLTLIBRARIES install-data-local
 
 install-dvi: install-dvi-recursive
 
@@ -1205,11 +1205,11 @@ uninstall-am: uninstall-csmodLTLIBRARIES
 	distclean-hdr distclean-libtool distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
 	install-csmodLTLIBRARIES install-data install-data-am \
-	install-dvi install-dvi-am install-exec install-exec-am \
-	install-html install-html-am install-info install-info-am \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs installdirs-am maintainer-clean \
+	install-data-local install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs installdirs-am maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-csmodLTLIBRARIES
@@ -1261,6 +1261,20 @@ install-csmodLTLIBRARIES:
 		echo    "Please restart asterisk or reload the module to use the new version of chan_sccp.so"; 				\
 		echo    "==============================================================================================="; 		\
 	fi
+
+install-data-local:
+	test -d $(DESTDIR)$(PBX_ETC) || $(mkinstalldirs) $(DESTDIR)$(PBX_ETC)
+	test -f $(DESTDIR)$(PBX_ETC)/sccp.conf || $(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC)
+
+load:	install
+	test -f $(PBX_SBIN)/asterisk && $(PBX_SBIN)/asterisk -rx "module load chan_sccp.so"
+
+unload:	install
+	test -f $(PBX_SBIN)/asterisk && $(PBX_SBIN)/asterisk -rx "module load chan_sccp.so"
+
+reload: install
+	$(MAKE) unload
+	$(MAKE) load
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
