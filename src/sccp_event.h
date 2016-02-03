@@ -8,7 +8,11 @@
  */
 #pragma once
 
+#if CS_TEST_FRAMEWORK
+#define NUMBER_OF_EVENT_TYPES 11
+#else
 #define NUMBER_OF_EVENT_TYPES 10
+#endif
 
 #ifdef DEBUG
 #define sccp_event_retain(_x) 		({sccp_event_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
