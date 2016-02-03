@@ -3040,7 +3040,7 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 		return;
 	}
 
-	if ((int)event - 1 < 0 || (int)event - 1 > (int)ARRAY_LEN(softkeysmap)) {
+	if ((int)event - 1 < 0 || (int)event - 1 > (int)ARRAY_LEN(softkeysmap) - 1) {
 		pbx_log(LOG_ERROR, "SCCP: Received Softkey Event is out of bounds of softkeysmap (0 < %ld < %ld). Exiting\n", (long)(letohl(msg_in->data.SoftKeyEventMessage.lel_softKeyEvent) - 1), (long)ARRAY_LEN(softkeysmap));
 		return;
 	}
