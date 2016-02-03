@@ -3233,7 +3233,7 @@ int sccp_config_generate(char *filename, int configType)
 	long unsigned int segment;
 	char *description = "";
 	char *description_part = "";
-	char name_and_value[100];
+	char name_and_value[100] = "";
 	char size_str[15] = "";
 	int linelen = 0;
 	struct ast_str *extra_info = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE * 2);
