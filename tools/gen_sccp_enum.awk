@@ -301,7 +301,7 @@ codeSkip == 1			{ next }
 				print "\tint pos = 0;" >out_source_file
 				if (Entry_val[0] == 0) {
 					print "\tif (" namespace "_" enum_name "_int_value == 0) {" > out_source_file
-					print "\t\tpos += snprintf(res, " totlen ", \"%s%s\", pos ? \",\" : \"\", " namespace "_" enum_name "_map[0]);" >out_source_file
+					print "\t\tpos += snprintf(res, " totlen ", \"%s\", " namespace "_" enum_name "_map[0]);" >out_source_file
 					print "\t\treturn res;" > out_source_file
 					print "\t}" > out_source_file
 				}
