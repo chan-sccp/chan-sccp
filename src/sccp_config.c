@@ -2043,7 +2043,11 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 			break;
 		case EMPTY:
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Empty Button Definition\n");
+			config->type = EMPTY;
+			config->label = NULL;
+			break;
 		default:
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Unknown Button Type\n");
 			config->type = EMPTY;
 			config->label = NULL;
 			break;
