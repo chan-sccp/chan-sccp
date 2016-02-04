@@ -359,9 +359,8 @@ static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny
 	boolean_t found = FALSE;
 
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES && skinny_codec_prefs[x] != SKINNY_CODEC_NONE; x++) {
-		if (skinny_codec_prefs[x] == skinny_codec) {
+		if (!found && skinny_codec_prefs[x] == skinny_codec) {
 			found = TRUE;
-			break;
 		}
 		if (found) {
 			memmove(skinny_codec_prefs + x, skinny_codec_prefs + (x + 1), (SKINNY_MAX_CAPABILITIES - (x + 1)) * sizeof(skinny_codec_t));  // move left
