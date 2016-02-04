@@ -335,9 +335,8 @@ static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinf
 				struct callinfo_lookup src_entry = callinfo_lookup[srckey];
 				struct callinfo_lookup tmp_entry = callinfo_lookup[dstkey];
 				callinfo_entry_t *src_callinfo = (callinfo_entry_t *const) &src_ci->content.entries[src_entry.group];
-				callinfo_entry_t *tmp_callinfo =      &tmp_ci_content.entries[tmp_entry.group];
+				callinfo_entry_t *tmp_callinfo = &tmp_ci_content.entries[tmp_entry.group];
 				
-				srckey = srckey;
 				char *srcPtr = NULL;
 				uint16_t *validPtr = NULL;
 				switch(src_entry.type) {
