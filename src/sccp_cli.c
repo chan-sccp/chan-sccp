@@ -2230,7 +2230,7 @@ static int sccp_dnd_device(int fd, sccp_cli_totals_t *totals, struct mansession 
 				CLI_AMI_OUTPUT(fd, s, "Unset DND\r\n");
 			} else {
 				CLI_AMI_OUTPUT(fd, s, "Unknown DND State: %s\n", argv[3]);
-				res = RESULT_FAILURE;
+				CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find device %s\n", argv[3]);		/* explicit return */
 			}
 			sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
 			sccp_dev_check_displayprompt(d);
