@@ -1280,7 +1280,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							} else {
 								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							}
-							if (status == SCCP_CHANNELSTATE_SENTINEL) {
+							if (hint->currentState == SCCP_CHANNELSTATE_SENTINEL) {
 								status = SKINNY_BLF_STATUS_INUSE;	/* connected / progress / proceeding */
 							}
 							break;
