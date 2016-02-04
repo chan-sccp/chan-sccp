@@ -226,17 +226,11 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 	} else if (mid < ARRAY_LEN(sccp_messagetypes)) {
 		messageMap_cb = &sccpMessagesCbMap[mid];
 	} else {
-		pbx_log(LOG_ERROR, "SCCP: Message Type ID: %d does not exist", mid);
-		return 0;
-	}
-	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (0x%X)\n", sccp_session_getDesignator(s), msgtype2str(mid), mid);
-
-	/* we dont know how to handle event */
-	if (!messageMap_cb) {
 		pbx_log(LOG_WARNING, "SCCP: Unknown Message %x. Don't know how to handle it. Skipping.\n", mid);
 		handle_unknown_message(s, device, msg);
 		return 0;
 	}
+	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (0x%X)\n", sccp_session_getDesignator(s), msgtype2str(mid), mid);
 
 	device = check_session_message_device(s, msg, msgtype2str(mid), messageMap_cb->deviceIsNecessary);	/* retained device returned */
 
