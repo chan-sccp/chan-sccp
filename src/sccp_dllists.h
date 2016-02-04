@@ -199,7 +199,8 @@ struct {												\
 #define SCCP_RWLIST_INSERT_BEFORE_CURRENT_BACKWARDS SCCP_LIST_INSERT_BEFORE_CURRENT_BACKWARDS
 
 /* List Traverse End (Parentesis) */
-#define SCCP_LIST_TRAVERSE_SAFE_END  __list_prev = __list_prev; }
+#define SCCP_LIST_TRAVERSE_SAFE_END  }
+//__list_prev = __list_prev; }
 #define SCCP_RWLIST_TRAVERSE_SAFE_END SCCP_LIST_TRAVERSE_SAFE_END
 
 /* List Backward Explore Routine */
