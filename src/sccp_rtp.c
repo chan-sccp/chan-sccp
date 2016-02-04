@@ -324,7 +324,7 @@ int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp)
 				sccp_netsock_ipv4_mapped(phone_remote, phone_remote);				/*!< we need this to convert mapped IPv4 to real IPv4 address */
 				sccp_netsock_setPort(phone_remote, port);
 
-			} else if ((usFamily == AF_INET6) != remoteFamily) {					/* the device can do IPv6 but should send it to IPv4 address (directrtp possible) */
+			} else { /* if ((usFamily == AF_INET6) != remoteFamily) { */  /* redundant if */	/* the device can do IPv6 but should send it to IPv4 address (directrtp possible) */
 				struct sockaddr_storage sas;
 
 				memcpy(&sas, phone_remote, sizeof(struct sockaddr_storage));
