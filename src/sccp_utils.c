@@ -2181,33 +2181,10 @@ char *sccp_trimwhitespace(char *str)
 	return str;
 }
 
-static int __dev_urandom_fd = -1;
-#ifndef linux
-AST_MUTEX_DEFINE_STATIC(randomlock);
-#endif
 long int sccp_random(void)
 {
-	long int res;
-
-	if (__dev_urandom_fd >= 0) {
-		int read_res = read(__dev_urandom_fd, &res, sizeof(res));
-		if (read_res > 0) {
-			long int rm = RAND_MAX;
-			res = res < 0 ? ~res : res;
-			rm++;
-			return res % rm;
-		}
-	}
-#ifdef linux
-	//coverity[+dont_call]
-	res = sccp_random();
-#else
-	ast_mutex_lock(&randomlock);
-	//coverity[+dont_call]
-	res = sccp_random();
-	ast_mutex_unlock(&randomlock);
-#endif
-	return res;
+	/* potentially replace with our own implementation */
+	return pbx_random();
 }
 
 #if HAVE_ICONV
