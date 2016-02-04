@@ -18,14 +18,14 @@ SCCP_FILE_VERSION(__FILE__, "");
 
 #include "sccp_actions.h"
 #include "sccp_device.h"
-#include "sccp_utils.h"
 #include "sccp_session.h"
+#include "sccp_utils.h"
 #include "sccp_channel.h"
 #include "sccp_pbx.h"
-#include "sccp_line.h"
-#include "sccp_features.h"
-#include "sccp_config.h"
 #include "sccp_conference.h"
+#include "sccp_config.h"
+#include "sccp_features.h"
+#include "sccp_line.h"
 #include "sccp_indicate.h"
 
 /*!
@@ -53,7 +53,7 @@ void handle_unknown_message(constSessionPtr s, devicePtr d, constMessagePtr msg_
 void handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_alarm(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				__NONNULL(1,3);
 void handle_token_request(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,3);
-void handle_register(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				__NONNULL(1,3);
+void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_in)				__NONNULL(1,3);
 void handle_SPCPTokenReq(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,3);
 void handle_accessorystatus_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_unregister(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				__NONNULL(1,3);
@@ -71,7 +71,7 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,2,3);
 void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
-void handle_ConnectionStatistics(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
+void handle_ConnectionStatistics(constSessionPtr s, devicePtr device, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_version(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				__NONNULL(1,2,3);
 void handle_ServerResMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,2,3);
 void handle_ConfigStatMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,2,3);
@@ -123,7 +123,8 @@ gcc_inline static sccp_device_t * const check_session_message_device(constSessio
 		sccp_device_t * const device = sccp_session_getDevice(s, deviceIsNecessary);
 		if (device) {
 			return device;
-		}  else if (deviceIsNecessary) {
+		}
+		if (deviceIsNecessary) {
 			pbx_log(LOG_WARNING, "Session Device could not be retained, to handle %s for, but device is needed\n", msgtypestr);
 		}
 	}
@@ -1254,10 +1255,11 @@ void sccp_handle_AvailableLines(constSessionPtr s, devicePtr d, constMessagePtr 
 
 	/* count the available lines on the phone */
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-		if ((btn[i].type == SKINNY_BUTTONTYPE_LINE) || (btn[i].type == SCCP_BUTTONTYPE_MULTI))
+		if ((btn[i].type == SKINNY_BUTTONTYPE_LINE) || (btn[i].type == SCCP_BUTTONTYPE_MULTI)) {
 			line_count++;
-		else if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED)
+		} else if (btn[i].type == SKINNY_BUTTONTYPE_UNUSED) {
 			break;
+}
 	}
 
 	d->linesRegistered = TRUE;
@@ -1558,7 +1560,7 @@ static void handle_speeddial(constDevicePtr d, const sccp_speed_t * k)
 				iPbx.send_digits(channel, k->ext);
 			}
 			return;
-		} else if (channel->state == SCCP_CHANNELSTATE_OFFHOOK || channel->state == SCCP_CHANNELSTATE_GETDIGITS || channel->state == SCCP_CHANNELSTATE_SPEEDDIAL) {
+		} if (channel->state == SCCP_CHANNELSTATE_OFFHOOK || channel->state == SCCP_CHANNELSTATE_GETDIGITS || channel->state == SCCP_CHANNELSTATE_SPEEDDIAL) {
 			sccp_channel_stop_schedule_digittimout(channel);
 			len = sccp_strlen(channel->dialedNumber);
 			sccp_copy_string(channel->dialedNumber + len, k->ext, sizeof(channel->dialedNumber) - len);
@@ -1781,7 +1783,7 @@ static void handle_stimulus_hold(constDevicePtr d, constLinePtr l, const uint16_
 	if ((channel1 = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))) {
 		sccp_channel_hold(channel1);
 		return;
-	} else if ((channel1 = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
+	} if ((channel1 = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
 		AUTO_RELEASE sccp_channel_t *channel2 = sccp_device_getActiveChannel(d);
 
 		if (channel2 && channel2->state == SCCP_CHANNELSTATE_OFFHOOK) {
@@ -3006,7 +3008,8 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 
 		if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
 			sccp_channel_set_calledparty(channel, NULL, channel->dialedNumber);
-			if (len==1) sccp_dev_set_keyset(d, lineInstance, channel->callid, KEYMODE_DIGITSFOLL);
+			if (len==1) { sccp_dev_set_keyset(d, lineInstance, channel->callid, KEYMODE_DIGITSFOLL);
+}
 		}
 		if (channel->dtmfmode == SCCP_DTMFMODE_SKINNY && iPbx.send_digit) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Force Sending Emulated DTMF Digit %c to %s (using pbx frame)\n", DEV_ID_LOG(d), resp, l->name);
@@ -3508,7 +3511,7 @@ void handle_version(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
  */
 void handle_ConnectionStatistics(constSessionPtr s, devicePtr device, constMessagePtr msg_in)
 {
-#define CALC_AVG(_newval, _mean, _numval) ( ( (_mean * (_numval) ) + _newval ) / (_numval + 1))
+#define CALC_AVG(_newval, _mean, _numval) ( ( ((_mean) * (_numval) ) + (_newval) ) / ((_numval) + 1))
 
 	size_t buffersize = 2048;
 	struct ast_str *output_buf = pbx_str_alloca(buffersize);
