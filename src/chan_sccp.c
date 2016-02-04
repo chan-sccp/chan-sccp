@@ -107,8 +107,6 @@ int load_config(void)
 
 		if ((status = getaddrinfo(sccp_netsock_stringify_addr(&GLOB(bindaddr)), port_str, &hints, &res)) != 0) {
 			pbx_log(LOG_ERROR, "Failed to get addressinfo for %s:%s, error: %s!\n", sccp_netsock_stringify_addr(&GLOB(bindaddr)), port_str, gai_strerror(status));
-			close(GLOB(descriptor));
-			GLOB(descriptor) = -1;
 			return FALSE;
 		}
 		do {
