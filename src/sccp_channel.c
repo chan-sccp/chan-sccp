@@ -24,11 +24,11 @@ SCCP_FILE_VERSION(__FILE__, "");
  */
 #include "sccp_device.h"
 #include "sccp_pbx.h"
-#include "sccp_utils.h"
 #include "sccp_conference.h"
+#include "sccp_utils.h"
 #include "sccp_features.h"
-#include "sccp_line.h"
 #include "sccp_indicate.h"
+#include "sccp_line.h"
 #include "sccp_netsock.h"
 #include <asterisk/callerid.h>			// sccp_channel, sccp_callinfo
 #include <asterisk/pbx.h>			// AST_EXTENSION_NOT_INUSE
@@ -261,14 +261,13 @@ sccp_device_t *sccp_channel_getDevice_retained(const sccp_channel_t * channel)
 	pbx_assert(channel != NULL);
 	if (channel->privateData && channel->privateData->device) {
 #if DEBUG
-		channel->privateData->device = sccp_refcount_retain((sccp_device_t *) channel->privateData->device, filename, lineno, func);
+		channel->privateData->device = sccp_refcount_retain( channel->privateData->device, filename, lineno, func);
 #else
 		channel->privateData->device = sccp_device_retain((sccp_device_t *) channel->privateData->device);
 #endif
-		return (sccp_device_t *) channel->privateData->device;
-	} else {
-		return NULL;
-	}
+		return channel->privateData->device;
+	} 
+	return NULL;
 }
 
 /*!
@@ -664,9 +663,8 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 		instance = sccp_device_find_index_for_line(d, channel->line->name);
 		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, channel->callid, 0);
 		return;
-	} else {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Started RTP on channel %s-%08X\n", DEV_ID_LOG(d), channel->line->name, channel->callid);
-	}
+	} 
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Started RTP on channel %s-%08X\n", DEV_ID_LOG(d), channel->line->name, channel->callid);
 
 	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
 	if (channel->owner) {
@@ -2440,12 +2438,11 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 			pbx_log(LOG_WARNING, "%s: invalid number\n", "SCCP");
 		}
 		return 0;
-	} else {
-		pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x cannot dial this number %s\n", "SCCP", sccp_forwarding_channel->line->name, sccp_forwarding_channel->callid, dialedNumber);
-		sccp_forwarding_channel->parentChannel = sccp_channel_release(sccp_forwarding_channel->parentChannel);	/* explicit release */
-		sccp_channel_endcall(sccp_forwarding_channel);
-		return -1;
-	}
+	} 
+	pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x cannot dial this number %s\n", "SCCP", sccp_forwarding_channel->line->name, sccp_forwarding_channel->callid, dialedNumber);
+	sccp_forwarding_channel->parentChannel = sccp_channel_release(sccp_forwarding_channel->parentChannel);	/* explicit release */
+	sccp_channel_endcall(sccp_forwarding_channel);
+	return -1;
 }
 
 #ifdef CS_SCCP_PARK
@@ -2562,10 +2559,9 @@ int sccp_channel_callwaiting_tone_interval(sccp_device_t * device, sccp_channel_
 
 					sccp_dev_starttone(d, GLOB(callwaiting_tone), instance, c->callid, 0);
 					return 0;
-				} else {
-					sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval) channel has been hungup or pickuped up by another phone\n");
-					return -1;
-				}
+				} 
+				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval) channel has been hungup or pickuped up by another phone\n");
+				return -1;
 			}
 		}
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval) No valid device/channel to handle callwaiting\n");

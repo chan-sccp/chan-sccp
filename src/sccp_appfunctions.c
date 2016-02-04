@@ -13,12 +13,12 @@
 #include "config.h"
 #include "common.h"
 #include "sccp_appfunctions.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
+#include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_mwi.h"
-#include "sccp_utils.h"
 #include "sccp_conference.h"
+#include "sccp_utils.h"
 #include "sccp_session.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
@@ -50,7 +50,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 {
 	struct ast_str *coldata = ast_str_thread_get(&coldata_buf, 16);
 	struct ast_str *colnames = ast_str_thread_get(&colnames_buf, 16);
-	char *colname;
+	char *colname;												// we should make this a finite length
 	uint16_t buf_len = 1024;
 	char buf[1024] = "";
 	char *token = NULL;
@@ -95,7 +95,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	ast_str_reset(colnames);
 	ast_str_reset(coldata);
 	if (d) {
-		strcat(colname, ",");
+		strcat(colname, ",");										// we should be using strlcat instead
 		token = strtok(colname, ",");
 		while (token != NULL) {
 			token = pbx_trim_blanks(token);
@@ -175,10 +175,8 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				snprintf(buf, buf_len, "%s", d->allow_conference ? "ON" : "OFF");
 			} else if (!strcasecmp(token, "conf_play_general_announce")) {
 				snprintf(buf, buf_len, "%s", d->conf_play_general_announce ? "ON" : "OFF");
-			} else if (!strcasecmp(token, "allow_conference")) {
-				snprintf(buf, buf_len, "%s", d->conf_play_part_announce ? "ON" : "OFF");
 			} else if (!strcasecmp(token, "conf_play_part_announce")) {
-				snprintf(buf, buf_len, "%s", d->allow_conference ? "ON" : "OFF");
+				snprintf(buf, buf_len, "%s", d->conf_play_part_announce ? "ON" : "OFF");
 			} else if (!strcasecmp(token, "conf_mute_on_entry")) {
 				snprintf(buf, buf_len, "%s", d->conf_mute_on_entry ? "ON" : "OFF");
 			} else if (!strcasecmp(token, "conf_music_on_hold_class")) {

@@ -8,15 +8,15 @@
 #include "config.h"
 #ifdef CS_SCCP_MANAGER
 #include "common.h"
-#include "sccp_management.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
-#include "sccp_line.h"
-#include "sccp_utils.h"
+#include "sccp_device.h"
+#include "sccp_management.h"
+#include "sccp_actions.h"
 #include "sccp_config.h"
 #include "sccp_features.h"
-#include "sccp_actions.h"
+#include "sccp_line.h"
 #include "sccp_session.h"
+#include "sccp_utils.h"
 #include <asterisk/threadstorage.h>
 
 SCCP_FILE_VERSION(__FILE__, "");
@@ -80,7 +80,7 @@ int sccp_register_management(void)
 #if ASTERISK_VERSION_NUMBER < 10600
 #define _MAN_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG
 #else
-#define _MAN_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING
+#define _MAN_FLAGS	(EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING)
 #endif
 
 	result = pbx_manager_register("SCCPListDevices", _MAN_FLAGS, sccp_manager_show_devices, "List SCCP devices", management_show_devices_desc);
