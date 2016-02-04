@@ -173,7 +173,7 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
 				size = subscriptions[i].syncSize;
 				if (size) {
 					sccp_event_subscriber_t *tmp;
-					tmp = (sccp_event_subscriber_t *) sccp_realloc(subscriptions[i].async, (size + 1) * sizeof(sccp_event_subscriber_t));
+					tmp = (sccp_event_subscriber_t *) sccp_realloc(subscriptions[i].sync, (size + 1) * sizeof(sccp_event_subscriber_t));
 					if (!tmp) {
 						pbx_log(LOG_ERROR, "SCCP: (sccp_event_subscribe) memory allocation error, skipping sync subscription\n");
 						return;
