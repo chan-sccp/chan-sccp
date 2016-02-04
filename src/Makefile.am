@@ -96,8 +96,11 @@ install-csmodLTLIBRARIES:
 
 
 install-data-local:
-	@test -d $(DESTDIR)$(PBX_ETC) || $(mkinstalldirs) $(DESTDIR)$(PBX_ETC)
-	@test -f $(DESTDIR)$(PBX_ETC)/sccp.conf || echo "Installing $(DESTDIR)$(PBX_ETC)/sccp.conf..." && $(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC)
+	@test -d $(DESTDIR)$(PBX_ETC) || $(mkinstalldirs) $(DESTDIR)$(PBX_ETC);								\
+	if [ ! test -f $(DESTDIR)$(PBX_ETC)/sccp.conf ]; then										\
+		echo "Installing $(DESTDIR)$(PBX_ETC)/sccp.conf...";									\
+		$(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC);							\
+	fi
 
 load:	install
 	@test -f $(PBX_SBIN)/asterisk && $(PBX_SBIN)/asterisk -rx "module load chan_sccp.so"
