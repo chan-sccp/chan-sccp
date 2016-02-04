@@ -338,9 +338,6 @@ int __sccp_line_destroy(const void *ptr)
 
 	SCCP_LIST_LOCK(&l->mailboxes);
 	while ((mailbox = SCCP_LIST_REMOVE_HEAD(&l->mailboxes, list))) {
-		if (!mailbox) {
-			break;
-		}
 		sccp_mwi_unsubscribeMailbox(mailbox);
 		if (mailbox->mailbox) {
 			sccp_free(mailbox->mailbox);
