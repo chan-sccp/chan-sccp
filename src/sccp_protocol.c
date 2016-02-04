@@ -921,7 +921,7 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr dev
 	int hdr_len = 0;
 
 	if (device->protocolversion > 17) {
-		int num_segments = data_len / StationMaxXMLMessage + 1;
+		int num_segments = data_len / (StationMaxXMLMessage + 1);
 		int segment = 0;
 		sccp_msg_t *msg[num_segments];
 
@@ -957,6 +957,7 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr dev
 				memcpy(&msg[segment]->data.UserToDeviceDataVersion1Message.data, xmlData + xmlDataStart, msg_len);
 				xmlDataStart += msg_len;
 			}
+			
 			sccp_dev_send(device, msg[segment]);
 			usleep(10);
 			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d/%d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, (int) strlen(xmlData), hdr_len + msg_len);
