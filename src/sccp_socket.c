@@ -1190,7 +1190,7 @@ static void sccp_socket_cleanup_timed_out(void)
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
 			if (session->lastKeepAlive == 0) {
 				// final resort
-				SCCP_LIST_REMOVE_LIST(session);
+				SCCP_LIST_REMOVE_CURRENT(list);
 				destroy_session(session, 0);
 				session = NULL;
 			} else if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive)) && (session->session_thread != AST_PTHREADT_NULL)) {
