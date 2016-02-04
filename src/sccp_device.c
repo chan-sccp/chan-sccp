@@ -133,23 +133,15 @@ static void sccp_device_retrieveDeviceCapabilities(constDevicePtr device)
 
 static void sccp_device_setBackgroundImage(constDevicePtr device, const char *url)
 {
-	char xmlStr[2048] = { 0 };
-	unsigned int transactionID = sccp_random();
-
-	if (strncasecmp("http://", url, strlen("http://")) != 0) {
-		pbx_log(LOG_WARNING, "SCCP: '%s' needs to be a valid http url\n", url ? url : "");
+	if (!url || strncasecmp("http://", url, strlen("http://")) != 0) {
+		pbx_log(LOG_WARNING, "SCCP: '%s' needs to be a valid http url\n", url ? url : "--");
 		return;
 	}
-	strcat(xmlStr, "<setBackground>");
-	strcat(xmlStr, "<background>");
-	strcat(xmlStr, "<image>");
-	strcat(xmlStr, url);
-	strcat(xmlStr, "</image>");
-	strcat(xmlStr, "<icon>");
-	strcat(xmlStr, url);
-	strcat(xmlStr, "</icon>");
-	strcat(xmlStr, "</background>");
-	strcat(xmlStr, "</setBackground>\n\0");
+
+	char xmlStr[StationMaxXMLMessage] = { 0 };
+	unsigned int transactionID = sccp_random();
+
+	snprintf(xmlStr, sizeof(xmlStr), "<setBackground><background><image>%s</image><icon>%s</icon></background></setBackground>\n", url, url);
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_BACKGROUND, 0, 0, transactionID, xmlStr, 0);
 	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_2 "%s: sent new background to device: %s via transaction:%d\n", device->id, url, transactionID);
@@ -176,13 +168,13 @@ static void sccp_device_setBackgroundImageNotSupported(constDevicePtr device, co
 
 static void sccp_device_displayBackgroundImagePreview(constDevicePtr device, const char *url)
 {
-	char xmlStr[2048] = {0};
-	unsigned int transactionID = sccp_random();
-
 	if (!url || strncmp("http://", url, strlen("http://")) != 0) {
-		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url);
+		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "--");
 		return;
 	}
+	char xmlStr[StationMaxXMLMessage] = {0};
+	unsigned int transactionID = sccp_random();
+
 	snprintf(xmlStr, 2047, "<setBackgroundPreview><image>%s</image></setBackgroundPreview>", url);
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_BACKGROUND, 0, 0, transactionID, xmlStr, 0);
@@ -195,13 +187,14 @@ static void sccp_device_displayBackgroundImagePreviewNotSupported(constDevicePtr
 
 static void sccp_device_setRingtone(constDevicePtr device, const char *url)
 {
-	char xmlStr[2048] = {0};
-	unsigned int transactionID = sccp_random();
-
 	if (!url || strncmp("http://", url, strlen("http://")) != 0) {
-		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url);
+		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "--");
 		return;
 	}
+
+	char xmlStr[StationMaxXMLMessage] = {0};
+	unsigned int transactionID = sccp_random();
+
 	snprintf(xmlStr, 2047, "<setRingTone><ringTone>%s</ringTone></setRingTone>", url);
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_RINGTONE, 0, 0, transactionID, xmlStr, 0);
@@ -771,11 +764,11 @@ void sccp_device_removeFromGlobals(devicePtr device)
 	sccp_device_t * d = NULL;
 
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
-	d = SCCP_RWLIST_REMOVE(&GLOB(devices), device, list);
+	if ((d = SCCP_RWLIST_REMOVE(&GLOB(devices), device, list))) {
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Removed device '%s' from Glob(devices)\n", DEV_ID_LOG(device));
+		sccp_device_release(d);					/* explicit release of device after removing from list */
+	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
-
-	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Removed device '%s' from Glob(devices)\n", DEV_ID_LOG(device));
-	d = d ? sccp_device_release(d) : NULL;			/* explicit release of device after removing from list */
 }
 
 /*!
@@ -2904,9 +2897,6 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 					case SCCP_FEATURE_CFWDALL:
 						if (linedevice->cfwdAll.enabled) {
 							/* build disp message string */
-							if (s != tmp) {
-								pbx_build_string(&s, &len, ", ");
-							}
 							if (sccp_strlen(line->cid_num) + sccp_strlen(linedevice->cfwdAll.number) > 15) {
 								pbx_build_string(&s, &len, "%s:%s", SKINNY_DISP_CFWDALL, linedevice->cfwdAll.number);
 							} else {
@@ -2917,9 +2907,6 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 					case SCCP_FEATURE_CFWDBUSY:
 						if (linedevice->cfwdBusy.enabled) {
 							/* build disp message string */
-							if (s != tmp) {
-								pbx_build_string(&s, &len, ", ");
-							}
 							if (sccp_strlen(line->cid_num) + sccp_strlen(linedevice->cfwdBusy.number) > 15) {
 								pbx_build_string(&s, &len, "%s:%s", SKINNY_DISP_CFWDBUSY, linedevice->cfwdBusy.number);
 							} else {
