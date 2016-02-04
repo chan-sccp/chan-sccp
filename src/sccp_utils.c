@@ -222,22 +222,22 @@ gcc_inline const char *msgtype2str(sccp_mid_t type)
 {														/* sccp_protocol.h */
 	if (type >= SPCP_MESSAGE_OFFSET && (type - SPCP_MESSAGE_OFFSET) < ARRAY_LEN(spcp_messagetypes)) {
 		return spcp_messagetypes[type - SPCP_MESSAGE_OFFSET].text;
-	} if (type < ARRAY_LEN(sccp_messagetypes)) {
-		return sccp_messagetypes[type].text;
-	} else {
-		return "SCCP: Message type does not exist";
 	}
+	if (type < ARRAY_LEN(sccp_messagetypes)) {
+		return sccp_messagetypes[type].text;
+	} 
+	return "SCCP: Message type does not exist";
 }
 
 gcc_inline size_t msgtype2size(sccp_mid_t type)
 {														/* sccp_protocol.h */
 	if (type >= SPCP_MESSAGE_OFFSET && (type - SPCP_MESSAGE_OFFSET) < ARRAY_LEN(spcp_messagetypes)) {
 		return spcp_messagetypes[type - SPCP_MESSAGE_OFFSET].size + SCCP_PACKET_HEADER;
-	} if (type < ARRAY_LEN(sccp_messagetypes)) {
-		return sccp_messagetypes[type].size + SCCP_PACKET_HEADER;
-	} else {
-		return 0;
 	}
+	if (type < ARRAY_LEN(sccp_messagetypes)) {
+		return sccp_messagetypes[type].size + SCCP_PACKET_HEADER;
+	} 
+	return 0;
 }
 
 gcc_inline const char *pbxsccp_devicestate2str(uint32_t value)
@@ -299,35 +299,26 @@ gcc_inline uint32_t labelstr2int(const char *str)
  * \param codecs Array of Skinny Codecs
  * \param length Max Length
  */
-char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int length)
+char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength)
 {
-	int x;
-	unsigned len;
-	char *start, *end = buf;
-
-	if (!size) {
+	if (!buf || size <= 2) {
 		return buf;
 	}
-	snprintf(end, size, "(");
-	len = strlen(end);
-	end += len;
-	size -= len;
-	start = end;
-	for (x = 0; x < length; x++) {
+	memset(buf, 0, size);
+	char *endptr = buf;
+	int x, comma = 0;
+
+	snprintf(endptr++, size, "(");
+	endptr += strlen(endptr);
+	for (x = 0; x < clength; x++) {
 		if (codecs[x] == 0) {
 			break;
 		}
-
-		snprintf(end, size, "%s (%d), ", codec2name(codecs[x]), codecs[x]);
-		len = strlen(end);
-		end += len;
-		size -= len;
+		snprintf(endptr, size, "%s%s (%d)", comma++ ? ", " : "",codec2name(codecs[x]), codecs[x]);
+		endptr += strlen(endptr);
 	}
-	if (start == end) {
-		pbx_copy_string(start, "nothing)", size);
-	} else if (size > 2) {
-		*(end - 2) = ')';
-		*(end - 1) = '\0';
+	if (buf == endptr) {
+		snprintf(endptr, size, "nothing)");
 	}
 	return buf;
 }
@@ -2069,9 +2060,11 @@ int sccp_strversioncmp(const char *s1, const char *s2)
 		}
 		if (lz1 > lz2) {
 			return -1;
-		} if (lz1 < lz2) {
+		}
+		if (lz1 < lz2) {
 			return 1;
-		} else if (lz1 == 1) {
+		}
+		if (lz1 == 1) {
 			/*
 			 * If the common prefix for s1 and s2 consists only of zeros, then the
 			 * "longer" number has to compare less. Otherwise the comparison needs
@@ -2095,7 +2088,8 @@ int sccp_strversioncmp(const char *s1, const char *s2)
 			if (*s1 != *s2 && *s1 != '0' && *s2 != '0') {
 				if (p1 < p2) {
 					return 1;
-				} if (p1 > p2) {
+				}
+				if (p1 > p2) {
 					return -1;
 				}
 			} else {
@@ -2115,9 +2109,11 @@ int sccp_strversioncmp(const char *s1, const char *s2)
 
 		if (p1 < p2) {
 			return -1;
-		} if (p1 > p2) {
+		}
+		if (p1 > p2) {
 			return 1;
-		} else if ((ret = strncmp(s1, s2, p1)) != 0) {
+		}
+		if ((ret = strncmp(s1, s2, p1)) != 0) {
 			return ret;
 		}
 		/* Numbers are equal or not present, try with next ones. */

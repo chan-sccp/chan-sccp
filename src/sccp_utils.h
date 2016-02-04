@@ -87,7 +87,7 @@ gcc_inline const char *codec2key(skinny_codec_t value);
 gcc_inline uint32_t debugcat2int(const char *str);
 #endif
 
-char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int length);
+char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength);
 int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing);
 const char *skinny_ringermode2str(uint8_t type);
 boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length);
