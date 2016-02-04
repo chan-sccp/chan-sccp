@@ -444,7 +444,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			} else if (!strcasecmp(token, "oldmsgs")) {
 				snprintf(buf, buf_len, "%d", l->voicemailStatistic.oldmsgs);
 			} else if (!strcasecmp(token, "num_devices")) {
-				snprintf(buf, buf_len, "%d", l ? SCCP_LIST_GETSIZE(&l->devices) : 0);
+				snprintf(buf, buf_len, "%d", SCCP_LIST_GETSIZE(&l->devices));
 			} else if (!strcasecmp(token, "mailboxes")) {
 				sccp_mailbox_t *mailbox;
 				char tmp[1024] = "";
