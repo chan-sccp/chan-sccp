@@ -364,8 +364,8 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
 	const SCCPConfigOption *sccpConfigOption = sccp_find_config(segment, name);
 	void *dst;
-	int type;												/* enum wrapper */
-	int flags;												/* enum wrapper */
+	enum SCCPConfigOptionType type;										/* enum wrapper */
+	enum SCCPConfigOptionFlag flags;									/* enum wrapper */
 
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;						/* indicates config value is changed or not */
 	sccp_configurationchange_t changes = SCCP_CONFIG_NOUPDATENEEDED;
@@ -667,10 +667,6 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 				changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 			}
 			break;
-
-		case SCCP_CONFIG_BUTTONTYPE_SENTINEL:
-			pbx_log(LOG_WARNING, "SCCP: Unknown param at %s='%s'\n", name, value);
-			return SCCP_CONFIG_NOUPDATENEEDED;
 	}
 
 	if (SCCP_CONFIG_CHANGE_CHANGED == changed) {
