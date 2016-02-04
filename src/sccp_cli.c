@@ -2579,13 +2579,13 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 #ifdef CS_SCCP_REALTIME
 								if (device->realtime) {
 									if ((dv = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL))) {
-										change = sccp_config_applyDeviceConfiguration(device, dv);
+										change |= sccp_config_applyDeviceConfiguration(device, dv);
 									}
 								} else
 #endif
 								if (GLOB(cfg)) {
 									v = ast_variable_browse(GLOB(cfg), device->id);
-									change = sccp_config_applyDeviceConfiguration(device, v);
+									change |= sccp_config_applyDeviceConfiguration(device, v);
 								}
 								device->pendingUpdate = 1;
 								sccp_device_check_update(device);				// Will cleanup after reload and restart the device if necessary
