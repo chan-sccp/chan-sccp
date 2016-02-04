@@ -3159,7 +3159,6 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 									int comma1 = 0;
 
 									if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) {
-										astman_append(s, "%s", comma1 ? "," : "");
 										astman_append(s, "\"Required\"");
 										comma1 = 1;
 									}
