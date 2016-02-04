@@ -175,19 +175,14 @@ static void sccp_device_setBackgroundImageNotSupported(constDevicePtr device, co
 
 static void sccp_device_displayBackgroundImagePreview(constDevicePtr device, const char *url)
 {
-	char xmlStr[2048];
+	char xmlStr[2048] = {0};
 	unsigned int transactionID = random();
 
-	if (strncmp("http://", url, strlen("http://")) != 0) {
-		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "");
+	if (!url || strncmp("http://", url, strlen("http://")) != 0) {
+		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url);
+		return;
 	}
-	memset(xmlStr, 0, sizeof(xmlStr));
-
-	strcat(xmlStr, "<setBackgroundPreview>");
-	strcat(xmlStr, "<image>");
-	strcat(xmlStr, url);
-	strcat(xmlStr, "</image>");
-	strcat(xmlStr, "</setBackgroundPreview>\n\0");
+	snprintf(xmlStr, 2047, "<setBackgroundPreview><image>%s</image></setBackgroundPreview>", url);
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_BACKGROUND, 0, 0, transactionID, xmlStr, 0);
 }
@@ -199,20 +194,14 @@ static void sccp_device_displayBackgroundImagePreviewNotSupported(constDevicePtr
 
 static void sccp_device_setRingtone(constDevicePtr device, const char *url)
 {
-	char xmlStr[2048];
+	char xmlStr[2048] = {0};
 	unsigned int transactionID = random();
 
-	if (strncmp("http://", url, strlen("http://")) != 0) {
-		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "");
+	if (!url || strncmp("http://", url, strlen("http://")) != 0) {
+		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url);
+		return;
 	}
-
-	memset(xmlStr, 0, sizeof(xmlStr));
-
-	strcat(xmlStr, "<setRingTone>");
-	strcat(xmlStr, "<ringTone>");
-	strcat(xmlStr, url);
-	strcat(xmlStr, "</ringTone>");
-	strcat(xmlStr, "</setRingTone>\n\0");
+	snprintf(xmlStr, 2047, "<setRingTone><ringTone>%s</ringTone></setRingTone>", url);
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_RINGTONE, 0, 0, transactionID, xmlStr, 0);
 }
