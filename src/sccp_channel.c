@@ -1514,8 +1514,8 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 
 			/* set devicevariables */
 			sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Copy Variables\n", d->id);
-			PBX_VARIABLE_TYPE *v = ((d) ? d->variables : NULL);
 
+			PBX_VARIABLE_TYPE *v = d->variables;
 			while (channel->owner && !pbx_check_hangup(channel->owner) && d && v) {
 				pbx_builtin_setvar_helper(channel->owner, v->name, v->value);
 				v = v->next;
