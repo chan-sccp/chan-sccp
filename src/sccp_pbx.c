@@ -505,7 +505,7 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 			sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 		}
 
-		if (SCCP_CHANNELSTATE_DOWN != c->state || SCCP_CHANNELSTATE_ONHOOK != c->state) {
+		if (SCCP_CHANNELSTATE_DOWN == c->state || SCCP_CHANNELSTATE_ONHOOK == c->state) {
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 		}
 
