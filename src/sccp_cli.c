@@ -44,17 +44,17 @@
  *  - We need to return RESULT_SUCCESS (for cli calls) at the end. If we set CLI_AMI_RETURN_ERROR, we will exit the function immediately and return RESULT_FAILURE. We need to make sure that all references are released before sending CLI_AMI_RETURN_ERROR.
  *  .
  */
-#include <config.h>
+#include "config.h"
 #include "common.h"
+#include "sccp_channel.h"
 #include "sccp_cli.h"
 #include "sccp_device.h"
-#include "sccp_channel.h"
 #include "sccp_line.h"
-#include "sccp_utils.h"
 #include "sccp_session.h"
-#include "sccp_features.h"
-#include "sccp_config.h"
+#include "sccp_utils.h"
 #include "sccp_conference.h"
+#include "sccp_config.h"
+#include "sccp_features.h"
 //#include "sccp_indicate.h"
 #include "sccp_mwi.h"
 #include "sccp_hint.h"
@@ -718,18 +718,18 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 
 	if (argc < 4) {
 		pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
-		CLI_AMI_RETURN_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
+		CLI_AMI_RETURN_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");		/* explicit return */
 	}
 	dev = pbx_strdupa(argv[3]);
 	if (pbx_strlen_zero(dev)) {
 		pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
-		CLI_AMI_RETURN_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
+		CLI_AMI_RETURN_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");		/* explicit return */
 	}
 	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(dev, FALSE);
 
 	if (!d) {
 		pbx_log(LOG_WARNING, "Failed to get device %s\n", dev);
-		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);		/* explicit return */
 	}
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
@@ -1230,14 +1230,14 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 
 	if (argc < 4) {
 		pbx_log(LOG_WARNING, "LineName needs to be supplied\n");
-		CLI_AMI_RETURN_ERROR(fd, s, m, "LineName needs to be supplied %s\n", "");
+		CLI_AMI_RETURN_ERROR(fd, s, m, "LineName needs to be supplied %s\n", "");		/* explicit return */
 	}
 	line = pbx_strdupa(argv[3]);
 	AUTO_RELEASE sccp_line_t *l = sccp_line_find_byname(line, FALSE);
 
 	if (!l) {
 		pbx_log(LOG_WARNING, "Failed to get line %s\n", line);
-		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for line %s\n", line);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for line %s\n", line);		/* explicit return */
 	}
 
 	if (!s) {
@@ -1995,7 +1995,7 @@ static int sccp_message_devices(int fd, sccp_cli_totals_t *totals, struct manses
 
 	if (sccp_strlen_zero(argv[3])) {
 		pbx_log(LOG_WARNING, "MessageText cannot be empty\n");
-		CLI_AMI_RETURN_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[3]);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[3]);		/* explicit return */
 	}
 
 	if (argc > 4) {
@@ -2064,7 +2064,7 @@ static int sccp_message_device(int fd, sccp_cli_totals_t *totals, struct mansess
 	}
 	if (sccp_strlen_zero(argv[4])) {
 		pbx_log(LOG_WARNING, "MessageText cannot be empty\n");
-		CLI_AMI_RETURN_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[4]);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[4]);		/* explicit return */
 	}
 	if (argc > 5) {
 		if (!strcmp(argv[5], "beep")) {
@@ -2082,7 +2082,7 @@ static int sccp_message_device(int fd, sccp_cli_totals_t *totals, struct mansess
 		sccp_dev_set_message(d, argv[4], timeout, FALSE, beep);
 		res = RESULT_SUCCESS;
 	} else {
-		CLI_AMI_RETURN_ERROR(fd, s, m, "Device '%s' not found!\n", argv[3]);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Device '%s' not found!\n", argv[3]);		/* explicit return */
 	}
 
 	if (s) {
@@ -2244,7 +2244,7 @@ static int sccp_dnd_device(int fd, sccp_cli_totals_t *totals, struct mansession 
 		}
 		res = RESULT_SUCCESS;
 	} else {
-		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find device %s\n", argv[3]);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find device %s\n", argv[3]);		/* explicit return */
 	}
 
 	if (s) {
@@ -2579,13 +2579,13 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 #ifdef CS_SCCP_REALTIME
 								if (device->realtime) {
 									if ((dv = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL))) {
-										change = sccp_config_applyDeviceConfiguration(device, dv);
+										change |= sccp_config_applyDeviceConfiguration(device, dv);
 									}
 								} else
 #endif
 								if (GLOB(cfg)) {
 									v = ast_variable_browse(GLOB(cfg), device->id);
-									change = sccp_config_applyDeviceConfiguration(device, v);
+									change |= sccp_config_applyDeviceConfiguration(device, v);
 								}
 								device->pendingUpdate = 1;
 								sccp_device_check_update(device);				// Will cleanup after reload and restart the device if necessary
@@ -3236,7 +3236,7 @@ static int sccp_answercall(int fd, sccp_cli_totals_t *totals, struct mansession 
 	}
 
 	if (res == RESULT_FAILURE && !sccp_strlen_zero(error)) {
-		CLI_AMI_RETURN_ERROR(fd, s, m, "%s\n", error);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "%s\n", error);		/* explicit return */
 	}
 
 	if (s) {
@@ -3333,20 +3333,20 @@ static int sccp_tokenack(int fd, sccp_cli_totals_t *totals, struct mansession *s
 	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(dev, FALSE);
 	if (!d) {
 		pbx_log(LOG_WARNING, "Failed to get device %s\n", dev);
-		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);		/* explicit return */
 	}
 
 	if (d->status.token != SCCP_TOKEN_STATE_REJ && d->session) {
 		pbx_log(LOG_WARNING, "%s: We need to have received a token request before we can acknowledge it\n", dev);
-		CLI_AMI_RETURN_ERROR(fd, s, m, "%s: We need to have received a token request before we can acknowledge it\n", dev);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "%s: We need to have received a token request before we can acknowledge it\n", dev);		/* explicit return */
+	} 
+	if (d->session) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", dev);
+		sccp_session_tokenAck(d->session);
 	} else {
-		if (d->session) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", dev);
-			sccp_session_tokenAck(d->session);
-		} else {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Phone not connected to this server (no valid session)\n", dev);
-		}
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Phone not connected to this server (no valid session)\n", dev);
 	}
+	
 	if (s) {
 		totals->lines = local_line_total;
 	}
@@ -3437,8 +3437,8 @@ void sccp_register_cli(void)
 #define _MAN_COM_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_COMMAND
 #define _MAN_REP_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG
 #else
-#define _MAN_COM_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_COMMAND
-#define _MAN_REP_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING
+#define _MAN_COM_FLAGS	(EVENT_FLAG_SYSTEM | EVENT_FLAG_COMMAND)
+#define _MAN_REP_FLAGS	(EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING)
 #endif
 	pbx_manager_register("SCCPShowGlobals", _MAN_REP_FLAGS, manager_show_globals, "show globals setting", ami_globals_usage);
 	pbx_manager_register("SCCPShowDevices", _MAN_REP_FLAGS, manager_show_devices, "show devices", ami_devices_usage);

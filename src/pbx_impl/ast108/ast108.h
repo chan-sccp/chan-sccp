@@ -8,7 +8,7 @@
  */
 #pragma once
 
-#include <config.h>
+#include "config.h"
 
 #define pbx_channel_unref(c) ({ ao2_ref(c, -1); (PBX_CHANNEL_TYPE *) (NULL); })
 #define pbx_channel_ref(c) ({ ao2_ref(c, 1); (PBX_CHANNEL_TYPE *) c; })

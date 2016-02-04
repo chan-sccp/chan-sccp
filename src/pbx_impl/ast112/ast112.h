@@ -8,7 +8,7 @@
  */
 #pragma once
 
-#include <config.h>
+#include "config.h"
 #include "ast_announce.h"
 
 #undef pbx_channel_ref

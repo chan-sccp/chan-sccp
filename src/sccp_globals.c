@@ -6,7 +6,7 @@
  *              See the LICENSE file at the top of the source tree.
  * \since       2016-02-02
  */
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_globals.h"
 

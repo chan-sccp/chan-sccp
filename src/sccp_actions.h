@@ -16,7 +16,7 @@ SCCP_API int SCCP_CALL sccp_handle_message(constMessagePtr msg, constSessionPtr 
 
 /* externally used handlers */
 SCCP_API void SCCP_CALL sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const uint32_t callid);	__NONNULL(1);
-SCCP_API void SCCP_CALL sccp_handle_dialtone(constDevicePtr d, constLinePtr l, constChannelPtr c)			__NONNULL(1,2,3);
+SCCP_API void SCCP_CALL sccp_handle_dialtone(constDevicePtr d, constLinePtr l, constChannelPtr channel)			__NONNULL(1,2,3);
 SCCP_API void SCCP_CALL sccp_handle_AvailableLines(constSessionPtr s, devicePtr d, constMessagePtr none)		__NONNULL(1,2);
 SCCP_API void SCCP_CALL sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMessagePtr none)		__NONNULL(1,2);
 SCCP_API void SCCP_CALL sccp_handle_time_date_req(constSessionPtr s, devicePtr d, constMessagePtr none)			__NONNULL(1,2);

@@ -6,13 +6,13 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_conference.h"
+#include "sccp_channel.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
-#include "sccp_channel.h"
 #include "sccp_indicate.h"
 #include <asterisk/say.h>
 
@@ -23,9 +23,9 @@
 #include <asterisk/bridging_features.h>
 #else
 #include <asterisk/bridge.h>
-#include <asterisk/bridge_technology.h>
-#include <asterisk/bridge_features.h>
 #include <asterisk/bridge_channel.h>
+#include <asterisk/bridge_features.h>
+#include <asterisk/bridge_technology.h>
 #endif
 #ifdef HAVE_PBX_BRIDGING_ROLES_H
 #include <asterisk/bridging_roles.h>

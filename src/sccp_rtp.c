@@ -84,7 +84,7 @@
  * 10.0.0.1 =  d->session->ourip			= rtp->remote	=> local ip-address + port of the phone's connection
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_channel.h"
 #include "sccp_device.h"

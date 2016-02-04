@@ -10,16 +10,16 @@
  * $date$
  * $revision$
  */
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_callinfo.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
-#include "sccp_utils.h"
 #include "sccp_device.h"			/* dependency on sccp_device.h should be fixed */
-#include <stdarg.h>
+#include "sccp_utils.h"
 #include <asterisk/callerid.h>
+#include <stdarg.h>
 
 /* local definitions */
 typedef struct callinfo_entry {
@@ -60,9 +60,9 @@ struct sccp_callinfo {
 	} content;
 };														/*!< SCCP CallInfo Structure */
 
-#define sccp_callinfo_wrlock(x) pbx_rwlock_wrlock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
-#define sccp_callinfo_rdlock(x) pbx_rwlock_rdlock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
-#define sccp_callinfo_unlock(x) pbx_rwlock_unlock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
+#define sccp_callinfo_wrlock(x) pbx_rwlock_wrlock(&((sccp_callinfo_t * const)(x))->lock)				/* discard const */
+#define sccp_callinfo_rdlock(x) pbx_rwlock_rdlock(&((sccp_callinfo_t * const)(x))->lock)				/* discard const */
+#define sccp_callinfo_unlock(x) pbx_rwlock_unlock(&((sccp_callinfo_t * const)(x))->lock)				/* discard const */
 
 struct callinfo_lookup {
 	const enum callinfo_groups group;
@@ -335,9 +335,9 @@ static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinf
 				struct callinfo_lookup src_entry = callinfo_lookup[srckey];
 				struct callinfo_lookup tmp_entry = callinfo_lookup[dstkey];
 				callinfo_entry_t *src_callinfo = (callinfo_entry_t *const) &src_ci->content.entries[src_entry.group];
-				callinfo_entry_t *tmp_callinfo = (callinfo_entry_t *)      &tmp_ci_content.entries[tmp_entry.group];
+				callinfo_entry_t *tmp_callinfo =      &tmp_ci_content.entries[tmp_entry.group];
 				
-				srckey = (sccp_callinfo_key_t)srckey;
+				srckey = srckey;
 				char *srcPtr = NULL;
 				uint16_t *validPtr = NULL;
 				switch(src_entry.type) {

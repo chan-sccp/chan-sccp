@@ -8,7 +8,7 @@
  */
 #pragma once
 
-#include <config.h>
+#include "config.h"
 #include <asterisk/astobj2.h>
 
 #define sccp_sched_context_destroy sched_context_destroy

@@ -14,7 +14,7 @@
  * Relations:   SCCP Hint
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_event.h"
 #include "sccp_device.h"
@@ -287,73 +287,74 @@ void sccp_event_fire(const sccp_event_t * event)
 	/* search for position in array */
 	uint i, n;
 	sccp_event_type_t eventType = event->type;
+	boolean_t matched = FALSE;
 
 	for (i = 0, n = 1 << i; i < NUMBER_OF_EVENT_TYPES; i++, n = 1 << i) {
 		if (eventType & n) {
+			matched = TRUE;
 			break;
 		}
 	}
 
-	// pthread_attr_t tattr;
-	// pthread_t tid;
-
 	/* start async thread if nessesary */
-	if (GLOB(module_running)) {
-		if (subscriptions[i].aSyncSize > 0 && sccp_event_running) {
-			/* create thread for async subscribers */
-			struct sccp_event_aSyncEventProcessorThreadArg *arg = sccp_malloc(sizeof(struct sccp_event_aSyncEventProcessorThreadArg));
+	if (matched) {
+		if (GLOB(module_running)) {
+			if (subscriptions[i].aSyncSize > 0 && sccp_event_running) {
+				/* create thread for async subscribers */
+				struct sccp_event_aSyncEventProcessorThreadArg *arg = sccp_malloc(sizeof(struct sccp_event_aSyncEventProcessorThreadArg));
 
-			if (!arg) {
-				pbx_log(LOG_ERROR, "%p: Memory Allocation Error while creating sccp_event_aSyncEventProcessorThreadArg. Skipping\n", event);
-			} else {
-				arg->subscribers = &subscriptions[i];
-				arg->event = sccp_event_retain(e);
+				if (!arg) {
+					pbx_log(LOG_ERROR, "%p: Memory Allocation Error while creating sccp_event_aSyncEventProcessorThreadArg. Skipping\n", event);
+				} else {
+					arg->subscribers = &subscriptions[i];
+					arg->event = sccp_event_retain(e);
 
-				/* initialized with default attributes */
-				if (arg->event != NULL) {
-					sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Adding work to threadpool for event: %p, type: %s\n", event, sccp_event_type2str(event->type));
-					if (!sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_event_processor, (void *) arg)) {
-						pbx_log(LOG_ERROR, "Could not add work to threadpool for event: %p, type: %s for processing\n", event, sccp_event_type2str(event->type));
-						arg->event = sccp_event_release(arg->event);			/* explicit failure release */
+					/* initialized with default attributes */
+					if (arg->event != NULL) {
+						sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Adding work to threadpool for event: %p, type: %s\n", event, sccp_event_type2str(event->type));
+						if (!sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_event_processor, (void *) arg)) {
+							pbx_log(LOG_ERROR, "Could not add work to threadpool for event: %p, type: %s for processing\n", event, sccp_event_type2str(event->type));
+							arg->event = sccp_event_release(arg->event);			/* explicit failure release */
+							sccp_free(arg);
+						}
+					} else {
+						pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, sccp_event_type2str(event->type));
 						sccp_free(arg);
 					}
-				} else {
-					pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, sccp_event_type2str(event->type));
-					sccp_free(arg);
 				}
 			}
-		}
 
-		/* execute sync subscribers */
-		AUTO_RELEASE sccp_event_t *tmp_e = NULL;
+			/* execute sync subscribers */
+			AUTO_RELEASE sccp_event_t *tmp_e = NULL;
 
-		if ((tmp_e = sccp_event_retain(e))) {
-			for (n = 0; n < subscriptions[i].syncSize && sccp_event_running; n++) {
-				if (subscriptions[i].sync[n].callback_function != NULL) {
-					subscriptions[i].sync[n].callback_function((const sccp_event_t *) e);
+			if ((tmp_e = sccp_event_retain(e))) {
+				for (n = 0; n < subscriptions[i].syncSize && sccp_event_running; n++) {
+					if (subscriptions[i].sync[n].callback_function != NULL) {
+						subscriptions[i].sync[n].callback_function((const sccp_event_t *) e);
+					}
 				}
+			} else {
+				pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, sccp_event_type2str(event->type));
 			}
 		} else {
-			pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, sccp_event_type2str(event->type));
-		}
-	} else {
-		// we are unloading. switching to synchonous mode for everything
-		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s in Forced Synchronous Mode\n", event, sccp_event_type2str(e->type));
-		AUTO_RELEASE sccp_event_t *tmp_e = NULL;
+			// we are unloading. switching to synchonous mode for everything
+			sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s in Forced Synchronous Mode\n", event, sccp_event_type2str(e->type));
+			AUTO_RELEASE sccp_event_t *tmp_e = NULL;
 
-		if ((tmp_e = sccp_event_retain(e))) {
-			for (n = 0; n < subscriptions[i].syncSize && sccp_event_running; n++) {
-				if (subscriptions[i].sync[n].callback_function != NULL) {
-					subscriptions[i].sync[n].callback_function((const sccp_event_t *) e);
+			if ((tmp_e = sccp_event_retain(e))) {
+				for (n = 0; n < subscriptions[i].syncSize && sccp_event_running; n++) {
+					if (subscriptions[i].sync[n].callback_function != NULL) {
+						subscriptions[i].sync[n].callback_function((const sccp_event_t *) e);
+					}
 				}
-			}
-			for (n = 0; n < subscriptions[i].aSyncSize && sccp_event_running; n++) {
-				if (subscriptions[i].async[n].callback_function != NULL) {
-					subscriptions[i].async[n].callback_function((const sccp_event_t *) e);
+				for (n = 0; n < subscriptions[i].aSyncSize && sccp_event_running; n++) {
+					if (subscriptions[i].async[n].callback_function != NULL) {
+						subscriptions[i].async[n].callback_function((const sccp_event_t *) e);
+					}
 				}
+			} else {
+				pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, sccp_event_type2str(event->type));
 			}
-		} else {
-			pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, sccp_event_type2str(event->type));
 		}
 	}
 }

@@ -8,7 +8,7 @@
  */
 #pragma once
 
-#include <config.h>
+#include "config.h"
 #include <asterisk/format_compatibility.h>
 
 #include "ast_announce.h"

@@ -10,17 +10,17 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_session.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
-#include "sccp_netsock.h"
 #include "sccp_actions.h"
-#include "sccp_device.h"
-#include "sccp_utils.h"
 #include "sccp_cli.h"
+#include "sccp_device.h"
+#include "sccp_netsock.h"
+#include "sccp_utils.h"
 #include <netinet/in.h>
 
 #ifndef CS_USE_POLL_COMPAT
@@ -50,7 +50,7 @@ sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 #define SOCKET_LINGER_ONOFF 1											/* linger=on */
 #define SOCKET_LINGER_WAIT 0											/* but wait 0 milliseconds before closing socket and discard all outboung messages */
 #define SOCKET_RCVBUF SCCP_MAX_PACKET										/* SO_RCVBUF */
-#define SOCKET_SNDBUF SCCP_MAX_PACKET * 5									/* SO_SNDBUG */
+#define SOCKET_SNDBUF (SCCP_MAX_PACKET * 5)									/* SO_SNDBUG */
 
 #define READ_RETRIES 6												/* number of read retries */
 #define READ_BACKOFF 150											/* backoff time in millisecs, doubled every read retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec)*/
@@ -61,9 +61,9 @@ sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 #define KEEPALIVE_ADDITIONAL_PERCENT 10										/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
 
 /* Lock Macro for Sessions */
-#define sccp_session_lock(x)			pbx_mutex_lock(&x->lock)
-#define sccp_session_unlock(x)			pbx_mutex_unlock(&x->lock)
-#define sccp_session_trylock(x)			pbx_mutex_trylock(&x->lock)
+#define sccp_session_lock(x)			pbx_mutex_lock(&(x)->lock)
+#define sccp_session_unlock(x)			pbx_mutex_unlock(&(x)->lock)
+#define sccp_session_trylock(x)			pbx_mutex_trylock(&(x)->lock)
 /* */
 
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime);
@@ -205,7 +205,8 @@ static int sccp_dissect_header(sccp_session_t * s, sccp_header_t * header)
 		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) Size of the data payload in the packet (messageId: %u, protocolVersion: %u / 0x0%x) is out of bounds: %d < %u > %d, cancelling read.\n", messageId, protocolVersion, protocolVersion, 4, packetSize, (int) (SCCP_MAX_PACKET - 8));
 		return -1;
 	}
-	if (protocolVersion < 0 || !sccp_protocol_isProtocolSupported(s->protocolType, protocolVersion)) {
+
+	if (protocolVersion > 0 && !(sccp_protocol_isProtocolSupported(s->protocolType, protocolVersion))) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) protocolversion %u is unknown, cancelling read.\n", protocolVersion);
 		return -1;
 	}
@@ -290,7 +291,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 		readlen = read(mysocket, buffer, bytesToRead);
 		if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {
 			return 0;										 /* try again later, go poll again */
-		} else if (readlen <= 0) {
+		} if (readlen <= 0) {
 			goto READ_ERROR;
 		}
 		bytesReadSoFar += readlen;
@@ -361,9 +362,8 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	if ((sccp_handle_message(msg, s) == 0)) {
 		s->lastKeepAlive = time(0);
 		return msg->header.length + 8;
-	} else {
-		return -2;
-	}
+	} 
+	return -2;
 
 READ_ERROR:
 	if (errno) {
@@ -622,7 +622,7 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 			sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
 		}
 	}
-
+	
 	if (s) {	/* re-evaluate s after sccp_dev_clean */
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Destroy Session %s\n", addrStr);
 		/* closing fd's */
@@ -722,9 +722,9 @@ void *sccp_netsock_device_thread(void *session)
 				break;
 			}
 		} else if (0 == res) {										/* poll timeout */
-			if (((int) time(0) >= ((int) s->lastKeepAlive + (int) maxWaitTime))) {
+			if (((int) time(0) >= ((int) s->lastKeepAlive + maxWaitTime))) {
 				sccp_copy_string(addrStr, sccp_netsock_stringify_addr(&s->sin), sizeof(addrStr));
-				pbx_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (ip-address: %s).\n", DEV_ID_LOG(s->device), (int) maxWaitTime, addrStr);
+				pbx_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (ip-address: %s).\n", DEV_ID_LOG(s->device), maxWaitTime, addrStr);
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_TIMEOUT);
 				break;
 			}
@@ -760,7 +760,7 @@ void *sccp_netsock_device_thread(void *session)
 }
 
 #define SCCP_SETSOCKETOPTION(_SOCKET, _LEVEL,_OPTIONNAME, _OPTIONVAL, _OPTIONLEN) 							\
-	if (setsockopt(_SOCKET, _LEVEL, _OPTIONNAME, (void*)_OPTIONVAL, _OPTIONLEN)  == -1) {						\
+	if (setsockopt(_SOCKET, _LEVEL, _OPTIONNAME, (void*)(_OPTIONVAL), _OPTIONLEN) == -1) {						\
 		if (errno != ENOTSUP) {													\
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket: " #_LEVEL ":" #_OPTIONNAME " error: '%s'\n", strerror(errno));	\
 		}															\
@@ -940,7 +940,7 @@ static void sccp_netsock_cleanup_timed_out(void)
  *        - see sccp_handle_message()
  *        - see sccp_device_sendReset()
  */
-void *sccp_netsock_thread(void *ignore)
+void *sccp_netsock_thread(void * __attribute__((unused)) ignore)
 {
 	struct pollfd fds[1];
 
@@ -1013,9 +1013,8 @@ int sccp_session_send(constDevicePtr device, const sccp_msg_t * msg_in)
 
 	if (s && !s->session_stop) {
 		return sccp_session_send2(s, msg);
-	} else {
-		return -1;
-	}
+	} 
+	return -1;
 }
 
 /*!
