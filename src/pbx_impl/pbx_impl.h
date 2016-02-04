@@ -11,7 +11,7 @@
  */
 #pragma once
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 
 __BEGIN_EXTERN__

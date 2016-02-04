@@ -15,7 +15,7 @@
  *              SCCP Line -> SCCP ButtonConfig -> SCCP Device
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_channel.h"
 #include "sccp_device.h"

@@ -10,7 +10,7 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_session.h"
 

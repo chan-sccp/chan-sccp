@@ -7,7 +7,7 @@
  *              See the LICENSE file at the top of the source tree.
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "chan_sccp.h"
 #include "sccp_pbx.h"

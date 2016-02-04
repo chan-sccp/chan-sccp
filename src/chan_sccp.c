@@ -14,7 +14,7 @@
  * Relations:   Main hub for all other sourcefiles.
  *
  */
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "chan_sccp.h"
 #include "sccp_globals.h"

@@ -7,7 +7,7 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_mwi.h"
 #include "sccp_device.h"

@@ -7,7 +7,7 @@
  * \since       2013-08-15
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_devstate.h"
 #include "sccp_device.h"

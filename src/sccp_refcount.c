@@ -42,7 +42,7 @@
  * These rules need to followed to the letter !
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_utils.h"
 #include "sccp_atomic.h"

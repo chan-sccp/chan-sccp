@@ -6,7 +6,7 @@
  *              See the LICENSE file at the top of the source tree.
  */
 #pragma once
-#include <config.h>
+#include "config.h"
 
 // type redefinitions
 #define pbx_variable ast_variable

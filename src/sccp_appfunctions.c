@@ -10,7 +10,7 @@
  *              See the LICENSE file at the top of the source tree.
  * 
  */
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_appfunctions.h"
 #include "sccp_device.h"
