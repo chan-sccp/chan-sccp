@@ -140,6 +140,7 @@ void sccp_refcount_destroy(void)
 			SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&(objects[hash]->refCountedObjects), obj, list) {
 				if (obj->type == type) {
 					pbx_log(LOG_NOTICE, "Cleaning up [%3d]=type:%17s, id:%25s, ptr:%15p, refcount:%4d, alive:%4s, size:%4d\n", hash, (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", obj->len);
+					SCCP_RWLIST_REMOVE_CURRENT(list);
 					if ((&obj_info[obj->type])->destructor) {
 						(&obj_info[obj->type])->destructor(obj->data);
 					}
@@ -149,7 +150,6 @@ void sccp_refcount_destroy(void)
 					memset(obj, 0, sizeof(RefCountedObject));
 					sccp_free(obj);
 					obj = NULL;
-					SCCP_RWLIST_REMOVE_CURRENT(list);
 					numObjects++;
 				}
 			}
