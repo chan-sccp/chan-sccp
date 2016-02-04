@@ -1110,7 +1110,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 					astman_append(s, "Exten: %s\r\n", l->name);
 					astman_append(s, "SubscriptionNumber: %s\r\n", linedevice->subscriptionId.number);
 					astman_append(s, "Label: %s\r\n", l->label);
-					astman_append(s, "Device: %s\r\n", (d) ? d->id : "--");
+					astman_append(s, "Device: %s\r\n", d->id);
 					astman_append(s, "MWI: %s\r\n", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF");
 					astman_append(s, "ActiveChannels: %d\r\n", SCCP_LIST_GETSIZE(&l->channels));
 					astman_append(s, "ChannelState: %s\r\n", (state != SCCP_CHANNELSTATE_SENTINEL) ? sccp_channelstate2str(state) : "--");
@@ -1134,8 +1134,8 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 					"--", 
 					(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", 
 					SCCP_LIST_GETSIZE(&l->channels),
-					(channel) ? sccp_channelstate2str(channel->state) : "--", 
-					(channel) ? skinny_calltype2str(channel->calltype) : "", 
+					"--", 
+					"--", 
 					cid_name,
 					cap_buf);
 			} else {

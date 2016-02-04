@@ -395,8 +395,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	}
 
 	/* set linevariables */
-	PBX_VARIABLE_TYPE *v = ((l) ? l->variables : NULL);
-
+	PBX_VARIABLE_TYPE *v = l->variables;
 	while (c->owner && !pbx_check_hangup(c->owner) && l && v) {
 		pbx_builtin_setvar_helper(c->owner, v->name, v->value);
 		v = v->next;
@@ -506,7 +505,7 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 			sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 		}
 
-		if (SCCP_CHANNELSTATE_DOWN != c->state || SCCP_CHANNELSTATE_ONHOOK != c->state) {
+		if (SCCP_CHANNELSTATE_DOWN == c->state || SCCP_CHANNELSTATE_ONHOOK == c->state) {
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 		}
 
@@ -1198,14 +1197,14 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		}
 
 		/* set devicevariables */
-		v = ((d) ? d->variables : NULL);
+		v = d->variables;
 		while (pbx_channel && !pbx_check_hangup(pbx_channel) && d && v) {
 			pbx_builtin_setvar_helper(pbx_channel, v->name, v->value);
 			v = v->next;
 		}
 
 		/* set linevariables */
-		v = ((l) ? l->variables : NULL);
+		v = l->variables;
 		while (pbx_channel && !pbx_check_hangup(pbx_channel) && l && v) {
 			pbx_builtin_setvar_helper(pbx_channel, v->name, v->value);
 			v = v->next;

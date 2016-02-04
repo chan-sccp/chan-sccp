@@ -245,8 +245,7 @@ static int callinfo_Setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, 
 				}
 			}
 			break;
-		case SCCP_CALLINFO_NONE:
-		case SCCP_CALLINFO_KEY_SENTINEL:
+		default:		/* SCCP_CALLINFO_KEY_SENTINEL */
 			break;
 		}
 	}
@@ -391,8 +390,7 @@ static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinf
 				}
 			}
 			break;
-		case SCCP_CALLINFO_NONE:
-		case SCCP_CALLINFO_KEY_SENTINEL:
+		default:		/* SCCP_CALLINFO_KEY_SENTINEL */
 			break;
 		}
 	}
@@ -498,8 +496,7 @@ static int callinfo_Getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t
 				}
 			}
 			break;
-		case SCCP_CALLINFO_NONE:
-		case SCCP_CALLINFO_KEY_SENTINEL:
+		default:		/* SCCP_CALLINFO_KEY_SENTINEL */
 			break;
 		}
 	}
