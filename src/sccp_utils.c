@@ -12,11 +12,11 @@
 
 #include "config.h"
 #include "common.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
+#include "sccp_device.h"
 #include "sccp_line.h"
-#include "sccp_utils.h"
 #include "sccp_session.h"
+#include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -222,7 +222,7 @@ gcc_inline const char *msgtype2str(sccp_mid_t type)
 {														/* sccp_protocol.h */
 	if (type >= SPCP_MESSAGE_OFFSET && (type - SPCP_MESSAGE_OFFSET) < ARRAY_LEN(spcp_messagetypes)) {
 		return spcp_messagetypes[type - SPCP_MESSAGE_OFFSET].text;
-	} else if (type < ARRAY_LEN(sccp_messagetypes)) {
+	} if (type < ARRAY_LEN(sccp_messagetypes)) {
 		return sccp_messagetypes[type].text;
 	} else {
 		return "SCCP: Message type does not exist";
@@ -233,7 +233,7 @@ gcc_inline size_t msgtype2size(sccp_mid_t type)
 {														/* sccp_protocol.h */
 	if (type >= SPCP_MESSAGE_OFFSET && (type - SPCP_MESSAGE_OFFSET) < ARRAY_LEN(spcp_messagetypes)) {
 		return spcp_messagetypes[type - SPCP_MESSAGE_OFFSET].size + SCCP_PACKET_HEADER;
-	} else if (type < ARRAY_LEN(sccp_messagetypes)) {
+	} if (type < ARRAY_LEN(sccp_messagetypes)) {
 		return sccp_messagetypes[type].size + SCCP_PACKET_HEADER;
 	} else {
 		return 0;
@@ -1041,7 +1041,7 @@ gcc_inline boolean_t sccp_strequals(const char *data1, const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
 		return TRUE;
-	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2) && (sccp_strlen(data1) == sccp_strlen(data2))) {
+	} if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2) && (sccp_strlen(data1) == sccp_strlen(data2))) {
 		return !strcmp(data1, data2);
 	}
 	return FALSE;
@@ -1062,7 +1062,7 @@ gcc_inline boolean_t sccp_strcaseequals(const char *data1, const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
 		return TRUE;
-	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2) && (sccp_strlen(data1) == sccp_strlen(data2))) {
+	} if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2) && (sccp_strlen(data1) == sccp_strlen(data2))) {
 		return !strcasecmp(data1, data2);
 	}
 	return FALSE;
@@ -1145,7 +1145,7 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 				if (rLength == 0 || remotePeerCapabilities[0] == SKINNY_CODEC_NONE) {
 					sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "Empty remote Capabilities, using bestCodec from firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
 					return firstJointCapability;
-				} else {
+				} 
 					/* using capabilities from remote party, that matches our preferences & capabilities */
 					for (r = 0; r < rLength; r++) {
 						if (remotePeerCapabilities[r] == SKINNY_CODEC_NONE) {
@@ -1158,7 +1158,7 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 							return ourPreferences[p];
 						}
 					}
-				}
+				
 			}
 		}
 	}
@@ -1973,9 +1973,9 @@ const char *sccp_channel_toString(sccp_channel_t * c)
 {
 	if (c) {
 		return (const char *) c->designator;
-	} else {
+	} 
 		return "";
-	}
+	
 }
 
 /*!
@@ -2069,7 +2069,7 @@ int sccp_strversioncmp(const char *s1, const char *s2)
 		}
 		if (lz1 > lz2) {
 			return -1;
-		} else if (lz1 < lz2) {
+		} if (lz1 < lz2) {
 			return 1;
 		} else if (lz1 == 1) {
 			/*
@@ -2088,14 +2088,14 @@ int sccp_strversioncmp(const char *s1, const char *s2)
 			/* Catch empty strings */
 			if (p1 == 0 && p2 > 0) {
 				return 1;
-			} else if (p2 == 0 && p1 > 0) {
+			} if (p2 == 0 && p1 > 0) {
 				return -1;
 			}
 			/* Prefixes are not same */
 			if (*s1 != *s2 && *s1 != '0' && *s2 != '0') {
 				if (p1 < p2) {
 					return 1;
-				} else if (p1 > p2) {
+				} if (p1 > p2) {
 					return -1;
 				}
 			} else {
@@ -2115,7 +2115,7 @@ int sccp_strversioncmp(const char *s1, const char *s2)
 
 		if (p1 < p2) {
 			return -1;
-		} else if (p1 > p2) {
+		} if (p1 > p2) {
 			return 1;
 		} else if ((ret = strncmp(s1, s2, p1)) != 0) {
 			return ret;
@@ -2185,6 +2185,35 @@ char *sccp_trimwhitespace(char *str)
 	return str;
 }
 
+static int __dev_urandom_fd = -1;
+#ifndef linux
+AST_MUTEX_DEFINE_STATIC(randomlock);
+#endif
+long int sccp_random(void)
+{
+	long int res;
+
+	if (__dev_urandom_fd >= 0) {
+		int read_res = read(__dev_urandom_fd, &res, sizeof(res));
+		if (read_res > 0) {
+			long int rm = RAND_MAX;
+			res = res < 0 ? ~res : res;
+			rm++;
+			return res % rm;
+		}
+	}
+#ifdef linux
+	//coverity[+dont_call]
+	res = sccp_random();
+#else
+	ast_mutex_lock(&randomlock);
+	//coverity[+dont_call]
+	res = sccp_random();
+	ast_mutex_unlock(&randomlock);
+#endif
+	return res;
+}
+
 #if HAVE_ICONV
 static iconv_t __sccp_iconv = (iconv_t) -1;
 static sccp_mutex_t __iconv_lock;
@@ -2218,14 +2247,15 @@ gcc_inline boolean_t sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char
 	if (incount) {
 		pbx_mutex_lock(&__iconv_lock);
 		if (iconv(__sccp_iconv, &utf8str, &incount, &buf, &outcount) == (size_t) -1) {
-			if (errno == E2BIG)
+			if (errno == E2BIG) {
 				pbx_log(LOG_WARNING, "SCCP: Iconv: output buffer too small.\n");
-			else if (errno == EILSEQ)
+			} else if (errno == EILSEQ) {
 				pbx_log(LOG_WARNING,  "SCCP: Iconv: illegal character.\n");
-			else if (errno == EINVAL)
+			} else if (errno == EINVAL) {
 				pbx_log(LOG_WARNING,  "SCCP: Iconv: incomplete character sequence.\n");
-			else
+			} else {
 				pbx_log(LOG_WARNING,  "SCCP: Iconv: error %d: %s.\n", errno, strerror(errno));
+}
 		}
 		pbx_mutex_unlock(&__iconv_lock);
 	}

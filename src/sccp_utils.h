@@ -88,9 +88,9 @@ gcc_inline uint32_t debugcat2int(const char *str);
 #endif
 
 char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int length);
-int sccp_parse_allow_disallow(skinny_codec_t * sccp_codecs, const char *list, int allowing);
+int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing);
 const char *skinny_ringermode2str(uint8_t type);
-boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t lenght);
+boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length);
 const char *sccp_channel_toString(sccp_channel_t * c);
 
 struct composedId sccp_parseComposedId(const char *labelString, unsigned int maxLength);
@@ -106,7 +106,7 @@ char *pbx_strip(char *s);
 unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arraylen);
 #endif
 
-void sccp_util_featureStorageBackend(const sccp_event_t * e);
+void sccp_util_featureStorageBackend(const sccp_event_t * event);
 #if 0 /* unused */
 int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey);
 #endif
@@ -115,7 +115,7 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
 //sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage *sin);
 
 sccp_feature_type_t sccp_featureStr2featureID(const char *str);
-boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *SubscriptionIdNum);
+boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *subscriptionIdNum);
 sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32_t type, const char *dirNum, const char *fqdn, const char *lineDisplayName);
 
 gcc_inline boolean_t sccp_netsock_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1);
@@ -124,7 +124,7 @@ gcc_inline boolean_t sccp_strlen_zero(const char *data);
 gcc_inline boolean_t sccp_strequals(const char *data1, const char *data2);
 gcc_inline boolean_t sccp_strcaseequals(const char *data1, const char *data2);
 int sccp_strIsNumeric(const char *s);
-skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int length1, const skinny_codec_t remotePeerCapabilities[], int length2);
+skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int cLength, const skinny_codec_t remotePeerCapabilities[], int rLength);
 void sccp_utils_reduceCodecSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES]);
 void sccp_utils_combineCodecSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t addCodecs[SKINNY_MAX_CAPABILITIES]);
 
@@ -142,6 +142,7 @@ char *sccp_dec2binstr(char *buf, size_t size, int value);
 gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size);
 char *sccp_trimwhitespace(char *str);
 gcc_inline boolean_t sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char *buf, size_t len);
+long int sccp_random(void);
 #ifdef DEBUG
 void sccp_do_backtrace(void);
 #endif

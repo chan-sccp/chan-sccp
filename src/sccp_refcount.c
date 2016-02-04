@@ -44,14 +44,14 @@
 
 #include "config.h"
 #include "common.h"
-#include "sccp_utils.h"
 #include "sccp_atomic.h"
+#include "sccp_utils.h"
 #include <asterisk/cli.h>
 
 // required for refcount inuse checking
+#include "sccp_channel.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
-#include "sccp_channel.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -566,7 +566,7 @@ gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char 
 			pbx_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) %*.*s> %*s refcount increased %.2d  +> %.2d for %10s: %s (%p)\n", filename, lineno, func, refcountval, refcountval, "--------------------", 20 - refcountval, " ", refcountval, newrefcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 		}
 		return (void * const) obj->data;
-	} else {
+	} 
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) ptr, NULL, 1, filename, lineno, func);
 #endif
@@ -576,7 +576,7 @@ gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char 
 		sccp_do_backtrace();
 		#endif
 		return NULL;
-	}
+	
 }
 
 gcc_inline void * const sccp_refcount_release(const void * const ptr, const char *filename, int lineno, const char *func)

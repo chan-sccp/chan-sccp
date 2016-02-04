@@ -28,11 +28,11 @@
 #include "sccp_hint.h"
 SCCP_FILE_VERSION(__FILE__, "");
 
-#include "sccp_device.h"
 #include "sccp_channel.h"
+#include "sccp_device.h"
+#include "sccp_indicate.h"											// only for SCCP_CHANNELSTATE_Idling
 #include "sccp_line.h"
 #include "sccp_utils.h"
-#include "sccp_indicate.h"											// only for SCCP_CHANNELSTATE_Idling
 
 #if defined(CS_AST_HAS_EVENT) && defined(HAVE_PBX_EVENT_H) 	// ast_event_subscribe
 #  include <asterisk/event.h>
@@ -114,7 +114,7 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState);
 static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineState *lineState);
 static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState *lineState);
 static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState);
-static void sccp_hint_notifyPBX(struct sccp_hint_lineState *linestate);
+static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState);
 static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context);
 static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint);
 static void sccp_hint_deviceRegistered(const sccp_device_t * device);
@@ -1225,7 +1225,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, hint->hint_dialplan, sccp_channelstate2str(hint->currentState), hint->currentState);
 #ifdef CS_DYNAMIC_SPEEDDIAL
 			if (d->inuseprotocolversion >= 15) {
-				sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, TRUE, &k);
+				sccp_dev_speed_find_byindex( d, subscriber->instance, TRUE, &k);
 
 				REQ(msg, FeatureStatDynamicMessage);
 				if (msg) {

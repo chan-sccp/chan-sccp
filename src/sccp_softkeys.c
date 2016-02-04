@@ -850,7 +850,7 @@ static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 	if (!d) {
 		return;
 	}
-	unsigned int transactionID = random();
+	unsigned int transactionID = sccp_random();
 
 	/* build parameters */
 	struct ast_str *paramStr = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);

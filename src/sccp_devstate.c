@@ -9,8 +9,8 @@
 
 #include "config.h"
 #include "common.h"
-#include "sccp_devstate.h"
 #include "sccp_device.h"
+#include "sccp_devstate.h"
 #include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
@@ -48,7 +48,7 @@ sccp_devstate_deviceState_t *sccp_devstate_getDeviceStateHandler(const char *dev
 
 //void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data);
 #if ASTERISK_VERSION_GROUP >= 112
-void sccp_devstate_changed_cb(void *userdata, struct stasis_subscription *sub, struct stasis_message *msg);
+void sccp_devstate_changed_cb(void *data, struct stasis_subscription *sub, struct stasis_message *msg);
 #else
 void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data);
 #endif

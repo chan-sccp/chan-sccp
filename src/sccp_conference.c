@@ -1147,11 +1147,7 @@ void sccp_conference_show_list(constConferencePtr conference, constChannelPtr ch
 		if (!participant->callReference) {
 			participant->callReference = channel->callid;
 			participant->lineInstance = conference->id;
-#if ASTERISK_VERSION_NUMBER >= 10400
-			participant->transactionID = pbx_random() % 1000;
-#else
-			participant->transactionID = random() % 1000;
-#endif
+			participant->transactionID = sccp_random() % 1000;
 		}
 
 		char xmlStr[2048] = "";

@@ -941,13 +941,7 @@ static void *sccp_feat_meetme_thread(void *data)
 #define SCCP_CONF_SPACER '|'
 #endif
 
-#if ASTERISK_VERSION_NUMBER >= 10400
-	unsigned int eid = pbx_random();
-#else
-	unsigned int eid = random();
-
-#define SCCP_CONF_SPACER '|'
-#endif
+	unsigned int eid = sccp_random();
 	AUTO_RELEASE sccp_channel_t * c = sccp_channel_retain(data);
 
 	if (!c) {

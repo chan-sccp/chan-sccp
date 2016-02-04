@@ -18,17 +18,17 @@
 #include "config.h"
 #include "common.h"
 #include "sccp_channel.h"
-#include "sccp_device.h"
-#include "sccp_line.h"
-#include "sccp_utils.h"
-#include "sccp_config.h"
 #include "sccp_actions.h"
+#include "sccp_config.h"
+#include "sccp_device.h"
 #include "sccp_features.h"
+#include "sccp_line.h"
 #include "sccp_session.h"
+#include "sccp_utils.h"
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
-#include "sccp_devstate.h"
 #include "sccp_atomic.h"
+#include "sccp_devstate.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -55,8 +55,8 @@ struct sccp_private_device_data {
 	skinny_registrationstate_t registrationState;
 };
 
-#define sccp_private_lock(x) sccp_mutex_lock(&((struct sccp_private_device_data * const)x)->lock)			/* discard const */
-#define sccp_private_unlock(x) sccp_mutex_unlock(&((struct sccp_private_device_data * const)x)->lock)			/* discard const */
+#define sccp_private_lock(x) sccp_mutex_lock(&((struct sccp_private_device_data * const)(x))->lock)			/* discard const */
+#define sccp_private_unlock(x) sccp_mutex_unlock(&((struct sccp_private_device_data * const)(x))->lock)			/* discard const */
 
 /* indicate definition */
 static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lineInstance, uint32_t callid);
@@ -126,7 +126,7 @@ static boolean_t sccp_device_falseResult(void)
 static void sccp_device_retrieveDeviceCapabilities(constDevicePtr device)
 {
 	char *xmlStr = "<getDeviceCaps></getDeviceCaps>";
-	unsigned int transactionID = random();
+	unsigned int transactionID = sccp_random();
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_DEVICECAPABILITIES, 1, 0, transactionID, xmlStr, 2);
 }
@@ -134,7 +134,7 @@ static void sccp_device_retrieveDeviceCapabilities(constDevicePtr device)
 static void sccp_device_setBackgroundImage(constDevicePtr device, const char *url)
 {
 	char xmlStr[2048] = { 0 };
-	unsigned int transactionID = random();
+	unsigned int transactionID = sccp_random();
 
 	if (strncasecmp("http://", url, strlen("http://")) != 0) {
 		pbx_log(LOG_WARNING, "SCCP: '%s' needs to be a valid http url\n", url ? url : "");
@@ -177,7 +177,7 @@ static void sccp_device_setBackgroundImageNotSupported(constDevicePtr device, co
 static void sccp_device_displayBackgroundImagePreview(constDevicePtr device, const char *url)
 {
 	char xmlStr[2048] = {0};
-	unsigned int transactionID = random();
+	unsigned int transactionID = sccp_random();
 
 	if (!url || strncmp("http://", url, strlen("http://")) != 0) {
 		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url);
@@ -196,7 +196,7 @@ static void sccp_device_displayBackgroundImagePreviewNotSupported(constDevicePtr
 static void sccp_device_setRingtone(constDevicePtr device, const char *url)
 {
 	char xmlStr[2048] = {0};
-	unsigned int transactionID = random();
+	unsigned int transactionID = sccp_random();
 
 	if (!url || strncmp("http://", url, strlen("http://")) != 0) {
 		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url);
@@ -239,7 +239,7 @@ static void sccp_device_setRingtoneNotSupported(constDevicePtr device, const cha
 /*
    static void sccp_device_startStream(const sccp_device_t *device, const char *address, uint32_t port){
    char xmlStr[2048];
-   unsigned int transactionID = random();
+   unsigned int transactionID = sccp_random();
 
    strcat(xmlStr, "<startMedia>");
    strcat(xmlStr, "<mediaStream>");
@@ -2979,7 +2979,7 @@ static sccp_push_result_t sccp_device_pushURL(constDevicePtr device, const char 
 {
 	const char *xmlFormat = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"%s\"/></CiscoIPPhoneExecute>";
 	size_t msg_length = strlen(xmlFormat) + sccp_strlen(url) - 2 /* for %s */  + 1 /* for terminator */ ;
-	unsigned int transactionID = random();
+	unsigned int transactionID = sccp_random();
 
 	if (sccp_strlen(url) > 256) {
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (pushURL) url is to long (max 256 char).\n", DEV_ID_LOG(device));
@@ -3007,7 +3007,7 @@ static sccp_push_result_t sccp_device_pushTextMessage(constDevicePtr device, con
 {
 	const char *xmlFormat = "<CiscoIPPhoneText>%s<Text>%s</Text></CiscoIPPhoneText>";
 	size_t msg_length = strlen(xmlFormat) + sccp_strlen(messageText) - 4 /* for the %s' */  + 1 /* for terminator */ ;
-	unsigned int transactionID = random();
+	unsigned int transactionID = sccp_random();
 
 	if (sccp_strlen(from) > 32) {
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (pushTextMessage) from is to long (max 32 char).\n", DEV_ID_LOG(device));
