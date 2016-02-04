@@ -1,40 +1,52 @@
-language: cpp
-compiler: gcc
-sudo: required
-dist: trusty
+language: c
 
-install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq asterisk asterisk-dev asterisk-config asterisk-modules binutils.dev libc6-dev build-essential make 
-
-after_install:
-  - gcc --version
-
-before_script: autoreconf -fi
-
-script:
-  - ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-devdoc --enable-advanced-functions
-  - make -j2
-
+# Setup Build Matrix
+compiler: 
+ - clang
+ - gcc
 env:
-  global:
-    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created using:
-    # travis encrypt COVERITY_SCAN_TOKEN="xxxxxxx-xxxxxxx" -r dkgroot/chan-sccp-b
-    - secure: "706UW64Z0s6YCb41IdECVCjtnNNyShKoYwUxpMcKogI75idMzcHWgRuEzzHRyQhPT/fzDp21pqQojFIMmRUvSsN0YcNgDTvbh+xws+MIVEux3b19VRbcMDchb/nXMC+om4re3tUu3jTkgeMGCir04fVzF9JjZXY17Xu/ySfJNjXcqGCk0DsPBNaZn/SqVlP5X2PB3DTo4TWMNtESK0wlyxFt3XJJ2tsk/2xnRYRQzf/CosQBP1bTPJ/BUNRU3MHsW2JzN3qD5Z7sCaab655B+FHJuG+0dl43bZZMvaa7pBieLPOvh/jaFhM4807X1pkwKEW/qCVTODL3xrawJD49QYbmFSeEGsd474qlPe2CEDY6MnHFZtiIl+/A91kvgX97YwhoatDXbufYdifZSn/jsPTuB1ZESSA1ch5wQ3zsnBNsuJegc0tBJ5gjOKVsII2T2CSLcHqVbefIhRKTtDmnOQMmGba1cF8Y8iCaah/MfUbzi8Ux+Qb5dCuWM0AiCzFb/RImYj451rHf7W9y0rehXOjas/j4WcYb3ijLUK6e48a3RExQjYTckdSyK00+/xBMdJ2xB6Txjb8fk8N3AnsP4a/uRuyLFiZMkeS9L5/eXxZgaC5kwJf/eZmhRm8Pkh1I9zSmwNFalVIsO2uLEq6CG506Nb5FC1/o9htqkDBuP+E="
+# - REPOS=lucid
+ - REPOS=precise
+ - REPOS=trusty
+ - REPOS=trusty13
+ - REPOS=utopic
+# - REPOS=vivid
 
-addons:
-  coverity_scan:
-    project:
-      name: "dkgroot/chan-sccp-b"
-      description: "Asterisk SCCP Channel Addon"
-    notification_email: info@talon.nl
-    build_command_prepend: "autoreconf -fi && ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-devdoc --enable-advanced-functions && make clean"
-    build_command: "make -j2"
-    branch_pattern: coverity_scan
+# Install Required Devel Packages
+before_install:
+ - if [ "${REPOS}" != "trusty13" ]; 
+   then
+     echo "deb http://archive.ubuntu.com/ubuntu ${REPOS} main restricted universe multiverse"            | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+     echo "deb http://archive.ubuntu.com/ubuntu ${REPOS}-updates main restricted universe multiverse"    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+     echo "deb http://security.ubuntu.com/ubuntu/ ${REPOS}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+     echo "deb http://archive.canonical.com/ubuntu/ ${REPOS} partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+     sudo apt-get update -qq;
+     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev asterisk asterisk-dev asterisk-config asterisk-modules binutils.dev libc6-dev;
+   else
+     echo "deb http://archive.ubuntu.com/ubuntu trusty main restricted universe multiverse"              | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+     echo "deb http://archive.ubuntu.com/ubuntu trusty-updates main restricted universe multiverse"      | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+     echo "deb http://security.ubuntu.com/ubuntu/ trusty-security main restricted universe multiverse"   | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+     echo "deb http://archive.canonical.com/ubuntu/ trusty partner"                                      | sudo tee -a /etc/apt/sources.list.d/trusty.list;
+     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 9C245DE2;
+     echo "deb http://ppa.launchpad.net/jan-hoffmann/asterisk13/ubuntu trusty main"                      | sudo tee -a /etc/apt/sources.list.d/asterisk13.list;
+     echo "deb-src http://ppa.launchpad.net/jan-hoffmann/asterisk13/ubuntu trusty main"			 | sudo tee -a /etc/apt/sources.list.d/asterisk13.list;
+     sudo apt-get update -qq;
+     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 libpjsua2-2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg binutils.dev libc6-dev;
+   fi
 
+# Prepare Configure Script
+before_script:
+ - autoreconf -fi
+
+# Report Results
 notifications:
- slack: chan-sccp:yfQzKYTnTf4cD1iHElnTYsXD
- email:
+  slack: chan-sccp:yfQzKYTnTf4cD1iHElnTYsXD
+  email:
     recipients:
       - ddegroot@talon.nl
       - marcelloceschia@users.sourceforge.net
+
+#matrix:
+#  exclude:
+#      - os: osx
+#        compiler: gcc
