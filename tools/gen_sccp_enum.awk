@@ -255,9 +255,10 @@ codeSkip == 1			{ next }
 					print "\t\treturn 1;" > out_source_file
 					print "\t}" > out_source_file
 				}
-				print "\tint res = 0, i;" > out_source_file
-				print "\tfor (i = 0; i < " toupper(namespace) "_" toupper(enum_name) "_SENTINEL; i++) {" >out_source_file
-				print "\t\tif ((" namespace "_" enum_name "_int_value & 1 << i) == 1 << i) {" > out_source_file
+				print "\tint res = 0;" > out_source_file 
+				print "\tuint8_t i;" > out_source_file
+				print "\tfor (i = 0; (1 << i) < " toupper(namespace) "_" toupper(enum_name) "_SENTINEL; i++) {" >out_source_file
+				print "\t\tif ((" namespace "_" enum_name "_int_value & (1 << i)) == 1 << i) {" > out_source_file
 				print "\t\t\tres |= 1;" > out_source_file
 				print "\t\t}" > out_source_file
 				print "\t}" > out_source_file
