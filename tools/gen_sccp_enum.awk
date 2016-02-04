@@ -345,14 +345,10 @@ codeSkip == 1			{ next }
 			print "\t}" > out_source_file
 		} else {
 			for ( i = 0; i < e; ++i) {
-				if (i == 0) {
-					print "\tif        (sccp_strcaseequals(" namespace "_" enum_name "_map[" i "], lookup_str)) {" > out_source_file
-				} else {
-					print "\t} else if (sccp_strcaseequals(" namespace "_" enum_name "_map[" i "], lookup_str)) {" > out_source_file
-				}
+				print "\tif (sccp_strcaseequals(" namespace "_" enum_name "_map[" i "], lookup_str)) {" > out_source_file
 				print "\t\treturn " Entry_id[i] ";" > out_source_file
+				print "\t}" > out_source_file
 			}
-			print "\t}" > out_source_file
 		}
 		print "\tpbx_log(LOG_ERROR, \"%s %s_str2val('%s') not found\\n\", LOOKUPERROR_STR, __" namespace "_" enum_name "_str, lookup_str);" > out_source_file
 		print "\treturn "toupper(namespace) "_" toupper(enum_name) "_SENTINEL;" > out_source_file

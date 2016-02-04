@@ -29,9 +29,9 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
 	const char delimiters[] = " ,\t";
 	boolean_t subtract = 0;
 
-	if (sscanf((char *) arguments[startat], "%d", &new_debug_value) != 1) {
+	if (sscanf( arguments[startat], "%d", &new_debug_value) != 1) {
 		for (argi = startat; argi < argc; argi++) {
-			argument = (char *) arguments[argi];
+			argument = arguments[argi];
 			if (!strncmp(argument, "none", 4) || !strncmp(argument, "off", 3)) {
 				new_debug_value = 0;
 				break;
