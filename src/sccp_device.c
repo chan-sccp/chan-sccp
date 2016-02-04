@@ -2161,10 +2161,12 @@ static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)
 			if (buttonconfig->button.service.url) {
 				sccp_free(buttonconfig->button.service.url);
 			}
+			break;
 		case FEATURE:
 			if (buttonconfig->button.feature.options) {
 				sccp_free(buttonconfig->button.feature.options);
 			}
+			break;
 		case EMPTY:
 		case SCCP_CONFIG_BUTTONTYPE_SENTINEL:
 			break;
