@@ -15,7 +15,6 @@ before_script: autoreconf -fi
 script:
   - ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-devdoc --enable-advanced-functions
   - make -j2
-  - make install
 
 env:
   global:
