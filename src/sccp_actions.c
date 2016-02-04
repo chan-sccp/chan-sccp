@@ -221,9 +221,9 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 	mid = letohl(msg->header.lel_messageId);
 
 	/* search for message handler */
-	if (mid >= SPCP_MESSAGE_OFFSET && mid <= (ARRAY_LEN(spcp_messagetypes) + SPCP_MESSAGE_OFFSET)) {
+	if (mid >= SPCP_MESSAGE_OFFSET && (mid - SPCP_MESSAGE_OFFSET) < ARRAY_LEN(spcp_messagetypes)) {
 		messageMap_cb = &spcpMessagesCbMap[mid - SPCP_MESSAGE_OFFSET]; 
-	} else if (mid <= ARRAY_LEN(sccp_messagetypes)) {
+	} else if (mid < ARRAY_LEN(sccp_messagetypes)) {
 		messageMap_cb = &sccpMessagesCbMap[mid];
 	} else {
 		pbx_log(LOG_ERROR, "SCCP: Message Type ID: %d does not exist", mid);
