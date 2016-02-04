@@ -26,13 +26,13 @@
 #include "config.h"
 #include "common.h"
 #include "sccp_hint.h"
+SCCP_FILE_VERSION(__FILE__, "");
+
 #include "sccp_device.h"
 #include "sccp_channel.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_indicate.h"											// only for SCCP_CHANNELSTATE_Idling
-
-SCCP_FILE_VERSION(__FILE__, "");
 
 #if defined(CS_AST_HAS_EVENT) && defined(HAVE_PBX_EVENT_H) 	// ast_event_subscribe
 #  include <asterisk/event.h>
@@ -1520,7 +1520,6 @@ int sccp_show_hint_lineStates(int fd, sccp_cli_totals_t *totals, struct mansessi
  * 
  * \called_from_asterisk
  */
-//#include <asterisk/cli.h>
 int sccp_show_hint_subscriptions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	int local_line_total = 0;

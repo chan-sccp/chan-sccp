@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "sccp_atomic.h"
+#include "sccp_device.h"
 
 #ifdef DEBUG
 #define sccp_channel_retain(_x) 	({sccp_channel_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})

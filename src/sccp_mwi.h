@@ -24,7 +24,7 @@ struct sccp_mailbox {
 
 void sccp_mwi_module_start(void);
 void sccp_mwi_module_stop(void);
-void sccp_mwi_check(sccp_device_t * device);
+void sccp_mwi_check(sccp_device_t * d);
 
 void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t *mailbox);
 

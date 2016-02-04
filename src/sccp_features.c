@@ -22,14 +22,14 @@
 
 #include "config.h"
 #include "common.h"
-#include "sccp_features.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
-#include "sccp_line.h"
+#include "sccp_device.h"
+#include "sccp_features.h"
 #include "sccp_featureButton.h"
+#include "sccp_line.h"
 #include "sccp_pbx.h"
-#include "sccp_utils.h"
 #include "sccp_conference.h"
+#include "sccp_utils.h"
 #include "sccp_indicate.h"
 #include "sccp_management.h"
 
@@ -81,14 +81,12 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 
 		sccp_line_cfwd(l, device, SCCP_CFWD_NONE, NULL);
 		return;
-	} else {
-		if (type == SCCP_CFWD_NOANSWER) {
-			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "### CFwdNoAnswer NOT SUPPORTED\n");
-			sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
-			return;
-		}
+	} 
+	if (type == SCCP_CFWD_NOANSWER) {
+		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "### CFwdNoAnswer NOT SUPPORTED\n");
+		sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+		return;
 	}
-
 	/* look if we have a call  */
 	AUTO_RELEASE sccp_channel_t *c = sccp_device_getActiveChannel(device);
 
@@ -384,9 +382,9 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 		*context++ = '\0';
 	} else {
 		if (!sccp_strlen_zero(d->directed_pickup_context)) {
-			context = (char *) pbx_strdupa(d->directed_pickup_context);
+			context = pbx_strdupa(d->directed_pickup_context);
 		} else {
-			context = (char *) pbx_strdupa(pbx_channel_context(c->owner));
+			context = pbx_strdupa(pbx_channel_context(c->owner));
 		}
 	}
 	if (sccp_strlen_zero(context)) {
@@ -519,7 +517,7 @@ void sccp_feat_voicemail(constDevicePtr d, uint8_t lineInstance)
 	if (!l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line with instance %d found.\n", d->id, lineInstance);
 
-		//TODO workaround to solve the voicemail button issue with old hint style and speeddials before first line -MC
+		// TODO(dkgroot): workaround to solve the voicemail button issue with old hint style and speeddials before first line -MC
 		if (d->defaultLineInstance) {
 			l = sccp_line_find_byid(d, d->defaultLineInstance);
 		}
@@ -865,7 +863,8 @@ void sccp_feat_handle_meetme(constLinePtr l, uint8_t lineInstance, constDevicePt
 				iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 				return;
 				/* there is an active call, let's put it on hold first */
-			} else if (!sccp_channel_hold(c)) {
+			} 
+			if (!sccp_channel_hold(c)) {
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL, SCCP_DISPLAYSTATUS_TIMEOUT);
 				return;
 			}
@@ -1069,7 +1068,7 @@ void sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 				iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 				return;
-			} else if (!sccp_channel_hold(c)) {
+			} if (!sccp_channel_hold(c)) {
 				/* there is an active call, let's put it on hold first */
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL, SCCP_DISPLAYSTATUS_TIMEOUT);
 				return;
@@ -1162,7 +1161,7 @@ void sccp_feat_handle_cbarge(constLinePtr l, uint8_t lineInstance, constDevicePt
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 				iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 				return;
-			} else if (!sccp_channel_hold(c)) {
+			} if (!sccp_channel_hold(c)) {
 				/* there is an active call, let's put it on hold first */
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL, SCCP_DISPLAYSTATUS_TIMEOUT);
 				return;

@@ -28,6 +28,7 @@
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
 #include "sccp_devstate.h"
+#include "sccp_atomic.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 

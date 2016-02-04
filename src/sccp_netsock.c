@@ -36,7 +36,8 @@ uint16_t sccp_netsock_getPort(const struct sockaddr_storage * sockAddrStorage)
 {
 	if (sccp_netsock_is_IPv4(sockAddrStorage)) {
 		return ntohs(((struct sockaddr_in *) sockAddrStorage)->sin_port);
-	} else if (sccp_netsock_is_IPv6(sockAddrStorage)) {
+	}
+	if (sccp_netsock_is_IPv6(sockAddrStorage)) {
 		return ntohs(((struct sockaddr_in6 *) sockAddrStorage)->sin6_port);
 	}
 	return 0;
@@ -75,7 +76,8 @@ size_t sccp_netsock_sizeof(const struct sockaddr_storage * sockAddrStorage)
 {
 	if (sccp_netsock_is_IPv4(sockAddrStorage)) {
 		return sizeof(struct sockaddr_in);
-	} else if (sccp_netsock_is_IPv6(sockAddrStorage)) {
+	}
+	if (sccp_netsock_is_IPv6(sockAddrStorage)) {
 		return sizeof(struct sockaddr_in6);
 	}
 	return 0;
@@ -93,11 +95,9 @@ boolean_t sccp_netsock_is_mapped_IPv4(const struct sockaddr_storage *sockAddrSto
 {
 	if (sccp_netsock_is_IPv6(sockAddrStorage)) {
 		const struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) sockAddrStorage;
-
 		return IN6_IS_ADDR_V4MAPPED(&sin6->sin6_addr);
-	} else {
-		return FALSE;
-	}
+	} 
+	return FALSE;
 }
 
 boolean_t sccp_netsock_ipv4_mapped(const struct sockaddr_storage *sockAddrStorage, struct sockaddr_storage *sockAddrStorage_mapped)

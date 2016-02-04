@@ -89,9 +89,9 @@
 #include "sccp_channel.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
-#include "sccp_utils.h"
 #include "sccp_rtp.h"
 #include "sccp_session.h"
+#include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -147,7 +147,7 @@ boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t 
 
 	char buf[NI_MAXHOST + NI_MAXSERV];
 	sccp_copy_string(buf, sccp_netsock_stringify(phone_remote), sizeof(buf));
-	boolean_t isMappedIPv4 = sccp_netsock_ipv4_mapped(phone_remote, (struct sockaddr_storage *) phone_remote);
+	boolean_t isMappedIPv4 = sccp_netsock_ipv4_mapped(phone_remote, phone_remote);
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (createAudioServer) updated phone %s destination to : %s, family:%s, mapped: %s\n", c->designator, sccp_rtp_type2str(type), buf, sccp_netsock_is_IPv4(phone_remote) ? "IPv4" : "IPv6", isMappedIPv4 ? "True" : "False");
 
 	return rtpResult;
@@ -412,9 +412,8 @@ uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t * const rtp, skinny_codec_t co
 {
 	if (iPbx.rtp_get_payloadType) {
 		return iPbx.rtp_get_payloadType(rtp, codec);
-	} else {
-		return 97;
-	}
+	} 
+	return 97;
 }
 
 /*!
@@ -425,10 +424,9 @@ boolean_t sccp_rtp_getUs(const sccp_rtp_t *rtp, struct sockaddr_storage *us)
 	if (rtp->instance) {
 		iPbx.rtp_getUs(rtp->instance, us);
 		return TRUE;
-	} else {
-		// us = &rtp->phone_remote;
-		return FALSE;
-	}
+	} 
+	// us = &rtp->phone_remote;
+	return FALSE;
 }
 
 uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * const rtp)
@@ -450,9 +448,8 @@ boolean_t sccp_rtp_getPeer(const sccp_rtp_t * const rtp, struct sockaddr_storage
 	if (rtp->instance) {
 		iPbx.rtp_getPeer(rtp->instance, them);
 		return TRUE;
-	} else {
-		return FALSE;
-	}
+	} 
+	return FALSE;
 }
 
 /*!
@@ -462,9 +459,8 @@ int sccp_rtp_get_sampleRate(skinny_codec_t codec)
 {
 	if (iPbx.rtp_get_sampleRate) {
 		return iPbx.rtp_get_sampleRate(codec);
-	} else {
-		return 3840;
-	}
+	} 
+	return 3840;
 }
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

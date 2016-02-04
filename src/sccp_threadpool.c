@@ -278,10 +278,9 @@ int sccp_threadpool_add_work(sccp_threadpool_t * tp_p, void *(*function_p) (void
 		/* add job to queue */
 		sccp_threadpool_jobqueue_add(tp_p, newJob);
 		return 1;
-	} else {
-		pbx_log(LOG_ERROR, "sccp_threadpool_add_work(): Threadpool shutting down, denying new work\n");
-		return 0;
-	}
+	} 
+        pbx_log(LOG_ERROR, "sccp_threadpool_add_work(): Threadpool shutting down, denying new work\n");
+        return 0;
 }
 
 /* Destroy the threadpool */

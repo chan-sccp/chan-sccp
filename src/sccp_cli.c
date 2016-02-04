@@ -48,6 +48,9 @@
 #include "common.h"
 #include "sccp_channel.h"
 #include "sccp_cli.h"
+
+SCCP_FILE_VERSION(__FILE__, "");
+
 #include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_session.h"
@@ -55,15 +58,12 @@
 #include "sccp_conference.h"
 #include "sccp_config.h"
 #include "sccp_features.h"
-//#include "sccp_indicate.h"
 #include "sccp_mwi.h"
 #include "sccp_hint.h"
 #include "sys/stat.h"
-
-SCCP_FILE_VERSION(__FILE__, "");
-
 #include <asterisk/cli.h>
 #include <asterisk/paths.h>
+
 typedef enum sccp_cli_completer {
 	SCCP_CLI_NULL_COMPLETER,
 	SCCP_CLI_DEVICE_COMPLETER,

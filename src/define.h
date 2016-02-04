@@ -150,6 +150,7 @@ static SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define THREADPOOL_RESIZE_INTERVAL 10
 
 #define CHANNEL_DESIGNATOR_SIZE 32
+#define CAS32_TYPE int
 #define SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT 2000									// ms
 #define SCCP_BACKTRACE_SIZE 10
 #define SCCP_DEVICE_MWILIGHT 31

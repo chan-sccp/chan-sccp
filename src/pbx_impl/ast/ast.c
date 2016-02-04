@@ -18,6 +18,7 @@
 #include "sccp_session.h"
 #include "sccp_pbx.h"
 #include "sccp_line.h"
+#include "sccp_atomic.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 

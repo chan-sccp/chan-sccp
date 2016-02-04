@@ -28,10 +28,8 @@
 
 #ifdef SCCP_BUILTIN_CAS32
 #define CAS32(_a,_b,_c, _d) 		__sync_val_compare_and_swap(_a, _b, _c)
-#define CAS32_TYPE int
 #else
 #define CAS32(_a,_b,_c, _d) 		AO_compare_and_swap(_a, _b, _c)
-#define CAS32_TYPE int
 #endif
 
 #ifdef SCCP_BUILTIN_CAS_PTR
@@ -42,7 +40,6 @@
 
 #else														/* SCCP_ATOMIC */
 
-#define CAS32_TYPE 				int
 #define ATOMIC_INCR(_a,_b,_c)			\
 	({					\
                 CAS32_TYPE __res=0;		\

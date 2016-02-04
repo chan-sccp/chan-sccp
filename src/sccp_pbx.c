@@ -24,6 +24,7 @@
 #include "sccp_indicate.h"
 #include "sccp_netsock.h"
 #include "sccp_session.h"
+#include "sccp_atomic.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
