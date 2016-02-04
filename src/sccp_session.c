@@ -197,15 +197,15 @@ static void __sccp_session_stopthread(sessionPtr session, uint8_t newRegistratio
 static int sccp_dissect_header(sccp_session_t * s, sccp_header_t * header)
 {
 	unsigned int packetSize = header->length;
-	unsigned int protocolVersion = letohl(header->lel_protocolVer);
-	unsigned int messageId = letohl(header->lel_messageId);
+	int protocolVersion = letohl(header->lel_protocolVer);
+	int messageId = letohl(header->lel_messageId);
 
 	// dissecting header to see if we have a valid sccp message, that we can handle
 	if (packetSize < 4 || packetSize > SCCP_MAX_PACKET - 8) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) Size of the data payload in the packet (messageId: %u, protocolVersion: %u / 0x0%x) is out of bounds: %d < %u > %d, cancelling read.\n", messageId, protocolVersion, protocolVersion, 4, packetSize, (int) (SCCP_MAX_PACKET - 8));
 		return -1;
 	}
-	if (protocolVersion > 0 && !(sccp_protocol_isProtocolSupported(s->protocolType, protocolVersion))) {
+	if (protocolVersion < 0 || !sccp_protocol_isProtocolSupported(s->protocolType, protocolVersion)) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) protocolversion %u is unknown, cancelling read.\n", protocolVersion);
 		return -1;
 	}
@@ -220,14 +220,14 @@ static int sccp_dissect_header(sccp_session_t * s, sccp_header_t * header)
 
 	if (messageId < SPCP_MESSAGE_OFFSET) {
 		for (x = 0; x < ARRAY_LEN(sccp_messagetypes); x++) {
-			if (messageId == x) {
+			if (messageId == (int)x) {
 				Found = TRUE;
 				break;
 			}
 		}
 	} else {
 		for (x = 0; x < ARRAY_LEN(spcp_messagetypes); x++) {
-			if (messageId - SPCP_MESSAGE_OFFSET == x) {
+			if ((messageId - SPCP_MESSAGE_OFFSET) == (int)x) {
 				Found = TRUE;
 				break;
 			}
