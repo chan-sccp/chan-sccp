@@ -1062,7 +1062,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 	if (msg && (GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {
 		uint32_t mid = letohl(msg->header.lel_messageId);
 
-		pbx_log(LOG_NOTICE, "%s: Send Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(s->device), msgtype2str(mid), mid, msg ? msg->header.length : 0);
+		pbx_log(LOG_NOTICE, "%s: Send Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(s->device), msgtype2str(mid), mid, msg->header.length);
 		sccp_dump_msg(msg);
 	}
 
