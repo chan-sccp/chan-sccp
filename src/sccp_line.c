@@ -1029,7 +1029,7 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 {
 	sccp_linedevices_t *linedevice = NULL;
 	sccp_line_t *l = NULL;									// loose const qualifier, to be able to lock the list;
-	if (!l) {
+	if (!line) {
 		pbx_log(LOG_NOTICE, "SCCP: [%s:%d]->linedevice_find: No line provided to search in\n", filename, lineno);
 		return NULL;
 	}
