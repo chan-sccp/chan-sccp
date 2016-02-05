@@ -1199,12 +1199,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
 	sccp_msg_t *msg = NULL;
 
-#ifdef CS_DYNAMIC_SPEEDDIAL
-	sccp_speed_t k;
-	char displayMessage[80] = "";
-	int status = SCCP_CHANNELSTATE_SENTINEL;
-#endif
-
 	if (!hint) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_hint_notifySubscribers) no hint provided to notifySubscribers about\n");
 		return;
@@ -1224,6 +1218,9 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		if (d) {
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, hint->hint_dialplan, sccp_channelstate2str(hint->currentState), hint->currentState);
 #ifdef CS_DYNAMIC_SPEEDDIAL
+			sccp_speed_t k;
+			char displayMessage[80] = "";
+			skinny_busylampfield_state_t status = SKINNY_BLF_STATUS_UNKNOWN;
 			if (d->inuseprotocolversion >= 15) {
 				sccp_dev_speed_find_byindex( d, subscriber->instance, TRUE, &k);
 
@@ -1233,14 +1230,14 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					char cidNumber[StationMaxDirnumSize] = "";
 
 					switch (hint->currentState) {
-					case SCCP_CHANNELSTATE_ONHOOK:
-						snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
-						status = SKINNY_BLF_STATUS_IDLE;
-						break;
-
 					case SCCP_CHANNELSTATE_DOWN:
 						snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 						status = SKINNY_BLF_STATUS_UNKNOWN;	/* default state */
+						break;
+
+					case SCCP_CHANNELSTATE_ONHOOK:
+						snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+						status = SKINNY_BLF_STATUS_IDLE;
 						break;
 
 					case SCCP_CHANNELSTATE_DND:
@@ -1257,9 +1254,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					case SCCP_CHANNELSTATE_RINGING:
 						status = SKINNY_BLF_STATUS_ALERTING;	/* ringin */
 						/* fall through */
-					case SCCP_CHANNELSTATE_SENTINEL:
-						sccp_free(msg);
-						break;
+
 					default:
 						if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
 							if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
@@ -1283,7 +1278,9 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 						} else {
 							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 						}
-						status = SKINNY_BLF_STATUS_INUSE;
+						if (status == SKINNY_BLF_STATUS_UNKNOWN) {	/* still default value --> set */
+							status = SKINNY_BLF_STATUS_INUSE;
+						}
 						break;
 					}
 					sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) set display name to: \"%s\"\n", DEV_ID_LOG(d), displayMessage);
