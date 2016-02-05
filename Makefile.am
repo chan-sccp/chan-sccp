@@ -113,15 +113,14 @@ install-data-local:
 		$(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC);							\
 	fi
 
-load:	install
-	@test -f $(PBX_SBIN)/asterisk && $(PBX_SBIN)/asterisk -rx "module load chan_sccp.so"
+unload:	
+	cd src;make unload
 	
-unload:	install
-	@test -f $(PBX_SBIN)/asterisk && $(PBX_SBIN)/asterisk -rx "module load chan_sccp.so"
+load:	
+	cd src;make load
 	
-reload: install
-	$(MAKE) unload
-	$(MAKE) load
+reload:
+	cd src;make reload
 
 #install-exec-hook:
 #	@if test "$(DEBUG)" == "1" && test -n "$(GDB)" && test tools/chan-sccp-b_backtrace -nt /usr/bin/chan-sccp-b_backtrace; then	\
