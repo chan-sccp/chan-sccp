@@ -1095,7 +1095,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 						!found_linedevice ? l->name : " +--", 
 						linedevice->subscriptionId.number, 
 						l->label ? l->label : "--", 
-						(d) ? d->id : "--", 
+						d->id, 
 						(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", 
 						SCCP_RWLIST_GETSIZE(&l->channels), 
 						(state != SCCP_CHANNELSTATE_SENTINEL) ? sccp_channelstate2str(state) : "--",
