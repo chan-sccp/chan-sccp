@@ -949,7 +949,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
 	device->keepaliveinterval = device->keepalive ? device->keepalive : GLOB(keepalive);
-	device->keepaliveinterval = ((device->keepaliveinterval / 4) * 3) + (rand() % (device->keepaliveinterval / 4)) + 1;	// smaller random segment, keeping keepalive toward the upperbound
+	device->keepaliveinterval = ((device->keepaliveinterval / 4) * 3) + (sccp_random() % (device->keepaliveinterval / 4)) + 1;	// smaller random segment, keeping keepalive toward the upperbound
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", DEV_ID_LOG(device), device->keepaliveinterval);
 
 	device->inuseprotocolversion = device->protocol->version;
