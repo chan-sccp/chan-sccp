@@ -2757,17 +2757,17 @@ static int sccp_config_getSoftkeyLbl(char *key)
  */
 static uint8_t sccp_config_readSoftSet(uint8_t * softkeyset, const char *data)
 {
-	int i = 0, j;
+	if (!data) {
+		return 0;
+	}
 
-	char labels[256];
+	int i = 0, j;
+	char *labels;
 	char *splitter;
 	char *label;
 	int softkey;
 
-	if (!data) {
-		return 0;
-	}
-	strcpy(labels, data);
+	labels = pbx_strdupa(data);
 	splitter = labels;
 	while ((label = strsep(&splitter, ",")) != NULL && (i + 1) < StationMaxSoftKeySetDefinition) {
 		if ((softkey = sccp_config_getSoftkeyLbl(label)) != -1) {
