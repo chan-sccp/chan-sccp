@@ -314,19 +314,16 @@ int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp)
 		//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) remote: %s, remoteFamily: %s\n", d->id, sccp_netsock_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
 
 		/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
-		if (d->nat >= SCCP_NAT_ON) {
-			if ((usFamily == AF_INET) != remoteFamily) {						/* device needs correction for ipv6 address in remote */
+		if (d->nat >= SCCP_NAT_ON && usFamily != remoteFamily) {
+			if (usFamily == AF_INET && remoteFamily != AF_INET) {					/* device needs correction for ipv6 address in remote */
 				uint16_t port = sccp_rtp_getServerPort(rtp);					/* get rtp server port */
-
 				if (!sccp_netsock_getExternalAddr(phone_remote)) {				/* Use externip (PBX behind NAT Firewall */
 					memcpy(phone_remote, &sus, sizeof(struct sockaddr_storage));		/* Fallback: use ip-address of incoming interface */
 				}
 				sccp_netsock_ipv4_mapped(phone_remote, phone_remote);				/*!< we need this to convert mapped IPv4 to real IPv4 address */
 				sccp_netsock_setPort(phone_remote, port);
-
-			} else { /* if ((usFamily == AF_INET6) != remoteFamily) { */  /* redundant if */	/* the device can do IPv6 but should send it to IPv4 address (directrtp possible) */
+			} else { /* usFamily == AF_INET6 && remoteFamily != AF_INET6 */				/* the device can do IPv6 but should send it to IPv4 address (directrtp possible) */
 				struct sockaddr_storage sas;
-
 				memcpy(&sas, phone_remote, sizeof(struct sockaddr_storage));
 				sccp_netsock_ipv4_mapped(&sas, &sas);
 			}
