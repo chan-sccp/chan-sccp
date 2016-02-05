@@ -89,8 +89,8 @@
 #include "sccp_featureButton.h"
 #include "sccp_line.h"
 #include "sccp_mwi.h"
-#include "sccp_utils.h"
 #include "sccp_session.h"
+#include "sccp_utils.h"
 #include "sccp_devstate.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
@@ -1087,13 +1087,9 @@ sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, P
 
 	if (!sccp_strlen_zero(value)) {
 		amaflags = pbx_channel_string2amaflag(value);
-		if (amaflags < 0) {
-			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-		} else {
-			if ((*(int *) dest) != amaflags) {
-				changed = SCCP_CONFIG_CHANGE_CHANGED;
-				*(int *) dest = amaflags;
-			}
+		if ((*(int *) dest) != amaflags) {
+			changed = SCCP_CONFIG_CHANGE_CHANGED;
+			*(int *) dest = amaflags;
 		}
 	}
 	return changed;
@@ -1191,7 +1187,7 @@ sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PB
 
 	if (!sccp_strcaseequals(str, value)) {
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
-		pbx_copy_string(dest, value, size);
+		sccp_copy_string(dest, value, size);
 		//if (!sccp_strlen_zero(value) && !pbx_context_find((const char *) dest)) {
 		//	pbx_log(LOG_WARNING, "The context '%s' you specified might not be available in the dialplan. Please check the sccp.conf\n", (char *) dest);
 		//}
