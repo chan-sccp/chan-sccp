@@ -651,9 +651,9 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 #endif
 						} else {
 							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote nativeformats: %s\n", pbx_getformatname_multiple(buf, sizeof(buf) - 1, ast_channel_nativeformats(remotePeer)));
-							sccp_asterisk111_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio), AST_MEDIA_TYPE_AUDIO);
+							sccp_asterisk111_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio), AST_FORMAT_TYPE_AUDIO);
 #if defined(CS_SCCP_VIDEO)
-							sccp_asterisk111_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.video, ARRAY_LEN(c->remoteCapabilities.video), AST_MEDIA_TYPE_VIDEO);
+							sccp_asterisk111_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.video, ARRAY_LEN(c->remoteCapabilities.video), AST_FORMAT_TYPE_VIDEO);
 #endif
 						}
 
@@ -882,7 +882,7 @@ static int sccp_wrapper_asterisk111_setNativeAudioFormats(const sccp_channel_t *
 
 	ast_debug(10, "%s: set native Formats length: %d\n", (char *) channel->currentDeviceId, length);
 
-	ast_format_cap_remove_bytype(ast_channel_nativeformats(channel->owner), AST_MEDIA_TYPE_AUDIO);
+	ast_format_cap_remove_bytype(ast_channel_nativeformats(channel->owner), AST_FORMAT_TYPE_AUDIO);
 	for (i = 0; i < length; i++) {
 		ast_format_set(&fmt, skinny_codec2pbx_codec(codec[i]), 0);
 		ast_format_cap_add(ast_channel_nativeformats(channel->owner), &fmt);

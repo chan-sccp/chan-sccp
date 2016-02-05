@@ -832,7 +832,7 @@ static int sccp_wrapper_asterisk112_setNativeAudioFormats(const sccp_channel_t *
 
 	ast_debug(10, "%s: set native Formats length: %d\n", (char *) channel->currentDeviceId, length);
 
-	ast_format_cap_remove_bytype(ast_channel_nativeformats(channel->owner), AST_MEDIA_TYPE_AUDIO);
+	ast_format_cap_remove_bytype(ast_channel_nativeformats(channel->owner), AST_FORMAT_TYPE_AUDIO);
 	for (i = 0; i < length; i++) {
 		ast_format_set(&fmt, skinny_codec2pbx_codec(codec[i]), 0);
 		ast_format_cap_add(ast_channel_nativeformats(channel->owner), &fmt);
