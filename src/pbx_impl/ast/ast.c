@@ -10,15 +10,15 @@
  */
 #include "config.h"
 #include "common.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
-#include "sccp_utils.h"
+#include "sccp_device.h"
 #include "sccp_indicate.h"
 #include "sccp_netsock.h"
 #include "sccp_session.h"
+#include "sccp_utils.h"
 #include "sccp_pbx.h"
-#include "sccp_line.h"
 #include "sccp_atomic.h"
+#include "sccp_line.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -31,8 +31,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 #  include <asterisk/app.h>
 #endif
 #include <asterisk/callerid.h>
-#include <asterisk/musiconhold.h>
 #include <asterisk/astdb.h>
+#include <asterisk/musiconhold.h>
 #ifdef HAVE_PBX_FEATURES_H
 #  include <asterisk/features.h>
 #endif
@@ -404,10 +404,9 @@ sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_c
 #else
 			return sccp_channel_retain(c);
 #endif
-		} else {
-			pbx_log(LOG_ERROR, "Channel is not a valid SCCP Channel\n");
-			return NULL;
-		}
+		} 
+		pbx_log(LOG_ERROR, "Channel is not a valid SCCP Channel\n");
+		return NULL;
 	} else {
 		return NULL;
 	}
@@ -650,17 +649,16 @@ int sccp_asterisk_moh_start(PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, 
 {
 	if (!pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH)) {
 		pbx_set_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH);
-		return ast_moh_start((PBX_CHANNEL_TYPE *) pbx_channel, mclass, interpclass);
-	} else {
-		return 0;
-	}
+		return ast_moh_start( pbx_channel, mclass, interpclass);
+	} 
+	return 0;
 }
 
 void sccp_asterisk_moh_stop(PBX_CHANNEL_TYPE * pbx_channel)
 {
 	if (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH)) {
 		pbx_clear_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH);
-		ast_moh_stop((PBX_CHANNEL_TYPE *) pbx_channel);
+		ast_moh_stop( pbx_channel);
 	}
 }
 
@@ -865,7 +863,7 @@ int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, u
 {
 	int res = 0;
 	int optc = 0;
-	char *optv[2];
+	char *optv[5];
 	int opti = 0;
 
 	/* parse options */
@@ -996,69 +994,68 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 
 						sccp_copy_string(buf, quality_buf, buflen);
 						return res;
-					} else {
-						struct ast_rtp_instance_stats stats;
-						int i;
-						enum __int_double { __INT, __DBL };
-						struct {
-							const char *name;
-							enum __int_double type;
-							union {
-								unsigned int *i4;
-								double *d8;
-							};
-						} lookup[] = {
-							/* *INDENT-OFF* */
-							{"txcount", 		__INT, {.i4 = &stats.txcount},}, 
-							{"rxcount", 		__INT, {.i4 = &stats.rxcount,},}, 
-							{"txjitter", 		__DBL, {.d8 = &stats.txjitter,},}, 
-							{"rxjitter", 		__DBL, {.d8 = &stats.rxjitter,},},
-							{"remote_maxjitter", 	__DBL, {.d8 = &stats.remote_maxjitter,},},
-							{"remote_minjitter", 	__DBL, {.d8 = &stats.remote_minjitter,},},
-							{"remote_normdevjitter",__DBL, {.d8 = &stats.remote_normdevjitter,},},
-							{"remote_stdevjitter", 	__DBL, {.d8 = &stats.remote_stdevjitter,},},
-							{"local_maxjitter",	__DBL, {.d8 = &stats.local_maxjitter,},},
-							{"local_minjitter", 	__DBL, {.d8 = &stats.local_minjitter,},},
-							{"local_normdevjitter", __DBL, {.d8 = &stats.local_normdevjitter,},},
-							{"local_stdevjitter", 	__DBL, {.d8 = &stats.local_stdevjitter,},},
-							{"txploss", 		__INT, {.i4 = &stats.txploss,},},
-							{"rxploss", 		__INT, {.i4 = &stats.rxploss,},},
-							{"remote_maxrxploss", 	__DBL, {.d8 = &stats.remote_maxrxploss,},},
-							{"remote_minrxploss", 	__DBL, {.d8 = &stats.remote_minrxploss,},},
-							{"remote_normdevrxploss",__DBL, {.d8 = &stats.remote_normdevrxploss,},},
-							{"remote_stdevrxploss", __DBL, {.d8 = &stats.remote_stdevrxploss,},},
-							{"local_maxrxploss", 	__DBL, {.d8 = &stats.local_maxrxploss,},},
-							{"local_minrxploss", 	__DBL, {.d8 = &stats.local_minrxploss,},},
-							{"local_normdevrxploss",__DBL, {.d8 = &stats.local_normdevrxploss,},},
-							{"local_stdevrxploss", 	__DBL, {.d8 = &stats.local_stdevrxploss,},},
-							{"rtt", 		__DBL, {.d8 = &stats.rtt,},},
-							{"maxrtt", 		__DBL, {.d8 = &stats.maxrtt,},},
-							{"minrtt", 		__DBL, {.d8 = &stats.minrtt,},},
-							{"normdevrtt", 		__DBL, {.d8 = &stats.normdevrtt,},},
-							{"stdevrtt", 		__DBL, {.d8 = &stats.stdevrtt,},},
-							{"local_ssrc", 		__INT, {.i4 = &stats.local_ssrc,},},
-							{"remote_ssrc", 	__INT, {.i4 = &stats.remote_ssrc,},},
-							{NULL,},
-							/* *INDENT-ON* */
+					} 
+					struct ast_rtp_instance_stats stats;
+					int i;
+					enum __int_double { __INT, __DBL };
+					struct {
+						const char *name;
+						enum __int_double type;
+						union {
+							unsigned int *i4;
+							double *d8;
 						};
+					} lookup[] = {
+						/* *INDENT-OFF* */
+						{"txcount", 		__INT, {.i4 = &stats.txcount},}, 
+						{"rxcount", 		__INT, {.i4 = &stats.rxcount,},}, 
+						{"txjitter", 		__DBL, {.d8 = &stats.txjitter,},}, 
+						{"rxjitter", 		__DBL, {.d8 = &stats.rxjitter,},},
+						{"remote_maxjitter", 	__DBL, {.d8 = &stats.remote_maxjitter,},},
+						{"remote_minjitter", 	__DBL, {.d8 = &stats.remote_minjitter,},},
+						{"remote_normdevjitter",__DBL, {.d8 = &stats.remote_normdevjitter,},},
+						{"remote_stdevjitter", 	__DBL, {.d8 = &stats.remote_stdevjitter,},},
+						{"local_maxjitter",	__DBL, {.d8 = &stats.local_maxjitter,},},
+						{"local_minjitter", 	__DBL, {.d8 = &stats.local_minjitter,},},
+						{"local_normdevjitter", __DBL, {.d8 = &stats.local_normdevjitter,},},
+						{"local_stdevjitter", 	__DBL, {.d8 = &stats.local_stdevjitter,},},
+						{"txploss", 		__INT, {.i4 = &stats.txploss,},},
+						{"rxploss", 		__INT, {.i4 = &stats.rxploss,},},
+						{"remote_maxrxploss", 	__DBL, {.d8 = &stats.remote_maxrxploss,},},
+						{"remote_minrxploss", 	__DBL, {.d8 = &stats.remote_minrxploss,},},
+						{"remote_normdevrxploss",__DBL, {.d8 = &stats.remote_normdevrxploss,},},
+						{"remote_stdevrxploss", __DBL, {.d8 = &stats.remote_stdevrxploss,},},
+						{"local_maxrxploss", 	__DBL, {.d8 = &stats.local_maxrxploss,},},
+						{"local_minrxploss", 	__DBL, {.d8 = &stats.local_minrxploss,},},
+						{"local_normdevrxploss",__DBL, {.d8 = &stats.local_normdevrxploss,},},
+						{"local_stdevrxploss", 	__DBL, {.d8 = &stats.local_stdevrxploss,},},
+						{"rtt", 		__DBL, {.d8 = &stats.rtt,},},
+						{"maxrtt", 		__DBL, {.d8 = &stats.maxrtt,},},
+						{"minrtt", 		__DBL, {.d8 = &stats.minrtt,},},
+						{"normdevrtt", 		__DBL, {.d8 = &stats.normdevrtt,},},
+						{"stdevrtt", 		__DBL, {.d8 = &stats.stdevrtt,},},
+						{"local_ssrc", 		__INT, {.i4 = &stats.local_ssrc,},},
+						{"remote_ssrc", 	__INT, {.i4 = &stats.remote_ssrc,},},
+						{NULL,},
+						/* *INDENT-ON* */
+					};
 
-						if (ast_rtp_instance_get_stats(rtp, &stats, AST_RTP_INSTANCE_STAT_ALL)) {
-							return -1;
-						}
-
-						for (i = 0; !sccp_strlen_zero(lookup[i].name); i++) {
-							if (sccp_strcaseequals(args.field, lookup[i].name)) {
-								if (lookup[i].type == __INT) {
-									snprintf(buf, buflen, "%u", *lookup[i].i4);
-								} else {
-									snprintf(buf, buflen, "%f", *lookup[i].d8);
-								}
-								return 0;
-							}
-						}
-						pbx_log(LOG_WARNING, "SCCP: (sccp_wrapper_asterisk_channel_read) Unrecognized argument '%s' to %s\n", preparse, funcname);
+					if (ast_rtp_instance_get_stats(rtp, &stats, AST_RTP_INSTANCE_STAT_ALL)) {
 						return -1;
 					}
+
+					for (i = 0; !sccp_strlen_zero(lookup[i].name); i++) {
+						if (sccp_strcaseequals(args.field, lookup[i].name)) {
+							if (lookup[i].type == __INT) {
+								snprintf(buf, buflen, "%u", *lookup[i].i4);
+							} else {
+								snprintf(buf, buflen, "%f", *lookup[i].d8);
+							}
+							return 0;
+						}
+					}
+					pbx_log(LOG_WARNING, "SCCP: (sccp_wrapper_asterisk_channel_read) Unrecognized argument '%s' to %s\n", preparse, funcname);
+					return -1;
 				}
 				ast_channel_unlock(ast);
 #endif
@@ -1123,6 +1120,7 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 #if ASTERISK_VERSION_GROUP > 106
 int sccp_wrapper_sendDigits(const sccp_channel_t * channel, const char *digits)
 {
+	uint8_t maxdigits = AST_MAX_EXTENSION;
 	if (!channel || !channel->owner) {
 		pbx_log(LOG_WARNING, "No channel to send digits to\n");
 		return 0;
@@ -1133,21 +1131,21 @@ int sccp_wrapper_sendDigits(const sccp_channel_t * channel, const char *digits)
 	}
 	//ast_channel_undefer_dtmf(channel->owner);
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
-	int i;
 	PBX_FRAME_TYPE f = ast_null_frame;
 
 	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Sending digits '%s'\n", (char *) channel->currentDeviceId, digits);
 	// We don't just call sccp_pbx_senddigit due to potential overhead, and issues with locking
 	f.src = "SCCP";
-	for (i = 0; digits[i] != '\0'; i++) {
-		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Sending digit %c\n", (char *) channel->currentDeviceId, digits[i]);
+	while (maxdigits-- && *digits != '\0') {
+		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Sending digit %c\n", (char *) channel->currentDeviceId, *digits);
 
 		f.frametype = AST_FRAME_DTMF_END;								// Sending only the dmtf will force asterisk to start with DTMF_BEGIN and schedule the DTMF_END
-		f.subclass.integer = digits[i];
+		f.subclass.integer = *digits;
 		// f.len = SCCP_MIN_DTMF_DURATION;
 		f.len = AST_DEFAULT_EMULATE_DTMF_DURATION;
 		f.src = "SEND DIGIT";
 		ast_queue_frame(pbx_channel, &f);
+		digits++;
 	}
 	return 1;
 }
