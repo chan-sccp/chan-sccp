@@ -716,6 +716,7 @@ TEST_FRAMEWORK
 ASTERISK_REPOS_LOCATION
 ASTERISK_VERSION_NUMBER
 ASTERISK_VER_GROUP
+PBX_SBINDIR
 PBX_LDFLAGS
 PBX_CFLAGS
 PBX_TEMPMODDIR
@@ -18708,7 +18709,7 @@ fi
 
 	found_pbx="no";
 	found_asterisk="no";
-	if test -z "`${CC} -isystem /usr/include -dM -E - </dev/null 2>&1 >/dev/null`" && $? == 0; then :
+	if test -z "`${CC} -isystem /usr/include -dM -E - </dev/null 2>&1 >/dev/null`" && test $? == 0; then :
   replace_include_with_isystem=1
 else
   replace_include_with_isystem=0
@@ -18748,9 +18749,16 @@ $as_echo "$as_me: astmoddir could not be found in etc/asterisk/asterisk.conf (yo
 						{ $as_echo "$as_me:${as_lineno-$LINENO}: astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&5
 $as_echo "$as_me: astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&6;}
 					fi
+					PBX_SBINDIR="`${SED} -n 's/astsbindir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					if test -z "$PBX_SBINDIR"; then
+						echo ""
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: astsbindir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&5
+$as_echo "$as_me: astsbindir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&6;}
+					fi
 		 		else
 		 			PBX_TEMPMODDIR="$(${PKGCONFIG} --variable=moddir asterisk)"
 		 			PBX_VARLIB="$(${PKGCONFIG} --variable=varlibdir asterisk)"
+					PBX_SBINDIR="${PBX_PREFIX}/sbin/"
 		 		fi
 				LDFLAGS="$LDFLAGS -L${PBX_LIB} $(${PKGCONFIG} --libs asterisk)"
 				PBX_LDFLAGS="$LDFLAGS"
@@ -18802,11 +18810,13 @@ $as_echo "found" >&6; }
 					PBX_CPPFLAGS="-isystem ${checkdir}/include -DHAVE_ASTERISK";
 					CFLAGS="$CFLAGS -isystem ${checkdir}/include -DHAVE_ASTERISK";
 					CPPFLAGS="$CPPFLAGS -isystem ${checkdir}/include -DHAVE_ASTERISK";
+					PBX_SBINDIR="${checkdir}/sbin"
 				else
 					PBX_CFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
 					PBX_CPPFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
 					CFLAGS="$CFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
 					CPPFLAGS="$CPPFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
+					PBX_SBINDIR="/usr/sbin"
 				fi
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
 $as_echo "found" >&6; }
@@ -18848,6 +18858,12 @@ $as_echo "$as_me: astmoddir could not be found in etc/asterisk/asterisk.conf (yo
 						{ $as_echo "$as_me:${as_lineno-$LINENO}: astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&5
 $as_echo "$as_me: astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&6;}
 					fi
+					PBX_SBINDIR="`${SED} -n 's/astsbindir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					if test -z "$PBX_SBINDIR"; then
+						echo ""
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: astsbindir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&5
+$as_echo "$as_me: astsbindir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&6;}
+					fi
 				fi
 				PBX_LIB="${checkdir}/lib"
 				PBX_LDFLAGS="$LDFLAGS -L${checkdir}/lib"
@@ -18864,6 +18880,9 @@ $as_echo "$as_me: astvarlibdir could not be found in etc/asterisk/asterisk.conf 
 				fi
 				if test -z "${PBX_VARLIB}"; then
 					PBX_VARLIB="/var/lib/asterisk"
+				fi
+				if test -z "${PBX_SBINDIR}"; then
+					PBX_SBINDIR="/usr/sbin"
 				fi
 
 				LDFLAGS="$PBX_LDFLAGS"
@@ -18900,6 +18919,7 @@ _ACEOF
 cat >>confdefs.h <<_ACEOF
 #define PBX_VARLIB "$PBX_VARLIB"
 _ACEOF
+
 
 
 
