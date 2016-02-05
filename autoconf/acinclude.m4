@@ -10,7 +10,7 @@ dnl          See the LICENSE file at the top of the source tree.
 AC_DEFUN([CS_CHECK_PBX], [
 	found_pbx="no";
 	found_asterisk="no";
-	AS_IF([test -z "`${CC} -isystem /usr/include -dM -E - </dev/null 2>&1 >/dev/null`" && $? == 0],[replace_include_with_isystem=1],[replace_include_with_isystem=0])
+	AS_IF([test -z "`${CC} -isystem /usr/include -dM -E - </dev/null 2>&1 >/dev/null`" && test $? == 0],[replace_include_with_isystem=1],[replace_include_with_isystem=0])
 	if test -z "$NEW_PBX_PATH" && test ! x"${PKGCONFIG}" = xNo; then
 		AC_MSG_CHECKING([pkg-config asterisk])
 	 	if $(${PKGCONFIG} --exists asterisk); then
@@ -43,9 +43,15 @@ AC_DEFUN([CS_CHECK_PBX], [
 						echo ""
 						AC_MSG_NOTICE([astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='])
 					fi
+					PBX_SBINDIR="`${SED} -n 's/astsbindir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					if test -z "$PBX_SBINDIR"; then
+						echo ""
+						AC_MSG_NOTICE([astsbindir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='])
+					fi
 		 		else
 		 			PBX_TEMPMODDIR="$(${PKGCONFIG} --variable=moddir asterisk)"
 		 			PBX_VARLIB="$(${PKGCONFIG} --variable=varlibdir asterisk)"
+					PBX_SBINDIR="${PBX_PREFIX}/sbin/"
 		 		fi
 				LDFLAGS="$LDFLAGS -L${PBX_LIB} $(${PKGCONFIG} --libs asterisk)"
 				PBX_LDFLAGS="$LDFLAGS"
@@ -93,11 +99,13 @@ AC_DEFUN([CS_CHECK_PBX], [
 					PBX_CPPFLAGS="-isystem ${checkdir}/include -DHAVE_ASTERISK";
 					CFLAGS="$CFLAGS -isystem ${checkdir}/include -DHAVE_ASTERISK";
 					CPPFLAGS="$CPPFLAGS -isystem ${checkdir}/include -DHAVE_ASTERISK";
+					PBX_SBINDIR="${checkdir}/sbin"
 				else
 					PBX_CFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
 					PBX_CPPFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
 					CFLAGS="$CFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
 					CPPFLAGS="$CPPFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
+					PBX_SBINDIR="/usr/sbin"
 				fi
 				AC_MSG_RESULT(found)
 				break
@@ -132,6 +140,11 @@ AC_DEFUN([CS_CHECK_PBX], [
 						echo ""
 						AC_MSG_NOTICE([astvarlibdir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='])
 					fi
+					PBX_SBINDIR="`${SED} -n 's/astsbindir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					if test -z "$PBX_SBINDIR"; then
+						echo ""
+						AC_MSG_NOTICE([astsbindir could not be found in etc/asterisk/asterisk.conf (your etc/asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='])
+					fi
 				fi
 				PBX_LIB="${checkdir}/lib"
 				PBX_LDFLAGS="$LDFLAGS -L${checkdir}/lib"
@@ -148,6 +161,9 @@ AC_DEFUN([CS_CHECK_PBX], [
 				fi
 				if test -z "${PBX_VARLIB}"; then
 					PBX_VARLIB="/var/lib/asterisk"
+				fi 
+				if test -z "${PBX_SBINDIR}"; then
+					PBX_SBINDIR="/usr/sbin"
 				fi 
 
 				LDFLAGS="$PBX_LDFLAGS"
@@ -180,6 +196,7 @@ AC_DEFUN([CS_CHECK_PBX], [
 	AC_SUBST([PBX_TEMPMODDIR])
 	AC_SUBST([PBX_CFLAGS])
 	AC_SUBST([PBX_LDFLAGS])
+	AC_SUBST([PBX_SBINDIR])
 ])
 
 ## -------------------------##
