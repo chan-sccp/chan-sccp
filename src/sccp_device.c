@@ -175,7 +175,7 @@ static void sccp_device_displayBackgroundImagePreview(constDevicePtr device, con
 	char xmlStr[StationMaxXMLMessage] = {0};
 	unsigned int transactionID = sccp_random();
 
-	snprintf(xmlStr, 2047, "<setBackgroundPreview><image>%s</image></setBackgroundPreview>", url);
+	snprintf(xmlStr, sizeof(xmlStr), "<setBackgroundPreview><image>%s</image></setBackgroundPreview>", url);
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_BACKGROUND, 0, 0, transactionID, xmlStr, 0);
 }
@@ -195,7 +195,7 @@ static void sccp_device_setRingtone(constDevicePtr device, const char *url)
 	char xmlStr[StationMaxXMLMessage] = {0};
 	unsigned int transactionID = sccp_random();
 
-	snprintf(xmlStr, 2047, "<setRingTone><ringTone>%s</ringTone></setRingTone>", url);
+	snprintf(xmlStr, sizeof(xmlStr), "<setRingTone><ringTone>%s</ringTone></setRingTone>", url);
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_RINGTONE, 0, 0, transactionID, xmlStr, 0);
 }
@@ -559,7 +559,7 @@ sccp_device_t *sccp_device_create(const char *id)
 		d->endpoint = iPbx.endpoint_create("sccp", id);
 	}
 	*/
-	memset(&d->softKeyConfiguration.activeMask, 0xFFFF, sizeof d->softKeyConfiguration.activeMask);
+	memset(&d->softKeyConfiguration.activeMask, 0xFF, sizeof d->softKeyConfiguration.activeMask);
 	memset(d->call_statistics, 0, ((sizeof *d->call_statistics) * 2));
 
 //	d->softKeyConfiguration.modes = (softkey_modes *) SoftKeyModes;
