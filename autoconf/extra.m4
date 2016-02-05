@@ -19,8 +19,7 @@ AC_DEFUN([CS_SETUP_BUILD],[
 	AC_PATH_PROGS(FINGER,finger,No)
 	AC_PATH_PROGS(HEAD,head,No)
 	AC_PATH_PROGS(CUT,cut,No)
-	AC_PATH_PROGS(AWK,awk,No)
-	AC_PATH_PROGS(GAWK,gawk,No)
+	AC_PATH_PROGS(AWK,gawk awk,No)
 	AC_PATH_PROGS(PKGCONFIG,pkg-config,No)
 	AC_PATH_PROGS(RPMBUILD,rpmbuild,No)
 	AM_CONDITIONAL(ENABLE_RPMBUILD, test x$RPMBUILD != xNo)
@@ -53,15 +52,17 @@ AC_DEFUN([CS_SETUP_BUILD],[
 		AC_SUBST([BUILD_USER])
 	    fi
 	fi
-	AS_IF([test "${GAWK}" == "No"],[
+	
+	AS_IF([test "${AWK}" == "No"],[
 		echo ""
 		echo ""
-		echo "Utility 'gnu awk' is missing"
+		echo "Utility 'awk' is missing"
 		echo "==================================="
-		echo "The gawk programm is missing on your platform, this is required though."
-		echo "Please install gnu-awk / gawk and rerun the configure process"
+		echo "The awk programm is missing on your platform, this is required though."
+		echo "Please install awk / gnu-awk / mawk / nawk or some other Posix compatible version of AWK"
+		echo "And then rerun the configure process"
+		echo "==================================="
 		echo "Exitting now."
-		echo "==================================="
 		exit
 	]) 
 ])
