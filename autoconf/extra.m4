@@ -53,6 +53,18 @@ AC_DEFUN([CS_SETUP_BUILD],[
 		AC_SUBST([BUILD_USER])
 	    fi
 	fi
+	
+	AS_IF([test "${GAWK}" == "No"],[
+		echo ""
+		echo ""
+		echo "Utility 'gnu awk' is missing"
+		echo "==================================="
+		echo "The gawk programm is missing on your platform, this is required though."
+		echo "Please install gnu-awk / gawk and rerun the configure process"
+		echo "Exitting now."
+		echo "==================================="
+		exit
+	]) 
 ])
 
 
