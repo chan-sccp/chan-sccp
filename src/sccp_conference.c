@@ -10,11 +10,11 @@
 #include "common.h"
 #include "sccp_conference.h"
 #include "sccp_channel.h"
+#include "sccp_atomic.h"
 #include "sccp_device.h"
+#include "sccp_indicate.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
-#include "sccp_indicate.h"
-#include "sccp_atomic.h"
 #include <asterisk/say.h>
 
 #ifdef CS_SCCP_CONFERENCE

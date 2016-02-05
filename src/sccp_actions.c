@@ -19,14 +19,14 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_actions.h"
 #include "sccp_device.h"
 #include "sccp_session.h"
-#include "sccp_utils.h"
 #include "sccp_channel.h"
+#include "sccp_utils.h"
 #include "sccp_pbx.h"
 #include "sccp_conference.h"
 #include "sccp_config.h"
 #include "sccp_features.h"
-#include "sccp_line.h"
 #include "sccp_indicate.h"
+#include "sccp_line.h"
 
 /*!
  * \remarks
@@ -1560,13 +1560,15 @@ static void handle_speeddial(constDevicePtr d, const sccp_speed_t * k)
 				iPbx.send_digits(channel, k->ext);
 			}
 			return;
-		} if (channel->state == SCCP_CHANNELSTATE_OFFHOOK || channel->state == SCCP_CHANNELSTATE_GETDIGITS || channel->state == SCCP_CHANNELSTATE_SPEEDDIAL) {
+		}
+		if (channel->state == SCCP_CHANNELSTATE_OFFHOOK || channel->state == SCCP_CHANNELSTATE_GETDIGITS || channel->state == SCCP_CHANNELSTATE_SPEEDDIAL) {
 			sccp_channel_stop_schedule_digittimout(channel);
 			len = sccp_strlen(channel->dialedNumber);
 			sccp_copy_string(channel->dialedNumber + len, k->ext, sizeof(channel->dialedNumber) - len);
 			sccp_pbx_softswitch(channel);
 			return;
-		} else if (channel->state >= SCCP_CHANNELSTATE_DIALING && channel->state <= SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) {
+		}
+		if (channel->state >= SCCP_CHANNELSTATE_DIALING && channel->state <= SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: put call %d on hold %d\n", DEV_ID_LOG(d), channel->callid, channel->state);
 			if (!sccp_channel_hold(channel)) {
 				pbx_log(LOG_ERROR, "%s: Putting Active Channel %s OnHold failed -> Cancelling new CaLL\n", d->id, channel->designator);

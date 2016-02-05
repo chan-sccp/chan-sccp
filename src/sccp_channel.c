@@ -25,12 +25,12 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_device.h"
 #include "sccp_pbx.h"
 #include "sccp_conference.h"
-#include "sccp_utils.h"
+#include "sccp_atomic.h"
 #include "sccp_features.h"
 #include "sccp_indicate.h"
 #include "sccp_line.h"
 #include "sccp_netsock.h"
-#include "sccp_atomic.h"
+#include "sccp_utils.h"
 #include <asterisk/callerid.h>			// sccp_channel, sccp_callinfo
 #include <asterisk/pbx.h>			// AST_EXTENSION_NOT_INUSE
 

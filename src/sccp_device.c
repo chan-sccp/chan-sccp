@@ -24,9 +24,9 @@
 #include "sccp_features.h"
 #include "sccp_line.h"
 #include "sccp_session.h"
-#include "sccp_utils.h"
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
+#include "sccp_utils.h"
 #include "sccp_atomic.h"
 #include "sccp_devstate.h"
 

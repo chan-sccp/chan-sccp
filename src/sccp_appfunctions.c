@@ -18,8 +18,8 @@
 #include "sccp_line.h"
 #include "sccp_mwi.h"
 #include "sccp_conference.h"
-#include "sccp_utils.h"
 #include "sccp_session.h"
+#include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 

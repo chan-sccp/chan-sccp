@@ -18,14 +18,14 @@
 #include "common.h"
 #include "chan_sccp.h"
 #include "sccp_channel.h"
+#include "sccp_config.h"
 #include "sccp_device.h"
 #include "sccp_globals.h"
 #include "sccp_line.h"
-#include "sccp_config.h"
 #include "sccp_mwi.h"		// use __constructor__ to remove this entry
 #include "sccp_netsock.h"
-#include "sccp_utils.h"
 #include "sccp_session.h"	// use __constructor__ to remove this entry
+#include "sccp_utils.h"
 #include "sccp_hint.h"		// use __constructor__ to remove this entry
 #include "sccp_conference.h"	// use __constructor__ to remove this entry
 #include "revision.h"

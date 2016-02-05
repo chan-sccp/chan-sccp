@@ -152,7 +152,8 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 			e->command = command;									\
 			e->usage = _USAGE;									\
 			return NULL;										\
-		} else if (cmd == CLI_GENERATE) {								\
+		}												\
+		if (cmd == CLI_GENERATE) {									\
         		uint8_t completer;									\
 			for (completer=0; completer<ARRAY_LEN(cli_complete); completer++) {			\
 				if ((unsigned)a->pos == (completer + ARRAY_LEN(cli_command) - 1) || _COMPLETER_REPEAT ) {\
@@ -161,9 +162,9 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 			}											\
 			return NULL;										\
 		}												\
-		if (a->argc < (int)(ARRAY_LEN(cli_command)-1)) 							\
+		if (a->argc < (int)(ARRAY_LEN(cli_command)-1)) {						\
 			return CLI_SHOWUSAGE;									\
-														\
+		}												\
 		static char *cli_ami_params[] = { CLI_COMMAND, CLI_AMI_PARAMS };				\
 		struct message m = { 0 };									\
 		size_t hdrlen; 											\
@@ -191,7 +192,8 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 			e->command = command;								\
 			e->usage = _USAGE;									\
 			return NULL;										\
-		} else if (cmd == CLI_GENERATE) {								\
+		}												\
+		if (cmd == CLI_GENERATE) {									\
                         uint8_t completer;									\
 			for (completer=0; completer<ARRAY_LEN(cli_complete); completer++) {			\
 				if ((unsigned)a->pos == (completer + ARRAY_LEN(cli_command) -1) || _COMPLETER_REPEAT ) {\
@@ -200,9 +202,9 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 			}											\
 			return NULL;										\
 		}												\
-		if (a->argc < (int)(ARRAY_LEN(cli_command)-1)) 							\
+		if (a->argc < (int)(ARRAY_LEN(cli_command)-1)) {						\
 			return CLI_SHOWUSAGE;									\
-														\
+		}												\
 		switch (_CALLED_FUNCTION(a->fd, a->argc, (char **) a->argv)) {					\
 			case RESULT_SUCCESS: return CLI_SUCCESS;						\
 			case RESULT_FAILURE: return CLI_FAILURE;						\

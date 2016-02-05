@@ -9,12 +9,12 @@
 #ifdef CS_SCCP_MANAGER
 #include "common.h"
 #include "sccp_channel.h"
-#include "sccp_device.h"
-#include "sccp_management.h"
 #include "sccp_actions.h"
 #include "sccp_config.h"
+#include "sccp_device.h"
 #include "sccp_features.h"
 #include "sccp_line.h"
+#include "sccp_management.h"
 #include "sccp_session.h"
 #include "sccp_utils.h"
 #include <asterisk/threadstorage.h>

@@ -24,14 +24,14 @@
 #include "common.h"
 #include "sccp_channel.h"
 #include "sccp_device.h"
-#include "sccp_features.h"
 #include "sccp_featureButton.h"
+#include "sccp_features.h"
 #include "sccp_line.h"
 #include "sccp_pbx.h"
 #include "sccp_conference.h"
-#include "sccp_utils.h"
 #include "sccp_indicate.h"
 #include "sccp_management.h"
+#include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
