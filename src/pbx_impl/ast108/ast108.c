@@ -11,8 +11,8 @@
 #include "common.h"
 #include "chan_sccp.h"
 #include "sccp_pbx.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
+#include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_cli.h"
 #include "sccp_utils.h"
@@ -21,8 +21,8 @@
 #include "sccp_mwi.h"
 #include "sccp_appfunctions.h"
 #include "sccp_management.h"
-#include "sccp_rtp.h"
 #include "sccp_netsock.h"
+#include "sccp_rtp.h"
 #include "sccp_session.h"		// required for sccp_session_getOurIP
 #include "ast108.h"
 #include <signal.h>
@@ -34,15 +34,15 @@ __BEGIN_C_EXTERN__
 #  include <asterisk/acl.h>
 #endif
 #include <asterisk/module.h>
-#include <asterisk/causes.h>
 #include <asterisk/callerid.h>
+#include <asterisk/causes.h>
 #include <asterisk/musiconhold.h>
 #ifdef HAVE_PBX_FEATURES_H
 #  include <asterisk/features.h>
 #endif
 #include <asterisk/indications.h>
-#include <asterisk/netsock2.h>
 #include <asterisk/cel.h>
+#include <asterisk/netsock2.h>
 #include <asterisk/translate.h>
 
 #define new avoid_cxx_new_keyword
@@ -55,7 +55,7 @@ static struct sched_context *sched = 0;
 static struct io_context *io = 0;
 
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, format_t format, const PBX_CHANNEL_TYPE * requestor, void *data, int *cause);
-static int sccp_wrapper_asterisk18_call(PBX_CHANNEL_TYPE * chan, char *addr, int timeout);
+static int sccp_wrapper_asterisk18_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout);
 static int sccp_wrapper_asterisk18_answer(PBX_CHANNEL_TYPE * chan);
 static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast);
 static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame);
@@ -142,7 +142,7 @@ const struct ast_channel_tech sccp_tech = {
 	.fixup 			= sccp_wrapper_asterisk18_fixup,
 	//.transfer 		= sccp_pbx_transfer,
 	//.bridge 		= sccp_wrapper_asterisk18_rtpBridge,
-	.bridge			= ast_rtp_instance_bridge,
+	.bridge			= ast_rtp_instance_write,
 	//.early_bridge         = ast_rtp_instance_early_bridge,
 	//.bridged_channel      =
 
@@ -1350,12 +1350,12 @@ static sccp_extension_status_t sccp_wrapper_asterisk18_extensionStatus(const scc
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "+- pbx extension matcher (%-15s): ---+\n" VERBOSE_PREFIX_3 "|ignore     |exists     |can match  |match more|\n" VERBOSE_PREFIX_3 "|%3s        |%3s        |%3s        |%3s       |\n" VERBOSE_PREFIX_3 "+----------------------------------------------+\n", channel->dialedNumber, ignore_pat ? "yes" : "no", ext_exist ? "yes" : "no", ext_canmatch ? "yes" : "no", ext_matchmore ? "yes" : "no");
 	if (ignore_pat) {
 		return SCCP_EXTENSION_NOTEXISTS;
-	} else if (ext_exist) {
+	}
+	if (ext_exist) {
 		if (ext_canmatch && !ext_matchmore) {
 			return SCCP_EXTENSION_EXACTMATCH;
-		} else {
-			return SCCP_EXTENSION_MATCHMORE;
 		}
+		return SCCP_EXTENSION_MATCHMORE;
 	}
 
 	return SCCP_EXTENSION_NOTEXISTS;
@@ -1871,9 +1871,8 @@ static format_t sccp_wrapper_asterisk18_getCodec(PBX_CHANNEL_TYPE * ast)
 
 	if (channel->remoteCapabilities.audio[0] != SKINNY_CODEC_NONE) {
 		return skinny_codecs2pbx_codecs(channel->remoteCapabilities.audio);
-	} else {
-		return skinny_codecs2pbx_codecs(channel->capabilities.audio);
-	}
+	} 
+	return skinny_codecs2pbx_codecs(channel->capabilities.audio);
 }
 
 /*
@@ -2645,7 +2644,7 @@ static const char *sccp_wrapper_asterisk_get_channel_##_field(const sccp_channel
 };
 
 #define DECLARE_PBX_CHANNEL_STRSET(_field)									\
-static void sccp_wrapper_asterisk_set_channel_##_field(const sccp_channel_t * channel, const char * _field)	\
+static void sccp_wrapper_asterisk_set_channel_##_field(const sccp_channel_t * channel, const char * (_field))	\
 { 														\
 	if (channel && channel->owner) {											\
 		sccp_copy_string(channel->owner->_field, _field, sizeof(channel->owner->_field));		\

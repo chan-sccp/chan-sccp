@@ -11,8 +11,8 @@
 #include "common.h"
 #include "chan_sccp.h"
 #include "sccp_pbx.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
+#include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_cli.h"
 #include "sccp_utils.h"
@@ -21,8 +21,8 @@
 #include "sccp_mwi.h"
 #include "sccp_appfunctions.h"
 #include "sccp_management.h"
-#include "sccp_rtp.h"
 #include "sccp_netsock.h"
+#include "sccp_rtp.h"
 #include "sccp_session.h"		// required for sccp_session_getOurIP
 #include "ast106.h"
 
@@ -33,8 +33,8 @@ __BEGIN_C_EXTERN__
 #  include <asterisk/acl.h>
 #endif
 #include <asterisk/module.h>
-#include <asterisk/causes.h>
 #include <asterisk/callerid.h>
+#include <asterisk/causes.h>
 #include <asterisk/musiconhold.h>
 #ifdef HAVE_PBX_FEATURES_H
 #  include <asterisk/features.h>
@@ -63,7 +63,7 @@ static struct io_context *io = 0;
 
 //static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_request(const char *type, format_t format, const PBX_CHANNEL_TYPE * requestor, void *data, int *cause);
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_request(const char *type, int format, void *data, int *cause);
-static int sccp_wrapper_asterisk16_call(PBX_CHANNEL_TYPE * chan, char *addr, int timeout);
+static int sccp_wrapper_asterisk16_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout);
 static int sccp_wrapper_asterisk16_answer(PBX_CHANNEL_TYPE * chan);
 static PBX_FRAME_TYPE *sccp_wrapper_asterisk16_rtp_read(PBX_CHANNEL_TYPE * ast);
 static int sccp_wrapper_asterisk16_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame);
@@ -441,16 +441,16 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk16_rtp_read(PBX_CHANNEL_TYPE * ast)
 	if (!frame) {
 		pbx_log(LOG_WARNING, "%s: error reading frame == NULL\n", c->currentDeviceId);
 		return &ast_null_frame;
-	} else {
-		//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast->fdno, frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
-		if (frame->frametype == AST_FRAME_VOICE) {
+	} 
+	//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast->fdno, frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
+	if (frame->frametype == AST_FRAME_VOICE) {
 #ifdef CS_SCCP_CONFERENCE
-			if (c->conference && ast->readformat == AST_FORMAT_SLINEAR) {
-				ast_set_read_format(ast, AST_FORMAT_SLINEAR);
-			}
-#endif
+		if (c->conference && ast->readformat == AST_FORMAT_SLINEAR) {
+			ast_set_read_format(ast, AST_FORMAT_SLINEAR);
 		}
+#endif
 	}
+	
 	return frame;
 }
 
@@ -1304,12 +1304,12 @@ static sccp_extension_status_t sccp_wrapper_asterisk16_extensionStatus(const scc
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "+- pbx extension matcher (%-15s): ---+\n" VERBOSE_PREFIX_3 "|ignore     |exists     |can match  |match more|\n" VERBOSE_PREFIX_3 "|%3s        |%3s        |%3s        |%3s       |\n" VERBOSE_PREFIX_3 "+----------------------------------------------+\n", channel->dialedNumber, ignore_pat ? "yes" : "no", ext_exist ? "yes" : "no", ext_canmatch ? "yes" : "no", ext_matchmore ? "yes" : "no");
 	if (ignore_pat) {
 		return SCCP_EXTENSION_NOTEXISTS;
-	} else if (ext_exist) {
+	}
+	if (ext_exist) {
 		if (ext_canmatch && !ext_matchmore) {
 			return SCCP_EXTENSION_EXACTMATCH;
-		} else {
-			return SCCP_EXTENSION_MATCHMORE;
 		}
+		return SCCP_EXTENSION_MATCHMORE;
 	}
 
 	return SCCP_EXTENSION_NOTEXISTS;
@@ -1903,9 +1903,8 @@ static int sccp_wrapper_asterisk16_getCodec(PBX_CHANNEL_TYPE * ast)
 	ast_debug(10, "asterisk requests format for channel %s, readFormat: %s(%d)\n", ast->name, codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat);
 	if (channel->remoteCapabilities.audio[0] != SKINNY_CODEC_NONE) {
 		return skinny_codecs2pbx_codecs(channel->remoteCapabilities.audio);
-	} else {
-		return skinny_codecs2pbx_codecs(channel->capabilities.audio);
-	}
+	} 
+	return skinny_codecs2pbx_codecs(channel->capabilities.audio);
 }
 
 static boolean_t sccp_wrapper_asterisk16_createRtpInstance(constDevicePtr d, constChannelPtr c, sccp_rtp_t *rtp)
@@ -1921,10 +1920,9 @@ static boolean_t sccp_wrapper_asterisk16_createRtpInstance(constDevicePtr d, con
 	if (GLOB(bindaddr).ss_family == AF_INET6) {
 		pbx_log(LOG_ERROR, "asterisk 1.6 does not support ipv6, returning FALSE\n");
 		return FALSE;
-	} else {
-		memcpy(&sock, &GLOB(bindaddr), sizeof(struct in_addr));
-		sin = (struct sockaddr_in *) &sock;
-	}
+	} 
+	memcpy(&sock, &GLOB(bindaddr), sizeof(struct in_addr));
+	sin = (struct sockaddr_in *) &sock;
 
 	if (!(rtp->instance = ast_rtp_new_with_bindaddr(sched, io, 1, 0, sin->sin_addr))) {
 		return FALSE;
@@ -2306,7 +2304,7 @@ static const char *sccp_wrapper_asterisk_get_channel_##_field(const sccp_channel
 };
 
 #define DECLARE_PBX_CHANNEL_STRSET(_field)									\
-static void sccp_wrapper_asterisk_set_channel_##_field(const sccp_channel_t * channel, const char * _field)	\
+static void sccp_wrapper_asterisk_set_channel_##_field(const sccp_channel_t * channel, const char * (_field))	\
 { 														\
         if (channel && channel->owner) {											\
         	sccp_copy_string(channel->owner->_field, _field, sizeof(channel->owner->_field));		\
@@ -2394,9 +2392,8 @@ static int pbx_find_channel_by_linkedid(PBX_CHANNEL_TYPE * ast, void *data)
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: peer name: %s, linkId: %s\n", ast->name ? ast->name : "(null)", linkedId);
 		// return !ast->pbx && (!strcasecmp(refLinkId, linkId)) && !ast->masq;
 		return 1;
-	} else {
-		return 0;
-	}
+	} 
+	return 0;
 }
 
 static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel)
@@ -2423,9 +2420,8 @@ static int pbx_find_forward_originator_channel_by_linkedid(PBX_CHANNEL_TYPE * as
 	if (!ast->masq && sccp_strequals(pbx_builtin_getvar_helper(refAstChannel, SCCP_AST_LINKEDID_HELPER), pbx_builtin_getvar_helper(ast, SCCP_AST_LINKEDID_HELPER))) {
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: peer name: %s\n", ast->name ? ast->name : "(null)");
 		return 1;
-	} else {
-		return 0;
-	}
+	} 
+	return 0;
 }
 
 boolean_t sccp_asterisk_getForwarderPeerChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel)
@@ -2729,7 +2725,7 @@ static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to,
 	const char *messageText = ast_msg_get_body(msg);
 	int res = -1;
 
-	lineName = (char *) pbx_strdupa(to);
+	lineName = pbx_strdupa(to);
 	if (strchr(lineName, '@')) {
 		strsep(&lineName, "@");
 	} else {

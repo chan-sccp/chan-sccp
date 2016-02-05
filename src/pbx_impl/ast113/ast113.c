@@ -11,8 +11,8 @@
 #include "common.h"
 #include "chan_sccp.h"
 #include "sccp_pbx.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
+#include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_cli.h"
 #include "sccp_utils.h"
@@ -21,8 +21,8 @@
 #include "sccp_mwi.h"
 #include "sccp_appfunctions.h"
 #include "sccp_management.h"
-#include "sccp_rtp.h"
 #include "sccp_netsock.h"
+#include "sccp_rtp.h"
 #include "sccp_session.h"		// required for sccp_session_getOurIP
 #include "ast113.h"
 #include "ast_announce.h"
@@ -34,28 +34,28 @@ __BEGIN_C_EXTERN__
 #  include <asterisk/acl.h>
 #endif
 #include <asterisk/module.h>
-#include <asterisk/causes.h>
 #include <asterisk/callerid.h>
+#include <asterisk/causes.h>
 #include <asterisk/musiconhold.h>
 #ifdef HAVE_PBX_FEATURES_H
 #  include <asterisk/features_config.h>
 #  include <asterisk/features.h>
-#  include <asterisk/pickup.h>
 #  include <asterisk/parking.h>
+#  include <asterisk/pickup.h>
 #endif
 #ifdef HAVE_PBX_APP_H
 #  include <asterisk/app.h>
 #endif
 #include <asterisk/translate.h>
 #include <asterisk/indications.h>
-#include <asterisk/netsock2.h>
 #include <asterisk/cel.h>
+#include <asterisk/netsock2.h>
 #include <asterisk/pickup.h>
 #include <asterisk/stasis.h>
 #include <asterisk/stasis_channels.h>
 #include <asterisk/stasis_endpoints.h>
-#include <asterisk/bridge_channel.h>
 #include <asterisk/bridge_after.h>
+#include <asterisk/bridge_channel.h>
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
@@ -67,8 +67,8 @@ struct io_context *io = 0;
 
 //struct ast_format slinFormat = { AST_FORMAT_SLINEAR, {{0}, 0} };
 
-static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, struct ast_format_cap *format, const struct ast_assigned_ids *assignedids, const PBX_CHANNEL_TYPE * requestor, const char *dest, int *cause);
-static int sccp_wrapper_asterisk113_call(PBX_CHANNEL_TYPE * chan, const char *addr, int timeout);
+static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, struct ast_format_cap *cap, const struct ast_assigned_ids *assignedids, const PBX_CHANNEL_TYPE * requestor, const char *dest, int *cause);
+static int sccp_wrapper_asterisk113_call(PBX_CHANNEL_TYPE * ast, const char *dest, int timeout);
 static int sccp_wrapper_asterisk113_answer(PBX_CHANNEL_TYPE * chan);
 static PBX_FRAME_TYPE *sccp_wrapper_asterisk113_rtp_read(PBX_CHANNEL_TYPE * ast);
 static int sccp_wrapper_asterisk113_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame);
@@ -1173,7 +1173,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_requestAnnouncementChannel(pbx
 	if (!cap) {
 		return NULL;
 	}
-	// TODO convert format_type to ast_format
+	// TODO(dkgroot): convert format_type to ast_format
 	ast_format = ast_format_alaw;
 	framing = ast_format_get_default_ms(ast_format);
 
@@ -1377,12 +1377,12 @@ static sccp_extension_status_t sccp_wrapper_asterisk113_extensionStatus(constCha
 
 	if (ignore_pat) {
 		return SCCP_EXTENSION_NOTEXISTS;
-	} else if (ext_exist) {
+	}
+	if (ext_exist) {
 		if (ext_canmatch && !ext_matchmore) {
 			return SCCP_EXTENSION_EXACTMATCH;
-		} else {
-			return SCCP_EXTENSION_MATCHMORE;
-		}
+		} 
+		return SCCP_EXTENSION_MATCHMORE;
 	}
 
 	return SCCP_EXTENSION_NOTEXISTS;
@@ -2659,7 +2659,7 @@ static const char *sccp_wrapper_asterisk_get_channel_##_field(constChannelPtr ch
 };
 
 #define DECLARE_PBX_CHANNEL_STRSET(_field)									\
-static void sccp_wrapper_asterisk_set_channel_##_field(constChannelPtr channel, const char * _field)	\
+static void sccp_wrapper_asterisk_set_channel_##_field(constChannelPtr channel, const char * (_field))	\
 { 														\
 	if (channel && channel->owner) {											\
 		ast_channel_##_field##_set(channel->owner, _field);						\
@@ -2846,8 +2846,9 @@ static int sccp_wrapper_asterisk113_dumpchan(struct ast_channel *c, char *buf, s
 	struct ast_str *codec_buf = ast_str_alloca(64);
 
 	memset(buf, 0, size);
-	if (!c)
+	if (!c) {
 		return 0;
+}
 
 	elapsed_seconds = ast_channel_get_duration(c);
 	hour = elapsed_seconds / 3600;
@@ -3021,7 +3022,7 @@ static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to,
 	const char *messageText = ast_msg_get_body(msg);
 	int res = -1;
 
-	lineName = (char *) pbx_strdupa(to);
+	lineName = pbx_strdupa(to);
 	if (strchr(lineName, '@')) {
 		strsep(&lineName, "@");
 	} else {
