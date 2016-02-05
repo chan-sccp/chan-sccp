@@ -776,7 +776,7 @@ static int sccp_wrapper_asterisk112_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 #ifdef CS_SCCP_VIDEO
 			if (c->rtp.video.writeState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
 				// int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
-				int codec = pbx_codec2skinny_codec(frame->subclass.format->id);
+				int codec = pbx_codec2skinny_codec(frame->subclass.format.id);
 
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: got video frame %d\n", c->currentDeviceId, codec);
 				if (0 != codec) {
@@ -1116,7 +1116,8 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk112_requestAnnouncementChannel(pbx
 	struct ast_format_cap *cap;
 	struct ast_format format;
 
-	cap = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	//cap = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	cap = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_NOLOCK);
 	if (!cap) {
 		return NULL;
 	}

@@ -182,7 +182,7 @@ struct ast_channel_tech sccp_tech = {
 	.fixup 			= sccp_wrapper_asterisk110_fixup,
 	//.transfer 		= sccp_pbx_transfer,
 	//.bridge 		= sccp_wrapper_asterisk110_rtpBridge,
-	.bridge 		= ast_rtp_instance_write,
+	.bridge 		= ast_rtp_instance_bridge,
 //	.early_bridge           = ast_rtp_instance_early_bridge,
 	//.bridged_channel      =
 
