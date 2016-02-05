@@ -66,7 +66,7 @@ static struct sccp_event_subscriptions {
 							// same as: SCCP_VECTOR_RW(sccp_event_vector, sccp_event_subscriber_t) subscribers;
 							// typedef struct sccp_event_vector sccp_event_vector_t;
 							// but using predeclared type instead
-} event_subscriptions[NUMBER_OF_EVENT_TYPES] = {0};
+} event_subscriptions[NUMBER_OF_EVENT_TYPES] = {{{0}}};
 
 /*
  * \brief release held references when we are finished processing this event
