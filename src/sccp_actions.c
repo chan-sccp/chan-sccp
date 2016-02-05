@@ -2366,6 +2366,7 @@ void handle_offhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
  */
 void handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
+	pbx_assert(d != NULL);
 	uint32_t buttonIndex = letohl(msg_in->data.OnHookMessage.lel_buttonIndex);
 	uint32_t callid = letohl(msg_in->data.OnHookMessage.lel_callReference);
 
