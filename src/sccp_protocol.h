@@ -141,13 +141,11 @@ typedef struct {
 /*!
  * \brief SKINNY Message Types Enum
  */
-#define SCCP_MESSAGE_LOW_BOUNDARY			0x0000
-#define SCCP_MESSAGE_HIGH_BOUNDARY			0x8101
-#define SPCP_MESSAGE_OFFSET 				0x8000
 
 typedef enum {
 	/* *INDENT-OFF* */
 
+#define SCCP_MESSAGE_LOW_BOUNDARY			KeepAliveMessage		/*0x0000*/
 	/* Client -> Server */
 	KeepAliveMessage 				= 0x0000,
 	RegisterMessage 				= 0x0001,
@@ -341,6 +339,9 @@ typedef enum {
 	CallCountRespMessage				= 0x015F,	/*new (2013-12-9)*/
 	RecordingStatusMessage 				= 0x0160,	/*new (2013-12-9)*/
 
+#define SCCP_MESSAGE_HIGH_BOUNDARY			RecordingStatusMessage		/*0x0160*/
+#define SPCP_MESSAGE_OFFSET 				SPCP_MESSAGE_LOW_BOUNDARY
+#define SPCP_MESSAGE_LOW_BOUNDARY			SPCPRegisterTokenRequest	/*0x8000*/
 	/* SPCP client -> server; */
 	SPCPRegisterTokenRequest 			= 0x8000,
 	/* SPCP server -> client */
@@ -348,6 +349,7 @@ typedef enum {
 	SPCPRegisterTokenReject 			= 0x8101,
 
 	UnknownVGMessage				= 0xFF00,	/* Unknown Message (VG224). Reported by Ahmet Zaim */
+#define SPCP_MESSAGE_HIGH_BOUNDARY			UnknownVGMessage		/*0xFF00*/
 /*
 	SPCPPlatformInfoGetReq				= 0xFF02,
 	SPCPPlatformInfoGetRsp				= 0xFF03,
@@ -355,6 +357,7 @@ typedef enum {
 */
 	/* *INDENT-ON* */
 } sccp_mid_t;													/*!< SKINNY Message ID Enum */
+
 
 /*=====================================================================================================*/
 

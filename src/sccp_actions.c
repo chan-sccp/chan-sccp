@@ -53,7 +53,7 @@ void handle_unknown_message(constSessionPtr s, devicePtr d, constMessagePtr msg_
 void handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_alarm(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				__NONNULL(1,3);
 void handle_token_request(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,3);
-void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_in)				__NONNULL(1,3);
+void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_in)			__NONNULL(1,3);
 void handle_SPCPTokenReq(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,3);
 void handle_accessorystatus_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_unregister(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				__NONNULL(1,3);
@@ -141,7 +141,7 @@ struct messageMap_cb {
 	boolean_t deviceIsNecessary;
 };
 
-static const struct messageMap_cb sccpMessagesCbMap[] = {
+static const struct messageMap_cb sccpMessagesCbMap[SCCP_MESSAGE_HIGH_BOUNDARY + 1] = {
 	[KeepAliveMessage] = {handle_KeepAliveMessage, FALSE},						// on 7985,6911 phones and tokenmsg, a KeepAliveMessage is send before register/token 
 	[OffHookMessage] = {handle_offhook, TRUE},
 	[OnHookMessage] = {handle_onhook, TRUE},
@@ -193,7 +193,7 @@ static const struct messageMap_cb sccpMessagesCbMap[] = {
 	[CallCountReqMessage] = {handle_unknown_message, FALSE},
 };
 
-static const struct messageMap_cb spcpMessagesCbMap[] = {
+static const struct messageMap_cb spcpMessagesCbMap[SPCP_MESSAGE_HIGH_BOUNDARY + 1- SPCP_MESSAGE_OFFSET] = {
 	[SPCPRegisterTokenRequest - SPCP_MESSAGE_OFFSET] = {handle_SPCPTokenReq, FALSE},
 	[UnknownVGMessage - SPCP_MESSAGE_OFFSET] = {NULL, FALSE},
 };
@@ -222,10 +222,10 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 	mid = letohl(msg->header.lel_messageId);
 
 	/* search for message handler */
-	if (mid >= SPCP_MESSAGE_OFFSET && (mid - SPCP_MESSAGE_OFFSET) < ARRAY_LEN(spcp_messagetypes)) {
-		messageMap_cb = &spcpMessagesCbMap[mid - SPCP_MESSAGE_OFFSET]; 
-	} else if (mid < ARRAY_LEN(sccp_messagetypes)) {
+	if ((mid >= SCCP_MESSAGE_LOW_BOUNDARY || mid <= SCCP_MESSAGE_HIGH_BOUNDARY)) {
 		messageMap_cb = &sccpMessagesCbMap[mid];
+	} else if ((mid >= SPCP_MESSAGE_LOW_BOUNDARY || mid <= SPCP_MESSAGE_HIGH_BOUNDARY)) {
+		messageMap_cb = &spcpMessagesCbMap[mid - SPCP_MESSAGE_OFFSET]; 
 	} else {
 		pbx_log(LOG_WARNING, "SCCP: Unknown Message %x. Don't know how to handle it. Skipping.\n", mid);
 		handle_unknown_message(s, device, msg);
@@ -2370,7 +2370,7 @@ void handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	uint32_t buttonIndex = letohl(msg_in->data.OnHookMessage.lel_buttonIndex);
 	uint32_t callid = letohl(msg_in->data.OnHookMessage.lel_callReference);
 
-	if (d && !(d->lineButtons.size > SCCP_FIRST_LINEINSTANCE)) {
+	if (!(d->lineButtons.size > SCCP_FIRST_LINEINSTANCE)) {
 		pbx_log(LOG_NOTICE, "No lines registered on %s to put OnHook\n", DEV_ID_LOG(d));
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_LINES_REGISTERED, SCCP_DISPLAYSTATUS_TIMEOUT);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
