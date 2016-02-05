@@ -55,7 +55,7 @@ extern "C" {
 #endif
 #endif
 
-#if defined(RUNNING_STATIC_ANALYSIS) && defined(SCAN_BUILD)
+#if defined(RUNNING_STATIC_ANALYSIS)
 #define __NONNULL(...) __attribute__((nonnull(__VA_ARGS__)))
 #else
 #define __NONNULL(...) 
