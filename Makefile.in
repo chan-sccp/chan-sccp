@@ -317,7 +317,6 @@ EVENT_TYPE = @EVENT_TYPE@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FINGER = @FINGER@
-GAWK = @GAWK@
 GDB = @GDB@
 GDB_FLAGS = @GDB_FLAGS@
 GIT = @GIT@
@@ -383,6 +382,7 @@ PBX_LIB = @PBX_LIB@
 PBX_MODDIR = @PBX_MODDIR@
 PBX_PATH = @PBX_PATH@
 PBX_PREFIX = @PBX_PREFIX@
+PBX_SBINDIR = @PBX_SBINDIR@
 PBX_TEMPMODDIR = @PBX_TEMPMODDIR@
 PBX_TYPE = @PBX_TYPE@
 PBX_VARLIB = @PBX_VARLIB@
@@ -1115,6 +1115,13 @@ coverage-zero: rmcoverage
 
 test:
 	@echo "Success"
+
+unload:
+	cd src;make unload
+load:
+	cd src;make load
+reload:
+	cd src;make reload
 
 #install-exec-hook:
 #	@if test "$(DEBUG)" == "1" && test -n "$(GDB)" && test tools/chan-sccp-b_backtrace -nt /usr/bin/chan-sccp-b_backtrace; then	\

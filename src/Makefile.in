@@ -355,7 +355,6 @@ EVENT_TYPE = @EVENT_TYPE@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FINGER = @FINGER@
-GAWK = @GAWK@
 GDB = @GDB@
 GDB_FLAGS = @GDB_FLAGS@
 GIT = @GIT@
@@ -421,6 +420,7 @@ PBX_LIB = @PBX_LIB@
 PBX_MODDIR = @PBX_MODDIR@
 PBX_PATH = @PBX_PATH@
 PBX_PREFIX = @PBX_PREFIX@
+PBX_SBINDIR = @PBX_SBINDIR@
 PBX_TEMPMODDIR = @PBX_TEMPMODDIR@
 PBX_TYPE = @PBX_TYPE@
 PBX_VARLIB = @PBX_VARLIB@
@@ -1121,7 +1121,7 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-csmodLTLIBRARIES
+install-data-am: install-csmodLTLIBRARIES install-data-local
 
 install-dvi: install-dvi-recursive
 
@@ -1178,11 +1178,11 @@ uninstall-am: uninstall-csmodLTLIBRARIES
 	distclean-hdr distclean-libtool distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
 	install-csmodLTLIBRARIES install-data install-data-am \
-	install-dvi install-dvi-am install-exec install-exec-am \
-	install-html install-html-am install-info install-info-am \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs installdirs-am maintainer-clean \
+	install-data-local install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs installdirs-am maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-csmodLTLIBRARIES
@@ -1209,9 +1209,9 @@ sccp_enum.c:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 			fi
 
 gen_enum:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-	@echo "  GEN      sccp_enum.h";
-	@echo "  GEN      sccp_enum.c";
-	@$(GAWK) -O -v out_header_file=sccp_enum.h -v out_source_file=sccp_enum.c -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" < @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
+			@echo "  GEN      sccp_enum.h";
+			@echo "  GEN      sccp_enum.c";
+			@$(AWK) -O -v out_header_file=sccp_enum.h -v out_source_file=sccp_enum.c -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" < @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
@@ -1234,6 +1234,22 @@ install-csmodLTLIBRARIES:
 		echo    "Please restart asterisk or reload the module to use the new version of chan_sccp.so"; 				\
 		echo    "==============================================================================================="; 		\
 	fi
+
+install-data-local:
+	@test -d $(DESTDIR)$(PBX_ETC) || $(mkinstalldirs) $(DESTDIR)$(PBX_ETC);								\
+	if [ ! -f $(DESTDIR)$(PBX_ETC)/sccp.conf ]; then										\
+		echo "Installing $(DESTDIR)$(PBX_ETC)/sccp.conf...";									\
+		$(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC);							\
+	fi
+
+unload: install
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; $(PBX_SBINDIR)/asterisk -rx "module unload chan_sccp.so";fi
+
+load:   install
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(PBX_SBINDIR)/asterisk -rx "module load chan_sccp.so";fi
+
+reload: install
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(PBX_SBINDIR)/asterisk -rx "module unload chan_sccp.so" && $(PBX_SBINDIR)/asterisk -rx "module load chan_sccp.so";fi
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
