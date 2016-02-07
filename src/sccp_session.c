@@ -249,7 +249,7 @@ static void socket_get_error(constSessionPtr s)
 	}
 }
 
-static gcc_inline int socket_readAtLeast(sccp_session_t *s, unsigned char *buffer, unsigned int bytesToRead, int flags)
+static gcc_inline int socket_readAtLeast(sccp_session_t *s, unsigned char *buffer, size_t bufsize, unsigned int bytesToRead, int flags)
 {
 	int mysocket = s->fds[0].fd;
 	unsigned int received = 0;
@@ -258,7 +258,9 @@ static gcc_inline int socket_readAtLeast(sccp_session_t *s, unsigned char *buffe
 	while (received < bytesToRead) {
 		try++;
 		int bytes = 0;
-		if ((bytes = recv(mysocket, buffer, bytesToRead, flags)) <= 0) {
+
+		/* we are reading minimum of bytesToRead, but we could receive more if bufsize > bytesToRead. socket has to to be emptied before returning to poll */
+		if ((bytes = recv(mysocket, buffer, bufsize, flags)) <= 0) {
 			if (bytes < 0 && (errno == EINTR || errno == EAGAIN) && try < READ_RETRIES) {
 				if (received == 0) {
 					break;		/* nothing happened yet, time to go poll again */
@@ -294,9 +296,9 @@ static gcc_inline int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	if (!s || s->session_stop || s->fds[0].fd <= 0 || !msg) {
 		return 0;
 	}
-	int lenAccordingToOurProtocolSpec = 0;										/* Size of sccp_data_t according to the sccp_msg_t */
-	int lenAccordingToPacketHeader = 0;
-	int received = 0;
+	int lenAccordingToOurProtocolSpec;										/* Size of sccp_data_t according to the sccp_msg_t */
+	int lenAccordingToPacketHeader;
+	int received_hdr, received;
 	errno = 0;
 
 	union {
@@ -307,14 +309,15 @@ static gcc_inline int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	};
 
 	// STAGE 1: peek to see the header, data stays on socket, for next read.
+MoreToReadFromSocketStream:
 	memset(msg, 0, SCCP_MAX_PACKET);
-	if ((received = socket_readAtLeast(s, msg_buffer.buffer, SCCP_PACKET_HEADER, MSG_PEEK)) <= 0) {
+	lenAccordingToOurProtocolSpec = 0, lenAccordingToPacketHeader = 0, received_hdr = 0, received = 0;
+	if ((received_hdr = socket_readAtLeast(s, msg_buffer.buffer, SCCP_MAX_PACKET, SCCP_PACKET_HEADER, MSG_PEEK)) <= 0) {
 		if (received == 0) {
 			return 0;											/* poll again */
 		}
 		goto READ_ERROR;
 	}
-
 	// STAGE 2: dissect header / verify message id and length is within bounds
 	msg->header.length = letohl(msg->header.length);
 	lenAccordingToPacketHeader = msg->header.length + (SCCP_PACKET_HEADER - 4);					/** adjust to include complete header */
@@ -324,8 +327,9 @@ static gcc_inline int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 		}
 		lenAccordingToOurProtocolSpec = 0;									/** unknown message, read it and discard content */
 	}
+
 	// STAGE 3: read all data according to packet header
-	if ((received = socket_readAtLeast(s, msg_buffer.buffer, lenAccordingToPacketHeader, 0)) < 0) {
+	if ((received = socket_readAtLeast(s, msg_buffer.buffer, lenAccordingToPacketHeader, lenAccordingToPacketHeader, 0)) < 0) {
 		if (received == 0) {
 			return 0;											/* poll again */
 		}
@@ -354,8 +358,12 @@ static gcc_inline int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	/* STAGE 5: Process message */
 	if (received >= (int)SCCP_PACKET_HEADER && (sccp_handle_message(msg, s) == 0)) {
 		s->lastKeepAlive = time(0);
+		if ((received_hdr - lenAccordingToPacketHeader) >= (int)SCCP_PACKET_HEADER) {	        		/* there is more on the socket to be read */
+			sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: More data in socket stream (left on socketstream:%d), read now\n", DEV_ID_LOG(s->device), received_hdr - lenAccordingToPacketHeader);
+			goto MoreToReadFromSocketStream;                                                                /* read next header */
+		}
 		return received;
-	} 
+	}
 	return -2;													/* message could not be handled */
 
 READ_ERROR:
