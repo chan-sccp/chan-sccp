@@ -105,7 +105,14 @@ coverage-zero: rmcoverage
 
 test:
 	@echo "Success"
-        
+
+unload:
+	cd src;make unload
+load:
+	cd src;make load
+reload:
+	cd src;make reload
+                                
 #install-exec-hook:
 #	@if test "$(DEBUG)" == "1" && test -n "$(GDB)" && test tools/chan-sccp-b_backtrace -nt /usr/bin/chan-sccp-b_backtrace; then	\
 #		$(INSTALL) -C tools/chan-sccp-b_backtrace /usr/bin/chan-sccp-b_backtrace;						\

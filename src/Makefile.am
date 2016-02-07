@@ -32,9 +32,9 @@ sccp_enum.c:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 			fi
 
 gen_enum:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-	@echo "  GEN      sccp_enum.h";
-	@echo "  GEN      sccp_enum.c";
-	@$(GAWK) -O -v out_header_file=sccp_enum.h -v out_source_file=sccp_enum.c -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" < @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
+			@echo "  GEN      sccp_enum.h";
+			@echo "  GEN      sccp_enum.c";
+			@$(AWK) -O -v out_header_file=sccp_enum.h -v out_source_file=sccp_enum.c -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" < @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
 
 # libsccp.la and chan_sccp.so
 noinst_LTLIBRARIES	= libsccp.la
@@ -91,3 +91,19 @@ install-csmodLTLIBRARIES:
 		echo    "Please restart asterisk or reload the module to use the new version of chan_sccp.so"; 				\
 		echo    "==============================================================================================="; 		\
 	fi
+
+install-data-local:
+	@test -d $(DESTDIR)$(PBX_ETC) || $(mkinstalldirs) $(DESTDIR)$(PBX_ETC);								\
+	if [ ! -f $(DESTDIR)$(PBX_ETC)/sccp.conf ]; then										\
+		echo "Installing $(DESTDIR)$(PBX_ETC)/sccp.conf...";									\
+		$(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC);							\
+	fi
+
+unload: install
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; $(PBX_SBINDIR)/asterisk -rx "module unload chan_sccp.so";fi
+
+load:   install
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(PBX_SBINDIR)/asterisk -rx "module load chan_sccp.so";fi
+
+reload: install
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(PBX_SBINDIR)/asterisk -rx "module unload chan_sccp.so" && $(PBX_SBINDIR)/asterisk -rx "module load chan_sccp.so";fi
