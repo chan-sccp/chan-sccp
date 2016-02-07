@@ -201,8 +201,8 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 
 	// dissecting header to see if we have a valid sccp message, that we can handle
 	if (packetSize < 4 || packetSize > SCCP_MAX_PACKET - 8) {
-		pbx_log(LOG_ERROR, "SCCP: (session_dissect_header) Size of the data payload in the packet (messageId: %u, protocolVersion: %u / 0x0%x) is out of bounds: %d < %u > %d, cancelling read.\n", messageId, protocolVersion, protocolVersion, 4, packetSize, (int) (SCCP_MAX_PACKET - 8));
-		return -1;
+		pbx_log(LOG_ERROR, "SCCP: (session_dissect_header) Size of the data payload in the packet (messageId: %u, protocolVersion: %u / 0x0%x) is out of bounds: %d < %u > %d, close connection !\n", messageId, protocolVersion, protocolVersion, 4, packetSize, (int) (SCCP_MAX_PACKET - 8));
+		return -2;
 	}
 
 	if (protocolVersion > 0 && !(sccp_protocol_isProtocolSupported(s->protocolType, protocolVersion))) {
@@ -320,8 +320,10 @@ static gcc_inline int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	msg->header.length = letohl(msg->header.length);
 	lenAccordingToPacketHeader = msg->header.length + (SCCP_PACKET_HEADER - 4);					/** adjust to include complete header */
 	if ((lenAccordingToOurProtocolSpec = session_dissect_header(s, &msg->header)) < 0) {
-		lenAccordingToOurProtocolSpec = 0;
-		goto DISCARD_PACKET;
+		if (lenAccordingToOurProtocolSpec == -2) {
+			goto READ_ERROR;										/** packet is out of bounds, closing connection */
+		}
+		lenAccordingToOurProtocolSpec = 0;									/** unknown message, read it and discard content */
 	}
 	// STAGE 3: read all data according to packet header
 	if ((received = socket_readAtLeast(s, (unsigned char *)msg, SCCP_MAX_PACKET, lenAccordingToPacketHeader, 0)) < 0) {
@@ -333,7 +335,6 @@ static gcc_inline int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_read_data) Finished Reading %s (%d), received: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, received);
 
 	// STAGE 4: discard the data with which we cannot do anything
-DISCARD_PACKET:
 	if (lenAccordingToOurProtocolSpec < lenAccordingToPacketHeader) {
 		int discardLength = lenAccordingToPacketHeader - lenAccordingToOurProtocolSpec;
 #if !DEBUG
@@ -341,7 +342,7 @@ DISCARD_PACKET:
 		msg->header.length = lenAccordingToOurProtocolSpec;							/* patch up msg->header.length to new size */
 #else
 		/* dump the discarded bytes, for analysis */
-		unsigned char discardBuffer[discardLength];
+		unsigned char discardBuffer[SCCP_MAX_PACKET] = {0};
 		memcpy(discardBuffer, msg + lenAccordingToOurProtocolSpec, discardLength);
 		memset(msg + lenAccordingToOurProtocolSpec, 0, discardLength);						/* zero out discarded bytes */
 		msg->header.length = lenAccordingToOurProtocolSpec;							/* patch up msg->header.length to new size */
@@ -1389,7 +1390,7 @@ int sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession 
 		CLI_AMI_TABLE_FIELD(IP,			"40.40",	s,	40,	clientAddress)						\
 		CLI_AMI_TABLE_FIELD(Port,		"-5",		d,	5,	sccp_netsock_getPort(&session->sin) )    		\
 		CLI_AMI_TABLE_FIELD(KA,			"-4",		d,	4,	(uint32_t) (time(0) - session->lastKeepAlive))		\
-		CLI_AMI_TABLE_FIELD(KAI,		"-4",		d,	4,	(d) ? d->keepaliveinterval : 0)				\
+		CLI_AMI_TABLE_FIELD(KAI,		"-4",		d,	4,	(d) ? d->keepaliveinterval : GLOB(keepalive))		\
 		CLI_AMI_TABLE_FIELD(DeviceName,		"15",		s,	15,	(d) ? d->id : "--")					\
 		CLI_AMI_TABLE_FIELD(State,		"-14.14",	s,	14,	(d) ? sccp_devicestate2str(sccp_device_getDeviceState(d)) : "--")		\
 		CLI_AMI_TABLE_FIELD(Type,		"-15.15",	s,	15,	(d) ? skinny_devicetype2str(d->skinny_type) : "--")	\
