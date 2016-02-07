@@ -212,18 +212,18 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 			break;
 		}
 
-		struct messagetype msgtype = {0};
+		const struct messagetype *msgtype;
 		if (messageId >= SCCP_MESSAGE_LOW_BOUNDARY && messageId <= SCCP_MESSAGE_HIGH_BOUNDARY) {
-			msgtype = sccp_messagetypes[messageId];
-			if (msgtype.messageId == messageId) {
-				return msgtype.size + SCCP_PACKET_HEADER;
+			msgtype = &sccp_messagetypes[messageId];
+			if (msgtype->messageId == messageId) {
+				return msgtype->size + SCCP_PACKET_HEADER;
 			}
 			pbx_log(LOG_ERROR, "%s: (session_dissect_header) messageId %d (0x%x) unknown. discarding message.\n", DEV_ID_LOG(s->device), messageId, messageId);
 			break;
 		} else if (messageId >= SPCP_MESSAGE_LOW_BOUNDARY || messageId <= SPCP_MESSAGE_HIGH_BOUNDARY) {
-			msgtype = sccp_messagetypes[messageId - SPCP_MESSAGE_OFFSET];
-			if (msgtype.messageId == messageId) {
-				return msgtype.size + SCCP_PACKET_HEADER;
+			msgtype = &sccp_messagetypes[messageId - SPCP_MESSAGE_OFFSET];
+			if (msgtype->messageId == messageId) {
+				return msgtype->size + SCCP_PACKET_HEADER;
 			}
 			pbx_log(LOG_ERROR, "%s: (session_dissect_header) messageId %d (0x%x) unknown. discarding message.\n", DEV_ID_LOG(s->device), messageId, messageId);
 			break;
