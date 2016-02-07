@@ -115,6 +115,7 @@ int load_config(void)
 				pbx_log(LOG_ERROR, "Unable to create SCCP socket: %s\n", strerror(errno));
 				break;
 			} else {
+				sccp_netsock_setoptions(GLOB(descriptor));
 				/* get ip-address string */
 				if (bind(GLOB(descriptor), res->ai_addr, res->ai_addrlen) < 0) {
 					pbx_log(LOG_ERROR, "Failed to bind to %s:%d: %s!\n", addrStr, sccp_netsock_getPort(&GLOB(bindaddr)), strerror(errno));
@@ -124,8 +125,6 @@ int load_config(void)
 				}
 				ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", addrStr, sccp_netsock_getPort(&GLOB(bindaddr)));
 
-				sccp_netsock_setoptions(GLOB(descriptor));
-				
 				if (listen(GLOB(descriptor), DEFAULT_SCCP_BACKLOG)) {
 					pbx_log(LOG_ERROR, "Failed to start listening to %s:%d: %s\n", addrStr, sccp_netsock_getPort(&GLOB(bindaddr)), strerror(errno));
 					close(GLOB(descriptor));
