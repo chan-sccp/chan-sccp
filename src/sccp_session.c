@@ -296,8 +296,8 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	if (!s || s->session_stop || s->fds[0].fd <= 0 || !msg) {
 		return 0;
 	}
-	uint packetLengthAccordingToOurProtocolSpec = 0;										/* Size of sccp_data_t according to the sccp_msg_t */
-	uint completePacketLength = 0;
+	int packetLengthAccordingToOurProtocolSpec = 0;										/* Size of sccp_data_t according to the sccp_msg_t */
+	int completePacketLength = 0;
 	int received = 0;
 	errno = 0;
 
