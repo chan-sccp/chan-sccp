@@ -218,26 +218,15 @@ void sccp_dev_dbclean(void)
 }
 #endif
 
-gcc_inline const char *msgtype2str(sccp_mid_t type)
+gcc_inline const char *msgtype2str(sccp_mid_t msgId)
 {														/* sccp_protocol.h */
-	if (type >= SPCP_MESSAGE_OFFSET && (type - SPCP_MESSAGE_OFFSET) < ARRAY_LEN(spcp_messagetypes)) {
-		return spcp_messagetypes[type - SPCP_MESSAGE_OFFSET].text;
+	if (msgId >= SPCP_MESSAGE_OFFSET && (msgId - SPCP_MESSAGE_OFFSET) < ARRAY_LEN(spcp_messagetypes)) {
+		return spcp_messagetypes[msgId - SPCP_MESSAGE_OFFSET].text;
 	}
-	if (type < ARRAY_LEN(sccp_messagetypes)) {
-		return sccp_messagetypes[type].text;
+	if (msgId < ARRAY_LEN(sccp_messagetypes)) {
+		return sccp_messagetypes[msgId].text;
 	} 
-	return "SCCP: Message type does not exist";
-}
-
-gcc_inline size_t msgtype2size(sccp_mid_t type)
-{														/* sccp_protocol.h */
-	if (type >= SPCP_MESSAGE_OFFSET && (type - SPCP_MESSAGE_OFFSET) < ARRAY_LEN(spcp_messagetypes)) {
-		return spcp_messagetypes[type - SPCP_MESSAGE_OFFSET].size + SCCP_PACKET_HEADER;
-	}
-	if (type < ARRAY_LEN(sccp_messagetypes)) {
-		return sccp_messagetypes[type].size + SCCP_PACKET_HEADER;
-	} 
-	return -1;
+	return "SCCP: Requested MessageId does not exist";
 }
 
 gcc_inline const char *pbxsccp_devicestate2str(uint32_t value)

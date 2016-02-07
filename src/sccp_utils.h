@@ -70,8 +70,7 @@ void sccp_dev_dbclean(void);
         })
 
 // SCCP Lookups
-gcc_inline const char *msgtype2str(sccp_mid_t type);
-gcc_inline size_t msgtype2size(sccp_mid_t type);
+gcc_inline const char *msgtype2str(sccp_mid_t msgId);
 gcc_inline const char *pbxsccp_devicestate2str(uint32_t value);
 // SKINNY Lookups
 gcc_inline const char *label2str(uint16_t value);

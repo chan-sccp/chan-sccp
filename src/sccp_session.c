@@ -195,53 +195,45 @@ static void __sccp_session_stopthread(sessionPtr session, uint8_t newRegistratio
 
 static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 {
+	int result = -1;
 	unsigned int packetSize = header->length;
 	int protocolVersion = letohl(header->lel_protocolVer);
-	int messageId = letohl(header->lel_messageId);
+	sccp_mid_t messageId = letohl(header->lel_messageId);
 
-	// dissecting header to see if we have a valid sccp message, that we can handle
-	if (packetSize < 4 || packetSize > SCCP_MAX_PACKET - 8) {
-		pbx_log(LOG_ERROR, "SCCP: (session_dissect_header) Size of the data payload in the packet (messageId: %u, protocolVersion: %u / 0x0%x) is out of bounds: %d < %u > %d, close connection !\n", messageId, protocolVersion, protocolVersion, 4, packetSize, (int) (SCCP_MAX_PACKET - 8));
-		return -2;
-	}
-
-	if (protocolVersion > 0 && !(sccp_protocol_isProtocolSupported(s->protocolType, protocolVersion))) {
-		pbx_log(LOG_ERROR, "SCCP: (session_dissect_header) protocolversion %u is unknown, cancelling read.\n", protocolVersion);
-		return -1;
-	}
-
-	if ((messageId < SCCP_MESSAGE_LOW_BOUNDARY || messageId > SCCP_MESSAGE_HIGH_BOUNDARY) && (messageId < SPCP_MESSAGE_LOW_BOUNDARY || messageId > SPCP_MESSAGE_HIGH_BOUNDARY)) {
-		pbx_log(LOG_ERROR, "SCCP: (session_dissect_header) messageId out of bounds: %d < %u > %d || %d < %u > %d, cancelling read.\n", SCCP_MESSAGE_LOW_BOUNDARY, messageId, SCCP_MESSAGE_HIGH_BOUNDARY, SPCP_MESSAGE_LOW_BOUNDARY, messageId, SPCP_MESSAGE_HIGH_BOUNDARY);
-		return -1;
-	}
-#if DEBUG
-	boolean_t Found = FALSE;
-	uint32_t x;
-
-	if (messageId < SPCP_MESSAGE_OFFSET) {
-		for (x = 0; x < ARRAY_LEN(sccp_messagetypes); x++) {
-			if (messageId == (int)x) {
-				Found = TRUE;
-				break;
-			}
+	do {
+		// dissecting header to see if we have a valid sccp message, that we can handle
+		if (packetSize < 4 || packetSize > SCCP_MAX_PACKET - 8) {
+			pbx_log(LOG_ERROR, "%s: (session_dissect_header) Size of the data payload in the packet (messageId: %u, protocolVersion: %u / 0x0%x) is out of bounds: %d < %u > %d, close connection !\n", DEV_ID_LOG(s->device), messageId, protocolVersion, protocolVersion, 4, packetSize, (int) (SCCP_MAX_PACKET - 8));
+			return -2;
 		}
-	} else {
-		for (x = 0; x < ARRAY_LEN(spcp_messagetypes); x++) {
-			if ((messageId - SPCP_MESSAGE_OFFSET) == (int)x) {
-				Found = TRUE;
-				break;
-			}
-		}
-	}
-	if (!Found) {
-		pbx_log(LOG_ERROR, "SCCP: (session_dissect_header) messageId %d could not be found in the array of known messages, cancelling read.\n", messageId);
-#if DEBUG
-		return -1;									    			/* not returning -1 in this case, so that we can see the message we would otherwise miss */
-#endif		
-	}
-#endif
 
-	return msgtype2size(messageId);
+		if (protocolVersion > 0 && !(sccp_protocol_isProtocolSupported(s->protocolType, protocolVersion))) {
+			pbx_log(LOG_ERROR, "%s: (session_dissect_header) protocolversion %u is unknown, cancelling read.\n", DEV_ID_LOG(s->device), protocolVersion);
+			break;
+		}
+
+		struct messagetype msgtype = {0};
+		if (messageId >= SCCP_MESSAGE_LOW_BOUNDARY && messageId <= SCCP_MESSAGE_HIGH_BOUNDARY) {
+			msgtype = sccp_messagetypes[messageId];
+			if (msgtype.messageId == messageId) {
+				return msgtype.size + SCCP_PACKET_HEADER;
+			}
+			pbx_log(LOG_ERROR, "%s: (session_dissect_header) messageId %d (0x%x) unknown. discarding message.\n", DEV_ID_LOG(s->device), messageId, messageId);
+			break;
+		} else if (messageId >= SPCP_MESSAGE_LOW_BOUNDARY || messageId <= SPCP_MESSAGE_HIGH_BOUNDARY) {
+			msgtype = sccp_messagetypes[messageId - SPCP_MESSAGE_OFFSET];
+			if (msgtype.messageId == messageId) {
+				return msgtype.size + SCCP_PACKET_HEADER;
+			}
+			pbx_log(LOG_ERROR, "%s: (session_dissect_header) messageId %d (0x%x) unknown. discarding message.\n", DEV_ID_LOG(s->device), messageId, messageId);
+			break;
+		} else {
+			pbx_log(LOG_ERROR, "%s: (session_dissect_header) messageId out of bounds: %d < %u > %d. Or messageId unknown. discarding message.\n", DEV_ID_LOG(s->device), SCCP_MESSAGE_LOW_BOUNDARY, messageId, SPCP_MESSAGE_HIGH_BOUNDARY);
+			break;
+		}
+	} while (0);
+
+	return result;
 }
 
 static void socket_get_error(constSessionPtr s)
@@ -307,9 +299,16 @@ static gcc_inline int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	int received = 0;
 	errno = 0;
 
+	union {
+		sccp_msg_t *msg;
+		unsigned char *buffer;
+	} msg_buffer = {
+		.msg = msg
+	};
+
 	// STAGE 1: peek to see the header, data stays on socket, for next read.
 	memset(msg, 0, SCCP_MAX_PACKET);
-	if ((received = socket_readAtLeast(s, (unsigned char *)msg, SCCP_MAX_PACKET, SCCP_PACKET_HEADER, MSG_PEEK)) <= 0) {
+	if ((received = socket_readAtLeast(s, msg_buffer.buffer, SCCP_MAX_PACKET, SCCP_PACKET_HEADER, MSG_PEEK)) <= 0) {
 		if (received == 0) {
 			return 0;											/* poll again */
 		}
@@ -326,7 +325,7 @@ static gcc_inline int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 		lenAccordingToOurProtocolSpec = 0;									/** unknown message, read it and discard content */
 	}
 	// STAGE 3: read all data according to packet header
-	if ((received = socket_readAtLeast(s, (unsigned char *)msg, SCCP_MAX_PACKET, lenAccordingToPacketHeader, 0)) < 0) {
+	if ((received = socket_readAtLeast(s, msg_buffer.buffer, SCCP_MAX_PACKET, lenAccordingToPacketHeader, 0)) < 0) {
 		if (received == 0) {
 			return 0;											/* poll again */
 		}
@@ -343,8 +342,8 @@ static gcc_inline int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 #else
 		/* dump the discarded bytes, for analysis */
 		unsigned char discardBuffer[SCCP_MAX_PACKET] = {0};
-		memcpy(discardBuffer, msg + lenAccordingToOurProtocolSpec, discardLength);
-		memset(msg + lenAccordingToOurProtocolSpec, 0, discardLength);						/* zero out discarded bytes */
+		memcpy(discardBuffer, &msg_buffer.buffer[lenAccordingToOurProtocolSpec], discardLength);
+		memset(&msg_buffer.buffer[lenAccordingToOurProtocolSpec], 0, discardLength);				/* zero out discarded bytes */
 		msg->header.length = lenAccordingToOurProtocolSpec;							/* patch up msg->header.length to new size */
 		pbx_log(LOG_NOTICE, "%s: Discarding %d bytes of data for '%s' (%d)\n", DEV_ID_LOG(s->device), discardLength, msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
 		sccp_dump_packet((unsigned char *) discardBuffer, discardLength);
