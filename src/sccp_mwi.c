@@ -309,7 +309,7 @@ void sccp_mwi_destroySubscription(sccp_mailbox_subscriber_list_t *subscription)
 	}
 #elif defined(CS_AST_HAS_STASIS)
 	if (subscription->event_sub) {
-		stasis_unsubscribe(subscription->event_sub);
+		stasis_unsubscribe_and_join(subscription->event_sub);
 	}
 #else
 	if (subscription->schedUpdate > -1) {
