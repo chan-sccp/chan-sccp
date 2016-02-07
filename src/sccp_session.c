@@ -249,7 +249,7 @@ static void socket_get_error(constSessionPtr s)
 	}
 }
 
-static gcc_inline int socket_readAtLeast(sccp_session_t *s, unsigned char *buffer, size_t bufsize, unsigned int bytesToRead, int flags)
+static gcc_inline int socket_readAtLeast(sccp_session_t *s, unsigned char *buffer, unsigned int bytesToRead, int flags)
 {
 	int mysocket = s->fds[0].fd;
 	unsigned int received = 0;
@@ -258,7 +258,7 @@ static gcc_inline int socket_readAtLeast(sccp_session_t *s, unsigned char *buffe
 	while (received < bytesToRead) {
 		try++;
 		int bytes = 0;
-		if ((bytes = recv(mysocket, buffer, bufsize, flags)) <= 0) {
+		if ((bytes = recv(mysocket, buffer, bytesToRead, flags)) <= 0) {
 			if (bytes < 0 && (errno == EINTR || errno == EAGAIN) && try < READ_RETRIES) {
 				if (received == 0) {
 					break;		/* nothing happened yet, time to go poll again */
@@ -308,13 +308,13 @@ static gcc_inline int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 
 	// STAGE 1: peek to see the header, data stays on socket, for next read.
 	memset(msg, 0, SCCP_MAX_PACKET);
-	if ((received = socket_readAtLeast(s, msg_buffer.buffer, SCCP_MAX_PACKET, SCCP_PACKET_HEADER, MSG_PEEK)) <= 0) {
+	if ((received = socket_readAtLeast(s, msg_buffer.buffer, SCCP_PACKET_HEADER, MSG_PEEK)) <= 0) {
 		if (received == 0) {
 			return 0;											/* poll again */
 		}
 		goto READ_ERROR;
 	}
-	
+
 	// STAGE 2: dissect header / verify message id and length is within bounds
 	msg->header.length = letohl(msg->header.length);
 	lenAccordingToPacketHeader = msg->header.length + (SCCP_PACKET_HEADER - 4);					/** adjust to include complete header */
@@ -325,7 +325,7 @@ static gcc_inline int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 		lenAccordingToOurProtocolSpec = 0;									/** unknown message, read it and discard content */
 	}
 	// STAGE 3: read all data according to packet header
-	if ((received = socket_readAtLeast(s, msg_buffer.buffer, SCCP_MAX_PACKET, lenAccordingToPacketHeader, 0)) < 0) {
+	if ((received = socket_readAtLeast(s, msg_buffer.buffer, lenAccordingToPacketHeader, 0)) < 0) {
 		if (received == 0) {
 			return 0;											/* poll again */
 		}
