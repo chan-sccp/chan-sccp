@@ -81,7 +81,7 @@ struct sccp_session {
 	struct pollfd fds[1];											/*!< File Descriptor */
 	struct sockaddr_storage sin;										/*!< Incoming Socket Address */
 	uint32_t protocolType;
-	volatile boolean_t session_stop;										/*!< Signal Session Stop */
+	volatile boolean_t session_stop;									/*!< Signal Session Stop */
 	sccp_mutex_t write_lock;										/*!< Prevent multiple threads writing to the socket at the same time */
 	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
 	pthread_t session_thread;										/*!< Session Thread */
@@ -193,6 +193,23 @@ static void __sccp_session_stopthread(sessionPtr session, uint8_t newRegistratio
 	}
 }
 
+static void socket_get_error(constSessionPtr s, int __errnum)
+{
+	if (errno) {
+		pbx_log(LOG_ERROR, "%s: Socket recv/write returned error: '%s (%d)')\n", DEV_ID_LOG(s->device), strerror(errno), errno);
+	} else {
+		if (!s || s->fds[0].fd <= 0) {
+			return;
+		}
+		int mysocket = s->fds[0].fd;
+		int error = 0;
+		socklen_t error_len = sizeof(error);
+		if ((mysocket && getsockopt(mysocket, SOL_SOCKET, SO_ERROR, &error, &error_len) == 0) && error != 0) {
+			pbx_log(LOG_ERROR, "%s: SOL_SOCKET:SO_ERROR: %s (%d)\n", DEV_ID_LOG(s->device), strerror(error), error);
+		}
+	}
+}
+
 static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 {
 	int result = -1;
@@ -236,140 +253,48 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 	return result;
 }
 
-static void socket_get_error(constSessionPtr s)
-{
-	if (!s || s->fds[0].fd <= 0) {
-		return;
+static gcc_inline int session_dissect_msg(sccp_session_t * s, sccp_msg_t *msg, int lenAccordingToPacketHeader) 
+ {
+	int lenAccordingToOurProtocolSpec = session_dissect_header(s, &msg->header);
+	if (lenAccordingToOurProtocolSpec < 0) {
+		if (lenAccordingToOurProtocolSpec == -2) {
+			return 0;
+		}
+		lenAccordingToOurProtocolSpec = 0;									// unknown message, read it and discard content
 	}
-	int mysocket = s->fds[0].fd;
-	int error = 0;
-	socklen_t error_len = sizeof(error);
-	if ((mysocket && getsockopt(mysocket, SOL_SOCKET, SO_ERROR, &error, &error_len) == 0) && error != 0) {
-		pbx_log(LOG_ERROR, "%s: SOL_SOCKET:SO_ERROR: %s (%d)\n", DEV_ID_LOG(s->device), strerror(error), error);
+	if (lenAccordingToPacketHeader > lenAccordingToOurProtocolSpec) {						// zero out discarded bytes
+		memset(msg + lenAccordingToOurProtocolSpec, 0, lenAccordingToPacketHeader - lenAccordingToOurProtocolSpec);
 	}
+	msg->header.length = lenAccordingToOurProtocolSpec;								// patch up msg->header.length to new size
+	return sccp_handle_message(msg, s);
 }
 
-static gcc_inline int socket_readAtLeast(sccp_session_t *s, unsigned char *buffer, size_t bufsize, unsigned int bytesToRead, int flags)
+static gcc_inline void process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsigned char *buffer, size_t *len)
 {
-	int mysocket = s->fds[0].fd;
-	unsigned int received = 0;
-	while (received < bytesToRead) {
-		int bytes = 0;
-		/* we are reading minimum of bytesToRead, but we could receive more if bufsize > bytesToRead. socket has to to be emptied before returning to poll */
-		if ((bytes = recv(mysocket, buffer, bufsize, flags)) <= 0) {
-			if (bytes == 0 || (errno == EINTR || errno == EAGAIN)) {
-				received = -1;								// bytes==0 -> socket close by remote side
-				break;
+	while (*len >= SCCP_PACKET_HEADER) {										// We have at least SCCP_PACKET_HEADER, so we have the payload length
+		uint32_t payload_len = letohl(((uint32_t *)buffer)[0]) + (SCCP_PACKET_HEADER - 4);
+		if (*len < payload_len) {
+			break;												// Too short - haven't received whole payload yet, go poll for more
+		}
+
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);							// allow thread to be killed while handling the message
+		memcpy(msg, buffer + 0, payload_len);
+		if (session_dissect_msg(s, msg, payload_len) != 0) {
+			socket_get_error(s, errno);
+			if (s->device) {
+				sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
 			}
-			if (errno) {
-				pbx_log(LOG_ERROR, "%s: error '%s (%d)' while reading from socket.\n", DEV_ID_LOG(s->device), strerror(errno), errno);
-			} else {
-				socket_get_error(s);
-			}
-			received = -2;
+			__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 			break;
 		}
-		received += bytes;
-		buffer += bytes;
-	}
-	return received;
-}
+		pthread_testcancel();
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 
-/*!
- * \brief Read Data From Socket
- * \param s SCCP Session
- * \param msg Message Data Structure (sccp_msg_t)
- *
- * \lock
- *      - session
- */
-static gcc_inline int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
-{
-	if (!s || s->session_stop || s->fds[0].fd <= 0 || !msg) {
-		return 0;
-	}
-	int lenAccordingToOurProtocolSpec;										/* Size of sccp_data_t according to the sccp_msg_t */
-	int lenAccordingToPacketHeader;
-	int received_hdr, received;
-	errno = 0;
-
-	union {
-		sccp_msg_t *msg;
-		unsigned char *buffer;
-	} msg_buffer = {
-		.msg = msg
-	};
-
-	// STAGE 1: peek to see the header, data stays on socket, for next read.
-MoreToReadFromSocketStream:
-	memset(msg, 0, SCCP_MAX_PACKET);
-	lenAccordingToOurProtocolSpec = 0, lenAccordingToPacketHeader = 0, received_hdr = 0, received = 0;
-	if ((received_hdr = socket_readAtLeast(s, msg_buffer.buffer, SCCP_MAX_PACKET, SCCP_PACKET_HEADER, MSG_PEEK)) <= 0) {
-		if (received_hdr == -1) {
-			return 0;											/* poll again */
+		*len -= payload_len;
+		if (*len > 0) {												// Now shuffle the remaining data in the buffer back to the start
+			memmove(buffer + 0, buffer + payload_len, *len);
 		}
-		goto READ_ERROR;
 	}
-	// STAGE 2: dissect header / verify message id and length is within bounds
-	msg->header.length = letohl(msg->header.length);
-	lenAccordingToPacketHeader = msg->header.length + (SCCP_PACKET_HEADER - 4);					/** adjust to include complete header */
-	if ((lenAccordingToOurProtocolSpec = session_dissect_header(s, &msg->header)) < 0) {
-		if (lenAccordingToOurProtocolSpec == -2) {
-			goto READ_ERROR;										/** packet is out of bounds, closing connection */
-		}
-		lenAccordingToOurProtocolSpec = 0;									/** unknown message, read it and discard content */
-	}
-
-	// STAGE 3: read all data according to packet header
-	if ((received = socket_readAtLeast(s, msg_buffer.buffer, lenAccordingToPacketHeader, lenAccordingToPacketHeader, MSG_WAITALL)) < 0) {
-		if (received == -1) {
-			return 0;											/* poll again */
-		}
-		goto READ_ERROR;
-	}
-	sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_read_data) Finished Reading %s (%d), received: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, received);
-
-	// STAGE 4: discard the data with which we cannot do anything
-	if (lenAccordingToOurProtocolSpec < lenAccordingToPacketHeader) {
-		int discardLength = lenAccordingToPacketHeader - lenAccordingToOurProtocolSpec;
-#if !DEBUG
-		memset(msg + msgDataSegmentSize, 0, discardLength);							/* zero out discarded bytes */
-		msg->header.length = lenAccordingToOurProtocolSpec;							/* patch up msg->header.length to new size */
-#else
-		/* dump the discarded bytes, for analysis */
-		unsigned char discardBuffer[SCCP_MAX_PACKET] = {0};
-		memcpy(discardBuffer, &msg_buffer.buffer[lenAccordingToOurProtocolSpec], discardLength);
-		memset(&msg_buffer.buffer[lenAccordingToOurProtocolSpec], 0, discardLength);				/* zero out discarded bytes */
-		msg->header.length = lenAccordingToOurProtocolSpec;							/* patch up msg->header.length to new size */
-		pbx_log(LOG_NOTICE, "%s: Discarding %d bytes of data for '%s' (%d)\n", DEV_ID_LOG(s->device), discardLength, msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
-		sccp_dump_packet((unsigned char *) discardBuffer, discardLength);
-		pbx_log(LOG_NOTICE, "%s: Returning only the segment we know about:\n", DEV_ID_LOG(s->device));
-		sccp_dump_msg(msg);
-#endif
-	}
-	/* STAGE 5: Process message */
-	if (received >= (int)SCCP_PACKET_HEADER && (sccp_handle_message(msg, s) == 0)) {
-		s->lastKeepAlive = time(0);
-		if ((received_hdr - lenAccordingToPacketHeader) >= (int)SCCP_PACKET_HEADER) {	        		/* there is more on the socket to be read */
-			sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: More data in socket stream (left on socketstream:%d), read now\n", DEV_ID_LOG(s->device), received_hdr - lenAccordingToPacketHeader);
-			goto MoreToReadFromSocketStream;                                                                /* read next header */
-		}
-		return received;
-	}
-	return -2;													/* message could not be handled */
-
-READ_ERROR:
-	if (errno) {
-		pbx_log(LOG_ERROR, "%s: error '%s (%d)' while reading from socket.\n", DEV_ID_LOG(s->device), strerror(errno), errno);
-		pbx_log(LOG_ERROR, "%s: stats: %s (%d), Length According To Packet Header:%d, Length According To Our Protocol Spec: %d, received: %d\n", 
-			DEV_ID_LOG(s->device), 
-			msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, 
-			lenAccordingToPacketHeader, lenAccordingToOurProtocolSpec, received);
-	} else {
-		socket_get_error(s);
-	}
-	memset(msg, 0, SCCP_MAX_PACKET);
-	return -1;													/* read error occured */
 }
 
 /*!
@@ -676,13 +601,16 @@ void *sccp_netsock_device_thread(void *session)
 	int res;
 	int maxWaitTime;
 	int pollTimeout;
-	int read_result = 0;
+	
+	int result = 0;
+	unsigned char recv_buffer[SCCP_MAX_PACKET * 2] = "";
+	size_t recv_len = 0;
 	sccp_msg_t msg = { {0,} };
+
 	char addrStr[INET6_ADDRSTRLEN];
 
 	pthread_cleanup_push(sccp_netsock_device_thread_exit, session);
 
-	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
 	/* we increase additionalTime for wireless/slower devices */
@@ -691,8 +619,6 @@ void *sccp_netsock_device_thread(void *session)
 	}
 
 	while (s->fds[0].fd > 0 && !s->session_stop) {
-		/* create cancellation point */
-		pthread_testcancel();
 		if (s->device) {
 			pbx_rwlock_rdlock(&GLOB(lock));
 			if (GLOB(reload_in_progress) == FALSE && s && s->device && (!(s->device->pendingUpdate == FALSE && s->device->pendingDelete == FALSE))) {
@@ -707,10 +633,7 @@ void *sccp_netsock_device_thread(void *session)
 
 		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d for session %d\n", DEV_ID_LOG(s->device), (int) maxWaitTime, s->fds[0].fd);
 
-		pthread_testcancel();										/* poll is also a cancellation point */
 		res = sccp_netsock_poll(s->fds, 1, pollTimeout);
-		pthread_testcancel();
-		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 		if (-1 == res) {										/* poll data processing */
 			if (errno > 0 && (errno != EAGAIN) && (errno != EINTR)) {
 				sccp_copy_string(addrStr, sccp_netsock_stringify_addr(&s->sin), sizeof(addrStr));
@@ -727,14 +650,20 @@ void *sccp_netsock_device_thread(void *session)
 			}
 		} else if (res > 0) {										/* poll data processing */
 			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
-				/* we have new data -> continue */
-				sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
-				if ((read_result = sccp_read_data(s, &msg)) < 0) {
-					if (s->device) {
-						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
+				//sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving at buffer position:%lu\n", DEV_ID_LOG(s->device), recv_len);
+				result = recv(s->fds[0].fd, recv_buffer + recv_len, (SCCP_MAX_PACKET * 2) - recv_len, 0);
+				if (result > 0) {
+					recv_len += result;
+					process_buffer(s, &msg, recv_buffer, &recv_len);
+				} else {
+					if (!(result == 0 || (errno == EINTR || errno == EAGAIN))) {
+						socket_get_error(s, errno);
+						if (s->device) {
+							sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
+						}
+						__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
+						break;
 					}
-					__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
-					break;
 				}
 				s->lastKeepAlive = time(0);
 			} else {										/* POLLHUP / POLLERR */
@@ -745,7 +674,6 @@ void *sccp_netsock_device_thread(void *session)
 		} else {											/* poll returned invalid res */
 			pbx_log(LOG_NOTICE, "%s: Poll Returned invalid result: %d.\n", DEV_ID_LOG(s->device), res);
 		}
-		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	}
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Exiting sccp_socket device thread\n", DEV_ID_LOG(s->device));
 
@@ -1075,8 +1003,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 				backoff *= 2;
 				continue;
 			}
-			pbx_log(LOG_ERROR, "%s: write returned %d (error: '%s (%d)'). Sent %d of %d for Message: '%s' with total length %d \n", DEV_ID_LOG(s->device), (int) res, strerror(errno), errno, (int) bytesSent, (int) bufLen, msgtype2str(letohl(msg->header.lel_messageId)), letohl(msg->header.length));
-			socket_get_error(s);
+			socket_get_error(s, errno);
 			if (s) {
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 			}
