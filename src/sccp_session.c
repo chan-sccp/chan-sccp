@@ -41,8 +41,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 
 /* arbitrary values */
-#define SOCKET_TIMEOUT_SEC 0											/* timeout after seven seconds when trying to read/write from/to a socket */
-#define SOCKET_TIMEOUT_MILLISEC 500										/* "       "     0 milli seconds "    "    */
+//#define SOCKET_TIMEOUT_SEC 0											/* timeout after seven seconds when trying to read/write from/to a socket */
+//#define SOCKET_TIMEOUT_MILLISEC 500										/* "       "     0 milli seconds "    "    */
 #define SOCKET_KEEPALIVE_IDLE GLOB(keepalive)									/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
 #define SOCKET_KEEPALIVE_INTVL 5										/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
 #define SOCKET_KEEPALIVE_CNT 5											/* The maximum number of keepalive probes TCP should send before dropping the connection. */
@@ -51,10 +51,10 @@ sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 #define SOCKET_RCVBUF SCCP_MAX_PACKET										/* SO_RCVBUF */
 #define SOCKET_SNDBUF (SCCP_MAX_PACKET * 5)									/* SO_SNDBUG */
 
-#define READ_RETRIES 5												/* number of read retries */
-#define READ_BACKOFF 50												/* backoff time in millisecs, doubled every read retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec)*/
-#define WRITE_RETRIES 5												/* number of write retries */
-#define WRITE_BACKOFF 50											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
+//#define READ_RETRIES 5											/* number of read retries */
+//#define READ_BACKOFF 50											/* backoff time in millisecs, doubled every read retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec)*/
+//#define WRITE_RETRIES 5												/* number of write retries */
+#define WRITE_BACKOFF 500											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
 
 #define SESSION_DEVICE_CLEANUP_TIME 10										/* wait time before destroying a device on thread exit */
 #define KEEPALIVE_ADDITIONAL_PERCENT 10										/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
@@ -193,10 +193,10 @@ static void __sccp_session_stopthread(sessionPtr session, uint8_t newRegistratio
 	}
 }
 
-static void socket_get_error(constSessionPtr s, int __errnum)
+static void socket_get_error(constSessionPtr s, const char* file, int line, const char *function, int __errnum)
 {
 	if (errno) {
-		pbx_log(LOG_ERROR, "%s: Socket recv/write returned error: '%s (%d)')\n", DEV_ID_LOG(s->device), strerror(errno), errno);
+		pbx_log(LOG_ERROR, "%s: (%s:%d:%s) Socket returned error: '%s (%d)')\n", DEV_ID_LOG(s->device), file, line, function, strerror(errno), errno);
 	} else {
 		if (!s || s->fds[0].fd <= 0) {
 			return;
@@ -205,7 +205,7 @@ static void socket_get_error(constSessionPtr s, int __errnum)
 		int error = 0;
 		socklen_t error_len = sizeof(error);
 		if ((mysocket && getsockopt(mysocket, SOL_SOCKET, SO_ERROR, &error, &error_len) == 0) && error != 0) {
-			pbx_log(LOG_ERROR, "%s: SOL_SOCKET:SO_ERROR: %s (%d)\n", DEV_ID_LOG(s->device), strerror(error), error);
+			pbx_log(LOG_ERROR, "%s: (%s:%d:%s) SO_ERROR: %s (%d)\n", DEV_ID_LOG(s->device), file, line, function, strerror(error), error);
 		}
 	}
 }
@@ -651,7 +651,7 @@ void *sccp_netsock_device_thread(void *session)
 				//sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving at buffer position:%lu\n", DEV_ID_LOG(s->device), recv_len);
 				result = recv(s->fds[0].fd, recv_buffer + recv_len, (SCCP_MAX_PACKET * 2) - recv_len, 0);
 				if (!(result > 0 && (recv_len += result) && process_buffer(s, &msg, recv_buffer, &recv_len) == 0)) {
-					socket_get_error(s, errno);
+					socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
 					if (s->device) {
 						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
 					}
@@ -696,9 +696,9 @@ void sccp_netsock_setoptions(int new_socket)
 	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_PRIORITY, &value, sizeof(value));
 
 	/* timeeo */
-	struct timeval mytv = { SOCKET_TIMEOUT_SEC, SOCKET_TIMEOUT_MILLISEC };					/* timeout after seven seconds when trying to read/write from/to a socket */
-	// SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &mytv, sizeof(mytv));
-	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(mytv));
+	//struct timeval mytv = { SOCKET_TIMEOUT_SEC, SOCKET_TIMEOUT_MILLISEC };					/* timeout after seven seconds when trying to read/write from/to a socket */
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &mytv, sizeof(mytv));
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(mytv));
 
 	/* keepalive */
 	int ip_keepidle  = SOCKET_KEEPALIVE_IDLE;								/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
@@ -981,22 +981,21 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 		sccp_dump_msg(msg);
 	}
 
-	uint try = 0, backoff = WRITE_BACKOFF;
+	uint backoff = WRITE_BACKOFF;
 	bytesSent = 0;
 	bufAddr = ((uint8_t *) msg);
 	bufLen = (ssize_t) (letohl(msg->header.length) + 8);
 	do {
-		try++;
 		pbx_mutex_lock(&s->write_lock);									/* prevent two threads writing at the same time. That should happen in a synchronized way */
-		res = write(mysocket, bufAddr + bytesSent, bufLen - bytesSent);
+		res = send(mysocket, bufAddr + bytesSent, bufLen - bytesSent, 0);
 		pbx_mutex_unlock(&s->write_lock);
-		if (res < 0) {
-			if ((errno == EINTR || errno == EAGAIN) && try < WRITE_RETRIES) {
+		if (res <= 0) {
+			if ((errno == EINTR || errno == EAGAIN)) {
 				usleep(backoff);								/* back off to give network/other threads some time */
 				backoff *= 2;
 				continue;
 			}
-			socket_get_error(s, errno);
+			socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
 			if (s) {
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 			}
@@ -1004,7 +1003,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 			break;
 		}
 		bytesSent += res;
-	} while (bytesSent < bufLen && try < WRITE_RETRIES && s && !s->session_stop && mysocket > 0);
+	} while (bytesSent < bufLen && s && !s->session_stop && mysocket > 0);
 
 	sccp_free(msg);
 	msg = NULL;
