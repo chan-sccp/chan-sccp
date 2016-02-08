@@ -1214,7 +1214,7 @@ uninstall-am: uninstall-csmodLTLIBRARIES
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-csmodLTLIBRARIES
 
-.PHONY: 		.revision
+.PHONY: 		.revision unload load reload _reload
 
 # generated files
 revision.h: 		.revision
@@ -1269,14 +1269,22 @@ install-data-local:
 		$(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC);							\
 	fi
 
-unload:	install
-	@if [ -f $(PBX_SBINDIR)/asterisk ]; $(PBX_SBINDIR)/asterisk -rx "module unload chan_sccp.so";fi
+unload:	
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; then 											\
+		echo "Unloading asterisk module";											\
+		$(PBX_SBINDIR)/asterisk -rx "module unload chan_sccp.so";								\
+	fi
 
-load:	install
-	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(PBX_SBINDIR)/asterisk -rx "module load chan_sccp.so";fi
+load:	
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; then 											\
+		echo "Loading asterisk module";												\
+		$(PBX_SBINDIR)/asterisk -rx "module load chan_sccp.so";									\
+	fi
 
-reload: install
-	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(PBX_SBINDIR)/asterisk -rx "module unload chan_sccp.so" && $(PBX_SBINDIR)/asterisk -rx "module load chan_sccp.so";fi
+_reload: all unload install load	
+
+reload: 
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(MAKE) _reload;fi
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

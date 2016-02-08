@@ -10,7 +10,7 @@ include 		$(top_srcdir)/src/Makefile.inc.am
 SUBDIRS			= pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) .
 DIST_SUBDIRS		= pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast_announce .
 EXTRA_DIST 		= sccp_enum.in sccp_config_entries.hh
-.PHONY: 		.revision
+.PHONY: 		.revision unload load reload _reload
 
 # generated files
 revision.h: 		.revision
@@ -102,11 +102,19 @@ install-data-local:
 		$(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC);							\
 	fi
 
-unload:	install
-	@if [ -f $(PBX_SBINDIR)/asterisk ]; $(PBX_SBINDIR)/asterisk -rx "module unload chan_sccp.so";fi
+unload:	
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; then 											\
+		echo "Unloading asterisk module";											\
+		$(PBX_SBINDIR)/asterisk -rx "module unload chan_sccp.so";								\
+	fi
 	
-load:	install
-	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(PBX_SBINDIR)/asterisk -rx "module load chan_sccp.so";fi
-	
-reload: install
-	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(PBX_SBINDIR)/asterisk -rx "module unload chan_sccp.so" && $(PBX_SBINDIR)/asterisk -rx "module load chan_sccp.so";fi
+load:	
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; then 											\
+		echo "Loading asterisk module";												\
+		$(PBX_SBINDIR)/asterisk -rx "module load chan_sccp.so";									\
+	fi
+
+_reload: all unload install load	
+
+reload: 
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(MAKE) _reload;fi
