@@ -10,6 +10,8 @@ include 		$(top_srcdir)/src/Makefile.inc.am
 SUBDIRS			= pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) .
 DIST_SUBDIRS		= pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast_announce .
 EXTRA_DIST 		= sccp_enum.in sccp_config_entries.hh
+BUILT_SOURCES           = revision.h sccp_enum.h sccp_enum.c
+CLEANFILES              = revision.h sccp_enum.h sccp_enum.c
 .PHONY: 		.revision
 
 # generated files
@@ -21,12 +23,7 @@ revision.h: 		.revision
 				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_top_builddir@/src/revision.h" 2>/dev/null;	\
 			fi
 
-sccp_enum.h:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-			@if [ sccp_enum.in -nt $@ ] || [ @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ ]; then						\
-				$(MAKE) gen_enum;														\
-			fi
-
-sccp_enum.c:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
+sccp_enum.h sccp_enum.c:sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 			@if [ sccp_enum.in -nt $@ ] || [ @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ ]; then						\
 				$(MAKE) gen_enum;														\
 			fi
@@ -34,7 +31,9 @@ sccp_enum.c:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 gen_enum:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 			@echo "  GEN      sccp_enum.h";
 			@echo "  GEN      sccp_enum.c";
-			@$(AWK) -O -v out_header_file=sccp_enum.h -v out_source_file=sccp_enum.c -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" < @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
+			@$(AWK) -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" < @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
+ 
+#@$(AWK) -O -v out_header_file=sccp_enum.h -v out_source_file=sccp_enum.c -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" < @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
 
 # libsccp.la and chan_sccp.so
 noinst_LTLIBRARIES	= libsccp.la
@@ -67,7 +66,7 @@ libsccp_la_CFLAGS       = $(AM_CFLAGS)
 libsccp_la_LDFLAGS	= $(AM_LDFLAGS)
 
 chan_sccp_la_LIBADD	=  libsccp.la pbx_impl/libpbximpl.la $(PBX_COND_LIBADD) $(PBXVER_COND_LIBADD) $(PBXVER_COND_ANNOUNCE_LIBADD)
-chan_sccp_la_DEPENDENCIES = revision.h $(chan_sccp_la_LIBADD)
+chan_sccp_la_DEPENDENCIES = $(chan_sccp_la_LIBADD)
 chan_sccp_la_CFLAGS     = $(AM_CFLAGS) -DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self -DAST_MODULE=\"chan_sccp\"
 chan_sccp_la_LDFLAGS	= $(AM_LDFLAGS) $(PBX_LDFLAGS) $(SANITIZE_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS) $(LIBBFD) $(LIBEXECINFO) $(LTLIBICONV)
 chan_sccp_la_LDFLAGS	+= -avoid-version -module -ldl -lm -s -rdynamic
@@ -102,11 +101,19 @@ install-data-local:
 		$(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC);							\
 	fi
 
-unload:	install
-	@if [ -f $(PBX_SBINDIR)/asterisk ]; $(PBX_SBINDIR)/asterisk -rx "module unload chan_sccp.so";fi
+unload:	
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; then 											\
+		echo "Unloading asterisk module";											\
+		$(PBX_SBINDIR)/asterisk -rx "module unload chan_sccp.so";								\
+	fi
 	
-load:	install
-	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(PBX_SBINDIR)/asterisk -rx "module load chan_sccp.so";fi
-	
-reload: install
-	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(PBX_SBINDIR)/asterisk -rx "module unload chan_sccp.so" && $(PBX_SBINDIR)/asterisk -rx "module load chan_sccp.so";fi
+load:	
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; then 											\
+		echo "Loading asterisk module";												\
+		$(PBX_SBINDIR)/asterisk -rx "module load chan_sccp.so";									\
+	fi
+
+_reload: all unload install load	
+
+reload: 
+	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(MAKE) _reload;fi
