@@ -49,8 +49,8 @@ function my_strtonum(str,        ret, n, i, k, c)
 }
 
 BEGIN {
-	#out_header_file = "sccp_enum.h"
-	#out_source_file = "sccp_enum.c"
+	out_header_file = "sccp_enum.h"
+	out_source_file = "sccp_enum.c"
 
         #
         # gen enum headerfile
