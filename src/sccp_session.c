@@ -41,8 +41,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 
 /* arbitrary values */
-#define SOCKET_TIMEOUT_SEC 7											/* timeout after seven seconds when trying to read/write from/to a socket */
-#define SOCKET_TIMEOUT_MILLISEC 0										/* "       "     0 milli seconds "    "    */
+#define SOCKET_TIMEOUT_SEC 0											/* timeout after seven seconds when trying to read/write from/to a socket */
+#define SOCKET_TIMEOUT_MILLISEC 500										/* "       "     0 milli seconds "    "    */
 #define SOCKET_KEEPALIVE_IDLE GLOB(keepalive)									/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
 #define SOCKET_KEEPALIVE_INTVL 5										/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
 #define SOCKET_KEEPALIVE_CNT 5											/* The maximum number of keepalive probes TCP should send before dropping the connection. */
@@ -51,10 +51,10 @@ sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 #define SOCKET_RCVBUF SCCP_MAX_PACKET										/* SO_RCVBUF */
 #define SOCKET_SNDBUF (SCCP_MAX_PACKET * 5)									/* SO_SNDBUG */
 
-#define READ_RETRIES 6												/* number of read retries */
-#define READ_BACKOFF 150											/* backoff time in millisecs, doubled every read retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec)*/
-#define WRITE_RETRIES 6												/* number of write retries */
-#define WRITE_BACKOFF 150											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
+#define READ_RETRIES 5												/* number of read retries */
+#define READ_BACKOFF 50												/* backoff time in millisecs, doubled every read retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec)*/
+#define WRITE_RETRIES 5												/* number of write retries */
+#define WRITE_BACKOFF 50											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
 
 #define SESSION_DEVICE_CLEANUP_TIME 10										/* wait time before destroying a device on thread exit */
 #define KEEPALIVE_ADDITIONAL_PERCENT 10										/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
@@ -261,20 +261,25 @@ static gcc_inline int socket_readAtLeast(sccp_session_t *s, unsigned char *buffe
 
 		/* we are reading minimum of bytesToRead, but we could receive more if bufsize > bytesToRead. socket has to to be emptied before returning to poll */
 		if ((bytes = recv(mysocket, buffer, bufsize, flags)) <= 0) {
-			if (bytes < 0 && (errno == EINTR || errno == EAGAIN) && try < READ_RETRIES) {
-				if (received == 0) {
-					break;		/* nothing happened yet, time to go poll again */
+			if (bytes < 0) {
+				if ((errno == EINTR || errno == EAGAIN) && try++ < READ_RETRIES) {	/* SO_RCVTIMEO timed out */
+					if (received == 0) {
+						break;							/* nothing happened yet, time to go poll again */
+					}
+					usleep(backoff);
+					backoff *= 2;
+					continue;							/* we got part of the packet already, time to continue */
 				}
-				usleep(backoff);
-				backoff *= 2;
-				continue;		/* we got part of the packet already, time to continue */
-			}
-			if (errno) {
-				pbx_log(LOG_ERROR, "%s: error '%s (%d)' while reading from socket.\n", DEV_ID_LOG(s->device), strerror(errno), errno);
+				if (errno) {
+					pbx_log(LOG_ERROR, "%s: error '%s (%d)' while reading from socket.\n", DEV_ID_LOG(s->device), strerror(errno), errno);
+				} else {
+					socket_get_error(s);
+				}
+				received = -2;
 			} else {
-				socket_get_error(s);
+				//shutdown(session->fds[0].fd, SHUT_RD);
+				received = -1;								/* bytes==0 -> socket close by remote side */
 			}
-			received = -1;
 			break;
 		}
 		received += bytes;
@@ -329,7 +334,7 @@ MoreToReadFromSocketStream:
 	}
 
 	// STAGE 3: read all data according to packet header
-	if ((received = socket_readAtLeast(s, msg_buffer.buffer, lenAccordingToPacketHeader, lenAccordingToPacketHeader, 0)) < 0) {
+	if ((received = socket_readAtLeast(s, msg_buffer.buffer, lenAccordingToPacketHeader, lenAccordingToPacketHeader, MSG_WAITALL)) < 0) {
 		if (received == 0) {
 			return 0;											/* poll again */
 		}
