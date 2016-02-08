@@ -253,33 +253,20 @@ static gcc_inline int socket_readAtLeast(sccp_session_t *s, unsigned char *buffe
 {
 	int mysocket = s->fds[0].fd;
 	unsigned int received = 0;
-	uint try = 0, backoff = READ_BACKOFF;
-
 	while (received < bytesToRead) {
-		try++;
 		int bytes = 0;
-
 		/* we are reading minimum of bytesToRead, but we could receive more if bufsize > bytesToRead. socket has to to be emptied before returning to poll */
 		if ((bytes = recv(mysocket, buffer, bufsize, flags)) <= 0) {
-			if (bytes < 0) {
-				if ((errno == EINTR || errno == EAGAIN) && try++ < READ_RETRIES) {	/* SO_RCVTIMEO timed out */
-					if (received == 0) {
-						break;							/* nothing happened yet, time to go poll again */
-					}
-					usleep(backoff);
-					backoff *= 2;
-					continue;							/* we got part of the packet already, time to continue */
-				}
-				if (errno) {
-					pbx_log(LOG_ERROR, "%s: error '%s (%d)' while reading from socket.\n", DEV_ID_LOG(s->device), strerror(errno), errno);
-				} else {
-					socket_get_error(s);
-				}
-				received = -2;
-			} else {
-				//shutdown(session->fds[0].fd, SHUT_RD);
-				received = -1;								/* bytes==0 -> socket close by remote side */
+			if (bytes == 0 || (errno == EINTR || errno == EAGAIN)) {
+				received = -1;								// bytes==0 -> socket close by remote side
+				break;
 			}
+			if (errno) {
+				pbx_log(LOG_ERROR, "%s: error '%s (%d)' while reading from socket.\n", DEV_ID_LOG(s->device), strerror(errno), errno);
+			} else {
+				socket_get_error(s);
+			}
+			received = -2;
 			break;
 		}
 		received += bytes;
@@ -318,7 +305,7 @@ MoreToReadFromSocketStream:
 	memset(msg, 0, SCCP_MAX_PACKET);
 	lenAccordingToOurProtocolSpec = 0, lenAccordingToPacketHeader = 0, received_hdr = 0, received = 0;
 	if ((received_hdr = socket_readAtLeast(s, msg_buffer.buffer, SCCP_MAX_PACKET, SCCP_PACKET_HEADER, MSG_PEEK)) <= 0) {
-		if (received == 0) {
+		if (received_hdr == -1) {
 			return 0;											/* poll again */
 		}
 		goto READ_ERROR;
@@ -335,7 +322,7 @@ MoreToReadFromSocketStream:
 
 	// STAGE 3: read all data according to packet header
 	if ((received = socket_readAtLeast(s, msg_buffer.buffer, lenAccordingToPacketHeader, lenAccordingToPacketHeader, MSG_WAITALL)) < 0) {
-		if (received == 0) {
+		if (received == -1) {
 			return 0;											/* poll again */
 		}
 		goto READ_ERROR;
@@ -789,7 +776,7 @@ void sccp_netsock_setoptions(int new_socket)
 
 	/* timeeo */
 	struct timeval mytv = { SOCKET_TIMEOUT_SEC, SOCKET_TIMEOUT_MILLISEC };					/* timeout after seven seconds when trying to read/write from/to a socket */
-	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &mytv, sizeof(mytv));
+	// SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &mytv, sizeof(mytv));
 	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(mytv));
 
 	/* keepalive */
