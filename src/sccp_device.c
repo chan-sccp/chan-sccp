@@ -2322,6 +2322,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 		}
 		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 #endif
+        sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);                                              /* set correct register state */
 	}
 }
 

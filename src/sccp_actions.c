@@ -1298,7 +1298,9 @@ void handle_unregister(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	sccp_session_send2(s, msg_out);								// send directly to session, skipping device check
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
 	
-	sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
+    //sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
+    sccp_session_releaseDevice(s);
+    sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 5);
 }
 
 /*!
