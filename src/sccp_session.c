@@ -269,8 +269,9 @@ static gcc_inline int session_dissect_msg(sccp_session_t * s, sccp_msg_t *msg, i
 	return sccp_handle_message(msg, s);
 }
 
-static gcc_inline void process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsigned char *buffer, size_t *len)
+static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsigned char *buffer, size_t *len)
 {
+	int res = 0;
 	while (*len >= SCCP_PACKET_HEADER) {										// We have at least SCCP_PACKET_HEADER, so we have the payload length
 		uint32_t payload_len = letohl(((uint32_t *)buffer)[0]) + (SCCP_PACKET_HEADER - 4);
 		if (*len < payload_len) {
@@ -280,11 +281,7 @@ static gcc_inline void process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsig
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);							// allow thread to be killed while handling the message
 		memcpy(msg, buffer + 0, payload_len);
 		if (session_dissect_msg(s, msg, payload_len) != 0) {
-			socket_get_error(s, errno);
-			if (s->device) {
-				sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
-			}
-			__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
+			res = -1;
 			break;
 		}
 		pthread_testcancel();
@@ -295,6 +292,7 @@ static gcc_inline void process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsig
 			memmove(buffer + 0, buffer + payload_len, *len);
 		}
 	}
+	return res;
 }
 
 /*!
@@ -652,18 +650,13 @@ void *sccp_netsock_device_thread(void *session)
 			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
 				//sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving at buffer position:%lu\n", DEV_ID_LOG(s->device), recv_len);
 				result = recv(s->fds[0].fd, recv_buffer + recv_len, (SCCP_MAX_PACKET * 2) - recv_len, 0);
-				if (result > 0) {
-					recv_len += result;
-					process_buffer(s, &msg, recv_buffer, &recv_len);
-				} else {
-					if (!(result == 0 || (errno == EINTR || errno == EAGAIN))) {
-						socket_get_error(s, errno);
-						if (s->device) {
-							sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
-						}
-						__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
-						break;
+				if (!(result > 0 && (recv_len += result) && process_buffer(s, &msg, recv_buffer, &recv_len) == 0)) {
+					socket_get_error(s, errno);
+					if (s->device) {
+						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
 					}
+					__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
+					break;
 				}
 				s->lastKeepAlive = time(0);
 			} else {										/* POLLHUP / POLLERR */
