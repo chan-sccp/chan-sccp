@@ -43,11 +43,11 @@ sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 /* arbitrary values */
 //#define SOCKET_TIMEOUT_SEC 0											/* timeout after seven seconds when trying to read/write from/to a socket */
 //#define SOCKET_TIMEOUT_MILLISEC 500										/* "       "     0 milli seconds "    "    */
-#define SOCKET_KEEPALIVE_IDLE GLOB(keepalive)									/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
-#define SOCKET_KEEPALIVE_INTVL 5										/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
-#define SOCKET_KEEPALIVE_CNT 5											/* The maximum number of keepalive probes TCP should send before dropping the connection. */
-#define SOCKET_LINGER_ONOFF 1											/* linger=on */
-#define SOCKET_LINGER_WAIT 0											/* but wait 0 milliseconds before closing socket and discard all outboung messages */
+//#define SOCKET_KEEPALIVE_IDLE GLOB(keepalive)									/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
+//#define SOCKET_KEEPALIVE_INTVL 5										/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
+//#define SOCKET_KEEPALIVE_CNT 5											/* The maximum number of keepalive probes TCP should send before dropping the connection. */
+//#define SOCKET_LINGER_ONOFF 1											/* linger=on */
+//#define SOCKET_LINGER_WAIT 0											/* but wait 0 milliseconds before closing socket and discard all outboung messages */
 #define SOCKET_RCVBUF SCCP_MAX_PACKET										/* SO_RCVBUF */
 #define SOCKET_SNDBUF (SCCP_MAX_PACKET * 5)									/* SO_SNDBUG */
 
@@ -196,7 +196,11 @@ static void __sccp_session_stopthread(sessionPtr session, uint8_t newRegistratio
 static void socket_get_error(constSessionPtr s, const char* file, int line, const char *function, int __errnum)
 {
 	if (errno) {
-		pbx_log(LOG_ERROR, "%s: (%s:%d:%s) Socket returned error: '%s (%d)')\n", DEV_ID_LOG(s->device), file, line, function, strerror(errno), errno);
+		if (errno == ECONNRESET) {
+			pbx_log(LOG_NOTICE, "%s: Connection reset by peer\n", DEV_ID_LOG(s->device));
+		} else {
+			pbx_log(LOG_ERROR, "%s: (%s:%d:%s) Socket returned error: '%s (%d)')\n", DEV_ID_LOG(s->device), file, line, function, strerror(errno), errno);
+		}
 	} else {
 		if (!s || s->fds[0].fd <= 0) {
 			return;
@@ -701,17 +705,17 @@ void sccp_netsock_setoptions(int new_socket)
 	//SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(mytv));
 
 	/* keepalive */
-	int ip_keepidle  = SOCKET_KEEPALIVE_IDLE;								/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
-	int ip_keepintvl = SOCKET_KEEPALIVE_INTVL;								/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
-	int ip_keepcnt   = SOCKET_KEEPALIVE_CNT;								/* The maximum number of keepalive probes TCP should send before dropping the connection. */
-	SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPIDLE, &ip_keepidle, sizeof(int));
-	SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPINTVL, &ip_keepintvl, sizeof(int));
-	SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPCNT, &ip_keepcnt, sizeof(int));
-	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
+	//int ip_keepidle  = SOCKET_KEEPALIVE_IDLE;								/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
+	//int ip_keepintvl = SOCKET_KEEPALIVE_INTVL;								/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
+	//int ip_keepcnt   = SOCKET_KEEPALIVE_CNT;								/* The maximum number of keepalive probes TCP should send before dropping the connection. */
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPIDLE, &ip_keepidle, sizeof(int));
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPINTVL, &ip_keepintvl, sizeof(int));
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPCNT, &ip_keepcnt, sizeof(int));
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
 
 	/* linger */
-	struct linger so_linger = {SOCKET_LINGER_ONOFF, SOCKET_LINGER_WAIT};					/* linger=on but wait 0 milliseconds before closing socket and discard all outboung messages */
-	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
+	//struct linger so_linger = {SOCKET_LINGER_ONOFF, SOCKET_LINGER_WAIT};					/* linger=on but wait 0 milliseconds before closing socket and discard all outboung messages */
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
 
 	/* thin-tcp */
 //#ifdef TCP_THIN_LINEAR_TIMEOUTS
@@ -990,7 +994,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 		res = send(mysocket, bufAddr + bytesSent, bufLen - bytesSent, 0);
 		pbx_mutex_unlock(&s->write_lock);
 		if (res <= 0) {
-			if ((errno == EINTR || errno == EAGAIN)) {
+			if ((errno == EINTR)) {
 				usleep(backoff);								/* back off to give network/other threads some time */
 				backoff *= 2;
 				continue;
