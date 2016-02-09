@@ -1299,8 +1299,12 @@ void handle_unregister(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
 	
     //sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
-    sccp_session_releaseDevice(s);
-    sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 5);
+    if (d) {
+	sccp_session_releaseDevice(s);
+    	sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 5);
+    //} else {
+    //	sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
+    }
 }
 
 /*!

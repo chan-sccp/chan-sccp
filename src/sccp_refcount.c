@@ -559,8 +559,10 @@ gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char 
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug(ptr, obj, 1, filename, lineno, func);
 #endif
-		refcountval = ATOMIC_INCR((&obj->refcount), 1, &obj->lock);
-		newrefcountval = refcountval + 1;
+		do {
+			refcountval = obj->refcount;
+			newrefcountval = refcountval + 1;
+		} while ((refcountval != CAS32(&obj->refcount, refcountval, newrefcountval, &obj->lock)));
 
 		if (dont_expect( (sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) {
 			pbx_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) %*.*s> %*s refcount increased %.2d  +> %.2d for %10s: %s (%p)\n", filename, lineno, func, refcountval, refcountval, "--------------------", 20 - refcountval, " ", refcountval, newrefcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
@@ -590,9 +592,11 @@ gcc_inline void * const sccp_refcount_release(const void * const ptr, const char
 		__sccp_refcount_debug((void *) ptr, obj, -1, filename, lineno, func);
 #endif
 		debugcat = (&obj_info[obj->type])->debugcat;
+		do {
+			refcountval = obj->refcount;
+			newrefcountval = refcountval - 1;
+		} while ((refcountval != CAS32(&obj->refcount, refcountval, newrefcountval, &obj->lock)));
 
-		refcountval = ATOMIC_DECR((&obj->refcount), 1, &obj->lock);
-		newrefcountval = refcountval - 1;
 		if (dont_expect(newrefcountval == 0)) {
 			alive = ATOMIC_DECR(&obj->alive, SCCP_LIVE_MARKER, &obj->lock);
 			sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_1 "SCCP: %-15.15s:%-4.4d (%-25.25s)) (release) Finalizing %p (%p) (alive:%d)\n", filename, lineno, func, obj, ptr, alive);
