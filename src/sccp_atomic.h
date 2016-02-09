@@ -55,8 +55,8 @@
         ({					\
                 CAS32_TYPE __res=0;		\
                 pbx_mutex_lock(_d);		\
-                if (*_a == _b) {		\
-                        __res = _b;		\
+                __res = *_a;			\
+                if (__res == _b) {		\
                         *_a = _c;		\
                 }				\
                 pbx_mutex_unlock(_d);		\
