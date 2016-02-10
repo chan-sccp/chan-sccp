@@ -721,7 +721,7 @@ int sccp_show_mwi_subscriptions(int fd, sccp_cli_totals_t *totals, struct manses
  			snprintf(linebuf,sizeof(linebuf),"%s",line->name);										\
  		}
 
-#ifdef CS_AST_HAS_EVENT
+#if defined ( CS_AST_HAS_EVENT ) || (defined( CS_AST_HAS_STASIS ))
 #define CLI_AMI_TABLE_FIELDS 																\
  		CLI_AMI_TABLE_FIELD(Mailbox,		"-10.10",	s,	10,	subscription->mailbox)						\
  		CLI_AMI_TABLE_FIELD(LineName,		"-30.30",	s,	30,	linebuf)							\

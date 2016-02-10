@@ -60,7 +60,7 @@ struct sccp_threadpool {
 /* Initialise thread pool */
 sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 {
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Starting Threadpool\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Starting Threadpool\n");
 	sccp_threadpool_t *tp_p;
 
 #if defined(__GNUC__) && __GNUC__ > 3 && defined(HAVE_SYS_INFO_H)
@@ -291,7 +291,7 @@ boolean_t sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 	}
 	sccp_threadpool_thread_t *tp_thread = NULL;
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Destroying Threadpool %p with %d jobs\n", tp_p, SCCP_LIST_GETSIZE(&tp_p->jobs));
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Destroying Threadpool %p with %d jobs\n", tp_p, SCCP_LIST_GETSIZE(&tp_p->jobs));
 
 	// After this point, no new jobs can be added
 	SCCP_LIST_LOCK(&(tp_p->jobs));

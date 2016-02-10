@@ -125,6 +125,7 @@ void sccp_event_module_start(void)
 {
 	uint _idx = 0;
 	if (!sccp_event_running) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Starting event system\n");
 		for (_idx = 0; _idx < NUMBER_OF_EVENT_TYPES; _idx++) {
 			if (SCCP_VECTOR_RW_INIT(&event_subscriptions[_idx].subscribers, SCCP_EVENT_EXPECTED_SUBSCRIPTIONS) != 0) {
 				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
@@ -140,6 +141,7 @@ void sccp_event_module_stop(void)
 {
 	uint _idx = 0;
 	if (sccp_event_running) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Stopping event system\n");
 		sccp_event_running = FALSE;
 		for (_idx = 0; _idx < NUMBER_OF_EVENT_TYPES; _idx++) {
 			SCCP_VECTOR_RW_FREE(&event_subscriptions[_idx].subscribers);
@@ -190,10 +192,10 @@ boolean_t sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callbac
 	boolean_t res = FALSE;
 	uint8_t _idx; 
 	sccp_event_type_t _mask;
+	//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_event_unsubscribe) Removing %s.\n", sccp_event_type2str(eventType))
 	for (_idx = 0, _mask = 1 << _idx; sccp_event_running && _idx < NUMBER_OF_EVENT_TYPES; _mask = 1 << ++_idx) {
 		if (eventType & _mask) {
 			sccp_event_vector_t *subscribers = &(event_subscriptions[_idx].subscribers);
-			//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_event_unsubscribe) Removed %s with callback:%p from vector at idx:%d.\n", sccp_event_type2str(eventType), cb, _idx)
 			{
 				SCCP_VECTOR_RW_WRLOCK(subscribers);
 				if (SCCP_VECTOR_REMOVE_CMP_UNORDERED(subscribers, cb, SUBSCRIBER_CB_CMP, SCCP_VECTOR_ELEM_CLEANUP_NOOP) == 0) {
@@ -217,7 +219,7 @@ static gcc_inline boolean_t __execute_callback_helper(const sccp_event_t *event,
 {
 	uint32_t n = 0;
 	boolean_t res = FALSE;
-	for (n = 0; n < SCCP_VECTOR_SIZE(subs_vector) && GLOB(module_running) && sccp_event_running; n++) {
+	for (n = 0; n < SCCP_VECTOR_SIZE(subs_vector) && sccp_event_running; n++) {
 		sccp_event_subscriber_t subscriber = SCCP_VECTOR_GET(subs_vector, n);
 		if (subscriber.callback_function != NULL) {
 			//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Event %p of Type %s via %d callback:%p\n", event, sccp_event_type2str(event->type), n, subscriber.callback_function);
@@ -309,7 +311,7 @@ boolean_t sccp_event_fire(sccp_event_t * event)
 		do {
 			if (asyncsize) {
 				AsyncArgs_t *arg = NULL;
-				if (GLOB(module_running) && sccp_event_running && (arg = sccp_malloc(sizeof *arg))) {
+				if (sccp_event_running && (arg = sccp_malloc(sizeof *arg))) {
 					arg->idx = _idx;
 					memcpy(&arg->event, event, sizeof(sccp_event_t));
 					arg->async_subscribers = async_subscribers_cpy;
