@@ -186,6 +186,7 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
 	sccp_mailbox_subscriber_list_t *subscription = data;
 
 	if (!subscription || !event || !GLOB(module_running)) {
+		pbx_log(LOG_ERROR, "SCCP: MWI Event received but not all requirements are fullfilled (%p, %p, %d)\n", subscription, event, GLOB(module_running));
 		return;
 	}
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received PBX mwi event for %s@%s\n", subscription->mailbox, subscription->context);
