@@ -422,8 +422,8 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t * event)
 
 	if (line && (&line->mailboxes) != NULL) {
 		SCCP_LIST_TRAVERSE(&line->mailboxes, mailbox, list) {
-			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "line: '%s' subscribe mailbox: %s@%s\n", line->name, mailbox->mailbox, mailbox->context);
 			sccp_mwi_addMailboxSubscription(mailbox->mailbox, mailbox->context, line);
+			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (sccp_mwi_linecreatedEvent) subscribed mailbox: %s@%s\n", line->name, mailbox->mailbox, mailbox->context);
 		}
 	}
 }
@@ -464,7 +464,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 		sccp_copy_string(subscription->mailbox, mailbox, sizeof(subscription->mailbox));
 		sccp_copy_string(subscription->context, context, sizeof(subscription->context));
-		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) create subscription for: %s@%s\n", subscription->mailbox, subscription->context);
+		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) creating subscription for: %s@%s\n", subscription->mailbox, subscription->context);
 
 		SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
 		SCCP_LIST_INSERT_HEAD(&sccp_mailbox_subscriptions, subscription, list);

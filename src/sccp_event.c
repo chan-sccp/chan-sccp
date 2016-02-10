@@ -311,7 +311,7 @@ boolean_t sccp_event_fire(sccp_event_t * event)
 		do {
 			if (asyncsize) {
 				AsyncArgs_t *arg = NULL;
-				if (sccp_event_running && (arg = sccp_malloc(sizeof *arg))) {
+				if (GLOB(general_threadpool) && sccp_event_running && (arg = sccp_malloc(sizeof *arg))) {
 					arg->idx = _idx;
 					memcpy(&arg->event, event, sizeof(sccp_event_t));
 					arg->async_subscribers = async_subscribers_cpy;
