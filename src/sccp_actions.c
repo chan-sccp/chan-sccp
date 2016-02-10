@@ -1288,6 +1288,7 @@ void handle_accessorystatus_message(constSessionPtr s, devicePtr d, constMessage
 void handle_unregister(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	sccp_msg_t *msg_out = NULL;
+	AUTO_RELEASE sccp_device_t *device = d ? sccp_device_retain(d) : NULL;
 	int reason = letohl(msg_in->data.UnregisterMessage.lel_UnregisterReason);
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Unregister request Received (Reason: %s)\n", DEV_ID_LOG(d), reason ? "Unknown" : "Powersave");
@@ -1298,13 +1299,13 @@ void handle_unregister(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	sccp_session_send2(s, msg_out);								// send directly to session, skipping device check
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
 	
-    //sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
-    if (d) {
-	sccp_session_releaseDevice(s);
-    	sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 5);
-    //} else {
-    //	sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
-    }
+	sched_yield();
+	if (s) {
+		sccp_session_releaseDevice(s);
+	}
+	if (d) {
+		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 5);
+	}
 }
 
 /*!
