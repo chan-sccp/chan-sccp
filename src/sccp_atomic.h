@@ -13,6 +13,8 @@
 #include <atomic_ops.h>
 #endif
 
+#define CAS32_TYPE			int
+
 // Declare CAS32 / CAS_PTR and CAS_TYPE for easy reference in other functions
 #ifdef SCCP_ATOMIC
 
@@ -39,7 +41,6 @@
 #endif
 
 #else														/* SCCP_ATOMIC */
-#define CAS32_TYPE			int
 #if defined (__i386__) || defined(__x86_64__)
 #define ATOMIC_INCR(_a,_b,_c)	 	ast_atomic_fetchadd_int(_a, _b)
 #define ATOMIC_DECR(_a,_b,_c)	 	ast_atomic_fetchadd_int(_a, -_b)
