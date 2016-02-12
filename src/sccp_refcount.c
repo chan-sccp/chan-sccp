@@ -590,10 +590,12 @@ gcc_inline void * const sccp_refcount_release(const void * const ptr, const char
 		__sccp_refcount_debug((void *) ptr, obj, -1, filename, lineno, func);
 #endif
 		debugcat = (&obj_info[obj->type])->debugcat;
-		do {
-			refcountval = obj->refcount;
-			newrefcountval = refcountval - 1;
-		} while (refcountval > 0 && (refcountval != CAS32(&obj->refcount, refcountval, newrefcountval, &obj->lock)));
+		//do {
+		//	refcountval = obj->refcount;
+		//	newrefcountval = refcountval - 1;
+		//} while (refcountval > 0 && (refcountval != CAS32(&obj->refcount, refcountval, newrefcountval, &obj->lock)));
+		refcountval = ATOMIC_DECR((&obj->refcount), 1, &obj->lock);
+		newrefcountval = refcountval - 1;
 
 		if (dont_expect(newrefcountval == 0)) {
 			alive = ATOMIC_DECR(&obj->alive, SCCP_LIVE_MARKER, &obj->lock);

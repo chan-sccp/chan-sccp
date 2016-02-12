@@ -235,7 +235,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	channel->setMicrophone = sccp_channel_setMicrophoneState;
 	channel->hangupRequest = sccp_wrapper_asterisk_requestHangup;
 #ifndef SCCP_ATOMIC
-	ast_mutex_init(&channel->scheduler.lock);
+	pbx_mutex_init(&channel->scheduler.lock);
 #endif
 	return channel;
 }
@@ -1917,7 +1917,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	}
 	
 #ifndef SCCP_ATOMIC
-	ast_mutex_destroy(&channel->scheduler.lock);
+	pbx_mutex_destroy(&channel->scheduler.lock);
 #endif
 	//ast_mutex_destroy(&channel->lock);
 	return;

@@ -241,14 +241,14 @@ typedef struct ast_event pbx_event_t;
 #define pbx_rwlock_trywrlock(x) {ast_debug(5, "%d (%s) RWLOCK_TRYWRLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); ast_rwlock_trywrlock((ast_rwlock_t *)x);}
 #define pbx_rwlock_unlock(x) {ast_debug(5, "%d (%s) RWLOCK_UNLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); ast_rwlock_unlock((ast_rwlock_t *)x);}
 #else
-#define pbx_mutex_lock(x) {ast_mutex_lock((ast_mutex_t *)x);}
-#define pbx_mutex_trylock(x) {ast_mutex_trylock((ast_mutex_t *)x);}
-#define pbx_mutex_unlock(x) {ast_mutex_unlock((ast_mutex_t *)x);}
-#define pbx_rwlock_rdlock(x) {ast_rwlock_rdlock((ast_rwlock_t *)x);}
-#define pbx_rwlock_wrlock(x) {ast_rwlock_wrlock((ast_rwlock_t *)x);} 
-#define pbx_rwlock_tryrdlock(x) {ast_rwlock_tryrdlock((ast_rwlock_t *)x);}
-#define pbx_rwlock_trywrlock(x) {ast_rwlock_trywrlock((ast_rwlock_t *)x);}
-#define pbx_rwlock_unlock(x) {ast_rwlock_unlock((ast_rwlock_t *)x);}
+#define pbx_mutex_lock(x) ({ast_mutex_lock((ast_mutex_t *)x);})
+#define pbx_mutex_trylock(x) ({ast_mutex_trylock((ast_mutex_t *)x);})
+#define pbx_mutex_unlock(x) ({ast_mutex_unlock((ast_mutex_t *)x);})
+#define pbx_rwlock_rdlock(x) ({ast_rwlock_rdlock((ast_rwlock_t *)x);})
+#define pbx_rwlock_wrlock(x) ({ast_rwlock_wrlock((ast_rwlock_t *)x);})
+#define pbx_rwlock_tryrdlock(x) ({ast_rwlock_tryrdlock((ast_rwlock_t *)x);})
+#define pbx_rwlock_trywrlock(x) ({ast_rwlock_trywrlock((ast_rwlock_t *)x);})
+#define pbx_rwlock_unlock(x) ({ast_rwlock_unlock((ast_rwlock_t *)x);})
 #endif
 
 #define pbx_park_call ast_park_call
