@@ -1285,10 +1285,10 @@ void handle_accessorystatus_message(constSessionPtr s, devicePtr d, constMessage
  * \param d SCCP Device
  * \param msg_in SCCP Message
  */
-void handle_unregister(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+void handle_unregister(constSessionPtr s, devicePtr device, constMessagePtr msg_in)
 {
 	sccp_msg_t *msg_out = NULL;
-	AUTO_RELEASE sccp_device_t *device = d ? sccp_device_retain(d) : NULL;
+	AUTO_RELEASE sccp_device_t *d = device ? sccp_device_retain(device) : NULL;
 	int reason = letohl(msg_in->data.UnregisterMessage.lel_UnregisterReason);
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Unregister request Received (Reason: %s)\n", DEV_ID_LOG(d), reason ? "Unknown" : "Powersave");

@@ -995,7 +995,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 		res = send(mysocket, bufAddr + bytesSent, bufLen - bytesSent, 0);
 		pbx_mutex_unlock(&s->write_lock);
 		if (res <= 0) {
-			if ((errno == EINTR)) {
+			if (errno == EINTR) {
 				usleep(backoff);								/* back off to give network/other threads some time */
 				backoff *= 2;
 				continue;
