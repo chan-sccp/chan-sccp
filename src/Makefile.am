@@ -10,8 +10,8 @@ include 		$(top_srcdir)/src/Makefile.inc.am
 SUBDIRS			= pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) .
 DIST_SUBDIRS		= pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast_announce .
 EXTRA_DIST 		= sccp_enum.in sccp_config_entries.hh
-BUILT_SOURCES 		= revision.h sccp_enum.h sccp_enum.c
-CLEANFILES 		= revision.h sccp_enum.h sccp_enum.c
+BUILT_SOURCES           = revision.h sccp_enum.h sccp_enum.c
+CLEANFILES              = revision.h sccp_enum.h sccp_enum.c
 .PHONY: 		.revision
 
 # generated files
@@ -43,19 +43,21 @@ noinst_HEADERS		= chan_sccp.h		sccp_actions.h		sccp_cli.h		sccp_devstate.h		\
 			  sccp_featureButton.h	sccp_line.h		sccp_refcount.h		sccp_utils.h		\
 			  common.h		sccp_appfunctions.h	sccp_cli_table.h	sccp_dllists.h		\
 			  sccp_features.h	sccp_management.h	sccp_rtp.h		sccp_vector.h		\
-			  sccp_atomic.h		sccp_conference.h	sccp_threadpool.h	\
-			  sccp_hint.h		sccp_mwi.h		sccp_socket.h	 	sccp_callinfo.h		\
+			  sccp_atomic.h		sccp_conference.h	sccp_threadpool.h	sccp_debug.h		\
+			  sccp_hint.h		sccp_mwi.h		sccp_session.h	 	sccp_callinfo.h		\
 			  sccp_config.h		sccp_indicate.h		sccp_pbx.h		sccp_softkeys.h 	\
 			  revision.h		sccp_channel.h		sccp_device.h		sccp_event.h		\
-			  sccp_labels.h		sccp_protocol.h		sccp_enum.h
+			  sccp_labels.h		sccp_protocol.h		sccp_enum.h		sccp_codec.h		\
+			  define.h		sccp_netsock.h
 
-libsccp_la_SOURCES	= sccp_callinfo.c 	sccp_channel.c		sccp_device.c		\
-			  sccp_indicate.c 	sccp_pbx.c 		sccp_socket.c		sccp_threadpool.c	\
+libsccp_la_SOURCES	= sccp_callinfo.c 	sccp_channel.c		sccp_device.c		sccp_debug.c		\
+			  sccp_indicate.c 	sccp_pbx.c 		sccp_session.c		sccp_threadpool.c	\
 			  sccp_softkeys.c	sccp_featureButton.c	sccp_line.c		sccp_utils.c		\
 			  sccp_actions.c	sccp_cli.c		sccp_features.c 	sccp_config.c		\
 			  sccp_hint.c 		sccp_refcount.c		sccp_management.c	sccp_mwi.c		\
 			  sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
-			  sccp_devstate.c	sccp_event.c		sccp_enum.c
+			  sccp_devstate.c	sccp_event.c		sccp_enum.c		sccp_globals.c		\
+			  sccp_netsock.c
 			  
 chan_sccp_la_SOURCES	= chan_sccp.c
 

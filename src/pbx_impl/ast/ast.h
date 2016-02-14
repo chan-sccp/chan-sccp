@@ -276,7 +276,7 @@ ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec);
 #define pbx_format2skinny_format (uint32_t)pbx_codec2skinny_codec
 #define skinny_format2pbx_format(_x) skinny_codec2pbx_codec((skinny_codec_t)_x)
 
-int skinny_codecs2pbx_codecs(skinny_codec_t * skinny_codecs);
+int skinny_codecs2pbx_codecs(skinny_codec_t * codecs);
 
 /* 
  * sccp_free_ptr should be used when a function pointer for free() needs to be 
@@ -295,8 +295,8 @@ sccp_channel_t *__get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx
 sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel);
 #endif
 int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value);
-boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t * channel);
-boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t * channel);
+boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t * c);
+boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t * c);
 
 /***** database *****/
 boolean_t sccp_asterisk_addToDatabase(const char *family, const char *key, const char *value);
@@ -311,7 +311,7 @@ void sccp_asterisk_moh_stop(PBX_CHANNEL_TYPE * pbx_channel);
 void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, size_t datalen);
 void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen);
 void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason);
-int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen);
+int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *preparse, char *buf, size_t buflen);
 int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, uint8_t *autoanswer_cause, skinny_ringtype_t *ringermode);
 boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel);
 
@@ -319,5 +319,5 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel);
 int sccp_wrapper_sendDigits(const sccp_channel_t * channel, const char *digits);
 int sccp_wrapper_sendDigit(const sccp_channel_t * channel, const char digit);
 #endif
-enum ast_pbx_result pbx_pbx_start(struct ast_channel *ast);
+enum ast_pbx_result pbx_pbx_start(struct ast_channel *pbx_channel);
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

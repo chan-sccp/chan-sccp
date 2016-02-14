@@ -9,15 +9,15 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
-#include "sccp_indicate.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
-#include "sccp_line.h"
-#include "sccp_utils.h"
 #include "sccp_conference.h"
 #include "sccp_actions.h"
+#include "sccp_device.h"
+#include "sccp_indicate.h"
+#include "sccp_line.h"
+#include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -150,7 +150,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 					//d->protocol->sendDialedNumber(d, c);
 					d->protocol->sendDialedNumber(d, instance, c->callid, c->dialedNumber);
 				}
-				sccp_callinfo_send(ci, c->callid, c->calltype, instance, device, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
+				iCallInfo.Send(ci, c->callid, c->calltype, instance, device, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			}
 
@@ -170,7 +170,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			sccp_dev_clearprompt(d, instance, 0);
 
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-			sccp_callinfo_send(ci, c->callid, c->calltype, instance, device, TRUE);
+			iCallInfo.Send(ci, c->callid, c->calltype, instance, device, TRUE);
 
 			sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_BLINK);
 
@@ -206,7 +206,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			char orig_called_num[StationMaxDirnumSize] = {0};
 			char calling_name[StationMaxNameSize] = {0};
 			char calling_num[StationMaxDirnumSize] = {0};
-			sccp_callinfo_getter(sccp_channel_getCallInfo(c), 
+			iCallInfo.Getter(sccp_channel_getCallInfo(c), 
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &orig_called_name,
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, &orig_called_num,
 				SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name, 
@@ -267,7 +267,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 				if( !sccp_strequals(c->dialedNumber, "s") ){
 					d->protocol->sendDialedNumber(d, instance, c->callid, c->dialedNumber);
 				}
-				sccp_callinfo_send(ci, c->callid, c->calltype, instance, device, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
+				iCallInfo.Send(ci, c->callid, c->calltype, instance, device, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			}
 			/* done */
@@ -287,7 +287,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_HOLD, GLOB(digittimeout));
-			sccp_callinfo_send(ci, c->callid, c->calltype, instance, device, TRUE);
+			iCallInfo.Send(ci, c->callid, c->calltype, instance, device, TRUE);
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 #if CS_SCCP_CONFERENCE
 			if (c->conference && d->conference) {
@@ -303,7 +303,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			if (c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {
 				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
 			}
-			sccp_callinfo_send(ci, c->callid, c->calltype, instance, device, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
+			iCallInfo.Send(ci, c->callid, c->calltype, instance, device, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, GLOB(digittimeout));
 			// wait 15 seconds, then hangup automatically
 			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
@@ -323,7 +323,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 				sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CALLWAITING (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(c->previousChannelState));
 				sccp_channel_callwaiting_tone_interval(d, c);
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-				sccp_callinfo_send(ci, c->callid, c->calltype, instance, device, TRUE);
+				iCallInfo.Send(ci, c->callid, c->calltype, instance, device, TRUE);
 				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_WAITING, GLOB(digittimeout));
 				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, instance, c->callid);
 				sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGIN);
@@ -339,7 +339,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TRANSFER, GLOB(digittimeout));
 			sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, instance, c->callid);
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CALLTRANSFER, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-			sccp_callinfo_send(ci, c->callid, c->calltype, instance, device, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
+			iCallInfo.Send(ci, c->callid, c->calltype, instance, device, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
 			break;
 		case SCCP_CHANNELSTATE_CALLCONFERENCE:
 			// sccp_device_sendcallstate(d, instance, c->callid, SCCP_CHANNELSTATE_CALLCONFERENCE, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -430,7 +430,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 		sccp_event_t event = {{{0}}};
 		event.type = SCCP_EVENT_LINESTATUS_CHANGED;
 		event.event.lineStatusChanged.line = sccp_line_retain(l);
-		event.event.lineStatusChanged.optional_device = d ? sccp_device_retain(d) : NULL;
+		event.event.lineStatusChanged.optional_device = sccp_device_retain(d);
 		event.event.lineStatusChanged.state = c->state;
 		sccp_event_fire(&event);
 	}
@@ -452,7 +452,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 static void __sccp_indicate_remote_device(const sccp_device_t * const device, const sccp_channel_t * const c, const sccp_line_t * const line, const sccp_channelstate_t state)
 {
 	int lineInstance = 0;
-	sccp_phonebook_t phonebookRecord = SCCP_PHONEBOOK_NONE;
+	sccp_phonebook_t __attribute__((unused)) phonebookRecord = SCCP_PHONEBOOK_NONE;
 
 	if (!c || !line) {
 		return;
@@ -481,7 +481,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 	const skinny_calltype_t calltype = c->calltype;
 	char dialedNumber[SCCP_MAX_EXTENSION];
 	sccp_copy_string(dialedNumber, c->dialedNumber, SCCP_MAX_EXTENSION);
-	sccp_callinfo_t *const ci = sccp_callinfo_copyCtor(sccp_channel_getCallInfo(c));
+	sccp_callinfo_t *const ci = iCallInfo.CopyConstructor(sccp_channel_getCallInfo(c));
 
 	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Remote Indicate state %s (%d) with reason: %s (%d) on remote devices for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, sccp_channelstatereason2str(c->channelStateReason), c->channelStateReason, c->designator, c->callid);
 	SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
@@ -500,7 +500,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 
 		if (remoteDevice) {
 			sccp_callerid_presentation_t presenceParameter = CALLERID_PRESENTATION_ALLOWED;
-			sccp_callinfo_getter(ci, SCCP_CALLINFO_PRESENTATION, &presenceParameter, SCCP_CALLINFO_KEY_SENTINEL);
+			iCallInfo.Getter(ci, SCCP_CALLINFO_PRESENTATION, &presenceParameter, SCCP_CALLINFO_KEY_SENTINEL);
 			uint8_t stateVisibility = (c->privacy || !presenceParameter) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_DEFAULT;
 
 			/* Remarking the next piece out, solves the transfer issue when using sharedline as default on the transferer. Don't know why though (yet) */
@@ -525,6 +525,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 				case SCCP_CHANNELSTATE_DOWN:
 				case SCCP_CHANNELSTATE_ONHOOK:
 					if (SKINNY_CALLTYPE_INBOUND == c->calltype && c->answered_elsewhere) {
+#if 0 /* phonebookRecord was set to NONE at the top, does not make sense to switch on it */
 						switch (phonebookRecord) {
 							case SCCP_PHONEBOOK_RECEIVED:
 								pbx_log(LOG_NOTICE, "%s: call was answered elsewhere, record this as received call\n", DEV_ID_LOG(remoteDevice));
@@ -541,6 +542,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 								/* do nothing */
 								break;
 						}
+#endif
 					}
 					sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s -> %s: indicate remote onhook (lineInstance: %d, callid: %d)\n", DEV_ID_LOG(device), DEV_ID_LOG(remoteDevice), lineInstance, c->callid);
 					remoteDevice->indicate->remoteOnhook(remoteDevice, lineInstance, callid);
@@ -548,8 +550,8 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 
 				case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 				case SCCP_CHANNELSTATE_CONNECTED:
+#if 0 /* phonebookRecord was set to NONE at the top, does not make sense to switch on it */
 					switch (c->calltype) {
-#if 0
 						case SKINNY_CALLTYPE_OUTBOUND:
 							switch (phonebookRecord) {
 								case SCCP_PHONEBOOK_RECEIVED:
@@ -567,7 +569,6 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 									break;
 							}
 							break;
-#endif
 						case SKINNY_CALLTYPE_INBOUND:
 							switch (phonebookRecord) {
 								case SCCP_PHONEBOOK_RECEIVED:
@@ -591,15 +592,16 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 						default:
 							break;
 					}
+#endif
 
 					remoteDevice->indicate->remoteConnected(remoteDevice, lineInstance, callid, stateVisibility);
-					sccp_callinfo_send(ci, callid, calltype, lineInstance, remoteDevice, TRUE);
+					iCallInfo.Send(ci, callid, calltype, lineInstance, remoteDevice, TRUE);
 					break;
 
 				case SCCP_CHANNELSTATE_HOLD:
 					if (c->channelStateReason == SCCP_CHANNELSTATEREASON_NORMAL) {
 						remoteDevice->indicate->remoteHold(remoteDevice, lineInstance, callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
-						sccp_callinfo_send(ci, callid, calltype, lineInstance, remoteDevice, TRUE);
+						iCallInfo.Send(ci, callid, calltype, lineInstance, remoteDevice, TRUE);
 					} else {
 						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Skipped Remote Hold Indication for reason: %s\n", DEV_ID_LOG(device), sccp_channelstatereason2str(c->channelStateReason));
 					}
@@ -613,7 +615,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 		}
 	}
 
-	sccp_callinfo_dtor(ci);
+	iCallInfo.Destructor(ci);
 }
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

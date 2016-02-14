@@ -44,26 +44,26 @@
  *  - We need to return RESULT_SUCCESS (for cli calls) at the end. If we set CLI_AMI_RETURN_ERROR, we will exit the function immediately and return RESULT_FAILURE. We need to make sure that all references are released before sending CLI_AMI_RETURN_ERROR.
  *  .
  */
-#include <config.h>
+#include "config.h"
 #include "common.h"
-#include "sccp_cli.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
-#include "sccp_line.h"
-#include "sccp_utils.h"
-#include "sccp_socket.h"
-#include "sccp_features.h"
-#include "sccp_config.h"
-#include "sccp_conference.h"
-//#include "sccp_indicate.h"
-#include "sccp_mwi.h"
-#include "sccp_hint.h"
-#include "sys/stat.h"
+#include "sccp_cli.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
+#include "sccp_device.h"
+#include "sccp_line.h"
+#include "sccp_session.h"
+#include "sccp_conference.h"
+#include "sccp_utils.h"
+#include "sccp_config.h"
+#include "sccp_features.h"
+#include "sccp_mwi.h"
+#include "sccp_hint.h"
+#include "sys/stat.h"
 #include <asterisk/cli.h>
 #include <asterisk/paths.h>
+
 typedef enum sccp_cli_completer {
 	SCCP_CLI_NULL_COMPLETER,
 	SCCP_CLI_DEVICE_COMPLETER,
@@ -203,7 +203,7 @@ static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
 		if (ret) {
-			break;										// break out of outer look, prevent leaking memory by strdup
+			break;								// break out of outer look, prevent leaking memory by strdup
 		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
@@ -505,8 +505,8 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("Platform byte order", CLI_AMI_LIST_WIDTH, "%s", "BIG ENDIAN");
 #endif
 	CLI_AMI_OUTPUT_PARAM("Server Name", CLI_AMI_LIST_WIDTH, "%s", GLOB(servername));
-	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_socket_stringify(&GLOB(bindaddr)));
-	CLI_AMI_OUTPUT_PARAM("Extern IP", CLI_AMI_LIST_WIDTH, "%s", !sccp_socket_is_any_addr(&GLOB(externip)) ? sccp_socket_stringify(&GLOB(externip)) : "Not Set -> Using Incoming IP-addres.");
+	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_netsock_stringify(&GLOB(bindaddr)));
+	CLI_AMI_OUTPUT_PARAM("Extern IP", CLI_AMI_LIST_WIDTH, "%s", !sccp_netsock_is_any_addr(&GLOB(externip)) ? sccp_netsock_stringify(&GLOB(externip)) : "Not Set -> Using Incoming IP-addres.");
 	CLI_AMI_OUTPUT_PARAM("Localnet", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_localnet_buf));
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_BOOL("Direct RTP", CLI_AMI_LIST_WIDTH, GLOB(directrtp));
@@ -563,14 +563,14 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("Callwaiting tone", CLI_AMI_LIST_WIDTH, "%d", GLOB(callwaiting_tone));
 	CLI_AMI_OUTPUT_PARAM("Callwaiting interval", CLI_AMI_LIST_WIDTH, "%d", GLOB(callwaiting_interval));
 	CLI_AMI_OUTPUT_PARAM("Registration Context", CLI_AMI_LIST_WIDTH, "%s", GLOB(regcontext) ? GLOB(regcontext) : "Unset");
-	CLI_AMI_OUTPUT_BOOL("Jitterbuffer enabled ", CLI_AMI_LIST_WIDTH, pbx_test_flag(&GLOB(global_jbconf), AST_JB_ENABLED));
-	CLI_AMI_OUTPUT_BOOL("Jitterbuffer forced ", CLI_AMI_LIST_WIDTH, pbx_test_flag(&GLOB(global_jbconf), AST_JB_FORCED));
-	CLI_AMI_OUTPUT_PARAM("Jitterbuffer max size", CLI_AMI_LIST_WIDTH, "%ld", GLOB(global_jbconf).max_size);
-	CLI_AMI_OUTPUT_PARAM("Jitterbuffer resync", CLI_AMI_LIST_WIDTH, "%ld", GLOB(global_jbconf).resync_threshold);
-	CLI_AMI_OUTPUT_PARAM("Jitterbuffer impl", CLI_AMI_LIST_WIDTH, "%s", GLOB(global_jbconf).impl);
-	CLI_AMI_OUTPUT_BOOL("Jitterbuffer log  ", CLI_AMI_LIST_WIDTH, pbx_test_flag(&GLOB(global_jbconf), AST_JB_LOG));
+	CLI_AMI_OUTPUT_BOOL("Jitterbuffer enabled ", CLI_AMI_LIST_WIDTH, pbx_test_flag(GLOB(global_jbconf), AST_JB_ENABLED));
+	CLI_AMI_OUTPUT_BOOL("Jitterbuffer forced ", CLI_AMI_LIST_WIDTH, pbx_test_flag(GLOB(global_jbconf), AST_JB_FORCED));
+	CLI_AMI_OUTPUT_PARAM("Jitterbuffer max size", CLI_AMI_LIST_WIDTH, "%ld", GLOB(global_jbconf)->max_size);
+	CLI_AMI_OUTPUT_PARAM("Jitterbuffer resync", CLI_AMI_LIST_WIDTH, "%ld", GLOB(global_jbconf)->resync_threshold);
+	CLI_AMI_OUTPUT_PARAM("Jitterbuffer impl", CLI_AMI_LIST_WIDTH, "%s", GLOB(global_jbconf)->impl);
+	CLI_AMI_OUTPUT_BOOL("Jitterbuffer log  ", CLI_AMI_LIST_WIDTH, pbx_test_flag(GLOB(global_jbconf), AST_JB_LOG));
 #ifdef CS_AST_JB_TARGET_EXTRA
-	CLI_AMI_OUTPUT_PARAM("Jitterbuf target extra", CLI_AMI_LIST_WIDTH, "%ld", GLOB(global_jbconf).target_extra);
+	CLI_AMI_OUTPUT_PARAM("Jitterbuf target extra", CLI_AMI_LIST_WIDTH, "%ld", GLOB(global_jbconf)->target_extra);
 #endif
 	CLI_AMI_OUTPUT_PARAM("Token FallBack", CLI_AMI_LIST_WIDTH, "%s", GLOB(token_fallback));
 	CLI_AMI_OUTPUT_PARAM("Token Backoff-Time", CLI_AMI_LIST_WIDTH, "%d", GLOB(token_backoff_time));
@@ -643,7 +643,7 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 			strftime(regtime, sizeof(regtime), "%c ", timeinfo);											\
 			if(d->session) {															\
 				sccp_session_getSas(d->session, &sas);											 	\
-				sccp_copy_string(addrStr,sccp_socket_stringify(&sas),sizeof(addrStr));								\
+				sccp_copy_string(addrStr,sccp_netsock_stringify(&sas),sizeof(addrStr));								\
 			} else {addrStr[0] = '-'; addrStr[1] = '-';addrStr[2] = '\0';}									  	\
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 																\
@@ -718,18 +718,18 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 
 	if (argc < 4) {
 		pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
-		CLI_AMI_RETURN_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
+		CLI_AMI_RETURN_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");		/* explicit return */
 	}
 	dev = pbx_strdupa(argv[3]);
 	if (pbx_strlen_zero(dev)) {
 		pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
-		CLI_AMI_RETURN_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
+		CLI_AMI_RETURN_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");		/* explicit return */
 	}
 	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(dev, FALSE);
 
 	if (!d) {
 		pbx_log(LOG_WARNING, "Failed to get device %s\n", dev);
-		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);		/* explicit return */
 	}
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
@@ -738,10 +738,10 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	if (d->session) {
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getSas(d->session, &sas);
-		sccp_copy_string(clientAddress, sccp_socket_stringify(&sas), sizeof(clientAddress));
+		sccp_copy_string(clientAddress, sccp_netsock_stringify(&sas), sizeof(clientAddress));
 		struct sockaddr_storage ourip = { 0 };
 		sccp_session_getOurIP(d->session, &ourip, 0);
-		sccp_copy_string(serverAddress, sccp_socket_stringify(&ourip), sizeof(serverAddress));
+		sccp_copy_string(serverAddress, sccp_netsock_stringify(&ourip), sizeof(serverAddress));
 	} else {
 		sprintf(clientAddress, "%s", "???.???.???.???");
 		sprintf(serverAddress, "%s", "???.???.???.???");
@@ -1076,11 +1076,11 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 							pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), pbx_channel_nativeformats(channel->owner));
 						}
 						if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-							sccp_callinfo_getter(sccp_channel_getCallInfo(channel), 
+							iCallInfo.Getter(sccp_channel_getCallInfo(channel), 
 								SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name,
 								SCCP_CALLINFO_KEY_SENTINEL);
 						} else {
-							sccp_callinfo_getter(sccp_channel_getCallInfo(channel), 
+							iCallInfo.Getter(sccp_channel_getCallInfo(channel), 
 								SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name,
 								SCCP_CALLINFO_KEY_SENTINEL);
 						}
@@ -1095,7 +1095,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 						!found_linedevice ? l->name : " +--", 
 						linedevice->subscriptionId.number, 
 						l->label ? l->label : "--", 
-						(d) ? d->id : "--", 
+						d->id, 
 						(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", 
 						SCCP_RWLIST_GETSIZE(&l->channels), 
 						(state != SCCP_CHANNELSTATE_SENTINEL) ? sccp_channelstate2str(state) : "--",
@@ -1110,7 +1110,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 					astman_append(s, "Exten: %s\r\n", l->name);
 					astman_append(s, "SubscriptionNumber: %s\r\n", linedevice->subscriptionId.number);
 					astman_append(s, "Label: %s\r\n", l->label);
-					astman_append(s, "Device: %s\r\n", (d) ? d->id : "--");
+					astman_append(s, "Device: %s\r\n", d->id);
 					astman_append(s, "MWI: %s\r\n", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF");
 					astman_append(s, "ActiveChannels: %d\r\n", SCCP_LIST_GETSIZE(&l->channels));
 					astman_append(s, "ChannelState: %s\r\n", (state != SCCP_CHANNELSTATE_SENTINEL) ? sccp_channelstate2str(state) : "--");
@@ -1134,8 +1134,8 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 					"--", 
 					(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", 
 					SCCP_LIST_GETSIZE(&l->channels),
-					(channel) ? sccp_channelstate2str(channel->state) : "--", 
-					(channel) ? skinny_calltype2str(channel->calltype) : "", 
+					"--", 
+					"--", 
 					cid_name,
 					cap_buf);
 			} else {
@@ -1230,14 +1230,14 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 
 	if (argc < 4) {
 		pbx_log(LOG_WARNING, "LineName needs to be supplied\n");
-		CLI_AMI_RETURN_ERROR(fd, s, m, "LineName needs to be supplied %s\n", "");
+		CLI_AMI_RETURN_ERROR(fd, s, m, "LineName needs to be supplied %s\n", "");		/* explicit return */
 	}
 	line = pbx_strdupa(argv[3]);
 	AUTO_RELEASE sccp_line_t *l = sccp_line_find_byname(line, FALSE);
 
 	if (!l) {
 		pbx_log(LOG_WARNING, "Failed to get line %s\n", line);
-		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for line %s\n", line);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for line %s\n", line);		/* explicit return */
 	}
 
 	if (!s) {
@@ -1413,7 +1413,7 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 				snprintf(tmpname, sizeof(tmpname), "SCCP/%s-%08x", l->name, channel->callid);			\
 			}													\
 			if (&channel->rtp) {											\
-				sccp_copy_string(addrStr,sccp_socket_stringify(&channel->rtp.audio.phone), sizeof(addrStr));	\
+				sccp_copy_string(addrStr,sccp_netsock_stringify(&channel->rtp.audio.phone), sizeof(addrStr));	\
 			}
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 												\
@@ -1734,7 +1734,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 
 			struct sockaddr_storage ourip = { 0 };
 			sccp_session_getOurIP(d->session, &ourip, 0);
-			sprintf(xmlData2, xmlData1, sccp_socket_stringify(&ourip));
+			sprintf(xmlData2, xmlData1, sccp_netsock_stringify(&ourip));
 
 			d->protocol->sendUserToDeviceDataVersionMessage(d, 1, 0, 0, 1, xmlData2, 1);
 			pbx_log(LOG_NOTICE, "%s: Done1\n", d->id);
@@ -1763,7 +1763,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 				if (argc < 5) {
 					struct sockaddr_storage sas = { 0 };
 					sccp_session_getSas(d->session, &sas);
-					sccp_copy_string(clientAddress, sccp_socket_stringify_addr(&sas), sizeof(clientAddress));
+					sccp_copy_string(clientAddress, sccp_netsock_stringify_addr(&sas), sizeof(clientAddress));
 				} else {
 					sccp_copy_string(clientAddress, argv[6], sizeof(clientAddress));
 				}
@@ -1995,7 +1995,7 @@ static int sccp_message_devices(int fd, sccp_cli_totals_t *totals, struct manses
 
 	if (sccp_strlen_zero(argv[3])) {
 		pbx_log(LOG_WARNING, "MessageText cannot be empty\n");
-		CLI_AMI_RETURN_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[3]);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[3]);		/* explicit return */
 	}
 
 	if (argc > 4) {
@@ -2064,7 +2064,7 @@ static int sccp_message_device(int fd, sccp_cli_totals_t *totals, struct mansess
 	}
 	if (sccp_strlen_zero(argv[4])) {
 		pbx_log(LOG_WARNING, "MessageText cannot be empty\n");
-		CLI_AMI_RETURN_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[4]);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[4]);		/* explicit return */
 	}
 	if (argc > 5) {
 		if (!strcmp(argv[5], "beep")) {
@@ -2082,7 +2082,7 @@ static int sccp_message_device(int fd, sccp_cli_totals_t *totals, struct mansess
 		sccp_dev_set_message(d, argv[4], timeout, FALSE, beep);
 		res = RESULT_SUCCESS;
 	} else {
-		CLI_AMI_RETURN_ERROR(fd, s, m, "Device '%s' not found!\n", argv[3]);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Device '%s' not found!\n", argv[3]);		/* explicit return */
 	}
 
 	if (s) {
@@ -2208,7 +2208,7 @@ CLI_AMI_ENTRY(system_message, sccp_system_message, "Send a system wide message t
      */
 static int sccp_dnd_device(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	int res = RESULT_SUCCESS;
+	int res = RESULT_FAILURE;
 
 	int local_line_total = 0;
 
@@ -2230,7 +2230,7 @@ static int sccp_dnd_device(int fd, sccp_cli_totals_t *totals, struct mansession 
 				CLI_AMI_OUTPUT(fd, s, "Unset DND\r\n");
 			} else {
 				CLI_AMI_OUTPUT(fd, s, "Unknown DND State: %s\n", argv[3]);
-				res = RESULT_FAILURE;
+				CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find device %s\n", argv[3]);		/* explicit return */
 			}
 			sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
 			sccp_dev_check_displayprompt(d);
@@ -2242,9 +2242,9 @@ static int sccp_dnd_device(int fd, sccp_cli_totals_t *totals, struct mansession 
 				CLI_AMI_OUTPUT(fd, s, "Set/Unset DND Failed\r\n");
 			}
 		}
+		res = RESULT_SUCCESS;
 	} else {
-		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find device %s\n", argv[3]);
-		res = RESULT_FAILURE;
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find device %s\n", argv[3]);		/* explicit return */
 	}
 
 	if (s) {
@@ -2579,13 +2579,13 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 #ifdef CS_SCCP_REALTIME
 								if (device->realtime) {
 									if ((dv = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL))) {
-										change = sccp_config_applyDeviceConfiguration(device, dv);
+										change |= sccp_config_applyDeviceConfiguration(device, dv);
 									}
 								} else
 #endif
 								if (GLOB(cfg)) {
 									v = ast_variable_browse(GLOB(cfg), device->id);
-									change = sccp_config_applyDeviceConfiguration(device, v);
+									change |= sccp_config_applyDeviceConfiguration(device, v);
 								}
 								device->pendingUpdate = 1;
 								sccp_device_check_update(device);				// Will cleanup after reload and restart the device if necessary
@@ -3236,7 +3236,7 @@ static int sccp_answercall(int fd, sccp_cli_totals_t *totals, struct mansession 
 	}
 
 	if (res == RESULT_FAILURE && !sccp_strlen_zero(error)) {
-		CLI_AMI_RETURN_ERROR(fd, s, m, "%s\n", error);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "%s\n", error);		/* explicit return */
 	}
 
 	if (s) {
@@ -3333,20 +3333,20 @@ static int sccp_tokenack(int fd, sccp_cli_totals_t *totals, struct mansession *s
 	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(dev, FALSE);
 	if (!d) {
 		pbx_log(LOG_WARNING, "Failed to get device %s\n", dev);
-		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);		/* explicit return */
 	}
 
 	if (d->status.token != SCCP_TOKEN_STATE_REJ && d->session) {
 		pbx_log(LOG_WARNING, "%s: We need to have received a token request before we can acknowledge it\n", dev);
-		CLI_AMI_RETURN_ERROR(fd, s, m, "%s: We need to have received a token request before we can acknowledge it\n", dev);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "%s: We need to have received a token request before we can acknowledge it\n", dev);		/* explicit return */
+	} 
+	if (d->session) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", dev);
+		sccp_session_tokenAck(d->session);
 	} else {
-		if (d->session) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", dev);
-			sccp_session_tokenAck(d->session);
-		} else {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Phone not connected to this server (no valid session)\n", dev);
-		}
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Phone not connected to this server (no valid session)\n", dev);
 	}
+	
 	if (s) {
 		totals->lines = local_line_total;
 	}
@@ -3437,8 +3437,8 @@ void sccp_register_cli(void)
 #define _MAN_COM_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_COMMAND
 #define _MAN_REP_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG
 #else
-#define _MAN_COM_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_COMMAND
-#define _MAN_REP_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING
+#define _MAN_COM_FLAGS	(EVENT_FLAG_SYSTEM | EVENT_FLAG_COMMAND)
+#define _MAN_REP_FLAGS	(EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING)
 #endif
 	pbx_manager_register("SCCPShowGlobals", _MAN_REP_FLAGS, manager_show_globals, "show globals setting", ami_globals_usage);
 	pbx_manager_register("SCCPShowDevices", _MAN_REP_FLAGS, manager_show_devices, "show devices", ami_devices_usage);

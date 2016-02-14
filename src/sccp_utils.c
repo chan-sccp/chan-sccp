@@ -1,22 +1,22 @@
 /*!
- * \file        sccp_utils.c
+ * \file	sccp_utils.c
  * \brief       SCCP Utils Class
  * \author      Sergio Chersovani <mlists [at] c-net.it>
- * \note        Reworked, but based on chan_sccp code.
- *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *              Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
+ * \note	Reworked, but based on chan_sccp code.
+ *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *		Modified by Jan Czmok and Julien Goodwin
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		See the LICENSE file at the top of the source tree.
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
+#include "sccp_device.h"
 #include "sccp_line.h"
+#include "sccp_session.h"
 #include "sccp_utils.h"
-#include "sccp_socket.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -288,35 +288,26 @@ gcc_inline uint32_t labelstr2int(const char *str)
  * \param codecs Array of Skinny Codecs
  * \param length Max Length
  */
-char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int length)
+char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength)
 {
-	int x;
-	unsigned len;
-	char *start, *end = buf;
-
-	if (!size) {
+	if (!buf || size <= 2) {
 		return buf;
 	}
-	snprintf(end, size, "(");
-	len = strlen(end);
-	end += len;
-	size -= len;
-	start = end;
-	for (x = 0; x < length; x++) {
+	memset(buf, 0, size);
+	char *endptr = buf;
+	int x, comma = 0;
+
+	snprintf(endptr++, size, "(");
+	endptr += strlen(endptr);
+	for (x = 0; x < clength; x++) {
 		if (codecs[x] == 0) {
 			break;
 		}
-
-		snprintf(end, size, "%s (%d), ", codec2name(codecs[x]), codecs[x]);
-		len = strlen(end);
-		end += len;
-		size -= len;
+		snprintf(endptr, size, "%s%s (%d)", comma++ ? ", " : "",codec2name(codecs[x]), codecs[x]);
+		endptr += strlen(endptr);
 	}
-	if (start == end) {
-		pbx_copy_string(start, "nothing)", size);
-	} else if (size > 2) {
-		*(end - 2) = ')';
-		*(end - 1) = '\0';
+	if (buf == endptr) {
+		snprintf(endptr, size, "nothing)");
 	}
 	return buf;
 }
@@ -357,9 +348,8 @@ static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny
 	boolean_t found = FALSE;
 
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES && skinny_codec_prefs[x] != SKINNY_CODEC_NONE; x++) {
-		if (skinny_codec_prefs[x] == skinny_codec) {
+		if (!found && skinny_codec_prefs[x] == skinny_codec) {
 			found = TRUE;
-			break;
 		}
 		if (found) {
 			memmove(skinny_codec_prefs + x, skinny_codec_prefs + (x + 1), (SKINNY_MAX_CAPABILITIES - (x + 1)) * sizeof(skinny_codec_t));  // move left
@@ -408,7 +398,7 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, const char *l
 		if (!sccp_strlen_zero(token)) {
 			all = sccp_strcaseequals(token, "all") ? TRUE : FALSE;
 			if (all && !allowing) {									// disallowing all
-				memset(skinny_codec_prefs, 0, SKINNY_MAX_CAPABILITIES);
+				memset(skinny_codec_prefs, 0, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 				//sccp_log((DEBUGCAT_CODEC)) ("SCCP: disallow=all => reset codecs\n");
 				break;
 			}
@@ -636,7 +626,7 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage * sas)
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		struct sockaddr_storage sinsas = { 0 };
 		sccp_session_getSas(d->session, &sinsas);
-		if (d->session && sccp_socket_cmp_addr(&sas, sas) == 0) {
+		if (d->session && sccp_netsock_cmp_addr(&sas, sas) == 0) {
 			d = sccp_device_retain(d);
 			break;
 		}
@@ -976,9 +966,9 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32
  * \retval FALSE on diff
  * \retval TRUE on equal
  */
-gcc_inline boolean_t sccp_socket_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1)
+gcc_inline boolean_t sccp_netsock_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1)
 {
-	if (s0->ss_family == s1->ss_family && sccp_socket_cmp_addr(s0, s1) == 0 ) {
+	if (s0->ss_family == s1->ss_family && sccp_netsock_cmp_addr(s0, s1) == 0 ) {
 		return TRUE;
 	} 
 
@@ -1030,7 +1020,7 @@ gcc_inline boolean_t sccp_strequals(const char *data1, const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
 		return TRUE;
-	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2) && (sccp_strlen(data1) == sccp_strlen(data2))) {
+	} if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2) && (sccp_strlen(data1) == sccp_strlen(data2))) {
 		return !strcmp(data1, data2);
 	}
 	return FALSE;
@@ -1051,7 +1041,7 @@ gcc_inline boolean_t sccp_strcaseequals(const char *data1, const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
 		return TRUE;
-	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2) && (sccp_strlen(data1) == sccp_strlen(data2))) {
+	} if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2) && (sccp_strlen(data1) == sccp_strlen(data2))) {
 		return !strcasecmp(data1, data2);
 	}
 	return FALSE;
@@ -1134,7 +1124,7 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 				if (rLength == 0 || remotePeerCapabilities[0] == SKINNY_CODEC_NONE) {
 					sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "Empty remote Capabilities, using bestCodec from firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
 					return firstJointCapability;
-				} else {
+				} 
 					/* using capabilities from remote party, that matches our preferences & capabilities */
 					for (r = 0; r < rLength; r++) {
 						if (remotePeerCapabilities[r] == SKINNY_CODEC_NONE) {
@@ -1147,7 +1137,7 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 							return ourPreferences[p];
 						}
 					}
-				}
+				
 			}
 		}
 	}
@@ -1211,8 +1201,8 @@ static int apply_netmask(const struct sockaddr_storage *netaddr, const struct so
 {
 	int res = 0;
 
-	char *straddr = pbx_strdupa(sccp_socket_stringify_addr(netaddr));
-	char *strmask = pbx_strdupa(sccp_socket_stringify_addr(netmask));
+	char *straddr = pbx_strdupa(sccp_netsock_stringify_addr(netaddr));
+	char *strmask = pbx_strdupa(sccp_netsock_stringify_addr(netmask));
 
 	sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (apply_netmask) applying netmask to %s/%s\n", straddr, strmask);
 
@@ -1240,7 +1230,7 @@ static int apply_netmask(const struct sockaddr_storage *netaddr, const struct so
 		/* Unsupported address scheme */
 		res = -1;
 	}
-	sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (apply_netmask) result applied netmask %s\n", sccp_socket_stringify_addr(result));
+	sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (apply_netmask) result applied netmask %s\n", sccp_netsock_stringify_addr(result));
 
 	return res;
 }
@@ -1286,11 +1276,11 @@ int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storag
 		struct sockaddr_storage mapped_addr;
 		const struct sockaddr_storage *addr_to_use;
 
-		if (sccp_socket_is_IPv4(&ha->netaddr)) {
-			if (sccp_socket_is_IPv6(addr)) {
-				if (sccp_socket_is_mapped_IPv4(addr)) {
-					if (!sccp_socket_ipv4_mapped(addr, &mapped_addr)) {
-						pbx_log(LOG_ERROR, "%s provided to ast_sockaddr_ipv4_mapped could not be converted. That shouldn't be possible\n", sccp_socket_stringify_addr(addr));
+		if (sccp_netsock_is_IPv4(&ha->netaddr)) {
+			if (sccp_netsock_is_IPv6(addr)) {
+				if (sccp_netsock_is_mapped_IPv4(addr)) {
+					if (!sccp_netsock_ipv4_mapped(addr, &mapped_addr)) {
+						pbx_log(LOG_ERROR, "%s provided to ast_sockaddr_ipv4_mapped could not be converted. That shouldn't be possible\n", sccp_netsock_stringify_addr(addr));
 						continue;
 					}
 					addr_to_use = &mapped_addr;
@@ -1303,15 +1293,15 @@ int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storag
 				addr_to_use = addr;
 			}
 		} else {
-			if (sccp_socket_is_IPv6(addr) && !sccp_socket_is_mapped_IPv4(addr)) {
+			if (sccp_netsock_is_IPv6(addr) && !sccp_netsock_is_mapped_IPv4(addr)) {
 				addr_to_use = addr;
 			} else {
 				/* Address is IPv4 or IPv4 mapped but ACL is IPv6. Skip */
 				continue;
 			}
 		}
-		// char *straddr = pbx_strdupa(sccp_socket_stringify_addr(&current_ha->netaddr));
-		// char *strmask = pbx_strdupa(sccp_socket_stringify_addr(&current_ha->netmask));
+		// char *straddr = pbx_strdupa(sccp_netsock_stringify_addr(&current_ha->netaddr));
+		// char *strmask = pbx_strdupa(sccp_netsock_stringify_addr(&current_ha->netmask));
 		// sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s:%s/%s\n", AST_SENSE_DENY == current_ha->sense ? "deny" : "permit", straddr, strmask);
 
 		/* For each rule, if this address and the netmask = the net address
@@ -1320,9 +1310,9 @@ int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storag
 			/* Unlikely to happen since we know the address to be IPv4 or IPv6 */
 			continue;
 		}
-		if (sccp_socket_cmp_addr(&result, &current_ha->netaddr) == 0) {
-			//sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "SCCP: apply_ha_default: result: %s\n", sccp_socket_stringify_addr(&result));
-			//sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "SCCP: apply_ha_default: current_ha->netaddr: %s\n", sccp_socket_stringify_addr(&current_ha->netaddr));
+		if (sccp_netsock_cmp_addr(&result, &current_ha->netaddr) == 0) {
+			//sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "SCCP: apply_ha_default: result: %s\n", sccp_netsock_stringify_addr(&result));
+			//sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "SCCP: apply_ha_default: current_ha->netaddr: %s\n", sccp_netsock_stringify_addr(&current_ha->netaddr));
 			res = current_ha->sense;
 		}
 	}
@@ -1367,7 +1357,7 @@ int sccp_sockaddr_storage_parse(struct sockaddr_storage *addr, const char *str, 
 	int e;
 
 	s = pbx_strdupa(str);
-	if (!sccp_socket_split_hostport(s, &host, &port, flags)) {
+	if (!sccp_netsock_split_hostport(s, &host, &port, flags)) {
 		return 0;
 	}
 
@@ -1397,7 +1387,7 @@ int sccp_sockaddr_storage_parse(struct sockaddr_storage *addr, const char *str, 
 
 	if (addr) {
 		memcpy(addr, res->ai_addr, (res->ai_family == AF_INET6) ? sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in));
-		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (sccp_sockaddr_storage_parse) addr:%s\n", sccp_socket_stringify_addr(addr));
+		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (sccp_sockaddr_storage_parse) addr:%s\n", sccp_netsock_stringify_addr(addr));
 	}
 
 	freeaddrinfo(res);
@@ -1514,16 +1504,16 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 		return ret;
 	}
 	/*
-	   sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_2 "SCCP: (sccp_append_ha) netaddr:%s\n", sccp_socket_stringify_addr(&ha->netaddr));
+	   sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_2 "SCCP: (sccp_append_ha) netaddr:%s\n", sccp_netsock_stringify_addr(&ha->netaddr));
 	 */
 	/* If someone specifies an IPv4-mapped IPv6 address,
 	 * we just convert this to an IPv4 ACL
 	 */
-	if (sccp_socket_ipv4_mapped(&ha->netaddr, &ha->netaddr)) {
+	if (sccp_netsock_ipv4_mapped(&ha->netaddr, &ha->netaddr)) {
 		pbx_log(LOG_NOTICE, "IPv4-mapped ACL network address specified. " "Converting to an IPv4 ACL network address.\n");
 	}
 
-	addr_is_v4 = sccp_socket_is_IPv4(&ha->netaddr);
+	addr_is_v4 = sccp_netsock_is_IPv4(&ha->netaddr);
 
 	if (!mask) {
 		parse_cidr_mask(&ha->netmask, addr_is_v4, addr_is_v4 ? "32" : "128");
@@ -1540,14 +1530,14 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 			}
 			return ret;
 		}
-		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (sccp_append_ha) strmask:%s, netmask:%s\n", mask, sccp_socket_stringify_addr(&ha->netmask));
+		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (sccp_append_ha) strmask:%s, netmask:%s\n", mask, sccp_netsock_stringify_addr(&ha->netmask));
 		/* If someone specifies an IPv4-mapped IPv6 netmask,
 		 * we just convert this to an IPv4 ACL
 		 */
-		if (sccp_socket_ipv4_mapped(&ha->netmask, &ha->netmask)) {
+		if (sccp_netsock_ipv4_mapped(&ha->netmask, &ha->netmask)) {
 			ast_log(LOG_NOTICE, "IPv4-mapped ACL netmask specified. " "Converting to an IPv4 ACL netmask.\n");
 		}
-		mask_is_v4 = sccp_socket_is_IPv4(&ha->netmask);
+		mask_is_v4 = sccp_netsock_is_IPv4(&ha->netmask);
 		if (addr_is_v4 ^ mask_is_v4) {
 			pbx_log(LOG_WARNING, "Address and mask are not using same address scheme (%d / %d)\n", addr_is_v4, mask_is_v4);
 			sccp_free_ha(ha);
@@ -1568,8 +1558,8 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 		/* This shouldn't happen because ast_sockaddr_parse would
 		 * have failed much earlier on an unsupported address scheme
 		 */
-		char *failaddr = pbx_strdupa(sccp_socket_stringify_addr(&ha->netaddr));
-		char *failmask = pbx_strdupa(sccp_socket_stringify_addr(&ha->netmask));
+		char *failaddr = pbx_strdupa(sccp_netsock_stringify_addr(&ha->netaddr));
+		char *failmask = pbx_strdupa(sccp_netsock_stringify_addr(&ha->netmask));
 
 		pbx_log(LOG_WARNING, "Unable to apply netmask %s to address %s\n", failaddr, failmask);
 		sccp_free_ha(ha);
@@ -1589,8 +1579,8 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 	}
 
 	{
-		char *straddr = pbx_strdupa(sccp_socket_stringify_addr(&ha->netaddr));
-		char *strmask = pbx_strdupa(sccp_socket_stringify_addr(&ha->netmask));
+		char *straddr = pbx_strdupa(sccp_netsock_stringify_addr(&ha->netaddr));
+		char *strmask = pbx_strdupa(sccp_netsock_stringify_addr(&ha->netmask));
 
 		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "%s/%s sense %d appended to acl for peer\n", straddr, strmask, ha->sense);
 	}
@@ -1601,8 +1591,8 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path)
 {
 	while (path) {
-		char *straddr = pbx_strdupa(sccp_socket_stringify_addr(&path->netaddr));
-		char *strmask = pbx_strdupa(sccp_socket_stringify_addr(&path->netmask));
+		char *straddr = pbx_strdupa(sccp_netsock_stringify_addr(&path->netaddr));
+		char *strmask = pbx_strdupa(sccp_netsock_stringify_addr(&path->netmask));
 
 		pbx_str_append(&buf, buflen, "%s:%s/%s,", AST_SENSE_DENY == path->sense ? "deny" : "permit", straddr, strmask);
 		path = path->next;
@@ -1632,22 +1622,22 @@ AST_TEST_DEFINE(chan_sccp_acl_tests)
 
 	pbx_test_status_update(test, "Setting up sockaddr_storage...\n");
 	sccp_sockaddr_storage_parse(&sas10, "10.0.0.1", PARSE_PORT_FORBID);
-	pbx_test_validate(test, sccp_socket_is_IPv4(&sas10));
+	pbx_test_validate(test, sccp_netsock_is_IPv4(&sas10));
 
 	sccp_sockaddr_storage_parse(&sas1015, "10.15.15.1", PARSE_PORT_FORBID);
-	pbx_test_validate(test, sccp_socket_is_IPv4(&sas1015));
+	pbx_test_validate(test, sccp_netsock_is_IPv4(&sas1015));
 
 	sccp_sockaddr_storage_parse(&sas172, "172.16.0.1", PARSE_PORT_FORBID);
-	pbx_test_validate(test, sccp_socket_is_IPv4(&sas172));
+	pbx_test_validate(test, sccp_netsock_is_IPv4(&sas172));
 
 	sccp_sockaddr_storage_parse(&sas200, "200.200.100.100", PARSE_PORT_FORBID);
-	pbx_test_validate(test, sccp_socket_is_IPv4(&sas200));
+	pbx_test_validate(test, sccp_netsock_is_IPv4(&sas200));
 
 	sccp_sockaddr_storage_parse(&sasff, "fe80::ffff:0:0:0", PARSE_PORT_FORBID);
-	pbx_test_validate(test, sccp_socket_is_IPv6(&sasff));
+	pbx_test_validate(test, sccp_netsock_is_IPv6(&sasff));
 
 	sccp_sockaddr_storage_parse(&sasffff, "fe80::ffff:0:ffff:0", PARSE_PORT_FORBID);
-	pbx_test_validate(test, sccp_socket_is_IPv6(&sasffff));
+	pbx_test_validate(test, sccp_netsock_is_IPv6(&sasffff));
 
 	// test 1
 	pbx_test_status_update(test, "test 1: ha deny all\n");
@@ -1792,18 +1782,17 @@ AST_TEST_DEFINE(chan_sccp_acl_invalid_tests)
 		"fe80::1234/255.255.255.0",
 	};
 	uint8_t i;
-        for (i = 0; i < ARRAY_LEN(invalid_acls); ++i) {
-        	int error = 0;
-                ha = sccp_append_ha("permit", invalid_acls[i], ha, &error);
-                if (ha || !error) {
-                        pbx_test_status_update(test, "ACL %s accepted even though it is total garbage.\n",
-                                        invalid_acls[i]);
-                        if (ha) {
+	for (i = 0; i < ARRAY_LEN(invalid_acls); ++i) {
+		int error = 0;
+		ha = sccp_append_ha("permit", invalid_acls[i], ha, &error);
+		if (ha || !error) {
+			pbx_test_status_update(test, "ACL %s accepted even though it is total garbage.\n", invalid_acls[i]);
+			if (ha) {
 				sccp_free_ha(ha);
-                        }
-                        res = AST_TEST_FAIL;
-                }
-        }
+			}
+			res = AST_TEST_FAIL;
+		}
+	}
 	sccp_free_ha(ha);
 	ha = NULL;
 
@@ -1963,9 +1952,9 @@ const char *sccp_channel_toString(sccp_channel_t * c)
 {
 	if (c) {
 		return (const char *) c->designator;
-	} else {
+	} 
 		return "";
-	}
+	
 }
 
 /*!
@@ -2059,9 +2048,11 @@ int sccp_strversioncmp(const char *s1, const char *s2)
 		}
 		if (lz1 > lz2) {
 			return -1;
-		} else if (lz1 < lz2) {
+		}
+		if (lz1 < lz2) {
 			return 1;
-		} else if (lz1 == 1) {
+		}
+		if (lz1 == 1) {
 			/*
 			 * If the common prefix for s1 and s2 consists only of zeros, then the
 			 * "longer" number has to compare less. Otherwise the comparison needs
@@ -2078,14 +2069,15 @@ int sccp_strversioncmp(const char *s1, const char *s2)
 			/* Catch empty strings */
 			if (p1 == 0 && p2 > 0) {
 				return 1;
-			} else if (p2 == 0 && p1 > 0) {
+			} if (p2 == 0 && p1 > 0) {
 				return -1;
 			}
 			/* Prefixes are not same */
 			if (*s1 != *s2 && *s1 != '0' && *s2 != '0') {
 				if (p1 < p2) {
 					return 1;
-				} else if (p1 > p2) {
+				}
+				if (p1 > p2) {
 					return -1;
 				}
 			} else {
@@ -2105,9 +2097,11 @@ int sccp_strversioncmp(const char *s1, const char *s2)
 
 		if (p1 < p2) {
 			return -1;
-		} else if (p1 > p2) {
+		}
+		if (p1 > p2) {
 			return 1;
-		} else if ((ret = strncmp(s1, s2, p1)) != 0) {
+		}
+		if ((ret = strncmp(s1, s2, p1)) != 0) {
 			return ret;
 		}
 		/* Numbers are equal or not present, try with next ones. */
@@ -2135,7 +2129,7 @@ char *sccp_dec2binstr(char *buf, size_t size, int value)
 
 gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size)
 {
-        pbx_assert(NULL != dst && NULL != src);
+	pbx_assert(NULL != dst && NULL != src);
 	if (do_expect(size != 0)) {
 		while (do_expect(--size != 0)) {
 			if (+(*dst++ = *src++) == '\0') {
@@ -2175,6 +2169,12 @@ char *sccp_trimwhitespace(char *str)
 	return str;
 }
 
+long int sccp_random(void)
+{
+	/* potentially replace with our own implementation */
+	return pbx_random();
+}
+
 #if HAVE_ICONV
 static iconv_t __sccp_iconv = (iconv_t) -1;
 static sccp_mutex_t __iconv_lock;
@@ -2208,14 +2208,15 @@ gcc_inline boolean_t sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char
 	if (incount) {
 		pbx_mutex_lock(&__iconv_lock);
 		if (iconv(__sccp_iconv, &utf8str, &incount, &buf, &outcount) == (size_t) -1) {
-			if (errno == E2BIG)
+			if (errno == E2BIG) {
 				pbx_log(LOG_WARNING, "SCCP: Iconv: output buffer too small.\n");
-			else if (errno == EILSEQ)
+			} else if (errno == EILSEQ) {
 				pbx_log(LOG_WARNING,  "SCCP: Iconv: illegal character.\n");
-			else if (errno == EINVAL)
+			} else if (errno == EINVAL) {
 				pbx_log(LOG_WARNING,  "SCCP: Iconv: incomplete character sequence.\n");
-			else
+			} else {
 				pbx_log(LOG_WARNING,  "SCCP: Iconv: error %d: %s.\n", errno, strerror(errno));
+}
 		}
 		pbx_mutex_unlock(&__iconv_lock);
 	}
@@ -2226,18 +2227,18 @@ gcc_inline boolean_t sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char
 #if CS_TEST_FRAMEWORK
 static void __attribute__((constructor)) sccp_register_tests(void)
 {
-        AST_TEST_REGISTER(chan_sccp_acl_tests);
-        AST_TEST_REGISTER(chan_sccp_acl_invalid_tests);
-        AST_TEST_REGISTER(chan_sccp_reduce_codec_set);
-        AST_TEST_REGISTER(chan_sccp_combine_codec_sets);
+	AST_TEST_REGISTER(chan_sccp_acl_tests);
+	AST_TEST_REGISTER(chan_sccp_acl_invalid_tests);
+	AST_TEST_REGISTER(chan_sccp_reduce_codec_set);
+	AST_TEST_REGISTER(chan_sccp_combine_codec_sets);
 }
 
 static void __attribute__((destructor)) sccp_unregister_tests(void)
 {
-        AST_TEST_UNREGISTER(chan_sccp_acl_tests);
-        AST_TEST_UNREGISTER(chan_sccp_acl_invalid_tests);
-        AST_TEST_UNREGISTER(chan_sccp_reduce_codec_set);
-        AST_TEST_UNREGISTER(chan_sccp_combine_codec_sets);
+	AST_TEST_UNREGISTER(chan_sccp_acl_tests);
+	AST_TEST_UNREGISTER(chan_sccp_acl_invalid_tests);
+	AST_TEST_UNREGISTER(chan_sccp_reduce_codec_set);
+	AST_TEST_UNREGISTER(chan_sccp_combine_codec_sets);
 }
 #endif
 
@@ -2249,11 +2250,11 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 	char **strings;
 #if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
 	size_t stackfr;
-	bfd *bfdobj;           /* bfd.h */
-	Dl_info dli;           /* dlfcn.h */
+	bfd *bfdobj;		/* bfd.h */
+	Dl_info dli;		/* dlfcn.h */
 	long allocsize;
-	asymbol **syms = NULL; /* bfd.h */
-	bfd_vma offset;        /* bfd.h */
+	asymbol **syms = NULL;	/* bfd.h */
+	bfd_vma offset;		/* bfd.h */
 	const char *lastslash;
 	asection *section;
 	const char *file, *func;

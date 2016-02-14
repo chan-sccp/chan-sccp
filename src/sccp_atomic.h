@@ -41,6 +41,7 @@
 #endif
 
 #else														/* SCCP_ATOMIC */
+//#define CAS32_TYPE			int
 #if defined (__i386__) || defined(__x86_64__)
 #define ATOMIC_INCR(_a,_b,_c)	 	ast_atomic_fetchadd_int(_a, _b)
 #define ATOMIC_DECR(_a,_b,_c)	 	ast_atomic_fetchadd_int(_a, -_b)

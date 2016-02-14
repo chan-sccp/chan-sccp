@@ -15,18 +15,19 @@
  *              SCCP Line -> SCCP ButtonConfig -> SCCP Device
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_channel.h"
-#include "sccp_device.h"
-#include "sccp_line.h"
-#include "sccp_utils.h"
-#include "sccp_config.h"
 #include "sccp_actions.h"
+#include "sccp_config.h"
+#include "sccp_device.h"
 #include "sccp_features.h"
-#include "sccp_socket.h"
+#include "sccp_line.h"
+#include "sccp_session.h"
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
+#include "sccp_utils.h"
+#include "sccp_atomic.h"
 #include "sccp_devstate.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
@@ -54,8 +55,8 @@ struct sccp_private_device_data {
 	skinny_registrationstate_t registrationState;
 };
 
-#define sccp_private_lock(x) sccp_mutex_lock(&((struct sccp_private_device_data * const)x)->lock)			/* discard const */
-#define sccp_private_unlock(x) sccp_mutex_unlock(&((struct sccp_private_device_data * const)x)->lock)			/* discard const */
+#define sccp_private_lock(x) sccp_mutex_lock(&((struct sccp_private_device_data * const)(x))->lock)			/* discard const */
+#define sccp_private_unlock(x) sccp_mutex_unlock(&((struct sccp_private_device_data * const)(x))->lock)			/* discard const */
 
 /* indicate definition */
 static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lineInstance, uint32_t callid);
@@ -125,30 +126,22 @@ static boolean_t sccp_device_falseResult(void)
 static void sccp_device_retrieveDeviceCapabilities(constDevicePtr device)
 {
 	char *xmlStr = "<getDeviceCaps></getDeviceCaps>";
-	unsigned int transactionID = random();
+	unsigned int transactionID = sccp_random();
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_DEVICECAPABILITIES, 1, 0, transactionID, xmlStr, 2);
 }
 
 static void sccp_device_setBackgroundImage(constDevicePtr device, const char *url)
 {
-	char xmlStr[2048] = { 0 };
-	unsigned int transactionID = random();
-
-	if (strncasecmp("http://", url, strlen("http://")) != 0) {
-		pbx_log(LOG_WARNING, "SCCP: '%s' needs to be a valid http url\n", url ? url : "");
+	if (!url || strncasecmp("http://", url, strlen("http://")) != 0) {
+		pbx_log(LOG_WARNING, "SCCP: '%s' needs to be a valid http url\n", url ? url : "--");
 		return;
 	}
-	strcat(xmlStr, "<setBackground>");
-	strcat(xmlStr, "<background>");
-	strcat(xmlStr, "<image>");
-	strcat(xmlStr, url);
-	strcat(xmlStr, "</image>");
-	strcat(xmlStr, "<icon>");
-	strcat(xmlStr, url);
-	strcat(xmlStr, "</icon>");
-	strcat(xmlStr, "</background>");
-	strcat(xmlStr, "</setBackground>\n\0");
+
+	char xmlStr[StationMaxXMLMessage] = { 0 };
+	unsigned int transactionID = sccp_random();
+
+	snprintf(xmlStr, sizeof(xmlStr), "<setBackground><background><image>%s</image><icon>%s</icon></background></setBackground>\n", url, url);
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_BACKGROUND, 0, 0, transactionID, xmlStr, 0);
 	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_2 "%s: sent new background to device: %s via transaction:%d\n", device->id, url, transactionID);
@@ -175,19 +168,14 @@ static void sccp_device_setBackgroundImageNotSupported(constDevicePtr device, co
 
 static void sccp_device_displayBackgroundImagePreview(constDevicePtr device, const char *url)
 {
-	char xmlStr[2048];
-	unsigned int transactionID = random();
-
-	if (strncmp("http://", url, strlen("http://")) != 0) {
-		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "");
+	if (!url || strncmp("http://", url, strlen("http://")) != 0) {
+		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "--");
+		return;
 	}
-	memset(xmlStr, 0, sizeof(xmlStr));
+	char xmlStr[StationMaxXMLMessage] = {0};
+	unsigned int transactionID = sccp_random();
 
-	strcat(xmlStr, "<setBackgroundPreview>");
-	strcat(xmlStr, "<image>");
-	strcat(xmlStr, url);
-	strcat(xmlStr, "</image>");
-	strcat(xmlStr, "</setBackgroundPreview>\n\0");
+	snprintf(xmlStr, sizeof(xmlStr), "<setBackgroundPreview><image>%s</image></setBackgroundPreview>", url);
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_BACKGROUND, 0, 0, transactionID, xmlStr, 0);
 }
@@ -199,20 +187,15 @@ static void sccp_device_displayBackgroundImagePreviewNotSupported(constDevicePtr
 
 static void sccp_device_setRingtone(constDevicePtr device, const char *url)
 {
-	char xmlStr[2048];
-	unsigned int transactionID = random();
-
-	if (strncmp("http://", url, strlen("http://")) != 0) {
-		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "");
+	if (!url || strncmp("http://", url, strlen("http://")) != 0) {
+		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "--");
+		return;
 	}
 
-	memset(xmlStr, 0, sizeof(xmlStr));
+	char xmlStr[StationMaxXMLMessage] = {0};
+	unsigned int transactionID = sccp_random();
 
-	strcat(xmlStr, "<setRingTone>");
-	strcat(xmlStr, "<ringTone>");
-	strcat(xmlStr, url);
-	strcat(xmlStr, "</ringTone>");
-	strcat(xmlStr, "</setRingTone>\n\0");
+	snprintf(xmlStr, sizeof(xmlStr), "<setRingTone><ringTone>%s</ringTone></setRingTone>", url);
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_RINGTONE, 0, 0, transactionID, xmlStr, 0);
 }
@@ -249,7 +232,7 @@ static void sccp_device_setRingtoneNotSupported(constDevicePtr device, const cha
 /*
    static void sccp_device_startStream(const sccp_device_t *device, const char *address, uint32_t port){
    char xmlStr[2048];
-   unsigned int transactionID = random();
+   unsigned int transactionID = sccp_random();
 
    strcat(xmlStr, "<startMedia>");
    strcat(xmlStr, "<mediaStream>");
@@ -576,8 +559,8 @@ sccp_device_t *sccp_device_create(const char *id)
 		d->endpoint = iPbx.endpoint_create("sccp", id);
 	}
 	*/
-	memset(d->softKeyConfiguration.activeMask, 0xFFFF, sizeof(d->softKeyConfiguration.activeMask));
-	memset(d->call_statistics, 0, (sizeof(sccp_call_statistics_t) * 2));
+	memset(&d->softKeyConfiguration.activeMask, 0xFF, sizeof d->softKeyConfiguration.activeMask);
+	memset(d->call_statistics, 0, ((sizeof *d->call_statistics) * 2));
 
 //	d->softKeyConfiguration.modes = (softkey_modes *) SoftKeyModes;
 //	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
@@ -689,6 +672,9 @@ void sccp_device_setLastNumberDialed(devicePtr device, const char *lastNumberDia
  */
 void sccp_device_preregistration(devicePtr device)
 {
+	if (!device) {
+		return;
+	}
 	/*! \todo use device->device_features to detect devices capabilities, instead of hardcoded list of devices */
 	switch (device->skinny_type) {
 			// case SKINNY_DEVICETYPE_30SPPLUS:
@@ -732,7 +718,7 @@ void sccp_device_preregistration(devicePtr device)
 			break;
 	}
 #if HAVE_ICONV
-	if (device && !(device->device_features & SKINNY_PHONE_FEATURES_UTF8)) {
+	if (!(device->device_features & SKINNY_PHONE_FEATURES_UTF8)) {
 		device->copyStr2Locale = sccp_device_copyStr2Locale_Convert;
 	}
 #endif
@@ -778,11 +764,11 @@ void sccp_device_removeFromGlobals(devicePtr device)
 	sccp_device_t * d = NULL;
 
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
-	d = SCCP_RWLIST_REMOVE(&GLOB(devices), device, list);
+	if ((d = SCCP_RWLIST_REMOVE(&GLOB(devices), device, list))) {
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Removed device '%s' from Glob(devices)\n", DEV_ID_LOG(device));
+		sccp_device_release(d);					/* explicit release of device after removing from list */
+	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
-
-	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Removed device '%s' from Glob(devices)\n", DEV_ID_LOG(device));
-	d = d ? sccp_device_release(d) : NULL;			/* explicit release of device after removing from list */
 }
 
 /*!
@@ -2158,10 +2144,12 @@ static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)
 			if (buttonconfig->button.service.url) {
 				sccp_free(buttonconfig->button.service.url);
 			}
+			break;
 		case FEATURE:
 			if (buttonconfig->button.feature.options) {
 				sccp_free(buttonconfig->button.feature.options);
 			}
+			break;
 		case EMPTY:
 		case SCCP_CONFIG_BUTTONTYPE_SENTINEL:
 			break;
@@ -2334,6 +2322,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 		}
 		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 #endif
+        sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);                                              /* set correct register state */
 	}
 }
 
@@ -2727,12 +2716,12 @@ static void __sccp_device_indicate_normal_dialing(constDevicePtr device, const u
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
-	sccp_callinfo_setCalledParty(callinfo, NULL, dialedNumber, NULL);
+	iCallInfo.SetCalledParty(callinfo, NULL, dialedNumber, NULL);
 	if (device->protocol) {
 		if (device->protocol->sendDialedNumber) {
 			device->protocol->sendDialedNumber(device, lineInstance, callid, dialedNumber);
 		}
-		sccp_callinfo_send(callinfo, callid, calltype, lineInstance, device, FALSE);
+		iCallInfo.Send(callinfo, callid, calltype, lineInstance, device, FALSE);
 	}
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_RINGOUT);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -2751,7 +2740,7 @@ static void sccp_device_indicate_proceed(constDevicePtr device, const uint8_t li
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	sccp_callinfo_send(callinfo, callid, calltype, lineInstance, device, FALSE);
+	iCallInfo.Send(callinfo, callid, calltype, lineInstance, device, FALSE);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 }
 
@@ -2762,7 +2751,7 @@ static void sccp_device_indicate_connected(constDevicePtr device, const uint8_t 
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	sccp_callinfo_send(callinfo, callid, calltype, lineInstance, device, FALSE);
+	iCallInfo.Send(callinfo, callid, calltype, lineInstance, device, FALSE);
 	sccp_dev_set_cplane(device, lineInstance, 1);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_CONNECTED, GLOB(digittimeout));
 }
@@ -2909,9 +2898,6 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 					case SCCP_FEATURE_CFWDALL:
 						if (linedevice->cfwdAll.enabled) {
 							/* build disp message string */
-							if (s != tmp) {
-								pbx_build_string(&s, &len, ", ");
-							}
 							if (sccp_strlen(line->cid_num) + sccp_strlen(linedevice->cfwdAll.number) > 15) {
 								pbx_build_string(&s, &len, "%s:%s", SKINNY_DISP_CFWDALL, linedevice->cfwdAll.number);
 							} else {
@@ -2922,10 +2908,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 					case SCCP_FEATURE_CFWDBUSY:
 						if (linedevice->cfwdBusy.enabled) {
 							/* build disp message string */
-							if (s != tmp) {
-								pbx_build_string(&s, &len, ", ");
-							}
-							if (sccp_strlen(line->cid_num) + sccp_strlen(linedevice->cfwdAll.number) > 15) {
+							if (sccp_strlen(line->cid_num) + sccp_strlen(linedevice->cfwdBusy.number) > 15) {
 								pbx_build_string(&s, &len, "%s:%s", SKINNY_DISP_CFWDBUSY, linedevice->cfwdBusy.number);
 							} else {
 								pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdBusy.number);
@@ -2984,7 +2967,7 @@ static sccp_push_result_t sccp_device_pushURL(constDevicePtr device, const char 
 {
 	const char *xmlFormat = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"%s\"/></CiscoIPPhoneExecute>";
 	size_t msg_length = strlen(xmlFormat) + sccp_strlen(url) - 2 /* for %s */  + 1 /* for terminator */ ;
-	unsigned int transactionID = random();
+	unsigned int transactionID = sccp_random();
 
 	if (sccp_strlen(url) > 256) {
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (pushURL) url is to long (max 256 char).\n", DEV_ID_LOG(device));
@@ -3012,7 +2995,7 @@ static sccp_push_result_t sccp_device_pushTextMessage(constDevicePtr device, con
 {
 	const char *xmlFormat = "<CiscoIPPhoneText>%s<Text>%s</Text></CiscoIPPhoneText>";
 	size_t msg_length = strlen(xmlFormat) + sccp_strlen(messageText) - 4 /* for the %s' */  + 1 /* for terminator */ ;
-	unsigned int transactionID = random();
+	unsigned int transactionID = sccp_random();
 
 	if (sccp_strlen(from) > 32) {
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (pushTextMessage) from is to long (max 32 char).\n", DEV_ID_LOG(device));

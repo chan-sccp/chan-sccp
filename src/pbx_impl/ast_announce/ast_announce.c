@@ -10,7 +10,7 @@
 #include <asterisk.h>
 #include "define.h"
 
-SCCP_FILE_VERSION(__FILE__, "");
+ASTERISK_FILE_VERSION(__FILE__, "");
 
 #include <asterisk/channel.h>
 #include <asterisk/bridge.h>

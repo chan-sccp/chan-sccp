@@ -127,12 +127,12 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																																					"The sccp channel can accept jitter, thus a jitterbuffer on the receive sccp side will beused only if it is forced and enabled.\n"},
 	{"jbforce", 			G_OBJ_REF(global_jbconf),		TYPE_PARSER(sccp_config_parse_jbflags_force),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Forces the use of a jitterbuffer on the receive side of a sccp channel.\n"},
 	{"jblog", 			G_OBJ_REF(global_jbconf),		TYPE_PARSER(sccp_config_parse_jbflags_log),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Enables jitterbuffer frame logging.\n"},
-	{"jbmaxsize", 			G_OBJ_REF(global_jbconf.max_size),	TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"200",				"Max length of the jitterbuffer in milliseconds.\n"},
-	{"jbresyncthreshold", 		G_OBJ_REF(global_jbconf.resync_threshold),TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"1000",				"Jump in the frame timestamps over which the jitterbuffer is\n"
+	{"jbmaxsize", 		offsize(struct ast_jb_conf,max_size),offsetof(struct sccp_global_vars,global_jbconf),		TYPE_PARSER(sccp_config_parse_jbflags_maxsize),	SCCP_CONFIG_FLAG_NONE,				SCCP_CONFIG_NOUPDATENEEDED,		"200",				"Max length of the jitterbuffer in milliseconds.\n"},
+	{"jbresyncthreshold", 	offsize(struct ast_jb_conf,resync_threshold),offsetof(struct sccp_global_vars,global_jbconf), 	TYPE_PARSER(sccp_config_parse_jbflags_jbresyncthreshold), SCCP_CONFIG_FLAG_NONE,		SCCP_CONFIG_NOUPDATENEEDED,		"1000",				"Jump in the frame timestamps over which the jitterbuffer is\n"
 																																					"resynchronized. Useful to improve the quality of the voice, with\n"
 																																					"big jumps in/broken timestamps, usually sent from exotic devices\n"
 																																					"and programs.\n"},
-	{"jbimpl", 			G_OBJ_REF(global_jbconf.impl),		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"fixed",			"Jitterbuffer implementation, used on the receiving side of a\n"
+	{"jbimpl", 		offsize(struct ast_jb_conf,impl),offsetof(struct sccp_global_vars,global_jbconf), 		TYPE_PARSER(sccp_config_parse_jbflags_impl), SCCP_CONFIG_FLAG_NONE,				SCCP_CONFIG_NOUPDATENEEDED,		"fixed",			"Jitterbuffer implementation, used on the receiving side of a\n"
 																																					"sccp channel. Two implementations are currently available\n"
 																																					"- 'fixed' (with size always equals to jbmaxsize)\n"
 																																					"- 'adaptive' (with variable size, actually the new jb of IAX2).\n"},

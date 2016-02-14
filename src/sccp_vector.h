@@ -159,7 +159,7 @@
 			size_t new_max = ((idx) + 1) * 2;						\
 			typeof((vec)->elems) new_elems = ast_calloc(1,					\
 				new_max * sizeof(*new_elems));						\
-			if (new_elems) {								\
+			if (new_elems && (vec)->elems) {						\
 				memcpy(new_elems, (vec)->elems,						\
 					(vec)->current * sizeof(*new_elems)); 				\
 				ast_free((vec)->elems);							\
@@ -596,7 +596,7 @@
  */
 #define SCCP_VECTOR_CALLBACK_MULTIPLE(vec, callback, ...) ({						\
 	size_t __sccp_vector_idx;									\
-	typeof((vec)) new_vec;										\
+	typeof((vec)) new_vec = NULL;									\
 	do {												\
 		new_vec = ast_malloc(sizeof(*new_vec));							\
 		if (!new_vec) {										\
