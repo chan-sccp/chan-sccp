@@ -10,16 +10,16 @@
  *              See the LICENSE file at the top of the source tree.
  * 
  */
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_appfunctions.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
+#include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_mwi.h"
-#include "sccp_utils.h"
 #include "sccp_conference.h"
-#include "sccp_socket.h"
+#include "sccp_session.h"
+#include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -50,7 +50,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 {
 	struct ast_str *coldata = ast_str_thread_get(&coldata_buf, 16);
 	struct ast_str *colnames = ast_str_thread_get(&colnames_buf, 16);
-	char *colname;
+	char *colname;												// we should make this a finite length
 	uint16_t buf_len = 1024;
 	char buf[1024] = "";
 	char *token = NULL;
@@ -95,7 +95,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	ast_str_reset(colnames);
 	ast_str_reset(coldata);
 	if (d) {
-		strcat(colname, ",");
+		strcat(colname, ",");										// we should be using strlcat instead
 		token = strtok(colname, ",");
 		while (token != NULL) {
 			token = pbx_trim_blanks(token);
@@ -113,7 +113,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				if (s) {
 					struct sockaddr_storage sas = { 0 };
 					sccp_session_getOurIP(s, &sas, 0);
-					sccp_copy_string(buf, sccp_socket_stringify(&sas), buf_len);
+					sccp_copy_string(buf, sccp_netsock_stringify(&sas), buf_len);
 				}
 			} else if (!strcasecmp(token, "id")) {
 				sccp_copy_string(buf, d->id, buf_len);
@@ -175,10 +175,8 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				snprintf(buf, buf_len, "%s", d->allow_conference ? "ON" : "OFF");
 			} else if (!strcasecmp(token, "conf_play_general_announce")) {
 				snprintf(buf, buf_len, "%s", d->conf_play_general_announce ? "ON" : "OFF");
-			} else if (!strcasecmp(token, "allow_conference")) {
-				snprintf(buf, buf_len, "%s", d->conf_play_part_announce ? "ON" : "OFF");
 			} else if (!strcasecmp(token, "conf_play_part_announce")) {
-				snprintf(buf, buf_len, "%s", d->allow_conference ? "ON" : "OFF");
+				snprintf(buf, buf_len, "%s", d->conf_play_part_announce ? "ON" : "OFF");
 			} else if (!strcasecmp(token, "conf_mute_on_entry")) {
 				snprintf(buf, buf_len, "%s", d->conf_mute_on_entry ? "ON" : "OFF");
 			} else if (!strcasecmp(token, "conf_music_on_hold_class")) {
@@ -422,7 +420,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			} else if (!strcasecmp(token, "incoming_limit")) {
 				snprintf(buf, buf_len, "%d", l->incominglimit);
 			} else if (!strcasecmp(token, "channel_count")) {
-				snprintf(buf, buf_len, "%d", l ? SCCP_RWLIST_GETSIZE(&l->channels) : 0);
+				snprintf(buf, buf_len, "%d", SCCP_RWLIST_GETSIZE(&l->channels));
 			} else if (!strcasecmp(token, "dynamic") || !strcasecmp(token, "realtime")) {
 #ifdef CS_SCCP_REALTIME
 				sccp_copy_string(buf, l->realtime ? "Yes" : "No", len);
@@ -444,7 +442,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			} else if (!strcasecmp(token, "oldmsgs")) {
 				snprintf(buf, buf_len, "%d", l->voicemailStatistic.oldmsgs);
 			} else if (!strcasecmp(token, "num_devices")) {
-				snprintf(buf, buf_len, "%d", l ? SCCP_LIST_GETSIZE(&l->devices) : 0);
+				snprintf(buf, buf_len, "%d", SCCP_LIST_GETSIZE(&l->devices));
 			} else if (!strcasecmp(token, "mailboxes")) {
 				sccp_mailbox_t *mailbox;
 				char tmp[1024] = "";
@@ -622,33 +620,33 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 			} else if (!strcasecmp(token, "capability")) {
 				sccp_multiple_codecs2str(buf, buf_len - 1, c->capabilities.audio, ARRAY_LEN(c->capabilities.audio));
 			} else if (!strcasecmp(token, "calledPartyName")) {
-				sccp_callinfo_getter(ci, SCCP_CALLINFO_CALLEDPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Getter(ci, SCCP_CALLINFO_CALLEDPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "calledPartyNumber")) {
-				sccp_callinfo_getter(ci, SCCP_CALLINFO_CALLEDPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Getter(ci, SCCP_CALLINFO_CALLEDPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "callingPartyName")) {
-				sccp_callinfo_getter(ci, SCCP_CALLINFO_CALLINGPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Getter(ci, SCCP_CALLINFO_CALLINGPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "callingPartyNumber")) {
-				sccp_callinfo_getter(ci, SCCP_CALLINFO_CALLINGPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Getter(ci, SCCP_CALLINFO_CALLINGPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "originalCallingPartyName")) {
-				sccp_callinfo_getter(ci, SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Getter(ci, SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "originalCallingPartyNumber")) {
-				sccp_callinfo_getter(ci, SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Getter(ci, SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "originalCalledPartyName")) {
-				sccp_callinfo_getter(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Getter(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "originalCalledPartyNumber")) {
-				sccp_callinfo_getter(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Getter(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "lastRedirectingPartyName")) {
-				sccp_callinfo_getter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Getter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "lastRedirectingPartyNumber")) {
-				sccp_callinfo_getter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Getter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "cgpnVoiceMailbox")) {
-				sccp_callinfo_getter(ci, SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL, buf, SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Getter(ci, SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "cdpnVoiceMailbox")) {
-				sccp_callinfo_getter(ci, SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, buf, SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Getter(ci, SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "originalCdpnVoiceMailbox")) {
-				sccp_callinfo_getter(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL, buf, SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Getter(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "lastRedirectingVoiceMailbox")) {
-				sccp_callinfo_getter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, buf, SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Getter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "passthrupartyid")) {
 				snprintf(buf, buf_len, "%d", c->passthrupartyid);
 			} else if (!strcasecmp(token, "state")) {
@@ -692,14 +690,14 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 				if ((d = sccp_channel_getDevice_retained(c))) {
 					struct sockaddr_storage sas = { 0 };
 					sccp_session_getOurIP(d->session, &sas, 0);
-					sccp_copy_string(buf, sccp_socket_stringify(&sas), len);
+					sccp_copy_string(buf, sccp_netsock_stringify(&sas), len);
 				}
 			} else if (!strcasecmp(token, "recvip")) {							// NAT (Actual Source IP-Address Reported by the phone upon registration)
 				AUTO_RELEASE sccp_device_t *d = NULL;
 				if ((d = sccp_channel_getDevice_retained(c))) {
 					struct sockaddr_storage sas = { 0 };
 					sccp_session_getSas(d->session, &sas);
-					sccp_copy_string(buf, sccp_socket_stringify(&sas), len);
+					sccp_copy_string(buf, sccp_netsock_stringify(&sas), len);
 				}
 			} else if (!strcasecmp(colname, "rtpqos")) {
 				AUTO_RELEASE sccp_device_t *d = NULL;

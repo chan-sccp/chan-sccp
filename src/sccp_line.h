@@ -148,11 +148,11 @@ void *sccp_create_hotline(void);
 sccp_line_t *sccp_line_create(const char *name);
 void sccp_line_addToGlobals(sccp_line_t * line);
 void sccp_line_removeFromGlobals(sccp_line_t * line);
-void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineInstance, sccp_subscription_id_t *subscriptionId);
+void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInstance, sccp_subscription_id_t *subscriptionId);
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device);
 void sccp_line_addChannel(constLinePtr line, constChannelPtr channel);
 void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel);
-void sccp_line_clean(sccp_line_t * l, boolean_t destroy);
+void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global);
 void sccp_line_kill_channels(sccp_line_t * l);
 
 #if UNUSEDCODE // 2015-11-01
@@ -162,7 +162,7 @@ void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c)
 void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number);
 
 // find line
-sccp_line_t *sccp_line_find_byname(const char *name, uint8_t realtime);
+sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime);
 
 #if DEBUG
 #define sccp_line_find_byid(_x,_y) __sccp_line_find_byid(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)

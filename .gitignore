@@ -4,7 +4,7 @@
 /.project
 /.cproject
 /config.h
-/Makefile*
+Makefile
 /config.log
 /config.status
 /autom4te.cache
@@ -12,7 +12,10 @@
 /ChangeLog
 /doxygen.warn
 /libtool
-src/.libs/
+.libs
+.deps
+*.lo
+*.la
 contrib/gen_sccpconf/.deps/
 contrib/gen_sccpconf/Makefile
 src/config.h.bak
@@ -21,3 +24,4 @@ src/config.h.in.bak
 *~
 .revision
 src/revision.h
+src/sccp_enum.?

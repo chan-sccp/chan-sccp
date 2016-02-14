@@ -10,7 +10,7 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
@@ -38,8 +38,8 @@ struct sccp_threadpool_thread {
 struct sccp_threadpool {
 	SCCP_LIST_HEAD (, sccp_threadpool_job_t) jobs;
 	SCCP_LIST_HEAD (, sccp_threadpool_thread_t) threads;
-	ast_cond_t work;
-	ast_cond_t exit;
+	pbx_cond_t work;
+	pbx_cond_t exit;
 	time_t last_size_check;											/*!< Time since last size check */
 	time_t last_resize;											/*!< Time since last resize */
 	int job_high_water_mark;										/*!< Highest number of jobs outstanding since last resize check */
@@ -60,7 +60,7 @@ struct sccp_threadpool {
 /* Initialise thread pool */
 sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 {
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Starting Threadpool\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Starting Threadpool\n");
 	sccp_threadpool_t *tp_p;
 
 #if defined(__GNUC__) && __GNUC__ > 3 && defined(HAVE_SYS_INFO_H)
@@ -89,8 +89,8 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 	tp_p->sccp_threadpool_shuttingdown = 0;
 
 	/* Initialise Condition */
-	ast_cond_init(&(tp_p->work), NULL);
-	ast_cond_init(&(tp_p->exit), NULL);
+	pbx_cond_init(&(tp_p->work), NULL);
+	pbx_cond_init(&(tp_p->exit), NULL);
 
 	/* Make threads in pool */
 	SCCP_LIST_LOCK(&(tp_p->threads));
@@ -126,7 +126,7 @@ void sccp_threadpool_grow(sccp_threadpool_t * tp_p, int amount)
 			SCCP_LIST_UNLOCK(&(tp_p->threads));
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Create thread %d(%p) in pool \n", t, (void *) tp_thread->thread);
 			pbx_pthread_create(&(tp_thread->thread), &attr, (void *) sccp_threadpool_thread_do, (void *) tp_thread);
-			ast_cond_broadcast(&(tp_p->work));
+			pbx_cond_broadcast(&(tp_p->work));
 		}
 	}
 }
@@ -151,7 +151,7 @@ void sccp_threadpool_shrink(sccp_threadpool_t * tp_p, int amount)
 			if (tp_thread) {
 				// wake up all threads
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending die signal to thread %p in pool \n", (void *) tp_thread->thread);
-				ast_cond_broadcast(&(tp_p->work));
+				pbx_cond_broadcast(&(tp_p->work));
 			}
 		}
 	}
@@ -193,7 +193,7 @@ static void sccp_threadpool_thread_end(void *p)
 	res = SCCP_LIST_REMOVE(&(tp_p->threads), tp_thread, list);
 	SCCP_LIST_UNLOCK(&(tp_p->threads));
 
-	ast_cond_signal(&(tp_p->exit));
+	pbx_cond_signal(&(tp_p->exit));
 	if (res) {
 		sccp_free(res);
 	}
@@ -222,7 +222,7 @@ void sccp_threadpool_thread_do(void *p)
 		SCCP_LIST_LOCK(&(tp_p->jobs));									/* LOCK */
 		while (SCCP_LIST_GETSIZE(&tp_p->jobs) == 0 && !tp_thread->die) {
 			sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Thread %p Waiting for New Work Condition\n", thread);
-			ast_cond_wait(&(tp_p->work), &(tp_p->jobs.lock));
+			pbx_cond_wait(&(tp_p->work), &(tp_p->jobs.lock));
 		}
 		if (tp_thread->die && SCCP_LIST_GETSIZE(&tp_p->jobs) == 0) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "JobQueue Die. Exiting thread %p...\n", thread);
@@ -278,10 +278,9 @@ int sccp_threadpool_add_work(sccp_threadpool_t * tp_p, void *(*function_p) (void
 		/* add job to queue */
 		sccp_threadpool_jobqueue_add(tp_p, newJob);
 		return 1;
-	} else {
-		pbx_log(LOG_ERROR, "sccp_threadpool_add_work(): Threadpool shutting down, denying new work\n");
-		return 0;
-	}
+	} 
+        pbx_log(LOG_ERROR, "sccp_threadpool_add_work(): Threadpool shutting down, denying new work\n");
+        return 0;
 }
 
 /* Destroy the threadpool */
@@ -292,7 +291,7 @@ boolean_t sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 	}
 	sccp_threadpool_thread_t *tp_thread = NULL;
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Destroying Threadpool %p with %d jobs\n", tp_p, SCCP_LIST_GETSIZE(&tp_p->jobs));
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Destroying Threadpool %p with %d jobs\n", tp_p, SCCP_LIST_GETSIZE(&tp_p->jobs));
 
 	// After this point, no new jobs can be added
 	SCCP_LIST_LOCK(&(tp_p->jobs));
@@ -303,12 +302,12 @@ boolean_t sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 	SCCP_LIST_LOCK(&(tp_p->threads));
 	SCCP_LIST_TRAVERSE(&(tp_p->threads), tp_thread, list) {
 		tp_thread->die = TRUE;
-		ast_cond_broadcast(&(tp_p->work));
+		pbx_cond_broadcast(&(tp_p->work));
 	}
 	SCCP_LIST_UNLOCK(&(tp_p->threads));
 
 	// wake up jobs untill jobqueue is empty, before shutting down, to make sure all jobs have been processed
-	ast_cond_broadcast(&(tp_p->work));
+	pbx_cond_broadcast(&(tp_p->work));
 
 	// wait for all threads to exit
 	if (SCCP_LIST_GETSIZE(&tp_p->threads) != 0) {
@@ -323,8 +322,8 @@ boolean_t sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 			ts.tv_sec = tp.tv_sec;
 			ts.tv_nsec = tp.tv_usec * 1000;
 			ts.tv_sec += 1;										// wait max 2 second
-			ast_cond_broadcast(&(tp_p->work));
-			ast_cond_timedwait(&tp_p->exit, &(tp_p->threads.lock), &ts);
+			pbx_cond_broadcast(&(tp_p->work));
+			pbx_cond_timedwait(&tp_p->exit, &(tp_p->threads.lock), &ts);
 		}
 
 		/* Make sure threads have finished (should never have to execute) */
@@ -340,8 +339,8 @@ boolean_t sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 	}
 
 	/* Dealloc */
-	ast_cond_destroy(&(tp_p->work));									/* Remove Condition */
-	ast_cond_destroy(&(tp_p->exit));									/* Remove Condition */
+	pbx_cond_destroy(&(tp_p->work));									/* Remove Condition */
+	pbx_cond_destroy(&(tp_p->exit));									/* Remove Condition */
 	SCCP_LIST_HEAD_DESTROY(&(tp_p->jobs));
 	SCCP_LIST_HEAD_DESTROY(&(tp_p->threads));
 	sccp_free(tp_p);
@@ -380,7 +379,7 @@ void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_
 	if ((int)SCCP_LIST_GETSIZE(&tp_p->jobs) > tp_p->job_high_water_mark) {
 		tp_p->job_high_water_mark = SCCP_LIST_GETSIZE(&tp_p->jobs);
 	}
-	ast_cond_signal(&(tp_p->work));
+	pbx_cond_signal(&(tp_p->work));
 }
 
 int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p)

@@ -7,10 +7,10 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_mwi.h"
-#include "sccp_device.h"
+#include "sccp_atomic.h"
 #include "sccp_channel.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
@@ -186,6 +186,7 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
 	sccp_mailbox_subscriber_list_t *subscription = data;
 
 	if (!subscription || !event || !GLOB(module_running)) {
+		pbx_log(LOG_ERROR, "SCCP: MWI Event received but not all requirements are fullfilled (%p, %p, %d)\n", subscription, event, GLOB(module_running));
 		return;
 	}
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received PBX mwi event for %s@%s\n", subscription->mailbox, subscription->context);
@@ -309,7 +310,7 @@ void sccp_mwi_destroySubscription(sccp_mailbox_subscriber_list_t *subscription)
 	}
 #elif defined(CS_AST_HAS_STASIS)
 	if (subscription->event_sub) {
-		stasis_unsubscribe(subscription->event_sub);
+		stasis_unsubscribe_and_join(subscription->event_sub);
 	}
 #else
 	if (subscription->schedUpdate > -1) {
@@ -421,8 +422,8 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t * event)
 
 	if (line && (&line->mailboxes) != NULL) {
 		SCCP_LIST_TRAVERSE(&line->mailboxes, mailbox, list) {
-			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "line: '%s' subscribe mailbox: %s@%s\n", line->name, mailbox->mailbox, mailbox->context);
 			sccp_mwi_addMailboxSubscription(mailbox->mailbox, mailbox->context, line);
+			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (sccp_mwi_linecreatedEvent) subscribed mailbox: %s@%s\n", line->name, mailbox->mailbox, mailbox->context);
 		}
 	}
 }
@@ -463,7 +464,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 		sccp_copy_string(subscription->mailbox, mailbox, sizeof(subscription->mailbox));
 		sccp_copy_string(subscription->context, context, sizeof(subscription->context));
-		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) create subscription for: %s@%s\n", subscription->mailbox, subscription->context);
+		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) creating subscription for: %s@%s\n", subscription->mailbox, subscription->context);
 
 		SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
 		SCCP_LIST_INSERT_HEAD(&sccp_mailbox_subscriptions, subscription, list);
@@ -720,7 +721,7 @@ int sccp_show_mwi_subscriptions(int fd, sccp_cli_totals_t *totals, struct manses
  			snprintf(linebuf,sizeof(linebuf),"%s",line->name);										\
  		}
 
-#ifdef CS_AST_HAS_EVENT
+#if defined ( CS_AST_HAS_EVENT ) || (defined( CS_AST_HAS_STASIS ))
 #define CLI_AMI_TABLE_FIELDS 																\
  		CLI_AMI_TABLE_FIELD(Mailbox,		"-10.10",	s,	10,	subscription->mailbox)						\
  		CLI_AMI_TABLE_FIELD(LineName,		"-30.30",	s,	30,	linebuf)							\

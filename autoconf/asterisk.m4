@@ -408,7 +408,23 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 		[
 			AC_DEFINE(HAVE_PBX_CHANNEL_H,1,[Found 'asterisk/channel.h'])
 
-			CS_CHECK_AST_TYPEDEF([struct ast_channel_tech],[asterisk/channel.h],AC_DEFINE([CS_AST_HAS_TECH_PVT],1,['struct ast_channel_tech' available]))
+			CS_CV_TRY_COMPILE_IFELSE([ - availability 'struct ast_channel_tech'...],[ac_cv_ast_channel_tech], [
+		               	$HEADER_INCLUDE
+				#include <asterisk/channel.h>
+			], [
+				int x = sizeof(struct ast_channel_tech); x = x;
+			], [
+				AC_DEFINE([CS_AST_HAS_TECH_PVT],1,['struct ast_channel_tech' available'])
+				AC_DEFINE([CS_AST_CHANNEL_PVT(x)],[((sccp_channel_t*)x->tech_pvt)],['defined channel pvt'])
+				AC_DEFINE([CS_AST_CHANNEL_PVT_TYPE(x)],[x->tech->type],['defined channel_pvt_type'])
+				AC_DEFINE([CS_AST_CHANNEL_PVT_CMP_TYPE(x,y)],[!strncasecmp(x->tech->type, y, strlen(y))],['defined cmp_type'])
+			], [
+				AC_DEFINE([CS_AST_HAS_TECH_PVT],0,['struct ast_channel_tech' available'])
+				AC_DEFINE([CS_AST_CHANNEL_PVT(x)],[((sccp_channel_t*)x->pvt->pvt)],['defined channel pvt'])
+				AC_DEFINE([CS_AST_CHANNEL_PVT_TYPE(x)],[x->type],['defined channel_pvt_type'])
+				AC_DEFINE([CS_AST_CHANNEL_PVT_CMP_TYPE(x,y)],[!strncasecmp(x->type, y, strlen(y))],['defined cmp_type'])
+			])
+			AC_DEFINE([CS_AST_CHANNEL_PVT_IS_SCCP(x)],[CS_AST_CHANNEL_PVT_CMP_TYPE(x,"SCCP")], ['defined pvt_is_sccp'])
 
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_bridged_channel'...],[ac_cv_ast_bridged_channel],[
 		               	$HEADER_INCLUDE
@@ -441,16 +457,6 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			])
 			
 			CS_CHECK_AST_TYPEDEF([struct ast_callerid],[asterisk/channel.h],AC_DEFINE([CS_AST_CHANNEL_HAS_CID],1,['struct ast_callerid' available]))
-
-			CS_CV_TRY_COMPILE_IFELSE([ - availability 'max_musicclass'...],[ac_cv_ast_max_musicclass], [
-		               	$HEADER_INCLUDE
-					#include <asterisk/channel.h>
-				], [
-					int test_musicclass = (int)MAX_MUSICCLASS;
-				], [
-				], [AC_DEFINE([MAX_MUSICCLASS],[MAX_LANGUAGE],['MAX_MUSICCLASS' replacement])]				
-			)
-			
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_flag_moh'...],[ac_cv_ast_flag_moh], [
 		               	$HEADER_INCLUDE
 				#include <asterisk/channel.h>
@@ -459,14 +465,34 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				], [CS_AST_HAS_FLAG_MOH],['AST_FLAG_MOH' available]
 			)
 
-			CS_CV_TRY_COMPILE_IFELSE([ - availability 'ast_max_context'...], [ac_cv_ast_max_context], [
-		               	$HEADER_INCLUDE
-					#include <asterisk/channel.h>
-				], [
-					int test_context = (int)AST_MAX_CONTEXT;
-				], [
-				], [AC_DEFINE([AST_MAX_CONTEXT],[AST_MAX_EXTENSION],['AST_MAX_CONTEXT' replacement])
-			])
+dnl			CS_CV_TRY_COMPILE_IFELSE([ - availability 'ast_max_extension'...], [ac_cv_ast_max_context], [
+dnl		               	$HEADER_INCLUDE
+dnl					#include <asterisk/channel.h>
+dnl				], [
+dnl					int test_context = (int)AST_MAX_EXTENSION;
+dnl				], [AC_DEFINE([SCCP_MAX_EXTENSION],[AST_MAX_EXTENSION],['using SCCP_MAX_EXTENSION = AST_MAX_EXTENSION'])
+dnl				], [AC_DEFINE([SCCP_MAX_EXTENSION],[80],['defined SCCP_MAX_EXTENSION = 80'])
+dnl			])
+			AC_DEFINE([SCCP_MAX_EXTENSION],[80],['defined SCCP_MAX_EXTENSION = 80'])	dnl to be done: required actual lookup in asterisk
+			AC_DEFINE([SCCP_MAX_AUX],[16],['defined SCCP_MAX_AUX = 16'])			dnl to be done: required actual lookup in asterisk
+			AC_DEFINE([SCCP_MAX_MUSICCLASS],[SCCP_MAX_EXTENSION],['MAX_MUSICCLASS' = SCCP_MAX_EXTENSION])
+			AC_DEFINE([SCCP_MAX_LANGUAGE],[SCCP_MAX_EXTENSION],['MAX_MUSICCLASS' = SCCP_MAX_EXTENSION])
+			AC_DEFINE([SCCP_MAX_CONTEXT],[SCCP_MAX_EXTENSION],['defined SCCP_MAX_CONTEXT = SCCP_MAX_EXTENSION'])
+			AC_DEFINE([SCCP_MAX_HOSTNAME_LEN],[SCCP_MAX_EXTENSION],['defined SCCP_MAX_HOSTNAME_LEN = SCCP_MAX_EXTENSION'])
+			AC_DEFINE([SCCP_MAX_LABEL],[SCCP_MAX_EXTENSION],['defined SCCP_MAX_LABEL = SCCP_MAX_EXTENSION'])
+			AC_DEFINE([SCCP_MAX_MESSAGESTACK],[10],['defined SCCP_MAX_MESSAGESTACK = 10'])
+			AC_DEFINE([SCCP_MAX_SOFTKEYSET_NAME],[48],['defined SCCP_MAX_SOFTKEYSET_NAME = 48'])
+			AC_DEFINE([SCCP_MAX_SOFTKEY_MASK],[16],['defined SCCP_MAX_SOFTKEY_MASK = 16'])
+			AC_DEFINE([SCCP_MAX_SOFTKEY_MODES],[16],['defined SCCP_MAX_SOFTKEY_MODES = 16'])
+			AC_DEFINE([SCCP_MAX_DEVICE_DESCRIPTION],[40],['defined SCCP_MAX_DEVICE_DESCRIPTION = 40'])
+			AC_DEFINE([SCCP_MAX_DEVICE_CONFIG_TYPE],[16],['defined SCCP_MAX_DEVICE_CONFIG_TYPE = 16'])
+			AC_DEFINE([SCCP_MAX_BUTTON_OPTIONS],[256],['defined SCCP_MAX_BUTTON_OPTIONS = 256'])
+			AC_DEFINE([SCCP_MAX_DEVSTATE_SPECIFIER],[256],['defined SCCP_MAX_DEVSTATE_SPECIFIER = 256'])
+			AC_DEFINE([SCCP_MAX_LINE_ID],[8],['defined SCCP_MAX_LINE_ID = 8'])
+			AC_DEFINE([SCCP_MAX_LINE_PIN],[8],['defined SCCP_MAX_LINE_PIN = 8'])
+			AC_DEFINE([SCCP_MAX_SECONDARY_DIALTONE_DIGITS],[10],['defined SCCP_MAX_SECONDARY_DIALTONE_DIGITS = 10'])
+			AC_DEFINE([SCCP_MAX_DATE_FORMAT],[8],['defined SCCP_MAX_DATE_FORMAT = 8'])
+			AC_DEFINE([SCCP_MAX_REALTIME_TABLE_NAME],[45],['defined SCCP_MAX_REALTIME_TABLE_NAME = 45'])
 
 			CS_CV_TRY_COMPILE_IFELSE([ - availability 'ast_max_account_code'...], [ac_cv_ast_max_account_code], [
 		               	$HEADER_INCLUDE
@@ -475,7 +501,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					int test_account_code = (int)AST_MAX_ACCOUNT_CODE;
 				],
 				[AC_DEFINE([SCCP_MAX_ACCOUNT_CODE],[AST_MAX_ACCOUNT_CODE],[Found 'AST_MAX_ACCOUNT_CODE' in asterisk/channel.h])],
-				[AC_DEFINE([SCCP_MAX_ACCOUNT_CODE],[MAX_LANGUAGE],[Not Found 'AST_MAX_ACCOUNT_CODE' in asterisk/channel.h])]
+				[AC_DEFINE([SCCP_MAX_ACCOUNT_CODE],[50],['AST_MAX_ACCOUNT_CODE' replacement = 50])]
 			)
 
 			CS_CV_TRY_COMPILE_IFELSE([ - availability 'ast_namedgroups'...], [ac_cv_ast_namedgroups], [
@@ -486,7 +512,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				],
 				[AC_DEFINE([CS_AST_HAS_NAMEDGROUP],1,[Found 'ast_namedgroups' in asterisk/channel.h])],
 			)
-			CS_CHECK_AST_TYPEDEF([ast_callid],[asterisk/channel.h], AC_DEFINE(CS_AST_CHANNEL_CALLID_TYPEDEF,1,['ast_channel_callid' returns struct]))
+			CS_CHECK_AST_TYPEDEF([ast_callid],[asterisk/channel.h], AC_DEFINE([CS_AST_CHANNEL_CALLID_TYPEDEF],1,['ast_channel_callid' returns struct]))
 		],,[
 			$HEADER_INCLUDE
     ])
@@ -500,7 +526,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
                                 #include <asterisk/astobj2.h>
 				#include <asterisk/bridge.h>
 			],[
-				AC_DEFINE(CS_BRIDGE_BASE_NEW,1,[Found 'ast_bridge_base_new' in asterisk/bridge.h])
+				AC_DEFINE([CS_BRIDGE_BASE_NEW],1,[Found 'ast_bridge_base_new' in asterisk/bridge.h])
 				AC_MSG_RESULT(yes)
 			],[
 				AC_MSG_RESULT(no)
@@ -513,7 +539,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
                                 #include <asterisk/astobj2.h>
 				#include <asterisk/bridge.h>
 			],[
-				AC_DEFINE(CS_BRIDGE_JOIN_PASSREFERENCE,1,[Found 'AST_BRIDGE_JOIN_PASS_REFERENCE' in definition of ast_bridge_join' in asterisk/bridge.h])
+				AC_DEFINE([CS_BRIDGE_JOIN_PASSREFERENCE],1,[Found 'AST_BRIDGE_JOIN_PASS_REFERENCE' in definition of ast_bridge_join' in asterisk/bridge.h])
 				AC_MSG_RESULT(yes)
 			],[
 				AC_MSG_RESULT(no)
@@ -550,7 +576,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 						#include <asterisk/astobj2.h>
 						#include <asterisk/bridging.h>
 					],[
-						AC_DEFINE(CS_BRIDGE_BASE_NEW,1,[Found 'ast_bridge_base_new' in asterisk/bridging.h])
+						AC_DEFINE([CS_BRIDGE_BASE_NEW],1,[Found 'ast_bridge_base_new' in asterisk/bridging.h])
 						AC_MSG_RESULT(yes)
 					],[
 						AC_MSG_RESULT(no)
@@ -563,7 +589,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 						#include <asterisk/astobj2.h>
 						#include <asterisk/bridging.h>
 					],[
-						AC_DEFINE(CS_BRIDGE_CAPABILITY_MULTITHREADED,1,[Found 'AST_BRIDGE_CAPABILITY_MULTITHREADED' in asterisk/bridging.h])
+						AC_DEFINE([CS_BRIDGE_CAPABILITY_MULTITHREADED],1,[Found 'AST_BRIDGE_CAPABILITY_MULTITHREADED' in asterisk/bridging.h])
 						AC_MSG_RESULT(yes)
 					],[
 						AC_MSG_RESULT(no)
@@ -576,7 +602,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 						#include <asterisk/astobj2.h>
 						#include <asterisk/bridging.h>
 					],[
-						AC_DEFINE(CS_BRIDGE_JOIN_PASSREFERENCE,1,[Found 'pass_reference' in definition of ast_bridge_join' in asterisk/bridging.h])
+						AC_DEFINE([CS_BRIDGE_JOIN_PASSREFERENCE],1,[Found 'pass_reference' in definition of ast_bridge_join' in asterisk/bridging.h])
 						AC_MSG_RESULT(yes)
 					],[
 						AC_MSG_RESULT(no)
@@ -643,7 +669,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			               	$HEADER_INCLUDE
 					#include <asterisk/devicestate.h>
 			],[
-				AC_DEFINE(CS_AST_ENABLE_DISTRIBUTED_DEVSTATE,1,[Found 'ast_enable_distributed_devstate' in asterisk/devicestate.h])
+				AC_DEFINE([CS_AST_ENABLE_DISTRIBUTED_DEVSTATE],1,[Found 'ast_enable_distributed_devstate' in asterisk/devicestate.h])
 				AC_MSG_RESULT(yes)
 			],[
 				AC_MSG_RESULT(no)
@@ -704,15 +730,15 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     ast_pickup_h=0
     AC_CHECK_HEADER([asterisk/pickup.h],
     [
-		AC_DEFINE(HAVE_PBX_FEATURES_H,1,[Found 'asterisk/pickup.h'])
-		AC_DEFINE(CS_AST_DO_PICKUP,1,[Found 'ast_do_pickup' in asterisk/pickup.h])
+		AC_DEFINE([HAVE_PBX_FEATURES_H],1,[Found 'asterisk/pickup.h'])
+		AC_DEFINE([CS_AST_DO_PICKUP],1,[Found 'ast_do_pickup' in asterisk/pickup.h])
 		ast_pickup_h=1
     ],,[ 
               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/features.h],
     [
-   			AC_DEFINE(HAVE_PBX_FEATURES_H,1,[Found 'asterisk/features.h'])
+   			AC_DEFINE([HAVE_PBX_FEATURES_H],1,[Found 'asterisk/features.h'])
    			
 			AS_IF([test "${ast_pickup_h}" == 0], [
 				AC_MSG_CHECKING([ - availability 'ast_do_pickup'...])
@@ -720,7 +746,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			               	$HEADER_INCLUDE
 					#include <asterisk/features.h>
 				],[
-					AC_DEFINE(CS_AST_DO_PICKUP,1,[Found 'ast_do_pickup' in asterisk/features.h])
+					AC_DEFINE([CS_AST_DO_PICKUP],1,[Found 'ast_do_pickup' in asterisk/features.h])
 					AC_MSG_RESULT(yes)
 				],[
 					AC_MSG_RESULT(no)
@@ -731,8 +757,8 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     ])
     AC_CHECK_HEADER([asterisk/frame.h],
 		[
-			AC_DEFINE(HAVE_PBX_FRAME_H,1,[Found 'asterisk/frame.h'])
-			AC_DEFINE(PBX_FRAME_TYPE,[struct ast_frame],[Define PBX_FRAME as 'struct ast_frame'])
+			AC_DEFINE([HAVE_PBX_FRAME_H],1,[Found 'asterisk/frame.h'])
+			AC_DEFINE([PBX_FRAME_TYPE],[struct ast_frame],[Define PBX_FRAME as 'struct ast_frame'])
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_frame.data.ptr'...], [ac_cv_ast_frame_data_ptr], [
 			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
@@ -763,7 +789,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     ])
     AC_CHECK_HEADER([asterisk/manager.h],	
     		[
-    			AC_DEFINE(HAVE_PBX_MANAGER_H,1,[Found 'asterisk/manager.h'])
+    			AC_DEFINE([HAVE_PBX_MANAGER_H],1,[Found 'asterisk/manager.h'])
     			CS_CV_TRY_COMPILE_DEFINE([ - availability 'manager_custom_hook' is available...], [ac_cv_manager_custom_hook], [
 				$HEADER_INCLUDE
         			#include <asterisk/stringfields.h>
@@ -779,7 +805,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     )
     AC_CHECK_HEADER([asterisk/pbx.h],
 		[
-			AC_DEFINE(HAVE_PBX_PBX_H,1,[Found 'asterisk/pbx.h'])
+			AC_DEFINE([HAVE_PBX_PBX_H],1,[Found 'asterisk/pbx.h'])
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_get_hint'...], [ac_cv_ast_get_hint], [
 		               	$HEADER_INCLUDE
 				#ifdef HAVE_PBX_CHANNEL_H
@@ -811,9 +837,9 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     ])
     AC_CHECK_HEADER([asterisk/rtp_engine.h],
 		[
-			AC_DEFINE(HAVE_PBX_RTP_H,1,[Found 'asterisk/rtp_engine.h'])
-			AC_DEFINE(HAVE_PBX_RTP_ENGINE_H,1,[Found 'asterisk/rtp_engine.h'])
-			AC_DEFINE(PBX_RTP_TYPE,[struct ast_rtp_instance],[Defined PBX_RTP_TYPE as 'struct ast_rtp_instance'])
+			AC_DEFINE([HAVE_PBX_RTP_H],1,[Found 'asterisk/rtp_engine.h'])
+			AC_DEFINE([HAVE_PBX_RTP_ENGINE_H],1,[Found 'asterisk/rtp_engine.h'])
+			AC_DEFINE([PBX_RTP_TYPE],[struct ast_rtp_instance],[Defined PBX_RTP_TYPE as 'struct ast_rtp_instance'])
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_rtp_instance_new'...], [ac_cv_ast_rtp_instance_new], [
 			               	$HEADER_INCLUDE
 					#include <asterisk/rtp_engine.h>
@@ -829,7 +855,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 		               	$HEADER_INCLUDE
 				#include <asterisk/rtp_engine.h>
 			],[
-				AC_DEFINE(CS_AST_RTP_INSTANCE_BRIDGE,1,[Found 'ast_rtp_instance_bridge' in asterisk/bridging.h])
+				AC_DEFINE([CS_AST_RTP_INSTANCE_BRIDGE],1,[Found 'ast_rtp_instance_bridge' in asterisk/bridging.h])
 				AC_MSG_RESULT(yes)
 			],[
 				AC_MSG_RESULT(no)
@@ -838,8 +864,8 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 		[
                 	AC_CHECK_HEADER([asterisk/rtp.h],
                                 [
-                                        AC_DEFINE(HAVE_PBX_RTP_H,1,[Found 'asterisk/rtp.h'])
-					AC_DEFINE(PBX_RTP_TYPE,[struct ast_rtp],[Defined PBX_RTP_TYPE as 'struct ast_rtp'])
+                                        AC_DEFINE([HAVE_PBX_RTP_H],1,[Found 'asterisk/rtp.h'])
+					AC_DEFINE([PBX_RTP_TYPE],[struct ast_rtp],[Defined PBX_RTP_TYPE as 'struct ast_rtp'])
                                         CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_rtp_new_source'...], [ac_cv_ast_rtp_new_source], [
 					               	$HEADER_INCLUDE
        		                                        #include <asterisk/rtp.h>
@@ -867,15 +893,15 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     ])
     AC_CHECK_HEADER([asterisk/sched.h],
 		[
-			AC_DEFINE(HAVE_PBX_SCHED_H,1,[Found 'asterisk/sched.h'])
+			AC_DEFINE([HAVE_PBX_SCHED_H],1,[Found 'asterisk/sched.h'])
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_sched_del'...], [ac_cv_ast_sched_del], [
 					#include <unistd.h>				
 			               	$HEADER_INCLUDE
 					#ifdef HAVE_PBX_OPTIONS_H
-					#include <asterisk/options.h>
+					#  include <asterisk/options.h>
 					#endif
 					#ifdef HAVE_PBX_LOGGER_H
-					#include <asterisk/logger.h>
+					#  include <asterisk/logger.h>
 					#endif
 					#include <asterisk/sched.h>
 				],[
@@ -895,21 +921,21 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     ])
     AC_CHECK_HEADER([asterisk/stringfields.h],	
     		[
-    			AC_DEFINE(HAVE_PBX_STRINGFIELDS_H,1,[Found 'asterisk/stringfields.h'])
-			AC_DEFINE(CS_AST_HAS_AST_STRING_FIELD,1,[Found 'ast_string_field_' in asterisk])
+    			AC_DEFINE([HAVE_PBX_STRINGFIELDS_H],1,[Found 'asterisk/stringfields.h'])
+			AC_DEFINE([CS_AST_HAS_AST_STRING_FIELD],1,[Found 'ast_string_field_' in asterisk])
 		],,[ 
 	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/cel.h],
     		[
-    			AC_DEFINE(HAVE_PBX_CEL_H,1,[Found 'asterisk/stringfields.h'])
+    			AC_DEFINE([HAVE_PBX_CEL_H],1,[Found 'asterisk/stringfields.h'])
 
 			AC_MSG_CHECKING([ - availability 'ast_cel_linkedid_ref'...])
 			AC_EGREP_CPP([ast_cel_linkedid_ref], [
 		               	$HEADER_INCLUDE
 				#include <asterisk/cel.h>
 			],[
-				AC_DEFINE(CS_AST_CEL_LINKEDID_REF,1,[Found 'ast_cel_linkedid_ref' in asterisk/cel.h])
+				AC_DEFINE([CS_AST_CEL_LINKEDID_REF],1,[Found 'ast_cel_linkedid_ref' in asterisk/cel.h])
 				AC_MSG_RESULT(yes)
 			],[
 				AC_MSG_RESULT(no)
@@ -919,13 +945,13 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     ])
     AC_CHECK_HEADER([asterisk/message.h],
     		[
-    			AC_DEFINE(HAVE_PBX_MESSAGE_H,1,[Found 'asterisk/message.h'])
+    			AC_DEFINE([HAVE_PBX_MESSAGE_H],1,[Found 'asterisk/message.h'])
 		],,[ 
 	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/utils.h],
 		[
-			AC_DEFINE(HAVE_PBX_UTILS_H,1,[Found 'asterisk/utils.h'])
+			AC_DEFINE([HAVE_PBX_UTILS_H],1,[Found 'asterisk/utils.h'])
 
 			AC_MSG_CHECKING([ - availability 'ast_free'...])
 			AC_TRY_COMPILE([
@@ -959,7 +985,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     ])
     AC_CHECK_HEADER([asterisk/http.h],
     		[
-    			AC_DEFINE(HAVE_PBX_HTTP_H,1,[Found 'asterisk/http.h'])
+    			AC_DEFINE([HAVE_PBX_HTTP_H],1,[Found 'asterisk/http.h'])
     			HAVE_PBX_HTTP=yes
     			AC_SUBST([HAVE_PBX_HTTP])
 		],,[ 

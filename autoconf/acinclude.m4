@@ -51,7 +51,7 @@ AC_DEFUN([CS_CHECK_PBX], [
 		 		else
 		 			PBX_TEMPMODDIR="$(${PKGCONFIG} --variable=moddir asterisk)"
 		 			PBX_VARLIB="$(${PKGCONFIG} --variable=varlibdir asterisk)"
-					PBX_SBINDIR="${PBX_PREFIX}/sbin/"
+		 			PBX_SBINDIR="${PBX_PREFIX}/sbin/"
 		 		fi
 				LDFLAGS="$LDFLAGS -L${PBX_LIB} $(${PKGCONFIG} --libs asterisk)"
 				PBX_LDFLAGS="$LDFLAGS"
@@ -124,10 +124,12 @@ AC_DEFUN([CS_CHECK_PBX], [
 					PBX_PREFIX="${checkdir}"
 					PBX_ETC="${checkdir}/etc/asterisk"
 					PBX_VARLIB="{checkdir}/var/lib/asterisk"
+					PBX_SBINDIR="${checkdir}/usr/sbin"
 				elif test -f "/etc/asterisk/asterisk.conf"; then
 					PBX_PREFIX=""
 					PBX_ETC="/etc/asterisk"
 					PBX_VARLIB="/var/lib/asterisk"
+					PBX_SBINDIR="/usr/sbin"
 				fi
 				if test -n "${PBX_ETC}"; then
 					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir\s*=>\s*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
