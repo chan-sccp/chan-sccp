@@ -1,4 +1,210 @@
+2016-02-12  ddegroot
+
+	* [r6608] src/sccp_atomic.h: Fix: always define CAS32_TYPE.
+	  Reported by hhornung.
+
+	* [r6607] src/chan_sccp.c, src/sccp_socket.c: Fix: set socket
+	  options should happen before binding to the socket. Socket
+	  keepalive is not being used.
+
+	* [r6606] src/sccp_atomic.h, src/sccp_conference.c: Fix:
+	  Replacement implementation of atomic functions, using asterisk
+	  atomic functions before falling back on local implementation.
+	  Fix: Local atomic fallback implementation uses trylock instead of
+	  lock to prevent running into a deadlock situation.
+
+2016-02-09  ddegroot
+
+	* [r6605] src/sccp_pbx.c: Prevent compiler warning about not using
+	  refurn value from Atomic incr/decr functions (in locking/fallback
+	  mode).
+
+2016-02-08  ddegroot
+
+	* [r6604] configure, configure.ac, src/Makefile.am,
+	  src/Makefile.in, tools/gen_sccp_enum.awk: Make call to awk during
+	  make more posix compatible. Required to generate sccp_enum.h and
+	  sccp_enum.c. Issue reported by Miguel.
+
+	* [r6603] src/Makefile.am, src/Makefile.in: Building sccp_enum.?
+	  only once.
+
+	* [r6602] src/Makefile.am, src/Makefile.in: Fix code sccp_enum.?
+	  generation required during build process. Reported by Miguel Sanz
+
+2016-02-07  ddegroot
+
+	* [r6601] conf/database_updates/update_mysql_v4.sql,
+	  conf/database_updates/update_mysql_v5.sql,
+	  conf/database_updates/update_postgresql.sql: Sync/Update/Fix the
+	  database update scripts
+
+2016-02-06  ddegroot
+
+	* [r6600] debian/rules: Update debian ./configure command
+
+2016-02-05  ddegroot
+
+	* [r6599] Makefile.am, Makefile.in, autoconf/acinclude.m4,
+	  configure, contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.am, src/Makefile.in, src/pbx_impl/Makefile.in,
+	  src/pbx_impl/ast/Makefile.in, src/pbx_impl/ast106/Makefile.in,
+	  src/pbx_impl/ast108/Makefile.in, src/pbx_impl/ast110/Makefile.in,
+	  src/pbx_impl/ast111/Makefile.in, src/pbx_impl/ast112/Makefile.in,
+	  src/pbx_impl/ast113/Makefile.in,
+	  src/pbx_impl/ast_announce/Makefile.in: Fix: configure giving out
+	  warning. Enhancement: make load/unload/reload
+
+	* [r6598] Makefile.in, autoconf/extra.m4, configure,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.am, src/Makefile.in, src/pbx_impl/Makefile.in,
+	  src/pbx_impl/ast/Makefile.in, src/pbx_impl/ast106/Makefile.in,
+	  src/pbx_impl/ast108/Makefile.in, src/pbx_impl/ast110/Makefile.in,
+	  src/pbx_impl/ast111/Makefile.in, src/pbx_impl/ast112/Makefile.in,
+	  src/pbx_impl/ast113/Makefile.in,
+	  src/pbx_impl/ast_announce/Makefile.in, tools/gen_sccp_enum.awk:
+	  Replaced gawk-extension dependencies from gen_sccp_enum.awk.
+	  Made it work under the Posix version of awk.
+	  Switched the configure dependency from gawk to posix compliant
+	  version of awk
+	  Issue reported by Niklas.
+
+	* [r6597] autoconf/extra.m4, configure: Hard Dependency on gawk is
+	  now checked within configure script. Reported by Niklas.
+	  Will look into remvoing the dependency on the awk-extension
+	  provided by gawk, so it will run cleanly using the POSIX awk
+	  version.
+
+2016-02-04  ddegroot
+
+	* [r6596] src/sccp_socket.c: Typo: r6595:
+	  SCCP_LIST_REMOVE_LIST(session) should have
+	  SCCP_LIST_REMOVE_CURRENT(list). Reported by hhornung.
+
+	* [r6595] src/sccp_socket.c: Fix: Need to remove session from the
+	  Glob(sessions) list before calling destroy_session to prevent use
+	  after free
+
+2016-02-03  ddegroot
+
+	* [r6594] src/sccp_socket.c: Fix: sccp_destroy_session causing
+	  segfault on sccp_free(s)
+
+	* [r6593] src/sccp_utils.c: Fix: out-of-bound array check added
+
+	* [r6592] src/sccp_event.h: Fix: Change number of SCCP_EVENT types
+
+	* [r6591] src/sccp_event.c: Fix: prevent overrunning
+	  subscriptions[i] array, when event was not matched i++ would
+	  still have been executed by the for loop.
+
+	* [r6590] src/sccp_cli.c: Fix: Out of bounds access binstr is
+	  defined as length 41.
+
+	* [r6589] src/sccp_config.c: Fix: unintialized value
+
+	* [r6588] src/sccp_cli.c: Fix:memory leak, by breaking out of
+	  outerlook, as not to call strdup twice
+
+	* [r6587] src/sccp_cli.c: Fix:memory leak, by breaking out of
+	  outerlook, as not to call strdup twice
+
+	* [r6586] src/chan_sccp.c: Fix: resource leak
+
+	* [r6585] src/sccp_socket.c: Fix: unterminated string error. Fix: 2
+	  resource leaks.
+
+	* [r6584] src/sccp_hint.c: Fix memory leak
+
+2016-02-02  ddegroot
+
+	* [r6583] src/sccp_device.h: Enh: Use the appropriate enum type for
+	  d->skinny_type
+
+	* [r6582] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h: Indent:
+	  line up sccp_wrapper_asterisk_channel_read struct entries.
+	  Externalize the enum declaration.
+
+	* [r6581] src/chan_sccp.h, src/common.h, src/sccp_protocol.h: Enh:
+	  Renamed __BEGIN_EXTERN__ to __BEGIN_C_EXTERN__
+
+	* [r6580] autoconf/acinclude.m4, configure,
+	  tools/gen_sccp_enum.awk: Fix: configure warning
+	  Fix: compile warning in sccp_enum.c when returning uint32_t as
+	  enum
+
+2016-02-01  ddegroot
+
+	* [r6579] autoconf/extra.m4, configure: Fix: autoconf check for
+	  compiler -std=gnu... support
+
+	* [r6578] src/Makefile.am, src/Makefile.in, src/Makefile.inc.am,
+	  src/pbx_impl/Makefile.in, src/pbx_impl/ast/Makefile.in,
+	  src/pbx_impl/ast106/Makefile.in, src/pbx_impl/ast108/Makefile.in,
+	  src/pbx_impl/ast110/Makefile.in, src/pbx_impl/ast111/Makefile.in,
+	  src/pbx_impl/ast112/Makefile.in, src/pbx_impl/ast113/Makefile.in,
+	  src/pbx_impl/ast_announce/Makefile.in: Cleanup:
+	  src/Makefile.inc.am
+
+	* [r6577] src/sccp_hint.c: Fix: potential null pointer dereferences
+
+	* [r6576] src/pbx_impl/ast/ast.h: Fix: redefinition warning
+
+	* [r6575] src/sccp_mwi.c: Fix: potential null pointer dereferences
+
+	* [r6574] src/sccp_actions.c, src/sccp_threadpool.c: Fix: potential
+	  null pointer dereferences
+
+	* [r6573] src/sccp_channel.c: Fix: potential null pointer
+	  dereference
+
+	* [r6572] autoconf/acinclude.m4, autoconf/extra.m4,
+	  contrib/llvm-scan-build: Fix: check compiler support for
+	  -isystem, before using it
+	  Fix: check compiler support for -std, before using it
+	  Fix: update contrib/llvm-scan-build script
+
+	* [r6571] src/sccp_pbx.c: Enh: switch versions on sccp_pbx_call
+
+	* [r6570] src/sccp_conference.c: Enh: Change CS_EXPERIMENTAL to
+	  unused/unimplemented
+
+	* [r6569] src/sccp_config.c: Enh: Remove unused piece of code
+
+	* [r6568] src/sccp_line.c: Fix: missing '\!' in sccp_line. Reported
+	  by hhornung.
+
+	* [r6567] src/Makefile.am, src/Makefile.in, src/sccp_line.c,
+	  src/sccp_mwi.c, src/sccp_pbx.c, src/sccp_refcount.c: Fix: check
+	  memory allocation, produce error output if not
+
+	* [r6566] configure, configure.ac, src/Makefile.am,
+	  src/Makefile.in, src/config.h.in, tools/gen_sccp_enum.awk: Fix:
+	  configure leaving behind a temporary directory
+	  Fix: gen_sccp_enum.awk script taking paramater from command line
+
+	* [r6565] src/Makefile.am, src/Makefile.in: Fix: revision.h update
+	  after 60 minutes
+
+	* [r6564] src/sccp_socket.c: Fix: check memory allocation, produce
+	  error output if not
+
+	* [r6563] src/sccp_softkeys.c: Fix: check memory allocation,
+	  produce error output if not
+
+	* [r6562] src/Makefile.am, src/Makefile.in: Fix: update revision.h
+	  using abs_top_builddir instead of abs_builddir
+
+	* [r6561] contrib/gen_sccpconf/gen_sccpconf.c,
+	  contrib/gen_sccpconf/gen_sccpconf.h: Fix: contrib/gen_sccpconf
+	  compilation based on the new include files
+
 2016-01-31  ddegroot
+
+	* [r6560] ChangeLog, configure, src/Makefile.am, src/Makefile.in:
+	  Enh: Re-add the install script using libtool instead to
+	  install-sh to make sure the new library get's loaded using
+	  ldconfig after installation
 
 	* [r6559] autoconf/acinclude.m4, autoconf/asterisk.m4, configure,
 	  configure.ac, contrib/gen_sccpconf/Makefile.am,
