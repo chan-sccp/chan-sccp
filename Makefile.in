@@ -1119,7 +1119,7 @@ test:
 
 install-data-local:
 	@test -d $(DESTDIR)$(PBX_ETC) || $(mkinstalldirs) $(DESTDIR)$(PBX_ETC);								\
-	if [ ! test -f $(DESTDIR)$(PBX_ETC)/sccp.conf ]; then										\
+	if [ ! -f $(DESTDIR)$(PBX_ETC)/sccp.conf ]; then										\
 		echo "Installing $(DESTDIR)$(PBX_ETC)/sccp.conf...";									\
 		$(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC);							\
 	fi
