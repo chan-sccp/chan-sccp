@@ -296,9 +296,10 @@ codeSkip == 1			{ next }
 					print "\t\treturn 1;" > out_source_file
 					print "\t}" > out_source_file
 				}
-				print "\tint res = 0, i;" > out_source_file
-				print "\tfor (i = 0; i < " toupper(namespace) "_" toupper(enum_name) "_SENTINEL; i++) {" >out_source_file
-				print "\t\tif ((" namespace "_" enum_name "_int_value & 1 << i) == 1 << i) {" > out_source_file
+				print "\tint res = 0;" > out_source_file 
+				print "\tuint8_t i;" > out_source_file
+				print "\tfor (i = 0; (1 << i) < " toupper(namespace) "_" toupper(enum_name) "_SENTINEL; i++) {" >out_source_file
+				print "\t\tif ((" namespace "_" enum_name "_int_value & (1 << i)) == 1 << i) {" > out_source_file
 				print "\t\t\tres |= 1;" > out_source_file
 				print "\t\t}" > out_source_file
 				print "\t}" > out_source_file
@@ -337,11 +338,11 @@ codeSkip == 1			{ next }
 					totlen += length(Entry_text[e]) + 1
 				}
 				print "const char * " namespace "_" enum_name "2str(int " namespace "_" enum_name "_int_value) {" > out_source_file
-				print "\tstatic char res[" totlen "] = \"\";" >out_source_file
+				print "\tstatic char res[" totlen " + 1] = \"\";" >out_source_file
 				print "\tint pos = 0;" >out_source_file
 				if (Entry_val[0] == 0) {
 					print "\tif (" namespace "_" enum_name "_int_value == 0) {" > out_source_file
-					print "\t\tpos += snprintf(res + pos, " totlen ", \"%s%s\", pos ? \",\" : \"\", " namespace "_" enum_name "_map[0]);" >out_source_file
+					print "\t\tpos += snprintf(res, " totlen ", \"%s\", " namespace "_" enum_name "_map[0]);" >out_source_file
 					print "\t\treturn res;" > out_source_file
 					print "\t}" > out_source_file
 				}
@@ -385,14 +386,10 @@ codeSkip == 1			{ next }
 			print "\t}" > out_source_file
 		} else {
 			for ( i = 0; i < e; ++i) {
-				if (i == 0) {
-					print "\tif        (sccp_strcaseequals(" namespace "_" enum_name "_map[" i "], lookup_str)) {" > out_source_file
-				} else {
-					print "\t} else if (sccp_strcaseequals(" namespace "_" enum_name "_map[" i "], lookup_str)) {" > out_source_file
-				}
+				print "\tif (sccp_strcaseequals(" namespace "_" enum_name "_map[" i "], lookup_str)) {" > out_source_file
 				print "\t\treturn " Entry_id[i] ";" > out_source_file
+				print "\t}" > out_source_file
 			}
-			print "\t}" > out_source_file
 		}
 		print "\tpbx_log(LOG_ERROR, \"%s %s_str2val('%s') not found\\n\", LOOKUPERROR_STR, __" namespace "_" enum_name "_str, lookup_str);" > out_source_file
 		print "\treturn "toupper(namespace) "_" toupper(enum_name) "_SENTINEL;" > out_source_file

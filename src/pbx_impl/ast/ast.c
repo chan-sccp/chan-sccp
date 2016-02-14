@@ -8,14 +8,16 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  */
-#include <config.h>
+#include "config.h"
 #include "common.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
-#include "sccp_utils.h"
+#include "sccp_device.h"
 #include "sccp_indicate.h"
-#include "sccp_socket.h"
+#include "sccp_netsock.h"
+#include "sccp_session.h"
+#include "sccp_utils.h"
 #include "sccp_pbx.h"
+#include "sccp_atomic.h"
 #include "sccp_line.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
@@ -29,8 +31,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 #  include <asterisk/app.h>
 #endif
 #include <asterisk/callerid.h>
-#include <asterisk/musiconhold.h>
 #include <asterisk/astdb.h>
+#include <asterisk/musiconhold.h>
 #ifdef HAVE_PBX_FEATURES_H
 #  include <asterisk/features.h>
 #endif
@@ -402,10 +404,9 @@ sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_c
 #else
 			return sccp_channel_retain(c);
 #endif
-		} else {
-			pbx_log(LOG_ERROR, "Channel is not a valid SCCP Channel\n");
-			return NULL;
-		}
+		} 
+		pbx_log(LOG_ERROR, "Channel is not a valid SCCP Channel\n");
+		return NULL;
 	} else {
 		return NULL;
 	}
@@ -648,17 +649,16 @@ int sccp_asterisk_moh_start(PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, 
 {
 	if (!pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH)) {
 		pbx_set_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH);
-		return ast_moh_start((PBX_CHANNEL_TYPE *) pbx_channel, mclass, interpclass);
-	} else {
-		return 0;
-	}
+		return ast_moh_start( pbx_channel, mclass, interpclass);
+	} 
+	return 0;
 }
 
 void sccp_asterisk_moh_stop(PBX_CHANNEL_TYPE * pbx_channel)
 {
 	if (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH)) {
 		pbx_clear_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH);
-		ast_moh_stop((PBX_CHANNEL_TYPE *) pbx_channel);
+		ast_moh_stop( pbx_channel);
 	}
 }
 
@@ -668,7 +668,7 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 	int redirectreason = 0;
 	sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 
-	sccp_callinfo_getter(ci, 
+	iCallInfo.Getter(ci, 
 		SCCP_CALLINFO_LAST_REDIRECT_REASON, &redirectreason,
 		SCCP_CALLINFO_KEY_SENTINEL);
 #if ASTERISK_VERSION_GROUP >106
@@ -681,7 +681,7 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 				(redirecting_to.name.valid && redirecting_to.name.str) ? redirecting_to.name.str : "",
 				(redirecting_to.number.valid && redirecting_to.number.str) ? redirecting_to.number.str : "");
 
-	sccp_callinfo_setter(ci, 
+	iCallInfo.Setter(ci, 
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, redirecting_from.name.valid && redirecting_from.name.str ? redirecting_from.name.str : NULL, 
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "",
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "",
@@ -692,7 +692,7 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 
 #else
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From <%s>\n", pbx_channel_name(ast), ast->cid.cid_rdnis);
-	sccp_callinfo_setter(ci, 
+	iCallInfo.Setter(ci, 
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : "",
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : NULL,
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, redirectreason,
@@ -726,7 +726,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	int tmpOrigCalledPartyRedirectReason = 0;
 	int tmpLastRedirectReason = 4;		/* \todo need to figure out more about these codes */
 
-	sccp_callinfo_getter(callInfo,
+	iCallInfo.Getter(callInfo,
 		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &tmpCallingNumber,
 		SCCP_CALLINFO_CALLINGPARTY_NAME, &tmpCallingName,
 		SCCP_CALLINFO_CALLEDPARTY_NUMBER, &tmpCalledNumber,
@@ -737,7 +737,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	/* set the original calling/called party if the reason is a transfer */
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND && (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING)) {
 		sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Destination\n");
-		changes = sccp_callinfo_setter(callInfo, 
+		changes = iCallInfo.Setter(callInfo, 
 			SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 			SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 
@@ -758,12 +758,12 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 #if ASTERISK_VERSION_GROUP >= 111
 			struct ast_party_id redirecting_orig = pbx_channel_redirecting_effective_orig(ast);
 			if (!redirecting_orig.name.valid && !redirecting_orig.number.valid) {
-				changes = sccp_callinfo_setter(callInfo,
+				changes = iCallInfo.Setter(callInfo,
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 					SCCP_CALLINFO_KEY_SENTINEL);
 			} else {
-				changes = sccp_callinfo_setter(callInfo,
+				changes = iCallInfo.Setter(callInfo,
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, redirecting_orig.name.valid ? ast_channel_redirecting(ast)->orig.name.str : "",
@@ -771,13 +771,13 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 					SCCP_CALLINFO_KEY_SENTINEL);
 			}
 #else
-			changes = sccp_callinfo_setter(callInfo,
+			changes = iCallInfo.Setter(callInfo,
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				SCCP_CALLINFO_KEY_SENTINEL);
 #endif
 		} else {
-			changes = sccp_callinfo_setter(callInfo,
+			changes = iCallInfo.Setter(callInfo,
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLEDPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 				SCCP_CALLINFO_KEY_SENTINEL);
@@ -863,7 +863,7 @@ int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, u
 {
 	int res = 0;
 	int optc = 0;
-	char *optv[2];
+	char *optv[5];
 	int opti = 0;
 
 	/* parse options */
@@ -949,14 +949,14 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 			if (!strcasecmp(args.param, "peerip")) {
 				struct sockaddr_storage sas = { 0 };
 				if (sccp_session_getOurIP(d->session, &sas, 0)) {
-					sccp_copy_string(buf, sccp_socket_stringify(&sas), buflen);
+					sccp_copy_string(buf, sccp_netsock_stringify(&sas), buflen);
 				} else {
 					sccp_copy_string(buf, "--", buflen);
 				}
 			} else if (!strcasecmp(args.param, "recvip")) {
 				struct sockaddr_storage sas = { 0 };
 				if (sccp_session_getSas(d->session, &sas)) {
-					sccp_copy_string(buf, sccp_socket_stringify(&sas), buflen);
+					sccp_copy_string(buf, sccp_netsock_stringify(&sas), buflen);
 				} else {
 					sccp_copy_string(buf, "--", buflen);
 				}
@@ -994,69 +994,68 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 
 						sccp_copy_string(buf, quality_buf, buflen);
 						return res;
-					} else {
-						struct ast_rtp_instance_stats stats;
-						int i;
-						enum __int_double { __INT, __DBL };
-						struct {
-							const char *name;
-							enum __int_double type;
-							union {
-								unsigned int *i4;
-								double *d8;
-							};
-						} lookup[] = {
-							/* *INDENT-OFF* */
-							{"txcount", 		__INT, {.i4 = &stats.txcount},}, 
-							{"rxcount", 		__INT, {.i4 = &stats.rxcount,},}, 
-							{"txjitter", 		__DBL, {.d8 = &stats.txjitter,},}, 
-							{"rxjitter", 		__DBL, {.d8 = &stats.rxjitter,},},
-							{"remote_maxjitter", 	__DBL, {.d8 = &stats.remote_maxjitter,},},
-							{"remote_minjitter", 	__DBL, {.d8 = &stats.remote_minjitter,},},
-							{"remote_normdevjitter",__DBL, {.d8 = &stats.remote_normdevjitter,},},
-							{"remote_stdevjitter", 	__DBL, {.d8 = &stats.remote_stdevjitter,},},
-							{"local_maxjitter",	__DBL, {.d8 = &stats.local_maxjitter,},},
-							{"local_minjitter", 	__DBL, {.d8 = &stats.local_minjitter,},},
-							{"local_normdevjitter", __DBL, {.d8 = &stats.local_normdevjitter,},},
-							{"local_stdevjitter", 	__DBL, {.d8 = &stats.local_stdevjitter,},},
-							{"txploss", 		__INT, {.i4 = &stats.txploss,},},
-							{"rxploss", 		__INT, {.i4 = &stats.rxploss,},},
-							{"remote_maxrxploss", 	__DBL, {.d8 = &stats.remote_maxrxploss,},},
-							{"remote_minrxploss", 	__DBL, {.d8 = &stats.remote_minrxploss,},},
-							{"remote_normdevrxploss",__DBL, {.d8 = &stats.remote_normdevrxploss,},},
-							{"remote_stdevrxploss", __DBL, {.d8 = &stats.remote_stdevrxploss,},},
-							{"local_maxrxploss", 	__DBL, {.d8 = &stats.local_maxrxploss,},},
-							{"local_minrxploss", 	__DBL, {.d8 = &stats.local_minrxploss,},},
-							{"local_normdevrxploss",__DBL, {.d8 = &stats.local_normdevrxploss,},},
-							{"local_stdevrxploss", 	__DBL, {.d8 = &stats.local_stdevrxploss,},},
-							{"rtt", 		__DBL, {.d8 = &stats.rtt,},},
-							{"maxrtt", 		__DBL, {.d8 = &stats.maxrtt,},},
-							{"minrtt", 		__DBL, {.d8 = &stats.minrtt,},},
-							{"normdevrtt", 		__DBL, {.d8 = &stats.normdevrtt,},},
-							{"stdevrtt", 		__DBL, {.d8 = &stats.stdevrtt,},},
-							{"local_ssrc", 		__INT, {.i4 = &stats.local_ssrc,},},
-							{"remote_ssrc", 	__INT, {.i4 = &stats.remote_ssrc,},},
-							{NULL,},
-							/* *INDENT-ON* */
+					} 
+					struct ast_rtp_instance_stats stats;
+					int i;
+					enum __int_double { __INT, __DBL };
+					struct {
+						const char *name;
+						enum __int_double type;
+						union {
+							unsigned int *i4;
+							double *d8;
 						};
+					} lookup[] = {
+						/* *INDENT-OFF* */
+						{"txcount", 		__INT, {.i4 = &stats.txcount},}, 
+						{"rxcount", 		__INT, {.i4 = &stats.rxcount,},}, 
+						{"txjitter", 		__DBL, {.d8 = &stats.txjitter,},}, 
+						{"rxjitter", 		__DBL, {.d8 = &stats.rxjitter,},},
+						{"remote_maxjitter", 	__DBL, {.d8 = &stats.remote_maxjitter,},},
+						{"remote_minjitter", 	__DBL, {.d8 = &stats.remote_minjitter,},},
+						{"remote_normdevjitter",__DBL, {.d8 = &stats.remote_normdevjitter,},},
+						{"remote_stdevjitter", 	__DBL, {.d8 = &stats.remote_stdevjitter,},},
+						{"local_maxjitter",	__DBL, {.d8 = &stats.local_maxjitter,},},
+						{"local_minjitter", 	__DBL, {.d8 = &stats.local_minjitter,},},
+						{"local_normdevjitter", __DBL, {.d8 = &stats.local_normdevjitter,},},
+						{"local_stdevjitter", 	__DBL, {.d8 = &stats.local_stdevjitter,},},
+						{"txploss", 		__INT, {.i4 = &stats.txploss,},},
+						{"rxploss", 		__INT, {.i4 = &stats.rxploss,},},
+						{"remote_maxrxploss", 	__DBL, {.d8 = &stats.remote_maxrxploss,},},
+						{"remote_minrxploss", 	__DBL, {.d8 = &stats.remote_minrxploss,},},
+						{"remote_normdevrxploss",__DBL, {.d8 = &stats.remote_normdevrxploss,},},
+						{"remote_stdevrxploss", __DBL, {.d8 = &stats.remote_stdevrxploss,},},
+						{"local_maxrxploss", 	__DBL, {.d8 = &stats.local_maxrxploss,},},
+						{"local_minrxploss", 	__DBL, {.d8 = &stats.local_minrxploss,},},
+						{"local_normdevrxploss",__DBL, {.d8 = &stats.local_normdevrxploss,},},
+						{"local_stdevrxploss", 	__DBL, {.d8 = &stats.local_stdevrxploss,},},
+						{"rtt", 		__DBL, {.d8 = &stats.rtt,},},
+						{"maxrtt", 		__DBL, {.d8 = &stats.maxrtt,},},
+						{"minrtt", 		__DBL, {.d8 = &stats.minrtt,},},
+						{"normdevrtt", 		__DBL, {.d8 = &stats.normdevrtt,},},
+						{"stdevrtt", 		__DBL, {.d8 = &stats.stdevrtt,},},
+						{"local_ssrc", 		__INT, {.i4 = &stats.local_ssrc,},},
+						{"remote_ssrc", 	__INT, {.i4 = &stats.remote_ssrc,},},
+						{NULL,},
+						/* *INDENT-ON* */
+					};
 
-						if (ast_rtp_instance_get_stats(rtp, &stats, AST_RTP_INSTANCE_STAT_ALL)) {
-							return -1;
-						}
-
-						for (i = 0; !sccp_strlen_zero(lookup[i].name); i++) {
-							if (sccp_strcaseequals(args.field, lookup[i].name)) {
-								if (lookup[i].type == __INT) {
-									snprintf(buf, buflen, "%u", *lookup[i].i4);
-								} else {
-									snprintf(buf, buflen, "%f", *lookup[i].d8);
-								}
-								return 0;
-							}
-						}
-						pbx_log(LOG_WARNING, "SCCP: (sccp_wrapper_asterisk_channel_read) Unrecognized argument '%s' to %s\n", preparse, funcname);
+					if (ast_rtp_instance_get_stats(rtp, &stats, AST_RTP_INSTANCE_STAT_ALL)) {
 						return -1;
 					}
+
+					for (i = 0; !sccp_strlen_zero(lookup[i].name); i++) {
+						if (sccp_strcaseequals(args.field, lookup[i].name)) {
+							if (lookup[i].type == __INT) {
+								snprintf(buf, buflen, "%u", *lookup[i].i4);
+							} else {
+								snprintf(buf, buflen, "%f", *lookup[i].d8);
+							}
+							return 0;
+						}
+					}
+					pbx_log(LOG_WARNING, "SCCP: (sccp_wrapper_asterisk_channel_read) Unrecognized argument '%s' to %s\n", preparse, funcname);
+					return -1;
 				}
 				ast_channel_unlock(ast);
 #endif
@@ -1121,6 +1120,7 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 #if ASTERISK_VERSION_GROUP > 106
 int sccp_wrapper_sendDigits(const sccp_channel_t * channel, const char *digits)
 {
+	uint8_t maxdigits = AST_MAX_EXTENSION;
 	if (!channel || !channel->owner) {
 		pbx_log(LOG_WARNING, "No channel to send digits to\n");
 		return 0;
@@ -1131,21 +1131,21 @@ int sccp_wrapper_sendDigits(const sccp_channel_t * channel, const char *digits)
 	}
 	//ast_channel_undefer_dtmf(channel->owner);
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
-	int i;
 	PBX_FRAME_TYPE f = ast_null_frame;
 
 	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Sending digits '%s'\n", (char *) channel->currentDeviceId, digits);
 	// We don't just call sccp_pbx_senddigit due to potential overhead, and issues with locking
 	f.src = "SCCP";
-	for (i = 0; digits[i] != '\0'; i++) {
-		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Sending digit %c\n", (char *) channel->currentDeviceId, digits[i]);
+	while (maxdigits-- && *digits != '\0') {
+		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Sending digit %c\n", (char *) channel->currentDeviceId, *digits);
 
 		f.frametype = AST_FRAME_DTMF_END;								// Sending only the dmtf will force asterisk to start with DTMF_BEGIN and schedule the DTMF_END
-		f.subclass.integer = digits[i];
+		f.subclass.integer = *digits;
 		// f.len = SCCP_MIN_DTMF_DURATION;
 		f.len = AST_DEFAULT_EMULATE_DTMF_DURATION;
 		f.src = "SEND DIGIT";
 		ast_queue_frame(pbx_channel, &f);
+		digits++;
 	}
 	return 1;
 }

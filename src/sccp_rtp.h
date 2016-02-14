@@ -7,6 +7,12 @@
  */
 #pragma once
 
+#include "sccp_codec.h"
+
+/* can be removed in favor of forward declaration if we change phone and phone_remote to pointers instead */
+#include <netinet/in.h>
+//struct sockaddr_storage;
+
 /*!
  * \brief SCCP RTP Structure
  */
@@ -25,7 +31,7 @@ struct sccp_rtp {
 
 boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t type);
 int sccp_rtp_requestRTPPorts(constDevicePtr device, channelPtr channel);
-void sccp_rtp_stop(constChannelPtr c);
+void sccp_rtp_stop(constChannelPtr channel);
 void sccp_rtp_destroy(constChannelPtr c);
 void sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer);
 void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer);
@@ -40,7 +46,7 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(constChannelPtr c, sccp_rtp_t **rtp);
 
 uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t *const rtp, skinny_codec_t codec);
 boolean_t sccp_rtp_getUs(const sccp_rtp_t * const rtp, struct sockaddr_storage *us);
-boolean_t sccp_rtp_getPeer(const sccp_rtp_t * const rtp, struct sockaddr_storage *us);
+boolean_t sccp_rtp_getPeer(const sccp_rtp_t * const rtp, struct sockaddr_storage *them);
 uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * const rtp);
 int sccp_rtp_get_sampleRate(skinny_codec_t codec);
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

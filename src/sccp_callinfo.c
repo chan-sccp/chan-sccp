@@ -10,25 +10,16 @@
  * $date$
  * $revision$
  */
-
-/*!
- * \remarks
- * Purpose:	CCP CallInfo
- * When to use: 
- * Relations:   
- */
-
-#include <config.h>
+#include "config.h"
 #include "common.h"
-#include "sccp_utils.h"
-#include "sccp_device.h"
-#include <stdarg.h>
+#include "sccp_callinfo.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
+#include "sccp_device.h"			/* dependency on sccp_device.h should be fixed */
+#include "sccp_utils.h"
 #include <asterisk/callerid.h>
-
-__BEGIN_EXTERN__
+#include <stdarg.h>
 
 /* local definitions */
 typedef struct callinfo_entry {
@@ -69,9 +60,9 @@ struct sccp_callinfo {
 	} content;
 };														/*!< SCCP CallInfo Structure */
 
-#define sccp_callinfo_wrlock(x) pbx_rwlock_wrlock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
-#define sccp_callinfo_rdlock(x) pbx_rwlock_rdlock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
-#define sccp_callinfo_unlock(x) pbx_rwlock_unlock(&((sccp_callinfo_t * const)x)->lock)				/* discard const */
+#define sccp_callinfo_wrlock(x) pbx_rwlock_wrlock(&((sccp_callinfo_t * const)(x))->lock)				/* discard const */
+#define sccp_callinfo_rdlock(x) pbx_rwlock_rdlock(&((sccp_callinfo_t * const)(x))->lock)				/* discard const */
+#define sccp_callinfo_unlock(x) pbx_rwlock_unlock(&((sccp_callinfo_t * const)(x))->lock)				/* discard const */
 
 struct callinfo_lookup {
 	const enum callinfo_groups group;
@@ -97,7 +88,7 @@ struct callinfo_lookup {
 	/* *INDENT-ON* */
 };
 
-sccp_callinfo_t *const sccp_callinfo_ctor(uint8_t callInstance)
+static sccp_callinfo_t * const callinfo_Constructor(uint8_t callInstance)
 {
 	sccp_callinfo_t *const ci = sccp_calloc(sizeof *ci, 1);
 
@@ -116,7 +107,7 @@ sccp_callinfo_t *const sccp_callinfo_ctor(uint8_t callInstance)
 	return ci;
 }
 
-sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t * ci)
+static sccp_callinfo_t * const callinfo_Destructor(sccp_callinfo_t * ci)
 {
 	pbx_assert(ci != NULL);
 	//sccp_callinfo_wrlock(ci);
@@ -127,11 +118,11 @@ sccp_callinfo_t *const sccp_callinfo_dtor(sccp_callinfo_t * ci)
 	return NULL;
 }
 
-sccp_callinfo_t *sccp_callinfo_copyCtor(const sccp_callinfo_t * const src_ci)
+static sccp_callinfo_t * callinfo_CopyConstructor(const sccp_callinfo_t * const src_ci)
 {
 	/* observing locking order. not locking both callinfo objects at the same time, using a tmp as go between */
 	if (src_ci) {
-		sccp_callinfo_t *tmp_ci = sccp_callinfo_ctor(0);
+		sccp_callinfo_t *tmp_ci = iCallInfo.Constructor(0);
 		if (!tmp_ci) {
 			return NULL;
 		}
@@ -146,7 +137,7 @@ sccp_callinfo_t *sccp_callinfo_copyCtor(const sccp_callinfo_t * const src_ci)
 }
 
 #if UNUSEDCODE // 2015-11-01
-boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci)
+static boolean_t callinfo_Copy(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci)
 {
 	/* observing locking order. not locking both callinfo objects at the same time, using a tmp as go between */
 	if (src_ci && dst_ci) {
@@ -168,27 +159,27 @@ boolean_t sccp_callinfo_copy(const sccp_callinfo_t * const src_ci, sccp_callinfo
 }
 #endif
 
-int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...)
+static int callinfo_Setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...)
 {
 	pbx_assert(ci != NULL);
 
 	sccp_callinfo_key_t curkey = SCCP_CALLINFO_NONE;
 	int changes = 0;
 
-
 	/*
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
 		//#ifdef DEBUG
 		//sccp_do_backtrace();
 		//#endif
-		sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_setter) before:");
+		iCallInfo.Print2log(ci, "SCCP: (sccp_callinfo_setter) before:");
 	}
 	*/
-
+	
 	sccp_callinfo_wrlock(ci);
 	va_list ap;
 	va_start(ap, key);
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
+		//sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: curkey:%s (%d)\n", sccp_callinfo_key2str(curkey), curkey);
 		switch (curkey) {
 		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
 			{
@@ -217,7 +208,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 				}
 			}
 			break;
-		default:
+		case SCCP_CALLINFO_CALLEDPARTY_NAME...SCCP_CALLINFO_HUNT_PILOT_NUMBER:
 			{
 				char *new_value = va_arg(ap, char *);
 				if (new_value) {
@@ -254,6 +245,8 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 				}
 			}
 			break;
+		default:		/* SCCP_CALLINFO_KEY_SENTINEL */
+			break;
 		}
 	}
 
@@ -265,7 +258,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 
 	/*
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
-		sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_setter) after:");
+		iCallInfo.Print2log(ci, "SCCP: (sccp_callinfo_setter) after:");
 	}
 	*/
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_setter) changes:%d\n", ci, changes);
@@ -274,7 +267,7 @@ int sccp_callinfo_setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ..
 }
 
 //#if UNUSEDCODE // 2015-11-01
-int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, sccp_callinfo_key_t key, ...)
+static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, sccp_callinfo_key_t key, ...)
 {
 	pbx_assert(src_ci != NULL && dst_ci != NULL);
 	struct ci_content tmp_ci_content;
@@ -287,8 +280,8 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 	/* observing locking order. not locking both callinfo objects at the same time, using a tmp_ci as go between */
 	/*
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
-		sccp_callinfo_print2log(src_ci, "SCCP: (sccp_callinfo_copyByKey) orig src_ci");
-		sccp_callinfo_print2log(dst_ci, "SCCP: (sccp_callinfo_copyByKey) orig dst_ci");
+		iCallInfo.Print2log(src_ci, "SCCP: (sccp_callinfo_copyByKey) orig src_ci");
+		iCallInfo.Print2log(dst_ci, "SCCP: (sccp_callinfo_copyByKey) orig dst_ci");
 	}
 	*/
 	sccp_callinfo_rdlock(src_ci);
@@ -337,14 +330,13 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 				}
 			}
 			break;
-		default:
+		case SCCP_CALLINFO_CALLEDPARTY_NAME...SCCP_CALLINFO_HUNT_PILOT_NUMBER:
 			{
 				struct callinfo_lookup src_entry = callinfo_lookup[srckey];
 				struct callinfo_lookup tmp_entry = callinfo_lookup[dstkey];
 				callinfo_entry_t *src_callinfo = (callinfo_entry_t *const) &src_ci->content.entries[src_entry.group];
-				callinfo_entry_t *tmp_callinfo = (callinfo_entry_t *)      &tmp_ci_content.entries[tmp_entry.group];
+				callinfo_entry_t *tmp_callinfo = &tmp_ci_content.entries[tmp_entry.group];
 				
-				srckey = (sccp_callinfo_key_t)srckey;
 				char *srcPtr = NULL;
 				uint16_t *validPtr = NULL;
 				switch(src_entry.type) {
@@ -396,6 +388,9 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 					changes++;
 				}
 			}
+			break;
+		default:		/* SCCP_CALLINFO_KEY_SENTINEL */
+			break;
 		}
 	}
 	va_end(ap);
@@ -408,7 +403,7 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 	
 	/*
 	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
-		sccp_callinfo_print2log(dst_ci, "SCCP: (sccp_callinfo_copyByKey) new dst_ci");
+		iCallInfo.Print2log(dst_ci, "SCCP: (sccp_callinfo_copyByKey) new dst_ci");
 	}
 	*/
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_copyByKey) changes:%d\n", dst_ci, changes);
@@ -416,7 +411,7 @@ int sccp_callinfo_copyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_
 }
 //#endif
 
-int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...)
+static int callinfo_Getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...)
 {
 	pbx_assert(ci != NULL);
 
@@ -428,6 +423,7 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 	va_start(ap, key);
 
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
+		//sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: curkey:%s (%d)\n", sccp_callinfo_key2str(curkey), curkey);
 		switch (curkey) {
 		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
 			{
@@ -456,7 +452,7 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 				}
 			}
 			break;
-		default:
+		case SCCP_CALLINFO_CALLEDPARTY_NAME...SCCP_CALLINFO_HUNT_PILOT_NUMBER:
 			{
 				char *dstPtr = va_arg(ap, char *);
 				if (dstPtr) {
@@ -499,6 +495,8 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 				}
 			}
 			break;
+		default:		/* SCCP_CALLINFO_KEY_SENTINEL */
+			break;
 		}
 	}
 
@@ -510,16 +508,17 @@ int sccp_callinfo_getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t k
 		//#ifdef DEBUG
 		//sccp_do_backtrace();
 		//#endif
-		sccp_callinfo_print2log(ci, "SCCP: (sccp_callinfo_getter)");
+		iCallInfo.Print2log(ci, "SCCP: (sccp_callinfo_getter)");
 	}
 	*/
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_getter) entries:%d\n", ci, entries);
 	return entries;
 }
 
-int sccp_callinfo_send(sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const sccp_device_t * const device, boolean_t force)
+static int callinfo_Send(sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const sccp_device_t * const device, boolean_t force)
 {
 	if (ci->content.changed || force) {
+		/* dependency on sccp_device.h should be fixed */
 		if (device->protocol && device->protocol->sendCallInfo) {
 			device->protocol->sendCallInfo(ci, callid, calltype, lineInstance, ci->content.callInstance, device);
 			sccp_callinfo_wrlock(ci);
@@ -535,37 +534,37 @@ int sccp_callinfo_send(sccp_callinfo_t * const ci, const uint32_t callid, const 
 }
 
 
-int sccp_callinfo_setCalledParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize])
+static int callinfo_SetCalledParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize])
 {
 	pbx_assert(ci != NULL);
-	return sccp_callinfo_setter(ci, SCCP_CALLINFO_CALLEDPARTY_NAME, name, SCCP_CALLINFO_CALLEDPARTY_NUMBER, number, SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, voicemail, SCCP_CALLINFO_KEY_SENTINEL);
+	return iCallInfo.Setter(ci, SCCP_CALLINFO_CALLEDPARTY_NAME, name, SCCP_CALLINFO_CALLEDPARTY_NUMBER, number, SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, voicemail, SCCP_CALLINFO_KEY_SENTINEL);
 }
 
-int sccp_callinfo_setCallingParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize])
+static int callinfo_SetCallingParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize])
 {
 	pbx_assert(ci != NULL);
-	return sccp_callinfo_setter(ci, SCCP_CALLINFO_CALLINGPARTY_NAME, name, SCCP_CALLINFO_CALLINGPARTY_NUMBER, number, SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL, voicemail, SCCP_CALLINFO_KEY_SENTINEL);
+	return iCallInfo.Setter(ci, SCCP_CALLINFO_CALLINGPARTY_NAME, name, SCCP_CALLINFO_CALLINGPARTY_NUMBER, number, SCCP_CALLINFO_CALLINGPARTY_VOICEMAIL, voicemail, SCCP_CALLINFO_KEY_SENTINEL);
 }
 
-int sccp_callinfo_setOrigCalledParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize], const int reason)
+static int callinfo_SetOrigCalledParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize], const int reason)
 {
 	pbx_assert(ci != NULL);
-	return sccp_callinfo_setter(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, name, SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, number, SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL, voicemail, SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, reason, SCCP_CALLINFO_KEY_SENTINEL);
+	return iCallInfo.Setter(ci, SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, name, SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, number, SCCP_CALLINFO_ORIG_CALLEDPARTY_VOICEMAIL, voicemail, SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, reason, SCCP_CALLINFO_KEY_SENTINEL);
 }
 
-int sccp_callinfo_setOrigCallingParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize])
+static int callinfo_SetOrigCallingParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize])
 {
 	pbx_assert(ci != NULL);
-	return sccp_callinfo_setter(ci, SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, name, SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, number, SCCP_CALLINFO_KEY_SENTINEL);
+	return iCallInfo.Setter(ci, SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, name, SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, number, SCCP_CALLINFO_KEY_SENTINEL);
 }
 
-int sccp_callinfo_setLastRedirectingParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize], const int reason)
+static int callinfo_SetLastRedirectingParty(sccp_callinfo_t * const ci, const char name[StationMaxNameSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize], const int reason)
 {
 	pbx_assert(ci != NULL);
-	return sccp_callinfo_setter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, name, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, number, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, voicemail, SCCP_CALLINFO_LAST_REDIRECT_REASON, reason, SCCP_CALLINFO_KEY_SENTINEL);
+	return iCallInfo.Setter(ci, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, name, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, number, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, voicemail, SCCP_CALLINFO_LAST_REDIRECT_REASON, reason, SCCP_CALLINFO_KEY_SENTINEL);
 }
 
-boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str_t ** const buf)
+static gcc_inline boolean_t __GetCallInfoStr(const sccp_callinfo_t * const ci, pbx_str_t ** const buf)
 {
 	pbx_assert(ci != NULL);
 	sccp_callinfo_rdlock(ci);
@@ -602,14 +601,35 @@ boolean_t sccp_callinfo_getCallInfoStr(const sccp_callinfo_t * const ci, pbx_str
 	sccp_callinfo_unlock(ci);
 	return TRUE;
 }
-void sccp_callinfo_print2log(const sccp_callinfo_t * const ci, const char *const header)
+
+static void callinfo_Print2log(const sccp_callinfo_t * const ci, const char *const header)
 {
 	pbx_assert(ci != NULL);
 	pbx_str_t *buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
-	sccp_callinfo_getCallInfoStr(ci, &buf);
+	__GetCallInfoStr(ci, &buf);
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "%s: %s\n", header, pbx_str_buffer(buf));
 }
+
+/* Assign to interface */
+const CallInfoInterface iCallInfo = {
+	callinfo_Constructor,
+        callinfo_Destructor,
+        callinfo_CopyConstructor,
+#if UNUSEDCODE // 2015-11-01
+	callinfo_Copy,
+#endif
+	callinfo_Setter,
+	callinfo_CopyByKey,
+	callinfo_Send,
+	callinfo_Getter,
+	callinfo_SetCalledParty,
+	callinfo_SetCallingParty,
+	callinfo_SetOrigCalledParty,
+	callinfo_SetOrigCallingParty,
+	callinfo_SetLastRedirectingParty,
+	callinfo_Print2log,
+};
 
 #if CS_TEST_FRAMEWORK
 #include <asterisk/test.h>
@@ -636,16 +656,16 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	char origname[StationMaxNameSize], orignumber[StationMaxNameSize], origvoicemail[StationMaxNameSize];
 
 	pbx_test_status_update(test, "Callinfo Constructor...\n");
-	citest = sccp_callinfo_ctor(15);
+	citest = iCallInfo.Constructor(15);
 	pbx_test_validate(test, citest != NULL);
 
 	pbx_test_status_update(test, "Callinfo Destructor...\n");
-	citest = sccp_callinfo_dtor(citest);
+	citest = iCallInfo.Destructor(citest);
 	pbx_test_validate(test, citest == NULL);
 
 	pbx_test_status_update(test, "Callinfo Setter CalledParty...\n");
-	citest = sccp_callinfo_ctor(15);
-	changes = sccp_callinfo_setter(citest, SCCP_CALLINFO_CALLEDPARTY_NAME, "name", 
+	citest = iCallInfo.Constructor(15);
+	changes = iCallInfo.Setter(citest, SCCP_CALLINFO_CALLEDPARTY_NAME, "name", 
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, "number", 
 					SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, "voicemail", 
 					SCCP_CALLINFO_PRESENTATION, CALLERID_PRESENTATION_FORBIDDEN,
@@ -654,7 +674,7 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 
 	pbx_test_status_update(test, "Callinfo Getter CalledParty...\n");
 	name[0]='\0'; number[0]='\0'; voicemail[0]='\0'; nullstr[0]='\0'; origname[0]='\0'; orignumber[0]='\0'; origvoicemail[0]='\0'; changes = 0; reason = 0; presentation = CALLERID_PRESENTATION_ALLOWED;
-	changes = sccp_callinfo_getter(citest, SCCP_CALLINFO_CALLEDPARTY_NAME, &name, 
+	changes = iCallInfo.Getter(citest, SCCP_CALLINFO_CALLEDPARTY_NAME, &name, 
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &number, 
 					SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, &voicemail, 
 					SCCP_CALLINFO_CALLINGPARTY_NAME, &nullstr,
@@ -668,12 +688,12 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	
 	pbx_test_status_update(test, "Callinfo Setter add OrigCalledParty...\n");
 	changes = 0;
-	changes = sccp_callinfo_setOrigCalledParty(citest, "origname", "orignumber", "origvm", 4);
+	changes = iCallInfo.SetOrigCalledParty(citest, "origname", "orignumber", "origvm", 4);
 	pbx_test_validate(test, changes == 4);
 	
 	pbx_test_status_update(test, "Callinfo Getter OrigCalledParty...\n");
 	name[0]='\0'; number[0]='\0'; voicemail[0]='\0'; nullstr[0]='\0'; origname[0]='\0'; orignumber[0]='\0'; origvoicemail[0]='\0'; changes = 0; reason = 0; presentation = CALLERID_PRESENTATION_ALLOWED;
-	changes = sccp_callinfo_getter(citest, SCCP_CALLINFO_CALLEDPARTY_NAME, &name, 
+	changes = iCallInfo.Getter(citest, SCCP_CALLINFO_CALLEDPARTY_NAME, &name, 
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &number, 
 					SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, &voicemail, 
 					SCCP_CALLINFO_CALLINGPARTY_NAME, &nullstr,
@@ -692,10 +712,10 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	pbx_test_validate(test, !strcmp(origvoicemail, "origvm"));
 	pbx_test_validate(test, reason == 4);
 	
-	pbx_test_status_update(test, "Callinfo copyCtor...\n");
+	pbx_test_status_update(test, "Callinfo copyConstructor...\n");
 	name[0]='\0'; number[0]='\0'; voicemail[0]='\0'; nullstr[0]='\0'; origname[0]='\0'; orignumber[0]='\0'; origvoicemail[0]='\0'; changes = 0; reason = 0; presentation = CALLERID_PRESENTATION_ALLOWED;
-	sccp_callinfo_t *citest1 = sccp_callinfo_copyCtor(citest);
-	changes = sccp_callinfo_getter(citest1, SCCP_CALLINFO_CALLEDPARTY_NAME, &name, 
+	sccp_callinfo_t *citest1 = iCallInfo.CopyConstructor(citest);
+	changes = iCallInfo.Getter(citest1, SCCP_CALLINFO_CALLEDPARTY_NAME, &name, 
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &number, 
 					SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, &voicemail, 
 					SCCP_CALLINFO_CALLINGPARTY_NAME, &nullstr,
@@ -716,14 +736,14 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 
 	pbx_test_status_update(test, "Callinfo copyByKey...\n");
 	name[0]='\0'; number[0]='\0'; voicemail[0]='\0'; nullstr[0]='\0'; origname[0]='\0'; orignumber[0]='\0'; origvoicemail[0]='\0'; changes = 0; reason = 0; presentation = CALLERID_PRESENTATION_ALLOWED;
-	sccp_callinfo_t *citest2 = sccp_callinfo_ctor(16);
-	changes = sccp_callinfo_copyByKey(citest1, citest2, 
+	sccp_callinfo_t *citest2 = iCallInfo.Constructor(16);
+	changes = iCallInfo.CopyByKey(citest1, citest2, 
 					SCCP_CALLINFO_CALLEDPARTY_NAME, SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME,
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER,
 					SCCP_CALLINFO_PRESENTATION, SCCP_CALLINFO_PRESENTATION,
 					SCCP_CALLINFO_KEY_SENTINEL);
 	pbx_test_validate(test, changes == 2);
-	changes = sccp_callinfo_getter(citest2, SCCP_CALLINFO_CALLEDPARTY_NAME, &name, 
+	changes = iCallInfo.Getter(citest2, SCCP_CALLINFO_CALLEDPARTY_NAME, &name, 
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &number, 
 					SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL, &voicemail, 
 					SCCP_CALLINFO_CALLINGPARTY_NAME, &nullstr,
@@ -742,13 +762,13 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	pbx_test_validate(test, sccp_strlen_zero(origvoicemail));
 	pbx_test_validate(test, presentation == CALLERID_PRESENTATION_FORBIDDEN);
 	pbx_test_validate(test, reason == 0);
-	citest2 = sccp_callinfo_dtor(citest2);
+	citest2 = iCallInfo.Destructor(citest2);
 	pbx_test_validate(test, citest2 == NULL);
 	
 	pbx_test_status_update(test, "Callinfo Test Destructor...\n");
-	citest = sccp_callinfo_dtor(citest);
+	citest = iCallInfo.Destructor(citest);
 	pbx_test_validate(test, citest == NULL);
-	citest1 = sccp_callinfo_dtor(citest1);
+	citest1 = iCallInfo.Destructor(citest1);
 	pbx_test_validate(test, citest1 == NULL);
 
 	return AST_TEST_PASS;
@@ -764,5 +784,4 @@ static void __attribute__((destructor)) sccp_unregister_tests(void)
         AST_TEST_UNREGISTER(sccp_callinfo_tests);
 }
 #endif
-__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

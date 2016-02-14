@@ -9,7 +9,7 @@
  * \since       2009-01-16
  */
 #pragma once
-//#include <config.h>
+//#include "config.h"
 //#include "common.h"
 
 /* Description:         Library providing a threading pool where you can add work on the fly. The number
