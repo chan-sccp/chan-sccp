@@ -5,7 +5,7 @@ dnl clang : -fblocks / -fblocks and -lBlocksRuntime"
 AC_DEFUN([CS_CHECK_RAII], [
 	AC_MSG_CHECKING([for RAII support])
 	AST_C_COMPILER_FAMILY=""
-	CC_works = 0
+	CC_works=0
 	AC_LINK_IFELSE(
 		[
 			AC_LANG_PROGRAM([], [
