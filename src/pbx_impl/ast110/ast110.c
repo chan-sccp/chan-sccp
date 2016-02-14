@@ -415,7 +415,7 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk110_rtp_read(PBX_CHANNEL_TYPE * ast)
 		} else
 #endif
 		if (ast_format_cmp(&frame->subclass.format, &ast->rawreadformat) == AST_FORMAT_CMP_NOT_EQUAL) {
-			ast_set_read_format_by_id(ast, frame->subclass.format->id);
+			ast_set_read_format_by_id(ast, frame->subclass.format.id);
 		}
 	}
 	
