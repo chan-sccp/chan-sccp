@@ -285,19 +285,16 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 	mid = letohl(msg->header.lel_messageId);
 
 	/* search for message handler */
-	if (mid >= SPCP_MESSAGE_OFFSET) {
+	if ((mid >= SCCP_MESSAGE_LOW_BOUNDARY || mid <= SCCP_MESSAGE_HIGH_BOUNDARY)) {
+		messageMap_cb = &sccpMessagesCbMap[mid];
+	} else if ((mid >= SPCP_MESSAGE_LOW_BOUNDARY || mid <= SPCP_MESSAGE_HIGH_BOUNDARY)) {
 		messageMap_cb = &spcpMessagesCbMap[mid - SPCP_MESSAGE_OFFSET]; 
 	} else {
-		messageMap_cb = &sccpMessagesCbMap[mid];
-	}
-	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (0x%X)\n", sccp_session_getDesignator(s), msgtype2str(mid), mid);
-
-	/* we dont know how to handle event */
-	if (!messageMap_cb) {
 		pbx_log(LOG_WARNING, "SCCP: Unknown Message %x. Don't know how to handle it. Skipping.\n", mid);
 		sccp_handle_unknown_message(s, device, msg);
 		return 0;
 	}
+	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (0x%X)\n", sccp_session_getDesignator(s), msgtype2str(mid), mid);
 
 	device = check_session_message_device(s, msg, msgtype2str(mid), messageMap_cb->deviceIsNecessary);	/* retained device returned */
 
