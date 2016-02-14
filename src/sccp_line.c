@@ -10,15 +10,15 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
-#include "sccp_line.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
-#include "sccp_utils.h"
-#include "sccp_features.h"
+#include "sccp_device.h"
+#include "sccp_line.h"
 #include "sccp_config.h"
+#include "sccp_features.h"
 #include "sccp_mwi.h"
+#include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -338,9 +338,6 @@ int __sccp_line_destroy(const void *ptr)
 
 	SCCP_LIST_LOCK(&l->mailboxes);
 	while ((mailbox = SCCP_LIST_REMOVE_HEAD(&l->mailboxes, list))) {
-		if (!mailbox) {
-			break;
-		}
 		sccp_mwi_unsubscribeMailbox(mailbox);
 		if (mailbox->mailbox) {
 			sccp_free(mailbox->mailbox);
@@ -937,11 +934,11 @@ sccp_line_t *sccp_line_find_byid(constDevicePtr d, uint16_t instance)
 {
 	sccp_line_t *l = NULL;
 
-	sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
-
 	if (!d || instance == 0) {
 		return NULL;
 	}
+
+	sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
 
 	if (0 < instance && instance < d->lineButtons.size && d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line) {
 #if DEBUG
@@ -990,11 +987,11 @@ sccp_line_t *sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex
 {
 	sccp_line_t *l = NULL;
 
-	sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with buttonIndex %d.\n", DEV_ID_LOG(d), buttonIndex);
-
 	if (!d || buttonIndex == 0) {
 		return NULL;
 	}
+
+	sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with buttonIndex %d.\n", DEV_ID_LOG(d), buttonIndex);
 	
 	if (buttonIndex > 0 && buttonIndex < StationMaxButtonTemplateSize && d->buttonTemplate[buttonIndex - 1].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[buttonIndex - 1].ptr ) {
 #if DEBUG
@@ -1031,14 +1028,15 @@ sccp_line_t *sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex
 sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const sccp_line_t * line, const char *filename, int lineno, const char *func)
 {
 	sccp_linedevices_t *linedevice = NULL;
-	sccp_line_t *l = (sccp_line_t *) line;									// loose const qualifier, to be able to lock the list;
-
-	if (!l) {
-		pbx_log(LOG_NOTICE, "%s: [%s:%d]->linedevice_find: No line provided to search in\n", DEV_ID_LOG(device), filename, lineno);
+	sccp_line_t *l = NULL;									// loose const qualifier, to be able to lock the list;
+	if (!line) {
+		pbx_log(LOG_NOTICE, "SCCP: [%s:%d]->linedevice_find: No line provided to search in\n", filename, lineno);
 		return NULL;
 	}
+	l = (sccp_line_t *) line;									// loose const qualifier, to be able to lock the list;
+	
 	if (!device) {
-		pbx_log(LOG_NOTICE, "SCCP: [%s:%d]->linedevice_find: No device provided to search for (line: %s)\n", filename, lineno, line ? line->name : "UNDEF");
+		pbx_log(LOG_NOTICE, "SCCP: [%s:%d]->linedevice_find: No device provided to search for (line: %s)\n", filename, lineno, line->name);
 		return NULL;
 	}
 

@@ -54,15 +54,13 @@ AC_DEFUN([CS_SETUP_BUILD],[
 	fi
 	
 	AS_IF([test "${AWK}" == "No"],[
-		echo ""
-		echo ""
 		echo "Utility 'awk' is missing"
-		echo "==================================="
+ 		echo "==================================="
 		echo "The awk programm is missing on your platform, this is required though."
 		echo "Please install awk / gnu-awk / mawk / nawk or some other Posix compatible version of AWK"
 		echo "And then rerun the configure process"
 		echo "==================================="
-		echo "Exitting now."
+ 		echo "Exitting now."
 		exit
 	]) 
 ])

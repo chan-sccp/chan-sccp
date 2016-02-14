@@ -415,7 +415,7 @@ void sccp_device_addToGlobals(constDevicePtr device);
 sccp_line_t *sccp_dev_getActiveLine(constDevicePtr device);
 void sccp_dev_setActiveLine(devicePtr device, constLinePtr l);
 sccp_channel_t *sccp_device_getActiveChannel(constDevicePtr device);
-void sccp_device_setActiveChannel(devicePtr device, sccp_channel_t * c);
+void sccp_device_setActiveChannel(devicePtr d, sccp_channel_t * channel);
 
 sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(devicePtr device, uint16_t instance);
 
@@ -432,8 +432,8 @@ void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid
 void sccp_dev_set_ringer(constDevicePtr d, uint8_t opt, uint8_t lineInstance, uint32_t callid);
 void sccp_dev_cleardisplay(constDevicePtr d);
 void sccp_dev_set_registered(devicePtr d, skinny_registrationstate_t state);
-void sccp_dev_set_speaker(constDevicePtr d, uint8_t opt);
-void sccp_dev_set_microphone(devicePtr d, uint8_t opt);
+void sccp_dev_set_speaker(constDevicePtr d, uint8_t mode);
+void sccp_dev_set_microphone(devicePtr d, uint8_t mode);
 void sccp_dev_set_cplane(constDevicePtr device, uint8_t lineInstance, int status);
 void sccp_dev_deactivate_cplane(constDevicePtr d);
 void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout);
@@ -448,7 +448,7 @@ void sccp_dev_cleardisplayprinotify(constDevicePtr d, const uint8_t priority);
 void sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, boolean_t withHint, sccp_speed_t * const k);
 void sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePtr device);
 void sccp_dev_postregistration(void *data);
-void sccp_dev_clean(devicePtr d, boolean_t destroy, uint8_t cleanupTime);
+void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cleanupTime);
 void sccp_dev_keypadbutton(devicePtr d, char digit, uint8_t line, uint32_t callid);
 void sccp_dev_set_message(devicePtr d, const char *msg, const int timeout, const boolean_t storedb, const boolean_t beep);
 void sccp_dev_clear_message(devicePtr d, const boolean_t cleardb);
@@ -468,7 +468,7 @@ uint8_t sccp_device_find_index_for_line(constDevicePtr d, const char *lineName);
 uint8_t sccp_device_numberOfChannels(constDevicePtr device);
 
 boolean_t sccp_device_isVideoSupported(constDevicePtr device);
-boolean_t sccp_device_check_update(devicePtr d);
+boolean_t sccp_device_check_update(devicePtr device);
 gcc_inline int16_t sccp_device_buttonIndex2lineInstance(constDevicePtr d, uint16_t buttonIndex);
 
 // find device

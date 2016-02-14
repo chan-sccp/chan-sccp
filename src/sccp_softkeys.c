@@ -10,19 +10,17 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
-#include "sccp_softkeys.h"
 #include "sccp_pbx.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
-//#include "sccp_indicate.h"
-#include "sccp_line.h"
-#include "sccp_utils.h"
-#include "sccp_features.h"
+#include "sccp_softkeys.h"
 #include "sccp_actions.h"
-//#include "sccp_rtp.h"
-#include "sccp_socket.h"
+#include "sccp_device.h"
+#include "sccp_features.h"
+#include "sccp_line.h"
+#include "sccp_session.h"
+#include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -158,19 +156,17 @@ static void sccp_sk_redial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 		}
 		/* here's a KEYMODE error. nothing to do */
 		return;
+	} 
+	if (d->redialInformation.lineInstance == 0 || !(line = sccp_line_find_byid(d, d->redialInformation.lineInstance))) {
+		line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	}
+	if (line) {
+		AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+		new_channel = sccp_channel_newcall(line, d, d->redialInformation.number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
 	} else {
-		if (d->redialInformation.lineInstance == 0 || !(line = sccp_line_find_byid(d, d->redialInformation.lineInstance))) {
-			line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
-		}
-		if (line) {
-			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
-			new_channel = sccp_channel_newcall(line, d, d->redialInformation.number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
-		} else {
-			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Redial pressed on a device without a registered line\n", d->id);
-		}
+		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Redial pressed on a device without a registered line\n", d->id);
 	}
 }
-
 
 /*!
  * \brief Initiate a New Call
@@ -395,12 +391,13 @@ static void sccp_sk_backspace(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 
 	/* we have no number, so nothing to process */
 	if (!len) {
+		sccp_channel_schedule_digittimout(c, GLOB(firstdigittimeout));
 		return;
 	}
 
 	if (len >= 1) {
 		c->dialedNumber[len - 1] = '\0';
-		sccp_channel_schedule_digittimout(c, (len >= 1) ? GLOB(digittimeout) : GLOB(firstdigittimeout));
+		sccp_channel_schedule_digittimout(c, GLOB(digittimeout));
 	}
 	// sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: backspacing dial number %s\n", c->device->id, c->dialedNumber);
 	sccp_handle_dialtone(d, line, c);
@@ -854,7 +851,7 @@ static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 	if (!d) {
 		return;
 	}
-	unsigned int transactionID = random();
+	unsigned int transactionID = sccp_random();
 
 	/* build parameters */
 	struct ast_str *paramStr = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);

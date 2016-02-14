@@ -23,16 +23,16 @@
  * \todo (Page needs to be re-written)
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_hint.h"
-#include "sccp_device.h"
+SCCP_FILE_VERSION(__FILE__, "");
+
 #include "sccp_channel.h"
+#include "sccp_device.h"
+#include "sccp_indicate.h"											// only for SCCP_CHANNELSTATE_Idling
 #include "sccp_line.h"
 #include "sccp_utils.h"
-#include "sccp_indicate.h"											// only for SCCP_CHANNELSTATE_Idling
-
-SCCP_FILE_VERSION(__FILE__, "");
 
 #if defined(CS_AST_HAS_EVENT) && defined(HAVE_PBX_EVENT_H) 	// ast_event_subscribe
 #  include <asterisk/event.h>
@@ -114,7 +114,7 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState);
 static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineState *lineState);
 static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState *lineState);
 static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState);
-static void sccp_hint_notifyPBX(struct sccp_hint_lineState *linestate);
+static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState);
 static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context);
 static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint);
 static void sccp_hint_deviceRegistered(const sccp_device_t * device);
@@ -176,9 +176,9 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 #endif
 	
 	if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
-		sccp_callinfo_setter(hint->callInfo, SCCP_CALLINFO_CALLINGPARTY_NAME, cidName, SCCP_CALLINFO_CALLINGPARTY_NUMBER, cidNumber, SCCP_CALLINFO_KEY_SENTINEL);
+		iCallInfo.Setter(hint->callInfo, SCCP_CALLINFO_CALLINGPARTY_NAME, cidName, SCCP_CALLINFO_CALLINGPARTY_NUMBER, cidNumber, SCCP_CALLINFO_KEY_SENTINEL);
 	} else {
-		sccp_callinfo_setter(hint->callInfo, SCCP_CALLINFO_CALLEDPARTY_NAME, cidName, SCCP_CALLINFO_CALLEDPARTY_NUMBER, cidNumber, SCCP_CALLINFO_KEY_SENTINEL);
+		iCallInfo.Setter(hint->callInfo, SCCP_CALLINFO_CALLEDPARTY_NAME, cidName, SCCP_CALLINFO_CALLEDPARTY_NUMBER, cidNumber, SCCP_CALLINFO_KEY_SENTINEL);
 	}
 
 	return;
@@ -254,7 +254,7 @@ void sccp_hint_module_stop(void)
 			}
 			SCCP_LIST_UNLOCK(&hint->subscribers);
 			SCCP_LIST_HEAD_DESTROY(&hint->subscribers);
-			sccp_callinfo_dtor(hint->callInfo);
+			iCallInfo.Destructor(hint->callInfo);
 			sccp_free(hint);
 		}
 		SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
@@ -314,12 +314,12 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 #endif
 
 	if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
-		sccp_callinfo_getter(hint->callInfo, 
+		iCallInfo.Getter(hint->callInfo, 
 			SCCP_CALLINFO_CALLINGPARTY_NAME, &cidName, 
 			SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cidNumber, 
 			SCCP_CALLINFO_KEY_SENTINEL);
 	} else {
-		sccp_callinfo_getter(hint->callInfo, 
+		iCallInfo.Getter(hint->callInfo, 
 			SCCP_CALLINFO_CALLEDPARTY_NAME, &cidName, 
 			SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cidNumber, 
 			SCCP_CALLINFO_KEY_SENTINEL);
@@ -609,7 +609,7 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 		pbx_log(LOG_ERROR, "SCCP: (sccp_hint_create) Memory Allocation Error while creating hint list for hint: %s@%s\n", hint_exten, hint_context);
 		return NULL;
 	}
-	if (!(hint->callInfo = sccp_callinfo_ctor(0))) {
+	if (!(hint->callInfo = iCallInfo.Constructor(0))) {
 		sccp_free(hint);
 		return NULL;
 	}
@@ -767,10 +767,10 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
  */
 static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineState *lineState)
 {
-	sccp_line_t *line = lineState->line;
-	if (!lineState || !line) {
+	if (!lineState || !lineState->line) {
 		return;
 	}
+	sccp_line_t *line = lineState->line;
 
 	memset(lineState->callInfo.partyName, 0, sizeof(lineState->callInfo.partyName));
 	memset(lineState->callInfo.partyNumber, 0, sizeof(lineState->callInfo.partyNumber));
@@ -800,13 +800,13 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
 
 					/* set cid name/numbe information according to the call direction */
 					if (SKINNY_CALLTYPE_INBOUND == channel->calltype) {
-						sccp_callinfo_getter(ci, 
+						iCallInfo.Getter(ci, 
 							SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
 							SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
 							SCCP_CALLINFO_PRESENTATION, &presentation, 
 							SCCP_CALLINFO_KEY_SENTINEL);
 					} else {
-						sccp_callinfo_getter(ci, 
+						iCallInfo.Getter(ci, 
 							SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name, 
 							SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cid_num, 
 							SCCP_CALLINFO_PRESENTATION, &presentation, 
@@ -847,11 +847,11 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
  */
 static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState *lineState)
 {
-	sccp_line_t *line = lineState->line;
-	sccp_channelstate_t state;
-	if (!lineState || !line) {
+	if (!lineState || !lineState->line) {
 		return;
 	}
+	sccp_line_t *line = lineState->line;
+	sccp_channelstate_t state;
 
 	//boolean_t dev_privacy = FALSE;
 
@@ -928,7 +928,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 				/** set cid name/number information according to the call direction */
 				switch (channel->calltype) {
 					case SKINNY_CALLTYPE_INBOUND:
-						sccp_callinfo_getter(ci, 
+						iCallInfo.Getter(ci, 
 							SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
 							SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
 							SCCP_CALLINFO_PRESENTATION, &presentation, 
@@ -936,7 +936,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: get speeddial party: '%s <%s>' (callingParty)\n", line->name, cid_name, cid_num);
 						break;
 					case SKINNY_CALLTYPE_OUTBOUND:
-						sccp_callinfo_getter(ci, 
+						iCallInfo.Getter(ci, 
 							SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name, 
 							SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cid_num, 
 							SCCP_CALLINFO_PRESENTATION, &presentation, 
@@ -1099,12 +1099,12 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			//sccp_copy_string(hint->callInfo.partyNumber, lineState->callInfo.partyNumber, sizeof(hint->callInfo.partyNumber));
 			hint->calltype = lineState->callInfo.calltype;
 			if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
-				sccp_callinfo_setter(hint->callInfo, 
+				iCallInfo.Setter(hint->callInfo, 
 					SCCP_CALLINFO_CALLINGPARTY_NAME, lineState->callInfo.partyName,
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER, lineState->callInfo.partyNumber,
 					SCCP_CALLINFO_KEY_SENTINEL);
 			} else {
-				sccp_callinfo_setter(hint->callInfo, 
+				iCallInfo.Setter(hint->callInfo, 
 					SCCP_CALLINFO_CALLEDPARTY_NAME, lineState->callInfo.partyName,
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, lineState->callInfo.partyNumber,
 					SCCP_CALLINFO_KEY_SENTINEL);
@@ -1199,12 +1199,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
 	sccp_msg_t *msg = NULL;
 
-#ifdef CS_DYNAMIC_SPEEDDIAL
-	sccp_speed_t k;
-	char displayMessage[80] = "";
-	int status = SCCP_CHANNELSTATE_SENTINEL;
-#endif
-
 	if (!hint) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_hint_notifySubscribers) no hint provided to notifySubscribers about\n");
 		return;
@@ -1224,8 +1218,11 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		if (d) {
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, hint->hint_dialplan, sccp_channelstate2str(hint->currentState), hint->currentState);
 #ifdef CS_DYNAMIC_SPEEDDIAL
+			sccp_speed_t k;
+			char displayMessage[80] = "";
+			skinny_busylampfield_state_t status = SKINNY_BLF_STATUS_UNKNOWN;
 			if (d->inuseprotocolversion >= 15) {
-				sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, TRUE, &k);
+				sccp_dev_speed_find_byindex( d, subscriber->instance, TRUE, &k);
 
 				REQ(msg, FeatureStatDynamicMessage);
 				if (msg) {
@@ -1233,57 +1230,58 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					char cidNumber[StationMaxDirnumSize] = "";
 
 					switch (hint->currentState) {
-						case SCCP_CHANNELSTATE_ONHOOK:
-							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
-							status = SKINNY_BLF_STATUS_IDLE;
-							break;
+					case SCCP_CHANNELSTATE_DOWN:
+						snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+						status = SKINNY_BLF_STATUS_UNKNOWN;	/* default state */
+						break;
 
-						case SCCP_CHANNELSTATE_DOWN:
-							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
-							status = SKINNY_BLF_STATUS_UNKNOWN;	/* default state */
-							break;
+					case SCCP_CHANNELSTATE_ONHOOK:
+						snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+						status = SKINNY_BLF_STATUS_IDLE;
+						break;
 
-						case SCCP_CHANNELSTATE_DND:
-							//snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
-							snprintf(displayMessage, sizeof(displayMessage), "(DND) %s", k.name);
-							status = SKINNY_BLF_STATUS_DND;	/* dnd */
-							break;
+					case SCCP_CHANNELSTATE_DND:
+						//snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+						snprintf(displayMessage, sizeof(displayMessage), "(DND) %s", k.name);
+						status = SKINNY_BLF_STATUS_DND;	/* dnd */
+						break;
 
-						case SCCP_CHANNELSTATE_CONGESTION:
-							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
-							status = SKINNY_BLF_STATUS_UNKNOWN;	/* device/line not found */
-							break;
+					case SCCP_CHANNELSTATE_CONGESTION:
+						snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+						status = SKINNY_BLF_STATUS_UNKNOWN;	/* device/line not found */
+						break;
 
-						case SCCP_CHANNELSTATE_RINGING:
-							status = SKINNY_BLF_STATUS_ALERTING;	/* ringin */
-							/* fall through */
-						default:
-							if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
-								if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
-									sccp_callinfo_getter(hint->callInfo, 
-										SCCP_CALLINFO_CALLINGPARTY_NAME, &cidName, 
-										SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cidNumber, 
-										SCCP_CALLINFO_KEY_SENTINEL);
-								} else {
-									sccp_callinfo_getter(hint->callInfo, 
-										SCCP_CALLINFO_CALLEDPARTY_NAME, &cidName, 
-										SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cidNumber, 
-										SCCP_CALLINFO_KEY_SENTINEL);
-								}
-								if (strlen(cidName) > 0) {
-									snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", cidName, (SCCP_CHANNELSTATE_CONNECTED == hint->currentState) ? "<=>" : ((hint->calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->"), k.name);
-								} else if (strlen(cidNumber) > 0) {
-									snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", cidNumber, (SCCP_CHANNELSTATE_CONNECTED == hint->currentState) ? "<=>" : ((hint->calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->"), k.name);
-								} else {
-									snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
-								}
+					case SCCP_CHANNELSTATE_RINGING:
+						status = SKINNY_BLF_STATUS_ALERTING;	/* ringin */
+						/* fall through */
+
+					default:
+						if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
+							if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
+								iCallInfo.Getter(hint->callInfo, 
+									SCCP_CALLINFO_CALLINGPARTY_NAME, &cidName, 
+									SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cidNumber, 
+									SCCP_CALLINFO_KEY_SENTINEL);
+							} else {
+								iCallInfo.Getter(hint->callInfo, 
+									SCCP_CALLINFO_CALLEDPARTY_NAME, &cidName, 
+									SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cidNumber, 
+									SCCP_CALLINFO_KEY_SENTINEL);
+							}
+							if (strlen(cidName) > 0) {
+								snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", cidName, (SCCP_CHANNELSTATE_CONNECTED == hint->currentState) ? "<=>" : ((hint->calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->"), k.name);
+							} else if (strlen(cidNumber) > 0) {
+								snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", cidNumber, (SCCP_CHANNELSTATE_CONNECTED == hint->currentState) ? "<=>" : ((hint->calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->"), k.name);
 							} else {
 								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							}
-							if (status == SCCP_CHANNELSTATE_SENTINEL) {
-								status = SKINNY_BLF_STATUS_INUSE;	/* connected / progress / proceeding */
-							}
-							break;
+						} else {
+							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+						}
+						if (status == SKINNY_BLF_STATUS_UNKNOWN) {	/* still default value --> set */
+							status = SKINNY_BLF_STATUS_INUSE;
+						}
+						break;
 					}
 					sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) set display name to: \"%s\"\n", DEV_ID_LOG(d), displayMessage);
 					sccp_copy_string(msg->data.FeatureStatDynamicMessage.featureTextLabel, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.featureTextLabel));
@@ -1384,7 +1382,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
 
 				} else {
-					sccp_callinfo_send(hint->callInfo, 0 /*callid*/, (hint->calltype == SKINNY_CALLTYPE_OUTBOUND) ? SKINNY_CALLTYPE_OUTBOUND : SKINNY_CALLTYPE_INBOUND, subscriber->instance, d, TRUE);
+					iCallInfo.Send(hint->callInfo, 0 /*callid*/, (hint->calltype == SKINNY_CALLTYPE_OUTBOUND) ? SKINNY_CALLTYPE_OUTBOUND : SKINNY_CALLTYPE_INBOUND, subscriber->instance, d, TRUE);
 					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_ON);
 					sccp_dev_set_keyset(d, subscriber->instance, 0 /*callid*/, KEYMODE_INUSEHINT);
 				}
@@ -1520,7 +1518,6 @@ int sccp_show_hint_lineStates(int fd, sccp_cli_totals_t *totals, struct mansessi
  * 
  * \called_from_asterisk
  */
-//#include <asterisk/cli.h>
 int sccp_show_hint_subscriptions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	int local_line_total = 0;
@@ -1539,12 +1536,12 @@ int sccp_show_hint_subscriptions(int fd, sccp_cli_totals_t *totals, struct manse
 		char cidName[StationMaxNameSize];												\
 		char cidNumber[StationMaxDirnumSize];												\
 		if (subscription->calltype == SKINNY_CALLTYPE_INBOUND) {									\
-			sccp_callinfo_getter(subscription->callInfo, 										\
+			iCallInfo.Getter(subscription->callInfo, 										\
 				SCCP_CALLINFO_CALLINGPARTY_NAME, &cidName, 									\
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cidNumber, 									\
 				SCCP_CALLINFO_KEY_SENTINEL);											\
 		} else {															\
-			sccp_callinfo_getter(subscription->callInfo, 											\
+			iCallInfo.Getter(subscription->callInfo, 											\
 				SCCP_CALLINFO_CALLEDPARTY_NAME, &cidName, 									\
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cidNumber, 									\
 				SCCP_CALLINFO_KEY_SENTINEL);											\

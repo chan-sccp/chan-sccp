@@ -20,18 +20,18 @@
  * Relations:   These Features are called by FeatureButtons. Features can in turn call on Actions.
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
-#include "sccp_features.h"
-#include "sccp_device.h"
 #include "sccp_channel.h"
-#include "sccp_line.h"
+#include "sccp_device.h"
 #include "sccp_featureButton.h"
+#include "sccp_features.h"
+#include "sccp_line.h"
 #include "sccp_pbx.h"
-#include "sccp_utils.h"
 #include "sccp_conference.h"
 #include "sccp_indicate.h"
 #include "sccp_management.h"
+#include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -81,14 +81,12 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 
 		sccp_line_cfwd(l, device, SCCP_CFWD_NONE, NULL);
 		return;
-	} else {
-		if (type == SCCP_CFWD_NOANSWER) {
-			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "### CFwdNoAnswer NOT SUPPORTED\n");
-			sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
-			return;
-		}
+	} 
+	if (type == SCCP_CFWD_NOANSWER) {
+		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "### CFwdNoAnswer NOT SUPPORTED\n");
+		sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+		return;
 	}
-
 	/* look if we have a call  */
 	AUTO_RELEASE sccp_channel_t *c = sccp_device_getActiveChannel(device);
 
@@ -244,7 +242,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 		/* Gather CallInfo */
 		sccp_callinfo_t *callinfo_picker = sccp_channel_getCallInfo(c);
 		sccp_callinfo_t *callinfo_orig = NULL;
-		sccp_callinfo_getter(callinfo_picker,							/* picker */
+		iCallInfo.Getter(callinfo_picker,							/* picker */
 			SCCP_CALLINFO_CALLINGPARTY_NAME, &picker_name,					/* name of picker */
 			SCCP_CALLINFO_CALLINGPARTY_NUMBER, &picker_number,
 			SCCP_CALLINFO_KEY_SENTINEL);
@@ -252,7 +250,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 		if (orig_channel) {
 			orig_device = sccp_channel_getDevice_retained(orig_channel);
 			callinfo_orig = sccp_channel_getCallInfo(orig_channel);
-			sccp_callinfo_getter(callinfo_orig,						/* picker */
+			iCallInfo.Getter(callinfo_orig,						/* picker */
 				SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,				/* name of picker */
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_number,
 				SCCP_CALLINFO_KEY_SENTINEL);
@@ -272,7 +270,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 
 			if (orig_channel) {
 				callinfo_orig = sccp_channel_getCallInfo(orig_channel);
-				sccp_callinfo_setter(callinfo_orig, 					/* update calling end */
+				iCallInfo.Setter(callinfo_orig, 					/* update calling end */
 					SCCP_CALLINFO_CALLEDPARTY_NAME, picker_name, 			/* channel picking up */
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, picker_number, 
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, called_name, 
@@ -384,9 +382,9 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 		*context++ = '\0';
 	} else {
 		if (!sccp_strlen_zero(d->directed_pickup_context)) {
-			context = (char *) pbx_strdupa(d->directed_pickup_context);
+			context = pbx_strdupa(d->directed_pickup_context);
 		} else {
-			context = (char *) pbx_strdupa(pbx_channel_context(c->owner));
+			context = pbx_strdupa(pbx_channel_context(c->owner));
 		}
 	}
 	if (sccp_strlen_zero(context)) {
@@ -519,7 +517,7 @@ void sccp_feat_voicemail(constDevicePtr d, uint8_t lineInstance)
 	if (!l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line with instance %d found.\n", d->id, lineInstance);
 
-		//TODO workaround to solve the voicemail button issue with old hint style and speeddials before first line -MC
+		// TODO(dkgroot): workaround to solve the voicemail button issue with old hint style and speeddials before first line -MC
 		if (d->defaultLineInstance) {
 			l = sccp_line_find_byid(d, d->defaultLineInstance);
 		}
@@ -865,7 +863,8 @@ void sccp_feat_handle_meetme(constLinePtr l, uint8_t lineInstance, constDevicePt
 				iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 				return;
 				/* there is an active call, let's put it on hold first */
-			} else if (!sccp_channel_hold(c)) {
+			} 
+			if (!sccp_channel_hold(c)) {
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL, SCCP_DISPLAYSTATUS_TIMEOUT);
 				return;
 			}
@@ -942,13 +941,7 @@ static void *sccp_feat_meetme_thread(void *data)
 #define SCCP_CONF_SPACER '|'
 #endif
 
-#if ASTERISK_VERSION_NUMBER >= 10400
-	unsigned int eid = pbx_random();
-#else
-	unsigned int eid = random();
-
-#define SCCP_CONF_SPACER '|'
-#endif
+	unsigned int eid = sccp_random();
 	AUTO_RELEASE sccp_channel_t * c = sccp_channel_retain(data);
 
 	if (!c) {
@@ -1069,7 +1062,7 @@ void sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 				iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 				return;
-			} else if (!sccp_channel_hold(c)) {
+			} if (!sccp_channel_hold(c)) {
 				/* there is an active call, let's put it on hold first */
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL, SCCP_DISPLAYSTATUS_TIMEOUT);
 				return;
@@ -1162,7 +1155,7 @@ void sccp_feat_handle_cbarge(constLinePtr l, uint8_t lineInstance, constDevicePt
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 				iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 				return;
-			} else if (!sccp_channel_hold(c)) {
+			} if (!sccp_channel_hold(c)) {
 				/* there is an active call, let's put it on hold first */
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL, SCCP_DISPLAYSTATUS_TIMEOUT);
 				return;
