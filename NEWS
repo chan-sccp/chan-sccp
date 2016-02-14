@@ -1,3 +1,15 @@
+Version: v4.3_STABLE
+=====================
+New Features in V4.3
+ - Modularized / Specialize sourcecode
+ - Reduced include dependencies
+ - Split the project in multiple sub-libraries
+ - replaced sccp_callinfo_function() with iCallInfo.Function()
+
+Bug Fixes
+ - Fixed Hangup and Timeout Scheduling
+ - Fixed refcount bug causing hanging channels
+
 Version: v4.3.0_TRUNK
 =====================
 WIP

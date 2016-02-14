@@ -1,9 +1,9 @@
 /*!
- * \file        sccp_event.c
+ * \file	sccp_event.c
  * \brief       SCCP Event Class
  * \author      Marcello Ceschia <marcello [at] ceschia.de>
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		See the LICENSE file at the top of the source tree.
  * \since       2009-09-02
  */
 
@@ -16,45 +16,73 @@
 
 #include <config.h>
 #include "common.h"
-#include "sccp_event.h"
 #include "sccp_device.h"
+#include "sccp_event.h"
 #include "sccp_line.h"
+#include "sccp_vector.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
 void sccp_event_destroy(sccp_event_t * event);
+#define SCCP_EVENT_EXPECTED_SUBSCRIPTIONS 9			/* grep sccp_event_subscribe *.c */
+
+#if CS_TEST_FRAMEWORK
+#include <asterisk/test.h>
+#define NUMBER_OF_EVENT_TYPES 11				/* grep SCCP_EVENT sccp_enum.in */
+#else
+#define NUMBER_OF_EVENT_TYPES 10				/* grep SCCP_EVENT sccp_enum.in */
+#endif
+/* type declarations */
+typedef struct sccp_event_subscriber sccp_event_subscriber_t;
+typedef struct sccp_event_subscriptions sccp_event_subscriptions_t;
+typedef SCCP_VECTOR_RW(, sccp_event_subscriber_t) sccp_event_vector_t;
+
+/* vector compare functions */
+#define SUBSCRIBER_CB_CMP(elem, value) ((elem).callback_function == (value))
+#define SUBSCRIBER_EXEC_CMP(elem, value) ((elem).execution == (value))
 
 /*!
- * \brief SCCP Event Listeners Structure
+ * \brief Execution Mode Enum
  */
-struct sccp_event_aSyncEventProcessorThreadArg {
-	const struct sccp_event_subscriptions *subscribers;
-	sccp_event_t *event;
+typedef enum {
+	SCCP_EVENT_ASYNC = 1,
+	SCCP_EVENT_SYNC = 2,
+} sccp_event_execution_mode_t;
+
+/*!
+ * \brief SCCP Event Subscriber Structure
+ */
+struct sccp_event_subscriber {
+	sccp_event_type_t eventType;
+	sccp_event_execution_mode_t execution;
+	sccp_event_callback_t callback_function;
 };
 
-struct sccp_event_subscriptions {
-	sccp_event_subscriber_t *sync;
-	sccp_event_subscriber_t *async;
-	uint32_t syncSize;
-	uint32_t aSyncSize;
-};
+/*!
+ * \brief SCCP Event Subscriptions Structure
+ */
+static struct sccp_event_subscriptions {
+	sccp_event_vector_t subscribers;
+							// same as: SCCP_VECTOR_RW(sccp_event_vector, sccp_event_subscriber_t) subscribers;
+							// typedef struct sccp_event_vector sccp_event_vector_t;
+							// but using predeclared type instead
+} event_subscriptions[NUMBER_OF_EVENT_TYPES] = {{{0}}};
 
-static struct sccp_event_subscriptions subscriptions[NUMBER_OF_EVENT_TYPES];
-
-static boolean_t sccp_event_running = FALSE;
-
+/*
+ * \brief release held references when we are finished processing this event
+ */
 void sccp_event_destroy(sccp_event_t * event)
 {
-	//pbx_log(LOG_NOTICE, "destroy event - %p type: %d: releasing held object references\n", event, event->type);
+	//pbx_log(LOG_NOTICE, " - %p type: %d: releasing held object references\n", event, event->type);
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
 		case SCCP_EVENT_DEVICE_PREREGISTERED:
-			event->event.deviceRegistered.device = sccp_device_release(event->event.deviceRegistered.device);	/* explicit release */
+			event->event.deviceRegistered.device = sccp_device_release(event->event.deviceRegistered.device);		/* explicit release */
 			break;
 
 		case SCCP_EVENT_LINE_CREATED:
-			event->event.lineCreated.line = sccp_line_release(event->event.lineCreated.line);			/* explicit release */
+			event->event.lineCreated.line = sccp_line_release(event->event.lineCreated.line);				/* explicit release */
 			break;
 
 		case SCCP_EVENT_DEVICE_ATTACHED:
@@ -63,79 +91,60 @@ void sccp_event_destroy(sccp_event_t * event)
 			break;
 
 		case SCCP_EVENT_FEATURE_CHANGED:
-			event->event.featureChanged.device = sccp_device_release(event->event.featureChanged.device);		/* explicit release */
+			event->event.featureChanged.device = sccp_device_release(event->event.featureChanged.device);			/* explicit release */
 			event->event.featureChanged.optional_linedevice = event->event.featureChanged.optional_linedevice ? sccp_linedevice_release(event->event.featureChanged.optional_linedevice) : NULL;	/* explicit release */
 			break;
 
 		case SCCP_EVENT_LINESTATUS_CHANGED:
-			event->event.lineStatusChanged.line = sccp_line_release(event->event.lineStatusChanged.line);		/* explicit release */
+			event->event.lineStatusChanged.line = sccp_line_release(event->event.lineStatusChanged.line);			/* explicit release */
 			event->event.lineStatusChanged.optional_device = event->event.lineStatusChanged.optional_device ? sccp_device_release(event->event.lineStatusChanged.optional_device) : NULL;	/* explicit release */
 			break;
 
 		case SCCP_EVENT_LINE_CHANGED:
 		case SCCP_EVENT_LINE_DELETED:
 			break;
-#ifdef CS_TEST_FRAMEWORK
+#if CS_TEST_FRAMEWORK
 		case SCCP_EVENT_TEST:
+			pbx_log(LOG_NOTICE, "SCCP: TestEvent Destroy Event\n");
+			if (event->event.TestEvent.str) {
+				sccp_free(event->event.TestEvent.str);
+			}
 			break;
 #endif
-		case SCCP_EVENT_NULL:
 		case SCCP_EVENT_TYPE_SENTINEL:
+		case SCCP_EVENT_NULL:
 			break;
 	}
-	//pbx_log(LOG_NOTICE, "Event destroyed- %p type: %d\n", event, event->type);
+	//pbx_log(LOG_NOTICE, "destroyed- %p type: %d\n", event, event->type);
 }
 
-static void *sccp_event_processor(void *data)
-{
-	struct sccp_event_aSyncEventProcessorThreadArg *args = data;
-	const struct sccp_event_subscriptions *subscribers = args->subscribers;
-	AUTO_RELEASE sccp_event_t *event = sccp_event_retain(args->event);
-	uint n;
+static volatile boolean_t sccp_event_running = FALSE;
 
-	if (subscribers && event) {
-		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Asynchronous Event %p of Type %s\n", event, sccp_event_type2str(event->type));
-		for (n = 0; n < subscribers->aSyncSize && sccp_event_running; n++) {
-			if (subscribers->async[n].callback_function != NULL) {
-				sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Event %p of Type %s: %p (%d)\n", event, sccp_event_type2str(event->type), subscribers->async[n].callback_function, n);
-				subscribers->async[n].callback_function((const sccp_event_t *) event);
-			}
-		}
-	} else {
-		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Could not retain event\n");
-	}
-	sccp_event_release(args->event);									/* explicit final release */
-	sccp_free(data);
-	return NULL;
-}
-
+//static void __attribute__((constructor)) sccp_event_module_init(void)
 void sccp_event_module_start(void)
 {
-	int i;
-
+	uint _idx = 0;
 	if (!sccp_event_running) {
-		for (i = 0; i < NUMBER_OF_EVENT_TYPES; i++) {
-			subscriptions[i].async = sccp_calloc(sizeof *subscriptions[i].async, 1);
-			subscriptions[i].sync = sccp_calloc(sizeof *subscriptions[i].sync, 1);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Starting event system\n");
+		for (_idx = 0; _idx < NUMBER_OF_EVENT_TYPES; _idx++) {
+			if (SCCP_VECTOR_RW_INIT(&event_subscriptions[_idx].subscribers, SCCP_EVENT_EXPECTED_SUBSCRIPTIONS) != 0) {
+				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+				return;
+			}
 		}
 		sccp_event_running = TRUE;
 	}
 }
 
+//static void __attribute__((destructor)) sccp_event_module_destroy(void)
 void sccp_event_module_stop(void)
 {
-	uint32_t i;
-
+	uint _idx = 0;
 	if (sccp_event_running) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Stopping event system\n");
 		sccp_event_running = FALSE;
-		for (i = 0; i < NUMBER_OF_EVENT_TYPES; i++) {
-			subscriptions[i].aSyncSize = 0;
-			subscriptions[i].syncSize = 0;
-		}
-		usleep(20);											// arbitairy time for other threads to finish their business
-		for (i = 0; i < NUMBER_OF_EVENT_TYPES; i++) {
-			sccp_free(subscriptions[i].async);
-			sccp_free(subscriptions[i].sync);
+		for (_idx = 0; _idx < NUMBER_OF_EVENT_TYPES; _idx++) {
+			SCCP_VECTOR_RW_FREE(&event_subscriptions[_idx].subscribers);
 		}
 	}
 }
@@ -145,47 +154,32 @@ void sccp_event_module_stop(void)
  * \param eventType SCCP Event Type
  * \param cb SCCP Event Call Back Function
  * \param allowASyncExecution Handle Event Asynchronously (Boolean)
- * 
- * \warning
- *      - sccp_event_listeners->subscriber is not always locked
  */
-void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb, boolean_t allowASyncExecution)
+boolean_t sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb, boolean_t allowAsyncExecution)
 {
-	uint32_t i, n, size;
-
-	for (i = 0, n = 1 << i; i < NUMBER_OF_EVENT_TYPES && sccp_event_running; i++, n = 1 << i) {
-		if (eventType & n) {
-			if (allowASyncExecution) {
-				size = subscriptions[i].aSyncSize;
-				if (size) {
-					sccp_event_subscriber_t *tmp;
-					tmp = (sccp_event_subscriber_t *) sccp_realloc(subscriptions[i].async, (size + 1) * sizeof(sccp_event_subscriber_t));
-					if (!tmp) {
-						pbx_log(LOG_ERROR, "SCCP: (sccp_event_subscribe) memory allocation error, skipping async subscription\n");
-						return;
-					}
-					subscriptions[i].async = tmp;
-				}
-				subscriptions[i].async[size].callback_function = cb;
-				subscriptions[i].async[size].eventType = eventType;
-				subscriptions[i].aSyncSize++;
+	boolean_t res = FALSE;
+	uint8_t _idx; 
+	sccp_event_type_t _mask;
+	for (_idx = 0, _mask = 1 << _idx; sccp_event_running && _idx < NUMBER_OF_EVENT_TYPES; _mask = 1 << ++_idx) {
+		if(eventType & _mask) {
+			//sccp_log(DEBUGCAT_EVENT)(VERBOSE_PREFIX_3 "SCCP: (sccp_event_subscribe) Adding %s with callback:%p to vector at idx:%d\n", sccp_event_type2str(eventType), cb, _idx);
+			sccp_event_subscriber_t subscriber = {
+				.callback_function = cb,
+				.eventType = eventType,
+				.execution = allowAsyncExecution ? SCCP_EVENT_ASYNC : SCCP_EVENT_SYNC,
+			};
+			
+			sccp_event_vector_t *subscribers = &(event_subscriptions[_idx].subscribers);
+			SCCP_VECTOR_RW_WRLOCK(subscribers);
+			if (SCCP_VECTOR_APPEND(subscribers, subscriber) == 0) {
+				res = TRUE;
 			} else {
-				size = subscriptions[i].syncSize;
-				if (size) {
-					sccp_event_subscriber_t *tmp;
-					tmp = (sccp_event_subscriber_t *) sccp_realloc(subscriptions[i].async, (size + 1) * sizeof(sccp_event_subscriber_t));
-					if (!tmp) {
-						pbx_log(LOG_ERROR, "SCCP: (sccp_event_subscribe) memory allocation error, skipping sync subscription\n");
-						return;
-					}
-					subscriptions[i].sync = tmp;
-				}
-				subscriptions[i].sync[size].callback_function = cb;
-				subscriptions[i].sync[size].eventType = eventType;
-				subscriptions[i].syncSize++;
+				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 			}
+			SCCP_VECTOR_RW_UNLOCK(subscribers);
 		}
 	}
+	return res;
 }
 
 /*!
@@ -193,26 +187,90 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
  * \param eventType SCCP Event Type
  * \param cb SCCP Event Call Back Function
  */
-void sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
+boolean_t sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
 {
-	uint32_t i, n, x;
-
-	for (i = 0, n = 1 << i; i < NUMBER_OF_EVENT_TYPES; i++, n = 1 << i) {
-		if (eventType & n) {
-			for (x = 0; x < subscriptions[i].aSyncSize; x++) {
-				if (subscriptions[i].async[x].callback_function == cb) {
-					subscriptions[i].async[x].callback_function = (void *) NULL;
-					subscriptions[i].async[x].eventType = 0;
+	boolean_t res = FALSE;
+	uint8_t _idx; 
+	sccp_event_type_t _mask;
+	//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_event_unsubscribe) Removing %s.\n", sccp_event_type2str(eventType))
+	for (_idx = 0, _mask = 1 << _idx; sccp_event_running && _idx < NUMBER_OF_EVENT_TYPES; _mask = 1 << ++_idx) {
+		if (eventType & _mask) {
+			sccp_event_vector_t *subscribers = &(event_subscriptions[_idx].subscribers);
+			{
+				SCCP_VECTOR_RW_WRLOCK(subscribers);
+				if (SCCP_VECTOR_REMOVE_CMP_UNORDERED(subscribers, cb, SUBSCRIBER_CB_CMP, SCCP_VECTOR_ELEM_CLEANUP_NOOP) == 0) {
+					res = TRUE;
+				} else {
+					pbx_log(LOG_ERROR, "SCCP: (sccp_event_subscribe) Failed to remove subscriber from subscribers vector\n");
 				}
-			}
-			for (x = 0; x < subscriptions[i].syncSize; x++) {
-				if (subscriptions[i].sync[x].callback_function == cb) {
-					subscriptions[i].sync[x].callback_function = (void *) NULL;
-					subscriptions[i].sync[x].eventType = 0;
-				}
+				SCCP_VECTOR_RW_UNLOCK(subscribers);
 			}
 		}
 	}
+	return res;
+}
+
+/* helpers */
+/*!
+ * \brief execute the callback off each subscriber in the subscribers array, for a particular event
+ * \note should be handed an copied non-lockedable vector
+ */
+static gcc_inline boolean_t __execute_callback_helper(const sccp_event_t *event, sccp_event_vector_t *subs_vector) 
+{
+	uint32_t n = 0;
+	boolean_t res = FALSE;
+	for (n = 0; n < SCCP_VECTOR_SIZE(subs_vector) && sccp_event_running; n++) {
+		sccp_event_subscriber_t subscriber = SCCP_VECTOR_GET(subs_vector, n);
+		if (subscriber.callback_function != NULL) {
+			//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Event %p of Type %s via %d callback:%p\n", event, sccp_event_type2str(event->type), n, subscriber.callback_function);
+			subscriber.callback_function(event);
+			res = TRUE;
+		}
+	}
+	if (subs_vector) {
+		SCCP_VECTOR_PTR_FREE(subs_vector);
+	}
+	return res;
+}
+
+/*!
+ * search for position in event_subscriptions[] array 
+ */
+static gcc_inline uint8_t __search_for_position_in_event_array(sccp_event_type_t eventType) {
+	uint8_t _idx = 0;
+	sccp_event_type_t _mask;
+	for (_idx = 0, _mask = 1 << _idx; sccp_event_running && _idx < NUMBER_OF_EVENT_TYPES; _mask = 1 << ++_idx) {
+		if (eventType & _mask) {
+			//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "SCCP: (__search_for_position_in_event_array) found index:%d\n", _idx);
+			break;
+		}
+	}
+	return _idx;
+}
+/* end helpers */
+
+/*!
+ * async thread arguments
+ */
+typedef struct __aSyncEventProcessorThreadArg
+{
+	uint8_t idx;
+	sccp_event_t event;
+	sccp_event_vector_t *async_subscribers;
+} AsyncArgs_t;
+/*!
+ * async thread run within threadpool
+ */
+static void *sccp_event_processor(void *data)
+{
+	AsyncArgs_t *arg = data;
+	if (arg) {
+		//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Async Processing Event Callbacks Type %s\n", sccp_event_type2str(arg->event.type));
+		__execute_callback_helper(&arg->event, arg->async_subscribers);
+		sccp_event_destroy(&arg->event);
+		sccp_free(arg);
+	}
+	return NULL;
 }
 
 /*!
@@ -223,140 +281,233 @@ void sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callback_t c
  * \warning
  *      - sccp_event_listeners->subscriber is not always locked
  */
-void sccp_event_fire(const sccp_event_t * event)
+boolean_t sccp_event_fire(sccp_event_t * event)
 {
-	if (event == NULL || SCCP_REF_RUNNING != sccp_refcount_isRunning() || !sccp_event_running) {
-		if (event) {
-			sccp_event_destroy((sccp_event_t *) event);
+	boolean_t res = FALSE;
+	if (event) {
+		sccp_event_vector_t *sync_subscribers_cpy = NULL, *async_subscribers_cpy = NULL;
+		size_t subsize = 0, syncsize = 0, asyncsize = 0;
+		uint8_t _idx = __search_for_position_in_event_array(event->type);
+		
+		/* copy both vectors to a local copy while holding the rwlock */
+		sccp_event_vector_t *subscribers = &event_subscriptions[_idx].subscribers;
+		SCCP_VECTOR_RW_RDLOCK(subscribers);
+		if ((subsize = SCCP_VECTOR_SIZE(subscribers))) {
+			sync_subscribers_cpy = SCCP_VECTOR_CALLBACK_MULTIPLE(subscribers, SUBSCRIBER_EXEC_CMP, SCCP_EVENT_SYNC);
+			async_subscribers_cpy = SCCP_VECTOR_CALLBACK_MULTIPLE(subscribers, SUBSCRIBER_EXEC_CMP, SCCP_EVENT_ASYNC);
+			syncsize = sync_subscribers_cpy ? SCCP_VECTOR_SIZE(sync_subscribers_cpy) : 0;
+			asyncsize = async_subscribers_cpy ? SCCP_VECTOR_SIZE(async_subscribers_cpy) : 0;
 		}
-		return;
-	}
+		SCCP_VECTOR_RW_UNLOCK(subscribers);
 
-	AUTO_RELEASE sccp_event_t *e = (sccp_event_t *) sccp_refcount_object_alloc(sizeof(sccp_event_t), SCCP_REF_EVENT, sccp_event_type2str(event->type), sccp_event_destroy);
-
-	if (!e) {
-		pbx_log(LOG_ERROR, "%p: Memory Allocation Error while creating sccp_event e. Exiting\n", event);
-		sccp_event_destroy((sccp_event_t *) event);
-		return;
-	}
-	// memcpy(e, event, sizeof(sccp_event_t));
-	e->type = event->type;
-
-	sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s\n", event, sccp_event_type2str(e->type));
-	/* update refcount */
-	switch (e->type) {
-		case SCCP_EVENT_DEVICE_REGISTERED:
-		case SCCP_EVENT_DEVICE_UNREGISTERED:
-		case SCCP_EVENT_DEVICE_PREREGISTERED:
-			e->event.deviceRegistered.device = event->event.deviceRegistered.device;
-			break;
-
-		case SCCP_EVENT_LINE_CREATED:
-			e->event.lineCreated.line = event->event.lineCreated.line;
-			break;
-
-		case SCCP_EVENT_DEVICE_ATTACHED:
-		case SCCP_EVENT_DEVICE_DETACHED:
-			e->event.deviceAttached.linedevice = event->event.deviceAttached.linedevice;
-			break;
-
-		case SCCP_EVENT_FEATURE_CHANGED:
-			e->event.featureChanged.device = event->event.featureChanged.device;
-			e->event.featureChanged.optional_linedevice = event->event.featureChanged.optional_linedevice;
-			e->event.featureChanged.featureType = event->event.featureChanged.featureType;
-			break;
-
-		case SCCP_EVENT_LINESTATUS_CHANGED:
-			e->event.lineStatusChanged.line = event->event.lineStatusChanged.line;
-			e->event.lineStatusChanged.optional_device = event->event.lineStatusChanged.optional_device;
-			e->event.lineStatusChanged.state = event->event.lineStatusChanged.state;
-			break;
-
-		case SCCP_EVENT_LINE_CHANGED:
-		case SCCP_EVENT_LINE_DELETED:
-			break;
-#ifdef CS_TEST_FRAMEWORK
-		case SCCP_EVENT_TEST:
-			break;
-#endif
-		case SCCP_EVENT_NULL:
-		case SCCP_EVENT_TYPE_SENTINEL:
-			break;
-	}
-
-	/* search for position in array */
-	uint i, n;
-	sccp_event_type_t eventType = event->type;
-	boolean_t matched = FALSE;
-
-	for (i = 0, n = 1 << i; i < NUMBER_OF_EVENT_TYPES; i++, n = 1 << i) {
-		if (eventType & n) {
-			matched = TRUE;
-			break;
+		// handle synchronous events first (if any)
+		if (syncsize) {
+			res |= __execute_callback_helper(event, sync_subscribers_cpy);
+		} else if (sync_subscribers_cpy) {
+			SCCP_VECTOR_PTR_FREE(sync_subscribers_cpy);
 		}
-	}
 
-	/* start async thread if nessesary */
-	if (matched) {
-		if (GLOB(module_running)) {
-			if (subscriptions[i].aSyncSize > 0 && sccp_event_running) {
-				/* create thread for async subscribers */
-				struct sccp_event_aSyncEventProcessorThreadArg *arg = sccp_malloc(sizeof(struct sccp_event_aSyncEventProcessorThreadArg));
-
-				if (!arg) {
-					pbx_log(LOG_ERROR, "%p: Memory Allocation Error while creating sccp_event_aSyncEventProcessorThreadArg. Skipping\n", event);
-				} else {
-					arg->subscribers = &subscriptions[i];
-					arg->event = sccp_event_retain(e);
-
-					/* initialized with default attributes */
-					if (arg->event != NULL) {
-						sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Adding work to threadpool for event: %p, type: %s\n", event, sccp_event_type2str(event->type));
-						if (!sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_event_processor, (void *) arg)) {
-							pbx_log(LOG_ERROR, "Could not add work to threadpool for event: %p, type: %s for processing\n", event, sccp_event_type2str(event->type));
-							arg->event = sccp_event_release(arg->event);			/* explicit failure release */
-							sccp_free(arg);
-						}
+		// handle the others asynchonously via threadpool (if any)
+		do {
+			if (asyncsize) {
+				AsyncArgs_t *arg = NULL;
+				if (GLOB(general_threadpool) && sccp_event_running && (arg = sccp_malloc(sizeof *arg))) {
+					arg->idx = _idx;
+					memcpy(&arg->event, event, sizeof(sccp_event_t));
+					arg->async_subscribers = async_subscribers_cpy;
+					if (sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_event_processor, (void *) arg)) {
+						//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Work added to threadpool for event: %p, type: %s\n", event, sccp_event_type2str(event->type));
+						event = NULL;					// set to NULL, thread will clean event up later.
+						res |= true;
+						break;						// break out of do/while loop, no further processing needed
 					} else {
-						pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, sccp_event_type2str(event->type));
-						sccp_free(arg);
+						pbx_log(LOG_ERROR, "Could not add work to threadpool for event: %s\n", sccp_event_type2str(event->type));
+						sccp_free(arg);					// explicit failure release
 					}
 				}
+				res |= __execute_callback_helper(event, async_subscribers_cpy);	// fallback to handling synchronously in case something prevented async
+			} else if (async_subscribers_cpy) {
+				SCCP_VECTOR_PTR_FREE(async_subscribers_cpy);
 			}
+		} while (0);
 
-			/* execute sync subscribers */
-			AUTO_RELEASE sccp_event_t *tmp_e = NULL;
-
-			if ((tmp_e = sccp_event_retain(e))) {
-				for (n = 0; n < subscriptions[i].syncSize && sccp_event_running; n++) {
-					if (subscriptions[i].sync[n].callback_function != NULL) {
-						subscriptions[i].sync[n].callback_function((const sccp_event_t *) e);
-					}
-				}
-			} else {
-				pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, sccp_event_type2str(event->type));
-			}
-		} else {
-			// we are unloading. switching to synchonous mode for everything
-			sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s in Forced Synchronous Mode\n", event, sccp_event_type2str(e->type));
-			AUTO_RELEASE sccp_event_t *tmp_e = NULL;
-
-			if ((tmp_e = sccp_event_retain(e))) {
-				for (n = 0; n < subscriptions[i].syncSize && sccp_event_running; n++) {
-					if (subscriptions[i].sync[n].callback_function != NULL) {
-						subscriptions[i].sync[n].callback_function((const sccp_event_t *) e);
-					}
-				}
-				for (n = 0; n < subscriptions[i].aSyncSize && sccp_event_running; n++) {
-					if (subscriptions[i].async[n].callback_function != NULL) {
-						subscriptions[i].async[n].callback_function((const sccp_event_t *) e);
-					}
-				}
-			} else {
-				pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, sccp_event_type2str(event->type));
-			}
+		/* cleanup */
+		if (event) {
+			sccp_event_destroy(event);
 		}
 	}
+	return res;
 }
+
+#if CS_TEST_FRAMEWORK
+#include "sccp_utils.h"
+static uint32_t _sccp_event_TestValue = 25;
+static char *_sccp_event_TestStr = "^YTHnjMK<MJHBgF";
+static uint32_t _sccp_event_TestEventReceived = 0;
+
+static void sccp_event_testListener(const sccp_event_t * event) {
+	pbx_log(LOG_NOTICE, "SCCP: Test Event Listener, received event: %p, with type:%s, payload:[value:%d, str:%s]\n", event, sccp_event_type2str(event->type), event->event.TestEvent.value, event->event.TestEvent.str);
+	if (event->event.TestEvent.value == _sccp_event_TestValue && sccp_strequals(event->event.TestEvent.str, _sccp_event_TestStr)) {
+		pbx_log(LOG_NOTICE, "SCCP: Test Event Listener, Received Content validated: Returning: %d\n", ++_sccp_event_TestEventReceived);
+		return;
+	}
+	pbx_log(LOG_NOTICE, "SCCP: Test Event Listener, Received Content incorrect\n");
+}
+
+AST_TEST_DEFINE(sccp_event_test_subscribe_single)
+{
+	int rc = AST_TEST_PASS;
+	switch(cmd) {
+		case TEST_INIT:
+			info->name = "subscribe_single";
+			info->category = "/channels/chan_sccp/event/";
+			info->summary = "chan-sccp-b event subscribe to single event";
+			info->description = "chan-sccp-b event subscribe to single event asynchonously and fire test event";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
+	}
+	pbx_test_status_update(test, "subscribe to event:0 fails.\n");
+	pbx_test_validate(test, sccp_event_subscribe(0, sccp_event_testListener, TRUE) == FALSE);
+	
+	pbx_test_status_update(test, "subscribe to SCCP_EVENT_TYPE_SENTINEL fails.\n");
+	pbx_test_validate(test, sccp_event_subscribe(SCCP_EVENT_TYPE_SENTINEL, sccp_event_testListener, TRUE) == FALSE);
+	
+	pbx_test_status_update(test, "subscribe to event:0 fails.\n");
+	pbx_test_validate(test, sccp_event_unsubscribe(0, sccp_event_testListener) == FALSE);
+	
+	pbx_test_status_update(test, "subscribe to SCCP_EVENT_TYPE_SENTINEL fails.\n");
+	pbx_test_validate(test, sccp_event_unsubscribe(SCCP_EVENT_TYPE_SENTINEL, sccp_event_testListener) == FALSE);
+
+	pbx_test_status_update(test, "subscribe to SCCP_EVENT_TEST succeeds.\n");
+	pbx_test_validate(test, sccp_event_subscribe(SCCP_EVENT_TEST, sccp_event_testListener, TRUE));
+
+	uint32_t EventReceivedBeforeTest = _sccp_event_TestEventReceived;
+
+	pbx_test_status_update(test, "fire SCCP_EVENT_TEST\n");
+	sccp_event_t event = {
+		.type = SCCP_EVENT_TEST,
+		.event.TestEvent.value = _sccp_event_TestValue,
+		.event.TestEvent.str = strdup(_sccp_event_TestStr),
+	};
+	sccp_event_fire(&event);
+
+	/* wait for async result */
+	int loopcount = 0;
+	while (_sccp_event_TestEventReceived == EventReceivedBeforeTest && 100 > loopcount++) {
+		sccp_safe_sleep(10);
+	}
+	pbx_test_status_update(test, "before test:%d, received:%d, expected:%d\n", EventReceivedBeforeTest, _sccp_event_TestEventReceived, EventReceivedBeforeTest + 1);
+	pbx_test_validate_cleanup(test, _sccp_event_TestEventReceived == EventReceivedBeforeTest + 1, rc, cleanup);
+
+cleanup:
+	pbx_test_status_update(test, "unsubscribe from SCCP_EVENT_TEST\n");
+	pbx_test_validate(test, sccp_event_unsubscribe(SCCP_EVENT_TEST, sccp_event_testListener));
+
+	return rc;
+}
+
+AST_TEST_DEFINE(sccp_event_test_subscribe_multi)
+{
+	int rc = AST_TEST_PASS;
+	switch(cmd) {
+		case TEST_INIT:
+			info->name = "subscribe_multi";
+			info->category = "/channels/chan_sccp/event/";
+			info->summary = "chan-sccp-b event subscribe to multiple event";
+			info->description = "chan-sccp-b event subscribe to multiple events asynchonously and fire test event";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
+	}
+	int registration = 0, numregistrations = 10;
+
+	pbx_test_status_update(test, "subscribe to SCCP_EVENT_TEST and SCCP_EVENT_LINESTATUS_CHANGED\n");
+	for (registration = 0; registration < numregistrations; registration++) {
+		pbx_test_status_update(test, "registrations:%d\n", registration);
+		pbx_test_validate_cleanup(test, sccp_event_subscribe(SCCP_EVENT_LINESTATUS_CHANGED | SCCP_EVENT_TEST, sccp_event_testListener, TRUE), rc, cleanup);
+	}
+	uint32_t EventReceivedBeforeTest = _sccp_event_TestEventReceived;
+
+	pbx_test_status_update(test, "fire SCCP_EVENT_TEST\n");
+	sccp_event_t event = {{{0}}};
+	event.type = SCCP_EVENT_TEST;
+	event.event.TestEvent.value = _sccp_event_TestValue;
+	event.event.TestEvent.str = strdup(_sccp_event_TestStr);
+	sccp_event_fire(&event);
+
+	/* wait for async result */
+	int loopcount = 0;
+	while (_sccp_event_TestEventReceived == EventReceivedBeforeTest && 100 > loopcount++) {
+		sccp_safe_sleep(10);
+	}
+	pbx_test_status_update(test, "registrations:%d, before test:%d, received:%d, expected:%d\n", registration, EventReceivedBeforeTest, _sccp_event_TestEventReceived, EventReceivedBeforeTest + registration);
+	pbx_test_validate_cleanup(test, _sccp_event_TestEventReceived == EventReceivedBeforeTest + registration, rc, cleanup);
+
+cleanup:
+	pbx_test_status_update(test, "unsubscribe from SCCP_EVENT_TEST and SCCP_EVENT_LINESTATUS_CHANGED\n");
+	while (registration > 0) {
+		registration--;
+		pbx_test_validate_cleanup(test, sccp_event_unsubscribe(SCCP_EVENT_LINESTATUS_CHANGED | SCCP_EVENT_TEST, sccp_event_testListener), rc, cleanup);
+	}
+	return rc;
+}
+
+AST_TEST_DEFINE(sccp_event_test_subscribe_multi_sync)
+{
+	int rc = AST_TEST_PASS;
+	switch(cmd) {
+		case TEST_INIT:
+			info->name = "subscribe_multi_sync";
+			info->category = "/channels/chan_sccp/event/";
+			info->summary = "chan-sccp-b event subscribe to multiple event synchonously";
+			info->description = "chan-sccp-b event subscribe to multiple events synchonously and fire test event";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
+	}
+	int registration, numregistrations = 10;
+
+	pbx_test_status_update(test, "subscribe to SCCP_EVENT_TEST and SCCP_EVENT_LINESTATUS_CHANGED\n");
+	for (registration = 0; registration < numregistrations; registration++) {
+		pbx_test_status_update(test, "registrations:%d\n", registration);
+		pbx_test_validate_cleanup(test, sccp_event_subscribe(SCCP_EVENT_LINESTATUS_CHANGED | SCCP_EVENT_TEST, sccp_event_testListener, FALSE), rc, cleanup);
+	}
+
+	uint32_t EventReceivedBeforeTest = _sccp_event_TestEventReceived;
+
+	pbx_test_status_update(test, "fire SCCP_EVENT_TEST\n");
+	sccp_event_t event = {{{0}}};
+	event.type = SCCP_EVENT_TEST;
+	event.event.TestEvent.value = _sccp_event_TestValue;
+	event.event.TestEvent.str = strdup(_sccp_event_TestStr);
+	sccp_event_fire(&event);
+
+	pbx_test_status_update(test, "registrations:%d, before test:%d, received:%d, expected:%d\n", registration, EventReceivedBeforeTest, _sccp_event_TestEventReceived, EventReceivedBeforeTest + registration);
+	pbx_test_validate_cleanup(test, _sccp_event_TestEventReceived == EventReceivedBeforeTest + registration, rc, cleanup);
+
+cleanup:
+	pbx_test_status_update(test, "unsubscribe from SCCP_EVENT_TEST and SCCP_EVENT_LINESTATUS_CHANGED\n");
+	while (registration > 0) {
+		registration--;
+		pbx_test_validate_cleanup(test, sccp_event_unsubscribe(SCCP_EVENT_LINESTATUS_CHANGED | SCCP_EVENT_TEST, sccp_event_testListener), rc, cleanup);
+	}
+	return rc;
+}
+
+static void __attribute__((constructor)) sccp_register_tests(void)
+{
+	AST_TEST_REGISTER(sccp_event_test_subscribe_single);
+	AST_TEST_REGISTER(sccp_event_test_subscribe_multi);
+	AST_TEST_REGISTER(sccp_event_test_subscribe_multi_sync);
+}
+
+static void __attribute__((destructor)) sccp_unregister_tests(void)
+{
+	AST_TEST_UNREGISTER(sccp_event_test_subscribe_single);
+	AST_TEST_UNREGISTER(sccp_event_test_subscribe_multi);
+	AST_TEST_UNREGISTER(sccp_event_test_subscribe_multi_sync);
+}
+#endif
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

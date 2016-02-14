@@ -15,11 +15,11 @@ void sccp_feat_handle_directed_pickup(constDevicePtr d, constLinePtr l, channelP
 int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInstance, const char *exten);
 int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstance, channelPtr maybe_c);
 #endif
-void sccp_feat_voicemail(constDevicePtr d, uint8_t line_instance);
+void sccp_feat_voicemail(constDevicePtr d, uint8_t lineInstance);
 void sccp_feat_idivert(constDevicePtr d, constLinePtr l, constChannelPtr c);
-void sccp_feat_handle_conference(constDevicePtr d, constLinePtr l, uint8_t lineInstance, channelPtr c);
-void sccp_feat_conference_start(constDevicePtr d, const uint32_t lineInstance, channelPtr c);
-void sccp_feat_join(constDevicePtr d, constLinePtr l, uint8_t lineInstance, channelPtr c);
+void sccp_feat_handle_conference(constDevicePtr d, constLinePtr l, uint8_t lineInstance, channelPtr channel);
+void sccp_feat_conference_start(constDevicePtr device, const uint32_t lineInstance, channelPtr c);
+void sccp_feat_join(constDevicePtr device, constLinePtr l, uint8_t lineInstance, channelPtr c);
 void sccp_feat_conflist(devicePtr d, uint8_t lineInstance, constChannelPtr c);
 void sccp_feat_handle_meetme(constLinePtr l, uint8_t lineInstance, constDevicePtr d);
 void sccp_feat_meetme_start(channelPtr c);

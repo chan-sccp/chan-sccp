@@ -106,13 +106,22 @@ coverage-zero: rmcoverage
 test:
 	@echo "Success"
 
-unload:
+install-data-local:
+	@test -d $(DESTDIR)$(PBX_ETC) || $(mkinstalldirs) $(DESTDIR)$(PBX_ETC);								\
+	if [ ! test -f $(DESTDIR)$(PBX_ETC)/sccp.conf ]; then										\
+		echo "Installing $(DESTDIR)$(PBX_ETC)/sccp.conf...";									\
+		$(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC);							\
+	fi
+
+unload:	
 	cd src;make unload
-load:
+	
+load:	
 	cd src;make load
+	
 reload:
 	cd src;make reload
-                                
+
 #install-exec-hook:
 #	@if test "$(DEBUG)" == "1" && test -n "$(GDB)" && test tools/chan-sccp-b_backtrace -nt /usr/bin/chan-sccp-b_backtrace; then	\
 #		$(INSTALL) -C tools/chan-sccp-b_backtrace /usr/bin/chan-sccp-b_backtrace;						\

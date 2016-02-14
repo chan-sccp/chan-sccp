@@ -9,22 +9,20 @@
  *              See the LICENSE file at the top of the source tree.
  */
 #pragma once
-uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const void *ids, const PBX_CHANNEL_TYPE * parentChannel);
-int sccp_pbx_sched_dial(const void *data);
-sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c);
-void *sccp_pbx_softswitch(sccp_channel_t * c);
-void start_rtp(sccp_channel_t * sub);
-void sccp_pbx_needcheckringback(sccp_device_t * d);
-void sccp_pbx_senddigit(sccp_channel_t * c, char digit);
-void sccp_pbx_senddigits(sccp_channel_t * c, const char *digits);
-int sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest);
-
-int sccp_pbx_hangup(sccp_channel_t * c);
-int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout);
-int sccp_pbx_answer(sccp_channel_t * c);
-
-//! \todo do we need this?
-// It is a function so we can intervene in the standard asterisk bridge method. 
-// At this moment it provides a little logging and switches a couple of DTMF signals off when bridging SCCP<->SCCP calls - DdG
-//! \todo move this to pbx impl
+#include "sccp_codec.h"		/* can be removed if we pass the sccp_codec capabilities by ref */
+__BEGIN_C_EXTERN__
+SCCP_API sccp_channel_request_status_t SCCP_CALL sccp_requestChannel(const char *lineName, skinny_codec_t requestedCodec, skinny_codec_t capabilities[], uint8_t capabilityLength, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel);
+SCCP_API uint8_t SCCP_CALL sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, const PBX_CHANNEL_TYPE * parentChannel);
+SCCP_API int SCCP_CALL sccp_pbx_sched_dial(const void *data);
+SCCP_API sccp_extension_status_t SCCP_CALL sccp_pbx_helper(sccp_channel_t * c);
+SCCP_API void * SCCP_CALL sccp_pbx_softswitch(sccp_channel_t * channel);
+SCCP_API void SCCP_CALL start_rtp(sccp_channel_t * sub);
+SCCP_API void SCCP_CALL sccp_pbx_needcheckringback(sccp_device_t * d);
+SCCP_API void SCCP_CALL sccp_pbx_senddigit(sccp_channel_t * c, char digit);
+SCCP_API void SCCP_CALL sccp_pbx_senddigits(sccp_channel_t * c, const char *digits);
+SCCP_API int SCCP_CALL sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest);
+SCCP_API int SCCP_CALL sccp_pbx_hangup(sccp_channel_t * channel);
+SCCP_API int SCCP_CALL sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout);
+SCCP_API int SCCP_CALL sccp_pbx_answer(sccp_channel_t * channel);
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

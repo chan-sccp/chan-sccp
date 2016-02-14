@@ -6,14 +6,15 @@
  *
  */
 
-#include <config.h>
+#include "config.h"
 #include "common.h"
 #include "sccp_conference.h"
+#include "sccp_channel.h"
+#include "sccp_atomic.h"
 #include "sccp_device.h"
+#include "sccp_indicate.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
-#include "sccp_channel.h"
-#include "sccp_indicate.h"
 #include <asterisk/say.h>
 
 #ifdef CS_SCCP_CONFERENCE
@@ -23,9 +24,9 @@
 #include <asterisk/bridging_features.h>
 #else
 #include <asterisk/bridge.h>
-#include <asterisk/bridge_technology.h>
-#include <asterisk/bridge_features.h>
 #include <asterisk/bridge_channel.h>
+#include <asterisk/bridge_features.h>
+#include <asterisk/bridge_technology.h>
 #endif
 #ifdef HAVE_PBX_BRIDGING_ROLES_H
 #include <asterisk/bridging_roles.h>
@@ -465,11 +466,11 @@ void sccp_conference_update_callInfo(constChannelPtr channel, PBX_CHANNEL_TYPE *
 
 	switch (channel->calltype) {
 		case SKINNY_CALLTYPE_INBOUND:
-			sccp_callinfo_getter(ci, 
+			iCallInfo.Getter(ci, 
 				SCCP_CALLINFO_CALLINGPARTY_NAME, &participant->PartyName,
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &participant->PartyNumber,
 				SCCP_CALLINFO_KEY_SENTINEL);
-			sccp_callinfo_setter(ci, 
+			iCallInfo.Setter(ci, 
 				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, participant->PartyName,
 				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, participant->PartyNumber,
 				SCCP_CALLINFO_CALLINGPARTY_NAME, conf_str,
@@ -477,11 +478,11 @@ void sccp_conference_update_callInfo(constChannelPtr channel, PBX_CHANNEL_TYPE *
 			break;
 		case SKINNY_CALLTYPE_OUTBOUND:
 		case SKINNY_CALLTYPE_FORWARD:
-			sccp_callinfo_getter(ci, 
+			iCallInfo.Getter(ci, 
 				SCCP_CALLINFO_CALLEDPARTY_NAME, &participant->PartyName,
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &participant->PartyNumber,
 				SCCP_CALLINFO_KEY_SENTINEL);
-			sccp_callinfo_setter(ci, 
+			iCallInfo.Setter(ci, 
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, participant->PartyName,
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, participant->PartyNumber,
 				SCCP_CALLINFO_CALLEDPARTY_NAME, conf_str,
@@ -1146,11 +1147,7 @@ void sccp_conference_show_list(constConferencePtr conference, constChannelPtr ch
 		if (!participant->callReference) {
 			participant->callReference = channel->callid;
 			participant->lineInstance = conference->id;
-#if ASTERISK_VERSION_NUMBER >= 10400
-			participant->transactionID = pbx_random() % 1000;
-#else
-			participant->transactionID = random() % 1000;
-#endif
+			participant->transactionID = sccp_random() % 1000;
 		}
 
 		char xmlStr[2048] = "";
