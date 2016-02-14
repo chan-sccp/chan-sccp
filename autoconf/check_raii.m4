@@ -5,6 +5,7 @@ dnl clang : -fblocks / -fblocks and -lBlocksRuntime"
 AC_DEFUN([CS_CHECK_RAII], [
 	AC_MSG_CHECKING([for RAII support])
 	AST_C_COMPILER_FAMILY=""
+	CC_works=0
 	AC_LINK_IFELSE(
 		[
 			AC_LANG_PROGRAM([], [
@@ -30,6 +31,7 @@ AC_DEFUN([CS_CHECK_RAII], [
 			AC_SUBST([AST_NESTED_FUNCTIONS])
 			AC_DEFINE([GCC_NESTED], [1], [Compiler supports nested functions])
 			AST_C_COMPILER_FAMILY="gcc"
+			CC_works=1
 		],[
 			AC_MSG_CHECKING([for clang -fblocks])
 			AST_CLANG_BLOCKS_LIBS=""
@@ -49,10 +51,12 @@ AC_DEFUN([CS_CHECK_RAII], [
 			AC_SUBST([AST_CLANG_BLOCKS])
 			AC_DEFINE([CLANG_BLOCKS], [1], [Compiler supports clang blocks])
 			AST_C_COMPILER_FAMILY="clang"
+			CC_works=1
 		]
 	)
 	if test -z "${AST_C_COMPILER_FAMILY}"; then
 		AC_MSG_ERROR([Compiler ${CC} not supported. Mminimum required gcc-4.3 / llvm-gcc-4.3 / clang-3.3 + libblocksruntime-dev])
+		CC_works=0
 	fi
 	AC_SUBST([AST_C_COMPILER_FAMILY])
 ])

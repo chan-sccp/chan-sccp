@@ -62,7 +62,7 @@ struct sccp_conference {
 	SCCP_RWLIST_HEAD (, sccp_participant_t) participants;							/*!< participants in conference */
 	SCCP_LIST_ENTRY (sccp_conference_t) list;								/*!< Linked List Entry */
 
-	volatile boolean_t finishing;										/*!< Indicates the conference is closing down */
+	volatile int finishing;											/*!< Indicates the conference is closing down */
 	boolean_t isLocked;											/*!< Indicates that no new participants are allowed */
 	boolean_t isOnHold;
 	boolean_t mute_on_entry;										/*!< Mute new participant when they enter the conference */
