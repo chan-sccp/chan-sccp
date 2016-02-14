@@ -156,6 +156,7 @@ echo "Asterisk Version : ${ASTERISK_VERSION_NUMBER} / ${ASTERISK_VER_GROUP}"
 echo "  Asterisk Repos : ${ASTERISK_REPOS_LOCATION}"
 echo "      Build user : ${BUILD_USER}"
 echo "         Version : ${SCCP_VERSION}_${SCCP_BRANCH}_r${SCCP_REVISION}"
+echo "Compiler Version : `${CC} -dumpversion`"
 echo "              CC : ${CC}"
 echo "             CPP : ${CPP}"
 if test -n "$HOST_CC" ; then

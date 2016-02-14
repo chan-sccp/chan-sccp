@@ -190,6 +190,7 @@ AS_IF([test "$sccp_cv_atomic_CAS32" = "yes" -a "x$sccp_cv_atomic_CASptr" = "xyes
 		 	$1
 		],[
 			using_atomic_buildin="no"
+			CC_works=0
 			$2
 		])
 ])
@@ -214,6 +215,7 @@ dnl                        AC_SUBST([LDFLAGS])
                         AC_MSG_RESULT('Your platform does not support atomic operations and atomic_ops.h could not be found.')
                         AC_MSG_RESULT('Please install the libatomic-ops-dev / libatomic-ops-devel package for your platform, or')
                         AC_MSG_RESULT('Download the necessary library from http://www.hpl.hp.com/research/linux/atomic_ops so that these operations can be emulated')
+			CC_works=0
 dnl                        exit 254
 			$2
                 ])
