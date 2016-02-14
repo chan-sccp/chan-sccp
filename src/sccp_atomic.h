@@ -13,8 +13,6 @@
 #include <atomic_ops.h>
 #endif
 
-#define CAS32_TYPE			int
-
 // Declare CAS32 / CAS_PTR and CAS_TYPE for easy reference in other functions
 #ifdef SCCP_ATOMIC
 
