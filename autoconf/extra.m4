@@ -170,8 +170,8 @@ AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 	AS_IF(	[test -z "`${CC} -std=gnu11 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'unrecognized command line option'`" && test $? == 0],		[CFLAGS_saved="$CFLAGS_saved -std=gnu11 -fgnu89-inline"],
 		[test -n "`${CC} -std=gnu99 -fgnu89-inline -Wno-ignored-qualifiers -dM -E - </dev/null 2>&1 |grep '__STDC_VERSION__ 1999'`" && test $? == 0],	[CFLAGS_saved="$CFLAGS_saved -std=gnu99 -fgnu89-inline -Wno-ignored-qualifiers"],
 		[test -n "`${CC} -std=gnu99 -fgnu89-inline -Wno-return-type -dM -E - </dev/null 2>&1 |grep '__STDC_VERSION__ 1999'`" && test $? == 0],		[CFLAGS_saved="$CFLAGS_saved -std=gnu99 -fgnu89-inline -Wno-return-type"],
-		[test -n "`${CC} -std=gnu89 -Wno-return-type -dM -E - </dev/null 2>&1 |grep '__STDC__ 1'`" && test $? == 0], 					[CFLAGS_saved="$CFLAGS_saved -std=gnu89 -Wno-return-type"],
-		[CFLAGS_saved="$CFLAGS_saved -Wno-return-type"])
+		[test -n "`${CC} -std=gnu89 -Wno-return-type -dM -E - </dev/null 2>&1 |grep '__STDC__ 1'`" && test $? == 0], 					[CFLAGS_saved="$CFLAGS_saved -std=gnu89 -Wno-return-type";CC_works=0],
+		[CFLAGS_saved="$CFLAGS_saved -Wno-return-type";CC_works=0])
 	AS_IF(	[test "${cross_compiling}" = "yes"], [
 		AC_CHECK_TOOL(CC, gcc, :)
 		AC_CHECK_TOOL(LD, ld, :)

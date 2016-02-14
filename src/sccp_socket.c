@@ -41,9 +41,9 @@ sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 /* arbitrary values */
 #define SOCKET_TIMEOUT_SEC 7											/* timeout after seven seconds when trying to read/write from/to a socket */
 #define SOCKET_TIMEOUT_MILLISEC 0										/* "       "     0 milli seconds "    "    */
-#define SOCKET_KEEPALIVE_IDLE GLOB(keepalive)									/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
-#define SOCKET_KEEPALIVE_INTVL 5										/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
-#define SOCKET_KEEPALIVE_CNT 5											/* The maximum number of keepalive probes TCP should send before dropping the connection. */
+//#define SOCKET_KEEPALIVE_IDLE GLOB(keepalive)									/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
+//#define SOCKET_KEEPALIVE_INTVL 5										/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
+//#define SOCKET_KEEPALIVE_CNT 5											/* The maximum number of keepalive probes TCP should send before dropping the connection. */
 #define SOCKET_LINGER_ONOFF 1											/* linger=on */
 #define SOCKET_LINGER_WAIT 0											/* but wait 0 milliseconds before closing socket and discard all outboung messages */
 #define SOCKET_RCVBUF SCCP_MAX_PACKET										/* SO_RCVBUF */
@@ -485,50 +485,45 @@ static void __sccp_session_stopthread(sessionPtr session, uint8_t newRegistratio
 
 static int sccp_dissect_header(sccp_session_t * s, sccp_header_t * header)
 {
+	int result = -1;
 	unsigned int packetSize = header->length;
-	unsigned int protocolVersion = letohl(header->lel_protocolVer);
-	unsigned int messageId = letohl(header->lel_messageId);
+	int protocolVersion = letohl(header->lel_protocolVer);
+	sccp_mid_t messageId = letohl(header->lel_messageId);
 
-	// dissecting header to see if we have a valid sccp message, that we can handle
-	if (packetSize < 4 || packetSize > SCCP_MAX_PACKET - 8) {
-		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) Size of the data payload in the packet (messageId: %u, protocolVersion: %u / 0x0%x) is out of bounds: %d < %u > %d, cancelling read.\n", messageId, protocolVersion, protocolVersion, 4, packetSize, (int) (SCCP_MAX_PACKET - 8));
-		return -1;
-	}
-	if (protocolVersion > 0 && !(sccp_protocol_isProtocolSupported(s->protocolType, protocolVersion))) {
-		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) protocolversion %u is unknown, cancelling read.\n", protocolVersion);
-		return -1;
-	}
-
-	if (messageId < SCCP_MESSAGE_LOW_BOUNDARY || messageId > SCCP_MESSAGE_HIGH_BOUNDARY) {
-		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) messageId out of bounds: %d < %u > %d, cancelling read.\n", SCCP_MESSAGE_LOW_BOUNDARY, messageId, SCCP_MESSAGE_HIGH_BOUNDARY);
-		return -1;
-	}
-#if DEBUG
-	boolean_t Found = FALSE;
-	uint32_t x;
-
-	if (messageId < SPCP_MESSAGE_OFFSET) {
-		for (x = 0; x < ARRAY_LEN(sccp_messagetypes); x++) {
-			if (messageId == x) {
-				Found = TRUE;
-				break;
-			}
+	do {
+		// dissecting header to see if we have a valid sccp message, that we can handle
+		if (packetSize < 4 || packetSize > SCCP_MAX_PACKET - 8) {
+			pbx_log(LOG_ERROR, "%s: (session_dissect_header) Size of the data payload in the packet (messageId: %u, protocolVersion: %u / 0x0%x) is out of bounds: %d < %u > %d, close connection !\n", DEV_ID_LOG(s->device), messageId, protocolVersion, protocolVersion, 4, packetSize, (int) (SCCP_MAX_PACKET - 8));
+			return -2;
 		}
-	} else {
-		for (x = 0; x < ARRAY_LEN(spcp_messagetypes); x++) {
-			if (messageId - SPCP_MESSAGE_OFFSET == x) {
-				Found = TRUE;
-				break;
-			}
-		}
-	}
-	if (!Found) {
-		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) messageId %d could not be found in the array of known messages, cancelling read.\n", messageId);
-		//return -1;                                                                            /* not returning -1 in this case, so that we can see the message we would otherwise miss */
-	}
-#endif
 
-	return msgtype2size(messageId);
+		if (protocolVersion > 0 && !(sccp_protocol_isProtocolSupported(s->protocolType, protocolVersion))) {
+			pbx_log(LOG_ERROR, "%s: (session_dissect_header) protocolversion %u is unknown, cancelling read.\n", DEV_ID_LOG(s->device), protocolVersion);
+			break;
+		}
+
+		const struct messagetype *msgtype;
+		if (messageId >= SCCP_MESSAGE_LOW_BOUNDARY && messageId <= SCCP_MESSAGE_HIGH_BOUNDARY) {
+			msgtype = &sccp_messagetypes[messageId];
+			if (msgtype->messageId == messageId) {
+				return msgtype->size + SCCP_PACKET_HEADER;
+			}
+			pbx_log(LOG_ERROR, "%s: (session_dissect_header) messageId %d (0x%x) unknown. discarding message.\n", DEV_ID_LOG(s->device), messageId, messageId);
+			break;
+		} else if (messageId >= SPCP_MESSAGE_LOW_BOUNDARY || messageId <= SPCP_MESSAGE_HIGH_BOUNDARY) {
+			msgtype = &sccp_messagetypes[messageId - SPCP_MESSAGE_OFFSET];
+			if (msgtype->messageId == messageId) {
+				return msgtype->size + SCCP_PACKET_HEADER;
+			}
+			pbx_log(LOG_ERROR, "%s: (session_dissect_header) messageId %d (0x%x) unknown. discarding message.\n", DEV_ID_LOG(s->device), messageId, messageId);
+			break;
+		} else {
+			pbx_log(LOG_ERROR, "%s: (session_dissect_header) messageId out of bounds: %d < %u > %d. Or messageId unknown. discarding message.\n", DEV_ID_LOG(s->device), SCCP_MESSAGE_LOW_BOUNDARY, messageId, SPCP_MESSAGE_HIGH_BOUNDARY);
+			break;
+		}
+	} while (0);
+
+	return result;
 }
 
 static void sccp_socket_get_error(constSessionPtr s)
@@ -1067,13 +1062,13 @@ void sccp_socket_setoptions(int new_socket)
 	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(mytv));
 
 	/* keepalive */
-	int ip_keepidle  = SOCKET_KEEPALIVE_IDLE;								/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
-	int ip_keepintvl = SOCKET_KEEPALIVE_INTVL;								/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
-	int ip_keepcnt   = SOCKET_KEEPALIVE_CNT;								/* The maximum number of keepalive probes TCP should send before dropping the connection. */
-	SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPIDLE, &ip_keepidle, sizeof(int));
-	SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPINTVL, &ip_keepintvl, sizeof(int));
-	SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPCNT, &ip_keepcnt, sizeof(int));
-	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
+	//int ip_keepidle  = SOCKET_KEEPALIVE_IDLE;								/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
+	//int ip_keepintvl = SOCKET_KEEPALIVE_INTVL;								/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
+	//int ip_keepcnt   = SOCKET_KEEPALIVE_CNT;								/* The maximum number of keepalive probes TCP should send before dropping the connection. */
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPIDLE, &ip_keepidle, sizeof(int));
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPINTVL, &ip_keepintvl, sizeof(int));
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPCNT, &ip_keepcnt, sizeof(int));
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
 
 	/* linger */
 	struct linger so_linger = {SOCKET_LINGER_ONOFF, SOCKET_LINGER_WAIT};					/* linger=on but wait 0 milliseconds before closing socket and discard all outboung messages */

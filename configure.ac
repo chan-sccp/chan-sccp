@@ -132,7 +132,8 @@ AC_CONFIG_FILES([
    contrib/gen_sccpconf/Makefile
 ])
 AC_CONFIG_COMMANDS([tools/autorevision], [${ac_abs_top_srcdir}/tools/autorevision -t h -o ${ac_abs_top_srcdir}/.revision > ${ac_abs_top_builddir}/src/revision.h 2>/dev/null])
-AC_CONFIG_COMMANDS([gen_enum], [gawk -O -v out_header_file=src/sccp_enum.h -v out_source_file=src/sccp_enum.c -f "${ac_abs_top_srcdir}/tools/gen_sccp_enum.awk" < ${ac_abs_top_srcdir}/src/sccp_enum.in])
+dnl AC_CONFIG_COMMANDS([gen_enum], [gawk -O -v out_header_file=src/sccp_enum.h -v out_source_file=src/sccp_enum.c -f "${ac_abs_top_srcdir}/tools/gen_sccp_enum.awk" < ${ac_abs_top_srcdir}/src/sccp_enum.in])
+AC_CONFIG_COMMANDS([gen_enum], [cd ${ac_abs_top_builddir}/src/;awk -f "${ac_abs_top_srcdir}/tools/gen_sccp_enum.awk" < ${ac_abs_top_srcdir}/src/sccp_enum.in])
 
 VERSION="`echo ${SCCP_VERSION}_${SCCP_BRANCH}`"
 PACKAGE_STRING="`echo Chan_SCCP_${VERSION}`"
@@ -155,6 +156,7 @@ echo "Asterisk Version : ${ASTERISK_VERSION_NUMBER} / ${ASTERISK_VER_GROUP}"
 echo "  Asterisk Repos : ${ASTERISK_REPOS_LOCATION}"
 echo "      Build user : ${BUILD_USER}"
 echo "         Version : ${SCCP_VERSION}_${SCCP_BRANCH}_r${SCCP_REVISION}"
+echo "Compiler Version : `${CC} -dumpversion`"
 echo "              CC : ${CC}"
 echo "             CPP : ${CPP}"
 if test -n "$HOST_CC" ; then
