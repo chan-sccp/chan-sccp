@@ -204,7 +204,6 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
  * sccp pickup helper function
  * \note: function is called with target locked
  */
-#include <asterisk/callerid.h>
 static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_TYPE *target, boolean_t answer)
 {
 	int res = 0;
