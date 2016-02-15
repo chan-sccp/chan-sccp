@@ -656,7 +656,7 @@ void *sccp_netsock_device_thread(void *session)
 				//sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving at buffer position:%lu\n", DEV_ID_LOG(s->device), recv_len);
 				result = recv(s->fds[0].fd, recv_buffer + recv_len, (SCCP_MAX_PACKET * 2) - recv_len, 0);
 				if (!(result > 0 && (recv_len += result) && process_buffer(s, &msg, recv_buffer, &recv_len) == 0)) {
-					socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
+					//socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
 					if (s->device) {
 						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
 					}
