@@ -115,7 +115,6 @@ typedef struct SCCPConfigOption {
 } SCCPConfigOption;
 
 //converter function prototypes 
-//#define sccp_config_parse_codec_preferences "codec_preferences"
 #define sccp_config_parse_mailbox "(mailbox)=mailbox@context"
 #define sccp_config_parse_tos "(tos)=[[value]]|lowdelay|throughput|reliability|mincost|none"
 #define sccp_config_parse_cos "(cos)=[[value]]"
@@ -127,15 +126,9 @@ typedef struct SCCPConfigOption {
 #define sccp_config_parse_permithosts "(permithosts)=[[hostname]]"
 #define sccp_config_parse_addons "(addons)=7914,7915,7916,SPA500S"
 #define sccp_config_parse_privacyFeature "(privacyFeature)=full|on|off"
-//#define sccp_config_parse_earlyrtp "(earlyrtp)=none|offhook|dial|ringout|progress"
-//#define sccp_config_parse_dtmfmode "(dtmfmode)=outofband|inband"
-//#define sccp_config_parse_mwilamp "(mwilamp)=on|off|wink|flash|blink"
 #define sccp_config_parse_debug "(debug)=all,none,core,sccp,hint,rtp,device,line,action,channel,cli,config,feature,feature_button,softkey,indicate,pbx,socket,mwi,event,adv_feature,conference,buttontemplate,speeddial,codec,realtime,lock,threadlock,message,newcode,high,myi,fixme,fyi"
 #define sccp_config_parse_ipaddress "(ipaddress)=[[ipaddress]]"
 #define sccp_config_parse_port "(port)=[[port]]"
-//#define sccp_config_parse_blindtransferindication "(blindtransferindication)=moh|ring"
-//#define sccp_config_parse_callanswerorder "(callanswerorder)=oldestfirst|lastfirst"
-//#define sccp_config_parse_regcontext "(regcontext)=[[string]]"
 #define sccp_config_parse_context "(context)=[[context]]"
 #define sccp_config_parse_hotline_context "(hotline_context)=[[context]]"
 #define sccp_config_parse_hotline_exten "(hotline_exten)=[[value]]"
@@ -145,7 +138,9 @@ typedef struct SCCPConfigOption {
 #define sccp_config_parse_codec_preferences "(codec)=all|(alaw,ulaw,gsm,ilbc,g722,g723,g729,g726,slin,slin16)"
 #define sccp_config_parse_deny_permit "(permit)=[[ipaddress]],internal | (deny)=[[ipaddress]],internal"
 #define sccp_config_parse_hotline_label ""
-//#define sccp_config_parse_dnd_wrapper "(dnd)=reject|silent|user|on|off"
+#define sccp_config_parse_jbflags_maxsize "200"
+#define sccp_config_parse_jbflags_jbresyncthreshold "1000"
+#define sccp_config_parse_jbflags_impl "fixed"
 
 uint32_t (sccp_enum_str2intval) (const char *lookup_str);
 const char *(sccp_enum_all_entries)(void);
