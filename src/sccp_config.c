@@ -1231,7 +1231,7 @@ sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t si
 	
 	if (!sccp_strcaseequals(hotline->exten, value)) {
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
-		pbx_copy_string(hotline->exten, value, AST_MAX_EXTENSION);
+		pbx_copy_string(hotline->exten, value, SCCP_MAX_EXTENSION);
 		if (hotline->line) {
 			if (hotline->line->adhocNumber) {
 				sccp_free(hotline->line->adhocNumber);

@@ -701,8 +701,8 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 	char multi[256] = "";
 	char *stringp, *ext = "", *context = "";
 
-	// char extension[AST_MAX_CONTEXT]="";
-	// char name[AST_MAX_CONTEXT]="";
+	// char extension[SCCP_MAX_CONTEXT]="";
+	// char name[SCCP_MAX_CONTEXT]="";
 
 	struct pbx_context *con;
 	struct pbx_find_info q = {.stacklen = 0 };

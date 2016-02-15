@@ -112,7 +112,7 @@ struct sccp_line {
  */
 struct sccp_hotline {
 	sccp_line_t *line;											/*!< Line */
-	char exten[AST_MAX_EXTENSION];										/*!< Extension */
+	char exten[SCCP_MAX_EXTENSION];										/*!< Extension */
 };														/*!< SCCP Hotline Structure */
 
 /*!

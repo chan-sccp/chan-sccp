@@ -299,7 +299,7 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 {
 	sccp_hint_list_t *hint;
 	int extensionState;
-	//char hintStr[AST_MAX_EXTENSION];
+	//char hintStr[SCCP_MAX_EXTENSION];
 	//const char *cidName;
 	//const char *cidNumber;
 	char cidName[StationMaxNameSize] = "";
