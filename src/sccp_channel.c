@@ -1196,7 +1196,7 @@ void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel)
 {
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
 	if (c) {
-		ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock);
+		(void) ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock);
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks (digittimeout_id:%d) (hangup_id:%d)\n", c->designator, c->scheduler.digittimeout_id, c->scheduler.hangup_id);
 		if (c->scheduler.digittimeout_id > -1) {
 			iPbx.sched_del_ref(&c->scheduler.digittimeout_id, c);
