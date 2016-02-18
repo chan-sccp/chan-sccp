@@ -1,3 +1,90 @@
+2016-02-15  ddegroot
+
+	* [r6630] src/sccp_config.c, src/sccp_hint.c, src/sccp_line.c,
+	  src/sccp_line.h: Use SCCP_MAX_EXTENSION instead of
+	  AST_MAX_EXTENSION
+
+	* [r6629] src/sccp_config.c: Fix: having hotline_exten defined in
+	  sccp.conf caused reset of all device on every reload.
+
+	* [r6628] src/sccp_session.c: Fix: removed socket error message,
+	  when it was already handled. Issue reported by Pavel
+
+	* [r6627] src/sccp_features.c: Cleanup: remove unused include
+
+	* [r6626] contrib/gen_sccpconf/gen_sccpconf.h: Fix: gen_sccpconf
+	  generator to include jbflag defaults
+
+	* [r6625] src/sccp_indicate.c: Roll back of CallHistoryDisposition
+	  patch
+
+	* [r6623] src/sccp_features.c: Fix update phonebook received calls
+	  when using pickup/gpickup
+
+2016-02-14  ddegroot
+
+	* [r6622] autoconf/asterisk.m4, configure, configure.ac: Fix:
+	  configure script leaving behind temporary directory
+
+	* [r6621] src/pbx_impl/ast110/ast110.c: Fix asterisk-10 compile
+	  issue. Reported by hhornung.
+
+	* [r6620] Makefile.am, Makefile.in: Fix: Makefile.am to install
+	  sccp.conf if not already available
+
+	* [r6619] .gitignore, Makefile.am, Makefile.in, NEWS, README.md,
+	  autoconf/acinclude.m4, autoconf/asterisk.m4, autoconf/extra.m4,
+	  configure, contrib/llvm-scan-build, debian/rules,
+	  src/Makefile.am, src/Makefile.in, src/chan_sccp.c,
+	  src/chan_sccp.h, src/common.h, src/config.h.in,
+	  src/define.h[ADD], src/pbx_impl/Makefile.am,
+	  src/pbx_impl/Makefile.in, src/pbx_impl/ast/ast.c,
+	  src/pbx_impl/ast/ast.h, src/pbx_impl/ast/define.h,
+	  src/pbx_impl/ast106/ast106.c, src/pbx_impl/ast106/ast106.h,
+	  src/pbx_impl/ast108/ast108.c, src/pbx_impl/ast108/ast108.h,
+	  src/pbx_impl/ast110/ast110.c, src/pbx_impl/ast110/ast110.h,
+	  src/pbx_impl/ast111/ast111.c, src/pbx_impl/ast111/ast111.h,
+	  src/pbx_impl/ast112/ast112.c, src/pbx_impl/ast112/ast112.h,
+	  src/pbx_impl/ast113/ast113.c, src/pbx_impl/ast113/ast113.h,
+	  src/pbx_impl/ast_announce/ast_announce.c,
+	  src/pbx_impl/pbx_impl.c, src/pbx_impl/pbx_impl.h,
+	  src/sccp_actions.c, src/sccp_actions.h, src/sccp_appfunctions.c,
+	  src/sccp_appfunctions.h, src/sccp_atomic.h, src/sccp_callinfo.c,
+	  src/sccp_callinfo.h, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_cli.c, src/sccp_codec.h[ADD], src/sccp_conference.c,
+	  src/sccp_config.c, src/sccp_config.h, src/sccp_config_entries.hh,
+	  src/sccp_debug.c[ADD], src/sccp_debug.h[ADD], src/sccp_device.c,
+	  src/sccp_device.h, src/sccp_devstate.c, src/sccp_dllists.h,
+	  src/sccp_enum.in, src/sccp_event.c, src/sccp_event.h,
+	  src/sccp_featureButton.c, src/sccp_features.c,
+	  src/sccp_features.h, src/sccp_globals.c[ADD],
+	  src/sccp_globals.h[ADD], src/sccp_hint.c, src/sccp_indicate.c,
+	  src/sccp_line.c, src/sccp_line.h, src/sccp_management.c,
+	  src/sccp_mwi.c, src/sccp_mwi.h, src/sccp_netsock.c[ADD],
+	  src/sccp_netsock.h[ADD], src/sccp_pbx.c, src/sccp_pbx.h,
+	  src/sccp_protocol.c, src/sccp_protocol.h, src/sccp_refcount.c,
+	  src/sccp_refcount.h, src/sccp_rtp.c, src/sccp_rtp.h,
+	  src/sccp_session.c[ADD], src/sccp_session.h[ADD],
+	  src/sccp_socket.c[DEL], src/sccp_socket.h[DEL],
+	  src/sccp_softkeys.c, src/sccp_softkeys.h, src/sccp_threadpool.c,
+	  src/sccp_threadpool.h, src/sccp_utils.c, src/sccp_utils.h,
+	  src/sccp_vector.h, tools/gen_sccp_enum.awk: Merge current git
+	  master into svn trunk, includes feature/modularize_reduce_include
+
+	* [r6611] autoconf/check_raii.m4, configure: Fix: ancient compiler
+	  warning
+
+	* [r6610] src/chan_sccp.c, src/sccp_protocol.h, src/sccp_socket.c,
+	  src/sccp_utils.c, src/sccp_utils.h: Enh/Fix: skinny message id
+	  boundary checks during message parsing (old version caused issues
+	  with clang-3.8).
+
+	* [r6609] ChangeLog, autoconf/check_atomics.m4,
+	  autoconf/check_raii.m4, autoconf/extra.m4, configure,
+	  configure.ac, debian/control, debian/rules: Update debian package
+	  build rules
+	  Show warning (in red) at configure end if compiler is outdated
+
 2016-02-12  ddegroot
 
 	* [r6608] src/sccp_atomic.h: Fix: always define CAS32_TYPE.
