@@ -1,3 +1,4 @@
+
 /*!
  * \file        sccp_actions.c
  * \brief       SCCP Actions Class
@@ -261,11 +262,9 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
  */
 void sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const uint32_t callid)
 {
+	pbx_assert(d != NULL && d->session != NULL);
 	sccp_msg_t *msg_out = NULL;
 
-	if (!d || !d->session) {
-		return;
-	}
 	REQ(msg_out, BackSpaceReqMessage);
 	msg_out->data.BackSpaceReqMessage.lel_lineInstance = htolel(lineInstance);
 	msg_out->data.BackSpaceReqMessage.lel_callReference = htolel(callid);
@@ -282,11 +281,8 @@ void sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const u
  */
 void sccp_handle_dialtone(constDevicePtr d, constLinePtr l, constChannelPtr channel)
 {
+	pbx_assert(d != NULL && l != NULL || channel != NULL);
 	uint8_t instance;
-
-	if (!d || !l || !channel) {
-		return;
-	}
 
 	//pbx_log(LOG_WARNING, "%s: handle dialtone on %s. Current state: %s\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
 	if (channel->softswitch_action != SCCP_SOFTSWITCH_DIAL || channel->scheduler.hangup_id > -1 || channel->state == SCCP_CHANNELSTATE_DIALING) {
@@ -2436,12 +2432,9 @@ void handle_headset(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
  */
 void handle_capabilities_res(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
+	pbx_assert(d != NULL);
 	int i;
 	skinny_codec_t codec;
-
-	if (!d) {
-		return;
-	}
 
 	uint8_t n = letohl(msg_in->data.CapabilitiesResMessage.lel_count);
 
@@ -2799,15 +2792,12 @@ void handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMessage
  */
 void sccp_handle_time_date_req(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
+	pbx_assert(s != NULL);
 	time_t timer = 0;
 	struct tm *cmtime = NULL;
 
 	// char servername[StationMaxDisplayNotifySize];
 	sccp_msg_t *msg_out = NULL;
-
-	if (!s) {
-		return;
-	}
 	REQ(msg_out, DefineTimeDate);
 
 	/* modulate the timezone by full hours only */
@@ -2835,6 +2825,7 @@ void sccp_handle_time_date_req(constSessionPtr s, devicePtr d, constMessagePtr n
  */
 void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
+	pbx_assert(d != NULL);
 	int digit;
 	uint8_t lineInstance;
 	uint32_t callid;
@@ -2848,11 +2839,6 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	//pbx_log(LOG_NOTICE, "%s: lineInstance %d\n", sccp_session_getDesignator(s), lineInstance);
 	//pbx_log(LOG_NOTICE, "%s: callid %d\n", sccp_session_getDesignator(s), callid);
 
-	if (!d) {												// should never be possible, d should have been retained in calling function
-		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but device is not specified! Exiting\n", DEV_ID_LOG(d));
-		return;
-	}
-	
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	AUTO_RELEASE sccp_line_t *l = NULL;
 	
@@ -3038,16 +3024,13 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
  */
 void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
+	pbx_assert(d != NULL);
+
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Got Softkey\n", DEV_ID_LOG(d));
 
 	uint32_t event = letohl(msg_in->data.SoftKeyEventMessage.lel_softKeyEvent);
 	uint32_t lineInstance = letohl(msg_in->data.SoftKeyEventMessage.lel_lineInstance);
 	uint32_t callid = letohl(msg_in->data.SoftKeyEventMessage.lel_callReference);
-
-	if (!d) {
-		pbx_log(LOG_ERROR, "SCCP: Received Softkey Event but no device to connect it to. Exiting\n");
-		return;
-	}
 
 	if ((int)event - 1 < 0 || (int)event - 1 > (int)ARRAY_LEN(softkeysmap) - 1) {
 		pbx_log(LOG_ERROR, "SCCP: Received Softkey Event is out of bounds of softkeysmap (0 < %ld < %ld). Exiting\n", (long)(letohl(msg_in->data.SoftKeyEventMessage.lel_softKeyEvent) - 1), (long)ARRAY_LEN(softkeysmap));
@@ -3099,7 +3082,7 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 		}
 
 		/* disable callplane for this device */
-		if (d && d->indicate && d->indicate->onhook) {
+		if (d->indicate && d->indicate->onhook) {
 			d->indicate->onhook(d, lineInstance, callid);
 		}
 	}
@@ -3659,6 +3642,7 @@ void handle_ConnectionStatistics(constSessionPtr s, devicePtr device, constMessa
  */
 void handle_ServerResMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
+	pbx_assert(d != NULL);
 	sccp_msg_t *msg_out = NULL;
 
 	if (!sccp_session_isValid(s) || sccp_session_check_crossdevice(s, d)) {
@@ -3668,7 +3652,7 @@ void handle_ServerResMessage(constSessionPtr s, devicePtr d, constMessagePtr msg
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending servers message (%s)\n", DEV_ID_LOG(d), sccp_session_getDesignator(s));
 
 	REQ(msg_out, ServerResMessage);
-	if (d && d->protocolversion < 17) {
+	if (d->protocolversion < 17) {
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getOurIP(s, &sas, 0);
 		sccp_copy_string(msg_out->data.ServerResMessage.v3.server[0].serverName, GLOB(servername), sizeof(msg_out->data.ServerResMessage.v3.server[0].serverName));
