@@ -281,7 +281,7 @@ void sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const u
  */
 void sccp_handle_dialtone(constDevicePtr d, constLinePtr l, constChannelPtr channel)
 {
-	pbx_assert(d != NULL && l != NULL || channel != NULL);
+	pbx_assert(d != NULL && l != NULL && channel != NULL);
 	uint8_t instance;
 
 	//pbx_log(LOG_WARNING, "%s: handle dialtone on %s. Current state: %s\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
