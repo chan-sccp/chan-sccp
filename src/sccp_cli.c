@@ -1641,7 +1641,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 			return RESULT_FAILURE;
 		}
 		if ((d = sccp_device_find_byid(argv[3], FALSE))) {
-			instance = atoi(argv[4]);
 			SCCP_LIST_LOCK(&d->buttonconfig);
 			SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 				if (buttonconfig->type == SPEEDDIAL) {

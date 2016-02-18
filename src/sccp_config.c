@@ -1214,8 +1214,6 @@ sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t 
 			sccp_free(hotline->line->context);
 		}
 		hotline->line->context = pbx_strdup(value);
-	} else {
-		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	}
 	return changed;
 }
@@ -1230,18 +1228,16 @@ sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t si
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
 	sccp_hotline_t *hotline = *(sccp_hotline_t **) dest;
-
+	
 	if (!sccp_strcaseequals(hotline->exten, value)) {
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
-		pbx_copy_string(hotline->exten, value, sizeof *hotline->exten);
+		pbx_copy_string(hotline->exten, value, SCCP_MAX_EXTENSION);
 		if (hotline->line) {
 			if (hotline->line->adhocNumber) {
 				sccp_free(hotline->line->adhocNumber);
 			}
 			hotline->line->adhocNumber = pbx_strdup(value);
 		}
-	} else {
-		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	}
 	return changed;
 }
@@ -1263,8 +1259,6 @@ sccp_value_changed_t sccp_config_parse_hotline_label(void *dest, const size_t si
 			sccp_free(hotline->line->label);
 		}
 		hotline->line->label = pbx_strdup(value);
-	} else {
-		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	}
 	return changed;
 }

@@ -707,7 +707,7 @@ dnl			])
 			               	$HEADER_INCLUDE
 					#include <asterisk/stasis.h>
 				], [
-                                        struct stasis_topic *stasis_topic;
+                                        struct stasis_topic *stasis_topic = NULL;
 					void *data;
                                         struct stasis_subscription *stasis_sub = stasis_subscribe(stasis_topic, data, data);
 				], [CS_AST_HAS_STASIS],['stasis_subscribe' available]
@@ -905,7 +905,7 @@ dnl			])
 					#endif
 					#include <asterisk/sched.h>
 				],[
-					struct sched_context *test_con;
+					struct sched_context *test_con = NULL;
 					int test_id = 0;
 					int test_sched_del = AST_SCHED_DEL(test_con, test_id);
 				],[CS_AST_SCHED_DEL],['AST_SCHED_DEL' available]

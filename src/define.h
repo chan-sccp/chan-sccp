@@ -82,13 +82,13 @@ static SCCP_INLINE unsigned short __bswap_16(unsigned short x)
 #ifndef HAVE_BSWAP_32
 static SCCP_LINE unsigned int __bswap_32(unsigned int x)
 {
-	return (bswap_16(x & 0xffff) << 16) | (bswap_16(x >> 16));
+	return (__bswap_16(x & 0xffff) << 16) | (__bswap_16(x >> 16));
 }
 #endif
 #ifndef HAVE_BSWAP_64
 static SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 {
-	return (((unsigned long long) bswap_32(x & 0xffffffffull)) << 32) | (bswap_32(x >> 32));
+	return (((unsigned long long) __bswap_32(x & 0xffffffffull)) << 32) | (__bswap_32(x >> 32));
 }
 #endif
 #endif
