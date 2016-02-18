@@ -568,8 +568,8 @@ chan_sccp_la_LDFLAGS = $(AM_LDFLAGS) $(PBX_LDFLAGS) \
 	$(SANITIZE_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) \
 	$(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) \
 	$(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS) $(LIBBFD) \
-	$(LIBEXECINFO) $(LTLIBICONV) -avoid-version -module -ldl -lm \
-	-s -rdynamic
+	$(LIBEXECINFO) $(LTLIBICONV) -avoid-version -module -lm -s \
+	-rdynamic
 all: $(BUILT_SOURCES) config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

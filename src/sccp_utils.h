@@ -13,6 +13,7 @@
 #ifdef strdupa
 #define sccp_strdupa strdupa
 #else
+#ifndef pbx_strdupa
 #define pbx_strdupa(s)						\
 	(__extension__						\
 	({							\
@@ -22,6 +23,7 @@
 		memcpy (__new, __old, __len);			\
 		__new;						\
 	}))
+#endif
 #define strdupa sccp_strdupa
 #endif
 
