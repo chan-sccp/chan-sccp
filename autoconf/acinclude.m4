@@ -66,9 +66,9 @@ AC_DEFUN([CS_CHECK_PBX], [
 		AC_MSG_CHECKING([Search Path: $PBX_PATH])
 		for dir in $PBX_PATH; do
 			if test "`echo $dir | cut -c1`" == "."; then 
-				checkdir="`pwd`/$dir"
+				checkdir="`pwd`/${dir%/}"
 			else
-				checkdir="$dir"
+				checkdir="${dir%/}"
 			fi
 			if test -f "${checkdir}/include/asterisk/asterisk.h"; then
 				found_pbx="yes";
@@ -119,17 +119,21 @@ AC_DEFUN([CS_CHECK_PBX], [
 		else
 			if test x_$found_asterisk = x_yes; then
 				AC_MSG_RESULT([Asterisk found in ${checkdir}])
-				PBX_ETC=""
+				PBX_PREFIX="/usr"
+				PBX_ETC="/etc/asterisk"
+				PBX_LIB="/usr/lib"
 				if test -f "${checkdir}/etc/asterisk/asterisk.conf"; then
 					PBX_PREFIX="${checkdir}"
 					PBX_ETC="${checkdir}/etc/asterisk"
-					PBX_VARLIB="${checkdir}/var/lib/asterisk"
-					PBX_SBINDIR="${checkdir}/usr/sbin"
-				elif test -f "/etc/asterisk/asterisk.conf"; then
-					PBX_PREFIX=""
-					PBX_ETC="/etc/asterisk"
-					PBX_VARLIB="/var/lib/asterisk"
-					PBX_SBINDIR="/usr/sbin"
+					if test -d "${checkdir}/var/lib/asterisk"; then
+						PBX_VARLIB="${checkdir}/var/lib/asterisk"
+					fi
+					if test -d "${checkdir}/usr/sbin"; then
+						PBX_SBINDIR="${checkdir}/usr/sbin"
+					fi
+					if test -d "${checkdir}/lib"; then
+						PBX_LIB="${checkdir}/lib"
+					fi
 				fi
 				if test -n "${PBX_ETC}"; then
 					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir[[[[:space:]]]]*=>[[[[:space:]]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
@@ -148,7 +152,6 @@ AC_DEFUN([CS_CHECK_PBX], [
 						AC_MSG_NOTICE([astsbindir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='])
 					fi
 				fi
-				PBX_LIB="${checkdir}/lib"
 				PBX_LDFLAGS="$LDFLAGS -L${checkdir}/lib"
 				case "${build_cpu}" in
 					x86_64|amd64|ppc64)

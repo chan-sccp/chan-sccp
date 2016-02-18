@@ -18780,9 +18780,9 @@ $as_echo "not found" >&6; }
 $as_echo_n "checking Search Path: $PBX_PATH... " >&6; }
 		for dir in $PBX_PATH; do
 			if test "`echo $dir | cut -c1`" == "."; then
-				checkdir="`pwd`/$dir"
+				checkdir="`pwd`/${dir%/}"
 			else
-				checkdir="$dir"
+				checkdir="${dir%/}"
 			fi
 			if test -f "${checkdir}/include/asterisk/asterisk.h"; then
 				found_pbx="yes";
@@ -18839,17 +18839,21 @@ $as_echo "$as_me: Or run ./configure --with-asterisk=PATH with PATH pointing to 
 			if test x_$found_asterisk = x_yes; then
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Asterisk found in ${checkdir}" >&5
 $as_echo "Asterisk found in ${checkdir}" >&6; }
-				PBX_ETC=""
+				PBX_PREFIX="/usr"
+				PBX_ETC="/etc/asterisk"
+				PBX_LIB="/usr/lib"
 				if test -f "${checkdir}/etc/asterisk/asterisk.conf"; then
 					PBX_PREFIX="${checkdir}"
 					PBX_ETC="${checkdir}/etc/asterisk"
-					PBX_VARLIB="${checkdir}/var/lib/asterisk"
-					PBX_SBINDIR="${checkdir}/usr/sbin"
-				elif test -f "/etc/asterisk/asterisk.conf"; then
-					PBX_PREFIX=""
-					PBX_ETC="/etc/asterisk"
-					PBX_VARLIB="/var/lib/asterisk"
-					PBX_SBINDIR="/usr/sbin"
+					if test -d "${checkdir}/var/lib/asterisk"; then
+						PBX_VARLIB="${checkdir}/var/lib/asterisk"
+					fi
+					if test -d "${checkdir}/usr/sbin"; then
+						PBX_SBINDIR="${checkdir}/usr/sbin"
+					fi
+					if test -d "${checkdir}/lib"; then
+						PBX_LIB="${checkdir}/lib"
+					fi
 				fi
 				if test -n "${PBX_ETC}"; then
 					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir[[[:space:]]]*=>[[[:space:]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
@@ -18871,7 +18875,6 @@ $as_echo "$as_me: astvarlibdir could not be found in ${PBX_ETC}/asterisk.conf (y
 $as_echo "$as_me: astsbindir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&6;}
 					fi
 				fi
-				PBX_LIB="${checkdir}/lib"
 				PBX_LDFLAGS="$LDFLAGS -L${checkdir}/lib"
 				case "${build_cpu}" in
 					x86_64|amd64|ppc64)
