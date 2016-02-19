@@ -13,18 +13,15 @@ posix applications like sed, awk, tr
 asterisk-1.6.2 or higher			    # asterisk-11 or asterisk-13 recommended
 						    # use the latest sub revision 
 Just run:
-./configure
+./configure [....configure flags you prefer...]
 
 And finally:
 make
 make install
 
-To get the developers documentation run
-make doxygen
+For documentation, please visit:
+https://sourceforge.net/p/chan-sccp-b/wiki/Home/
 
-For documentation, please see the files in the doc/html subdirectory or
-check it out on the internet:
-http://chan-sccp-b.sourceforge.net/doc/index.html.
-
+Developer Note:
 When you are making changes to the configure.ac or any of the Makefile.am files you should run ./tools/bootstrap.sh afterwards.
 
