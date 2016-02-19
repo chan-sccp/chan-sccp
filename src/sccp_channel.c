@@ -2466,7 +2466,7 @@ void sccp_channel_park(sccp_channel_t * channel)
 
 		extstr[0] = 128;
 		extstr[1] = SKINNY_LBL_CALL_PARK;
-		sprintf(&extstr[2], " failed");
+		snprintf(&extstr[2], sizeof(extstr), " failed");
 		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 		if (d) {

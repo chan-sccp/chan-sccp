@@ -1082,7 +1082,7 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	{
 		AUTO_RELEASE sccp_line_t *line = lineState->line ? sccp_line_retain(lineState->line) : NULL;
 		if (line) {
-			sprintf(lineName, "SCCP/%s", lineState->line->name);
+			snprintf(lineName, sizeof(lineName), "SCCP/%s", lineState->line->name);
 		} else {
 			return;
 		}

@@ -187,4 +187,10 @@ struct pbx_rwlock_info {
 typedef struct pbx_mutex_info pbx_mutex_t;
 typedef struct pbx_rwlock_info pbx_rwlock_t;
 
+/* deny the use of unsafe functions */
+#define strcat __use_snprintf_instead_of_strcat__
+#define strcpy __use_strncpy_instead_of_strcpy__
+#define sprintf __use_snprintf_instead_of_sprintf__
+#define atoi __use_sccp_atoi_instead_of_atoi__
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

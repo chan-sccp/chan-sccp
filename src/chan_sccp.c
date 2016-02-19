@@ -248,14 +248,14 @@ boolean_t sccp_postPBX_load(void)
 	
 #ifdef VCS_SHORT_HASH
 #ifdef VCS_WC_MODIFIED
-	sprintf(SCCP_REVISIONSTR, "%sM", VCS_SHORT_HASH);
+	snprintf(SCCP_REVISIONSTR, sizeof(SCCP_REVISIONSTR), "%sM", VCS_SHORT_HASH);
 #else
-	sprintf(SCCP_REVISIONSTR, "%s", VCS_SHORT_HASH);
+	snprintf(SCCP_REVISIONSTR, sizeof(SCCP_REVISIONSTR), "%s", VCS_SHORT_HASH);
 #endif
 #else
-	sprintf(SCCP_REVISIONSTR, "%s", SCCP_REVISION);
+	snprintf(SCCP_REVISIONSTR, sizeof(SCCP_REVISIONSTR), "%s", SCCP_REVISION);
 #endif
-	sprintf(SCCP_VERSIONSTR, "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, SCCP_REVISIONSTR, BUILD_USER, BUILD_DATE);
+	snprintf(SCCP_VERSIONSTR, sizeof(SCCP_REVISIONSTR), "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, SCCP_REVISIONSTR, BUILD_USER, BUILD_DATE);
 
 	GLOB(module_running) = TRUE;
 	sccp_refcount_schedule_cleanup((const void *) 0);

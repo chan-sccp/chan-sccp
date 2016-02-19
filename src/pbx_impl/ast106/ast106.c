@@ -878,7 +878,7 @@ static boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channe
 	/* create/set linkid */
 	char linkedid[50];
 
-	sprintf(linkedid, "SCCP::%-10d", channel->callid);
+	snprintf(linkedid, sizeof(linkedid), "SCCP::%-10d", channel->callid);
 	if (iPbx.setChannelLinkedId) {
 		iPbx.setChannelLinkedId(channel, linkedid);
 	}
@@ -1014,7 +1014,7 @@ static void *sccp_wrapper_asterisk16_park_thread(void *data)
 	if (!res) {
 		extstr[0] = 128;
 		extstr[1] = SKINNY_LBL_CALL_PARK_AT;
-		sprintf(&extstr[2], " %d", ext);
+		snprintf(&extstr[2], sizeof(extstr), " %d", ext);
 
 		sccp_dev_displaynotify((sccp_device_t *) arg->device, extstr, 10);
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(arg->device), arg->bridgedChannel->name, ext);

@@ -701,14 +701,15 @@ static int sccp_manager_answerCall2(struct mansession *s, const struct message *
 
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *channelId = astman_get_header(m, "channelId");
+	int channelIntId = sccp_atoi(channelId, strlen(channelId));
 
-	if (atoi(channelId) == 0) {
+	if (channelIntId == 0) {
 		snprintf(retValStr, sizeof(retValStr), "Channel Id has to be a number. You have provided: '%s'\r\n", channelId);
 		astman_send_error(s, m, retValStr);
 		return 0;
 	}
 
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_byid(atoi(channelId));
+	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_byid(channelIntId);
 
 	if (c) {
 		AUTO_RELEASE sccp_device_t *d = NULL;
@@ -749,13 +750,14 @@ static int sccp_manager_answerCall2(struct mansession *s, const struct message *
 static int sccp_manager_hangupCall(struct mansession *s, const struct message *m)
 {
 	const char *channelId = astman_get_header(m, "channelId");
+	int channelIntId = sccp_atoi(channelId, strlen(channelId));
 
-	if (atoi(channelId) == 0) {
+	if (channelIntId == 0) {
 		astman_send_error(s, m, "Channel Id has to be a number.");
 		return 0;
 	}
 
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_byid(atoi(channelId));
+	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_byid(channelIntId);
 
 	if (!c) {
 		astman_send_error(s, m, "Call not found.");
@@ -778,18 +780,19 @@ static int sccp_manager_hangupCall(struct mansession *s, const struct message *m
 static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 {
 	const char *channelId = astman_get_header(m, "channelId");
+	int channelIntId = sccp_atoi(channelId, strlen(channelId));
 	const char *hold = astman_get_header(m, "hold");
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *swap = astman_get_header(m, "SwapChannels");
 	static char *retValStr = "Channel was resumed";
 	boolean_t errorMessage = TRUE;
 
-	if (atoi(channelId) == 0) {
+	if (channelIntId == 0) {
 		astman_send_error(s, m, "Channel Id has to be a number\r\n");
 		return 0;
 	}
 
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_byid(atoi(channelId));
+	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_byid(channelIntId);
 
 	if (!c) {
 		astman_send_error(s, m, "Call not found\r\n");

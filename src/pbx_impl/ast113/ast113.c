@@ -1273,7 +1273,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk113_park(constChannelPtr hostChann
 		bridge_channel = ast_channel_get_bridge_channel(hostChannel->owner);
 		if (bridge_channel) {
 			if (!ast_parking_park_call(bridge_channel, extout, sizeof(extout))) {
-				sprintf(&extstr[2], " %s", extout);
+				snprintf(&extstr[2], sizeof(extstr)-2,  " %s", extout);
 
 				sccp_dev_displayprinotify(device, extstr, 1, 10);
 				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %s\n", DEV_ID_LOG(device), ast_channel_name(hostChannel->owner), extout);

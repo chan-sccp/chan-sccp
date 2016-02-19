@@ -409,12 +409,12 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 				char bucketstr[6];									\
 				if (!s) {										\
 					if (prev == bucket) {								\
-						sprintf(bucketstr, " +-> ");						\
+						snprintf(bucketstr, sizeof(bucketstr), " +-> ");						\
 					} else {									\
-						sprintf(bucketstr, "[%3d]", bucket);					\
+						snprintf(bucketstr, sizeof(bucketstr), "[%3d]", bucket);					\
 					}										\
 				} else {										\
-					sprintf(bucketstr, "%d", bucket);						\
+					snprintf(bucketstr, sizeof(bucketstr), "%d", bucket);						\
 				}											\
 				inuse = FALSE;										\
 				if (check_inuse && obj->alive) {							\

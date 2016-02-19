@@ -278,15 +278,10 @@ static PBX_VARIABLE_TYPE *createVariableSetForMultiEntryParameters(PBX_VARIABLE_
 	PBX_VARIABLE_TYPE *v = cat_root;
 	PBX_VARIABLE_TYPE *tmp = NULL;
 	char delims[] = "|";
+	char option_name[strlen(configOptionName) + 2];
 	char *token = NULL;
-	char *option_name;
-
-	if (!(option_name = alloca(sccp_strlen(configOptionName) + 1))) {
-		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
-		return NULL;
-	}
-
-	sprintf(option_name, "%s%s", configOptionName, delims);							// add delims to string
+	
+	snprintf(option_name, sizeof(option_name), "%s%s", configOptionName, delims);
 	token = strtok(option_name, delims);
 	while (token != NULL) {
 		sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Token %s/%s\n", option_name, token);
@@ -773,17 +768,11 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 				/* tokenize all option parameters */
 				PBX_VARIABLE_TYPE *v;
 				PBX_VARIABLE_TYPE *cat_root;
-				char *option_tokens;
-
+				char option_tokens[sccp_strlen(sccpDstConfig[cur_elem].name) + 2];
 				referralValueFound = FALSE;
 
 				/* tokenparsing */
-				if (!(option_tokens = alloca(sccp_strlen(sccpDstConfig[cur_elem].name) + 1))) {
-					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
-					break;;
-				}
-
-				sprintf(option_tokens, "%s|", sccpDstConfig[cur_elem].name);
+				snprintf(option_tokens, sizeof(option_tokens), "%s|", sccpDstConfig[cur_elem].name);
 				char *option_tokens_saveptr = NULL;
 				char *option_name = strtok_r(option_tokens, "|", &option_tokens_saveptr);
 				do {
@@ -1305,7 +1294,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size
 sccp_value_changed_t sccp_config_parse_jbflags_maxsize(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	int value = atoi(v->value);
+	int value = sccp_atoi(v->value, strlen(v->value));
 	struct ast_jb_conf *jb = *(struct ast_jb_conf **) dest;
 	
 	if (jb->max_size != value) {
@@ -1318,7 +1307,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_maxsize(void *dest, const size_t 
 sccp_value_changed_t sccp_config_parse_jbflags_jbresyncthreshold(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	int value = atoi(v->value);
+	int value = sccp_atoi(v->value, strlen(v->value));
 	struct ast_jb_conf *jb = *(struct ast_jb_conf **) dest;
 	
 	if (jb->resync_threshold != value) {
@@ -2537,7 +2526,7 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, P
 	sccp_config_set_defaults(l, SCCP_CONFIG_LINE_SEGMENT, SetEntries);
 
 	if (sccp_strlen_zero(l->id)) {
-		sprintf(l->id, "%04d", SCCP_LIST_GETSIZE(&GLOB(lines)));
+		snprintf(l->id, sizeof(l->id), "%04d", SCCP_LIST_GETSIZE(&GLOB(lines)));
 	}
 
 	return res;

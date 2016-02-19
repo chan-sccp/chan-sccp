@@ -1,3 +1,64 @@
+Version: v4.3.0_TRUNK
+=====================
+WIP
+ - Reworked configure/make system:
+   - Create Makefile.am per subdirectory
+   - Handle each subdir as a sub-library
+   - Combine the sub-libraries into the final resulting:
+     chan_sccp.so during the final linking step
+   - Use simple path for file inclusion
+   - Clear sepearions between modules (There are still a couple of
+     asterisk in the libsccp module, which should be cleaned up)
+   - Reduced re-compilation when little has changed
+   - Speed up during compilation
+   - Slightly reduced size of the resulting binary
+   - Future Potential to run for example the libsccp module
+     standalone (if the current dependencies can be cleaned up)
+   - Since Automake 1.4 we got warnings because of crossing
+     directory boundaries during automake. This is fixed by splitting
+     the makefiles
+   - The sub-library Makefile.am file are simple and easy to
+     maintain. The focus only on theor own directory
+ - CallFlow: 
+   - Revised handling shared line during incoming call
+   - Revised sccp_socket / session handling during read of potentially unknown messages
+   - Revised callinfo functionalty
+   - Atomic Functions using trylock/spinlock instead of lock, to prevent deadlock
+ - Static Analysis
+   - subsequent fixes
+     - nullpointer checks
+     - dead code removal 
+     - More boundschecking
+   - deny use of strcat, sprintf, atoi and other unsafe functions
+ Fixes:
+  - Channel remaining after hangup
+  - Timeout / Hangup Scheduler issues 
+  - Pickup/GPickup and entries in phonebook
+  - Fixed direcrtp (more work needed)
+  - letohl / bswap fix
+
+Version: v4.2.3_STABLE
+=====================
+New Features in V4.2.3
+ - Warning about use of ancient gcc compiler
+ - New desktop/background images
+ - New AMI Function:SCCPShowRefcount
+ - Support for newer/future version of automake
+ - Small size reduction of chan_sccp.so
+
+Bug Fixes
+ - Channel being left behind after hangup
+ - Scheduled Hangup / Schedule Digit Timeout
+ - Potential Deadlock Fallback Atomic Functions
+ - MWI loosing track of new voicemails under certain circumstances
+ - using gnu version of libiconv fixed
+ - gen_sccp_enum improved / gnu awk extension dependency removed
+ - set socket option should happen before binding to the socket
+ - channel monitor/record handling fixed
+ - Code cleanup / fixed memory leaks / fixed potential null pointer dereferences
+ - Some smaller patches (Check ChangeLog for details)
+  -Some minor BSD Compilation issues
+
 Version: v4.3_STABLE
 =====================
 New Features in V4.3
@@ -9,13 +70,6 @@ New Features in V4.3
 Bug Fixes
  - Fixed Hangup and Timeout Scheduling
  - Fixed refcount bug causing hanging channels
-
-Version: v4.3.0_TRUNK
-=====================
-WIP
- - Fixed direcrtp
- - Revised handling shared line during incoming call
- - Revised callinfo
 
 Version: v4.2_STABLE
 =====================

@@ -142,6 +142,7 @@ int sccp_strversioncmp(const char *s1, const char *s2);
 char *sccp_dec2binstr(char *buf, size_t size, int value);
 gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size);
 char *sccp_trimwhitespace(char *str);
+SCCP_INLINE int SCCP_CALL sccp_atoi(const char * const buf, size_t buflen);
 gcc_inline boolean_t sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char *buf, size_t len);
 long int sccp_random(void);
 #ifdef DEBUG

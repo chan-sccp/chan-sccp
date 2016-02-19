@@ -11,10 +11,13 @@ For documentation, please see the files in the doc subdirectory.
 For building and installation instructions please see the INSTALL file.
 
 ### Prerequisites
-- autoconf (>2.6.0)
-- automake (>1.10)
-- libtool (>2.2.2)
-- m4 (>1.4.5)
+Make sure you have the following installed on your system:
+- gcc >= 4.4 or clang >= 3.6
+  note: older compilers are not supported !
+- gnu make
+- posix applications like sed, awk, tr
+- asterisk-1.6.2 or higher
+  note: asterisk-11 or asterisk-13 recommended
 
 ### Configuring
     ./configure

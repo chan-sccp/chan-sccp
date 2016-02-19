@@ -29,8 +29,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 #  include <asterisk/app.h>
 #endif
 
-AST_THREADSTORAGE(coldata_buf);
-AST_THREADSTORAGE(colnames_buf);
+PBX_THREADSTORAGE(coldata_buf);
+PBX_THREADSTORAGE(colnames_buf);
 
 /*!
  * \brief ${SCCPDEVICE()} Dialplan function - reads device data 
@@ -48,8 +48,8 @@ AST_THREADSTORAGE(colnames_buf);
  */
 static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *output, size_t len)
 {
-	struct ast_str *coldata = ast_str_thread_get(&coldata_buf, 16);
-	struct ast_str *colnames = ast_str_thread_get(&colnames_buf, 16);
+	pbx_str_t *coldata = pbx_str_thread_get(&coldata_buf, 16);
+	pbx_str_t *colnames = pbx_str_thread_get(&colnames_buf, 16);
 	char *colname;												// we should make this a finite length
 	uint16_t buf_len = 1024;
 	char buf[1024] = "";
@@ -69,7 +69,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		if (!colname) {
 			return -1;
 		}
-		sprintf(colname, "ip");
+		snprintf(colname, 16, "ip");
 	}
 
 	AUTO_RELEASE sccp_device_t *d = NULL;
@@ -92,17 +92,17 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			return -1;
 		}
 	}
-	ast_str_reset(colnames);
-	ast_str_reset(coldata);
+	pbx_str_reset(colnames);
+	pbx_str_reset(coldata);
 	if (d) {
-		strcat(colname, ",");										// we should be using strlcat instead
+		snprintf(colname + strlen(colname), sizeof *colname, ",");
 		token = strtok(colname, ",");
 		while (token != NULL) {
 			token = pbx_trim_blanks(token);
 			
 			/** copy request tokens for HASH() */
-			if (ast_str_strlen(colnames)) {
-				ast_str_append(&colnames, 0, ",");
+			if (pbx_str_strlen(colnames)) {
+				pbx_str_append(&colnames, 0, ",");
 			}
 			pbx_str_append_escapecommas(&colnames, 0, token, sccp_strlen(token));
 			/** */
@@ -189,38 +189,36 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			} else if (!strcasecmp(token, "current_line")) {
 				sccp_copy_string(buf, d->currentLine->id, buf_len);
 			} else if (!strcasecmp(token, "button_config")) {
-				char tmp[1024] = "";
-				char lbuf[1024] = "";
+				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 				sccp_buttonconfig_t *config;
 
 				SCCP_LIST_LOCK(&d->buttonconfig);
 				SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 					switch (config->type) {
 						case LINE:
-							snprintf(tmp, sizeof(tmp), "[%d,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->button.line.name ? config->button.line.name : "");
+							pbx_str_append(&lbuf, 0, "[%d,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->button.line.name ? config->button.line.name : "");
 							break;
 						case SPEEDDIAL:
-							snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.speeddial.ext ? config->button.speeddial.ext : "");
+							pbx_str_append(&lbuf, 0, "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.speeddial.ext ? config->button.speeddial.ext : "");
 							break;
 						case SERVICE:
-							snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.service.url ? config->button.service.url : "");
+							pbx_str_append(&lbuf, 0, "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.service.url ? config->button.service.url : "");
 							break;
 						case FEATURE:
-							snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.feature.options ? config->button.feature.options : "");
+							pbx_str_append(&lbuf, 0, "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.feature.options ? config->button.feature.options : "");
 							break;
 						case EMPTY:
-							snprintf(tmp, sizeof(tmp), "[%d,%s]", config->instance, sccp_config_buttontype2str(config->type));
+							pbx_str_append(&lbuf, 0, "[%d,%s]", config->instance, sccp_config_buttontype2str(config->type));
 							break;
 						case SCCP_CONFIG_BUTTONTYPE_SENTINEL:
 							break;
 					}
-					if (strlen(lbuf)) {
-						strcat(lbuf, ",");
+					if (pbx_str_strlen(lbuf)) {
+						pbx_str_append(&lbuf, 0, ",");
 					}
-					strcat(lbuf, tmp);
 				}
 				SCCP_LIST_UNLOCK(&d->buttonconfig);
-				snprintf(buf, buf_len, "[ %s ]", lbuf);
+				snprintf(buf, buf_len, "[ %s ]", pbx_str_buffer(lbuf));
 			} else if (!strcasecmp(token, "pending_delete")) {
 				sccp_copy_string(buf, d->pendingDelete ? "yes" : "no", buf_len);
 			} else if (!strcasecmp(token, "pending_update")) {
@@ -246,8 +244,9 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 
 				codecnum = token + 6;									// move past the '[' 
 				codecnum = strsep(&codecnum, "]");							// trim trailing ']' if any 
-				if (skinny_codecs[atoi(codecnum)].key) {
-					sccp_copy_string(buf, codec2name(atoi(codecnum)), buf_len);
+				int codec_int = sccp_atoi(codecnum, strlen(codecnum));
+				if (skinny_codecs[codec_int].key) {
+					sccp_copy_string(buf, codec2name(codec_int), buf_len);
 				} else {
 					buf[0] = '\0';
 				}
@@ -305,8 +304,8 @@ static struct pbx_custom_function sccpdevice_function = {
  */
 static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *output, size_t len)
 {
-	struct ast_str *coldata = ast_str_thread_get(&coldata_buf, 16);
-	struct ast_str *colnames = ast_str_thread_get(&colnames_buf, 16);
+	pbx_str_t *coldata = pbx_str_thread_get(&coldata_buf, 16);
+	pbx_str_t *colnames = pbx_str_thread_get(&colnames_buf, 16);
 	char *colname;
 	uint16_t buf_len = 1024;
 	char buf[1024] = "";
@@ -326,7 +325,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 		if (!colname) {
 			return -1;
 		}
-		sprintf(colname, "id");
+		snprintf(colname, 16, "id");
 	}
 	AUTO_RELEASE sccp_line_t *l = NULL;
 	AUTO_RELEASE sccp_channel_t *c = NULL;
@@ -360,17 +359,17 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			return -1;
 		}
 	}
-	ast_str_reset(colnames);
-	ast_str_reset(coldata);
+	pbx_str_reset(colnames);
+	pbx_str_reset(coldata);
 	if (l) {
-		strcat(colname, ",");
+		snprintf(colname + strlen(colname), sizeof *colname, ",");
 		token = strtok(colname, ",");
 		while (token != NULL) {
 			token = pbx_trim_blanks(token);
 			
 			/** copy request tokens for HASH() */
-			if (ast_str_strlen(colnames)) {
-				ast_str_append(&colnames, 0, ",");
+			if (pbx_str_strlen(colnames)) {
+				pbx_str_append(&colnames, 0, ",");
 			}
 			pbx_str_append_escapecommas(&colnames, 0, token, sccp_strlen(token));
 			/** */
@@ -445,53 +444,47 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				snprintf(buf, buf_len, "%d", SCCP_LIST_GETSIZE(&l->devices));
 			} else if (!strcasecmp(token, "mailboxes")) {
 				sccp_mailbox_t *mailbox;
-				char tmp[1024] = "";
-				char lbuf[1024] = "";
+				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 				SCCP_LIST_LOCK(&l->mailboxes);
 				SCCP_LIST_TRAVERSE(&l->mailboxes, mailbox, list) {
-					snprintf(tmp, sizeof(tmp), "%s%s%s", mailbox->mailbox, mailbox->context ? "@" : "", mailbox->context ? mailbox->context : "");
-					if (strlen(lbuf)) {
-						strcat(lbuf, ",");
+					pbx_str_append(&lbuf, 0, "%s%s%s", mailbox->mailbox, mailbox->context ? "@" : "", mailbox->context ? mailbox->context : "");
+					if (pbx_str_strlen(lbuf)) {
+						pbx_str_append(&lbuf, 0, ",");
 					}
-					strcat(lbuf, tmp);
 				}
 				SCCP_LIST_UNLOCK(&l->mailboxes);
-				snprintf(buf, buf_len, "%s", lbuf);
+				snprintf(buf, buf_len, "%s", pbx_str_buffer(lbuf));
 			} else if (!strcasecmp(token, "cfwd")) {
-				char tmp[1024] = "";
-				char lbuf[1024] = "";
 				sccp_linedevices_t *linedevice = NULL;
+				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 				SCCP_LIST_LOCK(&l->devices);
 				SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 					if (linedevice) {
-						snprintf(tmp, sizeof(tmp), "[id:%s,cfwdAll:%s,num:%s,cfwdBusy:%s,num:%s]", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number, linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number);
+						pbx_str_append(&lbuf, 0, "[id:%s,cfwdAll:%s,num:%s,cfwdBusy:%s,num:%s]", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number, linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number);
 					}
-					if (strlen(lbuf)) {
-						strcat(lbuf, ",");
+					if (pbx_str_strlen(lbuf)) {
+						pbx_str_append(&lbuf, 0, ",");
 					}
-					strcat(lbuf, tmp);
 				}
 				SCCP_LIST_UNLOCK(&l->devices);
-				snprintf(buf, buf_len, "%s", lbuf);
+				snprintf(buf, buf_len, "[ %s ]", pbx_str_buffer(lbuf));
 			} else if (!strcasecmp(token, "devices")) {
-				char tmp[1024] = "";
-				char lbuf[1024] = "";
 				sccp_linedevices_t *linedevice = NULL;
+				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 				SCCP_LIST_LOCK(&l->devices);
 				SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 					if (linedevice) {
-						snprintf(tmp, sizeof(tmp), "%s", linedevice->device->id);
+						pbx_str_append(&lbuf, 0, "%s", linedevice->device->id);
 					}
-					if (strlen(lbuf)) {
-						strcat(lbuf, ",");
+					if (pbx_str_strlen(lbuf)) {
+						pbx_str_append(&lbuf, 0, ",");
 					}
-					strcat(lbuf, tmp);
 				}
 				SCCP_LIST_UNLOCK(&l->devices);
-				snprintf(buf, buf_len, "%s", lbuf);
+				snprintf(buf, buf_len, "[ %s ]", pbx_str_buffer(lbuf));
 			} else if (!strncasecmp(token, "chanvar[", 8)) {
 				char *chanvar = token + 8;
 
@@ -553,8 +546,8 @@ static struct pbx_custom_function sccpline_function = {
 static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *output, size_t len)
 {
 	PBX_CHANNEL_TYPE *ast;
-	struct ast_str *coldata = ast_str_thread_get(&coldata_buf, 16);
-	struct ast_str *colnames = ast_str_thread_get(&colnames_buf, 16);
+	pbx_str_t *coldata = pbx_str_thread_get(&coldata_buf, 16);
+	pbx_str_t *colnames = pbx_str_thread_get(&colnames_buf, 16);
 	char *colname;
 	uint16_t buf_len = 1024;
 	char buf[1024] = "";
@@ -574,7 +567,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		if (!colname) {
 			return -1;
 		}
-		sprintf(colname, "callid");
+		snprintf(colname, 16, "callid");
 	}
 
 	AUTO_RELEASE sccp_channel_t *c = NULL;
@@ -587,25 +580,25 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		/* continue with sccp channel */
 
 	} else {
-		uint32_t callid = atoi(data);
+		uint32_t callid = sccp_atoi(data, strlen(data));
 
 		if (!(c = sccp_channel_find_byid(callid))) {
 			pbx_log(LOG_WARNING, "SCCPCHANNEL(): SCCP Channel not available\n");
 			return -1;
 		}
 	}
-	ast_str_reset(colnames);
-	ast_str_reset(coldata);
+	pbx_str_reset(colnames);
+	pbx_str_reset(coldata);
 	if (c) {
 		sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
-		strcat(colname, ",");
+		snprintf(colname + strlen(colname), sizeof *colname, ",");
 		token = strtok(colname, ",");
 		while (token != NULL) {
 			token = pbx_trim_blanks(token);
 			
 			/** copy request tokens for HASH() */
-			if (ast_str_strlen(colnames)) {
-				ast_str_append(&colnames, 0, ",");
+			if (pbx_str_strlen(colnames)) {
+				pbx_str_append(&colnames, 0, ",");
 			}
 			pbx_str_append_escapecommas(&colnames, 0, token, sccp_strlen(token));
 			/** */
@@ -713,8 +706,9 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 
 				codecnum = token + 6;									// move past the '[' 
 				codecnum = strsep(&codecnum, "]");							// trim trailing ']' if any 
-				if (skinny_codecs[atoi(codecnum)].key) {
-					sccp_copy_string(buf, codec2name(atoi(codecnum)), len);
+				int codec_int = sccp_atoi(codecnum, strlen(codecnum));
+				if (skinny_codecs[codec_int].key) {
+					sccp_copy_string(buf, codec2name(codec_int), buf_len);
 				} else {
 					buf[0] = '\0';
 				}
@@ -862,10 +856,10 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
         AST_STANDARD_APP_ARGS(args, parse);
         
         if (!sccp_strlen_zero(args.timeout)) {
-        	timeout = atoi(args.timeout);
+        	timeout = sccp_atoi(args.timeout, strlen(args.timeout));
         }
         if (!sccp_strlen_zero(args.priority)) {
-        	priority = atoi(args.priority);
+        	priority = sccp_atoi(args.priority, strlen(args.priority));
         }
 
 	AUTO_RELEASE sccp_device_t *d = NULL;

@@ -187,12 +187,14 @@ void sccp_dev_dbclean(void)
 {
 	struct ast_db_entry *entry = NULL;
 	sccp_device_t *d = NULL;
-	char key[256];
+	char key[SCCP_MAX_EXTENSION];
+	char scanfmt[20]="";
 
 	//! \todo write an pbx implementation for that
 	//entry = PBX(feature_getFromDatabase)tree("SCCP", NULL);
 	while (entry) {
-		sscanf(entry->key, "/SCCP/%s", key);
+		snprintf(scanfmt, sizeof(scanfmt), "/SCCP/%%%ds", SCCP_MAX_EXTENSION);
+		sscanf(entry->key, scanfmt, key);
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Looking for '%s' in the devices list\n", key);
 		if ((strlen(key) == 15) && (!strncmp(key, "SEP", 3) || !strncmp(key, "ATA", 3) || !strncmp(key, "VGC", 3) || !strncmp(key, "AN", 2) || !strncmp(key, "SKIGW", 5))) {
 
@@ -660,7 +662,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 	}
 
 	sccp_log((DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: StorageBackend got Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), sccp_feature_type2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
-	sprintf(family, "SCCP/%s", device->id);
+	snprintf(family, sizeof(family), "SCCP/%s", device->id);
 
 	switch (event->event.featureChanged.featureType) {
 		case SCCP_FEATURE_CFWDNONE:
@@ -671,8 +673,8 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 				uint8_t instance = linedevice->lineInstance;
 
 				sccp_dev_forward_status(line, instance, device);
-				sprintf(cfwdDeviceLineStore, "SCCP/%s/%s", device->id, line->name);
-				sprintf(cfwdLineDeviceStore, "SCCP/%s/%s", line->name, device->id);
+				snprintf(cfwdDeviceLineStore, sizeof(cfwdDeviceLineStore), "SCCP/%s/%s", device->id, line->name);
+				snprintf(cfwdLineDeviceStore, sizeof(cfwdLineDeviceStore), "SCCP/%s/%s", line->name, device->id);
 				switch (event->event.featureChanged.featureType) {
 					case SCCP_FEATURE_CFWDALL:
 						if (linedevice->cfwdAll.enabled) {
@@ -732,7 +734,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 				} else {
 					char data[256];
 
-					sprintf(data, "%d", device->privacyFeature.status);
+					snprintf(data, sizeof(data), "%d", device->privacyFeature.status);
 					iPbx.feature_addToDatabase(family, "privacy", data);
 				}
 				device->privacyFeature.previousStatus = device->privacyFeature.status;
@@ -2167,6 +2169,20 @@ char *sccp_trimwhitespace(char *str)
 	// Write new null terminator
 	*(end + 1) = 0;
 	return str;
+}
+
+gcc_inline int sccp_atoi(const char * const buf, size_t buflen)
+{
+	int result = 0;
+	if (buf && buflen > 0) {
+	        errno = 0;
+		char *end = NULL;
+        	long temp = strtol(buf, &end, 10);
+	        if (end != buf && errno != ERANGE && (temp >= INT_MIN || temp <= INT_MAX)) {
+        		result = (int)temp;
+		}
+	}
+	return result;
 }
 
 long int sccp_random(void)

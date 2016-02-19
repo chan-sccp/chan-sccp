@@ -231,24 +231,23 @@ static void sccp_device_setRingtoneNotSupported(constDevicePtr device, const cha
 
 /*
    static void sccp_device_startStream(const sccp_device_t *device, const char *address, uint32_t port){
-   char xmlStr[2048];
+   pbx_str_t *xmlStr = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
    unsigned int transactionID = sccp_random();
+   pbx_str_append(&xmlStr, 0, "<startMedia>");
+   pbx_str_append(&xmlStr, 0, "<mediaStream>");
+   //pbx_str_append(&xmlStr, 0, "<onStopped></onStopped>"); url
+   pbx_str_append(&xmlStr, 0, "<receiveVolume>50</receiveVolume>"); // 0-100
+   pbx_str_append(&xmlStr, 0, "<type>audio</type>"); // send|receive|sendReceive
+   pbx_str_append(&xmlStr, 0, "<mode>sendReceive</mode>"); // send|receive|sendReceive
+   pbx_str_append(&xmlStr, 0, "<codec>Wideband</codec>"); // "G.711" "G.722" "G.723" "G.728" "G.729" "GSM" "Wideband" "iLBC"
+   pbx_str_append(&xmlStr, 0, "<address>");
+   pbx_str_append(&xmlStr, 0, address);
+   pbx_str_append(&xmlStr, 0, "</address>");
+   pbx_str_append(&xmlStr, 0, "<port>20480</port>");
+   pbx_str_append(&xmlStr, 0, "</mediaStream>");
+   pbx_str_append(&xmlStr, 0, "</startMedia>\n\0");
 
-   strcat(xmlStr, "<startMedia>");
-   strcat(xmlStr, "<mediaStream>");
-   //strcat(xmlStr, "<onStopped></onStopped>"); url
-   strcat(xmlStr, "<receiveVolume>50</receiveVolume>"); // 0-100
-   strcat(xmlStr, "<type>audio</type>"); // send|receive|sendReceive
-   strcat(xmlStr, "<mode>sendReceive</mode>"); // send|receive|sendReceive
-   strcat(xmlStr, "<codec>Wideband</codec>"); // "G.711" "G.722" "G.723" "G.728" "G.729" "GSM" "Wideband" "iLBC"
-   strcat(xmlStr, "<address>");
-   strcat(xmlStr, address);
-   strcat(xmlStr, "</address>");
-   strcat(xmlStr, "<port>20480</port>");
-   strcat(xmlStr, "</mediaStream>");
-   strcat(xmlStr, "</startMedia>\n\0");
-
-   device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_STREAM, 0, 0, transactionID, xmlStr, 0);
+   device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_STREAM, 0, 0, transactionID, pbx_str_buffer(xmlStr), 0);
    }
  */
 
@@ -1499,7 +1498,7 @@ void sccp_dev_set_message(devicePtr d, const char *msg, const int timeout, const
 	if (storedb) {
 		char msgtimeout[10];
 
-		sprintf(msgtimeout, "%d", timeout);
+		snprintf(msgtimeout, sizeof(msgtimeout), "%d", timeout);
 		iPbx.feature_addToDatabase("SCCP/message", "timeout", pbx_strdup(msgtimeout));
 		iPbx.feature_addToDatabase("SCCP/message", "text", msg);
 	}
@@ -2044,7 +2043,7 @@ void sccp_dev_postregistration(void *data)
 		if (d->lineButtons.instance[instance]) {
 			AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_retain(d->lineButtons.instance[instance]);
 
-			sprintf(family, "SCCP/%s/%s", d->id, linedevice->line->name);
+			snprintf(family, sizeof(family), "SCCP/%s/%s", d->id, linedevice->line->name);
 			if (iPbx.feature_getFromDatabase(family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 				linedevice->cfwdAll.enabled = TRUE;
 				sccp_copy_string(linedevice->cfwdAll.number, buffer, sizeof(linedevice->cfwdAll.number));
@@ -2057,7 +2056,7 @@ void sccp_dev_postregistration(void *data)
 			}
 		}
 	}
-	sprintf(family, "SCCP/%s", d->id);
+	snprintf(family, sizeof(family), "SCCP/%s", d->id);
 	if (iPbx.feature_getFromDatabase(family, "dnd", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 		d->dndFeature.status = sccp_dndmode_str2val(buffer);
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
@@ -2198,11 +2197,11 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 
 		d->mwilight = 0;										/* reset mwi light */
 		d->linesRegistered = FALSE;
-		sprintf(family, "SCCP/%s", d->id);
+		snprintf(family, sizeof(family), "SCCP/%s", d->id);
 		iPbx.feature_removeFromDatabase(family, "lastDialedNumber");
 		char buffer[SCCP_MAX_EXTENSION+16] = "\0";
 		if (!sccp_strlen_zero(d->redialInformation.number)) {
-			sprintf (buffer, "%s;lineInstance=%d", d->redialInformation.number, d->redialInformation.lineInstance);
+			snprintf (buffer, sizeof(buffer), "%s;lineInstance=%d", d->redialInformation.number, d->redialInformation.lineInstance);
 			iPbx.feature_addToDatabase(family, "lastDialedNumber", buffer);
 		}
 
