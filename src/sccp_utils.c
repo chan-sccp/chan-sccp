@@ -759,110 +759,140 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
  * \brief Parse Composed ID
  * \param labelString LabelString as string
  * \param maxLength Maximum Length as unsigned int
+ * \param id point to sccp_composed_id_t by ref
  *
  * \callgraph
  * \callergraph
  */
-struct composedId sccp_parseComposedId(const char *labelString, unsigned int maxLength)
+int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_subscription_id_t *subscriptionId, char extension[SCCP_MAX_EXTENSION])
 {
+	pbx_assert(NULL != labelString || NULL != subscriptionId || NULL != extension);
+	int res = TRUE;
 	const char *stringIterator = 0;
 	uint32_t i = 0;
 	boolean_t endDetected = FALSE;
-	int state = 0;
-	struct composedId id;
-
-	pbx_assert(NULL != labelString);
-
-	memset(&id, 0, sizeof(id));
+	enum {EXTENSION, ID, CIDNAME, LABEL, AUX} state = EXTENSION;
+	memset(subscriptionId, 0, sizeof(sccp_subscription_id_t));
 
 	for (stringIterator = labelString; stringIterator < labelString + maxLength && !endDetected; stringIterator++) {
 		switch (state) {
-			case 0:										// parsing of main id
-				pbx_assert(i < sizeof(id.mainId));
+			case EXTENSION:										// parsing of main id
+				pbx_assert(i < sizeof *extension);
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
-						id.mainId[i] = '\0';
+						extension[i] = '\0';
 						break;
 					case '@':
-						id.mainId[i] = '\0';
+						extension[i] = '\0';
 						i = 0;
-						state = 1;
+						state = ID;
 						break;
 					case '!':
-						id.mainId[i] = '\0';
+						extension[i] = '\0';
 						i = 0;
-						state = 3;
+						state = AUX;
 						break;
 					default:
-						id.mainId[i] = *stringIterator;
+						extension[i] = *stringIterator;
 						i++;
 						break;
 				}
+				res++;
 				break;
 
-			case 1:										// parsing of sub id number
-				pbx_assert(i < sizeof(id.subscriptionId.number));
+			case ID:										// parsing of sub id number
+				pbx_assert(i < sizeof(subscriptionId->number));
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
-						id.subscriptionId.number[i] = '\0';
+						subscriptionId->number[i] = '\0';
 						break;
 					case ':':
-						id.subscriptionId.number[i] = '\0';
+						subscriptionId->number[i] = '\0';
 						i = 0;
-						state = 2;
+						state = CIDNAME;
 						break;
 					case '!':
-						id.subscriptionId.number[i] = '\0';
+						subscriptionId->number[i] = '\0';
 						i = 0;
-						state = 3;
+						state = AUX;
 						break;
 					default:
-						id.subscriptionId.number[i] = *stringIterator;
+						subscriptionId->number[i] = *stringIterator;
 						i++;
 						break;
 				}
+				res++;
 				break;
 
-			case 2:										// parsing of sub id name
-				pbx_assert(i < sizeof(id.subscriptionId.name));
+			case CIDNAME:										// parsing of sub id name
+				pbx_assert(i < sizeof(subscriptionId->name));
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
-						id.subscriptionId.name[i] = '\0';
+						subscriptionId->name[i] = '\0';
+						break;
+					case '#':
+						subscriptionId->name[i] = '\0';
+						i = 0;
+						state = LABEL;
 						break;
 					case '!':
-						id.subscriptionId.name[i] = '\0';
+						subscriptionId->name[i] = '\0';
 						i = 0;
-						state = 3;
+						state = AUX ;
 						break;
 					default:
-						id.subscriptionId.name[i] = *stringIterator;
+						subscriptionId->name[i] = *stringIterator;
 						i++;
 						break;
 				}
+				res++;
 				break;
 
-			case 3:										// parsing of auxiliary parameter
-				pbx_assert(i < sizeof(id.subscriptionId.name));
+			case LABEL:										// parsing of sub id name
+				pbx_assert(i < sizeof(subscriptionId->label));
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
-						id.subscriptionId.aux[i] = '\0';
+						subscriptionId->label[i] = '\0';
+						break;
+					case '!':
+						subscriptionId->label[i] = '\0';
+						i = 0;
+						state = AUX;
 						break;
 					default:
-						id.subscriptionId.aux[i] = *stringIterator;
+						subscriptionId->label[i] = *stringIterator;
 						i++;
 						break;
 				}
+				res++;
+				break;
+
+			case AUX:										// parsing of auxiliary parameter
+				pbx_assert(i < sizeof(subscriptionId->aux));
+				switch (*stringIterator) {
+					case '\0':
+						endDetected = TRUE;
+						subscriptionId->aux[i] = '\0';
+						break;
+					default:
+						subscriptionId->aux[i] = *stringIterator;
+						i++;
+						break;
+				}
+				res++;
 				break;
 
 			default:
 				pbx_assert(FALSE);
+				res = 0;
+				break;
 		}
 	}
-	return id;
+	return res;
 }
 
 /*!

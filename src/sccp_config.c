@@ -1853,24 +1853,27 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 		switch (type) {
 			case LINE:
 			{
-				struct composedId composedLineRegistrationId;
-
-				memset(&composedLineRegistrationId, 0, sizeof(struct composedId));
-				composedLineRegistrationId = sccp_parseComposedId(name, 80);
-				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: ComposedId mainId: %s, subscriptionId.number: %s, subscriptionId.name: %s, subscriptionId.aux: %s\n", composedLineRegistrationId.mainId, composedLineRegistrationId.subscriptionId.number, composedLineRegistrationId.subscriptionId.name, composedLineRegistrationId.subscriptionId.aux);
-				if (LINE == config->type &&
-				    sccp_strequals(config->label, name) && 
-				    sccp_strequals(config->button.line.name, composedLineRegistrationId.mainId) && 
-				    config->button.line.subscriptionId && (
-					sccp_strcaseequals(config->button.line.subscriptionId->number, composedLineRegistrationId.subscriptionId.number) &
-					sccp_strequals(config->button.line.subscriptionId->name, composedLineRegistrationId.subscriptionId.name) && 
-					sccp_strequals(config->button.line.subscriptionId->aux, composedLineRegistrationId.subscriptionId.aux)
-				    )
-				) {
-					if (!options || sccp_strequals(config->button.line.options, options)) {
-						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition remained the same\n");
-						changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+				char extension[SCCP_MAX_EXTENSION];
+				sccp_subscription_id_t subscriptionId;
+				if (sccp_parseComposedId(name, 80, &subscriptionId, extension)) {
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: ComposedId extension: %s, subscriptionId[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscriptionId.number, subscriptionId.name, subscriptionId.label, subscriptionId.aux);
+					if (LINE == config->type &&
+					    sccp_strequals(config->label, name) && 
+					    sccp_strequals(config->button.line.name, extension) && 
+					    config->button.line.subscriptionId && (
+						sccp_strcaseequals(config->button.line.subscriptionId->number, subscriptionId.number) &
+						sccp_strequals(config->button.line.subscriptionId->name, subscriptionId.name) && 
+						sccp_strequals(config->button.line.subscriptionId->label, subscriptionId.label) && 
+						sccp_strequals(config->button.line.subscriptionId->aux, subscriptionId.aux)
+					    )
+					) {
+						if (!options || sccp_strequals(config->button.line.options, options)) {
+							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition remained the same\n");
+							changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+						}
 					}
+				} else {
+					pbx_log(LOG_WARNING, "SCCP: button definition:'%s' could not be parsed\n", name);
 				}
 				break;
 			}
@@ -1962,24 +1965,26 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 	switch (type) {
 		case LINE:
 		{
-			struct composedId composedLineRegistrationId;
-			memset(&composedLineRegistrationId, 0, sizeof(struct composedId));
-			composedLineRegistrationId = sccp_parseComposedId(name, 80);
-
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition\n");
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: ComposedId mainId: %s, subscriptionId.number: %s, subscriptionId.name: %s, subscriptionId.aux: %s\n", composedLineRegistrationId.mainId, composedLineRegistrationId.subscriptionId.number, composedLineRegistrationId.subscriptionId.name, composedLineRegistrationId.subscriptionId.aux);
-			config->type = LINE;
-			config->label = pbx_strdup(name);
-			config->button.line.name = pbx_strdup(composedLineRegistrationId.mainId);
-			sccp_subscription_id_t *subscriptionId;
-			if ((subscriptionId = sccp_malloc(sizeof(sccp_subscription_id_t)))) {
-				sccp_copy_string(subscriptionId->number, composedLineRegistrationId.subscriptionId.number, sizeof(subscriptionId->number));
-				sccp_copy_string(subscriptionId->name, composedLineRegistrationId.subscriptionId.name, sizeof(subscriptionId->name));
-				sccp_copy_string(subscriptionId->aux, composedLineRegistrationId.subscriptionId.aux, sizeof(subscriptionId->aux));
-				config->button.line.subscriptionId = subscriptionId;
+			char extension[SCCP_MAX_EXTENSION];
+			sccp_subscription_id_t *subscriptionId = NULL;
+			if (!(subscriptionId = malloc(sizeof(sccp_subscription_id_t)))) {
+				pbx_log(LOG_ERROR, "SCCP: could not allocate memory. giving up\n");
+				return SCCP_CONFIG_CHANGE_INVALIDVALUE;
+ 			}
+			if (sccp_parseComposedId(name, 80, subscriptionId, extension)) {;
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition\n");
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: ComposedId extension: %s, subscriptionId[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscriptionId->number, subscriptionId->name, subscriptionId->label, subscriptionId->aux);
+				config->type = LINE;
+				config->label = strdup(name);
+				config->button.line.name = strdup(extension);
+				if (!sccp_strlen_zero(subscriptionId->number)) {
+					config->button.line.subscriptionId = subscriptionId;
+				} else {
+					sccp_free(subscriptionId);
+				}
 			} else {
-				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
-				return SCCP_CONFIG_CHANGE_ERROR;
+				pbx_log(LOG_WARNING, "SCCP: button definition:'%s' could not be parsed\n", name);
+				return SCCP_CONFIG_CHANGE_INVALIDVALUE;
 			}
 			if (options) {
 				config->button.line.options = pbx_strdup(options);

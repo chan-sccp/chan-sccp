@@ -89,7 +89,6 @@ typedef struct sccp_call_statistics sccp_call_statistics_t;							/*!< SCCP Call
 typedef struct softKeySetConfiguration sccp_softKeySetConfiguration_t;						/*!< SoftKeySet configuration */
 typedef struct sccp_mailbox sccp_mailbox_t;									/*!< SCCP Mailbox Type Definition */
 typedef struct subscriptionId sccp_subscription_id_t;								/*!< SCCP SubscriptionId Structure */
-typedef struct composedId sccp_composed_id_t;									/*!< SCCP ComposedId Structure */
 typedef struct sccp_conference sccp_conference_t;								/*!< SCCP Conference Structure */
 typedef struct sccp_rtp sccp_rtp_t;										/*!< SCCP RTP Struct Type */
 typedef struct sccp_private_channel_data sccp_private_channel_data_t;						/*!< SCCP Private Channel Data Structure */

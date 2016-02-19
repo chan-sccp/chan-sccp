@@ -94,7 +94,7 @@ const char *skinny_ringermode2str(uint8_t type);
 boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length);
 const char *sccp_channel_toString(sccp_channel_t * c);
 
-struct composedId sccp_parseComposedId(const char *labelString, unsigned int maxLength);
+int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_subscription_id_t *subscriptionId, char extension[SCCP_MAX_EXTENSION]);
 
 #ifndef HAVE_PBX_STRINGS_H
 char *pbx_skip_blanks(char *str);

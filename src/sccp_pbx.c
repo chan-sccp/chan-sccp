@@ -48,22 +48,21 @@ SCCP_FILE_VERSION(__FILE__, "");
  */
 sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_codec_t requestedCodec, skinny_codec_t capabilities[], uint8_t capabilityLength, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel)
 {
-	struct composedId lineSubscriptionId;
 	sccp_channel_t *my_sccp_channel = NULL;
 	AUTO_RELEASE sccp_line_t *l = NULL;
-
-	memset(&lineSubscriptionId, 0, sizeof(struct composedId));
 
 	if (!lineName) {
 		return SCCP_REQUEST_STATUS_ERROR;
 	}
 
-	lineSubscriptionId = sccp_parseComposedId(lineName, 80);
-
-	l = sccp_line_find_byname(lineSubscriptionId.mainId, FALSE);
+	char mainId[SCCP_MAX_EXTENSION];
+	sccp_subscription_id_t subscriptionId;
+	if (sccp_parseComposedId(lineName, 80, &subscriptionId, mainId)) {
+		l = sccp_line_find_byname(mainId, FALSE);
+	};
 
 	if (!l) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP/%s does not exist!\n", lineSubscriptionId.mainId);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP/%s does not exist!\n", mainId);
 		return SCCP_REQUEST_STATUS_LINEUNKNOWN;
 	}
 	sccp_log_and((DEBUGCAT_SCCP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -83,10 +82,10 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 	}
 
 	/* set subscriberId for individual device addressing */
-	if (!sccp_strlen_zero(lineSubscriptionId.subscriptionId.number)) {
-		sccp_copy_string(my_sccp_channel->subscriptionId.number, lineSubscriptionId.subscriptionId.number, sizeof(my_sccp_channel->subscriptionId.number));
-		if (!sccp_strlen_zero(lineSubscriptionId.subscriptionId.name)) {
-			sccp_copy_string(my_sccp_channel->subscriptionId.name, lineSubscriptionId.subscriptionId.name, sizeof(my_sccp_channel->subscriptionId.name));
+	if (!sccp_strlen_zero(subscriptionId.number)) {
+		sccp_copy_string(my_sccp_channel->subscriptionId.number, subscriptionId.number, sizeof(my_sccp_channel->subscriptionId.number));
+		if (!sccp_strlen_zero(subscriptionId.name)) {
+			sccp_copy_string(my_sccp_channel->subscriptionId.name, subscriptionId.name, sizeof(my_sccp_channel->subscriptionId.name));
 		} else {
 			//pbx_log(LOG_NOTICE, "%s: calling subscriber id=%s\n", l->id, my_sccp_channel->subscriptionId.number);
 		}
