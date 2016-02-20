@@ -8,7 +8,7 @@
  */
 #pragma once
 
-__BEGIN_EXTERN__
+__BEGIN_C_EXTERN__
 /*!
  * \brief SCCP DevState Specifier Structure
  * Recording number of Device State Registrations Per Device
@@ -23,7 +23,7 @@ struct sccp_devstate_specifier {
 };														/*!< SCCP Devstate Specifier Structure */
 #endif
 
-void sccp_devstate_module_start(void);
-void sccp_devstate_module_stop(void);
-__END_EXTERN__
+SCCP_API void SCCP_CALL sccp_devstate_module_start(void);
+SCCP_API void SCCP_CALL sccp_devstate_module_stop(void);
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
