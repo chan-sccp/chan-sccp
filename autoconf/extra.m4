@@ -12,17 +12,11 @@ AC_DEFUN([CS_SETUP_DEFAULTS], [
 
 AC_DEFUN([CS_SETUP_BUILD],[
 
-	AC_PATH_TOOL([UNAME], [uname], No)
-	AC_PATH_PROGS(DATE,date,No)
-	AC_PATH_PROGS(UNAME,uname,No)
-	AC_PATH_PROGS(WHOAMI,whoami,No)
-	AC_PATH_PROGS(FINGER,finger,No)
-	AC_PATH_PROGS(HEAD,head,No)
-	AC_PATH_PROGS(CUT,cut,No)
-	AC_PATH_PROGS(AWK,gawk awk,No)
-	AC_PATH_PROGS(PKGCONFIG,pkg-config,No)
-	AC_PATH_PROGS(RPMBUILD,rpmbuild,No)
-	AM_CONDITIONAL(ENABLE_RPMBUILD, test x$RPMBUILD != xNo)
+	AC_PATH_TOOL([UNAME],[uname],[No])
+	AC_PATH_PROGS([DATE],[date],[No])
+	AC_PATH_PROGS([UNAME],[uname],[No])
+	AC_PATH_PROGS([SED],[gsed sed],[No])
+	AC_PATH_PROGS([ID],[id],[No])
 
 	if test ! x"${UNAME}" = xNo; then
 	    if test -n $BUILD_OS ; then
@@ -31,11 +25,12 @@ AC_DEFUN([CS_SETUP_BUILD],[
 		BUILD_MACHINE="`${UNAME} -m`"
 		BUILD_HOSTNAME="`${UNAME} -n`"
 		BUILD_KERNEL="`${UNAME} -r`"
-		if test "_${AWK}" != "_No" && test "_${FINGER}" != "_No"; then
-			BUILD_USER="`${FINGER} -lp |${HEAD} -n1 |${CUT} -d: -f3|${CUT} -c 2-`"
+		if test "_${SED}" != "_No" && test "_${ID}" != "_No"; then
+			BUILD_USER="`${ID} | ${SED} -n 's/.*(\(.*\)) .*/\1/p'`"
 		elif test ! -z "${USERNAME}"; then
 			BUILD_USER="${USERNAME}"		
 		else
+			AC_PATH_PROGS([WHOAMI],[whoami],[No])
 			BUILD_USER="`${WHOAMI}`"
 		fi
 		AC_DEFINE_UNQUOTED([BUILD_DATE],"`echo ${BUILD_DATE}`",[The date of this build])
@@ -63,6 +58,9 @@ AC_DEFUN([CS_SETUP_BUILD],[
  		echo "Exitting now."
 		exit
 	]) 
+	AC_SUBST(SED)
+	AC_SUBST(UNAME)
+	AC_SUBST(DATE)
 ])
 
 
@@ -180,24 +178,25 @@ AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_LANG_SAVE
 	AC_LANG_C
-	AC_PATH_PROGS(SVN, svn, [echo Missing subversion],${PATH}:/opt/csw/bin)
-	AC_PATH_PROGS(SVNVERSION, svnversion, [echo Missing subversion],${PATH}:/opt/csw/bin)
-	AC_PATH_PROGS(GIT, git, [echo Missing git],${PATH}:/opt/csw/bin)
-	AC_PATH_PROGS(HG, hg, [echo Missing mercurial],${PATH}:/opt/csw/bin)
-	AC_PATH_PROGS(SHELL,bash sh,[echo No compatible shell found])
-	AC_PATH_PROGS(SH,bash sh,[echo No compatible shell found])
-	AC_PATH_PROGS(M4,gm4 m4,[echo No m4 found, who will process my macros now ?])
-	AC_PATH_PROGS(GREP, ggrep grep,[echo Missing grep so skipping but I doubt we will get anywhere])
-	AC_PATH_PROGS(SED, gsed sed,[echo sed not found, doh!])
-	AC_PATH_PROGS(CAT,cat,[echo cat not found, Doh!])
-	AC_PATH_PROGS(TR,tr,[echo tr not found, need this for upper/lowercase conversions])
-	AC_PATH_PROGS(UNAME,uname,[echo uname not found so no version info will be available])
-	AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no version info will be available])
-	AC_PATH_PROGS(RPMBUILD,rpmbuild,[echo rpmbuild not found so you cannot build rpm packages (no problem)])
-	AC_PATH_PROGS(OBJCOPY,objcopy,[echo objcopy not found so we can not safe debug information (no problem)])
-	AC_PATH_PROGS(GDB,gdb,[echo gdb not found so we can not generate backtraces (no problem)])
-	AC_PATH_PROGS(PKGCONFIG,pkg-config,No)
-	AC_PROG_CC(clang llvm-gcc gcc)
+	AC_PATH_PROGS([SVN],[svn],[echo Missing subversion],[${PATH}:/opt/csw/bin])
+	AC_PATH_PROGS([SVNVERSION],[svnversion], [echo Missing subversion],[${PATH}:/opt/csw/bin])
+	AC_PATH_PROGS([GIT],[git],[echo Missing git],[${PATH}:/opt/csw/bin])
+	AC_PATH_PROGS([HG],[hg],[echo Missing mercurial],[${PATH}:/opt/csw/bin])
+	AC_PATH_PROGS([SHELL],[bash sh],[echo No compatible shell found])
+	AC_PATH_PROGS([SH],[bash sh],[echo No compatible shell found])
+	AC_PATH_PROGS([M4],[gm4 m4],[echo No m4 found, who will process my macros now ?])
+	AC_PATH_PROGS([GREP],[ggrep grep],[echo Missing grep so skipping but I doubt we will get anywhere])
+	AC_PATH_PROGS([CAT],[cat],[echo cat not found, Doh!])
+	AC_PATH_PROGS([UNAME],[uname],[echo uname not found so no version info will be available])
+	AC_PATH_PROGS([RPMBUILD],[rpmbuild],[echo rpmbuild not found so you cannot build rpm packages (no problem)])
+	AC_PATH_PROGS([OBJCOPY],[objcopy],[echo objcopy not found so we can not safe debug information (no problem)])
+	AC_PATH_PROGS([GDB],[gdb],[echo gdb not found so we can not generate backtraces (no problem)])
+	AC_PATH_PROGS([HEAD],[head],[No])
+	AC_PATH_PROGS([CUT],[cut],[No])
+	AC_PATH_PROGS([TR],[tr],[No])
+	AC_PATH_PROGS([AWK],[gawk awk],[No])
+	AC_PATH_PROGS([PKGCONFIG],[pkg-config],[No])
+	AC_PROG_CC([clang llvm-gcc gcc])
 	AC_PROG_CC_C_O
 	AC_PROG_GCC_TRADITIONAL
 	AC_PROG_CPP
@@ -208,14 +207,19 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_C_CONST
 	AC_C_INLINE
 	AC_PROG_LIBTOOL
-	AC_SUBST(SVN)
-	AC_SUBST(SVNVERSION)
-	AC_SUBST(GIT)
-	AC_SUBST(HG)
-	AC_SUBST(GREP)
-	AC_SUBST(RPMBUILD)
-	AC_SUBST(OBJCOPY)
-	AC_SUBST(GDB)
+	AC_SUBST([SVN])
+	AC_SUBST([SVNVERSION])
+	AC_SUBST([GIT])
+	AC_SUBST([HG])
+	AC_SUBST([GREP])
+	AC_SUBST([RPMBUILD])
+	AC_SUBST([OBJCOPY])
+	AC_SUBST([GDB])
+	AC_SUBST([HEAD])
+	AC_SUBST([CUT])
+	AC_SUBST([TR])
+	AC_SUBST([AWK])
+	AM_CONDITIONAL([ENABLE_RPMBUILD],[test x$RPMBUILD != xNo])
 ])
 
 AC_DEFUN([CS_FIND_LIBRARIES], [
