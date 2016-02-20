@@ -777,7 +777,7 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 	for (stringIterator = labelString; stringIterator < labelString + maxLength && !endDetected; stringIterator++) {
 		switch (state) {
 			case EXTENSION:										// parsing of main id
-				pbx_assert(i < sizeof *extension);
+				pbx_assert(i < SCCP_MAX_EXTENSION);
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
