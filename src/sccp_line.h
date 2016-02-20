@@ -25,7 +25,7 @@
 #define sccp_linedevice_refreplace(_x, _y) ({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #define sccp_line_refreplace(_x, _y)	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 
-__BEGIN_EXTERN__
+__BEGIN_C_EXTERN__
 /*!
  * \brief SCCP Line Structure
  * \note A line is the equivalent of a 'phone line' going to the phone.
@@ -140,54 +140,54 @@ struct sccp_linedevices {
 	uint8_t lineInstance;											/*!< line instance of this->line on this->device */
 };														/*!< SCCP Line-Device Structure */
 
-void sccp_line_pre_reload(void);
-void sccp_line_post_reload(void);
+SCCP_API void SCCP_CALL sccp_line_pre_reload(void);
+SCCP_API void SCCP_CALL sccp_line_post_reload(void);
 
 /* live cycle */
-void *sccp_create_hotline(void);
-sccp_line_t *sccp_line_create(const char *name);
-void sccp_line_addToGlobals(sccp_line_t * line);
-void sccp_line_removeFromGlobals(sccp_line_t * line);
-void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInstance, sccp_subscription_id_t *subscriptionId);
-void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device);
-void sccp_line_addChannel(constLinePtr line, constChannelPtr channel);
-void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel);
-void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global);
-void sccp_line_kill_channels(sccp_line_t * l);
+SCCP_API void * SCCP_CALL sccp_create_hotline(void);
+SCCP_API sccp_line_t * SCCP_CALL sccp_line_create(const char *name);
+SCCP_API void SCCP_CALL sccp_line_addToGlobals(sccp_line_t * line);
+SCCP_API void SCCP_CALL sccp_line_removeFromGlobals(sccp_line_t * line);
+SCCP_API void SCCP_CALL sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInstance, sccp_subscription_id_t *subscriptionId);
+SCCP_API void SCCP_CALL sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device);
+SCCP_API void SCCP_CALL sccp_line_addChannel(constLinePtr line, constChannelPtr channel);
+SCCP_API void SCCP_CALL sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel);
+SCCP_API void SCCP_CALL sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global);
+SCCP_API void SCCP_CALL sccp_line_kill_channels(sccp_line_t * l);
 
 #if UNUSEDCODE // 2015-11-01
-sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line);
+SCCP_API sccp_channelstate_t SCCP_CALL sccp_line_getDNDChannelState(sccp_line_t * line);
 #endif
-void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c);
-void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number);
+SCCP_API void SCCP_CALL sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c);
+SCCP_API void SCCP_CALL sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number);
 
 // find line
-sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime);
+SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_byname(const char *name, uint8_t useRealtime);
 
 #if DEBUG
 #define sccp_line_find_byid(_x,_y) __sccp_line_find_byid(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
-sccp_line_t *__sccp_line_find_byid(constDevicePtr d, uint16_t instance, const char *filename, int lineno, const char *func);
+SCCP_API sccp_line_t * SCCP_CALL __sccp_line_find_byid(constDevicePtr d, uint16_t instance, const char *filename, int lineno, const char *func);
 
 #define sccp_line_find_byButtonIndex(_x, _y) __sccp_line_find_byButtonIndex(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
-sccp_line_t *__sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex, const char *filename, int lineno, const char *func);
+SCCP_API sccp_line_t * SCCP_CALL __sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex, const char *filename, int lineno, const char *func);
 #ifdef CS_SCCP_REALTIME
 #define sccp_line_find_realtime_byname(_x) __sccp_line_find_realtime_byname(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
-sccp_line_t *__sccp_line_find_realtime_byname(const char *name, const char *filename, int lineno, const char *func);
+SCCP_API sccp_line_t * SCCP_CALL __sccp_line_find_realtime_byname(const char *name, const char *filename, int lineno, const char *func);
 #endif														// CS_SCCP_REALTIME
 #else														// DEBUG
-sccp_line_t *sccp_line_find_byid(constDevicePtr d, uint16_t instance);
-sccp_line_t *sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex);
+SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_byid(constDevicePtr d, uint16_t instance);
+SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex);
 
 #ifdef CS_SCCP_REALTIME
-sccp_line_t *sccp_line_find_realtime_byname(const char *name);
+SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_realtime_byname(const char *name);
 #endif														// CS_SCCP_REALTIME
 #endif														// DEBUG
 
 #define sccp_linedevice_find(_x,_y) __sccp_linedevice_find(_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_linedevice_findByLineinstance(_x,_y) __sccp_linedevice_findByLineinstance(_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const sccp_line_t * line, const char *filename, int lineno, const char *func);
-sccp_linedevices_t *__sccp_linedevice_findByLineinstance(const sccp_device_t * device, uint16_t instance, const char *filename, int lineno, const char *func);
-void sccp_line_createLineButtonsArray(sccp_device_t * device);
-void sccp_line_deleteLineButtonsArray(sccp_device_t * device);
-__END_EXTERN__
+SCCP_API sccp_linedevices_t * SCCP_CALL __sccp_linedevice_find(const sccp_device_t * device, const sccp_line_t * line, const char *filename, int lineno, const char *func);
+SCCP_API sccp_linedevices_t * SCCP_CALL __sccp_linedevice_findByLineinstance(const sccp_device_t * device, uint16_t instance, const char *filename, int lineno, const char *func);
+SCCP_API void SCCP_CALL sccp_line_createLineButtonsArray(sccp_device_t * device);
+SCCP_API void SCCP_CALL sccp_line_deleteLineButtonsArray(sccp_device_t * device);
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

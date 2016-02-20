@@ -12,6 +12,7 @@
 struct mansession;
 struct message;
 
+__BEGIN_C_EXTERN__
 #define REFCOUNT_INDENTIFIER_SIZE 32
 enum sccp_refcounted_types {
 	SCCP_REF_PARTICIPANT = 1,
@@ -34,25 +35,28 @@ enum sccp_refcount_runstate {
 
 typedef struct refcount_object RefCountedObject;
 
-void sccp_refcount_init(void);
-void sccp_refcount_destroy(void);
-int sccp_refcount_isRunning(void);
-int sccp_refcount_schedule_cleanup(const void *data);
-void * const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor);
-void sccp_refcount_updateIdentifier(void *ptr, char *identifier);
-void * const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func);
-void * const sccp_refcount_release(const void * const ptr, const char *filename, int lineno, const char *func);
+SCCP_API void SCCP_CALL sccp_refcount_init(void);
+SCCP_API void SCCP_CALL sccp_refcount_destroy(void);
+SCCP_API int SCCP_CALL sccp_refcount_isRunning(void);
+SCCP_API int SCCP_CALL sccp_refcount_schedule_cleanup(const void *data);
+SCCP_API void * SCCP_CALL  const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor);
+SCCP_API void SCCP_CALL sccp_refcount_updateIdentifier(void *ptr, char *identifier);
+SCCP_API void * SCCP_CALL  const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func);
+SCCP_API void * SCCP_CALL  const sccp_refcount_release(const void * const ptr, const char *filename, int lineno, const char *func);
 //void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func);
-void sccp_refcount_replace(const void **replaceptr, const void *const newptr, const char *filename, int lineno, const char *func);
-void sccp_refcount_print_hashtable(int fd);
-int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
-void sccp_refcount_autorelease(void *ptr);
+SCCP_API void SCCP_CALL sccp_refcount_replace(const void **replaceptr, const void *const newptr, const char *filename, int lineno, const char *func);
+SCCP_API void SCCP_CALL sccp_refcount_print_hashtable(int fd);
+SCCP_API int SCCP_CALL sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
+SCCP_API void SCCP_CALL sccp_refcount_autorelease(void *ptr);
 
 #define AUTO_RELEASE auto __attribute__((cleanup(sccp_refcount_autorelease)))
 #ifdef CS_EXPERIMENTAL
-int sccp_refcount_force_release(long findobj, char *identifier);
+SCCP_API int SCCP_CALL sccp_refcount_force_release(long findobj, char *identifier);
 #endif
 
+__END_C_EXTERN__
+
+#if 0 /* UNUSED */
 /* *INDENT-OFF* */
 /* Automatically Retain/Release */
 #define __GET_WITH_REF1(_dst,_src,_file,_line,_func) 												\
@@ -84,4 +88,5 @@ int sccp_refcount_force_release(long findobj, char *identifier);
         __GET_WITH_REF(__TOKENPASTE(sccp_with_ref_,_line),_src,_file,_line,_func)
 #define WITHREF(_src) __WITH_REF(_src,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 /* *INDENT-ON* */
+#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off

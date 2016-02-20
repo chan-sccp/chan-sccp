@@ -12,7 +12,7 @@
 #define SCCP_INDICATE_NOLOCK 	0
 #define SCCP_INDICATE_LOCK		1
 
-void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const c, const sccp_channelstate_t state, const uint8_t debug, const char *file, const int line, const char *pretty_function);
+SCCP_API void SCCP_CALL __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const c, const sccp_channelstate_t state, const uint8_t debug, const char *file, const int line, const char *pretty_function);
 
 #define SCCP_GROUPED_CHANNELSTATE_IDLE		9
 #define SCCP_GROUPED_CHANNELSTATE_DIALING	19

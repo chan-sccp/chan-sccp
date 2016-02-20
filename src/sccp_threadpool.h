@@ -12,6 +12,7 @@
 //#include "config.h"
 //#include "common.h"
 
+__BEGIN_C_EXTERN__
 /* Description:         Library providing a threading pool where you can add work on the fly. The number
  *                      of threads in the pool is adjustable when creating the pool. In most cases
  *                      this should equal the number of threads supported by your cpu.
@@ -72,7 +73,7 @@ typedef struct sccp_threadpool sccp_threadpool_t;
  * \return threadpool struct on success,
  *         NULL on error
  */
-sccp_threadpool_t *sccp_threadpool_init(int threadsN);
+SCCP_API sccp_threadpool_t * SCCP_CALL sccp_threadpool_init(int threadsN);
 
 /*!
  * \brief What each thread is doing
@@ -83,7 +84,7 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN);
  * \param p threadpool to use
  * \return nothing
  */
-void sccp_threadpool_thread_do(void *p);
+SCCP_API void SCCP_CALL sccp_threadpool_thread_do(void *p);
 
 /*!
  * \brief Add work to the job queue
@@ -99,7 +100,7 @@ void sccp_threadpool_thread_do(void *p);
  * \param arg_p argument to the above function
  * \return int
  */
-int sccp_threadpool_add_work(sccp_threadpool_t * tp_p, void *(*function_p) (void *), void *arg_p);
+SCCP_API int sccp_threadpool_add_work(sccp_threadpool_t * SCCP_CALL  tp_p, void *(*function_p) (void *), void *arg_p);
 
 /*!
  * \brief Destroy the threadpool
@@ -109,13 +110,13 @@ int sccp_threadpool_add_work(sccp_threadpool_t * tp_p, void *(*function_p) (void
  * 
  * \param tp_p threadpool a pointer to the threadpool structure you want to destroy
  */
-boolean_t sccp_threadpool_destroy(sccp_threadpool_t * tp_p);
+SCCP_API boolean_t SCCP_CALL sccp_threadpool_destroy(sccp_threadpool_t * tp_p);
 
 /*!
  * \brief Return number of currently allocate threads in the threadpool
  * \param tp_p threadpool a pointer to the threadpool structure for which we would like to know the number of workers
  */
-int sccp_threadpool_thread_count(sccp_threadpool_t * tp_p);
+SCCP_API int SCCP_CALL sccp_threadpool_thread_count(sccp_threadpool_t * tp_p);
 
 /* ------------------------- Queue specific ------------------------------ */
 
@@ -125,7 +126,7 @@ int sccp_threadpool_thread_count(sccp_threadpool_t * tp_p);
  * \return 0 on success,
  *        -1 on memory allocation error
  */
-int sccp_threadpool_jobqueue_init(sccp_threadpool_t * tp_p);
+SCCP_API int SCCP_CALL sccp_threadpool_jobqueue_init(sccp_threadpool_t * tp_p);
 
 /*!
  * \brief Add job to queue
@@ -138,12 +139,12 @@ int sccp_threadpool_jobqueue_init(sccp_threadpool_t * tp_p);
  * \param newjob_p pointer to the new job(MUST BE ALLOCATED)
  * \return nothing 
  */
-void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_t * newjob_p);
+SCCP_API void SCCP_CALL sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_t * newjob_p);
 
 /*!
  * \brief Return Number of Jobs in the Queue
  * \param tp_p pointer to threadpool
  */
-int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p);
-
+SCCP_API int SCCP_CALL sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p);
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -9,6 +9,8 @@
 #pragma once
 
 #include "sccp_cli.h"
+
+__BEGIN_C_EXTERN__
 //#ifdef CS_AST_HAS_EVENT
 //#include "asterisk/event.h"
 //#endif
@@ -22,19 +24,20 @@ struct sccp_mailbox {
 	SCCP_LIST_ENTRY (sccp_mailbox_t) list;									/*!< Mailbox Linked List Entry */
 };														/*!< SCCP Mailbox Structure */
 
-void sccp_mwi_module_start(void);
-void sccp_mwi_module_stop(void);
-void sccp_mwi_check(sccp_device_t * d);
+SCCP_API void SCCP_CALL sccp_mwi_module_start(void);
+SCCP_API void SCCP_CALL sccp_mwi_module_stop(void);
+SCCP_API void SCCP_CALL sccp_mwi_check(sccp_device_t * d);
 
-void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t *mailbox);
+SCCP_API void SCCP_CALL sccp_mwi_unsubscribeMailbox(sccp_mailbox_t *mailbox);
 
 #if defined( CS_AST_HAS_EVENT )
-void sccp_mwi_event(const struct ast_event *event, void *data);
+SCCP_API void SCCP_CALL sccp_mwi_event(const struct ast_event *event, void *data);
 #elif defined(CS_AST_HAS_STASIS)
-void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stasis_message *msg);
+SCCP_API void SCCP_CALL sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stasis_message *msg);
 #else
-int sccp_mwi_checksubscription(const void *ptr);
+SCCP_API int SCCP_CALL sccp_mwi_checksubscription(const void *ptr);
 #endif
-void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice);
-int sccp_show_mwi_subscriptions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
+SCCP_API void SCCP_CALL sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice);
+SCCP_API int SCCP_CALL sccp_show_mwi_subscriptions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

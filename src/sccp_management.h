@@ -8,17 +8,19 @@
 #pragma once
 
 #ifdef CS_SCCP_MANAGER
+__BEGIN_C_EXTERN__
 /*
  * sccp_management.h
  *
  *  Created on: 22.11.2008
  *      Author: marcello
  */
-int sccp_register_management(void);
-int sccp_unregister_management(void);
-void sccp_manager_module_start(void);
-void sccp_manager_module_stop(void);
+SCCP_API int SCCP_CALL sccp_register_management(void);
+SCCP_API int SCCP_CALL sccp_unregister_management(void);
+SCCP_API void SCCP_CALL sccp_manager_module_start(void);
+SCCP_API void SCCP_CALL sccp_manager_module_stop(void);
 
-boolean_t sccp_manager_action2str(const char *manager_command, char **outStr);
+SCCP_API boolean_t SCCP_CALL sccp_manager_action2str(const char *manager_command, char **outStr);
+__END_C_EXTERN__
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

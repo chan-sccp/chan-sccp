@@ -12,7 +12,7 @@
 #define __PBX_IMPL_C
 
 #include "config.h"
-#include "../common.h"
+#include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 #endif

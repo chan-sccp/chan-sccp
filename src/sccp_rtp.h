@@ -13,6 +13,7 @@
 #include <netinet/in.h>
 //struct sockaddr_storage;
 
+__BEGIN_C_EXTERN__
 /*!
  * \brief SCCP RTP Structure
  */
@@ -29,24 +30,25 @@ struct sccp_rtp {
 	struct sockaddr_storage phone_remote;									/*!< phone destination address (starttransmission) */
 };														/*!< SCCP RTP Structure */
 
-boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t type);
-int sccp_rtp_requestRTPPorts(constDevicePtr device, channelPtr channel);
-void sccp_rtp_stop(constChannelPtr channel);
-void sccp_rtp_destroy(constChannelPtr c);
-void sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer);
-void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer);
-int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp);
+SCCP_API boolean_t SCCP_CALL sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t type);
+SCCP_API int SCCP_CALL sccp_rtp_requestRTPPorts(constDevicePtr device, channelPtr channel);
+SCCP_API void SCCP_CALL sccp_rtp_stop(constChannelPtr channel);
+SCCP_API void SCCP_CALL sccp_rtp_destroy(constChannelPtr c);
+SCCP_API void SCCP_CALL sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer);
+SCCP_API void SCCP_CALL sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer);
+SCCP_API int SCCP_CALL sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp);
 
-boolean_t sccp_rtp_getAudioPeer(constChannelPtr c, struct sockaddr_storage **new_peer);
-sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(constChannelPtr c, sccp_rtp_t **rtp);
+SCCP_API boolean_t SCCP_CALL sccp_rtp_getAudioPeer(constChannelPtr c, struct sockaddr_storage **new_peer);
+SCCP_API sccp_rtp_info_t SCCP_CALL sccp_rtp_getAudioPeerInfo(constChannelPtr c, sccp_rtp_t **rtp);
 #ifdef CS_SCCP_VIDEO
-boolean_t sccp_rtp_getVideoPeer(constChannelPtr c, struct sockaddr_storage **new_peer);
-sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(constChannelPtr c, sccp_rtp_t **rtp);
+SCCP_API boolean_t SCCP_CALL sccp_rtp_getVideoPeer(constChannelPtr c, struct sockaddr_storage **new_peer);
+SCCP_API sccp_rtp_info_t SCCP_CALL sccp_rtp_getVideoPeerInfo(constChannelPtr c, sccp_rtp_t **rtp);
 #endif
 
-uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t *const rtp, skinny_codec_t codec);
-boolean_t sccp_rtp_getUs(const sccp_rtp_t * const rtp, struct sockaddr_storage *us);
-boolean_t sccp_rtp_getPeer(const sccp_rtp_t * const rtp, struct sockaddr_storage *them);
-uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * const rtp);
-int sccp_rtp_get_sampleRate(skinny_codec_t codec);
+SCCP_API uint8_t SCCP_CALL sccp_rtp_get_payloadType(const sccp_rtp_t *const rtp, skinny_codec_t codec);
+SCCP_API boolean_t SCCP_CALL sccp_rtp_getUs(const sccp_rtp_t * const rtp, struct sockaddr_storage *us);
+SCCP_API boolean_t SCCP_CALL sccp_rtp_getPeer(const sccp_rtp_t * const rtp, struct sockaddr_storage *them);
+SCCP_API uint16_t SCCP_CALL sccp_rtp_getServerPort(const sccp_rtp_t * const rtp);
+SCCP_API int SCCP_CALL sccp_rtp_get_sampleRate(skinny_codec_t codec);
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
