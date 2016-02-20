@@ -255,7 +255,7 @@ boolean_t sccp_postPBX_load(void)
 #else
 	snprintf(SCCP_REVISIONSTR, sizeof(SCCP_REVISIONSTR), "%s", SCCP_REVISION);
 #endif
-	snprintf(SCCP_VERSIONSTR, sizeof(SCCP_REVISIONSTR), "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, SCCP_REVISIONSTR, BUILD_USER, BUILD_DATE);
+	snprintf(SCCP_VERSIONSTR, sizeof(SCCP_VERSIONSTR), "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, SCCP_REVISIONSTR, BUILD_USER, BUILD_DATE);
 
 	GLOB(module_running) = TRUE;
 	sccp_refcount_schedule_cleanup((const void *) 0);
