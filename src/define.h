@@ -31,8 +31,6 @@ extern "C" {
 #    define __BEGIN_C_EXTERN__ 
 #    define __END_C_EXTERN__ 
 #  endif
-#  define __BEGIN_EXTERN__ __BEGIN_C_EXTERN__
-#  define __END_EXTERN__ __END_C_EXTERN__
 #endif
 
 #if !defined(SCCP_API)

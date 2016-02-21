@@ -14,12 +14,11 @@
 #include "config.h"
 #include "common.h"
 
-__BEGIN_EXTERN__
 #ifdef HAVE_ASTERISK
 #include "ast.h"
 #endif
-__END_EXTERN__
 
+__BEGIN_C_EXTERN__
 #define PBX_BRIDGE_TYPE struct ast_bridge
 
 /*!
@@ -162,4 +161,5 @@ typedef struct _PbxInterface {
 } PbxInterface;
 
 extern const PbxInterface iPbx;
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

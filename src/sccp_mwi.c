@@ -24,7 +24,6 @@ SCCP_FILE_VERSION(__FILE__, "");
 #  include <asterisk/event.h>
 #endif
 
-__BEGIN_EXTERN__
 #ifndef CS_AST_HAS_EVENT
 #define SCCP_MWI_CHECK_INTERVAL 30
 #endif
@@ -746,6 +745,4 @@ int sccp_show_mwi_subscriptions(int fd, sccp_cli_totals_t *totals, struct manses
 	}
 	return RESULT_SUCCESS;
 }
-
-__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
