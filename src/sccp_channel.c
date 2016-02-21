@@ -812,7 +812,9 @@ void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean
 		sccp_dev_send(d, msg);
 		video->writeState = SCCP_RTP_STATUS_INACTIVE;
 #ifdef CS_EXPERIMENTAL
-		d->protocol->sendPortClose(d, channel, SKINNY_MEDIA_TYPE_MAIN_VIDEO);
+		if (!KeepPortOpen) {
+			d->protocol->sendPortClose(d, channel, SKINNY_MEDIA_TYPE_MAIN_VIDEO);
+		}
 #endif		
 	}
 }
@@ -912,7 +914,9 @@ void sccp_channel_stopMediaTransmission(constChannelPtr channel, boolean_t KeepP
 		sccp_dev_send(d, msg);
 		audio->readState = SCCP_RTP_STATUS_INACTIVE;
 #ifdef CS_EXPERIMENTAL
-		d->protocol->sendPortClose(d, channel, SKINNY_MEDIA_TYPE_AUDIO);
+		if (!KeepPortOpen) {
+			d->protocol->sendPortClose(d, channel, SKINNY_MEDIA_TYPE_AUDIO);
+		}
 #endif
 	}
 }
