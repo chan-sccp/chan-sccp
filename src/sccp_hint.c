@@ -628,12 +628,8 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 	/* subscripbe to the distributed hint event */
 #if ASTERISK_VERSION_GROUP >= 112
-#if CS_EXPERIMENTAL
 	struct stasis_topic *devstate_hint_dialplan = ast_device_state_topic(hint->hint_dialplan);
 	hint->device_state_sub = stasis_subscribe(devstate_hint_dialplan, sccp_hint_distributed_devstate_cb, hint);
-#else
-	hint->device_state_sub = stasis_subscribe(ast_device_state_topic_all(), sccp_hint_distributed_devstate_cb, hint);
-#endif
 #else
 	hint->device_state_sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE_CHANGE, sccp_hint_distributed_devstate_cb, "sccp_hint_distributed_devstate_cb", hint, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, hint->hint_dialplan, AST_EVENT_IE_END);
 #endif
