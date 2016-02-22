@@ -637,11 +637,9 @@ void sccp_device_setLastNumberDialed(devicePtr device, const char *lastNumberDia
 {
 	boolean_t ResetNoneLineInstance = FALSE;
 
-#ifdef CS_ADV_FEATURES
 	if (device->useRedialMenu) {
 		return;
 	}
-#endif
 	boolean_t redial_active;
 
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Update last number dialed to %s.\n", DEV_ID_LOG(device), lastNumberDialed);

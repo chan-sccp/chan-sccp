@@ -122,7 +122,6 @@ static void sccp_sk_redial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 	if (!d) {
 		return;
 	}
-#ifdef CS_ADV_FEATURES
 	char *data;
 
 	if (d->useRedialMenu) {
@@ -140,7 +139,6 @@ static void sccp_sk_redial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 		d->protocol->sendUserToDeviceDataVersionMessage(d, 0, lineInstance, 0, 0, data, 0);
 		return;
 	}
-#endif
 
 	if (sccp_strlen_zero(d->redialInformation.number)) {
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: No number to redial\n", d->id);

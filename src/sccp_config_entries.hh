@@ -203,9 +203,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"meetme", 			D_OBJ_REF(meetme), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"enable/disable conferencing via app_meetme (on/off)\n"},
 	{"meetmeopts", 			D_OBJ_REF(meetmeopts), 			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"options to send the app_meetme application (default 'qd' = quiet,dynamic pin)\n"																																					"Other options (A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see app_meetme documentation\n"},
 	{"softkeyset", 			D_OBJ_REF(softkeyDefinition),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"default",			"use specified softkeyset with name 'default'\n"},
-#ifdef CS_ADV_FEATURES
 	{"useRedialMenu", 		D_OBJ_REF(useRedialMenu), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"show redial phone book list instead of dialing the last number (adv_feature). Requires a Phone Service block in SEP....cnf.xml to work correct on Java phones (See conf/tftp/SEP example files)\n"},
-#endif
 #ifdef CS_SCCP_PICKUP
 	{"pickupexten", 		D_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"",				"enable Pickup function to direct pickup an extension (Deprecated use directed_pickup instead)\n"},
 	{"pickupcontext", 		D_OBJ_REF(directed_pickup_context), 	TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"",				"context where direct pickup search for extensions. if not set it will be ignored. (Deprecated use direct_pickup_context instead)\n"},

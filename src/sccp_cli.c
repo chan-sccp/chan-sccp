@@ -819,9 +819,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Default line instance",	CLI_AMI_LIST_WIDTH, "%d", d->defaultLineInstance);
 	CLI_AMI_OUTPUT_PARAM("Custom Background Image",	CLI_AMI_LIST_WIDTH, "%s", d->backgroundImage ? d->backgroundImage : "---");
 	CLI_AMI_OUTPUT_PARAM("Custom Ring Tone",	CLI_AMI_LIST_WIDTH, "%s", d->ringtone ? d->ringtone : "---");
-#ifdef CS_ADV_FEATURES
 	CLI_AMI_OUTPUT_BOOL("Use Placed Calls",		CLI_AMI_LIST_WIDTH, d->useRedialMenu);
-#endif
 	CLI_AMI_OUTPUT_BOOL("PendingUpdate",		CLI_AMI_LIST_WIDTH, d->pendingUpdate);
 	CLI_AMI_OUTPUT_BOOL("PendingDelete",		CLI_AMI_LIST_WIDTH, d->pendingDelete);
 #ifdef CS_SCCP_PICKUP
