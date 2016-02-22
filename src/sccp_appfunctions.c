@@ -54,6 +54,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	uint16_t buf_len = 1024;
 	char buf[1024] = "";
 	char *token = NULL;
+	int addcomma = 0;
 
 	if ((colname = strchr(data, ':'))) {									/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
@@ -98,6 +99,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		snprintf(colname + strlen(colname), sizeof *colname, ",");
 		token = strtok(colname, ",");
 		while (token != NULL) {
+			addcomma = 0;
 			token = pbx_trim_blanks(token);
 			
 			/** copy request tokens for HASH() */
@@ -196,25 +198,22 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 					switch (config->type) {
 						case LINE:
-							pbx_str_append(&lbuf, 0, "[%d,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->button.line.name ? config->button.line.name : "");
+							pbx_str_append(&lbuf, 0, "%s[%d,%s,%s]", addcomma++ ? "," : "", config->instance, sccp_config_buttontype2str(config->type), config->button.line.name ? config->button.line.name : "");
 							break;
 						case SPEEDDIAL:
-							pbx_str_append(&lbuf, 0, "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.speeddial.ext ? config->button.speeddial.ext : "");
+							pbx_str_append(&lbuf, 0, "%s[%d,%s,%s,%s]", addcomma++ ? "," : "", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.speeddial.ext ? config->button.speeddial.ext : "");
 							break;
 						case SERVICE:
-							pbx_str_append(&lbuf, 0, "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.service.url ? config->button.service.url : "");
+							pbx_str_append(&lbuf, 0, "%s[%d,%s,%s,%s]", addcomma++ ? "," : "", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.service.url ? config->button.service.url : "");
 							break;
 						case FEATURE:
-							pbx_str_append(&lbuf, 0, "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.feature.options ? config->button.feature.options : "");
+							pbx_str_append(&lbuf, 0, "%s[%d,%s,%s,%s]", addcomma++ ? "," : "", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.feature.options ? config->button.feature.options : "");
 							break;
 						case EMPTY:
-							pbx_str_append(&lbuf, 0, "[%d,%s]", config->instance, sccp_config_buttontype2str(config->type));
+							pbx_str_append(&lbuf, 0, "%s[%d,%s]", addcomma++ ? "," : "", config->instance, sccp_config_buttontype2str(config->type));
 							break;
 						case SCCP_CONFIG_BUTTONTYPE_SENTINEL:
 							break;
-					}
-					if (pbx_str_strlen(lbuf)) {
-						pbx_str_append(&lbuf, 0, ",");
 					}
 				}
 				SCCP_LIST_UNLOCK(&d->buttonconfig);
@@ -310,6 +309,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 	uint16_t buf_len = 1024;
 	char buf[1024] = "";
 	char *token = NULL;
+	int addcomma = 0;
 
 	if ((colname = strchr(data, ':'))) {									/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
@@ -365,6 +365,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 		snprintf(colname + strlen(colname), sizeof *colname, ",");
 		token = strtok(colname, ",");
 		while (token != NULL) {
+			addcomma = 0;
 			token = pbx_trim_blanks(token);
 			
 			/** copy request tokens for HASH() */
@@ -445,13 +446,9 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			} else if (!strcasecmp(token, "mailboxes")) {
 				sccp_mailbox_t *mailbox;
 				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-
 				SCCP_LIST_LOCK(&l->mailboxes);
 				SCCP_LIST_TRAVERSE(&l->mailboxes, mailbox, list) {
-					pbx_str_append(&lbuf, 0, "%s%s%s", mailbox->mailbox, mailbox->context ? "@" : "", mailbox->context ? mailbox->context : "");
-					if (pbx_str_strlen(lbuf)) {
-						pbx_str_append(&lbuf, 0, ",");
-					}
+					pbx_str_append(&lbuf, 0, "%s%s%s%s", addcomma++ ? "," : "", mailbox->mailbox, mailbox->context ? "@" : "", mailbox->context ? mailbox->context : "");
 				}
 				SCCP_LIST_UNLOCK(&l->mailboxes);
 				snprintf(buf, buf_len, "%s", pbx_str_buffer(lbuf));
@@ -462,10 +459,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				SCCP_LIST_LOCK(&l->devices);
 				SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 					if (linedevice) {
-						pbx_str_append(&lbuf, 0, "[id:%s,cfwdAll:%s,num:%s,cfwdBusy:%s,num:%s]", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number, linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number);
-					}
-					if (pbx_str_strlen(lbuf)) {
-						pbx_str_append(&lbuf, 0, ",");
+						pbx_str_append(&lbuf, 0, "%s[id:%s,cfwdAll:%s,num:%s,cfwdBusy:%s,num:%s]", addcomma++ ? "," : "", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number, linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number);
 					}
 				}
 				SCCP_LIST_UNLOCK(&l->devices);
@@ -477,10 +471,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				SCCP_LIST_LOCK(&l->devices);
 				SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 					if (linedevice) {
-						pbx_str_append(&lbuf, 0, "%s", linedevice->device->id);
-					}
-					if (pbx_str_strlen(lbuf)) {
-						pbx_str_append(&lbuf, 0, ",");
+						pbx_str_append(&lbuf, 0, "%s%s", addcomma++ ? "," : "", linedevice->device->id);
 					}
 				}
 				SCCP_LIST_UNLOCK(&l->devices);
