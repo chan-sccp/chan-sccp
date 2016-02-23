@@ -100,9 +100,10 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 			}
 			res = tmpres;
 			if (size == 0) {
-				strncpy(res, sccp_debug_categories[i].key, new_size - 1);
+				//strlcpy(res, sccp_debug_categories[i].key, new_size);
+				snprintf(res, new_size - 1, "%s", sccp_debug_categories[i].key);
 			} else {
-				snprintf(res + strlen(res), new_size-1, ",%s", sccp_debug_categories[i].key);
+				snprintf(res + strlen(res), new_size - 1, ",%s", sccp_debug_categories[i].key);
 			}
 
 			size = new_size;

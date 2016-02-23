@@ -578,8 +578,8 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 			struct stat sb = { 0 };
 			if (stat(GLOB(token_fallback), &sb) == 0 && sb.st_mode & S_IXUSR) {
 				char command[SCCP_PATH_MAX];
-				char buff[19] = "";
-				char output[20] = "";
+				char buff[20] = "";
+				char output[21] = "";
 
 				struct sockaddr_storage sas = { 0 };
 				sccp_session_getSas(s, &sas);
@@ -589,8 +589,8 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 				//sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: (token_request), executing '%s'\n", deviceName, (char *) command);
 				pp = popen(command, "r");
 				if (pp != NULL) {
-					while (fgets(buff, sizeof(buff), pp)) {
-						strncat(output, buff, 19 - strlen(output));
+					while (fgets(buff, sizeof(buff) - 1, pp)) {
+						snprintf(output + strlen(output), sizeof(output) - 1, "%s", buff);
 					}
 					pclose(pp);
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (token_request), script result='%s'\n", deviceName, (char *) output);
