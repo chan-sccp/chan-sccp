@@ -223,9 +223,10 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 	mid = letohl(msg->header.lel_messageId);
 
 	/* search for message handler */
-	if ((mid >= SCCP_MESSAGE_LOW_BOUNDARY || mid <= SCCP_MESSAGE_HIGH_BOUNDARY)) {
+	//if ((mid >= SCCP_MESSAGE_LOW_BOUNDARY && mid <= SCCP_MESSAGE_HIGH_BOUNDARY)) {
+	if (mid <= SCCP_MESSAGE_HIGH_BOUNDARY) {
 		messageMap_cb = &sccpMessagesCbMap[mid];
-	} else if ((mid >= SPCP_MESSAGE_LOW_BOUNDARY || mid <= SPCP_MESSAGE_HIGH_BOUNDARY)) {
+	} else if ((mid >= SPCP_MESSAGE_LOW_BOUNDARY && mid <= SPCP_MESSAGE_HIGH_BOUNDARY)) {
 		messageMap_cb = &spcpMessagesCbMap[mid - SPCP_MESSAGE_OFFSET]; 
 	} else {
 		pbx_log(LOG_WARNING, "SCCP: Unknown Message %x. Don't know how to handle it. Skipping.\n", mid);

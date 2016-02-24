@@ -207,6 +207,7 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_TYPE *target, boolean_t answer)
 {
 	int res = 0;
+	pbx_assert(c != NULL);
 
 #if CS_AST_DO_PICKUP
 	PBX_CHANNEL_TYPE *original = c->owner;
@@ -249,20 +250,18 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 			/* continue with masquaraded channel */
 			pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);		// reset picked up channel
 
-			if (c) {
-				callinfo_orig = sccp_channel_getCallInfo(c);
-				iCallInfo.Setter(callinfo_orig, 					// update calling end
-					SCCP_CALLINFO_CALLEDPARTY_NAME, called_name, 			// channel picking up
-					SCCP_CALLINFO_CALLEDPARTY_NUMBER, called_number, 
-					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, target_name, 
-					SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, target_number, 
-					SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, 4,
-					SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, target_name,
-					SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, target_number,
-					SCCP_CALLINFO_LAST_REDIRECT_REASON, 4,
-					SCCP_CALLINFO_KEY_SENTINEL);
-				//iCallInfo.Print2log(callinfo_orig, "SCCP: (perform pickup)");
-			}
+			callinfo_orig = sccp_channel_getCallInfo(c);
+			iCallInfo.Setter(callinfo_orig, 					// update calling end
+				SCCP_CALLINFO_CALLEDPARTY_NAME, called_name, 			// channel picking up
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, called_number, 
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, target_name, 
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, target_number, 
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, 4,
+				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, target_name,
+				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, target_number,
+				SCCP_CALLINFO_LAST_REDIRECT_REASON, 4,
+				SCCP_CALLINFO_KEY_SENTINEL);
+			//iCallInfo.Print2log(callinfo_orig, "SCCP: (perform pickup)");
 						
 			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (perform_pickup) channel:%s, modeanser: %s\n", DEV_ID_LOG(d), c->designator, answer ? "yes" : "no");
 			if (answer) {

@@ -1984,6 +1984,7 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 				}
 			} else {
 				pbx_log(LOG_WARNING, "SCCP: button definition:'%s' could not be parsed\n", name);
+				sccp_free(subscriptionId);
 				return SCCP_CONFIG_CHANGE_INVALIDVALUE;
 			}
 			if (options) {

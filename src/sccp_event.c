@@ -217,6 +217,7 @@ boolean_t sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callbac
  */
 static gcc_inline boolean_t __execute_callback_helper(const sccp_event_t *event, sccp_event_vector_t *subs_vector) 
 {
+	pbx_assert(subs_vector != NULL);
 	uint32_t n = 0;
 	boolean_t res = FALSE;
 	for (n = 0; n < SCCP_VECTOR_SIZE(subs_vector) && sccp_event_running; n++) {
@@ -301,7 +302,7 @@ boolean_t sccp_event_fire(sccp_event_t * event)
 		SCCP_VECTOR_RW_UNLOCK(subscribers);
 
 		// handle synchronous events first (if any)
-		if (syncsize) {
+		if (sync_subscribers_cpy && syncsize) {
 			res |= __execute_callback_helper(event, sync_subscribers_cpy);
 		} else if (sync_subscribers_cpy) {
 			SCCP_VECTOR_PTR_FREE(sync_subscribers_cpy);
@@ -325,7 +326,9 @@ boolean_t sccp_event_fire(sccp_event_t * event)
 						sccp_free(arg);					// explicit failure release
 					}
 				}
-				res |= __execute_callback_helper(event, async_subscribers_cpy);	// fallback to handling synchronously in case something prevented async
+				if (async_subscribers_cpy) {
+					res |= __execute_callback_helper(event, async_subscribers_cpy);	// fallback to handling synchronously in case something prevented async
+				}
 			} else if (async_subscribers_cpy) {
 				SCCP_VECTOR_PTR_FREE(async_subscribers_cpy);
 			}

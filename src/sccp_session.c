@@ -241,7 +241,7 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 			}
 			pbx_log(LOG_ERROR, "%s: (session_dissect_header) messageId %d (0x%x) unknown. discarding message.\n", DEV_ID_LOG(s->device), messageId, messageId);
 			break;
-		} else if (messageId >= SPCP_MESSAGE_LOW_BOUNDARY || messageId <= SPCP_MESSAGE_HIGH_BOUNDARY) {
+		} else if (messageId >= SPCP_MESSAGE_LOW_BOUNDARY && messageId <= SPCP_MESSAGE_HIGH_BOUNDARY) {
 			msgtype = &sccp_messagetypes[messageId - SPCP_MESSAGE_OFFSET];
 			if (msgtype->messageId == messageId) {
 				return msgtype->size + SCCP_PACKET_HEADER;
@@ -284,7 +284,12 @@ static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsign
 		}
 
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);							// allow thread to be killed while handling the message
-		memcpy(msg, buffer + 0, payload_len);
+		if (payload_len < SCCP_PACKET_HEADER || payload_len > SCCP_MAX_PACKET) {
+			pbx_log(LOG_ERROR, "%s: (process_buffer) Size of the data payload in the packet, close connection !\n", DEV_ID_LOG(s->device));
+			res = -1;
+			break;
+		}
+		memcpy(msg, buffer, payload_len);
 		if (session_dissect_msg(s, msg, payload_len) != 0) {
 			res = -1;
 			break;
@@ -655,7 +660,7 @@ void *sccp_netsock_device_thread(void *session)
 			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
 				//sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving at buffer position:%lu\n", DEV_ID_LOG(s->device), recv_len);
 				result = recv(s->fds[0].fd, recv_buffer + recv_len, (SCCP_MAX_PACKET * 2) - recv_len, 0);
-				if (!(result > 0 && (recv_len += result) && process_buffer(s, &msg, recv_buffer, &recv_len) == 0)) {
+				if (!(result > 0 && (recv_len += result) && ((SCCP_MAX_PACKET * 2) - recv_len) && process_buffer(s, &msg, recv_buffer, &recv_len) == 0)) {
 					//socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
 					if (s->device) {
 						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);

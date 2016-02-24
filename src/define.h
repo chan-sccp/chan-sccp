@@ -187,9 +187,11 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 
 /* deny the use of unsafe functions */
 #define strcat __use_snprint_instead_of_strcat__
+#undef strncat
 #define strncat __use_snprint_instead_of_strncat__
-#define strcpy __use_strlcpy_instead_of_strcpy__
-#define strncpy __use_strlcpy_instead_of_strcpy__
+#define strcpy __use_sccp_copy_string_instead_of_strcpy__
+#undef strncpy
+#define strncpy __use_sccp_copy_string_instead_of_strncpy__
 #define sprintf __use_snprintf_instead_of_sprintf__
 #define vsprintf __use_vsnprintf_instead_of_vsprintf__
 #define gets __use_fgets_instead_of_gets__
