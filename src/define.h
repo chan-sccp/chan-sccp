@@ -190,8 +190,8 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 #define strncat __use_snprint_instead_of_strncat__
 #define strcpy __use_strlcpy_instead_of_strcpy__
 #define strncpy __use_strlcpy_instead_of_strcpy__
-#define sprintf __use_snprintf_instead_of_sprintf__
-#define vsprintf __use_vsnprintf_instead_of_vsprintf__
+//#define sprintf __use_snprintf_instead_of_sprintf__
+//#define vsprintf __use_vsnprintf_instead_of_vsprintf__
 #define gets __use_fgets_instead_of_gets__
 #define atoi __use_sccp_atoi_instead_of_atoi__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
