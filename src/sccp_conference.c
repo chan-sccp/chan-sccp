@@ -1150,33 +1150,26 @@ void sccp_conference_show_list(constConferencePtr conference, constChannelPtr ch
 			participant->transactionID = sccp_random() % 1000;
 		}
 
-		char xmlStr[2048] = "";
-		char xmlTmp[512] = "";
+		pbx_str_t *xmlStr = pbx_str_alloca(2048);
 
-		//sprintf(xmlTmp, "<CiscoIPPhoneIconMenu appId=\"%d\" onAppFocusLost=\"\" onAppFocusGained=\"\" onAppClosed=\"\">", appID);
+		//snprintf(xmlTmp, sizeof(xmlTmp), "<CiscoIPPhoneIconMenu appId=\"%d\" onAppFocusLost=\"\" onAppFocusGained=\"\" onAppClosed=\"\">", appID);
 		if (participant->device->protocolversion >= 15) {
 			if (participant->device->hasEnhancedIconMenuSupport()) {
-				sprintf(xmlTmp, "<CiscoIPPhoneIconFileMenu appId=\"%d\" onAppClosed=\"%d\">", appID, appID);
-				strcat(xmlStr, xmlTmp);
+				pbx_str_append(&xmlStr, 0, "<CiscoIPPhoneIconFileMenu appId=\"%d\" onAppClosed=\"%d\">", appID, appID);
 				if (conference->isLocked) {
-					sprintf(xmlTmp, "<Title IconIndex=\"5\">Conference %d</Title>\n", conference->id);
+					pbx_str_append(&xmlStr, 0, "<Title IconIndex=\"5\">Conference %d</Title>\n", conference->id);
 				} else {
-					sprintf(xmlTmp, "<Title IconIndex=\"4\">Conference %d</Title>\n", conference->id);
+					pbx_str_append(&xmlStr, 0, "<Title IconIndex=\"4\">Conference %d</Title>\n", conference->id);
 				}
-				strcat(xmlStr, xmlTmp);
 			} else {
-				sprintf(xmlTmp, "<CiscoIPPhoneIconFileMenu>");
-				strcat(xmlStr, xmlTmp);
-				sprintf(xmlTmp, "<Title>Conference %d</Title>\n", conference->id);
-				strcat(xmlStr, xmlTmp);
+				pbx_str_append(&xmlStr, 0, "<CiscoIPPhoneIconFileMenu>");
+				pbx_str_append(&xmlStr, 0, "<Title>Conference %d</Title>\n", conference->id);
 			}
 		} else {
-			sprintf(xmlTmp, "<CiscoIPPhoneIconMenu>");
-			strcat(xmlStr, xmlTmp);
-			sprintf(xmlTmp, "<Title>Conference %d</Title>\n", conference->id);
-			strcat(xmlStr, xmlTmp);
+			pbx_str_append(&xmlStr, 0, "<CiscoIPPhoneIconMenu>");
+			pbx_str_append(&xmlStr, 0, "<Title>Conference %d</Title>\n", conference->id);
 		}
-		strcat(xmlStr, "<Prompt>Make Your Selection</Prompt>\n");
+		pbx_str_append(&xmlStr, 0, "<Prompt>Make Your Selection</Prompt>\n");
 
 		// MenuItems
 
@@ -1187,7 +1180,7 @@ void sccp_conference_show_list(constConferencePtr conference, constChannelPtr ch
 			if (part->pendingRemoval) {
 				continue;
 			}
-			strcat(xmlStr, "<MenuItem>");
+			pbx_str_append(&xmlStr, 0, "<MenuItem>");
 
 			if (part->isModerator) {
 				use_icon = 0;
@@ -1197,104 +1190,95 @@ void sccp_conference_show_list(constConferencePtr conference, constChannelPtr ch
 			if (part->features.mute) {
 				++use_icon;
 			}
-			strcat(xmlStr, "<IconIndex>");
-			sprintf(xmlTmp, "%d", use_icon);
-			strcat(xmlStr, xmlTmp);
-			strcat(xmlStr, "</IconIndex>");
+			pbx_str_append(&xmlStr, 0, "<IconIndex>");
+			pbx_str_append(&xmlStr, 0, "%d", use_icon);
+			pbx_str_append(&xmlStr, 0, "</IconIndex>");
 
-			strcat(xmlStr, "<Name>");
-			sprintf(xmlTmp, "%d:%s", part->id, part->PartyName);
-			strcat(xmlStr, xmlTmp);
+			pbx_str_append(&xmlStr, 0, "<Name>");
+			pbx_str_append(&xmlStr, 0, "%d:%s", part->id, part->PartyName);
 			if (!sccp_strlen_zero(part->PartyNumber)) {
-				sprintf(xmlTmp, " (%s)", part->PartyNumber);
-				strcat(xmlStr, xmlTmp);
+				pbx_str_append(&xmlStr, 0, " (%s)", part->PartyNumber);
 			}
-			strcat(xmlStr, "</Name>");
-			sprintf(xmlTmp, "<URL>UserCallData:%d:%d:%d:%d:%d</URL>", appID, participant->lineInstance, participant->callReference, participant->transactionID, part->id);
-			strcat(xmlStr, xmlTmp);
-			strcat(xmlStr, "</MenuItem>\n");
+			pbx_str_append(&xmlStr, 0, "</Name>");
+			pbx_str_append(&xmlStr, 0, "<URL>UserCallData:%d:%d:%d:%d:%d</URL>", appID, participant->lineInstance, participant->callReference, participant->transactionID, part->id);
+			pbx_str_append(&xmlStr, 0, "</MenuItem>\n");
 		}
 		SCCP_RWLIST_UNLOCK(&((conferencePtr)conference)->participants);
 
 		// SoftKeys
 		if (participant->isModerator) {
-			strcat(xmlStr, "<SoftKeyItem>");
-			strcat(xmlStr, "<Name>EndConf</Name>");
-			strcat(xmlStr, "<Position>1</Position>");
-			// sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:ENDCONF/%d/%d/%d/</URL>", 1, appID, participant->lineInstance, participant->transactionID);
-			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:ENDCONF/%d</URL>", 1, participant->transactionID);
-			strcat(xmlStr, xmlTmp);
-			strcat(xmlStr, "</SoftKeyItem>\n");
-			strcat(xmlStr, "<SoftKeyItem>");
-			strcat(xmlStr, "<Name>Mute</Name>");
-			strcat(xmlStr, "<Position>2</Position>");
-			// sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:MUTE/%d/%d/%d/</URL>", 2, appID, participant->lineInstance, participant->transactionID);
-			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:MUTE/%d</URL>", 2, participant->transactionID);
-			strcat(xmlStr, xmlTmp);
-			strcat(xmlStr, "</SoftKeyItem>\n");
+			pbx_str_append(&xmlStr, 0, "<SoftKeyItem>");
+			pbx_str_append(&xmlStr, 0, "<Name>EndConf</Name>");
+			pbx_str_append(&xmlStr, 0, "<Position>1</Position>");
+			// pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:ENDCONF/%d/%d/%d/</URL>", 1, appID, participant->lineInstance, participant->transactionID);
+			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:ENDCONF/%d</URL>", 1, participant->transactionID);
+			pbx_str_append(&xmlStr, 0, "</SoftKeyItem>\n");
+			pbx_str_append(&xmlStr, 0, "<SoftKeyItem>");
+			pbx_str_append(&xmlStr, 0, "<Name>Mute</Name>");
+			pbx_str_append(&xmlStr, 0, "<Position>2</Position>");
+			// pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:MUTE/%d/%d/%d/</URL>", 2, appID, participant->lineInstance, participant->transactionID);
+			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:MUTE/%d</URL>", 2, participant->transactionID);
+			pbx_str_append(&xmlStr, 0, "</SoftKeyItem>\n");
 
-			strcat(xmlStr, "<SoftKeyItem>");
-			strcat(xmlStr, "<Name>Kick</Name>");
-			strcat(xmlStr, "<Position>3</Position>");
-			// sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:KICK/%d/%d/%d/</URL>", 3, appID, participant->lineInstance, participant->transactionID);
-			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:KICK/%d</URL>", 3, participant->transactionID);
-			strcat(xmlStr, xmlTmp);
-			strcat(xmlStr, "</SoftKeyItem>\n");
+			pbx_str_append(&xmlStr, 0, "<SoftKeyItem>");
+			pbx_str_append(&xmlStr, 0, "<Name>Kick</Name>");
+			pbx_str_append(&xmlStr, 0, "<Position>3</Position>");
+			// pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:KICK/%d/%d/%d/</URL>", 3, appID, participant->lineInstance, participant->transactionID);
+			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:KICK/%d</URL>", 3, participant->transactionID);
+			pbx_str_append(&xmlStr, 0, "</SoftKeyItem>\n");
 		}
-		strcat(xmlStr, "<SoftKeyItem>");
-		strcat(xmlStr, "<Name>Exit</Name>");
-		strcat(xmlStr, "<Position>4</Position>");
-		strcat(xmlStr, "<URL>SoftKey:Exit</URL>");
-		strcat(xmlStr, "</SoftKeyItem>\n");
+		pbx_str_append(&xmlStr, 0, "<SoftKeyItem>");
+		pbx_str_append(&xmlStr, 0, "<Name>Exit</Name>");
+		pbx_str_append(&xmlStr, 0, "<Position>4</Position>");
+		pbx_str_append(&xmlStr, 0, "<URL>SoftKey:Exit</URL>");
+		pbx_str_append(&xmlStr, 0, "</SoftKeyItem>\n");
 		if (participant->isModerator) {
-			strcat(xmlStr, "<SoftKeyItem>");
-			strcat(xmlStr, "<Name>Moderate</Name>");
-			strcat(xmlStr, "<Position>5</Position>");
-			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:MODERATE/%d</URL>", 4, participant->transactionID);
-			strcat(xmlStr, xmlTmp);
-			strcat(xmlStr, "</SoftKeyItem>\n");
+			pbx_str_append(&xmlStr, 0, "<SoftKeyItem>");
+			pbx_str_append(&xmlStr, 0, "<Name>Moderate</Name>");
+			pbx_str_append(&xmlStr, 0, "<Position>5</Position>");
+			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:MODERATE/%d</URL>", 4, participant->transactionID);
+			pbx_str_append(&xmlStr, 0, "</SoftKeyItem>\n");
 #if 0 /* INVITE */
-			strcat(xmlStr, "<SoftKeyItem>");
-			strcat(xmlStr, "<Name>Invite</Name>");
-			strcat(xmlStr, "<Position>6</Position>");
-			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:INVITE/%d/%d/%d</URL>", 5, appID, participant->lineInstance, participant->transactionID);
-			strcat(xmlStr, xmlTmp);
-			strcat(xmlStr, "</SoftKeyItem>\n");
+			pbx_str_append(&xmlStr, 0, "<SoftKeyItem>");
+			pbx_str_append(&xmlStr, 0, "<Name>Invite</Name>");
+			pbx_str_append(&xmlStr, 0, "<Position>6</Position>");
+			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:INVITE/%d/%d/%d</URL>", 5, appID, participant->lineInstance, participant->transactionID);
+			pbx_str_append(&xmlStr, 0, "</SoftKeyItem>\n");
 #endif
 		}
 		// CiscoIPPhoneIconMenu Icons
 		if (participant->device->protocolversion >= 15) {
 			if (participant->device->hasEnhancedIconMenuSupport()) {
-				strcat(xmlStr, "<IconItem><Index>0</Index><URL>Resource:Icon.Connected</URL></IconItem>");	// moderator
-				strcat(xmlStr, "<IconItem><Index>1</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>");	// muted moderator
-				strcat(xmlStr, "<IconItem><Index>2</Index><URL>Resource:AnimatedIcon.StreamRxTx</URL></IconItem>");	// participant
-				strcat(xmlStr, "<IconItem><Index>3</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>");	// muted participant
-				strcat(xmlStr, "<IconItem><Index>4</Index><URL>Resource:Icon.Speaker</URL></IconItem>");	// unlocked conference
-				strcat(xmlStr, "<IconItem><Index>5</Index><URL>Resource:Icon.SecureCall</URL></IconItem>\n");	// locked conference
+				pbx_str_append(&xmlStr, 0, "<IconItem><Index>0</Index><URL>Resource:Icon.Connected</URL></IconItem>");	// moderator
+				pbx_str_append(&xmlStr, 0, "<IconItem><Index>1</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>");	// muted moderator
+				pbx_str_append(&xmlStr, 0, "<IconItem><Index>2</Index><URL>Resource:AnimatedIcon.StreamRxTx</URL></IconItem>");	// participant
+				pbx_str_append(&xmlStr, 0, "<IconItem><Index>3</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>");	// muted participant
+				pbx_str_append(&xmlStr, 0, "<IconItem><Index>4</Index><URL>Resource:Icon.Speaker</URL></IconItem>");	// unlocked conference
+				pbx_str_append(&xmlStr, 0, "<IconItem><Index>5</Index><URL>Resource:Icon.SecureCall</URL></IconItem>\n");	// locked conference
 			} else {
-				strcat(xmlStr, "<IconItem><Index>0</Index><URL>TFTP:Icon.Connected.png</URL></IconItem>");	// moderator
-				strcat(xmlStr, "<IconItem><Index>1</Index><URL>TFTP:AnimatedIcon.Hold.png</URL></IconItem>");	// muted moderator
-				strcat(xmlStr, "<IconItem><Index>2</Index><URL>TFTP:AnimatedIcon.StreamRxTx.png</URL></IconItem>");	// participant
-				strcat(xmlStr, "<IconItem><Index>3</Index><URL>TFTP:AnimatedIcon.Hold.png</URL></IconItem>");	// muted participant
-				strcat(xmlStr, "<IconItem><Index>4</Index><URL>TFTP:Icon.Speaker.png</URL></IconItem>");	// unlocked conference
-				strcat(xmlStr, "<IconItem><Index>5</Index><URL>TFTP:Icon.SecureCall.png</URL></IconItem>\n");	// locked conference
+				pbx_str_append(&xmlStr, 0, "<IconItem><Index>0</Index><URL>TFTP:Icon.Connected.png</URL></IconItem>");	// moderator
+				pbx_str_append(&xmlStr, 0, "<IconItem><Index>1</Index><URL>TFTP:AnimatedIcon.Hold.png</URL></IconItem>");	// muted moderator
+				pbx_str_append(&xmlStr, 0, "<IconItem><Index>2</Index><URL>TFTP:AnimatedIcon.StreamRxTx.png</URL></IconItem>");	// participant
+				pbx_str_append(&xmlStr, 0, "<IconItem><Index>3</Index><URL>TFTP:AnimatedIcon.Hold.png</URL></IconItem>");	// muted participant
+				pbx_str_append(&xmlStr, 0, "<IconItem><Index>4</Index><URL>TFTP:Icon.Speaker.png</URL></IconItem>");	// unlocked conference
+				pbx_str_append(&xmlStr, 0, "<IconItem><Index>5</Index><URL>TFTP:Icon.SecureCall.png</URL></IconItem>\n");	// locked conference
 			}
 		} else {
-			strcat(xmlStr, "<IconItem><Index>0</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C03F3000C03FF000C03FF003000FF00FFCFFF30FFCFFF303CC3FF300CC3F330000000000</Data></IconItem>");	// moderator
-			strcat(xmlStr, "<IconItem><Index>1</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C03FF03CC03FF03CC03FF03C000FF03CFCFFF33CFCFFF33CCC3FF33CCC3FF33C00000000</Data></IconItem>");	// muted moderator
-			strcat(xmlStr, "<IconItem><Index>2</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C0303000C030F000C030F003000FF00FFCF0F30F0C00F303CC30F300CC30330000000000</Data></IconItem>");	// participant
-			strcat(xmlStr, "<IconItem><Index>3</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C030F03CC030F03CC030F03C000FF03CFCF0F33C0C00F33CCC30F33CCC30F33C00000000</Data></IconItem>\n");	// muted participant
+			pbx_str_append(&xmlStr, 0, "<IconItem><Index>0</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C03F3000C03FF000C03FF003000FF00FFCFFF30FFCFFF303CC3FF300CC3F330000000000</Data></IconItem>");	// moderator
+			pbx_str_append(&xmlStr, 0, "<IconItem><Index>1</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C03FF03CC03FF03CC03FF03C000FF03CFCFFF33CFCFFF33CCC3FF33CCC3FF33C00000000</Data></IconItem>");	// muted moderator
+			pbx_str_append(&xmlStr, 0, "<IconItem><Index>2</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C0303000C030F000C030F003000FF00FFCF0F30F0C00F303CC30F300CC30330000000000</Data></IconItem>");	// participant
+			pbx_str_append(&xmlStr, 0, "<IconItem><Index>3</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C030F03CC030F03CC030F03C000FF03CFCF0F33C0C00F33CCC30F33CCC30F33C00000000</Data></IconItem>\n");	// muted participant
 		}
 
 		if (participant->device->protocolversion >= 15) {
-			strcat(xmlStr, "</CiscoIPPhoneIconFileMenu>\n");
+			pbx_str_append(&xmlStr, 0, "</CiscoIPPhoneIconFileMenu>\n");
 		} else {
-			strcat(xmlStr, "</CiscoIPPhoneIconMenu>\n");
+			pbx_str_append(&xmlStr, 0, "</CiscoIPPhoneIconMenu>\n");
 		}
 		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: ShowList appID %d, lineInstance %d, callReference %d, transactionID %d\n", conference->id, appID, participant->callReference, participant->lineInstance, participant->transactionID);
-		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: XML-message:\n%s\n", conference->id, xmlStr);
+		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: XML-message:\n%s\n", conference->id, pbx_str_buffer(xmlStr));
 
-		participant->device->protocol->sendUserToDeviceDataVersionMessage(participant->device, appID, participant->callReference, participant->lineInstance, participant->transactionID, xmlStr, 2);
+		participant->device->protocol->sendUserToDeviceDataVersionMessage(participant->device, appID, participant->callReference, participant->lineInstance, participant->transactionID, pbx_str_buffer(xmlStr), 2);
 	}
 }
 
@@ -1308,9 +1292,9 @@ void __sccp_conference_hide_list(participantPtr participant)
 			sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Hide Conf List for participant: %d\n", participant->conference->id, participant->id);
 			char xmlData[512] = "";
 			if (participant->device->protocolversion >= 15 /* && participant->device->hasEnhancedIconMenuSupport() */) {
-				sprintf(xmlData, "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"App:Close:0\"/></CiscoIPPhoneExecute>");
+				snprintf(xmlData, sizeof(xmlData), "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"App:Close:0\"/></CiscoIPPhoneExecute>");
 			} else {
-				sprintf(xmlData, "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"Init:Services\"/></CiscoIPPhoneExecute>");
+				snprintf(xmlData, sizeof(xmlData), "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"Init:Services\"/></CiscoIPPhoneExecute>");
 			}
 
 			participant->device->protocol->sendUserToDeviceDataVersionMessage(participant->device, appID, participant->callReference, participant->lineInstance, participant->transactionID, xmlData, 2);
@@ -1617,9 +1601,6 @@ void sccp_conference_promote_demote_participant(conferencePtr conference, partic
 void sccp_conference_invite_participant(constConferencePtr conference, constParticipantPtr moderator)
 {
 	//sccp_channel_t *channel = NULL;
-	char xmlStr[2048] = "";
-	char xmlTmp[512] = "";
-
 	if (!conference) {
 		pbx_log(LOG_WARNING, "SCCPCONF: No conference\n");
 		return;
@@ -1637,39 +1618,38 @@ void sccp_conference_invite_participant(constConferencePtr conference, constPart
 	}
 
 	if (moderator->channel && moderator->device) {
+		pbx_str_t *xmlStr = pbx_str_alloca(2048);
 
 		if (moderator->device->protocolversion >= 15) {
-			sprintf(xmlTmp, "<CiscoIPPhoneInput appId=\"%d\">\n", appID);
+			pbx_str_append(&xmlStr, 0, "<CiscoIPPhoneInput appId=\"%d\">\n", appID);
 		} else {
-			sprintf(xmlTmp, "<CiscoIPPhoneInput>\n");
+			pbx_str_append(&xmlStr, 0, "<CiscoIPPhoneInput>\n");
 		}
-		strcat(xmlStr, xmlTmp);
-		sprintf(xmlTmp, "<Title>Conference %d Invite</Title>\n", conference->id);
-		strcat(xmlStr, "<Prompt>Enter the phone number to invite</Prompt>\n");
-		// sprintf(xmlTmp, "<URL>UserCallData:%d:%d:%d:%d:%d</URL>\n", APPID_CONFERENCE_INVITE, moderator->lineInstance, moderator->callReference, moderator->transactionID, moderator->id);
-		// sprintf(xmlTmp, "<URL>UserCallData:%d:%d:%d:%d</URL>\n", APPID_CONFERENCE_INVITE, moderator->lineInstance, moderator->callReference, moderator->transactionID);
-		sprintf(xmlTmp, "<URL>UserData:%d:%s</URL>\n", appID, "invite");
-		strcat(xmlStr, xmlTmp);
+		pbx_str_append(&xmlStr, 0, "<Title>Conference %d Invite</Title>\n", conference->id);
+		pbx_str_append(&xmlStr, 0, "<Prompt>Enter the phone number to invite</Prompt>\n");
+		// pbx_str_append(&xmlStr, 0, "<URL>UserCallData:%d:%d:%d:%d:%d</URL>\n", APPID_CONFERENCE_INVITE, moderator->lineInstance, moderator->callReference, moderator->transactionID, moderator->id);
+		// pbx_str_append(&xmlStr, 0, "<URL>UserCallData:%d:%d:%d:%d</URL>\n", APPID_CONFERENCE_INVITE, moderator->lineInstance, moderator->callReference, moderator->transactionID);
+		pbx_str_append(&xmlStr, 0, "<URL>UserData:%d:%s</URL>\n", appID, "invite");
 
-		strcat(xmlStr, "<InputItem>\n");
-		strcat(xmlStr, "  <DisplayName>Phone Number</DisplayName>\n");
-		strcat(xmlStr, "  <QueryStringParam>NUMBER</QueryStringParam>\n");
-		strcat(xmlStr, "  <InputFlags>T</InputFlags>\n");
-		strcat(xmlStr, "</InputItem>\n");
+		pbx_str_append(&xmlStr, 0, "<InputItem>\n");
+		pbx_str_append(&xmlStr, 0, "  <DisplayName>Phone Number</DisplayName>\n");
+		pbx_str_append(&xmlStr, 0, "  <QueryStringParam>NUMBER</QueryStringParam>\n");
+		pbx_str_append(&xmlStr, 0, "  <InputFlags>T</InputFlags>\n");
+		pbx_str_append(&xmlStr, 0, "</InputItem>\n");
 
 		// SoftKeys
-		// strcat(xmlStr, "<SoftKeyItem>\n");
-		// strcat(xmlStr, "  <Name>Exit</Name>\n");
-		// strcat(xmlStr, "  <Position>4</Position>\n");
-		// strcat(xmlStr, "  <URL>SoftKey:Exit</URL>\n");
-		// strcat(xmlStr, "</SoftKeyItem>\n");
+		// pbx_str_append(&xmlStr, 0, "<SoftKeyItem>\n");
+		// pbx_str_append(&xmlStr, 0, "  <Name>Exit</Name>\n");
+		// pbx_str_append(&xmlStr, 0, "  <Position>4</Position>\n");
+		// pbx_str_append(&xmlStr, 0, "  <URL>SoftKey:Exit</URL>\n");
+		// pbx_str_append(&xmlStr, 0, "</SoftKeyItem>\n");
 
-		strcat(xmlStr, "</CiscoIPPhoneInput>\n");
+		pbx_str_append(&xmlStr, 0, "</CiscoIPPhoneInput>\n");
 
 		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: ShowList appID %d, lineInstance %d, callReference %d, transactionID %d\n", conference->id, appID, moderator->callReference, moderator->lineInstance, moderator->transactionID);
-		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: XML-message:\n%s\n", conference->id, xmlStr);
+		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: XML-message:\n%s\n", conference->id, pbx_str_buffer(xmlStr));
 
-		moderator->device->protocol->sendUserToDeviceDataVersionMessage(moderator->device, APPID_CONFERENCE_INVITE, moderator->callReference, moderator->lineInstance, moderator->transactionID, xmlStr, 2);
+		moderator->device->protocol->sendUserToDeviceDataVersionMessage(moderator->device, APPID_CONFERENCE_INVITE, moderator->callReference, moderator->lineInstance, moderator->transactionID, pbx_str_buffer(xmlStr), 2);
 	}
 }
 
@@ -1692,7 +1672,7 @@ char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos
 	int wordlen = strlen(word), which = 0;
 	uint i = 0;
 	char *ret = NULL;
-	char tmpname[20];
+	char tmpname[21];
 	char *actions[5] = { "EndConf", "Kick", "Mute", "Invite", "Moderate" };
 
 	switch (pos) {
@@ -1724,7 +1704,7 @@ char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos
 			{
 				sccp_participant_t *participant = NULL;
 
-				if (sscanf(line, "sccp conference %s %d", tmpname, &conference_id) > 0) {
+				if (sscanf(line, "sccp conference %20s %d", tmpname, &conference_id) > 0) {
 					AUTO_RELEASE sccp_conference_t *conference = sccp_conference_findByID(conference_id);
 
 					if (conference) {
@@ -1810,7 +1790,7 @@ int sccp_cli_show_conference(int fd, sccp_cli_totals_t *totals, struct mansessio
 		pbx_log(LOG_WARNING, "At least ConferenceId needs to be supplied\n");
 		CLI_AMI_RETURN_ERROR(fd, s, m, "At least ConferenceId needs to be supplied\n %s", "");
 	}
-	if (!sccp_strIsNumeric(argv[3]) || (confid = atoi(argv[3])) <= 0) {
+	if (!sccp_strIsNumeric(argv[3]) || (confid = sccp_atoi(argv[3], strlen(argv[3]))) <= 0) {
 		pbx_log(LOG_WARNING, "At least a valid ConferenceId needs to be supplied\n");
 		CLI_AMI_RETURN_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
 	}
@@ -1883,14 +1863,14 @@ int sccp_cli_conference_command(int fd, sccp_cli_totals_t *totals, struct manses
 		return RESULT_SHOWUSAGE;
 	}
 
-	if (sccp_strIsNumeric(argv[3]) && (confid = atoi(argv[3])) > 0) {
+	if (sccp_strIsNumeric(argv[3]) && (confid = sccp_atoi(argv[3], strlen(argv[3]))) > 0) {
 		AUTO_RELEASE sccp_conference_t *conference = sccp_conference_findByID(confid);
 
 		if (conference) {
 			if (!strncasecmp(argv[2], "EndConf", 7)) {						// EndConf Command
 				sccp_conference_end(conference);
 			} else if (argc >= 5) {
-				if (sccp_strIsNumeric(argv[4]) && (partid = atoi(argv[4])) > 0) {
+				if (sccp_strIsNumeric(argv[4]) && (partid = sccp_atoi(argv[4], strlen(argv[4]))) > 0) {
 					AUTO_RELEASE sccp_participant_t *participant = sccp_participant_findByID(conference, partid);
 
 					if (participant) {

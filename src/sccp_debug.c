@@ -85,7 +85,6 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 	uint32_t i;
 	char *res = NULL;
 	char *tmpres = NULL;
-	const char *sep = ",";
 	size_t size = 0;
 
 	for (i = 2; i < ARRAY_LEN(sccp_debug_categories); ++i) {
@@ -101,10 +100,10 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 			}
 			res = tmpres;
 			if (size == 0) {
-				strcpy(res, sccp_debug_categories[i].key);
+				//strlcpy(res, sccp_debug_categories[i].key, new_size);
+				snprintf(res, new_size - 1, "%s", sccp_debug_categories[i].key);
 			} else {
-				strcat(res, sep);
-				strcat(res, sccp_debug_categories[i].key);
+				snprintf(res + strlen(res), new_size - 1, ",%s", sccp_debug_categories[i].key);
 			}
 
 			size = new_size;

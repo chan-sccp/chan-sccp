@@ -645,6 +645,11 @@ static int sccp_wrapper_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			break;
 
 		case AST_CONTROL_CONNECTED_LINE:
+#ifdef CS_EXPERIMENTAL
+			if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE && c->state > SCCP_CHANNELSTATE_DIALING) {
+				sccp_channel_openReceiveChannel(c);
+			}
+#endif
 			sccp_asterisk_connectedline(c, data, datalen);
 			res = 0;
 			break;
@@ -693,6 +698,11 @@ static int sccp_wrapper_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 #endif
 		case -1:											// Asterisk prod the channel
 			if (c->line && c->state > SCCP_GROUPED_CHANNELSTATE_DIALING) {
+#ifdef CS_EXPERIMENTAL
+				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {
+					sccp_channel_openReceiveChannel(c);
+				}
+#endif
 				uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
 				sccp_dev_stoptone(d, instance, c->callid);
 			}
@@ -1052,7 +1062,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk110_park(const sccp_channel_t * ho
 		if (device) {
 			ast_channel_lock(hostChannel->owner);							/* we have to lock our channel, otherwise asterisk crashes internally */
 			if (!ast_masq_park_call(bridgedChannel, hostChannel->owner, 0, &extout)) {
-				sprintf(&extstr[2], " %d", extout);
+				snprintf(&extstr[2], sizeof(extstr), " %d", extout);
 
 				sccp_dev_displayprinotify(device, extstr, 1, 10);
 				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(device), bridgedChannel->name, extout);

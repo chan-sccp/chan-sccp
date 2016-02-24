@@ -61,7 +61,7 @@ BEGIN {
 	# print " * Date: " $date > out_header_file
 	print " */" >out_header_file 
 	print "#pragma once" >out_header_file
-	print "__BEGIN_EXTERN__" >out_header_file 
+	print "__BEGIN_C_EXTERN__" >out_header_file 
 	print "typedef uint32_t (*sccp_enum_str2intval_t)(const char *lookup_str);" > out_header_file
 	print "typedef const char *(*sccp_enum_all_entries_t)(void);" > out_header_file
 	
@@ -208,15 +208,15 @@ codeSkip == 1			{ next }
 	}
 	print "} " namespace "_" enum_name "_t;" >out_header_file
 	if (strfunc == 1) {
-		print "int " namespace "_" enum_name "_exists(int " namespace "_" enum_name "_int_value);" > out_header_file
+		print "SCCP_API int SCCP_CALL " namespace "_" enum_name "_exists(int " namespace "_" enum_name "_int_value);" > out_header_file
 		if (bitfield == 0) {
-			print "const char * " namespace "_" enum_name "2str(" namespace "_" enum_name "_t enum_value);" > out_header_file
+			print "SCCP_API const char * SCCP_CALL " namespace "_" enum_name "2str(" namespace "_" enum_name "_t enum_value);" > out_header_file
 		} else {
-			print "const char * " namespace "_" enum_name "2str(int " namespace "_" enum_name "_int_value);" > out_header_file
+			print "SCCP_API const char * SCCP_CALL " namespace "_" enum_name "2str(int " namespace "_" enum_name "_int_value);" > out_header_file
 		}
-		print namespace "_" enum_name "_t " namespace "_" enum_name "_str2val(const char *lookup_str);" > out_header_file
-		print "uint32_t " namespace "_" enum_name "_str2intval(const char *lookup_str);" > out_header_file
-		print "const char *" namespace "_" enum_name "_all_entries(void);" > out_header_file
+		print "SCCP_API " namespace "_" enum_name "_t " SCCP_CALL namespace "_" enum_name "_str2val(const char *lookup_str);" > out_header_file
+		print "SCCP_API uint32_t SCCP_CALL " namespace "_" enum_name "_str2intval(const char *lookup_str);" > out_header_file
+		print "SCCP_API const char * SCCP_CALL " namespace "_" enum_name "_all_entries(void);" > out_header_file
 	}
         print "/* = End ===" headerfooter >out_header_file
 
@@ -342,7 +342,7 @@ codeSkip == 1			{ next }
 				print "\tint pos = 0;" >out_source_file
 				if (Entry_val[0] == 0) {
 					print "\tif (" namespace "_" enum_name "_int_value == 0) {" > out_source_file
-					print "\t\tpos += snprintf(res, " totlen ", \"%s\", " namespace "_" enum_name "_map[0]);" >out_source_file
+					print "\t\tsnprintf(res, " totlen ", \"%s\", " namespace "_" enum_name "_map[0]);" >out_source_file
 					print "\t\treturn res;" > out_source_file
 					print "\t}" > out_source_file
 				}
@@ -429,7 +429,7 @@ codeSkip == 1			{ next }
 
 END {
 	# add guard
-	print "__END_EXTERN__" >out_header_file 
+	print "__END_C_EXTERN__" >out_header_file 
 	close (out_header_file)
 	close (out_source_file)
 }

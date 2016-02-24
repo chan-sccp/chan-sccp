@@ -10,13 +10,13 @@
  *
  */
 #pragma once 
-__BEGIN_EXTERN__
+__BEGIN_C_EXTERN__
 #define CLI_AMI_LIST_WIDTH 46
 typedef struct sccp_cli_totals {
 	int lines;
 	int tables;
 } sccp_cli_totals_t;
-void sccp_register_cli(void);
-void sccp_unregister_cli(void);
-__END_EXTERN__
+SCCP_API void SCCP_CALL sccp_register_cli(void);
+SCCP_API void SCCP_CALL sccp_unregister_cli(void);
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

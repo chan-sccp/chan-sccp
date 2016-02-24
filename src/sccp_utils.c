@@ -187,12 +187,14 @@ void sccp_dev_dbclean(void)
 {
 	struct ast_db_entry *entry = NULL;
 	sccp_device_t *d = NULL;
-	char key[256];
+	char key[SCCP_MAX_EXTENSION];
+	char scanfmt[20]="";
 
 	//! \todo write an pbx implementation for that
 	//entry = PBX(feature_getFromDatabase)tree("SCCP", NULL);
 	while (entry) {
-		sscanf(entry->key, "/SCCP/%s", key);
+		snprintf(scanfmt, sizeof(scanfmt), "/SCCP/%%%ds", SCCP_MAX_EXTENSION);
+		sscanf(entry->key, scanfmt, key);
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Looking for '%s' in the devices list\n", key);
 		if ((strlen(key) == 15) && (!strncmp(key, "SEP", 3) || !strncmp(key, "ATA", 3) || !strncmp(key, "VGC", 3) || !strncmp(key, "AN", 2) || !strncmp(key, "SKIGW", 5))) {
 
@@ -660,7 +662,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 	}
 
 	sccp_log((DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: StorageBackend got Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), sccp_feature_type2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
-	sprintf(family, "SCCP/%s", device->id);
+	snprintf(family, sizeof(family), "SCCP/%s", device->id);
 
 	switch (event->event.featureChanged.featureType) {
 		case SCCP_FEATURE_CFWDNONE:
@@ -671,8 +673,8 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 				uint8_t instance = linedevice->lineInstance;
 
 				sccp_dev_forward_status(line, instance, device);
-				sprintf(cfwdDeviceLineStore, "SCCP/%s/%s", device->id, line->name);
-				sprintf(cfwdLineDeviceStore, "SCCP/%s/%s", line->name, device->id);
+				snprintf(cfwdDeviceLineStore, sizeof(cfwdDeviceLineStore), "SCCP/%s/%s", device->id, line->name);
+				snprintf(cfwdLineDeviceStore, sizeof(cfwdLineDeviceStore), "SCCP/%s/%s", line->name, device->id);
 				switch (event->event.featureChanged.featureType) {
 					case SCCP_FEATURE_CFWDALL:
 						if (linedevice->cfwdAll.enabled) {
@@ -732,7 +734,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 				} else {
 					char data[256];
 
-					sprintf(data, "%d", device->privacyFeature.status);
+					snprintf(data, sizeof(data), "%d", device->privacyFeature.status);
 					iPbx.feature_addToDatabase(family, "privacy", data);
 				}
 				device->privacyFeature.previousStatus = device->privacyFeature.status;
@@ -757,110 +759,140 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
  * \brief Parse Composed ID
  * \param labelString LabelString as string
  * \param maxLength Maximum Length as unsigned int
+ * \param id point to sccp_composed_id_t by ref
  *
  * \callgraph
  * \callergraph
  */
-struct composedId sccp_parseComposedId(const char *labelString, unsigned int maxLength)
+int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_subscription_id_t *subscriptionId, char extension[SCCP_MAX_EXTENSION])
 {
+	pbx_assert(NULL != labelString || NULL != subscriptionId || NULL != extension);
+	int res = TRUE;
 	const char *stringIterator = 0;
 	uint32_t i = 0;
 	boolean_t endDetected = FALSE;
-	int state = 0;
-	struct composedId id;
-
-	pbx_assert(NULL != labelString);
-
-	memset(&id, 0, sizeof(id));
+	enum {EXTENSION, ID, CIDNAME, LABEL, AUX} state = EXTENSION;
+	memset(subscriptionId, 0, sizeof(sccp_subscription_id_t));
 
 	for (stringIterator = labelString; stringIterator < labelString + maxLength && !endDetected; stringIterator++) {
 		switch (state) {
-			case 0:										// parsing of main id
-				pbx_assert(i < sizeof(id.mainId));
+			case EXTENSION:										// parsing of main id
+				pbx_assert(i < SCCP_MAX_EXTENSION);
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
-						id.mainId[i] = '\0';
+						extension[i] = '\0';
 						break;
 					case '@':
-						id.mainId[i] = '\0';
+						extension[i] = '\0';
 						i = 0;
-						state = 1;
+						state = ID;
 						break;
 					case '!':
-						id.mainId[i] = '\0';
+						extension[i] = '\0';
 						i = 0;
-						state = 3;
+						state = AUX;
 						break;
 					default:
-						id.mainId[i] = *stringIterator;
+						extension[i] = *stringIterator;
 						i++;
 						break;
 				}
+				res++;
 				break;
 
-			case 1:										// parsing of sub id number
-				pbx_assert(i < sizeof(id.subscriptionId.number));
+			case ID:										// parsing of sub id number
+				pbx_assert(i < sizeof(subscriptionId->number));
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
-						id.subscriptionId.number[i] = '\0';
+						subscriptionId->number[i] = '\0';
 						break;
 					case ':':
-						id.subscriptionId.number[i] = '\0';
+						subscriptionId->number[i] = '\0';
 						i = 0;
-						state = 2;
+						state = CIDNAME;
 						break;
 					case '!':
-						id.subscriptionId.number[i] = '\0';
+						subscriptionId->number[i] = '\0';
 						i = 0;
-						state = 3;
+						state = AUX;
 						break;
 					default:
-						id.subscriptionId.number[i] = *stringIterator;
+						subscriptionId->number[i] = *stringIterator;
 						i++;
 						break;
 				}
+				res++;
 				break;
 
-			case 2:										// parsing of sub id name
-				pbx_assert(i < sizeof(id.subscriptionId.name));
+			case CIDNAME:										// parsing of sub id name
+				pbx_assert(i < sizeof(subscriptionId->name));
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
-						id.subscriptionId.name[i] = '\0';
+						subscriptionId->name[i] = '\0';
+						break;
+					case '#':
+						subscriptionId->name[i] = '\0';
+						i = 0;
+						state = LABEL;
 						break;
 					case '!':
-						id.subscriptionId.name[i] = '\0';
+						subscriptionId->name[i] = '\0';
 						i = 0;
-						state = 3;
+						state = AUX ;
 						break;
 					default:
-						id.subscriptionId.name[i] = *stringIterator;
+						subscriptionId->name[i] = *stringIterator;
 						i++;
 						break;
 				}
+				res++;
 				break;
 
-			case 3:										// parsing of auxiliary parameter
-				pbx_assert(i < sizeof(id.subscriptionId.name));
+			case LABEL:										// parsing of sub id name
+				pbx_assert(i < sizeof(subscriptionId->label));
 				switch (*stringIterator) {
 					case '\0':
 						endDetected = TRUE;
-						id.subscriptionId.aux[i] = '\0';
+						subscriptionId->label[i] = '\0';
+						break;
+					case '!':
+						subscriptionId->label[i] = '\0';
+						i = 0;
+						state = AUX;
 						break;
 					default:
-						id.subscriptionId.aux[i] = *stringIterator;
+						subscriptionId->label[i] = *stringIterator;
 						i++;
 						break;
 				}
+				res++;
+				break;
+
+			case AUX:										// parsing of auxiliary parameter
+				pbx_assert(i < sizeof(subscriptionId->aux));
+				switch (*stringIterator) {
+					case '\0':
+						endDetected = TRUE;
+						subscriptionId->aux[i] = '\0';
+						break;
+					default:
+						subscriptionId->aux[i] = *stringIterator;
+						i++;
+						break;
+				}
+				res++;
 				break;
 
 			default:
 				pbx_assert(FALSE);
+				res = 0;
+				break;
 		}
 	}
-	return id;
+	return res;
 }
 
 /*!
@@ -2167,6 +2199,20 @@ char *sccp_trimwhitespace(char *str)
 	// Write new null terminator
 	*(end + 1) = 0;
 	return str;
+}
+
+gcc_inline int sccp_atoi(const char * const buf, size_t buflen)
+{
+	int result = 0;
+	if (buf && buflen > 0) {
+	        errno = 0;
+		char *end = NULL;
+        	long temp = strtol(buf, &end, 10);
+	        if (end != buf && errno != ERANGE && (temp >= INT_MIN || temp <= INT_MAX)) {
+        		result = (int)temp;
+		}
+	}
+	return result;
 }
 
 long int sccp_random(void)

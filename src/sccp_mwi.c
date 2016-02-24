@@ -24,7 +24,6 @@ SCCP_FILE_VERSION(__FILE__, "");
 #  include <asterisk/event.h>
 #endif
 
-__BEGIN_EXTERN__
 #ifndef CS_AST_HAS_EVENT
 #define SCCP_MWI_CHECK_INTERVAL 30
 #endif
@@ -106,7 +105,6 @@ static SCCP_LIST_HEAD (, sccp_mailbox_subscriber_list_t) sccp_mailbox_subscripti
  */
 void sccp_mwi_module_start(void)
 {
-	/* */
 	SCCP_LIST_HEAD_INIT(&sccp_mailbox_subscriptions);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Starting MWI system\n");
 
@@ -149,7 +147,6 @@ static void sccp_mwi_updatecount(sccp_mailbox_subscriber_list_t * subscription)
 		AUTO_RELEASE sccp_line_t *line = sccp_line_retain(mailboxLine->line);
 
 		if (line) {
-			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s:(sccp_mwi_updatecount)\n", line->name);
 			sccp_linedevices_t *lineDevice = NULL;
 
 			/* update statistics for line  */
@@ -159,6 +156,7 @@ static void sccp_mwi_updatecount(sccp_mailbox_subscriber_list_t * subscription)
 			line->voicemailStatistic.oldmsgs += subscription->currentVoicemailStatistic.oldmsgs;
 			line->voicemailStatistic.newmsgs += subscription->currentVoicemailStatistic.newmsgs;
 			/* done */
+			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s:(sccp_mwi_updatecount) newmsgs:%d, oldmsgs:%d\n", line->name, line->voicemailStatistic.newmsgs, line->voicemailStatistic.oldmsgs);
 
 			/* notify each device on line */
 			SCCP_LIST_LOCK(&line->devices);
@@ -189,9 +187,9 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
 		pbx_log(LOG_ERROR, "SCCP: MWI Event received but not all requirements are fullfilled (%p, %p, %d)\n", subscription, event, GLOB(module_running));
 		return;
 	}
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received PBX mwi event for %s@%s\n", subscription->mailbox, subscription->context);
 	int newmsgs = pbx_event_get_ie_uint(event, AST_EVENT_IE_NEWMSGS);
 	int oldmsgs = pbx_event_get_ie_uint(event, AST_EVENT_IE_OLDMSGS);
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: Received PBX mwi event (%s) for %s@%s, newmsgs:%d, oldmsgs:%d\n", ast_event_get_type_name(event), subscription->mailbox, subscription->context, newmsgs, oldmsgs);
 
 	/* for calculation store previous voicemail counts */
 	subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
@@ -220,11 +218,12 @@ void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stas
 	if (!subscription || !GLOB(module_running)) {
 		return;
 	}
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received PBX mwi event for %s@%s\n", subscription->mailbox, subscription->context);
 
 	if (msg && ast_mwi_state_type() == stasis_message_type(msg)) {
 		struct ast_mwi_state *mwi_state = stasis_message_data(msg);
 		int newmsgs = mwi_state->new_msgs, oldmsgs = mwi_state->old_msgs;
+
+		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: Received PBX mwi event for %s@%s, newmsgs:%d, oldmsgs:%d\n", subscription->mailbox, subscription->context, newmsgs, oldmsgs);
 
 		subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
 		subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
@@ -576,16 +575,16 @@ void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice)
 	status = state << instance;
 
 	/* check if we need to update line status */
-	//char binstr[41] = "";
-	//sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) instance: %d, mwilight:%d, mask:%s (%d)\n", DEV_ID_LOG(lineDevice->device), instance, d->mwilight, sccp_dec2binstr(binstr, 32, mask), mask);
-	//sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) state: %d. status:%s (%d) \n", DEV_ID_LOG(lineDevice->device), state, sccp_dec2binstr(binstr, 32, status), status);
+	char binstr[41] = "";
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) instance: %d, mwilight:%d, mask:%s (%d)\n", DEV_ID_LOG(lineDevice->device), instance, d->mwilight, sccp_dec2binstr(binstr, 32, mask), mask);
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) state: %d. status:%s (%d) \n", DEV_ID_LOG(lineDevice->device), state, sccp_dec2binstr(binstr, 32, status), status);
 	if ( (d->mwilight & mask) != status) {
 		if (state) {			/* activate mwi line icon */
 			d->mwilight |= mask;
 		} else {			/* deactivate mwi line icon */
 			d->mwilight &= ~mask;
 		}
-		//sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) new mwilight:%s value: %d\n", DEV_ID_LOG(lineDevice->device), sccp_dec2binstr(binstr, 32, d->mwilight), d->mwilight);
+		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) new mwilight:%s value: %d\n", DEV_ID_LOG(lineDevice->device), sccp_dec2binstr(binstr, 32, d->mwilight), d->mwilight);
 		REQ(msg, SetLampMessage);
 		msg->data.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
 		msg->data.SetLampMessage.lel_stimulusInstance = htolel(instance);
@@ -746,6 +745,4 @@ int sccp_show_mwi_subscriptions(int fd, sccp_cli_totals_t *totals, struct manses
 	}
 	return RESULT_SUCCESS;
 }
-
-__END_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

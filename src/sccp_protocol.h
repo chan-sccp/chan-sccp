@@ -3418,9 +3418,9 @@ typedef struct {
 	void (*const parsePortResponse) (constMessagePtr msg, uint32_t *conferenceId, uint32_t *callReference, uint32_t *passThruPartyId, struct sockaddr_storage *ss, uint32_t * RTCPPortNumber, skinny_mediaType_t *mediaType);
 } sccp_deviceProtocol_t;											/*!< SCCP Device Protocol Callback Structure */
 
-boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version);
-uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);
-const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(constDevicePtr device, int type);
-const char *skinny_keymode2longstr(skinny_keymode_t keymode);
+SCCP_API boolean_t SCCP_CALL sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version);
+SCCP_API uint8_t SCCP_CALL sccp_protocol_getMaxSupportedVersionNumber(int type);
+SCCP_API const sccp_deviceProtocol_t * SCCP_CALL sccp_protocol_getDeviceProtocol(constDevicePtr device, int type);
+SCCP_API const char * SCCP_CALL skinny_keymode2longstr(skinny_keymode_t keymode);
 __END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

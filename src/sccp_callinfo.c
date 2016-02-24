@@ -103,7 +103,7 @@ static sccp_callinfo_t * const callinfo_Constructor(uint8_t callInstance)
 	ci->content.changed = TRUE;
 	ci->content.callInstance = callInstance;
 
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_1 "SCCP: callinfo constructor: %p\n", ci);
+	sccp_log(DEBUGCAT_CALLINFO) (VERBOSE_PREFIX_1 "SCCP: callinfo constructor: %p\n", ci);
 	return ci;
 }
 
@@ -114,7 +114,7 @@ static sccp_callinfo_t * const callinfo_Destructor(sccp_callinfo_t * ci)
 	//sccp_callinfo_unlock(ci);
 	pbx_rwlock_destroy(&ci->lock);
 	sccp_free(ci);
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "SCCP: callinfo destructor\n");
+	sccp_log(DEBUGCAT_CALLINFO) (VERBOSE_PREFIX_2 "SCCP: callinfo destructor\n");
 	return NULL;
 }
 
@@ -167,7 +167,7 @@ static int callinfo_Setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, 
 	int changes = 0;
 
 	/*
-	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
+	if ((GLOB(debug) & (DEBUGCAT_CALLINFO)) != 0) {
 		//#ifdef DEBUG
 		//sccp_do_backtrace();
 		//#endif
@@ -179,7 +179,7 @@ static int callinfo_Setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, 
 	va_list ap;
 	va_start(ap, key);
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
-		//sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: curkey:%s (%d)\n", sccp_callinfo_key2str(curkey), curkey);
+		//sccp_log(DEBUGCAT_CALLINFO)(VERBOSE_PREFIX_3 "SCCP: curkey:%s (%d)\n", sccp_callinfo_key2str(curkey), curkey);
 		switch (curkey) {
 		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
 			{
@@ -256,12 +256,10 @@ static int callinfo_Setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, 
 	}
 	sccp_callinfo_unlock(ci);
 
-	/*
-	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
+	if ((GLOB(debug) & (DEBUGCAT_CALLINFO)) != 0) {
 		iCallInfo.Print2log(ci, "SCCP: (sccp_callinfo_setter) after:");
 	}
-	*/
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_setter) changes:%d\n", ci, changes);
+	sccp_log(DEBUGCAT_CALLINFO)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_setter) changes:%d\n", ci, changes);
 
 	return changes;
 }
@@ -279,7 +277,7 @@ static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinf
 
 	/* observing locking order. not locking both callinfo objects at the same time, using a tmp_ci as go between */
 	/*
-	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
+	if ((GLOB(debug) & (DEBUGCAT_CALLINFO)) != 0) {
 		iCallInfo.Print2log(src_ci, "SCCP: (sccp_callinfo_copyByKey) orig src_ci");
 		iCallInfo.Print2log(dst_ci, "SCCP: (sccp_callinfo_copyByKey) orig dst_ci");
 	}
@@ -401,12 +399,10 @@ static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinf
 	dst_ci->content.changed = TRUE;
 	sccp_callinfo_unlock(dst_ci);
 	
-	/*
-	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
+	if ((GLOB(debug) & (DEBUGCAT_CALLINFO)) != 0) {
 		iCallInfo.Print2log(dst_ci, "SCCP: (sccp_callinfo_copyByKey) new dst_ci");
 	}
-	*/
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_copyByKey) changes:%d\n", dst_ci, changes);
+	sccp_log(DEBUGCAT_CALLINFO)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_copyByKey) changes:%d\n", dst_ci, changes);
 	return changes;
 }
 //#endif
@@ -423,7 +419,7 @@ static int callinfo_Getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t
 	va_start(ap, key);
 
 	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
-		//sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: curkey:%s (%d)\n", sccp_callinfo_key2str(curkey), curkey);
+		//sccp_log(DEBUGCAT_CALLINFO)(VERBOSE_PREFIX_3 "SCCP: curkey:%s (%d)\n", sccp_callinfo_key2str(curkey), curkey);
 		switch (curkey) {
 		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
 			{
@@ -503,15 +499,13 @@ static int callinfo_Getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t
 	va_end(ap);
 	sccp_callinfo_unlock(ci);
 
-	/*
-	if ((GLOB(debug) & (DEBUGCAT_NEWCODE)) != 0) {
+	if ((GLOB(debug) & (DEBUGCAT_CALLINFO)) != 0) {
 		//#ifdef DEBUG
 		//sccp_do_backtrace();
 		//#endif
 		iCallInfo.Print2log(ci, "SCCP: (sccp_callinfo_getter)");
 	}
-	*/
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_getter) entries:%d\n", ci, entries);
+	sccp_log(DEBUGCAT_CALLINFO)(VERBOSE_PREFIX_3 "%p: (sccp_callinfo_getter) entries:%d\n", ci, entries);
 	return entries;
 }
 
@@ -527,7 +521,7 @@ static int callinfo_Send(sccp_callinfo_t * const ci, const uint32_t callid, cons
 			return 1;
 		}
 	} else {
-		sccp_log(DEBUGCAT_NEWCODE) ("%p: (sccp_callinfo_send) ci has not changed since last send. Skipped sending\n", ci);
+		sccp_log(DEBUGCAT_CALLINFO) ("%p: (sccp_callinfo_send) ci has not changed since last send. Skipped sending\n", ci);
 	}
 	
 	return 0;

@@ -578,8 +578,8 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 			struct stat sb = { 0 };
 			if (stat(GLOB(token_fallback), &sb) == 0 && sb.st_mode & S_IXUSR) {
 				char command[SCCP_PATH_MAX];
-				char buff[19] = "";
-				char output[20] = "";
+				char buff[20] = "";
+				char output[21] = "";
 
 				struct sockaddr_storage sas = { 0 };
 				sccp_session_getSas(s, &sas);
@@ -589,8 +589,8 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 				//sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: (token_request), executing '%s'\n", deviceName, (char *) command);
 				pp = popen(command, "r");
 				if (pp != NULL) {
-					while (fgets(buff, sizeof(buff), pp)) {
-						strncat(output, buff, 19 - strlen(output));
+					while (fgets(buff, sizeof(buff) - 1, pp)) {
+						snprintf(output + strlen(output), sizeof(output) - 1, "%s", buff);
 					}
 					pclose(pp);
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (token_request), script result='%s'\n", deviceName, (char *) output);
@@ -3075,7 +3075,7 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 
 		/* skipping message if event is endcall, because they can coincide when both parties hangup around the same time */
 		if (event != SKINNY_LBL_ENDCALL) {
-			snprintf(buf, 100, SKINNY_DISP_NO_CHANNEL_TO_PERFORM_XXXXXXX_ON " " SKINNY_GIVING_UP, label2str(event));
+			snprintf(buf, sizeof(buf), SKINNY_DISP_NO_CHANNEL_TO_PERFORM_XXXXXXX_ON " " SKINNY_GIVING_UP, label2str(event));
 			sccp_dev_displayprinotify(d, buf, 5, 5);
 			sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, 0);
 			pbx_log(LOG_WARNING, "%s: Skip handling of Softkey %s (%d) line=%d callid=%d, because a channel is required, but not provided. Exiting\n", d->id, label2str(event), event, lineInstance, callid);
@@ -4048,7 +4048,7 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 				d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
 #if DEBUG
 //				char transmitReceiveStr[5];
-//				sprintf(transmitReceiveStr, "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
+//				snprintf(transmitReceiveStr, sizeof(transmitReceiveStr), "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
 //				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %-3s %3d %-25s\n", DEV_ID_LOG(d), transmitReceiveStr, video_codec, codec2str(video_codec));
 
 //				int protocolDependentData = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_protocolDependentData);
@@ -4057,7 +4057,7 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 //				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %6s %-5s protocolDependentData: %d\n", DEV_ID_LOG(d), "", "", protocolDependentData);
 //				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %6s %-5s maxBitRate: %d\n", DEV_ID_LOG(d), "", "", maxBitRate);
 				char transmitReceiveStr[5];
-				sprintf(transmitReceiveStr, "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
+				snprintf(transmitReceiveStr, sizeof(transmitReceiveStr), "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
 				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %2d: %-3s %3d %-25s\n", DEV_ID_LOG(d), video_capability, transmitReceiveStr, video_codec, codec2str(video_codec));
 				handle_updatecapabilities_dissect_videocapabiltyunion(d, video_codec, (videoCapabilityUnionV2_t *)&msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].capability);
 
@@ -4141,7 +4141,7 @@ void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constM
 			d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
 #if DEBUG
 			char transmitReceiveStr[5];
-			sprintf(transmitReceiveStr, "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
+			snprintf(transmitReceiveStr, sizeof(transmitReceiveStr), "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %2d: %-3s %3d %-25s\n", DEV_ID_LOG(d), video_capability, transmitReceiveStr, video_codec, codec2str(video_codec));
 			handle_updatecapabilities_dissect_videocapabiltyunion(d, video_codec, &msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].capability);
 
@@ -4227,7 +4227,7 @@ void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constM
 			d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
 #if DEBUG
 			char transmitReceiveStr[5];
-			sprintf(transmitReceiveStr, "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
+			snprintf(transmitReceiveStr, sizeof(transmitReceiveStr), "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %2d: %-3s %3d %-25s\n", DEV_ID_LOG(d), video_capability, transmitReceiveStr, video_codec, codec2str(video_codec));
 			handle_updatecapabilities_dissect_videocapabiltyunion(d, video_codec, &msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].capability);
 
@@ -4307,7 +4307,7 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 			case APPID_CONFERENCE:									// Handle Conference App
 #ifdef CS_SCCP_CONFERENCE
 				conferenceID = lineInstance;							// conferenceId is passed on via lineInstance
-				participantID = atoi(data);							// participantId is passed on in the data segment
+				participantID = sccp_atoi(data, sizeof(data));					// participantId is passed on in the data segment
 				sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList Info for AppID %d , CallID %d, Transaction %d, Conference %d, Participant: %d\n", d->id, appID, callReference, transactionID, conferenceID, participantID);
 				sccp_conference_handle_device_to_user(d, callReference, transactionID, conferenceID, participantID);
 #endif
@@ -4315,8 +4315,7 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 			case APPID_CONFERENCE_INVITE:								// Handle Conference Invite
 #ifdef CS_SCCP_CONFERENCE
 				conferenceID = lineInstance;							// conferenceId is passed on via lineInstance
-				participantID = atoi(data);							// participantId is passed on in the data segment
-				//phonenumber = atoi(data);
+				participantID = sccp_atoi(data, sizeof(data));					// participantId is passed on in the data segment
 				sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList Info for AppID %d , CallID %d, Transaction %d, Conference %d, Participant: %d\n", d->id, appID, callReference, transactionID, conferenceID, participantID);
 				//sccp_conference_handle_device_to_user(d, callReference, transactionID, conferenceID, participantID);
 #endif
@@ -4328,12 +4327,12 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 		// It has data -> must be a softkey
 		if (dataLength) {
 			/* split data by "/" */
-			char str_action[10] = "", str_transactionID[10] = "";
+			char str_action[11] = "", str_transactionID[11] = "";
 
-			if (sscanf(data, "%[^/]/%s", str_action, str_transactionID) > 0) {
+			if (sscanf(data, "%10[^/]/%10s", str_action, str_transactionID) > 0) {
 				sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s, %s\n", d->id, str_action, str_transactionID);
 				d->dtu_softkey.action = pbx_strdup(str_action);
-				d->dtu_softkey.transactionID = atoi(str_transactionID);
+				d->dtu_softkey.transactionID = sccp_atoi(str_transactionID, sizeof(str_transactionID));
 			} else {
 				pbx_log(LOG_NOTICE, "%s: Failure parsing DTU Softkey Button: %s\n", d->id, data);
 			}

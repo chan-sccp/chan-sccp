@@ -672,6 +672,11 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 			break;
 
 		case AST_CONTROL_CONNECTED_LINE:
+#ifdef CS_EXPERIMENTAL
+			if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE && c->state > SCCP_CHANNELSTATE_DIALING) {
+				sccp_channel_openReceiveChannel(c);
+			}
+#endif
 			sccp_asterisk_connectedline(c, data, datalen);
 			res = 0;
 			break;
@@ -724,6 +729,11 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 #endif
 		case -1:											// Asterisk prod the channel
 			if (c->line && c->state > SCCP_GROUPED_CHANNELSTATE_DIALING) {
+#ifdef CS_EXPERIMENTAL
+				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {
+					sccp_channel_openReceiveChannel(c);
+				}
+#endif
 				uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
 				sccp_dev_stoptone(d, instance, c->callid);
 			}
@@ -1104,7 +1114,7 @@ static void *sccp_wrapper_asterisk18_park_thread(void *data)
 	if (!res) {
 		extstr[0] = 128;
 		extstr[1] = SKINNY_LBL_CALL_PARK_AT;
-		sprintf(&extstr[2], " %d", ext);
+		snprintf(&extstr[2], sizeof(extstr)," %d", ext);
 
 		sccp_dev_displaynotify((sccp_device_t *) arg->device, extstr, 10);
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(arg->device), arg->bridgedChannel->name, ext);

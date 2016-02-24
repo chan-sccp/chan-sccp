@@ -467,13 +467,13 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
 static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	char pref_buf[256];
-	struct ast_str *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	pbx_str_t *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 #ifdef CS_SCCP_PICKUP
-	struct ast_str *pickupgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	pbx_str_t *pickupgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 #endif
-	struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-	struct ast_str *ha_localnet_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	pbx_str_t *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	pbx_str_t *ha_localnet_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	char *debugcategories;
 	int local_line_total = 0;
 	const char *actionid = "";
@@ -705,8 +705,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 {
 	char pref_buf[256];
 	char cap_buf[512];
-	struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-	struct ast_str *permithost_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	pbx_str_t *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	pbx_str_t *permithost_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	PBX_VARIABLE_TYPE *v = NULL;
 	int local_line_total = 0;
 	int local_table_total = 0;
@@ -743,8 +743,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 		sccp_session_getOurIP(d->session, &ourip, 0);
 		sccp_copy_string(serverAddress, sccp_netsock_stringify(&ourip), sizeof(serverAddress));
 	} else {
-		sprintf(clientAddress, "%s", "???.???.???.???");
-		sprintf(serverAddress, "%s", "???.???.???.???");
+		snprintf(clientAddress, sizeof(clientAddress), "%s", "???.???.???.???");
+		snprintf(serverAddress, sizeof(serverAddress), "%s", "???.???.???.???");
 	}
 
 	sccp_hostname_t *hostname;
@@ -819,9 +819,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Default line instance",	CLI_AMI_LIST_WIDTH, "%d", d->defaultLineInstance);
 	CLI_AMI_OUTPUT_PARAM("Custom Background Image",	CLI_AMI_LIST_WIDTH, "%s", d->backgroundImage ? d->backgroundImage : "---");
 	CLI_AMI_OUTPUT_PARAM("Custom Ring Tone",	CLI_AMI_LIST_WIDTH, "%s", d->ringtone ? d->ringtone : "---");
-#ifdef CS_ADV_FEATURES
 	CLI_AMI_OUTPUT_BOOL("Use Placed Calls",		CLI_AMI_LIST_WIDTH, d->useRedialMenu);
-#endif
 	CLI_AMI_OUTPUT_BOOL("PendingUpdate",		CLI_AMI_LIST_WIDTH, d->pendingUpdate);
 	CLI_AMI_OUTPUT_BOOL("PendingDelete",		CLI_AMI_LIST_WIDTH, d->pendingDelete);
 #ifdef CS_SCCP_PICKUP
@@ -1094,7 +1092,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 					pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n",
 						!found_linedevice ? l->name : " +--", 
 						linedevice->subscriptionId.number, 
-						l->label ? l->label : "--", 
+						 sccp_strlen_zero(linedevice->subscriptionId.label) ? (l->label ? l->label : "--") : linedevice->subscriptionId.label,
 						d->id, 
 						(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", 
 						SCCP_RWLIST_GETSIZE(&l->channels), 
@@ -1109,7 +1107,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 					astman_append(s, "ActionId: %s\r\n", actionid);
 					astman_append(s, "Exten: %s\r\n", l->name);
 					astman_append(s, "SubscriptionNumber: %s\r\n", linedevice->subscriptionId.number);
-					astman_append(s, "Label: %s\r\n", l->label);
+					astman_append(s, "Label: %s\r\n", sccp_strlen_zero(linedevice->subscriptionId.label) ? l->label : linedevice->subscriptionId.label);
 					astman_append(s, "Device: %s\r\n", d->id);
 					astman_append(s, "MWI: %s\r\n", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF");
 					astman_append(s, "ActiveChannels: %d\r\n", SCCP_LIST_GETSIZE(&l->channels));
@@ -1217,11 +1215,11 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	sccp_linedevices_t *linedevice = NULL;
 	sccp_mailbox_t *mailbox = NULL;
 	PBX_VARIABLE_TYPE *v = NULL;
-	struct ast_str *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	pbx_str_t *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	const char *actionid = "";
 
 #ifdef CS_SCCP_PICKUP
-	struct ast_str *pickupgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	pbx_str_t *pickupgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 #endif
 	int local_line_total = 0;
 	int local_table_total = 0;
@@ -1657,14 +1655,14 @@ static int sccp_test(int fd, int argc, char *argv[])
 		return RESULT_SUCCESS;
 	}
 	if (!strcasecmp(argv[2], "hint")) {
-		int state = (argc == 6) ? atoi(argv[4]) : 0;
+		int state = (argc == 6) ? sccp_atoi(argv[4], strlen(argv[4])) : 0;
 
 		pbx_devstate_changed(state, "SCCP/%s", argv[3]);
 		pbx_log(LOG_NOTICE, "Hint %s Set NewState: %d\n", argv[3], state);
 		return RESULT_SUCCESS;
 	}
 	if (!strcasecmp(argv[2], "permit")) {									/*  WIP */
-		struct ast_str *buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+		pbx_str_t *buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 		//struct sccp_ha *path; 
 		//sccp_append_ha(const char *sense, const char *stuff, struct sccp_ha *path, int *error)
@@ -1733,7 +1731,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 
 			struct sockaddr_storage ourip = { 0 };
 			sccp_session_getOurIP(d->session, &ourip, 0);
-			sprintf(xmlData2, xmlData1, sccp_netsock_stringify(&ourip));
+			snprintf(xmlData2, sizeof(xmlData2), xmlData1, sccp_netsock_stringify(&ourip));
 
 			d->protocol->sendUserToDeviceDataVersionMessage(d, 1, 0, 0, 1, xmlData2, 1);
 			pbx_log(LOG_NOTICE, "%s: Done1\n", d->id);
@@ -1791,7 +1789,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		return RESULT_FAILURE;
 	}
 	if (!strcasecmp(argv[2], "callinfo") && argc > 4) {
-		AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_byid(atoi(argv[3]));
+		AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_byid(sccp_atoi(argv[3], strlen(argv[3])));
 
 		if (c) {
 			pbx_log(LOG_NOTICE, "%s: Running CallInfo: %s\n", c->designator, argv[4]);
@@ -3009,7 +3007,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 			// c = sccp_find_channel_on_line_byid(l, channeId);	// possible replacement, to also check if the line provided can be matched up.
 			c = sccp_channel_find_byid(channel);
 		} else {
-			c = sccp_channel_find_byid(atoi(argv[3]));
+			c = sccp_channel_find_byid(sccp_atoi(argv[3], strlen(argv[3])));
 		}
 
 		if (!c) {
@@ -3206,7 +3204,7 @@ static int sccp_answercall(int fd, sccp_cli_totals_t *totals, struct mansession 
 		// c = sccp_find_channel_on_line_byid(l, channeId);	// possible replacement, to also check if the line provided can be matched up.
 		c = sccp_channel_find_byid(channelId);
 	} else {
-		c = sccp_channel_find_byid(atoi(argv[2]));
+		c = sccp_channel_find_byid(sccp_atoi(argv[2], strlen(argv[2])));
 	}
 
 	if (c) {
@@ -3286,7 +3284,7 @@ static int sccp_end_call(int fd, int argc, char *argv[])
 		sscanf(argv[2], "SCCP/%[^-]-%08x", line, &channel);
 		c = sccp_channel_find_byid(channel);
 	} else {
-		c = sccp_channel_find_byid(atoi(argv[2]));
+		c = sccp_channel_find_byid(sccp_atoi(argv[2], strlen(argv[2])));
 	}
 	if (!c) {
 		pbx_cli(fd, "Can't find channel for ID %s\n", argv[2]);

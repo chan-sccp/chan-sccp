@@ -27,14 +27,16 @@
 #define strdupa sccp_strdupa
 #endif
 
-void sccp_dump_packet(unsigned char *messagebuffer, int len);
-void sccp_dump_msg(const sccp_msg_t * const msg);
-int sccp_addons_taps(sccp_device_t * d);
-void sccp_addons_clear(sccp_device_t * d);
-void sccp_safe_sleep(int ms);
-void sccp_pbx_setcallstate(sccp_channel_t * channel, int state);
+__BEGIN_C_EXTERN__
+
+SCCP_API void SCCP_CALL sccp_dump_packet(unsigned char *messagebuffer, int len);
+SCCP_API void SCCP_CALL sccp_dump_msg(const sccp_msg_t * const msg);
+SCCP_API int SCCP_CALL sccp_addons_taps(sccp_device_t * d);
+SCCP_API void SCCP_CALL sccp_addons_clear(sccp_device_t * d);
+SCCP_API void SCCP_CALL sccp_safe_sleep(int ms);
+SCCP_API void SCCP_CALL sccp_pbx_setcallstate(sccp_channel_t * channel, int state);
 #if UNUSEDCODE // 2015-11-01
-void sccp_dev_dbclean(void);
+SCCP_API void SCCP_CALL sccp_dev_dbclean(void);
 #endif
 
 #define _ARR2STR(arrayname, lookup_var, lookup_val, return_var) \
@@ -72,79 +74,81 @@ void sccp_dev_dbclean(void);
         })
 
 // SCCP Lookups
-gcc_inline const char *msgtype2str(sccp_mid_t msgId);
-gcc_inline const char *pbxsccp_devicestate2str(uint32_t value);
+SCCP_INLINE const char * SCCP_CALL msgtype2str(sccp_mid_t msgId);
+SCCP_INLINE const char * SCCP_CALL pbxsccp_devicestate2str(uint32_t value);
 // SKINNY Lookups
-gcc_inline const char *label2str(uint16_t value);
-gcc_inline const char *codec2str(skinny_codec_t value);
-gcc_inline const char *codec2name(skinny_codec_t value);
-gcc_inline const char *featureType2str(sccp_feature_type_t value);
-gcc_inline const char *debugcat_keys(void);
-gcc_inline uint32_t labelstr2int(const char *str);
+SCCP_INLINE const char * SCCP_CALL label2str(uint16_t value);
+SCCP_INLINE const char * SCCP_CALL codec2str(skinny_codec_t value);
+SCCP_INLINE const char * SCCP_CALL codec2name(skinny_codec_t value);
+SCCP_INLINE const char * SCCP_CALL featureType2str(sccp_feature_type_t value);
+SCCP_INLINE const char * SCCP_CALL debugcat_keys(void);
+SCCP_INLINE SCCP_CALL uint32_t labelstr2int(const char *str);
 #if UNUSEDCODE // 2015-11-01
-gcc_inline const char *extensionstatus2str(uint32_t value);
-gcc_inline int codec2payload(skinny_codec_t value);
-gcc_inline const char *codec2key(skinny_codec_t value);
-gcc_inline uint32_t debugcat2int(const char *str);
+SCCP_INLINE const char * SCCP_CALL extensionstatus2str(uint32_t value);
+SCCP_INLINE SCCP_CALL int codec2payload(skinny_codec_t value);
+SCCP_INLINE const char * SCCP_CALL codec2key(skinny_codec_t value);
+SCCP_INLINE SCCP_CALL uint32_t debugcat2int(const char *str);
 #endif
 
-char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength);
-int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing);
-const char *skinny_ringermode2str(uint8_t type);
-boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length);
-const char *sccp_channel_toString(sccp_channel_t * c);
+SCCP_API char * SCCP_CALL sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength);
+SCCP_API int SCCP_CALL sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing);
+SCCP_API const char * SCCP_CALL skinny_ringermode2str(uint8_t type);
+SCCP_API boolean_t SCCP_CALL sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length);
+SCCP_API const char * SCCP_CALL sccp_channel_toString(sccp_channel_t * c);
 
-struct composedId sccp_parseComposedId(const char *labelString, unsigned int maxLength);
+SCCP_API int SCCP_CALL sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_subscription_id_t *subscriptionId, char extension[SCCP_MAX_EXTENSION]);
 
 #ifndef HAVE_PBX_STRINGS_H
-char *pbx_skip_blanks(char *str);
-char *pbx_trim_blanks(char *str);
-char *pbx_skip_nonblanks(char *str);
-char *pbx_strip(char *s);
+SCCP_API char * SCCP_CALL pbx_skip_blanks(char *str);
+SCCP_API char * SCCP_CALL pbx_trim_blanks(char *str);
+SCCP_API char * SCCP_CALL pbx_skip_nonblanks(char *str);
+SCCP_API char * SCCP_CALL pbx_strip(char *s);
 #endif
 
 #ifndef CS_AST_HAS_APP_SEPARATE_ARGS
-unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arraylen);
+SCCP_API unsigned SCCP_CALL int sccp_app_separate_args(char *buf, char delim, char **array, int arraylen);
 #endif
 
-void sccp_util_featureStorageBackend(const sccp_event_t * event);
+SCCP_API void SCCP_CALL sccp_util_featureStorageBackend(const sccp_event_t * event);
 #if 0 /* unused */
-int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey);
+SCCP_API int SCCP_CALL sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey);
 #endif
 
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr);
 //sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage *sin);
 
-sccp_feature_type_t sccp_featureStr2featureID(const char *str);
-boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *subscriptionIdNum);
-sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32_t type, const char *dirNum, const char *fqdn, const char *lineDisplayName);
+SCCP_API sccp_feature_type_t SCCP_CALL sccp_featureStr2featureID(const char *str);
+SCCP_API boolean_t SCCP_CALL sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *subscriptionIdNum);
+SCCP_API sccp_msg_t * SCCP_CALL sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32_t type, const char *dirNum, const char *fqdn, const char *lineDisplayName);
 
-gcc_inline boolean_t sccp_netsock_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1);
-gcc_inline size_t sccp_strlen(const char *data);
-gcc_inline boolean_t sccp_strlen_zero(const char *data);
-gcc_inline boolean_t sccp_strequals(const char *data1, const char *data2);
-gcc_inline boolean_t sccp_strcaseequals(const char *data1, const char *data2);
-int sccp_strIsNumeric(const char *s);
-skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int cLength, const skinny_codec_t remotePeerCapabilities[], int rLength);
-void sccp_utils_reduceCodecSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES]);
-void sccp_utils_combineCodecSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t addCodecs[SKINNY_MAX_CAPABILITIES]);
+SCCP_INLINE SCCP_CALL boolean_t sccp_netsock_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1);
+SCCP_INLINE SCCP_CALL size_t sccp_strlen(const char *data);
+SCCP_INLINE SCCP_CALL boolean_t sccp_strlen_zero(const char *data);
+SCCP_INLINE SCCP_CALL boolean_t sccp_strequals(const char *data1, const char *data2);
+SCCP_INLINE SCCP_CALL boolean_t sccp_strcaseequals(const char *data1, const char *data2);
+SCCP_API int SCCP_CALL sccp_strIsNumeric(const char *s);
+SCCP_API skinny_codec_t SCCP_CALL sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int cLength, const skinny_codec_t remotePeerCapabilities[], int rLength);
+SCCP_API void SCCP_CALL sccp_utils_reduceCodecSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES]);
+SCCP_API void SCCP_CALL sccp_utils_combineCodecSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t addCodecs[SKINNY_MAX_CAPABILITIES]);
 
-void sccp_free_ha(struct sccp_ha *ha);
-int sccp_apply_ha(const struct sccp_ha *ha, const struct sockaddr_storage *addr);
-int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storage *addr, int defaultValue);
+SCCP_API void SCCP_CALL sccp_free_ha(struct sccp_ha *ha);
+SCCP_API int SCCP_CALL sccp_apply_ha(const struct sccp_ha *ha, const struct sockaddr_storage *addr);
+SCCP_API int SCCP_CALL sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storage *addr, int defaultValue);
 
-int sccp_sockaddr_split_hostport(char *str, char **host, char **port, int flags);
-int sccp_sockaddr_storage_parse(struct sockaddr_storage *addr, const char *str, int flags);
-struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp_ha *path, int *error);
-void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path);
-void sccp_print_group(struct ast_str *buf, int buflen, sccp_group_t group);
-int sccp_strversioncmp(const char *s1, const char *s2);
-char *sccp_dec2binstr(char *buf, size_t size, int value);
-gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size);
-char *sccp_trimwhitespace(char *str);
-gcc_inline boolean_t sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char *buf, size_t len);
-long int sccp_random(void);
+SCCP_API int SCCP_CALL sccp_sockaddr_split_hostport(char *str, char **host, char **port, int flags);
+SCCP_API int SCCP_CALL sccp_sockaddr_storage_parse(struct sockaddr_storage *addr, const char *str, int flags);
+SCCP_API struct sccp_ha * SCCP_CALL sccp_append_ha(const char *sense, const char *stuff, struct sccp_ha *path, int *error);
+SCCP_API void SCCP_CALL sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path);
+SCCP_API void SCCP_CALL sccp_print_group(struct ast_str *buf, int buflen, sccp_group_t group);
+SCCP_API int SCCP_CALL sccp_strversioncmp(const char *s1, const char *s2);
+SCCP_API char * SCCP_CALL sccp_dec2binstr(char *buf, size_t size, int value);
+SCCP_INLINE SCCP_CALL void sccp_copy_string(char *dst, const char *src, size_t size);
+SCCP_API char * SCCP_CALL sccp_trimwhitespace(char *str);
+SCCP_INLINE int SCCP_CALL sccp_atoi(const char * const buf, size_t buflen);
+SCCP_INLINE SCCP_CALL boolean_t sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char *buf, size_t len);
+SCCP_API long SCCP_CALL int sccp_random(void);
 #ifdef DEBUG
-void sccp_do_backtrace(void);
+SCCP_API void SCCP_CALL sccp_do_backtrace(void);
 #endif
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
