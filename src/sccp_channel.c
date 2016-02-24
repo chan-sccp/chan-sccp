@@ -2467,10 +2467,7 @@ void sccp_channel_park(sccp_channel_t * channel)
 
 	if (PARK_RESULT_SUCCESS != result) {
 		char extstr[20];
-
-		extstr[0] = 128;
-		extstr[1] = SKINNY_LBL_CALL_PARK;
-		snprintf(&extstr[2], sizeof(extstr), " failed");
+		snprintf(extstr, sizeof(extstr), "%c%c %.16s" , 128, SKINNY_LBL_CALL_PARK_AT, "failed");
 		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 		if (d) {

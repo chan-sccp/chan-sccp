@@ -1168,15 +1168,12 @@ static sccp_parkresult_t sccp_wrapper_asterisk111_park(const sccp_channel_t * ho
 
 	memset(extstr, 0, sizeof(extstr));
 
-	extstr[0] = 128;
-	extstr[1] = SKINNY_LBL_CALL_PARK_AT;
-
 	if ((bridgedChannel = ast_bridged_channel(hostChannel->owner))) {
 		AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(hostChannel);
 		if (device) {
 			ast_channel_lock(hostChannel->owner);							/* we have to lock our channel, otherwise asterisk crashes internally */
 			if (!ast_masq_park_call(bridgedChannel, hostChannel->owner, 0, &extout)) {
-				snprintf(&extstr[2], sizeof(extstr), " %d", extout);
+				snprintf(extstr, sizeof(extstr), "%c%c %d" , 128, SKINNY_LBL_CALL_PARK_AT, extout);
 
 				sccp_dev_displayprinotify(device, extstr, 1, 10);
 				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(device), ast_channel_name(bridgedChannel), extout);

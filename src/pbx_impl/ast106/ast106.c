@@ -1022,9 +1022,8 @@ static void *sccp_wrapper_asterisk16_park_thread(void *data)
 	res = ast_park_call(arg->bridgedChannel, arg->hostChannel, 0, &ext);
 
 	if (!res) {
-		extstr[0] = 128;
-		extstr[1] = SKINNY_LBL_CALL_PARK_AT;
-		snprintf(&extstr[2], sizeof(extstr), " %d", ext);
+		snprintf(extstr, sizeof(extstr), "%c%c %d" , 128, SKINNY_LBL_CALL_PARK_AT, ext);
+		
 
 		sccp_dev_displaynotify((sccp_device_t *) arg->device, extstr, 10);
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(arg->device), arg->bridgedChannel->name, ext);

@@ -1272,9 +1272,6 @@ static sccp_parkresult_t sccp_wrapper_asterisk113_park(constChannelPtr hostChann
 
 	memset(extstr, 0, sizeof(extstr));
 
-	extstr[0] = 128;
-	extstr[1] = SKINNY_LBL_CALL_PARK_AT;
-
 	struct ast_bridge_channel *bridge_channel = NULL;
 
 	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(hostChannel);
@@ -1283,7 +1280,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk113_park(constChannelPtr hostChann
 		bridge_channel = ast_channel_get_bridge_channel(hostChannel->owner);
 		if (bridge_channel) {
 			if (!ast_parking_park_call(bridge_channel, extout, sizeof(extout))) {
-				snprintf(&extstr[2], sizeof(extstr)-2,  " %s", extout);
+				snprintf(extstr, sizeof(extstr), "%c%c %.16s" , 128, SKINNY_LBL_CALL_PARK_AT, extout);
 
 				sccp_dev_displayprinotify(device, extstr, 1, 10);
 				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %s\n", DEV_ID_LOG(device), ast_channel_name(hostChannel->owner), extout);
