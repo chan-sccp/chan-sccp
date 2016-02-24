@@ -186,14 +186,30 @@ typedef struct pbx_mutex_info pbx_mutex_t;
 typedef struct pbx_rwlock_info pbx_rwlock_t;
 
 /* deny the use of unsafe functions */
-#define strcat __use_snprint_instead_of_strcat__
+
+#define __strcat strcat
+#define strcat(...) _Pragma("GCC error \"use snprint instead of strcat\"")
+
+#define __strncat strncat
 #undef strncat
-#define strncat __use_snprint_instead_of_strncat__
-#define strcpy __use_sccp_copy_string_instead_of_strcpy__
+#define strncat(...) _Pragma("GCC error \"use snprint instead of strncat\"")
+
+#define __strcpy strcpy
+#define strcpy(...) _Pragma("GCC error \"use sccp copy string instead of_strcpy\"")
+
+#define __strncpy strcpy
 #undef strncpy
-#define strncpy __use_sccp_copy_string_instead_of_strncpy__
-#define sprintf __use_snprintf_instead_of_sprintf__
-#define vsprintf __use_vsnprintf_instead_of_vsprintf__
-#define gets __use_fgets_instead_of_gets__
-#define atoi __use_sccp_atoi_instead_of_atoi__
+#define strncpy(...) _Pragma("GCC error \"use sccp copy string instead of strncpy\"")
+
+#define __sprintf sprintf
+#define sprintf(...) _Pragma("GCC error \"use snprintf instead of sprintf\"")
+
+#define __vsprintf vsprintf
+#define vsprintf(...) _Pragma("GCC error \"use vsnprintf instead of vsprintf\"")
+
+#define __gets gets
+#define gets(...) _Pragma("GCC error \"use fgets instead of gets\"")
+
+#define __atoi atoi
+#define atoi(...) _Pragma("GCC error \"use sccp atoi instead of atoi\"")
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

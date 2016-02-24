@@ -217,18 +217,17 @@ boolean_t sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callbac
  */
 static gcc_inline boolean_t __execute_callback_helper(const sccp_event_t *event, sccp_event_vector_t *subs_vector) 
 {
-	pbx_assert(subs_vector != NULL);
-	uint32_t n = 0;
 	boolean_t res = FALSE;
-	for (n = 0; n < SCCP_VECTOR_SIZE(subs_vector) && sccp_event_running; n++) {
-		sccp_event_subscriber_t subscriber = SCCP_VECTOR_GET(subs_vector, n);
-		if (subscriber.callback_function != NULL) {
-			//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Event %p of Type %s via %d callback:%p\n", event, sccp_event_type2str(event->type), n, subscriber.callback_function);
-			subscriber.callback_function(event);
-			res = TRUE;
-		}
-	}
 	if (subs_vector) {
+		uint32_t n = 0;
+		for (n = 0; n < SCCP_VECTOR_SIZE(subs_vector) && sccp_event_running; n++) {
+			sccp_event_subscriber_t subscriber = SCCP_VECTOR_GET(subs_vector, n);
+			if (subscriber.callback_function != NULL) {
+				//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Event %p of Type %s via %d callback:%p\n", event, sccp_event_type2str(event->type), n, subscriber.callback_function);
+				subscriber.callback_function(event);
+				res = TRUE;
+			}
+		}
 		SCCP_VECTOR_PTR_FREE(subs_vector);
 	}
 	return res;
@@ -302,35 +301,37 @@ boolean_t sccp_event_fire(sccp_event_t * event)
 		SCCP_VECTOR_RW_UNLOCK(subscribers);
 
 		// handle synchronous events first (if any)
-		if (sync_subscribers_cpy && syncsize) {
-			res |= __execute_callback_helper(event, sync_subscribers_cpy);
-		} else if (sync_subscribers_cpy) {
-			SCCP_VECTOR_PTR_FREE(sync_subscribers_cpy);
+		if (sync_subscribers_cpy) {
+			if (syncsize) {
+				res |= __execute_callback_helper(event, sync_subscribers_cpy);
+			} else {
+				SCCP_VECTOR_PTR_FREE(sync_subscribers_cpy);
+			}
 		}
 
 		// handle the others asynchonously via threadpool (if any)
 		do {
-			if (asyncsize) {
-				AsyncArgs_t *arg = NULL;
-				if (GLOB(general_threadpool) && sccp_event_running && (arg = sccp_malloc(sizeof *arg))) {
-					arg->idx = _idx;
-					memcpy(&arg->event, event, sizeof(sccp_event_t));
-					arg->async_subscribers = async_subscribers_cpy;
-					if (sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_event_processor, (void *) arg)) {
-						//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Work added to threadpool for event: %p, type: %s\n", event, sccp_event_type2str(event->type));
-						event = NULL;					// set to NULL, thread will clean event up later.
-						res |= true;
-						break;						// break out of do/while loop, no further processing needed
-					} else {
-						pbx_log(LOG_ERROR, "Could not add work to threadpool for event: %s\n", sccp_event_type2str(event->type));
-						sccp_free(arg);					// explicit failure release
+			if (async_subscribers_cpy) {
+				if (asyncsize) {
+					AsyncArgs_t *arg = NULL;
+					if (GLOB(general_threadpool) && sccp_event_running && (arg = sccp_malloc(sizeof *arg))) {
+						arg->idx = _idx;
+						memcpy(&arg->event, event, sizeof(sccp_event_t));
+						arg->async_subscribers = async_subscribers_cpy;
+						if (sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_event_processor, (void *) arg)) {
+							//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Work added to threadpool for event: %p, type: %s\n", event, sccp_event_type2str(event->type));
+							event = NULL;					// set to NULL, thread will clean event up later.
+							res |= true;
+							break;						// break out of do/while loop, no further processing needed
+						} else {
+							pbx_log(LOG_ERROR, "Could not add work to threadpool for event: %s\n", sccp_event_type2str(event->type));
+							sccp_free(arg);					// explicit failure release
+						}
 					}
-				}
-				if (async_subscribers_cpy) {
 					res |= __execute_callback_helper(event, async_subscribers_cpy);	// fallback to handling synchronously in case something prevented async
+				} else {
+					SCCP_VECTOR_PTR_FREE(async_subscribers_cpy);
 				}
-			} else if (async_subscribers_cpy) {
-				SCCP_VECTOR_PTR_FREE(async_subscribers_cpy);
 			}
 		} while (0);
 

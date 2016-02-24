@@ -257,18 +257,24 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 	return result;
 }
 
-static gcc_inline int session_dissect_msg(sccp_session_t * s, sccp_msg_t *msg, int lenAccordingToPacketHeader) 
- {
-	int lenAccordingToOurProtocolSpec = session_dissect_header(s, &msg->header);
-	if (lenAccordingToOurProtocolSpec < 0) {
+static gcc_inline int session_buffer2msg(sccp_session_t * s, unsigned char *buffer, int lenAccordingToPacketHeader, sccp_msg_t *msg) 
+{
+	sccp_header_t msg_header = {0};
+	memcpy(&msg_header, buffer, SCCP_PACKET_HEADER);
+	int lenAccordingToOurProtocolSpec = session_dissect_header(s, &msg_header);
+	if (dont_expect(lenAccordingToOurProtocolSpec < 0)) {
 		if (lenAccordingToOurProtocolSpec == -2) {
 			return 0;
 		}
-		lenAccordingToOurProtocolSpec = 0;									// unknown message, read it and discard content
+		lenAccordingToOurProtocolSpec = 0;									// unknown message, read it and discard content completely
 	}
-	if (lenAccordingToPacketHeader > lenAccordingToOurProtocolSpec) {						// zero out discarded bytes
-		memset(msg + lenAccordingToOurProtocolSpec, 0, lenAccordingToPacketHeader - lenAccordingToOurProtocolSpec);
+	if (dont_expect(lenAccordingToPacketHeader > lenAccordingToOurProtocolSpec)) {					// show out discarded bytes
+		pbx_log(LOG_WARNING, "%s: (session_dissect_msg) Incoming message is bigger than known size. Packet looks like!\n", DEV_ID_LOG(s->device));
+		sccp_dump_packet(buffer, lenAccordingToPacketHeader);
 	}
+
+	memset(msg, 0, SCCP_MAX_PACKET);
+	memcpy(msg, buffer, lenAccordingToOurProtocolSpec);
 	msg->header.length = lenAccordingToOurProtocolSpec;								// patch up msg->header.length to new size
 	return sccp_handle_message(msg, s);
 }
@@ -284,13 +290,12 @@ static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsign
 		}
 
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);							// allow thread to be killed while handling the message
-		if (payload_len < SCCP_PACKET_HEADER || payload_len > SCCP_MAX_PACKET) {
-			pbx_log(LOG_ERROR, "%s: (process_buffer) Size of the data payload in the packet, close connection !\n", DEV_ID_LOG(s->device));
+		if (dont_expect(payload_len < SCCP_PACKET_HEADER || payload_len > SCCP_MAX_PACKET)) {
+			pbx_log(LOG_ERROR, "%s: (process_buffer) Size of the data payload in the packet is bigger than max packet, close connection !\n", DEV_ID_LOG(s->device));
 			res = -1;
 			break;
 		}
-		memcpy(msg, buffer, payload_len);
-		if (session_dissect_msg(s, msg, payload_len) != 0) {
+		if (dont_expect(session_buffer2msg(s, buffer, payload_len, msg) != 0)) {
 			res = -1;
 			break;
 		}
