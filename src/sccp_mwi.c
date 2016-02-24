@@ -214,13 +214,15 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
 void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stasis_message *msg)
 {
 	sccp_mailbox_subscriber_list_t *subscription = userdata;
+	struct stasis_subscription_change *change = stasis_message_data(msg);
 
 	if (!subscription || !GLOB(module_running)) {
 		return;
 	}
 
-	if (msg && ast_mwi_state_type() == stasis_message_type(msg)) {
+	if (msg && ast_mwi_state_type() == stasis_message_type(msg) && change->topic != ast_mwi_topic_all()) {
 		struct ast_mwi_state *mwi_state = stasis_message_data(msg);
+		
 		int newmsgs = mwi_state->new_msgs, oldmsgs = mwi_state->old_msgs;
 
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: Received PBX mwi event for %s@%s, newmsgs:%d, oldmsgs:%d\n", subscription->mailbox, subscription->context, newmsgs, oldmsgs);
