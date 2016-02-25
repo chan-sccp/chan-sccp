@@ -2424,7 +2424,7 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 			}
 			strings = tmp;
 			strings[stackfr] = (char *) strings + strings_size;
-			strcpy(strings[stackfr], msg);/* Safe since we just allocated the room. */
+			__strcpy(strings[stackfr], msg);/* Safe since we just allocated the room. */
 			//sccp_copy_string(strings[stackfr], msg, strings_size + eachlen[stackfr]);
 			strings_size += eachlen[stackfr];
 		}
