@@ -49,12 +49,13 @@
 	({									\
 		CAS32_TYPE __res=0;						\
 		int __tries = 0;						\
-		int locked = 1;
+		int locked = 1;							\
 		while (pbx_mutex_trylock(_c) != 0) {				\
 			pbx_log(LOG_NOTICE, "SCCP: atomic try lock failed, %d times\n", __tries);	\
 			usleep(100);						\
 			sched_yield();						\
-			if (__tries++ > 10) {locked = 0;break;}			\				/* cheating, processing unlocked after 10 tries, to prevent deadlock */
+			/* cheating, processing unlocked after 10 tries, to prevent deadlock */	\
+			if (__tries++ > 10) {locked = 0;break;}			\
 		};								\
 		__res = *_a;							\
 		*_a += _b;							\
