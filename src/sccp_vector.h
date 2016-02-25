@@ -155,12 +155,11 @@
 #define __sccp_make_room(idx, vec) ({ \
 	int __sccp_vector_res1 = 0;									\
 	do {												\
-		if ((idx) >= (vec)->max && (vec)->elems) {						\
+		if ((vec)->elems && (idx) >= (vec)->max) {						\
 			size_t new_max = ((idx) + 1) * 2;						\
-			typeof((vec)->elems) new_elems = ast_calloc(1, new_max * sizeof(*new_elems));	\
+			typeof((vec)->elems) new_elems = ast_calloc(1,new_max * sizeof(*new_elems));	\
 			if (new_elems) {								\
-				memcpy(new_elems, (vec)->elems,						\
-				(vec)->current * sizeof(*new_elems)); 					\
+				memcpy(new_elems, (vec)->elems,(vec)->current * sizeof(*new_elems)); 	\
 				ast_free((vec)->elems);							\
 				(vec)->elems = new_elems;						\
 				(vec)->max = new_max;							\
@@ -168,9 +167,6 @@
 				__sccp_vector_res1 = -1;						\
 				break;									\
 			}										\
-		} else {										\
-			__sccp_vector_res1 = -1;							\
-			break;										\
 		}											\
 	} while(0);											\
 	__sccp_vector_res1;										\
