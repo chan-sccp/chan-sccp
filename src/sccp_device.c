@@ -869,14 +869,10 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			for (i = 0; i < 20; i++) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
-			btn[20].type = SKINNY_BUTTONTYPE_MESSAGES;
-			btn[20].instance = 21;
-			btn[21].type = SKINNY_BUTTONTYPE_DIRECTORY;
-			btn[21].instance = 22;
-			btn[22].type = SKINNY_BUTTONTYPE_HEADSET;
-			btn[22].instance = 23;
-			btn[23].type = SKINNY_BUTTONTYPE_APPLICATION;
-			btn[23].instance = 24;
+			btn[btn_index++].type = SKINNY_BUTTONTYPE_MESSAGES; btn[btn_index].instance = 21;
+			btn[btn_index++].type = SKINNY_BUTTONTYPE_DIRECTORY; btn[btn_index].instance = 22;
+			btn[btn_index++].type = SKINNY_BUTTONTYPE_HEADSET; btn[btn_index].instance = 23;
+			btn[btn_index++].type = SKINNY_BUTTONTYPE_APPLICATION; btn[btn_index].instance = 24;
 			d->hasEnhancedIconMenuSupport = sccp_device_trueResult;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7935:
