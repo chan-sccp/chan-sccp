@@ -14,7 +14,6 @@ port = 2000
 disallow=all
 allow=alaw
 allow=ulaw
-allow=g729
 firstdigittimeout = 16
 digittimeout = 8
 autoanswer_ring_time = 1

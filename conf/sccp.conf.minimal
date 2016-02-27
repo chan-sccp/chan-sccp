@@ -8,9 +8,6 @@
 [general]
 deny = 0.0.0.0/0.0.0.0
 permit = internal 
-disallow = all
-allow = ulaw
-allow = alaw
 
 ;
 ; device section
