@@ -23,7 +23,7 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
-	./configure --enable-video --enable-conference --enable-distributed-devstate --with-hash-size=3001
+	./configure --enable-video --enable-conference --enable-distributed-devstate --enable-advanced-features --with-hash-size=3001
 	touch configure-stamp
 
 
