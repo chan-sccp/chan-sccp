@@ -73,7 +73,6 @@ static boolean_t sccp_always_true(void)
  */
 static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t enabled)
 {
-#if !CS_EXPERIMENTAL
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
 
 	if (!c) {
@@ -98,27 +97,6 @@ static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t 
 			sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 		}
 	}
-#else														/* show how WITHREF / GETWITHREF would/could work */
-	sccp_device_t *d = NULL;
-
-	WITHREF(channel) {
-		GETWITHREF(d, channel->privateData->device) {
-			channel->privateData->microphone = enabled;
-			pbx_log(LOG_NOTICE, "Within retain section\n");
-			if (enabled) {
-				channel->isMicrophoneEnabled = sccp_always_true;
-				if ((channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
-					sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
-				}
-			} else {
-				channel->isMicrophoneEnabled = sccp_always_false;
-				if ((channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
-					sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
-				}
-			}
-		}
-	}
-#endif
 }
 
 /*!

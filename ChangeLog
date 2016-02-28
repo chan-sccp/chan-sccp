@@ -1,3 +1,271 @@
+2016-02-28  ddegroot
+
+	* [r6711] src/pbx_impl, src/pbx_impl/ast, src/pbx_impl/ast106,
+	  src/pbx_impl/ast108, src/pbx_impl/ast110, src/pbx_impl/ast111,
+	  src/pbx_impl/ast112, src/pbx_impl/ast113,
+	  src/pbx_impl/ast_announce: Fixup svn:ignore
+
+	* [r6708] src/pbx_impl/ast112/ast112.c: Fixup:
+	  src/pbx_impl/ast112/ast112.c
+
+	* [r6707] src/pbx_impl/ast106/ast106.c,
+	  src/pbx_impl/ast108/ast108.c, src/pbx_impl/ast110/ast110.c,
+	  src/pbx_impl/ast111/ast111.c, src/pbx_impl/ast112/ast112.c,
+	  src/pbx_impl/ast113/ast113.c: Enh: Enable requesting rtp
+	  openreceive from phone when we get a PROD request from the other
+	  channel side.
+	  'Prodding' indicates that the other party is willing and able to
+	  process inband rtp from this moment forth.
+
+	* [r6706] src/sccp_channel.c, src/sccp_refcount.h: Fix: Remove
+	  WITHREF / GETWITHREF example in sccp_channel.c
+
+	* [r6705] configure, configure.ac: Fix: conf????? remnant directory
+	  left behind after running configure
+
+2016-02-27  ddegroot
+
+	* [r6704] src/sccp_actions.c: Enh: fix double call waiting tone
+	  (out of band and inband), by signaling the remote side that we
+	  are able to receive inband from this moment forth (using a so
+	  called channel PROD). Issue originally reported by Anatoli.
+	  Tested and Checked by Anatoli and Pavel.
+
+	* [r6703] src/sccp_rtp.c: Fix: sccp_rtp_updateNatRemotePhone to
+	  support NAT for both ipv4 and ipv6. Deadcode issue reported by
+	  Coverity. Issue reported by Dan Huynh.
+
+	* [r6702] conf/sccp.conf.annotated, conf/sccp.conf.freepbx,
+	  conf/sccp.conf.minimal, src/sccp_config_entries.hh: Fix:
+	  providing a sensible default value for general:disallow/allow,
+	  being ulaw/alaw, which should be available on any phone and pbx.
+	  Issue reported by Jeffrey.
+
+2016-02-26  ddegroot
+
+	* [r6701] src/sccp_rtp.c: Revert changes in logic to
+	  sccp_rtp_updateNatRemotePhone. NAT Issue reported by Dan Huynh
+
+	* [r6700] src/sccp_device.c: Fix: sccp_dev_build_buttontemplate for
+	  7931. Issue reported by Riten Jaiswal
+
+2016-02-25  ddegroot
+
+	* [r6699] src/sccp_atomic.h: Fix fallback atomic macro
+
+	* [r6694] src/sccp_vector.h: Re-Fix memory leak in vector make_room
+	  function. Reported by hhornung
+
+	* [r6693] src/sccp_utils.c: Revert __strcpy back to
+	  sccp_copy_string
+
+	* [r6692] src/sccp_utils.c: Use __strcpy in this case
+
+2016-02-24  ddegroot
+
+	* [r6691] src/sccp_event.c: Fix: check for null pointer
+	  dereference.
+
+	* [r6690] src/sccp_session.c: Enh: suppress coverity warning, by
+	  not using pointer arithmatic when copying from incoming session
+	  buffer.
+
+	* [r6689] src/define.h, src/sccp_utils.c: Improved define of
+	  dangerous string functions by aborting compilation.
+
+	* [r6688] src/sccp_session.c: Fix: message dissection for spcp
+	  refering to wrong table.
+
+	* [r6687] src/sccp_mwi.c, src/sccp_utils.c: Fix: compiler warning.
+
+	* [r6686] src/sccp_config.c: Fix:memory leak.
+
+	* [r6685] src/sccp_vector.h: Fix: potential memory leak (pretty
+	  unlikely, but ok).
+
+	* [r6684] src/pbx_impl/ast106/ast106.c,
+	  src/pbx_impl/ast108/ast108.c, src/pbx_impl/ast110/ast110.c,
+	  src/pbx_impl/ast111/ast111.c, src/pbx_impl/ast112/ast112.c,
+	  src/pbx_impl/ast113/ast113.c, src/sccp_channel.c: Fix: buffer
+	  overrun/bounds when printing 'parked at'
+
+	* [r6683] src/sccp_softkeys.c: Fix: null pointer check before using
+	  line
+
+	* [r6682] src/sccp_features.c: Fix: null pointer check before use
+
+	* [r6681] src/sccp_event.c: Fix: null pointer check before use
+
+	* [r6680] src/sccp_session.c: Fix: Message Size bounds check. Fix:
+	  check recv_len before using result to prevent passing on tainted
+	  buffer.
+
+	* [r6679] src/sccp_actions.c: Fix: mid bounds check
+
+	* [r6678] src/define.h: Fix: compiler warning about redefinition
+
+	* [r6677] src/define.h, src/pbx_impl/ast111/ast111.c: Fixes:
+	  __use_snprintf_instead_of_sprintf__ report by Dan Huynh
+	  Revert: #6676
+	  Commit PR:#288 (by Marcello)
+
+	* [r6676] src/define.h: Fix: Disabled
+	  __use_snprintf_instead_of_sprintf__ for now. Report by Dan Huynh
+
+2016-02-23  ddegroot
+
+	* [r6675] src/sccp_hint.c: Enh: extend hint updates to match
+	  complex aggregated hints, and continue updating after the first
+	  match, there might be multiple hints that match our line.
+
+	* [r6674] src/sccp_callinfo.c, src/sccp_debug.h: Enh: debug
+	  category callinfo added
+
+	* [r6673] ., contrib/gen_sccpconf, doc, tools/gen_sccp_enum.awk:
+	  Enh: Update svn:ignore. Fix: gen_sccp_enum unused return value of
+	  snprintf.
+
+	* [r6672] ., autoconf, conf, conf/database_updates, conf/ldap,
+	  conf/tftp, conf/tftp/Desktops, conf/tftp/Desktops/320x196x4,
+	  conf/tftp/Desktops/320x212x12, conf/tftp/Desktops/320x212x16,
+	  conf/tftp/Desktops/640x480x24, conf/tftp/Desktops/800x600x16,
+	  contrib, contrib/asterisk_patches, contrib/gen_sccpconf,
+	  contrib/phone_screenshot, debian, debian/source, doc, src,
+	  src/define.h, src/pbx_impl, src/pbx_impl/ast,
+	  src/pbx_impl/ast106, src/pbx_impl/ast108, src/pbx_impl/ast110,
+	  src/pbx_impl/ast111, src/pbx_impl/ast112, src/pbx_impl/ast113,
+	  src/pbx_impl/ast_announce, src/sccp_actions.c, src/sccp_debug.c,
+	  tools: Enh: Update svn:ignore. Enh: Extend list of unsafe string
+	  functions
+
+2016-02-22  ddegroot
+
+	* [r6671] src/sccp_cli.c, src/sccp_config_entries.hh,
+	  src/sccp_device.c, src/sccp_softkeys.c: Enh: use Redial Menu has
+	  become a standard feature, which does not require
+	  '--enable-advanced-features' any more.
+
+	* [r6670] src/sccp_hint.c: Enh: removed experimental mode from
+	  setting devstate_hint_dialplan.
+
+	* [r6669] src/sccp_appfunctions.c: Fix: comma insertion when
+	  returning multiple values from dialplan functions.
+
+	* [r6668] src/sccp_mwi.c: Enh: Enabled some extra debugging in
+	  sccp_mwi. to figure out the event flow.
+
+2016-02-21  ddegroot
+
+	* [r6667] src/sccp_channel.c: Enh/Fix: Only close rtpPorts if
+	  requested to do so (KeepPortOpen = FALSE)
+
+	* [r6666] src/define.h, src/pbx_impl/pbx_impl.h,
+	  src/sccp_actions.h, src/sccp_mwi.c, tools/gen_sccp_enum.awk: Enh:
+	  Finished Removal of __BEGIN_EXTERN__ in favour __BEGIN_C_EXTERN__
+
+	* [r6665] src/pbx_impl/ast106/ast106.c,
+	  src/pbx_impl/ast108/ast108.c, src/pbx_impl/ast110/ast110.c,
+	  src/pbx_impl/ast111/ast111.c, src/pbx_impl/ast112/ast112.c,
+	  src/pbx_impl/ast113/ast113.c: Future Fix: make sure rtp is active
+	  when receiving CONNECTED_LINE and PROD event. Proding happens
+	  when the remote side has started sending/receiving rtp, which
+	  would require our side to participate as well. Currently this new
+	  code is only active when compiled with
+	  --enable-experimental-mode. BugReports: #264/#265/#271
+
+2016-02-20  ddegroot
+
+	* [r6664] src/sccp_device.h, src/sccp_devstate.h: Complete
+	  transition to using __BEGIN_C_EXTERN__. Complete transition of
+	  setting SCCP_API and SCCP_CALL in all header files.
+
+	* [r6663] src/pbx_impl/pbx_impl.c, src/sccp_appfunctions.h,
+	  src/sccp_cli.h, src/sccp_conference.h, src/sccp_config.h,
+	  src/sccp_event.h, src/sccp_featureButton.h, src/sccp_features.h,
+	  src/sccp_hint.h, src/sccp_indicate.h, src/sccp_line.h,
+	  src/sccp_management.h, src/sccp_mwi.h, src/sccp_protocol.h,
+	  src/sccp_refcount.h, src/sccp_rtp.h, src/sccp_softkeys.h,
+	  src/sccp_threadpool.h, src/sccp_utils.h: Complete transition to
+	  using __BEGIN_C_EXTERN__. Complete transition of setting SCCP_API
+	  and SCCP_CALL in all header files.
+
+	* [r6662] README, README.in: Fix README's
+
+	* [r6661] README, autoconf/extra.m4, configure: Enh: Update
+	  generation of BUILD_USER
+
+	* [r6660] src/chan_sccp.c: Fix snprintf SCCP_VERSIONSTR. Reported
+	  by hhornung
+
+	* [r6659] src/sccp_utils.c: Fix: assertion
+
+2016-02-19  ddegroot
+
+	* [r6658] src/common.h, src/sccp_cli.c, src/sccp_config.c,
+	  src/sccp_globals.h, src/sccp_pbx.c, src/sccp_utils.c,
+	  src/sccp_utils.h: Enh: Change parseComposedId parsing and
+	  returning results by ref. First step before changing the
+	  SubscriptionId / Suffix and Callerid issue reported by Jeffrey
+	  Otterson.
+
+	* [r6657] README, README.md: Update: README and README.md files
+
+	* [r6656] NEWS, README, README.md, src/chan_sccp.c, src/define.h,
+	  src/pbx_impl/ast/define.h, src/pbx_impl/ast106/ast106.c,
+	  src/pbx_impl/ast108/ast108.c, src/pbx_impl/ast110/ast110.c,
+	  src/pbx_impl/ast111/ast111.c, src/pbx_impl/ast112/ast112.c,
+	  src/pbx_impl/ast113/ast113.c, src/sccp_actions.c,
+	  src/sccp_appfunctions.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_conference.c, src/sccp_config.c, src/sccp_debug.c,
+	  src/sccp_device.c, src/sccp_hint.c, src/sccp_management.c,
+	  src/sccp_refcount.c, src/sccp_utils.c, src/sccp_utils.h: Enh:
+	  Implement safer version of atoi, called sccp_atoi
+	  Enh: Use safer equivalents for strcat, sprintf, strcpy and atoi
+	  Enh: Prevent future use of strcat, sprintf, strcpy and atoi
+	  Update: NEWS / README / README.md files
+
+2016-02-18  ddegroot
+
+	* [r6655] src/sccp_actions.c: Fix: pbx_assert
+
+	* [r6654] src/Makefile.in, src/Makefile.inc.am,
+	  src/pbx_impl/Makefile.in, src/pbx_impl/ast/Makefile.in,
+	  src/pbx_impl/ast106/Makefile.in, src/pbx_impl/ast108/Makefile.in,
+	  src/pbx_impl/ast110/Makefile.in, src/pbx_impl/ast111/Makefile.in,
+	  src/pbx_impl/ast112/Makefile.in, src/pbx_impl/ast113/Makefile.in,
+	  src/pbx_impl/ast_announce/Makefile.in: Enh: Use abs_builddir
+	  instead of .
+
+	* [r6653] src/pbx_impl/ast/define.h: Update SCANBUILD Defined for
+	  use with clang-check
+
+	* [r6652] src/sccp_cli.c: Enh: Remove never read variable setting
+
+	* [r6651] src/sccp_actions.c: Enh: use assertions instead of null
+	  pointer checks for function paramater known to always exist.
+	  Assertions can be compiled away, if wanted, but allow compiler to
+	  know what should be there.
+
+	* [r6649] autoconf/acinclude.m4, configure: Enh: set default
+	  PBX_ETC folder to /etc/asterisk
+	  Enh: cleanup PBX search path by removing trailing slash from path
+	  (if provided)
+
+	* [r6647] src/Makefile.am, src/Makefile.in, src/sccp_utils.h: Fix:
+	  BSD Compilation (double define)
+	  Fix: BSD Linking (Linked does not know how to handle '-ldl')
+
+	* [r6644] ChangeLog, autoconf/acinclude.m4, configure,
+	  src/define.h: Fix: backup swap functions if not provided by
+	  native functions (Like FreeBSD)
+	  Fix: make SED function calls in configure.ac POSIX compliant (BSD
+	  compatibily)
+
+2016-02-17  ddegroot
+
+	* [r6640] src/sccp_channel.c: Fix: compile warning about unused
+	  function return value in sccp_channel.c
+
 2016-02-15  ddegroot
 
 	* [r6630] src/sccp_config.c, src/sccp_hint.c, src/sccp_line.c,
