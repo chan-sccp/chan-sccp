@@ -88,5 +88,29 @@ __END_C_EXTERN__
         __GET_WITH_REF(__TOKENPASTE(sccp_with_ref_,_line),_src,_file,_line,_func)
 #define WITHREF(_src) __WITH_REF(_src,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 /* *INDENT-ON* */
+
+
+/* example use */
+#if 0
+	sccp_device_t *d = NULL;
+	WITHREF(channel) {
+		GETWITHREF(d, channel->privateData->device) {
+			channel->privateData->microphone = enabled;
+			pbx_log(LOG_NOTICE, "Within retain section\n");
+			if (enabled) {
+				channel->isMicrophoneEnabled = sccp_always_true;
+				if ((channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
+					sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
+				}
+			} else {
+				channel->isMicrophoneEnabled = sccp_always_false;
+				if ((channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
+					sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
+				}
+			}
+		}
+	}
+#endif
+
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off
