@@ -115,14 +115,13 @@ dnl AC_SUBST([PBXVER_COND_ANNOUNCE_SUBDIR])
 dnl AC_SUBST([PBXVER_COND_ANNOUNCE_LIBADD])
 
 CONFIGURE_PART([Generating Configuration and Makefiles])
+AC_CONFIG_COMMANDS([.revision],
+	output=`cd ${ac_abs_top_builddir};${ac_abs_top_srcdir}/tools/autorevision -t h -o ${ac_abs_top_srcdir}/.revision > ${ac_abs_top_builddir}/src/revision.h 2>/dev/null`
+)
+AC_CONFIG_COMMANDS([src/sccp_enum.h],
+	output=`cd ${ac_abs_top_builddir}/src/;awk -f "${ac_abs_top_srcdir}/tools/gen_sccp_enum.awk" < ${ac_abs_top_srcdir}/src/sccp_enum.in &>/dev/null`
+)
 AC_CONFIG_FILES([Makefile README doc/Makefile src/Makefile src/pbx_impl/Makefile src/pbx_impl/ast/Makefile src/pbx_impl/ast_announce/Makefile src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile contrib/gen_sccpconf/Makefile])
-
-AC_CONFIG_COMMANDS([${ac_abs_top_srcdir}/.revision],
-	cd ${ac_abs_top_builddir};${ac_abs_top_srcdir}/tools/autorevision -t h -o ${ac_abs_top_srcdir}/.revision > ${ac_abs_top_builddir}/src/revision.h 2>/dev/null
-)
-AC_CONFIG_COMMANDS([${ac_abs_top_builddir}/src/sccp_enum.h],
-	cd ${ac_abs_top_builddir}/src/;awk -f "${ac_abs_top_srcdir}/tools/gen_sccp_enum.awk" < ${ac_abs_top_srcdir}/src/sccp_enum.in &>/dev/null
-)
 
 VERSION="`echo ${SCCP_VERSION}_${SCCP_BRANCH}`"
 PACKAGE_STRING="`echo Chan_SCCP_${VERSION}`"
