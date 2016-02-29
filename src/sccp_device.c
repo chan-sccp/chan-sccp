@@ -1141,7 +1141,7 @@ sccp_msg_t __attribute__ ((malloc)) * sccp_build_packet(sccp_mid_t t, size_t pkt
 {
 	int padding = ((pkt_len + 8) % 4);
 	padding = (padding > 0) ? 4 - padding : 0;
-
+	
 	sccp_msg_t *msg = sccp_calloc(1, pkt_len + SCCP_PACKET_HEADER + padding);
 
 	if (!msg) {
@@ -1150,6 +1150,8 @@ sccp_msg_t __attribute__ ((malloc)) * sccp_build_packet(sccp_mid_t t, size_t pkt
 	}
 	msg->header.length = htolel(pkt_len + 4 + padding);
 	msg->header.lel_messageId = htolel(t);
+	
+	//sccp_log(DEBUGCAT_DEVICE)("SCCP: (sccp_build_packet) created packet type:0x%x, msg_size=%lu, hdr_len=%lu\n", t, pkt_len + SCCP_PACKET_HEADER + padding, pkt_len + 4 + padding)
 	return msg;
 }
 
@@ -1523,8 +1525,8 @@ void sccp_dev_clear_message(devicePtr d, const boolean_t cleardb)
 	}
 
 	sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_IDLE);
-	// sccp_dev_clearprompt(d, 0, 0);
-	sccp_dev_cleardisplay(d);
+	sccp_dev_clearprompt(d, 0, 0);
+	//sccp_dev_cleardisplay(d);
 }
 
 /*!
@@ -1585,14 +1587,18 @@ void sccp_dev_displayprompt_debug(constDevicePtr d, const uint8_t lineInstance, 
  *
  * \callgraph
  * \callergraph
+ *
+ * \note: message is not known by all devices, we should figure out which do and which don't, for now, we are not using this message anymore
+ * JVM: Startup Module Loader|cip.sccp.CcApi:? - alarm( GENERAL_ALARM ):Invalid SCCP message! : ID :9a: MessageFactory.createMessage failed, length = 0 - close connection and alarm in future 
  */
 void sccp_dev_cleardisplay(constDevicePtr d)
 {
-	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
-		return;
-	}
-	sccp_dev_sendmsg(d, ClearDisplay);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Clear the display\n", d->id);
+	//if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
+	//	return;
+	//}
+	//sccp_dev_sendmsg(d, ClearDisplay);  
+	//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Clear the display\n", d->id);
+	return;
 }
 
 /*!
@@ -2673,7 +2679,7 @@ static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lin
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_dev_cleardisplaynotify(device);
 	sccp_dev_clearprompt(device, lineInstance, callid);
-	sccp_dev_cleardisplay(device);
+	//sccp_dev_cleardisplay(device);
 
 	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
