@@ -6,15 +6,7 @@
  *		See the LICENSE file at the top of the source tree.
  */
 #pragma once
-#if defined(__cplusplus) || defined(c_plusplus)
-#  define __BEGIN_EXTERN__ 		\
-extern "C" {
-#  define __END_EXTERN__ }		\
-}
-#else
-#  define __BEGIN_EXTERN__ 
-#  define __END_EXTERN__ 
-#endif
+
 
 #define ARRAY_LEN(a) (size_t) (sizeof(a) / sizeof(0[a]))
 typedef enum { FALSE = 0, TRUE = 1 } boolean_t;
@@ -26,6 +18,39 @@ typedef enum { FALSE = 0, TRUE = 1 } boolean_t;
 
 #include <sys/types.h>
 #include <stdint.h>
+
+#if !defined(__BEGIN_C_EXTERN__)
+#  if defined(__cplusplus) || defined(c_plusplus) 
+#    define __BEGIN_C_EXTERN__ 		\
+extern "C" {
+#    define __END_C_EXTERN__ 		\
+}
+#  else
+#    define __BEGIN_C_EXTERN__ 
+#    define __END_C_EXTERN__ 
+#  endif
+#endif
+
+#if !defined(SCCP_API)
+#if defined __STDC__ && defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L && defined(__GNUC__)
+#  if !defined(__clang__)
+#    define gcc_inline __inline__
+#  else
+#    define gcc_inline
+#  endif
+#  define SCCP_API extern __attribute__((__visibility__("hidden")))
+#  define SCCP_API_VISIBLE extern __attribute__((__visibility__("default")))
+#  define SCCP_INLINE SCCP_API gcc_inline
+#  define SCCP_CALL 
+#else
+#  define gcc_inline
+#  define SCCP_API extern
+#  define SCCP_API_VISIBLE extern
+#  define SCCP_INLINE SCCP_API gcc_inline
+#  define SCCP_CALL 
+#endif
+#endif
+
 #include "../../src/sccp_enum.h"
 
 /*
