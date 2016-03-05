@@ -145,7 +145,9 @@ SCCP_API char * SCCP_CALL sccp_dec2binstr(char *buf, size_t size, int value);
 SCCP_INLINE SCCP_CALL void sccp_copy_string(char *dst, const char *src, size_t size);
 SCCP_API char * SCCP_CALL sccp_trimwhitespace(char *str);
 SCCP_INLINE int SCCP_CALL sccp_atoi(const char * const buf, size_t buflen);
+#if HAVE_ICONV
 SCCP_INLINE SCCP_CALL boolean_t sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char *buf, size_t len);
+#endif
 SCCP_API long SCCP_CALL int sccp_random(void);
 #ifdef DEBUG
 SCCP_API void SCCP_CALL sccp_do_backtrace(void);
