@@ -200,7 +200,6 @@ static void sccp_device_setRingtone(constDevicePtr device, const char *url)
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_RINGTONE, 0, 0, transactionID, xmlStr, 0);
 }
 
-#if HAVE_ICONV
 static void sccp_device_copyStr2Locale_UTF8(constDevicePtr d, char *dst, ICONV_CONST char *src, size_t dst_size)
 {
 	if (!dst || !src) {
@@ -209,6 +208,7 @@ static void sccp_device_copyStr2Locale_UTF8(constDevicePtr d, char *dst, ICONV_C
 	sccp_copy_string(dst, src, dst_size);
 }
 
+#if HAVE_ICONV
 static void sccp_device_copyStr2Locale_Convert(constDevicePtr d, char *dst, ICONV_CONST char *src, size_t dst_size)
 {
 	if (!dst || !src) {
