@@ -712,20 +712,18 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 			SCCP_LIST_UNLOCK(&l->devices);
 		}
 		sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
+		
+		if (linedevice) {
+			if (linedevice->subscriptionId.replaceCid) {
+				snprintf(cid_num, StationMaxDirnumSize, "%s", sccp_strlen_zero(linedevice->subscriptionId.number) ? l->cid_num : linedevice->subscriptionId.number);
+				snprintf(cid_name, StationMaxNameSize, "%s", sccp_strlen_zero(linedevice->subscriptionId.name) ? l->cid_name : linedevice->subscriptionId.name);
+			} else {
+				snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, sccp_strlen_zero(linedevice->subscriptionId.number) ? "" : linedevice->subscriptionId.number);
+				snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, sccp_strlen_zero(linedevice->subscriptionId.name) ? "" : linedevice->subscriptionId.name);
+			}
+		}
 		switch (c->calltype) {
 			case SKINNY_CALLTYPE_INBOUND:
-				/* append subscriptionId to cid */
-				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
-					snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, linedevice->subscriptionId.number);
-				} else {
-					snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, l->defaultSubscriptionId.number);
-				}
-
-				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
-					snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, linedevice->subscriptionId.name);
-				} else {
-					snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, l->defaultSubscriptionId.name);
-				}
 				iCallInfo.Setter(ci, 
 					SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name, 
 					SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cid_num,  
@@ -733,18 +731,6 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 				break;
 			case SKINNY_CALLTYPE_FORWARD:
 			case SKINNY_CALLTYPE_OUTBOUND:
-				/* append subscriptionId to cid */
-				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {
-					snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, linedevice->subscriptionId.number);
-				} else {
-					snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, l->defaultSubscriptionId.number);
-				}
-
-				if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.name)) {
-					snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, linedevice->subscriptionId.name);
-				} else {
-					snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, l->defaultSubscriptionId.name);
-				}
 				iCallInfo.Setter(ci, 
 					SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 

@@ -1454,12 +1454,34 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineDirNumber, ((l) ? l->name : k.name), sizeof(msg_out->data.LineStatMessage.lineDirNumber));
 
 	/* lets set the device description for the first line, so it will be display on top of device -MC */
-	if (lineNumber == 1) {
+	if (lineNumber == 1 || !l) {
 		d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, (d->description), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
 	} else {
 		d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, ((l && l->description) ? l->description : k.name), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
 	}
-	d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineDisplayName, ((l && l->label) ? l->label : k.name), sizeof(msg_out->data.LineStatMessage.lineDisplayName));
+	
+	char label[SCCP_MAX_LABEL + 1];
+	if (l) {
+		SCCP_LIST_LOCK(&d->buttonconfig);
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+			if (config->type == LINE && config->instance == lineNumber) {
+				if (config->button.line.subscriptionId && !sccp_strlen_zero(config->button.line.subscriptionId->label)) {
+					if (config->button.line.subscriptionId->replaceCid) {
+						snprintf(label, SCCP_MAX_LABEL, "%s", config->button.line.subscriptionId->label);
+					} else {
+						snprintf(label, SCCP_MAX_LABEL, "%s%s", l->label, config->button.line.subscriptionId->label);
+					}
+				} else {
+					snprintf(label, SCCP_MAX_LABEL, "%s", l->label);
+				}
+				break;
+			}
+		}
+		SCCP_LIST_UNLOCK(&d->buttonconfig);
+	} else {
+		snprintf(label, SCCP_MAX_LABEL, "%s", k.name);
+	}
+	d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineDisplayName, label, sizeof(msg_out->data.LineStatMessage.lineDisplayName));
 
 	sccp_dev_send(d, msg_out);
 
