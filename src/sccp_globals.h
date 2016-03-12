@@ -27,6 +27,7 @@ struct subscriptionId {
 	char name[SCCP_MAX_EXTENSION];										/*!< will be added to cidName */
 	char label[SCCP_MAX_LABEL];										/*!< will be added to cidName */
 	char aux[SCCP_MAX_AUX];											/*!< auxiliary parameter. Allows for phone-specific behaviour on a line. */
+	boolean_t replaceCid;											/*!< Should cidnumber be replaced instead of appended to, controled by the '=' subscription flag */
 };
 
 /*!

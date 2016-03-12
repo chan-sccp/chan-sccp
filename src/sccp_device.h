@@ -335,6 +335,7 @@ struct sccp_device {
 	sccp_call_statistics_t call_statistics[2];								/*!< Call statistics */
 	char *softkeyDefinition;										/*!< requested softKey configuration */
 	sccp_softKeySetConfiguration_t *softkeyset;								/*!< Allow for a copy of the softkeyset, if any of the softkeys needs to be redefined, for example for urihook/uriaction */
+
 	void (*copyStr2Locale) (constDevicePtr d, char *dst, ICONV_CONST char *src, size_t dst_size);		/*!< copy string to device converted to locale if necessary */
 
 #ifdef CS_SCCP_CONFERENCE

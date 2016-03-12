@@ -805,13 +805,28 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 				pbx_assert(i < sizeof(subscriptionId->number));
 				switch (*stringIterator) {
 					case '\0':
-						endDetected = TRUE;
 						subscriptionId->number[i] = '\0';
+						endDetected = TRUE;
+						break;
+					case '+':
+						if(i == 0) {
+							subscriptionId->replaceCid = 0;
+						}
+						break;
+					case '=':
+						if(i == 0) {
+							subscriptionId->replaceCid = 1;
+						}
 						break;
 					case ':':
 						subscriptionId->number[i] = '\0';
 						i = 0;
 						state = CIDNAME;
+						break;
+					case '#':
+						subscriptionId->name[i] = '\0';
+						i = 0;
+						state = LABEL;
 						break;
 					case '!':
 						subscriptionId->number[i] = '\0';
@@ -830,8 +845,8 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 				pbx_assert(i < sizeof(subscriptionId->name));
 				switch (*stringIterator) {
 					case '\0':
-						endDetected = TRUE;
 						subscriptionId->name[i] = '\0';
+						endDetected = TRUE;
 						break;
 					case '#':
 						subscriptionId->name[i] = '\0';
@@ -855,8 +870,8 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 				pbx_assert(i < sizeof(subscriptionId->label));
 				switch (*stringIterator) {
 					case '\0':
-						endDetected = TRUE;
 						subscriptionId->label[i] = '\0';
+						endDetected = TRUE;
 						break;
 					case '!':
 						subscriptionId->label[i] = '\0';
@@ -875,8 +890,8 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 				pbx_assert(i < sizeof(subscriptionId->aux));
 				switch (*stringIterator) {
 					case '\0':
-						endDetected = TRUE;
 						subscriptionId->aux[i] = '\0';
+						endDetected = TRUE;
 						break;
 					default:
 						subscriptionId->aux[i] = *stringIterator;

@@ -192,7 +192,9 @@ button = ""                                                                     
                                                                                   ;  - button = line,1234,default
                                                                                   ;  - button = empty
                                                                                   ;  - button = line,98099@11:Phone1
-                                                                                  ;  - button = line,98099@12:Phone2!silent
+                                                                                  ;  - button = line,98099@12:Phone2#ButtonLabel!silent		; append cidnum:'12' and cidname:'Phone2' to line-ci with label 'ButtonLabel', don't ring when dialed directly
+                                                                                  ;  - button = line,98099@+12:Phone2@ButtonLabel!silent	; same as the previous line
+                                                                                  ;  - button = line,98099@=12:Phone2!silent			; overwrite line-cid instead of appending
                                                                                   ;  - button = speeddial,Phone 2 Line 1, 98021, 98021@hints
                                                                                   ;  - button = feature,cfwdall,1234
 ;allowRinginNotification = no                                                     ; allow ringin notification for hinted extensions. experimental configuration param that may be removed in further version

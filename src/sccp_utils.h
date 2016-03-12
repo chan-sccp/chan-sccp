@@ -9,6 +9,7 @@
  *              See the LICENSE file at the top of the source tree.
  */
 #pragma once
+#include "config.h"
 
 #ifdef strdupa
 #define sccp_strdupa strdupa

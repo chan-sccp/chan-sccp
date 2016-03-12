@@ -854,8 +854,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_FIELDS 																\
 			CLI_AMI_TABLE_FIELD(Id,			"-4",	d,		4,	buttonconfig->index + 1)				\
 			CLI_AMI_TABLE_FIELD(Inst,		"-4",	d,		4,	buttonconfig->instance)					\
-			CLI_AMI_TABLE_FIELD(TypeStr,		"-30",	s,		30,	sccp_config_buttontype2str(buttonconfig->type))		\
-			CLI_AMI_TABLE_FIELD(Type,		"-24",	d,		24,	buttonconfig->type)					\
+			CLI_AMI_TABLE_FIELD(TypeStr,		"-40",	s,		40,	sccp_config_buttontype2str(buttonconfig->type))		\
+			CLI_AMI_TABLE_FIELD(Type,		"-37",	d,		37,	buttonconfig->type)					\
 			CLI_AMI_TABLE_FIELD(pendUpdt,		"-8",	s,		8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
 			CLI_AMI_TABLE_FIELD(pendDel,		"-8",	s,		8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
 			CLI_AMI_TABLE_FIELD(Default,		"-9",	s,		9,	(0!=buttonconfig->instance && d->defaultLineInstance == buttonconfig->instance && LINE==buttonconfig->type) ? "Yes" : "No")
@@ -871,6 +871,10 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_BEFORE_ITERATION 															\
 			if (buttonconfig->type == LINE) {												\
 				AUTO_RELEASE sccp_line_t *l = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);				\
+				char subscriptionIdBuf[21] = "";											\
+				if (buttonconfig->button.line.subscriptionId) {										\
+					snprintf(subscriptionIdBuf, 21, "(%s)%s:%s", buttonconfig->button.line.subscriptionId->replaceCid ? "=" : "+", buttonconfig->button.line.subscriptionId->number, buttonconfig->button.line.subscriptionId->name);	\
+				}															\
 				if (l) {														\
 					AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, l);
 					
@@ -883,8 +887,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_FIELDS 																\
 			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)				\
 			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	l->name)						\
-			CLI_AMI_TABLE_FIELD(Suffix,		"-6.6",		s,	6,	buttonconfig->button.line.subscriptionId ? buttonconfig->button.line.subscriptionId->number : "")	\
-			CLI_AMI_TABLE_FIELD(Label,		"-29.29",	s,	29, 	l->label ? l->label : "")						\
+			CLI_AMI_TABLE_FIELD(SubCid,		"-21.21",	s,	21,	subscriptionIdBuf)					\
+			CLI_AMI_TABLE_FIELD(Label,		"-37.37",	s,	37, 	buttonconfig->button.line.subscriptionId ? buttonconfig->button.line.subscriptionId->label : (l->label ? l->label : ""))	\
 			CLI_AMI_TABLE_FIELD(CfwdType,		"-10",		s,	10, 	(linedevice && linedevice->cfwdAll.enabled ? "All" : (linedevice && linedevice->cfwdBusy.enabled ? "Busy" : "None")))	\
 			CLI_AMI_TABLE_FIELD(CfwdNumber,		"16.16",	s,	16, 	(linedevice && linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice && linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : "")))
 #include "sccp_cli_table.h"
@@ -907,8 +911,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_FIELDS 															\
 			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
 			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label ? buttonconfig->label : "")				\
-			CLI_AMI_TABLE_FIELD(Number,		"-36.36",	s,	36,	buttonconfig->button.speeddial.ext ? buttonconfig->button.speeddial.ext : "")		\
-			CLI_AMI_TABLE_FIELD(Hint,		"-27.27",	s,	27, 	buttonconfig->button.speeddial.hint ? buttonconfig->button.speeddial.hint : "")
+			CLI_AMI_TABLE_FIELD(Number,		"-22.22",	s,	22,	buttonconfig->button.speeddial.ext ? buttonconfig->button.speeddial.ext : "")		\
+			CLI_AMI_TABLE_FIELD(Hint,		"-64.64",	s,	64, 	buttonconfig->button.speeddial.hint ? buttonconfig->button.speeddial.hint : "")
 #include "sccp_cli_table.h"
 			local_table_total++;
 
@@ -928,8 +932,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_FIELDS 															\
 			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
 			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label ? buttonconfig->label : "")				\
-			CLI_AMI_TABLE_FIELD(Options,		"-36.36",	s,	36,	buttonconfig->button.feature.options ? buttonconfig->button.feature.options : "")		\
-			CLI_AMI_TABLE_FIELD(Status,		"-27",		d,	27, 	buttonconfig->button.feature.status)
+			CLI_AMI_TABLE_FIELD(Status,		"-22",		d,	22, 	buttonconfig->button.feature.status)		\
+			CLI_AMI_TABLE_FIELD(Options,		"-64.64",	s,	64,	buttonconfig->button.feature.options ? buttonconfig->button.feature.options : "")
 #include "sccp_cli_table.h"
 			local_table_total++;
 
@@ -948,8 +952,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 
 #define CLI_AMI_TABLE_FIELDS 															\
 			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
-			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label ? buttonconfig->label : "")				\
-			CLI_AMI_TABLE_FIELD(URL,		"-64.64",	s,	64,	buttonconfig->button.service.url ? buttonconfig->button.service.url : "")
+			CLI_AMI_TABLE_FIELD(Name,		"-22.22",	s,	22,	buttonconfig->label ? buttonconfig->label : "")				\
+			CLI_AMI_TABLE_FIELD(URL,		"-88.88",	s,	88,	buttonconfig->button.service.url ? buttonconfig->button.service.url : "")
 #include "sccp_cli_table.h"
 			local_table_total++;
 	}
@@ -961,7 +965,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_ITERATOR for(v = d->variables;v;v = v->next)
 #define CLI_AMI_TABLE_FIELDS 															\
 			CLI_AMI_TABLE_FIELD(Name,		"-28.28",	s,	28,	v->name)					\
-			CLI_AMI_TABLE_FIELD(Value,		"-64.64",	s,	64,	v->value)
+			CLI_AMI_TABLE_FIELD(Value,		"-87.87",	s,	87,	v->value)
 #include "sccp_cli_table.h"
 			local_table_total++;
 	}
@@ -1089,9 +1093,9 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 				}
 				SCCP_LIST_UNLOCK(&l->channels);
 				if (!s) {
-					pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n",
+					pbx_cli(fd, "| %-13s %-3s %-6s %-30s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n",
 						!found_linedevice ? l->name : " +--", 
-						linedevice->subscriptionId.number, 
+						linedevice->subscriptionId.replaceCid ? "(=)" : "(+)", linedevice->subscriptionId.number, 
 						 sccp_strlen_zero(linedevice->subscriptionId.label) ? (l->label ? l->label : "--") : linedevice->subscriptionId.label,
 						d->id, 
 						(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", 
@@ -1125,9 +1129,9 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 		if (found_linedevice == 0) {
 			char cid_name[StationMaxNameSize] = {0};
 			if (!s) {
-				pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n", 
+				pbx_cli(fd, "| %-13s %-3s %-6s %-30s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n", 
 					l->name, 
-					"", 
+					"", "",
 					l->label, 
 					"--", 
 					(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", 
