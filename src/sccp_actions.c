@@ -3230,15 +3230,6 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting Phone RTP/UDP Transmission (State: %s[%d])\n", d->id, sccp_channelstate2str(channel->state), channel->state);
 		sccp_channel_setDevice(channel, d);
 		if (channel->rtp.audio.instance) {
-			if (d->nat >= SCCP_NAT_ON) {
-				/* Rewrite ip-addres to the outside source address using the phones connection (device->sin) */
-				uint16_t port = sccp_netsock_getPort(&sas);
-				sccp_session_getSas(s, &sas);
-				
-				sccp_netsock_ipv4_mapped(&sas, &sas);
-				sccp_netsock_setPort(&sas, port);
-
-			}
 			sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
 			sccp_channel_updateMediaTransmission(channel);
 
