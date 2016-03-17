@@ -74,6 +74,7 @@ SCCP_CHECK_ATOMIC_OPS
             
 CONFIGURE_PART([Checking for standard programs:])
 CS_FIND_PROGRAMS
+dnl AC_PROG_CXX([clang++ llvm-g++ g++])
 ACX_PTHREAD 
 PATCH_LIBTOOL_TO_ADD_HOST_CC
 CS_CHECK_CROSSCOMPILE

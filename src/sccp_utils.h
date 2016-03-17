@@ -75,26 +75,18 @@ SCCP_API void SCCP_CALL sccp_dev_dbclean(void);
         })
 
 // SCCP Lookups
-SCCP_INLINE const char * SCCP_CALL msgtype2str(sccp_mid_t msgId);
 SCCP_INLINE const char * SCCP_CALL pbxsccp_devicestate2str(uint32_t value);
 // SKINNY Lookups
 SCCP_INLINE const char * SCCP_CALL label2str(uint16_t value);
-SCCP_INLINE const char * SCCP_CALL codec2str(skinny_codec_t value);
-SCCP_INLINE const char * SCCP_CALL codec2name(skinny_codec_t value);
 SCCP_INLINE const char * SCCP_CALL featureType2str(sccp_feature_type_t value);
 SCCP_INLINE const char * SCCP_CALL debugcat_keys(void);
 SCCP_INLINE SCCP_CALL uint32_t labelstr2int(const char *str);
 #if UNUSEDCODE // 2015-11-01
 SCCP_INLINE const char * SCCP_CALL extensionstatus2str(uint32_t value);
-SCCP_INLINE SCCP_CALL int codec2payload(skinny_codec_t value);
-SCCP_INLINE const char * SCCP_CALL codec2key(skinny_codec_t value);
 SCCP_INLINE SCCP_CALL uint32_t debugcat2int(const char *str);
 #endif
 
-SCCP_API char * SCCP_CALL sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength);
-SCCP_API int SCCP_CALL sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing);
 SCCP_API const char * SCCP_CALL skinny_ringermode2str(uint8_t type);
-SCCP_API boolean_t SCCP_CALL sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length);
 SCCP_API const char * SCCP_CALL sccp_channel_toString(sccp_channel_t * c);
 
 SCCP_API int SCCP_CALL sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_subscription_id_t *subscriptionId, char extension[SCCP_MAX_EXTENSION]);
@@ -128,9 +120,6 @@ SCCP_INLINE SCCP_CALL boolean_t sccp_strlen_zero(const char *data);
 SCCP_INLINE SCCP_CALL boolean_t sccp_strequals(const char *data1, const char *data2);
 SCCP_INLINE SCCP_CALL boolean_t sccp_strcaseequals(const char *data1, const char *data2);
 SCCP_API int SCCP_CALL sccp_strIsNumeric(const char *s);
-SCCP_API skinny_codec_t SCCP_CALL sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int cLength, const skinny_codec_t remotePeerCapabilities[], int rLength);
-SCCP_API void SCCP_CALL sccp_utils_reduceCodecSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES]);
-SCCP_API void SCCP_CALL sccp_utils_combineCodecSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t addCodecs[SKINNY_MAX_CAPABILITIES]);
 
 SCCP_API void SCCP_CALL sccp_free_ha(struct sccp_ha *ha);
 SCCP_API int SCCP_CALL sccp_apply_ha(const struct sccp_ha *ha, const struct sockaddr_storage *addr);

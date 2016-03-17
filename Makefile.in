@@ -111,10 +111,11 @@ target_triplet = @target@
 DIST_COMMON = $(top_srcdir)/amdoxygen.am INSTALL NEWS README AUTHORS \
 	ChangeLog $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
-	$(srcdir)/README.in COPYING autoconf/compile \
-	autoconf/config.guess autoconf/config.rpath \
-	autoconf/config.sub autoconf/depcomp autoconf/install-sh \
-	autoconf/missing autoconf/ltmain.sh \
+	$(srcdir)/README.in \
+	$(top_srcdir)/src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile.in \
+	COPYING autoconf/compile autoconf/config.guess \
+	autoconf/config.rpath autoconf/config.sub autoconf/depcomp \
+	autoconf/install-sh autoconf/missing autoconf/ltmain.sh \
 	$(top_srcdir)/autoconf/compile \
 	$(top_srcdir)/autoconf/config.guess \
 	$(top_srcdir)/autoconf/config.rpath \
@@ -142,7 +143,8 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/src/config.h
-CONFIG_CLEAN_FILES = README
+CONFIG_CLEAN_FILES = README \
+	src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile
 CONFIG_CLEAN_VPATH_FILES =
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -316,7 +318,6 @@ EVENT_LIBS = @EVENT_LIBS@
 EVENT_TYPE = @EVENT_TYPE@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
-FINGER = @FINGER@
 GDB = @GDB@
 GDB_FLAGS = @GDB_FLAGS@
 GIT = @GIT@
@@ -327,6 +328,7 @@ HAVE_PBX_HTTP = @HAVE_PBX_HTTP@
 HEAD = @HEAD@
 HG = @HG@
 HOST_CC = @HOST_CC@
+ID = @ID@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -550,6 +552,8 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	$(am__cd) $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 $(am__aclocal_m4_deps):
 README: $(top_builddir)/config.status $(srcdir)/README.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile: $(top_builddir)/config.status $(top_srcdir)/src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 
 mostlyclean-libtool:

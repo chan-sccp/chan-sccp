@@ -1274,7 +1274,7 @@ static int sccp_wrapper_asterisk16_get_sampleRate(skinny_codec_t codec)
 #else
 	uint32_t i;
 
-	for (i = 1; i < ARRAY_LEN(skinny_codecs); i++) {
+	for (i = 1; i < sccp_getnumber_of_skinny_codecs(); i++) {
 		if (skinny_codecs[i].codec == codec) {
 			return skinny_codecs[i].sample_rate;
 		}

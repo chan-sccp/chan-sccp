@@ -409,6 +409,11 @@
 	<loadInformation>P00308010100</loadInformation>
 	<!-- 
 		The firmware version that the phone looks for at boot.
+		Can be either the actual firmware version like P00308010100 or SCCP70.8-5-4S or a reference to the termXX.default file. 
+		The later is actually much easier to maintain, just unpack the new firmware, which replaces the termXX.default.loads file. 
+		You don't have to update all your SEP... files because it just refers them to the loads file, from which they get the
+		new firmware version number.
+
 	-->
 	<userLocale>
 		<name>Dutch_Netherlands</name>

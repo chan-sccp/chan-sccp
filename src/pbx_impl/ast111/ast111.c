@@ -2004,7 +2004,7 @@ static boolean_t sccp_wrapper_asterisk111_createRtpInstance(constDevicePtr d, co
 	/* add payload mapping for skinny codecs */
 	uint8_t i;
 	struct ast_rtp_codecs *codecs = ast_rtp_instance_get_codecs(instance);
-	for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
+	for (i = 0; i < sccp_getnumber_of_skinny_codecs(); i++) {
 		/* add audio codecs only */
 		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == codec_type) {
 			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, rtp_map_filter, (char *) skinny_codecs[i].mimesubtype, (enum ast_rtp_options) 0, skinny_codecs[i].sample_rate);
