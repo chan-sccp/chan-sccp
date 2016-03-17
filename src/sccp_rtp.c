@@ -321,38 +321,22 @@ int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp)
 		struct sockaddr_storage *phone_remote = &rtp->phone_remote;
 		sccp_session_getOurIP(d->session, &sus, 0);
 
-		uint16_t usFamily = sccp_netsock_is_IPv6(&sus) ? AF_INET6 : AF_INET;
+		uint16_t usFamily = (sccp_netsock_is_IPv6(&sus) && !sccp_netsock_is_mapped_IPv4(&sus)) ? AF_INET6 : AF_INET;
 		uint16_t remoteFamily = (sccp_netsock_is_IPv6(phone_remote) && !sccp_netsock_is_mapped_IPv4(phone_remote)) ? AF_INET6 : AF_INET;
 
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: checkNat us: %s, usFamily: %s\n", d->id, sccp_netsock_stringify(&sus), (usFamily == AF_INET6) ? "IPv6" : "IPv4");
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: checkNat remote: %s, remoteFamily: %s\n", d->id, sccp_netsock_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
-
 		if (d->nat >= SCCP_NAT_ON) {
-			if (usFamily != remoteFamily) {
-				switch (usFamily) {
-				case AF_INET:
-				{
-					uint16_t port = sccp_rtp_getServerPort(rtp);					// get rtp server port
-					if (sccp_netsock_getExternalAddr(phone_remote)) {				// Use externip (PBX behind NAT Firewall)
-						memcpy(phone_remote, &sus, sizeof(struct sockaddr_storage));		// Fallback: use ip-address of incoming interface
-					}
-					sccp_netsock_ipv4_mapped(phone_remote, phone_remote);				// we need this to convert mapped IPv4 to real IPv4 address
-					sccp_netsock_setPort(phone_remote, port);
-					sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (updateNatRemotePhone) IPV4 new remote: %s, new remoteFamily: %s\n", d->id, sccp_netsock_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
-					break;
-				}
-				case AF_INET6:
-				{
-					uint16_t port = sccp_rtp_getServerPort(rtp);
-					sccp_netsock_ipv4_mapped(phone_remote, phone_remote);
-					sccp_netsock_setPort(phone_remote, port);
-					sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (updateNatRemotePhone) IPV6 new remote: %s, new remoteFamily: %s\n", d->id, sccp_netsock_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
-					break;
-				}
-				default:
-					pbx_log(LOG_NOTICE, "%s: Unsupported network protocol\n", c->designator);
-				}
+			uint16_t port = sccp_rtp_getServerPort(rtp);					// get rtp server port
+			if (!sccp_netsock_getExternalAddr(phone_remote)) {				// get externip/externhost ip-address (PBX behind NAT Firewall)
+				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_2 "%s: no externip/externhost set, falling back to using incoming interface address:%s\n", d->id, sccp_netsock_stringify(&sus))
+				memcpy(phone_remote, &sus, sizeof(struct sockaddr_storage));
 			}
+			if (usFamily != remoteFamily) {
+				sccp_netsock_ipv4_mapped(phone_remote, phone_remote);			// we need this to convert mapped IPv4 to real IPv4 address
+			}
+			sccp_netsock_setPort(phone_remote, port);
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (updateNatRemotePhone) new remote: %s, new remoteFamily: %s\n", d->id, sccp_netsock_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
 			res = 1;
 		}
 	}
