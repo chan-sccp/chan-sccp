@@ -61,15 +61,51 @@ int sccp_netsock_is_any_addr(const struct sockaddr_storage *sockAddrStorage)
 	return (sccp_netsock_is_IPv4(sockAddrStorage) && (tmp_addr.sin.sin_addr.s_addr == INADDR_ANY)) || (sccp_netsock_is_IPv6(sockAddrStorage) && IN6_IS_ADDR_UNSPECIFIED(&tmp_addr.sin6.sin6_addr));
 }
 
+static int __netsock_resolve_first_af(struct sockaddr_storage *addr, const char *name, int flags, int family)
+{
+	struct addrinfo *ai;
+	int result = 0, e;
+	if (!name) {
+		return 0;
+	}
+	struct addrinfo hints = {
+		.ai_family = family,
+		.ai_socktype = SOCK_DGRAM
+	};
+	if (!(e = getaddrinfo(name, 0, &hints, &ai))) {
+		if (ai && ai->ai_next) {
+			memcpy(addr, ai->ai_addr, ai->ai_addrlen);
+			result = 1;
+		}
+	} else {
+		pbx_log(LOG_ERROR, "getaddrinfo(\"%s\") failed: %s\n", name, gai_strerror(e));
+	}
+	freeaddrinfo(ai);
+	return result;
+}
+
 boolean_t sccp_netsock_getExternalAddr(struct sockaddr_storage *sockAddrStorage)
 {
-	//! \todo handle IPv4 / IPV6 family ?
+	boolean_t result = FALSE;
 	if (sccp_netsock_is_any_addr(&GLOB(externip))) {
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "SCCP: No externip set in sccp.conf. In case you are running your PBX on a seperate host behind a NATTED Firewall you need to set externip.\n");
-		return FALSE;
+		if (GLOB(externhost) && strlen(GLOB(externhost)) == 0 && GLOB(externrefresh) > 0) {
+			static time_t externexpire = 0;
+			if (time(NULL) >= externexpire) {
+				if (__netsock_resolve_first_af(sockAddrStorage, GLOB(externhost), 0, sockAddrStorage->ss_family)) {
+					pbx_log(LOG_NOTICE, "Warning: Re-lookup of '%s' failed!\n", GLOB(externhost));
+					return FALSE;
+				}
+				externexpire = time(NULL) + GLOB(externrefresh);
+				result = TRUE;
+			}
+		} else {
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "SCCP: No externip set in sccp.conf. In case you are running your PBX on a seperate host behind a NATTED Firewall you need to set externip.\n");
+		}
+	} else {
+		memcpy(sockAddrStorage, &GLOB(externip), sizeof(struct sockaddr_storage));
+		result = TRUE;
 	}
-	memcpy(sockAddrStorage, &GLOB(externip), sizeof(struct sockaddr_storage));
-	return TRUE;
+	return result;
 }
 
 size_t sccp_netsock_sizeof(const struct sockaddr_storage * sockAddrStorage)
