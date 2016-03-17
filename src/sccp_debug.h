@@ -57,49 +57,12 @@ typedef enum {
 	/* *INDENT-ON* */
 } sccp_debug_category_t;											/*!< SCCP Debug Category Enum (saved in global_vars:debug = uint32_t) */
 
-/*!
- * \brief SCCP Verbose Level Structure
- */
-static const struct sccp_debug_category {
+struct sccp_debug_category {
 	const char *const key;
 	const char *const text;
 	sccp_debug_category_t category;
-} sccp_debug_categories[] = {
-	/* *INDENT-OFF* */
-	{"all",			"all debug levels", 			DEBUGCAT_ALL,},
-	{"none",		"all debug levels", 			DEBUGCAT_NONE,},
-	{"core",		"core debug level", 			DEBUGCAT_CORE},
-	{"sccp",		"sccp debug level", 			DEBUGCAT_SCCP},
-	{"hint",		"hint debug level", 			DEBUGCAT_HINT},
-	{"rtp",			"rtp debug level", 			DEBUGCAT_RTP},
-	{"device",		"device debug level", 			DEBUGCAT_DEVICE},
-	{"line",		"line debug level", 			DEBUGCAT_LINE},
-	{"action",		"action debug level", 			DEBUGCAT_ACTION},
-	{"channel",		"channel debug level", 			DEBUGCAT_CHANNEL},
-	{"cli",			"cli debug level", 			DEBUGCAT_CLI},
-	{"config",		"config debug level", 			DEBUGCAT_CONFIG},
-	{"feature",		"feature debug level", 			DEBUGCAT_FEATURE},
-	{"feature_button",	"feature_button debug level",		DEBUGCAT_FEATURE_BUTTON},
-	{"softkey",		"softkey debug level", 			DEBUGCAT_SOFTKEY},
-	{"indicate",		"indicate debug level",	 		DEBUGCAT_INDICATE},
-	{"pbx",			"pbx debug level", 			DEBUGCAT_PBX},
-	{"socket",		"socket debug level", 			DEBUGCAT_SOCKET},
-	{"mwi",			"mwi debug level", 			DEBUGCAT_MWI},
-	{"event",		"event debug level", 			DEBUGCAT_EVENT},
-	{"conference",		"conference debug level", 		DEBUGCAT_CONFERENCE},
-	{"buttontemplate",	"buttontemplate debug level",		DEBUGCAT_BUTTONTEMPLATE},
-	{"speeddial",		"speeddial debug level",		DEBUGCAT_SPEEDDIAL},
-	{"codec",		"codec debug level", 			DEBUGCAT_CODEC},
-	{"realtime",		"realtime debug level",	 		DEBUGCAT_REALTIME},
-	{"callinfo",		"callinfo debug level", 		DEBUGCAT_CALLINFO},
-	{"refcount",		"refcount lock debug level", 		DEBUGCAT_REFCOUNT},
-	{"message",		"message debug level", 			DEBUGCAT_MESSAGE},
-	{"newcode",		"newcode debug level", 			DEBUGCAT_NEWCODE},
-	{"threadpool",		"threadpool debug level",	 	DEBUGCAT_THPOOL},
-	{"filelinefunc",	"add line/file/function to debug output", DEBUGCAT_FILELINEFUNC},
-	{"high",		"high debug level", 			DEBUGCAT_HIGH},
-	/* *INDENT-ON* */
 };
+extern const struct sccp_debug_category sccp_debug_categories[32];
 
 SCCP_API int32_t SCCP_CALL sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug_value);
 SCCP_API char * SCCP_CALL sccp_get_debugcategories(int32_t debugvalue);
