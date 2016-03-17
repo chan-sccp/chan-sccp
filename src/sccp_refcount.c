@@ -659,12 +659,14 @@ gcc_inline void sccp_refcount_autorelease(void *ptr)
 #define NUM_LOOPS 50
 #define NUM_OBJECTS 5000
 #define NUM_THREADS 10
-static struct refcount_test {
+struct refcount_test {
 	char *str;
 	int id;
 	int loop;
 	unsigned int threadid;
-} *object[NUM_OBJECTS];
+};
+
+struct refcount_test **object;
 
 static void refcount_test_destroy(struct refcount_test *obj)
 {
@@ -740,6 +742,8 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	int loop;
 	char id[23];
 	enum ast_test_result_state test_result[NUM_THREADS] = {AST_TEST_PASS};
+	
+	object = sccp_malloc(sizeof(struct refcount_test) * NUM_OBJECTS);
 
 	pbx_test_status_update(test, "Executing chan-sccp-b refcount tests...\n");
 	pbx_test_status_update(test, "Create %d objects to work on...\n", NUM_OBJECTS);
@@ -788,8 +792,8 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 		}
 	}
 	ast_rwlock_unlock(&objectslock);
+	sccp_free(object);
 	return AST_TEST_PASS;
-
 }
 
 static void __attribute__((constructor)) sccp_register_tests(void)
