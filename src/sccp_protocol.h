@@ -365,8 +365,9 @@ typedef enum {
 	SPCPRegisterTokenAck 				= 0x8100,
 	SPCPRegisterTokenReject 			= 0x8101,
 
-	UnknownVGMessage				= 0xFF00,	/* Unknown Message (VG224). Reported by Ahmet Zaim */
-#define SPCP_MESSAGE_HIGH_BOUNDARY			UnknownVGMessage		/*0xFF00*/
+	//UnknownVGMessage				= 0xFF00,	/* Unknown Message (VG224). Reported by Ahmet Zaim */
+//#define SPCP_MESSAGE_HIGH_BOUNDARY			UnknownVGMessage		/*0xFF00*/
+#define SPCP_MESSAGE_HIGH_BOUNDARY			SPCPRegisterTokenReject
 /*
 	SPCPPlatformInfoGetReq				= 0xFF02,
 	SPCPPlatformInfoGetRsp				= 0xFF03,
@@ -3127,8 +3128,8 @@ typedef union {
 		uint32_t lel_status;
 	} RecordingStatusMessage;										/*!< Recording Status Message Structure */
 
-	struct {
-	} UnknownVGMessage;
+	//struct {
+	//} UnknownVGMessage;
 } sccp_data_t;													/*!< SKINNY Data Structure */
 
 /*!
@@ -3347,7 +3348,7 @@ static const struct messagetype spcp_messagetypes[] = {
 	[SPCPRegisterTokenRequest - SPCP_MESSAGE_OFFSET	] = {SPCPRegisterTokenRequest,	"SPCP Register Token Request",			offsize(sccp_data_t, SPCPRegisterTokenRequest)},
 	[SPCPRegisterTokenAck - SPCP_MESSAGE_OFFSET	] = {SPCPRegisterTokenAck,	"SPCP RegisterMessageACK",			offsize(sccp_data_t, SPCPRegisterTokenAck)},
 	[SPCPRegisterTokenReject - SPCP_MESSAGE_OFFSET	] = {SPCPRegisterTokenReject,	"SPCP RegisterMessageReject",			offsize(sccp_data_t, SPCPRegisterTokenReject)},
-	[UnknownVGMessage - SPCP_MESSAGE_OFFSET		] = {UnknownVGMessage,		"Unknown Message (VG224)",			offsize(sccp_data_t, UnknownVGMessage)},
+	//[UnknownVGMessage - SPCP_MESSAGE_OFFSET		] = {UnknownVGMessage,		"Unknown Message (VG224)",			offsize(sccp_data_t, UnknownVGMessage)},
 	/* *INDENT-ON* */
 };
 

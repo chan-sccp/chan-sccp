@@ -196,7 +196,7 @@ static const struct messageMap_cb sccpMessagesCbMap[SCCP_MESSAGE_HIGH_BOUNDARY +
 
 static const struct messageMap_cb spcpMessagesCbMap[SPCP_MESSAGE_HIGH_BOUNDARY + 1- SPCP_MESSAGE_OFFSET] = {
 	[SPCPRegisterTokenRequest - SPCP_MESSAGE_OFFSET] = {handle_SPCPTokenReq, FALSE},
-	[UnknownVGMessage - SPCP_MESSAGE_OFFSET] = {NULL, FALSE},
+	//[UnknownVGMessage - SPCP_MESSAGE_OFFSET] = {NULL, FALSE},
 };
 
 /*!
