@@ -29,7 +29,9 @@
 #include "sccp_hint.h"		// use __constructor__ to remove this entry
 #include "sccp_conference.h"	// use __constructor__ to remove this entry
 #include "revision.h"
+#ifdef CS_DEVSTATE_FEATURE
 #include "sccp_devstate.h"
+#endif
 #include "sccp_management.h"	// use __constructor__ to remove this entry
 #include <signal.h>
 
@@ -355,7 +357,9 @@ int sccp_preUnload(void)
 	sccp_globals_unlock(socket_lock);
 
 	sccp_manager_module_stop();
+#ifdef CS_DEVSTATE_FEATURE	
 	sccp_devstate_module_stop();
+#endif
 #ifdef CS_SCCP_CONFERENCE
 	sccp_conference_module_stop();
 #endif

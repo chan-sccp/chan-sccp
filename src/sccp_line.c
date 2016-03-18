@@ -616,9 +616,11 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 
 			sccp_linedevice_release(linedevice);				/* explicit release of list retained linedevice */
 
+#ifdef CS_SCCP_REALTIME
 			if (l->realtime && SCCP_LIST_GETSIZE(&l->devices) == 0 && SCCP_LIST_GETSIZE(&l->channels) == 0 ) {
 				sccp_line_removeFromGlobals(l);
 			}
+#endif
 		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;

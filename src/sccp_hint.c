@@ -125,7 +125,9 @@ static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device);
 static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device);
 static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event);
 static void sccp_hint_eventListener(const sccp_event_t * event);
+#ifdef CS_DYNAMIC_SPEEDDIAL
 static gcc_inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice);
+#endif
 
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 #if ASTERISK_VERSION_GROUP >= 112
@@ -1073,7 +1075,6 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 {
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
-	sccp_msg_t *msg = NULL;
 
 	if (!hint) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_hint_notifySubscribers) no hint provided to notifySubscribers about\n");
@@ -1094,6 +1095,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		if (d) {
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, hint->hint_dialplan, sccp_channelstate2str(hint->currentState), hint->currentState);
 #ifdef CS_DYNAMIC_SPEEDDIAL
+			sccp_msg_t *msg = NULL;
 			sccp_speed_t k;
 			char displayMessage[80] = "";
 			skinny_busylampfield_state_t status = SKINNY_BLF_STATUS_UNKNOWN;
@@ -1132,6 +1134,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 						/* fall through */
 
 					default:
+#ifdef CS_DYNAMIC_SPEEDDIAL
 						if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
 							if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
 								iCallInfo.Getter(hint->callInfo, 
@@ -1151,7 +1154,9 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							} else {
 								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							}
-						} else {
+						} else 
+#endif
+						{
 							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 						}
 						if (status == SKINNY_BLF_STATUS_UNKNOWN) {	/* still default value --> set */

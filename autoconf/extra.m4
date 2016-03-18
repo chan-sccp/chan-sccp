@@ -700,12 +700,11 @@ AC_DEFUN([CS_DISABLE_SECTION_RELOCATION], [
 		;;
 	*)
 		AC_ARG_ENABLE(section_relocation,
-			[AC_HELP_STRING([--disable-section-relocation], [disable compiler section relocation])],
+			[AC_HELP_STRING([--enable-section-relocation], [disable compiler section relocation])],
 			[ac_cv_use_section_relocation=$enableval], 
-			[ac_cv_section_relocation=yes]
+			[ac_cv_section_relocation=no]
 		)
-		AS_IF([test "_${ac_cv_section_relocation}" == "_yes"], [
-		], [
+		AS_IF([test "_${ac_cv_section_relocation}" == "_no"], [
 			ac_cv_section_relocation="no"
 			SECTION_LDFLAGS=""
 			SECTION_CFLAGS=""
@@ -803,8 +802,8 @@ AC_DEFUN([CS_ENABLE_INDICATIONS], [
 AC_DEFUN([CS_DISABLE_REALTIME], [
 	AC_ARG_ENABLE(realtime, 
 		[AC_HELP_STRING([--disable-realtime], [disable realtime support])], 
-		[ac_cv__realtime=$enableval], 
-		[ac_cv__realtime=yes],
+		[ac_cv_realtime=$enableval], 
+		[ac_cv_realtime=yes]
 	)
 	AS_IF([test "_${ac_cv_realtime}" == "_yes"], [AC_DEFINE(CS_SCCP_REALTIME, 1, [realtime enabled])])
 	AC_MSG_RESULT([--enable-realtime: ${ac_cv_realtime}])
@@ -813,8 +812,8 @@ AC_DEFUN([CS_DISABLE_REALTIME], [
 AC_DEFUN([CS_DISABLE_FEATURE_MONITOR], [
 	AC_ARG_ENABLE(feature_monitor, 
 		[AC_HELP_STRING([--disable-feature-monitor], [disable feature monitor])], 
-		[ac_cv__feature_monitor=$enableval]
-		[ac_cv__feature_monitor=yes],
+		[ac_cv_feature_monitor=$enableval],
+		[ac_cv_feature_monitor=yes]
 	)
 	AS_IF([test "_${ac_cv_feature_monitor}" == "_yes"], [AC_DEFINE(CS_SCCP_FEATURE_MONITOR, 1, [feature monitor enabled])])
 	AC_MSG_RESULT([--enable-feature-monitor: ${ac_cv_feature_monitor}])
@@ -823,8 +822,8 @@ AC_DEFUN([CS_DISABLE_FEATURE_MONITOR], [
 AC_DEFUN([CS_ENABLE_ADVANCED_FUNCTIONS], [
 	AC_ARG_ENABLE(advanced_functions, 
 		[AC_HELP_STRING([--enable-advanced-functions], [enable advanced functions (experimental)])], 
-		[ac_cv__advanced_functions=$enableval], 
-		[ac_cv__advanced_functions=no],
+		[ac_cv_advanced_functions=$enableval], 
+		[ac_cv_advanced_functions=no]
 	)
 	AS_IF([test "_${ac_cv_advanced_functions}" == "_yes"], [AC_DEFINE(CS_ADV_FEATURES, 1, [advanced functions enabled])])
 	AC_MSG_RESULT([--enable-advanced-functions: ${ac_cv_advanced_functions}])
@@ -833,8 +832,8 @@ AC_DEFUN([CS_ENABLE_ADVANCED_FUNCTIONS], [
 AC_DEFUN([CS_ENABLE_EXPERIMENTAL_MODE], [
 	AC_ARG_ENABLE(experimental_mode, 
 		[AC_HELP_STRING([--enable-experimental-mode], [enable experimental mode (only for developers)])], 
-		[ac_cv__experimental_mode=$enableval], 
-		[ac_cv__experimental_mode=no],
+		[ac_cv_experimental_mode=$enableval], 
+		[ac_cv_experimental_mode=no]
 	)
 	AS_IF([test "_${ac_cv_experimental_mode}" == "_yes"], [AC_DEFINE(CS_EXPERIMENTAL, 1, [experimental mode enabled])])
 	AC_MSG_RESULT([--enable-experimental-mode: ${ac_cv_experimental_mode} (only for developers)])
@@ -846,7 +845,7 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_XML], [
 	CFLAGS_save=${CFLAGS}
 	AC_ARG_ENABLE(experimental_xml, 
 		[AC_HELP_STRING([--enable-experimental-xml], [enable experimental xml (only for developers)])], 
-		[ac_cv__experimental_xml=$enableval], 
+		[ac_cv_experimental_xml=$enableval], 
 		[ac_cv_experimental_xml=no]
 	)
 	AM_CONDITIONAL([CS_EXPERIMENTAL_XML], test "_${ac_cv_experimental_xml}" == "_yes")
@@ -887,8 +886,8 @@ dnl			AC_MSG_ERROR([libxslt required to enable-experimental-xml])
 AC_DEFUN([CS_DISABLE_DEVSTATE_FEATURE], [
 	AC_ARG_ENABLE(devstate_feature, 
 		[AC_HELP_STRING([--disable-devstate-feature], [disable device state feature button])], 
-		[ac_cv__devstate_feature=$enableval], 
-		[ac_cv__devstate_feature=yes],
+		[ac_cv_devstate_feature=$enableval], 
+		[ac_cv_devstate_feature=yes]
 	)
 	AS_IF([test ${ASTERISK_VERSION_NUMBER} -lt 10601], [ac_cv_devstate_feature=no])
 	AS_IF([test "_${DEVICESTATE_H}" != "_yes"], [ac_cv_devstate_feature=no])
@@ -899,8 +898,8 @@ AC_DEFUN([CS_DISABLE_DEVSTATE_FEATURE], [
 AC_DEFUN([CS_DISABLE_DYNAMIC_SPEEDDIAL], [
 	AC_ARG_ENABLE(dynamic_speeddial, 
 		[AC_HELP_STRING([--disable-dynamic-speeddial], [disable dynamic speeddials])], 
-		[ac_cv__dynamic_speeddial=$enableval], 
-		[ac_cv__dynamic_speeddial=yes],
+		[ac_cv_dynamic_speeddial=$enableval], 
+		[ac_cv_dynamic_speeddial=yes]
 	)
 	AS_IF([test "_${ac_cv_dynamic_speeddial}" == "_yes"], [AC_DEFINE(CS_DYNAMIC_SPEEDDIAL, 1, [dynamic speeddials enabled])])
 	AC_MSG_RESULT([--enable-dynamic-speeddial: ${ac_cv_dynamic_speeddial}])
@@ -909,8 +908,9 @@ AC_DEFUN([CS_DISABLE_DYNAMIC_SPEEDDIAL], [
 AC_DEFUN([CS_DISABLE_DYNAMIC_SPEEDDIAL_CID], [
 	AC_ARG_ENABLE(dynamic_speeddial_cid, 
 		[AC_HELP_STRING([--disable-dynamic-speeddial-cid], [disable dynamic speeddials with call info])], 
-		[ac_cv__dynamic_speeddial_cid=$enableval], 
-		ac_cv_dynamic_speeddial_cid=${ac_cv_dynamic_speeddial})
+		[ac_cv_dynamic_speeddial_cid=$enableval], 
+		[ac_cv_dynamic_speeddial_cid=yes]
+	)
 	AS_IF([test "${ac_cv_dynamic_speeddial}" == "yes"], [
 		AS_IF([test "${ac_cv_dynamic_speeddial_cid}" == "yes"], [
 			AC_DEFINE(CS_DYNAMIC_SPEEDDIAL_CID, 1, [dynamic speeddials with callinfo enabled])
@@ -922,8 +922,8 @@ AC_DEFUN([CS_DISABLE_DYNAMIC_SPEEDDIAL_CID], [
 AC_DEFUN([CS_ENABLE_VIDEO], [
 	AC_ARG_ENABLE(video, 
 		[AC_HELP_STRING([--enable-video], [enable streaming video (experimental)])], 
-		[ac_cv__streaming_video=$enableval], 
-		[ac_cv__streaming_video=no],
+		[ac_cv_streaming_video=$enableval], 
+		[ac_cv_streaming_video=no]
 	)
 	AS_IF([test "_${ac_cv_streaming_video}" == "_yes"], [AC_DEFINE(CS_SCCP_VIDEO, 1, [Using streaming video])])
 	AC_MSG_RESULT([--enable-video: ${ac_cv_streaming_video}])
@@ -932,8 +932,8 @@ AC_DEFUN([CS_ENABLE_VIDEO], [
 AC_DEFUN([CS_ENABLE_DISTRIBUTED_DEVSTATE], [
 	AC_ARG_ENABLE(distributed_devicestate, 
 		[AC_HELP_STRING([--enable-distributed-devicestate], [enable distributed devicestate (>ast 1.6.2)])], 
-		[ac_cv__use_distributed_devicestate=$enableval], 
-		[ac_cv__use_distributed_devicestate=no],
+		[ac_cv_use_distributed_devicestate=$enableval], 
+		[ac_cv_use_distributed_devicestate=no]
 	)
 	AS_IF([test "_${ac_cv_use_distributed_devicestate}" == "_yes"], [AC_DEFINE(CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE, 1, [distributed devicestate])])
 	AC_MSG_RESULT([--enable-distributed-devicestate: ${ac_cv_use_distributed_devicestate}])
@@ -942,7 +942,7 @@ AC_DEFUN([CS_ENABLE_DISTRIBUTED_DEVSTATE], [
 AC_DEFUN([CS_WITH_HASH_SIZE], [
 	AC_ARG_WITH(hash_size, 
 		[AC_HELP_STRING([--with-hash-size], [to provide room for higher number of phones (>200), specify a prime number, bigger then number of phones times 4 (default=536)])], 
-		[ac_cv_set_hashsize=$withval])
+		[ac_cv_set_hashsize=$withval], [ac_cv_set_hashsize=536])
 	AS_IF([test 0${ac_cv_set_hashsize} -lt 536], [ac_cv_set_hashsize=536])
 	AC_DEFINE_UNQUOTED(SCCP_HASH_PRIME, `echo ${ac_cv_set_hashsize}`, [defined SCCP_HASH_PRIME])
 	AC_MSG_RESULT([--with-hash-size: ${ac_cv_set_hashsize}])
@@ -957,7 +957,6 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_REFCOUNT_DEBUG
 	CS_ENABLE_LOCK_DEBUG
 	CS_ENABLE_STRIP
-	CS_WITH_HASH_SIZE
 	CS_DISABLE_PICKUP
 	CS_DISABLE_PARK
 	CS_DISABLE_DIRTRFR
@@ -975,6 +974,7 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_DISTRIBUTED_DEVSTATE
 	CS_ENABLE_EXPERIMENTAL_MODE
 	CS_ENABLE_EXPERIMENTAL_XML
+	CS_WITH_HASH_SIZE
 ])
 
 AC_DEFUN([CS_SETUP_MODULE_DIR], [
