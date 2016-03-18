@@ -5539,42 +5539,6 @@ rm -f core conftest.err conftest.$ac_objext \
 	fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the linker accepts " >&5
-$as_echo_n "checking whether the linker accepts ... " >&6; }
-if ${ax_cv_check_ldflags__+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-  ax_check_save_flags=$LDFLAGS
-  LDFLAGS="$LDFLAGS  "
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ax_cv_check_ldflags__=yes
-else
-  ax_cv_check_ldflags__=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-  LDFLAGS=$ax_check_save_flags
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_ldflags__" >&5
-$as_echo "$ax_cv_check_ldflags__" >&6; }
-if test x"$ax_cv_check_ldflags__" = xyes; then :
-  :
-else
-  :
-fi
-
 
 	# Check whether --enable-optimization was given.
 if test "${enable_optimization+set}" = set; then :
@@ -5717,6 +5681,7 @@ eval ac_res=\$$as_CACHEVAR
 $as_echo "$ac_res" >&6; }
 if eval test \"x\$"$as_CACHEVAR"\" = x"yes"; then :
 
+
 if ${SUPPORTED_CFLAGS+:} false; then :
 
   case " $SUPPORTED_CFLAGS " in #(
@@ -5799,6 +5764,7 @@ eval ac_res=\$$as_CACHEVAR
 	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
 $as_echo "$ac_res" >&6; }
 if eval test \"x\$"$as_CACHEVAR"\" = x"yes"; then :
+
 
 if ${SUPPORTED_CFLAGS+:} false; then :
 
@@ -5883,6 +5849,7 @@ eval ac_res=\$$as_CACHEVAR
 $as_echo "$ac_res" >&6; }
 if eval test \"x\$"$as_CACHEVAR"\" = x"yes"; then :
 
+
 if ${SUPPORTED_CFLAGS+:} false; then :
 
   case " $SUPPORTED_CFLAGS " in #(
@@ -5966,6 +5933,7 @@ eval ac_res=\$$as_CACHEVAR
 $as_echo "$ac_res" >&6; }
 if eval test \"x\$"$as_CACHEVAR"\" = x"yes"; then :
 
+
 if ${SUPPORTED_CFLAGS+:} false; then :
 
   case " $SUPPORTED_CFLAGS " in #(
@@ -6010,9 +5978,10 @@ $as_echo "#define CCC_ANALYZER 1" >>confdefs.h
 fi
 
 
-
 for flag in -Wl,--gc-sections; do
-  as_CACHEVAR=`$as_echo "ax_cv_check_ldflags__$flag" | $as_tr_sh`
+
+
+as_CACHEVAR=`$as_echo "ax_cv_check_ldflags__$flag" | $as_tr_sh`
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the linker accepts $flag" >&5
 $as_echo_n "checking whether the linker accepts $flag... " >&6; }
 if eval \${$as_CACHEVAR+:} false; then :
@@ -6044,7 +6013,8 @@ fi
 eval ac_res=\$$as_CACHEVAR
 	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
 $as_echo "$ac_res" >&6; }
-if test x"`eval 'as_val=${'$as_CACHEVAR'};$as_echo "$as_val"'`" = xyes; then :
+if eval test \"x\$"$as_CACHEVAR"\" = x"yes"; then :
+
 
 if ${SECTION_LDFLAGS+:} false; then :
 
@@ -6123,6 +6093,7 @@ eval ac_res=\$$as_CACHEVAR
 	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
 $as_echo "$ac_res" >&6; }
 if eval test \"x\$"$as_CACHEVAR"\" = x"yes"; then :
+
 
 if ${SECTION_CFLAGS+:} false; then :
 
@@ -6344,6 +6315,7 @@ eval ac_res=\$$as_CACHEVAR
 	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
 $as_echo "$ac_res" >&6; }
 if eval test \"x\$"$as_CACHEVAR"\" = x"yes"; then :
+
 
 if ${SUPPORTED_CFLAGS+:} false; then :
 
