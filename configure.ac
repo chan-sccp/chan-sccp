@@ -71,7 +71,7 @@ CS_SETUP_ENVIRONMENT
 CONFIGURE_PART([Checking Atomic Functions:])
 SCCP_CHECK_ATOMICS
 SCCP_CHECK_ATOMIC_OPS
-            
+
 CONFIGURE_PART([Checking for standard programs:])
 CS_FIND_PROGRAMS
 dnl AC_PROG_CXX([clang++ llvm-g++ g++])
@@ -117,12 +117,7 @@ AC_CONFIG_COMMANDS([src/sccp_enum.h],
 	output=`cd ${ac_abs_top_builddir}/src/;awk -f "${ac_abs_top_srcdir}/tools/gen_sccp_enum.awk" < ${ac_abs_top_srcdir}/src/sccp_enum.in &>/dev/null`
 )
 AC_CONFIG_FILES([Makefile README doc/Makefile src/Makefile src/pbx_impl/Makefile src/pbx_impl/ast/Makefile src/pbx_impl/ast_announce/Makefile src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile contrib/gen_sccpconf/Makefile])
-AM_COND_IF([ASTERISK_VER_GROUP_106],[AC_CONFIG_FILES([src/pbx_impl/ast106/Makefile])])
-AM_COND_IF([ASTERISK_VER_GROUP_108],[AC_CONFIG_FILES([src/pbx_impl/ast108/Makefile])])
-AM_COND_IF([ASTERISK_VER_GROUP_110],[AC_CONFIG_FILES([src/pbx_impl/ast110/Makefile])])
-AM_COND_IF([ASTERISK_VER_GROUP_111],[AC_CONFIG_FILES([src/pbx_impl/ast111/Makefile])])
-AM_COND_IF([ASTERISK_VER_GROUP_112],[AC_CONFIG_FILES([src/pbx_impl/ast112/Makefile])])
-AM_COND_IF([ASTERISK_VER_GROUP_113],[AC_CONFIG_FILES([src/pbx_impl/ast113/Makefile])])
+AST_SET_PBX_AMCONDITIONALS
 
 VERSION="`echo ${SCCP_VERSION}_${SCCP_BRANCH}`"
 PACKAGE_STRING="`echo Chan_SCCP_${VERSION}`"
