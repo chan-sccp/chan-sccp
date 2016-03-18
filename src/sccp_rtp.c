@@ -328,7 +328,7 @@ int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp)
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: checkNat remote: %s, remoteFamily: %s\n", d->id, sccp_netsock_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
 		if (d->nat >= SCCP_NAT_ON) {
 			uint16_t port = sccp_rtp_getServerPort(rtp);					// get rtp server port
-			if (!sccp_netsock_getExternalAddr(phone_remote)) {				// get externip/externhost ip-address (PBX behind NAT Firewall)
+			if (!sccp_netsock_getExternalAddr(phone_remote, remoteFamily)) {		// get externip/externhost ip-address (PBX behind NAT Firewall)
 				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_2 "%s: no externip/externhost set, falling back to using incoming interface address:%s\n", d->id, sccp_netsock_stringify(&sus))
 				memcpy(phone_remote, &sus, sizeof(struct sockaddr_storage));
 			}
