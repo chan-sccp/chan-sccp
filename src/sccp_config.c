@@ -2251,6 +2251,9 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 			pbx_context_find_or_create(NULL, NULL, context, "SCCP");
 		}
 	}
+	if (GLOB(externhost)) {
+		sccp_netsock_flush_externhost();
+	}
 	
 	return TRUE;
 }

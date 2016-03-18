@@ -95,18 +95,19 @@ static boolean_t __netsock_resolve_first_af(struct sockaddr_storage *addr, const
 	return result;
 }
 
+static struct {
+	time_t expire;
+	struct sockaddr_storage ip;
+} externhost[] = {
+	[AF_INET]  = {0, {.ss_family = AF_INET}},
+	[AF_INET6] = {0, {.ss_family = AF_INET6}},
+};
+
 boolean_t sccp_netsock_getExternalAddr(struct sockaddr_storage *sockAddrStorage, int family)
 {
 	boolean_t result = FALSE;
 	if (sccp_netsock_is_any_addr(&GLOB(externip))) {
 		if (GLOB(externhost) && strlen(GLOB(externhost)) != 0 && GLOB(externrefresh) > 0) {
-			static struct {
-				time_t expire;
-				struct sockaddr_storage ip;
-			} externhost[] = {
-				[AF_INET]  = {0, {.ss_family = AF_INET}},
-				[AF_INET6] = {0, {.ss_family = AF_INET6}},
-			};
 			if (time(NULL) >= externhost[family].expire) {
 				if (!__netsock_resolve_first_af(&externhost[family].ip, GLOB(externhost), family)) {
 					pbx_log(LOG_NOTICE, "Warning: Resolving '%s' failed!\n", GLOB(externhost));
@@ -125,6 +126,12 @@ boolean_t sccp_netsock_getExternalAddr(struct sockaddr_storage *sockAddrStorage,
 		result = TRUE;
 	}
 	return result;
+}
+
+void sccp_netsock_flush_externhost(void) 
+{
+	externhost[AF_INET].expire = 0;
+	externhost[AF_INET6].expire = 0;
 }
 
 size_t sccp_netsock_sizeof(const struct sockaddr_storage * sockAddrStorage)
