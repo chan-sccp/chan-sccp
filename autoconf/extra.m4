@@ -701,11 +701,10 @@ AC_DEFUN([CS_DISABLE_SECTION_RELOCATION], [
 	*)
 		AC_ARG_ENABLE(section_relocation,
 			[AC_HELP_STRING([--enable-section-relocation], [disable compiler section relocation])],
-			[ac_cv_use_section_relocation=$enableval], 
+			[ac_cv_section_relocation=$enableval], 
 			[ac_cv_section_relocation=no]
 		)
 		AS_IF([test "_${ac_cv_section_relocation}" == "_no"], [
-			ac_cv_section_relocation="no"
 			SECTION_LDFLAGS=""
 			SECTION_CFLAGS=""
 		])

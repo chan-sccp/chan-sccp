@@ -24961,7 +24961,7 @@ $as_echo "section relocation not supported on apple/darwin. skipping." >&6; }
 	*)
 		# Check whether --enable-section_relocation was given.
 if test "${enable_section_relocation+set}" = set; then :
-  enableval=$enable_section_relocation; ac_cv_use_section_relocation=$enableval
+  enableval=$enable_section_relocation; ac_cv_section_relocation=$enableval
 else
   ac_cv_section_relocation=no
 
@@ -24969,7 +24969,6 @@ fi
 
 		if test "_${ac_cv_section_relocation}" == "_no"; then :
 
-			ac_cv_section_relocation="no"
 			SECTION_LDFLAGS=""
 			SECTION_CFLAGS=""
 
