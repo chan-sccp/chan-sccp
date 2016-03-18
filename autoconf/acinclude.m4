@@ -598,7 +598,7 @@ AC_DEFUN([DX_IF_FEATURE], [ifelse(DX_FEATURE_$1, ON, [$2], [$3])])
 AC_DEFUN([DX_REQUIRE_PROG], [
 AC_PATH_TOOL([$1], [$2])
 if test "$DX_FLAG_DX_CURRENT_FEATURE$$1" = 1; then
-    AC_MSG_WARN([$2 not found - will not DX_CURRENT_DESCRIPTION])
+    dnl AC_MSG_WARN([$2 not found - will not DX_CURRENT_DESCRIPTION])
     AC_SUBST([DX_FLAG_DX_CURRENT_FEATURE], 0)
 fi
 ])

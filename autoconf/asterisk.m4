@@ -134,14 +134,12 @@ AC_DEFUN([AST_GET_VERSION], [
 				echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
 				exit
 			fi
-			AC_MSG_RESULT(done)
 		],[
 			AC_MSG_RESULT('ASTERISK_VERSION could not be established)
 		])
 	], [
 		AC_CHECK_HEADER([asterisk/ast_version.h],
 		[
-			AC_MSG_RESULT([found])
 			AC_CHECK_HEADER([asterisk/format_cache.h],
 			[
 				ASTERISK_VER_GROUP=113
@@ -154,9 +152,7 @@ AC_DEFUN([AST_GET_VERSION], [
 				AC_DEFINE([ASTERISK_REPOS_LOCATION], ["TRUNK"],[ASTERISK Source Location])
 				
 				version_found=1
-				AC_MSG_RESULT([done])
-				dnl AC_MSG_RESULT([WARNING: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'. Experimental at the moment. Anything might break.])
-				AC_MSG_RESULT([WARNING: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'.])
+				AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'.])
 			],
 			[
 				AC_CHECK_HEADER([asterisk/uuid.h],
@@ -188,7 +184,6 @@ AC_DEFUN([AST_GET_VERSION], [
 				])
 			])
 		],[
-			AC_MSG_RESULT([not found])
 			AC_MSG_RESULT(['ASTERISK_VERSION could not be established'])
 		])
 	])

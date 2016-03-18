@@ -119,7 +119,7 @@ boolean_t sccp_netsock_getExternalAddr(struct sockaddr_storage *sockAddrStorage,
 			sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "SCCP: %s resolved to %s\n", GLOB(externhost), sccp_netsock_stringify_addr(sockAddrStorage));
 			result = TRUE;
 		} else {
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "SCCP: No externip set in sccp.conf. In case you are running your PBX on a seperate host behind a NATTED Firewall you need to set externip.\n");
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "SCCP: No externip/externhost set in sccp.conf.\nWhen you are running your PBX on a seperate host behind a NAT-TING Firewall you need to set externip/externhost.\n");
 		}
 	} else {
 		memcpy(sockAddrStorage, &GLOB(externip), sizeof(struct sockaddr_storage));

@@ -211,9 +211,6 @@
 /* 'cacheable ast_devstate_changed' available */
 #undef CS_CACHEABLE_DEVICESTATE
 
-/* debug indications enabled */
-#undef CS_DEBUG_INDICATIONS
-
 /* 'ast_devstate_changed' available */
 #undef CS_DEVICESTATE
 

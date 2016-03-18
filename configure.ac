@@ -95,6 +95,9 @@ CONFIGURE_PART([Checking Enable/Disable:])
 CS_PARSE_WITH_LIBEV
 CS_PARSE_WITH_AND_ENABLE
 
+AC_SUBST([SUPPORTED_CFLAGS])
+AC_SUBST([SUPPORTED_LDFLAGS])
+
 dnl Return CFLAGS / CPPFLAGS
 CFLAGS=${CFLAGS_saved}
 CPPFLAGS=${CPPFLAGS_saved}
@@ -106,15 +109,6 @@ dnl set substitutes
 AC_SUBST(CPU_OPTIONS)
 AC_SUBST(prefix)
 
-dnl PBXVER_COND_SUBDIR=pbx_impl/ast113
-dnl PBXVER_COND_LIBADD=pbx_impl/ast113/libast113.la
-dnl PBXVER_COND_ANNOUNCE_SUBDIR=pbx_impl/ast_announce
-dnl PBXVER_COND_ANNOUNCE_LIBADD=pbx_impl/ast_announce/libast_announce.la
-dnl AC_SUBST([PBXVER_COND_SUBDIR])
-dnl AC_SUBST([PBXVER_COND_LIBADD])
-dnl AC_SUBST([PBXVER_COND_ANNOUNCE_SUBDIR])
-dnl AC_SUBST([PBXVER_COND_ANNOUNCE_LIBADD])
-
 CONFIGURE_PART([Generating Configuration and Makefiles])
 AC_CONFIG_COMMANDS([.revision],
 	output=`cd ${ac_abs_top_builddir};${ac_abs_top_srcdir}/tools/autorevision -t h -o ${ac_abs_top_srcdir}/.revision > ${ac_abs_top_builddir}/src/revision.h 2>/dev/null`
@@ -123,6 +117,12 @@ AC_CONFIG_COMMANDS([src/sccp_enum.h],
 	output=`cd ${ac_abs_top_builddir}/src/;awk -f "${ac_abs_top_srcdir}/tools/gen_sccp_enum.awk" < ${ac_abs_top_srcdir}/src/sccp_enum.in &>/dev/null`
 )
 AC_CONFIG_FILES([Makefile README doc/Makefile src/Makefile src/pbx_impl/Makefile src/pbx_impl/ast/Makefile src/pbx_impl/ast_announce/Makefile src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile contrib/gen_sccpconf/Makefile])
+AM_COND_IF([ASTERISK_VER_GROUP_106],[AC_CONFIG_FILES([src/pbx_impl/ast106/Makefile])])
+AM_COND_IF([ASTERISK_VER_GROUP_108],[AC_CONFIG_FILES([src/pbx_impl/ast108/Makefile])])
+AM_COND_IF([ASTERISK_VER_GROUP_110],[AC_CONFIG_FILES([src/pbx_impl/ast110/Makefile])])
+AM_COND_IF([ASTERISK_VER_GROUP_111],[AC_CONFIG_FILES([src/pbx_impl/ast111/Makefile])])
+AM_COND_IF([ASTERISK_VER_GROUP_112],[AC_CONFIG_FILES([src/pbx_impl/ast112/Makefile])])
+AM_COND_IF([ASTERISK_VER_GROUP_113],[AC_CONFIG_FILES([src/pbx_impl/ast113/Makefile])])
 
 VERSION="`echo ${SCCP_VERSION}_${SCCP_BRANCH}`"
 PACKAGE_STRING="`echo Chan_SCCP_${VERSION}`"
@@ -151,9 +151,9 @@ echo "             CPP : ${CPP}"
 if test -n "$HOST_CC" ; then
 echo "         HOST_CC : ${CC}"
 fi
-echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS} ${ax_warn_cflags_variable}"
+echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS} ${SUPPORTED_CFLAGS}"
 echo "        CPPFLAGS : ${CPPFLAGS} ${AM_CPPFLAGS} ${PBX_CPPFLAGS} ${GDB_FLAGS} ${PTHREAD_CPPFLAGS} ${COVERAGE_CPPFLAGS} ${EVENT_CPPFLAGS} ${LIBEXSLT_CPPFLAGS} ${LIBCURL_CPPFLAGS}"
-echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS} ${LIBBFD} ${LIBEXECINFO} ${LIBICONV}"
+echo "         LDFLAGS : ${LDFLAGS} ${SUPPORTED_LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS} ${LIBBFD} ${LIBEXECINFO} ${LIBICONV}"
 echo "        PBX_TYPE : ${PBX_TYPE}"
 echo "      PBX_PREFIX : ${PBX_PREFIX}"
 echo "         PBX_ETC : ${PBX_ETC}"
