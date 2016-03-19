@@ -1228,7 +1228,7 @@ int sccp_wrapper_asterisk113_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		/* postponing ast_channel_unref to sccp_channel destructor */
 		// c->owner = NULL;
 		if (0 == res) {
-			sccp_channel_release(c);								// explicit release of the sccp_pbx channel
+			sccp_channel_release(&c);								// explicit release of the sccp_pbx channel
 		}
 		ast_channel_tech_pvt_set(ast_channel, NULL);
 	} else {												// after this moment c might have gone already
@@ -2411,7 +2411,7 @@ static int sccp_wrapper_asterisk113_sched_add_ref(int *id, int when, sccp_sched_
 		if (c) {
 			if ((*id  = ast_sched_add(sched, when, callback, c)) < 0) {
 				sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: sched add id:%d, when:%d, failed\n", c->designator, *id, when);
-				sccp_channel_release(channel);			/* explicit release during failure */
+				sccp_channel_release(&channel);			/* explicit release during failure */
 			}
 			return *id;
 		}
@@ -2419,20 +2419,20 @@ static int sccp_wrapper_asterisk113_sched_add_ref(int *id, int when, sccp_sched_
 	return -2;
 }
 
-static int sccp_wrapper_asterisk113_sched_del_ref(int *id, const sccp_channel_t * channel)
+static int sccp_wrapper_asterisk113_sched_del_ref(int *id, sccp_channel_t *channel)
 {
 	if (sched) {
-		AST_SCHED_DEL_UNREF(sched, *id, sccp_channel_release(channel));
+		AST_SCHED_DEL_UNREF(sched, *id, sccp_channel_release(&channel));
 		return *id;
 	}
 	return -2;
 }
 
-static int sccp_wrapper_asterisk113_sched_replace_ref(int *id, int when, ast_sched_cb callback, sccp_channel_t * channel)
+static int sccp_wrapper_asterisk113_sched_replace_ref(int *id, int when, ast_sched_cb callback, sccp_channel_t *channel)
 {
 	if (sched) {
 		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_replace_ref) replacing id: %d\n", channel->designator, *id);
-		AST_SCHED_REPLACE_UNREF(*id, sched, when, callback, channel, sccp_channel_release(_data), sccp_channel_release(channel), sccp_channel_retain(channel));	/* explicit retain/release */
+		AST_SCHED_REPLACE_UNREF(*id, sched, when, callback, channel, sccp_channel_release((sccp_channel_t **)&_data), sccp_channel_release(&channel), sccp_channel_retain(channel));	/* explicit retain/release */
 		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_replace_ref) returning id: %d\n", channel->designator, *id);
 		return *id;
 	}

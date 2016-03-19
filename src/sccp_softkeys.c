@@ -535,7 +535,7 @@ static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 			SCCP_LIST_LOCK(&device->selectedChannels);
 			selectedchannel = SCCP_LIST_REMOVE(&device->selectedChannels, selectedchannel, list);
 			SCCP_LIST_UNLOCK(&device->selectedChannels);
-			sccp_channel_release(selectedchannel->channel);
+			sccp_channel_release(&selectedchannel->channel);
 			sccp_free(selectedchannel);
 		} else {
 			selectedchannel = sccp_calloc(sizeof *selectedchannel, 1);

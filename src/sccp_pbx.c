@@ -170,7 +170,9 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 		}
 	}
 FINAL:
-	conveyor->linedevice = conveyor->linedevice ? sccp_linedevice_release(conveyor->linedevice) : NULL;	// retained in calling thread, explicit release required here
+	if (conveyor->linedevice) {
+		sccp_linedevice_release(&conveyor->linedevice);			// retained in calling thread, explicit release required here
+	}
 	sccp_free(conveyor);
 	return NULL;
 }
@@ -448,10 +450,10 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 
 #ifdef CS_SCCP_CONFERENCE
 	if (c && c->conference) {
-		c->conference = sccp_refcount_release(c->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);	/* explicit release required here */
+		sccp_conference_release(&c->conference);								/* explicit release required here */
 	}
 	if (d && d->conference) {
-		d->conference = sccp_refcount_release(d->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);	/* explicit release required here */
+		sccp_conference_release(&d->conference);								/* explicit release required here */
 	}
 #endif														// CS_SCCP_CONFERENCE
 
@@ -883,9 +885,9 @@ int sccp_pbx_sched_dial(const void * data)
 				sccp_indicate(NULL, channel, SCCP_CHANNELSTATE_INVALIDNUMBER);
 			}
 		}
-		sccp_channel_release(data);			// release channel retained in scheduled event
+		sccp_channel_release((sccp_channel_t **)&data);	// release channel retained in scheduled event
 	}
-	return 0;						// return 0 to release schedule
+	return 0;						// return 0 to release schedule !
 }
 
 /*!

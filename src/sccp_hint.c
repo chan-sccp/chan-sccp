@@ -51,7 +51,7 @@ static char default_eid_str[32];
 struct sccp_hint_SubscribingDevice 
 {
 	SCCP_LIST_ENTRY (sccp_hint_SubscribingDevice_t) list;							/*!< Hint Subscribing Device Linked List Entry */
-	const sccp_device_t *device;										/*!< SCCP Device */
+	sccp_device_t *device;											/*!< SCCP Device */
 	uint8_t instance;											/*!< Instance */
 	uint8_t positionOnDevice;										/*!< Instance */
 };														/*!< SCCP Hint Subscribing Device Structure */
@@ -227,7 +227,9 @@ void sccp_hint_module_stop(void)
 
 		SCCP_LIST_LOCK(&lineStates);
 		while ((lineState = SCCP_LIST_REMOVE_HEAD(&lineStates, list))) {
-			lineState->line = lineState->line ? sccp_line_release(lineState->line) : NULL;		/* explicit release*/
+			if (lineState->line) {
+				sccp_line_release(&lineState->line);		/* explicit release*/
+			}
 			sccp_free(lineState);
 		}
 		SCCP_LIST_UNLOCK(&lineStates);
@@ -250,7 +252,7 @@ void sccp_hint_module_stop(void)
 				AUTO_RELEASE sccp_device_t *device = sccp_device_retain((sccp_device_t *) subscriber->device);
 
 				if (device) {
-					subscriber->device = sccp_device_release(subscriber->device);		/* explicit release*/
+					sccp_device_release(&subscriber->device);		/* explicit release*/
 					sccp_free(subscriber);
 				}
 			}
@@ -471,7 +473,7 @@ static void sccp_hint_deviceUnRegistered(const char *deviceName)
 			if (subscriber->device && !strcasecmp(subscriber->device->id, deviceName)) {
 				sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s: Freeing subscriber from hint exten: %s in %s\n", deviceName, hint->exten, hint->context);
 				SCCP_LIST_REMOVE_CURRENT(list);
-				subscriber->device = sccp_device_release(subscriber->device);		/* explicit release*/
+				sccp_device_release(&subscriber->device);		/* explicit release*/
 				sccp_free(subscriber);
 			}
 		}
@@ -693,7 +695,9 @@ static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device)
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&lineStates, lineState, list) {
 			if (lineState->line == line) {
 				//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_detachLine) line: %s detached\n", DEV_ID_LOG(device), line->name);
-				lineState->line = lineState->line ? sccp_line_release(lineState->line) : NULL;
+				if (lineState->line) {
+					sccp_line_release(&lineState->line);		/* explicit release*/
+				}
 				SCCP_LIST_REMOVE_CURRENT(list);
 				sccp_free(lineState)
 				break;

@@ -539,7 +539,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	private_data = sccp_calloc(sizeof *private_data, 1);
 	if (!private_data) {
 		pbx_log(LOG_ERROR, "%s: No memory to allocate device private data\n", id);
-		d = sccp_device_release(d);
+		sccp_device_release(&d);	/* explicit release */
 		return NULL;
 	}
 	d->privateData = private_data;
@@ -763,7 +763,7 @@ void sccp_device_removeFromGlobals(devicePtr device)
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	if ((d = SCCP_RWLIST_REMOVE(&GLOB(devices), device, list))) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Removed device '%s' from Glob(devices)\n", DEV_ID_LOG(device));
-		sccp_device_release(d);					/* explicit release of device after removing from list */
+		sccp_device_release(&d);					/* explicit release of device after removing from list */
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 }
@@ -1820,7 +1820,7 @@ void sccp_dev_setActiveLine(devicePtr device, constLinePtr l)
 	if (!device || !device->session) {
 		return;
 	}
-	sccp_line_refreplace(device->currentLine, l);
+	sccp_line_refreplace(&device->currentLine, l);
 
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Set the active line %s\n", device->id, l ? l->name : "(NULL)");
 }
@@ -1843,7 +1843,7 @@ sccp_channel_t *sccp_device_getActiveChannel(constDevicePtr device)
  	if (device->active_channel && (channel = sccp_channel_retain(device->active_channel))) {
 		if (channel && channel->state == SCCP_CHANNELSTATE_DOWN) {
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: 'active channel': %s on device is DOWN apparently. Returning NULL\n", device->id, channel->designator);
-			channel = sccp_channel_release(channel);				/* explicit release, when not returning channel because it's DOWN */
+			sccp_channel_release(&channel);						/* explicit release, when not returning channel because it's DOWN */
 		}
 	} else {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No active channel on device.\n", device->id);
@@ -1869,7 +1869,7 @@ void sccp_device_setActiveChannel(devicePtr d, sccp_channel_t * channel)
 		if (!channel) {
 			sccp_dev_setActiveLine(device, NULL);
 		}
-		sccp_channel_refreplace(device->active_channel, channel);
+		sccp_channel_refreplace(&device->active_channel, channel);
 		if (device->active_channel) {
 			sccp_channel_updateChannelDesignator(device->active_channel);
 			sccp_dev_setActiveLine(device, device->active_channel->line);
@@ -2278,7 +2278,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 		/* removing selected channels */
 		SCCP_LIST_LOCK(&d->selectedChannels);
 		while ((selectedChannel = SCCP_LIST_REMOVE_HEAD(&d->selectedChannels, list))) {
-			sccp_channel_release(selectedChannel->channel);
+			sccp_channel_release(&selectedChannel->channel);
 			sccp_free(selectedChannel);
 		}
 		SCCP_LIST_UNLOCK(&d->selectedChannels);
@@ -2301,7 +2301,9 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 				if ((btn[i].type == SKINNY_BUTTONTYPE_LINE) && btn[i].ptr) {
-					btn[i].ptr = sccp_line_release(btn[i].ptr);				/* explicit release to cleanup device */
+					sccp_line_t  *tmp = btn[i].ptr;						/* implicit cast without type change */
+					sccp_line_release(&tmp);
+					btn[i].ptr = NULL;
 				}
 			}
 			sccp_free(d->buttonTemplate);

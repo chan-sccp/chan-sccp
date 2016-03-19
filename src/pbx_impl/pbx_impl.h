@@ -72,7 +72,7 @@ typedef struct _PbxInterface {
 	int (*const sched_add) (int when, sccp_sched_cb callback, const void *data);
 	int (*const sched_del) (int id);
 	int (*const sched_add_ref) (int *id, int when, sccp_sched_cb callback, sccp_channel_t *channel);
-	int (*const sched_del_ref) (int *id, const sccp_channel_t *channel);
+	int (*const sched_del_ref) (int *id, sccp_channel_t *channel);
 	int (*const sched_replace_ref) (int *id, int when, ast_sched_cb callback, sccp_channel_t *channel);
 	long (*const sched_when) (int id);
 	int (*const sched_wait) (int id);

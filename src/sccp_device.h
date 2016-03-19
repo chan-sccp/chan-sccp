@@ -11,14 +11,9 @@
  */
 #pragma once
 
-#ifdef DEBUG
-#define sccp_device_retain(_x) 		({sccp_device_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_device_release(_x) 	({sccp_device_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#else
-#define sccp_device_retain(_x) 		({ast_assert(_x != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_device_release(_x) 	({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#endif
-#define sccp_device_refreplace(_x, _y) 	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_device_retain(_x)		sccp_refcount_retain_type(sccp_device_t, _x)
+#define sccp_device_release(_x)		sccp_refcount_release_type(sccp_device_t, _x)
+#define sccp_device_refreplace(_x, _y)	sccp_refcount_refreplace_type(sccp_device_t, _x, _y)
 
 __BEGIN_C_EXTERN__
 /*!

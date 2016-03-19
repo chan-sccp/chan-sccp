@@ -168,6 +168,13 @@ static SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 
 #define DEV_ID_LOG(x) (x && !sccp_strlen_zero(x->id)) ? x->id : "SCCP"
 
+#define PTR_TYPE_CMP(_type,_ptr) 					\
+({									\
+	/*__builtin_types_compatible_p(typeof(_ptr), _type) == 1)*/	\
+	_type __attribute__((unused)) __dummy = (_ptr);			\
+	1;								\
+})
+
 /* (temporary) forward declarations */
 /* this can be removed by using a pointer version of mutex and rwlock in structures below */
 #define StationMaxServiceURLSize			256
@@ -186,7 +193,6 @@ typedef struct pbx_mutex_info pbx_mutex_t;
 typedef struct pbx_rwlock_info pbx_rwlock_t;
 
 /* deny the use of unsafe functions */
-
 #define __strcat strcat
 #define strcat(...) _Pragma("GCC error \"use snprint instead of strcat\"")
 

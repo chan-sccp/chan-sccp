@@ -3132,7 +3132,7 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 		
 	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
 		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
-			channel = sccp_channel_release(channel);
+			sccp_channel_release(&channel);
 		}
 	}
 	if (!channel && passThruPartyId) {
@@ -3196,7 +3196,7 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
 		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
-			channel = sccp_channel_release(channel);
+			sccp_channel_release(&channel);
 		}
 	}
 	if (!channel && passThruPartyId) {
@@ -3289,7 +3289,7 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
 		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
-			channel = sccp_channel_release(channel);
+			sccp_channel_release(&channel);
 		}
 	}
 	if (!channel && passThruPartyId) {
@@ -3374,7 +3374,7 @@ void handle_startmediatransmission_ack(constSessionPtr s, devicePtr d, constMess
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
 		if (channel->passthrupartyid != passthrupartyid || channel->callid != callID) {		// make sure this is the intended channel
-			channel = sccp_channel_release(channel);
+			sccp_channel_release(&channel);
 		}
 	}
 	if (!channel && passthrupartyid) {

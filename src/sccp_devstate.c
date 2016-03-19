@@ -25,7 +25,7 @@ typedef struct sccp_devstate_SubscribingDevice sccp_devstate_SubscribingDevice_t
 struct sccp_devstate_SubscribingDevice 
 {
 	SCCP_LIST_ENTRY (sccp_devstate_SubscribingDevice_t) list;
-	const sccp_device_t *device;										/*!< SCCP Device */
+	sccp_device_t *device;											/*!< SCCP Device */
 	sccp_buttonconfig_t *buttonConfig;
 	char label[StationMaxNameSize];
 	uint8_t instance;											/*!< Instance */
@@ -77,7 +77,7 @@ void sccp_devstate_module_stop(void)
 
 			SCCP_LIST_LOCK(&deviceState->subscribers);
 			while ((subscriber = SCCP_LIST_REMOVE_HEAD(&deviceState->subscribers, list))) {
-				subscriber->device = sccp_device_release(subscriber->device);		/* explicit release */
+				sccp_device_release(&subscriber->device);		/* explicit release */
 			}
 			SCCP_LIST_UNLOCK(&deviceState->subscribers);
 			SCCP_LIST_HEAD_DESTROY(&deviceState->subscribers);
@@ -230,7 +230,7 @@ void sccp_devstate_removeSubscriber(sccp_devstate_deviceState_t * deviceState, c
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&deviceState->subscribers, subscriber, list) {
 		if (subscriber->device == device) {
 			SCCP_LIST_REMOVE_CURRENT(list);
-			subscriber->device = sccp_device_release(subscriber->device);				/* explicit release */
+			sccp_device_release(&subscriber->device);				/* explicit release */
 		}
 
 	}

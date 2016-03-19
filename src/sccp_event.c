@@ -78,26 +78,30 @@ void sccp_event_destroy(sccp_event_t * event)
 		case SCCP_EVENT_DEVICE_REGISTERED:
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
 		case SCCP_EVENT_DEVICE_PREREGISTERED:
-			event->event.deviceRegistered.device = sccp_device_release(event->event.deviceRegistered.device);		/* explicit release */
+			sccp_device_release(&event->event.deviceRegistered.device);							/* explicit release */
 			break;
 
 		case SCCP_EVENT_LINE_CREATED:
-			event->event.lineCreated.line = sccp_line_release(event->event.lineCreated.line);				/* explicit release */
+			sccp_line_release(&event->event.lineCreated.line);								/* explicit release */
 			break;
 
 		case SCCP_EVENT_DEVICE_ATTACHED:
 		case SCCP_EVENT_DEVICE_DETACHED:
-			event->event.deviceAttached.linedevice = sccp_linedevice_release(event->event.deviceAttached.linedevice);	/* explicit release */
+			sccp_linedevice_release(&event->event.deviceAttached.linedevice);						/* explicit release */
 			break;
 
 		case SCCP_EVENT_FEATURE_CHANGED:
-			event->event.featureChanged.device = sccp_device_release(event->event.featureChanged.device);			/* explicit release */
-			event->event.featureChanged.optional_linedevice = event->event.featureChanged.optional_linedevice ? sccp_linedevice_release(event->event.featureChanged.optional_linedevice) : NULL;	/* explicit release */
+			sccp_device_release(&event->event.featureChanged.device);							/* explicit release */
+			if (event->event.featureChanged.optional_linedevice) {
+				sccp_linedevice_release(&event->event.featureChanged.optional_linedevice);				/* explicit release */
+			}
 			break;
 
 		case SCCP_EVENT_LINESTATUS_CHANGED:
-			event->event.lineStatusChanged.line = sccp_line_release(event->event.lineStatusChanged.line);			/* explicit release */
-			event->event.lineStatusChanged.optional_device = event->event.lineStatusChanged.optional_device ? sccp_device_release(event->event.lineStatusChanged.optional_device) : NULL;	/* explicit release */
+			sccp_line_release(&event->event.lineStatusChanged.line);							/* explicit release */
+			if (event->event.lineStatusChanged.optional_device) {
+				sccp_device_release(&event->event.lineStatusChanged.optional_device);					/* explicit release */
+			}
 			break;
 
 		case SCCP_EVENT_LINE_CHANGED:

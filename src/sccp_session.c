@@ -1267,7 +1267,7 @@ gcc_inline sccp_device_t * const sccp_session_getDevice(constSessionPtr session,
 		return NULL;
 	}
 	if (required && sccp_session_check_crossdevice(session, device)) {
-		sccp_device_release(device);							/* explicit release after error */
+		sccp_device_release(&device);							/* explicit release after error */
 		return NULL;
 	}
 	return device;
