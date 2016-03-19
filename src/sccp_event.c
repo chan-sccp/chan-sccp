@@ -393,11 +393,10 @@ AST_TEST_DEFINE(sccp_event_test_subscribe_single)
 	uint32_t EventReceivedBeforeTest = _sccp_event_TestEventReceived;
 
 	pbx_test_status_update(test, "fire SCCP_EVENT_TEST\n");
-	sccp_event_t event = {
-		.type = SCCP_EVENT_TEST,
-		.event.TestEvent.value = _sccp_event_TestValue,
-		.event.TestEvent.str = strdup(_sccp_event_TestStr),
-	};
+	sccp_event_t event = {{{0}}};
+	event.type = SCCP_EVENT_TEST;
+	event.event.TestEvent.value = _sccp_event_TestValue;
+	event.event.TestEvent.str = strdup(_sccp_event_TestStr);
 	sccp_event_fire(&event);
 
 	/* wait for async result */

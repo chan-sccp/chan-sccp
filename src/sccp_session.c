@@ -234,7 +234,7 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 		}
 
 		const struct messagetype *msgtype;
-		if (messageId >= SCCP_MESSAGE_LOW_BOUNDARY && messageId <= SCCP_MESSAGE_HIGH_BOUNDARY) {
+		if (messageId <= SCCP_MESSAGE_HIGH_BOUNDARY) {
 			msgtype = &sccp_messagetypes[messageId];
 			if (msgtype->messageId == messageId) {
 				return msgtype->size + SCCP_PACKET_HEADER;
