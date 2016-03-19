@@ -5647,7 +5647,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-for flag in  				-fstack-protector-all 				-fvisibility=hidden 				-fvisibility-inlines-hidden 				-Wno-long-long 				-Wno-unused-parameter 				-Wno-missing-field-initializers 				-Wmissing-declarations 				-Wnested-externs 				-Wnonnull 				-Wcast-align 				-Wold-style-definition 				-Wformat-security 				-Wstrict-aliasing 				-Wmissing-format-attribute 				-Wmissing-noreturn 				-Winit-self 				-Wmissing-include-dirs 				-Wunused-but-set-variable 				-Warray-bounds 				-Wimplicit-function-declaration 				-Wreturn-type 				-Wsign-compare 				-Wstrict-prototypes 				-Wmissing-prototypes 																																																																											; do
+for flag in  				-fstack-protector-all 				-fvisibility=hidden 				-fvisibility-inlines-hidden 				-Wall 				-Wno-long-long 				-Wno-missing-field-initializers 				-Wmissing-declarations 				-Wnested-externs 				-Wnonnull 				-Wcast-align 				-Wold-style-definition 				-Wformat-security 				-Wstrict-aliasing 				-Wmissing-format-attribute 				-Wmissing-noreturn 				-Winit-self 				-Wmissing-include-dirs 				-Warray-bounds 				-Wimplicit-function-declaration 				-Wreturn-type 				-Wsign-compare 				-Wstrict-prototypes 				-Wmissing-prototypes 				-Wunused 				-Wempty-body 				-Wmissing-parameter-type 				-Woverride-init 				-Wtype-limits 				-Wuninitialized 				-Wshift-negative-value 				-Wunused-but-set-parameter 																																							; do
   as_CACHEVAR=`$as_echo "ax_cv_check_cflags__$flag" | $as_tr_sh`
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts $flag" >&5
 $as_echo_n "checking whether C compiler accepts $flag... " >&6; }
@@ -6282,7 +6282,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-for flag in  				-fstack-protector 				-Wno-long-long 				-Wno-unused-parameter 				-Wno-ignored-qualifiers 				-Wno-unused-value 				-Wno-missing-field-initializers 															; do
+for flag in  				-fstack-protector 				-Wno-long-long 				-Wno-ignored-qualifiers 				-Wno-missing-field-initializers 															; do
   as_CACHEVAR=`$as_echo "ax_cv_check_cflags__$flag" | $as_tr_sh`
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts $flag" >&5
 $as_echo_n "checking whether C compiler accepts $flag... " >&6; }

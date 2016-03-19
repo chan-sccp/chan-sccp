@@ -520,8 +520,8 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-fstack-protector-all dnl
 				-fvisibility=hidden dnl
 				-fvisibility-inlines-hidden dnl
+				-Wall dnl
 				-Wno-long-long dnl
-				-Wno-unused-parameter dnl
 				-Wno-missing-field-initializers dnl
 				-Wmissing-declarations dnl
 				-Wnested-externs dnl
@@ -534,28 +534,26 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wmissing-noreturn dnl
 				-Winit-self dnl
 				-Wmissing-include-dirs dnl
-				-Wunused-but-set-variable dnl
 				-Warray-bounds dnl
 				-Wimplicit-function-declaration dnl
 				-Wreturn-type dnl
 				-Wsign-compare dnl
 				-Wstrict-prototypes dnl
 				-Wmissing-prototypes dnl
+				-Wunused dnl
+				-Wempty-body dnl
+				-Wmissing-parameter-type dnl
+				-Woverride-init dnl
+				-Wtype-limits dnl
+				-Wuninitialized dnl 
+				-Wshift-negative-value dnl
+				-Wunused-but-set-parameter dnl
 				dnl // should be added and fixed
-				dnl -Wswitch-enum 
+				dnl -Wswitch-enum
 				dnl
-				dnl // very pedantic
-				dnl -Wundef
-				dnl -Wdeclaration-after-statement
-				dnl -Wwrite-strings
-				dnl -Wpointer-arith
-				dnl -Wformat=2
-				dnl -Wformat-nonliteral
-				dnl -Winline 
-				dnl -Wpacked
-				dnl -Wredundant-decls
-				dnl -Wswitch-default 
-				dnl
+				dnl // somewhat pedantic 
+				dnl -Wunused-parameter dnl
+				dnl 
 				dnl // do not add
 				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl
 				dnl -Wno-unused-but-set-variable
@@ -619,9 +617,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			AX_APPEND_COMPILE_FLAGS([ dnl
 				-fstack-protector dnl
 				-Wno-long-long dnl
-				-Wno-unused-parameter dnl
 				-Wno-ignored-qualifiers dnl
-				-Wno-unused-value dnl
 				-Wno-missing-field-initializers dnl
 				dnl // do not add
 				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl

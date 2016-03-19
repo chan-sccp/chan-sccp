@@ -15,7 +15,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 /*!
  * \brief SCCP Verbose Level Structure
  */
-const struct sccp_debug_category const sccp_debug_categories[32] = {
+struct sccp_debug_category const sccp_debug_categories[32] = {
 	/* *INDENT-OFF* */
 	{"all",			"all debug levels", 			DEBUGCAT_ALL,},
 	{"none",		"all debug levels", 			DEBUGCAT_NONE,},
