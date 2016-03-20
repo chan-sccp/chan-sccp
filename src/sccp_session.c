@@ -855,6 +855,7 @@ static void sccp_netsock_cleanup_timed_out(void)
 	pbx_rwlock_unlock(&GLOB(lock));
 }
 
+
 /*!
  * \brief Socket Thread
  * \param ignore None
@@ -871,14 +872,14 @@ static void sccp_netsock_cleanup_timed_out(void)
  *	- see sccp_handle_message()
  *	- see sccp_device_sendReset()
  */
-void *sccp_netsock_thread(void * __attribute__((unused)) ignore)
+void *sccp_netsock_thread(void * ignore)
 {
 	struct pollfd fds[1];
 
 	fds[0].events = POLLIN | POLLPRI;
 	fds[0].revents = 0;
 
-	int res;
+	int res = 0;
 
 	pthread_attr_t attr;
 
@@ -886,27 +887,42 @@ void *sccp_netsock_thread(void * __attribute__((unused)) ignore)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
 	while (GLOB(descriptor) > -1) {
+		pbx_rwlock_rdlock(&GLOB(lock));
 		fds[0].fd = GLOB(descriptor);
-		res = sccp_netsock_poll(fds, 1, GLOB(keepalive) * 10);
+		pbx_rwlock_unlock(&GLOB(lock));
 
+		res = sccp_netsock_poll(fds, 1, GLOB(keepalive) * 10);
 		if (res < 0) {
 			if (errno == EINTR || errno == EAGAIN) {
 				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s) -- ignoring.\n", res, errno, strerror(errno));
 			} else {
 				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
 			}
+			break;
 		} else if (res == 0) {
 			// poll timeout
 			sccp_netsock_cleanup_timed_out();
 		} else {
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
 			pbx_rwlock_rdlock(&GLOB(lock));
-			if (GLOB(module_running) && !GLOB(reload_in_progress)) {
+			if (GLOB(reload_in_progress)) {
+				pbx_rwlock_unlock(&GLOB(lock));
+				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Reload in Progress\n");
+			} else if (!GLOB(module_running)) {
+				pbx_rwlock_unlock(&GLOB(lock));
+				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Module not running. exiting thread.\n");
+				break;
+			} else {
+				pbx_rwlock_unlock(&GLOB(lock));
+				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
 				sccp_accept_connection();
 			}
-			pbx_rwlock_unlock(&GLOB(lock));
 		}
 	}
+	pbx_rwlock_wrlock(&GLOB(lock));
+	GLOB(socket_thread) = AST_PTHREADT_NULL;
+	close(GLOB(descriptor));
+	GLOB(descriptor) = -1;
+	pbx_rwlock_unlock(&GLOB(lock));
 
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Exit from the socket thread\n");
 	return NULL;
