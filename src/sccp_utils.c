@@ -527,7 +527,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_subscription_id_t *subscriptionId, char extension[SCCP_MAX_EXTENSION])
 {
 	pbx_assert(NULL != labelString || NULL != subscriptionId || NULL != extension);
-	int res = TRUE;
+	int res = 0;
 	const char *stringIterator = 0;
 	uint32_t i = 0;
 	boolean_t endDetected = FALSE;
@@ -542,23 +542,25 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 					case '\0':
 						endDetected = TRUE;
 						extension[i] = '\0';
+						res++;
 						break;
 					case '@':
 						extension[i] = '\0';
 						i = 0;
 						state = ID;
+						res++;
 						break;
 					case '!':
 						extension[i] = '\0';
 						i = 0;
 						state = AUX;
+						res++;
 						break;
 					default:
 						extension[i] = *stringIterator;
 						i++;
 						break;
 				}
-				res++;
 				break;
 
 			case ID:										// parsing of sub id number
@@ -567,6 +569,7 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 					case '\0':
 						subscriptionId->number[i] = '\0';
 						endDetected = TRUE;
+						res++;
 						break;
 					case '+':
 						if(i == 0) {
@@ -582,23 +585,25 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 						subscriptionId->number[i] = '\0';
 						i = 0;
 						state = CIDNAME;
+						res++;
 						break;
 					case '#':
 						subscriptionId->name[i] = '\0';
 						i = 0;
 						state = LABEL;
+						res++;
 						break;
 					case '!':
 						subscriptionId->number[i] = '\0';
 						i = 0;
 						state = AUX;
+						res++;
 						break;
 					default:
 						subscriptionId->number[i] = *stringIterator;
 						i++;
 						break;
 				}
-				res++;
 				break;
 
 			case CIDNAME:										// parsing of sub id name
@@ -607,23 +612,25 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 					case '\0':
 						subscriptionId->name[i] = '\0';
 						endDetected = TRUE;
+						res++;
 						break;
 					case '#':
 						subscriptionId->name[i] = '\0';
 						i = 0;
 						state = LABEL;
+						res++;
 						break;
 					case '!':
 						subscriptionId->name[i] = '\0';
 						i = 0;
 						state = AUX ;
+						res++;
 						break;
 					default:
 						subscriptionId->name[i] = *stringIterator;
 						i++;
 						break;
 				}
-				res++;
 				break;
 
 			case LABEL:										// parsing of sub id name
@@ -632,18 +639,19 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 					case '\0':
 						subscriptionId->label[i] = '\0';
 						endDetected = TRUE;
+						res++;
 						break;
 					case '!':
 						subscriptionId->label[i] = '\0';
 						i = 0;
 						state = AUX;
+						res++;
 						break;
 					default:
 						subscriptionId->label[i] = *stringIterator;
 						i++;
 						break;
 				}
-				res++;
 				break;
 
 			case AUX:										// parsing of auxiliary parameter
@@ -652,13 +660,13 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 					case '\0':
 						subscriptionId->aux[i] = '\0';
 						endDetected = TRUE;
+						res++;
 						break;
 					default:
 						subscriptionId->aux[i] = *stringIterator;
 						i++;
 						break;
 				}
-				res++;
 				break;
 
 			default:
