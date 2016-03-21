@@ -192,6 +192,11 @@ struct pbx_rwlock_info {
 typedef struct pbx_mutex_info pbx_mutex_t;
 typedef struct pbx_rwlock_info pbx_rwlock_t;
 
+#define AUTO_MUTEX(varname, lock) SCOPED_LOCK(varname, (lock), pbx_mutex_lock, pbx_mutex_unlock)
+#define AUTO_RDLOCK(varname, lock) SCOPED_LOCK(varname, (lock), pbx_rwlock_rdlock, pbx_rwlock_unlock)
+#define AUTO_WRLOCK(varname, lock) SCOPED_LOCK(varname, (lock), pbx_rwlock_wrlock, pbx_rwlock_unlock)
+/* example AUTO_RDLOCK(lock, &s->lock); */
+
 /* deny the use of unsafe functions */
 #define __strcat strcat
 #define strcat(...) _Pragma("GCC error \"use snprint instead of strcat\"")

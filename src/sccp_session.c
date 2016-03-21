@@ -632,12 +632,13 @@ void *sccp_netsock_device_thread(void *session)
 	}
 
 	while (s->fds[0].fd > 0 && !s->session_stop) {
-		if (s->device) {
+		if (s->device && (s->device->pendingUpdate != FALSE || s->device->pendingDelete != FALSE)) {
 			pbx_rwlock_rdlock(&GLOB(lock));
-			if (GLOB(reload_in_progress) == FALSE && s && s->device && (!(s->device->pendingUpdate == FALSE && s->device->pendingDelete == FALSE))) {
+			boolean_t reload_in_progress = GLOB(reload_in_progress);
+			pbx_rwlock_unlock(&GLOB(lock));
+			if (reload_in_progress == FALSE) {
 				sccp_device_check_update(s->device);
 			}
-			pbx_rwlock_unlock(&GLOB(lock));
 		}
 		/* calculate poll timout using keepalive interval */
 		maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
@@ -837,7 +838,10 @@ static void sccp_netsock_cleanup_timed_out(void)
 	sccp_session_t *session;
 
 	pbx_rwlock_rdlock(&GLOB(lock));
-	if (GLOB(module_running) && !GLOB(reload_in_progress)) {
+	boolean_t reload_in_progress = GLOB(reload_in_progress);
+	boolean_t module_running = GLOB(module_running);
+	pbx_rwlock_unlock(&GLOB(lock));
+	if (module_running && !reload_in_progress) {
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
 			if (session->lastKeepAlive == 0) {
 				// final resort
@@ -852,7 +856,6 @@ static void sccp_netsock_cleanup_timed_out(void)
 		}
 		SCCP_LIST_TRAVERSE_SAFE_END;
 	}
-	pbx_rwlock_unlock(&GLOB(lock));
 }
 
 
@@ -880,6 +883,8 @@ void *sccp_netsock_thread(void * ignore)
 
 	int res = 0;
 	int keepaliveInterval;
+	boolean_t reload_in_progress = FALSE;
+	boolean_t module_running = TRUE;
 
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
@@ -900,15 +905,14 @@ void *sccp_netsock_thread(void * ignore)
 			sccp_netsock_cleanup_timed_out();
 		} else {
 			pbx_rwlock_rdlock(&GLOB(lock));
-			if (GLOB(reload_in_progress)) {
-				pbx_rwlock_unlock(&GLOB(lock));
-				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Reload in Progress\n");
-			} else if (!GLOB(module_running)) {
-				pbx_rwlock_unlock(&GLOB(lock));
+			reload_in_progress = GLOB(reload_in_progress);
+			module_running = GLOB(module_running);
+			pbx_rwlock_unlock(&GLOB(lock));
+			if (!module_running) {
 				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Module not running. exiting thread.\n");
 				break;
-			} else {
-				pbx_rwlock_unlock(&GLOB(lock));
+			}
+			if (!reload_in_progress) {
 				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
 				sccp_accept_connection();
 			}
