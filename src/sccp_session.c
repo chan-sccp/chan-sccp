@@ -875,32 +875,28 @@ static void sccp_netsock_cleanup_timed_out(void)
 void *sccp_netsock_thread(void * ignore)
 {
 	struct pollfd fds[1];
-
 	fds[0].events = POLLIN | POLLPRI;
 	fds[0].revents = 0;
 
 	int res = 0;
+	int keepaliveInterval;
 
 	pthread_attr_t attr;
-
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
 	while (GLOB(descriptor) > -1) {
 		pbx_rwlock_rdlock(&GLOB(lock));
 		fds[0].fd = GLOB(descriptor);
+		keepaliveInterval = GLOB(keepalive) * 5000;					/* 60 * 5 * 1000 = 300000 =(5 minutes) */
 		pbx_rwlock_unlock(&GLOB(lock));
 
-		res = sccp_netsock_poll(fds, 1, GLOB(keepalive) * 10);
+		res = sccp_netsock_poll(fds, 1, keepaliveInterval);
 		if (res < 0) {
-			if (errno == EINTR || errno == EAGAIN) {
-				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s) -- ignoring.\n", res, errno, strerror(errno));
-			} else {
+			if (!(errno == EINTR || errno == EAGAIN)) {
 				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
+				break;
 			}
-			break;
 		} else if (res == 0) {
-			// poll timeout
 			sccp_netsock_cleanup_timed_out();
 		} else {
 			pbx_rwlock_rdlock(&GLOB(lock));
