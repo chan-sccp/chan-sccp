@@ -238,6 +238,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 			SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_number,
 			SCCP_CALLINFO_KEY_SENTINEL);
 
+		//pbx_channel_ref(original);
 		res = ast_do_pickup(original, target);
 		if (!res) {
 			/* directed pickup succeeded */
@@ -373,19 +374,24 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 
 	/* do pickup */
 	PBX_CHANNEL_TYPE *target = NULL;									/* potential pickup target */
-
-	pbx_log(LOG_NOTICE, "SCCP: (directed_pickup)\n");
-	target = iPbx.findPickupChannelByExtenLocked(c->owner, exten, context);
-	if (target) {
-		/* fixup callinfo */
-		res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
-		target = pbx_channel_unref(target);
+	PBX_CHANNEL_TYPE *original = c->owner;
+	if (pbx_channel_ref(original)) {
+		pbx_log(LOG_NOTICE, "%s: executing directed_pickup\n", c->designator);
+		target = iPbx.findPickupChannelByExtenLocked(original, exten, context);
+		if (target) {
+			/* fixup callinfo */
+			res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
+			target = pbx_channel_unref(target);
+		} else {
+			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %s\n", DEV_ID_LOG(d), c->designator);
+			int instance = sccp_device_find_index_for_line(d, c->line->name);
+			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
+			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, 0);
+			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
+		}
+		pbx_channel_unref(original);
 	} else {
-		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %s\n", DEV_ID_LOG(d), c->designator);
-		int instance = sccp_device_find_index_for_line(d, c->line->name);
-		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
-		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, 0);
-		sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
+		pbx_log(LOG_NOTICE, "SCCP: Unable to grab a reference of the original channel owner\n");
 	}
 #endif
 	return res;
@@ -430,22 +436,25 @@ int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstanc
 	/* re-use/create channel for pickup */
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_getEmptyChannel(l, d, maybe_c, SKINNY_CALLTYPE_INBOUND, NULL, NULL);
 	if (c) {
-		//sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
-		//iPbx.set_callstate(c, AST_STATE_OFFHOOK);
-		
-		/* do gpickup */
+		pbx_log(LOG_NOTICE, "%s: executing_gpickup\n", c->designator);
 		PBX_CHANNEL_TYPE *target = NULL;									/* potential pickup target */
-		sccp_channel_stop_schedule_digittimout(c);
+		PBX_CHANNEL_TYPE *original = c->owner;
+		if (pbx_channel_ref(original)) {
+			sccp_channel_stop_schedule_digittimout(c);
 
-		if ((target = iPbx.findPickupChannelByGroupLocked(c->owner))) {
-			res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
-			target = pbx_channel_unref(target);
-			res = 0;
+			if ((target = iPbx.findPickupChannelByGroupLocked(c->owner))) {
+				res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
+				target = pbx_channel_unref(target);
+				res = 0;
+			} else {
+				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %s\n", DEV_ID_LOG(d), c->designator);
+				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
+				sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c->callid, 0);
+				sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
+			}
+			pbx_channel_unref(original);
 		} else {
-			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %s\n", DEV_ID_LOG(d), c->designator);
-			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
-			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c->callid, 0);
-			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
+			pbx_log(LOG_NOTICE, "SCCP: Unable to grab a reference of the original channel owner\n");
 		}
 	}
 #endif
