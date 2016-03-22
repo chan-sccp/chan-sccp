@@ -526,7 +526,9 @@ AM_CFLAGS = $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	-I$(top_srcdir)/src/$(PBX_COND_SUBDIR) \
 	-I$(top_srcdir)/src/$(PBXVER_COND_SUBDIR) \
 	-I$(top_srcdir)/src/$(PBXVER_COND_ANNOUNCE_SUBDIR) \
-	-D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
+	-DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self \
+	-DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS) -D_REENTRANT \
+	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
 #AM_CXXFLAGS    	= -std=c++11
 AM_LDFLAGS = $(SUPPORTED_LDFLAGS) -z muldefs @LTLIBOBJS@
 SUBDIRS = pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) .
@@ -566,7 +568,8 @@ libsccp_la_CFLAGS = $(AM_CFLAGS)
 libsccp_la_LDFLAGS = $(AM_LDFLAGS)
 chan_sccp_la_LIBADD = libsccp.la pbx_impl/libpbximpl.la $(PBX_COND_LIBADD) $(PBXVER_COND_LIBADD) $(PBXVER_COND_ANNOUNCE_LIBADD)
 chan_sccp_la_DEPENDENCIES = $(chan_sccp_la_LIBADD)
-chan_sccp_la_CFLAGS = $(AM_CFLAGS) -DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self -DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS)
+#chan_sccp_la_CFLAGS     = $(AM_CFLAGS) -DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self -DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS)
+chan_sccp_la_CFLAGS = $(AM_CFLAGS)
 chan_sccp_la_LDFLAGS = $(AM_LDFLAGS) $(PBX_LDFLAGS) \
 	$(SANITIZE_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) \
 	$(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) \

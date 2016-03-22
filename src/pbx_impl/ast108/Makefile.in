@@ -435,7 +435,9 @@ AM_CFLAGS = $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	-I$(top_srcdir)/src/$(PBX_COND_SUBDIR) \
 	-I$(top_srcdir)/src/$(PBXVER_COND_SUBDIR) \
 	-I$(top_srcdir)/src/$(PBXVER_COND_ANNOUNCE_SUBDIR) \
-	-D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
+	-DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self \
+	-DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS) -D_REENTRANT \
+	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
 #AM_CXXFLAGS    	= -std=c++11
 AM_LDFLAGS = $(SUPPORTED_LDFLAGS) -z muldefs @LTLIBOBJS@
 noinst_LTLIBRARIES = libast108.la
