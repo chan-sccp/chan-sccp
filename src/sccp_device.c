@@ -2021,7 +2021,7 @@ void sccp_dev_postregistration(void *data)
 #define ASTDB_FAMILY_KEY_LEN 100
 #endif
 #ifndef ASTDB_RESULT_LEN
-#define ASTDB_RESULT_LEN 80
+#define ASTDB_RESULT_LEN 100
 #endif
 	char family[ASTDB_FAMILY_KEY_LEN] = { 0 };
 	char buffer[ASTDB_RESULT_LEN] = { 0 };
@@ -2074,7 +2074,7 @@ void sccp_dev_postregistration(void *data)
 
 	char lastNumber[SCCP_MAX_EXTENSION] = "";
 	if (iPbx.feature_getFromDatabase(family, "lastDialedNumber", buffer, sizeof(buffer))) {
-		sscanf(buffer,"%80[^;];lineInstance=%d", lastNumber, &instance);
+		sscanf(buffer,"%79[^;];lineInstance=%d", lastNumber, &instance);
 		AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_findByLineinstance(d, instance);
 		if(linedevice){ 
 			sccp_device_setLastNumberDialed(d, lastNumber, linedevice);
