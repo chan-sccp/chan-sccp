@@ -396,7 +396,7 @@ AST_TEST_DEFINE(sccp_event_test_subscribe_single)
 	sccp_event_t event = {{{0}}};
 	event.type = SCCP_EVENT_TEST;
 	event.event.TestEvent.value = _sccp_event_TestValue;
-	event.event.TestEvent.str = strdup(_sccp_event_TestStr);
+	event.event.TestEvent.str = pbx_strdup(_sccp_event_TestStr);
 	sccp_event_fire(&event);
 
 	/* wait for async result */
@@ -440,7 +440,7 @@ AST_TEST_DEFINE(sccp_event_test_subscribe_multi)
 	sccp_event_t event = {{{0}}};
 	event.type = SCCP_EVENT_TEST;
 	event.event.TestEvent.value = _sccp_event_TestValue;
-	event.event.TestEvent.str = strdup(_sccp_event_TestStr);
+	event.event.TestEvent.str = pbx_strdup(_sccp_event_TestStr);
 	sccp_event_fire(&event);
 
 	/* wait for async result */
@@ -487,7 +487,7 @@ AST_TEST_DEFINE(sccp_event_test_subscribe_multi_sync)
 	sccp_event_t event = {{{0}}};
 	event.type = SCCP_EVENT_TEST;
 	event.event.TestEvent.value = _sccp_event_TestValue;
-	event.event.TestEvent.str = strdup(_sccp_event_TestStr);
+	event.event.TestEvent.str = pbx_strdup(_sccp_event_TestStr);
 	sccp_event_fire(&event);
 
 	pbx_test_status_update(test, "registrations:%d, before test:%d, received:%d, expected:%d\n", registration, EventReceivedBeforeTest, _sccp_event_TestEventReceived, EventReceivedBeforeTest + registration);

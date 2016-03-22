@@ -2167,7 +2167,7 @@ void sccp_do_backtrace()
 		for (i = 1; i < size; i++) {
 			pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, " (bt) > %s\n", strings[i]);		
 		}
-		free(strings);	// malloced by backtrace_symbols
+		sccp_free(strings);	// malloced by backtrace_symbols
 
 		pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "================================================================================\n");
 		pbx_log(LOG_WARNING, "SCCP: (backtrace) \n%s\n", pbx_str_buffer(btbuf));

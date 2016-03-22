@@ -1983,7 +1983,7 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 		{
 			char extension[SCCP_MAX_EXTENSION];
 			sccp_subscription_id_t *subscriptionId = NULL;
-			if (!(subscriptionId = malloc(sizeof(sccp_subscription_id_t)))) {
+			if (!(subscriptionId = sccp_malloc(sizeof(sccp_subscription_id_t)))) {
 				pbx_log(LOG_ERROR, "SCCP: could not allocate memory. giving up\n");
 				return SCCP_CONFIG_CHANGE_INVALIDVALUE;
  			}
@@ -1991,8 +1991,8 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition\n");
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: ComposedId extension: %s, subscriptionId[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscriptionId->number, subscriptionId->name, subscriptionId->label, subscriptionId->aux);
 				config->type = LINE;
-				config->label = strdup(name);
-				config->button.line.name = strdup(extension);
+				config->label = pbx_strdup(name);
+				config->button.line.name = pbx_strdup(extension);
 				if (!sccp_strlen_zero(subscriptionId->number)) {
 					config->button.line.subscriptionId = subscriptionId;
 				} else {

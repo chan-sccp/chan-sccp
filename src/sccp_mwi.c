@@ -318,7 +318,7 @@ void sccp_mwi_destroySubscription(sccp_mailbox_subscriber_list_t *subscription)
 		subscription->schedUpdate = SCCP_SCHED_DEL(subscription->schedUpdate);
 	}
 #endif
-	free(subscription);
+	sccp_free(subscription);
 }
 
 /*!
