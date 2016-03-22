@@ -300,45 +300,45 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				AC_MSG_RESULT(yes)
 			], [
 				AC_MSG_RESULT(no)
-				AC_MSG_CHECKING([ - checking for THREAD_SANITIZER in buildoptions...])
-				AC_EGREP_CPP([yes],   [
-					#include "asterisk/buildopts.h"
-					#if defined(THREAD_SANITIZER)
-						yes
-					#endif], 
-				[
-					SANITIZE_CFLAGS="-fsanitize=thread -pie -fPIE"
-					SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=thread"
-					AC_MSG_RESULT(yes)
-				], [
-					AC_MSG_RESULT(no)
-					AC_MSG_CHECKING([ - checking for LEAK_SANITIZER in buildoptions...])
-					AC_EGREP_CPP([yes],   [
-						#include "asterisk/buildopts.h"
-						#if defined(LEAK_SANITIZER)
-							yes
-						#endif], 
-					[
-						SANITIZE_CFLAGS="-fsanitize=leak"
-						SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=leak"
-						AC_MSG_RESULT(yes)
-					], [
-						AC_MSG_RESULT(no)
-						AC_MSG_CHECKING([ - checking for UNDEFINED_SANITIZER in buildoptions...])
-						AC_EGREP_CPP([yes],   [
-							#include "asterisk/buildopts.h"
-							#if defined(UNDEFINED_SANITIZER)
-								yes
-							#endif], 
-						[
-							SANITIZE_CFLAGS="-fsanitize=undefined"
-							SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=undefined"
-							AC_MSG_RESULT(yes)
-						], [
-							AC_MSG_RESULT(no)
-						])
-					])
-				])
+			])
+			AC_MSG_CHECKING([ - checking for THREAD_SANITIZER in buildoptions...])
+			AC_EGREP_CPP([yes],   [
+				#include "asterisk/buildopts.h"
+				#if defined(THREAD_SANITIZER)
+					yes
+				#endif], 
+			[
+				SANITIZE_CFLAGS="-fsanitize=thread -pie -fPIE"
+				SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=thread"
+				AC_MSG_RESULT(yes)
+			], [
+				AC_MSG_RESULT(no)
+			])
+			AC_MSG_CHECKING([ - checking for LEAK_SANITIZER in buildoptions...])
+			AC_EGREP_CPP([yes],   [
+				#include "asterisk/buildopts.h"
+				#if defined(LEAK_SANITIZER)
+					yes
+				#endif], 
+			[
+				SANITIZE_CFLAGS="-fsanitize=leak"
+				SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=leak"
+				AC_MSG_RESULT(yes)
+			], [
+				AC_MSG_RESULT(no)
+			])
+			AC_MSG_CHECKING([ - checking for UNDEFINED_SANITIZER in buildoptions...])
+			AC_EGREP_CPP([yes],   [
+				#include "asterisk/buildopts.h"
+				#if defined(UNDEFINED_SANITIZER)
+					yes
+				#endif], 
+			[
+				SANITIZE_CFLAGS="-fsanitize=undefined"
+				SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=undefined"
+				AC_MSG_RESULT(yes)
+			], [
+				AC_MSG_RESULT(no)
 			])
 			AC_SUBST([SANITIZE_CFLAGS])
 			AC_SUBST([SANITIZE_LDFLAGS])
