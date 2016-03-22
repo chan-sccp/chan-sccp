@@ -428,8 +428,8 @@ AUTOMAKE_OPTIONS = gnu
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov
 AM_CFLAGS = $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	$(COVERAGE_CFLAGS) $(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) \
-	$(LIBCURL_CFLAGS) $(SUPPORTED_CFLAGS) -I${abs_builddir} \
-	-I$(top_builddir)/src/ -I$(top_srcdir)/src/ \
+	$(LIBCURL_CFLAGS) $(SUPPORTED_CFLAGS) $(SANITIZE_CFLAGS) \
+	-I${abs_builddir} -I$(top_builddir)/src/ -I$(top_srcdir)/src/ \
 	-I$(top_srcdir)/src/pbx_impl/ \
 	-I$(top_srcdir)/src/pbx_impl/ast/ \
 	-I$(top_srcdir)/src/$(PBX_COND_SUBDIR) \
@@ -438,8 +438,7 @@ AM_CFLAGS = $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	-DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self \
 	-DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS) -D_REENTRANT \
 	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
-#AM_CXXFLAGS    	= -std=c++11
-AM_LDFLAGS = $(SUPPORTED_LDFLAGS) -z muldefs @LTLIBOBJS@
+AM_LDFLAGS = $(SANITIZE_LDFLAGS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(CLANG_BLOCKS_LIBS) $(AST_CLANG_BLOCKS_LIBS) $(SUPPORTED_LDFLAGS) -z muldefs @LTLIBOBJS@
 noinst_LTLIBRARIES = libast111.la
 noinst_HEADERS = ast111.h
 libast111_la_SOURCES = ast111.c
@@ -744,6 +743,7 @@ uninstall-am:
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am
 
+#AM_CXXFLAGS    	= -std=c++11
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

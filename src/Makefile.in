@@ -519,8 +519,8 @@ AUTOMAKE_OPTIONS = gnu
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov
 AM_CFLAGS = $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	$(COVERAGE_CFLAGS) $(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) \
-	$(LIBCURL_CFLAGS) $(SUPPORTED_CFLAGS) -I${abs_builddir} \
-	-I$(top_builddir)/src/ -I$(top_srcdir)/src/ \
+	$(LIBCURL_CFLAGS) $(SUPPORTED_CFLAGS) $(SANITIZE_CFLAGS) \
+	-I${abs_builddir} -I$(top_builddir)/src/ -I$(top_srcdir)/src/ \
 	-I$(top_srcdir)/src/pbx_impl/ \
 	-I$(top_srcdir)/src/pbx_impl/ast/ \
 	-I$(top_srcdir)/src/$(PBX_COND_SUBDIR) \
@@ -529,8 +529,7 @@ AM_CFLAGS = $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	-DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self \
 	-DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS) -D_REENTRANT \
 	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
-#AM_CXXFLAGS    	= -std=c++11
-AM_LDFLAGS = $(SUPPORTED_LDFLAGS) -z muldefs @LTLIBOBJS@
+AM_LDFLAGS = $(SANITIZE_LDFLAGS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(CLANG_BLOCKS_LIBS) $(AST_CLANG_BLOCKS_LIBS) $(SUPPORTED_LDFLAGS) -z muldefs @LTLIBOBJS@
 SUBDIRS = pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) .
 DIST_SUBDIRS = pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast_announce .
 EXTRA_DIST = sccp_enum.in sccp_config_entries.hh
@@ -566,16 +565,14 @@ chan_sccp_la_SOURCES = chan_sccp.c
 libsccp_la_DEPENDENCIES = revision.h sccp_enum.h sccp_enum.c
 libsccp_la_CFLAGS = $(AM_CFLAGS)
 libsccp_la_LDFLAGS = $(AM_LDFLAGS)
+#libsccp_la_CXXFLAGS	= $(AM_CXXFLAGS)
 chan_sccp_la_LIBADD = libsccp.la pbx_impl/libpbximpl.la $(PBX_COND_LIBADD) $(PBXVER_COND_LIBADD) $(PBXVER_COND_ANNOUNCE_LIBADD)
 chan_sccp_la_DEPENDENCIES = $(chan_sccp_la_LIBADD)
-#chan_sccp_la_CFLAGS     = $(AM_CFLAGS) -DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self -DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS)
 chan_sccp_la_CFLAGS = $(AM_CFLAGS)
-chan_sccp_la_LDFLAGS = $(AM_LDFLAGS) $(PBX_LDFLAGS) \
-	$(SANITIZE_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) \
-	$(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) \
-	$(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS) $(LIBBFD) \
-	$(LIBEXECINFO) $(LTLIBICONV) $(AST_CLANG_BLOCKS_LIBS) \
-	-avoid-version -module -lm -s -rdynamic
+chan_sccp_la_LDFLAGS = $(AM_LDFLAGS) $(PBX_LDFLAGS) $(PTHREAD_LIBS) \
+	$(EVENT_LIBS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) \
+	$(LIBBFD) $(LIBEXECINFO) $(LTLIBICONV) -avoid-version -module \
+	-lm -s -rdynamic
 all: $(BUILT_SOURCES) config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -1237,6 +1234,7 @@ uninstall-am: uninstall-csmodLTLIBRARIES
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-csmodLTLIBRARIES
 
+#AM_CXXFLAGS    	= -std=c++11
 .PHONY: 		.revision
 
 # generated files
@@ -1257,7 +1255,7 @@ gen_enum:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 			@echo "  GEN      sccp_enum.h";
 			@echo "  GEN      sccp_enum.c";
 			@$(AWK) -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" < @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
-
+#chan_sccp_la_CXXFLAGS	= $(AM_CXXFLAGS)
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@test -d "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"
