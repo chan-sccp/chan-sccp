@@ -33,8 +33,6 @@ enum sccp_refcount_runstate {
 	SCCP_REF_DESTROYED = -1
 };
 
-typedef struct refcount_object RefCountedObject;
-
 SCCP_API void SCCP_CALL sccp_refcount_init(void);
 SCCP_API void SCCP_CALL sccp_refcount_destroy(void);
 SCCP_API int SCCP_CALL sccp_refcount_isRunning(void);

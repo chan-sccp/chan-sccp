@@ -75,6 +75,8 @@ static struct sccp_refcount_obj_info {
 /* *INDENT-ON* */
 };
 
+typedef struct refcount_object RefCountedObject;
+
 #ifdef SCCP_ATOMIC
 #define obj_lock NULL
 #else
@@ -91,12 +93,13 @@ struct refcount_object {
 	int len;
 	int alive;
 	SCCP_RWLIST_ENTRY (RefCountedObject) list;
-	unsigned char data[0] __attribute__((aligned(64)));
+	unsigned char data[0] __attribute__((aligned(8)));
 };
 
+
 static ast_rwlock_t objectslock;										// general lock to modify hash table entries
-static struct refcount_objentry {
-	SCCP_RWLIST_HEAD (, RefCountedObject) refCountedObjects;						//!< one rwlock per hash table entry, used to modify list
+static struct refcount_objentry{
+	SCCP_RWLIST_HEAD (, RefCountedObject) refCountedObjects  __attribute__((aligned(8)));			//!< one rwlock per hash table entry, used to modify list
 } *objects[SCCP_HASH_PRIME];											//!< objects hash table
 
 #if CS_REFCOUNT_DEBUG
