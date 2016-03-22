@@ -777,7 +777,6 @@ static void sccp_accept_connection(void)
 	memcpy(&s->sin, &incoming, sizeof(s->sin));
 	sccp_mutex_init(&s->lock);
 
-	sccp_session_lock(s);
 	s->fds[0].events = POLLIN | POLLPRI;
 	s->fds[0].revents = 0;
 	s->fds[0].fd = new_socket;
@@ -799,7 +798,6 @@ static void sccp_accept_connection(void)
 			pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		}
 		sccp_session_reject(s, "Device ip not authorized");
-		sccp_session_unlock(s);
 		destroy_session(s, 0);
 		return;
 	}
@@ -830,7 +828,6 @@ static void sccp_accept_connection(void)
 	if (!pthread_attr_getstacksize(&attr, &stacksize)) {
 		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Using %d memory for this thread\n", (int) stacksize);
 	}
-	sccp_session_unlock(s);
 }
 
 static void sccp_netsock_cleanup_timed_out(void)
