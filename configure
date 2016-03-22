@@ -724,9 +724,9 @@ DX_DOCDIR
 DX_CONFIG
 DX_PROJECT
 DX_ENV
-HAVE_PBX_HTTP
 SANITIZE_LDFLAGS
 SANITIZE_CFLAGS
+HAVE_PBX_HTTP
 TEST_FRAMEWORK
 ASTERISK_REPOS_LOCATION
 ASTERISK_VERSION_NUMBER
@@ -19483,6 +19483,9 @@ $as_echo "${T_MD}Checking Asterisk Headers:${T_ME}" >&6; }
 #include <asterisk/autoconfig.h>
 #include <asterisk/buildopts.h>
 "
+	SANITIZE_CFLAGS=""
+	SANITIZE_LDFLAGS=""
+
 	ac_fn_c_check_header_mongrel "$LINENO" "asterisk.h" "ac_cv_header_asterisk_h" "$ac_includes_default"
 if test "x$ac_cv_header_asterisk_h" = xyes; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - if asterisk provides ast_register_file_version..." >&5
@@ -19738,8 +19741,8 @@ _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "yes" >/dev/null 2>&1; then :
 
-				SANITIZE_CFLAGS="-fsanitize=leak"
-				SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=leak"
+				SANITIZE_CFLAGS="$SANITIZE_CFLAGS -fsanitize=leak"
+				SANITIZE_LDFLAGS="$SANITIZE_LDFLAGS -fno-omit-frame-pointer -fsanitize=leak"
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
@@ -19764,8 +19767,8 @@ _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "yes" >/dev/null 2>&1; then :
 
-				SANITIZE_CFLAGS="-fsanitize=undefined"
-				SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=undefined"
+				SANITIZE_CFLAGS="$SANITIZE_CFLAGS -fsanitize=undefined"
+				SANITIZE_LDFLAGS="$SANITIZE_LDFLAGS -fno-omit-frame-pointer -fsanitize=undefined"
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
@@ -19776,8 +19779,6 @@ $as_echo "no" >&6; }
 
 fi
 rm -f conftest*
-
-
 
 
 fi
@@ -22681,6 +22682,8 @@ fi
 
 
 				CFLAGS={$CFLAGS_backup}
+
+
 
 else
 
@@ -28347,8 +28350,8 @@ if test -n "$HOST_CC" ; then
 echo "         HOST_CC : ${CC}"
 fi
 echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS} ${SUPPORTED_CFLAGS}"
-echo "        CPPFLAGS : ${CPPFLAGS} ${AM_CPPFLAGS} ${PBX_CPPFLAGS} ${GDB_FLAGS} ${PTHREAD_CPPFLAGS} ${COVERAGE_CPPFLAGS} ${EVENT_CPPFLAGS} ${LIBEXSLT_CPPFLAGS} ${LIBCURL_CPPFLAGS}"
-echo "         LDFLAGS : ${LDFLAGS} ${SUPPORTED_LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS} ${LIBBFD} ${LIBEXECINFO} ${LIBICONV}"
+echo "        CPPFLAGS : ${CPPFLAGS} ${AM_CPPFLAGS} ${PBX_CPPFLAGS} ${SANITIZE_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CPPFLAGS} ${COVERAGE_CPPFLAGS} ${EVENT_CPPFLAGS} ${LIBEXSLT_CPPFLAGS} ${LIBCURL_CPPFLAGS}"
+echo "         LDFLAGS : ${LDFLAGS} ${SANITIZE_LDFLAGS} ${SUPPORTED_LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS} ${LIBBFD} ${LIBEXECINFO} ${LIBICONV}"
 echo "        PBX_TYPE : ${PBX_TYPE}"
 echo "      PBX_PREFIX : ${PBX_PREFIX}"
 echo "         PBX_ETC : ${PBX_ETC}"

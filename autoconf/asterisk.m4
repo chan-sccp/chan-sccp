@@ -224,6 +224,9 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 #include <asterisk/autoconfig.h>
 #include <asterisk/buildopts.h>
 "
+	SANITIZE_CFLAGS=""
+	SANITIZE_LDFLAGS=""
+
 	AC_CHECK_HEADER([asterisk.h],
 		AC_MSG_CHECKING([ - if asterisk provides ast_register_file_version...])
 		AC_EGREP_CPP([ast_register_file_version], [
@@ -321,8 +324,8 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					yes
 				#endif], 
 			[
-				SANITIZE_CFLAGS="-fsanitize=leak"
-				SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=leak"
+				SANITIZE_CFLAGS="$SANITIZE_CFLAGS -fsanitize=leak"
+				SANITIZE_LDFLAGS="$SANITIZE_LDFLAGS -fno-omit-frame-pointer -fsanitize=leak"
 				AC_MSG_RESULT(yes)
 			], [
 				AC_MSG_RESULT(no)
@@ -334,14 +337,12 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					yes
 				#endif], 
 			[
-				SANITIZE_CFLAGS="-fsanitize=undefined"
-				SANITIZE_LDFLAGS="-fno-omit-frame-pointer -fsanitize=undefined"
+				SANITIZE_CFLAGS="$SANITIZE_CFLAGS -fsanitize=undefined"
+				SANITIZE_LDFLAGS="$SANITIZE_LDFLAGS -fno-omit-frame-pointer -fsanitize=undefined"
 				AC_MSG_RESULT(yes)
 			], [
 				AC_MSG_RESULT(no)
 			])
-			AC_SUBST([SANITIZE_CFLAGS])
-			AC_SUBST([SANITIZE_LDFLAGS])
 		],,[
 			$HEADER_INCLUDE
 		])
@@ -982,6 +983,8 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 		])
 		dnl restore previous CFLAGS from backup
 		CFLAGS={$CFLAGS_backup}
+		AC_SUBST([SANITIZE_CFLAGS])
+		AC_SUBST([SANITIZE_LDFLAGS])
 	],[
 		echo "Couldn't find asterisk/lock.h. No need to go any further. All will fail."
 		echo "Asterisk version.h: ${pbx_ver/\"/}"
