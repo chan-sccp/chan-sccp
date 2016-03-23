@@ -1739,7 +1739,7 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 					}
 				} else {
 					/* if not an active call, close it down, and handle the rest down below */
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call:%s not in progress. Just Closing the line %s\n", d->id, channel->designator);
+					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call:%s not in progress. Ending Call\n", d->id, channel->designator);
 					sccp_channel_endcall(channel);
 					sccp_dev_deactivate_cplane(d);
 					if (l != channel->line) {						/* active channel and stimulated line are different -> close the active channel and continue */
@@ -1751,7 +1751,7 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 					}
 				}
 			} else {
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: active channel %s from a different device: %s, skipping.\n", d->id, channel->designator, check_device);
+				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: active channel %s from a different device: %s, skipping.\n", d->id, channel->designator, check_device->id);
 			}
 		}
 	}
