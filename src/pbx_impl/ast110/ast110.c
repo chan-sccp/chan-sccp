@@ -2070,7 +2070,7 @@ static int sccp_wrapper_asterisk110_sched_add_ref(int *id, int when, sccp_sched_
 	return -2;
 }
 
-static int sccp_wrapper_asterisk110_sched_del_ref(int *id, const sccp_channel_t * channel)
+static int sccp_wrapper_asterisk110_sched_del_ref(int *id, sccp_channel_t * channel)
 {
 	if (sched) {
 		AST_SCHED_DEL_UNREF(sched, *id, sccp_channel_release(&channel));
