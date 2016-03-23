@@ -49,7 +49,7 @@ int sccp_device_destroy(const void *ptr);
 struct sccp_private_device_data {
 	sccp_mutex_t lock;
 	
-	sccp_accessorystate_t accessoryStatus[SCCP_ACCESSORY_SENTINEL];		
+	sccp_accessorystate_t accessoryStatus[SCCP_ACCESSORY_SENTINEL + 1];		
 	sccp_devicestate_t deviceState;											/*!< Device State */
 
 	skinny_registrationstate_t registrationState;
