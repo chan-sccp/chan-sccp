@@ -991,7 +991,7 @@ int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel)
 struct parkingThreadArg {
 	PBX_CHANNEL_TYPE *bridgedChannel;
 	PBX_CHANNEL_TYPE *hostChannel;
-	const sccp_device_t *device;
+	sccp_device_t *device;
 };
 
 /*!
@@ -1043,7 +1043,6 @@ static void *sccp_wrapper_asterisk16_park_thread(void *data)
  */
 static sccp_parkresult_t sccp_wrapper_asterisk16_park(const sccp_channel_t * hostChannel)
 {
-
 	pthread_t th;
 	struct parkingThreadArg *arg;
 	PBX_CHANNEL_TYPE *pbx_bridgedChannelClone, *pbx_hostChannelClone;

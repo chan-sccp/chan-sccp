@@ -1072,7 +1072,7 @@ int sccp_wrapper_asterisk18_hangup(PBX_CHANNEL_TYPE * ast_channel)
 struct parkingThreadArg {
 	PBX_CHANNEL_TYPE *bridgedChannel;
 	PBX_CHANNEL_TYPE *hostChannel;
-	const sccp_device_t *device;
+	sccp_device_t *device;
 };
 
 /*!
