@@ -188,7 +188,9 @@
 			__sccp_vector_res = -1;								\
 			break;										\
 		} 											\
-		(vec)->elems[(vec)->current++] = (elem);						\
+		if ((vec)->elems) {									\
+			(vec)->elems[(vec)->current++] = (elem);					\
+		}											\
 	} while (0);											\
 	__sccp_vector_res;										\
 })
