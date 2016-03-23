@@ -2251,45 +2251,43 @@ static void sccp_wrapper_asterisk112_setRedirectedParty(PBX_CHANNEL_TYPE *pbx_ch
 	}
 }
 
-static void sccp_wrapper_asterisk112_updateConnectedLine(const sccp_channel_t * channel, const char *number, const char *name, uint8_t reason)
+static void __sccp_asterisk112_updateConnectedLine(PBX_CHANNEL_TYPE *pbx_channel, const char *number, const char *name, uint8_t reason)
 {
-	if (!channel || !channel->owner) {
+	if (!pbx_channel) {
 		return;
 	}
 
 	struct ast_party_connected_line connected;
-	struct ast_set_party_connected_line update_connected;
+	struct ast_set_party_connected_line update_connected = {{0}};
 
-	memset(&update_connected, 0, sizeof(update_connected));
 	ast_party_connected_line_init(&connected);
-
-	if (!sccp_strlen_zero(connected.id.number.str)) {
-		ast_free(connected.id.number.str);
-	}
 	if (number) {
 		update_connected.id.number = 1;
 		connected.id.number.valid = 1;
-		connected.id.number.str = pbx_strdup(number);
+		connected.id.number.str = pbx_strdupa(number);
 		connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
-	}
-
-	if (!sccp_strlen_zero(connected.id.name.str)) {
-		ast_free(connected.id.name.str);
 	}
 	if (name) {
 		update_connected.id.name = 1;
 		connected.id.name.valid = 1;
-		connected.id.name.str = pbx_strdup(name);
+		connected.id.name.str = pbx_strdupa(name);
 		connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
 	if (update_connected.id.number || update_connected.id.name) {
 		ast_set_party_id_all(&update_connected.priv);
 		// connected.id.tag = NULL;
 		connected.source = reason;
-		ast_channel_queue_connected_line_update(channel->owner, &connected, &update_connected);
-		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: do connected line for line '%s', name: %s ,num: %s\n", pbx_channel_name(channel->owner), name ? name : "(NULL)", number ? number : "(NULL)");
+		ast_channel_queue_connected_line_update(pbx_channel, &connected, &update_connected);
+		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: do connected line for line '%s', name: %s ,num: %s\n", pbx_channel_name(pbx_channel), name ? name : "(NULL)", number ? number : "(NULL)");
 	}
+}
 
+static void sccp_wrapper_asterisk112_updateConnectedLine(constChannelPtr channel, const char *number, const char *name, uint8_t reason)
+{
+	if (!channel || !channel->owner) {
+		return;
+	}
+	__sccp_asterisk112_updateConnectedLine(channel->owner, number,name, reason);
 }
 
 static int sccp_wrapper_asterisk112_sched_add(int when, sccp_sched_cb callback, const void *data)

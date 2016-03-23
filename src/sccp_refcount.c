@@ -557,7 +557,9 @@ gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char 
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug(ptr, obj, 1, filename, lineno, func);
 #endif
+		// ANNOTATE_HAPPENS_BEFORE(&obj->refcount);
 		refcountval = ATOMIC_INCR((&obj->refcount), 1, &obj->lock);
+		// ANNOTATE_HAPPENS_AFTER(&obj->refcount);
 		newrefcountval = refcountval + 1;
 		
 		if (dont_expect( (sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) {
@@ -596,9 +598,11 @@ gcc_inline void * const sccp_refcount_release(const void * * const ptr, const ch
 		//	refcountval = obj->refcount;
 		//	newrefcountval = refcountval - 1;
 		//} while (refcountval > 0 && (refcountval != CAS32(&obj->refcount, refcountval, newrefcountval, &obj->lock)));
+		// ANNOTATE_HAPPENS_BEFORE(&obj->refcount);
 		refcountval = ATOMIC_DECR((&obj->refcount), 1, &obj->lock);
+		// ANNOTATE_HAPPENS_AFTER(&obj->refcount);
+		
 		newrefcountval = refcountval - 1;
-
 		if (dont_expect(newrefcountval == 0)) {
 			alive = ATOMIC_DECR(&obj->alive, SCCP_LIVE_MARKER, &obj->lock);
 			sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_1 "SCCP: %-15.15s:%-4.4d (%-25.25s)) (release) Finalizing %p (%p) (alive:%d)\n", filename, lineno, func, obj, *ptr, alive);
@@ -626,30 +630,20 @@ gcc_inline void * const sccp_refcount_release(const void * * const ptr, const ch
 gcc_inline void sccp_refcount_replace(const void * * const replaceptr, const void *const newptr, const char *filename, int lineno, const char *func)
 {
 	if (!replaceptr || (&newptr == replaceptr)) {								// nothing changed
-//		pbx_log(LOG_NOTICE, "nothing changed. replaceptr:%p, newptr:%p\n", replaceptr ? *replaceptr : NULL, newptr);
 		return;
 	}
-//	pbx_log(LOG_NOTICE, "0:replaceptr :%p, newptr:%p\n", *replaceptr, newptr);
-
 	if (do_expect(newptr !=NULL)) {
-//		pbx_log(LOG_NOTICE, "1: replaceptr:%p, newptr:%p\n", *replaceptr, newptr);
 		const void *tmpNewPtr = sccp_refcount_retain(newptr, filename, lineno, func);			// retain new one first
-//		pbx_log(LOG_NOTICE, "2: replaceptr:%p, newptr:%p retained\n", *replaceptr, newptr);
 		if (do_expect(tmpNewPtr != NULL)) {
-//			pbx_log(LOG_NOTICE, "3: replaceptr:%p, newptr:%p retained\n", *replaceptr, newptr);
 			const void *oldPtr = *replaceptr;
-//			pbx_log(LOG_NOTICE, "4: replaceptr:%p->%p, oldPtr:%p->%p, newptr:%p retained\n", replaceptr, *replaceptr, &oldPtr, oldPtr, newptr);
 			*replaceptr = tmpNewPtr;
-//			pbx_log(LOG_NOTICE, "5: replaceptr:%p->%p, oldPtr:%p->%p, newptr:%p retained\n", replaceptr, *replaceptr, &oldPtr, oldPtr, newptr);
 			if (do_expect(oldPtr != NULL)) {							// release previous one after
 				sccp_refcount_release(&oldPtr, filename, lineno, func);				// explicit release
 			}
 		}
 	} else if (do_expect(*replaceptr != NULL)) {								// release previous only
-//		pbx_log(LOG_NOTICE, "1: replaceptr:%p, no newptr:%p -> just release\n", *replaceptr, newptr);
 		sccp_refcount_release(replaceptr, filename, lineno, func);					// explicit release
 	}
-//	pbx_log(LOG_NOTICE, "finish: replaceptr:%p, newptr:%p\n", *replaceptr, newptr);
 }
 
 /*

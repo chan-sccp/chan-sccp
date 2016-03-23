@@ -928,22 +928,13 @@ static void __sccp_wrapper_asterisk111_updateConnectedLine(PBX_CHANNEL_TYPE *pbx
 	struct ast_party_connected_line connected;
 	struct ast_set_party_connected_line update_connected = {{0}};
 
-	//memset(&update_connected, 0, sizeof(update_connected));
 	ast_party_connected_line_init(&connected);
-
-	//if (!sccp_strlen_zero(connected.id.number.str)) {
-	//	ast_free(connected.id.number.str);
-	//}
 	if (number) {
 		update_connected.id.number = 1;
 		connected.id.number.valid = 1;
 		connected.id.number.str = pbx_strdupa(number);
 		connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
-
-	//if (!sccp_strlen_zero(connected.id.name.str)) {
-	//	ast_free(connected.id.name.str);
-	//}
 	if (name) {
 		update_connected.id.name = 1;
 		connected.id.name.valid = 1;

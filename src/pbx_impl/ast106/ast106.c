@@ -1109,7 +1109,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk16_park(const sccp_channel_t * hos
 		if (!ast_pthread_create_detached_background(&th, NULL, sccp_wrapper_asterisk16_park_thread, arg)) {
 			return PARK_RESULT_SUCCESS;
 		}
-		arg->device = sccp_device_release(arg->device);							/* explicit release */
+		sccp_device_release(&arg->device);							/* explicit release */
 	}
 	return PARK_RESULT_FAIL;
 

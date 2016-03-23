@@ -883,22 +883,13 @@ static void __sccp_asterisk18_updateConnectedLine(PBX_CHANNEL_TYPE *pbx_channel,
 	struct ast_party_connected_line connected;
 	struct ast_set_party_connected_line update_connected = {{0}};
 
-	//memset(&update_connected, 0, sizeof(update_connected));
 	ast_party_connected_line_init(&connected);
-
-	//if (!sccp_strlen_zero(connected.id.number.str)) {
-	//	ast_free(connected.id.number.str);
-	//}
 	if (number) {
 		update_connected.id.number = 1;
 		connected.id.number.valid = 1;
 		connected.id.number.str = pbx_strdupa(number);
 		connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
-
-	//if (!sccp_strlen_zero(connected.id.name.str)) {
-	//	ast_free(connected.id.name.str);
-	//}
 	if (name) {
 		update_connected.id.name = 1;
 		connected.id.name.valid = 1;
@@ -1198,7 +1189,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk18_park(const sccp_channel_t * hos
 		if (!ast_pthread_create_detached_background(&th, NULL, sccp_wrapper_asterisk18_park_thread, arg)) {
 			return PARK_RESULT_SUCCESS;
 		}
-		arg->device = sccp_device_release(arg->device);					/* explicit release */
+		sccp_device_release(&arg->device);					/* explicit release */
 	}
 	sccp_free(arg);
 	return PARK_RESULT_FAIL;
