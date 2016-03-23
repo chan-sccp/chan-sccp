@@ -526,7 +526,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
  */
 int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_subscription_id_t *subscriptionId, char extension[SCCP_MAX_EXTENSION])
 {
-	pbx_assert(NULL != labelString || NULL != subscriptionId || NULL != extension);
+	pbx_assert(NULL != labelString && NULL != subscriptionId && NULL != extension);
 	int res = 0;
 	const char *stringIterator = 0;
 	uint32_t i = 0;
