@@ -561,6 +561,8 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
  */
 void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice)
 {
+	pbx_assert(lineDevice != NULL && lineDevice->device != NULL);
+	
 	sccp_msg_t *msg = NULL;
 	sccp_line_t *l = lineDevice->line;
 	sccp_device_t *d = lineDevice->device;
@@ -578,8 +580,8 @@ void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice)
 
 	/* check if we need to update line status */
 	char binstr[41] = "";
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) instance: %d, mwilight:%d, mask:%s (%d)\n", DEV_ID_LOG(lineDevice->device), instance, d->mwilight, sccp_dec2binstr(binstr, 32, mask), mask);
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) state: %d. status:%s (%d) \n", DEV_ID_LOG(lineDevice->device), state, sccp_dec2binstr(binstr, 32, status), status);
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) instance: %d, mwilight:%d, mask:%s (%d)\n", DEV_ID_LOG(d), instance, d->mwilight, sccp_dec2binstr(binstr, 32, mask), mask);
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) state: %d. status:%s (%d) \n", DEV_ID_LOG(d), state, sccp_dec2binstr(binstr, 32, status), status);
 	if ( (d->mwilight & mask) != status) {
 		if (state) {			/* activate mwi line icon */
 			d->mwilight |= mask;
