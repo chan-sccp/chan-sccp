@@ -75,10 +75,8 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 		return;
 	}
 
-	/* if call forward is active and you asked about the same call forward maybe you would disable */
-	if ((linedevice->cfwdAll.enabled && type == SCCP_CFWD_ALL)
-	    || (linedevice->cfwdBusy.enabled && type == SCCP_CFWD_BUSY)) {
-
+	/* if call forward is active -> disable */
+	if ((linedevice->cfwdAll.enabled && type == SCCP_CFWD_ALL) || (linedevice->cfwdBusy.enabled && type == SCCP_CFWD_BUSY)) {
 		sccp_line_cfwd(l, device, SCCP_CFWD_NONE, NULL);
 		return;
 	} 
@@ -89,7 +87,6 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 	}
 	/* look if we have a call  */
 	AUTO_RELEASE sccp_channel_t *c = sccp_device_getActiveChannel(device);
-
 	if (c) {
 		if (c->softswitch_action == SCCP_SOFTSWITCH_GETFORWARDEXTEN) {
 			// we have a channel, checking if
@@ -101,16 +98,13 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 						pbx_log(LOG_ERROR, "%s: 2\n", DEV_ID_LOG(device));
 						sccp_line_cfwd(l, device, type, c->dialedNumber);
 						// we are on call, so no tone has been played until now :)
-						//sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, instance, 0, 0);
+						sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, c->callid, 1);
 						sccp_channel_endcall(c);
 						return;
 					}
 				} else if (iPbx.channel_is_bridged(c)) {					// check if we have an ast channel to get callerid from
 					// if we have an incoming or forwarded call, let's get number from callerid :) -FS
 					char *number = NULL;
-
-					pbx_log(LOG_ERROR, "%s: 3\n", DEV_ID_LOG(device));
-
 					if (iPbx.get_callerid_name) {
 						iPbx.get_callerid_number(c->owner, &number);
 					}
@@ -123,7 +117,7 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 						sccp_free(number);
 						return;
 					}
-					// if we where here it's cause there is no number in callerid,, so put call on hold and ask for a call forward number :) -FS
+					// if we where here it is because there is no number in callerid. Put call on hold and ask for a call forward number :) -FS
 					if (!sccp_channel_hold(c)) {
 						// if can't hold  it means there is no active call, so return as we're already waiting a number to dial
 						sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
@@ -193,7 +187,6 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 	sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
 
 	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
-
 	if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
 		sccp_channel_openReceiveChannel(c);
 	}

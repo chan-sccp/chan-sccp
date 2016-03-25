@@ -1648,7 +1648,7 @@ static void handle_stimulus_speeddial(constDevicePtr d, constLinePtr l, const ui
 		return;
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
-	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 1);
 }
 
 /*!
@@ -1671,7 +1671,7 @@ static void handle_stimulus_blfspeeddial(constDevicePtr d, constLinePtr l, const
 		return;
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No number assigned to BlfSpeeddial %d\n", d->id, instance);
-	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 1);
 }
 
 /*!
@@ -1702,7 +1702,7 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 			return;
 		}
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
-		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 1);
 
 		return;
 	}
@@ -1831,7 +1831,7 @@ static void handle_stimulus_hold(constDevicePtr d, constLinePtr l, const uint16_
 		return;
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No call to resume/hold found on line %d\n", d->id, instance);
-	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 1);
 }
 
 /*!
@@ -1855,7 +1855,7 @@ static void handle_stimulus_transfer(constDevicePtr d, constLinePtr l, const uin
 		sccp_channel_transfer(channel, d);
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No call to transfer found on line %d\n", d->id, instance);
-	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 1);
 }
 
 /*!
@@ -1889,7 +1889,7 @@ static void handle_stimulus_conference(constDevicePtr d, constLinePtr l, const u
 		sccp_feat_handle_conference(d, l, instance, channel);
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No call to handle conference for on line %d\n", d->id, instance);
-	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 1);
 }
 
 /*!
@@ -1908,7 +1908,7 @@ static void handle_stimulus_forwardAll(constDevicePtr d, constLinePtr l, const u
 		return;
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CFWDALL disabled on device\n", d->id);
-	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 1);
 }
 
 /*!
@@ -1927,7 +1927,7 @@ static void handle_stimulus_forwardBusy(constDevicePtr d, constLinePtr l, const 
 		return;
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CFWDBUSY disabled on device\n", d->id);
-	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 1);
 }
 
 /*!
@@ -1946,7 +1946,7 @@ static void handle_stimulus_forwardNoAnswer(constDevicePtr d, constLinePtr l, co
 		return;
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CFWDNoAnswer disabled on device\n", d->id);
-	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 1);
 }
 
 /*!
@@ -1971,7 +1971,7 @@ static void handle_stimulus_callpark(constDevicePtr d, constLinePtr l, const uin
 #else
 	sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "### Native park was not compiled in\n");
 #endif
-	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 1);
 }
 
 /*!
@@ -2348,7 +2348,7 @@ void handle_offhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	if (!d->configurationStatistic.numberOfLines) {
 		pbx_log(LOG_NOTICE, "No lines registered on %s for take OffHook\n", sccp_session_getDesignator(s));
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_LINES_REGISTERED, SCCP_DISPLAYSTATUS_TIMEOUT);
-		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 1);
 		return;
 	}
 	/* end line check */
@@ -2407,7 +2407,7 @@ void handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	if (!(d->lineButtons.size > SCCP_FIRST_LINEINSTANCE)) {
 		pbx_log(LOG_NOTICE, "No lines registered on %s to put OnHook\n", DEV_ID_LOG(d));
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_LINES_REGISTERED, SCCP_DISPLAYSTATUS_TIMEOUT);
-		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 1);
 		return;
 	}
 
@@ -3106,7 +3106,7 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 		if (event != SKINNY_LBL_ENDCALL) {
 			snprintf(buf, sizeof(buf), SKINNY_DISP_NO_CHANNEL_TO_PERFORM_XXXXXXX_ON " " SKINNY_GIVING_UP, label2str(event));
 			sccp_dev_displayprinotify(d, buf, 5, 5);
-			sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, 0);
+			sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, c->callid, 1);
 			pbx_log(LOG_WARNING, "%s: Skip handling of Softkey %s (%d) line=%d callid=%d, because a channel is required, but not provided. Exiting\n", d->id, label2str(event), event, lineInstance, callid);
 		}
 

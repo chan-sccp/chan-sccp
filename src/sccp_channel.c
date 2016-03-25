@@ -1160,7 +1160,7 @@ gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t * channel, uint time
  */
 gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t * channel, uint timeout)
 {
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
+	sccp_channel_t *c = sccp_channel_retain(channel);
 
 	/* only schedule if allowed and not already scheduled */
 	if (c && c->scheduler.hangup_id == -1 && !ATOMIC_FETCH(&c->scheduler.deny, &c->scheduler.lock)) {	
@@ -1170,6 +1170,7 @@ gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t * channel, uint
 		} else {
 			iPbx.sched_replace_ref(&c->scheduler.digittimeout_id, timeout * 1000, sccp_pbx_sched_dial, c);
 		}
+		sccp_channel_release(&c);
 	}
 }
 
@@ -2273,7 +2274,7 @@ EXIT:
 		pbx_channel_unref(pbx_destination_remote_channel);
 	}
 	if (result == FALSE) {
-		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, instance, sccp_destination_local_channel->callid, 0);
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, instance, sccp_destination_local_channel->callid, 1);
 		sccp_dev_displayprompt(d, instance, sccp_destination_local_channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 	}
 	if (!sccp_source_local_channel || !sccp_source_local_channel->owner) {

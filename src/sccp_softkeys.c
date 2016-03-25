@@ -79,10 +79,7 @@ static void sccp_sk_dial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, const
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Dial Pressed\n", DEV_ID_LOG(d));
 	if (c && !iPbx.getChannelPbx(c)) {									// Prevent dialling if in an inappropriate state.
 		/* Only handle this in DIALING state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
-		if (c->softswitch_action == SCCP_SOFTSWITCH_GETFORWARDEXTEN) {
-			sccp_pbx_softswitch(c);
-
-		} else if (c->state == SCCP_CHANNELSTATE_DIGITSFOLL) {
+		if (c->state == SCCP_CHANNELSTATE_DIGITSFOLL || c->softswitch_action == SCCP_SOFTSWITCH_GETFORWARDEXTEN) {
 			sccp_pbx_softswitch(c);
 		}
 	}
@@ -416,7 +413,7 @@ static void sccp_sk_answer(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 		ast_log(LOG_WARNING, "%s: (sccp_sk_answer) Pressed the answer key without any channel%s%s\n", d->id, l ? " on line: " : "", l ? l->name : "");
 		snprintf(buf, 100, SKINNY_DISP_NO_CHANNEL_TO_PERFORM_XXXXXXX_ON " " SKINNY_GIVING_UP, "ANSWER");
 		sccp_dev_displayprinotify(d, buf, 5, 5);
-		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, 0);
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, 1);
 		return;
 	}
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Answer Pressed, instance: %d\n", DEV_ID_LOG(d), lineInstance);
