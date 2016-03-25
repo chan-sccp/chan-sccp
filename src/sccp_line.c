@@ -261,8 +261,9 @@ void sccp_line_kill_channels(sccp_line_t * l)
 	// SCCP_LIST_LOCK(&l->channels);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->channels, c, list) {
 		AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
-
-		sccp_channel_endcall(channel);
+		if (channel) {
+			sccp_channel_endcall(channel);
+		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	// SCCP_LIST_UNLOCK(&l->channels);
@@ -508,7 +509,6 @@ void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward %s enabled on line %s to number %s\n", DEV_ID_LOG(device), sccp_callforward2str(type), line->name, number);
 			}
 		}
-		sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, 0, 1);
 		sccp_feat_changed(linedevice->device, linedevice, feature_type);
 		sccp_dev_forward_status(linedevice->line, linedevice->lineInstance, device);
 	} else {
