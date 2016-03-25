@@ -563,14 +563,14 @@ gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char 
 		newrefcountval = refcountval + 1;
 		
 		if (dont_expect( (sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) {
-			pbx_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) %*.*s> %*s refcount increased %.2d  +> %.2d for %10s: %s (%p)\n", filename, lineno, func, refcountval, refcountval, "--------------------", 20 - refcountval, " ", refcountval, newrefcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
+			pbx_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-35.35s) %*.*s> %*s refcount increased %.2d  +> %.2d for %10s: %s (%p)\n", filename, lineno, func, refcountval, refcountval, "--------------------", 20 - refcountval, " ", refcountval, newrefcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 		}
 		return (void * const) obj->data;	/* regular exit */
 	} 
 #if CS_REFCOUNT_DEBUG
 	__sccp_refcount_debug((void *) ptr, NULL, 1, filename, lineno, func);
 #endif
-	pbx_log(__LOG_VERBOSE, __FILE__, 0, "retain", "SCCP: (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to retain %p with invalid memory reference! this should never happen !\n", filename, lineno, func, obj);
+	pbx_log(__LOG_VERBOSE, __FILE__, 0, "retain", "SCCP: (%-15.15s:%-4.4d (%-35.35s)) ALARM !! trying to retain %p with invalid memory reference! this should never happen !\n", filename, lineno, func, obj);
 	pbx_log(LOG_ERROR, "SCCP: (release) Refcount Object %p could not be found (Major Logic Error). Please report to developers\n", ptr);
 	#ifdef DEBUG
 	sccp_do_backtrace();
@@ -605,11 +605,11 @@ gcc_inline void * const sccp_refcount_release(const void * * const ptr, const ch
 		newrefcountval = refcountval - 1;
 		if (dont_expect(newrefcountval == 0)) {
 			alive = ATOMIC_DECR(&obj->alive, SCCP_LIVE_MARKER, &obj->lock);
-			sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_1 "SCCP: %-15.15s:%-4.4d (%-25.25s)) (release) Finalizing %p (%p) (alive:%d)\n", filename, lineno, func, obj, *ptr, alive);
+			sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_1 "SCCP: %-15.15s:%-4.4d (%-35.35s)) (release) Finalizing %p (%p) (alive:%d)\n", filename, lineno, func, obj, *ptr, alive);
 			sccp_refcount_remove_obj(*ptr);
 		} else {
 			if (dont_expect( (sccp_globals->debug & ((debugcat + DEBUGCAT_REFCOUNT))) == (debugcat ^ DEBUGCAT_REFCOUNT))) {
-				pbx_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) <%*.*s %*s refcount decreased %.2d  <- %.2d for %10s: %s (%p)\n", filename, lineno, func, newrefcountval, newrefcountval, "--------------------", 20 - newrefcountval, " ", newrefcountval, refcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
+				pbx_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-35.35s) <%*.*s %*s refcount decreased %.2d  <- %.2d for %10s: %s (%p)\n", filename, lineno, func, newrefcountval, newrefcountval, "--------------------", 20 - newrefcountval, " ", newrefcountval, refcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 			}
 		}
 		*ptr = NULL;
@@ -618,7 +618,7 @@ gcc_inline void * const sccp_refcount_release(const void * * const ptr, const ch
 #if CS_REFCOUNT_DEBUG
 	__sccp_refcount_debug((void *) *ptr, NULL, -1, filename, lineno, func);
 #endif
-	pbx_log(__LOG_VERBOSE, __FILE__, 0, "release", "SCCP (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to release a %p with invalid memory reference! this should never happen !\n", filename, lineno, func, obj);
+	pbx_log(__LOG_VERBOSE, __FILE__, 0, "release", "SCCP (%-15.15s:%-4.4d (%-35.35s)) ALARM !! trying to release a %p with invalid memory reference! this should never happen !\n", filename, lineno, func, obj);
 	pbx_log(LOG_ERROR, "SCCP: (release) Refcount Object %p could not be found (Major Logic Error). Please report to developers\n", *ptr);
 	#ifdef DEBUG
 	sccp_do_backtrace();
@@ -654,6 +654,19 @@ gcc_inline void sccp_refcount_replace(const void * * const replaceptr, const voi
 gcc_inline void sccp_refcount_autorelease(void *ptr)
 {
 	if (ptr && *(void **)ptr) {										// check if AUTO_RELEASE ptr was actually assigned. or still NULL
+/*
+		#ifdef DEBUG
+		if ((sccp_globals->debug & DEBUGCAT_REFCOUNT) != 0) {
+			const void * * const myptr = (const void **) ptr;
+			RefCountedObject *obj = sccp_refcount_find_obj(*myptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+			if (obj != NULL && obj->refcount > 0) {
+				if (dont_expect( (sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) {
+					sccp_do_backtrace();
+				}
+			}
+		}
+		#endif
+*/
 		sccp_refcount_release((const void **) ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);		// explicit release
 	}
 }
