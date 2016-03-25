@@ -39,6 +39,8 @@ struct sccp_channel {
 	sccp_subscription_id_t subscriptionId;
 	boolean_t answered_elsewhere;										/*!< Answered Elsewhere */
 	boolean_t privacy;											/*!< Private */
+	boolean_t peerIsSCCP;											/*!< Indicates that channel-peer is also SCCP */
+	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
 
 #if DEBUG
 	sccp_device_t *(*getDevice_retained) (const sccp_channel_t * channel, const char *filename, int lineno, const char *func);	/*!< temporary function to retrieve refcounted device */
@@ -67,9 +69,9 @@ struct sccp_channel {
 
 	struct {
 		int digittimeout;										/*!< Digit Timeout on Dialing State (Enbloc-Emu) */
-		boolean_t deactivate;										/*!< Deactivate Enbloc-Emulation (Time Deviation Found) */
 		uint32_t totaldigittime;									/*!< Total Time used to enter Number (Enbloc-Emu) */
 		uint32_t totaldigittimesquared;									/*!< Total Time Squared used to enter Number (Enbloc-Emu) */
+		boolean_t deactivate;										/*!< Deactivate Enbloc-Emulation (Time Deviation Found) */
 	} enbloc;
 
 	struct {
@@ -90,28 +92,27 @@ struct sccp_channel {
 	} rtp;
 
 	skinny_ringtype_t ringermode;										/*!< Ringer Mode */
-	uint16_t autoanswer_cause;										/*!< Auto Answer Cause */
-	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */
 
 	/* don't allow sccp phones to monitor (hint) this call */
 	sccp_softswitch_t softswitch_action;									/*!< Simple Switch Action. This is used in dial thread to collect numbers for callforward, pickup and so on -FS */
 	uint16_t ss_data;											/*!< Simple Switch Integer param */
 	uint16_t subscribers;											/*!< Used to determine if a sharedline should be hungup immediately, if everybody declined the call */
 
-	sccp_channel_t *parentChannel;										/*!< if we are a cfwd channel, our parent is this */
+	int32_t maxBitRate;
 
 	sccp_conference_t *conference;										/*!< are we part of a conference? */ /*! \todo to be removed instead of conference_id */
 	uint32_t conference_id;											/*!< Conference ID (might be safer to use instead of conference) */
 	uint32_t conference_participant_id;									/*!< Conference Participant ID */
 
-	int32_t maxBitRate;
-	boolean_t peerIsSCCP;											/*!< Indicates that channel-peer is also SCCP */
 	void (*setMicrophone) (sccp_channel_t * channel, boolean_t on);
 	boolean_t (*hangupRequest) (sccp_channel_t * channel);
 	boolean_t (*isMicrophoneEnabled) (void);
-
 	char *musicclass;											/*!< Music Class */
-	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
+
+	sccp_channel_t *parentChannel;										/*!< if we are a cfwd channel, our parent is this */
+
+	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */
+	uint16_t autoanswer_cause;										/*!< Auto Answer Cause */
 
 #if ASTERISK_VERSION_GROUP >= 111
 	int16_t pbx_callid_created;

@@ -1433,7 +1433,7 @@ void sccp_dev_deactivate_cplane(constDevicePtr d)
  * \param callid Call ID as uint32_t
  * \param timeout Timeout as uint32_t
  */
-void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout)
+void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t lineInstance, uint32_t callid, uint32_t timeout)
 {
 	sccp_msg_t *msg = NULL;
 
@@ -1448,11 +1448,11 @@ void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t line, uint32_t c
 	}
 	msg->data.StartToneMessage.lel_tone = htolel(tone);
 	msg->data.StartToneMessage.lel_toneTimeout = htolel(timeout);
-	msg->data.StartToneMessage.lel_lineInstance = htolel(line);
+	msg->data.StartToneMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.StartToneMessage.lel_callReference = htolel(callid);
 
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending tone %s (%d) on line %d with callid %d\n", d->id, skinny_tone2str(tone), tone, line, callid);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending tone %s (%d) on line %d with callid %d\n", d->id, skinny_tone2str(tone), tone, lineInstance, callid);
 }
 
 /*!
@@ -1461,7 +1461,7 @@ void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t line, uint32_t c
  * \param line Line as uint8_t
  * \param callid Call ID as uint32_t
  */
-void sccp_dev_stoptone(constDevicePtr d, uint8_t line, uint32_t callid)
+void sccp_dev_stoptone(constDevicePtr d, uint8_t lineInstance, uint32_t callid)
 {
 	sccp_msg_t *msg = NULL;
 
@@ -1472,10 +1472,10 @@ void sccp_dev_stoptone(constDevicePtr d, uint8_t line, uint32_t callid)
 	if (!msg) {
 		return;
 	}
-	msg->data.StopToneMessage.lel_lineInstance = htolel(line);
+	msg->data.StopToneMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.StopToneMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Stop tone on line %d with callid %d\n", d->id, line, callid);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Stop tone on line %d with callid %d\n", d->id, lineInstance, callid);
 }
 
 /*!
@@ -2979,7 +2979,7 @@ static sccp_push_result_t sccp_device_pushURL(constDevicePtr device, const char 
 	snprintf(xmlData, msg_length, xmlFormat, url);
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_PUSH, 0, 1, transactionID, xmlData, priority);
 	if (SKINNY_TONE_SILENCE != tone) {
-		sccp_dev_starttone(device, tone, 0, 0, 0);
+		sccp_dev_starttone(device, tone, 0, 0, 1);
 	}
 	return SCCP_PUSH_RESULT_SUCCESS;
 }
@@ -3023,7 +3023,7 @@ static sccp_push_result_t sccp_device_pushTextMessage(constDevicePtr device, con
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_PUSH, 0, 1, transactionID, xmlData, priority);
 
 	if (SKINNY_TONE_SILENCE != tone) {
-		sccp_dev_starttone(device, tone, 0, 0, 0);
+		sccp_dev_starttone(device, tone, 0, 0, 1);
 	}
 	return SCCP_PUSH_RESULT_SUCCESS;
 }
