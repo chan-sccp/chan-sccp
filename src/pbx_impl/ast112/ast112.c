@@ -1160,13 +1160,8 @@ int sccp_wrapper_asterisk112_hangup(PBX_CHANNEL_TYPE * ast_channel)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
 			c->answered_elsewhere = TRUE;
 		}
-
-		res = sccp_pbx_hangup(c);
 		/* postponing ast_channel_unref to sccp_channel destructor */
-		// c->owner = NULL;
-		if (0 == res) {
-			sccp_channel_release(&c);								// explicit release of the sccp_pbx channel
-		}
+		AUTO_RELEASE sccp_channel_t *channel = sccp_pbx_hangup(c);					/* explicit release from unretained channel returned by sccp_pbx_hangup */
 		ast_channel_tech_pvt_set(ast_channel, NULL);
 	} else {												// after this moment c might have gone already
 		ast_channel_tech_pvt_set(ast_channel, NULL);

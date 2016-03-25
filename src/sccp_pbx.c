@@ -419,7 +419,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
  * \note sccp_channel should be retained in calling function
  */
 
-int sccp_pbx_hangup(sccp_channel_t * channel)
+sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
 {
 
 	/* here the ast channel is locked */
@@ -432,7 +432,7 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 
 	if (!c) {
 		sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asked to hangup channel. SCCP channel already deleted\n");
-		return -1;
+		return NULL;
 	}
 
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
@@ -514,9 +514,9 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 		/* requesting statistics */
 		sccp_channel_StatisticsRequest(c);
 		sccp_channel_clean(c);
-		return 0;
+		return c;								/* returning unretained so that sccp_wrapper_asterisk113_hangup can clear out the last reference */
 	}
-	return -1;
+	return NULL;
 }
 
 /*!
@@ -1044,10 +1044,10 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			case SCCP_SOFTSWITCH_GETFORWARDEXTEN:
 				{
 					sccp_callforward_t type = (sccp_callforward_t) c->ss_data;
-
 					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Forward %s Extension\n", d->id, sccp_callforward2str(type));
 					if (!sccp_strlen_zero(shortenedNumber)) {
 						sccp_line_cfwd(l, d, type, shortenedNumber);
+						sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, 1);
 					}
 					sccp_channel_endcall(c);
 					goto EXIT_FUNC;								// leave simple switch without dial
