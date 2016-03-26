@@ -1964,7 +1964,7 @@ typedef union {
 
 	struct {
 		uint32_t lel_tone;										/*!< Tone (SKINNY_TONE ENUM)*/
-		uint32_t lel_toneTimeout;									/*!< Tone Timeout */
+		uint32_t lel_toneDirection;									/*!< Tone Direction (0 = User, 1=Network, 2=Both) */
 		uint32_t lel_lineInstance;									/*!< Line Instance */
 		uint32_t lel_callReference;									/*!< Call Reference */
 	} StartToneMessage;											/*!< Start Tone Message Structure */

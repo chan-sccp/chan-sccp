@@ -98,7 +98,7 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 						pbx_log(LOG_ERROR, "%s: 2\n", DEV_ID_LOG(device));
 						sccp_line_cfwd(l, device, type, c->dialedNumber);
 						// we are on call, so no tone has been played until now :)
-						sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, c->callid, 1);
+						sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 						sccp_channel_endcall(c);
 						return;
 					}
@@ -112,7 +112,7 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 						sccp_line_cfwd(l, device, type, number);
 						pbx_log(LOG_ERROR, "%s: 4\n", DEV_ID_LOG(device));
 						// we are on call, so no tone has been played until now :)
-						sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, c->callid, 1);
+						sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 						sccp_channel_endcall(c);
 						sccp_free(number);
 						return;
@@ -186,7 +186,6 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 	sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
 
-	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 	if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
 		sccp_channel_openReceiveChannel(c);
 	}
@@ -275,7 +274,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (perform_pickup) Giving Up\n");
 			int instance = sccp_device_find_index_for_line(d, c->line->name);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL " " SKINNY_DISP_OPICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
-			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, 0);
+			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
 		}
 	}
@@ -379,7 +378,7 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %s\n", DEV_ID_LOG(d), c->designator);
 			int instance = sccp_device_find_index_for_line(d, c->line->name);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
-			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, 0);
+			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
 		}
 		pbx_channel_unref(original);
@@ -442,7 +441,7 @@ int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstanc
 			} else {
 				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %s\n", DEV_ID_LOG(d), c->designator);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
-				sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c->callid, 0);
+				sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 				sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
 			}
 			pbx_channel_unref(original);

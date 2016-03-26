@@ -65,7 +65,7 @@ static const sccp_line_t * sccp_sk_get_retained_line(constDevicePtr d, constLine
 		return line;
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", DEV_ID_LOG(d));
-	sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c ? c->callid : 0, 1);
+	sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c ? c->callid : 0, SKINNY_TONEDIRECTION_USER);
 	sccp_dev_displayprompt(d, lineInstance, 0, error_str, SCCP_DISPLAYSTATUS_TIMEOUT);
 	return NULL;
 }
@@ -413,7 +413,7 @@ static void sccp_sk_answer(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 		ast_log(LOG_WARNING, "%s: (sccp_sk_answer) Pressed the answer key without any channel%s%s\n", d->id, l ? " on line: " : "", l ? l->name : "");
 		snprintf(buf, 100, SKINNY_DISP_NO_CHANNEL_TO_PERFORM_XXXXXXX_ON " " SKINNY_GIVING_UP, "ANSWER");
 		sccp_dev_displayprinotify(d, buf, 5, 5);
-		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, 1);
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, SKINNY_TONEDIRECTION_USER);
 		return;
 	}
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Answer Pressed, instance: %d\n", DEV_ID_LOG(d), lineInstance);

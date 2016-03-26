@@ -163,7 +163,7 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 
 		if (GLOB(autoanswer_tone) != SKINNY_TONE_SILENCE && GLOB(autoanswer_tone) != SKINNY_TONE_NOTONE) {
 			instance = sccp_device_find_index_for_line(device, c->line->name);
-			sccp_dev_starttone(device, GLOB(autoanswer_tone), instance, c->callid, 0);
+			sccp_dev_starttone(device, GLOB(autoanswer_tone), instance, c->callid, SKINNY_TONEDIRECTION_USER);
 		}
 		if (c->autoanswer_type == SCCP_AUTOANSWER_1W) {
 			sccp_dev_set_microphone(device, SKINNY_STATIONMIC_OFF);
@@ -441,7 +441,7 @@ sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
 		// if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_device_getActiveChannel_nolock(d))	/* Caused active channels never to be full released */
 		if (GLOB(remotehangup_tone) && d && SCCP_DEVICESTATE_OFFHOOK == sccp_device_getDeviceState(d) && SCCP_CHANNELSTATE_IsConnected(c->state) && c == d->active_channel) {
 			uint16_t instance = sccp_device_find_index_for_line(d, c->line->name);
-			sccp_dev_starttone(d, GLOB(remotehangup_tone), instance, c->callid, 10);
+			sccp_dev_starttone(d, GLOB(remotehangup_tone), instance, c->callid, SKINNY_TONEDIRECTION_USER);
 		}
 		//sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 	}
@@ -1046,8 +1046,8 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					sccp_callforward_t type = (sccp_callforward_t) c->ss_data;
 					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Forward %s Extension\n", d->id, sccp_callforward2str(type));
 					if (!sccp_strlen_zero(shortenedNumber)) {
+						sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 						sccp_line_cfwd(l, d, type, shortenedNumber);
-						sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, 1);
 					}
 					sccp_channel_endcall(c);
 					goto EXIT_FUNC;								// leave simple switch without dial

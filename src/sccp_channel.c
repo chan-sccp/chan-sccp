@@ -638,7 +638,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 		pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s\n", d->id, channel->designator);
 
 		instance = sccp_device_find_index_for_line(d, channel->line->name);
-		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, channel->callid, 0);
+		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, channel->callid, SKINNY_TONEDIRECTION_USER);
 		return;
 	} 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Started RTP on channel %s\n", d->id, channel->designator);
@@ -2259,7 +2259,7 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 	
 	if (GLOB(transfer_tone) && sccp_destination_local_channel->state == SCCP_CHANNELSTATE_CONNECTED) {
 		/* while connected not all the tones can be played */
-		sccp_dev_starttone(d, GLOB(autoanswer_tone), instance, sccp_destination_local_channel->callid, 0);
+		sccp_dev_starttone(d, GLOB(autoanswer_tone), instance, sccp_destination_local_channel->callid, SKINNY_TONEDIRECTION_USER);
 	}
 
 #if ASTERISK_VERSION_GROUP >= 108
@@ -2274,7 +2274,7 @@ EXIT:
 		pbx_channel_unref(pbx_destination_remote_channel);
 	}
 	if (result == FALSE) {
-		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, instance, sccp_destination_local_channel->callid, 1);
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, instance, sccp_destination_local_channel->callid, SKINNY_TONEDIRECTION_USER);
 		sccp_dev_displayprompt(d, instance, sccp_destination_local_channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 	}
 	if (!sccp_source_local_channel || !sccp_source_local_channel->owner) {
@@ -2539,7 +2539,7 @@ int sccp_channel_callwaiting_tone_interval(sccp_device_t * device, sccp_channel_
 					sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending Call Waiting Tone \n", d->id);
 					int instance = sccp_device_find_index_for_line(d, c->line->name);
 
-					sccp_dev_starttone(d, GLOB(callwaiting_tone), instance, c->callid, 0);
+					sccp_dev_starttone(d, GLOB(callwaiting_tone), instance, c->callid, SKINNY_TONEDIRECTION_USER);
 					return 0;
 				} 
 				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval) channel has been hungup or pickuped up by another phone\n");

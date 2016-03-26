@@ -1433,7 +1433,7 @@ void sccp_dev_deactivate_cplane(constDevicePtr d)
  * \param callid Call ID as uint32_t
  * \param timeout Timeout as uint32_t
  */
-void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t lineInstance, uint32_t callid, uint32_t timeout)
+void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t lineInstance, uint32_t callid, skinny_toneDirection_t direction)
 {
 	sccp_msg_t *msg = NULL;
 
@@ -1447,7 +1447,8 @@ void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t lineInstance, ui
 		return;
 	}
 	msg->data.StartToneMessage.lel_tone = htolel(tone);
-	msg->data.StartToneMessage.lel_toneTimeout = htolel(timeout);
+	//msg->data.StartToneMessage.lel_toneDirection = htolel(direction);
+	msg->data.StartToneMessage.lel_toneDirection = htolel(0);
 	msg->data.StartToneMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.StartToneMessage.lel_callReference = htolel(callid);
 
@@ -1505,7 +1506,7 @@ void sccp_dev_set_message(devicePtr d, const char *msg, const int timeout, const
 		sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_IDLE, msg);
 	}
 	if (beep) {
-		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 1);
+		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, SKINNY_TONEDIRECTION_USER);
 	}
 }
 
@@ -2704,7 +2705,7 @@ static void sccp_device_indicate_offhook(constDevicePtr device, sccp_linedevices
 	sccp_dev_set_cplane(device, linedevice->lineInstance, 1);
 	sccp_dev_displayprompt(device, linedevice->lineInstance, callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 	sccp_dev_set_keyset(device, linedevice->lineInstance, callid, KEYMODE_OFFHOOK);
-	sccp_dev_starttone(device, SKINNY_TONE_INSIDEDIALTONE, linedevice->lineInstance, callid, 0);
+	sccp_dev_starttone(device, SKINNY_TONE_INSIDEDIALTONE, linedevice->lineInstance, callid, SKINNY_TONEDIRECTION_USER);
 }
 
 static void __sccp_device_indicate_immediate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
@@ -2979,7 +2980,7 @@ static sccp_push_result_t sccp_device_pushURL(constDevicePtr device, const char 
 	snprintf(xmlData, msg_length, xmlFormat, url);
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_PUSH, 0, 1, transactionID, xmlData, priority);
 	if (SKINNY_TONE_SILENCE != tone) {
-		sccp_dev_starttone(device, tone, 0, 0, 1);
+		sccp_dev_starttone(device, tone, 0, 0, SKINNY_TONEDIRECTION_USER);
 	}
 	return SCCP_PUSH_RESULT_SUCCESS;
 }
@@ -3023,7 +3024,7 @@ static sccp_push_result_t sccp_device_pushTextMessage(constDevicePtr device, con
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_PUSH, 0, 1, transactionID, xmlData, priority);
 
 	if (SKINNY_TONE_SILENCE != tone) {
-		sccp_dev_starttone(device, tone, 0, 0, 1);
+		sccp_dev_starttone(device, tone, 0, 0, SKINNY_TONEDIRECTION_USER);
 	}
 	return SCCP_PUSH_RESULT_SUCCESS;
 }
