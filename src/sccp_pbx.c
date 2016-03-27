@@ -338,7 +338,8 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_CALLWAITING);
 
 			/* display the new call on prompt */
-			AUTO_RELEASE sccp_linedevices_t *activeChannelLinedevice = sccp_linedevice_find(linedevice->device, active_channel->line);
+			//AUTO_RELEASE sccp_linedevices_t *activeChannelLinedevice = sccp_linedevice_find(linedevice->device, active_channel->line);
+			AUTO_RELEASE sccp_linedevices_t *activeChannelLinedevice = active_channel->getLineDevice(active_channel);
 			if (activeChannelLinedevice) {
 				char prompt[100];
 				snprintf(prompt, sizeof(prompt), "%s: %s: %s", active_channel->line->name, SKINNY_DISP_FROM, cid_num);
@@ -628,7 +629,8 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				* remembers the last dialed number in the same cases, where the dialed number
 				* is being sent - after receiving of RINGOUT -Pavel Troller
 				*/
-				AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, c->line);
+				//AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, c->line);
+				AUTO_RELEASE sccp_linedevices_t *linedevice = c->getLineDevice(c);
 				if(linedevice){ 
 					sccp_device_setLastNumberDialed(d, c->dialedNumber, linedevice);
 				}
@@ -1249,7 +1251,8 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					/* 
 					 * too early to set last dialed number for immediate mode -Pavel Troller
 					 */
-					AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, c->line);
+					//AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, c->line);
+					AUTO_RELEASE sccp_linedevices_t *linedevice = c->getLineDevice(c);
 					if(linedevice){ 
 						sccp_device_setLastNumberDialed(d, shortenedNumber, linedevice);
 					}

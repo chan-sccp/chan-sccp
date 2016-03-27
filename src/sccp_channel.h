@@ -24,15 +24,15 @@ __BEGIN_C_EXTERN__
  * \note This contains the current channel information
  */
 struct sccp_channel {
-	uint32_t callid;											/*!< Call ID */
-	uint32_t passthrupartyid;										/*!< Pass Through ID */
+	const uint32_t callid;											/*!< Call ID */
+	const uint32_t passthrupartyid;										/*!< Pass Through ID */
 	sccp_channelstate_t state;										/*!< Internal channel state SCCP_CHANNELSTATE_* */
 	sccp_channelstate_t previousChannelState;								/*!< Previous channel state SCCP_CHANNELSTATE_* */
 	sccp_channelstatereason_t channelStateReason;								/*!< Reason the new/current state was set (for example to handle HOLD differently for transfer then normal) */
 	skinny_calltype_t calltype;										/*!< Skinny Call Type as SKINNY_CALLTYPE_* */
 	
 	PBX_CHANNEL_TYPE *owner;										/*!< Asterisk Channel Owner */
-	sccp_line_t *line;											/*!< SCCP Line */
+	sccp_line_t * const line;										/*!< SCCP Line */
 	SCCP_LIST_ENTRY (sccp_channel_t) list;									/*!< Channel Linked List */
 	char dialedNumber[SCCP_MAX_EXTENSION];									/*!< Last Dialed Number */
 	char designator[CHANNEL_DESIGNATOR_SIZE];
@@ -42,11 +42,8 @@ struct sccp_channel {
 	boolean_t peerIsSCCP;											/*!< Indicates that channel-peer is also SCCP */
 	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
 
-#if DEBUG
-	sccp_device_t *(*getDevice_retained) (const sccp_channel_t * channel, const char *filename, int lineno, const char *func);	/*!< temporary function to retrieve refcounted device */
-#else
 	sccp_device_t *(*getDevice_retained) (const sccp_channel_t * channel);					/*!< temporary function to retrieve refcounted device */
-#endif
+	sccp_linedevices_t *(*getLineDevice) (const sccp_channel_t * channel);					/*!< function to retrieve refcounted linedevice */
 	void (*setDevice) (sccp_channel_t * channel, const sccp_device_t * device);				/*!< set refcounted device connected to the channel */
 	char currentDeviceId[StationMaxDeviceNameSize];								/*!< Returns a constant char of the Device Id if available */
 
@@ -189,12 +186,8 @@ SCCP_API int SCCP_CALL sccp_channel_hold(channelPtr channel);
 SCCP_API int SCCP_CALL sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swap_channels);
 SCCP_API int SCCP_CALL sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
 
-#if DEBUG
-#define sccp_channel_getDevice_retained(_x) __sccp_channel_getDevice_retained(_x, __FILE__,__LINE__,__PRETTY_FUNCTION__)
-SCCP_API sccp_device_t * SCCP_CALL __sccp_channel_getDevice_retained(const sccp_channel_t * channel, const char *filename, int lineno, const char *func);
-#else
 SCCP_API sccp_device_t * SCCP_CALL sccp_channel_getDevice_retained(const sccp_channel_t * channel);
-#endif
+SCCP_API sccp_linedevices_t * SCCP_CALL sccp_channel_getLineDevice(const sccp_channel_t * channel);
 SCCP_API void SCCP_CALL sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * device);
 SCCP_API const char * SCCP_CALL sccp_channel_device_id(const sccp_channel_t * channel);
 

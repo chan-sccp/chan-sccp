@@ -16,6 +16,7 @@
 #define sccp_device_refreplace(_x, _y)	sccp_refcount_refreplace_type(sccp_device_t, _x, _y)
 
 __BEGIN_C_EXTERN__
+
 /*!
  * \brief SCCP Button Configuration Structure
  */

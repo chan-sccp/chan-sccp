@@ -1447,13 +1447,12 @@ void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t lineInstance, ui
 		return;
 	}
 	msg->data.StartToneMessage.lel_tone = htolel(tone);
-	//msg->data.StartToneMessage.lel_toneDirection = htolel(direction);
-	msg->data.StartToneMessage.lel_toneDirection = htolel(0);
+	msg->data.StartToneMessage.lel_toneDirection = htolel(direction);
 	msg->data.StartToneMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.StartToneMessage.lel_callReference = htolel(callid);
 
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending tone %s (%d) on line %d with callid %d\n", d->id, skinny_tone2str(tone), tone, lineInstance, callid);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending tone %s (%d) on line %d with callid %d (direction: %s)\n", d->id, skinny_tone2str(tone), tone, lineInstance, callid, skinny_toneDirection2str(direction));
 }
 
 /*!
@@ -2498,28 +2497,6 @@ sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(devicePtr device, uint16_t
 }
 
 /*!
- * \brief Find Device by Line Index
- * \param d SCCP Device
- * \param lineName Line Name as char
- * \return Status as int
- * \note device should be locked by parent fuction
- *
- * \warning
- *   - device->buttonconfig is not always locked
- */
-uint8_t sccp_device_find_index_for_line(constDevicePtr d, const char *lineName)
-{
-	uint8_t instance;
-
-	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
-		if (d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line && !strcasecmp(d->lineButtons.instance[instance]->line->name, lineName)) {
-			return instance;
-		}
-	}
-	return 0;
-}
-
-/*!
  * \brief Send Reset to a Device
  * \param d SCCP Device
  * \param reset_type as int
@@ -3029,6 +3006,29 @@ static sccp_push_result_t sccp_device_pushTextMessage(constDevicePtr device, con
 	return SCCP_PUSH_RESULT_SUCCESS;
 }
 
+/*=================================================================================== FIND FUNCTIONS ==============*/
+
+/*!
+ * \brief Find Device by Line Index
+ * \param d SCCP Device
+ * \param lineName Line Name as char
+ * \return Status as int
+ * \note device should be locked by parent fuction
+ *
+ * \warning
+ *   - device->buttonconfig is not always locked
+ */
+uint8_t sccp_device_find_index_for_line(constDevicePtr d, const char *lineName)
+{
+	uint8_t instance;
+	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
+		if (d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line && !strcasecmp(d->lineButtons.instance[instance]->line->name, lineName)) {
+			return instance;
+		}
+	}
+	return 0;
+}
+
 gcc_inline int16_t sccp_device_buttonIndex2lineInstance(constDevicePtr d, uint16_t buttonIndex)
 {
 	if (buttonIndex > 0 && buttonIndex < StationMaxButtonTemplateSize && d->buttonTemplate[buttonIndex - 1].instance) {
@@ -3037,9 +3037,6 @@ gcc_inline int16_t sccp_device_buttonIndex2lineInstance(constDevicePtr d, uint16
 	pbx_log(LOG_ERROR, "%s: buttonIndex2lineInstance for buttonIndex:%d failed!\n", d->id, buttonIndex);
 	return -1;
 }
-
-/*=================================================================================== FIND FUNCTIONS ==============*/
-
 
 /*!
  * \brief Find Device by ID

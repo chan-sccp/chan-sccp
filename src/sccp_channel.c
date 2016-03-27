@@ -44,6 +44,7 @@ AST_MUTEX_DEFINE_STATIC(callCountLock);
  */
 struct sccp_private_channel_data {
 	sccp_device_t *device;
+	sccp_linedevices_t *linedevice;
 	sccp_callinfo_t *callInfo;
 	boolean_t microphone;											/*!< Flag to mute the microphone when calling a baby phone */
 };
@@ -120,9 +121,9 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	AUTO_RELEASE sccp_line_t *line = sccp_line_retain(l);
 	int32_t callid;
 
-	/* If there is no current line, then we can't make a call in, or out. */
-	if (!line) {
-		pbx_log(LOG_ERROR, "SCCP: Tried to open channel on a device with no lines\n");
+	sccp_line_t *refLine = sccp_line_retain(l);
+	if (!refLine) {
+		pbx_log(LOG_ERROR, "SCCP: Could not retain line to create a channel on it, giving up!\n");
 		return NULL;
 	}
 
@@ -168,7 +169,11 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		return NULL;
 	}
 
-	channel->line = sccp_line_retain(line);
+	/* assign constant values, not changed until destruction */
+	*(uint32_t *)&channel->callid = callid;				// cast away const to set initial value
+	*(uint32_t *)&channel->passthrupartyid = callid ^ 0xFFFFFFFF;
+	*(sccp_line_t **)&channel->line = refLine;
+
 	//iCallInfo.Setter(channel->privateData->callInfo, 
 	//	SCCP_CALLINFO_PRESENTATION, 
 	//	CALLERID_PRESENTATION_ALLOWED, 
@@ -186,19 +191,14 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	channel->calltype = SKINNY_CALLTYPE_INBOUND;
 	channel->answered_elsewhere = FALSE;
 
-	channel->callid = callid;
-	channel->passthrupartyid = callid ^ 0xFFFFFFFF;
 
 	channel->peerIsSCCP = 0;
 	channel->maxBitRate = 15000;
 	channel->videomode = SCCP_VIDEO_MODE_AUTO;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: New channel number: %d on line %s\n", l->id, channel->callid, l->name);
-#if DEBUG
-	channel->getDevice_retained = __sccp_channel_getDevice_retained;
-#else
 	channel->getDevice_retained = sccp_channel_getDevice_retained;
-#endif
+	channel->getLineDevice = sccp_channel_getLineDevice;
 	channel->setDevice = sccp_channel_setDevice;
 	if (device) {
 		channel->dtmfmode = device->getDtmfMode(device);
@@ -218,33 +218,32 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	return channel;
 }
 
-#if DEBUG
-/*!
- * \brief Retrieve Device from Channels->Private Channel Data
- * \param channel SCCP Channel
- * \param filename Debug Filename
- * \param lineno Debug LineNumber
- * \param func Debug Function Name
- * \return SCCP Device
- */
-sccp_device_t *__sccp_channel_getDevice_retained(const sccp_channel_t * channel, const char *filename, int lineno, const char *func)
-#else
 /*!
  * \brief Retrieve Device from Channels->Private Channel Data
  * \param channel SCCP Channel
  * \return SCCP Device
  */
 sccp_device_t *sccp_channel_getDevice_retained(const sccp_channel_t * channel)
-#endif
 {
 	pbx_assert(channel != NULL);
 	if (channel->privateData && channel->privateData->device) {
-#if DEBUG
-		channel->privateData->device = sccp_refcount_retain( channel->privateData->device, filename, lineno, func);
-#else
-		channel->privateData->device = sccp_device_retain((sccp_device_t *) channel->privateData->device);
-#endif
-		return channel->privateData->device;
+		sccp_device_t *device = sccp_device_retain(channel->privateData->device);
+		return device;
+	} 
+	return NULL;
+}
+
+/*!
+ * \brief Retrieve LineDevice from Channels->Private Channel Data
+ * \param channel SCCP Channel
+ * \return SCCP LineDevice
+ */
+sccp_linedevices_t *sccp_channel_getLineDevice(const sccp_channel_t * channel)
+{
+	pbx_assert(channel != NULL);
+	if (channel->privateData && channel->privateData->linedevice) {
+		sccp_linedevices_t *linedevice = sccp_linedevice_retain(channel->privateData->linedevice);
+		return linedevice;
 	} 
 	return NULL;
 }
@@ -276,6 +275,10 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 	}
 
 	if (channel->privateData && channel->privateData->device) {
+		{
+			AUTO_RELEASE sccp_linedevices_t *ld = sccp_linedevice_find(channel->privateData->device, channel->line);
+			sccp_linedevice_refreplace(&channel->privateData->linedevice, ld);
+		}
 		memcpy(&channel->preferences.audio, &channel->privateData->device->preferences.audio, sizeof(channel->preferences.audio));
 		memcpy(&channel->capabilities.audio, &channel->privateData->device->capabilities.audio, sizeof(channel->capabilities.audio));
 		sccp_copy_string(channel->currentDeviceId, channel->privateData->device->id, sizeof(char[StationMaxDeviceNameSize]));
@@ -286,6 +289,7 @@ EXIT:
 	/* \todo instead of copying caps / prefs from global */
 	memcpy(&channel->preferences.audio, &GLOB(global_preferences), sizeof(channel->preferences.audio));
 	memcpy(&channel->capabilities.audio, &GLOB(global_preferences), sizeof(channel->capabilities.audio));
+	sccp_linedevice_refreplace(&channel->privateData->linedevice, NULL);
 	/* \todo we should use */
 	// sccp_line_copyMinimumCodecSetFromLineToChannel(l, c); 
 	
@@ -1885,7 +1889,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 		sccp_rtp_destroy(channel);
 	}
 	if (channel->line) {
-		sccp_line_release(&channel->line);					/* explicit release to cleanup line reference */
+		sccp_line_release((sccp_line_t **)&channel->line);		       // cast away const to set initial value
 	}
 
 	if (channel->owner) {

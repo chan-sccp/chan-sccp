@@ -2550,11 +2550,7 @@ static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *d
 
 	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);
 	if (c) {
-#if DEBUG
-		AUTO_RELEASE sccp_device_t *d = c->getDevice_retained(c, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-#else
 		AUTO_RELEASE sccp_device_t *d = c->getDevice_retained(c);
-#endif
  		if (d) {
 			memset(&fr, 0, sizeof(fr));
 			fr.frametype = AST_FRAME_HTML;
