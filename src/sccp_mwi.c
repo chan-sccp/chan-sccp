@@ -628,7 +628,7 @@ void sccp_mwi_check(sccp_device_t * d)
 				sccp_channel_t *c = NULL;
 				SCCP_LIST_LOCK(&line->channels);
 				SCCP_LIST_TRAVERSE(&line->channels, c, list) {
-					AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice_retained(c);
+					AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice(c);
 					if (tmpDevice && tmpDevice == device) {						// We have a channel belonging to our device (no remote shared line channel)
 						if ((c->state != SCCP_CHANNELSTATE_ONHOOK && c->state != SCCP_CHANNELSTATE_DOWN) || c->state == SCCP_CHANNELSTATE_RINGING) {
 							sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: we have an active channel, suppress mwi light\n", DEV_ID_LOG(device));

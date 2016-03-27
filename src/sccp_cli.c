@@ -1415,7 +1415,7 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 		AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);								\
 		SCCP_LIST_LOCK(&l->channels);											\
 		SCCP_LIST_TRAVERSE(&l->channels, channel, list) {								\
-			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);				\
+			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);				\
 			if (channel->conference_id) {										\
 				snprintf(tmpname, sizeof(tmpname), "SCCPCONF/%03d/%03d", channel->conference_id, channel->conference_participant_id);	\
 			} else {												\
@@ -1609,7 +1609,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 			SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
 				AUTO_RELEASE sccp_channel_t *tmpChannel = sccp_channel_retain(channel);
-				AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(tmpChannel);
+				AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(tmpChannel);
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Sending OpenReceiveChannel and changing payloadType to 8\n");
 
 				REQ(msg1, OpenReceiveChannel);

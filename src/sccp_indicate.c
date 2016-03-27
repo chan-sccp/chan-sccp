@@ -50,7 +50,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1 "SCCP: [INDICATE] state '%d' in file '%s', on line %d (%s)\n", state, file, line, pretty_function);
 	}
 
-	AUTO_RELEASE sccp_device_t *d = (device) ? sccp_device_retain(device) : sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = (device) ? sccp_device_retain(device) : sccp_channel_getDevice(c);
 
 	if (!d) {
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1 "SCCP: The channel %d does not have a device\n", c->callid);

@@ -568,7 +568,7 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 		return -1;
 	}
 
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 	if (!d) {
 		switch (ind) {
 			case AST_CONTROL_CONNECTED_LINE:
@@ -1152,7 +1152,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk111_park(const sccp_channel_t * ho
 	memset(extstr, 0, sizeof(extstr));
 
 	if ((bridgedChannel = ast_bridged_channel(hostChannel->owner))) {
-		AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(hostChannel);
+		AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice(hostChannel);
 		if (device) {
 			ast_channel_lock(hostChannel->owner);							/* we have to lock our channel, otherwise asterisk crashes internally */
 			if (!ast_masq_park_call(bridgedChannel, hostChannel->owner, 0, &extout)) {
@@ -1539,8 +1539,8 @@ static enum ast_bridge_result sccp_wrapper_asterisk111_rtpBridge(PBX_CHANNEL_TYP
 			ast_channel_defer_dtmf(c0);
 			ast_channel_defer_dtmf(c1);
 		} else {
-			AUTO_RELEASE sccp_device_t *d0 = sccp_channel_getDevice_retained(sc0);
-			AUTO_RELEASE sccp_device_t *d1 = sccp_channel_getDevice_retained(sc1);
+			AUTO_RELEASE sccp_device_t *d0 = sccp_channel_getDevice(sc0);
+			AUTO_RELEASE sccp_device_t *d1 = sccp_channel_getDevice(sc1);
 			if ((d0 && d1) && ((d0->directrtp && d1->directrtp)) {
 				ast_channel_defer_dtmf(c0);
 				ast_channel_defer_dtmf(c1);
@@ -1707,7 +1707,7 @@ static int sccp_wrapper_asterisk111_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 			result = 0;
 			break;
 		}
-		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 		if (!d) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_update_rtp_peer) NO DEVICE\n", c->currentDeviceId);
 			result = -1;
@@ -2313,7 +2313,7 @@ static int sccp_pbx_sendtext(PBX_CHANNEL_TYPE * ast, const char *text)
 		return -1;
 	}
 
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 	if (!d) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: No SCCP DEVICE to send text to (%s)\n", pbx_channel_name(ast));
 		return -1;
@@ -2357,7 +2357,7 @@ static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE * ast, char digit, unsign
 			return -1;
 		}
 
-		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 		if (!d) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: No SCCP DEVICE to send digit to (%s)\n", pbx_channel_name(ast));
 			return -1;
@@ -2521,7 +2521,7 @@ static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *d
 
 	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);
 	if (c) {
-		AUTO_RELEASE sccp_device_t *d = c->getDevice_retained(c);
+		AUTO_RELEASE sccp_device_t *d = c->getDevice(c);
 		if (d) {
 			memset(&fr, 0, sizeof(fr));
 			fr.frametype = AST_FRAME_HTML;

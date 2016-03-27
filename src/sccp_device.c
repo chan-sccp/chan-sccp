@@ -2226,7 +2226,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 					AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
 
 					if (c) {
-						AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice_retained(channel);
+						AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice(channel);
 
 						if (tmpDevice == d) {
 							sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
@@ -2602,7 +2602,7 @@ uint8_t sccp_device_numberOfChannels(constDevicePtr device)
 			}
 			SCCP_LIST_LOCK(&l->channels);
 			SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-				AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice_retained(c);
+				AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice(c);
 
 				if (tmpDevice == device) {
 					numberOfChannels++;

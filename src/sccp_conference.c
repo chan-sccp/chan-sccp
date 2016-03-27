@@ -553,7 +553,7 @@ boolean_t sccp_conference_addParticipatingChannel(conferencePtr conference, cons
 			AUTO_RELEASE sccp_channel_t *channel = get_sccp_channel_from_pbx_channel(pbxChannel);
 			AUTO_RELEASE sccp_device_t *device = NULL;
 
-			if (channel && (device = sccp_channel_getDevice_retained(channel))) {
+			if (channel && (device = sccp_channel_getDevice(channel))) {
 				participant->playback_announcements = device->conf_play_part_announce;
 				iPbx.setChannelLinkedId(channel, conference->linkedid);
 				sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);

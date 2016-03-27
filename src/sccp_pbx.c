@@ -436,7 +436,7 @@ sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
 		return NULL;
 	}
 
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 
 	if (d && !SCCP_CHANNELSTATE_Idling(c->state) && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d)) {
 		// if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_device_getActiveChannel_nolock(d))	/* Caused active channels never to be full released */
@@ -619,7 +619,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 
 		/*! \todo This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
 		   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
-		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 
 		if (d) {
 			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
@@ -701,7 +701,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	char cid_num[StationMaxDirnumSize] = {0};
 	{
 		sccp_linedevices_t *linedevice = NULL;
-		if ((d = sccp_channel_getDevice_retained(c))) {
+		if ((d = sccp_channel_getDevice(c))) {
 			SCCP_LIST_LOCK(&l->devices);
 			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 				if (linedevice->device == d) {
@@ -918,7 +918,7 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 
 		//! \todo check overlap feature status -MC
 		extensionStatus = iPbx.extension_status(c);
-		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 
 		if (d) {
 			if (((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus))) {
@@ -986,7 +986,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 
 		/* assume d is the channel's device */
 		/* does it exists ? */
-		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 
 		if (!d) {
 			pbx_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <device> available. Returning from dial thread. Exiting\n");

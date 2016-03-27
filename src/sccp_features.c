@@ -928,7 +928,7 @@ static void *sccp_feat_meetme_thread(void *data)
 		pbx_log(LOG_NOTICE, "SCCP: no channel provided for meetme feature. exiting\n");
 		return NULL;
 	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 
 	if (!d) {
 		pbx_log(LOG_NOTICE, "SCCP: no device provided for meetme feature. exiting\n");
@@ -1090,7 +1090,7 @@ int sccp_feat_barge(constChannelPtr c, const char * const exten)
 	if (!c) {
 		return -1;
 	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 
 	if (!d) {
 		return -1;
@@ -1185,7 +1185,7 @@ int sccp_feat_cbarge(constChannelPtr c, const char * const conferencenum)
 	if (!c) {
 		return -1;
 	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 
 	if (!d) {
 		return -1;

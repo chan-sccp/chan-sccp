@@ -1727,7 +1727,7 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 		}
 		if (channel) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: got active channel %s, line stimulus on line: %s\n", d->id, channel->designator, l->name);
-			AUTO_RELEASE sccp_device_t *check_device = sccp_channel_getDevice_retained(channel);
+			AUTO_RELEASE sccp_device_t *check_device = sccp_channel_getDevice(channel);
 			if (check_device == d) {							// check to see if we own the channel (otherwise it would be a shared line owned by another device)
 				if (SCCP_CHANNELSTATE_IsConnected(channel->state)) {				/* incoming call on other line */
 					if (sccp_channel_hold(channel)) {
