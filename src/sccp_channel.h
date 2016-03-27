@@ -42,12 +42,12 @@ struct sccp_channel {
 	boolean_t peerIsSCCP;											/*!< Indicates that channel-peer is also SCCP */
 	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
 
-	sccp_device_t *(*getDevice) (const sccp_channel_t * channel);						/*!< function to retrieve refcounted device */
-	sccp_linedevices_t *(*getLineDevice) (const sccp_channel_t * channel);					/*!< function to retrieve refcounted linedevice */
-	void (*setDevice) (sccp_channel_t * channel, const sccp_device_t * device);				/*!< set refcounted device connected to the channel */
+	sccp_device_t * const (*getDevice) (const sccp_channel_t * channel);						/*!< function to retrieve refcounted device */
+	sccp_linedevices_t * const (*getLineDevice) (const sccp_channel_t * channel);					/*!< function to retrieve refcounted linedevice */
+	void (*setDevice) (sccp_channel_t * const channel, const sccp_device_t * device);				/*!< set refcounted device connected to the channel */
 	char currentDeviceId[StationMaxDeviceNameSize];								/*!< Returns a constant char of the Device Id if available */
 
-	sccp_private_channel_data_t *privateData;
+	sccp_private_channel_data_t * const privateData;
 
 	struct {
 		skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];							/*!< our channel Capability in preference order */
@@ -186,10 +186,10 @@ SCCP_API int SCCP_CALL sccp_channel_hold(channelPtr channel);
 SCCP_API int SCCP_CALL sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swap_channels);
 SCCP_API int SCCP_CALL sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
 
-SCCP_API sccp_device_t * SCCP_CALL sccp_channel_getDevice(const sccp_channel_t * channel);
-SCCP_API sccp_linedevices_t * SCCP_CALL sccp_channel_getLineDevice(const sccp_channel_t * channel);
-SCCP_API void SCCP_CALL sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * device);
-SCCP_API const char * SCCP_CALL sccp_channel_device_id(const sccp_channel_t * channel);
+SCCP_API sccp_device_t * const SCCP_CALL sccp_channel_getDevice(const sccp_channel_t * channel);
+SCCP_API sccp_linedevices_t * const SCCP_CALL sccp_channel_getLineDevice(const sccp_channel_t * channel);
+SCCP_API void SCCP_CALL sccp_channel_setDevice(sccp_channel_t * const channel, const sccp_device_t * device);
+//SCCP_API const char * const SCCP_CALL sccp_channel_device_id(const sccp_channel_t * channel);
 
 #ifdef CS_SCCP_PARK
 SCCP_API void SCCP_CALL sccp_channel_park(sccp_channel_t * channel);

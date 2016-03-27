@@ -156,16 +156,18 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		/* error allocating memory */
 		pbx_log(LOG_ERROR, "%s: No memory to allocate channel private data on line %s\n", l->id, l->name);
 		sccp_channel_release(&channel);					/* explicit release when private_data could not be created */
+		sccp_line_release(&refLine);
 		return NULL;
 	}
-	channel->privateData = private_data;
+	*(struct sccp_private_channel_data **)&channel->privateData = private_data;     // cast away const to set initial value
 	channel->privateData->microphone = TRUE;
 	channel->privateData->device = NULL;
 	channel->privateData->callInfo = iCallInfo.Constructor(callInstance);
 	if (!channel->privateData->callInfo) {
 		/* error allocating memory */
-		sccp_free(channel->privateData);
+		sccp_free(private_data);
 		sccp_channel_release(&channel);					/* explicit release when private_data could not be created */
+		sccp_line_release(&refLine);
 		return NULL;
 	}
 
@@ -190,7 +192,6 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	/* inbound for now. It will be changed later on outgoing calls */
 	channel->calltype = SKINNY_CALLTYPE_INBOUND;
 	channel->answered_elsewhere = FALSE;
-
 
 	channel->peerIsSCCP = 0;
 	channel->maxBitRate = 15000;
@@ -223,7 +224,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
  * \param channel SCCP Channel
  * \return SCCP Device
  */
-sccp_device_t *sccp_channel_getDevice(const sccp_channel_t * channel)
+sccp_device_t * const sccp_channel_getDevice(const sccp_channel_t * channel)
 {
 	pbx_assert(channel != NULL);
 	if (channel->privateData && channel->privateData->device) {
@@ -238,7 +239,7 @@ sccp_device_t *sccp_channel_getDevice(const sccp_channel_t * channel)
  * \param channel SCCP Channel
  * \return SCCP LineDevice
  */
-sccp_linedevices_t *sccp_channel_getLineDevice(const sccp_channel_t * channel)
+sccp_linedevices_t * const sccp_channel_getLineDevice(const sccp_channel_t * channel)
 {
 	pbx_assert(channel != NULL);
 	if (channel->privateData && channel->privateData->linedevice) {
@@ -253,7 +254,7 @@ sccp_linedevices_t *sccp_channel_getLineDevice(const sccp_channel_t * channel)
  * \param channel SCCP Channel
  * \param device SCCP Device
  */
-void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * device)
+void sccp_channel_setDevice(sccp_channel_t * const channel, const sccp_device_t * device)
 {
 	if (!channel || !channel->privateData) {
 		return;
@@ -1899,7 +1900,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 		if (channel->privateData->callInfo) {
 			iCallInfo.Destructor(channel->privateData->callInfo);
 		}
-		sccp_free(channel->privateData);
+		sccp_free(*(struct sccp_private_channel_data **)&channel->privateData); // cast away const to set initial value
 	}
 	
 #ifndef SCCP_ATOMIC
