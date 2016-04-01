@@ -269,7 +269,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
 			}
 			/* hangup masqueraded zombie channel*/
-			if (pbx_test_flag(ast_channel_flags(original), AST_FLAG_ZOMBIE)) {
+			if (pbx_test_flag(pbx_channel_flags(original), AST_FLAG_ZOMBIE)) {
 				pbx_hangup(original);
 			}
 		} else {									// pickup failed
