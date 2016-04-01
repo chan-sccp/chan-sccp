@@ -1009,7 +1009,7 @@ int sccp_wrapper_asterisk110_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		/* postponing ast_channel_unref to sccp_channel destructor */
 		AUTO_RELEASE sccp_channel_t *channel = sccp_pbx_hangup(c);					/* explicit release from unretained channel returned by sccp_pbx_hangup */
 		ast_channel->tech_pvt = NULL;
-		/* postponing ast_channel_unref to sccp_channel destructor */
+		(void) channel;											// suppress unused variable warning
 	} else {												// after this moment c might have gone already
 		ast_channel->tech_pvt = NULL;
 		pbx_channel_unref(ast_channel);									// strange unknown channel, why did we get called to hang it up ?
