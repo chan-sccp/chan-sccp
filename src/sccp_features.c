@@ -232,16 +232,15 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 
 		//pbx_channel_ref(original);
 		res = ast_do_pickup(original, target);
-		if (!res) {
-			/* directed pickup succeeded */
+		pbx_channel_unlock(target);
+		if (!res) {									// directed pickup succeeded
 			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (perform_pickup) pickup succeeded on call: %s\n", DEV_ID_LOG(d), c->designator);
+			/* disconnect from masquaraded zombie channel */
 			sccp_channel_setDevice(c, NULL);
 			pbx_channel_set_hangupcause(original, AST_CAUSE_ANSWERED_ELSEWHERE);
-			pbx_hangup(original);
-			/* masqueraded zombie channel hungup */
 			
 			/* continue with masquaraded channel */
-			pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);		// reset picked up channel
+			pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);	// reset picked up channel
 
 			callinfo_orig = sccp_channel_getCallInfo(c);
 			iCallInfo.Setter(callinfo_orig, 					// update calling end
@@ -254,7 +253,6 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, target_number,
 				SCCP_CALLINFO_LAST_REDIRECT_REASON, 4,
 				SCCP_CALLINFO_KEY_SENTINEL);
-			//iCallInfo.Print2log(callinfo_orig, "SCCP: (perform pickup)");
 						
 			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (perform_pickup) channel:%s, modeanser: %s\n", DEV_ID_LOG(d), c->designator, answer ? "yes" : "no");
 			if (answer) {
@@ -270,7 +268,11 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 				} 
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
 			}
-		} else {
+			/* hangup masqueraded zombie channel*/
+			if (pbx_test_flag(ast_channel_flags(original), AST_FLAG_ZOMBIE)) {
+				pbx_hangup(original);
+			}
+		} else {									// pickup failed
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (perform_pickup) Giving Up\n");
 			int instance = sccp_device_find_index_for_line(d, c->line->name);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL " " SKINNY_DISP_OPICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
@@ -278,7 +280,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
 		}
 	}
-	pbx_channel_unlock(target);
+	//pbx_channel_unlock(target);
 #endif
 	return res;
 }
@@ -368,7 +370,7 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 	PBX_CHANNEL_TYPE *target = NULL;									/* potential pickup target */
 	PBX_CHANNEL_TYPE *original = c->owner;
 	if (pbx_channel_ref(original)) {
-		pbx_log(LOG_NOTICE, "%s: executing directed_pickup\n", c->designator);
+		pbx_log(LOG_NOTICE, "%s: executing directed_pickup for %s@%s\n", c->designator, exten, context);
 		target = iPbx.findPickupChannelByExtenLocked(original, exten, context);
 		if (target) {
 			/* fixup callinfo */
