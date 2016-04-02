@@ -129,8 +129,8 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		return NULL;
 	}
 
-	char designator[CHANNEL_DESIGNATOR_SIZE];
 	int32_t callid;
+	char designator[32];
 	sccp_mutex_lock(&callCountLock);
 	if (callCount < 0xFFFFFFFF) {						/* callcount limit should be reset at his upper limit :) */
 		callid = callCount++;
@@ -139,7 +139,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		callCount = 1;
 		callid = callCount;
 	}
-	snprintf(designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/%s-%08X", refLine->name, callid);
+	snprintf(designator, 32, "SCCP/%s-%08X", refLine->name, callid);
 	uint8_t callInstance = refLine->statistic.numberOfActiveChannels + refLine->statistic.numberOfHeldChannels + 1;
 	sccp_mutex_unlock(&callCountLock);
 	do {
@@ -165,9 +165,14 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		*(uint32_t *)&channel->callid = callid;
 		*(uint32_t *)&channel->passthrupartyid = callid ^ 0xFFFFFFFF;
 		*(sccp_line_t **)&channel->line = refLine;
+		*(char **)&channel->musicclass = pbx_strdup(
+							!sccp_strlen_zero(refLine->musicclass) ? refLine->musicclass : 
+							!sccp_strlen_zero(GLOB(musicclass)) ? GLOB(musicclass) : 
+							"default"
+						);
+		*(char **)&channel->designator = pbx_strdup(designator);
 
 		/* assign default values */
-		sccp_copy_string(channel->designator, designator, sizeof(channel->designator));
 		channel->privateData->microphone = TRUE;
 		channel->privateData->device = NULL;
 		channel->privateData->callInfo = callInfo;
@@ -385,36 +390,6 @@ static void sccp_channel_recalculateWriteformat(sccp_channel_t * channel)
 						       channel->designator, sccp_multiple_codecs2str(s1, sizeof(s1) - 1, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio)), sccp_multiple_codecs2str(s3, sizeof(s3) - 1, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio)), sccp_multiple_codecs2str(s4, sizeof(s4) - 1, channel->remoteCapabilities.audio, ARRAY_LEN(channel->remoteCapabilities.audio)), sccp_multiple_codecs2str(s2, sizeof(s2) - 1,
 																																																								    &channel->rtp.audio.writeFormat, 1)
 	    );
-}
-
-void sccp_channel_updateChannelDesignator(sccp_channel_t * c)
-{
-	if (c) {
-		if (c->callid) {
-			if (c->line) {
-				snprintf(c->designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/%s-%08x", c->line->name, c->callid);
-			} else {
-				snprintf(c->designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/%s-%08x", "UNDEF", c->callid);
-			}
-		} else {
-			snprintf(c->designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/UNDEF-UNDEF");
-		}
-		sccp_refcount_updateIdentifier(c, c->designator);
-	}
-}
-
-void sccp_channel_updateMusicClass(sccp_channel_t * c, const sccp_line_t *l)
-{
-	if (c) {
-		if (c->musicclass) {
-			sccp_free(c->musicclass);
-		}
-		if (!sccp_strlen_zero(l->musicclass)) {
-			c->musicclass = pbx_strdup(l->musicclass);
-		} else if (!sccp_strlen_zero(GLOB(musicclass))) {
-			c->musicclass = pbx_strdup(GLOB(musicclass));
-		}
-	}
 }
 
 /*!
@@ -1610,15 +1585,7 @@ int sccp_channel_hold(channelPtr channel)
 #endif
 	{
 		if (channel->owner) {
-			if (!sccp_strlen_zero(channel->musicclass)) {
-				iPbx.queue_control_data(channel->owner, AST_CONTROL_HOLD, channel->musicclass, sccp_strlen(channel->musicclass) + 1);
-			} else if (!sccp_strlen_zero(l->musicclass)) {
-				iPbx.queue_control_data(channel->owner, AST_CONTROL_HOLD, l->musicclass, sccp_strlen(l->musicclass) + 1);
-			} else if (!sccp_strlen_zero(GLOB(musicclass))) {
-				iPbx.queue_control_data(channel->owner, AST_CONTROL_HOLD, GLOB(musicclass), sccp_strlen(GLOB(musicclass)) + 1);
-			} else {
-				iPbx.queue_control_data(channel->owner, AST_CONTROL_HOLD, NULL, 0);
-			}
+			iPbx.queue_control_data(channel->owner, AST_CONTROL_HOLD, channel->musicclass, sccp_strlen(channel->musicclass) + 1);
 		}
 	}
 	//sccp_rtp_stop(channel);
@@ -1888,26 +1855,25 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	}
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Destroying channel %08x\n", channel->callid);
-	if (channel->musicclass) {
-		sccp_free(channel->musicclass);
-	}
 	if (channel->rtp.audio.instance || channel->rtp.video.instance) {
 		sccp_rtp_stop(channel);
 		sccp_rtp_destroy(channel);
 	}
-	if (channel->line) {
-		sccp_line_release((sccp_line_t **)&channel->line);		       // cast away const to set initial value
-	}
 
+	if (channel->privateData->callInfo) {
+		iCallInfo.Destructor(channel->privateData->callInfo);
+	}
+	
 	if (channel->owner) {
 		iPbx.set_owner(channel, NULL);
 	}
-	if (channel->privateData) {
-		if (channel->privateData->callInfo) {
-			iCallInfo.Destructor(channel->privateData->callInfo);
-		}
-		sccp_free(*(struct sccp_private_channel_data **)&channel->privateData); // cast away const to set initial value
-	}
+	
+	/* destroy immutables, by casting away const */
+	sccp_free(*(char **)&channel->musicclass);
+	sccp_free(*(char **)&channel->designator);
+	sccp_free(*(struct sccp_private_channel_data **)&channel->privateData);
+	sccp_line_release((sccp_line_t **)&channel->line);
+	/* */
 	
 #ifndef SCCP_ATOMIC
 	pbx_mutex_destroy(&channel->scheduler.lock);
