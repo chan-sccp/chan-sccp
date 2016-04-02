@@ -116,9 +116,9 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 {
 	/* this just allocate a sccp channel (not the asterisk channel, for that look at sccp_pbx_channel_allocate) */
 	sccp_channel_t *channel = NULL;
-	struct sccp_private_channel_data *private_data;
-	sccp_line_t *refLine = sccp_line_retain(l);
+	struct sccp_private_channel_data *private_data = NULL;
 	sccp_callinfo_t *callInfo = NULL;
+	sccp_line_t *refLine = sccp_line_retain(l);
 	
 	if (!refLine) {
 		pbx_log(LOG_ERROR, "SCCP: Could not retain line to create a channel on it, giving up!\n");
