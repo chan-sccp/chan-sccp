@@ -365,8 +365,9 @@ typedef enum {
 	SPCPRegisterTokenAck 				= 0x8100,
 	SPCPRegisterTokenReject 			= 0x8101,
 
-	UnknownVGMessage				= 0xFF00,	/* Unknown Message (VG224). Reported by Ahmet Zaim */
-#define SPCP_MESSAGE_HIGH_BOUNDARY			UnknownVGMessage		/*0xFF00*/
+	//UnknownVGMessage				= 0xFF00,	/* Unknown Message (VG224). Reported by Ahmet Zaim */
+//#define SPCP_MESSAGE_HIGH_BOUNDARY			UnknownVGMessage		/*0xFF00*/
+#define SPCP_MESSAGE_HIGH_BOUNDARY			SPCPRegisterTokenReject
 /*
 	SPCPPlatformInfoGetReq				= 0xFF02,
 	SPCPPlatformInfoGetRsp				= 0xFF03,
@@ -1963,7 +1964,7 @@ typedef union {
 
 	struct {
 		uint32_t lel_tone;										/*!< Tone (SKINNY_TONE ENUM)*/
-		uint32_t lel_toneTimeout;									/*!< Tone Timeout */
+		uint32_t lel_toneDirection;									/*!< Tone Direction (0 = User, 1=Network, 2=Both) */
 		uint32_t lel_lineInstance;									/*!< Line Instance */
 		uint32_t lel_callReference;									/*!< Call Reference */
 	} StartToneMessage;											/*!< Start Tone Message Structure */
@@ -3127,8 +3128,8 @@ typedef union {
 		uint32_t lel_status;
 	} RecordingStatusMessage;										/*!< Recording Status Message Structure */
 
-	struct {
-	} UnknownVGMessage;
+	//struct {
+	//} UnknownVGMessage;
 } sccp_data_t;													/*!< SKINNY Data Structure */
 
 /*!
@@ -3166,190 +3167,9 @@ struct messagetype {
 	const size_t size;
 };
 
-static const struct messagetype sccp_messagetypes[] = {
-	/* *INDENT-OFF* */
-	[KeepAliveMessage] = {KeepAliveMessage,						"Keep Alive Message",				offsize(sccp_data_t, StationKeepAliveMessage)},
-	[RegisterMessage] = {RegisterMessage,						"Register Message",				offsize(sccp_data_t, RegisterMessage)},
-	[IpPortMessage] = {IpPortMessage,						"Ip-Port Message",				offsize(sccp_data_t, IpPortMessage)},
-	[KeypadButtonMessage] = {KeypadButtonMessage,					"Keypad Button Message",			offsize(sccp_data_t, KeypadButtonMessage)},
-	[EnblocCallMessage] = {EnblocCallMessage,					"Enbloc Call Message",				offsize(sccp_data_t, EnblocCallMessage)},
-	[StimulusMessage] = {StimulusMessage,						"Stimulus Message",				offsize(sccp_data_t, StimulusMessage)},
-	[OffHookMessage] = {OffHookMessage,						"Off-Hook Message",				offsize(sccp_data_t, OffHookMessage)},
-	[OnHookMessage] = {OnHookMessage,						"On-Hook Message",				offsize(sccp_data_t, OnHookMessage)},
-	[HookFlashMessage] = {HookFlashMessage,						"Hook-Flash Message",				offsize(sccp_data_t, HookFlashMessage)},
-	[ForwardStatReqMessage] = {ForwardStatReqMessage,				"Forward State Request",			offsize(sccp_data_t, ForwardStatReqMessage)},
-	[SpeedDialStatReqMessage] = {SpeedDialStatReqMessage,				"Speed-Dial State Request",			offsize(sccp_data_t, SpeedDialStatReqMessage)},
-	[LineStatReqMessage] = {LineStatReqMessage,					"Line State Request",				offsize(sccp_data_t, LineStatReqMessage)},
-	[ConfigStatReqMessage] = {ConfigStatReqMessage,					"Config State Request",				offsize(sccp_data_t, ConfigStatReqMessage)},
-	[TimeDateReqMessage] = {TimeDateReqMessage,					"Time Date Request",				offsize(sccp_data_t, TimeDateReqMessage)},
-	[ButtonTemplateReqMessage] = {ButtonTemplateReqMessage,				"Button Template Request",			offsize(sccp_data_t, ButtonTemplateReqMessage)},
-	[VersionReqMessage] = {VersionReqMessage,					"Version Request",				offsize(sccp_data_t, VersionReqMessage)},
-	[CapabilitiesResMessage] = {CapabilitiesResMessage,				"Capabilities Response Message",		offsize(sccp_data_t, CapabilitiesResMessage)},
-	[MediaPortListMessage] = {MediaPortListMessage,					"Media Port List Message",			offsize(sccp_data_t, MediaPortListMessage)},
-	[ServerReqMessage] = {ServerReqMessage,						"Server Request",				offsize(sccp_data_t, ServerReqMessage)},
-	[AlarmMessage] = {AlarmMessage,							"Alarm Message",				offsize(sccp_data_t, AlarmMessage)},
-	[MulticastMediaReceptionAck] = {MulticastMediaReceptionAck,			"Multicast Media Reception Acknowledge",	offsize(sccp_data_t, MulticastMediaReceptionAck)},
-	[OpenReceiveChannelAck] = {OpenReceiveChannelAck,				"Open Receive Channel Acknowledge",		offsize(sccp_data_t, OpenReceiveChannelAck)},
-	[ConnectionStatisticsRes] = {ConnectionStatisticsRes,				"Connection Statistics Response",		offsize(sccp_data_t, ConnectionStatisticsRes)},
-	[OffHookWithCgpnMessage] = {OffHookWithCgpnMessage,				"Off-Hook With Cgpn Message",			offsize(sccp_data_t, OffHookWithCgpnMessage)},
-	[SoftKeySetReqMessage] = {SoftKeySetReqMessage,					"SoftKey Set Request",				offsize(sccp_data_t, SoftKeySetReqMessage)},
-	[SoftKeyEventMessage] = {SoftKeyEventMessage,					"SoftKey Event Message",			offsize(sccp_data_t, SoftKeyEventMessage)},
-	[UnregisterMessage] = {UnregisterMessage,					"Unregister Message",				offsize(sccp_data_t, UnregisterMessage)},
-	[SoftKeyTemplateReqMessage] = {SoftKeyTemplateReqMessage,			"SoftKey Template Request",			offsize(sccp_data_t, SoftKeyTemplateReqMessage)},
-	[RegisterTokenRequest] = {RegisterTokenRequest,					"Register Token Request",			offsize(sccp_data_t, RegisterTokenRequest)},
-	[MediaTransmissionFailure] = {MediaTransmissionFailure,				"Media Transmission Failure",			offsize(sccp_data_t, MediaTransmissionFailure)}, 
-	[HeadsetStatusMessage] = {HeadsetStatusMessage,					"Headset Status Message",			offsize(sccp_data_t, HeadsetStatusMessage)},
-	[MediaResourceNotification] = {MediaResourceNotification,			"Media Resource Notification",			offsize(sccp_data_t, MediaResourceNotification)},
-	[RegisterAvailableLinesMessage] = {RegisterAvailableLinesMessage,		"Register Available Lines Message",		offsize(sccp_data_t, RegisterAvailableLinesMessage)},
-	[DeviceToUserDataMessage] = {DeviceToUserDataMessage,				"Device To User Data Message",			offsize(sccp_data_t, DeviceToUserDataMessage)},
-	[DeviceToUserDataResponseMessage] = {DeviceToUserDataResponseMessage,		"Device To User Data Response",			offsize(sccp_data_t, DeviceToUserDataResponseMessage)},
-	[UpdateCapabilitiesMessage] = {UpdateCapabilitiesMessage,			"Update Capabilities Message",			offsize(sccp_data_t, UpdateCapabilitiesMessage)},
-	[OpenMultiMediaReceiveChannelAckMessage] = {OpenMultiMediaReceiveChannelAckMessage,	"Open MultiMedia Receive Channel Acknowledge",	offsize(sccp_data_t, OpenMultiMediaReceiveChannelAckMessage)},
-	[ClearConferenceMessage] = {ClearConferenceMessage,				"Clear Conference Message",			offsize(sccp_data_t, ClearConferenceMessage)},
-	[ServiceURLStatReqMessage] = {ServiceURLStatReqMessage,				"Service URL State Request",			offsize(sccp_data_t, ServiceURLStatReqMessage)},
-	[FeatureStatReqMessage] = {FeatureStatReqMessage,				"Feature State Request",			offsize(sccp_data_t, FeatureStatReqMessage)},
-	[CreateConferenceResMessage] = {CreateConferenceResMessage,			"Create Conference Response",			offsize(sccp_data_t, CreateConferenceResMessage)},
-	[DeleteConferenceResMessage] = {DeleteConferenceResMessage,			"Delete Conference Response",			offsize(sccp_data_t, DeleteConferenceResMessage)},
-	[ModifyConferenceResMessage] = {ModifyConferenceResMessage,			"Modify Conference Response",			offsize(sccp_data_t, ModifyConferenceResMessage)},
-	[AddParticipantResMessage] = {AddParticipantResMessage,				"Add Participant Response",			offsize(sccp_data_t, AddParticipantResMessage)},
-	[AuditConferenceResMessage] = {AuditConferenceResMessage,			"Audit Conference Response",			offsize(sccp_data_t, AuditConferenceResMessage)},
-	[AuditParticipantResMessage] = {AuditParticipantResMessage,			"Audit Participant Response",			offsize(sccp_data_t, AuditParticipantResMessage)},
-	[DeviceToUserDataVersion1Message] = {DeviceToUserDataVersion1Message,		"Device To User Data Version1 Message",		offsize(sccp_data_t, DeviceToUserDataVersion1Message)},
-	[DeviceToUserDataResponseVersion1Message] = {DeviceToUserDataResponseVersion1Message,	"Device To User Data Version1 Response",offsize(sccp_data_t, DeviceToUserDataResponseVersion1Message)},
-	[SubscriptionStatReqMessage] = {SubscriptionStatReqMessage,			"Subscription Status Request (DialedPhoneBook)", offsize(sccp_data_t, SubscriptionStatReqMessage)},
-	[AccessoryStatusMessage] = {AccessoryStatusMessage,				"Accessory Status Message",			offsize(sccp_data_t, AccessoryStatusMessage)},
-	[RegisterAckMessage] = {RegisterAckMessage,					"Register Acknowledge",				offsize(sccp_data_t, RegisterAckMessage)},
-	[StartToneMessage] = {StartToneMessage,						"Start Tone Message",				offsize(sccp_data_t, StartToneMessage)},
-	[StopToneMessage] = {StopToneMessage,						"Stop Tone Message",				offsize(sccp_data_t, StopToneMessage)},
-	[SetRingerMessage] = {SetRingerMessage,						"Set Ringer Message",				offsize(sccp_data_t, SetRingerMessage)},
-	[SetLampMessage] = {SetLampMessage,						"Set Lamp Message",				offsize(sccp_data_t, SetLampMessage)},
-	[SetHkFDetectMessage] = {SetHkFDetectMessage,					"Set HkF Detect Message",			offsize(sccp_data_t, SetHkFDetectMessage)},
-	[SetSpeakerModeMessage] = {SetSpeakerModeMessage,				"Set Speaker Mode Message",			offsize(sccp_data_t, SetSpeakerModeMessage)},
-	[SetMicroModeMessage] = {SetMicroModeMessage,					"Set Micro Mode Message",			offsize(sccp_data_t, SetMicroModeMessage)},
-	[StartMediaTransmission] = {StartMediaTransmission,				"Start Media Transmission",			offsize(sccp_data_t, StartMediaTransmission)},
-	[StopMediaTransmission] = {StopMediaTransmission,				"Stop Media Transmission",			offsize(sccp_data_t, StopMediaTransmission)},
-	[StartMediaReception] = {StartMediaReception,					"Start Media Reception",			offsize(sccp_data_t, StartMediaReception)},
-	[StopMediaReception] = {StopMediaReception,					"Stop Media Reception",				offsize(sccp_data_t, StopMediaReception)},
-	[CallInfoMessage] = {CallInfoMessage,						"Call Information Message",			offsize(sccp_data_t, CallInfoMessage)},
-	[ForwardStatMessage] = {ForwardStatMessage,					"Forward State Message",			offsize(sccp_data_t, ForwardStatMessage)},
-	[SpeedDialStatMessage] = {SpeedDialStatMessage,					"SpeedDial State Message",			offsize(sccp_data_t, SpeedDialStatMessage)},
-	[LineStatMessage] = {LineStatMessage,						"Line State Message",				offsize(sccp_data_t, LineStatMessage)},
-	[ConfigStatMessage] = {ConfigStatMessage,					"Config State Message",				offsize(sccp_data_t, ConfigStatMessage)},
-	[ConfigStatDynamicMessage] = {ConfigStatDynamicMessage,				"Config State Dynamic Message",			offsize(sccp_data_t, ConfigStatDynamicMessage)},
-	[DefineTimeDate] = {DefineTimeDate,						"Define Time Date",				offsize(sccp_data_t, DefineTimeDate)},
-	[StartSessionTransmission] = {StartSessionTransmission,				"Start Session Transmission",			offsize(sccp_data_t, StartSessionTransmission)},
-	[StopSessionTransmission] = {StopSessionTransmission,				"Stop Session Transmission",			offsize(sccp_data_t, StopSessionTransmission)},
-	[ButtonTemplateMessage] = {ButtonTemplateMessage,				"Button Template Message",			offsize(sccp_data_t, ButtonTemplateMessage)},
-	//[ButtonTemplateMessageSingle] = {ButtonTemplateMessageSingle,			"Button Template Message Single",		offsize(sccp_data_t, ButtonTemplateMessageSingle)},
-	[VersionMessage] = {VersionMessage,						"Version Message",				offsize(sccp_data_t, VersionMessage)},
-	[DisplayTextMessage] = {DisplayTextMessage,					"Display Text Message",				offsize(sccp_data_t, DisplayTextMessage)},
-	[ClearDisplay] = {ClearDisplay,							"Clear Display",				offsize(sccp_data_t, ClearDisplay)},
-	[CapabilitiesReqMessage] = {CapabilitiesReqMessage,				"Capabilities Request",				offsize(sccp_data_t, CapabilitiesReqMessage)},
-	[EnunciatorCommandMessage] = {EnunciatorCommandMessage,				"Enunciator Command Message",			offsize(sccp_data_t, EnunciatorCommandMessage)},
-	[RegisterRejectMessage] = {RegisterRejectMessage,				"Register Reject Message",			offsize(sccp_data_t, RegisterRejectMessage)},
-	[ServerResMessage] = {ServerResMessage,						"Server Response",				offsize(sccp_data_t, ServerResMessage)},
-	[Reset] = {Reset,								"Reset",					offsize(sccp_data_t, Reset)},
-	[KeepAliveAckMessage] = {KeepAliveAckMessage,					"Keep Alive Acknowledge",			offsize(sccp_data_t, KeepAliveAckMessage)},
-	[StartMulticastMediaReception] = {StartMulticastMediaReception,			"Start MulticastMedia Reception",		offsize(sccp_data_t, StartMulticastMediaReception)},
-	[StartMulticastMediaTransmission] = {StartMulticastMediaTransmission,		"Start MulticastMedia Transmission",		offsize(sccp_data_t, StartMulticastMediaTransmission)},
-	[StopMulticastMediaReception] = {StopMulticastMediaReception,			"Stop MulticastMedia Reception",		offsize(sccp_data_t, StopMulticastMediaReception)},
-	[StopMulticastMediaTransmission] = {StopMulticastMediaTransmission,		"Stop MulticastMedia Transmission",		offsize(sccp_data_t, StopMulticastMediaTransmission)},
-	[OpenReceiveChannel] = {OpenReceiveChannel,					"Open Receive Channel",				offsize(sccp_data_t, OpenReceiveChannel)},
-	[CloseReceiveChannel] = {CloseReceiveChannel,					"Close Receive Channel",			offsize(sccp_data_t, CloseReceiveChannel)},
-	[ConnectionStatisticsReq] = {ConnectionStatisticsReq,				"Connection Statistics Request",		offsize(sccp_data_t, ConnectionStatisticsReq)},
-	[SoftKeyTemplateResMessage] = {SoftKeyTemplateResMessage,			"SoftKey Template Response",			offsize(sccp_data_t, SoftKeyTemplateResMessage)},
-	[SoftKeySetResMessage] = {SoftKeySetResMessage,					"SoftKey Set Response",				offsize(sccp_data_t, SoftKeySetResMessage)},
-	[SelectSoftKeysMessage] = {SelectSoftKeysMessage,				"Select SoftKeys Message",			offsize(sccp_data_t, SelectSoftKeysMessage)},
-	[CallStateMessage] = {CallStateMessage,						"Call State Message",				offsize(sccp_data_t, CallStateMessage)},
-	[DisplayPromptStatusMessage] = {DisplayPromptStatusMessage,			"Display Prompt Status Message",		offsize(sccp_data_t, DisplayPromptStatusMessage)},
-	[ClearPromptStatusMessage] = {ClearPromptStatusMessage,				"Clear Prompt Status Message",			offsize(sccp_data_t, ClearPromptStatusMessage)},
-	[DisplayNotifyMessage] = {DisplayNotifyMessage,					"Display Notify Message",			offsize(sccp_data_t, DisplayNotifyMessage)},
-	[ClearNotifyMessage] = {ClearNotifyMessage,					"Clear Notify Message",				offsize(sccp_data_t, ClearNotifyMessage)},
-	[ActivateCallPlaneMessage] = {ActivateCallPlaneMessage,				"Activate Call Plane Message",			offsize(sccp_data_t, ActivateCallPlaneMessage)},
-	[DeactivateCallPlaneMessage] = {DeactivateCallPlaneMessage,			"Deactivate Call Plane Message",		offsize(sccp_data_t, DeactivateCallPlaneMessage)},
-	[UnregisterAckMessage] = {UnregisterAckMessage,					"Unregister Acknowledge",			offsize(sccp_data_t, UnregisterAckMessage)},
-	[BackSpaceReqMessage] = {BackSpaceReqMessage,					"Back Space Request",				offsize(sccp_data_t, BackSpaceReqMessage)},
-	[RegisterTokenAck] = {RegisterTokenAck,						"Register Token Acknowledge",			offsize(sccp_data_t, RegisterTokenAck)},
-	[RegisterTokenReject] = {RegisterTokenReject,					"Register Token Reject",			offsize(sccp_data_t, RegisterTokenReject)},
-	[StartMediaFailureDetection] = {StartMediaFailureDetection,			"Start Media Failure Detection",		offsize(sccp_data_t, StartMediaFailureDetection)},
-	[DialedNumberMessage] = {DialedNumberMessage,					"Dialed Number Message",			offsize(sccp_data_t, DialedNumberMessage)},
-	[UserToDeviceDataMessage] = {UserToDeviceDataMessage,				"User To Device Data Message",			offsize(sccp_data_t, UserToDeviceDataMessage)},
-	[FeatureStatMessage] = {FeatureStatMessage,					"Feature State Message",			offsize(sccp_data_t, FeatureStatMessage)},
-	[DisplayPriNotifyMessage] = {DisplayPriNotifyMessage,				"Display Pri Notify Message",			offsize(sccp_data_t, DisplayPriNotifyMessage)},
-	[ClearPriNotifyMessage] = {ClearPriNotifyMessage,				"Clear Pri Notify Message",			offsize(sccp_data_t, ClearPriNotifyMessage)},
-	[StartAnnouncementMessage] = {StartAnnouncementMessage,				"Start Announcement Message",			offsize(sccp_data_t, StartAnnouncementMessage)},
-	[StopAnnouncementMessage] = {StopAnnouncementMessage,				"Stop Announcement Message",			offsize(sccp_data_t, StopAnnouncementMessage)},
-	[AnnouncementFinishMessage] = {AnnouncementFinishMessage,			"Announcement Finish Message",			offsize(sccp_data_t, AnnouncementFinishMessage)},
-	[NotifyDtmfToneMessage] = {NotifyDtmfToneMessage,				"Notify DTMF Tone Message",			offsize(sccp_data_t, NotifyDtmfToneMessage)},
-	[SendDtmfToneMessage] = {SendDtmfToneMessage,					"Send DTMF Tone Message",			offsize(sccp_data_t, SendDtmfToneMessage)},
-	[SubscribeDtmfPayloadReqMessage] = {SubscribeDtmfPayloadReqMessage,		"Subscribe DTMF Payload Request",		offsize(sccp_data_t, SubscribeDtmfPayloadReqMessage)},
-	[SubscribeDtmfPayloadResMessage] = {SubscribeDtmfPayloadResMessage,		"Subscribe DTMF Payload Response",		offsize(sccp_data_t, SubscribeDtmfPayloadResMessage)},
-	[SubscribeDtmfPayloadErrMessage] = {SubscribeDtmfPayloadErrMessage,		"Subscribe DTMF Payload Error Message",		offsize(sccp_data_t, SubscribeDtmfPayloadErrMessage)},
-	[UnSubscribeDtmfPayloadReqMessage] = {UnSubscribeDtmfPayloadReqMessage,		"UnSubscribe DTMF Payload Request",		offsize(sccp_data_t, UnSubscribeDtmfPayloadReqMessage)},
-	[UnSubscribeDtmfPayloadResMessage] = {UnSubscribeDtmfPayloadResMessage,		"UnSubscribe DTMF Payload Response",		offsize(sccp_data_t, UnSubscribeDtmfPayloadResMessage)},
-	[UnSubscribeDtmfPayloadErrMessage] = {UnSubscribeDtmfPayloadErrMessage,		"UnSubscribe DTMF Payload Error Message",	offsize(sccp_data_t, UnSubscribeDtmfPayloadErrMessage)},
-	[ServiceURLStatMessage] = {ServiceURLStatMessage,				"ServiceURL State Message",			offsize(sccp_data_t, ServiceURLStatMessage)},
-	[CallSelectStatMessage] = {CallSelectStatMessage,				"Call Select State Message",			offsize(sccp_data_t, CallSelectStatMessage)},
-	[OpenMultiMediaChannelMessage] = {OpenMultiMediaChannelMessage,			"Open MultiMedia Channel Message",		offsize(sccp_data_t, OpenMultiMediaChannelMessage)},
-	[StartMultiMediaTransmission] = {StartMultiMediaTransmission,			"Start MultiMedia Transmission",		offsize(sccp_data_t, StartMultiMediaTransmission)},
-	[StopMultiMediaTransmission] = {StopMultiMediaTransmission,			"Stop MultiMedia Transmission",			offsize(sccp_data_t, StopMultiMediaTransmission)},
-	[MiscellaneousCommandMessage] = {MiscellaneousCommandMessage,			"Miscellaneous Command Message",		offsize(sccp_data_t, MiscellaneousCommandMessage)},
-	[FlowControlCommandMessage] = {FlowControlCommandMessage,			"Flow Control Command Message",			offsize(sccp_data_t, FlowControlCommandMessage)},
-	[CloseMultiMediaReceiveChannel] = {CloseMultiMediaReceiveChannel,		"Close MultiMedia Receive Channel",		offsize(sccp_data_t, CloseMultiMediaReceiveChannel)},
-	[CreateConferenceReqMessage] = {CreateConferenceReqMessage,			"Create Conference Request",			offsize(sccp_data_t, CreateConferenceReqMessage)},
-	[DeleteConferenceReqMessage] = {DeleteConferenceReqMessage,			"Delete Conference Request",			offsize(sccp_data_t, DeleteConferenceReqMessage)},
-	[ModifyConferenceReqMessage] = {ModifyConferenceReqMessage,			"Modify Conference Request",			offsize(sccp_data_t, ModifyConferenceReqMessage)},
-	[AddParticipantReqMessage] = {AddParticipantReqMessage,				"Add Participant Request",			offsize(sccp_data_t, AddParticipantReqMessage)},
-	[DropParticipantReqMessage] = {DropParticipantReqMessage,			"Drop Participant Request",			offsize(sccp_data_t, DropParticipantReqMessage)},
-	[AuditConferenceReqMessage] = {AuditConferenceReqMessage,			"Audit Conference Request",			offsize(sccp_data_t, AuditConferenceReqMessage)},
-	[AuditParticipantReqMessage] = {AuditParticipantReqMessage,			"Audit Participant Request",			offsize(sccp_data_t, AuditParticipantReqMessage)},
-	[UserToDeviceDataVersion1Message] = {UserToDeviceDataVersion1Message,		"User To Device Data Version1 Message",		offsize(sccp_data_t, UserToDeviceDataVersion1Message)},
-	[DisplayDynamicNotifyMessage] = {DisplayDynamicNotifyMessage,			"Display Dynamic Notify Message",		offsize(sccp_data_t, DisplayDynamicNotifyMessage)},
-	[DisplayDynamicPriNotifyMessage] = {DisplayDynamicPriNotifyMessage,		"Display Dynamic Priority Notify Message",	offsize(sccp_data_t, DisplayDynamicPriNotifyMessage)},
-	[DisplayDynamicPromptStatusMessage] = {DisplayDynamicPromptStatusMessage,"Display Dynamic Prompt Status Message",	offsize(sccp_data_t, DisplayDynamicPromptStatusMessage)},
-	[FeatureStatDynamicMessage] = {FeatureStatDynamicMessage,			"SpeedDial State Dynamic Message",		offsize(sccp_data_t, FeatureStatDynamicMessage)},
-	[LineStatDynamicMessage] = {LineStatDynamicMessage,				"Line State Dynamic Message",			offsize(sccp_data_t, LineStatDynamicMessage)},
-	[ServiceURLStatDynamicMessage] = {ServiceURLStatDynamicMessage,			"Service URL Stat Dynamic Messages",		offsize(sccp_data_t, ServiceURLStatDynamicMessage)},
-	[SpeedDialStatDynamicMessage] = {SpeedDialStatDynamicMessage,			"SpeedDial Stat Dynamic Message",		offsize(sccp_data_t, SpeedDialStatDynamicMessage)},
-	[CallInfoDynamicMessage] = {CallInfoDynamicMessage,				"Call Information Dynamic Message",		offsize(sccp_data_t, CallInfoDynamicMessage)},
-	[SubscriptionStatMessage] = {SubscriptionStatMessage,				"Subscription Status Response (Dialed Number)", offsize(sccp_data_t, SubscriptionStatMessage)},
-	[NotificationMessage] = {NotificationMessage,					"Notify Call List (CallListStatusUpdate)",	offsize(sccp_data_t, NotificationMessage)},
-	[StartMediaTransmissionAck] = {StartMediaTransmissionAck,			"Start Media Transmission Acknowledge",		offsize(sccp_data_t, StartMediaTransmissionAck)},
-	[StartMultiMediaTransmissionAck] = {StartMultiMediaTransmissionAck,		"Start Media Transmission Acknowledge",		offsize(sccp_data_t, StartMultiMediaTransmissionAck)},
-	[CallHistoryDispositionMessage] = {CallHistoryDispositionMessage,		"Call History Disposition",			offsize(sccp_data_t, CallHistoryDispositionMessage)},
-	[LocationInfoMessage] = {LocationInfoMessage,					"Location/Wifi Information",			offsize(sccp_data_t, LocationInfoMessage)},
-	[ExtensionDeviceCaps] = {ExtensionDeviceCaps,					"Extension Device Capabilities Message",	offsize(sccp_data_t, ExtensionDeviceCaps)},
-	[XMLAlarmMessage] = {XMLAlarmMessage,						"XML-AlarmMessage",				offsize(sccp_data_t, XMLAlarmMessage)},
-	[MediaPathCapabilityMessage] = {MediaPathCapabilityMessage,			"MediaPath Capability Message",			offsize(sccp_data_t, MediaPathCapabilityMessage)},
-	[FlowControlNotifyMessage] = {FlowControlNotifyMessage,				"FlowControl Notify Message",			offsize(sccp_data_t, FlowControlNotifyMessage)},
-	[CallCountReqMessage] = {CallCountReqMessage,					"CallCount Request Message",			offsize(sccp_data_t, CallCountReqMessage)},
-/*new*/
-	[UpdateCapabilitiesV2Message] = {UpdateCapabilitiesV2Message,			"Update Capabilities V2",			offsize(sccp_data_t, UpdateCapabilitiesV2Message)},
-	[UpdateCapabilitiesV3Message] = {UpdateCapabilitiesV3Message,			"Update Capabilities V3",			offsize(sccp_data_t, UpdateCapabilitiesV3Message)},
-	[PortResponseMessage] = {PortResponseMessage,					"Port Response Message",			offsize(sccp_data_t, PortResponseMessage)},
-	[QoSResvNotifyMessage] = {QoSResvNotifyMessage,					"QoS Resv Notify Message",			offsize(sccp_data_t, QoSResvNotifyMessage)},
-	[QoSErrorNotifyMessage] = {QoSErrorNotifyMessage,				"QoS Error Notify Message",			offsize(sccp_data_t, QoSErrorNotifyMessage)},
-	[PortRequestMessage] = {PortRequestMessage,					"Port Request Message",				offsize(sccp_data_t, PortRequestMessage)},
-	[PortCloseMessage] = {PortCloseMessage,						"Port Close Message",				offsize(sccp_data_t, PortCloseMessage)},
-	[QoSListenMessage] = {QoSListenMessage,						"QoS Listen Message",				offsize(sccp_data_t, QoSListenMessage)},
-	[QoSPathMessage] = {QoSPathMessage,						"QoS Path Message",				offsize(sccp_data_t, QoSPathMessage)},
-	[QoSTeardownMessage] = {QoSTeardownMessage,					"QoS Teardown Message",				offsize(sccp_data_t, QoSTeardownMessage)},
-	[UpdateDSCPMessage] = {UpdateDSCPMessage,					"Update DSCP Message",				offsize(sccp_data_t, UpdateDSCPMessage)},
-	[QoSModifyMessage] = {QoSModifyMessage,						"QoS Modify Message",				offsize(sccp_data_t, QoSModifyMessage)},
-	[MwiResponseMessage] = {MwiResponseMessage,					"Mwi Response Message",				offsize(sccp_data_t, MwiResponseMessage)},
-	[CallCountRespMessage] = {CallCountRespMessage,					"CallCount Response Message",			offsize(sccp_data_t, CallCountRespMessage)},
-	[RecordingStatusMessage] = {RecordingStatusMessage,				"Recording Status Message",			offsize(sccp_data_t, RecordingStatusMessage)},
-	/* *INDENT-ON* */
-};
-
-static const struct messagetype spcp_messagetypes[] = {
-	/* *INDENT-OFF* */
-	[SPCPRegisterTokenRequest - SPCP_MESSAGE_OFFSET	] = {SPCPRegisterTokenRequest,	"SPCP Register Token Request",			offsize(sccp_data_t, SPCPRegisterTokenRequest)},
-	[SPCPRegisterTokenAck - SPCP_MESSAGE_OFFSET	] = {SPCPRegisterTokenAck,	"SPCP RegisterMessageACK",			offsize(sccp_data_t, SPCPRegisterTokenAck)},
-	[SPCPRegisterTokenReject - SPCP_MESSAGE_OFFSET	] = {SPCPRegisterTokenReject,	"SPCP RegisterMessageReject",			offsize(sccp_data_t, SPCPRegisterTokenReject)},
-	[UnknownVGMessage - SPCP_MESSAGE_OFFSET		] = {UnknownVGMessage,		"Unknown Message (VG224)",			offsize(sccp_data_t, UnknownVGMessage)},
-	/* *INDENT-ON* */
-};
+extern const struct messagetype sccp_messagetypes[];
+extern const struct messagetype spcp_messagetypes[];
+SCCP_INLINE const char * SCCP_CALL msgtype2str(sccp_mid_t msgId);
 
 static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_REDIAL,
@@ -3386,6 +3206,7 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_DIAL,
 	//SKINNY_LBL_CBARGE,
 };														/*!< SKINNY Soft Keys Map as INT */
+
 
 /*!
  * \brief SKINNY Soft Key Modes Structure

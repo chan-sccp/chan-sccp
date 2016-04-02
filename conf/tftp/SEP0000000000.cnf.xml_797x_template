@@ -62,7 +62,7 @@
     <backgroundImageAccess>true</backgroundImageAccess>
     <callLogBlfEnabled>3</callLogBlfEnabled>
   </commonProfile>
-  <loadInformation>SCCP70.8-5-4S</loadInformation>
+  <loadInformation>term71.default</loadInformation>
   <addOnModules>
     <!--
 		<addOnModule idx="1">

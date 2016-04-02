@@ -715,7 +715,7 @@ static int sccp_manager_answerCall2(struct mansession *s, const struct message *
 		AUTO_RELEASE sccp_device_t *d = NULL;
 
 		if (sccp_strlen_zero(deviceName)) {
-			d = sccp_channel_getDevice_retained(c);
+			d = sccp_channel_getDevice(c);
 		} else {
 			d = sccp_device_find_byid(deviceName, FALSE);
 		}
@@ -915,7 +915,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 
 			if (channel) {
 				sccp_log(DEBUGCAT_CORE)("%s: (managerHookHelper) MonitorStart/MonitorStop Received\n", channel->designator);	/* temp */
-				AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
+				AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
 				if (d) {
 					sccp_log(DEBUGCAT_CORE)("%s: (managerHookHelper) MonitorStart/MonitorStop on Device: %s\n", channel->designator, d->id);	/* temp */
 					if (!strcasecmp("MonitorStart", event)) {

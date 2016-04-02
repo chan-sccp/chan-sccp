@@ -19,12 +19,13 @@ SCCP_FILE_VERSION(__FILE__, "");
 #  include <asterisk/event.h>
 #endif
 
+#if CS_DEVSTATE_FEATURE
 typedef struct sccp_devstate_SubscribingDevice sccp_devstate_SubscribingDevice_t;
 
 struct sccp_devstate_SubscribingDevice 
 {
 	SCCP_LIST_ENTRY (sccp_devstate_SubscribingDevice_t) list;
-	const sccp_device_t *device;										/*!< SCCP Device */
+	sccp_device_t *device;											/*!< SCCP Device */
 	sccp_buttonconfig_t *buttonConfig;
 	char label[StationMaxNameSize];
 	uint8_t instance;											/*!< Instance */
@@ -76,7 +77,7 @@ void sccp_devstate_module_stop(void)
 
 			SCCP_LIST_LOCK(&deviceState->subscribers);
 			while ((subscriber = SCCP_LIST_REMOVE_HEAD(&deviceState->subscribers, list))) {
-				subscriber->device = sccp_device_release(subscriber->device);		/* explicit release */
+				sccp_device_release(&subscriber->device);		/* explicit release */
 			}
 			SCCP_LIST_UNLOCK(&deviceState->subscribers);
 			SCCP_LIST_HEAD_DESTROY(&deviceState->subscribers);
@@ -98,9 +99,7 @@ static void sccp_devstate_deviceRegistered(const sccp_device_t * device)
 
 	if (d) {
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-
 			if (config->type == FEATURE && config->button.feature.id == SCCP_FEATURE_DEVSTATE) {
-
 				SCCP_LIST_LOCK(&deviceStates);
 				deviceState = sccp_devstate_getDeviceStateHandler(config->button.feature.options);
 				if (!deviceState && config->button.feature.options) {
@@ -125,16 +124,13 @@ static void sccp_devstate_deviceUnRegistered(const sccp_device_t * device)
 
 	if (d) {
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-
 			if (config->type == FEATURE && config->button.feature.id == SCCP_FEATURE_DEVSTATE) {
-
 				SCCP_LIST_LOCK(&deviceStates);
 				deviceState = sccp_devstate_getDeviceStateHandler(config->button.feature.options);
 				if (deviceState) {
 					sccp_devstate_removeSubscriber(deviceState, device);
 				}
 				SCCP_LIST_UNLOCK(&deviceStates);
-
 			}
 		}
 	}
@@ -234,7 +230,7 @@ void sccp_devstate_removeSubscriber(sccp_devstate_deviceState_t * deviceState, c
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&deviceState->subscribers, subscriber, list) {
 		if (subscriber->device == device) {
 			SCCP_LIST_REMOVE_CURRENT(list);
-			subscriber->device = sccp_device_release(subscriber->device);				/* explicit release */
+			sccp_device_release(&subscriber->device);				/* explicit release */
 		}
 
 	}
@@ -297,5 +293,5 @@ void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data)
 		sccp_devstate_notifySubscriber(deviceState, subscriber);
 	}
 }
-
+#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -78,26 +78,30 @@ void sccp_event_destroy(sccp_event_t * event)
 		case SCCP_EVENT_DEVICE_REGISTERED:
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
 		case SCCP_EVENT_DEVICE_PREREGISTERED:
-			event->event.deviceRegistered.device = sccp_device_release(event->event.deviceRegistered.device);		/* explicit release */
+			sccp_device_release(&event->event.deviceRegistered.device);							/* explicit release */
 			break;
 
 		case SCCP_EVENT_LINE_CREATED:
-			event->event.lineCreated.line = sccp_line_release(event->event.lineCreated.line);				/* explicit release */
+			sccp_line_release(&event->event.lineCreated.line);								/* explicit release */
 			break;
 
 		case SCCP_EVENT_DEVICE_ATTACHED:
 		case SCCP_EVENT_DEVICE_DETACHED:
-			event->event.deviceAttached.linedevice = sccp_linedevice_release(event->event.deviceAttached.linedevice);	/* explicit release */
+			sccp_linedevice_release(&event->event.deviceAttached.linedevice);						/* explicit release */
 			break;
 
 		case SCCP_EVENT_FEATURE_CHANGED:
-			event->event.featureChanged.device = sccp_device_release(event->event.featureChanged.device);			/* explicit release */
-			event->event.featureChanged.optional_linedevice = event->event.featureChanged.optional_linedevice ? sccp_linedevice_release(event->event.featureChanged.optional_linedevice) : NULL;	/* explicit release */
+			sccp_device_release(&event->event.featureChanged.device);							/* explicit release */
+			if (event->event.featureChanged.optional_linedevice) {
+				sccp_linedevice_release(&event->event.featureChanged.optional_linedevice);				/* explicit release */
+			}
 			break;
 
 		case SCCP_EVENT_LINESTATUS_CHANGED:
-			event->event.lineStatusChanged.line = sccp_line_release(event->event.lineStatusChanged.line);			/* explicit release */
-			event->event.lineStatusChanged.optional_device = event->event.lineStatusChanged.optional_device ? sccp_device_release(event->event.lineStatusChanged.optional_device) : NULL;	/* explicit release */
+			sccp_line_release(&event->event.lineStatusChanged.line);							/* explicit release */
+			if (event->event.lineStatusChanged.optional_device) {
+				sccp_device_release(&event->event.lineStatusChanged.optional_device);					/* explicit release */
+			}
 			break;
 
 		case SCCP_EVENT_LINE_CHANGED:
@@ -389,11 +393,10 @@ AST_TEST_DEFINE(sccp_event_test_subscribe_single)
 	uint32_t EventReceivedBeforeTest = _sccp_event_TestEventReceived;
 
 	pbx_test_status_update(test, "fire SCCP_EVENT_TEST\n");
-	sccp_event_t event = {
-		.type = SCCP_EVENT_TEST,
-		.event.TestEvent.value = _sccp_event_TestValue,
-		.event.TestEvent.str = strdup(_sccp_event_TestStr),
-	};
+	sccp_event_t event = {{{0}}};
+	event.type = SCCP_EVENT_TEST;
+	event.event.TestEvent.value = _sccp_event_TestValue;
+	event.event.TestEvent.str = pbx_strdup(_sccp_event_TestStr);
 	sccp_event_fire(&event);
 
 	/* wait for async result */
@@ -437,7 +440,7 @@ AST_TEST_DEFINE(sccp_event_test_subscribe_multi)
 	sccp_event_t event = {{{0}}};
 	event.type = SCCP_EVENT_TEST;
 	event.event.TestEvent.value = _sccp_event_TestValue;
-	event.event.TestEvent.str = strdup(_sccp_event_TestStr);
+	event.event.TestEvent.str = pbx_strdup(_sccp_event_TestStr);
 	sccp_event_fire(&event);
 
 	/* wait for async result */
@@ -484,7 +487,7 @@ AST_TEST_DEFINE(sccp_event_test_subscribe_multi_sync)
 	sccp_event_t event = {{{0}}};
 	event.type = SCCP_EVENT_TEST;
 	event.event.TestEvent.value = _sccp_event_TestValue;
-	event.event.TestEvent.str = strdup(_sccp_event_TestStr);
+	event.event.TestEvent.str = pbx_strdup(_sccp_event_TestStr);
 	sccp_event_fire(&event);
 
 	pbx_test_status_update(test, "registrations:%d, before test:%d, received:%d, expected:%d\n", registration, EventReceivedBeforeTest, _sccp_event_TestEventReceived, EventReceivedBeforeTest + registration);

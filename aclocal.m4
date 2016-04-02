@@ -160,27 +160,6 @@ int main ()
         iconv_close (cd_88591_to_utf8);
       }
   }
-#if 0 /* This bug could be worked around by the caller.  */
-  /* Test against HP-UX 11.11 bug: Positive return value instead of 0.  */
-  {
-    iconv_t cd_88591_to_utf8 = iconv_open ("utf8", "iso88591");
-    if (cd_88591_to_utf8 != (iconv_t)(-1))
-      {
-        static const char input[] = "\304rger mit b\366sen B\374bchen ohne Augenma\337";
-        char buf[50];
-        const char *inptr = input;
-        size_t inbytesleft = strlen (input);
-        char *outptr = buf;
-        size_t outbytesleft = sizeof (buf);
-        size_t res = iconv (cd_88591_to_utf8,
-                            (char **) &inptr, &inbytesleft,
-                            &outptr, &outbytesleft);
-        if ((int)res > 0)
-          result |= 8;
-        iconv_close (cd_88591_to_utf8);
-      }
-  }
-#endif
   /* Test against HP-UX 11.11 bug: No converter from EUC-JP to UTF-8 is
      provided.  */
   if (/* Try standardized names.  */
@@ -275,8 +254,8 @@ size_t iconv();
         [am_cv_proto_iconv_arg1="const"])
       am_cv_proto_iconv="extern size_t iconv (iconv_t cd, $am_cv_proto_iconv_arg1 char * *inbuf, size_t *inbytesleft, char * *outbuf, size_t *outbytesleft);"])
     am_cv_proto_iconv=`echo "[$]am_cv_proto_iconv" | tr -s ' ' | sed -e 's/( /(/'`
-    AC_MSG_RESULT([
-         $am_cv_proto_iconv])
+    dnl AC_MSG_RESULT([
+    dnl      $am_cv_proto_iconv])
     AC_DEFINE_UNQUOTED([ICONV_CONST], [$am_cv_proto_iconv_arg1],
       [Define as const if the declaration of iconv() needs const.])
     dnl Also substitute ICONV_CONST in the gnulib generated <iconv.h>.
@@ -1499,6 +1478,43 @@ AC_DEFUN([AM_AUX_DIR_EXPAND],
 AC_PREREQ([2.50])dnl
 # expand $ac_aux_dir to an absolute path
 am_aux_dir=`cd $ac_aux_dir && pwd`
+])
+
+# AM_COND_IF                                            -*- Autoconf -*-
+
+# Copyright (C) 2008-2013 Free Software Foundation, Inc.
+#
+# This file is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# _AM_COND_IF
+# _AM_COND_ELSE
+# _AM_COND_ENDIF
+# --------------
+# These macros are only used for tracing.
+m4_define([_AM_COND_IF])
+m4_define([_AM_COND_ELSE])
+m4_define([_AM_COND_ENDIF])
+
+# AM_COND_IF(COND, [IF-TRUE], [IF-FALSE])
+# ---------------------------------------
+# If the shell condition COND is true, execute IF-TRUE, otherwise execute
+# IF-FALSE.  Allow automake to learn about conditional instantiating macros
+# (the AC_CONFIG_FOOS).
+AC_DEFUN([AM_COND_IF],
+[m4_ifndef([_AM_COND_VALUE_$1],
+	   [m4_fatal([$0: no such condition "$1"])])dnl
+_AM_COND_IF([$1])dnl
+if test -z "$$1_TRUE"; then :
+  m4_n([$2])[]dnl
+m4_ifval([$3],
+[_AM_COND_ELSE([$1])dnl
+else
+  $3
+])dnl
+_AM_COND_ENDIF([$1])dnl
+fi[]dnl
 ])
 
 # AM_CONDITIONAL                                            -*- Autoconf -*-

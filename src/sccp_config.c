@@ -1855,22 +1855,38 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 			{
 				char extension[SCCP_MAX_EXTENSION];
 				sccp_subscription_id_t subscriptionId;
-				if (sccp_parseComposedId(name, 80, &subscriptionId, extension)) {
+				int parseRes = sccp_parseComposedId(name, 80, &subscriptionId, extension);
+				if (parseRes) {
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: ComposedId extension: %s, subscriptionId[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscriptionId.number, subscriptionId.name, subscriptionId.label, subscriptionId.aux);
 					if (LINE == config->type &&
-					    sccp_strequals(config->label, name) && 
-					    sccp_strequals(config->button.line.name, extension) && 
-					    config->button.line.subscriptionId && (
-						sccp_strcaseequals(config->button.line.subscriptionId->number, subscriptionId.number) &
-						sccp_strequals(config->button.line.subscriptionId->name, subscriptionId.name) && 
-						sccp_strequals(config->button.line.subscriptionId->label, subscriptionId.label) && 
-						sccp_strequals(config->button.line.subscriptionId->aux, subscriptionId.aux)
-					    )
+						sccp_strequals(config->label, name) && 
+						sccp_strequals(config->button.line.name, extension) && 
+						((!config->button.line.subscriptionId && parseRes == 1) || 
+						(config->button.line.subscriptionId &&
+							(
+								sccp_strcaseequals(config->button.line.subscriptionId->number, subscriptionId.number) &&
+								sccp_strequals(config->button.line.subscriptionId->name, subscriptionId.name) && 
+								sccp_strequals(config->button.line.subscriptionId->label, subscriptionId.label) && 
+								sccp_strequals(config->button.line.subscriptionId->aux, subscriptionId.aux)
+							)
+						))
 					) {
 						if (!options || sccp_strequals(config->button.line.options, options)) {
 							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition remained the same\n");
 							changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+						} else {
+							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "options: %s <-> %s  (%d)\n", config->button.line.options, options, sccp_strequals(config->button.line.options, options));
 						}
+					/*} else {
+						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "name:%s <-> %s (%d)\n", config->label, name, sccp_strequals(config->label, name));
+						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ext:%s <-> %s (%d)\n", config->button.line.name, extension, sccp_strequals(config->button.line.name, extension));
+					 	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "config->button.line.subscriptionId: %s, parseRes:%d\n", config->button.line.subscriptionId ? "TRUE" : "FALSE", parseRes);
+						if (config->button.line.subscriptionId) {
+							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "subscr number:%s <-> %s (%d)\n", config->button.line.subscriptionId->number, subscriptionId.number, sccp_strcaseequals(config->button.line.subscriptionId->number, subscriptionId.number));
+							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "subscr name:%s <-> %s (%d)\n", config->button.line.subscriptionId->name, subscriptionId.name, sccp_strequals(config->button.line.subscriptionId->name, subscriptionId.name));
+							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "subscr label:%s <-> %s (%d)\n", config->button.line.subscriptionId->label, subscriptionId.label, sccp_strequals(config->button.line.subscriptionId->label, subscriptionId.label));
+							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "subscr aux:%s <-> %s (%d)\n", config->button.line.subscriptionId->aux, subscriptionId.aux, sccp_strequals(config->button.line.subscriptionId->aux, subscriptionId.aux));
+						}*/
 					}
 				} else {
 					pbx_log(LOG_WARNING, "SCCP: button definition:'%s' could not be parsed\n", name);
@@ -1913,9 +1929,9 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 		}
 	}
 	if (changed) {	
-		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: ButtonTemplate Has Changed\n");
+		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: ButtonTemplate has changed\n");
 	} else {
-		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: ButtonTemplate Remained the same\n");
+		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: ButtonTemplate remained the same\n");
 	}
 	return changed;
 }
@@ -1967,7 +1983,7 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 		{
 			char extension[SCCP_MAX_EXTENSION];
 			sccp_subscription_id_t *subscriptionId = NULL;
-			if (!(subscriptionId = malloc(sizeof(sccp_subscription_id_t)))) {
+			if (!(subscriptionId = sccp_malloc(sizeof(sccp_subscription_id_t)))) {
 				pbx_log(LOG_ERROR, "SCCP: could not allocate memory. giving up\n");
 				return SCCP_CONFIG_CHANGE_INVALIDVALUE;
  			}
@@ -1975,8 +1991,8 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition\n");
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: ComposedId extension: %s, subscriptionId[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscriptionId->number, subscriptionId->name, subscriptionId->label, subscriptionId->aux);
 				config->type = LINE;
-				config->label = strdup(name);
-				config->button.line.name = strdup(extension);
+				config->label = pbx_strdup(name);
+				config->button.line.name = pbx_strdup(extension);
 				if (!sccp_strlen_zero(subscriptionId->number)) {
 					config->button.line.subscriptionId = subscriptionId;
 				} else {
@@ -2097,7 +2113,7 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
 			/* Check for the presence of a devicestate specifier and register in device list. */
 			if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && !sccp_strlen_zero(config->button.feature.options)) {
 				if (( dspec = sccp_calloc(1, sizeof *dspec) )) {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
+					//sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
 					SCCP_LIST_LOCK(&d->devstateSpecifiers);
 					sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(dspec->specifier));
 					SCCP_LIST_INSERT_TAIL(&d->devstateSpecifiers, dspec, list);
@@ -2250,6 +2266,9 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 			sccp_copy_string(GLOB(used_context), context, sizeof(GLOB(used_context)));
 			pbx_context_find_or_create(NULL, NULL, context, "SCCP");
 		}
+	}
+	if (GLOB(externhost)) {
+		sccp_netsock_flush_externhost();
 	}
 	
 	return TRUE;

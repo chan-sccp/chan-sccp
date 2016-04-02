@@ -11,19 +11,12 @@
  */
 #pragma once
 
-#ifdef DEBUG
-#define sccp_linedevice_retain(_x) 	({sccp_linedevices_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_linedevice_release(_x) 	({sccp_linedevices_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_line_retain(_x) 		({sccp_line_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_line_release(_x) 		({sccp_line_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#else
-#define sccp_linedevice_retain(_x) 	({ast_assert(_x != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_linedevice_release(_x) 	({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_line_retain(_x) 		({ast_assert(_x != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_line_release(_x) 		({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#endif
-#define sccp_linedevice_refreplace(_x, _y) ({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_line_refreplace(_x, _y)	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_linedevice_retain(_x)		sccp_refcount_retain_type(sccp_linedevices_t, _x)
+#define sccp_linedevice_release(_x)		sccp_refcount_release_type(sccp_linedevices_t, _x)
+#define sccp_linedevice_refreplace(_x, _y)	sccp_refcount_refreplace_type(sccp_linedevices_t, _x, _y)
+#define sccp_line_retain(_x)			sccp_refcount_retain_type(sccp_line_t, _x)
+#define sccp_line_release(_x)			sccp_refcount_release_type(sccp_line_t, _x)
+#define sccp_line_refreplace(_x, _y)		sccp_refcount_refreplace_type(sccp_line_t, _x, _y)
 
 __BEGIN_C_EXTERN__
 /*!
@@ -34,10 +27,11 @@ struct sccp_line {
 	//sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
 	char id[SCCP_MAX_LINE_ID];										/*!< This line's ID, used for login (for mobility) */
 	char name[StationMaxNameSize];										/*!< The name of the line, so use in asterisk (i.e SCCP/[name]) */
+	uint32_t configurationStatus;										/*!< what is the current configuration status - @see sccp_config_status_t */
 #ifdef CS_SCCP_REALTIME
 	boolean_t realtime;											/*!< is it a realtimeconfiguration */
+	uint8_t _padding1[3];
 #endif
-	uint32_t configurationStatus;										/*!< what is the current configuration status - @see sccp_config_status_t */
 	SCCP_RWLIST_ENTRY (sccp_line_t) list;									/*!< global list entry */
 	struct {
 		uint8_t numberOfActiveDevices;									/*!< Number of Active Devices */
@@ -64,27 +58,13 @@ struct sccp_line {
 	char cid_name[SCCP_MAX_EXTENSION];									/* smaller would be better (i.e. 32) */ /*!< Caller(Name) to use on outgoing calls */
 
 	int amaflags;												/*!< amaflags */
-	boolean_t echocancel;											/*!< echocancel phone support */
-	boolean_t silencesuppression;										/*!< Silence Suppression Phone Support */
-	boolean_t meetme;											/*!< Meetme on/off */
-	boolean_t transfer;											/*!< Transfer Phone Support */
-	uint16_t dndmode;											/*!< dnd mode: see SCCP_DNDMODE_* */
-	uint8_t __padding[2];
+	sccp_dndmode_t dndmode;											/*!< dnd mode: see SCCP_DNDMODE_* */
 	
 	SCCP_LIST_HEAD (, sccp_mailbox_t) mailboxes;								/*!< Mailbox Linked List Entry. To check for messages */
 	SCCP_LIST_HEAD (, sccp_channel_t) channels;								/*!< Linked list of current channels for this line */
 	SCCP_LIST_HEAD (, sccp_linedevices_t) devices;								/*!< The device this line is currently registered to. */
 
 	PBX_VARIABLE_TYPE *variables;										/*!< Channel variables to set */
-	sccp_subscription_id_t defaultSubscriptionId;								/*!< default subscription id for shared lines */
-
-	/*!
-	 * \brief VoiceMail Statistics Structure
-	 */
-	struct {
-		int newmsgs;											/*!< New Messages */
-		int oldmsgs;											/*!< Old Messages */
-	} voicemailStatistic;											/*!< VoiceMail Statistics Structure */
 
 	char pin[SCCP_MAX_LINE_PIN];										/*!< PIN number for mobility/roaming. */
 	char *adhocNumber;											/*!< number that should be dialed when device offhocks this line */
@@ -100,6 +80,19 @@ struct sccp_line {
 	char *accountcode;											/*!< accountcode used in cdr */
 	char *musicclass;											/*!< musicclass assigned when getting moh */
 	char *parkinglot;											/*!< parkinglot to use */
+
+	sccp_subscription_id_t defaultSubscriptionId;								/*!< default subscription id for shared lines */
+	boolean_t echocancel;											/*!< echocancel phone support */
+	boolean_t silencesuppression;										/*!< Silence Suppression Phone Support */
+	boolean_t meetme;											/*!< Meetme on/off */
+	/*!
+	 * \brief VoiceMail Statistics Structure
+	 */
+	struct {
+		int newmsgs;											/*!< New Messages */
+		int oldmsgs;											/*!< Old Messages */
+	} voicemailStatistic;											/*!< VoiceMail Statistics Structure */
+	boolean_t transfer;											/*!< Transfer Phone Support */
 
 	/* this is for reload routines */
 	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */

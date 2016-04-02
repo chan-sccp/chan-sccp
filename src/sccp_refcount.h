@@ -33,8 +33,6 @@ enum sccp_refcount_runstate {
 	SCCP_REF_DESTROYED = -1
 };
 
-typedef struct refcount_object RefCountedObject;
-
 SCCP_API void SCCP_CALL sccp_refcount_init(void);
 SCCP_API void SCCP_CALL sccp_refcount_destroy(void);
 SCCP_API int SCCP_CALL sccp_refcount_isRunning(void);
@@ -42,9 +40,8 @@ SCCP_API int SCCP_CALL sccp_refcount_schedule_cleanup(const void *data);
 SCCP_API void * SCCP_CALL  const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor);
 SCCP_API void SCCP_CALL sccp_refcount_updateIdentifier(void *ptr, char *identifier);
 SCCP_API void * SCCP_CALL  const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func);
-SCCP_API void * SCCP_CALL  const sccp_refcount_release(const void * const ptr, const char *filename, int lineno, const char *func);
-//void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func);
-SCCP_API void SCCP_CALL sccp_refcount_replace(const void **replaceptr, const void *const newptr, const char *filename, int lineno, const char *func);
+SCCP_API void * SCCP_CALL  const sccp_refcount_release(const void * * const ptr, const char *filename, int lineno, const char *func);
+SCCP_API void SCCP_CALL sccp_refcount_replace(const void * * const replaceptr, const void *const newptr, const char *filename, int lineno, const char *func);
 SCCP_API void SCCP_CALL sccp_refcount_print_hashtable(int fd);
 SCCP_API int SCCP_CALL sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 SCCP_API void SCCP_CALL sccp_refcount_autorelease(void *ptr);
@@ -53,6 +50,19 @@ SCCP_API void SCCP_CALL sccp_refcount_autorelease(void *ptr);
 #ifdef CS_EXPERIMENTAL
 SCCP_API int SCCP_CALL sccp_refcount_force_release(long findobj, char *identifier);
 #endif
+
+#define sccp_refcount_retain_type(_type, _x) 		({											\
+	pbx_assert(PTR_TYPE_CMP(const _type *const, _x ) == 1 &&  _x != NULL); 									\
+	sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);									\
+})
+#define sccp_refcount_release_type(_type,_x)		({											\
+	pbx_assert(PTR_TYPE_CMP(_type * *const, _x ) == 1 && *_x != NULL); 									\
+	sccp_refcount_release((const void ** const)_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);						\
+})
+#define sccp_refcount_refreplace_type(_type,_x, _y) 	({											\
+	pbx_assert(PTR_TYPE_CMP(_type * *const, _x) == 1 && PTR_TYPE_CMP(const _type *const, _y) == 1 && _x != NULL);				\
+	sccp_refcount_replace((const void ** const)_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);						\
+})
 
 __END_C_EXTERN__
 

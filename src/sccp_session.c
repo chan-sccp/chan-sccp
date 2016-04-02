@@ -234,7 +234,7 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 		}
 
 		const struct messagetype *msgtype;
-		if (messageId >= SCCP_MESSAGE_LOW_BOUNDARY && messageId <= SCCP_MESSAGE_HIGH_BOUNDARY) {
+		if (messageId <= SCCP_MESSAGE_HIGH_BOUNDARY) {
 			msgtype = &sccp_messagetypes[messageId];
 			if (msgtype->messageId == messageId) {
 				return msgtype->size + SCCP_PACKET_HEADER;
@@ -632,12 +632,13 @@ void *sccp_netsock_device_thread(void *session)
 	}
 
 	while (s->fds[0].fd > 0 && !s->session_stop) {
-		if (s->device) {
+		if (s->device && (s->device->pendingUpdate != FALSE || s->device->pendingDelete != FALSE)) {
 			pbx_rwlock_rdlock(&GLOB(lock));
-			if (GLOB(reload_in_progress) == FALSE && s && s->device && (!(s->device->pendingUpdate == FALSE && s->device->pendingDelete == FALSE))) {
+			boolean_t reload_in_progress = GLOB(reload_in_progress);
+			pbx_rwlock_unlock(&GLOB(lock));
+			if (reload_in_progress == FALSE) {
 				sccp_device_check_update(s->device);
 			}
-			pbx_rwlock_unlock(&GLOB(lock));
 		}
 		/* calculate poll timout using keepalive interval */
 		maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
@@ -776,7 +777,6 @@ static void sccp_accept_connection(void)
 	memcpy(&s->sin, &incoming, sizeof(s->sin));
 	sccp_mutex_init(&s->lock);
 
-	sccp_session_lock(s);
 	s->fds[0].events = POLLIN | POLLPRI;
 	s->fds[0].revents = 0;
 	s->fds[0].fd = new_socket;
@@ -798,7 +798,6 @@ static void sccp_accept_connection(void)
 			pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		}
 		sccp_session_reject(s, "Device ip not authorized");
-		sccp_session_unlock(s);
 		destroy_session(s, 0);
 		return;
 	}
@@ -829,7 +828,6 @@ static void sccp_accept_connection(void)
 	if (!pthread_attr_getstacksize(&attr, &stacksize)) {
 		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Using %d memory for this thread\n", (int) stacksize);
 	}
-	sccp_session_unlock(s);
 }
 
 static void sccp_netsock_cleanup_timed_out(void)
@@ -837,7 +835,10 @@ static void sccp_netsock_cleanup_timed_out(void)
 	sccp_session_t *session;
 
 	pbx_rwlock_rdlock(&GLOB(lock));
-	if (GLOB(module_running) && !GLOB(reload_in_progress)) {
+	boolean_t reload_in_progress = GLOB(reload_in_progress);
+	boolean_t module_running = GLOB(module_running);
+	pbx_rwlock_unlock(&GLOB(lock));
+	if (module_running && !reload_in_progress) {
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
 			if (session->lastKeepAlive == 0) {
 				// final resort
@@ -852,8 +853,8 @@ static void sccp_netsock_cleanup_timed_out(void)
 		}
 		SCCP_LIST_TRAVERSE_SAFE_END;
 	}
-	pbx_rwlock_unlock(&GLOB(lock));
 }
+
 
 /*!
  * \brief Socket Thread
@@ -871,42 +872,54 @@ static void sccp_netsock_cleanup_timed_out(void)
  *	- see sccp_handle_message()
  *	- see sccp_device_sendReset()
  */
-void *sccp_netsock_thread(void * __attribute__((unused)) ignore)
+void *sccp_netsock_thread(void * ignore)
 {
 	struct pollfd fds[1];
-
 	fds[0].events = POLLIN | POLLPRI;
 	fds[0].revents = 0;
 
-	int res;
+	int res = 0;
+	int keepaliveInterval;
+	boolean_t reload_in_progress = FALSE;
+	boolean_t module_running = TRUE;
 
 	pthread_attr_t attr;
-
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
 	while (GLOB(descriptor) > -1) {
+		pbx_rwlock_rdlock(&GLOB(lock));
 		fds[0].fd = GLOB(descriptor);
-		res = sccp_netsock_poll(fds, 1, GLOB(keepalive) * 10);
+		keepaliveInterval = GLOB(keepalive) * 5000;					/* 60 * 5 * 1000 = 300000 =(5 minutes) */
+		pbx_rwlock_unlock(&GLOB(lock));
 
+		res = sccp_netsock_poll(fds, 1, keepaliveInterval);
 		if (res < 0) {
-			if (errno == EINTR || errno == EAGAIN) {
-				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s) -- ignoring.\n", res, errno, strerror(errno));
-			} else {
+			if (!(errno == EINTR || errno == EAGAIN)) {
 				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
+				break;
 			}
 		} else if (res == 0) {
-			// poll timeout
 			sccp_netsock_cleanup_timed_out();
 		} else {
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
 			pbx_rwlock_rdlock(&GLOB(lock));
-			if (GLOB(module_running) && !GLOB(reload_in_progress)) {
+			reload_in_progress = GLOB(reload_in_progress);
+			module_running = GLOB(module_running);
+			pbx_rwlock_unlock(&GLOB(lock));
+			if (!module_running) {
+				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Module not running. exiting thread.\n");
+				break;
+			}
+			if (!reload_in_progress) {
+				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
 				sccp_accept_connection();
 			}
-			pbx_rwlock_unlock(&GLOB(lock));
 		}
 	}
+	pbx_rwlock_wrlock(&GLOB(lock));
+	GLOB(socket_thread) = AST_PTHREADT_NULL;
+	close(GLOB(descriptor));
+	GLOB(descriptor) = -1;
+	pbx_rwlock_unlock(&GLOB(lock));
 
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Exit from the socket thread\n");
 	return NULL;
@@ -1267,7 +1280,7 @@ gcc_inline sccp_device_t * const sccp_session_getDevice(constSessionPtr session,
 		return NULL;
 	}
 	if (required && sccp_session_check_crossdevice(session, device)) {
-		sccp_device_release(device);							/* explicit release after error */
+		sccp_device_release(&device);							/* explicit release after error */
 		return NULL;
 	}
 	return device;

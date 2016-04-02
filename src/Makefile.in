@@ -96,7 +96,7 @@ host_triplet = @host@
 target_triplet = @target@
 DIST_COMMON = $(top_srcdir)/src/Makefile.inc.am $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am $(srcdir)/config.h.in \
-	$(top_srcdir)/autoconf/depcomp $(noinst_HEADERS) README
+	$(top_srcdir)/autoconf/depcomp $(noinst_HEADERS)
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/acinclude.m4 \
@@ -171,7 +171,8 @@ am_libsccp_la_OBJECTS = libsccp_la-sccp_callinfo.lo \
 	libsccp_la-sccp_rtp.lo libsccp_la-sccp_appfunctions.lo \
 	libsccp_la-sccp_protocol.lo libsccp_la-sccp_devstate.lo \
 	libsccp_la-sccp_event.lo libsccp_la-sccp_enum.lo \
-	libsccp_la-sccp_globals.lo libsccp_la-sccp_netsock.lo
+	libsccp_la-sccp_globals.lo libsccp_la-sccp_netsock.lo \
+	libsccp_la-sccp_codec.lo
 libsccp_la_OBJECTS = $(am_libsccp_la_OBJECTS)
 libsccp_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libsccp_la_CFLAGS) \
@@ -355,7 +356,6 @@ EVENT_LIBS = @EVENT_LIBS@
 EVENT_TYPE = @EVENT_TYPE@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
-FINGER = @FINGER@
 GDB = @GDB@
 GDB_FLAGS = @GDB_FLAGS@
 GIT = @GIT@
@@ -366,6 +366,7 @@ HAVE_PBX_HTTP = @HAVE_PBX_HTTP@
 HEAD = @HEAD@
 HG = @HG@
 HOST_CC = @HOST_CC@
+ID = @ID@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -443,6 +444,8 @@ SET_MAKE = @SET_MAKE@
 SH = @SH@
 SHELL = @SHELL@
 STRIP = @STRIP@
+SUPPORTED_CFLAGS = @SUPPORTED_CFLAGS@
+SUPPORTED_LDFLAGS = @SUPPORTED_LDFLAGS@
 SVN = @SVN@
 SVN2CL = @SVN2CL@
 SVNVERSION = @SVNVERSION@
@@ -465,7 +468,6 @@ am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
-ax_warn_cflags_variable = @ax_warn_cflags_variable@
 bindir = @bindir@
 build = @build@
 build_alias = @build_alias@
@@ -517,15 +519,17 @@ AUTOMAKE_OPTIONS = gnu
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov
 AM_CFLAGS = $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	$(COVERAGE_CFLAGS) $(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) \
-	$(LIBCURL_CFLAGS) $(ax_warn_cflags_variable) -I${abs_builddir} \
-	-I$(top_builddir)/src/ -I$(top_srcdir)/src/ \
+	$(LIBCURL_CFLAGS) $(SUPPORTED_CFLAGS) $(SANITIZE_CFLAGS) \
+	-I${abs_builddir} -I$(top_builddir)/src/ -I$(top_srcdir)/src/ \
 	-I$(top_srcdir)/src/pbx_impl/ \
 	-I$(top_srcdir)/src/pbx_impl/ast/ \
 	-I$(top_srcdir)/src/$(PBX_COND_SUBDIR) \
 	-I$(top_srcdir)/src/$(PBXVER_COND_SUBDIR) \
 	-I$(top_srcdir)/src/$(PBXVER_COND_ANNOUNCE_SUBDIR) \
-	-D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
-AM_LDFLAGS = -z muldefs @LTLIBOBJS@
+	-DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self \
+	-DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS) -D_REENTRANT \
+	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
+AM_LDFLAGS = $(SANITIZE_LDFLAGS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(CLANG_BLOCKS_LIBS) $(AST_CLANG_BLOCKS_LIBS) $(SUPPORTED_LDFLAGS) -z muldefs @LTLIBOBJS@
 SUBDIRS = pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) .
 DIST_SUBDIRS = pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast_announce .
 EXTRA_DIST = sccp_enum.in sccp_config_entries.hh
@@ -555,21 +559,20 @@ libsccp_la_SOURCES = sccp_callinfo.c 	sccp_channel.c		sccp_device.c		sccp_debug.
 			  sccp_hint.c 		sccp_refcount.c		sccp_management.c	sccp_mwi.c		\
 			  sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
 			  sccp_devstate.c	sccp_event.c		sccp_enum.c		sccp_globals.c		\
-			  sccp_netsock.c
+			  sccp_netsock.c	sccp_codec.c
 
 chan_sccp_la_SOURCES = chan_sccp.c
 libsccp_la_DEPENDENCIES = revision.h sccp_enum.h sccp_enum.c
 libsccp_la_CFLAGS = $(AM_CFLAGS)
 libsccp_la_LDFLAGS = $(AM_LDFLAGS)
+#libsccp_la_CXXFLAGS	= $(AM_CXXFLAGS)
 chan_sccp_la_LIBADD = libsccp.la pbx_impl/libpbximpl.la $(PBX_COND_LIBADD) $(PBXVER_COND_LIBADD) $(PBXVER_COND_ANNOUNCE_LIBADD)
 chan_sccp_la_DEPENDENCIES = $(chan_sccp_la_LIBADD)
-chan_sccp_la_CFLAGS = $(AM_CFLAGS) -DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self -DAST_MODULE=\"chan_sccp\"
-chan_sccp_la_LDFLAGS = $(AM_LDFLAGS) $(PBX_LDFLAGS) \
-	$(SANITIZE_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) \
-	$(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) \
-	$(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS) $(LIBBFD) \
-	$(LIBEXECINFO) $(LTLIBICONV) -avoid-version -module -lm -s \
-	-rdynamic
+chan_sccp_la_CFLAGS = $(AM_CFLAGS)
+chan_sccp_la_LDFLAGS = $(AM_LDFLAGS) $(PBX_LDFLAGS) $(PTHREAD_LIBS) \
+	$(EVENT_LIBS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) \
+	$(LIBBFD) $(LIBEXECINFO) $(LTLIBICONV) -avoid-version -module \
+	-lm -s -rdynamic
 all: $(BUILT_SOURCES) config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
@@ -671,6 +674,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_callinfo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_channel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_cli.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_codec.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_conference.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_config.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_debug.Plo@am__quote@
@@ -929,6 +933,13 @@ libsccp_la-sccp_netsock.lo: sccp_netsock.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_netsock.c' object='libsccp_la-sccp_netsock.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_netsock.lo `test -f 'sccp_netsock.c' || echo '$(srcdir)/'`sccp_netsock.c
+
+libsccp_la-sccp_codec.lo: sccp_codec.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -MT libsccp_la-sccp_codec.lo -MD -MP -MF $(DEPDIR)/libsccp_la-sccp_codec.Tpo -c -o libsccp_la-sccp_codec.lo `test -f 'sccp_codec.c' || echo '$(srcdir)/'`sccp_codec.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsccp_la-sccp_codec.Tpo $(DEPDIR)/libsccp_la-sccp_codec.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_codec.c' object='libsccp_la-sccp_codec.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_codec.lo `test -f 'sccp_codec.c' || echo '$(srcdir)/'`sccp_codec.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1223,6 +1234,7 @@ uninstall-am: uninstall-csmodLTLIBRARIES
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-csmodLTLIBRARIES
 
+#AM_CXXFLAGS    	= -std=c++11
 .PHONY: 		.revision
 
 # generated files
@@ -1243,15 +1255,15 @@ gen_enum:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 			@echo "  GEN      sccp_enum.h";
 			@echo "  GEN      sccp_enum.c";
 			@$(AWK) -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" < @abs_top_srcdir@/src/sccp_enum.in >/dev/null;
-
+#chan_sccp_la_CXXFLAGS	= $(AM_CXXFLAGS)
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@test -d "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"
 	@if test "x$(strip_binaries)" == "xyes" ; then 											\
 		test -d "$(DESTDIR)$(PBX_DEBUGMODDIR)" || $(MKDIR_P) "$(DESTDIR)$(PBX_DEBUGMODDIR)";					\
-		$(OBJCOPY) --only-keep-debug ".libs/chan_sccp.so" "$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so.dbg";			\
+		$(OBJCOPY) --only-keep-debug ".libs/chan_sccp.so" "$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so";				\
 		$(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) -s ".libs/chan_sccp.so" "$(DESTDIR)$(csmoddir)";\
-		$(OBJCOPY) --add-gnu-debuglink="$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so.dbg" "$(DESTDIR)$(csmoddir)/chan_sccp.so";	\
+		$(OBJCOPY) --add-gnu-debuglink="$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so" "$(DESTDIR)$(csmoddir)/chan_sccp.so";	\
 		echo    "==============================================================================================="; 		\
 		echo    "Installed Stripped chan_sccp.so to '$(DESTDIR)$(csmoddir)'...";           					\
 		echo    "===============================================================================================";		\

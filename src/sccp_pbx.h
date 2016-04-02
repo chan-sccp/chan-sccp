@@ -21,7 +21,7 @@ SCCP_API void SCCP_CALL sccp_pbx_needcheckringback(sccp_device_t * d);
 SCCP_API void SCCP_CALL sccp_pbx_senddigit(sccp_channel_t * c, char digit);
 SCCP_API void SCCP_CALL sccp_pbx_senddigits(sccp_channel_t * c, const char *digits);
 SCCP_API int SCCP_CALL sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest);
-SCCP_API int SCCP_CALL sccp_pbx_hangup(sccp_channel_t * channel);
+SCCP_API sccp_channel_t *SCCP_CALL sccp_pbx_hangup(sccp_channel_t * channel);
 SCCP_API int SCCP_CALL sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout);
 SCCP_API int SCCP_CALL sccp_pbx_answer(sccp_channel_t * channel);
 __END_C_EXTERN__

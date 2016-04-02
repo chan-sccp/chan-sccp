@@ -13,6 +13,46 @@
 SCCP_FILE_VERSION(__FILE__, "");
 
 /*!
+ * \brief SCCP Verbose Level Structure
+ */
+struct sccp_debug_category const sccp_debug_categories[32] = {
+	/* *INDENT-OFF* */
+	{"all",			"all debug levels", 			DEBUGCAT_ALL,},
+	{"none",		"all debug levels", 			DEBUGCAT_NONE,},
+	{"core",		"core debug level", 			DEBUGCAT_CORE},
+	{"sccp",		"sccp debug level", 			DEBUGCAT_SCCP},
+	{"hint",		"hint debug level", 			DEBUGCAT_HINT},
+	{"rtp",			"rtp debug level", 			DEBUGCAT_RTP},
+	{"device",		"device debug level", 			DEBUGCAT_DEVICE},
+	{"line",		"line debug level", 			DEBUGCAT_LINE},
+	{"action",		"action debug level", 			DEBUGCAT_ACTION},
+	{"channel",		"channel debug level", 			DEBUGCAT_CHANNEL},
+	{"cli",			"cli debug level", 			DEBUGCAT_CLI},
+	{"config",		"config debug level", 			DEBUGCAT_CONFIG},
+	{"feature",		"feature debug level", 			DEBUGCAT_FEATURE},
+	{"feature_button",	"feature_button debug level",		DEBUGCAT_FEATURE_BUTTON},
+	{"softkey",		"softkey debug level", 			DEBUGCAT_SOFTKEY},
+	{"indicate",		"indicate debug level",	 		DEBUGCAT_INDICATE},
+	{"pbx",			"pbx debug level", 			DEBUGCAT_PBX},
+	{"socket",		"socket debug level", 			DEBUGCAT_SOCKET},
+	{"mwi",			"mwi debug level", 			DEBUGCAT_MWI},
+	{"event",		"event debug level", 			DEBUGCAT_EVENT},
+	{"conference",		"conference debug level", 		DEBUGCAT_CONFERENCE},
+	{"buttontemplate",	"buttontemplate debug level",		DEBUGCAT_BUTTONTEMPLATE},
+	{"speeddial",		"speeddial debug level",		DEBUGCAT_SPEEDDIAL},
+	{"codec",		"codec debug level", 			DEBUGCAT_CODEC},
+	{"realtime",		"realtime debug level",	 		DEBUGCAT_REALTIME},
+	{"callinfo",		"callinfo debug level", 		DEBUGCAT_CALLINFO},
+	{"refcount",		"refcount lock debug level", 		DEBUGCAT_REFCOUNT},
+	{"message",		"message debug level", 			DEBUGCAT_MESSAGE},
+	{"newcode",		"newcode debug level", 			DEBUGCAT_NEWCODE},
+	{"threadpool",		"threadpool debug level",	 	DEBUGCAT_THPOOL},
+	{"filelinefunc",	"add line/file/function to debug output", DEBUGCAT_FILELINEFUNC},
+	{"high",		"high debug level", 			DEBUGCAT_HIGH},
+	/* *INDENT-ON* */
+};
+
+/*!
  * \brief Parse a debug categories line to debug int
  * \param arguments Array of Arguments
  * \param startat Start Point in the Arguments Array

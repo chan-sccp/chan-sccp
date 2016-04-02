@@ -965,6 +965,15 @@ strenum callHistoryDisposition {
 	SKINNY_CALL_HISTORY_DISPOSITION_UNKNOWN,	=0xfffffffe,	"Unknown",		// should have been 0xffffffff, use SENTINEL instead (gen_sccp_enum.awk issue)
 }
 
+/*!
+ * \brief Skinny Tone Direction
+ */
+strenum toneDirection {
+	SKINNY_TONEDIRECTION_USER,			=0x0,	"User",
+	SKINNY_TONEDIRECTION_NETWORK,			=0x1,	"Network",
+	SKINNY_TONEDIRECTION_BOTH,			=0x2,	"Both",
+}
+
 } /* NAMESPACE skinny */
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

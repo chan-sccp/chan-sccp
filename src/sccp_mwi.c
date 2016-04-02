@@ -318,7 +318,7 @@ void sccp_mwi_destroySubscription(sccp_mailbox_subscriber_list_t *subscription)
 		subscription->schedUpdate = SCCP_SCHED_DEL(subscription->schedUpdate);
 	}
 #endif
-	free(subscription);
+	sccp_free(subscription);
 }
 
 /*!
@@ -561,6 +561,8 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
  */
 void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice)
 {
+	pbx_assert(lineDevice != NULL && lineDevice->device != NULL);
+	
 	sccp_msg_t *msg = NULL;
 	sccp_line_t *l = lineDevice->line;
 	sccp_device_t *d = lineDevice->device;
@@ -578,8 +580,8 @@ void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice)
 
 	/* check if we need to update line status */
 	char binstr[41] = "";
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) instance: %d, mwilight:%d, mask:%s (%d)\n", DEV_ID_LOG(lineDevice->device), instance, d->mwilight, sccp_dec2binstr(binstr, 32, mask), mask);
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) state: %d. status:%s (%d) \n", DEV_ID_LOG(lineDevice->device), state, sccp_dec2binstr(binstr, 32, status), status);
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) instance: %d, mwilight:%d, mask:%s (%d)\n", DEV_ID_LOG(d), instance, d->mwilight, sccp_dec2binstr(binstr, 32, mask), mask);
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) state: %d. status:%s (%d) \n", DEV_ID_LOG(d), state, sccp_dec2binstr(binstr, 32, status), status);
 	if ( (d->mwilight & mask) != status) {
 		if (state) {			/* activate mwi line icon */
 			d->mwilight |= mask;
@@ -626,7 +628,7 @@ void sccp_mwi_check(sccp_device_t * d)
 				sccp_channel_t *c = NULL;
 				SCCP_LIST_LOCK(&line->channels);
 				SCCP_LIST_TRAVERSE(&line->channels, c, list) {
-					AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice_retained(c);
+					AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice(c);
 					if (tmpDevice && tmpDevice == device) {						// We have a channel belonging to our device (no remote shared line channel)
 						if ((c->state != SCCP_CHANNELSTATE_ONHOOK && c->state != SCCP_CHANNELSTATE_DOWN) || c->state == SCCP_CHANNELSTATE_RINGING) {
 							sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: we have an active channel, suppress mwi light\n", DEV_ID_LOG(device));

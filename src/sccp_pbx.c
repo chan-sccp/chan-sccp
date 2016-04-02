@@ -163,14 +163,16 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 
 		if (GLOB(autoanswer_tone) != SKINNY_TONE_SILENCE && GLOB(autoanswer_tone) != SKINNY_TONE_NOTONE) {
 			instance = sccp_device_find_index_for_line(device, c->line->name);
-			sccp_dev_starttone(device, GLOB(autoanswer_tone), instance, c->callid, 0);
+			sccp_dev_starttone(device, GLOB(autoanswer_tone), instance, c->callid, SKINNY_TONEDIRECTION_USER);
 		}
 		if (c->autoanswer_type == SCCP_AUTOANSWER_1W) {
 			sccp_dev_set_microphone(device, SKINNY_STATIONMIC_OFF);
 		}
 	}
 FINAL:
-	conveyor->linedevice = conveyor->linedevice ? sccp_linedevice_release(conveyor->linedevice) : NULL;	// retained in calling thread, explicit release required here
+	if (conveyor->linedevice) {
+		sccp_linedevice_release(&conveyor->linedevice);			// retained in calling thread, explicit release required here
+	}
 	sccp_free(conveyor);
 	return NULL;
 }
@@ -336,7 +338,8 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_CALLWAITING);
 
 			/* display the new call on prompt */
-			AUTO_RELEASE sccp_linedevices_t *activeChannelLinedevice = sccp_linedevice_find(linedevice->device, active_channel->line);
+			//AUTO_RELEASE sccp_linedevices_t *activeChannelLinedevice = sccp_linedevice_find(linedevice->device, active_channel->line);
+			AUTO_RELEASE sccp_linedevices_t *activeChannelLinedevice = active_channel->getLineDevice(active_channel);
 			if (activeChannelLinedevice) {
 				char prompt[100];
 				snprintf(prompt, sizeof(prompt), "%s: %s: %s", active_channel->line->name, SKINNY_DISP_FROM, cid_num);
@@ -417,7 +420,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
  * \note sccp_channel should be retained in calling function
  */
 
-int sccp_pbx_hangup(sccp_channel_t * channel)
+sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
 {
 
 	/* here the ast channel is locked */
@@ -430,16 +433,16 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 
 	if (!c) {
 		sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asked to hangup channel. SCCP channel already deleted\n");
-		return -1;
+		return NULL;
 	}
 
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 
 	if (d && !SCCP_CHANNELSTATE_Idling(c->state) && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d)) {
 		// if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_device_getActiveChannel_nolock(d))	/* Caused active channels never to be full released */
 		if (GLOB(remotehangup_tone) && d && SCCP_DEVICESTATE_OFFHOOK == sccp_device_getDeviceState(d) && SCCP_CHANNELSTATE_IsConnected(c->state) && c == d->active_channel) {
 			uint16_t instance = sccp_device_find_index_for_line(d, c->line->name);
-			sccp_dev_starttone(d, GLOB(remotehangup_tone), instance, c->callid, 10);
+			sccp_dev_starttone(d, GLOB(remotehangup_tone), instance, c->callid, SKINNY_TONEDIRECTION_USER);
 		}
 		//sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 	}
@@ -448,10 +451,10 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 
 #ifdef CS_SCCP_CONFERENCE
 	if (c && c->conference) {
-		c->conference = sccp_refcount_release(c->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);	/* explicit release required here */
+		sccp_conference_release(&c->conference);								/* explicit release required here */
 	}
 	if (d && d->conference) {
-		d->conference = sccp_refcount_release(d->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);	/* explicit release required here */
+		sccp_conference_release(&d->conference);								/* explicit release required here */
 	}
 #endif														// CS_SCCP_CONFERENCE
 
@@ -512,9 +515,9 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 		/* requesting statistics */
 		sccp_channel_StatisticsRequest(c);
 		sccp_channel_clean(c);
-		return 0;
+		return c;								/* returning unretained so that sccp_wrapper_asterisk113_hangup can clear out the last reference */
 	}
-	return -1;
+	return NULL;
 }
 
 /*!
@@ -616,7 +619,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 
 		/*! \todo This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
 		   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
-		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 
 		if (d) {
 			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
@@ -626,7 +629,8 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				* remembers the last dialed number in the same cases, where the dialed number
 				* is being sent - after receiving of RINGOUT -Pavel Troller
 				*/
-				AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, c->line);
+				//AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, c->line);
+				AUTO_RELEASE sccp_linedevices_t *linedevice = c->getLineDevice(c);
 				if(linedevice){ 
 					sccp_device_setLastNumberDialed(d, c->dialedNumber, linedevice);
 				}
@@ -697,7 +701,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	char cid_num[StationMaxDirnumSize] = {0};
 	{
 		sccp_linedevices_t *linedevice = NULL;
-		if ((d = sccp_channel_getDevice_retained(c))) {
+		if ((d = sccp_channel_getDevice(c))) {
 			SCCP_LIST_LOCK(&l->devices);
 			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 				if (linedevice->device == d) {
@@ -883,9 +887,9 @@ int sccp_pbx_sched_dial(const void * data)
 				sccp_indicate(NULL, channel, SCCP_CHANNELSTATE_INVALIDNUMBER);
 			}
 		}
-		sccp_channel_release(data);			// release channel retained in scheduled event
+		sccp_channel_release((sccp_channel_t **)&data);	// release channel retained in scheduled event
 	}
-	return 0;						// return 0 to release schedule
+	return 0;						// return 0 to release schedule !
 }
 
 /*!
@@ -914,7 +918,7 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 
 		//! \todo check overlap feature status -MC
 		extensionStatus = iPbx.extension_status(c);
-		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 
 		if (d) {
 			if (((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus))) {
@@ -982,7 +986,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 
 		/* assume d is the channel's device */
 		/* does it exists ? */
-		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 
 		if (!d) {
 			pbx_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <device> available. Returning from dial thread. Exiting\n");
@@ -1042,9 +1046,9 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			case SCCP_SOFTSWITCH_GETFORWARDEXTEN:
 				{
 					sccp_callforward_t type = (sccp_callforward_t) c->ss_data;
-
 					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Forward %s Extension\n", d->id, sccp_callforward2str(type));
 					if (!sccp_strlen_zero(shortenedNumber)) {
+						sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 						sccp_line_cfwd(l, d, type, shortenedNumber);
 					}
 					sccp_channel_endcall(c);
@@ -1247,7 +1251,8 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					/* 
 					 * too early to set last dialed number for immediate mode -Pavel Troller
 					 */
-					AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, c->line);
+					//AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, c->line);
+					AUTO_RELEASE sccp_linedevices_t *linedevice = c->getLineDevice(c);
 					if(linedevice){ 
 						sccp_device_setLastNumberDialed(d, shortenedNumber, linedevice);
 					}

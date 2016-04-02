@@ -124,8 +124,8 @@ void sccp_threadpool_grow(sccp_threadpool_t * tp_p, int amount)
 			SCCP_LIST_LOCK(&(tp_p->threads));
 			SCCP_LIST_INSERT_HEAD(&(tp_p->threads), tp_thread, list);
 			SCCP_LIST_UNLOCK(&(tp_p->threads));
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Create thread %d(%p) in pool \n", t, (void *) tp_thread->thread);
 			pbx_pthread_create(&(tp_thread->thread), &attr, (void *) sccp_threadpool_thread_do, (void *) tp_thread);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Created thread %d(%p) in pool \n", t, (void *) tp_thread->thread);
 			pbx_cond_broadcast(&(tp_p->work));
 		}
 	}

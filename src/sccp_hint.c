@@ -51,7 +51,7 @@ static char default_eid_str[32];
 struct sccp_hint_SubscribingDevice 
 {
 	SCCP_LIST_ENTRY (sccp_hint_SubscribingDevice_t) list;							/*!< Hint Subscribing Device Linked List Entry */
-	const sccp_device_t *device;										/*!< SCCP Device */
+	sccp_device_t *device;											/*!< SCCP Device */
 	uint8_t instance;											/*!< Instance */
 	uint8_t positionOnDevice;										/*!< Instance */
 };														/*!< SCCP Hint Subscribing Device Structure */
@@ -125,7 +125,9 @@ static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device);
 static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device);
 static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event);
 static void sccp_hint_eventListener(const sccp_event_t * event);
+#ifdef CS_DYNAMIC_SPEEDDIAL
 static gcc_inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice);
+#endif
 
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 #if ASTERISK_VERSION_GROUP >= 112
@@ -225,7 +227,9 @@ void sccp_hint_module_stop(void)
 
 		SCCP_LIST_LOCK(&lineStates);
 		while ((lineState = SCCP_LIST_REMOVE_HEAD(&lineStates, list))) {
-			lineState->line = lineState->line ? sccp_line_release(lineState->line) : NULL;		/* explicit release*/
+			if (lineState->line) {
+				sccp_line_release(&lineState->line);		/* explicit release*/
+			}
 			sccp_free(lineState);
 		}
 		SCCP_LIST_UNLOCK(&lineStates);
@@ -248,7 +252,7 @@ void sccp_hint_module_stop(void)
 				AUTO_RELEASE sccp_device_t *device = sccp_device_retain((sccp_device_t *) subscriber->device);
 
 				if (device) {
-					subscriber->device = sccp_device_release(subscriber->device);		/* explicit release*/
+					sccp_device_release(&subscriber->device);		/* explicit release*/
 					sccp_free(subscriber);
 				}
 			}
@@ -469,7 +473,7 @@ static void sccp_hint_deviceUnRegistered(const char *deviceName)
 			if (subscriber->device && !strcasecmp(subscriber->device->id, deviceName)) {
 				sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s: Freeing subscriber from hint exten: %s in %s\n", deviceName, hint->exten, hint->context);
 				SCCP_LIST_REMOVE_CURRENT(list);
-				subscriber->device = sccp_device_release(subscriber->device);		/* explicit release*/
+				sccp_device_release(&subscriber->device);		/* explicit release*/
 				sccp_free(subscriber);
 			}
 		}
@@ -691,7 +695,9 @@ static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device)
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&lineStates, lineState, list) {
 			if (lineState->line == line) {
 				//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_detachLine) line: %s detached\n", DEV_ID_LOG(device), line->name);
-				lineState->line = lineState->line ? sccp_line_release(lineState->line) : NULL;
+				if (lineState->line) {
+					sccp_line_release(&lineState->line);		/* explicit release*/
+				}
 				SCCP_LIST_REMOVE_CURRENT(list);
 				sccp_free(lineState)
 				break;
@@ -1073,7 +1079,6 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 {
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
-	sccp_msg_t *msg = NULL;
 
 	if (!hint) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_hint_notifySubscribers) no hint provided to notifySubscribers about\n");
@@ -1094,6 +1099,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		if (d) {
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, hint->hint_dialplan, sccp_channelstate2str(hint->currentState), hint->currentState);
 #ifdef CS_DYNAMIC_SPEEDDIAL
+			sccp_msg_t *msg = NULL;
 			sccp_speed_t k;
 			char displayMessage[80] = "";
 			skinny_busylampfield_state_t status = SKINNY_BLF_STATUS_UNKNOWN;
@@ -1132,6 +1138,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 						/* fall through */
 
 					default:
+#ifdef CS_DYNAMIC_SPEEDDIAL
 						if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
 							if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
 								iCallInfo.Getter(hint->callInfo, 
@@ -1151,7 +1158,9 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							} else {
 								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							}
-						} else {
+						} else 
+#endif
+						{
 							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 						}
 						if (status == SKINNY_BLF_STATUS_UNKNOWN) {	/* still default value --> set */

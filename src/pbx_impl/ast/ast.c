@@ -443,7 +443,7 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t * c)
 		pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) processing hangup request, using carefull version. Standby.\n", pbx_channel_name(pbx_channel));
 		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
 			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Already Hungup. Forcing SCCP Remove Call.\n", pbx_channel_name(pbx_channel));
-			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
+			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
 
 			if (d) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
@@ -480,7 +480,7 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t * c)
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
 		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
 			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_requestQueueHangup) Already Hungup\n", channel->designator);
-			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
+			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
 
 			if (d) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
@@ -507,7 +507,7 @@ boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t * c)
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
 
 		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
-			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
+			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
 
 			if (d) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
@@ -789,7 +789,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	sccp_channel_send_callinfo2(channel);
 
 	if (changes) {								/* only send indications if something changed */
-		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
+		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
 		sccp_indicate(d, channel, channel->state);
 	}
 #endif
@@ -944,7 +944,7 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 
 	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);
 	if (c) {
-		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 		if (d) {
 			if (!strcasecmp(args.param, "peerip")) {
 				struct sockaddr_storage sas = { 0 };

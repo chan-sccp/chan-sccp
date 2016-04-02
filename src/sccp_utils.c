@@ -220,17 +220,6 @@ void sccp_dev_dbclean(void)
 }
 #endif
 
-gcc_inline const char *msgtype2str(sccp_mid_t msgId)
-{														/* sccp_protocol.h */
-	if (msgId >= SPCP_MESSAGE_OFFSET && (msgId - SPCP_MESSAGE_OFFSET) < ARRAY_LEN(spcp_messagetypes)) {
-		return spcp_messagetypes[msgId - SPCP_MESSAGE_OFFSET].text;
-	}
-	if (msgId < ARRAY_LEN(sccp_messagetypes)) {
-		return sccp_messagetypes[msgId].text;
-	} 
-	return "SCCP: Requested MessageId does not exist";
-}
-
 gcc_inline const char *pbxsccp_devicestate2str(uint32_t value)
 {														/* pbx_impl/ast/ast.h */
 	_ARR2STR(sccp_pbx_devicestates, devicestate, value, text);
@@ -248,28 +237,6 @@ gcc_inline const char *label2str(uint16_t value)
 	_ARR2STR(skinny_labels, label, value, text);
 }
 
-gcc_inline const char *codec2str(skinny_codec_t value)
-{														/* sccp_protocol.h */
-	_ARR2STR(skinny_codecs, codec, value, text);
-}
-
-#if UNUSEDCODE // 2015-11-01
-gcc_inline int codec2payload(skinny_codec_t value)
-{														/* sccp_protocol.h */
-	_ARR2INT(skinny_codecs, codec, value, rtp_payload_type);
-}
-
-gcc_inline const char *codec2key(skinny_codec_t value)
-{														/* sccp_protocol.h */
-	_ARR2STR(skinny_codecs, codec, value, key);
-}
-#endif
-
-gcc_inline const char *codec2name(skinny_codec_t value)
-{														/* sccp_protocol.h */
-	_ARR2STR(skinny_codecs, codec, value, name);
-}
-
 #if UNUSEDCODE // 2015-11-01
 gcc_inline uint32_t debugcat2int(const char *str)
 {														/* chan_sccp.h */
@@ -280,213 +247,6 @@ gcc_inline uint32_t debugcat2int(const char *str)
 gcc_inline uint32_t labelstr2int(const char *str)
 {														/* chan_sccp.h */
 	_STRARR2INT(skinny_labels, text, str, label);
-}
-
-/*!
- * \brief Retrieve the string of format numbers and names from an array of formats
- * Buffer needs to be declared and freed afterwards
- * \param buf   Buffer as char array
- * \param size  Size of Buffer
- * \param codecs Array of Skinny Codecs
- * \param length Max Length
- */
-char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength)
-{
-	if (!buf || size <= 2) {
-		return buf;
-	}
-	memset(buf, 0, size);
-	char *endptr = buf;
-	int x, comma = 0;
-
-	snprintf(endptr++, size, "(");
-	endptr += strlen(endptr);
-	for (x = 0; x < clength; x++) {
-		if (codecs[x] == 0) {
-			break;
-		}
-		snprintf(endptr, size, "%s%s (%d)", comma++ ? ", " : "",codec2name(codecs[x]), codecs[x]);
-		endptr += strlen(endptr);
-	}
-	if (buf == endptr) {
-		snprintf(endptr, size, "nothing)");
-	}
-	return buf;
-}
-
-/*!
- * \brief Remove Codec from Skinny Codec Preferences
- */
-/*
-static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec)
-{
-	int x = 0;
-	int found = 0;
-
-	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-		if (!found) {
-			if (skinny_codec_prefs[x] == SKINNY_CODEC_NONE) {					// exit early if the rest can only be NONE
-				return;
-			}
-			if (skinny_codec_prefs[x] == skinny_codec) {
-				//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "found codec '%s (%d)' at pos %d\n", codec2name(skinny_codec), skinny_codec, x);
-				found = 1;
-			}
-		} else {
-			if (x + 1 < SKINNY_MAX_CAPABILITIES) {							// move all remaining member left one, deleting the found one
-				//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "moving %d to %d\n", x+1, x);
-				skinny_codec_prefs[x] = skinny_codec_prefs[x + 1];
-			}
-			if (skinny_codec_prefs[x + 1] == SKINNY_CODEC_NONE) {					// exit early if the rest can only be NONE
-				return;
-			}
-		}
-	}
-}
-*/
-static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec)
-{
-	int x = 0;
-	boolean_t found = FALSE;
-
-	for (x = 0; x < SKINNY_MAX_CAPABILITIES && skinny_codec_prefs[x] != SKINNY_CODEC_NONE; x++) {
-		if (!found && skinny_codec_prefs[x] == skinny_codec) {
-			found = TRUE;
-		}
-		if (found) {
-			memmove(skinny_codec_prefs + x, skinny_codec_prefs + (x + 1), (SKINNY_MAX_CAPABILITIES - (x + 1)) * sizeof(skinny_codec_t));  // move left
-		}
-	}
-}
-
-/*!
- * \brief Append Codec to Skinny Codec Preferences
- */
-static int skinny_codec_pref_append(skinny_codec_t * skinny_codec_pref, skinny_codec_t skinny_codec)
-{
-	int x = 0;
-
-	// append behaviour: remove old entry, move all other entries left, append 
-	skinny_codec_pref_remove(skinny_codec_pref, skinny_codec);
-
-	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-		if (SKINNY_CODEC_NONE == skinny_codec_pref[x]) {
-			//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "inserting codec '%s (%d)' at pos %d\n", codec2name(skinny_codec), skinny_codec, x);
-			skinny_codec_pref[x] = skinny_codec;
-			return x;
-		}
-	}
-	return -1;
-}
-
-/*!
- * \brief Parse Skinny Codec Allow / Disallow Config Lines
- */
-int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing)
-{
-	int errors = 0;
-
-	if (!skinny_codec_prefs) {
-		return -1;
-	}
-	unsigned int x;
-	boolean_t all = FALSE;
-	boolean_t found = FALSE;
-	char *parse = NULL, *token = NULL;
-	skinny_codec_t codec;
-
-	parse = pbx_strdupa(list);
-	while ((token = strsep(&parse, ","))) {
-		if (!sccp_strlen_zero(token)) {
-			all = sccp_strcaseequals(token, "all") ? TRUE : FALSE;
-			if (all && !allowing) {									// disallowing all
-				memset(skinny_codec_prefs, 0, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
-				//sccp_log((DEBUGCAT_CODEC)) ("SCCP: disallow=all => reset codecs\n");
-				break;
-			}
-			for (x = 0; x < ARRAY_LEN(skinny_codecs); x++) {
-				if (all || sccp_strcaseequals(skinny_codecs[x].key, token)) {
-					codec = skinny_codecs[x].codec;
-					found = TRUE;
-					if (allowing) {
-						//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "appending codec '%s'\n", codec2name(codec));
-						skinny_codec_pref_append(skinny_codec_prefs, codec);
-					} else {
-						//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "removing codec '%s'\n", codec2name(codec));
-						skinny_codec_pref_remove(skinny_codec_prefs, codec);
-					}
-				}
-			}
-			if (!found) {
-				pbx_log(LOG_WARNING, "Cannot %s unknown codec '%s'\n", allowing ? "allow" : "disallow", token);
-				errors++;
-				continue;
-			}
-		}
-	}
-	return errors;
-}
-
-/*!
- * \brief Check if Skinny Codec is compatible with Skinny Capabilities Array
- */
-boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length)
-{
-	uint8_t i;
-
-	for (i = 0; i < length; i++) {
-		if (capabilities[i] == codec) {
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-
-/*!
- * \brief get smallest common denominator codecset
- * intersection of two sets
- */
-void sccp_utils_reduceCodecSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES])
-{
-	skinny_codec_t temp[SKINNY_MAX_CAPABILITIES] = {0};
-	uint8_t x = 0, y = 0, z = 0;
-	for (x = 0; x < SKINNY_MAX_CAPABILITIES && (z+1) < SKINNY_MAX_CAPABILITIES && base[x] != SKINNY_CODEC_NONE; x++) {
-		for (y = 0; y < SKINNY_MAX_CAPABILITIES && (z+1) < SKINNY_MAX_CAPABILITIES && reduceByCodecs[y] != SKINNY_CODEC_NONE; y++) {
-			if (base[x] == reduceByCodecs[y]) {
-				temp[z++] = base[x];
-				break;
-			}
-		}
-	}
-	memcpy(base, temp, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
-}
-
-/*!
- * \brief combine two codecs sets skipping duplicates
- * union of two sets
- */
-void sccp_utils_combineCodecSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t addCodecs[SKINNY_MAX_CAPABILITIES])
-{
-	uint8_t x = 0, y = 0, z = 0, demarquation = SKINNY_MAX_CAPABILITIES;
-	for (y = 0; y < SKINNY_MAX_CAPABILITIES && addCodecs[y] != SKINNY_CODEC_NONE; y++) {
-		boolean_t found = FALSE;
-		for (x = 0; x < demarquation && base[x] != SKINNY_CODEC_NONE; x++) {
-			if (base[x] == addCodecs[y]) {
-				found = TRUE;
-				break;
-			}
-		}
-		while (!found && z < SKINNY_MAX_CAPABILITIES) {
-			if (base[z] == SKINNY_CODEC_NONE) {
-				if (demarquation) {		// don't check against newly added codecs
-					demarquation = z;
-				}
-				base[z] = addCodecs[y];
-				break;
-			}
-			z++;
-		}
-	}
 }
 
 #ifndef HAVE_PBX_STRINGS_H
@@ -766,8 +526,8 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
  */
 int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_subscription_id_t *subscriptionId, char extension[SCCP_MAX_EXTENSION])
 {
-	pbx_assert(NULL != labelString || NULL != subscriptionId || NULL != extension);
-	int res = TRUE;
+	pbx_assert(NULL != labelString && NULL != subscriptionId && NULL != extension);
+	int res = 0;
 	const char *stringIterator = 0;
 	uint32_t i = 0;
 	boolean_t endDetected = FALSE;
@@ -782,23 +542,25 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 					case '\0':
 						endDetected = TRUE;
 						extension[i] = '\0';
+						res++;
 						break;
 					case '@':
 						extension[i] = '\0';
 						i = 0;
 						state = ID;
+						res++;
 						break;
 					case '!':
 						extension[i] = '\0';
 						i = 0;
 						state = AUX;
+						res++;
 						break;
 					default:
 						extension[i] = *stringIterator;
 						i++;
 						break;
 				}
-				res++;
 				break;
 
 			case ID:										// parsing of sub id number
@@ -807,6 +569,7 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 					case '\0':
 						subscriptionId->number[i] = '\0';
 						endDetected = TRUE;
+						res++;
 						break;
 					case '+':
 						if(i == 0) {
@@ -822,23 +585,25 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 						subscriptionId->number[i] = '\0';
 						i = 0;
 						state = CIDNAME;
+						res++;
 						break;
 					case '#':
 						subscriptionId->name[i] = '\0';
 						i = 0;
 						state = LABEL;
+						res++;
 						break;
 					case '!':
 						subscriptionId->number[i] = '\0';
 						i = 0;
 						state = AUX;
+						res++;
 						break;
 					default:
 						subscriptionId->number[i] = *stringIterator;
 						i++;
 						break;
 				}
-				res++;
 				break;
 
 			case CIDNAME:										// parsing of sub id name
@@ -847,23 +612,25 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 					case '\0':
 						subscriptionId->name[i] = '\0';
 						endDetected = TRUE;
+						res++;
 						break;
 					case '#':
 						subscriptionId->name[i] = '\0';
 						i = 0;
 						state = LABEL;
+						res++;
 						break;
 					case '!':
 						subscriptionId->name[i] = '\0';
 						i = 0;
 						state = AUX ;
+						res++;
 						break;
 					default:
 						subscriptionId->name[i] = *stringIterator;
 						i++;
 						break;
 				}
-				res++;
 				break;
 
 			case LABEL:										// parsing of sub id name
@@ -872,18 +639,19 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 					case '\0':
 						subscriptionId->label[i] = '\0';
 						endDetected = TRUE;
+						res++;
 						break;
 					case '!':
 						subscriptionId->label[i] = '\0';
 						i = 0;
 						state = AUX;
+						res++;
 						break;
 					default:
 						subscriptionId->label[i] = *stringIterator;
 						i++;
 						break;
 				}
-				res++;
 				break;
 
 			case AUX:										// parsing of auxiliary parameter
@@ -892,13 +660,13 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 					case '\0':
 						subscriptionId->aux[i] = '\0';
 						endDetected = TRUE;
+						res++;
 						break;
 					default:
 						subscriptionId->aux[i] = *stringIterator;
 						i++;
 						break;
 				}
-				res++;
 				break;
 
 			default:
@@ -1108,97 +876,6 @@ int sccp_strIsNumeric(const char *s)
 	}
 	return 0;
 }
-
-/*!
- * \brief Find the best codec match Between Preferences, Capabilities and RemotePeerCapabilities
- * 
- * Returns:
- *  - Best Match If Found
- *  - If not it returns the first jointCapability
- *  - Else SKINNY_CODEC_NONE
- */
-skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int cLength, const skinny_codec_t remotePeerCapabilities[], int rLength)
-{
-	uint8_t r, c, p;
-	skinny_codec_t firstJointCapability = SKINNY_CODEC_NONE;						/*!< used to get a default value */
-
-	sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "pLength %d, cLength: %d, rLength: %d\n", pLength, cLength, rLength);
-
-	/*
-	   char pref_buf[256];
-	   sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, ourPreferences, (int)pLength);
-	   char cap_buf[256];
-	   sccp_multiple_codecs2str(cap_buf, sizeof(pref_buf) - 1, ourCapabilities, cLength);
-	   char remote_cap_buf[256];
-	   sccp_multiple_codecs2str(remote_cap_buf, sizeof(remote_cap_buf) - 1, remotePeerCapabilities, rLength);
-	   sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ourPref %s\nourCap: %s\nremoteCap: %s\n", pref_buf, cap_buf, remote_cap_buf);
-	 */
-
-	/** check if we have a preference codec list */
-	if (pLength == 0 || ourPreferences[0] == SKINNY_CODEC_NONE) {
-		/* using remote capabilities to */
-		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "We got an empty preference codec list (exiting)\n");
-		return SKINNY_CODEC_NONE;
-
-	}
-
-	/* iterate over our codec preferences */
-	for (p = 0; p < pLength; p++) {
-		if (ourPreferences[p] == SKINNY_CODEC_NONE) {
-			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "no more preferences at position %d\n", p);
-			break;
-		}
-		/* no more preferences */
-		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "preference: %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]));
-
-		/* check if we are capable to handle this codec */
-		for (c = 0; c < cLength; c++) {
-			if (ourCapabilities[c] == SKINNY_CODEC_NONE) {
-				/* we reached the end of valide codecs, because we found the first NONE codec */
-				sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) ("Breaking at capability: %d\n", c);
-				break;
-			}
-
-			sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "preference: %d(%s), capability: %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]), ourCapabilities[c], codec2name(ourCapabilities[c]));
-
-			/* we have no capabilities from the remote party, use the best codec from ourPreferences */
-			if (ourPreferences[p] == ourCapabilities[c]) {
-				if (firstJointCapability == SKINNY_CODEC_NONE) {
-					firstJointCapability = ourPreferences[p];
-					sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "found first firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
-				}
-
-				if (rLength == 0 || remotePeerCapabilities[0] == SKINNY_CODEC_NONE) {
-					sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "Empty remote Capabilities, using bestCodec from firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
-					return firstJointCapability;
-				} 
-					/* using capabilities from remote party, that matches our preferences & capabilities */
-					for (r = 0; r < rLength; r++) {
-						if (remotePeerCapabilities[r] == SKINNY_CODEC_NONE) {
-							sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) ("Breaking at remotePeerCapability: %d\n", c);
-							break;
-						}
-						sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "preference: %d(%s), capability: %d(%s), remoteCapability: " UI64FMT "(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]), ourCapabilities[c], codec2name(ourCapabilities[c]), (ULONG) remotePeerCapabilities[r], codec2name(remotePeerCapabilities[r]));
-						if (ourPreferences[p] == remotePeerCapabilities[r]) {
-							sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "found bestCodec as joint capability with remote peer %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]));
-							return ourPreferences[p];
-						}
-					}
-				
-			}
-		}
-	}
-
-	if (firstJointCapability != SKINNY_CODEC_NONE) {
-		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "did not find joint capability with remote device, using first joint capability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
-		return firstJointCapability;
-	}
-
-	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "no joint capability with preference codec list\n");
-	return 0;
-}
-
-
 
 /*!
  * \brief Free a list of Host Access Rules
@@ -2490,7 +2167,7 @@ void sccp_do_backtrace()
 		for (i = 1; i < size; i++) {
 			pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, " (bt) > %s\n", strings[i]);		
 		}
-		free(strings);	// malloced by backtrace_symbols
+		sccp_free(strings);	// malloced by backtrace_symbols
 
 		pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "================================================================================\n");
 		pbx_log(LOG_WARNING, "SCCP: (backtrace) \n%s\n", pbx_str_buffer(btbuf));

@@ -50,7 +50,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1 "SCCP: [INDICATE] state '%d' in file '%s', on line %d (%s)\n", state, file, line, pretty_function);
 	}
 
-	AUTO_RELEASE sccp_device_t *d = (device) ? sccp_device_retain(device) : sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = (device) ? sccp_device_retain(device) : sccp_channel_getDevice(c);
 
 	if (!d) {
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1 "SCCP: The channel %d does not have a device\n", c->callid);
@@ -90,7 +90,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			if (SCCP_CHANNELSTATE_DOWN == c->previousChannelState) {				// new call
 				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 				if (d->earlyrtp != SCCP_EARLYRTP_IMMEDIATE) {
-					sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, c->callid, 0);
+					sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 				}
 			}
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_OFFHOOK);
@@ -103,7 +103,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
 			sccp_dev_set_cplane(d, instance, 1);
-			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, 1);
+			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 			/* for earlyrtp take a look at sccp_feat_handle_callforward because we have no c->owner here */
 			break;
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
@@ -160,7 +160,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 				sccp_channel_openReceiveChannel(c);
 			}
 			if (c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {				/* send tone if ther is no rtp for inband signaling */
-				sccp_dev_starttone(d, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
+				sccp_dev_starttone(d, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 			}
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGOUT);
 			break;
@@ -235,7 +235,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
 			if (c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {
-				sccp_dev_starttone(d, SKINNY_TONE_LINEBUSYTONE, instance, c->callid, 0);
+				sccp_dev_starttone(d, SKINNY_TONE_LINEBUSYTONE, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 			}
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_BUSY, GLOB(digittimeout));
 			break;
@@ -300,7 +300,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 		case SCCP_CHANNELSTATE_CONGESTION:
 			/* it will be emulated if the rtp audio stream is open */
 			if (c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {
-				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
+				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 			}
 			iCallInfo.Send(ci, c->callid, c->calltype, instance, device, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, GLOB(digittimeout));
@@ -374,7 +374,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_UNKNOWN_NUMBER, GLOB(digittimeout));
 			sccp_channel_closeAllMediaTransmitAndReceive(d, c);
-			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
+			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 			// wait 15 seconds, then hangup automatically
 			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
 			break;
@@ -398,7 +398,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 
 				if (lenSecDialtoneDigits > 0 && lenDialed == lenSecDialtoneDigits && !strncmp(c->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {
 					/* We have a secondary dialtone */
-					sccp_dev_starttone(d, secondary_dialtone_tone, instance, c->callid, 0);
+					sccp_dev_starttone(d, secondary_dialtone_tone, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 				} else if (lenDialed > 0) {
 					sccp_dev_stoptone(d, instance, c->callid);
 				}

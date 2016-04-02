@@ -327,7 +327,8 @@ codeSkip == 1			{ next }
 		if (sparse == 0) {
 			if (bitfield == 0) {
 				print "const char * " namespace "_" enum_name "2str(" namespace "_" enum_name "_t enum_value) {" > out_source_file
-				print "\tif ((" Entry_id[0] " <= enum_value) && (enum_value <= " toupper(namespace) "_" toupper(enum_name) "_SENTINEL)) {" >out_source_file
+				#print "\tif ((" Entry_id[0] " <= enum_value) && (enum_value <= " toupper(namespace) "_" toupper(enum_name) "_SENTINEL)) {" >out_source_file
+				print "\tif (enum_value <= " toupper(namespace) "_" toupper(enum_name) "_SENTINEL) {" >out_source_file
 				print "\t\treturn " namespace "_" enum_name "_map[enum_value];" >out_source_file
 				print "\t}" >out_source_file
 				print "\tpbx_log(LOG_ERROR, \"%s '%d' in %s2str\\n\", ERROR_2str_STR, enum_value, __" namespace "_" enum_name "_str);" > out_source_file

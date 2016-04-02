@@ -46,45 +46,27 @@ if test "$DIE" -eq 1; then
 fi
 
 echo
-echo "Generate build-system by:"
-echo "   aclocal:    $(aclocal --version | head -1)"
-echo "   autoconf:   $(autoconf --version | head -1)"
-echo "   autoheader: $(autoheader --version | head -1)"
-echo "   automake:   $(automake --version | head -1)"
+echo "Generate build-system using:"
+echo " - aclocal:    $(aclocal --version | head -1)"
+echo " - autoconf:   $(autoconf --version | head -1)"
+echo " - autoheader: $(autoheader --version | head -1)"
+echo " - automake:   $(automake --version | head -1)"
+echo
 
 #chmod +x version.sh
 rm -rf autom4te.cache
 
 touch autoconf/config.rpath
+echo "bootstrapping:"
+echo " - running aclocal..."
 aclocal $AL_OPTS
+echo " - running autoconf..."
 autoconf $AC_OPTS
+echo " - running autoheader..."
 autoheader $AH_OPTS
-# automake --add-missing --copy --force-missing 2>/dev/null
-
-# it's better to use helper files from automake installation than
-# maintain copies in git tree
-find_autofile() {
-	if [ -f "$1" ]; then
-		return
-	fi
-	for HELPER_DIR in $(automake --print-libdir 2>/dev/null) \
-			/usr/share/libtool \
-			/usr/share/automake-* ; do
-		f="$HELPER_DIR/$1"
-		if [ -f "$f" ]; then
-			cp "$f" $CONFIG_DIR/
-			return
-		fi
-	done
-	echo "Cannot find "$1" in known locations"
-	exit 1
-}
-
-mkdir -p $CONFIG_DIR/
-find_autofile config.guess
-find_autofile config.sub
-find_autofile install-sh
-
+echo " - running automake..."
+automake --add-missing --copy --force-missing 2>/dev/null
+echo "bootstrap done."
 
 cd $THEDIR
 if test -f config.status; then

@@ -151,7 +151,7 @@ static SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define CAS32_TYPE int
 #define SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT 2000									// ms
 #define SCCP_BACKTRACE_SIZE 10
-#define SCCP_DEVICE_MWILIGHT 31
+#define SCCP_DEVICE_MWILIGHT 30
 
 #define DEFAULT_PBX_STR_BUFFERSIZE 512
 
@@ -167,6 +167,13 @@ static SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define sccp_globals_trylock(x)			pbx_mutex_trylock(&sccp_globals->x)
 
 #define DEV_ID_LOG(x) (x && !sccp_strlen_zero(x->id)) ? x->id : "SCCP"
+
+#define PTR_TYPE_CMP(_type,_ptr) 					\
+({									\
+	/*__builtin_types_compatible_p(typeof(_ptr), _type) == 1)*/	\
+	_type __attribute__((unused)) __dummy = (_ptr);			\
+	1;								\
+})
 
 /* (temporary) forward declarations */
 /* this can be removed by using a pointer version of mutex and rwlock in structures below */
@@ -185,8 +192,12 @@ struct pbx_rwlock_info {
 typedef struct pbx_mutex_info pbx_mutex_t;
 typedef struct pbx_rwlock_info pbx_rwlock_t;
 
-/* deny the use of unsafe functions */
+#define AUTO_MUTEX(varname, lock) SCOPED_LOCK(varname, (lock), pbx_mutex_lock, pbx_mutex_unlock)
+#define AUTO_RDLOCK(varname, lock) SCOPED_LOCK(varname, (lock), pbx_rwlock_rdlock, pbx_rwlock_unlock)
+#define AUTO_WRLOCK(varname, lock) SCOPED_LOCK(varname, (lock), pbx_rwlock_wrlock, pbx_rwlock_unlock)
+/* example AUTO_RDLOCK(lock, &s->lock); */
 
+/* deny the use of unsafe functions */
 #define __strcat strcat
 #define strcat(...) _Pragma("GCC error \"use snprint instead of strcat\"")
 

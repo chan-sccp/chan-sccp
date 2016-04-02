@@ -102,7 +102,10 @@ typedef _Bool boolean_t;
 #    define FALSE false
 #    define TRUE true
 #  else
-typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses True and False; nice !! */
+//typedef enum { FALSE = 0, TRUE = 1 } boolean_t;								/*!< Asterisk Reverses True and False; nice !! */
+#define TRUE 1
+#define FALSE 0
+typedef bool boolean_t;
 #  endif
 #else
 #  define FALSE B_FALSE

@@ -75,10 +75,8 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 		return;
 	}
 
-	/* if call forward is active and you asked about the same call forward maybe you would disable */
-	if ((linedevice->cfwdAll.enabled && type == SCCP_CFWD_ALL)
-	    || (linedevice->cfwdBusy.enabled && type == SCCP_CFWD_BUSY)) {
-
+	/* if call forward is active -> disable */
+	if ((linedevice->cfwdAll.enabled && type == SCCP_CFWD_ALL) || (linedevice->cfwdBusy.enabled && type == SCCP_CFWD_BUSY)) {
 		sccp_line_cfwd(l, device, SCCP_CFWD_NONE, NULL);
 		return;
 	} 
@@ -89,7 +87,6 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 	}
 	/* look if we have a call  */
 	AUTO_RELEASE sccp_channel_t *c = sccp_device_getActiveChannel(device);
-
 	if (c) {
 		if (c->softswitch_action == SCCP_SOFTSWITCH_GETFORWARDEXTEN) {
 			// we have a channel, checking if
@@ -101,16 +98,13 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 						pbx_log(LOG_ERROR, "%s: 2\n", DEV_ID_LOG(device));
 						sccp_line_cfwd(l, device, type, c->dialedNumber);
 						// we are on call, so no tone has been played until now :)
-						//sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, instance, 0, 0);
+						sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 						sccp_channel_endcall(c);
 						return;
 					}
 				} else if (iPbx.channel_is_bridged(c)) {					// check if we have an ast channel to get callerid from
 					// if we have an incoming or forwarded call, let's get number from callerid :) -FS
 					char *number = NULL;
-
-					pbx_log(LOG_ERROR, "%s: 3\n", DEV_ID_LOG(device));
-
 					if (iPbx.get_callerid_name) {
 						iPbx.get_callerid_number(c->owner, &number);
 					}
@@ -118,12 +112,12 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 						sccp_line_cfwd(l, device, type, number);
 						pbx_log(LOG_ERROR, "%s: 4\n", DEV_ID_LOG(device));
 						// we are on call, so no tone has been played until now :)
-						sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, c->callid, 1);
+						sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 						sccp_channel_endcall(c);
 						sccp_free(number);
 						return;
 					}
-					// if we where here it's cause there is no number in callerid,, so put call on hold and ask for a call forward number :) -FS
+					// if we where here it is because there is no number in callerid. Put call on hold and ask for a call forward number :) -FS
 					if (!sccp_channel_hold(c)) {
 						// if can't hold  it means there is no active call, so return as we're already waiting a number to dial
 						sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
@@ -192,8 +186,6 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 	sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
 
-	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
-
 	if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
 		sccp_channel_openReceiveChannel(c);
 	}
@@ -238,17 +230,17 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 			SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_number,
 			SCCP_CALLINFO_KEY_SENTINEL);
 
+		//pbx_channel_ref(original);
 		res = ast_do_pickup(original, target);
-		if (!res) {
-			/* directed pickup succeeded */
+		pbx_channel_unlock(target);
+		if (!res) {									// directed pickup succeeded
 			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (perform_pickup) pickup succeeded on call: %s\n", DEV_ID_LOG(d), c->designator);
+			/* disconnect from masquaraded zombie channel */
 			sccp_channel_setDevice(c, NULL);
 			pbx_channel_set_hangupcause(original, AST_CAUSE_ANSWERED_ELSEWHERE);
-			pbx_hangup(original);
-			/* masqueraded zombie channel hungup */
 			
 			/* continue with masquaraded channel */
-			pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);		// reset picked up channel
+			pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);	// reset picked up channel
 
 			callinfo_orig = sccp_channel_getCallInfo(c);
 			iCallInfo.Setter(callinfo_orig, 					// update calling end
@@ -261,7 +253,6 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, target_number,
 				SCCP_CALLINFO_LAST_REDIRECT_REASON, 4,
 				SCCP_CALLINFO_KEY_SENTINEL);
-			//iCallInfo.Print2log(callinfo_orig, "SCCP: (perform pickup)");
 						
 			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (perform_pickup) channel:%s, modeanser: %s\n", DEV_ID_LOG(d), c->designator, answer ? "yes" : "no");
 			if (answer) {
@@ -277,15 +268,19 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 				} 
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
 			}
-		} else {
+			/* hangup masqueraded zombie channel*/
+			if (pbx_test_flag(pbx_channel_flags(original), AST_FLAG_ZOMBIE)) {
+				pbx_hangup(original);
+			}
+		} else {									// pickup failed
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (perform_pickup) Giving Up\n");
 			int instance = sccp_device_find_index_for_line(d, c->line->name);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL " " SKINNY_DISP_OPICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
-			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, 0);
+			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
 		}
 	}
-	pbx_channel_unlock(target);
+	//pbx_channel_unlock(target);
 #endif
 	return res;
 }
@@ -373,19 +368,24 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 
 	/* do pickup */
 	PBX_CHANNEL_TYPE *target = NULL;									/* potential pickup target */
-
-	pbx_log(LOG_NOTICE, "SCCP: (directed_pickup)\n");
-	target = iPbx.findPickupChannelByExtenLocked(c->owner, exten, context);
-	if (target) {
-		/* fixup callinfo */
-		res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
-		target = pbx_channel_unref(target);
+	PBX_CHANNEL_TYPE *original = c->owner;
+	if (pbx_channel_ref(original)) {
+		pbx_log(LOG_NOTICE, "%s: executing directed_pickup for %s@%s\n", c->designator, exten, context);
+		target = iPbx.findPickupChannelByExtenLocked(original, exten, context);
+		if (target) {
+			/* fixup callinfo */
+			res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
+			target = pbx_channel_unref(target);
+		} else {
+			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %s\n", DEV_ID_LOG(d), c->designator);
+			int instance = sccp_device_find_index_for_line(d, c->line->name);
+			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
+			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
+			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
+		}
+		pbx_channel_unref(original);
 	} else {
-		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %s\n", DEV_ID_LOG(d), c->designator);
-		int instance = sccp_device_find_index_for_line(d, c->line->name);
-		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
-		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, 0);
-		sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
+		pbx_log(LOG_NOTICE, "SCCP: Unable to grab a reference of the original channel owner\n");
 	}
 #endif
 	return res;
@@ -430,22 +430,25 @@ int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstanc
 	/* re-use/create channel for pickup */
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_getEmptyChannel(l, d, maybe_c, SKINNY_CALLTYPE_INBOUND, NULL, NULL);
 	if (c) {
-		//sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
-		//iPbx.set_callstate(c, AST_STATE_OFFHOOK);
-		
-		/* do gpickup */
+		pbx_log(LOG_NOTICE, "%s: executing_gpickup\n", c->designator);
 		PBX_CHANNEL_TYPE *target = NULL;									/* potential pickup target */
-		sccp_channel_stop_schedule_digittimout(c);
+		PBX_CHANNEL_TYPE *original = c->owner;
+		if (pbx_channel_ref(original)) {
+			sccp_channel_stop_schedule_digittimout(c);
 
-		if ((target = iPbx.findPickupChannelByGroupLocked(c->owner))) {
-			res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
-			target = pbx_channel_unref(target);
-			res = 0;
+			if ((target = iPbx.findPickupChannelByGroupLocked(c->owner))) {
+				res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
+				target = pbx_channel_unref(target);
+				res = 0;
+			} else {
+				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %s\n", DEV_ID_LOG(d), c->designator);
+				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
+				sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+				sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
+			}
+			pbx_channel_unref(original);
 		} else {
-			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %s\n", DEV_ID_LOG(d), c->designator);
-			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
-			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c->callid, 0);
-			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
+			pbx_log(LOG_NOTICE, "SCCP: Unable to grab a reference of the original channel owner\n");
 		}
 	}
 #endif
@@ -927,7 +930,7 @@ static void *sccp_feat_meetme_thread(void *data)
 		pbx_log(LOG_NOTICE, "SCCP: no channel provided for meetme feature. exiting\n");
 		return NULL;
 	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 
 	if (!d) {
 		pbx_log(LOG_NOTICE, "SCCP: no device provided for meetme feature. exiting\n");
@@ -1089,7 +1092,7 @@ int sccp_feat_barge(constChannelPtr c, const char * const exten)
 	if (!c) {
 		return -1;
 	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 
 	if (!d) {
 		return -1;
@@ -1184,7 +1187,7 @@ int sccp_feat_cbarge(constChannelPtr c, const char * const conferencenum)
 	if (!c) {
 		return -1;
 	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 
 	if (!d) {
 		return -1;

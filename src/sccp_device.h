@@ -11,22 +11,19 @@
  */
 #pragma once
 
-#ifdef DEBUG
-#define sccp_device_retain(_x) 		({sccp_device_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_device_release(_x) 	({sccp_device_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#else
-#define sccp_device_retain(_x) 		({ast_assert(_x != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_device_release(_x) 	({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#endif
-#define sccp_device_refreplace(_x, _y) 	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_device_retain(_x)		sccp_refcount_retain_type(sccp_device_t, _x)
+#define sccp_device_release(_x)		sccp_refcount_release_type(sccp_device_t, _x)
+#define sccp_device_refreplace(_x, _y)	sccp_refcount_refreplace_type(sccp_device_t, _x, _y)
 
 __BEGIN_C_EXTERN__
+
 /*!
  * \brief SCCP Button Configuration Structure
  */
 struct sccp_buttonconfig {
-	uint16_t instance;											/*!< Instance on device */
-	uint16_t index;												/*!< Button position on device */
+	uint8_t instance;											/*!< Instance on device */
+	uint8_t index;												/*!< Button position on device */
+	uint8_t _padding1[2];
 	sccp_config_buttontype_t type;										/*!< Button type (e.g. line, speeddial, feature, empty) */
 	char *label;												/*!< Button Name/Label */
 	SCCP_LIST_ENTRY (sccp_buttonconfig_t) list;								/*!< Button Linked List Entry */
@@ -81,13 +78,13 @@ SCCP_LIST_HEAD (sccp_buttonconfig_list, sccp_buttonconfig_t);
  * \todo replace ext/hint with charptr (save 80)
  */
 struct sccp_speed {
-	uint16_t instance;											/*!< The instance on the current device */
+	uint8_t instance;											/*!< The instance on the current device */
 	uint8_t config_instance;										/*!< The instance of the speeddial in the sccp.conf */
 	uint8_t type;												/*!< SpeedDial Button Type (SKINNY_BUTTONTYPE_SPEEDDIAL or SKINNY_BUTTONTYPE_LINE (hint)) */
+	boolean_t valid;											/*!< Speeddial configuration is valid or not */
 	char name[StationMaxNameSize];										/*!< The name of the speed dial button */
 	char ext[SCCP_MAX_EXTENSION];										/*!< The number to dial when it's hit */
 	char hint[SCCP_MAX_EXTENSION];										/*!< The HINT on this SpeedDial */
-	boolean_t valid;											/*!< Speeddial configuration is valid or not */
 	SCCP_LIST_ENTRY (sccp_speed_t) list;									/*!< SpeedDial Linked List Entry */
 };
 
@@ -103,10 +100,10 @@ enum sccp_privacyfeature {
  * \brief SCCP Feature Configuration Structure
  */
 struct sccp_feature_configuration {
-	boolean_t enabled;											/*!< Feature Enabled */
-	boolean_t initialized;											/*!< Feature Enabled */
 	uint32_t previousStatus;										/*!< Feature Previous State */
 	uint32_t status;											/*!< Feature State */
+	boolean_t enabled;											/*!< Feature Enabled */
+	boolean_t initialized;											/*!< Feature Enabled */
 };
 
 /*!
@@ -194,15 +191,21 @@ struct sccp_device {
 	char loadedimageversion[StationMaxImageVersionSize];							/*!< Loaded version on the phone */
 	char config_type[SCCP_MAX_DEVICE_CONFIG_TYPE];								/*!< Model of this Phone used for setting up features/softkeys/buttons etc. */
 	int32_t tz_offset;											/*!< Timezone OffSet */
-	boolean_t linesRegistered;										/*!< did we answer the RegisterAvailableLinesMessage */
-	uint16_t linesCount;											/*!< Number of Lines */
-	uint16_t defaultLineInstance;										/*!< Default Line Instance */
-	uint16_t maxstreams;											/*!< Maximum number of Stream supported by the device */
-										
+	uint8_t linesCount;											/*!< Number of Lines */
+	uint8_t defaultLineInstance;										/*!< Default Line Instance */
+	uint8_t maxstreams;											/*!< Maximum number of Stream supported by the device */
+	uint8_t _padding1;
 	struct {
 		char number[SCCP_MAX_EXTENSION];
 		uint16_t lineInstance;
 	} redialInformation;											/*!< Last Dialed Number */
+	boolean_t linesRegistered;										/*!< did we answer the RegisterAvailableLinesMessage */
+	boolean_t meetme;											/*!< Meetme on/off */
+	boolean_t mwioncall;											/*!< MWI On Call Support (Boolean, default=on) */
+	boolean_t softkeysupport;										/*!< Soft Key Support (Boolean, default=on) */
+	boolean_t realtime;											/*!< is it a realtime configuration */
+	boolean_t transfer;											/*!< Transfer Support (Boolean, default=on) */
+
 	char *backgroundImage;											/*!< backgroundimage we will set after device registered */
 	char *ringtone;												/*!< ringtone we will set after device registered */
 
@@ -222,47 +225,29 @@ struct sccp_device {
 	struct sccp_ha *ha;											/*!< Permit or Deny Connections to the Main Socket */
 
 	sccp_dtmfmode_t dtmfmode;										/*!< DTMF Mode (0 inband - 1 outofband) */
-	boolean_t meetme;											/*!< Meetme on/off */
-	char *meetmeopts;											/*!< Meetme Options to be Used */
-	skinny_lampmode_t mwilamp;										/*!< MWI/Lamp to indicate MailBox Messages */
-	boolean_t mwioncall;											/*!< MWI On Call Support (Boolean, default=on) */
-	boolean_t softkeysupport;										/*!< Soft Key Support (Boolean, default=on) */
-	uint32_t mwilight;											/*!< MWI/Light bit field to to store mwi light for each line and device (offset 0 is current device state) */
-
-	boolean_t realtime;											/*!< is it a realtime configuration */
-	boolean_t transfer;											/*!< Transfer Support (Boolean, default=on) */
 	boolean_t park;												/*!< Park Support (Boolean, default=on) */
 	boolean_t cfwdall;											/*!< Call Forward All Support (Boolean, default=on) */
 	boolean_t cfwdbusy;											/*!< Call Forward on Busy Support (Boolean, default=on) */
 	boolean_t cfwdnoanswer;											/*!< Call Forward on No-Answer Support (Boolean, default=on) */
-	boolean_t allowRinginNotification;									/*!< allow ringin notification for hinted extensions (Boolean, default=on) */
-	boolean_t trustphoneip;											/*!< Trust Phone IP Support (Boolean, default=off) DEPRECATED */
-	boolean_t needcheckringback;										/*!< Need to Check Ring Back Support (Boolean, default=on) */
+	char *meetmeopts;											/*!< Meetme Options to be Used */
+	skinny_lampmode_t mwilamp;										/*!< MWI/Lamp to indicate MailBox Messages */
+	uint32_t mwilight;											/*!< MWI/Light bit field to to store mwi light for each line and device (offset 0 is current device state) */
 
-#ifdef CS_SCCP_PICKUP
-	boolean_t directed_pickup;										/*!< Directed Pickup Extension Support (Boolean, default=on) */
-	boolean_t directed_pickup_modeanswer;									/*!< Directed Pickup Mode Answer (Boolean, default on). Answer on directed pickup */
-	char directed_pickup_context[SCCP_MAX_CONTEXT];								/*!< Directed Pickup Context to Use in DialPlan */
-#endif
-	sccp_dndmode_t dndmode;											/*!< dnd mode: see SCCP_DNDMODE_* */
 	struct {
 		sccp_channel_t *transferee;									/*!< SCCP Channel which will be transferred */
 		sccp_channel_t *transferer;									/*!< SCCP Channel which initiated the transferee */
 	} transferChannels;
 
 	pthread_t postregistration_thread;									/*!< Post Registration Thread */
-
 	PBX_VARIABLE_TYPE *variables;										/*!< Channel variables to set */
 
+	sccp_dndmode_t dndmode;											/*!< dnd mode: see SCCP_DNDMODE_* */
 	struct {
 		uint8_t numberOfLines;										/*!< Number of Lines */
 		uint8_t numberOfSpeeddials;									/*!< Number of SpeedDials */
 		uint8_t numberOfFeatures;									/*!< Number of Features */
 		uint8_t numberOfServices;									/*!< Number of Services */
 	} configurationStatistic;										/*!< Configuration Statistic Structure */
-
-	boolean_t isAnonymous;											/*!< Device is connected Anonymously (Guest) */
-	boolean_t mwiLight;											/*!< MWI/Light \todo third MWI/light entry in device ? */
 
 	struct {
 		uint16_t newmsgs;										/*!< New Messages */
@@ -277,6 +262,10 @@ struct sccp_device {
 	sccp_featureConfiguration_t priFeature;									/*!< priority Feature */
 	sccp_featureConfiguration_t mobFeature;									/*!< priority Feature */
 
+	uint8_t audio_tos;											/*!< audio stream type_of_service (TOS) (RTP) */
+	uint8_t video_tos;											/*!< video stream type_of_service (TOS) (VRTP) */
+	uint8_t audio_cos;											/*!< audio stream class_of_service (COS) (VRTP) */
+	uint8_t video_cos;											/*!< video stream class_of_service (COS) (VRTP) */
 #ifdef CS_DEVSTATE_FEATURE
 	SCCP_LIST_HEAD (, sccp_devstate_specifier_t) devstateSpecifiers;					/*!< List of Custom DeviceState entries the phone monitors. */
 #endif
@@ -291,20 +280,14 @@ struct sccp_device {
 		uint8_t size;											/*!< how many softkeysets are provided by modes */
 	} speeddialButtons;
 
-	#if 0 /* unused */
-	struct {
-		int free;
-	} scheduleTasks;
-	#endif
-
-	#if 0 /* unused */
-	char videoSink[MAXHOSTNAMELEN];										/*!< sink to send video */
-	#endif
-	
 	struct {
 		sccp_tokenstate_t token;									/*!< token request state */
 	} status;												/*!< Status Structure */
-	boolean_t useRedialMenu;
+	boolean_t allowRinginNotification;									/*!< allow ringin notification for hinted extensions (Boolean, default=on) */
+	boolean_t trustphoneip;											/*!< Trust Phone IP Support (Boolean, default=off) DEPRECATED */
+	boolean_t needcheckringback;										/*!< Need to Check Ring Back Support (Boolean, default=on) */
+	boolean_t isAnonymous;											/*!< Device is connected Anonymously (Guest) */
+
 	btnlist *buttonTemplate;
 
 	struct {
@@ -340,19 +323,23 @@ struct sccp_device {
 
 #ifdef CS_SCCP_CONFERENCE
 	sccp_conference_t *conference;										/*!< conference we are part of */ /*! \todo to be removed in favor of conference_id */
+	char *conf_music_on_hold_class;										/*!< Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played. */
 	uint32_t conference_id;											/*!< Conference ID */
 	boolean_t conferencelist_active;									/*!< ConfList is being displayed on this device */
 	boolean_t allow_conference;										/*!< Allow use of conference */
 	boolean_t conf_play_general_announce;									/*!< Playback General Announcements (Entering/Leaving) */
 	boolean_t conf_play_part_announce;									/*!< Playback Personal Announcements (You have been Kicked/You are muted) */
+
 	boolean_t conf_mute_on_entry;										/*!< Mute participants when they enter */
-	char *conf_music_on_hold_class;										/*!< Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played. */
 	boolean_t conf_show_conflist;										/*!< Automatically show conference list to the moderator */
 #endif
-	uint8_t audio_tos;											/*!< audio stream type_of_service (TOS) (RTP) */
-	uint8_t video_tos;											/*!< video stream type_of_service (TOS) (VRTP) */
-	uint8_t audio_cos;											/*!< audio stream class_of_service (COS) (VRTP) */
-	uint8_t video_cos;											/*!< video stream class_of_service (COS) (VRTP) */
+#ifdef CS_SCCP_PICKUP
+	char directed_pickup_context[SCCP_MAX_CONTEXT];								/*!< Directed Pickup Context to Use in DialPlan */
+	boolean_t directed_pickup;										/*!< Directed Pickup Extension Support (Boolean, default=on) */
+	boolean_t directed_pickup_modeanswer;									/*!< Directed Pickup Mode Answer (Boolean, default on). Answer on directed pickup */
+#endif
+	boolean_t mwiLight;											/*!< MWI/Light \todo third MWI/light entry in device ? */
+	boolean_t useRedialMenu;
 
 	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */
 	boolean_t pendingUpdate;										/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
@@ -437,8 +424,8 @@ SCCP_API void SCCP_CALL sccp_dev_set_speaker(constDevicePtr d, uint8_t mode);
 SCCP_API void SCCP_CALL sccp_dev_set_microphone(devicePtr d, uint8_t mode);
 SCCP_API void SCCP_CALL sccp_dev_set_cplane(constDevicePtr device, uint8_t lineInstance, int status);
 SCCP_API void SCCP_CALL sccp_dev_deactivate_cplane(constDevicePtr d);
-SCCP_API void SCCP_CALL sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout);
-SCCP_API void SCCP_CALL sccp_dev_stoptone(constDevicePtr d, uint8_t line, uint32_t callid);
+SCCP_API void SCCP_CALL sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t lineInstance, uint32_t callid, uint32_t timeout);
+SCCP_API void SCCP_CALL sccp_dev_stoptone(constDevicePtr d, uint8_t lineInstance, uint32_t callid);
 SCCP_API void SCCP_CALL sccp_dev_clearprompt(constDevicePtr d, uint8_t lineInstance, uint32_t callid);
 SCCP_API void SCCP_CALL sccp_dev_display_debug(constDevicePtr d, const char *msg, const char *file, const int lineno, const char *pretty_function);
 SCCP_API void SCCP_CALL sccp_dev_displayprompt_debug(constDevicePtr d, const uint8_t lineInstance, const uint32_t callid, const char *msg, int timeout, const char *file, const int lineno, const char *pretty_function);

@@ -14,14 +14,9 @@
 
 #include "sccp_device.h"
 
-#ifdef DEBUG
-#define sccp_channel_retain(_x) 	({sccp_channel_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_channel_release(_x) 	({sccp_channel_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#else
-#define sccp_channel_retain(_x) 	({ast_assert(_x != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_channel_release(_x) 	({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#endif
-#define sccp_channel_refreplace(_x, _y)	({sccp_refcount_replace((const void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_channel_retain(_x)		sccp_refcount_retain_type(sccp_channel_t, _x)
+#define sccp_channel_release(_x)	sccp_refcount_release_type(sccp_channel_t, _x)
+#define sccp_channel_refreplace(_x, _y)	sccp_refcount_refreplace_type(sccp_channel_t, _x, _y)
 
 __BEGIN_C_EXTERN__
 /*!
@@ -29,31 +24,30 @@ __BEGIN_C_EXTERN__
  * \note This contains the current channel information
  */
 struct sccp_channel {
-	uint32_t callid;											/*!< Call ID */
-	uint32_t passthrupartyid;										/*!< Pass Through ID */
+	const uint32_t callid;											/*!< Call ID */
+	const uint32_t passthrupartyid;										/*!< Pass Through ID */
 	sccp_channelstate_t state;										/*!< Internal channel state SCCP_CHANNELSTATE_* */
 	sccp_channelstate_t previousChannelState;								/*!< Previous channel state SCCP_CHANNELSTATE_* */
 	sccp_channelstatereason_t channelStateReason;								/*!< Reason the new/current state was set (for example to handle HOLD differently for transfer then normal) */
 	skinny_calltype_t calltype;										/*!< Skinny Call Type as SKINNY_CALLTYPE_* */
 	
 	PBX_CHANNEL_TYPE *owner;										/*!< Asterisk Channel Owner */
-	sccp_line_t *line;											/*!< SCCP Line */
+	sccp_line_t * const line;										/*!< SCCP Line */
 	SCCP_LIST_ENTRY (sccp_channel_t) list;									/*!< Channel Linked List */
 	char dialedNumber[SCCP_MAX_EXTENSION];									/*!< Last Dialed Number */
 	char designator[CHANNEL_DESIGNATOR_SIZE];
 	sccp_subscription_id_t subscriptionId;
 	boolean_t answered_elsewhere;										/*!< Answered Elsewhere */
 	boolean_t privacy;											/*!< Private */
+	boolean_t peerIsSCCP;											/*!< Indicates that channel-peer is also SCCP */
+	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
 
-#if DEBUG
-	sccp_device_t *(*getDevice_retained) (const sccp_channel_t * channel, const char *filename, int lineno, const char *func);	/*!< temporary function to retrieve refcounted device */
-#else
-	sccp_device_t *(*getDevice_retained) (const sccp_channel_t * channel);					/*!< temporary function to retrieve refcounted device */
-#endif
-	void (*setDevice) (sccp_channel_t * channel, const sccp_device_t * device);				/*!< set refcounted device connected to the channel */
+	sccp_device_t * const (*getDevice) (const sccp_channel_t * channel);						/*!< function to retrieve refcounted device */
+	sccp_linedevices_t * const (*getLineDevice) (const sccp_channel_t * channel);					/*!< function to retrieve refcounted linedevice */
+	void (*setDevice) (sccp_channel_t * const channel, const sccp_device_t * device);				/*!< set refcounted device connected to the channel */
 	char currentDeviceId[StationMaxDeviceNameSize];								/*!< Returns a constant char of the Device Id if available */
 
-	sccp_private_channel_data_t *privateData;
+	sccp_private_channel_data_t * const privateData;
 
 	struct {
 		skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];							/*!< our channel Capability in preference order */
@@ -72,9 +66,9 @@ struct sccp_channel {
 
 	struct {
 		int digittimeout;										/*!< Digit Timeout on Dialing State (Enbloc-Emu) */
-		boolean_t deactivate;										/*!< Deactivate Enbloc-Emulation (Time Deviation Found) */
 		uint32_t totaldigittime;									/*!< Total Time used to enter Number (Enbloc-Emu) */
 		uint32_t totaldigittimesquared;									/*!< Total Time Squared used to enter Number (Enbloc-Emu) */
+		boolean_t deactivate;										/*!< Deactivate Enbloc-Emulation (Time Deviation Found) */
 	} enbloc;
 
 	struct {
@@ -95,28 +89,27 @@ struct sccp_channel {
 	} rtp;
 
 	skinny_ringtype_t ringermode;										/*!< Ringer Mode */
-	uint16_t autoanswer_cause;										/*!< Auto Answer Cause */
-	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */
 
 	/* don't allow sccp phones to monitor (hint) this call */
 	sccp_softswitch_t softswitch_action;									/*!< Simple Switch Action. This is used in dial thread to collect numbers for callforward, pickup and so on -FS */
 	uint16_t ss_data;											/*!< Simple Switch Integer param */
 	uint16_t subscribers;											/*!< Used to determine if a sharedline should be hungup immediately, if everybody declined the call */
 
-	sccp_channel_t *parentChannel;										/*!< if we are a cfwd channel, our parent is this */
+	int32_t maxBitRate;
 
 	sccp_conference_t *conference;										/*!< are we part of a conference? */ /*! \todo to be removed instead of conference_id */
 	uint32_t conference_id;											/*!< Conference ID (might be safer to use instead of conference) */
 	uint32_t conference_participant_id;									/*!< Conference Participant ID */
 
-	int32_t maxBitRate;
-	boolean_t peerIsSCCP;											/*!< Indicates that channel-peer is also SCCP */
 	void (*setMicrophone) (sccp_channel_t * channel, boolean_t on);
 	boolean_t (*hangupRequest) (sccp_channel_t * channel);
 	boolean_t (*isMicrophoneEnabled) (void);
-
 	char *musicclass;											/*!< Music Class */
-	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
+
+	sccp_channel_t *parentChannel;										/*!< if we are a cfwd channel, our parent is this */
+
+	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */
+	uint16_t autoanswer_cause;										/*!< Auto Answer Cause */
 
 #if ASTERISK_VERSION_GROUP >= 111
 	int16_t pbx_callid_created;
@@ -193,14 +186,10 @@ SCCP_API int SCCP_CALL sccp_channel_hold(channelPtr channel);
 SCCP_API int SCCP_CALL sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swap_channels);
 SCCP_API int SCCP_CALL sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
 
-#if DEBUG
-#define sccp_channel_getDevice_retained(_x) __sccp_channel_getDevice_retained(_x, __FILE__,__LINE__,__PRETTY_FUNCTION__)
-SCCP_API sccp_device_t * SCCP_CALL __sccp_channel_getDevice_retained(const sccp_channel_t * channel, const char *filename, int lineno, const char *func);
-#else
-SCCP_API sccp_device_t * SCCP_CALL sccp_channel_getDevice_retained(const sccp_channel_t * channel);
-#endif
-SCCP_API void SCCP_CALL sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * device);
-SCCP_API const char * SCCP_CALL sccp_channel_device_id(const sccp_channel_t * channel);
+SCCP_API sccp_device_t * const SCCP_CALL sccp_channel_getDevice(const sccp_channel_t * channel);
+SCCP_API sccp_linedevices_t * const SCCP_CALL sccp_channel_getLineDevice(const sccp_channel_t * channel);
+SCCP_API void SCCP_CALL sccp_channel_setDevice(sccp_channel_t * const channel, const sccp_device_t * device);
+//SCCP_API const char * const SCCP_CALL sccp_channel_device_id(const sccp_channel_t * channel);
 
 #ifdef CS_SCCP_PARK
 SCCP_API void SCCP_CALL sccp_channel_park(sccp_channel_t * channel);

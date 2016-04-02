@@ -7,8 +7,10 @@
 
 AUTOMAKE_OPTIONS	= gnu 
 MOSTLYCLEANFILES	= *.gcda *.gcno *.gcov
-AM_CFLAGS		= $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(COVERAGE_CFLAGS) $(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) $(LIBCURL_CFLAGS) $(ax_warn_cflags_variable)
+AM_CFLAGS		= $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(COVERAGE_CFLAGS) $(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) $(LIBCURL_CFLAGS) $(SUPPORTED_CFLAGS) $(SANITIZE_CFLAGS)
 AM_CFLAGS 		+= -I${abs_builddir} -I$(top_builddir)/src/ -I$(top_srcdir)/src/ -I$(top_srcdir)/src/pbx_impl/ -I$(top_srcdir)/src/pbx_impl/ast/ -I$(top_srcdir)/src/$(PBX_COND_SUBDIR) -I$(top_srcdir)/src/$(PBXVER_COND_SUBDIR) -I$(top_srcdir)/src/$(PBXVER_COND_ANNOUNCE_SUBDIR)
+AM_CFLAGS		+= -DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self -DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS)
 AM_CFLAGS      		+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
-AM_LDFLAGS		= -z muldefs @LTLIBOBJS@
+AM_LDFLAGS		= $(SANITIZE_LDFLAGS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(CLANG_BLOCKS_LIBS) $(AST_CLANG_BLOCKS_LIBS) $(SUPPORTED_LDFLAGS) -z muldefs @LTLIBOBJS@
+#AM_CXXFLAGS    	= -std=c++11
 

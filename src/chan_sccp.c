@@ -29,7 +29,9 @@
 #include "sccp_hint.h"		// use __constructor__ to remove this entry
 #include "sccp_conference.h"	// use __constructor__ to remove this entry
 #include "revision.h"
+#ifdef CS_DEVSTATE_FEATURE
 #include "sccp_devstate.h"
+#endif
 #include "sccp_management.h"	// use __constructor__ to remove this entry
 #include <signal.h>
 
@@ -285,33 +287,40 @@ int sccp_sched_free(void *ptr)
  */
 int sccp_preUnload(void)
 {
-	pbx_rwlock_wrlock(&GLOB(lock));
-	GLOB(module_running) = FALSE;
-	pbx_rwlock_unlock(&GLOB(lock));
-
 	sccp_device_t *d = NULL;
 	sccp_line_t *l = NULL;
+
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 
+	/* copy some of the required global variables */
+	pbx_rwlock_wrlock(&GLOB(lock));
+	GLOB(module_running) = FALSE;
+	int descriptor = GLOB(descriptor);
+	pthread_t socket_thread = GLOB(socket_thread);
+	pbx_rwlock_unlock(&GLOB(lock));
+
+	/* unsubscribe from services */
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay);
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_featureStorageBackend);
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
-	close(GLOB(descriptor));
-	GLOB(descriptor) = -1;
-	if (GLOB(global_jbconf)) {
-		sccp_free(GLOB(global_jbconf));
+	/* close accept thread by shutdown the socket descriptor read side -> interrupt polling and break accept loop */
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Closing Socket Accept Descriptor\n");
+	shutdown(descriptor, SHUT_RD);
+   	if (socket_thread != AST_PTHREADT_NULL && socket_thread != AST_PTHREADT_STOP) {
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Joining the socket accept thread 3\n");
+		pthread_join(socket_thread, NULL);
+		GLOB(socket_thread) = AST_PTHREADT_STOP;
+	} else {
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: There is not more accept thread\n");
 	}
 
-
-	//! \todo make this pbx independend
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");				//! \todo make this pbx independend
 
 	/* removing devices */
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Devices\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing Devices\n");
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(devices), d, list) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
-		d->realtime = TRUE;										/* use realtime, to fully clear the device configuration */
+		d->realtime = TRUE;										// use realtime, to fully clear the device configuration
 		sccp_dev_clean(d, TRUE, 0);									// performs a device reset if it has a session
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
@@ -320,19 +329,21 @@ int sccp_preUnload(void)
 	}
 
 	/* hotline will be removed by line removing function */
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Lines\n");
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing Hotline\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing Lines\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "SCCP: Removing Hotline\n");
 	if (GLOB(hotline)) {
 		if (GLOB(hotline)->line) {
 			sccp_line_removeFromGlobals(GLOB(hotline)->line);
-			GLOB(hotline)->line = GLOB(hotline)->line ? sccp_line_release(GLOB(hotline)->line) : NULL;	/* explicit release of hotline->line */
+			if (GLOB(hotline)->line) {
+				sccp_line_release(&GLOB(hotline)->line);					// explicit release of hotline->line
+			}
 		}
 		sccp_free(GLOB(hotline));
 	}
 
 	/* removing lines */
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {
-		sccp_log((DEBUGCAT_CORE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Removing line %s\n", l->name);
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_4 "SCCP: Removing line %s\n", l->name);
 		sccp_line_clean(l, TRUE);
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
@@ -341,57 +352,42 @@ int sccp_preUnload(void)
 	}
 	usleep(100);												// wait for events to finalize
 
-	/* terminate all sessions */
+	/* stop services */
 	sccp_session_terminateAll();
-
-	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killing the socket thread\n");
-	sccp_globals_lock(socket_lock);
-	if ((GLOB(socket_thread) != AST_PTHREADT_NULL) && (GLOB(socket_thread) != AST_PTHREADT_STOP)) {
-		pthread_cancel(GLOB(socket_thread));
-		pthread_kill(GLOB(socket_thread), SIGURG);
-		pthread_join(GLOB(socket_thread), NULL);
-	}
-	GLOB(socket_thread) = AST_PTHREADT_STOP;
-	sccp_globals_unlock(socket_lock);
-
 	sccp_manager_module_stop();
+#ifdef CS_DEVSTATE_FEATURE	
 	sccp_devstate_module_stop();
+#endif
 #ifdef CS_SCCP_CONFERENCE
 	sccp_conference_module_stop();
 #endif
 	sccp_softkey_clear();
+	sccp_hint_module_stop();
+	sccp_event_module_stop();
+	sccp_threadpool_destroy(GLOB(general_threadpool));
+	sccp_refcount_destroy();
 
-	sccp_mutex_destroy(&GLOB(socket_lock));
-	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killed the socket thread\n");
-
-	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Removing bind\n");
+	/* free resources */
+	if (GLOB(config_file_name)) {
+		sccp_free(GLOB(config_file_name));
+	}
+	if (GLOB(global_jbconf)) {
+		sccp_free(GLOB(global_jbconf));
+	}
 	if (GLOB(ha)) {
 		sccp_free_ha(GLOB(ha));
 	}
 	if (GLOB(localaddr)) {
 		sccp_free_ha(GLOB(localaddr));
 	}
-	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Removing io/sched\n");
-
-	sccp_hint_module_stop();
-	sccp_event_module_stop();
-
-	sccp_threadpool_destroy(GLOB(general_threadpool));
-	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killed the threadpool\n");
-	sccp_refcount_destroy();
-	if (GLOB(config_file_name)) {
-		sccp_free(GLOB(config_file_name));
-	}
-	//if (GLOB(token_fallback)) {
-	//  sccp_free(GLOB(token_fallback));
-	//}
 	sccp_config_cleanup_dynamically_allocated_memory(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
+	/* */
 
+	/* destroy locks */
 #ifndef SCCP_ATOMIC
 	pbx_mutex_destroy(&GLOB(usecnt_lock));
 #endif	
 	pbx_rwlock_destroy(&GLOB(lock));
-	//pbx_log(LOG_NOTICE, "SCCP chan_sccp unloaded\n");
 	return 0;
 }
 

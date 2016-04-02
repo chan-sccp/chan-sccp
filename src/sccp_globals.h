@@ -65,65 +65,65 @@ struct sccp_global_vars {
 	struct sccp_ha *ha;											/*!< Permit or deny connections to the main socket */
 	struct sockaddr_storage bindaddr;									/*!< Bind IP Address */
 	struct sccp_ha *localaddr;										/*!< Localnet for Network Address Translation */
-	struct sockaddr_storage externip;									/*!< External IP Address (\todo should change to an array of external ip's, because externhost could resolv to multiple ip-addresses (h_addr_list)) */
-	boolean_t simulate_enbloc;										/*!< Simulated Enbloc Dialing for older device to speed up dialing */
-	int externrefresh;											/*!< External Refresh */
 
+	struct sockaddr_storage externip;									/*!< External IP Address (\todo should change to an array of external ip's, because externhost could resolv to multiple ip-addresses (h_addr_list)) */
 	time_t externexpire;											/*!< External Expire */
+	uint16_t externrefresh;											/*!< External Refresh */
+	
 	boolean_t recorddigittimeoutchar;									/*!< Record Digit Time Out Char. Whether to include the digittimeoutchar in the call logs */
 	uint8_t firstdigittimeout;										/*!< First Digit Timeout. Wait up to 16 seconds for first digit */
+	
 	uint8_t digittimeout;											/*!< Digit Timeout. How long to wait for following digits */
 	char digittimeoutchar;											/*!< Digit End Character. What char will force the dial (Normally '#') */
-
+	boolean_t simulate_enbloc;										/*!< Simulated Enbloc Dialing for older device to speed up dialing */
 	uint8_t autoanswer_ring_time;										/*!< Auto Answer Ring Time */
 	uint8_t autoanswer_tone;										/*!< Auto Answer Tone */
 	uint8_t remotehangup_tone;										/*!< Remote Hangup Tone */
 	uint8_t transfer_tone;											/*!< Transfer Tone */
 	uint8_t callwaiting_tone;										/*!< Call Waiting Tone */
+
 	uint8_t callwaiting_interval;										/*!< Call Waiting Ring Interval */
-	
 	uint8_t sccp_tos;											/*!< SCCP Socket Type of Service (TOS) (QOS) (Signaling) */
 	uint8_t audio_tos;											/*!< Audio Socket Type of Service (TOS) (QOS) (RTP) */
 	uint8_t video_tos;											/*!< Video Socket Type of Service (TOS) (QOS) (VRTP) */
 	uint8_t sccp_cos;											/*!< SCCP Socket Class of Service (COS) (QOS) (Signaling) */
 	uint8_t audio_cos;											/*!< Audio Socket Class of Service (COS) (QOS) (RTP) */
 	uint8_t video_cos;											/*!< Video Socket Class of Service (COS) (QOS) (VRTP) */
-
-	uint8_t __padding[1];
-	#if 0	/* unused */
-	uint16_t protocolversion;										/*!< Skinny Protocol Version */
-	#endif
-	
 	boolean_t dndFeature;											/*!< Do Not Disturb (DND) Mode: \see SCCP_DNDMODE_* */
-	boolean_t transfer_on_hangup;										/*!< Complete transfer on hangup */
 
+	boolean_t transfer_on_hangup;										/*!< Complete transfer on hangup */
 #ifdef CS_MANAGER_EVENTS
 	boolean_t callevents;											/*!< Call Events */
 #endif
-
 	boolean_t echocancel;											/*!< Echo Canel Support (Boolean, default=on) */
 	boolean_t silencesuppression;										/*!< Silence Suppression Support (Boolean, default=on)  */
 	boolean_t trustphoneip;											/*!< Trust Phone IP Support (Boolean, default=on) */
-	sccp_earlyrtp_t earlyrtp;										/*!< Channel State where to open the rtp media stream */
 	boolean_t privacy;											/*!< Privacy Support (Length=2) */
-	skinny_lampmode_t mwilamp;										/*!< MWI/Lamp (Length:3) */
 	boolean_t mwioncall;											/*!< MWI On Call Support (Boolean, default=on) */
-	sccp_blindtransferindication_t blindtransferindication;							/*!< Blind Transfer Indication Support (Boolean, default=on = SCCP_BLINDTRANSFER_MOH) */
 	boolean_t cfwdall;											/*!< Call Forward All Support (Boolean, default=on) */
 	boolean_t cfwdbusy;											/*!< Call Forward on Busy Support (Boolean, default=on) */
 	boolean_t cfwdnoanswer;											/*!< Call Forward on No-Answer Support (Boolean, default=on) */
-	sccp_nat_t nat;												/*!< Network Address Translation */
 	boolean_t directrtp;											/*!< Direct RTP */
 	boolean_t useoverlap;											/*!< Overlap Dial Support */
+
+	char *meetmeopts;											/*!< Meetme Options to be Used */
 	sccp_group_t callgroup;											/*!< Call Group */
 #ifdef CS_SCCP_PICKUP
 	sccp_group_t pickupgroup;										/*!< PickUp Group */
 	boolean_t directed_pickup_modeanswer;									/*!< Directed PickUp Mode Answer (boolean, default" on) */
+	uint8_t _padding1[1];
+#else
+	uint8_t _padding1[2];
 #endif
-	sccp_call_answer_order_t callanswerorder;								/*!< Call Answer Order */
-	boolean_t allowAnonymous;										/*!< Allow Anonymous/Guest Devices */
 	boolean_t meetme;											/*!< Meetme on/off */
-	char *meetmeopts;											/*!< Meetme Options to be Used */
+	boolean_t allowAnonymous;										/*!< Allow Anonymous/Guest Devices */
+	sccp_earlyrtp_t earlyrtp;										/*!< Channel State where to open the rtp media stream */
+
+	skinny_lampmode_t mwilamp;										/*!< MWI/Lamp (Length:3) */
+	sccp_blindtransferindication_t blindtransferindication;							/*!< Blind Transfer Indication Support (Boolean, default=on = SCCP_BLINDTRANSFER_MOH) */
+	sccp_nat_t nat;												/*!< Network Address Translation */
+	sccp_call_answer_order_t callanswerorder;								/*!< Call Answer Order */
+
 #if ASTERISK_VERSION_NUMBER >= 10400
 	struct ast_jb_conf *global_jbconf;									/*!< Global Jitter Buffer Configuration */
 #endif
@@ -149,8 +149,8 @@ struct sccp_global_vars {
 	int token_backoff_time;											/*!< Backoff time on TokenReject */
 	int server_priority;											/*!< Server Priority to fallback to */
 
-	boolean_t reload_in_progress;										/*!< Reload in Progress */
 
+	boolean_t reload_in_progress;										/*!< Reload in Progress */
 	boolean_t pendingUpdate;
 };														/*!< SCCP Global Varable Structure */
 

@@ -493,7 +493,7 @@ static int sccp_wrapper_asterisk16_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 		return -1;
 	}
 
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 	if (!d) {
 		/* handle forwarded channel indications */
 		if (c->parentChannel) {
@@ -971,13 +971,10 @@ int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
 			c->answered_elsewhere = TRUE;
 		}
-		res = sccp_pbx_hangup(c);
 		/* postponing ast_channel_unref to sccp_channel destructor */
-		// c->owner = NULL;
-		if (0 == res) {
-			sccp_channel_release(c);								// explicit channel release contained in sccp_pbx
-		}
+		AUTO_RELEASE sccp_channel_t *channel = sccp_pbx_hangup(c);					/* explicit release from unretained channel returned by sccp_pbx_hangup */
 		ast_channel->tech_pvt = NULL;
+		(void) channel;											// suppress unused variable warning
 	} else {												// after this moment c might have gone already
 		ast_channel->tech_pvt = NULL;
 		pbx_channel_unref(ast_channel);									// strange unknown channel, why did we get called to hang it up ?
@@ -991,7 +988,7 @@ int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel)
 struct parkingThreadArg {
 	PBX_CHANNEL_TYPE *bridgedChannel;
 	PBX_CHANNEL_TYPE *hostChannel;
-	const sccp_device_t *device;
+	sccp_device_t *device;
 };
 
 /*!
@@ -1043,7 +1040,6 @@ static void *sccp_wrapper_asterisk16_park_thread(void *data)
  */
 static sccp_parkresult_t sccp_wrapper_asterisk16_park(const sccp_channel_t * hostChannel)
 {
-
 	pthread_t th;
 	struct parkingThreadArg *arg;
 	PBX_CHANNEL_TYPE *pbx_bridgedChannelClone, *pbx_hostChannelClone;
@@ -1105,11 +1101,11 @@ static sccp_parkresult_t sccp_wrapper_asterisk16_park(const sccp_channel_t * hos
 
 	arg->bridgedChannel = pbx_bridgedChannelClone;
 	arg->hostChannel = pbx_hostChannelClone;
-	if ((arg->device = sccp_channel_getDevice_retained(hostChannel))) {
+	if ((arg->device = sccp_channel_getDevice(hostChannel))) {
 		if (!ast_pthread_create_detached_background(&th, NULL, sccp_wrapper_asterisk16_park_thread, arg)) {
 			return PARK_RESULT_SUCCESS;
 		}
-		arg->device = sccp_device_release(arg->device);							/* explicit release */
+		sccp_device_release(&arg->device);							/* explicit release */
 	}
 	return PARK_RESULT_FAIL;
 
@@ -1274,7 +1270,7 @@ static int sccp_wrapper_asterisk16_get_sampleRate(skinny_codec_t codec)
 #else
 	uint32_t i;
 
-	for (i = 1; i < ARRAY_LEN(skinny_codecs); i++) {
+	for (i = 1; i < sccp_getnumber_of_skinny_codecs(); i++) {
 		if (skinny_codecs[i].codec == codec) {
 			return skinny_codecs[i].sample_rate;
 		}
@@ -1669,8 +1665,8 @@ static enum ast_bridge_result sccp_wrapper_asterisk16_rtpBridge(PBX_CHANNEL_TYPE
 			ast_channel_defer_dtmf(c0);
 			ast_channel_defer_dtmf(c1);
 		} else {
-			AUTO_RELEASE sccp_device_t *d0 = sccp_channel_getDevice_retained(sc0);
-			AUTO_RELEASE sccp_device_t *d1 = sccp_channel_getDevice_retained(sc1);
+			AUTO_RELEASE sccp_device_t *d0 = sccp_channel_getDevice(sc0);
+			AUTO_RELEASE sccp_device_t *d1 = sccp_channel_getDevice(sc1);
 
 			if ((d0 && d1) && (d0->directrtp && d1->directrtp)) {
 				ast_channel_defer_dtmf(c0);
@@ -1828,7 +1824,7 @@ static int sccp_wrapper_asterisk16_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 			result = 0;
 			break;
 		}
-		if (!(d = sccp_channel_getDevice_retained(c))) {
+		if (!(d = sccp_channel_getDevice(c))) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk16_update_rtp_peer) NO DEVICE\n", c->currentDeviceId);
 			result = -1;
 			break;
@@ -2240,7 +2236,7 @@ static int sccp_wrapper_asterisk16_sched_add_ref(int *id, int when, sccp_sched_c
 		if (c) {
 			if ((*id  = ast_sched_add(sched, when, callback, c)) < 0) {
 				sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: sched add id:%d, when:%d, failed\n", c->designator, *id, when);
-				sccp_channel_release(channel);				/* explicit release on failure */
+				sccp_channel_release(&channel);				/* explicit release on failure */
 			}
 			return *id;
 		}
@@ -2248,10 +2244,10 @@ static int sccp_wrapper_asterisk16_sched_add_ref(int *id, int when, sccp_sched_c
 	return -2;
 }
 
-static int sccp_wrapper_asterisk16_sched_del_ref(int *id, const sccp_channel_t * channel)
+static int sccp_wrapper_asterisk16_sched_del_ref(int *id, sccp_channel_t * channel)
 {
 	if (sched) {
-		AST_SCHED_DEL_UNREF(sched, *id, sccp_channel_release(channel));
+		AST_SCHED_DEL_UNREF(sched, *id, sccp_channel_release(&channel));
 		return *id;
 	}
 	return -2;
@@ -2261,7 +2257,7 @@ static int sccp_wrapper_asterisk16_sched_replace_ref(int *id, int when, ast_sche
 {
 	if (sched) {
 		// sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_replace_ref) replacing id: %d\n", channel->designator, *id);
-		AST_SCHED_REPLACE_UNREF(*id, sched, when, callback, channel, sccp_channel_release(_data), sccp_channel_release(channel), sccp_channel_retain(channel));	/* explicit retain / release */
+		AST_SCHED_REPLACE_UNREF(*id, sched, when, callback, channel, sccp_channel_release((sccp_channel_t **)&_data), sccp_channel_release(&channel), sccp_channel_retain(channel));	/* explicit retain / release */
 		// sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_replace_ref) returning id: %d\n", channel->designator, *id);
 		return *id;
 	}
@@ -2463,7 +2459,7 @@ static int sccp_pbx_sendtext(PBX_CHANNEL_TYPE * ast, const char *text)
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: No SCCP CHANNEL to send text to (%s)\n", ast->name);
 		return -1;
 	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 	if (!d) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: No SCCP DEVICE to send text to (%s)\n", ast->name);
 		return -1;
@@ -2516,7 +2512,7 @@ static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE * ast, char digit, unsign
 		return -1;
 	}
 
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 	if (!d) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: No SCCP DEVICE to send digit to (%s)\n", ast->name);
 		return -1;
@@ -2555,11 +2551,7 @@ static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *d
 
 	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);
 	if (c) {
-#if DEBUG
-		AUTO_RELEASE sccp_device_t *d = c->getDevice_retained(c, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-#else
-		AUTO_RELEASE sccp_device_t *d = c->getDevice_retained(c);
-#endif
+		AUTO_RELEASE sccp_device_t *d = c->getDevice(c);
  		if (d) {
 			memset(&fr, 0, sizeof(fr));
 			fr.frametype = AST_FRAME_HTML;

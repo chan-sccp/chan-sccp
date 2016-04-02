@@ -10,12 +10,12 @@
 #include <asterisk.h>
 #include "define.h"
 
-ASTERISK_FILE_VERSION(__FILE__, "");
-
 #include <asterisk/channel.h>
 #include <asterisk/bridge.h>
 #include <asterisk/core_unreal.h>
 #include "ast_announce.h"
+
+//ASTERISK_FILE_VERSION(__FILE__, "");
 
 /* ------------------------------------------------------------------- */
 /*! ConfBridge announcer channel private. */

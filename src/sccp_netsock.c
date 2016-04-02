@@ -61,15 +61,77 @@ int sccp_netsock_is_any_addr(const struct sockaddr_storage *sockAddrStorage)
 	return (sccp_netsock_is_IPv4(sockAddrStorage) && (tmp_addr.sin.sin_addr.s_addr == INADDR_ANY)) || (sccp_netsock_is_IPv6(sockAddrStorage) && IN6_IS_ADDR_UNSPECIFIED(&tmp_addr.sin6.sin6_addr));
 }
 
-boolean_t sccp_netsock_getExternalAddr(struct sockaddr_storage *sockAddrStorage)
+static boolean_t __netsock_resolve_first_af(struct sockaddr_storage *addr, const char *name, int family)
 {
-	//! \todo handle IPv4 / IPV6 family ?
-	if (sccp_netsock_is_any_addr(&GLOB(externip))) {
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "SCCP: No externip set in sccp.conf. In case you are running your PBX on a seperate host behind a NATTED Firewall you need to set externip.\n");
+	struct addrinfo *res;
+	int e;
+	boolean_t result = FALSE;
+	if (!name) {
 		return FALSE;
 	}
-	memcpy(sockAddrStorage, &GLOB(externip), sizeof(struct sockaddr_storage));
-	return TRUE;
+
+	struct addrinfo hints = {
+		.ai_family = family,
+		.ai_socktype = SOCK_STREAM,
+	};
+#if defined(AI_ADDRCONFIG)
+       	hints.ai_flags |= AI_ADDRCONFIG;
+#endif
+#if defined(AI_V4MAPPED)
+	hints.ai_flags |= AI_V4MAPPED;
+#endif
+
+	if ((e = getaddrinfo(name, NULL, &hints, &res)) == 0) {
+		memcpy(addr, res->ai_addr, res->ai_addrlen);
+		result = TRUE;
+	} else {
+		if (e == EAI_NONAME) {
+			pbx_log(LOG_ERROR, "SCCP: name:%s could not be resolved\n", name);
+		} else {
+			pbx_log(LOG_ERROR, "getaddrinfo(\"%s\") failed: %s\n", name, gai_strerror(e));
+		}
+	}
+	freeaddrinfo(res);
+	return result;
+}
+
+static struct {
+	time_t expire;
+	struct sockaddr_storage ip;
+} externhost[] = {
+	[AF_INET]  = {0, {.ss_family = AF_INET}},
+	[AF_INET6] = {0, {.ss_family = AF_INET6}},
+};
+
+boolean_t sccp_netsock_getExternalAddr(struct sockaddr_storage *sockAddrStorage, int family)
+{
+	boolean_t result = FALSE;
+	if (sccp_netsock_is_any_addr(&GLOB(externip))) {
+		if (GLOB(externhost) && strlen(GLOB(externhost)) != 0 && GLOB(externrefresh) > 0) {
+			if (time(NULL) >= externhost[family].expire) {
+				if (!__netsock_resolve_first_af(&externhost[family].ip, GLOB(externhost), family)) {
+					pbx_log(LOG_NOTICE, "Warning: Resolving '%s' failed!\n", GLOB(externhost));
+					return FALSE;
+				}
+				externhost[family].expire = time(NULL) + GLOB(externrefresh);
+			}
+			memcpy(sockAddrStorage, &externhost[family].ip, sizeof(struct sockaddr_storage));
+			sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "SCCP: %s resolved to %s\n", GLOB(externhost), sccp_netsock_stringify_addr(sockAddrStorage));
+			result = TRUE;
+		} else {
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "SCCP: No externip/externhost set in sccp.conf.\nWhen you are running your PBX on a seperate host behind a NAT-TING Firewall you need to set externip/externhost.\n");
+		}
+	} else {
+		memcpy(sockAddrStorage, &GLOB(externip), sizeof(struct sockaddr_storage));
+		result = TRUE;
+	}
+	return result;
+}
+
+void sccp_netsock_flush_externhost(void) 
+{
+	externhost[AF_INET].expire = 0;
+	externhost[AF_INET6].expire = 0;
 }
 
 size_t sccp_netsock_sizeof(const struct sockaddr_storage * sockAddrStorage)
@@ -126,7 +188,7 @@ boolean_t sccp_netsock_ipv4_mapped(const struct sockaddr_storage *sockAddrStorag
 
 /*!
  * \brief
- * Compares the addresses of two ast_sockaddr structures.
+ * Compares the addresses of two sockaddr structures.
  *
  * \retval -1 \a a is lexicographically smaller than \a b
  * \retval 0 \a a is equal to \a b
@@ -134,7 +196,7 @@ boolean_t sccp_netsock_ipv4_mapped(const struct sockaddr_storage *sockAddrStorag
  */
 int sccp_netsock_cmp_addr(const struct sockaddr_storage *a, const struct sockaddr_storage *b)
 {
-	//char *stra = pbx_strdupa(sccp_netsock_stringify_addr(a));
+	//char *stra = pbx_strdupa(sccp_netsock_stringpify_addr(a));
 	//char *strb = pbx_strdupa(sccp_netsock_stringify_addr(b));
 
 	const struct sockaddr_storage *a_tmp, *b_tmp;

@@ -49,7 +49,7 @@ int sccp_device_destroy(const void *ptr);
 struct sccp_private_device_data {
 	sccp_mutex_t lock;
 	
-	sccp_accessorystate_t accessoryStatus[SCCP_ACCESSORY_SENTINEL];		
+	sccp_accessorystate_t accessoryStatus[SCCP_ACCESSORY_SENTINEL + 1];		
 	sccp_devicestate_t deviceState;											/*!< Device State */
 
 	skinny_registrationstate_t registrationState;
@@ -539,7 +539,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	private_data = sccp_calloc(sizeof *private_data, 1);
 	if (!private_data) {
 		pbx_log(LOG_ERROR, "%s: No memory to allocate device private data\n", id);
-		d = sccp_device_release(d);
+		sccp_device_release(&d);	/* explicit release */
 		return NULL;
 	}
 	d->privateData = private_data;
@@ -740,7 +740,7 @@ void sccp_device_addToGlobals(constDevicePtr device)
 		SCCP_RWLIST_WRLOCK(&GLOB(devices));
 		SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(devices), d, list, id);
 		SCCP_RWLIST_UNLOCK(&GLOB(devices));
-		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Added device '%s' (%s) to Glob(devices)\n", d->id, skinny_devicetype2str(d->skinny_type));
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Added device '%s' to Glob(devices)\n", d->id);
 	}
 }
 
@@ -763,7 +763,7 @@ void sccp_device_removeFromGlobals(devicePtr device)
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	if ((d = SCCP_RWLIST_REMOVE(&GLOB(devices), device, list))) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Removed device '%s' from Glob(devices)\n", DEV_ID_LOG(device));
-		sccp_device_release(d);					/* explicit release of device after removing from list */
+		sccp_device_release(&d);					/* explicit release of device after removing from list */
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 }
@@ -869,10 +869,10 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			for (i = 0; i < 20; i++) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
-			btn[btn_index++].type = SKINNY_BUTTONTYPE_MESSAGES; btn[btn_index].instance = 21;
-			btn[btn_index++].type = SKINNY_BUTTONTYPE_DIRECTORY; btn[btn_index].instance = 22;
-			btn[btn_index++].type = SKINNY_BUTTONTYPE_HEADSET; btn[btn_index].instance = 23;
-			btn[btn_index++].type = SKINNY_BUTTONTYPE_APPLICATION; btn[btn_index].instance = 24;
+			btn[btn_index].type = SKINNY_BUTTONTYPE_MESSAGES;    btn[btn_index].instance = 21; btn_index++;
+			btn[btn_index].type = SKINNY_BUTTONTYPE_DIRECTORY;   btn[btn_index].instance = 22; btn_index++;
+			btn[btn_index].type = SKINNY_BUTTONTYPE_HEADSET;     btn[btn_index].instance = 23; btn_index++;
+			btn[btn_index].type = SKINNY_BUTTONTYPE_APPLICATION; btn[btn_index].instance = 24; btn_index++;
 			d->hasEnhancedIconMenuSupport = sccp_device_trueResult;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7935:
@@ -1433,7 +1433,7 @@ void sccp_dev_deactivate_cplane(constDevicePtr d)
  * \param callid Call ID as uint32_t
  * \param timeout Timeout as uint32_t
  */
-void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout)
+void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t lineInstance, uint32_t callid, skinny_toneDirection_t direction)
 {
 	sccp_msg_t *msg = NULL;
 
@@ -1447,12 +1447,12 @@ void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t line, uint32_t c
 		return;
 	}
 	msg->data.StartToneMessage.lel_tone = htolel(tone);
-	msg->data.StartToneMessage.lel_toneTimeout = htolel(timeout);
-	msg->data.StartToneMessage.lel_lineInstance = htolel(line);
+	msg->data.StartToneMessage.lel_toneDirection = htolel(direction);
+	msg->data.StartToneMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.StartToneMessage.lel_callReference = htolel(callid);
 
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending tone %s (%d) on line %d with callid %d\n", d->id, skinny_tone2str(tone), tone, line, callid);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending tone %s (%d) on line %d with callid %d (direction: %s)\n", d->id, skinny_tone2str(tone), tone, lineInstance, callid, skinny_toneDirection2str(direction));
 }
 
 /*!
@@ -1461,7 +1461,7 @@ void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t line, uint32_t c
  * \param line Line as uint8_t
  * \param callid Call ID as uint32_t
  */
-void sccp_dev_stoptone(constDevicePtr d, uint8_t line, uint32_t callid)
+void sccp_dev_stoptone(constDevicePtr d, uint8_t lineInstance, uint32_t callid)
 {
 	sccp_msg_t *msg = NULL;
 
@@ -1472,10 +1472,10 @@ void sccp_dev_stoptone(constDevicePtr d, uint8_t line, uint32_t callid)
 	if (!msg) {
 		return;
 	}
-	msg->data.StopToneMessage.lel_lineInstance = htolel(line);
+	msg->data.StopToneMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.StopToneMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Stop tone on line %d with callid %d\n", d->id, line, callid);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Stop tone on line %d with callid %d\n", d->id, lineInstance, callid);
 }
 
 /*!
@@ -1505,7 +1505,7 @@ void sccp_dev_set_message(devicePtr d, const char *msg, const int timeout, const
 		sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_IDLE, msg);
 	}
 	if (beep) {
-		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 1);
+		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, SKINNY_TONEDIRECTION_USER);
 	}
 }
 
@@ -1820,7 +1820,7 @@ void sccp_dev_setActiveLine(devicePtr device, constLinePtr l)
 	if (!device || !device->session) {
 		return;
 	}
-	sccp_line_refreplace(device->currentLine, l);
+	sccp_line_refreplace(&device->currentLine, l);
 
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Set the active line %s\n", device->id, l ? l->name : "(NULL)");
 }
@@ -1843,7 +1843,7 @@ sccp_channel_t *sccp_device_getActiveChannel(constDevicePtr device)
  	if (device->active_channel && (channel = sccp_channel_retain(device->active_channel))) {
 		if (channel && channel->state == SCCP_CHANNELSTATE_DOWN) {
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: 'active channel': %s on device is DOWN apparently. Returning NULL\n", device->id, channel->designator);
-			channel = sccp_channel_release(channel);				/* explicit release, when not returning channel because it's DOWN */
+			sccp_channel_release(&channel);						/* explicit release, when not returning channel because it's DOWN */
 		}
 	} else {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No active channel on device.\n", device->id);
@@ -1869,7 +1869,7 @@ void sccp_device_setActiveChannel(devicePtr d, sccp_channel_t * channel)
 		if (!channel) {
 			sccp_dev_setActiveLine(device, NULL);
 		}
-		sccp_channel_refreplace(device->active_channel, channel);
+		sccp_channel_refreplace(&device->active_channel, channel);
 		if (device->active_channel) {
 			sccp_channel_updateChannelDesignator(device->active_channel);
 			sccp_dev_setActiveLine(device, device->active_channel->line);
@@ -2021,7 +2021,7 @@ void sccp_dev_postregistration(void *data)
 #define ASTDB_FAMILY_KEY_LEN 100
 #endif
 #ifndef ASTDB_RESULT_LEN
-#define ASTDB_RESULT_LEN 80
+#define ASTDB_RESULT_LEN 100
 #endif
 	char family[ASTDB_FAMILY_KEY_LEN] = { 0 };
 	char buffer[ASTDB_RESULT_LEN] = { 0 };
@@ -2074,7 +2074,7 @@ void sccp_dev_postregistration(void *data)
 
 	char lastNumber[SCCP_MAX_EXTENSION] = "";
 	if (iPbx.feature_getFromDatabase(family, "lastDialedNumber", buffer, sizeof(buffer))) {
-		sscanf(buffer,"%80[^;];lineInstance=%d", lastNumber, &instance);
+		sscanf(buffer,"%79[^;];lineInstance=%d", lastNumber, &instance);
 		AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_findByLineinstance(d, instance);
 		if(linedevice){ 
 			sccp_device_setLastNumberDialed(d, lastNumber, linedevice);
@@ -2226,7 +2226,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 					AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
 
 					if (c) {
-						AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice_retained(channel);
+						AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice(channel);
 
 						if (tmpDevice == d) {
 							sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
@@ -2278,7 +2278,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 		/* removing selected channels */
 		SCCP_LIST_LOCK(&d->selectedChannels);
 		while ((selectedChannel = SCCP_LIST_REMOVE_HEAD(&d->selectedChannels, list))) {
-			sccp_channel_release(selectedChannel->channel);
+			sccp_channel_release(&selectedChannel->channel);
 			sccp_free(selectedChannel);
 		}
 		SCCP_LIST_UNLOCK(&d->selectedChannels);
@@ -2301,7 +2301,9 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 				if ((btn[i].type == SKINNY_BUTTONTYPE_LINE) && btn[i].ptr) {
-					btn[i].ptr = sccp_line_release(btn[i].ptr);				/* explicit release to cleanup device */
+					sccp_line_t  *tmp = btn[i].ptr;						/* implicit cast without type change */
+					sccp_line_release(&tmp);
+					btn[i].ptr = NULL;
 				}
 			}
 			sccp_free(d->buttonTemplate);
@@ -2495,28 +2497,6 @@ sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(devicePtr device, uint16_t
 }
 
 /*!
- * \brief Find Device by Line Index
- * \param d SCCP Device
- * \param lineName Line Name as char
- * \return Status as int
- * \note device should be locked by parent fuction
- *
- * \warning
- *   - device->buttonconfig is not always locked
- */
-uint8_t sccp_device_find_index_for_line(constDevicePtr d, const char *lineName)
-{
-	uint8_t instance;
-
-	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
-		if (d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line && !strcasecmp(d->lineButtons.instance[instance]->line->name, lineName)) {
-			return instance;
-		}
-	}
-	return 0;
-}
-
-/*!
  * \brief Send Reset to a Device
  * \param d SCCP Device
  * \param reset_type as int
@@ -2622,7 +2602,7 @@ uint8_t sccp_device_numberOfChannels(constDevicePtr device)
 			}
 			SCCP_LIST_LOCK(&l->channels);
 			SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-				AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice_retained(c);
+				AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice(c);
 
 				if (tmpDevice == device) {
 					numberOfChannels++;
@@ -2702,7 +2682,7 @@ static void sccp_device_indicate_offhook(constDevicePtr device, sccp_linedevices
 	sccp_dev_set_cplane(device, linedevice->lineInstance, 1);
 	sccp_dev_displayprompt(device, linedevice->lineInstance, callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 	sccp_dev_set_keyset(device, linedevice->lineInstance, callid, KEYMODE_OFFHOOK);
-	sccp_dev_starttone(device, SKINNY_TONE_INSIDEDIALTONE, linedevice->lineInstance, callid, 0);
+	sccp_dev_starttone(device, SKINNY_TONE_INSIDEDIALTONE, linedevice->lineInstance, callid, SKINNY_TONEDIRECTION_USER);
 }
 
 static void __sccp_device_indicate_immediate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
@@ -2977,7 +2957,7 @@ static sccp_push_result_t sccp_device_pushURL(constDevicePtr device, const char 
 	snprintf(xmlData, msg_length, xmlFormat, url);
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_PUSH, 0, 1, transactionID, xmlData, priority);
 	if (SKINNY_TONE_SILENCE != tone) {
-		sccp_dev_starttone(device, tone, 0, 0, 0);
+		sccp_dev_starttone(device, tone, 0, 0, SKINNY_TONEDIRECTION_USER);
 	}
 	return SCCP_PUSH_RESULT_SUCCESS;
 }
@@ -3021,9 +3001,32 @@ static sccp_push_result_t sccp_device_pushTextMessage(constDevicePtr device, con
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_PUSH, 0, 1, transactionID, xmlData, priority);
 
 	if (SKINNY_TONE_SILENCE != tone) {
-		sccp_dev_starttone(device, tone, 0, 0, 0);
+		sccp_dev_starttone(device, tone, 0, 0, SKINNY_TONEDIRECTION_USER);
 	}
 	return SCCP_PUSH_RESULT_SUCCESS;
+}
+
+/*=================================================================================== FIND FUNCTIONS ==============*/
+
+/*!
+ * \brief Find Device by Line Index
+ * \param d SCCP Device
+ * \param lineName Line Name as char
+ * \return Status as int
+ * \note device should be locked by parent fuction
+ *
+ * \warning
+ *   - device->buttonconfig is not always locked
+ */
+uint8_t sccp_device_find_index_for_line(constDevicePtr d, const char *lineName)
+{
+	uint8_t instance;
+	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
+		if (d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line && !strcasecmp(d->lineButtons.instance[instance]->line->name, lineName)) {
+			return instance;
+		}
+	}
+	return 0;
 }
 
 gcc_inline int16_t sccp_device_buttonIndex2lineInstance(constDevicePtr d, uint16_t buttonIndex)
@@ -3034,9 +3037,6 @@ gcc_inline int16_t sccp_device_buttonIndex2lineInstance(constDevicePtr d, uint16
 	pbx_log(LOG_ERROR, "%s: buttonIndex2lineInstance for buttonIndex:%d failed!\n", d->id, buttonIndex);
 	return -1;
 }
-
-/*=================================================================================== FIND FUNCTIONS ==============*/
-
 
 /*!
  * \brief Find Device by ID

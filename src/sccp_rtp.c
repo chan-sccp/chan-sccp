@@ -270,7 +270,7 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 		return;
 	}
 
-	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice(c);
 
 	if (device) {
 
@@ -282,6 +282,17 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 			//return;
 		}
 		*/
+		char peerIpStr[NI_MAXHOST + NI_MAXSERV];
+		char remoteIpStr[NI_MAXHOST + NI_MAXSERV];
+		char phoneIpStr[NI_MAXHOST + NI_MAXSERV];
+		if (device->nat >= SCCP_NAT_ON) {
+			/* Rewrite ip-addres to the outside source address using the phones connection (device->sin) */
+			sccp_copy_string(peerIpStr, sccp_netsock_stringify(new_peer), sizeof(peerIpStr));
+			uint16_t port = sccp_netsock_getPort(new_peer);
+			sccp_session_getSas(device->session, new_peer);
+			sccp_netsock_ipv4_mapped(new_peer, new_peer);
+			sccp_netsock_setPort(new_peer, port);
+		}
 
 		memcpy(&rtp->phone, new_peer, sizeof(rtp->phone));
 
@@ -290,54 +301,41 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 			iPbx.rtp_setPhoneAddress(rtp, new_peer, device->nat >= SCCP_NAT_ON ? 1 : 0);
 		}
 
-		char buf1[NI_MAXHOST + NI_MAXSERV];
-		sccp_copy_string(buf1, sccp_netsock_stringify(&rtp->phone_remote), sizeof(buf1));
-		char buf2[NI_MAXHOST + NI_MAXSERV];
-		sccp_copy_string(buf2, sccp_netsock_stringify(&rtp->phone), sizeof(buf2));
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(device), buf1, buf2, sccp_nat2str(device->nat));
+		sccp_copy_string(remoteIpStr, sccp_netsock_stringify(&rtp->phone_remote), sizeof(remoteIpStr));
+		sccp_copy_string(phoneIpStr, sccp_netsock_stringify(&rtp->phone), sizeof(phoneIpStr));
+		if (device->nat >= SCCP_NAT_ON) {
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (NAT:%s)\n", DEV_ID_LOG(device), remoteIpStr, phoneIpStr, peerIpStr);
+		} else {
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (NoNat)\n", DEV_ID_LOG(device), remoteIpStr, phoneIpStr);
+		}
 	}
 }
 
+/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
 int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp)
 {
 	int res = 0;
-	//sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
 	if (d) {
 		struct sockaddr_storage sus = { 0 };
-		sccp_session_getOurIP(d->session, &sus, 0);
-		uint16_t usFamily = sccp_netsock_is_IPv6(&sus) ? AF_INET6 : AF_INET;
-		//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) us: %s, usFamily: %s\n", d->id, sccp_netsock_stringify(&sus), (usFamily == AF_INET6) ? "IPv6" : "IPv4");
-
 		struct sockaddr_storage *phone_remote = &rtp->phone_remote;
-		uint16_t remoteFamily = (rtp->phone_remote.ss_family == AF_INET6 && !sccp_netsock_is_mapped_IPv4(phone_remote)) ? AF_INET6 : AF_INET;
-		//sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMediaTransmission) remote: %s, remoteFamily: %s\n", d->id, sccp_netsock_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
+		sccp_session_getOurIP(d->session, &sus, 0);
 
-		/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
+		uint16_t usFamily = (sccp_netsock_is_IPv6(&sus) && !sccp_netsock_is_mapped_IPv4(&sus)) ? AF_INET6 : AF_INET;
+		uint16_t remoteFamily = (sccp_netsock_is_IPv6(phone_remote) && !sccp_netsock_is_mapped_IPv4(phone_remote)) ? AF_INET6 : AF_INET;
+
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: checkNat us: %s, usFamily: %s\n", d->id, sccp_netsock_stringify(&sus), (usFamily == AF_INET6) ? "IPv6" : "IPv4");
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: checkNat remote: %s, remoteFamily: %s\n", d->id, sccp_netsock_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
 		if (d->nat >= SCCP_NAT_ON) {
-			if (usFamily != remoteFamily) {
-				switch (usFamily) {
-				case AF_INET:
-				{
-					uint16_t port = sccp_rtp_getServerPort(rtp);					/* get rtp server port */
-					if (!sccp_netsock_getExternalAddr(phone_remote)) {				/* Use externip (PBX behind NAT Firewall */
-						memcpy(phone_remote, &sus, sizeof(struct sockaddr_storage));		/* Fallback: use ip-address of incoming interface */
-					}
-					sccp_netsock_ipv4_mapped(phone_remote, phone_remote);				/*!< we need this to convert mapped IPv4 to real IPv4 address */
-					sccp_netsock_setPort(phone_remote, port);
-					break;
-				}
-				case AF_INET6:
-				{
-					struct sockaddr_storage sas;
-					memcpy(&sas, phone_remote, sizeof(struct sockaddr_storage));
-					sccp_netsock_ipv4_mapped(&sas, &sas);
-					break;
-				}
-				default:
-					pbx_log(LOG_NOTICE, "%s: Unsupported network protocol\n", c->designator);
-				}
+			uint16_t port = sccp_rtp_getServerPort(rtp);					// get rtp server port
+			if (!sccp_netsock_getExternalAddr(phone_remote, remoteFamily)) {		// get externip/externhost ip-address (PBX behind NAT Firewall)
+				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_2 "%s: no externip/externhost set, falling back to using incoming interface address:%s\n", d->id, sccp_netsock_stringify(&sus))
+				memcpy(phone_remote, &sus, sizeof(struct sockaddr_storage));
 			}
+			if (usFamily != remoteFamily) {
+				sccp_netsock_ipv4_mapped(phone_remote, phone_remote);			// we need this to convert mapped IPv4 to real IPv4 address
+			}
+			sccp_netsock_setPort(phone_remote, port);
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (updateNatRemotePhone) new remote: %s, new remoteFamily: %s\n", d->id, sccp_netsock_stringify(phone_remote), (remoteFamily == AF_INET6) ? "IPv6" : "IPv4");
 			res = 1;
 		}
@@ -353,7 +351,7 @@ sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(constChannelPtr c, sccp_rtp_t **rtp)
 {
 	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
 
-	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice(c);
 
 	if (!device) {
 		return SCCP_RTP_INFO_NORTP;
@@ -377,7 +375,7 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(constChannelPtr c, sccp_rtp_t ** rtp)
 {
 	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
 
-	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice(c);
 
 	if (!device) {
 		return SCCP_RTP_INFO_NORTP;

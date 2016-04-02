@@ -43,7 +43,8 @@ SCCP_INLINE boolean_t SCCP_CALL sccp_netsock_is_IPv6(const struct sockaddr_stora
 SCCP_API uint16_t SCCP_CALL sccp_netsock_getPort(const struct sockaddr_storage *sockAddrStorage);
 SCCP_API void SCCP_CALL sccp_netsock_setPort(const struct sockaddr_storage *sockAddrStorage, uint16_t port);
 SCCP_API int SCCP_CALL sccp_netsock_is_any_addr(const struct sockaddr_storage *sockAddrStorage);
-SCCP_API boolean_t SCCP_CALL sccp_netsock_getExternalAddr(struct sockaddr_storage *sockAddrStorage);
+SCCP_API boolean_t SCCP_CALL sccp_netsock_getExternalAddr(struct sockaddr_storage *sockAddrStorage, int family);
+SCCP_API void SCCP_CALL sccp_netsock_flush_externhost(void);
 SCCP_API size_t SCCP_CALL sccp_netsock_sizeof(const struct sockaddr_storage *sockAddrStorage);
 SCCP_API boolean_t SCCP_CALL sccp_netsock_is_mapped_IPv4(const struct sockaddr_storage *sockAddrStorage);
 SCCP_API boolean_t SCCP_CALL sccp_netsock_ipv4_mapped(const struct sockaddr_storage *sockAddrStorage, struct sockaddr_storage *sockAddrStorage_mapped);

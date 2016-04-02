@@ -265,7 +265,6 @@ EVENT_LIBS = @EVENT_LIBS@
 EVENT_TYPE = @EVENT_TYPE@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
-FINGER = @FINGER@
 GDB = @GDB@
 GDB_FLAGS = @GDB_FLAGS@
 GIT = @GIT@
@@ -276,6 +275,7 @@ HAVE_PBX_HTTP = @HAVE_PBX_HTTP@
 HEAD = @HEAD@
 HG = @HG@
 HOST_CC = @HOST_CC@
+ID = @ID@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -353,6 +353,8 @@ SET_MAKE = @SET_MAKE@
 SH = @SH@
 SHELL = @SHELL@
 STRIP = @STRIP@
+SUPPORTED_CFLAGS = @SUPPORTED_CFLAGS@
+SUPPORTED_LDFLAGS = @SUPPORTED_LDFLAGS@
 SVN = @SVN@
 SVN2CL = @SVN2CL@
 SVNVERSION = @SVNVERSION@
@@ -375,7 +377,6 @@ am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
-ax_warn_cflags_variable = @ax_warn_cflags_variable@
 bindir = @bindir@
 build = @build@
 build_alias = @build_alias@
@@ -427,15 +428,17 @@ AUTOMAKE_OPTIONS = gnu
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov
 AM_CFLAGS = $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	$(COVERAGE_CFLAGS) $(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) \
-	$(LIBCURL_CFLAGS) $(ax_warn_cflags_variable) -I${abs_builddir} \
-	-I$(top_builddir)/src/ -I$(top_srcdir)/src/ \
+	$(LIBCURL_CFLAGS) $(SUPPORTED_CFLAGS) $(SANITIZE_CFLAGS) \
+	-I${abs_builddir} -I$(top_builddir)/src/ -I$(top_srcdir)/src/ \
 	-I$(top_srcdir)/src/pbx_impl/ \
 	-I$(top_srcdir)/src/pbx_impl/ast/ \
 	-I$(top_srcdir)/src/$(PBX_COND_SUBDIR) \
 	-I$(top_srcdir)/src/$(PBXVER_COND_SUBDIR) \
 	-I$(top_srcdir)/src/$(PBXVER_COND_ANNOUNCE_SUBDIR) \
-	-D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
-AM_LDFLAGS = -z muldefs @LTLIBOBJS@
+	-DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self \
+	-DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS) -D_REENTRANT \
+	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
+AM_LDFLAGS = $(SANITIZE_LDFLAGS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(CLANG_BLOCKS_LIBS) $(AST_CLANG_BLOCKS_LIBS) $(SUPPORTED_LDFLAGS) -z muldefs @LTLIBOBJS@
 noinst_LTLIBRARIES = libast113.la
 noinst_HEADERS = ast113.h
 libast113_la_SOURCES = ast113.c
@@ -740,6 +743,7 @@ uninstall-am:
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am
 
+#AM_CXXFLAGS    	= -std=c++11
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

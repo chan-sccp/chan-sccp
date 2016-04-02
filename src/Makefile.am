@@ -57,28 +57,29 @@ libsccp_la_SOURCES	= sccp_callinfo.c 	sccp_channel.c		sccp_device.c		sccp_debug.
 			  sccp_hint.c 		sccp_refcount.c		sccp_management.c	sccp_mwi.c		\
 			  sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
 			  sccp_devstate.c	sccp_event.c		sccp_enum.c		sccp_globals.c		\
-			  sccp_netsock.c
+			  sccp_netsock.c	sccp_codec.c
 			  
 chan_sccp_la_SOURCES	= chan_sccp.c
 
 libsccp_la_DEPENDENCIES = revision.h sccp_enum.h sccp_enum.c
 libsccp_la_CFLAGS       = $(AM_CFLAGS)
 libsccp_la_LDFLAGS	= $(AM_LDFLAGS)
+#libsccp_la_CXXFLAGS	= $(AM_CXXFLAGS)
 
 chan_sccp_la_LIBADD	=  libsccp.la pbx_impl/libpbximpl.la $(PBX_COND_LIBADD) $(PBXVER_COND_LIBADD) $(PBXVER_COND_ANNOUNCE_LIBADD)
 chan_sccp_la_DEPENDENCIES = $(chan_sccp_la_LIBADD)
-chan_sccp_la_CFLAGS     = $(AM_CFLAGS) -DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self -DAST_MODULE=\"chan_sccp\"
-chan_sccp_la_LDFLAGS	= $(AM_LDFLAGS) $(PBX_LDFLAGS) $(SANITIZE_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS) $(LIBBFD) $(LIBEXECINFO) $(LTLIBICONV)
+chan_sccp_la_CFLAGS     = $(AM_CFLAGS)
+chan_sccp_la_LDFLAGS	= $(AM_LDFLAGS) $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(LIBBFD) $(LIBEXECINFO) $(LTLIBICONV)
 chan_sccp_la_LDFLAGS	+= -avoid-version -module -lm -s -rdynamic
-
+#chan_sccp_la_CXXFLAGS	= $(AM_CXXFLAGS)
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@test -d "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"
 	@if test "x$(strip_binaries)" == "xyes" ; then 											\
 		test -d "$(DESTDIR)$(PBX_DEBUGMODDIR)" || $(MKDIR_P) "$(DESTDIR)$(PBX_DEBUGMODDIR)";					\
-		$(OBJCOPY) --only-keep-debug ".libs/chan_sccp.so" "$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so.dbg";			\
+		$(OBJCOPY) --only-keep-debug ".libs/chan_sccp.so" "$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so";				\
 		$(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) -s ".libs/chan_sccp.so" "$(DESTDIR)$(csmoddir)";\
-		$(OBJCOPY) --add-gnu-debuglink="$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so.dbg" "$(DESTDIR)$(csmoddir)/chan_sccp.so";	\
+		$(OBJCOPY) --add-gnu-debuglink="$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp.so" "$(DESTDIR)$(csmoddir)/chan_sccp.so";	\
 		echo    "==============================================================================================="; 		\
 		echo    "Installed Stripped chan_sccp.so to '$(DESTDIR)$(csmoddir)'...";           					\
 		echo    "===============================================================================================";		\

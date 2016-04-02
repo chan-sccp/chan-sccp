@@ -23,11 +23,11 @@ struct sccp_rtp {
 	sccp_rtp_type_t type;
 	uint16_t readState;											/*!< current read state */
 	uint16_t writeState;											/*!< current write state */
-	boolean_t directMedia;											/*!< Show if we are running in directmedia mode (set in pbx_impl during rtp bridging) */
 	skinny_codec_t readFormat;										/*!< current read format */
 	skinny_codec_t writeFormat;										/*!< current write format */
 	struct sockaddr_storage phone;										/*!< our phone information (openreceive) */
 	struct sockaddr_storage phone_remote;									/*!< phone destination address (starttransmission) */
+	boolean_t directMedia;											/*!< Show if we are running in directmedia mode (set in pbx_impl during rtp bridging) */
 };														/*!< SCCP RTP Structure */
 
 SCCP_API boolean_t SCCP_CALL sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t type);
