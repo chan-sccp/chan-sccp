@@ -217,7 +217,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	/* something went wrong, cleaning up */
 	if (private_data) {
 		if (private_data->callInfo) {
-			iCallInfo.Destructor(channel->privateData->callInfo);
+			iCallInfo.Destructor(private_data->callInfo);
 		}
 		sccp_free(private_data);
 	}
