@@ -1871,7 +1871,6 @@ void sccp_device_setActiveChannel(devicePtr d, sccp_channel_t * channel)
 		}
 		sccp_channel_refreplace(&device->active_channel, channel);
 		if (device->active_channel) {
-			sccp_channel_updateChannelDesignator(device->active_channel);
 			sccp_dev_setActiveLine(device, device->active_channel->line);
 			if (device->active_channel->line) {
 				device->active_channel->line->statistic.numberOfActiveChannels++;

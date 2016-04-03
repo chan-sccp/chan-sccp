@@ -35,16 +35,16 @@ struct sccp_channel {
 	sccp_line_t * const line;										/*!< SCCP Line */
 	SCCP_LIST_ENTRY (sccp_channel_t) list;									/*!< Channel Linked List */
 	char dialedNumber[SCCP_MAX_EXTENSION];									/*!< Last Dialed Number */
-	char designator[CHANNEL_DESIGNATOR_SIZE];
+	const char * const designator;
 	sccp_subscription_id_t subscriptionId;
 	boolean_t answered_elsewhere;										/*!< Answered Elsewhere */
 	boolean_t privacy;											/*!< Private */
 	boolean_t peerIsSCCP;											/*!< Indicates that channel-peer is also SCCP */
 	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
 
-	sccp_device_t * const (*getDevice) (const sccp_channel_t * channel);						/*!< function to retrieve refcounted device */
-	sccp_linedevices_t * const (*getLineDevice) (const sccp_channel_t * channel);					/*!< function to retrieve refcounted linedevice */
-	void (*setDevice) (sccp_channel_t * const channel, const sccp_device_t * device);				/*!< set refcounted device connected to the channel */
+	sccp_device_t * const (*getDevice) (const sccp_channel_t * channel);					/*!< function to retrieve refcounted device */
+	sccp_linedevices_t * const (*getLineDevice) (const sccp_channel_t * channel);				/*!< function to retrieve refcounted linedevice */
+	void (*setDevice) (sccp_channel_t * const channel, const sccp_device_t * device);			/*!< set refcounted device connected to the channel */
 	char currentDeviceId[StationMaxDeviceNameSize];								/*!< Returns a constant char of the Device Id if available */
 
 	sccp_private_channel_data_t * const privateData;
@@ -104,7 +104,7 @@ struct sccp_channel {
 	void (*setMicrophone) (sccp_channel_t * channel, boolean_t on);
 	boolean_t (*hangupRequest) (sccp_channel_t * channel);
 	boolean_t (*isMicrophoneEnabled) (void);
-	char *musicclass;											/*!< Music Class */
+	const char *const musicclass;										/*!< Music Class */
 
 	sccp_channel_t *parentChannel;										/*!< if we are a cfwd channel, our parent is this */
 
@@ -128,8 +128,6 @@ SCCP_API channelPtr SCCP_CALL sccp_channel_allocate(constLinePtr l, constDeviceP
 SCCP_API channelPtr SCCP_CALL sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);	// retrieve or allocate new channel
 SCCP_API channelPtr SCCP_CALL sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
 
-SCCP_API void SCCP_CALL sccp_channel_updateChannelDesignator(sccp_channel_t * c);
-SCCP_API void SCCP_CALL sccp_channel_updateMusicClass(sccp_channel_t * c, const sccp_line_t *l);
 SCCP_API void SCCP_CALL sccp_channel_updateChannelCapability(sccp_channel_t * channel);
 SCCP_API sccp_callinfo_t * const SCCP_CALL sccp_channel_getCallInfo(const sccp_channel_t *const channel);
 SCCP_API void SCCP_CALL sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel_t * channel);
