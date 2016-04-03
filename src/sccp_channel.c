@@ -45,7 +45,7 @@ AST_MUTEX_DEFINE_STATIC(callCountLock);
 struct sccp_private_channel_data {
 	sccp_device_t *device;
 	sccp_linedevices_t *linedevice;
-	sccp_callinfo_t *callInfo;
+	sccp_callinfo_t * callInfo;
 	boolean_t microphone;											/*!< Flag to mute the microphone when calling a baby phone */
 };
 
@@ -217,7 +217,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	/* something went wrong, cleaning up */
 	if (private_data) {
 		if (private_data->callInfo) {
-			iCallInfo.Destructor(private_data->callInfo);
+			iCallInfo.Destructor(&private_data->callInfo);
 		}
 		sccp_free(private_data);
 	}
@@ -1861,7 +1861,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	}
 
 	if (channel->privateData->callInfo) {
-		iCallInfo.Destructor(channel->privateData->callInfo);
+		iCallInfo.Destructor(&channel->privateData->callInfo);
 	}
 	
 	if (channel->owner) {

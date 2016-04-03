@@ -107,15 +107,16 @@ static sccp_callinfo_t * const callinfo_Constructor(uint8_t callInstance)
 	return ci;
 }
 
-static sccp_callinfo_t * const callinfo_Destructor(sccp_callinfo_t * ci)
+static sccp_callinfo_t * const callinfo_Destructor(sccp_callinfo_t * * const ci)
 {
-	pbx_assert(ci != NULL);
+	pbx_assert(ci != NULL && *ci != NULL);
 	//sccp_callinfo_wrlock(ci);
 	//sccp_callinfo_unlock(ci);
-	pbx_rwlock_destroy(&ci->lock);
-	sccp_free(ci);
+	pbx_rwlock_destroy(&(*ci)->lock);
+	sccp_free(*ci);
+	*ci = NULL;
 	sccp_log(DEBUGCAT_CALLINFO) (VERBOSE_PREFIX_2 "SCCP: callinfo destructor\n");
-	return NULL;
+	return *ci;
 }
 
 static sccp_callinfo_t * callinfo_CopyConstructor(const sccp_callinfo_t * const src_ci)
@@ -654,7 +655,7 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	pbx_test_validate(test, citest != NULL);
 
 	pbx_test_status_update(test, "Callinfo Destructor...\n");
-	citest = iCallInfo.Destructor(citest);
+	citest = iCallInfo.Destructor(&citest);
 	pbx_test_validate(test, citest == NULL);
 
 	pbx_test_status_update(test, "Callinfo Setter CalledParty...\n");
@@ -756,13 +757,13 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	pbx_test_validate(test, sccp_strlen_zero(origvoicemail));
 	pbx_test_validate(test, presentation == CALLERID_PRESENTATION_FORBIDDEN);
 	pbx_test_validate(test, reason == 0);
-	citest2 = iCallInfo.Destructor(citest2);
+	citest2 = iCallInfo.Destructor(&citest2);
 	pbx_test_validate(test, citest2 == NULL);
 	
 	pbx_test_status_update(test, "Callinfo Test Destructor...\n");
-	citest = iCallInfo.Destructor(citest);
+	citest = iCallInfo.Destructor(&citest);
 	pbx_test_validate(test, citest == NULL);
-	citest1 = iCallInfo.Destructor(citest1);
+	citest1 = iCallInfo.Destructor(&citest1);
 	pbx_test_validate(test, citest1 == NULL);
 
 	return AST_TEST_PASS;
