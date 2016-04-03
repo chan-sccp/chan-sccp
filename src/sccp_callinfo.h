@@ -26,7 +26,7 @@ struct sccp_callinfo;
 /* Definition of the functions associated with this type. */
 typedef struct tagCallInfo {
 	sccp_callinfo_t * const (*Constructor)(uint8_t callInstance);
-	sccp_callinfo_t * const (*Destructor)(sccp_callinfo_t * ci);
+	sccp_callinfo_t * const (*Destructor)(sccp_callinfo_t * * const ci);
 	sccp_callinfo_t * (*CopyConstructor)(const sccp_callinfo_t * const src_ci);
 	
 	#if UNUSEDCODE // 2015-11-01

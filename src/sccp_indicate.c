@@ -479,7 +479,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 	const skinny_calltype_t calltype = c->calltype;
 	char dialedNumber[SCCP_MAX_EXTENSION];
 	sccp_copy_string(dialedNumber, c->dialedNumber, SCCP_MAX_EXTENSION);
-	sccp_callinfo_t *const ci = iCallInfo.CopyConstructor(sccp_channel_getCallInfo(c));
+	sccp_callinfo_t * ci = iCallInfo.CopyConstructor(sccp_channel_getCallInfo(c));
 
 	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Remote Indicate state %s (%d) with reason: %s (%d) on remote devices for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, sccp_channelstatereason2str(c->channelStateReason), c->channelStateReason, c->designator, c->callid);
 	SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
@@ -606,8 +606,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Finish Indicating state %s (%d) with reason: %s (%d) on remote device %s for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, sccp_channelstatereason2str(c->channelStateReason), c->channelStateReason, DEV_ID_LOG(remoteDevice), c->designator, c->callid);
 		}
 	}
-
-	iCallInfo.Destructor(ci);
+	iCallInfo.Destructor(&ci);
 }
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

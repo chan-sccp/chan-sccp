@@ -258,7 +258,7 @@ void sccp_hint_module_stop(void)
 			}
 			SCCP_LIST_UNLOCK(&hint->subscribers);
 			SCCP_LIST_HEAD_DESTROY(&hint->subscribers);
-			iCallInfo.Destructor(hint->callInfo);
+			iCallInfo.Destructor(&hint->callInfo);
 			sccp_free(hint);
 		}
 		SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);

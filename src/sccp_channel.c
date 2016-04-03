@@ -45,7 +45,7 @@ AST_MUTEX_DEFINE_STATIC(callCountLock);
 struct sccp_private_channel_data {
 	sccp_device_t *device;
 	sccp_linedevices_t *linedevice;
-	sccp_callinfo_t *callInfo;
+	sccp_callinfo_t * callInfo;
 	boolean_t microphone;											/*!< Flag to mute the microphone when calling a baby phone */
 };
 
@@ -117,7 +117,6 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	/* this just allocate a sccp channel (not the asterisk channel, for that look at sccp_pbx_channel_allocate) */
 	sccp_channel_t *channel = NULL;
 	struct sccp_private_channel_data *private_data = NULL;
-	sccp_callinfo_t *callInfo = NULL;
 	sccp_line_t *refLine = sccp_line_retain(l);
 	
 	if (!refLine) {
@@ -156,10 +155,14 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 			pbx_log(LOG_ERROR, "%s: No memory to allocate channel private data on line %s\n", l->id, l->name);
 			break;
 		}
-		callInfo = iCallInfo.Constructor(callInstance);
-		if (!callInfo) {
+		/* assign private_data default values */
+		private_data->microphone = TRUE;
+		private_data->device = NULL;
+		private_data->callInfo = iCallInfo.Constructor(callInstance);
+		if (!private_data->callInfo) {
 			break;
 		}
+		
 		/* assigning immutable values */
 		*(struct sccp_private_channel_data **)&channel->privateData = private_data;
 		*(uint32_t *)&channel->callid = callid;
@@ -173,9 +176,6 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		*(char **)&channel->designator = pbx_strdup(designator);
 
 		/* assign default values */
-		channel->privateData->microphone = TRUE;
-		channel->privateData->device = NULL;
-		channel->privateData->callInfo = callInfo;
 		channel->ringermode = SKINNY_RINGTYPE_OUTSIDE;
 		channel->calltype = SKINNY_CALLTYPE_INBOUND;
 		channel->answered_elsewhere = FALSE;
@@ -216,16 +216,16 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 
 	/* something went wrong, cleaning up */
 	if (private_data) {
+		if (private_data->callInfo) {
+			iCallInfo.Destructor(&private_data->callInfo);
+		}
 		sccp_free(private_data);
-	}
-	if (refLine) {
-		sccp_line_release(&refLine);							// explicit release
 	}
 	if (channel) {
 		sccp_channel_release(&channel);							// explicit release
 	}
-	if (callInfo) {
-		iCallInfo.Destructor(callInfo);
+	if (refLine) {
+		sccp_line_release(&refLine);							// explicit release
 	}
 	return NULL;
 }
@@ -1861,7 +1861,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	}
 
 	if (channel->privateData->callInfo) {
-		iCallInfo.Destructor(channel->privateData->callInfo);
+		iCallInfo.Destructor(&channel->privateData->callInfo);
 	}
 	
 	if (channel->owner) {
