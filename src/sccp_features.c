@@ -277,7 +277,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 			int instance = sccp_device_find_index_for_line(d, c->line->name);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL " " SKINNY_DISP_OPICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
 			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
-			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
+			sccp_channel_endcall(c);
 		}
 	}
 	//pbx_channel_unlock(target);
@@ -381,7 +381,7 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 			int instance = sccp_device_find_index_for_line(d, c->line->name);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
 			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
-			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
+			sccp_channel_endcall(c);
 		}
 		pbx_channel_unref(original);
 	} else {
@@ -435,7 +435,6 @@ int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstanc
 		PBX_CHANNEL_TYPE *original = c->owner;
 		if (pbx_channel_ref(original)) {
 			sccp_channel_stop_schedule_digittimout(c);
-
 			if ((target = iPbx.findPickupChannelByGroupLocked(c->owner))) {
 				res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
 				target = pbx_channel_unref(target);
@@ -444,7 +443,8 @@ int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstanc
 				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %s\n", DEV_ID_LOG(d), c->designator);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
 				sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
-				sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
+				sccp_channel_endcall(c);
+				pbx_hangup(original);
 			}
 			pbx_channel_unref(original);
 		} else {

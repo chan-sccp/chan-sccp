@@ -1222,18 +1222,23 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
 {
 	pbx_assert(l != NULL && d != NULL);
+	sccp_log(DEBUGCAT_CORE)("%s: (getEmptyChannel) on line:%s, maybe_c:%s\n", d->id, l->name, maybe_c ? maybe_c->designator : "");
 	sccp_channel_t *channel = NULL;
-	
 	{
 		AUTO_RELEASE sccp_channel_t *c = NULL;
 		if (!maybe_c || !(c=sccp_channel_retain(maybe_c))) {
+			sccp_log(DEBUGCAT_CORE)("%s: (getEmptyChannel) getActiveChannel\n", d->id);
 			c = sccp_device_getActiveChannel(d);
 		}
 		if (c) {
+			sccp_log(DEBUGCAT_CORE)("%s: (getEmptyChannel) got channel already.\n", d->id);
 			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {		// reuse unused channel
+				sccp_log(DEBUGCAT_CORE)("%s: (getEmptyChannel) channel not in use -> reuse it.\n", d->id);
 				int lineInstance = sccp_device_find_index_for_line(d, c->line->name);
 				sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
 				channel = sccp_channel_retain(c);
+				channel->calltype = calltype;
+				return channel;
 			} else if (!sccp_channel_hold(c)) {
 				pbx_log(LOG_ERROR, "%s: Putting Active Channel %s OnHold failed -> Cancelling new CaLL\n", d->id, c->designator);
 				return NULL;
@@ -1248,6 +1253,7 @@ channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channe
 	if (!sccp_pbx_channel_allocate(channel, ids, parentChannel)) {
 		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", d->id, l->name);
 		sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
+		sccp_channel_endcall(channel);
 		return NULL;
 	}
 	return channel;
