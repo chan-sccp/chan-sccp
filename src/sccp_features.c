@@ -278,6 +278,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL " " SKINNY_DISP_OPICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
 			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 			sccp_channel_endcall(c);
+			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_TEMP_FAIL " " SKINNY_DISP_OPICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);	/* temp fix */
 		}
 	}
 	//pbx_channel_unlock(target);
@@ -382,6 +383,7 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
 			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 			sccp_channel_endcall(c);
+			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);	/* temp fix */
 		}
 		pbx_channel_unref(original);
 	} else {
@@ -444,6 +446,7 @@ int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstanc
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
 				sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 				sccp_channel_endcall(c);
+				sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);	/* temp fix */
 			}
 			pbx_channel_unref(original);
 		} else {
