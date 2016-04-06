@@ -430,7 +430,7 @@ SCCP_API void SCCP_CALL sccp_dev_clearprompt(constDevicePtr d, uint8_t lineInsta
 SCCP_API void SCCP_CALL sccp_dev_display_debug(constDevicePtr d, const char *msg, const char *file, const int lineno, const char *pretty_function);
 SCCP_API void SCCP_CALL sccp_dev_displayprompt_debug(constDevicePtr d, const uint8_t lineInstance, const uint32_t callid, const char *msg, int timeout, const char *file, const int lineno, const char *pretty_function);
 SCCP_API void SCCP_CALL sccp_dev_displaynotify_debug(constDevicePtr d, const char *msg, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function);
-SCCP_API void SCCP_CALL sccp_dev_displayprinotify_debug(constDevicePtr d, const char *msg, const uint8_t priority, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function);
+SCCP_API void SCCP_CALL sccp_dev_displayprinotify_debug(constDevicePtr d, const char *msg, const sccp_message_priority_t priority, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function);
 SCCP_API void SCCP_CALL sccp_dev_cleardisplaynotify(constDevicePtr d);
 SCCP_API void SCCP_CALL sccp_dev_cleardisplayprinotify(constDevicePtr d, const uint8_t priority);
 SCCP_API void SCCP_CALL sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, boolean_t withHint, sccp_speed_t * const k);

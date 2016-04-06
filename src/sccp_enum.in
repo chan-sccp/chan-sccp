@@ -217,6 +217,8 @@ enum message_priority {
 	SCCP_MESSAGE_PRIORITY_PRIVACY,			,	"Message Priority Privacy",
 	SCCP_MESSAGE_PRIORITY_DND,			,	"Message Priority Do not disturb",
 	SCCP_MESSAGE_PRIORITY_CFWD,			,	"Message Priority Call Forward",
+	SCCP_MESSAGE_PRIORITY_TIMEOUT,			,	"Message Priority Timeout",
+	SCCP_MESSAGE_PRIORITY_ERROR,			,	"Message Priority Error Message",
 }
 
 enum push_result {

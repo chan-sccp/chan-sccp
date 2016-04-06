@@ -3105,7 +3105,7 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 		/* skipping message if event is endcall, because they can coincide when both parties hangup around the same time */
 		if (event != SKINNY_LBL_ENDCALL) {
 			snprintf(buf, sizeof(buf), SKINNY_DISP_NO_CHANNEL_TO_PERFORM_XXXXXXX_ON " " SKINNY_GIVING_UP, label2str(event));
-			sccp_dev_displayprinotify(d, buf, 5, 5);
+			sccp_dev_displayprinotify(d, buf, SCCP_MESSAGE_PRIORITY_TIMEOUT, 5);
 			sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, callid, SKINNY_TONEDIRECTION_USER);
 			pbx_log(LOG_WARNING, "%s: Skip handling of Softkey %s (%d) line=%d callid=%d, because a channel is required, but not provided. Exiting\n", d->id, label2str(event), event, lineInstance, callid);
 		}

@@ -1504,7 +1504,7 @@ void sccp_dev_set_message(devicePtr d, const char *msg, const int timeout, const
 	}
 
 	if (timeout) {
-		sccp_dev_displayprinotify(d, msg, 5, timeout);
+		sccp_dev_displayprinotify(d, msg, SCCP_MESSAGE_PRIORITY_TIMEOUT, timeout);
 	} else {
 		sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_IDLE, msg);
 	}
@@ -1720,7 +1720,7 @@ void sccp_dev_cleardisplayprinotify(constDevicePtr d, const uint8_t priority)
  * \callergraph
  */
 //void sccp_dev_displayprinotify(devicePtr d, char *msg, uint32_t priority, uint32_t timeout)
-void sccp_dev_displayprinotify_debug(constDevicePtr d, const char *msg, const uint8_t priority, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function)
+void sccp_dev_displayprinotify_debug(constDevicePtr d, const char *msg, const sccp_message_priority_t priority, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function)
 {
 	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
 		return;

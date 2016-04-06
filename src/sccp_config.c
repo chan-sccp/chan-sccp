@@ -2941,7 +2941,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 				sscanf(timebuffer, "%i", &timeout);
 			}
 			if (timeout) {
-				sccp_dev_displayprinotify(device, buffer, 5, timeout);
+				sccp_dev_displayprinotify(device, buffer, SCCP_MESSAGE_PRIORITY_TIMEOUT, timeout);
 			} else {
 				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_IDLE, buffer);
 			}

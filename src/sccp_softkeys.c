@@ -412,7 +412,7 @@ static void sccp_sk_answer(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 		char buf[100];
 		ast_log(LOG_WARNING, "%s: (sccp_sk_answer) Pressed the answer key without any channel%s%s\n", d->id, l ? " on line: " : "", l ? l->name : "");
 		snprintf(buf, 100, SKINNY_DISP_NO_CHANNEL_TO_PERFORM_XXXXXXX_ON " " SKINNY_GIVING_UP, "ANSWER");
-		sccp_dev_displayprinotify(d, buf, 5, 5);
+		sccp_dev_displayprinotify(d, buf, SCCP_MESSAGE_PRIORITY_TIMEOUT, 5);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, SKINNY_TONEDIRECTION_USER);
 		return;
 	}
