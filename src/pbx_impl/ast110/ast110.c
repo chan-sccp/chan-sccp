@@ -645,9 +645,12 @@ static int sccp_wrapper_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			break;
 
 		case AST_CONTROL_CONNECTED_LINE:
-			if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE && c->state > SCCP_CHANNELSTATE_DIALING) {
-				sccp_channel_openReceiveChannel(c);
-			}
+			/* remarking out this code, as it is causing issues with callforward + FREEPBX,  the calling party will not hear the remote end ringing
+			 this patch was added to suppress 'double callwaiting tone', but channel PROD(-1) below is taking care of that already
+			*/
+			//if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE && c->state > SCCP_CHANNELSTATE_DIALING) {
+			//	sccp_channel_openReceiveChannel(c);
+			//}
 			sccp_asterisk_connectedline(c, data, datalen);
 			res = 0;
 			break;
