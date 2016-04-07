@@ -50,24 +50,6 @@ struct sccp_private_channel_data {
 };
 
 /*!
- * \brief Helper Function to set to FALSE
- * \return FALSE
- */
-static boolean_t sccp_always_false(void)
-{
-	return FALSE;
-}
-
-/*!
- * \brief Helper Function to set to TRUE
- * \return TRUE
- */
-static boolean_t sccp_always_true(void)
-{
-	return TRUE;
-}
-
-/*!
  * \brief Set Microphone State
  * \param channel SCCP Channel
  * \param enabled Enabled as Boolean

@@ -28,24 +28,6 @@ int __sccp_lineDevice_destroy(const void *ptr);
 int sccp_line_destroy(const void *ptr);
 
 /*!
- * \brief Helper Function to set to FALSE
- * \return FALSE
- */
-static boolean_t sccp_always_false(void)
-{
-	return FALSE;
-}
-
-/*!
- * \brief Helper Function to set to TRUE
- * \return TRUE
- */
-static boolean_t sccp_always_true(void)
-{
-	return TRUE;
-}
-
-/*!
  * \brief run before reload is start on lines
  * \note See \ref sccp_config_reload
  *
