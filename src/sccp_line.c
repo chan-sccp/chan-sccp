@@ -28,6 +28,24 @@ int __sccp_lineDevice_destroy(const void *ptr);
 int sccp_line_destroy(const void *ptr);
 
 /*!
+ * \brief Helper Function to set to FALSE
+ * \return FALSE
+ */
+static boolean_t sccp_always_false(void)
+{
+	return FALSE;
+}
+
+/*!
+ * \brief Helper Function to set to TRUE
+ * \return TRUE
+ */
+static boolean_t sccp_always_true(void)
+{
+	return TRUE;
+}
+
+/*!
  * \brief run before reload is start on lines
  * \note See \ref sccp_config_reload
  *
@@ -516,6 +534,26 @@ void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t
 	}
 }
 
+void sccp_linedevice_resetPickup(sccp_linedevices_t * ld) {
+	sccp_log(DEBUGCAT_LINE)("%s: (allowPickup) on line:%s.\n", ld->device->id, ld->line->name);
+
+	ld->isPickupAllowed = sccp_always_false;
+#ifdef CS_SCCP_PICKUP
+	if (ld->line->pickupgroup
+#ifdef CS_AST_HAS_NAMEDGROUP
+		|| !sccp_strlen_zero(ld->line->namedpickupgroup)
+#endif
+	) {
+		ld->isPickupAllowed = sccp_always_true;
+	}
+#endif
+}
+
+void sccp_linedevice_disallowPickup(sccp_linedevices_t * ld) {
+	sccp_log(DEBUGCAT_LINE)("%s: (disallowPickup) on line:%s.\n", ld->device->id, ld->line->name);
+	ld->isPickupAllowed = sccp_always_false;
+}
+
 /*!
  * \brief Attach a Device to a line
  * \param line SCCP Line
@@ -556,7 +594,8 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 	linedevice->device = sccp_device_retain(device);
 	linedevice->line = sccp_line_retain(l);
 	linedevice->lineInstance = lineInstance;
-
+	
+	sccp_linedevice_resetPickup(linedevice);
 	if (NULL != subscriptionId) {
 		sccp_copy_string(linedevice->subscriptionId.name, subscriptionId->name, sizeof(linedevice->subscriptionId.name));
 		sccp_copy_string(linedevice->subscriptionId.number, subscriptionId->number, sizeof(linedevice->subscriptionId.number));

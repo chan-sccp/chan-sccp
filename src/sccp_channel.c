@@ -204,7 +204,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		} else {
 			channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
 		}
-		
+
 		/* run setters */
 		sccp_line_addChannel(l, channel);
 		channel->setDevice(channel, device);
@@ -1807,6 +1807,10 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		/* make sure all rtp stuff is closed and destroyed */
 		sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
 
+		if (channel->privateData->linedevice) {
+			sccp_linedevice_resetPickup(channel->privateData->linedevice);
+		}
+
 		/* deactive the active call if needed */
 		if (channel->privateData->device) {
 			sccp_channel_setDevice(channel, NULL);
@@ -1837,6 +1841,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 			sccp_free(sccp_selected_channel);
 		}
 		sccp_dev_setActiveLine(d, NULL);
+		sccp_dev_check_displayprompt(d);
 	}
 	if (channel && channel->privateData && channel->privateData->device) {
 		sccp_channel_setDevice(channel, NULL);
@@ -1861,6 +1866,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	}
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Destroying channel %08x\n", channel->callid);
+
 	if (channel->rtp.audio.instance || channel->rtp.video.instance) {
 		sccp_rtp_stop(channel);
 		sccp_rtp_destroy(channel);
@@ -2549,6 +2555,7 @@ const char *sccp_channel_getLinkedId(const sccp_channel_t * channel)
 	return iPbx.getChannelLinkedId(channel);
 }
 #endif
+
 /*=================================================================================== FIND FUNCTIONS ==============*/
 /*!
  * \brief Find Channel by ID, using a specific line
