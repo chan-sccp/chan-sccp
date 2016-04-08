@@ -305,6 +305,7 @@ static int sccp_wrapper_asterisk113_devicestate(const char *data)
 	}
 
 	state = sccp_hint_getLinestate(lineName, deviceId);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicestate) sccp_hint returned state:%s for '%s'\n", sccp_channelstate2str(state), data);
 	switch (state) {
 		case SCCP_CHANNELSTATE_DOWN:
 		case SCCP_CHANNELSTATE_ONHOOK:
@@ -326,18 +327,26 @@ static int sccp_wrapper_asterisk113_devicestate(const char *data)
 			res = AST_DEVICE_BUSY;
 			break;
 		case SCCP_CHANNELSTATE_CONGESTION:
+#ifndef CS_EXPERIMENTAL
 		case SCCP_CHANNELSTATE_ZOMBIE:
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
 		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
+#endif
 			res = AST_DEVICE_UNAVAILABLE;
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
+#ifdef CS_EXPERIMENTAL
+			res = AST_DEVICE_RINGINUSE;
+			break;
+#endif
 		case SCCP_CHANNELSTATE_DIALING:
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
 		case SCCP_CHANNELSTATE_PROGRESS:
 		case SCCP_CHANNELSTATE_CALLWAITING:
+#ifndef CS_EXPERIMENTAL
 			res = AST_DEVICE_BUSY;
 			break;
+#endif
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 		case SCCP_CHANNELSTATE_OFFHOOK:
 		case SCCP_CHANNELSTATE_GETDIGITS:
@@ -351,6 +360,12 @@ static int sccp_wrapper_asterisk113_devicestate(const char *data)
 			res = AST_DEVICE_INUSE;
 			break;
 		case SCCP_CHANNELSTATE_SENTINEL:
+#ifdef CS_EXPERIMENTAL
+		case SCCP_CHANNELSTATE_SPEEDDIAL:
+		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
+		case SCCP_CHANNELSTATE_ZOMBIE:
+			res = AST_DEVICE_UNKNOWN;
+#endif
 			break;
 	}
 
