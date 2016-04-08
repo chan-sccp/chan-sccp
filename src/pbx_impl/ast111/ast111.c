@@ -326,11 +326,10 @@ static int sccp_wrapper_asterisk111_devicestate(const char *data)
 			res = AST_DEVICE_BUSY;
 			break;
 		case SCCP_CHANNELSTATE_DND:
-			/* same thing, should only be busy if in DND <<busy>>, but leaving it for now */
 			res = AST_DEVICE_BUSY;
 			break;
 		case SCCP_CHANNELSTATE_CONGESTION:
-#ifdef CS_EXPERIMENTAL
+#ifndef CS_EXPERIMENTAL
 		case SCCP_CHANNELSTATE_ZOMBIE:
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
 		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
@@ -338,11 +337,15 @@ static int sccp_wrapper_asterisk111_devicestate(const char *data)
 			res = AST_DEVICE_UNAVAILABLE;
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
+#ifdef CS_EXPERIMENTAL
+			res = AST_DEVICE_RINGINUSE;
+			break;
+#endif
 		case SCCP_CHANNELSTATE_DIALING:
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
 		case SCCP_CHANNELSTATE_PROGRESS:
 		case SCCP_CHANNELSTATE_CALLWAITING:
-#ifdef CS_EXPERIMENTAL
+#ifndef CS_EXPERIMENTAL
 			res = AST_DEVICE_BUSY;
 			break;
 #endif
@@ -359,7 +362,7 @@ static int sccp_wrapper_asterisk111_devicestate(const char *data)
 			res = AST_DEVICE_INUSE;
 			break;
 		case SCCP_CHANNELSTATE_SENTINEL:
-#ifndef CS_EXPERIMENTAL
+#ifdef CS_EXPERIMENTAL
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
 		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
 		case SCCP_CHANNELSTATE_ZOMBIE:

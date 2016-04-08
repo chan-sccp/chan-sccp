@@ -1031,6 +1031,10 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			newDeviceState = AST_DEVICE_NOT_INUSE;
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
+#ifdef CS_EXPERIMENTAL
+			newDeviceState = AST_DEVICE_RINGINUSE;
+			break;
+#endif
 		case SCCP_CHANNELSTATE_RINGING:
 			newDeviceState = AST_DEVICE_RINGING;
 			break;
