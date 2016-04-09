@@ -132,11 +132,14 @@ SCCP_API void SCCP_CALL sccp_print_ha(struct ast_str *buf, int buflen, struct sc
 SCCP_API void SCCP_CALL sccp_print_group(struct ast_str *buf, int buflen, sccp_group_t group);
 SCCP_API int SCCP_CALL sccp_strversioncmp(const char *s1, const char *s2);
 SCCP_API char * SCCP_CALL sccp_dec2binstr(char *buf, size_t size, int value);
-SCCP_INLINE SCCP_CALL void sccp_copy_string(char *dst, const char *src, size_t size);
+SCCP_INLINE void SCCP_CALL sccp_copy_string(char *dst, const char *src, size_t size);
 SCCP_API char * SCCP_CALL sccp_trimwhitespace(char *str);
 SCCP_INLINE int SCCP_CALL sccp_atoi(const char * const buf, size_t buflen);
-SCCP_INLINE SCCP_CALL boolean_t sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char *buf, size_t len);
+SCCP_INLINE boolean_t SCCP_CALL sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char *buf, size_t len);
 SCCP_API long SCCP_CALL int sccp_random(void);
+SCCP_INLINE boolean_t SCCP_CALL sccp_always_false(void);
+SCCP_INLINE boolean_t SCCP_CALL sccp_always_true(void);
+
 #ifdef DEBUG
 SCCP_API void SCCP_CALL sccp_do_backtrace(void);
 #endif

@@ -131,6 +131,7 @@ struct sccp_linedevices {
 	char label[SCCP_MAX_LABEL];										/*!<  */
 
 	uint8_t lineInstance;											/*!< line instance of this->line on this->device */
+	boolean_t (*isPickupAllowed) (void);
 };														/*!< SCCP Line-Device Structure */
 
 SCCP_API void SCCP_CALL sccp_line_pre_reload(void);
@@ -153,6 +154,9 @@ SCCP_API sccp_channelstate_t SCCP_CALL sccp_line_getDNDChannelState(sccp_line_t 
 #endif
 SCCP_API void SCCP_CALL sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c);
 SCCP_API void SCCP_CALL sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number);
+
+SCCP_API void SCCP_CALL sccp_linedevice_resetPickup(sccp_linedevices_t * ld);
+SCCP_API void SCCP_CALL sccp_linedevice_disallowPickup(sccp_linedevices_t * ld);
 
 // find line
 SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_byname(const char *name, uint8_t useRealtime);

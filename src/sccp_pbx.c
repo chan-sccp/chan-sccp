@@ -681,6 +681,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	if (!c) {
 		return -1;
 	}
+	pbx_assert(c->owner == NULL);										// prevent calling this function when the channel already has a pbx channel
+	
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char cidtmp[256];
 

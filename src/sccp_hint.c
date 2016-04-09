@@ -114,9 +114,9 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState);
 static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineState *lineState);
 static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState *lineState);
 static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState);
-static void sccp_hint_notifyLineStateUpdate(struct sccp_hint_lineState *linestate);
 static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context);
-static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint);
+static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint);			/* old */
+static void sccp_hint_notifyLineStateUpdate(struct sccp_hint_lineState *linestate); 	/* new */
 static void sccp_hint_deviceRegistered(const sccp_device_t * device);
 static void sccp_hint_deviceUnRegistered(const char *deviceName);
 static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const char *hintStr, const uint8_t instance, const uint8_t positionOnDevice);
@@ -170,7 +170,6 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 	char eid_str[32] = "";
 	ast_eid_to_str(eid_str, sizeof(eid_str), (struct ast_eid *) eid);
 	if (!ast_eid_cmp(&ast_eid_default, eid)) {
-		// If the event originate from this server, skip updating (Was already done in sccp_hint_notifySubscribers).
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Skipping distribute devstate update from EID:'%s', MYEID:'%s' (i.e. myself)\n", eid_str, default_eid_str);
 		return;
 	}
@@ -1032,6 +1031,10 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			newDeviceState = AST_DEVICE_NOT_INUSE;
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
+#ifdef CS_EXPERIMENTAL
+			newDeviceState = AST_DEVICE_RINGINUSE;
+			break;
+#endif
 		case SCCP_CHANNELSTATE_RINGING:
 			newDeviceState = AST_DEVICE_RINGING;
 			break;
@@ -1039,20 +1042,37 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			newDeviceState = AST_DEVICE_ONHOLD;
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
+#ifdef CS_EXPERIMENTAL
+			newDeviceState = AST_DEVICE_BUSY;
+			break;
+#endif
 		case SCCP_CHANNELSTATE_DND:
+#ifndef CS_EXPERIMENTAL
 		case SCCP_CHANNELSTATE_PROCEED:
 		case SCCP_CHANNELSTATE_PROGRESS:
 		case SCCP_CHANNELSTATE_GETDIGITS:
 		case SCCP_CHANNELSTATE_DIALING:
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
+#else
+		        /* and this is wrong too, it should only be busy if DND <<busy>>, not in all cases */
+#endif
 			newDeviceState = AST_DEVICE_BUSY;
 			break;
 		case SCCP_CHANNELSTATE_ZOMBIE:
 		case SCCP_CHANNELSTATE_CONGESTION:
+#ifndef CS_EXPERIMENTAL
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
 		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
+#endif
 			newDeviceState = AST_DEVICE_UNAVAILABLE;
 			break;
+#ifdef CS_EXPERIMENTAL
+		case SCCP_CHANNELSTATE_PROCEED:
+		case SCCP_CHANNELSTATE_PROGRESS:
+		case SCCP_CHANNELSTATE_GETDIGITS:
+		case SCCP_CHANNELSTATE_DIALING:
+		case SCCP_CHANNELSTATE_DIGITSFOLL:
+#endif
 		case SCCP_CHANNELSTATE_INVALIDNUMBER:
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 		case SCCP_CHANNELSTATE_OFFHOOK:
@@ -1066,6 +1086,11 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			newDeviceState = AST_DEVICE_INUSE;
 			break;
 		case SCCP_CHANNELSTATE_SENTINEL:
+#ifdef CS_EXPERIMENTAL
+		case SCCP_CHANNELSTATE_SPEEDDIAL:
+		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
+		        /* returning UNKNOWN */
+#endif
 			break;
 	}
 	return newDeviceState;
@@ -1075,6 +1100,8 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 /*!
  * \brief send hint status to subscriber
  * \param hint SCCP Hint Linked List Pointer
+ *
+ * \todo Check if the actual device still exists while going throughthe hint->subscribers and not pointing at rubish
  */
 static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 {
@@ -1279,6 +1306,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 	SCCP_LIST_UNLOCK(&hint->subscribers);
 }
 
+/* ========================================================================================================================= PBX Notify */
 /*
  * \brief Notify LineState Change to Subscribers via PBX include distributed devstate
  * calls notifySubscribers via asterisk->callback (sccp_hint_distributed_devstate_cb)
@@ -1328,7 +1356,7 @@ static boolean_t sccp_match_dialplan2lineName(char *hint_app, char *lineName)
                 *tmp = '\0';
         }
         
-        // check for match pur aggregated entry
+        // check for match for aggregated entry
         while ((cur = strsep(&rest, "&"))) {
         	if (sccp_strcaseequals(cur, lineName)) {
 			//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (parse_hint_device) cur:%s matches lineName:%s\n", cur, lineName);
@@ -1359,12 +1387,11 @@ static void sccp_hint_notifyLineStateUpdate(struct sccp_hint_lineState *lineStat
 			return;
 		}
 	}
-
 	enum ast_device_state newDeviceState = sccp_hint_hint2DeviceState(lineState->state);
-	enum ast_device_state oldDeviceState = AST_DEVICE_UNAVAILABLE;
+	enum ast_device_state oldDeviceState = AST_DEVICE_UNKNOWN;
 
 	/* Local Update */
-	SCCP_LIST_LOCK(&sccp_hint_subscriptions);
+ 	SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
 		if (!sccp_strlen_zero(hint->hint_dialplan) && sccp_match_dialplan2lineName(hint->hint_dialplan, lineName)) {
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifyLineStateUpdate) matched lineName:%s to dialplan:%s\n", lineName, hint->hint_dialplan);
@@ -1461,7 +1488,10 @@ sccp_channelstate_t sccp_hint_getLinestate(const char *linename, const char *dev
 	SCCP_LIST_LOCK(&lineStates);
 	SCCP_LIST_TRAVERSE(&lineStates, lineState, list) {
 		if (lineState->line && sccp_strcaseequals(lineState->line->name, linename)) {
-			state = lineState->state;
+                	sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_3 "%s (getLinestate) state:%s, party:%s/%s, calltype:%s\n", lineState->line->name, sccp_channelstate2str(lineState->state),
+                	        lineState->callInfo.partyNumber,lineState->callInfo.partyName,
+                	        (!SCCP_CHANNELSTATE_Idling(lineState->state) && lineState->callInfo.calltype) ? skinny_calltype2str(lineState->callInfo.calltype) : "INACTIVE");
+                        state = lineState->state;
 			break;
 		}
 	}

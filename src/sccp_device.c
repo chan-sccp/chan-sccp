@@ -449,6 +449,10 @@ int sccp_device_setAccessoryStatus(constDevicePtr d, const sccp_accessory_t acce
 	sccp_private_lock(d->privateData);
 	if (state != d->privateData->accessoryStatus[accessory]) {
 		d->privateData->accessoryStatus[accessory] = state;
+		if (state == SCCP_ACCESSORYSTATE_ONHOOK) {
+			sccp_dev_cleardisplaynotify(d);
+			sccp_dev_check_displayprompt(d);
+		}
 		changed=1;
 	}
 	sccp_private_unlock(d->privateData);
@@ -1500,7 +1504,7 @@ void sccp_dev_set_message(devicePtr d, const char *msg, const int timeout, const
 	}
 
 	if (timeout) {
-		sccp_dev_displayprinotify(d, msg, 5, timeout);
+		sccp_dev_displayprinotify(d, msg, SCCP_MESSAGE_PRIORITY_TIMEOUT, timeout);
 	} else {
 		sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_IDLE, msg);
 	}
@@ -1716,7 +1720,7 @@ void sccp_dev_cleardisplayprinotify(constDevicePtr d, const uint8_t priority)
  * \callergraph
  */
 //void sccp_dev_displayprinotify(devicePtr d, char *msg, uint32_t priority, uint32_t timeout)
-void sccp_dev_displayprinotify_debug(constDevicePtr d, const char *msg, const uint8_t priority, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function)
+void sccp_dev_displayprinotify_debug(constDevicePtr d, const char *msg, const sccp_message_priority_t priority, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function)
 {
 	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
 		return;
@@ -2656,9 +2660,7 @@ void sccp_dev_keypadbutton(devicePtr d, char digit, uint8_t line, uint32_t calli
 static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lineInstance, uint32_t callid)
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
-	sccp_dev_cleardisplaynotify(device);
 	sccp_dev_clearprompt(device, lineInstance, callid);
-	//sccp_dev_cleardisplay(device);
 
 	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -2667,7 +2669,6 @@ static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lin
 
 	sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
 	sccp_device_clearMessageFromStack((sccp_device_t *) device, SCCP_MESSAGE_PRIORITY_PRIVACY);
-	sccp_dev_check_displayprompt(device);									/* see if we need to display anything from the messageStack */
 	if (device->active_channel && device->active_channel->callid == callid) {  
 		sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
 	}

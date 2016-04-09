@@ -1962,6 +1962,17 @@ gcc_inline boolean_t sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char
 }
 #endif
 
+gcc_inline boolean_t sccp_always_false(void)
+{
+	return FALSE;
+}
+
+gcc_inline boolean_t sccp_always_true(void)
+{
+	return TRUE;
+}
+
+
 #if CS_TEST_FRAMEWORK
 static void __attribute__((constructor)) sccp_register_tests(void)
 {

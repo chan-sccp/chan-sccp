@@ -199,6 +199,7 @@ SCCP_API int SCCP_CALL sccp_channel_callwaiting_tone_interval(sccp_device_t * de
 #if UNUSEDCODE // 2015-11-01
 SCCP_API const char *sccp_channel_getLinkedId(const sccp_channel_t * channel);
 #endif
+
 // find channel
 SCCP_API sccp_channel_t * SCCP_CALL sccp_channel_find_byid(uint32_t callid);
 SCCP_API sccp_channel_t * SCCP_CALL sccp_find_channel_on_line_byid(constLinePtr l, uint32_t id);
