@@ -210,7 +210,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(c->line);
 	if (!l) {
-		pbx_log(LOG_WARNING, "SCCP: The channel %d has no line. giving up.\n", (c->callid));
+		pbx_log(LOG_WARNING, "SCCP: The channel %08X has no line. giving up.\n", (c->callid));
 		return -1;
 	}
 
@@ -463,7 +463,7 @@ sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
 	// removing scheduled dialing
 	sccp_channel_stop_schedule_digittimout(c);
 
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Current channel %s-%08x state %s(%d)\n", (d) ? DEV_ID_LOG(d) : "(null)", l ? l->name : "(null)", c->callid, sccp_channelstate2str(c->state), c->state);
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Current channel %s state %s(%d)\n", (d) ? DEV_ID_LOG(d) : "(null)", c->designator, sccp_channelstate2str(c->state), c->state);
 
 	/* end callforwards */
 	sccp_channel_end_forwarding_channel(c);
@@ -762,7 +762,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:                exten: \"%s\"\n", c->dialedNumber);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:              context: \"%s\"\n", l->context);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:             amaflags: \"%d\"\n", l->amaflags);
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:            chan/call: \"%s-%08x\"\n", l->name, c->callid);
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:            chan/call: \"%s\"\n", c->designator);
 	char s1[512], s2[512];
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:combined capabilities: \"%s\"\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, channel->capabilities.audio, SKINNY_MAX_CAPABILITIES));
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:  reduced preferences: \"%s\"\n", sccp_multiple_codecs2str(s2, sizeof(s2) - 1, channel->preferences.audio, SKINNY_MAX_CAPABILITIES));
@@ -779,7 +779,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	/* can be replaced with c->designator */
 	char tmpName[StationMaxNameSize];
 
-	snprintf(tmpName, sizeof(tmpName), "SCCP/%s-%08x", l->name, c->callid);
+	snprintf(tmpName, sizeof(tmpName), "SCCP/%s", c->designator);
 	iPbx.setChannelName(c, tmpName);
 
 	pbx_jb_configure(tmp, GLOB(global_jbconf));
@@ -863,7 +863,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP", d->session ? sccp_netsock_stringify_addr(&sas) : "");
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", skinny_devicetype2str(d->skinny_type));
 	}
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%d\n", (l) ? l->id : "(null)", (l) ? l->name : "(null)", c->callid);
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s\n", (l) ? l->id : "(null)", c->designator);
 	return 1;
 }
 
@@ -1221,7 +1221,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		    ) {
 			if (pbx_channel && !pbx_check_hangup(pbx_channel)) {
 				/* found an extension, let's dial it */
-				sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+				sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s is dialing number %s\n", DEV_ID_LOG(d), c->designator, shortenedNumber);
 
 				/* Answer dialplan command works only when in RINGING OR RING ast_state */
 				iPbx.set_callstate(c, AST_STATE_RING);
@@ -1231,7 +1231,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				/* \todo replace AST_PBX enum using pbx_impl wrapper enum */
 				switch (pbxStartResult) {
 					case AST_PBX_FAILED:
-						pbx_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+						pbx_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s failed to start new thread to dial %s\n", DEV_ID_LOG(d), c->designator, shortenedNumber);
 						/* \todo change indicate to something more suitable */
 						sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);		/* will auto hangup after SCCP_HANGUP_TIMEOUT */
 						break;
@@ -1243,8 +1243,14 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 						sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx started\n", DEV_ID_LOG(d));
 #ifdef CS_MANAGER_EVENTS
 						if (GLOB(callevents)) {
-							manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %08x\r\nSCCPCallDesignator: %s\r\n", (pbx_channel) ? pbx_channel_name(pbx_channel) : "(null)", (pbx_channel) ? pbx_channel_uniqueid(pbx_channel) : "(null)", "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l) ? l->name : "(null)", (c && c->callid) ? c->callid : 0,
-								      c ? c->designator : "(null)");
+							manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %08X\r\nSCCPCallDesignator: %s\r\n", 
+								(pbx_channel) ? pbx_channel_name(pbx_channel) : "(null)", 
+								(pbx_channel) ? pbx_channel_uniqueid(pbx_channel) : "(null)", 
+								"SCCP", 
+								(d) ? d->id : "(null)", 
+								(l) ? l->name : "(null)", 
+								(c && c->callid) ? c->callid : 0,
+								(c) ? c->designator : "(null)");
 						}
 #endif														// CS_MANAGER_EVENTS
 						break;
@@ -1268,7 +1274,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx_check_hangup(chan): %d on line %s\n", DEV_ID_LOG(d), (pbx_channel && pbx_check_hangup(pbx_channel)), l->name);
 			}
 		} else {
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x shortenedNumber: %s, extension exists: %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber, (extension_exists != SCCP_EXTENSION_NOTEXISTS) ? "TRUE" : "FALSE");
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel:%s shortenedNumber:%s, extension exists:%s\n", DEV_ID_LOG(d), c->designator, shortenedNumber, (extension_exists != SCCP_EXTENSION_NOTEXISTS) ? "TRUE" : "FALSE");
 			pbx_log(LOG_NOTICE, "%s: Call from '%s' to extension '%s', rejected because the extension could not be found in context '%s'\n", DEV_ID_LOG(d), l->name, shortenedNumber, pbx_channel ? pbx_channel_context(pbx_channel) : "pbx_channel==NULL");
 			/* timeout and no extension match */
 			if (pbx_channel && !pbx_check_hangup(pbx_channel)) {

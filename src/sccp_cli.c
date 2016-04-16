@@ -195,7 +195,7 @@ static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-			snprintf(tmpname, sizeof(tmpname), "SCCP/%s-%08x", l->name, c->callid);
+			snprintf(tmpname, sizeof(tmpname), "SCCP/%s", c->designator);
 			if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
 				ret = pbx_strdup(tmpname);
 				break;
@@ -323,7 +323,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 					SCCP_LIST_LOCK(&l->channels);
 					SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-						snprintf(tmpname, sizeof(tmpname), "SCCP/%s-%08x", l->name, c->callid);
+						snprintf(tmpname, sizeof(tmpname), "SCCP/%s", c->designator);
 						if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
 							ret = pbx_strdup(tmpname);
 							break;
@@ -1415,11 +1415,10 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 		AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);								\
 		SCCP_LIST_LOCK(&l->channels);											\
 		SCCP_LIST_TRAVERSE(&l->channels, channel, list) {								\
-			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);				\
 			if (channel->conference_id) {										\
 				snprintf(tmpname, sizeof(tmpname), "SCCPCONF/%03d/%03d", channel->conference_id, channel->conference_participant_id);	\
 			} else {												\
-				snprintf(tmpname, sizeof(tmpname), "SCCP/%s-%08x", l->name, channel->callid);			\
+				snprintf(tmpname, sizeof(tmpname), "SCCP/%s", channel->designator);				\
 			}													\
 			if (&channel->rtp) {											\
 				sccp_copy_string(addrStr,sccp_netsock_stringify(&channel->rtp.audio.phone), sizeof(addrStr));	\
@@ -1433,7 +1432,7 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 		CLI_AMI_TABLE_FIELD(ID,			"-5",		d,	5,	channel->callid)					\
 		CLI_AMI_TABLE_FIELD(Name,		"-25.25",	s,	25,	pbx_strdupa(tmpname))					\
 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	channel->line->name)					\
-		CLI_AMI_TABLE_FIELD(DeviceName,		"-16",		s,	16,	d ? d->id : "(unknown)")				\
+		CLI_AMI_TABLE_FIELD(DeviceName,		"-16",		s,	16,	channel->currentDeviceId)				\
 		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10",	s,	10,	channel->dialedNumber)					\
 		CLI_AMI_TABLE_FIELD(PBX State,		"-10.10",	s,	10,	(channel->owner) ? pbx_state2str(iPbx.getChannelState(channel)) : "(none)")	\
 		CLI_AMI_TABLE_FIELD(SCCP State,		"-10.10",	s,	10,	sccp_channelstate2str(channel->state))			\
