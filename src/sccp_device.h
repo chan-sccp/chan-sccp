@@ -436,7 +436,12 @@ SCCP_API void SCCP_CALL sccp_dev_cleardisplayprinotify(constDevicePtr d, const u
 SCCP_API void SCCP_CALL sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, boolean_t withHint, sccp_speed_t * const k);
 SCCP_API void SCCP_CALL sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePtr device);
 SCCP_API void SCCP_CALL sccp_dev_postregistration(void *data);
+#ifndef DEBUG
 SCCP_API void SCCP_CALL sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cleanupTime);
+#else
+#define sccp_dev_clean(_d, _remove, _cleanup) __sccp_dev_clean(_d, _remove, _cleanup, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+SCCP_API void SCCP_CALL __sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cleanupTime, const char *file, int lineno, const char *func);
+#endif
 SCCP_API void SCCP_CALL sccp_dev_keypadbutton(devicePtr d, char digit, uint8_t line, uint32_t callid);
 SCCP_API void SCCP_CALL sccp_dev_set_message(devicePtr d, const char *msg, const int timeout, const boolean_t storedb, const boolean_t beep);
 SCCP_API void SCCP_CALL sccp_dev_clear_message(devicePtr d, const boolean_t cleardb);
