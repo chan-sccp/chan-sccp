@@ -1178,7 +1178,6 @@ static btnlist *sccp_make_button_template(devicePtr d)
 								btn[i].type = SKINNY_BUTTONTYPE_END_CALL;
 								break;
 
-
 							case SCCP_FEATURE_TESTF:
 								btn[i].type = SKINNY_BUTTONTYPE_TESTF;
 								break;
