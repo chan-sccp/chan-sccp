@@ -20,6 +20,7 @@
 #endif
 #  include <asterisk/manager.h>
 #include <asterisk/causes.h>
+#include <asterisk/buildopts.h>
 #include "define.h"
 #include "sccp_protocol.h"
 
