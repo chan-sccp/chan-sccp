@@ -201,6 +201,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_maxsize(void *dest, const size_t 
 sccp_value_changed_t sccp_config_parse_jbflags_impl(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_jbflags_jbresyncthreshold(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttonconfigList, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
+sccp_value_changed_t sccp_config_parse_webdir(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
 
 #include "sccp_config_entries.hh"
 
@@ -1331,6 +1332,37 @@ sccp_value_changed_t sccp_config_parse_jbflags_impl(void *dest, const size_t siz
 }
 
 /*!
+ * \brief Config Converter/Parser for WebDir
+ */
+sccp_value_changed_t sccp_config_parse_webdir(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char *value = strdupa(v->value);
+	char *webdir = (char *) dest;
+	char new_webdir[PATH_MAX] = "";
+
+	if (sccp_strlen_zero(value)) {
+	        snprintf(new_webdir, sizeof(new_webdir), "%s/%s", ast_config_AST_DATA_DIR, "static-http/");
+	} else {
+                snprintf(new_webdir, sizeof(new_webdir), "%s", value);
+	}
+	
+        if (!sccp_strcaseequals(new_webdir, webdir)) {
+	        if (access(new_webdir, F_OK ) != -1) {
+                        changed = SCCP_CONFIG_CHANGE_CHANGED;
+                        pbx_copy_string(webdir, new_webdir, size);
+	        } else {
+			pbx_log(LOG_WARNING, "The webdir '%s' specified could not be found.\n", new_webdir);
+			pbx_copy_string(webdir, "", size);
+	                changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+	        }
+        } else {
+                changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+        }
+	return changed;
+}
+
+/*!
  * \brief Config Converter/Parser for Debug
  *
  * \note multi_entry
@@ -1924,7 +1956,7 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 				}
 				break;
 			default:
-				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: Unknown ButtonType\n");
+				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: Unknown ButtonType: %d\n", type);
 				break;
 		}
 	}
@@ -1956,10 +1988,12 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 	sccp_buttonconfig_t *config = NULL;
 	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Loading New Button Config\n");
 	
-	if (type != LINE && type != SPEEDDIAL && type != SERVICE && type != FEATURE && type != EMPTY) {
+	/*
+	if (!sccp_config_buttontype_exists(type)) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: Unknown ButtonType. Skipping\n");
 		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
+	*/
 	
 	SCCP_LIST_LOCK(buttonconfigList);
 	if (!(config = sccp_calloc(1, sizeof(sccp_buttonconfig_t)))) {
@@ -2048,7 +2082,7 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 			config->label = NULL;
 			break;
 		default:
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Unknown Button Type\n");
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Unknown Button Type:%d\n", type);
 			config->type = EMPTY;
 			config->label = NULL;
 			break;
@@ -2941,7 +2975,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 				sscanf(timebuffer, "%i", &timeout);
 			}
 			if (timeout) {
-				sccp_dev_displayprinotify(device, buffer, SCCP_MESSAGE_PRIORITY_TIMEOUT, timeout);
+				sccp_dev_displayprinotify(device, buffer, 5, timeout);
 			} else {
 				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_IDLE, buffer);
 			}
