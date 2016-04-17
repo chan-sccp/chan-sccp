@@ -154,6 +154,7 @@
  */
 #define __sccp_make_room(idx, vec) ({ \
 	int __sccp_vector_res1 = 0;									\
+	/*sccp_log(DEBUGCAT_NEWCODE)("SCCP: make_room\n");*/						\
 	do {												\
 		if ((vec)->elems && (idx) >= (vec)->max) {						\
 			size_t new_max = ((idx) + 1) * 2;						\
@@ -189,6 +190,7 @@
 			break;										\
 		} 											\
 		if ((vec)->elems) {									\
+			/*sccp_log(DEBUGCAT_NEWCODE)("SCCP: vector_append\n");*/			\
 			(vec)->elems[(vec)->current++] = (elem);					\
 		}											\
 	} while (0);											\
