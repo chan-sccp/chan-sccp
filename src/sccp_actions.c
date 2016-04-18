@@ -1112,6 +1112,20 @@ static btnlist *sccp_make_button_template(devicePtr d)
 								}
 								break;
 
+							case SCCP_FEATURE_PARKINGLOT:
+								if (iParkingLot.attachObserver(buttonconfig->button.feature.options, d, buttonconfig->instance)) {
+									if (d->inuseprotocolversion > 15) {
+										btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+										buttonconfig->button.feature.status = 0x010000;
+									} else {
+										btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
+										buttonconfig->button.feature.status = 0;
+									}
+								} else {
+									btn[i].type = SKINNY_BUTTONTYPE_PARKINGLOT;
+								}
+								break;
+
 							case SCCP_FEATURE_MOBILITY:
 								btn[i].type = SKINNY_BUTTONTYPE_MOBILITY;
 								break;
@@ -1164,22 +1178,6 @@ static btnlist *sccp_make_button_template(devicePtr d)
 								btn[i].type = SKINNY_BUTTONTYPE_END_CALL;
 								break;
 
-							case SCCP_FEATURE_PARKINGLOT:
-								{
-									sccp_parkinglot_t *pl = iParkingLot.find(buttonconfig->button.feature.options, TRUE);
-									if (pl) {
-										if (iParkingLot.attachObserver(pl, d, buttonconfig->instance)) {
-											if (d->inuseprotocolversion > 15) {
-												btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
-											} else {
-												btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
-											}
-										} else {
-											btn[i].type = SKINNY_BUTTONTYPE_PARKINGLOT;
-										}
-									}
-								}
-								break;
 
 							case SCCP_FEATURE_TESTF:
 								btn[i].type = SKINNY_BUTTONTYPE_TESTF;
@@ -2173,7 +2171,7 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 #endif
 		case SCCP_FEATURE_PARKINGLOT:
 			sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: ParkingLot:'%s' Action, State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options ? config->button.feature.options : "", config->button.feature.status ? "On" : "Off");
-			if (config->button.feature.status) {
+			if (TRUE == toggleState) {
 				iParkingLot.showCXML(config->button.feature.options, d, instance);
 			}
 			break;

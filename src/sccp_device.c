@@ -2245,10 +2245,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 				sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);
 				sccp_line_removeDevice(line, d);
 			} else 	if (config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
-				sccp_parkinglot_t *pl = iParkingLot.find(config->button.feature.options, TRUE);
-				if (pl) {
-					iParkingLot.detachObserver(pl, d, config->instance);
-				}
+				iParkingLot.detachObserver(config->button.feature.options, d, config->instance);
 			}
 		}
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
