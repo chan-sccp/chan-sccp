@@ -775,12 +775,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	}
        	sccp_channel_updateChannelCapability(c);
 	iPbx.set_nativeAudioFormats(c, c->preferences.audio, 1);
-
-	/* can be replaced with c->designator */
-	char tmpName[StationMaxNameSize];
-
-	snprintf(tmpName, sizeof(tmpName), "SCCP/%s", c->designator);
-	iPbx.setChannelName(c, tmpName);
+	iPbx.setChannelName(c, c->designator);
 
 	pbx_jb_configure(tmp, GLOB(global_jbconf));
 

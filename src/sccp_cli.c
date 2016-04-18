@@ -189,15 +189,13 @@ static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int
 	sccp_channel_t *c = NULL;
 	int wordlen = strlen(word), which = 0;
 	char *ret = NULL;
-	char tmpname[StationMaxNameSize + 9];
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-			snprintf(tmpname, sizeof(tmpname), "SCCP/%s", c->designator);
-			if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
-				ret = pbx_strdup(tmpname);
+			if (!strncasecmp(word, c->designator, wordlen) && ++which > state) {
+				ret = pbx_strdup(c->designator);
 				break;
 			}
 		}
