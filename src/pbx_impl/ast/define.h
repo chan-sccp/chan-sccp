@@ -24,10 +24,10 @@
 #define sccp_alloca(size) __builtin_alloca(size)
 #define CS_BRIDGEPEERNAME "BRIDGEPEER"
 
-#ifdef SCANBUILD
-#define pbx_assert assert
-#else
+#if !defined(SCANBUILD) && defined(DEV_MODE)
 #define pbx_assert ast_assert
+#else
+#define pbx_assert assert
 #endif
 
 /* Lock Macro's */

@@ -1564,7 +1564,7 @@ int sccp_channel_hold(channelPtr channel)
 		return FALSE;
 	}
 
-	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hold the channel %s-%08X\n", d->id, l->name, channel->callid);
+	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hold the channel %s\n", d->id, channel->designator);
 
 #ifdef CS_SCCP_CONFERENCE
 	if (channel->conference) {
@@ -1650,14 +1650,14 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 	/* resume an active call */
 	if (channel->state != SCCP_CHANNELSTATE_HOLD && channel->state != SCCP_CHANNELSTATE_CALLTRANSFER && channel->state != SCCP_CHANNELSTATE_CALLCONFERENCE) {
 		/* something wrong in the code let's notify it for a fix */
-		pbx_log(LOG_ERROR, "%s can't resume the channel %s-%08X. Not on hold\n", d->id, l->name, channel->callid);
+		pbx_log(LOG_ERROR, "%s can't resume the channel %s. Not on hold\n", d->id, channel->designator);
 		sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_NO_ACTIVE_CALL_TO_PUT_ON_HOLD, SCCP_DISPLAYSTATUS_TIMEOUT);
 		return FALSE;
 	}
 
 	sccp_channel_transfer_release(d, channel);			/* explicitly release transfer if we are in the middle of a transfer */
 
-	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08X\n", d->id, l->name, channel->callid);
+	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume the channel %s\n", d->id, channel->designator);
 	sccp_channel_setDevice(channel, d);
 
 #if ASTERISK_VERSION_GROUP >= 111
@@ -1675,7 +1675,7 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 
 #ifdef CS_SCCP_CONFERENCE
 	if (channel->conference) {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume Conference on the channel %s-%08X\n", d->id, l->name, channel->callid);
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume Conference on the channel %s\n", d->id, channel->designator);
 		sccp_conference_resume(channel->conference);
 		sccp_dev_set_keyset(d, instance, channel->callid, KEYMODE_CONNCONF);
 	} else
@@ -1767,7 +1767,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
 
 	// l = channel->line;
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Cleaning channel %08x\n", channel->callid);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Cleaning channel %s\n", channel->designator);
 
 	if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
 		sccp_channel_stop_and_deny_scheduled_tasks(channel);
@@ -1847,7 +1847,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 		return;
 	}
 
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Destroying channel %08x\n", channel->callid);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Destroying channel %s\n", channel->designator);
 
 	if (channel->rtp.audio.instance || channel->rtp.video.instance) {
 		sccp_rtp_stop(channel);
@@ -1948,7 +1948,7 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 	}
 
 	if ((d->transferChannels.transferee = sccp_channel_retain(channel))) {					/** channel to be transfered */
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08X\n", d->id, (channel->line) ? channel->line->name : "(null)", channel->callid);
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s\n", d->id, channel->designator);
 
 		prev_channel_state = channel->state;
 
@@ -1994,7 +1994,7 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 				pbx_channel_unref(pbx_channel_bridgepeer);
 			} else if (sccp_channel_new && (pbx_channel_appl(pbx_channel_owner) != NULL)) {
 				// giving up
-				sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Cannot transfer a dialplan application, bridged channel is required on %s-%08X\n", d->id, (channel->line) ? channel->line->name : "(null)", channel->callid);
+				sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Cannot transfer a dialplan application, bridged channel is required on %s\n", d->id, channel->designator);
 				sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 				channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
@@ -2002,9 +2002,9 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 			} else {
 				// giving up
 				if (!sccp_channel_new) {
-					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: New channel could not be created to complete transfer for %s-%08X\n", d->id, (channel->line) ? channel->line->name : "(null)", channel->callid);
+					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: New channel could not be created to complete transfer for %s\n", d->id, channel->designator);
 				} else {
-					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No bridged channel or application on %s-%08X\n", d->id, (channel->line) ? channel->line->name : "(null)", channel->callid);
+					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No bridged channel or application on %s\n", d->id, channel->designator);
 				}
 				sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 				channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
@@ -2014,7 +2014,7 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 			pbx_channel_owner = pbx_channel_unref(pbx_channel_owner);
 		} else {
 			// giving up
-			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No pbx channel owner to transfer %s-%08X\n", d->id, (channel->line) ? channel->line->name : "(null)", channel->callid);
+			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No pbx channel owner to transfer %s\n", d->id, channel->designator);
 			sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 			channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 			sccp_indicate(d, channel, prev_channel_state);
@@ -2039,7 +2039,7 @@ void sccp_channel_transfer_release(devicePtr d, channelPtr c)
 		if (d->transferChannels.transferer) {
 			sccp_channel_release(&d->transferChannels.transferer);					/* explicit release */
 		}
-		sccp_log_and((DEBUGCAT_CHANNEL + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08X released\n", d->id, c->line->name, c->callid);
+		sccp_log_and((DEBUGCAT_CHANNEL + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Transfer on the channel %s released\n", d->id, c->designator);
 	}
 	c->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 }
@@ -2116,7 +2116,7 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 	// Obtain the source channel on that device
 	AUTO_RELEASE sccp_channel_t *sccp_source_local_channel = sccp_channel_retain(d->transferChannels.transferee);
 
-	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Complete transfer from %s-%08X\n", d->id, sccp_destination_local_channel->line->name, sccp_destination_local_channel->callid);
+	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Complete transfer from %s\n", d->id, sccp_destination_local_channel->designator);
 	instance = sccp_device_find_index_for_line(d, sccp_destination_local_channel->line->name);
 
 	if (sccp_destination_local_channel->state != SCCP_CHANNELSTATE_RINGOUT && sccp_destination_local_channel->state != SCCP_CHANNELSTATE_CONNECTED && sccp_destination_local_channel->state != SCCP_CHANNELSTATE_PROGRESS) {
@@ -2125,10 +2125,8 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 	}
 
 	if (!sccp_destination_local_channel->owner || !sccp_source_local_channel || !sccp_source_local_channel->owner) {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer error, asterisk channel error %s-%08X and %s-%08X\n",
-							      d->id,
-							      (sccp_destination_local_channel && sccp_destination_local_channel->line) ? sccp_destination_local_channel->line->name : "(null)",
-							      (sccp_destination_local_channel && sccp_destination_local_channel->callid) ? sccp_destination_local_channel->callid : 0, (sccp_source_local_channel && sccp_source_local_channel->line) ? sccp_source_local_channel->line->name : "(null)", (sccp_source_local_channel && sccp_source_local_channel->callid) ? sccp_source_local_channel->callid : 0);
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer error, asterisk channel error %s and %s\n",
+			d->id, sccp_destination_local_channel->designator, sccp_source_local_channel->designator);
 		goto EXIT;
 	}
 
@@ -2383,7 +2381,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	    && iPbx.checkhangup(sccp_forwarding_channel)
 	    && pbx_exists_extension(sccp_forwarding_channel->owner, sccp_forwarding_channel->line->context ? sccp_forwarding_channel->line->context : "", dialedNumber, 1, sccp_forwarding_channel->line->cid_num)) {
 		/* found an extension, let's dial it */
-		pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x is dialing number %s\n", "SCCP", sccp_forwarding_channel->line->name, sccp_forwarding_channel->callid, dialedNumber);
+		pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s is dialing number %s\n", sccp_forwarding_channel->currentDeviceId, sccp_forwarding_channel->designator, dialedNumber);
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
 		iPbx.set_callstate(sccp_forwarding_channel, AST_STATE_RING);
 		pbx_channel_call_forward_set(sccp_forwarding_channel->owner, dialedNumber);
@@ -2395,7 +2393,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		}
 		return 0;
 	} 
-	pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x cannot dial this number %s\n", "SCCP", sccp_forwarding_channel->line->name, sccp_forwarding_channel->callid, dialedNumber);
+	pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s cannot dial this number %s\n", sccp_forwarding_channel->currentDeviceId, sccp_forwarding_channel->designator, dialedNumber);
 	sccp_channel_release(&sccp_forwarding_channel->parentChannel);						/* explicit release */
 	sccp_channel_endcall(sccp_forwarding_channel);
 	return -1;

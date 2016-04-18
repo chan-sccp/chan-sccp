@@ -50,7 +50,7 @@ struct name {												\
 } while (0)
 
 /* Initialize rwlist head */
-#define SCCP_RWLIST_HEAD_SET(head, entry) do {							\
+#define SCCP_RWLIST_HEAD_SET(head, entry) do {								\
 	(head)->first = (entry);									\
 	(head)->last = (entry);										\
 	if(entry)											\
@@ -59,7 +59,7 @@ struct name {												\
 } while (0)
 
 /* List Item */
-#define SCCP_LIST_ENTRY(type)									\
+#define SCCP_LIST_ENTRY(type)										\
 struct {												\
 	type *prev;											\
 	type *next;											\
@@ -107,7 +107,7 @@ struct {												\
 #define SCCP_RWLIST_TRAVERSE_SAFE_BEGIN SCCP_LIST_TRAVERSE_SAFE_BEGIN
 
 /* Current List Item Removal */
-#define SCCP_LIST_REMOVE_CURRENT(field) do { 							\
+#define SCCP_LIST_REMOVE_CURRENT(field) do { 								\
 	__new_prev->field.next = NULL;									\
 	__new_prev->field.prev = NULL;									\
 	if (__list_next)										\
@@ -130,7 +130,7 @@ struct {												\
 #define SCCP_RWLIST_REMOVE_CURRENT SCCP_LIST_REMOVE_CURRENT
 
 /* Move Current List Item */
-#define SCCP_LIST_MOVE_CURRENT(newhead, field) do { 						\
+#define SCCP_LIST_MOVE_CURRENT(newhead, field) do { 							\
 	typeof ((newhead)->first) __list_cur = __new_prev;						\
 	SCCP_LIST_REMOVE_CURRENT(field);								\
 	SCCP_LIST_INSERT_TAIL((newhead), __list_cur, field);						\
@@ -138,7 +138,7 @@ struct {												\
 #define SCCP_RWLIST_MOVE_CURRENT SCCP_LIST_MOVE_CURRENT
 
 /* Move Current List Item Backward */
-#define SCCP_LIST_MOVE_CURRENT_BACKWARDS(newhead, field) do { 					\
+#define SCCP_LIST_MOVE_CURRENT_BACKWARDS(newhead, field) do { 						\
 	typeof ((newhead)->first) __list_cur = __new_prev;						\
 	if (!__list_next) {										\
 		AST_DLLIST_REMOVE_CURRENT(field);							\
@@ -151,7 +151,7 @@ struct {												\
 #define SCCP_RWLIST_MOVE_CURRENT_BACKWARDS SCCP_LIST_MOVE_CURRENT_BACKWARDS
 
 /* List Item Insertion before element */
-#define SCCP_LIST_INSERT_BEFORE(head, listelm, elm, field) do {					\
+#define SCCP_LIST_INSERT_BEFORE(head, listelm, elm, field) do {						\
 	(elm)->field.next = (listelm);									\
 	(elm)->field.prev = (listelm)->field.prev;							\
 	if ((listelm)->field.prev)									\
@@ -203,47 +203,45 @@ struct {												\
 #define SCCP_RWLIST_TRAVERSE_SAFE_END SCCP_LIST_TRAVERSE_SAFE_END
 
 /* List Backward Explore Routine */
-#define SCCP_LIST_TRAVERSE_BACKWARDS(head,var,field) 						\
+#define SCCP_LIST_TRAVERSE_BACKWARDS(head,var,field) 							\
 	for((var) = (head)->last; (var); (var) = (var)->field.prev)
 #define SCCP_RWLIST_TRAVERSE_BACKWARDS SCCP_LIST_TRAVERSE_BACKWARDS
 
 /* List Safe Backward Explore Routine */
-#define SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN(head, var, field) { 				\
+#define SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN(head, var, field) {					\
 	typeof((head)) __list_head = head;								\
-	typeof(__list_head->first) __list_next;								\
-	typeof(__list_head->first) __list_prev = NULL;							\
-	typeof(__list_head->first) __new_prev = NULL;							\
-	for ((var) = __list_head->last, __new_prev = (var),						\
-			 __list_next = NULL, __list_prev = (var) ? (var)->field.prev : NULL;		\
+	typeof(__list_head->first) __list_prev;								\
+	typeof(__list_head->first) __list_next = NULL;							\
+	typeof(__list_head->first) __new_next = NULL;							\
+	for ((var) = __list_head->last, __new_next = (var),						\
+	      __list_prev = (var) ? (var)->field.prev : NULL;						\
 	     (var);											\
-	     __list_next = __new_prev, (var) = __list_prev,						\
-	     __new_prev = (var),									\
+	     __list_next = __new_next, (var) = __list_prev,						\
+	     __new_next = (var),									\
 	     __list_prev = (var) ? (var)->field.prev : NULL						\
 	    )
 #define SCCP_RWLIST_TRAVERSE_BACKWARDS_SAFE_BEGIN SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN
 
 /* List Backward Traverse End (Parentesis) */
-#define SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END  __list_prev = __list_prev; }
+#define SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END (void) __list_next; /* to quiet compiler */ } 
 #define SCCP_RWLIST_TRAVERSE_BACKWARDS_SAFE_END  SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END
 
 /* List Head Init */
 #define SCCP_LIST_HEAD_INIT(head) {									\
 	(head)->first = NULL;										\
 	(head)->last = NULL;										\
-	pbx_mutex_init_notracking(&(head)->lock);									\
-/*	pbx_mutex_init(&(head)->lock);*/									\
+	pbx_mutex_init_notracking(&(head)->lock);							\
 	(head)->size=0;											\
 }
-#define SCCP_RWLIST_HEAD_INIT(head) {								\
+#define SCCP_RWLIST_HEAD_INIT(head) {									\
 	(head)->first = NULL;										\
 	(head)->last = NULL;										\
-	pbx_rwlock_init_notracking(&(head)->lock);									\
-/*	pbx_rwlock_init(&(head)->lock);*/									\
+	pbx_rwlock_init_notracking(&(head)->lock);							\
 	(head)->size=0;											\
 }
 
 /* List Head Destroy */
-#define SCCP_LIST_HEAD_DESTROY(head) {								\
+#define SCCP_LIST_HEAD_DESTROY(head) {									\
 	(head)->first = NULL;										\
 	(head)->last = NULL;										\
 	pbx_mutex_destroy(&(head)->lock);								\
@@ -257,7 +255,7 @@ struct {												\
 }
 
 /* List Item Insertion After */
-#define SCCP_LIST_INSERT_AFTER(head, listelm, elm, field) do {					\
+#define SCCP_LIST_INSERT_AFTER(head, listelm, elm, field) do {						\
 	(elm)->field.next = (listelm)->field.next;							\
 	(elm)->field.prev = (listelm);									\
 	if ((listelm)->field.next)									\
@@ -270,7 +268,7 @@ struct {												\
 #define SCCP_RWLIST_INSERT_AFTER SCCP_LIST_INSERT_AFTER
 
 /* List Insertion in Alphanumeric Order */
-#define SCCP_LIST_INSERT_SORTALPHA(head, elm, field, sortfield) do { 				\
+#define SCCP_LIST_INSERT_SORTALPHA(head, elm, field, sortfield) do { 					\
 	if (!(head)->first) {                                           				\
 		(head)->first = (elm);                                      				\
 		(head)->last = (elm);                                       				\
@@ -288,12 +286,12 @@ struct {												\
 			SCCP_LIST_INSERT_AFTER(head, prev, elm, field);        				\
 		}                                                           				\
 	}                                                               				\
-	(head)->size++;																		\
+	(head)->size++;											\
 } while (0)
 #define SCCP_RWLIST_INSERT_SORTALPHA SCCP_LIST_INSERT_SORTALPHA
 
 /* Inserts a list item at the head of a list. */
-#define SCCP_LIST_INSERT_HEAD(head, elm, field) do {						\
+#define SCCP_LIST_INSERT_HEAD(head, elm, field) do {							\
 		(elm)->field.next = (head)->first;							\
 		if ((head)->first)                          						\
 			(head)->first->field.prev = (elm);						\
@@ -306,7 +304,7 @@ struct {												\
 #define SCCP_RWLIST_INSERT_HEAD SCCP_LIST_INSERT_HEAD
 
 /* Inserts a list item at the tail of a list */
-#define SCCP_LIST_INSERT_TAIL(head, elm, field) do {						\
+#define SCCP_LIST_INSERT_TAIL(head, elm, field) do {							\
       if (!(head)->first) {										\
 		(head)->first = (elm);									\
 		(head)->last = (elm);									\
@@ -323,7 +321,7 @@ struct {												\
 #define SCCP_RWLIST_INSERT_TAIL SCCP_LIST_INSERT_TAIL
 
 /* Append a whole list to another */
-#define SCCP_LIST_APPEND_LIST(head, list, field) do {						\
+#define SCCP_LIST_APPEND_LIST(head, list, field) do {							\
       if (!(head)->first) {										\
 		(head)->first = (list)->first;								\
 		(head)->last = (list)->last;								\
@@ -340,7 +338,7 @@ struct {												\
 #define SCCP_RWLIST_APPEND_LIST SCCP_LIST_APPEND_LIST
 
 /* Remove the head item from a list giving back a pointer to it. */
-#define SCCP_LIST_REMOVE_HEAD(head, field) ({							\
+#define SCCP_LIST_REMOVE_HEAD(head, field) ({								\
 		typeof((head)->first) cur = (head)->first;						\
 		if (cur) {										\
 			(head)->first = cur->field.next;						\
@@ -356,7 +354,7 @@ struct {												\
 #define SCCP_RWLIST_REMOVE_HEAD SCCP_LIST_REMOVE_HEAD
 
 /* Remove an item from a list */
-#define SCCP_LIST_REMOVE(head, elm, field) ({							\
+#define SCCP_LIST_REMOVE(head, elm, field) ({								\
 	__typeof(elm) __res = (elm);									\
 	if ((head)->first == (elm)) {									\
 		(head)->first = (elm)->field.next;							\

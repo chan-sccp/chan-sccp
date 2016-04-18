@@ -186,12 +186,12 @@ void sccp_rtp_stop(constChannelPtr channel)
 	if (iPbx.rtp_stop) {
 		if (channel->rtp.audio.instance) {
 			PBX_RTP_TYPE *rtp = (PBX_RTP_TYPE *) channel->rtp.audio.instance;		/* discard const */
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX audio rtp transmission on channel %08X\n", channel->currentDeviceId, channel->callid);
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX audio rtp transmission on channel %s\n", channel->currentDeviceId, channel->designator);
 			iPbx.rtp_stop(rtp);
 		}
 		if (channel->rtp.video.instance) {
 			PBX_RTP_TYPE *rtp = (PBX_RTP_TYPE *) channel->rtp.video.instance;		/* discard const */
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX video rtp transmission on channel %08X\n", channel->currentDeviceId, channel->callid);
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX video rtp transmission on channel %s\n", channel->currentDeviceId, channel->designator);
 			iPbx.rtp_stop(rtp);
 		}
 	} else {
@@ -205,19 +205,17 @@ void sccp_rtp_stop(constChannelPtr channel)
  */
 void sccp_rtp_destroy(constChannelPtr c)
 {
-	sccp_line_t *l = c->line;
-
 	sccp_rtp_t *audio = (sccp_rtp_t *) &(c->rtp.audio);
 	sccp_rtp_t *video = (sccp_rtp_t *) &(c->rtp.video);
 
 	if (audio->instance) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX rtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX rtp server on channel %s\n", c->currentDeviceId, c->designator);
 		iPbx.rtp_destroy(audio->instance);
 		audio->instance = NULL;
 	}
 
 	if (video->instance) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX vrtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX vrtp server on channel %s\n", c->currentDeviceId, c->designator);
 		iPbx.rtp_destroy(video->instance);
 		video->instance = NULL;
 	}

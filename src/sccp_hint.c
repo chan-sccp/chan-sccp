@@ -176,10 +176,12 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Got new hint event %s, cidname: %s, cidnum: %s, originated from EID:'%s'\n", hint->hint_dialplan, cidName ? cidName : "NULL", cidNumber ? cidNumber : "NULL", eid_str);
 #endif
 	
-	if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
-		iCallInfo.Setter(hint->callInfo, SCCP_CALLINFO_CALLINGPARTY_NAME, cidName, SCCP_CALLINFO_CALLINGPARTY_NUMBER, cidNumber, SCCP_CALLINFO_KEY_SENTINEL);
-	} else {
-		iCallInfo.Setter(hint->callInfo, SCCP_CALLINFO_CALLEDPARTY_NAME, cidName, SCCP_CALLINFO_CALLEDPARTY_NUMBER, cidNumber, SCCP_CALLINFO_KEY_SENTINEL);
+	if (hint->callInfo) {
+		if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
+			iCallInfo.Setter(hint->callInfo, SCCP_CALLINFO_CALLINGPARTY_NAME, cidName, SCCP_CALLINFO_CALLINGPARTY_NUMBER, cidNumber, SCCP_CALLINFO_KEY_SENTINEL);
+		} else {
+			iCallInfo.Setter(hint->callInfo, SCCP_CALLINFO_CALLEDPARTY_NAME, cidName, SCCP_CALLINFO_CALLEDPARTY_NUMBER, cidNumber, SCCP_CALLINFO_KEY_SENTINEL);
+		}
 	}
 
 	return;
@@ -316,16 +318,18 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 	extensionState = state;
 #endif
 
-	if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
-		iCallInfo.Getter(hint->callInfo, 
-			SCCP_CALLINFO_CALLINGPARTY_NAME, &cidName, 
-			SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cidNumber, 
-			SCCP_CALLINFO_KEY_SENTINEL);
-	} else {
-		iCallInfo.Getter(hint->callInfo, 
-			SCCP_CALLINFO_CALLEDPARTY_NAME, &cidName, 
-			SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cidNumber, 
-			SCCP_CALLINFO_KEY_SENTINEL);
+	if (hint->callInfo) {
+		if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
+			iCallInfo.Getter(hint->callInfo, 
+				SCCP_CALLINFO_CALLINGPARTY_NAME, &cidName, 
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cidNumber, 
+				SCCP_CALLINFO_KEY_SENTINEL);
+		} else {
+			iCallInfo.Getter(hint->callInfo, 
+				SCCP_CALLINFO_CALLEDPARTY_NAME, &cidName, 
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cidNumber, 
+				SCCP_CALLINFO_KEY_SENTINEL);
+		}
 	}
 
 	/* save previousState */

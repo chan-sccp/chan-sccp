@@ -2177,8 +2177,14 @@ static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)
  *
  * \note adds a retained device to the event.deviceRegistered.device
  */
+#ifndef DEBUG
 void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cleanupTime)
 {
+#else
+void __sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cleanupTime, const char *file, int lineno, const char *func)
+{
+	pbx_log(LOG_NOTICE, "%s: (sccp_dev_clean) Called From: %s:%d:%s\n", DEV_ID_LOG(device), file, lineno, func);
+#endif
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 	sccp_buttonconfig_t *config = NULL;
 	sccp_selectedchannel_t *selectedChannel = NULL;
@@ -2225,7 +2231,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 					continue;
 				}
 				SCCP_LIST_LOCK(&line->channels);
-				SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->channels, c, list) {
+				SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN(&line->channels, c, list) {
 					AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
 
 					if (c) {
@@ -2237,7 +2243,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 						}
 					}
 				}
-				SCCP_LIST_TRAVERSE_SAFE_END;
+				SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END;
 				SCCP_LIST_UNLOCK(&line->channels);
 
 				/* remove devices from line */
