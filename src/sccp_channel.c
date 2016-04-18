@@ -2125,8 +2125,11 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 	}
 
 	if (!sccp_destination_local_channel->owner || !sccp_source_local_channel || !sccp_source_local_channel->owner) {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer error, asterisk channel error %s and %s\n",
-			d->id, sccp_destination_local_channel->designator, sccp_source_local_channel->designator);
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer error, no PBX channel for %s\n",
+			d->id, 
+			!sccp_destination_local_channel->owner ? sccp_destination_local_channel->designator : 
+			sccp_source_local_channel ? sccp_source_local_channel->designator :
+			"source_local == <null>");
 		goto EXIT;
 	}
 
