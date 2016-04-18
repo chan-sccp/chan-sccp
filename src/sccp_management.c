@@ -931,27 +931,22 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 					sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 				}
 			}
-		} else if (!strcasecmp("ParkedCall", event) || !strcasecmp("UnParkedCall", event) || !strcasecmp("ParkedCallGiveUp", event)) {
+		} else if (sccp_strcaseequals("ParkedCall", event) || sccp_strcaseequals("UnParkedCall", event) || sccp_strcaseequals("ParkedCallGiveUp", event) || sccp_strcaseequals("ParkedCallTimeout", event)) {
 			sccp_log(DEBUGCAT_CORE)("SCCP: (managerHookHelper) %s Received\ncontent:[%s]\n", event, content);
 
 			str = dupStr = pbx_strdupa(content);
 			struct message m = { 0 };
 			sccp_asterisk_parseStrToAstMessage(str, &m);
 			
-			const char *parkingLot = astman_get_header(&m, "ParkingLot");
-			sccp_parkinglot_t * const pl = iParkingLot.find(parkingLot, FALSE);
-			if (pl) {
-				const char *extension = astman_get_header(&m, "Exten");
-				int exten = sccp_atoi(extension, strlen(extension));
-				if (exten) {
-					if (!strcasecmp("ParkedCall", event)) {
-						iParkingLot.addSlot(pl, exten, &m);
-					} else {
-						iParkingLot.removeSlot(pl, exten);
-					}
+			const char *parkinglot = astman_get_header(&m, "ParkingLot");
+			const char *extension = astman_get_header(&m, "Exten");
+			int exten = sccp_atoi(extension, strlen(extension));
+			if (parkinglot && exten) {
+				if (sccp_strcaseequals("ParkedCall", event)) {
+					iParkingLot.addSlot(parkinglot, exten, &m);
+				} else {
+					iParkingLot.removeSlot(parkinglot, exten);
 				}
-			} else {
-				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "SCCP: (managerHookHelper) ParkingLot:%s is not being observed\n", parkingLot);
 			}
 		//} else {
 		//	sccp_log(DEBUGCAT_CORE)("SCCP: (managerHookHelper) %s Received\ncontent:[%s]\n", event, content);
