@@ -19,7 +19,6 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_vector.h"
 #include "sccp_device.h"
 #include "sccp_features.h"
-#include "sccp_management.h"
 
 /*
 Event: ParkedCall
