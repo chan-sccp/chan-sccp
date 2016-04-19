@@ -19,6 +19,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_vector.h"
 #include "sccp_device.h"
 #include "sccp_features.h"
+#include "sccp_management.h"
 
 /*
 Event: ParkedCall
@@ -73,6 +74,9 @@ ConnectedLineName: Diederik-Phone3
 UniqueID: 1460974037.17
 */
 
+/* forward declarations */
+static void notifyLocked(sccp_parkinglot_t *pl);
+
 typedef struct plslot plslot_t;
 typedef struct plobserver plobserver_t;
 
@@ -121,7 +125,6 @@ SCCP_LIST_HEAD(, sccp_parkinglot_t) parkinglots;
 	if ((elem).callerid_name) {sccp_free((elem).callerid_name);}		\
 	if ((elem).connectedline_num) {sccp_free((elem).connectedline_num);}	\
 	if ((elem).connectedline_name) {sccp_free((elem).connectedline_name);}
-
 
 // parkinglot
 static sccp_parkinglot_t * addParkinglot(const char *parkinglot)
@@ -229,6 +232,7 @@ static int attachObserver(const char *parkinglot, sccp_device_t * device, uint8_
 		if (SCCP_VECTOR_APPEND(&pl->observers, observer) == 0) {
 			res = TRUE;
 		}
+		//notifyLocked(pl);
 		sccp_parkinglot_unlock(pl);
 	}
 	return res;
@@ -417,18 +421,22 @@ static int addSlot(const char *parkinglot, int slot, struct message *m)
 	
 	sccp_parkinglot_t *pl = findCreateParkinglot(parkinglot, FALSE);
 	if (pl) {
-		plslot_t new_slot = { 
-			.slot = slot,
-			.exten = strdup(astman_get_header(m, "Exten")),
-			.channel = strdup(astman_get_header(m, "Channel")),
-			.callerid_num = strdup(astman_get_header(m, "CallerIDNum")),
-			.callerid_name = strdup(astman_get_header(m, "CallerIDName")),
-			.connectedline_num = strdup(astman_get_header(m, "ConnectedLineNum")),
-			.connectedline_name = strdup(astman_get_header(m, "ConnectedLineName")),
-		};
-		if (SCCP_VECTOR_APPEND(&pl->slots, new_slot) == 0)  {
+		if (SCCP_VECTOR_GET_CMP(&pl->slots, slot, SLOT_CB_CMP) == NULL) {
+			plslot_t new_slot = { 
+				.slot = slot,
+				.exten = strdup(astman_get_header(m, "Exten")),
+				.channel = strdup(astman_get_header(m, "Channel")),
+				.callerid_num = strdup(astman_get_header(m, "CallerIDNum")),
+				.callerid_name = strdup(astman_get_header(m, "CallerIDName")),
+				.connectedline_num = strdup(astman_get_header(m, "ConnectedLineNum")),
+				.connectedline_name = strdup(astman_get_header(m, "ConnectedLineName")),
+			};
+			if (SCCP_VECTOR_APPEND(&pl->slots, new_slot) == 0)  {
+				notifyLocked(pl);
+				res = TRUE;
+			}
+		} else {
 			notifyLocked(pl);
-			res = TRUE;
 		}
 		sccp_parkinglot_unlock(pl);
 	} else {
