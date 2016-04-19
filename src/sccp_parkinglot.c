@@ -142,16 +142,16 @@ static sccp_parkinglot_t * addParkinglot(const char *parkinglot)
 	return pl;
 }
 
-static int removeParkinglot(sccp_parkinglot_t **pl)
+static int removeParkinglot(sccp_parkinglot_t *pl)
 {
-	pbx_assert(pl != NULL && *pl != NULL);
+	pbx_assert(pl != NULL && pl != NULL);
 	
 	int res = FALSE;
 	sccp_parkinglot_t *removed = NULL;
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "SCCP: (removeParkinglot) %s\n", (*pl)->context);
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "SCCP: (removeParkinglot) %s\n", pl->context);
 
 	SCCP_RWLIST_WRLOCK(&parkinglots);
-	removed = SCCP_RWLIST_REMOVE(&parkinglots, *pl, list);
+	removed = SCCP_RWLIST_REMOVE(&parkinglots, pl, list);
 	SCCP_RWLIST_UNLOCK(&parkinglots);
 	sccp_parkinglot_unlock(pl);
 
@@ -165,8 +165,8 @@ static int removeParkinglot(sccp_parkinglot_t **pl)
 		SCCP_VECTOR_FREE(&removed->slots);
 		pbx_mutex_destroy(&removed->context);
 		res = TRUE;
-		*pl = NULL;
 	}
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "SCCP: (removeParkinglot) done\n");
 	return res;
 }
 
@@ -243,22 +243,24 @@ static int detachObserver(const char *parkinglot, sccp_device_t * device, uint8_
 
 	sccp_parkinglot_t *pl = findCreateParkinglot(parkinglot, FALSE);
 	if (pl) {
-		plobserver_t observer = {
+		plobserver_t cmp = {
 			.device = device,
 			.instance = instance,
-			.transactionId = 0,
 		};
 		
-		if (SCCP_VECTOR_REMOVE_CMP_UNORDERED(&pl->observers, observer, OBSERVER_CB_CMP, SCCP_VECTOR_ELEM_CLEANUP_NOOP) == 0) {
-			if (!res && SCCP_VECTOR_SIZE(&pl->observers) == 0) {
-				removeParkinglot(&pl);	// will unlock and destroy pl
+		
+		if (SCCP_VECTOR_REMOVE_CMP_UNORDERED(&pl->observers, cmp, OBSERVER_CB_CMP, SCCP_VECTOR_ELEM_CLEANUP_NOOP) == 0) {
+			if (SCCP_VECTOR_SIZE(&pl->observers) == 0) {
+				removeParkinglot(pl);	// will unlock and destroy pl
 			} else {
 				sccp_parkinglot_unlock(pl);
 			}
 			res = TRUE;
+		} else {
+			sccp_parkinglot_unlock(pl);
 		}
 	}
-	return !res;
+	return res;
 }
 
 // notify
