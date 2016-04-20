@@ -211,14 +211,13 @@ enum channel_request_status {
 }
 
 enum message_priority {
-	SCCP_MESSAGE_PRIORITY_IDLE,			,	"Message Priority Idle",
-	SCCP_MESSAGE_PRIORITY_VOICEMAIL,		,	"Message Priority Voicemail",
-	SCCP_MESSAGE_PRIORITY_MONITOR,			,	"Message Priority Monitor",
-	SCCP_MESSAGE_PRIORITY_PRIVACY,			,	"Message Priority Privacy",
-	SCCP_MESSAGE_PRIORITY_DND,			,	"Message Priority Do not disturb",
-	SCCP_MESSAGE_PRIORITY_CFWD,			,	"Message Priority Call Forward",
-	SCCP_MESSAGE_PRIORITY_TIMEOUT,			,	"Message Priority Timeout",
-	SCCP_MESSAGE_PRIORITY_ERROR,			,	"Message Priority Error Message",
+	SCCP_MESSAGE_PRIORITY_IDLE,			=0,	"Message Priority Idle",
+	SCCP_MESSAGE_PRIORITY_VOICEMAIL,		=1,	"Message Priority Voicemail",
+	SCCP_MESSAGE_PRIORITY_MONITOR,			=2,	"Message Priority Monitor",
+	SCCP_MESSAGE_PRIORITY_PRIVACY,			=2,	"Message Priority Privacy",
+	SCCP_MESSAGE_PRIORITY_DND,			=4,	"Message Priority Do not disturb",
+	SCCP_MESSAGE_PRIORITY_CFWD,			=4,	"Message Priority Call Forward",
+	SCCP_MESSAGE_PRIORITY_TIMEOUT,			=5,	"Message Priority Timeout",
 }
 
 enum push_result {
