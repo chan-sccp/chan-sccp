@@ -20,6 +20,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_device.h"
 #include "sccp_features.h"
 
+/* asterisk-11 */
 /*
 Event: ParkedCall
 Privilege: call,all
@@ -71,6 +72,127 @@ CallerIDName: Diederik-Phone1
 ConnectedLineNum: 98031
 ConnectedLineName: Diederik-Phone3
 UniqueID: 1460974037.17
+*/
+
+/* asterisk-13 */
+/*
+Event: ParkedCall
+Privilege: call,all
+SequenceNumber: 118
+File: parking/parking_manager.c
+Line: 676
+Func: parked_call_message_response
+ParkeeChannel: SCCP/98011-00000001
+ParkeeChannelState: 6
+ParkeeChannelStateDesc: Up
+ParkeeCallerIDNum: 98011
+ParkeeCallerIDName: Diederik-Phone1
+ParkeeConnectedLineNum: <unknown>
+ParkeeConnectedLineName: <unknown>
+ParkeeLanguage: en
+ParkeeAccountCode: 98011
+ParkeeContext: internal
+ParkeeExten: 98031
+ParkeePriority: 3
+ParkeeUniqueid: 1461160476.0
+ParkeeLinkedid: 1461160476.0
+ParkerDialString: SCCP/98031
+Parkinglot: default
+ParkingSpace: 701
+ParkingTimeout: 45
+ParkingDuration: 0
+
+UnParkedCall
+Privilege: call,all
+SequenceNumber: 1091
+File: parking/parking_manager.c
+Line: 676
+Func: parked_call_message_response
+ParkeeChannel: SCCP/98011-00000001
+ParkeeChannelState: 6
+ParkeeChannelStateDesc: Up
+ParkeeCallerIDNum: 98011
+ParkeeCallerIDName: Diederik-Phone1
+ParkeeConnectedLineNum: <unknown>
+ParkeeConnectedLineName: <unknown>
+ParkeeLanguage: en
+ParkeeAccountCode: 98011
+ParkeeContext: internal
+ParkeeExten: 98031
+ParkeePriority: 3
+ParkeeUniqueid: 1461161791.29
+ParkeeLinkedid: 1461161791.29
+RetrieverChannel: SCCP/98041-00000003
+RetrieverChannelState: 6
+RetrieverChannelStateDesc: Up
+RetrieverCallerIDNum: 98041
+RetrieverCallerIDName: PHONE4
+RetrieverConnectedLineNum: <unknown>
+RetrieverConnectedLineName: <unknown>
+RetrieverLanguage: en
+RetrieverAccountCode: 79005
+RetrieverContext: internal
+RetrieverExten: 701
+RetrieverPriority: 1
+RetrieverUniqueid: 1461161803.31
+RetrieverLinkedid: 1461161803.31
+ParkerDialString: SCCP/98031
+Parkinglot: default
+ParkingSpace: 701
+ParkingTimeout: 35
+ParkingDuration: 10
+
+Event: ParkedCallGiveUp
+Privilege: call,all
+SequenceNumber: 142
+File: parking/parking_manager.c
+Line: 676
+Func: parked_call_message_response
+ParkeeChannel: SCCP/98011-00000001
+ParkeeChannelState: 6
+ParkeeChannelStateDesc: Up
+ParkeeCallerIDNum: 98011
+ParkeeCallerIDName: Diederik-Phone1
+ParkeeConnectedLineNum: <unknown>
+ParkeeConnectedLineName: <unknown>
+ParkeeLanguage: en
+ParkeeAccountCode: 98011
+ParkeeContext: internal
+ParkeeExten: 98031
+ParkeePriority: 3
+ParkeeUniqueid: 1461160476.0
+ParkeeLinkedid: 1461160476.0
+ParkerDialString: SCCP/98031
+Parkinglot: default
+ParkingSpace: 701
+ParkingTimeout: 36
+ParkingDuration: 9
+
+Event: ParkedCallTimeOut
+Privilege: call,all
+SequenceNumber: 427
+File: parking/parking_manager.c
+Line: 676
+Func: parked_call_message_response
+ParkeeChannel: SCCP/98011-00000007
+ParkeeChannelState: 6
+ParkeeChannelStateDesc: Up
+ParkeeCallerIDNum: 98011
+ParkeeCallerIDName: Diederik-Phone1
+ParkeeConnectedLineNum: <unknown>
+ParkeeConnectedLineName: <unknown>
+ParkeeLanguage: en
+ParkeeAccountCode: 98011
+ParkeeContext: park-dial
+ParkeeExten: SCCP_98031
+ParkeePriority: 1
+ParkeeUniqueid: 1461160740.12
+ParkeeLinkedid: 1461160740.12
+ParkerDialString: SCCP/98031
+Parkinglot: default
+ParkingSpace: 701
+ParkingTimeout: 0
+ParkingDuration: 45
 */
 
 /* forward declarations */
@@ -288,10 +410,17 @@ static char * const getParkingLotCXML(sccp_parkinglot_t *pl, int protocolversion
 		for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->slots); idx++) {
 			plslot_t *slot = SCCP_VECTOR_GET_ADDR(&pl->slots, idx);
 			pbx_str_append(&buf, 0, "<DirectoryEntry>");
-			pbx_str_append(&buf, 0, "<Name>%s (%s) by %s</Name><Telephone>%s</Telephone>", 
-				slot->callerid_name, slot->callerid_num, 
-				slot->connectedline_name, slot->exten
-			);
+			if (!sccp_strcaseequals(slot->connectedline_name, "<unknown>")) {
+				pbx_str_append(&buf, 0, "<Name>%s (%s) by %s</Name><Telephone>%s</Telephone>", 
+					slot->callerid_name, slot->callerid_num, 
+					slot->connectedline_name, slot->exten
+				);
+			} else {
+				pbx_str_append(&buf, 0, "<Name>%s (%s) by %s</Name><Telephone>%s</Telephone>", 
+					slot->callerid_name, slot->callerid_num, 
+					slot->from, slot->exten
+				);
+			} 
 			pbx_str_append(&buf, 0, "</DirectoryEntry>");
 		}
 		pbx_str_append(&buf, 0, "</CiscoIPPhoneDirectory>");
@@ -423,12 +552,13 @@ static int addSlot(const char *parkinglot, int slot, struct message *m)
 		if (SCCP_VECTOR_GET_CMP(&pl->slots, slot, SLOT_CB_CMP) == NULL) {
 			plslot_t new_slot = { 
 				.slot = slot,
-				.exten = strdup(astman_get_header(m, "Exten")),
-				.channel = strdup(astman_get_header(m, "Channel")),
-				.callerid_num = strdup(astman_get_header(m, "CallerIDNum")),
-				.callerid_name = strdup(astman_get_header(m, "CallerIDName")),
-				.connectedline_num = strdup(astman_get_header(m, "ConnectedLineNum")),
-				.connectedline_name = strdup(astman_get_header(m, "ConnectedLineName")),
+				.exten = strdup(astman_get_header(m, PARKING_SLOT)),
+				.from = strdup(astman_get_header(m, PARKING_FROM)),
+				.channel = strdup(astman_get_header(m, PARKING_PREFIX "Channel")),
+				.callerid_num = strdup(astman_get_header(m, PARKING_PREFIX "CallerIDNum")),
+				.callerid_name = strdup(astman_get_header(m, PARKING_PREFIX "CallerIDName")),
+				.connectedline_num = strdup(astman_get_header(m, PARKING_PREFIX "ConnectedLineNum")),
+				.connectedline_name = strdup(astman_get_header(m, PARKING_PREFIX "ConnectedLineName")),
 			};
 			if (SCCP_VECTOR_APPEND(&pl->slots, new_slot) == 0)  {
 				notifyLocked(pl);

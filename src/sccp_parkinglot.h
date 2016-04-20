@@ -11,6 +11,16 @@
  */
 #pragma once
 
+#if ASTERISK_VERSION_GROUP < 113
+#define PARKING_PREFIX ""
+#define PARKING_FROM "From"
+#define PARKING_SLOT "Exten"
+#else
+#define PARKING_PREFIX "Parkee"
+#define PARKING_FROM "ParkeeExten"
+#define PARKING_SLOT "ParkingSpace"
+#endif
+
 // forward declarations
 struct parkinglot;
 typedef struct parkinglot sccp_parkinglot_t;

@@ -937,9 +937,9 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 			str = dupStr = pbx_strdupa(content);
 			struct message m = { 0 };
 			sccp_asterisk_parseStrToAstMessage(str, &m);
-			
+
 			const char *parkinglot = astman_get_header(&m, "ParkingLot");
-			const char *extension = astman_get_header(&m, "Exten");
+			const char *extension = astman_get_header(&m, PARKING_SLOT);
 			int exten = sccp_atoi(extension, strlen(extension));
 			if (parkinglot && exten) {
 				if (sccp_strcaseequals("ParkedCall", event)) {
