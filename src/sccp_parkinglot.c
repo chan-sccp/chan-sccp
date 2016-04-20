@@ -435,18 +435,21 @@ static char * const getParkingLotCXML(sccp_parkinglot_t *pl, int protocolversion
 static void __showVisualParkingLot(sccp_parkinglot_t *pl, constDevicePtr d, plobserver_t * observer)
 {
 	pbx_assert(pl != NULL && d != NULL && observer != NULL);
+	uint32_t transactionId = 0;
+	//uint8_t instance = observer->instance;
+	char *xmlStr;
 	
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (showVisualParkingLot) showing on device:%s, instance:%d\n", pl->context, observer->device->id, observer->instance);
 	sccp_parkinglot_unlock(pl);
-
-	uint32_t transactionId = sccp_random();
-	char *xmlStr;
 	if ((xmlStr = getParkingLotCXML(pl, d->protocolversion, &xmlStr))) {
+		transactionId = sccp_random();
 		d->protocol->sendUserToDeviceDataVersionMessage(d, APPID_VISUALPARKINGLOT, 0, 0, transactionId, xmlStr, 0);
 		sccp_free(xmlStr);
+	} else {
+		sccp_dev_displayprinotify(d, SKINNY_DISP_CANNOT_RETRIEVE_PARKED_CALL, SCCP_MESSAGE_PRIORITY_TIMEOUT, 5);
 	}
-	observer->transactionId = transactionId;
 	sccp_parkinglot_lock(pl);
+	observer->transactionId = transactionId;
 }
 
 static void showVisualParkingLot(const char *parkinglot, constDevicePtr d, uint8_t instance) 
