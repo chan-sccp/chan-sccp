@@ -26,11 +26,11 @@ Event: ParkedCall
 Privilege: call,all
 Timestamp: 1460205775.670404
 Exten: 701
-Channel: SCCP/98041-0000000e
+Channel: SCCP/10041-0000000e
 Parkinglot: default
-From: SCCP/98011-0000000f
+From: SCCP/10011-0000000f
 Timeout: 45
-CallerIDNum: 98041
+CallerIDNum: 10041
 CallerIDName: PHONE4
 ConnectedLineNum: <unknown>
 ConnectedLineName: <unknown>
@@ -40,10 +40,10 @@ Event: UnParkedCall
 Privilege: call,all
 Timestamp: 1460205785.934545
 Exten: 701
-Channel: SCCP/98041-0000000e
+Channel: SCCP/10041-0000000e
 Parkinglot: default
-From: SCCP/98031-00000010
-CallerIDNum: 98041
+From: SCCP/10031-00000010
+CallerIDNum: 10041
 CallerIDName: PHONE4
 ConnectedLineNum: <unknown>
 ConnectedLineName: <unknown>
@@ -53,11 +53,11 @@ Event: ParkedCallGiveUp
 Privilege: call,all
 Timestamp: 1460819185.922496
 Exten: 701
-Channel: SCCP/98041-00000001
+Channel: SCCP/10041-00000001
 Parkinglot: default
-CallerIDNum: 98041
+CallerIDNum: 10041
 CallerIDName: PHONE4
-ConnectedLineNum: 98011
+ConnectedLineNum: 10011
 ConnectedLineName: Diederik-Phone1
 UniqueID: 1460819174.54
 
@@ -65,11 +65,11 @@ Event: ParkedCallTimeOut
 Privilege: call,all
 Timestamp: 1460974082.683646
 Exten: 701
-Channel: SCCP/98011-00000003
+Channel: SCCP/10011-00000003
 Parkinglot: default
-CallerIDNum: 98011
+CallerIDNum: 10011
 CallerIDName: Diederik-Phone1
-ConnectedLineNum: 98031
+ConnectedLineNum: 10031
 ConnectedLineName: Diederik-Phone3
 UniqueID: 1460974037.17
 */
@@ -82,21 +82,21 @@ SequenceNumber: 118
 File: parking/parking_manager.c
 Line: 676
 Func: parked_call_message_response
-ParkeeChannel: SCCP/98011-00000001
+ParkeeChannel: SCCP/10011-00000001
 ParkeeChannelState: 6
 ParkeeChannelStateDesc: Up
-ParkeeCallerIDNum: 98011
+ParkeeCallerIDNum: 10011
 ParkeeCallerIDName: Diederik-Phone1
 ParkeeConnectedLineNum: <unknown>
 ParkeeConnectedLineName: <unknown>
 ParkeeLanguage: en
-ParkeeAccountCode: 98011
+ParkeeAccountCode: 10011
 ParkeeContext: internal
-ParkeeExten: 98031
+ParkeeExten: 10031
 ParkeePriority: 3
 ParkeeUniqueid: 1461160476.0
 ParkeeLinkedid: 1461160476.0
-ParkerDialString: SCCP/98031
+ParkerDialString: SCCP/10031
 Parkinglot: default
 ParkingSpace: 701
 ParkingTimeout: 45
@@ -108,24 +108,24 @@ SequenceNumber: 1091
 File: parking/parking_manager.c
 Line: 676
 Func: parked_call_message_response
-ParkeeChannel: SCCP/98011-00000001
+ParkeeChannel: SCCP/10011-00000001
 ParkeeChannelState: 6
 ParkeeChannelStateDesc: Up
-ParkeeCallerIDNum: 98011
+ParkeeCallerIDNum: 10011
 ParkeeCallerIDName: Diederik-Phone1
 ParkeeConnectedLineNum: <unknown>
 ParkeeConnectedLineName: <unknown>
 ParkeeLanguage: en
-ParkeeAccountCode: 98011
+ParkeeAccountCode: 10011
 ParkeeContext: internal
-ParkeeExten: 98031
+ParkeeExten: 10031
 ParkeePriority: 3
 ParkeeUniqueid: 1461161791.29
 ParkeeLinkedid: 1461161791.29
-RetrieverChannel: SCCP/98041-00000003
+RetrieverChannel: SCCP/10041-00000003
 RetrieverChannelState: 6
 RetrieverChannelStateDesc: Up
-RetrieverCallerIDNum: 98041
+RetrieverCallerIDNum: 10041
 RetrieverCallerIDName: PHONE4
 RetrieverConnectedLineNum: <unknown>
 RetrieverConnectedLineName: <unknown>
@@ -136,7 +136,7 @@ RetrieverExten: 701
 RetrieverPriority: 1
 RetrieverUniqueid: 1461161803.31
 RetrieverLinkedid: 1461161803.31
-ParkerDialString: SCCP/98031
+ParkerDialString: SCCP/10031
 Parkinglot: default
 ParkingSpace: 701
 ParkingTimeout: 35
@@ -148,21 +148,21 @@ SequenceNumber: 142
 File: parking/parking_manager.c
 Line: 676
 Func: parked_call_message_response
-ParkeeChannel: SCCP/98011-00000001
+ParkeeChannel: SCCP/10011-00000001
 ParkeeChannelState: 6
 ParkeeChannelStateDesc: Up
-ParkeeCallerIDNum: 98011
+ParkeeCallerIDNum: 10011
 ParkeeCallerIDName: Diederik-Phone1
 ParkeeConnectedLineNum: <unknown>
 ParkeeConnectedLineName: <unknown>
 ParkeeLanguage: en
-ParkeeAccountCode: 98011
+ParkeeAccountCode: 10011
 ParkeeContext: internal
-ParkeeExten: 98031
+ParkeeExten: 10031
 ParkeePriority: 3
 ParkeeUniqueid: 1461160476.0
 ParkeeLinkedid: 1461160476.0
-ParkerDialString: SCCP/98031
+ParkerDialString: SCCP/10031
 Parkinglot: default
 ParkingSpace: 701
 ParkingTimeout: 36
@@ -174,21 +174,21 @@ SequenceNumber: 427
 File: parking/parking_manager.c
 Line: 676
 Func: parked_call_message_response
-ParkeeChannel: SCCP/98011-00000007
+ParkeeChannel: SCCP/10011-00000007
 ParkeeChannelState: 6
 ParkeeChannelStateDesc: Up
-ParkeeCallerIDNum: 98011
+ParkeeCallerIDNum: 10011
 ParkeeCallerIDName: Diederik-Phone1
 ParkeeConnectedLineNum: <unknown>
 ParkeeConnectedLineName: <unknown>
 ParkeeLanguage: en
-ParkeeAccountCode: 98011
+ParkeeAccountCode: 10011
 ParkeeContext: park-dial
-ParkeeExten: SCCP_98031
+ParkeeExten: SCCP_10031
 ParkeePriority: 1
 ParkeeUniqueid: 1461160740.12
 ParkeeLinkedid: 1461160740.12
-ParkerDialString: SCCP/98031
+ParkerDialString: SCCP/10031
 Parkinglot: default
 ParkingSpace: 701
 ParkingTimeout: 0
@@ -226,17 +226,17 @@ struct parkinglot {
 	SCCP_LIST_ENTRY(sccp_parkinglot_t) list;
 };
 
-#define sccp_parkinglot_lock(x)		pbx_mutex_lock(&((sccp_parkinglot_t * const)(x))->lock);				/* discard const */
-#define sccp_parkinglot_unlock(x)	pbx_mutex_unlock(&((sccp_parkinglot_t * const)(x))->lock);				/* discard const */
+#define sccp_parkinglot_lock(x)		pbx_mutex_lock(&((sccp_parkinglot_t * const)(x))->lock);				// discard const/
+#define sccp_parkinglot_unlock(x)	pbx_mutex_unlock(&((sccp_parkinglot_t * const)(x))->lock);				// discard const
 
 SCCP_LIST_HEAD(, sccp_parkinglot_t) parkinglots;
 #define OBSERVER_CB_CMP(elem, value) ((elem).device == (value).device && (elem).instance == (value).instance)
 #define SLOT_CB_CMP(elem, value) ((elem).slot == (value))
 
-#define ICONSTATE_NEW_ON 0x020303	/*option:closed, color=yellow, flashspeed=slow*/
-#define ICONSTATE_NEW_OFF 0x010000	/*option:open, color=off, flashspeed=None*/
-#define ICONSTATE_OLD_ON 1		/*option:closed*/
-#define ICONSTATE_OLD_OFF 0		/*option:open*/
+#define ICONSTATE_NEW_ON 0x020303												// option:closed, color=yellow, flashspeed=slow
+#define ICONSTATE_NEW_OFF 0x010000												// option:open, color=off, flashspeed=None
+#define ICONSTATE_OLD_ON 1													// option:closed
+#define ICONSTATE_OLD_OFF 0													// option:open
 
 #define SLOT_CLEANUP(elem) 							\
 	if ((elem).exten) {sccp_free((elem).exten);}				\
@@ -497,7 +497,6 @@ static void notifyLocked(sccp_parkinglot_t *pl)
 	uint32_t iconstate = 0;
 	plobserver_t *observer = NULL;
 	
-	/* copy state */
 	int numslots = SCCP_VECTOR_SIZE(&pl->slots);
 	for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
 		observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
@@ -513,7 +512,7 @@ static void notifyLocked(sccp_parkinglot_t *pl)
 					iconstate = numslots ? ICONSTATE_NEW_ON : ICONSTATE_NEW_OFF;
 				}
 				
-				/* change button state */
+				// change button state
 				SCCP_LIST_LOCK(&device->buttonconfig);
 				SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 					if (config->type == FEATURE && config->instance == observer->instance) {
@@ -522,7 +521,7 @@ static void notifyLocked(sccp_parkinglot_t *pl)
 				}
 				SCCP_LIST_UNLOCK(&device->buttonconfig);
 				
-				/* update already displayed visual parkinglot window */
+				// update already displayed visual parkinglot window
 				if (observer->transactionId) {
 					if (numslots > 0 && !device->active_channel) {
 						__showVisualParkingLot(pl, device, observer);
