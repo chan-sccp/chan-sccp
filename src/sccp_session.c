@@ -1101,7 +1101,7 @@ sccp_session_t *sccp_session_findByIP(const struct sockaddr_storage *sin)
 	SCCP_RWLIST_RDLOCK(&GLOB(sessions));
 	SCCP_RWLIST_TRAVERSE(&GLOB(sessions), session, list) {
 		if (sccp_netsock_cmp_addr(&session->sin, sin) == 0) {
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: (sccp_session_findByIP) Found session:%p with device\n", session, DEV_ID_LOG(session->device));
+			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: (sccp_session_findByIP) Found session:%p\n", DEV_ID_LOG(session->device), session);
 			break;
 		}
 	}
