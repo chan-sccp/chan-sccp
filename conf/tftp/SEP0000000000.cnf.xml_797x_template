@@ -98,7 +98,7 @@
     <moreKeyReversionTimer>5</moreKeyReversionTimer>
     <autoCallSelect>1</autoCallSelect>
     <logServer/>
-    <g722CodecSupport>0</g722CodecSupport>
+    <g722CodecSupport>0</g722CodecSupport> <!-- 0 = Phone default, equal to disabled (when using chan-sccp-b), 1 = Disabled. Disables G.722-64K2 codec on phone, 2 = Enabled. Enables G.722-64K codec on phone. -->
     <headsetWidebandUIControl>0</headsetWidebandUIControl>
     <handsetWidebandUIControl>0</handsetWidebandUIControl>
     <headsetWidebandEnable>0</headsetWidebandEnable>
