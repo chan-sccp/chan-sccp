@@ -9,7 +9,7 @@
 [![Documentation](https://img.shields.io/badge/docs-wiki-blue.svg)](https://sourceforge.net/p/chan-sccp-b/wiki/Home/)
 [![LauchpadPPA](https://img.shields.io/badge/Ppa-bin-blue.svg)](https://launchpad.net/~chan-sccp-b/+archive/ubuntu/ppa)
 [![BuildOpenSuSE](https://img.shields.io/badge/Build-bin-blue.svg)](http://download.opensuse.org/repositories/home:/chan-sccp-b:/)
-[![Donate](https://img.shields.io/badge/paypal-donate-yellow.svg)](http://sourceforge.net/donate/index.php?group_id=186378)
+[![Donate](https://img.shields.io/badge/paypal-donate-yellow.svg)](https://www.paypal.com/cgi-bin/webscr?item_name=Donation+to+Chan-SCCP+channel+driver+for+Asterisk&locale.x=en_US&cmd=_donations&business=chan.sccp.b.pp%40gmail.com).
 
 Chan_SCCP is free software. Please see the file COPYING for details.
 For documentation, please see the files in the doc subdirectory.
@@ -33,6 +33,8 @@ Make sure you have the following installed on your system:
 For more information about the possible configure flags, check:
     ./configure --help 
 
+Note: When you are making changes to configure.ac, autoconf / or Makefile.am files you should run ./tools/bootstrap.sh afterwards.
+
 ### Build and Install
     make
     make install
@@ -41,7 +43,7 @@ For more information about the possible configure flags, check:
 You can find more information and documentation on our [wiki](https://sourceforge.net/p/chan-sccp-b/wiki/)
 
 ### Donate
-If you like our project, then please consider making a [donation](http://sourceforge.net/donate/index.php?group_id=186378) via paypal.
-- - - 
-Developer Note: When you are making changes to the configure.ac or any of the Makefile.am files you should run ./tools/bootstrap.sh afterwards.
+If you like our project, then please consider making a 
+[![donation](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_pp_142x27.png)](https://www.paypal.com/cgi-bin/webscr?item_name=Donation+to+Chan-SCCP+channel+driver+for+Asterisk&locale.x=en_US&cmd=_donations&business=chan.sccp.b.pp%40gmail.com).
+
 
