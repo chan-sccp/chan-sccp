@@ -9,6 +9,7 @@
  * $date$
  * $revision$
  */
+#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
 #include "config.h"
 #include "common.h"
 #include "sccp_parkinglot.h"
@@ -604,3 +605,4 @@ const ParkingLotInterface iParkingLot = {
 	.removeSlot = removeSlot,
 	.showCXML = showVisualParkingLot,
 };
+#endif

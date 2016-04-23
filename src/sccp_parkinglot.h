@@ -9,6 +9,7 @@
  * $date$
  * $revision$
  */
+#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
 #pragma once
 
 #if ASTERISK_VERSION_GROUP < 113
@@ -37,4 +38,5 @@ typedef struct {
 extern const ParkingLotInterface iParkingLot;
 
 __END_C_EXTERN__
+#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

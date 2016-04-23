@@ -2250,8 +2250,10 @@ void __sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cl
 				/* remove devices from line */
 				sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);
 				sccp_line_removeDevice(line, d);
+#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
 			} else 	if (config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
 				iParkingLot.detachObserver(config->button.feature.options, d, config->instance);
+#endif
 			}
 		}
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
