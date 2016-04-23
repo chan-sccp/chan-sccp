@@ -1,10 +1,9 @@
 ## Welcome to Chan_SCCP
 
-[![Coverity](https://img.shields.io/coverity/scan/7795.svg)](https://scan.coverity.com/projects/dkgroot-chan-sccp-b)
 [![Build Status](http://img.shields.io/travis/chan-sccp/chan-sccp.svg?style=flat)](https://travis-ci.org/chan-sccp/chan-sccp)
+[![Coverity](https://img.shields.io/coverity/scan/7795.svg)](https://scan.coverity.com/projects/dkgroot-chan-sccp-b)
 [![Github Issues](https://img.shields.io/github/issues/chan-sccp/chan-sccp/bug.svg)](https://github.com/chan-sccp/chan-sccp/issues)
 [![Download Chan-SCCP channel driver for Asterisk](https://img.shields.io/sourceforge/dt/chan-sccp-b.svg)](https://github.com/chan-sccp/chan-sccp/releases/latest)
-[![GitHub license](https://img.shields.io/badge/license-GPL-blue.svg)](https://raw.githubusercontent.com/chan-sccp/chan-sccp/master/LICENSE)
 [![Github Releases](https://img.shields.io/github/release/chan-sccp/chan-sccp.svg)](https://github.com/chan-sccp/chan-sccp/releases)
 [![Documentation](https://img.shields.io/badge/docs-wiki-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki)
 [![LauchpadPPA](https://img.shields.io/badge/Ppa-bin-blue.svg)](https://launchpad.net/~chan-sccp-b/+archive/ubuntu/ppa)
@@ -43,8 +42,12 @@ Note: When you are making changes to configure.ac, autoconf / or Makefile.am fil
     make install
 
 ### Wiki
-You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-docs-blue.svg)](https://sourceforge.net/p/chan-sccp-b/wiki/Home/)
+You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-old-blue.svg)](https://sourceforge.net/p/chan-sccp-b/wiki/Home/)
+[![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/)
 
 ### Donate
 If you like our project, then please consider to 
 [![donation](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_pp_142x27.png)](https://www.paypal.com/cgi-bin/webscr?item_name=Donation+to+Chan-SCCP+channel+driver+for+Asterisk&locale.x=en_US&cmd=_donations&business=chan.sccp.b.pp%40gmail.com)
+
+### License
+[![GitHub license](https://img.shields.io/badge/license-GPL-blue.svg)](https://raw.githubusercontent.com/chan-sccp/chan-sccp/master/LICENSE)
