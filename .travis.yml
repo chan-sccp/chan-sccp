@@ -7,7 +7,7 @@ compiler:
 
 env:
   global:
-    - COVERITY_SCAN_PROJECT_NAME="dkgroot/chan-sccp-b"
+    - COVERITY_SCAN_PROJECT_NAME="chan-sccp/chan-sccp"
     - COVERITY_SCAN_PROJECT_DESCRIPTION="SCCP Channel Addon for Asterisk"
     - COVERITY_SCAN_NOTIFICATION_EMAIL="info@talon.nl"
     - COVERITY_SCAN_BRANCH_PATTERN="master"
@@ -16,7 +16,7 @@ env:
     - COVERITY_SCAN_BUILD_COMMAND_PREPEND="./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-advanced-functions && make clean"
     - COVERITY_SCAN_BUILD_COMMAND="make -j2"
     # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created using: travis encrypt COVERITY_SCAN_TOKEN="xxxxxxx-xxxxxxx" -r dkgroot/chan-sccp-b
-    - secure: "V+D+Idb6BFnRctrx5ghnYgVLlqvvECmnQAq9n2f+CSNoC0hMDP3feufnfaz/997a1yjuHhjDowXDwTrV0k9TGksZBYib9X8wCJ8yXe7L9lvRDbDWP26QFDsQSdwpWTU++XMsQC4Sh0h40hVU1sFPBsG8JP3bL6EiSe3Xv8RG27A="
+    - secure: "VJIQBkTBxuMqUEk872yPrbPq3MAFqB0EnjElxjTk+BWEHIKmheKIHyrlqJgnql/tqyeLSa6D8epV0cJ47adVbedCPAG/l1tk4AzErrQdnw9VVFANUFrJXxlaH/yfm39XiwwumuAJ2RF3OaYGHlyurW+lb91y2HHw8vQHNPu+uHI="
   matrix:
     - REPOS=precise
     - REPOS=trusty
