@@ -18,7 +18,7 @@ Be sure to include
 Note: How more information is provided upfront, the easier it is to get into the debugging phase. And the sooner the issue is resolved.
 
 * If possible, use the relevant bug report templates to create the issue. Simply copy the content of the appropriate template into a .txt file, make the necessary changes to demonstrate the issue, and **paste the content into the issue description**:
-  * [**Generic template** for issues](https://github.com/chan-sccp/chan-sccp/blob/master/.github/ISSUE_TEMPLATE)
+  * [**Generic template** for issues](https://github.com/chan-sccp/chan-sccp/blob/master/.github/ISSUE_TEMPLATE.md)
 
 * For more detailed information on submitting a bug report and creating an issue, visit our [reporting bugs guideline](https://github.com/chan-sccp/chan-sccp/wiki/Reporting%20Bugs).
 
