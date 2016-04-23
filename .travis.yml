@@ -16,7 +16,7 @@ env:
     - COVERITY_SCAN_BUILD_COMMAND_PREPEND="./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-advanced-functions && make clean"
     - COVERITY_SCAN_BUILD_COMMAND="make -j2"
     # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created using: travis encrypt COVERITY_SCAN_TOKEN="xxxxxxx-xxxxxxx" -r dkgroot/chan-sccp-b
-    - secure: "QKOkim25QeUSBfbqKvR8Gh3Lt5+yuZqd1m3yXVuQnvxK9CmUPEh6009v3pzdFzQIAid5H8PHioS6MeKLsrJikPccvs/utiKMkQhxTH9OiddhG1SExEu6wE77Vpa+3+iWZS1Xyer4FK2KpY9mAOH3DgGCWji/5LPu/11MCR5MABZ0+TmxXbR75KkEhxg7s7OtiF1wGIrroLR9WiAbpb2+iZ7yaoReaV5+mjRKnUJv8ztugiiU6Jq9m0fIdfPqYYsdVuS7/OGOSHM0LzBoeOPG0ZX1QGXlCxXzvVE7AA6gWgSdRwmHtYkw6lzsZQrIpyNrksHwky0HfWoHP9hhEp6vC3aEKn20/pTc7HunglyzSS6DTaXCuoq4v6ZFAAzqNyf+sDF9Z2yjIk5XOIPmpzPeyxPSJXA+LPwnH5Dhpf0qmShJ2HYPhB0DzhDLKdWRhH9N1SMj7q03lh74r+CI+Oyyo7laJJz+whzTstp+hOuUTxQYBvg412gpATvwOXbxFw1f65qm5evC27GA3FYBfnxmyApoveERcvG+2oj7N276RCyGLXmhnOeH2aF7qfQOLAKeMcl32hHPsS2eNoCv5lYzxtbP5lUKmX/FKqrtpvQKy6jW8GLLEZXmx7cM0hLGt5pG3J6IRHPX9zJdyshJWyxI2tl0fPE34Y3uhCyWfPfpJZk="
+    - secure: "V+D+Idb6BFnRctrx5ghnYgVLlqvvECmnQAq9n2f+CSNoC0hMDP3feufnfaz/997a1yjuHhjDowXDwTrV0k9TGksZBYib9X8wCJ8yXe7L9lvRDbDWP26QFDsQSdwpWTU++XMsQC4Sh0h40hVU1sFPBsG8JP3bL6EiSe3Xv8RG27A="
   matrix:
     - REPOS=precise
     - REPOS=trusty
