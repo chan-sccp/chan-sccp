@@ -188,14 +188,6 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 }
 #endif
 
-#if ASTERISK_VERSION_GROUP >= 111
-int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_info *info, void *data);
-#elif ASTERISK_VERSION_GROUP >= 110
-int sccp_hint_devstate_cb(const char *context, const char *id, enum ast_extension_states state, void *data);
-#else
-int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states state, void *data);
-#endif
-
 /* ========================================================================================================================= List Declarations */
 static SCCP_LIST_HEAD (, struct sccp_hint_lineState) lineStates;
 static SCCP_LIST_HEAD (, sccp_hint_list_t) sccp_hint_subscriptions;
@@ -283,7 +275,11 @@ void sccp_hint_module_stop(void)
  * \param info ast_state_cb_info
  * \param data private channel data (sccp_hint_list_t *hint) as void pointer
  */
-int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_info *info, void *data)
+#ifdef CS_AST_HAS_EXTENSION_STATE_CB_TYPE_CONST_CHAR
+static int sccp_hint_devstate_cb(const char *context, const char *id, struct ast_state_cb_info *info, void *data)
+#else
+static int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_info *info, void *data)
+#endif
 #elif ASTERISK_VERSION_GROUP >= 110
 /*!
  * \param context extension context (const char *)
@@ -291,7 +287,7 @@ int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_info *inf
  * \param state ast_extension_state (enum)
  * \param data private channel data (sccp_hint_list_t *hint) as void pointer
  */
-int sccp_hint_devstate_cb(const char *context, const char *id, enum ast_extension_states state, void *data)
+static int sccp_hint_devstate_cb(const char *context, const char *id, enum ast_extension_states state, void *data)
 #else
 /*!
  * \param context extension context (char *)
@@ -299,7 +295,7 @@ int sccp_hint_devstate_cb(const char *context, const char *id, enum ast_extensio
  * \param state ast_extension_state (enum)
  * \param data private channel data (sccp_hint_list_t *hint) as void pointer
  */
-int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states state, void *data)
+static int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states state, void *data)
 #endif
 {
 	sccp_hint_list_t *hint;

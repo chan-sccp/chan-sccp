@@ -19442,7 +19442,7 @@ $as_echo "${T_MD}Checking Asterisk Headers:${T_ME}" >&6; }
 
 
 	CFLAGS_backup={$CFLAGS}
-	CFLAGS="${CFLAGS_saved}"
+	CFLAGS="${CFLAGS_saved} -Werror -Werror=incompatible-pointer-types -Wno-error=unused-variable"
 
 	HEADER_INCLUDE="
 #undef PACKAGE
@@ -22090,6 +22090,161 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+
+			if test "${ASTERISK_VER_GROUP}" == "113"; then :
+
+
+		ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - ast_state_cb_type uses const char (13)..." >&5
+$as_echo_n "checking  - ast_state_cb_type uses const char (13)...... " >&6; }
+if ${ac_cv_ast_state_cb_type_const_char+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+                        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+					$HEADER_INCLUDE
+					#include <asterisk/pbx.h>
+
+int
+main ()
+{
+
+						int test_cb(const char *context, const char *exten, struct ast_state_cb_info *info, void *data) {
+							return 0;
+						}
+						int id = ast_extension_state_add("","",test_cb,"");
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+                                        ac_cv_ast_state_cb_type_const_char="yes"
+                                        if ${ac_cv_ast_state_cb_type_const_char+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "yes"
+fi
+
+
+else
+
+                                        ac_cv_ast_state_cb_type_const_char="no"
+                                        if ${ac_cv_ast_state_cb_type_const_char+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "no"
+fi
+
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_ast_state_cb_type_const_char" >&5
+$as_echo "$ac_cv_ast_state_cb_type_const_char" >&6; }
+        eval val=\$ac_cv_ast_state_cb_type_const_char
+        if test "x$val" = "xyes"; then
+
+$as_echo "#define CS_AST_HAS_EXTENSION_STATE_CB_TYPE_CONST_CHAR 1" >>confdefs.h
+ :
+             : :
+        fi
+	ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+
+
+		ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - ast_state_cb_type uses char (11-13)..." >&5
+$as_echo_n "checking  - ast_state_cb_type uses char (11-13)...... " >&6; }
+if ${ac_cv_ast_state_cb_type_char+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+                        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+					$HEADER_INCLUDE
+					#include <asterisk/pbx.h>
+
+int
+main ()
+{
+
+						int test_cb(char *context, char *exten, struct ast_state_cb_info *info, void *data) {
+							return 0;
+						}
+						int id = ast_extension_state_add("","",test_cb,"");
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+                                        ac_cv_ast_state_cb_type_char="yes"
+                                        if ${ac_cv_ast_state_cb_type_char+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "yes"
+fi
+
+
+else
+
+                                        ac_cv_ast_state_cb_type_char="no"
+                                        if ${ac_cv_ast_state_cb_type_char+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "no"
+fi
+
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_ast_state_cb_type_char" >&5
+$as_echo "$ac_cv_ast_state_cb_type_char" >&6; }
+        eval val=\$ac_cv_ast_state_cb_type_char
+        if test "x$val" = "xyes"; then
+
+$as_echo "#define CS_AST_HAS_EXTENSION_STATE_CB_TYPE_CHAR 1" >>confdefs.h
+ :
+             : :
+        fi
+	ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+
+
+fi
 
 fi
 

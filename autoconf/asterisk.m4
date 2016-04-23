@@ -208,7 +208,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 	CONFIGURE_PART([Checking Asterisk Headers:])
 
 	CFLAGS_backup={$CFLAGS}
-	CFLAGS="${CFLAGS_saved}"
+	CFLAGS="${CFLAGS_saved} -Werror -Werror=incompatible-pointer-types -Wno-error=unused-variable"
 	
 	HEADER_INCLUDE="
 #undef PACKAGE
@@ -823,6 +823,29 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					int test_ext_ringing = (int)AST_EXTENSION_RINGING;
 				], [CS_AST_HAS_EXTENSION_RINGING],['AST_EXTENSION_RINGING' available]
 			)
+
+			AS_IF([test "${ASTERISK_VER_GROUP}" == "113"], [
+				CS_CV_TRY_COMPILE_DEFINE([ - ast_state_cb_type uses const char (13)...], [ac_cv_ast_state_cb_type_const_char], [
+					$HEADER_INCLUDE
+					#include <asterisk/pbx.h>
+					], [
+						int test_cb(const char *context, const char *exten, struct ast_state_cb_info *info, void *data) {
+							return 0;
+						}
+						int id = ast_extension_state_add("","",test_cb,"");
+					], [CS_AST_HAS_EXTENSION_STATE_CB_TYPE_CONST_CHAR], ['AST_EXTENSION_STATE_CB_TYPE_CONST_CHAR' available]
+				)
+				CS_CV_TRY_COMPILE_DEFINE([ - ast_state_cb_type uses char (11-13)...], [ac_cv_ast_state_cb_type_char], [
+					$HEADER_INCLUDE
+					#include <asterisk/pbx.h>
+					], [
+						int test_cb(char *context, char *exten, struct ast_state_cb_info *info, void *data) {
+							return 0;
+						}
+						int id = ast_extension_state_add("","",test_cb,"");
+					], [CS_AST_HAS_EXTENSION_STATE_CB_TYPE_CHAR], ['AST_EXTENSION_STATE_CB_TYPE_CHAR' available]
+				)
+			])
 		],,[ 
 			$HEADER_INCLUDE
 		])
