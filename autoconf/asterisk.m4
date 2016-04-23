@@ -906,7 +906,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 		AC_CHECK_HEADER([asterisk/sched.h],
 		[
 			AC_DEFINE([HAVE_PBX_SCHED_H],1,[Found 'asterisk/sched.h'])
-			AS_IF([test "${AST_VERSION_GROUP}" -lt "110"], [
+			AS_IF([test ${AST_VERSION_GROUP} -lt 110], [
 				CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_sched_del'...], [ac_cv_ast_sched_del], [
 						#include <unistd.h>				
 						$HEADER_INCLUDE

@@ -22545,7 +22545,7 @@ if test "x$ac_cv_header_asterisk_sched_h" = xyes; then :
 
 $as_echo "#define HAVE_PBX_SCHED_H 1" >>confdefs.h
 
-			if test "${AST_VERSION_GROUP}" -lt "110"; then :
+			if test ${AST_VERSION_GROUP} -lt 110; then :
 
 
 		ac_ext=c
