@@ -19442,7 +19442,81 @@ $as_echo "${T_MD}Checking Asterisk Headers:${T_ME}" >&6; }
 
 
 	CFLAGS_backup={$CFLAGS}
-	CFLAGS="${CFLAGS_saved} -Werror=incompatible-pointer-types -Werror=implicit-function-declaration -Werror=int-conversion"
+	CFLAGS="${CFLAGS_saved}"
+
+for flag in -Werror=incompatible-pointer-types -Werror=implicit-function-declaration -Werror=int-conversion -Werror-shadow; do
+  as_CACHEVAR=`$as_echo "ax_cv_check_cflags__$flag" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts $flag" >&5
+$as_echo_n "checking whether C compiler accepts $flag... " >&6; }
+if eval \${$as_CACHEVAR+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  ax_check_save_flags=$CFLAGS
+  CFLAGS="$CFLAGS  $flag -Werror"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$as_CACHEVAR=yes"
+else
+  eval "$as_CACHEVAR=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS=$ax_check_save_flags
+fi
+eval ac_res=\$$as_CACHEVAR
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_CACHEVAR"\" = x"yes"; then :
+
+
+if ${TEST_SUPPORTED_CFLAGS+:} false; then :
+
+  case " $TEST_SUPPORTED_CFLAGS " in #(
+  *" $flag "*) :
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: : TEST_SUPPORTED_CFLAGS already contains \$flag"; } >&5
+  (: TEST_SUPPORTED_CFLAGS already contains $flag) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; } ;; #(
+  *) :
+
+     as_fn_append TEST_SUPPORTED_CFLAGS " $flag"
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: : TEST_SUPPORTED_CFLAGS=\"\$TEST_SUPPORTED_CFLAGS\""; } >&5
+  (: TEST_SUPPORTED_CFLAGS="$TEST_SUPPORTED_CFLAGS") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }
+     ;;
+esac
+
+else
+
+  TEST_SUPPORTED_CFLAGS=$flag
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: : TEST_SUPPORTED_CFLAGS=\"\$TEST_SUPPORTED_CFLAGS\""; } >&5
+  (: TEST_SUPPORTED_CFLAGS="$TEST_SUPPORTED_CFLAGS") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }
+
+fi
+
+else
+  :
+fi
+
+done
+
+	CFLAGS="${CFLAGS_saved} ${TEST_SUPPORTED_CFLAGS}"
 
 	HEADER_INCLUDE="
 #undef PACKAGE
@@ -22094,6 +22168,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 			if test "${ASTERISK_VER_GROUP}" == "113"; then :
 
+				CFLAGS="${CFLAGS_saved} ${TEST_SUPPORTED_CFLAGS} -Werror"
 
 		ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -22244,6 +22319,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+				CFLAGS="${CFLAGS_saved} ${TEST_SUPPORTED_CFLAGS}"
 
 fi
 
