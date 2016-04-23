@@ -31,19 +31,20 @@ Make sure you have the following installed on your system:
     ./configure [....configure flags you prefer...]
 
 For more information about the possible configure flags, check:
+
     ./configure --help 
 
-Note: When you are making changes to configure.ac, autoconf / or Makefile.am files you should run ./tools/bootstrap.sh afterwards.
+Note: When you are making changes to configure.ac, autoconf / or Makefile.am files you should run:
+
+    ./tools/bootstrap.sh
 
 ### Build and Install
     make
     make install
 
 ### Wiki
-You can find more information and documentation on our [wiki](https://sourceforge.net/p/chan-sccp-b/wiki/)
+You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-docs-blue.svg)](https://sourceforge.net/p/chan-sccp-b/wiki/Home/)
 
 ### Donate
 If you like our project, then please consider to 
-[![donation](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_pp_142x27.png)](https://www.paypal.com/cgi-bin/webscr?item_name=Donation+to+Chan-SCCP+channel+driver+for+Asterisk&locale.x=en_US&cmd=_donations&business=chan.sccp.b.pp%40gmail.com).
-
-
+[![donation](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_pp_142x27.png)](https://www.paypal.com/cgi-bin/webscr?item_name=Donation+to+Chan-SCCP+channel+driver+for+Asterisk&locale.x=en_US&cmd=_donations&business=chan.sccp.b.pp%40gmail.com)
