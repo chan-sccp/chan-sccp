@@ -43,7 +43,7 @@ Note: When you are making changes to configure.ac, autoconf / or Makefile.am fil
 You can find more information and documentation on our [wiki](https://sourceforge.net/p/chan-sccp-b/wiki/)
 
 ### Donate
-If you like our project, then please consider making a 
+If you like our project, then please consider to 
 [![donation](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_pp_142x27.png)](https://www.paypal.com/cgi-bin/webscr?item_name=Donation+to+Chan-SCCP+channel+driver+for+Asterisk&locale.x=en_US&cmd=_donations&business=chan.sccp.b.pp%40gmail.com).
 
 
