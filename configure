@@ -21714,7 +21714,7 @@ else
 /* end confdefs.h.  */
 
 					$HEADER_INCLUDE
-					#include <asterisk/frame.h>p
+					#include <asterisk/frame.h>
 
 int
 main ()
@@ -22112,14 +22112,14 @@ else
 
 					$HEADER_INCLUDE
 					#include <asterisk/pbx.h>
+					static int test_cb(const char *context, const char *exten, struct ast_state_cb_info *info, void *data) {
+						return 0;
+					}
 
 int
 main ()
 {
 
-						int test_cb(const char *context, const char *exten, struct ast_state_cb_info *info, void *data) {
-							return 0;
-						}
 						int __attribute__((unused)) id = ast_extension_state_add("","",test_cb,"");
 
   ;
@@ -22187,14 +22187,14 @@ else
 
 					$HEADER_INCLUDE
 					#include <asterisk/pbx.h>
+					static int test_cb(char *context, char *exten, struct ast_state_cb_info *info, void *data) {
+						return 0;
+					}
 
 int
 main ()
 {
 
-						int test_cb(char *context, char *exten, struct ast_state_cb_info *info, void *data) {
-							return 0;
-						}
 						int __attribute__((unused)) id = ast_extension_state_add("","",test_cb,"");
 
   ;
@@ -22545,7 +22545,7 @@ if test "x$ac_cv_header_asterisk_sched_h" = xyes; then :
 
 $as_echo "#define HAVE_PBX_SCHED_H 1" >>confdefs.h
 
-			if test ${AST_VERSION_GROUP} -lt 110; then :
+			if test ${ASTERISK_VER_GROUP} -lt 110; then :
 
 
 		ac_ext=c

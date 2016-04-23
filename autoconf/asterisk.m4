@@ -771,7 +771,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_redirecting'...], [ac_cv_ast_control_redirecting], [
 					$HEADER_INCLUDE
-					#include <asterisk/frame.h>p
+					#include <asterisk/frame.h>
 				], [
 					int __attribute__((unused)) test_control_redirecting = (int)AST_CONTROL_REDIRECTING;
 				], [CS_AST_CONTROL_REDIRECTING], ['AST_CONTROL_REDIRECTING' available]
@@ -829,20 +829,20 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				CS_CV_TRY_COMPILE_DEFINE([ - ast_state_cb_type uses const char (13)...], [ac_cv_ast_state_cb_type_const_char], [
 					$HEADER_INCLUDE
 					#include <asterisk/pbx.h>
+					static int test_cb(const char *context, const char *exten, struct ast_state_cb_info *info, void *data) {
+						return 0;
+					}
 					], [
-						int test_cb(const char *context, const char *exten, struct ast_state_cb_info *info, void *data) {
-							return 0;
-						}
 						int __attribute__((unused)) id = ast_extension_state_add("","",test_cb,"");
 					], [CS_AST_HAS_EXTENSION_STATE_CB_TYPE_CONST_CHAR], ['AST_EXTENSION_STATE_CB_TYPE_CONST_CHAR' available]
 				)
 				CS_CV_TRY_COMPILE_DEFINE([ - ast_state_cb_type uses char (11-13)...], [ac_cv_ast_state_cb_type_char], [
 					$HEADER_INCLUDE
 					#include <asterisk/pbx.h>
+					static int test_cb(char *context, char *exten, struct ast_state_cb_info *info, void *data) {
+						return 0;
+					}
 					], [
-						int test_cb(char *context, char *exten, struct ast_state_cb_info *info, void *data) {
-							return 0;
-						}
 						int __attribute__((unused)) id = ast_extension_state_add("","",test_cb,"");
 					], [CS_AST_HAS_EXTENSION_STATE_CB_TYPE_CHAR], ['AST_EXTENSION_STATE_CB_TYPE_CHAR' available]
 				)
