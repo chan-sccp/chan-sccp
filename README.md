@@ -1,7 +1,7 @@
 ## Welcome to Chan_SCCP
 
 [![Coverity](https://img.shields.io/coverity/scan/7795.svg)](https://scan.coverity.com/projects/dkgroot-chan-sccp-b)
-[![Build Status](http://img.shields.io/travis/marcelloceschia/chan-sccp-b.svg?style=flat)](https://travis-ci.org/marcelloceschia/chan-sccp-b)
+[![Build Status](http://img.shields.io/travis/chan-sccp/chan-sccp.svg?style=flat)](https://travis-ci.org/chan-sccp/chan-sccp)
 [![Github Issues](https://img.shields.io/github/issues/chan-sccp/chan-sccp/bug.svg)](https://github.com/chan-sccp/chan-sccp/issues)
 [![Download Chan-SCCP channel driver for Asterisk](https://img.shields.io/sourceforge/dt/chan-sccp-b.svg)](https://sourceforge.net/projects/chan-sccp-b/files/latest/download)
 [![GitHub license](https://img.shields.io/badge/license-GPL-blue.svg)](https://raw.githubusercontent.com/chan-sccp/chan-sccp/master/LICENSE)
