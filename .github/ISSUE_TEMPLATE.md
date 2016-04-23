@@ -1,13 +1,24 @@
-##Expected behavior
+## Required
+###Expected behavior
 
-##Actual behavior.
+###Actual behavior.
 
-##Steps to reproduce the problem.
+###Steps to reproduce the problem.
 
-##platform (cpu / 32/64 bit / endianness)
+##asterisk version (include revision if relevant)
 
-##operating system (inclugin version if relevant)
+##chan-sccp version (include revision if relevant)
 
-##asterisk version (includeing revision if relevant)
 
-##chan-sccp version (including revision if relevant)
+## Optional
+###platform (cpu / 32/64 bit / endianness)
+
+###operating system (include version if relevant)
+
+### Direct Contact information (if relavant)
+
+### Log Files
+(link to pastebin debug log files (if necessary))
+
+### Images
+(link to pastebin debug log files (if necessary))
