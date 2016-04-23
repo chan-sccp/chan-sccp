@@ -1,13 +1,12 @@
 ## Welcome to Chan_SCCP
 
+[![Gitter](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/chan-sccp/chan-sccp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Build Status](http://img.shields.io/travis/chan-sccp/chan-sccp.svg?style=flat)](https://travis-ci.org/chan-sccp/chan-sccp)
 [![Coverity](https://img.shields.io/coverity/scan/8656.svg)](https://scan.coverity.com/projects/chan-sccp)
 [![Github Issues](https://img.shields.io/github/issues/chan-sccp/chan-sccp/bug.svg)](https://github.com/chan-sccp/chan-sccp/issues)
 [![Download Chan-SCCP channel driver for Asterisk](https://img.shields.io/sourceforge/dt/chan-sccp-b.svg)](https://github.com/chan-sccp/chan-sccp/releases/latest)
 [![Github Releases](https://img.shields.io/github/release/chan-sccp/chan-sccp.svg)](https://github.com/chan-sccp/chan-sccp/releases)
 [![Documentation](https://img.shields.io/badge/docs-wiki-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki)
-[![LauchpadPPA](https://img.shields.io/badge/Ppa-bin-blue.svg)](https://launchpad.net/~chan-sccp-b/+archive/ubuntu/ppa)
-[![BuildOpenSuSE](https://img.shields.io/badge/Build-bin-blue.svg)](http://download.opensuse.org/repositories/home:/chan-sccp-b:/)
 [![Donate](https://img.shields.io/badge/paypal-donate-yellow.svg)](https://www.paypal.com/cgi-bin/webscr?item_name=Donation+to+Chan-SCCP+channel+driver+for+Asterisk&locale.x=en_US&cmd=_donations&business=chan.sccp.b.pp%40gmail.com).
 
 Chan_SCCP is free software. Please see the file COPYING for details.
@@ -41,9 +40,21 @@ Note: When you are making changes to configure.ac, autoconf / or Makefile.am fil
     make
     make install
 
+### Binaries
+We also provide prebuild binaries for:
+- [Ubuntu (PPA)](https://launchpad.net/~chan-sccp-b/+archive/ubuntu/ppa)
+- [Debian-7.0](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-1.8_chan-sccp-b/Debian_7.0/)
+- [Debian-8.0](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-11_chan-sccp-b/Debian_8.0/)
+- [OpenSuSE](http://download.opensuse.org/repositories/home:/chan-sccp-b:/)
+- [Centos](http://download.opensuse.org/repositories/home:/chan-sccp-b:/other/)
+- [Redhat/Fedora](http://download.opensuse.org/repositories/home:/chan-sccp-b:/other/)
+
 ### Wiki
 You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-old-blue.svg)](https://sourceforge.net/p/chan-sccp-b/wiki/Home/)
 [![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/)
+
+### Chat
+[![Gitter](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/chan-sccp/chan-sccp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ### Donate
 If you like our project, then please consider to 
