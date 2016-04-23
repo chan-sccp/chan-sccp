@@ -29,7 +29,7 @@
 #include "sccp_utils.h"
 #include "sccp_atomic.h"
 #include "sccp_devstate.h"
-#include "sccp_parkinglot.h"
+#include "sccp_featureParkingLot.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 

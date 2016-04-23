@@ -17,7 +17,7 @@
 #include "sccp_management.h"
 #include "sccp_session.h"
 #include "sccp_utils.h"
-#include "sccp_parkinglot.h"
+#include "sccp_featureParkingLot.h"
 #include <asterisk/threadstorage.h>
 
 SCCP_FILE_VERSION(__FILE__, "");

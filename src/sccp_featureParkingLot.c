@@ -1,5 +1,5 @@
 /*!
- * \file	sccp_parkinglot.c
+ * \file	sccp_featureParkingLot.c
  * \brief	SCCP ParkingLot Class
  * \author	Diederik de Groot <ddegroot [at] users.sf.net>
  * \date	2015-Sept-16

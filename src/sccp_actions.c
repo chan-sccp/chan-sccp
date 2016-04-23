@@ -28,7 +28,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_features.h"
 #include "sccp_indicate.h"
 #include "sccp_line.h"
-#include "sccp_parkinglot.h"
+#include "sccp_featureParkingLot.h"
 
 /*!
  * \remarks
