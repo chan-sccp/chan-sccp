@@ -1,6 +1,6 @@
 ## Welcome to Chan_SCCP
 
-[![Gitter Chat](https://img.shields.io/gitter/room/chan-sccp/nw.js.svg)](https://gitter.im/chan-sccp?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
+[![Gitter](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/chan-sccp/chan-sccp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Build Status](http://img.shields.io/travis/chan-sccp/chan-sccp.svg?style=flat)](https://travis-ci.org/chan-sccp/chan-sccp)
 [![Coverity](https://img.shields.io/coverity/scan/8656.svg)](https://scan.coverity.com/projects/chan-sccp)
 [![Github Issues](https://img.shields.io/github/issues/chan-sccp/chan-sccp/bug.svg)](https://github.com/chan-sccp/chan-sccp/issues)
@@ -54,7 +54,7 @@ You can find more information and documentation on our [![Wiki](https://img.shie
 [![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/)
 
 ### Chat
-[Chat with the developers](https://gitter.im/chan-sccp?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
+[![Gitter](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/chan-sccp/chan-sccp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ### Donate
 If you like our project, then please consider to 
