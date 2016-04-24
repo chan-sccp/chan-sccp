@@ -505,7 +505,7 @@ const skinny_registrationstate_t sccp_device_getRegistrationState(constDevicePtr
 int sccp_device_setRegistrationState(constDevicePtr d, const skinny_registrationstate_t state)
 {
 	pbx_assert(d != NULL);
-	if ((uintptr_t)d == 0xdeaddeaddeaddead || !d->privateData) {
+	if (isPointerDead(d) || !d->privateData) {
 		return 0;;
 	}
 
