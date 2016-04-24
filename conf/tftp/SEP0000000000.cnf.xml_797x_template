@@ -98,7 +98,6 @@
     <moreKeyReversionTimer>5</moreKeyReversionTimer>
     <autoCallSelect>1</autoCallSelect>
     <logServer/>
-    <g722CodecSupport>0</g722CodecSupport>
     <headsetWidebandUIControl>0</headsetWidebandUIControl>
     <handsetWidebandUIControl>0</handsetWidebandUIControl>
     <headsetWidebandEnable>0</headsetWidebandEnable>
@@ -110,7 +109,15 @@
     <enableLldpPcPort>1</enableLldpPcPort>
     <lldpAssetId/>
     <powerPriority>1</powerPriority>
+    <g722CodecSupport>0</g722CodecSupport> <!-- 0 = Phone default, take from commonConfig, 1 = Disabled. Disables G.722-64K2 codec on phone, 2 = Enabled. Enables G.722-64K codec on phone. -->
   </vendorConfig>
+  <commonConfig>
+    <g722CodecSupport>0</g722CodecSupport> <!-- 0 = Phone default, take from enterpriseConfig, 1 = Disabled. Disables G.722-64K2 codec on phone, 2 = Enabled. Enables G.722-64K codec on phone. -->
+  </commonConfig>
+  <enterpriseConfig>
+    <g722CodecSupport>0</g722CodecSupport> <!-- 0 = Phone default, 1 = Disabled. Disables G.722-64K2 codec on phone, 2 = Enabled. Enables G.722-64K codec on phone. -->
+  </enterpriseConfig>
+  <advertiseG722Codec>1</advertiseG722Codec>
   <versionStamp>1231176639-afb83e8d-60c2-4c00-b44a-74941a6451e8</versionStamp>
   <userLocale>
     <name>English_United_States</name>
@@ -160,7 +167,6 @@
   </capfList>
   <certHash/>
   <encrConfig>false</encrConfig>
-  <advertiseG722Codec>1</advertiseG722Codec>
   <mobility>
     <handoffdn/>
     <dtmfdn/>

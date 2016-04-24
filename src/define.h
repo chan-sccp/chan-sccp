@@ -196,6 +196,9 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 #define AUTO_WRLOCK(varname, lock) SCOPED_LOCK(varname, (lock), pbx_rwlock_wrlock, pbx_rwlock_unlock)
 /* example AUTO_RDLOCK(lock, &s->lock); */
 
+/* check to see if is pointer is actually already being cleaned up */
+#define isPointerDead(_x) (sizeof(char*) == 4 ? (uintptr_t)_x == 0xdeaddead : (uintptr_t)_x == 0xdeaddeaddeaddead)
+
 /* deny the use of unsafe functions */
 #define __strcat strcat
 #define strcat(...) _Pragma("GCC error \"use snprint instead of strcat\"")
@@ -222,4 +225,5 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 
 #define __atoi atoi
 #define atoi(...) _Pragma("GCC error \"use sccp atoi instead of atoi\"")
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

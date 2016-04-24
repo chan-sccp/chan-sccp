@@ -1047,9 +1047,9 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 	const char *actionid = "";
 
 	if (!s) {
-		pbx_cli(fd, "\n+--- Lines -------------------------------------------------------------------------------------------------------------------------------------+\n");
-		pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4s %-59s |\n", "Ext", "Suffix", "Label", "Device", "MWI", "Chs", "Active Channel");
-		pbx_cli(fd, "+ ============= ========= ============================== ================ ==== ==== =========================================================== +\n");
+		pbx_cli(fd, "\n+--- Lines ------------------------------------------------------------------------------------------------------------------------------------------------------+\n");
+		pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-16s %-4s %-4s %-59s |\n", "Ext", "Suffix", "Label", "Description", "Device", "MWI", "Chs", "Active Channel");
+		pbx_cli(fd, "+ ============= ========= ============================== ================ ================ ==== ==== =========================================================== +\n");
 	} else {
 		astman_append(s, "Event: TableStart\r\n");
 		local_line_total++;
@@ -1098,10 +1098,11 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 				}
 				SCCP_LIST_UNLOCK(&l->channels);
 				if (!s) {
-					pbx_cli(fd, "| %-13s %-3s %-6s %-30s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n",
+					pbx_cli(fd, "| %-13s %-3s%-6s %-30s %-16s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n",
 						!found_linedevice ? l->name : " +--", 
 						linedevice->subscriptionId.replaceCid ? "(=)" : "(+)", linedevice->subscriptionId.number, 
-						 sccp_strlen_zero(linedevice->subscriptionId.label) ? (l->label ? l->label : "--") : linedevice->subscriptionId.label,
+						sccp_strlen_zero(linedevice->subscriptionId.label) ? (l->label ? l->label : "--") : linedevice->subscriptionId.label,
+						l->description ? l->description : "--",
 						d->id, 
 						(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", 
 						SCCP_RWLIST_GETSIZE(&l->channels), 
@@ -1117,6 +1118,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 					astman_append(s, "Exten: %s\r\n", l->name);
 					astman_append(s, "SubscriptionNumber: %s\r\n", linedevice->subscriptionId.number);
 					astman_append(s, "Label: %s\r\n", sccp_strlen_zero(linedevice->subscriptionId.label) ? l->label : linedevice->subscriptionId.label);
+					astman_append(s, "Description: %s\r\n", l->description ? l->description : "<not set>");
 					astman_append(s, "Device: %s\r\n", d->id);
 					astman_append(s, "MWI: %s\r\n", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF");
 					astman_append(s, "ActiveChannels: %d\r\n", SCCP_LIST_GETSIZE(&l->channels));
@@ -1134,10 +1136,11 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 		if (found_linedevice == 0) {
 			char cid_name[StationMaxNameSize] = {0};
 			if (!s) {
-				pbx_cli(fd, "| %-13s %-3s %-6s %-30s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n", 
+				pbx_cli(fd, "| %-13s %-3s%-6s %-30s %-16s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n", 
 					l->name, 
 					"", "",
 					l->label, 
+					l->description,
 					"--", 
 					(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", 
 					SCCP_LIST_GETSIZE(&l->channels),
@@ -1152,6 +1155,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 				astman_append(s, "ActionId: %s\r\n", actionid);
 				astman_append(s, "Exten: %s\r\n", l->name);
 				astman_append(s, "Label: %s\r\n", l->label ? l->label : "<not set>");
+				astman_append(s, "Description: %s\r\n", l->description ? l->description : "<not set>");
 				astman_append(s, "Device: %s\r\n", "(null)");
 				astman_append(s, "MWI: %s\r\n", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF");
 				astman_append(s, "\r\n");
@@ -1159,15 +1163,15 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 		}
 		if (!s) {
 			for (v = l->variables; v; v = v->next) {
-				pbx_cli(fd, "| %-13s %-9s %-30s = %-84.84s |\n", "", "Variable:", v->name, v->value);
+				pbx_cli(fd, "| %-13s %-9s %-30s = %-101.101s |\n", "", "Variable:", v->name, v->value);
 			}
 			if (!sccp_strlen_zero(l->defaultSubscriptionId.number) || !sccp_strlen_zero(l->defaultSubscriptionId.name)) {
-				pbx_cli(fd, "| %-13s %-9s %-30s %-86.86s |\n", "", "SubscrId:", l->defaultSubscriptionId.number, l->defaultSubscriptionId.name);
+				pbx_cli(fd, "| %-13s %-9s %-30s %-103.103s |\n", "", "SubscrId:", l->defaultSubscriptionId.number, l->defaultSubscriptionId.name);
 			}
 		}
 	}
 	if (!s) {
-		pbx_cli(fd, "+-----------------------------------------------------------------------------------------------------------------------------------------------+\n");
+		pbx_cli(fd, "+----------------------------------------------------------------------------------------------------------------------------------------------------------------+\n");
 	} else {
 		astman_append(s, "Event: TableEnd\r\n");
 		local_line_total++;

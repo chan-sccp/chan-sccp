@@ -19444,6 +19444,80 @@ $as_echo "${T_MD}Checking Asterisk Headers:${T_ME}" >&6; }
 	CFLAGS_backup={$CFLAGS}
 	CFLAGS="${CFLAGS_saved}"
 
+for flag in -Werror=incompatible-pointer-types -Werror=implicit-function-declaration -Werror=int-conversion -Werror-shadow; do
+  as_CACHEVAR=`$as_echo "ax_cv_check_cflags__$flag" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts $flag" >&5
+$as_echo_n "checking whether C compiler accepts $flag... " >&6; }
+if eval \${$as_CACHEVAR+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  ax_check_save_flags=$CFLAGS
+  CFLAGS="$CFLAGS  $flag -Werror"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$as_CACHEVAR=yes"
+else
+  eval "$as_CACHEVAR=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS=$ax_check_save_flags
+fi
+eval ac_res=\$$as_CACHEVAR
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_CACHEVAR"\" = x"yes"; then :
+
+
+if ${TEST_SUPPORTED_CFLAGS+:} false; then :
+
+  case " $TEST_SUPPORTED_CFLAGS " in #(
+  *" $flag "*) :
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: : TEST_SUPPORTED_CFLAGS already contains \$flag"; } >&5
+  (: TEST_SUPPORTED_CFLAGS already contains $flag) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; } ;; #(
+  *) :
+
+     as_fn_append TEST_SUPPORTED_CFLAGS " $flag"
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: : TEST_SUPPORTED_CFLAGS=\"\$TEST_SUPPORTED_CFLAGS\""; } >&5
+  (: TEST_SUPPORTED_CFLAGS="$TEST_SUPPORTED_CFLAGS") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }
+     ;;
+esac
+
+else
+
+  TEST_SUPPORTED_CFLAGS=$flag
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: : TEST_SUPPORTED_CFLAGS=\"\$TEST_SUPPORTED_CFLAGS\""; } >&5
+  (: TEST_SUPPORTED_CFLAGS="$TEST_SUPPORTED_CFLAGS") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }
+
+fi
+
+else
+  :
+fi
+
+done
+
+	CFLAGS="${CFLAGS_saved} ${TEST_SUPPORTED_CFLAGS}"
+
 	HEADER_INCLUDE="
 #undef PACKAGE
 #undef PACKAGE_BUGREPORT
@@ -19791,7 +19865,7 @@ int
 main ()
 {
 
-					struct ast_jb_conf test_jbconf;
+					struct ast_jb_conf __attribute__((unused)) test_jbconf;
 					test_jbconf.target_extra = (long)1;
 
   ;
@@ -19894,7 +19968,7 @@ int
 main ()
 {
 
-					int test_vm = ast_app_has_voicemail(NULL, NULL);
+					int __attribute__((unused)) test_vm = ast_app_has_voicemail(NULL, NULL);
 
   ;
   return 0;
@@ -19970,7 +20044,7 @@ int
 main ()
 {
 
-					unsigned int test_args = ast_app_separate_args(NULL, NULL, NULL, 0);
+					unsigned int __attribute__((unused)) test_args = ast_app_separate_args(NULL, NULL, NULL, 0);
 
   ;
   return 0;
@@ -20158,7 +20232,7 @@ int
 main ()
 {
 
-					struct ast_channel *test_bridged_channel = ast_bridged_channel(NULL);
+					struct ast_channel __attribute__((unused)) *test_bridged_channel = ast_bridged_channel(NULL);
 
   ;
   return 0;
@@ -20337,7 +20411,7 @@ int
 main ()
 {
 
-					int test_moh = (int)AST_FLAG_MOH;
+					int __attribute__((unused)) test_moh = (int)AST_FLAG_MOH;
 
   ;
   return 0;
@@ -20468,7 +20542,7 @@ int
 main ()
 {
 
-					int test_account_code = (int)AST_MAX_ACCOUNT_CODE;
+					int __attribute__((unused)) test_account_code = (int)AST_MAX_ACCOUNT_CODE;
 
   ;
   return 0;
@@ -20542,7 +20616,7 @@ int
 main ()
 {
 
-					struct ast_namedgroup *test = ast_get_namedgroups("test");
+					struct ast_namedgroups __attribute__((unused)) *test = ast_get_namedgroups("test");
 
   ;
   return 0;
@@ -20736,7 +20810,8 @@ main ()
 {
 
 				struct ast_channel *chan = {0};
-				struct ast_bridge *test_bridge = ast_bridge_depart(chan);
+				//struct ast_bridge __attribute__((unused)) *test_bridge = ast_bridge_depart(chan);
+				int __attribute__((unused)) test_bridge = ast_bridge_depart(chan);
 
   ;
   return 0;
@@ -20928,7 +21003,7 @@ main ()
 {
 
 						struct ast_channel *chan = {0};
-						struct ast_bridge *test_bridge = ast_bridge_depart(chan);
+						struct ast_bridge __attribute__((unused)) *test_bridge = ast_bridge_depart(chan);
 
   ;
   return 0;
@@ -21179,7 +21254,7 @@ int
 main ()
 {
 
-					int test_device_ringing = (int)AST_DEVICE_RINGING;
+					int __attribute__((unused)) test_device_ringing = (int)AST_DEVICE_RINGING;
 
   ;
   return 0;
@@ -21309,7 +21384,7 @@ main ()
 
 					ast_event_cb_t test_cb;
 					void *data;
-					struct ast_event_sub *test_event_sub = ast_event_subscribe(AST_EVENT_MWI, test_cb, "mailbox subscription", data, AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, NULL, AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, "default", AST_EVENT_IE_END);
+					struct ast_event_sub __attribute__((unused)) *test_event_sub = ast_event_subscribe(AST_EVENT_MWI, test_cb, "mailbox subscription", data, AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, NULL, AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, "default", AST_EVENT_IE_END);
 
   ;
   return 0;
@@ -21396,8 +21471,8 @@ main ()
 {
 
 					struct stasis_topic *stasis_topic = NULL;
-					void *data;
-					struct stasis_subscription *stasis_sub = stasis_subscribe(stasis_topic, data, data);
+					void *data = NULL;
+					struct stasis_subscription __attribute__((unused)) *stasis_sub = stasis_subscribe(stasis_topic, data, data);
 
   ;
   return 0;
@@ -21572,7 +21647,7 @@ int
 main ()
 {
 
-					struct ast_frame test_frame = { AST_FRAME_DTMF, };
+					struct ast_frame __attribute__((unused)) test_frame = { AST_FRAME_DTMF, };
 					test_frame.data.ptr = NULL;
 
   ;
@@ -21646,7 +21721,7 @@ int
 main ()
 {
 
-					int test_control_incomplete = (int)AST_CONTROL_INCOMPLETE;
+					int __attribute__((unused)) test_control_incomplete = (int)AST_CONTROL_INCOMPLETE;
 
   ;
   return 0;
@@ -21713,13 +21788,13 @@ else
 /* end confdefs.h.  */
 
 					$HEADER_INCLUDE
-					#include <asterisk/frame.h>p
+					#include <asterisk/frame.h>
 
 int
 main ()
 {
 
-					int test_control_redirecting = (int)AST_CONTROL_REDIRECTING;
+					int __attribute__((unused)) test_control_redirecting = (int)AST_CONTROL_REDIRECTING;
 
   ;
   return 0;
@@ -21807,7 +21882,7 @@ int
 main ()
 {
 
-					struct manager_custom_hook sccp_manager_hook;
+					struct manager_custom_hook __attribute__((unused)) sccp_manager_hook;
 
   ;
   return 0;
@@ -21895,7 +21970,7 @@ int
 main ()
 {
 
-					int test_get_hint = ast_get_hint("", 0, "", 0, NULL, "", "");
+					int __attribute__((unused)) test_get_hint = ast_get_hint("", 0, "", 0, NULL, "", "");
 
   ;
   return 0;
@@ -21968,7 +22043,7 @@ int
 main ()
 {
 
-					int test_ext_onhold = (int)AST_EXTENSION_ONHOLD;
+					int __attribute__((unused)) test_ext_onhold = (int)AST_EXTENSION_ONHOLD;
 
   ;
   return 0;
@@ -22041,7 +22116,7 @@ int
 main ()
 {
 
-					int test_ext_ringing = (int)AST_EXTENSION_RINGING;
+					int __attribute__((unused)) test_ext_ringing = (int)AST_EXTENSION_RINGING;
 
   ;
   return 0;
@@ -22091,6 +22166,163 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+			if test "${ASTERISK_VER_GROUP}" == "113"; then :
+
+				CFLAGS="${CFLAGS_saved} ${TEST_SUPPORTED_CFLAGS} -Werror"
+
+		ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - ast_state_cb_type uses const char (13)..." >&5
+$as_echo_n "checking  - ast_state_cb_type uses const char (13)...... " >&6; }
+if ${ac_cv_ast_state_cb_type_const_char+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+                        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+					$HEADER_INCLUDE
+					#include <asterisk/pbx.h>
+					static int test_cb(const char *context, const char *exten, struct ast_state_cb_info *info, void *data) {
+						return 0;
+					}
+
+int
+main ()
+{
+
+						int __attribute__((unused)) id = ast_extension_state_add("","",test_cb,"");
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+                                        ac_cv_ast_state_cb_type_const_char="yes"
+                                        if ${ac_cv_ast_state_cb_type_const_char+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "yes"
+fi
+
+
+else
+
+                                        ac_cv_ast_state_cb_type_const_char="no"
+                                        if ${ac_cv_ast_state_cb_type_const_char+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "no"
+fi
+
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_ast_state_cb_type_const_char" >&5
+$as_echo "$ac_cv_ast_state_cb_type_const_char" >&6; }
+        eval val=\$ac_cv_ast_state_cb_type_const_char
+        if test "x$val" = "xyes"; then
+
+$as_echo "#define CS_AST_HAS_EXTENSION_STATE_CB_TYPE_CONST_CHAR 1" >>confdefs.h
+ :
+             : :
+        fi
+	ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+
+
+		ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - ast_state_cb_type uses char (11-13)..." >&5
+$as_echo_n "checking  - ast_state_cb_type uses char (11-13)...... " >&6; }
+if ${ac_cv_ast_state_cb_type_char+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+                        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+					$HEADER_INCLUDE
+					#include <asterisk/pbx.h>
+					static int test_cb(char *context, char *exten, struct ast_state_cb_info *info, void *data) {
+						return 0;
+					}
+
+int
+main ()
+{
+
+						int __attribute__((unused)) id = ast_extension_state_add("","",test_cb,"");
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+                                        ac_cv_ast_state_cb_type_char="yes"
+                                        if ${ac_cv_ast_state_cb_type_char+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "yes"
+fi
+
+
+else
+
+                                        ac_cv_ast_state_cb_type_char="no"
+                                        if ${ac_cv_ast_state_cb_type_char+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "no"
+fi
+
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_ast_state_cb_type_char" >&5
+$as_echo "$ac_cv_ast_state_cb_type_char" >&6; }
+        eval val=\$ac_cv_ast_state_cb_type_char
+        if test "x$val" = "xyes"; then
+
+$as_echo "#define CS_AST_HAS_EXTENSION_STATE_CB_TYPE_CHAR 1" >>confdefs.h
+ :
+             : :
+        fi
+	ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+
+				CFLAGS="${CFLAGS_saved} ${TEST_SUPPORTED_CFLAGS}"
+
+fi
+
 fi
 
 
@@ -22132,10 +22364,8 @@ int
 main ()
 {
 
-					struct sched_context *test_sched=NULL;
-					const struct ast_sockaddr *test_sin=NULL;
-					struct ast_rtp_instance *test_instance = NULL;
-					test_instance = ast_rtp_instance_new(NULL, test_sched, &test_sin, NULL);
+					const struct ast_sockaddr test_sin=NULL;
+					struct ast_rtp_instance __attribute__((unused)) *test_instance = ast_rtp_instance_new(NULL, NULL, &test_sin, NULL);
 
   ;
   return 0;
@@ -22391,6 +22621,8 @@ if test "x$ac_cv_header_asterisk_sched_h" = xyes; then :
 
 $as_echo "#define HAVE_PBX_SCHED_H 1" >>confdefs.h
 
+			if test ${ASTERISK_VER_GROUP} -lt 110; then :
+
 
 		ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -22407,23 +22639,21 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#include <unistd.h>
-					$HEADER_INCLUDE
-					#ifdef HAVE_PBX_OPTIONS_H
-					#  include <asterisk/options.h>
-					#endif
-					#ifdef HAVE_PBX_LOGGER_H
-					#  include <asterisk/logger.h>
-					#endif
-					#include <asterisk/sched.h>
+						#include <unistd.h>
+						$HEADER_INCLUDE
+						#ifdef HAVE_PBX_OPTIONS_H
+						#  include <asterisk/options.h>
+						#endif
+						#ifdef HAVE_PBX_LOGGER_H
+						#  include <asterisk/logger.h>
+						#endif
+						#include <asterisk/sched.h>
 
 int
 main ()
 {
 
-					struct sched_context *test_con = NULL;
-					int test_id = 0;
-					int test_sched_del = AST_SCHED_DEL(test_con, test_id);
+						int __attribute__((unused)) test_sched_del = AST_SCHED_DEL(NULL, 0);
 
   ;
   return 0;
@@ -22472,6 +22702,97 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+
+$as_echo "#define CS_SCHED_CONTEXT 1" >>confdefs.h
+
+
+else
+
+
+		ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - availability 'ast_sched_del'..." >&5
+$as_echo_n "checking  - availability 'ast_sched_del'...... " >&6; }
+if ${ac_cv_ast_sched_del+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+                        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+						#include <unistd.h>
+						$HEADER_INCLUDE
+						#ifdef HAVE_PBX_OPTIONS_H
+						#  include <asterisk/options.h>
+						#endif
+						#ifdef HAVE_PBX_LOGGER_H
+						#  include <asterisk/logger.h>
+						#endif
+						#include <asterisk/sched.h>
+
+int
+main ()
+{
+
+						struct ast_sched_context *test_con = NULL;
+						int __attribute__((unused)) test_sched_del = AST_SCHED_DEL(test_con, 0);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+                                        ac_cv_ast_sched_del="yes"
+                                        if ${ac_cv_ast_sched_del+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "yes"
+fi
+
+
+else
+
+                                        ac_cv_ast_sched_del="no"
+                                        if ${ac_cv_ast_sched_del+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "no"
+fi
+
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_ast_sched_del" >&5
+$as_echo "$ac_cv_ast_sched_del" >&6; }
+        eval val=\$ac_cv_ast_sched_del
+        if test "x$val" = "xyes"; then
+
+$as_echo "#define CS_AST_SCHED_DEL 1" >>confdefs.h
+ :
+             : :
+        fi
+	ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+
+
+$as_echo "#define CS_AST_SCHED_CONTEXT 1" >>confdefs.h
+
+
+fi
 
 fi
 
@@ -22615,7 +22936,7 @@ int
 main ()
 {
 
-					unsigned int test_random = ast_random();
+					unsigned int __attribute__((unused)) test_random = ast_random();
 
   ;
   return 0;

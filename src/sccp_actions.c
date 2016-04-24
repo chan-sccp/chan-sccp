@@ -813,9 +813,14 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 		}
 		if (	state == SKINNY_DEVICE_RS_PROGRESS || state == SKINNY_DEVICE_RS_OK || 
 			state == SKINNY_DEVICE_RS_TIMEOUT || state == SKINNY_DEVICE_RS_CLEANING || 
-			(state == SKINNY_DEVICE_RS_TOKEN && time(0) - device->registrationTime > 60)) {
+			(state == SKINNY_DEVICE_RS_TOKEN && time(0) - device->registrationTime > 60)
+		) {
 			pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
+			
 			sccp_session_reject(s, "Cleaning previous session, come back later");
+			if (state != SKINNY_DEVICE_RS_CLEANING) {
+				sccp_dev_clean(device, (device->realtime) ? TRUE : FALSE, 0);
+			}
 			return;
 		}
 	}

@@ -738,35 +738,29 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
  */
 sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32_t type, const char *dirNum, const char *fqdn, const char *lineDisplayName)
 {
-	sccp_msg_t *msg = NULL;
-	int dirNum_len = (dirNum != NULL) ? sccp_strlen(dirNum) : 0;
-	int FQDN_len = (fqdn != NULL) ? sccp_strlen(fqdn) : 0;
-	int lineDisplayName_len = (lineDisplayName != NULL) ? sccp_strlen(lineDisplayName) : 0;
-	int dummy_len = dirNum_len + FQDN_len + lineDisplayName_len;
+	int dirNumLen = dirNum ? sccp_strlen(dirNum) : 0;
+	int fqdnLen = fqdn ? sccp_strlen(fqdn) : 0;
+	int lineDisplayNameLen = lineDisplayName ? sccp_strlen(lineDisplayName) : 0;
+	int dummyLen = dirNumLen + fqdnLen + lineDisplayNameLen;
 
-	int hdr_len = 8 - 1;
-
-	msg = sccp_build_packet(LineStatDynamicMessage,hdr_len + dummy_len);
+ 	int pktLen = SCCP_PACKET_HEADER + dummyLen;
+	sccp_msg_t *msg = sccp_build_packet(LineStatDynamicMessage, pktLen);
 	msg->data.LineStatDynamicMessage.lel_lineNumber = htolel(lineInstance);
-	//msg->data.LineStatDynamicMessage.lel_lineType = htolel(0x0f);
 	msg->data.LineStatDynamicMessage.lel_lineType = htolel(type);
-
-	if (dummy_len) {
-		char buffer[dummy_len];
-
-		memset(&buffer[0], 0, dummy_len);
-
-		if (dirNum_len) {
-			memcpy(&buffer[0], dirNum, dirNum_len);
+	if (dummyLen) {
+		char *dummyPtr = msg->data.LineStatDynamicMessage.dummy;
+		if (dirNumLen) {
+			memcpy(dummyPtr, dirNum, dirNumLen);
+			dummyPtr += dirNumLen + 1;
 		}
-		if (FQDN_len) {
-			memcpy(&buffer[dirNum_len + 1], fqdn, FQDN_len);
+		if (fqdnLen) {
+			memcpy(dummyPtr, fqdn, fqdnLen);
+			dummyPtr += fqdnLen + 1;
 		}
-		if (lineDisplayName_len) {
-			memcpy(&buffer[dirNum_len + FQDN_len + 2], lineDisplayName, lineDisplayName_len);
+		if (lineDisplayNameLen) {
+			memcpy(dummyPtr, lineDisplayName, lineDisplayNameLen);
+			dummyPtr += lineDisplayNameLen + 1;
 		}
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "LineStatDynamicMessage.dummy: %s\n", buffer);
-		memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], dummy_len);
 	}
 
 	return msg;

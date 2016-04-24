@@ -209,6 +209,10 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 
 	CFLAGS_backup={$CFLAGS}
 	CFLAGS="${CFLAGS_saved}"
+	AX_APPEND_COMPILE_FLAGS([-Werror=incompatible-pointer-types -Werror=implicit-function-declaration -Werror=int-conversion -Werror-shadow], TEST_SUPPORTED_CFLAGS)
+	CFLAGS="${CFLAGS_saved} ${TEST_SUPPORTED_CFLAGS}"
+dnl	CFLAGS="${CFLAGS_saved} -Werror=incompatible-pointer-types -Werror=implicit-function-declaration -Werror=int-conversion"
+dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 	
 	HEADER_INCLUDE="
 #undef PACKAGE
@@ -353,7 +357,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					$HEADER_INCLUDE
 					#include <asterisk/abstract_jb.h>
 				], [
-					struct ast_jb_conf test_jbconf;
+					struct ast_jb_conf __attribute__((unused)) test_jbconf;
 					test_jbconf.target_extra = (long)1;
 				], 
 				[CS_AST_JB_TARGETEXTRA],['CS_AST_JB_TARGETEXTRA' available]
@@ -374,7 +378,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					#endif		
 					#include <asterisk/app.h>
 				], [
-					int test_vm = ast_app_has_voicemail(NULL, NULL);
+					int __attribute__((unused)) test_vm = ast_app_has_voicemail(NULL, NULL);
 				], [CS_AST_HAS_NEW_VOICEMAIL],['ast_app_has_voicemail' available]
 			)
 
@@ -385,7 +389,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					#endif		
 					#include <asterisk/app.h>
 				], [
-					unsigned int test_args = ast_app_separate_args(NULL, NULL, NULL, 0);
+					unsigned int __attribute__((unused)) test_args = ast_app_separate_args(NULL, NULL, NULL, 0);
 				], [CS_AST_HAS_APP_SEPARATE_ARGS],['ast_app_separate_args' available]
 			)
 			if test $ac_cv_ast_app_seperate_args = yes; then
@@ -423,7 +427,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				$HEADER_INCLUDE
 				#include <asterisk/channel.h>
 				], [
-					struct ast_channel *test_bridged_channel = ast_bridged_channel(NULL);
+					struct ast_channel __attribute__((unused)) *test_bridged_channel = ast_bridged_channel(NULL);
 				], [CS_AST_HAS_BRIDGED_CHANNEL],['ast_bridged_channel' available]
 			)
 
@@ -454,7 +458,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				$HEADER_INCLUDE
 				#include <asterisk/channel.h>
 				], [
-					int test_moh = (int)AST_FLAG_MOH;
+					int __attribute__((unused)) test_moh = (int)AST_FLAG_MOH;
 				], [CS_AST_HAS_FLAG_MOH],['AST_FLAG_MOH' available]
 			)
 
@@ -491,7 +495,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				$HEADER_INCLUDE
 					#include <asterisk/channel.h>
 				], [
-					int test_account_code = (int)AST_MAX_ACCOUNT_CODE;
+					int __attribute__((unused)) test_account_code = (int)AST_MAX_ACCOUNT_CODE;
 				],
 				[AC_DEFINE([SCCP_MAX_ACCOUNT_CODE],[AST_MAX_ACCOUNT_CODE],[Found 'AST_MAX_ACCOUNT_CODE' in asterisk/channel.h])],
 				[AC_DEFINE([SCCP_MAX_ACCOUNT_CODE],[50],['AST_MAX_ACCOUNT_CODE' replacement = 50])]
@@ -501,7 +505,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				$HEADER_INCLUDE
 					#include <asterisk/channel.h>
 				], [
-					struct ast_namedgroup *test = ast_get_namedgroups("test");
+					struct ast_namedgroups __attribute__((unused)) *test = ast_get_namedgroups("test");
 				],
 				[AC_DEFINE([CS_AST_HAS_NAMEDGROUP],1,[Found 'ast_namedgroups' in asterisk/channel.h])],
 			)
@@ -545,7 +549,8 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				#include <asterisk/bridge.h>
 			], [
 				struct ast_channel *chan = {0};
-				struct ast_bridge *test_bridge = ast_bridge_depart(chan);
+				//struct ast_bridge __attribute__((unused)) *test_bridge = ast_bridge_depart(chan);
+				int __attribute__((unused)) test_bridge = ast_bridge_depart(chan);
 			], [
 				AC_DEFINE([CS_BRIDGE_DEPART_ONLY_CHANNEL],1,['ast_bridge_depart' only needs channel reference in asterisk/bridge.h])
 			])
@@ -609,7 +614,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					#include <asterisk/bridging.h>
 					], [
 						struct ast_channel *chan = {0};
-						struct ast_bridge *test_bridge = ast_bridge_depart(chan);
+						struct ast_bridge __attribute__((unused)) *test_bridge = ast_bridge_depart(chan);
 					], 
 					[AC_DEFINE([CS_BRIDGE_DEPART_ONLY_CHANNEL],1,['ast_bridge_depart' only needs channel reference in asterisk/bridging.h])],
 				)
@@ -653,7 +658,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					$HEADER_INCLUDE
 					#include <asterisk/devicestate.h>
 				], [
-					int test_device_ringing = (int)AST_DEVICE_RINGING;
+					int __attribute__((unused)) test_device_ringing = (int)AST_DEVICE_RINGING;
 				], [CS_AST_DEVICE_RINGING],['AST_DEVICE_RINGING' available]
 			)
 			
@@ -686,7 +691,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				], [
 					ast_event_cb_t test_cb;
 					void *data;
-					struct ast_event_sub *test_event_sub = ast_event_subscribe(AST_EVENT_MWI, test_cb, "mailbox subscription", data, AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, NULL, AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, "default", AST_EVENT_IE_END);
+					struct ast_event_sub __attribute__((unused)) *test_event_sub = ast_event_subscribe(AST_EVENT_MWI, test_cb, "mailbox subscription", data, AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, NULL, AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, "default", AST_EVENT_IE_END);
 				], [CS_AST_HAS_EVENT],['ast_event_subscribe' available]
 			)
 
@@ -701,8 +706,8 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					#include <asterisk/stasis.h>
 				], [
 					struct stasis_topic *stasis_topic = NULL;
-					void *data;
-					struct stasis_subscription *stasis_sub = stasis_subscribe(stasis_topic, data, data);
+					void *data = NULL;
+					struct stasis_subscription __attribute__((unused)) *stasis_sub = stasis_subscribe(stasis_topic, data, data);
 				], [CS_AST_HAS_STASIS],['stasis_subscribe' available]
 			)
 		],,[ 
@@ -755,7 +760,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 				], [
-					struct ast_frame test_frame = { AST_FRAME_DTMF, };
+					struct ast_frame __attribute__((unused)) test_frame = { AST_FRAME_DTMF, };
 					test_frame.data.ptr = NULL;
 				], [CS_AST_NEW_FRAME_STRUCT], [new frame data.ptr]
 			)
@@ -764,15 +769,15 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 				], [
-					int test_control_incomplete = (int)AST_CONTROL_INCOMPLETE;
+					int __attribute__((unused)) test_control_incomplete = (int)AST_CONTROL_INCOMPLETE;
 				], [CS_AST_CONTROL_INCOMPLETE], ['AST_CONTROL_INCOMPLETE' available]
 			)
 			
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_redirecting'...], [ac_cv_ast_control_redirecting], [
 					$HEADER_INCLUDE
-					#include <asterisk/frame.h>p
+					#include <asterisk/frame.h>
 				], [
-					int test_control_redirecting = (int)AST_CONTROL_REDIRECTING;
+					int __attribute__((unused)) test_control_redirecting = (int)AST_CONTROL_REDIRECTING;
 				], [CS_AST_CONTROL_REDIRECTING], ['AST_CONTROL_REDIRECTING' available]
 			)
 
@@ -787,7 +792,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				#include <asterisk/stringfields.h>
 				#include <asterisk/manager.h>
 				], [
-					struct manager_custom_hook sccp_manager_hook;
+					struct manager_custom_hook __attribute__((unused)) sccp_manager_hook;
 				], [HAVE_PBX_MANAGER_HOOK_H], ['struct manager_custom_hook' available]
 			)
 		],,[
@@ -804,7 +809,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				#endif
 				#include <asterisk/pbx.h>
 				],[
-					int test_get_hint = ast_get_hint("", 0, "", 0, NULL, "", "");
+					int __attribute__((unused)) test_get_hint = ast_get_hint("", 0, "", 0, NULL, "", "");
 				],[CS_AST_HAS_NEW_HINT],['ast_get_hint' available]
 			)
 			
@@ -812,7 +817,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				$HEADER_INCLUDE
 				#include <asterisk/pbx.h>
 				], [
-					int test_ext_onhold = (int)AST_EXTENSION_ONHOLD;
+					int __attribute__((unused)) test_ext_onhold = (int)AST_EXTENSION_ONHOLD;
 				], [CS_AST_HAS_EXTENSION_ONHOLD],['AST_EXTENSION_ONHOLD' available]
 			)
 			
@@ -820,9 +825,34 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				$HEADER_INCLUDE
 				#include <asterisk/pbx.h>
 				], [
-					int test_ext_ringing = (int)AST_EXTENSION_RINGING;
+					int __attribute__((unused)) test_ext_ringing = (int)AST_EXTENSION_RINGING;
 				], [CS_AST_HAS_EXTENSION_RINGING],['AST_EXTENSION_RINGING' available]
 			)
+
+			AS_IF([test "${ASTERISK_VER_GROUP}" == "113"], [
+				CFLAGS="${CFLAGS_saved} ${TEST_SUPPORTED_CFLAGS} -Werror"
+				CS_CV_TRY_COMPILE_DEFINE([ - ast_state_cb_type uses const char (13)...], [ac_cv_ast_state_cb_type_const_char], [
+					$HEADER_INCLUDE
+					#include <asterisk/pbx.h>
+					static int test_cb(const char *context, const char *exten, struct ast_state_cb_info *info, void *data) {
+						return 0;
+					}
+					], [
+						int __attribute__((unused)) id = ast_extension_state_add("","",test_cb,"");
+					], [CS_AST_HAS_EXTENSION_STATE_CB_TYPE_CONST_CHAR], ['AST_EXTENSION_STATE_CB_TYPE_CONST_CHAR' available]
+				)
+				CS_CV_TRY_COMPILE_DEFINE([ - ast_state_cb_type uses char (11-13)...], [ac_cv_ast_state_cb_type_char], [
+					$HEADER_INCLUDE
+					#include <asterisk/pbx.h>
+					static int test_cb(char *context, char *exten, struct ast_state_cb_info *info, void *data) {
+						return 0;
+					}
+					], [
+						int __attribute__((unused)) id = ast_extension_state_add("","",test_cb,"");
+					], [CS_AST_HAS_EXTENSION_STATE_CB_TYPE_CHAR], ['AST_EXTENSION_STATE_CB_TYPE_CHAR' available]
+				)
+				CFLAGS="${CFLAGS_saved} ${TEST_SUPPORTED_CFLAGS}"
+			])
 		],,[ 
 			$HEADER_INCLUDE
 		])
@@ -835,10 +865,8 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					$HEADER_INCLUDE
 					#include <asterisk/rtp_engine.h>
 				], [
-					struct sched_context *test_sched=NULL;
-					const struct ast_sockaddr *test_sin=NULL;
-					struct ast_rtp_instance *test_instance = NULL;
-					test_instance = ast_rtp_instance_new(NULL, test_sched, &test_sin, NULL);
+					const struct ast_sockaddr test_sin=NULL;
+					struct ast_rtp_instance __attribute__((unused)) *test_instance = ast_rtp_instance_new(NULL, NULL, &test_sin, NULL);
 				], [CS_AST_RTP_INSTANCE_NEW],[Found 'void ast_rtp_instance_new' in asterisk/rtp_engine.h]
 			)
 			AC_MSG_CHECKING([ - availability 'ast_rtp_instance_bridge'...])
@@ -884,22 +912,40 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 		AC_CHECK_HEADER([asterisk/sched.h],
 		[
 			AC_DEFINE([HAVE_PBX_SCHED_H],1,[Found 'asterisk/sched.h'])
-			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_sched_del'...], [ac_cv_ast_sched_del], [
-					#include <unistd.h>				
-					$HEADER_INCLUDE
-					#ifdef HAVE_PBX_OPTIONS_H
-					#  include <asterisk/options.h>
-					#endif
-					#ifdef HAVE_PBX_LOGGER_H
-					#  include <asterisk/logger.h>
-					#endif
-					#include <asterisk/sched.h>
-				],[
-					struct sched_context *test_con = NULL;
-					int test_id = 0;
-					int test_sched_del = AST_SCHED_DEL(test_con, test_id);
-				],[CS_AST_SCHED_DEL],['AST_SCHED_DEL' available]
-			)
+			AS_IF([test ${ASTERISK_VER_GROUP} -lt 110], [
+				CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_sched_del'...], [ac_cv_ast_sched_del], [
+						#include <unistd.h>				
+						$HEADER_INCLUDE
+						#ifdef HAVE_PBX_OPTIONS_H
+						#  include <asterisk/options.h>
+						#endif
+						#ifdef HAVE_PBX_LOGGER_H
+						#  include <asterisk/logger.h>
+						#endif
+						#include <asterisk/sched.h>
+					],[
+						int __attribute__((unused)) test_sched_del = AST_SCHED_DEL(NULL, 0);
+					],[CS_AST_SCHED_DEL],['AST_SCHED_DEL' available]
+				)
+				AC_DEFINE([CS_SCHED_CONTEXT],1,[Found 'asterisk/sched.h'])
+			],[
+				CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_sched_del'...], [ac_cv_ast_sched_del], [
+						#include <unistd.h>				
+						$HEADER_INCLUDE
+						#ifdef HAVE_PBX_OPTIONS_H
+						#  include <asterisk/options.h>
+						#endif
+						#ifdef HAVE_PBX_LOGGER_H
+						#  include <asterisk/logger.h>
+						#endif
+						#include <asterisk/sched.h>
+					],[
+						struct ast_sched_context *test_con = NULL;
+						int __attribute__((unused)) test_sched_del = AST_SCHED_DEL(test_con, 0);
+					],[CS_AST_SCHED_DEL],['AST_SCHED_DEL' available]
+				)
+				AC_DEFINE([CS_AST_SCHED_CONTEXT],1,[Found 'asterisk/sched.h'])
+			])
 		],,[ 
 			$HEADER_INCLUDE
 		])
@@ -962,7 +1008,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				$HEADER_INCLUDE
 				#include <asterisk/utils.h>
 				], [
-					unsigned int test_random = ast_random();
+					unsigned int __attribute__((unused)) test_random = ast_random();
 				], [
 				
 				AC_MSG_RESULT(yes)

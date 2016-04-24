@@ -38,7 +38,6 @@ SCCP_FILE_VERSION(__FILE__, "");
 #  include <asterisk/acl.h>
 #endif
 #include <asterisk/cli.h>
-sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 
 /* arbitrary values */
 //#define SOCKET_TIMEOUT_SEC 0											/* timeout after seven seconds when trying to read/write from/to a socket */
@@ -58,6 +57,8 @@ sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 
 #define SESSION_DEVICE_CLEANUP_TIME 10										/* wait time before destroying a device on thread exit */
 #define KEEPALIVE_ADDITIONAL_PERCENT 10										/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
+#define ACCEPT_UWAIT_ON_KNOWN_IP 2										/* wait time when ip-address is already known */
+#define ACCEPT_RETRIES 5											/* number of reqtries when we already know this ip-address */
 
 /* Lock Macro for Sessions */
 #define sccp_session_lock(x)			pbx_mutex_lock(&(x)->lock)
@@ -69,6 +70,9 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime);
 void sccp_session_close(sccp_session_t * s);
 void sccp_netsock_device_thread_exit(void *session);
 void *sccp_netsock_device_thread(void *session);
+sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
+sccp_session_t *sccp_session_findByIP(const struct sockaddr_storage *sin);
+void sccp_session_destroySessionsByDeviceName(const char *name);
 
 /*!
  * \brief SCCP Session Structure
@@ -506,7 +510,6 @@ void sccp_session_releaseDevice(constSessionPtr volatile session)
  */
 void sccp_session_close(sccp_session_t * s)
 {
-
 	sccp_session_lock(s);
 	s->session_stop = TRUE;
 	if (s->fds[0].fd > 0) {
@@ -540,23 +543,24 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 
 	sccp_copy_string(addrStr, sccp_netsock_stringify_addr(&s->sin), sizeof(addrStr));
 
-	found_in_list = sccp_session_removeFromGlobals(s);
+	AUTO_RELEASE sccp_device_t *d = s->device ? sccp_device_retain(s->device) : NULL;
+	if (d) {
+		sccp_do_backtrace();
+		char *deviceName = sccp_strdupa(d->id);
+		
+                sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
+                sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_CLEANING);
+	        d->needcheckringback = 0;
+                sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
 
+		sccp_session_destroySessionsByDeviceName(deviceName);
+	}
+
+	found_in_list = sccp_session_removeFromGlobals(s);
 	if (!found_in_list) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session could not be found in GLOB(session) %s\n", DEV_ID_LOG(s->device), addrStr);
 	}
 
-	/* cleanup device if this session is not a crossover session */
-	if (s->device) {
-		AUTO_RELEASE sccp_device_t *d = sccp_device_retain(s->device);
-
-		if (d) {
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
-			sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_NONE);
-			d->needcheckringback = 0;
-			sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
-		}
-	}
 	
 	if (s) {	/* re-evaluate s after sccp_dev_clean */
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Destroy Session %s\n", addrStr);
@@ -786,6 +790,18 @@ static void sccp_accept_connection(void)
 	}
 
 	sccp_copy_string(addrStr, sccp_netsock_stringify(&s->sin), sizeof(addrStr));
+
+	int retries=0;
+	while (sccp_session_findByIP(&incoming) != NULL && retries++ <= ACCEPT_RETRIES) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Session with this IP-address is already known %s. wait !\n", addrStr);
+		if (retries == ACCEPT_RETRIES) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Session with this IP-address is already known %s. exceeding wait time, denied connection !\n", addrStr);
+			sccp_session_reject(s, "Cross Device Session. Come back later");
+			destroy_session(s, 0);
+			return;
+		}
+		sleep(ACCEPT_UWAIT_ON_KNOWN_IP);
+	}
 
 	/* check ip address against global permit/deny ACL */
 	if (GLOB(ha) && sccp_apply_ha(GLOB(ha), &s->sin) != AST_SENSE_ALLOW) {
@@ -1060,6 +1076,37 @@ sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device)
 	}
 
 	return device->session;
+}
+
+void sccp_session_destroySessionsByDeviceName(const char *name)
+{
+	sccp_session_t *session = NULL;
+	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
+		sccp_device_t *device = session->device;
+		if (device && !isPointerDead(device) && sccp_strequals(device->id, name)) {
+			AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
+			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session\n", DEV_ID_LOG(d));
+			sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_NONE);
+			d->needcheckringback = 0;
+			sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 0);
+			destroy_session(session, 1);
+		}
+	}
+	SCCP_RWLIST_TRAVERSE_SAFE_END;
+}
+
+sccp_session_t *sccp_session_findByIP(const struct sockaddr_storage *sin)
+{
+	sccp_session_t *session = NULL;
+	SCCP_RWLIST_RDLOCK(&GLOB(sessions));
+	SCCP_RWLIST_TRAVERSE(&GLOB(sessions), session, list) {
+		if (sccp_netsock_cmp_addr(&session->sin, sin) == 0) {
+			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: (sccp_session_findByIP) Found session:%p\n", DEV_ID_LOG(session->device), session);
+			break;
+		}
+	}
+	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
+	return session;
 }
 
 /* defined but not used */
