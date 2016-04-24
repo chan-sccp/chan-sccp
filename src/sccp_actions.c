@@ -28,6 +28,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_features.h"
 #include "sccp_indicate.h"
 #include "sccp_line.h"
+#include "sccp_featureParkingLot.h"
 
 /*!
  * \remarks
@@ -1116,6 +1117,22 @@ static btnlist *sccp_make_button_template(devicePtr d)
 								}
 								break;
 
+							case SCCP_FEATURE_PARKINGLOT:
+#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
+								if (iParkingLot.attachObserver && iParkingLot.attachObserver(buttonconfig->button.feature.options, d, buttonconfig->instance)) {
+									if (d->inuseprotocolversion > 15) {
+										btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+										buttonconfig->button.feature.status = 0x010000;
+									} else {
+										btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
+										buttonconfig->button.feature.status = 0;
+									}
+								} else {
+									btn[i].type = SKINNY_BUTTONTYPE_PARKINGLOT;
+								}
+#endif
+								break;
+
 							case SCCP_FEATURE_MOBILITY:
 								btn[i].type = SKINNY_BUTTONTYPE_MOBILITY;
 								break;
@@ -1166,10 +1183,6 @@ static btnlist *sccp_make_button_template(devicePtr d)
 
 							case SCCP_FEATURE_END_CALL:
 								btn[i].type = SKINNY_BUTTONTYPE_END_CALL;
-								break;
-
-							case SCCP_FEATURE_TESTE:
-								btn[i].type = SKINNY_BUTTONTYPE_TESTE;
 								break;
 
 							case SCCP_FEATURE_TESTF:
@@ -2162,6 +2175,14 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 
 			break;
 #endif
+		case SCCP_FEATURE_PARKINGLOT:
+#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
+			sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: ParkingLot:'%s' Action, State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options ? config->button.feature.options : "", config->button.feature.status ? "On" : "Off");
+			if (TRUE == toggleState && iParkingLot.showCXML) {
+				iParkingLot.showCXML(config->button.feature.options, d, instance);
+			}
+#endif
+			break;
 		case SCCP_FEATURE_MULTIBLINK:
 			featureStat1 = (d->priFeature.status & 0xf) - 1;
 			featureStat2 = ((d->priFeature.status & 0xf00) >> 8) - 1;
@@ -2239,7 +2260,7 @@ static const struct _skinny_stimulusMap_cb {
 	[SKINNY_STIMULUS_NEW_CALL] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_END_CALL] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_HLOG] 				= {handle_stimulus_feature, FALSE},
-	[SKINNY_STIMULUS_TESTE] 			= {handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_PARKINGLOT] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_TESTF] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_TESTI] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_MESSAGES] 			= {handle_stimulus_feature, FALSE},
