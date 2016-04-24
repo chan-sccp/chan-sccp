@@ -92,6 +92,7 @@ __BEGIN_C_EXTERN__
 #define APPID_RINGTONE					9087
 #define APPID_STREAM					9088
 #define APPID_PUSH					9089
+#define APPID_VISUALPARKINGLOT				9090
 
 /*
  * \todo Merge sccp_button_type_t / sccp_buttontypes[] and this define
@@ -152,7 +153,7 @@ __BEGIN_C_EXTERN__
 typedef struct {
 	uint8_t instance;											/*!< Button Instance */
 	uint8_t type;												/*!< Button Type */
-	void *ptr;												/*!< Pointer to the next Button */
+	void *ptr;												/*!< Pointer to the Line */
 } btnlist;													/*!< Button List Structure */
 
 /*!
