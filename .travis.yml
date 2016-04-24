@@ -6,27 +6,11 @@ compiler:
  - gcc
 
 env:
-  global:
-    - COVERITY_SCAN_PROJECT_NAME="chan-sccp"
-    - COVERITY_SCAN_PROJECT_DESCRIPTION="SCCP Channel Addon for Asterisk"
-    - COVERITY_SCAN_NOTIFICATION_EMAIL="info@talon.nl"
-    - COVERITY_SCAN_BRANCH_PATTERN="master"
-    - COVERITY_SCAN_BUILD_URL="https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh"
-    - COVERITY_SCAN_BUILD="curl -s $COVERITY_SCAN_BUILD_URL | bash"
-    - COVERITY_SCAN_BUILD_COMMAND_PREPEND="./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-advanced-functions && make clean"
-    - COVERITY_SCAN_BUILD_COMMAND="make -j2"
-    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created using: travis encrypt COVERITY_SCAN_TOKEN="xxxxxxx-xxxxxxx" -r dkgroot/chan-sccp-b
-    - secure: "VJIQBkTBxuMqUEk872yPrbPq3MAFqB0EnjElxjTk+BWEHIKmheKIHyrlqJgnql/tqyeLSa6D8epV0cJ47adVbedCPAG/l1tk4AzErrQdnw9VVFANUFrJXxlaH/yfm39XiwwumuAJ2RF3OaYGHlyurW+lb91y2HHw8vQHNPu+uHI="
   matrix:
     - REPOS=precise
     - REPOS=trusty
     - REPOS=trusty13
     - REPOS=utopic
-
-matrix:
-  allow_failures:
-    - compiler: gcc
-      env: REPOS=trusty13
 
 # Install Required Devel Packages
 before_install:
@@ -48,7 +32,6 @@ before_install:
      echo "deb-src http://ppa.launchpad.net/jan-hoffmann/asterisk13/ubuntu trusty main"			 | sudo tee -a /etc/apt/sources.list.d/asterisk13.list;
      sudo apt-get update -qq;
      sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 libpjsua2-2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg binutils.dev libc6-dev;
-     if [ "x${CC}" == "xgcc" ]; then eval "$COVERITY_SCAN_BUILD"; fi;
    fi
 
 # Prepare Configure Script
