@@ -1,5 +1,7 @@
 ## Welcome to Chan_SCCP
 
+[![Join the chat at https://gitter.im/chan-sccp/chan-sccp](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/chan-sccp/chan-sccp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Gitter Chat](https://img.shields.io/gitter/room/chan-sccp/nw.js.svg)](https://gitter.im/chan-sccp?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
 [![Build Status](http://img.shields.io/travis/chan-sccp/chan-sccp.svg?style=flat)](https://travis-ci.org/chan-sccp/chan-sccp)
 [![Coverity](https://img.shields.io/coverity/scan/8656.svg)](https://scan.coverity.com/projects/chan-sccp)
