@@ -246,8 +246,13 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 					buttonID = SKINNY_BUTTONTYPE_END_CALL;
 					break;
 
-				case SCCP_FEATURE_TESTE:
-					buttonID = SKINNY_BUTTONTYPE_TESTE;
+				case SCCP_FEATURE_PARKINGLOT:
+#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
+					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) parkinglot state:%d\n", DEV_ID_LOG(device), config->button.feature.status);
+					if (device->inuseprotocolversion > 15) {
+						buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+					}
+#endif
 					break;
 
 				case SCCP_FEATURE_TESTF:
