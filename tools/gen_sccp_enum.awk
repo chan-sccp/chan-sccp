@@ -208,7 +208,7 @@ codeSkip == 1			{ next }
 	}
 	print "} " namespace "_" enum_name "_t;" >out_header_file
 	if (strfunc == 1) {
-		print "SCCP_API int SCCP_CALL " namespace "_" enum_name "_exists(int " namespace "_" enum_name "_int_value);" > out_header_file
+		print "SCCP_API int SCCP_CALL " namespace "_" enum_name "_exists(uint " namespace "_" enum_name "_int_value);" > out_header_file
 		if (bitfield == 0) {
 			print "SCCP_API const char * SCCP_CALL " namespace "_" enum_name "2str(" namespace "_" enum_name "_t enum_value);" > out_header_file
 		} else {
@@ -283,10 +283,14 @@ codeSkip == 1			{ next }
 
 
 		# int sccp_does_channelstate_exist[int int_enum_value) {
-		print "int " namespace "_" enum_name "_exists(int " namespace "_" enum_name "_int_value) {" > out_source_file
+		print "int " namespace "_" enum_name "_exists(uint " namespace "_" enum_name "_int_value) {" > out_source_file
 		if (sparse == 0) {
 			if (bitfield == 0) {
-				print "\tif ((" Entry_id[1] " <=" namespace "_" enum_name "_int_value) && (" namespace "_" enum_name "_int_value < " toupper(namespace) "_" toupper(enum_name) "_SENTINEL )) {" >out_source_file
+				if (Entry_val[0] == 0) {
+					print "\tif (" namespace "_" enum_name "_int_value < " toupper(namespace) "_" toupper(enum_name) "_SENTINEL) {" >out_source_file
+				} else {
+					print "\tif ((" Entry_id[0] " <=" namespace "_" enum_name "_int_value) && (" namespace "_" enum_name "_int_value < " toupper(namespace) "_" toupper(enum_name) "_SENTINEL )) {" >out_source_file
+				}
 				print "\t\treturn 1;" > out_source_file
 				print "\t}" > out_source_file
 				print "\treturn 0;" > out_source_file
@@ -297,16 +301,16 @@ codeSkip == 1			{ next }
 					print "\t}" > out_source_file
 				}
 				print "\tint res = 0;" > out_source_file 
-				print "\tuint8_t i;" > out_source_file
+				print "\tuint i;" > out_source_file
 				print "\tfor (i = 0; (1 << i) < " toupper(namespace) "_" toupper(enum_name) "_SENTINEL; i++) {" >out_source_file
-				print "\t\tif ((" namespace "_" enum_name "_int_value & (1 << i)) == 1 << i) {" > out_source_file
+				print "\t\tif ((" namespace "_" enum_name "_int_value & (1 << i)) == (uint)1 << i) {" > out_source_file
 				print "\t\t\tres |= 1;" > out_source_file
 				print "\t\t}" > out_source_file
 				print "\t}" > out_source_file
 				print "\treturn res;" > out_source_file
 			}
 		} else {
-			printf "\tstatic const int " namespace "_" enum_name "s[] = {" > out_source_file
+			printf "\tstatic const uint " namespace "_" enum_name "s[] = {" > out_source_file
 			for ( i = 0; i < e; ++i) {
 				if (Entry_ifdef[i - 1] == "") {
 					printf "" Entry_id[i] "," > out_source_file
