@@ -56,7 +56,7 @@ strenum channelstatereason {
 }
 
 strenum earlyrtp {
-        SCCP_EARLYRTP_IMMEDIATE,			,	"Immediate",
+        SCCP_EARLYRTP_IMMEDIATE,			=0,	"Immediate",
         SCCP_EARLYRTP_OFFHOOK,				,	"OffHook",
         SCCP_EARLYRTP_DIALING,				,	"Dialing",
         SCCP_EARLYRTP_RINGOUT,				,	"Ringout",
@@ -65,7 +65,7 @@ strenum earlyrtp {
 }												/*!< internal Chan_SCCP Call State c->callstate */
 
 strenum devicestate {
-        SCCP_DEVICESTATE_ONHOOK,			,	"On Hook"
+        SCCP_DEVICESTATE_ONHOOK,			=0,	"On Hook"
         SCCP_DEVICESTATE_OFFHOOK,			,	"Off Hook"
         SCCP_DEVICESTATE_UNAVAILABLE,			,	"Unavailable"
         SCCP_DEVICESTATE_DND,				,	"Do Not Disturb",
@@ -73,7 +73,7 @@ strenum devicestate {
 }
 
 strenum callforward {
-        SCCP_CFWD_NONE,					,	"None",
+        SCCP_CFWD_NONE,					=0,	"None",
         SCCP_CFWD_ALL,					,	"All",
         SCCP_CFWD_BUSY,					,	"Busy",
         SCCP_CFWD_NOANSWER,				,	"NoAnswer",
@@ -83,7 +83,7 @@ strenum callforward {
  * \brief SCCP Dtmf Mode (ENUM)
  */
 strenum dtmfmode {
-	SCCP_DTMFMODE_AUTO,				,	"AUTO",
+	SCCP_DTMFMODE_AUTO,				=0,	"AUTO",
 	SCCP_DTMFMODE_RFC2833,				,	"RFC2833",
 	SCCP_DTMFMODE_SKINNY,				,	"SKINNY",
 }
@@ -92,7 +92,7 @@ strenum dtmfmode {
  * \brief SCCP Autoanswer (ENUM)
  */
 enum autoanswer {
-        SCCP_AUTOANSWER_NONE,				,	"AutoAnswer None",
+        SCCP_AUTOANSWER_NONE,				=0,	"AutoAnswer None",
         SCCP_AUTOANSWER_1W,				,	"AutoAnswer 1-Way",
         SCCP_AUTOANSWER_2W,				,	"AutoAnswer Both Ways",
 }
@@ -101,27 +101,27 @@ enum autoanswer {
  * \brief SCCP DNDMode (ENUM)
  */
 strenum dndmode {
-        SCCP_DNDMODE_OFF,				,	"Off",
+        SCCP_DNDMODE_OFF,				=0,	"Off",
         SCCP_DNDMODE_REJECT,				,	"Reject",
         SCCP_DNDMODE_SILENT,				,	"Silent",
         SCCP_DNDMODE_USERDEFINED,			,	"UserDefined",
 }
 
 strenum accessory {
-        SCCP_ACCESSORY_NONE,				,	"None",
+        SCCP_ACCESSORY_NONE,				=0,	"None",
         SCCP_ACCESSORY_HEADSET,				,	"Headset",
         SCCP_ACCESSORY_HANDSET,				,	"Handset", 
         SCCP_ACCESSORY_SPEAKER,				,	"Speaker",
 }
 
 strenum accessorystate {
-        SCCP_ACCESSORYSTATE_NONE,			,	"None",
+        SCCP_ACCESSORYSTATE_NONE,			=0,	"None",
         SCCP_ACCESSORYSTATE_OFFHOOK,			,	"Off Hook", 
         SCCP_ACCESSORYSTATE_ONHOOK,			,	"On Hook",
 }
 
 strenum config_buttontype {
-        LINE,						,	"Line",
+        LINE,						=0,	"Line",
         SPEEDDIAL,					,	"Speeddial", 
         SERVICE,					,	"Service",
         FEATURE,					,	"Feature",
@@ -144,7 +144,7 @@ strenum call_answer_order {
 }
 
 strenum nat {
-        SCCP_NAT_AUTO,					= 0,	"Auto",
+        SCCP_NAT_AUTO,					=0,	"Auto",
         SCCP_NAT_OFF,					,	"Off",
         SCCP_NAT_AUTO_OFF,				,	"(Auto)Off",
         SCCP_NAT_ON,					,	"On",
@@ -175,12 +175,12 @@ strenum event_type {
 }
 
 enum parkresult {
-	PARK_RESULT_FAIL,				,	"Park Failed", 
+	PARK_RESULT_FAIL,				=0,	"Park Failed", 
 	PARK_RESULT_SUCCESS,				,	"Park Successfull", 
 }
 
 strenum callerid_presentation {
-	CALLERID_PRESENTATION_FORBIDDEN,		,	"CalledId Presentation Forbidden",
+	CALLERID_PRESENTATION_FORBIDDEN,		=0,	"CalledId Presentation Forbidden",
 	CALLERID_PRESENTATION_ALLOWED,			,	"CallerId Presentation Allowed",
 }
 
@@ -191,27 +191,27 @@ enum rtp_status {
 }
 
 strenum rtp_type {
-	SCCP_RTP_NULL,					= 0,	"RTP NULL",
-	SCCP_RTP_AUDIO,					= 1<<0,	"Audio RTP",
-	SCCP_RTP_VIDEO,					= 1<<1,	"Video RTP",
-	SCCP_RTP_TEXT,					= 1<<2, "Text RTP",
+	SCCP_RTP_NULL,					=0,	"RTP NULL",
+	SCCP_RTP_AUDIO,					=1<<0,	"Audio RTP",
+	SCCP_RTP_VIDEO,					=1<<1,	"Video RTP",
+	SCCP_RTP_TEXT,					=1<<2,	"Text RTP",
 }
 
 enum extension_status {
-	SCCP_EXTENSION_NOTEXISTS, 			,	"Extension does not exist",
+	SCCP_EXTENSION_NOTEXISTS, 			=0,	"Extension does not exist",
 	SCCP_EXTENSION_MATCHMORE, 			,	"Matches more than one extension",
 	SCCP_EXTENSION_EXACTMATCH, 			,	"Exact Extension Match",
 }
 
 enum channel_request_status {
-	SCCP_REQUEST_STATUS_ERROR, 			,	"Request Status Error",
+	SCCP_REQUEST_STATUS_ERROR, 			=0,	"Request Status Error",
 	SCCP_REQUEST_STATUS_LINEUNKNOWN,		,	"Request Line Unknown",
 	SCCP_REQUEST_STATUS_LINEUNAVAIL,		,	"Request Line Unavailable",
 	SCCP_REQUEST_STATUS_SUCCESS,			,	"Request Success",
 }
 
 enum message_priority {
-	SCCP_MESSAGE_PRIORITY_IDLE,			,	"Message Priority Idle",
+	SCCP_MESSAGE_PRIORITY_IDLE,			=0,	"Message Priority Idle",
 	SCCP_MESSAGE_PRIORITY_VOICEMAIL,		,	"Message Priority Voicemail",
 	SCCP_MESSAGE_PRIORITY_MONITOR,			,	"Message Priority Monitor",
 	SCCP_MESSAGE_PRIORITY_PRIVACY,			,	"Message Priority Privacy",
@@ -222,19 +222,19 @@ enum message_priority {
 }
 
 enum push_result {
-	SCCP_PUSH_RESULT_FAIL,				,	"Push Failed",
+	SCCP_PUSH_RESULT_FAIL,				=0,	"Push Failed",
 	SCCP_PUSH_RESULT_NOT_SUPPORTED,			,	"Push Not Supported",
 	SCCP_PUSH_RESULT_SUCCESS,			,	"Pushed Successfully",
 }
 
 strenum tokenstate {
-	SCCP_TOKEN_STATE_NOTOKEN,			,	"No Token",
+	SCCP_TOKEN_STATE_NOTOKEN,			=0,	"No Token",
 	SCCP_TOKEN_STATE_ACK,				,	"Token Acknowledged",
 	SCCP_TOKEN_STATE_REJ,				,	"Token Rejected",
 }
 
 strenum softswitch {
-	SCCP_SOFTSWITCH_DIAL,				,	"Softswitch Dial",
+	SCCP_SOFTSWITCH_DIAL,				=0,	"Softswitch Dial",
 	SCCP_SOFTSWITCH_GETFORWARDEXTEN,		,	"Softswitch Get Forward Extension",
 #ifdef CS_SCCP_PICKUP
 	SCCP_SOFTSWITCH_GETPICKUPEXTEN,			,	"Softswitch Get Pickup Extension",
@@ -248,23 +248,23 @@ strenum softswitch {
 }
 
 enum phonebook { 
-	SCCP_PHONEBOOK_NONE,				,	"Phonebook None",
+	SCCP_PHONEBOOK_NONE,				=0,	"Phonebook None",
 	SCCP_PHONEBOOK_MISSED,				,	"Phonebook Missed",
 	SCCP_PHONEBOOK_RECEIVED,			,	"Phonebook Received",
 	//SCCP_PHONEBOOK_PLACED,			,	"Phonebook Placed",
 }
 
 strenum feature_monitor_state {
-	SCCP_FEATURE_MONITOR_STATE_DISABLED,		= 0,	"Feature Monitor Disabled",
-	SCCP_FEATURE_MONITOR_STATE_REQUESTED, 		= 1<<1,	"Feature Monitor Requested",
-	SCCP_FEATURE_MONITOR_STATE_ACTIVE,		= 1<<2,	"Feature Monitor Active",
+	SCCP_FEATURE_MONITOR_STATE_DISABLED,		=0,	"Feature Monitor Disabled",
+	SCCP_FEATURE_MONITOR_STATE_REQUESTED, 		=1<<1,	"Feature Monitor Requested",
+	SCCP_FEATURE_MONITOR_STATE_ACTIVE,		=1<<2,	"Feature Monitor Active",
 }
 
 /*!
  * \brief Config Reading Type Enum
  */
 enum readingtype {
-	SCCP_CONFIG_READINITIAL,			,	"Read Initial Config",
+	SCCP_CONFIG_READINITIAL,			=0,	"Read Initial Config",
 	SCCP_CONFIG_READRELOAD,				,	"Reloading Config",
 }
 
@@ -279,7 +279,7 @@ enum configurationchange {
 }
 
 enum call_statistics_type {
-	SCCP_CALLSTATISTIC_LAST,			,	"CallStatistics last Call",
+	SCCP_CALLSTATISTIC_LAST,			=0,	"CallStatistics last Call",
 	SCCP_CALLSTATISTIC_AVG,				,	"CallStatistics average",
 }
 
@@ -290,7 +290,7 @@ enum rtp_info {
 }
 
 strenum feature_type
-	SCCP_FEATURE_UNKNOWN,				,	"FEATURE_UNKNOWN",
+	SCCP_FEATURE_UNKNOWN,				=0,	"FEATURE_UNKNOWN",
 	SCCP_FEATURE_CFWDNONE,				,	"cfwd off",
 	SCCP_FEATURE_CFWDALL,				,	"cfwdall",
 	SCCP_FEATURE_CFWDBUSY,				,	"cfwdbusy",
@@ -404,7 +404,7 @@ strenum callstate {
  * \brief Skinny Protocol Call Priority (ENUM)
  */
 enum callpriority {
-	SKINNY_CALLPRIORITY_HIGHEST,			,	"highest priority",
+	SKINNY_CALLPRIORITY_HIGHEST,			=0,	"highest priority",
 	SKINNY_CALLPRIORITY_HIGH,			,	"high priority",
 	SKINNY_CALLPRIORITY_MEDIUM,			,	"medium priority",
 	SKINNY_CALLPRIORITY_LOW,			,	"low priority",
@@ -415,7 +415,7 @@ enum callpriority {
  * \brief Skinny Protocol CallInfo Visibility (ENUM)
  */
 strenum callinfo_visibility {
-	SKINNY_CALLINFO_VISIBILITY_DEFAULT,		,	"default",		/* None */
+	SKINNY_CALLINFO_VISIBILITY_DEFAULT,		=0,	"default",		/* None */
 	SKINNY_CALLINFO_VISIBILITY_COLLAPSED,		,	"collapsed",		/* Limited */
 	SKINNY_CALLINFO_VISIBILITY_HIDDEN,		,	"hidden",		/* Full */
 }
@@ -424,7 +424,7 @@ strenum callinfo_visibility {
  * \brief Skinny Protocol Call Security State (ENUM)
  */
 enum callsecuritystate {
-	SKINNY_CALLSECURITYSTATE_UNKNOWN,		,	"unknown",
+	SKINNY_CALLSECURITYSTATE_UNKNOWN,		=0,	"unknown",
 	SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED,	,	"not authenticated",
 	SKINNY_CALLSECURITYSTATE_AUTHENTICATED,		,	"authenticated",
 }
@@ -433,7 +433,7 @@ enum callsecuritystate {
  * \brief Skinny Busy Lamp Field Status (ENUM)
  */
 enum busylampfield_state {
-	SKINNY_BLF_STATUS_UNKNOWN,			,	"Unknown",
+	SKINNY_BLF_STATUS_UNKNOWN,			=0,	"Unknown",
 	SKINNY_BLF_STATUS_IDLE,				,	"Not-in-use",
 	SKINNY_BLF_STATUS_INUSE,			,	"In-use",
 	SKINNY_BLF_STATUS_DND,				,	"DND",
@@ -598,7 +598,7 @@ enum receivetransmit {
  * \brief Skinny KeyMode (ENUM)
  */
 strenum keymode {
-	KEYMODE_ONHOOK,					,	"ONHOOK",
+	KEYMODE_ONHOOK,					=0,	"ONHOOK",
 	KEYMODE_CONNECTED,				,	"CONNECTED",
 	KEYMODE_ONHOLD,					,	"ONHOLD",
 	KEYMODE_RINGIN,					,	"RINGIN",
@@ -618,7 +618,7 @@ strenum keymode {
  * \brief Skinny Device Registration (ENUM)
  */
 strenum registrationstate {
-	SKINNY_DEVICE_RS_FAILED,			,	"Failed",
+	SKINNY_DEVICE_RS_FAILED,			=0,	"Failed",
 	SKINNY_DEVICE_RS_TIMEOUT,			,	"Time Out",
 	SKINNY_DEVICE_RS_CLEANING,			,	"Cleaning", 
 	SKINNY_DEVICE_RS_NONE,				,	"None",
@@ -631,19 +631,19 @@ strenum registrationstate {
  * \brief Skinny Media Status (Enum)
  */
 strenum mediastatus {
-	SKINNY_MEDIASTATUS_Ok,					,	"Media Status: OK", 
-	SKINNY_MEDIASTATUS_Unknown,				,	"Media Error: Unknown", 
-	SKINNY_MEDIASTATUS_OutOfChannels,			,	"Media Error: Out of Channels", 
-	SKINNY_MEDIASTATUS_CodecTooComplex,			,	"Media Error: Codec Too Complex", 
-	SKINNY_MEDIASTATUS_InvalidPartyId,			,	"Media Error: Invalid Party ID", 
-	SKINNY_MEDIASTATUS_InvalidCallReference,		,	"Media Error: Invalid Call Reference", 
-	SKINNY_MEDIASTATUS_InvalidCodec,			,	"Media Error: Invalid Codec", 
-	SKINNY_MEDIASTATUS_InvalidPacketSize,			,	"Media Error: Invalid Packet Size", 
-	SKINNY_MEDIASTATUS_OutOfSockets,			,	"Media Error: Out of Sockets", 
-	SKINNY_MEDIASTATUS_EncoderOrDecoderFailed,		,	"Media Error: Encoder Or Decoder Failed", 
-	SKINNY_MEDIASTATUS_InvalidDynPayloadType,		,	"Media Error: Invalid Dynamic Payload Type", 
+	SKINNY_MEDIASTATUS_Ok,				=0,	"Media Status: OK", 
+	SKINNY_MEDIASTATUS_Unknown,			,	"Media Error: Unknown", 
+	SKINNY_MEDIASTATUS_OutOfChannels,		,	"Media Error: Out of Channels", 
+	SKINNY_MEDIASTATUS_CodecTooComplex,		,	"Media Error: Codec Too Complex", 
+	SKINNY_MEDIASTATUS_InvalidPartyId,		,	"Media Error: Invalid Party ID", 
+	SKINNY_MEDIASTATUS_InvalidCallReference,	,	"Media Error: Invalid Call Reference", 
+	SKINNY_MEDIASTATUS_InvalidCodec,		,	"Media Error: Invalid Codec", 
+	SKINNY_MEDIASTATUS_InvalidPacketSize,		,	"Media Error: Invalid Packet Size", 
+	SKINNY_MEDIASTATUS_OutOfSockets,		,	"Media Error: Out of Sockets", 
+	SKINNY_MEDIASTATUS_EncoderOrDecoderFailed,	,	"Media Error: Encoder Or Decoder Failed", 
+	SKINNY_MEDIASTATUS_InvalidDynPayloadType,	,	"Media Error: Invalid Dynamic Payload Type", 
 	SKINNY_MEDIASTATUS_RequestedIpAddrTypeUnavailable, 	,	"Media Error: Requested IP Address Type if not available", 
-	SKINNY_MEDIASTATUS_DeviceOnHook,			,	"Media Error: Device is on hook", 
+	SKINNY_MEDIASTATUS_DeviceOnHook,		,	"Media Error: Device is on hook", 
 }
 
 /*!
@@ -946,7 +946,7 @@ enum mediaTransportType {
  * \brief Skinny MediaType
  */
 strenum mediaType {
-	SKINNY_MEDIA_TYPE_INVALID,			=0x0,	"Invalid", 
+	SKINNY_MEDIA_TYPE_INVALID,			=0,	"Invalid", 
 	SKINNY_MEDIA_TYPE_AUDIO,			,	"Audio", 
 	SKINNY_MEDIA_TYPE_MAIN_VIDEO,			,	"Main Video", 
 	SKINNY_MEDIA_TYPE_FECC,				,	"FECC", 
@@ -971,7 +971,7 @@ strenum callHistoryDisposition {
  * \brief Skinny Tone Direction
  */
 strenum toneDirection {
-	SKINNY_TONEDIRECTION_USER,			=0x0,	"User",
+	SKINNY_TONEDIRECTION_USER,			=0,	"User",
 	SKINNY_TONEDIRECTION_NETWORK,			=0x1,	"Network",
 	SKINNY_TONEDIRECTION_BOTH,			=0x2,	"Both",
 }
