@@ -933,20 +933,22 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 			}
 #if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
 		} else if (sccp_strcaseequals("ParkedCall", event) || sccp_strcaseequals("UnParkedCall", event) || sccp_strcaseequals("ParkedCallGiveUp", event) || sccp_strcaseequals("ParkedCallTimeout", event)) {
-			sccp_log(DEBUGCAT_CORE)("SCCP: (managerHookHelper) %s Received\ncontent:[%s]\n", event, content);
+			if (iParkingLot.addSlot && iParkingLot.removeSlot) {
+				sccp_log(DEBUGCAT_CORE)("SCCP: (managerHookHelper) %s Received\ncontent:[%s]\n", event, content);
 
-			str = dupStr = pbx_strdupa(content);
-			struct message m = { 0 };
-			sccp_asterisk_parseStrToAstMessage(str, &m);
+				str = dupStr = pbx_strdupa(content);
+				struct message m = { 0 };
+				sccp_asterisk_parseStrToAstMessage(str, &m);
 
-			const char *parkinglot = astman_get_header(&m, "ParkingLot");
-			const char *extension = astman_get_header(&m, PARKING_SLOT);
-			int exten = sccp_atoi(extension, strlen(extension));
-			if (parkinglot && exten) {
-				if (sccp_strcaseequals("ParkedCall", event)) {
-					iParkingLot.addSlot(parkinglot, exten, &m);
-				} else {
-					iParkingLot.removeSlot(parkinglot, exten);
+				const char *parkinglot = astman_get_header(&m, "ParkingLot");
+				const char *extension = astman_get_header(&m, PARKING_SLOT);
+				int exten = sccp_atoi(extension, strlen(extension));
+				if (parkinglot && exten) {
+					if (sccp_strcaseequals("ParkedCall", event)) {
+						iParkingLot.addSlot(parkinglot, exten, &m);
+					} else {
+						iParkingLot.removeSlot(parkinglot, exten);
+					}
 				}
 			}
 #endif

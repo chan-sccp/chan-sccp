@@ -1119,7 +1119,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 
 							case SCCP_FEATURE_PARKINGLOT:
 #if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
-								if (iParkingLot.attachObserver(buttonconfig->button.feature.options, d, buttonconfig->instance)) {
+								if (iParkingLot.attachObserver && iParkingLot.attachObserver(buttonconfig->button.feature.options, d, buttonconfig->instance)) {
 									if (d->inuseprotocolversion > 15) {
 										btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 										buttonconfig->button.feature.status = 0x010000;
@@ -2178,7 +2178,7 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 		case SCCP_FEATURE_PARKINGLOT:
 #if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
 			sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: ParkingLot:'%s' Action, State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options ? config->button.feature.options : "", config->button.feature.status ? "On" : "Off");
-			if (TRUE == toggleState) {
+			if (TRUE == toggleState && iParkingLot.showCXML) {
 				iParkingLot.showCXML(config->button.feature.options, d, instance);
 			}
 #endif

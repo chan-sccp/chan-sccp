@@ -9,12 +9,14 @@
  * $date$
  * $revision$
  */
-#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
 #include "config.h"
 #include "common.h"
-#include "sccp_parkinglot.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
+
+#include "sccp_featureParkingLot.h"
+
+#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
 
 #include "sccp_utils.h"
 #include "sccp_vector.h"
@@ -197,6 +199,8 @@ ParkingDuration: 45
 */
 
 /* forward declarations */
+struct parkinglot;
+typedef struct parkinglot sccp_parkinglot_t;
 static void notifyLocked(sccp_parkinglot_t *pl);
 
 typedef struct plslot plslot_t;
@@ -256,7 +260,7 @@ static sccp_parkinglot_t * addParkinglot(const char *parkinglot)
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "SCCP: (addParkinglot) %s\n", parkinglot);
 	sccp_parkinglot_t *pl = sccp_calloc(sizeof(sccp_parkinglot_t), 1);
 	
-	pl->context = strdup(parkinglot);
+	pl->context = pbx_strdup(parkinglot);
 	pbx_mutex_init(&pl->lock);
 	SCCP_VECTOR_INIT(&pl->observers,1);
 	SCCP_VECTOR_INIT(&pl->slots,1);
@@ -425,7 +429,7 @@ static char * const getParkingLotCXML(sccp_parkinglot_t *pl, int protocolversion
 			pbx_str_append(&buf, 0, "</DirectoryEntry>");
 		}
 		pbx_str_append(&buf, 0, "</CiscoIPPhoneDirectory>");
-		*outbuf = strdup(pbx_str_buffer(buf));
+		*outbuf = pbx_strdup(pbx_str_buffer(buf));
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (getParkingLotCXML) with version:%d, result:\n[%s]\n", pl->context, protocolversion, *outbuf);
 		sccp_free(buf);
 	}
@@ -555,13 +559,13 @@ static int addSlot(const char *parkinglot, int slot, struct message *m)
 		if (SCCP_VECTOR_GET_CMP(&pl->slots, slot, SLOT_CB_CMP) == NULL) {
 			plslot_t new_slot = { 
 				.slot = slot,
-				.exten = strdup(astman_get_header(m, PARKING_SLOT)),
-				.from = strdup(astman_get_header(m, PARKING_FROM)),
-				.channel = strdup(astman_get_header(m, PARKING_PREFIX "Channel")),
-				.callerid_num = strdup(astman_get_header(m, PARKING_PREFIX "CallerIDNum")),
-				.callerid_name = strdup(astman_get_header(m, PARKING_PREFIX "CallerIDName")),
-				.connectedline_num = strdup(astman_get_header(m, PARKING_PREFIX "ConnectedLineNum")),
-				.connectedline_name = strdup(astman_get_header(m, PARKING_PREFIX "ConnectedLineName")),
+				.exten = pbx_strdup(astman_get_header(m, PARKING_SLOT)),
+				.from = pbx_strdup(astman_get_header(m, PARKING_FROM)),
+				.channel = pbx_strdup(astman_get_header(m, PARKING_PREFIX "Channel")),
+				.callerid_num = pbx_strdup(astman_get_header(m, PARKING_PREFIX "CallerIDNum")),
+				.callerid_name = pbx_strdup(astman_get_header(m, PARKING_PREFIX "CallerIDName")),
+				.connectedline_num = pbx_strdup(astman_get_header(m, PARKING_PREFIX "ConnectedLineNum")),
+				.connectedline_name = pbx_strdup(astman_get_header(m, PARKING_PREFIX "ConnectedLineName")),
 			};
 			if (SCCP_VECTOR_APPEND(&pl->slots, new_slot) == 0)  {
 				notifyLocked(pl);
@@ -605,4 +609,6 @@ const ParkingLotInterface iParkingLot = {
 	.removeSlot = removeSlot,
 	.showCXML = showVisualParkingLot,
 };
+#else
+static const ParkingLotInterface iParkingLot = { 0 };
 #endif
