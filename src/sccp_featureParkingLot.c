@@ -610,5 +610,5 @@ const ParkingLotInterface iParkingLot = {
 	.showCXML = showVisualParkingLot,
 };
 #else
-static const ParkingLotInterface iParkingLot = { 0 };
+const ParkingLotInterface iParkingLot = { 0 };
 #endif
