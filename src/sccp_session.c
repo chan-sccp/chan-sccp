@@ -57,8 +57,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 
 #define SESSION_DEVICE_CLEANUP_TIME 10										/* wait time before destroying a device on thread exit */
 #define KEEPALIVE_ADDITIONAL_PERCENT 10										/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
-#define ACCEPT_UWAIT_ON_KNOWN_IP 2										/* wait time when ip-address is already known */
-#define ACCEPT_RETRIES 5											/* number of reqtries when we already know this ip-address */
+//#define ACCEPT_UWAIT_ON_KNOWN_IP 2										/* wait time when ip-address is already known */
+//#define ACCEPT_RETRIES 5											/* number of reqtries when we already know this ip-address */
 
 /* Lock Macro for Sessions */
 #define sccp_session_lock(x)			pbx_mutex_lock(&(x)->lock)
@@ -791,6 +791,7 @@ static void sccp_accept_connection(void)
 
 	sccp_copy_string(addrStr, sccp_netsock_stringify(&s->sin), sizeof(addrStr));
 
+	/*
 	int retries=0;
 	while (sccp_session_findByIP(&incoming) != NULL && retries++ <= ACCEPT_RETRIES) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Session with this IP-address is already known %s. wait !\n", addrStr);
@@ -802,6 +803,7 @@ static void sccp_accept_connection(void)
 		}
 		sleep(ACCEPT_UWAIT_ON_KNOWN_IP);
 	}
+	*/
 
 	/* check ip address against global permit/deny ACL */
 	if (GLOB(ha) && sccp_apply_ha(GLOB(ha), &s->sin) != AST_SENSE_ALLOW) {
