@@ -643,13 +643,13 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 	{																			\
 		AUTO_RELEASE sccp_device_t *d = sccp_device_retain(list_dev);											\
 		if (d) {																	\
-			struct sockaddr_storage sas = { 0 };													\
-			timeinfo = localtime(&d->registrationTime); 												\
-			strftime(regtime, sizeof(regtime), "%c ", timeinfo);											\
 			if(d->session) {															\
+				struct sockaddr_storage sas = { 0 };												\
+				timeinfo = localtime(&d->registrationTime); 											\
+				strftime(regtime, sizeof(regtime), "%c ", timeinfo);										\
 				sccp_session_getSas(d->session, &sas);											 	\
 				sccp_copy_string(addrStr,sccp_netsock_stringify(&sas),sizeof(addrStr));								\
-			} else {addrStr[0] = '-'; addrStr[1] = '-';addrStr[2] = '\0';}									  	\
+ 			} else {addrStr[0] = '-'; addrStr[1] = '-';addrStr[2] = '\0';regtime[0] = '\0';}
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 																\
 		}																		\
@@ -657,12 +657,12 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 																	\
-		CLI_AMI_TABLE_FIELD(Descr,		"-25.25",	s,	25,	d->description ? d->description : "<not set>")								\
+		CLI_AMI_TABLE_FIELD(Descr,		"-25.25",	s,	25,	d->description ? d->description : "<not set>")				\
 		CLI_AMI_TABLE_FIELD(Address,		"44.44",	s,	44,	addrStr)								\
 		CLI_AMI_TABLE_FIELD(Mac,		"-16.16",	s,	16,	d->id)									\
 		CLI_AMI_TABLE_FIELD(RegState,		"-10.10",	s,	10, 	skinny_registrationstate2str(sccp_device_getRegistrationState(d)))	\
 		CLI_AMI_TABLE_FIELD(Token,		"-5.5",		s,	5,	sccp_tokenstate2str(d->status.token)) 					\
-		CLI_AMI_TABLE_FIELD(RegTime,		"25.25",	s,	25, 	regtime)								\
+		CLI_AMI_TABLE_FIELD(RegTime,		"25.25",	s,	25, 	regtime[0] ? regtime : "None")						\
 		CLI_AMI_TABLE_FIELD(Act,		"3.3",		s,	3, 	(d->active_channel) ? "Yes" : "No")					\
 		CLI_AMI_TABLE_FIELD(Lines, 		"-5",		d,	5, 	d->configurationStatistic.numberOfLines)				\
 		CLI_AMI_TABLE_FIELD(Nat,		"9.9",		s, 	9,	sccp_nat2str(d->nat))
