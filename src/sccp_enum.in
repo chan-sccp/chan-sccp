@@ -227,9 +227,9 @@ enum push_result {
 }
 
 strenum tokenstate {
-	SCCP_TOKEN_STATE_NOTOKEN,			=0,	"No Token",
-	SCCP_TOKEN_STATE_ACK,				,	"Token Acknowledged",
-	SCCP_TOKEN_STATE_REJ,				,	"Token Rejected",
+	SCCP_TOKEN_STATE_NOTOKEN,			=0,	"None",
+	SCCP_TOKEN_STATE_ACK,				,	"Ack",
+	SCCP_TOKEN_STATE_REJ,				,	"Rej",
 }
 
 strenum softswitch {
