@@ -3000,8 +3000,8 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 
 		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digittimeout '%d' ms, sched_wait '%d' ms\n", channel->enbloc.digittimeout, iPbx.sched_wait(channel->scheduler.digittimeout_id));
 		if (GLOB(simulate_enbloc) && !channel->enbloc.deactivate && number_of_digits >= 1) {		// skip the first digit (first digit had longer delay than the rest)
-			if ((channel->enbloc.digittimeout) < (iPbx.sched_wait(channel->scheduler.digittimeout_id))) {
-				lpbx_digit_usecs = (channel->enbloc.digittimeout) - (iPbx.sched_wait(channel->scheduler.digittimeout_id));
+			if ((int)channel->enbloc.digittimeout < (iPbx.sched_wait(channel->scheduler.digittimeout_id))) {
+				lpbx_digit_usecs = (channel->enbloc.digittimeout * 1000) - (iPbx.sched_wait(channel->scheduler.digittimeout_id));
 			} else {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU Cancelled (past digittimeout)\n");
 				channel->enbloc.deactivate = 1;
@@ -3017,7 +3017,7 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 						sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU sqrt((%d-((pow(%d, 2))/%d))/%d)='%2.2f'\n", channel->enbloc.totaldigittimesquared, channel->enbloc.totaldigittime, number_of_digits, number_of_digits - 1, std_deviation);
 						sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU totaldigittimesquared '%d', totaldigittime '%d', number_of_digits '%d', std_deviation '%2.2f', variance '%2.2f'\n", channel->enbloc.totaldigittimesquared, channel->enbloc.totaldigittime, number_of_digits, std_deviation, variance);
 						if (std_deviation < max_deviation) {
-							if (channel->enbloc.digittimeout > timeout_if_enbloc) {	// only display message and change timeout once
+							if ((int)channel->enbloc.digittimeout > timeout_if_enbloc) {	// only display message and change timeout once
 								sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU FAST DIAL (new timeout=2 sec)\n");
 								channel->enbloc.digittimeout = timeout_if_enbloc;	// set new digittimeout
 							}
