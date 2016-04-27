@@ -117,10 +117,11 @@ gcc_inline const char *codec2name(skinny_codec_t value)
 /*!
  * \brief Retrieve the string of format numbers and names from an array of formats
  * Buffer needs to be declared and freed afterwards
+ 
  * \param buf   Buffer as char array
  * \param size  Size of Buffer
  * \param codecs Array of Skinny Codecs
- * \param length Max Length
+ * \param clength Max Length
  */
 char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength)
 {

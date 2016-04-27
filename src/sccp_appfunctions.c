@@ -37,12 +37,11 @@ PBX_THREADSTORAGE(colnames_buf);
  * \param chan Asterisk Channel
  * \param cmd Command as char
  * \param data Extra data as char
- * \param buf Buffer as chan*
+ * \param output Buffer as chan*
  * \param len Lenght as size_t
  * \return Status as int
  *
  * \author Diederik de Groot <ddegroot@users.sourceforce.net>
- * \ref nf_sccp_dialplan_sccpdevice
  * 
  * \called_from_asterisk
  */
@@ -291,12 +290,11 @@ static struct pbx_custom_function sccpdevice_function = {
  * \param chan Asterisk Channel
  * \param cmd Command as char
  * \param data Extra data as char
- * \param buf Buffer as chan*
+ * \param output Buffer as chan*
  * \param len Lenght as size_t
  * \return Status as int
  *
  * \author Diederik de Groot <ddegroot@users.sourceforce.net>
- * \ref nf_sccp_dialplan_sccpline
  * 
  * \called_from_asterisk
  * 
@@ -525,12 +523,11 @@ static struct pbx_custom_function sccpline_function = {
  * \param chan Asterisk Channel
  * \param cmd Command as char
  * \param data Extra data as char
- * \param buf Buffer as chan*
+ * \param output Buffer as chan*
  * \param len Lenght as size_t
  * \return Status as int
  *
  * \author Diederik de Groot <ddegroot@users.sourceforce.net>
- * \ref nf_sccp_dialplan_sccpchannel
  * 
  * \called_from_asterisk
  */

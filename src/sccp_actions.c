@@ -259,7 +259,7 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 /*!
  * \brief Handle BackSpace Event for Device
  * \param d SCCP Device as sccp_device_t
- * \param line Line Number as uint8_t
+ * \param lineInstance Line Instance as uint8_t
  * \param callid Call ID as uint32_t
  */
 void sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const uint32_t callid)
@@ -326,12 +326,7 @@ void handle_unknown_message(constSessionPtr no_s, devicePtr no_d, constMessagePt
 }
 
 
-/*!
- * \brief Handle Alarm
- * \param no_s SCCP Session = NULL
- * \param no_d SCCP Device = NULL
- * \param msg_in SCCP Message
- *
+/*
  * Interesting values for Last =
  * 0 Phone Load Is Rejected
  * 1 Phone Load TFTP Size Error
@@ -365,6 +360,14 @@ void handle_unknown_message(constSessionPtr no_s, devicePtr no_d, constMessagePt
  * 30 Phone Abort CCM TCP Connection
  * 31 File Authorization Failed
  */
+
+/*!
+ * \brief Handle Alarm
+ * \param s SCCP Session = NULL
+ * \param no_d SCCP Device = NULL
+ * \param msg_in SCCP Message
+ *
+ */
 void handle_alarm(constSessionPtr s, devicePtr no_d, constMessagePtr msg_in)
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Alarm Message: Severity: %s (%d), %s [%d/%d]\n", 
@@ -377,7 +380,7 @@ void handle_alarm(constSessionPtr s, devicePtr no_d, constMessagePtr msg_in)
 
 /*!
  * \brief Handle Unknown Message
- * \param no_s SCCP Session = NULL
+ * \param s SCCP Session = NULL
  * \param no_d SCCP Device = NULL
  * \param msg_in SCCP Message
  */
@@ -447,8 +450,8 @@ void handle_XMLAlarmMessage(constSessionPtr s, devicePtr no_d, constMessagePtr m
 
 /*!
  * \brief Handle LocationInfo Message send by Wireless devices like 792X
- * \param no_s SCCP Session = NULL
- * \param no_d SCCP Device = NULL
+ * \param s SCCP Session = NULL
+ * \param d SCCP Device = NULL
  * \param msg_in SCCP Message
  */
 void handle_LocationInfoMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
@@ -1244,7 +1247,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
  * \brief Handle Available Lines
  * \param s SCCP Session
  * \param d SCCP Device
- * \param msg_in SCCP Message
+ * \param none SCCP Message
  *
  * \callgraph
  * \callergraph
@@ -1297,7 +1300,7 @@ void handle_accessorystatus_message(constSessionPtr s, devicePtr d, constMessage
 /*!
  * \brief Handle Device Unregister
  * \param s SCCP Session
- * \param d SCCP Device
+ * \param device SCCP Device
  * \param msg_in SCCP Message
  */
 void handle_unregister(constSessionPtr s, devicePtr device, constMessagePtr msg_in)
@@ -1327,7 +1330,7 @@ void handle_unregister(constSessionPtr s, devicePtr device, constMessagePtr msg_
  * \brief Handle Button Template Request for Session
  * \param s SCCP Session
  * \param d SCCP Device
- * \param msg_in SCCP Message
+ * \param none SCCP Message
  *
  * \warning
  *   - device->buttonconfig is not always locked
@@ -2514,7 +2517,7 @@ void handle_capabilities_res(constSessionPtr s, devicePtr d, constMessagePtr msg
  * \brief Handle Soft Key Template Request Message for Session
  * \param s SCCP Session
  * \param d SCCP Device
- * \param msg_in SCCP Message
+ * \param none SCCP Message
  */
 void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
@@ -2843,7 +2846,7 @@ void handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMessage
  * \brief Handle Time/Date Request Message for Session
  * \param s SCCP Session
  * \param d SCCP Device
- * \param msg_in SCCP Message
+ * \param none SCCP Message
  */
 void sccp_handle_time_date_req(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
@@ -4308,7 +4311,7 @@ void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constM
 /*!
  * \brief Handle Keep Alive Message
  * \param s SCCP Session
- * \param d SCCP Device
+ * \param maybe_d SCCP Device
  * \param msg_in SCCP Message
  */
 void handle_KeepAliveMessage(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_in)

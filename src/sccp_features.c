@@ -291,9 +291,9 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 
 /*!
  * \brief Handle Direct Pickup of Line
- * \param l SCCP Line
- * \param lineInstance lineInstance as uint8_t
  * \param d SCCP Device
+ * \param l SCCP Line
+ * \param maybe_c Optional SCCP Channel
  * \return SCCP Channel
  *
  */
@@ -326,7 +326,9 @@ void sccp_feat_handle_directed_pickup(constDevicePtr d, constLinePtr l, channelP
 
 /*!
  * \brief Handle Direct Pickup of Extension
- * \param c *locked* SCCP Channel
+ * \param d SCCP Device
+ * \param c SCCP Channel
+ * \param lineInstance Line Instance as uint8_t 
  * \param exten Extension as char
  * \return Success as int
  *
@@ -412,8 +414,10 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 
 /*!
  * \brief Handle Group Pickup Feature
- * \param l SCCP Line
  * \param d SCCP Device
+ * \param l SCCP Line
+ * \param lineInstance Line Instance as uint8_t
+ * \param maybe_c Optioonal SCCP Channel
  * \return Success as int
  * 
  * \todo backport from trunk
@@ -642,7 +646,6 @@ void sccp_feat_handle_conference(constDevicePtr d, constLinePtr l, uint8_t lineI
 /*!
  * \brief Handle Conference
  * \param device SCCP Device
- * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  * \return Success as int
@@ -816,7 +819,6 @@ void sccp_feat_join(constDevicePtr device, constLinePtr l, uint8_t lineInstance,
 /*!
  * \brief Handle Conference List
  * \param d SCCP Device
- * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
  * \return Success as int

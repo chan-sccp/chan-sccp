@@ -373,32 +373,6 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
 #endif
 
 /*!
- * \brief This is used on device reconnect attempt
- * \param sas   Socket Address In
- * \return SCCP Device
- * 
- */
-//sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr)
-/*
-sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage * sas)
-{
-	sccp_device_t *d = NULL;
-
-	SCCP_RWLIST_RDLOCK(&GLOB(devices));
-	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		struct sockaddr_storage sinsas = { 0 };
-		sccp_session_getSas(d->session, &sinsas);
-		if (d->session && sccp_netsock_cmp_addr(&sas, sas) == 0) {
-			d = sccp_device_retain(d);
-			break;
-		}
-	}
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
-	return d;
-}
-*/
-
-/*!
  * \brief Handle Feature Change Event for persistent feature storage
  * \param event SCCP Event
  *
@@ -519,7 +493,9 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
  * \brief Parse Composed ID
  * \param labelString LabelString as string
  * \param maxLength Maximum Length as unsigned int
- * \param id point to sccp_composed_id_t by ref
+ * \param subscriptionId SubscriptionId as sccp_subscription_id_t (ByRef) [out]
+ * \param extension char array [SCCP_MAX_EXTENSION] [out]
+ * \return int containing number of matched subcription elements
  *
  * \callgraph
  * \callergraph

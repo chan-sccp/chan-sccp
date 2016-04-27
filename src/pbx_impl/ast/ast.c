@@ -263,6 +263,7 @@ int pbx_str2cos(const char *value, uint8_t *cos)
 
 /************************************************************************************************************* GENERAL **/
 
+#if UNUSEDCODE // 2015-11-01
 /*! 
  * \brief Simply remove extension from context
  * \note replacement for ast_context_remove_extension
@@ -279,7 +280,6 @@ int pbx_str2cos(const char *value, uint8_t *cos)
  * 
  * @{
  */
-#if UNUSEDCODE // 2015-11-01
 int pbx_context_remove_extension(const char *context, const char *extension, int priority, const char *registrar)
 {
 #if ASTERISK_VERSION_NUMBER >= 10600
@@ -355,7 +355,7 @@ ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec)
 /*!
  * \brief Convert an array of skinny_codecs (enum) to a bit array of ast_codecs (fmt)
  *
- * \param skinny_codecs Array of Skinny Codecs
+ * \param codecs Array of Skinny Codecs
  *
  * \return bit array fmt/Format of ast_format_type (int)
  */
@@ -921,7 +921,7 @@ int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, u
  *
  * \param ast Asterisk Channel
  * \param funcname      functionname as const char *
- * \param args          arguments as char *
+ * \param preparse      arguments as char *
  * \param buf           buffer as char *
  * \param buflen        bufferlenght as size_t
  * \return result as int

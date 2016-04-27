@@ -1,6 +1,6 @@
 /*!
- * \file	sccp_socket.c
- * \brief       SCCP Socket Class
+ * \file	sccp_session.c
+ * \brief       SCCP Session Class
  * \author      Sergio Chersovani <mlists [at] c-net.it>
  * \note	Reworked, but based on chan_sccp code.
  *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
@@ -965,7 +965,7 @@ void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t)
 /*!
  * \brief Socket Send
  * \param device SCCP Device
- * \param msg Message Data Structure (sccp_msg_t)
+ * \param msg_in Message Data Structure (sccp_msg_t)
  * \return SCCP Session Send
  */
 int sccp_session_send(constDevicePtr device, const sccp_msg_t * msg_in)
@@ -981,7 +981,7 @@ int sccp_session_send(constDevicePtr device, const sccp_msg_t * msg_in)
 
 /*!
  * \brief Socket Send Message
- * \param s Session SCCP Session (can't be null)
+ * \param session Session SCCP Session (can't be null)
  * \param msg Message Data Structure (sccp_msg_t) (Will be freed automatically at the end)
  * \return Result as Int
  *
@@ -1249,7 +1249,7 @@ void sccp_session_tokenAckSPCP(constSessionPtr session, uint32_t features)
 /*!
  * \brief Set Session Protocol
  * \param session SCCP Session
- * \param device SCCP Device
+ * \param protocolType Protocol Type as uint16_t
  */
 gcc_inline void sccp_session_setProtocol(constSessionPtr session, uint16_t protocolType)
 {
@@ -1264,7 +1264,6 @@ gcc_inline void sccp_session_setProtocol(constSessionPtr session, uint16_t proto
 /*!
  * \brief Get Session Protocol
  * \param session SCCP Session
- * \param device SCCP Device
  */
 gcc_inline uint16_t sccp_session_getProtocol(constSessionPtr session)
 {
@@ -1277,7 +1276,6 @@ gcc_inline uint16_t sccp_session_getProtocol(constSessionPtr session)
 /*!
  * \brief Reset Last KeepAlive
  * \param session SCCP Session
- * \param device SCCP Device
  */
 gcc_inline void sccp_session_resetLastKeepAlive(constSessionPtr session)
 {

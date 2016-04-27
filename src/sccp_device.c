@@ -1205,7 +1205,7 @@ void sccp_dev_sendmsg(constDevicePtr d, sccp_mid_t t)
 /*!
  * \brief Register a Device
  * \param d SCCP Device
- * \param opt Option/Registration State as int
+ * \param state Registration State as skinny_registrationstate_t
  *
  * \note adds a retained device to the event.deviceRegistered.device
  */
@@ -1440,9 +1440,9 @@ void sccp_dev_deactivate_cplane(constDevicePtr d)
  * \brief Send Start Tone to Device
  * \param d SCCP Device
  * \param tone Tone as uint8_t
- * \param line Line as uint8_t
+ * \param lineInstance LineInstance as uint8_t
  * \param callid Call ID as uint32_t
- * \param timeout Timeout as uint32_t
+ * \param direction Direction as skinny_toneDirection_t
  */
 void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t lineInstance, uint32_t callid, skinny_toneDirection_t direction)
 {
@@ -1469,7 +1469,7 @@ void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t lineInstance, ui
 /*!
  * \brief Send Stop Tone to Device
  * \param d SCCP Device
- * \param line Line as uint8_t
+ * \param lineInstance LineInstance as uint8_t
  * \param callid Call ID as uint32_t
  */
 void sccp_dev_stoptone(constDevicePtr d, uint8_t lineInstance, uint32_t callid)
@@ -1612,6 +1612,7 @@ void sccp_dev_cleardisplay(constDevicePtr d)
 	return;
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Send Display to Device
  * \param d SCCP Device
@@ -1623,8 +1624,6 @@ void sccp_dev_cleardisplay(constDevicePtr d)
  * \callgraph
  * \callergraph
  */
-//void sccp_dev_display(devicePtr d, char *msg)
-#if UNUSEDCODE // 2015-11-01
 void sccp_dev_display_debug(constDevicePtr d, const char *msgstr, const char *file, const int lineno, const char *pretty_function)
 {
 #if DEBUG
@@ -1651,6 +1650,7 @@ void sccp_dev_display_debug(constDevicePtr d, const char *msgstr, const char *fi
 
 /*!
  * \brief Send Clear Display Notification to Device
+ *
  * \param d SCCP Device
  *
  * \callgraph
@@ -1696,6 +1696,7 @@ void sccp_dev_displaynotify_debug(constDevicePtr d, const char *msg, uint8_t tim
 /*!
  * \brief Send Clear Display Notification to Device
  * \param d SCCP Device
+ * \param priority Priority as uint8_t
  *
  * \callgraph
  * \callergraph
@@ -1785,7 +1786,7 @@ void sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, bool
 
 /*!
  * \brief Send Get Activeline to Device
- * \param d SCCP Device
+ * \param device SCCP Device
  * \return Retained SCCP Line
  *
  * \warning
@@ -1838,7 +1839,7 @@ void sccp_dev_setActiveLine(devicePtr device, constLinePtr l)
 
 /*!
  * \brief Get Active Channel
- * \param d SCCP Device
+ * \param device SCCP Device
  * \return SCCP Channel
  */
 sccp_channel_t *sccp_device_getActiveChannel(constDevicePtr device)
@@ -1980,12 +1981,12 @@ void sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePt
 	}
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Check Ringback on Device
  * \param device SCCP Device
  * \return Result as int
  */
-#if UNUSEDCODE // 2015-11-01
 int sccp_device_check_ringback(devicePtr device)
 {
 	AUTO_RELEASE sccp_channel_t *c = NULL;
@@ -2188,6 +2189,11 @@ static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)
 void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cleanupTime)
 {
 #else
+/*!
+ * \param file file
+ * \param lineno line number
+ * \param func function
+ */
 void __sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cleanupTime, const char *file, int lineno, const char *func)
 {
 	pbx_log(LOG_NOTICE, "%s: (sccp_dev_clean) Called From: %s:%d:%s\n", DEV_ID_LOG(device), file, lineno, func);
@@ -2489,7 +2495,7 @@ boolean_t sccp_device_isVideoSupported(constDevicePtr device)
 
 /*!
  * \brief Find ServiceURL by index
- * \param d SCCP Device
+ * \param device SCCP Device
  * \param instance Instance as uint8_t
  * \return SCCP Service
  *
@@ -2547,7 +2553,7 @@ int sccp_device_sendReset(devicePtr d, uint8_t reset_type)
  * \param instance Instance as int
  * \param callid Call ID as int
  * \param state Call State as int
- * \param priority Priority as skinny_callpriority_t
+ * \param precedence_level precedence_level as skinny_callpriority_t
  * \param visibility Visibility as skinny_callinfo_visibility_t
  *
  * \callgraph
