@@ -716,7 +716,7 @@ void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
  * \param l SCCP Line
  * \param subscriptionId subscriptionId
  * \param onoff On/Off as int
- * \note used for DUNDi Discovery \ref DUNDi
+ * \note used for DUNDi Discovery
  */
 static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptionId, int onoff)
 {
@@ -991,7 +991,7 @@ sccp_line_t *sccp_line_find_byid(constDevicePtr d, uint16_t instance)
 #if DEBUG
 /*!
  * \param d SCCP Device
- * \param instance line instance as int
+ * \param buttonIndex Button Index as uint16_t
  * \param filename Debug FileName
  * \param lineno Debug LineNumber
  * \param func Debug Function Name

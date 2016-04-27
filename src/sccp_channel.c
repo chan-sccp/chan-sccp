@@ -1250,6 +1250,7 @@ channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channe
  * \param dial Dialed Number as char
  * \param calltype Calltype as int
  * \param parentChannel SCCP Channel for which the channel was created
+ * \param ids Optional Linked Channel ID's (> asterisk-1.8)
  * \return a *retained* SCCP Channel or NULL if something is wrong
  *
  * \callgraph
@@ -2261,7 +2262,7 @@ EXIT:
 /*!
  * \brief Set Caller Id Presentation
  * \param channel SCCP Channel
- * \param presenceParameter SCCP CallerID Presence ENUM
+ * \param presentation SCCP CallerID Presentation ENUM
  */
 void sccp_channel_set_calleridPresentation(sccp_channel_t * channel, sccp_callerid_presentation_t presentation)
 {

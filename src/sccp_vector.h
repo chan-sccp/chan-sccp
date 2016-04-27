@@ -1,5 +1,5 @@
 /*!
- * \file	sccp_vector.c
+ * \file	sccp_vector.h
  * \brief       SCCP Vector Header
  * \note	Vector Code derived from Asterisk 12 "vector.h"
  * 		Copyright (C) 2013, Digium, Inc.
@@ -304,7 +304,7 @@
  *
  * \return The element that was removed.
  */
-#define SCCP_VECTOR_REMOVE(vec, idx, preserve_ordered) ({						\
+#define SCCP_VECTOR_REMOVE(vec, idx, preserve_order) ({							\
 	typeof((vec)->elems[0]) __sccp_vector_res1;							\
 	size_t __sccp_vector_idx1 = (idx);								\
 	ast_assert(__sccp_vector_idx1 < (vec)->current);						\
@@ -457,7 +457,7 @@
  * \brief Reset vector.
  *
  * \param vec Vector to reset.
- * \param callback A cleanup callback or SCCP_VECTOR_ELEM_CLEANUP_NOOP.
+ * \param cleanup A cleanup callback or SCCP_VECTOR_ELEM_CLEANUP_NOOP.
  */
 #define SCCP_VECTOR_RESET(vec, cleanup) ({								\
 	SCCP_VECTOR_CALLBACK_VOID(vec, cleanup);							\
@@ -513,8 +513,8 @@
 /*!
  * \brief Default callback for SCCP_VECTOR_CALLBACK()
  *
- * \param elem Element to compare against
- * \param value Value to compare with the vector element.
+ * \param element Element to compare against
+ * param value Value to compare with the vector element.
  *
  * \return CMP_MATCH always.
  */

@@ -1851,7 +1851,8 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 /* end dyn config */
 /*!
  * \brief check a Button against the current ButtonConfig on a device
- * \param buttonconfig_head pointer to the device->buttonconfig list
+ *
+ * \param buttonconfigList pointer to the device->buttonconfig list
  * \param buttonindex button index
  * \param type type of button
  * \param name name
@@ -1971,7 +1972,8 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 
 /*!
  * \brief add a Button to a device
- * \param buttonconfig_head pointer to the device->buttonconfig list
+ *
+ * \param buttonconfigList pointer to the device->buttonconfig list
  * \param buttonindex button index
  * \param type type of button
  * \param name name

@@ -1,6 +1,6 @@
 /*!
  * \file        sccp_session.h
- * \brief       SCCP Socket Header
+ * \brief       SCCP Session Header
  * \author      Sergio Chersovani <mlists [at] c-net.it>
  * \note        Reworked, but based on chan_sccp code.
  *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.

@@ -1729,7 +1729,7 @@ char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos
 /*!
  * \brief List Conferences
  * \param fd Fd as int
- * \param total Total number of lines as int
+ * \param totals Total number of lines as int
  * \param s AMI Session
  * \param m Message
  * \param argc Argc as int
@@ -1771,7 +1771,7 @@ int sccp_cli_show_conferences(int fd, sccp_cli_totals_t *totals, struct mansessi
 /*!
  * \brief Show Conference Participants
  * \param fd Fd as int
- * \param total Total number of lines as int
+ * \param totals Total number of lines as int
  * \param s AMI Session
  * \param m Message
  * \param argc Argc as int
@@ -1836,7 +1836,7 @@ int sccp_cli_show_conference(int fd, sccp_cli_totals_t *totals, struct mansessio
 /*!
  * \brief Conference Command CLI/AMI
  * \param fd Fd as int
- * \param total Total number of lines as int
+ * \param totals Total number of lines as int
  * \param s AMI Session
  * \param m Message
  * \param argc Argc as int

@@ -176,7 +176,7 @@ int sccp_rtp_requestRTPPorts(constDevicePtr device, channelPtr channel)
 
 /*!
  * \brief Stop an RTP Source.
- * \param c SCCP Channel
+ * \param channel SCCP Channel
  */
 void sccp_rtp_stop(constChannelPtr channel)
 {

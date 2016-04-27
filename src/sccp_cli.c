@@ -20,10 +20,10 @@
  * /code
  * static char cli_message_device_usage[] = "Usage: sccp message device <deviceId> <message text> [beep] [timeout]\n" "Send a message to an SCCP Device + phone beep + timeout.\n";
  * static char ami_message_device_usage[] = "Usage: SCCPMessageDevices\n" "Show All SCCP Softkey Sets.\n\n" "PARAMS: DeviceId, MessageText, Beep, Timeout\n";
- * #define CLI_COMMAND "sccp", "message", "device"                                      // defines the cli command line before parameters
- * #define AMI_COMMAND "SCCPMessageDevice"                                              // defines the ami command line before parameters
- * #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER                                       // defines on or more cli tab completion helpers (in order)
- * #define CLI_AMI_PARAMS "DeviceId" "MessageText", "Beep", "Timeout"                   // defines the ami parameter conversion mapping to argc/argv, empty string if not defined
+ * \#define CLI_COMMAND "sccp", "message", "device"                                      // defines the cli command line before parameters
+ * \#define AMI_COMMAND "SCCPMessageDevice"                                              // defines the ami command line before parameters
+ * \#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER                                       // defines on or more cli tab completion helpers (in order)
+ * \#define CLI_AMI_PARAMS "DeviceId" "MessageText", "Beep", "Timeout"                   // defines the ami parameter conversion mapping to argc/argv, empty string if not defined
  * CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Device", cli_message_device_usage, FALSE)
  *                                                                                      // the actual macro call which will generate an cli function and an ami function to be called. CLI_AMI_ENTRY elements:
  *                                                                                      // - functionname (will be expanded to manager_functionname and cli_functionname)
@@ -31,11 +31,11 @@
  *                                                                                      // - description
  *                                                                                      // - usage
  *                                                                                      // - completer repeats indefinitly (multi calls to the completer, for example for 'sccp debug')
- * #undef CLI_AMI_PARAMS
- * #undef AMI_COMMAND
- * #undef CLI_COMPLETE
- * #undef CLI_COMMAND                                                                   // cleanup / undefine everything before the next call to CLI_AMI_ENTRY
- * #endif
+ * \#undef CLI_AMI_PARAMS
+ * \#undef AMI_COMMAND
+ * \#undef CLI_COMPLETE
+ * \#undef CLI_COMMAND                                                                   // cleanup / undefine everything before the next call to CLI_AMI_ENTRY
+ * \#endif
  * /endcode
  * 
  * Inside the function that which is called on execution:
@@ -451,7 +451,7 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
 /*!
  * \brief Show Globals
  * \param fd Fd as int
- * \param total Total number of lines as int
+ * \param totals Total number of lines as int
  * \param s AMI Session
  * \param m Message
  * \param argc Argc as int
@@ -612,7 +612,7 @@ CLI_AMI_ENTRY(show_globals, sccp_show_globals, "List defined SCCP global setting
     /*!
      * \brief Show Devices
      * \param fd Fd as int
-     * \param total Total number of lines as int
+     * \param totals Total number of lines as int
      * \param s AMI Session
      * \param m Message
      * \param argc Argc as int
@@ -694,7 +694,7 @@ CLI_AMI_ENTRY(show_devices, sccp_show_devices, "List defined SCCP devices", cli_
     /*!
      * \brief Show Device
      * \param fd Fd as int
-     * \param total Total number of lines as int
+     * \param totals Total number of lines as int
      * \param s AMI Session
      * \param m Message
      * \param argc Argc as int
@@ -1024,7 +1024,7 @@ CLI_AMI_ENTRY(show_device, sccp_show_device, "Lists device settings", cli_device
     /*!
      * \brief Show Lines
      * \param fd Fd as int
-     * \param total Total number of lines as int
+     * \param totals Total number of lines as int
      * \param s AMI Session
      * \param m Message
      * \param argc Argc as int
@@ -1212,7 +1212,7 @@ CLI_AMI_ENTRY(show_lines, sccp_show_lines, "List defined SCCP Lines", cli_lines_
     /*!
      * \brief Show Line
      * \param fd Fd as int
-     * \param total Total number of lines as int
+     * \param totals Total number of lines as int
      * \param s AMI Session
      * \param m Message
      * \param argc Argc as int
@@ -1387,7 +1387,7 @@ CLI_AMI_ENTRY(show_line, sccp_show_line, "List defined SCCP line settings", cli_
     /*!
      * \brief Show Channels
      * \param fd Fd as int
-     * \param total Total number of lines as int
+     * \param totals Total number of lines as int
      * \param s AMI Session
      * \param m Message
      * \param argc Argc as int
@@ -1913,7 +1913,7 @@ CLI_AMI_ENTRY(show_refcount, sccp_show_refcount, "Show all Refcount Entries", cl
     /*!
      * \brief Show Sessions
      * \param fd Fd as int
-     * \param total Total number of lines as int
+     * \param totals Total number of lines as int
      * \param s AMI Session
      * \param m Message
      * \param argc Argc as int
@@ -1980,7 +1980,7 @@ CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
     /*!
      * \brief Message Devices
      * \param fd Fd as int
-     * \param total Total number of lines as int
+     * \param totals Total number of lines as int
      * \param s AMI Session
      * \param m Message
      * \param argc Argc as int
@@ -2049,7 +2049,7 @@ CLI_AMI_ENTRY(message_devices, sccp_message_devices, "Send a message to all SCCP
     /*!
      * \brief Message Device
      * \param fd Fd as int
-     * \param total Total number of lines as int
+     * \param totals Total number of lines as int
      * \param s AMI Session
      * \param m Message
      * \param argc Argc as int
@@ -2118,7 +2118,7 @@ CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Devic
     /*!
      * \brief System Message
      * \param fd Fd as int
-     * \param total Total number of lines as int
+     * \param totals Total number of lines as int
      * \param s AMI Session
      * \param m Message
      * \param argc Argc as int
@@ -2205,7 +2205,7 @@ CLI_AMI_ENTRY(system_message, sccp_system_message, "Send a system wide message t
     /*!
      * \brief Message Device
      * \param fd Fd as int
-     * \param total Total number of lines as int
+     * \param totals Total number of lines as int
      * \param s AMI Session
      * \param m Message
      * \param argc Argc as int
@@ -3187,7 +3187,7 @@ CLI_ENTRY(cli_set_object, sccp_set_object, "Set channel|device settings", set_ob
     /*!
      * \brief Answer a Remote Channel
      * \param fd Fd as int
-     * \param total Total number of lines as int
+     * \param totals Total number of lines as int
      * \param s AMI Session
      * \param m Message
      * \param argc Argc as int
@@ -3320,7 +3320,7 @@ CLI_ENTRY(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage, FALSE
     /*!
      * \brief Send Token Ack to device(s)
      * \param fd Fd as int
-     * \param total Total number of lines as int
+     * \param totals Total number of lines as int
      * \param s AMI Session
      * \param m Message
      * \param argc Argc as int
