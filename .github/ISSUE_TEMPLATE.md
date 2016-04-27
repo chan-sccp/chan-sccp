@@ -32,7 +32,7 @@
     * [Operating System]
     * [Operating System Version]
 * Direct Contact information: [You can contact me here]
-* Log Files (pastbin): [url]
+* Log Files (attach .txt / [pastbin](http://pastebin.com/) / [gist](http://gist.github.com/)): [url]
 * Comments: [Other Information]
 * 
 
