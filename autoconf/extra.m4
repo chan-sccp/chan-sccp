@@ -451,7 +451,7 @@ AC_DEFUN([CS_SETUP_DOXYGEN], [
 		[ac_cv_use_devdoc=$enableval], 
 		[ac_cv_use_devdoc=no]
 	)
-	AS_IF([test "_${ac_cv_use_devdoc}" == "_yes"], [DX_ENV_APPEND([INPUT],[. src src/pbx_impl src/pbx_impl/ast])])
+	AS_IF([test "_${ac_cv_use_devdoc}" == "_yes"], [DX_ENV_APPEND([INPUT],[. src src/pbx_impl src/pbx_impl/ast src/pbx_impl/ast113 src/pbx_impl/ast_announce])])
 	DX_HTML_FEATURE(ON)
 	DX_CHM_FEATURE(OFF)
 	DX_CHI_FEATURE(OFF)

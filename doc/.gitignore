@@ -1,3 +1,7 @@
 /Makefile*
 /html
 /man
+/xml
+/latex
+*.bak
+*~
