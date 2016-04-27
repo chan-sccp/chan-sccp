@@ -326,7 +326,8 @@ void handle_unknown_message(constSessionPtr no_s, devicePtr no_d, constMessagePt
 }
 
 
-/ * Interesting values for Last =
+/*
+ * Interesting values for Last =
  * 0 Phone Load Is Rejected
  * 1 Phone Load TFTP Size Error
  * 2 Phone Load Compressor Error
@@ -359,6 +360,7 @@ void handle_unknown_message(constSessionPtr no_s, devicePtr no_d, constMessagePt
  * 30 Phone Abort CCM TCP Connection
  * 31 File Authorization Failed
  */
+ 
 /*!
  * \brief Handle Alarm
  * \param s SCCP Session = NULL
