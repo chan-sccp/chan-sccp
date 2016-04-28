@@ -2185,19 +2185,8 @@ static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)
  *
  * \note adds a retained device to the event.deviceRegistered.device
  */
-#ifndef DEBUG
 void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cleanupTime)
 {
-#else
-/*!
- * \param file file
- * \param lineno line number
- * \param func function
- */
-void __sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cleanupTime, const char *file, int lineno, const char *func)
-{
-	pbx_log(LOG_NOTICE, "%s: (sccp_dev_clean) Called From: %s:%d:%s\n", DEV_ID_LOG(device), file, lineno, func);
-#endif
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 	sccp_buttonconfig_t *config = NULL;
 	sccp_selectedchannel_t *selectedChannel = NULL;

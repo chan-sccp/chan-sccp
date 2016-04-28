@@ -545,7 +545,6 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 
 	AUTO_RELEASE sccp_device_t *d = s->device ? sccp_device_retain(s->device) : NULL;
 	if (d) {
-		sccp_do_backtrace();
 		char *deviceName = sccp_strdupa(d->id);
 		
                 sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
@@ -656,6 +655,7 @@ void *sccp_netsock_device_thread(void *session)
 			if (errno > 0 && (errno != EAGAIN) && (errno != EINTR)) {
 				sccp_copy_string(addrStr, sccp_netsock_stringify_addr(&s->sin), sizeof(addrStr));
 				pbx_log(LOG_ERROR, "%s: poll() returned %d. errno: %s, (ip-address: %s)\n", DEV_ID_LOG(s->device), errno, strerror(errno), addrStr);
+				socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 				break;
 			}
@@ -671,7 +671,7 @@ void *sccp_netsock_device_thread(void *session)
 				//sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving at buffer position:%lu\n", DEV_ID_LOG(s->device), recv_len);
 				result = recv(s->fds[0].fd, recv_buffer + recv_len, (SCCP_MAX_PACKET * 2) - recv_len, 0);
 				if (!(result > 0 && (recv_len += result) && ((SCCP_MAX_PACKET * 2) - recv_len) && process_buffer(s, &msg, recv_buffer, &recv_len) == 0)) {
-					//socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
+					pbx_log(LOG_ERROR, "%s: (netsock_device_thread) Received a packet or message which we could not handle, giving up session: %p!\n", DEV_ID_LOG(s->device), s);
 					if (s->device) {
 						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
 					}
@@ -689,7 +689,6 @@ void *sccp_netsock_device_thread(void *session)
 		}
 	}
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Exiting sccp_socket device thread\n", DEV_ID_LOG(s->device));
-
 	pthread_cleanup_pop(1);
 
 	return NULL;
