@@ -23,21 +23,7 @@ FORCE:
 
 # Update ChangeLog file from SVN Log
 ChangeLog:		FORCE
-if ENABLE_SVN2CL
-	@if svnrev=`cat .revision |grep VCS_SHORT_HASH|awk -F= '{print "r" $2}'|tr -d '"'`; then \
-	  if [ -z "`cat ChangeLog 2>/dev/null| grep "\[${svnrev}\]"`" ];then \
-            echo "Generating ChangeLog from SVN $(CHANGELOG_OLDEST)->HEAD"; \
-            $(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs \
-            	--include-rev \
-             	--revision-link='https://svn.code.sf.net/p/chan-sccp-b/code/trunk/' \
-              	--ticket-link='http://sourceforge.net/tracker/?func=detail&group_id=186378&atid=917045&aid=' \
-              	--ignore-message-starting='#' \
-              	--revision HEAD:$(CHANGELOG_OLDEST); \
-	  fi; \
-	fi
-else
-	svn log -r$(CHANGELOG_OLDEST):HEAD > ChangeLog 
-endif
+	@$(GIT) log v4.2.3...HEAD --pretty=medium --reverse >ChangeLog
 
 # Update ChangeLog Files and Generate Doxygen Documentation
 doxygen: ChangeLog doxygen-doc
