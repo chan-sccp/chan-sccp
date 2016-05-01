@@ -463,7 +463,7 @@ static void showVisualParkingLot(const char *parkinglot, constDevicePtr d, uint8
 	
 	sccp_parkinglot_t *pl = findCreateParkinglot(parkinglot, FALSE);
 	if (pl) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (showVisualParkingLot) device:%s, instance:%d, size:%d\n", parkinglot, d->id, instance, SCCP_VECTOR_SIZE(&pl->observers));
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (showVisualParkingLot) device:%s, instance:%d, size:%d\n", parkinglot, d->id, instance, (int)SCCP_VECTOR_SIZE(&pl->observers));
 		uint8_t idx;
 		for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
 			plobserver_t *observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
@@ -585,7 +585,7 @@ static int removeSlot(const char *parkinglot, int slot)
 {
 	pbx_assert(parkinglot != NULL);
 	
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (removeSlot) removing slot:%d, size:%d\n", parkinglot, slot);
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (removeSlot) removing slot:%d\n", parkinglot, slot);
 	int res = FALSE;
 
 	sccp_parkinglot_t *pl = findCreateParkinglot(parkinglot, FALSE);
