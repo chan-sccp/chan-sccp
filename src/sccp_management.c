@@ -1017,10 +1017,10 @@ boolean_t sccp_manager_action2str(const char *manager_command, char **outStr)
 #if defined(CS_EXPERIMENTAL)
 char * sccp_manager_retrieve_parkedcalls_cxml(char ** out) 
 {
-	char *parkedcalls_messageStr;
+	char *parkedcalls_messageStr = NULL;
 	char *manager_command = "Action: ParkedCalls\r\n";
 	
-	if (sccp_manager_action2str(manager_command, &parkedcalls_messageStr) >= 0 && parkedcalls_messageStr) {
+	if (sccp_manager_action2str(manager_command, &parkedcalls_messageStr) && parkedcalls_messageStr) {
 		pbx_str_t *tmpPbxStr = ast_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
 		struct message m = {0};
 		const char *event = "";
