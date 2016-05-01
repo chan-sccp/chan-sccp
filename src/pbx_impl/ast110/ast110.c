@@ -45,6 +45,7 @@ __BEGIN_C_EXTERN__
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
 #undef new
+#include <asterisk/timing.h>
 __END_C_EXTERN__
 
 static struct ast_sched_context *sched = 0;
@@ -824,6 +825,19 @@ static int sccp_wrapper_asterisk110_setNativeAudioFormats(const sccp_channel_t *
 static int sccp_wrapper_asterisk110_setNativeVideoFormats(const sccp_channel_t * channel, uint32_t formats)
 {
 	return 1;
+}
+
+static void sccp_wrapper_asterisk110_removeTimingFD(PBX_CHANNEL_TYPE *ast)
+{
+	if (ast) {
+		struct ast_timer *timer=ast->timer;
+		if (timer) {
+			ast_log(LOG_NOTICE, "%s: (clean_timer_fds) timername: %s, fd:%d\n", ast->name, ast_timer_get_name(timer), ast_timer_fd(timer));
+			ast_timer_disable_continuous(timer);
+			ast_timer_close(timer);
+			ast_channel_set_fd(ast, AST_TIMING_FD, -1);
+		}
+	}
 }
 
 static void sccp_wrapper_asterisk110_setOwner(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbx_channel)
@@ -2735,6 +2749,7 @@ const PbxInterface iPbx = {
 	findPickupChannelByGroupLocked:	sccp_wrapper_asterisk110_findPickupChannelByGroupLocked,
 
 	set_owner:			sccp_wrapper_asterisk110_setOwner,
+	removeTimingFD:			sccp_wrapper_asterisk110_removeTimingFD,
 	dumpchan:			NULL,
 	channel_is_bridged:		sccp_wrapper_asterisk110_channelIsBridged,
 	get_bridged_channel:		sccp_wrapper_asterisk110_getBridgeChannel,
@@ -2863,6 +2878,7 @@ const PbxInterface iPbx = {
 	.findPickupChannelByGroupLocked = sccp_wrapper_asterisk110_findPickupChannelByGroupLocked,
 
 	.set_owner			= sccp_wrapper_asterisk110_setOwner,
+	.removeTimingFD			= sccp_wrapper_asterisk110_removeTimingFD,
 	.dumpchan			= NULL,
 	.channel_is_bridged		= sccp_wrapper_asterisk110_channelIsBridged,
 	.get_bridged_channel		= sccp_wrapper_asterisk110_getBridgeChannel,

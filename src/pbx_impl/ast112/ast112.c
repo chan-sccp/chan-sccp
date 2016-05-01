@@ -60,6 +60,7 @@ __BEGIN_C_EXTERN__
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
 #undef new
+#include <asterisk/timing.h>
 __END_C_EXTERN__
 
 struct ast_sched_context *sched = 0;
@@ -872,6 +873,22 @@ static int sccp_wrapper_asterisk112_setNativeVideoFormats(const sccp_channel_t *
 	ast_format_set(&fmt, skinny_codec2pbx_codec(formats), 0);
 	ast_format_cap_add(ast_channel_nativeformats(channel->owner), &fmt);
 	return 1;
+}
+
+
+static void sccp_wrapper_asterisk112_removeTimingFD(PBX_CHANNEL_TYPE *ast)
+{
+	if (ast) {
+		struct ast_timer *timer=ast_channel_timer(ast);
+		if (timer) {
+			ast_log(LOG_NOTICE, "%s: (clean_timer_fds) timername: %s, fd:%d\n", ast_channel_name(ast), ast_timer_get_name(timer), ast_timer_fd(timer));
+			ast_timer_disable_continuous(timer);
+			ast_timer_close(timer);
+			ast_channel_set_fd(ast, AST_TIMING_FD, -1);
+			ast_channel_timingfd_set(ast, -1);
+			ast_channel_timer_set(ast, NULL);
+		}
+	}
 }
 
 static void sccp_wrapper_asterisk112_setOwner(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbx_channel)
@@ -3115,6 +3132,7 @@ const PbxInterface iPbx = {
 //	endpoint_shutdown:		sccp_wrapper_asterisk112_endpoint_shutdown,
 
 	set_owner:			sccp_wrapper_asterisk112_setOwner,
+	removeTimingFD:			sccp_wrapper_asterisk112_removeTimingFD,
 	dumpchan:			sccp_wrapper_asterisk112_dumpchan,
 	channel_is_bridged:		sccp_wrapper_asterisk112_channelIsBridged,
 	get_bridged_channel:		sccp_wrapper_asterisk112_getBridgeChannel,
@@ -3248,6 +3266,7 @@ const PbxInterface iPbx = {
 //	.endpoint_shutdown		= sccp_wrapper_asterisk112_endpoint_shutdown,
 
 	.set_owner			= sccp_wrapper_asterisk112_setOwner,
+	.removeTimingFD			= sccp_wrapper_asterisk112_removeTimingFD,
 	.dumpchan			= sccp_wrapper_asterisk112_dumpchan,
 	.channel_is_bridged		= sccp_wrapper_asterisk112_channelIsBridged,
 	.get_bridged_channel		= sccp_wrapper_asterisk112_getBridgeChannel,

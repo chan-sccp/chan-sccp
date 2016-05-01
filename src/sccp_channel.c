@@ -1860,6 +1860,9 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	}
 	
 	if (channel->owner) {
+		if (iPbx.removeTimingFD) {
+			iPbx.removeTimingFD(channel->owner); 
+		}
 		iPbx.set_owner(channel, NULL);
 	}
 	
