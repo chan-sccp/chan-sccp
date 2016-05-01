@@ -1312,6 +1312,13 @@ void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid
 	if (softKeySetIndex != KEYMODE_CONNTRANS && softKeySetIndex != KEYMODE_CONNECTED && softKeySetIndex != KEYMODE_EMPTY) {
 		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_MONITOR, FALSE);
 	}
+	if (softKeySetIndex == KEYMODE_RINGOUT) {
+		if (d->transfer && d->transferChannels.transferer) {
+			sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_TRANSFER, TRUE);
+		} else  {
+			sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_TRANSFER, FALSE);
+		}
+	}
 	//msg->data.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF;           /* htolel(65535); */
 	msg->data.SelectSoftKeysMessage.les_validKeyMask = htolel(d->softKeyConfiguration.activeMask[softKeySetIndex]);
 

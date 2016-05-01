@@ -1098,7 +1098,7 @@ void sccp_softkey_setSoftkeyState(devicePtr device, uint8_t softKeySet, uint8_t 
 	/* find softkey */
 	for (i = 0; i < device->softKeyConfiguration.modes[softKeySet].count; i++) {
 		if (device->softKeyConfiguration.modes[softKeySet].ptr && device->softKeyConfiguration.modes[softKeySet].ptr[i] == softKey) {
-			//sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_4 "%s: found softkey '%s' at %d\n", DEV_ID_LOG(device), label2str(device->softKeyConfiguration.modes[softKeySet].ptr[i]), i);
+			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_4 "%s: found softkey '%s' at %d\n", DEV_ID_LOG(device), label2str(device->softKeyConfiguration.modes[softKeySet].ptr[i]), i);
 			if (enable) {
 				device->softKeyConfiguration.activeMask[softKeySet] |= (1 << i);
 			} else {
