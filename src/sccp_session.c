@@ -1086,10 +1086,12 @@ void sccp_session_destroySessionsByDeviceName(const char *name)
 		sccp_device_t *device = session->device;
 		if (device && !isPointerDead(device) && sccp_strequals(device->id, name)) {
 			AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session\n", DEV_ID_LOG(d));
-			sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_NONE);
-			d->needcheckringback = 0;
-			sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 0);
+			if (d) {
+				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session\n", DEV_ID_LOG(d));
+				sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_NONE);
+				d->needcheckringback = 0;
+				sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 0);
+			}
 			destroy_session(session, 1);
 		}
 	}
