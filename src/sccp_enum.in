@@ -431,7 +431,7 @@ enum callsecuritystate {
 /*!
  * \brief Skinny Busy Lamp Field Status (ENUM)
  */
-enum busylampfield_state {
+strenum busylampfield_state {
 	SKINNY_BLF_STATUS_UNKNOWN,			=0,	"Unknown",
 	SKINNY_BLF_STATUS_IDLE,				,	"Not-in-use",
 	SKINNY_BLF_STATUS_INUSE,			,	"In-use",
