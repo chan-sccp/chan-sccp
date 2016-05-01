@@ -881,7 +881,7 @@ static void sccp_wrapper_asterisk112_removeTimingFD(PBX_CHANNEL_TYPE *ast)
 	if (ast) {
 		struct ast_timer *timer=ast_channel_timer(ast);
 		if (timer) {
-			ast_log(LOG_NOTICE, "%s: (clean_timer_fds) timername: %s, fd:%d\n", ast_channel_name(ast), ast_timer_get_name(timer), ast_timer_fd(timer));
+			//ast_log(LOG_NOTICE, "%s: (clean_timer_fds) timername: %s, fd:%d\n", ast_channel_name(ast), ast_timer_get_name(timer), ast_timer_fd(timer));
 			ast_timer_disable_continuous(timer);
 			ast_timer_close(timer);
 			ast_channel_set_fd(ast, AST_TIMING_FD, -1);
