@@ -23,7 +23,7 @@ FORCE:
 
 # Update ChangeLog file from SVN Log
 ChangeLog:		FORCE
-	@$(GIT) log v4.2.3...HEAD --pretty=medium --reverse >ChangeLog
+	@$(GIT) log v4.2.0...HEAD --pretty=medium >ChangeLog
 
 # Update ChangeLog Files and Generate Doxygen Documentation
 doxygen: ChangeLog doxygen-doc
