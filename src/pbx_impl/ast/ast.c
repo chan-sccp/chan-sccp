@@ -729,7 +729,6 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	char tmpCalledName[StationMaxNameSize] = {0};
 	int tmpOrigCalledPartyRedirectReason = 0;
 	int tmpLastRedirectReason = 4;		/* \todo need to figure out more about these codes */
-	sccp_channelstate_t channelstate = channel->state; 
 
 	iCallInfo.Getter(callInfo,
 		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &tmpCallingNumber,
@@ -758,7 +757,6 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 			SCCP_CALLINFO_LAST_REDIRECT_REASON, tmpLastRedirectReason,
 
 			SCCP_CALLINFO_KEY_SENTINEL);
-		sccp_channel_setChannelstate(channel, SCCP_CHANNELSTATE_CALLTRANSFER);		/* force hint update */
 	} else {
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 #if ASTERISK_VERSION_GROUP >= 111
@@ -796,7 +794,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 
 	if (changes) {								/* only send indications if something changed */
 		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
-		sccp_indicate(d, channel, channelstate);
+		sccp_indicate(d, channel, channel->state);
 	}
 #endif
 }
