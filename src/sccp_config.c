@@ -1404,9 +1404,9 @@ sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_
 	for (; v; v = v->next) {
 		sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("sccp_config_parse_codec preference: name: %s, value:%s\n", v->name, v->value);
 		if (sccp_strcaseequals(v->name, "disallow")) {
-			errors += sccp_parse_allow_disallow(new_codecs, v->value, 0);
+			errors += sccp_codec_parseAllowDisallow(new_codecs, v->value, 0);
 		} else if (sccp_strcaseequals(v->name, "allow")) {
-			errors += sccp_parse_allow_disallow(new_codecs, v->value, 1);
+			errors += sccp_codec_parseAllowDisallow(new_codecs, v->value, 1);
 		} else {
 			errors += 1;
 		}

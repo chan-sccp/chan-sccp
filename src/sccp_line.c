@@ -444,10 +444,10 @@ void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c)
 			memcpy(&c->preferences.video , &linedevice->device->preferences.video , sizeof(c->preferences.video));
 			first = FALSE;
 		} else {
-			sccp_utils_combineCodecSets(c->capabilities.audio, linedevice->device->capabilities.audio);
-			sccp_utils_combineCodecSets(c->capabilities.video, linedevice->device->capabilities.video);
-			sccp_utils_reduceCodecSet(c->preferences.audio , linedevice->device->preferences.audio);
-			sccp_utils_reduceCodecSet(c->preferences.video , linedevice->device->preferences.video);
+			sccp_codec_combineSets(c->capabilities.audio, linedevice->device->capabilities.audio);
+			sccp_codec_combineSets(c->capabilities.video, linedevice->device->capabilities.video);
+			sccp_codec_reduceSet(c->preferences.audio , linedevice->device->preferences.audio);
+			sccp_codec_reduceSet(c->preferences.video , linedevice->device->preferences.video);
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->devices);

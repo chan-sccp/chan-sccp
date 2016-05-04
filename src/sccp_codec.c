@@ -88,7 +88,7 @@ const struct skinny_codec skinny_codecs[] = {
 	/* *INDENT-ON* */
 };
 
-uint8_t sccp_getnumber_of_skinny_codecs()
+uint8_t sccp_codec_getArrayLen()
 {
 	return ARRAY_LEN(skinny_codecs);
 }
@@ -123,7 +123,7 @@ gcc_inline const char *codec2name(skinny_codec_t value)
  * \param codecs Array of Skinny Codecs
  * \param clength Max Length
  */
-char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength)
+char *sccp_codec_multiple2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength)
 {
 	if (!buf || size <= 2) {
 		return buf;
@@ -132,52 +132,24 @@ char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * co
 	char *endptr = buf;
 	int x, comma = 0;
 
-	snprintf(endptr++, size, "(");
+	snprintf(endptr++, size, "[");
 	endptr += strlen(endptr);
 	for (x = 0; x < clength; x++) {
 		if (codecs[x] == 0) {
 			break;
 		}
-		snprintf(endptr, size, "%s%s (%d)", comma++ ? ", " : "",codec2name(codecs[x]), codecs[x]);
+		//snprintf(endptr, size, "%s%s (%d)", comma++ ? ", " : "",codec2name(codecs[x]), codecs[x]);
+		snprintf(endptr, size, "%s%s", comma++ ? ", " : "",codec2name(codecs[x]));
 		endptr += strlen(endptr);
 	}
 	if (buf == endptr) {
 		snprintf(endptr, size, "nothing)");
 	}
+	snprintf(endptr++, size, "]");
 	return buf;
 }
 
-/*!
- * \brief Remove Codec from Skinny Codec Preferences
- */
-/*
-static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec)
-{
-	int x = 0;
-	int found = 0;
-
-	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-		if (!found) {
-			if (skinny_codec_prefs[x] == SKINNY_CODEC_NONE) {					// exit early if the rest can only be NONE
-				return;
-			}
-			if (skinny_codec_prefs[x] == skinny_codec) {
-				//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "found codec '%s (%d)' at pos %d\n", codec2name(skinny_codec), skinny_codec, x);
-				found = 1;
-			}
-		} else {
-			if (x + 1 < SKINNY_MAX_CAPABILITIES) {							// move all remaining member left one, deleting the found one
-				//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "moving %d to %d\n", x+1, x);
-				skinny_codec_prefs[x] = skinny_codec_prefs[x + 1];
-			}
-			if (skinny_codec_prefs[x + 1] == SKINNY_CODEC_NONE) {					// exit early if the rest can only be NONE
-				return;
-			}
-		}
-	}
-}
-*/
-static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec)
+static void codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec)
 {
 	int x = 0;
 	boolean_t found = FALSE;
@@ -195,12 +167,12 @@ static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny
 /*!
  * \brief Append Codec to Skinny Codec Preferences
  */
-static int skinny_codec_pref_append(skinny_codec_t * skinny_codec_pref, skinny_codec_t skinny_codec)
+static int codec_pref_append(skinny_codec_t * skinny_codec_pref, skinny_codec_t skinny_codec)
 {
 	int x = 0;
 
 	// append behaviour: remove old entry, move all other entries left, append 
-	skinny_codec_pref_remove(skinny_codec_pref, skinny_codec);
+	codec_pref_remove(skinny_codec_pref, skinny_codec);
 
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 		if (SKINNY_CODEC_NONE == skinny_codec_pref[x]) {
@@ -215,7 +187,7 @@ static int skinny_codec_pref_append(skinny_codec_t * skinny_codec_pref, skinny_c
 /*!
  * \brief Parse Skinny Codec Allow / Disallow Config Lines
  */
-int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing)
+int sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing)
 {
 	int errors = 0;
 
@@ -237,16 +209,16 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, const char *l
 				//sccp_log((DEBUGCAT_CODEC)) ("SCCP: disallow=all => reset codecs\n");
 				break;
 			}
-			for (x = 0; x < sccp_getnumber_of_skinny_codecs(); x++) {
+			for (x = 0; x < sccp_codec_getArrayLen(); x++) {
 				if (all || sccp_strcaseequals(skinny_codecs[x].key, token)) {
 					codec = skinny_codecs[x].codec;
 					found = TRUE;
 					if (allowing) {
 						//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "appending codec '%s'\n", codec2name(codec));
-						skinny_codec_pref_append(skinny_codec_prefs, codec);
+						codec_pref_append(skinny_codec_prefs, codec);
 					} else {
 						//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "removing codec '%s'\n", codec2name(codec));
-						skinny_codec_pref_remove(skinny_codec_prefs, codec);
+						codec_pref_remove(skinny_codec_prefs, codec);
 					}
 				}
 			}
@@ -263,7 +235,7 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, const char *l
 /*!
  * \brief Check if Skinny Codec is compatible with Skinny Capabilities Array
  */
-boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length)
+boolean_t sccp_codec_isCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length)
 {
 	uint8_t i;
 
@@ -279,7 +251,7 @@ boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_
  * \brief get smallest common denominator codecset
  * intersection of two sets
  */
-void sccp_utils_reduceCodecSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES])
+void sccp_codec_reduceSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES])
 {
 	skinny_codec_t temp[SKINNY_MAX_CAPABILITIES] = {0};
 	uint8_t x = 0, y = 0, z = 0;
@@ -298,7 +270,7 @@ void sccp_utils_reduceCodecSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], con
  * \brief combine two codecs sets skipping duplicates
  * union of two sets
  */
-void sccp_utils_combineCodecSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t addCodecs[SKINNY_MAX_CAPABILITIES])
+void sccp_codec_combineSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t addCodecs[SKINNY_MAX_CAPABILITIES])
 {
 	uint8_t x = 0, y = 0, z = 0, demarquation = SKINNY_MAX_CAPABILITIES;
 	for (y = 0; y < SKINNY_MAX_CAPABILITIES && addCodecs[y] != SKINNY_CODEC_NONE; y++) {
@@ -330,22 +302,20 @@ void sccp_utils_combineCodecSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], c
  *  - If not it returns the first jointCapability
  *  - Else SKINNY_CODEC_NONE
  */
-skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int cLength, const skinny_codec_t remotePeerCapabilities[], int rLength)
+skinny_codec_t sccp_codec_findBestJoint(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int cLength, const skinny_codec_t remotePeerCapabilities[], int rLength)
 {
 	uint8_t r, c, p;
 	skinny_codec_t firstJointCapability = SKINNY_CODEC_NONE;						/*!< used to get a default value */
 
 	sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "pLength %d, cLength: %d, rLength: %d\n", pLength, cLength, rLength);
 
-	/*
-	   char pref_buf[256];
-	   sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, ourPreferences, (int)pLength);
-	   char cap_buf[256];
-	   sccp_multiple_codecs2str(cap_buf, sizeof(pref_buf) - 1, ourCapabilities, cLength);
-	   char remote_cap_buf[256];
-	   sccp_multiple_codecs2str(remote_cap_buf, sizeof(remote_cap_buf) - 1, remotePeerCapabilities, rLength);
-	   sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ourPref %s\nourCap: %s\nremoteCap: %s\n", pref_buf, cap_buf, remote_cap_buf);
-	 */
+	//char pref_buf[256];
+	//sccp_codec_multiple2str(pref_buf, sizeof(pref_buf) - 1, ourPreferences, (int)pLength);
+	//char cap_buf[256];
+	//sccp_codec_multiple2str(cap_buf, sizeof(pref_buf) - 1, ourCapabilities, cLength);
+	//char remote_cap_buf[256];
+	//sccp_codec_multiple2str(remote_cap_buf, sizeof(remote_cap_buf) - 1, remotePeerCapabilities, rLength);
+	//sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ourPref %s\nourCap: %s\nremoteCap: %s\n", pref_buf, cap_buf, remote_cap_buf);
 
 	/** check if we have a preference codec list */
 	if (pLength == 0 || ourPreferences[0] == SKINNY_CODEC_NONE) {
@@ -410,7 +380,4 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "no joint capability with preference codec list\n");
 	return 0;
 }
-
-
-
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -812,7 +812,7 @@ static int sccp_wrapper_asterisk16_setNativeAudioFormats(const sccp_channel_t * 
 		channel->owner->nativeformats = new_nativeformats;
 		char codecs[512];
 
-		sccp_multiple_codecs2str(codecs, sizeof(codecs) - 1, codec, length);
+		sccp_codec_multiple2str(codecs, sizeof(codecs) - 1, codec, length);
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_2 "%s: updated native Formats to %d, length: %d, skinny: [%s]\n", (char *) channel->currentDeviceId, (int) channel->owner->nativeformats, length, codecs);
 	}
 	return 1;
@@ -1299,7 +1299,7 @@ static int sccp_wrapper_asterisk16_get_sampleRate(skinny_codec_t codec)
 #else
 	uint32_t i;
 
-	for (i = 1; i < sccp_getnumber_of_skinny_codecs(); i++) {
+	for (i = 1; i < sccp_codec_getArrayLen(); i++) {
 		if (skinny_codecs[i].codec == codec) {
 			return skinny_codecs[i].sample_rate;
 		}
@@ -1404,10 +1404,10 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_request(const char *type, int f
 		get_skinnyFormats(tech_pvt->capabilities & AST_FORMAT_VIDEO_MASK, videoCapabilities, ARRAY_LEN(videoCapabilities));
 	}
 
-	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
+	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
 	// sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote audio caps: %s\n", cap_buf);
 
-	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, videoCapabilities, ARRAY_LEN(videoCapabilities));
+	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, videoCapabilities, ARRAY_LEN(videoCapabilities));
 	// sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote video caps: %s\n", cap_buf);
 
 	/** done */

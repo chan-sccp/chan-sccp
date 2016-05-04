@@ -644,7 +644,7 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 						
 						AUTO_RELEASE sccp_channel_t *remoteSccpChannel = get_sccp_channel_from_pbx_channel(remotePeer);
 						if (remoteSccpChannel) {
-							sccp_multiple_codecs2str(buf, sizeof(buf) - 1, remoteSccpChannel->preferences.audio, ARRAY_LEN(remoteSccpChannel->preferences.audio));
+							sccp_codec_multiple2str(buf, sizeof(buf) - 1, remoteSccpChannel->preferences.audio, ARRAY_LEN(remoteSccpChannel->preferences.audio));
 							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote preferences: %s\n", buf);
 							uint8_t x, y, z;
 
@@ -673,7 +673,7 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 #endif
 						}
 
-						sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+						sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote caps: %s\n", buf);
 						ast_channel_unref(remotePeer);
 						break;
@@ -1377,8 +1377,8 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 			sccp_asterisk111_getSkinnyFormatMultiple(ast_channel_nativeformats(requestor), videoCapabilities, ARRAY_LEN(videoCapabilities), AST_FORMAT_TYPE_VIDEO);
 #endif
 		}
-		sccp_multiple_codecs2str(audio_cap_buf, sizeof(audio_cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
-		sccp_multiple_codecs2str(video_cap_buf, sizeof(video_cap_buf) - 1, videoCapabilities, ARRAY_LEN(videoCapabilities));
+		sccp_codec_multiple2str(audio_cap_buf, sizeof(audio_cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
+		sccp_codec_multiple2str(video_cap_buf, sizeof(video_cap_buf) - 1, videoCapabilities, ARRAY_LEN(videoCapabilities));
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: Requested Capabilities, audio: %s, video: %s\n", pbx_channel_name(requestor), audio_cap_buf, video_cap_buf);
 	}
 
@@ -2026,7 +2026,7 @@ static boolean_t sccp_wrapper_asterisk111_createRtpInstance(constDevicePtr d, co
 	/* add payload mapping for skinny codecs */
 	uint8_t i;
 	struct ast_rtp_codecs *codecs = ast_rtp_instance_get_codecs(instance);
-	for (i = 0; i < sccp_getnumber_of_skinny_codecs(); i++) {
+	for (i = 0; i < sccp_codec_getArrayLen(); i++) {
 		/* add audio codecs only */
 		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == codec_type) {
 			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, rtp_map_filter, (char *) skinny_codecs[i].mimesubtype, (enum ast_rtp_options) 0, skinny_codecs[i].sample_rate);

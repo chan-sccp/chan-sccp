@@ -136,9 +136,9 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			} else if (!strcasecmp(token, "registration_state")) {
 				sccp_copy_string(buf, skinny_registrationstate2str(sccp_device_getRegistrationState(d)), buf_len);
 			} else if (!strcasecmp(token, "codecs")) {
-				sccp_multiple_codecs2str(buf, buf_len - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
+				sccp_codec_multiple2str(buf, buf_len - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 			} else if (!strcasecmp(token, "capability")) {
-				sccp_multiple_codecs2str(buf, buf_len - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
+				sccp_codec_multiple2str(buf, buf_len - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 			} else if (!strcasecmp(token, "lines_registered")) {
 				sccp_copy_string(buf, d->linesRegistered ? "yes" : "no", buf_len);
 			} else if (!strcasecmp(token, "lines_count")) {
@@ -599,7 +599,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 			} else if (!strcasecmp(token, "codecs")) {
 				sccp_copy_string(buf, codec2name(c->rtp.audio.readFormat), len);
 			} else if (!strcasecmp(token, "capability")) {
-				sccp_multiple_codecs2str(buf, buf_len - 1, c->capabilities.audio, ARRAY_LEN(c->capabilities.audio));
+				sccp_codec_multiple2str(buf, buf_len - 1, c->capabilities.audio, ARRAY_LEN(c->capabilities.audio));
 			} else if (!strcasecmp(token, "calledPartyName")) {
 				iCallInfo.Getter(ci, SCCP_CALLINFO_CALLEDPARTY_NAME, buf, SCCP_CALLINFO_KEY_SENTINEL);
 			} else if (!strcasecmp(token, "calledPartyNumber")) {
