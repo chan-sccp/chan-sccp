@@ -549,6 +549,15 @@ void sccp_refcount_updateIdentifier(void *ptr, char *identifier)
 
 gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func)
 {
+#if CS_REFCOUNT_DEBUG
+	pbx_assert(ptr != NULL);
+#else
+	if (ptr == NULL) {											// soft failure
+		pbx_log(LOG_WARNING, "SCCP: (refcount_retain) tried to retain a NULL pointer\n");
+		usleep(10);
+		return NULL;
+	}
+#endif	
 	RefCountedObject *obj = NULL;
 	volatile int refcountval;
 	int newrefcountval;
@@ -584,6 +593,15 @@ gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char 
  */
 gcc_inline void * const sccp_refcount_release(const void * * const ptr, const char *filename, int lineno, const char *func)
 {
+#if CS_REFCOUNT_DEBUG
+	pbx_assert(ptr != NULL && && *ptr != NULL);
+#else
+	if (ptr == NULL || *ptr == NULL) {									// soft failure
+		pbx_log(LOG_WARNING, "SCCP: (refcount_release) tried to release a NULL pointer\n");
+		usleep(10);
+		return NULL;
+	}
+#endif
 	RefCountedObject *obj = NULL;
 	volatile int refcountval;
 	int newrefcountval, alive;
@@ -629,9 +647,18 @@ gcc_inline void * const sccp_refcount_release(const void * * const ptr, const ch
 
 gcc_inline void sccp_refcount_replace(const void * * const replaceptr, const void *const newptr, const char *filename, int lineno, const char *func)
 {
-	if (!replaceptr || (&newptr == replaceptr)) {								// nothing changed
+	if (!replaceptr || !(&newptr == replaceptr)) {								// nothing changed
 		return;
 	}
+#if CS_REFCOUNT_DEBUG
+	pbx_assert(*replaceptr != NULL);
+#else
+	if (*replaceptr == NULL) {										// soft failure
+		pbx_log(LOG_WARNING, "SCCP: (refcount_refreplace) tried to replace into a NULL pointer\n");
+		usleep(10);
+		return;
+	}
+#endif
 	if (do_expect(newptr !=NULL)) {
 		const void *tmpNewPtr = sccp_refcount_retain(newptr, filename, lineno, func);			// retain new one first
 		if (do_expect(tmpNewPtr != NULL)) {

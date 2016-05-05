@@ -52,15 +52,15 @@ SCCP_API int SCCP_CALL sccp_refcount_force_release(long findobj, char *identifie
 #endif
 
 #define sccp_refcount_retain_type(_type, _x) 		({											\
-	pbx_assert(PTR_TYPE_CMP(const _type *const, _x ) == 1 &&  _x != NULL); 									\
+	pbx_assert(PTR_TYPE_CMP(const _type *const, _x ) == 1); 										\
 	sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);									\
 })
 #define sccp_refcount_release_type(_type,_x)		({											\
-	pbx_assert(PTR_TYPE_CMP(_type * *const, _x ) == 1 && *_x != NULL); 									\
+	pbx_assert(PTR_TYPE_CMP(_type * *const, _x ) == 1);		 									\
 	sccp_refcount_release((const void ** const)_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);						\
 })
 #define sccp_refcount_refreplace_type(_type,_x, _y) 	({											\
-	pbx_assert(PTR_TYPE_CMP(_type * *const, _x) == 1 && PTR_TYPE_CMP(const _type *const, _y) == 1 && _x != NULL);				\
+	pbx_assert(PTR_TYPE_CMP(_type * *const, _x) == 1 && PTR_TYPE_CMP(const _type *const, _y) == 1);						\
 	sccp_refcount_replace((const void ** const)_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);						\
 })
 
