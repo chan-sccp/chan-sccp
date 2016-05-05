@@ -635,11 +635,11 @@ void *sccp_netsock_device_thread(void *session)
 	}
 
 	while (s->fds[0].fd > 0 && !s->session_stop) {
-		if (s->device && (s->device->pendingUpdate != FALSE || s->device->pendingDelete != FALSE)) {
+		if (s->device && (s->device->pendingUpdate || s->device->pendingDelete)) {
 			pbx_rwlock_rdlock(&GLOB(lock));
 			boolean_t reload_in_progress = GLOB(reload_in_progress);
 			pbx_rwlock_unlock(&GLOB(lock));
-			if (reload_in_progress == FALSE) {
+			if (reload_in_progress == FALSE && s->device) {
 				sccp_device_check_update(s->device);
 			}
 		}

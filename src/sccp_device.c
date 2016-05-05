@@ -360,12 +360,11 @@ void sccp_device_pre_reload(void)
  */
 boolean_t sccp_device_check_update(devicePtr device)
 {
-	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
+	AUTO_RELEASE sccp_device_t *d = device ? sccp_device_retain(device) : NULL;
 	boolean_t res = FALSE;
 
 	if (d) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s (check_update) pendingUpdate: %s, pendingDelete: %s\n", d->id, d->pendingUpdate ? "TRUE" : "FALSE", d->pendingDelete ? "TRUE" : "FALSE");
-
 		if ((d->pendingUpdate || d->pendingDelete)) {
 			do {
 				if (sccp_device_numberOfChannels(d) > 0) {
