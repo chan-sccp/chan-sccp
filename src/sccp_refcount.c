@@ -647,17 +647,11 @@ gcc_inline void * const sccp_refcount_release(const void * * const ptr, const ch
 
 gcc_inline void sccp_refcount_replace(const void * * const replaceptr, const void *const newptr, const char *filename, int lineno, const char *func)
 {
-	if (!replaceptr || !(&newptr == replaceptr)) {								// nothing changed
+	if (!replaceptr || (&newptr == replaceptr)) {								// nothing changed
 		return;
 	}
 #if CS_REFCOUNT_DEBUG
 	pbx_assert(*replaceptr != NULL);
-#else
-	if (*replaceptr == NULL) {										// soft failure
-		pbx_log(LOG_WARNING, "SCCP: (refcount_refreplace) tried to replace into a NULL pointer\n");
-		usleep(10);
-		return;
-	}
 #endif
 	if (do_expect(newptr !=NULL)) {
 		const void *tmpNewPtr = sccp_refcount_retain(newptr, filename, lineno, func);			// retain new one first
