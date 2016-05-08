@@ -416,14 +416,14 @@ static char * const getParkingLotCXML(sccp_parkinglot_t *pl, int protocolversion
 			plslot_t *slot = SCCP_VECTOR_GET_ADDR(&pl->slots, idx);
 			pbx_str_append(&buf, 0, "<DirectoryEntry>");
 			if (!sccp_strcaseequals(slot->connectedline_name, "<unknown>")) {
-				pbx_str_append(&buf, 0, "<Name>%s (%s) by %s</Name><Telephone>%s</Telephone>", 
+				pbx_str_append(&buf, 0, "<Name>%s (%s) by %s</Name><Telephone>%s%s</Telephone>", 
 					slot->callerid_name, slot->callerid_num, 
-					slot->connectedline_name, slot->exten
+					slot->connectedline_name, slot->exten, protocolversion < 15 ? "#" : ""
 				);
 			} else {
-				pbx_str_append(&buf, 0, "<Name>%s (%s) by %s</Name><Telephone>%s</Telephone>", 
+				pbx_str_append(&buf, 0, "<Name>%s (%s) by %s</Name><Telephone>%s%s</Telephone>", 
 					slot->callerid_name, slot->callerid_num, 
-					slot->from, slot->exten
+					slot->from, slot->exten, protocolversion < 15 ? "#" : ""
 				);
 			} 
 			pbx_str_append(&buf, 0, "</DirectoryEntry>");
