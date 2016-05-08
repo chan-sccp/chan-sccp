@@ -300,7 +300,7 @@ static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsign
 			break;
 		}
 		if (dont_expect(session_buffer2msg(s, buffer, payload_len, msg) != 0)) {
-			res = -1;
+			res = -2;
 			break;
 		}
 		pthread_testcancel();
@@ -671,7 +671,7 @@ void *sccp_netsock_device_thread(void *session)
 				//sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving at buffer position:%lu\n", DEV_ID_LOG(s->device), recv_len);
 				result = recv(s->fds[0].fd, recv_buffer + recv_len, (SCCP_MAX_PACKET * 2) - recv_len, 0);
 				if (!(result > 0 && (recv_len += result) && ((SCCP_MAX_PACKET * 2) - recv_len) && process_buffer(s, &msg, recv_buffer, &recv_len) == 0)) {
-					pbx_log(LOG_ERROR, "%s: (netsock_device_thread) Received a packet or message which we could not handle, giving up session: %p!\n", DEV_ID_LOG(s->device), s);
+					pbx_log(LOG_ERROR, "%s: (netsock_device_thread) Received a packet or message (with result:%d) which we could not handle, giving up session: %p!\n", DEV_ID_LOG(s->device), result, s);
 					if (s->device) {
 						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
 					}
