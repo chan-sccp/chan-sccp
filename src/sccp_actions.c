@@ -694,6 +694,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 			}
 			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + 60) {
 				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
+				sleep(1);
 				return;
 			}
 			if ((state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
