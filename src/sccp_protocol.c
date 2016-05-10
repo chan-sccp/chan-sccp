@@ -109,7 +109,7 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 		dummy_len += data_len[i];
 	}
 
-	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) + (dataSize - 4);
+	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) + (dataSize - 3);
 	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len);
 
 	msg->data.CallInfoDynamicMessage.lel_lineInstance = htolel(lineInstance);
@@ -188,9 +188,9 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 		dummy_len += data_len[i];
 	}
 
-	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) + (dataSize - 4);
-
+	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) + (dataSize - 3);
 	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len);
+
 	msg->data.CallInfoDynamicMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.CallInfoDynamicMessage.lel_callReference = htolel(callid);
 	msg->data.CallInfoDynamicMessage.lel_callType = htolel(calltype);
@@ -331,7 +331,8 @@ static void sccp_protocol_sendDynamicDisplayNotify(constDevicePtr device, uint8_
 	sccp_msg_t *msg = NULL;
 
 	int msg_len = strlen(message);
-	int hdr_len = sizeof(msg->data.DisplayDynamicNotifyMessage) - sizeof(msg->data.DisplayDynamicNotifyMessage.dummy);
+
+	int hdr_len = sizeof(msg->data.DisplayDynamicNotifyMessage) - 3;
 	msg = sccp_build_packet(DisplayDynamicNotifyMessage, hdr_len + msg_len);
 	msg->data.DisplayDynamicNotifyMessage.lel_displayTimeout = htolel(timeout);
 	memcpy(&msg->data.DisplayDynamicNotifyMessage.dummy, message, msg_len);
