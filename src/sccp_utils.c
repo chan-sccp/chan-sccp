@@ -60,6 +60,7 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 	char *hexptr;
 	char chrout[numcolumns + 1];
 	char *chrptr;
+	pbx_str_t *output_buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
 
 	do {
 		// memset(hexout, 0, sizeof(hexout));
@@ -79,9 +80,11 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 			messagebuffer += 1;									// instead *messagebuffer++ to circumvent unused warning
 		}
 		hexcolumnlength = (numcolumns * 3) + (numcolumns / 8) - 1;					// numcolums + block spaces - 1
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%08X - %-*.*s - %s\n", cur, hexcolumnlength, hexcolumnlength, hexout, chrout);
+		pbx_str_append(&output_buf, 0, VERBOSE_PREFIX_1 "%08X - %-*.*s - %s\n", cur, hexcolumnlength, hexcolumnlength, hexout, chrout);
 		cur += col;
 	} while (cur < (len - 1));
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: packet hex dump:\n%s", pbx_str_buffer(output_buf));
+	sccp_free(output_buf)
 }
 
 void sccp_dump_msg(const sccp_msg_t * const msg)
