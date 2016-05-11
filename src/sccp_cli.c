@@ -1420,7 +1420,7 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 			if (channel->conference_id) {										\
 				snprintf(tmpname, sizeof(tmpname), "SCCPCONF/%03d/%03d", channel->conference_id, channel->conference_participant_id);	\
 			} else {												\
-				snprintf(tmpname, sizeof(tmpname), "SCCP/%s", channel->designator);				\
+				snprintf(tmpname, sizeof(tmpname), "%s", channel->designator);					\
 			}													\
 			if (&channel->rtp) {											\
 				sccp_copy_string(addrStr,sccp_netsock_stringify(&channel->rtp.audio.phone), sizeof(addrStr));	\
