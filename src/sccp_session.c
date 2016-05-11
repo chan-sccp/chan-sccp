@@ -273,7 +273,7 @@ static gcc_inline int session_buffer2msg(sccp_session_t * s, unsigned char *buff
 		lenAccordingToOurProtocolSpec = 0;									// unknown message, read it and discard content completely
 	}
 	if (dont_expect(lenAccordingToPacketHeader > lenAccordingToOurProtocolSpec)) {					// show out discarded bytes
-		pbx_log(LOG_WARNING, "%s: (session_dissect_msg) Incoming message is bigger than known size. Packet looks like!\n", DEV_ID_LOG(s->device));
+		pbx_log(LOG_WARNING, "%s: (session_dissect_msg) Incoming message is bigger(%d) than known size(%d). Packet looks like!\n", DEV_ID_LOG(s->device), lenAccordingToPacketHeader, lenAccordingToOurProtocolSpec);
 		sccp_dump_packet(buffer, lenAccordingToPacketHeader);
 	}
 

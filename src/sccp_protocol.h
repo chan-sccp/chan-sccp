@@ -2858,7 +2858,7 @@ typedef union {
 		uint32_t unknown1;
 		uint32_t unknown2;
 		uint32_t unknown3;
-		char dummy[146];
+		char dummy[152];
 	} ExtensionDeviceCaps;
 
 	struct {
