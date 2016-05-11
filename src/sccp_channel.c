@@ -1188,9 +1188,8 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 
 	if (d) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %s (state:%s)\n", d->id, channel->designator, sccp_channelstate2str(channel->state));
-		if (channel->privateData->device) {
-			sccp_channel_transfer_cancel(channel->privateData->device, channel);
-			sccp_channel_transfer_release(channel->privateData->device, channel);				/* explicit release */
+		if (d->transferChannels.transferee != channel) {
+			sccp_channel_transfer_cancel(d, channel);
 		}
 	}
 	if (channel->owner) {
@@ -1660,7 +1659,9 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 		return FALSE;
 	}
 
-	sccp_channel_transfer_release(d, channel);			/* explicitly release transfer if we are in the middle of a transfer */
+	if (d->transferChannels.transferee != channel) {
+		sccp_channel_transfer_release(d, channel);			/* explicitly release transfer if we are in the middle of a transfer */
+	}
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume the channel %s\n", d->id, channel->designator);
 	sccp_channel_setDevice(channel, d);
@@ -2081,7 +2082,7 @@ void sccp_channel_transfer_cancel(devicePtr d, channelPtr c)
 #endif
 			sccp_channel_transfer_release(d, transferee);			/* explicit release */
 		} else {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee by the Transfering Party. Cancelling Transfer and Putting transferee channel on Hold.\n", d->id);
+			pbx_log(LOG_WARNING, "%s: (sccp_channel_transfer_cancel) Could not retain the transferee channel, giving up.\n", d->id);
 		}
 	}
 }
