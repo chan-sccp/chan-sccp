@@ -44,6 +44,7 @@ permit = internal                                                               
 ;transfer_on_hangup = no                                                          ; Complete transfer on hangup, without pressing transfer a second time.
                                                                                   ; Will complete transfer, when the transferer puts the receiver on hook, after the destination has been reached.
                                                                                   ; To cancel the transfer, either press resume on the transfered channel, press the 'endcall' softkey, or have the receiving party hangup first.
+;dnd_tone = 0x0								          ; Use 0x2D, 0x31, 0x32, 0x33 to activate dnd incoming call indication when dnd silent is active
 ;callwaiting_tone = 0x2d                                                          ; Sets to 0 to disable the callwaiting tone
 ;callwaiting_interval = 0                                                         ; Callwaiting ring interval in seconds. Set to 0 to disable the callwaiting ringing interval.
 ;musicclass = default                                                             ; Sets the default music on hold class

@@ -174,8 +174,12 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_BLINK);
 
 			if ((d->dndFeature.enabled && d->dndFeature.status == SCCP_DNDMODE_SILENT && c->ringermode != SKINNY_RINGTYPE_URGENT)) {
-				sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DND is activated on device\n", d->id);
+				sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DND is active on device\n", d->id);
 				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, instance, c->callid);
+				if (GLOB(dnd_tone) && d->dndFeature.status == SCCP_DNDMODE_SILENT) {
+					//sccp_dev_starttone(d, GLOB(dnd_tone), instance, c->callid, SKINNY_TONEDIRECTION_USER);
+					sccp_dev_starttone(d, GLOB(dnd_tone), 0, 0, SKINNY_TONEDIRECTION_USER);
+				}
 			} else {
 				sccp_linedevices_t *ownlinedevice = NULL;
 				sccp_device_t *remoteDevice = NULL;
