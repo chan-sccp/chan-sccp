@@ -404,6 +404,11 @@
 		<java></java>
 		<!--
 		-->
+		<headsetHandsetMonitor>0</handsetHeadsetMonitor>
+		<!--
+			0: will not enable the handset monitoring and only the headset will be active
+			1: will enable activate both the headset as well as the handset during a call
+		-->
 	</vendorConfig>
 	<versionStamp>{Jan 01 2003 00:00:00}</versionStamp>
 	<loadInformation>P00308010100</loadInformation>
