@@ -2182,8 +2182,8 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 		case SCCP_FEATURE_PARKINGLOT:
 #if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
 			sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: ParkingLot:'%s' Action, State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options ? config->button.feature.options : "", config->button.feature.status ? "On" : "Off");
-			if (TRUE == toggleState && iParkingLot.showCXML) {
-				iParkingLot.showCXML(config->button.feature.options, d, instance);
+			if (TRUE == toggleState && iParkingLot.handleButtonPress) {
+				iParkingLot.handleButtonPress(config->button.feature.options, d, instance);
 			}
 #endif
 			break;

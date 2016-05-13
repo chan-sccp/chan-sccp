@@ -21,6 +21,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_utils.h"
 #include "sccp_vector.h"
 #include "sccp_device.h"
+#include "sccp_line.h"
+#include "sccp_channel.h"
 #include "sccp_features.h"
 
 /* asterisk-11 */
@@ -601,6 +603,54 @@ static int removeSlot(const char *parkinglot, int slot)
 	return !res;
 }
 
+/*
+ * Handle Park Feature Button Press
+ * -If we have an active call -> pressing the park feature key, will park that call
+ * -If we are not on an active call:
+ * 	- If there is 0 parked calls: Display Status Message, "No parked calls'
+ * 	- If there is 1 parked call: Unpark that call immediatly
+ *	- If there is more than 1 parked call: display the visual parking lot representation.
+ */
+static void handleButtonPress(const char *parkinglot, constDevicePtr d, uint8_t instance) 
+{
+	pbx_assert(parkinglot != NULL && d != NULL);
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) device:%s, instance:%d\n", parkinglot, d->id, instance);
+	
+	AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
+	if (channel && channel->state != SCCP_CHANNELSTATE_OFFHOOK && channel->state != SCCP_CHANNEL_HOLD) {
+		sccp_channel_park(channel);
+	} else {
+		sccp_parkinglot_t *pl = findCreateParkinglot(parkinglot, FALSE);
+		if (pl) {
+			if (SCCP_VECTOR_SIZE(&pl->slots) == 0) {
+				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) 0 slot occupied. Show statusBar message\n", parkinglot);
+				sccp_dev_displayprinotify(d, SKINNY_DISP_CANNOT_RETRIEVE_PARKED_CALL, SCCP_MESSAGE_PRIORITY_TIMEOUT, 5);
+			} else {
+				if (SCCP_VECTOR_SIZE(&pl->slots) == 1) {
+					sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) 1 slot occupied -> Unpark Call Immediately\n", parkinglot);
+					plslot_t *slot = SCCP_VECTOR_GET_ADDR(&pl->slots, 0);
+					if (slot) {
+						AUTO_RELEASE sccp_line_t *line = channel ? sccp_line_retain(channel->line) : d->currentLine ? sccp_dev_getActiveLine(d) : sccp_line_find_byid(d, d->defaultLineInstance);
+						AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+						new_channel = sccp_channel_newcall(line, d, slot->exten, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
+					}
+				} else {
+					sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) multiple slots occupied -> Show Visual ParkingLot\n", parkinglot);
+					uint8_t idx;
+					for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
+						plobserver_t *observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
+						if (observer->device == d && observer->instance == instance) {
+							__showVisualParkingLot(pl, d, observer);
+						}
+					}
+				}
+			sccp_parkinglot_unlock(pl);
+			}
+		}
+	}	
+}
+
+
 /* Assign to interface */
 const ParkingLotInterface iParkingLot = {
 	.attachObserver = attachObserver,
@@ -608,6 +658,7 @@ const ParkingLotInterface iParkingLot = {
 	.addSlot = addSlot,
 	.removeSlot = removeSlot,
 	.showCXML = showVisualParkingLot,
+	.handleButtonPress = handleButtonPress,
 };
 #else
 const ParkingLotInterface iParkingLot = { 0 };
