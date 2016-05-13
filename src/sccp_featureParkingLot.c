@@ -617,7 +617,7 @@ static void handleButtonPress(const char *parkinglot, constDevicePtr d, uint8_t 
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) device:%s, instance:%d\n", parkinglot, d->id, instance);
 	
 	AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
-	if (channel && channel->state != SCCP_CHANNELSTATE_OFFHOOK && channel->state != SCCP_CHANNEL_HOLD) {
+	if (channel && channel->state != SCCP_CHANNELSTATE_OFFHOOK && channel->state != SCCP_CHANNELSTATE_HOLD) {
 		sccp_channel_park(channel);
 	} else {
 		sccp_parkinglot_t *pl = findCreateParkinglot(parkinglot, FALSE);
