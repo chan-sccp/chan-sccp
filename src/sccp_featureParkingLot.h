@@ -36,6 +36,7 @@ typedef struct {
 	int (*removeSlot) (const char *parkinglot, int slot);
 	void (*showCXML) (const char *parkinglot, constDevicePtr d, uint8_t instance);
 	void (*handleButtonPress) (const char *parkinglot, constDevicePtr d, uint8_t instance);
+	void (*handleDevice2User) (const char *parkinglot, constDevicePtr d, const char *slot_exten, uint8_t instance, uint32_t transactionId);
 } ParkingLotInterface;
 
 extern const ParkingLotInterface iParkingLot;

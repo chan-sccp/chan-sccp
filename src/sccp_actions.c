@@ -4332,33 +4332,43 @@ void handle_KeepAliveMessage(constSessionPtr s, devicePtr maybe_d, constMessageP
  */
 void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
-	uint32_t appID;
-	uint32_t callReference;
-	uint32_t transactionID;
-	uint32_t dataLength;
+	uint32_t appID = 0;
+	uint32_t callReference = 0;
+	uint32_t lineInstance = 0;
+	uint32_t transactionID = 0;
+	uint32_t dataLength = 0;
 	char data[StationMaxXMLMessage] = "";
 
 #ifdef CS_SCCP_CONFERENCE
-	uint32_t lineInstance;
-	uint32_t conferenceID;
-	uint32_t participantID;
+	uint32_t conferenceID = 0;
+	uint32_t participantID = 0;
 #endif
 
 	appID = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_appID);
-#ifdef CS_SCCP_CONFERENCE
-	lineInstance = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_lineInstance);
-#endif
 	callReference = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_callReference);
+	lineInstance = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_lineInstance);
 	transactionID = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_transactionID);
-	dataLength = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_dataLength);
 
+	dataLength = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_dataLength);
 	if (dataLength) {
 		memset(data, 0, dataLength);
 		memcpy(data, msg_in->data.DeviceToUserDataVersion1Message.data, dataLength);
 	}
 
-	sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle DTU for AppID:%d, data:'%s', length:%d\n", d->id, appID, data, dataLength);
-	if (0 != appID && 0 != callReference && 0 != transactionID) {
+	if (lineInstance == 0 && callReference == 0) {
+		if (dataLength) {
+			/* split data by "/" */
+			char str_action[11] = "", str_transactionID[11] = "";
+			if (sscanf(data, "%10[^/]/%10s", str_action, str_transactionID) > 0) {
+				sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s, %s\n", d->id, str_action, str_transactionID);
+				d->dtu_softkey.action = pbx_strdup(str_action);
+				d->dtu_softkey.transactionID = sccp_atoi(str_transactionID, sizeof(str_transactionID));
+			} else {
+				pbx_log(LOG_NOTICE, "%s: Failure parsing DTU Softkey Button: %s\n", d->id, data);
+			}
+		}
+	} else {
+		sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle DTU for AppID:%d, data:'%s', length:%d\n", d->id, appID, data, dataLength);
 		switch (appID) {
 			case APPID_CONFERENCE:									// Handle Conference App
 #ifdef CS_SCCP_CONFERENCE
@@ -4376,25 +4386,17 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 				//sccp_conference_handle_device_to_user(d, callReference, transactionID, conferenceID, participantID);
 #endif
 				break;
+			case APPID_VISUALPARKINGLOT:								// Handle Conference Invite
+				sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle VisualParkingLot Info for AppID %d , Transaction %d, Action: %s, Observer:%d, Data:%s\n", d->id, appID, transactionID, d->dtu_softkey.action, lineInstance, data);
+				char parkinglot[11] = "", slot_exten[11] = "";
+				if (sscanf(data, "%10[^/]/%10s", parkinglot, slot_exten) > 0) {
+					iParkingLot.handleDevice2User(parkinglot, d, slot_exten, lineInstance, transactionID);
+				}
+				break;
 			case APPID_PROVISION:
 				break;
 		}
-	} else {
-		// It has data -> must be a softkey
-		if (dataLength) {
-			/* split data by "/" */
-			char str_action[11] = "", str_transactionID[11] = "";
-
-			if (sscanf(data, "%10[^/]/%10s", str_action, str_transactionID) > 0) {
-				sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s, %s\n", d->id, str_action, str_transactionID);
-				d->dtu_softkey.action = pbx_strdup(str_action);
-				d->dtu_softkey.transactionID = sccp_atoi(str_transactionID, sizeof(str_transactionID));
-			} else {
-				pbx_log(LOG_NOTICE, "%s: Failure parsing DTU Softkey Button: %s\n", d->id, data);
-			}
-		}
 	}
-
 }
 
 /*!
