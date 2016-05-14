@@ -2886,15 +2886,18 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 {
 	pbx_assert(d != NULL);
 	int digit;
-	uint8_t lineInstance;
-	uint32_t callid;
+	uint8_t lineInstance = 0;
+	uint32_t callid = 0;
 	char resp = '\0';
 	int len = 0;
 
 	digit 		= letohl(msg_in->data.KeypadButtonMessage.lel_kpButton);
-	callid 		= letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
-	lineInstance 	= letohl(msg_in->data.KeypadButtonMessage.lel_lineInstance);
-	
+	if (msg_in->header.length >= 12) {									/* 7936 only sends the digit on an active call */
+		callid 		= letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
+	}
+	if (msg_in->header.length >= 16) {
+		lineInstance 	= letohl(msg_in->data.KeypadButtonMessage.lel_lineInstance);
+	}	
 	//pbx_log(LOG_NOTICE, "%s: lineInstance %d\n", sccp_session_getDesignator(s), lineInstance);
 	//pbx_log(LOG_NOTICE, "%s: callid %d\n", sccp_session_getDesignator(s), callid);
 
