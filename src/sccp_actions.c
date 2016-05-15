@@ -4387,11 +4387,13 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 #endif
 				break;
 			case APPID_VISUALPARKINGLOT:								// Handle Conference Invite
+#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
 				sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle VisualParkingLot Info for AppID %d , Transaction %d, Action: %s, Observer:%d, Data:%s\n", d->id, appID, transactionID, d->dtu_softkey.action, lineInstance, data);
 				char parkinglot[11] = "", slot_exten[11] = "";
 				if (sscanf(data, "%10[^/]/%10s", parkinglot, slot_exten) > 0) {
 					iParkingLot.handleDevice2User(parkinglot, d, slot_exten, lineInstance, transactionID);
 				}
+#endif
 				break;
 			case APPID_PROVISION:
 				break;
