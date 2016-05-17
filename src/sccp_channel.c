@@ -2427,14 +2427,10 @@ void sccp_channel_park(sccp_channel_t * channel)
 
 	/* let the pbx implementation do the rest */
 	result = iPbx.feature_park(channel);
-
 	if (PARK_RESULT_SUCCESS != result) {
-		char extstr[20];
-		snprintf(extstr, sizeof(extstr), "%c%c %.16s" , 128, SKINNY_LBL_CALL_PARK_AT, "failed");
 		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
-
 		if (d) {
-			sccp_dev_displaynotify(d, extstr, 10);
+			sccp_dev_displaynotify(d, SKINNY_DISP_NO_PARK_NUMBER_AVAILABLE, 10);
 		}
 	}
 }

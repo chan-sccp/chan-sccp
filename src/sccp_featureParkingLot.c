@@ -519,8 +519,8 @@ static void showVisualParkingLot(const char *parkinglot, constDevicePtr d, uint8
 				__showVisualParkingLot(pl, d, observer);
 			}
 		}
+		sccp_parkinglot_unlock(pl);
 	}
-	sccp_parkinglot_unlock(pl);
 }
 
 static void __hideVisualParkingLot(sccp_parkinglot_t *pl, constDevicePtr d, plobserver_t *observer)
@@ -557,8 +557,8 @@ static void hideVisualParkingLot(const char *parkinglot, constDevicePtr d, uint8
 				__hideVisualParkingLot(pl, d, observer);
 			}
 		}
+		sccp_parkinglot_unlock(pl);
 	}
-	sccp_parkinglot_unlock(pl);
 }
 
 static void notifyLocked(sccp_parkinglot_t *pl)
@@ -708,8 +708,8 @@ static void handleButtonPress(const char *parkinglot, constDevicePtr d, uint8_t 
 						}
 					}
 				}
-			sccp_parkinglot_unlock(pl);
 			}
+			sccp_parkinglot_unlock(pl);
 		}
 	}
 }
