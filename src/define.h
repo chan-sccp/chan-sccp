@@ -226,4 +226,24 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 #define __atoi atoi
 #define atoi(...) _Pragma("GCC error \"use sccp atoi instead of atoi\"")
 
+#if defined(RAII_VAR)
+#undef RAII_VAR
+#endif
+
+#if defined(__clang__)
+typedef void (^_raii_cleanup_block_t)(void);
+static inline void _raii_cleanup_block(_raii_cleanup_block_t *b) { (*b)(); }
+#define RAII_VAR(vartype, varname, initval, dtor)									\
+    _raii_cleanup_block_t _raii_cleanup_ ## varname __attribute__((cleanup(_raii_cleanup_block),unused)) = NULL;	\
+    __block vartype varname = initval;											\
+    _raii_cleanup_ ## varname = ^{ {(void)dtor(varname);} }
+#elif defined(__GNUC__)
+#define RAII_VAR(vartype, varname, initval, dtor)									\
+    auto void _dtor_ ## varname (vartype * v);										\
+    void _dtor_ ## varname (vartype * v) { dtor(*v); }									\
+    vartype varname __attribute__((cleanup(_dtor_ ## varname))) = (initval)
+#else
+    #error "Cannot compile Asterisk: unknown and unsupported compiler."
+#endif /* #if __GNUC__ */
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
