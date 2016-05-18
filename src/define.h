@@ -231,10 +231,10 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 #endif
 
 #if defined(__clang__)
-typedef void (^_raii_cleanup_block_t)(void);
-static inline void _raii_cleanup_block(_raii_cleanup_block_t *b) { (*b)(); }
+typedef void (^sccp_raii_cleanup_block_t)(void);
+static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(); }
 #define RAII_VAR(vartype, varname, initval, dtor)									\
-    _raii_cleanup_block_t _raii_cleanup_ ## varname __attribute__((cleanup(_raii_cleanup_block),unused)) = NULL;	\
+    sccp_raii_cleanup_block_t _raii_cleanup_ ## varname __attribute__((cleanup(sccp_raii_cleanup_block),unused)) = NULL;\
     __block vartype varname = initval;											\
     _raii_cleanup_ ## varname = ^{ {(void)dtor(varname);} }
 #elif defined(__GNUC__)
