@@ -2560,7 +2560,7 @@ sccp_channel_t *sccp_find_channel_on_line_byid(constLinePtr l, uint32_t id)
 {
 	sccp_channel_t *c = NULL;
 
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", id);
+	//sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel on line by id %u\n", id);
 
 	SCCP_LIST_LOCK(&((linePtr)l)->channels);
 	c = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->callid == id && tmpc->state != SCCP_CHANNELSTATE_DOWN), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -2710,7 +2710,7 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(constDevicePtr d, 
 	}
 	uint8_t instance = 0;
 
-	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u on device %s\n", passthrupartyid, d->id);
+	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel on device by PassThruId %u on device %s\n", passthrupartyid, d->id);
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
 		if (d->lineButtons.instance[instance]) {
 			AUTO_RELEASE sccp_line_t *l = sccp_line_retain(d->lineButtons.instance[instance]->line);
@@ -2776,7 +2776,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(constDevicePtr device, sccp_
 {
 	sccp_channel_t *c = NULL;
 
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d' on device: %s\n", state, device->id);
 
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 

@@ -2892,15 +2892,14 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	int len = 0;
 
 	digit 		= letohl(msg_in->data.KeypadButtonMessage.lel_kpButton);
-	if (msg_in->header.length >= 12) {									/* 7936 only sends the digit on an active call */
-		callid 		= letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
+	if (d->skinny_type != SKINNY_DEVICETYPE_CISCO7936) {								/* 7936 sends ipaddress and rtp port and more */
+		if (msg_in->header.length >= 16) {
+			callid 		= letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
+			if (msg_in->header.length >= 20) {
+				lineInstance 	= letohl(msg_in->data.KeypadButtonMessage.lel_lineInstance);
+			}
+		}
 	}
-	if (msg_in->header.length >= 16) {
-		lineInstance 	= letohl(msg_in->data.KeypadButtonMessage.lel_lineInstance);
-	}	
-	//pbx_log(LOG_NOTICE, "%s: lineInstance %d\n", sccp_session_getDesignator(s), lineInstance);
-	//pbx_log(LOG_NOTICE, "%s: callid %d\n", sccp_session_getDesignator(s), callid);
-
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	AUTO_RELEASE sccp_line_t *l = NULL;
 	
