@@ -1007,17 +1007,17 @@ void sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannel
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_closeAllMediaTransmitAndReceive) Stop All Media Reception and Transmission on channel %d\n", channel->currentDeviceId, channel->callid);
 	if (d && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d)) {
-		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.readState) {
-			sccp_channel_stopMediaTransmission(channel, FALSE);
-		}
-		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.readState) {
-			sccp_channel_stopMultiMediaTransmission(channel, FALSE);
-		}
 		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.writeState) {
 			sccp_channel_closeReceiveChannel(channel, FALSE);
 		}
 		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.writeState) {
 			sccp_channel_closeMultiMediaReceiveChannel(channel, FALSE);
+		}
+		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.readState) {
+			sccp_channel_stopMediaTransmission(channel, FALSE);
+		}
+		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.readState) {
+			sccp_channel_stopMultiMediaTransmission(channel, FALSE);
 		}
 	}
 	if (channel->rtp.audio.instance || channel->rtp.video.instance) {

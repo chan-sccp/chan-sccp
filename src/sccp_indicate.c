@@ -403,7 +403,6 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 		case SCCP_CHANNELSTATE_ONHOOK:
 			{
 				c->state = SCCP_CHANNELSTATE_DOWN;
-				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_OFF);
 				if (c->answered_elsewhere) {
 					sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 				}

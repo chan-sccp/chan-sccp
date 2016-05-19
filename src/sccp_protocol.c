@@ -1052,14 +1052,14 @@ static void sccp_protocol_sendPortRequest(constDevicePtr device, constChannelPtr
  */
 static void sccp_protocol_sendPortClose(constDevicePtr device, constChannelPtr channel, skinny_mediaType_t mediaType)
 {
-	sccp_msg_t *msg = sccp_build_packet(PortCloseMessage, sizeof(msg->data.PortCloseMessage));
-
-	msg->data.PortCloseMessage.lel_conferenceId = htolel(channel->callid);
-	msg->data.PortCloseMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
-	msg->data.PortCloseMessage.lel_callReference = htolel(channel->callid);
-	msg->data.PortCloseMessage.lel_mediaType = htolel(mediaType);
-
-	sccp_dev_send(device, msg);
+	if (device->protocol && device->protocol->version >= 11) {
+		sccp_msg_t *msg = sccp_build_packet(PortCloseMessage, sizeof(msg->data.PortCloseMessage));
+		msg->data.PortCloseMessage.lel_conferenceId = htolel(channel->callid);
+		msg->data.PortCloseMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
+		msg->data.PortCloseMessage.lel_callReference = htolel(channel->callid);
+		msg->data.PortCloseMessage.lel_mediaType = htolel(mediaType);
+		sccp_dev_send(device, msg);
+	}
 }
 /* done - sendPortClose */
 
