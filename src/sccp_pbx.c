@@ -379,7 +379,8 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	//sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: isRinging:%d, hadDNDParticipant:%d, ForwardingLineDevice:%p\n", c->designator, isRinging, hasDNDParticipant, ForwardingLineDevice);
 	if (isRinging) {
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_RINGING);
-		iPbx.queue_control(c->owner, AST_CONTROL_RINGING);
+//		iPbx.queue_control(c->owner, AST_CONTROL_RINGING);
+		iPbx.set_callstate(c, AST_STATE_RINGING);
 	} else if (ForwardingLineDevice) {
 		/* when single line -> use asterisk functionality directly, without creating new channel + masquerade */
 		pbx_log(LOG_NOTICE, "%s: initialize cfwd%s for line %s\n", ForwardingLineDevice->device->id, (ForwardingLineDevice->cfwdAll.enabled ? "All" : (ForwardingLineDevice->cfwdBusy.enabled ? "Busy" : "None")), l->name);
@@ -960,7 +961,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) PBX structure already exists. Dialing instead of starting.\n");
 			/* If there are any digits, send them instead of starting the PBX */
 			if (!sccp_strlen_zero(c->dialedNumber)) {
-				//sccp_pbx_senddigits(c, c->dialedNumber);
 				if (iPbx.send_digits) {
 					iPbx.send_digits(channel, c->dialedNumber);
 				}
@@ -1156,8 +1156,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				goto EXIT_FUNC;
 			case SCCP_SOFTSWITCH_DIAL:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension %s\n", d->id, shortenedNumber);
-				//sccp_channel_set_calledparty(c, NULL, shortenedNumber);
-				//sccp_channel_set_calledparty(c, "", c->dialedNumber);
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 				/* fall through */
 		}
