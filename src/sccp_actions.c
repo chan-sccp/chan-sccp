@@ -3269,7 +3269,10 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 		sccp_channel_setDevice(channel, d);
 		if (channel->rtp.audio.instance) {
 			sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
-			sccp_channel_updateMediaTransmission(channel);
+			if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.readState) {
+				sccp_channel_startMediaTransmission(channel);
+			}
+			sccp_channel_send_callinfo(d, channel);
 
 			/* update status */
 			channel->rtp.audio.writeState = SCCP_RTP_STATUS_ACTIVE;

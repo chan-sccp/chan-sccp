@@ -1018,8 +1018,8 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 
 	if (msgid == KeepAliveAckMessage || msgid == RegisterAckMessage || msgid == UnregisterAckMessage) {
 		msg->header.lel_protocolVer = 0;
-	} else if (s->device && s->device->inuseprotocolversion >= 17) {
-		msg->header.lel_protocolVer = htolel(0x11);							/* we should always send 0x11 */
+	} else if (s->device) {
+		msg->header.lel_protocolVer = htolel(s->device->protocol->version);
 	} else {
 		msg->header.lel_protocolVer = 0;
 	}

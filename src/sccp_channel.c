@@ -582,8 +582,6 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
  */
 void sccp_channel_openReceiveChannel(constChannelPtr channel)
 {
-	uint16_t instance;
-
 	pbx_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
 
@@ -609,7 +607,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 	if (!channel->rtp.audio.instance && !sccp_rtp_createServer(d, (sccp_channel_t *)channel, SCCP_RTP_AUDIO)) {	// discard const
 		pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s\n", d->id, channel->designator);
 
-		instance = sccp_device_find_index_for_line(d, channel->line->name);
+		uint16_t instance = sccp_device_find_index_for_line(d, channel->line->name);
 		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, channel->callid, SKINNY_TONEDIRECTION_USER);
 		return;
 	} 

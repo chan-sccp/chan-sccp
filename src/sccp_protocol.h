@@ -2157,11 +2157,14 @@ typedef union {
 				uint32_t lel_lineInstance;							/*!< Line Instance */
 				uint32_t lel_callReference;							/*!< Call Reference */
  			} v3;
+#pragma pack(push)
+#pragma pack(1)
  			struct {
 				char calledParty[StationDynamicDirnumSize];					/*!< Called Party */
 				uint32_t lel_lineInstance;							/*!< Line Instance */
 				uint32_t lel_callReference;							/*!< Call Reference */
  			} v18;
+#pragma pack(pop)
  		};
  	} DialedNumberMessage;											/*!< Dialed Number Message Structure */
 	
@@ -2177,6 +2180,8 @@ typedef union {
 				uint32_t lel_cfwdnoanswerstatus;						/*!< Call Forward on No-Answer Status */
 				char cfwdnoanswernumber[StationMaxDirnumSize];					/*!< Call Forward on No-Answer Number */
 			} v3;
+#pragma pack(push)
+#pragma pack(1)
 			struct {
 				uint32_t lel_status;								/*!< Status (0=inactive, 1=active) */
 				uint32_t lel_lineNumber;							/*!< Line Number */
@@ -2187,6 +2192,7 @@ typedef union {
 				uint32_t lel_cfwdnoanswerstatus;						/*!< Call Forward on No-Answer Status */
 				char cfwdnoanswernumber[StationDynamicDirnumSize];				/*!< Call Forward on No-Answer Number */
 			} v18;											
+#pragma pack(pop)
 		};
  	} ForwardStatMessage;											/*!< Forward Status Message Structure */
 

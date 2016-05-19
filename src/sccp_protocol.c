@@ -242,7 +242,7 @@ static void sccp_protocol_sendDialedNumberV3(constDevicePtr device, const uint8_
 	msg->data.DialedNumberMessage.v3.lel_callReference = htolel(callid);
 
 	sccp_dev_send(device, msg);
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number:%s channel %d\n", device->id, dialedNumber, callid);
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number:%s, callid:%d, lineInstance:%d\n", device->id, dialedNumber, callid, lineInstance);
 }
 
 /*!
@@ -256,12 +256,11 @@ static void sccp_protocol_sendDialedNumberV18(constDevicePtr device, const uint8
 	REQ(msg, DialedNumberMessage);
 
 	sccp_copy_string(msg->data.DialedNumberMessage.v18.calledParty, dialedNumber, sizeof(msg->data.DialedNumberMessage.v18.calledParty));
-
 	msg->data.DialedNumberMessage.v18.lel_lineInstance = htolel(lineInstance);
 	msg->data.DialedNumberMessage.v18.lel_callReference = htolel(callid);
 
 	sccp_dev_send(device, msg);
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number:%s channel %d\n", device->id, dialedNumber, callid);
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number:%s, callid:%d, lineInstance:%d\n", device->id, dialedNumber, callid, lineInstance);
 }
 
 /* done - DialedNumber Message */
@@ -450,8 +449,8 @@ static void sccp_protocol_sendRegisterAckV3(constDevicePtr device, uint8_t keepA
 	msg->data.RegisterAckMessage.protocolVer2 = 0x00;							// 0x00;
 	msg->data.RegisterAckMessage.phoneFeatures1 = 0x00;							// 0x00;
 	msg->data.RegisterAckMessage.phoneFeatures2 = 0x00;							// 0x00;
-
 	msg->data.RegisterAckMessage.maxProtocolVer = device->protocol->version;
+
 	msg->data.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
 	msg->data.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel(secondaryKeepAlive);
 
@@ -475,7 +474,6 @@ static void sccp_protocol_sendRegisterAckV4(constDevicePtr device, uint8_t keepA
 	msg->data.RegisterAckMessage.protocolVer2 = 0x20;							// 0x20;
 	msg->data.RegisterAckMessage.phoneFeatures1 = 0xF1;							// 0xF1;
 	msg->data.RegisterAckMessage.phoneFeatures2 = 0xFE;							// 0xFF;
-
 	msg->data.RegisterAckMessage.maxProtocolVer = device->protocol->version;
 
 	msg->data.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
@@ -501,8 +499,8 @@ static void sccp_protocol_sendRegisterAckV11(constDevicePtr device, uint8_t keep
 	msg->data.RegisterAckMessage.protocolVer2 = 0x20;							// 0x20;
 	msg->data.RegisterAckMessage.phoneFeatures1 = 0xF1;							// 0xF1;
 	msg->data.RegisterAckMessage.phoneFeatures2 = 0xFF;							// 0xFF;
-
 	msg->data.RegisterAckMessage.maxProtocolVer = device->protocol->version;
+
 	msg->data.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
 	msg->data.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel(secondaryKeepAlive);
 
@@ -1005,7 +1003,6 @@ static void sccp_protocol_sendConnectionStatisticsReqV3(constDevicePtr device, c
 	}
 	msg->data.ConnectionStatisticsReq.v3.lel_callReference = htolel((channel) ? channel->callid : 0);
 	msg->data.ConnectionStatisticsReq.v3.lel_StatsProcessing = htolel(clear);
-	msg->header.lel_protocolVer = htolel(device->protocol->version);
 	sccp_dev_send(device, msg);
 }
 
@@ -1023,7 +1020,6 @@ static void sccp_protocol_sendConnectionStatisticsReqV19(constDevicePtr device, 
 	}
 	msg->data.ConnectionStatisticsReq.v19.lel_callReference = htolel((channel) ? channel->callid : 0);
 	msg->data.ConnectionStatisticsReq.v19.lel_StatsProcessing = htolel(clear);
-	msg->header.lel_protocolVer = htolel(device->protocol->version);
 	sccp_dev_send(device, msg);
 }
 /* done - sendUserToDeviceData */
@@ -1454,7 +1450,6 @@ const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(constDevicePtr devi
 	}
 
 	for (i = (protocolArraySize - 1); i > 0; i--) {
-
 		if (protocolDef[i] != NULL && version >= protocolDef[i]->version) {
 			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: found protocol version '%d' at %d\n", protocolDef[i]->type == SCCP_PROTOCOL ? "SCCP" : "SPCP", protocolDef[i]->version, i);
 			returnProtocol = i;
