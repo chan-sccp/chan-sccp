@@ -229,12 +229,13 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 																																					" - button = line,1234,default\n"
 																																					" - button = empty\n"
 																																					" - button = line,98099@11:Phone1\n"
-																																					" - button = line,98099@12:Phone2@ButtonLabel!silent         ; append cidnum:'12' and cidname:'Phone2' to line-ci with label 'ButtonLabel', don't ring when dialed directly\n"
-																																					" - button = line,98099@+12:Phone2@ButtonLabel!silent        ; same as the previous line\n"
-																																					" - button = line,98099@=12:Phone2!silent                    ; overwrite line-cid instead of appending\n"
+																																					" - button = line,98099@12:Phone2@ButtonLabel!silent			; append cidnum:'12' and cidname:'Phone2' to line-ci with label 'ButtonLabel', don't ring when dialed directly\n"
+																																					" - button = line,98099@+12:Phone2@ButtonLabel!silent			; same as the previous line\n"
+																																					" - button = line,98099@=12:Phone2!silent				; overwrite line-cid instead of appending\n"
 																																					" - button = speeddial,Phone 2 Line 1, 98021, 98021@hints\n"
 																																					" - button = feature,cfwdall,1234\n"
-																																					" - button = feature,PDefault,ParkingLot,default             ; feature, name, feature_type, parkinglotContext\n"},
+																																					" - button = feature,PDefault,ParkingLot,default			; feature, name, feature_type, parkinglotContext[,RetrieveSingle]\n"
+																																					" - button = feature,PDefault,ParkingLot,default,RetrieveSingle		; feature, name, feature_type, parkinglotContext[,RetrieveSinglen]\r"},
 /*	{"digittimeout", 		D_OBJ_REF(digittimeout), 		TYPE_INT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"8",				"More digits\n"},*/
 	{"allowRinginNotification", 	D_OBJ_REF(allowRinginNotification), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"allow ringin notification for hinted extensions. experimental configuration param that may be removed in further version\n"},
 #ifdef CS_SCCP_CONFERENCE
