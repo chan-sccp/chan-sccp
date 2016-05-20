@@ -677,6 +677,7 @@ void *sccp_netsock_device_thread(void *session)
 					}				
 				} else if (!((recv_len += result) && ((SCCP_MAX_PACKET * 2) - recv_len) && process_buffer(s, &msg, recv_buffer, &recv_len) == 0)) {
 					pbx_log(LOG_ERROR, "%s: (netsock_device_thread) Received a packet or message (with result:%d) which we could not handle, giving up session: %p!\n", DEV_ID_LOG(s->device), result, s);
+					sccp_dump_msg(&msg);
 					if (s->device) {
 						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
 					}
