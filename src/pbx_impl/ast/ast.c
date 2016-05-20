@@ -790,12 +790,14 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 
 	}
 	sccp_channel_display_callInfo(channel);
-	sccp_channel_send_callinfo2(channel);
-
-	if (changes) {								/* only send indications if something changed */
-		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
-		sccp_indicate(d, channel, channel->state);
+	if (changes) {
+		sccp_channel_send_callinfo2(channel);
 	}
+
+	//if (changes) {								/* only send indications if something changed */
+	//	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	//	sccp_indicate(d, channel, channel->state);
+	//}
 #endif
 }
 
