@@ -1284,13 +1284,11 @@ static sccp_parkresult_t sccp_wrapper_asterisk113_park(constChannelPtr hostChann
 {
 	sccp_parkresult_t res = PARK_RESULT_FAIL;
 	char extout[AST_MAX_EXTENSION] = "";
-	char extstr[20];
 	RAII_VAR(struct ast_bridge_channel *, bridge_channel, NULL, ao2_cleanup);
 	
 	if (!ast_parking_provider_registered()) {
 		return res;
 	}
-	memset(extstr, 0, sizeof(extstr));
 
 	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice(hostChannel);
 	if (device && (ast_channel_state(hostChannel->owner) ==  AST_STATE_UP)) {
@@ -1298,12 +1296,14 @@ static sccp_parkresult_t sccp_wrapper_asterisk113_park(constChannelPtr hostChann
 		bridge_channel = ast_channel_get_bridge_channel(hostChannel->owner);
 		ast_channel_unlock(hostChannel->owner);
 		if (bridge_channel) {
-			if (!ast_parking_park_call(bridge_channel, extout, sizeof(extout))) {
-				snprintf(extstr, sizeof(extstr), "%c%c %.16s", 128, SKINNY_LBL_CALL_PARK_AT, extout);
-
-				sccp_dev_displayprinotify(device, extstr, 1, 10);
+			if (!ast_parking_park_call(bridge_channel, extout, sizeof(extout))) {			/* new asterisk-12/13 implementation returns the parkext not the parking_space */
+														/* See: https://issues.asterisk.org/jira/browse/ASTERISK-26029 */
+				char extstr[20];
+				memset(extstr, 0, sizeof(extstr));
+				//snprintf(extstr, sizeof(extstr), "%c%c %.16s", 128, SKINNY_LBL_CALL_PARK_AT, extout);
+				//sccp_dev_displayprinotify(device, extstr, 1, 10);				/* suppressing output of wrong parking information */
+				sccp_dev_displayprinotify(device, SKINNY_DISP_CALL_PARK, 1, 10);
 				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %s\n", DEV_ID_LOG(device), ast_channel_name(hostChannel->owner), extout);
-
 				res = PARK_RESULT_SUCCESS;
 			}
 		}
