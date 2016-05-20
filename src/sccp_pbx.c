@@ -535,7 +535,7 @@ sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
  *
  * \todo masquarade does not succeed when forwarding to a dialplan extension which starts with PLAYBACK (Is this still the case, i think this might have been resolved ?? - DdG -)
  */
-int sccp_pbx_answer(sccp_channel_t * channel)
+int sccp_pbx_answered(sccp_channel_t * channel)
 {
 	int res = 0;
 
@@ -615,13 +615,12 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 		// FINISH
 	} else {
 
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) Outgoing call %s has been answered on %s@%s\n", c->currentDeviceId, iPbx.getChannelName(c), c->line->name, c->currentDeviceId);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) Outgoing call %s has been answered by remote party\n", c->currentDeviceId, iPbx.getChannelName(c));
 		sccp_channel_updateChannelCapability(c);
 
 		/*! \todo This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
 		   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
 		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
-
 		if (d) {
 			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
 				/* 

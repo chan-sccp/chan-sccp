@@ -1647,7 +1647,7 @@ static int sccp_wrapper_asterisk113_answer(PBX_CHANNEL_TYPE * chan)
 		if (!channel->pbx_callid_created && !ast_channel_callid(chan)) {
 			ast_callid_threadassoc_add(ast_channel_callid(chan));
 		}
-		res = sccp_pbx_answer(channel);
+		res = sccp_pbx_answered(channel);
 	}
 	return res;
 }
@@ -2867,8 +2867,8 @@ static int sccp_wrapper_asterisk113_dumpchan(struct ast_channel *c, char *buf, s
 
 	memset(buf, 0, size);
 	if (!c) {
-		return 0;
-}
+		return -1;
+	}
 
 	elapsed_seconds = ast_channel_get_duration(c);
 	hour = elapsed_seconds / 3600;

@@ -1506,7 +1506,7 @@ static int sccp_wrapper_asterisk111_answer(PBX_CHANNEL_TYPE * pbxchan)
 	int res = -1;
 	AUTO_RELEASE sccp_channel_t *channel = get_sccp_channel_from_pbx_channel(pbxchan);
 	if (channel) {
-		res = sccp_pbx_answer(channel);
+		res = sccp_pbx_answered(channel);
 	}
 	return res;
 }

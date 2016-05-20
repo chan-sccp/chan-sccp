@@ -1571,7 +1571,7 @@ static int sccp_wrapper_asterisk112_answer(PBX_CHANNEL_TYPE * chan)
 		if (!channel->pbx_callid_created && !ast_channel_callid(chan)) {
 			ast_callid_threadassoc_add(ast_channel_callid(chan));
 		}
-		res = sccp_pbx_answer(channel);
+		res = sccp_pbx_answered(channel);
 	}
 	return res;
 }
