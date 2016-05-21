@@ -2123,7 +2123,7 @@ void sccp_dev_postregistration(void *data)
 		}
 	}
 	sccp_mwi_check(d);
-#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
+#ifdef CS_SCCP_PARK
 	sccp_buttonconfig_t *config = NULL;
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -2266,7 +2266,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 				/* remove devices from line */
 				sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);
 				sccp_line_removeDevice(line, d);
-#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
+#ifdef CS_SCCP_PARK
 			} else 	if (iParkingLot.detachObserver && config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
 				iParkingLot.detachObserver(config->button.feature.options, d, config->instance);
 #endif

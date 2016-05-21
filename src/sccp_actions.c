@@ -1122,7 +1122,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 								break;
 
 							case SCCP_FEATURE_PARKINGLOT:
-#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
+#ifdef CS_SCCP_PARK
 								if (iParkingLot.attachObserver && iParkingLot.attachObserver(buttonconfig->button.feature.options, d, buttonconfig->instance)) {
 									if (d->inuseprotocolversion > 15) {
 										btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
@@ -2180,7 +2180,7 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 			break;
 #endif
 		case SCCP_FEATURE_PARKINGLOT:
-#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
+#ifdef CS_SCCP_PARK
 			sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: ParkingLot:'%s' Action, State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options ? config->button.feature.options : "", config->button.feature.status ? "On" : "Off");
 			if (TRUE == toggleState && iParkingLot.handleButtonPress) {
 				iParkingLot.handleButtonPress(config->button.feature.options, d, instance);
@@ -4389,7 +4389,7 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 #endif
 				break;
 			case APPID_VISUALPARKINGLOT:								// Handle Conference Invite
-#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
+#ifdef CS_SCCP_PARK
 				sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle VisualParkingLot Info for AppID %d , Transaction %d, Action: %s, Observer:%d, Data:%s\n", d->id, appID, transactionID, d->dtu_softkey.action, lineInstance, data);
 				char parkinglot[11] = "", slot_exten[11] = "";
 				if (sscanf(data, "%10[^/]/%10s", parkinglot, slot_exten) > 0) {

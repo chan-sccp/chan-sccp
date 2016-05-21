@@ -16,7 +16,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 
 #include "sccp_featureParkingLot.h"
 
-#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
+#ifdef CS_SCCP_PARK
 
 #include "sccp_utils.h"
 #include "sccp_vector.h"

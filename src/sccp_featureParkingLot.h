@@ -9,7 +9,7 @@
  * $date$
  * $revision$
  */
-#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
+#ifdef CS_SCCP_PARK
 #pragma once
 
 //#define AMI13 "1.3"	// user by asterisk-11

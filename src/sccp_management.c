@@ -931,7 +931,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 					sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 				}
 			}
-#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
+#ifdef CS_SCCP_PARK
 		} else if (sccp_strcaseequals("ParkedCall", event) || sccp_strcaseequals("UnParkedCall", event) || sccp_strcaseequals("ParkedCallGiveUp", event) || sccp_strcaseequals("ParkedCallTimeout", event)) {
 			if (iParkingLot.addSlot && iParkingLot.removeSlot) {
 				sccp_log(DEBUGCAT_CORE)("SCCP: (managerHookHelper) %s Received\ncontent:[%s]\n", event, content);
