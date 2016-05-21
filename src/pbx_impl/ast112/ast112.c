@@ -1230,7 +1230,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk112_park(const sccp_channel_t * ho
 {
 	sccp_parkresult_t res = PARK_RESULT_FAIL;
 	char extout[AST_MAX_EXTENSION] = "";
-	RAII_VAR(struct ast_bridge_channel *, bridge_channel, NULL, ao2_cleanup);
+	RAII(struct ast_bridge_channel *, bridge_channel, NULL, ao2_cleanup);
 	
 	if (!ast_parking_provider_registered()) {
 		return res;
@@ -1317,7 +1317,7 @@ static sccp_extension_status_t sccp_wrapper_asterisk112_extensionStatus(const sc
 	int ext_canmatch = ast_canmatch_extension(pbx_channel, pbx_channel_context(pbx_channel), channel->dialedNumber, 1, channel->line->cid_num);
 	int ext_matchmore = ast_matchmore_extension(pbx_channel, pbx_channel_context(pbx_channel), channel->dialedNumber, 1, channel->line->cid_num);
 
-	// RAII_VAR(struct ast_features_pickup_config *, pickup_cfg, ast_get_chan_features_pickup_config(pbx_channel), ao2_cleanup);
+	// RAII(struct ast_features_pickup_config *, pickup_cfg, ast_get_chan_features_pickup_config(pbx_channel), ao2_cleanup);
 	// const char *pickupexten = (pickup_cfg) ? pickup_cfg->pickupexten : "-";
 
 	/* if we dialed the pickup extention, mark this as exact match */

@@ -358,7 +358,7 @@ static int attachObserver(const char *options, sccp_device_t * device, uint8_t i
 	
 	if (!sccp_strlen_zero(args.parkinglot)) {
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (attachObserver) device:%s at instance:%d\n", args.parkinglot, device->id, instance);
-		RAII_VAR(sccp_parkinglot_t *, pl, findCreateParkinglot(args.parkinglot, TRUE), sccp_parkinglot_unlock);
+		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(args.parkinglot, TRUE), sccp_parkinglot_unlock);
 		if (pl) {
 			plobserver_t observer = {
 				.device = device,
@@ -495,7 +495,7 @@ static void hideVisualParkingLot(const char *parkinglot, constDevicePtr d, uint8
 {
 	pbx_assert(parkinglot != NULL &&  d != NULL);
 
-	RAII_VAR(sccp_parkinglot_t *, pl, findCreateParkinglot(parkinglot, TRUE), sccp_parkinglot_unlock);
+	RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(parkinglot, TRUE), sccp_parkinglot_unlock);
 	if (pl) {
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (hideVisualParkingLot) device:%s, instance:%d, size:%d\n", parkinglot, d->id, instance, (int)SCCP_VECTOR_SIZE(&pl->observers));
 		uint8_t idx;
@@ -521,7 +521,7 @@ static void notifyDevice(const char *options, constDevicePtr device)
 
 	if (!sccp_strlen_zero(args.parkinglot)) {
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (notifyDevice) notifyDevice:%s\n", args.parkinglot, device->id);
-		RAII_VAR(sccp_parkinglot_t *, pl, findCreateParkinglot(args.parkinglot, TRUE), sccp_parkinglot_unlock);
+		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(args.parkinglot, TRUE), sccp_parkinglot_unlock);
 		if (pl) {
 			int numslots = SCCP_VECTOR_SIZE(&pl->slots);
 			for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
@@ -619,7 +619,7 @@ static int addSlot(const char *parkinglot, int slot, struct message *m)
 
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (addSlot) adding to slot:%d\n", parkinglot, slot);
 
-	RAII_VAR(sccp_parkinglot_t *, pl, findCreateParkinglot(parkinglot, TRUE), sccp_parkinglot_unlock);
+	RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(parkinglot, TRUE), sccp_parkinglot_unlock);
 	if (pl) {
 		if (SCCP_VECTOR_GET_CMP(&pl->slots, slot, SLOT_CB_CMP) == NULL) {
 			plslot_t new_slot = { 
@@ -652,7 +652,7 @@ static int removeSlot(const char *parkinglot, int slot)
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (removeSlot) removing slot:%d\n", parkinglot, slot);
 	int res = FALSE;
 
-	RAII_VAR(sccp_parkinglot_t *, pl, findCreateParkinglot(parkinglot, TRUE), sccp_parkinglot_unlock);
+	RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(parkinglot, TRUE), sccp_parkinglot_unlock);
 	if (pl) {
 		if (SCCP_VECTOR_REMOVE_CMP_UNORDERED(&pl->slots, slot, SLOT_CB_CMP, SLOT_CLEANUP) == 0) {
 			notifyLocked(pl);
@@ -685,7 +685,7 @@ static void handleButtonPress(const char *options, constDevicePtr d, uint8_t ins
 	if (channel && channel->state != SCCP_CHANNELSTATE_OFFHOOK && channel->state != SCCP_CHANNELSTATE_HOLD) {
 		sccp_channel_park(channel);
 	} else if (!sccp_strlen_zero(args.parkinglot)){
-		RAII_VAR(sccp_parkinglot_t *, pl, findCreateParkinglot(args.parkinglot, TRUE), sccp_parkinglot_unlock);
+		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(args.parkinglot, TRUE), sccp_parkinglot_unlock);
 		if (pl) {
 			if (SCCP_VECTOR_SIZE(&pl->slots) == 0) {
 				sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) 0 slot occupied. Show statusBar message\n", args.parkinglot);
