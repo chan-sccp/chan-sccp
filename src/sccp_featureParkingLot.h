@@ -30,13 +30,14 @@
 #endif
 __BEGIN_C_EXTERN__
 typedef struct {
-	int (*attachObserver) (const char *parkinglot, sccp_device_t * device, uint8_t instance);
-	int (*detachObserver) (const char *parkinglot, sccp_device_t * device, uint8_t instance);
+	int (*attachObserver) (const char *options, sccp_device_t * device, uint8_t instance);
+	int (*detachObserver) (const char *options, sccp_device_t * device, uint8_t instance);
 	int (*addSlot) (const char *parkinglot, int slot, struct message *m);
 	int (*removeSlot) (const char *parkinglot, int slot);
-	void (*showCXML) (const char *parkinglot, constDevicePtr d, uint8_t instance);
-	void (*handleButtonPress) (const char *parkinglot, constDevicePtr d, uint8_t instance);
+	//void (*showCXML) (const char *parkinglot, constDevicePtr d, uint8_t instance);
+	void (*handleButtonPress) (const char *options, constDevicePtr d, uint8_t instance);
 	void (*handleDevice2User) (const char *parkinglot, constDevicePtr d, const char *slot_exten, uint8_t instance, uint32_t transactionId);
+	void (*notifyDevice) (const char *options, constDevicePtr device);
 } ParkingLotInterface;
 
 extern const ParkingLotInterface iParkingLot;

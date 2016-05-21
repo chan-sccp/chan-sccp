@@ -375,29 +375,34 @@ static int attachObserver(const char *options, sccp_device_t * device, uint8_t i
 	return res;
 }
 
-static int detachObserver(const char *parkinglot, sccp_device_t * device, uint8_t instance)
+static int detachObserver(const char *options, sccp_device_t * device, uint8_t instance)
 {
-	pbx_assert(parkinglot != NULL && device != NULL);
-
+	pbx_assert(options != NULL && device != NULL);
 	int res = FALSE;
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (detachObserver) device:%s at instance:%d\n", parkinglot, device->id, instance);
 
-	sccp_parkinglot_t *pl = findCreateParkinglot(parkinglot, FALSE);
-	if (pl) {
-		plobserver_t cmp = {
-			.device = device,
-			.instance = instance,
-		};
+	char *parse = pbx_strdupa(options);
+	AST_DECLARE_APP_ARGS(args, AST_APP_ARG(parkinglot); AST_APP_ARG(flags); );
+	AST_STANDARD_APP_ARGS(args, parse);
 
-		if (SCCP_VECTOR_REMOVE_CMP_UNORDERED(&pl->observers, cmp, OBSERVER_CB_CMP, SCCP_VECTOR_ELEM_CLEANUP_NOOP) == 0) {
-			if (SCCP_VECTOR_SIZE(&pl->observers) == 0) {
-				removeParkinglot(pl);	// will unlock and destroy pl
+	if (!sccp_strlen_zero(args.parkinglot)) {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (detachObserver) device:%s at instance:%d\n", args.parkinglot, device->id, instance);
+		sccp_parkinglot_t *pl = findCreateParkinglot(args.parkinglot, FALSE);
+		if (pl) {
+			plobserver_t cmp = {
+				.device = device,
+				.instance = instance,
+			};
+
+			if (SCCP_VECTOR_REMOVE_CMP_UNORDERED(&pl->observers, cmp, OBSERVER_CB_CMP, SCCP_VECTOR_ELEM_CLEANUP_NOOP) == 0) {
+				if (SCCP_VECTOR_SIZE(&pl->observers) == 0) {
+					removeParkinglot(pl);	// will unlock and destroy pl
+				} else {
+					sccp_parkinglot_unlock(pl);				
+				}
+				res = TRUE;
 			} else {
-				sccp_parkinglot_unlock(pl);				
+				sccp_parkinglot_unlock(pl);
 			}
-			res = TRUE;
-		} else {
-			sccp_parkinglot_unlock(pl);
 		}
 	}
 	return res;
@@ -466,23 +471,6 @@ static void __showVisualParkingLot(sccp_parkinglot_t *pl, constDevicePtr d, plob
 	observer->transactionId = transactionId;
 }
 
-static void showVisualParkingLot(const char *parkinglot, constDevicePtr d, uint8_t instance) 
-{
-	pbx_assert(parkinglot != NULL && d != NULL);
-
-	RAII_VAR(sccp_parkinglot_t *, pl, findCreateParkinglot(parkinglot, TRUE), sccp_parkinglot_unlock);
-	if (pl) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (showVisualParkingLot) device:%s, instance:%d, size:%d\n", parkinglot, d->id, instance, (int)SCCP_VECTOR_SIZE(&pl->observers));
-		uint8_t idx;
-		for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
-			plobserver_t *observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
-			if (observer->device == d && observer->instance == instance) {
-				__showVisualParkingLot(pl, d, observer);
-			}
-		}
-	}
-}
-
 static void __hideVisualParkingLot(sccp_parkinglot_t *pl, constDevicePtr d, plobserver_t *observer)
 {
 	pbx_assert(pl != NULL && observer != NULL);
@@ -520,6 +508,58 @@ static void hideVisualParkingLot(const char *parkinglot, constDevicePtr d, uint8
 	}
 }
 
+static void notifyDevice(const char *options, constDevicePtr device)
+{
+	pbx_assert(options != NULL && device != NULL);
+	uint8_t idx = 0;
+	uint32_t iconstate = 0;
+	plobserver_t *observer = NULL;
+
+	char *parse = pbx_strdupa(options);
+	AST_DECLARE_APP_ARGS(args, AST_APP_ARG(parkinglot); AST_APP_ARG(flags); );
+	AST_STANDARD_APP_ARGS(args, parse);
+
+	if (!sccp_strlen_zero(args.parkinglot)) {
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (notifyDevice) notifyDevice:%s\n", args.parkinglot, device->id);
+		RAII_VAR(sccp_parkinglot_t *, pl, findCreateParkinglot(args.parkinglot, TRUE), sccp_parkinglot_unlock);
+		if (pl) {
+			int numslots = SCCP_VECTOR_SIZE(&pl->slots);
+			for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
+				observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
+				if (observer && observer->device == device) {
+					sccp_buttonconfig_t *config = NULL;
+					if (device->protocolversion < 15) {
+						sccp_device_setLamp(device, SKINNY_STIMULUS_PARKINGLOT, 0, numslots ? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
+						iconstate = numslots ? ICONSTATE_OLD_ON : ICONSTATE_OLD_OFF;
+					} else {
+						iconstate = numslots ? ICONSTATE_NEW_ON : ICONSTATE_NEW_OFF;
+					}
+
+					// change button state
+					SCCP_LIST_LOCK(&device->buttonconfig);
+					SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+						if (config->type == FEATURE && config->instance == observer->instance) {
+							config->button.feature.status = iconstate;
+						}
+					}
+					SCCP_LIST_UNLOCK(&device->buttonconfig);
+
+					// update already displayed visual parkinglot window
+					if (observer->transactionId) {
+						if (numslots > 0 && !device->active_channel) {
+							__showVisualParkingLot(pl, device, observer);
+						} else {
+							__hideVisualParkingLot(pl, device, observer);
+						}
+					}
+
+					sccp_feat_changed(device, NULL, SCCP_FEATURE_PARKINGLOT);
+				}
+			}
+		}
+	}
+}
+
 static void notifyLocked(sccp_parkinglot_t *pl)
 {
 	pbx_assert(pl != NULL);
@@ -539,7 +579,7 @@ static void notifyLocked(sccp_parkinglot_t *pl)
 				sccp_buttonconfig_t *config = NULL;
 
 				if (device->protocolversion < 15) {
-					sccp_device_setLamp(device, SKINNY_STIMULUS_VOICEMAIL, 0, numslots ? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
+					sccp_device_setLamp(device, SKINNY_STIMULUS_PARKINGLOT, 0, numslots ? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
 					iconstate = numslots ? ICONSTATE_OLD_ON : ICONSTATE_OLD_OFF;
 				} else {
 					iconstate = numslots ? ICONSTATE_NEW_ON : ICONSTATE_NEW_OFF;
@@ -695,9 +735,9 @@ const ParkingLotInterface iParkingLot = {
 	.detachObserver = detachObserver,
 	.addSlot = addSlot,
 	.removeSlot = removeSlot,
-	.showCXML = showVisualParkingLot,
 	.handleButtonPress = handleButtonPress,
 	.handleDevice2User = handleDevice2User,
+	.notifyDevice = notifyDevice,
 };
 #else
 const ParkingLotInterface iParkingLot = { 0 };

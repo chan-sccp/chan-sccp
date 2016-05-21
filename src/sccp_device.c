@@ -2123,7 +2123,16 @@ void sccp_dev_postregistration(void *data)
 		}
 	}
 	sccp_mwi_check(d);
-
+#if defined(CS_SCCP_PARK) && defined(CS_EXPERIMENTAL)
+	sccp_buttonconfig_t *config = NULL;
+	SCCP_LIST_LOCK(&d->buttonconfig);
+	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+		if (config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
+			iParkingLot.notifyDevice(config->button.feature.options, d);
+		}
+	}
+	SCCP_LIST_UNLOCK(&d->buttonconfig);
+#endif
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
 	return;
 }
