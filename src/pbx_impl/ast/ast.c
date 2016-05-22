@@ -761,29 +761,27 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 #if ASTERISK_VERSION_GROUP >= 111
 			struct ast_party_id redirecting_orig = pbx_channel_redirecting_effective_orig(ast);
-			if (!redirecting_orig.name.valid && !redirecting_orig.number.valid) {
-				changes = iCallInfo.Setter(callInfo,
-					SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
-					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
-					SCCP_CALLINFO_KEY_SENTINEL);
-			} else {
+			if (redirecting_orig.name.valid || redirecting_orig.number.valid) {
 				changes = iCallInfo.Setter(callInfo,
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, redirecting_orig.name.valid ? ast_channel_redirecting(ast)->orig.name.str : "",
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, redirecting_orig.number.valid ? ast_channel_redirecting(ast)->orig.number.str : "",
 					SCCP_CALLINFO_KEY_SENTINEL);
-			}
-#else
-			changes = iCallInfo.Setter(callInfo,
-				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
-				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
-				SCCP_CALLINFO_KEY_SENTINEL);
+			} else 
 #endif
+			{
+				changes = iCallInfo.Setter(callInfo,
+					SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
+					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
+					SCCP_CALLINFO_KEY_SENTINEL);
+			}
 		} else {
 			changes = iCallInfo.Setter(callInfo,
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLEDPARTY_NAME, pbx_channel_connected_id(ast).name.str,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, &tmpCalledNumber,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &tmpCalledName,
 				SCCP_CALLINFO_KEY_SENTINEL);
 		}
 

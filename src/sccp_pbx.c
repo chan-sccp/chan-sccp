@@ -740,6 +740,10 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 				iCallInfo.Setter(ci, 
 					SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
+					SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &cid_num,
+					SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &cid_name,
+					SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, &cid_num,
+					SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &cid_name,
 					SCCP_CALLINFO_KEY_SENTINEL);
 				break;
 			case SKINNY_CALLTYPE_SENTINEL:

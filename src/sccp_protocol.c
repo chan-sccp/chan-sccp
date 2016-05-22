@@ -152,10 +152,6 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 
 	unsigned int dataSize = 16;
 	char data[dataSize][StationMaxNameSize];
-	int data_len[dataSize];
-	unsigned int i = 0;
-	int dummy_len = 0;
-
 	memset(data, 0, dataSize * StationMaxNameSize);
 	
 	int originalCdpnRedirectReason = 0;
@@ -183,14 +179,17 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 		SCCP_CALLINFO_PRESENTATION, &presentation,
 		SCCP_CALLINFO_KEY_SENTINEL);
 
-	for (i = 0; i < dataSize; i++) {
-		data_len[i] = strlen(data[i]);
-		dummy_len += data_len[i];
+	unsigned int field = 0;
+	int data_len = 0;
+	int dummy_len = 0;
+	uint8_t *dummy = sccp_calloc(sizeof(uint8_t), dataSize * StationMaxNameSize);
+	for (field = 0; field < dataSize; field++) {
+		data_len = strlen(data[field]) + 1 /* '\0 */;
+		memcpy(dummy + dummy_len, data[field], data_len);
+		dummy_len += data_len;
 	}
-
-	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) + (dataSize - 3);
+	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) - 4;
 	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len);
-
 	msg->data.CallInfoDynamicMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.CallInfoDynamicMessage.lel_callReference = htolel(callid);
 	msg->data.CallInfoDynamicMessage.lel_callType = htolel(calltype);
@@ -199,31 +198,18 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	msg->data.CallInfoDynamicMessage.lel_callInstance = htolel(callInstance);
 	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason = htolel(originalCdpnRedirectReason);
 	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(lastRedirectingReason);
-
-	if (dummy_len) {
-		int bufferSize = dummy_len + dataSize;
-		char buffer[bufferSize];
-		int pos = 0;
-
-		memset(&buffer[0], 0, bufferSize);
-		for (i = 0; i < dataSize; i++) {
-			if (data_len[i]) {
-				memcpy(&buffer[pos], data[i], data_len[i]);
-				pos += data_len[i] + 1;
-			} else {
-				pos += 1;
-			}
-		}
-		memcpy(&msg->data.CallInfoDynamicMessage.dummy, &buffer[0], bufferSize);
-	}
-
-	//sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V16) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
+	memcpy(&msg->data.CallInfoDynamicMessage.dummy, dummy, dummy_len);
+	sccp_free(dummy);
+	
+	//sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V20) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
 	//if ((GLOB(debug) & (DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) != 0) {
 	//	iCallInfo.Print2log(ci, "SCCP: (sendCallInfoV16)");
 	//}
+	//sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 /* done - CallInfoMessage */
+
 
 /* DialedNumber Message */
 
