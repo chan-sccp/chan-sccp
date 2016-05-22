@@ -379,8 +379,8 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	//sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: isRinging:%d, hadDNDParticipant:%d, ForwardingLineDevice:%p\n", c->designator, isRinging, hasDNDParticipant, ForwardingLineDevice);
 	if (isRinging) {
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_RINGING);
-//		iPbx.queue_control(c->owner, AST_CONTROL_RINGING);
 		iPbx.set_callstate(c, AST_STATE_RINGING);
+		iPbx.queue_control(c->owner, AST_CONTROL_RINGING);
 	} else if (ForwardingLineDevice) {
 		/* when single line -> use asterisk functionality directly, without creating new channel + masquerade */
 		pbx_log(LOG_NOTICE, "%s: initialize cfwd%s for line %s\n", ForwardingLineDevice->device->id, (ForwardingLineDevice->cfwdAll.enabled ? "All" : (ForwardingLineDevice->cfwdBusy.enabled ? "Busy" : "None")), l->name);

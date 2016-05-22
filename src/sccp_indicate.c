@@ -158,6 +158,9 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 					iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, device, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
 					sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				}
+				if (c->previousChannelState == SCCP_CHANNELSTATE_RINGOUT) {
+					break;
+				}
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_RING_OUT, GLOB(digittimeout));
 
@@ -166,6 +169,8 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 				}
 				if (c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {		// send tone if ther is no rtp for inband signaling 
 					sccp_dev_starttone(d, (uint8_t) SKINNY_TONE_ALERTINGTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+				} else {
+					sccp_dev_stoptone(d, lineInstance, c->callid);
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGOUT);
 			}
@@ -224,7 +229,6 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 					!sccp_strlen_zero(orig_called_name) ? orig_called_name : (!sccp_strlen_zero(orig_called_num) ? orig_called_num : SKINNY_DISP_FROM), 
 					!sccp_strlen_zero(calling_name) ? calling_name : calling_num);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, prompt, GLOB(digittimeout));
-// 				iPbx.set_callstate(c, AST_STATE_RINGING);				//!\todo thats not the right place to update pbx state
 			}
 			break;
 		case SCCP_CHANNELSTATE_PROCEED:
