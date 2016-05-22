@@ -579,7 +579,8 @@ static void notifyLocked(sccp_parkinglot_t *pl)
 				sccp_buttonconfig_t *config = NULL;
 
 				if (device->protocolversion < 15) {
-					sccp_device_setLamp(device, SKINNY_STIMULUS_PARKINGLOT, 0, numslots ? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
+					//sccp_device_setLamp(device, SKINNY_STIMULUS_PARKINGLOT, 0, numslots ? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
+					sccp_device_setLamp(device, SKINNY_STIMULUS_VOICEMAIL, 0, numslots ? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
 					iconstate = numslots ? ICONSTATE_OLD_ON : ICONSTATE_OLD_OFF;
 				} else {
 					iconstate = numslots ? ICONSTATE_NEW_ON : ICONSTATE_NEW_OFF;
