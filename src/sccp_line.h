@@ -124,8 +124,9 @@ struct sccp_linedevices {
 	sccp_line_t *line;											/*!< SCCP Line */
 	SCCP_LIST_ENTRY (sccp_linedevices_t) list;								/*!< Device Linked List Entry */
 
-	sccp_cfwd_information_t cfwdAll;									/*!< cfwd information */
-	sccp_cfwd_information_t cfwdBusy;									/*!< cfwd information */
+	sccp_cfwd_information_t cfwdAll;									/*!< cfwdAll information */
+	sccp_cfwd_information_t cfwdBusy;									/*!< cfwdBusy information */
+	//sccp_cfwd_information_t cfwdNoAnswer;									/*!< cfwdNoAnswer information */
 
 	sccp_subscription_id_t subscriptionId;									/*!< for addressing individual devices on shared line */
 	char label[SCCP_MAX_LABEL];										/*!<  */

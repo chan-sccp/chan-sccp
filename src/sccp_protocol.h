@@ -2171,25 +2171,25 @@ typedef union {
  	struct {
 		union {
 			struct {
-				uint32_t lel_status;								/*!< Status (0=inactive, 1=active) */
+				uint32_t lel_activeForward;							/*!< Status (0=inactive, 1=active, 4=cm ??) */
 				uint32_t lel_lineNumber;							/*!< Line Number */
-				uint32_t lel_cfwdallstatus;							/*!< Call Forward All Status */
+				uint32_t lel_forwardAllActive;							/*!< Call Forward All Status */
 				char cfwdallnumber[StationMaxDirnumSize];					/*!< Call Forward All Number */
-				uint32_t lel_cfwdbusystatus;							/*!< Call Forward on Busy Status */
+				uint32_t lel_forwardBusyActive;							/*!< Call Forward on Busy Status */
 				char cfwdbusynumber[StationMaxDirnumSize];					/*!< Call Forward on Busy Number */
-				uint32_t lel_cfwdnoanswerstatus;						/*!< Call Forward on No-Answer Status */
+				uint32_t lel_forwardNoAnswerActive;						/*!< Call Forward on No-Answer Status */
 				char cfwdnoanswernumber[StationMaxDirnumSize];					/*!< Call Forward on No-Answer Number */
 			} v3;
 #pragma pack(push)
 #pragma pack(1)
 			struct {
-				uint32_t lel_status;								/*!< Status (0=inactive, 1=active) */
+				uint32_t lel_activeForward;							/*!< Status (0=inactive, 1=active, 4=cm ??) */
 				uint32_t lel_lineNumber;							/*!< Line Number */
-				uint32_t lel_cfwdallstatus;							/*!< Call Forward All Status */
-				char cfwdallnumber[StationDynamicDirnumSize];				/*!< Call Forward All Number */
-				uint32_t lel_cfwdbusystatus;							/*!< Call Forward on Busy Status */
-				char cfwdbusynumber[StationDynamicDirnumSize];				/*!< Call Forward on Busy Number */
-				uint32_t lel_cfwdnoanswerstatus;						/*!< Call Forward on No-Answer Status */
+				uint32_t lel_forwardAllActive;							/*!< Call Forward All Status */
+				char cfwdallnumber[StationDynamicDirnumSize];					/*!< Call Forward All Number */
+				uint32_t lel_forwardBusyActive;							/*!< Call Forward on Busy Status */
+				char cfwdbusynumber[StationDynamicDirnumSize];					/*!< Call Forward on Busy Number */
+				uint32_t lel_forwardNoAnswerActive;						/*!< Call Forward on No-Answer Status */
 				char cfwdnoanswernumber[StationDynamicDirnumSize];				/*!< Call Forward on No-Answer Number */
 			} v18;											
 #pragma pack(pop)

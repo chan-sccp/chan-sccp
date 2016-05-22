@@ -384,49 +384,60 @@ static void sccp_protocol_sendDynamicDisplayPriNotify(constDevicePtr device, uin
 
 /*!
  * \brief Send Call Forward Status Message
+ * \todo need more information about lel_activeForward and lel_forwardAllActive values.
  */
 static void sccp_protocol_sendCallForwardStatus(constDevicePtr device, const sccp_linedevices_t * linedevice)
 {
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, ForwardStatMessage);
+	msg->data.ForwardStatMessage.v3.lel_activeForward = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) ? htolel(1) : 0;
 	msg->data.ForwardStatMessage.v3.lel_lineNumber = htolel(linedevice->lineInstance);
-	msg->data.ForwardStatMessage.v3.lel_status = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) ? htolel(1) : 0;
 
 	if (linedevice->cfwdAll.enabled) {
-		msg->data.ForwardStatMessage.v3.lel_cfwdallstatus = htolel(1);
+		msg->data.ForwardStatMessage.v3.lel_forwardAllActive = htolel(1);
 		sccp_copy_string(msg->data.ForwardStatMessage.v3.cfwdallnumber, linedevice->cfwdAll.number, sizeof(msg->data.ForwardStatMessage.v3.cfwdallnumber));
 	}
 	if (linedevice->cfwdBusy.enabled) {
-		msg->data.ForwardStatMessage.v3.lel_cfwdbusystatus = htolel(1);
+		msg->data.ForwardStatMessage.v3.lel_forwardBusyActive = htolel(1);
 		sccp_copy_string(msg->data.ForwardStatMessage.v3.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(msg->data.ForwardStatMessage.v3.cfwdbusynumber));
 	}
+	/*
+	if (linedevice->cfwdNoAnswer.enabled) {
+		msg->data.ForwardStatMessage.v3.lel_forwardBusyActive = htolel(1);
+		sccp_copy_string(msg->data.ForwardStatMessage.v3.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(msg->data.ForwardStatMessage.v3.cfwdbusynumber));
+	}
+	*/
 
 	sccp_dev_send(device, msg);
 }
 
 /*!
  * \brief Send Call Forward Status Message (V19)
+ * \todo need more information about lel_activeForward and lel_forwardAllActive values.
  */
 static void sccp_protocol_sendCallForwardStatusV18(constDevicePtr device, const sccp_linedevices_t * linedevice)
 {
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, ForwardStatMessage);
+	msg->data.ForwardStatMessage.v18.lel_activeForward = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) ? htolel(4) : 0;
 	msg->data.ForwardStatMessage.v18.lel_lineNumber = htolel(linedevice->lineInstance);
-	msg->data.ForwardStatMessage.v18.lel_status = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) ? htolel(1) : 0;
 
 	if (linedevice->cfwdAll.enabled) {
-
-		msg->data.ForwardStatMessage.v18.lel_cfwdallstatus = htolel(1);
+		msg->data.ForwardStatMessage.v18.lel_forwardAllActive = htolel(4);	// needs more information about the possible values and their meaning
 		sccp_copy_string(msg->data.ForwardStatMessage.v18.cfwdallnumber, linedevice->cfwdAll.number, sizeof(msg->data.ForwardStatMessage.v18.cfwdallnumber));
-
 	}
 	if (linedevice->cfwdBusy.enabled) {
-
-		msg->data.ForwardStatMessage.v18.lel_cfwdbusystatus = htolel(1);
+		msg->data.ForwardStatMessage.v18.lel_forwardBusyActive = htolel(4);
 		sccp_copy_string(msg->data.ForwardStatMessage.v18.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(msg->data.ForwardStatMessage.v18.cfwdbusynumber));
 	}
+	/*
+	if (linedevice->cfwdNoAnswer.enabled) {
+		msg->data.ForwardStatMessage.v18.lel_forwardBusyActive = htolel(4);
+		sccp_copy_string(msg->data.ForwardStatMessage.v18.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(msg->data.ForwardStatMessage.v18.cfwdbusynumber));
+	}
+	*/
 
 	//msg->data.ForwardStatMessage.v18.lel_unknown = 0x000000FF;
 	sccp_dev_send(device, msg);
