@@ -717,11 +717,12 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	int changes = 0;
 	sccp_callinfo_t *const callInfo = sccp_channel_getCallInfo(channel);
 
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got connected line update, connected.id.number=%s, connected.id.name=%s, reason=%d\n", 
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got connected line update, connected.id.number=%s, connected.id.name=%s, source=%s\n", 
 		pbx_channel_name(ast), 
 		pbx_channel_connected_id(ast).number.str ? pbx_channel_connected_id(ast).number.str : "(nil)", 
 		pbx_channel_connected_id(ast).name.str ? pbx_channel_connected_id(ast).name.str : "(nil)", 
-		pbx_channel_connected_source(ast));
+		pbx_connected_line_source_name(pbx_channel_connected_source(ast))
+	);
 
 	char tmpCallingNumber[StationMaxDirnumSize] = {0};
 	char tmpCallingName[StationMaxNameSize] = {0};
@@ -791,11 +792,6 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	if (changes) {
 		sccp_channel_send_callinfo2(channel);
 	}
-
-	//if (changes) {								/* only send indications if something changed */
-	//	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
-	//	sccp_indicate(d, channel, channel->state);
-	//}
 #endif
 }
 
