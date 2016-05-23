@@ -2722,12 +2722,13 @@ static void __sccp_device_indicate_normal_dialing(constDevicePtr device, const u
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
+	iCallInfo.SetCalledParty(callinfo, NULL, dialedNumber, NULL);
 	//iCallInfo.SetCalledParty(callinfo, dialedNumber, dialedNumber, NULL);
 	if (device->protocol && device->protocol->sendDialedNumber) {
 		device->protocol->sendDialedNumber(device, lineInstance, callid, dialedNumber);
 	}
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	//iCallInfo.Send(callinfo, callid, calltype, lineInstance, device, FALSE);
+	iCallInfo.Send(callinfo, callid, calltype, lineInstance, device, FALSE);
 	//sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_RINGOUT);
 }
 
