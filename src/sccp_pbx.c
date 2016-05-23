@@ -650,7 +650,7 @@ int sccp_pbx_answered(sccp_channel_t * channel)
 			}
 		}
 
-		if (c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) {
+		if (c->rtp.video.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) {
 			iPbx.queue_control(c->owner, AST_CONTROL_VIDUPDATE);
 		}
 	}

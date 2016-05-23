@@ -3205,7 +3205,7 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 
 			}
 			sccp_rtp_set_phone(channel, rtp, &sas);
-			//rtp->writeState = SCCP_RTP_STATUS_PORTSET;
+			//rtp->receiveChannelState = SCCP_RTP_STATUS_PORTSET;
 		}
 	}
 }
@@ -3269,13 +3269,13 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 		sccp_channel_setDevice(channel, d);
 		if (channel->rtp.audio.instance) {
 			sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
-			if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.readState) {
+			if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.mediaTransmissionState) {
 				sccp_channel_startMediaTransmission(channel);
 			}
 			sccp_channel_send_callinfo(d, channel);
 
 			/* update status */
-			channel->rtp.audio.writeState = SCCP_RTP_STATUS_ACTIVE;
+			channel->rtp.audio.receiveChannelState = SCCP_RTP_STATUS_ACTIVE;
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 			if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 				iPbx.queue_control(channel->owner, AST_CONTROL_ANSWER);
@@ -3283,7 +3283,7 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 				/* 'PROD' the remote side to let them know we can receive inband signalling from this moment onwards -> inband signalling required */
 				pbx_indicate(channel->owner, -1);
 			}
-			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
+			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE))) {
 				iPbx.set_callstate(channel, AST_STATE_UP);
 			}
 		} else {
@@ -3352,12 +3352,12 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s\n", d->id, sccp_netsock_stringify(&sas));
 			sccp_rtp_set_phone(channel, &channel->rtp.video, &sas);
-			channel->rtp.video.writeState = SCCP_RTP_STATUS_ACTIVE;
+			channel->rtp.video.receiveChannelState = SCCP_RTP_STATUS_ACTIVE;
 
 			if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 				iPbx.queue_control(channel->owner, AST_CONTROL_ANSWER);
 			}
-			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
+			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE))) {
 				iPbx.set_callstate(channel, AST_STATE_UP);
 			}
 		} else {
@@ -3435,13 +3435,13 @@ void handle_startmediatransmission_ack(constSessionPtr s, devicePtr d, constMess
 	} else {
 		if (channel->state != SCCP_CHANNELSTATE_DOWN) {
 			/* update status */
-			channel->rtp.audio.readState = SCCP_RTP_STATUS_ACTIVE;
+			channel->rtp.audio.mediaTransmissionState = SCCP_RTP_STATUS_ACTIVE;
 
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 			if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 				iPbx.queue_control(channel->owner, AST_CONTROL_ANSWER);
 			}
-			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
+			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE))) {
 				iPbx.set_callstate(channel, AST_STATE_UP);
 			}
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: '%s' (%d), Remote TCP/IP: '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), callID, callID1, partyID);
@@ -3477,14 +3477,14 @@ void handle_startmultimediatransmission_ack(constSessionPtr s, devicePtr d, cons
 		pbx_log(LOG_ERROR, "%s: (StartMultiMediaTransmissionAck) Device returned: '%s' (%d) !. Ending Call.\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
 		if (c) {
 			sccp_channel_endcall(c);
-			c->rtp.video.readState = SCCP_RTP_STATUS_INACTIVE;
+			c->rtp.video.mediaTransmissionState = SCCP_RTP_STATUS_INACTIVE;
 		}
 		return;
 	}
 
 	if (c) {
 		/* update status */
-		c->rtp.video.readState = SCCP_RTP_STATUS_ACTIVE;
+		c->rtp.video.mediaTransmissionState = SCCP_RTP_STATUS_ACTIVE;
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK. Remote TCP/IP '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), sccp_netsock_stringify(&ss), callID, callID1, partyID);
 		return;
 	}

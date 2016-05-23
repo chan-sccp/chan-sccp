@@ -593,8 +593,8 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 	}
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
-	res = (((c->rtp.audio.writeState != SCCP_RTP_STATUS_INACTIVE) || (d && d->earlyrtp)) ? -1 : 0);
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (readStat:%d, writeState:%d, rtp:%s, default res:%s (%d))\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.writeState, c->rtp.audio.writeState, (c->rtp.audio.instance) ? "yes" : "no", res ? "inband signaling" : "outofband signaling", res);
+	res = (((c->rtp.audio.receiveChannelState != SCCP_RTP_STATUS_INACTIVE) || (d && d->earlyrtp)) ? -1 : 0);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (readStat:%d, receiveChannelState:%d, rtp:%s, default res:%s (%d))\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.receiveChannelState, c->rtp.audio.receiveChannelState, (c->rtp.audio.instance) ? "yes" : "no", res ? "inband signaling" : "outofband signaling", res);
 
 	switch (ind) {
 		case AST_CONTROL_RINGING:
@@ -723,7 +723,7 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			/* remarking out this code, as it is causing issues with callforward + FREEPBX,  the calling party will not hear the remote end ringing
 			 this patch was added to suppress 'double callwaiting tone', but channel PROD(-1) below is taking care of that already
 			*/
-			//if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE && c->state > SCCP_CHANNELSTATE_DIALING) {
+			//if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && c->state > SCCP_CHANNELSTATE_DIALING) {
 			//	sccp_channel_openReceiveChannel(c);
 			//}
 			sccp_asterisk_connectedline(c, data, datalen);
@@ -788,7 +788,7 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			break;
 		case -1:											// Asterisk prod the channel
 			if (c->line && c->state > SCCP_GROUPED_CHANNELSTATE_DIALING) {
-				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {
+				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
 				}
 				uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
@@ -842,7 +842,7 @@ static int sccp_wrapper_asterisk113_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
-			if (c->rtp.video.readState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
+			if (c->rtp.video.mediaTransmissionState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
 				// int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
 				// int codec = pbx_codec2skinny_codec(frame->subclass.format.id);
 
@@ -853,7 +853,7 @@ static int sccp_wrapper_asterisk113_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 				}
 			}
 
-			if (c->rtp.video.instance && (c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) != 0) {
+			if (c->rtp.video.instance && (c->rtp.video.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) != 0) {
 				res = ast_rtp_instance_write(c->rtp.video.instance, frame);
 			}
 #endif
@@ -1927,7 +1927,7 @@ static int sccp_wrapper_asterisk113_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 				if (!c->rtp.video.instance && !sccp_rtp_createVideoServer(c)) {
 					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(d));
 				} else {
-					if (!c->rtp.video.readState) {
+					if (!c->rtp.video.mediaTransmissionState) {
 						sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: video rtp started\n", DEV_ID_LOG(d));
 						sccp_channel_startMultiMediaTransmission(c);
 					}

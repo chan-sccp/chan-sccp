@@ -109,12 +109,12 @@ __END_C_EXTERN__
 			pbx_log(LOG_NOTICE, "Within retain section\n");
 			if (enabled) {
 				channel->isMicrophoneEnabled = sccp_always_true;
-				if ((channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
+				if ((channel->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE)) {
 					sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
 				}
 			} else {
 				channel->isMicrophoneEnabled = sccp_always_false;
-				if ((channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) {
+				if ((channel->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE)) {
 					sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 				}
 			}
