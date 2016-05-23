@@ -21,8 +21,8 @@ struct sccp_rtp {
 	sccp_mutex_t lock;
 	PBX_RTP_TYPE *instance;											/*!< pbx rtp instance pointer */
 	sccp_rtp_type_t type;
-	uint16_t readState;											/*!< current read state */
-	uint16_t writeState;											/*!< current write state */
+	uint16_t readState;											/*!< current RTP read state (StartMediaTransmission) */
+	uint16_t writeState;											/*!< current RTP write state (OpenReceive) */
 	skinny_codec_t readFormat;										/*!< current read format */
 	skinny_codec_t writeFormat;										/*!< current write format */
 	struct sockaddr_storage phone;										/*!< our phone information (openreceive) */

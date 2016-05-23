@@ -297,7 +297,6 @@ EXIT:
  */
 static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
 {
-
 	if (channel->rtp.audio.writeState != SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.writeFormat != SKINNY_CODEC_NONE) {
 		//pbx_log(LOG_NOTICE, "we already have a write format, dont change codec\n");
 		channel->rtp.audio.readFormat = channel->rtp.audio.writeFormat;
@@ -322,7 +321,6 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
 		skinny_codec_t codecs[] = { channel->rtp.audio.readFormat };
 		iPbx.set_nativeAudioFormats(channel, codecs, 1);
 		iPbx.rtp_setReadFormat(channel, channel->rtp.audio.readFormat);
-
 	}
 	char s1[512], s2[512], s3[512], s4[512];
 	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (recalculateReadformat) \n\tcapabilities: %s\n\tpreferences: %s\n\tremote caps: %s\n\tREAD:%s\n",
@@ -770,11 +768,11 @@ void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean
 #if UNUSEDCODE // 2015-11-01
 void sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel)
 {
-	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.readState) {
+	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.writeState) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateMultiMediaReceiveChannel) Stop multimedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_closeMultiMediaReceiveChannel(channel, TRUE);
 	}
-	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.video.readState) {
+	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.video.writeState) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateMultiMediaReceiveChannel) Start media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_openMultiMediaReceiveChannel(channel);
 	}
