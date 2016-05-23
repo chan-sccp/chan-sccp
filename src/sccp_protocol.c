@@ -116,7 +116,7 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 	msg->data.CallInfoDynamicMessage.lel_callReference = htolel(callid);
 	msg->data.CallInfoDynamicMessage.lel_callType = htolel(calltype);
 	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits = presentation ? 0x0 : 0xf;
-	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED);
+	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
 	msg->data.CallInfoDynamicMessage.lel_callInstance = htolel(callInstance);
 	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason = htolel(originalCdpnRedirectReason);
 	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(lastRedirectingReason);
@@ -194,7 +194,7 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	msg->data.CallInfoDynamicMessage.lel_callReference = htolel(callid);
 	msg->data.CallInfoDynamicMessage.lel_callType = htolel(calltype);
 	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits = presentation ? 0x0 : 0xf;
-	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED);
+	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
 	msg->data.CallInfoDynamicMessage.lel_callInstance = htolel(callInstance);
 	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason = htolel(originalCdpnRedirectReason);
 	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(lastRedirectingReason);
