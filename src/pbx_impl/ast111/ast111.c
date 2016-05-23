@@ -1422,6 +1422,20 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 		goto EXITFUNC;
 	}
 
+	/* set initial connected line information, to be exchange with remove party during first CONNECTED_LINE update */
+	ast_set_callerid(channel->owner, channel->line->cid_num, channel->line->cid_name, channel->line->cid_num);
+	struct ast_party_connected_line connected;
+	ast_party_connected_line_set_init(&connected, ast_channel_connected(channel->owner));
+	connected.id.number.valid = 1;
+	connected.id.number.str = (char *)channel->line->cid_num;
+	connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
+	connected.id.name.valid = 1;
+	connected.id.name.str = (char *)channel->line->cid_name;
+	connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
+	connected.source = AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN;
+	ast_channel_set_connected_line(channel->owner, &connected, NULL);
+	/* end */
+
 	if (requestor) {
 		/* set calling party */
 		sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);

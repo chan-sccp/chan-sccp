@@ -257,8 +257,6 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		}
 		/* Set the channel calledParty Name and Number 7910 compatibility */
 	}
-	iPbx.set_connected_line(c, l->cid_num, l->cid_name, AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN);
-
 	//! \todo implement dnid, ani, ani2 and rdnis
 	sccp_callerid_presentation_t pbx_presentation = iPbx.get_callerid_presentation ? iPbx.get_callerid_presentation(c->owner) : SCCP_CALLERID_PRESENTATION_SENTINEL;
 	if (	(!sccp_strequals(suffixedNumber, cid_num)) || 

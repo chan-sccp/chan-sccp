@@ -1446,6 +1446,10 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_request(const char *type, int f
 	}
 	requestor = (channel && channel->owner) ? channel->owner : NULL;
 
+	/* set initial connected line information, to be exchange with remove party during first CONNECTED_LINE update */
+	ast_set_callerid(channel->owner, channel->line->cid_num, channel->line->cid_name, channel->line->cid_num);
+	/* end */
+
 	// set calling party 
 	sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 	iCallInfo.Setter(ci, 

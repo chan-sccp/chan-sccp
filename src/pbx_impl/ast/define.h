@@ -395,6 +395,7 @@ typedef struct ast_event pbx_event_t;
 #define pbx_channel_redirecting_effective_orig(_a) (_a)->redirecting.orig
 #define pbx_channel_connected_id(_a) (_a)->connected.id
 #define pbx_channel_connected_source(_a) (_a)->connected.source
+#define pbx_connected_line_source_name(_a) ast_connected_line_source_name(_a)
 
 #if CS_TEST_FRAMEWORK
 #define pbx_test_validate_cleanup ast_test_validate_cleanup
