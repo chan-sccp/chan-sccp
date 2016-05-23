@@ -1004,7 +1004,7 @@ void sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannel
 	pbx_assert(channel != NULL);
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_closeAllMediaTransmitAndReceive) Stop All Media Reception and Transmission on channel %d\n", channel->currentDeviceId, channel->callid);
-	if (d && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d)) {
+	if (d) {
 		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.writeState) {
 			sccp_channel_closeReceiveChannel(channel, FALSE);
 		}
@@ -1850,6 +1850,10 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	}
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Destroying channel %s\n", channel->designator);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	if (d) {
+		sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+	}
 
 	if (channel->rtp.audio.instance || channel->rtp.video.instance) {
 		sccp_rtp_stop(channel);
@@ -2068,7 +2072,7 @@ void sccp_channel_transfer_cancel(devicePtr d, channelPtr c)
 		if (transferee && transferee != c) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee %d %s by the Receiving Party. Cancelling Transfer and Putting transferee channel on Hold.\n", d->id, transferee->callid, transferee->line->name);
 			transferee->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
-			sccp_rtp_stop(transferee);
+			sccp_channel_closeAllMediaTransmitAndReceive(d, c);
 			sccp_dev_setActiveLine(d, NULL);
 			sccp_indicate(d, transferee, SCCP_CHANNELSTATE_HOLD);
 			sccp_channel_setDevice(transferee, NULL);
