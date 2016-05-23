@@ -307,7 +307,9 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 				if (c->rtp.video.writeState != SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
 				}
-				sccp_handle_time_date_req(d->session, d, NULL);
+				if (d->session) {
+					sccp_handle_time_date_req(d->session, d, NULL);
+				}
 				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_WINK);
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_HOLD, GLOB(digittimeout));

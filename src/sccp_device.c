@@ -2692,7 +2692,9 @@ static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lin
 
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	sccp_dev_set_keyset(device, 0, 0, KEYMODE_ONHOOK);				/* reset the keyset of the base instance instead of current lineInstance + callid*/
-	sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
+	if (device->session) {
+		sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
+	}
 
 	sccp_device_clearMessageFromStack((sccp_device_t *) device, SCCP_MESSAGE_PRIORITY_PRIVACY);
 	if (device->active_channel && device->active_channel->callid == callid) {  
@@ -2773,8 +2775,9 @@ static void sccp_device_indicate_onhook_remote(constDevicePtr device, const uint
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
 	sccp_dev_set_cplane(device, lineInstance, 0);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
-
-	sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
+	if (device->session) {
+		sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
+	}
 }
 
 static void sccp_device_indicate_offhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
