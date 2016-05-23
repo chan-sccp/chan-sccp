@@ -52,11 +52,13 @@ SCCP_FILE_VERSION(__FILE__, "");
 
 //#define READ_RETRIES 5											/* number of read retries */
 //#define READ_BACKOFF 50											/* backoff time in millisecs, doubled every read retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec)*/
-//#define WRITE_RETRIES 5												/* number of write retries */
+//#define WRITE_RETRIES 5											/* number of write retries */
 #define WRITE_BACKOFF 500											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
 
 #define SESSION_DEVICE_CLEANUP_TIME 10										/* wait time before destroying a device on thread exit */
-#define KEEPALIVE_ADDITIONAL_PERCENT 10										/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
+#define KEEPALIVE_ADDITIONAL_PERCENT 30										/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
+#define KEEPALIVE_ADDITIONAL_PERCENT_ON_CALL 130								/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
+
 //#define ACCEPT_UWAIT_ON_KNOWN_IP 2										/* wait time when ip-address is already known */
 //#define ACCEPT_RETRIES 5											/* number of reqtries when we already know this ip-address */
 
@@ -642,6 +644,11 @@ void *sccp_netsock_device_thread(void *session)
 			if (reload_in_progress == FALSE && s->device) {
 				sccp_device_check_update(s->device);
 			}
+			if (s->device->active_channel) {
+				keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT_ON_CALL;
+			} else {
+				keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT;
+			}
 		}
 		/* calculate poll timout using keepalive interval */
 		maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
@@ -670,6 +677,7 @@ void *sccp_netsock_device_thread(void *session)
 			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
 				//sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving at buffer position:%lu\n", DEV_ID_LOG(s->device), recv_len);
 				result = recv(s->fds[0].fd, recv_buffer + recv_len, (SCCP_MAX_PACKET * 2) - recv_len, 0);
+				s->lastKeepAlive = time(0);
 				if (result <= 0) {
 					if (result < 0 || (errno != EINTR || errno != EAGAIN)) {
 						socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
