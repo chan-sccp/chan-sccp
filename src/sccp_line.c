@@ -38,17 +38,10 @@ int sccp_line_destroy(const void *ptr);
 void sccp_line_pre_reload(void)
 {
 	sccp_line_t *l = NULL;
-	sccp_linedevices_t *linedevice = NULL;
-
-	SCCP_RWLIST_WRLOCK(&GLOB(lines));
-	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {
 		if (GLOB(hotline)->line == l) {									/* always remove hotline from linedevice */
-			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
-				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Removing Hotline from Device\n", linedevice->device->id);
-				linedevice->device->isAnonymous = FALSE;
-				sccp_line_removeDevice(linedevice->line, linedevice->device);
-			}
-			SCCP_LIST_TRAVERSE_SAFE_END;
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Removing Hotline from Device\n", l->name);
+			sccp_line_removeDevice(l, NULL);
 		} else {											/* Don't want to include the hotline line */
 #ifdef CS_SCCP_REALTIME
 			if (l->realtime == FALSE)
@@ -60,7 +53,7 @@ void sccp_line_pre_reload(void)
 		}
 		l->pendingUpdate = 0;
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+	SCCP_LIST_TRAVERSE_SAFE_END;
 }
 
 /*!
@@ -88,26 +81,10 @@ void sccp_line_post_reload(void)
 			SCCP_LIST_LOCK(&l->devices);
 			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 				linedevice->device->pendingUpdate = 1;
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: LineDevice (line_post_reload) update:%d, delete:%d\n", l->name, linedevice->device->pendingUpdate, linedevice->device->pendingDelete);
 			}
 			SCCP_LIST_UNLOCK(&l->devices);
 			
-			if (l->pendingUpdate) {
-				// new line
-				sccp_device_t *d = NULL;
-				sccp_buttonconfig_t *buttonconfig;
-				SCCP_RWLIST_RDLOCK(&GLOB(devices));
-				SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
-					SCCP_LIST_LOCK(&d->buttonconfig);
-					SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-						if (buttonconfig->type == LINE && !sccp_strlen_zero(buttonconfig->button.line.name) && !sccp_strequals(line->name, buttonconfig->button.line.name) ) {
-							d->pendingUpdate = TRUE;
-						}
-					}
-					SCCP_LIST_UNLOCK(&d->buttonconfig);
-				}
-				SCCP_RWLIST_UNLOCK(&GLOB(devices));
-			}
-
 			if (l->pendingDelete) {
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Deleting Line (post_reload)\n", l->name);
 				sccp_line_clean(l, TRUE);
@@ -115,6 +92,7 @@ void sccp_line_post_reload(void)
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Cleaning Line (post_reload)\n", l->name);
 				sccp_line_clean(l, FALSE);
 			}
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Line (line_post_reload) update:%d, delete:%d\n", l->name, l->pendingUpdate, l->pendingDelete);
 		}
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
@@ -646,7 +624,6 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	SCCP_LIST_UNLOCK(&l->devices);
-	
 }
 
 /*!
