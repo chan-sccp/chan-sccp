@@ -1049,7 +1049,7 @@ char * sccp_manager_retrieve_parkedcalls_cxml(char ** out)
 					astman_get_header((const struct message *)&m, "ConnectedLineName"),
 					astman_get_header((const struct message *)&m, "Exten")
 				);
-				sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "SCCP: Found ParkedCall: %s on %s@%s\n", astman_get_header((const struct message *)&m, "Channel"), astman_get_header((const struct message *)&m, "Exten"), astman_get_header((const struct message *)&m, "ParkingLot"))
+				sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "SCCP: Found ParkedCall: %s on %s@%s\n", astman_get_header((const struct message *)&m, "Channel"), astman_get_header((const struct message *)&m, "Exten"), astman_get_header((const struct message *)&m, "ParkingLot"));
 			}
 		        memset(&m, 0, sizeof(m));
 		        strptr = rest;
