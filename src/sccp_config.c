@@ -2359,6 +2359,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	PBX_VARIABLE_TYPE *v = NULL;
 	uint8_t device_count = 0;
 	uint8_t line_count = 0;
+	sccp_device_t *d = NULL;
 
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Loading Devices and Lines from config\n");
 
@@ -2505,7 +2506,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	/* finished realtime line reload */
 
-	sccp_device_t *d = NULL;
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
