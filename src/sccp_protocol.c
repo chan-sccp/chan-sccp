@@ -109,14 +109,14 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 		dummy_len += data_len[i];
 	}
 
-	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) + (dataSize - 4);
+	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) + (dataSize - 3);
 	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len);
 
 	msg->data.CallInfoDynamicMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.CallInfoDynamicMessage.lel_callReference = htolel(callid);
 	msg->data.CallInfoDynamicMessage.lel_callType = htolel(calltype);
 	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits = presentation ? 0x0 : 0xf;
-	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED);
+	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
 	msg->data.CallInfoDynamicMessage.lel_callInstance = htolel(callInstance);
 	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason = htolel(originalCdpnRedirectReason);
 	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(lastRedirectingReason);
@@ -152,10 +152,6 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 
 	unsigned int dataSize = 16;
 	char data[dataSize][StationMaxNameSize];
-	int data_len[dataSize];
-	unsigned int i = 0;
-	int dummy_len = 0;
-
 	memset(data, 0, dataSize * StationMaxNameSize);
 	
 	int originalCdpnRedirectReason = 0;
@@ -183,47 +179,37 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 		SCCP_CALLINFO_PRESENTATION, &presentation,
 		SCCP_CALLINFO_KEY_SENTINEL);
 
-	for (i = 0; i < dataSize; i++) {
-		data_len[i] = strlen(data[i]);
-		dummy_len += data_len[i];
+	unsigned int field = 0;
+	int data_len = 0;
+	int dummy_len = 0;
+	uint8_t *dummy = sccp_calloc(sizeof(uint8_t), dataSize * StationMaxNameSize);
+	for (field = 0; field < dataSize; field++) {
+		data_len = strlen(data[field]) + 1 /* '\0 */;
+		memcpy(dummy + dummy_len, data[field], data_len);
+		dummy_len += data_len;
 	}
-
-	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) + (dataSize - 4);
-
+	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) - 4;
 	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len);
 	msg->data.CallInfoDynamicMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.CallInfoDynamicMessage.lel_callReference = htolel(callid);
 	msg->data.CallInfoDynamicMessage.lel_callType = htolel(calltype);
 	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits = presentation ? 0x0 : 0xf;
-	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED);
+	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
 	msg->data.CallInfoDynamicMessage.lel_callInstance = htolel(callInstance);
 	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason = htolel(originalCdpnRedirectReason);
 	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(lastRedirectingReason);
-
-	if (dummy_len) {
-		int bufferSize = dummy_len + dataSize;
-		char buffer[bufferSize];
-		int pos = 0;
-
-		memset(&buffer[0], 0, bufferSize);
-		for (i = 0; i < dataSize; i++) {
-			if (data_len[i]) {
-				memcpy(&buffer[pos], data[i], data_len[i]);
-				pos += data_len[i] + 1;
-			} else {
-				pos += 1;
-			}
-		}
-		memcpy(&msg->data.CallInfoDynamicMessage.dummy, &buffer[0], bufferSize);
+	memcpy(&msg->data.CallInfoDynamicMessage.dummy, dummy, dummy_len);
+	sccp_free(dummy);
+	
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V20) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
+	if ((GLOB(debug) & (DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) != 0) {
+		iCallInfo.Print2log(ci, "SCCP: (sendCallInfoV16)");
 	}
-
-	//sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V16) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
-	//if ((GLOB(debug) & (DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) != 0) {
-	//	iCallInfo.Print2log(ci, "SCCP: (sendCallInfoV16)");
-	//}
+	sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 /* done - CallInfoMessage */
+
 
 /* DialedNumber Message */
 
@@ -242,7 +228,7 @@ static void sccp_protocol_sendDialedNumberV3(constDevicePtr device, const uint8_
 	msg->data.DialedNumberMessage.v3.lel_callReference = htolel(callid);
 
 	sccp_dev_send(device, msg);
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number:%s channel %d\n", device->id, dialedNumber, callid);
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number:%s, callid:%d, lineInstance:%d\n", device->id, dialedNumber, callid, lineInstance);
 }
 
 /*!
@@ -256,12 +242,11 @@ static void sccp_protocol_sendDialedNumberV18(constDevicePtr device, const uint8
 	REQ(msg, DialedNumberMessage);
 
 	sccp_copy_string(msg->data.DialedNumberMessage.v18.calledParty, dialedNumber, sizeof(msg->data.DialedNumberMessage.v18.calledParty));
-
 	msg->data.DialedNumberMessage.v18.lel_lineInstance = htolel(lineInstance);
 	msg->data.DialedNumberMessage.v18.lel_callReference = htolel(callid);
 
 	sccp_dev_send(device, msg);
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number:%s channel %d\n", device->id, dialedNumber, callid);
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number:%s, callid:%d, lineInstance:%d\n", device->id, dialedNumber, callid, lineInstance);
 }
 
 /* done - DialedNumber Message */
@@ -331,7 +316,8 @@ static void sccp_protocol_sendDynamicDisplayNotify(constDevicePtr device, uint8_
 	sccp_msg_t *msg = NULL;
 
 	int msg_len = strlen(message);
-	int hdr_len = sizeof(msg->data.DisplayDynamicNotifyMessage) - sizeof(msg->data.DisplayDynamicNotifyMessage.dummy);
+
+	int hdr_len = sizeof(msg->data.DisplayDynamicNotifyMessage) - 3;
 	msg = sccp_build_packet(DisplayDynamicNotifyMessage, hdr_len + msg_len);
 	msg->data.DisplayDynamicNotifyMessage.lel_displayTimeout = htolel(timeout);
 	memcpy(&msg->data.DisplayDynamicNotifyMessage.dummy, message, msg_len);
@@ -384,49 +370,60 @@ static void sccp_protocol_sendDynamicDisplayPriNotify(constDevicePtr device, uin
 
 /*!
  * \brief Send Call Forward Status Message
+ * \todo need more information about lel_activeForward and lel_forwardAllActive values.
  */
 static void sccp_protocol_sendCallForwardStatus(constDevicePtr device, const sccp_linedevices_t * linedevice)
 {
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, ForwardStatMessage);
+	msg->data.ForwardStatMessage.v3.lel_activeForward = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) ? htolel(1) : 0;
 	msg->data.ForwardStatMessage.v3.lel_lineNumber = htolel(linedevice->lineInstance);
-	msg->data.ForwardStatMessage.v3.lel_status = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) ? htolel(1) : 0;
 
 	if (linedevice->cfwdAll.enabled) {
-		msg->data.ForwardStatMessage.v3.lel_cfwdallstatus = htolel(1);
+		msg->data.ForwardStatMessage.v3.lel_forwardAllActive = htolel(1);
 		sccp_copy_string(msg->data.ForwardStatMessage.v3.cfwdallnumber, linedevice->cfwdAll.number, sizeof(msg->data.ForwardStatMessage.v3.cfwdallnumber));
 	}
 	if (linedevice->cfwdBusy.enabled) {
-		msg->data.ForwardStatMessage.v3.lel_cfwdbusystatus = htolel(1);
+		msg->data.ForwardStatMessage.v3.lel_forwardBusyActive = htolel(1);
 		sccp_copy_string(msg->data.ForwardStatMessage.v3.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(msg->data.ForwardStatMessage.v3.cfwdbusynumber));
 	}
+	/*
+	if (linedevice->cfwdNoAnswer.enabled) {
+		msg->data.ForwardStatMessage.v3.lel_forwardBusyActive = htolel(1);
+		sccp_copy_string(msg->data.ForwardStatMessage.v3.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(msg->data.ForwardStatMessage.v3.cfwdbusynumber));
+	}
+	*/
 
 	sccp_dev_send(device, msg);
 }
 
 /*!
  * \brief Send Call Forward Status Message (V19)
+ * \todo need more information about lel_activeForward and lel_forwardAllActive values.
  */
 static void sccp_protocol_sendCallForwardStatusV18(constDevicePtr device, const sccp_linedevices_t * linedevice)
 {
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, ForwardStatMessage);
+	msg->data.ForwardStatMessage.v18.lel_activeForward = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) ? htolel(4) : 0;
 	msg->data.ForwardStatMessage.v18.lel_lineNumber = htolel(linedevice->lineInstance);
-	msg->data.ForwardStatMessage.v18.lel_status = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) ? htolel(1) : 0;
 
 	if (linedevice->cfwdAll.enabled) {
-
-		msg->data.ForwardStatMessage.v18.lel_cfwdallstatus = htolel(1);
+		msg->data.ForwardStatMessage.v18.lel_forwardAllActive = htolel(4);	// needs more information about the possible values and their meaning
 		sccp_copy_string(msg->data.ForwardStatMessage.v18.cfwdallnumber, linedevice->cfwdAll.number, sizeof(msg->data.ForwardStatMessage.v18.cfwdallnumber));
-
 	}
 	if (linedevice->cfwdBusy.enabled) {
-
-		msg->data.ForwardStatMessage.v18.lel_cfwdbusystatus = htolel(1);
+		msg->data.ForwardStatMessage.v18.lel_forwardBusyActive = htolel(4);
 		sccp_copy_string(msg->data.ForwardStatMessage.v18.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(msg->data.ForwardStatMessage.v18.cfwdbusynumber));
 	}
+	/*
+	if (linedevice->cfwdNoAnswer.enabled) {
+		msg->data.ForwardStatMessage.v18.lel_forwardBusyActive = htolel(4);
+		sccp_copy_string(msg->data.ForwardStatMessage.v18.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(msg->data.ForwardStatMessage.v18.cfwdbusynumber));
+	}
+	*/
 
 	//msg->data.ForwardStatMessage.v18.lel_unknown = 0x000000FF;
 	sccp_dev_send(device, msg);
@@ -449,8 +446,8 @@ static void sccp_protocol_sendRegisterAckV3(constDevicePtr device, uint8_t keepA
 	msg->data.RegisterAckMessage.protocolVer2 = 0x00;							// 0x00;
 	msg->data.RegisterAckMessage.phoneFeatures1 = 0x00;							// 0x00;
 	msg->data.RegisterAckMessage.phoneFeatures2 = 0x00;							// 0x00;
-
 	msg->data.RegisterAckMessage.maxProtocolVer = device->protocol->version;
+
 	msg->data.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
 	msg->data.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel(secondaryKeepAlive);
 
@@ -474,7 +471,6 @@ static void sccp_protocol_sendRegisterAckV4(constDevicePtr device, uint8_t keepA
 	msg->data.RegisterAckMessage.protocolVer2 = 0x20;							// 0x20;
 	msg->data.RegisterAckMessage.phoneFeatures1 = 0xF1;							// 0xF1;
 	msg->data.RegisterAckMessage.phoneFeatures2 = 0xFE;							// 0xFF;
-
 	msg->data.RegisterAckMessage.maxProtocolVer = device->protocol->version;
 
 	msg->data.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
@@ -500,8 +496,8 @@ static void sccp_protocol_sendRegisterAckV11(constDevicePtr device, uint8_t keep
 	msg->data.RegisterAckMessage.protocolVer2 = 0x20;							// 0x20;
 	msg->data.RegisterAckMessage.phoneFeatures1 = 0xF1;							// 0xF1;
 	msg->data.RegisterAckMessage.phoneFeatures2 = 0xFF;							// 0xFF;
-
 	msg->data.RegisterAckMessage.maxProtocolVer = device->protocol->version;
+
 	msg->data.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
 	msg->data.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel(secondaryKeepAlive);
 
@@ -1004,7 +1000,6 @@ static void sccp_protocol_sendConnectionStatisticsReqV3(constDevicePtr device, c
 	}
 	msg->data.ConnectionStatisticsReq.v3.lel_callReference = htolel((channel) ? channel->callid : 0);
 	msg->data.ConnectionStatisticsReq.v3.lel_StatsProcessing = htolel(clear);
-	msg->header.lel_protocolVer = htolel(device->protocol->version);
 	sccp_dev_send(device, msg);
 }
 
@@ -1022,7 +1017,6 @@ static void sccp_protocol_sendConnectionStatisticsReqV19(constDevicePtr device, 
 	}
 	msg->data.ConnectionStatisticsReq.v19.lel_callReference = htolel((channel) ? channel->callid : 0);
 	msg->data.ConnectionStatisticsReq.v19.lel_StatsProcessing = htolel(clear);
-	msg->header.lel_protocolVer = htolel(device->protocol->version);
 	sccp_dev_send(device, msg);
 }
 /* done - sendUserToDeviceData */
@@ -1055,14 +1049,14 @@ static void sccp_protocol_sendPortRequest(constDevicePtr device, constChannelPtr
  */
 static void sccp_protocol_sendPortClose(constDevicePtr device, constChannelPtr channel, skinny_mediaType_t mediaType)
 {
-	sccp_msg_t *msg = sccp_build_packet(PortCloseMessage, sizeof(msg->data.PortCloseMessage));
-
-	msg->data.PortCloseMessage.lel_conferenceId = htolel(channel->callid);
-	msg->data.PortCloseMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
-	msg->data.PortCloseMessage.lel_callReference = htolel(channel->callid);
-	msg->data.PortCloseMessage.lel_mediaType = htolel(mediaType);
-
-	sccp_dev_send(device, msg);
+	if (device->protocol && device->protocol->version >= 11) {
+		sccp_msg_t *msg = sccp_build_packet(PortCloseMessage, sizeof(msg->data.PortCloseMessage));
+		msg->data.PortCloseMessage.lel_conferenceId = htolel(channel->callid);
+		msg->data.PortCloseMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
+		msg->data.PortCloseMessage.lel_callReference = htolel(channel->callid);
+		msg->data.PortCloseMessage.lel_mediaType = htolel(mediaType);
+		sccp_dev_send(device, msg);
+	}
 }
 /* done - sendPortClose */
 
@@ -1453,7 +1447,6 @@ const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(constDevicePtr devi
 	}
 
 	for (i = (protocolArraySize - 1); i > 0; i--) {
-
 		if (protocolDef[i] != NULL && version >= protocolDef[i]->version) {
 			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: found protocol version '%d' at %d\n", protocolDef[i]->type == SCCP_PROTOCOL ? "SCCP" : "SPCP", protocolDef[i]->version, i);
 			returnProtocol = i;

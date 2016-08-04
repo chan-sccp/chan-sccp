@@ -1,5 +1,5 @@
 /*!
- * \file        define.h
+ * \file        pbx_impl/ast/define.h
  * \brief       SCCP PBX Redefinition Asterisk Header
  * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
@@ -309,6 +309,7 @@ typedef struct ast_event pbx_event_t;
 #define pbx_sockaddr_to_sin ast_sockaddr_to_sin
 #define pbx_state2str ast_state2str
 #define pbx_str_t struct ast_str
+#define pbx_str_create ast_str_create
 #define pbx_str_alloca ast_str_alloca
 #define pbx_str_append ast_str_append
 #define pbx_str_reset ast_str_reset
@@ -394,6 +395,7 @@ typedef struct ast_event pbx_event_t;
 #define pbx_channel_redirecting_effective_orig(_a) (_a)->redirecting.orig
 #define pbx_channel_connected_id(_a) (_a)->connected.id
 #define pbx_channel_connected_source(_a) (_a)->connected.source
+#define pbx_connected_line_source_name(_a) ast_connected_line_source_name(_a)
 
 #if CS_TEST_FRAMEWORK
 #define pbx_test_validate_cleanup ast_test_validate_cleanup

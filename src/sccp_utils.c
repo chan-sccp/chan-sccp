@@ -60,6 +60,7 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 	char *hexptr;
 	char chrout[numcolumns + 1];
 	char *chrptr;
+	pbx_str_t *output_buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
 
 	do {
 		// memset(hexout, 0, sizeof(hexout));
@@ -79,9 +80,11 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 			messagebuffer += 1;									// instead *messagebuffer++ to circumvent unused warning
 		}
 		hexcolumnlength = (numcolumns * 3) + (numcolumns / 8) - 1;					// numcolums + block spaces - 1
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%08X - %-*.*s - %s\n", cur, hexcolumnlength, hexcolumnlength, hexout, chrout);
+		pbx_str_append(&output_buf, 0, VERBOSE_PREFIX_1 "%08X - %-*.*s - %s\n", cur, hexcolumnlength, hexcolumnlength, hexout, chrout);
 		cur += col;
 	} while (cur < (len - 1));
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: packet hex dump:\n%s", pbx_str_buffer(output_buf));
+	sccp_free(output_buf)
 }
 
 void sccp_dump_msg(const sccp_msg_t * const msg)
@@ -373,32 +376,6 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
 #endif
 
 /*!
- * \brief This is used on device reconnect attempt
- * \param sas   Socket Address In
- * \return SCCP Device
- * 
- */
-//sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr)
-/*
-sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage * sas)
-{
-	sccp_device_t *d = NULL;
-
-	SCCP_RWLIST_RDLOCK(&GLOB(devices));
-	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		struct sockaddr_storage sinsas = { 0 };
-		sccp_session_getSas(d->session, &sinsas);
-		if (d->session && sccp_netsock_cmp_addr(&sas, sas) == 0) {
-			d = sccp_device_retain(d);
-			break;
-		}
-	}
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
-	return d;
-}
-*/
-
-/*!
  * \brief Handle Feature Change Event for persistent feature storage
  * \param event SCCP Event
  *
@@ -519,7 +496,9 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
  * \brief Parse Composed ID
  * \param labelString LabelString as string
  * \param maxLength Maximum Length as unsigned int
- * \param id point to sccp_composed_id_t by ref
+ * \param subscriptionId SubscriptionId as sccp_subscription_id_t (ByRef) [out]
+ * \param extension char array [SCCP_MAX_EXTENSION] [out]
+ * \return int containing number of matched subcription elements
  *
  * \callgraph
  * \callergraph
@@ -1539,7 +1518,7 @@ AST_TEST_DEFINE(chan_sccp_reduce_codec_set)
 	{
 		uint8_t x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = {0};
-		sccp_utils_reduceCodecSet(baseCodecArray, empty);
+		sccp_codec_reduceSet(baseCodecArray, empty);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 			pbx_test_validate(test, baseCodecArray[x] == SKINNY_CODEC_NONE);
 		}
@@ -1549,7 +1528,7 @@ AST_TEST_DEFINE(chan_sccp_reduce_codec_set)
 		uint8_t x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
 		memcpy(baseCodecArray, short1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
-		sccp_utils_reduceCodecSet(baseCodecArray, empty);
+		sccp_codec_reduceSet(baseCodecArray, empty);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 			pbx_test_validate(test, baseCodecArray[x] == SKINNY_CODEC_NONE);
 		}
@@ -1561,7 +1540,7 @@ AST_TEST_DEFINE(chan_sccp_reduce_codec_set)
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
 		memcpy(baseCodecArray, short1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 		const skinny_codec_t result[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_G711_ALAW_64K, SKINNY_CODEC_G711_ALAW_56K, SKINNY_CODEC_G711_ULAW_64K, SKINNY_CODEC_G711_ULAW_56K, SKINNY_CODEC_NONE,};
-		sccp_utils_reduceCodecSet(baseCodecArray, short2);
+		sccp_codec_reduceSet(baseCodecArray, short2);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
 			pbx_test_validate(test, baseCodecArray[x] == result[x]);
@@ -1573,7 +1552,7 @@ AST_TEST_DEFINE(chan_sccp_reduce_codec_set)
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
 		memcpy(baseCodecArray, long1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 		const skinny_codec_t result[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_G722_48K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G722_64K,SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_NONE,};
-		sccp_utils_reduceCodecSet(baseCodecArray, short2);
+		sccp_codec_reduceSet(baseCodecArray, short2);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
 			pbx_test_validate(test, baseCodecArray[x] == result[x]);
@@ -1604,7 +1583,7 @@ AST_TEST_DEFINE(chan_sccp_combine_codec_sets)
 	{
 		uint8_t x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = {0};
-		sccp_utils_combineCodecSets(baseCodecArray, empty);
+		sccp_codec_combineSets(baseCodecArray, empty);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 			pbx_test_validate(test, baseCodecArray[x] == SKINNY_CODEC_NONE);
 		}
@@ -1615,7 +1594,7 @@ AST_TEST_DEFINE(chan_sccp_combine_codec_sets)
 		uint8_t x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
 		memcpy(baseCodecArray, short1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
-		sccp_utils_combineCodecSets(baseCodecArray, empty);
+		sccp_codec_combineSets(baseCodecArray, empty);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(short1[x]));
 			pbx_test_validate(test, baseCodecArray[x] == short1[x]);
@@ -1628,7 +1607,7 @@ AST_TEST_DEFINE(chan_sccp_combine_codec_sets)
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
 		memcpy(baseCodecArray, short1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 		const skinny_codec_t result[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONSTANDARD,SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G722_64K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G722_48K,SKINNY_CODEC_NONE,};
-		sccp_utils_combineCodecSets(baseCodecArray, short2);
+		sccp_codec_combineSets(baseCodecArray, short2);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
 			pbx_test_validate(test, baseCodecArray[x] == result[x]);
@@ -1639,7 +1618,7 @@ AST_TEST_DEFINE(chan_sccp_combine_codec_sets)
 		uint8_t x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
 		memcpy(baseCodecArray, long1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
-		sccp_utils_combineCodecSets(baseCodecArray, short2);
+		sccp_codec_combineSets(baseCodecArray, short2);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(long1[x]));
 			pbx_test_validate(test, baseCodecArray[x] == long1[x]);
@@ -1651,7 +1630,7 @@ AST_TEST_DEFINE(chan_sccp_combine_codec_sets)
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
 		memcpy(baseCodecArray, short1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 		const skinny_codec_t result[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONSTANDARD,SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G729_A,SKINNY_CODEC_G729,SKINNY_CODEC_G728,SKINNY_CODEC_G723_1,SKINNY_CODEC_G722_48K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G722_64K,SKINNY_CODEC_IS11172,SKINNY_CODEC_IS13818,SKINNY_CODEC_G729_B,SKINNY_CODEC_G729_AB,SKINNY_CODEC_GSM_FULLRATE,SKINNY_CODEC_GSM_HALFRATE};
-		sccp_utils_combineCodecSets(baseCodecArray, long1);
+		sccp_codec_combineSets(baseCodecArray, long1);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
 			pbx_test_validate(test, baseCodecArray[x] == result[x]);

@@ -92,6 +92,7 @@ __BEGIN_C_EXTERN__
 #define APPID_RINGTONE					9087
 #define APPID_STREAM					9088
 #define APPID_PUSH					9089
+#define APPID_VISUALPARKINGLOT				9090
 
 /*
  * \todo Merge sccp_button_type_t / sccp_buttontypes[] and this define
@@ -152,7 +153,7 @@ __BEGIN_C_EXTERN__
 typedef struct {
 	uint8_t instance;											/*!< Button Instance */
 	uint8_t type;												/*!< Button Type */
-	void *ptr;												/*!< Pointer to the next Button */
+	void *ptr;												/*!< Pointer to the Line */
 } btnlist;													/*!< Button List Structure */
 
 /*!
@@ -1295,15 +1296,14 @@ typedef union {
 	 * SECOND DWORD: 0x0001 = OFFHOOK, 0x0002 = ONHOOK
 	 * THIRD DWORD:  ALWAYS 0x0000 UNKNOWN
 	 */
-
 	struct {
 		uint32_t lel_AccessoryID;									/*!< Accessory ID (0x1=HeadSet, 0x2=HandSet, 0x3=Speaker) (MediaPathID) */
 		uint32_t lel_AccessoryStatus;									/*!< Accessory Status (0x1=On, 0x2=Off) (MediaPathEvent) */
 	} AccessoryStatusMessage;										/*!< Accessory Status Message Structure (MediaPathEventMessage) */
 
 	// Message 0x4A len 12 (cisco ip communicator uses it)
-	// 00000000 - 03 00 00 00 01 00 00 00 00 00 00 00             ............
-
+	// 00000000 - 0C 00 00 00 16 00 00 00  4A 00 00 00 03 00 00 00  - ........J.......
+	// 00000010 - 01 00 00 00                                       - ....
 	struct {
 		uint32_t lel_MediaPathID;									/*!< mediaPathID (0x1=HeadSet, 0x2=HandSet, 0x3=Speaker) */
 		uint32_t lel_MediaPathCapabilities;								/*!< mediaPathCapabilities (0x1=Enable, 0x2=Disable, 0x3=Monitor) */
@@ -1469,6 +1469,13 @@ typedef union {
 	 * 00000030 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
 	 * 00000040 - 00 00 00 00                                     ....
 	 */
+
+        /* this is register message from 7936 with load  (protocol 0)
+	 * 00000000 - 30 00 00 00 00 00 00 00 01 00 00 00 53 45 50 30 0...........SEP0
+	 * 00000010 - 30 30 34 46 32 45 32 34 30 41 33 00 00 00 00 00 004F2E240A3.....
+	 * 00000020 - 01 00 00 00 c0 a8 04 c8 43 75 00 00 00 00 00 00 ........Cu......
+	 * 00000030 - 00 00 00 01 04 00 00 00                         ........
+         */
 
 	/* Register message from Cisco 7941 with load v8.5.3 (protocol 17)
 	 *
@@ -2150,36 +2157,42 @@ typedef union {
 				uint32_t lel_lineInstance;							/*!< Line Instance */
 				uint32_t lel_callReference;							/*!< Call Reference */
  			} v3;
+#pragma pack(push)
+#pragma pack(1)
  			struct {
 				char calledParty[StationDynamicDirnumSize];					/*!< Called Party */
 				uint32_t lel_lineInstance;							/*!< Line Instance */
 				uint32_t lel_callReference;							/*!< Call Reference */
  			} v18;
+#pragma pack(pop)
  		};
  	} DialedNumberMessage;											/*!< Dialed Number Message Structure */
 	
  	struct {
 		union {
 			struct {
-				uint32_t lel_status;								/*!< Status (0=inactive, 1=active) */
+				uint32_t lel_activeForward;							/*!< Status (0=inactive, 1=active, 4=cm ??) */
 				uint32_t lel_lineNumber;							/*!< Line Number */
-				uint32_t lel_cfwdallstatus;							/*!< Call Forward All Status */
+				uint32_t lel_forwardAllActive;							/*!< Call Forward All Status */
 				char cfwdallnumber[StationMaxDirnumSize];					/*!< Call Forward All Number */
-				uint32_t lel_cfwdbusystatus;							/*!< Call Forward on Busy Status */
+				uint32_t lel_forwardBusyActive;							/*!< Call Forward on Busy Status */
 				char cfwdbusynumber[StationMaxDirnumSize];					/*!< Call Forward on Busy Number */
-				uint32_t lel_cfwdnoanswerstatus;						/*!< Call Forward on No-Answer Status */
+				uint32_t lel_forwardNoAnswerActive;						/*!< Call Forward on No-Answer Status */
 				char cfwdnoanswernumber[StationMaxDirnumSize];					/*!< Call Forward on No-Answer Number */
 			} v3;
+#pragma pack(push)
+#pragma pack(1)
 			struct {
-				uint32_t lel_status;								/*!< Status (0=inactive, 1=active) */
+				uint32_t lel_activeForward;							/*!< Status (0=inactive, 1=active, 4=cm ??) */
 				uint32_t lel_lineNumber;							/*!< Line Number */
-				uint32_t lel_cfwdallstatus;							/*!< Call Forward All Status */
-				char cfwdallnumber[StationDynamicDirnumSize];				/*!< Call Forward All Number */
-				uint32_t lel_cfwdbusystatus;							/*!< Call Forward on Busy Status */
-				char cfwdbusynumber[StationDynamicDirnumSize];				/*!< Call Forward on Busy Number */
-				uint32_t lel_cfwdnoanswerstatus;						/*!< Call Forward on No-Answer Status */
+				uint32_t lel_forwardAllActive;							/*!< Call Forward All Status */
+				char cfwdallnumber[StationDynamicDirnumSize];					/*!< Call Forward All Number */
+				uint32_t lel_forwardBusyActive;							/*!< Call Forward on Busy Status */
+				char cfwdbusynumber[StationDynamicDirnumSize];					/*!< Call Forward on Busy Number */
+				uint32_t lel_forwardNoAnswerActive;						/*!< Call Forward on No-Answer Status */
 				char cfwdnoanswernumber[StationDynamicDirnumSize];				/*!< Call Forward on No-Answer Number */
 			} v18;											
+#pragma pack(pop)
 		};
  	} ForwardStatMessage;											/*!< Forward Status Message Structure */
 
@@ -2838,24 +2851,27 @@ typedef union {
 
 	/*
 	 * Unhandled SCCP Message: unknown(0x0159) 168 bytes length
-	 * 00000000 - 01 00 00 00 01 00 00 00 02 00 00 00 00 00 00 00 ................
-	 * 00000010 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-	 * 00000020 - 00 00 00 00 6D 61 78 2D 63 68 61 69 6E 65 64 3D ....max-chained=
-	 * 00000030 - 32 20 64 65 76 69 63 65 4C 69 6E 65 3D 31 34 00 2 deviceLine=14.
-	 * 00000040 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-	 * 00000050 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-	 * 00000060 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-	 * 00000070 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-	 * 00000080 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-	 * 00000090 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-	 * 000000A0 - 00 00 00 00 00 00 00 00                         ........
+	 00000000 - A8 00 00 00 00 00 00 00  59 01 00 00 01 00 00 00  - ........Y.......
+	 00000010 - 01 00 00 00 02 00 00 00  00 00 00 00 00 00 00 00  - ................
+	 00000020 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+	 00000030 - 6D 61 78 2D 63 68 61 69  6E 65 64 3D 32 20 64 65  - max-chained=2 de
+	 00000040 - 76 69 63 65 4C 69 6E 65  3D 31 34 00 00 00 00 00  - viceLine=14.....
+	 00000050 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+	 00000060 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+	 00000070 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+	 00000080 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+	 00000090 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+	 000000A0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................	 
 	 *
 	 *      This was sent by a single 7970 with one CP-7914 attached.
 	 *      Message is related to Addons and i suppose it notifies their
 	 *      number, capacity and index.
 	 */
 	struct {
-		char dummy[168];
+		uint32_t unknown1;
+		uint32_t unknown2;
+		uint32_t unknown3;
+		char dummy[152];
 	} ExtensionDeviceCaps;
 
 	struct {

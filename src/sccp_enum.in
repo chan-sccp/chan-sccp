@@ -212,13 +212,12 @@ enum channel_request_status {
 
 enum message_priority {
 	SCCP_MESSAGE_PRIORITY_IDLE,			=0,	"Message Priority Idle",
-	SCCP_MESSAGE_PRIORITY_VOICEMAIL,		,	"Message Priority Voicemail",
-	SCCP_MESSAGE_PRIORITY_MONITOR,			,	"Message Priority Monitor",
-	SCCP_MESSAGE_PRIORITY_PRIVACY,			,	"Message Priority Privacy",
-	SCCP_MESSAGE_PRIORITY_DND,			,	"Message Priority Do not disturb",
-	SCCP_MESSAGE_PRIORITY_CFWD,			,	"Message Priority Call Forward",
-	SCCP_MESSAGE_PRIORITY_TIMEOUT,			,	"Message Priority Timeout",
-	SCCP_MESSAGE_PRIORITY_ERROR,			,	"Message Priority Error Message",
+	SCCP_MESSAGE_PRIORITY_VOICEMAIL,		=1,	"Message Priority Voicemail",
+	SCCP_MESSAGE_PRIORITY_MONITOR,			=2,	"Message Priority Monitor",
+	SCCP_MESSAGE_PRIORITY_PRIVACY,			=2,	"Message Priority Privacy",
+	SCCP_MESSAGE_PRIORITY_DND,			=4,	"Message Priority Do not disturb",
+	SCCP_MESSAGE_PRIORITY_CFWD,			=4,	"Message Priority Call Forward",
+	SCCP_MESSAGE_PRIORITY_TIMEOUT,			=5,	"Message Priority Timeout",
 }
 
 enum push_result {
@@ -228,9 +227,9 @@ enum push_result {
 }
 
 strenum tokenstate {
-	SCCP_TOKEN_STATE_NOTOKEN,			=0,	"No Token",
-	SCCP_TOKEN_STATE_ACK,				,	"Token Acknowledged",
-	SCCP_TOKEN_STATE_REJ,				,	"Token Rejected",
+	SCCP_TOKEN_STATE_NOTOKEN,			=0,	"None",
+	SCCP_TOKEN_STATE_ACK,				,	"Ack",
+	SCCP_TOKEN_STATE_REJ,				,	"Rej",
 }
 
 strenum softswitch {
@@ -312,7 +311,7 @@ strenum feature_type
 	SCCP_FEATURE_VIDEO_MODE,			,	"VideoMode",
 	SCCP_FEATURE_NEW_CALL,				,	"NewCall",
 	SCCP_FEATURE_END_CALL,				,	"EndCall",
-	SCCP_FEATURE_TESTE,				,	"FEATURE_TESTE",
+	SCCP_FEATURE_PARKINGLOT,			,	"ParkingLot",				// TESTE
 	SCCP_FEATURE_TESTF,				,	"FEATURE_TESTF",
 	SCCP_FEATURE_TESTI,				,	"FEATURE_TESTI",
 	SCCP_FEATURE_TESTG,				,	"Messages",
@@ -432,7 +431,7 @@ enum callsecuritystate {
 /*!
  * \brief Skinny Busy Lamp Field Status (ENUM)
  */
-enum busylampfield_state {
+strenum busylampfield_state {
 	SKINNY_BLF_STATUS_UNKNOWN,			=0,	"Unknown",
 	SKINNY_BLF_STATUS_IDLE,				,	"Not-in-use",
 	SKINNY_BLF_STATUS_INUSE,			,	"In-use",
@@ -697,7 +696,7 @@ strenum stimulus {
 	SKINNY_STIMULUS_END_CALL,			=0x8A,	"EndCall",
 	SKINNY_STIMULUS_HLOG,				=0x8B,	"HLog",
 	SKINNY_STIMULUS_QUEUING,			=0x8F,	"Queuing",
-	SKINNY_STIMULUS_TESTE,				=0xC0,	"Test E",
+	SKINNY_STIMULUS_PARKINGLOT,			=0xC0,	"ParkingLot",	/* Test E */
 	SKINNY_STIMULUS_TESTF,				=0xC1,	"Test F",
 	SKINNY_STIMULUS_TESTI,				=0xC4,	"Test I",
 	SKINNY_STIMULUS_MESSAGES,			=0xC2,	"Messages",
@@ -760,7 +759,7 @@ strenum buttontype {
 	SKINNY_BUTTONTYPE_END_CALL,			=0x8A,	"EndCall",
 	SKINNY_BUTTONTYPE_HLOG,				=0x8B,	"HLog",
 	SKINNY_BUTTONTYPE_QUEUING,			=0x8F,	"Queuing",
-	SKINNY_BUTTONTYPE_TESTE,			=0xC0,	"Test E",
+	SKINNY_BUTTONTYPE_PARKINGLOT,			=0xC0,	"ParkingLot",			// TEST E
 	SKINNY_BUTTONTYPE_TESTF,			=0xC1,	"Test F",
 	SKINNY_BUTTONTYPE_TESTI,			=0xC4,	"Test I",
 	SKINNY_BUTTONTYPE_MESSAGES,			=0xC2,	"Messages",

@@ -29,6 +29,7 @@
 #include "sccp_utils.h"
 #include "sccp_atomic.h"
 #include "sccp_devstate.h"
+#include "sccp_featureParkingLot.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -324,7 +325,7 @@ void sccp_device_pre_reload(void)
 
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: Setting Device to Pending Delete=1\n", d->id);
+		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Setting Device to Pending Delete=1\n", d->id);
 		if (!d->realtime) {										/* don't want to reset hotline devices. */
 			d->pendingDelete = 1;
 		}
@@ -334,7 +335,8 @@ void sccp_device_pre_reload(void)
 		d->softkeyset = NULL;
 		d->softKeyConfiguration.modes = NULL;
 		d->softKeyConfiguration.size = 0;
-		
+		d->isAnonymous=FALSE;
+
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			config->pendingDelete = 1;
@@ -359,12 +361,11 @@ void sccp_device_pre_reload(void)
  */
 boolean_t sccp_device_check_update(devicePtr device)
 {
-	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
+	AUTO_RELEASE sccp_device_t *d = device ? sccp_device_retain(device) : NULL;
 	boolean_t res = FALSE;
 
 	if (d) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s (check_update) pendingUpdate: %s, pendingDelete: %s\n", d->id, d->pendingUpdate ? "TRUE" : "FALSE", d->pendingDelete ? "TRUE" : "FALSE");
-
 		if ((d->pendingUpdate || d->pendingDelete)) {
 			do {
 				if (sccp_device_numberOfChannels(d) > 0) {
@@ -1204,7 +1205,7 @@ void sccp_dev_sendmsg(constDevicePtr d, sccp_mid_t t)
 /*!
  * \brief Register a Device
  * \param d SCCP Device
- * \param opt Option/Registration State as int
+ * \param state Registration State as skinny_registrationstate_t
  *
  * \note adds a retained device to the event.deviceRegistered.device
  */
@@ -1310,6 +1311,13 @@ void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid
 	/* deactivate monitor softkey for all states excl. connected -MC */
 	if (softKeySetIndex != KEYMODE_CONNTRANS && softKeySetIndex != KEYMODE_CONNECTED && softKeySetIndex != KEYMODE_EMPTY) {
 		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_MONITOR, FALSE);
+	}
+	if (softKeySetIndex == KEYMODE_RINGOUT) {
+		if (d->transfer && d->transferChannels.transferer) {
+			sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_TRANSFER, TRUE);
+		} else  {
+			sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_TRANSFER, FALSE);
+		}
 	}
 	//msg->data.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF;           /* htolel(65535); */
 	msg->data.SelectSoftKeysMessage.les_validKeyMask = htolel(d->softKeyConfiguration.activeMask[softKeySetIndex]);
@@ -1439,9 +1447,9 @@ void sccp_dev_deactivate_cplane(constDevicePtr d)
  * \brief Send Start Tone to Device
  * \param d SCCP Device
  * \param tone Tone as uint8_t
- * \param line Line as uint8_t
+ * \param lineInstance LineInstance as uint8_t
  * \param callid Call ID as uint32_t
- * \param timeout Timeout as uint32_t
+ * \param direction Direction as skinny_toneDirection_t
  */
 void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t lineInstance, uint32_t callid, skinny_toneDirection_t direction)
 {
@@ -1468,7 +1476,7 @@ void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t lineInstance, ui
 /*!
  * \brief Send Stop Tone to Device
  * \param d SCCP Device
- * \param line Line as uint8_t
+ * \param lineInstance LineInstance as uint8_t
  * \param callid Call ID as uint32_t
  */
 void sccp_dev_stoptone(constDevicePtr d, uint8_t lineInstance, uint32_t callid)
@@ -1611,6 +1619,7 @@ void sccp_dev_cleardisplay(constDevicePtr d)
 	return;
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Send Display to Device
  * \param d SCCP Device
@@ -1622,8 +1631,6 @@ void sccp_dev_cleardisplay(constDevicePtr d)
  * \callgraph
  * \callergraph
  */
-//void sccp_dev_display(devicePtr d, char *msg)
-#if UNUSEDCODE // 2015-11-01
 void sccp_dev_display_debug(constDevicePtr d, const char *msgstr, const char *file, const int lineno, const char *pretty_function)
 {
 #if DEBUG
@@ -1650,6 +1657,7 @@ void sccp_dev_display_debug(constDevicePtr d, const char *msgstr, const char *fi
 
 /*!
  * \brief Send Clear Display Notification to Device
+ *
  * \param d SCCP Device
  *
  * \callgraph
@@ -1695,6 +1703,7 @@ void sccp_dev_displaynotify_debug(constDevicePtr d, const char *msg, uint8_t tim
 /*!
  * \brief Send Clear Display Notification to Device
  * \param d SCCP Device
+ * \param priority Priority as uint8_t
  *
  * \callgraph
  * \callergraph
@@ -1784,7 +1793,7 @@ void sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, bool
 
 /*!
  * \brief Send Get Activeline to Device
- * \param d SCCP Device
+ * \param device SCCP Device
  * \return Retained SCCP Line
  *
  * \warning
@@ -1837,7 +1846,7 @@ void sccp_dev_setActiveLine(devicePtr device, constLinePtr l)
 
 /*!
  * \brief Get Active Channel
- * \param d SCCP Device
+ * \param device SCCP Device
  * \return SCCP Channel
  */
 sccp_channel_t *sccp_device_getActiveChannel(constDevicePtr device)
@@ -1979,12 +1988,12 @@ void sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePt
 	}
 }
 
+#if UNUSEDCODE // 2015-11-01
 /*!
  * \brief Check Ringback on Device
  * \param device SCCP Device
  * \return Result as int
  */
-#if UNUSEDCODE // 2015-11-01
 int sccp_device_check_ringback(devicePtr device)
 {
 	AUTO_RELEASE sccp_channel_t *c = NULL;
@@ -2115,7 +2124,16 @@ void sccp_dev_postregistration(void *data)
 		}
 	}
 	sccp_mwi_check(d);
-
+#ifdef CS_SCCP_PARK
+	sccp_buttonconfig_t *config = NULL;
+	SCCP_LIST_LOCK(&d->buttonconfig);
+	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+		if (config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
+			iParkingLot.notifyDevice(config->button.feature.options, d);
+		}
+	}
+	SCCP_LIST_UNLOCK(&d->buttonconfig);
+#endif
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
 	return;
 }
@@ -2183,14 +2201,8 @@ static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)
  *
  * \note adds a retained device to the event.deviceRegistered.device
  */
-#ifndef DEBUG
 void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cleanupTime)
 {
-#else
-void __sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cleanupTime, const char *file, int lineno, const char *func)
-{
-	pbx_log(LOG_NOTICE, "%s: (sccp_dev_clean) Called From: %s:%d:%s\n", DEV_ID_LOG(device), file, lineno, func);
-#endif
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 	sccp_buttonconfig_t *config = NULL;
 	sccp_selectedchannel_t *selectedChannel = NULL;
@@ -2255,6 +2267,10 @@ void __sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cl
 				/* remove devices from line */
 				sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);
 				sccp_line_removeDevice(line, d);
+#ifdef CS_SCCP_PARK
+			} else 	if (iParkingLot.detachObserver && config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
+				iParkingLot.detachObserver(config->button.feature.options, d, config->instance);
+#endif
 			}
 		}
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
@@ -2484,7 +2500,7 @@ boolean_t sccp_device_isVideoSupported(constDevicePtr device)
 
 /*!
  * \brief Find ServiceURL by index
- * \param d SCCP Device
+ * \param device SCCP Device
  * \param instance Instance as uint8_t
  * \return SCCP Service
  *
@@ -2542,7 +2558,7 @@ int sccp_device_sendReset(devicePtr d, uint8_t reset_type)
  * \param instance Instance as int
  * \param callid Call ID as int
  * \param state Call State as int
- * \param priority Priority as skinny_callpriority_t
+ * \param precedence_level precedence_level as skinny_callpriority_t
  * \param visibility Visibility as skinny_callinfo_visibility_t
  *
  * \callgraph
@@ -2672,18 +2688,20 @@ void sccp_dev_keypadbutton(devicePtr d, char digit, uint8_t line, uint32_t calli
 static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lineInstance, uint32_t callid)
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
+	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_OFF);
 	sccp_dev_clearprompt(device, lineInstance, callid);
 
-	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	sccp_dev_set_cplane(device, lineInstance, 0);
-	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
+	sccp_dev_set_keyset(device, 0, 0, KEYMODE_ONHOOK);				/* reset the keyset of the base instance instead of current lineInstance + callid*/
+	if (device->session) {
+		sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
+	}
 
-	sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
 	sccp_device_clearMessageFromStack((sccp_device_t *) device, SCCP_MESSAGE_PRIORITY_PRIVACY);
 	if (device->active_channel && device->active_channel->callid == callid) {  
 		sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
 	}
+	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
 }
 
 static void sccp_device_indicate_offhook(constDevicePtr device, sccp_linedevices_t * linedevice, uint32_t callid)
@@ -2708,14 +2726,13 @@ static void __sccp_device_indicate_normal_dialing(constDevicePtr device, const u
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
 	iCallInfo.SetCalledParty(callinfo, NULL, dialedNumber, NULL);
-	if (device->protocol) {
-		if (device->protocol->sendDialedNumber) {
-			device->protocol->sendDialedNumber(device, lineInstance, callid, dialedNumber);
-		}
-		iCallInfo.Send(callinfo, callid, calltype, lineInstance, device, FALSE);
+	//iCallInfo.SetCalledParty(callinfo, dialedNumber, dialedNumber, NULL);
+	if (device->protocol && device->protocol->sendDialedNumber) {
+		device->protocol->sendDialedNumber(device, lineInstance, callid, dialedNumber);
 	}
-	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_RINGOUT);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	iCallInfo.Send(callinfo, callid, calltype, lineInstance, device, FALSE);
+	//sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_RINGOUT);
 }
 
 static void sccp_device_indicate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION])
@@ -2759,8 +2776,9 @@ static void sccp_device_indicate_onhook_remote(constDevicePtr device, const uint
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
 	sccp_dev_set_cplane(device, lineInstance, 0);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
-
-	sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
+	if (device->session) {
+		sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
+	}
 }
 
 static void sccp_device_indicate_offhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
@@ -2944,6 +2962,8 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 			} else {
 				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_MONITOR);
 			}
+			break;
+		case SCCP_FEATURE_PARKINGLOT:
 			break;
 		default:
 			return;

@@ -157,7 +157,7 @@ void sccp_event_module_stop(void)
  * \brief Subscribe to an Event
  * \param eventType SCCP Event Type
  * \param cb SCCP Event Call Back Function
- * \param allowASyncExecution Handle Event Asynchronously (Boolean)
+ * \param allowAsyncExecution Handle Event Asynchronously (Boolean)
  */
 boolean_t sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb, boolean_t allowAsyncExecution)
 {

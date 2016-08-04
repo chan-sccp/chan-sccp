@@ -30,6 +30,7 @@ WIP
      - dead code removal 
      - More boundschecking
    - deny use of strcat, sprintf, atoi and other unsafe functions
+ - Add Visual Parkinglot Feature Button support
  Fixes:
   - Channel remaining after hangup
   - Timeout / Hangup Scheduler issues 

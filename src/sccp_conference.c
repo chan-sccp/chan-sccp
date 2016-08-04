@@ -1210,20 +1210,20 @@ void sccp_conference_show_list(constConferencePtr conference, constChannelPtr ch
 			pbx_str_append(&xmlStr, 0, "<Name>EndConf</Name>");
 			pbx_str_append(&xmlStr, 0, "<Position>1</Position>");
 			// pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:ENDCONF/%d/%d/%d/</URL>", 1, appID, participant->lineInstance, participant->transactionID);
-			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:ENDCONF/%d</URL>", 1, participant->transactionID);
+			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:ENDCONF/%d</URL>", appID, participant->transactionID);
 			pbx_str_append(&xmlStr, 0, "</SoftKeyItem>\n");
 			pbx_str_append(&xmlStr, 0, "<SoftKeyItem>");
 			pbx_str_append(&xmlStr, 0, "<Name>Mute</Name>");
 			pbx_str_append(&xmlStr, 0, "<Position>2</Position>");
 			// pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:MUTE/%d/%d/%d/</URL>", 2, appID, participant->lineInstance, participant->transactionID);
-			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:MUTE/%d</URL>", 2, participant->transactionID);
+			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:MUTE/%d</URL>", appID, participant->transactionID);
 			pbx_str_append(&xmlStr, 0, "</SoftKeyItem>\n");
 
 			pbx_str_append(&xmlStr, 0, "<SoftKeyItem>");
 			pbx_str_append(&xmlStr, 0, "<Name>Kick</Name>");
 			pbx_str_append(&xmlStr, 0, "<Position>3</Position>");
 			// pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:KICK/%d/%d/%d/</URL>", 3, appID, participant->lineInstance, participant->transactionID);
-			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:KICK/%d</URL>", 3, participant->transactionID);
+			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:KICK/%d</URL>", appID, participant->transactionID);
 			pbx_str_append(&xmlStr, 0, "</SoftKeyItem>\n");
 		}
 		pbx_str_append(&xmlStr, 0, "<SoftKeyItem>");
@@ -1235,13 +1235,13 @@ void sccp_conference_show_list(constConferencePtr conference, constChannelPtr ch
 			pbx_str_append(&xmlStr, 0, "<SoftKeyItem>");
 			pbx_str_append(&xmlStr, 0, "<Name>Moderate</Name>");
 			pbx_str_append(&xmlStr, 0, "<Position>5</Position>");
-			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:MODERATE/%d</URL>", 4, participant->transactionID);
+			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:MODERATE/%d</URL>", appID, participant->transactionID);
 			pbx_str_append(&xmlStr, 0, "</SoftKeyItem>\n");
 #if 0 /* INVITE */
 			pbx_str_append(&xmlStr, 0, "<SoftKeyItem>");
 			pbx_str_append(&xmlStr, 0, "<Name>Invite</Name>");
 			pbx_str_append(&xmlStr, 0, "<Position>6</Position>");
-			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:INVITE/%d/%d/%d</URL>", 5, appID, participant->lineInstance, participant->transactionID);
+			pbx_str_append(&xmlStr, 0, "<URL>UserDataSoftKey:Select:%d:INVITE/%d/%d</URL>", appID, participant->lineInstance, participant->transactionID);
 			pbx_str_append(&xmlStr, 0, "</SoftKeyItem>\n");
 #endif
 		}
@@ -1729,7 +1729,7 @@ char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos
 /*!
  * \brief List Conferences
  * \param fd Fd as int
- * \param total Total number of lines as int
+ * \param totals Total number of lines as int
  * \param s AMI Session
  * \param m Message
  * \param argc Argc as int
@@ -1771,7 +1771,7 @@ int sccp_cli_show_conferences(int fd, sccp_cli_totals_t *totals, struct mansessi
 /*!
  * \brief Show Conference Participants
  * \param fd Fd as int
- * \param total Total number of lines as int
+ * \param totals Total number of lines as int
  * \param s AMI Session
  * \param m Message
  * \param argc Argc as int
@@ -1836,7 +1836,7 @@ int sccp_cli_show_conference(int fd, sccp_cli_totals_t *totals, struct mansessio
 /*!
  * \brief Conference Command CLI/AMI
  * \param fd Fd as int
- * \param total Total number of lines as int
+ * \param totals Total number of lines as int
  * \param s AMI Session
  * \param m Message
  * \param argc Argc as int

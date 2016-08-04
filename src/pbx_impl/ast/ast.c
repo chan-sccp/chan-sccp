@@ -263,6 +263,7 @@ int pbx_str2cos(const char *value, uint8_t *cos)
 
 /************************************************************************************************************* GENERAL **/
 
+#if UNUSEDCODE // 2015-11-01
 /*! 
  * \brief Simply remove extension from context
  * \note replacement for ast_context_remove_extension
@@ -279,7 +280,6 @@ int pbx_str2cos(const char *value, uint8_t *cos)
  * 
  * @{
  */
-#if UNUSEDCODE // 2015-11-01
 int pbx_context_remove_extension(const char *context, const char *extension, int priority, const char *registrar)
 {
 #if ASTERISK_VERSION_NUMBER >= 10600
@@ -355,7 +355,7 @@ ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec)
 /*!
  * \brief Convert an array of skinny_codecs (enum) to a bit array of ast_codecs (fmt)
  *
- * \param skinny_codecs Array of Skinny Codecs
+ * \param codecs Array of Skinny Codecs
  *
  * \return bit array fmt/Format of ast_format_type (int)
  */
@@ -717,7 +717,12 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	int changes = 0;
 	sccp_callinfo_t *const callInfo = sccp_channel_getCallInfo(channel);
 
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got connected line update, connected.id.number=%s, connected.id.name=%s, reason=%d\n", pbx_channel_name(ast), pbx_channel_connected_id(ast).number.str ? pbx_channel_connected_id(ast).number.str : "(nil)", pbx_channel_connected_id(ast).name.str ? pbx_channel_connected_id(ast).name.str : "(nil)", pbx_channel_connected_source(ast));
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got connected line update, connected.id.number=%s, connected.id.name=%s, source=%s\n", 
+		pbx_channel_name(ast), 
+		pbx_channel_connected_id(ast).number.str ? pbx_channel_connected_id(ast).number.str : "(nil)", 
+		pbx_channel_connected_id(ast).name.str ? pbx_channel_connected_id(ast).name.str : "(nil)", 
+		pbx_connected_line_source_name(pbx_channel_connected_source(ast))
+	);
 
 	char tmpCallingNumber[StationMaxDirnumSize] = {0};
 	char tmpCallingName[StationMaxNameSize] = {0};
@@ -757,40 +762,37 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 #if ASTERISK_VERSION_GROUP >= 111
 			struct ast_party_id redirecting_orig = pbx_channel_redirecting_effective_orig(ast);
-			if (!redirecting_orig.name.valid && !redirecting_orig.number.valid) {
-				changes = iCallInfo.Setter(callInfo,
-					SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
-					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
-					SCCP_CALLINFO_KEY_SENTINEL);
-			} else {
+			if (redirecting_orig.name.valid || redirecting_orig.number.valid) {
 				changes = iCallInfo.Setter(callInfo,
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, redirecting_orig.name.valid ? ast_channel_redirecting(ast)->orig.name.str : "",
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, redirecting_orig.number.valid ? ast_channel_redirecting(ast)->orig.number.str : "",
 					SCCP_CALLINFO_KEY_SENTINEL);
-			}
-#else
-			changes = iCallInfo.Setter(callInfo,
-				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
-				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
-				SCCP_CALLINFO_KEY_SENTINEL);
+			} else 
 #endif
+			{
+				changes = iCallInfo.Setter(callInfo,
+					SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
+					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
+					SCCP_CALLINFO_KEY_SENTINEL);
+			}
 		} else {
 			changes = iCallInfo.Setter(callInfo,
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLEDPARTY_NAME, pbx_channel_connected_id(ast).name.str,
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &tmpCallingNumber,
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &tmpCallingName,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, &tmpCalledNumber,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &tmpCalledName,
 				SCCP_CALLINFO_KEY_SENTINEL);
 		}
 
 
 	}
 	sccp_channel_display_callInfo(channel);
-	sccp_channel_send_callinfo2(channel);
-
-	if (changes) {								/* only send indications if something changed */
-		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
-		sccp_indicate(d, channel, channel->state);
+	if (changes) {
+		sccp_channel_send_callinfo2(channel);
 	}
 #endif
 }
@@ -921,7 +923,7 @@ int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, u
  *
  * \param ast Asterisk Channel
  * \param funcname      functionname as const char *
- * \param args          arguments as char *
+ * \param preparse      arguments as char *
  * \param buf           buffer as char *
  * \param buflen        bufferlenght as size_t
  * \return result as int

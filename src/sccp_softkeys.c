@@ -72,7 +72,6 @@ static const sccp_line_t * sccp_sk_get_retained_line(constDevicePtr d, constLine
 
 /*!
  * \brief Forces Dialling before timeout
- * \n Usage: \ref sccp_sk_dial
  */
 static void sccp_sk_dial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -87,7 +86,6 @@ static void sccp_sk_dial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, const
 
 /*!
  * \brief Start/Stop VideoMode
- * \n Usage: \ref sccp_sk_videomode
  *
  * \todo Add doxygen entry for sccp_sk_videomode
  * \todo Implement stopping video transmission
@@ -109,7 +107,6 @@ static void sccp_sk_videomode(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 
 /*!
  * \brief Redial last Dialed Number by this Device
- * \n Usage: \ref sk_redial
  */
 static void sccp_sk_redial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -165,7 +162,6 @@ static void sccp_sk_redial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 
 /*!
  * \brief Initiate a New Call
- * \n Usage: \ref sk_newcall
  */
 static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -207,7 +203,6 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 
 /*!
  * \brief Hold Call on Current Line
- * \n Usage: \ref sk_hold
  */
 static void sccp_sk_hold(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -222,7 +217,6 @@ static void sccp_sk_hold(const sccp_softkeyMap_cb_t * const softkeyMap_cb, const
 
 /*!
  * \brief Resume Call on Current Line
- * \n Usage: \ref sk_resume
  */
 static void sccp_sk_resume(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -236,7 +230,6 @@ static void sccp_sk_resume(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 
 /*!
  * \brief Transfer Call on Current Line
- * \n Usage: \ref sk_transfer
  *
  * \todo discus Marcello's transfer experiment
  */
@@ -247,7 +240,6 @@ static void sccp_sk_transfer(const sccp_softkeyMap_cb_t * const softkeyMap_cb, c
 
 /*!
  * \brief End Call on Current Line
- * \n Usage: \ref sk_endcall
  */
 static void sccp_sk_endcall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -277,7 +269,6 @@ static void sccp_sk_endcall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 
 /*!
  * \brief Set DND on Current Line if Line is Active otherwise set on Device
- * \n Usage: \ref sk_dnd
  *
  * \todo The line param is not used 
  */
@@ -366,7 +357,6 @@ static void sccp_sk_dnd(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constD
 
 /*!
  * \brief BackSpace Last Entered Number
- * \n Usage: \ref sk_backspace
  */
 static void sccp_sk_backspace(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -404,7 +394,6 @@ static void sccp_sk_backspace(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 
 /*!
  * \brief Answer Incoming Call
- * \n Usage: \ref sk_answer
  */
 static void sccp_sk_answer(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -433,7 +422,6 @@ static void sccp_sk_answer(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 
 /*!
  * \brief Bridge two selected channels
- * \n Usage: \ref sk_dirtrfr
  */
 static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -508,7 +496,6 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 
 /*!
  * \brief Select a Line for further processing by for example DirTrfr
- * \n Usage: \ref sk_select
  */
 static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -561,7 +548,6 @@ static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 
 /*!
  * \brief Set Call Forward All on Current Line
- * \n Usage: \ref sk_cfwdall
  */
 static void sccp_sk_cfwdall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -576,7 +562,6 @@ static void sccp_sk_cfwdall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 
 /*!
  * \brief Set Call Forward when Busy on Current Line
- * \n Usage: \ref sk_cfwdbusy
  */
 static void sccp_sk_cfwdbusy(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -590,7 +575,6 @@ static void sccp_sk_cfwdbusy(const sccp_softkeyMap_cb_t * const softkeyMap_cb, c
 
 /*!
  * \brief Set Call Forward when No Answer on Current Line
- * \n Usage: \ref sk_cfwdnoanswer
  */
 static void sccp_sk_cfwdnoanswer(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -604,7 +588,6 @@ static void sccp_sk_cfwdnoanswer(const sccp_softkeyMap_cb_t * const softkeyMap_c
 
 /*!
  * \brief Park Call on Current Line
- * \n Usage: \ref sk_park
  */
 static void sccp_sk_park(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -618,7 +601,6 @@ static void sccp_sk_park(const sccp_softkeyMap_cb_t * const softkeyMap_cb, const
 
 /*!
  * \brief Transfer to VoiceMail on Current Line
- * \n Usage: \ref sk_transfer
  */
 static void sccp_sk_trnsfvm(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -631,7 +613,6 @@ static void sccp_sk_trnsfvm(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 
 /*!
  * \brief Initiate Private Call on Current Line
- * \n Usage: \ref sk_private
  *
  */
 static void sccp_sk_private(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
@@ -693,7 +674,6 @@ static void sccp_sk_private(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 
 /*!
  * \brief Monitor Current Line
- * \n Usage: \ref sk_monitor
  */
 static void sccp_sk_monitor(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -706,7 +686,6 @@ static void sccp_sk_monitor(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 
 /*!
  * \brief Put Current Line into Conference
- * \n Usage: \ref sk_conference
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
@@ -726,7 +705,6 @@ static void sccp_sk_conference(const sccp_softkeyMap_cb_t * const softkeyMap_cb,
 
 /*!
  * \brief Show Participant List of Current Conference
- * \n Usage: \ref sk_conflist
  * \todo Conferencing option is under development.
  */
 static void sccp_sk_conflist(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
@@ -745,7 +723,6 @@ static void sccp_sk_conflist(const sccp_softkeyMap_cb_t * const softkeyMap_cb, c
 
 /*!
  * \brief Join Current Line to Conference
- * \n Usage: \ref sk_join
  * \todo Conferencing option needs to be build and implemented
  */
 static void sccp_sk_join(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
@@ -764,7 +741,6 @@ static void sccp_sk_join(const sccp_softkeyMap_cb_t * const softkeyMap_cb, const
 
 /*!
  * \brief Barge into Call on the Current Line
- * \n Usage: \ref sk_barge
  */
 static void sccp_sk_barge(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -777,7 +753,6 @@ static void sccp_sk_barge(const sccp_softkeyMap_cb_t * const softkeyMap_cb, cons
 
 /*!
  * \brief Barge into Call on the Current Line
- * \n Usage: \ref sk_cbarge
  */
 static void sccp_sk_cbarge(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -790,7 +765,6 @@ static void sccp_sk_cbarge(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 
 /*!
  * \brief Put Current Line in to Meetme Conference
- * \n Usage: \ref sk_meetme
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  */
@@ -806,7 +780,6 @@ static void sccp_sk_meetme(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 
 /*!
  * \brief Pickup Parked Call
- * \n Usage: \ref sk_pickup
  */
 static void sccp_sk_pickup(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -824,7 +797,6 @@ static void sccp_sk_pickup(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 
 /*!
  * \brief Pickup Ringing Line from Pickup Group
- * \n Usage: \ref sk_gpickup
  */
 static void sccp_sk_gpickup(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -841,7 +813,6 @@ static void sccp_sk_gpickup(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 
 /*!
  * \brief Execute URI(s) 
- * \n Usage: \ref sk_uriaction
  */
 static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
@@ -1127,7 +1098,7 @@ void sccp_softkey_setSoftkeyState(devicePtr device, uint8_t softKeySet, uint8_t 
 	/* find softkey */
 	for (i = 0; i < device->softKeyConfiguration.modes[softKeySet].count; i++) {
 		if (device->softKeyConfiguration.modes[softKeySet].ptr && device->softKeyConfiguration.modes[softKeySet].ptr[i] == softKey) {
-			//sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_4 "%s: found softkey '%s' at %d\n", DEV_ID_LOG(device), label2str(device->softKeyConfiguration.modes[softKeySet].ptr[i]), i);
+			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_4 "%s: found softkey '%s' at %d\n", DEV_ID_LOG(device), label2str(device->softKeyConfiguration.modes[softKeySet].ptr[i]), i);
 			if (enable) {
 				device->softKeyConfiguration.activeMask[softKeySet] |= (1 << i);
 			} else {

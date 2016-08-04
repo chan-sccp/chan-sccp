@@ -44,6 +44,7 @@ permit = internal                                                               
 ;transfer_on_hangup = no                                                          ; Complete transfer on hangup, without pressing transfer a second time.
                                                                                   ; Will complete transfer, when the transferer puts the receiver on hook, after the destination has been reached.
                                                                                   ; To cancel the transfer, either press resume on the transfered channel, press the 'endcall' softkey, or have the receiving party hangup first.
+;dnd_tone = 0x0								          ; Use 0x2D, 0x31, 0x32, 0x33 to activate dnd incoming call indication when dnd silent is active
 ;callwaiting_tone = 0x2d                                                          ; Sets to 0 to disable the callwaiting tone
 ;callwaiting_interval = 0                                                         ; Callwaiting ring interval in seconds. Set to 0 to disable the callwaiting ringing interval.
 ;musicclass = default                                                             ; Sets the default music on hold class
@@ -192,11 +193,13 @@ button = ""                                                                     
                                                                                   ;  - button = line,1234,default
                                                                                   ;  - button = empty
                                                                                   ;  - button = line,98099@11:Phone1
-                                                                                  ;  - button = line,98099@12:Phone2#ButtonLabel!silent		; append cidnum:'12' and cidname:'Phone2' to line-ci with label 'ButtonLabel', don't ring when dialed directly
-                                                                                  ;  - button = line,98099@+12:Phone2@ButtonLabel!silent	; same as the previous line
-                                                                                  ;  - button = line,98099@=12:Phone2!silent			; overwrite line-cid instead of appending
+                                                                                  ;  - button = line,98099@12:Phone2#ButtonLabel!silent			; append cidnum:'12' and cidname:'Phone2' to line-ci with label 'ButtonLabel', don't ring when dialed directly
+                                                                                  ;  - button = line,98099@+12:Phone2@ButtonLabel!silent		; same as the previous line
+                                                                                  ;  - button = line,98099@=12:Phone2!silent				; overwrite line-cid instead of appending
                                                                                   ;  - button = speeddial,Phone 2 Line 1, 98021, 98021@hints
                                                                                   ;  - button = feature,cfwdall,1234
+                                                                                  ;  - button = feature,PDefault,ParkingLot,default			; feature, name, feature_type, parkinglotContext [,RetrieveSingle]
+                                                                                  ;  - button = feature,PDefault,ParkingLot,default,RetrieveSingle	; feature, name, feature_type, parkinglotContext [,RetrieveSingle]
 ;allowRinginNotification = no                                                     ; allow ringin notification for hinted extensions. experimental configuration param that may be removed in further version
 ;conf_allow = yes                                                                 ; Allow the use of conference
 ;conf_play_general_announce = yes                                                 ; Playback General Announcements (like: 'You are Entering/Leaving the conference')

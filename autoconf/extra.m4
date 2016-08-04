@@ -178,10 +178,10 @@ AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_LANG_SAVE
 	AC_LANG_C
-	AC_PATH_PROGS([SVN],[svn],[echo Missing subversion],[${PATH}:/opt/csw/bin])
-	AC_PATH_PROGS([SVNVERSION],[svnversion], [echo Missing subversion],[${PATH}:/opt/csw/bin])
+	dnl AC_PATH_PROGS([SVN],[svn],[echo Missing subversion],[${PATH}:/opt/csw/bin])
+	dnl AC_PATH_PROGS([SVNVERSION],[svnversion], [echo Missing subversion],[${PATH}:/opt/csw/bin])
 	AC_PATH_PROGS([GIT],[git],[echo Missing git],[${PATH}:/opt/csw/bin])
-	AC_PATH_PROGS([HG],[hg],[echo Missing mercurial],[${PATH}:/opt/csw/bin])
+	dnl AC_PATH_PROGS([HG],[hg],[echo Missing mercurial],[${PATH}:/opt/csw/bin])
 	AC_PATH_PROGS([SHELL],[bash sh],[echo No compatible shell found])
 	AC_PATH_PROGS([SH],[bash sh],[echo No compatible shell found])
 	AC_PATH_PROGS([M4],[gm4 m4],[echo No m4 found, who will process my macros now ?])
@@ -341,26 +341,6 @@ AC_DEFUN([CS_CHECK_TYPES], [
 	fi
 ])
 
-AC_DEFUN([CS_CHECK_SVN2CL], [
-	enable_svn2cl=yes
-	AC_PATH_PROGS([SVN2CL], [svn2cl svn2cl.sh])
-	if test -z "$SVN2CL"; then
-		enable_svn2cl=no
-	fi
-	AM_CONDITIONAL(ENABLE_SVN2CL, test x$enable_svn2cl != xno)
-])
-
-AC_DEFUN([CS_WITH_CHANGELOG_OLDEST], [
-	AC_ARG_WITH(changelog-oldest,
-		AC_HELP_STRING([--with-changelog-oldest=NUMBER], [Oldest revision to include in ChangeLog])
-	)
-	CHANGELOG_OLDEST=5600
-	if test "x$with_changelog_oldest" != "x" ; then
-		CHANGELOG_OLDEST=$with_changelog_oldest
-	fi
-	AC_SUBST(CHANGELOG_OLDEST) 
-])
-
 dnl Conditional Makefile.am Macros
 AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 	AM_CONDITIONAL([BUILD_AST], test "$PBX_TYPE" == "Asterisk")
@@ -451,7 +431,7 @@ AC_DEFUN([CS_SETUP_DOXYGEN], [
 		[ac_cv_use_devdoc=$enableval], 
 		[ac_cv_use_devdoc=no]
 	)
-	AS_IF([test "_${ac_cv_use_devdoc}" == "_yes"], [DX_ENV_APPEND([INPUT],[. src src/pbx_impl src/pbx_impl/ast])])
+	AS_IF([test "_${ac_cv_use_devdoc}" == "_yes"], [DX_ENV_APPEND([INPUT],[. src src/pbx_impl src/pbx_impl/ast src/pbx_impl/ast113 src/pbx_impl/ast_announce])])
 	DX_HTML_FEATURE(ON)
 	DX_CHM_FEATURE(OFF)
 	DX_CHI_FEATURE(OFF)

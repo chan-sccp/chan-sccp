@@ -60,6 +60,7 @@ __BEGIN_C_EXTERN__
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
 #undef new
+#include <asterisk/timing.h>
 __END_C_EXTERN__
 
 struct ast_sched_context *sched = 0;
@@ -563,6 +564,7 @@ static const char *asterisk_indication2str(int ind)
 static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *data, size_t datalen)
 {
 	int res = 0;
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: (pbx_indicate) start indicate '%s'\n", asterisk_indication2str(ind));
 
 	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);
 	if (!c) {
@@ -592,8 +594,8 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 	}
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
-	res = (((c->rtp.audio.readState != SCCP_RTP_STATUS_INACTIVE) || (d && d->earlyrtp)) ? -1 : 0);
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (readStat:%d, writeState:%d, rtp:%s, default res:%s (%d))\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.readState, c->rtp.audio.writeState, (c->rtp.audio.instance) ? "yes" : "no", res ? "inband signaling" : "outofband signaling", res);
+	res = (((c->rtp.audio.receiveChannelState != SCCP_RTP_STATUS_INACTIVE) || (d && d->earlyrtp)) ? -1 : 0);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (readStat:%d, receiveChannelState:%d, rtp:%s, default res:%s (%d))\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.receiveChannelState, c->rtp.audio.receiveChannelState, (c->rtp.audio.instance) ? "yes" : "no", res ? "inband signaling" : "outofband signaling", res);
 
 	switch (ind) {
 		case AST_CONTROL_RINGING:
@@ -629,7 +631,7 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 						
 						AUTO_RELEASE sccp_channel_t *remoteSccpChannel = get_sccp_channel_from_pbx_channel(remotePeer);
 						if (remoteSccpChannel) {
-							sccp_multiple_codecs2str(buf, sizeof(buf) - 1, remoteSccpChannel->preferences.audio, ARRAY_LEN(remoteSccpChannel->preferences.audio));
+							sccp_codec_multiple2str(buf, sizeof(buf) - 1, remoteSccpChannel->preferences.audio, ARRAY_LEN(remoteSccpChannel->preferences.audio));
 							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote preferences: %s\n", buf);
 							uint8_t x, y, z;
 
@@ -650,7 +652,7 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 							sccp_asterisk113_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 						}
 
-						sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+						sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote caps: %s\n", buf);
 						ast_channel_unref(remotePeer);
 						break;
@@ -722,7 +724,7 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			/* remarking out this code, as it is causing issues with callforward + FREEPBX,  the calling party will not hear the remote end ringing
 			 this patch was added to suppress 'double callwaiting tone', but channel PROD(-1) below is taking care of that already
 			*/
-			//if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE && c->state > SCCP_CHANNELSTATE_DIALING) {
+			//if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && c->state > SCCP_CHANNELSTATE_DIALING) {
 			//	sccp_channel_openReceiveChannel(c);
 			//}
 			sccp_asterisk_connectedline(c, data, datalen);
@@ -787,7 +789,7 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			break;
 		case -1:											// Asterisk prod the channel
 			if (c->line && c->state > SCCP_GROUPED_CHANNELSTATE_DIALING) {
-				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {
+				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
 				}
 				uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
@@ -796,7 +798,7 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			res = -1;
 			break;
 		default:
-			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) Don't know how to indicate condition '%s' (%d)\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind)
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) Don't know how to indicate condition '%s' (%d)\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind);
 			break;
 	}
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_2 "%s: (pbx_indicate) finish: send indication '%s' (%d)\n", DEV_ID_LOG(d), res ? "inband signaling" : "outofband signaling", res);
@@ -841,7 +843,7 @@ static int sccp_wrapper_asterisk113_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
-			if (c->rtp.video.writeState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
+			if (c->rtp.video.mediaTransmissionState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
 				// int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
 				// int codec = pbx_codec2skinny_codec(frame->subclass.format.id);
 
@@ -852,7 +854,7 @@ static int sccp_wrapper_asterisk113_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 				}
 			}
 
-			if (c->rtp.video.instance && (c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) != 0) {
+			if (c->rtp.video.instance && (c->rtp.video.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) != 0) {
 				res = ast_rtp_instance_write(c->rtp.video.instance, frame);
 			}
 #endif
@@ -933,6 +935,21 @@ static int sccp_wrapper_asterisk113_setNativeVideoFormats(constChannelPtr channe
 		ast_format_cap_append(ast_channel_nativeformats(channel->owner), format, framing);
 	}
 	return 1;
+}
+
+static void sccp_wrapper_asterisk113_removeTimingFD(PBX_CHANNEL_TYPE *ast)
+{
+	if (ast) {
+		struct ast_timer *timer=ast_channel_timer(ast);
+		if (timer) {
+			//ast_log(LOG_NOTICE, "%s: (clean_timer_fds) timername: %s, fd:%d\n", ast_channel_name(ast), ast_timer_get_name(timer), ast_timer_fd(timer));
+			ast_timer_disable_continuous(timer);
+			ast_timer_close(timer);
+			ast_channel_set_fd(ast, AST_TIMING_FD, -1);
+			ast_channel_timingfd_set(ast, -1);
+			ast_channel_timer_set(ast, NULL);
+		}
+	}
 }
 
 static void sccp_wrapper_asterisk113_setOwner(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbx_channel)
@@ -1266,32 +1283,31 @@ int sccp_wrapper_asterisk113_hangup(PBX_CHANNEL_TYPE * ast_channel)
  */
 static sccp_parkresult_t sccp_wrapper_asterisk113_park(constChannelPtr hostChannel)
 {
-	char extout[AST_MAX_EXTENSION];
-	char extstr[20];
 	sccp_parkresult_t res = PARK_RESULT_FAIL;
-
-	// PBX_CHANNEL_TYPE *bridgedChannel = NULL;
-
-	memset(extstr, 0, sizeof(extstr));
-
-	struct ast_bridge_channel *bridge_channel = NULL;
+	char extout[AST_MAX_EXTENSION] = "";
+	RAII(struct ast_bridge_channel *, bridge_channel, NULL, ao2_cleanup);
+	
+	if (!ast_parking_provider_registered()) {
+		return res;
+	}
 
 	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice(hostChannel);
-	if (device) {
+	if (device && (ast_channel_state(hostChannel->owner) ==  AST_STATE_UP)) {
 		ast_channel_lock(hostChannel->owner);								/* we have to lock our channel, otherwise asterisk crashes internally */
 		bridge_channel = ast_channel_get_bridge_channel(hostChannel->owner);
+		ast_channel_unlock(hostChannel->owner);
 		if (bridge_channel) {
-			if (!ast_parking_park_call(bridge_channel, extout, sizeof(extout))) {
-				snprintf(extstr, sizeof(extstr), "%c%c %.16s" , 128, SKINNY_LBL_CALL_PARK_AT, extout);
-
-				sccp_dev_displayprinotify(device, extstr, 1, 10);
+			if (!ast_parking_park_call(bridge_channel, extout, sizeof(extout))) {			/* new asterisk-12/13 implementation returns the parkext not the parking_space */
+														/* See: https://issues.asterisk.org/jira/browse/ASTERISK-26029 */
+				char extstr[20];
+				memset(extstr, 0, sizeof(extstr));
+				//snprintf(extstr, sizeof(extstr), "%c%c %.16s", 128, SKINNY_LBL_CALL_PARK_AT, extout);
+				//sccp_dev_displayprinotify(device, extstr, 1, 10);				/* suppressing output of wrong parking information */
+				sccp_dev_displayprinotify(device, SKINNY_DISP_CALL_PARK, 1, 10);
 				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %s\n", DEV_ID_LOG(device), ast_channel_name(hostChannel->owner), extout);
-
 				res = PARK_RESULT_SUCCESS;
 			}
-			ast_channel_unref(bridge_channel);
 		}
-		ast_channel_unlock(hostChannel->owner);
 	}
 	return res;
 }
@@ -1356,7 +1372,7 @@ static sccp_extension_status_t sccp_wrapper_asterisk113_extensionStatus(constCha
 	int ext_canmatch = ast_canmatch_extension(pbx_channel, pbx_channel_context(pbx_channel), channel->dialedNumber, 1, channel->line->cid_num);
 	int ext_matchmore = ast_matchmore_extension(pbx_channel, pbx_channel_context(pbx_channel), channel->dialedNumber, 1, channel->line->cid_num);
 
-	// RAII_VAR(struct ast_features_pickup_config *, pickup_cfg, ast_get_chan_features_pickup_config(pbx_channel), ao2_cleanup);
+	// RAII(struct ast_features_pickup_config *, pickup_cfg, ast_get_chan_features_pickup_config(pbx_channel), ao2_cleanup);
 	// const char *pickupexten = (pickup_cfg) ? pickup_cfg->pickupexten : "-";
 
 	/* if we dialed the pickup extention, mark this as exact match */
@@ -1494,10 +1510,10 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, stru
 		sccp_asterisk113_getSkinnyFormatMultiple(ast_channel_nativeformats(requestor), videoCapabilities, ARRAY_LEN(videoCapabilities));	//replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
 	}
 
-	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
+	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
 	// sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote audio caps: %s\n", cap_buf);
 
-	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, videoCapabilities, ARRAY_LEN(videoCapabilities));
+	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, videoCapabilities, ARRAY_LEN(videoCapabilities));
 	// sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote video caps: %s\n", cap_buf);
 	/** done */
 
@@ -1537,6 +1553,20 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, stru
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 		goto EXITFUNC;
 	}
+
+	/* set initial connected line information, to be exchange with remove party during first CONNECTED_LINE update */
+	ast_set_callerid(channel->owner, channel->line->cid_num, channel->line->cid_name, channel->line->cid_num);
+	struct ast_party_connected_line connected;
+	ast_party_connected_line_set_init(&connected, ast_channel_connected(channel->owner));
+	connected.id.number.valid = 1;
+	connected.id.number.str = (char *)channel->line->cid_num;
+	connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
+	connected.id.name.valid = 1;
+	connected.id.name.str = (char *)channel->line->cid_name;
+	connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
+	connected.source = AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN;
+	ast_channel_set_connected_line(channel->owner, &connected, NULL);
+	/* end */
 
 	if (requestor) {
 		/* set calling party */
@@ -1619,7 +1649,6 @@ static int sccp_wrapper_asterisk113_call(PBX_CHANNEL_TYPE * ast, const char *des
 
 	res = sccp_pbx_call(c, (char *) dest, timeout);
 	return res;
-
 }
 
 static int sccp_wrapper_asterisk113_answer(PBX_CHANNEL_TYPE * chan)
@@ -1632,7 +1661,7 @@ static int sccp_wrapper_asterisk113_answer(PBX_CHANNEL_TYPE * chan)
 		if (!channel->pbx_callid_created && !ast_channel_callid(chan)) {
 			ast_callid_threadassoc_add(ast_channel_callid(chan));
 		}
-		res = sccp_pbx_answer(channel);
+		res = sccp_pbx_answered(channel);
 	}
 	return res;
 }
@@ -1899,7 +1928,7 @@ static int sccp_wrapper_asterisk113_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 				if (!c->rtp.video.instance && !sccp_rtp_createVideoServer(c)) {
 					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(d));
 				} else {
-					if (!c->rtp.video.readState) {
+					if (!c->rtp.video.mediaTransmissionState) {
 						sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: video rtp started\n", DEV_ID_LOG(d));
 						sccp_channel_startMultiMediaTransmission(c);
 					}
@@ -2174,7 +2203,7 @@ static boolean_t sccp_wrapper_asterisk113_createRtpInstance(constDevicePtr d, co
 	/* add payload mapping for skinny codecs */
 	uint8_t i;
 	struct ast_rtp_codecs *codecs = ast_rtp_instance_get_codecs(instance);
-	for (i = 0; i < sccp_getnumber_of_skinny_codecs(); i++) {
+	for (i = 0; i < sccp_codec_getArrayLen(); i++) {
 		/* add audio codecs only */
 		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == codec_type) {
 			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, rtp_map_filter, (char *) skinny_codecs[i].mimesubtype, (enum ast_rtp_options) 0, skinny_codecs[i].sample_rate);
@@ -2852,8 +2881,8 @@ static int sccp_wrapper_asterisk113_dumpchan(struct ast_channel *c, char *buf, s
 
 	memset(buf, 0, size);
 	if (!c) {
-		return 0;
-}
+		return -1;
+	}
 
 	elapsed_seconds = ast_channel_get_duration(c);
 	hour = elapsed_seconds / 3600;
@@ -3217,6 +3246,7 @@ const PbxInterface iPbx = {
 //	endpoint_shutdown:		sccp_wrapper_asterisk113_endpoint_shutdown,
 
 	set_owner:			sccp_wrapper_asterisk113_setOwner,
+	removeTimingFD:			sccp_wrapper_asterisk113_removeTimingFD,
 	dumpchan:			sccp_wrapper_asterisk113_dumpchan,
 	channel_is_bridged:		sccp_wrapper_asterisk113_channelIsBridged,
 	get_bridged_channel:		sccp_wrapper_asterisk113_getBridgeChannel,
@@ -3351,6 +3381,7 @@ const PbxInterface iPbx = {
 //	.endpoint_shutdown		= sccp_wrapper_asterisk113_endpoint_shutdown,
 
 	.set_owner			= sccp_wrapper_asterisk113_setOwner,
+	.removeTimingFD			= sccp_wrapper_asterisk113_removeTimingFD,
 	.dumpchan			= sccp_wrapper_asterisk113_dumpchan,
 	.channel_is_bridged		= sccp_wrapper_asterisk113_channelIsBridged,
 	.get_bridged_channel		= sccp_wrapper_asterisk113_getBridgeChannel,
