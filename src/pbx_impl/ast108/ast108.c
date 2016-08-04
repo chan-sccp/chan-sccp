@@ -48,6 +48,7 @@ __BEGIN_C_EXTERN__
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
 #undef new
+#include <asterisk/timing.h>
 
 __END_C_EXTERN__
 #undef HAVE_PBX_MESSAGE_H
@@ -552,8 +553,8 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 	}
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
-	res = (((c->rtp.audio.readState != SCCP_RTP_STATUS_INACTIVE) || (d && d->earlyrtp)) ? -1 : 0);
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (readStat:%d, writeState:%d, rtp:%s, default res:%s (%d))\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.readState, c->rtp.audio.writeState, (c->rtp.audio.instance) ? "yes" : "no", res ? "inband signaling" : "outofband signaling", res);
+	res = (((c->rtp.audio.receiveChannelState != SCCP_RTP_STATUS_INACTIVE) || (d && d->earlyrtp)) ? -1 : 0);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (readStat:%d, receiveChannelState:%d, rtp:%s, default res:%s (%d))\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.receiveChannelState, c->rtp.audio.receiveChannelState, (c->rtp.audio.instance) ? "yes" : "no", res ? "inband signaling" : "outofband signaling", res);
 
 	switch (ind) {
 		case AST_CONTROL_RINGING:
@@ -589,7 +590,7 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 						
 						AUTO_RELEASE sccp_channel_t *remoteSccpChannel = get_sccp_channel_from_pbx_channel(remotePeer);
 						if (remoteSccpChannel) {
-							sccp_multiple_codecs2str(buf, sizeof(buf) - 1, remoteSccpChannel->preferences.audio, ARRAY_LEN(remoteSccpChannel->preferences.audio));
+							sccp_codec_multiple2str(buf, sizeof(buf) - 1, remoteSccpChannel->preferences.audio, ARRAY_LEN(remoteSccpChannel->preferences.audio));
 							sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_4 "remote preferences: %s\n", buf);
 							uint8_t x, y, z;
 
@@ -607,7 +608,7 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 							get_skinnyFormats(remotePeer->nativeformats, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 						}
 
-						sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+						sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 						sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_4 "remote caps: %s\n", buf);
 						ast_channel_unref(remotePeer);
 						break;
@@ -690,7 +691,7 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 			/* remarking out this code, as it is causing issues with callforward + FREEPBX,  the calling party will not hear the remote end ringing
 			 this patch was added to suppress 'double callwaiting tone', but channel PROD(-1) below is taking care of that already
 			*/
-			//if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE && c->state > SCCP_CHANNELSTATE_DIALING) {
+			//if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && c->state > SCCP_CHANNELSTATE_DIALING) {
 			//	sccp_channel_openReceiveChannel(c);
 			//}
 			sccp_asterisk_connectedline(c, data, datalen);
@@ -745,7 +746,7 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 #endif
 		case -1:											// Asterisk prod the channel
 			if (c->line && c->state > SCCP_GROUPED_CHANNELSTATE_DIALING) {
-				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {
+				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
 				}
 				uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
@@ -754,7 +755,7 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 			res = -1;
 			break;
 		default:
-			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) Don't know how to indicate condition '%s' (%d)\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind)
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) Don't know how to indicate condition '%s' (%d)\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind);
 			break;
 	}
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_2 "%s: (pbx_indicate) finish: send indication '%s' (%d)\n", DEV_ID_LOG(d), res ? "inband signaling" : "outofband signaling", res);
@@ -813,7 +814,7 @@ static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 			case AST_FRAME_IMAGE:
 			case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
-				if (c->rtp.video.writeState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
+				if (c->rtp.video.mediaTransmissionState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
 					int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
 
 					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: got video frame %d\n", (char *) c->currentDeviceId, codec);
@@ -823,7 +824,7 @@ static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 					}
 				}
 
-				if (c->rtp.video.instance && frame && (c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) != 0) {
+				if (c->rtp.video.instance && frame && (c->rtp.video.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) != 0) {
 					res = ast_rtp_instance_write(c->rtp.video.instance, frame);
 				}
 #endif
@@ -865,7 +866,7 @@ static int sccp_wrapper_asterisk18_setNativeAudioFormats(const sccp_channel_t * 
 		channel->owner->nativeformats = new_nativeformats;
 		char codecs[512];
 
-		sccp_multiple_codecs2str(codecs, sizeof(codecs) - 1, codec, length);
+		sccp_codec_multiple2str(codecs, sizeof(codecs) - 1, codec, length);
 		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_2 "%s: updated native Formats to %d, length: %d, skinny: [%s]\n", (char *) channel->currentDeviceId, (int) channel->owner->nativeformats, length, codecs);
 	}
 	return 1;
@@ -874,6 +875,19 @@ static int sccp_wrapper_asterisk18_setNativeAudioFormats(const sccp_channel_t * 
 static int sccp_wrapper_asterisk18_setNativeVideoFormats(const sccp_channel_t * channel, uint32_t formats)
 {
 	return 1;
+}
+
+static void sccp_wrapper_asterisk108_removeTimingFD(PBX_CHANNEL_TYPE *ast)
+{
+	if (ast) {
+		struct ast_timer *timer=ast->timer;
+		if (timer) {
+			//ast_log(LOG_NOTICE, "%s: (clean_timer_fds) timername: %s, fd:%d\n", ast->name, ast_timer_get_name(timer), ast_timer_fd(timer));
+			ast_timer_disable_continuous(timer);
+			ast_timer_close(timer);
+			ast_channel_set_fd(ast, AST_TIMING_FD, -1);
+		}
+	}
 }
 
 static void sccp_wrapper_asterisk108_setOwner(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbx_channel)
@@ -1448,10 +1462,10 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 		get_skinnyFormats(requestor->nativeformats & AST_FORMAT_VIDEO_MASK, videoCapabilities, ARRAY_LEN(videoCapabilities));
 	}
 
-	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
+	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
 	// sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_4 "remote audio caps: %s\n", cap_buf);
 
-	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, videoCapabilities, ARRAY_LEN(videoCapabilities));
+	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, videoCapabilities, ARRAY_LEN(videoCapabilities));
 	// sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_4 "remote video caps: %s\n", cap_buf);
 
 	/** done */
@@ -1488,6 +1502,20 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 		goto EXITFUNC;
 	}
+
+	/* set initial connected line information, to be exchange with remove party during first CONNECTED_LINE update */
+	ast_set_callerid(channel->owner, channel->line->cid_num, channel->line->cid_name, channel->line->cid_num);
+	struct ast_party_connected_line connected;
+	ast_party_connected_line_set_init(&connected, &channel->owner->connected);
+	connected.id.number.valid = 1;
+	connected.id.number.str = (char *)channel->line->cid_num;
+	connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
+	connected.id.name.valid = 1;
+	connected.id.name.str = (char *)channel->line->cid_name;
+	connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
+	connected.source = AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN;
+	ast_channel_set_connected_line(channel->owner, &connected, NULL);
+	/* end */
 
 	if (requestor) {
 		/* set calling party */
@@ -1557,7 +1585,7 @@ static int sccp_wrapper_asterisk18_answer(PBX_CHANNEL_TYPE * chan)
 	int res = -1;
 	AUTO_RELEASE sccp_channel_t *channel = get_sccp_channel_from_pbx_channel(chan);
 	if (channel) {
-		res = sccp_pbx_answer(channel);
+		res = sccp_pbx_answered(channel);
 	}
 	return res;
 }
@@ -2153,7 +2181,7 @@ static boolean_t sccp_wrapper_asterisk18_createRtpInstance(constDevicePtr d, con
 	/* add payload mapping for skinny codecs */
 	uint8_t i;
 	struct ast_rtp_codecs *codecs = ast_rtp_instance_get_codecs(instance);
-	for (i = 0; i < sccp_getnumber_of_skinny_codecs(); i++) {
+	for (i = 0; i < sccp_codec_getArrayLen(); i++) {
 		/* add audio codecs only */
 		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == codec_type) {
 			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, rtp_map_filter, (char *) skinny_codecs[i].mimesubtype, (enum ast_rtp_options) 0, skinny_codecs[i].sample_rate);
@@ -3059,6 +3087,7 @@ const PbxInterface iPbx = {
 	findPickupChannelByGroupLocked:	sccp_wrapper_asterisk18_findPickupChannelByGroupLocked,
 
 	set_owner:			sccp_wrapper_asterisk108_setOwner,
+	removeTimingFD:			sccp_wrapper_asterisk108_removeTimingFD,
 	dumpchan:			NULL,
 	channel_is_bridged:		sccp_wrapper_asterisk108_channelIsBridged,
 	get_bridged_channel:		sccp_wrapper_asterisk108_getBridgeChannel,
@@ -3185,6 +3214,7 @@ const PbxInterface iPbx = {
 	.findPickupChannelByGroupLocked = sccp_wrapper_asterisk18_findPickupChannelByGroupLocked,
 
 	.set_owner			= sccp_wrapper_asterisk108_setOwner,
+	.removeTimingFD			= sccp_wrapper_asterisk108_removeTimingFD,
 	.dumpchan			= NULL,
 	.channel_is_bridged		= sccp_wrapper_asterisk108_channelIsBridged,
 	.get_bridged_channel		= sccp_wrapper_asterisk108_getBridgeChannel,

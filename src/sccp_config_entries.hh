@@ -65,6 +65,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"transfer_on_hangup",		G_OBJ_REF(transfer_on_hangup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Complete transfer on hangup, without pressing transfer a second time.\n"
 																																					"Will complete transfer, when the transferer puts the receiver on hook, after the destination has been reached.\n"
 																																					"To cancel the transfer, either press resume on the transfered channel, press the 'endcall' softkey, or have the receiving party hangup first.\n"},
+	{"dnd_tone", 			G_OBJ_REF(dnd_tone),	 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x0",				"Sets to 0 to disable the dnd tone\n"},
 	{"callwaiting_tone", 		G_OBJ_REF(callwaiting_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x2d",				"Sets to 0 to disable the callwaiting tone\n"},
 	{"callwaiting_interval", 	G_OBJ_REF(callwaiting_interval),	TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0",				"Callwaiting ring interval in seconds. Set to 0 to disable the callwaiting ringing interval.\n"},
 	{"musicclass", 			G_OBJ_REF(musicclass), 			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"default",			"Sets the default music on hold class\n"},
@@ -157,6 +158,9 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"backoff_time", 		G_OBJ_REF(token_backoff_time),		TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"60",				"Time to wait before re-asking to fallback to primairy server (Token Reject Backoff Time)\n"},
 	{"server_priority", 		G_OBJ_REF(server_priority),		TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"1",				"Server Priority for fallback: 1=Primairy, 2=Secundary, 3=Tertiary etc\n"
 																																					"For active-active (fallback=odd/even) use 1 for both\n"},
+#if defined(CS_EXPERIMENTAL_XML)
+	{"webdir",			G_OBJ_REF(webdir),			TYPE_PARSER(sccp_config_parse_webdir),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"Directory where xslt stylesheets can be found.\n"},
+#endif
 };
 
 /*!
@@ -225,9 +229,13 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 																																					" - button = line,1234,default\n"
 																																					" - button = empty\n"
 																																					" - button = line,98099@11:Phone1\n"
-																																					" - button = line,98099@12:Phone2!silent\n"
+																																					" - button = line,98099@12:Phone2@ButtonLabel!silent			; append cidnum:'12' and cidname:'Phone2' to line-ci with label 'ButtonLabel', don't ring when dialed directly\n"
+																																					" - button = line,98099@+12:Phone2@ButtonLabel!silent			; same as the previous line\n"
+																																					" - button = line,98099@=12:Phone2!silent				; overwrite line-cid instead of appending\n"
 																																					" - button = speeddial,Phone 2 Line 1, 98021, 98021@hints\n"
-																																					" - button = feature,cfwdall,1234\n"},
+																																					" - button = feature,cfwdall,1234\n"
+																																					" - button = feature,PDefault,ParkingLot,default			; feature, name, feature_type, parkinglotContext[,RetrieveSingle]\n"
+																																					" - button = feature,PDefault,ParkingLot,default,RetrieveSingle		; feature, name, feature_type, parkinglotContext[,RetrieveSinglen]\r"},
 /*	{"digittimeout", 		D_OBJ_REF(digittimeout), 		TYPE_INT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"8",				"More digits\n"},*/
 	{"allowRinginNotification", 	D_OBJ_REF(allowRinginNotification), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"allow ringin notification for hinted extensions. experimental configuration param that may be removed in further version\n"},
 #ifdef CS_SCCP_CONFERENCE
@@ -316,8 +324,8 @@ static const SCCPConfigOption sccpSoftKeyConfigOptions[] = {
 	{"conntrans",			S_OBJ_REF(modes[KEYMODE_CONNTRANS]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"hold,endcall,transfer,conf,park,select,dirtrfr,vidmode,meetme,cfwdall,cfwdbusy",	"displayed when we are connected and could transfer a call"},
 	{"digitsfoll",			S_OBJ_REF(modes[KEYMODE_DIGITSFOLL]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"back,endcall,dial",									"displayed when one or more digits have been entered, more are expected"},
 	{"connconf",			S_OBJ_REF(modes[KEYMODE_CONNCONF]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"conflist,newcall,endcall,hold,vidmode",						"displayed when we are in a conference"},
-	{"ringout",			S_OBJ_REF(modes[KEYMODE_RINGOUT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"empty,endcall",									"displayed when We are calling someone"},
-	{"offhookfeat",			S_OBJ_REF(modes[KEYMODE_OFFHOOKFEAT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,endcall",									"displayed wenn we went offhook using a feature"},
+	{"ringout",			S_OBJ_REF(modes[KEYMODE_RINGOUT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"empty,endcall,transfer",								"displayed when We are calling someone"},
+	{"offhookfeat",			S_OBJ_REF(modes[KEYMODE_OFFHOOKFEAT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"resume,newcall,endcall",								"displayed wenn we went offhook using a feature"},
 	{"onhint",			S_OBJ_REF(modes[KEYMODE_INUSEHINT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,newcall,pickup,gpickup,barge",							"displayed when a hint is activated"},
 	{"onstealable",			S_OBJ_REF(modes[KEYMODE_ONHOOKSTEALABLE]),TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,newcall,cfwdall,pickup,gpickup,dnd,intrcpt",					"displayed when there is a call we could steal on one of the neighboring phones"},
 	{"holdconf",			S_OBJ_REF(modes[KEYMODE_HOLDCONF]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"resume,newcall,endcall,join",								"displayed when we are a conference moderator, have the conference on hold and have another active call"},

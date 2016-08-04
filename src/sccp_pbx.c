@@ -257,8 +257,6 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		}
 		/* Set the channel calledParty Name and Number 7910 compatibility */
 	}
-	iPbx.set_connected_line(c, l->cid_num, l->cid_name, AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN);
-
 	//! \todo implement dnid, ani, ani2 and rdnis
 	sccp_callerid_presentation_t pbx_presentation = iPbx.get_callerid_presentation ? iPbx.get_callerid_presentation(c->owner) : SCCP_CALLERID_PRESENTATION_SENTINEL;
 	if (	(!sccp_strequals(suffixedNumber, cid_num)) || 
@@ -379,6 +377,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	//sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: isRinging:%d, hadDNDParticipant:%d, ForwardingLineDevice:%p\n", c->designator, isRinging, hasDNDParticipant, ForwardingLineDevice);
 	if (isRinging) {
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_RINGING);
+		iPbx.set_callstate(c, AST_STATE_RINGING);
 		iPbx.queue_control(c->owner, AST_CONTROL_RINGING);
 	} else if (ForwardingLineDevice) {
 		/* when single line -> use asterisk functionality directly, without creating new channel + masquerade */
@@ -534,7 +533,7 @@ sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
  *
  * \todo masquarade does not succeed when forwarding to a dialplan extension which starts with PLAYBACK (Is this still the case, i think this might have been resolved ?? - DdG -)
  */
-int sccp_pbx_answer(sccp_channel_t * channel)
+int sccp_pbx_answered(sccp_channel_t * channel)
 {
 	int res = 0;
 
@@ -614,13 +613,12 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 		// FINISH
 	} else {
 
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) Outgoing call %s has been answered on %s@%s\n", c->currentDeviceId, iPbx.getChannelName(c), c->line->name, c->currentDeviceId);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) Outgoing call %s has been answered by remote party\n", c->currentDeviceId, iPbx.getChannelName(c));
 		sccp_channel_updateChannelCapability(c);
 
 		/*! \todo This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
 		   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
 		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
-
 		if (d) {
 			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
 				/* 
@@ -652,7 +650,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 			}
 		}
 
-		if (c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) {
+		if (c->rtp.video.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) {
 			iPbx.queue_control(c->owner, AST_CONTROL_VIDUPDATE);
 		}
 	}
@@ -740,6 +738,10 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 				iCallInfo.Setter(ci, 
 					SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
+					SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &cid_num,
+					SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &cid_name,
+					SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, &cid_num,
+					SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &cid_name,
 					SCCP_CALLINFO_KEY_SENTINEL);
 				break;
 			case SKINNY_CALLTYPE_SENTINEL:
@@ -764,8 +766,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:             amaflags: \"%d\"\n", l->amaflags);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:            chan/call: \"%s\"\n", c->designator);
 	char s1[512], s2[512];
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:combined capabilities: \"%s\"\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, channel->capabilities.audio, SKINNY_MAX_CAPABILITIES));
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:  reduced preferences: \"%s\"\n", sccp_multiple_codecs2str(s2, sizeof(s2) - 1, channel->preferences.audio, SKINNY_MAX_CAPABILITIES));
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:combined capabilities: \"%s\"\n", sccp_codec_multiple2str(s1, sizeof(s1) - 1, channel->capabilities.audio, SKINNY_MAX_CAPABILITIES));
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:  reduced preferences: \"%s\"\n", sccp_codec_multiple2str(s2, sizeof(s2) - 1, channel->preferences.audio, SKINNY_MAX_CAPABILITIES));
 
 	/* This should definitely fix CDR */
 	iPbx.alloc_pbxChannel(c, ids, parentChannel, &tmp);
@@ -960,7 +962,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) PBX structure already exists. Dialing instead of starting.\n");
 			/* If there are any digits, send them instead of starting the PBX */
 			if (!sccp_strlen_zero(c->dialedNumber)) {
-				//sccp_pbx_senddigits(c, c->dialedNumber);
 				if (iPbx.send_digits) {
 					iPbx.send_digits(channel, c->dialedNumber);
 				}
@@ -1156,8 +1157,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				goto EXIT_FUNC;
 			case SCCP_SOFTSWITCH_DIAL:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension %s\n", d->id, shortenedNumber);
-				//sccp_channel_set_calledparty(c, NULL, shortenedNumber);
-				//sccp_channel_set_calledparty(c, "", c->dialedNumber);
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 				/* fall through */
 		}

@@ -80,6 +80,7 @@ struct sccp_global_vars {
 	uint8_t autoanswer_tone;										/*!< Auto Answer Tone */
 	uint8_t remotehangup_tone;										/*!< Remote Hangup Tone */
 	uint8_t transfer_tone;											/*!< Transfer Tone */
+	uint8_t dnd_tone;											/*!< DND Tone */
 	uint8_t callwaiting_tone;										/*!< Call Waiting Tone */
 
 	uint8_t callwaiting_interval;										/*!< Call Waiting Ring Interval */

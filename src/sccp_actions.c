@@ -28,6 +28,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_features.h"
 #include "sccp_indicate.h"
 #include "sccp_line.h"
+#include "sccp_featureParkingLot.h"
 
 /*!
  * \remarks
@@ -258,7 +259,7 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 /*!
  * \brief Handle BackSpace Event for Device
  * \param d SCCP Device as sccp_device_t
- * \param line Line Number as uint8_t
+ * \param lineInstance Line Instance as uint8_t
  * \param callid Call ID as uint32_t
  */
 void sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const uint32_t callid)
@@ -325,12 +326,7 @@ void handle_unknown_message(constSessionPtr no_s, devicePtr no_d, constMessagePt
 }
 
 
-/*!
- * \brief Handle Alarm
- * \param no_s SCCP Session = NULL
- * \param no_d SCCP Device = NULL
- * \param msg_in SCCP Message
- *
+/*
  * Interesting values for Last =
  * 0 Phone Load Is Rejected
  * 1 Phone Load TFTP Size Error
@@ -364,6 +360,14 @@ void handle_unknown_message(constSessionPtr no_s, devicePtr no_d, constMessagePt
  * 30 Phone Abort CCM TCP Connection
  * 31 File Authorization Failed
  */
+
+/*!
+ * \brief Handle Alarm
+ * \param s SCCP Session = NULL
+ * \param no_d SCCP Device = NULL
+ * \param msg_in SCCP Message
+ *
+ */
 void handle_alarm(constSessionPtr s, devicePtr no_d, constMessagePtr msg_in)
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Alarm Message: Severity: %s (%d), %s [%d/%d]\n", 
@@ -376,7 +380,7 @@ void handle_alarm(constSessionPtr s, devicePtr no_d, constMessagePtr msg_in)
 
 /*!
  * \brief Handle Unknown Message
- * \param no_s SCCP Session = NULL
+ * \param s SCCP Session = NULL
  * \param no_d SCCP Device = NULL
  * \param msg_in SCCP Message
  */
@@ -446,8 +450,8 @@ void handle_XMLAlarmMessage(constSessionPtr s, devicePtr no_d, constMessagePtr m
 
 /*!
  * \brief Handle LocationInfo Message send by Wireless devices like 792X
- * \param no_s SCCP Session = NULL
- * \param no_d SCCP Device = NULL
+ * \param s SCCP Session = NULL
+ * \param d SCCP Device = NULL
  * \param msg_in SCCP Message
  */
 void handle_LocationInfoMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
@@ -690,6 +694,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 			}
 			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + 60) {
 				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
+				sleep(1);
 				return;
 			}
 			if ((state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
@@ -1116,6 +1121,22 @@ static btnlist *sccp_make_button_template(devicePtr d)
 								}
 								break;
 
+							case SCCP_FEATURE_PARKINGLOT:
+#ifdef CS_SCCP_PARK
+								if (iParkingLot.attachObserver && iParkingLot.attachObserver(buttonconfig->button.feature.options, d, buttonconfig->instance)) {
+									if (d->inuseprotocolversion > 15) {
+										btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+										buttonconfig->button.feature.status = 0x010000;
+									} else {
+										btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
+										buttonconfig->button.feature.status = 0;
+									}
+								} else {
+									btn[i].type = SKINNY_BUTTONTYPE_PARKINGLOT;
+								}
+#endif
+								break;
+
 							case SCCP_FEATURE_MOBILITY:
 								btn[i].type = SKINNY_BUTTONTYPE_MOBILITY;
 								break;
@@ -1166,10 +1187,6 @@ static btnlist *sccp_make_button_template(devicePtr d)
 
 							case SCCP_FEATURE_END_CALL:
 								btn[i].type = SKINNY_BUTTONTYPE_END_CALL;
-								break;
-
-							case SCCP_FEATURE_TESTE:
-								btn[i].type = SKINNY_BUTTONTYPE_TESTE;
 								break;
 
 							case SCCP_FEATURE_TESTF:
@@ -1231,7 +1248,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
  * \brief Handle Available Lines
  * \param s SCCP Session
  * \param d SCCP Device
- * \param msg_in SCCP Message
+ * \param none SCCP Message
  *
  * \callgraph
  * \callergraph
@@ -1284,7 +1301,7 @@ void handle_accessorystatus_message(constSessionPtr s, devicePtr d, constMessage
 /*!
  * \brief Handle Device Unregister
  * \param s SCCP Session
- * \param d SCCP Device
+ * \param device SCCP Device
  * \param msg_in SCCP Message
  */
 void handle_unregister(constSessionPtr s, devicePtr device, constMessagePtr msg_in)
@@ -1314,7 +1331,7 @@ void handle_unregister(constSessionPtr s, devicePtr device, constMessagePtr msg_
  * \brief Handle Button Template Request for Session
  * \param s SCCP Session
  * \param d SCCP Device
- * \param msg_in SCCP Message
+ * \param none SCCP Message
  *
  * \warning
  *   - device->buttonconfig is not always locked
@@ -2162,6 +2179,14 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 
 			break;
 #endif
+		case SCCP_FEATURE_PARKINGLOT:
+#ifdef CS_SCCP_PARK
+			sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: ParkingLot:'%s' Action, State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options ? config->button.feature.options : "", config->button.feature.status ? "On" : "Off");
+			if (TRUE == toggleState && iParkingLot.handleButtonPress) {
+				iParkingLot.handleButtonPress(config->button.feature.options, d, instance);
+			}
+#endif
+			break;
 		case SCCP_FEATURE_MULTIBLINK:
 			featureStat1 = (d->priFeature.status & 0xf) - 1;
 			featureStat2 = ((d->priFeature.status & 0xf00) >> 8) - 1;
@@ -2239,7 +2264,7 @@ static const struct _skinny_stimulusMap_cb {
 	[SKINNY_STIMULUS_NEW_CALL] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_END_CALL] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_HLOG] 				= {handle_stimulus_feature, FALSE},
-	[SKINNY_STIMULUS_TESTE] 			= {handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_PARKINGLOT] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_TESTF] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_TESTI] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_MESSAGES] 			= {handle_stimulus_feature, FALSE},
@@ -2485,7 +2510,7 @@ void handle_capabilities_res(constSessionPtr s, devicePtr d, constMessagePtr msg
 	}
 	
 	char cap_buf[512];
-	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
+	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: num of codecs %d, capabilities: %s\n", DEV_ID_LOG(d), (int) ARRAY_LEN(d->capabilities.audio), cap_buf);
 }
 
@@ -2493,7 +2518,7 @@ void handle_capabilities_res(constSessionPtr s, devicePtr d, constMessagePtr msg
  * \brief Handle Soft Key Template Request Message for Session
  * \param s SCCP Session
  * \param d SCCP Device
- * \param msg_in SCCP Message
+ * \param none SCCP Message
  */
 void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
@@ -2822,7 +2847,7 @@ void handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMessage
  * \brief Handle Time/Date Request Message for Session
  * \param s SCCP Session
  * \param d SCCP Device
- * \param msg_in SCCP Message
+ * \param none SCCP Message
  */
 void sccp_handle_time_date_req(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
@@ -2861,18 +2886,20 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 {
 	pbx_assert(d != NULL);
 	int digit;
-	uint8_t lineInstance;
-	uint32_t callid;
+	uint8_t lineInstance = 0;
+	uint32_t callid = 0;
 	char resp = '\0';
 	int len = 0;
 
 	digit 		= letohl(msg_in->data.KeypadButtonMessage.lel_kpButton);
-	callid 		= letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
-	lineInstance 	= letohl(msg_in->data.KeypadButtonMessage.lel_lineInstance);
-	
-	//pbx_log(LOG_NOTICE, "%s: lineInstance %d\n", sccp_session_getDesignator(s), lineInstance);
-	//pbx_log(LOG_NOTICE, "%s: callid %d\n", sccp_session_getDesignator(s), callid);
-
+	if (d->skinny_type != SKINNY_DEVICETYPE_CISCO7936) {								/* 7936 sends ipaddress and rtp port and more */
+		if (msg_in->header.length >= 16) {
+			callid 		= letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
+			if (msg_in->header.length >= 20) {
+				lineInstance 	= letohl(msg_in->data.KeypadButtonMessage.lel_lineInstance);
+			}
+		}
+	}
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	AUTO_RELEASE sccp_line_t *l = NULL;
 	
@@ -2979,8 +3006,8 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 
 		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digittimeout '%d' ms, sched_wait '%d' ms\n", channel->enbloc.digittimeout, iPbx.sched_wait(channel->scheduler.digittimeout_id));
 		if (GLOB(simulate_enbloc) && !channel->enbloc.deactivate && number_of_digits >= 1) {		// skip the first digit (first digit had longer delay than the rest)
-			if ((channel->enbloc.digittimeout) < (iPbx.sched_wait(channel->scheduler.digittimeout_id))) {
-				lpbx_digit_usecs = (channel->enbloc.digittimeout) - (iPbx.sched_wait(channel->scheduler.digittimeout_id));
+			if ((int)channel->enbloc.digittimeout < (iPbx.sched_wait(channel->scheduler.digittimeout_id))) {
+				lpbx_digit_usecs = (channel->enbloc.digittimeout * 1000) - (iPbx.sched_wait(channel->scheduler.digittimeout_id));
 			} else {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU Cancelled (past digittimeout)\n");
 				channel->enbloc.deactivate = 1;
@@ -2996,7 +3023,7 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 						sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU sqrt((%d-((pow(%d, 2))/%d))/%d)='%2.2f'\n", channel->enbloc.totaldigittimesquared, channel->enbloc.totaldigittime, number_of_digits, number_of_digits - 1, std_deviation);
 						sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU totaldigittimesquared '%d', totaldigittime '%d', number_of_digits '%d', std_deviation '%2.2f', variance '%2.2f'\n", channel->enbloc.totaldigittimesquared, channel->enbloc.totaldigittime, number_of_digits, std_deviation, variance);
 						if (std_deviation < max_deviation) {
-							if (channel->enbloc.digittimeout > timeout_if_enbloc) {	// only display message and change timeout once
+							if ((int)channel->enbloc.digittimeout > timeout_if_enbloc) {	// only display message and change timeout once
 								sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU FAST DIAL (new timeout=2 sec)\n");
 								channel->enbloc.digittimeout = timeout_if_enbloc;	// set new digittimeout
 							}
@@ -3178,7 +3205,7 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 
 			}
 			sccp_rtp_set_phone(channel, rtp, &sas);
-			//rtp->writeState = SCCP_RTP_STATUS_PORTSET;
+			//rtp->receiveChannelState = SCCP_RTP_STATUS_PORTSET;
 		}
 	}
 }
@@ -3242,10 +3269,13 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 		sccp_channel_setDevice(channel, d);
 		if (channel->rtp.audio.instance) {
 			sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
-			sccp_channel_updateMediaTransmission(channel);
+			if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.mediaTransmissionState) {
+				sccp_channel_startMediaTransmission(channel);
+			}
+			sccp_channel_send_callinfo(d, channel);
 
 			/* update status */
-			channel->rtp.audio.writeState = SCCP_RTP_STATUS_ACTIVE;
+			channel->rtp.audio.receiveChannelState = SCCP_RTP_STATUS_ACTIVE;
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 			if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 				iPbx.queue_control(channel->owner, AST_CONTROL_ANSWER);
@@ -3253,7 +3283,7 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 				/* 'PROD' the remote side to let them know we can receive inband signalling from this moment onwards -> inband signalling required */
 				pbx_indicate(channel->owner, -1);
 			}
-			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
+			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE))) {
 				iPbx.set_callstate(channel, AST_STATE_UP);
 			}
 		} else {
@@ -3322,12 +3352,12 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s\n", d->id, sccp_netsock_stringify(&sas));
 			sccp_rtp_set_phone(channel, &channel->rtp.video, &sas);
-			channel->rtp.video.writeState = SCCP_RTP_STATUS_ACTIVE;
+			channel->rtp.video.receiveChannelState = SCCP_RTP_STATUS_ACTIVE;
 
 			if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 				iPbx.queue_control(channel->owner, AST_CONTROL_ANSWER);
 			}
-			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
+			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE))) {
 				iPbx.set_callstate(channel, AST_STATE_UP);
 			}
 		} else {
@@ -3405,13 +3435,13 @@ void handle_startmediatransmission_ack(constSessionPtr s, devicePtr d, constMess
 	} else {
 		if (channel->state != SCCP_CHANNELSTATE_DOWN) {
 			/* update status */
-			channel->rtp.audio.readState = SCCP_RTP_STATUS_ACTIVE;
+			channel->rtp.audio.mediaTransmissionState = SCCP_RTP_STATUS_ACTIVE;
 
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 			if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 				iPbx.queue_control(channel->owner, AST_CONTROL_ANSWER);
 			}
-			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
+			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE))) {
 				iPbx.set_callstate(channel, AST_STATE_UP);
 			}
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: '%s' (%d), Remote TCP/IP: '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), callID, callID1, partyID);
@@ -3447,14 +3477,14 @@ void handle_startmultimediatransmission_ack(constSessionPtr s, devicePtr d, cons
 		pbx_log(LOG_ERROR, "%s: (StartMultiMediaTransmissionAck) Device returned: '%s' (%d) !. Ending Call.\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
 		if (c) {
 			sccp_channel_endcall(c);
-			c->rtp.video.readState = SCCP_RTP_STATUS_INACTIVE;
+			c->rtp.video.mediaTransmissionState = SCCP_RTP_STATUS_INACTIVE;
 		}
 		return;
 	}
 
 	if (c) {
 		/* update status */
-		c->rtp.video.readState = SCCP_RTP_STATUS_ACTIVE;
+		c->rtp.video.mediaTransmissionState = SCCP_RTP_STATUS_ACTIVE;
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK. Remote TCP/IP '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), sccp_netsock_stringify(&ss), callID, callID1, partyID);
 		return;
 	}
@@ -4287,7 +4317,7 @@ void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constM
 /*!
  * \brief Handle Keep Alive Message
  * \param s SCCP Session
- * \param d SCCP Device
+ * \param maybe_d SCCP Device
  * \param msg_in SCCP Message
  */
 void handle_KeepAliveMessage(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_in)
@@ -4304,33 +4334,43 @@ void handle_KeepAliveMessage(constSessionPtr s, devicePtr maybe_d, constMessageP
  */
 void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
-	uint32_t appID;
-	uint32_t callReference;
-	uint32_t transactionID;
-	uint32_t dataLength;
+	uint32_t appID = 0;
+	uint32_t callReference = 0;
+	uint32_t lineInstance = 0;
+	uint32_t transactionID = 0;
+	uint32_t dataLength = 0;
 	char data[StationMaxXMLMessage] = "";
 
 #ifdef CS_SCCP_CONFERENCE
-	uint32_t lineInstance;
-	uint32_t conferenceID;
-	uint32_t participantID;
+	uint32_t conferenceID = 0;
+	uint32_t participantID = 0;
 #endif
 
 	appID = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_appID);
-#ifdef CS_SCCP_CONFERENCE
-	lineInstance = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_lineInstance);
-#endif
 	callReference = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_callReference);
+	lineInstance = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_lineInstance);
 	transactionID = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_transactionID);
-	dataLength = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_dataLength);
 
+	dataLength = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_dataLength);
 	if (dataLength) {
 		memset(data, 0, dataLength);
 		memcpy(data, msg_in->data.DeviceToUserDataVersion1Message.data, dataLength);
 	}
 
-	sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle DTU for AppID:%d, data:'%s', length:%d\n", d->id, appID, data, dataLength);
-	if (0 != appID && 0 != callReference && 0 != transactionID) {
+	if (lineInstance == 0 && callReference == 0) {
+		if (dataLength) {
+			/* split data by "/" */
+			char str_action[11] = "", str_transactionID[11] = "";
+			if (sscanf(data, "%10[^/]/%10s", str_action, str_transactionID) > 0) {
+				sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s, %s\n", d->id, str_action, str_transactionID);
+				d->dtu_softkey.action = pbx_strdup(str_action);
+				d->dtu_softkey.transactionID = sccp_atoi(str_transactionID, sizeof(str_transactionID));
+			} else {
+				pbx_log(LOG_NOTICE, "%s: Failure parsing DTU Softkey Button: %s\n", d->id, data);
+			}
+		}
+	} else {
+		sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle DTU for AppID:%d, data:'%s', length:%d\n", d->id, appID, data, dataLength);
 		switch (appID) {
 			case APPID_CONFERENCE:									// Handle Conference App
 #ifdef CS_SCCP_CONFERENCE
@@ -4348,25 +4388,19 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 				//sccp_conference_handle_device_to_user(d, callReference, transactionID, conferenceID, participantID);
 #endif
 				break;
+			case APPID_VISUALPARKINGLOT:								// Handle Conference Invite
+#ifdef CS_SCCP_PARK
+				sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle VisualParkingLot Info for AppID %d , Transaction %d, Action: %s, Observer:%d, Data:%s\n", d->id, appID, transactionID, d->dtu_softkey.action, lineInstance, data);
+				char parkinglot[11] = "", slot_exten[11] = "";
+				if (sscanf(data, "%10[^/]/%10s", parkinglot, slot_exten) > 0) {
+					iParkingLot.handleDevice2User(parkinglot, d, slot_exten, lineInstance, transactionID);
+				}
+#endif
+				break;
 			case APPID_PROVISION:
 				break;
 		}
-	} else {
-		// It has data -> must be a softkey
-		if (dataLength) {
-			/* split data by "/" */
-			char str_action[11] = "", str_transactionID[11] = "";
-
-			if (sscanf(data, "%10[^/]/%10s", str_action, str_transactionID) > 0) {
-				sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s, %s\n", d->id, str_action, str_transactionID);
-				d->dtu_softkey.action = pbx_strdup(str_action);
-				d->dtu_softkey.transactionID = sccp_atoi(str_transactionID, sizeof(str_transactionID));
-			} else {
-				pbx_log(LOG_NOTICE, "%s: Failure parsing DTU Softkey Button: %s\n", d->id, data);
-			}
-		}
 	}
-
 }
 
 /*!

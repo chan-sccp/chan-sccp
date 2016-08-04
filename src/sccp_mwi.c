@@ -207,10 +207,10 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
 #elif defined(CS_AST_HAS_STASIS)
 /*!
  * \brief Receive MWI Event from Asterisk
- * \param event Asterisk Event
- * \param data Asterisk Data
+ * \param userdata Asterisk Event UserData
+ * \param sub Asterisk Stasis Subscription
+ * \param msg Asterisk Stasis Message
  */
-
 void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stasis_message *msg)
 {
 	sccp_mailbox_subscriber_list_t *subscription = userdata;

@@ -152,6 +152,7 @@ typedef struct _PbxInterface {
 //	void (*const endpoint_shutdown)(PBX_ENDPOINT_TYPE *endpoint);
 
         void (*const set_owner)(sccp_channel_t *channel, PBX_CHANNEL_TYPE *pbx_channel);
+        void (*const removeTimingFD)(PBX_CHANNEL_TYPE *pbx_channel);
 	int (*const dumpchan) (PBX_CHANNEL_TYPE *pbx_channel, char *buf, size_t size);
 	boolean_t (*const channel_is_bridged) (sccp_channel_t *channel);
 	PBX_CHANNEL_TYPE *(*const get_bridged_channel) (PBX_CHANNEL_TYPE *pbx_channel);					/* takes pbx_channel_ref */

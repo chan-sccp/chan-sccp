@@ -176,7 +176,7 @@ int sccp_rtp_requestRTPPorts(constDevicePtr device, channelPtr channel)
 
 /*!
  * \brief Stop an RTP Source.
- * \param c SCCP Channel
+ * \param channel SCCP Channel
  */
 void sccp_rtp_stop(constChannelPtr channel)
 {
@@ -244,7 +244,7 @@ void sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t * const rtp, struct sockadd
 	memcpy(&rtp->phone_remote, new_peer, sizeof rtp->phone_remote);
 	pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_peer ) Set new remote address to %s\n", c->currentDeviceId, sccp_netsock_stringify(&rtp->phone_remote));
 
-	if (rtp->readState != SCCP_RTP_STATUS_INACTIVE) {
+	if (rtp->mediaTransmissionState != SCCP_RTP_STATUS_INACTIVE) {
 		/* Shutdown any early-media or previous media on re-invite */
 		/*! \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Restart media transmission on channel %d\n", c->currentDeviceId, c->callid);
@@ -327,7 +327,7 @@ int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp)
 		if (d->nat >= SCCP_NAT_ON) {
 			uint16_t port = sccp_rtp_getServerPort(rtp);					// get rtp server port
 			if (!sccp_netsock_getExternalAddr(phone_remote, remoteFamily)) {		// get externip/externhost ip-address (PBX behind NAT Firewall)
-				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_2 "%s: no externip/externhost set, falling back to using incoming interface address:%s\n", d->id, sccp_netsock_stringify(&sus))
+				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_2 "%s: no externip/externhost set, falling back to using incoming interface address:%s\n", d->id, sccp_netsock_stringify(&sus));
 				memcpy(phone_remote, &sus, sizeof(struct sockaddr_storage));
 			}
 			if (usFamily != remoteFamily) {

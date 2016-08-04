@@ -123,15 +123,15 @@ struct skinny_codec {
 	unsigned int rtp_payload_type;
 };
 extern const struct skinny_codec skinny_codecs[];
-SCCP_API uint8_t SCCP_CALL sccp_getnumber_of_skinny_codecs(void);
+SCCP_API uint8_t SCCP_CALL sccp_codec_getArrayLen(void);
 SCCP_INLINE const char * SCCP_CALL codec2str(skinny_codec_t value);
 SCCP_INLINE const char * SCCP_CALL codec2name(skinny_codec_t value);
-SCCP_API char * SCCP_CALL sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength);
-SCCP_API int SCCP_CALL sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing);
-SCCP_API boolean_t SCCP_CALL sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length);
-SCCP_API void SCCP_CALL sccp_utils_reduceCodecSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES]);
-SCCP_API void SCCP_CALL sccp_utils_combineCodecSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t addCodecs[SKINNY_MAX_CAPABILITIES]);
-SCCP_API skinny_codec_t SCCP_CALL sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int cLength, const skinny_codec_t remotePeerCapabilities[], int rLength);
+SCCP_API char * SCCP_CALL sccp_codec_multiple2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength);
+SCCP_API int SCCP_CALL sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing);
+SCCP_API boolean_t SCCP_CALL sccp_codec_isCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length);
+SCCP_API void SCCP_CALL sccp_codec_reduceSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES]);
+SCCP_API void SCCP_CALL sccp_codec_combineSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t addCodecs[SKINNY_MAX_CAPABILITIES]);
+SCCP_API skinny_codec_t SCCP_CALL sccp_codec_findBestJoint(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int cLength, const skinny_codec_t remotePeerCapabilities[], int rLength);
 
 __END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

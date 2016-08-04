@@ -17,6 +17,7 @@
 #include "sccp_management.h"
 #include "sccp_session.h"
 #include "sccp_utils.h"
+#include "sccp_featureParkingLot.h"
 #include <asterisk/threadstorage.h>
 
 SCCP_FILE_VERSION(__FILE__, "");
@@ -436,7 +437,6 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
  */
 static int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 {
-
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *lineName = astman_get_header(m, "Linename");
 	const char *forwardType = astman_get_header(m, "Forwardtype");
@@ -837,12 +837,11 @@ SEND_RESPONSE:
 }
 
 #if HAVE_PBX_MANAGER_HOOK_H
-
-/**
- * parse string from management hook to struct message
- * 
+/*!
+ * \brief parse string from management hook to struct message
+ * \note side effect: this function changes/consumes the str pointer
  */
-static void sccp_asterisk_parseStrToAstMessage(char *str, struct message *m)
+static char * sccp_asterisk_parseStrToAstMessage(char *str, struct message *m)
 {
 	int x = 0;
 	int curlen;
@@ -869,12 +868,12 @@ static void sccp_asterisk_parseStrToAstMessage(char *str, struct message *m)
 		str += x;											/* update pointer */
 		x = -1;												/* reset loop */
 	}
+	return str;
 }
 
-/**
- * 
- * 
- * 
+/*!
+ * \brief HookHelper to parse AMI events
+ * Used to check for Monitor Stop/Start events
  */
 static int sccp_asterisk_managerHookHelper(int category, const char *event, char *content)
 {
@@ -932,13 +931,36 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 					sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 				}
 			}
+#ifdef CS_SCCP_PARK
+		} else if (sccp_strcaseequals("ParkedCall", event) || sccp_strcaseequals("UnParkedCall", event) || sccp_strcaseequals("ParkedCallGiveUp", event) || sccp_strcaseequals("ParkedCallTimeout", event)) {
+			if (iParkingLot.addSlot && iParkingLot.removeSlot) {
+				sccp_log(DEBUGCAT_CORE)("SCCP: (managerHookHelper) %s Received\ncontent:[%s]\n", event, content);
+
+				str = dupStr = pbx_strdupa(content);
+				struct message m = { 0 };
+				sccp_asterisk_parseStrToAstMessage(str, &m);
+
+				const char *parkinglot = astman_get_header(&m, "ParkingLot");
+				const char *extension = astman_get_header(&m, PARKING_SLOT);
+				int exten = sccp_atoi(extension, strlen(extension));
+				if (parkinglot && exten) {
+					if (sccp_strcaseequals("ParkedCall", event)) {
+						iParkingLot.addSlot(parkinglot, exten, &m);
+					} else {
+						iParkingLot.removeSlot(parkinglot, exten);
+					}
+				}
+			}
+#endif
+		//} else {
+		//	sccp_log(DEBUGCAT_CORE)("SCCP: (managerHookHelper) %s Received\ncontent:[%s]\n", event, content);
 		}
 	}
 	return 0;
 }
 
 AST_THREADSTORAGE(hookresult_threadbuf);
-#define HOOKRESULT_INITSIZE   DEFAULT_PBX_STR_BUFFERSIZE
+#define HOOKRESULT_INITSIZE DEFAULT_PBX_STR_BUFFERSIZE*2
 
 #if ASTERISK_VERSION_GROUP >= 108
 /*
@@ -986,29 +1008,64 @@ boolean_t sccp_manager_action2str(const char *manager_command, char **outStr)
 #endif
 }
 
-/* example use
-void example_function() {
-	char *outStr;
-	char *manager_command = "Action: ParkedCalls\r\n";
-	if (sccp_manager_action2str(manager_command, &outStr) >= 0 && outStr) {
-		sccp_log(DEBUGCAT_CORE)("SCCP: hook result: %s\n", outStr);
-		sccp_free(outStr);
-	}
-
-	struct ast_str *amiCommandStr = ast_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-	pbx_str_append(&amiCommandStr,0 ,"Action: MixMonitor\r\n");
-	pbx_str_append(&amiCommandStr,0 ,"Channel: SCCP/98031-00000001\r\n");
-	pbx_str_append(&amiCommandStr,0 ,"File: mixmonitor-test.wav\r\n");
-	pbx_str_append(&amiCommandStr,0 ,"Options: ab\r\n\r\n");
-	
-	if (sccp_manager_action2str(pbx_str_buffer(amiCommandStr), &outStr) >= 0 && outStr) {
-		sccp_log(DEBUGCAT_CORE)("SCCP: hook result: %s\n", outStr);
-		sccp_free(outStr);
-	}
-}
+/*
+<response type='object' id='(null)'><(null) response='Success' message='Parked calls will follow' /></response>
+<response type='object' id='(null)'><(null) event='ParkedCall' parkinglot='default' exten='701' channel='IAX2/iaxuser-2343' from='SCCP/98031-00000001' timeout='41' duration='4' calleridnum='100011' calleridname='Diederik de Groot (10001)' connectedlinenum='' connectedlinename='' /></response>
+<response type='object' id='(null)'><(null) event='ParkedCallsComplete' total='1' /></response>
 */
 
-#endif														/* HAVE_PBX_MANAGER_HOOK_H */
+#if defined(CS_EXPERIMENTAL)
+char * sccp_manager_retrieve_parkedcalls_cxml(char ** out) 
+{
+	char *parkedcalls_messageStr = NULL;
+	char *manager_command = "Action: ParkedCalls\r\n";
+	
+	if (sccp_manager_action2str(manager_command, &parkedcalls_messageStr) && parkedcalls_messageStr) {
+		pbx_str_t *tmpPbxStr = ast_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
+		struct message m = {0};
+		const char *event = "";
 
-#endif														/* CS_SCCP_MANAGER */
+		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_2 "SCCP: (sccp_manager_retrieve_parkedcalls_cxml) content=%s\n",  parkedcalls_messageStr);
+		pbx_str_append(&tmpPbxStr, 0, "<?xml version=\"1.0\"?>");
+		pbx_str_append(&tmpPbxStr, 0, "<CiscoIPPhoneDirectory>");
+		pbx_str_append(&tmpPbxStr, 0, "<Title>Parked Calls</Title>");
+		pbx_str_append(&tmpPbxStr, 0, "<Prompt>Please Choose on of the parking lots</Prompt>");
+		pbx_str_append(&tmpPbxStr, 0, "<DirectoryEntry>");
+		char *strptr = parkedcalls_messageStr;
+		char *token = NULL;
+		char *rest = strptr;
+		while (sscanf(strptr, "%[^\r\n]\r\n\r\n%s", token, rest) && token) {
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_2 "SCCP: (sccp_manager_retrieve_parkedcalls_cxml) token='%s', rest='%s'\n", token, rest);
+			usleep(500);
+
+			token = sccp_asterisk_parseStrToAstMessage(token, &m);
+		        event  = astman_get_header(&m, "Event");
+			if (sccp_strcaseequals(event, "ParkedCallsComplete")) {
+				break;
+			} else if (sccp_strcaseequals(event, "ParkedCall")){
+				pbx_str_append(&tmpPbxStr, 0, "<Name>%s (%s) by %s</Name><Telephone>%s</Telephone>", 
+					astman_get_header((const struct message *)&m, "CallerIdName"), 
+					astman_get_header((const struct message *)&m, "CallerIdNum"),
+					astman_get_header((const struct message *)&m, "ConnectedLineName"),
+					astman_get_header((const struct message *)&m, "Exten")
+				);
+				sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "SCCP: Found ParkedCall: %s on %s@%s\n", astman_get_header((const struct message *)&m, "Channel"), astman_get_header((const struct message *)&m, "Exten"), astman_get_header((const struct message *)&m, "ParkingLot"));
+			}
+		        memset(&m, 0, sizeof(m));
+		        strptr = rest;
+		}
+		pbx_str_append(&tmpPbxStr, 0, "</DirectoryEntry>");
+		pbx_str_append(&tmpPbxStr, 0, "</CiscoIPPhoneDirectory>");
+
+		*out = pbx_strdup(pbx_str_buffer(tmpPbxStr));
+		
+		sccp_free(tmpPbxStr);
+		sccp_free(parkedcalls_messageStr);
+	}
+	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_2 "SCCP: (sccp_manager_retrieve_parkedcalls_cxml) cxml=%s\n", *out);
+	return *out;
+}
+#endif
+#endif														// HAVE_PBX_MANAGER_HOOK_H
+#endif														// CS_SCCP_MANAGER
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
