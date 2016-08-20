@@ -1,0 +1,397 @@
+<Cisco7921PhoneConfig version="1">
+    <ProfileSettings>
+        <Profile1>
+            <ProfileNumber>1</ProfileNumber>
+            <ProfileName></ProfileName>
+            <ProfileEnabled>Yes</ProfileEnabled>
+            <WLANSettings>
+                <SSID>cisco</SSID>
+                <WLANMode>802.11a</WLANMode>
+                <CallPowerSaveMode>U-APSD/PS-POLL</CallPowerSaveMode>
+                <AuthenticationMode>Open</AuthenticationMode>
+                <TitleText1>Wireless Security Credentials</TitleText1>
+                <Username></Username>
+                <Password></Password>
+                <PromptMode>No</PromptMode>
+                <TitleText2>WPA Pre-shared Key Credentials</TitleText2>
+                <PreSharedKeyType>ASCII</PreSharedKeyType>
+                <PreSharedKeyValue></PreSharedKeyValue>
+                <TitleText3>Wireless Encryption</TitleText3>
+                <WepKeysType>Hex</WepKeysType>
+                <WepKeysTxKey>1</WepKeysTxKey>
+                <TitleText4></TitleText4>
+                <WepKey1Length>40</WepKey1Length>
+                <WepKey1Value></WepKey1Value>
+                <WepKey2Length>40</WepKey2Length>
+                <WepKey2Value></WepKey2Value>
+                <WepKey3Length>40</WepKey3Length>
+                <WepKey3Value></WepKey3Value>
+                <WepKey4Length>40</WepKey4Length>
+                <WepKey4Value></WepKey4Value>
+                <AdvancedWLANSettings>
+                    <MinimumPhyRate>12000000</MinimumPhyRate>
+                    <SurplusBandwidth>1.300000</SurplusBandwidth>
+                    <AntennaSelectionA>Diversity</AntennaSelectionA>
+                    <AntennaSelectionG>Vertical</AntennaSelectionG>
+                    <GPowerSettings>
+                        <GChannel1 enabled="Yes" maxTxPower="17"/>
+                        <GChannel2 enabled="Yes" maxTxPower="17"/>
+                        <GChannel3 enabled="Yes" maxTxPower="17"/>
+                        <GChannel4 enabled="Yes" maxTxPower="17"/>
+                        <GChannel5 enabled="Yes" maxTxPower="17"/>
+                        <GChannel6 enabled="Yes" maxTxPower="17"/>
+                        <GChannel7 enabled="Yes" maxTxPower="17"/>
+                        <GChannel8 enabled="Yes" maxTxPower="17"/>
+                        <GChannel9 enabled="Yes" maxTxPower="17"/>
+                        <GChannel10 enabled="Yes" maxTxPower="17"/>
+                        <GChannel11 enabled="Yes" maxTxPower="17"/>
+                        <GChannel12 enabled="Yes" maxTxPower="17"/>
+                        <GChannel13 enabled="Yes" maxTxPower="17"/>
+                        <GChannel14 enabled="Yes" maxTxPower="17"/>
+                    </GPowerSettings>
+                    <APowerSettings>
+                        <AChannel36 enabled="Yes" maxTxPower="17"/>
+                        <AChannel40 enabled="Yes" maxTxPower="17"/>
+                        <AChannel44 enabled="Yes" maxTxPower="17"/>
+                        <AChannel48 enabled="Yes" maxTxPower="17"/>
+                        <AChannel52 enabled="Yes" maxTxPower="17"/>
+                        <AChannel56 enabled="Yes" maxTxPower="17"/>
+                        <AChannel60 enabled="Yes" maxTxPower="17"/>
+                        <AChannel64 enabled="Yes" maxTxPower="17"/>
+                        <AChannel100 enabled="Yes" maxTxPower="17"/>
+                        <AChannel104 enabled="Yes" maxTxPower="17"/>
+                        <AChannel108 enabled="Yes" maxTxPower="17"/>
+                        <AChannel112 enabled="Yes" maxTxPower="17"/>
+                        <AChannel116 enabled="Yes" maxTxPower="17"/>
+                        <AChannel120 enabled="Yes" maxTxPower="17"/>
+                        <AChannel124 enabled="Yes" maxTxPower="17"/>
+                        <AChannel128 enabled="Yes" maxTxPower="17"/>
+                        <AChannel132 enabled="Yes" maxTxPower="17"/>
+                        <AChannel136 enabled="Yes" maxTxPower="17"/>
+                        <AChannel140 enabled="Yes" maxTxPower="17"/>
+                        <AChannel149 enabled="Yes" maxTxPower="17"/>
+                        <AChannel153 enabled="Yes" maxTxPower="17"/>
+                        <AChannel157 enabled="Yes" maxTxPower="17"/>
+                        <AChannel161 enabled="Yes" maxTxPower="17"/>
+                    </APowerSettings>
+                </AdvancedWLANSettings>
+            </WLANSettings>
+            <NetworkSettings>
+                <DHCPEnabled>Yes</DHCPEnabled>
+                <IPAddress></IPAddress>
+                <SubnetMask></SubnetMask>
+                <DefaultGateway></DefaultGateway>
+                <PrimaryDNSServer></PrimaryDNSServer>
+                <SecondaryDNSServer></SecondaryDNSServer>
+                <DomainName></DomainName>
+                <TitleText>TFTP</TitleText>
+                <AlternateTFTP>No</AlternateTFTP>
+                <TFTPServer1></TFTPServer1>
+                <TFTPServer2></TFTPServer2>
+            </NetworkSettings>
+        </Profile1>
+        <Profile2>
+            <ProfileNumber>2</ProfileNumber>
+            <ProfileName></ProfileName>
+            <ProfileEnabled>No</ProfileEnabled>
+            <WLANSettings>
+                <SSID></SSID>
+                <WLANMode>802.11a</WLANMode>
+                <CallPowerSaveMode>U-APSD/PS-POLL</CallPowerSaveMode>
+                <AuthenticationMode>Open</AuthenticationMode>
+                <TitleText1>Wireless Security Credentials</TitleText1>
+                <Username></Username>
+                <Password></Password>
+                <PromptMode>No</PromptMode>
+                <TitleText2>WPA Pre-shared Key Credentials</TitleText2>
+                <PreSharedKeyType>ASCII</PreSharedKeyType>
+                <PreSharedKeyValue></PreSharedKeyValue>
+                <TitleText3>Wireless Encryption</TitleText3>
+                <WepKeysType>Hex</WepKeysType>
+                <WepKeysTxKey>1</WepKeysTxKey>
+                <TitleText4></TitleText4>
+                <WepKey1Length>40</WepKey1Length>
+                <WepKey1Value></WepKey1Value>
+                <WepKey2Length>40</WepKey2Length>
+                <WepKey2Value></WepKey2Value>
+                <WepKey3Length>40</WepKey3Length>
+                <WepKey3Value></WepKey3Value>
+                <WepKey4Length>40</WepKey4Length>
+                <WepKey4Value></WepKey4Value>
+                <AdvancedWLANSettings>
+                    <MinimumPhyRate>12000000</MinimumPhyRate>
+                    <SurplusBandwidth>1.300000</SurplusBandwidth>
+                    <AntennaSelectionA>Diversity</AntennaSelectionA>
+                    <AntennaSelectionG>Vertical</AntennaSelectionG>
+                    <GPowerSettings>
+                        <GChannel1 enabled="Yes" maxTxPower="17"/>
+                        <GChannel2 enabled="Yes" maxTxPower="17"/>
+                        <GChannel3 enabled="Yes" maxTxPower="17"/>
+                        <GChannel4 enabled="Yes" maxTxPower="17"/>
+                        <GChannel5 enabled="Yes" maxTxPower="17"/>
+                        <GChannel6 enabled="Yes" maxTxPower="17"/>
+                        <GChannel7 enabled="Yes" maxTxPower="17"/>
+                        <GChannel8 enabled="Yes" maxTxPower="17"/>
+                        <GChannel9 enabled="Yes" maxTxPower="17"/>
+                        <GChannel10 enabled="Yes" maxTxPower="17"/>
+                        <GChannel11 enabled="Yes" maxTxPower="17"/>
+                        <GChannel12 enabled="Yes" maxTxPower="17"/>
+                        <GChannel13 enabled="Yes" maxTxPower="17"/>
+                        <GChannel14 enabled="Yes" maxTxPower="17"/>
+                    </GPowerSettings>
+                    <APowerSettings>
+                        <AChannel36 enabled="Yes" maxTxPower="17"/>
+                        <AChannel40 enabled="Yes" maxTxPower="17"/>
+                        <AChannel44 enabled="Yes" maxTxPower="17"/>
+                        <AChannel48 enabled="Yes" maxTxPower="17"/>
+                        <AChannel52 enabled="Yes" maxTxPower="17"/>
+                        <AChannel56 enabled="Yes" maxTxPower="17"/>
+                        <AChannel60 enabled="Yes" maxTxPower="17"/>
+                        <AChannel64 enabled="Yes" maxTxPower="17"/>
+                        <AChannel100 enabled="Yes" maxTxPower="17"/>
+                        <AChannel104 enabled="Yes" maxTxPower="17"/>
+                        <AChannel108 enabled="Yes" maxTxPower="17"/>
+                        <AChannel112 enabled="Yes" maxTxPower="17"/>
+                        <AChannel116 enabled="Yes" maxTxPower="17"/>
+                        <AChannel120 enabled="Yes" maxTxPower="17"/>
+                        <AChannel124 enabled="Yes" maxTxPower="17"/>
+                        <AChannel128 enabled="Yes" maxTxPower="17"/>
+                        <AChannel132 enabled="Yes" maxTxPower="17"/>
+                        <AChannel136 enabled="Yes" maxTxPower="17"/>
+                        <AChannel140 enabled="Yes" maxTxPower="17"/>
+                        <AChannel149 enabled="Yes" maxTxPower="17"/>
+                        <AChannel153 enabled="Yes" maxTxPower="17"/>
+                        <AChannel157 enabled="Yes" maxTxPower="17"/>
+                        <AChannel161 enabled="Yes" maxTxPower="17"/>
+                    </APowerSettings>
+                </AdvancedWLANSettings>
+            </WLANSettings>
+            <NetworkSettings>
+                <DHCPEnabled>Yes</DHCPEnabled>
+                <IPAddress></IPAddress>
+                <SubnetMask></SubnetMask>
+                <DefaultGateway></DefaultGateway>
+                <PrimaryDNSServer></PrimaryDNSServer>
+                <SecondaryDNSServer></SecondaryDNSServer>
+                <DomainName></DomainName>
+                <TitleText>TFTP</TitleText>
+                <AlternateTFTP>No</AlternateTFTP>
+                <TFTPServer1></TFTPServer1>
+                <TFTPServer2></TFTPServer2>
+            </NetworkSettings>
+        </Profile2>
+        <Profile3>
+            <ProfileNumber>3</ProfileNumber>
+            <ProfileName></ProfileName>
+            <ProfileEnabled>No</ProfileEnabled>
+            <WLANSettings>
+                <SSID></SSID>
+                <WLANMode>802.11a</WLANMode>
+                <CallPowerSaveMode>U-APSD/PS-POLL</CallPowerSaveMode>
+                <AuthenticationMode>Open</AuthenticationMode>
+                <TitleText1>Wireless Security Credentials</TitleText1>
+                <Username></Username>
+                <Password></Password>
+                <PromptMode>No</PromptMode>
+                <TitleText2>WPA Pre-shared Key Credentials</TitleText2>
+                <PreSharedKeyType>ASCII</PreSharedKeyType>
+                <PreSharedKeyValue></PreSharedKeyValue>
+                <TitleText3>Wireless Encryption</TitleText3>
+                <WepKeysType>Hex</WepKeysType>
+                <WepKeysTxKey>1</WepKeysTxKey>
+                <TitleText4></TitleText4>
+                <WepKey1Length>40</WepKey1Length>
+                <WepKey1Value></WepKey1Value>
+                <WepKey2Length>40</WepKey2Length>
+                <WepKey2Value></WepKey2Value>
+                <WepKey3Length>40</WepKey3Length>
+                <WepKey3Value></WepKey3Value>
+                <WepKey4Length>40</WepKey4Length>
+                <WepKey4Value></WepKey4Value>
+                <AdvancedWLANSettings>
+                    <MinimumPhyRate>12000000</MinimumPhyRate>
+                    <SurplusBandwidth>1.300000</SurplusBandwidth>
+                    <AntennaSelectionA>Diversity</AntennaSelectionA>
+                    <AntennaSelectionG>Vertical</AntennaSelectionG>
+                    <GPowerSettings>
+                        <GChannel1 enabled="Yes" maxTxPower="17"/>
+                        <GChannel2 enabled="Yes" maxTxPower="17"/>
+                        <GChannel3 enabled="Yes" maxTxPower="17"/>
+                        <GChannel4 enabled="Yes" maxTxPower="17"/>
+                        <GChannel5 enabled="Yes" maxTxPower="17"/>
+                        <GChannel6 enabled="Yes" maxTxPower="17"/>
+                        <GChannel7 enabled="Yes" maxTxPower="17"/>
+                        <GChannel8 enabled="Yes" maxTxPower="17"/>
+                        <GChannel9 enabled="Yes" maxTxPower="17"/>
+                        <GChannel10 enabled="Yes" maxTxPower="17"/>
+                        <GChannel11 enabled="Yes" maxTxPower="17"/>
+                        <GChannel12 enabled="Yes" maxTxPower="17"/>
+                        <GChannel13 enabled="Yes" maxTxPower="17"/>
+                        <GChannel14 enabled="Yes" maxTxPower="17"/>
+                    </GPowerSettings>
+                    <APowerSettings>
+                        <AChannel36 enabled="Yes" maxTxPower="17"/>
+                        <AChannel40 enabled="Yes" maxTxPower="17"/>
+                        <AChannel44 enabled="Yes" maxTxPower="17"/>
+                        <AChannel48 enabled="Yes" maxTxPower="17"/>
+                        <AChannel52 enabled="Yes" maxTxPower="17"/>
+                        <AChannel56 enabled="Yes" maxTxPower="17"/>
+                        <AChannel60 enabled="Yes" maxTxPower="17"/>
+                        <AChannel64 enabled="Yes" maxTxPower="17"/>
+                        <AChannel100 enabled="Yes" maxTxPower="17"/>
+                        <AChannel104 enabled="Yes" maxTxPower="17"/>
+                        <AChannel108 enabled="Yes" maxTxPower="17"/>
+                        <AChannel112 enabled="Yes" maxTxPower="17"/>
+                        <AChannel116 enabled="Yes" maxTxPower="17"/>
+                        <AChannel120 enabled="Yes" maxTxPower="17"/>
+                        <AChannel124 enabled="Yes" maxTxPower="17"/>
+                        <AChannel128 enabled="Yes" maxTxPower="17"/>
+                        <AChannel132 enabled="Yes" maxTxPower="17"/>
+                        <AChannel136 enabled="Yes" maxTxPower="17"/>
+                        <AChannel140 enabled="Yes" maxTxPower="17"/>
+                        <AChannel149 enabled="Yes" maxTxPower="17"/>
+                        <AChannel153 enabled="Yes" maxTxPower="17"/>
+                        <AChannel157 enabled="Yes" maxTxPower="17"/>
+                        <AChannel161 enabled="Yes" maxTxPower="17"/>
+                    </APowerSettings>
+                </AdvancedWLANSettings>
+            </WLANSettings>
+            <NetworkSettings>
+                <DHCPEnabled>Yes</DHCPEnabled>
+                <IPAddress></IPAddress>
+                <SubnetMask></SubnetMask>
+                <DefaultGateway></DefaultGateway>
+                <PrimaryDNSServer></PrimaryDNSServer>
+                <SecondaryDNSServer></SecondaryDNSServer>
+                <DomainName></DomainName>
+                <TitleText>TFTP</TitleText>
+                <AlternateTFTP>No</AlternateTFTP>
+                <TFTPServer1></TFTPServer1>
+                <TFTPServer2></TFTPServer2>
+            </NetworkSettings>
+        </Profile3>
+        <Profile4>
+            <ProfileNumber>4</ProfileNumber>
+            <ProfileName></ProfileName>
+            <ProfileEnabled>No</ProfileEnabled>
+            <WLANSettings>
+                <SSID></SSID>
+                <WLANMode>802.11a</WLANMode>
+                <CallPowerSaveMode>U-APSD/PS-POLL</CallPowerSaveMode>
+                <AuthenticationMode>Open</AuthenticationMode>
+                <TitleText1>Wireless Security Credentials</TitleText1>
+                <Username></Username>
+                <Password></Password>
+                <PromptMode>No</PromptMode>
+                <TitleText2>WPA Pre-shared Key Credentials</TitleText2>
+                <PreSharedKeyType>ASCII</PreSharedKeyType>
+                <PreSharedKeyValue></PreSharedKeyValue>
+                <TitleText3>Wireless Encryption</TitleText3>
+                <WepKeysType>Hex</WepKeysType>
+                <WepKeysTxKey>1</WepKeysTxKey>
+                <TitleText4></TitleText4>
+                <WepKey1Length>40</WepKey1Length>
+                <WepKey1Value></WepKey1Value>
+                <WepKey2Length>40</WepKey2Length>
+                <WepKey2Value></WepKey2Value>
+                <WepKey3Length>40</WepKey3Length>
+                <WepKey3Value></WepKey3Value>
+                <WepKey4Length>40</WepKey4Length>
+                <WepKey4Value></WepKey4Value>
+                <AdvancedWLANSettings>
+                    <MinimumPhyRate>12000000</MinimumPhyRate>
+                    <SurplusBandwidth>1.300000</SurplusBandwidth>
+                    <AntennaSelectionA>Diversity</AntennaSelectionA>
+                    <AntennaSelectionG>Vertical</AntennaSelectionG>
+                    <GPowerSettings>
+                        <GChannel1 enabled="Yes" maxTxPower="17"/>
+                        <GChannel2 enabled="Yes" maxTxPower="17"/>
+                        <GChannel3 enabled="Yes" maxTxPower="17"/>
+                        <GChannel4 enabled="Yes" maxTxPower="17"/>
+                        <GChannel5 enabled="Yes" maxTxPower="17"/>
+                        <GChannel6 enabled="Yes" maxTxPower="17"/>
+                        <GChannel7 enabled="Yes" maxTxPower="17"/>
+                        <GChannel8 enabled="Yes" maxTxPower="17"/>
+                        <GChannel9 enabled="Yes" maxTxPower="17"/>
+                        <GChannel10 enabled="Yes" maxTxPower="17"/>
+                        <GChannel11 enabled="Yes" maxTxPower="17"/>
+                        <GChannel12 enabled="Yes" maxTxPower="17"/>
+                        <GChannel13 enabled="Yes" maxTxPower="17"/>
+                        <GChannel14 enabled="Yes" maxTxPower="17"/>
+                    </GPowerSettings>
+                    <APowerSettings>
+                        <AChannel36 enabled="Yes" maxTxPower="17"/>
+                        <AChannel40 enabled="Yes" maxTxPower="17"/>
+                        <AChannel44 enabled="Yes" maxTxPower="17"/>
+                        <AChannel48 enabled="Yes" maxTxPower="17"/>
+                        <AChannel52 enabled="Yes" maxTxPower="17"/>
+                        <AChannel56 enabled="Yes" maxTxPower="17"/>
+                        <AChannel60 enabled="Yes" maxTxPower="17"/>
+                        <AChannel64 enabled="Yes" maxTxPower="17"/>
+                        <AChannel100 enabled="Yes" maxTxPower="17"/>
+                        <AChannel104 enabled="Yes" maxTxPower="17"/>
+                        <AChannel108 enabled="Yes" maxTxPower="17"/>
+                        <AChannel112 enabled="Yes" maxTxPower="17"/>
+                        <AChannel116 enabled="Yes" maxTxPower="17"/>
+                        <AChannel120 enabled="Yes" maxTxPower="17"/>
+                        <AChannel124 enabled="Yes" maxTxPower="17"/>
+                        <AChannel128 enabled="Yes" maxTxPower="17"/>
+                        <AChannel132 enabled="Yes" maxTxPower="17"/>
+                        <AChannel136 enabled="Yes" maxTxPower="17"/>
+                        <AChannel140 enabled="Yes" maxTxPower="17"/>
+                        <AChannel149 enabled="Yes" maxTxPower="17"/>
+                        <AChannel153 enabled="Yes" maxTxPower="17"/>
+                        <AChannel157 enabled="Yes" maxTxPower="17"/>
+                        <AChannel161 enabled="Yes" maxTxPower="17"/>
+                    </APowerSettings>
+                </AdvancedWLANSettings>
+            </WLANSettings>
+            <NetworkSettings>
+                <DHCPEnabled>Yes</DHCPEnabled>
+                <IPAddress></IPAddress>
+                <SubnetMask></SubnetMask>
+                <DefaultGateway></DefaultGateway>
+                <PrimaryDNSServer></PrimaryDNSServer>
+                <SecondaryDNSServer></SecondaryDNSServer>
+                <DomainName></DomainName>
+                <TitleText>TFTP</TitleText>
+                <AlternateTFTP>No</AlternateTFTP>
+                <TFTPServer1></TFTPServer1>
+                <TFTPServer2></TFTPServer2>
+            </NetworkSettings>
+        </Profile4>
+    </ProfileSettings>
+    <USBSettings>
+        <DHCPEnabled>No</DHCPEnabled>
+        <IPAddress>192.168.1.100</IPAddress>
+        <SubnetMask>255.255.255.0</SubnetMask>
+    </USBSettings>
+    <TraceSettings>
+        <NumberOfFiles>2</NumberOfFiles>
+        <EnableRemoteSyslog>No</EnableRemoteSyslog>
+        <RemoteAddress></RemoteAddress>
+        <RemotePort>514</RemotePort>
+        <KernelLevel>Error</KernelLevel>
+        <ConfigurationLevel>Error</ConfigurationLevel>
+        <CallControlLevel>Error</CallControlLevel>
+        <NetworkServicesLevel>Error</NetworkServicesLevel>
+        <SecurityLevel>Error</SecurityLevel>
+        <UserInterfaceLevel>Error</UserInterfaceLevel>
+        <WirelessLevel>Error</WirelessLevel>
+        <AudioLevel>Error</AudioLevel>
+        <SystemLevel>Error</SystemLevel>
+    </TraceSettings>
+    <WavelinkSettings>
+        <Enable>Yes</Enable>
+        <UseAlternateServer>No</UseAlternateServer>
+        <AlternateServer></AlternateServer>
+        <CustomName1></CustomName1>
+        <CustomValue1></CustomValue1>
+        <CustomName2></CustomName2>
+        <CustomValue2></CustomValue2>
+        <CustomName3></CustomName3>
+        <CustomValue3></CustomValue3>
+        <CustomName4></CustomName4>
+        <CustomValue4></CustomValue4>
+    </WavelinkSettings>
+</Cisco7921PhoneConfig>
