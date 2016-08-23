@@ -670,10 +670,10 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	if (d) {
 		char *deviceName = sccp_strdupa(d->id);
 		
-                sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
-                sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_CLEANING);
-	        d->needcheckringback = 0;
-                sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
+		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
+		sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_CLEANING);
+		d->needcheckringback = 0;
+		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
 
 		sccp_session_destroySessionsByDeviceName(deviceName);
 	}
