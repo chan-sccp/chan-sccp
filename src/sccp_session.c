@@ -1,15 +1,14 @@
 /*!
- * \file        sccp_session.c
- * \brief       SCCP Socket Class
+ * \file	sccp_session.c
+ * \brief       SCCP Session Class
  * \author      Sergio Chersovani <mlists [at] c-net.it>
- * \note                Reworked, but based on chan_sccp code.
- *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *              Modified by Jan Czmok and Julien Goodwin
- * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
- *
+ * \note	Reworked, but based on chan_sccp code.
+ *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *		Modified by Jan Czmok and Julien Goodwin
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		See the LICENSE file at the top of the source tree.
  */
-
+#define NEW_SOCKET 1
 #include "config.h"
 #include "common.h"
 #include "sccp_session.h"
@@ -51,18 +50,22 @@ SCCP_FILE_VERSION(__FILE__, "");
 #define SOCKET_RCVBUF SCCP_MAX_PACKET										/* SO_RCVBUF */
 #define SOCKET_SNDBUF (SCCP_MAX_PACKET * 5)									/* SO_SNDBUG */
 
-#define READ_RETRIES 6												/* number of read retries */
-#define READ_BACKOFF 150											/* backoff time in millisecs, doubled every read retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec)*/
-#define WRITE_RETRIES 6												/* number of write retries */
-#define WRITE_BACKOFF 150											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
+#define READ_RETRIES 5												/* number of read retries */
+#define READ_BACKOFF 50												/* backoff time in millisecs, doubled every read retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec)*/
+//#define WRITE_RETRIES 5											/* number of write retries */
+#define WRITE_BACKOFF 500											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
 
 #define SESSION_DEVICE_CLEANUP_TIME 10										/* wait time before destroying a device on thread exit */
-#define KEEPALIVE_ADDITIONAL_PERCENT 10										/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
+#define KEEPALIVE_ADDITIONAL_PERCENT 30										/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
+#define KEEPALIVE_ADDITIONAL_PERCENT_ON_CALL 130								/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
+
+//#define ACCEPT_UWAIT_ON_KNOWN_IP 2										/* wait time when ip-address is already known */
+//#define ACCEPT_RETRIES 5											/* number of reqtries when we already know this ip-address */
 
 /* Lock Macro for Sessions */
-#define sccp_session_lock(x)			pbx_mutex_lock(&x->lock)
-#define sccp_session_unlock(x)			pbx_mutex_unlock(&x->lock)
-#define sccp_session_trylock(x)			pbx_mutex_trylock(&x->lock)
+#define sccp_session_lock(x)			pbx_mutex_lock(&(x)->lock)
+#define sccp_session_unlock(x)			pbx_mutex_unlock(&(x)->lock)
+#define sccp_session_trylock(x)			pbx_mutex_trylock(&(x)->lock)
 /* */
 
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime);
@@ -92,13 +95,6 @@ struct sccp_session {
 	struct sockaddr_storage ourIPv4;
 	char designator[40];
 };														/*!< SCCP Session Structure */
-
-union sockaddr_union {
-	struct sockaddr sa;
-	struct sockaddr_storage ss;
-	struct sockaddr_in sin;
-	struct sockaddr_in6 sin6;
-};
 
 boolean_t sccp_session_getOurIP(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage, int family)
 {
@@ -138,7 +134,12 @@ static int __sccp_session_setOurAddressFromTheirs(const struct sockaddr_storage 
 	int sock;
 	socklen_t slen;
 
-	union sockaddr_union tmp_addr = {
+	union sockaddr_union {
+		struct sockaddr sa;
+		struct sockaddr_storage ss;
+		struct sockaddr_in sin;
+		struct sockaddr_in6 sin6;
+	} tmp_addr = {
 		.ss = *them,
 	};
 
@@ -262,6 +263,66 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 	return result;
 }
 
+static gcc_inline int session_buffer2msg(sccp_session_t * s, unsigned char *buffer, int lenAccordingToPacketHeader, sccp_msg_t *msg) 
+{
+	sccp_header_t msg_header = {0};
+	memcpy(&msg_header, buffer, SCCP_PACKET_HEADER);
+	msg_header.length = letohl(msg_header.length);
+	int lenAccordingToOurProtocolSpec = session_dissect_header(s, &msg_header);
+	if (dont_expect(lenAccordingToOurProtocolSpec < 0)) {
+		if (lenAccordingToOurProtocolSpec == -2) {
+			return 0;
+		}
+		lenAccordingToOurProtocolSpec = 0;									// unknown message, read it and discard content completely
+	}
+	if (dont_expect(lenAccordingToPacketHeader > lenAccordingToOurProtocolSpec)) {					// show out discarded bytes
+		pbx_log(LOG_WARNING, "%s: (session_dissect_msg) Incoming message is bigger(%d) than known size(%d). Packet looks like!\n", DEV_ID_LOG(s->device), lenAccordingToPacketHeader, lenAccordingToOurProtocolSpec);
+		sccp_dump_packet(buffer, lenAccordingToPacketHeader);
+	}
+
+	memset(msg, 0, SCCP_MAX_PACKET);
+	memcpy(msg, buffer, lenAccordingToOurProtocolSpec);
+	msg->header.length = lenAccordingToOurProtocolSpec;								// patch up msg->header.length to new size
+
+	if (msg_header.length < (unsigned int)lenAccordingToOurProtocolSpec){
+		pbx_log(LOG_WARNING, "%s: (session_dissect_msg) Incoming message is smaller(%d) than known size(%d). Packet looks like!\n", DEV_ID_LOG(s->device), lenAccordingToPacketHeader, lenAccordingToOurProtocolSpec);
+		msg->header.length = msg_header.length;
+	}
+
+	return sccp_handle_message(msg, s);
+}
+
+static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsigned char *buffer, size_t *len)
+{
+	int res = 0;
+	while (*len >= SCCP_PACKET_HEADER) {										// We have at least SCCP_PACKET_HEADER, so we have the payload length
+		uint32_t hdr_len = buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24);
+		uint32_t payload_len = letohl(hdr_len) + (SCCP_PACKET_HEADER - 4);
+		if (*len < payload_len) {
+			break;												// Too short - haven't received whole payload yet, go poll for more
+		}
+
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);							// allow thread to be killed while handling the message
+		if (dont_expect(payload_len < SCCP_PACKET_HEADER || payload_len > SCCP_MAX_PACKET)) {
+			pbx_log(LOG_ERROR, "%s: (process_buffer) Size of the data payload in the packet is bigger than max packet, close connection !\n", DEV_ID_LOG(s->device));
+			res = -1;
+			break;
+		}
+		if (dont_expect(session_buffer2msg(s, buffer, payload_len, msg) != 0)) {
+			res = -2;
+			break;
+		}
+		pthread_testcancel();
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+
+		*len -= payload_len;
+		if (*len > 0) {												// Now shuffle the remaining data in the buffer back to the start
+			memmove(buffer + 0, buffer + payload_len, *len);
+		}
+	}
+	return res;
+}
+#if !defined(NEW_SOCKET)
 /*!
  * \brief Read Data From Socket
  * \param s SCCP Session
@@ -374,6 +435,7 @@ READ_ERROR:
 	memset(msg, 0, SCCP_MAX_PACKET);
 	return -1;
 }
+#endif
 
 /*!
  * \brief Find Session in Globals Lists
@@ -571,7 +633,6 @@ void sccp_session_releaseDevice(constSessionPtr volatile session)
  */
 void sccp_session_close(sccp_session_t * s)
 {
-
 	sccp_session_lock(s);
 	s->session_stop = TRUE;
 	if (s->fds[0].fd > 0) {
@@ -605,23 +666,23 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 
 	sccp_copy_string(addrStr, sccp_netsock_stringify_addr(&s->sin), sizeof(addrStr));
 
-	found_in_list = sccp_session_removeFromGlobals(s);
+	AUTO_RELEASE sccp_device_t *d = s->device ? sccp_device_retain(s->device) : NULL;
+	if (d) {
+		char *deviceName = sccp_strdupa(d->id);
+		
+                sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
+                sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_CLEANING);
+	        d->needcheckringback = 0;
+                sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
 
+		sccp_session_destroySessionsByDeviceName(deviceName);
+	}
+
+	found_in_list = sccp_session_removeFromGlobals(s);
 	if (!found_in_list) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session could not be found in GLOB(session) %s\n", DEV_ID_LOG(s->device), addrStr);
 	}
 
-	/* cleanup device if this session is not a crossover session */
-	if (s->device) {
-		AUTO_RELEASE sccp_device_t *d = sccp_device_retain(s->device);
-
-		if (d) {
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
-			sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_NONE);
-			d->needcheckringback = 0;
-			sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
-		}
-	}
 	
 	if (s) {	/* re-evaluate s after sccp_dev_clean */
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Destroy Session %s\n", addrStr);
@@ -679,8 +740,12 @@ void *sccp_netsock_device_thread(void *session)
 	int res;
 	int maxWaitTime;
 	int pollTimeout;
-	int read_result = 0;
+	
+	int result = 0;
+	unsigned char recv_buffer[SCCP_MAX_PACKET * 2] = "";
+	size_t recv_len = 0;
 	sccp_msg_t msg = { {0,} };
+
 	char addrStr[INET6_ADDRSTRLEN];
 
 	pthread_cleanup_push(sccp_netsock_device_thread_exit, session);
@@ -693,7 +758,6 @@ void *sccp_netsock_device_thread(void *session)
 	}
 
 	while (s->fds[0].fd > 0 && !s->session_stop) {
-		/* create cancellation point */
 		if (s->device && (s->device->pendingUpdate || s->device->pendingDelete)) {
 			pbx_rwlock_rdlock(&GLOB(lock));
 			boolean_t reload_in_progress = GLOB(reload_in_progress);
@@ -701,37 +765,70 @@ void *sccp_netsock_device_thread(void *session)
 			if (reload_in_progress == FALSE && s->device) {
 				sccp_device_check_update(s->device);
 			}
+			if (s->device->active_channel) {
+				keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT_ON_CALL;
+			} else {
+				keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT;
+			}
 		}
 		/* calculate poll timout using keepalive interval */
 		maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
 		maxWaitTime += (maxWaitTime / 100) * keepaliveAdditionalTimePercent;
 		pollTimeout = maxWaitTime * 1000;
-		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d for session %d\n", DEV_ID_LOG(s->device), (int) maxWaitTime, s->fds[0].fd);
-		res = sccp_netsock_poll(s->fds, 1, pollTimeout);
 
-		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d for session %d\n", DEV_ID_LOG(s->device), (int) maxWaitTime, s->fds[0].fd);
+
+		res = sccp_netsock_poll(s->fds, 1, pollTimeout);
 		if (-1 == res) {										/* poll data processing */
 			if (errno > 0 && (errno != EAGAIN) && (errno != EINTR)) {
 				sccp_copy_string(addrStr, sccp_netsock_stringify_addr(&s->sin), sizeof(addrStr));
 				pbx_log(LOG_ERROR, "%s: poll() returned %d. errno: %s, (ip-address: %s)\n", DEV_ID_LOG(s->device), errno, strerror(errno), addrStr);
+				socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 				break;
 			}
 		} else if (0 == res) {										/* poll timeout */
-			if (((int) time(0) >= ((int) s->lastKeepAlive + (int) maxWaitTime))) {
+			if (((int) time(0) >= ((int) s->lastKeepAlive + maxWaitTime))) {
 				sccp_copy_string(addrStr, sccp_netsock_stringify_addr(&s->sin), sizeof(addrStr));
-				pbx_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (ip-address: %s).\n", DEV_ID_LOG(s->device), (int) maxWaitTime, addrStr);
+				pbx_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (ip-address: %s).\n", DEV_ID_LOG(s->device), maxWaitTime, addrStr);
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_TIMEOUT);
 				break;
 			}
 		} else if (res > 0) {										/* poll data processing */
+#if defined(NEW_SOCKET)
+			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
+				//sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving at buffer position:%lu\n", DEV_ID_LOG(s->device), recv_len);
+				result = recv(s->fds[0].fd, recv_buffer + recv_len, (SCCP_MAX_PACKET * 2) - recv_len, 0);
+				s->lastKeepAlive = time(0);
+				if (result <= 0) {
+					if (result < 0 || (errno != EINTR || errno != EAGAIN)) {
+						socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
+						break;
+					}				
+				} else if (!((recv_len += result) && ((SCCP_MAX_PACKET * 2) - recv_len) && process_buffer(s, &msg, recv_buffer, &recv_len) == 0)) {
+					pbx_log(LOG_ERROR, "%s: (netsock_device_thread) Received a packet or message (with result:%d) which we could not handle, giving up session: %p!\n", DEV_ID_LOG(s->device), result, s);
+					sccp_dump_msg(&msg);
+					if (s->device) {
+						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
+					}
+					__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
+					break;
+				}
+				s->lastKeepAlive = time(0);
+			} else {										/* POLLHUP / POLLERR */
+				pbx_log(LOG_NOTICE, "%s: Closing session because we received POLLPRI/POLLHUP/POLLERR\n", DEV_ID_LOG(s->device));
+				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
+				break;
+			}
+#else
 			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
 				/* we have new data -> continue */
 				sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
-				while ((read_result = sccp_read_data(s, &msg)) > 0) {
+				while ((result = sccp_read_data(s, &msg)) > 0) {
+					sccp_dump_msg(&msg);
 					s->lastKeepAlive = time(0);
 				}
-				if (read_result < 0) {
+				if (result < 0) {
 					break;
 				}
 			} else {										/* POLLHUP / POLLERR */
@@ -739,18 +836,19 @@ void *sccp_netsock_device_thread(void *session)
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 				break;
 			}
+#endif
 		} else {											/* poll returned invalid res */
 			pbx_log(LOG_NOTICE, "%s: Poll Returned invalid result: %d.\n", DEV_ID_LOG(s->device), res);
 		}
-		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	}
-	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Exiting sccp_session device thread\n", DEV_ID_LOG(s->device));
+	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Exiting sccp_socket device thread\n", DEV_ID_LOG(s->device));
 	pthread_cleanup_pop(1);
+
 	return NULL;
 }
 
 #define SCCP_SETSOCKETOPTION(_SOCKET, _LEVEL,_OPTIONNAME, _OPTIONVAL, _OPTIONLEN) 							\
-	if (setsockopt(_SOCKET, _LEVEL, _OPTIONNAME, (void*)_OPTIONVAL, _OPTIONLEN)  == -1) {						\
+	if (setsockopt(_SOCKET, _LEVEL, _OPTIONNAME, (void*)(_OPTIONVAL), _OPTIONLEN) == -1) {						\
 		if (errno != ENOTSUP) {													\
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket: " #_LEVEL ":" #_OPTIONNAME " error: '%s'\n", strerror(errno));	\
 		}															\
@@ -769,6 +867,30 @@ void sccp_netsock_setoptions(int new_socket)
 	value = (int) GLOB(sccp_cos);
 	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_PRIORITY, &value, sizeof(value));
 
+	/* timeeo */
+	//struct timeval mytv = { SOCKET_TIMEOUT_SEC, SOCKET_TIMEOUT_MILLISEC };					/* timeout after seven seconds when trying to read/write from/to a socket */
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &mytv, sizeof(mytv));
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(mytv));
+
+	/* keepalive */
+	//int ip_keepidle  = SOCKET_KEEPALIVE_IDLE;								/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
+	//int ip_keepintvl = SOCKET_KEEPALIVE_INTVL;								/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
+	//int ip_keepcnt   = SOCKET_KEEPALIVE_CNT;								/* The maximum number of keepalive probes TCP should send before dropping the connection. */
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPIDLE, &ip_keepidle, sizeof(int));
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPINTVL, &ip_keepintvl, sizeof(int));
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPCNT, &ip_keepcnt, sizeof(int));
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
+
+	/* linger */
+	//struct linger so_linger = {SOCKET_LINGER_ONOFF, SOCKET_LINGER_WAIT};					/* linger=on but wait 0 milliseconds before closing socket and discard all outboung messages */
+	//SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
+
+	/* thin-tcp */
+//#ifdef TCP_THIN_LINEAR_TIMEOUTS
+//	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_TCP, TCP_THIN_LINEAR_TIMEOUTS, &on, sizeof(on));
+//	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_TCP, TCP_THIN_DUPACK, &on, sizeof(on));
+//#endif
+	/* */
 	/* rcvbuf / sndbug */
 	int so_rcvbuf = SOCKET_RCVBUF;
 	int so_sndbuf = SOCKET_SNDBUF;
@@ -778,6 +900,8 @@ void sccp_netsock_setoptions(int new_socket)
 }
 
 #undef SCCP_SETSOCKETOPTION
+
+
 /*!
  * \brief Socket Accept Connection
  *
@@ -818,6 +942,20 @@ static void sccp_accept_connection(void)
 	}
 
 	sccp_copy_string(addrStr, sccp_netsock_stringify(&s->sin), sizeof(addrStr));
+
+	/*
+	int retries=0;
+	while (sccp_session_findByIP(&incoming) != NULL && retries++ <= ACCEPT_RETRIES) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Session with this IP-address is already known %s. wait !\n", addrStr);
+		if (retries == ACCEPT_RETRIES) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Session with this IP-address is already known %s. exceeding wait time, denied connection !\n", addrStr);
+			sccp_session_reject(s, "Cross Device Session. Come back later");
+			destroy_session(s, 0);
+			return;
+		}
+		sleep(ACCEPT_UWAIT_ON_KNOWN_IP);
+	}
+	*/
 
 	/* check ip address against global permit/deny ACL */
 	if (GLOB(ha) && sccp_apply_ha(GLOB(ha), &s->sin) != AST_SENSE_ALLOW) {
@@ -887,6 +1025,7 @@ static void sccp_netsock_cleanup_timed_out(void)
 	}
 }
 
+
 /*!
  * \brief Socket Thread
  * \param ignore None
@@ -894,14 +1033,14 @@ static void sccp_netsock_cleanup_timed_out(void)
  * \lock
  *      - sessions
  *      - globals
- *          - see sccp_device_check_update()
- *        - see sccp_session_poll()
- *        - see sccp_session_close()
- *        - see destroy_session()
- *        - see sccp_read_data()
- *        - see sccp_process_data()
- *        - see sccp_handle_message()
- *        - see sccp_device_sendReset()
+ *	- see sccp_device_check_update()
+ *	- see sccp_netsock_poll()
+ *	- see sccp_session_close()
+ *	- see destroy_session()
+ *	- see sccp_read_data()
+ *	- see sccp_process_data()
+ *	- see sccp_handle_message()
+ *	- see sccp_device_sendReset()
  */
 void *sccp_netsock_thread(void * ignore)
 {
@@ -922,6 +1061,7 @@ void *sccp_netsock_thread(void * ignore)
 		fds[0].fd = GLOB(descriptor);
 		keepaliveInterval = GLOB(keepalive) * 5000;					/* 60 * 5 * 1000 = 300000 =(5 minutes) */
 		pbx_rwlock_unlock(&GLOB(lock));
+
 		res = sccp_netsock_poll(fds, 1, keepaliveInterval);
 		if (res < 0) {
 			if (!(errno == EINTR || errno == EAGAIN)) {
@@ -977,7 +1117,7 @@ void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t)
 /*!
  * \brief Socket Send
  * \param device SCCP Device
- * \param msg Message Data Structure (sccp_msg_t)
+ * \param msg_in Message Data Structure (sccp_msg_t)
  * \return SCCP Session Send
  */
 int sccp_session_send(constDevicePtr device, const sccp_msg_t * msg_in)
@@ -987,13 +1127,13 @@ int sccp_session_send(constDevicePtr device, const sccp_msg_t * msg_in)
 
 	if (s && !s->session_stop) {
 		return sccp_session_send2(s, msg);
-	}
+	} 
 	return -1;
 }
 
 /*!
  * \brief Socket Send Message
- * \param s Session SCCP Session (can't be null)
+ * \param session Session SCCP Session (can't be null)
  * \param msg Message Data Structure (sccp_msg_t) (Will be freed automatically at the end)
  * \return Result as Int
  *
@@ -1263,7 +1403,7 @@ void sccp_session_tokenAckSPCP(constSessionPtr session, uint32_t features)
 /*!
  * \brief Set Session Protocol
  * \param session SCCP Session
- * \param device SCCP Device
+ * \param protocolType Protocol Type as uint16_t
  */
 gcc_inline void sccp_session_setProtocol(constSessionPtr session, uint16_t protocolType)
 {
@@ -1278,7 +1418,6 @@ gcc_inline void sccp_session_setProtocol(constSessionPtr session, uint16_t proto
 /*!
  * \brief Get Session Protocol
  * \param session SCCP Session
- * \param device SCCP Device
  */
 gcc_inline uint16_t sccp_session_getProtocol(constSessionPtr session)
 {
@@ -1291,7 +1430,6 @@ gcc_inline uint16_t sccp_session_getProtocol(constSessionPtr session)
 /*!
  * \brief Reset Last KeepAlive
  * \param session SCCP Session
- * \param device SCCP Device
  */
 gcc_inline void sccp_session_resetLastKeepAlive(constSessionPtr session)
 {
