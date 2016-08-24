@@ -51,7 +51,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #define SOCKET_SNDBUF (SCCP_MAX_PACKET * 5)									/* SO_SNDBUG */
 
 //#define WRITE_RETRIES 5											/* number of write retries */
-//#define WRITE_BACKOFF 500											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
+#define WRITE_BACKOFF 500											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
 
 #define SESSION_DEVICE_CLEANUP_TIME 10										/* wait time before destroying a device on thread exit */
 #define KEEPALIVE_ADDITIONAL_PERCENT 30										/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
