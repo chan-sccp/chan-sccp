@@ -50,10 +50,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 #define SOCKET_RCVBUF SCCP_MAX_PACKET										/* SO_RCVBUF */
 #define SOCKET_SNDBUF (SCCP_MAX_PACKET * 5)									/* SO_SNDBUG */
 
-#define READ_RETRIES 5												/* number of read retries */
-#define READ_BACKOFF 50												/* backoff time in millisecs, doubled every read retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec)*/
 //#define WRITE_RETRIES 5											/* number of write retries */
-#define WRITE_BACKOFF 500											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
+//#define WRITE_BACKOFF 500											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
 
 #define SESSION_DEVICE_CLEANUP_TIME 10										/* wait time before destroying a device on thread exit */
 #define KEEPALIVE_ADDITIONAL_PERCENT 30										/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
@@ -280,14 +278,13 @@ static gcc_inline int session_buffer2msg(sccp_session_t * s, unsigned char *buff
 	}
 	
 	if (((unsigned int)lenAccordingToPacketHeader) < ((unsigned int)lenAccordingToOurProtocolSpec)){
-		pbx_log(LOG_WARNING, "%s: (session_dissect_msg) Incoming message is smaller(%d) than known size(%d).\n", DEV_ID_LOG(s->device), lenAccordingToPacketHeader, lenAccordingToOurProtocolSpec);
+		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: (session_dissect_msg) Incoming message is smaller(%d) than known size(%d).\n", DEV_ID_LOG(s->device), lenAccordingToPacketHeader, lenAccordingToOurProtocolSpec);
 		lenAccordingToOurProtocolSpec = lenAccordingToPacketHeader;
 	}
 
 	memset(msg, 0, SCCP_MAX_PACKET);
 	memcpy(msg, buffer, lenAccordingToOurProtocolSpec);
 	msg->header.length = lenAccordingToOurProtocolSpec;								// patch up msg->header.length to new size
-
 	return sccp_handle_message(msg, s);
 }
 
@@ -322,6 +319,8 @@ static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsign
 	return res;
 }
 #if !defined(NEW_SOCKET)
+#define READ_RETRIES 5												/* number of read retries */
+#define READ_BACKOFF 50												/* backoff time in millisecs, doubled every read retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec)*/
 /*!
  * \brief Read Data From Socket
  * \param s SCCP Session
