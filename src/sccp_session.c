@@ -223,7 +223,7 @@ static void socket_get_error(constSessionPtr s, const char* file, int line, cons
 static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 {
 	int result = -1;
-	unsigned int packetSize = header->length;
+	unsigned int packetSize = header->length = letohl(header->length);
 	int protocolVersion = letohl(header->lel_protocolVer);
 	sccp_mid_t messageId = letohl(header->lel_messageId);
 
@@ -267,7 +267,6 @@ static gcc_inline int session_buffer2msg(sccp_session_t * s, unsigned char *buff
 {
 	sccp_header_t msg_header = {0};
 	memcpy(&msg_header, buffer, SCCP_PACKET_HEADER);
-	msg_header.length = letohl(msg_header.length);
 	int lenAccordingToOurProtocolSpec = session_dissect_header(s, &msg_header);
 	if (dont_expect(lenAccordingToOurProtocolSpec < 0)) {
 		if (lenAccordingToOurProtocolSpec == -2) {
@@ -279,15 +278,15 @@ static gcc_inline int session_buffer2msg(sccp_session_t * s, unsigned char *buff
 		pbx_log(LOG_WARNING, "%s: (session_dissect_msg) Incoming message is bigger(%d) than known size(%d). Packet looks like!\n", DEV_ID_LOG(s->device), lenAccordingToPacketHeader, lenAccordingToOurProtocolSpec);
 		sccp_dump_packet(buffer, lenAccordingToPacketHeader);
 	}
+	
+	if (((unsigned int)lenAccordingToPacketHeader) < ((unsigned int)lenAccordingToOurProtocolSpec)){
+		pbx_log(LOG_WARNING, "%s: (session_dissect_msg) Incoming message is smaller(%d) than known size(%d).\n", DEV_ID_LOG(s->device), lenAccordingToPacketHeader, lenAccordingToOurProtocolSpec);
+		lenAccordingToOurProtocolSpec = lenAccordingToPacketHeader;
+	}
 
 	memset(msg, 0, SCCP_MAX_PACKET);
 	memcpy(msg, buffer, lenAccordingToOurProtocolSpec);
 	msg->header.length = lenAccordingToOurProtocolSpec;								// patch up msg->header.length to new size
-
-	if (msg_header.length < (unsigned int)lenAccordingToOurProtocolSpec){
-		pbx_log(LOG_WARNING, "%s: (session_dissect_msg) Incoming message is smaller(%d) than known size(%d). Packet looks like!\n", DEV_ID_LOG(s->device), lenAccordingToPacketHeader, lenAccordingToOurProtocolSpec);
-		msg->header.length = msg_header.length;
-	}
 
 	return sccp_handle_message(msg, s);
 }
