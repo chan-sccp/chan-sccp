@@ -169,9 +169,9 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL, &data[8],
 		SCCP_CALLINFO_CALLINGPARTY_NAME, &data[9],
 		SCCP_CALLINFO_CALLEDPARTY_NAME, &data[10],
-		SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &data[11],
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &data[11],
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &data[12],
-		SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &data[13],
+		SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &data[13],
 		SCCP_CALLINFO_HUNT_PILOT_NUMBER, &data[14],
 		SCCP_CALLINFO_HUNT_PILOT_NAME, &data[15],
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &originalCdpnRedirectReason,
@@ -190,14 +190,14 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	}
 	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) - 4;
 	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len);
-	msg->data.CallInfoDynamicMessage.lel_lineInstance = htolel(lineInstance);
-	msg->data.CallInfoDynamicMessage.lel_callReference = htolel(callid);
-	msg->data.CallInfoDynamicMessage.lel_callType = htolel(calltype);
-	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits = presentation ? 0x0 : 0xf;
-	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
-	msg->data.CallInfoDynamicMessage.lel_callInstance = htolel(callInstance);
-	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason = htolel(originalCdpnRedirectReason);
-	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(lastRedirectingReason);
+	msg->data.CallInfoDynamicMessage.lel_lineInstance		= htolel(lineInstance);
+	msg->data.CallInfoDynamicMessage.lel_callReference		= htolel(callid);
+	msg->data.CallInfoDynamicMessage.lel_callType			= htolel(calltype);
+	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits		= presentation ? 0x0 : 0xf;
+	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus		= htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
+	msg->data.CallInfoDynamicMessage.lel_callInstance		= htolel(callInstance);
+	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason	= htolel(originalCdpnRedirectReason);
+	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason	= htolel(lastRedirectingReason);
 	memcpy(&msg->data.CallInfoDynamicMessage.dummy, dummy, dummy_len);
 	sccp_free(dummy);
 	
