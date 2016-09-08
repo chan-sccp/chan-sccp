@@ -1047,6 +1047,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			break;
 
 		case SKINNY_DEVICETYPE_SPA_502G:
+		case SKINNY_DEVICETYPE_SPA_512G:
 		case SKINNY_DEVICETYPE_SPA_521S:
 			for (i = 0; i < 1; i++) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
@@ -1064,6 +1065,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			}
 			break;
 		case SKINNY_DEVICETYPE_SPA_504G:
+		case SKINNY_DEVICETYPE_SPA_514G:
 		case SKINNY_DEVICETYPE_SPA_524SG:
 			for (i = 0; i < 4; i++) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
