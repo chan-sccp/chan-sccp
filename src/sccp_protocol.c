@@ -205,7 +205,6 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	if ((GLOB(debug) & (DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) != 0) {
 		iCallInfo.Print2log(ci, "SCCP: (sendCallInfoV16)");
 	}
-	sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 /* done - CallInfoMessage */
