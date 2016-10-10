@@ -8,7 +8,7 @@
  * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  */
-
+#define NEW_SOCKET 1
 #include "config.h"
 #include "common.h"
 #include "sccp_session.h"
@@ -50,8 +50,6 @@ SCCP_FILE_VERSION(__FILE__, "");
 #define SOCKET_RCVBUF SCCP_MAX_PACKET										/* SO_RCVBUF */
 #define SOCKET_SNDBUF (SCCP_MAX_PACKET * 5)									/* SO_SNDBUG */
 
-//#define READ_RETRIES 5											/* number of read retries */
-//#define READ_BACKOFF 50											/* backoff time in millisecs, doubled every read retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec)*/
 //#define WRITE_RETRIES 5											/* number of write retries */
 #define WRITE_BACKOFF 500											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
 
@@ -223,7 +221,7 @@ static void socket_get_error(constSessionPtr s, const char* file, int line, cons
 static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 {
 	int result = -1;
-	unsigned int packetSize = header->length;
+	unsigned int packetSize = header->length = letohl(header->length);
 	int protocolVersion = letohl(header->lel_protocolVer);
 	sccp_mid_t messageId = letohl(header->lel_messageId);
 
@@ -278,6 +276,11 @@ static gcc_inline int session_buffer2msg(sccp_session_t * s, unsigned char *buff
 		pbx_log(LOG_WARNING, "%s: (session_dissect_msg) Incoming message is bigger(%d) than known size(%d). Packet looks like!\n", DEV_ID_LOG(s->device), lenAccordingToPacketHeader, lenAccordingToOurProtocolSpec);
 		sccp_dump_packet(buffer, lenAccordingToPacketHeader);
 	}
+	
+	if (((unsigned int)lenAccordingToPacketHeader) < ((unsigned int)lenAccordingToOurProtocolSpec)){
+		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: (session_dissect_msg) Incoming message is smaller(%d) than known size(%d).\n", DEV_ID_LOG(s->device), lenAccordingToPacketHeader, lenAccordingToOurProtocolSpec);
+		lenAccordingToOurProtocolSpec = lenAccordingToPacketHeader;
+	}
 
 	memset(msg, 0, SCCP_MAX_PACKET);
 	memcpy(msg, buffer, lenAccordingToOurProtocolSpec);
@@ -315,6 +318,122 @@ static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsign
 	}
 	return res;
 }
+#if !defined(NEW_SOCKET)
+#define READ_RETRIES 5												/* number of read retries */
+#define READ_BACKOFF 50												/* backoff time in millisecs, doubled every read retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec)*/
+/*!
+ * \brief Read Data From Socket
+ * \param s SCCP Session
+ * \param msg Message Data Structure (sccp_msg_t)
+ *
+ * \lock
+ *      - session
+ */
+static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
+{
+	if (!s || s->session_stop || s->fds[0].fd <= 0 || !msg) {
+		return 0;
+	}
+	int mysocket = s->fds[0].fd;
+
+	int msgDataSegmentSize = 0;										/* Size of sccp_data_t according to the sccp_msg_t */
+	int UnreadBytesAccordingToPacket = 0;									/* Size of sccp_data_t according to the incomming Packet */
+	uint bytesToRead = 0;
+	uint bytesReadSoFar = 0;
+	int readlen = 0;
+	unsigned char buffer[SCCP_MAX_PACKET + 1] = { 0 };
+	unsigned char *dataptr;
+
+	errno = 0;
+	int tries = 0;
+	int backoff = READ_BACKOFF;
+
+	// STAGE 1: read header
+	memset(msg, 0, SCCP_MAX_PACKET);
+	readlen = read(mysocket, (&msg->header), SCCP_PACKET_HEADER);
+	if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {
+		return 0;
+	} /* try again later, return TRUE with empty r */
+	else if (readlen <= 0) {
+		goto READ_ERROR;
+	}
+	/* error || client closed socket */
+	msg->header.length = letohl(msg->header.length);
+	if ((msgDataSegmentSize = session_dissect_header(s, &msg->header)) < 0) {
+		UnreadBytesAccordingToPacket = msg->header.length - 4;
+		//goto READ_SKIP;
+		goto READ_ERROR;
+	}
+	// STAGE 2: read message data
+	msgDataSegmentSize -= SCCP_PACKET_HEADER;
+	UnreadBytesAccordingToPacket = msg->header.length - 4;							/* correction because we count messageId as part of the header */
+	bytesToRead = (UnreadBytesAccordingToPacket > msgDataSegmentSize) ? msgDataSegmentSize : UnreadBytesAccordingToPacket;	/* take the smallest of the two */
+	sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Dissection %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, msg->header.length: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, msg->header.length, bytesToRead, bytesReadSoFar);
+	dataptr = (unsigned char *) &msg->data;
+	while (bytesToRead > 0) {
+		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
+		readlen = read(mysocket, buffer, bytesToRead > SCCP_MAX_PACKET ? SCCP_MAX_PACKET : bytesToRead);					// use bufferptr instead
+		if ((readlen < 0) && (tries++ < READ_RETRIES) && (errno == EINTR || errno == EAGAIN)) {
+			usleep(backoff);
+			backoff *= 2;
+			continue;
+		} /* try again, blocking */
+		else if (readlen <= 0) {
+			goto READ_ERROR;
+		}												/* client closed socket, because read caused an error */
+		bytesReadSoFar += readlen;
+		bytesToRead -= readlen;										// if bytesToRead then more segments to read
+		memcpy(dataptr, buffer, readlen);
+		dataptr += readlen;
+	}
+	UnreadBytesAccordingToPacket -= bytesReadSoFar;
+	tries = 0;
+
+	sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Finished Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
+
+	// STAGE 3: discard the rest of UnreadBytesAccordingToPacket if it was bigger then msgDataSegmentSize
+//READ_SKIP:
+	if (UnreadBytesAccordingToPacket > 0) {									/* checking to prevent unneeded allocation of discardBuffer */
+		pbx_log(LOG_NOTICE, "%s: Going to Discard %d bytes of data for '%s' (%d) (Needs developer attention)\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
+		unsigned char discardBuffer[SCCP_MAX_PACKET + 1] = {0};
+
+		bytesToRead = UnreadBytesAccordingToPacket;
+		while (bytesToRead > 0) {
+			readlen = read(mysocket, discardBuffer, (bytesToRead > SCCP_MAX_PACKET) ? SCCP_MAX_PACKET : bytesToRead);
+			if ((readlen < 0) && (tries++ < READ_RETRIES) && (errno == EINTR || errno == EAGAIN)) {
+				usleep(backoff);
+				backoff *= 2;
+				continue;
+			} /* try again, blocking */
+			else if (readlen <= 0) {
+				break;
+			}											/* if we read EOF, just break reading (invalid packet information) */
+			bytesToRead -= readlen;
+			discardBuffer[readlen + 1] = '\0';							/* terminate discardBuffer */
+			sccp_dump_packet((unsigned char *) discardBuffer, readlen);				/* dump the discarded bytes, for analysis */
+		}
+		pbx_log(LOG_NOTICE, "%s: Discarded %d bytes of data for '%s' (%d) (Needs developer attention)\nReturning Only:\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
+		sccp_dump_msg(msg);
+	}
+
+	/* process message */
+	if ((sccp_handle_message(msg, s) == 0)) {
+		s->lastKeepAlive = time(0);
+		return msg->header.length + 8;
+	} else {
+		return -2;
+	}
+
+READ_ERROR:
+	if (errno) {
+		pbx_log(LOG_ERROR, "%s: error '%s (%d)' while reading from socket.\n", DEV_ID_LOG(s->device), strerror(errno), errno);
+		pbx_log(LOG_ERROR, "%s: stats: %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
+	}
+	socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
+	memset(msg, 0, SCCP_MAX_PACKET);
+	return -1;
+}
+#endif
 
 /*!
  * \brief Find Session in Globals Lists
@@ -549,10 +668,10 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	if (d) {
 		char *deviceName = sccp_strdupa(d->id);
 		
-                sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
-                sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_CLEANING);
-	        d->needcheckringback = 0;
-                sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
+		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
+		sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_CLEANING);
+		d->needcheckringback = 0;
+		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
 
 		sccp_session_destroySessionsByDeviceName(deviceName);
 	}
@@ -674,6 +793,7 @@ void *sccp_netsock_device_thread(void *session)
 				break;
 			}
 		} else if (res > 0) {										/* poll data processing */
+#if defined(NEW_SOCKET)
 			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
 				//sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving at buffer position:%lu\n", DEV_ID_LOG(s->device), recv_len);
 				result = recv(s->fds[0].fd, recv_buffer + recv_len, (SCCP_MAX_PACKET * 2) - recv_len, 0);
@@ -698,6 +818,23 @@ void *sccp_netsock_device_thread(void *session)
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 				break;
 			}
+#else
+			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
+				/* we have new data -> continue */
+				sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
+				while ((result = sccp_read_data(s, &msg)) > 0) {
+					sccp_dump_msg(&msg);
+					s->lastKeepAlive = time(0);
+				}
+				if (result < 0) {
+					break;
+				}
+			} else {										/* POLLHUP / POLLERR */
+				pbx_log(LOG_NOTICE, "%s: Closing session because we received POLLPRI/POLLHUP/POLLERR\n", DEV_ID_LOG(s->device));
+				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
+				break;
+			}
+#endif
 		} else {											/* poll returned invalid res */
 			pbx_log(LOG_NOTICE, "%s: Poll Returned invalid result: %d.\n", DEV_ID_LOG(s->device), res);
 		}
