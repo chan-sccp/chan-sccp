@@ -1209,9 +1209,11 @@ enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 		struct ast_callid *callid = NULL;
 #    else
 		typedef unsigned int ast_callid;
-#    endif
-#  endif
 		ast_callid callid = 0;
+#    endif
+#  else
+		ast_callid callid = 0;
+#  endif
 		channel->pbx_callid_created = ast_callid_threadstorage_auto(&callid);
 		ast_channel_callid_set(pbx_channel, callid);
 #endif
