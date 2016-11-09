@@ -16,7 +16,8 @@
 
 **Screenshots**
 
-![Screenshots which follow reproduction steps to demonstrate the problem](url)
+(Screenshots which show reproduction steps and/or demonstrate the problem)
+[url]
 
 **chan-sccp version:** (include revision if relevant)
 
@@ -32,7 +33,7 @@
     * [Operating System]
     * [Operating System Version]
 * Direct Contact information: [You can contact me here]
-* Log Files (pastbin): [url]
+* Log Files (attach .txt / [pastbin](http://pastebin.com/) / [gist](http://gist.github.com/)): [url]
 * Comments: [Other Information]
 * 
 
