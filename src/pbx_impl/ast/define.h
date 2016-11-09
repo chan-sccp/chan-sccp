@@ -40,13 +40,17 @@
 
 // SCCP_FILE_VERSION definition
 #if defined(LOW_MEMORY)
-#define SCCP_FILE_VERSION(_file, _version)
+#  define SCCP_FILE_VERSION(_file, _version)
 #else
-#if CS_AST_REGISTER_FILE_VERSION
-#define SCCP_FILE_VERSION(_file, _version) ASTERISK_FILE_VERSION(_file, _version)
-#else
-#define SCCP_FILE_VERSION(_file, _version) ASTERISK_REGISTER_FILE()
-#endif
+#  if CS_AST_REGISTER_FILE_VERSION
+#    define SCCP_FILE_VERSION(_file, _version) ASTERISK_FILE_VERSION(_file, _version)
+#  else
+#    if ASTERISK_VERSION_GROUP >= 114
+#      define SCCP_FILE_VERSION(_file, _version)
+#    else
+#      define SCCP_FILE_VERSION(_file, _version) ASTERISK_REGISTER_FILE()
+#    endif
+#  endif
 #endif
 
 // codec / format redefinitions

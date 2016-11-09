@@ -11,11 +11,16 @@ AC_DEFUN([AST_GET_VERSION], [
 	
 	AC_CHECK_HEADER([asterisk/version.h],[
 		AC_MSG_CHECKING([version in asterisk/version.h])
-		AC_TRY_COMPILE([
-			#include <asterisk/version.h>
-		],[
-			const char *test_src = ASTERISK_VERSION;
-		], [
+		AC_COMPILE_IFELSE(
+			[AC_LANG_PROGRAM(
+				[
+					#define AST_MODULE_SELF_SYM "__internal_chan_sccp_la_self"
+					#define AST_MODULE "chan_sccp"
+					#include <asterisk/version.h>
+				],[
+					const char *test_src = ASTERISK_VERSION;
+				]
+			)],[
 			AC_MSG_RESULT(processing...)
 			pbx_ver=$(eval "$ac_cpp conftest.$ac_ext" 2>/dev/null | $EGREP test_src |$EGREP -o '\".*\"')
 
@@ -95,7 +100,8 @@ AC_DEFUN([AST_GET_VERSION], [
 							110) AC_DEFINE([ASTERISK_CONF_1_10], [1], [Defined ASTERISK_CONF_1_10]);;
 							111) AC_DEFINE([ASTERISK_CONF_1_11], [1], [Defined ASTERISK_CONF_1_11]);;
 							112) AC_DEFINE([ASTERISK_CONF_1_12], [1], [Defined ASTERISK_CONF_1_12]);;
-							113) AC_DEFINE([ASTERISK_CONF_1_13], [1], [Defined ASTERISK_CONF_1_13])
+							113) AC_DEFINE([ASTERISK_CONF_1_13], [1], [Defined ASTERISK_CONF_1_13]);;
+							114) AC_DEFINE([ASTERISK_CONF_1_14], [1], [Defined ASTERISK_CONF_1_14])
 								ASTERISK_INCOMPATIBLE=yes;;
 							*) AC_DEFINE([ASTERISK_CONF], [0], [NOT Defined ASTERISK_CONF !!]);;
 						esac 
@@ -140,47 +146,63 @@ AC_DEFUN([AST_GET_VERSION], [
 	], [
 		AC_CHECK_HEADER([asterisk/ast_version.h],
 		[
-			AC_CHECK_HEADER([asterisk/format_cache.h],
+			AC_CHECK_HEADER([asterisk/media_cache.h],
 			[
-				ASTERISK_VER_GROUP=113
-				ASTERISK_VERSION_NUMBER=11300
+				ASTERISK_VER_GROUP=114
+				ASTERISK_VERSION_NUMBER=11400
 				ASTERISK_REPOS_LOCATION=TRUNK
 
-				AC_DEFINE([ASTERISK_CONF_1_13], [1], [Defined ASTERISK_CONF_1_13])
-				AC_DEFINE([ASTERISK_VERSION_NUMBER], [11300], [ASTERISK Version Number])
-				AC_DEFINE([ASTERISK_VERSION_GROUP], [113], [ASTERISK Version Group])
+				AC_DEFINE([ASTERISK_CONF_1_14], [1], [Defined ASTERISK_CONF_1_14])
+				AC_DEFINE([ASTERISK_VERSION_NUMBER], [11400], [ASTERISK Version Number])
+				AC_DEFINE([ASTERISK_VERSION_GROUP], [114], [ASTERISK Version Group])
 				AC_DEFINE([ASTERISK_REPOS_LOCATION], ["TRUNK"],[ASTERISK Source Location])
 				
 				version_found=1
 				AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'.])
 			],
 			[
-				AC_CHECK_HEADER([asterisk/uuid.h],
+				AC_CHECK_HEADER([asterisk/format_cache.h],
 				[
-					ASTERISK_VER_GROUP=112
-					ASTERISK_VERSION_NUMBER=11200
+					ASTERISK_VER_GROUP=113
+					ASTERISK_VERSION_NUMBER=11300
 					ASTERISK_REPOS_LOCATION=TRUNK
 
-					AC_DEFINE([ASTERISK_CONF_1_12], [1], [Defined ASTERISK_CONF_1_12])
-					AC_DEFINE([ASTERISK_VERSION_NUMBER], [11200], [ASTERISK Version Number])
-					AC_DEFINE([ASTERISK_VERSION_GROUP], [112], [ASTERISK Version Group])
+					AC_DEFINE([ASTERISK_CONF_1_13], [1], [Defined ASTERISK_CONF_1_13])
+					AC_DEFINE([ASTERISK_VERSION_NUMBER], [11300], [ASTERISK Version Number])
+					AC_DEFINE([ASTERISK_VERSION_GROUP], [113], [ASTERISK Version Group])
 					AC_DEFINE([ASTERISK_REPOS_LOCATION], ["TRUNK"],[ASTERISK Source Location])
 					
 					version_found=1
-					AC_MSG_RESULT([done])
-				],[
-					ASTERISK_VER_GROUP=111
-					ASTERISK_VERSION_NUMBER=11100
-					ASTERISK_REPOS_LOCATION=BRANCH
+					AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'.])
+				],
+				[
+					AC_CHECK_HEADER([asterisk/uuid.h],
+					[
+						ASTERISK_VER_GROUP=112
+						ASTERISK_VERSION_NUMBER=11200
+						ASTERISK_REPOS_LOCATION=TRUNK
 
-					AC_DEFINE([ASTERISK_CONF_1_11], [1], [Defined ASTERISK_CONF_1_11])
-					AC_DEFINE([ASTERISK_VERSION_NUMBER], [11100], [ASTERISK Version Number])
-					AC_DEFINE([ASTERISK_VERSION_GROUP], [111], [ASTERISK Version Group])
-					AC_DEFINE([ASTERISK_REPOS_LOCATION], ["BRANCH"],[ASTERISK Source Location])
-					
-					version_found=1
-					AC_MSG_RESULT([done])
-					AC_MSG_RESULT([Found 'Asterisk Version 11'])
+						AC_DEFINE([ASTERISK_CONF_1_12], [1], [Defined ASTERISK_CONF_1_12])
+						AC_DEFINE([ASTERISK_VERSION_NUMBER], [11200], [ASTERISK Version Number])
+						AC_DEFINE([ASTERISK_VERSION_GROUP], [112], [ASTERISK Version Group])
+						AC_DEFINE([ASTERISK_REPOS_LOCATION], ["TRUNK"],[ASTERISK Source Location])
+						
+						version_found=1
+						AC_MSG_RESULT([done])
+					],[
+						ASTERISK_VER_GROUP=111
+						ASTERISK_VERSION_NUMBER=11100
+						ASTERISK_REPOS_LOCATION=BRANCH
+
+						AC_DEFINE([ASTERISK_CONF_1_11], [1], [Defined ASTERISK_CONF_1_11])
+						AC_DEFINE([ASTERISK_VERSION_NUMBER], [11100], [ASTERISK Version Number])
+						AC_DEFINE([ASTERISK_VERSION_GROUP], [111], [ASTERISK Version Group])
+						AC_DEFINE([ASTERISK_REPOS_LOCATION], ["BRANCH"],[ASTERISK Source Location])
+						
+						version_found=1
+						AC_MSG_RESULT([done])
+						AC_MSG_RESULT([Found 'Asterisk Version 11'])
+					])
 				])
 			])
 		],[
@@ -222,6 +244,8 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
 #undef VERSION
+#define AST_MODULE_SELF_SYM __internal_chan_sccp_la_self
+#define AST_MODULE "chan_sccp"
 #if ASTERISK_VERSION_NUMBER >= 10400
 #  include <asterisk.h>
 #endif
@@ -829,7 +853,7 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 				], [CS_AST_HAS_EXTENSION_RINGING],['AST_EXTENSION_RINGING' available]
 			)
 
-			AS_IF([test "${ASTERISK_VER_GROUP}" == "113"], [
+			AS_IF([test "${ASTERISK_VER_GROUP}" -gt "112"], [
 				CFLAGS="${CFLAGS_saved} ${TEST_SUPPORTED_CFLAGS} -Werror"
 				CS_CV_TRY_COMPILE_DEFINE([ - ast_state_cb_type uses const char (13)...], [ac_cv_ast_state_cb_type_const_char], [
 					$HEADER_INCLUDE
@@ -990,12 +1014,16 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 			AC_DEFINE([HAVE_PBX_UTILS_H],1,[Found 'asterisk/utils.h'])
 
 			AC_MSG_CHECKING([ - availability 'ast_free'...])
-			AC_TRY_COMPILE([
-				$HEADER_INCLUDE
-				#include <asterisk/utils.h>
-				], [
-					ast_free(NULL);
-				], [
+			AC_COMPILE_IFELSE([
+				AC_LANG_PROGRAM(
+					[
+						$HEADER_INCLUDE
+						#include <asterisk/utils.h>
+					],[
+						ast_free(NULL);
+					]
+				)
+			],[
 				
 				AC_MSG_RESULT(yes)
 			], [
@@ -1004,13 +1032,16 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 			])
 
 			AC_MSG_CHECKING([ - availability 'ast_random'...])
-			AC_TRY_COMPILE([
-				$HEADER_INCLUDE
-				#include <asterisk/utils.h>
-				], [
-					unsigned int __attribute__((unused)) test_random = ast_random();
-				], [
-				
+			AC_COMPILE_IFELSE([
+				AC_LANG_PROGRAM(
+					[
+						$HEADER_INCLUDE
+						#include <asterisk/utils.h>
+					], [
+						unsigned int __attribute__((unused)) test_random = ast_random();
+					]
+				)
+			], [
 				AC_MSG_RESULT(yes)
 			], [
 				AC_DEFINE([ast_random],[random],['ast_random' replacement])
