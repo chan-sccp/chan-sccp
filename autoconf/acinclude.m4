@@ -215,9 +215,11 @@ AC_DEFUN([CS_CV_TRY_COMPILE_IFELSE],
         	[$1],
         	[$2],
         	[
-                        AC_TRY_COMPILE(
-                        	[$3], 
-                        	[$4], 
+                        AC_COMPILE_IFELSE(
+                       		[AC_LANG_PROGRAM(
+                        		[$3], 
+         	                	[$4],
+       	                	)], 
                         	[
                                         $2="yes"
                                         AC_CACHE_VAL([$2], "yes")
@@ -258,15 +260,28 @@ AC_DEFUN([CS_CHECK_AST_TYPEDEF],
 	[
 	  eval "ac_cv_type_$ac_lib_var='not-found'"
 	  ac_cv_check_typedef_header=`echo ifelse([$2], , stddef.h, $2)`
-	  AC_TRY_COMPILE(
-	  	[
-		        #if ASTERISK_VERSION_NUMBER >= 10400
-		        #include <asterisk.h>
-		        #endif
-			#include <$ac_cv_check_typedef_header>
-		],[
-			int x = sizeof($1); x = x;
-		],[
+	  AC_COMPILE_IFELSE(
+	  	[AC_LANG_PROGRAM(
+	  		[
+				#undef PACKAGE
+				#undef PACKAGE_BUGREPORT
+				#undef PACKAGE_NAME
+				#undef PACKAGE_STRING
+				#undef PACKAGE_TARNAME
+				#undef PACKAGE_VERSION
+				#undef VERSION
+			        #if ASTERISK_VERSION_NUMBER >= 10400
+			        #define AST_MODULE_SELF_SYM __internal_chan_sccp_la_self
+				#define AST_MODULE "chan_sccp"
+			        #include <asterisk.h>
+			        #endif
+				#include <asterisk/autoconfig.h>
+				#include <asterisk/buildopts.h>
+				#include <$ac_cv_check_typedef_header>
+			],[
+				int x = sizeof($1); x = x;
+			]
+		)],[
 	        	AC_MSG_RESULT(yes)
 	        	eval "ac_cv_type_$ac_lib_var=yes"
 	        ],[
