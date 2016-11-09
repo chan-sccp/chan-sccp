@@ -36,6 +36,9 @@
 /* Defined ASTERISK_CONF_1_13 */
 #undef ASTERISK_CONF_1_13
 
+/* Defined ASTERISK_CONF_1_14 */
+#undef ASTERISK_CONF_1_14
+
 /* Defined ASTERISK_CONF_1_2 */
 #undef ASTERISK_CONF_1_2
 
@@ -198,6 +201,9 @@
 /* 'ast_rtp_new_source' available */
 #undef CS_AST_RTP_NEW_SOURCE
 
+/* Found 'asterisk/sched.h' */
+#undef CS_AST_SCHED_CONTEXT
+
 /* 'AST_SCHED_DEL' available */
 #undef CS_AST_SCHED_DEL
 
@@ -273,6 +279,9 @@
 
 /* Using streaming video */
 #undef CS_SCCP_VIDEO
+
+/* Found 'asterisk/sched.h' */
+#undef CS_SCHED_CONTEXT
 
 /* asterisk compiled with 'TEST_FRAMEWORK' */
 #undef CS_TEST_FRAMEWORK
@@ -581,8 +590,7 @@
 /* using LINUX */
 #undef LINUX
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
