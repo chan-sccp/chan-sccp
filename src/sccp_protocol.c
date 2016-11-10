@@ -183,10 +183,15 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	int data_len = 0;
 	int dummy_len = 0;
 	uint8_t *dummy = sccp_calloc(sizeof(uint8_t), dataSize * StationMaxNameSize);
+	if (!dummy) {
+		return;
+	}
 	for (field = 0; field < dataSize; field++) {
-		data_len = strlen(data[field]) + 1 /* '\0 */;
-		memcpy(dummy + dummy_len, data[field], data_len);
-		dummy_len += data_len;
+		if (data[field]) {
+			data_len = strlen(data[field]) + 1 /* '\0' */;
+			memcpy(dummy + dummy_len, data[field], data_len);
+			dummy_len += data_len;
+		}
 	}
 	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) - 4;
 	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len);
