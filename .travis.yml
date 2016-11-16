@@ -1,10 +1,7 @@
 language: c
-
-# Setup Build Matrix
 compiler: 
  - clang
  - gcc
-
 env:
   global:
     - COVERITY_SCAN_PROJECT_NAME="chan-sccp"
