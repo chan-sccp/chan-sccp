@@ -426,11 +426,8 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t * c)
 	}
 	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
 
-	if (channel && channel->owner) {
-		pbx_channel_lock(channel->owner);
-		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
-		pbx_channel_unlock(channel->owner);
-
+	PBX_CHANNEL_TYPE *pbx_channel = NULL;
+	if (channel && channel->owner && (pbx_channel = pbx_channel_ref(channel->owner))) {
 		if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
 			sccp_channel_stop_and_deny_scheduled_tasks(channel);
 		}
