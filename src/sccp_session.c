@@ -291,7 +291,7 @@ static gcc_inline int session_buffer2msg(sccp_session_t * s, unsigned char *buff
 static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsigned char *buffer, size_t *len)
 {
 	int res = 0;
-	while (*len >= SCCP_PACKET_HEADER) {										// We have at least SCCP_PACKET_HEADER, so we have the payload length
+	while (*len >= SCCP_PACKET_HEADER && *len <= SCCP_MAX_PACKET * 2) {										// We have at least SCCP_PACKET_HEADER, so we have the payload length
 		uint32_t hdr_len = buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24);
 		uint32_t payload_len = letohl(hdr_len) + (SCCP_PACKET_HEADER - 4);
 		if (*len < payload_len) {
