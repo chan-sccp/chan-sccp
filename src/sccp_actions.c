@@ -2554,13 +2554,13 @@ void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMess
 			case SKINNY_LBL_JOIN:
 			case SKINNY_LBL_CONFLIST:
 				if (d->allow_conference) {
-					msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 128;	/* adding "\200" upfront to indicate that we are using an embedded/xml label */
+					msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = (char)128;	/* adding "\200" upfront to indicate that we are using an embedded/xml label */
 					msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];
 				}
 				break;
 #endif
 			default:
-				msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 128;	/* adding "\200" upfront to indicate that we are using an embedded/xml label */
+				msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = (char)128;		/* adding "\200" upfront to indicate that we are using an embedded/xml label */
 				msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];
 				sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, label2str(msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1]));
 		}
@@ -2903,7 +2903,7 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	AUTO_RELEASE sccp_line_t *l = NULL;
 	
-	/* old devices (like 7960) send buttonIndex instead of lineInstance, convert buttonIndex to lineInstance */
+	/* old devices (like 7906) send buttonIndex instead of lineInstance, convert buttonIndex to lineInstance */
 	if (d->protocolversion < 15 && lineInstance) {
 		int16_t tmpLineInstance, buttonIndex = lineInstance;
 		if ((tmpLineInstance = sccp_device_buttonIndex2lineInstance(d, buttonIndex)) >= 0) {
