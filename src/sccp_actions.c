@@ -2885,24 +2885,46 @@ void sccp_handle_time_date_req(constSessionPtr s, devicePtr d, constMessagePtr n
 void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	pbx_assert(d != NULL);
-	int digit;
-	uint8_t lineInstance = 0;
-	uint32_t callid = 0;
 	char resp = '\0';
 	int len = 0;
+	enum sccp_cili {
+		SCCP_CILI_HAS_NEITHER,
+		SCCP_CILI_HAS_CALLID,
+		SCCP_CILI_HAS_LINEINSTANCE,
+	}; 
 
-	digit 		= letohl(msg_in->data.KeypadButtonMessage.lel_kpButton);
-	if (d->skinny_type != SKINNY_DEVICETYPE_CISCO7936) {								/* 7936 sends ipaddress and rtp port and more */
-		if (msg_in->header.length >= 16) {
-			callid 		= letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
-			if (msg_in->header.length >= 20) {
-				lineInstance 	= letohl(msg_in->data.KeypadButtonMessage.lel_lineInstance);
-			}
-		}
+	int digit = letohl(msg_in->data.KeypadButtonMessage.lel_kpButton);
+	switch (digit) {
+		case 0 ... 9:
+			resp = '0' + digit;
+			break;
+		case 14:
+			resp = '*';
+			break;
+		case 15:
+			resp = '#';
+			break;
+		case 16:
+			resp = '+';
+			break;
+		default:
+			pbx_log(LOG_ERROR, "%s: (handle_keypad) received unsupported digit:%d\n", DEV_ID_LOG(d), digit);
+			return;
 	}
-	AUTO_RELEASE sccp_channel_t *channel = NULL;
-	AUTO_RELEASE sccp_line_t *l = NULL;
-	
+
+	uint8_t CallIdAndLineInstance = SCCP_CILI_HAS_NEITHER;
+	uint8_t lineInstance = 0;
+	uint32_t callid = 0;
+	/* get callid and lineInstance if available. set bitfield accordingly */
+	if (msg_in->header.length >= 20) {
+		lineInstance = letohl(msg_in->data.KeypadButtonMessage.lel_lineInstance);
+		CallIdAndLineInstance |= lineInstance ? SCCP_CILI_HAS_LINEINSTANCE : 0;
+	}
+	if (msg_in->header.length >= 16) {
+		callid = letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
+		CallIdAndLineInstance |= callid ? SCCP_CILI_HAS_CALLID : 0;
+	}
+
 	/* old devices (like 7906) send buttonIndex instead of lineInstance, convert buttonIndex to lineInstance */
 	if (d->protocolversion < 15 && lineInstance) {
 		int16_t tmpLineInstance, buttonIndex = lineInstance;
@@ -2910,71 +2932,65 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) digit:%08x, callid:%d, buttonIndex:%d => lineInstance:%d\n", DEV_ID_LOG(d), digit, callid, buttonIndex, tmpLineInstance);
 			lineInstance = tmpLineInstance;
 		}
-	} else {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) digit:%08x, callid:%d, lineInstance:%d\n", DEV_ID_LOG(d), digit, callid, lineInstance);
 	}
-	if (lineInstance) {
-		if (callid) {
-			if ((channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid)) && channel->line) {
-				l = sccp_line_retain(channel->line);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) digit:%08x, callid:%d, lineInstance:%d\n", DEV_ID_LOG(d), digit, callid, lineInstance);
+
+	AUTO_RELEASE sccp_channel_t *channel = NULL;
+	AUTO_RELEASE sccp_line_t *l = NULL;
+	switch(CallIdAndLineInstance) {
+		case SCCP_CILI_HAS_CALLID | SCCP_CILI_HAS_LINEINSTANCE:
+			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) BOTH callid and lineinstance\n", DEV_ID_LOG(d));
+			if ((channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid))) {
+				break;
 			}
-		} else {
+			// fallthrough to lineInstance only method (channel could not be found on lineInstance), reported in issue #340
+		case SCCP_CILI_HAS_LINEINSTANCE:
+			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) only lineinstance\n", DEV_ID_LOG(d));
 			if ((l = sccp_line_find_byid(d, lineInstance))) {
 				SCCP_LIST_LOCK(&l->channels);
 				channel = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->state == SCCP_CHANNELSTATE_OFFHOOK || tmpc->state == SCCP_CHANNELSTATE_GETDIGITS || tmpc->state == SCCP_CHANNELSTATE_DIGITSFOLL), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 				SCCP_LIST_UNLOCK(&l->channels);
 			}
+			break;
+		case SCCP_CILI_HAS_CALLID:
+			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) only callid\n", DEV_ID_LOG(d));
+			channel = sccp_channel_find_byid(callid);
+			break;
+		case SCCP_CILI_HAS_NEITHER:
+			/* Old phones like 7912 never uses callid so we would have trouble finding the right channel */
+			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) has neither, using activeLine and activeChannel\n", DEV_ID_LOG(d));
+			channel = sccp_device_getActiveChannel(d);
+			break;
+	}
+	if (!l && channel && channel->line) {
+		l = sccp_line_retain(channel->line);
+	}
+	
+	{ /* check if we have all required structures and states for error conditions */
+		if (!channel) {
+			pbx_log(LOG_ERROR, "%s: Device sent a Keypress, but there is no (active) channel! Exiting\n", DEV_ID_LOG(d));
+			return;
 		}
-	} else if(callid) {
-		if ((channel = sccp_channel_find_byid(callid)) && channel->line) {
-			l = sccp_line_retain(channel->line);
+		if (!channel->owner) {
+			pbx_log(LOG_ERROR, "%s: Device sent a Keypress, but there is no (active) pbx channel! Exiting\n", DEV_ID_LOG(d));
+			sccp_channel_endcall(channel);
+			return;
 		}
-	} else { 
-		if ((channel = sccp_device_getActiveChannel(d)) && channel->line) {			/* Old phones like 7912 never uses callid so we would have trouble finding the right channel */
-			l = sccp_line_retain(channel->line);
+		if (!l) {
+			pbx_log(LOG_ERROR, "%s: Device sent a Keypress, but there is no line specified! Exiting\n", DEV_ID_LOG(d));
+			return;
 		}
-	}
-
-	if (!channel) {
-		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but there is no (active) channel! Exiting\n", DEV_ID_LOG(d));
-		return;
-	}
-
-	if (!channel->owner) {
-		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but there is no (active) pbx channel! Exiting\n", DEV_ID_LOG(d));
-		sccp_channel_endcall(channel);
-		return;
-	}
-
-	if (!l) {
-		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but there is no line specified! Exiting\n", DEV_ID_LOG(d));
-		return;
-	}
-
-	if (channel->scheduler.hangup_id > -1) {
-		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Channel to be hungup shortly, giving up on sending more digits %d\n", DEV_ID_LOG(d), digit);
-		return;
-	}
-
-	if (channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER || channel->state == SCCP_CHANNELSTATE_CONGESTION || channel->state == SCCP_CHANNELSTATE_BUSY || channel->state == SCCP_CHANNELSTATE_ZOMBIE || channel->state == SCCP_CHANNELSTATE_DND) {
-		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Channel already ended, giving up on sending more digits %d\n", DEV_ID_LOG(d), digit);
-		return;
+		if (channel->scheduler.hangup_id > -1) {
+			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Channel to be hungup shortly, giving up on sending more digits %d\n", DEV_ID_LOG(d), digit);
+			return;
+		}
+		if (channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER || channel->state == SCCP_CHANNELSTATE_CONGESTION || channel->state == SCCP_CHANNELSTATE_BUSY || channel->state == SCCP_CHANNELSTATE_ZOMBIE || channel->state == SCCP_CHANNELSTATE_DND) {
+			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Channel already ended, giving up on sending more digits %d\n", DEV_ID_LOG(d), digit);
+			return;
+		}
 	}
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP Digit: %08x (%d) on line %s, channel %d with state: %d (Using: %s)\n", DEV_ID_LOG(d), digit, digit, l->name, channel->callid, channel->state, sccp_dtmfmode2str(channel->dtmfmode));
-
-	if (digit == 14) {
-		resp = '*';
-	} else if (digit == 15) {
-		resp = '#';
-	} else if (digit == 16) {
-		resp = '+';
-	} else if (digit >= 0 && digit <= 9) {
-		resp = '0' + digit;
-	} else {
-		// resp = '0' + digit;
-		pbx_log(LOG_WARNING, "Unsupported digit %d\n", digit);
-	}
 
 	/* added PROGRESS to make sending digits possible during progress state (Pavel Troller) */
 	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED || channel->state == SCCP_CHANNELSTATE_RINGOUT) {
