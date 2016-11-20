@@ -294,6 +294,8 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 		}
 	}
 	//pbx_channel_unlock(target);
+#else
+	pbx_log(LOG_NOTICE, "%s: (directed_pickup) no support for pickup in asterisk\n");
 #endif
 	return res;
 }
@@ -308,16 +310,20 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
  */
 void sccp_feat_handle_directed_pickup(constDevicePtr d, constLinePtr l, channelPtr maybe_c)
 {
+#if CS_AST_DO_PICKUP
 	if (!l || !d) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
 		return;
 	}
-	AUTO_RELEASE sccp_linedevices_t *ld = sccp_linedevice_find(d, l);
-	if (!ld->isPickupAllowed()) {
-		pbx_log(LOG_NOTICE, "%s: (directed_pickup) pickup button has been disabled for line:%s, after first try on this channel.\n", d->id, l->name);
-		return;
+	
+	{
+		AUTO_RELEASE sccp_linedevices_t *ld = sccp_linedevice_find(d, l);
+		if (!ld->isPickupAllowed()) {
+			pbx_log(LOG_NOTICE, "%s: (directed_pickup) pickup button has been disabled for line:%s (already pressed pickup on this call).\n", d->id, l->name);
+			return;
+		}
+		sccp_linedevice_disallowPickup(ld);
 	}
-	sccp_linedevice_disallowPickup(ld);
 
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_getEmptyChannel(l, d, maybe_c, SKINNY_CALLTYPE_INBOUND, NULL, NULL);
 	if (c) {
@@ -331,6 +337,9 @@ void sccp_feat_handle_directed_pickup(constDevicePtr d, constLinePtr l, channelP
 			sccp_channel_openReceiveChannel(c);
 		}
 	}
+#else
+	pbx_log(LOG_NOTICE, "%s: (directed_pickup) no support for pickup in asterisk\n");
+#endif
 }
 
 /*!
@@ -346,31 +355,25 @@ void sccp_feat_handle_directed_pickup(constDevicePtr d, constLinePtr l, channelP
  */
 int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInstance, const char *exten)
 {
+#if CS_AST_DO_PICKUP
 	int res = -1;
 
-	/* assertinns */
-	pbx_assert(c && c->owner && d);
+	/* assertions */
+	pbx_assert(c && c->line && c->owner && d);
 	
-	AUTO_RELEASE sccp_linedevices_t *ld = sccp_linedevice_findByLineinstance(d, lineInstance);
-	if (!ld->isPickupAllowed()) {
-		pbx_log(LOG_NOTICE, "%s: (directed_pickup) pickup button has been disabled, after first try on this channel.\n", d->id);
-		return -1 ;
-	}
-	sccp_linedevice_disallowPickup(ld);
-#if CS_AST_DO_PICKUP
-	char *context;
-
-	if (sccp_strlen_zero(exten)) {
-		pbx_log(LOG_ERROR, "SCCP: (directed_pickup) zero exten. Giving up.\n");
-		return -1;
-	}
-
 	if (!c->line->pickupgroup
 #if CS_AST_HAS_NAMEDGROUP
 	    && sccp_strlen_zero(c->line->namedpickupgroup)
 #endif
 	    ) {
-		pbx_log(LOG_WARNING, "%s: (directed pickup) no pickupgroup(s) configured for this line. Giving up.\n", d->id);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (directedpickup) pickupgroup not configured in sccp.conf\n", d->id);
+		return -1;
+	}
+
+	char *context;
+
+	if (sccp_strlen_zero(exten)) {
+		pbx_log(LOG_ERROR, "SCCP: (directed_pickup) zero exten. Giving up.\n");
 		return -1;
 	}
 
@@ -417,6 +420,8 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 	} else {
 		pbx_log(LOG_NOTICE, "SCCP: Unable to grab a reference of the original channel owner\n");
 	}
+#else
+	pbx_log(LOG_NOTICE, "%s: (directed_pickup) no support for pickup in asterisk\n");
 #endif
 	return res;
 }
@@ -456,13 +461,15 @@ int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstanc
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickupgroup not configured in sccp.conf\n", d->id);
 		return -1;
 	}
-	/* end assertions */
-	AUTO_RELEASE sccp_linedevices_t *ld = sccp_linedevice_find(d, l);
-	if (!ld->isPickupAllowed()) {
-		pbx_log(LOG_NOTICE, "%s: (gpickup) gpickup button has been disabled for line:%s, after first try on this channel.\n", d->id, l->name);
-		return -1 ;
+	{
+		AUTO_RELEASE sccp_linedevices_t *ld = sccp_linedevice_find(d, l);
+		if (!ld->isPickupAllowed()) {
+			pbx_log(LOG_NOTICE, "%s: (directed_pickup) pickup button has been disabled for line:%s (already pressed pickup on this call).\n", d->id, l->name);
+			return -1 ;
+		}
+		sccp_linedevice_disallowPickup(ld);
 	}
-	sccp_linedevice_disallowPickup(ld);
+	/* end assertions */
 
 	pbx_log(LOG_NOTICE, "%s: (gpickup) get channel: %s.\n", d->id, maybe_c ? maybe_c->designator : "<null>");
 	/* re-use/create channel for pickup */
@@ -493,6 +500,8 @@ int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstanc
 			pbx_log(LOG_NOTICE, "SCCP: Unable to grab a reference of the original channel owner\n");
 		}
 	}
+#else
+	pbx_log(LOG_NOTICE, "%s: (directed_pickup) no support for pickup in asterisk\n");
 #endif
 	return res;
 }

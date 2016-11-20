@@ -495,7 +495,6 @@ void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t
 }
 
 void sccp_linedevice_resetPickup(sccp_linedevices_t * ld) {
-	sccp_log(DEBUGCAT_LINE)("%s: (allowPickup) on line:%s.\n", ld->device->id, ld->line->name);
 
 	ld->isPickupAllowed = sccp_always_false;
 #ifdef CS_SCCP_PICKUP
@@ -504,6 +503,7 @@ void sccp_linedevice_resetPickup(sccp_linedevices_t * ld) {
 		|| !sccp_strlen_zero(ld->line->namedpickupgroup)
 #endif
 	) {
+		sccp_log(DEBUGCAT_LINE)("%s: (allowPickup) on line:%s.\n", ld->device->id, ld->line->name);
 		ld->isPickupAllowed = sccp_always_true;
 	}
 #endif
