@@ -901,11 +901,16 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7940:
-			/* add text message support */
 			d->pushTextMessage = sccp_device_pushTextMessage;
 			d->pushURL = sccp_device_pushURL;
-
 			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
+				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
+			}
+			break;
+		case SKINNY_DEVICETYPE_CISCO7960:
+			d->pushTextMessage = sccp_device_pushTextMessage;
+			d->pushURL = sccp_device_pushURL;
+			for (i = 6 + sccp_addons_taps(d); i > 0; i--) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
@@ -922,18 +927,6 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			d->setRingTone = sccp_device_setRingtone;
 
 			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
-				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
-			}
-			break;
-		case SKINNY_DEVICETYPE_CISCO7960:
-			/* add text message support */
-			d->pushTextMessage = sccp_device_pushTextMessage;
-			d->pushURL = sccp_device_pushURL;
-			d->setBackgroundImage = sccp_device_setBackgroundImage;
-			d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreview;
-			d->setRingTone = sccp_device_setRingtone;
-
-			for (i = 6 + sccp_addons_taps(d); i > 0; i--) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
@@ -1031,6 +1024,12 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			d->capabilities.video[1] = SKINNY_CODEC_H263;
 			sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
 #endif
+			d->pushTextMessage = sccp_device_pushTextMessage;
+			d->pushURL = sccp_device_pushURL;
+			d->setBackgroundImage = sccp_device_setBackgroundImage;
+			d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreview;
+			d->setRingTone = sccp_device_setRingtone;
+
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			for (i = 0; i < 10; i++) {								// 4 visible, 6 in dropdown
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
