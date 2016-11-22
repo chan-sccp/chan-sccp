@@ -538,7 +538,7 @@ int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcna
 			}
 
 		} else if (!strcasecmp(args, "codec")) {
-			res = sccp_channel_setPreferredCodec(c, value);
+			res = (TRUE == sccp_channel_setPreferredCodec(c, value)) ? 0 : -1;
 			
 		} else if (!strcasecmp(args, "video")) {
 			pbx_builtin_setvar_helper(ast, "_SCCP_VIDEO_MODE", value);
