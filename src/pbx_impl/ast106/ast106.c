@@ -1977,10 +1977,9 @@ static boolean_t sccp_wrapper_asterisk16_createRtpInstance(constDevicePtr d, con
 	if (c->owner) {
 		ast_channel_set_fd(c->owner, 0, ast_rtp_fd(instance));		// RTP
 		ast_channel_set_fd(c->owner, 1, ast_rtcp_fd(instance));		// RTCP
-		ast_queue_frame(c->owner, &ast_null_frame);
 	}
 	ast_rtp_setqos(instance, tos, cos, "SCCP RTP");
-
+	ast_queue_frame(c->owner, &ast_null_frame); // this prevent a warning about unknown codec, when rtp traffic starts */
 	return TRUE;
 }
 
