@@ -2358,7 +2358,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	skinny_codec_t codecs[] = { SKINNY_CODEC_WIDEBAND_256K };
 	iPbx.set_nativeAudioFormats(sccp_forwarding_channel, codecs, 1);
 	iPbx.rtp_setWriteFormat(sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
-	iPbx.rtp_setWriteFormat(sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
+	iPbx.rtp_setReadFormat(sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
 	sccp_channel_updateChannelCapability(sccp_forwarding_channel);
 
 	/* setting callerid */

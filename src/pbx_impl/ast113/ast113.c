@@ -151,6 +151,8 @@ static uint8_t sccp_asterisk113_getSkinnyFormatMultiple(struct ast_format_cap *a
 static struct ast_format *sccp_asterisk13_skinny2ast_format(skinny_codec_t skinnycodec)
 {
 	switch (skinnycodec) {
+		case SKINNY_CODEC_WIDEBAND_256K:
+			return ast_format_slin16;
 		case SKINNY_CODEC_G711_ALAW_64K:
 		case SKINNY_CODEC_G711_ALAW_56K:
 			return ast_format_alaw;
@@ -701,7 +703,7 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
 
 			if (c->rtp.audio.instance) {
-				ast_rtp_instance_change_source(c->rtp.audio.instance);
+				ast_rtp_instance_update_source(c->rtp.audio.instance);
 			}
 			res = 0;
 			break;
