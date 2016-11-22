@@ -372,12 +372,14 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 	AM_CONDITIONAL([ASTERISK_VER_GROUP_111], [test x${ASTTERISK_VER_GROUP} = x111])
 	AM_CONDITIONAL([ASTERISK_VER_GROUP_112], [test x${ASTTERISK_VER_GROUP} = x112])
 	AM_CONDITIONAL([ASTERISK_VER_GROUP_113], [test x${ASTTERISK_VER_GROUP} = x113])
+	AM_CONDITIONAL([ASTERISK_VER_GROUP_114], [test x${ASTTERISK_VER_GROUP} = x114])
 	AM_COND_IF([ASTERISK_VER_GROUP_106],[AC_CONFIG_FILES([src/pbx_impl/ast106/Makefile])])
 	AM_COND_IF([ASTERISK_VER_GROUP_108],[AC_CONFIG_FILES([src/pbx_impl/ast108/Makefile])])
 	AM_COND_IF([ASTERISK_VER_GROUP_110],[AC_CONFIG_FILES([src/pbx_impl/ast110/Makefile])])
 	AM_COND_IF([ASTERISK_VER_GROUP_111],[AC_CONFIG_FILES([src/pbx_impl/ast111/Makefile])])
 	AM_COND_IF([ASTERISK_VER_GROUP_112],[AC_CONFIG_FILES([src/pbx_impl/ast112/Makefile])])
 	AM_COND_IF([ASTERISK_VER_GROUP_113],[AC_CONFIG_FILES([src/pbx_impl/ast113/Makefile])])
+	AM_COND_IF([ASTERISK_VER_GROUP_114],[AC_CONFIG_FILES([src/pbx_impl/ast114/Makefile])])
 ])
 
 AC_DEFUN([CS_WITH_PBX], [
@@ -431,7 +433,7 @@ AC_DEFUN([CS_SETUP_DOXYGEN], [
 		[ac_cv_use_devdoc=$enableval], 
 		[ac_cv_use_devdoc=no]
 	)
-	AS_IF([test "_${ac_cv_use_devdoc}" == "_yes"], [DX_ENV_APPEND([INPUT],[. src src/pbx_impl src/pbx_impl/ast src/pbx_impl/ast113 src/pbx_impl/ast_announce])])
+	AS_IF([test "_${ac_cv_use_devdoc}" == "_yes"], [DX_ENV_APPEND([INPUT],[. src src/pbx_impl src/pbx_impl/ast src/pbx_impl/ast114 src/pbx_impl/ast_announce])])
 	DX_HTML_FEATURE(ON)
 	DX_CHM_FEATURE(OFF)
 	DX_CHI_FEATURE(OFF)
