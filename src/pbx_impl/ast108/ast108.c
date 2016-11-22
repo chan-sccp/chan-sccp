@@ -260,7 +260,7 @@ static int sccp_wrapper_asterisk18_devicestate(void *data)
  *
  * \return bit array fmt/Format of ast_format_type (int)
  */
-int skinny_codecs2pbx_codec_pref(skinny_codec_t * codecs, struct ast_codec_pref *astCodecPref)
+int skinny_codecs2pbx_codec_pref(const skinny_codec_t * const codecs, struct ast_codec_pref *astCodecPref)
 {
 	uint32_t i;
 	int res_codec = 0;

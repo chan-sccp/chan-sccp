@@ -359,7 +359,7 @@ ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec)
  *
  * \return bit array fmt/Format of ast_format_type (int)
  */
-int skinny_codecs2pbx_codecs(skinny_codec_t * codecs)
+int skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs)
 {
 	uint32_t i;
 	int res_codec = 0;

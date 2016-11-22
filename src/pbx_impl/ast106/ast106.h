@@ -64,7 +64,7 @@ enum AST_CONNECTED_LINE_UPDATE_SOURCE {
 #include "ast.h"
 typedef int ast_format_t;
 typedef int64_t format_t;
-int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref);
+int skinny_codecs2pbx_codec_pref(const skinny_codec_t * const codecs, struct ast_codec_pref *astCodecPref);
 int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, PBX_RTP_TYPE * trtp, int codecs, int nat_active);
 
 //void *sccp_do_monitor(void *data);

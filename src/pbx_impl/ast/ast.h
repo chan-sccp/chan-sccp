@@ -277,7 +277,7 @@ ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec);
 #define pbx_format2skinny_format (uint32_t)pbx_codec2skinny_codec
 #define skinny_format2pbx_format(_x) skinny_codec2pbx_codec((skinny_codec_t)_x)
 
-int skinny_codecs2pbx_codecs(skinny_codec_t * codecs);
+int skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs);
 
 /* 
  * sccp_free_ptr should be used when a function pointer for free() needs to be 
