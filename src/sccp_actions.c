@@ -4088,8 +4088,9 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 					sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: %7s codecMode: %d, dynamicPayload: %d, codecParam1: %d, codecParam2: %d\n", DEV_ID_LOG(d), "", msg_in->data.UpdateCapabilitiesMessage.v3.audioCaps[audio_capability].payloads.codecParams.codecMode, msg_in->data.UpdateCapabilitiesMessage.v3.audioCaps[audio_capability].payloads.codecParams.dynamicPayload, msg_in->data.UpdateCapabilitiesMessage.v3.audioCaps[audio_capability].payloads.codecParams.codecParam1, msg_in->data.UpdateCapabilitiesMessage.v3.audioCaps[audio_capability].payloads.codecParams.codecParam2);
 				}
 			}
+			sccp_codec_reduceSet(d->preferences.audio , d->capabilities.audio);
 		}
-	#ifdef CS_SCCP_VIDEO
+#ifdef CS_SCCP_VIDEO
 		uint8_t video_customPictureFormat = 0, video_customPictureFormats = 0;
 		video_customPictureFormats = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.lel_customPictureFormatCount);
 		for (video_customPictureFormat = 0; video_customPictureFormat < video_customPictureFormats; video_customPictureFormat++) {
@@ -4139,6 +4140,7 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 				handle_updatecapabilities_dissect_levelPreference(d, levelPreferences, msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].levelPreference);
 #endif
 			}
+			sccp_codec_reduceSet(d->preferences.video , d->capabilities.video);
 			if (previousVideoSupport == FALSE) {
 				sccp_dev_set_message(d, "Video support enabled", 5, FALSE, TRUE);
 			}
@@ -4189,6 +4191,7 @@ void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constM
 				sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: %7s codecMode: %d, dynamicPayload: %d, codecParam1: %d, codecParam2: %d\n", DEV_ID_LOG(d), "", msg_in->data.UpdateCapabilitiesV2Message.audioCaps[audio_capability].payloads.codecParams.codecMode, msg_in->data.UpdateCapabilitiesV2Message.audioCaps[audio_capability].payloads.codecParams.dynamicPayload, msg_in->data.UpdateCapabilitiesV2Message.audioCaps[audio_capability].payloads.codecParams.codecParam1, msg_in->data.UpdateCapabilitiesV2Message.audioCaps[audio_capability].payloads.codecParams.codecParam2);
 			}
 		}
+		sccp_codec_reduceSet(d->preferences.audio , d->capabilities.audio);
 	}
 #ifdef CS_SCCP_VIDEO
 #if DEBUG
@@ -4223,6 +4226,7 @@ void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constM
 			handle_updatecapabilities_dissect_levelPreference(d, levelPreferences, msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference);
 #endif
 		}
+		sccp_codec_reduceSet(d->preferences.video , d->capabilities.video);
 		if (previousVideoSupport == FALSE) {
 			sccp_dev_set_message(d, "Video support enabled", 5, FALSE, TRUE);
 		}
@@ -4273,6 +4277,7 @@ void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constM
 				sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: %7s codecMode: %d, dynamicPayload: %d, codecParam1: %d, codecParam2: %d\n", DEV_ID_LOG(d), "", msg_in->data.UpdateCapabilitiesV3Message.audioCaps[audio_capability].payloads.codecParams.codecMode, msg_in->data.UpdateCapabilitiesV3Message.audioCaps[audio_capability].payloads.codecParams.dynamicPayload, msg_in->data.UpdateCapabilitiesV3Message.audioCaps[audio_capability].payloads.codecParams.codecParam1, msg_in->data.UpdateCapabilitiesV3Message.audioCaps[audio_capability].payloads.codecParams.codecParam2);
 			}
 		}
+		sccp_codec_reduceSet(d->preferences.audio , d->capabilities.audio);
 	}
 	
 #ifdef CS_SCCP_VIDEO
@@ -4315,6 +4320,7 @@ void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constM
 			sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: IPV46 Setting: %s\n", DEV_ID_LOG(d), ipv46 == 0 ? "IPv4" : ipv46 == 1 ? "IPv6" : "Mixed Mode");
 #endif
 		}
+		sccp_codec_reduceSet(d->preferences.video , d->capabilities.video);
 		if (previousVideoSupport == FALSE) {
 			sccp_dev_set_message(d, "Video support enabled", 5, FALSE, TRUE);
 		}

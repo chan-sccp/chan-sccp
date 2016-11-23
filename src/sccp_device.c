@@ -412,6 +412,9 @@ void sccp_device_post_reload(void)
 		if (!sccp_device_check_update(d)) {
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
 		}
+		// make sure preferences only contains the codecs that this device is capable of
+		sccp_codec_reduceSet(d->preferences.audio , d->capabilities.audio);
+		sccp_codec_reduceSet(d->preferences.video , d->capabilities.video);
 		/* should we re-check the device after hangup ? */
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
