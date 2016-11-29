@@ -2186,36 +2186,21 @@ static boolean_t sccp_wrapper_asterisk113_createRtpInstance(constDevicePtr d, co
 
 	if (c->owner) {
 		ast_channel_stage_snapshot(c->owner);
-		ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_RTCP, 1);
-
-		if (rtp->type == SCCP_RTP_AUDIO) {
-			ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_DTMF, 1);
-			if (c->dtmfmode == SCCP_DTMFMODE_SKINNY) {
-				ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
-				ast_rtp_instance_dtmf_mode_set(instance, AST_RTP_DTMF_MODE_INBAND);
-			}
-		}
 		ast_channel_set_fd(c->owner, fd_offset, ast_rtp_instance_fd(instance, 0));		// RTP
 		ast_channel_set_fd(c->owner, fd_offset + 1, ast_rtp_instance_fd(instance, 1));		// RTCP
-		ast_queue_frame(c->owner, &ast_null_frame);
 	}
-	ast_rtp_instance_set_qos(instance, tos, cos, "SCCP RTP");
-	//ast_rtp_codecs_payloads_default(ast_rtp_instance_get_codecs(instance), instance);
-
-	/* add payload mapping for skinny codecs */
-	/*
-	uint8_t i;
-	struct ast_rtp_codecs *codecs = ast_rtp_instance_get_codecs(instance);
-	for (i = 0; i < sccp_codec_getArrayLen(); i++) {
-		// add audio codecs only
-		if (skinny_codecs[i].mimesubtype && skinny_codecs[i].codec_type == codec_type) {
-			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, rtp_map_filter, (char *) skinny_codecs[i].mimesubtype, (enum ast_rtp_options) 0, skinny_codecs[i].sample_rate);
+	ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_RTCP, 1);
+	if (rtp->type == SCCP_RTP_AUDIO) {
+		ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_DTMF, 1);
+		if (c->dtmfmode == SCCP_DTMFMODE_SKINNY) {
+			ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
+			ast_rtp_instance_dtmf_mode_set(instance, AST_RTP_DTMF_MODE_INBAND);
 		}
 	}
-	*/
+	ast_rtp_instance_set_qos(instance, tos, cos, "SCCP RTP");
 
+	// Add CISCO DTMF SKINNY payload type
 	if (rtp->type == SCCP_RTP_AUDIO && SCCP_DTMFMODE_SKINNY == d->dtmfmode) {
-		// Add CISCO DTMF SKINNY payload type
 		ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(c->rtp.audio.instance), c->rtp.audio.instance, 96);
 		ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(c->rtp.audio.instance), c->rtp.audio.instance, 96, "audio", "telephone-event", 0);
 		ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(c->rtp.audio.instance), c->rtp.audio.instance, 101);
@@ -2223,10 +2208,13 @@ static boolean_t sccp_wrapper_asterisk113_createRtpInstance(constDevicePtr d, co
 		ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(c->rtp.audio.instance), c->rtp.audio.instance, 105);
 		ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(c->rtp.audio.instance), c->rtp.audio.instance, 105, "audio", "cisco-telephone-event", 0);
 	}
+	ast_rtp_instance_activate(instance);
+
 	if (c->owner) {
 		ast_channel_stage_snapshot_done(c->owner);
+		// this prevent a warning about unknown codec, when rtp traffic starts */
+		ast_queue_frame(c->owner, &ast_null_frame);
 	}
-	ast_queue_frame(c->owner, &ast_null_frame); // this prevent a warning about unknown codec, when rtp traffic starts */
 
 	return TRUE;
 }
