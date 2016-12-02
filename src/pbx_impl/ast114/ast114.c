@@ -1240,9 +1240,6 @@ int sccp_wrapper_asterisk114_hangup(PBX_CHANNEL_TYPE * ast_channel)
 	ast_callid callid = ast_channel_callid(ast_channel);
 
 	if (c) {
-		if (c->state == SCCP_CHANNELSTATE_HOLD) {
-			c->line->statistic.numberOfHeldChannels--;
-		}
 		callid_created = c->pbx_callid_created;
 		c->pbx_callid_created = 0;
 		if (pbx_channel_hangupcause(ast_channel) == AST_CAUSE_ANSWERED_ELSEWHERE) {

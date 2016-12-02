@@ -996,9 +996,6 @@ int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel)
 	int res = -1;
 
 	if (c) {
-		if (c->state == SCCP_CHANNELSTATE_HOLD) {
-			c->line->statistic.numberOfHeldChannels--;
-		}
 		if (ast_test_flag(ast_channel, AST_FLAG_ANSWERED_ELSEWHERE) || ast_channel->hangupcause == AST_CAUSE_ANSWERED_ELSEWHERE) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
 			c->answered_elsewhere = TRUE;
