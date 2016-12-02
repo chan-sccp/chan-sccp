@@ -233,6 +233,10 @@ CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CPU_OPTIONS = @CPU_OPTIONS@
 CUT = @CUT@
+CXX = @CXX@
+CXXCPP = @CXXCPP@
+CXXDEPMODE = @CXXDEPMODE@
+CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DATE = @DATE@
 DEBUG = @DEBUG@
@@ -380,6 +384,7 @@ abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
+ac_ct_CXX = @ac_ct_CXX@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
 acx_pthread_config = @acx_pthread_config@
 am__include = @am__include@
@@ -450,6 +455,17 @@ AM_CFLAGS = $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	-DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS) -D_REENTRANT \
 	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
 AM_LDFLAGS = $(SANITIZE_LDFLAGS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(CLANG_BLOCKS_LIBS) $(AST_CLANG_BLOCKS_LIBS) $(SUPPORTED_LDFLAGS) -z muldefs @LTLIBOBJS@
+AM_CXXFLAGS = -std=c++11 $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
+	$(COVERAGE_CFLAGS) $(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) \
+	$(LIBCURL_CFLAGS) -I${abs_builddir} -I$(top_builddir)/src/ \
+	-I$(top_srcdir)/src/ -I$(top_srcdir)/src/pbx_impl/ \
+	-I$(top_srcdir)/src/pbx_impl/ast/ \
+	-I$(top_srcdir)/src/$(PBX_COND_SUBDIR) \
+	-I$(top_srcdir)/src/$(PBXVER_COND_SUBDIR) \
+	-I$(top_srcdir)/src/$(PBXVER_COND_ANNOUNCE_SUBDIR) \
+	-DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self \
+	-DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS) -D_REENTRANT \
+	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
 noinst_LTLIBRARIES = libast110.la
 noinst_HEADERS = ast110.h
 libast110_la_SOURCES = ast110.c
@@ -755,10 +771,6 @@ uninstall-am:
 
 .PRECIOUS: Makefile
 
-#AM_CXXFLAGS		= -std=c++11 $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(COVERAGE_CFLAGS) $(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) $(LIBCURL_CFLAGS)
-#AM_CXXFLAGS		+= -I${abs_builddir} -I$(top_builddir)/src/ -I$(top_srcdir)/src/ -I$(top_srcdir)/src/pbx_impl/ -I$(top_srcdir)/src/pbx_impl/ast/ -I$(top_srcdir)/src/$(PBX_COND_SUBDIR) -I$(top_srcdir)/src/$(PBXVER_COND_SUBDIR) -I$(top_srcdir)/src/$(PBXVER_COND_ANNOUNCE_SUBDIR)
-#AM_CXXFLAGS		+= -DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self -DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS)
-#AM_CXXFLAGS		+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
