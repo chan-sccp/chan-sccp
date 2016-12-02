@@ -681,6 +681,9 @@ void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
 	if (l) {
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = SCCP_LIST_REMOVE(&l->channels, channel, list))) {
+			if (c->state == SCCP_CHANNELSTATE_HOLD) {
+				c->line->statistic.numberOfHeldChannels--;
+			}
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Removing channel %d from line %s\n", c->callid, l->name);
 			sccp_channel_release(&c);					/* explicit release of channel from list */
 		}

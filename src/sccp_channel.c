@@ -1170,9 +1170,6 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 		pbx_log(LOG_WARNING, "No channel or line or device to hangup\n");
 		return;
 	}
-	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
-		channel->line->statistic.numberOfHeldChannels--;
-	}
 	if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
 		sccp_channel_stop_and_deny_scheduled_tasks(channel);
 	}
