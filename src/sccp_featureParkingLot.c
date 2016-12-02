@@ -214,6 +214,7 @@ static void notifyLocked(sccp_parkinglot_t *pl);
 typedef struct plslot plslot_t;
 typedef struct plobserver plobserver_t;
 
+/* private variables */
 struct plslot {
 	int slot;
 	const char *exten;
@@ -239,17 +240,18 @@ struct parkinglot {
 	SCCP_LIST_ENTRY(sccp_parkinglot_t) list;
 };
 
-#define sccp_parkinglot_lock(x)		pbx_mutex_lock(&((sccp_parkinglot_t * const)(x))->lock);				// discard const/
+#define ICONSTATE_NEW_ON 0x020303												// option:closed, color=yellow, flashspeed=slow
+#define ICONSTATE_NEW_OFF 0x010000												// option:open, color=off, flashspeed=None
+#define ICONSTATE_OLD_ON 1													// option:closed
+#define ICONSTATE_OLD_OFF 0													// option:open
+
+/* private functions */
+#define sccp_parkinglot_lock(x)		pbx_mutex_lock(&((sccp_parkinglot_t * const)(x))->lock);				// discard const
 #define sccp_parkinglot_unlock(x)	pbx_mutex_unlock(&((sccp_parkinglot_t * const)(x))->lock);				// discard const
 
 SCCP_LIST_HEAD(, sccp_parkinglot_t) parkinglots;
 #define OBSERVER_CB_CMP(elem, value) ((elem).device == (value).device && (elem).instance == (value).instance)
 #define SLOT_CB_CMP(elem, value) ((elem).slot == (value))
-
-#define ICONSTATE_NEW_ON 0x020303												// option:closed, color=yellow, flashspeed=slow
-#define ICONSTATE_NEW_OFF 0x010000												// option:open, color=off, flashspeed=None
-#define ICONSTATE_OLD_ON 1													// option:closed
-#define ICONSTATE_OLD_OFF 0													// option:open
 
 #define SLOT_CLEANUP(elem) 							\
 	if ((elem).exten) {sccp_free((elem).exten);}				\
@@ -260,7 +262,8 @@ SCCP_LIST_HEAD(, sccp_parkinglot_t) parkinglots;
 	if ((elem).connectedline_num) {sccp_free((elem).connectedline_num);}	\
 	if ((elem).connectedline_name) {sccp_free((elem).connectedline_name);}
 
-// parkinglot
+
+/* exported functions */
 static sccp_parkinglot_t * addParkinglot(const char *parkinglot)
 {
 	pbx_assert(parkinglot != NULL);
@@ -300,7 +303,7 @@ static int removeParkinglot(sccp_parkinglot_t *pl)
 		SCCP_VECTOR_FREE(&removed->observers);
 		SCCP_VECTOR_RESET(&removed->slots, SLOT_CLEANUP);
 		SCCP_VECTOR_FREE(&removed->slots);
-		pbx_mutex_destroy(&removed->context);
+		pbx_mutex_destroy(&removed->lock);
 		res = TRUE;
 	}
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "SCCP: (removeParkinglot) done\n");

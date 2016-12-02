@@ -9,8 +9,8 @@
  * $date$
  * $revision$
  */
-#ifdef CS_SCCP_PARK
 #pragma once
+#ifdef CS_SCCP_PARK
 
 //#define AMI13 "1.3"	// user by asterisk-11
 //#define AMI25 "2.5.0"	// used by asterisk-12
