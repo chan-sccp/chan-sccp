@@ -820,6 +820,8 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_XML], [
 	AC_LANG_SAVE
 	AC_LANG_C
 	CFLAGS_save=${CFLAGS}
+	CPPFLAGS_save=${CPPFLAGS}
+	LDFLAGS_save=${LDFLAGS}
 	AC_ARG_ENABLE(experimental_xml, 
 		[AC_HELP_STRING([--enable-experimental-xml], [enable experimental xml (only for developers)])], 
 		[ac_cv_experimental_xml=$enableval], 
@@ -827,18 +829,16 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_XML], [
 	)
 	AM_CONDITIONAL([CS_EXPERIMENTAL_XML], test "_${ac_cv_experimental_xml}" == "_yes")
 	AS_IF([test "_${ac_cv_experimental_xml}" == "_yes" ], [
+		CONFIGURE_PART([Checking XML2/EXSLT:])
 		LIBEXSLT_CFLAGS=`${PKGCONFIG} libexslt --cflags`
 		LIBEXSLT_LIBS=`${PKGCONFIG} libexslt --libs`
-		CFLAGS="${CFLAGS} $LIBEXSLT_CFLAGS "
+		CFLAGS="${LIBEXSLT_CFLAGS} "
+		CPPFLAGS="${LIBEXSLT_CFLAGS} "
+		LDFLAGS="$LIBEXSLT_LIBS}"
 		AC_CHECK_LIB([xml2],[xmlInitParser],[HAVE_LIBXML2=yes],[HAVE_LIBXML2=no])
-		AC_CHECK_HEADERS([libxml/tree.h]) 
-		AC_CHECK_HEADERS([libxml/parser.h]) 
-		AC_CHECK_HEADERS([libxml/xmlstring.h]) 
+		AC_CHECK_HEADERS([libxml/tree.h libxml/parser.h libxml/xmlstring.h]) 
 		AC_CHECK_LIB([xslt],[xsltInit],[HAVE_LIBXSLT=yes],[HAVE_LIBXSLT=no])
-		AC_CHECK_HEADERS([libxslt/xsltInternals.h]) 
-		AC_CHECK_HEADERS([libxslt/transform.h]) 
-		AC_CHECK_HEADERS([libxslt/xsltutils.h]) 
-		AC_CHECK_HEADERS([libxslt/extensions.h]) 
+		AC_CHECK_HEADERS([libxslt/xsltInternals.h libxslt/transform.h libxslt/xsltutils.h libxslt/extensions.h]) 
 		AC_CHECK_LIB([exslt],[exsltRegisterAll],[HAVE_LIBEXSLT=yes],[HAVE_LIBEXSLT=no])
 		AC_CHECK_HEADERS([libexslt/exslt.h])
 		AC_SUBST([LIBEXSLT_CFLAGS])
@@ -848,16 +848,15 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_XML], [
 				AC_DEFINE(CS_EXPERIMENTAL_XML, 1, [experimental xml enabled])
 				CPPFLAGS_saved="${CPPFLAGS_saved} $LIBEXSLT_CFLAGS"
 			],[
-dnl				AC_MSG_ERROR([asterisk/http.h required to enable-experimental-xml])
-				AC_MSG_NOTICE([ERROR: asterisk/http.h required to enable-experimental-xml !!])
+				AC_MSG_ERROR([asterisk/http.h required to enable-experimental-xml])
 			])
 		],[
-dnl			AC_MSG_ERROR([libxslt required to enable-experimental-xml])
-			AC_MSG_NOTICE([ERROR: libxslt required to enable-experimental-xml !!])
+			AC_MSG_ERROR([libxslt required to enable-experimental-xml])
 		])
 	])
-	AC_MSG_RESULT([--enable-experimental-xml: ${ac_cv_experimental_xml} (only for developers)])
 	CFLAGS=${CFLAGS_save}
+	CPPFLAGS=${CPPFLAGS_save}
+	LDFLAGS=${LDFLAGS_save}
 ])
 
 AC_DEFUN([CS_DISABLE_DEVSTATE_FEATURE], [
@@ -950,7 +949,7 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_VIDEO
 	CS_ENABLE_DISTRIBUTED_DEVSTATE
 	CS_ENABLE_EXPERIMENTAL_MODE
-	CS_ENABLE_EXPERIMENTAL_XML
+	AC_MSG_RESULT([--enable-experimental-xml: ${ac_cv_experimental_xml}])
 	CS_WITH_HASH_SIZE
 ])
 

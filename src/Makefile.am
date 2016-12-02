@@ -48,7 +48,8 @@ noinst_HEADERS		= chan_sccp.h		sccp_actions.h		sccp_cli.h		sccp_devstate.h		\
 			  sccp_config.h		sccp_indicate.h		sccp_pbx.h		sccp_softkeys.h 	\
 			  revision.h		sccp_channel.h		sccp_device.h		sccp_event.h		\
 			  sccp_labels.h		sccp_protocol.h		sccp_enum.h		sccp_codec.h		\
-			  define.h		sccp_netsock.h		sccp_featureParkingLot.h
+			  define.h		sccp_netsock.h		sccp_featureParkingLot.h sccp_webservice.h	\
+			  sccp_xml.h
 
 libsccp_la_SOURCES	= sccp_callinfo.c 	sccp_channel.c		sccp_device.c		sccp_debug.c		\
 			  sccp_indicate.c 	sccp_pbx.c 		sccp_session.c		sccp_threadpool.c	\
@@ -57,21 +58,22 @@ libsccp_la_SOURCES	= sccp_callinfo.c 	sccp_channel.c		sccp_device.c		sccp_debug.
 			  sccp_hint.c 		sccp_refcount.c		sccp_management.c	sccp_mwi.c		\
 			  sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
 			  sccp_devstate.c	sccp_event.c		sccp_enum.c		sccp_globals.c		\
-			  sccp_netsock.c	sccp_codec.c		sccp_featureParkingLot.c
+			  sccp_netsock.c	sccp_codec.c		sccp_featureParkingLot.c sccp_webservice.c	\
+			  sccp_xml.c
 			  
 chan_sccp_la_SOURCES	= chan_sccp.c
 
 libsccp_la_DEPENDENCIES = revision.h sccp_enum.h sccp_enum.c
 libsccp_la_CFLAGS       = $(AM_CFLAGS)
 libsccp_la_LDFLAGS	= $(AM_LDFLAGS)
-#libsccp_la_CXXFLAGS	= $(AM_CXXFLAGS)
+libsccp_la_CXXFLAGS	= $(AM_CXXFLAGS)
 
 chan_sccp_la_LIBADD	=  libsccp.la pbx_impl/libpbximpl.la $(PBX_COND_LIBADD) $(PBXVER_COND_LIBADD) $(PBXVER_COND_ANNOUNCE_LIBADD)
 chan_sccp_la_DEPENDENCIES = $(chan_sccp_la_LIBADD)
 chan_sccp_la_CFLAGS     = $(AM_CFLAGS)
 chan_sccp_la_LDFLAGS	= $(AM_LDFLAGS) $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(LIBBFD) $(LIBEXECINFO) $(LTLIBICONV)
 chan_sccp_la_LDFLAGS	+= -avoid-version -module -lm -s -rdynamic
-#chan_sccp_la_CXXFLAGS	= $(AM_CXXFLAGS)
+chan_sccp_la_CXXFLAGS	= $(AM_CXXFLAGS)
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@test -d "$(DESTDIR)$(csmoddir)" || $(MKDIR_P) "$(DESTDIR)$(csmoddir)"
