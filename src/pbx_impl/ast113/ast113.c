@@ -1238,7 +1238,7 @@ int sccp_wrapper_asterisk113_hangup(PBX_CHANNEL_TYPE * ast_channel)
 	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast_channel);
 	int callid_created = 0;
 	int res = -1;
-
+	
 #if !defined(CS_AST_CHANNEL_CALLID_TYPEDEF)
 	struct ast_callid *callid = ast_channel_callid(ast_channel);
 #else	
@@ -1246,6 +1246,9 @@ int sccp_wrapper_asterisk113_hangup(PBX_CHANNEL_TYPE * ast_channel)
 #endif
 
 	if (c) {
+		if (c->state == SCCP_CHANNELSTATE_HOLD) {
+			c->line->statistic.numberOfHeldChannels--;
+		}
 		callid_created = c->pbx_callid_created;
 		c->pbx_callid_created = 0;
 		if (pbx_channel_hangupcause(ast_channel) == AST_CAUSE_ANSWERED_ELSEWHERE) {
