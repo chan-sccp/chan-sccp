@@ -172,12 +172,12 @@ static const struct skinny_label {
 	{"Unknown Number", SKINNY_LBL_UNKNOWN_NUMBER},
 	{"RmLstC", SKINNY_LBL_RMLSTC},
 	{"Voicemail", SKINNY_LBL_VOICEMAIL},
-	{"ImmDiv", SKINNY_LBL_IMMDIV},
-	{"Intrcpt", SKINNY_LBL_INTRCPT},
+	{"Immediate Divert", SKINNY_LBL_IMMDIV},
+	{"Intercept", SKINNY_LBL_INTRCPT},
 	{"SetWtch", SKINNY_LBL_SETWTCH},
-	{"TrnsfVM", SKINNY_LBL_TRNSFVM},
+	{"TransferVoiceMail", SKINNY_LBL_TRNSFVM},
 	{"DND", SKINNY_LBL_DND},
-	{"DivAll", SKINNY_LBL_DIVALL},
+	{"DivertAll", SKINNY_LBL_DIVALL},
 	{"CallBack", SKINNY_LBL_CALLBACK},
 	{"Network congestion,rerouting", SKINNY_LBL_NETWORK_CONGESTION_REROUTING},
 	{"Barge", SKINNY_LBL_BARGE},
@@ -204,6 +204,7 @@ static const struct skinny_label {
 	{"Video Mode", SKINNY_LBL_VIDEO_MODE},
 	{"Record", SKINNY_LBL_MONITOR},
 	{"Dial", SKINNY_LBL_DIAL},
+	{"Queue", SKINNY_LBL_QUEUE},
 	/* INDENT-ON */
 };
 
