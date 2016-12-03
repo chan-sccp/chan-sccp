@@ -466,6 +466,9 @@
 /* Define to 1 if libev-libevent is available */
 #undef HAVE_LIBEVENT_COMPAT
 
+/* Found 'LIBEXSLT' */
+#undef HAVE_LIBEXSLT
+
 /* Define to 1 if you have the <libexslt/exslt.h> header file. */
 #undef HAVE_LIBEXSLT_EXSLT_H
 
@@ -478,6 +481,9 @@
 /* Define to 1 if you have the `socket' library (-lsocket). */
 #undef HAVE_LIBSOCKET
 
+/* Found 'LIBXML2' */
+#undef HAVE_LIBXML2
+
 /* Define to 1 if you have the <libxml/parser.h> header file. */
 #undef HAVE_LIBXML_PARSER_H
 
@@ -486,6 +492,9 @@
 
 /* Define to 1 if you have the <libxml/xmlstring.h> header file. */
 #undef HAVE_LIBXML_XMLSTRING_H
+
+/* Found 'LIBXSLT' */
+#undef HAVE_LIBXSLT
 
 /* Define to 1 if you have the <libxslt/extensions.h> header file. */
 #undef HAVE_LIBXSLT_EXTENSIONS_H
