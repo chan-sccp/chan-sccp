@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<sccp:translations xmlns:sccp="http://chan-sccp.net">
+  <sccp:translation locale="de">
+<!-- Errors -->
+    <entry key="errorno-501">Dieses Telefone ist nicht in der lage x-CiscoIpPhone Menu's zu zeigen.</entry>
+    <entry key="errorno-502">Der gefragte Konferenz ist am moment nicht aktiv.</entry>
+    <entry key="errorno-503">Das gefragte mitglied ist kein teilnehmer in dieser Konferenz.</entry>
+    <entry key="errorno-504">Dieser Konferenz hatt zu wenig teilnehmern, um zu funktionieren.</entry>
+    <entry key="errorno-505">Dieser teilnehmer ist es nicht erlaubt um irgendwelche Kommando's aus zu fuhren.</entry>
+    <entry key="errorno-506">Dieser teilnehmer hatt zu wenig zugangsrechte.</entry>
+    <entry key="errorno-507">Die telefonnummer zum einladen muss eingegeben werden.</entry>
+    <entry key="errorno-508">Es ist Ihnen nicht erlaubt neue mitglieder einzuladen in diese Konferenz.</entry>
+<!-- ConfList -->
+    <entry key="Conference">Konferenz</entry>
+    <entry key="EndConf">Beenden</entry>
+    <entry key="Mute">Stumm</entry>
+    <entry key="Kick">Entfernen</entry>
+    <entry key="Exit">Exit</entry>
+    <entry key="Moderate">Moderieren</entry>
+<!-- ConfInvite -->
+    <entry key="Invite">Invite</entry>
+    <entry key="Enter Phone# to Invite">Bitte Telefonnummer eingeben:</entry>
+    <entry key="Phone Number">Telefonnummer</entry>
+    <entry key="Name">Name</entry>
+<!-- ParkedCalls -->
+    <entry key="Parked Calls">Geparkte Anrufe</entry>
+    <entry key="Please Choose one of the parked Calls">Wahle einer der Geparkte Anrufe</entry>
+    <entry key="No Parked Calls">Keine geparkte Anrufe</entry>
+    <entry key="There are no parked calls at this moment">Am moment gibt es keine geparkte Anrufe</entry>
+  </sccp:translation>
+  <sccp:translation locale="nl">
+<!-- Errors -->
+    <entry key="errorno-501">Deze telefoon is niet in staat om x-CiscoIpPhone Menu's te tonen.</entry>
+    <entry key="errorno-502">De gevraagde konferentie is op dit moment niet aktief.</entry>
+    <entry key="errorno-503">De gevraagde deelnemer is geen onderdeel van deze konferentie.</entry>
+    <entry key="errorno-504">Deze konferentie heeft te weinig deelnemers om te kunnen funktioneren.</entry>
+    <entry key="errorno-505">Deze deelnemer is het niet toegestaan commando't uit te voeren.</entry>
+    <entry key="errorno-506">Deze deelnemer heeft te weinig toegangsrechten.</entry>
+    <entry key="errorno-507">Het telefoonnummer dat uitgenodigd moet worden is noodzakelijk.</entry>
+    <entry key="errorno-508">U mag geen nieuwe deelnemers uitnodigen voor deze conferentie.</entry>
+<!-- ConfList -->
+    <entry key="Conference">Conferentie</entry>
+    <entry key="EndConf">Stoppen</entry>
+    <entry key="Mute">Stom</entry>
+    <entry key="Kick">Verwijder</entry>
+    <entry key="Exit">Exit</entry>
+    <entry key="Moderate">Modereren</entry>
+<!-- ConfInvite -->
+    <entry key="Invite">Uitnodigen</entry>
+    <entry key="Enter Phone# to Invite">Telefoonnummer in typen:</entry>
+    <entry key="Phone Number">Telefoonnummer</entry>
+    <entry key="Name">Naam</entry>
+<!-- ParkedCalls -->
+    <entry key="Parked Calls">Geparkeerde gesprekken</entry>
+    <entry key="Please Choose one of the parked Calls">Kies een van de geparkeerde gesprekken</entry>
+    <entry key="No Parked Calls">Geen geparkeerde gesprekken</entry>
+    <entry key="There are no parked calls at this moment">Op dit moment zijn er geen geparkeerde gesprekken</entry>
+  </sccp:translation>
+</sccp:translations>
