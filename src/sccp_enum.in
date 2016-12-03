@@ -353,6 +353,14 @@ strenum callinfo_key {
 	SCCP_CALLINFO_PRESENTATION,			,	"presentation",
 };
 
+strenum xml_outputfmt {
+	SCCP_XML_OUTPUTFMT_NULL,			,	"null",
+	SCCP_XML_OUTPUTFMT_HTML,			,	"html",
+	SCCP_XML_OUTPUTFMT_XML,				,	"cml",
+	SCCP_XML_OUTPUTFMT_CXML,			,	"cxml",
+	SCCP_XML_OUTPUTFMT_TXT,				,	"txt",
+};
+
 } /* NAMESPACE sccp */
 
 namespace skinny {

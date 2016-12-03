@@ -89,7 +89,7 @@ static __attribute__ ((malloc)) char * dump(xmlDoc * const doc, boolean_t indent
 }
 
 #if HAVE_LIBEXSLT_EXSLT_H
-static void applyStyleSheet(xmlDoc * const doc, const char *const styleSheetName, const char *const language, sccp_webservice_outputfmt_t outputfmt)
+static void applyStyleSheet(xmlDoc * const doc, const char *const styleSheetName, const char *const language, sccp_xml_outputfmt_t outputfmt)
 {
 //	impl
 

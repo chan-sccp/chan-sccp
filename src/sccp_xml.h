@@ -33,7 +33,7 @@ typedef struct {
 #if defined(HAVE_LIBEXSLT_EXSLT_H)
 //	int (*setBaseDir)(const char * const baseDir);
 //	const char * const (*getBaseDir)(void);
-	void (*applyStyleSheet)(xmlDoc * const doc, const char *const styleSheetName, const char *const language, sccp_webservice_outputfmt_t outputfmt);
+	void (*applyStyleSheet)(xmlDoc * const doc, const char *const styleSheetName, const char *const language, sccp_xml_outputfmt_t outputfmt);
 #endif
 
 	char * (*dump)(xmlDoc * const doc, boolean_t indent);
