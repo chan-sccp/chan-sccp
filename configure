@@ -31182,9 +31182,16 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_xml2_xmlInitParser" >&5
 $as_echo "$ac_cv_lib_xml2_xmlInitParser" >&6; }
 if test "x$ac_cv_lib_xml2_xmlInitParser" = xyes; then :
-  HAVE_LIBXML2=yes
+
+			HAVE_LIBXML2=yes
+
+$as_echo "#define HAVE_LIBXML2 1" >>confdefs.h
+
+
 else
-  HAVE_LIBXML2=no
+
+			HAVE_LIBXML2=no
+
 fi
 
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xsltInit in -lxslt" >&5
@@ -31224,9 +31231,16 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_xslt_xsltInit" >&5
 $as_echo "$ac_cv_lib_xslt_xsltInit" >&6; }
 if test "x$ac_cv_lib_xslt_xsltInit" = xyes; then :
-  HAVE_LIBXSLT=yes
+
+			HAVE_LIBXSLT=yes
+
+$as_echo "#define HAVE_LIBXSLT 1" >>confdefs.h
+
+
 else
-  HAVE_LIBXSLT=no
+
+			HAVE_LIBXSLT=no
+
 fi
 
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for exsltRegisterAll in -lexslt" >&5
@@ -31266,9 +31280,16 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_exslt_exsltRegisterAll" >&5
 $as_echo "$ac_cv_lib_exslt_exsltRegisterAll" >&6; }
 if test "x$ac_cv_lib_exslt_exsltRegisterAll" = xyes; then :
-  HAVE_LIBEXSLT=yes
+
+			HAVE_LIBEXSLT=yes
+
+$as_echo "#define HAVE_LIBEXSLT 1" >>confdefs.h
+
+
 else
-  HAVE_LIBEXSLT=no
+
+			HAVE_LIBEXSLT=no
+
 fi
 
 
