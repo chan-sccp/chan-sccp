@@ -1,7 +1,7 @@
 /*!
  * \file	sccp_xml.h
- * \brief       SCCP XML Header
- * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
+ * \brief	SCCP XML Header
+ * \author	Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License. 
  *		See the LICENSE file at the top of the source tree.
  * 
@@ -13,11 +13,11 @@
 #if defined(CS_EXPERIMENTAL_XML) && defined(HAVE_LIBXML2)
 
 #include "forward_declarations.h"
-struct _xmlDoc;
-typedef struct _xmlDoc xmlDoc;
+//struct _xmlDoc;
+//typedef struct _xmlDoc xmlDoc;
 
-struct _xmlNode;
-typedef struct _xmlNode xmlNode;
+//struct _xmlNode;
+//typedef struct _xmlNode xmlNode;
 
 __BEGIN_C_EXTERN__
 /* interface */
@@ -30,10 +30,10 @@ typedef struct {
 	
 	void (*setRootElement)(xmlDoc *const doc, xmlNode *const node);
 
-#if defined(HAVE_LIBEXSLT_EXSLT_H)
+#if defined(HAVE_LIBXSLT) && defined(HAVE_LIBEXSLT_EXSLT_H)
 //	int (*setBaseDir)(const char * const baseDir);
 //	const char * const (*getBaseDir)(void);
-	void (*applyStyleSheet)(xmlDoc * const doc, const char *const styleSheetName, const char *const language, sccp_xml_outputfmt_t outputfmt);
+	void (*applyStyleSheet)(xmlDoc * const doc, const char *const styleSheetFileName, const char *const language, sccp_xml_outputfmt_t outputfmt, PBX_VARIABLE_TYPE *pbx_params);
 #endif
 
 	char * (*dump)(xmlDoc * const doc, boolean_t indent);
