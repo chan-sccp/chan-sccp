@@ -39,17 +39,6 @@ SCCP_FILE_VERSION(__FILE__, "");
 #endif
 #include <asterisk/cli.h>
 
-/* arbitrary values */
-//#define SOCKET_TIMEOUT_SEC 0											/* timeout after seven seconds when trying to read/write from/to a socket */
-//#define SOCKET_TIMEOUT_MILLISEC 500										/* "       "     0 milli seconds "    "    */
-//#define SOCKET_KEEPALIVE_IDLE GLOB(keepalive)									/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
-//#define SOCKET_KEEPALIVE_INTVL 5										/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
-//#define SOCKET_KEEPALIVE_CNT 5											/* The maximum number of keepalive probes TCP should send before dropping the connection. */
-//#define SOCKET_LINGER_ONOFF 1											/* linger=on */
-//#define SOCKET_LINGER_WAIT 0											/* but wait 0 milliseconds before closing socket and discard all outboung messages */
-#define SOCKET_RCVBUF SCCP_MAX_PACKET										/* SO_RCVBUF */
-#define SOCKET_SNDBUF (SCCP_MAX_PACKET * 5)									/* SO_SNDBUG */
-
 //#define WRITE_RETRIES 5											/* number of write retries */
 #define WRITE_BACKOFF 500											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
 
@@ -527,6 +516,12 @@ void sccp_session_terminateAll()
 		sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
+	
+	/* give remote phone a time to close the socket */
+	int waitloop = 10;
+	while (!SCCP_LIST_EMPTY(&GLOB(sessions)) && waitloop-- > 0) {
+		usleep(100);
+	}
 
 	if (SCCP_LIST_EMPTY(&GLOB(sessions))) {
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(sessions));
@@ -845,61 +840,6 @@ void *sccp_netsock_device_thread(void *session)
 	return NULL;
 }
 
-#define SCCP_SETSOCKETOPTION(_SOCKET, _LEVEL,_OPTIONNAME, _OPTIONVAL, _OPTIONLEN) 							\
-	if (setsockopt(_SOCKET, _LEVEL, _OPTIONNAME, (void*)(_OPTIONVAL), _OPTIONLEN) == -1) {						\
-		if (errno != ENOTSUP) {													\
-			pbx_log(LOG_WARNING, "Failed to set SCCP socket: " #_LEVEL ":" #_OPTIONNAME " error: '%s'\n", strerror(errno));	\
-		}															\
-	}
-
-void sccp_netsock_setoptions(int new_socket)
-{
-	int on = 1;
-	int value;
-
-	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
-	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
-	value = (int) GLOB(sccp_tos);
-	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_IP, IP_TOS, &value, sizeof(value));
-#if defined(linux)
-	value = (int) GLOB(sccp_cos);
-	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_PRIORITY, &value, sizeof(value));
-
-	/* timeeo */
-	//struct timeval mytv = { SOCKET_TIMEOUT_SEC, SOCKET_TIMEOUT_MILLISEC };					/* timeout after seven seconds when trying to read/write from/to a socket */
-	//SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &mytv, sizeof(mytv));
-	//SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(mytv));
-
-	/* keepalive */
-	//int ip_keepidle  = SOCKET_KEEPALIVE_IDLE;								/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
-	//int ip_keepintvl = SOCKET_KEEPALIVE_INTVL;								/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
-	//int ip_keepcnt   = SOCKET_KEEPALIVE_CNT;								/* The maximum number of keepalive probes TCP should send before dropping the connection. */
-	//SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPIDLE, &ip_keepidle, sizeof(int));
-	//SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPINTVL, &ip_keepintvl, sizeof(int));
-	//SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPCNT, &ip_keepcnt, sizeof(int));
-	//SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
-
-	/* linger */
-	//struct linger so_linger = {SOCKET_LINGER_ONOFF, SOCKET_LINGER_WAIT};					/* linger=on but wait 0 milliseconds before closing socket and discard all outboung messages */
-	//SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
-
-	/* thin-tcp */
-//#ifdef TCP_THIN_LINEAR_TIMEOUTS
-//	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_TCP, TCP_THIN_LINEAR_TIMEOUTS, &on, sizeof(on));
-//	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_TCP, TCP_THIN_DUPACK, &on, sizeof(on));
-//#endif
-	/* */
-	/* rcvbuf / sndbug */
-	int so_rcvbuf = SOCKET_RCVBUF;
-	int so_sndbuf = SOCKET_SNDBUF;
-	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_RCVBUF, &so_rcvbuf, sizeof(int));
-	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_SNDBUF, &so_sndbuf, sizeof(int));
-#endif
-}
-
-#undef SCCP_SETSOCKETOPTION
-
-
 /*!
  * \brief Socket Accept Connection
  *
@@ -926,7 +866,7 @@ static void sccp_accept_connection(void)
 		sccp_free(s);
 		return;
 	}
-	sccp_netsock_setoptions(new_socket);
+	sccp_netsock_setoptions(new_socket, /*reuse*/ 0, /*linger*/ 0);
 	
 	memcpy(&s->sin, &incoming, sizeof(s->sin));
 	sccp_mutex_init(&s->lock);

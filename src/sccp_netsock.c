@@ -15,6 +15,16 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_session.h"
 #include <netinet/in.h>
 
+/* arbitrary values */
+//#define NETSOCK_TIMEOUT_SEC 0											/* timeout after seven seconds when trying to read/write from/to a socket */
+//#define NETSOCK_TIMEOUT_MILLISEC 500										/* "       "     0 milli seconds "    "    */
+//#define NETSOCK_KEEPALIVE_IDLE GLOB(keepalive)									/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
+//#define NETSOCK_KEEPALIVE_INTVL 5										/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
+//#define NETSOCK_KEEPALIVE_CNT 5											/* The maximum number of keepalive probes TCP should send before dropping the connection. */
+#define NETSOCK_LINGER_WAIT 0											/* but wait 0 milliseconds before closing socket and discard all outboung messages */
+#define NETSOCK_RCVBUF SCCP_MAX_PACKET										/* SO_RCVBUF */
+#define NETSOCK_SNDBUF (SCCP_MAX_PACKET * 5)									/* SO_SNDBUG */
+
 union sockaddr_union {
 	struct sockaddr sa;
 	struct sockaddr_storage ss;
@@ -373,5 +383,65 @@ char *__netsock_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, in
 
 	return ast_str_buffer(str);
 }
+
+#define SCCP_NETSOCK_SETOPTION(_SOCKET, _LEVEL,_OPTIONNAME, _OPTIONVAL, _OPTIONLEN) 							\
+	if (setsockopt(_SOCKET, _LEVEL, _OPTIONNAME, (void*)(_OPTIONVAL), _OPTIONLEN) == -1) {						\
+		if (errno != ENOTSUP) {													\
+			pbx_log(LOG_WARNING, "Failed to set SCCP socket: " #_LEVEL ":" #_OPTIONNAME " error: '%s'\n", strerror(errno));	\
+		}															\
+	}
+
+void sccp_netsock_setoptions(int new_socket, int reuse, int linger)
+{
+	int on = 1;
+
+	/* reuse */
+	SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+	SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse));
+
+	/* nodelay */
+	SCCP_NETSOCK_SETOPTION(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
+
+	/* tos/cos */
+	int value = (int) GLOB(sccp_tos);
+	SCCP_NETSOCK_SETOPTION(new_socket, IPPROTO_IP, IP_TOS, &value, sizeof(value));
+#if defined(linux)
+	value = (int) GLOB(sccp_cos);
+	SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_PRIORITY, &value, sizeof(value));
+
+	/* rcvbuf / sndbug */
+	int so_rcvbuf = NETSOCK_RCVBUF;
+	int so_sndbuf = NETSOCK_SNDBUF;
+	SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_RCVBUF, &so_rcvbuf, sizeof(int));
+	SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_SNDBUF, &so_sndbuf, sizeof(int));
+
+	/* linger */
+	struct linger so_linger = {linger, NETSOCK_LINGER_WAIT};						/* linger=on but wait NETSOCK_LINGER_WAIT milliseconds before closing socket and discard all outboung messages */
+	SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
+
+	/* timeeo */
+	//struct timeval mytv = { NETSOCK_TIMEOUT_SEC, NETSOCK_TIMEOUT_MILLISEC };				/* timeout after seven seconds when trying to read/write from/to a socket */
+	//SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &mytv, sizeof(mytv));
+	//SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(mytv));
+
+	/* keepalive */
+	//int ip_keepidle  = NETSOCK_KEEPALIVE_IDLE;								/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
+	//int ip_keepintvl = NETSOCK_KEEPALIVE_INTVL;								/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
+	//int ip_keepcnt   = NETSOCK_KEEPALIVE_CNT;								/* The maximum number of keepalive probes TCP should send before dropping the connection. */
+	//SCCP_NETSOCK_SETOPTION(new_socket, SOL_TCP, TCP_KEEPIDLE, &ip_keepidle, sizeof(int));
+	//SCCP_NETSOCK_SETOPTION(new_socket, SOL_TCP, TCP_KEEPINTVL, &ip_keepintvl, sizeof(int));
+	//SCCP_NETSOCK_SETOPTION(new_socket, SOL_TCP, TCP_KEEPCNT, &ip_keepcnt, sizeof(int));
+	//SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
+
+
+	/* thin-tcp */
+//#ifdef TCP_THIN_LINEAR_TIMEOUTS
+//	SCCP_NETSOCK_SETOPTION(new_socket, IPPROTO_TCP, TCP_THIN_LINEAR_TIMEOUTS, &on, sizeof(on));
+//	SCCP_NETSOCK_SETOPTION(new_socket, IPPROTO_TCP, TCP_THIN_DUPACK, &on, sizeof(on));
+//#endif
+#endif
+}
+
+#undef SCCP_NETSOCK_SETOPTION
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

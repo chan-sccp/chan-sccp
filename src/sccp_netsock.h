@@ -91,7 +91,7 @@ static inline char * SCCP_CALL sccp_netsock_stringify_port(const struct sockaddr
 }
 
 /* end sccp_netsock_stringify_fmt short cuts */
-SCCP_API void SCCP_CALL sccp_netsock_setoptions(int new_socket);
+SCCP_API void SCCP_CALL sccp_netsock_setoptions(int new_socket, int reuse, int linger);
 SCCP_API void * SCCP_CALL sccp_netsock_thread(void *ignore);
 __END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
