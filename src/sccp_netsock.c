@@ -397,7 +397,9 @@ void sccp_netsock_setoptions(int new_socket, int reuse, int linger)
 
 	/* reuse */
 	SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+#if defined(SO_REUSEPORT)
 	SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse));
+#endif
 
 	/* nodelay */
 	SCCP_NETSOCK_SETOPTION(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
