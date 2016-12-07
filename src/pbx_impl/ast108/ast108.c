@@ -3215,67 +3215,6 @@ const PbxInterface iPbx = {
 };
 #endif
 
-#if defined(__cplusplus) || defined(c_plusplus)
-static ast_module_load_result load_module(void)
-#else
-static int load_module(void)
-#endif
-{
-	boolean_t res;
-
-	/* check for existance of chan_skinny */
-	if (ast_module_check("chan_skinny.so")) {
-		pbx_log(LOG_ERROR, "Chan_skinny is loaded. Please check modules.conf and remove chan_skinny before loading chan_sccp.\n");
-		return AST_MODULE_LOAD_FAILURE;
-	}
-
-	sched = sched_context_create();
-	if (!sched) {
-		pbx_log(LOG_WARNING, "Unable to create schedule context. SCCP channel type disabled\n");
-		return AST_MODULE_LOAD_FAILURE;
-	}
-#if defined(CS_DEVSTATE_FEATURE) || defined(CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE)
-	ast_enable_distributed_devstate();
-#endif
-	/* make globals */
-	res = sccp_prePBXLoad();
-	if (!res) {
-		return AST_MODULE_LOAD_DECLINE;
-	}
-
-	io = io_context_create();
-	if (!io) {
-		pbx_log(LOG_WARNING, "Unable to create I/O context. SCCP channel type disabled\n");
-		return AST_MODULE_LOAD_FAILURE;
-	}
-	if (load_config()) {
-		if (ast_channel_register(&sccp_tech)) {
-			pbx_log(LOG_ERROR, "Unable to register channel class SCCP\n");
-			return AST_MODULE_LOAD_FAILURE;
-		}
-	} else {
-		return AST_MODULE_LOAD_DECLINE;
-	}
-#ifdef HAVE_PBX_MESSAGE_H
-	if (ast_msg_tech_register(&sccp_msg_tech)) {
-		/* LOAD_FAILURE stops Asterisk, so cleanup is a moot point. */
-		pbx_log(LOG_WARNING, "Unable to register message interface\n");
-	}
-#endif
-
-	// ast_enable_distributed_devstate();
-
-	ast_rtp_glue_register(&sccp_rtp);
-	sccp_register_management();
-	sccp_register_cli();
-	sccp_register_dialplan_functions();
-
-	/* And start the monitor for the first time */
-	sccp_restart_monitor();
-	sccp_postPBX_load();
-	return AST_MODULE_LOAD_SUCCESS;
-}
-
 static int unload_module(void)
 {
 	sccp_preUnload();
@@ -3334,6 +3273,83 @@ static int unload_module(void)
 #endif
 	pbx_log(LOG_NOTICE, "Module chan_sccp unloaded\n");
 	return 0;
+}
+
+#if defined(__cplusplus) || defined(c_plusplus)
+static ast_module_load_result load_module(void)
+#else
+static int load_module(void)
+#endif
+{
+	int res = AST_MODULE_LOAD_FAILURE;
+	do {
+		if (ast_module_check("chan_skinny.so")) {
+			pbx_log(LOG_ERROR, "Chan_skinny is loaded. Please check modules.conf and remove chan_skinny before loading chan_sccp.\n");
+			break;
+		}
+		if (!(sched = sched_context_create())) {
+			pbx_log(LOG_WARNING, "Unable to create schedule context. SCCP channel type disabled\n");
+			break;
+		}
+#if defined(CS_DEVSTATE_FEATURE) || defined(CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE)
+		ast_enable_distributed_devstate();
+#endif
+		if (!sccp_prePBXLoad()) {
+			pbx_log(LOG_ERROR, "SCCP: prePBXLoad Failed\n");
+			break;
+		}
+		if (!(io = io_context_create())) {
+			pbx_log(LOG_ERROR, "Unable to create I/O context. SCCP channel type disabled\n");
+			break;
+		}
+		if (!load_config()) {
+			pbx_log(LOG_ERROR, "SCCP: config file could not be parsed\n");
+			res = AST_MODULE_LOAD_DECLINE;
+			break;
+		}
+
+		if (ast_channel_register(&sccp_tech)) {
+			pbx_log(LOG_ERROR, "Unable to register channel class SCCP\n");
+			break;
+		}
+#ifdef HAVE_PBX_MESSAGE_H
+		if (ast_msg_tech_register(&sccp_msg_tech)) {
+			pbx_log(LOG_ERROR, "Unable to register message interface\n");
+			break;
+		}
+#endif
+		if (ast_rtp_glue_register(&sccp_rtp)) {
+			pbx_log(LOG_ERROR, "Unable to register RTP Glue\n");
+			break;
+		}
+		if (sccp_register_management()) {
+			pbx_log(LOG_ERROR, "Unable to register management functions");
+			break;
+		}
+		if (sccp_register_cli()) {
+			pbx_log(LOG_ERROR, "Unable to register CLI functions");
+			break;
+		}
+		if (sccp_register_dialplan_functions()) {
+			pbx_log(LOG_ERROR, "Unable to register dialplan functions");
+			break;
+		}
+		if (sccp_restart_monitor()) {
+			pbx_log(LOG_ERROR, "Could not restart the monitor thread");
+			break;
+		}
+		if (!sccp_postPBX_load()) {
+			pbx_log(LOG_ERROR, "SCCP: postPBXLoad Failed\n");
+			break;
+		}
+		res = AST_MODULE_LOAD_SUCCESS;
+	} while (0);
+
+	if (res != AST_MODULE_LOAD_SUCCESS) {
+		pbx_log(LOG_ERROR, "SCCP: Module Load Failed, unloading...\n");
+		unload_module();
+	}
+	return res;
 }
 
 static int module_reload(void)

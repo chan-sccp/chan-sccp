@@ -3301,80 +3301,6 @@ static void unregister_channel_tech(struct ast_channel_tech *tech)
 	tech->capabilities = ast_format_cap_destroy(tech->capabilities);
 }
 
-#if defined(__cplusplus) || defined(c_plusplus)
-static ast_module_load_result load_module(void)
-#else
-static int load_module(void)
-#endif
-{
-
-	boolean_t res;
-
-	/* check for existance of chan_skinny */
-	if (ast_module_check("chan_skinny.so")) {
-		pbx_log(LOG_ERROR, "Chan_skinny is loaded. Please check modules.conf and remove chan_skinny before loading chan_sccp.\n");
-		return AST_MODULE_LOAD_FAILURE;
-	}
-
-	sched = ast_sched_context_create();
-	if (!sched) {
-		pbx_log(LOG_WARNING, "Unable to create schedule context. SCCP channel type disabled\n");
-		return AST_MODULE_LOAD_FAILURE;
-	}
-
-	if (ast_sched_start_thread(sched)) {
-		ast_sched_context_destroy(sched);
-		sched = NULL;
-		return AST_MODULE_LOAD_FAILURE;
-	}
-#if defined(CS_DEVSTATE_FEATURE) || defined(CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE)
-	// ast_enable_distributed_devstate();
-#endif
-
-	/* make globals */
-	res = sccp_prePBXLoad();
-	if (!res) {
-		return AST_MODULE_LOAD_DECLINE;
-	}
-
-	sccp_tech.capabilities = ast_format_cap_alloc(0);
-	ast_format_cap_add_all_by_type(sccp_tech.capabilities, AST_FORMAT_TYPE_AUDIO);
-	ast_format_cap_add_all_by_type(sccp_tech.capabilities, AST_FORMAT_TYPE_VIDEO);
-
-	io = io_context_create();
-	if (!io) {
-		pbx_log(LOG_WARNING, "Unable to create I/O context. SCCP channel type disabled\n");
-		return AST_MODULE_LOAD_FAILURE;
-	}
-	if (load_config()) {
-		if (register_channel_tech(&sccp_tech)) {
-			pbx_log(LOG_ERROR, "Unable to register channel class SCCP\n");
-			return AST_MODULE_LOAD_FAILURE;
-		}
-	} else {
-		return AST_MODULE_LOAD_DECLINE;
-	}
-#ifdef HAVE_PBX_MESSAGE_H
-	if (ast_msg_tech_register(&sccp_msg_tech)) {
-		/* LOAD_FAILURE stops Asterisk, so cleanup is a moot point. */
-		pbx_log(LOG_WARNING, "Unable to register message interface\n");
-	}
-#endif
-
-#ifdef CS_SCCP_CONFERENCE
-	if (register_channel_tech(sccpconf_announce_get_tech())) {
-		return AST_MODULE_LOAD_FAILURE;
-	}
-#endif
-
-	ast_rtp_glue_register(&sccp_rtp);
-	sccp_register_management();
-	sccp_register_cli();
-	sccp_register_dialplan_functions();
-	sccp_postPBX_load();
-	return AST_MODULE_LOAD_SUCCESS;
-}
-
 static int unload_module(void)
 {
 	pbx_log(LOG_NOTICE, "SCCP: Module Unload\n");
@@ -3424,6 +3350,96 @@ static int unload_module(void)
 	sccp_free(sccp_globals);
 	pbx_log(LOG_NOTICE, "Module chan_sccp unloaded\n");
 	return 0;
+}
+
+#if defined(__cplusplus) || defined(c_plusplus)
+static ast_module_load_result load_module(void)
+#else
+static int load_module(void)
+#endif
+{
+	int res = AST_MODULE_LOAD_FAILURE;
+	do {
+		if (ast_module_check("chan_skinny.so")) {
+			pbx_log(LOG_ERROR, "Chan_skinny is loaded. Please check modules.conf and remove chan_skinny before loading chan_sccp.\n");
+			break;
+		}
+		if (!(sched = ast_sched_context_create())) {
+			pbx_log(LOG_WARNING, "Unable to create schedule context. SCCP channel type disabled\n");
+			break;
+		}
+		if (ast_sched_start_thread(sched)) {
+			pbx_log(LOG_ERROR, "Unable to start scheduler\n");
+			ast_sched_context_destroy(sched);
+			sched = NULL;
+			break;
+		}
+#if defined(CS_DEVSTATE_FEATURE) || defined(CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE)
+		// ast_enable_distributed_devstate();
+#endif
+		if (!sccp_prePBXLoad()) {
+			pbx_log(LOG_ERROR, "SCCP: prePBXLoad Failed\n");
+			break;
+		}
+		if (!(io = io_context_create())) {
+			pbx_log(LOG_ERROR, "Unable to create I/O context. SCCP channel type disabled\n");
+			break;
+		}
+		if (!load_config()) {
+			pbx_log(LOG_ERROR, "SCCP: config file could not be parsed\n");
+			res = AST_MODULE_LOAD_DECLINE;
+			break;
+		}
+
+		sccp_tech.capabilities = ast_format_cap_alloc(0);
+		ast_format_cap_add_all_by_type(sccp_tech.capabilities, AST_FORMAT_TYPE_AUDIO);
+		ast_format_cap_add_all_by_type(sccp_tech.capabilities, AST_FORMAT_TYPE_VIDEO);
+
+		if (register_channel_tech(&sccp_tech)) {
+			pbx_log(LOG_ERROR, "Unable to register channel class SCCP\n");
+			break;
+		}
+#ifdef HAVE_PBX_MESSAGE_H
+		if (ast_msg_tech_register(&sccp_msg_tech)) {
+			pbx_log(LOG_ERROR, "Unable to register message interface\n");
+			break;
+		}
+#endif
+
+#ifdef CS_SCCP_CONFERENCE
+		if (register_channel_tech(sccpconf_announce_get_tech())) {
+			pbx_log(LOG_ERROR, "Unable to register channel class ANNOUNCE (conference)\n");
+			break;
+		}
+#endif
+		if (ast_rtp_glue_register(&sccp_rtp)) {
+			pbx_log(LOG_ERROR, "Unable to register RTP Glue\n");
+			break;
+		}
+		if (sccp_register_management()) {
+			pbx_log(LOG_ERROR, "Unable to register management functions");
+			break;
+		}
+		if (sccp_register_cli()) {
+			pbx_log(LOG_ERROR, "Unable to register CLI functions");
+			break;
+		}
+		if (sccp_register_dialplan_functions()) {
+			pbx_log(LOG_ERROR, "Unable to register dialplan functions");
+			break;
+		}
+		if (!sccp_postPBX_load()) {
+			pbx_log(LOG_ERROR, "SCCP: postPBXLoad Failed\n");
+			break;
+		}
+		res = AST_MODULE_LOAD_SUCCESS;
+	} while (0);
+
+	if (res != AST_MODULE_LOAD_SUCCESS) {
+		pbx_log(LOG_ERROR, "SCCP: Module Load Failed, unloading...\n");
+		unload_module();
+	}
+	return res;
 }
 
 static int module_reload(void)
