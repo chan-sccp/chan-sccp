@@ -3433,7 +3433,7 @@ static struct pbx_cli_entry cli_entries[] = {
 /*!
  * register CLI functions from asterisk
  */
-void sccp_register_cli(void)
+int sccp_register_cli(void)
 {
 	uint i, res = 0;
 
@@ -3449,35 +3449,37 @@ void sccp_register_cli(void)
 #define _MAN_COM_FLAGS	(EVENT_FLAG_SYSTEM | EVENT_FLAG_COMMAND)
 #define _MAN_REP_FLAGS	(EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING)
 #endif
-	pbx_manager_register("SCCPShowGlobals", _MAN_REP_FLAGS, manager_show_globals, "show globals setting", ami_globals_usage);
-	pbx_manager_register("SCCPShowDevices", _MAN_REP_FLAGS, manager_show_devices, "show devices", ami_devices_usage);
-	pbx_manager_register("SCCPShowDevice", _MAN_REP_FLAGS, manager_show_device, "show device settings", ami_device_usage);
-	pbx_manager_register("SCCPShowLines", _MAN_REP_FLAGS, manager_show_lines, "show lines", ami_lines_usage);
-	pbx_manager_register("SCCPShowLine", _MAN_REP_FLAGS, manager_show_line, "show line", ami_line_usage);
-	pbx_manager_register("SCCPShowChannels", _MAN_REP_FLAGS, manager_show_channels, "show channels", ami_channels_usage);
-	pbx_manager_register("SCCPShowSessions", _MAN_REP_FLAGS, manager_show_sessions, "show sessions", ami_sessions_usage);
-	pbx_manager_register("SCCPShowMWISubscriptions", _MAN_REP_FLAGS, manager_show_mwi_subscriptions, "show mwi subscriptions", ami_mwi_subscriptions_usage);
-	pbx_manager_register("SCCPShowSoftkeySets", _MAN_REP_FLAGS, manager_show_softkeysets, "show softkey sets", ami_show_softkeysets_usage);
-	pbx_manager_register("SCCPMessageDevices", _MAN_REP_FLAGS, manager_message_devices, "message devices", ami_message_devices_usage);
-	pbx_manager_register("SCCPMessageDevice", _MAN_REP_FLAGS, manager_message_device, "message device", ami_message_device_usage);
-	pbx_manager_register("SCCPSystemMessage", _MAN_REP_FLAGS, manager_system_message, "system message", ami_system_message_usage);
-	pbx_manager_register("SCCPDndDevice", _MAN_REP_FLAGS, manager_dnd_device, "set/unset dnd on device", ami_dnd_device_usage);
-	pbx_manager_register("SCCPAnswerCall1", _MAN_REP_FLAGS, manager_answercall, "Answer Ringing Incoming Channel on Device", ami_answercall_usage);
-	pbx_manager_register("SCCPTokenAck", _MAN_REP_FLAGS, manager_tokenack, "send tokenack", ami_tokenack_usage);
+	res |= pbx_manager_register("SCCPShowGlobals", _MAN_REP_FLAGS, manager_show_globals, "show globals setting", ami_globals_usage);
+	res |= pbx_manager_register("SCCPShowDevices", _MAN_REP_FLAGS, manager_show_devices, "show devices", ami_devices_usage);
+	res |= pbx_manager_register("SCCPShowDevice", _MAN_REP_FLAGS, manager_show_device, "show device settings", ami_device_usage);
+	res |= pbx_manager_register("SCCPShowLines", _MAN_REP_FLAGS, manager_show_lines, "show lines", ami_lines_usage);
+	res |= pbx_manager_register("SCCPShowLine", _MAN_REP_FLAGS, manager_show_line, "show line", ami_line_usage);
+	res |= pbx_manager_register("SCCPShowChannels", _MAN_REP_FLAGS, manager_show_channels, "show channels", ami_channels_usage);
+	res |= pbx_manager_register("SCCPShowSessions", _MAN_REP_FLAGS, manager_show_sessions, "show sessions", ami_sessions_usage);
+	res |= pbx_manager_register("SCCPShowMWISubscriptions", _MAN_REP_FLAGS, manager_show_mwi_subscriptions, "show mwi subscriptions", ami_mwi_subscriptions_usage);
+	res |= pbx_manager_register("SCCPShowSoftkeySets", _MAN_REP_FLAGS, manager_show_softkeysets, "show softkey sets", ami_show_softkeysets_usage);
+	res |= pbx_manager_register("SCCPMessageDevices", _MAN_REP_FLAGS, manager_message_devices, "message devices", ami_message_devices_usage);
+	res |= pbx_manager_register("SCCPMessageDevice", _MAN_REP_FLAGS, manager_message_device, "message device", ami_message_device_usage);
+	res |= pbx_manager_register("SCCPSystemMessage", _MAN_REP_FLAGS, manager_system_message, "system message", ami_system_message_usage);
+	res |= pbx_manager_register("SCCPDndDevice", _MAN_REP_FLAGS, manager_dnd_device, "set/unset dnd on device", ami_dnd_device_usage);
+	res |= pbx_manager_register("SCCPAnswerCall1", _MAN_REP_FLAGS, manager_answercall, "Answer Ringing Incoming Channel on Device", ami_answercall_usage);
+	res |= pbx_manager_register("SCCPTokenAck", _MAN_REP_FLAGS, manager_tokenack, "send tokenack", ami_tokenack_usage);
 #ifdef CS_SCCP_CONFERENCE
-	pbx_manager_register("SCCPShowConferences", _MAN_REP_FLAGS, manager_show_conferences, "show conferences", ami_conferences_usage);
-	pbx_manager_register("SCCPShowConference", _MAN_REP_FLAGS, manager_show_conference, "show conference", ami_conference_usage);
-	pbx_manager_register("SCCPConference", _MAN_REP_FLAGS, manager_conference_command, "conference commands", ami_conference_command_usage);
+	res |= pbx_manager_register("SCCPShowConferences", _MAN_REP_FLAGS, manager_show_conferences, "show conferences", ami_conferences_usage);
+	res |= pbx_manager_register("SCCPShowConference", _MAN_REP_FLAGS, manager_show_conference, "show conference", ami_conference_usage);
+	res |= pbx_manager_register("SCCPConference", _MAN_REP_FLAGS, manager_conference_command, "conference commands", ami_conference_command_usage);
 #endif
-	pbx_manager_register("SCCPShowHintLineStates", _MAN_REP_FLAGS, manager_show_hint_lineStates, "show hint lineStates", ami_show_hint_lineStates_usage);
-	pbx_manager_register("SCCPShowHintSubscriptions", _MAN_REP_FLAGS, manager_show_hint_subscriptions, "show hint subscriptions", ami_show_hint_subscriptions_usage);
-	pbx_manager_register("SCCPShowRefcount", _MAN_REP_FLAGS, manager_show_refcount, "show refcount", ami_show_refcount_usage);
+	res |= pbx_manager_register("SCCPShowHintLineStates", _MAN_REP_FLAGS, manager_show_hint_lineStates, "show hint lineStates", ami_show_hint_lineStates_usage);
+	res |= pbx_manager_register("SCCPShowHintSubscriptions", _MAN_REP_FLAGS, manager_show_hint_subscriptions, "show hint subscriptions", ami_show_hint_subscriptions_usage);
+	res |= pbx_manager_register("SCCPShowRefcount", _MAN_REP_FLAGS, manager_show_refcount, "show refcount", ami_show_refcount_usage);
+
+	return res;
 }
 
 /*!
  * unregister CLI functions from asterisk
  */
-void sccp_unregister_cli(void)
+int sccp_unregister_cli(void)
 {
 
 	uint i, res = 0;
@@ -3486,29 +3488,31 @@ void sccp_unregister_cli(void)
 		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_2 "Cli unregistered action %s\n", (cli_entries + i)->_full_cmd);
 		res |= pbx_cli_unregister(cli_entries + i);
 	}
-	pbx_manager_unregister("SCCPShowGlobals");
-	pbx_manager_unregister("SCCPShowDevices");
-	pbx_manager_unregister("SCCPShowDevice");
-	pbx_manager_unregister("SCCPShowLines");
-	pbx_manager_unregister("SCCPShowLine");
-	pbx_manager_unregister("SCCPShowChannels");
-	pbx_manager_unregister("SCCPShowSessions");
-	pbx_manager_unregister("SCCPShowMWISubscriptions");
-	pbx_manager_unregister("SCCPShowSoftkeySets");
-	pbx_manager_unregister("SCCPMessageDevices");
-	pbx_manager_unregister("SCCPMessageDevice");
-	pbx_manager_unregister("SCCPSystemMessage");
-	pbx_manager_unregister("SCCPDndDevice");
-	pbx_manager_unregister("SCCPAnswerCall1");
-	pbx_manager_unregister("SCCPTokenAck");
+	res |= pbx_manager_unregister("SCCPShowGlobals");
+	res |= pbx_manager_unregister("SCCPShowDevices");
+	res |= pbx_manager_unregister("SCCPShowDevice");
+	res |= pbx_manager_unregister("SCCPShowLines");
+	res |= pbx_manager_unregister("SCCPShowLine");
+	res |= pbx_manager_unregister("SCCPShowChannels");
+	res |= pbx_manager_unregister("SCCPShowSessions");
+	res |= pbx_manager_unregister("SCCPShowMWISubscriptions");
+	res |= pbx_manager_unregister("SCCPShowSoftkeySets");
+	res |= pbx_manager_unregister("SCCPMessageDevices");
+	res |= pbx_manager_unregister("SCCPMessageDevice");
+	res |= pbx_manager_unregister("SCCPSystemMessage");
+	res |= pbx_manager_unregister("SCCPDndDevice");
+	res |= pbx_manager_unregister("SCCPAnswerCall1");
+	res |= pbx_manager_unregister("SCCPTokenAck");
 #ifdef CS_SCCP_CONFERENCE
-	pbx_manager_unregister("SCCPShowConferences");
-	pbx_manager_unregister("SCCPShowConference");
-	pbx_manager_unregister("SCCPConference");
+	res |= pbx_manager_unregister("SCCPShowConferences");
+	res |= pbx_manager_unregister("SCCPShowConference");
+	res |= pbx_manager_unregister("SCCPConference");
 #endif
-	pbx_manager_unregister("SCCPShowHintLineStates");
-	pbx_manager_unregister("SCCPShowHintSubscriptions");
-	pbx_manager_unregister("SCCPShowRefcount");
+	res |= pbx_manager_unregister("SCCPShowHintLineStates");
+	res |= pbx_manager_unregister("SCCPShowHintSubscriptions");
+	res |= pbx_manager_unregister("SCCPShowRefcount");
+
+	return res;
 }
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
