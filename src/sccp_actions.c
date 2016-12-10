@@ -3292,12 +3292,14 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 
 			/* update status */
 			channel->rtp.audio.receiveChannelState = SCCP_RTP_STATUS_ACTIVE;
+
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
+			sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, channel->line->name), channel->callid);
 			if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 				iPbx.queue_control(channel->owner, AST_CONTROL_ANSWER);
 			} else {
 				/* 'PROD' the remote side to let them know we can receive inband signalling from this moment onwards -> inband signalling required */
-				pbx_indicate(channel->owner, -1);
+				iPbx.queue_control(channel->owner, -1);
 			}
 			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE))) {
 				iPbx.set_callstate(channel, AST_STATE_UP);
