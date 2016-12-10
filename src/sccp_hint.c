@@ -757,7 +757,7 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 			sccp_hint_updateLineStateForSingleChannel(lineState);
 		}
 
-		/* push chagnes to pbx */
+		/* push changes to pbx */
 		sccp_hint_notifyLineStateUpdate(lineState);
 	}
 }
