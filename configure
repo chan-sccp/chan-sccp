@@ -23022,20 +23022,20 @@ $as_echo "$as_me: Fixed fauly asterisk.pc pkg-config file. Advise:You ought to u
 					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir[[[:space:]]]*=>[[[:space:]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 					if test -z "$PBX_TEMPMODDIR"; then
 						echo ""
-						{ $as_echo "$as_me:${as_lineno-$LINENO}: astmoddir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&5
-$as_echo "$as_me: astmoddir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&6;}
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: astmoddir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path separators use '=>', not '='" >&5
+$as_echo "$as_me: astmoddir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path separators use '=>', not '='" >&6;}
 					fi
 					PBX_VARLIB="`${SED} -n 's/astvarlibdir[[[:space:]]]*=>[[[:space:]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 					if test -z "$PBX_VARLIB"; then
 						echo ""
-						{ $as_echo "$as_me:${as_lineno-$LINENO}: astvarlibdir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&5
-$as_echo "$as_me: astvarlibdir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&6;}
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: astvarlibdir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path separators use '=>', not '='" >&5
+$as_echo "$as_me: astvarlibdir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path separators use '=>', not '='" >&6;}
 					fi
 					PBX_SBINDIR="`${SED} -n 's/astsbindir[[[:space:]]]*=>[[[:space:]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 					if test -z "$PBX_SBINDIR"; then
 						echo ""
-						{ $as_echo "$as_me:${as_lineno-$LINENO}: astsbindir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&5
-$as_echo "$as_me: astsbindir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='" >&6;}
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: astsbindir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path separators use '=>', not '='" >&5
+$as_echo "$as_me: astsbindir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path separators use '=>', not '='" >&6;}
 					fi
 		 		else
 		 			PBX_TEMPMODDIR="$(${PKGCONFIG} --variable=moddir asterisk)"
@@ -29268,7 +29268,45 @@ $as_echo "${T_MD}Checking XML2/EXSLT:${T_ME}" >&6; }
 		LIBEXSLT_LIBS=`${PKGCONFIG} libexslt --libs`
 		CFLAGS="${LIBEXSLT_CFLAGS} "
 		CPPFLAGS="${LIBEXSLT_CFLAGS} "
-		LDFLAGS="$LIBEXSLT_LIBS}"
+		LDFLAGS="${LIBEXSLT_LIBS} "
+		for ac_header in libxml/tree.h libxml/parser.h libxml/xmlstring.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+		for ac_header in libxslt/xsltInternals.h libxslt/transform.h libxslt/xsltutils.h libxslt/extensions.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+
+done
+
+		for ac_header in libexslt/exslt.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "libexslt/exslt.h" "ac_cv_header_libexslt_exslt_h" "$ac_includes_default"
+if test "x$ac_cv_header_libexslt_exslt_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBEXSLT_EXSLT_H 1
+_ACEOF
+
+fi
+
+done
+
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xmlInitParser in -lxml2" >&5
 $as_echo_n "checking for xmlInitParser in -lxml2... " >&6; }
 if ${ac_cv_lib_xml2_xmlInitParser+:} false; then :
@@ -29310,19 +29348,6 @@ if test "x$ac_cv_lib_xml2_xmlInitParser" = xyes; then :
 else
   HAVE_LIBXML2=no
 fi
-
-		for ac_header in libxml/tree.h libxml/parser.h libxml/xmlstring.h
-do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
-_ACEOF
-
-fi
-
-done
 
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xsltInit in -lxslt" >&5
 $as_echo_n "checking for xsltInit in -lxslt... " >&6; }
@@ -29366,19 +29391,6 @@ else
   HAVE_LIBXSLT=no
 fi
 
-		for ac_header in libxslt/xsltInternals.h libxslt/transform.h libxslt/xsltutils.h libxslt/extensions.h
-do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
-_ACEOF
-
-fi
-
-done
-
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for exsltRegisterAll in -lexslt" >&5
 $as_echo_n "checking for exsltRegisterAll in -lexslt... " >&6; }
 if ${ac_cv_lib_exslt_exsltRegisterAll+:} false; then :
@@ -29420,18 +29432,6 @@ if test "x$ac_cv_lib_exslt_exsltRegisterAll" = xyes; then :
 else
   HAVE_LIBEXSLT=no
 fi
-
-		for ac_header in libexslt/exslt.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "libexslt/exslt.h" "ac_cv_header_libexslt_exslt_h" "$ac_includes_default"
-if test "x$ac_cv_header_libexslt_exslt_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBEXSLT_EXSLT_H 1
-_ACEOF
-
-fi
-
-done
 
 
 

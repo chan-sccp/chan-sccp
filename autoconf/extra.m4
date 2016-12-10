@@ -834,13 +834,13 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_XML], [
 		LIBEXSLT_LIBS=`${PKGCONFIG} libexslt --libs`
 		CFLAGS="${LIBEXSLT_CFLAGS} "
 		CPPFLAGS="${LIBEXSLT_CFLAGS} "
-		LDFLAGS="$LIBEXSLT_LIBS}"
-		AC_CHECK_LIB([xml2],[xmlInitParser],[HAVE_LIBXML2=yes],[HAVE_LIBXML2=no])
+		LDFLAGS="${LIBEXSLT_LIBS} "
 		AC_CHECK_HEADERS([libxml/tree.h libxml/parser.h libxml/xmlstring.h]) 
-		AC_CHECK_LIB([xslt],[xsltInit],[HAVE_LIBXSLT=yes],[HAVE_LIBXSLT=no])
 		AC_CHECK_HEADERS([libxslt/xsltInternals.h libxslt/transform.h libxslt/xsltutils.h libxslt/extensions.h]) 
-		AC_CHECK_LIB([exslt],[exsltRegisterAll],[HAVE_LIBEXSLT=yes],[HAVE_LIBEXSLT=no])
 		AC_CHECK_HEADERS([libexslt/exslt.h])
+		AC_CHECK_LIB([xml2],[xmlInitParser],[HAVE_LIBXML2=yes],[HAVE_LIBXML2=no])
+		AC_CHECK_LIB([xslt],[xsltInit],[HAVE_LIBXSLT=yes],[HAVE_LIBXSLT=no])
+		AC_CHECK_LIB([exslt],[exsltRegisterAll],[HAVE_LIBEXSLT=yes],[HAVE_LIBEXSLT=no])
 		AC_SUBST([LIBEXSLT_CFLAGS])
 		AC_SUBST([LIBEXSLT_LIBS])
 		AS_IF([test "_${HAVE_LIBEXSLT}" == "_yes"],[
