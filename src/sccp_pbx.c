@@ -207,6 +207,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	if (!c) {
 		return -1;
 	}
+	int res = 0;
 
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(c->line);
 	if (!l) {
@@ -221,7 +222,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
 		pbx_setstate(c->owner, AST_STATE_BUSY);
 		iPbx.queue_control(c->owner, AST_CONTROL_BUSY);
-		return 0;
+		return -1;
 	}
 
 	/* Reinstated this call instead of the following lines */
@@ -388,12 +389,12 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		pbx_channel_call_forward_set(c->owner, ForwardingLineDevice->cfwdAll.enabled ? ForwardingLineDevice->cfwdAll.number : ForwardingLineDevice->cfwdBusy.number);
 		sccp_device_sendcallstate(ForwardingLineDevice->device, ForwardingLineDevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_channel_send_callinfo(ForwardingLineDevice->device, c);
-		isRinging = TRUE;
 	} else if (hasDNDParticipant) {
-		pbx_setstate(c->owner, AST_STATE_BUSY);
 		iPbx.queue_control(c->owner, AST_CONTROL_BUSY);
+		iPbx.set_callstate(c, AST_STATE_BUSY);
 	} else {
 		iPbx.queue_control(c->owner, AST_CONTROL_CONGESTION);
+		res = -1;
 	}
 
 	/* set linevariables */
@@ -403,7 +404,8 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		v = v->next;
 	}
 
-	return isRinging != TRUE;
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_call) Returning: %d\n", c->designator, res);
+	return res;
 }
 
 /*!
