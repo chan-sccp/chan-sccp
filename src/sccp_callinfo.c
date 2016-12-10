@@ -160,7 +160,9 @@ static boolean_t callinfo_Copy(const sccp_callinfo_t * const src_ci, sccp_callin
 }
 #endif
 
-static int callinfo_Setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...)
+// clang complain about default argument promotion when using enum instead of int for the key
+// previous: static int callinfo_Setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...) 
+static int callinfo_Setter(sccp_callinfo_t * const ci, int key, ...)							// key is a va_arg of type sccp_callinfo_key_t
 {
 	pbx_assert(ci != NULL);
 
@@ -266,7 +268,9 @@ static int callinfo_Setter(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, 
 }
 
 //#if UNUSEDCODE // 2015-11-01
-static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, sccp_callinfo_key_t key, ...)
+// clang complain about default argument promotion when using enum instead of int for the key
+// previous: static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, sccp_callinfo_key_t key, ...)
+static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, int key, ...)	// key is a va_arg of type sccp_callinfo_key_t
 {
 	pbx_assert(src_ci != NULL && dst_ci != NULL);
 	struct ci_content tmp_ci_content;
@@ -408,7 +412,9 @@ static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinf
 }
 //#endif
 
-static int callinfo_Getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...)
+// clang complain about default argument promotion when using enum instead of int for the key
+// previous: static int callinfo_Getter(const sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...)
+static int callinfo_Getter(const sccp_callinfo_t * const ci, int key, ...)						// key is a va_arg of type sccp_callinfo_key_t
 {
 	pbx_assert(ci != NULL);
 

@@ -39,8 +39,8 @@ typedef struct tagCallInfo {
 	 * SENTINEL is required to stop processing
 	 * \returns: number of changed fields
 	 */
-	int (*Setter)(sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...);
-	int (*CopyByKey)(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, sccp_callinfo_key_t key, ...);
+	int (*Setter)(sccp_callinfo_t * const ci, int key, ...);						// key is a va_arg of type sccp_callinfo_key_t
+	int (*CopyByKey)(const sccp_callinfo_t * const src_ci, sccp_callinfo_t * const dst_ci, int key, ...);	// key is a va_arg of type sccp_callinfo_key_t
 	/*
 	 * \brief send callinfo to device
 	 */
@@ -52,7 +52,7 @@ typedef struct tagCallInfo {
 	 * SENTINEL is required to stop processing
 	 * \returns: number of fields
 	 */
-	int (*Getter)(const sccp_callinfo_t * const ci, sccp_callinfo_key_t key, ...);
+	int (*Getter)(const sccp_callinfo_t * const ci, int key, ...);						// key is a va_arg of type sccp_callinfo_key_t
 
 	/* helpers */
 	int (*SetCalledParty)(sccp_callinfo_t * const ci, const char name[StationMaxDirnumSize], const char number[StationMaxDirnumSize], const char voicemail[StationMaxDirnumSize]);
