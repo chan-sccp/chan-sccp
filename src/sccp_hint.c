@@ -1313,9 +1313,10 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
  * \brief Notify LineState Change to Subscribers via PBX include distributed devstate
  * calls notifySubscribers via asterisk->callback (sccp_hint_distributed_devstate_cb)
  */
-static void sccp_hint_notifySubscribersViaPbx(sccp_hint_list_t *hint, struct sccp_hint_lineState *lineState, char *lineName, enum ast_device_state newDeviceState) {
-#ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
+//static void sccp_hint_notifySubscribersViaPbx(sccp_hint_list_t *hint, struct sccp_hint_lineState *lineState, char *lineName, enum ast_device_state newDeviceState) {
+static void sccp_hint_notifySubscribersViaPbx(struct sccp_hint_lineState *lineState, char *lineName, enum ast_device_state newDeviceState) {
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifySubscribersViaPbx) Notify asterisk to set state to sccp channelstate '%s' (%d) => asterisk: '%s' (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
+#ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 	/* Update Remote Servers Only (EID Will be checked upon Receipt of the CallBack / EID is added automatically)*/
 #if ASTERISK_VERSION_GROUP >= 112
 	pbx_devstate_changed_literal(newDeviceState, lineName);
@@ -1379,6 +1380,7 @@ static boolean_t sccp_match_dialplan2lineName(char *hint_app, char *lineName)
 static void sccp_hint_notifyLineStateUpdate(struct sccp_hint_lineState *lineState)
 {
 	sccp_hint_list_t *hint = NULL;
+	int num_subscribers = 0, shortcut_notifications = 0;;
 	char lineName[StationMaxNameSize + 5];
 
 	{
@@ -1415,15 +1417,18 @@ static void sccp_hint_notifyLineStateUpdate(struct sccp_hint_lineState *lineStat
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyLineStateUpdate) Notify asterisk to set state to sccp channelstate '%s' (%d) on line 'SCCP/%s'\n", sccp_channelstate2str(lineState->state), lineState->state, lineName);
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyLineStateUpdate) => asterisk: '%s' (%d) => '%s' (%d) on line SCCP/%s\n", pbxsccp_devicestate2str(oldDeviceState), oldDeviceState, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineName);
 			if (newDeviceState == oldDeviceState) {
-				sccp_hint_notifySubscribers(hint);								/* shortcut to inform sccp subscribers about cid update changes only */
-			} else {
-				sccp_hint_notifySubscribersViaPbx(hint, lineState, lineName, newDeviceState);			/* go through pbx to inform subscribers about both state and cid */
+				sccp_hint_notifySubscribers(hint);							/* shortcut to inform sccp subscribers about cid update changes only */
+				shortcut_notifications++;
 			}
-			
-			/*! note: do not break after the first match, but update all matching hints */
+			num_subscribers++;
 		}
 	}
 	SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
+
+	if (!num_subscribers || num_subscribers != shortcut_notifications) {
+		/* no sccp subscribers or shortcut not used -> signal asterisk directly */
+		sccp_hint_notifySubscribersViaPbx(lineState, lineName, newDeviceState);					/* go through pbx to inform subscribers about both state and cid */
+	}	
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyLineStateUpdate) Notified asterisk to set state to sccp channelstate '%s' (%d) => asterisk: '%s' (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
 }
 
