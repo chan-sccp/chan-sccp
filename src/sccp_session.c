@@ -190,9 +190,9 @@ static void socket_get_error(constSessionPtr s, const char* file, int line, cons
 {
 	if (errno) {
 		if (errno == ECONNRESET) {
-			pbx_log(LOG_NOTICE, "%s: Connection reset by peer\n", DEV_ID_LOG(s->device));
+			sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Connection reset by peer\n", DEV_ID_LOG(s->device));
 		} else {
-			pbx_log(LOG_ERROR, "%s: (%s:%d:%s) Socket returned error: '%s (%d)')\n", DEV_ID_LOG(s->device), file, line, function, strerror(errno), errno);
+			sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s (%s:%d:%s) Socket returned error: '%s (%d)')\n", DEV_ID_LOG(s->device), file, line, function, strerror(errno), errno);
 		}
 	} else {
 		if (!s || s->fds[0].fd <= 0) {
@@ -202,7 +202,7 @@ static void socket_get_error(constSessionPtr s, const char* file, int line, cons
 		int error = 0;
 		socklen_t error_len = sizeof(error);
 		if ((mysocket && getsockopt(mysocket, SOL_SOCKET, SO_ERROR, &error, &error_len) == 0) && error != 0) {
-			pbx_log(LOG_ERROR, "%s: (%s:%d:%s) SO_ERROR: %s (%d)\n", DEV_ID_LOG(s->device), file, line, function, strerror(error), error);
+			sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: (%s:%d:%s) SO_ERROR: %s (%d)\n", DEV_ID_LOG(s->device), file, line, function, strerror(error), error);
 		}
 	}
 }
