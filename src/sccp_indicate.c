@@ -137,7 +137,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 					break;
 				}
 				d->indicate->dialing(d, lineInstance, c->callid, c->calltype, ci, c->dialedNumber);
-				if (c->rtp.audio.receiveChannelState != SCCP_RTP_STATUS_INACTIVE && d->earlyrtp <= SCCP_EARLYRTP_DIALING) {
+				if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
 				}
 			}
