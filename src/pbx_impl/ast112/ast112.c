@@ -3297,9 +3297,7 @@ static int register_channel_tech(struct ast_channel_tech *tech)
 
 static void unregister_channel_tech(struct ast_channel_tech *tech)
 {
-        if (tech) {
-		ast_channel_unregister(tech);
-        }
+	ast_channel_unregister(tech);
         if (tech->capabilities) {
 		tech->capabilities = ast_format_cap_destroy(tech->capabilities);
         }
