@@ -791,6 +791,9 @@ void *sccp_netsock_device_thread(void *session)
 #if defined(NEW_SOCKET)
 			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
 				//sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving at buffer position:%lu\n", DEV_ID_LOG(s->device), recv_len);
+
+				/* coverity[string_null_argument] */						/* coverity detected recv does not NULL terminate the returned data, which is correct.
+														   Do not want to switch to unsigned integer array though. Suppressing the coverity issue */
 				result = recv(s->fds[0].fd, recv_buffer + recv_len, (SCCP_MAX_PACKET * 2) - recv_len, 0);
 				s->lastKeepAlive = time(0);
 				if (result <= 0) {

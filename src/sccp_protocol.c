@@ -187,8 +187,8 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 		return;
 	}
 	for (field = 0; field < dataSize; field++) {
-		if (data[field]) {
-			data_len = strlen(data[field]) + 1 /* '\0' */;
+		if ((data_len = strlen(data[field]))) {
+			data_len += 1 /* add NULL terminator */;
 			memcpy(dummy + dummy_len, data[field], data_len);
 			dummy_len += data_len;
 		}
