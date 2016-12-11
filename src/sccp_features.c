@@ -187,7 +187,7 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 			sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
 			sccp_device_setLamp(device, SKINNY_STIMULUS_FORWARDBUSY, linedevice->lineInstance, SKINNY_LAMP_FLASH);
 			break;
-		/* coverity[DEADCODE] */ 								/* coverity detected that SCCP_CFWD_NOANSWER was already checked for above, for switch completeness we suppress the coverity warning */
+		/* coverity[dead_error_begin : FALSE] */
 		case SCCP_CFWD_NOANSWER:
 			sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
 			sccp_device_setLamp(device, SKINNY_STIMULUS_FORWARDNOANSWER, linedevice->lineInstance, SKINNY_LAMP_FLASH);
