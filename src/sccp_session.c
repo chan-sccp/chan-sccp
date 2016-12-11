@@ -250,7 +250,7 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 	return result;
 }
 
-static gcc_inline int session_buffer2msg(sccp_session_t * s, uint8_t *buffer, int lenAccordingToPacketHeader, sccp_msg_t *msg) 
+static gcc_inline int session_buffer2msg(sccp_session_t * s, unsigned char *buffer, int lenAccordingToPacketHeader, sccp_msg_t *msg) 
 {
 	sccp_header_t msg_header = {0};
 	memcpy(&msg_header, buffer, SCCP_PACKET_HEADER);
@@ -263,6 +263,7 @@ static gcc_inline int session_buffer2msg(sccp_session_t * s, uint8_t *buffer, in
 	}
 	if (dont_expect(lenAccordingToPacketHeader > lenAccordingToOurProtocolSpec)) {					// show out discarded bytes
 		pbx_log(LOG_WARNING, "%s: (session_dissect_msg) Incoming message is bigger(%d) than known size(%d). Packet looks like!\n", DEV_ID_LOG(s->device), lenAccordingToPacketHeader, lenAccordingToOurProtocolSpec);
+		buffer[lenAccordingToPacketHeader + 1] = '\0';								// terminate buffer
 		sccp_dump_packet(buffer, lenAccordingToPacketHeader);
 	}
 	
@@ -277,7 +278,7 @@ static gcc_inline int session_buffer2msg(sccp_session_t * s, uint8_t *buffer, in
 	return sccp_handle_message(msg, s);
 }
 
-static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, uint8_t *buffer, size_t *len)
+static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsigned char *buffer, size_t *len)
 {
 	int res = 0;
 	while (*len >= SCCP_PACKET_HEADER && *len <= SCCP_MAX_PACKET * 2) {										// We have at least SCCP_PACKET_HEADER, so we have the payload length
@@ -735,8 +736,7 @@ void *sccp_netsock_device_thread(void *session)
 	int pollTimeout;
 	
 	int result = 0;
-	/* using uint8_t[] for buffer instead of unsigned char, because recv() does not NULL terminate string, which static analysis will warn about */
-	uint8_t recv_buffer[SCCP_MAX_PACKET * 2] = "";
+	unsigned char recv_buffer[SCCP_MAX_PACKET * 2] = "";
 	size_t recv_len = 0;
 	sccp_msg_t msg = { {0,} };
 
