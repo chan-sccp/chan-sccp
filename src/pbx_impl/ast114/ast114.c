@@ -3391,9 +3391,14 @@ static int register_channel_tech(struct ast_channel_tech *tech)
 
 static void unregister_channel_tech(struct ast_channel_tech *tech)
 {
-	ast_channel_unregister(tech);
-	ao2_ref(tech->capabilities, -1);
+	if (tech) {
+		ast_channel_unregister(tech);
+	}
+	if (tech->capabilities) {
+		ao2_ref(tech->capabilities, -1);
+	}
 	tech->capabilities = NULL;
+	tech = NULL;
 }
 
 static int unload_module(void)
