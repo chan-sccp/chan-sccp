@@ -191,7 +191,7 @@ static int sccp_wrapper_asterisk16_devicestate(void *data)
 	}
 
 	state = sccp_hint_getLinestate(lineName, deviceId);
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicestate) sccp_hint returned state:%s for '%s'\n", sccp_channelstate2str(state), data);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicestate) sccp_hint returned state:%s for '%s'\n", sccp_channelstate2str(state), lineName);
 	switch (state) {
 		case SCCP_CHANNELSTATE_DOWN:
 		case SCCP_CHANNELSTATE_ONHOOK:
@@ -260,7 +260,7 @@ static int sccp_wrapper_asterisk16_devicestate(void *data)
 			break;
 	}
 
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicestate) PBX  requests state for '%s' - state %s\n", (char *) lineName, ast_devstate2str(res));
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicestate) PBX  requests state for '%s' - state %s\n", lineName, ast_devstate2str(res));
 	return res;
 }
 

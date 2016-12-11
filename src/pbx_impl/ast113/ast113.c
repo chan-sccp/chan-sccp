@@ -308,7 +308,7 @@ static int sccp_wrapper_asterisk113_devicestate(const char *data)
 	}
 
 	state = sccp_hint_getLinestate(lineName, deviceId);
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicestate) sccp_hint returned state:%s for '%s'\n", sccp_channelstate2str(state), data);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicestate) sccp_hint returned state:%s for '%s'\n", sccp_channelstate2str(state), lineName);
 	switch (state) {
 		case SCCP_CHANNELSTATE_DOWN:
 		case SCCP_CHANNELSTATE_ONHOOK:
@@ -372,7 +372,7 @@ static int sccp_wrapper_asterisk113_devicestate(const char *data)
 			break;
 	}
 
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicestate) PBX requests state for '%s' - state %s\n", (char *) lineName, ast_devstate2str(res));
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicestate) PBX requests state for '%s' - state %s\n", lineName, ast_devstate2str(res));
 	return res;
 }
 
@@ -2159,24 +2159,24 @@ static boolean_t sccp_wrapper_asterisk113_createRtpInstance(constDevicePtr d, co
 
 	/* rest below should be moved out of here (refactoring required) */
 	PBX_RTP_TYPE *instance = rtp->instance;
-	char *rtp_map_filter = NULL;
+	//char *rtp_map_filter = NULL;
+	//skinny_payload_type_t codec_type;
 	int fd_offset = 0;
-	skinny_payload_type_t codec_type;
 	switch(rtp->type) {
 		case SCCP_RTP_AUDIO:
 			tos = d->audio_tos;
 			cos = d->audio_cos;
-			rtp_map_filter = "audio";
-			codec_type = SKINNY_CODEC_TYPE_AUDIO;
+			//rtp_map_filter = "audio";
+			//codec_type = SKINNY_CODEC_TYPE_AUDIO;
 			break;
 			
 #if CS_SCCP_VIDEO
 		case SCCP_RTP_VIDEO:
 			tos = d->video_tos;
 			cos = d->video_cos;
-			rtp_map_filter = "video";
+			//rtp_map_filter = "video";
+			//codec_type = SKINNY_CODEC_TYPE_VIDEO;
 			fd_offset = 2;
-			codec_type = SKINNY_CODEC_TYPE_VIDEO;
 			break;
 #endif			
 		default:
