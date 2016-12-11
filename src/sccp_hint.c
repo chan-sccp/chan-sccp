@@ -1380,7 +1380,6 @@ static boolean_t sccp_match_dialplan2lineName(char *hint_app, char *lineName)
 static void sccp_hint_notifyLineStateUpdate(struct sccp_hint_lineState *lineState)
 {
 	sccp_hint_list_t *hint = NULL;
-	int num_subscribers = 0, shortcut_notifications = 0;;
 	char lineName[StationMaxNameSize + 5];
 
 	{
@@ -1418,17 +1417,12 @@ static void sccp_hint_notifyLineStateUpdate(struct sccp_hint_lineState *lineStat
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyLineStateUpdate) => asterisk: '%s' (%d) => '%s' (%d) on line SCCP/%s\n", pbxsccp_devicestate2str(oldDeviceState), oldDeviceState, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineName);
 			if (newDeviceState == oldDeviceState) {
 				sccp_hint_notifySubscribers(hint);							/* shortcut to inform sccp subscribers about cid update changes only */
-				shortcut_notifications++;
 			}
-			num_subscribers++;
 		}
 	}
 	SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
 
-	if (!num_subscribers || num_subscribers != shortcut_notifications) {
-		/* no sccp subscribers or shortcut not used -> signal asterisk directly */
-		sccp_hint_notifySubscribersViaPbx(lineState, lineName, newDeviceState);					/* go through pbx to inform subscribers about both state and cid */
-	}	
+	sccp_hint_notifySubscribersViaPbx(lineState, lineName, newDeviceState);						/* go through pbx to inform subscribers about both state and cid */
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyLineStateUpdate) Notified asterisk to set state to sccp channelstate '%s' (%d) => asterisk: '%s' (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
 }
 
