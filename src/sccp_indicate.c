@@ -594,7 +594,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 							break;
 					}
 #endif
-
+					stateVisibility = (c->privacy || !presenceParameter) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_COLLAPSED;
 					remoteDevice->indicate->remoteConnected(remoteDevice, lineInstance, callid, stateVisibility);
 					iCallInfo.Send(ci, callid, calltype, lineInstance, remoteDevice, TRUE);
 					break;
