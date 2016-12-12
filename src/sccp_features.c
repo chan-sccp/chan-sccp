@@ -187,11 +187,13 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 			sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
 			sccp_device_setLamp(device, SKINNY_STIMULUS_FORWARDBUSY, linedevice->lineInstance, SKINNY_LAMP_FLASH);
 			break;
-		/* coverity[dead_error_begin : FALSE] */
+		/*
+		// already tested for at the beginning of this function: currently we do not support cfwd_noasnwer, so no need for handling it here
 		case SCCP_CFWD_NOANSWER:
 			sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
 			sccp_device_setLamp(device, SKINNY_STIMULUS_FORWARDNOANSWER, linedevice->lineInstance, SKINNY_LAMP_FLASH);
 			break;
+		*/
 		default:
 			sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
 			break;
