@@ -12,15 +12,38 @@ gnu make
 posix applications like sed, awk, tr
 asterisk-1.6.2 or higher			    # asterisk-11 or asterisk-13 recommended
 						    # use the latest sub revision 
-Just run:
-./configure [....configure flags you prefer...]
+chan_skinny module is prevented from loading in /etc/asterisk/modules.conf
 
-And finally:
-make
-make install
+Build from source using Released version
+retrieve the tar.gz from [latest release](https://github.com/chan-sccp/chan-sccp/releases/latest) and save it to /tmp/chan-sccp_latest.tar.gz
+
+    mkdir chan-sccp
+    cd chan-sccp
+    tar xvfz /tmp/chan-sccp_latest.tar.gz
+
+Build from source using git
+
+ - Clone github repository (once)
+    git clone https://github.com/chan-sccp/chan-sccp.git chan-sccp
+    cd chan-sccp
+
+ - Update to latest state
+    cd chan-sccp
+    git fetch
+    git pull
+
+Once you have the sources in the chan-sccp subdirectory you need to
+configure chan-sccp
+    ./configure [....configure flags you prefer...]
+
+For more information about the possible configure flags, check:
+    ./configure --help 
+
+Now it's time to build and install the module
+    make -j2 && make install && make reload
 
 For documentation, please visit:
-https://sourceforge.net/p/chan-sccp-b/wiki/Home/
+https://github.com/chan-sccp/chan-sccp/wiki
 
 Developer Note:
 When you are making changes to the configure.ac or any of the Makefile.am files you should run ./tools/bootstrap.sh afterwards.

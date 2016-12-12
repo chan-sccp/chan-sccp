@@ -23,22 +23,38 @@ Make sure you have the following installed on your system:
   - asterisk >= 1.6.2 (absolute minimum)
   - asterisk >= 11.21 or asterisk >= 13.7 recommended
   - including source headers and debug symbols (asterisk-dev and asterisk-dbg / asterisk-devel and asterisk-debug-info)
+  - chan_skinny module is prevented from loading in /etc/asterisk/modules.conf
 - standard posix compatible applications like sed, awk, tr
+
+### Building from source
+#### Using git (recommended)
+##### Clone github repository (once)
+    git clone https://github.com/chan-sccp/chan-sccp.git chan-sccp
+    cd chan-sccp
+
+##### Update to latest state
+    cd chan-sccp
+    git fetch
+    git pull
+
+#### Using Released tar.gz
+retrieve the tar.gz from [latest release](https://github.com/chan-sccp/chan-sccp/releases/latest) and save it to /tmp/chan-sccp_latest.tar.gz
+
+    mkdir chan-sccp
+    cd chan-sccp
+    tar xvfz /tmp/chan-sccp_latest.tar.gz
 
 ### Configuring
     ./configure [....configure flags you prefer...]
 
-For more information about the possible configure flags, check:
-
+_Note: For more information about the possible configure flags, check:_
     ./configure --help 
 
-Note: When you are making changes to configure.ac, autoconf / or Makefile.am files you should run:
-
+_Note: When you are making changes to configure.ac, autoconf / or Makefile.am files you should run:_
     ./tools/bootstrap.sh
 
 ### Build and Install
-    make
-    make install
+    make -j2 && make install && make reload
 
 ### Binaries
 We also provide prebuild binaries for:
@@ -50,8 +66,7 @@ We also provide prebuild binaries for:
 - [Redhat/Fedora](http://download.opensuse.org/repositories/home:/chan-sccp-b:/other/)
 
 ### Wiki
-You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-old-blue.svg)](https://sourceforge.net/p/chan-sccp-b/wiki/Home/)
-[![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/)
+You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/)
 
 ### Chat
 [![Gitter](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/chan-sccp/chan-sccp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
