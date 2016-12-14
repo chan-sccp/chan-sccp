@@ -776,7 +776,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 			}
 		}
 	} else /* OUTBOUND CALL */ {
-		struct ast_party_id connected = ast_channel_connected_effective_id(ast);
+		struct ast_party_id connected = pbx_channel_connected_id(ast);
 		if (connected.number.valid || connected.name.valid) {
 			changes = iCallInfo.Setter(callInfo,
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? pbx_channel_connected_id(ast).number.str : tmpCalledNumber,
