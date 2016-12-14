@@ -204,10 +204,10 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	memcpy(&msg->data.CallInfoDynamicMessage.dummy, dummy, dummy_len);
 	sccp_free(dummy);
 	
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V20) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
-	if ((GLOB(debug) & (DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) != 0) {
-		iCallInfo.Print2log(ci, "SCCP: (sendCallInfoV16)");
-	}
+	//sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V20) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
+	//if ((GLOB(debug) & (DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) != 0) {
+	//	iCallInfo.Print2log(ci, "SCCP: (sendCallInfoV16)");
+	//}
 	sccp_dev_send(device, msg);
 }
 /* done - CallInfoMessage */
