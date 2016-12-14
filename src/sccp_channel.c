@@ -1629,10 +1629,14 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 	if (swap_channels) {
 		AUTO_RELEASE sccp_channel_t *sccp_active_channel = sccp_device_getActiveChannel(d);
 
-		/* there is an active call, let's put it on hold first */
-		if (sccp_active_channel && !(sccp_channel_hold(sccp_active_channel))) {
-			pbx_log(LOG_WARNING, "SCCP: swap_channels failed to put channel %d on hold. exiting\n", sccp_active_channel->callid);
-			return FALSE;
+		/* there is an active call, if offhook channelstate then hangup else put it on hold */
+		if (sccp_active_channel) {
+			if (sccp_active_channel->state <= SCCP_CHANNELSTATE_OFFHOOK) {
+				sccp_channel_endcall(sccp_active_channel);
+			} else if (!(sccp_channel_hold(sccp_active_channel))) {				// hold failed, give up
+				pbx_log(LOG_WARNING, "SCCP: swap_channels failed to put channel %d on hold. exiting\n", sccp_active_channel->callid);
+				return FALSE;
+			}
 		}
 	}
 
