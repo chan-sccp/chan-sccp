@@ -924,7 +924,7 @@ static boolean_t sccp_wrapper_asterisk112_allocPBXChannel(sccp_channel_t * chann
 		assignedids = ids;
 	}
 
-	pbx_log(LOG_NOTICE, "SCCP: (allocPBXChannel) Create New Channel with name: SCCP/%s-%08X\n", line->name, channel->callid);
+	sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: (allocPBXChannel) Create New Channel with name: SCCP/%s-%08X\n", line->name, channel->callid);
 	pbxDstChannel = ast_channel_alloc(0, AST_STATE_DOWN, line->cid_num, line->cid_name, line->accountcode, line->name, line->context, assignedids, pbxSrcChannel, line->amaflags, "SCCP/%s-%08X", line->name, channel->callid);
 	if (pbxDstChannel == NULL) {
 		pbx_log(LOG_ERROR, "SCCP: (allocPBXChannel) ast_channel_alloc failed\n");
