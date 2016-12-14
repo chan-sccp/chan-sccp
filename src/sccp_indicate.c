@@ -459,22 +459,12 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 static void __sccp_indicate_remote_device(const sccp_device_t * const device, const sccp_channel_t * const c, const sccp_line_t * const line, const sccp_channelstate_t state)
 {
 	int lineInstance = 0;
-	sccp_phonebook_t __attribute__((unused)) phonebookRecord = SCCP_PHONEBOOK_NONE;
 
 	if (!c || !line) {
 		return;
 	}
 
 	/** \todo move this to channel->privacy */
-	//uint32_t privacyStatus=0;
-	//if (sccp_channel_getDevice(c)) {
-	//privacyStatus = sccp_channel_getDevic(c)->privacyFeature.status & SCCP_PRIVACYFEATURE_HINT;
-	//}
-	///* do not display private lines */
-	//if (state !=SCCP_CHANNELSTATE_CONNECTED && (c->privacy || privacyStatus > 0) ){
-	//sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "privacyStatus status is set, ignore remote devices\n");
-	//return;
-	//}
 
 	/* do not propagate status of hotline */
 	if (line == GLOB(hotline)->line) {
@@ -525,29 +515,10 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 				lineInstance = linedevice->lineInstance;							//sccp_device_find_index_for_line(remoteDevice, line->name);
 			}
 			switch (state) {
-				case SCCP_CHANNELSTATE_OFFHOOK:
-					/* do nothing here, we will do the offhook simulation in CONNECTED or ONHOOK -MC */
-					break;
-
 				case SCCP_CHANNELSTATE_DOWN:
 				case SCCP_CHANNELSTATE_ONHOOK:
-					if (SKINNY_CALLTYPE_INBOUND == c->calltype && c->answered_elsewhere) {
-#if 0 /* phonebookRecord was set to NONE at the top, does not make sense to switch on it */
-						switch (phonebookRecord) {
-							case SCCP_PHONEBOOK_RECEIVED:
-								pbx_log(LOG_NOTICE, "%s: call was answered elsewhere, record this as received call\n", DEV_ID_LOG(remoteDevice));
-								remoteDevice->indicate->remoteOffhook(remoteDevice, lineInstance, callid);
-								remoteDevice->indicate->connected(remoteDevice, lineInstance, callid, calltype, ci);
-								break;
-							case SCCP_PHONEBOOK_NONE:
-								sccp_device_sendcallstate(remoteDevice, lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
-								break;
-							case SCCP_PHONEBOOK_MISSED:
-							case SCCP_PHONEBOOK_SENTINEL:
-								/* do nothing */
-								break;
-						}
-#endif
+					if (SKINNY_CALLTYPE_INBOUND == c->calltype && c->answered_elsewhere) {			// suppress phonebook entry
+						sccp_device_sendcallstate(remoteDevice, lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 					}
 					sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s -> %s: indicate remote onhook (lineInstance: %d, callid: %d)\n", DEV_ID_LOG(device), DEV_ID_LOG(remoteDevice), lineInstance, c->callid);
 					remoteDevice->indicate->remoteOnhook(remoteDevice, lineInstance, callid);
@@ -555,46 +526,16 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 
 				case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 				case SCCP_CHANNELSTATE_CONNECTED:
-#if 0 /* phonebookRecord was set to NONE at the top, does not make sense to switch on it */
-					switch (c->calltype) {
-						case SKINNY_CALLTYPE_OUTBOUND:
-							switch (phonebookRecord) {
-								case SCCP_PHONEBOOK_RECEIVED:
-									remoteDevice->indicate->remoteOffhook(remoteDevice, lineInstance, callid);
-									remoteDevice->indicate->dialing(remoteDevice, lineInstance, callid, calltype, ci, dialedNumber);
-									remoteDevice->indicate->proceed(remoteDevice, lineInstance, callid, calltype, ci);
-									remoteDevice->indicate->connected(remoteDevice, lineInstance, callid, calltype, ci);
-									break;
-								case SCCP_PHONEBOOK_MISSED:
-								case SCCP_PHONEBOOK_NONE:
-									/* do nothing */
-									//sccp_device_sendcallstate(remoteDevice, lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
-									break;
-							}
-							break;
-						case SKINNY_CALLTYPE_INBOUND:
-							switch (phonebookRecord) {
-								case SCCP_PHONEBOOK_RECEIVED:
-									remoteDevice->indicate->remoteOffhook(remoteDevice, lineInstance, callid);
-									remoteDevice->indicate->offhook(remoteDevice, linedevice, callid);
-									remoteDevice->indicate->connected(remoteDevice, lineInstance, callid, calltype, ci);
-
-									break;
-								case SCCP_PHONEBOOK_NONE:
-									sccp_device_sendcallstate(remoteDevice, lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
-									break;
-								case SCCP_PHONEBOOK_MISSED:
-								case SCCP_PHONEBOOK_SENTINEL:
-									/* do nothing */
-									break;
-							}
-							break;
-
-						default:
-							break;
+					if (SKINNY_CALLTYPE_INBOUND == c->calltype) {						// suppress phonebook entry
+						sccp_device_sendcallstate(remoteDevice, lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 					}
-#endif
-					stateVisibility = (c->privacy || !presenceParameter) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_COLLAPSED;
+					sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s -> %s: indicate remote connected (lineInstance: %d, callid: %d)\n", DEV_ID_LOG(device), DEV_ID_LOG(remoteDevice), lineInstance, c->callid);
+					
+					/* if line is not currently active on remote device, collapse the callstate */
+					//if (remoteDevice->currentLine && linedevice->line != remoteDevice->currentLine && !(c->privacy || !presenceParameter)) {
+					if (!sccp_softkey_isSoftkeyInSoftkeySet(remoteDevice, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_INTRCPT)) {
+						stateVisibility = SKINNY_CALLINFO_VISIBILITY_COLLAPSED;
+					}
 					remoteDevice->indicate->remoteConnected(remoteDevice, lineInstance, callid, stateVisibility);
 					iCallInfo.Send(ci, callid, calltype, lineInstance, remoteDevice, TRUE);
 					break;
