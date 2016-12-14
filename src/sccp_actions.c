@@ -1791,19 +1791,20 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 		} else if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING))) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Answering incoming/ringing line %d\n", device->id, instance);
 			sccp_channel_answer(device, channel);
-		} else if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
-			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d\n", device->id, instance, SCCP_RWLIST_GETSIZE(&l->channels));
-			if (SCCP_LIST_GETSIZE(&l->channels) == 1) {						/* only one call on hold, so resume that one */
+			sccp_dev_set_cplane(device, instance, 1);
+		} else if (l->statistic.numberOfHeldChannels >= 1) {
+			channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD);
+			if (l->statistic.numberOfHeldChannels == 1) {
 				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d\n", device->id, channel->callid, instance);
 				sccp_dev_setActiveLine(device, l);
 				sccp_channel_resume(device, channel, TRUE);
-				sccp_dev_set_cplane(device, instance, 1);
-			} else {										/* not sure which channel to make active, let the user decide */
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Switch to line %d\n", device->id, instance);
-				sccp_dev_setActiveLine(device, l);						/* select the first channel on hold, but do not resume */
-				sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-				sccp_dev_set_cplane(device, instance, 1);
+			} else {
+				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Multiple calls on hold, just switching to line %d and let user decide\n", device->id, instance);
+				sccp_dev_setActiveLine(device, l);
+				/* select the first channel on hold, but do not resume */
+				sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			}
+			sccp_dev_set_cplane(device, instance, 1);
 		} else if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s for this phone, but remote has one or more-> %s ONHOOKSTEALABLE\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)", d->currentLine ? "hide" : "show");
 			//sccp_device_sendCallHistoryDisposition(d, instance, channel->callid, SKINNY_CALL_HISTORY_DISPOSITION_IGNORE);						// does not work on all device types, sadly
