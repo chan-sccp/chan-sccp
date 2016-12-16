@@ -276,7 +276,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 					break;
 
 				case SCCP_FEATURE_PICKUP:
-					buttonID = SKINNY_STIMULUS_GROUPCALLPICKUP;
+					buttonID = SKINNY_BUTTONTYPE_GROUPCALLPICKUP;
 					break;
 
 				default:
