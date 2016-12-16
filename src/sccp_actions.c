@@ -1146,7 +1146,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 								break;
 
 							case SCCP_FEATURE_PICKUP:
-								btn[i].type = SKINNY_STIMULUS_GROUPCALLPICKUP;
+								btn[i].type = SKINNY_BUTTONTYPE_GROUPCALLPICKUP;
 								break;
 
 							case SCCP_FEATURE_DO_NOT_DISTURB:
