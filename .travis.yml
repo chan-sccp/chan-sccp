@@ -26,7 +26,7 @@ env:
 
 matrix:
   allow_failures:
-    - compiler: gcc
+    - compiler: clang
       env: REPOS=trusty13
 
 # Install Required Devel Packages
