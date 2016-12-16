@@ -51,11 +51,6 @@ before_install:
      sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 libpjsua2-2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg binutils.dev libc6-dev;
      if [ "x${CC}" == "xgcc" ] && [ "x${TRAVIS_BRANCH}" == "xdevelop" ]; then 
        eval "$COVERITY_SCAN_BUILD";
-       if [ -f /home/travis/build/chan-sccp/chan-sccp/cov-int/build-log.txt ]; then
-         echo "= build_log ==========";
-         cat /home/travis/build/chan-sccp/chan-sccp/cov-int/build-log.txt;
-         echo "======================";
-       fi;
        if [ -f /home/travis/build/chan-sccp/chan-sccp/cov-int/scm_log.txt ]; then
          echo "= scm_log ============";
          cat /home/travis/build/chan-sccp/chan-sccp/cov-int/scm_log.txt;
