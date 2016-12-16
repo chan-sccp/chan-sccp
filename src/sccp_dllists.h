@@ -382,7 +382,7 @@ struct {												\
 #define SCCP_LIST_FIND(_head, _type, _var, _field, _compare, _retain, _file, _line, _func) ({		\
 	_type *_var;											\
 	_type *__tmp_##_var##_line;									\
-	for((_var) = (_head)->first; (_var); (_var) = ((_var) ? (_var)->_field.next : NULL)) {		\
+	for((_var) = (_head)->first; (_var); (_var) = (_var)->_field.next) {				\
 		__tmp_##_var##_line = sccp_refcount_retain((_var), _file, _line, _func);		\
 	        if (__tmp_##_var##_line) {								\
 	        	if (_compare) {									\
@@ -402,7 +402,7 @@ struct {												\
 */
 #define SCCP_LIST_FIND(_head, _type, _var, _field, _compare, _retain, _file, _line, _func) ({		\
 	_type *_var;											\
-	for((_var) = (_head)->first; (_var); (_var) = ((_var) ? (_var)->_field.next : NULL)) {		\
+	for((_var) = (_head)->first; (_var); (_var) = (_var)->_field.next) {				\
 		if (_compare) {										\
 			if (_retain) {									\
 				sccp_refcount_retain((_var), _file, _line, _func);			\

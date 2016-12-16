@@ -15,7 +15,8 @@ env:
     - COVERITY_SCAN_BUILD_URL="https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh"
     - COVERITY_SCAN_BUILD="curl -s $COVERITY_SCAN_BUILD_URL | bash"
     - COVERITY_SCAN_BUILD_COMMAND_PREPEND="./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-advanced-functions && make clean"
-    - COVERITY_SCAN_BUILD_COMMAND="make -j2"
+    #- COVERITY_SCAN_BUILD_COMMAND="make -j2"
+    - COVERITY_SCAN_BUILD_COMMAND="make -j2 ; echo \"build_log\"; echo \"===========\";cat /home/travis/build/chan-sccp/chan-sccp/cov-int/build-log.txt ; echo \"===========\"; echo \"build_log\"; echo \"===========\";cat /home/travis/build/chan-sccp/chan-sccp/cov-int/scm_log.txt; echo \"===========\""
     # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created using: travis encrypt COVERITY_SCAN_TOKEN="xxxxxxx-xxxxxxx" -r dkgroot/chan-sccp-b
     - secure: "VJIQBkTBxuMqUEk872yPrbPq3MAFqB0EnjElxjTk+BWEHIKmheKIHyrlqJgnql/tqyeLSa6D8epV0cJ47adVbedCPAG/l1tk4AzErrQdnw9VVFANUFrJXxlaH/yfm39XiwwumuAJ2RF3OaYGHlyurW+lb91y2HHw8vQHNPu+uHI="
   matrix:
