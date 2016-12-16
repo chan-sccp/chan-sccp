@@ -49,7 +49,7 @@ before_install:
      echo "deb-src http://ppa.launchpad.net/jan-hoffmann/asterisk13/ubuntu trusty main"			 | sudo tee -a /etc/apt/sources.list.d/asterisk13.list;
      sudo apt-get update -qq;
      sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 libpjsua2-2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg binutils.dev libc6-dev;
-     if [ "x${CC}" == "xgcc" ] && [ "x${TRAVIS_BRANCH}" == "xdevelop" ]; then 
+     if [ "x${CC}" == "xclang" ] && [ "x${TRAVIS_BRANCH}" == "xdevelop" ]; then 
        eval "$COVERITY_SCAN_BUILD";
        if [ -f /home/travis/build/chan-sccp/chan-sccp/cov-int/scm_log.txt ]; then
          echo "= scm_log ============";
