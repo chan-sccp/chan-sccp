@@ -1083,7 +1083,7 @@ void sccp_line_createLineButtonsArray(sccp_device_t * device)
 	btnlist *btn = NULL;
 	uint8_t i;
 
-	if (device->lineButtons.instance) {
+	if (device->lineButtons.size) {
 		sccp_line_deleteLineButtonsArray(device);
 	}
 
