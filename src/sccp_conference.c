@@ -237,6 +237,7 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 		pbx_log(LOG_ERROR, "SCCPCONF/%04d: cannot alloc memory for new conference.\n", conferenceID);
 		return NULL;
 	}
+	sccp_refcount_addWeakParent(conference, device);
 
 	/** initialize new conference */
 	memset(conference, 0, sizeof(sccp_conference_t));
@@ -302,6 +303,8 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 	AUTO_RELEASE(sccp_participant_t, participant , sccp_conference_createParticipant(conference));
 
 	if (participant && conference) {
+		sccp_refcount_addWeakParent(participant, device);
+		sccp_refcount_addWeakParent(participant, channel);
 		conference->num_moderators = 1;
 		participant->channel = sccp_channel_retain(channel);
 		participant->device = sccp_device_retain(device);
@@ -366,6 +369,7 @@ static sccp_participant_t *sccp_conference_createParticipant(constConferencePtr 
 		pbx_log(LOG_ERROR, "SCCPCONF/%04d: cannot alloc memory for new conference participant.\n", conference->id);
 		return NULL;
 	}
+	sccp_refcount_addWeakParent(participant, conference);
 
 	pbx_bridge_features_init(&participant->features);
 	//ast_set_flag(&(participant->features.feature_flags), AST_BRIDGE_CHANNEL_FLAG_IMMOVABLE);
@@ -557,6 +561,8 @@ boolean_t sccp_conference_addParticipatingChannel(conferencePtr conference, cons
 				participant->playback_announcements = device->conf_play_part_announce;
 				iPbx.setChannelLinkedId(channel, conference->linkedid);
 				sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
+				sccp_refcount_addWeakParent(participant, device);
+				sccp_refcount_addWeakParent(participant, channel);
 			} else {
 				participant->playback_announcements = conference->playback_announcements;
 			}

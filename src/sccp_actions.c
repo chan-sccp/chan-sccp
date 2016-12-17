@@ -813,20 +813,20 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	if (device) {
 		skinny_registrationstate_t state = sccp_device_getRegistrationState(device);
 		if (sccp_session_check_crossdevice(s, device)) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration (state: %s)! Fixing up to new session\n", DEV_ID_LOG(device), skinny_registrationstate2str(sccp_device_getRegistrationState(device)));
-			return;
+			pbx_log(LOG_WARNING, "%s: Crossover device registration (state: %s)! Fixing up to new session\n", DEV_ID_LOG(device), skinny_registrationstate2str(sccp_device_getRegistrationState(device)));
+			goto GEN_REPORT;
 		}
 		if (	state == SKINNY_DEVICE_RS_PROGRESS || state == SKINNY_DEVICE_RS_OK || 
 			state == SKINNY_DEVICE_RS_TIMEOUT || state == SKINNY_DEVICE_RS_CLEANING || 
 			(state == SKINNY_DEVICE_RS_TOKEN && time(0) - device->registrationTime > 60)
 		) {
-			pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
+			pbx_log(LOG_WARNING, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
 			
 			sccp_session_reject(s, "Cleaning previous session, come back later");
 			if (state != SKINNY_DEVICE_RS_CLEANING) {
 				sccp_dev_clean(device, (device->realtime) ? TRUE : FALSE, 0);
 			}
-			return;
+			goto GEN_REPORT;
 		}
 	}
 
@@ -836,6 +836,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	if (!device && GLOB(allowAnonymous)) {
 		if (!(device = sccp_device_createAnonymous(deviceName))) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline device could not be created: %s\n", deviceName, GLOB(hotline)->line->name);
+			goto GEN_REPORT;
 		} else {
 			sccp_config_applyDeviceConfiguration(device, NULL);
 			sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
@@ -848,7 +849,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	if (device) {
 		if (sccp_session_retainDevice(s, device) < 0) {
 			pbx_log(LOG_WARNING, "%s: Signing over the session to new device failed. Giving up.\n", DEV_ID_LOG(device));
-			return;
+			goto GEN_REPORT;
 		}
 
 		/* check ACLs for this device */
@@ -858,7 +859,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 			pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", deviceName, sccp_netsock_stringify_addr(&sas));
 			sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 			sccp_session_reject(s, "IP Not Authorized");
-			return;
+			goto GEN_REPORT;
 		}
 
 	} else {
@@ -971,6 +972,17 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	 */
 	//sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: (sccp_handle_register) asking for capabilities\n", DEV_ID_LOG(device));
 	sccp_dev_sendmsg(device, CapabilitiesReqMessage);
+	return;
+
+GEN_REPORT:
+#ifdef DEBUG
+	if (device) {
+		pbx_str_t *buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
+		sccp_refcount_gen_report(device, &buf);
+		pbx_log(LOG_NOTICE, "%s (handle_register) (realtime: %s)\nrefcount_report:\n%s\n", deviceName, device && device->realtime ? "yes" : "no", pbx_str_buffer(buf));
+		sccp_free(buf);
+	}
+#endif
 }
 
 /*!
