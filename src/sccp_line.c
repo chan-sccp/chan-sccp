@@ -236,15 +236,12 @@ void sccp_line_kill_channels(sccp_line_t * l)
 	if (!l) {
 		return;
 	}
-	// SCCP_LIST_LOCK(&l->channels);
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->channels, c, list) {
-		AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
-		if (channel) {
-			sccp_channel_endcall(channel);
-		}
+	SCCP_LIST_LOCK(&l->channels);
+	while ((c = SCCP_LIST_REMOVE_HEAD(&l->channels, list))) {
+		sccp_channel_endcall(c);
+		sccp_channel_release(&c);									// explicit release channel retain in list
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
-	// SCCP_LIST_UNLOCK(&l->channels);
+	SCCP_LIST_UNLOCK(&l->channels);
 }
 
 /*!
@@ -280,88 +277,65 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
  */
 int __sccp_line_destroy(const void *ptr)
 {
+	sccp_mailbox_t *mailbox = NULL;
 	sccp_line_t *l = (sccp_line_t *) ptr;
 	if (!l) {
 		return -1;
 	}
 
 	sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Line FREE\n", l->name);
-	
-	// checking if line was correctly removed from globals, if not this indicates an over release of refcount
-	sccp_line_t *tmpl = NULL;
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
-	SCCP_RWLIST_TRAVERSE(&GLOB(lines), tmpl, list) {
-		if (tmpl == l) {
-			// sccp_line_destroy was not called on this line, though refcount says it should be destroyed.
-			// catch
-			pbx_log(LOG_ERROR, "SCCP: __sccp_line_destroy called on %s but line still exists in globals!!\n", l->name);
-			// and fix
-			sccp_line_retain(l);
-		}
-	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
-	
 
-	// cleanup linedevices
+	// cleaning l->channels
+	sccp_line_kill_channels(l);
+
+	// cleaning l->devices
 	sccp_line_removeDevice(l, NULL);
-	if (SCCP_LIST_EMPTY(&l->devices)) {
-		SCCP_LIST_HEAD_DESTROY(&l->devices);
-	}
-	// cleanup mailboxes
-	/*  
-	if (l->trnsfvm) {
-		sccp_free(l->trnsfvm);
-	}
-	*/
-	sccp_mailbox_t *mailbox = NULL;
 
-	SCCP_LIST_LOCK(&l->mailboxes);
-	while ((mailbox = SCCP_LIST_REMOVE_HEAD(&l->mailboxes, list))) {
-		sccp_mwi_unsubscribeMailbox(mailbox);
-		if (mailbox->mailbox) {
-			sccp_free(mailbox->mailbox);
+	// cleanup mailboxes (l->mailboxes)
+	{
+		SCCP_LIST_LOCK(&l->mailboxes);
+		while ((mailbox = SCCP_LIST_REMOVE_HEAD(&l->mailboxes, list))) {
+			sccp_mwi_unsubscribeMailbox(mailbox);
+			if (mailbox->mailbox) {
+				sccp_free(mailbox->mailbox);
+			}
+			if (mailbox->context) {
+				sccp_free(mailbox->context);
+			}
+			sccp_free(mailbox);
 		}
-		if (mailbox->context) {
-			sccp_free(mailbox->context);
+		SCCP_LIST_UNLOCK(&l->mailboxes);
+		if (!SCCP_LIST_EMPTY(&l->mailboxes)) {
+			pbx_log(LOG_WARNING, "%s: (line_destroy) there are connected mailboxes left during line destroy\n", l->name);
 		}
-		sccp_free(mailbox);
-	}
-	SCCP_LIST_UNLOCK(&l->mailboxes);
-	if (SCCP_LIST_EMPTY(&l->mailboxes)) {
 		SCCP_LIST_HEAD_DESTROY(&l->mailboxes);
 	}
-	/*
-	#if CS_AST_HAS_NAMEDGROUP
-	if (l->namedcallgroup) {
-		sccp_free(l->namedcallgroup);
-	}
-	if (l->namedpickupgroup) {
-		sccp_free(l->namedpickupgroup);
-	}
-	#endif
-	*/
-	sccp_config_cleanup_dynamically_allocated_memory(l, SCCP_CONFIG_LINE_SEGMENT);
-	if (l->regcontext) {
-		sccp_free(l->regcontext);
-	}
 
-	// cleanup channels
-	sccp_channel_t *c = NULL;
-
-	SCCP_LIST_LOCK(&l->channels);
-	while ((c = SCCP_LIST_REMOVE_HEAD(&l->channels, list))) {
-		sccp_channel_endcall(c);
-		sccp_channel_release(&c);									// explicit release channel retain in list
-	}
-	SCCP_LIST_UNLOCK(&l->channels);
-	if (SCCP_LIST_EMPTY(&l->channels)) {
-		SCCP_LIST_HEAD_DESTROY(&l->channels);
-	}
 	// cleanup variables
 	if (l->variables) {
 		pbx_variables_destroy(l->variables);
 		l->variables = NULL;
 	}
+
+	// cleanup dynamically allocated memory by sccp_config
+	sccp_config_cleanup_dynamically_allocated_memory(l, SCCP_CONFIG_LINE_SEGMENT);
+
+	// cleanup regcontext
+	if (l->regcontext) {
+		sccp_free(l->regcontext);
+	}
+
+	// destroy lists
+	if (!SCCP_LIST_EMPTY(&l->channels)) {
+		pbx_log(LOG_WARNING, "%s: (line_destroy) there are connected channels left during line destroy\n", l->name);
+	}
+	SCCP_LIST_HEAD_DESTROY(&l->channels);
+
+	if (!SCCP_LIST_EMPTY(&l->devices)) {
+		pbx_log(LOG_WARNING, "%s: (line_destroy) there are connected device left during line destroy\n", l->name);
+	}
+	SCCP_LIST_HEAD_DESTROY(&l->devices);
+
 	return 0;
 }
 
@@ -540,6 +514,7 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 	}
 	
 	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
+	sccp_refcount_addWeakParent(line, device);
 
 	char ld_id[REFCOUNT_INDENTIFIER_SIZE];
 
@@ -550,6 +525,8 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 		return;
 	}
 	memset(linedevice, 0, sizeof(sccp_linedevices_t));
+	sccp_refcount_addWeakParent(linedevice, l);
+	sccp_refcount_addWeakParent(linedevice, device);
 
 	linedevice->device = sccp_device_retain(device);
 	linedevice->line = sccp_line_retain(l);
@@ -604,6 +581,8 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
 		if (device == NULL || linedevice->device == device) {
+			sccp_refcount_removeWeakParent(l, device ? device : linedevice->device);
+
 			regcontext_exten(l, &(linedevice->subscriptionId), 0);
 			SCCP_LIST_REMOVE_CURRENT(list);
 			l->statistic.numberOfActiveDevices--;
@@ -614,7 +593,6 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 			sccp_event_fire(&event);
 
 			sccp_linedevice_release(&linedevice);						/* explicit release of list retained linedevice */
-
 #ifdef CS_SCCP_REALTIME
 			if (l->realtime && SCCP_LIST_GETSIZE(&l->devices) == 0 && SCCP_LIST_GETSIZE(&l->channels) == 0 ) {
 				sccp_line_removeFromGlobals(l);
@@ -649,6 +627,7 @@ void sccp_line_addChannel(constLinePtr line, constChannelPtr channel)
 		//l->statistic.numberOfActiveChannels++;
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = sccp_channel_retain(channel))) {							// Add into list retained
+			sccp_refcount_addWeakParent(l, c);
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s\n", c->callid, l->name);
 			if (GLOB(callanswerorder) == SCCP_ANSWER_OLDEST_FIRST) {
 				SCCP_LIST_INSERT_TAIL(&l->channels, c, list);					// add to list
@@ -681,6 +660,7 @@ void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
 	if (l) {
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = SCCP_LIST_REMOVE(&l->channels, channel, list))) {
+			sccp_refcount_removeWeakParent(l, c);
 			if (c->state == SCCP_CHANNELSTATE_HOLD) {
 				c->line->statistic.numberOfHeldChannels--;
 			}
@@ -1105,7 +1085,11 @@ void sccp_line_createLineButtonsArray(sccp_device_t * device)
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr) {
 			linedevice = sccp_linedevice_find(device, (sccp_line_t *) btn[i].ptr);
-			device->lineButtons.instance[btn[i].instance] = linedevice;
+			if (!(device->lineButtons.instance[btn[i].instance] = linedevice)) {
+				pbx_log(LOG_ERROR, "%s: linedevice could not be found or retained\n", device->id);
+				device->lineButtons.size--;
+				sccp_free(device->lineButtons.instance);
+			}
 		}
 	}
 }
@@ -1126,5 +1110,4 @@ void sccp_line_deleteLineButtonsArray(sccp_device_t * device)
 		sccp_free(device->lineButtons.instance);
 	}
 }
-
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
