@@ -246,7 +246,7 @@ void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types t
 
 #if CS_REFCOUNT_DEBUG
 	if (sccp_ref_debug_log) {
-		fprintf(sccp_ref_debug_log, "%p,+1,%d,%s,%d,%s,**constructor**,%s:%s\n", ptr, ast_get_tid(), __FILE__, __LINE__, __PRETTY_FUNCTION__, (&obj_info[obj->type])->datatype, obj->identifier);
+		fprintf(sccp_ref_debug_log, "%p|+1|%d|%s|%d|%s|**constructor**|%s:%s\n", ptr, ast_get_tid(), __FILE__, __LINE__, __PRETTY_FUNCTION__, (&obj_info[obj->type])->datatype, obj->identifier);
 		fflush(sccp_ref_debug_log);
 	}
 #endif
@@ -260,35 +260,38 @@ static gcc_inline int __sccp_refcount_debug(const void *ptr, RefCountedObject * 
 	if (!sccp_ref_debug_log) {
 		return -1;
 	}
+	int res = -1;
+	static char fmt[] = "%p|%s%d|%d|%s|%d|%s|%d|%s:%s\n";
 
-	if (ptr == NULL) {
-		fprintf(sccp_ref_debug_log, "%p **PTR IS NULL !!** %s:%d:%s\n", ptr, file, line, func);
-		// pbx_assert(0);
-		fflush(sccp_ref_debug_log);
-		return -1;
-	}
-	if (obj == NULL) {
-		fprintf(sccp_ref_debug_log, "%p **OBJ ALREADY DESTROYED !!** %s:%d:%s\n", ptr, file, line, func);
-		// pbx_assert(0);
-		fflush(sccp_ref_debug_log);
-		return -1;
-	}
+	do {
+		if (ptr == NULL) {
+			fprintf(sccp_ref_debug_log, fmt, ptr, "E", 0, ptr, ast_get_tid(),file, line, func, "**PTR IS NULL**", "", "");
+			break;	
+		}
+		if (obj == NULL) {
+			fprintf(sccp_ref_debug_log, fmt, ptr, "E", 0, ptr, ast_get_tid(),file, line, func, "**OBJ ALREADY DESTROYED**", "", "");
+			break;
+		}
 
-	if (delta == 0 && obj->alive != SCCP_LIVE_MARKER) {
-		fprintf(sccp_ref_debug_log, "%p **OBJ Already destroyed and Declared DEAD !!** %s:%d:%s (%s:%s) [@%d] [%p]\n", ptr, file, line, func, (&obj_info[obj->type])->datatype, obj->identifier, obj->refcount, ptr);
-		// pbx_assert(0);
-		fflush(sccp_ref_debug_log);
-		return -1;
-	}
+		if (delta == 0 && obj->alive != SCCP_LIVE_MARKER) {
+			fprintf(sccp_ref_debug_log, fmt, ptr, "E", delta, ptr, ast_get_tid(),file, line, func, "**OBJ Already destroyed and Declared DEAD**", (&obj_info[obj->type])->datatype, obj->identifier);
+			break;
+		}
 
-	if (delta != 0) {
-		fprintf(sccp_ref_debug_log, "%p,%s%d,%d,%s,%d,%s,%d,%s:%s,[%p,%p,%p]\n", ptr, (delta < 0 ? "" : "+"), delta, ast_get_tid(), file, line, func, obj->refcount, (&obj_info[obj->type])->datatype, obj->identifier, obj->parentWeakPtr[0], obj->parentWeakPtr[1], obj->parentWeakPtr[2]);
-	}
-	if (obj->refcount + delta == 0 && (&obj_info[obj->type])->destructor != NULL) {
-		fprintf(sccp_ref_debug_log, "%p,%d,%d,%s,%d,%s,**destructor**,%s:%s,[%p,%p,%p]\n", ptr, delta, ast_get_tid(), file, line, func, (&obj_info[obj->type])->datatype, obj->identifier, obj->parentWeakPtr[0], obj->parentWeakPtr[1], obj->parentWeakPtr[2]);
-	}
+		res = 0;
+		if (delta != 0) {
+			fprintf(sccp_ref_debug_log, fmt, ptr, (delta < 0 ? "" : "+"), delta, ast_get_tid(), file, line, func, obj->refcount, (&obj_info[obj->type])->datatype, obj->identifier);
+			break;
+		}
+		if (obj->refcount + delta == 0 && (&obj_info[obj->type])->destructor != NULL) {
+			fprintf(sccp_ref_debug_log, fmt, ptr, "", delta, ast_get_tid(), file, line, func, "**destructor**", (&obj_info[obj->type])->datatype, obj->identifier);
+			break;
+		}
+		fprintf(sccp_ref_debug_log, fmt, ptr, "E", 0, ptr, ast_get_tid(),file, line, func, "**UNKNOWN**", "", "");
+	} while (0);
+
 	fflush(sccp_ref_debug_log);
-	return 0;
+	return res;
 }
 #endif
 
