@@ -2217,7 +2217,6 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 #if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
 	sccp_devstate_specifier_t *devstateSpecifier;
 #endif
-	char family[25];
 
 	if (d) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "SCCP: Clean Device %s\n", d->id);
@@ -2228,6 +2227,9 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 
 		d->mwilight = 0;										/* reset mwi light */
 		d->linesRegistered = FALSE;
+
+		// (re)set last dialed number in database
+		char family[25];
 		snprintf(family, sizeof(family), "SCCP/%s", d->id);
 		iPbx.feature_removeFromDatabase(family, "lastDialedNumber");
 		char buffer[SCCP_MAX_EXTENSION+16] = "\0";
@@ -2255,12 +2257,10 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 				SCCP_LIST_LOCK(&line->channels);
 				SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN(&line->channels, c, list) {
 					AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
-
-					if (c) {
+					if (channel) {
 						AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice(channel);
-
-						if (tmpDevice == d) {
-							sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
+						if (tmpDevice && tmpDevice == d) {
+							pbx_log(LOG_WARNING, "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
 							sccp_channel_endcall(channel);
 						}
 					}
@@ -2272,7 +2272,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 				sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);
 				sccp_line_removeDevice(line, d);
 #ifdef CS_SCCP_PARK
-			} else 	if (iParkingLot.detachObserver && config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
+			} else if (iParkingLot.detachObserver && config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
 				iParkingLot.detachObserver(config->button.feature.options, d, config->instance);
 #endif
 			}
@@ -2286,6 +2286,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 		}
 		SCCP_LIST_TRAVERSE_SAFE_END;
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
+ 
 		d->linesRegistered = FALSE;
 
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Unregister Device %s\n", d->id);
@@ -2345,8 +2346,9 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 			d->buttonTemplate = NULL;
 		}
 
-		sccp_line_deleteLineButtonsArray(d);
-		
+		if (device->lineButtons.instance) {
+			sccp_line_deleteLineButtonsArray(d);
+		}
 #if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
 		/* Unregister event subscriptions originating from devstate feature */
 		SCCP_LIST_LOCK(&d->devstateSpecifiers);
@@ -2358,7 +2360,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 		}
 		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 #endif
-        sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);                                              /* set correct register state */
+	        sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);                                              /* set correct register state */
 	}
 }
 
