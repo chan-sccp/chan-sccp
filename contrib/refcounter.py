@@ -33,7 +33,7 @@ def parse_line(line):
     Returns:
     A dictionary containing the options, or None
     """
-    tokens = line.strip().split(',', 7)
+    tokens = line.strip().split('|', 7)
     if len(tokens) < 8:
         print "ERROR: ref debug line '%s' contains fewer tokens than " \
               "expected: %d" % (line.strip(), len(tokens))
