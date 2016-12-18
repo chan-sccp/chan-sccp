@@ -2593,6 +2593,8 @@ void sccp_device_sendcallstate(constDevicePtr d, uint8_t instance, uint32_t call
 
 /*!
  * \brief Send Call History Disposition
+ *
+ * \note Only works on a limitted set of devices and firmware revisions (more research needed).
  */
 void sccp_device_sendCallHistoryDisposition(constDevicePtr d, uint8_t lineInstance, uint32_t callid, skinny_callHistoryDisposition_t disposition)
 {
