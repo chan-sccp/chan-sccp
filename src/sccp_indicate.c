@@ -411,7 +411,8 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 			{
 				c->state = SCCP_CHANNELSTATE_DOWN;
 				if (c->answered_elsewhere) {
-					sccp_device_sendCallHistoryDisposition(d, lineInstance, c->callid, SKINNY_CALL_HISTORY_DISPOSITION_IGNORE);
+					//sccp_device_sendCallHistoryDisposition(d, lineInstance, c->callid, SKINNY_CALL_HISTORY_DISPOSITION_IGNORE);
+					sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 				}
 				if (d->indicate && d->indicate->onhook) {
 					d->indicate->onhook(d, lineInstance, c->callid);
