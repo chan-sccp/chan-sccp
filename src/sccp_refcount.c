@@ -320,18 +320,18 @@ static gcc_inline int __sccp_refcount_debug(const void *ptr, RefCountedObject * 
 			break;
 		}
 
-		if (delta == 0 && obj->alive != SCCP_LIVE_MARKER) {
+		if (obj->alive != SCCP_LIVE_MARKER) {
 			ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "E", delta, ptr, ast_get_tid(),file, line, func, "**OBJ Already destroyed and Declared DEAD**", (&obj_info[obj->type])->datatype, obj->identifier);
 			break;
 		}
 
 		res = 0;
-		if (delta != 0) {
-			ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, (delta < 0 ? "" : "+"), delta, ast_get_tid(), file, line, func, obj->refcount, (&obj_info[obj->type])->datatype, obj->identifier);
+		if (obj->refcount + delta == 0 && (&obj_info[obj->type])->destructor != NULL) {
+			ref_debug_size += fprintf(sccp_ref_debug_log, "%p|-1|%d|%s|%d|%s|**destructor**|%s:%s\n", ptr, ast_get_tid(), file, line, func, (&obj_info[obj->type])->datatype, obj->identifier);
 			break;
 		}
-		if (obj->refcount + delta == 0 && (&obj_info[obj->type])->destructor != NULL) {
-			ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "", delta, ast_get_tid(), file, line, func, "**destructor**", (&obj_info[obj->type])->datatype, obj->identifier);
+		if (delta != 0) {
+			ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, (delta < 0 ? "" : "+"), delta, ast_get_tid(), file, line, func, obj->refcount, (&obj_info[obj->type])->datatype, obj->identifier);
 			break;
 		}
 		ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "E", 0, ptr, ast_get_tid(),file, line, func, "**UNKNOWN**", "", "");
