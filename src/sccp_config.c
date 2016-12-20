@@ -2277,9 +2277,9 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 
 	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "SCCP: major changes detected in globals, reset required -> pendingUpdate=1\n");
-		GLOB(pendingUpdate = 1);
+		GLOB(pendingUpdate) = 1;
 	} else {
-		GLOB(pendingUpdate = 0);
+		GLOB(pendingUpdate) = 0;
 	}
 
 	if (GLOB(regcontext)) {
@@ -2542,7 +2542,9 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 		SCCP_RWLIST_WRLOCK(&GLOB(devices));
 		SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-			if (!d->pendingDelete && !d->pendingUpdate) {
+			if (d->realtime) {
+				d->pendingDelete = 1;
+			} else if (!d->pendingDelete && !d->pendingUpdate) {
 				d->pendingUpdate = 1;
 			}
 		}
