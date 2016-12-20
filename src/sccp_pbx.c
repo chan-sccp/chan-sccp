@@ -220,9 +220,9 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	/* if incoming call limit is reached send BUSY */
 	if ((l->incominglimit && SCCP_LIST_GETSIZE(&l->channels) > l->incominglimit)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
-		pbx_setstate(c->owner, AST_STATE_BUSY);
 		iPbx.queue_control(c->owner, AST_CONTROL_BUSY);
-		return -1;
+		iPbx.set_callstate(c, AST_STATE_BUSY);
+		return 0;
 	}
 
 	/* Reinstated this call instead of the following lines */
