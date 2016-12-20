@@ -799,18 +799,17 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, UserId: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", deviceName, deviceInstance, userid, skinny_devicetype2str(deviceType), deviceType, protocolVer, msg_in->data.RegisterMessage.loadInfo);
 
 	// search for all devices including realtime
-	if (!maybe_d) {
-		device = sccp_device_find_byid(deviceName, TRUE);
-	} else {
+	if (maybe_d) {
 		device = sccp_device_retain(maybe_d);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: cached device configuration (state: %s)\n", DEV_ID_LOG(device), device ? skinny_registrationstate2str(sccp_device_getRegistrationState(device)) : "UNKNOWN");
+	} else {
+		device = sccp_device_find_byid(deviceName, TRUE);
 	}
 	if (device) {
 		skinny_registrationstate_t state = sccp_device_getRegistrationState(device);
 		if (
 			sccp_session_check_crossdevice(s, device) ||
 			state == SKINNY_DEVICE_RS_PROGRESS || state == SKINNY_DEVICE_RS_OK || 
-			state == SKINNY_DEVICE_RS_TIMEOUT || state == SKINNY_DEVICE_RS_CLEANING || 
 			(state == SKINNY_DEVICE_RS_TOKEN && time(0) - device->registrationTime > 60)
 		) {
 			pbx_log(LOG_WARNING, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));

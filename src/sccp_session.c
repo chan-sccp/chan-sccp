@@ -744,7 +744,9 @@ void *sccp_netsock_device_thread(void *session)
 
 	pthread_cleanup_push(sccp_netsock_device_thread_exit, session);
 
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+	//pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
+	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 
 	/* we increase additionalTime for wireless/slower devices */
 	if (s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7926 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO6911)) {
@@ -765,6 +767,7 @@ void *sccp_netsock_device_thread(void *session)
 				keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT;
 			}
 		}
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 		/* calculate poll timout using keepalive interval */
 		maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
 		maxWaitTime += (maxWaitTime / 100) * keepaliveAdditionalTimePercent;
@@ -773,6 +776,8 @@ void *sccp_netsock_device_thread(void *session)
 		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d for session %d\n", DEV_ID_LOG(s->device), (int) maxWaitTime, s->fds[0].fd);
 
 		res = sccp_netsock_poll(s->fds, 1, pollTimeout);
+		pthread_testcancel();
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 		if (-1 == res) {										/* poll data processing */
 			if (errno > 0 && (errno != EAGAIN) && (errno != EINTR)) {
 				sccp_copy_string(addrStr, sccp_netsock_stringify_addr(&s->sin), sizeof(addrStr));
@@ -834,6 +839,9 @@ void *sccp_netsock_device_thread(void *session)
 		} else {											/* poll returned invalid res */
 			pbx_log(LOG_NOTICE, "%s: Poll Returned invalid result: %d.\n", DEV_ID_LOG(s->device), res);
 		}
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+		pthread_testcancel();
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 	}
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Exiting sccp_socket device thread\n", DEV_ID_LOG(s->device));
 	pthread_cleanup_pop(1);
@@ -1236,7 +1244,7 @@ sccp_session_t *sccp_session_reject(constSessionPtr session, char *message)
 	sccp_session_send2(s, msg);
 
 	/* if we reject the connection during accept connection, thread is not ready */
-	__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
+	//__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 	return NULL;
 }
 
@@ -1248,15 +1256,30 @@ sccp_session_t *sccp_session_reject(constSessionPtr session, char *message)
  */
 void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPtr previous_session)
 {
-	if (!current_session) {
+	if (!current_session || !previous_session) {
 		return;
 	}
+	if (current_session != previous_session && previous_session->session_thread) {
+		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Previous session %p needs to be cleaned up and killed (%s)!\n", current_session->designator, previous_session->designator, DEV_ID_LOG(previous_session->device));
 
-	/* cleanup previous session */
-	if (current_session != previous_session) {
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Previous session %p needs to be cleaned up and killed!\n", current_session->designator, previous_session);
-		pthread_kill(previous_session->session_thread, 0);
-		pthread_join(previous_session->session_thread, NULL);
+		/* cancel previous session thread */
+		pthread_t session_thread = previous_session->session_thread;
+
+		int s = pthread_cancel(session_thread);
+		if (s != 0) {
+			pbx_log(LOG_NOTICE, "SCCP: (session_crossdevice_cleanup) pthread_cancel error\n");
+		}
+
+		/* join previous session thread, wait for device cleanup */
+		void *res;
+		int wait_counter = 0;
+		do {
+			sleep(1);
+		} while (pthread_join(session_thread, &res) != 0 && wait_counter++ < 10);
+
+		if (res != PTHREAD_CANCELED) {
+			pbx_log(LOG_ERROR, "SCCP: (session_crossdevice_cleanup) pthread join failed\n");
+		}
 	}
 	return;
 }
@@ -1371,9 +1394,8 @@ gcc_inline const char * const sccp_session_getDesignator(constSessionPtr session
 
 gcc_inline boolean_t sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr device)
 {
-	if (session && device && session->device && session->device != device) {
-		pbx_log(LOG_WARNING, "Session and Device Session are of sync.\n");
-		//sccp_session_crossdevice_cleanup(session, device->session, FALSE);
+	if (session && device && ((session->device && session->device != device) || (device->session && device->session != session))) {
+		pbx_log(LOG_WARNING, "Session(%p) and Device Session(%p) are of sync.\n", session, device->session);
 		return TRUE;
 	}
 	return FALSE;
