@@ -1246,7 +1246,7 @@ sccp_session_t *sccp_session_reject(constSessionPtr session, char *message)
  * \param previous_session SCCP Session Pointer
  * \param token Do we need to return a token reject or a session reject (as Boolean)
  */
-static void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPtr previous_session, boolean_t token)
+void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPtr previous_session)
 {
 	if (!current_session) {
 		return;
@@ -1255,33 +1255,9 @@ static void sccp_session_crossdevice_cleanup(constSessionPtr current_session, se
 	/* cleanup previous session */
 	if (current_session != previous_session) {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Previous session %p needs to be cleaned up and killed!\n", current_session->designator, previous_session);
-
-		/* remove session */
-		sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Remove Session %p from globals\n", current_session->designator, previous_session);
-		// sccp_session_removeFromGlobals(previous_session);
-
-		/* cleanup device */
-		if (previous_session->device) {
-			AUTO_RELEASE(sccp_device_t, d , __sccp_session_removeDevice(previous_session));
-
-			if (d) {
-				sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Running Device Cleanup\n", DEV_ID_LOG(d));
-				sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_NONE);
-				d->needcheckringback = 0;
-				sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 0);
-			}
-		}
-		/* kill threads */
-		sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Kill Previous Session %p Thread\n", current_session->designator, previous_session);
-		__sccp_session_stopthread(previous_session, SKINNY_DEVICE_RS_FAILED);
+		pthread_kill(previous_session->session_thread, 0);
+		pthread_join(previous_session->session_thread, NULL);
 	}
-
-	/* reject current_session and cleanup */
-	sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Reject New Session %p and make device come back again for another try.\n", current_session->designator, current_session);
-	if (token) {
-		sccp_session_tokenReject(current_session, GLOB(token_backoff_time));
-	}
-	sccp_session_reject(current_session, "Crossover session not allowed, come back later");			/* this gives us a little time to clean everything up */
 	return;
 }
 
@@ -1396,9 +1372,8 @@ gcc_inline const char * const sccp_session_getDesignator(constSessionPtr session
 gcc_inline boolean_t sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr device)
 {
 	if (session && device && session->device && session->device != device) {
-	//if (session && device && (session->device != device || device->session != session)) {
 		pbx_log(LOG_WARNING, "Session and Device Session are of sync.\n");
-		sccp_session_crossdevice_cleanup(session, device->session, FALSE);
+		//sccp_session_crossdevice_cleanup(session, device->session, FALSE);
 		return TRUE;
 	}
 	return FALSE;
