@@ -537,20 +537,17 @@ static sccp_device_t *__sccp_session_removeDevice(sessionPtr session)
 {
 	sccp_device_t *return_device = NULL;
 
-	if (session && session->device) {
-		if (session->device->session && session->device->session != session) {
-			// cleanup previous/crossover session
-			sccp_session_removeFromGlobals(session->device->session);
+	if (session && (return_device = session->device)) {
+		if (return_device->session && return_device->session != session) {
+			sccp_session_removeFromGlobals(return_device->session);
 		}
-		sccp_session_lock(session);
-		sccp_device_setRegistrationState(session->device, SKINNY_DEVICE_RS_NONE);
-
-		session->device->session = NULL;
-		sccp_copy_string(session->designator, sccp_netsock_stringify(&session->ourip), sizeof(session->designator));
-		return_device = session->device;								// returning device reference
-		session->device = NULL;										// clear device reference
-		sccp_session_unlock(session);
+		sccp_device_setRegistrationState(return_device, SKINNY_DEVICE_RS_NONE);
 	}
+	sccp_session_lock(session);
+	return_device->session = NULL;
+	sccp_copy_string(session->designator, sccp_netsock_stringify(&session->ourip), sizeof(session->designator));
+	session->device = NULL;
+	sccp_session_unlock(session);
 	return return_device;
 }
 
