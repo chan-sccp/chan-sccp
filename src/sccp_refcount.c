@@ -57,7 +57,9 @@ SCCP_FILE_VERSION(__FILE__, "");
 #define REF_DEBUG_FILE_MAX_SIZE 10000000
 #define REF_DEBUG_FILE "/tmp/sccp_refs"
 static enum sccp_refcount_runstate runState = SCCP_REF_STOPPED;
+#if CS_REFCOUNT_DEBUG 
 static int __rotate_debug_file(void);
+#endif
 
 static struct sccp_refcount_obj_info {
 	int (*destructor) (const void *ptr);
@@ -269,7 +271,6 @@ static int __rotate_debug_file(void)
 			return -1;
 		}
 		sccp_ref_debug_log = NULL;
-		pbx_log(LOG_NOTICE, "SCCP: ref debug log file: %s closed\n", REF_DEBUG_FILE);
 		
 		num_debug_files++;
 		char newfilename[SCCP_PATH_MAX];
@@ -277,17 +278,16 @@ static int __rotate_debug_file(void)
 		snprintf(newfilename, SCCP_PATH_MAX, "%s.%d", REF_DEBUG_FILE, num_debug_files);
 		if (rename(REF_DEBUG_FILE, newfilename)) {
 			pbx_log(LOG_ERROR, "SCCP: ref debug log file: %s could not be moved to %s (%d)\n", REF_DEBUG_FILE, newfilename, errno);
+			sccp_ref_debug_log = NULL;
 			return -2;
 		}
-		pbx_log(LOG_NOTICE, "SCCP: ref debug log file: %s moved to %s\n", REF_DEBUG_FILE, newfilename);
 	}
 	sccp_ref_debug_log = fopen(REF_DEBUG_FILE, "w");
 	if (!sccp_ref_debug_log) {
 		pbx_log(LOG_ERROR, "SCCP: Failed to open ref debug log file '%s'\n", REF_DEBUG_FILE);
+		sccp_ref_debug_log = NULL;
 		return -3;
 	}
-
-	pbx_log(LOG_NOTICE, "SCCP: ref debug log file: %s opened\n", REF_DEBUG_FILE);
 	ref_debug_size = 0;
 	return 0;
 }
@@ -300,8 +300,7 @@ static gcc_inline int __sccp_refcount_debug(const void *ptr, RefCountedObject * 
 	int res = -1;
 	static char fmt[] = "%p|%s%d|%d|%s|%d|%s|%d|%s:%s\n";
 
-	/* rotate file */
-	if (ref_debug_size > REF_DEBUG_FILE_MAX_SIZE) {
+	if (!sccp_ref_debug_log || ref_debug_size > REF_DEBUG_FILE_MAX_SIZE) {			/* check debug file rotation requirement */
 		ast_rwlock_wrlock(&objectslock);
 		if (__rotate_debug_file() != 0) {
 			ast_rwlock_unlock(&objectslock);
@@ -309,35 +308,35 @@ static gcc_inline int __sccp_refcount_debug(const void *ptr, RefCountedObject * 
 		}
 		ast_rwlock_unlock(&objectslock);
 	}
-	
-	do {
-		if (ptr == NULL) {
-			ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "E", 0, ptr, ast_get_tid(),file, line, func, "**PTR IS NULL**", "", "");
-			break;	
-		}
-		if (obj == NULL) {
-			ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "E", 0, ptr, ast_get_tid(),file, line, func, "**OBJ ALREADY DESTROYED**", "", "");
-			break;
-		}
+	if (sccp_ref_debug_log) {	
+		do {
+			if (ptr == NULL) {
+				ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "E", 0, ptr, ast_get_tid(),file, line, func, "**PTR IS NULL**", "", "");
+				break;	
+			}
+			if (obj == NULL) {
+				ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "E", 0, ptr, ast_get_tid(),file, line, func, "**OBJ ALREADY DESTROYED**", "", "");
+				break;
+			}
 
-		if (obj->alive != SCCP_LIVE_MARKER) {
-			ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "E", delta, ptr, ast_get_tid(),file, line, func, "**OBJ Already destroyed and Declared DEAD**", (&obj_info[obj->type])->datatype, obj->identifier);
-			break;
-		}
+			if (obj->alive != SCCP_LIVE_MARKER) {
+				ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "E", delta, ptr, ast_get_tid(),file, line, func, "**OBJ Already destroyed and Declared DEAD**", (&obj_info[obj->type])->datatype, obj->identifier);
+				break;
+			}
 
-		res = 0;
-		if (obj->refcount + delta == 0 && (&obj_info[obj->type])->destructor != NULL) {
-			ref_debug_size += fprintf(sccp_ref_debug_log, "%p|-1|%d|%s|%d|%s|**destructor**|%s:%s\n", ptr, ast_get_tid(), file, line, func, (&obj_info[obj->type])->datatype, obj->identifier);
-			break;
-		}
-		if (delta != 0) {
-			ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, (delta < 0 ? "" : "+"), delta, ast_get_tid(), file, line, func, obj->refcount, (&obj_info[obj->type])->datatype, obj->identifier);
-			break;
-		}
-		ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "E", 0, ptr, ast_get_tid(),file, line, func, "**UNKNOWN**", "", "");
-	} while (0);
-
-	fflush(sccp_ref_debug_log);
+			res = 0;
+			if (obj->refcount + delta == 0 && (&obj_info[obj->type])->destructor != NULL) {
+				ref_debug_size += fprintf(sccp_ref_debug_log, "%p|-1|%d|%s|%d|%s|**destructor**|%s:%s\n", ptr, ast_get_tid(), file, line, func, (&obj_info[obj->type])->datatype, obj->identifier);
+				break;
+			}
+			if (delta != 0) {
+				ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, (delta < 0 ? "" : "+"), delta, ast_get_tid(), file, line, func, obj->refcount, (&obj_info[obj->type])->datatype, obj->identifier);
+				break;
+			}
+			ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "E", 0, ptr, ast_get_tid(),file, line, func, "**UNKNOWN**", "", "");
+		} while (0);
+		fflush(sccp_ref_debug_log);
+	}
 	return res;
 }
 #endif
