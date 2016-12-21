@@ -110,7 +110,7 @@ static void sccp_sk_videomode(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
  */
 static void sccp_sk_redial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
-	AUTO_RELEASE const sccp_line_t *line = NULL;
+	AUTO_RELEASE(const sccp_line_t, line , NULL);
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Redial Pressed\n", DEV_ID_LOG(d));
 	if (!d) {
@@ -153,7 +153,7 @@ static void sccp_sk_redial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 		line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
 	}
 	if (line) {
-		AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+		AUTO_RELEASE(sccp_channel_t, new_channel , NULL);
 		new_channel = sccp_channel_newcall(line, d, d->redialInformation.number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
 	} else {
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Redial pressed on a device without a registered line\n", d->id);
@@ -167,7 +167,7 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 {
 	char *adhocNumber = NULL;
 	sccp_speed_t k;
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	if (!line) {
 		return;
 	}
@@ -189,7 +189,7 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 	/* check if we have an active channel on an other line, that does not have any dialed number 
 	 * (Can't select line after already off-hook - https://sourceforge.net/p/chan-sccp-b/discussion/652060/thread/878fe455/?limit=25#c06e/6006/a54d) 
 	 */
-	AUTO_RELEASE sccp_channel_t *activeChannel = NULL;
+	AUTO_RELEASE(sccp_channel_t, activeChannel , NULL);
 	if (!adhocNumber && (activeChannel = sccp_device_getActiveChannel(d))) {
 		if (activeChannel->line != l && sccp_strlen(activeChannel->dialedNumber) == 0) {
 			sccp_channel_endcall(activeChannel);
@@ -197,7 +197,7 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 	}
 	/* done */
 
-	AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+	AUTO_RELEASE(sccp_channel_t, new_channel , NULL);
 	new_channel = sccp_channel_newcall(line, d, adhocNumber,SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
 }
 
@@ -287,12 +287,12 @@ static void sccp_sk_dnd(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constD
 		return;
 	}
 
-	//AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
-	AUTO_RELEASE const sccp_line_t *line = NULL;
+	//AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
+	AUTO_RELEASE(const sccp_line_t, line , NULL);
 	if (l) {
 		line = sccp_line_retain(l);
 	}
-	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
+	AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 	if (device) {
 		do {
 			// check line/device dnd config flag, if found skip rest
@@ -364,7 +364,7 @@ static void sccp_sk_backspace(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 	}
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Backspace Pressed\n", DEV_ID_LOG(d));
 
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	if (!line) {
 		return;
 	}
@@ -426,13 +426,14 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Direct Transfer Pressed\n", DEV_ID_LOG(d));
 
-	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
+	AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 
 	if (!device) {
 		return;
 	}
 
-	AUTO_RELEASE sccp_channel_t *chan1 = NULL, *chan2 = NULL;
+	AUTO_RELEASE(sccp_channel_t, chan1, NULL);
+	AUTO_RELEASE(sccp_channel_t, chan2, NULL);
 	if ((sccp_device_selectedchannels_count(device)) == 2) {
 		sccp_selectedchannel_t *x = NULL;
 		SCCP_LIST_LOCK(&device->selectedChannels);
@@ -442,7 +443,7 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 		chan2 = sccp_channel_retain(chan2);
 		SCCP_LIST_UNLOCK(&device->selectedChannels);
 	} else {
-		AUTO_RELEASE sccp_line_t *line = sccp_line_retain(l);
+		AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(l));
 		if (line) {
 			if (SCCP_RWLIST_GETSIZE(&line->channels) == 2) {
 				SCCP_LIST_LOCK(&line->channels);
@@ -512,7 +513,7 @@ static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 		return;
 	}
 
-	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
+	AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 	if (device) {
 		if ((selectedchannel = sccp_device_find_selectedchannel(device, c))) {
 			SCCP_LIST_LOCK(&device->selectedChannels);
@@ -550,7 +551,7 @@ static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
  */
 static void sccp_sk_cfwdall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward All Pressed, line: %s, instance: %d, channel: %d\n", DEV_ID_LOG(d), l ? l->name : "(NULL)", lineInstance, c ? c->callid : 0);
 
@@ -564,7 +565,7 @@ static void sccp_sk_cfwdall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
  */
 static void sccp_sk_cfwdbusy(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward Busy Pressed\n", DEV_ID_LOG(d));
 	if (line) {
@@ -577,7 +578,7 @@ static void sccp_sk_cfwdbusy(const sccp_softkeyMap_cb_t * const softkeyMap_cb, c
  */
 static void sccp_sk_cfwdnoanswer(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward NoAnswer Pressed\n", DEV_ID_LOG(d));
 	if (line) {
@@ -603,7 +604,7 @@ static void sccp_sk_park(const sccp_softkeyMap_cb_t * const softkeyMap_cb, const
  */
 static void sccp_sk_trnsfvm(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Transfer Voicemail Pressed\n", DEV_ID_LOG(d));
 	if (line) {
 		sccp_feat_idivert(d, line, c);
@@ -616,7 +617,7 @@ static void sccp_sk_trnsfvm(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
  */
 static void sccp_sk_private(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
-	AUTO_RELEASE sccp_channel_t *channel = NULL;
+	AUTO_RELEASE(sccp_channel_t, channel , NULL);
 	if (!d) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_private function called without specifying a device\n");
 		return;
@@ -635,8 +636,8 @@ static void sccp_sk_private(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 		channel = sccp_channel_retain(c);
 		instance = lineInstance;
 	} else {
-		AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_PRIVATE_WITHOUT_LINE_CHANNEL);
-		AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
+		AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_PRIVATE_WITHOUT_LINE_CHANNEL));
+		AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Creating new PRIVATE channel\n", d->id);
 		if (line && device) {
@@ -676,7 +677,7 @@ static void sccp_sk_private(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
  */
 static void sccp_sk_monitor(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Monitor Pressed\n", DEV_ID_LOG(d));
 	if (line) {
 		sccp_feat_monitor(d, line, lineInstance, c);
@@ -692,7 +693,7 @@ static void sccp_sk_conference(const sccp_softkeyMap_cb_t * const softkeyMap_cb,
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Conference Pressed\n", DEV_ID_LOG(d));
 #ifdef CS_SCCP_CONFERENCE
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	if (line) {
 		sccp_feat_handle_conference(d, line, lineInstance, c);
 	}
@@ -710,7 +711,7 @@ static void sccp_sk_conflist(const sccp_softkeyMap_cb_t * const softkeyMap_cb, c
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Conflist Pressed\n", DEV_ID_LOG(d));
 #ifdef CS_SCCP_CONFERENCE
-	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
+	AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 	if (device) {
 		sccp_feat_conflist(device, lineInstance, c);
 	}
@@ -728,7 +729,7 @@ static void sccp_sk_join(const sccp_softkeyMap_cb_t * const softkeyMap_cb, const
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Join Pressed\n", DEV_ID_LOG(d));
 #ifdef CS_SCCP_CONFERENCE
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	if (line) {
 		sccp_feat_join(d, line, lineInstance, c);
 	}
@@ -744,7 +745,7 @@ static void sccp_sk_join(const sccp_softkeyMap_cb_t * const softkeyMap_cb, const
 static void sccp_sk_barge(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Barge Pressed\n", DEV_ID_LOG(d));
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	if (line) {
 		sccp_feat_handle_barge(line, lineInstance, d);
 	}
@@ -756,7 +757,7 @@ static void sccp_sk_barge(const sccp_softkeyMap_cb_t * const softkeyMap_cb, cons
 static void sccp_sk_cbarge(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey cBarge Pressed\n", DEV_ID_LOG(d));
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	if (line) {
 		sccp_feat_handle_cbarge(line, lineInstance, d);
 	}
@@ -771,7 +772,7 @@ static void sccp_sk_meetme(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Meetme Pressed\n", DEV_ID_LOG(d));
 
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	if (line) {
 		sccp_feat_handle_meetme(line, lineInstance, d);
 	}
@@ -787,7 +788,7 @@ static void sccp_sk_pickup(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Native EXTENSION PICKUP was not compiled in\n");
 #else
 
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	if (line) {
 		sccp_feat_handle_directed_pickup(d, line, c);
 	}
@@ -803,7 +804,7 @@ static void sccp_sk_gpickup(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 #ifndef CS_SCCP_PICKUP
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");
 #else
-	AUTO_RELEASE const sccp_line_t *line = sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE);
+	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	if (line) {
 		sccp_feat_grouppickup(d, line, lineInstance, c);
 	}

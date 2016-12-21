@@ -95,7 +95,7 @@ static void sccp_devstate_deviceRegistered(const sccp_device_t * device)
 	sccp_buttonconfig_t *config;
 	sccp_devstate_deviceState_t *deviceState;
 
-	AUTO_RELEASE sccp_device_t *d = sccp_device_retain((sccp_device_t *) device);
+	AUTO_RELEASE(sccp_device_t, d , sccp_device_retain((sccp_device_t *) device));
 
 	if (d) {
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -120,7 +120,7 @@ static void sccp_devstate_deviceUnRegistered(const sccp_device_t * device)
 	sccp_buttonconfig_t *config;
 	sccp_devstate_deviceState_t *deviceState;
 
-	AUTO_RELEASE sccp_device_t *d = sccp_device_retain((sccp_device_t *) device);
+	AUTO_RELEASE(sccp_device_t, d , sccp_device_retain((sccp_device_t *) device));
 
 	if (d) {
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {

@@ -669,10 +669,11 @@ gcc_inline void sccp_refcount_replace(const void * * const replaceptr, const voi
  * Used together with the cleanup attribute, to handle the automatic reference release of an object when we leave the scope in which the 
  * reference was defined. 
  */
-gcc_inline void sccp_refcount_autorelease(void *ptr)
+gcc_inline void sccp_refcount_autorelease(void *refptr)
 {
-	if (ptr && *(void **)ptr) {										// check if AUTO_RELEASE ptr was actually assigned. or still NULL
-		sccp_refcount_release((const void **) ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);		// explicit release
+	auto_ref_t *ref = refptr;
+	if (ref && ref->ptr && *ref->ptr) {
+		sccp_refcount_release(ref->ptr, ref->file, ref->line, ref->func);				// explicit release
 	}
 }
 

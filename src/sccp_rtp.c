@@ -268,7 +268,7 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 		return;
 	}
 
-	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice(c);
+	AUTO_RELEASE(sccp_device_t, device , sccp_channel_getDevice(c));
 
 	if (device) {
 
@@ -313,7 +313,7 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp)
 {
 	int res = 0;
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
 	if (d) {
 		struct sockaddr_storage sus = { 0 };
 		struct sockaddr_storage *phone_remote = &rtp->phone_remote;
@@ -349,7 +349,7 @@ sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(constChannelPtr c, sccp_rtp_t **rtp)
 {
 	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
 
-	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice(c);
+	AUTO_RELEASE(sccp_device_t, device , sccp_channel_getDevice(c));
 
 	if (!device) {
 		return SCCP_RTP_INFO_NORTP;
@@ -373,7 +373,7 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(constChannelPtr c, sccp_rtp_t ** rtp)
 {
 	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
 
-	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice(c);
+	AUTO_RELEASE(sccp_device_t, device , sccp_channel_getDevice(c));
 
 	if (!device) {
 		return SCCP_RTP_INFO_NORTP;

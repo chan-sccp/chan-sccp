@@ -361,7 +361,7 @@ void sccp_device_pre_reload(void)
  */
 boolean_t sccp_device_check_update(devicePtr device)
 {
-	AUTO_RELEASE sccp_device_t *d = device ? sccp_device_retain(device) : NULL;
+	AUTO_RELEASE(sccp_device_t, d , device ? sccp_device_retain(device) : NULL);
 	boolean_t res = FALSE;
 
 	if (d) {
@@ -1882,7 +1882,7 @@ sccp_channel_t *sccp_device_getActiveChannel(constDevicePtr device)
  */
 void sccp_device_setActiveChannel(devicePtr d, sccp_channel_t * channel)
 {
-	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
+	AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 
 	if (device) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Set the active channel %d on device\n", DEV_ID_LOG(d), (channel) ? channel->callid : 0);
@@ -1964,7 +1964,7 @@ void sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePt
 #ifndef ASTDB_RESULT_LEN
 #define ASTDB_RESULT_LEN 80
 #endif
-	AUTO_RELEASE sccp_linedevices_t *linedevice = NULL;
+	AUTO_RELEASE(sccp_linedevices_t, linedevice , NULL);
 
 	if (!l || !device || !device->session) {
 		return;
@@ -1975,7 +1975,7 @@ void sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePt
 	//! \todo Needs to be revised. Does not make sense to call sccp_handle_AvailableLines from here
 	if (sccp_device_getRegistrationState(device) != SKINNY_DEVICE_RS_OK) {
 		if (!device->linesRegistered) {
-			AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
+			AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(device));
 			if (d) {
 				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, forcing this\n", DEV_ID_LOG(device));
 				sccp_handle_AvailableLines(d->session, d, NULL);
@@ -2000,8 +2000,8 @@ void sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePt
  */
 int sccp_device_check_ringback(devicePtr device)
 {
-	AUTO_RELEASE sccp_channel_t *c = NULL;
-	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
+	AUTO_RELEASE(sccp_channel_t, c , NULL);
+	AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(device));
 
 	if (!d) {
 		return 0;
@@ -2063,7 +2063,7 @@ void sccp_dev_postregistration(void *data)
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Getting Database Settings...\n", d->id);
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
 		if (d->lineButtons.instance[instance]) {
-			AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_retain(d->lineButtons.instance[instance]);
+			AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_retain(d->lineButtons.instance[instance]));
 
 			snprintf(family, sizeof(family), "SCCP/%s/%s", d->id, linedevice->line->name);
 			if (iPbx.feature_getFromDatabase(family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
@@ -2097,7 +2097,7 @@ void sccp_dev_postregistration(void *data)
 	char lastNumber[SCCP_MAX_EXTENSION] = "";
 	if (iPbx.feature_getFromDatabase(family, "lastDialedNumber", buffer, sizeof(buffer))) {
 		sscanf(buffer,"%79[^;];lineInstance=%d", lastNumber, &instance);
-		AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_findByLineinstance(d, instance);
+		AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_findByLineinstance(d, instance));
 		if(linedevice){ 
 			sccp_device_setLastNumberDialed(d, lastNumber, linedevice);
 		}
@@ -2121,7 +2121,7 @@ void sccp_dev_postregistration(void *data)
 	d->mwilight = 0;
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
 		if (d->lineButtons.instance[instance]) {
-			AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_retain(d->lineButtons.instance[instance]);
+			AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_retain(d->lineButtons.instance[instance]));
 			if (linedevice) {
 				sccp_mwi_setMWILineStatus(linedevice);
 			}
@@ -2207,7 +2207,7 @@ static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)
  */
 void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cleanupTime)
 {
-	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
+	AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(device));
 	sccp_buttonconfig_t *config = NULL;
 	sccp_selectedchannel_t *selectedChannel = NULL;
 	sccp_channel_t *c = NULL;
@@ -2249,16 +2249,16 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->type == LINE) {
-				AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(config->button.line.name, FALSE);
+				AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byname(config->button.line.name, FALSE));
 
 				if (!line) {
 					continue;
 				}
 				SCCP_LIST_LOCK(&line->channels);
 				SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN(&line->channels, c, list) {
-					AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
+					AUTO_RELEASE(sccp_channel_t, channel , sccp_channel_retain(c));
 					if (channel) {
-						AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice(channel);
+						AUTO_RELEASE(sccp_device_t, tmpDevice , sccp_channel_getDevice(channel));
 						if (tmpDevice && tmpDevice == d) {
 							pbx_log(LOG_WARNING, "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
 							sccp_channel_endcall(channel);
@@ -2634,14 +2634,14 @@ uint8_t sccp_device_numberOfChannels(constDevicePtr device)
 
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		if (config->type == LINE) {
-			AUTO_RELEASE sccp_line_t *l = sccp_line_find_byname(config->button.line.name, FALSE);
+			AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byname(config->button.line.name, FALSE));
 
 			if (!l) {
 				continue;
 			}
 			SCCP_LIST_LOCK(&l->channels);
 			SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-				AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice(c);
+				AUTO_RELEASE(sccp_device_t, tmpDevice , sccp_channel_getDevice(c));
 
 				if (tmpDevice == device) {
 					numberOfChannels++;

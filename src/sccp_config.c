@@ -2403,7 +2403,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				// However, do not look into realtime, since
 				// we might have been asked to create a device for realtime addition,
 				// thus causing an infinite loop / recursion.
-				AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(cat, FALSE);
+				AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(cat, FALSE));
 				sccp_nat_t nat = SCCP_NAT_AUTO;
 
 				/* create new device with default values */
@@ -2441,7 +2441,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			line_count++;
 
 			v = ast_variable_browse(GLOB(cfg), cat);
-			AUTO_RELEASE sccp_line_t *l = sccp_line_find_byname(cat, FALSE);
+			AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byname(cat, FALSE));
 
 			/* check if we have this line already */
 			//    SCCP_RWLIST_WRLOCK(&GLOB(lines));
@@ -2476,7 +2476,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	sccp_line_t *l = NULL;
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-		AUTO_RELEASE sccp_line_t *line = sccp_line_retain(l);
+		AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(l));
 		if (line) {
 			do {
 				if (line->realtime == TRUE && line != GLOB(hotline)->line) {
@@ -2508,7 +2508,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	sccp_device_t *d = NULL;
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
+		AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 		if (device) {
 			do {
 				if (device->realtime == TRUE) {

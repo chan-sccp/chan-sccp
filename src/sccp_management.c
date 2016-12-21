@@ -352,7 +352,7 @@ static int sccp_manager_restart_device(struct mansession *s, const struct messag
 		type = "quick";
 	}
 
-	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
+	AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(deviceName, FALSE));
 
 	if (!d) {
 		astman_send_error(s, m, "Device not found");
@@ -402,14 +402,14 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
 		return 0;
 	}
 
-	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
+	AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(deviceName, FALSE));
 
 	if (!d) {
 		astman_send_error(s, m, "Device not found");
 		return 0;
 	}
 
-	AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(lineName, TRUE);
+	AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byname(lineName, TRUE));
 
 	if (!line) {
 		astman_send_error(s, m, "Line not found");
@@ -445,7 +445,7 @@ static int sccp_manager_line_fwd_update(struct mansession *s, const struct messa
 	sccp_callforward_t cfwd_type = SCCP_CFWD_NONE;
 	char cbuf[64] = "";
 
-	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
+	AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(deviceName, FALSE));
 
 	if (!d) {
 		pbx_log(LOG_WARNING, "%s: Device not found\n", deviceName);
@@ -453,7 +453,7 @@ static int sccp_manager_line_fwd_update(struct mansession *s, const struct messa
 		return 0;
 	}
 
-	AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(lineName, TRUE);
+	AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byname(lineName, TRUE));
 
 	if (!line) {
 		pbx_log(LOG_WARNING, "%s: Line %s not found\n", deviceName, lineName);
@@ -478,7 +478,7 @@ static int sccp_manager_line_fwd_update(struct mansession *s, const struct messa
 	}
 
 	if (line) {
-		AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, line);
+		AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(d, line));
 
 		if (linedevice) {
 			if (sccp_strcaseequals("all", forwardType)) {
@@ -549,7 +549,7 @@ static int sccp_manager_device_update(struct mansession *s, const struct message
 		return 0;
 	}
 
-	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
+	AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(deviceName, FALSE));
 
 	if (!d) {
 		astman_send_error(s, m, "Device not found");
@@ -594,7 +594,7 @@ static int sccp_manager_device_set_dnd(struct mansession *s, const struct messag
 		return 0;
 	}
 	//astman_append(s, "remove channel '%s' from hold\n", channelId);
-	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
+	AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(deviceName, FALSE));
 
 	if (d) {
 		if (d->dndFeature.enabled) {
@@ -642,14 +642,14 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 	const char *lineName = astman_get_header(m, "Linename");
 	const char *number = astman_get_header(m, "number");
 
-	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
+	AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(deviceName, FALSE));
 
 	if (!d) {
 		astman_send_error(s, m, "Device not found");
 		return 0;
 	}
 
-	AUTO_RELEASE sccp_line_t *line = NULL;
+	AUTO_RELEASE(sccp_line_t, line , NULL);
 
 	if (!lineName) {
 		if (d && d->defaultLineInstance > 0) {
@@ -666,7 +666,7 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		return 0;
 	}
 
-	AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+	AUTO_RELEASE(sccp_channel_t, new_channel , NULL);
 
 #if ASTERISK_VERSION_GROUP >= 112
 	struct ast_assigned_ids ids = {
@@ -709,10 +709,10 @@ static int sccp_manager_answerCall2(struct mansession *s, const struct message *
 		return 0;
 	}
 
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_byid(channelIntId);
+	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_find_byid(channelIntId));
 
 	if (c) {
-		AUTO_RELEASE sccp_device_t *d = NULL;
+		AUTO_RELEASE(sccp_device_t, d , NULL);
 
 		if (sccp_strlen_zero(deviceName)) {
 			d = sccp_channel_getDevice(c);
@@ -757,7 +757,7 @@ static int sccp_manager_hangupCall(struct mansession *s, const struct message *m
 		return 0;
 	}
 
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_byid(channelIntId);
+	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_find_byid(channelIntId));
 
 	if (!c) {
 		astman_send_error(s, m, "Call not found.");
@@ -792,7 +792,7 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 		return 0;
 	}
 
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_byid(channelIntId);
+	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_find_byid(channelIntId));
 
 	if (!c) {
 		astman_send_error(s, m, "Call not found\r\n");
@@ -810,7 +810,7 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 			retValStr = "To resume a channel, you need to specify the device that resumes call using Devicename variable.";
 			goto SEND_RESPONSE;
 		}
-		AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
+		AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(deviceName, FALSE));
 
 		if (d) {
 			if (sccp_strcaseequals("yes", swap)) {
@@ -881,7 +881,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 
 	if (EVENT_FLAG_CALL == category) {
 		if (!strcasecmp("MonitorStart", event) || !strcasecmp("MonitorStop", event)) {
-			AUTO_RELEASE sccp_channel_t *channel = NULL;
+			AUTO_RELEASE(sccp_channel_t, channel , NULL);
 			struct message m = { 0 };
 
 			str = dupStr = pbx_strdupa(content); /** need a dup, because converter to message structure will modify the str */
@@ -914,7 +914,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 
 			if (channel) {
 				sccp_log(DEBUGCAT_CORE)("%s: (managerHookHelper) MonitorStart/MonitorStop Received\n", channel->designator);	/* temp */
-				AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+				AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 				if (d) {
 					sccp_log(DEBUGCAT_CORE)("%s: (managerHookHelper) MonitorStart/MonitorStop on Device: %s\n", channel->designator, d->id);	/* temp */
 					if (!strcasecmp("MonitorStart", event)) {

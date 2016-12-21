@@ -144,7 +144,7 @@ static void sccp_mwi_updatecount(sccp_mailbox_subscriber_list_t * subscription)
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "(sccp_mwi_updatecount)\n");
 	SCCP_LIST_LOCK(&subscription->sccp_mailboxLine);
 	SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list) {
-		AUTO_RELEASE sccp_line_t *line = sccp_line_retain(mailboxLine->line);
+		AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(mailboxLine->line));
 
 		if (line) {
 			sccp_linedevices_t *lineDevice = NULL;
@@ -613,7 +613,7 @@ void sccp_mwi_check(sccp_device_t * d)
 	uint32_t oldmsgs = 0, newmsgs = 0;
 	boolean_t suppress_lamp = FALSE;
 
-	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
+	AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 	if (!device) {
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_check) called with NULL device!\n");
 		return;
@@ -628,7 +628,7 @@ void sccp_mwi_check(sccp_device_t * d)
 				sccp_channel_t *c = NULL;
 				SCCP_LIST_LOCK(&line->channels);
 				SCCP_LIST_TRAVERSE(&line->channels, c, list) {
-					AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice(c);
+					AUTO_RELEASE(sccp_device_t, tmpDevice , sccp_channel_getDevice(c));
 					if (tmpDevice && tmpDevice == device) {						// We have a channel belonging to our device (no remote shared line channel)
 						if ((c->state != SCCP_CHANNELSTATE_ONHOOK && c->state != SCCP_CHANNELSTATE_DOWN) || c->state == SCCP_CHANNELSTATE_RINGING) {
 							sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: we have an active channel, suppress mwi light\n", DEV_ID_LOG(device));

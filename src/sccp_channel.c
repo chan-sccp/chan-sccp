@@ -56,12 +56,12 @@ struct sccp_private_channel_data {
  */
 static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t enabled)
 {
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
+	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 
 	if (!c) {
 		return;
 	}
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 	if (!d) {
 		return;
@@ -270,7 +270,7 @@ void sccp_channel_setDevice(sccp_channel_t * const channel, const sccp_device_t 
 
 	if (channel->privateData && channel->privateData->device) {
 		{
-			AUTO_RELEASE sccp_linedevices_t *ld = sccp_linedevice_find(channel->privateData->device, channel->line);
+			AUTO_RELEASE(sccp_linedevices_t, ld , sccp_linedevice_find(channel->privateData->device, channel->line));
 			sccp_linedevice_refreplace(&channel->privateData->linedevice, ld);
 		}
 		memcpy(&channel->preferences.audio, &channel->privateData->device->preferences.audio, sizeof(channel->preferences.audio));
@@ -430,8 +430,8 @@ void sccp_channel_send_callinfo2(sccp_channel_t * channel)
 {
 	pbx_assert(channel != NULL);
 
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
-	AUTO_RELEASE sccp_line_t *line = sccp_line_retain(channel->line);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
+	AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(channel->line));
 
 	if (d) {
 		sccp_channel_send_callinfo(d, channel);
@@ -440,7 +440,7 @@ void sccp_channel_send_callinfo2(sccp_channel_t * channel)
 
 		SCCP_LIST_LOCK(&line->devices);
 		SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
-			AUTO_RELEASE sccp_device_t *device = sccp_device_retain(linedevice->device);
+			AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(linedevice->device));
 
 			sccp_channel_send_callinfo(device, channel);
 		}
@@ -562,7 +562,7 @@ boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * channel, char *n
 void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
 {
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 	if (!d) {
 		return;
@@ -581,7 +581,7 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
 void sccp_channel_openReceiveChannel(constChannelPtr channel)
 {
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 	if (!d) {
 		return;
@@ -650,7 +650,7 @@ void sccp_channel_closeReceiveChannel(constChannelPtr channel, boolean_t KeepPor
 	sccp_msg_t *msg = NULL;
 
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 	if (!d) {
 		return;
@@ -699,7 +699,7 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 	int bitRate = 1500;
 
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 	if (!d) {
 		return;
@@ -739,7 +739,7 @@ void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean
 	sccp_msg_t *msg = NULL;
 
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 	if (!d) {
 		return;
@@ -789,7 +789,7 @@ void sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel)
 void sccp_channel_startMediaTransmission(constChannelPtr channel)
 {
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 	if (!d) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_channel_startMediaTransmission) Could not retrieve device from channel\n");
@@ -842,7 +842,7 @@ void sccp_channel_stopMediaTransmission(constChannelPtr channel, boolean_t KeepP
 	sccp_msg_t *msg = NULL;
 
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 	if (!d) {
 		return;
@@ -892,7 +892,7 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 	int bitRate = channel->maxBitRate;
 
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 	if (!d) {
 		return;
@@ -966,7 +966,7 @@ void sccp_channel_stopMultiMediaTransmission(constChannelPtr channel, boolean_t 
 	sccp_msg_t *msg = NULL;
 
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 	if (!d) {
 		return;
@@ -1032,7 +1032,7 @@ boolean_t sccp_channel_transfer_on_hangup(constChannelPtr channel)
 	if (!channel || !GLOB(transfer_on_hangup)) {
 		return result;
 	}
-	AUTO_RELEASE sccp_device_t *d = channel->privateData->device ? sccp_device_retain(channel->privateData->device) : NULL;
+	AUTO_RELEASE(sccp_device_t, d , channel->privateData->device ? sccp_device_retain(channel->privateData->device) : NULL);
 
 	if (d && (SCCP_CHANNELSTATE_IsSettingUp(channel->state) || SCCP_CHANNELSTATE_IsConnected(channel->state))) {	/* Complete transfer when one is in progress */
 		sccp_channel_t *transferee = d->transferChannels.transferee;
@@ -1078,7 +1078,7 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t * orig_channel)
  */
 static int _sccp_channel_sched_endcall(const void *data)
 {
-	AUTO_RELEASE sccp_channel_t *channel = NULL;
+	AUTO_RELEASE(sccp_channel_t, channel , NULL);
 	if ((channel = sccp_channel_retain(data))) {
 		channel->scheduler.hangup_id = -3;
 		sccp_log(DEBUGCAT_CHANNEL) ("%s: Scheduled Hangup\n", channel->designator);
@@ -1096,7 +1096,7 @@ static int _sccp_channel_sched_endcall(const void *data)
  */
 gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel)
 {
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
+	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 
 	if (c && c->scheduler.digittimeout_id > -1 && iPbx.sched_wait(c->scheduler.digittimeout_id) > 0) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: stop schedule digittimeout %d\n", c->designator, c->scheduler.digittimeout_id);
@@ -1110,7 +1110,7 @@ gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel)
  */
 gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t * channel, uint timeout)
 {
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
+	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 	int res = 0;
 
 	/* only schedule if allowed and not already scheduled */
@@ -1144,7 +1144,7 @@ gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t * channel, uint
 
 void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel)
 {
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
+	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 	if (c) {
 		(void) ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock);
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks (digittimeout_id:%d) (hangup_id:%d)\n", c->designator, c->scheduler.digittimeout_id, c->scheduler.hangup_id);
@@ -1177,7 +1177,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 	sccp_channel_end_forwarding_channel(channel);
 
 	/* this is a station active endcall or onhook */
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 	if (d) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %s (state:%s)\n", d->id, channel->designator, sccp_channelstate2str(channel->state));
@@ -1203,7 +1203,7 @@ channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channe
 	sccp_log(DEBUGCAT_CORE)("%s: (getEmptyChannel) on line:%s, maybe_c:%s\n", d->id, l->name, maybe_c ? maybe_c->designator : "");
 	sccp_channel_t *channel = NULL;
 	{
-		AUTO_RELEASE sccp_channel_t *c = NULL;
+		AUTO_RELEASE(sccp_channel_t, c , NULL);
 		if (!maybe_c || !(c=sccp_channel_retain(maybe_c))) {
 			sccp_log(DEBUGCAT_CORE)("%s: (getEmptyChannel) getActiveChannel\n", d->id);
 			c = sccp_device_getActiveChannel(d);
@@ -1335,19 +1335,19 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		pbx_log(LOG_ERROR, "SCCP: Channel %s has no device\n", channel->designator);
 		return;
 	}
-	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(channel->line);
+	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(channel->line));
 
 	channel->subscribers = 1;
 
 #if 0	/** @todo we have to test this code section */
 	/* check if this device holds the line channel->line */
 	{
-		AUTO_RELEASE sccp_linedevices_t *linedevice1 = sccp_linedevice_find(device, l);
+		AUTO_RELEASE(sccp_linedevices_t, linedevice1 , sccp_linedevice_find(device, l));
 
 		if (!linedevice1) {
 
 			/** this device does not have the original line, mybe it is pickedup with cli or ami function */
-			AUTO_RELEASE sccp_line_t *activeLine = sccp_dev_getActiveLine(device);
+			AUTO_RELEASE(sccp_line_t, activeLine , sccp_dev_getActiveLine(device));
 
 			if (!activeLine) {
 				return;
@@ -1363,7 +1363,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 	/* answering an incoming call */
 	/* look if we have a call to put on hold */
 	{
-		AUTO_RELEASE sccp_channel_t *sccp_channel_1 = sccp_device_getActiveChannel(device);
+		AUTO_RELEASE(sccp_channel_t, sccp_channel_1 , sccp_device_getActiveChannel(device));
 
 		if (sccp_channel_1) {
 			/* If there is a ringout or offhook call, we end it so that we can answer the call. */
@@ -1412,7 +1412,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 
 	/** set called party name */
 	{
-		AUTO_RELEASE sccp_linedevices_t *linedevice2 = sccp_linedevice_find(device, channel->line);
+		AUTO_RELEASE(sccp_linedevices_t, linedevice2 , sccp_linedevice_find(device, channel->line));
 		if (linedevice2) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Set Called Party\n", device->id);
 
@@ -1440,7 +1440,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 	/* done */
 
 	{
-		AUTO_RELEASE sccp_device_t *d = sccp_device_retain((sccp_device_t *) device);			/* get non-const device */
+		AUTO_RELEASE(sccp_device_t, d , sccp_device_retain((sccp_device_t *) device));			/* get non-const device */
 
 		if (d) {
 			sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Set Active Line\n", d->id);
@@ -1534,13 +1534,13 @@ int sccp_channel_hold(channelPtr channel)
 		return FALSE;
 	}
 
-	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(channel->line);
+	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(channel->line));
 	if (!l) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %s has no line attached to it\n", channel->designator);
 		return FALSE;
 	}
 
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 	if (!d) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %s has no device attached to it\n", channel->designator);
 		return FALSE;
@@ -1612,13 +1612,13 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 		return FALSE;
 	}
 
-	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(channel->line);
+	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(channel->line));
 	if (!l) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no line on channel %d\n", channel->callid);
 		return FALSE;
 	}
 
-	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
+	AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(device));
 	if (!d) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no device attached to it\n", channel->callid);
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no device or device could not be retained on channel %d\n", channel->callid);
@@ -1627,7 +1627,7 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 
 	/* look if we have a call to put on hold */
 	if (swap_channels) {
-		AUTO_RELEASE sccp_channel_t *sccp_active_channel = sccp_device_getActiveChannel(d);
+		AUTO_RELEASE(sccp_channel_t, sccp_active_channel , sccp_device_getActiveChannel(d));
 
 		/* there is an active call, let's put it on hold first */
 		if (sccp_active_channel && !(sccp_channel_hold(sccp_active_channel))) {
@@ -1714,7 +1714,7 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 
 	/** set called party name */
 	{
-		AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, l);
+		AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(d, l));
 
 		if (linedevice) {
 			char tmpNumber[StationMaxDirnumSize] = {0};
@@ -1763,7 +1763,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		return;
 	}
 
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 	// l = channel->line;
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Cleaning channel %s\n", channel->designator);
@@ -1847,7 +1847,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	}
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Destroying channel %s\n", channel->designator);
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 	if (d) {
 		sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
 	}
@@ -1908,7 +1908,7 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 		return;
 	}
 
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 	if (!d) {
 		/* transfer was pressed on first (transferee) channel, check if is our transferee channel and continue with d <= device */
@@ -1976,7 +1976,7 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 			if (channel->state != SCCP_CHANNELSTATE_CALLTRANSFER) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);
 			}
-			AUTO_RELEASE sccp_channel_t *sccp_channel_new = sccp_channel_newcall(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, pbx_channel_owner, NULL);
+			AUTO_RELEASE(sccp_channel_t, sccp_channel_new , sccp_channel_newcall(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, pbx_channel_owner, NULL));
 
 			if (sccp_channel_new && (pbx_channel_bridgepeer = iPbx.get_bridged_channel(pbx_channel_owner))) {
 				pbx_builtin_setvar_helper(sccp_channel_new->owner, "TRANSFEREE", pbx_channel_name(pbx_channel_bridgepeer));
@@ -2065,7 +2065,7 @@ void sccp_channel_transfer_cancel(devicePtr d, channelPtr c)
 	 * This script sets the hold state for transfered channel explicitly -MC
 	 */
 	if (d) {
-		AUTO_RELEASE sccp_channel_t *transferee = d->transferChannels.transferee ? sccp_channel_retain(d->transferChannels.transferee) : NULL;
+		AUTO_RELEASE(sccp_channel_t, transferee , d->transferChannels.transferee ? sccp_channel_retain(d->transferChannels.transferee) : NULL);
 		if (transferee && transferee != c) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee %d %s by the Receiving Party. Cancelling Transfer and Putting transferee channel on Hold.\n", d->id, transferee->callid, transferee->line->name);
 			transferee->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
@@ -2108,7 +2108,7 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 		return;
 	}
 	// Obtain the device from which the transfer was initiated
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(sccp_destination_local_channel);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(sccp_destination_local_channel));
 
 	if (!d) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no device on channel %d\n", sccp_destination_local_channel->callid);
@@ -2120,7 +2120,7 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 		return;
 	}
 	// Obtain the source channel on that device
-	AUTO_RELEASE sccp_channel_t *sccp_source_local_channel = sccp_channel_retain(d->transferChannels.transferee);
+	AUTO_RELEASE(sccp_channel_t, sccp_source_local_channel , sccp_channel_retain(d->transferChannels.transferee));
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Complete transfer from %s\n", d->id, sccp_destination_local_channel->designator);
 	instance = sccp_device_find_index_for_line(d, sccp_destination_local_channel->line->name);
@@ -2308,7 +2308,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	}
 
 	sccp_copy_string(dialedNumber, fwdNumber, sizeof(dialedNumber));
-	AUTO_RELEASE sccp_channel_t *sccp_forwarding_channel = sccp_channel_allocate(sccp_channel_parent->line, NULL);
+	AUTO_RELEASE(sccp_channel_t, sccp_forwarding_channel , sccp_channel_allocate(sccp_channel_parent->line, NULL));
 
 	if (!sccp_forwarding_channel) {
 		pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel\n", lineDevice->device->id);
@@ -2427,7 +2427,7 @@ void sccp_channel_park(sccp_channel_t * channel)
 	/* let the pbx implementation do the rest */
 	result = iPbx.feature_park(channel);
 	if (PARK_RESULT_SUCCESS != result) {
-		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+		AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 		if (d) {
 			sccp_dev_displaynotify(d, SKINNY_DISP_NO_PARK_NUMBER_AVAILABLE, 10);
 		}
@@ -2503,10 +2503,10 @@ boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const void *data){
 int sccp_channel_callwaiting_tone_interval(sccp_device_t * device, sccp_channel_t * channel)
 {
 	if (GLOB(callwaiting_tone)) {
-		AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
+		AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(device));
 
 		if (d) {
-			AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
+			AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 
 			if (c) {
 				pbx_assert(c->line != NULL);
@@ -2579,7 +2579,7 @@ sccp_channel_t *sccp_find_channel_by_buttonIndex_and_callid(const sccp_device_t 
 		return NULL;
 	}
 
-	AUTO_RELEASE sccp_line_t *l = sccp_line_find_byButtonIndex((sccp_device_t *) d, buttonIndex);
+	AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byButtonIndex((sccp_device_t *) d, buttonIndex));
 	if (l) {
 		SCCP_LIST_LOCK(&l->channels);
 		c = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->callid == callid), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -2603,7 +2603,7 @@ sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t
 		return NULL;
 	}
 
-	AUTO_RELEASE sccp_line_t *l = sccp_line_find_byid((sccp_device_t *) d, lineInstance);
+	AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byid((sccp_device_t *) d, lineInstance));
 
 	if (l) {
 		SCCP_LIST_LOCK(&l->channels);
@@ -2712,7 +2712,7 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(constDevicePtr d, 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel on device by PassThruId %u on device %s\n", passthrupartyid, d->id);
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
 		if (d->lineButtons.instance[instance]) {
-			AUTO_RELEASE sccp_line_t *l = sccp_line_retain(d->lineButtons.instance[instance]->line);
+			AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(d->lineButtons.instance[instance]->line));
 
 			if (l) {
 				sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found line: '%s'\n", d->id, l->name);
@@ -2777,7 +2777,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(constDevicePtr device, sccp_
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d' on device: %s\n", state, device->id);
 
-	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
+	AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(device));
 
 	if (!d) {
 		return NULL;
@@ -2786,7 +2786,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(constDevicePtr device, sccp_
 
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
 		if (d->lineButtons.instance[instance]) {
-			AUTO_RELEASE sccp_line_t *l = sccp_line_retain(d->lineButtons.instance[instance]->line);
+			AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(d->lineButtons.instance[instance]->line));
 
 			if (l) {
 				sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_CHANNEL + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: line: '%s'\n", d->id, l->name);

@@ -48,14 +48,14 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1 "SCCP: [INDICATE] state '%d' in file '%s', on line %d (%s)\n", state, file, line, pretty_function);
 	}
 
-	AUTO_RELEASE sccp_device_t *d = (device) ? sccp_device_retain(device) : sccp_channel_getDevice(c);
+	AUTO_RELEASE(sccp_device_t, d , (device) ? sccp_device_retain(device) : sccp_channel_getDevice(c));
 
 	if (!d) {
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1 "SCCP: The channel %d does not have a device\n", c->callid);
 		return;
 	}
 
-	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(c->line);
+	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(c->line));
 
 	if (!l) {
 		pbx_log(LOG_ERROR, "SCCP: The channel %d does not have a line\n", c->callid);
@@ -326,7 +326,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 		case SCCP_CHANNELSTATE_CALLWAITING:
 			{
 				/* When dialing a shared line which you also have registered, we don't want the outgoing call to show up on our own device as a callwaiting call */
-				AUTO_RELEASE sccp_channel_t *activeChannel = sccp_device_getActiveChannel(d);
+				AUTO_RELEASE(sccp_channel_t, activeChannel , sccp_device_getActiveChannel(d));
 				if (activeChannel && (sccp_strequals(iPbx.getChannelLinkedId(activeChannel), iPbx.getChannelLinkedId(c)))) {
 					sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: (SCCP_CHANNELSTATE_CALLWAITING) Already Own Part of the Call: Skipping\n", DEV_ID_LOG(d));
 					sccp_log_and(DEBUGCAT_INDICATE + DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "%s: LinkedId: %s / %s: LinkedId Remote: %s\n", DEV_ID_LOG(d), iPbx.getChannelLinkedId(c), DEV_ID_LOG(d), iPbx.getChannelLinkedId(activeChannel));
@@ -504,7 +504,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 		}
 		
 		/* check if we have one part of the remote channel */
-		AUTO_RELEASE sccp_device_t *remoteDevice = sccp_device_retain(linedevice->device);
+		AUTO_RELEASE(sccp_device_t, remoteDevice , sccp_device_retain(linedevice->device));
 
 		if (remoteDevice) {
 			sccp_callerid_presentation_t presenceParameter = CALLERID_PRESENTATION_ALLOWED;
@@ -513,7 +513,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 
 			/* Remarking the next piece out, solves the transfer issue when using sharedline as default on the transferer. Don't know why though (yet) */
 			if (state != SCCP_CHANNELSTATE_ONHOOK) {
-				AUTO_RELEASE sccp_channel_t *activeChannel = sccp_device_getActiveChannel(remoteDevice);
+				AUTO_RELEASE(sccp_channel_t, activeChannel , sccp_device_getActiveChannel(remoteDevice));
 
 				if (activeChannel && (sccp_strequals(iPbx.getChannelLinkedId(activeChannel), iPbx.getChannelLinkedId(c)) || (activeChannel->conference_id && activeChannel->conference_id == c->conference_id))) {
 					sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: (indicate_remote_device) Already Own Part of the Call: Skipped\n", DEV_ID_LOG(device));

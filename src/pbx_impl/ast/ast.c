@@ -424,7 +424,7 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t * c)
 	if (!c || !c->owner) {
 		return FALSE;
 	}
-	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
+	AUTO_RELEASE(sccp_channel_t, channel , sccp_channel_retain(c));
 
 	PBX_CHANNEL_TYPE *pbx_channel = NULL;
 	if (channel && channel->owner && (pbx_channel = pbx_channel_ref(channel->owner))) {
@@ -440,7 +440,7 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t * c)
 		pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) processing hangup request, using carefull version. Standby.\n", pbx_channel_name(pbx_channel));
 		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
 			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Already Hungup. Forcing SCCP Remove Call.\n", pbx_channel_name(pbx_channel));
-			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+			AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 			if (d) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
@@ -465,7 +465,7 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t * c)
 boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t * c)
 {
 	boolean_t res = FALSE;
-	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
+	AUTO_RELEASE(sccp_channel_t, channel , sccp_channel_retain(c));
 
 	if (channel) {
 		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
@@ -477,7 +477,7 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t * c)
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
 		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
 			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_requestQueueHangup) Already Hungup\n", channel->designator);
-			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+			AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 			if (d) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
@@ -493,7 +493,7 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t * c)
 boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t * c)
 {
 	boolean_t res = FALSE;
-	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
+	AUTO_RELEASE(sccp_channel_t, channel , sccp_channel_retain(c));
 
 	if (channel) {
 		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
@@ -504,7 +504,7 @@ boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t * c)
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
 
 		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
-			AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(channel);
+			AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 			if (d) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
@@ -526,7 +526,7 @@ int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcna
 {
 	int res = 0;
 
-	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);
+	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(ast));
 	if (c) {
 		if (!strcasecmp(args, "MaxCallBR")) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set max call bitrate to %s\n", (char *) c->currentDeviceId, value);
@@ -942,9 +942,9 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 		return -1;
 	}
 
-	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);
+	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(ast));
 	if (c) {
-		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice(c);
+		AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
 		if (d) {
 			if (!strcasecmp(args.param, "peerip")) {
 				struct sockaddr_storage sas = { 0 };
@@ -1198,7 +1198,7 @@ enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 		return res;
 	}
 
-	AUTO_RELEASE sccp_channel_t *channel = get_sccp_channel_from_pbx_channel(pbx_channel);
+	AUTO_RELEASE(sccp_channel_t, channel , get_sccp_channel_from_pbx_channel(pbx_channel));
 	if (channel) {
 		ast_channel_lock(pbx_channel);
 #if ASTERISK_VERSION_GROUP >= 111

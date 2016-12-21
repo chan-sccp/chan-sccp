@@ -93,10 +93,10 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 					SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
 						if (buttonconfig->type == LINE) {
 							// Check if line and line device exists and thus forward status on that device can be checked
-							AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);
+							AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byname(buttonconfig->button.line.name, FALSE));
 
 							if (line) {
-								AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(device, line);
+								AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(device, line));
 
 								if (linedevice) {
 									sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
@@ -327,7 +327,7 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 
 	sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "got device state change event from asterisk channel: %s\n", (dev) ? dev : "NULL");
 
-	AUTO_RELEASE sccp_device_t *device = sccp_device_retain((sccp_device_t *) data);
+	AUTO_RELEASE(sccp_device_t, device , sccp_device_retain((sccp_device_t *) data));
 
 	if (!device) {
 		sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "NULL device in devstate event callback.\n");

@@ -568,7 +568,7 @@ static int __sccp_session_addDevice(sessionPtr session, constDevicePtr device)
 		sccp_session_lock(session);
 		new_device = sccp_device_retain(device);			/* do this before releasing anything, to prevent device cleanup if the same */
 		if (session->device) {
-			AUTO_RELEASE sccp_device_t * remDevice = NULL;
+			AUTO_RELEASE(sccp_device_t, remDevice , NULL);
 			remDevice = __sccp_session_removeDevice(session);		/* implicit release */
 		}
 		if (device) {
@@ -609,7 +609,7 @@ void sccp_session_releaseDevice(constSessionPtr volatile session)
 {
 	sccp_session_t * s = (sccp_session_t *)session;									/* discard const */
 	if (s) {
-		AUTO_RELEASE sccp_device_t * device = NULL;
+		AUTO_RELEASE(sccp_device_t, device , NULL);
 		device = __sccp_session_removeDevice(s);
 	}
 }
@@ -660,7 +660,7 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 
 	sccp_copy_string(addrStr, sccp_netsock_stringify_addr(&s->sin), sizeof(addrStr));
 
-	AUTO_RELEASE sccp_device_t *d = s->device ? sccp_device_retain(s->device) : NULL;
+	AUTO_RELEASE(sccp_device_t, d , s->device ? sccp_device_retain(s->device) : NULL);
 	if (d) {
 		char *deviceName = sccp_strdupa(d->id);
 		
@@ -1177,7 +1177,7 @@ void sccp_session_destroySessionsByDeviceName(const char *name)
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
 		sccp_device_t *device = session->device;
 		if (device && !isPointerDead(device) && sccp_strequals(device->id, name)) {
-			AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
+			AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(device));
 			if (d) {
 				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session\n", DEV_ID_LOG(d));
 				sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_NONE);
@@ -1262,7 +1262,7 @@ static void sccp_session_crossdevice_cleanup(constSessionPtr current_session, se
 
 		/* cleanup device */
 		if (previous_session->device) {
-			AUTO_RELEASE sccp_device_t * d = __sccp_session_removeDevice(previous_session);
+			AUTO_RELEASE(sccp_device_t, d , __sccp_session_removeDevice(previous_session));
 
 			if (d) {
 				sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Running Device Cleanup\n", DEV_ID_LOG(d));
@@ -1464,7 +1464,7 @@ int sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession 
 #define CLI_AMI_TABLE_BEFORE_ITERATION 														\
 		sccp_session_lock(session);													\
 		sccp_copy_string(clientAddress, sccp_netsock_stringify_addr(&session->sin), sizeof(clientAddress));				\
-		AUTO_RELEASE sccp_device_t *d = session->device ? sccp_device_retain(session->device) : NULL;								\
+		AUTO_RELEASE(sccp_device_t, d , session->device ? sccp_device_retain(session->device) : NULL);								\
 		if (d || (argc == 4 && sccp_strcaseequals(argv[3],"all"))) {									\
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 														\

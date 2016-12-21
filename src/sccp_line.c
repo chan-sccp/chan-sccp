@@ -73,7 +73,7 @@ void sccp_line_post_reload(void)
 		if (!line->pendingDelete && !line->pendingUpdate) {
 			continue;
 		}
-		AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
+		AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(line));
 
 		if (l) {
 			// existing lines
@@ -142,7 +142,7 @@ sccp_line_t *sccp_line_create(const char *name)
  */
 void sccp_line_addToGlobals(sccp_line_t * line)
 {
-	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
+	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(line));
 
 	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	if (l) {
@@ -205,7 +205,7 @@ void *sccp_create_hotline(void)
 	memset(GLOB(hotline), 0, sizeof(sccp_hotline_t));
 
 	//SCCP_RWLIST_WRLOCK(&GLOB(lines));
-	AUTO_RELEASE sccp_line_t *hotline = sccp_line_create("Hotline");
+	AUTO_RELEASE(sccp_line_t, hotline , sccp_line_create("Hotline"));
 
 	if (hotline) {
 #ifdef CS_SCCP_REALTIME
@@ -238,7 +238,7 @@ void sccp_line_kill_channels(sccp_line_t * l)
 	}
 	// SCCP_LIST_LOCK(&l->channels);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->channels, c, list) {
-		AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
+		AUTO_RELEASE(sccp_channel_t, channel , sccp_channel_retain(c));
 		if (channel) {
 			sccp_channel_endcall(channel);
 		}
@@ -446,7 +446,7 @@ void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c)
  */
 void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number)
 {
-	AUTO_RELEASE sccp_linedevices_t *linedevice = NULL;
+	AUTO_RELEASE(sccp_linedevices_t, linedevice , NULL);
 	sccp_feature_type_t feature_type = SCCP_FEATURE_CFWDNONE;
 
 	if (!line || !device) {
@@ -524,8 +524,8 @@ void sccp_linedevice_disallowPickup(sccp_linedevices_t * ld) {
  */
 void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInstance, sccp_subscription_id_t *subscriptionId)
 {
-	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
-	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
+	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(line));
+	AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 
 	if (!device || !l) {
 		pbx_log(LOG_ERROR, "SCCP: sccp_line_addDevice: No line or device provided\n");
@@ -643,7 +643,7 @@ void sccp_line_addChannel(constLinePtr line, constChannelPtr channel)
 	}
 	sccp_channel_t *c = NULL;
 
-	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
+	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(line));
 
 	if (l) {
 		//l->statistic.numberOfActiveChannels++;
@@ -676,7 +676,7 @@ void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
 		return;
 	}
 	sccp_channel_t *c = NULL;
-	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
+	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(line));
 
 	if (l) {
 		SCCP_LIST_LOCK(&l->channels);

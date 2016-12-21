@@ -46,7 +46,18 @@ SCCP_API void SCCP_CALL sccp_refcount_print_hashtable(int fd);
 SCCP_API int SCCP_CALL sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 SCCP_API void SCCP_CALL sccp_refcount_autorelease(void *ptr);
 
-#define AUTO_RELEASE auto __attribute__((cleanup(sccp_refcount_autorelease)))
+typedef struct {
+	const void ** const ptr;
+	const char *file;
+	const char *func;
+	int line;
+} auto_ref_t;
+
+#define AUTO_RELEASE2(_type,_var,_initial,_file,_func,_line) \
+_type *_var = _initial; auto_ref_t __attribute__((cleanup(sccp_refcount_autorelease),unused)) ref##_line = {(const void **const)&_var, _file,_func,_line}
+#define AUTO_RELEASE1(_type,_var,_initial,_file,_func,_line) AUTO_RELEASE2(_type,_var,_initial,_file,_func,_line)
+#define AUTO_RELEASE(_type,_var,_initial) AUTO_RELEASE1(_type,_var,_initial,__FILE__,__PRETTY_FUNCTION__,__LINE__)
+
 #ifdef CS_EXPERIMENTAL
 SCCP_API int SCCP_CALL sccp_refcount_force_release(long findobj, char *identifier);
 #endif

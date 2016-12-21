@@ -685,7 +685,7 @@ static void handleButtonPress(const char *options, constDevicePtr d, uint8_t ins
 	AST_DECLARE_APP_ARGS(args, AST_APP_ARG(parkinglot); AST_APP_ARG(flags); );
 	AST_STANDARD_APP_ARGS(args, parse);
 
-	AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
+	AUTO_RELEASE(sccp_channel_t, channel , sccp_device_getActiveChannel(d));
 	if (channel && channel->state != SCCP_CHANNELSTATE_OFFHOOK && channel->state != SCCP_CHANNELSTATE_HOLD) {
 		sccp_channel_park(channel);
 	} else if (!sccp_strlen_zero(args.parkinglot)){
@@ -699,8 +699,8 @@ static void handleButtonPress(const char *options, constDevicePtr d, uint8_t ins
 					sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) 1 slot occupied -> Unpark Call Immediately\n", args.parkinglot);
 					plslot_t *slot = SCCP_VECTOR_GET_ADDR(&pl->slots, 0);
 					if (slot) {
-						AUTO_RELEASE sccp_line_t *line = channel ? sccp_line_retain(channel->line) : d->currentLine ? sccp_dev_getActiveLine(d) : sccp_line_find_byid(d, d->defaultLineInstance);
-						AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+						AUTO_RELEASE(sccp_line_t, line , channel ? sccp_line_retain(channel->line) : d->currentLine ? sccp_dev_getActiveLine(d) : sccp_line_find_byid(d, d->defaultLineInstance));
+						AUTO_RELEASE(sccp_channel_t, new_channel , NULL);
 						new_channel = sccp_channel_newcall(line, d, slot->exten, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
 					}
 				} else {
@@ -725,8 +725,8 @@ static void handleDevice2User(const char *parkinglot, constDevicePtr d, const ch
 
 	if (d->dtu_softkey.action && d->dtu_softkey.transactionID == transactionId) {
 		if (sccp_strequals(d->dtu_softkey.action, "DIAL")) {
-			AUTO_RELEASE sccp_line_t *line = d->currentLine ? sccp_dev_getActiveLine(d) : sccp_line_find_byid(d, d->defaultLineInstance);
-			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+			AUTO_RELEASE(sccp_line_t, line , d->currentLine ? sccp_dev_getActiveLine(d) : sccp_line_find_byid(d, d->defaultLineInstance));
+			AUTO_RELEASE(sccp_channel_t, new_channel , NULL);
 			new_channel = sccp_channel_newcall(line, d, slot_exten, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
 		} else if (sccp_strequals(d->dtu_softkey.action, "EXIT")) {
 			hideVisualParkingLot(parkinglot, d, instance);

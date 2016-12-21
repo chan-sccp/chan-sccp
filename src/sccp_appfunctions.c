@@ -72,10 +72,10 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		snprintf(colname, 16, "ip");
 	}
 
-	AUTO_RELEASE sccp_device_t *d = NULL;
+	AUTO_RELEASE(sccp_device_t, d , NULL);
 
 	if (!strncasecmp(data, "current", 7)) {
-		AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(chan);
+		AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(chan));
 
 		if (c) {
 			if (!(d = sccp_channel_getDevice(c))) {
@@ -325,8 +325,8 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 		}
 		snprintf(colname, 16, "id");
 	}
-	AUTO_RELEASE sccp_line_t *l = NULL;
-	AUTO_RELEASE sccp_channel_t *c = NULL;
+	AUTO_RELEASE(sccp_line_t, l , NULL);
+	AUTO_RELEASE(sccp_channel_t, c , NULL);
 
 	if (!strncasecmp(data, "current", 7)) {
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
@@ -558,7 +558,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		snprintf(colname, 16, "callid");
 	}
 
-	AUTO_RELEASE sccp_channel_t *c = NULL;
+	AUTO_RELEASE(sccp_channel_t, c , NULL);
 
 	if (!strncasecmp(data, "current", 7)) {
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
@@ -667,21 +667,21 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 					snprintf(buf, buf_len, "<unknown>");
 				}
 			} else if (!strcasecmp(token, "peerip")) {							// NO-NAT (Ip-Address Associated with the Session->sin)
-				AUTO_RELEASE sccp_device_t *d = NULL;
+				AUTO_RELEASE(sccp_device_t, d , NULL);
 				if ((d = sccp_channel_getDevice(c))) {
 					struct sockaddr_storage sas = { 0 };
 					sccp_session_getOurIP(d->session, &sas, 0);
 					sccp_copy_string(buf, sccp_netsock_stringify(&sas), len);
 				}
 			} else if (!strcasecmp(token, "recvip")) {							// NAT (Actual Source IP-Address Reported by the phone upon registration)
-				AUTO_RELEASE sccp_device_t *d = NULL;
+				AUTO_RELEASE(sccp_device_t, d , NULL);
 				if ((d = sccp_channel_getDevice(c))) {
 					struct sockaddr_storage sas = { 0 };
 					sccp_session_getSas(d->session, &sas);
 					sccp_copy_string(buf, sccp_netsock_stringify(&sas), len);
 				}
 			} else if (!strcasecmp(colname, "rtpqos")) {
-				AUTO_RELEASE sccp_device_t *d = NULL;
+				AUTO_RELEASE(sccp_device_t, d , NULL);
 				if ((d = sccp_channel_getDevice(c))) {
 					sccp_call_statistics_t *call_stats = d->call_statistics;
 					snprintf(buf, buf_len, "Packets sent: %d;rcvd: %d;lost: %d;jitter: %d;latency: %d;MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;MLQKvr=%.2f|ICR=%.4f;CCR=%.4f;ICRmx=%.4f|CS=%d;SCS=%d", call_stats[SCCP_CALLSTATISTIC_LAST].packets_sent, call_stats[SCCP_CALLSTATISTIC_LAST].packets_received, call_stats[SCCP_CALLSTATISTIC_LAST].packets_lost, call_stats[SCCP_CALLSTATISTIC_LAST].jitter, call_stats[SCCP_CALLSTATISTIC_LAST].latency,
@@ -751,7 +751,7 @@ static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, const char *data)
 static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, void *data)
 #endif
 {
-	AUTO_RELEASE sccp_channel_t *c = NULL;
+	AUTO_RELEASE(sccp_channel_t, c , NULL);
 	int res;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
@@ -787,7 +787,7 @@ static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, void *data)
 {
 	char *text = (char *) data;
 	char *num, *name;
-	AUTO_RELEASE sccp_channel_t *c = NULL;
+	AUTO_RELEASE(sccp_channel_t, c , NULL);
 
 	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 		pbx_log(LOG_WARNING, "SCCPSetCalledParty: Not an SCCP channel\n");
@@ -825,7 +825,7 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, const char *data)
 static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 #endif
 {
-	AUTO_RELEASE sccp_channel_t *c = NULL;
+	AUTO_RELEASE(sccp_channel_t, c , NULL);
 
 	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 		pbx_log(LOG_WARNING, "SCCPSetMessage: Not an SCCP channel\n");
@@ -850,7 +850,7 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
         	priority = sccp_atoi(args.priority, strlen(args.priority));
         }
 
-	AUTO_RELEASE sccp_device_t *d = NULL;
+	AUTO_RELEASE(sccp_device_t, d , NULL);
 	if (!(d = sccp_channel_getDevice(c))) {
 		pbx_log(LOG_WARNING, "SCCPSetMessage: Not an SCCP device provided\n");
 		return 0;
