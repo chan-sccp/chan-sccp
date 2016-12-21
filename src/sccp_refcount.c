@@ -650,9 +650,6 @@ gcc_inline void sccp_refcount_replace(const void * * const replaceptr, const voi
 	if (!replaceptr || (&newptr == replaceptr)) {								// nothing changed
 		return;
 	}
-#if CS_REFCOUNT_DEBUG
-	pbx_assert(*replaceptr != NULL);
-#endif
 	if (do_expect(newptr !=NULL)) {
 		const void *tmpNewPtr = sccp_refcount_retain(newptr, filename, lineno, func);			// retain new one first
 		if (do_expect(tmpNewPtr != NULL)) {
@@ -675,19 +672,6 @@ gcc_inline void sccp_refcount_replace(const void * * const replaceptr, const voi
 gcc_inline void sccp_refcount_autorelease(void *ptr)
 {
 	if (ptr && *(void **)ptr) {										// check if AUTO_RELEASE ptr was actually assigned. or still NULL
-/*
-		#ifdef DEBUG
-		if ((sccp_globals->debug & DEBUGCAT_REFCOUNT) != 0) {
-			const void * * const myptr = (const void **) ptr;
-			RefCountedObject *obj = sccp_refcount_find_obj(*myptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-			if (obj != NULL && obj->refcount > 0) {
-				if (dont_expect( (sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) {
-					sccp_do_backtrace();
-				}
-			}
-		}
-		#endif
-*/
 		sccp_refcount_release((const void **) ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);		// explicit release
 	}
 }
