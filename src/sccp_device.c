@@ -2258,15 +2258,9 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 				}
 				SCCP_LIST_LOCK(&line->channels);
 				SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN(&line->channels, c, list) {
-<<<<<<< ff21ba3712cea8e6e2d28df7bbbb8d36df4264b8
-					AUTO_RELEASE(sccp_channel_t, channel , sccp_channel_retain(c));
+					AUTO_RELEASE(sccp_channel_t, channel, sccp_channel_retain(c));
 					if (channel) {
-						AUTO_RELEASE(sccp_device_t, tmpDevice , sccp_channel_getDevice(channel));
-=======
-					AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
-					if (channel) {
-						AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice(channel);
->>>>>>> Enh: dev_cleanup check device->lineButtons.size before calling sccp_line_deleteLineButtonsArray.
+						AUTO_RELEASE(sccp_device_t, tmpDevice, sccp_channel_getDevice(channel));
 						if (tmpDevice && tmpDevice == d) {
 							pbx_log(LOG_WARNING, "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
 							sccp_channel_endcall(channel);

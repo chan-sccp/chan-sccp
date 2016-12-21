@@ -1879,7 +1879,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		return RESULT_SUCCESS;
 	}
 	if (!strcasecmp(argv[2], "refreport") && argc > 2) {
-		AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(argv[3], FALSE);
+		AUTO_RELEASE(sccp_device_t, d, sccp_device_find_byid(argv[3], FALSE));
 		if (d) {
 			pbx_str_t *buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
 			sccp_refcount_gen_report(d, &buf);
