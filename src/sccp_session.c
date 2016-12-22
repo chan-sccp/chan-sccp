@@ -544,7 +544,6 @@ static sccp_device_t *__sccp_session_removeDevice(sessionPtr session)
 		sccp_device_setRegistrationState(return_device, SKINNY_DEVICE_RS_NONE);
 	}
 	sccp_session_lock(session);
-	return_device->session = NULL;
 	sccp_copy_string(session->designator, sccp_netsock_stringify(&session->ourip), sizeof(session->designator));
 	session->device = NULL;
 	sccp_session_unlock(session);
@@ -846,6 +845,46 @@ void *sccp_netsock_device_thread(void *session)
 	return NULL;
 }
 
+/* cleanup session device thread from another thread */
+static void __sccp_netsock_end_device_thread(sccp_session_t *session)
+{
+	pthread_t session_thread = session->session_thread;
+	if (session_thread == AST_PTHREADT_NULL) {
+		return;
+	}
+	session->session_thread = AST_PTHREADT_NULL;
+
+	int s = pthread_cancel(session_thread);
+	if (s != 0) {
+		pbx_log(LOG_NOTICE, "SCCP: (session_crossdevice_cleanup) pthread_cancel error\n");
+	}
+
+	/* join previous session thread, wait for device cleanup */
+	void *res;
+	int wait_counter = 0;
+	while (pthread_join(session_thread, &res) != 0 && wait_counter++ < 100) {
+		usleep(100);
+	}
+
+	if (res != PTHREAD_CANCELED) {
+		pbx_log(LOG_ERROR, "SCCP: (session_crossdevice_cleanup) pthread join failed\n");
+	}
+}
+
+/* stop session device thread from the same thread */
+gcc_inline void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState)
+{
+	sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
+	if (s) {
+		pthread_t ptid = pthread_self();
+		if (ptid == s->session_thread) {
+			__sccp_session_stopthread(s, newRegistrationState);
+		} else {
+			__sccp_netsock_end_device_thread(s);
+		}
+	}
+}
+
 /*!
  * \brief Socket Accept Connection
  *
@@ -886,20 +925,6 @@ static void sccp_accept_connection(void)
 	}
 
 	sccp_copy_string(addrStr, sccp_netsock_stringify(&s->sin), sizeof(addrStr));
-
-	/*
-	int retries=0;
-	while (sccp_session_findByIP(&incoming) != NULL && retries++ <= ACCEPT_RETRIES) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Session with this IP-address is already known %s. wait !\n", addrStr);
-		if (retries == ACCEPT_RETRIES) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Session with this IP-address is already known %s. exceeding wait time, denied connection !\n", addrStr);
-			sccp_session_reject(s, "Cross Device Session. Come back later");
-			destroy_session(s, 0);
-			return;
-		}
-		sleep(ACCEPT_UWAIT_ON_KNOWN_IP);
-	}
-	*/
 
 	/* check ip address against global permit/deny ACL */
 	if (GLOB(ha) && sccp_apply_ha(GLOB(ha), &s->sin) != AST_SENSE_ALLOW) {
@@ -954,15 +979,8 @@ static void sccp_netsock_cleanup_timed_out(void)
 	pbx_rwlock_unlock(&GLOB(lock));
 	if (module_running && !reload_in_progress) {
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
-			if (session->lastKeepAlive == 0) {
-				// final resort
-				SCCP_LIST_REMOVE_CURRENT(list);
-				destroy_session(session, 0);
-				session = NULL;
-			} else if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive)) && (session->session_thread != AST_PTHREADT_NULL)) {
-				__sccp_session_stopthread(session, SKINNY_DEVICE_RS_FAILED);
-				session->session_thread = AST_PTHREADT_NULL;
-				session->lastKeepAlive = 0;
+			if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive)) && (session->session_thread != AST_PTHREADT_NULL)) {
+				__sccp_netsock_end_device_thread(session);
 			}
 		}
 		SCCP_LIST_TRAVERSE_SAFE_END;
@@ -1187,9 +1205,10 @@ void sccp_session_destroySessionsByDeviceName(const char *name)
 				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session\n", DEV_ID_LOG(d));
 				sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_NONE);
 				d->needcheckringback = 0;
-				sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 0);
+				//sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 0);
 			}
-			destroy_session(session, 1);
+			//destroy_session(session, 1);
+			__sccp_netsock_end_device_thread(session);
 		}
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
@@ -1239,9 +1258,6 @@ sccp_session_t *sccp_session_reject(constSessionPtr session, char *message)
 	REQ(msg, RegisterRejectMessage);
 	sccp_copy_string(msg->data.RegisterRejectMessage.text, message, sizeof(msg->data.RegisterRejectMessage.text));
 	sccp_session_send2(s, msg);
-
-	/* if we reject the connection during accept connection, thread is not ready */
-	//__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 	return NULL;
 }
 
@@ -1258,25 +1274,7 @@ void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPt
 	}
 	if (current_session != previous_session && previous_session->session_thread) {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Previous session %p needs to be cleaned up and killed (%s)!\n", current_session->designator, previous_session->designator, DEV_ID_LOG(previous_session->device));
-
-		/* cancel previous session thread */
-		pthread_t session_thread = previous_session->session_thread;
-
-		int s = pthread_cancel(session_thread);
-		if (s != 0) {
-			pbx_log(LOG_NOTICE, "SCCP: (session_crossdevice_cleanup) pthread_cancel error\n");
-		}
-
-		/* join previous session thread, wait for device cleanup */
-		void *res;
-		int wait_counter = 0;
-		do {
-			sleep(1);
-		} while (pthread_join(session_thread, &res) != 0 && wait_counter++ < 10);
-
-		if (res != PTHREAD_CANCELED) {
-			pbx_log(LOG_ERROR, "SCCP: (session_crossdevice_cleanup) pthread join failed\n");
-		}
+		__sccp_netsock_end_device_thread(previous_session);
 	}
 	return;
 }
@@ -1372,15 +1370,6 @@ gcc_inline void sccp_session_resetLastKeepAlive(constSessionPtr session)
 
 	if (s) {
 		s->lastKeepAlive = time(0);
-	}
-}
-
-gcc_inline void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState)
-{
-	sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
-
-	if (s) {
-		__sccp_session_stopthread(s, newRegistrationState);
 	}
 }
 
