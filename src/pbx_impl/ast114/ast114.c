@@ -788,10 +788,13 @@ static int sccp_wrapper_asterisk114_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 		case AST_CONTROL_MASQUERADE_NOTIFY:
 			break;
 		case -1:											// Asterisk prod the channel
-			if (c->line && c->state > SCCP_GROUPED_CHANNELSTATE_DIALING) {
-				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
-					sccp_channel_openReceiveChannel(c);
-				}
+			if (	c->line && 
+				c->state > SCCP_GROUPED_CHANNELSTATE_DIALING && 
+				c->calltype == SKINNY_CALLTYPE_OUTBOUND && 
+				c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE &&
+				!ast_channel_hangupcause(ast)
+			) {
+				sccp_channel_openReceiveChannel(c);
 				uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
 				sccp_dev_stoptone(d, instance, c->callid);
 			}
