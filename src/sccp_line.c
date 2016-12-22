@@ -1043,7 +1043,7 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 	}
 
 	SCCP_LIST_LOCK(&l->devices);
-	linedevice = SCCP_LIST_FIND(&l->devices, sccp_linedevices_t, tmplinedevice, list, (device == tmplinedevice->device), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	linedevice = SCCP_LIST_FIND(&l->devices, sccp_linedevices_t, tmplinedevice, list, (device == tmplinedevice->device), TRUE, filename, lineno, func);
 	SCCP_LIST_UNLOCK(&l->devices);
 
 	if (!linedevice) {

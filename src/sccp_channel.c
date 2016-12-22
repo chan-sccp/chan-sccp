@@ -255,6 +255,7 @@ void sccp_channel_setDevice(sccp_channel_t * const channel, const sccp_device_t 
 
 	/** for previous device,set active channel to null */
 	if (!device) {
+		sccp_linedevice_refreplace(&channel->privateData->linedevice, NULL);
 		if (!channel->privateData->device) {
 			/* channel->privateData->device was already set to NULL */
 			goto EXIT;
@@ -1824,8 +1825,13 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		sccp_dev_setActiveLine(d, NULL);
 		sccp_dev_check_displayprompt(d);
 	}
-	if (channel && channel->privateData && channel->privateData->device) {
-		sccp_channel_setDevice(channel, NULL);
+	if (channel && channel->privateData) {
+		if (channel->privateData->device) {
+			sccp_channel_setDevice(channel, NULL);
+		}
+		if (channel->privateData->linedevice) {
+			sccp_linedevice_release(&channel->privateData->linedevice);
+		}
 	}
 }
 

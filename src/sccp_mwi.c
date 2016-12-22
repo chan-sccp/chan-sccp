@@ -393,7 +393,7 @@ void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
 		event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_OFFHOOK 
 	) {
 		if (event->event.lineStatusChanged.line && event->event.lineStatusChanged.optional_device) {
-			sccp_linedevices_t *linedevice = sccp_linedevice_find(event->event.lineStatusChanged.optional_device, event->event.lineStatusChanged.line);
+			AUTO_RELEASE(sccp_linedevices_t, linedevice, sccp_linedevice_find(event->event.lineStatusChanged.optional_device, event->event.lineStatusChanged.line));
 			if (linedevice) {
 				sccp_mwi_setMWILineStatus(linedevice);
 			}
