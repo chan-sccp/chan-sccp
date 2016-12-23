@@ -53,10 +53,10 @@ typedef struct {
 	int line;
 } auto_ref_t;
 
-#define AUTO_RELEASE2(_type,_var,_initial,_file,_func,_line) \
-_type *_var = _initial; auto_ref_t __attribute__((cleanup(sccp_refcount_autorelease),unused)) ref##_line = {(const void **const)&_var, _file,_func,_line}
-#define AUTO_RELEASE1(_type,_var,_initial,_file,_func,_line) AUTO_RELEASE2(_type,_var,_initial,_file,_func,_line)
-#define AUTO_RELEASE(_type,_var,_initial) AUTO_RELEASE1(_type,_var,_initial,__FILE__,__PRETTY_FUNCTION__,__LINE__)
+#define AUTO_RELEASE2(_type,_var,_initial,_file,_func,_line,_counter) \
+_type *_var = _initial; auto_ref_t __attribute__((cleanup(sccp_refcount_autorelease),unused)) ref##_counter = {(const void **const)&_var, _file,_func,_line}
+#define AUTO_RELEASE1(_type,_var,_initial,_file,_func,_line,_counter) AUTO_RELEASE2(_type,_var,_initial,_file,_func,_line,_counter)
+#define AUTO_RELEASE(_type,_var,_initial) AUTO_RELEASE1(_type,_var,_initial,__FILE__,__PRETTY_FUNCTION__,__LINE__,__COUNTER__)
 
 #ifdef CS_EXPERIMENTAL
 SCCP_API int SCCP_CALL sccp_refcount_force_release(long findobj, char *identifier);
