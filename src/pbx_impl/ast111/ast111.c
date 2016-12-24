@@ -581,11 +581,13 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 
 	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(ast));
 	if (!c) {
+		//sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: (pbx_indicate) no sccp channel yet\n");
 		return -1;
 	}
 
 	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
-	if (!d) {
+	if (!d || c->state == SCCP_CHANNELSTATE_DOWN) {
+		//sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: (pbx_indicate) no sccp device yet\n");
 		switch (ind) {
 			case AST_CONTROL_CONNECTED_LINE:
 				sccp_asterisk_connectedline(c, data, datalen);
@@ -602,9 +604,6 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 		return res;
 	}
 
-	if (c->state == SCCP_CHANNELSTATE_DOWN) {
-		return -1;											/* Tell asterisk to provide inband signalling */
-	}
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones using inband signaling */
 	res = (((c->rtp.audio.receiveChannelState != SCCP_RTP_STATUS_INACTIVE) || (d && d->earlyrtp)) ? -1 : 0);
