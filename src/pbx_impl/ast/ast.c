@@ -714,7 +714,8 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	int changes = 0;
 	sccp_callinfo_t *const callInfo = sccp_channel_getCallInfo(channel);
 
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got connected line update, connected.id.number=%s, connected.id.name=%s, source=%s\n", 
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: %s call Got connected line update, connected.id.number=%s, connected.id.name=%s, source=%s\n",
+		channel->calltype == SKINNY_CALLTYPE_INBOUND ? "INBOUND" : "OUTBOUND",
 		pbx_channel_name(ast), 
 		pbx_channel_connected_id(ast).number.str ? pbx_channel_connected_id(ast).number.str : "(nil)", 
 		pbx_channel_connected_id(ast).name.str ? pbx_channel_connected_id(ast).name.str : "(nil)", 
@@ -725,6 +726,8 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	char tmpCallingName[StationMaxNameSize] = {0};
 	char tmpCalledNumber[StationMaxDirnumSize] = {0};
 	char tmpCalledName[StationMaxNameSize] = {0};
+	char tmpOrigCalledPartyNumber[StationMaxDirnumSize] = {0};
+	char tmpOrigCalledPartyName[StationMaxNameSize] = {0};
 	int tmpOrigCalledPartyRedirectReason = 0;
 	int tmpLastRedirectReason = 4;		/* \todo need to figure out more about these codes */
 
@@ -733,13 +736,15 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 		SCCP_CALLINFO_CALLINGPARTY_NAME, &tmpCallingName,
 		SCCP_CALLINFO_CALLEDPARTY_NUMBER, &tmpCalledNumber,
 		SCCP_CALLINFO_CALLEDPARTY_NAME, &tmpCalledName,
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, &tmpOrigCalledPartyNumber,
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &tmpOrigCalledPartyName,
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &tmpOrigCalledPartyRedirectReason,
 		SCCP_CALLINFO_KEY_SENTINEL);
 
 	/* set the original calling/called party if the reason is a transfer */
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 		if (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
-			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Destination\n");
+			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Transfer Destination\n");
 			changes = iCallInfo.Setter(callInfo,
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
@@ -774,24 +779,38 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 					SCCP_CALLINFO_KEY_SENTINEL);
 			}
+			AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(channel));
+			if (d) {
+				sccp_indicate(d, channel, channel->state);
+			}
 		}
 	} else /* OUTBOUND CALL */ {
 		struct ast_party_id connected = pbx_channel_connected_id(ast);
 		if (connected.number.valid || connected.name.valid) {
-			changes = iCallInfo.Setter(callInfo,
-				SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? pbx_channel_connected_id(ast).number.str : tmpCalledNumber,
-				SCCP_CALLINFO_CALLEDPARTY_NAME, connected.name.valid ? pbx_channel_connected_id(ast).name.str : tmpCalledName,
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &tmpCallingNumber,
-				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &tmpCallingName,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, &tmpCalledNumber,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &tmpCalledName,
-				SCCP_CALLINFO_KEY_SENTINEL);
+			if (sccp_strcaseequals(connected.number.str, tmpCalledNumber)) {
+				changes = iCallInfo.Setter(callInfo,
+					SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? connected.number.str : tmpCalledNumber,
+					SCCP_CALLINFO_CALLEDPARTY_NAME, connected.name.valid ? connected.name.str : tmpCalledName,
+					SCCP_CALLINFO_KEY_SENTINEL);
+			} else {
+				changes = iCallInfo.Setter(callInfo,
+					SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? connected.number.str : tmpCalledNumber,
+					SCCP_CALLINFO_CALLEDPARTY_NAME, connected.name.valid ? connected.name.str : tmpCalledName,
+					SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, !sccp_strlen_zero(tmpOrigCalledPartyNumber) ? tmpOrigCalledPartyNumber : tmpCalledNumber ,
+					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, !sccp_strlen_zero(tmpOrigCalledPartyName) ? tmpOrigCalledPartyName : tmpCalledName,
+					SCCP_CALLINFO_KEY_SENTINEL);
+			}
 		}
 	}
 	sccp_channel_display_callInfo(channel);
 	if (changes) {
 		sccp_channel_send_callinfo2(channel);
-	}
+		// No need to re-indicate previous channel state, as long as we emulate previous states during pickup/gpickup etc
+		//AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(channel));
+		//if (d) {
+		//	sccp_indicate(d, channel, channel->state);
+		//}
+        }
 #endif
 }
 
