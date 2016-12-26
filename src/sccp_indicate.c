@@ -125,7 +125,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, lineInstance, c->callid);
 				sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
+				//sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_OFFHOOK);
 				sccp_dev_set_cplane(d, lineInstance, 1);
 				/* for earlyrtp take a look at sccp_channel_newcall because we have no c->owner here */

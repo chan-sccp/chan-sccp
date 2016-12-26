@@ -1060,22 +1060,22 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 #ifdef CS_SCCP_PICKUP
 			case SCCP_SOFTSWITCH_GETPICKUPEXTEN:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Pickup Extension\n", d->id);
-				// like we're dialing but we're not :)
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
-				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-				sccp_channel_send_callinfo(d, c);
 				sccp_dev_clearprompt(d, instance, c->callid);
-				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 
 				if (!sccp_strlen_zero(shortenedNumber)) {
  					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) Asterisk request to pickup exten '%s'\n", shortenedNumber);
-					if (sccp_feat_directed_pickup(d, c, instance, shortenedNumber)) {
-						sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
+					sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_PICKUP, GLOB(digittimeout));
+					if (sccp_feat_directed_pickup(d, c, instance, shortenedNumber) == 0) {
+						goto EXIT_FUNC;
 					}
-				} else {
-					// without a number we can also close the call. Isn't it true ?
-					sccp_channel_endcall(c);
 				}
+				sccp_dev_displayprinotify(d, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_MESSAGE_PRIORITY_TIMEOUT, 5);
+				if (c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_DOWN) {
+					sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, SKINNY_TONEDIRECTION_USER);
+				} else {
+					sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, instance, c->callid, SKINNY_TONEDIRECTION_USER);
+				}
+				sccp_channel_schedule_hangup(c, 500);
 				goto EXIT_FUNC;									// leave simpleswitch without dial
 #endif														// CS_SCCP_PICKUP
 #ifdef CS_SCCP_CONFERENCE
