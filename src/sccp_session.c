@@ -720,7 +720,7 @@ void sccp_netsock_device_thread_exit(void *session)
 	destroy_session(s, SESSION_DEVICE_CLEANUP_TIME);
 }
 
-gcc_inline void calc_wait_time(sccp_session_t *s)
+gcc_inline void recalc_wait_time(sccp_session_t *s)
 {
 	float keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT_SESSION;
 	float keepAlive = 0;
@@ -789,11 +789,12 @@ void *sccp_netsock_device_thread(void *session)
 				if (reload_in_progress == FALSE) {
 					sccp_device_check_update(s->device);
 				}
+				continue;									// make sure  s->device is still valid
 			}
 			if (!deviceKnown || (s->device->active_channel ? TRUE : FALSE) != oncall) {
-				calc_wait_time(s);
-				oncall = s->device->active_channel ? TRUE : FALSE;
+				recalc_wait_time(s);
 				deviceKnown = TRUE;
+				oncall = (s->device->active_channel) ? TRUE : FALSE;
 			}
 		}
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
