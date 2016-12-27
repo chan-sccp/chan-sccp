@@ -1108,4 +1108,20 @@ void sccp_softkey_setSoftkeyState(devicePtr device, uint8_t softKeySet, uint8_t 
 	}
 }
 
+boolean_t sccp_softkey_isSoftkeyInSoftkeySet(constDevicePtr device, const uint8_t softKeySet, const uint8_t softKey)
+{
+	uint8_t i;
+
+	if (!device || !device->softKeyConfiguration.size) {
+		return FALSE;
+	}
+
+	/* find softkey */
+	for (i = 0; i < device->softKeyConfiguration.modes[softKeySet].count; i++) {
+		if (device->softKeyConfiguration.modes[softKeySet].ptr && device->softKeyConfiguration.modes[softKeySet].ptr[i] == softKey) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
