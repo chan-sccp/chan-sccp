@@ -2364,12 +2364,14 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 #endif
 	        sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);                                              /* set correct register state */
 
+#if CS_REFCOUNT_DEBUG
 		if (remove_from_global) {
 			pbx_str_t *buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
 			sccp_refcount_gen_report(device, &buf);
 			pbx_log(LOG_NOTICE, "%s (device_clean) (realtime: %s)\nrefcount_report:\n%s\n", d->id, d && d->realtime ? "yes" : "no", pbx_str_buffer(buf));
 			sccp_free(buf);
 		}
+#endif
 	}
 }
 

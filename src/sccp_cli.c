@@ -1878,6 +1878,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		#endif
 		return RESULT_SUCCESS;
 	}
+#if CS_REFCOUNT_DEBUG
 	if (!strcasecmp(argv[2], "refreport") && argc > 2) {
 		AUTO_RELEASE(sccp_device_t, d, sccp_device_find_byid(argv[3], FALSE));
 		if (d) {
@@ -1888,6 +1889,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		}
 		return RESULT_SUCCESS;
 	}
+#endif
 	return RESULT_FAILURE;
 }
 

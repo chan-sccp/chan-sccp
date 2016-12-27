@@ -815,7 +815,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 			pbx_log(LOG_WARNING, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
 			sccp_session_crossdevice_cleanup(s, device->session);
 			sccp_session_reject(s, "Crossover session");
-			goto GEN_REPORT;
+			goto FUNC_EXIT;
 		}
 	}
 
@@ -826,7 +826,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 		if (!(device = sccp_device_createAnonymous(deviceName))) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline device could not be created: %s\n", deviceName, GLOB(hotline)->line->name);
 			sccp_session_reject(s, "hotline failed");
-			goto GEN_REPORT;
+			goto FUNC_EXIT;
 		} else {
 			sccp_config_applyDeviceConfiguration(device, NULL);
 			sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
@@ -840,7 +840,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 		if (sccp_session_retainDevice(s, device) < 0) {
 			pbx_log(LOG_WARNING, "%s: Signing over the session to new device failed. Giving up.\n", DEV_ID_LOG(device));
 			sccp_session_reject(s, "register failed");
-			goto GEN_REPORT;
+			goto FUNC_EXIT;
 		}
 
 		/* check ACLs for this device */
@@ -850,7 +850,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 			pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", deviceName, sccp_netsock_stringify_addr(&sas));
 			sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 			sccp_session_reject(s, "IP Not Authorized");
-			goto GEN_REPORT;
+			goto FUNC_EXIT;
 		}
 
 	} else {
@@ -965,8 +965,8 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	sccp_dev_sendmsg(device, CapabilitiesReqMessage);
 	return;
 
-GEN_REPORT:
-#ifdef DEBUG
+FUNC_EXIT:
+#if CS_REFCOUNT_DEBUG
 	if (device) {
 		pbx_str_t *buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
 		sccp_refcount_gen_report(device, &buf);
@@ -974,6 +974,7 @@ GEN_REPORT:
 		sccp_free(buf);
 	}
 #endif
+	return;
 }
 
 /*!

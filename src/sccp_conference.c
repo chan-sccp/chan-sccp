@@ -199,6 +199,9 @@ static void __sccp_participant_destroy(sccp_participant_t * participant)
 	}
 #endif
 	if (participant->channel) {
+#if CS_REFCOUNT_DEBUG
+		sccp_refcount_removeWeakParent(participant, participant->channel);
+#endif
 		participant->channel->conference_id = 0;
 		participant->channel->conference_participant_id = 0;
 		if (participant->channel->conference) {
@@ -207,6 +210,9 @@ static void __sccp_participant_destroy(sccp_participant_t * participant)
 		sccp_channel_release(&participant->channel);												/* explicit release */
 	}
 	if (participant->device) {
+#if CS_REFCOUNT_DEBUG
+		sccp_refcount_removeWeakParent(participant, participant->device);
+#endif
 		participant->device->conferencelist_active = FALSE;
 		if (participant->device->conference) {
 			sccp_conference_release(&participant->device->conference);									/* explicit release */
@@ -237,8 +243,6 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 		pbx_log(LOG_ERROR, "SCCPCONF/%04d: cannot alloc memory for new conference.\n", conferenceID);
 		return NULL;
 	}
-	sccp_refcount_addWeakParent(conference, device);
-
 	/** initialize new conference */
 	memset(conference, 0, sizeof(sccp_conference_t));
 	conference->id = conferenceID;
@@ -303,8 +307,10 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 	AUTO_RELEASE(sccp_participant_t, participant , sccp_conference_createParticipant(conference));
 
 	if (participant && conference) {
+#if CS_REFCOUNT_DEBUG
 		sccp_refcount_addWeakParent(participant, device);
 		sccp_refcount_addWeakParent(participant, channel);
+#endif
 		conference->num_moderators = 1;
 		participant->channel = sccp_channel_retain(channel);
 		participant->device = sccp_device_retain(device);
@@ -369,8 +375,9 @@ static sccp_participant_t *sccp_conference_createParticipant(constConferencePtr 
 		pbx_log(LOG_ERROR, "SCCPCONF/%04d: cannot alloc memory for new conference participant.\n", conference->id);
 		return NULL;
 	}
+#if CS_REFCOUNT_DEBUG
 	sccp_refcount_addWeakParent(participant, conference);
-
+#endif
 	pbx_bridge_features_init(&participant->features);
 	//ast_set_flag(&(participant->features.feature_flags), AST_BRIDGE_CHANNEL_FLAG_IMMOVABLE);
 
@@ -561,8 +568,10 @@ boolean_t sccp_conference_addParticipatingChannel(conferencePtr conference, cons
 				participant->playback_announcements = device->conf_play_part_announce;
 				iPbx.setChannelLinkedId(channel, conference->linkedid);
 				sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
+#if CS_REFCOUNT_DEBUG
 				sccp_refcount_addWeakParent(participant, device);
 				sccp_refcount_addWeakParent(participant, channel);
+#endif
 			} else {
 				participant->playback_announcements = conference->playback_announcements;
 			}

@@ -514,8 +514,9 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 	}
 	
 	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
+#if CS_REFCOUNT_DEBUG
 	sccp_refcount_addWeakParent(line, device);
-
+#endif
 	char ld_id[REFCOUNT_INDENTIFIER_SIZE];
 
 	snprintf(ld_id, REFCOUNT_INDENTIFIER_SIZE, "%s/%s", device->id, l->name);
@@ -525,9 +526,10 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 		return;
 	}
 	memset(linedevice, 0, sizeof(sccp_linedevices_t));
+#if CS_REFCOUNT_DEBUG
 	sccp_refcount_addWeakParent(linedevice, l);
 	sccp_refcount_addWeakParent(linedevice, device);
-
+#endif
 	linedevice->device = sccp_device_retain(device);
 	linedevice->line = sccp_line_retain(l);
 	linedevice->lineInstance = lineInstance;
@@ -581,8 +583,9 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
 		if (device == NULL || linedevice->device == device) {
+#if CS_REFCOUNT_DEBUG
 			sccp_refcount_removeWeakParent(l, device ? device : linedevice->device);
-
+#endif
 			regcontext_exten(l, &(linedevice->subscriptionId), 0);
 			SCCP_LIST_REMOVE_CURRENT(list);
 			l->statistic.numberOfActiveDevices--;
@@ -627,7 +630,9 @@ void sccp_line_addChannel(constLinePtr line, constChannelPtr channel)
 		//l->statistic.numberOfActiveChannels++;
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = sccp_channel_retain(channel))) {							// Add into list retained
+#if CS_REFCOUNT_DEBUG
 			sccp_refcount_addWeakParent(l, c);
+#endif
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s\n", c->callid, l->name);
 			if (GLOB(callanswerorder) == SCCP_ANSWER_OLDEST_FIRST) {
 				SCCP_LIST_INSERT_TAIL(&l->channels, c, list);					// add to list
@@ -660,7 +665,9 @@ void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
 	if (l) {
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = SCCP_LIST_REMOVE(&l->channels, channel, list))) {
+#if CS_REFCOUNT_DEBUG
 			sccp_refcount_removeWeakParent(l, c);
+#endif
 			if (c->state == SCCP_CHANNELSTATE_HOLD) {
 				c->line->statistic.numberOfHeldChannels--;
 			}

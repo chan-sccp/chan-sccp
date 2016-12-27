@@ -130,8 +130,9 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 			pbx_log(LOG_ERROR, "%s: No memory to allocate channel on line %s\n", l->id, l->name);
 			break;
 		}
+#if CS_REFCOUNT_DEBUG
 		sccp_refcount_addWeakParent(channel, refLine);
-
+#endif
 		/* allocate resources */
 		private_data = sccp_calloc(sizeof *private_data, 1);
 		if (!private_data) {
@@ -263,15 +264,18 @@ void sccp_channel_setDevice(sccp_channel_t * const channel, const sccp_device_t 
 		}
 		sccp_device_setActiveChannel(channel->privateData->device, NULL);
 	}
+#if CS_REFCOUNT_DEBUG
 	if (device || channel->privateData->device) {
 		sccp_refcount_removeWeakParent(channel, channel->privateData->device ? channel->privateData->device : device);
 	}
-
+#endif
 	sccp_device_refreplace(&channel->privateData->device, (sccp_device_t *) device);
 
 	if (device) {
 		sccp_device_setActiveChannel((sccp_device_t *) device, channel);
+#if CS_REFCOUNT_DEBUG
 		sccp_refcount_addWeakParent(channel, device);
+#endif
 	}
 
 	if (channel->privateData && channel->privateData->device) {

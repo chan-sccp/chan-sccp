@@ -95,7 +95,9 @@ struct refcount_object {
 	volatile CAS32_TYPE refcount;
 	enum sccp_refcounted_types type;
 	char identifier[REFCOUNT_INDENTIFIER_SIZE];
+#if CS_REFCOUNT_DEBUG
 	void *parentWeakPtr[REFCOUNT_MAX_PARENTS];
+#endif	
 	int len;
 	int alive;
 	SCCP_RWLIST_ENTRY (RefCountedObject) list;
@@ -109,7 +111,6 @@ static struct refcount_objentry{
 } *objects[SCCP_HASH_PRIME];											//!< objects hash table
 
 #if CS_REFCOUNT_DEBUG
-//#include <asterisk/paths.h> 											// use ast_config_AST_LOG_DIR
 static FILE *sccp_ref_debug_log;
 static volatile uint32_t ref_debug_size;
 #endif
@@ -428,6 +429,7 @@ static gcc_inline void sccp_refcount_remove_obj(const void *ptr)
 	}
 }
 
+#if CS_REFCOUNT_DEBUG 
 void sccp_refcount_gen_report(const void * const ptr, pbx_str_t **buf)
 {
 	pbx_str_append(buf, 0, "\n== refcount report =======================================================================\n");
@@ -470,6 +472,7 @@ void sccp_refcount_gen_report(const void * const ptr, pbx_str_t **buf)
 	ast_rwlock_unlock(&objectslock);
 	pbx_str_append(buf, 0, "==========================================================================================\n");
 }
+#endif
 
 int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
@@ -567,10 +570,7 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 	CLI_AMI_TABLE_FIELD(Refc,	"-4.4",		d,	4,	obj->refcount)					\
 	CLI_AMI_TABLE_FIELD(Alive,	"-5.5",		s,	5,	SCCP_LIVE_MARKER == obj->alive ? "yes" : "no")	\
 	CLI_AMI_TABLE_FIELD(InUse,	"-5.5",		s,	5,	check_inuse ? (inuse ? "yes" : "no") : "off")	\
-	CLI_AMI_TABLE_FIELD(Size,	"-4.4",		d,	4,	obj->len)					\
-	CLI_AMI_TABLE_FIELD(Parent1,	"-15",		p,	15,	obj->parentWeakPtr[0])				\
-	CLI_AMI_TABLE_FIELD(Parent2,	"-15",		p,	15,	obj->parentWeakPtr[1])				\
-	CLI_AMI_TABLE_FIELD(Parent3,	"-15",		p,	15,	obj->parentWeakPtr[2])
+	CLI_AMI_TABLE_FIELD(Size,	"-4.4",		d,	4,	obj->len)
 #include "sccp_cli_table.h"
 	local_line_total++;
 	ast_rwlock_unlock(&objectslock);
@@ -643,6 +643,7 @@ void sccp_refcount_updateIdentifier(const void * const ptr, const char * const i
 	sccp_copy_string(obj->identifier, identifier, REFCOUNT_INDENTIFIER_SIZE);
 }
 
+#if CS_REFCOUNT_DEBUG 
 void sccp_refcount_addWeakParent(const void * const ptr, const void * const parentWeakPtr)
 {
 	RefCountedObject *obj = sccp_refcount_find_obj(ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -685,6 +686,7 @@ void sccp_refcount_removeWeakParent(const void * const ptr, const void * const p
 		}
 	}
 }
+#endif
 
 gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func)
 {
