@@ -54,7 +54,7 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime);
 void sccp_netsock_device_thread_exit(void *session);
 void *sccp_netsock_device_thread(void *session);
 void __sccp_session_stopthread(sessionPtr session, uint8_t newRegistrationState);
-gcc_inline void calc_wait_time(sccp_session_t *s);
+gcc_inline void recalc_wait_time(sccp_session_t *s);
 
 /*!
  * \brief SCCP Session Structure
@@ -553,7 +553,7 @@ void sccp_netsock_device_thread_exit(void *session)
 	destroy_session(s, SESSION_DEVICE_CLEANUP_TIME);
 }
 
-gcc_inline void calc_wait_time(sccp_session_t *s)
+gcc_inline void recalc_wait_time(sccp_session_t *s)
 {
 	float keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT_SESSION;
 	float keepAlive = 0;
@@ -604,7 +604,7 @@ void *sccp_netsock_device_thread(void *session)
 	uint32_t pollTimeout = 0;
 	boolean_t oncall = FALSE;
 	boolean_t deviceKnown = FALSE;
-	calc_wait_time(s);
+	recalc_wait_time(s);
 	
 	unsigned char recv_buffer[SCCP_MAX_PACKET * 2] = "";
 	size_t recv_len = 0;
@@ -623,11 +623,12 @@ void *sccp_netsock_device_thread(void *session)
 				if (reload_in_progress == FALSE) {
 					sccp_device_check_update(s->device);
 				}
+				continue;									// make sure  s->device is still valid
 			}
 			if (!deviceKnown || (s->device->active_channel ? TRUE : FALSE) != oncall) {
-				calc_wait_time(s);
-				oncall = s->device->active_channel ? TRUE : FALSE;
+				recalc_wait_time(s);
 				deviceKnown = TRUE;
+				oncall = (s->device->active_channel) ? TRUE : FALSE;
 			}
 		}
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -712,13 +713,12 @@ void __sccp_session_stopthread(sessionPtr session, uint8_t newRegistrationState)
 /* cleanup session device thread from another thread */
 static void __sccp_netsock_end_device_thread(sccp_session_t *session)
 {
-	/* send thread cancellation (will interrupt poll if necessary) */
 	pthread_t session_thread = session->session_thread;
 	if (session_thread == AST_PTHREADT_NULL) {
 		return;
 	}
-	session->session_thread = AST_PTHREADT_NULL;
 
+	/* send thread cancellation (will interrupt poll if necessary) */
 	int s = pthread_cancel(session_thread);
 	if (s != 0) {
 		pbx_log(LOG_NOTICE, "SCCP: (session_crossdevice_cleanup) pthread_cancel error\n");
@@ -726,12 +726,10 @@ static void __sccp_netsock_end_device_thread(sccp_session_t *session)
 
 	/* join previous session thread, wait for device cleanup */
 	void *res;
-	int waitloop = 10;
-	while (pthread_join(session_thread, &res) != 0 && waitloop-- > 0) {
-		usleep(100);
-	}
-	if (res != PTHREAD_CANCELED) {
-		pbx_log(LOG_ERROR, "SCCP: (session_crossdevice_cleanup) pthread join failed\n");
+	if (pthread_join(session_thread, &res) == 0) {
+		if (res != PTHREAD_CANCELED) {
+			pbx_log(LOG_ERROR, "SCCP: (session_crossdevice_cleanup) pthread join failed\n");
+		}
 	}
 }
 
