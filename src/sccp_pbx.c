@@ -221,7 +221,8 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	if ((l->incominglimit && SCCP_LIST_GETSIZE(&l->channels) > l->incominglimit)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
 		iPbx.queue_control(c->owner, AST_CONTROL_BUSY);
-		iPbx.set_callstate(c, AST_STATE_BUSY);
+		//iPbx.set_callstate(c, AST_STATE_BUSY);
+		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_USER_BUSY);
 		return 0;
 	}
 
@@ -391,7 +392,9 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		sccp_channel_send_callinfo(ForwardingLineDevice->device, c);
 	} else if (hasDNDParticipant) {
 		iPbx.queue_control(c->owner, AST_CONTROL_BUSY);
-		iPbx.set_callstate(c, AST_STATE_BUSY);
+		//iPbx.set_callstate(c, AST_STATE_BUSY);
+		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_USER_BUSY);
+		res = 0;
 	} else {
 		iPbx.queue_control(c->owner, AST_CONTROL_CONGESTION);
 		res = -1;
