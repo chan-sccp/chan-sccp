@@ -164,14 +164,13 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_RING_OUT, GLOB(digittimeout));
 
+				sccp_dev_stoptone(d, lineInstance, c->callid);
 				if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
-				}
-				if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {		// send tone if ther is no rtp for inband signaling 
-					sccp_dev_starttone(d, (uint8_t) SKINNY_TONE_ALERTINGTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 				} else {
-					sccp_dev_stoptone(d, lineInstance, c->callid);
+					sccp_dev_starttone(d, (uint8_t) SKINNY_TONE_ALERTINGTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 				}
+
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGOUT);
 			}
 			break;
