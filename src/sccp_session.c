@@ -63,7 +63,7 @@ void *sccp_netsock_device_thread(void *session);
 sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 sccp_session_t *sccp_session_findByIP(const struct sockaddr_storage *sin);
 void sccp_session_destroySessionsByDeviceName(const char *name);
-gcc_inline void calc_wait_time(sccp_session_t *s);
+gcc_inline void recalc_wait_time(sccp_session_t *s);
 
 /*!
  * \brief SCCP Session Structure
@@ -770,7 +770,7 @@ void *sccp_netsock_device_thread(void *session)
 	uint32_t pollTimeout = 0;
 	boolean_t oncall = FALSE;
 	boolean_t deviceKnown = FALSE;
-	calc_wait_time(s);
+	recalc_wait_time(s);
 
 	int result = 0;	
 	unsigned char recv_buffer[SCCP_MAX_PACKET * 2] = "";
