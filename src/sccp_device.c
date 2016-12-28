@@ -326,9 +326,11 @@ void sccp_device_pre_reload(void)
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Setting Device to Pending Delete=1\n", d->id);
-		if (!d->realtime) {										/* don't want to reset hotline devices. */
+#ifdef CS_SCCP_REALTIME
+		if (!d->realtime) {										/* don't want to reset realtime devices, if they have not changed */
 			d->pendingDelete = 1;
 		}
+#endif
 		d->pendingUpdate = 0;
 		
 		/* clear softkeyset */
@@ -2256,9 +2258,9 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 				}
 				SCCP_LIST_LOCK(&line->channels);
 				SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN(&line->channels, c, list) {
-					AUTO_RELEASE(sccp_channel_t, channel , sccp_channel_retain(c));
+					AUTO_RELEASE(sccp_channel_t, channel, sccp_channel_retain(c));
 					if (channel) {
-						AUTO_RELEASE(sccp_device_t, tmpDevice , sccp_channel_getDevice(channel));
+						AUTO_RELEASE(sccp_device_t, tmpDevice, sccp_channel_getDevice(channel));
 						if (tmpDevice && tmpDevice == d) {
 							pbx_log(LOG_WARNING, "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
 							sccp_channel_endcall(channel);
@@ -2346,7 +2348,7 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 			d->buttonTemplate = NULL;
 		}
 
-		if (device->lineButtons.instance) {
+		if (device->lineButtons.size) {
 			sccp_line_deleteLineButtonsArray(d);
 		}
 #if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
@@ -2361,6 +2363,15 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 #endif
 	        sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);                                              /* set correct register state */
+
+#if CS_REFCOUNT_DEBUG
+		if (remove_from_global) {
+			pbx_str_t *buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
+			sccp_refcount_gen_report(device, &buf);
+			pbx_log(LOG_NOTICE, "%s (device_clean) (realtime: %s)\nrefcount_report:\n%s\n", d->id, d && d->realtime ? "yes" : "no", pbx_str_buffer(buf));
+			sccp_free(buf);
+		}
+#endif
 	}
 }
 
@@ -2378,8 +2389,6 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 int __sccp_device_destroy(const void *ptr)
 {
 	sccp_device_t *d = (sccp_device_t *) ptr;
-	sccp_buttonconfig_t *config = NULL;
-	sccp_hostname_t *permithost = NULL;
 	int i;
 
 	if (!d) {
@@ -2389,73 +2398,106 @@ int __sccp_device_destroy(const void *ptr)
 
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Destroying Device\n", d->id);
 
-	/* cleanup dynamic allocated during sccp_config (i.e. STRINGPTR) */
+	// cleanup dynamic allocated during sccp_config (i.e. STRINGPTR)
 	sccp_config_cleanup_dynamically_allocated_memory(d, SCCP_CONFIG_DEVICE_SEGMENT);
 
-	/* remove button config */
-	/* only generated on read config, so do not remove on reset/restart */
-	SCCP_LIST_LOCK(&d->buttonconfig);
-	while ((config = SCCP_LIST_REMOVE_HEAD(&d->buttonconfig, list))) {
-		sccp_buttonconfig_destroy(config);
-	}
-	SCCP_LIST_UNLOCK(&d->buttonconfig);
-	SCCP_LIST_HEAD_DESTROY(&d->buttonconfig);
-
-	/* removing permithosts */
-	SCCP_LIST_LOCK(&d->permithosts);
-	while ((permithost = SCCP_LIST_REMOVE_HEAD(&d->permithosts, list))) {
-		if (permithost) {
-			sccp_free(permithost);
+	// clean button config (only generated on read config, so do not remove during device clean)
+	{
+		sccp_buttonconfig_t *config = NULL;
+		SCCP_LIST_LOCK(&d->buttonconfig);
+		while ((config = SCCP_LIST_REMOVE_HEAD(&d->buttonconfig, list))) {
+			sccp_buttonconfig_destroy(config);
 		}
+		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		if (!SCCP_LIST_EMPTY(&d->buttonconfig)) {
+			pbx_log(LOG_WARNING, "%s: (device_destroy) there are connected buttonconfigs left during device destroy\n", d->id);
+		}
+		SCCP_LIST_HEAD_DESTROY(&d->buttonconfig);
 	}
-	SCCP_LIST_UNLOCK(&d->permithosts);
-	SCCP_LIST_HEAD_DESTROY(&d->permithosts);
+
+	// clean  permithosts
+	{
+		sccp_hostname_t *permithost = NULL;
+		SCCP_LIST_LOCK(&d->permithosts);
+		while ((permithost = SCCP_LIST_REMOVE_HEAD(&d->permithosts, list))) {
+			if (permithost) {
+				sccp_free(permithost);
+			}
+		}
+		SCCP_LIST_UNLOCK(&d->permithosts);
+		if (!SCCP_LIST_EMPTY(&d->permithosts)) {
+			pbx_log(LOG_WARNING, "%s: (device_destroy) there are connected permithosts left during device destroy\n", d->id);
+		}
+		SCCP_LIST_HEAD_DESTROY(&d->permithosts);
+	}
 
 #ifdef CS_DEVSTATE_FEATURE
-	/* removing devstate_specifier */
-	sccp_devstate_specifier_t *devstateSpecifier;
-
-	SCCP_LIST_LOCK(&d->devstateSpecifiers);
-	while ((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
-		if (devstateSpecifier) {
-			sccp_free(devstateSpecifier);
+	// clean devstate_specifier
+	{
+		sccp_devstate_specifier_t *devstateSpecifier;
+		SCCP_LIST_LOCK(&d->devstateSpecifiers);
+		while ((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
+			if (devstateSpecifier) {
+				sccp_free(devstateSpecifier);
+			}
 		}
+		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
+		if (!SCCP_LIST_EMPTY(&d->devstateSpecifiers)) {
+			pbx_log(LOG_WARNING, "%s: (device_destroy) there are connected deviceSpecifiers left during device destroy\n", d->id);
+		}
+		SCCP_LIST_HEAD_DESTROY(&d->devstateSpecifiers);
 	}
-	SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
-	SCCP_LIST_HEAD_DESTROY(&d->devstateSpecifiers);
 #endif
 
-	/* destroy selected channels list */
-	SCCP_LIST_HEAD_DESTROY(&d->selectedChannels);
+	// clean selected channels
+	{
+		sccp_selectedchannel_t *selectedChannel = NULL;
+		SCCP_LIST_LOCK(&d->selectedChannels);
+		while ((selectedChannel = SCCP_LIST_REMOVE_HEAD(&d->selectedChannels, list))) {
+			sccp_channel_release(&selectedChannel->channel);
+			sccp_free(selectedChannel);
+		}
+		SCCP_LIST_UNLOCK(&d->selectedChannels);
+		if (!SCCP_LIST_EMPTY(&d->selectedChannels)) {
+			pbx_log(LOG_WARNING, "%s: (device_destroy) there are connected selectedChannels left during device destroy\n", d->id);
+		}
+		SCCP_LIST_HEAD_DESTROY(&d->selectedChannels);
+	}
 
+	// cleanup ha
 	if (d->ha) {
 		sccp_free_ha(d->ha);
 		d->ha = NULL;
 	}
 
-	/* cleanup message stack */
+	// cleanup message stack
+	{
 #ifndef SCCP_ATOMIC
-	sccp_mutex_lock(&d->messageStack.lock);
+		sccp_mutex_lock(&d->messageStack.lock);
 #endif
-	for (i = 0; i < SCCP_MAX_MESSAGESTACK; i++) {
-		if (d->messageStack.messages[i] != NULL) {
-			sccp_free(d->messageStack.messages[i]);
+		for (i = 0; i < SCCP_MAX_MESSAGESTACK; i++) {
+			if (d->messageStack.messages[i] != NULL) {
+				sccp_free(d->messageStack.messages[i]);
+			}
 		}
-	}
 #ifndef SCCP_ATOMIC
-	sccp_mutex_unlock(&d->messageStack.lock);
-	pbx_mutex_destroy(&d->messageStack.lock);
+		sccp_mutex_unlock(&d->messageStack.lock);
+		pbx_mutex_destroy(&d->messageStack.lock);
 #endif
+	}
 
+	// cleanup variables
 	if (d->variables) {
 		pbx_variables_destroy(d->variables);
 		d->variables = NULL;
 	}
 	
+	// cleanup privateData
 	if (d->privateData) {
 		sccp_mutex_destroy(&d->privateData->lock);
 		sccp_free(d->privateData);
 	}
+
 	/*
 	if (PBX(endpoint_shutdown)) {
 		iPbx.endpoint_shutdown(d->endpoint);

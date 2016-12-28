@@ -11,6 +11,7 @@
 /* forward declarations */
 struct mansession;
 struct message;
+typedef struct ast_str pbx_str_t;
 
 __BEGIN_C_EXTERN__
 #define REFCOUNT_INDENTIFIER_SIZE 32
@@ -38,13 +39,17 @@ SCCP_API void SCCP_CALL sccp_refcount_destroy(void);
 SCCP_API int SCCP_CALL sccp_refcount_isRunning(void);
 SCCP_API int SCCP_CALL sccp_refcount_schedule_cleanup(const void *data);
 SCCP_API void * SCCP_CALL  const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor);
-SCCP_API void SCCP_CALL sccp_refcount_updateIdentifier(void *ptr, char *identifier);
+SCCP_API void SCCP_CALL sccp_refcount_updateIdentifier(const void * const ptr, const char * const identifier);
 SCCP_API void * SCCP_CALL  const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func);
 SCCP_API void * SCCP_CALL  const sccp_refcount_release(const void * * const ptr, const char *filename, int lineno, const char *func);
 SCCP_API void SCCP_CALL sccp_refcount_replace(const void * * const replaceptr, const void *const newptr, const char *filename, int lineno, const char *func);
-SCCP_API void SCCP_CALL sccp_refcount_print_hashtable(int fd);
 SCCP_API int SCCP_CALL sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 SCCP_API void SCCP_CALL sccp_refcount_autorelease(void *ptr);
+#if CS_REFCOUNT_DEBUG
+SCCP_API void SCCP_CALL sccp_refcount_addWeakParent(const void * const ptr, const void * const parentWeakPtr);
+SCCP_API void SCCP_CALL sccp_refcount_removeWeakParent(const void * const ptr, const void * const parentWeakPtr);
+SCCP_API void SCCP_CALL sccp_refcount_gen_report(const void * const ptr, pbx_str_t **buf);
+#endif
 
 typedef struct {
 	const void ** const ptr;

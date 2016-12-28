@@ -33,7 +33,7 @@ def parse_line(line):
     Returns:
     A dictionary containing the options, or None
     """
-    tokens = line.strip().split(',', 7)
+    tokens = line.strip().split('|', 7)
     if len(tokens) < 8:
         print "ERROR: ref debug line '%s' contains fewer tokens than " \
               "expected: %d" % (line.strip(), len(tokens))
@@ -87,7 +87,7 @@ def process_file(options):
 
             if obj not in current_objects:
                 current_objects[obj] = {'log': [], 'curcount': 1}
-                if 'constructor' in parsed_line['state']:
+                if '**constructor**' in parsed_line['state']:
                     # This is the normal expected case
                     pass
                 elif 'invalid' in parsed_line['state']:
@@ -95,7 +95,7 @@ def process_file(options):
                     current_objects[obj]['curcount'] = 0
                     if options.invalid:
                         invalid_objects.append((obj, current_objects[obj]))
-                elif 'destructor' in parsed_line['state']:
+                elif '**destructor**' in parsed_line['state']:
                     current_objects[obj]['curcount'] = 0
                     if options.skewed:
                         skewed_objects.append((obj, current_objects[obj]))

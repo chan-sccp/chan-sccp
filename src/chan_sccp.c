@@ -306,14 +306,19 @@ int sccp_preUnload(void)
 	/* close accept thread by shutdown the socket descriptor read side -> interrupt polling and break accept loop */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Closing Socket Accept Descriptor\n");
 	shutdown(descriptor, SHUT_RD);
-   	if (socket_thread != AST_PTHREADT_NULL && socket_thread != AST_PTHREADT_STOP) {
-		sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Joining the socket accept thread 3\n");
-		pthread_join(socket_thread, NULL);
-		GLOB(socket_thread) = AST_PTHREADT_STOP;
-	} else {
-		sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: There is not more accept thread\n");
+	if (socket_thread != AST_PTHREADT_NULL) {
+		int s = pthread_cancel(socket_thread);
+		if (s != 0) {
+			pbx_log(LOG_NOTICE, "SCCP: (preUnload) pthread_cancel error\n");
+		}
+		void *res;
+		if (pthread_join(socket_thread, &res) == 0) {
+			if (res != PTHREAD_CANCELED) {
+				pbx_log(LOG_ERROR, "SCCP: (session_crossdevice_cleanup) pthread join failed\n");
+			}
+		}
+		GLOB(socket_thread) = AST_PTHREADT_NULL;
 	}
-
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");				//! \todo make this pbx independend
 
 	/* removing devices */
