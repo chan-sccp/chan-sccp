@@ -872,22 +872,20 @@ void *sccp_netsock_thread(void * ignore)
 	struct pollfd fds[1];
 	fds[0].events = POLLIN | POLLPRI;
 	fds[0].revents = 0;
+	fds[0].fd = GLOB(descriptor);
 
 	int res = 0;
-	int keepaliveInterval;
+	int keepaliveInterval = GLOB(keepalive) * 1000;
 	boolean_t reload_in_progress = FALSE;
-	boolean_t module_running = TRUE;
 
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	while (GLOB(descriptor) > -1) {
-		pbx_rwlock_rdlock(&GLOB(lock));
-		fds[0].fd = GLOB(descriptor);
-		keepaliveInterval = GLOB(keepalive) * 5000;					/* 60 * 5 * 1000 = 300000 =(5 minutes) */
-		pbx_rwlock_unlock(&GLOB(lock));
-
 		res = sccp_netsock_poll(fds, 1, keepaliveInterval);
+		pthread_testcancel();
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 		if (res < 0) {
 			if (!(errno == EINTR || errno == EAGAIN)) {
 				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
@@ -898,17 +896,15 @@ void *sccp_netsock_thread(void * ignore)
 		} else {
 			pbx_rwlock_rdlock(&GLOB(lock));
 			reload_in_progress = GLOB(reload_in_progress);
-			module_running = GLOB(module_running);
+			keepaliveInterval = GLOB(keepalive) * 1000;
 			pbx_rwlock_unlock(&GLOB(lock));
-			if (!module_running) {
-				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Module not running. exiting thread.\n");
-				break;
-			}
 			if (!reload_in_progress) {
 				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
 				sccp_accept_connection();
 			}
 		}
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+		pthread_testcancel();
 	}
 	pbx_rwlock_wrlock(&GLOB(lock));
 	GLOB(socket_thread) = AST_PTHREADT_NULL;
