@@ -1784,7 +1784,7 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 		AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
 
 		if (!SCCP_LIST_GETSIZE(&l->channels)) {
-			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n -> New Call", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
+			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n -> New Call\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 			sccp_dev_setActiveLine(device, l);
 			sccp_dev_set_cplane(device, instance, 1);
 			channel = sccp_channel_newcall(l, device, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
@@ -1797,7 +1797,7 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 			if (l->statistic.numberOfHeldChannels == 1) {
 				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d\n", device->id, channel->callid, instance);
 				sccp_dev_setActiveLine(device, l);
-				sccp_channel_resume(device, channel, TRUE);
+				sccp_channel_resume(device, channel, FALSE);
 			} else {
 				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Multiple calls on hold, just switching to line %d and let user decide\n", device->id, instance);
 				sccp_dev_setActiveLine(device, l);
@@ -3149,6 +3149,7 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 		c = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid);
 	}
 
+#ifdef CS_EXPERIMENTAL
 	if (lineInstance && callid) {
 		AUTO_RELEASE sccp_channel_t *check_channel =  sccp_device_getActiveChannel(d);
 		/* if device->active_channel->callid does not match and is in offhook channelstate -> hangup */
@@ -3163,6 +3164,7 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 		}
 		sccp_dev_set_cplane(d, lineInstance, 1);
 	}
+#endif
 
 	if (!sccp_SoftkeyMap_execCallbackByEvent(d, l, lineInstance, c, event)) {
 		char buf[100];

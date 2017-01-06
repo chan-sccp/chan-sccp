@@ -1614,14 +1614,13 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(channel->line);
 	if (!l) {
-		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no line on channel %d\n", channel->callid);
+		pbx_log(LOG_WARNING, "%s: weird error. The channel has no line\n", channel->designator);
 		return FALSE;
 	}
 
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 	if (!d) {
-		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no device attached to it\n", channel->callid);
-		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no device or device could not be retained on channel %d\n", channel->callid);
+		pbx_log(LOG_WARNING, "%s: weird error. The channel has no device or device could not be retained\n", channel->designator);
 		return FALSE;
 	}
 
@@ -1632,9 +1631,10 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 		/* there is an active call, if offhook channelstate then hangup else put it on hold */
 		if (sccp_active_channel) {
 			if (sccp_active_channel->state <= SCCP_CHANNELSTATE_OFFHOOK) {
+				sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "%s: active channel is brand new and unused, hanging it up before resuming another\n", sccp_active_channel->designator);
 				sccp_channel_endcall(sccp_active_channel);
 			} else if (!(sccp_channel_hold(sccp_active_channel))) {				// hold failed, give up
-				pbx_log(LOG_WARNING, "SCCP: swap_channels failed to put channel %d on hold. exiting\n", sccp_active_channel->callid);
+				pbx_log(LOG_WARNING, "%s: swap_channels failed to put channel on hold. exiting\n", sccp_active_channel->designator);
 				return FALSE;
 			}
 		}
@@ -1642,7 +1642,7 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 
 	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED) {
 		if (!(sccp_channel_hold(channel))) {
-			pbx_log(LOG_WARNING, "SCCP: channel still connected before resuming, put on hold failed for channel %d. exiting\n", channel->callid);
+			pbx_log(LOG_WARNING, "%s: channel still connected before resuming, put on hold failed. exiting\n", channel->designator);
 			return FALSE;
 		}
 	}
