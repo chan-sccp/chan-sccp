@@ -1788,29 +1788,31 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 		AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 
 		if (!SCCP_LIST_GETSIZE(&l->channels)) {
-			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n -> New Call", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
+			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n -> New Call\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 			sccp_dev_setActiveLine(device, l);
 			sccp_dev_set_cplane(device, instance, 1);
 			channel = sccp_channel_newcall(l, device, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		} else if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING))) {
-			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Answering incoming/ringing line %d", device->id, instance);
+			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Answering incoming/ringing line %d\n", device->id, instance);
 			sccp_channel_answer(device, channel);
-		} else if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
-			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", device->id, instance, SCCP_RWLIST_GETSIZE(&l->channels));
-			if (SCCP_LIST_GETSIZE(&l->channels) == 1) {						/* only one call on hold, so resume that one */
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d", device->id, channel->callid, instance);
+			sccp_dev_set_cplane(device, instance, 1);
+		} else if (l->statistic.numberOfHeldChannels >= 1) {
+			channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD);
+			if (l->statistic.numberOfHeldChannels == 1) {
+				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d\n", device->id, channel->callid, instance);
 				sccp_dev_setActiveLine(device, l);
-				sccp_channel_resume(device, channel, TRUE);
-				sccp_dev_set_cplane(device, instance, channel->callid);
-			} else {										/* not sure which channel to make active, let the user decide */
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Switch to line %d", device->id, instance);
+				sccp_channel_resume(device, channel, FALSE);
+			} else {
+				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Multiple calls on hold, just switching to line %d and let user decide\n", device->id, instance);
 				sccp_dev_setActiveLine(device, l);
-				sccp_dev_set_cplane(device, instance, 1);
+				/* select the first channel on hold, but do not resume */
+				sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			}
+			sccp_dev_set_cplane(device, instance, 1);
 		} else if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s for this phone, but remote has one or more-> %s ONHOOKSTEALABLE\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)", d->currentLine ? "hide" : "show");
-			//sccp_device_sendCallHistoryDisposition(d, instance, channel->callid, SKINNY_CALL_HISTORY_DISPOSITION_IGNORE);
-			sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+			//sccp_device_sendCallHistoryDisposition(d, instance, channel->callid, SKINNY_CALL_HISTORY_DISPOSITION_IGNORE);						// does not work on all device types, sadly
+			sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);	// suppress missed call entry in phonebook
 			if (d->currentLine == NULL) {	/* remote phone is on call, show remote call */
 				sccp_dev_setActiveLine(device, l);
 				sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -3131,9 +3133,9 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Got Softkey: %s (%d) line=%d callid=%d\n", d->id, label2str(event), event, lineInstance, callid);
 
+	AUTO_RELEASE(sccp_line_t, l, NULL);
+	AUTO_RELEASE(sccp_channel_t, c, NULL);
 	/* we have no line and call information -> use default line */
-	AUTO_RELEASE(sccp_line_t, l , NULL);
-
 	if (!lineInstance && !callid && (event == SKINNY_LBL_NEWCALL || event == SKINNY_LBL_REDIAL)) {
 		if (d->defaultLineInstance > 0) {
 			lineInstance = d->defaultLineInstance;
@@ -3146,11 +3148,26 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 		l = sccp_line_find_byid(d, lineInstance);
 	}
 
-	AUTO_RELEASE(sccp_channel_t, c , NULL);
-
 	if (l && callid) {
 		c = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid);
 	}
+
+#ifdef CS_EXPERIMENTAL
+	if (lineInstance && callid) {
+		AUTO_RELEASE(sccp_channel_t, check_channel, sccp_device_getActiveChannel(d));
+		/* if device->active_channel->callid does not match and is in offhook channelstate -> hangup */
+		if (check_channel && check_channel->callid != callid && check_channel->state <= SCCP_CHANNELSTATE_OFFHOOK) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call:%s not in progress. Ending Call\n", d->id, check_channel->designator);
+			sccp_channel_endcall(check_channel);
+			sccp_dev_deactivate_cplane(d);
+		}
+		/* switch to requested line and channel */
+		if (c) {
+			sccp_dev_setActiveLine(d, c->line);
+		}
+		sccp_dev_set_cplane(d, lineInstance, 1);
+	}
+#endif
 
 	if (!sccp_SoftkeyMap_execCallbackByEvent(d, l, lineInstance, c, event)) {
 		char buf[100];
