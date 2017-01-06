@@ -949,143 +949,147 @@ int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, u
  */
 int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *preparse, char *buf, size_t buflen)
 {
-	int res = 0;
+	int res = -1;
 
 	char *parse = pbx_strdupa(preparse);
 
 	AST_DECLARE_APP_ARGS(args, AST_APP_ARG(param); AST_APP_ARG(type); AST_APP_ARG(field););
 	AST_STANDARD_APP_ARGS(args, parse);
 
+	/* begin asserts */
 	if (!ast || !CS_AST_CHANNEL_PVT_IS_SCCP(ast)) {
 		pbx_log(LOG_ERROR, "This function requires a valid SCCP channel\n");
 		return -1;
 	}
 
 	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(ast));
-	if (c) {
-		AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
-		if (d) {
-			if (!strcasecmp(args.param, "peerip")) {
-				struct sockaddr_storage sas = { 0 };
-				if (sccp_session_getOurIP(d->session, &sas, 0)) {
-					sccp_copy_string(buf, sccp_netsock_stringify(&sas), buflen);
-				} else {
-					sccp_copy_string(buf, "--", buflen);
-				}
-			} else if (!strcasecmp(args.param, "recvip")) {
-				struct sockaddr_storage sas = { 0 };
-				if (sccp_session_getSas(d->session, &sas)) {
-					sccp_copy_string(buf, sccp_netsock_stringify(&sas), buflen);
-				} else {
-					sccp_copy_string(buf, "--", buflen);
-				}
-			} else if (!strcasecmp(args.param, "useragent")) {
-				sccp_copy_string(buf, skinny_devicetype2str(d->skinny_type), buflen);
-			} else if (!strcasecmp(args.param, "from")) {
-				sccp_copy_string(buf, (char *) d->id, buflen);
-#if ASTERISK_VERSION_GROUP >= 108
-			} else if (!strcasecmp(args.param, "rtpqos")) {
-				PBX_RTP_TYPE *rtp = NULL;
-
-				if (sccp_strlen_zero(args.type)) {
-					args.type = "audio";
-				}
-
-				if (sccp_strcaseequals(args.type, "audio")) {
-					rtp = c->rtp.audio.instance;
-				} else if (sccp_strcaseequals(args.type, "video")) {
-					rtp = c->rtp.video.instance;
-				/*
-				} else if (sccp_strcaseequals(args.type, "text")) {
-					rtp = c->rtp.text.instance;
-				*/
-				} else {
-					return -1;
-				}
-				ast_channel_lock(ast);				
-				if (rtp) {
-					if (sccp_strlen_zero(args.field) || sccp_strcaseequals(args.field, "all")) {
-						char quality_buf[256 /*AST_MAX_USER_FIELD */ ];
-
-						if (!ast_rtp_instance_get_quality(rtp, AST_RTP_INSTANCE_STAT_FIELD_QUALITY, quality_buf, sizeof(quality_buf))) {
-							return -1;
-						}
-
-						sccp_copy_string(buf, quality_buf, buflen);
-						return res;
-					} 
-					struct ast_rtp_instance_stats stats;
-					int i;
-					enum __int_double { __INT, __DBL };
-					struct {
-						const char *name;
-						enum __int_double type;
-						union {
-							unsigned int *i4;
-							double *d8;
-						};
-					} lookup[] = {
-						/* *INDENT-OFF* */
-						{"txcount", 		__INT, {.i4 = &stats.txcount},}, 
-						{"rxcount", 		__INT, {.i4 = &stats.rxcount,},}, 
-						{"txjitter", 		__DBL, {.d8 = &stats.txjitter,},}, 
-						{"rxjitter", 		__DBL, {.d8 = &stats.rxjitter,},},
-						{"remote_maxjitter", 	__DBL, {.d8 = &stats.remote_maxjitter,},},
-						{"remote_minjitter", 	__DBL, {.d8 = &stats.remote_minjitter,},},
-						{"remote_normdevjitter",__DBL, {.d8 = &stats.remote_normdevjitter,},},
-						{"remote_stdevjitter", 	__DBL, {.d8 = &stats.remote_stdevjitter,},},
-						{"local_maxjitter",	__DBL, {.d8 = &stats.local_maxjitter,},},
-						{"local_minjitter", 	__DBL, {.d8 = &stats.local_minjitter,},},
-						{"local_normdevjitter", __DBL, {.d8 = &stats.local_normdevjitter,},},
-						{"local_stdevjitter", 	__DBL, {.d8 = &stats.local_stdevjitter,},},
-						{"txploss", 		__INT, {.i4 = &stats.txploss,},},
-						{"rxploss", 		__INT, {.i4 = &stats.rxploss,},},
-						{"remote_maxrxploss", 	__DBL, {.d8 = &stats.remote_maxrxploss,},},
-						{"remote_minrxploss", 	__DBL, {.d8 = &stats.remote_minrxploss,},},
-						{"remote_normdevrxploss",__DBL, {.d8 = &stats.remote_normdevrxploss,},},
-						{"remote_stdevrxploss", __DBL, {.d8 = &stats.remote_stdevrxploss,},},
-						{"local_maxrxploss", 	__DBL, {.d8 = &stats.local_maxrxploss,},},
-						{"local_minrxploss", 	__DBL, {.d8 = &stats.local_minrxploss,},},
-						{"local_normdevrxploss",__DBL, {.d8 = &stats.local_normdevrxploss,},},
-						{"local_stdevrxploss", 	__DBL, {.d8 = &stats.local_stdevrxploss,},},
-						{"rtt", 		__DBL, {.d8 = &stats.rtt,},},
-						{"maxrtt", 		__DBL, {.d8 = &stats.maxrtt,},},
-						{"minrtt", 		__DBL, {.d8 = &stats.minrtt,},},
-						{"normdevrtt", 		__DBL, {.d8 = &stats.normdevrtt,},},
-						{"stdevrtt", 		__DBL, {.d8 = &stats.stdevrtt,},},
-						{"local_ssrc", 		__INT, {.i4 = &stats.local_ssrc,},},
-						{"remote_ssrc", 	__INT, {.i4 = &stats.remote_ssrc,},},
-						{NULL,},
-						/* *INDENT-ON* */
-					};
-
-					if (ast_rtp_instance_get_stats(rtp, &stats, AST_RTP_INSTANCE_STAT_ALL)) {
-						return -1;
-					}
-
-					for (i = 0; !sccp_strlen_zero(lookup[i].name); i++) {
-						if (sccp_strcaseequals(args.field, lookup[i].name)) {
-							if (lookup[i].type == __INT) {
-								snprintf(buf, buflen, "%u", *lookup[i].i4);
-							} else {
-								snprintf(buf, buflen, "%f", *lookup[i].d8);
-							}
-							return 0;
-						}
-					}
-					pbx_log(LOG_WARNING, "SCCP: (sccp_wrapper_asterisk_channel_read) Unrecognized argument '%s' to %s\n", preparse, funcname);
-					return -1;
-				}
-				ast_channel_unlock(ast);
-#endif
-			} else {
-				res = -1;
-			}
+	if (!c) {
+		return -1;
+	}
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
+	if (!d) {
+		return -1;
+	}
+	/* end asserts */
+	
+	/* handle params */
+	if (!strcasecmp(args.param, "peerip")) {
+		struct sockaddr_storage sas = { 0 };
+		if (sccp_session_getOurIP(d->session, &sas, 0)) {
+			sccp_copy_string(buf, sccp_netsock_stringify(&sas), buflen);
 		} else {
-			res = -1;
+			sccp_copy_string(buf, "--", buflen);
 		}
+	} else if (!strcasecmp(args.param, "recvip")) {
+		struct sockaddr_storage sas = { 0 };
+		if (sccp_session_getSas(d->session, &sas)) {
+			sccp_copy_string(buf, sccp_netsock_stringify(&sas), buflen);
+		} else {
+			sccp_copy_string(buf, "--", buflen);
+		}
+	} else if (!strcasecmp(args.param, "useragent")) {
+		sccp_copy_string(buf, skinny_devicetype2str(d->skinny_type), buflen);
+	} else if (!strcasecmp(args.param, "from")) {
+		sccp_copy_string(buf, (char *) d->id, buflen);
+#if ASTERISK_VERSION_GROUP >= 108
+	} else if (!strcasecmp(args.param, "rtpqos")) {
+		PBX_RTP_TYPE *rtp = NULL;
+
+		if (sccp_strlen_zero(args.type)) {
+			args.type = "audio";
+		}
+
+		if (sccp_strcaseequals(args.type, "audio")) {
+			rtp = c->rtp.audio.instance;
+		} else if (sccp_strcaseequals(args.type, "video")) {
+			rtp = c->rtp.video.instance;
+		/*
+		} else if (sccp_strcaseequals(args.type, "text")) {
+			rtp = c->rtp.text.instance;
+		*/
+		} else {
+			return -1;
+		}
+		ast_channel_lock(ast);
+		do {
+			if (rtp) {
+				if (sccp_strlen_zero(args.field) || sccp_strcaseequals(args.field, "all")) {
+					char quality_buf[256 /*AST_MAX_USER_FIELD */ ];
+
+					if (!ast_rtp_instance_get_quality(rtp, AST_RTP_INSTANCE_STAT_FIELD_QUALITY, quality_buf, sizeof(quality_buf))) {
+						break;
+					}
+
+					sccp_copy_string(buf, quality_buf, buflen);
+					res = 0;
+					break;
+				} 
+				struct ast_rtp_instance_stats stats;
+				int i;
+				enum __int_double { __INT, __DBL };
+				struct {
+					const char *name;
+					enum __int_double type;
+					union {
+						unsigned int *i4;
+						double *d8;
+					};
+				} lookup[] = {
+					/* *INDENT-OFF* */
+					{"txcount", 		__INT, {.i4 = &stats.txcount},}, 
+					{"rxcount", 		__INT, {.i4 = &stats.rxcount,},}, 
+					{"txjitter", 		__DBL, {.d8 = &stats.txjitter,},}, 
+					{"rxjitter", 		__DBL, {.d8 = &stats.rxjitter,},},
+					{"remote_maxjitter", 	__DBL, {.d8 = &stats.remote_maxjitter,},},
+					{"remote_minjitter", 	__DBL, {.d8 = &stats.remote_minjitter,},},
+					{"remote_normdevjitter",__DBL, {.d8 = &stats.remote_normdevjitter,},},
+					{"remote_stdevjitter", 	__DBL, {.d8 = &stats.remote_stdevjitter,},},
+					{"local_maxjitter",	__DBL, {.d8 = &stats.local_maxjitter,},},
+					{"local_minjitter", 	__DBL, {.d8 = &stats.local_minjitter,},},
+					{"local_normdevjitter", __DBL, {.d8 = &stats.local_normdevjitter,},},
+					{"local_stdevjitter", 	__DBL, {.d8 = &stats.local_stdevjitter,},},
+					{"txploss", 		__INT, {.i4 = &stats.txploss,},},
+					{"rxploss", 		__INT, {.i4 = &stats.rxploss,},},
+					{"remote_maxrxploss", 	__DBL, {.d8 = &stats.remote_maxrxploss,},},
+					{"remote_minrxploss", 	__DBL, {.d8 = &stats.remote_minrxploss,},},
+					{"remote_normdevrxploss",__DBL, {.d8 = &stats.remote_normdevrxploss,},},
+					{"remote_stdevrxploss", __DBL, {.d8 = &stats.remote_stdevrxploss,},},
+					{"local_maxrxploss", 	__DBL, {.d8 = &stats.local_maxrxploss,},},
+					{"local_minrxploss", 	__DBL, {.d8 = &stats.local_minrxploss,},},
+					{"local_normdevrxploss",__DBL, {.d8 = &stats.local_normdevrxploss,},},
+					{"local_stdevrxploss", 	__DBL, {.d8 = &stats.local_stdevrxploss,},},
+					{"rtt", 		__DBL, {.d8 = &stats.rtt,},},
+					{"maxrtt", 		__DBL, {.d8 = &stats.maxrtt,},},
+					{"minrtt", 		__DBL, {.d8 = &stats.minrtt,},},
+					{"normdevrtt", 		__DBL, {.d8 = &stats.normdevrtt,},},
+					{"stdevrtt", 		__DBL, {.d8 = &stats.stdevrtt,},},
+					{"local_ssrc", 		__INT, {.i4 = &stats.local_ssrc,},},
+					{"remote_ssrc", 	__INT, {.i4 = &stats.remote_ssrc,},},
+					{NULL,},
+					/* *INDENT-ON* */
+				};
+
+				if (ast_rtp_instance_get_stats(rtp, &stats, AST_RTP_INSTANCE_STAT_ALL)) {
+					break;
+				}
+
+				for (i = 0; !sccp_strlen_zero(lookup[i].name); i++) {
+					if (sccp_strcaseequals(args.field, lookup[i].name)) {
+						if (lookup[i].type == __INT) {
+							snprintf(buf, buflen, "%u", *lookup[i].i4);
+						} else {
+							snprintf(buf, buflen, "%f", *lookup[i].d8);
+						}
+						res = 0;
+						break;
+					}
+				}
+			}
+		} while (0);
+		ast_channel_unlock(ast);
+#endif
 	} else {
-		res = -1;
+		pbx_log(LOG_WARNING, "SCCP: (sccp_wrapper_asterisk_channel_read) Unrecognized argument '%s' to %s\n", preparse, funcname);
 	}
 	return res;
 }
@@ -1217,9 +1221,9 @@ enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 		return res;
 	}
 
+	ast_channel_lock(pbx_channel);
 	AUTO_RELEASE(sccp_channel_t, channel , get_sccp_channel_from_pbx_channel(pbx_channel));
 	if (channel) {
-		ast_channel_lock(pbx_channel);
 #if ASTERISK_VERSION_GROUP >= 111
 #  if !defined(CS_AST_CHANNEL_CALLID_TYPEDEF)
 #    if ASTERISK_VERSION_GROUP >= 111 && ASTERISK_VERSION_GROUP < 114
@@ -1242,7 +1246,6 @@ enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 			if (sccp_asterisk_doPickup(pbx_channel)) {
 				res = AST_PBX_SUCCESS;
 			}
-			ast_channel_unlock(pbx_channel);
 			goto EXIT;
 		}
 		// channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
@@ -1261,9 +1264,9 @@ enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 				res = AST_PBX_FAILED;
 			}
 		}
-		ast_channel_unlock(pbx_channel);
 	}
 EXIT:
+	ast_channel_unlock(pbx_channel);
 	return res;
 }
 
