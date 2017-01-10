@@ -1910,16 +1910,6 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 						} else {
 							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "options: %s <-> %s  (%d)\n", config->button.line.options, options, sccp_strequals(config->button.line.options, options));
 						}
-					/*} else {
-						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "name:%s <-> %s (%d)\n", config->label, name, sccp_strequals(config->label, name));
-						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "ext:%s <-> %s (%d)\n", config->button.line.name, extension, sccp_strequals(config->button.line.name, extension));
-					 	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config->button.line.subscriptionId: %s, parseRes:%d\n", config->button.line.subscriptionId ? "TRUE" : "FALSE", parseRes);
-						if (config->button.line.subscriptionId) {
-							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "subscr number:%s <-> %s (%d)\n", config->button.line.subscriptionId->number, subscriptionId.number, sccp_strcaseequals(config->button.line.subscriptionId->number, subscriptionId.number));
-							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "subscr name:%s <-> %s (%d)\n", config->button.line.subscriptionId->name, subscriptionId.name, sccp_strequals(config->button.line.subscriptionId->name, subscriptionId.name));
-							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "subscr label:%s <-> %s (%d)\n", config->button.line.subscriptionId->label, subscriptionId.label, sccp_strequals(config->button.line.subscriptionId->label, subscriptionId.label));
-							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "subscr aux:%s <-> %s (%d)\n", config->button.line.subscriptionId->aux, subscriptionId.aux, sccp_strequals(config->button.line.subscriptionId->aux, subscriptionId.aux));
-						}*/
 					}
 				} else {
 					pbx_log(LOG_WARNING, "SCCP: button definition:'%s' could not be parsed\n", name);
@@ -2029,7 +2019,8 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 				config->type = LINE;
 				config->label = pbx_strdup(name);
 				config->button.line.name = pbx_strdup(extension);
-				if (!sccp_strlen_zero(subscriptionId->number)) {
+				
+				if (!sccp_strlen_zero(subscriptionId->number) || !sccp_strlen_zero(subscriptionId->name) || !sccp_strlen_zero(subscriptionId->label) || !sccp_strlen_zero(subscriptionId->aux)) {
 					config->button.line.subscriptionId = subscriptionId;
 				} else {
 					sccp_free(subscriptionId);
