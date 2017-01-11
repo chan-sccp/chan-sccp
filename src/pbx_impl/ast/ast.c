@@ -1234,7 +1234,7 @@ void sccp_wrapper_asterisk_set_pickupgroup(sccp_channel_t *channel, ast_group_t 
 	}
 }
 
-#ifdef CS_AST_HAS_NAMEDGROUP
+#if CS_AST_HAS_NAMEDGROUP && ASTERISK_VERSION_GROUP >= 111
 void sccp_wrapper_asterisk_set_named_callgroups(sccp_channel_t *channel, struct ast_namedgroups *value)
 {
 	if (channel && channel->owner) {

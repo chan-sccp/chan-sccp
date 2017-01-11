@@ -326,7 +326,7 @@ int sccp_wrapper_sendDigit(const sccp_channel_t * channel, const char digit);
 
 void sccp_wrapper_asterisk_set_callgroup(sccp_channel_t *channel, ast_group_t value);
 void sccp_wrapper_asterisk_set_pickupgroup(sccp_channel_t *channel, ast_group_t value);
-#ifdef CS_AST_HAS_NAMEDGROUP
+#if CS_AST_HAS_NAMEDGROUP && ASTERISK_VERSION_GROUP >= 111
 void sccp_wrapper_asterisk_set_named_callgroups(sccp_channel_t *channel, struct ast_namedgroups *value);
 void sccp_wrapper_asterisk_set_named_pickupgroups(sccp_channel_t *channel, struct ast_namedgroups *value);
 #endif
