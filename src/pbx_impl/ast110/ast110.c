@@ -717,7 +717,7 @@ static int sccp_wrapper_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 				c->state > SCCP_GROUPED_CHANNELSTATE_DIALING && 
 				c->calltype == SKINNY_CALLTYPE_OUTBOUND && 
 				c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE &&
-				!ast_channel_hangupcause(ast)
+				!ast->hangupcause
 			) {
 				sccp_channel_openReceiveChannel(c);
 				uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
@@ -2874,6 +2874,7 @@ const PbxInterface iPbx = {
 	.allocTempPBXChannel		= sccp_wrapper_asterisk110_allocTempPBXChannel,
 	.masqueradeHelper		= sccp_wrapper_asterisk110_masqueradeHelper,
 	.requestAnnouncementChannel	= sccp_wrapper_asterisk110_requestAnnouncementChannel,
+	.set_language			= sccp_wrapper_asterisk_setLanguage,
 
 	.getExtensionState		= sccp_wrapper_asterisk110_getExtensionState,
 	.findPickupChannelByExtenLocked = sccp_wrapper_asterisk110_findPickupChannelByExtenLocked,

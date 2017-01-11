@@ -655,7 +655,7 @@ static int sccp_wrapper_asterisk16_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 				c->state > SCCP_GROUPED_CHANNELSTATE_DIALING && 
 				c->calltype == SKINNY_CALLTYPE_OUTBOUND && 
 				c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE &&
-				!ast_channel_hangupcause(ast)
+				!ast->hangupcause
 			) {
 				sccp_channel_openReceiveChannel(c);
 				uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
