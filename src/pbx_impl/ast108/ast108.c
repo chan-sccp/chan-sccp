@@ -3086,6 +3086,11 @@ const PbxInterface iPbx = {
 	get_bridged_channel:		sccp_wrapper_asterisk108_getBridgeChannel,
 	get_underlying_channel:		sccp_wrapper_asterisk108_getUnderlyingChannel,
 	attended_transfer:		sccp_wrapper_asterisk108_attended_transfer,
+
+	set_callgroup:			sccp_wrapper_asterisk_set_callgroup,
+	set_pickupgroup:		sccp_wrapper_asterisk_set_pickupgroup,
+	set_named_callgroups:		NULL,
+	set_named_pickupgroups:		NULL,
 	/* *INDENT-ON* */
 };
 #else
@@ -3124,7 +3129,6 @@ const PbxInterface iPbx = {
 
 	.getRemoteChannel		= sccp_asterisk_getRemoteChannel,
 	.checkhangup			= sccp_wrapper_asterisk18_checkHangup,
-	
 	/* digits */
 	.send_digits 			= sccp_wrapper_sendDigits,
 	.send_digit 			= sccp_wrapper_sendDigit,
@@ -3137,7 +3141,6 @@ const PbxInterface iPbx = {
 	.sched_replace_ref		= sccp_wrapper_asterisk18_sched_replace_ref,
 	.sched_when			= sccp_wrapper_asterisk18_sched_when,
 	.sched_wait			= sccp_wrapper_asterisk18_sched_wait,
-	
 	/* callstate / indicate */
 	.set_callstate 			= sccp_wrapper_asterisk18_setCallState,
 
@@ -3175,31 +3178,26 @@ const PbxInterface iPbx = {
 	.set_callerid_presentation 	= sccp_wrapper_asterisk18_setCalleridPresentation,
 	.set_connected_line		= sccp_wrapper_asterisk18_updateConnectedLine,
 	.sendRedirectedUpdate		= sccp_asterisk_sendRedirectedUpdate,
-	
-	
+
 	/* database */
 	.feature_addToDatabase 		= sccp_asterisk_addToDatabase,
 	.feature_getFromDatabase 	= sccp_asterisk_getFromDatabase,
 	.feature_removeFromDatabase     = sccp_asterisk_removeFromDatabase,	
 	.feature_removeTreeFromDatabase = sccp_asterisk_removeTreeFromDatabase,
-	
-	
+
 	.feature_park			= sccp_wrapper_asterisk18_park,
 	.feature_monitor		= sccp_wrapper_asterisk_featureMonitor,
 	.getFeatureExtension		= sccp_wrapper_asterisk18_getFeatureExtension,
 	.getPickupExtension		= sccp_wrapper_asterisk18_getPickupExtension,
-	
 	.findChannelByCallback		= sccp_wrapper_asterisk18_findChannelWithCallback,
 
 	.moh_start			= sccp_asterisk_moh_start,
 	.moh_stop			= sccp_asterisk_moh_stop,
 	.queue_control			= sccp_asterisk_queue_control,
 	.queue_control_data		= sccp_asterisk_queue_control_data,
-	
 	.allocTempPBXChannel		= sccp_wrapper_asterisk18_allocTempPBXChannel,
 	.masqueradeHelper		= sccp_wrapper_asterisk18_masqueradeHelper,
 	.requestAnnouncementChannel	= sccp_wrapper_asterisk18_requestAnnouncementChannel,
-	
 	.set_language			= sccp_wrapper_asterisk_setLanguage,
 
 	.getExtensionState		= sccp_wrapper_asterisk108_getExtensionState,
@@ -3213,6 +3211,11 @@ const PbxInterface iPbx = {
 	.get_bridged_channel		= sccp_wrapper_asterisk108_getBridgeChannel,
 	.get_underlying_channel		= sccp_wrapper_asterisk108_getUnderlyingChannel,
 	.attended_transfer		= sccp_wrapper_asterisk108_attended_transfer,
+
+	.set_callgroup			= sccp_wrapper_asterisk_set_callgroup,
+	.set_pickupgroup		= sccp_wrapper_asterisk_set_pickupgroup,
+	.set_named_callgroups		= NULL,
+	.set_named_pickupgroups		= NULL,
 	/* *INDENT-ON* */
 };
 #endif

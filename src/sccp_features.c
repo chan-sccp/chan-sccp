@@ -224,7 +224,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 		iPbx.get_callerid_number(target, &target_number);
 	}
 
-	if (res == 0) {
+//	if (res == 0) {
 		sccp_channel_stop_schedule_digittimout(c);
 		c->calltype = SKINNY_CALLTYPE_INBOUND;						// reset call direction
 		c->state = SCCP_CHANNELSTATE_RINGING;
@@ -303,7 +303,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 			sccp_channel_schedule_hangup(c, 5000);
 		}
-	}
+//	}
 	//pbx_channel_unlock(target);
 #else
 	pbx_log(LOG_NOTICE, "%s: (directed_pickup) no support for pickup in asterisk\n");
@@ -408,13 +408,21 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 	PBX_CHANNEL_TYPE *target = NULL;									/* potential pickup target */
 	PBX_CHANNEL_TYPE *original = c->owner;
 	if (pbx_channel_ref(original)) {
+		// make sure the new channel does not participate in the potential pickup candidates
+		if (iPbx.set_callgroup) {
+			iPbx.set_callgroup(c, 0);
+		}
+		if (iPbx.set_named_callgroups) {
+			iPbx.set_named_callgroups(c, NULL);
+		}
+
 		pbx_log(LOG_NOTICE, "%s: executing directed_pickup for %s@%s\n", c->designator, exten, context);
 		target = iPbx.findPickupChannelByExtenLocked(original, exten, context);
 		if (target) {
 			res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
 			target = pbx_channel_unref(target);
 		} else {
-			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %s\n", DEV_ID_LOG(d), c->designator);
+			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on call: %s\n", DEV_ID_LOG(d), c->designator);
 			sccp_dev_displayprinotify(d, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_MESSAGE_PRIORITY_TIMEOUT, 5);
 			if (c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_DOWN) {
 				sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, SKINNY_TONEDIRECTION_USER);
@@ -482,6 +490,14 @@ int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstanc
 	/* re-use/create channel for pickup */
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_getEmptyChannel(l, d, maybe_c, SKINNY_CALLTYPE_INBOUND, NULL, NULL));
 	if (c) {
+		// make sure the new channel does not participate in the potential pickup candidates
+		if (iPbx.set_callgroup) {
+			iPbx.set_callgroup(c, 0);
+		}
+		if (iPbx.set_named_callgroups) {
+			iPbx.set_named_callgroups(c, NULL);
+		}
+
 		pbx_log(LOG_NOTICE, "%s: executing_gpickup\n", c->designator);
 		PBX_CHANNEL_TYPE *target = NULL;									/* potential pickup target */
 		PBX_CHANNEL_TYPE *original = c->owner;
@@ -490,9 +506,9 @@ int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstanc
 			if ((target = iPbx.findPickupChannelByGroupLocked(c->owner))) {
 				res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
 				target = pbx_channel_unref(target);
-				res = 0;
+				//res = 0;
 			} else {
-				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (gpickup) findPickupChannelByExtenLocked failed on callid: %s\n", DEV_ID_LOG(d), c->designator);
+				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (gpickup) findPickupChannelByExtenLocked failed on call: %s\n", DEV_ID_LOG(d), c->designator);
 				sccp_dev_displayprinotify(d, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_MESSAGE_PRIORITY_TIMEOUT, 5);
 				if (c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_DOWN) {
 					sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, SKINNY_TONEDIRECTION_USER);

@@ -158,6 +158,16 @@ typedef struct _PbxInterface {
 	PBX_CHANNEL_TYPE *(*const get_bridged_channel) (PBX_CHANNEL_TYPE *pbx_channel);					/* takes pbx_channel_ref */
 	PBX_CHANNEL_TYPE *(*const get_underlying_channel) (PBX_CHANNEL_TYPE *pbx_channel);				/* takes pbx_channel_ref */
 	boolean_t (*const attended_transfer) (sccp_channel_t *destination_channel, sccp_channel_t *source_channel);	/* takes pbx_channel_ref on source_channel */
+
+	void (*set_callgroup)(sccp_channel_t *channel, ast_group_t value);
+	void (*set_pickupgroup)(sccp_channel_t *channel, ast_group_t value);
+#ifdef CS_AST_HAS_NAMEDGROUP
+	void (*set_named_callgroups)(sccp_channel_t *channel, struct ast_namedgroups *value);
+	void (*set_named_pickupgroups)(sccp_channel_t *channel, struct ast_namedgroups *value);
+#else
+	void (*set_named_callgroups)(sccp_channel_t *channel, void *value);
+	void (*set_named_pickupgroups)(sccp_channel_t *channel, void *value);
+#endif
 	/* *INDENT-ON* */
 } PbxInterface;
 

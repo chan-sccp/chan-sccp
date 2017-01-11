@@ -323,5 +323,13 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel);
 int sccp_wrapper_sendDigits(const sccp_channel_t * channel, const char *digits);
 int sccp_wrapper_sendDigit(const sccp_channel_t * channel, const char digit);
 #endif
+
+void sccp_wrapper_asterisk_set_callgroup(sccp_channel_t *channel, ast_group_t value);
+void sccp_wrapper_asterisk_set_pickupgroup(sccp_channel_t *channel, ast_group_t value);
+#ifdef CS_AST_HAS_NAMEDGROUP
+void sccp_wrapper_asterisk_set_named_callgroups(sccp_channel_t *channel, struct ast_namedgroups *value);
+void sccp_wrapper_asterisk_set_named_pickupgroups(sccp_channel_t *channel, struct ast_namedgroups *value);
+#endif
+
 enum ast_pbx_result pbx_pbx_start(struct ast_channel *pbx_channel);
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

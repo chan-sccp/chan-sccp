@@ -3246,6 +3246,11 @@ const PbxInterface iPbx = {
 	get_bridged_channel:		sccp_wrapper_asterisk113_getBridgeChannel,
 	get_underlying_channel:		sccp_wrapper_asterisk113_getBridgeChannel,
 	attended_transfer:		sccp_wrapper_asterisk113_attended_transfer,
+
+	set_callgroup:			sccp_wrapper_asterisk_set_callgroup,
+	set_pickupgroup:		sccp_wrapper_asterisk_set_pickupgroup,
+	set_named_callgroups:		sccp_wrapper_asterisk_set_named_callgroups,
+	set_named_pickupgroups:		sccp_wrapper_asterisk_set_named_pickupgroups,
 	/* *INDENT-ON* */
 };
 
@@ -3381,6 +3386,11 @@ const PbxInterface iPbx = {
 	.get_bridged_channel		= sccp_wrapper_asterisk113_getBridgeChannel,
 	.get_underlying_channel		= sccp_wrapper_asterisk113_getBridgeChannel,
 	.attended_transfer		= sccp_wrapper_asterisk113_attended_transfer,
+
+	.set_callgroup			= sccp_wrapper_asterisk_set_callgroup,
+	.set_pickupgroup		= sccp_wrapper_asterisk_set_pickupgroup,
+	.set_named_callgroups		= sccp_wrapper_asterisk_set_named_callgroups,
+	.set_named_pickupgroups		= sccp_wrapper_asterisk_set_named_pickupgroups,
 	/* *INDENT-ON* */
 };
 #endif

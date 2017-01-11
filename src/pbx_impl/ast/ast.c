@@ -1212,6 +1212,44 @@ static int sccp_asterisk_doPickup(PBX_CHANNEL_TYPE * pbx_channel)
 	return TRUE;
 }
 
+void sccp_wrapper_asterisk_set_callgroup(sccp_channel_t *channel, ast_group_t value)
+{
+	if (channel && channel->owner) {
+#if ASTERISK_VERSION_GROUP < 111
+		channel->owner->callgroup = value;
+#else
+		ast_channel_callgroup_set(channel->owner, value);
+#endif
+	}
+}
+
+void sccp_wrapper_asterisk_set_pickupgroup(sccp_channel_t *channel, ast_group_t value)
+{
+	if (channel && channel->owner) {
+#if ASTERISK_VERSION_GROUP < 111
+		channel->owner->pickupgroup = value;
+#else
+		ast_channel_pickupgroup_set(channel->owner, value);
+#endif
+	}
+}
+
+#ifdef CS_AST_HAS_NAMEDGROUP
+void sccp_wrapper_asterisk_set_named_callgroups(sccp_channel_t *channel, struct ast_namedgroups *value)
+{
+	if (channel && channel->owner) {
+		ast_channel_named_callgroups_set(channel->owner, value);
+	}
+}
+
+void sccp_wrapper_asterisk_set_named_pickupgroups(sccp_channel_t *channel, struct ast_namedgroups *value)
+{
+	if (channel && channel->owner) {
+		ast_channel_named_pickupgroups_set(channel->owner, value);
+	}
+}
+#endif
+
 enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 {
 	enum ast_pbx_result res = AST_PBX_FAILED;
