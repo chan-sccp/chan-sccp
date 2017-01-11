@@ -2781,7 +2781,7 @@ static int sccp_config_getSoftkeyLbl(char *key)
 			return softKeyTemplate[i].softkey;
 		}
 	}
-	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "softkeybutton: %s not defined", key);
+	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "softkeybutton: %s not defined\n", key);
 	return SKINNY_LBL_EMPTY;
 }
 

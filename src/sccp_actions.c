@@ -1639,13 +1639,13 @@ static void handle_speeddial(constDevicePtr d, const sccp_speed_t * k)
 	AUTO_RELEASE(sccp_line_t, l , NULL);
 
 	if (d->defaultLineInstance > 0) {
-		sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
+		sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u\n", d->defaultLineInstance);
 		l = sccp_line_find_byid(d, d->defaultLineInstance);
 	} else {
 		l = sccp_dev_getActiveLine(d);
 	}
 	if (!l) {
-		sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using first line with instance: %u", d->defaultLineInstance);
+		sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using first line with instance: %u\n", d->defaultLineInstance);
 		l = sccp_line_find_byid(d, SCCP_FIRST_LINEINSTANCE);
 	}
 	if (l) {
@@ -1821,7 +1821,7 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 				sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			}
 		} else {
-			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Don't know what the user wants to do, just switch to line %d", device->id, instance);
+			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Don't know what the user wants to do, just switch to line %d\n", device->id, instance);
 			sccp_dev_setActiveLine(device, l);
 			sccp_dev_set_cplane(device, instance, 1);
 		}
@@ -2065,7 +2065,7 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if (config->instance == instance && config->type == FEATURE) {
-			// sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: toggle status from %d", d->id, config->button.feature.status);
+			// sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: toggle status from %d\n", d->id, config->button.feature.status);
 			// config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
 			// sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 " to %d\n", config->button.feature.status);
 			break;
@@ -2402,13 +2402,13 @@ void handle_offhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 		AUTO_RELEASE(sccp_line_t, l , NULL);
 
 		if (d->defaultLineInstance > 0) {
-			sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
+			sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u\n", d->defaultLineInstance);
 			l = sccp_line_find_byid(d, d->defaultLineInstance);
 		} else {
 			l = sccp_dev_getActiveLine(d);
 		}
 		if (!l) {
-			sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using first line with instance: %u", d->defaultLineInstance);
+			sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using first line with instance: %u\n", d->defaultLineInstance);
 			l = sccp_line_find_byid(d, SCCP_FIRST_LINEINSTANCE);
 		}
 
