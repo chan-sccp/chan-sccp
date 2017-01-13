@@ -265,7 +265,6 @@ static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsign
 			break;												// Too short - haven't received whole payload yet, go poll for more
 		}
 
-		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);							// allow thread to be killed while handling the message
 		if (dont_expect(payload_len < SCCP_PACKET_HEADER || payload_len > SCCP_MAX_PACKET)) {
 			pbx_log(LOG_ERROR, "%s: (process_buffer) Size of the data payload in the packet is bigger than max packet, close connection !\n", DEV_ID_LOG(s->device));
 			res = -1;
@@ -275,8 +274,6 @@ static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsign
 			res = -2;
 			break;
 		}
-		pthread_testcancel();
-		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 
 		*len -= payload_len;
 		if (*len > 0) {												// Now shuffle the remaining data in the buffer back to the start
