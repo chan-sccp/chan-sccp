@@ -786,6 +786,7 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			res = -1;
 			break;
 		case AST_CONTROL_MASQUERADE_NOTIFY:
+			res = -1;
 			break;
 		case -1:											// Asterisk prod the channel
 			if (	c->line && 
