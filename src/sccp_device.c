@@ -380,9 +380,9 @@ boolean_t sccp_device_check_update(devicePtr device)
 				d->pendingUpdate = 0;
 				if (d->pendingDelete) {
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
-					sccp_dev_clean(d, TRUE, 0);
+					sccp_dev_clean(d, TRUE);
 				} else {
-					sccp_dev_clean(d, FALSE, 0);
+					sccp_dev_clean(d, FALSE);
 				}
 				res = TRUE;
 			} while (0);
@@ -2207,7 +2207,7 @@ static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)
  *
  * \note adds a retained device to the event.deviceRegistered.device
  */
-void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t cleanupTime)
+void sccp_dev_clean(devicePtr device, boolean_t remove_from_global)
 {
 	AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(device));
 	sccp_buttonconfig_t *config = NULL;
@@ -2323,14 +2323,10 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global, uint8_t clea
 
 		{
 			sccp_session_t * volatile s = d->session;						/* make sure we reread d->session */
-			if (s) {
-				sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-				usleep(20);
-				if (s) {									/* session could have dissolved, use volatile pointer */
-					sccp_session_releaseDevice(s);						/* implicit release */
-				}
-				d->session = NULL;
+			if (s) {										/* session could have dissolved, use volatile pointer */
+				sccp_session_releaseDevice(s);							/* implicit release */
 			}
+			d->session = NULL;
 		}
 
 		/* release line references, refcounted in btnList */

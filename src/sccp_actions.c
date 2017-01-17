@@ -1327,7 +1327,7 @@ void handle_unregister(constSessionPtr s, devicePtr device, constMessagePtr msg_
 		sccp_session_releaseDevice(s);
 	}
 	if (d) {
-		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 5);
+		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE);
 	}
 }
 

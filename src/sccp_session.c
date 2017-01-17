@@ -50,7 +50,6 @@ SCCP_FILE_VERSION(__FILE__, "");
 #define sccp_session_trylock(x)			pbx_mutex_trylock(&(x)->lock)
 /* */
 
-void destroy_session(sccp_session_t * s, uint8_t cleanupTime);
 void sccp_netsock_device_thread_exit(void *session);
 void *sccp_netsock_device_thread(void *session);
 void __sccp_session_stopthread(sessionPtr session, uint8_t newRegistrationState);
@@ -480,32 +479,27 @@ void sccp_session_releaseDevice(constSessionPtr volatile session)
  *      - sessions
  *      - device
  */
-void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
+static void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 {
-	boolean_t found_in_list = FALSE;
-	char addrStr[INET6_ADDRSTRLEN];
-
 	if (!s) {
 		return;
 	}
 
+	char addrStr[INET6_ADDRSTRLEN];
 	sccp_copy_string(addrStr, sccp_netsock_stringify_addr(&s->sin), sizeof(addrStr));
-
 	AUTO_RELEASE(sccp_device_t, d , s->device ? sccp_device_retain(s->device) : NULL);
 	if (d) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
 		sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_CLEANING);
 		d->needcheckringback = 0;
-		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
+		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE);
 	}
 
-	found_in_list = sccp_session_removeFromGlobals(s);
-	if (!found_in_list) {
+	if (!sccp_session_removeFromGlobals(s)) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session could not be found in GLOB(session) %s\n", DEV_ID_LOG(s->device), addrStr);
 	}
-
 	
-	if (s) {	/* re-evaluate s after sccp_dev_clean */
+	if (s) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Destroy Session %s\n", addrStr);
 		/* closing fd's */
 		sccp_session_lock(s);
@@ -545,7 +539,6 @@ void sccp_netsock_device_thread_exit(void *session)
 		s->fds[0].fd = -1;
 	}
 	sccp_session_unlock(s);
-	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Old session marked down\n", DEV_ID_LOG(s->device));
 	s->session_thread = AST_PTHREADT_NULL;
 	destroy_session(s, SESSION_DEVICE_CLEANUP_TIME);
 }
