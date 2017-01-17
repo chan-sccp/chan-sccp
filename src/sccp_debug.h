@@ -10,12 +10,20 @@
 #include "config.h"
 #include "define.h"
 
-#define sccp_log1(...) {								\
-	if ((sccp_globals->debug & (DEBUGCAT_FILELINEFUNC)) == DEBUGCAT_FILELINEFUNC) {	\
-		ast_log(AST_LOG_NOTICE, __VA_ARGS__);					\
-	} else {									\
-		ast_verbose(__VA_ARGS__);						\
-	}										\
+#ifdef NO_FILE_LINE_FUNC_DEBUG
+#undef NO_FILE_LINE_FUNC_DEBUG
+#endif
+
+#define _B_ "", 0, ""
+#define __LOG_VERBOSE    2
+#define NO_FILE_LINE_FUNC_DEBUG      __LOG_VERBOSE, _B_
+
+#define sccp_log1(...) {									\
+	if ((sccp_globals->debug & (DEBUGCAT_FILELINEFUNC)) == DEBUGCAT_FILELINEFUNC) {		\
+		pbx_log(AST_LOG_NOTICE, __VA_ARGS__);						\
+	} else {										\
+		pbx_log(NO_FILE_LINE_FUNC_DEBUG, __VA_ARGS__);					\
+	}											\
 }
 #define sccp_log(_x) if ((sccp_globals->debug & (_x))) sccp_log1
 #define sccp_log_and(_x) if ((sccp_globals->debug & (_x)) == (_x)) sccp_log1
