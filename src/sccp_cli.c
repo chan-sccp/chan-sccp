@@ -2854,19 +2854,20 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 	}
 	
 	/* sccp_device_clean will check active channels */
-	/* \todo implement a check for active channels before sending reset */
-	//if (d->channelCount > 0) {
-	//	pbx_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
-	//	return RESULT_SUCCESS;
-	//}
-	
-	sccp_session_t * volatile s = d->session;
-	if (!restart) {
-		sccp_device_sendReset(d, SKINNY_DEVICE_RESET);
-	} else {
-		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+	if (d->active_channel) {
+		pbx_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
+		return RESULT_FAILURE;
 	}
-	sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
+	
+	int res = 0;
+	if (!restart) {
+		res = sccp_device_sendReset(d, SKINNY_DEVICE_RESET);
+	} else {
+		res = sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+	}
+	if (res <= 0) {
+		sccp_session_stopthread(d->session, SKINNY_DEVICE_RS_NONE);
+	}
 	
 	return RESULT_SUCCESS;
 }

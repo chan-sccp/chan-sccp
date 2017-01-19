@@ -2321,14 +2321,6 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global)
 		}
 		SCCP_LIST_UNLOCK(&d->selectedChannels);
 
-		{
-			sccp_session_t * volatile s = d->session;						/* make sure we reread d->session */
-			if (s) {										/* session could have dissolved, use volatile pointer */
-				sccp_session_releaseDevice(s);							/* implicit release */
-			}
-			d->session = NULL;
-		}
-
 		/* release line references, refcounted in btnList */
 		if (d->buttonTemplate) {
 			btnlist *btn = d->buttonTemplate;
@@ -2358,7 +2350,16 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global)
 		}
 		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 #endif
-	        sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);                                              /* set correct register state */
+		//sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);                                              /* set correct register state */
+		{
+			sccp_session_t * volatile s = d->session;						/* make sure we reread d->session */
+			d->session = NULL;
+			if (s) {										/* session could have dissolved, use volatile pointer */
+				sccp_session_releaseDevice(s);							/* implicit release */
+				sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
+			}
+		}
+
 
 #if CS_REFCOUNT_DEBUG
 		if (remove_from_global) {

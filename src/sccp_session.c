@@ -490,8 +490,6 @@ static void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	AUTO_RELEASE(sccp_device_t, d , s->device ? sccp_device_retain(s->device) : NULL);
 	if (d) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
-		sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_CLEANING);
-		d->needcheckringback = 0;
 		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE);
 	}
 
@@ -711,14 +709,14 @@ static void __sccp_netsock_end_device_thread(sccp_session_t *session)
 	/* send thread cancellation (will interrupt poll if necessary) */
 	int s = pthread_cancel(session_thread);
 	if (s != 0) {
-		pbx_log(LOG_NOTICE, "SCCP: (session_crossdevice_cleanup) pthread_cancel error\n");
+		pbx_log(LOG_NOTICE, "SCCP: (sccp_netsock_end_device_thread) pthread_cancel error\n");
 	}
 
 	/* join previous session thread, wait for device cleanup */
 	void *res;
 	if (pthread_join(session_thread, &res) == 0) {
 		if (res != PTHREAD_CANCELED) {
-			pbx_log(LOG_ERROR, "SCCP: (session_crossdevice_cleanup) pthread join failed\n");
+			pbx_log(LOG_ERROR, "SCCP: (sccp_netsock_end_device_thread) pthread join failed\n");
 		}
 	}
 }
@@ -1054,7 +1052,7 @@ void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPt
 		return;
 	}
 	if (current_session != previous_session && previous_session->session_thread) {
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Previous session %p needs to be cleaned up and killed (%s)!\n", current_session->designator, previous_session->designator, DEV_ID_LOG(previous_session->device));
+		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Previous session %p needs to be cleaned up and killed!\n", current_session->designator, previous_session->designator);
 		__sccp_netsock_end_device_thread(previous_session);
 	}
 	return;
