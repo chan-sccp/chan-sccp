@@ -649,27 +649,47 @@ sccp_device_t *sccp_device_createAnonymous(const char *name)
 	return d;
 }
 
+static void __saveLastDialedNumberToDatabase(constDevicePtr device)
+{
+	char family[25];
+	snprintf(family, sizeof(family), "SCCP/%s", device->id);
+	if (!sccp_strlen_zero(device->redialInformation.number)) {
+		char buffer[SCCP_MAX_EXTENSION+16] = "\0";
+		snprintf (buffer, sizeof(buffer), "%s;lineInstance=%d", device->redialInformation.number, device->redialInformation.lineInstance);
+		iPbx.feature_addToDatabase(family, "lastDialedNumber", buffer);
+	} else {
+		iPbx.feature_removeFromDatabase(family, "lastDialedNumber");
+	}
+}
+
 void sccp_device_setLastNumberDialed(devicePtr device, const char *lastNumberDialed, const sccp_linedevices_t *linedevice)
 {
 	boolean_t ResetNoneLineInstance = FALSE;
+	boolean_t redial_active = FALSE;
+	boolean_t update_database = FALSE;
 
 	if (device->useRedialMenu) {
 		return;
 	}
-	boolean_t redial_active;
 
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Update last number dialed to %s.\n", DEV_ID_LOG(device), lastNumberDialed);
 	if (lastNumberDialed && !sccp_strlen_zero(lastNumberDialed)) {
 		if (sccp_strlen_zero(device->redialInformation.number)) {
 			ResetNoneLineInstance = TRUE;
 		}
-		sccp_copy_string(device->redialInformation.number, lastNumberDialed, sizeof(device->redialInformation.number));
-		device->redialInformation.lineInstance = linedevice->lineInstance;
+		if (!sccp_strequals(device->redialInformation.number, lastNumberDialed) || device->redialInformation.lineInstance != linedevice->lineInstance) {
+			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Update last number dialed to %s.\n", DEV_ID_LOG(device), lastNumberDialed);
+			sccp_copy_string(device->redialInformation.number, lastNumberDialed, sizeof(device->redialInformation.number));
+			device->redialInformation.lineInstance = linedevice->lineInstance;
+			update_database = TRUE;
+		}
 		redial_active = TRUE;
 	} else {
-		sccp_copy_string(device->redialInformation.number, "", sizeof(device->redialInformation.number));
-		device->redialInformation.lineInstance = 0;
-		redial_active = FALSE;
+		if (!sccp_strlen_zero(device->redialInformation.number) || device->redialInformation.lineInstance != 0) {
+			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Clear last number dialed.\n", DEV_ID_LOG(device));
+			sccp_copy_string(device->redialInformation.number, "", sizeof(device->redialInformation.number));
+			device->redialInformation.lineInstance = 0;
+			update_database = TRUE;
+		}
 	}
 	sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, redial_active);
 	sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOK, SKINNY_LBL_REDIAL, redial_active);
@@ -677,6 +697,9 @@ void sccp_device_setLastNumberDialed(devicePtr device, const char *lastNumberDia
 	sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_REDIAL, redial_active);
 	if (ResetNoneLineInstance) {
 		sccp_dev_set_keyset(device, 0, 0, KEYMODE_ONHOOK);
+	}
+	if (update_database) {
+		__saveLastDialedNumberToDatabase(device);
 	}
 }
 
@@ -2230,16 +2253,8 @@ void sccp_dev_clean(devicePtr device, boolean_t remove_from_global)
 		d->mwilight = 0;										/* reset mwi light */
 		d->linesRegistered = FALSE;
 
-		// (re)set last dialed number in database
-		char family[25];
-		snprintf(family, sizeof(family), "SCCP/%s", d->id);
-		iPbx.feature_removeFromDatabase(family, "lastDialedNumber");
-		char buffer[SCCP_MAX_EXTENSION+16] = "\0";
-		if (!sccp_strlen_zero(d->redialInformation.number)) {
-			snprintf (buffer, sizeof(buffer), "%s;lineInstance=%d", d->redialInformation.number, d->redialInformation.lineInstance);
-			iPbx.feature_addToDatabase(family, "lastDialedNumber", buffer);
-		}
-
+		__saveLastDialedNumberToDatabase(d);
+		
 		if (d->active_channel) {
 			sccp_device_setActiveChannel(d, NULL);
 		}
