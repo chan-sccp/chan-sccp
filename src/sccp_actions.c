@@ -1318,6 +1318,14 @@ void handle_unregister(constSessionPtr s, devicePtr device, constMessagePtr msg_
 
 	/* we don't need to look for active channels. the phone does send unregister only when there are no channels */
 	REQ(msg_out, UnregisterAckMessage);
+
+	if (d && d->active_channel) {
+		msg_out->data.UnregisterAckMessage.lel_status = SKINNY_UNREGISTERSTATUS_NAK;
+		sccp_session_send2(s, msg_out);							// send directly to session, skipping device check
+		pbx_log(LOG_NOTICE, "%s: unregister request denied (active channel:%s)\n", DEV_ID_LOG(d), d->active_channel->designator);
+		return;
+	}
+
 	msg_out->data.UnregisterAckMessage.lel_status = SKINNY_UNREGISTERSTATUS_OK;
 	sccp_session_send2(s, msg_out);								// send directly to session, skipping device check
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
