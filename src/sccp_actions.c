@@ -509,7 +509,11 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 		if (tmpdevice) {
 			skinny_registrationstate_t state = sccp_device_getRegistrationState(tmpdevice);
 			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + 60) {
-				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
+				if (tmpdevice->status.token == SCCP_TOKEN_STATE_ACK) {
+					sccp_session_tokenAck(s);
+				} else {
+					sccp_session_tokenReject(s, GLOB(token_backoff_time));
+				}
 				return;
 			}
 			if (sccp_session_check_crossdevice(s, tmpdevice) || (state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
@@ -540,13 +544,13 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 	}
 
 	sccp_session_setProtocol(s, SCCP_PROTOCOL);
+	device->status.token = SCCP_TOKEN_STATE_REJ;
+	device->skinny_type = deviceType;
 	if (sccp_session_retainDevice(s, device) < 0) {
 		pbx_log(LOG_WARNING, "%s: Signing over the session to new device failed. Giving up.\n", DEV_ID_LOG(device));
 		sccp_session_tokenReject(s, GLOB(token_backoff_time));
 		return;
 	}
-	device->status.token = SCCP_TOKEN_STATE_REJ;
-	device->skinny_type = deviceType;
 
 	if (device->checkACL(device) == FALSE) {
 		struct sockaddr_storage sas = { 0 };
@@ -621,7 +625,6 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 
 	/* some test to detect active calls */
 	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: serverPriority: %d, unknown: %d, active call? %s\n", deviceName, serverPriority, letohl(msg_in->data.RegisterTokenRequest.unknown), (letohl(msg_in->data.RegisterTokenRequest.unknown) & 0x6) ? "yes" : "no");
-	device->keepalive = device->keepaliveinterval = device->keepalive ? device->keepalive : GLOB(keepalive);
 
 	sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_TOKEN);
 	if (sendAck) {
@@ -690,8 +693,11 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 		if (tmpdevice) {
 			skinny_registrationstate_t state = sccp_device_getRegistrationState(tmpdevice);
 			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + 60) {
-				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
-				sleep(1);
+				if (tmpdevice->status.token == SCCP_TOKEN_STATE_ACK) {
+					sccp_session_tokenAckSPCP(s, 65535);
+				} else {
+					sccp_session_tokenRejectSPCP(s, 60);
+				}
 				return;
 			}
 			if (sccp_session_check_crossdevice(s, tmpdevice) || (state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
@@ -723,13 +729,13 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 	}
 
 	sccp_session_setProtocol(s, SPCP_PROTOCOL);
+	device->status.token = SCCP_TOKEN_STATE_REJ;
+	device->skinny_type = deviceType;
 	if (sccp_session_retainDevice(s, device) < 0) {
 		pbx_log(LOG_WARNING, "%s: Signing over the session to new device failed. Giving up.\n", DEV_ID_LOG(device));
 		sccp_session_tokenRejectSPCP(s, 60);
 		return;
 	}
-	device->status.token = SCCP_TOKEN_STATE_REJ;
-	device->skinny_type = deviceType;
 
 	if (device->checkACL(device) == FALSE) {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, sccp_netsock_stringify_addr(&sas));
@@ -748,7 +754,6 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 
 	/* all checks passed, assign session to device */
 	// device->session = s;
-	device->keepalive = device->keepaliveinterval = device->keepalive ? device->keepalive : GLOB(keepalive);
 	sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_TOKEN);
 	device->status.token = SCCP_TOKEN_STATE_ACK;
 
@@ -923,12 +928,10 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	}
 
 	device->skinny_type = deviceType;
-
-	// device->session = s;
-	sccp_session_resetLastKeepAlive(s);
 	device->mwilight = 0;
 	device->protocolversion = protocolVer;
 	device->status.token = SCCP_TOKEN_STATE_NOTOKEN;
+	sccp_session_resetLastKeepAlive(s);
 	sccp_copy_string(device->loadedimageversion, msg_in->data.RegisterMessage.loadInfo, StationMaxImageVersionSize);
 
 	/** workaround to fix the protocol version issue for ata devices */
@@ -948,16 +951,12 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "%s: Our protocol capability   : %d\n", DEV_ID_LOG(device), ourMaxProtocolCapability);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Joint protocol capability : %d\n", DEV_ID_LOG(device), device->protocol->version);
 
-	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time
-	 * smaller random segment, keeping keepalive toward the upperbound */
-	device->keepalive = device->keepalive ? device->keepalive : GLOB(keepalive);
-	device->keepaliveinterval = ((device->keepalive / 4) * 3) + (sccp_random() % (device->keepalive / 4)) + 1;
-
 	device->inuseprotocolversion = device->protocol->version;
 	sccp_device_preregistration(device);
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", DEV_ID_LOG(device), device->keepaliveinterval);
-	device->protocol->sendRegisterAck(device, device->keepaliveinterval, device->keepaliveinterval*2, GLOB(dateformat));
+	uint16_t keepAliveInterval = sccp_session_getKeepAliveInterval(s);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", DEV_ID_LOG(device), keepAliveInterval);
+	device->protocol->sendRegisterAck(device, keepAliveInterval, keepAliveInterval * 2 /*tokenKeepAliveInterval */, GLOB(dateformat));
 
 	sccp_dev_set_registered(device, SKINNY_DEVICE_RS_PROGRESS);
 

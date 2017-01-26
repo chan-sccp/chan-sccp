@@ -21,6 +21,7 @@ SCCP_API int SCCP_CALL sccp_session_send2(constSessionPtr session, sccp_msg_t * 
 SCCP_API int SCCP_CALL sccp_session_retainDevice(constSessionPtr session, constDevicePtr device);
 SCCP_API void SCCP_CALL sccp_session_releaseDevice(constSessionPtr volatile session);
 SCCP_API sccp_session_t * SCCP_CALL sccp_session_reject(constSessionPtr session, char *message);
+SCCP_API uint16_t SCCP_CALL sccp_session_getKeepAliveInterval(constSessionPtr session);
 SCCP_API void SCCP_CALL sccp_session_tokenReject(constSessionPtr session, uint32_t backoff_time);
 SCCP_API void SCCP_CALL sccp_session_tokenAck(constSessionPtr session);
 SCCP_API void SCCP_CALL sccp_session_tokenRejectSPCP(constSessionPtr session, uint32_t features);

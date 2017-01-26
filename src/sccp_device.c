@@ -621,7 +621,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->setRingTone = sccp_device_setRingtoneNotSupported;
 	d->getDtmfMode = sccp_device_getDtfmMode;
 	d->copyStr2Locale = sccp_device_copyStr2Locale_UTF8;
-	d->keepalive = d->keepaliveinterval = d->keepalive ? d->keepalive : GLOB(keepalive);
+	d->keepalive = d->keepalive ? d->keepalive : GLOB(keepalive);
 
 	d->pendingUpdate = 0;
 	d->pendingDelete = 0;

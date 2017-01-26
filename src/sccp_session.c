@@ -40,9 +40,9 @@ SCCP_FILE_VERSION(__FILE__, "");
 
 #define WRITE_BACKOFF 500											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
 #define SESSION_DEVICE_CLEANUP_TIME 10										/* wait time before destroying a device on thread exit */
-#define KEEPALIVE_ADDITIONAL_PERCENT_SESSION 1.05								/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
-#define KEEPALIVE_ADDITIONAL_PERCENT_DEVICE 1.20								/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
-#define KEEPALIVE_ADDITIONAL_PERCENT_ON_CALL 2.00								/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
+#define KEEPALIVE_ADDITIONAL_PERCENT_SESSION 20									/* extra time allowed for device keepalive overrun */
+#define KEEPALIVE_ADDITIONAL_PERCENT_DEVICE 30									/* extra time allowed for device keepalive overrun */
+#define KEEPALIVE_ADDITIONAL_PERCENT_ON_CALL 2									/* extra time allowed for device keepalive overrun */
 
 /* Lock Macro for Sessions */
 #define sccp_session_lock(x)			pbx_mutex_lock(&(x)->lock)
@@ -61,8 +61,10 @@ gcc_inline void recalc_wait_time(sccp_session_t *s);
  */
 struct sccp_session {
 	time_t lastKeepAlive;											/*!< Last KeepAlive Time */
-	uint16_t keepAlive;
-	uint16_t keepAliveInterval;
+	uint8_t keepAlive;
+	uint8_t keepAliveInterval;
+	uint16_t pollTimeout;
+	boolean_t tokenSession;
 	SCCP_RWLIST_ENTRY (sccp_session_t) list;								/*!< Linked List Entry for this Session */
 	sccp_device_t *device;											/*!< Associated Device */
 	struct pollfd fds[1];											/*!< File Descriptor */
@@ -403,6 +405,7 @@ static sccp_device_t *__sccp_session_removeDevice(sessionPtr session)
 	sccp_session_lock(session);
 	sccp_copy_string(session->designator, sccp_netsock_stringify(&session->ourip), sizeof(session->designator));
 	session->device = NULL;
+	recalc_wait_time(session);
 	sccp_session_unlock(session);
 	return return_device;
 }
@@ -437,6 +440,7 @@ static int __sccp_session_addDevice(sessionPtr session, constDevicePtr device)
 				res = -1;
 			}
 		}
+		recalc_wait_time(session);
 		sccp_session_unlock(session);
 	}
 	return res;
@@ -543,35 +547,29 @@ void sccp_netsock_device_thread_exit(void *session)
 
 gcc_inline void recalc_wait_time(sccp_session_t *s)
 {
-	float keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT_SESSION;
-	float keepAlive = GLOB(keepalive);
-	float keepAliveInterval = GLOB(keepalive);
-	sccp_device_t *d = s->device;
+	sccp_device_t * d = s->device;
+	uint16_t keepAlive = GLOB(keepalive);
+	s->tokenSession = FALSE;
 	if (d) {
-		keepAlive = d->keepalive;
-		keepAliveInterval = d->keepaliveinterval;
+		keepAlive = d->keepalive;									/* max timeout for session */
+		s->tokenSession = (d->status.token != SCCP_TOKEN_STATE_NOTOKEN) ? TRUE : FALSE;
 		if (
 			d->skinny_type == SKINNY_DEVICETYPE_CISCO7920 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7921 ||
 			d->skinny_type == SKINNY_DEVICETYPE_CISCO7925 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7926 ||
 			d->skinny_type == SKINNY_DEVICETYPE_CISCO7970 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7975 ||
 			d->skinny_type == SKINNY_DEVICETYPE_CISCO6911
 		) {
-			keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT_DEVICE;
-		}
-		if (d->active_channel) {
-			keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT_ON_CALL;
+			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_4 "%s: additionalTimeout required\n", s->designator);
+			keepAlive += KEEPALIVE_ADDITIONAL_PERCENT_DEVICE;
 		}
 	}
-	s->keepAlive = (keepAlive * keepaliveAdditionalTimePercent);
-	s->keepAliveInterval = (keepAliveInterval * KEEPALIVE_ADDITIONAL_PERCENT_SESSION);
+	s->keepAliveInterval = ((keepAlive / 4) * 3) + (sccp_random() % (keepAlive / 4)) + 1;			/* randomize device timeout */
+	s->keepAlive = keepAlive + KEEPALIVE_ADDITIONAL_PERCENT_SESSION;					/* Keep Alive Max */
+	s->pollTimeout = keepAlive * 2 * 1000;									/* timeout in milliseconds */
 
-	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_4 "%s: keepalive:%d, keepaliveinterval:%d\n", s->designator, s->keepAlive, s->keepAliveInterval);
-	if (!s->keepAlive || !s->keepAliveInterval) {	/* temporary */
-		pbx_log(LOG_NOTICE, "SCCP: keepalive interval calculation failed!\n");
-		s->keepAlive = GLOB(keepalive);
-		s->keepAliveInterval = GLOB(keepalive);
-	}
+	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_4 "%s: keepAlive:%d, keepAliveInterval:%d, pollTimeout:%d, tokenSession:%s\n", s->designator, s->keepAlive, s->keepAliveInterval, s->pollTimeout, s->tokenSession ? "True" : "False");
 }
+
 
 /*!
  * \brief Socket Device Thread
@@ -589,8 +587,6 @@ void *sccp_netsock_device_thread(void *session)
 		return NULL;
 	}
 
-	boolean_t oncall = TRUE;
-	boolean_t tokenThread = FALSE;
 	unsigned char recv_buffer[SCCP_MAX_PACKET * 2] = "";
 	size_t recv_len = 0;
 	sccp_msg_t msg = { {0,} };
@@ -611,18 +607,11 @@ void *sccp_netsock_device_thread(void *session)
 				}
 				continue;									// make sure  s->device is still valid
 			}
-			if ((d->active_channel ? TRUE : FALSE) != oncall) {
-				recalc_wait_time(s);
-				oncall = (d->active_channel) ? TRUE : FALSE;
-			}
-			if (d->status.token == SCCP_TOKEN_STATE_ACK) {
-				tokenThread = TRUE;								// only does TCP-Keepalive
-			}
 		}
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d for session %d\n", DEV_ID_LOG(s->device), (int) s->keepAliveInterval, s->fds[0].fd);
-
-		res = sccp_netsock_poll(s->fds, 1, s->keepAliveInterval * 1000);
+		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d for session %d\n", DEV_ID_LOG(s->device), (int) s->keepAlive * 2, s->fds[0].fd);
+		
+		res = sccp_netsock_poll(s->fds, 1, (s->pollTimeout));
 		pthread_testcancel();
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 		if (-1 == res) {										/* poll data processing */
@@ -633,11 +622,15 @@ void *sccp_netsock_device_thread(void *session)
 				break;
 			}
 		} else if (0 == res) {										/* poll timeout */
-			uintmax_t timediff = (uintmax_t)time(0) - (uintmax_t)s->lastKeepAlive;
-			if (!tokenThread && timediff >= s->keepAlive) {
-				pbx_log(LOG_NOTICE, "%s: Closing session because connection timed out after %ju seconds (ip-address: %s).\n", DEV_ID_LOG(s->device), timediff, s->designator);
-				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_TIMEOUT);
-				break;
+			if (!s->tokenSession) {									/* tokens only use TCP Keepalive and don't send KeepAliveMessages */
+				uintmax_t timediff = (uintmax_t)time(0) - (uintmax_t)s->lastKeepAlive;
+				if (!s->tokenSession && timediff >= (s->keepAlive * 2)) {
+					pbx_log(LOG_NOTICE, "%s: Closing session because connection timed out after %ju seconds (ip-address: %s).\n", DEV_ID_LOG(s->device), timediff, s->designator);
+					__sccp_session_stopthread(s, SKINNY_DEVICE_RS_TIMEOUT);
+					break;
+				} else {
+					pbx_log(LOG_NOTICE, "%s: Missed keepalive window.\n", s->designator);
+				}
 			}
 		} else if (res > 0) {										/* poll data processing */
 			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
@@ -759,7 +752,7 @@ static void sccp_accept_connection(void)
 		sccp_free(s);
 		return;
 	}
-	sccp_netsock_setoptions(new_socket, /*reuse*/ 0, /*linger*/ 0, GLOB(keepalive) * 2);
+	sccp_netsock_setoptions(new_socket, /*reuse*/ 0, /*linger*/ 0, GLOB(keepalive));
 	
 	memcpy(&s->sin, &incoming, sizeof(s->sin));
 	sccp_mutex_init(&s->lock);
@@ -1063,6 +1056,11 @@ gcc_inline boolean_t sccp_session_check_crossdevice(constSessionPtr session, con
 	return FALSE;
 }
 
+uint16_t sccp_session_getKeepAliveInterval(constSessionPtr session) 
+{
+	return session->keepAliveInterval;
+}
+
 /*!
  * \brief Send a Reject Message to Device.
  * \param session SCCP Session Pointer
@@ -1152,6 +1150,7 @@ gcc_inline void sccp_session_resetLastKeepAlive(constSessionPtr session)
 	sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
 
 	if (s) {
+		recalc_wait_time(s);
 		s->lastKeepAlive = time(0);
 	}
 }
@@ -1233,13 +1232,13 @@ int sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession 
 		CLI_AMI_TABLE_FIELD(IP,			"40.40",	s,	40,	clientAddress)						\
 		CLI_AMI_TABLE_FIELD(Port,		"-5",		d,	5,	sccp_netsock_getPort(&session->sin) )    		\
 		CLI_AMI_TABLE_FIELD(KA,			"-4",		d,	4,	(uint32_t) (time(0) - session->lastKeepAlive))		\
-		CLI_AMI_TABLE_FIELD(DKAI,		"-4",		d,	4,	(d ? d->keepaliveinterval : GLOB(keepalive)))		\
+		CLI_AMI_TABLE_FIELD(KAI,		"-4",		d,	4,	session->keepAliveInterval)				\
 		CLI_AMI_TABLE_FIELD(KAMAX,		"-5",		d,	5,	session->keepAlive)					\
 		CLI_AMI_TABLE_FIELD(DeviceName,		"15",		s,	15,	(d) ? d->id : "--")					\
 		CLI_AMI_TABLE_FIELD(State,		"-14.14",	s,	14,	(d) ? sccp_devicestate2str(sccp_device_getDeviceState(d)) : "--")		\
 		CLI_AMI_TABLE_FIELD(Type,		"-15.15",	s,	15,	(d) ? skinny_devicetype2str(d->skinny_type) : "--")	\
 		CLI_AMI_TABLE_FIELD(RegState,		"-10.10",	s,	10,	(d) ? skinny_registrationstate2str(sccp_device_getRegistrationState(d)) : "--")	\
-		CLI_AMI_TABLE_FIELD(Token,		"-10.10",	s,	10,	d ? sccp_tokenstate2str(d->status.token) : "--")
+		CLI_AMI_TABLE_FIELD(Token,		"-5.5",		s,	5,	session->tokenSession ? "Yes" : "No")
 #include "sccp_cli_table.h"
 
 	if (s) {
