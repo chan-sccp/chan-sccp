@@ -92,7 +92,7 @@ void handle_LocationInfoMessage(constSessionPtr s, devicePtr d, constMessagePtr 
 void handle_startmultimediatransmission_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in)	__NONNULL(1,2,3);
 void handle_mediatransmissionfailure(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
-
+void handle_hookflash(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				__NONNULL(1,2,3);
 
 /*!
  * \brief Local Function to check for Valid Session, Message and Device
@@ -147,6 +147,7 @@ static const struct messageMap_cb sccpMessagesCbMap[SCCP_MESSAGE_HIGH_BOUNDARY +
 	[KeepAliveMessage] = {handle_KeepAliveMessage, FALSE},						// on 7985,6911 phones and tokenmsg, a KeepAliveMessage is send before register/token 
 	[OffHookMessage] = {handle_offhook, TRUE},
 	[OnHookMessage] = {handle_onhook, TRUE},
+	[HookFlashMessage] = {handle_hookflash, TRUE},
 	[SoftKeyEventMessage] = {handle_soft_key_event, TRUE},
 	[PortResponseMessage] = {handle_port_response, TRUE},
 	[OpenReceiveChannelAck] = {handle_open_receive_channel_ack, TRUE},
@@ -2478,6 +2479,22 @@ void handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 		sccp_dev_stoptone(d, 0, 0);
 	}
 
+	return;
+}
+
+/*!
+ * \brief Handle HookFlash Event for Session
+ * \param s SCCP Session
+ * \param d SCCP Device
+ * \param msg_in SCCP Message
+ */
+void handle_hookflash(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+{
+	pbx_assert(d != NULL);
+	uint32_t lineInstance = letohl(msg_in->data.HookFlashMessage.lel_lineInstance);
+	uint32_t callid = letohl(msg_in->data.HookFlashMessage.lel_callReference);
+
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: HookFlash (lineInstance: %d, callid: %d) not implemented !\n", DEV_ID_LOG(d), lineInstance, callid);
 	return;
 }
 

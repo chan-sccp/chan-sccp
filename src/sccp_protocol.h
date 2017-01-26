@@ -1638,6 +1638,8 @@ typedef union {
 	} OnHookMessage;											/*!< On Hook Message Structure */
 
 	struct {
+		uint32_t lel_lineInstance;
+		uint32_t lel_callReference;
 	} HookFlashMessage;											/*!< Hook Flash Message Structure */
 
 	struct {
