@@ -18,9 +18,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 /* arbitrary values */
 //#define NETSOCK_TIMEOUT_SEC 0											/* timeout after seven seconds when trying to read/write from/to a socket */
 //#define NETSOCK_TIMEOUT_MILLISEC 500										/* "       "     0 milli seconds "    "    */
-//#define NETSOCK_KEEPALIVE_IDLE GLOB(keepalive)									/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
-//#define NETSOCK_KEEPALIVE_INTVL 5										/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
-//#define NETSOCK_KEEPALIVE_CNT 5											/* The maximum number of keepalive probes TCP should send before dropping the connection. */
+#define NETSOCK_KEEPALIVE_CNT 3											/* The maximum number of keepalive probes TCP should send before dropping the connection. */
 #define NETSOCK_LINGER_WAIT 0											/* but wait 0 milliseconds before closing socket and discard all outboung messages */
 #define NETSOCK_RCVBUF SCCP_MAX_PACKET										/* SO_RCVBUF */
 #define NETSOCK_SNDBUF (SCCP_MAX_PACKET * 5)									/* SO_SNDBUG */
@@ -391,7 +389,7 @@ char *__netsock_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, in
 		}															\
 	}
 
-void sccp_netsock_setoptions(int new_socket, int reuse, int linger)
+void sccp_netsock_setoptions(int new_socket, int reuse, int linger, int keepalive)
 {
 	int on = 1;
 
@@ -427,15 +425,15 @@ void sccp_netsock_setoptions(int new_socket, int reuse, int linger)
 	//SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(mytv));
 
 	/* keepalive */
-	//int ip_keepidle  = NETSOCK_KEEPALIVE_IDLE;								/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
-	//int ip_keepintvl = NETSOCK_KEEPALIVE_INTVL;								/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
-	//int ip_keepcnt   = NETSOCK_KEEPALIVE_CNT;								/* The maximum number of keepalive probes TCP should send before dropping the connection. */
-	//SCCP_NETSOCK_SETOPTION(new_socket, SOL_TCP, TCP_KEEPIDLE, &ip_keepidle, sizeof(int));
-	//SCCP_NETSOCK_SETOPTION(new_socket, SOL_TCP, TCP_KEEPINTVL, &ip_keepintvl, sizeof(int));
-	//SCCP_NETSOCK_SETOPTION(new_socket, SOL_TCP, TCP_KEEPCNT, &ip_keepcnt, sizeof(int));
-	//SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
-
-
+	if (keepalive) {
+		int ip_keepidle  = keepalive;									/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
+		int ip_keepintvl = keepalive;									/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
+		int ip_keepcnt   = NETSOCK_KEEPALIVE_CNT;							/* The maximum number of keepalive probes TCP should send before dropping the connection. */
+		SCCP_NETSOCK_SETOPTION(new_socket, SOL_TCP, TCP_KEEPIDLE, &ip_keepidle, sizeof(int));
+		SCCP_NETSOCK_SETOPTION(new_socket, SOL_TCP, TCP_KEEPINTVL, &ip_keepintvl, sizeof(int));
+		SCCP_NETSOCK_SETOPTION(new_socket, SOL_TCP, TCP_KEEPCNT, &ip_keepcnt, sizeof(int));
+		SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
+	}
 	/* thin-tcp */
 //#ifdef TCP_THIN_LINEAR_TIMEOUTS
 //	SCCP_NETSOCK_SETOPTION(new_socket, IPPROTO_TCP, TCP_THIN_LINEAR_TIMEOUTS, &on, sizeof(on));

@@ -117,7 +117,7 @@ int load_config(void)
 				pbx_log(LOG_ERROR, "Unable to create SCCP socket: %s\n", strerror(errno));
 				break;
 			} else {
-				sccp_netsock_setoptions(GLOB(descriptor), /*reuse*/ 1, /*linger*/ 1);
+				sccp_netsock_setoptions(GLOB(descriptor), /*reuse*/ 1, /*linger*/ 1, 0 /*keepalive*/);
 				/* get ip-address string */
 				if (bind(GLOB(descriptor), res->ai_addr, res->ai_addrlen) < 0) {
 					pbx_log(LOG_ERROR, "Failed to bind to %s:%d: %s!\n", addrStr, sccp_netsock_getPort(&GLOB(bindaddr)), strerror(errno));

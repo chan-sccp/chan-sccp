@@ -544,22 +544,16 @@ void sccp_netsock_device_thread_exit(void *session)
 gcc_inline void recalc_wait_time(sccp_session_t *s)
 {
 	float keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT_SESSION;
-	float keepAlive = 0;
-	float keepAliveInterval = 0;
+	float keepAlive = GLOB(keepalive);
+	float keepAliveInterval = GLOB(keepalive);
 	sccp_device_t *d = s->device;
-	if (!d) {
-		keepAlive = GLOB(keepalive);
-		keepAliveInterval = GLOB(keepalive);
-	} else {
+	if (d) {
 		keepAlive = d->keepalive;
 		keepAliveInterval = d->keepaliveinterval;
 		if (
-			d->skinny_type == SKINNY_DEVICETYPE_CISCO7920 ||
-			d->skinny_type == SKINNY_DEVICETYPE_CISCO7921 ||
-			d->skinny_type == SKINNY_DEVICETYPE_CISCO7925 ||
-			d->skinny_type == SKINNY_DEVICETYPE_CISCO7926 ||
-			d->skinny_type == SKINNY_DEVICETYPE_CISCO7975 ||
-			d->skinny_type == SKINNY_DEVICETYPE_CISCO7970 ||
+			d->skinny_type == SKINNY_DEVICETYPE_CISCO7920 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7921 ||
+			d->skinny_type == SKINNY_DEVICETYPE_CISCO7925 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7926 ||
+			d->skinny_type == SKINNY_DEVICETYPE_CISCO7970 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7975 ||
 			d->skinny_type == SKINNY_DEVICETYPE_CISCO6911
 		) {
 			keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT_DEVICE;
@@ -570,7 +564,13 @@ gcc_inline void recalc_wait_time(sccp_session_t *s)
 	}
 	s->keepAlive = (keepAlive * keepaliveAdditionalTimePercent);
 	s->keepAliveInterval = (keepAliveInterval * KEEPALIVE_ADDITIONAL_PERCENT_SESSION);
-	//sccp_log_and((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_4 "%s: keepalive:%d, keepaliveinterval:%d\n", s->designator, s->keepAlive, s->keepAliveInterval);
+
+	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_4 "%s: keepalive:%d, keepaliveinterval:%d\n", s->designator, s->keepAlive, s->keepAliveInterval);
+	if (!s->keepAlive || !s->keepAliveInterval) {	/* temporary */
+		pbx_log(LOG_NOTICE, "SCCP: keepalive interval calculation failed!\n");
+		s->keepAlive = GLOB(keepalive);
+		s->keepAliveInterval = GLOB(keepalive);
+	}
 }
 
 /*!
@@ -589,11 +589,8 @@ void *sccp_netsock_device_thread(void *session)
 		return NULL;
 	}
 
-	uint32_t pollTimeout = 0;
-	boolean_t oncall = FALSE;
-	boolean_t deviceKnown = FALSE;
-	recalc_wait_time(s);
-	
+	boolean_t oncall = TRUE;
+	boolean_t tokenThread = FALSE;
 	unsigned char recv_buffer[SCCP_MAX_PACKET * 2] = "";
 	size_t recv_len = 0;
 	sccp_msg_t msg = { {0,} };
@@ -604,27 +601,28 @@ void *sccp_netsock_device_thread(void *session)
 
 	while (s->fds[0].fd > 0 && !s->session_stop) {
 		if (s->device) {
-			if (s->device->pendingUpdate || s->device->pendingDelete) {
+			sccp_device_t *d = s->device;
+			if (d->pendingUpdate || d->pendingDelete) {
 				pbx_rwlock_rdlock(&GLOB(lock));
 				boolean_t reload_in_progress = GLOB(reload_in_progress);
 				pbx_rwlock_unlock(&GLOB(lock));
 				if (reload_in_progress == FALSE) {
-					sccp_device_check_update(s->device);
+					sccp_device_check_update(d);
 				}
 				continue;									// make sure  s->device is still valid
 			}
-			if (!deviceKnown || (s->device->active_channel ? TRUE : FALSE) != oncall) {
+			if ((d->active_channel ? TRUE : FALSE) != oncall) {
 				recalc_wait_time(s);
-				deviceKnown = TRUE;
-				oncall = (s->device->active_channel) ? TRUE : FALSE;
+				oncall = (d->active_channel) ? TRUE : FALSE;
+			}
+			if (d->status.token == SCCP_TOKEN_STATE_ACK) {
+				tokenThread = TRUE;								// only does TCP-Keepalive
 			}
 		}
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-		pollTimeout = s->keepAliveInterval * 1000;
-
 		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d for session %d\n", DEV_ID_LOG(s->device), (int) s->keepAliveInterval, s->fds[0].fd);
 
-		res = sccp_netsock_poll(s->fds, 1, pollTimeout);
+		res = sccp_netsock_poll(s->fds, 1, s->keepAliveInterval * 1000);
 		pthread_testcancel();
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 		if (-1 == res) {										/* poll data processing */
@@ -636,7 +634,7 @@ void *sccp_netsock_device_thread(void *session)
 			}
 		} else if (0 == res) {										/* poll timeout */
 			uintmax_t timediff = (uintmax_t)time(0) - (uintmax_t)s->lastKeepAlive;
-			if (timediff >= s->keepAlive) {
+			if (!tokenThread && timediff >= s->keepAlive) {
 				pbx_log(LOG_NOTICE, "%s: Closing session because connection timed out after %ju seconds (ip-address: %s).\n", DEV_ID_LOG(s->device), timediff, s->designator);
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_TIMEOUT);
 				break;
@@ -761,7 +759,7 @@ static void sccp_accept_connection(void)
 		sccp_free(s);
 		return;
 	}
-	sccp_netsock_setoptions(new_socket, /*reuse*/ 0, /*linger*/ 0);
+	sccp_netsock_setoptions(new_socket, /*reuse*/ 0, /*linger*/ 0, GLOB(keepalive) * 2);
 	
 	memcpy(&s->sin, &incoming, sizeof(s->sin));
 	sccp_mutex_init(&s->lock);
@@ -794,10 +792,6 @@ static void sccp_accept_connection(void)
 
 	/** set default handler for registration to sccp */
 	s->protocolType = SCCP_PROTOCOL;
-
-	s->lastKeepAlive = time(0);
-	s->keepAlive = GLOB(keepalive);
-	s->keepAliveInterval = GLOB(keepalive);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Accepted Client Connection from %s\n", addrStr);
 
 	if (sccp_netsock_is_any_addr(&GLOB(bindaddr))) {
@@ -806,19 +800,21 @@ static void sccp_accept_connection(void)
 		memcpy(&s->ourip, &GLOB(bindaddr), sizeof(s->ourip));
 	}
 	sccp_copy_string(s->designator, sccp_netsock_stringify(&s->ourip), sizeof(s->designator));
-
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Connected on server via %s\n", s->designator);
+	s->lastKeepAlive = time(0);
+	recalc_wait_time(s);
 
-	size_t stacksize = 0;
 	pthread_attr_t attr;
-
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
 	pbx_pthread_create(&s->session_thread, &attr, sccp_netsock_device_thread, s);
+
+	/*
+	size_t stacksize = 0;
 	if (!pthread_attr_getstacksize(&attr, &stacksize)) {
 		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Using %d memory for this thread\n", (int) stacksize);
 	}
+	*/
 }
 
 static void sccp_netsock_cleanup_timed_out(void)
@@ -863,7 +859,7 @@ void *sccp_netsock_thread(void * ignore)
 	fds[0].fd = GLOB(descriptor);
 
 	int res = 0;
-	int keepaliveInterval = GLOB(keepalive) * 1000;
+	int pollTimeout = GLOB(keepalive) * 1000;
 	boolean_t reload_in_progress = FALSE;
 
 	pthread_attr_t attr;
@@ -871,7 +867,7 @@ void *sccp_netsock_thread(void * ignore)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	while (GLOB(descriptor) > -1) {
-		res = sccp_netsock_poll(fds, 1, keepaliveInterval);
+		res = sccp_netsock_poll(fds, 1, pollTimeout);
 		pthread_testcancel();
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 		if (res < 0) {
@@ -884,7 +880,7 @@ void *sccp_netsock_thread(void * ignore)
 		} else {
 			pbx_rwlock_rdlock(&GLOB(lock));
 			reload_in_progress = GLOB(reload_in_progress);
-			keepaliveInterval = GLOB(keepalive) * 1000;
+			pollTimeout = GLOB(keepalive) * 1000;
 			pbx_rwlock_unlock(&GLOB(lock));
 			if (!reload_in_progress) {
 				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
