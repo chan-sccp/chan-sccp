@@ -409,6 +409,14 @@
 			0: will not enable the handset monitoring and only the headset will be active
 			1: will enable activate both the headset as well as the handset during a call
 		-->
+		<detectCMConnectionFailure>0</detectCMConnectionFailure>
+		<!--
+			Switch from measured keepalive packet delivery time falure detection to delayed failure detection
+			See: https://github.com/chan-sccp/chan-sccp/wiki/Unregister%2C-ReRegistering%2C-Keepalive-issues
+			See: http://www.cisco.com/c/en/us/support/docs/collaboration-endpoints/unified-ip-phone-7900-series/200410-Troubleshoot-IP-Phone-Unregistration-A.html
+			0: Normal Failure Detection
+			1: Delayed Failure Detection
+		-->
 	</vendorConfig>
 	<versionStamp>{Jan 01 2003 00:00:00}</versionStamp>
 	<loadInformation>P00308010100</loadInformation>
