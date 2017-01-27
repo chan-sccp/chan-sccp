@@ -34,6 +34,7 @@ WIP
  Fixes:
   - Channel remaining after hangup
   - Timeout / Hangup Scheduler issues 
+  - Session Cancellation
   - Pickup/GPickup and entries in phonebook
   - Fixed direcrtp (more work needed)
   - letohl / bswap fix
