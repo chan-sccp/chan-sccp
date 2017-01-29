@@ -1156,6 +1156,17 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					sccp_channel_endcall(c);
 				}
 				goto EXIT_FUNC;									// leave simpleswitch without dial
+			case SCCP_SOFTSWITCH_TRANSFER:
+				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Blind Transfer Requested\n", d->id);
+				if (!sccp_strlen_zero(shortenedNumber) && (iPbx.extension_status(c) != SCCP_EXTENSION_NOTEXISTS) && (pbx_channel && !pbx_check_hangup(pbx_channel))) {
+					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Perform Blind Transfer to %s@%s\n", d->id, c->dialedNumber, l->context);
+					//iPbx.setChannelExten(c, shortenedNumber);
+					if (sccp_channel_transfer_blind(d, c) == 0) {
+						sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_TRANSFER, GLOB(digittimeout));
+						sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+					}
+				}
+				goto EXIT_FUNC;
 			case SCCP_SOFTSWITCH_SENTINEL:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Unknown Softswitch Request\n", d->id);
 				goto EXIT_FUNC;

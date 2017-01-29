@@ -2891,7 +2891,6 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk112_getBridgeChannel(PBX_CHANNEL_T
 static boolean_t sccp_wrapper_asterisk112_attended_transfer(sccp_channel_t * destination_channel, sccp_channel_t * source_channel)
 {
 	enum ast_transfer_result res;
-	// possibly move transfer related callinfo updates here
 	if (!destination_channel || !source_channel || !destination_channel->owner || !source_channel->owner) {
 		return FALSE;
 	}
@@ -2901,7 +2900,25 @@ static boolean_t sccp_wrapper_asterisk112_attended_transfer(sccp_channel_t * des
 	res = ast_bridge_transfer_attended(pbx_destination_local_channel, pbx_source_local_channel);
 	if (res != AST_BRIDGE_TRANSFER_SUCCESS) {
 		pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s (%u)\n", source_channel->designator, source_channel->designator, destination_channel->designator, res);
-		ast_queue_control(pbx_destination_local_channel, AST_CONTROL_HOLD);		
+		ast_queue_control(pbx_destination_local_channel, AST_CONTROL_UNHOLD);
+		return FALSE;
+	}
+	return TRUE;
+}
+
+static boolean_t sccp_wrapper_asterisk112_blind_transfer(sccp_channel_t * destination_channel, const char *extension, const char *context)
+{
+	enum ast_transfer_result res;
+	if (!destination_channel || !destination_channel->owner || !extension || !context) {
+		return FALSE;
+	}
+	PBX_CHANNEL_TYPE *pbx_destination_local_channel = destination_channel->owner;
+
+	//res = ast_bridge_transfer_blind(1, pbx_destination_local_channel, extension, context, blind_transfer_cb, &blind_transfer_data);
+	res = ast_bridge_transfer_blind(1, pbx_destination_local_channel, extension, context, NULL, NULL);
+	if (res != AST_BRIDGE_TRANSFER_SUCCESS) {
+		pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s@%s (%u)\n", destination_channel->designator, destination_channel->designator, extension, context, res);
+		ast_queue_control(pbx_destination_local_channel, AST_CONTROL_UNHOLD);
 		return FALSE;
 	}
 	return TRUE;
@@ -3135,6 +3152,7 @@ const PbxInterface iPbx = {
 	get_bridged_channel:		sccp_wrapper_asterisk112_getBridgeChannel,
 	get_underlying_channel:		sccp_wrapper_asterisk112_getBridgeChannel,
 	attended_transfer:		sccp_wrapper_asterisk112_attended_transfer,
+	blind_transfer:			sccp_wrapper_asterisk112_blind_transfer,
 
 	set_callgroup:			sccp_wrapper_asterisk_set_callgroup,
 	set_pickupgroup:		sccp_wrapper_asterisk_set_pickupgroup,
@@ -3274,6 +3292,7 @@ const PbxInterface iPbx = {
 	.get_bridged_channel		= sccp_wrapper_asterisk112_getBridgeChannel,
 	.get_underlying_channel		= sccp_wrapper_asterisk112_getBridgeChannel,
 	.attended_transfer		= sccp_wrapper_asterisk112_attended_transfer,
+	.blind_transfer			= sccp_wrapper_asterisk112_blind_transfer,
 
 	.set_callgroup			= sccp_wrapper_asterisk_set_callgroup,
 	.set_pickupgroup		= sccp_wrapper_asterisk_set_pickupgroup,

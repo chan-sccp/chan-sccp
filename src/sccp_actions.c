@@ -1907,7 +1907,7 @@ static void handle_stimulus_transfer(constDevicePtr d, constLinePtr l, const uin
 	AUTO_RELEASE(sccp_channel_t, channel , sccp_device_getActiveChannel(d));
 
 	if (channel) {
-		sccp_channel_transfer(channel, d);
+		sccp_channel_transfer(d, channel);
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No call to transfer found on line %d\n", d->id, instance);
 	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, SKINNY_TONEDIRECTION_USER);
