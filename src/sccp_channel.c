@@ -2012,12 +2012,13 @@ void sccp_channel_transfer_release(devicePtr device, constChannelPtr channel)
 			(device->transferChannels.transferer && channel == device->transferChannels.transferer)
 		)
 	) {
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_4 "\n\n%s: Release Transfer on transferer:%s / transferee:%s\n", device->id, device->transferChannels.transferer->designator, device->transferChannels.transferee->designator);
 		if (device->transferChannels.transferee) {
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_4 "\n\n%s: Release Transfer on transferee:%s\n", device->id, device->transferChannels.transferee->designator);
 			device->transferChannels.transferee->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 			sccp_channel_release(&device->transferChannels.transferee);								/* explicit release */
 		}
 		if (device->transferChannels.transferer) {
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_4 "\n\n%s: Release Transfer on transferer:%s\n", device->id, device->transferChannels.transferer->designator);
 			sccp_channel_release(&device->transferChannels.transferer);								/* explicit release */
 		}
 	}
@@ -2076,8 +2077,8 @@ int sccp_channel_transfer_blind(devicePtr device, channelPtr channel)
 {
 	int res = -1;
 	if (device->transferChannels.transferee && channel && device->transferChannels.transferer == channel) {
-		pbx_builtin_setvar_helper(device->transferChannels.transferee->owner, "BLINDTRANSFER", ast_channel_name(device->transferChannels.transferer->owner));
-		pbx_builtin_setvar_helper(device->transferChannels.transferer->owner, "BLINDTRANSFER", ast_channel_name(device->transferChannels.transferee->owner));
+		pbx_builtin_setvar_helper(device->transferChannels.transferee->owner, "BLINDTRANSFER", pbx_channel_name(device->transferChannels.transferer->owner));
+		pbx_builtin_setvar_helper(device->transferChannels.transferer->owner, "BLINDTRANSFER", pbx_channel_name(device->transferChannels.transferee->owner));
 
 		AUTO_RELEASE(sccp_channel_t, transferee, sccp_channel_retain(device->transferChannels.transferee));
 		sccp_channel_transfer_release(device, transferee);
