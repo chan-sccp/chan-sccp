@@ -1303,11 +1303,11 @@ void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid
 		/*! \todo Discuss if this behaviour should not be the general case for all devices */
 		if (d->transfer && d->transferChannels.transferee) {
 			/* first stage transfer */
-			if (softKeySetIndex == KEYMODE_OFFHOOK && !d->transferChannels.transferer) {
+			if (softKeySetIndex == KEYMODE_OFFHOOK) {
 				softKeySetIndex = KEYMODE_OFFHOOKFEAT;
 			}
 			/* second stage transfer (blind or not) */
-			if ((softKeySetIndex == KEYMODE_RINGOUT || softKeySetIndex == KEYMODE_CONNECTED) && d->transferChannels.transferer) {
+			if ((softKeySetIndex == KEYMODE_RINGOUT || softKeySetIndex == KEYMODE_CONNECTED)) {
 				softKeySetIndex = KEYMODE_CONNTRANS;
 			}
 		}
@@ -1353,8 +1353,9 @@ void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid
 	if (softKeySetIndex != KEYMODE_CONNTRANS && softKeySetIndex != KEYMODE_CONNECTED && softKeySetIndex != KEYMODE_EMPTY) {
 		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_MONITOR, FALSE);
 	}
-	if (softKeySetIndex == KEYMODE_RINGOUT) {
-		if (d->transfer && d->transferChannels.transferer) {
+	/* attended and blind transfer mask */
+	if (softKeySetIndex == KEYMODE_RINGOUT || softKeySetIndex == KEYMODE_DIGITSFOLL || softKeySetIndex == KEYMODE_OFFHOOKFEAT) {
+		if (d->transfer && d->transferChannels.transferee) {
 			sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_TRANSFER, TRUE);
 		} else  {
 			sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_TRANSFER, FALSE);

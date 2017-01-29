@@ -273,7 +273,7 @@ static void sccp_sk_resume(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
  */
 static void sccp_sk_transfer(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
-	sccp_channel_transfer(c, d);
+	sccp_channel_transfer(d, c);
 }
 
 /*!
@@ -528,7 +528,7 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 		device->transferChannels.transferee = sccp_channel_retain(chan1);
 		device->transferChannels.transferer = sccp_channel_retain(chan2);
 		if (device->transferChannels.transferee && device->transferChannels.transferer) {
-			sccp_channel_transfer_complete(chan2);
+			sccp_channel_transfer_complete(device, chan2);
 		}
 	}
 }

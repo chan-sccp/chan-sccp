@@ -176,10 +176,13 @@ SCCP_API void SCCP_CALL sccp_channel_StatisticsRequest(sccp_channel_t * channel)
 SCCP_API void SCCP_CALL sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel);
 SCCP_API void SCCP_CALL sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel);
 SCCP_API void SCCP_CALL sccp_channel_clean(sccp_channel_t * channel);
-SCCP_API void SCCP_CALL sccp_channel_transfer(channelPtr channel, constDevicePtr device);
-SCCP_API void SCCP_CALL sccp_channel_transfer_release(devicePtr d, channelPtr c);
-SCCP_API void SCCP_CALL sccp_channel_transfer_cancel(devicePtr d, channelPtr c);
-SCCP_API void SCCP_CALL sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel);
+
+SCCP_API int SCCP_CALL sccp_channel_transfer(constDevicePtr device, channelPtr channel);
+SCCP_API void SCCP_CALL sccp_channel_transfer_release(devicePtr device, constChannelPtr channel);
+SCCP_API void SCCP_CALL sccp_channel_transfer_cancel(devicePtr device, constChannelPtr channel);
+SCCP_API int SCCP_CALL sccp_channel_transfer_blind(devicePtr device, channelPtr channel);
+SCCP_API int SCCP_CALL sccp_channel_transfer_complete(devicePtr device, channelPtr channel);
+
 SCCP_API int SCCP_CALL sccp_channel_hold(channelPtr channel);
 SCCP_API int SCCP_CALL sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swap_channels);
 SCCP_API int SCCP_CALL sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_t * lineDevice, char *fwdNumber);

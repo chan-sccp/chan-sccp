@@ -2992,21 +2992,44 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_getBridgeChannel(PBX_CHANNEL_T
 
 static boolean_t sccp_wrapper_asterisk113_attended_transfer(sccp_channel_t * destination_channel, sccp_channel_t * source_channel)
 {
-	enum ast_transfer_result res;
-	// possibly move transfer related callinfo updates here
+	boolean_t res = FALSE;
 	if (!destination_channel || !source_channel || !destination_channel->owner || !source_channel->owner) {
-		return FALSE;
+		return res;
 	}
 	PBX_CHANNEL_TYPE *pbx_destination_local_channel = destination_channel->owner;
 	PBX_CHANNEL_TYPE *pbx_source_local_channel = source_channel->owner;
 
-	res = ast_bridge_transfer_attended(pbx_destination_local_channel, pbx_source_local_channel);
-	if (res != AST_BRIDGE_TRANSFER_SUCCESS) {
+	ast_channel_ref(pbx_destination_local_channel);
+	ast_channel_ref(pbx_source_local_channel);
+	if (AST_BRIDGE_TRANSFER_SUCCESS == ast_bridge_transfer_attended(pbx_destination_local_channel, pbx_source_local_channel)) {
+		res = TRUE;
+	} else {
 		pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s (%u)\n", source_channel->designator, source_channel->designator, destination_channel->designator, res);
-		ast_queue_control(pbx_destination_local_channel, AST_CONTROL_HOLD);		
-		return FALSE;
+		ast_queue_control(pbx_destination_local_channel, AST_CONTROL_UNHOLD);
 	}
-	return TRUE;
+	ast_channel_unref(pbx_destination_local_channel);
+	ast_channel_unref(pbx_source_local_channel);
+	return res;
+}
+
+static boolean_t sccp_wrapper_asterisk113_blind_transfer(sccp_channel_t * destination_channel, const char *extension, const char *context)
+{
+	boolean_t res = FALSE;
+	if (!destination_channel || !destination_channel->owner || !extension || !context) {
+		return res;
+	}
+	PBX_CHANNEL_TYPE *pbx_destination_local_channel = destination_channel->owner;
+	ast_channel_ref(pbx_destination_local_channel);
+
+	//ast_bridge_transfer_blind(1, pbx_destination_local_channel, extension, context, blind_transfer_cb, &blind_transfer_data);
+	if (AST_BRIDGE_TRANSFER_SUCCESS == ast_bridge_transfer_blind(1, pbx_destination_local_channel, extension, context, NULL, NULL)) {
+		res = TRUE;
+	} else {
+		pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s@%s (%u)\n", destination_channel->designator, destination_channel->designator, extension, context, res);
+		ast_queue_control(pbx_destination_local_channel, AST_CONTROL_UNHOLD);
+	}
+	ast_channel_unref(pbx_destination_local_channel);
+	return res;
 }
 
 /*!
@@ -3242,6 +3265,7 @@ const PbxInterface iPbx = {
 	get_bridged_channel:		sccp_wrapper_asterisk113_getBridgeChannel,
 	get_underlying_channel:		sccp_wrapper_asterisk113_getBridgeChannel,
 	attended_transfer:		sccp_wrapper_asterisk113_attended_transfer,
+	blind_transfer:			sccp_wrapper_asterisk113_blind_transfer,
 
 	set_callgroup:			sccp_wrapper_asterisk_set_callgroup,
 	set_pickupgroup:		sccp_wrapper_asterisk_set_pickupgroup,
@@ -3382,6 +3406,7 @@ const PbxInterface iPbx = {
 	.get_bridged_channel		= sccp_wrapper_asterisk113_getBridgeChannel,
 	.get_underlying_channel		= sccp_wrapper_asterisk113_getBridgeChannel,
 	.attended_transfer		= sccp_wrapper_asterisk113_attended_transfer,
+	.blind_transfer			= sccp_wrapper_asterisk113_blind_transfer,
 
 	.set_callgroup			= sccp_wrapper_asterisk_set_callgroup,
 	.set_pickupgroup		= sccp_wrapper_asterisk_set_pickupgroup,

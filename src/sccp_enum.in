@@ -245,6 +245,7 @@ strenum softswitch {
 #ifdef CS_SCCP_CONFERENCE
 	SCCP_SOFTSWITCH_GETCONFERENCEROOM,		,	"Softswitch Get Conference Room",
 #endif
+	SCCP_SOFTSWITCH_TRANSFER,			,	"Softswitch Get Extension for Blind Transfer",
 }
 
 enum phonebook { 
