@@ -934,18 +934,36 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 
 	/* set the original calling/called party if the reason is a transfer */
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-		if (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
-			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Transfer Destination\n");
+		if (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER) {
+			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Attended Transfer Destination\n");
 			changes = iCallInfo.Setter(callInfo,
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, tmpCallingNumber,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, tmpCallingName,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, tmpOrigCalledPartyRedirectReason,
+
 				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
+
+				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, tmpCallingNumber,
+				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, tmpCallingNumber,
+				SCCP_CALLINFO_LAST_REDIRECT_REASON, tmpLastRedirectReason,
+
+				SCCP_CALLINFO_KEY_SENTINEL);
+		} else if (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
+			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Blind Transfer Destination\n");
+			changes = iCallInfo.Setter(callInfo,
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,			// From
+				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, tmpCallingNumber,
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, tmpCallingName,
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, tmpOrigCalledPartyRedirectReason,
+
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, tmpCallingNumber,					// For
+				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, tmpCallingName,
 
 				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, tmpCallingNumber,
 				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, tmpCallingNumber,
@@ -977,12 +995,24 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 		}
 	} else /* OUTBOUND CALL */ {
 		struct ast_party_id connected = pbx_channel_connected_id(ast);
-		changes = iCallInfo.Setter(callInfo,
-			SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? connected.number.str : tmpCalledNumber,
-			SCCP_CALLINFO_CALLEDPARTY_NAME, connected.name.valid ? connected.name.str : tmpCalledName,
-			SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, sccp_strlen_zero(tmpOrigCalledPartyNumber) ? (connected.number.valid ? connected.number.str : tmpCalledNumber) : tmpOrigCalledPartyNumber,
-			SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, sccp_strlen_zero(tmpOrigCalledPartyName) ? (connected.name.valid ? connected.name.str : tmpCalledName) : tmpOrigCalledPartyName,
-			SCCP_CALLINFO_KEY_SENTINEL);
+		if (connected.number.valid || connected.name.valid) {
+			if (sccp_strcaseequals(connected.number.str, tmpCalledNumber)) {
+				changes = iCallInfo.Setter(callInfo,
+					SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? connected.number.str : tmpCalledNumber,
+					SCCP_CALLINFO_CALLEDPARTY_NAME, connected.name.valid ? connected.name.str : tmpCalledName,
+					SCCP_CALLINFO_KEY_SENTINEL);
+			} else {
+				changes = iCallInfo.Setter(callInfo,
+					SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? connected.number.str : tmpCalledNumber,
+					SCCP_CALLINFO_CALLEDPARTY_NAME, connected.name.valid ? connected.name.str : tmpCalledName,
+					SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, !sccp_strlen_zero(tmpOrigCalledPartyNumber) ? tmpOrigCalledPartyNumber : tmpCalledNumber ,
+					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, !sccp_strlen_zero(tmpOrigCalledPartyName) ? tmpOrigCalledPartyName : tmpCalledName,
+					SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, tmpCalledNumber,
+					SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, tmpCalledNumber,
+					SCCP_CALLINFO_LAST_REDIRECT_REASON, tmpLastRedirectReason,
+					SCCP_CALLINFO_KEY_SENTINEL);
+			}
+		}
 	}
 	sccp_channel_display_callInfo(channel);
 	if (changes) {

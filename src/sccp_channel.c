@@ -2034,9 +2034,13 @@ void sccp_channel_transfer_cancel(devicePtr device, constChannelPtr channel)
 	}
 	sccp_channel_t * transferee = device->transferChannels.transferee;
 	if (transferee && transferee != channel) {
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee %d %s by the Receiving Party. Cancelling Transfer and Puttin transferee channel on Hold.\n", device->id, transferee->callid, transferee->line->name);
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee %d %s by the Receiving Party. Cancelling Transfer and resuming transferee.\n", device->id, transferee->callid, transferee->line->name);
 		transferee->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
-		sccp_channel_resume(device, transferee, TRUE);
+		//sccp_channel_closeAllMediaTransmitAndReceive(device, channel);
+		sccp_channel_closeAllMediaTransmitAndReceive(device, transferee);
+		sccp_dev_setActiveLine(device, NULL);
+		sccp_indicate(device, transferee, SCCP_CHANNELSTATE_HOLD);
+		sccp_channel_setDevice(transferee, NULL);
 #if ASTERISK_VERSION_GROUP >= 108
 		enum ast_control_transfer control_transfer_message = AST_TRANSFER_FAILED;
 		iPbx.queue_control_data(transferee->owner, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
@@ -2053,11 +2057,6 @@ static int _transfer_attended(devicePtr device, channelPtr channel)
 	int res = -1;
 	sccp_channel_t *transferer = device->transferChannels.transferer;
 	sccp_channel_t *transferee = device->transferChannels.transferee;
-
-	iPbx.queue_control(transferee->owner, AST_CONTROL_UNHOLD);
-	if (pbx_channel_state(transferer->owner) == AST_STATE_RINGING) {
-		iPbx.queue_control(transferee->owner, AST_CONTROL_RINGING);
-	}
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "\n\n%s: Complete Attended Transfer of transferee:%s\n", device->id, transferee->designator);
 	if (iPbx.attended_transfer(transferee, transferer)) {
@@ -2083,17 +2082,9 @@ int sccp_channel_transfer_blind(devicePtr device, channelPtr channel)
 		AUTO_RELEASE(sccp_channel_t, transferee, sccp_channel_retain(device->transferChannels.transferee));
 		sccp_channel_transfer_release(device, transferee);
 
-		transferee->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
-		iPbx.queue_control(transferee->owner, AST_CONTROL_UNHOLD);
-
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "\n\n%s: Complete Blind Transfer on transferee:%s to %s@%s\n", device->id, transferee->designator, channel->dialedNumber, channel->line->context);
 		if (iPbx.blind_transfer(transferee, channel->dialedNumber, channel->line->context)) {
 			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "\n\n%s: Transfer Completed Blind Transfer of transferee:%s to %s@%s\n", device->id, transferee->designator, channel->dialedNumber, channel->line->context);
-			if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_RING) {
-				pbx_indicate(transferee->owner, AST_CONTROL_RINGING);
-			} else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH) {
-				iPbx.moh_start(transferee->owner, NULL, NULL);
-			}
 			res = 0;
 		} else {
 			uint16_t instance = sccp_device_find_index_for_line(device, channel->line->name);
