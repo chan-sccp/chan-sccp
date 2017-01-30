@@ -157,8 +157,8 @@ typedef struct _PbxInterface {
 	boolean_t (*const channel_is_bridged) (sccp_channel_t *channel);
 	PBX_CHANNEL_TYPE *(*const get_bridged_channel) (PBX_CHANNEL_TYPE *pbx_channel);					/* takes pbx_channel_ref */
 	PBX_CHANNEL_TYPE *(*const get_underlying_channel) (PBX_CHANNEL_TYPE *pbx_channel);				/* takes pbx_channel_ref */
-	boolean_t (*const attended_transfer) (sccp_channel_t *destination_channel, sccp_channel_t *source_channel);
-	boolean_t (*const blind_transfer) (sccp_channel_t *destination_channel, const char * extension, const char *context);
+	boolean_t (*const attended_transfer) (sccp_channel_t *transferee, sccp_channel_t *transferer);
+	boolean_t (*const blind_transfer) (sccp_channel_t *transferee, const char * extension, const char *context);
 
 	void (*set_callgroup)(sccp_channel_t *channel, ast_group_t value);
 	void (*set_pickupgroup)(sccp_channel_t *channel, ast_group_t value);
