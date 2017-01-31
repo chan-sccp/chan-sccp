@@ -3312,20 +3312,15 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 		}
 		return;
 	}
-	if (channel && channel->state != SCCP_CHANNELSTATE_ONHOOK) {
-		if (channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
-			pbx_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Invalid Number (%d)\n", DEV_ID_LOG(d), channel->state);
-			return;
-		}
-		if (channel->state == SCCP_CHANNELSTATE_DOWN) {
-			pbx_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Channel is down. Giving up... (%d)\n", DEV_ID_LOG(d), channel->state);
-			sccp_msg_t *r = NULL;
-
-			REQ(r, CloseReceiveChannel);
-			r->data.CloseReceiveChannel.lel_conferenceId = htolel(callReference);
-			r->data.CloseReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
-			r->data.CloseReceiveChannel.lel_callReference = htolel(callReference);
-			sccp_dev_send(d, r);
+	if (channel) {
+		if (channel->state == SCCP_CHANNELSTATE_DOWN || channel->state == SCCP_CHANNELSTATE_ONHOOK || channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
+			if (channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
+				pbx_log(LOG_NOTICE, "%s: (OpenReceiveChannelAck) Invalid Number (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(channel->state));
+				sccp_indicate(d, channel, SCCP_CHANNELSTATE_INVALIDNUMBER);
+			} else {
+				pbx_log(LOG_NOTICE, "%s: (OpenReceiveChannelAck) Channel is onhook/down. Giving up... (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(channel->state));
+				sccp_channel_endcall(channel);
+			}
 			return;
 		}
 
@@ -3359,11 +3354,14 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 	} else {
 		/* we successfully opened receive channel, but have no channel active -> close receive */
 		int32_t callId = passThruPartyId ^ 0xFFFFFFFF;
-
 		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruPartyId %u (callReference: %d, callid: %d)!\n", d->id, passThruPartyId, callReference, callId);
-		if (channel) {
-			sccp_channel_closeReceiveChannel(channel, FALSE);
-		}
+
+		sccp_msg_t *r = NULL;
+		REQ(r, CloseReceiveChannel);
+		r->data.CloseReceiveChannel.lel_conferenceId = htolel(callReference);
+		r->data.CloseReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
+		r->data.CloseReceiveChannel.lel_callReference = htolel(callReference);
+		sccp_dev_send(d, r);
 	}
 }
 
