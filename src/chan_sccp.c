@@ -222,6 +222,7 @@ boolean_t sccp_prePBXLoad(void)
 	GLOB(callwaiting_tone) = SKINNY_TONE_CALLWAITINGTONE;
 	GLOB(privacy) = TRUE;											/* permit private function */
 	GLOB(mwilamp) = SKINNY_LAMP_ON;
+	GLOB(ringtype) = SKINNY_RINGTYPE_OUTSIDE;
 	#if 0
 	GLOB(protocolversion) = SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH;
 	#endif

@@ -1402,7 +1402,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 	skinny_codec_t codec = SKINNY_CODEC_G711_ULAW_64K;
 	sccp_autoanswer_t autoanswer_type = SCCP_AUTOANSWER_NONE;
 	uint8_t autoanswer_cause = AST_CAUSE_NOTDEFINED;
-	skinny_ringtype_t ringermode = SKINNY_RINGTYPE_OUTSIDE;
+	skinny_ringtype_t ringermode = GLOB(ringtype);
 
 	*cause = AST_CAUSE_NOTDEFINED;
 	if (!type) {
@@ -1427,10 +1427,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=" UI64FMT ", lineName=%s, options=%s\n", type, (uint64_t) format, lineName, (options) ? options : "");
 	if (requestor) {							/* get ringer mode from ALERT_INFO */
-		const char *alert_info = pbx_builtin_getvar_helper((PBX_CHANNEL_TYPE *) requestor, "ALERT_INFO");
-		if (alert_info && !sccp_strlen_zero(alert_info)) {
-			ringermode = skinny_ringtype_str2val(alert_info);
-		}
+		sccp_parse_alertinfo((PBX_CHANNEL_TYPE *)requestor, &ringermode);
 	}
 	sccp_parse_dial_options(options, &autoanswer_type, &autoanswer_cause, &ringermode);
 	if (autoanswer_cause) {

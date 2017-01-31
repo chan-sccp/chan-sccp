@@ -286,10 +286,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 			} else {
 				/* remove previous call plane, used to dial pickup extension */
 				sccp_dev_deactivate_cplane(d);
-				const char *alert_info = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
-				if (alert_info && !sccp_strlen_zero(alert_info)) {
-					c->ringermode = skinny_ringtype_str2val(alert_info);
-				} 
+				sccp_parse_alertinfo(c->owner, &c->ringermode);
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
 				sccp_dev_set_cplane(d, lineInstance, 1);
 			}

@@ -316,6 +316,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen);
 void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason);
 int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *preparse, char *buf, size_t buflen);
+int sccp_parse_alertinfo(PBX_CHANNEL_TYPE *pbx_channel, skinny_ringtype_t *ringermode);
 int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, uint8_t *autoanswer_cause, skinny_ringtype_t *ringermode);
 boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel);
 

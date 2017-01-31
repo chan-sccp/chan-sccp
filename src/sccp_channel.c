@@ -160,7 +160,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		*(char **)&channel->designator = pbx_strdup(designator);
 
 		/* assign default values */
-		channel->ringermode = SKINNY_RINGTYPE_OUTSIDE;
+		channel->ringermode = GLOB(ringtype);
 		channel->calltype = SKINNY_CALLTYPE_INBOUND;
 		channel->answered_elsewhere = FALSE;
 		channel->peerIsSCCP = 0;

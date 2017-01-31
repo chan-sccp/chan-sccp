@@ -272,7 +272,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	sccp_channel_display_callInfo(c);
 
 	if (!c->ringermode) {
-		c->ringermode = SKINNY_RINGTYPE_OUTSIDE;
+		c->ringermode = GLOB(ringtype);
 	}
 	boolean_t isRinging = FALSE;
 	boolean_t hasDNDParticipant = FALSE;

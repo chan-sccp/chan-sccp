@@ -875,6 +875,46 @@ void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const ch
 #endif
 }
 
+
+int sccp_parse_alertinfo(PBX_CHANNEL_TYPE *pbx_channel, skinny_ringtype_t *ringermode)
+{
+	int res = 0;
+	const char *alert_info = pbx_builtin_getvar_helper(pbx_channel, "ALERT_INFO");
+	if (alert_info && !sccp_strlen_zero(alert_info)) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Found ALERT_INFO=%s (%d/%c)\n", pbx_channel_name(pbx_channel), alert_info, strlen(alert_info), alert_info[11]);
+		if (!strncasecmp(alert_info, "bellcore-dr", 11) && strlen(alert_info) >= 12) {
+			switch(alert_info[11]) {
+				case '1': 
+					*ringermode = SKINNY_RINGTYPE_INSIDE;
+					break;
+				case '2':
+					*ringermode = SKINNY_RINGTYPE_OUTSIDE;
+					break;
+				case '3':
+					*ringermode = SKINNY_RINGTYPE_FEATURE;
+					break;
+				case '4':
+					*ringermode = SKINNY_RINGTYPE_BELLCORE_4;
+					break;
+				case '5':
+					*ringermode = SKINNY_RINGTYPE_URGENT;
+					break;
+				default:
+					pbx_log(LOG_NOTICE, "%s: ALERT_INFO:%s could not be mapped to skinny ringtype\n", pbx_channel_name(pbx_channel), alert_info);
+					*ringermode = SKINNY_RINGTYPE_SENTINEL;
+					res = -1;
+					break;
+			}
+		} else {
+			*ringermode = skinny_ringtype_str2val(alert_info);
+		}
+	}
+	if (*ringermode == SKINNY_RINGTYPE_SENTINEL) {
+		*ringermode = GLOB(ringtype);
+	}
+	return res;
+}
+
 /*!
  * parse the DIAL options and store results by ref
  */
@@ -930,7 +970,7 @@ int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, u
 		}
 	}
 	if (*ringermode == SKINNY_RINGTYPE_SENTINEL) {
-		*ringermode = SKINNY_RINGTYPE_OUTSIDE;
+		*ringermode = GLOB(ringtype);
 	}
 	return res;
 }

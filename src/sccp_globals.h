@@ -112,10 +112,10 @@ struct sccp_global_vars {
 #ifdef CS_SCCP_PICKUP
 	sccp_group_t pickupgroup;										/*!< PickUp Group */
 	boolean_t directed_pickup_modeanswer;									/*!< Directed PickUp Mode Answer (boolean, default" on) */
-	uint8_t _padding1[1];
 #else
-	uint8_t _padding1[2];
+	uint8_t _padding1[1];
 #endif
+	uint8_t ringtype;											/*!< RingType for incoming calls */
 	boolean_t meetme;											/*!< Meetme on/off */
 	boolean_t allowAnonymous;										/*!< Allow Anonymous/Guest Devices */
 	sccp_earlyrtp_t earlyrtp;										/*!< Channel State where to open the rtp media stream */

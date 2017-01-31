@@ -567,7 +567,7 @@ strenum videoformat {
 }
 
 /*!
- * \brief Skinny Video Format (ENUM)
+ * \brief Skinny Ringtype Format (ENUM)
  */
 strenum ringtype {
 	SKINNY_RINGTYPE_OFF,				=1,	"Ring Off",

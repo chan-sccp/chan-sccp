@@ -1430,7 +1430,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk114_request(const char *type, stru
 	skinny_codec_t codec = SKINNY_CODEC_G711_ULAW_64K;
 	sccp_autoanswer_t autoanswer_type = SCCP_AUTOANSWER_NONE;
 	uint8_t autoanswer_cause = AST_CAUSE_NOTDEFINED;
-	skinny_ringtype_t ringermode = SKINNY_RINGTYPE_OUTSIDE;
+	skinny_ringtype_t ringermode = GLOB(ringtype);
 
 	if (!(ast_format_cap_has_type(cap, AST_MEDIA_TYPE_AUDIO))) {
 		ast_log(LOG_NOTICE, "Asked to get a channel with an unsupported format '%s'\n", ast_format_cap_get_names(cap, &codec_buf));
@@ -1464,13 +1464,8 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk114_request(const char *type, stru
 	// sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=" UI64FMT ", lineName=%s, options=%s\n", type, (uint64_t) ast_format_compatibility_codec2bitfield(cap), lineName, (options) ? options : "");
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=%s, lineName=%s, options=%s\n", type, ast_format_cap_get_names(cap, &codec_buf), lineName, (options) ? options : "");
 	if (requestor) {							/* get ringer mode from ALERT_INFO */
-		const char *alert_info = pbx_builtin_getvar_helper((PBX_CHANNEL_TYPE *) requestor, "ALERT_INFO");
-		if (alert_info && !sccp_strlen_zero(alert_info)) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", alert_info);
-			ringermode = skinny_ringtype_str2val(alert_info);
-		}
+		sccp_parse_alertinfo((PBX_CHANNEL_TYPE *)requestor, &ringermode);
 	}
-
 	sccp_parse_dial_options(options, &autoanswer_type, &autoanswer_cause, &ringermode);
 	if (autoanswer_cause) {
 		*cause = autoanswer_cause;

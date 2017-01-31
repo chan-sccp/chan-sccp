@@ -636,6 +636,8 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 				sccp_copy_string(buf, sccp_channelstate2str(c->previousChannelState), len);
 			} else if (!strcasecmp(token, "calltype")) {
 				sccp_copy_string(buf, skinny_calltype2str(c->calltype), len);
+			} else if (!strcasecmp(token, "ringtype")) {
+				sccp_copy_string(buf, skinny_ringtype2str(c->ringermode), len);
 			} else if (!strcasecmp(token, "dialed_number")) {
 				sccp_copy_string(buf, c->dialedNumber, len);
 			} else if (!strcasecmp(token, "device")) {
