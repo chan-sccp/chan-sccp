@@ -502,12 +502,18 @@
 	<certHash></certHash>
 	<encrConfig>false</encrConfig>
 	<phoneServices>
-		<!-- 
+		<provisioning>0</provisioning>
+		<!-- provisioning:
+			0 = Use PhoneServices
+			1 = Use ServicerURL / DirectoryURL and MessagesURL (Above)
+			2 = Use Both (Merge Both)
+		-->
+		
+		<!-- Below
 			type = 0 -> applicaton menu
 			type = 1 -> contacts menu
 			type = 2 -> messages menu
 		-->
-		<provisioning>0</provisioning>
 		<phoneService  type="0" category="0">
 			<name>Corporate Directory</name>
 			<url>Application:Cisco/CorporateDirectory</url>
