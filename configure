@@ -1722,7 +1722,7 @@ Optional Packages:
   --with-asterisk=PATH    Location of the Asterisk installation
   --with-libevent=yes|no  use garbage collector (libgc) as allocator
                           (experimental)
-  --with-hash-size        to provide room for higher number of phones (>200),
+  --with-hash-size        to provide room for higher number of phones (>100),
                           specify a prime number, bigger then number of phones
                           times 4 (default=536)
   --with-astmoddir=PATH   Location of the Asterisk Module Directory
@@ -30127,9 +30127,22 @@ else
   ac_cv_set_hashsize=536
 fi
 
-	if test 0${ac_cv_set_hashsize} -lt 536; then :
+	case ${ac_cv_set_hashsize} in #(
+  ''|'yes'|'no'|*!0-9*) :
+
+			ac_cv_set_hashsize=536
+			as_fn_error $? "'When using --with-hash-size, you need to supply a (prime) value, only needed when you have move than 100 phones'" "$LINENO" 5
+			 ;; #(
+  *) :
+
+	    		if test 0${ac_cv_set_hashsize} -lt 536; then :
   ac_cv_set_hashsize=536
 fi
+
+	 ;; #(
+  *) :
+     ;;
+esac
 
 cat >>confdefs.h <<_ACEOF
 #define SCCP_HASH_PRIME `echo ${ac_cv_set_hashsize}`

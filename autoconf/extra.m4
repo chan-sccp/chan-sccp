@@ -917,9 +917,17 @@ AC_DEFUN([CS_ENABLE_DISTRIBUTED_DEVSTATE], [
 
 AC_DEFUN([CS_WITH_HASH_SIZE], [
 	AC_ARG_WITH(hash_size, 
-		[AC_HELP_STRING([--with-hash-size], [to provide room for higher number of phones (>200), specify a prime number, bigger then number of phones times 4 (default=536)])], 
+		[AC_HELP_STRING([--with-hash-size], [to provide room for higher number of phones (>100), specify a prime number, bigger then number of phones times 4 (default=536)])], 
 		[ac_cv_set_hashsize=$withval], [ac_cv_set_hashsize=536])
-	AS_IF([test 0${ac_cv_set_hashsize} -lt 536], [ac_cv_set_hashsize=536])
+	AS_CASE([${ac_cv_set_hashsize}],
+		[''|'yes'|'no'|*[!0-9]*], [
+			ac_cv_set_hashsize=536
+			AC_MSG_ERROR(['When using --with-hash-size, you need to supply a (prime) value, only needed when you have move than 100 phones'])
+			],
+		[*], [
+	    		AS_IF([test 0${ac_cv_set_hashsize} -lt 536], [ac_cv_set_hashsize=536])
+			]
+	)		
 	AC_DEFINE_UNQUOTED(SCCP_HASH_PRIME, `echo ${ac_cv_set_hashsize}`, [defined SCCP_HASH_PRIME])
 	AC_MSG_RESULT([--with-hash-size: ${ac_cv_set_hashsize}])
 ])
