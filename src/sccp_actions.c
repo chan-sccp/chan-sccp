@@ -268,12 +268,12 @@ void sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const u
 	pbx_assert(d != NULL && d->session != NULL);
 	sccp_msg_t *msg_out = NULL;
 
-	REQ(msg_out, BackSpaceReqMessage);
-	msg_out->data.BackSpaceReqMessage.lel_lineInstance = htolel(lineInstance);
-	msg_out->data.BackSpaceReqMessage.lel_callReference = htolel(callid);
+	REQ(msg_out, BackSpaceResMessage);
+	msg_out->data.BackSpaceResMessage.lel_lineInstance = htolel(lineInstance);
+	msg_out->data.BackSpaceResMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, msg_out);
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Backspace request on line instance %u, call %u.\n", d->id, lineInstance, callid);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: sent backspace response on line instance %u, call %u.\n", d->id, lineInstance, callid);
 }
 
 /*!

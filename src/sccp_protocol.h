@@ -282,7 +282,7 @@ typedef enum {
 	ActivateCallPlaneMessage 			= 0x0116,
 	DeactivateCallPlaneMessage 			= 0x0117,
 	UnregisterAckMessage 				= 0x0118,
-	BackSpaceReqMessage 				= 0x0119,
+	BackSpaceResMessage 				= 0x0119,
 	RegisterTokenAck 				= 0x011A,
 	RegisterTokenReject 				= 0x011B,
 	StartMediaFailureDetection 			= 0x011C,
@@ -2806,7 +2806,7 @@ typedef union {
 	struct {
 		uint32_t lel_lineInstance;									/*!< Line Instance */
 		uint32_t lel_callReference;									/*!< Call Reference */
-	} BackSpaceReqMessage;											/*!< Back Space Request Message Message Structure */
+	} BackSpaceResMessage;											/*!< Back Space Request Message Message Structure */
 
 	struct {
 	} RegisterTokenAck;											/*!< Register Token Ackknowledge Message Structure */
