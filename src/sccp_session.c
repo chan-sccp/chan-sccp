@@ -634,7 +634,8 @@ void *sccp_netsock_device_thread(void *session)
 					__sccp_session_stopthread(s, SKINNY_DEVICE_RS_TIMEOUT);
 					break;
 				} else {
-					pbx_log(LOG_NOTICE, "%s: Missed keepalive window.\n", s->designator);
+					//sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: Missed keepalive window (%d).\n", s->designator, s->pollTimeout);
+					sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Missed keepalive window (%d).\n", s->designator, s->pollTimeout);
 				}
 			}
 		} else if (res > 0) {										/* poll data processing */
