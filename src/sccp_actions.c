@@ -92,7 +92,7 @@ void handle_LocationInfoMessage(constSessionPtr s, devicePtr d, constMessagePtr 
 void handle_startmultimediatransmission_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in)	__NONNULL(1,2,3);
 void handle_mediatransmissionfailure(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
-
+void handle_hookflash(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				__NONNULL(1,2,3);
 
 /*!
  * \brief Local Function to check for Valid Session, Message and Device
@@ -147,6 +147,7 @@ static const struct messageMap_cb sccpMessagesCbMap[SCCP_MESSAGE_HIGH_BOUNDARY +
 	[KeepAliveMessage] = {handle_KeepAliveMessage, FALSE},						// on 7985,6911 phones and tokenmsg, a KeepAliveMessage is send before register/token 
 	[OffHookMessage] = {handle_offhook, TRUE},
 	[OnHookMessage] = {handle_onhook, TRUE},
+	[HookFlashMessage] = {handle_hookflash, TRUE},
 	[SoftKeyEventMessage] = {handle_soft_key_event, TRUE},
 	[PortResponseMessage] = {handle_port_response, TRUE},
 	[OpenReceiveChannelAck] = {handle_open_receive_channel_ack, TRUE},
@@ -267,12 +268,12 @@ void sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const u
 	pbx_assert(d != NULL && d->session != NULL);
 	sccp_msg_t *msg_out = NULL;
 
-	REQ(msg_out, BackSpaceReqMessage);
-	msg_out->data.BackSpaceReqMessage.lel_lineInstance = htolel(lineInstance);
-	msg_out->data.BackSpaceReqMessage.lel_callReference = htolel(callid);
+	REQ(msg_out, BackSpaceResMessage);
+	msg_out->data.BackSpaceResMessage.lel_lineInstance = htolel(lineInstance);
+	msg_out->data.BackSpaceResMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, msg_out);
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Backspace request on line instance %u, call %u.\n", d->id, lineInstance, callid);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: sent backspace response on line instance %u, call %u.\n", d->id, lineInstance, callid);
 }
 
 /*!
@@ -495,7 +496,7 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 
 	if (GLOB(reload_in_progress)) {
 		pbx_log(LOG_NOTICE, "SCCP: Reload in progress. Come back later.\n");
-		sccp_session_tokenReject(s, 5);
+		sccp_session_tokenReject(s, 10);
 		return;
 	}
 	if (!skinny_devicetype_exists(deviceType)) {
@@ -519,7 +520,7 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 			if (sccp_session_check_crossdevice(s, tmpdevice) || (state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
 				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
 				sccp_session_crossdevice_cleanup(s, tmpdevice->session);
-				sccp_session_tokenReject(s, GLOB(token_backoff_time));
+				sccp_session_tokenReject(s, 10);
 				return;
 			}
 		}
@@ -669,7 +670,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 
 	if (GLOB(reload_in_progress)) {
 		pbx_log(LOG_NOTICE, "SCCP: Reload in progress. Come back later.\n");
-		sccp_session_tokenReject(s, 5);
+		sccp_session_tokenReject(s, 10);
 		return;
 	}
 
@@ -703,7 +704,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 			if (sccp_session_check_crossdevice(s, tmpdevice) || (state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
 				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
 				sccp_session_crossdevice_cleanup(s, tmpdevice->session);
-				sccp_session_tokenRejectSPCP(s, 60);
+				sccp_session_tokenRejectSPCP(s, 10);
 				return;
 			}
 		}
@@ -733,21 +734,22 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 	device->skinny_type = deviceType;
 	if (sccp_session_retainDevice(s, device) < 0) {
 		pbx_log(LOG_WARNING, "%s: Signing over the session to new device failed. Giving up.\n", DEV_ID_LOG(device));
-		sccp_session_tokenRejectSPCP(s, 60);
+		sccp_session_tokenRejectSPCP(s, GLOB(token_backoff_time));
 		return;
 	}
 
 	if (device->checkACL(device) == FALSE) {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, sccp_netsock_stringify_addr(&sas));
 		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
-		sccp_session_tokenRejectSPCP(s, 60);
+		sccp_session_tokenRejectSPCP(s, GLOB(token_backoff_time));
 		return;
 	}
 
+	/* obsolete, see above */
 	if (device->session && device->session != s) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", device->id);
 		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
-		sccp_session_tokenRejectSPCP(s, 60);
+		sccp_session_tokenRejectSPCP(s, GLOB(token_backoff_time));
 		device->session = sccp_session_reject(device->session, "Crossover session not allowed");
 		return;
 	}
@@ -1331,11 +1333,13 @@ void handle_unregister(constSessionPtr s, devicePtr device, constMessagePtr msg_
 
 	msg_out->data.UnregisterAckMessage.lel_status = SKINNY_UNREGISTERSTATUS_OK;
 	sccp_session_send2(s, msg_out);								// send directly to session, skipping device check
-	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
+	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Unregister Ack sent\n", DEV_ID_LOG(d));
 	
 	sched_yield();
 	if (s) {
 		sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
+	} else {
+		sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_NONE);
 	}
 }
 
@@ -2477,6 +2481,22 @@ void handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 		sccp_dev_stoptone(d, 0, 0);
 	}
 
+	return;
+}
+
+/*!
+ * \brief Handle HookFlash Event for Session
+ * \param s SCCP Session
+ * \param d SCCP Device
+ * \param msg_in SCCP Message
+ */
+void handle_hookflash(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+{
+	pbx_assert(d != NULL);
+	uint32_t lineInstance = letohl(msg_in->data.HookFlashMessage.lel_lineInstance);
+	uint32_t callid = letohl(msg_in->data.HookFlashMessage.lel_callReference);
+
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: HookFlash (lineInstance: %d, callid: %d) not implemented !\n", DEV_ID_LOG(d), lineInstance, callid);
 	return;
 }
 

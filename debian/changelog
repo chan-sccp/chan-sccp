@@ -1,3 +1,46 @@
+chan-sccp-b (4.3.0-5ubuntu1) UNRELEASED; urgency=medium
+
+  * WIP
+     - Reworked configure/make system:
+       - Create Makefile.am per subdirectory
+       - Handle each subdir as a sub-library
+       - Combine the sub-libraries into the final resulting:
+         chan_sccp.so during the final linking step
+       - Use simple path for file inclusion
+       - Clear sepearions between modules (There are still a couple of
+         asterisk in the libsccp module, which should be cleaned up)
+       - Reduced re-compilation when little has changed
+       - Speed up during compilation
+       - Slightly reduced size of the resulting binary
+       - Future Potential to run for example the libsccp module
+         standalone (if the current dependencies can be cleaned up)
+       - Since Automake 1.4 we got warnings because of crossing
+         directory boundaries during automake. This is fixed by splitting
+         the makefiles
+       - The sub-library Makefile.am file are simple and easy to
+         maintain. The focus only on theor own directory
+     - CallFlow: 
+       - Revised handling shared line during incoming call
+       - Revised sccp_socket / session handling during read of potentially unknown messages
+       - Revised callinfo functionalty
+       - Atomic Functions using trylock/spinlock instead of lock, to prevent deadlock
+     - Static Analysis
+       - subsequent fixes
+         - nullpointer checks
+         - dead code removal 
+         - More boundschecking
+       - deny use of strcat, sprintf, atoi and other unsafe functions
+     - Add Visual Parkinglot Feature Button support
+     Fixes:
+      - Channel remaining after hangup
+      - Timeout / Hangup Scheduler issues 
+      - Session Cancellation
+      - Pickup/GPickup and entries in phonebook
+      - Fixed direcrtp (more work needed)
+      - letohl / bswap fix
+
+ -- Diederik de Groot <ddegroot@talon.nl>  Thu, 26 Jan 2017 15:08:00 +0100
+
 chan-sccp-b (4.3.0-4ubuntu1) UNRELEASED; urgency=medium
 
   * WIP:

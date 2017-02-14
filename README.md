@@ -59,11 +59,9 @@ _Note: When you are making changes to configure.ac, autoconf / or Makefile.am fi
 ### Binaries
 We also provide prebuild binaries for:
 - [Ubuntu (PPA)](https://launchpad.net/~chan-sccp-b/+archive/ubuntu/ppa)
-- [Debian-7.0](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-1.8_chan-sccp-b/Debian_7.0/)
-- [Debian-8.0](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-11_chan-sccp-b/Debian_8.0/)
+- [Debian-8.0](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-11/Debian_8.0/)
 - [OpenSuSE](http://download.opensuse.org/repositories/home:/chan-sccp-b:/)
-- [Centos](http://download.opensuse.org/repositories/home:/chan-sccp-b:/other/)
-- [Redhat/Fedora](http://download.opensuse.org/repositories/home:/chan-sccp-b:/other/)
+- [Fedora](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/)
 
 ### Wiki
 You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/)

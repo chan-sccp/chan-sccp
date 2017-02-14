@@ -36,6 +36,7 @@ permit = internal                                                               
 ;digittimeoutchar = #                                                             ; You can force the channel to dial with this char in the dialing state
 ;recorddigittimeoutchar = no                                                      ; You can force the channel to dial with this char in the dialing state
 ;simulate_enbloc = yes                                                            ; Use simulated enbloc dialing to speedup connection when dialing while onhook (older phones)
+;ringtype = outside								  ; Ringtype for incoming calls (default='outside')
 ;autoanswer_ring_time = 1                                                         ; Ringing time in seconds for the autoanswer.
 ;autoanswer_tone = 0x32                                                           ; Autoanswer confirmation tone. For a complete list of tones: grep SKINNY_TONE sccp_protocol.h
                                                                                   ; not all the tones can be played in a connected state, so you have to try.

@@ -409,6 +409,14 @@
 			0: will not enable the handset monitoring and only the headset will be active
 			1: will enable activate both the headset as well as the handset during a call
 		-->
+		<detectCMConnectionFailure>0</detectCMConnectionFailure>
+		<!--
+			Switch from measured keepalive packet delivery time falure detection to delayed failure detection
+			See: https://github.com/chan-sccp/chan-sccp/wiki/Unregister%2C-ReRegistering%2C-Keepalive-issues
+			See: http://www.cisco.com/c/en/us/support/docs/collaboration-endpoints/unified-ip-phone-7900-series/200410-Troubleshoot-IP-Phone-Unregistration-A.html
+			0: Normal Failure Detection
+			1: Delayed Failure Detection
+		-->
 	</vendorConfig>
 	<versionStamp>{Jan 01 2003 00:00:00}</versionStamp>
 	<loadInformation>P00308010100</loadInformation>
@@ -494,12 +502,18 @@
 	<certHash></certHash>
 	<encrConfig>false</encrConfig>
 	<phoneServices>
-		<!-- 
+		<provisioning>0</provisioning>
+		<!-- provisioning:
+			0 = Use PhoneServices
+			1 = Use ServicerURL / DirectoryURL and MessagesURL (Above)
+			2 = Use Both (Merge Both)
+		-->
+		
+		<!-- Below
 			type = 0 -> applicaton menu
 			type = 1 -> contacts menu
 			type = 2 -> messages menu
 		-->
-		<provisioning>0</provisioning>
 		<phoneService  type="0" category="0">
 			<name>Corporate Directory</name>
 			<url>Application:Cisco/CorporateDirectory</url>
