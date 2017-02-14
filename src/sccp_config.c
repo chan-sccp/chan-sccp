@@ -2608,7 +2608,7 @@ sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * 
 	PBX_VARIABLE_TYPE *cat_root = v;
 
 	if (d->pendingDelete) {
-		sccp_dev_clean(d, FALSE);
+		sccp_dev_clean_restart(d, FALSE);
 	}
 	for (; v; v = v->next) {
 		res |= sccp_config_object_setValue(d, cat_root, v->name, v->value, v->lineno, SCCP_CONFIG_DEVICE_SEGMENT, SetEntries);

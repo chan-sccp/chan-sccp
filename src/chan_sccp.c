@@ -327,7 +327,7 @@ int sccp_preUnload(void)
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(devices), d, list) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
 		d->realtime = TRUE;										// use realtime, to fully clear the device configuration
-		sccp_dev_clean(d, TRUE);									// performs a device reset if it has a session
+		sccp_dev_clean_restart(d, TRUE);								// performs a device reset if it has a session
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
 	if (SCCP_RWLIST_EMPTY(&GLOB(devices))) {

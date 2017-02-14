@@ -2070,6 +2070,8 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 		}
 		if (bfdobj) {
 			bfd_close(bfdobj);
+		}
+		if (syms) {
 			sccp_free(syms);
 		}
 
@@ -2124,13 +2126,19 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 
 void sccp_do_backtrace()
 {
+	pbx_rwlock_rdlock(&GLOB(lock));
+	boolean_t running = GLOB(module_running);
+	pbx_rwlock_unlock(&GLOB(lock));
+	if (!running) {
+		return;
+	}
+
 #if HAVE_EXECINFO_H
 	void	*addresses[SCCP_BACKTRACE_SIZE];
 	size_t  size, i;
 	char     **strings;
 	struct ast_str *btbuf;
 	if (!(btbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE * 2))) {
-		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		return;
 	}
 	
