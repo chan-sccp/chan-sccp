@@ -48,4 +48,6 @@
  * > git hash-object -w pubkey.txt
  * > git tag -s username.gpg_pub_key <HASH-VALUE-GOTTEN_FROM-PREVIOUS-COMMAND>
  *
+ * See more info: http://365git.tumblr.com/post/2813251228/adding-a-gpg-public-key-to-a-repository
  */
+
