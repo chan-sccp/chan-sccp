@@ -15,18 +15,17 @@
  *
  * \page authors Chan-SCCP-b Authors
  *
- * Name                 | Username		| Role                    		| E-mail			| Active
- * ---------------------|-----------------------|---------------------------------------|-------------------------------|---------------
- * Marcello Ceschia	| marcelloceschia	| Project Admin/Developer (Trunk)	| marcelloceschia@users.sf.net	| YES
- * David Dederscheck 	| davidded		| Project Admin/Developer (Stable)	| davidded@users.sf.net		| YES
- * Diederik de Groot	| ddegroot 		| Project Admin/Developer (Trunk)  	| ddegroot@users.sf.net		| YES
- * Anthony Shaw		| anthonyshaw		| Project Admin/Developer		| anthonyshaw@users.sf.net	| NO
- * Scotchy		| scotchy		| Project Admin/Developer 		| scotchy@users.sf.net		| NO
- * Andrew Lee		| andrewylee		| Developer  		 		| andrewylee@users.sf.net	| NO
- * Federico Santulli	| fsantulli 		| Developer 				| fsantulli@users.sf.net	| NO
- * Geoff Thornton	| gthornton 		| Developer 		 		| gthornton@users.sf.net	| NO
- * macdiver		| macdiver 		| Developer 		 		| macdiver@users.sf.net		| NO
- * Sebastian Vetter	| sebbbl 		| Doc Writer 		 		| sebbbl@users.sf.net		| NO
- * Romain Bignon	| progs 		| Developer 		 		| progs@users.sf.net		| NO
- *
+ * Name                 | Username		| Role                    		| E-mail			| GPG        | Active
+ * ---------------------|-----------------------|---------------------------------------|-------------------------------|------------|----------
+ * Marcello Ceschia	| marcelloceschia	| Project Admin/Developer (Trunk)	| marcelloceschia@users.sf.net	| 0xE6F16AD3 | YES
+ * Diederik de Groot	| ddegroot 		| Project Admin/Developer (Trunk)  	| ddegroot@users.sf.net		| 0x0A1BECD6 | YES
+ * David Dederscheck 	| davidded		| Project Admin/Developer (Stable)	| davidded@users.sf.net		|            | NO
+ * Anthony Shaw		| anthonyshaw		| Project Admin/Developer		| anthonyshaw@users.sf.net	|            | NO
+ * Scotchy		| scotchy		| Project Admin/Developer 		| scotchy@users.sf.net		|            | NO
+ * Andrew Lee		| andrewylee		| Developer  		 		| andrewylee@users.sf.net	|            | NO
+ * Federico Santulli	| fsantulli 		| Developer 				| fsantulli@users.sf.net	|            | NO
+ * Geoff Thornton	| gthornton 		| Developer 		 		| gthornton@users.sf.net	|            | NO
+ * macdiver		| macdiver 		| Developer 		 		| macdiver@users.sf.net		|            | NO
+ * Sebastian Vetter	| sebbbl 		| Doc Writer 		 		| sebbbl@users.sf.net		|            | NO
+ * Romain Bignon	| progs 		| Developer 		 		| progs@users.sf.net		|            | NO
  */
