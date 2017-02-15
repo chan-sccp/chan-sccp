@@ -2923,6 +2923,8 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	pbx_assert(d != NULL);
 	char resp = '\0';
 	int len = 0;
+	
+	
 	enum sccp_cili {
 		SCCP_CILI_HAS_NEITHER,
 		SCCP_CILI_HAS_CALLID,
@@ -2946,6 +2948,11 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 		default:
 			pbx_log(LOG_ERROR, "%s: (handle_keypad) received unsupported digit:%d\n", DEV_ID_LOG(d), digit);
 			return;
+	}
+
+	if (!sccp_device_getActiveAccessory(d)) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) Device is not active, no need to process further digit (%c). Giving up!\n", DEV_ID_LOG(d), resp);
+		return; 
 	}
 
 	uint8_t CallIdAndLineInstance = SCCP_CILI_HAS_NEITHER;
