@@ -881,7 +881,7 @@ int sccp_parse_alertinfo(PBX_CHANNEL_TYPE *pbx_channel, skinny_ringtype_t *ringe
 	int res = 0;
 	const char *alert_info = pbx_builtin_getvar_helper(pbx_channel, "ALERT_INFO");
 	if (alert_info && !sccp_strlen_zero(alert_info)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Found ALERT_INFO=%s (%d/%c)\n", pbx_channel_name(pbx_channel), alert_info, strlen(alert_info), alert_info[11]);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Found ALERT_INFO=%s\n", pbx_channel_name(pbx_channel), alert_info);
 		if (!strncasecmp(alert_info, "bellcore-dr", 11) && strlen(alert_info) >= 12) {
 			switch(alert_info[11]) {
 				case '1': 
