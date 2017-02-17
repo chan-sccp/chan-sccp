@@ -105,13 +105,25 @@ uint8_t sccp_codec_getArrayLen()
         })
 
 gcc_inline const char *codec2str(skinny_codec_t value)
-{														/* sccp_protocol.h */
+{
 	_ARR2STR(skinny_codecs, codec, value, text);
 }
 
 gcc_inline const char *codec2name(skinny_codec_t value)
-{														/* sccp_protocol.h */
+{
 	_ARR2STR(skinny_codecs, codec, value, name);
+}
+
+gcc_inline const skinny_payload_type_t codec2type(skinny_codec_t value)
+{
+        uint32_t i;
+        for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
+                if (skinny_codecs[i].codec == value) {
+                        return skinny_codecs[i].codec_type;
+                } \
+        } \
+        pbx_log(LOG_ERROR, "codec2type lookup failed for skinny_codecs[%i]\n", value);
+        return SKINNY_CODEC_TYPE_UNKNOWN;
 }
 
 /*!
@@ -135,7 +147,7 @@ char *sccp_codec_multiple2str(char *buf, size_t size, const skinny_codec_t * cod
 	snprintf(endptr++, size, "[");
 	endptr += strlen(endptr);
 	for (x = 0; x < clength; x++) {
-		if (codecs[x] == 0) {
+		if (codecs[x] == SKINNY_CODEC_NONE || codecs[x] == SKINNY_CODEC_NONSTANDARD) {
 			break;
 		}
 		//snprintf(endptr, size, "%s%s (%d)", comma++ ? ", " : "",codec2name(codecs[x]), codecs[x]);
