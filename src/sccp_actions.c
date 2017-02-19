@@ -74,6 +74,7 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_ConnectionStatistics(constSessionPtr s, devicePtr device, constMessagePtr msg_in)		__NONNULL(1,2,3);
+void handle_ipport(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				__NONNULL(1,2,3);
 void handle_version(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				__NONNULL(1,2,3);
 void handle_ServerResMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,2,3);
 void handle_ConfigStatMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,2,3);
@@ -153,7 +154,7 @@ static const struct messageMap_cb sccpMessagesCbMap[SCCP_MESSAGE_HIGH_BOUNDARY +
 	[OpenReceiveChannelAck] = {handle_open_receive_channel_ack, TRUE},
 	[OpenMultiMediaReceiveChannelAckMessage] = {handle_OpenMultiMediaReceiveAck, TRUE},
 	[StartMediaTransmissionAck] = {handle_startmediatransmission_ack, TRUE},
-	[IpPortMessage] = {NULL, TRUE},
+	[IpPortMessage] = {handle_ipport, TRUE},
 	[VersionReqMessage] = {handle_version, TRUE},
 	[CapabilitiesResMessage] = {handle_capabilities_res, TRUE},
 	[ButtonTemplateReqMessage] = {sccp_handle_button_template_req, TRUE},
@@ -2497,8 +2498,17 @@ void handle_hookflash(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	uint32_t lineInstance = letohl(msg_in->data.HookFlashMessage.lel_lineInstance);
 	uint32_t callid = letohl(msg_in->data.HookFlashMessage.lel_callReference);
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: HookFlash (lineInstance: %d, callid: %d) not implemented !\n", DEV_ID_LOG(d), lineInstance, callid);
-	return;
+	if (lineInstance && callid) {
+		AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byid(d, lineInstance));
+		if (l) {
+			handle_stimulus_transfer(d, l, lineInstance, callid, 0);
+		} else {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (HookFlash) Line could not be found for lineInstance:%d\n", d->id, lineInstance);
+		}
+	} else {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (HookFlash) Either lineInstance:%d or CallId:%d not provided\n", d->id);
+		sccp_dump_msg(msg_in);
+	}
 }
 
 /*!
@@ -3597,6 +3607,18 @@ void handle_mediatransmissionfailure(constSessionPtr s, devicePtr d, constMessag
 	*/
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Received a MediaTranmissionFailure (not being handled fully at this moment)\n", DEV_ID_LOG(d));
+}
+
+/*!
+ * \brief Handle IpPort Message
+ * \param no_s SCCP Session = NULL
+ * \param no_d SCCP Device = NULL
+ * \param msg_in SCCP Message
+ */
+void handle_ipport(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+{
+	d->rtpPort = letohl(msg_in->data.IpPortMessage.lel_rtpMediaPort);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got rtpPort:%d which the device wants to use for media\n", d->id, d->rtpPort);
 }
 
 /*!

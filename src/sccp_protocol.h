@@ -234,7 +234,7 @@ typedef enum {
 	// ??
 	SetRingerMessage 				= 0x0085,
 	SetLampMessage 					= 0x0086,
-	SetHkFDetectMessage 				= 0x0087,
+	SetHookFlashDetectMessage 			= 0x0087,
 	SetSpeakerModeMessage 				= 0x0088,
 	SetMicroModeMessage 				= 0x0089,
 	StartMediaTransmission 				= 0x008A,
@@ -1559,7 +1559,7 @@ typedef union {
 	} ConfigStatDynamicMessage;										/*!< Configuration Status Message - Server -> Client */
 
 	struct {
-		uint32_t les_rtpMediaPort;									/*!< RTP Media Port */
+		uint32_t lel_rtpMediaPort;									/*!< RTP Media Port */
 	} IpPortMessage;											/*!< Ip Port Message - Superseded by including the IP Port info in the OpenReceiveChannelAck Message  */
 
 	struct {
@@ -2000,7 +2000,7 @@ typedef union {
 	} SetLampMessage;											/*!< Set Lamp Message Structure */
 
 	struct {
-	} SetHkFDetectMessage;											/*!< Set Hkf Detect Message Structure */
+	} SetHookFlashDetectMessage;											/*!< Set Hkf Detect Message Structure */
 
 	struct {
 		uint32_t lel_speakerMode;									/*!< Spreaker Mode */

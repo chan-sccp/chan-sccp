@@ -613,6 +613,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->pushURL = sccp_device_pushURLNotSupported;
 	d->pushTextMessage = sccp_device_pushTextMessageNotSupported;
 	d->checkACL = sccp_device_checkACL;
+	d->useHookFlash = sccp_device_falseResult;
 	d->hasDisplayPrompt = sccp_device_trueResult;
 	d->hasEnhancedIconMenuSupport = sccp_device_falseResult;
 	d->setBackgroundImage = sccp_device_setBackgroundImageNotSupported;
@@ -1036,6 +1037,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 		case SKINNY_DEVICETYPE_ANALOG_GATEWAY:
 			btn[btn_index++].type = SCCP_BUTTONTYPE_LINE;
 			d->hasDisplayPrompt = sccp_device_falseResult;
+			d->useHookFlash = sccp_device_trueResult;
 			break;
 		case SKINNY_DEVICETYPE_ATA188:
 		case SKINNY_DEVICETYPE_ATA186:
@@ -1045,6 +1047,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 				btn[btn_index++].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
 			d->hasDisplayPrompt = sccp_device_falseResult;
+			d->useHookFlash = sccp_device_trueResult;
 			break;
 		case SKINNY_DEVICETYPE_CISCO8941:
 		case SKINNY_DEVICETYPE_CISCO8945:
@@ -1121,6 +1124,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO6901:
+			d->useHookFlash = sccp_device_trueResult;
 		case SKINNY_DEVICETYPE_CISCO6911:
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
@@ -1402,6 +1406,25 @@ void sccp_dev_set_speaker(constDevicePtr d, uint8_t mode)
 	msg->data.SetSpeakerModeMessage.lel_speakerMode = htolel(mode);
 	sccp_dev_send(d, msg);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send speaker mode '%s'\n", d->id, (mode == SKINNY_STATIONSPEAKER_ON ? "on" : (mode == SKINNY_STATIONSPEAKER_OFF ? "off" : "unknown")));
+}
+
+/*!
+ * \brief Set HookFlash Detect
+ * \param d SCCP Device
+ */
+static void sccp_dev_setHookFlashDetect(constDevicePtr d)
+{
+	sccp_msg_t *msg = NULL;
+
+	if (!d || !d->session || !d->protocol || !d->useHookFlash()) {
+		return;												/* only for old phones */
+	}
+	REQ(msg, SetHookFlashDetectMessage);
+	if (!msg) {
+		return;
+	}
+	sccp_dev_send(d, msg);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Enabled HookFlashDetect\n", d->id);
 }
 
 /*!
@@ -2164,6 +2187,9 @@ void sccp_dev_postregistration(void *data)
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 #endif
+	if (d->useHookFlash()) {
+		sccp_dev_setHookFlashDetect(d);
+	}
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
 	return;
 }
