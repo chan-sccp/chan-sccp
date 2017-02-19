@@ -32,9 +32,9 @@
 <!-- Cisco Softphone SCCP only -->
     <loadInformation562    model="Cisco Dual Mode for iPhone"></loadInformation562>
     <loadInformation575    model="Cisco Dual Mode for Android"></loadInformation575>
-    <loadInformation275    model="Nokia E Series"></loadInformation275>
+    <loadInformation275    model="Nokia E Series"></loadInformation275> <!-- Nokia Call Connect 2.0 -->
+    <loadInformation376    model="Nokia S60"></loadInformation376> <!-- Nokia Call Connect 2.0 -->
     <loadInformation335    model="Motorola CN622"></loadInformation335>
-    <loadInformation376    model="Nokia S60"></loadInformation376>
 <!-- SCCP and SIP -->
     <loadInformation6      model="Cisco 7910">SCCP11.9-0-2SR1S</loadInformation6>
     <loadInformation5      model="Cisco 7961">SCCP41.8-3-3S</loadInformation5>
