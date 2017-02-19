@@ -1125,6 +1125,9 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			break;
 		case SKINNY_DEVICETYPE_CISCO6901:
 			d->useHookFlash = sccp_device_trueResult;
+			d->hasDisplayPrompt = sccp_device_falseResult;
+			btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
+			break;
 		case SKINNY_DEVICETYPE_CISCO6911:
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
