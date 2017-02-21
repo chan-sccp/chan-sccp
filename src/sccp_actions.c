@@ -2506,7 +2506,7 @@ void handle_hookflash(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (HookFlash) Line could not be found for lineInstance:%d\n", d->id, lineInstance);
 		}
 	} else {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (HookFlash) Either lineInstance:%d or CallId:%d not provided\n", d->id);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (HookFlash) Either lineInstance:%d or CallId:%d not provided\n", d->id, lineInstance, callid);
 		sccp_dump_msg(msg_in);
 	}
 }
