@@ -1562,10 +1562,28 @@ typedef union {
 		uint32_t lel_rtpMediaPort;									/*!< RTP Media Port */
 	} IpPortMessage;											/*!< Ip Port Message - Superseded by including the IP Port info in the OpenReceiveChannelAck Message  */
 
+/*
+	struct {
+'		uint32_t lel_kpButton;										//!< KeyPad Button
+		union {
+			struct {
+				uint32_t lel_buttonIndex;							//!< Button Indexn on device
+			} v3;
+			struct {
+				uint32_t lel_lineInstance;							//!< Line Instance on device
+				uint32_t lel_callReference;							//!< Call Reference - current channel identifier
+			} v11;
+		}
+		uint32_t lel_unknown1;
+		uint32_t lel_unknown2;
+	} KeypadButtonMessage;											//!< KeyPad Button Message - Client -> Server
+*/
 	struct {
 		uint32_t lel_kpButton;										/*!< KeyPad Button */
 		uint32_t lel_lineInstance;									/*!< Line Instance on device */
 		uint32_t lel_callReference;									/*!< Call Reference - current channel identifier */
+		uint32_t lel_unknown1;
+		uint32_t lel_unknown2;
 	} KeypadButtonMessage;											/*!< KeyPad Button Message - Client -> Server */
 
 	/* 8945 v22 unpacked */
