@@ -1965,7 +1965,10 @@ static int _transfer_setup(devicePtr device, channelPtr channel)
 		device->transferChannels.transferee = sccp_channel_retain(channel);
 		device->transferChannels.transferer = sccp_channel_retain(newchannel);
 		uint16_t instance = sccp_device_find_index_for_line(device, newchannel->line->name);
+
+		sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 		sccp_dev_set_keyset(device, instance, newchannel->callid, KEYMODE_OFFHOOKFEAT);
+		sccp_device_setLamp(device, SKINNY_STIMULUS_TRANSFER, instance, SKINNY_LAMP_FLASH);
 		res = 0;
 	} else {
 		_transfer_failed(device, channel, "Unable to create channel for transfer");
