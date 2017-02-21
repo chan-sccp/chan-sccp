@@ -3376,7 +3376,7 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 	} else {
 		/* we successfully opened receive channel, but have no channel active -> close receive */
 		int32_t callId = passThruPartyId ^ 0xFFFFFFFF;
-		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruPartyId %u (callReference: %d, callid: %d)!\n", d->id, passThruPartyId, callReference, callId);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (OpenReceiveChannelAck) No channel with this PassThruPartyId %u (callReference: %d, callid: %d). Channel has already been hungup or closed.\n", d->id, passThruPartyId, callReference, callId);
 
 		sccp_msg_t *r = NULL;
 		REQ(r, CloseReceiveChannel);
