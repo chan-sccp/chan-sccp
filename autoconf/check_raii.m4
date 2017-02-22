@@ -20,9 +20,12 @@ AC_DEFUN([CS_CHECK_RAII], [
 			CC_VERSION=$(${CC} -dumpversion|cut -f1,2 -d'.' --output-delimiter='')
 			if test ${CC_VERSION} -lt 43 ; then
 				echo ""
-				echo"The compiler you are using is not compatible"
+				echo "The gcc compiler you are using is not compatible with this version of chan-sccp"
 				echo ""
-				echo "You need at least gcc > 4.3. Please upgrade your compiler !!"
+				echo "You need at least gcc > 4.3. While your gcc has version:"
+				${CC} -dumpversion
+				echo ""
+				echo "Please upgrade your compiler !!"
 				echo "Maybe it's time to upgrade your OS as well :-)"
 				echo ""
 				if -f /etc/centos-release; then
