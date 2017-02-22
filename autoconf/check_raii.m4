@@ -18,7 +18,7 @@ AC_DEFUN([CS_CHECK_RAII], [
 			AST_C_COMPILER_FAMILY="gcc"
 			AC_MSG_CHECKING([gcc version > 4.3])
 			CC_VERSION=$(${CC} -dumpversion|cut -f1,2 -d'.' --output-delimiter='')
-			if test ${CC_VERSION} -lt 80 ; then
+			if test ${CC_VERSION} -lt 43 ; then
 				echo ""
 				echo"The compiler you are using is not compatible"
 				echo ""
