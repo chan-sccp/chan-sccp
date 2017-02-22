@@ -5618,25 +5618,27 @@ if ac_fn_c_try_link "$LINENO"; then :
 						AST_C_COMPILER_FAMILY="gcc"
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking gcc version > 4.3" >&5
 $as_echo_n "checking gcc version > 4.3... " >&6; }
-			CC_VERSION=$(${CC} -dumpversion|cut -f1,2 -d'.' --output-delimiter='')
-			if test ${CC_VERSION} -lt 43 ; then
-				echo ""
-				echo "The gcc compiler you are using is not compatible with this version of chan-sccp"
-				echo ""
-				echo "You need at least gcc > 4.3. While your gcc has version:"
-				${CC} -dumpversion
-				echo ""
-				echo "Please upgrade your compiler !!"
-				echo "Maybe it's time to upgrade your OS as well :-)"
-				echo ""
-				if -f /etc/centos-release; then
-					echo "See: https://github.com/chan-sccp/chan-sccp/wiki/Update-Compiler---Devtools-on-CentOS"
+			MAJOR_VERSION=$(${CC} -dumpversion|cut -f1 -d'.')
+			MINOR_VERSION=$(${CC} -dumpversion|cut -f2 -d'.')
+			if test ${MAJOR_VERSION} -le 4 ; then
+				if test ${MINOR_VERSION} -le 3 ; then
+					echo ""
+					echo "The gcc compiler you are using is not compatible with this version of chan-sccp"
+					echo ""
+					echo "You need at least gcc > 4.3. While your gcc has version:"
+					${CC} -dumpversion
+					echo ""
+					echo "Please upgrade your compiler !!"
+					echo "Maybe it's time to upgrade your OS as well :-)"
+					echo ""
+					if -f /etc/centos-release; then
+						echo "See: https://github.com/chan-sccp/chan-sccp/wiki/Update-Compiler---Devtools-on-CentOS"
+					fi
+					exit -5
 				fi
-				exit -5
-			else
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
 			fi
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gcc -fnested-functions" >&5
 $as_echo_n "checking for gcc -fnested-functions... " >&6; }
