@@ -341,6 +341,7 @@ void sccp_device_pre_reload(void)
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: Setting Button at Index:%d to pendingDelete\n", d->id, config->index);
 			config->pendingDelete = 1;
 			config->pendingUpdate = 0;
 		}

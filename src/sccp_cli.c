@@ -2479,7 +2479,6 @@ CLI_ENTRY(cli_no_debug, sccp_no_debug, "Set SCCP Debugging Types", no_debug_usag
  */
 static int sccp_cli_reload(int fd, int argc, char *argv[])
 {
-	sccp_readingtype_t readingtype;
 	boolean_t force_reload = FALSE;
 	int returnval = RESULT_FAILURE;
 	sccp_configurationchange_t change;
@@ -2684,14 +2683,12 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 		case CONFIG_STATUS_FILE_OK:
 			if (GLOB(cfg)) {
 				pbx_cli(fd, "SCCP reloading configuration. %p\n", GLOB(cfg));
-				readingtype = SCCP_CONFIG_READRELOAD;
-//				GLOB(reload_in_progress) = TRUE;
-				if (!sccp_config_general(readingtype)) {
+				if (!sccp_config_general(SCCP_CONFIG_READRELOAD)) {
 					pbx_cli(fd, "Unable to reload configuration.\n");
 					returnval = RESULT_FAILURE;
 					goto EXIT;
 				}
-				sccp_config_readDevicesLines(readingtype);
+				sccp_config_readDevicesLines(SCCP_CONFIG_READRELOAD);
 				returnval = RESULT_SUCCESS;
 			}
 			break;

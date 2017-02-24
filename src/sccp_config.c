@@ -2388,7 +2388,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Loading Devices and Lines from config\n");
 
-	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Checking Reading Type\n");
+	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Checking Reading Type:%s (%d)\n", readingtype == 0 ? "Module load" : "Reload", readingtype);
 	if (readingtype == SCCP_CONFIG_READRELOAD) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Device Pre Reload\n");
 		sccp_device_pre_reload();
