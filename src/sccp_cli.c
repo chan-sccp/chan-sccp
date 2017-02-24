@@ -2535,7 +2535,6 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: Setting Button at Index:%d to pendingDelete\n", device->id, config->index);
 						config->pendingDelete = 1;
-						config->pendingUpdate = 0;
 					}
 					SCCP_LIST_UNLOCK(&device->buttonconfig);
 
@@ -2606,6 +2605,12 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
 							AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(lineDevice->device));
 							if (device) {
+								SCCP_LIST_LOCK(&device->buttonconfig);
+								SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+									sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: Setting Button at Index:%d to pendingDelete\n", device->id, config->index);
+									config->pendingDelete = 1;
+								}
+								SCCP_LIST_UNLOCK(&device->buttonconfig);
 #ifdef CS_SCCP_REALTIME
 								if (device->realtime) {
 									if ((dv = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL))) {
@@ -2613,9 +2618,11 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 									}
 								} else
 #endif
-								if (GLOB(cfg)) {
-									v = ast_variable_browse(GLOB(cfg), device->id);
-									change |= sccp_config_applyDeviceConfiguration(device, v);
+								{
+									if (GLOB(cfg)) {
+										v = ast_variable_browse(GLOB(cfg), device->id);
+										change |= sccp_config_applyDeviceConfiguration(device, v);
+									}
 								}
 								device->pendingUpdate = 1;
 								sccp_device_check_update(device);				// Will cleanup after reload and restart the device if necessary
