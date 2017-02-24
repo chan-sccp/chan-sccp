@@ -2964,11 +2964,6 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 			return;
 	}
 
-	if (!sccp_device_getActiveAccessory(d)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) Device is not active, no need to process further digit (%c). Giving up!\n", DEV_ID_LOG(d), resp);
-		return; 
-	}
-
 	uint8_t CallIdAndLineInstance = SCCP_CILI_HAS_NEITHER;
 	uint8_t lineInstance = 0;
 	uint32_t callid = 0;
@@ -3025,7 +3020,8 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	
 	{ /* check if we have all required structures and states for error conditions */
 		if (!channel) {
-			pbx_log(LOG_ERROR, "%s: Device sent a Keypress, but there is no (active) channel! Exiting\n", DEV_ID_LOG(d));
+			/*! When a call is already being ended, sometimes users misdial, should lower the ERROR to NOTICE status */
+			pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but there is no (active) channel! Exiting\n", DEV_ID_LOG(d));
 			return;
 		}
 		if (!channel->owner) {
@@ -3077,7 +3073,7 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 		int number_of_digits = len;
 		int timeout_if_enbloc = SCCP_SIM_ENBLOC_TIMEOUT;						// new timeout if we have established we should enbloc dialing
 
-		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digittimeout '%d' ms, sched_wait '%d' ms\n", channel->enbloc.digittimeout, iPbx.sched_wait(channel->scheduler.digittimeout_id));
+		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digittimeout '%d' s, sched_wait '%d' ms\n", channel->enbloc.digittimeout, iPbx.sched_wait(channel->scheduler.digittimeout_id));
 		if (GLOB(simulate_enbloc) && !channel->enbloc.deactivate && number_of_digits >= 1) {		// skip the first digit (first digit had longer delay than the rest)
 			if ((int)channel->enbloc.digittimeout < (iPbx.sched_wait(channel->scheduler.digittimeout_id))) {
 				lpbx_digit_usecs = (channel->enbloc.digittimeout * 1000) - (iPbx.sched_wait(channel->scheduler.digittimeout_id));
