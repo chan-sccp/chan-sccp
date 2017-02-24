@@ -2966,11 +2966,6 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 			return;
 	}
 
-	if (!sccp_device_getActiveAccessory(d)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) Device is not active, no need to process further digit (%c). Giving up!\n", DEV_ID_LOG(d), resp);
-		return; 
-	}
-
 	uint8_t CallIdAndLineInstance = SCCP_CILI_HAS_NEITHER;
 	uint8_t lineInstance = 0;
 	uint32_t callid = 0;
@@ -3027,7 +3022,8 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	
 	{ /* check if we have all required structures and states for error conditions */
 		if (!channel) {
-			pbx_log(LOG_ERROR, "%s: Device sent a Keypress, but there is no (active) channel! Exiting\n", DEV_ID_LOG(d));
+			/* can also happen when user was still pressing digits but the call has already ended */
+			pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but there is no (active) channel! Exiting\n", DEV_ID_LOG(d));
 			return;
 		}
 		if (!channel->owner) {
