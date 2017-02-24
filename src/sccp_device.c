@@ -2202,6 +2202,8 @@ static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)
 	if (!buttonconfig) {
 		return;
 	}
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: (buttonconfig_destroy) destroying index:%d, type:%s (%d), pendingDelete:%s, pendingUpdate:%s\n",
+		buttonconfig->index, sccp_config_buttontype2str(buttonconfig->type), buttonconfig->type, buttonconfig->pendingDelete ? "True" : "False", buttonconfig->pendingUpdate ? "True" : "False");
 	if (buttonconfig->label) {
 		sccp_free(buttonconfig->label);
 	}
@@ -2296,6 +2298,8 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->type == LINE) {
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: checking buttonconfig index:%d, type:%s (%d) to see if there are any connected lines/channels\n",
+					d->id, config->index, sccp_config_buttontype2str(config->type), config->type);
 				AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byname(config->button.line.name, FALSE));
 
 				if (!line) {
@@ -2320,11 +2324,15 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 				sccp_line_removeDevice(line, d);
 #ifdef CS_SCCP_PARK
 			} else if (iParkingLot.detachObserver && config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: checking buttonconfig index:%d, type:%s (%d) to see if there are any observed parkinglots\n",
+					d->id, config->index, sccp_config_buttontype2str(config->type), config->type);
 				iParkingLot.detachObserver(config->button.feature.options, d, config->instance);
 #endif
 			}
 		}
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: checking buttonconfig for pendingDelete (index:%d, type:%s (%d), pendingDelete:%s, pendingUpdate:%s)\n",
+				d->id, config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
 			config->instance = 0;									/* reset button configuration to rebuild template on register */
 			if (config->pendingDelete) {
 				SCCP_LIST_REMOVE_CURRENT(list);
