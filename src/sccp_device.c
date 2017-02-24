@@ -2332,7 +2332,7 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 			}
 		}
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
-			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: checking buttonconfig for pendingDelete (index:%d, type:%s (%d), pendingDelete:%s, pendingUpdate:%s)\n",
+			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: checking buttonconfig for pendingDelete (index:%d, type:%s (%d), pendingDelete:%s, pendingUpdate:%s)\n",
 				d->id, config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
 			config->instance = 0;									/* reset button configuration to rebuild template on register */
 			if (config->pendingDelete) {
