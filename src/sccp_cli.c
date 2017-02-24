@@ -2482,6 +2482,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	boolean_t force_reload = FALSE;
 	int returnval = RESULT_FAILURE;
 	sccp_configurationchange_t change;
+	sccp_buttonconfig_t *config = NULL;
 
 	if (argc < 2 || argc > 4) {
 		return RESULT_SHOWUSAGE;
@@ -2530,6 +2531,14 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					}
 				}
 				if (v) {
+					SCCP_LIST_LOCK(&device->buttonconfig);
+					SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: Setting Button at Index:%d to pendingDelete\n", device->id, config->index);
+						config->pendingDelete = 1;
+						config->pendingUpdate = 0;
+					}
+					SCCP_LIST_UNLOCK(&device->buttonconfig);
+
 					change = sccp_config_applyDeviceConfiguration(device, v);
 					sccp_log((DEBUGCAT_CORE)) ("%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> skipping restart (minor changes applied)");
 					pbx_cli(fd, "%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> restart not required");
