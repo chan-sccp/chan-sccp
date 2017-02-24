@@ -2479,10 +2479,10 @@ CLI_ENTRY(cli_no_debug, sccp_no_debug, "Set SCCP Debugging Types", no_debug_usag
  */
 static int sccp_cli_reload(int fd, int argc, char *argv[])
 {
-	sccp_readingtype_t readingtype;
 	boolean_t force_reload = FALSE;
 	int returnval = RESULT_FAILURE;
 	sccp_configurationchange_t change;
+	sccp_buttonconfig_t *config = NULL;
 
 	if (argc < 2 || argc > 4) {
 		return RESULT_SHOWUSAGE;
@@ -2531,6 +2531,13 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					}
 				}
 				if (v) {
+					SCCP_LIST_LOCK(&device->buttonconfig);
+					SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: Setting Button at Index:%d to pendingDelete\n", device->id, config->index);
+						config->pendingDelete = 1;
+					}
+					SCCP_LIST_UNLOCK(&device->buttonconfig);
+
 					change = sccp_config_applyDeviceConfiguration(device, v);
 					sccp_log((DEBUGCAT_CORE)) ("%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> skipping restart (minor changes applied)");
 					pbx_cli(fd, "%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> restart not required");
@@ -2598,6 +2605,12 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
 							AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(lineDevice->device));
 							if (device) {
+								SCCP_LIST_LOCK(&device->buttonconfig);
+								SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+									sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: Setting Button at Index:%d to pendingDelete\n", device->id, config->index);
+									config->pendingDelete = 1;
+								}
+								SCCP_LIST_UNLOCK(&device->buttonconfig);
 #ifdef CS_SCCP_REALTIME
 								if (device->realtime) {
 									if ((dv = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL))) {
@@ -2605,9 +2618,11 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 									}
 								} else
 #endif
-								if (GLOB(cfg)) {
-									v = ast_variable_browse(GLOB(cfg), device->id);
-									change |= sccp_config_applyDeviceConfiguration(device, v);
+								{
+									if (GLOB(cfg)) {
+										v = ast_variable_browse(GLOB(cfg), device->id);
+										change |= sccp_config_applyDeviceConfiguration(device, v);
+									}
 								}
 								device->pendingUpdate = 1;
 								sccp_device_check_update(device);				// Will cleanup after reload and restart the device if necessary
@@ -2684,14 +2699,12 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 		case CONFIG_STATUS_FILE_OK:
 			if (GLOB(cfg)) {
 				pbx_cli(fd, "SCCP reloading configuration. %p\n", GLOB(cfg));
-				readingtype = SCCP_CONFIG_READRELOAD;
-//				GLOB(reload_in_progress) = TRUE;
-				if (!sccp_config_general(readingtype)) {
+				if (!sccp_config_general(SCCP_CONFIG_READRELOAD)) {
 					pbx_cli(fd, "Unable to reload configuration.\n");
 					returnval = RESULT_FAILURE;
 					goto EXIT;
 				}
-				sccp_config_readDevicesLines(readingtype);
+				sccp_config_readDevicesLines(SCCP_CONFIG_READRELOAD);
 				returnval = RESULT_SUCCESS;
 			}
 			break;

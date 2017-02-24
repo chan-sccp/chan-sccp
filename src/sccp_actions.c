@@ -1012,7 +1012,9 @@ static btnlist *sccp_make_button_template(devicePtr d)
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 			//sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "\n%s: searching for position of button type %d\n", DEV_ID_LOG(d), buttonconfig->type);
+
 			if (buttonconfig->instance > 0) {
+			//if (buttonconfig->instance > 0 || buttonconfig->pendingDelete) {
 				continue;
 			}
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
