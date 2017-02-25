@@ -1929,6 +1929,7 @@ static void _transfer_failed(constDevicePtr device, channelPtr channel, char *ms
 		channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 		uint16_t instance = channel->line ? sccp_device_find_index_for_line(device, channel->line->name) : 0;
 		sccp_dev_displayprompt(device, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
+		sccp_indicate(device, channel, channel->previousChannelState);
 	} else {
 		sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 	}
@@ -1953,12 +1954,12 @@ static int _transfer_setup(devicePtr device, channelPtr channel)
 	AUTO_RELEASE(sccp_line_t, l, channel->line);
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
-	//sccp_indicate(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);
 	channel->channelStateReason = SCCP_CHANNELSTATEREASON_TRANSFER;
 	if (channel->state != SCCP_CHANNELSTATE_HOLD) {
 		sccp_channel_hold(channel);
 	}
 
+	sccp_indicate(device, channel, SCCP_CHANNELSTATE_CALLTRANSFER);
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_4 "\n\n%s: Setup Transfer on channel:%s\n", device->id, channel->designator);
 	AUTO_RELEASE(sccp_channel_t, newchannel , sccp_channel_newcall(channel->line, device, NULL, SKINNY_CALLTYPE_OUTBOUND, pbx_channel, NULL));
 	if (newchannel) {

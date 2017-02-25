@@ -3000,7 +3000,8 @@ static boolean_t sccp_wrapper_asterisk113_attended_transfer(sccp_channel_t * tra
 	PBX_CHANNEL_TYPE *transferer_pbx_channel = pbx_channel_ref(transferer->owner);
 
 	if (transferee_pbx_channel && transferer_pbx_channel) {
-		if (ast_bridged_channel(transferee_pbx_channel)) {
+		//if (ast_bridged_channel(transferee_pbx_channel)) {
+		if (sccp_wrapper_asterisk113_channelIsBridged(transferee)) {
 			ast_queue_control(transferee_pbx_channel, AST_CONTROL_UNHOLD);
 		}
 		if (pbx_channel_state(transferer_pbx_channel) == AST_STATE_RING) {				// fake a blind transfer while ast_pbx_start has already started
@@ -3010,9 +3011,10 @@ static boolean_t sccp_wrapper_asterisk113_attended_transfer(sccp_channel_t * tra
 				iPbx.moh_start(transferer_pbx_channel, NULL, NULL);
 			}
 		}
-		if (AST_BRIDGE_TRANSFER_SUCCESS != ast_bridge_transfer_attended(transferee_pbx_channel, transferer_pbx_channel)) {
+		if (AST_BRIDGE_TRANSFER_SUCCESS == ast_bridge_transfer_attended(transferee_pbx_channel, transferer_pbx_channel)) {
+			res = TRUE;
+		} else {
 			pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s (%u)\n", transferer->designator, pbx_channel_name(transferer_pbx_channel), pbx_channel_name(transferee_pbx_channel), res);
-			res = FALSE;
 		}
 		pbx_channel_unref(transferee_pbx_channel);
 		pbx_channel_unref(transferer_pbx_channel);
@@ -3031,7 +3033,8 @@ static boolean_t sccp_wrapper_asterisk113_blind_transfer(sccp_channel_t * transf
 
 	if (transferee_pbx_channel) {
 		//res = ast_bridge_transfer_blind(1, transferee_pbx_channel, extension, context, blind_transfer_cb, &blind_transfer_data);
-		if (ast_bridged_channel(transferee_pbx_channel)) {
+		//if (ast_bridged_channel(transferee_pbx_channel)) {
+		if (sccp_wrapper_asterisk113_channelIsBridged(transferee)) {
 			ast_queue_control(transferee_pbx_channel, AST_CONTROL_UNHOLD);
 		}
 		if (AST_BRIDGE_TRANSFER_SUCCESS != ast_bridge_transfer_blind(1, transferee_pbx_channel, extension, context, NULL, NULL)) {
