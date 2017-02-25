@@ -3000,7 +3000,6 @@ static boolean_t sccp_wrapper_asterisk113_attended_transfer(sccp_channel_t * tra
 	PBX_CHANNEL_TYPE *transferer_pbx_channel = pbx_channel_ref(transferer->owner);
 
 	if (transferee_pbx_channel && transferer_pbx_channel) {
-		//if (ast_bridged_channel(transferee_pbx_channel)) {
 		if (sccp_wrapper_asterisk113_channelIsBridged(transferee)) {
 			ast_queue_control(transferee_pbx_channel, AST_CONTROL_UNHOLD);
 		}
@@ -3032,8 +3031,6 @@ static boolean_t sccp_wrapper_asterisk113_blind_transfer(sccp_channel_t * transf
 	PBX_CHANNEL_TYPE *transferee_pbx_channel = pbx_channel_ref(transferee->owner);
 
 	if (transferee_pbx_channel) {
-		//res = ast_bridge_transfer_blind(1, transferee_pbx_channel, extension, context, blind_transfer_cb, &blind_transfer_data);
-		//if (ast_bridged_channel(transferee_pbx_channel)) {
 		if (sccp_wrapper_asterisk113_channelIsBridged(transferee)) {
 			ast_queue_control(transferee_pbx_channel, AST_CONTROL_UNHOLD);
 		}

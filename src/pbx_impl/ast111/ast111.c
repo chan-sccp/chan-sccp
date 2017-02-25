@@ -2698,8 +2698,6 @@ static boolean_t sccp_wrapper_asterisk111_attended_transfer(sccp_channel_t * tra
 	}
 	enum ast_control_transfer control_transfer_message = AST_TRANSFER_FAILED;
 	int connectedLineUpdateReason = AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER;
-	char transferee_number[StationMaxDirnumSize] = {0}, transferer_number[StationMaxDirnumSize] = {0}, destination_number[StationMaxDirnumSize] = {0};
-	char transferee_name[StationMaxNameSize] = {0}, transferer_name[StationMaxNameSize] = {0}, destination_name[StationMaxNameSize] = {0};
 	boolean_t two_legged_transfer = TRUE;
 
 	pbx_channel_lock(transferee->owner);
@@ -2728,24 +2726,20 @@ static boolean_t sccp_wrapper_asterisk111_attended_transfer(sccp_channel_t * tra
 	}
 	
 	if (bridged_channel && destination_channel) {
-		iCallInfo.Getter(sccp_channel_getCallInfo(transferer), 						// collect caller information
+		/* collect call parties */
+		char transferee_number[StationMaxDirnumSize] = {0}, transferer_number[StationMaxDirnumSize] = {0}, destination_number[StationMaxDirnumSize] = {0};
+		char transferee_name[StationMaxNameSize] = {0}, transferer_name[StationMaxNameSize] = {0}, destination_name[StationMaxNameSize] = {0};
+		iCallInfo.Getter(sccp_channel_getCallInfo(transferer),
 			SCCP_CALLINFO_CALLINGPARTY_NAME, &transferer_name,
 			SCCP_CALLINFO_CALLINGPARTY_NUMBER, &transferer_number,
 			SCCP_CALLINFO_CALLEDPARTY_NAME, &destination_name,
 			SCCP_CALLINFO_CALLEDPARTY_NUMBER, &destination_number,
 			SCCP_CALLINFO_KEY_SENTINEL);
 
-		if (transferee->calltype == SKINNY_CALLTYPE_INBOUND) {
-			iCallInfo.Getter(sccp_channel_getCallInfo(transferee), 
-				SCCP_CALLINFO_CALLINGPARTY_NAME, &transferee_name,
-				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &transferee_number,
-				SCCP_CALLINFO_KEY_SENTINEL);
-		} else {
-			iCallInfo.Getter(sccp_channel_getCallInfo(transferee), 
-				SCCP_CALLINFO_CALLEDPARTY_NAME, &transferee_name,
-				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &transferee_number,
-				SCCP_CALLINFO_KEY_SENTINEL);
-		}
+.		iCallInfo.Getter(sccp_channel_getCallInfo(transferee), 
+			(SKINNY_CALLTYPE_INBOUND == transferee->calltype) ? SCCP_CALLINFO_CALLINGPARTY_NAME : SCCP_CALLINFO_CALLEDPARTY_NAME, &transferee_name,
+			(SKINNY_CALLTYPE_INBOUND == transferee->calltype) ? SCCP_CALLINFO_CALLINGPARTY_NUMBER : SCCP_CALLINFO_CALLEDPARTY_NAME, &transferee_number,
+			SCCP_CALLINFO_KEY_SENTINEL);
 		
 		if (ast_bridged_channel(transferee_pbx_channel)) {
 			ast_queue_control(transferee_pbx_channel, AST_CONTROL_UNHOLD);

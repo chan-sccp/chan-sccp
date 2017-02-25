@@ -2978,41 +2978,59 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk114_getBridgeChannel(PBX_CHANNEL_T
 	return bridgePeer;
 }
 
-static boolean_t sccp_wrapper_asterisk114_attended_transfer(sccp_channel_t * destination_channel, sccp_channel_t * source_channel)
+static boolean_t sccp_wrapper_asterisk114_attended_transfer(sccp_channel_t * transferee, sccp_channel_t * transferer)
 {
-	enum ast_transfer_result res;
-	if (!destination_channel || !source_channel || !destination_channel->owner || !source_channel->owner) {
-		return FALSE;
+	int res = FALSE;
+	if (!transferee || !transferer || !transferee->owner || !transferer->owner) {
+		return res;
 	}
-	PBX_CHANNEL_TYPE *pbx_destination_local_channel = destination_channel->owner;
-	PBX_CHANNEL_TYPE *pbx_source_local_channel = source_channel->owner;
+	PBX_CHANNEL_TYPE *transferee_pbx_channel = pbx_channel_ref(transferee->owner);
+	PBX_CHANNEL_TYPE *transferer_pbx_channel = pbx_channel_ref(transferer->owner);
 
-	res = ast_bridge_transfer_attended(pbx_destination_local_channel, pbx_source_local_channel);
-	if (res != AST_BRIDGE_TRANSFER_SUCCESS) {
-		pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s (%u)\n", source_channel->designator, source_channel->designator, destination_channel->designator, res);
-		ast_queue_control(pbx_destination_local_channel, AST_CONTROL_UNHOLD);
-		return FALSE;
+	if (transferee_pbx_channel && transferer_pbx_channel) {
+		if (sccp_wrapper_asterisk113_channelIsBridged(transferee)) {
+			ast_queue_control(transferee_pbx_channel, AST_CONTROL_UNHOLD);
+		}
+		if (pbx_channel_state(transferer_pbx_channel) == AST_STATE_RING) {				// fake a blind transfer while ast_pbx_start has already started
+			if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_RING) {
+				pbx_indicate(transferer_pbx_channel, AST_CONTROL_RINGING);
+			} else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH) {
+				iPbx.moh_start(transferer_pbx_channel, NULL, NULL);
+			}
+		}
+		if (AST_BRIDGE_TRANSFER_SUCCESS == ast_bridge_transfer_attended(transferee_pbx_channel, transferer_pbx_channel)) {
+			res = TRUE;
+		} else {
+			pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s (%u)\n", transferer->designator, pbx_channel_name(transferer_pbx_channel), pbx_channel_name(transferee_pbx_channel), res);
+		}
+		pbx_channel_unref(transferee_pbx_channel);
+		pbx_channel_unref(transferer_pbx_channel);
 	}
-	return TRUE;
+	
+	return res;
 }
 
-static boolean_t sccp_wrapper_asterisk114_blind_transfer(sccp_channel_t * destination_channel, const char *extension, const char *context)
+static boolean_t sccp_wrapper_asterisk114_blind_transfer(sccp_channel_t * transferee, const char *extension, const char *context)
 {
-	enum ast_transfer_result res;
-	if (!destination_channel || !destination_channel->owner || !extension || !context) {
-		return FALSE;
+	int res = FALSE;
+	if (!transferee || !transferee->owner || !extension || !context) {
+		return res;
 	}
-	PBX_CHANNEL_TYPE *pbx_destination_local_channel = destination_channel->owner;
+	PBX_CHANNEL_TYPE *transferee_pbx_channel = pbx_channel_ref(transferee->owner);
 
-	//res = ast_bridge_transfer_blind(1, pbx_destination_local_channel, extension, context, blind_transfer_cb, &blind_transfer_data);
-	res = ast_bridge_transfer_blind(1, pbx_destination_local_channel, extension, context, NULL, NULL);
-	if (res != AST_BRIDGE_TRANSFER_SUCCESS) {
-		pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s@%s (%u)\n", destination_channel->designator, destination_channel->designator, extension, context, res);
-		ast_queue_control(pbx_destination_local_channel, AST_CONTROL_UNHOLD);
-		return FALSE;
+	if (transferee_pbx_channel) {
+		if (sccp_wrapper_asterisk113_channelIsBridged(transferee)) {
+			ast_queue_control(transferee_pbx_channel, AST_CONTROL_UNHOLD);
+		}
+		if (AST_BRIDGE_TRANSFER_SUCCESS != ast_bridge_transfer_blind(1, transferee_pbx_channel, extension, context, NULL, NULL)) {
+			pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s@%s (%u)\n", transferee->designator, pbx_channel_name(transferee_pbx_channel), extension, context, res);
+			res = FALSE;
+		}
+		pbx_channel_unref(transferee_pbx_channel);
 	}
-	return TRUE;
+	return res;
 }
+
 
 /*!
  * \brief using RTP Glue Engine
