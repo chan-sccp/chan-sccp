@@ -1050,11 +1050,11 @@ static boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * chann
 #endif
 #if CS_AST_HAS_NAMEDGROUP
 	if (!sccp_strlen_zero(line->namedcallgroup)) {
-		pbx_channel_named_callgroups_set(pbxDstChannel, ast_get_namedgroups(line->namedcallgroup));
+		ast_channel_named_callgroups_set(pbxDstChannel, ast_get_namedgroups(line->namedcallgroup));
 	}
 
 	if (!sccp_strlen_zero(line->namedpickupgroup)) {
-		pbx_channel_named_pickupgroups_set(pbxDstChannel, ast_get_namedgroups(line->namedpickupgroup));
+		ast_channel_named_pickupgroups_set(pbxDstChannel, ast_get_namedgroups(line->namedpickupgroup));
 	}
 #endif
 	if (!sccp_strlen_zero(line->parkinglot)) {
