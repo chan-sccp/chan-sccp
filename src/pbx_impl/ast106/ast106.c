@@ -2735,16 +2735,15 @@ static boolean_t sccp_wrapper_asterisk106_attended_transfer(sccp_channel_t * tra
 	if (!transferee || !transferer || !transferee->owner || !transferer->owner) {
 		return res;
 	}
-	enum ast_control_transfer control_transfer_message = AST_TRANSFER_FAILED;
 	int connectedLineUpdateReason = AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER;
 	boolean_t two_legged_transfer = TRUE;
 
 	pbx_channel_lock(transferee->owner);
-	PBX_CHANNEL_TYPE *transferee_pbx_channel = ast_channel_ref(transferee->owner);
+	PBX_CHANNEL_TYPE *transferee_pbx_channel = transferee->owner;
 	pbx_channel_unlock(transferee->owner);
 	
 	pbx_channel_lock(transferer->owner);
-	PBX_CHANNEL_TYPE *transferer_pbx_channel = ast_channel_ref(transferer->owner);
+	PBX_CHANNEL_TYPE *transferer_pbx_channel = transferer->owner;
 	pbx_channel_unlock(transferer->owner);
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Transferee channels (local:%s/remote:%s) and Transferer channels (local:%s/remote:%s)\n",
@@ -2755,12 +2754,12 @@ static boolean_t sccp_wrapper_asterisk106_attended_transfer(sccp_channel_t * tra
 	);
 	
 	PBX_CHANNEL_TYPE *bridged_channel = NULL, *destination_channel = NULL;
-	if (sccp_wrapper_asterisk111_channelIsBridged(transferer)) {
-		bridged_channel = sccp_wrapper_asterisk111_getBridgeChannel(transferer_pbx_channel);
+	if (sccp_wrapper_asterisk106_channelIsBridged(transferer)) {
+		bridged_channel = sccp_wrapper_asterisk106_getBridgeChannel(transferer_pbx_channel);
 		destination_channel = transferee_pbx_channel;
-	} else if (sccp_wrapper_asterisk111_channelIsBridged(transferee)) {					// one legged blind transfer
+	} else if (sccp_wrapper_asterisk106_channelIsBridged(transferee)) {					// one legged blind transfer
 		two_legged_transfer = FALSE;
-		bridged_channel = sccp_wrapper_asterisk111_getBridgeChannel(transferee_pbx_channel);
+		bridged_channel = sccp_wrapper_asterisk106_getBridgeChannel(transferee_pbx_channel);
 		destination_channel = transferer_pbx_channel;
 	}
 	
@@ -2775,9 +2774,9 @@ static boolean_t sccp_wrapper_asterisk106_attended_transfer(sccp_channel_t * tra
 			SCCP_CALLINFO_CALLEDPARTY_NUMBER, &destination_number,
 			SCCP_CALLINFO_KEY_SENTINEL);
 
-.		iCallInfo.Getter(sccp_channel_getCallInfo(transferee), 
-			(SKINNY_CALLTYPE_INBOUND == transferee->calltype) ? SCCP_CALLINFO_CALLINGPARTY_NAME : SCCP_CALLINFO_CALLEDPARTY_NAME, &transferee_name,
-			(SKINNY_CALLTYPE_INBOUND == transferee->calltype) ? SCCP_CALLINFO_CALLINGPARTY_NUMBER : SCCP_CALLINFO_CALLEDPARTY_NAME, &transferee_number,
+		iCallInfo.Getter(sccp_channel_getCallInfo(transferee),
+			(SKINNY_CALLTYPE_INBOUND == transferee->calltype) ? SCCP_CALLINFO_CALLINGPARTY_NAME   : SCCP_CALLINFO_CALLEDPARTY_NAME,   &transferee_name,
+			(SKINNY_CALLTYPE_INBOUND == transferee->calltype) ? SCCP_CALLINFO_CALLINGPARTY_NUMBER : SCCP_CALLINFO_CALLEDPARTY_NUMBER, &transferee_number,
 			SCCP_CALLINFO_KEY_SENTINEL);
 		
 		if (ast_bridged_channel(transferee_pbx_channel)) {
@@ -2800,27 +2799,16 @@ static boolean_t sccp_wrapper_asterisk106_attended_transfer(sccp_channel_t * tra
 		);
 
 		if (!pbx_channel_masquerade(destination_channel, bridged_channel)) {				// perform the actual transfer
-			control_transfer_message = AST_TRANSFER_SUCCESS;
 			iPbx.set_connected_line(transferee, destination_number, destination_name, connectedLineUpdateReason);
-			iPbx.sendRedirectedUpdate(transferee, transferer_number, transferer_name, destination_number, destination_name, AST_REDIRECTING_REASON_UNCONDITIONAL);
+			//iPbx.sendRedirectedUpdate(transferee, transferer_number, transferer_name, destination_number, destination_name, AST_REDIRECTING_REASON_UNCONDITIONAL);
 			iPbx.set_connected_line(transferer, transferee_number, transferee_name, connectedLineUpdateReason);
 			res = TRUE;
 		} else {
-			pbx_log(LOG_WARNING, "Unable to masquerade %s as %s\n", pbx_channel_name(destination_channel), ast_channel_name(bridged_channel));
+			pbx_log(LOG_WARNING, "Unable to masquerade %s as %s\n", pbx_channel_name(destination_channel), pbx_channel_name(bridged_channel));
 		}
-		ast_channel_unref(bridged_channel);
+		pbx_channel_unref(bridged_channel);
 	} else {
-		pbx_log(LOG_WARNING, "Neither %s nor %s are in a bridge, nothing to transfer\n", ast_channel_name(transferer_pbx_channel), ast_channel_name(transferee_pbx_channel));
-	}
-
-	iPbx.queue_control_data(transferee_pbx_channel, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
-	iPbx.queue_control_data(transferer_pbx_channel, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));//new
-
-	if (transferer_pbx_channel) {
-		ast_channel_unref(transferer_pbx_channel);
-	}
-	if (transferee_pbx_channel) {
-		ast_channel_unref(transferee_pbx_channel);
+		pbx_log(LOG_WARNING, "Neither %s nor %s are in a bridge, nothing to transfer\n", pbx_channel_name(transferer_pbx_channel), pbx_channel_name(transferee_pbx_channel));
 	}
 
 	return res;
@@ -2832,7 +2820,7 @@ static boolean_t sccp_wrapper_asterisk106_blind_transfer(sccp_channel_t * transf
 	if (!transferee || !transferee->owner || !extension || !context) {
 		return res;
 	}
-	PBX_CHANNEL_TYPE *transferee_bridged_channel = sccp_wrapper_asterisk111_getBridgeChannel(transferee->owner);
+	PBX_CHANNEL_TYPE *transferee_bridged_channel = sccp_wrapper_asterisk106_getBridgeChannel(transferee->owner);
 	if (transferee_bridged_channel) {
 		ast_queue_control(transferee->owner, AST_CONTROL_UNHOLD);
 		if (!ast_async_goto(transferee_bridged_channel, context, extension, 1)) {
@@ -2840,7 +2828,7 @@ static boolean_t sccp_wrapper_asterisk106_blind_transfer(sccp_channel_t * transf
 		} else {
 			pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s@%s (%u)\n", transferee->designator, pbx_channel_name(transferee_bridged_channel), extension, context, res);
 		}
-		ast_channel_unref(transferee_bridged_channel);
+		pbx_channel_unref(transferee_bridged_channel);
         }
 
 	return res;
