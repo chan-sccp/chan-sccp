@@ -2609,6 +2609,9 @@ static boolean_t sccp_wrapper_asterisk110_attended_transfer(sccp_channel_t * tra
 			res = TRUE;
 		} else {
 			pbx_log(LOG_WARNING, "Unable to masquerade %s as %s\n", pbx_channel_name(destination_channel), pbx_channel_name(bridged_channel));
+			if (ast_bridged_channel(transferee_pbx_channel)) {
+				ast_queue_control(transferee_pbx_channel, AST_CONTROL_HOLD);
+			}
 		}
 		pbx_channel_unref(bridged_channel);
 	} else {
@@ -2641,6 +2644,7 @@ static boolean_t sccp_wrapper_asterisk110_blind_transfer(sccp_channel_t * transf
 			res = TRUE;
 		} else {
 			pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s@%s (%u)\n", transferee->designator, pbx_channel_name(transferee_bridged_channel), extension, context, res);
+			ast_queue_control(transferee->owner, AST_CONTROL_HOLD);
 		}
 		pbx_channel_unref(transferee_bridged_channel);
         }

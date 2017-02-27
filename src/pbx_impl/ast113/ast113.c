@@ -2990,14 +2990,56 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_getBridgeChannel(PBX_CHANNEL_T
 	return bridgePeer;
 }
 
+typedef struct transfer_callinfo {
+	char transferee_name[StationMaxNameSize];
+	char transferee_number[StationMaxDirnumSize];
+	char transferer_name[StationMaxNameSize];
+	char transferer_number[StationMaxDirnumSize];
+	char destination_name[StationMaxNameSize];
+	char destination_number[StationMaxDirnumSize];
+} _transfer_callinfo_t;
+
+static void _transfer_capture_callinfo(sccp_channel_t *transferee, sccp_channel_t *transferer, _transfer_callinfo_t *callinfo) {
+	
+	iCallInfo.Getter(sccp_channel_getCallInfo(transferee),
+		(SKINNY_CALLTYPE_INBOUND == transferee->calltype) ? SCCP_CALLINFO_CALLINGPARTY_NAME   : SCCP_CALLINFO_CALLEDPARTY_NAME  , callinfo->transferee_name,
+		(SKINNY_CALLTYPE_INBOUND == transferee->calltype) ? SCCP_CALLINFO_CALLINGPARTY_NUMBER : SCCP_CALLINFO_CALLEDPARTY_NUMBER, callinfo->transferee_number,
+		SCCP_CALLINFO_KEY_SENTINEL);
+
+	if (SKINNY_CALLTYPE_OUTBOUND == transferer->calltype) {
+		iCallInfo.Getter(sccp_channel_getCallInfo(transferer),
+			SCCP_CALLINFO_CALLINGPARTY_NAME, callinfo->transferer_name,
+			SCCP_CALLINFO_CALLINGPARTY_NUMBER, callinfo->transferer_number,
+			SCCP_CALLINFO_CALLEDPARTY_NAME, callinfo->destination_name,
+			SCCP_CALLINFO_CALLEDPARTY_NUMBER, callinfo->destination_number,
+			SCCP_CALLINFO_KEY_SENTINEL);
+	} else {
+		iCallInfo.Getter(sccp_channel_getCallInfo(transferer),
+			SCCP_CALLINFO_CALLINGPARTY_NAME, callinfo->destination_name,
+			SCCP_CALLINFO_CALLINGPARTY_NUMBER, callinfo->destination_number,
+			SCCP_CALLINFO_CALLEDPARTY_NAME, callinfo->transferer_name,
+			SCCP_CALLINFO_CALLEDPARTY_NUMBER, callinfo->transferer_number,
+			SCCP_CALLINFO_KEY_SENTINEL);
+	}
+}
+
 static boolean_t sccp_wrapper_asterisk113_attended_transfer(sccp_channel_t * transferee, sccp_channel_t * transferer)
 {
 	int res = FALSE;
+	enum ast_control_transfer transfer_message = AST_TRANSFER_FAILED;
 	if (!transferee || !transferer || !transferee->owner || !transferer->owner) {
 		return res;
 	}
+	pbx_channel_lock(transferee->owner);
 	PBX_CHANNEL_TYPE *transferee_pbx_channel = pbx_channel_ref(transferee->owner);
+	pbx_channel_unlock(transferee->owner);
+	
+	pbx_channel_lock(transferer->owner);
 	PBX_CHANNEL_TYPE *transferer_pbx_channel = pbx_channel_ref(transferer->owner);
+	pbx_channel_unlock(transferer->owner);
+
+	_transfer_callinfo_t transfer_callinfo = {0};
+	_transfer_capture_callinfo(transferee, transferer, &transfer_callinfo);
 
 	if (transferee_pbx_channel && transferer_pbx_channel) {
 		if (sccp_wrapper_asterisk113_channelIsBridged(transferee)) {
@@ -3010,13 +3052,33 @@ static boolean_t sccp_wrapper_asterisk113_attended_transfer(sccp_channel_t * tra
 				iPbx.moh_start(transferer_pbx_channel, NULL, NULL);
 			}
 		}
+		PBX_CHANNEL_TYPE *peer = ast_channel_bridge_peer(transferee_pbx_channel);
 		if (AST_BRIDGE_TRANSFER_SUCCESS == ast_bridge_transfer_attended(transferee_pbx_channel, transferer_pbx_channel)) {
+			transfer_message = AST_TRANSFER_SUCCESS;
+			//__sccp_asterisk113_updateConnectedLine(transferee_pbx_channel, transfer_callinfo.transferer_number, transfer_callinfo.transferer_name, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
+			//__sccp_asterisk113_updateConnectedLine(transferer_pbx_channel, transfer_callinfo.transferee_number, transfer_callinfo.transferee_name, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
+			if (peer) {
+				__sccp_asterisk113_updateConnectedLine(peer, transfer_callinfo.destination_number, transfer_callinfo.destination_name, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
+			}
 			res = TRUE;
 		} else {
 			pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s (%u)\n", transferer->designator, pbx_channel_name(transferer_pbx_channel), pbx_channel_name(transferee_pbx_channel), res);
+			if (sccp_wrapper_asterisk113_channelIsBridged(transferee)) {
+				ast_queue_control(transferee_pbx_channel, AST_CONTROL_HOLD);
+			}
 		}
-		pbx_channel_unref(transferee_pbx_channel);
+		if (peer) {
+			pbx_channel_unref(peer);
+		}
+	}
+	iPbx.queue_control_data(transferee->owner, AST_CONTROL_TRANSFER, &transfer_message, sizeof(transfer_message));
+	iPbx.queue_control_data(transferer->owner, AST_CONTROL_TRANSFER, &transfer_message, sizeof(transfer_message));
+	
+	if (transferer_pbx_channel) {
 		pbx_channel_unref(transferer_pbx_channel);
+	}
+	if (transferee_pbx_channel) {
+		pbx_channel_unref(transferee_pbx_channel);
 	}
 	
 	return res;
@@ -3028,15 +3090,21 @@ static boolean_t sccp_wrapper_asterisk113_blind_transfer(sccp_channel_t * transf
 	if (!transferee || !transferee->owner || !extension || !context) {
 		return res;
 	}
+	pbx_channel_lock(transferee->owner);
 	PBX_CHANNEL_TYPE *transferee_pbx_channel = pbx_channel_ref(transferee->owner);
+	pbx_channel_unlock(transferee->owner);
 
 	if (transferee_pbx_channel) {
 		if (sccp_wrapper_asterisk113_channelIsBridged(transferee)) {
 			ast_queue_control(transferee_pbx_channel, AST_CONTROL_UNHOLD);
 		}
-		if (AST_BRIDGE_TRANSFER_SUCCESS != ast_bridge_transfer_blind(1, transferee_pbx_channel, extension, context, NULL, NULL)) {
+		if (AST_BRIDGE_TRANSFER_SUCCESS == ast_bridge_transfer_blind(1, transferee_pbx_channel, extension, context, NULL, NULL)) {
+			res = TRUE;
+		} else {
 			pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s@%s (%u)\n", transferee->designator, pbx_channel_name(transferee_pbx_channel), extension, context, res);
-			res = FALSE;
+			if (sccp_wrapper_asterisk113_channelIsBridged(transferee)) {
+				ast_queue_control(transferee_pbx_channel, AST_CONTROL_HOLD);
+			}
 		}
 		pbx_channel_unref(transferee_pbx_channel);
 	}

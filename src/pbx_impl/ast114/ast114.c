@@ -2984,8 +2984,13 @@ static boolean_t sccp_wrapper_asterisk114_attended_transfer(sccp_channel_t * tra
 	if (!transferee || !transferer || !transferee->owner || !transferer->owner) {
 		return res;
 	}
+	pbx_channel_lock(transferee->owner);
 	PBX_CHANNEL_TYPE *transferee_pbx_channel = pbx_channel_ref(transferee->owner);
+	pbx_channel_unlock(transferee->owner);
+	
+	pbx_channel_lock(transferer->owner);
 	PBX_CHANNEL_TYPE *transferer_pbx_channel = pbx_channel_ref(transferer->owner);
+	pbx_channel_unlock(transferer->owner);
 
 	if (transferee_pbx_channel && transferer_pbx_channel) {
 		if (sccp_wrapper_asterisk114_channelIsBridged(transferee)) {
@@ -3002,9 +3007,14 @@ static boolean_t sccp_wrapper_asterisk114_attended_transfer(sccp_channel_t * tra
 			res = TRUE;
 		} else {
 			pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s (%u)\n", transferer->designator, pbx_channel_name(transferer_pbx_channel), pbx_channel_name(transferee_pbx_channel), res);
+			ast_queue_control(transferee_pbx_channel, AST_CONTROL_HOLD);
 		}
-		pbx_channel_unref(transferee_pbx_channel);
+	}
+	if (transferer_pbx_channel) {
 		pbx_channel_unref(transferer_pbx_channel);
+	}
+	if (transferee_pbx_channel) {
+		pbx_channel_unref(transferee_pbx_channel);
 	}
 	
 	return res;
@@ -3016,15 +3026,19 @@ static boolean_t sccp_wrapper_asterisk114_blind_transfer(sccp_channel_t * transf
 	if (!transferee || !transferee->owner || !extension || !context) {
 		return res;
 	}
+	pbx_channel_lock(transferee->owner);
 	PBX_CHANNEL_TYPE *transferee_pbx_channel = pbx_channel_ref(transferee->owner);
+	pbx_channel_unlock(transferee->owner);
 
 	if (transferee_pbx_channel) {
 		if (sccp_wrapper_asterisk114_channelIsBridged(transferee)) {
 			ast_queue_control(transferee_pbx_channel, AST_CONTROL_UNHOLD);
 		}
-		if (AST_BRIDGE_TRANSFER_SUCCESS != ast_bridge_transfer_blind(1, transferee_pbx_channel, extension, context, NULL, NULL)) {
+		if (AST_BRIDGE_TRANSFER_SUCCESS == ast_bridge_transfer_blind(1, transferee_pbx_channel, extension, context, NULL, NULL)) {
+			res = TRUE;
+		} else {
 			pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s@%s (%u)\n", transferee->designator, pbx_channel_name(transferee_pbx_channel), extension, context, res);
-			res = FALSE;
+			ast_queue_control(transferee_pbx_channel, AST_CONTROL_HOLD);
 		}
 		pbx_channel_unref(transferee_pbx_channel);
 	}
