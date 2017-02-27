@@ -1970,6 +1970,8 @@ static int _transfer_setup(devicePtr device, channelPtr channel)
 		sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 		sccp_dev_set_keyset(device, instance, newchannel->callid, KEYMODE_OFFHOOKFEAT);
 		sccp_device_setLamp(device, SKINNY_STIMULUS_TRANSFER, instance, SKINNY_LAMP_FLASH);
+		sccp_channel_setDevice(channel, device);
+		
 		res = 0;
 	} else {
 		_transfer_failed(device, channel, "Unable to create channel for transfer");
@@ -2022,7 +2024,7 @@ void sccp_channel_transfer_release(devicePtr device, constChannelPtr channel)
 			sccp_channel_release(&device->transferChannels.transferee);								/* explicit release */
 		}
 		if (device->transferChannels.transferer) {
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_4 "\n\n%s: Release Transfer on transferer:%s\n", device->id, device->transferChannels.transferer->designator);
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_4 "\n\n%s: Release Transfer on transferer:%s\n", device->id, device->transferChannels.transferer->designator);
 			sccp_channel_release(&device->transferChannels.transferer);								/* explicit release */
 		}
 	}
@@ -2050,6 +2052,41 @@ void sccp_channel_transfer_cancel(devicePtr device, constChannelPtr channel)
 		iPbx.queue_control_data(transferee->owner, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
 #endif
 		sccp_channel_transfer_release(device, transferee);					/* explicit release */
+	//} else (transferee && transferee == channel) {
+	//	sccp_indicate(device, channel, SCCP_CHANNELSTATE_ONHOOK);
+	}
+}
+
+typedef struct transfer_callinfo {
+	char transferee_name[StationMaxNameSize];
+	char transferee_number[StationMaxDirnumSize];
+	char transferer_name[StationMaxNameSize];
+	char transferer_number[StationMaxDirnumSize];
+	char destination_name[StationMaxNameSize];
+	char destination_number[StationMaxDirnumSize];
+} _transfer_callinfo_t;
+
+static void _transfer_capture_callinfo(sccp_channel_t *transferee, sccp_channel_t *transferer, _transfer_callinfo_t *callinfo) {
+	
+	iCallInfo.Getter(sccp_channel_getCallInfo(transferee),
+		(SKINNY_CALLTYPE_INBOUND == transferee->calltype) ? SCCP_CALLINFO_CALLINGPARTY_NAME   : SCCP_CALLINFO_CALLEDPARTY_NAME  , callinfo->transferee_name,
+		(SKINNY_CALLTYPE_INBOUND == transferee->calltype) ? SCCP_CALLINFO_CALLINGPARTY_NUMBER : SCCP_CALLINFO_CALLEDPARTY_NUMBER, callinfo->transferee_number,
+		SCCP_CALLINFO_KEY_SENTINEL);
+
+	if (SKINNY_CALLTYPE_OUTBOUND == transferer->calltype) {
+		iCallInfo.Getter(sccp_channel_getCallInfo(transferer),
+			SCCP_CALLINFO_CALLINGPARTY_NAME, callinfo->transferer_name,
+			SCCP_CALLINFO_CALLINGPARTY_NUMBER, callinfo->transferer_number,
+			SCCP_CALLINFO_CALLEDPARTY_NAME, callinfo->destination_name,
+			SCCP_CALLINFO_CALLEDPARTY_NUMBER, callinfo->destination_number,
+			SCCP_CALLINFO_KEY_SENTINEL);
+	} else {
+		iCallInfo.Getter(sccp_channel_getCallInfo(transferer),
+			SCCP_CALLINFO_CALLINGPARTY_NAME, callinfo->destination_name,
+			SCCP_CALLINFO_CALLINGPARTY_NUMBER, callinfo->destination_number,
+			SCCP_CALLINFO_CALLEDPARTY_NAME, callinfo->transferer_name,
+			SCCP_CALLINFO_CALLEDPARTY_NUMBER, callinfo->transferer_number,
+			SCCP_CALLINFO_KEY_SENTINEL);
 	}
 }
 
@@ -2059,17 +2096,42 @@ void sccp_channel_transfer_cancel(devicePtr device, constChannelPtr channel)
 static int _transfer_attended(devicePtr device, channelPtr channel)
 {
 	int res = -1;
-	sccp_channel_t *transferer = device->transferChannels.transferer;
-	sccp_channel_t *transferee = device->transferChannels.transferee;
+	//enum ast_control_transfer transfer_message = AST_TRANSFER_FAILED;
+	AUTO_RELEASE(sccp_channel_t, transferer, sccp_channel_retain(device->transferChannels.transferer));
+	AUTO_RELEASE(sccp_channel_t, transferee, sccp_channel_retain(device->transferChannels.transferee));
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "\n\n%s: Complete Attended Transfer of transferee:%s\n", device->id, transferee->designator);
+
+	_transfer_callinfo_t transfer_callinfo = {0};
+	_transfer_capture_callinfo(transferee, transferer, &transfer_callinfo);
+
+	sccp_channel_transfer_release(device, transferer);
+		
+	//iPbx.set_connected_line(transferee, transfer_callinfo.destination_number, transfer_callinfo.destination_name, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
+	//iPbx.set_connected_line(transferer, transfer_callinfo.transferee_number, transfer_callinfo.transferee_name, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
+
+	iCallInfo.Setter(sccp_channel_getCallInfo(transferee), 
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, transfer_callinfo.transferee_name,
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, transfer_callinfo.transferee_name,
+		SCCP_CALLINFO_KEY_SENTINEL);
+
+	iCallInfo.Setter(sccp_channel_getCallInfo(transferer), 
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, transfer_callinfo.transferee_name,
+		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, transfer_callinfo.transferee_name,
+		SCCP_CALLINFO_KEY_SENTINEL);
+
 	if (iPbx.attended_transfer(transferee, transferer)) {
+		//transfer_message = AST_TRANSFER_SUCCESS;
+		//iPbx.sendRedirectedUpdate(transferee, transfer_callinfo.transferer_number, transfer_callinfo.transferer_name, 
+		//	transfer_callinfo.destination_number, transfer_callinfo.destination_name, AST_REDIRECTING_REASON_UNCONDITIONAL);
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "\n\n%s: Attended Transfer of transferee:%s Completed\n", device->id, transferee->designator);
 		res = 0;
 	} else {
 		_transfer_failed(device, transferee, "Failed to complete attended transfer");
+		/* undo callinfo.setter */
 	}
-	sccp_channel_transfer_release(device, transferer);
+	//iPbx.queue_control_data(transferee->owner, AST_CONTROL_TRANSFER, &transfer_message, sizeof(transfer_message));
+	//iPbx.queue_control_data(transferer->owner, AST_CONTROL_TRANSFER, &transfer_message, sizeof(transfer_message));
 	return res;
 }
 
@@ -2079,21 +2141,31 @@ static int _transfer_attended(devicePtr device, channelPtr channel)
 int sccp_channel_transfer_blind(devicePtr device, channelPtr channel)
 {
 	int res = -1;
+	//enum ast_control_transfer transfer_message = AST_TRANSFER_FAILED;
 	if (device->transferChannels.transferee && channel && device->transferChannels.transferer == channel) {
 		pbx_builtin_setvar_helper(device->transferChannels.transferee->owner, "BLINDTRANSFER", pbx_channel_name(device->transferChannels.transferer->owner));
 		pbx_builtin_setvar_helper(device->transferChannels.transferer->owner, "BLINDTRANSFER", pbx_channel_name(device->transferChannels.transferee->owner));
 
 		AUTO_RELEASE(sccp_channel_t, transferee, sccp_channel_retain(device->transferChannels.transferee));
+
+		_transfer_callinfo_t transfer_callinfo = {0};
+		_transfer_capture_callinfo(transferee, device->transferChannels.transferer, &transfer_callinfo);
+
 		sccp_channel_transfer_release(device, transferee);
 
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "\n\n%s: Complete Blind Transfer on transferee:%s to %s@%s\n", device->id, transferee->designator, channel->dialedNumber, channel->line->context);
+		iPbx.set_connected_line(transferee, transfer_callinfo.destination_number, transfer_callinfo.destination_name, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING);
 		if (iPbx.blind_transfer(transferee, channel->dialedNumber, channel->line->context)) {
+			//transfer_message = AST_TRANSFER_SUCCESS;
+			//iPbx.sendRedirectedUpdate(transferee, transfer_callinfo.transferer_number, transfer_callinfo.transferer_name, 
+			//	transfer_callinfo.destination_number, transfer_callinfo.destination_name, AST_REDIRECTING_REASON_UNCONDITIONAL);
 			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "\n\n%s: Transfer Completed Blind Transfer of transferee:%s to %s@%s\n", device->id, transferee->designator, channel->dialedNumber, channel->line->context);
 			res = 0;
 		} else {
 			uint16_t instance = sccp_device_find_index_for_line(device, channel->line->name);
 			sccp_dev_displayprompt(device, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, GLOB(digittimeout));
 		}
+		//iPbx.queue_control_data(transferee->owner, AST_CONTROL_TRANSFER, &transfer_message, sizeof(transfer_message));
 	}
 	return res;
 }
