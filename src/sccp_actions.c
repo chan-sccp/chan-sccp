@@ -3312,6 +3312,7 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: '%s' (%d), Remote RTP/UDP '%s', Type: %s, PassThruPartyId: %u, CallID: %u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 
+	//if ((d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 || d->skinny_type == SKINNY_DEVICETYPE_CISCO6901) && 0 == passthrupartyid) {
 	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passThruPartyId) {
 		passThruPartyId = 0xFFFFFFFF - callReference;
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 6911 which does not return a passThruPartyId, using callid: %u -> passThruPartyId %u\n", d->id, callReference, passThruPartyId);
@@ -3493,9 +3494,9 @@ void handle_startmediatransmission_ack(constSessionPtr s, devicePtr d, constMess
 		passthrupartyid = partyID;
 	}
 
-	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passthrupartyid) {
+	if ((d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 || d->skinny_type == SKINNY_DEVICETYPE_CISCO6901) && 0 == passthrupartyid) {
 		passthrupartyid = 0xFFFFFFFF - callID1;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 6911 which does not return a passthrupartyid, using callid: %u -> passthrupartyid %u\n", d->id, callID1, passthrupartyid);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 69XX which does not return a passthrupartyid, using callid: %u -> passthrupartyid %u\n", d->id, callID1, passthrupartyid);
 	}
 
 	AUTO_RELEASE(sccp_channel_t, channel , NULL);
