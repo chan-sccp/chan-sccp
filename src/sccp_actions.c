@@ -1819,10 +1819,22 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 				sccp_dev_setActiveLine(device, l);
 				sccp_channel_resume(device, channel, FALSE);
 			} else {
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Multiple calls on hold, just switching to line %d and let user decide\n", device->id, instance);
-				sccp_dev_setActiveLine(device, l);
-				/* select the first channel on hold, but do not resume */
-				sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				//if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6901 && d->transfer && d->transferChannels.transferer == channel) {
+				if (d->useHookFlash() && d->transfer && d->transferChannels.transferer == channel) {
+					// deal with single line phones like 6901, which do not have softkeys
+					// 6901 is cancelling the transfer by pressing the line key (see cisco manual for 6901)
+					sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: We are the middle of a transfer, pressed hold on the transferer channel(%s) -> cancel transfer\n", d->id, channel->designator);
+					AUTO_RELEASE(sccp_channel_t, resumeChannel, sccp_channel_retain(d->transferChannels.transferee));
+					if (resumeChannel) {
+						sccp_channel_endcall(d->transferChannels.transferer);
+						sccp_channel_resume(d, resumeChannel, FALSE);
+					}
+				} else {
+					sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Multiple calls on hold, just switching to line %d and let user decide\n", device->id, instance);
+					sccp_dev_setActiveLine(device, l);
+					/* select the first channel on hold, but do not resume */
+					sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				}
 			}
 			sccp_dev_set_cplane(device, instance, 1);
 		} else if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))) {
