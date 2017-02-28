@@ -120,12 +120,14 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 
 				case SCCP_FEATURE_DND:
 					if (sccp_strcaseequals(config->button.feature.options, "silent")) {
+						// coverity[MIXED_ENUMS]
 						if ((device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_SILENT)) {
 							config->button.feature.status = 1;
 						} else {
 							config->button.feature.status = 0;
 						}
 					} else if (sccp_strcaseequals(config->button.feature.options, "busy")) {
+						// coverity[MIXED_ENUMS]
 						if ((device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT)) {
 							config->button.feature.status = 1;
 						} else {

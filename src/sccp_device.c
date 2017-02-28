@@ -341,6 +341,7 @@ void sccp_device_pre_reload(void)
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: Setting Button at Index:%d to pendingDelete\n", d->id, config->index);
 			config->pendingDelete = 1;
 			config->pendingUpdate = 0;
 		}
@@ -613,6 +614,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->pushURL = sccp_device_pushURLNotSupported;
 	d->pushTextMessage = sccp_device_pushTextMessageNotSupported;
 	d->checkACL = sccp_device_checkACL;
+	d->useHookFlash = sccp_device_falseResult;
 	d->hasDisplayPrompt = sccp_device_trueResult;
 	d->hasEnhancedIconMenuSupport = sccp_device_falseResult;
 	d->setBackgroundImage = sccp_device_setBackgroundImageNotSupported;
@@ -1036,6 +1038,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 		case SKINNY_DEVICETYPE_ANALOG_GATEWAY:
 			btn[btn_index++].type = SCCP_BUTTONTYPE_LINE;
 			d->hasDisplayPrompt = sccp_device_falseResult;
+			d->useHookFlash = sccp_device_trueResult;
 			break;
 		case SKINNY_DEVICETYPE_ATA188:
 		case SKINNY_DEVICETYPE_ATA186:
@@ -1045,6 +1048,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 				btn[btn_index++].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
 			d->hasDisplayPrompt = sccp_device_falseResult;
+			d->useHookFlash = sccp_device_trueResult;
 			break;
 		case SKINNY_DEVICETYPE_CISCO8941:
 		case SKINNY_DEVICETYPE_CISCO8945:
@@ -1121,6 +1125,10 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO6901:
+			d->useHookFlash = sccp_device_trueResult;
+			d->hasDisplayPrompt = sccp_device_falseResult;
+			btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
+			break;
 		case SKINNY_DEVICETYPE_CISCO6911:
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
@@ -1402,6 +1410,25 @@ void sccp_dev_set_speaker(constDevicePtr d, uint8_t mode)
 	msg->data.SetSpeakerModeMessage.lel_speakerMode = htolel(mode);
 	sccp_dev_send(d, msg);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send speaker mode '%s'\n", d->id, (mode == SKINNY_STATIONSPEAKER_ON ? "on" : (mode == SKINNY_STATIONSPEAKER_OFF ? "off" : "unknown")));
+}
+
+/*!
+ * \brief Set HookFlash Detect
+ * \param d SCCP Device
+ */
+static void sccp_dev_setHookFlashDetect(constDevicePtr d)
+{
+	sccp_msg_t *msg = NULL;
+
+	if (!d || !d->session || !d->protocol || !d->useHookFlash()) {
+		return;												/* only for old phones */
+	}
+	REQ(msg, SetHookFlashDetectMessage);
+	if (!msg) {
+		return;
+	}
+	sccp_dev_send(d, msg);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Enabled HookFlashDetect\n", d->id);
 }
 
 /*!
@@ -2164,6 +2191,9 @@ void sccp_dev_postregistration(void *data)
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 #endif
+	if (d->useHookFlash()) {
+		sccp_dev_setHookFlashDetect(d);
+	}
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
 	return;
 }
@@ -2173,6 +2203,8 @@ static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)
 	if (!buttonconfig) {
 		return;
 	}
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: (buttonconfig_destroy) destroying index:%d, type:%s (%d), pendingDelete:%s, pendingUpdate:%s\n",
+		buttonconfig->index, sccp_config_buttontype2str(buttonconfig->type), buttonconfig->type, buttonconfig->pendingDelete ? "True" : "False", buttonconfig->pendingUpdate ? "True" : "False");
 	if (buttonconfig->label) {
 		sccp_free(buttonconfig->label);
 	}
@@ -2267,6 +2299,8 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->type == LINE) {
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: checking buttonconfig index:%d, type:%s (%d) to see if there are any connected lines/channels\n",
+					d->id, config->index, sccp_config_buttontype2str(config->type), config->type);
 				AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byname(config->button.line.name, FALSE));
 
 				if (!line) {
@@ -2291,11 +2325,15 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 				sccp_line_removeDevice(line, d);
 #ifdef CS_SCCP_PARK
 			} else if (iParkingLot.detachObserver && config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: checking buttonconfig index:%d, type:%s (%d) to see if there are any observed parkinglots\n",
+					d->id, config->index, sccp_config_buttontype2str(config->type), config->type);
 				iParkingLot.detachObserver(config->button.feature.options, d, config->instance);
 #endif
 			}
 		}
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
+			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: checking buttonconfig for pendingDelete (index:%d, type:%s (%d), pendingDelete:%s, pendingUpdate:%s)\n",
+				d->id, config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
 			config->instance = 0;									/* reset button configuration to rebuild template on register */
 			if (config->pendingDelete) {
 				SCCP_LIST_REMOVE_CURRENT(list);

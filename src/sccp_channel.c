@@ -1571,6 +1571,17 @@ int sccp_channel_hold(channelPtr channel)
 		return FALSE;
 	}
 
+	if (d->useHookFlash() && d->transfer && d->transferChannels.transferer == channel) {	// deal with single line phones like 6901, which do not have softkeys
+												// 6901 is cancelling the transfer by pressing the hold key on the transferer
+		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: We are the middle of a transfer, pressed hold on the transferer channel(%s) -> cancel transfer\n", d->id, channel->designator);
+		AUTO_RELEASE(sccp_channel_t, resumeChannel, sccp_channel_retain(d->transferChannels.transferee));
+		if (resumeChannel) {
+			sccp_channel_endcall(d->transferChannels.transferer);
+			sccp_channel_resume(d, resumeChannel, FALSE);
+		}
+		return TRUE;
+	} 
+
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hold the channel %s\n", d->id, channel->designator);
 
 #ifdef CS_SCCP_CONFERENCE
@@ -2000,7 +2011,10 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 			if (sccp_channel_new && (pbx_channel_bridgepeer = iPbx.get_bridged_channel(pbx_channel_owner))) {
 				pbx_builtin_setvar_helper(sccp_channel_new->owner, "TRANSFEREE", pbx_channel_name(pbx_channel_bridgepeer));
 
-				sccp_dev_set_keyset(d, instance, channel->callid, KEYMODE_OFFHOOKFEAT);
+				instance = sccp_device_find_index_for_line(d, sccp_channel_new->line->name);
+				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
+				sccp_dev_set_keyset(d, instance, sccp_channel_new->callid, KEYMODE_OFFHOOKFEAT);
+				sccp_device_setLamp(d, SKINNY_STIMULUS_TRANSFER, instance, SKINNY_LAMP_FLASH);
 
 				/* set a var for BLINDTRANSFER. It will be removed if the user manually answers the call Otherwise it is a real BLINDTRANSFER */
 #if 0

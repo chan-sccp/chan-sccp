@@ -1774,6 +1774,18 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 	PBX_VARIABLE_TYPE * first_var = vars;
 	PBX_VARIABLE_TYPE * v = NULL;
 
+	/* temp current buttonconfiglist status*/
+	{
+		SCCP_LIST_LOCK(buttonconfigList);
+		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status before check\n")
+		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
+			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "index:%d, type:%-10.10s (%d), pendingDelete:%s, pendingUpdate:%s\n",
+			config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
+		}
+		SCCP_LIST_UNLOCK(buttonconfigList);
+	}
+	/* temp */
+
 	if (GLOB(reload_in_progress)) {
 		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Checking Button Config\n");
@@ -1809,6 +1821,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 		 * That way adding/removind a line while accidentally keeping the button config for that line still works.
 		 */
 		if (!changed) {
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Nothing changed, clear the pendingDelete and pendingUpdate settings\n");
 			SCCP_LIST_LOCK(buttonconfigList);
 			SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
 				config->pendingDelete = 0;
@@ -1817,9 +1830,20 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 			SCCP_LIST_UNLOCK(buttonconfigList);
 		}
 	}
+	/* temp current buttonconfiglist status*/
+	{
+		SCCP_LIST_LOCK(buttonconfigList);
+		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status after check\n")
+		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
+			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "index:%d, type:%-10.10s (%d), pendingDelete:%s, pendingUpdate:%s\n",
+				config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
+		}
+		SCCP_LIST_UNLOCK(buttonconfigList);
+	}
+	/* temp */
 	if (changed) {
 		buttonindex = 0;										/* buttonconfig has changed. Load all buttons as new ones */
-		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Discarding Previous ButtonConfig Completely\n");
+		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Any Previous ButtonConfig will be discared during post-process\n");
 		for (v = first_var; v && !sccp_strlen_zero(v->value); v = v->next) {
 			sccp_copy_string(k_button, v->value, sizeof(k_button));
 			splitter = k_button;
@@ -1839,6 +1863,18 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 			buttonindex++;
 		}
 	}
+
+	/* temp current buttonconfiglist status*/
+	{
+		SCCP_LIST_LOCK(buttonconfigList);
+		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status after adding new buttons\n");
+		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
+			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "index:%d, type:%-10.10s (%d), pendingDelete:%s, pendingUpdate:%s\n",
+				config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
+		}
+		SCCP_LIST_UNLOCK(buttonconfigList);
+	}
+	/* temp */
 
 	/* return changed status */
 	if (GLOB(reload_in_progress)) {
@@ -1873,7 +1909,6 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 
 	SCCP_LIST_LOCK(buttonconfigList);
 	SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
-		// check if the button is to be deleted to see if we need to replace it
 		if (config->index == buttonindex) {
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Found Button index at %d:%d\n", config->index, buttonindex);
 			break;
@@ -2353,7 +2388,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Loading Devices and Lines from config\n");
 
-	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Checking Reading Type\n");
+	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Checking Reading Type:%s (%d)\n", readingtype == 0 ? "Module load" : "Reload", readingtype);
 	if (readingtype == SCCP_CONFIG_READRELOAD) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Device Pre Reload\n");
 		sccp_device_pre_reload();

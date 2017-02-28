@@ -22,87 +22,96 @@
             </member>
         </members>
     </callManagerGroup>
-    <loadInformation5      model="Cisco IP Phone 7961">SCCP41.8-3-3S</loadInformation5>
-    <loadInformation6      model="Cisco IP Phone 7910">SCCP11.9-0-2SR1S</loadInformation6>
-    <loadInformation7      model="Cisco 7960"></loadInformation7>
-    <loadInformation8      model="Cisco 7940"></loadInformation8>
+
+<!-- Phone / Endpoints -->
+<!-- SCCP only -->
+    <loadInformation30008  model="Cisco 7902">CP7902080002SCCP060817A</loadInformation30008>
+    <loadInformation20000  model="Cisco 7905">CP7905080003SCCP070409A</loadInformation20000>
+    <loadInformation30007  model="Cisco 7912">CP7912080004SCCP080108A</loadInformation30007>
+    <loadInformation30002  model="Cisco 7920">cmterm_7920.4.0-03-02</loadInformation30002>
+<!-- Cisco Softphone SCCP only -->
+    <loadInformation562    model="Cisco Dual Mode for iPhone"></loadInformation562>
+    <loadInformation575    model="Cisco Dual Mode for Android"></loadInformation575>
+    <loadInformation275    model="Nokia E Series"></loadInformation275> <!-- Nokia Call Connect 2.0 -->
+    <loadInformation376    model="Nokia S60"></loadInformation376> <!-- Nokia Call Connect 2.0 -->
+    <loadInformation335    model="Motorola CN622"></loadInformation335>
+<!-- SCCP and SIP -->
+    <loadInformation6      model="Cisco 7910">SCCP11.9-0-2SR1S</loadInformation6>
+    <loadInformation5      model="Cisco 7961">SCCP41.8-3-3S</loadInformation5>
+    <loadInformation7      model="Cisco 7960">P0030801SR02</loadInformation7>
+    <loadInformation8      model="Cisco 7940">P0030801SR02</loadInformation8>
     <loadInformation9      model="Cisco 7935">P00503021900</loadInformation9>
-    <loadInformation10     model="Cisco VGC Phone"></loadInformation10>
-    <loadInformation11     model="Cisco VGC Virtual Phone"></loadInformation11>
-    <loadInformation12     model="Cisco ATA 186">ATA030204SCCP090202A</loadInformation12>
-    <loadInformation30     model="Analog Access">A001C030</loadInformation30>
-    <loadInformation40     model="Digital Access">D001M022</loadInformation40>
-    <loadInformation42     model="Digital Access+">D00303010033</loadInformation42>
-    <loadInformation43     model="Digital Access WS-X6608">D00404000032</loadInformation43>
-    <loadInformation47     model="Analog Access WS-X6624">A00204000013</loadInformation47>
-    <loadInformation51     model="Conference Bridge WS-X6608">C00104000003</loadInformation51>
-    <loadInformation61     model="H.323 Phone"></loadInformation61>
-    <loadInformation100    model="Load Simulator"></loadInformation100>
-    <loadInformation111    model="Media Termination Point Hardware">M00104000006</loadInformation111>
     <loadInformation115    model="Cisco 7941">SCCP41.9-3-1SR4-1S</loadInformation115>
     <loadInformation119    model="Cisco 7971">SCCP70.9-3-1SR4-1S</loadInformation119>
-    <loadInformation120    model="MGCP Station"></loadInformation120>
-    <loadInformation121    model="MGCP Trunk"></loadInformation121>
-    <loadInformation124    model ="Cisco IP Phone 7914 14-Button Line Expansion Module">S00105000400</loadInformation124>
-    <loadInformation227    model ="Cisco IP Phone 7915 12-Button Line Expansion Module"></loadInformation227>
-    <loadInformation228    model ="Cisco IP Phone 7915 24-Button Line Expansion Module"></loadInformation228>
-    <loadInformation229    model ="Cisco IP Phone 7916 12-Button Line Expansion Module"></loadInformation229>
-    <loadInformation230    model ="Cisco IP Phone 7916 24-Button Line Expansion Module"></loadInformation230>
-    <loadInformation275    model="Nokia E Series"></loadInformation275>
     <loadInformation302    model="Cisco 7985">cmterm_7985.4-1-7-0</loadInformation302>
     <loadInformation307    model="Cisco 7911">SCCP11.9-3-1SR4-1S</loadInformation307>
     <loadInformation308    model="Cisco 7961G-GE">SCCP41.9-3-1SR4-1S</loadInformation308>
     <loadInformation309    model="Cisco 7941G-GE">SCCP41.9-3-1SR4-1S</loadInformation309>
-    <loadInformation335    model="Motorola CN622"></loadInformation335>
     <loadInformation348    model="Cisco 7931">SCCP31.9-3-1SR4-1S</loadInformation348>
-    <loadInformation358    model="Cisco Unified Personal Communicator"></loadInformation358>
     <loadInformation365    model="Cisco 7921">CP7921G-1.4.5.3</loadInformation365>
     <loadInformation369    model="Cisco 7906">SCCP11.9-3-1SR4-1S</loadInformation369>
-    <loadInformation375    model="Cisco TelePresence"></loadInformation375>
-    <loadInformation376    model="Nokia S60"></loadInformation376>
     <loadInformation404    model="Cisco 7962">SCCP42.9-3-1SR4-1S</loadInformation404>
-    <loadInformation412    model="Cisco 3951">SIP3951.8-1-4a</loadInformation412>
     <loadInformation431    model="Cisco 7937">apps37sccp.1-4-4-0</loadInformation431>
     <loadInformation434    model="Cisco 7942">SCCP42.9-3-1SR4-1S</loadInformation434>
     <loadInformation435    model="Cisco 7945">SCCP45.9-3-1SR4-1S</loadInformation435>
     <loadInformation436    model="Cisco 7965">SCCP45.9-3-1SR4-1S</loadInformation436>
     <loadInformation437    model="Cisco 7975">SCCP75.9-3-1SR4-1S</loadInformation437>
+    <loadInformation484    model="Cisco 7925">CP7925G-1.4.5.3</loadInformation484>
+    <loadInformation495    model="Cisco 6921">SCCP69xx.9-4-1-3SR1</loadInformation495>
+    <loadInformation496    model="Cisco 6941">SCCP69xx.9-4-1-3SR1</loadInformation496>
+    <loadInformation497    model="Cisco 6961">SCCP69xx.9-4-1-3SR1</loadInformation497>
+    <loadInformation547    model="Cisco 6901">SCCP6901.9-3-1-SR1-3</loadInformation547>
+    <loadInformation548    model="Cisco 6911">SCCP6911.9-3-1-SR1-3</loadInformation548>
+    <loadInformation564    model="Cisco 6945">SCCP6945.9-4-1-3</loadInformation564>
+    <loadInformation577    model="Cisco 7926">CP7926G-1.4.5.3</loadInformation577>
+    <loadInformation585    model="Cisco 8945">SCCP8941_8945.9-4-1-9</loadInformation585>
+    <loadInformation586    model="Cisco 8941">SCCP8941_8945.9-4-1-9</loadInformation586>
+    <loadInformation30006  model="Cisco 7970">SCCP70.9-3-1SR4-1S</loadInformation30006>
+    <loadInformation30018  model="Cisco 7961">SCCP41.9-3-1SR4-1S</loadInformation30018>
+    <loadInformation30019  model="Cisco 7936">cmterm_7936.3-3-21-0</loadInformation30019>
+    <loadInformation12     model="Cisco ATA 186">ATA030204SCCP090202A</loadInformation12>
+    <loadInformation10     model="Cisco VGC Phone"></loadInformation10>
+    <loadInformation11     model="Cisco VGC Virtual Phone"></loadInformation11>
+<!-- Cisco Softphone SCCP and SIP -->
+    <loadInformation358    model="Cisco Unified Personal Communicator"></loadInformation358>
+    <loadInformation30016  model="Cisco IP Communicator"></loadInformation30016>
+<!-- SPCP and SIP -->
+    <loadInformation80000  model="Cisco SPA 521S"></loadInformation80000>
+    <loadInformation80003  model="Cisco SPA 502G"></loadInformation80003>
+    <loadInformation80004  model="Cisco SPA 504G"></loadInformation80004>
+    <loadInformation80005  model="Cisco SPA 525G"></loadInformation80005>
+    <loadInformation80009  model="Cisco SPA 525G2"></loadInformation80009>
+    <loadInformation80011  model="Cisco SPA 303G"></loadInformation80011>
+<!-- SIP only -->
+    <loadInformation592    model="Cisco 3905">CP3905.9-4-1-0</loadInformation592>
     <loadInformation446    model="Cisco 3911">SIP3951.8-1-4a</loadInformation446>
+    <loadInformation412    model="Cisco 3951">SIP3951.8-1-4a</loadInformation412>
+    <loadInformation621    model="Cisco 7821">sip78xx.10-1-1SR1-4</loadInformation621>
+    <loadInformation622    model="Cisco 7841">sip78xx.10-1-1SR1-4</loadInformation622>
+    <loadInformation623    model="Cisco 7861">sip78xx.10-1-1SR1-4</loadInformation623>
+    <loadInformation659    model="Cisco 8831">sip8831.9-3-3-5</loadInformation659>
+    <loadInformation683    model="Cisco 8841"></loadInformation683>
+    <loadInformation684    model="Cisco 8851"></loadInformation684>
+    <loadInformation685    model="Cisco 8861"></loadInformation685>
+    <loadInformation540    model="Cisco 8961">sip8961.9-4-1-9</loadInformation540>
+    <loadInformation493    model="Cisco 9971">sip9971.9-4-1-9</loadInformation493>
+    <loadInformation537    model="Cisco 9951">sip9951.9-4-1-9</loadInformation537>
+    <loadInformation550    model="Cisco ATA 187">ATA187.9-2-3-1</loadInformation550>
+    <loadInformation580    model="Cisco E20"></loadInformation580>
+    <loadInformation634    model="Cisco VXC 6215"></loadInformation634>
+    <loadInformation647    model="Cisco DX650">sipdx650.10-1-2-33</loadInformation647>
+    <loadInformation36042  model="Cisco DX80"></loadInformation36042>
+    <loadInformation36043  model="Cisco DX70"></loadInformation36043>
+    <loadInformation375    model="Cisco TelePresence"></loadInformation375>
     <loadInformation478    model="Cisco TelePresence 1000"></loadInformation478>
     <loadInformation479    model="Cisco TelePresence 3000"></loadInformation479>
     <loadInformation480    model="Cisco TelePresence 3200"></loadInformation480>
     <loadInformation481    model="Cisco TelePresence 500-37"></loadInformation481>
-    <loadInformation484    model="Cisco 7925">CP7925G-1.4.5.3</loadInformation484>
-    <loadInformation493    model="Cisco 9971">sip9971.9-4-1-9</loadInformation493>
-    <loadInformation495    model="Cisco 6921">SCCP69xx.9-4-1-3SR1</loadInformation495>
-    <loadInformation496    model="Cisco 6941">SCCP69xx.9-4-1-3SR1</loadInformation496>
-    <loadInformation497    model="Cisco 6961">SCCP69xx.9-4-1-3SR1</loadInformation497>
-    <loadInformation503    model="Cisco Unified Client Services Framework"></loadInformation503>
     <loadInformation505    model="Cisco TelePresence 1300-65"></loadInformation505>
     <loadInformation520    model="Cisco TelePresence 1100"></loadInformation520>
-    <loadInformation521    model="Transnova S3"></loadInformation521>
-    <loadInformation537    model="Cisco 9951">sip9951.9-4-1-9</loadInformation537>
-    <loadInformation540    model="Cisco 8961">sip8961.9-4-1-9</loadInformation540>
-    <loadInformation547    model="Cisco 6901">SCCP6901.9-3-1-SR1-3</loadInformation547>
-    <loadInformation548    model="Cisco 6911">SCCP6911.9-3-1-SR1-3</loadInformation548>
-    <loadInformation550    model="Cisco ATA 187">ATA187.9-2-3-1</loadInformation550>
-    <loadInformation557    model="Cisco TelePresence 200"></loadInformation557>
-    <loadInformation558    model="Cisco TelePresence 400"></loadInformation558>
-    <loadInformation562    model="Cisco Dual Mode for iPhone"></loadInformation562>
-    <loadInformation564    model="Cisco 6945">SCCP6945.9-4-1-3</loadInformation564>
-    <loadInformation575    model="Cisco Dual Mode for Android"></loadInformation575>
-    <loadInformation577    model="Cisco 7926">CP7926G-1.4.5.3</loadInformation577>
-    <loadInformation580    model="Cisco E20"></loadInformation580>
-    <loadInformation582    model="Generic Single Screen Room System"></loadInformation582>
-    <loadInformation583    model="Generic Multiple Screen Room System"></loadInformation583>
     <loadInformation584    model="Cisco TelePresence EX90"></loadInformation584>
-    <loadInformation585    model="Cisco 8945">SCCP8941_8945.9-4-1-9</loadInformation585>
-    <loadInformation586    model="Cisco 8941">SCCP8941_8945.9-4-1-9</loadInformation586>
-    <loadInformation588    model="Generic Desktop Video Endpoint"></loadInformation588>
     <loadInformation590    model="Cisco TelePresence 500-32"></loadInformation590>
     <loadInformation591    model="Cisco TelePresence 1300-47"></loadInformation591>
-    <loadInformation592    model="Cisco 3905">CP3905.9-4-1-0</loadInformation592>
-    <loadInformation593    model="Cisco Cius"></loadInformation593>
     <loadInformation596    model="Cisco TelePresence TX1310-65"></loadInformation596>
     <loadInformation604    model="Cisco TelePresence EX60"></loadInformation604>
     <loadInformation606    model="Cisco TelePresence Codec C90"></loadInformation606>
@@ -119,51 +128,62 @@
     <loadInformation617    model="Cisco TelePresence MX200"></loadInformation617>
     <loadInformation619    model="Cisco TelePresence TX9000"></loadInformation619>
     <loadInformation620    model="Cisco TelePresence TX9200"></loadInformation620>
-    <loadInformation621    model="Cisco 7821">sip78xx.10-1-1SR1-4</loadInformation621>
-    <loadInformation622    model="Cisco 7841">sip78xx.10-1-1SR1-4</loadInformation622>
-    <loadInformation623    model="Cisco 7861">sip78xx.10-1-1SR1-4</loadInformation623>
     <loadInformation626    model="Cisco TelePresence SX20"></loadInformation626>
     <loadInformation627    model="Cisco TelePresence MX300"></loadInformation627>
-    <loadInformation628    model="IMS-integrated Mobile (Basic)"></loadInformation628>
-    <loadInformation632    model="Cisco Cius SP"></loadInformation632>
     <loadInformation633    model="Cisco TelePresence Profile 42 (C40)"></loadInformation633>
-    <loadInformation634    model="Cisco VXC 6215"></loadInformation634>
-    <loadInformation635    model="CTI Remote Device"></loadInformation635>
-    <loadInformation642    model="Carrier-integrated Mobile"></loadInformation642>
-    <loadInformation645    model="Universal Device Template"></loadInformation645>
-    <loadInformation647    model="Cisco DX650">sipdx650.10-1-2-33</loadInformation647>
-    <loadInformation648    model="Cisco Unified Communications for RTX"></loadInformation648>
-    <loadInformation652    model="Cisco Jabber for Tablet"></loadInformation652>
-    <loadInformation659    model="Cisco 8831">sip8831.9-3-3-5</loadInformation659>
     <loadInformation682    model="Cisco TelePresence SX10"></loadInformation682>
-    <loadInformation683    model="Cisco 8841"></loadInformation683>
-    <loadInformation684    model="Cisco 8851"></loadInformation684>
-    <loadInformation685    model="Cisco 8861"></loadInformation685>
     <loadInformation688    model="Cisco TelePresence SX80"></loadInformation688>
     <loadInformation689    model="Cisco TelePresence MX200 G2"></loadInformation689>
     <loadInformation690    model="Cisco TelePresence MX300 G2"></loadInformation690>
-    <loadInformation20000  model="Cisco 7905">CP7905080003SCCP070409A</loadInformation20000>
-    <loadInformation30002  model="Cisco 7920">cmterm_7920.4.0-03-02</loadInformation30002>
-    <loadInformation30006  model="Cisco 7970">SCCP70.9-3-1SR4-1S</loadInformation30006>
-    <loadInformation30007  model="Cisco 7912">CP7912080004SCCP080108A</loadInformation30007>
-    <loadInformation30008  model="Cisco 7902">CP7902080002SCCP060817A</loadInformation30008>
-    <loadInformation30016  model="Cisco IP Communicator"></loadInformation30016>
-    <loadInformation30018  model="Cisco 7961">SCCP41.9-3-1SR4-1S</loadInformation30018>
-    <loadInformation30019  model="Cisco 7936">cmterm_7936.3-3-21-0</loadInformation30019>
-    <loadInformation30027  model="Analog Phone"></loadInformation30027>
-    <loadInformation30028  model="ISDN BRI Phone"></loadInformation30028>
-    <loadInformation30032  model="SCCP gateway virtual phone"></loadInformation30032>
-    <loadInformation30035  model="IP-STE"></loadInformation30035>
-    <loadInformation36042  model="Cisco DX80"></loadInformation36042>
-    <loadInformation36043  model="Cisco DX70"></loadInformation36043>
     <loadInformation36207  model="Cisco TelePresence MX700"></loadInformation36207>
     <loadInformation36208  model="Cisco TelePresence MX800"></loadInformation36208>
-    <loadInformation80000  model ="Cisco SPA 521S"></loadInformation80000>
-    <loadInformation80003  model ="Cisco SPA 502G"></loadInformation80003>
-    <loadInformation80004  model ="Cisco SPA 504G"></loadInformation80004>
-    <loadInformation80005  model ="Cisco SPA 525G"></loadInformation80005>
-    <loadInformation80009  model ="Cisco SPA 525G2"></loadInformation80009>
-    <loadInformation80011  model ="Cisco SPA 303G"></loadInformation80011>
+<!-- Other -->
+    <loadInformation61     model="H.323 Phone"></loadInformation61>
+    <loadInformation120    model="MGCP Station"></loadInformation120>
+    <loadInformation30027  model="Analog Phone"></loadInformation30027>
+    <loadInformation30028  model="ISDN BRI Phone"></loadInformation30028>
+<!-- Dependent on phone protocol -->
+    <loadInformation124    model="Cisco IP Phone 7914 14-Button Line Expansion Module">S00105000400</loadInformation124>
+    <loadInformation227    model="Cisco IP Phone 7915 12-Button Line Expansion Module">S00105000400</loadInformation227>
+    <loadInformation228    model="Cisco IP Phone 7915 24-Button Line Expansion Module">S00105000400</loadInformation228>
+    <loadInformation229    model="Cisco IP Phone 7916 12-Button Line Expansion Module">S00105000400</loadInformation229>
+    <loadInformation230    model="Cisco IP Phone 7916 24-Button Line Expansion Module">S00105000400</loadInformation230>
+    <loadInformation588    model="Generic Desktop Video Endpoint"></loadInformation588>	<!-- cuva ? -->
+
+<!-- unclear (no further information found yet) -->
+    <loadInformation593    model="Cisco Cius"></loadInformation593>
+    <loadInformation632    model="Cisco Cius SP"></loadInformation632>
+    <loadInformation557    model="Cisco TelePresence 200"></loadInformation557>
+    <loadInformation558    model="Cisco TelePresence 400"></loadInformation558>
+    <loadInformation648    model="Cisco Unified Communications for RTX"></loadInformation648>
+
+<!-- Bridges/Gateways -->
+<!-- SCCP only -->
+    <loadInformation30032  model="SCCP gateway virtual phone"></loadInformation30032>
+<!-- SCCP and SIP -->
+<!-- SIP only -->
+    <loadInformation521    model="Transnova S3"></loadInformation521>
+<!-- Other -->
+    <loadInformation121    model="MGCP Trunk"></loadInformation121>
+    <loadInformation652    model="Cisco Jabber for Tablet"></loadInformation652>
+<!-- unclear (no further information found yet) -->
+    <loadInformation30     model="Analog Access">A001C030</loadInformation30>
+    <loadInformation40     model="Digital Access">D001M022</loadInformation40>
+    <loadInformation42     model="Digital Access+">D00303010033</loadInformation42>
+    <loadInformation43     model="Digital Access WS-X6608">D00404000032</loadInformation43>
+    <loadInformation47     model="Analog Access WS-X6624">A00204000013</loadInformation47>
+    <loadInformation51     model="Conference Bridge WS-X6608">C00104000003</loadInformation51>
+    <loadInformation100    model="Load Simulator"></loadInformation100>
+    <loadInformation503    model="Cisco Unified Client Services Framework"></loadInformation503>
+    <loadInformation111    model="Media Termination Point Hardware">M00104000006</loadInformation111>
+    <loadInformation582    model="Generic Single Screen Room System"></loadInformation582>
+    <loadInformation583    model="Generic Multiple Screen Room System"></loadInformation583>
+    <loadInformation628    model="IMS-integrated Mobile (Basic)"></loadInformation628>
+    <loadInformation642    model="Carrier-integrated Mobile"></loadInformation642>
+    <loadInformation635    model="CTI Remote Device"></loadInformation635>
+    <loadInformation30035  model="IP-STE"></loadInformation30035>
+    <loadInformation645    model="Universal Device Template"></loadInformation645>
+
     <authenticationURL>http://10.0.0.3/authentication.php</authenticationURL>
     <idleURL>http://10.0.0.3/idle.php</idleURL> 
     <informationURL>http://10.0.0.3/help/help.php</informationURL> 

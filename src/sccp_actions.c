@@ -74,6 +74,7 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_ConnectionStatistics(constSessionPtr s, devicePtr device, constMessagePtr msg_in)		__NONNULL(1,2,3);
+void handle_ipport(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				__NONNULL(1,2,3);
 void handle_version(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				__NONNULL(1,2,3);
 void handle_ServerResMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,2,3);
 void handle_ConfigStatMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,2,3);
@@ -153,7 +154,7 @@ static const struct messageMap_cb sccpMessagesCbMap[SCCP_MESSAGE_HIGH_BOUNDARY +
 	[OpenReceiveChannelAck] = {handle_open_receive_channel_ack, TRUE},
 	[OpenMultiMediaReceiveChannelAckMessage] = {handle_OpenMultiMediaReceiveAck, TRUE},
 	[StartMediaTransmissionAck] = {handle_startmediatransmission_ack, TRUE},
-	[IpPortMessage] = {NULL, TRUE},
+	[IpPortMessage] = {handle_ipport, TRUE},
 	[VersionReqMessage] = {handle_version, TRUE},
 	[CapabilitiesResMessage] = {handle_capabilities_res, TRUE},
 	[ButtonTemplateReqMessage] = {sccp_handle_button_template_req, TRUE},
@@ -1010,7 +1011,9 @@ static btnlist *sccp_make_button_template(devicePtr d)
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 			//sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "\n%s: searching for position of button type %d\n", DEV_ID_LOG(d), buttonconfig->type);
+
 			if (buttonconfig->instance > 0) {
+			//if (buttonconfig->instance > 0 || buttonconfig->pendingDelete) {
 				continue;
 			}
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
@@ -1815,10 +1818,20 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 				sccp_dev_setActiveLine(device, l);
 				sccp_channel_resume(device, channel, FALSE);
 			} else {
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Multiple calls on hold, just switching to line %d and let user decide\n", device->id, instance);
-				sccp_dev_setActiveLine(device, l);
-				/* select the first channel on hold, but do not resume */
-				sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				if (d->useHookFlash() && d->transfer && d->transferChannels.transferer == channel) {	// deal with single line phones like 6901, which do not have softkeys
+					// 6901 is cancelling the transfer by pressing the line key (see cisco manual for 6901)
+					sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: We are the middle of a transfer, pressed hold on the transferer channel(%s) -> cancel transfer\n", d->id, channel->designator);
+					AUTO_RELEASE(sccp_channel_t, resumeChannel, sccp_channel_retain(d->transferChannels.transferee));
+					if (resumeChannel) {
+						sccp_channel_endcall(d->transferChannels.transferer);
+						sccp_channel_resume(d, resumeChannel, FALSE);
+					}
+				} else {
+					sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Multiple calls on hold, just switching to line %d and let user decide\n", device->id, instance);
+					sccp_dev_setActiveLine(device, l);
+					/* select the first channel on hold, but do not resume */
+					sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				}
 			}
 			sccp_dev_set_cplane(device, instance, 1);
 		} else if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))) {
@@ -2496,8 +2509,17 @@ void handle_hookflash(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	uint32_t lineInstance = letohl(msg_in->data.HookFlashMessage.lel_lineInstance);
 	uint32_t callid = letohl(msg_in->data.HookFlashMessage.lel_callReference);
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: HookFlash (lineInstance: %d, callid: %d) not implemented !\n", DEV_ID_LOG(d), lineInstance, callid);
-	return;
+	if (lineInstance && callid) {
+		AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byid(d, lineInstance));
+		if (l) {
+			handle_stimulus_transfer(d, l, lineInstance, callid, 0);
+		} else {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (HookFlash) Line could not be found for lineInstance:%d\n", d->id, lineInstance);
+		}
+	} else {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (HookFlash) Either lineInstance:%d or CallId:%d not provided\n", d->id, lineInstance, callid);
+		sccp_dump_msg(msg_in);
+	}
 }
 
 /*!
@@ -2535,8 +2557,10 @@ void handle_capabilities_res(constSessionPtr s, devicePtr d, constMessagePtr msg
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Capabilities\n", DEV_ID_LOG(d), n);
 	for (i = 0; i < n; i++) {
 		codec = letohl(msg_in->data.CapabilitiesResMessage.caps[i].lel_payloadCapability);
-		d->capabilities.audio[i] = codec;
-		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s\n", d->id, codec, codec2str(codec));
+		if (codec2type(codec) == SKINNY_CODEC_TYPE_AUDIO) {
+			d->capabilities.audio[i] = codec;
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6d %-25s\n", d->id, codec, codec2str(codec));
+		}
 	}
 
 	if ((SKINNY_CODEC_NONE == d->preferences.audio[0])) {
@@ -2922,11 +2946,15 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	pbx_assert(d != NULL);
 	char resp = '\0';
 	int len = 0;
+	
+	
 	enum sccp_cili {
 		SCCP_CILI_HAS_NEITHER,
 		SCCP_CILI_HAS_CALLID,
 		SCCP_CILI_HAS_LINEINSTANCE,
 	}; 
+
+	sccp_dump_msg(msg_in);
 
 	int digit = letohl(msg_in->data.KeypadButtonMessage.lel_kpButton);
 	switch (digit) {
@@ -2950,22 +2978,22 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	uint8_t CallIdAndLineInstance = SCCP_CILI_HAS_NEITHER;
 	uint8_t lineInstance = 0;
 	uint32_t callid = 0;
-	/* get callid and lineInstance if available. set bitfield accordingly */
-	if (msg_in->header.length >= 20) {
+	if (msg_in->header.length >= 16) {									/* get callid and lineInstance if available. set bitfield accordingly */
 		lineInstance = letohl(msg_in->data.KeypadButtonMessage.lel_lineInstance);
 		CallIdAndLineInstance |= lineInstance ? SCCP_CILI_HAS_LINEINSTANCE : 0;
-	}
-	if (msg_in->header.length >= 16) {
-		callid = letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
-		CallIdAndLineInstance |= callid ? SCCP_CILI_HAS_CALLID : 0;
+		if (msg_in->header.length >= 20) {
+			callid = letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
+			CallIdAndLineInstance |= callid ? SCCP_CILI_HAS_CALLID : 0;
+		}
 	}
 
 	/* old devices (like 7906) send buttonIndex instead of lineInstance, convert buttonIndex to lineInstance */
-	if (d->protocolversion < 15 && lineInstance) {
+	if (d->protocolversion < 15 && (CallIdAndLineInstance & SCCP_CILI_HAS_LINEINSTANCE)) {
 		int16_t tmpLineInstance, buttonIndex = lineInstance;
 		if ((tmpLineInstance = sccp_device_buttonIndex2lineInstance(d, buttonIndex)) >= 0) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) digit:%08x, callid:%d, buttonIndex:%d => lineInstance:%d\n", DEV_ID_LOG(d), digit, callid, buttonIndex, tmpLineInstance);
 			lineInstance = tmpLineInstance;
+			CallIdAndLineInstance |= lineInstance ? SCCP_CILI_HAS_LINEINSTANCE : 0;
 		}
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) digit:%08x, callid:%d, lineInstance:%d\n", DEV_ID_LOG(d), digit, callid, lineInstance);
@@ -2974,13 +3002,13 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	AUTO_RELEASE(sccp_line_t, l , NULL);
 	switch(CallIdAndLineInstance) {
 		case SCCP_CILI_HAS_CALLID | SCCP_CILI_HAS_LINEINSTANCE:
-			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) BOTH callid and lineinstance\n", DEV_ID_LOG(d));
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) BOTH callid and lineinstance\n", DEV_ID_LOG(d));
 			if ((channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid))) {
 				break;
 			}
 			// fallthrough to lineInstance only method (channel could not be found on lineInstance), reported in issue #340
 		case SCCP_CILI_HAS_LINEINSTANCE:
-			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) only lineinstance\n", DEV_ID_LOG(d));
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) only lineinstance\n", DEV_ID_LOG(d));
 			if ((l = sccp_line_find_byid(d, lineInstance))) {
 				SCCP_LIST_LOCK(&l->channels);
 				channel = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->state == SCCP_CHANNELSTATE_OFFHOOK || tmpc->state == SCCP_CHANNELSTATE_GETDIGITS || tmpc->state == SCCP_CHANNELSTATE_DIGITSFOLL), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -2988,12 +3016,12 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 			}
 			break;
 		case SCCP_CILI_HAS_CALLID:
-			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) only callid\n", DEV_ID_LOG(d));
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) only callid\n", DEV_ID_LOG(d));
 			channel = sccp_channel_find_byid(callid);
 			break;
 		case SCCP_CILI_HAS_NEITHER:
 			/* Old phones like 7912 never uses callid so we would have trouble finding the right channel */
-			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) has neither, using activeLine and activeChannel\n", DEV_ID_LOG(d));
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) has neither, using activeLine and activeChannel\n", DEV_ID_LOG(d));
 			channel = sccp_device_getActiveChannel(d);
 			break;
 	}
@@ -3003,7 +3031,8 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	
 	{ /* check if we have all required structures and states for error conditions */
 		if (!channel) {
-			pbx_log(LOG_ERROR, "%s: Device sent a Keypress, but there is no (active) channel! Exiting\n", DEV_ID_LOG(d));
+			/*! When a call is already being ended, sometimes users misdial, should lower the ERROR to NOTICE status */
+			pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but there is no (active) channel! Exiting\n", DEV_ID_LOG(d));
 			return;
 		}
 		if (!channel->owner) {
@@ -3055,7 +3084,7 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 		int number_of_digits = len;
 		int timeout_if_enbloc = SCCP_SIM_ENBLOC_TIMEOUT;						// new timeout if we have established we should enbloc dialing
 
-		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digittimeout '%d' ms, sched_wait '%d' ms\n", channel->enbloc.digittimeout, iPbx.sched_wait(channel->scheduler.digittimeout_id));
+		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digittimeout '%d' s, sched_wait '%d' ms\n", channel->enbloc.digittimeout, iPbx.sched_wait(channel->scheduler.digittimeout_id));
 		if (GLOB(simulate_enbloc) && !channel->enbloc.deactivate && number_of_digits >= 1) {		// skip the first digit (first digit had longer delay than the rest)
 			if ((int)channel->enbloc.digittimeout < (iPbx.sched_wait(channel->scheduler.digittimeout_id))) {
 				lpbx_digit_usecs = (channel->enbloc.digittimeout * 1000) - (iPbx.sched_wait(channel->scheduler.digittimeout_id));
@@ -3233,7 +3262,6 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (PortResponse) Got PortResponse Remote RTP/UDP '%s', ConferenceId:%d, PassThruPartyId:%u, CallID:%u, RTCPPortNumber:%d, mediaType:%s\n", d->id, 
 		sccp_netsock_stringify(&sas), conferenceId, passThruPartyId, callReference, RTCPPortNumber, skinny_mediaType2str(mediaType));
 
-		
 	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
 		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
 			sccp_channel_release(&channel);
@@ -3241,6 +3269,10 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	}
 	if (!channel && passThruPartyId) {
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
+	}
+
+	if (!channel && callReference) {
+		channel = sccp_channel_find_byid(callReference);
 	}
 	
 	if (channel) {
@@ -3292,11 +3324,6 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: '%s' (%d), Remote RTP/UDP '%s', Type: %s, PassThruPartyId: %u, CallID: %u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 
-	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passThruPartyId) {
-		passThruPartyId = 0xFFFFFFFF - callReference;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 6911 which does not return a passThruPartyId, using callid: %u -> passThruPartyId %u\n", d->id, callReference, passThruPartyId);
-	}
-
 	AUTO_RELEASE(sccp_channel_t, channel , NULL);
 	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
 		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
@@ -3307,6 +3334,10 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
 	}
 
+	if (!channel && callReference) {
+		channel = sccp_channel_find_byid(callReference);
+	}
+
 	if (mediastatus) {
 		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned: '%s' (%d) !. Giving up.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
 		if (channel) {
@@ -3314,20 +3345,15 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 		}
 		return;
 	}
-	if (channel && channel->state != SCCP_CHANNELSTATE_ONHOOK) {
-		if (channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
-			pbx_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Invalid Number (%d)\n", DEV_ID_LOG(d), channel->state);
-			return;
-		}
-		if (channel->state == SCCP_CHANNELSTATE_DOWN) {
-			pbx_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Channel is down. Giving up... (%d)\n", DEV_ID_LOG(d), channel->state);
-			sccp_msg_t *r = NULL;
-
-			REQ(r, CloseReceiveChannel);
-			r->data.CloseReceiveChannel.lel_conferenceId = htolel(callReference);
-			r->data.CloseReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
-			r->data.CloseReceiveChannel.lel_callReference = htolel(callReference);
-			sccp_dev_send(d, r);
+	if (channel) {
+		if (channel->state == SCCP_CHANNELSTATE_DOWN || channel->state == SCCP_CHANNELSTATE_ONHOOK || channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
+			if (channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
+				pbx_log(LOG_NOTICE, "%s: (OpenReceiveChannelAck) Invalid Number (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(channel->state));
+				sccp_indicate(d, channel, SCCP_CHANNELSTATE_INVALIDNUMBER);
+			} else {
+				pbx_log(LOG_NOTICE, "%s: (OpenReceiveChannelAck) Channel is onhook/down. Giving up... (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(channel->state));
+				sccp_channel_endcall(channel);
+			}
 			return;
 		}
 
@@ -3361,11 +3387,14 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 	} else {
 		/* we successfully opened receive channel, but have no channel active -> close receive */
 		int32_t callId = passThruPartyId ^ 0xFFFFFFFF;
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (OpenReceiveChannelAck) No channel with this PassThruPartyId %u (callReference: %d, callid: %d). Channel has already been hungup or closed.\n", d->id, passThruPartyId, callReference, callId);
 
-		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruPartyId %u (callReference: %d, callid: %d)!\n", d->id, passThruPartyId, callReference, callId);
-		if (channel) {
-			sccp_channel_closeReceiveChannel(channel, FALSE);
-		}
+		sccp_msg_t *r = NULL;
+		REQ(r, CloseReceiveChannel);
+		r->data.CloseReceiveChannel.lel_conferenceId = htolel(callReference);
+		r->data.CloseReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
+		r->data.CloseReceiveChannel.lel_callReference = htolel(callReference);
+		sccp_dev_send(d, r);
 	}
 }
 
@@ -3401,9 +3430,15 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 			sccp_channel_release(&channel);
 		}
 	}
+
 	if (!channel && passThruPartyId) {
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
 	}
+
+	if (!channel && callReference) {
+		channel = sccp_channel_find_byid(callReference);
+	}
+
 	if (channel) {												// && sccp_channel->state != SCCP_CHANNELSTATE_DOWN) {
 		if (channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
 			return;
@@ -3467,32 +3502,29 @@ void handle_startmediatransmission_ack(constSessionPtr s, devicePtr d, constMess
 {
 	struct sockaddr_storage sas = { 0 };
 	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
-	uint32_t partyID = 0, callID = 0, callID1 = 0, passthrupartyid = 0;
+	uint32_t passThruPartyId = 0, callReference = 0, callReference1 = 0;
 
-	d->protocol->parseStartMediaTransmissionAck((const sccp_msg_t *) msg_in, &partyID, &callID, &callID1, &mediastatus, &sas);
-
-	if (partyID) {
-		passthrupartyid = partyID;
-	}
-
-	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passthrupartyid) {
-		passthrupartyid = 0xFFFFFFFF - callID1;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 6911 which does not return a passthrupartyid, using callid: %u -> passthrupartyid %u\n", d->id, callID1, passthrupartyid);
-	}
+	d->protocol->parseStartMediaTransmissionAck((const sccp_msg_t *) msg_in, &passThruPartyId, &callReference, &callReference1, &mediastatus, &sas);
 
 	AUTO_RELEASE(sccp_channel_t, channel , NULL);
 	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
-		if (channel->passthrupartyid != passthrupartyid || channel->callid != callID) {		// make sure this is the intended channel
+		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
 			sccp_channel_release(&channel);
 		}
 	}
-	if (!channel && passthrupartyid) {
-		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passthrupartyid);
+	if (!channel && passThruPartyId) {
+		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
 	}
+
+	if (!channel && (callReference || callReference1)) {
+		channel = sccp_channel_find_byid(callReference ? callReference : callReference1);
+	}
+
 	if (!channel) {
-		pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u / callid %u / callid1 %u not found, please report this to developer\n", DEV_ID_LOG(d), partyID, callID, callID1);
+		pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u / callid %u / callid1 %u not found, please report this to developer\n", DEV_ID_LOG(d), passThruPartyId, callReference, callReference1);
 		return;
 	}
+
 	if (mediastatus) {
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call. '%s' (%d))\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
 		if (mediastatus == SKINNY_MEDIASTATUS_OutOfChannels || mediastatus == SKINNY_MEDIASTATUS_OutOfSockets) {
@@ -3512,7 +3544,7 @@ void handle_startmediatransmission_ack(constSessionPtr s, devicePtr d, constMess
 			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE))) {
 				iPbx.set_callstate(channel, AST_STATE_UP);
 			}
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: '%s' (%d), Remote TCP/IP: '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), callID, callID1, partyID);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: '%s' (%d), Remote TCP/IP: '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), callReference, callReference1, passThruPartyId);
 		} else {
 			pbx_log(LOG_WARNING, "%s: (sccp_handle_startmediatransmission_ack) Channel already down (%d). Hanging up\n", DEV_ID_LOG(d), channel->state);
 			sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
@@ -3532,31 +3564,44 @@ void handle_startmultimediatransmission_ack(constSessionPtr s, devicePtr d, cons
 	struct sockaddr_storage ss = { 0 };
 
 	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
-	uint32_t partyID = 0, callID = 0, callID1 = 0;
+	uint32_t passThruPartyId = 0, callReference = 0, callReference1 = 0;
 
-	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_msg_t *) msg_in, &partyID, &callID, &callID1, &mediastatus, &ss);
+	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_msg_t *) msg_in, &passThruPartyId, &callReference, &callReference1, &mediastatus, &ss);
 	if (ss.ss_family == AF_INET6) {
 		pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
 		return;
 	}
 
-	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_find_bypassthrupartyid(partyID));
+	AUTO_RELEASE(sccp_channel_t, channel , NULL);
+	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
+		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference || channel->callid != callReference1) {	// make sure this is the intended channel
+			sccp_channel_release(&channel);
+		}
+	}
+	if (!channel && passThruPartyId) {
+		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
+	}
+
+	if (!channel && (callReference || callReference1)) {
+		channel = sccp_channel_find_byid(callReference ? callReference : callReference1);
+	}
+
 	if (mediastatus) {
 		pbx_log(LOG_ERROR, "%s: (StartMultiMediaTransmissionAck) Device returned: '%s' (%d) !. Ending Call.\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
-		if (c) {
-			sccp_channel_endcall(c);
-			c->rtp.video.mediaTransmissionState = SCCP_RTP_STATUS_INACTIVE;
+		if (channel) {
+			sccp_channel_endcall(channel);
+			channel->rtp.video.mediaTransmissionState = SCCP_RTP_STATUS_INACTIVE;
 		}
 		return;
 	}
 
-	if (c) {
+	if (channel) {
 		/* update status */
-		c->rtp.video.mediaTransmissionState = SCCP_RTP_STATUS_ACTIVE;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK. Remote TCP/IP '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), sccp_netsock_stringify(&ss), callID, callID1, partyID);
+		channel->rtp.video.mediaTransmissionState = SCCP_RTP_STATUS_ACTIVE;
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK. Remote TCP/IP '%s', CallId %u (%u), PassThruId: %u\n", channel->designator, sccp_netsock_stringify(&ss), callReference, callReference1, passThruPartyId);
 		return;
 	}
-	pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u could not be found, please report this to developer\n", DEV_ID_LOG(d), partyID);
+	pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u could not be found, please report this to developer\n", DEV_ID_LOG(d), passThruPartyId);
 	return;
 }
 
@@ -3570,11 +3615,11 @@ void handle_mediatransmissionfailure(constSessionPtr s, devicePtr d, constMessag
 {
 	sccp_dump_msg(msg_in);
 	/*
-	
+
 	struct sockaddr_storage ss = { 0 };
 	uint32_t confID = 0, partyID = 0, callRef = 0;
 	d->protocol->parseMediaTransmissionFailure((const sccp_msg_t *) msg_in, &confID, &partyID, &ss, &callRef);
-	
+
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_find_bypassthrupartyid(partyID));
 
 	if (c) {
@@ -3587,6 +3632,18 @@ void handle_mediatransmissionfailure(constSessionPtr s, devicePtr d, constMessag
 	*/
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Received a MediaTranmissionFailure (not being handled fully at this moment)\n", DEV_ID_LOG(d));
+}
+
+/*!
+ * \brief Handle IpPort Message
+ * \param no_s SCCP Session = NULL
+ * \param no_d SCCP Device = NULL
+ * \param msg_in SCCP Message
+ */
+void handle_ipport(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+{
+	d->rtpPort = letohl(msg_in->data.IpPortMessage.lel_rtpMediaPort);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got rtpPort:%d which the device wants to use for media\n", d->id, d->rtpPort);
 }
 
 /*!
@@ -3809,7 +3866,7 @@ void handle_ConfigStatMessage(constSessionPtr s, devicePtr d, constMessagePtr ms
 	sccp_buttonconfig_t *config = NULL;
 	uint8_t lines = 0;
 	uint8_t speeddials = 0;
-	
+
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if (config->type == SPEEDDIAL) {
@@ -4129,10 +4186,11 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7s %-25s %-9s\n", DEV_ID_LOG(d), "#", "codec", "maxFrames");
 			for (audio_capability = 0; audio_capability < audio_capabilities; audio_capability++) {
 				audio_codec = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.audioCaps[audio_capability].lel_payloadCapability);
-				maxFramesPerPacket = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.audioCaps[audio_capability].lel_maxFramesPerPacket);
-
-				d->capabilities.audio[audio_capability] = audio_codec;		/** store our audio capabilities */
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s %-6d\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec), maxFramesPerPacket);
+				if (codec2type(audio_codec) == SKINNY_CODEC_TYPE_AUDIO) {
+					maxFramesPerPacket = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.audioCaps[audio_capability].lel_maxFramesPerPacket);
+					d->capabilities.audio[audio_capability] = audio_codec;		/** store our audio capabilities */
+					sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s %-6d\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec), maxFramesPerPacket);
+				}
 				
 				if (audio_codec == SKINNY_CODEC_G723_1) {
 					sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: %7s bitRate: %d\n", DEV_ID_LOG(d), "", letohl(msg_in->data.UpdateCapabilitiesMessage.v3.audioCaps[audio_capability].payloads.lel_g723BitRate));
@@ -4170,27 +4228,28 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 
 			sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Video Capabilities\n", DEV_ID_LOG(d), video_capabilities);
 			for (video_capability = 0; video_capability < video_capabilities; video_capability++) {
-				video_codec = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_payloadCapability);
-
-				d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
+				if (codec2type(audio_codec) == SKINNY_CODEC_TYPE_VIDEO) {
+					video_codec = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_payloadCapability);
+					d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
 #if DEBUG
-//				char transmitReceiveStr[5];
-//				snprintf(transmitReceiveStr, sizeof(transmitReceiveStr), "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
-//				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %-3s %3d %-25s\n", DEV_ID_LOG(d), transmitReceiveStr, video_codec, codec2str(video_codec));
+					//char transmitReceiveStr[5];
+					//snprintf(transmitReceiveStr, sizeof(transmitReceiveStr), "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
+					//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %-3s %3d %-25s\n", DEV_ID_LOG(d), transmitReceiveStr, video_codec, codec2str(video_codec));
 
-//				int protocolDependentData = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_protocolDependentData);
-//				int maxBitRate = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_maxBitRate);
+					//int protocolDependentData = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_protocolDependentData);
+					//int maxBitRate = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_maxBitRate);
 
-//				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %6s %-5s protocolDependentData: %d\n", DEV_ID_LOG(d), "", "", protocolDependentData);
-//				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %6s %-5s maxBitRate: %d\n", DEV_ID_LOG(d), "", "", maxBitRate);
-				char transmitReceiveStr[5];
-				snprintf(transmitReceiveStr, sizeof(transmitReceiveStr), "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %2d: %-3s %3d %-25s\n", DEV_ID_LOG(d), video_capability, transmitReceiveStr, video_codec, codec2str(video_codec));
-				handle_updatecapabilities_dissect_videocapabiltyunion(d, video_codec, (videoCapabilityUnionV2_t *)&msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].capability);
+					//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %6s %-5s protocolDependentData: %d\n", DEV_ID_LOG(d), "", "", protocolDependentData);
+					//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %6s %-5s maxBitRate: %d\n", DEV_ID_LOG(d), "", "", maxBitRate);
+					char transmitReceiveStr[5];
+					snprintf(transmitReceiveStr, sizeof(transmitReceiveStr), "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
+					sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %2d: %-3s %3d %-25s\n", DEV_ID_LOG(d), video_capability, transmitReceiveStr, video_codec, codec2str(video_codec));
+					handle_updatecapabilities_dissect_videocapabiltyunion(d, video_codec, (videoCapabilityUnionV2_t *)&msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].capability);
 
-				uint8_t levelPreferences = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_levelPreferenceCount);
-				handle_updatecapabilities_dissect_levelPreference(d, levelPreferences, msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].levelPreference);
+					uint8_t levelPreferences = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].lel_levelPreferenceCount);
+					handle_updatecapabilities_dissect_levelPreference(d, levelPreferences, msg_in->data.UpdateCapabilitiesMessage.v3.videoCaps[video_capability].levelPreference);
 #endif
+				}
 			}
 			sccp_codec_reduceSet(d->preferences.video , d->capabilities.video);
 			if (previousVideoSupport == FALSE) {
@@ -4232,11 +4291,11 @@ void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constM
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7s %-25s %-9s\n", DEV_ID_LOG(d), "#", "codec", "maxFrames");
 		for (audio_capability = 0; audio_capability < audio_capabilities; audio_capability++) {
 			audio_codec = letohl(msg_in->data.UpdateCapabilitiesV2Message.audioCaps[audio_capability].lel_payloadCapability);
-			maxFramesPerPacket = letohl(msg_in->data.UpdateCapabilitiesV2Message.audioCaps[audio_capability].lel_maxFramesPerPacket);
-
-			d->capabilities.audio[audio_capability] = audio_codec;		/** store our audio capabilities */
-			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s %-6d\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec), maxFramesPerPacket);
-			
+			if (codec2type(audio_codec) == SKINNY_CODEC_TYPE_AUDIO) {
+				maxFramesPerPacket = letohl(msg_in->data.UpdateCapabilitiesV2Message.audioCaps[audio_capability].lel_maxFramesPerPacket);
+				d->capabilities.audio[audio_capability] = audio_codec;		/** store our audio capabilities */
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s %-6d\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec), maxFramesPerPacket);
+			}
 			if (audio_codec == SKINNY_CODEC_G723_1) {
 				sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: %7s bitRate: %d\n", DEV_ID_LOG(d), "", letohl(msg_in->data.UpdateCapabilitiesV2Message.audioCaps[audio_capability].payloads.lel_g723BitRate));
 			} else {
@@ -4266,17 +4325,18 @@ void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constM
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Video Capabilities\n", DEV_ID_LOG(d), video_capabilities);
 		for (video_capability = 0; video_capability < video_capabilities; video_capability++) {
 			video_codec = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].lel_payloadCapability);
-
-			d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
+			if (codec2type(audio_codec) == SKINNY_CODEC_TYPE_VIDEO) {
+				d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
 #if DEBUG
-			char transmitReceiveStr[5];
-			snprintf(transmitReceiveStr, sizeof(transmitReceiveStr), "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
-			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %2d: %-3s %3d %-25s\n", DEV_ID_LOG(d), video_capability, transmitReceiveStr, video_codec, codec2str(video_codec));
-			handle_updatecapabilities_dissect_videocapabiltyunion(d, video_codec, &msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].capability);
+				char transmitReceiveStr[5];
+				snprintf(transmitReceiveStr, sizeof(transmitReceiveStr), "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %2d: %-3s %3d %-25s\n", DEV_ID_LOG(d), video_capability, transmitReceiveStr, video_codec, codec2str(video_codec));
+				handle_updatecapabilities_dissect_videocapabiltyunion(d, video_codec, &msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].capability);
 
-			uint8_t levelPreferences = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].lel_levelPreferenceCount);
-			handle_updatecapabilities_dissect_levelPreference(d, levelPreferences, msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference);
+				uint8_t levelPreferences = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].lel_levelPreferenceCount);
+				handle_updatecapabilities_dissect_levelPreference(d, levelPreferences, msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference);
 #endif
+			}
 		}
 		sccp_codec_reduceSet(d->preferences.video , d->capabilities.video);
 		if (previousVideoSupport == FALSE) {
@@ -4318,11 +4378,11 @@ void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constM
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7s %-25s %-9s\n", DEV_ID_LOG(d), "#", "codec", "maxFrames");
 		for (audio_capability = 0; audio_capability < audio_capabilities; audio_capability++) {
 			audio_codec = letohl(msg_in->data.UpdateCapabilitiesV3Message.audioCaps[audio_capability].lel_payloadCapability);
-			maxFramesPerPacket = letohl(msg_in->data.UpdateCapabilitiesV3Message.audioCaps[audio_capability].lel_maxFramesPerPacket);
-
-			d->capabilities.audio[audio_capability] = audio_codec;		/** store our audio capabilities */
-			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s %-6d\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec), maxFramesPerPacket);
-			
+			if (codec2type(audio_codec) == SKINNY_CODEC_TYPE_AUDIO) {
+				maxFramesPerPacket = letohl(msg_in->data.UpdateCapabilitiesV3Message.audioCaps[audio_capability].lel_maxFramesPerPacket);
+				d->capabilities.audio[audio_capability] = audio_codec;		/** store our audio capabilities */
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s %-6d\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec), maxFramesPerPacket);
+			}	
 			if (audio_codec == SKINNY_CODEC_G723_1) {
 				sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: %7s bitRate: %d\n", DEV_ID_LOG(d), "", letohl(msg_in->data.UpdateCapabilitiesV3Message.audioCaps[audio_capability].payloads.lel_g723BitRate));
 			} else {
@@ -4331,7 +4391,7 @@ void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constM
 		}
 		sccp_codec_reduceSet(d->preferences.audio , d->capabilities.audio);
 	}
-	
+
 #ifdef CS_SCCP_VIDEO
 #if DEBUG
 	uint8_t video_customPictureFormats = letohl(msg_in->data.UpdateCapabilitiesV2Message.lel_customPictureFormatCount);
@@ -4354,23 +4414,24 @@ void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constM
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Video Capabilities\n", DEV_ID_LOG(d), video_capabilities);
 		for (video_capability = 0; video_capability < video_capabilities; video_capability++) {
 			video_codec = letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_payloadCapability);
-
-			d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
+			if (codec2type(audio_codec) == SKINNY_CODEC_TYPE_VIDEO) {
+				d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
 #if DEBUG
-			char transmitReceiveStr[5];
-			snprintf(transmitReceiveStr, sizeof(transmitReceiveStr), "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
-			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %2d: %-3s %3d %-25s\n", DEV_ID_LOG(d), video_capability, transmitReceiveStr, video_codec, codec2str(video_codec));
-			handle_updatecapabilities_dissect_videocapabiltyunion(d, video_codec, &msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].capability);
+				char transmitReceiveStr[5];
+				snprintf(transmitReceiveStr, sizeof(transmitReceiveStr), "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %2d: %-3s %3d %-25s\n", DEV_ID_LOG(d), video_capability, transmitReceiveStr, video_codec, codec2str(video_codec));
+				handle_updatecapabilities_dissect_videocapabiltyunion(d, video_codec, &msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].capability);
 
-			uint8_t levelPreferences = letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_levelPreferenceCount);
-			handle_updatecapabilities_dissect_levelPreference(d, levelPreferences, msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].levelPreference);
+				uint8_t levelPreferences = letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_levelPreferenceCount);
+				handle_updatecapabilities_dissect_levelPreference(d, levelPreferences, msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].levelPreference);
 
-			int encryptionCapability = letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_encryptionCapability);
-			sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: EncryptionCapability: %s\n", DEV_ID_LOG(d), encryptionCapability ? "Yes" : "No");
+				int encryptionCapability = letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_encryptionCapability);
+				sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: EncryptionCapability: %s\n", DEV_ID_LOG(d), encryptionCapability ? "Yes" : "No");
 
-			int ipv46 = letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_ipv46);
-			sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: IPV46 Setting: %s\n", DEV_ID_LOG(d), ipv46 == 0 ? "IPv4" : ipv46 == 1 ? "IPv6" : "Mixed Mode");
+				int ipv46 = letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_ipv46);
+				sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: IPV46 Setting: %s\n", DEV_ID_LOG(d), ipv46 == 0 ? "IPv4" : ipv46 == 1 ? "IPv6" : "Mixed Mode");
 #endif
+			}
 		}
 		sccp_codec_reduceSet(d->preferences.video , d->capabilities.video);
 		if (previousVideoSupport == FALSE) {
@@ -4525,19 +4586,20 @@ void handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, constMes
 	uint32_t passThruPartyId = letohl(msg_in->data.MiscellaneousCommandMessage.lel_passThruPartyId);
 	commandType = letohl(msg_in->data.MiscellaneousCommandMessage.lel_miscCommandType);
 
-//	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO8941 && 0 == passThruPartyId) {
-	if (0 == passThruPartyId) {
-		passThruPartyId = 0xFFFFFFFF - callReference;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 8941 which does not return a passThruPartyId, using callid: %u -> passThruPartyId %u\n", d->id, callReference, passThruPartyId);
-	}
-	
 	AUTO_RELEASE(sccp_channel_t, channel , NULL);
-	if ((d->active_channel && d->active_channel->passthrupartyid == passThruPartyId) || !passThruPartyId) {	// reduce the amount of searching by first checking active_channel
-		channel = sccp_channel_retain(d->active_channel);
-	} else {
+	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
+		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
+			sccp_channel_release(&channel);
+		}
+	}
+	if (!channel && passThruPartyId) {
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
 	}
-	
+
+	if (!channel && callReference) {
+		channel = sccp_channel_find_byid(callReference);
+	}
+
 	if (channel) {
 		switch (commandType) {
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE:

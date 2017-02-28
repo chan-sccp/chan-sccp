@@ -177,6 +177,7 @@ const char *(sccp_enum_all_entries)(void);
 #define sccp_dtmfmode_str2intval sccp_enum_str2intval
 #define sccp_dndmode_str2intval sccp_enum_str2intval
 #define sccp_nat_str2intval sccp_enum_str2intval
+#define skinny_ringtype_str2intval sccp_enum_str2intval
 
 #define sccp_earlyrtp_all_entries sccp_enum_all_entries
 #define skinny_lampmode_all_entries sccp_enum_all_entries
@@ -185,7 +186,8 @@ const char *(sccp_enum_all_entries)(void);
 #define sccp_dtmfmode_all_entries sccp_enum_all_entries
 #define sccp_dndmode_all_entries sccp_enum_all_entries
 #define sccp_nat_all_entries sccp_enum_all_entries
-   
+#define skinny_ringtype_all_entries sccp_enum_all_entries
+
 #include "../../src/sccp_config_entries.hh"
 
 /*!

@@ -15,6 +15,29 @@ AC_DEFUN([CS_CHECK_RAII], [
 			])
 		],[
 			dnl Nested functions required for RAII implementation
+			AST_C_COMPILER_FAMILY="gcc"
+			AC_MSG_CHECKING([gcc version > 4.3])
+			MAJOR_VERSION=$(${CC} -dumpversion|cut -f1 -d'.')
+			MINOR_VERSION=$(${CC} -dumpversion|cut -f2 -d'.')
+			if test ${MAJOR_VERSION} -le 4 ; then
+				if test ${MINOR_VERSION} -le 3 ; then
+					echo ""
+					echo "The gcc compiler you are using is not compatible with this version of chan-sccp"
+					echo ""
+					echo "You need at least gcc > 4.3. While your gcc has version:"
+					${CC} -dumpversion
+					echo ""
+					echo "Please upgrade your compiler !!"
+					echo "Maybe it's time to upgrade your OS as well :-)"
+					echo ""
+					if -f /etc/centos-release; then
+						echo "See: https://github.com/chan-sccp/chan-sccp/wiki/Update-Compiler---Devtools-on-CentOS"
+					fi
+					exit -5
+				fi
+			fi
+			AC_MSG_RESULT(yes)
+			
 			AC_MSG_CHECKING([for gcc -fnested-functions])
 			AST_NESTED_FUNCTIONS=""
 			AC_COMPILE_IFELSE(
@@ -30,7 +53,6 @@ AC_DEFUN([CS_CHECK_RAII], [
 			)
 			AC_SUBST([AST_NESTED_FUNCTIONS])
 			AC_DEFINE([GCC_NESTED], [1], [Compiler supports nested functions])
-			AST_C_COMPILER_FAMILY="gcc"
 			CC_works=1
 		],[
 			AC_MSG_CHECKING([for clang -fblocks])
