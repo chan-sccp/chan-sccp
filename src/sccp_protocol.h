@@ -1437,14 +1437,10 @@ typedef union {
 
 			/* this is from a 6911
 			   StartMediaTransmissionAck_v17(0x0154)
-			   0000  00 0c 29 03 e3 98 0c 85  25 a7 a0 02 08 00 45 00   ..)..... %.....E.
-			   0010  00 68 8d dd 40 00 40 06  08 4c c0 a8 11 7b c0 a8   .h..@.@. .L...{..
-			   0020  11 9b 09 af 07 d0 3f c3  48 70 8d 0a 18 15 80 18   ......?. Hp......
-			   0030  11 6c d3 0c 00 00 01 01  08 0a 00 01 ce 04 01 65   .l...... .......e
-			   0040  cf 13 2c 00 00 00 11 00  00 00 54 01 00 00 00 00   ..,..... ..T.....   ; lel_reserved = 17 (11), message_id 0x154
-			   0050  00 00 00 00 00 00 15 00  00 00 00 00 00 00 c0 a8   ........ ........   ; callreference = 0, passthrupartyid=0, callreference1=21 (15), unknown=0
-			   0060  11 7b 00 00 00 00 00 00  00 00 00 00 00 00 98 2b   .{...... .......+   ; ip-address=c0a8117b, portnumber=982b0000, smtStatus=0
-			   0070  00 00 00 00 00 00                                  ......           
+			   0040  26 00 00 00 11 00 00 00  54 01 00 00 00 00 00 00    ...... ..T.....            ; lel_reserved = 17 (11), message_id 0x154, callreference = 0
+			   0050  00 00 00 00 15 00 00 00  00 00 00 00 c0 a8 11 7b    ...... .......{            ; passthrupartyid=0, callreference1=21 (15), unknown=0, [ip-address=c0a8117b
+			   0060  00 00 00 00 00 00 00 00  00 00 00 00 98 2b 00 00    ...... .......+            ;  portnumber=982b0000
+			   0070  00 00 00 00                                         ......                     ; smtStatus=0
 			 */
 			struct {
 				uint32_t lel_callReference;							/*!< Call Reference */
@@ -1455,6 +1451,14 @@ typedef union {
 				uint32_t lel_portNumber;							/*!< Port Number */
 				uint32_t lel_mediastatus;							/*!< startmediatransmission status */
 			} v17;
+
+			/* this is from a 6901 during transfer (notice missing passThruPartyId)
+			   StartMediaTransmissionAck_v20(0x0154)
+			   0000 - 34 00 00 00 14 00 00 00  54 01 00 00 00 00 00 00  - 4.......T.......		; Call Reference(EMPTY)
+			   0010 - 00 00 00 00 12 00 00 00  00 00 00 00 0A 01 02 2C  - ...............,		; Pass Through Party ID = EMPTY, CallReference1 (18), ipb46(0), [Ip-Address
+			   0020 - 00 00 00 00 00 00 00 00  00 00 00 00 F4 2F 00 00  - ............./..          ; ....] PortNumber
+			   0030 - 00 00 00 00 00 00 00 00  00 00 00 00              - ............              ; mediaStatus, Unkown, Unknown
+			 */
 		};
 	} StartMediaTransmissionAck;										/*!< Start Media Transmission Acknowledgement Structure */
 

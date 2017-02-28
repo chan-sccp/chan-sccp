@@ -1819,10 +1819,20 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 				sccp_dev_setActiveLine(device, l);
 				sccp_channel_resume(device, channel, FALSE);
 			} else {
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Multiple calls on hold, just switching to line %d and let user decide\n", device->id, instance);
-				sccp_dev_setActiveLine(device, l);
-				/* select the first channel on hold, but do not resume */
-				sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				if (d->useHookFlash() && d->transfer && d->transferChannels.transferer == channel) {	// deal with single line phones like 6901, which do not have softkeys
+					// 6901 is cancelling the transfer by pressing the line key (see cisco manual for 6901)
+					sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: We are the middle of a transfer, pressed hold on the transferer channel(%s) -> cancel transfer\n", d->id, channel->designator);
+					AUTO_RELEASE(sccp_channel_t, resumeChannel, sccp_channel_retain(d->transferChannels.transferee));
+					if (resumeChannel) {
+						sccp_channel_endcall(d->transferChannels.transferer);
+						sccp_channel_resume(d, resumeChannel, FALSE);
+					}
+				} else {
+					sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Multiple calls on hold, just switching to line %d and let user decide\n", device->id, instance);
+					sccp_dev_setActiveLine(device, l);
+					/* select the first channel on hold, but do not resume */
+					sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				}
 			}
 			sccp_dev_set_cplane(device, instance, 1);
 		} else if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))) {
@@ -3253,7 +3263,6 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (PortResponse) Got PortResponse Remote RTP/UDP '%s', ConferenceId:%d, PassThruPartyId:%u, CallID:%u, RTCPPortNumber:%d, mediaType:%s\n", d->id, 
 		sccp_netsock_stringify(&sas), conferenceId, passThruPartyId, callReference, RTCPPortNumber, skinny_mediaType2str(mediaType));
 
-		
 	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
 		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
 			sccp_channel_release(&channel);
@@ -3261,6 +3270,10 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	}
 	if (!channel && passThruPartyId) {
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
+	}
+
+	if (!channel && callReference) {
+		channel = sccp_channel_find_byid(callReference);
 	}
 	
 	if (channel) {
@@ -3312,11 +3325,6 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: '%s' (%d), Remote RTP/UDP '%s', Type: %s, PassThruPartyId: %u, CallID: %u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 
-	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passThruPartyId) {
-		passThruPartyId = 0xFFFFFFFF - callReference;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 6911 which does not return a passThruPartyId, using callid: %u -> passThruPartyId %u\n", d->id, callReference, passThruPartyId);
-	}
-
 	AUTO_RELEASE(sccp_channel_t, channel , NULL);
 	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
 		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
@@ -3325,6 +3333,10 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 	}
 	if (!channel && passThruPartyId) {
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
+	}
+
+	if (!channel && callReference) {
+		channel = sccp_channel_find_byid(callReference);
 	}
 
 	if (mediastatus) {
@@ -3419,9 +3431,15 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 			sccp_channel_release(&channel);
 		}
 	}
+
 	if (!channel && passThruPartyId) {
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
 	}
+
+	if (!channel && callReference) {
+		channel = sccp_channel_find_byid(callReference);
+	}
+
 	if (channel) {												// && sccp_channel->state != SCCP_CHANNELSTATE_DOWN) {
 		if (channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
 			return;
@@ -3485,32 +3503,29 @@ void handle_startmediatransmission_ack(constSessionPtr s, devicePtr d, constMess
 {
 	struct sockaddr_storage sas = { 0 };
 	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
-	uint32_t partyID = 0, callID = 0, callID1 = 0, passthrupartyid = 0;
+	uint32_t passThruPartyId = 0, callReference = 0, callReference1 = 0;
 
-	d->protocol->parseStartMediaTransmissionAck((const sccp_msg_t *) msg_in, &partyID, &callID, &callID1, &mediastatus, &sas);
-
-	if (partyID) {
-		passthrupartyid = partyID;
-	}
-
-	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passthrupartyid) {
-		passthrupartyid = 0xFFFFFFFF - callID1;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 6911 which does not return a passthrupartyid, using callid: %u -> passthrupartyid %u\n", d->id, callID1, passthrupartyid);
-	}
+	d->protocol->parseStartMediaTransmissionAck((const sccp_msg_t *) msg_in, &passThruPartyId, &callReference, &callReference1, &mediastatus, &sas);
 
 	AUTO_RELEASE(sccp_channel_t, channel , NULL);
 	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
-		if (channel->passthrupartyid != passthrupartyid || channel->callid != callID) {		// make sure this is the intended channel
+		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
 			sccp_channel_release(&channel);
 		}
 	}
-	if (!channel && passthrupartyid) {
-		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passthrupartyid);
+	if (!channel && passThruPartyId) {
+		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
 	}
+
+	if (!channel && (callReference || callReference1)) {
+		channel = sccp_channel_find_byid(callReference ? callReference : callReference1);
+	}
+
 	if (!channel) {
-		pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u / callid %u / callid1 %u not found, please report this to developer\n", DEV_ID_LOG(d), partyID, callID, callID1);
+		pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u / callid %u / callid1 %u not found, please report this to developer\n", DEV_ID_LOG(d), passThruPartyId, callReference, callReference1);
 		return;
 	}
+
 	if (mediastatus) {
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call. '%s' (%d))\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
 		if (mediastatus == SKINNY_MEDIASTATUS_OutOfChannels || mediastatus == SKINNY_MEDIASTATUS_OutOfSockets) {
@@ -3530,7 +3545,7 @@ void handle_startmediatransmission_ack(constSessionPtr s, devicePtr d, constMess
 			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE))) {
 				iPbx.set_callstate(channel, AST_STATE_UP);
 			}
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: '%s' (%d), Remote TCP/IP: '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), callID, callID1, partyID);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: '%s' (%d), Remote TCP/IP: '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), callReference, callReference1, passThruPartyId);
 		} else {
 			pbx_log(LOG_WARNING, "%s: (sccp_handle_startmediatransmission_ack) Channel already down (%d). Hanging up\n", DEV_ID_LOG(d), channel->state);
 			sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
@@ -3550,31 +3565,44 @@ void handle_startmultimediatransmission_ack(constSessionPtr s, devicePtr d, cons
 	struct sockaddr_storage ss = { 0 };
 
 	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
-	uint32_t partyID = 0, callID = 0, callID1 = 0;
+	uint32_t passThruPartyId = 0, callReference = 0, callReference1 = 0;
 
-	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_msg_t *) msg_in, &partyID, &callID, &callID1, &mediastatus, &ss);
+	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_msg_t *) msg_in, &passThruPartyId, &callReference, &callReference1, &mediastatus, &ss);
 	if (ss.ss_family == AF_INET6) {
 		pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
 		return;
 	}
 
-	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_find_bypassthrupartyid(partyID));
+	AUTO_RELEASE(sccp_channel_t, channel , NULL);
+	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
+		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference || channel->callid != callReference1) {	// make sure this is the intended channel
+			sccp_channel_release(&channel);
+		}
+	}
+	if (!channel && passThruPartyId) {
+		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
+	}
+
+	if (!channel && (callReference || callReference1)) {
+		channel = sccp_channel_find_byid(callReference ? callReference : callReference1);
+	}
+
 	if (mediastatus) {
 		pbx_log(LOG_ERROR, "%s: (StartMultiMediaTransmissionAck) Device returned: '%s' (%d) !. Ending Call.\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
-		if (c) {
-			sccp_channel_endcall(c);
-			c->rtp.video.mediaTransmissionState = SCCP_RTP_STATUS_INACTIVE;
+		if (channel) {
+			sccp_channel_endcall(channel);
+			channel->rtp.video.mediaTransmissionState = SCCP_RTP_STATUS_INACTIVE;
 		}
 		return;
 	}
 
-	if (c) {
+	if (channel) {
 		/* update status */
-		c->rtp.video.mediaTransmissionState = SCCP_RTP_STATUS_ACTIVE;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK. Remote TCP/IP '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), sccp_netsock_stringify(&ss), callID, callID1, partyID);
+		channel->rtp.video.mediaTransmissionState = SCCP_RTP_STATUS_ACTIVE;
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK. Remote TCP/IP '%s', CallId %u (%u), PassThruId: %u\n", channel->designator, sccp_netsock_stringify(&ss), callReference, callReference1, passThruPartyId);
 		return;
 	}
-	pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u could not be found, please report this to developer\n", DEV_ID_LOG(d), partyID);
+	pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u could not be found, please report this to developer\n", DEV_ID_LOG(d), passThruPartyId);
 	return;
 }
 
@@ -3588,11 +3616,11 @@ void handle_mediatransmissionfailure(constSessionPtr s, devicePtr d, constMessag
 {
 	sccp_dump_msg(msg_in);
 	/*
-	
+
 	struct sockaddr_storage ss = { 0 };
 	uint32_t confID = 0, partyID = 0, callRef = 0;
 	d->protocol->parseMediaTransmissionFailure((const sccp_msg_t *) msg_in, &confID, &partyID, &ss, &callRef);
-	
+
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_find_bypassthrupartyid(partyID));
 
 	if (c) {
@@ -3839,7 +3867,7 @@ void handle_ConfigStatMessage(constSessionPtr s, devicePtr d, constMessagePtr ms
 	sccp_buttonconfig_t *config = NULL;
 	uint8_t lines = 0;
 	uint8_t speeddials = 0;
-	
+
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if (config->type == SPEEDDIAL) {
@@ -4364,7 +4392,7 @@ void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constM
 		}
 		sccp_codec_reduceSet(d->preferences.audio , d->capabilities.audio);
 	}
-	
+
 #ifdef CS_SCCP_VIDEO
 #if DEBUG
 	uint8_t video_customPictureFormats = letohl(msg_in->data.UpdateCapabilitiesV2Message.lel_customPictureFormatCount);
@@ -4559,19 +4587,20 @@ void handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, constMes
 	uint32_t passThruPartyId = letohl(msg_in->data.MiscellaneousCommandMessage.lel_passThruPartyId);
 	commandType = letohl(msg_in->data.MiscellaneousCommandMessage.lel_miscCommandType);
 
-//	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO8941 && 0 == passThruPartyId) {
-	if (0 == passThruPartyId) {
-		passThruPartyId = 0xFFFFFFFF - callReference;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 8941 which does not return a passThruPartyId, using callid: %u -> passThruPartyId %u\n", d->id, callReference, passThruPartyId);
-	}
-	
 	AUTO_RELEASE(sccp_channel_t, channel , NULL);
-	if ((d->active_channel && d->active_channel->passthrupartyid == passThruPartyId) || !passThruPartyId) {	// reduce the amount of searching by first checking active_channel
-		channel = sccp_channel_retain(d->active_channel);
-	} else {
+	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
+		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
+			sccp_channel_release(&channel);
+		}
+	}
+	if (!channel && passThruPartyId) {
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
 	}
-	
+
+	if (!channel && callReference) {
+		channel = sccp_channel_find_byid(callReference);
+	}
+
 	if (channel) {
 		switch (commandType) {
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE:
