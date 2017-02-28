@@ -1,3 +1,2322 @@
+commit 7dfb79cb5e2ad6cbd5e53caa64b9622d476fc82f
+Merge: e6fd157 d106aeb
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Feb 28 23:05:00 2017 +0100
+
+    Merge branch 'issues/381' into develop
+
+commit d106aeb0f9eb723aef4f83ae77cdc776350111a1
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Feb 28 23:03:59 2017 +0100
+
+    Enh: Remove commented out lines (regarding 6901)
+    
+    Fixes #381
+    Fixes #335
+
+commit 9511b8e9716b2b23121e3c2250d3f4b2dd1be456
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Feb 28 23:02:25 2017 +0100
+
+    Enh: Act on callReference, callReference and passThruPartyID in a uniform manner
+
+commit 772595283e2e88270d543566402a5dde520c2e13
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Feb 28 19:13:25 2017 +0100
+
+    Fix: allow single line device (like 6901) to cancel transfer by pressing the line key (see cisco manual for 6901)
+    Enh: allow single line device (like 6901) to cancel transfer by pressing the hold key on the transferer channel
+
+commit fecb90d8e55f8e325866ebee0a2d7944111f6433
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Feb 28 00:11:07 2017 +0100
+
+    Enh: Update sccp_protocol.h startMediaTransmission for 6901 (during transfer), include two new unknown fields.
+
+commit db2f31fea10d6b23b4085bb219db5bc4dbc5ac4d
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon Feb 27 22:16:06 2017 +0100
+
+    Fix: StartMediaTransmission for 6901.
+    Fix: Stop and Close port during Hold (Not sure if necessary, will recheck later)
+    
+    The 69XX series does does not send a passthrupartyid, but only CallId2
+    
+    Related #381
+    Related #335
+
+commit e6fd157e5025726dcc224f4cc5db6bca98198f2a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Feb 25 15:00:21 2017 +0100
+
+    Fix: Set OFFHOOKFEAT SoftkeySet on the Correct line, while performing a transfer.
+    This might have been causing the 6901 to shift focus to the call being transfered,
+    causing trouble while trying to enter the tranfer destination digits.
+    
+    Enh: Set the line lamp to FLASH during a transfer, to indicate we are performing a
+    feature. The 6901 does not have a display, so we have to use the lamp instead.
+
+commit 245f9c79c3e385cacb5e2ec829f7a510569b14e3
+Merge: f9a660a 27bec59
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Feb 24 20:44:51 2017 +0100
+
+    Merge branch 'issues/380' into develop
+
+commit 27bec59b6760c436efe7d050b9e8483bb35e3be9
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Feb 24 20:42:34 2017 +0100
+
+    Enh: Reduce butonconfig config parsing debug output to config+high
+
+commit 7ad412a2cd58ad4cdc382e71bab830d75dae3573
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Feb 24 20:33:39 2017 +0100
+
+    Fix: Cleanup sccp reload device/line
+    
+    Closed #380
+
+commit c94ced2735504154f67b695f028713d2a1025bb3
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Feb 24 20:06:47 2017 +0100
+
+    Fix: preliminary fix for sccp reload device SEP... (WIP).
+
+commit f9a660a1fc68e40d1b7078123a8e2e7c8511235b
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Feb 24 14:10:25 2017 +0100
+
+    Fix: Do not check device accessory status during keypad handling
+    Fix: ast_log ERROR to NOTICE when no channel is available. Sometimes users misdial when trying to hangup.
+
+commit 75c117214b9e8a80f8b6b17b7ebaa0d093782512
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Feb 24 13:10:37 2017 +0100
+
+    Added debug logging to pre config reload
+
+commit 895bde1580b5f9bf33abdc8dc32ae4b66e9ae3d1
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Feb 24 11:03:55 2017 +0100
+
+    Fix: Lower debug log for keypad entry without a channel
+    Fix: Remove device state check when processing keypad buttons entered
+
+commit 98f712ee0dfe73a7af0f35dd796d308e8cbb7f8f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Feb 24 01:33:35 2017 +0100
+
+    Enh: Added debug logging to buttonconfig parse
+    
+    References #380
+
+commit 0ce62bb34a4abe5fc98b4eb37f2bc344d8043ffd
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Feb 22 19:21:12 2017 +0100
+
+    Fix: gcc version detection.
+
+commit 43484717fd5ed792953a68e5164032adf55fc889
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Feb 22 18:46:27 2017 +0100
+
+    Fix: cleanup gcc version detection.
+
+commit 78fb33dabbc338b3c07c25c2b76e150b5cf18f66
+Merge: d0c8184 341be95
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Feb 22 15:47:32 2017 +0100
+
+    Deprecate: GCC 4.3.x and below are no longer supported. (Time to get away from Centos 5).
+
+commit d0c8184a9b594652ae369d058a932dc5597cdeac
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Feb 22 15:44:11 2017 +0100
+
+    Deprecate: GCC 4.3.x and below are no longer supported. (Time to get away from Centos 5).
+
+commit 341be9599ba1ce8c7459f931c1015d2b84a7356f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Feb 22 15:44:47 2017 +0100
+
+    Deprecate: GCC 4.3.x and below are no longer supported. (Time to get away from Centos 5).
+
+commit efb3cf0dfa5b79b652974acc22938b95f840d8cc
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Feb 22 15:44:11 2017 +0100
+
+    Deprecate: GCC 4.3.x and below are no longer supported. (Time to get away from Centos 5).
+
+commit d48fdaa3c31a097f69fe0c8f88df7429e364a264
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Feb 21 17:35:29 2017 +0100
+
+    Fix: compile warning
+
+commit 032a340e789e04b9eb567105b4559a792e905cf4
+Merge: 3f5edb3 644a4f6
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Feb 21 17:19:20 2017 +0100
+
+    Merge branch 'issues/374' into develop
+
+commit 3f5edb32e332c319d6c732d5cac7ce80a81e4883
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Feb 21 17:08:59 2017 +0100
+
+    Fix: reduce log level for '(OpenReceiveChannelAck) No channel with this PassThruPartyId' when channel has already been hungup.
+    
+    Fixes #370
+
+commit 758e0687416ea24512d8a8ff92c15e4b5893c919
+Merge: 864757f f19b107
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Feb 21 17:00:28 2017 +0100
+
+    Merge branch 'issues/370' into develop
+    
+    Closed 370
+
+commit 864757ff0b02563408cf429f5e13199cacb88525
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Feb 19 16:17:12 2017 +0100
+
+    Fix: compile/coverity warning about switch fall through.
+
+commit 336ae64eecd70e647af9f33805750bad03686128
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Feb 19 15:04:59 2017 +0100
+
+    Enh: Added SetHookFlashDetect (WIP)
+    Enh: Added IpPortMessage handling, store rtp port to be used by device during registration (WIP)
+
+commit 65853f129fcf8ca15da55812b0a5197f5681cb27
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Feb 19 15:03:31 2017 +0100
+
+    Added comment about nokia call connect
+
+commit a641d9eb635eb14f8f89cd5b899f93a9b6aaeb8c
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Feb 17 15:25:36 2017 +0100
+
+    Fix: skip 'non standard codec' when parsing codecs when device is registering
+
+commit 5e5f65ab6d6499fc6220e716b41d2521df1915a5
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Feb 17 14:34:17 2017 +0100
+
+    Update XMLDefault.cnf.xml example file based on findings by Joerg
+
+commit 423640105305e057a350f7bf42a7c25532f074ca
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Feb 15 16:00:36 2017 +0100
+
+    Added reference URL to AUTHORS file
+    
+    Signed-off-by: Diederik de Groot <dkgroot@talon.nl>
+
+commit 6b3173fed14200f8f87ac38df0869feaf8a967e8
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Feb 15 15:56:37 2017 +0100
+
+    Update Authors file with gpg instructions
+    
+    Signed-off-by: Diederik de Groot <dkgroot@talon.nl>
+
+commit c1d9b61e15fa0215109a4200caf2d14ba10a8701
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Feb 15 15:34:38 2017 +0100
+
+    Add GPG fingerprints to AUTHORS file
+
+commit 08413259368eada352f7bb3d070aee851fb7cb6c
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Feb 15 15:02:17 2017 +0100
+
+    Enh: check device accessory status before handling KeyPress
+
+commit 7525ec595f33d284bde8524ca278a743cc9e93d2
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Feb 15 13:32:17 2017 +0100
+
+    Fix: compile warning
+
+commit f4024a6adcc206e0d37a7268a42f81751e5dcee9
+Author: Diederik de Groot <ddegroot@talon.nl>
+Date:   Wed Feb 15 05:34:56 2017 +0100
+
+    Fix gen_sccpconf
+
+commit ea797e969133641c82b09d080c247df8f3474a6f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Feb 14 17:31:34 2017 +0100
+
+    Fix: Device Cleaning causing Registration issues
+    
+    Note: This does not fix the cause for the re-registration. I have not found out why devices sometimes:
+    - loose there connection
+    - do not respond until there session times out
+    - go into a device restart
+    
+    Fixes #378
+    Fixes #333
+
+commit 046f19e94c10bc6525bec2c6082158f15e6e8a8d
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Feb 14 16:25:47 2017 +0100
+
+    Fix: Redefine BackSpaceReqMessage as a Response Message
+
+commit aed782f5ea3a5afc1e2d030cff6a2cb836222a87
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Feb 8 13:13:53 2017 +0100
+
+    Fix: check value when using --with-hash-size
+
+commit 1812b49dbac1bda3b852baacbe4da503b8e2b0ef
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon Feb 6 18:21:01 2017 +0100
+
+    Added comment to annotated xml file
+
+commit 644a4f62dbda927f4f69eca33e5088ab1f64e190
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon Feb 6 14:17:29 2017 +0100
+
+    Update pbx_indicate debug output
+
+commit 23a1c10acb8d1f1a4b826aefed8fd194bef6e826
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon Feb 6 14:17:14 2017 +0100
+
+    Fix: keypad handling for skinny protocol < 11 phones
+
+commit ce8bce82f49f4ed40bc295603d2e955f8e530825
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Jan 31 13:32:35 2017 +0100
+
+    Enh: Added sccp_parse_alertinfo function which converts ALERT_INFO Bellcore types to skinny_ringtypes
+    Enh: Added [general]ringtype to be able to define global default ringtype
+    Enh: Updated cli and appfunctions output to include global ringtype
+    
+    Fixes: #368
+
+commit f19b107779502944c6c288c5fb1ce177fd23dd2c
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Jan 31 12:43:21 2017 +0100
+
+    Fix: Make OpenReceiveChannelAck Debug Messages more accurate
+    Fix: When OpenReceiveChannelAck does not have a channel, we should use REQ(r, CloseReceiveChannel) directly.
+    
+    References #370
+
+commit cb4550b17fbf56893ca4c36e7d9e0fa538476e9f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon Jan 30 17:13:02 2017 +0100
+
+    Fix: Re-add sendDeviceRestart during device cleanup to speed up module reloading.
+
+commit f08ac447d9c731b3b0947192bddd9ba02cc91eec
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Jan 27 16:51:15 2017 +0100
+
+    Update binary repository links
+
+commit da50a6e14d5ff5e5dba20798d5d9e9323b6d6b01
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Jan 27 10:39:14 2017 +0100
+
+    Added detectCMConnectionFailure to annotated SEP example file
+
+commit db5adac143a77089cf49b47bdf228c457927cb9f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Jan 27 10:38:30 2017 +0100
+
+    Update News file
+
+commit f2b4e6923c3587415bda86478b234b3fc750e8ae
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu Jan 26 14:48:14 2017 +0100
+
+    Enh: Added initial hookflash handling
+
+commit 6ec9dc7a85ee7ebfcdaf9741666087354eb3d73c
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu Jan 26 11:15:54 2017 +0100
+
+    Fix: device and session keepAlive/keepAliveInterval calculation
+
+commit b5da330ce85e7657629b7138e34c3c778a7aefb5
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Jan 25 19:15:46 2017 +0100
+
+    Enh: Do not allow a device to unregister when we have active calls
+
+commit 690228ec7ce85e477b105ccab6afa6d559467f27
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Jan 21 12:23:58 2017 +0100
+
+    Enh: save LastDialedNumber to AST DB for each call if number has changed
+
+commit 610c086a97762e47981cf2dcf9599a790ae860f4
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Jan 20 11:50:26 2017 +0100
+
+    Enh: Simple python script to retrieve debug logs from SCCP phone
+
+commit 514e885fd0590f943f2f75860a0b6faf60aea778
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu Jan 19 12:46:32 2017 +0100
+
+    Fix: Device restart/reset/unregister/cleanup and disconnecting it's session
+
+commit 0eb987f6048b4b6f7bf8480a967474aae54c29f2
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Jan 17 16:33:21 2017 +0100
+
+    Enh: sccp_dev_clean removed unused parameter cleanupTimeout
+
+commit 1744d91bd6c2b84bfd47f6d6db282f54e89bc266
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Jan 17 16:32:27 2017 +0100
+
+    Fix: sccp_log debug logging to console and file
+
+commit 5ad78e409fab3288f901c62dca9d8b33273b43de
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Jan 14 11:52:14 2017 +0100
+
+    Enh: return -1 when handling AST_CONTROL_MASQUERADE_NOTIFY
+
+commit 00dfe064e29c33f41932fb485393c7134c9c9de9
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Jan 13 10:51:37 2017 +0100
+
+    Fix: allowing thread to be interrupted / cancelled while in the middle of handling an sccp message
+    
+    If any locks are taken during the handling of the sccp message, these locks could be left hanging,
+    if/when the thread is interrupted/cancelled. Thread cancellation should only be allowed while
+    waiting(poll) for incoming messages.
+    
+    Issue reported by Salvador/voipAsteriskGuy
+
+commit f5a5e8303bcfb68fefb79ce35551dffc3810dfcc
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Jan 11 12:12:45 2017 +0100
+
+    Fix: compile warning on ast-1.8
+
+commit cdc52069308fc12915ad026044750c5bfbb3606e
+Merge: 0ae7922 5c1e7b0
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Jan 11 11:46:26 2017 +0100
+
+    Merge branch 'develop' of github.com:chan-sccp/chan-sccp into develop
+
+commit 5c1e7b0fc77458282f6edeae876ca97a5fc34087
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Jan 11 11:42:07 2017 +0100
+
+    Fix: ast-1.6 - ast-10 compile warnings
+
+commit 2759af9689c32d7fa65f5eae89bdc18fa2ad4226
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Jan 11 11:35:03 2017 +0100
+
+    Fix: pickup/gpickup race condition, where we actually try to pickup another sccp channel which was already trying to pickup
+    
+    Cause: asterisk does not only allow RINGING/RINGIN channels to be picked up, but also channels with STATE_DOWN
+    Solution: Remove the callgroup / named callgroup from the newly created channel, which is doing a pickup. That way they don't
+    participate in the list of potential pickup candidates.
+    
+    Fixes #361
+
+commit 0ae7922c6d2458da8d29836d796011214443ecfe
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Jan 11 10:08:15 2017 +0100
+
+    Fix: added carriage return to some of the debug log output
+
+commit c26e2e50d9862302e83564fdc09ce655fe0059f4
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Jan 10 15:48:34 2017 +0100
+
+    Fix: config parser for subscriptionId auxilary fields like !silent
+    
+    We need to connect the subscriptionId when any of the subscriptionId fields has been set.
+    
+    Issue Reported by Jeffrey Otterson
+
+commit 50fdff481469a75560e7e22b6bc9df84d76e40c6
+Merge: b013124 67b194e
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Jan 6 10:06:46 2017 +0100
+
+    Fix merge conflicts
+
+commit b013124bd198858f889766bfac00179ff3d68cc8
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Jan 6 09:42:50 2017 +0100
+
+    Fix: leaving sccp_wrapper_asterisk_channel_read function with locked ast channel
+    
+    Issue reported by Filip Frank
+
+commit 67b194e554533aeb649f81b3f8d94b05e5bd1432
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Jan 6 09:18:00 2017 +0100
+
+    Prepare branch for merge
+
+commit 48021edf3d76627a7b9c72cd9530a34c499a20a9
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 28 07:38:16 2016 +0100
+
+    Fix: autorevision should not mark revision as (M)odified when there are only some untracked files in the source directory
+
+commit c5c05e287fc22d89b5189b48f5f479884c776da0
+Merge: ab3fb64 1c779bb
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 28 06:51:21 2016 +0100
+
+    Fix: device cross session cleanup issues (cause by two different session thread running sccp_dev_clean)
+    Fix: add cancellation points in the session_thread, so that we can ean the session at a quiecense point
+    Fix: added sccp_netsock_end_device_thread to send thread_cancel and join the previous thread
+    Fix: device re-registration
+    Fix: device timeout
+    Fix: module unload/load time
+    Fix: we cannot depend on module_running when starting sccp_netsock_thread
+    Fix: cleaner method to shutdown of sccp_netsock_thread during module unload
+    Enh: Extended refcount debugging when --enable-refcount-debug is enabled
+    Enh: sccp_session removed old / ununed / no longer needed functions
+    Enh: automatically rotate /tmp/sccp_refs every 10+ Mb
+    
+    We are cleaning up the device from the new thread, if/when the server then starts to
+    cleanup the device from the old thread as well, everything goes really wrong.
+    Instead of cleaning up the device from the new thread (and potentially from the old
+    thread (keepalive timeout > 60) at the same time), we should just pthread_kill the
+    old thread and join it, that will cause both threads to run as one, and cleanup
+    will be performed as a unified process, fixing all the refcount issues and
+    re-register trouble.
+    You could reproduce the issue by pulling the UTP cable for 3 seconds, shortly after a device
+    registered. It will take a java phone about 40-50 seconds to start registering again, at this
+    time the server will have timeout the connection as well, when both coincide -> mayhem.
+    
+    Fixes #358
+    Fixes #153
+    References #309
+
+commit 1c779bbe9c9e14087ef180f68fc98e771a6b02dc
+Merge: d3262f6 ab3fb64
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 28 06:47:15 2016 +0100
+
+    Merge branch 'develop' into issues/358
+
+commit d3262f69b14cb79834a0291576181577069b745f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 28 01:15:22 2016 +0100
+
+    Fix: we cannot depend on module_running when starting sccp_netsock_thread
+    Fix: cleaner method to shutdown of sccp_netsock_thread during module unload
+
+commit 9d8ea5e010da2390bc736146e6f655f06e643cac
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 28 00:05:07 2016 +0100
+
+    Enh: seperate sccp_refcount_addWeakParent, sccp_refcount_removeWeakParent and sccp_refcount_gen_report into --enable-refcount-debug only
+         in preparation for 'develop' branch integration
+
+commit ab3fb646c09dc1452532473dc68146ec50b518fa
+Merge: 6fe7eb2 ddeecc3
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 27 23:29:01 2016 +0100
+
+    Merge branch 'develop' of github.com:chan-sccp/chan-sccp into develop
+    After rebase to correct/clarify some of the commit messages
+
+commit 6fe7eb21611ae59e8b3ea542b482d0ee46b18443
+Author: Diederik de Groot <ddegroot@talon.nl>
+Date:   Tue Dec 27 11:47:39 2016 +0100
+
+    Fix: When busy then queue_control=BUSY, hangupcause=AST_CAUSE_USER_BUSY and return '0' as exit status to DIAL command (#363)
+    
+    Fix: When we receive a channel PROD indication, do not start audio flow when there is a hangupcause
+         otherwise we would not generate busy tones when we receive AST_CONTROL_BUSY
+    
+    Fixes #315
+
+commit 071619bc3664eccd8e8fa32c8715d900c722f554
+Author: Diederik de Groot <ddegroot@talon.nl>
+Date:   Tue Dec 27 11:06:40 2016 +0100
+
+    Fix: When openReceiveChannelAck is handled
+         - tones being played should be stopped
+         - We should signal remote side that we can receive inband tones now
+    Fix: RINGOUT indication when earlyrtp=ringout should openreceivechannel and not use skinny tones
+    Enh: Remove if condition around sccp_hint_notifySubscribersViaPbx, which is not necessary. Reported by Marcello. (hint)
+    Fix: DND sometimes shows as BUSY
+    Fix: Check if event could be created and sent, if not cleanup created event to prevent memory leak.
+    
+    Fixes 324
+    Fixes 317
+    Fixes 334
+
+commit ed4537a297eb1ebdeeb0041255c9453bde062d1b
+Author: Diederik de Groot <ddegroot@talon.nl>
+Date:   Tue Dec 27 10:14:09 2016 +0100
+
+    Fix: This would show a remotely connected call in a collapsed callplane.
+    Fix: Suppress phonebook entry of a missed call when call is indicated remotely
+    Enh: Added sccp_softkey_isSoftkeyInSoftkeySet to check if a softkey is enabled in a particular softkeyset on a device
+    Enh: By removing intercept button from the onhookstealable keyset you can influence the way a remote call is displayed (collapsed or in plain view)
+    
+    Fixes #354
+    References #349
+    Partially References #350
+
+commit 3981e17f1408a48d99e59ce852c4e083428ca99a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 23 15:37:45 2016 +0100
+
+    Fix: Make sure s->device is still valid after a sccp reload before continuing session handling
+    Fix: change session keepalive calculation and put the calculation in a seperate function: recalc_wait_time
+    
+    References #358
+
+commit d69508d5a62b0e6ad96ec7327ae6e175e5334e49
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon Dec 26 19:28:50 2016 +0100
+
+    Fix: phonebook entries during pickup and gpickup
+    Fix: when there is nothing to pickup
+     - error sound(BEEPBONK instead of ZIPZIP)
+     - displayprinotify instead of displayprompt
+    
+    Fixes #361
+
+commit 34b4bbb14f0921397c421ea7a45d900c9880fc2d
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Dec 24 16:22:59 2016 +0100
+
+    Fix: (sccp_wrapper_asterisk_indicate) forward connected line information even when asterisk channel is still down. We are missing important information otherwise.
+
+commit ddeecc3f5071dd229fdee3ed2b44b5f55c6b5584
+Author: Diederik de Groot <ddegroot@talon.nl>
+Date:   Tue Dec 27 11:47:39 2016 +0100
+
+    Fix: When busy then queue_control=BUSY, hangupcause=AST_CAUSE_USER_BUSY and return '0' as exit status to DIAL command (#363)
+    
+    Fix: When we receive a channel PROD indication, do not start audio flow when there is a hangupcause
+         otherwise we would not generate busy tones when we receive AST_CONTROL_BUSY
+    
+    Fixes #315
+
+commit 2fd790f1a50a571f086f87e9f16c6a188af027a4
+Author: Diederik de Groot <ddegroot@talon.nl>
+Date:   Tue Dec 27 11:06:40 2016 +0100
+
+    Issues/324 (#362)
+    
+    * Fix: RINGOUT indication when earlyrtp=ringout should openreceivechannel and not use skinny tones
+    Fix: When openReceiveChannelAck is handled, any played tones should be stopped, and we should signal remote side that we can receive inband tones now
+    
+    * Fix: DND sometimes shows as BUSY
+    
+    Fixes 324
+    Fixes 317
+    Fixes 334
+    
+    * Enh: Remove if condition around sccp_hint_notifySubscribersViaPbx, which is not necessary. Reported by Marcello.
+    
+    * Fix: check if event could be created and sent, if not cleanup created event to prevent memory leak.
+    
+    * Fix: RINGOUT indication when earlyrtp=ringout should openreceivechannel and not use skinny tones
+    Fix: When openReceiveChannelAck is handled, any played tones should be stopped, and we should signal remote side that we can receive inband tones now
+    
+    * Fix: DND sometimes shows as BUSY
+    
+    references 324
+    references 317
+    
+    * Enh: Remove if condition around sccp_hint_notifySubscribersViaPbx, which is not necessary. Reported by Marcello.
+    
+    * Fix: check if event could be created and sent, if not cleanup created event to prevent memory leak.
+
+commit 53f6485ead66a7551f1bd35c266992182b9ed992
+Author: Diederik de Groot <ddegroot@talon.nl>
+Date:   Tue Dec 27 10:14:09 2016 +0100
+
+    Issues/354 (#359)
+    
+    * Fix: This would show a remotely connected call in a collapsed callplane.
+    Not sure if this is what we want, but it does look better this way
+    
+    references 354
+    
+    * Fix: This would show a remotely connected call in a collapsed callplane.
+    Not sure if this is what we want, but it does look better this way
+    
+    references 354
+    
+    * Enh: Added sccp_softkey_isSoftkeyInSoftkeySet to check if a softkey is enabled in a particular softkeyset on a device
+    Enh: By removing intercept button from the onhookstealable keyset you can influence the way a remote call is displayed (collapsed or in plain view)
+    Fix: Suppress phonebook entry of a missed call when call is indicated remotely
+    
+    References #354
+    References #349
+    Partially References #350
+    
+    * Fix: This would show a remotely connected call in a collapsed callplane.
+    Not sure if this is what we want, but it does look better this way
+    
+    references 354
+    
+    * Enh: Added sccp_softkey_isSoftkeyInSoftkeySet to check if a softkey is enabled in a particular softkeyset on a device
+    Enh: By removing intercept button from the onhookstealable keyset you can influence the way a remote call is displayed (collapsed or in plain view)
+    Fix: Suppress phonebook entry of a missed call when call is indicated remotely
+    
+    References #354
+    References #349
+    Partially References #350
+
+commit 754bd47e806a7359af46bf8d2be1c9297d8156b2
+Merge: 670810b af8370f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 27 09:56:27 2016 +0100
+
+    Merge branch 'develop' of github.com:chan-sccp/chan-sccp into issues/358
+    Fix: remove wait thread_join loop from __sccp_netsock_end_device_thread
+
+commit af8370f9f25a803f0cabe6e90b764744dee8c5ec
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 27 09:42:53 2016 +0100
+
+    Enh: Rename calc_wait_time to recalc_wait_time
+
+commit c8af4778e2d3f0de68c39f2d92d5c4d49e03220f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 27 09:41:18 2016 +0100
+
+    Fix: Make sure s->device is still valid after a sccp reload before continuing session handling
+
+commit f758abfe8b101ae1595a0524d5f9ae0dc3e20931
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon Dec 26 19:28:50 2016 +0100
+
+    Fix: phonebook entries during pickup and gpickup
+    Fix: when there is nothing to pickup
+     - error sound(BEEPBONK instead of ZIPZIP)
+     - displayprinotify instead of displayprompt
+    
+    Fixes #361
+
+commit b6a3835d9faba9fccf6c07d99939e158d812ea7a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Dec 24 16:22:59 2016 +0100
+
+    Fix: (sccp_wrapper_asterisk_indicate) forward connected line information even when asterisk channel is still down. We are missing important information otherwise.
+
+commit 670810bc74e5b5f2f9bc75df4360dfb257e150a8
+Merge: af404cb 3a043c6
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 23 15:40:15 2016 +0100
+
+    Merge develop sccp_session.c changes to correct keepalive timeout calculation
+
+commit 3a043c6ecd9d63c01d0479d1a050525adc52de8b
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 23 15:37:45 2016 +0100
+
+    Fix: session keepalive calculation
+
+commit af404cb0a16cb4f9bb8b3a7573f490e55c7084b4
+Merge: ba2ecbd 037e2d4
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 23 11:54:34 2016 +0100
+
+    merge develop into branch
+
+commit 037e2d48e68c6dcfc19c1ee965d25761835de927
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 23 11:52:56 2016 +0100
+
+    Fix: gcc compiler warning about shadowing variable caused by new AUTO_RELEASE implementation
+
+commit ba2ecbd492627c80f3f49519c201b9c2f20b9961
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu Dec 22 12:30:22 2016 +0100
+
+    Enh: cleanup old/unused stuff in sccp_session.c.
+
+commit 3682f45fa0827a89d15d7e65ce177b77a15d15cd
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu Dec 22 11:54:46 2016 +0100
+
+    Fix: stopsession checks if called from the same thread or another
+    Fix: added sccp_netsock_end_device_thread to handle stopsession from remote threads
+    
+    Also fixes #153 (slow module unload, reported by marcello)
+
+commit 04f70f8471c1dd172577e4f6e7702060742b4630
+Merge: 62790fa e6ca355
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu Dec 22 10:53:17 2016 +0100
+
+    Merge branch 'develop' of github.com:chan-sccp/chan-sccp into issues/358
+
+commit e6ca355004590fc5b83b356558a007ec461fe966
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu Dec 22 10:44:25 2016 +0100
+
+    Fix: refcount issue in sccp_mwi_lineStatusChangedEvent causing refcount+1 when we disconnect device during a call
+    Fix: make sure we unref linedevice when cleaning up channel
+    
+    References #333
+    References #358
+    References #309
+
+commit 62790fa4805ecf8de62f9c8335326c3054712f21
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 21 21:47:27 2016 +0100
+
+    Fix: running asterisk test framework with new changes in sccp_refcoun
+
+commit cba344a2af3b1df2354f71e25bf5e3f5ec0496e8
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 21 20:34:41 2016 +0100
+
+    Fix: sccp_session_removeDevice should locally store a pointer to device while cleaning up.
+
+commit c171890f657108a95208b22a047f2eacf0bd1be7
+Merge: 6896bae ebe7837
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 21 20:25:50 2016 +0100
+
+    Fix rebase issues
+
+commit 6896baed4a42d102b1bd6741f97c93ecf338438a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 21 20:24:53 2016 +0100
+
+    Fix rebase issues
+
+commit 480d4f7f881ee14b931413efc6c2afb21e4e290f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 20 20:01:55 2016 +0100
+
+    Fix: Add cancellation points in the session_thread, so that we can clean the session at a quiecense point
+    Fix: improve session cross over handling
+    
+    References #358
+    References #333
+    References #247
+
+commit 3261707162f185e028be8491bb3a07929b4f6136
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 20 03:26:05 2016 +0100
+
+    Fix: crossover session causing re-registration trouble and refcount issues
+    
+    We are cleaning up the device from the new thread, if/when the server then starts to
+    cleanup the device from the old thread as well, everything goes really wrong.
+    Instead of cleaning up the device from the new thread (and potentially from the old
+    thread (keepalive timeout > 60) at the same time), we should just pthread_kill the
+    old thread and join it, that will cause both threads to run as one, and cleanup
+    will be performed as a unified process, fixing all the refcount issues and
+    re-register trouble.
+    
+    You can reproduce the issue by pulling the UTP cable for 3 seconds, shortly after a device
+    registered. It will take a java phone about 40-50 seconds to start registering again, at this
+    time the server will have timeout the connection as well, when both coincide -> mayhem.
+
+commit 0f8725ffefed31b4dac72564f060dbbed6f48fa3
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 20 01:25:56 2016 +0100
+
+    Fix: sccp reload with a major change in general section should delete/destroy all realtime devices, they will be reloaded from DB
+         keeping them around will cause a refcount +1 issue otherwise
+
+commit 5f8e4a15b073b5a53d2bb922f3e0f7f15d971deb
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 20 00:53:34 2016 +0100
+
+    Fix: sccp_device preload when compiled without realtime support.
+
+commit 374954887882a604a96bc02e702f4d1b4a3f8389
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 20 00:52:23 2016 +0100
+
+    Fix: contructor/destructor tagging in sccp_refs
+    Fix: updated contrib/refcounter.py accordingly
+
+commit e8e79c097ff1adb934c3443ae726e4da3799b890
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 18 15:27:33 2016 +0100
+
+    Enh: Auto rotate /tmp/sccp_refs every 10Mb
+
+commit 12dc40a159d7a47049511681ef75c12611c3e590
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 18 13:44:29 2016 +0100
+
+    Fix: sccp_refcount_debug output
+    Fix: Update contrib/refcounter.py to match new output
+
+commit e5b08f629b298f48bb0a5d2c42932b65e527df58
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Dec 17 23:22:44 2016 +0100
+
+    Enh: Added method to add/remove parents for refcounted items (using during reporting) (Temporary)
+    Enh: Generate refcount report during sccp_dev_clean and sccp_handle_register events
+    Fix: Changed sccp_line_cleanup order of event
+    Fix: check existance of linedevice during sccp_line_createLineButtonsArray, before adding
+    
+    References #358
+    References #247
+    References #333
+
+commit 6e1853394de3419d1be90ad8178199a052203165
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 16 20:03:07 2016 +0100
+
+    Enh: dev_cleanup check device->lineButtons.size before calling sccp_line_deleteLineButtonsArray.
+
+commit ff21ba3712cea8e6e2d28df7bbbb8d36df4264b8
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 21 20:18:10 2016 +0100
+
+    Enh: store the file,line,func information when creating AUTO_RELEASE pointer.
+    We use this information during auto_release of the pointer to show the correct location.
+    Making it easier to debug the path leading to refcount issues
+
+commit edc5ce84be779c7bf1ece5ac474d2f3ae85c6edb
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 21 10:25:29 2016 +0100
+
+    Fix: refcount_replace when compiled with refcount-debug configure flag
+
+commit f256055b6a61f4138e2e5f687bb602ead848e3b2
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 20 20:16:12 2016 +0100
+
+    Fix: incoming_call_limit reached should return BUSY state to dialplan
+    
+    Fixes #315
+
+commit ebe7837ac79b54a0427103956f843a3d7b143976
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 20 20:01:55 2016 +0100
+
+    Fix: Add cancellation points in the session_thread, so that we can clean the session at a quiecense point
+    Fix: improve session cross over handling
+    
+    References #358
+    References #333
+    References #247
+
+commit 392587aa7005f192ab5fb3859d3fbb4ddb8ebe1f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 20 03:26:05 2016 +0100
+
+    Fix: crossover session causing re-registration trouble and refcount issues
+    
+    We are cleaning up the device from the new thread, if/when the server then starts to
+    cleanup the device from the old thread as well, everything goes really wrong.
+    Instead of cleaning up the device from the new thread (and potentially from the old
+    thread (keepalive timeout > 60) at the same time), we should just pthread_kill the
+    old thread and join it, that will cause both threads to run as one, and cleanup
+    will be performed as a unified process, fixing all the refcount issues and
+    re-register trouble.
+    
+    You can reproduce the issue by pulling the UTP cable for 3 seconds, shortly after a device
+    registered. It will take a java phone about 40-50 seconds to start registering again, at this
+    time the server will have timeout the connection as well, when both coincide -> mayhem.
+
+commit cd864089bd4a0b8668d4fede6ed66ee817cc8df7
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 20 01:25:56 2016 +0100
+
+    Fix: sccp reload with a major change in general section should delete/destroy all realtime devices, they will be reloaded from DB
+         keeping them around will cause a refcount +1 issue otherwise
+
+commit aeb54a0e7a7beb6008fa87bac62635463e9ef566
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 20 00:53:34 2016 +0100
+
+    Fix: sccp_device preload when compiled without realtime support.
+
+commit 536e65c10609e891c64e9ad982d947070c6dee93
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Dec 20 00:52:23 2016 +0100
+
+    Fix: contructor/destructor tagging in sccp_refs
+    Fix: updated contrib/refcounter.py accordingly
+
+commit a48e1102de3df1b31b9d175ddd6f85dcf6b9ec51
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 18 15:27:33 2016 +0100
+
+    Enh: Auto rotate /tmp/sccp_refs every 10Mb
+
+commit 9237db129b763e63903a15041ca03eceeba9a490
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 18 13:44:29 2016 +0100
+
+    Fix: sccp_refcount_debug output
+    Fix: Update contrib/refcounter.py to match new output
+
+commit 7d0aff055fe64aeea9074fd5bb34553f26746e41
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 18 13:09:58 2016 +0100
+
+    Enh: Added comment to warn about use of sccp_device_sendCallHistoryDisposition
+
+commit 65cd538fec06efaef628ec951045167a59b5ad64
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 18 13:05:05 2016 +0100
+
+    Fix: revert use of sccp_device_sendCallHistoryDisposition back to old method for phonebook entry suppression. CallHistoryDisposition only works on a limited number of devices (alas).
+
+commit 3473867e8b783c6333fd977fec840cd3af6300b2
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 18 13:03:51 2016 +0100
+
+    Fix: error in if condition when compiled with --enable-refcount-debug
+
+commit 87cb0c7d829c4c3d7e3c9f8aa01a3d3297dd5503
+Merge: 544de36 ef9be53
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 18 12:47:17 2016 +0100
+
+    Fix: merge conflict during rebase on develop
+
+commit 544de36fb626c7f18d69346abdd021adee911a78
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Dec 17 23:22:44 2016 +0100
+
+    Enh: Added method to add/remove parents for refcounted items (using during reporting) (Temporary)
+    Enh: Generate refcount report during sccp_dev_clean and sccp_handle_register events
+    Fix: Changed sccp_line_cleanup order of event
+    Fix: check existance of linedevice during sccp_line_createLineButtonsArray, before adding
+    
+    References #358
+    References #247
+    References #333
+
+commit 170eff92211e305a5680a3b25021668b698f964f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 16 20:03:07 2016 +0100
+
+    Enh: dev_cleanup check device->lineButtons.size before calling sccp_line_deleteLineButtonsArray.
+
+commit 0e940e5c8cff5755b790ebf2624f94fe8192f87a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 18 12:42:13 2016 +0100
+
+    Enh: remove unusefull scm_log output from coverity build.
+
+commit c606fb26e859ff9c0abeb7569b8d2c8c3a5e6892
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 18 12:41:34 2016 +0100
+
+    Enh: generate pbx_log WARNING level output during sccp_dev_cleanup.
+
+commit ef9be53559b6cb4ca6483e2b1033b027294ce923
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Dec 17 23:22:44 2016 +0100
+
+    Enh: Added method to add/remove parents for refcounted items (using during reporting) (Temporary)
+    Enh: Generate refcount report during sccp_dev_clean and sccp_handle_register events
+    Fix: Changed sccp_line_cleanup order of event
+    Fix: check existance of linedevice during sccp_line_createLineButtonsArray, before adding
+    
+    References #358
+    References #247
+    References #333
+
+commit 1114beadd1a83ee849ea017b1cf294fdc66a2f73
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 16 20:03:07 2016 +0100
+
+    Enh: dev_cleanup check device->lineButtons.size before calling sccp_line_deleteLineButtonsArray.
+
+commit a42f1a4cb8a9a58ea585905bca75373242673ec6
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 16 19:39:26 2016 +0100
+
+    Fix: coverity dead code warning about rechecking s pointer when generating output for ami command.
+
+commit 61d169f87b461a6bf1cce0747ce3e82b49904d68
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 16 06:02:09 2016 +0100
+
+    Upd: Allow trusty13 + clang to fail (running coverity is only allowed a limited number of times per day)
+
+commit 7bccd1cf28edeff6986e404d85f24a00c3012d92
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 16 06:01:02 2016 +0100
+
+    Fix: use skinny_buttontype instead of skinny_stimulus
+
+commit ad93aa8f8d5f6f06454f26779426a8c5558014c1
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 16 05:50:23 2016 +0100
+
+    Fix: coverity switched to clang as their checking compiler, during configure we use gcc and that causes us to use the wrong RAII macro version. switching to clang during configure as well.
+
+commit 3fc6a21414d2d9e3d1c7fb90904e6412235329a6
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 16 05:32:52 2016 +0100
+
+    Fix: Show coverity build log in travis build (3)
+
+commit 31282f5852e597d0a6b4f9c3e00124e78253766f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 16 05:21:54 2016 +0100
+
+    Fix: Show coverity build log in travis build (2)
+
+commit 82bb66c326cb519c92effb2ac8797ee234486b89
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 16 05:10:04 2016 +0100
+
+    Fix: Show coverity build log in travis build
+
+commit f97dfe5d28733fcfea49a76ccf623281dd62c235
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 16 05:03:47 2016 +0100
+
+    Fix: use skinny_buttontype instead of skinny_stimulus when setting buttonID.
+
+commit aa8e8207a621d07b8038f3baa0a6173a3e020a54
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 16 05:00:21 2016 +0100
+
+    Fix: coverity warning about retesting a variable already testing in LIST_FIND macro
+    Enh: Show coverity build log in travis build
+
+commit 758dd6105e32ddfc1c78d34be305f358c34c026a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu Dec 15 00:18:00 2016 +0100
+
+    Enh: Reduce pbx_log notice to sccp_log when allocating a new channel
+
+commit 41621e0b1f91fca39e1aa562613d0c95dde9544a
+Merge: 7eb7ae9 831b1fe
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 14 04:47:13 2016 +0100
+
+    Rebase on top of develop
+
+commit 7eb7ae9d6be3a6d573e297d445a3db68721490c0
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 14 04:23:12 2016 +0100
+
+    Fix: in line stimulus handler: use l.statistic.numberOfHeldChannels instead of l->channels to find the number of calls on hold.
+
+commit 8b11ac082fc903257c06a388e1b2c8bacf021229
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 14 03:46:07 2016 +0100
+
+    Fix: when handling softkey stimulus with callid + lineInstance
+         and we have a device->ActiveChannel in OFFHOOK state then hang it up and switch to the callid/linestate requested
+         before handling the softkey request
+    Fix: when handling channel_resume and we have a device->ActiveChannel in OFFHOOK state, hang it up
+    Enh: cleanup line stimulus debug output by adding some returns at the end
+    Enh: in line-stimulus, if call on hold but multiple line channels then switch to the choosen line, and update display
+    
+    resolves #356
+
+commit c32c6e39918880492ff8367b0fc218855c824bb2
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 14 04:43:55 2016 +0100
+
+    Fix: compile against older asterisk versions for connectedline.
+
+commit 831b1fe96042d9ae9989de12afa60fb73e912138
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 14 04:23:12 2016 +0100
+
+    Fix: in line stimulus handler: use l.statistic.numberOfHeldChannels instead of l->channels to find the number of calls on hold.
+
+commit 47e11eff3d45fd939e46a4962937ba80075161f1
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 14 03:46:07 2016 +0100
+
+    Fix: when handling softkey stimulus with callid + lineInstance
+         and we have a device->ActiveChannel in OFFHOOK state then hang it up and switch to the callid/linestate requested
+         before handling the softkey request
+    Fix: when handling channel_resume and we have a device->ActiveChannel in OFFHOOK state, hang it up
+    Enh: cleanup line stimulus debug output by adding some returns at the end
+    Enh: in line-stimulus, if call on hold but multiple line channels then switch to the choosen line, and update display
+    
+    resolves #356
+
+commit 457628d64f2cafeb55203fe6ab65650f9184524d
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 14 01:17:45 2016 +0100
+
+    Enh: remove debug logging from sendCallInffoV20
+    Enh: simplify if condition when sending connectedline. Only update callinfo if new information is available.
+
+commit edb038563073875f8769cccbbd143666076584c2
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 14 01:15:17 2016 +0100
+
+    Fix: revert revision 0be48c : strlen check in sendCallInfoV20.
+    
+    Caused Caller Name: 'Unknown Name' being displayed.
+
+commit b0a12ceab862ad46e3026c8578ee389b31613dcb
+Author: Diederik de Groot <ddegroot@talon.nl>
+Date:   Tue Dec 13 16:46:41 2016 +0100
+
+    Include revison and/or branch in Issue Template
+
+commit 75c9b8acfdbd28369a72689a254b2ae93bedaa12
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon Dec 12 18:43:56 2016 +0100
+
+    Update Readme Files
+
+commit 5ce456253d1b894692ee3554756836c6b3ab681a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon Dec 12 18:09:28 2016 +0100
+
+    Fix: remarked out logically dead/unreachable code (could not find a way to make coverity annotation work)
+
+commit 96b3ce99f3f680243efe4699ece28d175a9c44f3
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon Dec 12 17:25:23 2016 +0100
+
+    Enh: Add some possible entries to SEP0000000000.cnf.xml_797x_template, including minimumRingVolume.
+
+commit bc8bab2a0fecc4a2935c07f9b46119f498f7af42
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 11 18:22:33 2016 +0100
+
+    Suppress: coverity warning in sccp_features.c
+
+commit 9e00eba9c052671196c856c087d5346c8c0c437b
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 11 18:22:00 2016 +0100
+
+    Fix: coverity warning about buffer not being terminated before use
+
+commit 86b4464e94e9bf207a3ed6323632a3529e755076
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 11 18:05:48 2016 +0100
+
+    Fix: unregister_channel_tech, when module load fails
+
+commit 6a82661521c32ffdf36581f62c7fc276eafbb7bf
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 11 17:49:52 2016 +0100
+
+    Fix: unregister_channel_tech, when module load fails
+
+commit 47d11c9ad4cb006c2cab633098d2c101454fb7da
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 11 17:47:54 2016 +0100
+
+    Suppress: DeadCode Warning about checking SCCP_CFWD_NOANSWER in switch which was already checked (sccp_features.c).
+    Fix: Non Null Terminated string warning returned from recv(). Using uint8_t buffer[] instead of unsigned char buffer[].
+    
+    Issues reported by coverity
+
+commit 0be48ca4ae29ffec8d06f69c717687d6ee5d165e
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 11 17:13:51 2016 +0100
+
+    Fix: checking array entry for null where strlen check was required (sccp_protocol.c)
+    Suppress: DeadCode Warning about checking SCCP_CFWD_NOANSWER in switch which was already checked (sccp_features.c).
+    Suppress: Non Null Terminated string warning returned from recv(). Intentionally kept.
+    
+    Issues reported by coverity
+
+commit 40f0072bb3b1cbe58a09e14074db217051702c64
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 11 17:11:36 2016 +0100
+
+    Fix: warning about unused variable
+    Fix: warning about using void *data in debug output
+    
+    Reported by clang-3.9
+
+commit efd7513af86439a18e0f9e8d33339686a89c237c
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 11 16:21:00 2016 +0100
+
+    Fix: Switch on coverity scan for develop branch on trusty13 build
+
+commit f923404b72a74cda295bda2dd433cf9520117209
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Dec 11 16:18:33 2016 +0100
+
+    Switch on coverity scan for develop branch on trusty13 build
+
+commit f9251e6ea3fa9ed1169a9a0a520e1c4146fceb28
+Author: Diederik de Groot <ddegroot@talon.nl>
+Date:   Sun Dec 11 00:30:14 2016 +0100
+
+    Merge remote-tracking branch 'origin/develop' into issues/323 (#355)
+
+commit ed676e6f302082927c43214ca360a81125a96f70
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Dec 10 19:37:06 2016 +0100
+
+    Fix: returning Busy State on incoming call in DND state
+
+commit 24f54264d72faa73963f8762bd7559e8f99f4e95
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Dec 10 19:26:19 2016 +0100
+
+    Fix: openReceiveChannel during DIALING indication
+
+commit 9e07bd3a10883269c5390e891e814ed59966b516
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Dec 10 15:50:47 2016 +0100
+
+    Fix: suppres clang warning about default argument promotion when using enum instead of int for a variable argument. Changed code to use int instead. Added comment about the actual expected type.
+
+commit fe63f7f51ae63b37dfe82fd65f10152488c4a65a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Dec 10 15:49:32 2016 +0100
+
+    Fix: spelling mistake in comment
+
+commit 74c3c3a24076b97ccb4a6ea89003971928badee0
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Dec 10 15:33:27 2016 +0100
+
+    Fix: libxml2 / libxslt / libexslt detection
+
+commit bc5b2ccd88c64db1d9016c4d2c6fd68362b2946e
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Dec 10 14:59:26 2016 +0100
+
+    Enh: cleanup comments
+
+commit bfaf6734486b42cc13f4150d9ee28f89575451ba
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Dec 10 14:59:03 2016 +0100
+
+    Enh: global dnd declared Obsolete in favor of dndFeature
+
+commit 93662fbcd7ded8eb9d1fa79e6eb062365e00a7ec
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Dec 10 14:58:21 2016 +0100
+
+    Enh: Reduce debug output on socket close/error events
+
+commit 2887ee66cfd67bf3cc632d616f3810ff5f0b68ad
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 7 17:18:27 2016 +0100
+
+    Enh/Fix: When loading the chan_sccp module fails we should unroll all loaded
+    functions nicely and leave gracefully
+
+commit 48b5523d04bdffecccdfc88fdd290f272ebbb1c9
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 7 17:17:46 2016 +0100
+
+    Enh: sccp_(un)register_cli should return success/failure
+
+commit a89228108c07dd9792a1242639fe480b2105f706
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 7 17:06:42 2016 +0100
+
+    Fix: only use SO_REUSEPORT if it is defined on this platform (references #247).
+
+commit 3aabf4a080fdb18382695452bd8ce7a2fd8522ff
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Dec 7 16:07:54 2016 +0100
+
+    Fix: Phone keeps reregistering even when unloading and loading chan_sccp module
+    Only asterisk restart gets the device out of this loop. It looks like this is related to
+    setting SO_REUSEADDR, SO_REUSEPORT and SO_LINGER on the phone session socket.
+    
+    Fix: Move sccp_session_setsocketoptions to sccp_netsock_setoptions
+    Enh: Add reuse and linger parameters to sccp_netsock_setoptions
+    Fix: Use different socket options for:
+     - listening socket(:2000) (reuse and linger (0 seconds)
+     - connected client connections (no-reuse/no-linger)
+    
+    References #247
+
+commit 3bf9a27918368a32e5a6f23eca8ef73345cd65fe
+Merge: 3bbfd20 8a3a508
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Fri Dec 2 21:30:49 2016 +0100
+
+    Merge pull request #353 from mkosmo/mkosmo-acinclude-spelling
+    
+    Fix spelling error in acinclude.m4
+
+commit 8a3a5087e56ecf31e63300732fa276c2ea09c676
+Author: Matthew J. Kosmoski <mkosmo@gmail.com>
+Date:   Fri Dec 2 14:20:56 2016 -0600
+
+    Fix spelling error in acinclude.m4
+
+commit 3bbfd20f927ea0567d3bbcc54ba695dd6c81b92a
+Merge: 6daa0e8 c2eee48
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Fri Dec 2 20:15:32 2016 +0100
+
+    Merge pull request #352 from chan-sccp/issue/351
+    
+    fixes #351
+
+commit 6daa0e8fe338297dd1c003199dc0ff2e74c725f0
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Fri Dec 2 17:00:49 2016 +0100
+
+    update build status branch
+    
+    [skip ci]
+
+commit b2fff3a85aaf521b1c3486d4e52b9edda259f406
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 2 16:52:19 2016 +0100
+
+    Fix: run automake to update Makefile.in
+
+commit 5f490e03143c9867d61b735a870cfc8f059d7eff
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Fri Dec 2 16:47:50 2016 +0100
+
+    remove sccp_xml
+
+commit 36d03c147e12b2815bbed32dafd273ca7405207b
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Fri Dec 2 16:42:43 2016 +0100
+
+    remove webservice
+
+commit c2eee48ae71b71fcc0d14bf3c228dc9fd97cea35
+Author: Marcello Ceschia <marcelloceschia@users.sourceforge.net>
+Date:   Fri Dec 2 16:14:54 2016 +0100
+
+    fix indent
+
+commit 5bc288d1e2e886d5260925a0b3f7855296042084
+Author: Marcello Ceschia <marcelloceschia@users.sourceforge.net>
+Date:   Fri Dec 2 16:13:59 2016 +0100
+
+    move decrementation for hold channel count to line
+
+commit 4dc941d6061131f82dd90b78d44a550602b7093a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 2 16:00:38 2016 +0100
+
+    Enh: update description of some of the button labels texts
+
+commit 2322136db2cda45fcaadb4e97ad2b3d7a3e22150
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 2 15:59:47 2016 +0100
+
+    Fix: pbx_mutex_destroy(&removed->context) which should have been pbx_mutex_destroy(&removed->lock)
+
+commit c1edd7e008d73ad1da17e4396588a1759c1b5906
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 2 15:58:55 2016 +0100
+
+    Fix: disable webdir config entry (for now)
+
+commit 08f14f53d0ca79ddc186cd7c757e695a1d40ff3c
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 2 15:58:11 2016 +0100
+
+    Fix: bootstrap run to update configure and makefiles
+
+commit d43c3327905c3efe530779a4b5a08df90e6a42eb
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 2 15:56:43 2016 +0100
+
+    Fix: reenabled libxml2 and libxslt detection in configure
+
+commit 83694e402bbf97c3950ed17346d799ecdb672f4f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Dec 2 15:55:06 2016 +0100
+
+    Enh: split forward declarations into seperate file
+
+commit 55a0dcd9e000892f1931587798ef84a892de5e05
+Author: Marcello Ceschia <marcelloceschia@users.sourceforge.net>
+Date:   Fri Dec 2 10:50:37 2016 +0100
+
+    fix for issue #351
+
+commit 12f96a943f21d4104f84a66f3329f26191b053ca
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Nov 29 16:34:45 2016 +0100
+
+    Fix: synchronize sccp_wrapper_asterisk_createRtpInstance functions
+
+commit 0073a2a481c4cc5677f51bea05ab7fbba0070518
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu Nov 24 01:31:13 2016 +0100
+
+    Fix: src/pbx_impl/ast114/Makefile.in required for asterisk14 compilation
+
+commit 1c5c6229e8ac0ada52bc304076f8df4525bddd5b
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Nov 23 17:26:06 2016 +0100
+
+    Fix Device preference allow you to specify a codec which it is not capable of
+    
+    Reduce the preferences of the device, line and channel by the capabilities after they are known :
+     - after config loading
+     - during handle_capabities
+     - when creating a new channel
+    
+    Closes #348
+
+commit 98797e39f4631795b0f6c54ac8937b350eef3844
+Merge: 50ae54c 28a8901
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Tue Nov 22 22:45:48 2016 +0100
+
+    Merge pull request #342 from chan-sccp/feature/support_ast14
+    
+    Feature/support ast14
+
+commit 50ae54cb93c46eedda590b7dd2a0fa408161642b
+Merge: 838dfec 65b20d6
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Nov 22 19:34:27 2016 +0100
+
+    Merge branch 'develop' of github.com:chan-sccp/chan-sccp into develop
+
+commit 838dfeccae34c05fd2e285d7fb88667c66d8966a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Nov 22 19:33:21 2016 +0100
+
+    Fix: 'Unsupported payload type received' continuesly
+    
+    It got zeroed out while trying to copy payloads into the rtp instance using ast_rtp_codecs_payloads_set_rtpmap_type_rate() -> Remarked out this copy function.
+    
+    Adding: ast_rtp_codecs_payloads_default(ast_rtp_instance_get_codecs(instance), instance);
+    To make sure the basic set of asterisk codec rtp payload are available.
+    
+    Reinstated the previous method of adding payload mappings for cisco specific types like DTMF.
+    
+    Guess: This change is related to the switch to dynamic payloads in asterisk-10.
+    Note: ast_rtp_codecs_payloads_default(ast_rtp_instance_get_codecs(instance), instance) does not exist for asterisk-13.
+    Note: update required in #342 when pull request is merged
+    
+    closes #308
+
+commit b369342c511a3b608b771c757e77d370846c18a7
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue Nov 22 19:08:24 2016 +0100
+
+    Enh: fix const correctness of skinny_codecs2pbx_codec_pref
+
+commit 65b20d651d40ad1cfce470d872e02bed3294711b
+Author: Marcello Ceschia <marcelloceschia@users.sourceforge.net>
+Date:   Tue Nov 22 14:05:48 2016 +0100
+
+    change ast_rtp_instance_update_source on AST_CONTROL_SRCUPDATE; add SKINNY_CODEC_WIDEBAND_256K mapping; fix codec channel function return
+
+commit 969ccaa73be25656f571b62d43465a658f5fe656
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Tue Nov 22 13:55:02 2016 +0100
+
+    fixes read format for forwaring channel
+
+commit c7dae0838a2bbd8c9ffe2dfa3a7cf9c8d7978470
+Merge: 2cdbec8 1ace932
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Nov 20 15:19:40 2016 +0100
+
+    Merge branch 'develop' of github.com:chan-sccp/chan-sccp into develop
+
+commit 2cdbec8fa7a457650d3f930ca76e05a887053ded
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Nov 20 15:15:37 2016 +0100
+
+    Fix: directed pickup pickup press was intercepted on first try (reported by Viktu)
+    Enh: Update debug output when second pickup button press is intercepted, to clarify reason for intercept
+    Fix: Check for valid callgroup/pickupground before checking putton press interception, to show the related debug output in relation to the issue
+
+commit 1ace9327fa2f2a94d0a21ab439b2555ae2e70d19
+Merge: 9b17f11 0e64a1e
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Sun Nov 20 13:54:55 2016 +0100
+
+    Merge pull request #345 from chan-sccp/issues/340
+    
+    Cleaner implementation of keypad_handler
+
+commit 9b17f11eb62831e32585b98993559a0656741d6f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun Nov 20 13:44:04 2016 +0100
+
+    Fix: Added setBackgroundImage/Ringtone support to 8945 / Removed setBackgroundImage/Ringtone support from 7960
+
+commit 0e64a1ed56590d73e870b8c3afadb9ad8a01e483
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Nov 19 18:49:05 2016 +0100
+
+    Cleaner implementation of keypad_handler
+    Replaced if-then-tree with flat switch structure
+    Added fallthrough when callid cannot be found on the current line (should not happen)
+    
+    References #340
+
+commit 1f50206081a85e230ee4d3a4b54fcdae5b881d66
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Nov 19 16:19:36 2016 +0100
+
+    When indicating CONNECTED or CONNECTEDCONFERENCE and openreceivechannel is not active, we should start it now.
+    
+    I don't see a need to check previousChannelState here, this was an old method to make sure openreceive was not
+    started multiple times, ut the RTP_STATUS flag can do better.
+    
+    references #318
+
+commit 942fcec3b71e5f8a93dec7853220b3c40ace61a5
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat Nov 19 13:16:40 2016 +0100
+
+    Fix conference moderator.
+    
+    During CONNECTEDCONFERENCE indication the previousChannelState check was missing a cause,
+    causing the openReceiveChannel not to be (re)opened. Audio for the moderator was missing
+    from the conference.
+    
+    closes #318
+
+commit 46decc4cc018d72bc7b8126be8cf9e9d6ab4d5cc
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Nov 18 18:06:18 2016 +0100
+
+    Bounds check during socket buffer processing (reported by coverity).
+
+commit 41e564bfe86451316c76ff4b84a849d049e949ea
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Nov 18 18:05:04 2016 +0100
+
+    Suppress clang analysis complaining about assining and integer to a char array.
+
+commit 5e2913dbcdfa9bbac086ed92efa13b804f5a300e
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri Nov 18 16:51:13 2016 +0100
+
+    Fix locking issue during hangup, reported by pnlarsson (Fixes #341)
+
+commit 6f7d24e7f16e72734e4b61e8a6fcd500185598de
+Merge: e5d07f2 53a6529
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu Nov 10 18:18:25 2016 +0100
+
+    Merge branch 'issues/343' into develop
+
+commit 53a6529bc526ceb7b7a915d324d147ea14141893
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu Nov 10 18:16:13 2016 +0100
+
+    Fix potential null pointer dereference in sendCallInfoV16 (references #343)
+
+commit 80d9808d120c802ea8796242080a94142358f05a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu Nov 10 18:14:46 2016 +0100
+
+    Fix memory leak when connecting ast_device_state_topic by not copying the device name buffer (references #343)
+
+commit de61befdbcf74b0a5d1dbbbd3f345dd80c9b5318
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu Nov 10 17:41:06 2016 +0100
+
+    Fix sccp_config.c device shadow warning (references #343)
+
+commit 28a89015462d38b77e80cf7a250493df99dab973
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Nov 9 18:49:20 2016 +0100
+
+    Fix callid typedef for asterisk < 14
+
+commit 51da4a62b36ad93c988842aec575fb5f828c5c56
+Merge: bda8a37 1eef189
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Nov 9 18:11:27 2016 +0100
+
+    Merge branch 'feature/support_ast14' of github.com:chan-sccp/chan-sccp into feature/support_ast14
+
+commit bda8a3724b34221292688bbccce5b9a5294580d7
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Nov 9 18:01:37 2016 +0100
+
+    Run tools/bootstrap.sh to generate new files for ast114 support
+
+commit d324d02305b013dcf7ee8160662bb11c08aca76d
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Nov 9 18:00:16 2016 +0100
+
+    Add support for asterisk 14
+    Fixup configure to use AC_COMPILE_IFELSE instead of AC_TRY_COMPILE
+
+commit e5d07f22308a55ffe4bb6f967d5d0c3247ad5f83
+Merge: f53c1ad 7a9996b
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Nov 9 18:08:05 2016 +0100
+
+    Merge branch 'master' of github.com:chan-sccp/chan-sccp into develop
+
+commit 1eef189b450b7dc5e096f85c686e90a2b85820f0
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Nov 9 18:01:37 2016 +0100
+
+    Run tools/bootstrap.sh to generate new files for ast114 support
+
+commit c8ae9913248e567dd42d0394569c8f64671770b8
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed Nov 9 18:00:16 2016 +0100
+
+    Add support for asterisk 14
+    Fixup configure to use AC_COMPILE_IFELSE instead of AC_TRY_COMPILE
+
+commit f53c1ad212d933a2ecd446316f94cabc0793e063
+Merge: 11eb22f 0498696
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Mon Oct 10 18:27:15 2016 +0200
+
+    Merge pull request #337 from chan-sccp/issue/313
+    
+    fixes "The call Instance number in the callplane keeps incrementing w…
+
+commit 0498696becec91619c65eee5c331d4353f5f197c
+Author: Marcello Ceschia <marcelloceschia@users.sourceforge.net>
+Date:   Mon Oct 10 18:15:50 2016 +0200
+
+    fixes "The call Instance number in the callplane keeps incrementing when using transfer"
+
+commit 11eb22f5eeb292aa45dffb46944f17ee2c991728
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Mon Oct 10 14:07:13 2016 +0200
+
+    Issues/322 (#325)
+    
+    * Update ISSUE_TEMPLATE.md
+    
+    * Update ISSUE_TEMPLATE.md
+    
+    * test for 7910
+    
+    * minimal changeset from master, that fixes the issue on 7910
+    
+    see issue #322
+    the problem ist, that the message header length is set with the known sccp structure size, which will cause an issue with 7910 where OffHookMessage has size of 8 but the message is only 4 byte long
+    
+    * indent
+    
+    * fixes message overrun
+    
+    and move header->length initialication to session_dissect_header
+    
+    * preparation for merge request
+    
+    * fixes build issue
+
+commit ae9ae6227e794c7854e1ca5a719cce77f55b7950
+Merge: 1e00778 962ef89
+Author: Marcello Ceschia <marcelloceschia@users.sourceforge.net>
+Date:   Mon Sep 19 18:14:06 2016 +0200
+
+    Merge branch 'develop' of github.com:marcelloceschia/chan-sccp-b into develop
+
+commit 1e00778e8265728ef14ed0319d9717d6269935d1
+Author: Marcello Ceschia <marcelloceschia@users.sourceforge.net>
+Date:   Mon Sep 19 18:13:32 2016 +0200
+
+    fixes issue 330 (7975's not able to send DTMF after an incoming call)
+
+commit 962ef894042c072f5cf4920df8d2f668dfb92aa4
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Thu Sep 8 16:09:48 2016 +0200
+
+    add SPA51x device identifier; Thank you Nikola for supplying this patch (#332)
+
+commit 46f48e94e8dcdc89c0e7002f10d2f2a7478d12d2
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Sat Aug 27 15:49:51 2016 +0200
+
+    remove sccp_dump_msg(msg) within sendCallInfoV16
+
+commit 2624c2f31d5d632c13eb1f950b990878b98e7b37
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Fri Aug 26 16:17:14 2016 +0200
+
+    fixes issue that breaks support for receiving video frames from asterisk, see #328 (#329)
+
+commit ee1f0d2db924366342086926ce42509edf3adefa
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Fri Aug 26 14:16:55 2016 +0200
+
+    fixes 'caller name instead of called name in the list of placed calls' (#327)
+
+commit f27e2be824deb7db557a6ef0981d9c8d3ec94ee2
+Author: Marcello Ceschia <marcello.ceschia@gmx.net>
+Date:   Sat Aug 20 11:40:32 2016 +0200
+
+    WLANDefault.xml
+    
+    this file should be deployed encrypted to the tftp/http server
+
+commit 575aa225aa9e419a9c2d2aaa9d1ed55983166d32
+Author: Brian White <mscdex@mscdex.net>
+Date:   Tue Jul 26 12:05:39 2016 -0400
+
+    Fix: Allow build with --disable-realtime (#321)
+
+commit 3cc74f5d3c2d03dd60d24181d43bc13e0bfebdc2
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed May 25 20:35:46 2016 +0200
+
+    Fix: All phones are restarted when you add a new extension to sccp.conf and execute sccp reload
+    
+    Issue reported by Miguel
+    
+    Fixes #310
+
+commit 8464a3394df99d54691035fd380c5020de5009f1
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed May 25 20:34:28 2016 +0200
+
+    Fix: some sccp_log(...) line ends missing ';'
+
+commit fba2d24db38366d412e9dcb57eb844d3af1925dc
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon May 23 15:23:05 2016 +0200
+
+    Enh: Renamed .writeState to .receiveChannelState
+    Enh: Renamed .readState to .mediaTransmissionState
+    
+    To Prevent an issue like a0814c691 in the future.
+
+commit ef7f9957ed22e01f165f64915be4f58133ff7e81
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon May 23 15:11:52 2016 +0200
+
+    Fix Session Timeout issue
+    - Increase Keepalive additional timeout
+    - Added Double Keepalive alive time when on a call
+    - Reset keepalive before and after processing a message
+
+commit dd6cd7bd99ef46d23b77058a77f98e75a06f218f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon May 23 15:11:26 2016 +0200
+
+    Enh: Make sure all RTP ports get/are closed during channel destruction and transfer_cancel
+
+commit a0814c691bf48ce74474e99734c962394a5de7b2
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon May 23 15:04:55 2016 +0200
+
+    Fix: reversal of RTP readState and writeState
+    
+    readState is related to the MediaTransmission Status
+    writeStae is related to the OpenRecieveChannel Status
+    
+    Changeing the names, might make this a little less confusing.
+
+commit 8c38d344504a1811785df2a331031651f8a919eb
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon May 23 12:10:52 2016 +0200
+
+    Fix: prevent segfault in sccp_handle_time_date_req when we have lost the session and we are still processing a hangup event. Reported by Niklas.
+
+commit fe4a0fcda4b90b995f33d872f149987c9b94ad58
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon May 23 05:00:15 2016 +0200
+
+    Fix: CallerId / ConnectedLine information when using 'I' DIAL parameter
+    
+    Reverted change in sccp_device to set the called number information dusing dialing
+    
+    Caused issues when using FreePBX, which suppresses CONNECT_LINE update indications and set's the callerid and connected information before dialing.
+    Issue reported by David Andrzejewski
+
+commit 315d54f21eeca8bcda4b39c4075c8824cb3d24c9
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon May 23 02:11:23 2016 +0200
+
+    Fix: Double CONNECTED_LINE update when calling out.
+    
+    Do not use iPbx.set_connected_line to update the connected line, from sccp_pbx_call. Which causes an unnecessary CONNECT_LINE update.
+    Instead set the initial connected line information when the channel is request, which makes pushing an AST_CONTROL_CONNECTED_LINE event unnecessary.
+    The Callerid information is now available from the moment the OUTBOUND channel is created.
+
+commit f61ee349522378b8b4c3712e4c73e1062a71ca7c
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon May 23 02:10:57 2016 +0200
+
+    Enh: Use SKINNY_CALLSECURITYSTATE_UNKNOWN instead of SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED when sending CallInfo.
+
+commit da3bc71227d66db52fb0fc5e824ec892fba14667
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon May 23 02:10:20 2016 +0200
+
+    Fix: remove updateing sendCallInfo during dialing.
+
+commit e9b58564ac62a9106f37e3cb7905f74ca669ef2d
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon May 23 02:09:05 2016 +0200
+
+    Enh: cleanup sccp_asterisk_connectedline
+
+commit e50e28e3fc80ba5a6573824981dc40c5b0f9ef35
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon May 23 01:18:34 2016 +0200
+
+    Fix: Places Calls issue when using firmware 9.4 (protocolversion 20+)
+    
+    - CallInfoDynamic Message construction
+    - Set Orig_CallingParty, lastRedirectingParty on outbound call
+    - Update Orig_CalledParty during CONNECTED_LINE Update
+    
+    Issue reported by drtmk: 'Missing names in suggestions when typing new number'
+    Related to 6ce88d2
+
+commit d195bc13a6f7d6d66612e37a3a0dafe46387de37
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 22 17:24:45 2016 +0200
+
+    Fix: Switch on voicemail Lamp when there are calls in the parking lot
+    
+    Issue reported by James Farell
+    
+    Related #139
+
+commit 18d0515a9b9bb33ddbb320b14bf85ac3b3c7bcc6
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 22 17:08:14 2016 +0200
+
+    Fix: Previous commit caused no ring sound on the outbound call side
+    
+    Related Revisions:
+    - e78251a
+    - 1dfc06e
+    - 01dbea1
+
+commit 9e57c9aa02ccb6961ebbea6020d7aa36d79db65f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 22 11:52:28 2016 +0200
+
+    Enh: Added sccp_dev_setLamp when requesting/removing call forward. (CM)
+
+commit 4f1c92b0944f29eba3265cfa926cbc24741ed63a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 22 11:45:38 2016 +0200
+
+    Enh: Renamed ForwardStat Fields. Included new value about lel_forwardActive field.
+
+commit 9c9fa283247e5a79bd95b5380ddf055c46e750eb
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat May 21 23:40:35 2016 +0200
+
+    Update: NEWS file to announce Visual Parking Lot Feature Button
+
+commit 6848e6da97d6c739e51e637edb662ea686fd18d4
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat May 21 23:32:19 2016 +0200
+
+    Fix: use locally defined version of the RAII macro, instead of the asterisk provided RAII_VAR version.
+
+commit 272f6d59cbfffa0270e31bb87ceac23a14cb091c
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat May 21 22:48:41 2016 +0200
+
+    Enh: made the visual parkinglot feature a standard part of chan-sccp
+    
+    See: https://github.com/chan-sccp/chan-sccp/wiki/Visual-Parking-Lot
+    
+    Closes #139
+
+commit bf286fc5d791341a7012f31638798d5c90da36c5
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat May 21 22:27:07 2016 +0200
+
+    Enh: Update ParkingLot feature status after device registration.
+    
+    References #139
+
+commit 76228c62c016aa97e4068b5c0ade33b21d76ec00
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri May 20 22:51:12 2016 +0200
+
+    Fix: Do not display 'call parked at XXX' on the statusbar when running in asterisk-12 and up
+    
+    Asterisk-12 and up return the 'parkext' instead of the 'parking_space', which is useless.
+    
+    Issue reported and denied to digium jira in https://issues.asterisk.org/jira/browse/ASTERISK-26029
+    
+    resolves 302
+
+commit ac76eb932a56e5c69dd72788f6f2dd682a7295f6
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri May 20 17:51:33 2016 +0200
+
+    Enh: Print out the message if we are not able to handle it, so that we can learn from it.
+
+commit 3fb6042882ac3a8bf7e09c9114f7cd39989950e5
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri May 20 17:46:04 2016 +0200
+
+    Fix: Inband/OutOfBand Ringing when not using simultaed Tones. Issue reported by Valerio.
+    Fix: Suppress reindicating Dialing, causing issues in CalledParty Update
+
+commit c38c0443c18e8f21fa0d2d3eef0b51c78296cd7f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri May 20 16:24:28 2016 +0200
+
+    Enh: Renamed sccp_pbx_answer to sccp_pbx_answered to clarify it's use in comparison to sccP-channel_answer.
+
+commit b725c2c9d9ed40735dafb61386107f4f0b20c487
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu May 19 23:47:04 2016 +0200
+
+    Enh: Added 'RetrieveSingle' option to Visual Parkinglot Feature.
+
+commit 01dbea1fa89b459be97105541c77ac2fdbc028e2
+Merge: 1dfc06e e78251a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu May 19 19:22:27 2016 +0200
+
+    Merge branch 'develop' of github.com:chan-sccp/chan-sccp into develop
+
+commit 1dfc06e96b22fa94514a2f6e37b5efc1b82d2823
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu May 19 17:43:40 2016 +0200
+
+    Enh: set asterisk callstate RINGING directly, instead of using queue_control. references #307.
+    Enh: Stop media receive before media transmission (CM)
+    Enh: Only send PortClose to newer devices.
+    Fix: Send protocol version 0 for old messages instead of particular version.
+    Fix: Update onhook indication, making it work for 7936 as well. Issue related to '7936 not able to do inband DTMF' reported by Mark Cianfaglione.
+
+commit e78251a706ab2915d5b3bafbde4342b52c2e31c3
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu May 19 17:43:40 2016 +0200
+
+    Enh: set asterisk callstate RINGING directly, instead of using queue_control. references #307.
+
+commit 6ce88d2de7cd0c2a2c9172bc738e443cd1feacbc
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu May 19 15:06:51 2016 +0200
+
+    Enh: Reorder channelstates in indicate, to follow a simple call order (offhook->dial->proceed->progress->connected->onhook).
+    Fix: 796x / firmware 9.4 update placed calls. Issue reported by drtmk: 'Missing names in suggestions when typing new number'
+     - When sending calledParty with length StationDynamicDirnumSize, which is 25, we need to force alignment=1.
+     - We should send the protocol level we are actually using, instead of forcing protocolversion=17. Otherwise it causes issues in wireshark with alignment.
+     - Reorder normal_dialing to follow CM order.
+    Fix: Make sure we only start mediatransmission once. CM updates callinfo after starting media transmission.
+    Enh: cleanup sccp_protocol.c
+    Enh: sccp_indicate: Simplify getting innstance. Renamed instance to lineInstance.
+
+commit e8a40a0e6d850e8bd46ecec2c72e17cb2d020dcf
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed May 18 15:40:51 2016 +0200
+
+    Fix: 7936 not able to do inband DTMF. Issue reported by Mark Cianfaglione.
+
+commit af666b3b13886b4665623d59720b974ea7114d40
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed May 18 11:36:58 2016 +0200
+
+    Fix: clang compile warning
+
+commit ba998c0516695e735777bdb75c0e50985dc59ad8
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue May 17 16:54:44 2016 +0200
+
+    Enh: simplify locking in featureParkingLot by using RAII_VAR
+
+commit fc811c7e62d81c43377d34d2c508d79a2e96560e
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue May 17 13:48:43 2016 +0200
+
+    Fix: sccp_featureParkingLot unlock after returning from findCreateParkinglot, this fixes# 303
+    Fix: ast113_park locking order. No need to keep the lock while we have a reference to the bridge_channel
+    Fix: error message when parking has failed, no need to include the extension used to park.
+
+commit ba0abc5a3565006274fb1c20e2cbadf632af908a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 15 08:57:25 2016 +0200
+
+    Fix: processing handle_device_to_user for visual parkinglot
+
+commit 09291470344a851344240b712b1249a98bd0f520
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat May 14 17:50:28 2016 +0200
+
+    Enh: Use IPPhoneMenu instead of IPPhoneDirectory for VisualParkingLot handling
+    
+    Fix: Visual parking lot menu comes back on screen after exiting and un-parking elsewhere
+    fixes #300
+    
+    Fix: '#' not dialled to instantly un-park when retrieving single parked call
+    New version does not depend on the device to do the dialing, we dial the parkinglot extension for the device instead.
+    fixes #301
+
+commit d2792113067e4448831f6f0ebc069e0a03cf7d86
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat May 14 17:50:21 2016 +0200
+
+    Upd: Added 7936 register example message.
+
+commit a1ae03c9a21d7be77ece7da58070c6b5a9b19b7b
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sat May 14 11:36:11 2016 +0200
+
+    Fix: handle_keypad_button for use with 7936, which only sends the digit on an active call
+    
+    Check message size, before retrieving the value.
+    Issue reported by Mark Cianfaglione
+
+commit 587648a515d2c968ef414637ef3244018137249e
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri May 13 13:29:30 2016 +0200
+
+    Enh: Generate 'beep' (skinny_tone) on incoming call when DND silent is active on called device
+    
+    Setting dnd_tone to 0x32 will generate a single beep when there is a new incoming call, when '<<DND  silent>>' is active on the device.
+    
+    Added global parameter dnd_tone, default value = 0x0 (meaning disabled)
+    Feature Requested by: Kevin Gagne (Modulis)
+
+commit 6897007544644feaefd4bf0752881f9614b3a889
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri May 13 13:08:26 2016 +0200
+
+    Fix: Visual ParkingLot compilation
+
+commit 58845b8cfe57a06c46aadb6559d09b0eb5f61802
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri May 13 10:55:27 2016 +0200
+
+    Enh: Visual ParkingLot
+    
+    Implemented following Visual Park Button handling:
+    * If we have an active call -> pressing the park feature key, will park that call
+    * If we are not on an active call:
+       * If there is 0 parked calls: Display Status Message, "No parked calls'
+       * If there is 1 parked call: Unpark that call immediatly
+       * If there is more than 1 parked call: display the visual parking lot representation.
+    
+    Issue: #139
+
+commit a971eee6336d14fd4ec4d8e3ee77056201295d87
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Fri May 13 09:47:26 2016 +0200
+
+    Added headsetHandsetMonitor option to SEP0000000000.cnf.xml_annotated. Provided by Matt Hoskins.
+
+commit ae4d27fc055ab7003e7acaa31d2820f7287eb945
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed May 11 14:52:52 2016 +0200
+
+    Fix: transfer cancel
+    
+    - When hanging up the channel, only call sccp_channel_transfer_release once
+    - Only release the transfer in progress when resuming the channel being transfered (transferee).
+
+commit e26a34cf5b0b86a4bd9ec86079055f56ba655a9b
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed May 11 14:52:03 2016 +0200
+
+    Enh: Extend OFFHOOKFEAT keyset to include resume
+
+commit 63ecc424787856e4ee41369c967d76db20691a02
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed May 11 14:51:33 2016 +0200
+
+    Fix: CLI sccp show channel output
+
+commit 1eed65d9f8be4fa73edbc79c9760294080c86078
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed May 11 10:55:04 2016 +0200
+
+    Fix: ExtensionDeviceCaps Message length
+
+commit 57018e3577dbe5a7a6fa949ac277efa0a359fc59
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue May 10 12:44:26 2016 +0200
+
+    Enh: Keep packet dump information together by generating only one debug message
+
+commit 1e9e2fe233cf3b1c09b362866563576cab4144c0
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue May 10 10:37:24 2016 +0200
+
+    Fix: sendDynamicDisplayNotify message and string padding.
+    
+    Issue reported by Simon Arlott.
+
+commit e670e5db03891df94e27f9d6c0cebb3af904b61b
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon May 9 14:32:25 2016 +0200
+
+    Fix: session recv can return 0 which should be handled correctly, without resetting device connection (1).
+
+commit 4efe58ae27c9dbe6aef942dd0cf2538793f64eea
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon May 9 13:11:29 2016 +0200
+
+    Fix: session recv can return 0 which should be handled correctly, without resetting device connection.
+
+commit e4df3a591d74393f61261903d6ae283ac1dc3492
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Mon May 9 13:10:36 2016 +0200
+
+    Enh: Slow down when token has already been sent
+
+commit 515d263e6da95c984982f5b75fa0222c0d787cd0
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 8 13:53:54 2016 +0200
+
+    Enh: Added result value when reporting session issue with message that we cannot process.
+
+commit 64cf74da7c4f6845eb2bc59a8259ab1a8511f884
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 8 13:51:45 2016 +0200
+
+    Enh: add '#' to the number in visual parkinglot, to force immediate dialing on older phones.
+    
+    So that we don't depend on simulated enbloc dialing. Issure reported by James Farell.
+    references #139
+
+commit b768c55cfedf7bd53e161502574fff12ff1ae943
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu May 5 14:57:12 2016 +0200
+
+    Fix: sccp_refcount_refreplace (related to 63ed5e00)
+
+commit 63ed5e007e1362f5f84483369d02db840e6eeb1f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu May 5 13:43:09 2016 +0200
+
+    Fix: do not use pbx_assert during normal excution when checking refcount pointers
+    
+    Using pbx_assert would cause a force asterisk crash. Instead we return a log message, slow execution and return NULL.
+
+commit 5ecf1cbeb7ab388cde5164b7c482c1513a1684ed
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Thu May 5 13:37:25 2016 +0200
+
+    Fix: sccp_device_check_update can be called with device = NULL,
+    using that value to retain that pointer executes a pbx_assert
+    which crashes asterisk as it is supposed to. We should be carefull to check the pointer before retaining it.
+    
+    Note: Need to lock the session when assigning / releasing devices, to prevent this issue.
+
+commit 6f240912d293d15a356f9a256c28a95b0285b43a
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed May 4 16:55:53 2016 +0200
+
+    Enh: Update debug output from sccp_channel_recalculate*Format
+    Enh: Cleanup sccp_multiple_codecs2str debug output
+    Enh: Renamed the functions contained in the sccp_codec files
+
+commit f6eddf1a0796717b39d59aeb88dada500857f382
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Wed May 4 10:06:14 2016 +0200
+
+    Fix: setting CHANNELSTATE_CONNECTED should be reentrant
+    
+    Issue: going from CONNECTED to CONNECTED (to update the callerid information) was not checking the rtp instance correctly,
+    causing another call to openReceiveChannel, and the previous openReceiveChannel was not stopped or cleaned up causing
+    the phone to run out of RTP ports. Reported by Miguel.
+    
+    Solution: fix the check before calling openReceiveChannel.
+    
+    related to: #297
+
+commit 656e2fba5731ea1a437c6bfda42a96d58ae8cf60
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Tue May 3 13:35:58 2016 +0200
+
+    Revert bd49e2e0b: Current caller name on speed dial line doesn’t update after call transfer
+    
+    Causes side effect, whereby rtp ports are opened twice and not closed correctly.
+    Need to find a difference solution.
+    
+    Side effect Issue reported Miguel
+    
+    references #297
+
+commit bd49e2e0b221eb8a10dfaf810a88dcb8d962a1da
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 1 19:45:10 2016 +0200
+
+    Fix: Current caller name on speed dial line doesn’t update after call transfer
+    
+    Partial fix: recipient part of the transferred call get's fix using a forced
+    sccp_indicate of the CONNECTED state. More work needed.
+    
+    references #297
+
+commit a54a25690f4604cecfbcc307666689284cfa33ca
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 1 19:44:20 2016 +0200
+
+    Enh: clarify hint processing
+
+commit e4a3ed25a7312df79834db864121bad00d97f45f
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 1 19:43:35 2016 +0200
+
+    Enh: Suppress debug output during removeTimingFD
+
+commit ce188f1f100da630c89110c4fe1c08122426caaa
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 1 14:52:13 2016 +0200
+
+    Fix: Blind transferring does not work while destination is still ringing
+    
+    fixes #294
+
+commit e4528d7164f6eb85d9ca5d87706d5f7e0ac92de2
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 1 13:46:22 2016 +0200
+
+    Fix: potential null pointer derefence
+
+commit da3bfd4782fdeb2eab0d6e173d54b0457f13a567
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 1 13:45:44 2016 +0200
+
+    Fix: tautological comparison warning (clang)
+
+commit c7af03294e67a829d472b733bdd2e18a1db5bcf8
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 1 13:44:55 2016 +0200
+
+    Fix: compile warning
+
+commit 95d0648b2875b83933cc6c2b0d42351106f864e0
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 1 13:40:43 2016 +0200
+
+    Fix: File Descriptor Leak after channel masqueration (transfer / cfwd / pickup)
+    
+    The TimerFD does not get moved/merged during fixup (masqueration).
+    I could not find the actual cause for this in the asterisk sources.
+    This patch does fix the issue if it does exist during channel cleanup though.
+    
+    Fixes #293
+
+commit 9d9a70561d0892905d5b0588adbbcd604dcbf44e
+Author: Diederik de Groot <dkgroot@talon.nl>
+Date:   Sun May 1 13:40:17 2016 +0200
+
+    Fix: make ChangeLog
+
 commit c5e2ab22b4926e25bf97718e36cec71b41142f55
 Author: Diederik de Groot <dkgroot@talon.nl>
 Date:   Sun May 1 09:44:01 2016 +0200
@@ -15,6 +2334,18 @@ Date:   Thu Apr 28 14:35:23 2016 +0200
     
     Remove the backtrace added to session_destroy while dealing with the 'Rejected Transfer' Issue report by Valerio.
     Adding the backtrace did not reveal any new information.
+
+commit 7a9996b5cf1db53ac717b867288b08df4c4149fd
+Author: Diederik de Groot <ddegroot@talon.nl>
+Date:   Wed Apr 27 15:35:21 2016 +0200
+
+    Update ISSUE_TEMPLATE.md
+
+commit bd03b79784c37c4e7d5172a91f11f667bea4b6f6
+Author: Diederik de Groot <ddegroot@talon.nl>
+Date:   Wed Apr 27 15:34:03 2016 +0200
+
+    Update ISSUE_TEMPLATE.md
 
 commit 7bc7e35d4650728479fd493703851cddc14c135d
 Merge: 49476f6 5309e23
@@ -2256,18 +4587,18 @@ Date:   Sun Feb 14 15:21:32 2016 +0100
     Merge branch 'feature/modularize_reduce_include' into develop
     
     Resolved Conflicts:
-    	Makefile.am
-    	Makefile.in
-    	autoconf/acinclude.m4
-    	autoconf/extra.m4
-    	configure
-    	debian/rules
-    	src/Makefile.am
-    	src/chan_sccp.c
-    	src/sccp_atomic.h
-    	src/sccp_protocol.h
-    	src/sccp_session.c
-    	src/sccp_utils.h
+            Makefile.am
+            Makefile.in
+            autoconf/acinclude.m4
+            autoconf/extra.m4
+            configure
+            debian/rules
+            src/Makefile.am
+            src/chan_sccp.c
+            src/sccp_atomic.h
+            src/sccp_protocol.h
+            src/sccp_session.c
+            src/sccp_utils.h
 
 commit 9d8c28bcc7ae2fb3ffc7f702a86498d1f9f5f1c2
 Merge: 025cf27 6177f2f
@@ -8580,8 +10911,8 @@ Date:   Tue Nov 3 14:26:15 2015 +0000
     - sccp_channel_newcall, uses sccp_channel_getEmptyChannel to allocate and setup a channel to call softswitch on.
     
     It allows other functions like gpickup to only request an empty (dummy) channel,
-    	instead of actually going through sccp_channel_newcall -> softswitch,
-    	for a channel that will be masqueraded out anyway.
+            instead of actually going through sccp_channel_newcall -> softswitch,
+            for a channel that will be masqueraded out anyway.
     
     Tested by Pavel and Benjamin.
     
@@ -8598,8 +10929,8 @@ Date:   Tue Nov 3 14:26:15 2015 +0000
     - sccp_channel_newcall, uses sccp_channel_getEmptyChannel to allocate and setup a channel to call softswitch on.
     
     It allows other functions like gpickup to only request an empty (dummy) channel,
-    	instead of actually going through sccp_channel_newcall -> softswitch,
-    	for a channel that will be masqueraded out anyway.
+            instead of actually going through sccp_channel_newcall -> softswitch,
+            for a channel that will be masqueraded out anyway.
     
     Tested by Pavel and Benjamin.
     
@@ -11414,9 +13745,9 @@ Date:   Sat Oct 3 16:08:57 2015 +0200
     Merge branch 'feature/constpointer' of github.com-dkgroot:dkgroot/chan-sccp-b into feature/constpointer
     
     Corrected Conflicts:
-    	autoconf/extra.m4
-    	conf/sccp.conf.annotated
-    	configure
+            autoconf/extra.m4
+            conf/sccp.conf.annotated
+            configure
 
 commit 0fce249d2062f9fbf9c24ee027cc0a1562b920e3
 Author: Diederik de Groot <ddegroot@talon.nl>
@@ -13485,8 +15816,8 @@ Date:   Sat Sep 12 11:19:13 2015 +0200
     Merge branch 'feature/autorefcount' of github.com-dkgroot:dkgroot/chan-sccp-b into feature/autorefcount
     
     Conflicts:
-    	src/sccp_actions.c
-    	src/sccp_actions.h
+            src/sccp_actions.c
+            src/sccp_actions.h
 
 commit 5e9f4a2fa2dc44b00760345f4372014715956cf6
 Author: Diederik de Groot <ddegroot@talon.nl>
@@ -13542,13 +15873,13 @@ Date:   Fri Sep 4 12:08:48 2015 +0200
 
     Added helper function to get a retained line, multiple softkey function tried to do a similar thing, sometimes in different orders.
     Replace explicit sccp_refcount_releases with AUTO_RELEASE where possible for:
-    	sccp_device.c
-    	sccp_line.c
-    	sccp_config.c
-    	chan_sccp.c
-    	sccp_channel.c
-    	sccp_pbx.c
-    	sccp_softkey.c
+            sccp_device.c
+            sccp_line.c
+            sccp_config.c
+            chan_sccp.c
+            sccp_channel.c
+            sccp_pbx.c
+            sccp_softkey.c
     Add 'explicit release' comment otherwise to note the requirement of their existance.
     Make sure line does not already exist when running sccp_line_create. Deal with sccp_line_create returning NULL.
     Returning better debug information from sccp_device_getActiveChannel
@@ -13696,13 +16027,13 @@ Date:   Fri Sep 4 12:08:48 2015 +0200
 
     Added helper function to get a retained line, multiple softkey function tried to do a similar thing, sometimes in different orders.
     Replace explicit sccp_refcount_releases with AUTO_RELEASE where possible for:
-    	sccp_device.c
-    	sccp_line.c
-    	sccp_config.c
-    	chan_sccp.c
-    	sccp_channel.c
-    	sccp_pbx.c
-    	sccp_softkey.c
+            sccp_device.c
+            sccp_line.c
+            sccp_config.c
+            chan_sccp.c
+            sccp_channel.c
+            sccp_pbx.c
+            sccp_softkey.c
     Add 'explicit release' comment otherwise to note the requirement of their existance.
     Make sure line does not already exist when running sccp_line_create. Deal with sccp_line_create returning NULL.
     Returning better debug information from sccp_device_getActiveChannel
@@ -14109,13 +16440,13 @@ Date:   Fri Sep 4 12:08:48 2015 +0200
 
     Added helper function to get a retained line, multiple softkey function tried to do a similar thing, sometimes in different orders.
     Replace explicit sccp_refcount_releases with AUTO_RELEASE where possible for:
-    	sccp_device.c
-    	sccp_line.c
-    	sccp_config.c
-    	chan_sccp.c
-    	sccp_channel.c
-    	sccp_pbx.c
-    	sccp_softkey.c
+            sccp_device.c
+            sccp_line.c
+            sccp_config.c
+            chan_sccp.c
+            sccp_channel.c
+            sccp_pbx.c
+            sccp_softkey.c
     Add 'explicit release' comment otherwise to note the requirement of their existance.
     Make sure line does not already exist when running sccp_line_create. Deal with sccp_line_create returning NULL.
     Returning better debug information from sccp_device_getActiveChannel
@@ -14435,13 +16766,13 @@ Date:   Fri Sep 4 12:08:48 2015 +0200
 
     Added helper function to get a retained line, multiple softkey function tried to do a similar thing, sometimes in different orders.
     Replace explicit sccp_refcount_releases with AUTO_RELEASE where possible for:
-    	sccp_device.c
-    	sccp_line.c
-    	sccp_config.c
-    	chan_sccp.c
-    	sccp_channel.c
-    	sccp_pbx.c
-    	sccp_softkey.c
+            sccp_device.c
+            sccp_line.c
+            sccp_config.c
+            chan_sccp.c
+            sccp_channel.c
+            sccp_pbx.c
+            sccp_softkey.c
     Add 'explicit release' comment otherwise to note the requirement of their existance.
     Make sure line does not already exist when running sccp_line_create. Deal with sccp_line_create returning NULL.
     Returning better debug information from sccp_device_getActiveChannel
@@ -15803,12 +18134,12 @@ Author: ddegroot <ddegroot@43c1dc8c-776e-4df2-8ef1-6e829299be21>
 Date:   Thu Apr 23 18:37:58 2015 +0000
 
     fix mwi:
-    	Handle MWI with multiple lines correctly (reported by Nicolas Gosselin / bug report #248)
-    	Switch of MIW light during a incoming or outgoing call, when d->wmioncall=off
-    	Cleanup suprious STASIS debug messages, which where not required
+            Handle MWI with multiple lines correctly (reported by Nicolas Gosselin / bug report #248)
+            Switch of MIW light during a incoming or outgoing call, when d->wmioncall=off
+            Cleanup suprious STASIS debug messages, which where not required
     enh cli:
-    	Added correct display of d->mwilight (is a bitfield), to sccp show device
-    	Added display of mwioncall to sccp show device
+            Added correct display of d->mwilight (is a bitfield), to sccp show device
+            Added display of mwioncall to sccp show device
     
     
     
@@ -17424,11 +19755,11 @@ Date:   Mon Jan 12 20:28:37 2015 +0000
     This change makes it possible to use directrtp in remote natted locations, by setting directrtp=on and device permit/deny to include both the remote phone ip range (between which directrtp should occur) and the natted source ip-address.
     Example
     [SEP00123445566]
-    directrtp=on			; force directrtp attempt
-    nat=off				; force non-natted negotiation
+    directrtp=on                    ; force directrtp attempt
+    nat=off                         ; force non-natted negotiation
     deny=0.0.0.0/0.0.0.0
-    permit=192.168.1.0/24		; remote phone ip-address range
-    permit=21.22.23.222/32		; natted remote address
+    permit=192.168.1.0/24           ; remote phone ip-address range
+    permit=21.22.23.222/32          ; natted remote address
     
     
     
