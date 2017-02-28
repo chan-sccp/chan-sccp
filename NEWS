@@ -1,4 +1,4 @@
-Version: v4.3.0_TRUNK
+Version: v4.3.0_DEV
 =====================
 WIP
  - Reworked configure/make system:
@@ -31,6 +31,7 @@ WIP
      - More boundschecking
    - deny use of strcat, sprintf, atoi and other unsafe functions
  - Add Visual Parkinglot Feature Button support
+ - Improved/Fixed Cisco/69xx support
  Fixes:
   - Channel remaining after hangup
   - Timeout / Hangup Scheduler issues 
