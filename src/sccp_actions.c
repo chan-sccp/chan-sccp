@@ -1819,9 +1819,7 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 				sccp_dev_setActiveLine(device, l);
 				sccp_channel_resume(device, channel, FALSE);
 			} else {
-				//if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6901 && d->transfer && d->transferChannels.transferer == channel) {
-				if (d->useHookFlash() && d->transfer && d->transferChannels.transferer == channel) {
-					// deal with single line phones like 6901, which do not have softkeys
+				if (d->useHookFlash() && d->transfer && d->transferChannels.transferer == channel) {	// deal with single line phones like 6901, which do not have softkeys
 					// 6901 is cancelling the transfer by pressing the line key (see cisco manual for 6901)
 					sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: We are the middle of a transfer, pressed hold on the transferer channel(%s) -> cancel transfer\n", d->id, channel->designator);
 					AUTO_RELEASE(sccp_channel_t, resumeChannel, sccp_channel_retain(d->transferChannels.transferee));

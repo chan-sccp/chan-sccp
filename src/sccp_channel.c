@@ -1571,7 +1571,6 @@ int sccp_channel_hold(channelPtr channel)
 		return FALSE;
 	}
 
-	//if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6901 && d->transfer && d->transferChannels.transferer == channel) {
 	if (d->useHookFlash() && d->transfer && d->transferChannels.transferer == channel) {	// deal with single line phones like 6901, which do not have softkeys
 												// 6901 is cancelling the transfer by pressing the hold key on the transferer
 		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: We are the middle of a transfer, pressed hold on the transferer channel(%s) -> cancel transfer\n", d->id, channel->designator);
