@@ -521,7 +521,10 @@ static int callinfo_Send(sccp_callinfo_t * const ci, const uint32_t callid, cons
 	if (ci->content.changed || force) {
 		/* dependency on sccp_device.h should be fixed */
 		if (device->protocol && device->protocol->sendCallInfo) {
-			device->protocol->sendCallInfo(ci, callid, calltype, lineInstance, ci->content.callInstance, device);
+			// using for to set the callsecuritystate is a temporary solution
+			// when indicating ringout the security state should be SKINNY_CALLSECURITYSTATE_UNKNOWN
+			// when indicating connected it should change to SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED
+			device->protocol->sendCallInfo(ci, callid, calltype, lineInstance, ci->content.callInstance, force ? SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED : SKINNY_CALLSECURITYSTATE_UNKNOWN, device);
 			sccp_callinfo_wrlock(ci);
 			ci->content.changed = FALSE;
 			sccp_callinfo_unlock(ci);
