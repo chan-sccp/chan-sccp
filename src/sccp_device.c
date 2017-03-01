@@ -2682,7 +2682,7 @@ void sccp_device_sendcallstate(constDevicePtr d, uint8_t instance, uint32_t call
 	msg->data.CallStateMessage.lel_callReference = htolel(callid);
 	msg->data.CallStateMessage.lel_visibility = htolel(visibility);
 	msg->data.CallStateMessage.precedence.lel_level = htolel(precedence_level);
-	/*msg->data.CallStateMessage.precedency.lel_domain = htolel(2); */
+	msg->data.CallStateMessage.precedence.lel_domain = htolel(0);
 	sccp_dev_send(d, msg);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send and Set the call state %s(%d) on call %d (visibility:%s)\n", d->id, skinny_callstate2str(state), state, callid, skinny_callinfo_visibility2str(visibility));
 }
@@ -2830,13 +2830,9 @@ static void __sccp_device_indicate_normal_dialing(constDevicePtr device, const u
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
 	iCallInfo.SetCalledParty(callinfo, NULL, dialedNumber, NULL);
-	//iCallInfo.SetCalledParty(callinfo, dialedNumber, dialedNumber, NULL);
 	if (device->protocol && device->protocol->sendDialedNumber) {
 		device->protocol->sendDialedNumber(device, lineInstance, callid, dialedNumber);
 	}
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	iCallInfo.Send(callinfo, callid, calltype, lineInstance, device, FALSE);
-	//sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_RINGOUT);
 }
 
 static void sccp_device_indicate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION])
@@ -2863,7 +2859,7 @@ static void sccp_device_indicate_connected(constDevicePtr device, const uint8_t 
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	iCallInfo.Send(callinfo, callid, calltype, lineInstance, device, FALSE);
+	iCallInfo.Send(callinfo, callid, calltype, lineInstance, device, TRUE);
 	sccp_dev_set_cplane(device, lineInstance, 1);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_CONNECTED, GLOB(digittimeout));
 }
