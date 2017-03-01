@@ -177,7 +177,7 @@ void __sccp_indicate(const sccp_device_t * const device, sccp_channel_t * const 
 		case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 			/* send by connected line update, to show that we know the remote end, we can now update the callinfo */
 			sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-			iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, device, TRUE);
+			iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, TRUE);
 			break;
 		case SCCP_CHANNELSTATE_RINGING:
 			{
