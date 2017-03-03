@@ -1299,4 +1299,25 @@ int sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession 
 	return RESULT_SUCCESS;
 }
 
+#if CS_TEST_FRAMEWORK
+sccp_session_t *sccp_session_testhelper_create_mocksession(void)
+{
+	sccp_session_t *s = NULL;
+	if ((s = sccp_calloc(sizeof *s, 1))) {
+		sccp_session_addToGlobals(s);
+		s->lastKeepAlive = time(0);
+		s->protocolType = SCCP_PROTOCOL;
+		s->session_thread = AST_PTHREADT_NULL;
+	}
+	return s;
+}
+void sccp_session_testhelper_destroy_mocksession(sccp_session_t *s)
+{
+	if (s) {
+		sccp_session_removeFromGlobals(s);
+		sccp_free(s);
+	}
+}
+#endif
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

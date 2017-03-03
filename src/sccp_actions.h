@@ -21,5 +21,8 @@ SCCP_API void SCCP_CALL sccp_handle_AvailableLines(constSessionPtr s, devicePtr 
 SCCP_API void SCCP_CALL sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMessagePtr none)		__NONNULL(1,2);
 SCCP_API void SCCP_CALL sccp_handle_time_date_req(constSessionPtr s, devicePtr d, constMessagePtr none)			__NONNULL(1,2);
 SCCP_API void SCCP_CALL sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessagePtr none)		__NONNULL(1,2);
+#if CS_TEST_FRAMEWORK
+SCCP_API void SCCP_CALL sccp_actions_testhelper_callMessageHandler(constSessionPtr s, devicePtr d, constMessagePtr msg);
+#endif
 __END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

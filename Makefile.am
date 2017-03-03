@@ -8,7 +8,7 @@ include 		$(top_srcdir)/amdoxygen.am
 
 AUTOMAKE_OPTIONS	= gnu
 EXTRA_DIST 		= .version tools conf contrib/gen_sccpconf .revision
-SUBDIRS 		= src doc
+SUBDIRS 		= src doc tests
 ACLOCAL_AMFLAGS		= -I autoconf
 AM_CPPFLAGS		= $(LTDLINCL)
 

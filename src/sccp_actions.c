@@ -4803,4 +4803,20 @@ void handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, constMes
 	pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u could not be found (callRef: %u/ confId: %u)\n", DEV_ID_LOG(d), passThruPartyId, callReference, conferenceId);
 	return;
 }
+
+#if CS_TEST_FRAMEWORK
+void sccp_actions_testhelper_callMessageHandler(constSessionPtr s, devicePtr d, constMessagePtr msg)
+{
+	const struct messageMap_cb *messageMap_cb = NULL;
+	uint32_t mid = 0;
+	mid = letohl(msg->header.lel_messageId);
+	if (mid <= SCCP_MESSAGE_HIGH_BOUNDARY) {
+		messageMap_cb = &sccpMessagesCbMap[mid];
+	} else if ((mid >= SPCP_MESSAGE_LOW_BOUNDARY && mid <= SPCP_MESSAGE_HIGH_BOUNDARY)) {
+		messageMap_cb = &spcpMessagesCbMap[mid - SPCP_MESSAGE_OFFSET]; 
+	}
+	messageMap_cb->messageHandler_cb(s, d, msg);
+}
+#endif
+
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets on;
