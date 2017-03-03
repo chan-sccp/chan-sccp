@@ -39,8 +39,6 @@ SCCP_FILE_VERSION(__FILE__, "");
  *              Phones Requesting function to be performed
  */
 
-
-
 #if defined(HAVE_UNALIGNED_BUSERROR)
 #include <asterisk/unaligned.h>
 #endif
@@ -4813,7 +4811,7 @@ void sccp_actions_testhelper_callMessageHandler(constSessionPtr s, devicePtr d, 
 	if (mid <= SCCP_MESSAGE_HIGH_BOUNDARY) {
 		messageMap_cb = &sccpMessagesCbMap[mid];
 	} else if ((mid >= SPCP_MESSAGE_LOW_BOUNDARY && mid <= SPCP_MESSAGE_HIGH_BOUNDARY)) {
-		messageMap_cb = &spcpMessagesCbMap[mid - SPCP_MESSAGE_OFFSET]; 
+		messageMap_cb = &spcpMessagesCbMap[mid - SPCP_MESSAGE_OFFSET];
 	}
 	messageMap_cb->messageHandler_cb(s, d, msg);
 }

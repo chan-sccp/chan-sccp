@@ -65,7 +65,7 @@ AST_TEST_DEFINE(sccp_test_actions_openChannelReceiveAck)
 	/* Start Test */
 	c->state = SCCP_CHANNELSTATE_RINGING;
 	c->rtp.audio.receiveChannelState = SCCP_RTP_STATUS_PROGRESS;
-	
+
 	/* Test No RTP Instance*/
 	c->rtp.audio.instance = NULL;
 
