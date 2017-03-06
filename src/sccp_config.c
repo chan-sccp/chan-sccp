@@ -1171,18 +1171,23 @@ sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_
  */
 sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
+
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
 	char *str = (char *) dest;
 
-	if (!sccp_strcaseequals(str, value)) {
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-		sccp_copy_string(dest, value, size);
-		//if (!sccp_strlen_zero(value) && !pbx_context_find((const char *) dest)) {
-		//	pbx_log(LOG_WARNING, "The context '%s' you specified might not be available in the dialplan. Please check the sccp.conf\n", (char *) dest);
-		//}
+	if (!v->value || sccp_strlen_zero(v->value)) {
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	} else {
-		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+		if (!sccp_strcaseequals(str, value)) {
+			changed = SCCP_CONFIG_CHANGE_CHANGED;
+			sccp_copy_string(dest, value, size);
+			//if (!sccp_strlen_zero(value) && !pbx_context_find((const char *) dest)) {
+			//	pbx_log(LOG_WARNING, "The context '%s' you specified might not be available in the dialplan. Please check the sccp.conf\n", (char *) dest);
+			//}
+		} else {
+			changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+		}
 	}
 	return changed;
 }
