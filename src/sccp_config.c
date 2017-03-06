@@ -1171,14 +1171,10 @@ sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_
  */
 sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
-
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = pbx_strdupa(v->value);
-	char *str = (char *) dest;
-
-	if (!v->value || sccp_strlen_zero(v->value)) {
-		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	} else {
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+	if (v->value && !sccp_strlen_zero(v->value)) {
+		char *value = pbx_strdupa(v->value);
+		char *str = (char *) dest;
 		if (!sccp_strcaseequals(str, value)) {
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
 			sccp_copy_string(dest, value, size);
