@@ -75,6 +75,18 @@ We also provide prebuild binaries for:
 ### Wiki
 You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/)
 
+### Mailinglist
+
+- chan-sccp Discussion: 
+  - [Subscribe](https://lists.sourceforge.net/lists/listinfo/chan-sccp-b-discussion)
+  - [Archive](https://sourceforge.net/p/chan-sccp-b/mailman/chan-sccp-b-discussion)
+  - [Search](https://sourceforge.net/p/chan-sccp-b/mailman/search/?mail_list=chan-sccp-b-discussion) 
+
+- chan-sccp Releases: 
+  - [Subscribe](https://lists.sourceforge.net/lists/listinfo/chan-sccp-b-releases)
+  - [Archive](https://sourceforge.net/p/chan-sccp-b/mailman/chan-sccp-b-releases)
+  - [Search](https://sourceforge.net/p/chan-sccp-b/mailman/search/?mail_list=chan-sccp-b-releases) 
+  
 ### Chat
 [![Gitter](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/chan-sccp/chan-sccp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
