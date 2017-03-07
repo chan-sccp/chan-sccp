@@ -648,6 +648,50 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 #endif
 }
 
+int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
+{
+	pbx_assert(d != NULL && c != NULL);
+	// check channel state
+	if (!c->rtp.audio.instance) {
+		pbx_log(LOG_ERROR, "%s: Channel has not rtp instance!\n", d->id);
+		sccp_channel_endcall(c);								// FS - 350
+		return SCCP_RTP_STATUS_INACTIVE;
+	}
+	if (SCCP_CHANNELSTATE_Idling(c->state) || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
+		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
+			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Invalid Number (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
+			return SCCP_RTP_STATUS_INACTIVE;
+		}
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (OpenReceiveChannelAck) Channel is already terminating. Giving up... (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
+		sccp_channel_closeAllMediaTransmitAndReceive(d, c);
+		return SCCP_RTP_STATUS_INACTIVE;
+	}
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Opened Receive Channel (State: %s[%d])\n", d->id, sccp_channelstate2str(c->state), c->state);
+	sccp_channel_setDevice(c, d);
+	//sccp_rtp_set_phone(c, &c->rtp.audio, &sas);
+	if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState) {
+		sccp_channel_startMediaTransmission(c);
+	}
+	sccp_channel_send_callinfo(d, c);
+	c->rtp.audio.receiveChannelState = SCCP_RTP_STATUS_ACTIVE;
+
+	sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, c->line->name), c->callid);
+	if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
+		iPbx.queue_control(c->owner, AST_CONTROL_ANSWER);
+	} else {
+		iPbx.queue_control(c->owner, -1);				// 'PROD' the remote side to let them know we can receive inband signalling from this moment onwards -> inband signalling required
+	}
+	// indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC
+	if (								// handle out of order arrival when startMediaAck returns before openReceiveChannelAck
+		(c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) &&
+		(c->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE)
+	) {
+		iPbx.set_callstate(c, AST_STATE_UP);
+	}
+	return SCCP_RTP_STATUS_ACTIVE;
+}
+
 /*!
  * \brief Tell Device to Close an RTP Receive Channel and Stop Media Transmission
  * \param channel SCCP Channel
@@ -811,6 +855,7 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 		return;
 	}
 
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting Phone RTP/UDP Transmission (State: %s[%d])\n", d->id, sccp_channelstate2str(channel->state), channel->state);
 	/* Mute mic feature: If previously set, mute the microphone after receiving of media is already open, but before starting to send to rtp. */
 	/* This must be done in this exact order to work also on newer phones like the 8945. It must also be done in other places for other phones. */
 	if (!channel->isMicrophoneEnabled()) {

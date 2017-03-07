@@ -146,6 +146,7 @@ SCCP_API void SCCP_CALL sccp_channel_connect(sccp_channel_t * c);
 SCCP_API void SCCP_CALL sccp_channel_disconnect(sccp_channel_t * c);
 
 SCCP_API void SCCP_CALL sccp_channel_openReceiveChannel(constChannelPtr channel);
+SCCP_API int SCCP_CALL sccp_channel_receiveChannelOpen(devicePtr d, channelPtr c);
 SCCP_API void SCCP_CALL sccp_channel_closeReceiveChannel(constChannelPtr channel, boolean_t KeepPortOpen);
 #if UNUSEDCODE // 2015-11-01
 SCCP_API void SCCP_CALL sccp_channel_updateReceiveChannel(constChannelPtr c);

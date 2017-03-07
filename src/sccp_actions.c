@@ -3347,7 +3347,7 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 {
 	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
 	uint32_t callReference = 0, passThruPartyId = 0;
-	uint16_t resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
+	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
 
 	struct sockaddr_storage sas = { 0 };
 	d->protocol->parseOpenReceiveChannelAck((const sccp_msg_t *) msg_in, &mediastatus, &sas, &passThruPartyId, &callReference);
@@ -3358,50 +3358,8 @@ void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessag
 	if (do_expect(channel != NULL && channel->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_PROGRESS)) {
 		switch (mediastatus) {
 			case SKINNY_MEDIASTATUS_Ok:
-				if (!SCCP_CHANNELSTATE_Idling(channel->state) && !SCCP_CHANNELSTATE_IsTerminating(channel->state)) {
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting Phone RTP/UDP Transmission (State: %s[%d])\n", d->id, sccp_channelstate2str(channel->state), channel->state);
-					sccp_channel_setDevice(channel, d);
-					if (channel->rtp.audio.instance) {
-						sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
-						if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.mediaTransmissionState) {
-							sccp_channel_startMediaTransmission(channel);
-						}
-						sccp_channel_send_callinfo(d, channel);
-
-						// update status
-						resultingChannelState = SCCP_RTP_STATUS_ACTIVE;
-						channel->rtp.audio.receiveChannelState = resultingChannelState;
-
-						sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, channel->line->name), channel->callid);
-						if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-							iPbx.queue_control(channel->owner, AST_CONTROL_ANSWER);
-						} else {			// 'PROD' the remote side to let them know we can receive inband signalling from this moment onwards -> inband signalling required
-							iPbx.queue_control(channel->owner, -1);
-						}
-						
-						// indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC
-						if (dont_expect(		// handle out of order arrival when startMediaAck returns before openReceiveChannelAck
-							(channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && 
-							(channel->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && 
-							(channel->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE)
-						)) {
-							iPbx.set_callstate(channel, AST_STATE_UP);
-						}
-					} else {
-						pbx_log(LOG_ERROR, "%s: Channel has not rtp instance!\n", d->id);
-						sccp_channel_endcall(channel);								// FS - 350
-					}
-					break;			// SUCCESS
-				} else {
-					if (channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
-						pbx_log(LOG_NOTICE, "%s: Invalid Number (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(channel->state));
-						sccp_indicate(d, channel, SCCP_CHANNELSTATE_INVALIDNUMBER);
-					} else {
-						sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (OpenReceiveChannelAck) Channel is already terminating. Giving up... (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(channel->state));
-						sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
-					}
-					break;			// FAILED
-				}
+				sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
+				resultingChannelState = sccp_channel_receiveChannelOpen(d, channel);
 				break;
 			case SKINNY_MEDIASTATUS_DeviceOnHook:
 				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (OpenReceiveChannelAck) Device already hungup. Giving up.\n", d->id);
