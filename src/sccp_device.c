@@ -891,6 +891,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			for (i = 0; i < 9; i++) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
+			d->useHookFlash = sccp_device_trueResult;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7911:
 		case SKINNY_DEVICETYPE_CISCO7905:
@@ -901,6 +902,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 				btn[btn_index++].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
 			d->hasEnhancedIconMenuSupport = sccp_device_trueResult;
+			d->useHookFlash = sccp_device_trueResult;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7920:
 			for (i = 0; i < 4; i++) {
@@ -1026,6 +1028,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			break;
 		case SKINNY_DEVICETYPE_NOKIA_ICC:
 			btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
+			d->useHookFlash = sccp_device_trueResult;
 			break;
 		case SKINNY_DEVICETYPE_NOKIA_E_SERIES:
 			btn[btn_index++].type = SCCP_BUTTONTYPE_LINE;
