@@ -1812,10 +1812,9 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Answering incoming/ringing line %d\n", device->id, instance);
 			sccp_channel_answer(device, channel);
 			sccp_dev_set_cplane(device, instance, 1);
-		} else if (l->statistic.numberOfHeldChannels >= 1) {
-			channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD);
+		} else if (l->statistic.numberOfHeldChannels >= 1 && (channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
 			if (l->statistic.numberOfHeldChannels == 1) {
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d\n", device->id, channel->callid, instance);
+				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Resume channel %s on line %d\n", device->id, channel->designator, instance);
 				sccp_dev_setActiveLine(device, l);
 				sccp_channel_resume(device, channel, FALSE);
 			} else {
