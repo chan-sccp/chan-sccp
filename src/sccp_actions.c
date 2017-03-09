@@ -71,7 +71,7 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,2,3);
 void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_in) 			__NONNULL(1,2,3);
 void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,2,3);
-void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
+void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_ConnectionStatistics(constSessionPtr s, devicePtr device, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_ipport(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				__NONNULL(1,2,3);
@@ -85,13 +85,13 @@ void handle_services_stat_req(constSessionPtr s, devicePtr d, constMessagePtr ms
 void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)	__NONNULL(1,2,3);
 void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)	__NONNULL(1,2,3);
-void handle_startmediatransmission_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
+void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,2,3);
 void handle_device_to_user_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_XMLAlarmMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,3);
 void handle_LocationInfoMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,3);
-void handle_startmultimediatransmission_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in)	__NONNULL(1,2,3);
-void handle_mediatransmissionfailure(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
+void handle_startMultiMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)	__NONNULL(1,2,3);
+void handle_mediaTransmissionFailure(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_hookflash(constSessionPtr s, devicePtr d, constMessagePtr msg_in)				__NONNULL(1,2,3);
 
@@ -151,9 +151,9 @@ static const struct messageMap_cb sccpMessagesCbMap[SCCP_MESSAGE_HIGH_BOUNDARY +
 	[HookFlashMessage] = {handle_hookflash, TRUE},
 	[SoftKeyEventMessage] = {handle_soft_key_event, TRUE},
 	[PortResponseMessage] = {handle_port_response, TRUE},
-	[OpenReceiveChannelAck] = {handle_open_receive_channel_ack, TRUE},
+	[OpenReceiveChannelAck] = {handle_openReceiveChannelAck, TRUE},
 	[OpenMultiMediaReceiveChannelAckMessage] = {handle_OpenMultiMediaReceiveAck, TRUE},
-	[StartMediaTransmissionAck] = {handle_startmediatransmission_ack, TRUE},
+	[StartMediaTransmissionAck] = {handle_startMediaTransmissionAck, TRUE},
 	[IpPortMessage] = {handle_ipport, TRUE},
 	[VersionReqMessage] = {handle_version, TRUE},
 	[CapabilitiesResMessage] = {handle_capabilities_res, TRUE},
@@ -191,8 +191,8 @@ static const struct messageMap_cb sccpMessagesCbMap[SCCP_MESSAGE_HIGH_BOUNDARY +
 	[AlarmMessage] = {handle_alarm, FALSE},
 	[XMLAlarmMessage] = {handle_XMLAlarmMessage, FALSE},
 	[LocationInfoMessage] = {handle_LocationInfoMessage, FALSE},
-	[StartMultiMediaTransmissionAck] = {handle_startmultimediatransmission_ack, TRUE},
-	[MediaTransmissionFailure] = {handle_mediatransmissionfailure, TRUE},
+	[StartMultiMediaTransmissionAck] = {handle_startMultiMediaTransmissionAck, TRUE},
+	[MediaTransmissionFailure] = {handle_mediaTransmissionFailure, TRUE},
 	[MiscellaneousCommandMessage] = {handle_miscellaneousCommandMessage, TRUE},
 	[CallCountReqMessage] = {handle_unknown_message, FALSE},
 };
@@ -3343,7 +3343,7 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
  * \param d SCCP Device
  * \param msg_in SCCP Message
  */
-void handle_open_receive_channel_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
 	uint32_t callReference = 0, passThruPartyId = 0;
@@ -3508,7 +3508,7 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
  * \since 20090708
  * \author Federico
  */
-void handle_startmediatransmission_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	struct sockaddr_storage sas = { 0 };
 	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
@@ -3585,7 +3585,7 @@ void handle_startmediatransmission_ack(constSessionPtr s, devicePtr d, constMess
  * \param d SCCP Device as sccp_device_t
  * \param msg_in SCCP Message
  */
-void handle_startmultimediatransmission_ack(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+void handle_startMultiMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	struct sockaddr_storage sas = { 0 };
 
@@ -3656,7 +3656,7 @@ void handle_startmultimediatransmission_ack(constSessionPtr s, devicePtr d, cons
  * \param d SCCP Device as sccp_device_t
  * \param msg_in SCCP Message
  */
-void handle_mediatransmissionfailure(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+void handle_mediaTransmissionFailure(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	sccp_dump_msg(msg_in);
 	/*
