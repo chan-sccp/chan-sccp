@@ -742,97 +742,6 @@ void sccp_channel_updateReceiveChannel(constChannelPtr channel)
 }
 #endif
 /*!
- * \brief Open Multi Media Channel (Video) on Channel
- * \param channel SCCP Channel
- */
-void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
-{
-	uint32_t skinnyFormat;
-	int payloadType;
-	uint8_t lineInstance;
-	int bitRate = 1500;
-
-	pbx_assert(channel != NULL);
-	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
-
-	if (!d) {
-		return;
-	}
-
-	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
-	if ((video->receiveChannelState & SCCP_RTP_STATUS_ACTIVE)) {
-		return;
-	}
-	
-	//if (d->nat >= SCCP_NAT_ON) {
-	//	sccp_rtp_updateNatRemotePhone(channel, video);
-	//}
-
-	video->receiveChannelState |= SCCP_RTP_STATUS_PROGRESS;
-	skinnyFormat = video->writeFormat;
-
-	if (skinnyFormat == 0) {
-		pbx_log(LOG_NOTICE, "SCCP: Unable to find skinny format for %d\n", video->writeFormat);
-		return;
-	}
-
-	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, video->writeFormat);
-	lineInstance = sccp_device_find_index_for_line(d, channel->line->name);
-
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d] skinnyFormat %s[%d], payload %d\n", d->id, codec2str(video->writeFormat), video->writeFormat, codec2str(skinnyFormat), skinnyFormat, payloadType);
-	d->protocol->sendOpenMultiMediaChannel(d, channel, skinnyFormat, payloadType, lineInstance, bitRate);
-}
-
-/*!
- * \brief Open Multi Media Channel (Video) on Channel
- * \param channel SCCP Channel
- * \param KeepPortOpen Boolean
- */
-void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean_t KeepPortOpen)
-{
-	sccp_msg_t *msg = NULL;
-
-	pbx_assert(channel != NULL);
-	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
-
-	if (!d) {
-		return;
-	}
-	// stop transmitting before closing receivechannel (\note maybe we should not be doing this here)
-	sccp_channel_stopMediaTransmission(channel, KeepPortOpen);
-
-	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
-	if (video->receiveChannelState) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Close multimedia receive channel on channel %d (KeepPortOpen: %s)\n", d->id, channel->callid, KeepPortOpen ? "YES" : "NO");
-		REQ(msg, CloseMultiMediaReceiveChannel);
-		msg->data.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(channel->callid);
-		msg->data.CloseMultiMediaReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		msg->data.CloseMultiMediaReceiveChannel.lel_callReference = htolel(channel->callid);
-		msg->data.CloseMultiMediaReceiveChannel.lel_portHandlingFlag = htolel(KeepPortOpen);
-		sccp_dev_send(d, msg);
-		video->receiveChannelState = SCCP_RTP_STATUS_INACTIVE;
-#ifdef CS_EXPERIMENTAL
-		if (!KeepPortOpen) {
-			d->protocol->sendPortClose(d, channel, SKINNY_MEDIA_TYPE_MAIN_VIDEO);
-		}
-#endif		
-	}
-}
-
-#if UNUSEDCODE // 2015-11-01
-void sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel)
-{
-	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.receiveChannelState) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateMultiMediaReceiveChannel) Stop multimedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
-		sccp_channel_closeMultiMediaReceiveChannel(channel, TRUE);
-	}
-	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.video.receiveChannelState) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateMultiMediaReceiveChannel) Start media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
-		sccp_channel_openMultiMediaReceiveChannel(channel);
-	}
-}
-#endif
-/*!
  * \brief Tell a Device to Start Media Transmission.
  *
  * We choose codec according to sccp_channel->format.
@@ -936,6 +845,98 @@ void sccp_channel_updateMediaTransmission(constChannelPtr channel)
 		sccp_channel_startMediaTransmission(channel);
 	}
 }
+
+/*!
+ * \brief Open Multi Media Channel (Video) on Channel
+ * \param channel SCCP Channel
+ */
+void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
+{
+	uint32_t skinnyFormat;
+	int payloadType;
+	uint8_t lineInstance;
+	int bitRate = 1500;
+
+	pbx_assert(channel != NULL);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
+
+	if (!d) {
+		return;
+	}
+
+	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
+	if ((video->receiveChannelState & SCCP_RTP_STATUS_ACTIVE)) {
+		return;
+	}
+	
+	//if (d->nat >= SCCP_NAT_ON) {
+	//	sccp_rtp_updateNatRemotePhone(channel, video);
+	//}
+
+	video->receiveChannelState |= SCCP_RTP_STATUS_PROGRESS;
+	skinnyFormat = video->writeFormat;
+
+	if (skinnyFormat == 0) {
+		pbx_log(LOG_NOTICE, "SCCP: Unable to find skinny format for %d\n", video->writeFormat);
+		return;
+	}
+
+	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, video->writeFormat);
+	lineInstance = sccp_device_find_index_for_line(d, channel->line->name);
+
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d] skinnyFormat %s[%d], payload %d\n", d->id, codec2str(video->writeFormat), video->writeFormat, codec2str(skinnyFormat), skinnyFormat, payloadType);
+	d->protocol->sendOpenMultiMediaChannel(d, channel, skinnyFormat, payloadType, lineInstance, bitRate);
+}
+
+/*!
+ * \brief Open Multi Media Channel (Video) on Channel
+ * \param channel SCCP Channel
+ * \param KeepPortOpen Boolean
+ */
+void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean_t KeepPortOpen)
+{
+	sccp_msg_t *msg = NULL;
+
+	pbx_assert(channel != NULL);
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
+
+	if (!d) {
+		return;
+	}
+	// stop transmitting before closing receivechannel (\note maybe we should not be doing this here)
+	sccp_channel_stopMediaTransmission(channel, KeepPortOpen);
+
+	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
+	if (video->receiveChannelState) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Close multimedia receive channel on channel %d (KeepPortOpen: %s)\n", d->id, channel->callid, KeepPortOpen ? "YES" : "NO");
+		REQ(msg, CloseMultiMediaReceiveChannel);
+		msg->data.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(channel->callid);
+		msg->data.CloseMultiMediaReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
+		msg->data.CloseMultiMediaReceiveChannel.lel_callReference = htolel(channel->callid);
+		msg->data.CloseMultiMediaReceiveChannel.lel_portHandlingFlag = htolel(KeepPortOpen);
+		sccp_dev_send(d, msg);
+		video->receiveChannelState = SCCP_RTP_STATUS_INACTIVE;
+#ifdef CS_EXPERIMENTAL
+		if (!KeepPortOpen) {
+			d->protocol->sendPortClose(d, channel, SKINNY_MEDIA_TYPE_MAIN_VIDEO);
+		}
+#endif		
+	}
+}
+
+#if UNUSEDCODE // 2015-11-01
+void sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel)
+{
+	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.receiveChannelState) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateMultiMediaReceiveChannel) Stop multimedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_channel_closeMultiMediaReceiveChannel(channel, TRUE);
+	}
+	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.video.receiveChannelState) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateMultiMediaReceiveChannel) Start media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_channel_openMultiMediaReceiveChannel(channel);
+	}
+}
+#endif
 
 /*!
  * \brief Start Multi Media Transmission (Video) on Channel
