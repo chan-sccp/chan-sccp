@@ -2829,10 +2829,13 @@ static void __sccp_device_indicate_normal_dialing(constDevicePtr device, const u
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
-	iCallInfo.SetCalledParty(callinfo, NULL, dialedNumber, NULL);
+	iCallInfo.Setter(callinfo, SCCP_CALLINFO_CALLEDPARTY_NUMBER, dialedNumber, SCCP_CALLINFO_KEY_SENTINEL);
+	iCallInfo.Send(callinfo, callid, calltype, lineInstance, device, FALSE);
+	
 	if (device->protocol && device->protocol->sendDialedNumber) {
 		device->protocol->sendDialedNumber(device, lineInstance, callid, dialedNumber);
 	}
+	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 }
 
 static void sccp_device_indicate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION])
