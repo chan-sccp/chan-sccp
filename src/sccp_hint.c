@@ -904,6 +904,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 			case SCCP_CHANNELSTATE_OFFHOOK:
 			case SCCP_CHANNELSTATE_GETDIGITS:
 			case SCCP_CHANNELSTATE_RINGOUT:
+			case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 			case SCCP_CHANNELSTATE_CONNECTED:
 			case SCCP_CHANNELSTATE_PROGRESS:
 			case SCCP_CHANNELSTATE_PROCEED:
@@ -1031,6 +1032,7 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			newDeviceState = AST_DEVICE_NOT_INUSE;
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
+		case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 #ifdef CS_EXPERIMENTAL
 			newDeviceState = AST_DEVICE_RINGINUSE;
 			break;
@@ -1255,6 +1257,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					case SCCP_CHANNELSTATE_CONNECTED:
 					case SCCP_CHANNELSTATE_OFFHOOK:
 					case SCCP_CHANNELSTATE_RINGOUT:
+					case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 					case SCCP_CHANNELSTATE_BUSY:
 					case SCCP_CHANNELSTATE_HOLD:
 					case SCCP_CHANNELSTATE_CALLWAITING:

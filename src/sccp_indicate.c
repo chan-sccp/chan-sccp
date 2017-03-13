@@ -21,7 +21,7 @@
 
 SCCP_FILE_VERSION(__FILE__, "");
 
-static void __sccp_indicate_remote_device(const sccp_device_t * const device, const sccp_channel_t * const c, const sccp_line_t * const line, const sccp_channelstate_t state);
+static void __sccp_indicate_remote_device(const sccp_device_t * const maybe_device, const sccp_channel_t * const c, const sccp_line_t * const line, const sccp_channelstate_t state);
 
 /*!
  * \brief Indicate Without Lock
@@ -142,6 +142,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
 			{
+				// we already send out the ringing state before */
 				if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
 					/* Pavel Troller / Immediate Mode
 					fixes a problem with remembering dialed numbers in case of overlap dialing onto the trunks. It adds sending the DialedNumber message also to a situation, when a PROCEEDING signal is received
@@ -154,12 +155,10 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 						d->protocol->sendDialedNumber(d, lineInstance, c->callid, c->dialedNumber);
 					}
 					iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
-					sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				}
-				if (c->previousChannelState == SCCP_CHANNELSTATE_RINGOUT) {
-					break;
-				}
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+
+				// first ringout indicate (before connected line update */
+				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_RING_OUT, GLOB(digittimeout));
 
 				sccp_dev_stoptone(d, lineInstance, c->callid);
@@ -170,7 +169,13 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				}
 
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGOUT);
+				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, FALSE);
 			}
+			break;
+		case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
+			/* send by connected line update, to show that we know the remote end, we can now update the callinfo */
+			sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, TRUE);
 			break;
 		case SCCP_CHANNELSTATE_RINGING:
 			{
@@ -243,9 +248,8 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 						d->protocol->sendDialedNumber(d, lineInstance, c->callid, c->dialedNumber);
 					}
 					iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
-					sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				}
-				/* done */
+				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 				if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
 					sccp_channel_openReceiveChannel(c);
