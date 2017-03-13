@@ -224,6 +224,7 @@ static int sccp_wrapper_asterisk16_devicestate(void *data)
 			break;
 
 		case SCCP_CHANNELSTATE_RINGOUT:
+		case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 #ifdef CS_EXPERIMENTAL
 			res = AST_DEVICE_RINGINUSE;
 			break;

@@ -786,30 +786,21 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 		}
 	} else /* OUTBOUND CALL */ {
 		struct ast_party_id connected = pbx_channel_connected_id(ast);
-		if (connected.number.valid || connected.name.valid) {
-			if (sccp_strcaseequals(connected.number.str, tmpCalledNumber)) {
-				changes = iCallInfo.Setter(callInfo,
-					SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? connected.number.str : tmpCalledNumber,
-					SCCP_CALLINFO_CALLEDPARTY_NAME, connected.name.valid ? connected.name.str : tmpCalledName,
-					SCCP_CALLINFO_KEY_SENTINEL);
-			} else {
-				changes = iCallInfo.Setter(callInfo,
-					SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? connected.number.str : tmpCalledNumber,
-					SCCP_CALLINFO_CALLEDPARTY_NAME, connected.name.valid ? connected.name.str : tmpCalledName,
-					SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, !sccp_strlen_zero(tmpOrigCalledPartyNumber) ? tmpOrigCalledPartyNumber : tmpCalledNumber ,
-					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, !sccp_strlen_zero(tmpOrigCalledPartyName) ? tmpOrigCalledPartyName : tmpCalledName,
-					SCCP_CALLINFO_KEY_SENTINEL);
-			}
-		}
+		changes = iCallInfo.Setter(callInfo,
+			SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? connected.number.str : tmpCalledNumber,
+			SCCP_CALLINFO_CALLEDPARTY_NAME, connected.name.valid ? connected.name.str : tmpCalledName,
+			SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, sccp_strlen_zero(tmpOrigCalledPartyNumber) ? (connected.number.valid ? connected.number.str : tmpCalledNumber) : tmpOrigCalledPartyNumber,
+			SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, sccp_strlen_zero(tmpOrigCalledPartyName) ? (connected.name.valid ? connected.name.str : tmpCalledName) : tmpOrigCalledPartyName,
+			SCCP_CALLINFO_KEY_SENTINEL);
 	}
 	sccp_channel_display_callInfo(channel);
 	if (changes) {
 		sccp_channel_send_callinfo2(channel);
-		// No need to re-indicate previous channel state, as long as we emulate previous states during pickup/gpickup etc
-		//AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(channel));
-		//if (d) {
-		//	sccp_indicate(d, channel, channel->state);
-		//}
+
+		/* We have a preliminary connected line, indiate RINGOUT_ALERTING */
+		if (SKINNY_CALLTYPE_OUTBOUND == channel->calltype && SCCP_CHANNELSTATE_RINGOUT == channel->state) {
+			sccp_indicate(NULL, channel, SCCP_CHANNELSTATE_RINGOUT_ALERTING);
+		}
         }
 #endif
 }
