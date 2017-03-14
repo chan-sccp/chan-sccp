@@ -929,6 +929,52 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 	d->protocol->sendOpenMultiMediaChannel(d, channel, skinnyFormat, payloadType, lineInstance, bitRate);
 }
 
+int sccp_channel_receiveMultiMediaChannelOpen(sccp_device_t *d, sccp_channel_t *c)
+{
+	pbx_assert(d != NULL && c != NULL);
+	// check channel state
+	if (!c->rtp.audio.instance) {
+		pbx_log(LOG_ERROR, "%s: Channel has no rtp instance!\n", d->id);
+		sccp_channel_endcall(c);								// FS - 350
+		return SCCP_RTP_STATUS_INACTIVE;
+	}
+	if (SCCP_CHANNELSTATE_Idling(c->state) || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
+		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
+			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Invalid Number (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
+			return SCCP_RTP_STATUS_INACTIVE;
+		}
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (receiveMultiMediaChannelOpen) Channel is already terminating. Giving up... (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
+		sccp_channel_closeMultiMediaReceiveChannel(c, FALSE);
+		sccp_channel_stopMultiMediaTransmission(c, FALSE);
+		return SCCP_RTP_STATUS_INACTIVE;
+	}
+
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Opened MultiMedia Receive Channel (State: %s[%d])\n", d->id, sccp_channelstate2str(c->state), c->state);
+	c->rtp.video.receiveChannelState |= SCCP_RTP_STATUS_ACTIVE;
+
+	if (c->owner && (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE)) {
+		// force frame update
+		sccp_msg_t *msg_out = NULL;
+		msg_out = sccp_build_packet(MiscellaneousCommandMessage, sizeof(msg_out->data.MiscellaneousCommandMessage));
+		msg_out->data.MiscellaneousCommandMessage.lel_conferenceId = htolel(c->callid);
+		msg_out->data.MiscellaneousCommandMessage.lel_passThruPartyId = htolel(c->passthrupartyid);
+		msg_out->data.MiscellaneousCommandMessage.lel_callReference = htolel(c->callid);
+		msg_out->data.MiscellaneousCommandMessage.lel_miscCommandType = htolel(SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE);	// videoFastUpdatePicture
+		sccp_dev_send(d, msg_out);
+
+		//msg_out = sccp_build_packet(FlowControlNotifyMessage, sizeof(msg_out->data.FlowControlNotifyMessage));
+		//msg_out->data.FlowControlNotifyMessage.lel_conferenceID         = htolel(c->callid);
+		//msg_out->data.FlowControlNotifyMessage.lel_passThruPartyId      = htolel(c->passthrupartyid);
+		//msg_out->data.FlowControlNotifyMessage.lel_callReference        = htolel(c->callid);
+		//msg_out->data.FlowControlNotifyMessage.lel_maxBitRate           = htolel(500000);
+		//sccp_dev_send(d, msg_out);
+
+		iPbx.queue_control(c->owner, AST_CONTROL_VIDUPDATE);
+	}
+	return SCCP_RTP_STATUS_ACTIVE;
+}
+
 /*!
  * \brief Open Multi Media Channel (Video) on Channel
  * \param channel SCCP Channel
@@ -1051,6 +1097,11 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (StartMultiMediaTransmission) Using codec: %s(%d), TOS %d for call with PassThruId: %u and CallID: %u\n", d->id, codec2str(video->readFormat), video->readFormat, d->video_tos, channel->passthrupartyid, channel->callid);
 
 	iPbx.queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
+}
+
+int sccp_channel_multiMediaTransmissionStarted(sccp_device_t *d, sccp_channel_t *c)
+{
+	return -1;
 }
 
 /*!

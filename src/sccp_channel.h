@@ -156,8 +156,10 @@ SCCP_API int SCCP_CALL sccp_channel_mediaTransmissionStarted(devicePtr d, channe
 SCCP_API void SCCP_CALL sccp_channel_stopMediaTransmission(constChannelPtr channel, boolean_t KeepPortOpen);
 SCCP_API void SCCP_CALL sccp_channel_updateMediaTransmission(constChannelPtr channel);
 SCCP_API void SCCP_CALL sccp_channel_startMultiMediaTransmission(constChannelPtr channel);
+SCCP_API int SCCP_CALL sccp_channel_multiMediaTransmissionStarted(sccp_device_t *d, sccp_channel_t *c);
 SCCP_API void SCCP_CALL sccp_channel_stopMultiMediaTransmission(constChannelPtr channel, boolean_t KeepPortOpen);
 SCCP_API void SCCP_CALL sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel);
+SCCP_API int SCCP_CALL sccp_channel_receiveMultiMediaChannelOpen(sccp_device_t *d, sccp_channel_t *c);
 SCCP_API void SCCP_CALL sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean_t KeepPortOpen);
 #if UNUSEDCODE // 2015-11-01
 SCCP_API void SCCP_CALL sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel);
