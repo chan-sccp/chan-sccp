@@ -338,6 +338,7 @@ static int sccp_wrapper_asterisk111_devicestate(const char *data)
 			res = AST_DEVICE_UNAVAILABLE;
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
+		case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 #ifdef CS_EXPERIMENTAL
 			res = AST_DEVICE_RINGINUSE;
 			break;
@@ -994,6 +995,9 @@ static boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * chann
 		return FALSE;
 	}
 	AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(channel->line));
+	if (!line) {
+		return FALSE;
+	}
 
 	pbxDstChannel = ast_channel_alloc(0, AST_STATE_DOWN, line->cid_num, line->cid_name, line->accountcode, line->name, line->context, linkedId, line->amaflags, "SCCP/%s-%08X", line->name, channel->callid);
 	// pbxDstChannel = ast_channel_alloc(0, AST_STATE_DOWN, line->cid_num, line->cid_name, line->accountcode, channel->dialedNumber, line->context, NULL, line->amaflags, "SCCP/%s-%08X", line->name, channel->callid);

@@ -161,7 +161,7 @@ typedef struct _PbxInterface {
 
 	void (*set_callgroup)(sccp_channel_t *channel, ast_group_t value);
 	void (*set_pickupgroup)(sccp_channel_t *channel, ast_group_t value);
-#ifdef CS_AST_HAS_NAMEDGROUP
+#if CS_AST_HAS_NAMEDGROUP && ASTERISK_VERSION_GROUP >= 111
 	void (*set_named_callgroups)(sccp_channel_t *channel, struct ast_namedgroups *value);
 	void (*set_named_pickupgroups)(sccp_channel_t *channel, struct ast_namedgroups *value);
 #else

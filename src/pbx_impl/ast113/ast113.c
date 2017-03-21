@@ -338,6 +338,7 @@ static int sccp_wrapper_asterisk113_devicestate(const char *data)
 			res = AST_DEVICE_UNAVAILABLE;
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
+		case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 #ifdef CS_EXPERIMENTAL
 			res = AST_DEVICE_RINGINUSE;
 			break;
@@ -1017,6 +1018,9 @@ static boolean_t sccp_wrapper_asterisk113_allocPBXChannel(sccp_channel_t * chann
 		return FALSE;
 	}
 	AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(channel->line));
+	if (!line) {
+		return FALSE;
+	}
 
 	if (ids) {
 		assignedids = ids;

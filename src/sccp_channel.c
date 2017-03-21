@@ -105,6 +105,10 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		pbx_log(LOG_ERROR, "SCCP: Could not retain line to create a channel on it, giving up!\n");
 		return NULL;
 	}
+	if (sccp_strlen_zero(refLine->name) || sccp_strlen_zero(refLine->context) || !pbx_context_find(refLine->context)) {
+		pbx_log(LOG_ERROR, "SCCP: line with empty name, empty context or non-existent context provided, aborting creation of new channel\n");
+		return NULL;
+	}
 	if (device && !device->session) {
 		pbx_log(LOG_ERROR, "SCCP: Tried to open channel on device %s without a session\n", device->id);
 		return NULL;

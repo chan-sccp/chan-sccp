@@ -24,7 +24,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 /* CallInfo Message */
 
 /* =================================================================================================================== Send Messages */
-static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const uint8_t callInstance, constDevicePtr device)
+static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const uint8_t callInstance, const skinny_callsecuritystate_t callsecurityState, constDevicePtr device)
 {
  	pbx_assert(device != NULL);
 	sccp_msg_t *msg;
@@ -58,7 +58,7 @@ static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, cons
 	msg->data.CallInfoMessage.lel_callReference = htolel(callid);
 	msg->data.CallInfoMessage.lel_callType = htolel(calltype);
 	msg->data.CallInfoMessage.lel_callInstance = htolel(callInstance);
-	msg->data.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
+	msg->data.CallInfoMessage.lel_callSecurityStatus = htolel(callsecurityState);
 	msg->data.CallInfoMessage.lel_originalCdpnRedirectReason = htolel(originalCdpnRedirectReason);
 	msg->data.CallInfoMessage.lel_lastRedirectingReason = htolel(lastRedirectingReason);
 
@@ -69,7 +69,7 @@ static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, cons
 	sccp_dev_send(device, msg);
 }
 
-static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const uint8_t callInstance, constDevicePtr device)
+static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const uint8_t callInstance, const skinny_callsecuritystate_t callsecurityState, constDevicePtr device)
 {
  	pbx_assert(device != NULL);
 	sccp_msg_t *msg = NULL;
@@ -116,7 +116,10 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 	msg->data.CallInfoDynamicMessage.lel_callReference = htolel(callid);
 	msg->data.CallInfoDynamicMessage.lel_callType = htolel(calltype);
 	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits = presentation ? 0x0 : 0xf;
-	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
+	//! note callSecurityStatus:
+	// when indicating ringout we should set SKINNY_CALLSECURITYSTATE_UNKNOWN
+	// when indicating connected we should set SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED
+	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(callsecurityState);
 	msg->data.CallInfoDynamicMessage.lel_callInstance = htolel(callInstance);
 	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason = htolel(originalCdpnRedirectReason);
 	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(lastRedirectingReason);
@@ -141,19 +144,20 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 	//sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V7) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
 	//if ((GLOB(debug) & (DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) != 0) {
 	//	iCallInfo.Print2log(ci, "SCCP: (sendCallInfoV7)");
+	//	sccp_dump_msg(msg);
 	//}
 	sccp_dev_send(device, msg);
 }
 
-static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const uint8_t callInstance, constDevicePtr device)
+static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const uint8_t callInstance, const skinny_callsecuritystate_t callsecurityState, constDevicePtr device)
 {
  	pbx_assert(device != NULL);
 	sccp_msg_t *msg = NULL;
 
-	unsigned int dataSize = 16;
+	unsigned int dataSize = 15;
 	char data[dataSize][StationMaxNameSize];
 	memset(data, 0, dataSize * StationMaxNameSize);
-	
+
 	int originalCdpnRedirectReason = 0;
 	int lastRedirectingReason = 0;
 	sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
@@ -171,9 +175,8 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 		SCCP_CALLINFO_CALLEDPARTY_NAME, &data[10],
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &data[11],
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &data[12],
-		SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &data[13],
-		SCCP_CALLINFO_HUNT_PILOT_NUMBER, &data[14],
-		SCCP_CALLINFO_HUNT_PILOT_NAME, &data[15],
+		SCCP_CALLINFO_HUNT_PILOT_NUMBER, &data[13],
+		SCCP_CALLINFO_HUNT_PILOT_NAME, &data[14],
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &originalCdpnRedirectReason,
 		SCCP_CALLINFO_LAST_REDIRECT_REASON, &lastRedirectingReason,
 		SCCP_CALLINFO_PRESENTATION, &presentation,
@@ -187,7 +190,7 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 		return;
 	}
 	for (field = 0; field < dataSize; field++) {
-		data_len = strlen(data[field]) + 1 /* add NULL terminator */;
+		data_len = strlen(data[field]) + 1; 		//add NULL terminator
 		memcpy(dummy + dummy_len, data[field], data_len);
 		dummy_len += data_len;
 	}
@@ -197,7 +200,7 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	msg->data.CallInfoDynamicMessage.lel_callReference		= htolel(callid);
 	msg->data.CallInfoDynamicMessage.lel_callType			= htolel(calltype);
 	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits		= presentation ? 0x0 : 0xf;
-	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus		= htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
+	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus		= htolel(callsecurityState);
 	msg->data.CallInfoDynamicMessage.lel_callInstance		= htolel(callInstance);
 	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason	= htolel(originalCdpnRedirectReason);
 	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason	= htolel(lastRedirectingReason);
@@ -207,9 +210,11 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	//sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Send callinfo(V20) for %s channel %d/%d on line instance %d\n", (device) ? device->id : "(null)", skinny_calltype2str(calltype), callid, callInstance, lineInstance);
 	//if ((GLOB(debug) & (DEBUGCAT_CHANNEL | DEBUGCAT_LINE | DEBUGCAT_INDICATE)) != 0) {
 	//	iCallInfo.Print2log(ci, "SCCP: (sendCallInfoV16)");
+	//	sccp_dump_msg(msg);
 	//}
 	sccp_dev_send(device, msg);
 }
+
 /* done - CallInfoMessage */
 
 

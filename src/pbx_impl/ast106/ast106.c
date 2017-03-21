@@ -224,6 +224,7 @@ static int sccp_wrapper_asterisk16_devicestate(void *data)
 			break;
 
 		case SCCP_CHANNELSTATE_RINGOUT:
+		case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 #ifdef CS_EXPERIMENTAL
 			res = AST_DEVICE_RINGINUSE;
 			break;
@@ -853,6 +854,9 @@ static boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channe
 		return FALSE;
 	}
 	AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(channel->line));
+	if (!line) {
+		return FALSE;
+	}
 
 	// if (ids) {
 	// 	linkedId = pbx_builtin_getvar_helper(pbxSrcChannel, SCCP_AST_LINKEDID_HELPER));
