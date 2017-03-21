@@ -383,12 +383,7 @@ boolean_t sccp_device_check_update(devicePtr device)
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf (Update:%d, Delete:%d)\n", d->id, d->pendingUpdate, d->pendingDelete);
 
 				d->pendingUpdate = 0;
-				if (d->pendingDelete) {
-					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
-					sccp_dev_clean_restart(d, TRUE);
-				} else {
-					sccp_dev_clean_restart(d, FALSE);
-				}
+				sccp_dev_clean_restart(d, (d->pendingDelete) ? TRUE : FALSE);
 				res = TRUE;
 			} while (0);
 		}
@@ -2284,7 +2279,7 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 #endif
 
 	if (d) {
-		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "SCCP: Clean Device %s\n", d->id);
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "SCCP: Clean Device %s, remove from global:%d\n", d->id, remove_from_global ? "Yes" : "No");
 		sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_CLEANING);
 		if (remove_from_global) {
 			sccp_device_removeFromGlobals(d);
@@ -2415,15 +2410,14 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 		if (s) {
 			if (restart_device) {
 				sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-				sccp_safe_sleep(100);
-			} else {
-				sccp_session_releaseDevice(s);
-				d->session = NULL;
-				sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
+				//sccp_safe_sleep(100);
 			}
-		} else {
-			sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_NONE);
+			sccp_session_releaseDevice(s);
+			d->session = NULL;
+			sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
 		}
+		sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_NONE);
+
 #if CS_REFCOUNT_DEBUG
 		if (remove_from_global) {
 			pbx_str_t *buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE);

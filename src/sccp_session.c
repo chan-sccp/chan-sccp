@@ -493,9 +493,8 @@ static void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 		if (d->session) {
 			d->session = NULL;
 			sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE);
-		} else {
-			sccp_session_releaseDevice(s);
 		}
+		sccp_session_releaseDevice(s);
 	}
 
 	if (!sccp_session_removeFromGlobals(s)) {
