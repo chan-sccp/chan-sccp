@@ -1812,7 +1812,6 @@ static int sccp_astwrap_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * r
 
 		PBX_RTP_TYPE *instance = { 0, };
 		struct sockaddr_storage sas = { 0, };
-		//struct sockaddr_in sin = { 0, };
 		struct ast_sockaddr sin_tmp;
 		boolean_t directmedia = FALSE;
 
@@ -1826,33 +1825,41 @@ static int sccp_astwrap_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * r
 
 		if (d->directrtp && d->nat < SCCP_NAT_ON && !nat_active && !c->conference) {			// asume directrtp
 			ast_rtp_instance_get_remote_address(instance, &sin_tmp);
-			memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
-			//ast_sockaddr_to_sin(&sin_tmp, &sin);
-			if (d->nat == SCCP_NAT_OFF) {								// forced nat off to circumvent autodetection + direcrtp, requires checking both phone_ip and external session ip address against devices permit/deny
-				struct ast_sockaddr sin_local;
-				struct sockaddr_storage localsas = { 0, };
-				ast_rtp_instance_get_local_address(instance, &sin_local);
-				memcpy(&localsas, &sin_local, sizeof(struct sockaddr_storage));
-				if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW && sccp_apply_ha(d->ha, &localsas) == AST_SENSE_ALLOW) {
+			if (!ast_sockaddr_isnull(&sin_tmp)) {
+				memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
+				if (d->nat == SCCP_NAT_OFF) {							// forced nat off to circumvent autodetection + direcrtp, requires checking both phone_ip and external session ip address against devices permit/deny
+					struct ast_sockaddr sin_local;
+					struct sockaddr_storage localsas = { 0, };
+					ast_rtp_instance_get_local_address(instance, &sin_local);
+					memcpy(&localsas, &sin_local, sizeof(struct sockaddr_storage));
+					if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW && sccp_apply_ha(d->ha, &localsas) == AST_SENSE_ALLOW) {
+						directmedia = TRUE;
+					}
+				} else if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW) {			// check remote sin against local device acl (to match netmask)
 					directmedia = TRUE;
+					//ast_channel_defer_dtmf(ast);
 				}
-			} else if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW) {					// check remote sin against local device acl (to match netmask)
-					directmedia = TRUE;
-					//                ast_channel_defer_dtmf(ast);
+			} else {
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (update_rtp_peer) failed to get remote ip-address\n", c->currentDeviceId);
 			}
 		}
 		if (!directmedia) {										// fallback to indirectrtp
 			ast_rtp_instance_get_local_address(instance, &sin_tmp);
-			//        ast_sockaddr_to_sin(&sin_tmp, &sin);
-			//        sin.sin_addr.s_addr = sin.sin_addr.s_addr ? sin.sin_addr.s_addr : d->session->ourip.s_addr;
-			memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
-			sccp_session_getOurIP(d->session, &sas, sccp_netsock_is_IPv4(&sas) ? AF_INET : AF_INET6);
+			if (!ast_sockaddr_isnull(&sin_tmp)) {
+				memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
+				sccp_session_getOurIP(d->session, &sas, sccp_netsock_is_IPv4(&sas) ? AF_INET : AF_INET6);
+			} else {
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (update_rtp_peer) failed to get local ip-address\n", c->currentDeviceId);
+				return -1;
+			}
 		}
 
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (update_rtp_peer) new remote rtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s) => directmedia=%s\n", c->currentDeviceId, sccp_netsock_stringify(&sas), S_COR(d->directrtp, "yes", "no"),
-					  sccp_nat2str(d->nat),
-					  S_COR(!nat_active, "yes", "no"), S_COR(directmedia, "yes", "no"), S_COR(directmedia, "yes", "no")
-		    );
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (update_rtp_peer) new remote rtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s && !c->conference:%s) => directmedia=%s\n",
+			  c->currentDeviceId, sccp_netsock_stringify(&sas), S_COR(d->directrtp, "yes", "no"),
+			  sccp_nat2str(d->nat),
+			  S_COR(!nat_active, "yes", "no"), S_COR(directmedia, "yes", "no"), S_COR(directmedia, "yes", "no"),
+			  S_COR(!c->conference, "yes", "no")
+		);
 
 		if (rtp) {											// send peer info to phone
 			sccp_rtp_set_peer(c, &c->rtp.audio, &sas);

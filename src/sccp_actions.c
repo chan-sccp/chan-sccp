@@ -3401,12 +3401,14 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 				return;
 		}
 		
+		/*
 		if (channel && !sccp_netsock_equals(&sas, &rtp->phone_remote)) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (PortResponse) Pass PortResponse to sccp_rtp_set_phone\n", channel->designator);
 			rtp->RTCPPortNumber=RTCPPortNumber;
 			sccp_rtp_set_phone(channel, rtp, &sas);
 			//rtp->reception.state = SCCP_RTP_STATUS_PORTSET;
 		}
+		*/
 	}
 }
 

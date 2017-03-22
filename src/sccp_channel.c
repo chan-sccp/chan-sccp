@@ -36,6 +36,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 
 static uint32_t callCount = 1;
 int __sccp_channel_destroy(const void * channel);
+static void sccp_channel_finish_resume(constDevicePtr d, channelPtr c);
 
 AST_MUTEX_DEFINE_STATIC(callCountLock);
 
@@ -736,13 +737,17 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 																// we can receive inband signalling from this
 																// moment onwards -> inband signalling required
 		}
-		// indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC
-		// handle out of order arrival when startMediaAck returns before openReceiveChannelAck
-		if (    SCCP_CHANNELSTATE_IsConnected(c->state) &&
-			(audio->reception.state & SCCP_RTP_STATUS_ACTIVE) &&
-			(audio->transmission.state & SCCP_RTP_STATUS_ACTIVE)
-		) {
-			iPbx.set_callstate(c, AST_STATE_UP);
+		if (SCCP_CHANNELSTATE_IsConnected(c->state)) {
+			// indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC
+			// handle out of order arrival when startMediaAck returns before openReceiveChannelAck
+			if ((pbx_channel_state(c->owner) != AST_STATE_UP) && (audio->transmission.state & SCCP_RTP_STATUS_ACTIVE)) {
+				iPbx.set_callstate(c, AST_STATE_UP);
+			}
+
+			// resuming a channel which was on hold (moved here to make sure open_receive_ack happens before re-briding (directrtp)
+			if (c->previousChannelState == SCCP_CHANNELSTATE_HOLD) {
+				sccp_channel_finish_resume(d,c);
+			}
 		}
 	}
 	return SCCP_RTP_STATUS_ACTIVE;
@@ -889,12 +894,17 @@ int sccp_channel_mediaTransmissionStarted(devicePtr d, channelPtr c)
 		if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
 			iPbx.queue_control(c->owner, AST_CONTROL_ANSWER);
 		}
-		// indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC
-		if (
-			(c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) &&
-			((audio->reception.state & SCCP_RTP_STATUS_ACTIVE) && (audio->transmission.state & SCCP_RTP_STATUS_ACTIVE))
-		) {
-			iPbx.set_callstate(c, AST_STATE_UP);
+		if (SCCP_CHANNELSTATE_IsConnected(c->state)) {
+			// indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC
+			// handle out of order arrival when startMediaAck returns before openReceiveChannelAck
+			if ((pbx_channel_state(c->owner) != AST_STATE_UP) && (audio->reception.state & SCCP_RTP_STATUS_ACTIVE)) {
+				iPbx.set_callstate(c, AST_STATE_UP);
+			}
+
+			// resuming a channel which was on hold (moved here to make sure open_receive_ack happens before re-briding (directrtp)
+			if (c->previousChannelState == SCCP_CHANNELSTATE_HOLD) {
+				sccp_channel_finish_resume(d,c);
+			}
 		}
 	}
 	return SCCP_RTP_STATUS_ACTIVE;
@@ -1881,6 +1891,29 @@ int sccp_channel_hold(channelPtr channel)
 }
 
 /*!
+ * \brief Finish Resuming a channel that is on hold.
+ * finish resume after processing openReceiveChannelAck / startMediaTransmissionAck
+ * This way we make sure that we have a valid rtp.audio.phone_remote and rtp.audio.phone ip-address (direcrtp/indirectrtp)
+ *
+ * \callgraph
+ * \callergraph
+ *
+ */
+static void sccp_channel_finish_resume(constDevicePtr d, channelPtr c)
+{
+	pbx_assert(d != NULL && c != NULL && c->owner != NULL);
+#if CS_SCCP_CONFERENCE
+	if (c->conference) {
+		sccp_conference_resume(c->conference);
+		sccp_dev_set_keyset(d, sccp_device_find_index_for_line(d, c->line->name), c->callid, KEYMODE_CONNCONF);
+	} else
+#endif
+	{
+		iPbx.queue_control(c->owner, AST_CONTROL_UNHOLD);
+	}
+}
+
+/*!
  * \brief Resume a channel that is on hold.
  * \param device device who resumes the channel
  * \param channel channel
@@ -1963,22 +1996,17 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 	channel->owner->pickupgroup = l->pickupgroup;
 #endif
 #endif														// ASTERISK_VERSION_GROUP >= 111
+	// moved AST_CONTROL_UNHOLD indication to openReceiveChannelAck/startMediaTransmissionAck */
+	// Once the recieveChannel is open (and has a new ip-address/port), it will unhold the remote side
+	// openReceiveChannelAck or startMediaTransmissionAck will call 'sccp_channel_finish_resume'
+	// This serializes the correct events to happen in order for directrtp to work
 
-#ifdef CS_SCCP_CONFERENCE
-	if (channel->conference) {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume Conference on the channel %s\n", d->id, channel->designator);
-		sccp_conference_resume(channel->conference);
-		sccp_dev_set_keyset(d, instance, channel->callid, KEYMODE_CONNCONF);
-	} else
-#endif
-	{
-		if (channel->owner) {
-			iPbx.queue_control(channel->owner, AST_CONTROL_UNHOLD);
-		}
-	}
+	//! \todo move this to openreceive- and startmediatransmission
+	sccp_channel_updateChannelCapability(channel);
 
 	channel->state = SCCP_CHANNELSTATE_HOLD;
 #ifdef CS_AST_CONTROL_SRCUPDATE
+	//! \todo should be moved to sccp_rtp_set_peer
 	iPbx.queue_control(channel->owner, AST_CONTROL_SRCUPDATE);						// notify changes e.g codec
 #endif
 	if (channel->conference) {

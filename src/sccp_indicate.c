@@ -321,8 +321,8 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
 				if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
-				} else {
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_channelstate2str(c->previousChannelState));
+				} else if (c->rtp.audio.transmission.state == SCCP_RTP_STATUS_INACTIVE) {
+					sccp_channel_startMediaTransmission(c);
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_CONNECTED);
 			}
@@ -338,6 +338,14 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 		case SCCP_CHANNELSTATE_HOLD:
 			{
 				sccp_channel_closeAllMediaTransmitAndReceive(d, c);
+				/*
+				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.audio.receiveChannelState) {
+					sccp_channel_closeReceiveChannel(c, TRUE);
+				}
+				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.receiveChannelState) {
+					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
+				}
+				*/
 				if (d->session) {
 					sccp_handle_time_date_req(d->session, d, NULL);
 				}
@@ -408,8 +416,8 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
 				if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
-				} else {
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_channelstate2str(c->previousChannelState));
+				} else if (c->rtp.audio.transmission.state == SCCP_RTP_STATUS_INACTIVE) {
+					sccp_channel_startMediaTransmission(c);
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_CONNCONF);
 			}

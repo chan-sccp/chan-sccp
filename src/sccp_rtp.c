@@ -277,7 +277,6 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 	AUTO_RELEASE(sccp_device_t, device , sccp_channel_getDevice(c));
 
 	if (device) {
-
 		/* check if we have new infos */
 		char peerIpStr[NI_MAXHOST + NI_MAXSERV];
 		char remoteIpStr[NI_MAXHOST + NI_MAXSERV];
@@ -291,28 +290,19 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 			sccp_netsock_setPort(new_peer, port);
 		}
 
-		/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
-		/*
-		if (sccp_netsock_equals(new_peer, &c->rtp.audio.phone)) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equal to the current one, ignore change\n", c->currentDeviceId);
-			return;
-		}
-		*/
-
 		memcpy(&rtp->phone, new_peer, sizeof(rtp->phone));
-
-		//update pbx
-		if (iPbx.rtp_setPhoneAddress) {
+		if (iPbx.rtp_setPhoneAddress && rtp->instance) {
 			iPbx.rtp_setPhoneAddress(rtp, new_peer, device->nat >= SCCP_NAT_ON ? 1 : 0);
+
+			sccp_copy_string(remoteIpStr, sccp_netsock_stringify(&rtp->phone_remote), sizeof(remoteIpStr));
+			sccp_copy_string(phoneIpStr, sccp_netsock_stringify(&rtp->phone), sizeof(phoneIpStr));
+			if (device->nat >= SCCP_NAT_ON) {
+				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell %s  to send RTP/UDP media from %s to %s (NAT:%s)\n", DEV_ID_LOG(device), device->directrtp ? "Peer" : "PBX ", remoteIpStr, phoneIpStr, peerIpStr);
+			} else {
+				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell %s  to send RTP/UDP media from %s to %s (NoNat)\n", DEV_ID_LOG(device), device->directrtp ? "Peer" : "PBX ", remoteIpStr, phoneIpStr);
+			}
 		}
 
-		sccp_copy_string(remoteIpStr, sccp_netsock_stringify(&rtp->phone_remote), sizeof(remoteIpStr));
-		sccp_copy_string(phoneIpStr, sccp_netsock_stringify(&rtp->phone), sizeof(phoneIpStr));
-		if (device->nat >= SCCP_NAT_ON) {
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (NAT:%s)\n", DEV_ID_LOG(device), remoteIpStr, phoneIpStr, peerIpStr);
-		} else {
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (NoNat)\n", DEV_ID_LOG(device), remoteIpStr, phoneIpStr);
-		}
 	}
 }
 
