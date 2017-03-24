@@ -115,7 +115,7 @@ struct sccp_global_vars {
 #else
 	uint8_t _padding1[1];
 #endif
-	uint8_t ringtype;											/*!< RingType for incoming calls */
+	skinny_ringtype_t ringtype;										/*!< RingType for incoming calls */
 	boolean_t meetme;											/*!< Meetme on/off */
 	boolean_t allowAnonymous;										/*!< Allow Anonymous/Guest Devices */
 	sccp_earlyrtp_t earlyrtp;										/*!< Channel State where to open the rtp media stream */

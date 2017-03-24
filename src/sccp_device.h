@@ -219,7 +219,6 @@ struct sccp_device {
 		skinny_codec_t video[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Video Codec Preferences */
 	} preferences;
 
-	//uint8_t earlyrtp;											/*!< RTP Channel State where to open the RTP Media Stream */
 	time_t registrationTime;
 
 	struct sccp_ha *ha;											/*!< Permit or Deny Connections to the Main Socket */

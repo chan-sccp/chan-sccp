@@ -623,10 +623,8 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 			{
 				int enumValue = -1;
 				if (!sccp_strlen_zero(value)) {
-					//pbx_log(LOG_NOTICE, "SCCP: ENUM name: %s, value: %s\n", name, value);
 					const char *all_entries = sccpConfigOption->all_entries();
 					if (!strncasecmp(value, "On,Yes,True,Off,No,False", strlen(value))) {
-						//pbx_log(LOG_NOTICE, "SCCP: ENUM name: %s, value: %s is on/off\n", name, value);
 						if (sccp_true(value)) {
 							if (strcasestr(all_entries, "On")) {
 								enumValue = sccpConfigOption->str2intval("On");
@@ -645,13 +643,28 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 							}
 						}
 					} else if ((enumValue = sccpConfigOption->str2intval(value)) != -1) {
-						//pbx_log(LOG_NOTICE, "SCCP: ENUM name: %s, value: %s is other\n", name, value);
 						sccp_log(DEBUGCAT_HIGH) ("SCCP: Parse Other Value: %s -> %d\n", value, enumValue);
 					}
 					if (enumValue != -1) {
-						if (*(int *) dst != enumValue) {
-							*(int *) dst = enumValue;
-							changed = SCCP_CONFIG_CHANGE_CHANGED;
+			                        switch (sccpConfigOption->size) {
+						case 1:
+							if (*(int8_t *) dst != (int8_t)enumValue) {
+								*(int8_t *) dst = (int8_t)enumValue;
+								changed = SCCP_CONFIG_CHANGE_CHANGED;
+							}
+							break;
+						case 2:
+							if ((*(uint16_t *) dst) != (int16_t)enumValue) {
+								*(uint16_t *) dst = (int16_t)enumValue;
+								changed = SCCP_CONFIG_CHANGE_CHANGED;
+							}
+							break;
+						default:
+							if (*(int *) dst != enumValue) {
+								*(int *) dst = enumValue;
+								changed = SCCP_CONFIG_CHANGE_CHANGED;
+							}
+							break;
 						}
 					} else {
 						pbx_log(LOG_NOTICE, "SCCP: Invalid value '%s' for [%s]->%s. Allowed: [%s]\n", value, sccpConfigSegment->name, name, sccpConfigOption->all_entries());
@@ -2226,7 +2239,6 @@ sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYP
 	if (res) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Update Needed (%d)\n", res);
 	}
-
 	sccp_config_set_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT, SetEntries);
 
 	if (GLOB(keepalive) < SCCP_MIN_KEEPALIVE) {
