@@ -3287,7 +3287,7 @@ static ast_module_load_result load_module(void)
 static int load_module(void)
 #endif
 {
-	int res = AST_MODULE_LOAD_FAILURE;
+	int res = AST_MODULE_LOAD_DECLINE;
 	do {
 		if (ast_module_check("chan_skinny.so")) {
 			pbx_log(LOG_ERROR, "Chan_skinny is loaded. Please check modules.conf and remove chan_skinny before loading chan_sccp.\n");
