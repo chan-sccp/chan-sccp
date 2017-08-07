@@ -312,11 +312,11 @@ static gcc_inline int __sccp_refcount_debug(const void *ptr, RefCountedObject * 
 	if (sccp_ref_debug_log) {	
 		do {
 			if (ptr == NULL) {
-				ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "E", 0, ptr, ast_get_tid(),file, line, func, "**PTR IS NULL**", "", "");
+				ref_debug_size += fprintf(sccp_ref_debug_log, fmt, NULL, "E", 0, NULL, ast_get_tid(),file, line, func, "**PTR IS NULL**", "", "");
 				break;	
 			}
 			if (obj == NULL) {
-				ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "E", 0, ptr, ast_get_tid(),file, line, func, "**OBJ ALREADY DESTROYED**", "", "");
+				ref_debug_size += fprintf(sccp_ref_debug_log, fmt, NULL, "E", 0, NULL, ast_get_tid(),file, line, func, "**OBJ ALREADY DESTROYED**", "", "");
 				break;
 			}
 
