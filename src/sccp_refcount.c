@@ -626,7 +626,7 @@ int sccp_refcount_force_release(long findobj, char *identifier)
 	ast_rwlock_unlock(&objectslock);
 	if (ptr) {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "Forcefully releasing one instance of %s\n", identifier);
-		sccp_refcount_release(ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+		sccp_refcount_release((const void ** const)&ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 		return 1;
 	}
 	return 0;
