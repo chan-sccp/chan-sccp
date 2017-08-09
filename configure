@@ -1640,7 +1640,7 @@ Optional Features:
   --disable-silent-rules  verbose build output (undo: "make V=0")
   --enable-static[=PKGS]  build static libraries [default=no]
 
-  --enable-optimization   no detection or tuning flags for cpu version
+		  --enable-optimization   do not detecti or tune flags for cpu version
   --disable-debug         disable debug information
   --disable-builtin-atomics
                           force the use of inline-assembly (if possible)
@@ -1660,7 +1660,7 @@ Optional Features:
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --disable-rpath         do not hardcode runtime library paths
-  --enable-devdoc         enable developer documentation
+  --enable-devdoc         Generate developer documentation
   --disable-doxygen-doc   don't generate any doxygen documentation
   --disable-doxygen-dot   don't generate graphics for doxygen documentation
   --enable-doxygen-man    generate doxygen manual pages
@@ -1675,11 +1675,12 @@ Optional Features:
   --enable-experimental-xml
                           enable experimental xml (only for developers)
   --enable-section-relocation
-                          disable compiler section relocation
-  --enable-gcov           enable Gcov to profile sources
-  --enable-refcount-debug enable refcount debug
-  --enable-lock-debug     enable lock debug
-  --enable-strip          enable stripping the binary during installation
+                          enable compiler section relocation
+  --enable-gcov           generate Gcov to profile sources
+  --enable-refcount-debug enable refcount debugging (developer only)
+  --enable-lock-debug     enable lock debugging (developer only)
+  --enable-strip          strip the symbols from the binary during
+                          installation
   --disable-pickup        disable pickup function
   --disable-park          disable park functionality
   --disable-dirtrfr       disable direct transfer
@@ -1700,7 +1701,7 @@ Optional Features:
                           disable dynamic speeddials with call info
   --enable-video          enable streaming video (experimental)
   --enable-distributed-devicestate
-                          enable distributed devicestate (>ast 1.6.2)
+                          enable distributed devicestate (ast 1.8 - 12)
   --enable-experimental-mode
                           enable experimental mode (only for developers)
 

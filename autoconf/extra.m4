@@ -429,7 +429,7 @@ AC_DEFUN([CS_WITH_PBX], [
 AC_DEFUN([CS_SETUP_DOXYGEN], [
 	CONFIGURE_PART([Checking for Doxygen:])
 	AC_ARG_ENABLE([devdoc], 
-		[AC_HELP_STRING([--enable-devdoc], [enable developer documentation])], 
+		[AC_HELP_STRING([--enable-devdoc], [Generate developer documentation])], 
 		[ac_cv_use_devdoc=$enableval], 
 		[ac_cv_use_devdoc=no]
 	)
@@ -447,7 +447,7 @@ AC_DEFUN([CS_SETUP_DOXYGEN], [
 
 AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	AC_ARG_ENABLE(optimization, [
-		AC_HELP_STRING([--enable-optimization],[no detection or tuning flags for cpu version])], 
+		AC_HELP_STRING([--enable-optimization],[do not detecti or tune flags for cpu version])], 
 		[enable_optimization=$enableval],
 		[enable_optimization=no; if test "${REPOS_TYPE}" = "TGZ"; then enable_optimization=yes; fi]
 	)
@@ -624,7 +624,7 @@ AC_DEFUN([CS_ENABLE_GCOV], [
 	COVERAGE_CFLAGS=''
 	COVERAGE_LDFLAGS=''
 	AC_ARG_ENABLE([gcov],
-		[AS_HELP_STRING([--enable-gcov], [enable Gcov to profile sources])],
+		[AS_HELP_STRING([--enable-gcov], [generate Gcov to profile sources])],
 		[ac_cv_enable_gcov=$enableval], 
 		[ac_cv_enable_gcov=no]
 	)
@@ -639,7 +639,7 @@ AC_DEFUN([CS_ENABLE_GCOV], [
 
 AC_DEFUN([CS_ENABLE_REFCOUNT_DEBUG], [
 	AC_ARG_ENABLE(refcount_debug, 
-		[AC_HELP_STRING([--enable-refcount-debug], [enable refcount debug])], 
+		[AC_HELP_STRING([--enable-refcount-debug], [enable refcount debugging (developer only)])], 
 		[ac_cv_refcount_debug=$enableval], 
 		[ac_cv_refcount_debug=no]
 	)
@@ -649,7 +649,7 @@ AC_DEFUN([CS_ENABLE_REFCOUNT_DEBUG], [
 
 AC_DEFUN([CS_ENABLE_LOCK_DEBUG], [
 	AC_ARG_ENABLE(lock_debug, 
-		[AC_HELP_STRING([--enable-lock-debug], [enable lock debug])], 
+		[AC_HELP_STRING([--enable-lock-debug], [enable lock debugging (developer only)])], 
 		[ac_cv_lock_debug=$enableval], 
 		[ac_cv_lock_debug=no]
 	)
@@ -660,7 +660,7 @@ AC_DEFUN([CS_ENABLE_LOCK_DEBUG], [
 
 AC_DEFUN([CS_ENABLE_STRIP], [
 	AC_ARG_ENABLE(strip, 
-		[AC_HELP_STRING([--enable-strip], [enable stripping the binary during installation])], 
+		[AC_HELP_STRING([--enable-strip], [strip the symbols from the binary during installation])], 
 		[ac_cv_enable_strip=$enableval], 
 		[ac_cv_enable_strip=no]
 	)
@@ -678,7 +678,7 @@ AC_DEFUN([CS_DISABLE_SECTION_RELOCATION], [
 		;;
 	*)
 		AC_ARG_ENABLE(section_relocation,
-			[AC_HELP_STRING([--enable-section-relocation], [disable compiler section relocation])],
+			[AC_HELP_STRING([--enable-section-relocation], [enable compiler section relocation])],
 			[ac_cv_section_relocation=$enableval], 
 			[ac_cv_section_relocation=no]
 		)
@@ -907,7 +907,7 @@ AC_DEFUN([CS_ENABLE_VIDEO], [
 
 AC_DEFUN([CS_ENABLE_DISTRIBUTED_DEVSTATE], [
 	AC_ARG_ENABLE(distributed_devicestate, 
-		[AC_HELP_STRING([--enable-distributed-devicestate], [enable distributed devicestate (>ast 1.6.2)])], 
+		[AC_HELP_STRING([--enable-distributed-devicestate], [enable distributed devicestate (ast 1.8 - 12)])], 
 		[ac_cv_use_distributed_devicestate=$enableval], 
 		[ac_cv_use_distributed_devicestate=no]
 	)
