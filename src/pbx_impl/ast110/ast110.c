@@ -2578,7 +2578,7 @@ static struct ast_rtp_glue sccp_rtp = {
 #endif
 
 #ifdef HAVE_PBX_MESSAGE_H
-#include "asterisk/message.h"
+#include <asterisk/message.h>
 static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to, const char *from)
 {
 	char *lineName;
