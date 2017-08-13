@@ -26,3 +26,5 @@ src/config.h.in.bak
 .revision
 src/revision.h
 src/sccp_enum.?
+*.bak
+*.diff
