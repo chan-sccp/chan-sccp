@@ -1352,7 +1352,7 @@ static void sccp_hint_notifySubscribersViaPbx(struct sccp_hint_lineState *lineSt
  */
 static boolean_t sccp_match_dialplan2lineName(char *hint_app, char *lineName)
 {
-	char *rest = strdupa(hint_app);
+	char *rest = pbx_strdupa(hint_app);
         char *cur;
         char *tmp;
 
