@@ -1335,7 +1335,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_jbresyncthreshold(void *dest, con
 sccp_value_changed_t sccp_config_parse_jbflags_impl(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char * value = strdupa(v->value);
+	char * value = pbx_strdupa(v->value);
 	struct ast_jb_conf *jb = *(struct ast_jb_conf **) dest;
 	
 	if (!sccp_strcaseequals(jb->impl,value)) {
@@ -1351,7 +1351,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_impl(void *dest, const size_t siz
 sccp_value_changed_t sccp_config_parse_webdir(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
+	char *value = pbx_strdupa(v->value);
 	char *webdir = (char *) dest;
 	char new_webdir[PATH_MAX] = "";
 

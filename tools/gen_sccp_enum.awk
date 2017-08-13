@@ -61,6 +61,7 @@ BEGIN {
 	# print " * Date: " $date > out_header_file
 	print " */" >out_header_file 
 	print "#pragma once" >out_header_file
+	print "#include <sys/types.h>" >out_header_file
 	print "__BEGIN_C_EXTERN__" >out_header_file 
 	print "typedef uint32_t (*sccp_enum_str2intval_t)(const char *lookup_str);" > out_header_file
 	print "typedef const char *(*sccp_enum_all_entries_t)(void);" > out_header_file
