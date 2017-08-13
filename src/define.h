@@ -227,6 +227,10 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 #define __atoi atoi
 #define atoi(...) _Pragma("GCC error \"use sccp atoi instead of atoi\"")
 
+#define __strdupa strdupa
+#undef strdupa
+#define strdupa(...) _Pragma("GCC error \"use pbx_strdupa instead of strdupa\"")
+
 #if defined(__clang__)
 typedef void (^sccp_raii_cleanup_block_t)(void);
 static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(); }
