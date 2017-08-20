@@ -472,6 +472,23 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		])
 	 	CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
 		GDB_FLAGS=""
+		AS_IF([test "x${GCC}" = "xyes"], [
+			AC_LANG_SAVE
+			AC_LANG_C
+			AX_APPEND_COMPILE_FLAGS([ dnl
+				-fvisibility=hidden dnl
+				-fvisibility-inlines-hidden dnl
+				-fexcess-precision=fast dnl
+				-fvisibility=hidden dnl
+				-fwrapv dnl
+				-fno-delete-null-pointer-checks dnl
+				-xldscope=hidden dnl
+				-Wl,--as-needed dnl
+				-fPIE dnl
+				-fPIE -pie dnl
+			], SUPPORTED_CFLAGS)
+		])
+		AC_SUBST([strip_binaries])
 	], [
 	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O[0-9]\ \?//g' -e 's/[^|\ ]\-g[$|\ ]//g'`"
 		optimize_flag="-O0"
@@ -693,7 +710,7 @@ AC_DEFUN([CS_ENABLE_STRIP], [
 	AC_ARG_ENABLE(strip, 
 		[AC_HELP_STRING([--enable-strip], [strip the symbols from the binary during installation])], 
 		[ac_cv_enable_strip=$enableval], 
-		[ac_cv_enable_strip=no]
+		[ac_cv_enable_strip=no; if [ test "x$enable_optimization" == "xyes"; ] then ac_cv_enable_strip="yes";fi]
 	)
 	strip_binaries="${ac_cv_enable_strip}"
 	AC_MSG_RESULT([--enable-strip: ${ac_cv_enable_strip}])
