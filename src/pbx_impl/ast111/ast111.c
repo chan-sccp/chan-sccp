@@ -154,19 +154,12 @@ PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_findPickupChannelByGroupLocked(PBX_CH
 static inline skinny_codec_t sccp_asterisk11_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability)
 {
 	struct ast_format tmp_fmt;
-	uint8_t i;
 	skinny_codec_t codec = SKINNY_CODEC_NONE;
 
 	ast_format_cap_iter_start(ast_format_capability);
 	while (!ast_format_cap_iter_next(ast_format_capability, &tmp_fmt)) {
-		for (i = 1; i < ARRAY_LEN(pbx2skinny_codec_maps); i++) {
-			if (pbx2skinny_codec_maps[i].pbx_codec == tmp_fmt.id) {
-				codec = pbx2skinny_codec_maps[i].skinny_codec;
-				break;
-			}
-		}
-
-		if (codec != SKINNY_CODEC_NONE) {
+		if ((codec = pbx_codec2skinny_codec(tmp_fmt.id))== SKINNY_CODEC_NONE) {
+			ast_log(LOG_WARNING, "SCCP: (getSkinnyFormatSingle) No matching codec found");
 			break;
 		}
 	}
@@ -178,21 +171,18 @@ static inline skinny_codec_t sccp_asterisk11_getSkinnyFormatSingle(struct ast_fo
 static uint8_t sccp_asterisk111_getSkinnyFormatMultiple(struct ast_format_cap *ast_format_capability, skinny_codec_t codec[], int length, ast_format_type mask)
 {
 	struct ast_format tmp_fmt;
-	uint8_t i;
 	uint8_t position = 0;
+	skinny_codec_t found = SKINNY_CODEC_NONE;
 
 	ast_format_cap_iter_start(ast_format_capability);
 	while (!ast_format_cap_iter_next(ast_format_capability, &tmp_fmt) && position < length) {
 		if (AST_FORMAT_GET_TYPE(tmp_fmt.id) != mask) {
 			continue;
 		}
-		for (i = 1; i < ARRAY_LEN(pbx2skinny_codec_maps); i++) {
-			if (pbx2skinny_codec_maps[i].pbx_codec == tmp_fmt.id) {
-				codec[position++] = pbx2skinny_codec_maps[i].skinny_codec;
-				break;
-			}
+		if ((found = pbx_codec2skinny_codec(tmp_fmt.id)) != SKINNY_CODEC_NONE) {
+			codec[position++] = found;
+			break;
 		}
-
 	}
 	ast_format_cap_iter_end(ast_format_capability);
 

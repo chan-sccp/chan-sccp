@@ -223,23 +223,6 @@ void sccp_dev_dbclean(void)
 }
 #endif
 
-gcc_inline const char *pbxsccp_devicestate2str(uint32_t value)
-{														/* pbx_impl/ast/ast.h */
-	_ARR2STR(sccp_pbx_devicestates, devicestate, value, text);
-}
-
-#if UNUSEDCODE // 2015-11-01
-gcc_inline const char *extensionstatus2str(uint32_t value)
-{														/* pbx_impl/ast/ast.h */
-	_ARR2STR(sccp_extension_states, extension_state, value, text);
-}
-#endif
-
-gcc_inline const char *label2str(uint16_t value)
-{														/* sccp_labels.h */
-	_ARR2STR(skinny_labels, label, value, text);
-}
-
 #if UNUSEDCODE // 2015-11-01
 gcc_inline uint32_t debugcat2int(const char *str)
 {														/* chan_sccp.h */
@@ -247,10 +230,6 @@ gcc_inline uint32_t debugcat2int(const char *str)
 }
 #endif
 
-gcc_inline uint32_t labelstr2int(const char *str)
-{														/* chan_sccp.h */
-	_STRARR2INT(skinny_labels, text, str, label);
-}
 
 #ifndef HAVE_PBX_STRINGS_H
 

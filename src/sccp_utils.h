@@ -75,14 +75,10 @@ SCCP_API void SCCP_CALL sccp_dev_dbclean(void);
         })
 
 // SCCP Lookups
-SCCP_INLINE const char * SCCP_CALL pbxsccp_devicestate2str(uint32_t value);
 // SKINNY Lookups
-SCCP_INLINE const char * SCCP_CALL label2str(uint16_t value);
 SCCP_INLINE const char * SCCP_CALL featureType2str(sccp_feature_type_t value);
 SCCP_INLINE const char * SCCP_CALL debugcat_keys(void);
-SCCP_INLINE SCCP_CALL uint32_t labelstr2int(const char *str);
 #if UNUSEDCODE // 2015-11-01
-SCCP_INLINE const char * SCCP_CALL extensionstatus2str(uint32_t value);
 SCCP_INLINE SCCP_CALL uint32_t debugcat2int(const char *str);
 #endif
 
