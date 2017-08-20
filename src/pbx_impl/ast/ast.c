@@ -531,7 +531,11 @@ skinny_codec_t __CONST__ pbx_codec2skinny_codec(ast_format_type fmt)
  *
  * \return fmt Format as ast_format_type
  */
+<<<<<<< HEAD
 uint64_t __CONST__ skinny_codec2pbx_codec(skinny_codec_t codec)
+=======
+uint64_t skinny_codec2pbx_codec(skinny_codec_t codec)
+>>>>>>> Upd: Move pbx2skinny_codec_maps into pbx_impl/ast/ast.c
 {
 	uint32_t i;
 
@@ -550,7 +554,11 @@ uint64_t __CONST__ skinny_codec2pbx_codec(skinny_codec_t codec)
  *
  * \return bit array fmt/Format of ast_format_type (int)
  */
+<<<<<<< HEAD
 uint64_t __PURE__ skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs)
+=======
+uint64_t skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs)
+>>>>>>> Upd: Move pbx2skinny_codec_maps into pbx_impl/ast/ast.c
 {
 	uint32_t i;
 	int res_codec = 0;
