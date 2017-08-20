@@ -13,7 +13,7 @@
 #pragma once
 #include "define.h"
 #include "sccp_codec.h"
-#include "sccp_labels.h"
+//#include "sccp_labels.h"
 #include "sccp_softkeys.h"
 #include "sccp_enum.h"
 
@@ -3211,52 +3211,6 @@ extern const struct messagetype sccp_messagetypes[];
 extern const struct messagetype spcp_messagetypes[];
 SCCP_INLINE const char * SCCP_CALL msgtype2str(sccp_mid_t msgId);
 
-static const uint8_t softkeysmap[] = {
-	SKINNY_LBL_REDIAL,
-	SKINNY_LBL_NEWCALL,
-	SKINNY_LBL_HOLD,
-	SKINNY_LBL_TRANSFER,
-	SKINNY_LBL_CFWDALL,
-	SKINNY_LBL_CFWDBUSY,
-	SKINNY_LBL_CFWDNOANSWER,
-	SKINNY_LBL_BACKSPACE,
-	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_RESUME,
-	SKINNY_LBL_ANSWER,
-	SKINNY_LBL_INFO,
-	SKINNY_LBL_CONFRN,
-	SKINNY_LBL_PARK,
-	SKINNY_LBL_JOIN,
-	SKINNY_LBL_MEETME,
-	SKINNY_LBL_PICKUP,
-	SKINNY_LBL_GPICKUP,
-	SKINNY_LBL_MONITOR,
-	SKINNY_LBL_CALLBACK,
-	SKINNY_LBL_BARGE,
-	SKINNY_LBL_DND,
-	SKINNY_LBL_CONFLIST,
-	SKINNY_LBL_SELECT,
-	SKINNY_LBL_PRIVATE,
-	SKINNY_LBL_TRNSFVM,
-	SKINNY_LBL_DIRTRFR,
-	SKINNY_LBL_IDIVERT,
-	SKINNY_LBL_VIDEO_MODE,
-	SKINNY_LBL_INTRCPT,
-	SKINNY_LBL_EMPTY,
-	SKINNY_LBL_DIAL,
-	//SKINNY_LBL_CBARGE,
-};														/*!< SKINNY Soft Keys Map as INT */
-
-
-/*!
- * \brief SKINNY Soft Key Modes Structure
- */
-typedef struct {
-	uint8_t *ptr;												/*!< Point to next Mode */
-	uint8_t id;												/*!< Soft Key ID */
-	uint8_t count;												/*!< Soft Key Count */
-} softkey_modes;												/*!< SKINNY Soft Key Modes Structure */
-
 /*!
  * \brief SCCP Device Protocol Callback Structure
  *
@@ -3277,7 +3231,7 @@ typedef struct {
 	void (*const displayNotify) (constDevicePtr device, uint8_t timeout, const char *message);
 	void (*const displayPriNotify) (constDevicePtr device, uint8_t priority, uint8_t timeout, const char *message);
 	void (*const sendCallforwardMessage) (constDevicePtr device, const sccp_linedevices_t * linedevice);
-	void (*const sendUserToDeviceDataVersionMessage) (constDevicePtr device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority);
+	void (*const sendUserToDeviceDataVersionMessage) (constDevicePtr device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const char *xmlData, uint8_t priority);
 	void (*const sendFastPictureUpdate) (constDevicePtr device, constChannelPtr channel);
 	void (*const sendOpenReceiveChannel) (constDevicePtr device, constChannelPtr channel);
 	void (*const sendOpenMultiMediaChannel) (constDevicePtr device, constChannelPtr channel, uint32_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);

@@ -9,8 +9,21 @@
  *              See the LICENSE file at the top of the source tree.
  */
 #pragma once
+#include "sccp_labels.h"
 
 __BEGIN_C_EXTERN__
+// forward declaration
+extern const uint8_t softkeysmap[32];
+
+/*!
+ * \brief SKINNY Soft Key Modes Structure
+ */
+typedef struct {
+	uint8_t *ptr;												/*!< Point to next Mode */
+	uint8_t id;												/*!< Soft Key ID */
+	uint8_t count;												/*!< Soft Key Count */
+} softkey_modes;												/*!< SKINNY Soft Key Modes Structure */
+
 typedef struct sccp_softkeyMap_cb sccp_softkeyMap_cb_t;
 
 SCCP_API void SCCP_CALL sccp_softkey_pre_reload(void);

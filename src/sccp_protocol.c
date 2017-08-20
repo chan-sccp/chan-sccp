@@ -917,7 +917,7 @@ static void sccp_protocol_sendFastPictureUpdate(constDevicePtr device, constChan
 /*!
  * \brief Send User To Device Message (V1)
  */
-static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority)
+static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const char *xmlData, uint8_t priority)
 {
 	int data_len = strlen(xmlData);
 	int msg_len = 0;
