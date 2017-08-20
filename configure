@@ -849,6 +849,7 @@ ID
 SED
 DATE
 UNAME
+AR_FLAGS
 AM_BACKSLASH
 AM_DEFAULT_VERBOSITY
 AM_DEFAULT_V
@@ -5192,6 +5193,9 @@ fi
 
 
 
+AR_FLAGS=cr
+
+
 
 
 
@@ -5856,7 +5860,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-for flag in  				-fstack-protector-all 				-fvisibility=hidden 				-fvisibility-inlines-hidden 				-Wall 				-Wno-long-long 				-Wno-missing-field-initializers 				-Wmissing-declarations 				-Wnested-externs 				-Wnonnull 				-Wcast-align 				-Wold-style-definition 				-Wformat-security 				-Wstrict-aliasing 				-Wmissing-format-attribute 				-Wmissing-noreturn 				-Winit-self 				-Wmissing-include-dirs 				-Warray-bounds 				-Wimplicit-function-declaration 				-Wreturn-type 				-Wsign-compare 				-Wstrict-prototypes 				-Wmissing-prototypes 				-Wunused 				-Wempty-body 				-Wmissing-parameter-type 				-Woverride-init 				-Wtype-limits 				-Wuninitialized 				-Wshift-negative-value 				-Wunused-but-set-parameter 																																							; do
+for flag in  				-Wall 				-Wno-long-long 				-Wno-missing-field-initializers 				-Wmissing-declarations 				-Wnested-externs 				-Wnonnull 				-Wcast-align 				-Wold-style-definition 				-Wformat-security 				-Wstrict-aliasing 				-Wmissing-format-attribute 				-Wmissing-noreturn 				-Wmissing-include-dirs 				-Winit-self 				-Warray-bounds 				-Wimplicit-function-declaration 				-Wreturn-type 				-Wsign-compare 				-Wstrict-prototypes 				-Wmissing-prototypes 				-Wempty-body 				-Wmissing-parameter-type 				-Woverride-init 				-Wtype-limits 				-Wuninitialized 				-Wshift-negative-value 				-Wendif-labels 				-Wformat-security 				-Waddress 				-Wno-pointer-sign 				-Wold-style-definition,  				-Wstrict-prototypes 				-Werror=implicit 				-Wunused 				-Wunused-const-variable 				-Wpragmas 				-Wno-overlength-strings 				-Wheader-guard 				-Wattributes 				-Wdiv-by-zero 				-fstack-protector-all 				-fvisibility=hidden 				-fvisibility-inlines-hidden 				-fexcess-precision=fast 				-fvisibility=hidden 				-fwrapv 				-fno-delete-null-pointer-checks 				-xldscope=hidden 				-Wl,--as-needed 				-fPIE 				-fPIE -pie 																																																																							; do
   as_CACHEVAR=`$as_echo "ax_cv_check_cflags__$flag" | $as_tr_sh`
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts $flag" >&5
 $as_echo_n "checking whether C compiler accepts $flag... " >&6; }
@@ -5940,7 +5944,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-for flag in  				-Wshadow 			; do
+for flag in  				-Wshadow 				-fno-strict-overflow 				-Wshorten-64-to-32 				-Wpointer-arith 			; do
   as_CACHEVAR=`$as_echo "ax_cv_check_cflags__$flag" | $as_tr_sh`
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts $flag" >&5
 $as_echo_n "checking whether C compiler accepts $flag... " >&6; }
@@ -34389,7 +34393,7 @@ echo "             CPP : ${CPP}"
 if test -n "$HOST_CC" ; then
 echo "         HOST_CC : ${CC}"
 fi
-echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS} ${SUPPORTED_CFLAGS}"
+echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS}"
 echo "        CPPFLAGS : ${CPPFLAGS} ${AM_CPPFLAGS} ${PBX_CPPFLAGS} ${SANITIZE_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CPPFLAGS} ${COVERAGE_CPPFLAGS} ${EVENT_CPPFLAGS} ${LIBEXSLT_CPPFLAGS} ${LIBCURL_CPPFLAGS}"
 echo "         LDFLAGS : ${LDFLAGS} ${SANITIZE_LDFLAGS} ${SUPPORTED_LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS} ${LIBBFD} ${LIBEXECINFO} ${LIBICONV}"
 echo "        PBX_TYPE : ${PBX_TYPE}"

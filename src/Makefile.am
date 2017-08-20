@@ -57,7 +57,7 @@ libsccp_la_SOURCES	= sccp_callinfo.c 	sccp_channel.c		sccp_device.c		sccp_debug.
 			  sccp_hint.c 		sccp_refcount.c		sccp_management.c	sccp_mwi.c		\
 			  sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
 			  sccp_devstate.c	sccp_event.c		sccp_enum.c		sccp_globals.c		\
-			  sccp_netsock.c	sccp_codec.c		sccp_featureParkingLot.c
+			  sccp_netsock.c	sccp_codec.c		sccp_featureParkingLot.c sccp_labels.c
 			  
 chan_sccp_la_SOURCES	= chan_sccp.c
 

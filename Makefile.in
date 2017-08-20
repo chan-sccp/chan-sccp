@@ -210,8 +210,8 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/README.in \
 	$(top_srcdir)/src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile.in \
 	AUTHORS COPYING ChangeLog INSTALL NEWS README autoconf/compile \
 	autoconf/config.guess autoconf/config.rpath \
-	autoconf/config.sub autoconf/install-sh autoconf/ltmain.sh \
-	autoconf/missing
+	autoconf/config.sub autoconf/depcomp autoconf/install-sh \
+	autoconf/ltmain.sh autoconf/missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 top_distdir = $(distdir)
 am__remove_distdir = \
@@ -257,6 +257,7 @@ ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
+AR_FLAGS = @AR_FLAGS@
 ASTERISK_REPOS_LOCATION = @ASTERISK_REPOS_LOCATION@
 ASTERISK_VERSION_NUMBER = @ASTERISK_VERSION_NUMBER@
 ASTERISK_VER_GROUP = @ASTERISK_VER_GROUP@

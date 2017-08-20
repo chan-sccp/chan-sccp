@@ -54,58 +54,6 @@
 extern struct sccp_pbx_cb sccp_pbx;
 
 #define AST_MODULE "chan_sccp"
-
-/*!
- * \brief Skinny Codec Mapping
- */
-static const struct pbx2skinny_codec_map {
-	uint64_t pbx_codec;
-	skinny_codec_t skinny_codec;
-} pbx2skinny_codec_maps[] = {
-	/* *INDENT-OFF* */
-	{0,		 	SKINNY_CODEC_NONE},
-	{AST_FORMAT_ALAW,	SKINNY_CODEC_G711_ALAW_64K},
-	{AST_FORMAT_ALAW,	SKINNY_CODEC_G711_ALAW_56K},
-	{AST_FORMAT_ULAW,	SKINNY_CODEC_G711_ULAW_64K},
-	{AST_FORMAT_ULAW,	SKINNY_CODEC_G711_ULAW_56K},
-	{AST_FORMAT_GSM,	SKINNY_CODEC_GSM},
-	{AST_FORMAT_H261,	SKINNY_CODEC_H261},
-	{AST_FORMAT_H263,	SKINNY_CODEC_H263},
-	{AST_FORMAT_T140,	SKINNY_CODEC_T120},
-#    if ASTERISK_VERSION_GROUP >= 113
-	{AST_FORMAT_G723,	SKINNY_CODEC_G723_1},
-	{AST_FORMAT_SLIN16,	SKINNY_CODEC_WIDEBAND_256K},
-	{AST_FORMAT_G729,	SKINNY_CODEC_G729},
-	{AST_FORMAT_G729,	SKINNY_CODEC_G729_A},
-	{AST_FORMAT_H263P,	SKINNY_CODEC_H263P},
-#    else
-	{AST_FORMAT_G723_1,	SKINNY_CODEC_G723_1},
-	{AST_FORMAT_SLINEAR16,	SKINNY_CODEC_WIDEBAND_256K},
-	{AST_FORMAT_G729A,	SKINNY_CODEC_G729},
-	{AST_FORMAT_G729A,	SKINNY_CODEC_G729_A},
-	{AST_FORMAT_H263_PLUS,	SKINNY_CODEC_H263P},
-#    endif
-#    if ASTERISK_VERSION_NUMBER >= 10400
-	{AST_FORMAT_G726_AAL2,	SKINNY_CODEC_G726_32K},
-	{AST_FORMAT_G726,	SKINNY_CODEC_G726_32K},
-	{AST_FORMAT_ILBC,	SKINNY_CODEC_G729_B_LOW},
-	{AST_FORMAT_G722,	SKINNY_CODEC_G722_64K},
-	{AST_FORMAT_G722,	SKINNY_CODEC_G722_56K},
-	{AST_FORMAT_G722,	SKINNY_CODEC_G722_48K},
-	{AST_FORMAT_H264,	SKINNY_CODEC_H264},
-#    endif
-#    ifdef AST_FORMAT_SIREN7
-	{AST_FORMAT_SIREN7, 	SKINNY_CODEC_G722_1_24K},			// should this not be SKINNY_CODEC_G722_1_32K
-#    endif
-#    ifdef AST_FORMAT_SIREN14
-	{AST_FORMAT_SIREN14, 	SKINNY_CODEC_G722_1_32K},			// should this not be SKINNY_CODEC_G722_1_48K
-#    endif
-#    ifdef AST_FORMAT_OPUS
-	{AST_FORMAT_OPUS, 	SKINNY_CODEC_OPUS},
-#    endif
-	/* *INDENT-ON* */
-};
-
 #define PBX_HANGUP_CAUSE_UNKNOWN AST_CAUSE_NORMAL_UNSPECIFIED
 #define PBX_HANGUP_CAUSE_NORMAL_CALL_CLEARING AST_CAUSE_NORMAL_CLEARING
 #define PBX_HANGUP_CAUSE_CHANNEL_UNAVAILABLE AST_CAUSE_REQUESTED_CHAN_UNAVAIL
@@ -121,56 +69,11 @@ typedef enum {
 	PBX_HARD_HANGUP = 2,
 } pbx_hangup_type_t;
 
-/*!
- * \brief AST Device State Structure
- */
-static const struct sccp_pbx_devicestate {
-	const char *const text;
-#ifdef ENUM_AST_DEVICE
-	enum ast_device_state devicestate;
-#else
-	uint8_t devicestate;
+SCCP_INLINE const char * SCCP_CALL pbxsccp_devicestate2str(uint32_t value);
+#if UNUSEDCODE // 2015-11-01
+SCCP_INLINE const char * SCCP_CALL extensionstatus2str(uint32_t value);
 #endif
-} sccp_pbx_devicestates[] = {
-	/* *INDENT-OFF* */
-	{"Device is valid but channel doesn't know state",	AST_DEVICE_UNKNOWN},
-	{"Device is not in use",				AST_DEVICE_NOT_INUSE},
-	{"Device is in use",					AST_DEVICE_INUSE},
-	{"Device is busy",					AST_DEVICE_BUSY},
-	{"Device is invalid",					AST_DEVICE_INVALID},
-	{"Device is unavailable",				AST_DEVICE_UNAVAILABLE},
-	{"Device is ringing",					AST_DEVICE_RINGING},
-	{"Device is ringing and in use",			AST_DEVICE_RINGINUSE},
-	{"Device is on hold",					AST_DEVICE_ONHOLD},
-#    ifdef AST_DEVICE_TOTAL
-	{"Total num of device states, used for testing",	AST_DEVICE_TOTAL},
-#    endif
-	/* *INDENT-ON* */
-};
 
-/*!
- * \brief SCCP Extension State Structure
- */
-static const struct sccp_extension_state {
-	const char *const text;
-	int extension_state;
-} sccp_extension_states[] = {
-	/* *INDENT-OFF* */
-	{"Extension Removed",					AST_EXTENSION_REMOVED},
-	{"Extension Hint Removed",				AST_EXTENSION_DEACTIVATED},
-	{"No device INUSE or BUSY",				AST_EXTENSION_NOT_INUSE},
-	{"One or More devices In Use",				AST_EXTENSION_INUSE},
-	{"All devices Busy",					AST_EXTENSION_BUSY},
-	{"All devices Unavailable/Unregistered",		AST_EXTENSION_UNAVAILABLE},
-#    ifdef CS_AST_HAS_EXTENSION_RINGING
-	{"All Devices Ringing",					AST_EXTENSION_RINGING},
-	{"All Devices Ringing and In Use",			AST_EXTENSION_INUSE | AST_EXTENSION_RINGING},
-#    endif
-#    ifdef CS_AST_HAS_EXTENSION_ONHOLD
-	{"All Devices On Hold",					AST_EXTENSION_ONHOLD},
-#    endif
-	/* *INDENT-ON* */
-};
 
 #if 0 /* unused */
 /*!
@@ -272,15 +175,15 @@ const char *pbx_inet_ntoa(struct in_addr ia);
 
 #define ast_format_type int
 #define pbx_format_type int
-
 skinny_codec_t pbx_codec2skinny_codec(ast_format_type fmt);
-ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec);
+//ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec);
+uint64_t skinny_codec2pbx_codec(skinny_codec_t codec);
+//int skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs);
+uint64_t skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs);
 
 // support for old uin32_t format (only temporarily
 #define pbx_format2skinny_format (uint32_t)pbx_codec2skinny_codec
 #define skinny_format2pbx_format(_x) skinny_codec2pbx_codec((skinny_codec_t)_x)
-
-int skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs);
 
 /* 
  * sccp_free_ptr should be used when a function pointer for free() needs to be 

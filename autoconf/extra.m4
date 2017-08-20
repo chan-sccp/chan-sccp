@@ -499,9 +499,6 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			AC_LANG_SAVE
 			AC_LANG_C
 			AX_APPEND_COMPILE_FLAGS([ dnl
-				-fstack-protector-all dnl
-				-fvisibility=hidden dnl
-				-fvisibility-inlines-hidden dnl
 				-Wall dnl
 				-Wno-long-long dnl
 				-Wno-missing-field-initializers dnl
@@ -514,27 +511,58 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wstrict-aliasing dnl
 				-Wmissing-format-attribute dnl
 				-Wmissing-noreturn dnl
-				-Winit-self dnl
 				-Wmissing-include-dirs dnl
+				-Winit-self dnl
 				-Warray-bounds dnl
 				-Wimplicit-function-declaration dnl
 				-Wreturn-type dnl
 				-Wsign-compare dnl
 				-Wstrict-prototypes dnl
 				-Wmissing-prototypes dnl
-				-Wunused dnl
 				-Wempty-body dnl
 				-Wmissing-parameter-type dnl
 				-Woverride-init dnl
 				-Wtype-limits dnl
 				-Wuninitialized dnl 
 				-Wshift-negative-value dnl
-				-Wunused-but-set-parameter dnl
+				-Wendif-labels dnl
+				-Wformat-security dnl
+				-Waddress dnl
+				-Wno-pointer-sign dnl
+				-Wold-style-definition,  dnl
+				-Wstrict-prototypes dnl
+				-Werror=implicit dnl
+				-Wunused dnl
+				-Wunused-const-variable dnl
+				-Wpragmas dnl
+				-Wno-overlength-strings dnl
+				-Wheader-guard dnl
+				-Wattributes dnl
+				-Wdiv-by-zero dnl
+				-fstack-protector-all dnl
+				-fvisibility=hidden dnl
+				-fvisibility-inlines-hidden dnl
+				-fexcess-precision=fast dnl
+				-fvisibility=hidden dnl
+				-fwrapv dnl
+				-fno-delete-null-pointer-checks dnl
+				-xldscope=hidden dnl
+				-Wl,--as-needed dnl
+				-fPIE dnl
+				-fPIE -pie dnl
+				dnl
 				dnl // should be added and fixed
-				dnl -Wswitch-enum
+				dnl -Wswitch-enum dnl
+				dnl -Wc++-compat		dnl Check if compilable with C++ compiler
+				dnl -Wshorten-64-to-32 dnl
+				dnl -Wpointer-arith dnl
 				dnl
 				dnl // somewhat pedantic 
 				dnl -Wunused-parameter dnl
+				dnl -Wignored-qualifiers dnl
+				dnl -Wextra dnl
+				dnl -Wvla 		dnl Variable Length Arrays not actually allowed in C90
+				dnl -Wjump-misses-init	dnl Goto skipping variable declarations
 				dnl 
 				dnl // do not add
 				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl
@@ -546,6 +574,9 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			AC_LANG_C
 			AX_APPEND_COMPILE_FLAGS([ dnl
 				-Wshadow dnl
+				-fno-strict-overflow dnl
+				-Wshorten-64-to-32 dnl
+				-Wpointer-arith dnl
 			], SUPPORTED_CFLAGS)
 		])
 		AS_IF([test "x${AST_C_COMPILER_FAMILY}" = "xclang"], [
