@@ -3033,7 +3033,7 @@ static boolean_t sccp_wrapper_asterisk113_attended_transfer(sccp_channel_t * tra
 	PBX_CHANNEL_TYPE *transferer_pbx_channel = pbx_channel_ref(transferer->owner);
 	pbx_channel_unlock(transferer->owner);
 
-	_transfer_callinfo_t transfer_callinfo = {0};
+	_transfer_callinfo_t transfer_callinfo = {{0}};
 	_transfer_capture_callinfo(transferee, transferer, &transfer_callinfo);
 
 	if (transferee_pbx_channel && transferer_pbx_channel) {

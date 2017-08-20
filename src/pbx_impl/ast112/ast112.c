@@ -2903,7 +2903,7 @@ static boolean_t sccp_wrapper_asterisk112_attended_transfer(sccp_channel_t * tra
 	pbx_channel_unlock(transferer->owner);
 
 	if (transferee_pbx_channel && transferer_pbx_channel) {
-		if (sccp_wrapper_asterisk113_channelIsBridged(transferee)) {
+		if (sccp_wrapper_asterisk112_channelIsBridged(transferee)) {
 			ast_queue_control(transferee_pbx_channel, AST_CONTROL_UNHOLD);
 		}
 		if (pbx_channel_state(transferer_pbx_channel) == AST_STATE_RING) {				// fake a blind transfer while ast_pbx_start has already started
@@ -2942,7 +2942,7 @@ static boolean_t sccp_wrapper_asterisk112_blind_transfer(sccp_channel_t * transf
 	pbx_channel_unlock(transferee->owner);
 
 	if (transferee_pbx_channel) {
-		if (sccp_wrapper_asterisk113_channelIsBridged(transferee)) {
+		if (sccp_wrapper_asterisk112_channelIsBridged(transferee)) {
 			ast_queue_control(transferee_pbx_channel, AST_CONTROL_UNHOLD);
 		}
 		if (AST_BRIDGE_TRANSFER_SUCCESS == ast_bridge_transfer_blind(1, transferee_pbx_channel, extension, context, NULL, NULL)) {
