@@ -4194,6 +4194,7 @@ static void handle_updatecapabilities_dissect_videocapabiltyunion(constDevicePtr
  */
 void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
+	pbx_assert(d != NULL && s != NULL && msg_in != NULL);
 	if (letohl(msg_in->header.lel_protocolVer) >= 16) {
 		handle_updatecapabilities_V2_message(s, d, msg_in);
 	} else {
@@ -4296,6 +4297,7 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
  */
 void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
+	pbx_assert(d != NULL && s != NULL && msg_in != NULL);
 	uint8_t audio_capability = 0, audio_codec = 0, audio_capabilities = 0;
 	uint32_t maxFramesPerPacket = 0;
 
@@ -4388,6 +4390,7 @@ void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constM
  */
 void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
+	pbx_assert(d != NULL && s != NULL && msg_in != NULL);
 	uint8_t audio_capability = 0, audio_codec = 0, audio_capabilities = 0;
 	uint32_t maxFramesPerPacket = 0;
 
