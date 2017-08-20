@@ -1,8 +1,8 @@
 /*!
  * \file        sccp_labels.c
  * \brief       SCCP Labels Class
- *
- * SCCP Button Number References and SCCP Display Number References
+ * 
+ * SCCP Button Number References and SCCP Display Number References 
  *
  * \author      Sergio Chersovani <mlists [at] c-net.it>
  * \note        Reworked, but based on chan_sccp code.
@@ -15,8 +15,6 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
-
-#include "sccp_labels.h"
 
 /*!
  * \brief Skinny LABEL Structure
@@ -127,8 +125,8 @@ gcc_inline const char *label2str(uint16_t value)
 		if (skinny_labels[i].label == value) {
 			return skinny_labels[i].text;
 		}
-	}
-	pbx_log(LOG_ERROR, "Label could not be found for skinny_labels.label:%i\n", value);
+	}	
+	pbx_log(LOG_ERROR, "Label could not be found for skinny_labels.label:%i\n", value); 	
 	return "";
 }
 
@@ -139,7 +137,7 @@ gcc_inline uint32_t labelstr2int(const char *str)
 		if (!strcasecmp(skinny_labels[i].text, str)) {
 			return skinny_labels[i].label;
 		}
-	}
+	}	
 	pbx_log(LOG_ERROR, "Label could not be found for skinny_labels.text:%s\n", str);
 	return 0;
 }
