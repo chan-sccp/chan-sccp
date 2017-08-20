@@ -16,6 +16,8 @@
 
 SCCP_FILE_VERSION(__FILE__, "");
 
+#include "sccp_labels.h"
+
 /*!
  * \brief Skinny LABEL Structure
  */

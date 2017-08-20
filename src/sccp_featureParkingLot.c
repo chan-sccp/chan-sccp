@@ -24,6 +24,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_line.h"
 #include "sccp_channel.h"
 #include "sccp_features.h"
+#include "sccp_labels.h"
 
 static const uint32_t appID = APPID_VISUALPARKINGLOT;
 

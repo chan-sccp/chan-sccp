@@ -9,7 +9,7 @@
  *              See the LICENSE file at the top of the source tree.
  */
 #pragma once
-#include "sccp_labels.h"
+//#include "sccp_labels.h"
 
 __BEGIN_C_EXTERN__
 // forward declaration

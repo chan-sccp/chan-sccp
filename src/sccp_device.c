@@ -30,6 +30,7 @@
 #include "sccp_atomic.h"
 #include "sccp_devstate.h"
 #include "sccp_featureParkingLot.h"
+#include "sccp_labels.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 

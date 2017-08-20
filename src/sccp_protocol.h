@@ -13,7 +13,6 @@
 #pragma once
 #include "define.h"
 #include "sccp_codec.h"
-//#include "sccp_labels.h"
 #include "sccp_softkeys.h"
 #include "sccp_enum.h"
 

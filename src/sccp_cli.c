@@ -60,6 +60,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_features.h"
 #include "sccp_mwi.h"
 #include "sccp_hint.h"
+#include "sccp_labels.h"
 #include "sys/stat.h"
 #include <asterisk/cli.h>
 #include <asterisk/paths.h>

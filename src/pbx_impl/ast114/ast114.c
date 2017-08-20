@@ -24,6 +24,7 @@
 #include "sccp_netsock.h"
 #include "sccp_rtp.h"
 #include "sccp_session.h"		// required for sccp_session_getOurIP
+#include "sccp_labels.h"
 #include "ast114.h"
 #include "ast_announce.h"
 

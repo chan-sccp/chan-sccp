@@ -15,6 +15,7 @@
 #include "sccp_indicate.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
+#include "sccp_labels.h"
 #include <asterisk/say.h>
 
 #ifdef CS_SCCP_CONFERENCE

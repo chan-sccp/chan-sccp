@@ -25,6 +25,7 @@
 #include "sccp_netsock.h"
 #include "sccp_session.h"
 #include "sccp_atomic.h"
+#include "sccp_labels.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 

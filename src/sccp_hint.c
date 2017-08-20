@@ -33,6 +33,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_indicate.h"											// only for SCCP_CHANNELSTATE_Idling
 #include "sccp_line.h"
 #include "sccp_utils.h"
+#include "sccp_labels.h"
 
 #if defined(CS_AST_HAS_EVENT) && defined(HAVE_PBX_EVENT_H) 	// ast_event_subscribe
 #  include <asterisk/event.h>

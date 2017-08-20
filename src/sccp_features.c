@@ -32,6 +32,7 @@
 #include "sccp_indicate.h"
 #include "sccp_management.h"
 #include "sccp_utils.h"
+#include "sccp_labels.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
