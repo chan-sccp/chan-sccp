@@ -589,6 +589,10 @@ static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
  */
 static void sccp_sk_cfwdall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
+	if (!d) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_cfwdall function called without specifying a device\n");
+		return;
+	}
 	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward All Pressed, line: %s, instance: %d, channel: %d\n", DEV_ID_LOG(d), l ? l->name : "(NULL)", lineInstance, c ? c->callid : 0);
@@ -608,6 +612,10 @@ static void sccp_sk_cfwdall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
  */
 static void sccp_sk_cfwdbusy(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
+	if (!d) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_cfwdbusy function called without specifying a device\n");
+		return;
+	}
 	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward Busy Pressed\n", DEV_ID_LOG(d));
@@ -625,6 +633,10 @@ static void sccp_sk_cfwdbusy(const sccp_softkeyMap_cb_t * const softkeyMap_cb, c
  */
 static void sccp_sk_cfwdnoanswer(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
+	if (!d) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_cfwdnoanswer function called without specifying a device\n");
+		return;
+	}
 	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward NoAnswer Pressed\n", DEV_ID_LOG(d));
