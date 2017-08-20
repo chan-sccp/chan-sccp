@@ -80,8 +80,8 @@ BEGIN {
 	print "#include \"sccp_enum.h\"" > out_source_file
 	print "#include \"sccp_utils.h\"" > out_source_file
 	
-	print "static const char ERROR_2str_STR[] = \"SCCP: Error during lookup of \";" > out_source_file
-	print "static const char LOOKUPERROR_STR[] = \"SCCP: LOOKUP ERROR, \";" > out_source_file
+	print "static const char ERROR_2FMT[] = \"SCCP: Error during lookup of '%d' in %s2str\\n\";" > out_source_file
+	print "static const char LOOKUPERROR_FMT[] = \"SCCP: LOOKUP ERROR, %s_str2val('%s') not found\\n\";" > out_source_file
 
 	enum_name = ""
 	Comment = ""
@@ -336,8 +336,8 @@ codeSkip == 1			{ next }
 				print "\tif (enum_value <= " toupper(namespace) "_" toupper(enum_name) "_SENTINEL) {" >out_source_file
 				print "\t\treturn " namespace "_" enum_name "_map[enum_value];" >out_source_file
 				print "\t}" >out_source_file
-				print "\tpbx_log(LOG_ERROR, \"%s '%d' in %s2str\\n\", ERROR_2str_STR, enum_value, __" namespace "_" enum_name "_str);" > out_source_file
-				print "\treturn \"OutOfBounds: " namespace "_" enum_name "2str\\n\";" > out_source_file
+				print "\tpbx_log(LOG_ERROR, ERROR_2FMT, enum_value, __" namespace "_" enum_name "_str);" > out_source_file
+				print "\treturn \"OoB:" namespace "_" enum_name "2str\\n\";" > out_source_file
 			} else {
 				totlen = 0
 				for ( i = 0; i < e; i++) {
@@ -359,8 +359,8 @@ codeSkip == 1			{ next }
 				print "\t\t}" >out_source_file
 				print "\t}" >out_source_file
 				print "\tif (!strlen(res)) {" >out_source_file
-				print "\t\tpbx_log(LOG_ERROR, \"%s '%d' in %s2str\\n\", ERROR_2str_STR, " namespace "_" enum_name "_int_value, __" namespace "_" enum_name "_str);" > out_source_file
-				print "\t\treturn \"OutOfBounds: sparse " namespace "_" enum_name "2str\\n\";" > out_source_file
+				print "\t\tpbx_log(LOG_ERROR, ERROR_2FMT, " namespace "_" enum_name "_int_value, __" namespace "_" enum_name "_str);" > out_source_file
+				print "\t\treturn \"OoB:sparse " namespace "_" enum_name "2str\\n\";" > out_source_file
 				print "\t}" >out_source_file
 				print "\treturn res;" >out_source_file
 			}
@@ -371,8 +371,8 @@ codeSkip == 1			{ next }
 				print "\t\tcase " Entry_id[i] ": return " namespace "_" enum_name "_map[" i "];" > out_source_file
 			}
 			print "\t\tdefault:" > out_source_file
-			print "\t\t\tpbx_log(LOG_ERROR, \"%s '%d' in %s2str\\n\", ERROR_2str_STR, enum_value, __" namespace "_" enum_name "_str);" > out_source_file
-			print "\t\t\treturn \"OutOfBounds: sparse " namespace "_" enum_name "2str\\n\";" > out_source_file
+			print "\t\t\tpbx_log(LOG_ERROR, ERROR_2FMT, enum_value, __" namespace "_" enum_name "_str);" > out_source_file
+			print "\t\t\treturn \"OoB:sparse " namespace "_" enum_name "2str\\n\";" > out_source_file
 			print "\t}" >out_source_file
 		}
 		print "}\n" > out_source_file
@@ -397,7 +397,7 @@ codeSkip == 1			{ next }
 				print "\t}" > out_source_file
 			}
 		}
-		print "\tpbx_log(LOG_ERROR, \"%s %s_str2val('%s') not found\\n\", LOOKUPERROR_STR, __" namespace "_" enum_name "_str, lookup_str);" > out_source_file
+		print "\tpbx_log(LOG_ERROR, LOOKUPERROR_FMT, __" namespace "_" enum_name "_str, lookup_str);" > out_source_file
 		print "\treturn "toupper(namespace) "_" toupper(enum_name) "_SENTINEL;" > out_source_file
 		print "}\n" > out_source_file
 
