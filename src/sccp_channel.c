@@ -2102,7 +2102,7 @@ static int _transfer_attended(devicePtr device, channelPtr channel)
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "\n\n%s: Complete Attended Transfer of transferee:%s\n", device->id, transferee->designator);
 
-	_transfer_callinfo_t transfer_callinfo = {0};
+	_transfer_callinfo_t transfer_callinfo = {{0}};
 	_transfer_capture_callinfo(transferee, transferer, &transfer_callinfo);
 
 	sccp_channel_transfer_release(device, transferer);
@@ -2148,7 +2148,7 @@ int sccp_channel_transfer_blind(devicePtr device, channelPtr channel)
 
 		AUTO_RELEASE(sccp_channel_t, transferee, sccp_channel_retain(device->transferChannels.transferee));
 
-		_transfer_callinfo_t transfer_callinfo = {0};
+		_transfer_callinfo_t transfer_callinfo = {{0}};
 		_transfer_capture_callinfo(transferee, device->transferChannels.transferer, &transfer_callinfo);
 
 		sccp_channel_transfer_release(device, transferee);
