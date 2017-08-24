@@ -645,7 +645,7 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
  * \callgraph
  * \callergraph
  */
-boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *subscriptionIdNum)
+boolean_t __PURE__ sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *subscriptionIdNum)
 {
 	boolean_t result = TRUE;
 
@@ -814,7 +814,7 @@ gcc_inline boolean_t sccp_strcaseequals(const char *data1, const char *data2)
 	return FALSE;
 }
 
-int sccp_strIsNumeric(const char *s)
+int __PURE__ sccp_strIsNumeric(const char *s)
 {
 	if (*s) {
 		char c;
@@ -1624,7 +1624,7 @@ AST_TEST_DEFINE(chan_sccp_combine_codec_sets)
  * \param c SCCP channel
  * \return string constant (on the heap!)
  */
-const char *sccp_channel_toString(sccp_channel_t * c)
+const char * __PURE__ sccp_channel_toString(sccp_channel_t * c)
 {
 	if (c) {
 		return (const char *) c->designator;
@@ -1699,7 +1699,7 @@ int sockaddr_cmp_addr(struct sockaddr_storage *addr1, socklen_t len1, struct soc
 }
 #endif
 
-int sccp_strversioncmp(const char *s1, const char *s2)
+int __PURE__ sccp_strversioncmp(const char *s1, const char *s2)
 {
 	static const char *digits = "0123456789";
 	int ret, lz1, lz2;

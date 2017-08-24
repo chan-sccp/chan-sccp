@@ -261,7 +261,6 @@ boolean_t sccp_postPBX_load(void)
 	snprintf(SCCP_VERSIONSTR, sizeof(SCCP_VERSIONSTR), "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, SCCP_REVISIONSTR, BUILD_USER, BUILD_DATE);
 
 	GLOB(module_running) = TRUE;
-	sccp_refcount_schedule_cleanup((const void *) 0);
 	pbx_rwlock_unlock(&GLOB(lock));
 	return TRUE;
 }

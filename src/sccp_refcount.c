@@ -53,13 +53,13 @@ SCCP_FILE_VERSION(__FILE__, "");
 //nb: SCCP_HASH_PRIME defined in config.h, default 563
 #define SCCP_SIMPLE_HASH(_a) (((unsigned long)(_a)) % SCCP_HASH_PRIME)
 #define SCCP_LIVE_MARKER 13
-#define REFCOUNT_MAX_PARENTS 3
+//#define REFCOUNT_MAX_PARENTS 3
+#if CS_REFCOUNT_DEBUG
 #define REF_DEBUG_FILE_MAX_SIZE 10000000
 #define REF_DEBUG_FILE "/tmp/sccp_refs"
-static enum sccp_refcount_runstate runState = SCCP_REF_STOPPED;
-#if CS_REFCOUNT_DEBUG 
 static int __rotate_debug_file(void);
 #endif
+static enum sccp_refcount_runstate runState = SCCP_REF_STOPPED;
 
 static struct sccp_refcount_obj_info {
 	int (*destructor) (const void *ptr);
@@ -182,15 +182,9 @@ void sccp_refcount_destroy(void)
 	runState = SCCP_REF_DESTROYED;
 }
 
-int sccp_refcount_isRunning(void)
+int __PURE__ sccp_refcount_isRunning(void)
 {
 	return runState;
-}
-
-// not really needed any more
-int sccp_refcount_schedule_cleanup(const void *data)
-{
-	return 0;
 }
 
 void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor)

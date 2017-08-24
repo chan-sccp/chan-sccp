@@ -20,8 +20,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 #if defined(__GNUC__) && __GNUC__ > 3 && defined(HAVE_SYS_INFO_H)
 #include <sys/sysinfo.h>											// to retrieve processor info
 #endif
-#define SEMAPHORE_LOCKED	(0)
-#define SEMAPHORE_UNLOCKED	(1)
+//#define SEMAPHORE_LOCKED	(0)
+//#define SEMAPHORE_UNLOCKED	(1)
 void sccp_threadpool_grow(sccp_threadpool_t * tp_p, int amount);
 void sccp_threadpool_shrink(sccp_threadpool_t * tp_p, int amount);
 
@@ -349,7 +349,7 @@ boolean_t sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 	return TRUE;
 }
 
-int sccp_threadpool_thread_count(sccp_threadpool_t * tp_p)
+int __PURE__ sccp_threadpool_thread_count(sccp_threadpool_t * tp_p)
 {
 	return SCCP_LIST_GETSIZE(&tp_p->threads);
 }

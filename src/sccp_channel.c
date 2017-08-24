@@ -404,7 +404,7 @@ void sccp_channel_updateChannelCapability(sccp_channel_t * channel)
 /*!
  * \brief Get const pointer to channels private callinfo
  */
-sccp_callinfo_t * const sccp_channel_getCallInfo(const sccp_channel_t *const channel)
+sccp_callinfo_t * const __PURE__ sccp_channel_getCallInfo(const sccp_channel_t *const channel)
 {
 	return (sccp_callinfo_t * const) channel->privateData->callInfo;			/* discard const because callinfo has a private implementation anyway */
 }

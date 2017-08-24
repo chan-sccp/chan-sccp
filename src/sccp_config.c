@@ -116,11 +116,11 @@ SCCP_FILE_VERSION(__FILE__, "");
 #define L_OBJ_REF(x) offsize(struct sccp_line,x), offsetof(struct sccp_line,x)
 #define S_OBJ_REF(x) offsize(struct softKeySetConfiguration,x), offsetof(struct softKeySetConfiguration,x)
 #define H_OBJ_REF(x) offsize(struct sccp_hotline,x), offsetof(struct sccp_hotline,x)
-#define BITMASK(b) (1 << ((b) % CHAR_BIT))
-#define BITSLOT(b) ((b) / CHAR_BIT)
-#define BITSET(a, b) ((a)[BITSLOT(b)] |= BITMASK(b))
-#define BITTEST(a, b) ((a)[BITSLOT(b)] & BITMASK(b))
-#define BITTOGGLE(a, b) ((a)[BITSLOT(b)] ^= BITMASK(b))
+//#define BITMASK(b) (1 << ((b) % CHAR_BIT))
+//#define BITSLOT(b) ((b) / CHAR_BIT)
+//#define BITSET(a, b) ((a)[BITSLOT(b)] |= BITMASK(b))
+//#define BITTEST(a, b) ((a)[BITSLOT(b)] & BITMASK(b))
+//#define BITTOGGLE(a, b) ((a)[BITSLOT(b)] ^= BITMASK(b))
     /*!
      * \brief Enum for Config Option Types
      */
@@ -3004,9 +3004,9 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	sccp_devstate_specifier_t *specifier;
 #endif
 
-#ifndef ASTDB_FAMILY_KEY_LEN
-#define ASTDB_FAMILY_KEY_LEN 256
-#endif
+//#ifndef ASTDB_FAMILY_KEY_LEN
+//#define ASTDB_FAMILY_KEY_LEN 256
+//#endif
 
 #ifndef ASTDB_RESULT_LEN
 #define ASTDB_RESULT_LEN 256

@@ -64,7 +64,7 @@ BEGIN {
 	print "#include <sys/types.h>" >out_header_file
 	print "__BEGIN_C_EXTERN__" >out_header_file 
 	print "typedef uint32_t (*sccp_enum_str2intval_t)(const char *lookup_str);" > out_header_file
-	print "typedef const char *(*sccp_enum_all_entries_t)(void);" > out_header_file
+	print "typedef const char * const (*sccp_enum_all_entries_t)(void);" > out_header_file
 	
 	#
         # gen enum sourcefile
@@ -209,7 +209,7 @@ codeSkip == 1			{ next }
 	}
 	print "} " namespace "_" enum_name "_t;" >out_header_file
 	if (strfunc == 1) {
-		print "SCCP_API int SCCP_CALL " namespace "_" enum_name "_exists(uint " namespace "_" enum_name "_int_value);" > out_header_file
+		print "SCCP_API int __CONST__ SCCP_CALL " namespace "_" enum_name "_exists(uint " namespace "_" enum_name "_int_value);" > out_header_file
 		if (bitfield == 0) {
 			print "SCCP_API const char * SCCP_CALL " namespace "_" enum_name "2str(" namespace "_" enum_name "_t enum_value);" > out_header_file
 		} else {
@@ -217,7 +217,7 @@ codeSkip == 1			{ next }
 		}
 		print "SCCP_API " namespace "_" enum_name "_t " SCCP_CALL namespace "_" enum_name "_str2val(const char *lookup_str);" > out_header_file
 		print "SCCP_API uint32_t SCCP_CALL " namespace "_" enum_name "_str2intval(const char *lookup_str);" > out_header_file
-		print "SCCP_API const char * SCCP_CALL " namespace "_" enum_name "_all_entries(void);" > out_header_file
+		print "SCCP_API const char * const __CONST__ SCCP_CALL " namespace "_" enum_name "_all_entries(void);" > out_header_file
 	}
         print "/* = End ===" headerfooter >out_header_file
 
@@ -284,7 +284,7 @@ codeSkip == 1			{ next }
 
 
 		# int sccp_does_channelstate_exist[int int_enum_value) {
-		print "int " namespace "_" enum_name "_exists(uint " namespace "_" enum_name "_int_value) {" > out_source_file
+		print "int __CONST__ " namespace "_" enum_name "_exists(uint " namespace "_" enum_name "_int_value) {" > out_source_file
 		if (sparse == 0) {
 			if (bitfield == 0) {
 				if (Entry_val[0] == 0) {
@@ -408,7 +408,7 @@ codeSkip == 1			{ next }
 		print "}\n" > out_source_file
 
 		# const char *sccp_channelstate_all_entries(char *buf, size_t buf_len, const char *separator) {
-		print "const char *" namespace "_" enum_name "_all_entries(void) {" > out_source_file
+		print "const char * const __CONST__ " namespace "_" enum_name "_all_entries(void) {" > out_source_file
 		long_str = ""
 		for ( i = 0; i < e; ++i) {
 			if (i < e-1) {

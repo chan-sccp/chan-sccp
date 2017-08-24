@@ -45,12 +45,16 @@ extern "C" {
 #  define SCCP_API_VISIBLE extern __attribute__((__visibility__("default")))
 #  define SCCP_INLINE SCCP_API gcc_inline
 #  define SCCP_CALL 
+#define __PURE__ __attribute__((pure))
+#define __CONST__ __attribute__((const))
 #else
 #  define gcc_inline
 #  define SCCP_API extern
 #  define SCCP_API_VISIBLE extern
 #  define SCCP_INLINE SCCP_API gcc_inline
 #  define SCCP_CALL 
+#define __PURE__ 
+#define __CONST__ 
 #endif
 #endif
 

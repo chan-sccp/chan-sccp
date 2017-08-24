@@ -522,6 +522,8 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wmissing-declarations dnl
 				-Wnested-externs dnl
 				-Wnonnull dnl
+				-Wnonnull-compare dnl
+				-Wnull-dereference dnl
 				-Wcast-align dnl
 				-Wold-style-definition dnl
 				-Wformat-security dnl
@@ -551,11 +553,21 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Werror=implicit dnl
 				-Wunused dnl
 				-Wunused-const-variable dnl
+				-Wunused-function dnl
+				-Wunused-label dnl
+				-Wunused-local-typedefs dnl
 				-Wpragmas dnl
 				-Wno-overlength-strings dnl
 				-Wheader-guard dnl
 				-Wattributes dnl
 				-Wdiv-by-zero dnl
+				-Wenum-compare dnl
+				-Wmisleading-indentation dnl
+				-Wsuggest-attribute=const dnl
+				-Wsuggest-attribute=format dnl
+				-Wsuggest-attribute=noreturn dnl
+				-Wsuggest-attribute=pure dnl
+				-Wswitch dnl
 				-fstack-protector-all dnl
 				-fvisibility=hidden dnl
 				-fvisibility-inlines-hidden dnl
@@ -578,6 +590,8 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				dnl -Wunused-parameter dnl
 				dnl -Wignored-qualifiers dnl
 				dnl -Wextra dnl
+				dnl -Wunused-macros dnl
+				dnl -Wunused-parameter dnl
 				dnl -Wvla 		dnl Variable Length Arrays not actually allowed in C90
 				dnl -Wjump-misses-init	dnl Goto skipping variable declarations
 				dnl 

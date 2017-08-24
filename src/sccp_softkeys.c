@@ -1172,7 +1172,7 @@ void sccp_softkey_setSoftkeyState(devicePtr device, uint8_t softKeySet, uint8_t 
 	}
 }
 
-boolean_t sccp_softkey_isSoftkeyInSoftkeySet(constDevicePtr device, const uint8_t softKeySet, const uint8_t softKey)
+boolean_t __PURE__ sccp_softkey_isSoftkeyInSoftkeySet(constDevicePtr device, const uint8_t softKeySet, const uint8_t softKey)
 {
 	uint8_t i;
 

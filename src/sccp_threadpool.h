@@ -116,7 +116,7 @@ SCCP_API boolean_t SCCP_CALL sccp_threadpool_destroy(sccp_threadpool_t * tp_p);
  * \brief Return number of currently allocate threads in the threadpool
  * \param tp_p threadpool a pointer to the threadpool structure for which we would like to know the number of workers
  */
-SCCP_API int SCCP_CALL sccp_threadpool_thread_count(sccp_threadpool_t * tp_p);
+SCCP_API int __PURE__ SCCP_CALL sccp_threadpool_thread_count(sccp_threadpool_t * tp_p);
 
 /* ------------------------- Queue specific ------------------------------ */
 

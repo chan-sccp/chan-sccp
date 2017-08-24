@@ -9,9 +9,6 @@
  *              See the LICENSE file at the top of the source tree.
  *
  */
-#ifndef __PBX_IMPL_C
-#define __PBX_IMPL_C
-
 #include "config.h"
 #include "common.h"
 #include "sccp_pbx.h"
@@ -1349,5 +1346,4 @@ int sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest)
 }
 #endif
 
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

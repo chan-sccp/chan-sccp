@@ -159,7 +159,7 @@ void sccp_devstate_deviceRegisterListener(const sccp_event_t * event)
 	}
 }
 
-sccp_devstate_deviceState_t *sccp_devstate_getDeviceStateHandler(const char *devstate)
+sccp_devstate_deviceState_t * __PURE__ sccp_devstate_getDeviceStateHandler(const char *devstate)
 {
 	if (!devstate) {
 		return NULL;

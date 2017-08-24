@@ -1394,7 +1394,7 @@ static const sccp_deviceProtocol_t *spcpProtocolDefinition[] = {
 /*! 
  * \brief Get Maximum Supported Version Number by Protocol Type
  */
-uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type)
+uint8_t __CONST__ sccp_protocol_getMaxSupportedVersionNumber(int type)
 {
 	switch (type) {
 		case SCCP_PROTOCOL:
@@ -1464,7 +1464,7 @@ const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(constDevicePtr devi
 	return protocolDef[returnProtocol];
 }
 
-const char *skinny_keymode2longstr(skinny_keymode_t keymode)
+const char * const __CONST__ skinny_keymode2longstr(skinny_keymode_t keymode)
 {
 	switch (keymode) {
 		case KEYMODE_ONHOOK:

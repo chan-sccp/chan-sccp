@@ -97,11 +97,11 @@ const char *pbx_inet_ntoa(struct in_addr ia);
 
 #define ast_format_type int
 #define pbx_format_type int
-skinny_codec_t pbx_codec2skinny_codec(ast_format_type fmt);
+skinny_codec_t __CONST__ pbx_codec2skinny_codec(ast_format_type fmt);
 //ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec);
-uint64_t skinny_codec2pbx_codec(skinny_codec_t codec);
+uint64_t __CONST__ skinny_codec2pbx_codec(skinny_codec_t codec);
 //int skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs);
-uint64_t skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs);
+uint64_t __PURE__ skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs);
 
 // support for old uin32_t format (only temporarily
 #define pbx_format2skinny_format (uint32_t)pbx_codec2skinny_codec

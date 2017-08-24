@@ -3166,7 +3166,7 @@ static sccp_push_result_t sccp_device_pushTextMessage(constDevicePtr device, con
  * \warning
  *   - device->buttonconfig is not always locked
  */
-uint8_t sccp_device_find_index_for_line(constDevicePtr d, const char *lineName)
+uint8_t __PURE__ sccp_device_find_index_for_line(constDevicePtr d, const char *lineName)
 {
 	uint8_t instance;
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {

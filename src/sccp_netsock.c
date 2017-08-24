@@ -40,7 +40,7 @@ gcc_inline boolean_t sccp_netsock_is_IPv6(const struct sockaddr_storage *sockAdd
 	return (sockAddrStorage->ss_family == AF_INET6) ? TRUE : FALSE;
 }
 
-uint16_t sccp_netsock_getPort(const struct sockaddr_storage * sockAddrStorage)
+uint16_t __PURE__ sccp_netsock_getPort(const struct sockaddr_storage * sockAddrStorage)
 {
 	if (sccp_netsock_is_IPv4(sockAddrStorage)) {
 		return ntohs(((struct sockaddr_in *) sockAddrStorage)->sin_port);
@@ -60,7 +60,7 @@ void sccp_netsock_setPort(const struct sockaddr_storage *sockAddrStorage, uint16
 	}
 }
 
-int sccp_netsock_is_any_addr(const struct sockaddr_storage *sockAddrStorage)
+int __PURE__ sccp_netsock_is_any_addr(const struct sockaddr_storage *sockAddrStorage)
 {
 	union sockaddr_union tmp_addr = {
 		.ss = *sockAddrStorage,
@@ -142,7 +142,7 @@ void sccp_netsock_flush_externhost(void)
 	externhost[AF_INET6].expire = 0;
 }
 
-size_t sccp_netsock_sizeof(const struct sockaddr_storage * sockAddrStorage)
+size_t __PURE__ sccp_netsock_sizeof(const struct sockaddr_storage * sockAddrStorage)
 {
 	if (sccp_netsock_is_IPv4(sockAddrStorage)) {
 		return sizeof(struct sockaddr_in);
@@ -161,7 +161,7 @@ static int sccp_netsock_is_ipv6_link_local(const struct sockaddr_storage *sockAd
 	return sccp_netsock_is_IPv6(sockAddrStorage) && IN6_IS_ADDR_LINKLOCAL(&tmp_addr.sin6.sin6_addr);
 }
 
-boolean_t sccp_netsock_is_mapped_IPv4(const struct sockaddr_storage *sockAddrStorage)
+boolean_t __PURE__ sccp_netsock_is_mapped_IPv4(const struct sockaddr_storage *sockAddrStorage)
 {
 	if (sccp_netsock_is_IPv6(sockAddrStorage)) {
 		const struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) sockAddrStorage;
