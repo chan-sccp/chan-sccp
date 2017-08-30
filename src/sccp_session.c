@@ -50,8 +50,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 #define sccp_session_trylock(x)			pbx_mutex_trylock(&(x)->lock)
 /* */
 
-void sccp_netsock_device_thread_exit(void *session);
-void *sccp_netsock_device_thread(void *session);
+void sccp_session_device_thread_exit(void *session);
+void *sccp_session_device_thread(void *session);
 void __sccp_session_stopthread(sessionPtr session, uint8_t newRegistrationState);
 gcc_inline void recalc_wait_time(sccp_session_t *s);
 
@@ -525,7 +525,7 @@ static void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
  * \callgraph
  * \callergraph
  */
-void sccp_netsock_device_thread_exit(void *session)
+void sccp_session_device_thread_exit(void *session)
 {
 	sccp_session_t *s = (sccp_session_t *) session;
 
@@ -584,7 +584,7 @@ gcc_inline void recalc_wait_time(sccp_session_t *s)
  * \callgraph
  * \callergraph
  */
-void *sccp_netsock_device_thread(void *session)
+void *sccp_session_device_thread(void *session)
 {
 	int res;
 	sccp_session_t *s = (sccp_session_t *) session;
@@ -599,7 +599,7 @@ void *sccp_netsock_device_thread(void *session)
 	size_t recv_len = 0;
 	sccp_msg_t msg = { {0,} };
 
-	pthread_cleanup_push(sccp_netsock_device_thread_exit, session);
+	pthread_cleanup_push(sccp_session_device_thread_exit, session);
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 
@@ -811,7 +811,7 @@ static void sccp_accept_connection(void)
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-	pbx_pthread_create(&s->session_thread, &attr, sccp_netsock_device_thread, s);
+	pbx_pthread_create(&s->session_thread, &attr, sccp_session_device_thread, s);
 
 	/*
 	size_t stacksize = 0;
