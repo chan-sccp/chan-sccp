@@ -7,7 +7,7 @@ compiler:
 
 env:
   global:
-    - COVERITY_SCAN_PROJECT_NAME="chan-sccp"
+    - COVERITY_SCAN_PROJECT_NAME="chan-sccp/chan-sccp"
     - COVERITY_SCAN_PROJECT_DESCRIPTION="SCCP Channel Addon for Asterisk"
     - COVERITY_SCAN_NOTIFICATION_EMAIL="info@talon.nl"
     # COVERITY_SCAN_BRANCH_PATTERN="master"
