@@ -45,6 +45,9 @@
 #ifdef ASTERISK_CONF_1_14
 #include "ast114.h"
 #endif
+#ifdef ASTERISK_CONF_1_15
+#include "ast115.h"
+#endif
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 #ifndef AST_CAUSE_ANSWERED_ELSEWHERE
