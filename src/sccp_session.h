@@ -37,5 +37,8 @@ SCCP_API boolean_t SCCP_CALL sccp_session_check_crossdevice(constSessionPtr sess
 SCCP_API sccp_device_t * const SCCP_CALL sccp_session_getDevice(constSessionPtr session, boolean_t required);
 SCCP_API boolean_t SCCP_CALL sccp_session_isValid(constSessionPtr session);
 SCCP_API int SCCP_CALL sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
+
+SCCP_API boolean_t SCCP_CALL sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr);
+SCCP_API void SCCP_CALL sccp_session_stop_accept_thread(void);
 __END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
