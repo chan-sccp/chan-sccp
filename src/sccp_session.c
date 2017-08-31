@@ -802,12 +802,12 @@ static void *accept_thread(void *ignore)
 	sccp_session_t *s = NULL;
 	socklen_t length = (socklen_t) (sizeof(struct sockaddr_storage));
 	for (;;) {
-		if ((new_socket = accept(accept_sock, (struct sockaddr *)&incoming, &length)) < 0) {
-			pbx_log(LOG_ERROR, "Error accepting new socket %s\n", strerror(errno));
+		if ((new_socket = accept(accept_sock, (struct sockaddr *)&incoming, &length)) < 0) {	/* blocking call */
+			pbx_log(LOG_ERROR, "Error accepting new socket %s on accept_sock:%d\n", strerror(errno), accept_sock);
+			usleep(1000);
 			continue;
 		}
 
-		//sccp_netsock_setoptions(new_socket, /*reuse*/ 0, /*linger*/ -1 , GLOB(keepalive) * 2);
 		sccp_netsock_setoptions(new_socket, /*reuse*/ -1, /*linger*/ 0, /* keepalive */ -1);
 
 		if (!sccp_session_new_socket_allowed(&incoming)) {
@@ -828,9 +828,9 @@ static void *accept_thread(void *ignore)
 			destroy_session(s, 0);
 		}
 	}
-	sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "Killing accept thread\n");
 	close(new_socket);
 	if (accept_sock > -1) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Closing Listening Port:%s\n" accept_sock);
 		close(accept_sock);
 		accept_sock = -1;
 	}
@@ -844,6 +844,7 @@ static void sccp_session_start_accept_thread(void)
 
 void sccp_session_stop_accept_thread(void)
 {
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Stopping Accepting Thread\n");
 	pbx_rwlock_wrlock(&GLOB(lock));
 	if (accept_tid && (accept_tid != AST_PTHREADT_STOP)) {
 		pthread_cancel(accept_tid);
@@ -852,6 +853,7 @@ void sccp_session_stop_accept_thread(void)
 	}
 	accept_tid = AST_PTHREADT_STOP;
 	if (accept_sock > -1) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Closing Listening Port:%s\n" accept_sock);
 		close(accept_sock);
 		accept_sock = -1;
 	}
@@ -861,18 +863,19 @@ void sccp_session_stop_accept_thread(void)
 boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 {
 	int result = FALSE;
+	static struct sockaddr_storage boundaddr = {0};
 	char addrStr[INET6_ADDRSTRLEN];
 	static int port = -1;
 
-	//if (accept_sock > -1 && ( sccp_netsock_getPort(&boundaddr) != sccp_netsock_getPort(bindaddr) || sccp_netsock_cmp_addr(&boundaddr, bindaddr) ) ) {
-	if (accept_sock > -1 && (sccp_netsock_getPort(bindaddr) != port)) {
+	if (accept_sock > -1 && ( sccp_netsock_getPort(&boundaddr) != sccp_netsock_getPort(bindaddr) || sccp_netsock_cmp_addr(&boundaddr, bindaddr) ) ) {
 		sccp_session_stop_accept_thread();
 	}
 
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Starting bind and listen!\n");
 	if (accept_sock < 0) {
 		int status;
 		port = sccp_netsock_getPort(bindaddr);
-		//memcpy(&boundaddr, bindaddr, sizeof(struct sockaddr_storage));
+		memcpy(&boundaddr, bindaddr, sizeof(struct sockaddr_storage));
 		char port_str[15] = "cisco-sccp";
 
 		struct addrinfo hints, *res;
@@ -908,7 +911,6 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 				accept_sock = -1;
 				break;
 			}
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: started listening on %s:%d, accept_sock:%d\n", addrStr, port, accept_sock);
 			sccp_session_start_accept_thread();
 		} while(0);
 		freeaddrinfo(res);
@@ -917,6 +919,7 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 	}
 
 	if (accept_sock > -1) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Started listening on %s:%d using socket:%d\n", addrStr, port, accept_sock);
 		result = TRUE;
 	}
 	return result;	

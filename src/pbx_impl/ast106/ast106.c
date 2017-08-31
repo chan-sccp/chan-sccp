@@ -3227,8 +3227,7 @@ static int load_module(void)
 #if ASTERSIK_VERSION_NUMBER > 10601
 static int module_reload(void)
 {
-	sccp_reload();
-	return 0;
+	return sccp_reload();
 }
 #endif
 
