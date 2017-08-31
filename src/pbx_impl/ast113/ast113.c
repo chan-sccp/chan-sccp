@@ -3550,8 +3550,7 @@ static int load_module(void)
 
 static int module_reload(void)
 {
-	sccp_reload();
-	return 0;
+	return sccp_reload();
 }
 
 #if defined(__cplusplus) || defined(c_plusplus)

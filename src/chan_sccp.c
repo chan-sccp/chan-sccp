@@ -191,7 +191,6 @@ boolean_t sccp_postPBX_load(void)
 	GLOB(module_running) = TRUE;
 	pbx_rwlock_unlock(&GLOB(lock));
 
-	pbx_log(LOG_NOTICE, "Starting Bind and Listen!\n");
 	return sccp_session_bind_and_listen(&GLOB(bindaddr));
 }
 
@@ -323,7 +322,7 @@ int sccp_reload(void)
 	pbx_rwlock_wrlock(&GLOB(lock));
 	if (GLOB(reload_in_progress) == TRUE) {
 		pbx_log(LOG_ERROR, "SCCP reloading already in progress.\n");
-		returnval = 1;
+		returnval = 4;
 		goto EXIT;
 	}
 
@@ -340,31 +339,35 @@ int sccp_reload(void)
 			GLOB(reload_in_progress) = TRUE;
 			if (!sccp_config_general(readingtype)) {
 				pbx_log(LOG_ERROR, "Unable to reload configuration.\n");
-				returnval = 2;
+				returnval = 3;
 				break;
 			}
-			sccp_config_readDevicesLines(readingtype);
-			returnval = 3;
+			if (!sccp_config_readDevicesLines(readingtype)) {
+				pbx_log(LOG_ERROR, "Unable to reload configuration.\n");
+				returnval = 3;
+				break;
+			}
+			returnval = sccp_session_bind_and_listen( &GLOB(bindaddr) ) ? 0 : 3;
 			break;
 		case CONFIG_STATUS_FILE_OLD:
 			pbx_log(LOG_ERROR, "Error reloading from '%s'\n", GLOB(config_file_name));
 			pbx_log(LOG_ERROR, "\n\n --> You are using an old configuration format, please update '%s'!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n", GLOB(config_file_name));
-			returnval = 4;
+			returnval = 3;
 			break;
 		case CONFIG_STATUS_FILE_NOT_SCCP:
 			pbx_log(LOG_ERROR, "Error reloading from '%s'\n", GLOB(config_file_name));
 			pbx_log(LOG_ERROR, "\n\n --> You are using an configuration file is not following the sccp format, please check '%s'!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n", GLOB(config_file_name));
-			returnval = 4;
+			returnval = 3;
 			break;
 		case CONFIG_STATUS_FILE_NOT_FOUND:
 			pbx_log(LOG_ERROR, "Error reloading from '%s'\n", GLOB(config_file_name));
 			pbx_log(LOG_ERROR, "Config file '%s' not found, aborting reload.\n", GLOB(config_file_name));
-			returnval = 4;
+			returnval = 3;
 			break;
 		case CONFIG_STATUS_FILE_INVALID:
 			pbx_log(LOG_ERROR, "Error reloading from '%s'\n", GLOB(config_file_name));
 			pbx_log(LOG_ERROR, "Config file '%s' specified is not a valid config file, aborting reload.\n", GLOB(config_file_name));
-			returnval = 4;
+			returnval = 3;
 			break;
 	}
 EXIT:
