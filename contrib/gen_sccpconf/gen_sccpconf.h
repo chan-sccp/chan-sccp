@@ -42,12 +42,16 @@ extern "C" {
 #  define SCCP_API_VISIBLE extern __attribute__((__visibility__("default")))
 #  define SCCP_INLINE SCCP_API gcc_inline
 #  define SCCP_CALL 
+#define __PURE__ __attribute__((pure))
+#define __CONST__ __attribute__((const))
 #else
 #  define gcc_inline
 #  define SCCP_API extern
 #  define SCCP_API_VISIBLE extern
 #  define SCCP_INLINE SCCP_API gcc_inline
 #  define SCCP_CALL 
+#define __PURE__ 
+#define __CONST__ 
 #endif
 #endif
 
@@ -168,7 +172,7 @@ typedef struct SCCPConfigOption {
 #define sccp_config_parse_jbflags_impl "fixed"
 
 uint32_t (sccp_enum_str2intval) (const char *lookup_str);
-const char *(sccp_enum_all_entries)(void);
+const char * const (sccp_enum_all_entries)(void);
 
 #define sccp_earlyrtp_str2intval sccp_enum_str2intval
 #define skinny_lampmode_str2intval sccp_enum_str2intval
