@@ -1100,7 +1100,7 @@ void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPt
 		return;
 	}
 	if (current_session != previous_session && previous_session->session_thread) {
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Previous session %p needs to be cleaned up and killed!\n", current_session->designator, previous_session->designator);
+		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Session %p needs to be closed!\n", current_session->designator, previous_session->designator);
 		__sccp_netsock_end_device_thread(previous_session);
 	}
 	return;
@@ -1109,7 +1109,7 @@ void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPt
 gcc_inline boolean_t sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr device)
 {
 	if (session && device && ((session->device && session->device != device) || (device->session && device->session != session))) {
-		pbx_log(LOG_WARNING, "Session(%p) and Device Session(%p) are of sync.\n", session, device->session);
+		pbx_log(LOG_WARNING, "Session(%p) and Device Session(%p) are out of sync.\n", session, device->session);
 		return TRUE;
 	}
 	return FALSE;
