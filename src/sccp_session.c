@@ -491,13 +491,10 @@ static void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	AUTO_RELEASE(sccp_device_t, d , s->device ? sccp_device_retain(s->device) : NULL);
 	if (d) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
-		if (d->session) {
-			d->session = NULL;
-			sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE);
-		} else {
-			sccp_session_releaseDevice(s);
-		}
+		d->session = NULL;
+		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE);
 	}
+	sccp_session_releaseDevice(s);
 
 	if (!sccp_session_removeFromGlobals(s)) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session could not be found in GLOB(session) %s\n", DEV_ID_LOG(s->device), addrStr);
