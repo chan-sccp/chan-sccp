@@ -1917,6 +1917,11 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	return;
 }
 
+/*
+ * _transfer_failed
+ * Called when we give up on a transfer
+ * Any regular device state cleanup and or channel state cleaup should be done here
+ */
 static void _transfer_failed(constDevicePtr device, channelPtr channel, char *msg)
 {
 	pbx_log(LOG_WARNING, "%s: %s\n", DEV_ID_LOG(device), msg);
@@ -1937,6 +1942,9 @@ static void _transfer_failed(constDevicePtr device, channelPtr channel, char *ms
 
 /*!
  * \brief Setup Transfer (First Stage)
+ *
+ * Called by sccp_channel_transfer below, if there is no transfer in progress
+ * Note this function does retain the transfee and transferer channels into the device->transferChannel struct
  */
 static int _transfer_setup(devicePtr device, channelPtr channel)
 {
@@ -1981,6 +1989,8 @@ static int _transfer_setup(devicePtr device, channelPtr channel)
 
 /*!
  * \brief Handle Transfer Request (Pressing the Transfer Softkey)
+ *
+ * This handles all three possible occasion when the transfer button is pressed
  */
 int sccp_channel_transfer(constDevicePtr device, channelPtr channel)
 {
@@ -2010,6 +2020,8 @@ int sccp_channel_transfer(constDevicePtr device, channelPtr channel)
 
 /*!
  * \brief Release Transfer Channels
+ *
+ * This release the transferee and transferee channels which were retained in device->transferChannels during _transfer_setup
  */
 void sccp_channel_transfer_release(devicePtr device, constChannelPtr channel)
 {
@@ -2032,6 +2044,8 @@ void sccp_channel_transfer_release(devicePtr device, constChannelPtr channel)
 
 /*!
  * \brief Cancel Transfer
+ *
+ * When a transfer in progress is cancelled we need to restore the original device/line & channel state (including rtp flow).
  */
 void sccp_channel_transfer_cancel(devicePtr device, constChannelPtr channel)
 {
@@ -2057,6 +2071,10 @@ void sccp_channel_transfer_cancel(devicePtr device, constChannelPtr channel)
 	}
 }
 
+/*
+ * This struct is used to retain some of the callinfo for easy access during a transfer
+ * Needed because channels are being swapped and their callinfo can be in flux
+ */
 typedef struct transfer_callinfo {
 	char transferee_name[StationMaxNameSize];
 	char transferee_number[StationMaxDirnumSize];
@@ -2066,6 +2084,11 @@ typedef struct transfer_callinfo {
 	char destination_number[StationMaxDirnumSize];
 } _transfer_callinfo_t;
 
+
+/*
+ * Fill the transfer_callinfo struct is used to retain some of the callinfo for easy access during a transfer
+ * Needed because channels are being swapped and their callinfo can be in flux
+ */
 static void _transfer_capture_callinfo(sccp_channel_t *transferee, sccp_channel_t *transferer, _transfer_callinfo_t *callinfo) {
 	
 	iCallInfo.Getter(sccp_channel_getCallInfo(transferee),
@@ -2091,7 +2114,7 @@ static void _transfer_capture_callinfo(sccp_channel_t *transferee, sccp_channel_
 }
 
 /*!
- * \brief Handle Attended Transfer (Second Stage)
+ * \brief Handle Attended Transfer (Third Stage)
  */
 static int _transfer_attended(devicePtr device, channelPtr channel)
 {
@@ -2136,7 +2159,7 @@ static int _transfer_attended(devicePtr device, channelPtr channel)
 }
 
 /*!
- * \brief Handle Blind Transfer (Second Stage)
+ * \brief Handle Blind Transfer (Third Stage)
  */
 int sccp_channel_transfer_blind(devicePtr device, channelPtr channel)
 {
@@ -2171,18 +2194,22 @@ int sccp_channel_transfer_blind(devicePtr device, channelPtr channel)
 }
 
 /*!
- * \brief Handle Transfer Completiong (Second Stagge) by Bridging Two Channels
+ * \brief Handle Transfer Completion (Second Stagge) by Bridging Two Channels
+ *
+ * Find out which type of transfer is requested/required, this depends on:
+ *  - channels state: ringing
+ *  - the softswitch action set during transfer_setup
  */
 int sccp_channel_transfer_complete(devicePtr device, channelPtr channel)
 {
 	if (pbx_channel_state(channel->owner) <  AST_STATE_DIALING) {
 		uint16_t instance = sccp_device_find_index_for_line(device, channel->line->name);
 		if (channel->softswitch_action != SCCP_SOFTSWITCH_TRANSFER) {							/* setup for blind transfer */
-			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_4 "\n\n%s: Blind Transfer on transferee:%s Enabled\n", device->id, channel->designator);
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_4 "\n\n%s: Enable Blind Transfer on transferee:%s\n", device->id, channel->designator);
 			sccp_dev_displayprompt(device, instance, channel->callid, "Blind Transfer", GLOB(digittimeout));
 			channel->softswitch_action = SCCP_SOFTSWITCH_TRANSFER;
 		} else {													/* cancel (blind) transfer in progress */
-			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_4 "\n\n%s: (Blind) Transfer on transferee:%s Disabled\n", device->id, channel->designator);
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_4 "\n\n%s: Disable Blind Transfer on transferee:%s\n", device->id, channel->designator);
 			sccp_dev_displayprompt(device, instance, channel->callid, "Transfer Cancelled", GLOB(digittimeout));
 			channel->softswitch_action = SCCP_SOFTSWITCH_DIAL;
 			sccp_channel_resume(device, device->transferChannels.transferee, TRUE);
