@@ -1,0 +1,64 @@
+#!/bin/bash
+usage()
+{
+cat << EOF
+usage: $0 options
+
+This script will collect info from a cisco sccp phone and save it to a file.
+
+OPTIONS:
+   -h      Show this message
+   -i	   Ip-Address of the phone to pull the screenshot from
+   -u      Phone Username	(also requires password)
+   -p      Phone Password
+EOF
+}
+
+IPADDRESS=
+OUTPUTFILE=info
+USERNAME=
+PASSWORD=
+while getopts “h:i:u:p:?” OPTION
+do
+     case $OPTION in
+         h)
+             usage
+             exit 1
+             ;;
+         i)
+             IPADDRESS=$OPTARG
+             ;;
+         u)
+             USERNAME=$OPTARG
+             ;;
+         p)
+             PASSWORD=$OPTARG
+             ;;
+         ?)
+             usage
+             exit
+             ;;
+     esac
+done
+
+if [[ -z $IPADDRESS ]]
+then
+     usage
+     exit 1
+fi
+
+
+USERPASS=""
+echo "Retrieving Info from phone at $IPADDRESS..."
+if [[ ! -z $USERNAME ]]; then
+	if [[ ! -z $PASSWORD ]]; then
+		USERPASS="--user $USERNAME:$PASSWORD"
+	else 
+		usage
+		exit 1
+	fi
+fi
+curl -q --basic $USERPASS --url http://$IPADDRESS/CGI/LineInfo     -o LineInfo 2>/dev/null
+curl -q --basic $USERPASS --url http://$IPADDRESS/CGI/ModeInfo     -o ModeInfo 2>/dev/null
+curl -q --basic $USERPASS --url http://$IPADDRESS/CGI/SettingsInfo -o SetttingsInfo 2>/dev/null
+curl -q --basic $USERPASS --url http://$IPADDRESS/CGI/CallInfo     -o - 2>/dev/null |xmllint --pretty 1 - > CallInfo

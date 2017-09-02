@@ -17,8 +17,10 @@ Makefile
 .deps
 *.lo
 *.la
+*.o
 contrib/gen_sccpconf/.deps/
 contrib/gen_sccpconf/Makefile
+contrib/gen_sccpconf/gen_sccpconf
 src/config.h.bak
 src/config.h.in.bak
 .*~
@@ -28,3 +30,4 @@ src/revision.h
 src/sccp_enum.?
 *.bak
 *.diff
+coverage/
