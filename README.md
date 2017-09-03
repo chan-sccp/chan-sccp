@@ -64,14 +64,14 @@ We also provide prebuild binaries for:
   - [OpenSuSE-13.2](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-11/openSUSE_13.2/)
 - Asterisk-13
   - [OpenSuSE-13.2](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/openSUSE_13.2/)
-  - ~~[OpenSuSE-LEAP4.1](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/openSUSE_Leap_42.1/)~~
+  - [OpenSuSE-Leap4.1](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/openSUSE_Leap_42.1/)
   - [Fedora-23](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Fedora_23/)
   - [Fedora-24](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Fedora_24/)
   - [Fedora-25](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Fedora_25/)
 - Asterisk-14
   - [OpenSuSE-13.2](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-14/openSUSE_13.2/)
-  - [OpenSuSE-LEAP4.2](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-14/openSUSE_Leap_42.2/)
-  - [OpenSuSE-LEAP4.3](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-14/openSUSE_Leap_42.3/)
+  - [OpenSuSE-Leap4.2](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-14/openSUSE_Leap_42.2/)
+  - [OpenSuSE-Leap4.3](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-14/openSUSE_Leap_42.3/)
 
 ### Wiki
 You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/)
