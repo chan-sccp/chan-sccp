@@ -159,6 +159,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"backoff_time", 		G_OBJ_REF(token_backoff_time),		TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"60",				"Time to wait before re-asking to fallback to primairy server (Token Reject Backoff Time)\n"},
 	{"server_priority", 		G_OBJ_REF(server_priority),		TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"1",				"Server Priority for fallback: 1=Primairy, 2=Secundary, 3=Tertiary etc\n"
 																																					"For active-active (fallback=odd/even) use 1 for both\n"},
+	{"emulate_callmanager", 	G_OBJ_REF(emulate_callmanager),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no"				"Emulate the behaviour of callmanager and 'usecallmanager' (the chan_sip patch) in certain aspects (like gpickup/pickup being swapped and transfer keymodes handled differently)\n"},
 //#if defined(CS_EXPERIMENTAL_XML)
 //	{"webdir",			G_OBJ_REF(webdir),			TYPE_PARSER(sccp_config_parse_webdir),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"Directory where xslt stylesheets can be found.\n"},
 //#endif

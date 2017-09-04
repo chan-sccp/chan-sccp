@@ -854,7 +854,11 @@ static void sccp_sk_pickup(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 
 	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	if (line) {
-		sccp_feat_handle_directed_pickup(d, line, c);
+		if (!GLOB(emulate_callmanager)) {				// callmanager swaps pickup/gpickup behaviour
+			sccp_feat_handle_directed_pickup(d, line, c);
+		} else {
+			sccp_feat_grouppickup(d, line, lineInstance, c);
+		}
 	}
 #endif
 }
@@ -870,7 +874,11 @@ static void sccp_sk_gpickup(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 #else
 	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	if (line) {
-		sccp_feat_grouppickup(d, line, lineInstance, c);
+		if (!GLOB(emulate_callmanager)) {				// callmanager swaps pickup/gpickup behaviour
+			sccp_feat_grouppickup(d, line, lineInstance, c);
+		} else {
+			sccp_feat_handle_directed_pickup(d, line, c);
+		}
 	}
 #endif
 }
