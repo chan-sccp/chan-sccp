@@ -149,8 +149,8 @@ struct sccp_global_vars {
 	char *token_fallback;											/*!< Fall back immediatly on TokenReq (true/false/odd/even) */
 	int token_backoff_time;											/*!< Backoff time on TokenReject */
 	int server_priority;											/*!< Server Priority to fallback to */
-
-
+	boolean_t emulate_callmanager;										/*!< Emulate CallManager in respect to gpickup/pickup and transfer keymodes */
+	
 	boolean_t reload_in_progress;										/*!< Reload in Progress */
 	boolean_t pendingUpdate;
 };														/*!< SCCP Global Varable Structure */

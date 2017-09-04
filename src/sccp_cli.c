@@ -578,7 +578,8 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("Hotline_Context", CLI_AMI_LIST_WIDTH, "%s", GLOB(hotline)->line->context ? GLOB(hotline)->line->context : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Hotline_Exten", CLI_AMI_LIST_WIDTH, "%s", GLOB(hotline->exten));
 	CLI_AMI_OUTPUT_PARAM("Threadpool Size", CLI_AMI_LIST_WIDTH, "%d/%d", sccp_threadpool_jobqueue_count(GLOB(general_threadpool)), sccp_threadpool_thread_count(GLOB(general_threadpool)));
-
+	CLI_AMI_OUTPUT_BOOL("Emulate CallManager", CLI_AMI_LIST_WIDTH, GLOB(emulate_callmanager));
+ 
 	if (sccp_netsock_is_any_addr(&GLOB(externip)) && GLOB(externhost)) {
 		struct sockaddr_storage externip;
 		boolean_t lookup_success = sccp_netsock_getExternalAddr(&externip, sccp_netsock_is_IPv6(&GLOB(bindaddr)) ? AF_INET6 : AF_INET);

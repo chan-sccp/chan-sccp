@@ -1056,6 +1056,8 @@ boolean_t sccp_channel_transfer_on_hangup(constChannelPtr channel)
 		if ((transferee && transferer) && (channel == transferer) && (pbx_channel_state(transferer->owner) == AST_STATE_UP || pbx_channel_state(transferer->owner) == AST_STATE_RING)
 		    ) {
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion (channel_name: %s, transferee_name: %s, transferer_name: %s, transferer_state: %d)\n", channel->designator, pbx_channel_name(channel->owner), pbx_channel_name(transferee->owner), pbx_channel_name(transferer->owner), pbx_channel_state(transferer->owner));
+			// GPL: added calltransfer state here, to correct call manager keymode behaviour  
+ 			// sccp_indicate(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);	/* moved to sccp_channel_transfer_complete
 			sccp_channel_transfer_complete(d, transferer);
 			result = TRUE;
 		}
@@ -2202,6 +2204,7 @@ int sccp_channel_transfer_blind(devicePtr device, channelPtr channel)
  */
 int sccp_channel_transfer_complete(devicePtr device, channelPtr channel)
 {
+	sccp_indicate(device, device->transferChannels.transferee, SCCP_CHANNELSTATE_CALLTRANSFER);	/* not sure if this should be retained */
 	if (pbx_channel_state(channel->owner) <  AST_STATE_DIALING) {
 		uint16_t instance = sccp_device_find_index_for_line(device, channel->line->name);
 		if (channel->softswitch_action != SCCP_SOFTSWITCH_TRANSFER) {							/* setup for blind transfer */
