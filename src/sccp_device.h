@@ -262,11 +262,6 @@ struct sccp_device {
 	} softKeyConfiguration;											/*!< SoftKeySet configuration */
 
 	struct {
-		btnlist *instance;										/*!< used softkeySet */
-		uint8_t size;											/*!< how many softkeysets are provided by modes */
-	} speeddialButtons;
-
-	struct {
 		sccp_tokenstate_t token;									/*!< token request state */
 	} status;												/*!< Status Structure */
 	boolean_t allowRinginNotification;									/*!< allow ringin notification for hinted extensions (Boolean, default=on) */
@@ -274,7 +269,7 @@ struct sccp_device {
 	boolean_t needcheckringback;										/*!< Need to Check Ring Back Support (Boolean, default=on) */
 	boolean_t isAnonymous;											/*!< Device is connected Anonymously (Guest) */
 
-	btnlist *buttonTemplate;
+	btnlist *buttonTemplate;										/*!< Button Template for this device type */
 
 	struct {
 		char *action;
@@ -337,18 +332,14 @@ struct sccp_device {
 	boolean_t pendingUpdate;										/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 };
 
-// Number of additional keys per addon -FS
-#define SCCP_ADDON_7914_TAPS			14
-#define SCCP_ADDON_7915_TAPS			24
-#define SCCP_ADDON_7916_TAPS			24
-
 /*!
  * \brief SCCP Add-On Structure
  * \note This defines the add-ons a.k.a sidecars
  */
 struct sccp_addon {
 	SCCP_LIST_ENTRY (sccp_addon_t) list;									/*!< Linked List Entry for this Add-On */
-	skinny_devicetype_t type;										/*!< Add-On Type */
+	//sccp_device_t *device;											/*!< Device Associated with this Add-On */
+	skinny_devicetype_t type;										/*!< Addon Device Type */
 };
 
 /*!

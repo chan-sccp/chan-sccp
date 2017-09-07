@@ -93,47 +93,6 @@ void sccp_dump_msg(const sccp_msg_t * const msg)
 }
 
 /*!
- * \brief Return Number of Buttons on AddOn Device
- * \param d SCCP Device
- * \return taps (Number of Buttons on AddOn Device)
- * 
- */
-int sccp_addons_taps(sccp_device_t * d)
-{
-	sccp_addon_t *cur = NULL;
-	int taps = 0;
-
-	if (SCCP_LIST_GETSIZE(&d->addons) > 0 && (d->skinny_type == SKINNY_DEVICETYPE_CISCO7941 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7941GE)) {
-		pbx_log(LOG_WARNING, "%s: %s devices do no support AddOns/Expansion Modules of any kind. Skipping !\n", DEV_ID_LOG(d), skinny_devicetype2str(d->skinny_type));
-	}
-
-	if (!strcasecmp(d->config_type, "7914")) {
-		pbx_log(LOG_WARNING, "%s: config_type '%s' forces addon compatibily mode. Possibly faulty config file.\n", DEV_ID_LOG(d), d->config_type);
-		return 28;											// in compatibility mode it returns 28 taps for a double 7914 addon
-	}
-	SCCP_LIST_LOCK(&d->addons);
-	SCCP_LIST_TRAVERSE(&d->addons, cur, list) {
-		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7914) {
-			taps += 14;
-		}
-		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7915_12BUTTON || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7916_12BUTTON) {
-			taps += 12;
-		}
-		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON) {
-			taps += 24;
-		}
-		/* should maybe check if connected via SPCS */
-		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_SPA500S || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS) {
-			taps += 32;
-		}
-		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d ? d->id : "SCCP"), taps, cur->type);
-	}
-	SCCP_LIST_UNLOCK(&d->addons);
-
-	return taps;
-}
-
-/*!
  * \brief Clear all Addons from AddOn Linked List
  * \param d SCCP Device
  */

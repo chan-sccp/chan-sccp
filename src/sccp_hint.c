@@ -53,6 +53,7 @@ struct sccp_hint_SubscribingDevice
 {
 	SCCP_LIST_ENTRY (sccp_hint_SubscribingDevice_t) list;							/*!< Hint Subscribing Device Linked List Entry */
 	sccp_device_t *device;											/*!< SCCP Device */
+	skinny_devicetype_t devicetype;
 	uint8_t instance;											/*!< Instance */
 	uint8_t positionOnDevice;										/*!< Instance */
 };														/*!< SCCP Hint Subscribing Device Structure */
@@ -563,6 +564,14 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 	subscriber->device = sccp_device_retain((sccp_device_t *) device);
 	subscriber->instance = instance;
 	subscriber->positionOnDevice = positionOnDevice;
+
+	// Copy devicetype from buttonTemplate, for use in sccp_hint_notifySubscribers
+	int i = 0;
+	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
+		if (device->buttonTemplate[i].instance == instance) {
+			subscriber->devicetype = device->buttonTemplate[i].devicetype;
+		}
+	}
 
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_addSubscription4Device) Adding subscription for hint %s@%s\n", DEV_ID_LOG(device), hint->exten, hint->context);
 	SCCP_LIST_INSERT_HEAD(&hint->subscribers, subscriber, list);
@@ -1139,7 +1148,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		AUTO_RELEASE(sccp_device_t, d , sccp_device_retain((sccp_device_t *) subscriber->device));
 
 		if (d) {
-			//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, hint->hint_dialplan, sccp_channelstate2str(hint->currentState), hint->currentState);
+			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_notifySubscribers) notify subscriber %s of %s's state %s (%d), devicetype:%s\n", DEV_ID_LOG(d), d->id, hint->hint_dialplan, sccp_channelstate2str(hint->currentState), hint->currentState, skinny_devicetype2str(subscriber->devicetype));
 #ifdef CS_DYNAMIC_SPEEDDIAL
 			sccp_msg_t *msg = NULL;
 			sccp_speed_t k;
@@ -1147,7 +1156,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 			skinny_busylampfield_state_t status = SKINNY_BLF_STATUS_UNKNOWN;
 			if (d->inuseprotocolversion >= 15) {
 				sccp_dev_speed_find_byindex( d, subscriber->instance, TRUE, &k);
-
 				char cidName[StationMaxNameSize] = "";
 				char cidNumber[StationMaxDirnumSize] = "";
 
@@ -1163,7 +1171,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					break;
 
 				case SCCP_CHANNELSTATE_DND:
-					//snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
 					snprintf(displayMessage, sizeof(displayMessage), "(DND) %s", k.name);
 					status = SKINNY_BLF_STATUS_DND;	/* dnd */
 					break;
@@ -1210,6 +1217,13 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				}
 
 				sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_notifySubscribers) notify device: %s@%d, displayMessage:%s, state: %s ->  %s\n", hint->exten, DEV_ID_LOG(d), subscriber->instance, displayMessage, sccp_channelstate2str(hint->currentState), skinny_busylampfield_state2str(status)); 
+
+				/*! Older 7914 expansion units attached to newer phones have problems displaying updated TextLabels
+				 * Resetting changed content back to the original
+				 */
+				if (subscriber->devicetype == SKINNY_DEVICETYPE_CISCO_ADDON_7914) {
+					snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+				}
 				/*!
 				* hack to fix the white text without shadow issue -MC
 				*
@@ -1219,10 +1233,10 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				REQ(msg, FeatureStatDynamicMessage);
 				if (msg) {
 					sccp_copy_string(msg->data.FeatureStatDynamicMessage.featureTextLabel, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.featureTextLabel));
+					msg->data.FeatureStatDynamicMessage.featureTextLabel[strlen(displayMessage)-1] = '\0';
 					msg->data.FeatureStatDynamicMessage.lel_featureIndex = htolel(subscriber->instance);
 					msg->data.FeatureStatDynamicMessage.lel_featureID = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
 					msg->data.FeatureStatDynamicMessage.lel_featureStatus = htolel(status);
-					msg->data.FeatureStatDynamicMessage.featureTextLabel[strlen(displayMessage)-1] = '\0';
 					sccp_dev_send(d, msg);
 				} else {
 					sccp_free(msg);
@@ -1428,8 +1442,8 @@ static void sccp_hint_notifyLineStateUpdate(struct sccp_hint_lineState *lineStat
 			}
 			oldDeviceState = sccp_hint_hint2DeviceState(hint->currentState);
 
-			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyLineStateUpdate) Notify asterisk to set state to sccp channelstate '%s' (%d) on line 'SCCP/%s'\n", sccp_channelstate2str(lineState->state), lineState->state, lineName);
-			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyLineStateUpdate) => asterisk: '%s' (%d) => '%s' (%d) on line SCCP/%s\n", pbxsccp_devicestate2str(oldDeviceState), oldDeviceState, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineName);
+			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyLineStateUpdate) Notify asterisk to set state to sccp channelstate '%s' (%d) on line '%s'\n", sccp_channelstate2str(lineState->state), lineState->state, lineName);
+			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyLineStateUpdate) => asterisk: '%s' (%d) => '%s' (%d) on line %s\n", pbxsccp_devicestate2str(oldDeviceState), oldDeviceState, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineName);
 			if (newDeviceState == oldDeviceState) {
 				sccp_hint_notifySubscribers(hint);							/* shortcut to inform sccp subscribers about cid update changes only */
 			}

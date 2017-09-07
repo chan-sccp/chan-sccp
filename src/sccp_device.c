@@ -889,6 +889,51 @@ void sccp_device_removeFromGlobals(devicePtr device)
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 }
 
+static uint8_t sccp_addon_build_buttontemplate(constDevicePtr d, sccp_addon_t *addon, btnlist * btn, uint8_t btn_index)
+{
+	uint8_t i;
+	uint8_t start_point = btn_index;
+	skinny_devicetype_t type = addon->type;
+
+	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Building button template %s(%d)\n", d->id, skinny_devicetype2str(type), type);
+
+	switch (type) {
+		case SKINNY_DEVICETYPE_CISCO_ADDON_7914:
+			for (i = 0; i < 14; i++) {
+				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
+			}
+			break;
+		case SKINNY_DEVICETYPE_CISCO_ADDON_7915_12BUTTON:
+		case SKINNY_DEVICETYPE_CISCO_ADDON_7916_12BUTTON:
+			for (i = 0; i < 12; i++) {
+				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
+			}
+			break;
+		case SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON:
+		case SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON:
+			for (i = 0; i < 24; i++) {
+				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
+			}
+			break;
+		case SKINNY_DEVICETYPE_CISCO_ADDON_SPA500S:
+		case SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS:
+		case SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS:
+			for (i = 0; i < 32; i++) {
+				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
+			}
+			break;
+		default:
+			pbx_log(LOG_WARNING, "%s: Unknown addon device type '%d' found.\n", d->id, type);
+			break;
+	}
+	for (i = start_point; i < btn_index; i++) {
+		btn[i].devicetype = type;
+	}
+
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocated %d Addon Buttons.\n", d->id, btn_index - start_point);
+	return btn_index;
+}
+
 /*!
  * \brief Create a template of Buttons as Definition for a Phonetype (d->skinny_type)
  * \param d device
@@ -898,10 +943,11 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 {
 	uint8_t i;
 	uint8_t btn_index=0;
+	skinny_devicetype_t type = d->skinny_type;
 
-	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Building button template %s(%d), user config %s\n", d->id, skinny_devicetype2str(d->skinny_type), d->skinny_type, d->config_type);
+	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Building button template %s(%d), user config %s\n", d->id, skinny_devicetype2str(type), type, d->config_type);
 
-	switch (d->skinny_type) {
+	switch (type) {
 		case SKINNY_DEVICETYPE_30SPPLUS:
 		case SKINNY_DEVICETYPE_30VIP:
 			/* 13 rows, 2 columns */
@@ -1015,14 +1061,13 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 		case SKINNY_DEVICETYPE_CISCO7940:
 			d->pushTextMessage = sccp_device_pushTextMessage;
 			d->pushURL = sccp_device_pushURL;
-			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
-				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
-			}
+			btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
+			btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7960:
 			d->pushTextMessage = sccp_device_pushTextMessage;
 			d->pushURL = sccp_device_pushURL;
-			for (i = 6 + sccp_addons_taps(d); i > 0; i--) {
+			for (i = 6; i > 0; i--) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
@@ -1037,10 +1082,8 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			d->setBackgroundImage = sccp_device_setBackgroundImage;
 			d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreview;
 			d->setRingTone = sccp_device_setRingtone;
-
-			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
-				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
-			}
+			btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
+			btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7961:
 		case SKINNY_DEVICETYPE_CISCO7961GE:
@@ -1053,8 +1096,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreview;
 			d->setRingTone = sccp_device_setRingtone;
 			d->hasEnhancedIconMenuSupport = sccp_device_trueResult;
-
-			for (i = 6 + sccp_addons_taps(d); i > 0; i--) {
+			for (i = 6; i > 0; i--) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
@@ -1065,7 +1107,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			if (!strcasecmp(d->config_type, "nokia-icc")) {						// this is for nokia icc legacy support (Old releases) -FS
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			} else {
-				for (i = 8 + sccp_addons_taps(d); i > 0; i--) {
+				for (i = 8; i > 0; i--) {
 					btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 				}
 
@@ -1083,7 +1125,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			if (!strcasecmp(d->config_type, "nokia-icc")) {						// this is for nokia icc legacy support (Old releases) -FS
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			} else {
-				for (i = 8 + sccp_addons_taps(d); i > 0; i--) {
+				for (i = 8; i > 0; i--) {
 					btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 				}
 
@@ -1161,18 +1203,10 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 		case SKINNY_DEVICETYPE_SPA_502G:
 		case SKINNY_DEVICETYPE_SPA_512G:
 		case SKINNY_DEVICETYPE_SPA_521S:
-			for (i = 0; i < 1; i++) {
-				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
-			}
-			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
-				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
-			}
+			btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			break;
 		case SKINNY_DEVICETYPE_SPA_303G:
 			for (i = 0; i < 3; i++) {
-				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
-			}
-			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
@@ -1182,9 +1216,6 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			for (i = 0; i < 4; i++) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
-			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
-				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
-			}
 			break;
 		case SKINNY_DEVICETYPE_SPA_508G:
 			for (i = 0; i < 8; i++) {
@@ -1192,9 +1223,6 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			}
 			btn[btn_index++].type = SKINNY_BUTTONTYPE_VOICEMAIL;
 			btn[btn_index++].type = SKINNY_BUTTONTYPE_HOLD;
-			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
-				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
-			}
 			break;
 		case SKINNY_DEVICETYPE_SPA_509G:
 			for (i = 0; i < 12; i++) {
@@ -1202,15 +1230,9 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			}
 			btn[btn_index++].type = SKINNY_BUTTONTYPE_VOICEMAIL;
 			btn[btn_index++].type = SKINNY_BUTTONTYPE_HOLD;
-			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
-				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
-			}
 			break;
 		case SKINNY_DEVICETYPE_SPA_525G2:
 			for (i = 0; i < 8; i++) {
-				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
-			}
-			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
@@ -1263,18 +1285,32 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			btn[btn_index++].type = SCCP_BUTTONTYPE_LINE;
 			break;
 	}
+	for (i = 0; i < btn_index; i++) {
+		btn[i].devicetype = type;
+	}
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocated %d Device buttons.\n", d->id, btn_index);
+
+	sccp_addon_t *cur = NULL;
+	SCCP_LIST_LOCK(&d->addons);
+	SCCP_LIST_TRAVERSE(&d->addons, cur, list) {
+		btn_index = sccp_addon_build_buttontemplate(d, cur, btn, btn_index);
+	}
+	SCCP_LIST_UNLOCK(&d->addons);
 
 	if (d->skinny_type < 6 || sccp_strcaseequals(d->config_type, "kirk")) {
 		d->hasDisplayPrompt = sccp_device_falseResult;
 	}
+
 	// fill the rest with abbreviated dial buttons
 	for (i = btn_index; i< StationMaxButtonTemplateSize; i++) {
 		btn[i].type = SCCP_BUTTONTYPE_ABBRDIAL;	
+		btn[i].devicetype = type;
 	}
+	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocated %d Abbreviate Dial Buttons.\n", d->id, StationMaxButtonTemplateSize - btn_index);
 
-	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocated '%d' buttons.\n", d->id, btn_index);
 	return btn_index;
 }
+
 
 /*!
  * \brief Build an SCCP Message Packet
