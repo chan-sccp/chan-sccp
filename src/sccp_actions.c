@@ -1470,63 +1470,50 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
  */
 void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
-	sccp_msg_t *msg_out = NULL;
 	sccp_speed_t k;
 	sccp_buttonconfig_t *config;
-
 	uint8_t lineNumber = letohl(msg_in->data.LineStatReqMessage.lel_lineNumber);
-
 	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Configuring line number %d\n", d->id, lineNumber);
 
 	/* if we find no regular line - it can be a speeddial with hint */
 	AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byid(d, lineNumber));
-
 	if (!l) {
 		sccp_dev_speed_find_byindex(d, lineNumber, TRUE, &k);
 	}
 
-	REQ(msg_out, LineStatMessage);
 	if (!l && !k.valid) {
 		pbx_log(LOG_ERROR, "%s: requested a line configuration for unknown line/speeddial %d\n", sccp_session_getDesignator(s), lineNumber);
-		msg_out->data.LineStatMessage.lel_lineNumber = htolel(lineNumber);
-		sccp_dev_send(d, msg_out);
+		d->protocol->sendLineStatResp(d, lineNumber, "", "", "");
 		return;
 	}
-	msg_out->data.LineStatMessage.lel_lineNumber = htolel(lineNumber);
+	char *dirNumber = ((l) ? l->name : k.name);
+	/* setting the device description for the first line, so it will be display on top of device -MC */
+	/* otherwise set the line description of speeddial name */
+	char *fullyQualifiedDisplayName = (lineNumber == 1 || !l) ? d->description : ((l && l->description) ? l->description : k.name);
 
-	d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineDirNumber, ((l) ? l->name : k.name), sizeof(msg_out->data.LineStatMessage.lineDirNumber));
-
-	/* lets set the device description for the first line, so it will be display on top of device -MC */
-	if (lineNumber == 1 || !l) {
-		d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, (d->description), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
-	} else {
-		d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, ((l && l->description) ? l->description : k.name), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
-	}
-	
-	char label[SCCP_MAX_LABEL + 1];
+	char displayName[SCCP_MAX_LABEL + 1];
 	if (l) {
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->type == LINE && config->instance == lineNumber) {
 				if (config->button.line.subscriptionId && !sccp_strlen_zero(config->button.line.subscriptionId->label)) {
 					if (config->button.line.subscriptionId->replaceCid) {
-						snprintf(label, SCCP_MAX_LABEL, "%s", config->button.line.subscriptionId->label);
+						snprintf(displayName, SCCP_MAX_LABEL, "%s", config->button.line.subscriptionId->label);
 					} else {
-						snprintf(label, SCCP_MAX_LABEL, "%s%s", l->label, config->button.line.subscriptionId->label);
+						snprintf(displayName, SCCP_MAX_LABEL, "%s%s", l->label, config->button.line.subscriptionId->label);
 					}
 				} else {
-					snprintf(label, SCCP_MAX_LABEL, "%s", l->label);
+					snprintf(displayName, SCCP_MAX_LABEL, "%s", l->label);
 				}
 				break;
 			}
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	} else {
-		snprintf(label, SCCP_MAX_LABEL, "%s", k.name);
+		snprintf(displayName, SCCP_MAX_LABEL, "%s", k.name);
 	}
-	d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineDisplayName, label, sizeof(msg_out->data.LineStatMessage.lineDisplayName));
 
-	sccp_dev_send(d, msg_out);
+	d->protocol->sendLineStatResp(d, lineNumber, dirNumber, fullyQualifiedDisplayName, displayName);
 
 	if (l) {
 		/* set default line on device if based on "default" config option */

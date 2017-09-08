@@ -108,8 +108,6 @@ SCCP_API int SCCP_CALL sccp_softkeyindex_find_label(sccp_device_t * d, unsigned 
 
 SCCP_API sccp_feature_type_t SCCP_CALL sccp_featureStr2featureID(const char *str);
 SCCP_API boolean_t __PURE__ SCCP_CALL sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *subscriptionIdNum);
-SCCP_API sccp_msg_t * SCCP_CALL sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32_t type, const char *dirNum, const char *fqdn, const char *lineDisplayName);
-
 SCCP_INLINE SCCP_CALL boolean_t sccp_netsock_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1);
 SCCP_INLINE SCCP_CALL size_t sccp_strlen(const char *data);
 SCCP_INLINE SCCP_CALL boolean_t sccp_strlen_zero(const char *data);

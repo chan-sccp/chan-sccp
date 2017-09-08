@@ -683,48 +683,6 @@ boolean_t __PURE__ sccp_util_matchSubscriptionId(const sccp_channel_t * channel,
 }
 
 /*!
- * \brief create a LineStatDynamicMessage
- * \param lineInstance the line instance
- * \param type LineType or LineOptions as uint32_t
- * \param dirNum the dirNum (e.g. line->cid_num)
- * \param fqdn line description (top right o the first line)
- * \param lineDisplayName label on the display
- * \return LineStatDynamicMessage as sccp_msg_t *
- *
- * \callgraph
- * \callergraph
- */
-sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32_t type, const char *dirNum, const char *fqdn, const char *lineDisplayName)
-{
-	int dirNumLen = dirNum ? sccp_strlen(dirNum) : 0;
-	int fqdnLen = fqdn ? sccp_strlen(fqdn) : 0;
-	int lineDisplayNameLen = lineDisplayName ? sccp_strlen(lineDisplayName) : 0;
-	int dummyLen = dirNumLen + fqdnLen + lineDisplayNameLen;
-
- 	int pktLen = SCCP_PACKET_HEADER + dummyLen;
-	sccp_msg_t *msg = sccp_build_packet(LineStatDynamicMessage, pktLen);
-	msg->data.LineStatDynamicMessage.lel_lineNumber = htolel(lineInstance);
-	msg->data.LineStatDynamicMessage.lel_lineType = htolel(type);
-	if (dummyLen) {
-		char *dummyPtr = msg->data.LineStatDynamicMessage.dummy;
-		if (dirNumLen) {
-			memcpy(dummyPtr, dirNum, dirNumLen);
-			dummyPtr += dirNumLen + 1;
-		}
-		if (fqdnLen) {
-			memcpy(dummyPtr, fqdn, fqdnLen);
-			dummyPtr += fqdnLen + 1;
-		}
-		if (lineDisplayNameLen) {
-			memcpy(dummyPtr, lineDisplayName, lineDisplayNameLen);
-			dummyPtr += lineDisplayNameLen + 1;
-		}
-	}
-
-	return msg;
-}
-
-/*!
  * \brief Compare the information of two socket with one another
  * \param s0 Socket Information
  * \param s1 Socket Information

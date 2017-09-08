@@ -2229,7 +2229,8 @@ typedef union {
 		uint32_t lel_lineNumber;									/*!< Line Number */
 		char lineDirNumber[StationMaxDirnumSize];							/*!< Line Dir Number */
 		char lineFullyQualifiedDisplayName[StationMaxNameSize];						/*!< Line Fully Qualified Display Name */
-		char lineDisplayName[StationMaxButtonTemplateNameSize];						/*!< Line Display Name */
+		//char lineDisplayName[StationMaxButtonTemplateNameSize];					/*!< Line Display Name */
+		char lineDisplayName[StationMaxNameSize];
 		uint32_t lineDisplayOptions;
 	} LineStatMessage;											/*!< Line Status Messages Structure */
 
@@ -3239,6 +3240,7 @@ typedef struct {
 	void (*const sendConnectionStatisticsReq) (constDevicePtr device, constChannelPtr channel, uint8_t clear);
 	void (*const sendPortRequest) (constDevicePtr device, constChannelPtr channel, skinny_mediaTransportType_t mediaTransportType, skinny_mediaType_t mediaType);
 	void (*const sendPortClose) (constDevicePtr device, constChannelPtr channel, skinny_mediaType_t mediaType);
+	void (*const sendLineStatResp) (constDevicePtr device, uint32_t lineNumber, char *dirNumber, char *fullyQualifiedDisplayName, char *displayName);
 
 	/* parse received messages */
 	void (*const parseOpenReceiveChannelAck) (constMessagePtr msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
