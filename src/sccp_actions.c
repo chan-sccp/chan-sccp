@@ -3085,7 +3085,7 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 		sccp_dev_displayprompt(d, lineInstance, channel->callid, SKINNY_DISP_NO_MORE_DIGITS, SCCP_DISPLAYSTATUS_TIMEOUT);
 	} else if (((channel->state == SCCP_CHANNELSTATE_OFFHOOK) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL)) && !iPbx.getChannelPbx(channel)) {
 		/* enbloc emulation */
-		double max_deviation = SCCP_SIM_ENBLOC_DEVIATION;
+		//double max_deviation = SCCP_SIM_ENBLOC_DEVIATION;
 		int max_time_per_digit = SCCP_SIM_ENBLOC_MAX_PER_DIGIT;
 		double variance = 0;
 		double std_deviation = 0;
@@ -3108,17 +3108,20 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 			if (number_of_digits >= 2) {								// prevent div/0
 				if (number_of_digits >= minimum_digit_before_check) {				// minimal number of digits before checking
 					if (lpbx_digit_usecs < max_time_per_digit) {
-						variance = ((double) channel->enbloc.totaldigittimesquared - (pow((double) channel->enbloc.totaldigittime, 2) / (double) number_of_digits)) / ((double) number_of_digits - 1);
+						// wellford one-pass variance method
+						double mean = (double)channel->enbloc.totaldigittime / (double)number_of_digits;
+						variance = ( (double) channel->enbloc.totaldigittimesquared - ((double)number_of_digits * pow(mean, 2)) ) / ((double)number_of_digits - 1);
 						std_deviation = sqrt(variance);
-						sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU sqrt((%d-((pow(%d, 2))/%d))/%d)='%2.2f'\n", channel->enbloc.totaldigittimesquared, channel->enbloc.totaldigittime, number_of_digits, number_of_digits - 1, std_deviation);
+						sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU sqrt((%d - (%d * (%d/%d)^2)/(%d-1))='%2.2f'\n", channel->enbloc.totaldigittimesquared, number_of_digits, channel->enbloc.totaldigittime, number_of_digits, number_of_digits, std_deviation);
 						sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU totaldigittimesquared '%d', totaldigittime '%d', number_of_digits '%d', std_deviation '%2.2f', variance '%2.2f'\n", channel->enbloc.totaldigittimesquared, channel->enbloc.totaldigittime, number_of_digits, std_deviation, variance);
-						if (std_deviation < max_deviation) {
+
+						if (abs(lpbx_digit_usecs - mean) <= std_deviation) {
 							if ((int)channel->enbloc.digittimeout > timeout_if_enbloc) {	// only display message and change timeout once
 								sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU FAST DIAL (new timeout=2 sec)\n");
 								channel->enbloc.digittimeout = timeout_if_enbloc;	// set new digittimeout
 							}
 						} else {
-							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU Cancelled (deviation from mean '%2.2f' > maximum '%2.2f')\n", std_deviation, max_deviation);
+							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU Cancelled (more than 1 stddeviation '%2.2f' from mean '%2.2f')\n", std_deviation, mean);
 							channel->enbloc.deactivate = 1;
 						}
 					} else {

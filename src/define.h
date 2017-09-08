@@ -141,9 +141,10 @@ static SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define SCCP_DISPLAYSTATUS_TIMEOUT 5
 
 /* Simulated Enbloc Dialing */
-#define SCCP_SIM_ENBLOC_DEVIATION 3.5
+//#define SCCP_SIM_ENBLOC_DEVIATION 3.5
 #define SCCP_SIM_ENBLOC_MAX_PER_DIGIT 400
-#define SCCP_SIM_ENBLOC_MIN_DIGIT 3
+//#define SCCP_SIM_ENBLOC_MIN_DIGIT 3
+#define SCCP_SIM_ENBLOC_MIN_DIGIT 4
 #define SCCP_SIM_ENBLOC_TIMEOUT 2
 
 #define SCCP_HANGUP_TIMEOUT 15000
