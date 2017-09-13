@@ -931,6 +931,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &tmpOrigCalledPartyName,
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &tmpOrigCalledPartyRedirectReason,
 		SCCP_CALLINFO_KEY_SENTINEL);
+	//iCallInfo.Print2log(callInfo , "ConnectedLine");
 
 	/* set the original calling/called party if the reason is a transfer */
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
@@ -994,6 +995,11 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 			}
 		}
 	} else /* OUTBOUND CALL */ {
+		if (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER) {
+			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Attended Transfer Source\n");
+		} else if (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
+			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Blind Transfer Source\n");
+		}
 		struct ast_party_id connected = pbx_channel_connected_id(ast);
 		if (connected.number.valid || connected.name.valid) {
 			if (sccp_strcaseequals(connected.number.str, tmpCalledNumber)) {

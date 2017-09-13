@@ -958,6 +958,7 @@ static void __sccp_wrapper_asterisk111_updateConnectedLine(PBX_CHANNEL_TYPE *pbx
 	if (!pbx_channel) {
 		return;
 	}
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: Connected line for line '%s', name: %s ,num: %s called\n", pbx_channel_name(pbx_channel), name ? name : "(NULL)", number ? number : "(NULL)");
 	struct ast_party_connected_line connected;
 	struct ast_set_party_connected_line update_connected = {{0}};
 
@@ -2740,7 +2741,7 @@ static boolean_t sccp_wrapper_asterisk111_attended_transfer(sccp_channel_t * tra
 			(SKINNY_CALLTYPE_INBOUND == transferee->calltype) ? SCCP_CALLINFO_CALLINGPARTY_NAME   : SCCP_CALLINFO_CALLEDPARTY_NAME  , &transferee_name,
 			(SKINNY_CALLTYPE_INBOUND == transferee->calltype) ? SCCP_CALLINFO_CALLINGPARTY_NUMBER : SCCP_CALLINFO_CALLEDPARTY_NUMBER, &transferee_number,
 			SCCP_CALLINFO_KEY_SENTINEL);
-		
+
 		if (ast_bridged_channel(transferee_pbx_channel)) {
 			ast_queue_control(transferee_pbx_channel, AST_CONTROL_UNHOLD);
 		}
@@ -2762,8 +2763,12 @@ static boolean_t sccp_wrapper_asterisk111_attended_transfer(sccp_channel_t * tra
 
 		if (!pbx_channel_masquerade(destination_channel, bridged_channel)) {				// perform the actual transfer
 			control_transfer_message = AST_TRANSFER_SUCCESS;
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Transfer Masquerade finished\n");
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Call SetConnectedLine on transferee:%s\n", transferee->designator);
 			iPbx.set_connected_line(transferee, destination_number, destination_name, connectedLineUpdateReason);
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Call Redirected Update on transferee:%s\n", transferee->designator);
 			iPbx.sendRedirectedUpdate(transferee, transferer_number, transferer_name, destination_number, destination_name, AST_REDIRECTING_REASON_UNCONDITIONAL);
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Call SetConnectedLine on transferer:%s\n", transferer->designator);
 			iPbx.set_connected_line(transferer, transferee_number, transferee_name, connectedLineUpdateReason);
 			res = TRUE;
 		} else {
@@ -2777,7 +2782,9 @@ static boolean_t sccp_wrapper_asterisk111_attended_transfer(sccp_channel_t * tra
 		pbx_log(LOG_WARNING, "Neither %s nor %s are in a bridge, nothing to transfer\n", pbx_channel_name(transferer_pbx_channel), pbx_channel_name(transferee_pbx_channel));
 	}
 
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Queue Control TRANSFER on transferee\n");
 	iPbx.queue_control_data(transferee_pbx_channel, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Queue Control TRANSFER on transferer\n");
 	iPbx.queue_control_data(transferer_pbx_channel, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));//new
 
 	if (transferer_pbx_channel) {

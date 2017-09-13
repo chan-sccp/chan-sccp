@@ -1039,33 +1039,6 @@ void sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannel
 }
 
 /*
- * \brief Check if we are in the middle of a transfer and if transfer on hangup is wanted, function is only called by sccp_handle_onhook for now 
- */
-boolean_t sccp_channel_transfer_on_hangup(constChannelPtr channel)
-{
-	boolean_t result = FALSE;
-	if (!channel || !GLOB(transfer_on_hangup)) {
-		return result;
-	}
-	AUTO_RELEASE(sccp_device_t, d , channel->privateData->device ? sccp_device_retain(channel->privateData->device) : NULL);
-
-	if (d && (SCCP_CHANNELSTATE_IsSettingUp(channel->state) || SCCP_CHANNELSTATE_IsConnected(channel->state))) {	/* Complete transfer when one is in progress */
-		sccp_channel_t *transferee = d->transferChannels.transferee;
-		sccp_channel_t *transferer = d->transferChannels.transferer;
-
-		if ((transferee && transferer) && (channel == transferer) && (pbx_channel_state(transferer->owner) == AST_STATE_UP || pbx_channel_state(transferer->owner) == AST_STATE_RING)
-		    ) {
-			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion (channel_name: %s, transferee_name: %s, transferer_name: %s, transferer_state: %d)\n", channel->designator, pbx_channel_name(channel->owner), pbx_channel_name(transferee->owner), pbx_channel_name(transferer->owner), pbx_channel_state(transferer->owner));
-			// GPL: added calltransfer state here, to correct call manager keymode behaviour  
- 			// sccp_indicate(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);	/* moved to sccp_channel_transfer_complete
-			sccp_channel_transfer_complete(d, transferer);
-			result = TRUE;
-		}
-	}
-	return result;
-}
-
-/*
  * \brief End all forwarding parent channels
  */
 void sccp_channel_end_forwarding_channel(sccp_channel_t * orig_channel)
@@ -2127,14 +2100,15 @@ static int _transfer_attended(devicePtr device, channelPtr channel)
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "\n\n%s: Complete Attended Transfer of transferee:%s\n", device->id, transferee->designator);
 
-	_transfer_callinfo_t transfer_callinfo = {{0}};
-	_transfer_capture_callinfo(transferee, transferer, &transfer_callinfo);
+	//_transfer_callinfo_t transfer_callinfo = {{0}};
+	//_transfer_capture_callinfo(transferee, transferer, &transfer_callinfo);
 
 	sccp_channel_transfer_release(device, transferer);
 		
 	//iPbx.set_connected_line(transferee, transfer_callinfo.destination_number, transfer_callinfo.destination_name, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
 	//iPbx.set_connected_line(transferer, transfer_callinfo.transferee_number, transfer_callinfo.transferee_name, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
 
+	/*
 	iCallInfo.Setter(sccp_channel_getCallInfo(transferee), 
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, transfer_callinfo.transferee_name,
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, transfer_callinfo.transferee_name,
@@ -2144,7 +2118,7 @@ static int _transfer_attended(devicePtr device, channelPtr channel)
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, transfer_callinfo.transferee_name,
 		SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, transfer_callinfo.transferee_name,
 		SCCP_CALLINFO_KEY_SENTINEL);
-
+	*/
 	if (iPbx.attended_transfer(transferee, transferer)) {
 		//transfer_message = AST_TRANSFER_SUCCESS;
 		//iPbx.sendRedirectedUpdate(transferee, transfer_callinfo.transferer_number, transfer_callinfo.transferer_name, 
@@ -2172,18 +2146,19 @@ int sccp_channel_transfer_blind(devicePtr device, channelPtr channel)
 		pbx_builtin_setvar_helper(device->transferChannels.transferer->owner, "BLINDTRANSFER", pbx_channel_name(device->transferChannels.transferee->owner));
 
 		AUTO_RELEASE(sccp_channel_t, transferee, sccp_channel_retain(device->transferChannels.transferee));
+		AUTO_RELEASE(sccp_channel_t, extenGatherChan, sccp_channel_retain(device->transferChannels.transferer));
 
 		_transfer_callinfo_t transfer_callinfo = {{0}};
 		_transfer_capture_callinfo(transferee, device->transferChannels.transferer, &transfer_callinfo);
-
 		sccp_channel_transfer_release(device, transferee);
+		sccp_channel_endcall(extenGatherChan);
 
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "\n\n%s: Complete Blind Transfer on transferee:%s to %s@%s\n", device->id, transferee->designator, channel->dialedNumber, channel->line->context);
-		iPbx.set_connected_line(transferee, transfer_callinfo.destination_number, transfer_callinfo.destination_name, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING);
+		//iPbx.set_connected_line(transferee, transfer_callinfo.destination_number, transfer_callinfo.destination_name, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING);
 		if (iPbx.blind_transfer(transferee, channel->dialedNumber, channel->line->context)) {
 			//transfer_message = AST_TRANSFER_SUCCESS;
-			//iPbx.sendRedirectedUpdate(transferee, transfer_callinfo.transferer_number, transfer_callinfo.transferer_name, 
-			//	transfer_callinfo.destination_number, transfer_callinfo.destination_name, AST_REDIRECTING_REASON_UNCONDITIONAL);
+			iPbx.sendRedirectedUpdate(transferee, transfer_callinfo.transferer_number, transfer_callinfo.transferer_name, 
+				transfer_callinfo.destination_number, transfer_callinfo.destination_name, AST_REDIRECTING_REASON_UNCONDITIONAL);
 			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "\n\n%s: Transfer Completed Blind Transfer of transferee:%s to %s@%s\n", device->id, transferee->designator, channel->dialedNumber, channel->line->context);
 			res = 0;
 		} else {
@@ -2221,6 +2196,33 @@ int sccp_channel_transfer_complete(devicePtr device, channelPtr channel)
 		_transfer_attended(device, channel);
 	}
 	return 0;
+}
+
+/*
+ * \brief Check if we are in the middle of a transfer and if transfer on hangup is wanted, function is only called by sccp_handle_onhook for now 
+ */
+boolean_t sccp_channel_transfer_on_hangup(constChannelPtr channel)
+{
+	boolean_t result = FALSE;
+	if (!channel || !GLOB(transfer_on_hangup)) {
+		return result;
+	}
+	AUTO_RELEASE(sccp_device_t, d , channel->privateData->device ? sccp_device_retain(channel->privateData->device) : NULL);
+
+	if (d && (SCCP_CHANNELSTATE_IsSettingUp(channel->state) || SCCP_CHANNELSTATE_IsConnected(channel->state))) {	/* Complete transfer when one is in progress */
+		sccp_channel_t *transferee = d->transferChannels.transferee;
+		sccp_channel_t *transferer = d->transferChannels.transferer;
+
+		if ((transferee && transferer) && (channel == transferer) && (pbx_channel_state(transferer->owner) == AST_STATE_UP || pbx_channel_state(transferer->owner) == AST_STATE_RING)
+		    ) {
+			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion (channel_name: %s, transferee_name: %s, transferer_name: %s, transferer_state: %d)\n", channel->designator, pbx_channel_name(channel->owner), pbx_channel_name(transferee->owner), pbx_channel_name(transferer->owner), pbx_channel_state(transferer->owner));
+			// GPL: added calltransfer state here, to correct call manager keymode behaviour  
+ 			// sccp_indicate(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);	/* moved to sccp_channel_transfer_complete
+			sccp_channel_transfer_complete(d, transferer);
+			result = TRUE;
+		}
+	}
+	return result;
 }
 
 /*!
