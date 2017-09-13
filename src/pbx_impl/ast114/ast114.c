@@ -3045,7 +3045,6 @@ static boolean_t sccp_wrapper_asterisk114_blind_transfer(sccp_channel_t * transf
 	return res;
 }
 
-
 /*!
  * \brief using RTP Glue Engine
  */
