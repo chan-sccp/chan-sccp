@@ -1238,14 +1238,6 @@ static btnlist *sccp_make_button_template(devicePtr d)
 			//sccp_log_and((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured %d Phone Button [%.2d] = %s(%d), label:%s\n", d->id, buttonconfig->index + 1, buttonconfig->instance, skinny_buttontype2str(btn[i].type), btn[i].type, buttonconfig->label);
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
-
-		// all non defined buttons are set to UNUSED
-		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-			if (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_ABBRDIAL) {
-				btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
-			}
-		}
-
 	} else {
 		/* reserve one line as hotline */
 		buttonconfig = SCCP_LIST_FIRST(&d->buttonconfig);
@@ -1253,6 +1245,13 @@ static btnlist *sccp_make_button_template(devicePtr d)
 		btn[i].ptr = sccp_line_retain(GLOB(hotline)->line);
 		buttonconfig->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
 		sccp_line_addDevice((sccp_line_t *) btn[i].ptr, d, btn[i].instance, buttonconfig->button.line.subscriptionId);
+	}
+
+	// all non defined buttons are set to UNUSED
+	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
+		if (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_ABBRDIAL) {
+			btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
+		}
 	}
 
 	return btn;
