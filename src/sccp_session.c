@@ -39,6 +39,10 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include <asterisk/cli.h>
 #include <signal.h>
 
+/* global variables -> GLOBALS */
+static pthread_t accept_tid;
+static int accept_sock = -1;
+
 #define WRITE_BACKOFF 500											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
 #define SESSION_DEVICE_CLEANUP_TIME 10										/* wait time before destroying a device on thread exit */
 #define KEEPALIVE_ADDITIONAL_PERCENT_SESSION 1.05								/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
@@ -790,9 +794,14 @@ static void sccp_session_set_ourip(sccp_session_t *s)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Connected on server via %s\n", s->designator);
 }
 
-/* global variables -> GLOBALS */
-static pthread_t accept_tid;
-static int accept_sock = -1;
+/*!
+ * Accept Thread
+ * continuesly waits for devices trying to connect, when they do it
+ * - checks if the incoming ip-address is within the global deny/permit range
+ * - creates a new session struct
+ * - adds the new session struct to the global sessions list
+ * - starts a new sccp_session_device_thread
+ */
 static void *accept_thread(void *ignore)
 {
 	int new_socket;
@@ -835,11 +844,18 @@ static void *accept_thread(void *ignore)
 	return 0;
 }
 
+/*!
+ * Start the session accept thread
+ */
 static void sccp_session_start_accept_thread(void)
 {
 	ast_pthread_create_background(&accept_tid, NULL, accept_thread, NULL);
 }
 
+/*!
+ * Stops the session accept thread
+ * Closes the listening socket
+ */
 void sccp_session_stop_accept_thread(void)
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Stopping Accepting Thread\n");
@@ -858,6 +874,18 @@ void sccp_session_stop_accept_thread(void)
 	pbx_rwlock_unlock(&GLOB(lock));
 }
 
+/*!
+ * Bind and Listen
+ * Binds to the provided bindaddress (and port)
+ * If the socket was already bound and listening, it is stopped and cleaned up first
+ * If successfull it will start the listening/accepting thread
+ *
+ * The bound accepting socket is stored in a static global variable (see at top)
+ * The thread id (tid) is stored in a static global variable (see at top)
+ *
+ * param bindaddr SockAddr Storage
+ * returns TRUE on success
+ */
 boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 {
 	int result = FALSE;
