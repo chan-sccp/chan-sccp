@@ -34,7 +34,6 @@ struct subscriptionId {
  * \brief SCCP Global Variable Structure
  */
 struct sccp_global_vars {
-	int descriptor;												/*!< Server Socket Descriptor */
 	int keepalive;												/*!< KeepAlive */
 	int32_t debug;												/*!< Debug */
 	int module_running;
@@ -57,7 +56,6 @@ struct sccp_global_vars {
 #endif
 	int usecnt;												/*!< Keep track of when we're in use. */
 	int amaflags;												/*!< AmaFlags */
-	pthread_t socket_thread;										/*!< Socket Thread */
 	pthread_t mwiMonitorThread;										/*!< MWI Monitor Thread */
 
 	char dateformat[SCCP_MAX_DATE_FORMAT];									/*!< Date Format */

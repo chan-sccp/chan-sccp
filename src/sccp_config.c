@@ -2391,7 +2391,7 @@ void cleanup_stale_contexts(char *new, char *old)
  * \callergraph
  * 
  */
-void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
+boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 {
 	// struct ast_config *cfg = NULL;
 
@@ -2415,7 +2415,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 	if (!GLOB(cfg)) {
 		pbx_log(LOG_NOTICE, "SCCP: (sccp_config_readDevicesLines) Unable to load config file sccp.conf, SCCP disabled\n");
-		return;
+		return FALSE;
 	}
 
 	while ((cat = pbx_category_browse(GLOB(cfg), cat))) {
@@ -2606,6 +2606,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Softkey Post Reload\n");
 		sccp_softkey_post_reload();
 	}
+	return TRUE;
 }
 
 /*!
