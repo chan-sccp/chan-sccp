@@ -2344,6 +2344,18 @@ void handle_stimulus(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	if(!instance && stimulus == SKINNY_STIMULUS_LASTNUMBERREDIAL && d->redialInformation.lineInstance > 0) {
 		instance = d->redialInformation.lineInstance;
 	}
+	/* SPA phones always send instance=1 instead then the hard hold button is pressed. using callid to find the correct line instead */
+	if (stimulus == SKINNY_STIMULUS_HOLD && sccp_session_getProtocol(s) == SPCP_PROTOCOL) {
+		AUTO_RELEASE(sccp_channel_t, c, sccp_channel_find_byid(callId));
+		if (c) {
+			l = sccp_line_retain(c->line);
+			for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
+				if (d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line == l) {
+					break;
+				}
+			}
+		}
+	}
 	if (!instance) {											/*! \todo also use the callReference if available */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Instance 0 is not a valid instance. Trying the active line %d\n", d->id, instance);
 		if ((l = sccp_dev_getActiveLine(d))) {
