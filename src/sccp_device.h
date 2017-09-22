@@ -342,7 +342,9 @@ struct sccp_device {
 	boolean_t useRedialMenu;
 
 	uint32_t  rtpPort;
-
+#ifdef CS_AST_HAS_STASIS_ENDPOINT
+	PBX_ENDPOINT_TYPE *endpoint;
+#endif
 	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */
 	boolean_t pendingUpdate;										/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 };

@@ -180,6 +180,9 @@
 /* 'stasis_subscribe' available */
 #undef CS_AST_HAS_STASIS
 
+/* 'stasis_endpoint' available */
+#undef CS_AST_HAS_STASIS_ENDPOINT
+
 /* 'struct ast_channel_tech' available' */
 #undef CS_AST_HAS_TECH_PVT
 
@@ -565,7 +568,7 @@
 /* Found 'asterisk/sched.h' */
 #undef HAVE_PBX_SCHED_H
 
-/* Found 'asterisk/stasis.h' */
+/* Found 'asterisk/stasis_endpoint.h' */
 #undef HAVE_PBX_STASIS_H
 
 /* Found 'asterisk/stringfields.h' */

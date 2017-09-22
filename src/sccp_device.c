@@ -527,6 +527,20 @@ int sccp_device_setRegistrationState(constDevicePtr d, const skinny_registration
 	}
 	sccp_private_unlock(d->privateData);
 	
+#ifdef CS_AST_HAS_STASIS_ENDPOINT
+	if (iPbx.endpoint_online && iPbx.endpoint_offline) {
+		if (SKINNY_DEVICE_RS_OK == state) {
+			struct sockaddr_storage ourip = { 0 };
+			sccp_session_getOurIP(d->session, &ourip, 0);
+			iPbx.endpoint_online(d->endpoint, sccp_netsock_stringify(&ourip));
+		} else if (SKINNY_DEVICE_RS_NONE == state) {
+			iPbx.endpoint_offline(d->endpoint, "Unreachable");
+		} else {
+			iPbx.endpoint_offline(d->endpoint, "expired");
+		}
+	}
+#endif
+	
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Registration State is '%s'\n", d->id, skinny_registrationstate2str(state));
 	return changed;
 }
@@ -570,11 +584,11 @@ sccp_device_t *sccp_device_create(const char *id)
 #ifdef CS_DEVSTATE_FEATURE
 	SCCP_LIST_HEAD_INIT(&d->devstateSpecifiers);
 #endif
-	/*
-	if (PBX(endpoint_create)) {
-		d->endpoint = iPbx.endpoint_create("sccp", id);
+#ifdef CS_AST_HAS_STASIS_ENDPOINT
+	if (iPbx.endpoint_create) {
+		d->endpoint = iPbx.endpoint_create("SCCP", id);
 	}
-	*/
+#endif	
 	memset(&d->softKeyConfiguration.activeMask, 0xFF, sizeof d->softKeyConfiguration.activeMask);
 	memset(d->call_statistics, 0, ((sizeof *d->call_statistics) * 2));
 
@@ -2553,11 +2567,11 @@ int __sccp_device_destroy(const void *ptr)
 		sccp_free(d->privateData);
 	}
 
-	/*
-	if (PBX(endpoint_shutdown)) {
-		iPbx.endpoint_shutdown(d->endpoint);
+#ifdef CS_AST_HAS_STASIS_ENDPOINT
+	if (iPbx.endpoint_shutdown) {
+		iPbx.endpoint_shutdown(&d->endpoint);
 	}
-	*/
+#endif
 
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device Destroyed\n", d->id);
 	return 0;

@@ -2816,34 +2816,32 @@ static skinny_busylampfield_state_t sccp_wrapper_asterisk114_getExtensionState(c
 	return result;
 }
 
-/* not used at the moment */
-/*
-   static struct ast_endpoint *sccp_wrapper_asterisk114_endpoint_create(const char *tech, const char *resource)
-   {
-   return ast_endpoint_create(tech, resource);
-   }
+static struct ast_endpoint *sccp_wrapper_asterisk114_endpoint_create(const char *tech, const char *resource)
+{
+	return ast_endpoint_create(tech, resource);
+}
 
-   static void sccp_wrapper_asterisk114_endpoint_online(struct ast_endpoint *endpoint)
-   {
-   ast_endpoint_set_state(endpoint, AST_ENDPOINT_ONLINE);
-   struct ast_json * blob = ast_json_pack("{s: s}", "peer_status", "Registered");
-   ast_endpoint_blob_publish(endpoint, ast_endpoint_state_type(), blob);
-   ast_json_unref(blob);
-   }
+static void sccp_wrapper_asterisk114_endpoint_online(struct ast_endpoint *endpoint, const char *address)
+{
+	RAII_VAR(struct ast_json *, blob, NULL, ast_json_unref);
+	ast_endpoint_set_state(endpoint, AST_ENDPOINT_ONLINE);
+	blob = ast_json_pack("{s: s, s: s}", "peer_status", "Registered", "address", address);
+	ast_endpoint_blob_publish(endpoint, ast_endpoint_state_type(), blob);
+}
 
-   static void sccp_wrapper_asterisk114_endpoint_offline(struct ast_endpoint *endpoint)
-   {
-   ast_endpoint_set_state(endpoint, AST_ENDPOINT_OFFLINE);
-   struct ast_json * blob = ast_json_pack("{s: s}", "peer_status", "Unregistered");
-   ast_endpoint_blob_publish(endpoint, ast_endpoint_state_type(), blob);
-   ast_json_unref(blob);
-   }
+static void sccp_wrapper_asterisk114_endpoint_offline(struct ast_endpoint *endpoint, const char *cause)
+{
+	RAII_VAR(struct ast_json *, blob, NULL, ast_json_unref);
+	ast_endpoint_set_state(endpoint, AST_ENDPOINT_OFFLINE);
+	blob = ast_json_pack("{s: s, s: s}", "peer_status", "Unregistered", "cause", cause);
+	ast_endpoint_blob_publish(endpoint, ast_endpoint_state_type(), blob);
+}
 
-   static void sccp_wrapper_asterisk114_endpoint_shutdown(struct ast_endpoint *endpoint)
-   {
-   ast_endpoint_shutdown(endpoint);
-   }
- */
+static void sccp_wrapper_asterisk114_endpoint_shutdown(struct ast_endpoint **endpoint)
+{
+	ast_endpoint_shutdown(*endpoint);
+	*endpoint = NULL;
+}
 
 static int sccp_wrapper_asterisk114_dumpchan(struct ast_channel *c, char *buf, size_t size)
 {
@@ -3218,10 +3216,10 @@ const PbxInterface iPbx = {
 	findPickupChannelByExtenLocked:	sccp_wrapper_asterisk114_findPickupChannelByExtenLocked,
 	findPickupChannelByGroupLocked:	sccp_wrapper_asterisk114_findPickupChannelByGroupLocked,
 
-// 	endpoint_create:		sccp_wrapper_asterisk114_endpoint_create,
-//	endpoint_online:		sccp_wrapper_asterisk114_endpoint_online,
-//	endpoint_offline:		sccp_wrapper_asterisk114_endpoint_offline,
-//	endpoint_shutdown:		sccp_wrapper_asterisk114_endpoint_shutdown,
+ 	endpoint_create:		sccp_wrapper_asterisk114_endpoint_create,
+	endpoint_online:		sccp_wrapper_asterisk114_endpoint_online,
+	endpoint_offline:		sccp_wrapper_asterisk114_endpoint_offline,
+	endpoint_shutdown:		sccp_wrapper_asterisk114_endpoint_shutdown,
 
 	set_owner:			sccp_wrapper_asterisk114_setOwner,
 	removeTimingFD:			sccp_wrapper_asterisk114_removeTimingFD,
@@ -3358,10 +3356,10 @@ const PbxInterface iPbx = {
 	.findPickupChannelByExtenLocked	= sccp_wrapper_asterisk114_findPickupChannelByExtenLocked,
 	.findPickupChannelByGroupLocked	= sccp_wrapper_asterisk114_findPickupChannelByGroupLocked,
 
-//	.endpoint_create		= sccp_wrapper_asterisk114_endpoint_create,
-//	.endpoint_online		= sccp_wrapper_asterisk114_endpoint_online,
-//	.endpoint_offline		= sccp_wrapper_asterisk114_endpoint_offline,
-//	.endpoint_shutdown		= sccp_wrapper_asterisk114_endpoint_shutdown,
+	.endpoint_create		= sccp_wrapper_asterisk114_endpoint_create,
+	.endpoint_online		= sccp_wrapper_asterisk114_endpoint_online,
+	.endpoint_offline		= sccp_wrapper_asterisk114_endpoint_offline,
+	.endpoint_shutdown		= sccp_wrapper_asterisk114_endpoint_shutdown,
 
 	.set_owner			= sccp_wrapper_asterisk114_setOwner,
 	.removeTimingFD			= sccp_wrapper_asterisk114_removeTimingFD,

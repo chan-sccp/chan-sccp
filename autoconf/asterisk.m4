@@ -751,6 +751,19 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 					struct stasis_subscription __attribute__((unused)) *stasis_sub = stasis_subscribe(stasis_topic, data, data);
 				], [CS_AST_HAS_STASIS],['stasis_subscribe' available]
 			)
+			AC_CHECK_HEADER([asterisk/stasis_endpoints.h],	
+			[
+				AC_DEFINE(HAVE_PBX_STASIS_H,1,[Found 'asterisk/stasis_endpoints.h'])
+				CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_endpoint_create'...], [ac_cv_ast_endpoint_create], [
+						$HEADER_INCLUDE
+						#include <asterisk/stasis_endpoints.h>
+					], [
+						ast_endpoint_create("SCCP", "test1234");
+					], [CS_AST_HAS_STASIS_ENDPOINT],['stasis_endpoint' available]
+				)
+			],,[ 
+				$HEADER_INCLUDE
+			])
 		],,[ 
 			$HEADER_INCLUDE
 		])

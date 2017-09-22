@@ -146,10 +146,10 @@ typedef struct _PbxInterface {
 	PBX_CHANNEL_TYPE *(*const findPickupChannelByExtenLocked)(PBX_CHANNEL_TYPE *chan, const char *exten, const char *context);
 	PBX_CHANNEL_TYPE *(*const findPickupChannelByGroupLocked)(PBX_CHANNEL_TYPE *chan);
 
-// 	PBX_ENDPOINT_TYPE *(*const endpoint_create)(const char *tech, const char *resource);
-//	void (*const endpoint_online)(PBX_ENDPOINT_TYPE *endpoint);
-//	void (*const endpoint_offline)(PBX_ENDPOINT_TYPE *endpoint);
-//	void (*const endpoint_shutdown)(PBX_ENDPOINT_TYPE *endpoint);
+ 	PBX_ENDPOINT_TYPE *(*const endpoint_create)(const char *tech, const char *resource);
+	void (*const endpoint_online)(PBX_ENDPOINT_TYPE *endpoint, const char *address);
+	void (*const endpoint_offline)(PBX_ENDPOINT_TYPE *endpoint, const char *cause);
+	void (*const endpoint_shutdown)(PBX_ENDPOINT_TYPE **endpoint);
 
         void (*const set_owner)(sccp_channel_t *channel, PBX_CHANNEL_TYPE *pbx_channel);
         void (*const removeTimingFD)(PBX_CHANNEL_TYPE *pbx_channel);
