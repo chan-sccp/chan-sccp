@@ -92,6 +92,7 @@
 #include "sccp_session.h"
 #include "sccp_utils.h"
 #include "sccp_devstate.h"
+#include "sccp_labels.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -115,11 +116,11 @@ SCCP_FILE_VERSION(__FILE__, "");
 #define L_OBJ_REF(x) offsize(struct sccp_line,x), offsetof(struct sccp_line,x)
 #define S_OBJ_REF(x) offsize(struct softKeySetConfiguration,x), offsetof(struct softKeySetConfiguration,x)
 #define H_OBJ_REF(x) offsize(struct sccp_hotline,x), offsetof(struct sccp_hotline,x)
-#define BITMASK(b) (1 << ((b) % CHAR_BIT))
-#define BITSLOT(b) ((b) / CHAR_BIT)
-#define BITSET(a, b) ((a)[BITSLOT(b)] |= BITMASK(b))
-#define BITTEST(a, b) ((a)[BITSLOT(b)] & BITMASK(b))
-#define BITTOGGLE(a, b) ((a)[BITSLOT(b)] ^= BITMASK(b))
+//#define BITMASK(b) (1 << ((b) % CHAR_BIT))
+//#define BITSLOT(b) ((b) / CHAR_BIT)
+//#define BITSET(a, b) ((a)[BITSLOT(b)] |= BITMASK(b))
+//#define BITTEST(a, b) ((a)[BITSLOT(b)] & BITMASK(b))
+//#define BITTOGGLE(a, b) ((a)[BITSLOT(b)] ^= BITMASK(b))
     /*!
      * \brief Enum for Config Option Types
      */
@@ -623,10 +624,8 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 			{
 				int enumValue = -1;
 				if (!sccp_strlen_zero(value)) {
-					//pbx_log(LOG_NOTICE, "SCCP: ENUM name: %s, value: %s\n", name, value);
 					const char *all_entries = sccpConfigOption->all_entries();
 					if (!strncasecmp(value, "On,Yes,True,Off,No,False", strlen(value))) {
-						//pbx_log(LOG_NOTICE, "SCCP: ENUM name: %s, value: %s is on/off\n", name, value);
 						if (sccp_true(value)) {
 							if (strcasestr(all_entries, "On")) {
 								enumValue = sccpConfigOption->str2intval("On");
@@ -645,13 +644,28 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 							}
 						}
 					} else if ((enumValue = sccpConfigOption->str2intval(value)) != -1) {
-						//pbx_log(LOG_NOTICE, "SCCP: ENUM name: %s, value: %s is other\n", name, value);
 						sccp_log(DEBUGCAT_HIGH) ("SCCP: Parse Other Value: %s -> %d\n", value, enumValue);
 					}
 					if (enumValue != -1) {
-						if (*(int *) dst != enumValue) {
-							*(int *) dst = enumValue;
-							changed = SCCP_CONFIG_CHANGE_CHANGED;
+			                        switch (sccpConfigOption->size) {
+						case 1:
+							if (*(int8_t *) dst != (int8_t)enumValue) {
+								*(int8_t *) dst = (int8_t)enumValue;
+								changed = SCCP_CONFIG_CHANGE_CHANGED;
+							}
+							break;
+						case 2:
+							if ((*(uint16_t *) dst) != (int16_t)enumValue) {
+								*(uint16_t *) dst = (int16_t)enumValue;
+								changed = SCCP_CONFIG_CHANGE_CHANGED;
+							}
+							break;
+						default:
+							if (*(int *) dst != enumValue) {
+								*(int *) dst = enumValue;
+								changed = SCCP_CONFIG_CHANGE_CHANGED;
+							}
+							break;
 						}
 					} else {
 						pbx_log(LOG_NOTICE, "SCCP: Invalid value '%s' for [%s]->%s. Allowed: [%s]\n", value, sccpConfigSegment->name, name, sccpConfigOption->all_entries());
@@ -1171,18 +1185,19 @@ sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_
  */
 sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = pbx_strdupa(v->value);
-	char *str = (char *) dest;
-
-	if (!sccp_strcaseequals(str, value)) {
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-		sccp_copy_string(dest, value, size);
-		//if (!sccp_strlen_zero(value) && !pbx_context_find((const char *) dest)) {
-		//	pbx_log(LOG_WARNING, "The context '%s' you specified might not be available in the dialplan. Please check the sccp.conf\n", (char *) dest);
-		//}
-	} else {
-		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+	if (v->value && !sccp_strlen_zero(v->value)) {
+		char *value = pbx_strdupa(v->value);
+		char *str = (char *) dest;
+		if (!sccp_strcaseequals(str, value)) {
+			changed = SCCP_CONFIG_CHANGE_CHANGED;
+			sccp_copy_string(dest, value, size);
+			//if (!sccp_strlen_zero(value) && !pbx_context_find((const char *) dest)) {
+			//	pbx_log(LOG_WARNING, "The context '%s' you specified might not be available in the dialplan. Please check the sccp.conf\n", (char *) dest);
+			//}
+		} else {
+			changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+		}
 	}
 	return changed;
 }
@@ -1321,7 +1336,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_jbresyncthreshold(void *dest, con
 sccp_value_changed_t sccp_config_parse_jbflags_impl(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char * value = strdupa(v->value);
+	char * value = pbx_strdupa(v->value);
 	struct ast_jb_conf *jb = *(struct ast_jb_conf **) dest;
 	
 	if (!sccp_strcaseequals(jb->impl,value)) {
@@ -1337,7 +1352,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_impl(void *dest, const size_t siz
 sccp_value_changed_t sccp_config_parse_webdir(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
+	char *value = pbx_strdupa(v->value);
 	char *webdir = (char *) dest;
 	char new_webdir[PATH_MAX] = "";
 
@@ -2225,7 +2240,6 @@ sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYP
 	if (res) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Update Needed (%d)\n", res);
 	}
-
 	sccp_config_set_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT, SetEntries);
 
 	if (GLOB(keepalive) < SCCP_MIN_KEEPALIVE) {
@@ -2377,7 +2391,7 @@ void cleanup_stale_contexts(char *new, char *old)
  * \callergraph
  * 
  */
-void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
+boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 {
 	// struct ast_config *cfg = NULL;
 
@@ -2385,6 +2399,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	PBX_VARIABLE_TYPE *v = NULL;
 	uint8_t device_count = 0;
 	uint8_t line_count = 0;
+	sccp_device_t *d = NULL;
 
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Loading Devices and Lines from config\n");
 
@@ -2400,7 +2415,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 	if (!GLOB(cfg)) {
 		pbx_log(LOG_NOTICE, "SCCP: (sccp_config_readDevicesLines) Unable to load config file sccp.conf, SCCP disabled\n");
-		return;
+		return FALSE;
 	}
 
 	while ((cat = pbx_category_browse(GLOB(cfg), cat))) {
@@ -2429,30 +2444,30 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				// However, do not look into realtime, since
 				// we might have been asked to create a device for realtime addition,
 				// thus causing an infinite loop / recursion.
-				AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(cat, FALSE));
+				AUTO_RELEASE(sccp_device_t, device, sccp_device_find_byid(cat, FALSE));
 				sccp_nat_t nat = SCCP_NAT_AUTO;
 
 				/* create new device with default values */
-				if (!d) {
-					d = sccp_device_create(cat);
+				if (!device) {
+					device = sccp_device_create(cat);
 					// sccp_copy_string(d->id, cat, sizeof(d->id));         /* set device name */
-					sccp_device_addToGlobals(d);
+					sccp_device_addToGlobals(device);
 					device_count++;
 				} else {
-					if (d->pendingDelete) {
-						nat = d->nat;
-						d->pendingDelete = 0;
+					if (device->pendingDelete) {
+						nat = device->nat;
+						device->pendingDelete = 0;
 					}
 				}
-				sccp_config_buildDevice(d, v, cat, FALSE);
+				sccp_config_buildDevice(device, v, cat, FALSE);
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found device %d: %s\n", device_count, cat);
 				/* load saved settings from ast db */
-				sccp_config_restoreDeviceFeatureStatus(d);
+				sccp_config_restoreDeviceFeatureStatus(device);
 				
 				/* restore current nat status, if device does not get restarted */
-				if (0 == d->pendingDelete && sccp_device_getRegistrationState(d) != SKINNY_DEVICE_RS_NONE) {
-					if (SCCP_NAT_AUTO == d->nat && (SCCP_NAT_AUTO == nat || SCCP_NAT_AUTO_OFF == nat || SCCP_NAT_AUTO_ON == nat)) {
-						d->nat = nat;
+				if (0 == device->pendingDelete && sccp_device_getRegistrationState(device) != SKINNY_DEVICE_RS_NONE) {
+					if (SCCP_NAT_AUTO == device->nat && (SCCP_NAT_AUTO == nat || SCCP_NAT_AUTO_OFF == nat || SCCP_NAT_AUTO_ON == nat)) {
+						device->nat = nat;
 					}
 				}
 			}
@@ -2531,7 +2546,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	/* finished realtime line reload */
 
-	sccp_device_t *d = NULL;
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
@@ -2592,6 +2606,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Softkey Post Reload\n");
 		sccp_softkey_post_reload();
 	}
+	return TRUE;
 }
 
 /*!
@@ -2990,9 +3005,9 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	sccp_devstate_specifier_t *specifier;
 #endif
 
-#ifndef ASTDB_FAMILY_KEY_LEN
-#define ASTDB_FAMILY_KEY_LEN 256
-#endif
+//#ifndef ASTDB_FAMILY_KEY_LEN
+//#define ASTDB_FAMILY_KEY_LEN 256
+//#endif
 
 #ifndef ASTDB_RESULT_LEN
 #define ASTDB_RESULT_LEN 256

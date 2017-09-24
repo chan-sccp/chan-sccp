@@ -41,6 +41,197 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include <asterisk/pickup.h>
 #endif
 
+/*!
+ * \brief Skinny Codec Mapping
+ */
+static const struct pbx2skinny_codec_map {
+       uint64_t pbx_codec;
+       skinny_codec_t skinny_codec;
+} pbx2skinny_codec_maps[] = {
+       /* *INDENT-OFF* */
+       {0,                     SKINNY_CODEC_NONE},
+       {AST_FORMAT_ALAW,       SKINNY_CODEC_G711_ALAW_64K},
+       {AST_FORMAT_ALAW,       SKINNY_CODEC_G711_ALAW_56K},
+       {AST_FORMAT_ULAW,       SKINNY_CODEC_G711_ULAW_64K},
+       {AST_FORMAT_ULAW,       SKINNY_CODEC_G711_ULAW_56K},
+       {AST_FORMAT_GSM,        SKINNY_CODEC_GSM},
+       {AST_FORMAT_H261,       SKINNY_CODEC_H261},
+       {AST_FORMAT_H263,       SKINNY_CODEC_H263},
+       {AST_FORMAT_T140,       SKINNY_CODEC_T120},
+#    if ASTERISK_VERSION_GROUP >= 113
+       {AST_FORMAT_G723,       SKINNY_CODEC_G723_1},
+       {AST_FORMAT_SLIN16,     SKINNY_CODEC_WIDEBAND_256K},
+       {AST_FORMAT_G729,       SKINNY_CODEC_G729},
+       {AST_FORMAT_G729,       SKINNY_CODEC_G729_A},
+       {AST_FORMAT_H263P,      SKINNY_CODEC_H263P},
+#    else
+       {AST_FORMAT_G723_1,     SKINNY_CODEC_G723_1},
+       {AST_FORMAT_SLINEAR16,  SKINNY_CODEC_WIDEBAND_256K},
+       {AST_FORMAT_G729A,      SKINNY_CODEC_G729},
+       {AST_FORMAT_G729A,      SKINNY_CODEC_G729_A},
+       {AST_FORMAT_H263_PLUS,  SKINNY_CODEC_H263P},
+#    endif
+#    if ASTERISK_VERSION_NUMBER >= 10400
+       {AST_FORMAT_G726_AAL2,  SKINNY_CODEC_G726_32K},
+       {AST_FORMAT_G726,       SKINNY_CODEC_G726_32K},
+       {AST_FORMAT_ILBC,       SKINNY_CODEC_G729_B_LOW},
+       {AST_FORMAT_G722,       SKINNY_CODEC_G722_64K},
+       {AST_FORMAT_G722,       SKINNY_CODEC_G722_56K},
+       {AST_FORMAT_G722,       SKINNY_CODEC_G722_48K},
+       {AST_FORMAT_H264,       SKINNY_CODEC_H264},
+#    endif
+#    ifdef AST_FORMAT_SIREN7
+       {AST_FORMAT_SIREN7,     SKINNY_CODEC_G722_1_24K},                       // should this not be SKINNY_CODEC_G722_1_32K
+#    endif
+#    ifdef AST_FORMAT_SIREN14
+       {AST_FORMAT_SIREN14,    SKINNY_CODEC_G722_1_32K},                       // should this not be SKINNY_CODEC_G722_1_48K
+#    endif
+#    ifdef AST_FORMAT_OPUS
+       {AST_FORMAT_OPUS,       SKINNY_CODEC_OPUS},
+#    endif
+       /* *INDENT-ON* */
+};
+
+/*!
+ * \brief AST Device State Structure
+ */
+static const struct sccp_pbx_devicestate {
+	const char *const text;
+#ifdef ENUM_AST_DEVICE
+	enum ast_device_state devicestate;
+#else
+	uint8_t devicestate;
+#endif
+} sccp_pbx_devicestates[] = {
+	/* *INDENT-OFF* */
+	{"Device is valid but channel doesn't know state",	AST_DEVICE_UNKNOWN},
+	{"Device is not in use",				AST_DEVICE_NOT_INUSE},
+	{"Device is in use",					AST_DEVICE_INUSE},
+	{"Device is busy",					AST_DEVICE_BUSY},
+	{"Device is invalid",					AST_DEVICE_INVALID},
+	{"Device is unavailable",				AST_DEVICE_UNAVAILABLE},
+	{"Device is ringing",					AST_DEVICE_RINGING},
+	{"Device is ringing and in use",			AST_DEVICE_RINGINUSE},
+	{"Device is on hold",					AST_DEVICE_ONHOLD},
+#    ifdef AST_DEVICE_TOTAL
+	{"Total num of device states, used for testing",	AST_DEVICE_TOTAL},
+#    endif
+	/* *INDENT-ON* */
+};
+
+gcc_inline const char *pbxsccp_devicestate2str(uint32_t value)
+{														/* pbx_impl/ast/ast.h */
+	_ARR2STR(sccp_pbx_devicestates, devicestate, value, text);
+}
+
+#if UNUSEDCODE // 2015-11-01
+/*!
+ * \brief SCCP Extension State Structure
+ */
+static const struct sccp_extension_state {
+	const char *const text;
+	int extension_state;
+} sccp_extension_states[] = {
+	/* *INDENT-OFF* */
+	{"Extension Removed",					AST_EXTENSION_REMOVED},
+	{"Extension Hint Removed",				AST_EXTENSION_DEACTIVATED},
+	{"No device INUSE or BUSY",				AST_EXTENSION_NOT_INUSE},
+	{"One or More devices In Use",				AST_EXTENSION_INUSE},
+	{"All devices Busy",					AST_EXTENSION_BUSY},
+	{"All devices Unavailable/Unregistered",		AST_EXTENSION_UNAVAILABLE},
+#    ifdef CS_AST_HAS_EXTENSION_RINGING
+	{"All Devices Ringing",					AST_EXTENSION_RINGING},
+	{"All Devices Ringing and In Use",			AST_EXTENSION_INUSE | AST_EXTENSION_RINGING},
+#    endif
+#    ifdef CS_AST_HAS_EXTENSION_ONHOLD
+	{"All Devices On Hold",					AST_EXTENSION_ONHOLD},
+#    endif
+	/* *INDENT-ON* */
+};
+
+gcc_inline const char *extensionstatus2str(uint32_t value)
+{														/* pbx_impl/ast/ast.h */
+	_ARR2STR(sccp_extension_states, extension_state, value, text);
+}
+#endif
+
+#if UNUSEDCODE // 2015-11-01
+/*!
+ * \brief Ast Cause - Skinny DISP Mapping
+ */
+static const struct pbx_skinny_cause {
+	const char *skinny_disp;
+	const char *message;
+	int pbx_cause;
+} pbx_skinny_causes[] = {
+	/* *INDENT-OFF* */
+        { AST_CAUSE_UNALLOCATED,		, "Unallocated (unassigned) number", 		SKINNY_DISP_NUMBER_NOT_CONFIGURED},
+        { AST_CAUSE_NO_ROUTE_TRANSIT_NET,	, "No route to specified transmit network", 	SKINNY_DISP_UNKNOWN_NUMBER},
+        { AST_CAUSE_NO_ROUTE_DESTINATION,	, "No route to destination", 			SKINNY_DISP_UNKNOWN_NUMBER},
+        { AST_CAUSE_CHANNEL_UNACCEPTABLE,	, "Channel unacceptable", 			SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE},
+#if ASTERISK_VERSION_GROUP >= 108
+	{ AST_CAUSE_MISDIALLED_TRUNK_PREFIX,   	, "Misdialled Trunk Prefix", 			SKINNY_DISP_UNKNOWN_NUMBER},
+#endif
+        { AST_CAUSE_CALL_AWARDED_DELIVERED,	, "Call awarded and being delivered in an established channel", SKINNY_DISP_CONNECTED},
+        { AST_CAUSE_NORMAL_CLEARING,		, "Normal Clearing",				SKINNY_DISP_ON_HOOK},
+	{ AST_CAUSE_PRE_EMPTED,			, "Pre Empted", 				SKINNY_DISP_HIGH_TRAFFIC_TRY_AGAIN_LATER},
+        { AST_CAUSE_USER_BUSY, 			, "User busy", 					SKINNY_DISP_BUSY},
+#if ASTERISK_VERSION_GROUP >= 108
+	{ AST_CAUSE_NUMBER_PORTED_NOT_HERE,	, "Number not configured", 			SKINNY_DISP_NUMBER_NOT_CONFIGURED},
+#endif
+	{ AST_CAUSE_SUBSCRIBER_ABSENT,		, "Subscriber Absent, Try Again", 		SKINNY_DISP_TEMP_FAIL},
+	{ AST_CAUSE_ANSWERED_ELSEWHERE,		, "Answered Elsewhere", 			SKINNY_DISP_CONNECTED},
+	{ AST_CAUSE_NO_USER_RESPONSE,		, "No user responding", 			SKINNY_DISP_EMPTY},
+        { AST_CAUSE_NO_ANSWER,			, "User alerting, no answer", 			SKINNY_DISP_EMPTY},
+        { AST_CAUSE_CALL_REJECTED,		, "Call Rejected", 				SKINNY_DISP_BUSY},
+	{ AST_CAUSE_NUMBER_CHANGED,		, "Number changed", 				SKINNY_DISP_NUMBER_NOT_CONFIGURED},
+        { AST_CAUSE_DESTINATION_OUT_OF_ORDER,	, "Destination out of order", 			SKINNY_DISP_TEMP_FAIL},
+        { AST_CAUSE_INVALID_NUMBER_FORMAT, 	, "Invalid number format", 			SKINNY_DISP_UNKNOWN_NUMBER },
+        { AST_CAUSE_FACILITY_REJECTED,		, "Facility rejected", 				SKINNY_DISP_TEMP_FAIL},
+	{ AST_CAUSE_RESPONSE_TO_STATUS_ENQUIRY,	, "Response to STATus ENQuiry", 		SKINNY_DISP_TEMP_FAIL},
+        { AST_CAUSE_NORMAL_UNSPECIFIED,		, "Normal, unspecified", 			SKINNY_DISP_TEMP_FAIL},
+  	{ AST_CAUSE_NORMAL_CIRCUIT_CONGESTION,	, "Circuit/channel congestion", 		SKINNY_DISP_HIGH_TRAFFIC_TRY_AGAIN_LATER},
+        { AST_CAUSE_NETWORK_OUT_OF_ORDER, 	, "Network out of order", 			SKINNY_DISP_NETWORK_CONGESTION_REROUTING},
+  	{ AST_CAUSE_NORMAL_TEMPORARY_FAILURE, 	, "Temporary failure", 				SKINNY_DISP_TEMP_FAIL},
+        { AST_CAUSE_SWITCH_CONGESTION,		, "Switching equipment congestion",	 	SKINNY_DISP_HIGH_TRAFFIC_TRY_AGAIN_LATER}, 
+	{ AST_CAUSE_ACCESS_INFO_DISCARDED,	, "Access information discarded", 		SKINNY_DISP_SECURITY_ERROR},
+        { AST_CAUSE_REQUESTED_CHAN_UNAVAIL,	, "Requested channel not available", 		SKINNY_DISP_HIGH_TRAFFIC_TRY_AGAIN_LATER},
+	{ AST_CAUSE_PRE_EMPTED,			, "Pre-empted", 				SKINNY_DISP_HIGH_TRAFFIC_TRY_AGAIN_LATER},
+        { AST_CAUSE_FACILITY_NOT_SUBSCRIBED,	, "Facility not subscribed", 			SKINNY_DISP_TEMP_FAIL},
+	{ AST_CAUSE_OUTGOING_CALL_BARRED,	, "Outgoing call barred", 			SKINNY_DISP_SECURITY_ERROR},
+        { AST_CAUSE_INCOMING_CALL_BARRED,	, "Incoming call barred", 			SKINNY_DISP_SECURITY_ERROR},
+	{ AST_CAUSE_BEARERCAPABILITY_NOTAUTH,	, "Bearer capability not authorized", 		SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE},
+        { AST_CAUSE_BEARERCAPABILITY_NOTAVAIL,	, "Bearer capability not available", 		SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE},
+        { AST_CAUSE_BEARERCAPABILITY_NOTIMPL,	, "Bearer capability not implemented", 		SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE},
+        { AST_CAUSE_CHAN_NOT_IMPLEMENTED,	, "Channel not implemented", 			SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE},
+	{ AST_CAUSE_FACILITY_NOT_IMPLEMENTED,	, "Facility not implemented", 			SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE},
+        { AST_CAUSE_INVALID_CALL_REFERENCE,	, "Invalid call reference value", 		SKINNY_DISP_TEMP_FAIL},
+	{ AST_CAUSE_INCOMPATIBLE_DESTINATION,	, "Incompatible destination", 			SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE},
+        { AST_CAUSE_INVALID_MSG_UNSPECIFIED,	, "Invalid message unspecified", 		SKINNY_DISP_ERROR_UNKNOWN},
+        { AST_CAUSE_MANDATORY_IE_MISSING,	, "Mandatory information element is missing", 	SKINNY_DISP_CAN_NOT_HOLD_PRIMARY_CONTROL},
+        { AST_CAUSE_MESSAGE_TYPE_NONEXIST,	, "Message type nonexist.", 			SKINNY_DISP_CAN_NOT_HOLD_PRIMARY_CONTROL},
+  	{ AST_CAUSE_WRONG_MESSAGE,		, "Wrong message", 				SKINNY_DISP_ERROR_MISMATCH},
+        { AST_CAUSE_IE_NONEXIST,		, "Info. element nonexist or not implemented", 	SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE},
+	{ AST_CAUSE_INVALID_IE_CONTENTS,	, "Invalid information element contents", 	SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE},
+        { AST_CAUSE_WRONG_CALL_STATE,		, "Message not compatible with call state", 	SKINNY_DISP_TEMP_FAIL},
+	{ AST_CAUSE_RECOVERY_ON_TIMER_EXPIRE,	, "Recover on timer expiry", 			SKINNY_DISP_MAX_CALL_DURATION_TIMEOUT},
+        { AST_CAUSE_MANDATORY_IE_LENGTH_ERROR,	, "Mandatory IE length error", 			SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE},
+	{ AST_CAUSE_PROTOCOL_ERROR,		, "Protocol error, unspecified", 		SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE},
+        { AST_CAUSE_INTERWORKING,		, "Interworking, unspecified", 			SKINNY_DISP_NETWORK_CONGESTION_REROUTING},
+        
+        // aliases for backward compatibility reasons
+	{ AST_CAUSE_BUSY,			, "User busy", 					SKINNY_DISP_BUSY},
+	{ AST_CAUSE_FAILURE,			, "Network out of order", 			SKINNY_DISP_NETWORK_CONGESTION_REROUTING},
+	{ AST_CAUSE_NORMAL,			, "Normal Clearing", 				SKINNY_DISP_ON_HOOK},
+	{ AST_CAUSE_NOANSWER,			, "User alerting, no answer", 			SKINNY_DISP_EMPTY},
+	{ AST_CAUSE_CONGESTION,    		, "Circuit/channel congestion", 		SKINNY_DISP_HIGH_TRAFFIC_TRY_AGAIN_LATER},
+	{ AST_CAUSE_UNREGISTERED,  		, "Subscriber Absent, Try Again", 		SKINNY_DISP_TEMP_FAIL},
+	{ AST_CAUSE_NOTDEFINED,    		, "Not Defined", 				SKINNY_DISP_EMPTY},
+	{ AST_CAUSE_NOSUCHDRIVER,		, "Channel not implemented", 			SKINNY_DISP_INCOMPATIBLE_DEVICE_TYPE},
+	/* *INDENT-ON* */
+};
+#endif
+
 /*
  * \brief itterate through locked pbx channels
  * \note replacement for ast_channel_walk_locked
@@ -321,7 +512,7 @@ void pbxman_send_listack(struct mansession *s, const struct message *m, char *ms
  *
  * \return skinny_codec 
  */
-skinny_codec_t pbx_codec2skinny_codec(ast_format_type fmt)
+skinny_codec_t __CONST__ pbx_codec2skinny_codec(ast_format_type fmt)
 {
 	uint32_t i;
 
@@ -340,7 +531,7 @@ skinny_codec_t pbx_codec2skinny_codec(ast_format_type fmt)
  *
  * \return fmt Format as ast_format_type
  */
-ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec)
+uint64_t __CONST__ skinny_codec2pbx_codec(skinny_codec_t codec)
 {
 	uint32_t i;
 
@@ -359,7 +550,7 @@ ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec)
  *
  * \return bit array fmt/Format of ast_format_type (int)
  */
-int skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs)
+uint64_t __PURE__ skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs)
 {
 	uint32_t i;
 	int res_codec = 0;
@@ -786,30 +977,21 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 		}
 	} else /* OUTBOUND CALL */ {
 		struct ast_party_id connected = pbx_channel_connected_id(ast);
-		if (connected.number.valid || connected.name.valid) {
-			if (sccp_strcaseequals(connected.number.str, tmpCalledNumber)) {
-				changes = iCallInfo.Setter(callInfo,
-					SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? connected.number.str : tmpCalledNumber,
-					SCCP_CALLINFO_CALLEDPARTY_NAME, connected.name.valid ? connected.name.str : tmpCalledName,
-					SCCP_CALLINFO_KEY_SENTINEL);
-			} else {
-				changes = iCallInfo.Setter(callInfo,
-					SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? connected.number.str : tmpCalledNumber,
-					SCCP_CALLINFO_CALLEDPARTY_NAME, connected.name.valid ? connected.name.str : tmpCalledName,
-					SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, !sccp_strlen_zero(tmpOrigCalledPartyNumber) ? tmpOrigCalledPartyNumber : tmpCalledNumber ,
-					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, !sccp_strlen_zero(tmpOrigCalledPartyName) ? tmpOrigCalledPartyName : tmpCalledName,
-					SCCP_CALLINFO_KEY_SENTINEL);
-			}
-		}
+		changes = iCallInfo.Setter(callInfo,
+			SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? connected.number.str : tmpCalledNumber,
+			SCCP_CALLINFO_CALLEDPARTY_NAME, connected.name.valid ? connected.name.str : tmpCalledName,
+			SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, sccp_strlen_zero(tmpOrigCalledPartyNumber) ? (connected.number.valid ? connected.number.str : tmpCalledNumber) : tmpOrigCalledPartyNumber,
+			SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, sccp_strlen_zero(tmpOrigCalledPartyName) ? (connected.name.valid ? connected.name.str : tmpCalledName) : tmpOrigCalledPartyName,
+			SCCP_CALLINFO_KEY_SENTINEL);
 	}
 	sccp_channel_display_callInfo(channel);
 	if (changes) {
 		sccp_channel_send_callinfo2(channel);
-		// No need to re-indicate previous channel state, as long as we emulate previous states during pickup/gpickup etc
-		//AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(channel));
-		//if (d) {
-		//	sccp_indicate(d, channel, channel->state);
-		//}
+
+		/* We have a preliminary connected line, indiate RINGOUT_ALERTING */
+		if (SKINNY_CALLTYPE_OUTBOUND == channel->calltype && SCCP_CHANNELSTATE_RINGOUT == channel->state) {
+			sccp_indicate(NULL, channel, SCCP_CHANNELSTATE_RINGOUT_ALERTING);
+		}
         }
 #endif
 }

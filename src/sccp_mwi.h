@@ -12,7 +12,7 @@
 
 __BEGIN_C_EXTERN__
 //#ifdef CS_AST_HAS_EVENT
-//#include "asterisk/event.h"
+//#include <asterisk/event.h>
 //#endif
 
 /*!

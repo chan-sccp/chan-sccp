@@ -24,6 +24,7 @@
 #include "sccp_netsock.h"
 #include "sccp_rtp.h"
 #include "sccp_session.h"		// required for sccp_session_getOurIP
+#include "sccp_labels.h"
 #include "ast110.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
@@ -75,19 +76,12 @@ PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_findPickupChannelByGroupLocked(PBX_CH
 static skinny_codec_t sccp_asterisk10_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability)
 {
 	struct ast_format tmp_fmt;
-	uint8_t i;
 	skinny_codec_t codec = SKINNY_CODEC_NONE;
 
 	ast_format_cap_iter_start(ast_format_capability);
 	while (!ast_format_cap_iter_next(ast_format_capability, &tmp_fmt)) {
-		for (i = 1; i < ARRAY_LEN(pbx2skinny_codec_maps); i++) {
-			if (pbx2skinny_codec_maps[i].pbx_codec == tmp_fmt.id) {
-				codec = pbx2skinny_codec_maps[i].skinny_codec;
-				break;
-			}
-		}
-
-		if (codec != SKINNY_CODEC_NONE) {
+		if ((codec = pbx_codec2skinny_codec(tmp_fmt.id))== SKINNY_CODEC_NONE) {
+			ast_log(LOG_WARNING, "SCCP: (getSkinnyFormatSingle) No matching codec found");
 			break;
 		}
 	}
@@ -99,18 +93,15 @@ static skinny_codec_t sccp_asterisk10_getSkinnyFormatSingle(struct ast_format_ca
 static uint8_t sccp_asterisk10_getSkinnyFormatMultiple(struct ast_format_cap *ast_format_capability, skinny_codec_t codec[], int length)
 {
 	struct ast_format tmp_fmt;
-	uint8_t i;
 	uint8_t position = 0;
+	skinny_codec_t found = SKINNY_CODEC_NONE;
 
 	ast_format_cap_iter_start(ast_format_capability);
 	while (!ast_format_cap_iter_next(ast_format_capability, &tmp_fmt) && position < length) {
-		for (i = 1; i < ARRAY_LEN(pbx2skinny_codec_maps); i++) {
-			if (pbx2skinny_codec_maps[i].pbx_codec == tmp_fmt.id) {
-				codec[position++] = pbx2skinny_codec_maps[i].skinny_codec;
-				break;
-			}
+		if ((found = pbx_codec2skinny_codec(tmp_fmt.id)) != SKINNY_CODEC_NONE) {
+			codec[position++] = found;
+			break;
 		}
-
 	}
 	ast_format_cap_iter_end(ast_format_capability);
 
@@ -256,6 +247,7 @@ static int sccp_wrapper_asterisk110_devicestate(void *data)
 			break;
 
 		case SCCP_CHANNELSTATE_RINGOUT:
+		case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 #ifdef CS_EXPERIMENTAL
 			res = AST_DEVICE_RINGINUSE;
 			break;
@@ -600,7 +592,12 @@ static int sccp_wrapper_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 			break;
 		case AST_CONTROL_PROGRESS:
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
+			if (c->state != SCCP_CHANNELSTATE_CONNECTED && c->previousChannelState != SCCP_CHANNELSTATE_CONNECTED) {
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
+			} else {
+				// ORIGINATE() to SIP indicates PROGRESS after CONNECTED, causing issues with transfer
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+			}
 			res = -1;
 			break;
 		case AST_CONTROL_PROCEEDING:
@@ -894,6 +891,9 @@ static boolean_t sccp_wrapper_asterisk110_allocPBXChannel(sccp_channel_t * chann
 		return FALSE;
 	}
 	AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(channel->line));
+	if (!line) {
+		return FALSE;
+	}
 
 	pbxDstChannel = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, linkedId, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
 
@@ -2574,7 +2574,7 @@ static struct ast_rtp_glue sccp_rtp = {
 #endif
 
 #ifdef HAVE_PBX_MESSAGE_H
-#include "asterisk/message.h"
+#include <asterisk/message.h>
 static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to, const char *from)
 {
 	char *lineName;
@@ -2944,7 +2944,7 @@ static ast_module_load_result load_module(void)
 static int load_module(void)
 #endif
 {
-	int res = AST_MODULE_LOAD_FAILURE;
+	int res = AST_MODULE_LOAD_DECLINE;
 	do {
 		if (ast_module_check("chan_skinny.so")) {
 			pbx_log(LOG_ERROR, "Chan_skinny is loaded. Please check modules.conf and remove chan_skinny before loading chan_sccp.\n");
@@ -3023,8 +3023,7 @@ static int load_module(void)
 
 static int module_reload(void)
 {
-	sccp_reload();
-	return 0;
+	return sccp_reload();
 }
 
 #if defined(__cplusplus) || defined(c_plusplus)

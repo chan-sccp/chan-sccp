@@ -11,6 +11,7 @@
 #include "sccp_debug.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
+const char *SS_Memory_Allocation_Error = "%s: Memory Allocation Error.\n";
 
 /*!
  * \brief SCCP Verbose Level Structure

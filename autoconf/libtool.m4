@@ -728,7 +728,6 @@ _LT_CONFIG_SAVE_COMMANDS([
     cat <<_LT_EOF >> "$cfgfile"
 #! $SHELL
 # Generated automatically by $as_me ($PACKAGE) $VERSION
-# Libtool was configured on host `(hostname || uname -n) 2>/dev/null | sed 1q`:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 
 # Provide generalized library-building support services.
@@ -1493,7 +1492,7 @@ need_locks=$enable_libtool_lock
 m4_defun([_LT_PROG_AR],
 [AC_CHECK_TOOLS(AR, [ar], false)
 : ${AR=ar}
-: ${AR_FLAGS=cr}
+: ${AR_FLAGS=cru}
 _LT_DECL([], [AR], [1], [The archiver])
 _LT_DECL([], [AR_FLAGS], [1], [Flags to create an archive])
 

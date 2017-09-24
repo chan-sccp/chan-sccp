@@ -40,7 +40,7 @@ gcc_inline boolean_t sccp_netsock_is_IPv6(const struct sockaddr_storage *sockAdd
 	return (sockAddrStorage->ss_family == AF_INET6) ? TRUE : FALSE;
 }
 
-uint16_t sccp_netsock_getPort(const struct sockaddr_storage * sockAddrStorage)
+uint16_t __PURE__ sccp_netsock_getPort(const struct sockaddr_storage * sockAddrStorage)
 {
 	if (sccp_netsock_is_IPv4(sockAddrStorage)) {
 		return ntohs(((struct sockaddr_in *) sockAddrStorage)->sin_port);
@@ -60,7 +60,7 @@ void sccp_netsock_setPort(const struct sockaddr_storage *sockAddrStorage, uint16
 	}
 }
 
-int sccp_netsock_is_any_addr(const struct sockaddr_storage *sockAddrStorage)
+int __PURE__ sccp_netsock_is_any_addr(const struct sockaddr_storage *sockAddrStorage)
 {
 	union sockaddr_union tmp_addr = {
 		.ss = *sockAddrStorage,
@@ -142,7 +142,7 @@ void sccp_netsock_flush_externhost(void)
 	externhost[AF_INET6].expire = 0;
 }
 
-size_t sccp_netsock_sizeof(const struct sockaddr_storage * sockAddrStorage)
+size_t __PURE__ sccp_netsock_sizeof(const struct sockaddr_storage * sockAddrStorage)
 {
 	if (sccp_netsock_is_IPv4(sockAddrStorage)) {
 		return sizeof(struct sockaddr_in);
@@ -161,7 +161,7 @@ static int sccp_netsock_is_ipv6_link_local(const struct sockaddr_storage *sockAd
 	return sccp_netsock_is_IPv6(sockAddrStorage) && IN6_IS_ADDR_LINKLOCAL(&tmp_addr.sin6.sin6_addr);
 }
 
-boolean_t sccp_netsock_is_mapped_IPv4(const struct sockaddr_storage *sockAddrStorage)
+boolean_t __PURE__ sccp_netsock_is_mapped_IPv4(const struct sockaddr_storage *sockAddrStorage)
 {
 	if (sccp_netsock_is_IPv6(sockAddrStorage)) {
 		const struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) sockAddrStorage;
@@ -394,13 +394,15 @@ void sccp_netsock_setoptions(int new_socket, int reuse, int linger, int keepaliv
 	int on = 1;
 
 	/* reuse */
-	SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+	if (reuse > -1) {
+		SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
 #if defined(SO_REUSEPORT)
-	SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse));
+		SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse));
 #endif
+	}
 
 	/* nodelay */
-	SCCP_NETSOCK_SETOPTION(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
+	// SCCP_NETSOCK_SETOPTION(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
 
 	/* tos/cos */
 	int value = (int) GLOB(sccp_tos);
@@ -416,8 +418,10 @@ void sccp_netsock_setoptions(int new_socket, int reuse, int linger, int keepaliv
 	SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_SNDBUF, &so_sndbuf, sizeof(int));
 
 	/* linger */
-	struct linger so_linger = {linger, NETSOCK_LINGER_WAIT};						/* linger=on but wait NETSOCK_LINGER_WAIT milliseconds before closing socket and discard all outboung messages */
-	SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
+	if (linger > -1) {
+		struct linger so_linger = {linger, NETSOCK_LINGER_WAIT};						/* linger=on but wait NETSOCK_LINGER_WAIT milliseconds before closing socket and discard all outboung messages */
+		SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
+	}
 
 	/* timeeo */
 	//struct timeval mytv = { NETSOCK_TIMEOUT_SEC, NETSOCK_TIMEOUT_MILLISEC };				/* timeout after seven seconds when trying to read/write from/to a socket */
@@ -425,7 +429,7 @@ void sccp_netsock_setoptions(int new_socket, int reuse, int linger, int keepaliv
 	//SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(mytv));
 
 	/* keepalive */
-	if (keepalive) {
+	if (keepalive > -1) {
 		int ip_keepidle  = keepalive;									/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
 		int ip_keepintvl = keepalive;									/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
 		int ip_keepcnt   = NETSOCK_KEEPALIVE_CNT;							/* The maximum number of keepalive probes TCP should send before dropping the connection. */

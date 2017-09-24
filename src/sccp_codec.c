@@ -88,7 +88,7 @@ const struct skinny_codec skinny_codecs[] = {
 	/* *INDENT-ON* */
 };
 
-uint8_t sccp_codec_getArrayLen()
+uint8_t __CONST__ sccp_codec_getArrayLen()
 {
 	return ARRAY_LEN(skinny_codecs);
 }
@@ -247,7 +247,7 @@ int sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const cha
 /*!
  * \brief Check if Skinny Codec is compatible with Skinny Capabilities Array
  */
-boolean_t sccp_codec_isCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length)
+boolean_t __PURE__ sccp_codec_isCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length)
 {
 	uint8_t i;
 

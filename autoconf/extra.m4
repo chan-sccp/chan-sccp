@@ -373,6 +373,7 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 	AM_CONDITIONAL([ASTERISK_VER_GROUP_112], [test x${ASTTERISK_VER_GROUP} = x112])
 	AM_CONDITIONAL([ASTERISK_VER_GROUP_113], [test x${ASTTERISK_VER_GROUP} = x113])
 	AM_CONDITIONAL([ASTERISK_VER_GROUP_114], [test x${ASTTERISK_VER_GROUP} = x114])
+	AM_CONDITIONAL([ASTERISK_VER_GROUP_115], [test x${ASTTERISK_VER_GROUP} = x115])
 	AM_COND_IF([ASTERISK_VER_GROUP_106],[AC_CONFIG_FILES([src/pbx_impl/ast106/Makefile])])
 	AM_COND_IF([ASTERISK_VER_GROUP_108],[AC_CONFIG_FILES([src/pbx_impl/ast108/Makefile])])
 	AM_COND_IF([ASTERISK_VER_GROUP_110],[AC_CONFIG_FILES([src/pbx_impl/ast110/Makefile])])
@@ -380,6 +381,7 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 	AM_COND_IF([ASTERISK_VER_GROUP_112],[AC_CONFIG_FILES([src/pbx_impl/ast112/Makefile])])
 	AM_COND_IF([ASTERISK_VER_GROUP_113],[AC_CONFIG_FILES([src/pbx_impl/ast113/Makefile])])
 	AM_COND_IF([ASTERISK_VER_GROUP_114],[AC_CONFIG_FILES([src/pbx_impl/ast114/Makefile])])
+	AM_COND_IF([ASTERISK_VER_GROUP_115],[AC_CONFIG_FILES([src/pbx_impl/ast115/Makefile])])
 ])
 
 AC_DEFUN([CS_WITH_PBX], [
@@ -429,11 +431,11 @@ AC_DEFUN([CS_WITH_PBX], [
 AC_DEFUN([CS_SETUP_DOXYGEN], [
 	CONFIGURE_PART([Checking for Doxygen:])
 	AC_ARG_ENABLE([devdoc], 
-		[AC_HELP_STRING([--enable-devdoc], [enable developer documentation])], 
+		[AC_HELP_STRING([--enable-devdoc], [Generate developer documentation])], 
 		[ac_cv_use_devdoc=$enableval], 
 		[ac_cv_use_devdoc=no]
 	)
-	AS_IF([test "_${ac_cv_use_devdoc}" == "_yes"], [DX_ENV_APPEND([INPUT],[. src src/pbx_impl src/pbx_impl/ast src/pbx_impl/ast114 src/pbx_impl/ast_announce])])
+	AS_IF([test "_${ac_cv_use_devdoc}" == "_yes"], [DX_ENV_APPEND([INPUT],[. src src/pbx_impl src/pbx_impl/ast src/pbx_impl/ast115 src/pbx_impl/ast_announce])])
 	DX_HTML_FEATURE(ON)
 	DX_CHM_FEATURE(OFF)
 	DX_CHI_FEATURE(OFF)
@@ -447,7 +449,7 @@ AC_DEFUN([CS_SETUP_DOXYGEN], [
 
 AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	AC_ARG_ENABLE(optimization, [
-		AC_HELP_STRING([--enable-optimization],[no detection or tuning flags for cpu version])], 
+		AC_HELP_STRING([--enable-optimization],[do not detecti or tune flags for cpu version])], 
 		[enable_optimization=$enableval],
 		[enable_optimization=no; if test "${REPOS_TYPE}" = "TGZ"; then enable_optimization=yes; fi]
 	)
@@ -472,6 +474,23 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		])
 	 	CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
 		GDB_FLAGS=""
+		AS_IF([test "x${GCC}" = "xyes"], [
+			AC_LANG_SAVE
+			AC_LANG_C
+			AX_APPEND_COMPILE_FLAGS([ dnl
+				-fvisibility=hidden dnl
+				-fvisibility-inlines-hidden dnl
+				-fexcess-precision=fast dnl
+				-fvisibility=hidden dnl
+				-fwrapv dnl
+				-fno-delete-null-pointer-checks dnl
+				-xldscope=hidden dnl
+				-Wl,--as-needed dnl
+				-fPIE dnl
+				-fPIE -pie dnl
+			], SUPPORTED_CFLAGS)
+		])
+		AC_SUBST([strip_binaries])
 	], [
 	 	CFLAGS_saved="`echo ${CFLAGS_saved} |sed -e 's/\-O[0-9]\ \?//g' -e 's/[^|\ ]\-g[$|\ ]//g'`"
 		optimize_flag="-O0"
@@ -499,42 +518,84 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			AC_LANG_SAVE
 			AC_LANG_C
 			AX_APPEND_COMPILE_FLAGS([ dnl
-				-fstack-protector-all dnl
-				-fvisibility=hidden dnl
-				-fvisibility-inlines-hidden dnl
 				-Wall dnl
 				-Wno-long-long dnl
 				-Wno-missing-field-initializers dnl
 				-Wmissing-declarations dnl
 				-Wnested-externs dnl
 				-Wnonnull dnl
+				-Wnonnull-compare dnl
+				-Wnull-dereference dnl
 				-Wcast-align dnl
 				-Wold-style-definition dnl
 				-Wformat-security dnl
 				-Wstrict-aliasing dnl
 				-Wmissing-format-attribute dnl
 				-Wmissing-noreturn dnl
-				-Winit-self dnl
 				-Wmissing-include-dirs dnl
+				-Winit-self dnl
 				-Warray-bounds dnl
 				-Wimplicit-function-declaration dnl
 				-Wreturn-type dnl
 				-Wsign-compare dnl
 				-Wstrict-prototypes dnl
 				-Wmissing-prototypes dnl
-				-Wunused dnl
 				-Wempty-body dnl
 				-Wmissing-parameter-type dnl
 				-Woverride-init dnl
 				-Wtype-limits dnl
 				-Wuninitialized dnl 
 				-Wshift-negative-value dnl
-				-Wunused-but-set-parameter dnl
+				-Wendif-labels dnl
+				-Wformat-security dnl
+				-Waddress dnl
+				-Wno-pointer-sign dnl
+				-Wold-style-definition,  dnl
+				-Wstrict-prototypes dnl
+				-Werror=implicit dnl
+				-Wunused dnl
+				-Wunused-const-variable dnl
+				-Wunused-function dnl
+				-Wunused-label dnl
+				-Wunused-local-typedefs dnl
+				-Wpragmas dnl
+				-Wno-overlength-strings dnl
+				-Wheader-guard dnl
+				-Wattributes dnl
+				-Wdiv-by-zero dnl
+				-Wenum-compare dnl
+				-Wmisleading-indentation dnl
+				-Wsuggest-attribute=const dnl
+				-Wsuggest-attribute=format dnl
+				-Wsuggest-attribute=noreturn dnl
+				-Wsuggest-attribute=pure dnl
+				-Wswitch dnl
+				-fstack-protector-all dnl
+				-fvisibility=hidden dnl
+				-fvisibility-inlines-hidden dnl
+				-fexcess-precision=fast dnl
+				-fvisibility=hidden dnl
+				-fwrapv dnl
+				-fno-delete-null-pointer-checks dnl
+				-xldscope=hidden dnl
+				-Wl,--as-needed dnl
+				-fPIE dnl
+				-fPIE -pie dnl
+				dnl
 				dnl // should be added and fixed
-				dnl -Wswitch-enum
+				dnl -Wswitch-enum dnl
+				dnl -Wc++-compat		dnl Check if compilable with C++ compiler
+				dnl -Wshorten-64-to-32 dnl
+				dnl -Wpointer-arith dnl
 				dnl
 				dnl // somewhat pedantic 
 				dnl -Wunused-parameter dnl
+				dnl -Wignored-qualifiers dnl
+				dnl -Wextra dnl
+				dnl -Wunused-macros dnl
+				dnl -Wunused-parameter dnl
+				dnl -Wvla 		dnl Variable Length Arrays not actually allowed in C90
+				dnl -Wjump-misses-init	dnl Goto skipping variable declarations
 				dnl 
 				dnl // do not add
 				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl
@@ -546,6 +607,9 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			AC_LANG_C
 			AX_APPEND_COMPILE_FLAGS([ dnl
 				-Wshadow dnl
+				-fno-strict-overflow dnl
+				-Wshorten-64-to-32 dnl
+				-Wpointer-arith dnl
 			], SUPPORTED_CFLAGS)
 		])
 		AS_IF([test "x${AST_C_COMPILER_FAMILY}" = "xclang"], [
@@ -624,7 +688,7 @@ AC_DEFUN([CS_ENABLE_GCOV], [
 	COVERAGE_CFLAGS=''
 	COVERAGE_LDFLAGS=''
 	AC_ARG_ENABLE([gcov],
-		[AS_HELP_STRING([--enable-gcov], [enable Gcov to profile sources])],
+		[AS_HELP_STRING([--enable-gcov], [generate Gcov to profile sources])],
 		[ac_cv_enable_gcov=$enableval], 
 		[ac_cv_enable_gcov=no]
 	)
@@ -639,7 +703,7 @@ AC_DEFUN([CS_ENABLE_GCOV], [
 
 AC_DEFUN([CS_ENABLE_REFCOUNT_DEBUG], [
 	AC_ARG_ENABLE(refcount_debug, 
-		[AC_HELP_STRING([--enable-refcount-debug], [enable refcount debug])], 
+		[AC_HELP_STRING([--enable-refcount-debug], [enable refcount debugging (developer only)])], 
 		[ac_cv_refcount_debug=$enableval], 
 		[ac_cv_refcount_debug=no]
 	)
@@ -649,7 +713,7 @@ AC_DEFUN([CS_ENABLE_REFCOUNT_DEBUG], [
 
 AC_DEFUN([CS_ENABLE_LOCK_DEBUG], [
 	AC_ARG_ENABLE(lock_debug, 
-		[AC_HELP_STRING([--enable-lock-debug], [enable lock debug])], 
+		[AC_HELP_STRING([--enable-lock-debug], [enable lock debugging (developer only)])], 
 		[ac_cv_lock_debug=$enableval], 
 		[ac_cv_lock_debug=no]
 	)
@@ -660,9 +724,9 @@ AC_DEFUN([CS_ENABLE_LOCK_DEBUG], [
 
 AC_DEFUN([CS_ENABLE_STRIP], [
 	AC_ARG_ENABLE(strip, 
-		[AC_HELP_STRING([--enable-strip], [enable stripping the binary during installation])], 
+		[AC_HELP_STRING([--enable-strip], [strip the symbols from the binary during installation])], 
 		[ac_cv_enable_strip=$enableval], 
-		[ac_cv_enable_strip=no]
+		[ac_cv_enable_strip=no; if [ test "x$enable_optimization" == "xyes"; ] then ac_cv_enable_strip="yes";fi]
 	)
 	strip_binaries="${ac_cv_enable_strip}"
 	AC_MSG_RESULT([--enable-strip: ${ac_cv_enable_strip}])
@@ -678,7 +742,7 @@ AC_DEFUN([CS_DISABLE_SECTION_RELOCATION], [
 		;;
 	*)
 		AC_ARG_ENABLE(section_relocation,
-			[AC_HELP_STRING([--enable-section-relocation], [disable compiler section relocation])],
+			[AC_HELP_STRING([--enable-section-relocation], [enable compiler section relocation])],
 			[ac_cv_section_relocation=$enableval], 
 			[ac_cv_section_relocation=no]
 		)
@@ -907,7 +971,7 @@ AC_DEFUN([CS_ENABLE_VIDEO], [
 
 AC_DEFUN([CS_ENABLE_DISTRIBUTED_DEVSTATE], [
 	AC_ARG_ENABLE(distributed_devicestate, 
-		[AC_HELP_STRING([--enable-distributed-devicestate], [enable distributed devicestate (>ast 1.6.2)])], 
+		[AC_HELP_STRING([--enable-distributed-devicestate], [enable distributed devicestate (ast 1.8 - 12)])], 
 		[ac_cv_use_distributed_devicestate=$enableval], 
 		[ac_cv_use_distributed_devicestate=no]
 	)

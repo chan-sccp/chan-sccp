@@ -36,7 +36,7 @@ uint32_t (sccp_enum_str2intval)(const char *lookup_str)
 	return 1;
 }
 
-const char *(sccp_enum_all_entries)(void)
+const char * const (sccp_enum_all_entries)(void)
 {
 	return NULL;
 }

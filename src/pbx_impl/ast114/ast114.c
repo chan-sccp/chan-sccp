@@ -24,6 +24,7 @@
 #include "sccp_netsock.h"
 #include "sccp_rtp.h"
 #include "sccp_session.h"		// required for sccp_session_getOurIP
+#include "sccp_labels.h"
 #include "ast114.h"
 #include "ast_announce.h"
 
@@ -95,7 +96,6 @@ PBX_CHANNEL_TYPE *sccp_wrapper_asterisk114_findPickupChannelByGroupLocked(PBX_CH
 
 static inline skinny_codec_t sccp_asterisk114_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability)
 {
-	uint8_t i;
 	uint formatPosition;
 	skinny_codec_t codec = SKINNY_CODEC_NONE;
 	struct ast_format *format;
@@ -105,14 +105,7 @@ static inline skinny_codec_t sccp_asterisk114_getSkinnyFormatSingle(struct ast_f
 		uint64_t ast_codec = ast_format_compatibility_format2bitfield(format);
 		ao2_ref(format, -1);
 
-		for (i = 1; i < ARRAY_LEN(pbx2skinny_codec_maps); i++) {
-			if (pbx2skinny_codec_maps[i].pbx_codec == ast_codec) {
-				codec = pbx2skinny_codec_maps[i].skinny_codec;
-				break;
-			}
-		}
-
-		if (codec == SKINNY_CODEC_NONE) {
+		if ((codec = pbx_codec2skinny_codec(ast_codec))== SKINNY_CODEC_NONE) {
 			ast_log(LOG_WARNING, "SCCP: (getSkinnyFormatSingle) No matching codec found");
 			break;
 		}
@@ -124,8 +117,8 @@ static inline skinny_codec_t sccp_asterisk114_getSkinnyFormatSingle(struct ast_f
 static uint8_t sccp_asterisk114_getSkinnyFormatMultiple(struct ast_format_cap *ast_format_capability, skinny_codec_t codec[], int length)
 {
 	// struct ast_format tmp_fmt;
-	uint8_t i;
 	uint formatPosition;
+	skinny_codec_t found = SKINNY_CODEC_NONE;
 	uint8_t position = 0;
 	struct ast_str *codec_buf = ast_str_alloca(64);
 	struct ast_format *format;
@@ -137,11 +130,9 @@ static uint8_t sccp_asterisk114_getSkinnyFormatMultiple(struct ast_format_cap *a
 		uint64_t ast_codec = ast_format_compatibility_format2bitfield(format);
 		ao2_ref(format, -1);
 
-		for (i = 1; i < ARRAY_LEN(pbx2skinny_codec_maps); i++) {
-			if (pbx2skinny_codec_maps[i].pbx_codec == ast_codec) {
-				codec[position++] = pbx2skinny_codec_maps[i].skinny_codec;
-				break;
-			}
+		if ((found = pbx_codec2skinny_codec(ast_codec)) != SKINNY_CODEC_NONE) {
+			codec[position++] = found;
+			break;
 		}
 	}
 
@@ -336,6 +327,7 @@ static int sccp_wrapper_asterisk114_devicestate(const char *data)
 			res = AST_DEVICE_UNAVAILABLE;
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
+		case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 #ifdef CS_EXPERIMENTAL
 			res = AST_DEVICE_RINGINUSE;
 			break;
@@ -668,7 +660,12 @@ static int sccp_wrapper_asterisk114_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 			break;
 		case AST_CONTROL_PROGRESS:
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
+			if (c->state != SCCP_CHANNELSTATE_CONNECTED && c->previousChannelState != SCCP_CHANNELSTATE_CONNECTED) {
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
+			} else {
+				// ORIGINATE() to SIP indicates PROGRESS after CONNECTED, causing issues with transfer
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+			}
 			res = -1;
 			break;
 		case AST_CONTROL_PROCEEDING:
@@ -1016,6 +1013,9 @@ static boolean_t sccp_wrapper_asterisk114_allocPBXChannel(sccp_channel_t * chann
 		return FALSE;
 	}
 	AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(channel->line));
+	if (!line) {
+		return FALSE;
+	}
 
 	if (ids) {
 		assignedids = ids;
@@ -2816,34 +2816,32 @@ static skinny_busylampfield_state_t sccp_wrapper_asterisk114_getExtensionState(c
 	return result;
 }
 
-/* not used at the moment */
-/*
-   static struct ast_endpoint *sccp_wrapper_asterisk114_endpoint_create(const char *tech, const char *resource)
-   {
-   return ast_endpoint_create(tech, resource);
-   }
+static struct ast_endpoint *sccp_wrapper_asterisk114_endpoint_create(const char *tech, const char *resource)
+{
+	return ast_endpoint_create(tech, resource);
+}
 
-   static void sccp_wrapper_asterisk114_endpoint_online(struct ast_endpoint *endpoint)
-   {
-   ast_endpoint_set_state(endpoint, AST_ENDPOINT_ONLINE);
-   struct ast_json * blob = ast_json_pack("{s: s}", "peer_status", "Registered");
-   ast_endpoint_blob_publish(endpoint, ast_endpoint_state_type(), blob);
-   ast_json_unref(blob);
-   }
+static void sccp_wrapper_asterisk114_endpoint_online(struct ast_endpoint *endpoint, const char *address)
+{
+	RAII_VAR(struct ast_json *, blob, NULL, ast_json_unref);
+	ast_endpoint_set_state(endpoint, AST_ENDPOINT_ONLINE);
+	blob = ast_json_pack("{s: s, s: s}", "peer_status", "Registered", "address", address);
+	ast_endpoint_blob_publish(endpoint, ast_endpoint_state_type(), blob);
+}
 
-   static void sccp_wrapper_asterisk114_endpoint_offline(struct ast_endpoint *endpoint)
-   {
-   ast_endpoint_set_state(endpoint, AST_ENDPOINT_OFFLINE);
-   struct ast_json * blob = ast_json_pack("{s: s}", "peer_status", "Unregistered");
-   ast_endpoint_blob_publish(endpoint, ast_endpoint_state_type(), blob);
-   ast_json_unref(blob);
-   }
+static void sccp_wrapper_asterisk114_endpoint_offline(struct ast_endpoint *endpoint, const char *cause)
+{
+	RAII_VAR(struct ast_json *, blob, NULL, ast_json_unref);
+	ast_endpoint_set_state(endpoint, AST_ENDPOINT_OFFLINE);
+	blob = ast_json_pack("{s: s, s: s}", "peer_status", "Unregistered", "cause", cause);
+	ast_endpoint_blob_publish(endpoint, ast_endpoint_state_type(), blob);
+}
 
-   static void sccp_wrapper_asterisk114_endpoint_shutdown(struct ast_endpoint *endpoint)
-   {
-   ast_endpoint_shutdown(endpoint);
-   }
- */
+static void sccp_wrapper_asterisk114_endpoint_shutdown(struct ast_endpoint **endpoint)
+{
+	ast_endpoint_shutdown(*endpoint);
+	*endpoint = NULL;
+}
 
 static int sccp_wrapper_asterisk114_dumpchan(struct ast_channel *c, char *buf, size_t size)
 {
@@ -3027,7 +3025,7 @@ struct ast_rtp_glue sccp_rtp = {
 #endif
 
 #ifdef HAVE_PBX_MESSAGE_H
-#include "asterisk/message.h"
+#include <asterisk/message.h>
 static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to, const char *from)
 {
 	char *lineName;
@@ -3218,10 +3216,10 @@ const PbxInterface iPbx = {
 	findPickupChannelByExtenLocked:	sccp_wrapper_asterisk114_findPickupChannelByExtenLocked,
 	findPickupChannelByGroupLocked:	sccp_wrapper_asterisk114_findPickupChannelByGroupLocked,
 
-// 	endpoint_create:		sccp_wrapper_asterisk114_endpoint_create,
-//	endpoint_online:		sccp_wrapper_asterisk114_endpoint_online,
-//	endpoint_offline:		sccp_wrapper_asterisk114_endpoint_offline,
-//	endpoint_shutdown:		sccp_wrapper_asterisk114_endpoint_shutdown,
+ 	endpoint_create:		sccp_wrapper_asterisk114_endpoint_create,
+	endpoint_online:		sccp_wrapper_asterisk114_endpoint_online,
+	endpoint_offline:		sccp_wrapper_asterisk114_endpoint_offline,
+	endpoint_shutdown:		sccp_wrapper_asterisk114_endpoint_shutdown,
 
 	set_owner:			sccp_wrapper_asterisk114_setOwner,
 	removeTimingFD:			sccp_wrapper_asterisk114_removeTimingFD,
@@ -3358,10 +3356,10 @@ const PbxInterface iPbx = {
 	.findPickupChannelByExtenLocked	= sccp_wrapper_asterisk114_findPickupChannelByExtenLocked,
 	.findPickupChannelByGroupLocked	= sccp_wrapper_asterisk114_findPickupChannelByGroupLocked,
 
-//	.endpoint_create		= sccp_wrapper_asterisk114_endpoint_create,
-//	.endpoint_online		= sccp_wrapper_asterisk114_endpoint_online,
-//	.endpoint_offline		= sccp_wrapper_asterisk114_endpoint_offline,
-//	.endpoint_shutdown		= sccp_wrapper_asterisk114_endpoint_shutdown,
+	.endpoint_create		= sccp_wrapper_asterisk114_endpoint_create,
+	.endpoint_online		= sccp_wrapper_asterisk114_endpoint_online,
+	.endpoint_offline		= sccp_wrapper_asterisk114_endpoint_offline,
+	.endpoint_shutdown		= sccp_wrapper_asterisk114_endpoint_shutdown,
 
 	.set_owner			= sccp_wrapper_asterisk114_setOwner,
 	.removeTimingFD			= sccp_wrapper_asterisk114_removeTimingFD,
@@ -3463,7 +3461,7 @@ static ast_module_load_result load_module(void)
 static int load_module(void)
 #endif
 {
-	int res = AST_MODULE_LOAD_FAILURE;
+	int res = AST_MODULE_LOAD_DECLINE;
 	do {
 		if (ast_module_check("chan_skinny.so")) {
 			pbx_log(LOG_ERROR, "Chan_skinny is loaded. Please check modules.conf and remove chan_skinny before loading chan_sccp.\n");
@@ -3544,8 +3542,7 @@ static int load_module(void)
 
 static int module_reload(void)
 {
-	sccp_reload();
-	return 0;
+	return sccp_reload();
 }
 
 #if defined(__cplusplus) || defined(c_plusplus)

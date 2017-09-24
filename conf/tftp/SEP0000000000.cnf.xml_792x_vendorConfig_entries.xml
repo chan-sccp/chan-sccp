@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<displayInstance xmlns="http://www.cisco.com/AXL/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.cisco.com/AXL/1.0
+..\schema\displayInstance.xsd">
+	<name>xmldi://cisco.com/product/464/SCCP</name>
+	<version>1.00</version>
+	<author>Cisco Systems</author>
+	<description>IP Phone 7926 Display Instance</description>
+	<parameters>
+		<param>
+			<name>disableSpeaker</name>
+			<description>
+				Disable only the speakerphone functionality. Disabling speakerphone functionality will not affect the handset.
+			</description>
+			<displayName>Disable Speakerphone</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/disableSpeaker</rule>
+			</rules>
+		</param>
+		<param>
+			<name>garp</name>
+			<description>
+				Indicates whether the phone will learn MAC addresses from Gratuitous ARP responses.  Disabling the phones ability to accept Gratuitous ARP will prevent applications which use this mechanism for monitoring and recording of voice streams from working.  If monitoring capability is not desired, change this setting to Disabled.
+			</description>
+			<displayName>Gratuitous ARP</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/garp</rule>
+			</rules>
+		</param>
+		<param>
+			<name>settingsAccess</name>
+			<description>
+				Indicates whether the Settings Menu on the phone is functional. When Settings Access is enabled, you can change the phone network configuration, ring type, and volume on the phone. When Settings Access is disabled, the Settings button is completely disabled; no options appear when you press the button. Also, you cannot adjust the ringer volume or save any volume settings. By default, Settings Access is enabled. 
+			</description>
+			<displayName>Settings Access</displayName>
+			<hasCommonSetting>true</hasCommonSetting>
+			<overrideCommonSetting>true</overrideCommonSetting>			
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/settingsAccess</rule>
+			</rules>
+		</param>
+		<param>
+			<name>webAccess</name>
+			<description>
+				This parameter indicates whether the phone will accept connections from a web browser or other HTTP client. Disabling the web server functionality of the phone will block access to the phones internal web pages. These pages provide statistics and configuration information. Features, such as QRT ( Quality Report Tool ), will not function properly without access to the phones web pages. This setting will also affect any serviceability application such as CiscoWorks 2000 that relies on web access. 
+				The following options are available.
+					  Disabled: Phone does not accept any HTTP connection. HTTP server is disabled on the phone.
+					 Read Only: Phone displays web pages but does not allow any configuration.
+					      Full: Phone displays web pages and allows configuration.
+			</description>
+			<displayName>Web Access</displayName>
+			<hasCommonSetting>true</hasCommonSetting>
+			<overrideCommonSetting>true</overrideCommonSetting>			
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/webAccess</rule>
+			</rules>
+		</param>
+		<param>
+			<name>WlanProfile1</name>
+			<description>
+				Indicates whether WLAN Profile 1 can be modified by the user. If the profile is locked, the user can not modify it. To allow the user to edit only the username and password in the profile, set it to restricted.
+			</description>
+			<displayName>Profile 1</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/WlanProfile1</rule>
+			</rules>
+		</param>
+		<param>
+			<name>WlanProfile2</name>
+			<description>
+				Indicates whether WLAN Profile 2 can be modified by the user. If the profile is locked, the user can not modify it. To allow the user to edit only the username and password in the profile, set it to restricted.
+			</description>
+			<displayName>Profile 2</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/WlanProfile2</rule>
+			</rules>
+		</param>
+		<param>
+			<name>WlanProfile3</name>
+			<description>
+				Indicates whether WLAN Profile 3 can be modified by the user. If the profile is locked, the user can not modify it. To allow the user to edit only the username and password in the profile, set it to restricted.
+			</description>
+			<displayName>Profile 3</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/WlanProfile3</rule>
+			</rules>
+		</param>
+		<param>
+			<name>WlanProfile4</name>
+			<description>
+				Indicates whether WLAN Profile 4 can be modified by the user. If the profile is locked, the user can not modify it. To allow the user to edit only the username and password in the profile, set it to restricted.
+			</description>
+			<displayName>Profile 4</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/WlanProfile4</rule>
+			</rules>
+		</param>
+		<param>
+			<name>loadServer</name>
+			<description>
+				Indicates that the phone will use an alternative server to obtain firmware loads and upgrades, rather than the defined TFTP server. This option enables you to indicate a local server to be used for firmware upgrades, which can assist in reducing install times, particularly for upgrades over a WAN.  Enter the hostname or the IP address (using standard IP addressing format) of the server. The indicated server must be running TFTP services and have the load file in the TFTP path. If the load file is not found, the load will not install. The phone will not be redirected to the TFTP server.  If this field is left blank, the phone will use the designated TFTP server to obtain its load files and upgrades
+			</description>
+			<displayName>Load Server</displayName>
+			<hasCommonSetting>true</hasCommonSetting>
+			<overrideCommonSetting>true</overrideCommonSetting>			
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/loadServer</rule>
+			</rules>
+		</param>
+		<param>
+			<name>adminPassword</name>
+			<description>
+				Password to access the web interface on the phone
+			</description>
+			<displayName>Admin Password</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/adminPassword</rule>
+			</rules>
+		</param>
+		<param>
+			<name>specialNumbers</name>
+			<description>
+				Special numbers are telephone numbers that do not require unlocking the phone to call. For example, in the United States, the 911 emergency number is a good special number candidate so that it can be dialed without unlocking the phone.  You may enter one or more special numbers in this field.  To enter more than one special number, use a comma as separator.  For example, if you want to enter 411, 511, and 911 as special numbers, enter 411,511,911 in the field without spaces.
+			</description>
+			<displayName>Special Numbers</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/specialNumbers</rule>
+			</rules>
+		</param>
+		<param>
+			<name>PushToTalkURL</name>
+			<description>
+				This parameter specifies the URL which the phone contacts for application services.
+			</description>
+			<displayName>Application URL</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/applicationURL</rule>
+			</rules>
+		</param>
+		<param>
+			<name>sendKeyAction</name>
+			<description>
+				This field controls the behavior of the "Send" (green) key when it is pressed. If the "Onhook Dialing" option is selected, the phone displays a list of the last numbers dialed. If the "Offhook Dialing" option is selected, the phone sends a SCCP "offhook" message to the Cisco Unified CallManager.
+			</description>
+			<displayName>"Send" Key Action</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/sendKeyAction</rule>
+			</rules>
+		</param>
+		<param>
+			<name>phoneBookWebAccess</name>
+			<description>
+				This field controls the accessibility of the local phone book via the web and works in conjunction with the 'Web Access' parameter.  When 'Web Access' is 'Disabled', the local phone book is not accessible via the web regardless of this parameter setting.  When 'Web Access' is 'Read-Only' or 'Full', access to the local phone book is as follows:  'Deny All' will not allow web access for reading or writing of the local phone book; 'Allow Admin' will allow only the phone administrator to read from and write to the local phone book.
+			</description>
+			<displayName>Phone Book Web Access</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/phoneBookWebAccess</rule>
+			</rules>
+		</param>
+		<param>
+			<name>unlockSettingsSequence</name>
+			<description>
+				This parameter determines if a "**#" (star-star-pound) key sequence is required for write-access to the phone's settings menu.  A value of 'Enabled' requires the user to enter **# first before making changes to the settings menu.  If the value is 'Disabled', the user is allowed to make modifications to the settings menu without having to enter the unlock key sequence.
+			</description>
+			<displayName>Unlock-Settings Sequence (**#)</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/unlockSettingsSequence</rule>
+			</rules>
+		</param>
+		<param>
+			<name>appButtonTimer</name>
+			<description>
+				Amount of time you must hold down the Application Button to activate the application. The timer values are in seconds.  A value of 0 indicates that a simple push of the Application Button will active the application. For non-zero values, the application is activated after the specified timer value expires. 
+			</description>
+			<displayName>Application Button Activation Timer</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/appButtonTimer</rule>
+			</rules>
+		</param>
+		<param>
+			<name>appButtonPriority</name>
+			<description>
+				This parameter indicates the priority of the Application Button relative to all other tasks on the phone.  The priorities are defined as follows.
+					   Low: The Application Button only works when the phone is idle and on the main screen.
+					Medium: The Application Button takes precedence over all tasks on the phone except when the keypad is locked.
+					  High: The Application Button takes precedence over all tasks on the phone.
+			</description>
+			<displayName>Application Button Priority</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/appButtonPriority</rule>
+			</rules>
+		</param>
+		<param>
+			<name>outOfRangeAlert</name>
+			<description>
+				This parameter controls the frequency of audible alerts when the phone is out of range of an access point. The phone does not play audible alerts when the parameter value is "disabled." The phone can beep once or regularly at a selected interval (10, 30, or 60 seconds) when it is out of range of an access point. Once the phone is within range of an access point, audible alerts stop.
+			</description>
+			<displayName>Out-of-Range Alert</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/outOfRangeAlert</rule>
+			</rules>
+		</param>
+		<param>
+			<name>scanningMode</name>
+			<description>
+				This parameter controls when the phone performs scanning. The parameter values are as follow.
+					Auto: Phone scans when it is in a call or when the received strength signal indicator (RSSI) is low.  
+					Single AP: Phone never scans except when the basic service set (BSS) is lost.
+					Continuous: Phone scans continuously even when it is not in a call.
+			</description>
+			<displayName>Scan Mode</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/scanningMode</rule>
+			</rules>
+		</param>
+		<param>
+			<name>restrictDataRates</name>
+			<description>
+				This parameter enables or disables the restriction of the upstream and downstream PHY rates according to CCX V4 Traffic Stream Rate Set IE (S54.2.6).
+			</description>
+			<displayName>Restrict Data Rates</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/restrictDataRates</rule>
+			</rules>
+		</param>
+		<param>
+			<name>powerOffWhenCharging</name>
+			<description>
+				This parameter indicates whether the phone powers off when it is connected to a charger or placed in a charging station.
+			</description>
+			<displayName>Power Off When Charging</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/powerOffWhenCharging</rule>
+			</rules>
+		</param>
+		<param>
+			<name>cdpEnable</name>
+			<description>
+				This parameter enables or disables the Cisco Discovery Protocol (CDP) on the phone.
+			</description>
+			<displayName>Cisco Discovery Protocol (CDP)</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/cdpEnable</rule>
+			</rules>
+		</param>
+		<param>
+			<name>g722CodecSupport</name>
+			<description>
+                                This parameter indicates whether the phone will advertise the G.722 codec to the Cisco Unified CallManager. Codec negotiation involves two steps: first, the phone must advertise the supported codec(s) to the Cisco Unified CallManager (not all endpoints support the same set of codecs). Second, when the Cisco Unified CallManager gets the list of supported codecs from all phones involved in the call attempt, it chooses a commonly-supported codec based on various factors, including the region pair setting. Valid values specify Use System Default (this phone will defer to the setting specified in the enterprise parameter, Advertise G.722 Codec), Disabled (this phone will not advertise G.722 to the Cisco Unified CallManager) or Enabled (this phone will advertise G.722 to the Cisco Unified CallManager).
+                        </description>
+			<displayName>Advertise G.722 Codec</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/g722CodecSupport</rule>
+			</rules>
+		</param>
+		<param>
+			<name>homeScreen</name>
+			<description>
+				This parameter sets the phone's default home screen.
+			</description>
+			<displayName>Home Screen</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/homeScreen</rule>
+			</rules>
+		</param>
+		<param>
+			<name>fipsMode</name>
+			<description>
+				This parameter sets the Federal Information Processing Standards (FIPS) mode for the phone. The Cisco 7926 is a FIPS 140-2 level 1 compliant device when this option is enabled.
+			</description>
+			<displayName>FIPS Mode</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/fipsMode</rule>
+			</rules>
+		</param>
+		<param>
+			<name>autoSelectLineEnable</name>
+			<description>
+                                When enabled, indicates that the phone will shift the call focus to incoming calls on all lines.  When disabled, the phone will only shift the focus to incoming calls on the currently used line.
+                        </description>
+			<displayName>Auto Line Select</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/autoSelectLineEnable</rule>
+			</rules>
+		</param>
+		<param>
+			<name>bluetooth</name>
+			<description>
+				Indicates whether the Bluetooth device on the phone is enabled or disabled.
+			</description>
+			<displayName>Bluetooth</displayName>
+			<hasCommonSetting>true</hasCommonSetting>
+			<overrideCommonSetting>true</overrideCommonSetting>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/bluetooth</rule>
+			</rules>
+		</param>
+		<param>
+			<name>fileSystemVerificationEnable</name>
+			<description>
+				This parameter indicates whether the phone will perform a file system integrity check as part of the firmware upgrade process. Enable this option to troubleshoot file system issues. This feature may impact phone performance if it is enabled.
+			</description>
+			<displayName>File System Verification</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/fileSystemVerificationEnable</rule>
+			</rules>
+		</param>
+		<param>
+			<name>barCodeSymbologyGroup</name>
+			<description>
+				This parameter specifies the symbology the scanner will use to scan bar codes. Select Basic or Extended symbology.
+			</description>
+			<displayName>Bar Code Symbology Group</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/barCodeSymbologyGroup</rule>
+			</rules>
+		</param>
+		<param>
+			<name>scannerCommands</name>
+			<description>
+				Use this field to customize the scanner features. Use comma to separate multiple commands.  Please refer to the Midlet Developer Guide for additional information.
+			</description>
+			<displayName>Scanner Commands</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/scannerCommands</rule>
+			</rules>
+		</param>
+		<param>
+			<name>minimumRingVolume</name>
+			<description>
+                                This parameter controls the minimum ring volume on the phone. This value is set by the administrator, and can not be changed by an end user. The end user can increase the ring volume, but may not decrease the ring volume below the level defined. The minimum ring volume range is from 0 to 7, with 0 (silent) being the default value.
+                        </description>
+			<displayName>Minimum Ring Volume</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/minimumRingVolume</rule>
+			</rules>
+		</param>
+		<param>
+			<name>java</name>
+			<description>
+				Indicates whether the Java on the phone is enabled or disabled.
+                        </description>
+			<displayName>Java</displayName>
+			<rules>
+				<rule>xmlrule://cisco.com/7926_Rules/java</rule>
+			</rules>
+		</param>
+	</parameters>
+</displayInstance>

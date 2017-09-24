@@ -13,7 +13,6 @@
 #pragma once
 #include "define.h"
 #include "sccp_codec.h"
-#include "sccp_labels.h"
 #include "sccp_softkeys.h"
 #include "sccp_enum.h"
 
@@ -2230,7 +2229,8 @@ typedef union {
 		uint32_t lel_lineNumber;									/*!< Line Number */
 		char lineDirNumber[StationMaxDirnumSize];							/*!< Line Dir Number */
 		char lineFullyQualifiedDisplayName[StationMaxNameSize];						/*!< Line Fully Qualified Display Name */
-		char lineDisplayName[StationMaxButtonTemplateNameSize];						/*!< Line Display Name */
+		//char lineDisplayName[StationMaxButtonTemplateNameSize];					/*!< Line Display Name */
+		char lineDisplayName[StationMaxNameSize];
 		uint32_t lineDisplayOptions;
 	} LineStatMessage;											/*!< Line Status Messages Structure */
 
@@ -3211,52 +3211,6 @@ extern const struct messagetype sccp_messagetypes[];
 extern const struct messagetype spcp_messagetypes[];
 SCCP_INLINE const char * SCCP_CALL msgtype2str(sccp_mid_t msgId);
 
-static const uint8_t softkeysmap[] = {
-	SKINNY_LBL_REDIAL,
-	SKINNY_LBL_NEWCALL,
-	SKINNY_LBL_HOLD,
-	SKINNY_LBL_TRANSFER,
-	SKINNY_LBL_CFWDALL,
-	SKINNY_LBL_CFWDBUSY,
-	SKINNY_LBL_CFWDNOANSWER,
-	SKINNY_LBL_BACKSPACE,
-	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_RESUME,
-	SKINNY_LBL_ANSWER,
-	SKINNY_LBL_INFO,
-	SKINNY_LBL_CONFRN,
-	SKINNY_LBL_PARK,
-	SKINNY_LBL_JOIN,
-	SKINNY_LBL_MEETME,
-	SKINNY_LBL_PICKUP,
-	SKINNY_LBL_GPICKUP,
-	SKINNY_LBL_MONITOR,
-	SKINNY_LBL_CALLBACK,
-	SKINNY_LBL_BARGE,
-	SKINNY_LBL_DND,
-	SKINNY_LBL_CONFLIST,
-	SKINNY_LBL_SELECT,
-	SKINNY_LBL_PRIVATE,
-	SKINNY_LBL_TRNSFVM,
-	SKINNY_LBL_DIRTRFR,
-	SKINNY_LBL_IDIVERT,
-	SKINNY_LBL_VIDEO_MODE,
-	SKINNY_LBL_INTRCPT,
-	SKINNY_LBL_EMPTY,
-	SKINNY_LBL_DIAL,
-	//SKINNY_LBL_CBARGE,
-};														/*!< SKINNY Soft Keys Map as INT */
-
-
-/*!
- * \brief SKINNY Soft Key Modes Structure
- */
-typedef struct {
-	uint8_t *ptr;												/*!< Point to next Mode */
-	uint8_t id;												/*!< Soft Key ID */
-	uint8_t count;												/*!< Soft Key Count */
-} softkey_modes;												/*!< SKINNY Soft Key Modes Structure */
-
 /*!
  * \brief SCCP Device Protocol Callback Structure
  *
@@ -3270,14 +3224,14 @@ typedef struct {
 
 	/* protocol callbacks */
 	/* send messages */
-	void (*const sendCallInfo) (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const uint8_t callInstance, constDevicePtr device);
+	void (*const sendCallInfo) (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const uint8_t callInstance, const skinny_callsecuritystate_t callsecurityState, constDevicePtr device);
 	void (*const sendDialedNumber) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const char dialedNumber[SCCP_MAX_EXTENSION]);
 	void (*const sendRegisterAck) (constDevicePtr device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat);
 	void (*const displayPrompt) (constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message);
 	void (*const displayNotify) (constDevicePtr device, uint8_t timeout, const char *message);
 	void (*const displayPriNotify) (constDevicePtr device, uint8_t priority, uint8_t timeout, const char *message);
 	void (*const sendCallforwardMessage) (constDevicePtr device, const sccp_linedevices_t * linedevice);
-	void (*const sendUserToDeviceDataVersionMessage) (constDevicePtr device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority);
+	void (*const sendUserToDeviceDataVersionMessage) (constDevicePtr device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const char *xmlData, uint8_t priority);
 	void (*const sendFastPictureUpdate) (constDevicePtr device, constChannelPtr channel);
 	void (*const sendOpenReceiveChannel) (constDevicePtr device, constChannelPtr channel);
 	void (*const sendOpenMultiMediaChannel) (constDevicePtr device, constChannelPtr channel, uint32_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
@@ -3286,6 +3240,7 @@ typedef struct {
 	void (*const sendConnectionStatisticsReq) (constDevicePtr device, constChannelPtr channel, uint8_t clear);
 	void (*const sendPortRequest) (constDevicePtr device, constChannelPtr channel, skinny_mediaTransportType_t mediaTransportType, skinny_mediaType_t mediaType);
 	void (*const sendPortClose) (constDevicePtr device, constChannelPtr channel, skinny_mediaType_t mediaType);
+	void (*const sendLineStatResp) (constDevicePtr device, uint32_t lineNumber, char *dirNumber, char *fullyQualifiedDisplayName, char *displayName);
 
 	/* parse received messages */
 	void (*const parseOpenReceiveChannelAck) (constMessagePtr msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
@@ -3297,8 +3252,8 @@ typedef struct {
 } sccp_deviceProtocol_t;											/*!< SCCP Device Protocol Callback Structure */
 
 SCCP_API boolean_t SCCP_CALL sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version);
-SCCP_API uint8_t SCCP_CALL sccp_protocol_getMaxSupportedVersionNumber(int type);
+SCCP_API uint8_t __CONST__ SCCP_CALL sccp_protocol_getMaxSupportedVersionNumber(int type);
 SCCP_API const sccp_deviceProtocol_t * SCCP_CALL sccp_protocol_getDeviceProtocol(constDevicePtr device, int type);
-SCCP_API const char * SCCP_CALL skinny_keymode2longstr(skinny_keymode_t keymode);
+SCCP_API const char * const __CONST__ SCCP_CALL skinny_keymode2longstr(skinny_keymode_t keymode);
 __END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

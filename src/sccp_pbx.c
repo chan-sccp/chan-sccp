@@ -9,9 +9,6 @@
  *              See the LICENSE file at the top of the source tree.
  *
  */
-#ifndef __PBX_IMPL_C
-#define __PBX_IMPL_C
-
 #include "config.h"
 #include "common.h"
 #include "sccp_pbx.h"
@@ -25,6 +22,7 @@
 #include "sccp_netsock.h"
 #include "sccp_session.h"
 #include "sccp_atomic.h"
+#include "sccp_labels.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -621,8 +619,6 @@ int sccp_pbx_answered(sccp_channel_t * channel)
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) Outgoing call %s has been answered by remote party\n", c->currentDeviceId, iPbx.getChannelName(c));
 		sccp_channel_updateChannelCapability(c);
 
-		/*! \todo This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
-		   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
 		AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
 		if (d) {
 			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
@@ -641,6 +637,7 @@ int sccp_pbx_answered(sccp_channel_t * channel)
 					iPbx.set_dialed_number(c, c->dialedNumber);
 				}
 			}
+
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
 #if CS_SCCP_CONFERENCE 
 			sccp_indicate(d, c, d->conference ? SCCP_CHANNELSTATE_CONNECTEDCONFERENCE : SCCP_CHANNELSTATE_CONNECTED);
@@ -743,10 +740,11 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 				iCallInfo.Setter(ci, 
 					SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name, 
 					SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num, 
-					SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &cid_num,
-					SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &cid_name,
+					//SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &cid_num,
+					//SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, &cid_name,
 					SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, &cid_num,
 					SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &cid_name,
+					SCCP_CALLINFO_LAST_REDIRECT_REASON, 0,
 					SCCP_CALLINFO_KEY_SENTINEL);
 				break;
 			case SKINNY_CALLTYPE_SENTINEL:
@@ -786,8 +784,6 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
        	sccp_channel_updateChannelCapability(c);
 	iPbx.set_nativeAudioFormats(c, c->preferences.audio, 1);
 	iPbx.setChannelName(c, c->designator);
-
-	pbx_jb_configure(tmp, GLOB(global_jbconf));
 
 	// \todo: Bridge?
 	// \todo: Transfer?
@@ -1350,5 +1346,4 @@ int sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest)
 }
 #endif
 
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

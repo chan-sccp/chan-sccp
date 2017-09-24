@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+#
+# pip install pygtail
+#
+from pygtail import Pygtail
+import sys, os, argparse, re, subprocess
+from retrieve_phone_debug_logs import retrieve_debug_logs
+
+def tail_grep_act(args):
+    for line in Pygtail(args.logfile):
+        for regex,action in zip(args.regexs, args.actions):
+            m = re.search(regex, line)
+            if m:
+                print('match: %s, %s' %(m.group(0), m.group(1)))
+                print('result: %s' %retrieve_debug_logs(m.group(1), '/tmp'))
+                
+                return
+        sys.stdout.write(line)
+
+def main(argv):
+    parser = argparse.ArgumentParser(description='Tail + Grep asterisk log file.')
+    parser.add_argument('-l', '--logfile', dest='logfile', default='/var/log/asterisk/full', nargs='?', required=True, help='logfile to observe')
+    parser.add_argument('-r', '--regex', dest='regexs', nargs='+', required=True, help='regular expression to perform on the log')
+    parser.add_argument('-a', '--action', dest='actions', nargs='+', required=True, help='action to take when regex matches')
+    args = parser.parse_args()
+
+    if not os.path.exists(args.logfile):
+        print("logfile could not be found ",args.logfile)
+        sys.exit(-1)
+
+    print('regexes:%s' %args.regexs)
+    print('actions:%s' %args.actions)
+    
+    tail_grep_act(args)
+    sys.exit(0)
+    
+if __name__ == "__main__":
+    main(sys.argv[1:])
+
+    

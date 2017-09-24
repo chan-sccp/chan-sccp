@@ -45,7 +45,7 @@ AC_DEFUN([AST_GET_VERSION], [
 			pbx_ver=`echo ${pbx_ver} | sed 's/"//g'`
 
 			# process version number
-			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10" "11" "12"; do
+			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10" "11" "12" "13" "14" "15"; do
 				if test $version_found == 0; then
 					if echo $pbx_ver|grep -q "$x"; then
 						if test ${#x} -gt 3; then		# 1.10
@@ -101,7 +101,8 @@ AC_DEFUN([AST_GET_VERSION], [
 							111) AC_DEFINE([ASTERISK_CONF_1_11], [1], [Defined ASTERISK_CONF_1_11]);;
 							112) AC_DEFINE([ASTERISK_CONF_1_12], [1], [Defined ASTERISK_CONF_1_12]);;
 							113) AC_DEFINE([ASTERISK_CONF_1_13], [1], [Defined ASTERISK_CONF_1_13]);;
-							114) AC_DEFINE([ASTERISK_CONF_1_14], [1], [Defined ASTERISK_CONF_1_14])
+							114) AC_DEFINE([ASTERISK_CONF_1_14], [1], [Defined ASTERISK_CONF_1_14]);;
+							115) AC_DEFINE([ASTERISK_CONF_1_15], [1], [Defined ASTERISK_CONF_1_15])
 								ASTERISK_INCOMPATIBLE=yes;;
 							*) AC_DEFINE([ASTERISK_CONF], [0], [NOT Defined ASTERISK_CONF !!]);;
 						esac 
@@ -146,62 +147,78 @@ AC_DEFUN([AST_GET_VERSION], [
 	], [
 		AC_CHECK_HEADER([asterisk/ast_version.h],
 		[
-			AC_CHECK_HEADER([asterisk/media_cache.h],
+			AC_CHECK_HEADER([asterisk/iostream.h],
 			[
-				ASTERISK_VER_GROUP=114
-				ASTERISK_VERSION_NUMBER=11400
+				ASTERISK_VER_GROUP=115
+				ASTERISK_VERSION_NUMBER=11500
 				ASTERISK_REPOS_LOCATION=TRUNK
 
-				AC_DEFINE([ASTERISK_CONF_1_14], [1], [Defined ASTERISK_CONF_1_14])
-				AC_DEFINE([ASTERISK_VERSION_NUMBER], [11400], [ASTERISK Version Number])
-				AC_DEFINE([ASTERISK_VERSION_GROUP], [114], [ASTERISK Version Group])
+				AC_DEFINE([ASTERISK_CONF_1_15], [1], [Defined ASTERISK_CONF_1_15])
+				AC_DEFINE([ASTERISK_VERSION_NUMBER], [11500], [ASTERISK Version Number])
+				AC_DEFINE([ASTERISK_VERSION_GROUP], [115], [ASTERISK Version Group])
 				AC_DEFINE([ASTERISK_REPOS_LOCATION], ["TRUNK"],[ASTERISK Source Location])
 				
 				version_found=1
 				AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'.])
 			],
 			[
-				AC_CHECK_HEADER([asterisk/format_cache.h],
+				AC_CHECK_HEADER([asterisk/media_cache.h],
 				[
-					ASTERISK_VER_GROUP=113
-					ASTERISK_VERSION_NUMBER=11300
+					ASTERISK_VER_GROUP=114
+					ASTERISK_VERSION_NUMBER=11400
 					ASTERISK_REPOS_LOCATION=TRUNK
 
-					AC_DEFINE([ASTERISK_CONF_1_13], [1], [Defined ASTERISK_CONF_1_13])
-					AC_DEFINE([ASTERISK_VERSION_NUMBER], [11300], [ASTERISK Version Number])
-					AC_DEFINE([ASTERISK_VERSION_GROUP], [113], [ASTERISK Version Group])
+					AC_DEFINE([ASTERISK_CONF_1_14], [1], [Defined ASTERISK_CONF_1_14])
+					AC_DEFINE([ASTERISK_VERSION_NUMBER], [11400], [ASTERISK Version Number])
+					AC_DEFINE([ASTERISK_VERSION_GROUP], [114], [ASTERISK Version Group])
 					AC_DEFINE([ASTERISK_REPOS_LOCATION], ["TRUNK"],[ASTERISK Source Location])
 					
 					version_found=1
 					AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'.])
 				],
 				[
-					AC_CHECK_HEADER([asterisk/uuid.h],
+					AC_CHECK_HEADER([asterisk/format_cache.h],
 					[
-						ASTERISK_VER_GROUP=112
-						ASTERISK_VERSION_NUMBER=11200
+						ASTERISK_VER_GROUP=113
+						ASTERISK_VERSION_NUMBER=11300
 						ASTERISK_REPOS_LOCATION=TRUNK
 
-						AC_DEFINE([ASTERISK_CONF_1_12], [1], [Defined ASTERISK_CONF_1_12])
-						AC_DEFINE([ASTERISK_VERSION_NUMBER], [11200], [ASTERISK Version Number])
-						AC_DEFINE([ASTERISK_VERSION_GROUP], [112], [ASTERISK Version Group])
+						AC_DEFINE([ASTERISK_CONF_1_13], [1], [Defined ASTERISK_CONF_1_13])
+						AC_DEFINE([ASTERISK_VERSION_NUMBER], [11300], [ASTERISK Version Number])
+						AC_DEFINE([ASTERISK_VERSION_GROUP], [113], [ASTERISK Version Group])
 						AC_DEFINE([ASTERISK_REPOS_LOCATION], ["TRUNK"],[ASTERISK Source Location])
 						
 						version_found=1
-						AC_MSG_RESULT([done])
-					],[
-						ASTERISK_VER_GROUP=111
-						ASTERISK_VERSION_NUMBER=11100
-						ASTERISK_REPOS_LOCATION=BRANCH
+						AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'.])
+					],
+					[
+						AC_CHECK_HEADER([asterisk/uuid.h],
+						[
+							ASTERISK_VER_GROUP=112
+							ASTERISK_VERSION_NUMBER=11200
+							ASTERISK_REPOS_LOCATION=TRUNK
 
-						AC_DEFINE([ASTERISK_CONF_1_11], [1], [Defined ASTERISK_CONF_1_11])
-						AC_DEFINE([ASTERISK_VERSION_NUMBER], [11100], [ASTERISK Version Number])
-						AC_DEFINE([ASTERISK_VERSION_GROUP], [111], [ASTERISK Version Group])
-						AC_DEFINE([ASTERISK_REPOS_LOCATION], ["BRANCH"],[ASTERISK Source Location])
-						
-						version_found=1
-						AC_MSG_RESULT([done])
-						AC_MSG_RESULT([Found 'Asterisk Version 11'])
+							AC_DEFINE([ASTERISK_CONF_1_12], [1], [Defined ASTERISK_CONF_1_12])
+							AC_DEFINE([ASTERISK_VERSION_NUMBER], [11200], [ASTERISK Version Number])
+							AC_DEFINE([ASTERISK_VERSION_GROUP], [112], [ASTERISK Version Group])
+							AC_DEFINE([ASTERISK_REPOS_LOCATION], ["TRUNK"],[ASTERISK Source Location])
+							
+							version_found=1
+							AC_MSG_RESULT([done])
+						],[
+							ASTERISK_VER_GROUP=111
+							ASTERISK_VERSION_NUMBER=11100
+							ASTERISK_REPOS_LOCATION=BRANCH
+
+							AC_DEFINE([ASTERISK_CONF_1_11], [1], [Defined ASTERISK_CONF_1_11])
+							AC_DEFINE([ASTERISK_VERSION_NUMBER], [11100], [ASTERISK Version Number])
+							AC_DEFINE([ASTERISK_VERSION_GROUP], [111], [ASTERISK Version Group])
+							AC_DEFINE([ASTERISK_REPOS_LOCATION], ["BRANCH"],[ASTERISK Source Location])
+							
+							version_found=1
+							AC_MSG_RESULT([done])
+							AC_MSG_RESULT([Found 'Asterisk Version 11'])
+						])
 					])
 				])
 			])
@@ -734,6 +751,19 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 					struct stasis_subscription __attribute__((unused)) *stasis_sub = stasis_subscribe(stasis_topic, data, data);
 				], [CS_AST_HAS_STASIS],['stasis_subscribe' available]
 			)
+			AC_CHECK_HEADER([asterisk/stasis_endpoints.h],	
+			[
+				AC_DEFINE(HAVE_PBX_STASIS_H,1,[Found 'asterisk/stasis_endpoints.h'])
+				CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_endpoint_create'...], [ac_cv_ast_endpoint_create], [
+						$HEADER_INCLUDE
+						#include <asterisk/stasis_endpoints.h>
+					], [
+						ast_endpoint_create("SCCP", "test1234");
+					], [CS_AST_HAS_STASIS_ENDPOINT],['stasis_endpoint' available]
+				)
+			],,[ 
+				$HEADER_INCLUDE
+			])
 		],,[ 
 			$HEADER_INCLUDE
 		])

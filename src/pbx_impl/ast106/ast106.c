@@ -24,6 +24,7 @@
 #include "sccp_netsock.h"
 #include "sccp_rtp.h"
 #include "sccp_session.h"		// required for sccp_session_getOurIP
+#include "sccp_labels.h"
 #include "ast106.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
@@ -224,6 +225,7 @@ static int sccp_wrapper_asterisk16_devicestate(void *data)
 			break;
 
 		case SCCP_CHANNELSTATE_RINGOUT:
+		case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 #ifdef CS_EXPERIMENTAL
 			res = AST_DEVICE_RINGINUSE;
 			break;
@@ -302,6 +304,7 @@ static boolean_t sccp_wrapper_asterisk16_setReadFormat(const sccp_channel_t * ch
 
 static void get_skinnyFormats(format_t format, skinny_codec_t codecs[], size_t size)
 {
+/*
 	unsigned int x;
 	unsigned len = 0;
 
@@ -313,6 +316,15 @@ static void get_skinnyFormats(format_t format, skinny_codec_t codecs[], size_t s
 			codecs[len++] = pbx2skinny_codec_maps[x].skinny_codec;
 			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "map ast codec " UI64FMT " to %d\n", (ULONG) (pbx2skinny_codec_maps[x].pbx_codec & format), pbx2skinny_codec_maps[x].skinny_codec);
 		}
+	}
+*/
+        if (!size) {
+                return;
+        }
+	uint8_t position = 0;
+	skinny_codec_t found = pbx_codec2skinny_codec(format);
+	if((found = pbx_codec2skinny_codec(format)) != SKINNY_CODEC_NONE) {
+		codecs[position++] = found;
 	}
 }
 
@@ -568,7 +580,12 @@ static int sccp_wrapper_asterisk16_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 			break;
 		case AST_CONTROL_PROGRESS:
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
+			if (c->state != SCCP_CHANNELSTATE_CONNECTED && c->previousChannelState != SCCP_CHANNELSTATE_CONNECTED) {
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
+			} else {
+				// ORIGINATE() to SIP indicates PROGRESS after CONNECTED, causing issues with transfer
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+			}
 			res = -1;
 			break;
 		case AST_CONTROL_PROCEEDING:
@@ -853,6 +870,9 @@ static boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channe
 		return FALSE;
 	}
 	AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(channel->line));
+	if (!line) {
+		return FALSE;
+	}
 
 	// if (ids) {
 	// 	linkedId = pbx_builtin_getvar_helper(pbxSrcChannel, SCCP_AST_LINKEDID_HELPER));
@@ -2753,7 +2773,7 @@ static struct ast_rtp_protocol sccp_rtp = {
 #endif
 
 #ifdef HAVE_PBX_MESSAGE_H
-#include "asterisk/message.h"
+#include <asterisk/message.h>
 static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to, const char *from)
 {
 	char *lineName;
@@ -3138,7 +3158,7 @@ static ast_module_load_result load_module(void)
 static int load_module(void)
 #endif
 {
-	int res = AST_MODULE_LOAD_FAILURE;
+	int res = AST_MODULE_LOAD_DECLINE;
 	do {
 		if (ast_module_check("chan_skinny.so")) {
 			pbx_log(LOG_ERROR, "Chan_skinny is loaded. Please check modules.conf and remove chan_skinny before loading chan_sccp.\n");
@@ -3212,8 +3232,7 @@ static int load_module(void)
 #if ASTERSIK_VERSION_NUMBER > 10601
 static int module_reload(void)
 {
-	sccp_reload();
-	return 0;
+	return sccp_reload();
 }
 #endif
 

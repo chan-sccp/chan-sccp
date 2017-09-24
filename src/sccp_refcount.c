@@ -53,13 +53,13 @@ SCCP_FILE_VERSION(__FILE__, "");
 //nb: SCCP_HASH_PRIME defined in config.h, default 563
 #define SCCP_SIMPLE_HASH(_a) (((unsigned long)(_a)) % SCCP_HASH_PRIME)
 #define SCCP_LIVE_MARKER 13
-#define REFCOUNT_MAX_PARENTS 3
+//#define REFCOUNT_MAX_PARENTS 3
+#if CS_REFCOUNT_DEBUG
 #define REF_DEBUG_FILE_MAX_SIZE 10000000
 #define REF_DEBUG_FILE "/tmp/sccp_refs"
-static enum sccp_refcount_runstate runState = SCCP_REF_STOPPED;
-#if CS_REFCOUNT_DEBUG 
 static int __rotate_debug_file(void);
 #endif
+static enum sccp_refcount_runstate runState = SCCP_REF_STOPPED;
 
 static struct sccp_refcount_obj_info {
 	int (*destructor) (const void *ptr);
@@ -182,15 +182,9 @@ void sccp_refcount_destroy(void)
 	runState = SCCP_REF_DESTROYED;
 }
 
-int sccp_refcount_isRunning(void)
+int __PURE__ sccp_refcount_isRunning(void)
 {
 	return runState;
-}
-
-// not really needed any more
-int sccp_refcount_schedule_cleanup(const void *data)
-{
-	return 0;
 }
 
 void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor)
@@ -312,11 +306,11 @@ static gcc_inline int __sccp_refcount_debug(const void *ptr, RefCountedObject * 
 	if (sccp_ref_debug_log) {	
 		do {
 			if (ptr == NULL) {
-				ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "E", 0, ptr, ast_get_tid(),file, line, func, "**PTR IS NULL**", "", "");
+				ref_debug_size += fprintf(sccp_ref_debug_log, fmt, NULL, "E", 0, NULL, ast_get_tid(),file, line, func, "**PTR IS NULL**", "", "");
 				break;	
 			}
 			if (obj == NULL) {
-				ref_debug_size += fprintf(sccp_ref_debug_log, fmt, ptr, "E", 0, ptr, ast_get_tid(),file, line, func, "**OBJ ALREADY DESTROYED**", "", "");
+				ref_debug_size += fprintf(sccp_ref_debug_log, fmt, NULL, "E", 0, NULL, ast_get_tid(),file, line, func, "**OBJ ALREADY DESTROYED**", "", "");
 				break;
 			}
 
@@ -626,7 +620,7 @@ int sccp_refcount_force_release(long findobj, char *identifier)
 	ast_rwlock_unlock(&objectslock);
 	if (ptr) {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "Forcefully releasing one instance of %s\n", identifier);
-		sccp_refcount_release(ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+		sccp_refcount_release((const void ** const)&ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 		return 1;
 	}
 	return 0;

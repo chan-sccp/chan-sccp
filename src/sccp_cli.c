@@ -60,6 +60,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_features.h"
 #include "sccp_mwi.h"
 #include "sccp_hint.h"
+#include "sccp_labels.h"
 #include "sys/stat.h"
 #include <asterisk/cli.h>
 #include <asterisk/paths.h>
@@ -1825,41 +1826,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 		}
 		return RESULT_FAILURE;
 	}
-	if (!strcasecmp(argv[2], "linestat") && argc > 2) {
-		AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(argv[3], FALSE));
-		if (d) {
-			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat\n");
-			sccp_msg_t *msg = NULL;
-			msg = sccp_utils_buildLineStatDynamicMessage(1, 0x01 & 0x08, "1234", "name", "disp1");
-			sccp_dev_send(d, msg);
-			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat1 0x01=OrigDialed & 0x08=CallingPartyName Sent\n");
-			sleep(2);
-			msg = sccp_utils_buildLineStatDynamicMessage(2, 2, "98011", "Diederik de Groot", "CfwdAll: 1234");
-			sccp_dev_send(d, msg);
-			if (d->protocolversion < 11) {
-				sccp_dev_set_cplane(d, 2, 1);
-				sleep(1);
-				sccp_dev_deactivate_cplane(d);
-			}
-			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat2 2=RedirDialed Sent\n");
-			sleep(2);
-			msg = sccp_utils_buildLineStatDynamicMessage(3, 4, "1234", "name", "disp4");
-			sccp_dev_send(d, msg);
-			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat4 4=CallingPartyNumber Sent\n");
-			sleep(2);
-			msg = sccp_utils_buildLineStatDynamicMessage(4, 8, "1234", "name", "disp8");
-			sccp_dev_send(d, msg);
-			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat8 8=CallinPartyName Sent\n");
-			sleep(2);
-			msg = sccp_utils_buildLineStatDynamicMessage(5, 0x0f, "1234", "name", "disp");
-			sccp_dev_send(d, msg);
-			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat 0x0f All of the Above Sent\n");		// This explaines the 0x15 we always send for these buttons
-														// I think this type flag might be used to influence what the cplane may will show
-			sleep(2);
-			return RESULT_SUCCESS;
-		}
-		return RESULT_SUCCESS;
-	}
 	if (!strcasecmp(argv[2], "enum") && argc > 2) {
 		pbx_cli(fd, "%s, %d\n", sccp_channelstate2str(SCCP_CHANNELSTATE_CONGESTION), SCCP_CHANNELSTATE_CONGESTION);
 		pbx_cli(fd, "%d, %d\n", sccp_channelstate_str2val("CONGESTION"), SCCP_CHANNELSTATE_CONGESTION);
@@ -2701,11 +2667,13 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				pbx_cli(fd, "SCCP reloading configuration. %p\n", GLOB(cfg));
 				if (!sccp_config_general(SCCP_CONFIG_READRELOAD)) {
 					pbx_cli(fd, "Unable to reload configuration.\n");
-					returnval = RESULT_FAILURE;
 					goto EXIT;
 				}
-				sccp_config_readDevicesLines(SCCP_CONFIG_READRELOAD);
-				returnval = RESULT_SUCCESS;
+				if (!sccp_config_readDevicesLines(SCCP_CONFIG_READRELOAD)) {
+					pbx_cli(fd, "Unable to reload configuration.\n");
+					goto EXIT;
+				}
+				returnval = sccp_session_bind_and_listen( &GLOB(bindaddr) ) ? RESULT_SUCCESS : RESULT_FAILURE;
 			}
 			break;
 		case CONFIG_STATUS_FILE_OLD:

@@ -33,6 +33,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_indicate.h"											// only for SCCP_CHANNELSTATE_Idling
 #include "sccp_line.h"
 #include "sccp_utils.h"
+#include "sccp_labels.h"
 
 #if defined(CS_AST_HAS_EVENT) && defined(HAVE_PBX_EVENT_H) 	// ast_event_subscribe
 #  include <asterisk/event.h>
@@ -904,6 +905,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 			case SCCP_CHANNELSTATE_OFFHOOK:
 			case SCCP_CHANNELSTATE_GETDIGITS:
 			case SCCP_CHANNELSTATE_RINGOUT:
+			case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 			case SCCP_CHANNELSTATE_CONNECTED:
 			case SCCP_CHANNELSTATE_PROGRESS:
 			case SCCP_CHANNELSTATE_PROCEED:
@@ -1031,6 +1033,7 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			newDeviceState = AST_DEVICE_NOT_INUSE;
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
+		case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 #ifdef CS_EXPERIMENTAL
 			newDeviceState = AST_DEVICE_RINGINUSE;
 			break;
@@ -1255,6 +1258,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					case SCCP_CHANNELSTATE_CONNECTED:
 					case SCCP_CHANNELSTATE_OFFHOOK:
 					case SCCP_CHANNELSTATE_RINGOUT:
+					case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 					case SCCP_CHANNELSTATE_BUSY:
 					case SCCP_CHANNELSTATE_HOLD:
 					case SCCP_CHANNELSTATE_CALLWAITING:
@@ -1349,7 +1353,7 @@ static void sccp_hint_notifySubscribersViaPbx(struct sccp_hint_lineState *lineSt
  */
 static boolean_t sccp_match_dialplan2lineName(char *hint_app, char *lineName)
 {
-	char *rest = strdupa(hint_app);
+	char *rest = pbx_strdupa(hint_app);
         char *cur;
         char *tmp;
 

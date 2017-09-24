@@ -8,7 +8,7 @@
 include 		$(top_srcdir)/src/Makefile.inc.am
 
 SUBDIRS			= pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) .
-DIST_SUBDIRS		= pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast_announce .
+DIST_SUBDIRS		= pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast114 pbx_impl/ast115 pbx_impl/ast_announce .
 EXTRA_DIST 		= sccp_enum.in sccp_config_entries.hh
 BUILT_SOURCES           = revision.h sccp_enum.h sccp_enum.c
 CLEANFILES              = revision.h sccp_enum.h sccp_enum.c
@@ -57,7 +57,7 @@ libsccp_la_SOURCES	= sccp_callinfo.c 	sccp_channel.c		sccp_device.c		sccp_debug.
 			  sccp_hint.c 		sccp_refcount.c		sccp_management.c	sccp_mwi.c		\
 			  sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
 			  sccp_devstate.c	sccp_event.c		sccp_enum.c		sccp_globals.c		\
-			  sccp_netsock.c	sccp_codec.c		sccp_featureParkingLot.c
+			  sccp_netsock.c	sccp_codec.c		sccp_featureParkingLot.c sccp_labels.c
 			  
 chan_sccp_la_SOURCES	= chan_sccp.c
 

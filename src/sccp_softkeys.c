@@ -21,8 +21,46 @@
 #include "sccp_line.h"
 #include "sccp_session.h"
 #include "sccp_utils.h"
+#include "sccp_labels.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
+
+const uint8_t softkeysmap[32] = {
+	SKINNY_LBL_REDIAL,
+	SKINNY_LBL_NEWCALL,
+	SKINNY_LBL_HOLD,
+	SKINNY_LBL_TRANSFER,
+	SKINNY_LBL_CFWDALL,
+	SKINNY_LBL_CFWDBUSY,
+	SKINNY_LBL_CFWDNOANSWER,
+	SKINNY_LBL_BACKSPACE,
+	SKINNY_LBL_ENDCALL,
+	SKINNY_LBL_RESUME,
+	SKINNY_LBL_ANSWER,
+	SKINNY_LBL_INFO,
+	SKINNY_LBL_CONFRN,
+	SKINNY_LBL_PARK,
+	SKINNY_LBL_JOIN,
+	SKINNY_LBL_MEETME,
+	SKINNY_LBL_PICKUP,
+	SKINNY_LBL_GPICKUP,
+	SKINNY_LBL_MONITOR,
+	SKINNY_LBL_CALLBACK,
+	SKINNY_LBL_BARGE,
+	SKINNY_LBL_DND,
+	SKINNY_LBL_CONFLIST,
+	SKINNY_LBL_SELECT,
+	SKINNY_LBL_PRIVATE,
+	SKINNY_LBL_TRNSFVM,
+	SKINNY_LBL_DIRTRFR,
+	SKINNY_LBL_IDIVERT,
+	SKINNY_LBL_VIDEO_MODE,
+	SKINNY_LBL_INTRCPT,
+	SKINNY_LBL_EMPTY,
+	SKINNY_LBL_DIAL,
+	//SKINNY_LBL_CBARGE,
+};														/*!< SKINNY Soft Keys Map as INT */
+
 
 /* =========================================================================================== Global */
 /*!
@@ -284,6 +322,7 @@ static void sccp_sk_dnd(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constD
 	if (!d->dndFeature.enabled) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Feature disabled\n", DEV_ID_LOG(d));
 		sccp_dev_displayprompt(d, lineInstance, c ? c->callid : 0, SKINNY_DISP_DND " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, SKINNY_TONEDIRECTION_USER);
 		return;
 	}
 
@@ -551,13 +590,22 @@ static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
  */
 static void sccp_sk_cfwdall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
+	if (!d) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_cfwdall function called without specifying a device\n");
+		return;
+	}
 	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward All Pressed, line: %s, instance: %d, channel: %d\n", DEV_ID_LOG(d), l ? l->name : "(NULL)", lineInstance, c ? c->callid : 0);
 
-	if (line) {
+	if (line && d->cfwdall) {
 		sccp_feat_handle_callforward(line, d, SCCP_CFWD_ALL);
+		return;
 	}
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CFWDALL disabled on device\n", d->id);
+	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CFWDALL " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, SKINNY_TONEDIRECTION_USER);
+
 }
 
 /*!
@@ -565,12 +613,20 @@ static void sccp_sk_cfwdall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
  */
 static void sccp_sk_cfwdbusy(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
+	if (!d) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_cfwdbusy function called without specifying a device\n");
+		return;
+	}
 	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward Busy Pressed\n", DEV_ID_LOG(d));
-	if (line) {
+	if (line && d->cfwdbusy) {
 		sccp_feat_handle_callforward(line, d, SCCP_CFWD_BUSY);
+		return;
 	}
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CFWDBUSY disabled on device\n", d->id);
+	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CFWDBUSY " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, SKINNY_TONEDIRECTION_USER);
 }
 
 /*!
@@ -578,12 +634,20 @@ static void sccp_sk_cfwdbusy(const sccp_softkeyMap_cb_t * const softkeyMap_cb, c
  */
 static void sccp_sk_cfwdnoanswer(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
+	if (!d) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_cfwdnoanswer function called without specifying a device\n");
+		return;
+	}
 	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward NoAnswer Pressed\n", DEV_ID_LOG(d));
-	if (line) {
+	if (line && d->cfwdnoanswer) {
 		sccp_feat_handle_callforward(line, d, SCCP_CFWD_NOANSWER);
+		return;
 	}
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CFWDNoAnswer disabled on device\n", d->id);
+	sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CFWDNOANSWER " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, SKINNY_TONEDIRECTION_USER);
 }
 
 /*!
@@ -1108,7 +1172,7 @@ void sccp_softkey_setSoftkeyState(devicePtr device, uint8_t softKeySet, uint8_t 
 	}
 }
 
-boolean_t sccp_softkey_isSoftkeyInSoftkeySet(constDevicePtr device, const uint8_t softKeySet, const uint8_t softKey)
+boolean_t __PURE__ sccp_softkey_isSoftkeyInSoftkeySet(constDevicePtr device, const uint8_t softKeySet, const uint8_t softKey)
 {
 	uint8_t i;
 

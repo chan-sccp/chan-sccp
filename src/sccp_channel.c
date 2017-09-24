@@ -31,6 +31,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_line.h"
 #include "sccp_netsock.h"
 #include "sccp_utils.h"
+#include "sccp_labels.h"
 #include <asterisk/callerid.h>			// sccp_channel, sccp_callinfo
 #include <asterisk/pbx.h>			// AST_EXTENSION_NOT_INUSE
 
@@ -103,6 +104,10 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	
 	if (!refLine) {
 		pbx_log(LOG_ERROR, "SCCP: Could not retain line to create a channel on it, giving up!\n");
+		return NULL;
+	}
+	if (sccp_strlen_zero(refLine->name) || sccp_strlen_zero(refLine->context) || !pbx_context_find(refLine->context)) {
+		pbx_log(LOG_ERROR, "SCCP: line with empty name, empty context or non-existent context provided, aborting creation of new channel\n");
 		return NULL;
 	}
 	if (device && !device->session) {
@@ -399,7 +404,7 @@ void sccp_channel_updateChannelCapability(sccp_channel_t * channel)
 /*!
  * \brief Get const pointer to channels private callinfo
  */
-sccp_callinfo_t * const sccp_channel_getCallInfo(const sccp_channel_t *const channel)
+sccp_callinfo_t * const __PURE__ sccp_channel_getCallInfo(const sccp_channel_t *const channel)
 {
 	return (sccp_callinfo_t * const) channel->privateData->callInfo;			/* discard const because callinfo has a private implementation anyway */
 }

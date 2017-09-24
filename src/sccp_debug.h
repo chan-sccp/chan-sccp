@@ -29,8 +29,7 @@
 #define sccp_log_and(_x) if ((sccp_globals->debug & (_x)) == (_x)) sccp_log1
 
 __BEGIN_C_EXTERN__
-static const char SS_Memory_Allocation_Error[] = "%s: Memory Allocation Error.\n";
-
+extern const char *SS_Memory_Allocation_Error;
 /*!
  * \brief SCCP Debug Category Enum
  */

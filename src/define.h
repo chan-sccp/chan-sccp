@@ -17,6 +17,7 @@
 
 #pragma once
 #include "config.h"
+#include <pthread.h>
 
 /*!
  * \note most of these should be moved to autoconf/asterisk.m4 and be defined in config.h
@@ -44,12 +45,16 @@ extern "C" {
 #  define SCCP_API_VISIBLE extern __attribute__((__visibility__("default")))
 #  define SCCP_INLINE SCCP_API gcc_inline
 #  define SCCP_CALL 
+#define __PURE__ __attribute__((pure))
+#define __CONST__ __attribute__((const))
 #else
 #  define gcc_inline
 #  define SCCP_API extern
 #  define SCCP_API_VISIBLE extern
 #  define SCCP_INLINE SCCP_API gcc_inline
 #  define SCCP_CALL 
+#define __PURE__ 
+#define __CONST__ 
 #endif
 #endif
 
@@ -136,9 +141,10 @@ static SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define SCCP_DISPLAYSTATUS_TIMEOUT 5
 
 /* Simulated Enbloc Dialing */
-#define SCCP_SIM_ENBLOC_DEVIATION 3.5
+//#define SCCP_SIM_ENBLOC_DEVIATION 3.5
 #define SCCP_SIM_ENBLOC_MAX_PER_DIGIT 400
-#define SCCP_SIM_ENBLOC_MIN_DIGIT 3
+//#define SCCP_SIM_ENBLOC_MIN_DIGIT 3
+#define SCCP_SIM_ENBLOC_MIN_DIGIT 4
 #define SCCP_SIM_ENBLOC_TIMEOUT 2
 
 #define SCCP_HANGUP_TIMEOUT 15000
@@ -225,6 +231,10 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 
 #define __atoi atoi
 #define atoi(...) _Pragma("GCC error \"use sccp atoi instead of atoi\"")
+
+#define __strdupa strdupa
+#undef strdupa
+#define strdupa(...) _Pragma("GCC error \"use pbx_strdupa instead of strdupa\"")
 
 #if defined(__clang__)
 typedef void (^sccp_raii_cleanup_block_t)(void);

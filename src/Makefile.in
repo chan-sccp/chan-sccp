@@ -181,7 +181,8 @@ am_libsccp_la_OBJECTS = libsccp_la-sccp_callinfo.lo \
 	libsccp_la-sccp_protocol.lo libsccp_la-sccp_devstate.lo \
 	libsccp_la-sccp_event.lo libsccp_la-sccp_enum.lo \
 	libsccp_la-sccp_globals.lo libsccp_la-sccp_netsock.lo \
-	libsccp_la-sccp_codec.lo libsccp_la-sccp_featureParkingLot.lo
+	libsccp_la-sccp_codec.lo libsccp_la-sccp_featureParkingLot.lo \
+	libsccp_la-sccp_labels.lo
 libsccp_la_OBJECTS = $(am_libsccp_la_OBJECTS)
 libsccp_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libsccp_la_CFLAGS) \
@@ -297,6 +298,7 @@ ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
 AR = @AR@
+AR_FLAGS = @AR_FLAGS@
 ASTERISK_REPOS_LOCATION = @ASTERISK_REPOS_LOCATION@
 ASTERISK_VERSION_NUMBER = @ASTERISK_VERSION_NUMBER@
 ASTERISK_VER_GROUP = @ASTERISK_VER_GROUP@
@@ -382,6 +384,7 @@ HEAD = @HEAD@
 HG = @HG@
 HOST_CC = @HOST_CC@
 ID = @ID@
+INCLTDL = @INCLTDL@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -389,19 +392,31 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
+LIBADD_DL = @LIBADD_DL@
+LIBADD_DLD_LINK = @LIBADD_DLD_LINK@
+LIBADD_DLOPEN = @LIBADD_DLOPEN@
+LIBADD_SHL_LOAD = @LIBADD_SHL_LOAD@
 LIBBFD = @LIBBFD@
 LIBEXECINFO = @LIBEXECINFO@
 LIBEXSLT_CFLAGS = @LIBEXSLT_CFLAGS@
 LIBEXSLT_LIBS = @LIBEXSLT_LIBS@
 LIBICONV = @LIBICONV@
+LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
 LIPO = @LIPO@
 LN_S = @LN_S@
+LTDLDEPS = @LTDLDEPS@
+LTDLINCL = @LTDLINCL@
+LTDLOPEN = @LTDLOPEN@
 LTLIBICONV = @LTLIBICONV@
 LTLIBOBJS = @LTLIBOBJS@
+LT_ARGZ_H = @LT_ARGZ_H@
+LT_CONFIG_H = @LT_CONFIG_H@
+LT_DLLOADERS = @LT_DLLOADERS@
+LT_DLPREOPEN = @LT_DLPREOPEN@
 LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 M4 = @M4@
 MAINT = @MAINT@
@@ -510,6 +525,8 @@ libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
 localstatedir = @localstatedir@
+ltdl_LIBOBJS = @ltdl_LIBOBJS@
+ltdl_LTLIBOBJS = @ltdl_LTLIBOBJS@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
@@ -523,6 +540,8 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
 strip_binaries = @strip_binaries@
+subdirs = @subdirs@
+sys_symbol_underscore = @sys_symbol_underscore@
 sysconfdir = @sysconfdir@
 target = @target@
 target_alias = @target_alias@
@@ -559,7 +578,7 @@ AM_CXXFLAGS = -std=c++11 $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	-DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS) -D_REENTRANT \
 	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
 SUBDIRS = pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) .
-DIST_SUBDIRS = pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast_announce .
+DIST_SUBDIRS = pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast114 pbx_impl/ast115 pbx_impl/ast_announce .
 EXTRA_DIST = sccp_enum.in sccp_config_entries.hh
 BUILT_SOURCES = revision.h sccp_enum.h sccp_enum.c
 CLEANFILES = revision.h sccp_enum.h sccp_enum.c
@@ -587,7 +606,7 @@ libsccp_la_SOURCES = sccp_callinfo.c 	sccp_channel.c		sccp_device.c		sccp_debug.
 			  sccp_hint.c 		sccp_refcount.c		sccp_management.c	sccp_mwi.c		\
 			  sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
 			  sccp_devstate.c	sccp_event.c		sccp_enum.c		sccp_globals.c		\
-			  sccp_netsock.c	sccp_codec.c		sccp_featureParkingLot.c
+			  sccp_netsock.c	sccp_codec.c		sccp_featureParkingLot.c sccp_labels.c
 
 chan_sccp_la_SOURCES = chan_sccp.c
 libsccp_la_DEPENDENCIES = revision.h sccp_enum.h sccp_enum.c
@@ -716,6 +735,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_globals.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_hint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_indicate.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_labels.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_line.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_management.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_mwi.Plo@am__quote@
@@ -976,6 +996,13 @@ libsccp_la-sccp_featureParkingLot.lo: sccp_featureParkingLot.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_featureParkingLot.c' object='libsccp_la-sccp_featureParkingLot.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_featureParkingLot.lo `test -f 'sccp_featureParkingLot.c' || echo '$(srcdir)/'`sccp_featureParkingLot.c
+
+libsccp_la-sccp_labels.lo: sccp_labels.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -MT libsccp_la-sccp_labels.lo -MD -MP -MF $(DEPDIR)/libsccp_la-sccp_labels.Tpo -c -o libsccp_la-sccp_labels.lo `test -f 'sccp_labels.c' || echo '$(srcdir)/'`sccp_labels.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsccp_la-sccp_labels.Tpo $(DEPDIR)/libsccp_la-sccp_labels.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_labels.c' object='libsccp_la-sccp_labels.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_labels.lo `test -f 'sccp_labels.c' || echo '$(srcdir)/'`sccp_labels.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

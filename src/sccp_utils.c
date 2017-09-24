@@ -223,23 +223,6 @@ void sccp_dev_dbclean(void)
 }
 #endif
 
-gcc_inline const char *pbxsccp_devicestate2str(uint32_t value)
-{														/* pbx_impl/ast/ast.h */
-	_ARR2STR(sccp_pbx_devicestates, devicestate, value, text);
-}
-
-#if UNUSEDCODE // 2015-11-01
-gcc_inline const char *extensionstatus2str(uint32_t value)
-{														/* pbx_impl/ast/ast.h */
-	_ARR2STR(sccp_extension_states, extension_state, value, text);
-}
-#endif
-
-gcc_inline const char *label2str(uint16_t value)
-{														/* sccp_labels.h */
-	_ARR2STR(skinny_labels, label, value, text);
-}
-
 #if UNUSEDCODE // 2015-11-01
 gcc_inline uint32_t debugcat2int(const char *str)
 {														/* chan_sccp.h */
@@ -247,10 +230,6 @@ gcc_inline uint32_t debugcat2int(const char *str)
 }
 #endif
 
-gcc_inline uint32_t labelstr2int(const char *str)
-{														/* chan_sccp.h */
-	_STRARR2INT(skinny_labels, text, str, label);
-}
 
 #ifndef HAVE_PBX_STRINGS_H
 
@@ -666,7 +645,7 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
  * \callgraph
  * \callergraph
  */
-boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *subscriptionIdNum)
+boolean_t __PURE__ sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *subscriptionIdNum)
 {
 	boolean_t result = TRUE;
 
@@ -701,48 +680,6 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 	pbx_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: result: %d\n", result);
 #endif
 	return result;
-}
-
-/*!
- * \brief create a LineStatDynamicMessage
- * \param lineInstance the line instance
- * \param type LineType or LineOptions as uint32_t
- * \param dirNum the dirNum (e.g. line->cid_num)
- * \param fqdn line description (top right o the first line)
- * \param lineDisplayName label on the display
- * \return LineStatDynamicMessage as sccp_msg_t *
- *
- * \callgraph
- * \callergraph
- */
-sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32_t type, const char *dirNum, const char *fqdn, const char *lineDisplayName)
-{
-	int dirNumLen = dirNum ? sccp_strlen(dirNum) : 0;
-	int fqdnLen = fqdn ? sccp_strlen(fqdn) : 0;
-	int lineDisplayNameLen = lineDisplayName ? sccp_strlen(lineDisplayName) : 0;
-	int dummyLen = dirNumLen + fqdnLen + lineDisplayNameLen;
-
- 	int pktLen = SCCP_PACKET_HEADER + dummyLen;
-	sccp_msg_t *msg = sccp_build_packet(LineStatDynamicMessage, pktLen);
-	msg->data.LineStatDynamicMessage.lel_lineNumber = htolel(lineInstance);
-	msg->data.LineStatDynamicMessage.lel_lineType = htolel(type);
-	if (dummyLen) {
-		char *dummyPtr = msg->data.LineStatDynamicMessage.dummy;
-		if (dirNumLen) {
-			memcpy(dummyPtr, dirNum, dirNumLen);
-			dummyPtr += dirNumLen + 1;
-		}
-		if (fqdnLen) {
-			memcpy(dummyPtr, fqdn, fqdnLen);
-			dummyPtr += fqdnLen + 1;
-		}
-		if (lineDisplayNameLen) {
-			memcpy(dummyPtr, lineDisplayName, lineDisplayNameLen);
-			dummyPtr += lineDisplayNameLen + 1;
-		}
-	}
-
-	return msg;
 }
 
 /*!
@@ -835,7 +772,7 @@ gcc_inline boolean_t sccp_strcaseequals(const char *data1, const char *data2)
 	return FALSE;
 }
 
-int sccp_strIsNumeric(const char *s)
+int __PURE__ sccp_strIsNumeric(const char *s)
 {
 	if (*s) {
 		char c;
@@ -1645,7 +1582,7 @@ AST_TEST_DEFINE(chan_sccp_combine_codec_sets)
  * \param c SCCP channel
  * \return string constant (on the heap!)
  */
-const char *sccp_channel_toString(sccp_channel_t * c)
+const char * __PURE__ sccp_channel_toString(sccp_channel_t * c)
 {
 	if (c) {
 		return (const char *) c->designator;
@@ -1720,7 +1657,7 @@ int sockaddr_cmp_addr(struct sockaddr_storage *addr1, socklen_t len1, struct soc
 }
 #endif
 
-int sccp_strversioncmp(const char *s1, const char *s2)
+int __PURE__ sccp_strversioncmp(const char *s1, const char *s2)
 {
 	static const char *digits = "0123456789";
 	int ret, lz1, lz2;

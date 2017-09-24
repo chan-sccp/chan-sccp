@@ -145,6 +145,12 @@ boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t 
 	sccp_session_getOurIP(d->session, phone_remote, 0);
 	sccp_netsock_setPort(phone_remote, port);
 
+	if (ast_test_flag(GLOB(global_jbconf), AST_JB_ENABLED)) {
+		if (ast_test_flag(GLOB(global_jbconf), AST_JB_FORCED) || !d->directrtp) {
+			pbx_jb_configure(c->owner, GLOB(global_jbconf));
+		}
+	}
+
 	char buf[NI_MAXHOST + NI_MAXSERV];
 	sccp_copy_string(buf, sccp_netsock_stringify(phone_remote), sizeof(buf));
 	boolean_t isMappedIPv4 = sccp_netsock_ipv4_mapped(phone_remote, phone_remote);

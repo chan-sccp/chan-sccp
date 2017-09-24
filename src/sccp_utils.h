@@ -75,19 +75,15 @@ SCCP_API void SCCP_CALL sccp_dev_dbclean(void);
         })
 
 // SCCP Lookups
-SCCP_INLINE const char * SCCP_CALL pbxsccp_devicestate2str(uint32_t value);
 // SKINNY Lookups
-SCCP_INLINE const char * SCCP_CALL label2str(uint16_t value);
 SCCP_INLINE const char * SCCP_CALL featureType2str(sccp_feature_type_t value);
 SCCP_INLINE const char * SCCP_CALL debugcat_keys(void);
-SCCP_INLINE SCCP_CALL uint32_t labelstr2int(const char *str);
 #if UNUSEDCODE // 2015-11-01
-SCCP_INLINE const char * SCCP_CALL extensionstatus2str(uint32_t value);
 SCCP_INLINE SCCP_CALL uint32_t debugcat2int(const char *str);
 #endif
 
 SCCP_API const char * SCCP_CALL skinny_ringermode2str(uint8_t type);
-SCCP_API const char * SCCP_CALL sccp_channel_toString(sccp_channel_t * c);
+SCCP_API const char * __PURE__ SCCP_CALL sccp_channel_toString(sccp_channel_t * c);
 
 SCCP_API int SCCP_CALL sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_subscription_id_t *subscriptionId, char extension[SCCP_MAX_EXTENSION]);
 
@@ -111,15 +107,13 @@ SCCP_API int SCCP_CALL sccp_softkeyindex_find_label(sccp_device_t * d, unsigned 
 //sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage *sin);
 
 SCCP_API sccp_feature_type_t SCCP_CALL sccp_featureStr2featureID(const char *str);
-SCCP_API boolean_t SCCP_CALL sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *subscriptionIdNum);
-SCCP_API sccp_msg_t * SCCP_CALL sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32_t type, const char *dirNum, const char *fqdn, const char *lineDisplayName);
-
+SCCP_API boolean_t __PURE__ SCCP_CALL sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *subscriptionIdNum);
 SCCP_INLINE SCCP_CALL boolean_t sccp_netsock_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1);
 SCCP_INLINE SCCP_CALL size_t sccp_strlen(const char *data);
 SCCP_INLINE SCCP_CALL boolean_t sccp_strlen_zero(const char *data);
 SCCP_INLINE SCCP_CALL boolean_t sccp_strequals(const char *data1, const char *data2);
 SCCP_INLINE SCCP_CALL boolean_t sccp_strcaseequals(const char *data1, const char *data2);
-SCCP_API int SCCP_CALL sccp_strIsNumeric(const char *s);
+SCCP_API int __PURE__ SCCP_CALL sccp_strIsNumeric(const char *s);
 
 SCCP_API void SCCP_CALL sccp_free_ha(struct sccp_ha *ha);
 SCCP_API int SCCP_CALL sccp_apply_ha(const struct sccp_ha *ha, const struct sockaddr_storage *addr);

@@ -219,7 +219,6 @@ struct sccp_device {
 		skinny_codec_t video[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Video Codec Preferences */
 	} preferences;
 
-	//uint8_t earlyrtp;											/*!< RTP Channel State where to open the RTP Media Stream */
 	time_t registrationTime;
 
 	struct sccp_ha *ha;											/*!< Permit or Deny Connections to the Main Socket */
@@ -343,7 +342,9 @@ struct sccp_device {
 	boolean_t useRedialMenu;
 
 	uint32_t  rtpPort;
-
+#ifdef CS_AST_HAS_STASIS_ENDPOINT
+	PBX_ENDPOINT_TYPE *endpoint;
+#endif
 	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */
 	boolean_t pendingUpdate;										/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 };
@@ -372,6 +373,7 @@ struct sccp_device_indication_cb {
 	void (*const dialing) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION]);
 	void (*const proceed) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
 	void (*const connected) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
+	void (*const suppress_phoneboook_entry) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
 	void (*const remoteOnhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
 	void (*const remoteOffhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
 	void (*const remoteConnected) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, skinny_callinfo_visibility_t visibility);

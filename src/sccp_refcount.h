@@ -36,8 +36,7 @@ enum sccp_refcount_runstate {
 
 SCCP_API void SCCP_CALL sccp_refcount_init(void);
 SCCP_API void SCCP_CALL sccp_refcount_destroy(void);
-SCCP_API int SCCP_CALL sccp_refcount_isRunning(void);
-SCCP_API int SCCP_CALL sccp_refcount_schedule_cleanup(const void *data);
+SCCP_API int __PURE__ SCCP_CALL sccp_refcount_isRunning(void);
 SCCP_API void * SCCP_CALL  const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor);
 SCCP_API void SCCP_CALL sccp_refcount_updateIdentifier(const void * const ptr, const char * const identifier);
 SCCP_API void * SCCP_CALL  const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func);
