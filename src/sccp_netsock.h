@@ -49,6 +49,7 @@ SCCP_API size_t __PURE__ SCCP_CALL sccp_netsock_sizeof(const struct sockaddr_sto
 SCCP_API boolean_t __PURE__ SCCP_CALL sccp_netsock_is_mapped_IPv4(const struct sockaddr_storage *sockAddrStorage);
 SCCP_API boolean_t SCCP_CALL sccp_netsock_ipv4_mapped(const struct sockaddr_storage *sockAddrStorage, struct sockaddr_storage *sockAddrStorage_mapped);
 SCCP_API int SCCP_CALL sccp_netsock_cmp_addr(const struct sockaddr_storage *a, const struct sockaddr_storage *b);
+SCCP_API int SCCP_CALL sccp_netsock_cmp_port(const struct sockaddr_storage *a, const struct sockaddr_storage *b);
 SCCP_API int SCCP_CALL sccp_netsock_split_hostport(char *str, char **host, char **port, int flags);
 
 /* helper: easy replacement for inet_ntop for use in sccp_log functions (threadsafe) */
