@@ -830,7 +830,7 @@ int sccp_channel_mediaTransmissionStarted(devicePtr d, channelPtr c)
 		}
 		// indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC
 		if (
-			(c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && 
+			(c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) &&
 			((c->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && (c->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE))
 		) {
 			iPbx.set_callstate(c, AST_STATE_UP);
@@ -914,7 +914,7 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 	if ((video->receiveChannelState & SCCP_RTP_STATUS_ACTIVE)) {
 		return;
 	}
-	
+
 	//if (d->nat >= SCCP_NAT_ON) {
 	//	sccp_rtp_updateNatRemotePhone(channel, video);
 	//}
@@ -1012,7 +1012,7 @@ void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean
 		if (!KeepPortOpen) {
 			d->protocol->sendPortClose(d, channel, SKINNY_MEDIA_TYPE_MAIN_VIDEO);
 		}
-#endif		
+#endif
 	}
 }
 
