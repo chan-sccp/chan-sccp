@@ -2341,10 +2341,12 @@ void handle_stimulus(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	}
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d, callreference=%d, status=%d\n", d->id, skinny_stimulus2str(stimulus), stimulus, instance, callId, stimulusStatus);
+	
 	if(!instance && stimulus == SKINNY_STIMULUS_LASTNUMBERREDIAL && d->redialInformation.lineInstance > 0) {
 		instance = d->redialInformation.lineInstance;
 	}
-	/* SPA phones always send instance=1 instead then the hard hold button is pressed. using callid to find the correct line instead */
+	/* SPA phones always send instance=1 when the hard hold button is pressed, instead of the active lineinstance. 
+	 * Using callid to find the correct line, and resetting the instance */
 	if (stimulus == SKINNY_STIMULUS_HOLD && sccp_session_getProtocol(s) == SPCP_PROTOCOL) {
 		AUTO_RELEASE(sccp_channel_t, c, sccp_channel_find_byid(callId));
 		if (c) {
