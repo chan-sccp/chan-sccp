@@ -383,7 +383,9 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 	char *tmp_value;
 
 	if (!sccpConfigOption) {
-		pbx_log(LOG_WARNING, "SCCP: Unknown param at %s:%d:%s='%s'\n", sccpConfigSegment->name, lineno, name, value);
+		if (strlen(name) == 0 || name[0] != '_') {							/* skip generating error, when column name starts with '_' */
+			pbx_log(LOG_WARNING, "SCCP: Unknown param at %s:%d:%s='%s'\n", sccpConfigSegment->name, lineno, name, value);
+		}
 		return SCCP_CONFIG_NOUPDATENEEDED;
 	}
 
