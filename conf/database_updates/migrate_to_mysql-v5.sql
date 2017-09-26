@@ -14,9 +14,13 @@ ALTER TABLE `sccpdevice` ADD `conf_music_on_hold_class` varchar(80) default 'def
 ALTER TABLE `sccpdevice` ADD `conf_show_conflist` varchar(3) default 'on' AFTER `conf_music_on_hold_class`;
 ALTER TABLE `sccpdevice` DROP COLUMN `trustphoneip`;
 ALTER TABLE `sccpdevice` DROP COLUMN `dtmfmode`;
+ALTER TABLE `sccpdevice` CHANGE COLUMN `deny` VARCHAR(100);
+ALTER TABLE `sccpdevice` CHANGE COLUMN `permit` VARCHAR(100);
 
 ALTER TABLE `sccpline` CHANGE COLUMN `dnd` `dndFeature`;
 ALTER TABLE `sccpline` ADD `dnd` VARCHAR( 7 ) DEFAULT "reject" AFTER `amaflags`;
+ALTER TABLE `sccpline` ADD `namedcallgroup` VARCHAR(100) DEFAULT "" AFTER `pickupgroup`;
+ALTER TABLE `sccpline` ADD `namedpickupgroup` VARCHAR(100) DEFAULT "" AFTER `namedcallgroup`;
 ALTER TABLE `sccpline` DROP COLUMN `rtptos`;
 ALTER TABLE `sccpline` DROP COLUMN `audio_tos`;
 ALTER TABLE `sccpline` DROP COLUMN `audio_cos`;

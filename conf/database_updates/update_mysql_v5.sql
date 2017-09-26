@@ -8,9 +8,13 @@ ALTER TABLE `sccpdevice` ADD `video_tos` VARCHAR( 11 ) NULL DEFAULT "0x88" AFTER
 ALTER TABLE `sccpdevice` ADD `video_cos` VARCHAR( 1 ) NULL DEFAULT "5" AFTER `video_tos`;
 ALTER TABLE `sccpdevice` DROP COLUMN `trustphoneip`;
 ALTER TABLE `sccpdevice` DROP COLUMN `dtmfmode`;
+ALTER TABLE `sccpdevice` CHANGE COLUMN `deny` VARCHAR(100);
+ALTER TABLE `sccpdevice` CHANGE COLUMN `permit` VARCHAR(100);
 
 ALTER TABLE `sccpline` CHANGE COLUMN `dnd` `dndFeature`;
 ALTER TABLE `sccpline` ADD `dnd` VARCHAR( 7 ) DEFAULT "reject" AFTER `amaflags`;
+ALTER TABLE `sccpline` ADD `namedcallgroup` VARCHAR(100) DEFAULT "" AFTER `pickupgroup`;
+ALTER TABLE `sccpline` ADD `namedpickupgroup` VARCHAR(100) DEFAULT "" AFTER `namedcallgroup`;
 ALTER TABLE `sccpline` DROP COLUMN `rtptos`;
 ALTER TABLE `sccpline` DROP COLUMN `audio_tos`;
 ALTER TABLE `sccpline` DROP COLUMN `audio_cos`;
