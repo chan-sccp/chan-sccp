@@ -3019,7 +3019,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	int timeout = 0;
 
 	/* Message */
-	if (iPbx.feature_getFromDatabase("SCCP", "messgae", buffer, sizeof(buffer))) {
+	if (iPbx.feature_getFromDatabase("SCCP", "message", buffer, sizeof(buffer))) {
 		if (iPbx.feature_getFromDatabase("SCCP/message", "text", buffer, sizeof(buffer))) {
 			if (!sccp_strlen_zero(buffer)) {
 				if (iPbx.feature_getFromDatabase && iPbx.feature_getFromDatabase("SCCP/message", "timeout", timebuffer, sizeof(timebuffer))) {
