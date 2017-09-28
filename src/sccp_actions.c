@@ -4192,7 +4192,7 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 				if (codec2type(audio_codec) == SKINNY_CODEC_TYPE_AUDIO) {
 					maxFramesPerPacket = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.audioCaps[audio_capability].lel_maxFramesPerPacket);
 					d->capabilities.audio[audio_capability] = audio_codec;		/** store our audio capabilities */
-					//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s %-6d\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec), maxFramesPerPacket);
+					sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s %-6d\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec), maxFramesPerPacket);
 				} else {
 					sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s (SKIPPED)\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec));
 				}
@@ -4293,7 +4293,7 @@ void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constM
 			if (codec2type(audio_codec) == SKINNY_CODEC_TYPE_AUDIO) {
 				maxFramesPerPacket = letohl(msg_in->data.UpdateCapabilitiesV2Message.audioCaps[audio_capability].lel_maxFramesPerPacket);
 				d->capabilities.audio[audio_capability] = audio_codec;		/** store our audio capabilities */
-				//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s %-6d\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec), maxFramesPerPacket);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s %-6d\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec), maxFramesPerPacket);
 			} else {
 				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s (SKIPPED)\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec));
 			}
@@ -4386,7 +4386,7 @@ void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constM
 			if (codec2type(audio_codec) == SKINNY_CODEC_TYPE_AUDIO) {
 				maxFramesPerPacket = letohl(msg_in->data.UpdateCapabilitiesV3Message.audioCaps[audio_capability].lel_maxFramesPerPacket);
 				d->capabilities.audio[audio_capability] = audio_codec;		/** store our audio capabilities */
-				//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s %-6d\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec), maxFramesPerPacket);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s %-6d\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec), maxFramesPerPacket);
 			} else {
 				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7d %-25s (SKIPPED)\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec));
 			}	
@@ -4558,31 +4558,31 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
  */
 void handle_device_to_user_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
-	uint32_t appID;
-	uint32_t lineInstance;
-	uint32_t callReference;
-	uint32_t transactionID;
-	uint32_t dataLength;
-	char data[StationMaxXMLMessage] = { 0 };
+	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {
+		uint32_t appID;
+		uint32_t lineInstance;
+		uint32_t callReference;
+		uint32_t transactionID;
+		uint32_t dataLength;
+		char data[StationMaxXMLMessage] = { 0 };
 
-	appID = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_appID);
-	lineInstance = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_lineInstance);
-	callReference = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_callReference);
-	transactionID = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_transactionID);
-	dataLength = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_dataLength);
+		appID = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_appID);
+		lineInstance = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_lineInstance);
+		callReference = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_callReference);
+		transactionID = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_transactionID);
+		dataLength = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_dataLength);
 
-	if (dataLength) {
-		sccp_copy_string(data, msg_in->data.DeviceToUserDataVersion1Message.data, dataLength);
+		if (dataLength) {
+			sccp_copy_string(data, msg_in->data.DeviceToUserDataVersion1Message.data, dataLength);
+		}
+
+		sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Device2User Response: AppID %d , LineInstance %d, CallID %d, Transaction %d\n", d->id, appID, lineInstance, callReference, transactionID);
+		sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device2User Response (XML)Data:\n%s\n", d->id, data);
+
+		if (appID == APPID_DEVICECAPABILITIES) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device Capabilities Response '%s'\n", d->id, data);
+		}
 	}
-
-	/*
-	sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Device2User Response: AppID %d , LineInstance %d, CallID %d, Transaction %d\n", d->id, appID, lineInstance, callReference, transactionID);
-	sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device2User Response (XML)Data:\n%s\n", d->id, data);
-
-	if (appID == APPID_DEVICECAPABILITIES) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device Capabilities Response '%s'\n", d->id, data);
-	}
-	*/
 }
 
 /*!
