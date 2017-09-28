@@ -53,7 +53,12 @@ static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, cons
 		SCCP_CALLINFO_PRESENTATION, &presentation,
 		SCCP_CALLINFO_KEY_SENTINEL);
 
-	msg->data.CallInfoMessage.partyPIRestrictionBits = presentation ? 0xf : 0x0;
+	// 7920's exception. They don't seem to reverse the interpretation of the presentation flag
+	if (device->skinny_type == SKINNY_DEVICETYPE_CISCO7920) {
+		msg->data.CallInfoMessage.partyPIRestrictionBits = presentation ? 0x0 : 0xf;
+	} else {
+		msg->data.CallInfoMessage.partyPIRestrictionBits = presentation ? 0xf : 0x0;
+	}
 	msg->data.CallInfoMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.CallInfoMessage.lel_callReference = htolel(callid);
 	msg->data.CallInfoMessage.lel_callType = htolel(calltype);
