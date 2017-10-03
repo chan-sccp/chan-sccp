@@ -773,6 +773,18 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 		}
 		local_line_total++;
 	}
+	
+	pbx_str_t *addons_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	SCCP_LIST_LOCK(&d->addons);
+	if (SCCP_LIST_GETSIZE(&d->addons)) {
+		sccp_addon_t *addon = NULL;
+		int comma = 0;
+		SCCP_LIST_TRAVERSE(&d->addons, addon, list) {
+			pbx_str_append(&addons_buf, DEFAULT_PBX_STR_BUFFERSIZE, "%s%s", comma++ ? "," : "", skinny_devicetype2str(addon->type));
+		}
+	}
+	SCCP_LIST_UNLOCK(&d->addons);
+	
 	/* *INDENT-OFF* */
 	CLI_AMI_OUTPUT_PARAM("MAC-Address",		CLI_AMI_LIST_WIDTH, "%s", d->id);
 	CLI_AMI_OUTPUT_PARAM("Protocol Version",	CLI_AMI_LIST_WIDTH, "Supported '%d', In Use '%d'", d->protocolversion, d->inuseprotocolversion);
@@ -783,6 +795,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Keepalive",		CLI_AMI_LIST_WIDTH, "%d", d->keepalive);
 	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s", skinny_registrationstate2str(sccp_device_getRegistrationState(d)));
 	CLI_AMI_OUTPUT_PARAM("State",			CLI_AMI_LIST_WIDTH, "%s", sccp_devicestate2str(sccp_device_getDeviceState(d)));
+	CLI_AMI_OUTPUT_PARAM("Addons",			CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(addons_buf));
 	CLI_AMI_OUTPUT_PARAM("MWI light",		CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_lampmode2str(d->mwilamp), d->mwilamp);
 	CLI_AMI_OUTPUT_PARAM("MWI handset light", 	CLI_AMI_LIST_WIDTH, "%s", sccp_dec2binstr(binstr, 40, d->mwilight));
 	CLI_AMI_OUTPUT_PARAM("MWI During call",		CLI_AMI_LIST_WIDTH, "%s", d->mwioncall ? "keep on" : "turn off");

@@ -87,6 +87,7 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)	__NONNULL(1,2,3);
 void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)	__NONNULL(1,2,3);
 void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
+void handle_extension_devicecaps(constSessionPtr s, devicePtr d, constMessagePtr msg_in)           	__NONNULL(1,2,3);
 void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,2,3);
 void handle_device_to_user_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in)		__NONNULL(1,2,3);
 void handle_XMLAlarmMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,3);
@@ -183,7 +184,7 @@ static const struct messageMap_cb sccpMessagesCbMap[SCCP_MESSAGE_HIGH_BOUNDARY +
 	[MediaPathCapabilityMessage] = {handle_unknown_message, TRUE},
 	[DisplayDynamicNotifyMessage] = {handle_unknown_message, TRUE},
 	[DisplayDynamicPriNotifyMessage] = {handle_unknown_message, TRUE},
-	[ExtensionDeviceCaps] = {handle_unknown_message, TRUE},
+	[ExtensionDeviceCaps] = {handle_extension_devicecaps, TRUE},
 	[DeviceToUserDataVersion1Message] = {handle_device_to_user, TRUE},
 	[DeviceToUserDataResponseVersion1Message] = {handle_device_to_user_response, TRUE},
 	[RegisterTokenRequest] = {handle_token_request, FALSE},
@@ -4469,6 +4470,46 @@ void handle_KeepAliveMessage(constSessionPtr s, devicePtr maybe_d, constMessageP
 {
 	sccp_msg_t *msg_out = sccp_build_packet(KeepAliveAckMessage, 0);
 	sccp_session_send2(s, msg_out);					/* device existence is not guaranteed */
+}
+
+/*!
+ * \brief Handle Extension Device Capabilities
+ * \param s SCCP Session
+ * \param maybe_d SCCP Device
+ * \param msg_in SCCP Message
+ */
+void handle_extension_devicecaps(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
+{
+	uint32_t instance = letohl(msg_in->data.ExtensionDeviceCaps.lel_instance); 
+	uint32_t type = letohl(msg_in->data.ExtensionDeviceCaps.lel_type);
+	uint32_t maxAllowed = letohl(msg_in->data.ExtensionDeviceCaps.lel_maxAllowed);
+	const char * text = msg_in->data.ExtensionDeviceCaps.text;
+	
+	sccp_log(DEBUGCAT_ACTION + DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: extension/addon. instance:%d, type:%d, maxallowed:%d\n", d->id, instance, type, maxAllowed);
+	sccp_log(DEBUGCAT_ACTION + DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: extension/addon. text='%s'\n", d->id, text);
+	SCCP_LIST_LOCK(&d->addons);
+	if (SCCP_LIST_GETSIZE(&d->addons) < instance) {
+		pbx_log(LOG_NOTICE, "%s: sccp.conf device section is missing addon entry for extension module %d. Please add one.", d->id, instance);
+		sccp_addon_t *addon = sccp_calloc(1, sizeof(sccp_addon_t));
+		if (!addon) {
+			pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+			return;
+		}
+		addon->type = SKINNY_DEVICETYPE_UNDEFINED;
+		if (sccp_session_getProtocol(s) == SCCP_PROTOCOL) {
+			switch(type) {
+				case 1: 
+					addon->type = SKINNY_DEVICETYPE_CISCO_ADDON_7914;
+				case 2:
+					addon->type = SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON;
+				default:
+					addon->type = SKINNY_DEVICETYPE_UNDEFINED;
+					break;
+			}
+		}
+		SCCP_LIST_INSERT_TAIL(&d->addons, addon, list);
+	}
+	SCCP_LIST_UNLOCK(&d->addons);
 }
 
 /*!
