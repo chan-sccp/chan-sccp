@@ -4500,8 +4500,13 @@ void handle_extension_devicecaps(constSessionPtr s, devicePtr d, constMessagePtr
 			switch(type) {
 				case 1: 
 					addon->type = SKINNY_DEVICETYPE_CISCO_ADDON_7914;
+					break;
 				case 2:
 					addon->type = SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON;
+					break;
+				case 3:
+					addon->type = SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON;
+					break;
 				default:
 					addon->type = SKINNY_DEVICETYPE_UNDEFINED;
 					break;

@@ -360,8 +360,7 @@ struct sccp_device {
  */
 struct sccp_addon {
 	SCCP_LIST_ENTRY (sccp_addon_t) list;									/*!< Linked List Entry for this Add-On */
-	sccp_device_t *device;											/*!< Device Associated with this Add-On */
-	int type;												/*!< Add-On Type */
+	skinny_devicetype_t type;										/*!< Add-On Type */
 };
 
 /*!
