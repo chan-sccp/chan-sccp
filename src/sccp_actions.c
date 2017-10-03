@@ -496,17 +496,24 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 	deviceName = pbx_strdupa(msg_in->data.RegisterTokenRequest.sId.deviceName);
 	deviceInstance = letohl(msg_in->data.RegisterTokenRequest.sId.lel_instance);
 	deviceType = letohl(msg_in->data.RegisterTokenRequest.lel_deviceType);
+	int token_backoff_time = GLOB(token_backoff_time) >= 30 ? GLOB(token_backoff_time) : 60;
 
 	if (GLOB(reload_in_progress)) {
 		pbx_log(LOG_NOTICE, "SCCP: Reload in progress. Come back later.\n");
 		sccp_session_tokenReject(s, 10);
 		return;
 	}
+	if (!sccp_strlen_zero(GLOB(token_fallback))) {
+		if (sccp_false(GLOB(token_fallback))) {
+			sccp_log_and((DEBUGCAT_ACTION + DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Sending phone a token rejection (sccp.conf:fallback=%s)\n", deviceName, GLOB(token_fallback));
+			sccp_session_tokenReject(s, token_backoff_time);
+		}
+	}
 	if (!skinny_devicetype_exists(deviceType)) {
 		pbx_log(LOG_NOTICE, "%s: We currently do not (fully) support this device type (%d).\n" "Please send this device type number plus the information about the phone model you are using to one of our developers.\n" "Be Warned you should Expect Trouble Ahead\nWe will try to go ahead (Without any guarantees)\n", deviceName, deviceType);
 	}
-	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Device Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, skinny_devicetype2str(deviceType), deviceType);
 
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Device Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, skinny_devicetype2str(deviceType), deviceType);
 	{
 		// Search for already known device->sessions
 		AUTO_RELEASE(sccp_device_t, tmpdevice , sccp_device_find_byid(deviceName, TRUE));
@@ -514,6 +521,7 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 			skinny_registrationstate_t state = sccp_device_getRegistrationState(tmpdevice);
 			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + 60) {
 				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
+				sccp_session_tokenReject(s, token_backoff_time);
 				return;
 			}
 			if (sccp_session_check_crossdevice(s, tmpdevice) || (state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
@@ -539,14 +547,14 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 	/* no configuation for this device and no anonymous devices allowed */
 	if (!device) {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: not found\n", deviceName);
-		sccp_session_tokenReject(s, GLOB(token_backoff_time));
+		sccp_session_tokenReject(s, token_backoff_time);
 		return;
 	}
 
 	sccp_session_setProtocol(s, SCCP_PROTOCOL);
 	if (sccp_session_retainDevice(s, device) < 0) {
 		pbx_log(LOG_WARNING, "%s: Signing over the session to new device failed. Giving up.\n", DEV_ID_LOG(device));
-		sccp_session_tokenReject(s, GLOB(token_backoff_time));
+		sccp_session_tokenReject(s, token_backoff_time);
 		return;
 	}
 	device->status.token = SCCP_TOKEN_STATE_REJ;
@@ -557,15 +565,13 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 		sccp_session_getSas(s, &sas);
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterTokenRequest.sId.deviceName, sccp_netsock_stringify_addr(&sas));
 		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
-		sccp_session_tokenReject(s, GLOB(token_backoff_time));
+		sccp_session_tokenReject(s, token_backoff_time);
 		return;
 	}
 
 	/* accepting token by default */
 	boolean_t sendAck = TRUE;
 	int last_digit = deviceName[strlen(deviceName)];
-	int token_backoff_time = GLOB(token_backoff_time) >= 30 ? GLOB(token_backoff_time) : 60;
-
 	if (!sccp_strlen_zero(GLOB(token_fallback))) {
 		if (sccp_false(GLOB(token_fallback))) {
 			sendAck = FALSE;
@@ -667,11 +673,19 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 	deviceInstance = letohl(msg_in->data.SPCPRegisterTokenRequest.sId.lel_instance);
 	deviceName = pbx_strdupa(msg_in->data.RegisterTokenRequest.sId.deviceName);
 	deviceType = letohl(msg_in->data.SPCPRegisterTokenRequest.lel_deviceType);
+	int token_backoff_time = GLOB(token_backoff_time) >= 30 ? GLOB(token_backoff_time) : 60;
 
 	if (GLOB(reload_in_progress)) {
 		pbx_log(LOG_NOTICE, "SCCP: Reload in progress. Come back later.\n");
 		sccp_session_tokenReject(s, 10);
 		return;
+	}
+
+	if (!sccp_strlen_zero(GLOB(token_fallback))) {
+		if (sccp_false(GLOB(token_fallback))) {
+			sccp_log_and((DEBUGCAT_ACTION + DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Sending phone a token rejection (sccp.conf:fallback=%s)\n", deviceName, GLOB(token_fallback));
+			sccp_session_tokenReject(s, token_backoff_time);
+		}
 	}
 
 	if (!skinny_devicetype_exists(deviceType)) {
@@ -695,7 +709,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 			skinny_registrationstate_t state = sccp_device_getRegistrationState(tmpdevice);
 			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + 60) {
 				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
-				sleep(1);
+				sccp_session_tokenReject(s, token_backoff_time);
 				return;
 			}
 			if (sccp_session_check_crossdevice(s, tmpdevice) || (state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
@@ -729,7 +743,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 	sccp_session_setProtocol(s, SPCP_PROTOCOL);
 	if (sccp_session_retainDevice(s, device) < 0) {
 		pbx_log(LOG_WARNING, "%s: Signing over the session to new device failed. Giving up.\n", DEV_ID_LOG(device));
-		sccp_session_tokenRejectSPCP(s, GLOB(token_backoff_time));
+		sccp_session_tokenRejectSPCP(s, token_backoff_time);
 		return;
 	}
 	device->status.token = SCCP_TOKEN_STATE_REJ;
@@ -738,7 +752,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 	if (device->checkACL(device) == FALSE) {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, sccp_netsock_stringify_addr(&sas));
 		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
-		sccp_session_tokenRejectSPCP(s, GLOB(token_backoff_time));
+		sccp_session_tokenRejectSPCP(s, token_backoff_time);
 		return;
 	}
 
@@ -746,7 +760,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 	if (device->session && device->session != s) {
 		pbx_log(LOG_NOTICE, "%s: Crossover device registration!\n", device->id);
 		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
-		sccp_session_tokenRejectSPCP(s, GLOB(token_backoff_time));
+		sccp_session_tokenRejectSPCP(s, token_backoff_time);
 		device->session = sccp_session_reject(device->session, "Crossover session not allowed");
 		return;
 	}
