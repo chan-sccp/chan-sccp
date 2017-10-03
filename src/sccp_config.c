@@ -1214,7 +1214,7 @@ sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t 
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
 	sccp_hotline_t *hotline = *(sccp_hotline_t **) dest;
-
+	
 	if (hotline->line && !sccp_strcaseequals(hotline->line->context, value)) {
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 		if (hotline->line->context) {

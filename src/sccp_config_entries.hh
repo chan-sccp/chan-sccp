@@ -145,10 +145,9 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																																					"able to only call one number, or for unprovisioned phones to only be able to call the helpdesk to get their phone\n"
 																																					"set up. If hotline_enabled = yes, any device which is not included in the configuration explicitly will be allowed\n"
 																																					"to registered as a guest device. All such devices will register on a single shared line called 'hotline'.\n"},
-
-	{"hotline_context",	offsize(struct sccp_line,context),offsetof(struct sccp_global_vars,hotline),	TYPE_PARSER(sccp_config_parse_hotline_context),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"default",			""},
-	{"hotline_extension", 	offsize(sccp_hotline_t,exten), offsetof(struct sccp_global_vars,hotline),	TYPE_PARSER(sccp_config_parse_hotline_exten),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"111",				""},
-	{"hotline_label", 	offsize(struct sccp_line,label), offsetof(struct sccp_global_vars,hotline),	TYPE_PARSER(sccp_config_parse_hotline_label),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"hotline",			""},
+	{"hotline_extension", 		offsize(sccp_hotline_t,exten),offsetof(struct sccp_global_vars,hotline),		TYPE_PARSER(sccp_config_parse_hotline_exten),	SCCP_CONFIG_FLAG_NONE,				SCCP_CONFIG_NEEDDEVICERESET,		"111",				"Extension automatically dialed when going offhook with this device (adhoc/plar)"},
+	{"hotline_context",		offsize(sccp_line_t,context),offsetof(struct sccp_global_vars,hotline),			TYPE_PARSER(sccp_config_parse_hotline_context),	SCCP_CONFIG_FLAG_NONE,				SCCP_CONFIG_NEEDDEVICERESET,		"default",			"Context use whe dialing the hotline_extension"},
+	{"hotline_label", 		offsize(sccp_line_t,label),offsetof(struct sccp_global_vars,hotline),			TYPE_PARSER(sccp_config_parse_hotline_label),	SCCP_CONFIG_FLAG_NONE,				SCCP_CONFIG_NEEDDEVICERESET,		"hotline",			"Label on the display for this hotline"},
 	{"fallback",			G_OBJ_REF(token_fallback),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Immediately fallback to primairy/master server when it becomes available (master/slave asterisk cluster) (TokenRequest)\n"
 																																					"Possible values are: true/false/odd/even/script.\n" 
 																																					"active/passive cluster: true on active/false on passive\n" 
