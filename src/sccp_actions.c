@@ -681,13 +681,6 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 		return;
 	}
 
-	if (!sccp_strlen_zero(GLOB(token_fallback))) {
-		if (sccp_false(GLOB(token_fallback))) {
-			sccp_log_and((DEBUGCAT_ACTION + DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Sending phone a token rejection (sccp.conf:fallback=%s)\n", deviceName, GLOB(token_fallback));
-			sccp_session_tokenReject(s, token_backoff_time);
-		}
-	}
-
 	if (!skinny_devicetype_exists(deviceType)) {
 		pbx_log(LOG_NOTICE, "%s: We currently do not (fully) support this device type (%d).\n" "Please send this device type number plus the information about the phone model you are using to one of our developers.\n" "Be Warned you should Expect Trouble Ahead\nWe will try to go ahead (Without any guarantees)\n", deviceName, deviceType);
 	}
