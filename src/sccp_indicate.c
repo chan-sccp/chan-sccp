@@ -230,20 +230,20 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 
 				/* GPL - Modify below to expand possible data shown on phone */
 				char caller[100];
-				if (!sccp_strlen_zero(orig_called_name)) {
-					if (!sccp_strlen_zero(orig_called_num)) {
-						snprintf(caller,sizeof(caller), "%s (%s)", orig_called_name, orig_called_num);
+				if (!sccp_strlen_zero(calling_name)) {
+					if (!sccp_strlen_zero(calling_num)) {
+						snprintf(caller,sizeof(caller), "%s (%s)", calling_name, calling_num);
 					} else {
-						snprintf(caller,sizeof(caller), "%s", orig_called_name);
+						snprintf(caller,sizeof(caller), "%s", calling_name);
 					}
 				} else {
-					if (!sccp_strlen_zero(orig_called_num)) {
-						snprintf(caller,sizeof(caller), "%s", orig_called_num);
+					if (!sccp_strlen_zero(calling_num)) {
+						snprintf(caller,sizeof(caller), "%s", calling_num);
 					} else {
-						snprintf(caller,sizeof(caller), "%s", SKINNY_DISP_FROM);
+						snprintf(caller,sizeof(caller), "%s", SKINNY_DISP_UNKNOWN_NUMBER);
 					}
 				}
-				snprintf(prompt, sizeof(prompt), "%s%s", (c->ringermode == SKINNY_RINGTYPE_URGENT) ? SKINNY_DISP_FLASH : "", caller);
+				snprintf(prompt, sizeof(prompt), "%s%s", (c->ringermode == SKINNY_RINGTYPE_URGENT) ? SKINNY_DISP_FLASH : SKINNY_DISP_FROM, caller);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, prompt, GLOB(digittimeout));
 			}
 			break;

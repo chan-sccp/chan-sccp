@@ -130,7 +130,7 @@ SCCP_INLINE SCCP_CALL uint32_t labelstr2int(const char *str);
 #define SKINNY_DISP_SELECT_A_SERVICE					"\36\21"
 #define SKINNY_DISP_LOCAL_SERVICES					"\36\22"
 #define SKINNY_DISP_ENTER_SEARCH_CRITERIA				"\36\23"
-#define SKINNY_DISP_NIGHT_SERVICE					"\36\24"				/* We should provide access to Night Server via a Feature Option */
+#define SKINNY_DISP_NIGHT_SERVICE					"\36\24"				/* We should provide access to Night Service via a Feature Option */
 #define SKINNY_DISP_NIGHT_SERVICE_ACTIVE				"\36\25"
 #define SKINNY_DISP_NIGHT_SERVICE_DISABLED				"\36\26"
 #define SKINNY_DISP_LOGIN_SUCCESSFUL					"\36\27"
