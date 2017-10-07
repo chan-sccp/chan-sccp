@@ -10,8 +10,8 @@
  */
 #pragma once
 
-#if defined(CS_EXPERIMENTAL_XML) && defined(HAVE_LIBXML2)
-#endif
+//#if defined(CS_EXPERIMENTAL_XML) && defined(HAVE_LIBXML2) && defined(HAVE_LIBXSLT) && defined(HAVE_LIBEXSLT_EXSLT_H)
+//#endif
 
 #include "forward_declarations.h"
 

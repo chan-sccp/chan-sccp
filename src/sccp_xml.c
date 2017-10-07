@@ -14,7 +14,7 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-#if defined(CS_EXPERIMENTAL_XML) && defined(HAVE_LIBXML2)
+#if defined(CS_EXPERIMENTAL_XML) && defined(HAVE_LIBXML2) && defined(HAVE_LIBXSLT) && defined(HAVE_LIBEXSLT_EXSLT_H)
 #include "sccp_utils.h"
 
 #include <asterisk/paths.h>
