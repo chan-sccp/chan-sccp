@@ -342,15 +342,15 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 				char caller[100] = {0};
 				if (!sccp_strlen_zero(cid_name)) {
 					if (!sccp_strlen_zero(cid_num)) {
-						snprintf(caller,sizeof(caller), "%s%s%s (%s)", SKINNY_DISP_CALL_WAITING, cid_name, cid_num);
+						snprintf(caller,sizeof(caller), "%s%s (%s)", SKINNY_DISP_CALL_WAITING, cid_name, cid_num);
 					} else {
-						snprintf(caller,sizeof(caller), "%s%s%s", SKINNY_DISP_CALL_WAITING, cid_name);
+						snprintf(caller,sizeof(caller), "%s%s", SKINNY_DISP_CALL_WAITING, cid_name);
 					} 
 				} else {
 					if (!sccp_strlen_zero(cid_num)) {
-						snprintf(caller,sizeof(caller), "%s%s%s", SKINNY_DISP_CALL_WAITING, cid_num);
+						snprintf(caller,sizeof(caller), "%s%s", SKINNY_DISP_CALL_WAITING, cid_num);
 					} else {
-						snprintf(caller,sizeof(caller), "%s%s%s", SKINNY_DISP_CALL_WAITING, SKINNY_DISP_UNKNOWN_NUMBER);
+						snprintf(caller,sizeof(caller), "%s%s", SKINNY_DISP_CALL_WAITING, SKINNY_DISP_UNKNOWN_NUMBER);
 					}
 				}
 				//snprintf(prompt, sizeof(prompt), "%s: %s: %s", active_channel->line->name, SKINNY_DISP_FROM, cid_num);
