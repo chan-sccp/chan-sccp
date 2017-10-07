@@ -11,6 +11,7 @@
 #pragma once
 
 #if defined(CS_EXPERIMENTAL_XML) && defined(HAVE_LIBXML2)
+#endif
 
 #include "forward_declarations.h"
 //struct _xmlDoc;
@@ -42,5 +43,4 @@ typedef struct {
 
 extern const XMLInterface iXML;
 __END_C_EXTERN__
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

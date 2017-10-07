@@ -59,7 +59,7 @@ libsccp_la_SOURCES	= sccp_callinfo.c 	sccp_channel.c		sccp_device.c		sccp_debug.
 			  sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
 			  sccp_devstate.c	sccp_event.c		sccp_enum.c		sccp_globals.c		\
 			  sccp_netsock.c	sccp_codec.c		sccp_labels.c		sccp_xml.c		\
-			  sccp_featureParkingLot.c sccp_visualvoicemail.c
+			  sccp_webservice.c 	sccp_featureParkingLot.c sccp_visualvoicemail.c
 			  
 chan_sccp_la_SOURCES	= chan_sccp.c
 

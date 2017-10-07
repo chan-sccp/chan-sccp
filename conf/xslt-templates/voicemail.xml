@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="voicemail.xsl"?>
+<voicemails>
+	<folders>
+		<folder name="INBOX"/>
+		<folder name="Old"/>
+	</folders>
+</voicemails>
