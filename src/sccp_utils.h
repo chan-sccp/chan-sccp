@@ -124,10 +124,11 @@ SCCP_API char * SCCP_CALL sccp_dec2binstr(char *buf, size_t size, int value);
 SCCP_INLINE void SCCP_CALL sccp_copy_string(char *dst, const char *src, size_t size);
 SCCP_API char * SCCP_CALL sccp_trimwhitespace(char *str);
 SCCP_INLINE int SCCP_CALL sccp_atoi(const char * const buf, size_t buflen);
-//SCCP_INLINE size_t SCCP_CALL sccp_utf8_strlen_visible(const char *const ms);
-//SCCP_INLINE size_t SCCP_CALL sccp_utf8_strlen_nonvisible(const char *const ms);
 SCCP_INLINE int SCCP_CALL sccp_utf8_columnwidth(int width, const char *const ms);
 SCCP_API int SCCP_CALL sccp_random(void);
+SCCP_API const char * SCCP_CALL sccp_retrieve_str_variable_byKey(PBX_VARIABLE_TYPE *params, const char *key);
+SCCP_API int SCCP_CALL sccp_retrieve_int_variable_byKey(PBX_VARIABLE_TYPE *params, const char *key);
+SCCP_API boolean_t SCCP_CALL sccp_append_variable(PBX_VARIABLE_TYPE *params, const char *key, const char *value);
 SCCP_INLINE boolean_t SCCP_CALL sccp_always_false(void);
 SCCP_INLINE boolean_t SCCP_CALL sccp_always_true(void);
 

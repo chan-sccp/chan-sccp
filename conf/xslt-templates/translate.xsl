@@ -5,7 +5,7 @@
 	xmlns:sccp="http://chan-sccp.net"
 	exclude-result-prefixes="sccp"
 >
-  <xsl:param name="translationFile" select="'./translate.xml'"/>
+  <xsl:param name="translationFile" select="'./translations.xml'"/>
 
   <xsl:param name="locales" select="'da, nl, de;q=0.9, en-gb;q=0.8, en;q=0.7'"/>
   <xsl:param name="locale"><xsl:call-template name="findLocale"/></xsl:param>

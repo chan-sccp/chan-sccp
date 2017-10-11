@@ -20,10 +20,12 @@ SCCP_FILE_VERSION(__FILE__, "");
 
 #include "sccp_utils.h"
 #include "sccp_vector.h"
+#include "sccp_xml.h"
 #include <asterisk/tcptls.h>
 #include <asterisk/http.h>
 #include <asterisk/paths.h>
 #include <asterisk/file.h>
+#include <sys/stat.h>		// sccp_webservice_xslt_callback:stat
 
 /* forward declarations */
 
@@ -41,6 +43,58 @@ typedef struct handler {
 	sccp_webservice_callback_t callback;
 	sccp_xml_outputfmt_t outputfmt;
 } handler_t;
+
+char *outputfmt2contenttype[] = {
+	[SCCP_XML_OUTPUTFMT_NULL] = "text/plain",
+	//[SCCP_XML_OUTPUTFMT_HTML] = "application/xhtml+xml",
+	[SCCP_XML_OUTPUTFMT_HTML] = "text/html",
+	[SCCP_XML_OUTPUTFMT_XHTML] = "application/xhtml+xml",
+	[SCCP_XML_OUTPUTFMT_XML] = "application/xml",
+	[SCCP_XML_OUTPUTFMT_CXML] = "application/xml",
+	[SCCP_XML_OUTPUTFMT_AJAX] = "application/json",
+	[SCCP_XML_OUTPUTFMT_JSON] = "application/json",
+	[SCCP_XML_OUTPUTFMT_TXT] = "text/plain",
+};
+
+/*! \brief Limit the kinds of files we're willing to serve up */
+static struct {
+	const char *ext;
+	const char *mtype;
+} mimetypes[] = {
+//        { "html", "application/xhtml+xml" },
+//        { "htm", "application/xhtml+xml" },
+	{ "html", "text/html" },
+	{ "htm", "text/html" },
+	{ "xml", "text/xml" },
+	{ "xslt", "text/xsl" },
+	{ "xsl", "text/xsl" },
+	{ "js", "application/x-javascript" },
+	{ "json", "application/json" },
+	{ "css", "text/css" },
+        { "png", "image/png" },
+        { "jpg", "image/jpeg" },
+        { "gif", "image/gif" },
+//        { "wav", "audio/x-wav" },
+//        { "mp3", "audio/mpeg" },
+//        { "cnf", "text/plain" },
+//        { "cfg", "text/plain" },
+//        { "bin", "application/octet-stream" },
+//        { "sbn", "application/octet-stream" },
+//        { "ld", "application/octet-stream" },
+};
+
+static const char *ftype2mtype(const char *ftype)
+{
+	uint8_t x;
+	if (ftype) {
+		for (x = 0; x < ARRAY_LEN(mimetypes); x++) {
+			if (!strcasecmp(ftype, mimetypes[x].ext)) {
+				return mimetypes[x].mtype;
+			}
+		}
+	}
+	return NULL;
+}
 
 SCCP_VECTOR_RW(, handler_t) handlers;
 
@@ -148,53 +202,109 @@ static boolean_t parse_http_conf(char *const uri_str)
 	return result;
 }
 
-static const char * sccp_get_str_variable_byKey(PBX_VARIABLE_TYPE *params, char *key)
+typedef enum {
+	ServerSide,
+	ClientSide,
+} Process_XSLT_t;
+
+static Process_XSLT_t parse_useragent(PBX_VARIABLE_TYPE *request_headers)
 {
-	PBX_VARIABLE_TYPE *param;
-	for(param = params;param;param = param->next) {
-		if (!strcasecmp(key, param->name)) {
-			return param->value;
+	Process_XSLT_t res = ServerSide;
+	char *pos = NULL;
+	const char *user_agent = sccp_retrieve_str_variable_byKey(request_headers, "User-Agent");
+	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) User-Agent:%s\n", user_agent);
+	do {
+		sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) Trying to match UserAgents\n");
+		if (sccp_strlen_zero(user_agent)) {
+			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) No useragent\n");
 			break;
 		}
-	}
-	return NULL;
+		if (strcasestr(user_agent,"Allegro") || strcasestr(user_agent,"XSI-HTTPClient") || strcasestr(user_agent,"Cisco/SPA")) {
+			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) Cisco VOIP Phone\n");
+			break;
+		}
+		if (strcasestr(user_agent,"Firefox/") || strcasestr(user_agent,"SeaMonkey/")) {
+			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) Firefox/ / SeaMonkey/\n");
+			res = ClientSide;
+			break;
+		}
+		if ((pos = strcasestr(user_agent,"MSIE"))) {
+			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) MSIE\n");
+			pos += 4;
+			if (pos[0]=='/' && !(pos[1]=='1' || pos[1]=='2' || pos[1]=='3' || pos[1]=='4' || pos[1]=='5')) {
+				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) But new enough\n");
+				res = ClientSide;
+			}
+			break;
+		}
+		if ((pos = strcasestr(user_agent,"Safari/"))) {
+			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) MSIE\n");
+			pos += 7;
+			if (!(pos[1]=='1' || pos[1]=='2' || pos[1]=='3')) {
+				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) But new enough\n");
+				res = ClientSide;
+			}
+			break;
+		}
+		if ((pos = strcasestr(user_agent,"Opera"))) {
+			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) MSIE\n");
+			pos += 5;
+			if ((pos[0]=='/' || pos[0]==' ') && !(pos[1]>'8')) {
+				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) But new enough\n");
+				res = ClientSide;
+			}
+			break;
+		}
+	} while(0);
+	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) User-Agent:%s -> %s\n", user_agent, res==ServerSide ? "ServerSide" : "ClientSide");
+	return res;
 }
-
-/*
-static int sccp_get_int_variable_byKey(PBX_VARIABLE_TYPE *params, char *key)
-{
-	const char *value = sccp_get_str_variable_byKey(params, key);
-	if (value) {
-		return sccp_atoi(value, strlen(value));
-	}
-	return -1;
-}
-*/
 
 static handler_t * get_request_handler(PBX_VARIABLE_TYPE * request_params)
 {
-	const char *uri = sccp_get_str_variable_byKey(request_params, "handler");
+	const char *uri = sccp_retrieve_str_variable_byKey(request_params, "handler");
 	handler_t *handler = NULL;
 
-	SCCP_VECTOR_RW_RDLOCK(&handlers);
-	handler = SCCP_VECTOR_GET_CMP(&handlers, uri, HANDLER_CB_CMP); 
-	SCCP_VECTOR_RW_UNLOCK(&handlers);
+	if (uri) {
+		SCCP_VECTOR_RW_RDLOCK(&handlers);
+		handler = SCCP_VECTOR_GET_CMP(&handlers, uri, HANDLER_CB_CMP); 
+		SCCP_VECTOR_RW_UNLOCK(&handlers);
 
-	if (!handler) {
-		pbx_log(LOG_ERROR, "SCCP: (sccp_webservice_parser) no handler found for uri:%s\n", uri);
+		if (!handler) {
+			pbx_log(LOG_ERROR, "no handler found for uri:%s\n", uri);
+		}
+	} else {
+		pbx_log(LOG_ERROR, "no 'handler' parameter provided in request\n");
 	}
 	
 	return handler;
 }
 
-/*
 static int parse_request_headers(PBX_VARIABLE_TYPE * request_headers, const char *locale)
 {
-	locale = sccp_get_str_variable_byKey(request_headers, "Accept-Language");
+	locale = sccp_retrieve_str_variable_byKey(request_headers, "Accept-Language");
 
 	return 0;
 }
 
+
+static int parse_outputfmt(PBX_VARIABLE_TYPE * request_params, PBX_VARIABLE_TYPE *request_headers, sccp_xml_outputfmt_t *outputfmt)
+{
+	const char *user_agent = sccp_retrieve_str_variable_byKey(request_headers, "User-Agent");
+	if (*outputfmt == SCCP_XML_OUTPUTFMT_NULL && !sccp_strlen_zero(user_agent) && !strcasecmp(user_agent,"Allegro-Software-WebClient")) {
+		*outputfmt = SCCP_XML_OUTPUTFMT_CXML;
+		return 0;
+	}
+
+	const char *requested_outputfmt = sccp_retrieve_str_variable_byKey(request_params, "outformat");
+	if (!sccp_strlen_zero(requested_outputfmt)) {
+		*outputfmt = sccp_xml_outputfmt_str2val(requested_outputfmt);
+		return 0;
+	}
+	return (*outputfmt == SCCP_XML_OUTPUTFMT_NULL) ? -1 : 0;
+}
+
+/*
 static int parse_request_params()
 {
 	return 0;
@@ -204,21 +314,41 @@ static int parse_request_uri()
 {
 	return 0;
 }
-static int parse_outputfmt(PBX_VARIABLE_TYPE * request_params, PBX_VARIABLE_TYPE *request_headers, sccp_xml_outputfmt_t *outputfmt)
-{
-	const char *requested_outputfmt = sccp_get_str_variable_byKey(request_params, "outformat");
-	if (!sccp_strlen_zero(requested_outputfmt)) {
-		*outputfmt = sccp_xml_outputfmt_str2val(requested_outputfmt);
-		return 0;
-	}
-	const char *user_agent = sccp_get_str_variable_byKey(request_headers, "User-Agent");
-	if (!sccp_strlen_zero(user_agent) && strcasecmp(user_agent,"Allegro-Software-WebClient") > 0) {
-		*outputfmt = SCCP_XML_OUTPUTFMT_CXML;
-		return 0;
-	}
-	return -2;
-}
 */
+
+static __attribute__ ((malloc)) char * searchWebDirForFile(const char *filename, sccp_xml_outputfmt_t outputfmt, const char *extension)
+{
+ 	char filepath[PATH_MAX] = "";
+ 	if (outputfmt && sccp_xml_outputfmt_exists(outputfmt)) {
+		snprintf(filepath, sizeof(filepath), PBX_VARLIB "/sccpxslt/%s2%s.%s", filename, sccp_xml_outputfmt2str(outputfmt), extension);
+ 	} else {
+		snprintf(filepath, sizeof(filepath), PBX_VARLIB "/sccpxslt/%s.%s", filename, extension);
+	}
+	sccp_log(DEBUGCAT_NEWCODE)("SCCP: (searchWebDirForFile) Looking for '%s'\n", filepath);
+	if (access(filepath, F_OK ) == -1) {
+		pbx_log(LOG_ERROR, "\nSCCP: (searchWebDirForFile) file: '%s' could not be found\n", filepath);
+		filepath[0] = '\0';
+		return NULL;
+	}
+	return strdup(filepath);
+}
+
+static int addTranslation(PBX_VARIABLE_TYPE *request_params)
+{
+	int res = -1;
+	char *translationFilename = searchWebDirForFile("translations", SCCP_XML_OUTPUTFMT_NULL, "xml");
+	if (translationFilename) {
+		//append_variable(request_params, "translationFile", strdup(translationFilename));
+		//sccp_free(translationFilename);
+		sccp_append_variable(request_params, "translationFile", translationFilename);
+	}
+	return res;
+}
+
+static __attribute__ ((malloc)) char * findStylesheet(const char *const uri, sccp_xml_outputfmt_t outputfmt)
+{
+	return searchWebDirForFile(uri, outputfmt, "xsl");
+}
 
 static int request_parser (
 	struct ast_tcptls_session_instance 	* ser,
@@ -229,17 +359,24 @@ static int request_parser (
 	PBX_VARIABLE_TYPE 			* request_headers
 ) {
 	int result = 0;
-	handler_t *handler = NULL;
-	sccp_xml_outputfmt_t outputfmt = SCCP_XML_OUTPUTFMT_NULL;
-	//const char *locale = NULL;
 	pbx_str_t *http_header = NULL;
 	pbx_str_t *out = NULL;
 	
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "SCCP: (sccp_webservice_parser) Handling Callback\n");
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "SCCP: (request_parser) Handling Callback\n");
 
-	handler = get_request_handler(request_params);
+	handler_t *handler = get_request_handler(request_params);
+	if (!handler) {
+		pbx_log(LOG_ERROR, "could not parse the requested uri or handler not found\n");
+		ast_http_error(ser, 500, "Server Error", "Internal Server Error\nURI could not be parsed / Not handler found\n");
+		return -1;
+	}
+	//Process_XSLT_t process_side = parse_useragent(request_headers);
+
+	//sccp_xml_outputfmt_t outputfmt = handler->outputfmt;
+	sccp_xml_outputfmt_t outputfmt = SCCP_XML_OUTPUTFMT_HTML;
+	result |= parse_outputfmt(request_params, request_headers, &outputfmt);
+	//const char *locale = NULL;
 	//result |= parse_request_headers(request_headers, locale);
-	//result |= parse_outputfmt(request_params, request_headers, &outputfmt);
 	//result |= parse_request_params();
 	//result |= parse_request_uri();
 
@@ -247,51 +384,76 @@ static int request_parser (
 		PBX_VARIABLE_TYPE *header;
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "request headers:\n");
 		for(header = request_headers;header;header = header->next) {
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: (sccp_webservice_parser) key: %s, value: %s\n", header->name, header->value);
+			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: (request_parser) key: %s, value: %s\n", header->name, header->value);
 		}
 		PBX_VARIABLE_TYPE *param;
 		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "request parameters:\n");
 		for(param = request_params;param;param = param->next) {
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: (sccp_webservice_parser) key: %s, value: %s\n", param->name, param->value);
+			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: (request_parser) key: %s, value: %s\n", param->name, param->value);
 		}
 	//}
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: handler:%p, result:%d\n", handler, result);
-	
 	do {
-		if (handler && result == 0) {
+		if (result == 0) {
 			pbx_str_t *http_header = pbx_str_create(80);
 			pbx_str_t *out = pbx_str_create(4196);
 			if (!http_header || !out) {
-				pbx_log(LOG_ERROR, "SCCP: (sccp_webservice_parser) ast_str_create() out of memory\n");
+				pbx_log(LOG_ERROR, "pbx_str_create() out of memory\n");
 				ast_http_error(ser, 500, "Server Error", "Internal Server Error\nast_str_create() out of memory\n");
 				break;
 			}
 			
-			if (handler->callback(request_params, request_headers, &out)) {
-				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (sccp_webservice_parser) Handling Callback: %s, remote-address: %s\n", request_uri, ast_sockaddr_stringify(&ser->remote_address));
-				ast_str_append(&http_header, 0,
-					"Content-type: text/%s\r\n"
+			if (handler->callback(handler->uri, request_params, request_headers, &out)) {
+				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (request_parser) Handling Callback: %s, remote-address: %s\n", request_uri, ast_sockaddr_stringify(&ser->remote_address));
+				char timebuf[80];
+			        struct timeval nowtv = ast_tvnow();
+			        struct ast_tm now;
+				ast_strftime(timebuf, sizeof(timebuf), "%a, %d %b %Y %H:%M:%S GMT", ast_localtime(&nowtv, &now, "GMT"));
+				ast_str_set(&http_header, 0,
+					"Content-type: %s\r\n"
 					"Cache-Control: no-cache;\r\n"
 					"Set-Cookie: sccp_id=\"%08x\"; Version=1; Max-Age=%d\r\n"
-					"Pragma: SuppressEvents\r\n",
-					sccp_xml_outputfmt2str(outputfmt),
+					"Pragma: SuppressEvents\r\n"
+					"Last-Modified: %s\r\n",
+					outputfmt2contenttype[outputfmt],
 					1, 
-					cookie_timeout
+					cookie_timeout,
+					timebuf
 				);
-
-				if (handler->outputfmt != outputfmt) {
-					//if (!sccp_xml_applyStyleSheet(doc, &out, handler->uri, locales, outformat)) {
-					//	ast_http_error(ser, 500, "Server Error", "Internal Server Error\n(sccp_webservice_parser) stylesheet could not be found\n");
-					//	goto EXIT;
-					//}
+				//sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (request_parser) Returning Header:'%s'\n", pbx_str_buffer(http_header));
+				/*
+				if (handler->outputfmt == SCCP_XML_OUTPUTFMT_XML && handler->outputfmt != outputfmt && iXML.applyStyleSheet) {
+					addTranslation(request_params);
+					if (process_side == ServerSide) {
+						char *stylesheetFilename = findStylesheet(handler, outputfmt);
+						if (stylesheetFilename) {
+							xmlDoc *xmldoc = iXML.createDoc();
+							if (!iXML.applyStyleSheet(xmldoc, stylesheetFilename, locale, outputfmt, request_params)) {
+								ast_http_error(ser, 500, "Server Error", "Internal Server Error\n(sccp_webservice_parser) stylesheet could not be found\n");
+								break;
+							}
+							sccp_free(stylesheetFilename);
+						} else {
+							pbx_log(LOG_ERROR, "Stylesheet could not be found\n");
+							ast_http_error(ser, 500, "Server Error", "Internal Server Error\nstylesheet could not be found\n");
+							break;
+						}
+					}
 				}
+				*/
 
 				ast_http_send(ser, method, 200, NULL, http_header, out, 0, 0);
 				http_header = out = NULL;
 				break;
+			} else {
+				pbx_log(LOG_ERROR, "could not process request, callback failed\n");
+				ast_http_request_close_on_completion(ser);
+				ast_http_error(ser, 500, "Server Error", "Internal Server Error\nCould not process request, callback failed\n");
+				break;
 			}
 		} else {
-			pbx_log(LOG_ERROR, "SCCP: (sccp_webservice_parser) could not parse the uri or headers\n");
+			pbx_log(LOG_ERROR, "could not parse the uri or headers\n");
+			ast_http_request_close_on_completion(ser);
 			ast_http_error(ser, 500, "Server Error", "Internal Server Error\nURI or Headers could not be parsed\n");
 			break;
 		}
@@ -313,8 +475,7 @@ static int sccp_webservice_callback(struct ast_tcptls_session_instance *ser, con
 	struct ast_variable *params = get_params;
 
 	if (running) {
-		pbx_log(LOG_NOTICE, "SCCP: (sccp_http_callback) Handle incoming %s request for %s, %p, %p\n", method == AST_HTTP_POST ? "POST" : "GET", uri, get_params, headers);
-
+		pbx_log(LOG_NOTICE, "Handle incoming %s request for %s, %p, %p\n", method == AST_HTTP_POST ? "POST" : "GET", uri, get_params, headers);
 		if (method == AST_HTTP_POST) {
 			params = ast_http_get_post_vars(ser, headers);
 		}
@@ -334,38 +495,295 @@ static struct ast_http_uri sccp_webservice_uri = {
 	.key = __FILE__,
 };
 
+static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser,
+	const struct ast_http_uri *urih, const char *uri,
+	enum ast_http_method method, struct ast_variable *get_vars,
+	struct ast_variable *headers)
+{
+	char *path;
+	const char *ftype;
+	const char *mtype;
+	char wkspace[80];
+	struct stat st;
+	int len;
+	int fd;
+	struct ast_str *http_header;
+	struct timeval tv;
+	struct ast_tm tm;
+	char timebuf[80], etag[23];
+	struct ast_variable *v;
+	int not_modified = 0;
+
+	if (method != AST_HTTP_GET && method != AST_HTTP_HEAD) {
+		ast_http_error(ser, 501, "Not Implemented", "Attempt to use unimplemented / unsupported method");
+		return 0;
+	}
+
+	/* Disallow any funny filenames at all (checking first character only??) */
+	if ((uri[0] < 33) || strchr("./|~@#$%^&*() \t", uri[0])) {
+		goto out403;
+	}
+
+	if (strstr(uri, "/..")) {
+		goto out403;
+	}
+
+	if ((ftype = strrchr(uri, '.'))) {
+		ftype++;
+	}
+
+	if (!(mtype = ftype2mtype(ftype))) {
+		snprintf(wkspace, sizeof(wkspace), "text/%s", S_OR(ftype, "plain"));
+		mtype = wkspace;
+	}
+
+	/* Cap maximum length */
+	if ((len = strlen(uri) + strlen(ast_config_AST_DATA_DIR) + strlen("/sccpxslt/") + 5) > 1024) {
+		goto out403;
+	}
+
+	path = ast_alloca(len);
+	snprintf(path, len, "%s/sccpxslt/%s", ast_config_AST_DATA_DIR, uri);
+
+	if (stat(path, &st)) {
+		goto out404;
+	}
+
+	if (S_ISDIR(st.st_mode)) {
+		goto out404;
+	}
+
+	if (strstr(path, "/private/") && !astman_is_authed(ast_http_manid_from_vars(headers))) {
+		goto out403;
+	}
+
+	fd = open(path, O_RDONLY);
+	if (fd < 0) {
+		goto out403;
+	}
+
+	/* make "Etag:" http header value */
+	snprintf(etag, sizeof(etag), "\"%ld\"", (long)st.st_mtime);
+
+	/* make "Last-Modified:" http header value */
+	tv.tv_sec = st.st_mtime;
+	tv.tv_usec = 0;
+	ast_strftime(timebuf, sizeof(timebuf), "%a, %d %b %Y %H:%M:%S GMT", ast_localtime(&tv, &tm, "GMT"));
+
+	/* check received "If-None-Match" request header and Etag value for file */
+	for (v = headers; v; v = v->next) {
+		if (!strcasecmp(v->name, "If-None-Match")) {
+			if (!strcasecmp(v->value, etag)) {
+				not_modified = 1;
+			}
+			break;
+		}
+	}
+
+	http_header = ast_str_create(255);
+	if (!http_header) {
+		ast_http_request_close_on_completion(ser);
+		ast_http_error(ser, 500, "Server Error", "Out of memory");
+		close(fd);
+		return 0;
+	}
+
+	ast_str_set(&http_header, 0, "Content-type: %s\r\n"
+		"ETag: %s\r\n"
+		"Last-Modified: %s\r\n",
+		mtype,
+		etag,
+		timebuf);
+
+	/* ast_http_send() frees http_header, so we don't need to do it before returning */
+	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Service '%s' => '%s' (%s)\n", uri, path, mtype);
+	if (not_modified) {
+		ast_http_send(ser, method, 304, "Not Modified", http_header, NULL, 0, 1);
+	} else {
+		ast_http_send(ser, method, 200, NULL, http_header, NULL, fd, 1); /* static content flag is set */
+	}
+	close(fd);
+	return 0;
+
+out404:
+	pbx_log(LOG_NOTICE, "File not found '%s'\n", uri);
+	ast_http_error(ser, 404, "Not Found", "The requested URL was not found on this server.");
+	return 0;
+
+out403:
+	ast_http_request_close_on_completion(ser);
+	pbx_log(LOG_NOTICE, "Access Denied '%s'\n", uri);
+	ast_http_error(ser, 403, "Access Denied", "You do not have permission to access the requested URL.");
+	return 0;
+}
+
+static struct ast_http_uri sccp_webservice_xslt_uri = {
+	.description = "SCCP Cisco IP HTTP Event Interface",
+	.uri = "sccpxslt",
+	.callback = sccp_webservice_xslt_callback,
+	.has_subtree = 1,
+	.data = NULL,
+	.key = __FILE__,
+};
+
 /* begin test */
-static boolean_t sccp_webservice_test(PBX_VARIABLE_TYPE *params, PBX_VARIABLE_TYPE *headers, pbx_str_t **result) {
+static boolean_t sccp_webservice_htmltest(const char *const uri, PBX_VARIABLE_TYPE *params, PBX_VARIABLE_TYPE *headers, pbx_str_t **result)
+{
 	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (sccp_webservice_test) Test Webservice\n");
-	pbx_str_append(result, 0, "<html>");
-	pbx_str_append(result, 0, "<body>");
-	pbx_str_append(result, 0, "<h1>TEST RESULT</h1>");
-	pbx_str_append(result, 0, "</body>");
-	pbx_str_append(result, 0, "</html>");
+	PBX_VARIABLE_TYPE *header;
+	PBX_VARIABLE_TYPE *param;
+	pbx_str_append(result, 0, "<html>\n");
+	pbx_str_append(result, 0, "<body>\n");
+	pbx_str_append(result, 0, "<h3>TEST RESULT</h3>\n");
+	pbx_str_append(result, 0, "<p>headers:</p>\n");
+	pbx_str_append(result, 0, "<p><ul>\n");
+	for(header = headers; header; header = header->next) {
+		pbx_str_append(result, 0, "<li>%s: %s</li>\n", header->name, header->value);
+	}
+	pbx_str_append(result, 0, "</ul></p>\n");
+
+	pbx_str_append(result, 0, "<p>params:</p>");
+	pbx_str_append(result, 0, "<p><ul>\n");
+	for(param = params; param; param = param->next) {
+		pbx_str_append(result, 0, "<li>%s: %s</li>\n", param->name, param->value);
+	}
+	pbx_str_append(result, 0, "</ul></p>\n");
+	pbx_str_append(result, 0, "</body>\n");
+	pbx_str_append(result, 0, "</html>\n");
 	return TRUE;
 }
 
+static boolean_t xmlPostProcess(xmlDoc * const doc, const char *const uri, PBX_VARIABLE_TYPE *params, PBX_VARIABLE_TYPE *headers, char **resultstr)
+{
+	boolean_t res = TRUE;
+	Process_XSLT_t process_side = parse_useragent(headers);
+	sccp_xml_outputfmt_t outputfmt = SCCP_XML_OUTPUTFMT_XHTML;
+	const char *locale = NULL;
+	parse_outputfmt(params, headers, &outputfmt);
+	parse_request_headers(headers, locale);
+
+	if (outputfmt && iXML.applyStyleSheetByName) {
+		//addTranslation(params);
+		//sccp_append_variable(params, "locales", locale ? strdup(locale) : "en");
+		if (process_side == ServerSide) {
+			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (xmlPostProcess) Processing xsl server-side\n");
+			char *stylesheetFilename = findStylesheet(uri, outputfmt);
+			if (stylesheetFilename) {
+				if (!iXML.applyStyleSheetByName(doc, stylesheetFilename, params, resultstr)) {
+					pbx_log(LOG_ERROR, "Applying Stylesheet failed\n");
+					res = FALSE;
+				}
+				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (xmlPostProcess) resultstr:%s\n", *resultstr);
+				sccp_free(stylesheetFilename);
+			} else {
+				pbx_log(LOG_ERROR, "Stylesheet could not be found\n");
+				res = FALSE;
+			}
+		} else {
+			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (xmlPostProcess) Processing xsl client-side\n");
+			*resultstr = iXML.dump(doc, TRUE);
+		}
+	}
+	return res;
+}
+
+static boolean_t sccp_webservice_xmltest(const char *const uri, PBX_VARIABLE_TYPE *params, PBX_VARIABLE_TYPE *headers, pbx_str_t **result)
+{
+	boolean_t res = FALSE;
+	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (sccp_webservice_test) Test Webservice\n");
+
+/*
+	Process_XSLT_t process_side = parse_useragent(headers);
+	sccp_xml_outputfmt_t outputfmt = SCCP_XML_OUTPUTFMT_XHTML;
+	parse_outputfmt(params, headers, &outputfmt);
+	const char *locale = NULL;
+	parse_request_headers(headers, locale);
+*/
+	PBX_VARIABLE_TYPE *v;
+	
+	xmlDoc * doc = iXML.createDoc();
+	xmlNode *root= iXML.createNode("root");
+	iXML.setRootElement(doc, root);
+	xmlNode *group = iXML.addElement(root, "group", NULL);
+	xmlNode *val = iXML.addElement(group, "val", "val1");
+	iXML.addProperty(val, "type", "%s", "value");
+	val = iXML.addElement(group, "val", "val2");
+	iXML.addProperty(val, "type", "%s", "value");
+	val = iXML.addElement(group, "val", "val3");
+	iXML.addProperty(val, "type", "%s", "value");
+	
+	xmlNode *group1 = iXML.addElement(root, "headers", NULL);
+	for(v = headers; v; v = v->next) {
+		xmlNode *val1 = iXML.addElement(group1, "header", v->value);
+		iXML.addProperty(val1, "name", "%s", v->name);
+		iXML.addProperty(val1, "url", "%s", v->name);
+	}
+	
+	xmlNode *group2 = iXML.addElement(root, "params", NULL);
+	for(v = params; v; v = v->next) {
+		xmlNode *val1 = iXML.addElement(group2, "param", v->value);
+		iXML.addProperty(val1, "name", "%s", v->name);
+		iXML.addProperty(val1, "type", "%s", "param");
+	}
+	
+/*
+	if (process_side == ServerSide) {
+		// <?xml-stylesheet type='text/xsl' href='/Styles/Contoso.xslt' media='all'?>
+		char *stylesheetFilename = findStylesheet(uri, outputfmt);
+		if (stylesheetFilename) {
+			xmlNode *templ= iXML.createNode("xslt-template");
+			iXML.addProperty(templ, "href", "%s", stylesheetFilename);
+			iXML.setRootElement(doc, templ);
+			sccp_free(stylesheetFilename);
+		}
+		if (!iXML.applyStyleSheet(doc, params)) {
+			pbx_log(LOG_ERROR, "Applying Stylesheet failed\n");
+			res = FALSE;
+		}
+	} else {
+		xmlNode *templ= iXML.createNode("xslt-template");
+		iXML.addProperty(templ, "href", "%s/%s.xsl", "path", "uri");
+		iXML.setRootElement(doc, templ);
+	}
+*/
+	char *resultstr = NULL;
+	if ((res |= xmlPostProcess(doc, uri, params, headers, &resultstr))) {
+		// create a function for this
+		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "resultstr: %s\n", resultstr);
+		pbx_str_append(result, 0, "%s", resultstr);
+		sccp_free(resultstr);
+	//} else {
+	//	pbx_str_append(result, 0, "%s", iXML.dump(doc, TRUE));
+	}
+	iXML.destroyDoc(&doc);
+	
+	return res;
+}
 /* end test */
 
-static void webservice_module_start(void)
+
+static void __attribute__((constructor)) init_webservice(void)
 {
 	if (!running && parse_manager_conf() && parse_http_conf(baseURL)) {
 		pbx_log(LOG_NOTICE, "SCCP: (sccp_webservice_module_starting...\n");
 		SCCP_VECTOR_RW_INIT(&handlers, 1);
 
 		/* begin test */
-		iWebService.addHandler("1234", sccp_webservice_test, SCCP_XML_OUTPUTFMT_HTML);
+		iWebService.addHandler("testhtml", sccp_webservice_htmltest, SCCP_XML_OUTPUTFMT_HTML);
+		iWebService.addHandler("testxml", sccp_webservice_xmltest, SCCP_XML_OUTPUTFMT_XML);
 		/* end test */
 
 		ast_http_uri_link(&sccp_webservice_uri);
+		ast_http_uri_link(&sccp_webservice_xslt_uri);
 		pbx_log(LOG_NOTICE, "SCCP: (sccp_webservice_module_started\n");
 		running = TRUE;
 	}
 }
 
-static void webservice_module_stop(void)
+static void __attribute__((destructor)) destroy_webservice(void)
 {
 	if (running) {
+		ast_http_uri_unlink(&sccp_webservice_xslt_uri);
 		ast_http_uri_unlink(&sccp_webservice_uri);
 		SCCP_VECTOR_RW_WRLOCK(&handlers);
 		SCCP_VECTOR_RESET(&handlers, SCCP_VECTOR_ELEM_CLEANUP_NOOP);
@@ -374,7 +792,6 @@ static void webservice_module_stop(void)
 		running = FALSE;
 	}
 }
-
 
 /* exported functions */
 static boolean_t isRunning(void)
@@ -421,8 +838,6 @@ static boolean_t removeHandler(const char *const uri)
 
 /* Assign to interface */
 const WebServiceInterface iWebService = {
-	.start = webservice_module_start,
-	.stop = webservice_module_stop,
 	.isRunning = isRunning,
 	.getBaseURL = getBaseURL,
 	.addHandler = addHandler,

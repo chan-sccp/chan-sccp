@@ -24,6 +24,8 @@ __BEGIN_C_EXTERN__
 /* interface */
 typedef struct {
 	xmlDoc * (*createDoc)(void);
+	xmlDoc * (*createDocFromStr)(const char *inbuf, int length);
+	xmlDoc * (*createDocFromPbxStr)(const pbx_str_t *inbuf);
 
 	xmlNode * (*createNode)(const char * const name);
 	xmlNode * (*addElement)(xmlNode *const parentNode, const char * const name, const char *const content);
@@ -34,7 +36,8 @@ typedef struct {
 #if defined(HAVE_LIBXSLT) && defined(HAVE_LIBEXSLT_EXSLT_H)
 //	int (*setBaseDir)(const char * const baseDir);
 //	const char * const (*getBaseDir)(void);
-	void (*applyStyleSheet)(xmlDoc * const doc, const char *const styleSheetFileName, const char *const language, sccp_xml_outputfmt_t outputfmt, PBX_VARIABLE_TYPE *pbx_params);
+	boolean_t (*applyStyleSheet)(xmlDoc * const doc, PBX_VARIABLE_TYPE *pbx_params);
+	boolean_t (*applyStyleSheetByName)(xmlDoc * const doc, const char *const styleSheetFileName, PBX_VARIABLE_TYPE *pbx_params, char **result);
 #endif
 
 	char * (*dump)(xmlDoc * const doc, boolean_t indent);

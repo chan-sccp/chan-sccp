@@ -47,6 +47,19 @@ static __attribute__ ((malloc)) xmlDoc * createDoc(void)
 	return doc;
 }
 
+static __attribute__ ((malloc)) xmlDoc * createDocFromStr(const char *inbuf, int length)
+{
+	int options = 0; /* XML_PARSE_XINCLUDE */
+	xmlDoc *doc = xmlReadMemory(inbuf, length, "noname.xml", NULL, options);
+	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "SCCP: (createDocFromStr) doc:%p\n", doc);
+	return doc;
+}
+
+static __attribute__ ((malloc)) xmlDoc * createDocFromPbxStr(const pbx_str_t *inbuf)
+{
+	return createDocFromStr(pbx_str_buffer(inbuf), pbx_str_size(inbuf));
+}
+
 static xmlNode * createNode(const char * const name)
 {
 	xmlNode * node = xmlNewNode(NULL, (const xmlChar *) name);
@@ -112,72 +125,94 @@ static __attribute__ ((malloc)) char * searchWebDirForFile(const char *filename,
 }
 */
 
-static const char ** convertPbxVar2XsltParams(PBX_VARIABLE_TYPE *v, const char *params[17], int *nbparams)
+static const char ** convertPbxVar2XsltParams(PBX_VARIABLE_TYPE *pbx_params, const char *params[17], int *nbparams)
 {
-	for (; v; v = v->next) {
+	PBX_VARIABLE_TYPE *v = pbx_params;
+	for(; v; v = v->next) {
 		params[*nbparams++] = v->name;
 		params[*nbparams++] = v->value;
-		
+		//params[*nbparams++] = strdup(v->name);
+		//params[*nbparams++] = strdup(v->value);
 		if (*nbparams >= 16) {
 			pbx_log(LOG_ERROR, "SCCP: to many xslt parameters supplied\n");
 			break;
 		}
 	}
+	params[*nbparams] = NULL;
 	return params;
 }
 
 /* rework to easy unit testing, TO MUCH INTEGRATION */
-static void applyStyleSheet(xmlDoc * const doc, const char *const styleSheet, const char *const language, sccp_xml_outputfmt_t outputfmt, PBX_VARIABLE_TYPE *pbx_params)
+/* return allocated string */
+static boolean_t applyStyleSheet(xmlDoc * const doc, PBX_VARIABLE_TYPE *pbx_params)
 {
+	boolean_t res = FALSE;
 	const char *params[17] = {0};
 	int nbparams = 0;
 
+	//params[nbparams++] = "locales";
+	//params[nbparams++] = language;
 	params[nbparams++] = "locales";
-	params[nbparams++] = language;
+	params[nbparams++] = "en";
 	
 	/* process xinclude elements. */
 	if (xmlXIncludeProcess(doc) < 0) {
-		xmlFreeDoc(doc);
-		return;
+		//xmlFreeDoc(doc);
+		return res;
 	}
 
 	xsltStylesheetPtr xslt = xsltLoadStylesheetPI(doc);
 	if (xslt) {
 		xmlSubstituteEntitiesDefault(1);
 		xmlLoadExtDtdDefaultValue = 1;
-		convertPbxVar2XsltParams(pbx_params, params, &nbparams);
-		xmlDocPtr tmpdoc = xsltApplyStylesheet(xslt, doc, params);
-		xsltFreeStylesheet(xslt);
-		xmlFreeDoc(doc);
-		if (!tmpdoc) {
-			return;
+		//convertPbxVar2XsltParams(pbx_params, params, &nbparams);
+		xmlDocPtr newdoc = xsltApplyStylesheet(xslt, doc, params);
+		if (newdoc) {			// switch xml doc with newdoc which got the stylesheet applied, free original xml doc
+			xmlFreeDoc(doc);
+			*(xmlDoc **)&doc = newdoc;
+			res = TRUE;
 		}
-		*(xmlDoc **)&doc = tmpdoc;
-	}
-
-	/*
-	char *translationFilename = searchWebDirForFile("translate", SCCP_XML_OUTPUTFMT_NULL, "xml");
-	if (translationFilename) {
- 		params[nbparams++] = "translationFile";
- 		sccp_copy_string((char *)params[nbparams++], translationFilename, SCCP_PATH_MAX);
-		sccp_free(translationFilename);
-	}
-
-	char *styleSheetFilename = searchWebDirForFile(styleSheet, outputfmt, "xsl");
-	if (styleSheetFilename) {
-		xsltStylesheet * const style = xsltParseStylesheetFile((const xmlChar *)styleSheetFilename);
-		xmlDoc * const newdoc = xsltApplyStylesheet(style, doc, convertPbxVar2XsltParams(pbx_params, params, &nbparams));
-		xsltFreeStylesheet(style);
-
-		// switch xml doc with newdoc which got the stylesheet applied, free original xml doc
-		xmlDoc *const tmpdoc = doc;
-		*(xmlDoc **)&doc = newdoc;
-		xmlFreeDoc(tmpdoc);
-
+		xsltFreeStylesheet(xslt);
 		xsltCleanupGlobals();
-		sccp_free(styleSheetFilename);
 	}
-	*/
+
+	return res;
+}
+
+/* rework to easy unit testing, TO MUCH INTEGRATION */
+static boolean_t applyStyleSheetByName(xmlDoc * const doc, const char *const styleSheetFilename, PBX_VARIABLE_TYPE *pbx_params, char **result)
+{
+	boolean_t res = FALSE;
+	const char *params[17] = {0};
+	int nbparams = 0;
+
+	//params[nbparams++] = "locales";
+	//params[nbparams++] = language;
+	params[nbparams++] = "locales";
+	params[nbparams++] = "en";
+	//convertPbxVar2XsltParams(pbx_params, params, &nbparams);
+	
+	/* process xinclude elements. */
+	if (xmlXIncludeProcess(doc) < 0) {
+		return res;
+	}
+
+	if (styleSheetFilename) {
+		xsltStylesheet * const xslt = xsltParseStylesheetFile((const xmlChar *)styleSheetFilename);
+		xmlDoc * const newdoc = xsltApplyStylesheet(xslt, doc, params);
+		if (newdoc) {			// switch xml doc with newdoc which got the stylesheet applied, free original xml doc
+			int output_len = 0;
+			xmlDocDumpFormatMemoryEnc(newdoc, (xmlChar **)result, &output_len, "UTF-8", 1);
+			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "applied Stylesheet newdoc: '%s'\n", *result);
+			xmlFreeDoc(newdoc);
+			res = TRUE;
+		}
+		//sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "applied Stylesheet doc: '%s'\n", dump(doc, TRUE));
+		xsltFreeStylesheet(xslt);
+		xsltCleanupGlobals();
+	}
+
+	return res;
 }
 #endif
 
@@ -210,6 +245,8 @@ static void __attribute__((destructor)) destroy_xml(void)
 /* Assign to interface */
 const XMLInterface iXML = {
 	.createDoc = createDoc,
+	.createDocFromStr = createDocFromStr,
+	.createDocFromPbxStr = createDocFromPbxStr,
 	.createNode = createNode,
 	.addElement = addElement,
 	.addProperty = addProperty,
@@ -219,6 +256,7 @@ const XMLInterface iXML = {
 	//.setBaseDir = setBaseDir,
 	//.getBaseDir = getBaseDir,
 	.applyStyleSheet = applyStyleSheet,
+	.applyStyleSheetByName = applyStyleSheetByName,
 #endif
 	.dump = dump,
 	.destroyDoc = destroyDoc,
