@@ -898,7 +898,7 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 		sccp_session_stop_accept_thread();
 	}
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Starting bind and listen!\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Running bind and listen!\n");
 	if (accept_sock < 0) {
 		int status;
 		port = sccp_netsock_getPort(bindaddr);
@@ -941,11 +941,11 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 		} while(0);
 		freeaddrinfo(res);
 	} else {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Socked has not changed so we are reusing it\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Socket has not changed so we are reusing it\n");
 	}
 
 	if (accept_sock > -1) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Started listening on %s:%d using socket:%d\n", addrStr, port, accept_sock);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Listening on %s:%d using socket:%d\n", addrStr, port, accept_sock);
 		result = TRUE;
 	}
 	return result;	
