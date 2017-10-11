@@ -3467,9 +3467,9 @@ void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessa
 			sccp_msg_t *msg = NULL;
 
 			REQ(msg, CloseReceiveChannel);
-			msg->data.CloseReceiveChannel.lel_conferenceId = htolel(channel->callid);
-			msg->data.CloseReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
-			msg->data.CloseReceiveChannel.lel_callReference = htolel(channel->callid);
+			msg->data.CloseReceiveChannel.lel_conferenceId = htolel(callReference);
+			msg->data.CloseReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
+			msg->data.CloseReceiveChannel.lel_callReference = htolel(callReference);
 			sccp_dev_send(d, msg);
 
 			REQ(msg, StopMediaTransmission);
