@@ -890,8 +890,9 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 {
 	int result = FALSE;
 	static struct sockaddr_storage boundaddr = {0};
-	char addrStr[INET6_ADDRSTRLEN];
 	static int port = -1;
+	char addrStr[INET6_ADDRSTRLEN];
+	sccp_copy_string(addrStr, sccp_netsock_stringify_addr(bindaddr), sizeof(addrStr));
 
 	if (accept_sock > -1 && ( sccp_netsock_getPort(&boundaddr) != sccp_netsock_getPort(bindaddr) || sccp_netsock_cmp_addr(&boundaddr, bindaddr) ) ) {
 		sccp_session_stop_accept_thread();
@@ -913,7 +914,6 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 			snprintf(port_str, sizeof(port_str), "%d", port);
 		}
 
-		sccp_copy_string(addrStr, sccp_netsock_stringify_addr(bindaddr), sizeof(addrStr));
 		if ((status = getaddrinfo(sccp_netsock_stringify_addr(bindaddr), port_str, &hints, &res)) != 0) {
 			pbx_log(LOG_ERROR, "Failed to get addressinfo for %s:%s, error: %s!\n", sccp_netsock_stringify_addr(bindaddr), port_str, gai_strerror(status));
 			return FALSE;
@@ -941,7 +941,7 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 		} while(0);
 		freeaddrinfo(res);
 	} else {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "accept_sock >= 0");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Socked has not changed so we are reusing it\n");
 	}
 
 	if (accept_sock > -1) {
