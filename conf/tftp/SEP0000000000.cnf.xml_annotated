@@ -70,7 +70,8 @@
 		</callManagerGroup>
 		<srstInfo>
 			<name>Enable</name>
-			<srstOption>Enable</srstOption>
+			<srstOption>Disable</srstOption>		<!-- Leave disabled to prevent cross device connection issues -->
+									<!-- Should only be enabled if you are actually using srst -->
 			<userModifiable>true</userModifiable>
 			<ipAddr1>x.x.x.x</ipAddr1>
 			<port1>2000</port1>

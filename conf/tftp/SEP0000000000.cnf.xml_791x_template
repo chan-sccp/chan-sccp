@@ -26,7 +26,7 @@
       </members>
     </callManagerGroup>
     <srstInfo>
-      <srstOption>Enable</srstOption>
+      <srstOption>Disable</srstOption>
       <ipAddr1>x.x.x.x</ipAddr1>
       <port1>2000</port1>
       <ipAddr2/>
