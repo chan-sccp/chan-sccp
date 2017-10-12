@@ -115,6 +115,7 @@ static SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define STRINGIFY(_a) RET_STRING(_a)
 
 /* Versioning */
+/*
 #ifndef SCCP_VERSION
 #define SCCP_VERSION "custom"
 #endif
@@ -122,6 +123,7 @@ static SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #ifndef SCCP_BRANCH
 #define SCCP_BRANCH "trunk"
 #endif
+*/
 
 #define SCCP_FILENAME_MAX 80
 #if defined(PATH_MAX)

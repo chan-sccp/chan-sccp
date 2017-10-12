@@ -93,6 +93,7 @@
 #include "sccp_utils.h"
 #include "sccp_devstate.h"
 #include "sccp_labels.h"
+#include "revision.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -3088,9 +3089,12 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 
 		astman_append(s, "JSON: {");
 		astman_append(s, "\"Name\":\"Chan-sccp-b\",");
-		astman_append(s, "\"Branch\":\"%s\",", SCCP_BRANCH);
+		astman_append(s, "\"Branch\":\"%s\",", VCS_BRANCH);
 		astman_append(s, "\"Version\":\"%s\",", SCCP_VERSION);
-		astman_append(s, "\"Revision\":\"%s\",", SCCP_REVISIONSTR);
+		astman_append(s, "\"RevisionHash\":\"%s\",", VCS_SHORT_HASH);
+		astman_append(s, "\"RevisionNum\":\"%d\",", VCS_NUM);
+		astman_append(s, "\"Tag\":\"%s\",", VCS_TAG);
+		astman_append(s, "\"VersioningType\":\"%s\",", VCS_TYPE);
 		astman_append(s, "\"ConfigRevision\":\"%d\",", sccp_config_revision);
 		char *conf_enabled_array[] = {
 #ifdef CS_SCCP_PARK
