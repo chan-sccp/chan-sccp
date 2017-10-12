@@ -205,7 +205,11 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 /* example AUTO_RDLOCK(lock, &s->lock); */
 
 /* check to see if is pointer is actually already being cleaned up */
+#if __WORDSIZE == 64
 #define isPointerDead(_x) (sizeof(char*) == 4 ? (uintptr_t)_x == 0xdeaddead : (uintptr_t)_x == 0xdeaddeaddeaddead)
+#else
+#define isPointerDead(_x) ((uintptr_t)_x == 0xdeaddead)
+#endif
 
 /* deny the use of unsafe functions */
 #define __strcat strcat

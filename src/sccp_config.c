@@ -1597,7 +1597,7 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_addon_t *addon = NULL;
-	int addon_type;
+	skinny_devicetype_t addon_type;
 
 	SCCP_LIST_HEAD (, sccp_addon_t) * addonList = dest;
 
@@ -3099,7 +3099,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 #else
 		astman_append(s, "\"Branch\":\"%s\",", SCCP_BRANCH);
 		astman_append(s, "\"RevisionHash\":\"%s\",", SCCP_REVISION);
-		astman_append(s, "\"RevisionNum\":\"%d\",", "");
+		astman_append(s, "\"RevisionNum\":\"%d\",", 0);
 		astman_append(s, "\"Tag\":\"%s\",", "");
 		astman_append(s, "\"VersioningType\":\"%s\",", "archive");
 #endif
