@@ -64,7 +64,7 @@ permit = internal                                                               
 ;silencesuppression = no                                                          ; sets the silence suppression for all devices
                                                                                   ; we don't have to trust the phone ip address, but the ip address of the connection
 ;earlyrtp = progress                                                              ; valid options: none, offhook, immediate, dial, ringout and progress.
-                                                                                  ; The audio stream will be open in the progress and connected state by default. Immediate forces overlap dialing.
+                                                                                  ; The audio stream will be open in the 'progress' state by default. Immediate forces overlap dialing.
                                                                                   ; (POSSIBLE VALUES: ["Immediate","OffHook","Dialing","Ringout","Progress","None"])
 ;dndFeature = on                                                                  ; Turn on the dnd softkey for all devices. Valid values are 'off', 'on'.
 ;private = yes                                                                    ; permit the private function softkey
@@ -167,7 +167,7 @@ nat = ""                                                                        
                                                                                   ; (POSSIBLE VALUES: ["Auto","Off","(Auto)Off","On","(Auto)On"])
 directrtp = ""                                                                    ; This option allow devices to do direct RTP sessions.
 earlyrtp = ""                                                                     ; valid options: none, offhook, immediate, dial, ringout and progress.
-                                                                                  ; The audio stream will be open in the progress and connected state by default. Immediate forces overlap dialing.
+                                                                                  ; The audio stream will be open in the 'progress' state by default. Immediate forces overlap dialing.
                                                                                   ; (POSSIBLE VALUES: ["Immediate","OffHook","Dialing","Ringout","Progress","None"])
 private = ""                                                                      ; permit the private function softkey for this device
 privacy = ""                                                                      ; permit the private function softkey for this device
