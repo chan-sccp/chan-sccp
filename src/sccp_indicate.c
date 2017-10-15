@@ -162,11 +162,13 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_RING_OUT, GLOB(digittimeout));
 
-				sccp_dev_stoptone(d, lineInstance, c->callid);
-				if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
-					sccp_channel_openReceiveChannel(c);
-				} else {
-					sccp_dev_starttone(d, (uint8_t) SKINNY_TONE_ALERTINGTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+				if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
+					if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
+						sccp_channel_openReceiveChannel(c);
+					} else {
+						sccp_dev_stoptone(d, lineInstance, c->callid);
+						sccp_dev_starttone(d, (uint8_t) SKINNY_TONE_ALERTINGTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+					}
 				}
 
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGOUT);
@@ -180,6 +182,10 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 			break;
 		case SCCP_CHANNELSTATE_RINGING:
 			{
+				// We should indicate to the other side that we are making progress with this call
+				// That way the other side can setup for RTP Traffic in time
+				iPbx.queue_control(c->owner, AST_CONTROL_PROGRESS);
+
 				sccp_dev_cleardisplaynotify(d);
 				sccp_dev_clearprompt(d, lineInstance, 0);
 
@@ -253,7 +259,9 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 					sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
 					break;
 				}
-				sccp_dev_stoptone(d, lineInstance, c->callid);
+				if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT)) {
+					sccp_channel_openReceiveChannel(c);
+				}
 				if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
 					/* Pavel Troller / Immediate Mode / Overlap Dialing
 					Suppresses sending of the DialedNumber message in the case, when the number is just "s" (initial dial string in immeediate mode)
@@ -265,9 +273,6 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				}
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
-				if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
-					sccp_channel_openReceiveChannel(c);
-				}
 			}
 			break;
 		case SCCP_CHANNELSTATE_PROGRESS:
@@ -298,7 +303,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
 				if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
-				} else if (c->rtp.audio.mediaTransmissionState == SCCP_RTP_STATUS_INACTIVE) {
+				} else if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_ACTIVE && c->rtp.audio.mediaTransmissionState == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_startMediaTransmission(c);
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_CONNECTED);

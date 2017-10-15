@@ -2004,6 +2004,7 @@ static int sccp_wrapper_asterisk113_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 				}
 			} else {
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk113_update_rtp_peer) failed to get remote ip-address\n", c->currentDeviceId);
+				//ast_queue_control(c->owner, AST_CONTROL_UPDATE_RTP_PEER);
 				return -1;
 			}
 		}
@@ -2016,8 +2017,6 @@ static int sccp_wrapper_asterisk113_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk113_update_rtp_peer) failed to get local ip-address\n", c->currentDeviceId);
 				return -1;
 			}
-		} else {
-			ast_queue_control(c->owner, AST_CONTROL_UPDATE_RTP_PEER);
 		}
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk113_update_rtp_peer) new remote rtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s && !c->conference:%s) => directmedia=%s\n",
 			  c->currentDeviceId, sccp_netsock_stringify(&sas), S_COR(d->directrtp, "yes", "no"),
