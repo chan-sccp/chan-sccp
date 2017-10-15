@@ -1858,6 +1858,16 @@ static enum ast_rtp_glue_result get_rtp_info(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYP
 
 	if (pbx_channel_state(ast) != AST_STATE_UP) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) Asterisk requested EarlyRTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
+/*
+		if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
+			AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
+			if (d && (d->direcrtp || d->earlyrtp <= SCCP_EARLYRTP_PROGRESS)) {
+				sccp_channel_openReceiveChannel(c);
+				sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, c->line->name), c->callid);
+			}
+		}
+*/
+		return AST_RTP_GLUE_RESULT_LOCAL;
 	}
 
 	if (rtptype == SCCP_RTP_AUDIO) {
@@ -1979,8 +1989,7 @@ static int sccp_wrapper_asterisk113_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 		if (d->directrtp && d->nat < SCCP_NAT_ON && !nat_active && !c->conference) {			// asume directrtp
 			ast_rtp_instance_get_remote_address(instance, &sin_tmp);
 			memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
-			if (!ast_sockaddr_isnull(&sin_tmp)) {
-				memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
+			if (!sccp_netsock_is_any_addr(&sas)) {
 				if (d->nat == SCCP_NAT_OFF) {							// forced nat off to circumvent autodetection + direcrtp, requires checking both phone_ip and external session ip address against devices permit/deny
 					struct ast_sockaddr sin_local;
 					struct sockaddr_storage localsas = { 0, };
@@ -2000,15 +2009,15 @@ static int sccp_wrapper_asterisk113_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 		}
 		if (!directmedia) {										// fallback to indirectrtp
 			ast_rtp_instance_get_local_address(instance, &sin_tmp);
-			if (!ast_sockaddr_isnull(&sin_tmp)) {
-				memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
+			memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
+			if (!sccp_netsock_is_any_addr(&sas)) {
 				sccp_session_getOurIP(d->session, &sas, sccp_netsock_is_IPv4(&sas) ? AF_INET : AF_INET6);
 			} else {
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk113_update_rtp_peer) failed to get local ip-address\n", c->currentDeviceId);
 				return -1;
 			}
 		} else {
-		        ast_queue_control(c->owner, AST_CONTROL_UPDATE_RTP_PEER);
+			ast_queue_control(c->owner, AST_CONTROL_UPDATE_RTP_PEER);
 		}
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk113_update_rtp_peer) new remote rtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s && !c->conference:%s) => directmedia=%s\n",
 			  c->currentDeviceId, sccp_netsock_stringify(&sas), S_COR(d->directrtp, "yes", "no"),
