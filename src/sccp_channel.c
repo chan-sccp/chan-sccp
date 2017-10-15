@@ -675,8 +675,10 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 	}
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Opened Receive Channel (State: %s[%d])\n", d->id, sccp_channelstate2str(c->state), c->state);
 	sccp_channel_setDevice(c, d);
-	//sccp_rtp_set_phone(c, &c->rtp.audio, &sas);
-	if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState) {
+
+	/* skip start media transmittion during early-rtp (get_rtp_info) */
+	//if (pbx_channel_state(c->owner) == AST_STATE_UP && (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState)) {
+	if ((SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState)) {
 		sccp_channel_startMediaTransmission(c);
 	}
 	sccp_channel_send_callinfo(d, c);
@@ -1441,10 +1443,18 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 
 	/* copy the number to dial in the ast->exten */
 	iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
+
+	/* Setup RTP Server when dialing out, and request the ports which are going to be used during this call */
+	if (!channel->rtp.audio.instance && !sccp_rtp_createServer(device, (sccp_channel_t *)channel, SCCP_RTP_AUDIO)) {
+		pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s\n", device->id, channel->designator);
+	}
+
 	if (dial) {
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
 		if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
 			sccp_channel_openReceiveChannel(channel);
+		} else {
+			sccp_rtp_requestRTPPorts(device, channel);
 		}
 		sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
 		sccp_pbx_softswitch(channel);									/* we know the number to dial -> softswitch */
@@ -1452,6 +1462,8 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
 		if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
 			sccp_channel_openReceiveChannel(channel);
+		} else {
+			sccp_rtp_requestRTPPorts(device, channel);
 		}
 		if (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
 			sccp_copy_string(channel->dialedNumber, "s", sizeof(channel->dialedNumber));
