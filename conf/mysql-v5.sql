@@ -10,16 +10,16 @@
 -- Table with line-configuration
 --
 CREATE TABLE IF NOT EXISTS `sccpdevice` (
-  `type` varchar(45) default NULL,
+  `type` varchar(15) default NULL,
   `addon` varchar(45) default NULL,
   `description` varchar(45) default NULL,
   `tzoffset` varchar(5) default NULL,
   `transfer` varchar(5) default 'on',
   `cfwdall` varchar(5) default 'on',
   `cfwdbusy` varchar(5) default 'on',
-  `imageversion` varchar(45) default NULL,
-  `deny` varchar(100) default NULL,
-  `permit` varchar(100) default NULL,
+  `imageversion` varchar(31) default NULL,
+  `deny` varchar(100) default '0.0.0.0/0.0.0.0',
+  `permit` varchar(100) default 'internal',
   `dndFeature` varchar(5) default 'on',
   `directrtp` varchar(3) default 'off',
   `earlyrtp` varchar(10) default 'progress',
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `pickupmodeanswer` varchar(5) default 'on',
   `private` varchar(5) default 'off',
   `privacy` varchar(100) default 'full',
-  `nat` varchar(4) default 'auto',
+  `nat` varchar(7) default 'auto',
   `softkeyset` varchar(100) default '',
   `audio_tos` varchar(11) default NULL,
   `audio_cos` varchar(1) default NULL,
@@ -56,8 +56,8 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
 -- Table with device-configuration
 --
 CREATE TABLE IF NOT EXISTS `sccpline` (
-  `id` varchar(4) default NULL,
-  `pin` varchar(45) default NULL,
+  `id` MEDIUMINT NOT NULL AUTO INCREMENT,
+  `pin` varchar(7) default NULL,
   `label` varchar(45) default NULL,
   `description` varchar(45) default NULL,
   `context` varchar(45) default NULL,
@@ -82,8 +82,9 @@ CREATE TABLE IF NOT EXISTS `sccpline` (
   `amaflags` varchar(45) default NULL,
   `dnd` varchar(7) default 'reject',
   `setvar` varchar(50) default NULL,
-  `name` varchar(45) NOT NULL default '',
-  PRIMARY KEY  (`name`)
+  `name` varchar(40) NOT NULL default '',
+  PRIMARY KEY  (`name`),
+  UNIQUE (`id`)
 ) ENGINE=INNODB DEFAULT CHARSET=latin1;
 
 --

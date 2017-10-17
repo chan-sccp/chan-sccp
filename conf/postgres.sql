@@ -7,16 +7,16 @@ CREATE SCHEMA IF NOT EXISTS sccp;
 --
 DROP TABLE IF EXISTS sccpdevice;
 CREATE TABLE sccpdevice (
-  type varchar(45) default NULL,
+  type varchar(15) default NULL,
   addon varchar(45) default NULL,
   description varchar(45) default NULL,
   tzoffset varchar(5) default NULL,
   transfer varchar(5) default NULL,
   cfwdall varchar(5) default 'on',
   cfwdbusy varchar(5) default 'on',
-  imageversion varchar(45) default NULL,
-  deny varchar(100) default NULL,
-  permit varchar(100) default NULL,
+  imageversion varchar(31) default NULL,
+  deny varchar(100) default '0.0.0.0/0.0.0.0',
+  permit varchar(100) default 'internal',
   dndFeature varchar(5) default 'on',
   directrtp varchar(3) default 'off',
   earlyrtp varchar(10) default 'progress',
@@ -27,7 +27,7 @@ CREATE TABLE sccpdevice (
   pickupmodeanswer varchar(5) default 'on',
   private varchar(5) default 'on',
   privacy varchar(100) default 'full',
-  nat varchar(4) NULL default 'auto',
+  nat varchar(7) NULL default 'auto',
   softkeyset varchar(100) NULL default NULL,
   audio_tos varchar(11) default NULL,
   audio_cos varchar(1) default NULL,
@@ -53,10 +53,13 @@ CREATE TABLE sccpdevice (
 -- 
 -- Add/Remove columns if needed, check sccp.conf.annotated for valid column entries
 --
+CREATE SEQUENCE sccpline_id_seq;
+SELECT setval('sccpline_id_seq', 1);
+
 DROP TABLE IF EXISTS sccpline;
 CREATE TABLE sccpline (
-  id varchar(4) default NULL,
-  pin varchar(45) default NULL,
+  id smallint DEFAULT NEXTVAL('sccpline_id_seq') UNIQUE,
+  pin varchar(7) default NULL,
   label varchar(45) default NULL,
   description varchar(45) default NULL,
   context varchar(45) default NULL,
@@ -82,8 +85,8 @@ CREATE TABLE sccpline (
   amaflags varchar(45) default NULL,
   regexten character varying(20) DEFAULT NULL,
   setvar varchar(50) default NULL,
-  name varchar(45) NOT NULL,
-  PRIMARY KEY  (name)
+  name varchar(40) NOT NULL,
+  PRIMARY KEY (name)
 );
 
 --
