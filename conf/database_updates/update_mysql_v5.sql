@@ -26,7 +26,7 @@ ALTER TABLE `sccpdevice` ADD `backgroundImage` varchar(255) DEFAULT NULL;
 ALTER TABLE `sccpdevice` ADD `ringtone` varchar(255) DEFAULT NULL;
 
 ALTER TABLE `sccpline` DROP COLUMN `id`;
-ALTER TABLE `sccpline` ADD COLUMN `id` MEDIUMINT NOT NULL AUTO INCREMENT FIRST;
+ALTER TABLE sccpline ADD COLUMN id MEDIUMINT NOT NULL AUTO_INCREMENT FIRST, ADD INDEX Index2 (id)
 ALTER TABLE `sccpline` ADD UNIQUE(`id`);
 ALTER TABLE `sccpline` CHANGE COLUMN `pin` varchar(7);
 ALTER TABLE `sccpdevice` CHANGE COLUMN `type` varchar(15);

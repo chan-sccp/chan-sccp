@@ -11,16 +11,16 @@ PRAGMA auto_vacuum=2;
 -- Table with line-configuration
 --
 CREATE TABLE sccpdevice (
-  type 				varchar(45) 	DEFAULT NULL,
+  type 				varchar(15) 	DEFAULT NULL,
   addon 			varchar(45) 	DEFAULT NULL,
   description	 		varchar(45) 	DEFAULT NULL,
   tzoffset 			varchar(5) 	DEFAULT NULL,
   transfer 			varchar(5) 	DEFAULT 'on',
   cfwdall 			varchar(5) 	DEFAULT 'on',
   cfwdbusy 			varchar(5) 	DEFAULT 'on',
-  imageversion			varchar(45) 	DEFAULT NULL,
-  deny 				varchar(45) 	DEFAULT NULL,
-  permit 			varchar(45) 	DEFAULT NULL,
+  imageversion			varchar(31) 	DEFAULT NULL,
+  deny 				varchar(100) 	DEFAULT '0.0.0.0/0.0.0.0',
+  permit 			varchar(100) 	DEFAULT 'internal',
   dndFeature 			varchar(5) 	DEFAULT 'on',
   directrtp 			varchar(3) 	DEFAULT 'off',
   earlyrtp 			varchar(8) 	DEFAULT 'progress',
@@ -31,7 +31,7 @@ CREATE TABLE sccpdevice (
   pickupmodeanswer 		varchar(5) 	DEFAULT 'on',
   private 			varchar(5) 	DEFAULT 'off',
   privacy 			varchar(100) 	DEFAULT 'full',
-  nat 				varchar(4) 	DEFAULT 'auto',
+  nat 				varchar(7) 	DEFAULT 'auto',
   softkeyset 			varchar(100) 	DEFAULT '',
   audio_tos 			varchar(11) 	DEFAULT NULL,
   audio_cos 			varchar(1) 	DEFAULT NULL,
@@ -56,17 +56,17 @@ CREATE TABLE sccpdevice (
 -- Table with device-configuration
 --
 CREATE TABLE sccpline (
-  id 				varchar(4) 	DEFAULT NULL,
-  pin 				varchar(45) 	DEFAULT NULL,
+  id 				integer 	DEFAULT NULL AUTOINCREMENT,
+  pin 				varchar(7) 	DEFAULT NULL,
   label 			varchar(45) 	DEFAULT NULL,
   description 			varchar(45) 	DEFAULT NULL,
-  context 			varchar(45) 	DEFAULT NULL,
+  context 			varchar(45) 	DEFAULT NOT NULL,
   incominglimit			varchar(45) 	DEFAULT NULL,
   transfer 			varchar(45) 	DEFAULT NULL,
   mailbox 			varchar(45) 	DEFAULT NULL,
   vmnum 			varchar(45) 	DEFAULT NULL,
   cid_name 			varchar(45) 	DEFAULT NULL,
-  cid_num 			varchar(45) 	DEFAULT NULL,
+  cid_num 			varchar(45) 	DEFAULT NOT NULL,
   trnsfvm 			varchar(45) 	DEFAULT NULL,
   secondary_dialtone_digits 	varchar(45) 	DEFAULT NULL,
   secondary_dialtone_tone 	varchar(45) 	DEFAULT NULL,
@@ -77,14 +77,14 @@ CREATE TABLE sccpline (
   silencesuppression 		varchar(45) 	DEFAULT NULL,
   callgroup 			varchar(45) 	DEFAULT NULL,
   pickupgroup 			varchar(45) 	DEFAULT NULL,
-  namedcallgroup 		varchar(45) 	DEFAULT NULL,
-  namedpickupgroup 		varchar(45) 	DEFAULT NULL,
+  namedcallgroup 		varchar(100) 	DEFAULT NULL,
+  namedpickupgroup 		varchar(100) 	DEFAULT NULL,
   dnd 				varchar(7) 	DEFAULT 'reject',
   amaflags 			varchar(45) 	DEFAULT NULL,
-  defaultSubscriptionId_number 	varchar(5)	DEFAULT NULL,
   setvar 			varchar(50) 	DEFAULT NULL,
   name 				varchar(45) 	NOT NULL DEFAULT '',
-  PRIMARY KEY  (name)
+  PRIMARY KEY  (name),
+  UNIQUE (id)
 );
 
 CREATE TABLE buttontype (
