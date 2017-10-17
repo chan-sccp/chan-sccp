@@ -2973,14 +2973,11 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	char resp = '\0';
 	int len = 0;
 	
-	
 	enum sccp_cili {
 		SCCP_CILI_HAS_NEITHER,
 		SCCP_CILI_HAS_CALLID,
 		SCCP_CILI_HAS_LINEINSTANCE,
 	}; 
-
-	sccp_dump_msg(msg_in);
 
 	int digit = letohl(msg_in->data.KeypadButtonMessage.lel_kpButton);
 	switch (digit) {

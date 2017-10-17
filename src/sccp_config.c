@@ -2156,7 +2156,7 @@ static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const 
 #endif
 	// if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET && l && l->pendingDelete) {
 	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: major changes for line '%s' detected, device reset required -> pendingUpdate=1\n", l->id, l->name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: major line changes detected, device reset required -> pendingUpdate=1\n", l->name);
 		l->pendingUpdate = 1;
 	} else {
 		l->pendingUpdate = 0;
