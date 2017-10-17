@@ -105,7 +105,7 @@ strenum dndmode {
         SCCP_DNDMODE_OFF,				=0,	"Off",
         SCCP_DNDMODE_REJECT,				,	"Reject",
         SCCP_DNDMODE_SILENT,				,	"Silent",
-        SCCP_DNDMODE_USERDEFINED,			,	"UserDefined",
+        SCCP_DNDMODE_USERDEFINED,			,	"User",
 }
 
 strenum accessory {
