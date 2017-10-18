@@ -152,7 +152,7 @@ keepalive = ""                                                                  
 ;cfwdnoanswer = no                                                                ; allow call forward when line if not being answered
 ;dndFeature = yes                                                                 ; allow usage do not disturb button
 dnd = ""                                                                          ; allow setting dnd action for this device. Valid values are 'off', 'reject' (busy signal), 'silent' (ringer = silent) or 'user' (not used at the moment). . The value 'on' has been made obsolete in favor of 'reject'
-                                                                                  ; (POSSIBLE VALUES: ["Off","Reject","Silent","UserDefined"])
+                                                                                  ; (POSSIBLE VALUES: ["Off","Reject","Silent","User"])
 ;force_dtmfmode = auto                                                            ; auto, skinny or rfc2833. Some phone models with bad firmware do send dtmf in a messed up order and need to be forced to skinny mode.
                                                                                   ; (POSSIBLE VALUES: ["AUTO","RFC2833","SKINNY"])
 deny = ""
@@ -254,7 +254,7 @@ secondary_dialtone_digits = ""                                                  
 setvar = ""                                                                       ; (MULTI-ENTRY) extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)
                                                                                   ; format setvar=param=value, for example setvar=sipno=12345678
 dnd = ""                                                                          ; allow setting dnd action for this line. Valid values are 'off', 'reject' (busy signal), 'silent' (ringer = silent) or 'user' (not used at the moment). . The value 'on' has been made obsolete in favor of 'reject'
-                                                                                  ; (POSSIBLE VALUES: ["Off","Reject","Silent","UserDefined"])
+                                                                                  ; (POSSIBLE VALUES: ["Off","Reject","Silent","User"])
 regexten = ""                                                                     ; SCCP Lines will we added to the regcontext with this number for Dundi look up purpose
                                                                                   ; If regexten is not filled in the line name (categoryname between []) will be used
 
