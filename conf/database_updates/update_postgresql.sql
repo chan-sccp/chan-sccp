@@ -30,6 +30,9 @@ ALTER TABLE sccpline ALTER COLUMN pin TYPE varchar(7);
 ALTER TABLE sccpdevice ALTER COLUMN type TYPE varchar(15);
 ALTER TABLE sccpdevice ALTER COLUMN imageversion TYPE varchar(31);
 ALTER TABLE sccpdevice RENAME COLUMN dnd TO dndFeature;
+ALTER TABLE sccpdevice RENAME COLUMN pickupexten directed_pickup;
+ALTER TABLE sccpdevice RENAME COLUMN pickupcontext directed_pickup_context;
+ALTER TABLE sccpdevice RENAME COLUMN pickupmodeanswer directed_pickup_modeanswer;
 
 CREATE OR REPLACE VIEW sccpdeviceconfig AS
         SELECT 

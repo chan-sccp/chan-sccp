@@ -25,9 +25,9 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `earlyrtp` varchar(10) default 'progress',
   `mwilamp` varchar(5) default 'on',
   `mwioncall` varchar(5) default 'off',
-  `pickupexten` varchar(5) default 'on',
-  `pickupcontext` varchar(100) default '',
-  `pickupmodeanswer` varchar(5) default 'on',
+  `directed_pickup` varchar(5) default 'on',
+  `directed_pickup_context` varchar(100) default NULL,
+  `directed_pickup_modeanswer` varchar(5) default 'on',
   `private` varchar(5) default 'off',
   `privacy` varchar(100) default 'full',
   `nat` varchar(7) default 'auto',
@@ -50,7 +50,6 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `name` varchar(15) NOT NULL default '',
   PRIMARY KEY  (`name`)
 ) ENGINE=INNODB DEFAULT CHARSET=latin1;
-
 
 --
 -- Table with device-configuration

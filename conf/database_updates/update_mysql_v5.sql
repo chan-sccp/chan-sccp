@@ -1,6 +1,6 @@
 DROP VIEW sccpdeviceconfig;
 ALTER TABLE `sccpdevice` ADD `pickupcontext` VARCHAR( 100 ) NULL DEFAULT "" AFTER `pickupexten`;
-ALTER TABLE `sccpdevice` CHANGE `nat` VARCHAR( 7 ) DEFAULT "auto";
+ALTER TABLE `sccpdevice` CHANGE COLUMN `nat` VARCHAR( 7 ) DEFAULT "auto";
 ALTER TABLE `sccpdevice` CHANGE COLUMN `earlyrtp` VARCHAR(10);
 ALTER TABLE `sccpdevice` ADD `audio_tos` VARCHAR( 11 ) NULL DEFAULT "0xB8" AFTER `softkeyset`;
 ALTER TABLE `sccpdevice` ADD `audio_cos` VARCHAR( 1 ) NULL DEFAULT "6" AFTER `audio_tos`;
@@ -26,11 +26,15 @@ ALTER TABLE `sccpdevice` ADD `backgroundImage` varchar(255) DEFAULT NULL;
 ALTER TABLE `sccpdevice` ADD `ringtone` varchar(255) DEFAULT NULL;
 
 ALTER TABLE `sccpline` DROP COLUMN `id`;
-ALTER TABLE sccpline ADD COLUMN id MEDIUMINT NOT NULL AUTO_INCREMENT FIRST, ADD INDEX Index2 (id)
+ALTER TABLE `sccpline` ADD COLUMN id MEDIUMINT NOT NULL AUTO_INCREMENT FIRST, ADD INDEX Index2 (id)
 ALTER TABLE `sccpline` ADD UNIQUE(`id`);
 ALTER TABLE `sccpline` CHANGE COLUMN `pin` varchar(7);
 ALTER TABLE `sccpdevice` CHANGE COLUMN `type` varchar(15);
 ALTER TABLE `sccpdevice` CHANGE COLUMN `imageversion` varchar(31);
+
+ALTER TABLE `sccpdevice` CHANGE COLUMN `pickupexten` `directed_pickup` VARCHAR(5) NOT NULL default 'on';
+ALTER TABLE `sccpdevice` CHANGE COLUMN `pickupcontext` `directed_pickup_context` VARCHAR(100) default NULL;
+ALTER TABLE `sccpdevice` CHANGE COLUMN `pickupmodeanswer` `directed_pickup_modeanswer` VARCHAR(5) NOT NULL default 'on';
 
 CREATE OR REPLACE
 ALGORITHM = MERGE
