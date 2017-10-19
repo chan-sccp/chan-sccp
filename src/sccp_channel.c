@@ -1579,6 +1579,8 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
 		if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
 			sccp_channel_openReceiveChannel(channel);
+		//} else {
+		//	sccp_rtp_requestRTPPorts(device, channel);
 		}
 		sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
 		sccp_pbx_softswitch(channel);									/* we know the number to dial -> softswitch */
@@ -1586,6 +1588,8 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
 		if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
 			sccp_channel_openReceiveChannel(channel);
+		//} else {
+		//	sccp_rtp_requestRTPPorts(device, channel);
 		}
 		if (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
 			sccp_copy_string(channel->dialedNumber, "s", sizeof(channel->dialedNumber));

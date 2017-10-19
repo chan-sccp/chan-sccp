@@ -118,7 +118,7 @@ boolean_t sccp_rtp_createServer(constDevicePtr d, constChannelPtr c, sccp_rtp_ty
 			break;
 #endif
 		default:
-			pbx_log(LOG_ERROR, "%s: (sccp_rtp_createRTPServer) unknown/unhandled rtp type, cancelling\n", c->designator);
+			pbx_log(LOG_ERROR, "%s: (sccp_rtp_createServer) unknown/unhandled rtp type, cancelling\n", c->designator);
 			return FALSE;
 	}
 
@@ -302,7 +302,6 @@ void sccp_rtp_set_phone(constChannelPtr c, rtpPtr rtp, struct sockaddr_storage *
 	AUTO_RELEASE(sccp_device_t, device , sccp_channel_getDevice(c));
 
 	if (device) {
-		/* check if we have new information */
 		char peerIpStr[NI_MAXHOST + NI_MAXSERV];
 		char remoteIpStr[NI_MAXHOST + NI_MAXSERV];
 		char phoneIpStr[NI_MAXHOST + NI_MAXSERV];
@@ -317,9 +316,8 @@ void sccp_rtp_set_phone(constChannelPtr c, rtpPtr rtp, struct sockaddr_storage *
 		memcpy(&rtp->phone, new_peer, sizeof(rtp->phone));
 
 		//update pbx
-		if (iPbx.rtp_setPhoneAddress) {
+		if (iPbx.rtp_setPhoneAddress && rtp->instance) {
 			iPbx.rtp_setPhoneAddress(rtp, new_peer, device->nat >= SCCP_NAT_ON ? 1 : 0);
-		}
 
 		sccp_copy_string(remoteIpStr, sccp_netsock_stringify(&rtp->phone_remote), sizeof(remoteIpStr));
 		sccp_copy_string(phoneIpStr, sccp_netsock_stringify(&rtp->phone), sizeof(phoneIpStr));
