@@ -320,7 +320,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
 				if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
-				} else if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState && !d->directrtp) {
+				} else if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.transmission.state && !d->directrtp) {
 					sccp_channel_startMediaTransmission(c);
 				}
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
@@ -408,7 +408,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
 				if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
-				} else if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState && !d->directrtp) {
+				} else if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.transmission.state && !d->directrtp) {
 					sccp_channel_startMediaTransmission(c);
 				}
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);

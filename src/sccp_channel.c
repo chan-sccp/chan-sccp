@@ -38,7 +38,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include <asterisk/pbx.h>			// AST_EXTENSION_NOT_INUSE
 
 static uint32_t callCount = 1;
-void __sccp_channel_destroy(sccp_channel_t * channel);
+int __sccp_channel_destroy(const void * data);
 int complete_resume(constDevicePtr device, channelPtr channel);
 
 AST_MUTEX_DEFINE_STATIC(callCountLock);
@@ -732,7 +732,7 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 	if (c->owner && pbx_channel_state(c->owner) != AST_STATE_UP) {
 		if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
 			iPbx.queue_control(c->owner, AST_CONTROL_ANSWER);
-			if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState && !d->directrtp) {
+			if (SCCP_RTP_STATUS_INACTIVE == audio->transmission.state && !d->directrtp) {
 				sccp_channel_startMediaTransmission(c);
 			}
 		} else {
@@ -1729,7 +1729,7 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 	}
 	*/
 
-	if (channel->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
+	if (channel->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 		sccp_channel_openReceiveChannel(channel);
 	}
 
@@ -2059,20 +2059,20 @@ int complete_resume(constDevicePtr device, channelPtr channel)
 
 	/** set called party name */
 	{
-		AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, l));
+		AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(device, channel->line));
 		if(ld) {
 			char tmpNumber[StationMaxDirnumSize] = {0};
 			char tmpName[StationMaxNameSize] = {0};
 			if(!sccp_strlen_zero(ld->subscriptionId.number)) {
-				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, ld->subscriptionId.number);
+				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", ld->line->cid_num, ld->subscriptionId.number);
 			} else {
-				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, channel->line->defaultSubscriptionId.number);
+				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", ld->line->cid_num, ld->line->defaultSubscriptionId.number);
 			}
 
 			if(!sccp_strlen_zero(ld->subscriptionId.name)) {
-				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, ld->subscriptionId.name);
+				snprintf(tmpName, StationMaxNameSize, "%s%s", ld->line->cid_name, ld->subscriptionId.name);
 			} else {
-				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, channel->line->defaultSubscriptionId.name);
+				snprintf(tmpName, StationMaxNameSize, "%s%s", ld->line->cid_name, ld->line->defaultSubscriptionId.name);
 			}
 			if(channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 				iCallInfo.SetCallingParty(channel->privateData->callInfo, tmpNumber, tmpName, NULL);
