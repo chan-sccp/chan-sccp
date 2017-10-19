@@ -17,7 +17,7 @@ CREATE TABLE sccpdevice (
   pickupexten			varchar(5) 	DEFAULT 'on',
   pickupcontext 		varchar(100) 	DEFAULT '',
   pickupmodeanswer 		varchar(5) 	DEFAULT 'on',
-  private 			varchar(5) 	DEFAULT 'off',
+  private 			varchar(5) 	DEFAULT NULL,
   privacy 			varchar(100) 	DEFAULT 'full',
   nat 				varchar(4) 	DEFAULT 'auto',
   softkeyset 			varchar(100) 	DEFAULT '',

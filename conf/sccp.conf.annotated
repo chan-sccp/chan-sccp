@@ -170,7 +170,7 @@ earlyrtp = ""                                                                   
                                                                                   ; The audio stream will be open in the 'progress' state by default. Immediate forces overlap dialing.
                                                                                   ; (POSSIBLE VALUES: ["Immediate","OffHook","Dialing","Ringout","Progress","None"])
 private = ""                                                                      ; permit the private function softkey for this device
-privacy = ""                                                                      ; permit the private function softkey for this device
+privacy = ""                                                                      ; (POSSIBLE VALUES: ["full","on","off"]) full = disable hints notification on devices, on = hints showed depending on privacy key, off = hints always showed
 mwilamp = ""                                                                      ; Set the MWI lamp style when MWI active to on, off, wink, flash or blink
                                                                                   ; (POSSIBLE VALUES: ["Off","On","Wink","Flash","Blink"])
 mwioncall = ""                                                                    ; Set the MWI on call.

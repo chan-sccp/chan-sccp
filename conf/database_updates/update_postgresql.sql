@@ -13,6 +13,7 @@ ALTER TABLE sccpline alter dnd type varchar(7);
 ALTER TABLE sccpline alter dnd set default 'reject';
 ALTER TABLE sccpline ADD COLUMN namedcallgroup VARCHAR(100) DEFAULT NULL;
 ALTER TABLE sccpline ADD COLUMN namedpickupgroup VARCHAR(100) DEFAULT NULL;
+ALTER TABLE sccpdevice ADD COLUMN privacy VARCHAR(5) DEFAULT 'full';
 
 ALTER TABLE sccpline ALTER COLUMN id DROP DEFAULT;
 DROP SEQUENCE sccpline_id_seq;

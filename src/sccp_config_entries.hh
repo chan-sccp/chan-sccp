@@ -200,8 +200,8 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"directrtp", 			D_OBJ_REF(directrtp), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"This option allow devices to do direct RTP sessions.\n"},
 	{"earlyrtp", 			D_OBJ_REF(earlyrtp), 			TYPE_ENUM(sccp,earlyrtp),							SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"valid options: none, offhook, immediate, dial, ringout and progress.\n"
 																																					"The audio stream will be open in the 'progress' state by default. Immediate forces overlap dialing.\n"},
-	{"private", 			D_OBJ_REF(privacyFeature.enabled), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"permit the private function softkey for this device (Deprecated in favor of 'privacy')\n"},
-	{"privacy", 			D_OBJ_REF(privacyFeature),	 	TYPE_PARSER(sccp_config_parse_privacyFeature),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"permit the private function softkey for this device\n"},
+	{"private", 			D_OBJ_REF(privacyFeature.enabled), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"permit the private function softkey for this device\n"},
+	{"privacy", 			D_OBJ_REF(privacyFeature),	 	TYPE_PARSER(sccp_config_parse_privacyFeature),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"full = disable hints notification on devices, on = hints showed depending on privacy key, off = hints always showed\n"},
 	{"mwilamp",			D_OBJ_REF(mwilamp), 			TYPE_ENUM(skinny,lampmode),							SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the MWI lamp style when MWI active to on, off, wink, flash or blink\n"},
 	{"mwioncall", 			D_OBJ_REF(mwioncall), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the MWI on call.\n"},
 	{"meetme", 			D_OBJ_REF(meetme), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"enable/disable conferencing via app_meetme (on/off)\n"},

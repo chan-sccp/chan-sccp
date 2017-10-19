@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `directed_pickup` varchar(5) default 'on',
   `directed_pickup_context` varchar(100) default NULL,
   `directed_pickup_modeanswer` varchar(5) default 'on',
-  `private` varchar(5) default 'off',
+  `private` varchar(5) default NULL,
   `privacy` varchar(100) default 'full',
   `nat` varchar(7) default 'auto',
   `softkeyset` varchar(100) default '',

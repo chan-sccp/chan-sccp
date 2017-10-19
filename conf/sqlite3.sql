@@ -29,7 +29,7 @@ CREATE TABLE sccpdevice (
   directed_pickup		varchar(5) 	DEFAULT 'on',
   directed_pickup_context 	varchar(100) 	DEFAULT NULL,
   directed_pickup_modeanswer 	varchar(5) 	DEFAULT 'on',
-  private 			varchar(5) 	DEFAULT 'off',
+  private 			varchar(5) 	DEFAULT NULL,
   privacy 			varchar(100) 	DEFAULT 'full',
   nat 				varchar(7) 	DEFAULT 'auto',
   softkeyset 			varchar(100) 	DEFAULT '',

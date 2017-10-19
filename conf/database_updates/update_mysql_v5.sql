@@ -11,6 +11,7 @@ ALTER TABLE `sccpdevice` DROP COLUMN `dtmfmode`;
 ALTER TABLE `sccpdevice` CHANGE COLUMN `deny` VARCHAR(100) default '0.0.0.0/0.0.0.0';
 ALTER TABLE `sccpdevice` CHANGE COLUMN `permit` VARCHAR(100) default 'internal';
 ALTER TABLE `sccpdevice` CHANGE COLUMN `dnd` `dndFeature`;
+ALTER TABLE `sccpdevice` ADD COLUMN `privacy` ENUM('full','on','true','yes','off','false','no') default 'full' AFTER `private`;
 
 ALTER TABLE `sccpline` ADD `dnd` VARCHAR( 7 ) DEFAULT "reject" AFTER `amaflags`;
 ALTER TABLE `sccpline` ADD `namedcallgroup` VARCHAR(100) DEFAULT "" AFTER `pickupgroup`;
@@ -35,7 +36,6 @@ ALTER TABLE `sccpdevice` CHANGE COLUMN `imageversion` varchar(31);
 ALTER TABLE `sccpdevice` CHANGE COLUMN `pickupexten` `directed_pickup` VARCHAR(5) NOT NULL default 'on';
 ALTER TABLE `sccpdevice` CHANGE COLUMN `pickupcontext` `directed_pickup_context` VARCHAR(100) default NULL;
 ALTER TABLE `sccpdevice` CHANGE COLUMN `pickupmodeanswer` `directed_pickup_modeanswer` VARCHAR(5) NOT NULL default 'on';
-ALTER TABLE `sccpdevice` CHANGE COLUMN `private` `privacy` VARCHAR(5) NOT NULL default 'on';
 
 ALTER TABLE `sccpdevice` CHANGE COLUMN `earlyrtp` ENUM('immediate','offhook','dialing','ringout','progress','none') default NULL;
 ALTER TABLE `sccpdevice` CHANGE COLUMN `mwilamp` ENUM('on','true','yes','off','false','no','wink','flash','blink') default NULL;
