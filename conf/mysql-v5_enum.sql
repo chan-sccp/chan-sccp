@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `transfer` ENUM('on','true','yes','off','false','no') default 'on',
   `cfwdall` ENUM('on','true','yes','off','false','no') default NULL,
   `cfwdbusy` ENUM('on','true','yes','off','false','no') default NULL,
-  `privacy` ENUM('full','on','true','yes','off','false','no') default 'full'
+  `privacy` ENUM('full','on','true','yes','off','false','no') default 'full',
   `nat` ENUM('on','true','yes','off','false','no','auto') default NULL,
   `directrtp` ENUM('on','true','yes','off','false','no') default NULL,
   `softkeyset` varchar(100) default '',

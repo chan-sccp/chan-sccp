@@ -35,6 +35,29 @@ ALTER TABLE `sccpdevice` CHANGE COLUMN `imageversion` varchar(31);
 ALTER TABLE `sccpdevice` CHANGE COLUMN `pickupexten` `directed_pickup` VARCHAR(5) NOT NULL default 'on';
 ALTER TABLE `sccpdevice` CHANGE COLUMN `pickupcontext` `directed_pickup_context` VARCHAR(100) default NULL;
 ALTER TABLE `sccpdevice` CHANGE COLUMN `pickupmodeanswer` `directed_pickup_modeanswer` VARCHAR(5) NOT NULL default 'on';
+ALTER TABLE `sccpdevice` CHANGE COLUMN `private` `privacy` VARCHAR(5) NOT NULL default 'on';
+
+ALTER TABLE `sccpdevice` CHANGE COLUMN `earlyrtp` ENUM('immediate','offhook','dialing','ringout','progress','none') default NULL;
+ALTER TABLE `sccpdevice` CHANGE COLUMN `mwilamp` ENUM('on','true','yes','off','false','no','wink','flash','blink') default NULL;
+ALTER TABLE `sccpdevice` CHANGE COLUMN `mwioncall` ENUM('on','true','yes','off','false','no') default NULL;
+ALTER TABLE `sccpdevice` CHANGE COLUMN `directed_pickup` ENUM('on','true','yes','off','false','no') NOT NULL default 'on';
+ALTER TABLE `sccpdevice` CHANGE COLUMN `directed_pickup_modeanswer` ENUM('on','true','yes','off','false','no') NOT NULL default 'on';
+ALTER TABLE `sccpdevice` CHANGE COLUMN `dndFeature` ENUM('on','true','yes','off','false','no') default NULL;
+ALTER TABLE `sccpdevice` CHANGE COLUMN `transfer` ENUM('on','true','yes','off','false','no') default 'on';
+ALTER TABLE `sccpdevice` CHANGE COLUMN `cfwdall` ENUM('on','true','yes','off','false','no') default NULL;
+ALTER TABLE `sccpdevice` CHANGE COLUMN `cfwdbusy` ENUM('on','true','yes','off','false','no') default NULL;
+ALTER TABLE `sccpdevice` CHANGE COLUMN `privacy` ENUM('full','on','true','yes','off','false','no') default 'full';
+ALTER TABLE `sccpdevice` CHANGE COLUMN `nat` ENUM('on','true','yes','off','false','no','auto') default NULL;
+ALTER TABLE `sccpdevice` CHANGE COLUMN `directrtp` ENUM('on','true','yes','off','false','no') default NULL;
+ALTER TABLE `sccpdevice` CHANGE COLUMN `conf_allow` ENUM('on','true','yes','off','false','no') NOT NULL default 'on';
+ALTER TABLE `sccpdevice` CHANGE COLUMN `conf_play_part_announce` ENUM('on','true','yes','off','false','no') NOT NULL default 'on';
+ALTER TABLE `sccpdevice` CHANGE COLUMN `conf_mute_on_entry` ENUM('on','true','yes','off','false','no') NOT NULL default 'off';
+ALTER TABLE `sccpdevice` CHANGE COLUMN `conf_show_conflist` ENUM('on','true','yes','off','false','no') NOT NULL default 'on';
+
+ALTER TABLE `sccpline` CHANGE COLUMN `transfer` ENUM('on','true','yes','off','false','no') NOT NULL default 'on';
+ALTER TABLE `sccpline` CHANGE COLUMN `echocancel` ENUM('on','true','yes','off','false','no') default NULL;
+ALTER TABLE `sccpline` CHANGE COLUMN `silencesuppression` ENUM('on','true','yes','off','false','no') default NULL;
+ALTER TABLE `sccpline` CHANGE COLUMN `dnd` ENUM('off','reject','silent','user') NOT NULL default 'reject';
 
 CREATE OR REPLACE
 ALGORITHM = MERGE
