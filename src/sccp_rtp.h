@@ -36,7 +36,7 @@ struct sccp_rtp {
  	boolean_t directMedia;											/*!< Show if we are running in directmedia mode (set in pbx_impl during rtp bridging) */
 };														/*!< SCCP RTP Structure */
 
-SCCP_API boolean_t SCCP_CALL sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t type);
+SCCP_API boolean_t SCCP_CALL sccp_rtp_createServer(constDevicePtr d, constChannelPtr c, sccp_rtp_type_t type);
 SCCP_API int SCCP_CALL sccp_rtp_requestRTPPorts(constDevicePtr device, channelPtr channel);
 SCCP_API void SCCP_CALL sccp_rtp_stop(constChannelPtr channel);
 SCCP_API void SCCP_CALL sccp_rtp_destroy(constChannelPtr c);

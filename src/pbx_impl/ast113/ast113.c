@@ -668,6 +668,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 					}
 					sccp_astwrap_setDialedNumber(c, c->dialedNumber);
 				}
+				
 				iPbx.set_callstate(c, AST_STATE_RING);
 				inband_if_receivechannel = TRUE;
 			}
@@ -720,6 +721,13 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 
 		case AST_CONTROL_SRCCHANGE:									/* ask our channel's remote source address to update */
 			if (c->rtp.audio.instance) {
+				/*
+				if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState && !d->directrtp
+					&& (pbx_channel_state(c->owner) == AST_STATE_UP || SCCP_CHANNELSTATE_IsConnected(c->state))
+				) {
+					sccp_channel_startMediaTransmission(c);
+				}
+				*/
 				ast_rtp_instance_change_source(c->rtp.audio.instance);
 			}
 			break;
