@@ -962,7 +962,7 @@ void sccp_channel_updateMediaTransmission(constChannelPtr channel)
 	}
 	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.transmission.state) {
 		/*! \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (updateMediaTransmission) Start/Update media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (updateMediaTransmission) Start/Update media transmission on channel %s\n", channel->currentDeviceId, channel->designator);
 		sccp_channel_startMediaTransmission(channel);
 	}
 }
@@ -2600,7 +2600,6 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 //		}
 #endif
 	}
-
 	if (sccp_destination_local_channel->state == SCCP_CHANNELSTATE_RINGOUT) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Blind transfer. Signalling ringing state to %s\n", d->id, pbx_channel_name(pbx_source_remote_channel));
 		pbx_indicate(pbx_source_remote_channel, AST_CONTROL_RINGING);					// Shouldn't this be ALERTING?

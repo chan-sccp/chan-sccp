@@ -673,7 +673,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 					}
 					sccp_astwrap_setDialedNumber(c, c->dialedNumber);
 				}
-				
+
 				iPbx.set_callstate(c, AST_STATE_RING);
 				inband_if_receivechannel = TRUE;
 			}
@@ -2064,7 +2064,7 @@ static enum ast_rtp_glue_result __get_rtp_info(PBX_CHANNEL_TYPE * ast, PBX_RTP_T
 	else if (rtptype == SCCP_RTP_VIDEO) {
 		rtpInfo = sccp_rtp_getVideoPeerInfo(c, &RTP);
 	}
-#endif	
+#endif
 	if (rtpInfo == SCCP_RTP_INFO_NORTP || RTP == NULL) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_2 "%s: (get_rtp_info) got SCCP_RTP_INFO_NORTP => returning AST_RTP_GLUE_RESULT_FORBID\n", c->designator);
 		return AST_RTP_GLUE_RESULT_FORBID;
@@ -3241,17 +3241,17 @@ static boolean_t sccp_astwrap_attended_transfer(sccp_channel_t * destination_cha
 #if defined(__cplusplus) || defined(c_plusplus)
 struct ast_rtp_glue sccp_rtp = {
 	/* *INDENT-OFF* */
-	type:	SCCP_TECHTYPE_STR,
-	mod:	NULL,
-	get_rtp_info:sccp_astwrap_get_rtp_info,
-	//allow_rtp_remote:sccp_astwrap_allow_rtp_remote, 		/* check c->directmedia and return 1 if ok */
-#ifdef CS_SCCP_VIDEO
-	get_vrtp_info:sccp_astwrap_get_vrtp_info,
-	//allow_vrtp_remote:sccp_astwrap_allow_vrtp_remote, 	/* check c->directmedia and return 1 if ok */
-#endif	
-	get_trtp_info:NULL,
-	update_peer:sccp_astwrap_update_rtp_peer,
-	get_codec:sccp_astwrap_getCodec,
+	type: SCCP_TECHTYPE_STR,
+	mod: NULL,
+	get_rtp_info: sccp_astwrap_get_rtp_info,
+// allow_rtp_remote:sccp_astwrap_allow_rtp_remote, 		/* check c->directmedia and return 1 if ok */
+#	ifdef CS_SCCP_VIDEO
+	get_vrtp_info: sccp_astwrap_get_vrtp_info,
+// allow_vrtp_remote:sccp_astwrap_allow_vrtp_remote, 	/* check c->directmedia and return 1 if ok */
+#	endif
+	get_trtp_info: NULL,
+	update_peer: sccp_astwrap_update_rtp_peer,
+	get_codec: sccp_astwrap_getCodec,
 	/* *INDENT-ON* */
 };
 #else
@@ -3682,7 +3682,7 @@ static int register_channel_tech(struct ast_channel_tech *tech)
 	ast_format_cap_append_by_type(tech->capabilities, AST_MEDIA_TYPE_AUDIO);
 #ifdef CS_SCCP_VIDEO
 	ast_format_cap_append_by_type(tech->capabilities, AST_MEDIA_TYPE_VIDEO);
-#endif	
+#endif
 	//ast_format_cap_append_by_type(tech->capabilities, AST_MEDIA_TYPE_TEXT);
 	//pbx_format_cap_append_skinny(tech->capabilities, GLOB(global_preferences));
 
