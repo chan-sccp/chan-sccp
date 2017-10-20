@@ -620,14 +620,14 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 
 	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(ast));
 	if (!c) {
-		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: (pbx_indicate) no sccp channel yet\n");
+		//sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: (pbx_indicate) no sccp channel yet\n");
 		return -1;
 	}
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s'\n", c->designator, asterisk_indication2str(ind));
 
 	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
 	if (!d || c->state == SCCP_CHANNELSTATE_DOWN) {
-		//sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: (pbx_indicate) no sccp device yet\n");
+		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: (pbx_indicate) start indicate '%s'\n", asterisk_indication2str(ind));
 		switch (ind) {
 			case AST_CONTROL_CONNECTED_LINE:
 				sccp_astwrap_connectedline(c, data, datalen);
@@ -644,6 +644,11 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (readStat:%d, writeState:%d, rtp:%s)\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.reception.state, c->rtp.audio.transmission.state, (c->rtp.audio.instance) ? "yes" : "no");
 	boolean_t inband_if_receivechannel = FALSE;
+	/*
+	res = 1; locally use, to indicate we have not made any decision
+	res = 0; We handled the indication succesfully
+	res = -1; We could not handle the complete indication, pbx should do some more work like produce inband tones
+	*/
 	switch (ind) {
 		case AST_CONTROL_RINGING:
 			if (SKINNY_CALLTYPE_OUTBOUND == c->calltype && pbx_channel_state(c->owner) !=  AST_STATE_UP) {
@@ -732,8 +737,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			}
 			break;
 
-		case AST_CONTROL_SRCUPDATE:									/* semd control bit to force other side to update, their source address */
-			/* Source media has changed. */
+		case AST_CONTROL_SRCUPDATE:						/* semd control bit to force other side to update, their source address */
 			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
 
 			if (c->rtp.audio.instance) {
@@ -866,7 +870,11 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 	if (inband_if_receivechannel && c->rtp.audio.reception.state != SCCP_RTP_STATUS_INACTIVE) {
 		res = -1;
 	}
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_2 "%s: (pbx_indicate) finish: send indication (res:%d)\n", DEV_ID_LOG(d), res);
+
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3
+		"%s: (pbx_indicate) finish indicating '%s' (%d) condition on channel %s (readStat:%d, writeState:%d, rtp:%s)\n",
+		DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast),
+		c->rtp.audio.receiveChannelState, c->rtp.audio.mediaTransmissionState, (c->rtp.audio.instance) ? "yes" : "no");
 	return res;
 }
 
