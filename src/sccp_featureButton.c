@@ -119,63 +119,69 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 					break;
 
 				case SCCP_FEATURE_DND:
-					if (sccp_strcaseequals(config->button.feature.options, "silent")) {
-						if ((device->dndFeature.enabled && (sccp_dndmode_t) device->dndFeature.status == SCCP_DNDMODE_SILENT)) {
-							config->button.feature.status = 1;
-						} else {
-							config->button.feature.status = 0;
-						}
-					} else if (sccp_strcaseequals(config->button.feature.options, "busy")) {
-						if ((device->dndFeature.enabled && (sccp_dndmode_t) device->dndFeature.status == SCCP_DNDMODE_REJECT)) {
-							config->button.feature.status = 1;
-						} else {
-							config->button.feature.status = 0;
+					{
+						// coverity[MIXED_ENUMS]
+						sccp_dndmode_t status = (sccp_dndmode_t)device->dndFeature.status;
+						if (sccp_strcaseequals(config->button.feature.options, "silent")) {
+							if ((device->dndFeature.enabled && status == SCCP_DNDMODE_SILENT)) {
+								config->button.feature.status = 1;
+							} else {
+								config->button.feature.status = 0;
+							}
+						} else if (sccp_strcaseequals(config->button.feature.options, "busy")) {
+							if ((device->dndFeature.enabled && status == SCCP_DNDMODE_REJECT)) {
+								config->button.feature.status = 1;
+							} else {
+								config->button.feature.status = 0;
+							}
 						}
 					}
 					break;
 				case SCCP_FEATURE_MONITOR:
-					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) monitor featureButton new state:%s (%d)\n", DEV_ID_LOG(device), sccp_feature_monitor_state2str(device->monitorFeature.status), device->monitorFeature.status);
-					if (device->inuseprotocolversion > 15) {				// multiple States
-						buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
-						switch ((int) device->monitorFeature.status) {
-							case SCCP_FEATURE_MONITOR_STATE_DISABLED:
-								config->button.feature.status = 0;
-								break;
-							case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
-								config->button.feature.status = 0x020202;
-								break;
-							case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
-								config->button.feature.status = 0x020303;
-								break;
-							case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
-								config->button.feature.status = 0x020205;
-								break;
-						}
-					} else {
-						switch ((int) device->monitorFeature.status) {
-							case SCCP_FEATURE_MONITOR_STATE_DISABLED:
-								config->button.feature.status = 0;
-								break;
-							case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
-								if (device->active_channel) {
+					{
+						sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) monitor featureButton new state:%s (%d)\n", DEV_ID_LOG(device), sccp_feature_monitor_state2str(device->monitorFeature.status), device->monitorFeature.status);
+						// coverity[MIXED_ENUMS]
+						uint8_t status = (sccp_feature_monitor_state_t) device->monitorFeature.status;
+						if (device->inuseprotocolversion > 15) {				// multiple States
+							buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+							switch (status) {
+								case SCCP_FEATURE_MONITOR_STATE_DISABLED:
 									config->button.feature.status = 0;
-								} else {
+									break;
+								case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
+									config->button.feature.status = 0x020202;
+									break;
+								case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
+									config->button.feature.status = 0x020303;
+									break;
+								case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
+									config->button.feature.status = 0x020205;
+									break;
+							}
+						} else {
+							switch (status) {
+								case SCCP_FEATURE_MONITOR_STATE_DISABLED:
+									config->button.feature.status = 0;
+									break;
+								case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
+									if (device->active_channel) {
+										config->button.feature.status = 0;
+									} else {
+										config->button.feature.status = 1;
+										break;
+									}
+									break;
+								case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
 									config->button.feature.status = 1;
 									break;
-								}
-								break;
-							case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
-								config->button.feature.status = 1;
-								break;
-							case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
-								config->button.feature.status = 1;
-								break;
+								case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
+									config->button.feature.status = 1;
+									break;
+							}
 						}
 					}
 					break;
-
 #ifdef CS_DEVSTATE_FEATURE
-
 				/**
 				  Handling of custom devicestate toggle button feature
 				  */
