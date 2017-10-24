@@ -120,15 +120,13 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 
 				case SCCP_FEATURE_DND:
 					if (sccp_strcaseequals(config->button.feature.options, "silent")) {
-						// coverity[MIXED_ENUMS]
-						if ((device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_SILENT)) {
+						if ((device->dndFeature.enabled && (sccp_dndmode_t) device->dndFeature.status == SCCP_DNDMODE_SILENT)) {
 							config->button.feature.status = 1;
 						} else {
 							config->button.feature.status = 0;
 						}
 					} else if (sccp_strcaseequals(config->button.feature.options, "busy")) {
-						// coverity[MIXED_ENUMS]
-						if ((device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT)) {
+						if ((device->dndFeature.enabled && (sccp_dndmode_t) device->dndFeature.status == SCCP_DNDMODE_REJECT)) {
 							config->button.feature.status = 1;
 						} else {
 							config->button.feature.status = 0;
@@ -139,7 +137,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) monitor featureButton new state:%s (%d)\n", DEV_ID_LOG(device), sccp_feature_monitor_state2str(device->monitorFeature.status), device->monitorFeature.status);
 					if (device->inuseprotocolversion > 15) {				// multiple States
 						buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
-						switch (device->monitorFeature.status) {
+						switch ((int) device->monitorFeature.status) {
 							case SCCP_FEATURE_MONITOR_STATE_DISABLED:
 								config->button.feature.status = 0;
 								break;
@@ -154,7 +152,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 								break;
 						}
 					} else {
-						switch (device->monitorFeature.status) {
+						switch ((int) device->monitorFeature.status) {
 							case SCCP_FEATURE_MONITOR_STATE_DISABLED:
 								config->button.feature.status = 0;
 								break;
