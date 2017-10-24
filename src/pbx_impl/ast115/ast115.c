@@ -1046,9 +1046,6 @@ static boolean_t sccp_wrapper_asterisk115_allocPBXChannel(sccp_channel_t * chann
 #ifdef CS_SCCP_VIDEO
 		pbx_format_cap_append_skinny(caps, channel->preferences.video);
 #endif		
-	} else {
-		ast_format_cap_append_by_type((&sccp_tech)->capabilities, AST_MEDIA_TYPE_AUDIO);
-		ast_format_cap_append_by_type((&sccp_tech)->capabilities, AST_MEDIA_TYPE_VIDEO);
 	}
 	ast_channel_nativeformats_set(pbxDstChannel, caps);
 	ao2_ref(caps, -1);
