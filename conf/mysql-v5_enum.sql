@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS `sccpline` (
   `label` varchar(45) default NULL,
   `description` varchar(45) default NULL,
   `context` varchar(45) default NULL,
-  `incominglimit` integer NOT NULL default 6,
+  `incominglimit` TINYINT(2) default 6,
   `transfer` ENUM('on','true','yes','off','false','no') NOT NULL default 'on',
   `mailbox` varchar(45) default NULL,
   `vmnum` varchar(45) default NULL,
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS `sccpline` (
 --
 CREATE TABLE IF NOT EXISTS `buttonconfig` (
   `device` varchar(15) NOT NULL default '',
-  `instance` tinyint(4) NOT NULL default '0',
+  `instance` tinyint(4) NOT NULL default 0,
   `type` enum('line','speeddial','service','feature','empty') NOT NULL default 'line',
   `name` varchar(36) default NULL,
   `options` varchar(100) default NULL,
