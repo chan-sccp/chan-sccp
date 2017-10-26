@@ -2143,12 +2143,6 @@ static int sccp_system_message(int fd, sccp_cli_totals_t *totals, struct mansess
 		return RESULT_SHOWUSAGE;
 	}
 
-	if (!(iPbx.feature_addToDatabase("SCCP/message", "text", argv[3]))) {
-		CLI_AMI_OUTPUT(fd, s, "Failed to store the SCCP system message text\n");
-	} else {
-		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_3 "SCCP system message text stored successfully\n");
-	}
-
 	if (argc > 4) {
 		if (!strcmp(argv[4], "beep")) {
 			beep = TRUE;
@@ -2160,11 +2154,6 @@ static int sccp_system_message(int fd, sccp_cli_totals_t *totals, struct mansess
 	}
 
 	snprintf(timeoutStr, sizeof(timeoutStr), "%d", timeout);
-	if (!(iPbx.feature_addToDatabase("SCCP/message", "timeout", timeoutStr))) {
-		CLI_AMI_OUTPUT(fd, s, "Failed to store the SCCP system message timeout\n");
-	} else {
-		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_3 "SCCP system message timeout stored successfully\n");
-	}
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending system message '%s' to all devices (beep: %d, timeout: %d)\n", argv[3], beep, timeout);
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));

@@ -3003,42 +3003,16 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	if (!device) {
 		return;
 	}
+	/* initialize priority feature */
+	device->priFeature.status = 0x010101;
+	device->priFeature.initialized = 0;
+	
 #ifdef CS_DEVSTATE_FEATURE
-	char buf[256] = "";
-	sccp_devstate_specifier_t *specifier;
-#endif
-
-//#ifndef ASTDB_FAMILY_KEY_LEN
-//#define ASTDB_FAMILY_KEY_LEN 256
-//#endif
-
 #ifndef ASTDB_RESULT_LEN
 #define ASTDB_RESULT_LEN 256
 #endif
-	char buffer[ASTDB_RESULT_LEN];
-	char timebuffer[ASTDB_RESULT_LEN];
-	int timeout = 0;
-
-	/* Message */
-	if (iPbx.feature_getFromDatabase("SCCP", "message", buffer, sizeof(buffer))) {
-		if (iPbx.feature_getFromDatabase("SCCP/message", "text", buffer, sizeof(buffer))) {
-			if (!sccp_strlen_zero(buffer)) {
-				if (iPbx.feature_getFromDatabase && iPbx.feature_getFromDatabase("SCCP/message", "timeout", timebuffer, sizeof(timebuffer))) {
-					sscanf(timebuffer, "%i", &timeout);
-				}
-				if (timeout) {
-					sccp_dev_displayprinotify(device, buffer, 5, timeout);
-				} else {
-					sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_IDLE, buffer);
-				}
-			}
-		}
-	}
-
-	/* initialize so called priority feature */
-	device->priFeature.status = 0x010101;
-	device->priFeature.initialized = 0;
-#ifdef CS_DEVSTATE_FEATURE
+	char buf[ASTDB_RESULT_LEN] = "";
+	sccp_devstate_specifier_t *specifier;
 	/* Read and initialize custom devicestate entries */
 	SCCP_LIST_LOCK(&device->devstateSpecifiers);
 	SCCP_LIST_TRAVERSE(&device->devstateSpecifiers, specifier, list) {

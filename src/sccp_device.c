@@ -1590,7 +1590,7 @@ void sccp_dev_set_message(devicePtr d, const char *msg, const int timeout, const
 		iPbx.feature_addToDatabase("SCCP/message", "timeout", pbx_strdup(msgtimeout));
 		iPbx.feature_addToDatabase("SCCP/message", "text", msg);
 	}
-
+	
 	if (timeout) {
 		sccp_dev_displayprinotify(d, msg, SCCP_MESSAGE_PRIORITY_TIMEOUT, timeout);
 	} else {
@@ -1618,7 +1618,6 @@ void sccp_dev_clear_message(devicePtr d, const boolean_t cleardb)
 
 	sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_IDLE);
 	sccp_dev_clearprompt(d, 0, 0);
-	//sccp_dev_cleardisplay(d);
 }
 
 /*!
@@ -2113,7 +2112,7 @@ void sccp_dev_postregistration(void *data)
 #define ASTDB_FAMILY_KEY_LEN 100
 #endif
 #ifndef ASTDB_RESULT_LEN
-#define ASTDB_RESULT_LEN 100
+#define ASTDB_RESULT_LEN 256
 #endif
 	char family[ASTDB_FAMILY_KEY_LEN] = { 0 };
 	char buffer[ASTDB_RESULT_LEN] = { 0 };
@@ -2129,50 +2128,65 @@ void sccp_dev_postregistration(void *data)
 	event.event.deviceRegistered.device = sccp_device_retain(d);
 	sccp_event_fire(&event);
 
-	/* read last line/device states from db */
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Getting Database Settings...\n", d->id);
-	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
-		if (d->lineButtons.instance[instance]) {
-			AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_retain(d->lineButtons.instance[instance]));
+	if (iPbx.feature_getFromDatabase) {
+		/* read last line/device states from db */
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Getting Database Settings...\n", d->id);
+		for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
+			if (d->lineButtons.instance[instance]) {
+				AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_retain(d->lineButtons.instance[instance]));
 
-			snprintf(family, sizeof(family), "SCCP/%s/%s", d->id, linedevice->line->name);
-			if (iPbx.feature_getFromDatabase(family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-				linedevice->cfwdAll.enabled = TRUE;
-				sccp_copy_string(linedevice->cfwdAll.number, buffer, sizeof(linedevice->cfwdAll.number));
-				sccp_feat_changed(d, linedevice, SCCP_FEATURE_CFWDALL);
+				snprintf(family, sizeof(family), "SCCP/%s/%s", d->id, linedevice->line->name);
+				if (iPbx.feature_getFromDatabase(family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+					linedevice->cfwdAll.enabled = TRUE;
+					sccp_copy_string(linedevice->cfwdAll.number, buffer, sizeof(linedevice->cfwdAll.number));
+					sccp_feat_changed(d, linedevice, SCCP_FEATURE_CFWDALL);
+				}
+				if (iPbx.feature_getFromDatabase(family, "cfwdBusy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+					linedevice->cfwdBusy.enabled = TRUE;
+					sccp_copy_string(linedevice->cfwdBusy.number, buffer, sizeof(linedevice->cfwdAll.number));
+					sccp_feat_changed(d, linedevice, SCCP_FEATURE_CFWDBUSY);
+				}
 			}
-			if (iPbx.feature_getFromDatabase(family, "cfwdBusy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-				linedevice->cfwdBusy.enabled = TRUE;
-				sccp_copy_string(linedevice->cfwdBusy.number, buffer, sizeof(linedevice->cfwdAll.number));
-				sccp_feat_changed(d, linedevice, SCCP_FEATURE_CFWDBUSY);
+		}
+
+		/* System Message */
+		if (iPbx.feature_getFromDatabase("SCCP/message", "text", buffer, sizeof(buffer))) {
+			char timebuffer[ASTDB_RESULT_LEN];
+			int timeout = 0;
+			if (!sccp_strlen_zero(buffer)) {
+				if (iPbx.feature_getFromDatabase("SCCP/message", "timeout", timebuffer, sizeof(timebuffer))) {
+					sscanf(timebuffer, "%i", &timeout);
+				}
+				sccp_dev_set_message(d, buffer, timeout, FALSE, FALSE);
+			}
+		}
+
+		snprintf(family, sizeof(family), "SCCP/%s", d->id);
+		if (iPbx.feature_getFromDatabase(family, "dnd", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+			d->dndFeature.status = sccp_dndmode_str2val(buffer);
+			sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
+		}
+
+		if (iPbx.feature_getFromDatabase(family, "privacy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+			d->privacyFeature.status = TRUE;
+			sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
+		}
+
+		if (iPbx.feature_getFromDatabase(family, "monitor", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+			sccp_feat_monitor(d, NULL, 0, NULL);
+			sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
+		}
+
+		char lastNumber[SCCP_MAX_EXTENSION] = "";
+		if (iPbx.feature_getFromDatabase(family, "lastDialedNumber", buffer, sizeof(buffer))) {
+			sscanf(buffer,"%79[^;];lineInstance=%d", lastNumber, &instance);
+			AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_findByLineinstance(d, instance));
+			if(linedevice){ 
+				sccp_device_setLastNumberDialed(d, lastNumber, linedevice);
 			}
 		}
 	}
-	snprintf(family, sizeof(family), "SCCP/%s", d->id);
-	if (iPbx.feature_getFromDatabase(family, "dnd", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-		d->dndFeature.status = sccp_dndmode_str2val(buffer);
-		sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
-	}
-
-	if (iPbx.feature_getFromDatabase(family, "privacy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-		d->privacyFeature.status = TRUE;
-		sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
-	}
-
-	if (iPbx.feature_getFromDatabase(family, "monitor", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-		sccp_feat_monitor(d, NULL, 0, NULL);
-		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
-	}
-
-	char lastNumber[SCCP_MAX_EXTENSION] = "";
-	if (iPbx.feature_getFromDatabase(family, "lastDialedNumber", buffer, sizeof(buffer))) {
-		sscanf(buffer,"%79[^;];lineInstance=%d", lastNumber, &instance);
-		AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_findByLineinstance(d, instance));
-		if(linedevice){ 
-			sccp_device_setLastNumberDialed(d, lastNumber, linedevice);
-		}
-	}
-
+	
 	if (d->backgroundImage) {
 		d->setBackgroundImage(d, d->backgroundImage);
 	}
