@@ -16,8 +16,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include <netinet/in.h>
 
 /* arbitrary values */
-//#define NETSOCK_TIMEOUT_SEC 0											/* timeout after seven seconds when trying to read/write from/to a socket */
-//#define NETSOCK_TIMEOUT_MILLISEC 500										/* "       "     0 milli seconds "    "    */
+#define NETSOCK_TIMEOUT_SEC 10											/* timeout after seven seconds when trying to read/write from/to a socket */
+#define NETSOCK_TIMEOUT_MILLISEC 0										/* "       "     0 milli seconds "    "    */
 #define NETSOCK_KEEPALIVE_CNT 3											/* The maximum number of keepalive probes TCP should send before dropping the connection. */
 #define NETSOCK_LINGER_WAIT 0											/* but wait 0 milliseconds before closing socket and discard all outboung messages */
 #define NETSOCK_RCVBUF SCCP_MAX_PACKET										/* SO_RCVBUF */
@@ -389,7 +389,7 @@ char *__netsock_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, in
 		}															\
 	}
 
-void sccp_netsock_setoptions(int new_socket, int reuse, int linger, int keepalive)
+void sccp_netsock_setoptions(int new_socket, int reuse, int linger, int keepalive, int sndtimeout, int rcvtimeout)
 {
 	int on = 1;
 
@@ -402,7 +402,7 @@ void sccp_netsock_setoptions(int new_socket, int reuse, int linger, int keepaliv
 	}
 
 	/* nodelay */
-	// SCCP_NETSOCK_SETOPTION(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
+	SCCP_NETSOCK_SETOPTION(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
 
 	/* tos/cos */
 	int value = (int) GLOB(sccp_tos);
@@ -419,14 +419,25 @@ void sccp_netsock_setoptions(int new_socket, int reuse, int linger, int keepaliv
 
 	/* linger */
 	if (linger > -1) {
-		struct linger so_linger = {linger, NETSOCK_LINGER_WAIT};						/* linger=on but wait NETSOCK_LINGER_WAIT milliseconds before closing socket and discard all outboung messages */
+		struct linger so_linger = {linger, NETSOCK_LINGER_WAIT};					/* linger=on but wait NETSOCK_LINGER_WAIT milliseconds before closing socket and discard all outboung messages */
 		SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
 	}
 
 	/* timeeo */
-	//struct timeval mytv = { NETSOCK_TIMEOUT_SEC, NETSOCK_TIMEOUT_MILLISEC };				/* timeout after seven seconds when trying to read/write from/to a socket */
-	//SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &mytv, sizeof(mytv));
-	//SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(mytv));
+	if (sndtimeout) {											/* Setting the send timeout is a must, case because currently we are doing blocking send.
+														 * Without this timeout, it could stay in send for a long time, which means the session would
+														 * not read the alert pipe, and it could take a lot of time before asking the session
+														 * to stop and the session thread exiting, which would then create some partial deadlock
+														 * when trying closing all sessions.
+														 */
+		struct timeval mytv = { NETSOCK_TIMEOUT_SEC, NETSOCK_TIMEOUT_MILLISEC };			/* timeout after xxxx seconds when trying to write to a socket */
+		SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &mytv, sizeof(mytv));
+	}
+	
+	if (rcvtimeout) {
+		struct timeval mytv = { NETSOCK_TIMEOUT_SEC, NETSOCK_TIMEOUT_MILLISEC };			/* timeout after xxxx seconds when trying to read from a socket */
+		SCCP_NETSOCK_SETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &mytv, sizeof(mytv));
+	}
 
 	/* keepalive */
 	if (keepalive > -1) {

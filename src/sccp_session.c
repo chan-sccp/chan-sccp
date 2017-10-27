@@ -815,7 +815,7 @@ static void *accept_thread(void *ignore)
 			continue;
 		}
 
-		sccp_netsock_setoptions(new_socket, /*reuse*/ -1, /*linger*/ 0, /* keepalive */ -1);
+		sccp_netsock_setoptions(new_socket, /*reuse*/ -1, /*linger*/ 0, /*keepalive*/ -1, /*sndtimeout*/ -1, /*rcvtimeout*/ 0);
 
 		if (!sccp_session_new_socket_allowed(&incoming)) {
 			close(new_socket);
@@ -924,7 +924,7 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 				pbx_log(LOG_ERROR, "Unable to create SCCP socket: %s\n", strerror(errno));
 				break;
 			}
-			sccp_netsock_setoptions(accept_sock, /*reuse*/ 1, /*linger*/ -1, /*keepalive*/ -1);
+			sccp_netsock_setoptions(accept_sock, /*reuse*/ 1, /*linger*/ -1, /*keepalive*/ -1, /*sndtimeout*/0, /*rcvtimeout*/0);
 			if (bind(accept_sock, res->ai_addr, res->ai_addrlen) < 0) {
 				pbx_log(LOG_ERROR, "Failed to bind to %s:%d: %s!\n", addrStr, port, strerror(errno));
 				close(accept_sock);
