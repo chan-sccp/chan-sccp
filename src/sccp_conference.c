@@ -425,7 +425,7 @@ static void sccp_conference_connect_bridge_channels_to_participants(constConfere
  */
 static boolean_t sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participant_ast_channel, sccp_conference_t * conference, sccp_participant_t * participant)
 {
-	if (participant) {
+	if (participant && participant_ast_channel) {
 		if (!(iPbx.allocTempPBXChannel(participant_ast_channel, &participant->conferenceBridgePeer))) {
 			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Creation of Temp Channel Failed. Exiting.\n", conference->id);
 			pbx_hangup(participant->conferenceBridgePeer);
@@ -553,6 +553,7 @@ void pbx_builtin_setvar_int_helper(PBX_CHANNEL_TYPE * channel, const char *var_n
 boolean_t sccp_conference_addParticipatingChannel(conferencePtr conference, constChannelPtr conferenceSCCPChannel, constChannelPtr originalSCCPChannel, PBX_CHANNEL_TYPE * pbxChannel)
 {
 	boolean_t res = FALSE;
+	pbx_assert(conference != NULL);
 	if (!conference->isLocked) {
 		AUTO_RELEASE(sccp_participant_t, participant , sccp_conference_createParticipant(conference));
 
@@ -660,8 +661,17 @@ static void *sccp_conference_thread(void *data)
 		// Join the bridge
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Entering pbx_bridge_join: %s as %d\n", participant->conference->id, pbx_channel_name(participant->conferenceBridgePeer), participant->id);
 
+		/*
+		char buffer[2000];
+		iPbx.dumpchan(participant->conferenceBridgePeer, buffer, sizeof buffer);
+		pbx_log(LOG_NOTICE, "SCCPCONF/%04d: channel: %s\n", participant->conference->id, buffer);
+		struct ast_str *codec_buf = ast_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
+		pbx_log(LOG_NOTICE, "SCCPCONF/%04d: (sccp_conference_thread) nativeformats=%s\n", participant->conference->id, ast_format_cap_get_names(ast_channel_nativeformats(participant->conferenceBridgePeer), &codec_buf));
+		*/
+
 #if ASTERISK_VERSION_GROUP >= 113
 		enum ast_bridge_join_flags flags = 0; //AST_BRIDGE_JOIN_PASS_REFERENCE & AST_BRIDGE_JOIN_INHIBIT_JOIN_COLP;
+		//enum ast_bridge_join_flags flags = AST_BRIDGE_JOIN_PASS_REFERENCE & AST_BRIDGE_JOIN_INHIBIT_JOIN_COLP;
 		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, NULL, flags);
 #else
 		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, NULL, 0);
@@ -707,6 +717,7 @@ void sccp_conference_update(constConferencePtr conference)
  */
 void sccp_conference_start(conferencePtr conference)
 {
+	pbx_assert(conference != NULL);
 	sccp_conference_update_conflist(conference);
 	playback_to_conference(conference, "conf-placeintoconf", -1);
 	sccp_conference_update(conference);

@@ -319,6 +319,7 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
 		return;
 	}
 	/* check if remote set a preferred format that is compatible */
+	char s1[512], s2[512], s3[512], s4[512];
 	if ((channel->rtp.audio.mediaTransmissionState == SCCP_RTP_STATUS_INACTIVE)
 	    || !sccp_codec_isCompatible(channel->rtp.audio.readFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio))
 	    ) {
@@ -327,17 +328,13 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
 
 		if (channel->rtp.audio.readFormat == SKINNY_CODEC_NONE) {
 			channel->rtp.audio.readFormat = SKINNY_CODEC_WIDEBAND_256K;
-
-			char s1[512];
-
 			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "can not calculate readFormat, fall back to %s (%d)\n", sccp_codec_multiple2str(s1, sizeof(s1) - 1, &channel->rtp.audio.readFormat, 1), channel->rtp.audio.readFormat);
 		}
 		//iPbx.set_nativeAudioFormats(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
-		skinny_codec_t codecs[] = { channel->rtp.audio.readFormat };
-		iPbx.set_nativeAudioFormats(channel, codecs, 1);
+		//skinny_codec_t codecs[] = { channel->rtp.audio.readFormat };
+		//iPbx.set_nativeAudioFormats(channel, codecs, 1);
 		iPbx.rtp_setReadFormat(channel, channel->rtp.audio.readFormat);
 	}
-	char s1[512], s2[512], s3[512], s4[512];
 	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (recalculateReadformat) \n\tcapabilities: %s\n\tpreferences: %s\n\tremote caps: %s\n\tREAD:%s\n",
 		channel->designator, 
 		sccp_codec_multiple2str(s1, sizeof(s1) - 1, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio)), 
@@ -360,6 +357,7 @@ static void sccp_channel_recalculateWriteformat(sccp_channel_t * channel)
 		return;
 	}
 	/* check if remote set a preferred format that is compatible */
+	char s1[512], s2[512], s3[512], s4[512];
 	if ((channel->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE)
 	    || !sccp_codec_isCompatible(channel->rtp.audio.writeFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio))
 	    ) {
@@ -369,19 +367,15 @@ static void sccp_channel_recalculateWriteformat(sccp_channel_t * channel)
 
 		if (channel->rtp.audio.writeFormat == SKINNY_CODEC_NONE) {
 			channel->rtp.audio.writeFormat = SKINNY_CODEC_WIDEBAND_256K;
-
-			char s1[512];
-
 			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "can not calculate writeFormat, fall back to %s (%d)\n", sccp_codec_multiple2str(s1, sizeof(s1) - 1, &channel->rtp.audio.writeFormat, 1), channel->rtp.audio.writeFormat);
 		}
 		//iPbx.set_nativeAudioFormats(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
-		skinny_codec_t codecs[] = { channel->rtp.audio.readFormat };
-		iPbx.set_nativeAudioFormats(channel, codecs, 1);
+		//skinny_codec_t codecs[] = { channel->rtp.audio.readFormat };
+		//iPbx.set_nativeAudioFormats(channel, codecs, 1);
 		iPbx.rtp_setWriteFormat(channel, channel->rtp.audio.writeFormat);
 	} else {
 		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: audio.receiveChannelState already active %d\n", channel->currentDeviceId, channel->rtp.audio.receiveChannelState);
 	}
-	char s1[512], s2[512], s3[512], s4[512];
 	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (recalculateWriteformat) \n\tcapabilities: %s\n\tpreferences: %s\n\tremote caps: %s\n\tWrite:%s\n",
 		channel->designator, 
 		sccp_codec_multiple2str(s1, sizeof(s1) - 1, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio)), 
@@ -628,7 +622,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 
 	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
 	if (channel->owner) {
-		iPbx.set_nativeAudioFormats(channel, &audio->writeFormat, 1);
+		//iPbx.set_nativeAudioFormats(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
 		iPbx.rtp_setWriteFormat(channel, audio->writeFormat);
 	}
 
@@ -784,9 +778,8 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 		sccp_rtp_updateNatRemotePhone(channel, audio);
 	}
 
-	//sccp_channel_recalculateReadformat(channel);
 	if (channel->owner) {
-		iPbx.set_nativeAudioFormats(channel, &audio->readFormat, 1);
+		//iPbx.set_nativeAudioFormats(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
 		iPbx.rtp_setReadFormat(channel, audio->readFormat);
 	}
 
@@ -2528,10 +2521,10 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		return -1;
 	}
 	/* Update rtp setting to match predecessor */
-	skinny_codec_t codecs[] = { SKINNY_CODEC_WIDEBAND_256K };
-	iPbx.set_nativeAudioFormats(sccp_forwarding_channel, codecs, 1);
-	iPbx.rtp_setWriteFormat(sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
-	iPbx.rtp_setReadFormat(sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
+	//skinny_codec_t codecs[] = { SKINNY_CODEC_WIDEBAND_256K };
+	//iPbx.set_nativeAudioFormats(sccp_forwarding_channel, codecs, 1);
+	//iPbx.rtp_setWriteFormat(sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
+	//iPbx.rtp_setReadFormat(sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
 	sccp_channel_updateChannelCapability(sccp_forwarding_channel);
 
 	/* setting callerid */

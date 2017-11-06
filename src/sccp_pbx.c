@@ -795,7 +795,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 		return 0;
 	}
        	sccp_channel_updateChannelCapability(c);
-	iPbx.set_nativeAudioFormats(c, c->preferences.audio, 1);
+	//iPbx.set_nativeAudioFormats(c, c->preferences.audio, 1);
 	iPbx.setChannelName(c, c->designator);
 
 	// \todo: Bridge?

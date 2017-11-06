@@ -1,4 +1,4 @@
-/*!
+/*
  * \file        ast115.c
  * \brief       SCCP PBX Asterisk Wrapper Class
  * \author      Marcello Ceshia
@@ -376,8 +376,6 @@ static int sccp_wrapper_asterisk115_devicestate(const char *data)
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicestate) PBX requests state for '%s' - state %s\n", lineName, ast_devstate2str(res));
 	return res;
 }
-
-static boolean_t sccp_wrapper_asterisk115_setReadFormat(constChannelPtr channel, skinny_codec_t codec);
 
 #define RTP_NEW_SOURCE(_c,_log) 								\
 	if(c->rtp.audio.instance) { 										\
@@ -907,19 +905,26 @@ static int sccp_wrapper_asterisk115_setNativeAudioFormats(constChannelPtr channe
 		return 0;
 	}
 
-	length = 1;												//set only one codec
-
-	ast_debug(10, "%s: set native Formats length: %d\n", (char *) channel->currentDeviceId, length);
-
-	ast_format_cap_remove_by_type(ast_channel_nativeformats(channel->owner), AST_MEDIA_TYPE_AUDIO);
+	//length = 1;												//set only one codec
+	//ast_debug(10, "%s: set native Formats length: %d\n", (char *) channel->currentDeviceId, length);
+	struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	if (!caps) {
+		return FALSE;
+	}
+	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(channel->owner), AST_MEDIA_TYPE_UNKNOWN);
+	ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_AUDIO);
 	//pbx_format_cap_append_skinny(ast_channel_nativeformats(channel->owner), codec);			// if length != 1
- 	for (i = 0; i < length; i++) {
+	for (i = 0; i < length; i++) {
 		struct ast_format *format = sccp_asterisk115_skinny2ast_format(codec[1]);
 		if (format != ast_format_none) {
 			unsigned int framing = ast_format_get_default_ms(format);
-			ast_format_cap_append(ast_channel_nativeformats(channel->owner), format, framing);
+			ast_format_cap_append(caps, format, framing);
 		}
 	}
+	ast_channel_lock(channel->owner);
+	ast_channel_nativeformats_set(channel->owner, caps);
+	ast_channel_unlock(channel->owner);
+	ao2_cleanup(caps);
 
 	return 1;
 }
@@ -929,13 +934,23 @@ static int sccp_wrapper_asterisk115_setNativeVideoFormats(constChannelPtr channe
 	int i;
 	int length = 1;
 
+	struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	if (!caps) {
+		return FALSE;
+	}
+	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(channel->owner), AST_MEDIA_TYPE_UNKNOWN);
+	ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_VIDEO);
 	for (i = 0; i < length; i++) {
 		struct ast_format *format = sccp_asterisk115_skinny2ast_format(codec);
 		if (format != ast_format_none) {
 			unsigned int framing = ast_format_get_default_ms(format);
-			ast_format_cap_append(ast_channel_nativeformats(channel->owner), format, framing);
+			ast_format_cap_append(caps, format, framing);
 		}
 	}
+	ast_channel_lock(channel->owner);
+	ast_channel_nativeformats_set(channel->owner, caps);
+	ast_channel_unlock(channel->owner);
+	ao2_cleanup(caps);
 	return 1;
 }
 
@@ -1017,6 +1032,11 @@ static boolean_t sccp_wrapper_asterisk115_allocPBXChannel(sccp_channel_t * chann
 		return FALSE;
 	}
 
+	struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	if (!caps) {
+		return FALSE;
+	}
+
 	if (ids) {
 		assignedids = ids;
 	}
@@ -1025,6 +1045,7 @@ static boolean_t sccp_wrapper_asterisk115_allocPBXChannel(sccp_channel_t * chann
 	pbxDstChannel = ast_channel_alloc(0, AST_STATE_DOWN, line->cid_num, line->cid_name, line->accountcode, line->name, line->context, assignedids, pbxSrcChannel, line->amaflags, "%s", channel->designator);
 	if (pbxDstChannel == NULL) {
 		pbx_log(LOG_ERROR, "SCCP: (allocPBXChannel) ast_channel_alloc failed\n");
+		ao2_cleanup(caps);
 		return FALSE;
 	}
 	ast_channel_stage_snapshot(pbxDstChannel);
@@ -1034,11 +1055,6 @@ static boolean_t sccp_wrapper_asterisk115_allocPBXChannel(sccp_channel_t * chann
 	ast_channel_tech_pvt_set(pbxDstChannel, sccp_channel_retain(channel));
 
 	/* Copy Codec from SrcChannel */
-	struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-	if (!caps) {
-		return NULL;
-	}
-
 	if (pbxSrcChannel && ast_format_cap_count(ast_channel_nativeformats(pbxSrcChannel)) > 0) {
 		ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(pbxSrcChannel), AST_MEDIA_TYPE_UNKNOWN);
 	} else if (line && channel) {
@@ -1048,11 +1064,8 @@ static boolean_t sccp_wrapper_asterisk115_allocPBXChannel(sccp_channel_t * chann
 #endif		
 	}
 	ast_channel_nativeformats_set(pbxDstChannel, caps);
-	ao2_ref(caps, -1);
-	
-	struct ast_format *tmpfmt = ast_format_cap_get_format(ast_channel_nativeformats(pbxDstChannel), 0);
-	//struct ast_str *codec_buf = ast_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
-	//pbx_log(LOG_NOTICE, "allocPBXChannel: tmp->nativeformats=%s fmt=%s\n", ast_format_cap_get_names(ast_channel_nativeformats(pbxDstChannel), &codec_buf), ast_format_get_name(tmpfmt));
+	struct ast_format *tmpfmt = ast_format_cap_get_format(caps, 0);
+	ao2_cleanup(caps);
 	ast_channel_set_writeformat(pbxDstChannel, tmpfmt);
 	ast_channel_set_rawwriteformat(pbxDstChannel, tmpfmt);
 	ast_channel_set_readformat(pbxDstChannel, tmpfmt);
@@ -1150,7 +1163,7 @@ static boolean_t sccp_wrapper_asterisk115_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 	PBX_CHANNEL_TYPE *pbxDstChannel = NULL;
 	struct ast_assigned_ids assignedids = {NULL, NULL};
 
-	struct ast_format *ast_format;
+	struct ast_format *tmpfmt;
 	unsigned int framing;
 
 	if (!pbxSrcChannel) {
@@ -1167,31 +1180,41 @@ static boolean_t sccp_wrapper_asterisk115_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 		assignedids.uniqueid2 = uniqueid2;
 	}
 */
+	struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	if (!caps) {
+		return FALSE;
+	}
 
 	ast_channel_lock(pbxSrcChannel);
 	pbxDstChannel = ast_channel_alloc(0, AST_STATE_DOWN, 0, 0, ast_channel_accountcode(pbxSrcChannel), pbx_channel_exten(pbxSrcChannel), pbx_channel_context(pbxSrcChannel), &assignedids, pbxSrcChannel, ast_channel_amaflags(pbxSrcChannel), "%s-TMP", ast_channel_name(pbxSrcChannel));
 	if (pbxDstChannel == NULL) {
 		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) ast_channel_alloc failed\n");
+		ast_channel_unlock(pbxSrcChannel);
+		ao2_cleanup(caps);
 		return FALSE;
 	}
 
 	ast_channel_stage_snapshot(pbxDstChannel);
-	// ast_channel_tech_set(pbxDstChannel, &sccp_tech);
 	ast_channel_tech_set(pbxDstChannel, &null_tech);							// USE null_tech to prevent fixup issues. Channel is only used to masquerade a channel out of a running bridge.
 
-	// if (ast_format_cap_is_empty(pbx_channel_nativeformats(pbxSrcChannel))) {
+	/* Copy Codec from SrcChannel */
 	if (ast_format_cap_count(pbx_channel_nativeformats(pbxSrcChannel)) == 0) {
-		ast_format = ast_format_alaw;
-		ao2_ref(ast_format, +1);
+		tmpfmt = ast_format_alaw;
+		//tmpfmt = ast_format_slin;
+		ao2_ref(tmpfmt, +1);
 	} else {
-		ast_format = ast_format_cap_get_best_by_type(pbx_channel_nativeformats(pbxSrcChannel), AST_MEDIA_TYPE_AUDIO);
+		tmpfmt = ast_format_cap_get_best_by_type(pbx_channel_nativeformats(pbxSrcChannel), AST_MEDIA_TYPE_AUDIO);
 	}
-	framing = ast_format_get_default_ms(ast_format);
-	ast_format_cap_remove_by_type(ast_channel_nativeformats(pbxDstChannel), AST_MEDIA_TYPE_AUDIO);
-	ast_format_cap_append(ast_channel_nativeformats(pbxDstChannel), ast_format, framing);
-	ast_set_read_format(pbxDstChannel, ast_format);
-	ast_set_write_format(pbxDstChannel, ast_format);
-	ao2_ref(ast_format, -1);
+	framing = ast_format_get_default_ms(tmpfmt);
+	ast_format_cap_append(caps, tmpfmt, framing);
+	ast_channel_nativeformats_set(pbxDstChannel, caps);
+	ao2_cleanup(caps);
+	ast_channel_set_writeformat(pbxDstChannel, tmpfmt);
+	ast_channel_set_rawwriteformat(pbxDstChannel, tmpfmt);
+	ast_channel_set_readformat(pbxDstChannel, tmpfmt);
+	ast_channel_set_rawreadformat(pbxDstChannel, tmpfmt);
+	ao2_ref(tmpfmt, -1);
+	/* EndCodec */
 
 	ast_channel_context_set(pbxDstChannel, ast_channel_context(pbxSrcChannel));
 	ast_channel_exten_set(pbxDstChannel, ast_channel_exten(pbxSrcChannel));
@@ -1202,7 +1225,8 @@ static boolean_t sccp_wrapper_asterisk115_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 	ast_channel_unlock(pbxSrcChannel);
 	ast_channel_unlock(pbxDstChannel);
 
-	(*_pbxDstChannel) = pbx_channel_ref(pbxDstChannel);
+	(*_pbxDstChannel) = pbxDstChannel;
+
 	return TRUE;
 }
 
@@ -1581,12 +1605,14 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk115_request(const char *type, stru
 	/** workaround for asterisk console log flooded
 	 channel.c:5080 ast_write: Codec mismatch on channel SCCP/xxx-0000002d setting write format to g722 from unknown native formats (nothing)
 	*/
+/*
 	if (!channel->capabilities.audio[0]) {
 		skinny_codec_t codecs[] = { SKINNY_CODEC_WIDEBAND_256K };
 		sccp_wrapper_asterisk115_setNativeAudioFormats(channel, codecs, 1);
 		sccp_wrapper_asterisk115_setReadFormat(channel, SKINNY_CODEC_WIDEBAND_256K);
 		sccp_wrapper_asterisk115_setWriteFormat(channel, SKINNY_CODEC_WIDEBAND_256K);
 	}
+*/
 	
 	/* get remote codecs from channel driver */
 	//ast_rtp_instance_get_codecs(c->rtp.adio.rtp);
@@ -1699,6 +1725,8 @@ static int sccp_wrapper_asterisk115_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 
 			//! \todo update remote capabilities after fixup
 
+			struct ast_str *codec_buf = ast_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
+			pbx_log(LOG_NOTICE, "Fixup: nativeformats=%s\n", ast_format_cap_get_names(ast_channel_nativeformats(newchan), &codec_buf));
 		}
 	} else {
 		pbx_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", pbx_channel_name(oldchan), (void *) oldchan, pbx_channel_name(newchan), (void *) newchan);
@@ -2284,24 +2312,10 @@ static boolean_t sccp_wrapper_asterisk115_setWriteFormat(constChannelPtr channel
 		return FALSE;
 	}
 
+	pbx_log(LOG_NOTICE, "%s: setWriteFormat:%s\n", channel->designator, codec2str(codec));
 	struct ast_format *ast_format = sccp_asterisk115_skinny2ast_format(codec);
-	if (ast_format != ast_format_none) {
-		struct ast_format_cap *cap = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-		if (!cap) {
-			ao2_cleanup(cap);
-			return FALSE;
-		}
+	ast_set_write_format(channel->owner, ast_format);
 
-		unsigned int framing = ast_format_get_default_ms(ast_format);
-		ast_format_cap_append(cap, ast_format, framing);
-		ast_set_write_format_from_cap(channel->owner, cap);
-
-		ao2_ref(cap, -1);
-		cap = NULL;
-	} else {
-		return FALSE;
-	}
-	
 	if (NULL != channel->rtp.audio.instance) {
 		ast_rtp_instance_set_write_format(channel->rtp.audio.instance, ast_format);
 	}
@@ -2310,28 +2324,12 @@ static boolean_t sccp_wrapper_asterisk115_setWriteFormat(constChannelPtr channel
 
 static boolean_t sccp_wrapper_asterisk115_setReadFormat(constChannelPtr channel, skinny_codec_t codec)
 {
-	//! \todo possibly needs to be synced to ast108
 	if (!channel) {
 		return FALSE;
 	}
-
+	pbx_log(LOG_NOTICE, "%s: setReadFormat:%s\n", channel->designator, codec2str(codec));
 	struct ast_format *ast_format = sccp_asterisk115_skinny2ast_format(codec);
-	if (ast_format != ast_format_none) {
-		struct ast_format_cap *cap = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-		if (!cap) {
-			ao2_cleanup(cap);
-			return FALSE;
-		}
-
-		unsigned int framing = ast_format_get_default_ms(ast_format);
-		ast_format_cap_append(cap, ast_format, framing);
-		ast_set_read_format_from_cap(channel->owner, cap);
-
-		ao2_ref(cap, -1);
-		cap = NULL;
-	} else {
-		return FALSE;
-	}
+	ast_set_read_format(channel->owner, ast_format);
 
 	if (NULL != channel->rtp.audio.instance) {
 		ast_rtp_instance_set_read_format(channel->rtp.audio.instance, ast_format);
