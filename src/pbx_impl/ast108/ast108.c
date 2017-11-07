@@ -1897,7 +1897,6 @@ static int sccp_wrapper_asterisk18_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 
 		if (rtp) {											// send peer info to phone
 			sccp_rtp_set_peer(c, &c->rtp.audio, &sas);
-
 			c->rtp.audio.directMedia = directmedia;
 		} else if (vrtp) {
 			sccp_rtp_set_peer(c, &c->rtp.video, &sas);

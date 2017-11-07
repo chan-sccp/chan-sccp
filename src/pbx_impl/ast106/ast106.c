@@ -1939,7 +1939,7 @@ static int sccp_wrapper_asterisk16_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 		} else if (vrtp) {
 			sccp_rtp_set_peer(c, &c->rtp.video, &sas);
 			c->rtp.video.directMedia = directmedia;
-			//} else {
+		} else {
 			//sccp_rtp_set_peer(c, &c->rtp.text, &sas);
 			//c->rtp.text.directMedia = directmedia;
 		}

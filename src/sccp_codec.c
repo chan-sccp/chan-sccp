@@ -244,6 +244,21 @@ int sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const cha
 	return errors;
 }
 
+int sccp_get_codecs_bytype(skinny_codec_t * in_codecs, skinny_codec_t *out_codecs, skinny_payload_type_t type)
+{
+	int x = 0, y = 0, z = 0;
+	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
+		if (SKINNY_CODEC_NONE != in_codecs[x]) {
+			for (y = 0; y < sccp_codec_getArrayLen(); y++) {
+				if (skinny_codecs[y].codec == in_codecs[x] && skinny_codecs[y].codec_type == type) {
+					out_codecs[z++] = in_codecs[x];
+				}
+			}
+		}
+	}
+	return z;
+}
+
 /*!
  * \brief Check if Skinny Codec is compatible with Skinny Capabilities Array
  */
@@ -319,7 +334,7 @@ skinny_codec_t sccp_codec_findBestJoint(const skinny_codec_t ourPreferences[], i
 	uint8_t r, c, p;
 	skinny_codec_t firstJointCapability = SKINNY_CODEC_NONE;						/*!< used to get a default value */
 
-	sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "pLength %d, cLength: %d, rLength: %d\n", pLength, cLength, rLength);
+	//sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "pLength %d, cLength: %d, rLength: %d\n", pLength, cLength, rLength);
 
 	//char pref_buf[256];
 	//sccp_codec_multiple2str(pref_buf, sizeof(pref_buf) - 1, ourPreferences, (int)pLength);
@@ -344,7 +359,7 @@ skinny_codec_t sccp_codec_findBestJoint(const skinny_codec_t ourPreferences[], i
 			break;
 		}
 		/* no more preferences */
-		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "preference: %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]));
+		//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "preference: %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]));
 
 		/* check if we are capable to handle this codec */
 		for (c = 0; c < cLength; c++) {
@@ -353,33 +368,32 @@ skinny_codec_t sccp_codec_findBestJoint(const skinny_codec_t ourPreferences[], i
 				sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) ("Breaking at capability: %d\n", c);
 				break;
 			}
-
-			sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "preference: %d(%s), capability: %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]), ourCapabilities[c], codec2name(ourCapabilities[c]));
+			//sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "preference: %d(%s), capability: %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]), ourCapabilities[c], codec2name(ourCapabilities[c]));
 
 			/* we have no capabilities from the remote party, use the best codec from ourPreferences */
 			if (ourPreferences[p] == ourCapabilities[c]) {
 				if (firstJointCapability == SKINNY_CODEC_NONE) {
 					firstJointCapability = ourPreferences[p];
-					sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "found first firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
+					//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "found first firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
 				}
 
 				if (rLength == 0 || remotePeerCapabilities[0] == SKINNY_CODEC_NONE) {
-					sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "Empty remote Capabilities, using bestCodec from firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
+					//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "Empty remote Capabilities, using bestCodec from firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
 					return firstJointCapability;
 				} 
-					/* using capabilities from remote party, that matches our preferences & capabilities */
-					for (r = 0; r < rLength; r++) {
-						if (remotePeerCapabilities[r] == SKINNY_CODEC_NONE) {
-							sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) ("Breaking at remotePeerCapability: %d\n", c);
-							break;
-						}
-						sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "preference: %d(%s), capability: %d(%s), remoteCapability: " UI64FMT "(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]), ourCapabilities[c], codec2name(ourCapabilities[c]), (ULONG) remotePeerCapabilities[r], codec2name(remotePeerCapabilities[r]));
-						if (ourPreferences[p] == remotePeerCapabilities[r]) {
-							sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "found bestCodec as joint capability with remote peer %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]));
-							return ourPreferences[p];
-						}
+
+				/* using capabilities from remote party, that matches our preferences & capabilities */
+				for (r = 0; r < rLength; r++) {
+					if (remotePeerCapabilities[r] == SKINNY_CODEC_NONE) {
+						//sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) ("Breaking at remotePeerCapability: %d\n", c);
+						break;
 					}
-				
+					sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "preference: %d(%s), capability: %d(%s), remoteCapability: " UI64FMT "(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]), ourCapabilities[c], codec2name(ourCapabilities[c]), (ULONG) remotePeerCapabilities[r], codec2name(remotePeerCapabilities[r]));
+					if (ourPreferences[p] == remotePeerCapabilities[r]) {
+						//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "found bestCodec as joint capability with remote peer %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]));
+						return ourPreferences[p];
+					}
+				}
 			}
 		}
 	}
