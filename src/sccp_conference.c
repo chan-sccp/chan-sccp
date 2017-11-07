@@ -438,6 +438,7 @@ static boolean_t sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participan
 			pbx_channel_unref(participant_ast_channel);
 			return FALSE;
 		}
+		pbx_channel_ref(participant->conferenceBridgePeer);
 		if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
 			pbx_hangup(participant->conferenceBridgePeer);
 			pbx_channel_unref(participant->conferenceBridgePeer);
@@ -693,8 +694,11 @@ static void *sccp_conference_thread(void *data)
 				pbx_stream_and_wait(participant->conferenceBridgePeer, participant->final_announcement, "");
 				sccp_free(participant->final_announcement);
 			}
-			pbx_clear_flag(pbx_channel_flags(participant->conferenceBridgePeer), AST_FLAG_BLOCKING);
-			pbx_hangup(participant->conferenceBridgePeer);
+			if (pbx_test_flag(pbx_channel_flags(participant->conferenceBridgePeer), AST_FLAG_BLOCKING)) {
+				ast_softhangup(participant->conferenceBridgePeer, AST_SOFTHANGUP_DEV);
+			} else {
+				pbx_hangup(participant->conferenceBridgePeer);
+			}
 			participant->conferenceBridgePeer = NULL;
 		}
 		sccp_conference_removeParticipant(participant->conference, participant);

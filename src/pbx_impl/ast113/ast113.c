@@ -1141,7 +1141,7 @@ static boolean_t sccp_wrapper_asterisk113_masqueradeHelper(PBX_CHANNEL_TYPE * pb
 		ast_hangup(pbxTmpChannel);
 	}
 	pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) remove reference from pbxTmpChannel: %s\n", ast_channel_name(pbxTmpChannel));
-	pbxTmpChannel = ast_channel_unref(pbxTmpChannel);
+	ast_channel_unref(pbxTmpChannel);
 	return res;
 }
 
