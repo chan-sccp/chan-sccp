@@ -1451,7 +1451,11 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk115_request(const char *type, stru
 	sccp_channel_request_status_t requestStatus;
 	PBX_CHANNEL_TYPE *result_ast_channel = NULL;
 	struct ast_str *codec_buf = ast_str_alloca(64);
+#if !defined(CS_AST_CHANNEL_CALLID_TYPEDEF)
+	struct ast_callid *callid = NULL;
+#else	
 	ast_callid callid = 0;
+#endif
 
 	skinny_codec_t audioCapabilities[SKINNY_MAX_CAPABILITIES] = {0};
 	skinny_codec_t videoCapabilities[SKINNY_MAX_CAPABILITIES] = {0};
