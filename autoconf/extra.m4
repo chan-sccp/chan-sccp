@@ -521,6 +521,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wall dnl
 				-Wno-long-long dnl
 				-Wno-missing-field-initializers dnl
+				-Wno-format-truncation dnl
 				-Wmissing-declarations dnl
 				-Wnested-externs dnl
 				-Wnonnull dnl

@@ -1,4 +1,4 @@
-# FILE: spec file for package chan-sccp-b (Version trunk)
+# FILE: spec file for package chan-sccp (Version trunk)
 # COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
@@ -13,6 +13,7 @@
 %define 	asteriskver %(echo "asterisk${ASTERISKVER}") 
 %define 	rpmversion %(echo "${RPMVERSION}_${RPMBRANCH}") 
 %define 	rpmrelease %(echo "${RPMREVISION}")
+%define         _varlibdir %{_localstatedir}/lib
 
 %define 	is_mandrake %(test -e /etc/mandrake-release && echo 1 || echo 0)
 %define 	is_suse %(test -e /etc/SuSE-release && echo 1 || echo 0)
@@ -39,7 +40,7 @@
 %endif
 # %define 	packer %##(finger -lp `echo "$USER"` | head -n 1 | cut -d: -f 3)
 
-Name:           chan-sccp-b_%{asteriskver}
+Name:           chan-sccp_%{asteriskver}
 BuildRequires: 	bison
 BuildRequires: 	m4
 BuildRequires: 	%{asteriskver}
@@ -47,14 +48,14 @@ BuildRequires:  %{asteriskver}-devel
 
 # PreReq:	pwdutils coreutils sed grep
 
-Summary:	Chan_SCCP-b
+Summary:	chan-sccp
 Version: 	%{rpmversion}
 Release:  	%{rpmrelease}.%{disttag}
 License: 	GPL
 Group:          Productivity/Telephony/Servers
 Packager: 	%packer% <chan-sccp-b-release@lists.sourceforge.net>
-Vendor:         chan-sccp-b development team <chan-sccp-b-release@lists.sourceforge.net>
-URL: 		http://chan-sccp-b.sourceforge.net/
+Vendor:         chan-sccp development team <chan-sccp-b-release@lists.sourceforge.net>
+URL: 		https://github.com/chan-sccp/chan-sccp
 Source: 	%{tarsourcedir}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}_%{version}-%{release}-build
 
@@ -65,10 +66,10 @@ continued development of the chan_skinny project. It feature improved support
 for sccp dev ices and new feature like multiline, dynamic speeddials, shared 
 lines etc.
 
-Documentation is available on the chan-sccp-b home page
-(http://chan-sccp-b.sourceforge.net/) chan-sccp-b Home Page
-(http://chan-sccp-b.sourceforge.net/documentation.shtml) chan-sccp-b Documentation
-(http://sourceforge.net/projects/chan-sccp-b) chan-sccp-b SourceForge Page
+Documentation is available on the chan-sccp home page
+(http://chan-sccp-b.sourceforge.net/) chan-sccp Home Page
+(http://chan-sccp-b.sourceforge.net/documentation.shtml) chan-sccp Documentation
+(http://sourceforge.net/projects/chan-sccp-b) chan-sccp SourceForge Page
 
 
 Authors:
@@ -101,6 +102,9 @@ make  %{?_smp_mflags}
 mkdir -p ${rpm_build_root}/etc/asterisk/
 %{__cp} conf/sccp.conf %{rpm_build_root}/etc/asterisk/
 
+mkdir -p %{buildroot}%{_varlibdir}/asterisk/documentation/thirdparty/
+%{__cp} chan_sccp-en_US.xml %{buildroot}%{_varlibdir}/asterisk/documentation/thirdparty/chan_sccp-en_US.xml
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -110,13 +114,16 @@ rm -rf $RPM_BUILD_ROOT
 #doc/html
 %{_libdir}/asterisk/modules/chan_sccp.so
 %{_sysconfdir}/asterisk/sccp.conf
+%{_varlibdir}/asterisk/documentation/thirdparty/chan_sccp-en_US.xml
 
-%changelog -n chan-sccp-b
+%changelog -n chan-sccp
+* Thu Nov 9 2017 Diederik de Groot <ddegroot@talon.nl>
+- Added chan_sccp-en_US.xml
 * Wed Dec 2 2015 Steven Haigh <netwiz@crc.id.au>
 - Used entries from Steven
-* Tue Nov 10 2015 - dkgroot@talon.nl
+* Tue Nov 10 2015 Diederik de Groot <ddegroot@talon.nl>
 - Updates
-* Mon Apr 12 2010 - dkgroot@talon.nl
+* Mon Apr 12 2010 Diederik de Groot <ddegroot@talon.nl>
 - Modified for asterisk 1.4.30
 
 

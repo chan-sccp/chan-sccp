@@ -1,4 +1,4 @@
-# FILE:		AutoMake Makefile for chan-sccp-b
+# FILE:		AutoMake Makefile for chan-sccp
 # COPYRIGHT:	chan-sccp-b.sourceforge.net group 2011
 # CREATED BY:	Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: 	This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.

@@ -1,4 +1,4 @@
-# FILE:			AutoMake Makefile for chan-sccp-b
+# FILE:			AutoMake Makefile for chan-sccp
 # COPYRIGHT:		chan-sccp-b.sourceforge.net group 2009
 # CREATED BY:		Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE:		This program is free software and may be modified and distributed under the terms of the GNU Public License.
@@ -39,14 +39,14 @@ if ENABLE_RPMBUILD
 	@if [ ! -d ~/rpmbuild/RPMS ]; then mkdir -p ~/rpmbuild/RPMS;fi
 	@if [ ! -d ~/rpmbuild/SRPMS ]; then mkdir -p ~/rpmbuild/SRPMS;fi
 	@cp $(distdir).tar.gz ~/rpmbuild/SOURCES/;
-	@cp tools/chan-sccp-b.spec ~/rpmbuild/SOURCES/;
+	@cp tools/chan-sccp.spec ~/rpmbuild/SOURCES/;
 	@if [ -f /etc/SuSE-release ]; then \
 		export ASTERISKVER="`echo $(ASTERISK_VER)|sed 's/\.//g'`"; \
 	fi;
 	@export RPMVERSION=$(SCCP_VERSION);
 	@export RPMBRANCH=$(SCCP_BRANCH);
 	@export RPMREVISION=$(SCCP_REVISION);
-	@cd /usr/src/packages/SOURCES/ && SOURCEDIR="Chan_SCCP-4.3.0_TRUNK_r6452" rpmbuild -bb chan-sccp-b.spec --define="_usr ~/rpmbuild/";
+	@cd /usr/src/packages/SOURCES/ && SOURCEDIR="Chan_SCCP-4.3.0_TRUNK_r6452" rpmbuild -bb chan-sccp.spec --define="_usr ~/rpmbuild/";
 else
 	@echo ""; \
 	echo "RPM Build on your platform not (yet) supported !"; \
@@ -83,8 +83,8 @@ rmcoverage:
 
 coverage: src/.libs/chan_sccp.so
 	mkdir coverage; \
-	lcov --directory src/.libs -b src -c --o coverage/chan-sccp-b.info ; \
-	genhtml -o coverage -f -t chan-sccp-b coverage/chan-sccp-b.info
+	lcov --directory src/.libs -b src -c --o coverage/chan-sccp.info ; \
+	genhtml -o coverage -f -t chan-sccp coverage/chan-sccp.info
 	
 coverage-zero: rmcoverage
 	lcov --directory src/.libs -b src -z;
@@ -100,7 +100,6 @@ install-data-local: chan_sccp-en_US.xml
 	fi;																\
 	test -d $(DESTDIR)$(PBX_VARLIB)/third-party || $(mkinstalldirs) $(DESTDIR)$(PBX_VARLIB)/third-party;				\
 	test -d $(DESTDIR)$(PBX_VARLIB)/documentation/thirdparty || $(mkinstalldirs) $(DESTDIR)$(PBX_VARLIB)/documentation/thirdparty;	\
-	$(INSTALL) -m 644 chan_sccp-en_US.xml "$(DESTDIR)$(PBX_VARLIB)/third-party";							\
 	$(INSTALL) -m 644 chan_sccp-en_US.xml "$(DESTDIR)$(PBX_VARLIB)/documentation/thirdparty";
 
 XML_chan_sccp_en_US=$(top_srcdir)/src/sccp_appfunctions.c
@@ -126,6 +125,6 @@ reload:
 	cd src;make reload
 
 #install-exec-hook:
-#	@if test "$(DEBUG)" == "1" && test -n "$(GDB)" && test tools/chan-sccp-b_backtrace -nt /usr/bin/chan-sccp-b_backtrace; then	\
-#		$(INSTALL) -C tools/chan-sccp-b_backtrace /usr/bin/chan-sccp-b_backtrace;						\
+#	@if test "$(DEBUG)" == "1" && test -n "$(GDB)" && test tools/chan-sccp_backtrace -nt /usr/bin/chan-sccp_backtrace; then	\
+#		$(INSTALL) -C tools/chan-sccp_backtrace /usr/bin/chan-sccp_backtrace;						\
 #	fi
