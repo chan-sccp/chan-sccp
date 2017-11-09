@@ -59,10 +59,6 @@
 #define pbx_codec2str ast_codec2str
 
 // application / module / cli redefinitions
-#define pbx_register_application ast_register_application2
-#define pbx_unregister_application ast_unregister_application
-#define pbx_custom_function_register __ast_custom_function_register
-#define pbx_custom_function_unregister ast_custom_function_unregister
 #define pbx_channel_register ast_channel_register
 #define pbx_channel_register_ex ast_channel_register_ex
 #define pbx_channel_unregister ast_channel_unregister
@@ -262,6 +258,7 @@ typedef struct ast_event pbx_event_t;
 // #define pbx_pbx_start ast_pbx_start
 #define pbx_poll ast_poll
 #define pbx_print_group ast_print_group
+#define pbx_print_namedgroup ast_print_namedgroup
 #define pbx_pthread_create ast_pthread_create
 #define pbx_pthread_create_background ast_pthread_create_background
 #define pbx_pthread_create_detached_background ast_pthread_create_detached_background

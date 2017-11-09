@@ -168,6 +168,14 @@ typedef struct _PbxInterface {
 	void (*set_named_callgroups)(sccp_channel_t *channel, void *value);
 	void (*set_named_pickupgroups)(sccp_channel_t *channel, void *value);
 #endif
+#if ASTERISK_VERSION_GROUP >= 108
+	int (*register_application)(const char *app_name, int (*execute)(struct ast_channel *, const char *));
+#else
+	int (*register_application)(const char *app_name, int (*execute)(struct ast_channel *, void *));
+#endif
+	int (*unregister_application)(const char *app_name);
+	int (*register_function)(struct pbx_custom_function *custom_function);
+	int (*unregister_function)(struct pbx_custom_function *custom_function);
 	/* *INDENT-ON* */
 } PbxInterface;
 

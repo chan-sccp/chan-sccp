@@ -3110,6 +3110,26 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 	return ast_manager_register2(action, authority, func, ast_module_info->self, synopsis, description);
 }
 
+static int sccp_wrapper_register_application(const char *app_name, int (*execute)(struct ast_channel *, const char *))
+{
+	return ast_register_application2(app_name, execute, NULL, NULL, ast_module_info->self);
+}
+
+static int sccp_wrapper_unregister_application(const char *app_name)
+{
+	return ast_unregister_application(app_name);
+}
+
+static int sccp_wrapper_register_function(struct pbx_custom_function *custom_function)
+{
+	return __ast_custom_function_register(custom_function, ast_module_info->self);
+}
+
+static int sccp_wrapper_unregister_function(struct pbx_custom_function *custom_function)
+{
+	return ast_custom_function_unregister(custom_function);
+}
+
 static boolean_t sccp_wrapper_asterisk113_setLanguage(PBX_CHANNEL_TYPE * pbxChannel, const char *language)
 {
 
@@ -3250,6 +3270,11 @@ const PbxInterface iPbx = {
 	set_pickupgroup:		sccp_wrapper_asterisk_set_pickupgroup,
 	set_named_callgroups:		sccp_wrapper_asterisk_set_named_callgroups,
 	set_named_pickupgroups:		sccp_wrapper_asterisk_set_named_pickupgroups,
+
+	register_application:		sccp_wrapper_register_application,
+	unregister_application:		sccp_wrapper_unregister_application,
+	register_function:		sccp_wrapper_register_function,
+	unregister_function:		sccp_wrapper_unregister_function,
 	/* *INDENT-ON* */
 };
 
@@ -3390,6 +3415,11 @@ const PbxInterface iPbx = {
 	.set_pickupgroup		= sccp_wrapper_asterisk_set_pickupgroup,
 	.set_named_callgroups		= sccp_wrapper_asterisk_set_named_callgroups,
 	.set_named_pickupgroups		= sccp_wrapper_asterisk_set_named_pickupgroups,
+
+	.register_application		= sccp_wrapper_register_application,
+	.unregister_application		= sccp_wrapper_unregister_application,
+	.register_function		= sccp_wrapper_register_function,
+	.unregister_function		= sccp_wrapper_unregister_function,
 	/* *INDENT-ON* */
 };
 #endif

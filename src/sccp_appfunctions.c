@@ -29,11 +29,329 @@ SCCP_FILE_VERSION(__FILE__, "");
 #  include <asterisk/app.h>
 #endif
 
+/*** DOCUMENTATION
+	<function name="SCCPDevice" language="en_US">
+		<synopsis>
+			Retrieves information about an SCCP Device.
+		</synopsis>
+		<syntax argsep=",">
+			<parameter name="deviceId" required="true">
+				<para>Device to be queried.</para>
+				<optionlist>
+					<option name="current"><para>The current device.</para></option>
+					<option name="SEPxxxxxxxxxx"><para>string containing the SEP+Mac-address of the device to be queried.</para></option>
+				</optionlist>
+			</parameter>
+			<parameter name="option" required="true" multiple="true">
+				<para>One of the following options:</para>
+				<optionlist>
+					<option name="ip"><para>Ip-Address of the device (string).</para></option>
+					<option name="id"><para>Device id (string).</para></option>
+					<option name="status"><para>Current Device State (string).</para></option>
+					<option name="description"><para>Device Description (string).</para></option>
+					<option name="config_type"><para>Config Type (string).</para></option>
+					<option name="skinny_type"><para>Skinny Type (string).</para></option>
+					<option name="tz_offset"><para>Timezone Offset (integer).</para></option>
+					<option name="image_version"><para>Loaded image version (string).</para></option>
+					<option name="accessory_status"><para>Accessory Status (string).</para></option>
+					<option name="registration_state"><para>Registration State (string).</para></option>
+					<option name="codecs"><para>Codec Preferences (string).</para></option>
+					<option name="capability"><para>Codec Capabilities (string).</para></option>
+					<option name="lines_registered"><para>Has Registered Lines (boolean).</para></option>
+					<option name="lines_count"><para>Number of lines (integer).</para></option>
+					<option name="last_number"><para>Last number dialed (extension).</para></option>
+					<option name="early_rtp"><para>Early RTP Setting (string).</para></option>
+					<option name="supported_protocol_version"><para>Supported Protocol by Device (integer).</para></option>
+					<option name="used_protocol_version"><para>Currently Used Protocol (integer).</para></option>
+					<option name="mwi_light"><para>Current MWI Light Status (boolean).</para></option>
+					<option name="dnd_feature"><para>DND Feature (boolean).</para></option>
+					<option name="dnd_state"><para>DND State (string).</para></option>
+					<option name="dnd_action"><para>DND Action (string).</para></option>
+					<option name="dynamic"><para>Is Realtime Device (boolean).</para></option>
+					<option name="realtime"><para>Is Realtime Device (boolean).</para></option>
+					<option name="active_channel"><para>CallID of active Channel (integer).</para></option>
+					<option name="transfer_channel"><para>CallID of channel being transfered (integer).</para></option>
+					<option name="allow_conference"><para>Allow Conference (boolean).</para></option>
+					<option name="conf_play_general_announce"><para>Play General Announcements (boolean).</para></option>
+					<option name="conf_play_part_announce"><para>Play Announcement to participants (boolean).</para></option>
+					<option name="conf_mute_on_entry"><para>Are all participant muted when entering the conference (boolean).</para></option>
+					<option name="conf_music_on_hold_class"><para>Name of the Music on Hold Class used for conferences (string).</para></option>
+					<option name="conf_show_conflist"><para>Should the conference list be displayed when conference is used (boolean).</para></option>
+					<option name="conflist_active"><para>Is the conference list currently actively shown (boolean).</para></option>
+					<option name="current_line"><para>Currently Active Line ID (integer).</para></option>
+					<option name="button_config"><para>Array of buttons associated with this device (comma seperated string).</para></option>
+					<option name="pending_delete"><para>Reload is active and device is going to be removed (boolean).</para></option>
+					<option name="pending_update"><para>Reload is active and device is going to be updated (boolean).</para></option>
+					<option name="rtpqos"><para>Aggregated Call Statistics for this device (string).</para></option>
+					<option name="peerip"><para>IP-Address/port Associated with the device session (NO-NAT).</para></option>
+					<option name="recvip"><para>IP-Address/Port Actual Source IP-Address Reported by the phone upon registration (NAT).</para></option>
+					<option name="chanvar[setvar]" hasparams="true">
+						<argument name="setvar" required="true">
+							<para>Name of the <replaceable>setvar</replaceable>, associated with this device, to be queried (string).</para>
+						</argument>
+					</option>
+					<option name="codec[codec]" hasparams="true">
+						<argument name="codec" required="true">
+							<para>Number of Skinny <replaceable>codec</replaceable> to be queried (integer).</para>
+						</argument>
+					</option>
+				</optionlist>
+			</parameter>
+		</syntax>
+		<description>
+			<para>This function is used to query sccp device information from insde the dialplan.</para>
+			<example>
+				Set(ipaddress=${SCCPDevice(SEPxxxxxxxxxx,codecs)});
+			</example>
+			<para>This function can also be used together with Hash() and Array();</para>
+			<para>In this case, the device is only queried once and the results are stored in a Hash Table/Array.</para>
+			<example>
+				Set(HASH(_SCCP_DEVICE)=${SCCPDevice(current,ip,description,codec[2])});
+				Noop(Desc: ${HASH(SCCP_DEVICE,description)});
+				Noop(Ip: ${HASH(SCCP_DEVICE,ip)});
+				Noop(Codec2: ${HASH(SCCP_DEVICE,codec[2])});
+			</example>
+		</description>
+		<see-also>
+			<ref type="application">Array</ref>
+			<ref type="application">Hash</ref>
+		</see-also>
+	</function>
+	<function name="SCCPLine" language="en_US">
+		<synopsis>
+			Retrieves information about an SCCP Line.
+		</synopsis>
+		<syntax argsep=",">
+			<parameter name="lineName" required="true">
+				<para>Line to be queried.</para>
+				<optionlist>
+					<option name="current"><para>The current line.</para></option>
+					<option name="parent"><para>The forwarding line (In case this line was created to forward a call).</para></option>
+					<option name="LineName"><para>string specifying the name of the line to be queried.</para></option>
+				</optionlist>
+			</parameter>
+			<parameter name="option" required="true" multiple="true">
+				<para>One of the following options:</para>
+				<optionlist>
+					<option name="id"><para>Line Identifier (integer).</para></option>
+					<option name="name"><para>Line Name (string).</para></option>
+					<option name="description"><para>Line Description (string).</para></option>
+					<option name="label"><para>Line Label (string).</para></option>
+					<option name="vmnum"><para>Voicemail extension to be dialed when the voicemail soft/hard key is pressed (extension).</para></option>
+					<option name="trnsfvm"><para>Extension to be dialed when redirecting a call to voicemail (extension).</para></option>
+					<option name="meetme"><para>is meetme enabled (boolean).</para></option>
+					<option name="meetmenum"><para>Extension dialed when pressing the meetme softkey (extension).</para></option>
+					<option name="meetmeopts"><para>Options set when meetme applicaton is started (string).</para></option>
+					<option name="context"><para>PBX Context used when this line starts an outbound call (context).</para></option>
+					<option name="language"><para>language (string).</para></option>
+					<option name="accountcode"><para>accountcode (string).</para></option>
+					<option name="musicclass"><para>musicclass (string).</para></option>
+					<option name="amaflags"><para>amaflags (string).</para></option>
+					<option name="dnd_action"><para>dnd_action (string).</para></option>
+					<option name="callgroup"><para>call group this line is part of (integer-array).</para></option>
+					<option name="pickupgroup"><para>pickup group this line is part of (integer-array).</para></option>
+					<option name="named_callgroup"><para>named call group this line is part of (integer-array).</para></option>
+					<option name="named_pickupgroup"><para>named pickup group this line is part of (integer-array).</para></option>
+					<option name="cid_name"><para>CallerID Name (string).</para></option>
+					<option name="cid_num"><para>CallerID Number (string).</para></option>
+					<option name="incoming_limit"><para>Maximum number of inbound calls that will be accepted to this line (integer).</para></option>
+					<option name="channel_count"><para>Current number of active channels allocated on this line (integer).</para></option>
+					<option name="dynamic"><para>Is Realtime Line (boolean).</para></option>
+					<option name="realtime"><para>Is Realtime Line (boolean).</para></option>
+					<option name="pending_delete"><para>Reload is active and line is going to be removed (boolean).</para></option>
+					<option name="pending_update"><para>Reload is active and line is going to be updated (boolean).</para></option>
+					<option name="regexten"><para>Registration Extension (used by Dundi). Allocated in the dialplan when the line is registered (string).</para></option>
+					<option name="regcontext"><para>Registration Context (used by Dundi). Allocated in the dialplan when the line is registered (string).</para></option>
+					<option name="adhoc_number"><para>If this is a hotline/plar line, this returns the extension to be dialed when the phone goes offhook (extension).</para></option>
+					<option name="newmsgs"><para>Number of new voicemail messages (integer).</para></option>
+					<option name="oldmsgs"><para>Number of old voicemail messages (integer).</para></option>
+					<option name="num_devices"><para>Number of devices this line has been registed on (integer).</para></option>
+					<option name="mailboxes"><para>Returns a comma seperated list of voicemail mailboxes connected to this line (csv).</para></option>
+					<option name="cfwd"><para>Returns a comma seperated list of callforward set on this line (csv).</para></option>
+					<option name="devices"><para>Returns a comma seperated list of devicesId's that are connected to this line(csv).</para></option>
+					<option name="chanvar[setvar]" hasparams="true">
+						<argument name="setvar" required="true">
+							<para>Name of the <replaceable>setvar</replaceable>, associated with this device, to be queried (string).</para>
+						</argument>
+					</option>
+				</optionlist>
+			</parameter>
+		</syntax>
+		<description>
+			<para>This function is used to query sccp device information from insde the dialplan.</para>
+			<example>
+				Set(ipaddress=${SCCPLine(12345,codecs)});
+				Set(devices=${SCCPLine(current,devices)});
+				Set(cfwd=${SCCPLine(parent,cfwd)});
+			</example>
+			<para>This function can also be used together with Hash() and Array();</para>
+			<para>In this case, the line is only queried once and the results are stored in a Hash Table/Array.</para>
+			<example>
+				Set(HASH(_SCCP_LINE)=${SCCPLine(current,id,description,devices)});
+				Noop(Desc: ${HASH(SCCP_LINE,description)});
+				Noop(Id: ${HASH(SCCP_LINE,id)});
+				Noop(Devs: ${HASH(SCCP_LINE,devices)});
+			</example>
+		</description>
+		<see-also>
+			<ref type="application">Array</ref>
+			<ref type="application">Hash</ref>
+			<ref type="application">SCCPDevice</ref>
+		</see-also>
+	</function>
+	<function name="SCCPChannel" language="en_US">
+		<synopsis>
+			Retrieves information about an SCCP Channel.
+		</synopsis>
+		<syntax argsep=",">
+			<parameter name="channel" required="true">
+				<para>Line to be queried.</para>
+				<optionlist>
+					<option name="current"><para>The current channel.</para></option>
+					<option name="ChannelName"><para>Retrieve the channel by PBX Channel Name.</para></option>
+					<option name="CallId"><para>Retrieve the channel by Call ID.</para></option>
+				</optionlist>
+			</parameter>
+			<parameter name="option" required="true" multiple="true">
+				<para>One of the following options:</para>
+				<optionlist>
+					<option name="callid"><para>Channel CallID (integer).</para></option>
+					<option name="id"><para>Channel ID (integer).</para></option>
+					<option name="format"><para>Channel RTP Read Format (integer).</para></option>
+					<option name="codecs"><para>Channel RTP Read Codec (string).</para></option>
+					<option name="capability"><para>Channel Codec Capabilities (string).</para></option>
+					<option name="calledPartyName"><para>Called Party Name (string).</para></option>
+					<option name="calledPartyNumber"><para>Called Party Number (string).</para></option>
+					<option name="callingPartyName"><para>Calling Party Name (string).</para></option>
+					<option name="callingPartyNumber"><para>calling Party Number (string).</para></option>
+					<option name="originalCallingPartyName"><para>Original Calling Party Name (string).</para></option>
+					<option name="originalCallingPartyNumber"><para>Original Calling Party Number (string).</para></option>
+					<option name="originalCalledPartyName"><para>Original Called Party Name (string).</para></option>
+					<option name="originalCalledPartyNumber"><para>Original Called Party Number (string).</para></option>
+					<option name="lastRedirectingPartyName"><para>Last Redirecting Party Name (string).</para></option>
+					<option name="lastRedirectingPartyNumber"><para>Last Redirecting Party Number (string).</para></option>
+					<option name="cgpnVoiceMailbox"><para>Calling Party Voice Mailbox (string).</para></option>
+					<option name="cdpnVoiceMailbox"><para>Called Party Voice Mailbox (string).</para></option>
+					<option name="originalCdpnVoiceMailbox"><para>Original Called Party Voice Mailbox (string).</para></option>
+					<option name="lastRedirectingVoiceMailbox"><para>Last Redirecting Voice Mailbox (string).</para></option>
+					<option name="passthrupartyid"><para>RTP / Media Passthrough Party Id (integer).</para></option>
+					<option name="state"><para>ChannelState (string).</para></option>
+					<option name="previous_state"><para>Previous ChannelState (string).</para></option>
+					<option name="calltype"><para>Call Type (inbound/outbound) (string).</para></option>
+					<option name="dialed_number"><para>Dialed Number (only on outbound call) (extension).</para></option>
+					<option name="device"><para>Current DeviceId this channel is attached to (only active calls) (string).</para></option>
+					<option name="line"><para>Current LineName this channel is attached to (only active calls) (string).</para></option>
+					<option name="answered_elsewhere"><para>This call has been answered somewhere else (boolean).</para></option>
+					<option name="privacy"><para>Privacy (boolean).</para></option>
+					<option name="ss_action"><para>SoftSwitch Action responsible for this channel (string).</para></option>
+					<option name="conference_id"><para>Conference Id associated to this channel (string).</para></option>
+					<option name="conference_participant_id"><para>Conference Participant Id (string).</para></option>
+					<option name="parent"><para>Channel Forwarding Parent CallID. When this is a channel originating from a forwarded call, this will link back to the callid of the original call. (integer).</para></option>
+					<option name="bridgepeer"><para>Remote Bridge Peer connected to this channel (string).</para></option>
+					<option name="peerip"><para>IP-Address/port Associated with the device session (NO-NAT).</para></option>
+					<option name="recvip"><para>IP-Address/Port Actual Source IP-Address Reported by the phone upon registration (NAT).</para></option>
+					<option name="rtpqos"><para>Aggregated Call Statistics for this device (string).</para></option>
+					<option name="codec[codec]" hasparams="true">
+						<argument name="codec" required="true">
+							<para>Number of Skinny <replaceable>codec</replaceable> to be queried (integer).</para>
+						</argument>
+					</option>
+				</optionlist>
+			</parameter>
+		</syntax>
+		<description>
+			<para>This function is used to query sccp device information from insde the dialplan.</para>
+			<example>
+				Set(state=${SCCPChannel(12345,state)});
+				Set(device=${SCCPChannel(current,device)});
+				Set(calltype=${SCCPChannel(SCCP/12345-00000015,calltype)});
+			</example>
+			<para>This function can also be used together with Hash() and Array();</para>
+			<para>In this case, the channel is only queried once and the results are stored in a Hash Table/Array.</para>
+			<example>
+				Set(HASH(_SCCP_CHANNEL)=${SCCPChannel(current,bridgepeer,peerip,recvip)});
+				Noop(PIp: ${HASH(SCCP_CHANNEL,peerip)});
+				Noop(RIp: ${HASH(SCCP_CHANNEL,recvip)});
+				Noop(Bridge: ${HASH(SCCP_CHANNEL,bridgepeer)});
+			</example>
+		</description>
+		<see-also>
+			<ref type="application">Array</ref>
+			<ref type="application">Hash</ref>
+			<ref type="application">SCCPDevice</ref>
+			<ref type="application">SCCPLine</ref>
+		</see-also>
+	</function>
+	<application name="SCCPSetCalledParty" language="en_US">
+		<synopsis>
+			Set the callerid of the called party.
+		</synopsis>
+		<syntax>
+			<parameter name="callerid" required="true">
+				<para>CallerID String, following the format "'<replaceable>Name</replaceable>' &lt;<replaceable>extension</replaceable>&gt;"</para>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Usage: SCCPSetCalledParty(\"<replaceable>Name</replaceable>\" &lt;<replaceable>ext</replaceable>&gt;);</para>
+			<para>Sets the name and number of the called party for use with chan_sccp.</para>
+			<note>
+				<para>DEPRECATED:please use generic 'Set(CHANNEL(calledparty)=\"<replaceable>name</replaceable> &lt;<replaceable>exten</replaceable>&gt;\");' instead</para>
+			</note>
+		</description>
+		<see-also>
+			<ref type="application">Channel</ref>
+		</see-also>
+	</application>
+	<application name="SCCPSetCodec" language="en_US">
+		<synopsis>
+			Set the prefered codec for the current sccp channel to be used before dialing the destination channel.
+		</synopsis>
+		<syntax>
+			<parameter name="codec" required="true">
+				<para>String specifying the codec to be used.</para>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Usage: SCCPSetCodec(<replaceable>Codec Name</replaceable>);</para>
+			<para>Example: SCCPSetCodec(alaw);</para>
+			<note>
+				<para>This has to be done before dialing the destination</para>
+				<para>DEPRECATED:please use generic 'Set(CHANNEL(codec)=<replaceable>Codec Name</replaceable>);' instead</para>
+			</note>
+		</description>
+		<see-also>
+			<ref type="application">Channel</ref>
+		</see-also>
+	</application>
+	<application name="SCCPSetMessage" language="en_US">
+		<synopsis>
+			Send a message to the statusline of the phone connected to this channel.
+		</synopsis>
+		<syntax>
+			<parameter name="message" required="true">
+				<para>String specifying the message that should be send.</para>
+			</parameter>
+			<parameter name="timeout" required="false">
+				<para>Number of seconds the message should be displayed.</para>
+				<para>If timeout is ommitted, the message will remain until the next/empty message.</para>
+			</parameter>
+			<parameter name="priority" required="false">
+				<para>Use priority to set/clear priority notifications.</para>
+				<para>Higher priority levels overrule lower ones.</para>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Usage: SCCPSetMessage(<replaceable>Message Text</replaceable>, <replaceable>timeout</replaceable>, <replaceable>priority</replaceable>);</para>
+			<para>Example: SCCPSetMessage("Test Test", 10);</para>
+		</description>
+	</application>
+ ***/
+
 PBX_THREADSTORAGE(coldata_buf);
 PBX_THREADSTORAGE(colnames_buf);
 
 /*!
- * \brief ${SCCPDEVICE()} Dialplan function - reads device data 
+ * \brief ${SCCPDevice()} Dialplan function - reads device data
  * \param chan Asterisk Channel
  * \param cmd Command as char
  * \param data Extra data as char
@@ -60,7 +378,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 
 		*colname++ = '\0';
 		if (deprecation_warning++ % 10 == 0) {
-			pbx_log(LOG_WARNING, "SCCPDEVICE(): usage of ':' to separate arguments is deprecated. Please use ',' instead.\n");
+			pbx_log(LOG_WARNING, "SCCPDevice(): usage of ':' to separate arguments is deprecated. Please use ',' instead.\n");
 		}
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
@@ -79,16 +397,16 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 
 		if (c) {
 			if (!(d = sccp_channel_getDevice(c))) {
-				pbx_log(LOG_WARNING, "SCCPDEVICE(): SCCP Device not available\n");
+				pbx_log(LOG_WARNING, "SCCPDevice(): SCCP Device not available\n");
 				return -1;
 			}
 		} else {
-			/* pbx_log(LOG_WARNING, "SCCPDEVICE(): No current SCCP channel found\n"); */
+			/* pbx_log(LOG_WARNING, "SCCPDevice(): No current SCCP channel found\n"); */
 			return -1;
 		}
 	} else {
 		if (!(d = sccp_device_find_byid(data, FALSE))) {
-			pbx_log(LOG_WARNING, "SCCPDEVICE(): SCCP Device not available\n");
+			pbx_log(LOG_WARNING, "SCCPDevice(): SCCP Device not available\n");
 			return -1;
 		}
 	}
@@ -221,6 +539,18 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				sccp_copy_string(buf, d->pendingDelete ? "yes" : "no", buf_len);
 			} else if (!strcasecmp(token, "pending_update")) {
 				sccp_copy_string(buf, d->pendingUpdate ? "yes" : "no", buf_len);
+			} else if (!strcasecmp(token, "peerip")) {							// NO-NAT (Ip-Address Associated with the Session->sin)
+				if (d->session) {
+					struct sockaddr_storage sas = { 0 };
+					sccp_session_getOurIP(d->session, &sas, 0);
+					sccp_copy_string(buf, sccp_netsock_stringify(&sas), len);
+				}
+			} else if (!strcasecmp(token, "recvip")) {							// NAT (Actual Source IP-Address Reported by the phone upon registration)
+				if (d->session) {
+					struct sockaddr_storage sas = { 0 };
+					sccp_session_getSas(d->session, &sas);
+					sccp_copy_string(buf, sccp_netsock_stringify(&sas), len);
+				}
 			} else if (!strcasecmp(colname, "rtpqos")) {
 				sccp_call_statistics_t *call_stats = d->call_statistics;
 				snprintf(buf, buf_len, "Packets sent: %d;rcvd: %d;lost: %d;jitter: %d;latency: %d;MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;MLQKvr=%.2f|ICR=%.4f;CCR=%.4f;ICRmx=%.4f|CS=%d;SCS=%d", call_stats[SCCP_CALLSTATISTIC_LAST].packets_sent, call_stats[SCCP_CALLSTATISTIC_LAST].packets_received, call_stats[SCCP_CALLSTATISTIC_LAST].packets_lost, call_stats[SCCP_CALLSTATISTIC_LAST].jitter, call_stats[SCCP_CALLSTATISTIC_LAST].latency,
@@ -249,7 +579,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 					buf[0] = '\0';
 				}
 			} else {
-				pbx_log(LOG_WARNING, "SCCPDEVICE(%s): unknown colname: %s\n", data, token);
+				pbx_log(LOG_WARNING, "SCCPDevice(%s): unknown colname: %s\n", data, token);
 				buf[0] = '\0';
 			}
 			
@@ -269,24 +599,14 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	return 0;
 }
 
-/*! \brief Stucture to declare a dialplan function: SCCPDEVICE */
+/*! \brief Stucture to declare a dialplan function: SCCPDevice */
 static struct pbx_custom_function sccpdevice_function = {
-	.name = "SCCPDEVICE",
-	.synopsis = "Retrieves information about an SCCP Device",
-	.syntax = "Usage: SCCPDEVICE(deviceId,<option>,<option>,...)\n",
+	.name = "SCCPDevice",
 	.read = sccp_func_sccpdevice,
-	.desc = "DeviceId = Device Identifier (i.e. SEP0123456789)\n" "Option = One of the possible options mentioned in arguments\n",
-#if ASTERISK_VERSION_NUMBER > 10601
-	.arguments = "DeviceId = Device Identifier (i.e. SEP0123456789)\n"
-	    "Option = One of these possible options:\n"
-	    "ip, id, status, description, config_type, skinny_type, tz_offset, image_version, \n"
-	    "accessory_status, registration_state, codecs, capability, state, lines_registered, \n" "lines_count, last_number, early_rtp, supported_protocol_version, used_protocol_version, \n" "mwi_light, dynamic, realtime, active_channel, transfer_channel, \n" "conference_id, allow_conference, conf_play_general_announce, allow_conference, \n" "conf_play_part_announce, conf_mute_on_entry, conf_music_on_hold_class, conf_show_conflist, conflist_active\n"
-	    "current_line, button_config, pending_delete, chanvar[], codec[]",
-#endif
 };
 
 /*!
- * \brief  ${SCCPLINE()} Dialplan function - reads sccp line data 
+ * \brief  ${SCCPLine()} Dialplan function - reads sccp line data 
  * \param chan Asterisk Channel
  * \param cmd Command as char
  * \param data Extra data as char
@@ -314,7 +634,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 
 		*colname++ = '\0';
 		if (deprecation_warning++ % 10 == 0) {
-			pbx_log(LOG_WARNING, "SCCPLINE(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
+			pbx_log(LOG_WARNING, "SCCPLine(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
 		}
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
@@ -330,30 +650,30 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 
 	if (!strncasecmp(data, "current", 7)) {
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
-			/* pbx_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n"); */
+			/* pbx_log(LOG_WARNING, "SCCPLine(): Not an SCCP Channel\n"); */
 			return -1;
 		}
 
 		if (!c->line) {
-			pbx_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
+			pbx_log(LOG_WARNING, "SCCPLine(): SCCP Line not available\n");
 			return -1;
 		}
 		l = sccp_line_retain(c->line);
 	} else if (!strncasecmp(data, "parent", 7)) {
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 
-			/* pbx_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n"); */
+			/* pbx_log(LOG_WARNING, "SCCPLine(): Not an SCCP Channel\n"); */
 			return -1;
 		}
 
 		if (!c->parentChannel || !c->parentChannel->line) {
-			pbx_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
+			pbx_log(LOG_WARNING, "SCCPLine(): SCCP Line not available\n");
 			return -1;
 		}
 		l = sccp_line_retain(c->parentChannel->line);
 	} else {
 		if (!(l = sccp_line_find_byname(data, TRUE))) {
-			pbx_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
+			pbx_log(LOG_WARNING, "SCCPLine(): SCCP Line not available\n");
 			return -1;
 		}
 	}
@@ -410,6 +730,16 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				pbx_print_group(buf, buf_len, l->pickupgroup);
 #else
 				sccp_copy_string(buf, "not supported", len);
+#endif
+#ifdef CS_AST_HAS_NAMEDGROUP
+			} else if (!strcasecmp(token, "named_callgroup")) {
+				ast_copy_string(buf, l->namedcallgroup, len);
+			} else if (!strcasecmp(token, "named_pickupgroup")) {
+#ifdef CS_SCCP_PICKUP
+				ast_copy_string(buf, l->namedpickupgroup, len);
+#else
+				sccp_copy_string(buf, "not supported", len);
+#endif
 #endif
 			} else if (!strcasecmp(token, "cid_name")) {
 				sccp_copy_string(buf, l->cid_name, len);
@@ -486,7 +816,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 					}
 				}
 			} else {
-				pbx_log(LOG_WARNING, "SCCPLINE(%s): unknown colname: %s\n", data, token);
+				pbx_log(LOG_WARNING, "SCCPLine(%s): unknown colname: %s\n", data, token);
 				buf[0] = '\0';
 			}
 
@@ -506,20 +836,14 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 	return 0;
 }
 
-/*! \brief Stucture to declare a dialplan function: SCCPLINE */
+/*! \brief Stucture to declare a dialplan function: SCCPLine */
 static struct pbx_custom_function sccpline_function = {
-	.name = "SCCPLINE",
-	.synopsis = "Retrieves information about an SCCP Line",
-	.syntax = "Usage: SCCPLINE(lineName,<option>,...)\n",
+	.name = "SCCPLine",
 	.read = sccp_func_sccpline,
-	.desc = "LineName = Name of the line to be queried.\n" "Option = One of the possible options mentioned in arguments\n",
-#if ASTERISK_VERSION_NUMBER > 10601
-	.arguments = "LineName = use on off these: 'current', 'parent', actual linename\n" "Option = One of these possible options:\n" "id, name, description, label, vmnum, trnsfvm, meetme, meetmenum, meetmeopts, context, \n" "language, accountcode, musicclass, amaflags, callgroup, pickupgroup, cid_name, cid_num, \n" "incoming_limit, channel_count, dynamic, realtime, pending_delete, pending_update, \n" "regexten, regcontext, adhoc_number, newmsgs, oldmsgs, num_lines, cfwd, devices, chanvar[]"
-#endif
 };
 
 /*!
- * \brief  ${SCCPCHANNEL()} Dialplan function - reads sccp line data 
+ * \brief  ${SCCPChannel()} Dialplan function - reads sccp line data 
  * \param chan Asterisk Channel
  * \param cmd Command as char
  * \param data Extra data as char
@@ -546,7 +870,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 
 		*colname++ = '\0';
 		if (deprecation_warning++ % 10 == 0) {
-			pbx_log(LOG_WARNING, "SCCPCHANNEL(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
+			pbx_log(LOG_WARNING, "SCCPChannel(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
 		}
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
@@ -571,7 +895,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		uint32_t callid = sccp_atoi(data, strlen(data));
 
 		if (!(c = sccp_channel_find_byid(callid))) {
-			pbx_log(LOG_WARNING, "SCCPCHANNEL(): SCCP Channel not available\n");
+			pbx_log(LOG_WARNING, "SCCPChannel(): SCCP Channel not available\n");
 			return -1;
 		}
 	}
@@ -703,7 +1027,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 					buf[0] = '\0';
 				}
 			} else {
-				pbx_log(LOG_WARNING, "SCCPCHANNEL(%s): unknown colname: %s\n", data, token);
+				pbx_log(LOG_WARNING, "SCCPChannel(%s): unknown colname: %s\n", data, token);
 				buf[0] = '\0';
 			}
 
@@ -723,19 +1047,10 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	return 0;
 }
 
-/*! \brief Stucture to declare a dialplan function: SCCPCHANNEL */
+/*! \brief Stucture to declare a dialplan function: SCCPChannel */
 static struct pbx_custom_function sccpchannel_function = {
-	.name = "SCCPCHANNEL",
-	.synopsis = "Retrieves information about an SCCP Line",
-	.syntax = "Usage: SCCPCHANNEL(channelId,<option>,<option>,...)\n",
+	.name = "SCCPChannel",
 	.read = sccp_func_sccpchannel,
-	.desc = "ChannelId = Name of the line to be queried.\n" "Option = One of the possible options mentioned in arguments\n",
-#if ASTERISK_VERSION_NUMBER > 10601
-	.arguments = "ChannelId = use on off these: 'current', actual callid\n"
-	    "Option = One of these possible options:\n"
-	    "callid, id, format, codecs, capability, calledPartyName, calledPartyNumber, callingPartyName, \n"
-	    "callingPartyNumber, originalCallingPartyName, originalCallingPartyNumber, originalCalledPartyName, \n" "originalCalledPartyNumber, lastRedirectingPartyName, lastRedirectingPartyNumber, cgpnVoiceMailbox, \n" "cdpnVoiceMailbox, originalCdpnVoiceMailbox, lastRedirectingVoiceMailbox, passthrupartyid, state, \n" "previous_state, calltype, dialed_number, device, line, answered_elsewhere, privacy, ss_action, \n" "monitorEnabled, conference_id, conference_participant_id, parent, bridgepeer, peerip, recvip, codec[]"
-#endif
 };
 
 /*!
@@ -765,12 +1080,7 @@ static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, void *data)
 	pbx_log(LOG_WARNING, "SCCPSetCodec: Is now deprecated. Please use 'Set(CHANNEL(codec)=%s)' insteadl.\n", (char *) data);
 	return res ? 0 : -1;
 }
-
-/*! \brief Stucture to declare a dialplan function: SETSCCPCODEC */
 static char *prefcodec_name = "SCCPSetCodec";
-static char *old_prefcodec_name = "SetSCCPCodec";
-static char *prefcodec_synopsis = "Sets the preferred codec for the current sccp channel (DEPRECATED use generic 'Set(CHANNEL(codec)=alaw)' instead)";
-static char *prefcodec_descr = "Usage: SCCPSetCodec(codec)" "Sets the preferred codec for dialing out with the current chan_sccp channel\nDEPRECATED use generic 'Set(CHANNEL(codec)=alaw)' instead\n";
 
 /*!
  * \brief       Set the Name and Number of the Called Party to the Calling Phone
@@ -805,12 +1115,7 @@ static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, void *data)
 	sccp_channel_set_calledparty(c, name, num);
 	return 0;
 }
-
-/*! \brief Stucture to declare a dialplan function: SETCALLEDPARTY */
 static char *calledparty_name = "SCCPSetCalledParty";
-static char *old_calledparty_name = "SetCalledParty";
-static char *calledparty_synopsis = "Sets the callerid of the called party (DEPRECATED use generic 'Set(CHANNEL(calledparty)=\"name <exten>\")' instead)";
-static char *calledparty_descr = "Usage: SCCPSetCalledParty(\"Name\" <ext>)" "Sets the name and number of the called party for use with chan_sccp\n";
 
 /*!
  * \brief       It allows you to send a message to the calling device.
@@ -837,27 +1142,27 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 	int timeout = 0;
 	int priority = -1;
 
-        char *parse = pbx_strdupa(data);
-        AST_DECLARE_APP_ARGS(args,
-                AST_APP_ARG(text);
-                AST_APP_ARG(timeout);
-                AST_APP_ARG(priority);
-        );
-        AST_STANDARD_APP_ARGS(args, parse);
-        
-        if (!sccp_strlen_zero(args.timeout)) {
-        	timeout = sccp_atoi(args.timeout, strlen(args.timeout));
-        }
-        if (!sccp_strlen_zero(args.priority)) {
-        	priority = sccp_atoi(args.priority, strlen(args.priority));
-        }
+	char *parse = pbx_strdupa(data);
+	AST_DECLARE_APP_ARGS(args,
+		AST_APP_ARG(text);
+		AST_APP_ARG(timeout);
+		AST_APP_ARG(priority);
+	);
+	AST_STANDARD_APP_ARGS(args, parse);
+
+	if (!sccp_strlen_zero(args.timeout)) {
+		timeout = sccp_atoi(args.timeout, strlen(args.timeout));
+	}
+	if (!sccp_strlen_zero(args.priority)) {
+		priority = sccp_atoi(args.priority, strlen(args.priority));
+	}
 
 	AUTO_RELEASE(sccp_device_t, d , NULL);
 	if (!(d = sccp_channel_getDevice(c))) {
 		pbx_log(LOG_WARNING, "SCCPSetMessage: Not an SCCP device provided\n");
 		return 0;
 	}
-	
+
 	pbx_log(LOG_WARNING, "SCCPSetMessage: text:'%s', prio:%d, timeout:%d\n", args.text, priority, timeout);
 	if (!sccp_strlen_zero(args.text)) {
 		if (priority > -1) {
@@ -874,30 +1179,22 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 	}
 	return 0;
 }
-
-/*! \brief Stucture to declare a dialplan function: SETMESSAGE */
 static char *setmessage_name = "SCCPSetMessage";
-static char *old_setmessage_name = "SetMessage";
-static char *setmessage_synopsis = "Send a Message to the current Phone";
-static char *setmessage_descr = "Usage: SCCPSetMessage(\"Message\"[,timeout][,priority])\n" "       Send a Message to the Calling Device (and remove after timeout, if timeout is ommited will stay until next/empty message). Use priority to set/clear priority notifications. Higher priority levels overrule lower ones.\n";
 
+//#include "pbx_impl/ast113/ast113.h"
 int sccp_register_dialplan_functions(void)
 {
 	int result = 0;
 
 	/* Register application functions */
-	result = pbx_register_application(calledparty_name, sccp_app_calledparty, calledparty_synopsis, calledparty_descr, NULL);
-	result |= pbx_register_application(setmessage_name, sccp_app_setmessage, setmessage_synopsis, setmessage_descr, NULL);
-	result |= pbx_register_application(prefcodec_name, sccp_app_prefcodec, prefcodec_synopsis, prefcodec_descr, NULL);
-	/* old names */
-	result |= pbx_register_application(old_calledparty_name, sccp_app_calledparty, calledparty_synopsis, calledparty_descr, NULL);
-	result |= pbx_register_application(old_setmessage_name, sccp_app_setmessage, setmessage_synopsis, setmessage_descr, NULL);
-	result |= pbx_register_application(old_prefcodec_name, sccp_app_prefcodec, prefcodec_synopsis, prefcodec_descr, NULL);
+	result = iPbx.register_application(calledparty_name, sccp_app_calledparty);
+	result |= iPbx.register_application(setmessage_name, sccp_app_setmessage);
+	result |= iPbx.register_application(prefcodec_name, sccp_app_prefcodec);
 
 	/* Register dialplan functions */
-	result |= pbx_custom_function_register(&sccpdevice_function, NULL);
-	result |= pbx_custom_function_register(&sccpline_function, NULL);
-	result |= pbx_custom_function_register(&sccpchannel_function, NULL);
+	result |= iPbx.register_function(&sccpdevice_function);
+	result |= iPbx.register_function(&sccpline_function);
+	result |= iPbx.register_function(&sccpchannel_function);
 
 	return result;
 }
@@ -907,18 +1204,14 @@ int sccp_unregister_dialplan_functions(void)
 	int result = 0;
 
 	/* Unregister applications functions */
-	result = pbx_unregister_application(calledparty_name);
-	result |= pbx_unregister_application(setmessage_name);
-	result |= pbx_unregister_application(prefcodec_name);
-	/* old names */
-	result |= pbx_unregister_application(old_calledparty_name);
-	result |= pbx_unregister_application(old_setmessage_name);
-	result |= pbx_unregister_application(old_prefcodec_name);
+	result = iPbx.unregister_application(calledparty_name);
+	result |= iPbx.unregister_application(setmessage_name);
+	result |= iPbx.unregister_application(prefcodec_name);
 
 	/* Unregister dial plan functions */
-	result |= pbx_custom_function_unregister(&sccpdevice_function);
-	result |= pbx_custom_function_unregister(&sccpline_function);
-	result |= pbx_custom_function_unregister(&sccpchannel_function);
+	result |= iPbx.unregister_function(&sccpdevice_function);
+	result |= iPbx.unregister_function(&sccpline_function);
+	result |= iPbx.unregister_function(&sccpchannel_function);
 
 	return result;
 }
