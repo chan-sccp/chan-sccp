@@ -1,2 +1,4 @@
 usr/lib/asterisk/modules
 usr/bin
+var/lib/asterisk/documentation/thirdparty
+etc/asterisk

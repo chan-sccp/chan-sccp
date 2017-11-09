@@ -117,3 +117,22 @@ _reload: all unload install load
 
 reload: 
 	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(MAKE) _reload;fi
+
+full-en_US.xml:
+	@if [ -z "$(PYTHON)" ]; then													\
+		echo "--------------------------------------------------------------------------";					\
+		echo "---        Please install python to build full documentation           ---";					\
+		echo "--------------------------------------------------------------------------";					\
+		exit 1;															\
+	fi
+	@printf "Building Documentation..."
+	@echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > $@
+	@echo "<!DOCTYPE docs SYSTEM \"appdocsxml.dtd\">" >> $@
+	@echo "<?xml-stylesheet type=\"text/xsl\" href=\"appdocsxml.xslt\"?>" >> $@
+	@echo "<docs xmlns:xi=\"http://www.w3.org/2001/XInclude\">" >> $@
+	@for x in `find -name '*.c'`;do													\
+		$(PYTHON) ../tools/get_documentation.py < $$x >> $@ ;									\
+	done
+	@echo
+	@echo "</docs>" >> $@
+#	#@$(PYTHON) build_tools/post_process_documentation.py -i $@ -o "doc/core-en_US.xml"

@@ -31,3 +31,4 @@ src/sccp_enum.?
 *.bak
 *.diff
 coverage/
+chan_sccp-en_US.xml

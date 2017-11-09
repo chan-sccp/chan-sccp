@@ -568,7 +568,7 @@
 /* Found 'asterisk/sched.h' */
 #undef HAVE_PBX_SCHED_H
 
-/* Found 'asterisk/stasis_endpoint.h' */
+/* Found 'asterisk/stasis_endpoints.h' */
 #undef HAVE_PBX_STASIS_H
 
 /* Found 'asterisk/stringfields.h' */

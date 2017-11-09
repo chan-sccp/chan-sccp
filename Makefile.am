@@ -92,12 +92,29 @@ coverage-zero: rmcoverage
 test:
 	@echo "Success"
 
-install-data-local:
+install-data-local: chan_sccp-en_US.xml
 	@test -d $(DESTDIR)$(PBX_ETC) || $(mkinstalldirs) $(DESTDIR)$(PBX_ETC);								\
 	if [ ! -f $(DESTDIR)$(PBX_ETC)/sccp.conf ]; then										\
 		echo "Installing $(DESTDIR)$(PBX_ETC)/sccp.conf...";									\
 		$(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC);							\
-	fi
+	fi;																\
+	test -d $(DESTDIR)$(PBX_VARLIB)/third-party || $(mkinstalldirs) $(DESTDIR)$(PBX_VARLIB)/third-party;				\
+	test -d $(DESTDIR)$(PBX_VARLIB)/documentation/thirdparty || $(mkinstalldirs) $(DESTDIR)$(PBX_VARLIB)/documentation/thirdparty;	\
+	$(INSTALL) -m 644 chan_sccp-en_US.xml "$(DESTDIR)$(PBX_VARLIB)/third-party";							\
+	$(INSTALL) -m 644 chan_sccp-en_US.xml "$(DESTDIR)$(PBX_VARLIB)/documentation/thirdparty";
+
+XML_chan_sccp_en_US=$(top_srcdir)/src/sccp_appfunctions.c
+chan_sccp-en_US.xml: $(top_builddir)/src/stamp-h1 $(XML_chan_sccp_en_US)
+	@printf "Building Documentation..."
+	@echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > $@
+	@echo "<!DOCTYPE docs SYSTEM \"appdocsxml.dtd\">" >> $@
+	@echo "<?xml-stylesheet type=\"text/xsl\" href=\"appdocsxml.xslt\"?>" >> $@
+	@echo "<docs xmlns:xi=\"http://www.w3.org/2001/XInclude\">" >> $@
+	@for x in $(XML_chan_sccp_en_US);do 												\
+		$(AWK) -f $(top_srcdir)/tools/get_documentation $$x >> $@;									\
+	done;
+	@echo
+	@echo "</docs>" >> $@
 
 unload:	
 	cd src;make unload
