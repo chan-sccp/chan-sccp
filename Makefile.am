@@ -98,7 +98,6 @@ install-data-local: chan_sccp-en_US.xml
 		echo "Installing $(DESTDIR)$(PBX_ETC)/sccp.conf...";									\
 		$(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC);							\
 	fi;																\
-	test -d $(DESTDIR)$(PBX_VARLIB)/third-party || $(mkinstalldirs) $(DESTDIR)$(PBX_VARLIB)/third-party;				\
 	test -d $(DESTDIR)$(PBX_VARLIB)/documentation/thirdparty || $(mkinstalldirs) $(DESTDIR)$(PBX_VARLIB)/documentation/thirdparty;	\
 	$(INSTALL) -m 644 chan_sccp-en_US.xml "$(DESTDIR)$(PBX_VARLIB)/documentation/thirdparty";
 
