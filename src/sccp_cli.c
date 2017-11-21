@@ -810,6 +810,12 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Timezone Offset",		CLI_AMI_LIST_WIDTH, "%d", d->tz_offset);
 	CLI_AMI_OUTPUT_PARAM("Capabilities",		CLI_AMI_LIST_WIDTH, "%s", cap_buf);
 	CLI_AMI_OUTPUT_PARAM("Codecs preference",	CLI_AMI_LIST_WIDTH, "%s", pref_buf);
+#if CS_SCCP_VIDEO
+	sccp_codec_multiple2str(pref_buf, sizeof(pref_buf) - 1, d->preferences.video, ARRAY_LEN(d->preferences.video));
+	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.video, ARRAY_LEN(d->capabilities.video));
+	CLI_AMI_OUTPUT_PARAM("Video Capabilities",	CLI_AMI_LIST_WIDTH, "%s", cap_buf);
+	CLI_AMI_OUTPUT_PARAM("Video Preferences",	CLI_AMI_LIST_WIDTH, "%s", pref_buf);
+#endif
 	CLI_AMI_OUTPUT_PARAM("Audio TOS",		CLI_AMI_LIST_WIDTH, "%d", d->audio_tos);
 	CLI_AMI_OUTPUT_PARAM("Audio COS",		CLI_AMI_LIST_WIDTH, "%d", d->audio_cos);
 	CLI_AMI_OUTPUT_PARAM("Video TOS",		CLI_AMI_LIST_WIDTH, "%d", d->video_tos);
