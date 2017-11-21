@@ -15,7 +15,7 @@
 #include "common.h"
 
 #ifdef HAVE_ASTERISK
-#include "ast.h"
+#include "ast/ast.h"
 #endif
 
 __BEGIN_C_EXTERN__

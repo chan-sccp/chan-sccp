@@ -25,7 +25,7 @@
 #include "sccp_rtp.h"
 #include "sccp_session.h"		// required for sccp_session_getOurIP
 #include "sccp_labels.h"
-#include "ast110.h"
+#include "pbx_impl/ast110/ast110.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 

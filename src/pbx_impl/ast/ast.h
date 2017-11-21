@@ -25,28 +25,28 @@
 #include "sccp_protocol.h"
 
 #ifdef ASTERISK_CONF_1_6
-#include "ast106.h"
+#include "pbx_impl/ast106/ast106.h"
 #endif
 #ifdef ASTERISK_CONF_1_8
-#include "ast108.h"
+#include "pbx_impl/ast108/ast108.h"
 #endif
 #ifdef ASTERISK_CONF_1_10
-#include "ast110.h"
+#include "pbx_impl/ast110/ast110.h"
 #endif
 #ifdef ASTERISK_CONF_1_11
-#include "ast111.h"
+#include "pbx_impl/ast111/ast111.h"
 #endif
 #ifdef ASTERISK_CONF_1_12
-#include "ast112.h"
+#include "pbx_impl/ast112/ast112.h"
 #endif
 #ifdef ASTERISK_CONF_1_13
-#include "ast113.h"
+#include "pbx_impl/ast113/ast113.h"
 #endif
 #ifdef ASTERISK_CONF_1_14
-#include "ast114.h"
+#include "pbx_impl/ast114/ast114.h"
 #endif
 #ifdef ASTERISK_CONF_1_15
-#include "ast115.h"
+#include "pbx_impl/ast115/ast115.h"
 #endif
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
