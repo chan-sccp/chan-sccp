@@ -61,7 +61,7 @@ enum AST_CONNECTED_LINE_UPDATE_SOURCE {
 	AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING
 };
 
-#include "ast.h"
+#include "pbx_impl/ast/ast.h"
 typedef int ast_format_t;
 typedef int64_t format_t;
 int skinny_codecs2pbx_codec_pref(const skinny_codec_t * const codecs, struct ast_codec_pref *astCodecPref);
