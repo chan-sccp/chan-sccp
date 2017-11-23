@@ -1750,9 +1750,6 @@ static int sccp_wrapper_asterisk113_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 			// sccp_wrapper_asterisk113_update_rtp_peer(newchan, NULL, NULL, 0, 0, 0);
 
 			//! \todo update remote capabilities after fixup
-
-			struct ast_str *codec_buf = ast_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
-			pbx_log(LOG_NOTICE, "Fixup: nativeformats=%s\n", ast_format_cap_get_names(ast_channel_nativeformats(newchan), &codec_buf));
 		}
 	} else {
 		pbx_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", pbx_channel_name(oldchan), (void *) oldchan, pbx_channel_name(newchan), (void *) newchan);
