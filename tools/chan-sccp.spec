@@ -1,6 +1,6 @@
 # FILE: spec file for package chan-sccp (Version trunk)
-# COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
-# CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
+# COPYRIGHT: https://github.com/chan-sccp/chan-sccp group 2009
+# CREATED BY: Diederik de Groot <ddegroot@users.sf.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
 # DATE:     $Date: $
@@ -53,8 +53,8 @@ Version: 	%{rpmversion}
 Release:  	%{rpmrelease}.%{disttag}
 License: 	GPL
 Group:          Productivity/Telephony/Servers
-Packager: 	%packer% <chan-sccp-b-release@lists.sourceforge.net>
-Vendor:         chan-sccp development team <chan-sccp-b-release@lists.sourceforge.net>
+Packager: 	%packer% <chan-sccp-b-release@lists.sf.net>
+Vendor:         chan-sccp development team <chan-sccp-b-release@lists.sf.net>
 URL: 		https://github.com/chan-sccp/chan-sccp
 Source: 	%{tarsourcedir}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}_%{version}-%{release}-build
@@ -67,23 +67,23 @@ for sccp dev ices and new feature like multiline, dynamic speeddials, shared
 lines etc.
 
 Documentation is available on the chan-sccp home page
-(http://chan-sccp-b.sourceforge.net/) chan-sccp Home Page
-(http://chan-sccp-b.sourceforge.net/documentation.shtml) chan-sccp Documentation
-(http://sourceforge.net/projects/chan-sccp-b) chan-sccp SourceForge Page
+(https://github.com/chan-sccp/chan-sccp) chan-sccp Home Page
+(https://github.com/chan-sccp/chan-sccp/wiki) chan-sccp Documentation
+(http://sourceforge.net/projects/chan-sccp-b) Old chan-sccp SourceForge Page
 
 
 Authors:
 --------
-Anthony Shaw 		: 	anthonyshaw@users.sourceforge.net
-Marcello Ceschia 	: 	marcelloceschia@users.sourceforge.net
-Scotchy 		: 	scotchy@users.sourceforge.net
-David Dederscheck 	: 	davidded@users.sourceforge.net
-Andrew Lee 		: 	andrewylee@users.sourceforge.net
-Diederik de Groot 	: 	ddegroot@users.sourceforge.net
-Federico Santulli 	: 	fsantulli@users.sourceforge.net
-Geoff Thornton 		: 	gthornton@users.sourceforge.net
-macdiver 		: 	macdiver@users.sourceforge.net
-Sebastian Vetter 	:	sebbbl@users.sourceforge.net
+Anthony Shaw 		: 	anthonyshaw@users.sf.net
+Marcello Ceschia 	: 	marcelloceschia@users.sf.net
+Scotchy 		: 	scotchy@users.sf.net
+David Dederscheck 	: 	davidded@users.sf.net
+Andrew Lee 		: 	andrewylee@users.sf.net
+Diederik de Groot 	: 	ddegroot@users.sf.net
+Federico Santulli 	: 	fsantulli@users.sf.net
+Geoff Thornton 		: 	gthornton@users.sf.net
+macdiver 		: 	macdiver@users.sf.net
+Sebastian Vetter 	:	sebbbl@users.sf.net
 
 
 %prep

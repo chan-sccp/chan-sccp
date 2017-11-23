@@ -1,4 +1,4 @@
-chan-sccp-b (4.3.0-5ubuntu1) UNRELEASED; urgency=medium
+chan-sccp (4.3.0-5ubuntu1) UNRELEASED; urgency=medium
 
   * WIP
      - Reworked configure/make system:
@@ -40,18 +40,18 @@ chan-sccp-b (4.3.0-5ubuntu1) UNRELEASED; urgency=medium
       - Fixed direcrtp (more work needed)
       - letohl / bswap fix
 
- -- Diederik de Groot <ddegroot@talon.nl>  Thu, 26 Jan 2017 15:08:00 +0100
+ -- Diederik de Groot <ddegroot@users.sf.net>  Thu, 26 Jan 2017 15:08:00 +0100
 
-chan-sccp-b (4.3.0-4ubuntu1) UNRELEASED; urgency=medium
+chan-sccp (4.3.0-4ubuntu1) UNRELEASED; urgency=medium
 
   * WIP:
     - Fixed direcrtp
     - Revised handling shared line during incoming call
     - Revised callinfo
 
- -- Diederik de Groot <ddegroot@talon.nl>  Wed, 02 Dec 2015 14:52:46 +0100
+ -- Diederik de Groot <ddegroot@users.sf.net>  Wed, 02 Dec 2015 14:52:46 +0100
 
-chan-sccp-b (4.2.0-4) stable; urgency=high
+chan-sccp (4.2.0-4) stable; urgency=high
 
   * New Features in V4.2
     - Enums processed using awk generation script
@@ -81,9 +81,9 @@ chan-sccp-b (4.2.0-4) stable; urgency=high
     - Replaced Asterisk Scheduled Macro Use
     - Numerous smaller / bigger fixes (Check ChangeLog for details)
 
- -- Diederik de Groot <ddegroot@talon.nl>  Mon, 15 Jun 2015 19:21:57 +0200
+ -- Diederik de Groot <ddegroot@users.sf.net>  Mon, 15 Jun 2015 19:21:57 +0200
 
-chan-sccp-b (4.2.0-2ppa5836~vividubuntu1) UNRELEASED; urgency=medium
+chan-sccp (4.2.0-2ppa5836~vividubuntu1) UNRELEASED; urgency=medium
 
   * New Features in V4.2
     - Same as RC2
@@ -93,37 +93,37 @@ chan-sccp-b (4.2.0-2ppa5836~vividubuntu1) UNRELEASED; urgency=medium
      - Fixed buttontemplate instance issue
      - Serveral smaller / bigger fixes (Check ChangeLog for details)
 
- -- Diederik de Groot <ddegroot@talon.nl>  Sun, 26 Apr 2015 14:53:29 +0200
+ -- Diederik de Groot <ddegroot@users.sf.net>  Sun, 26 Apr 2015 14:53:29 +0200
 
-chan-sccp-b (4.2.0-2ppa5836~vivid) vivid; urgency=high
+chan-sccp (4.2.0-2ppa5836~vivid) vivid; urgency=high
   [ Diederik de Groot ]
   * Changes
     - Added launchpad repository for ubuntu users
 
- -- Diederik de Groot <ddegroot@talon.nl>  14 jan 2015 22:45:54 +0100
+ -- Diederik de Groot <ddegroot@users.sf.net>  14 jan 2015 22:45:54 +0100
 
-chan-sccp-b (4.2.0-2ppa5836~utopic) utopic; urgency=high
+chan-sccp (4.2.0-2ppa5836~utopic) utopic; urgency=high
   [ Diederik de Groot ]
   * Changes
     - Added launchpad repository for ubuntu users
 
- -- Diederik de Groot <ddegroot@talon.nl>  14 jan 2015 22:45:54 +0100
+ -- Diederik de Groot <ddegroot@users.sf.net>  14 jan 2015 22:45:54 +0100
 
-chan-sccp-b (4.2.0-2ppa5836~trusty) trusty; urgency=high
+chan-sccp (4.2.0-2ppa5836~trusty) trusty; urgency=high
   [ Diederik de Groot ]
   * Changes
     - Added launchpad repository for ubuntu users
 
- -- Diederik de Groot <ddegroot@talon.nl>  14 jan 2015 22:45:54 +0100
+ -- Diederik de Groot <ddegroot@users.sf.net>  14 jan 2015 22:45:54 +0100
 
-chan-sccp-b (4.2.0-2ppa5836~precise) precise; urgency=high
+chan-sccp (4.2.0-2ppa5836~precise) precise; urgency=high
   [ Diederik de Groot ]
   * Changes
     - Added launchpad repository for ubuntu users
 
- -- Diederik de Groot <ddegroot@talon.nl>  14 jan 2015 22:45:54 +0100
+ -- Diederik de Groot <ddegroot@users.sf.net>  14 jan 2015 22:45:54 +0100
 
-chan-sccp-b (4.2.0-2) rc2; urgency=high
+chan-sccp (4.2.0-2) rc2; urgency=high
 
   [ Diederik de Groot ]
   * New features with V4.2:
@@ -142,9 +142,9 @@ chan-sccp-b (4.2.0-2) rc2; urgency=high
     - Fixed RTP Handling
     - Replaced Asterisk Scheduled Macro Use
 
- -- Diederik de Groot <ddegroot@users.sourceforge.net>  Mon, 9 Sep 2014 18:00:00 +0100
+ -- Diederik de Groot <ddegroot@users.sf.net>  Mon, 9 Sep 2014 18:00:00 +0100
 
-chan-sccp-b (4.2.0-1) rc1; urgency=high
+chan-sccp (4.2.0-1) rc1; urgency=high
 
   [ Diederik de Groot ]
   * New features with V4.2:
@@ -157,9 +157,9 @@ chan-sccp-b (4.2.0-1) rc1; urgency=high
   * Bug Fixes 
     - Numerous smaller / bifgger fixes (Check ChangeLog for details)
 
- -- Diederik de Groot <ddegroot@users.sourceforge.net>  Fri, 27 Jun 2014 04:29:00 +0100
+ -- Diederik de Groot <ddegroot@users.sf.net>  Fri, 27 Jun 2014 04:29:00 +0100
 
-chan-sccp-b (4.1.0-3) stable; urgency=high
+chan-sccp (4.1.0-3) stable; urgency=high
 
   [ Diederik de Groot ]
   * New features with V4.1:
@@ -193,16 +193,16 @@ chan-sccp-b (4.1.0-3) stable; urgency=high
     - 1 second audio delay
     - ami/manager output formatting
 
- -- Diederik de Groot <ddegroot@users.sourceforge.net>  Fri, 28 Jun 2013 15:00:00 +0100
+ -- Diederik de Groot <ddegroot@users.sf.net>  Fri, 28 Jun 2013 15:00:00 +0100
 
-chan-sccp-b (4.1.0-2) unstable; urgency=low
+chan-sccp (4.1.0-2) unstable; urgency=low
 
   [ Diederik de Groot ]
   * Fix debian package builder
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Wed, 14 Mar 2013 13:41:31 +0100
+ -- Diederik de Groot <dkgroot@users.sf.net>  Wed, 14 Mar 2013 13:41:31 +0100
 
-chan-sccp-b (4.1.0-1) unstable; urgency=low
+chan-sccp (4.1.0-1) unstable; urgency=low
 
   [ Diederik de Groot ]
   * Development Revision 4.1
@@ -214,9 +214,9 @@ chan-sccp-b (4.1.0-1) unstable; urgency=low
   * new Conference implementation
   * New sccp.conf handling system, using a flexible TABLE as the basis for all config parsing
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Wed, 13 Mar 2013 13:41:31 +0100
+ -- Diederik de Groot <dkgroot@users.sf.net>  Wed, 13 Mar 2013 13:41:31 +0100
 
-chan-sccp-b (3.0.0-3) unstable; urgency=low
+chan-sccp (3.0.0-3) unstable; urgency=low
 
   * Release Candidate 3
   * 
@@ -238,9 +238,9 @@ chan-sccp-b (3.0.0-3) unstable; urgency=low
   *  - lots of small bugs reported by users
   *  - documentation updates
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Fri, 22 Oct 2010 11:19:26 +0200
+ -- Diederik de Groot <dkgroot@users.sf.net>  Fri, 22 Oct 2010 11:19:26 +0200
 
-chan-sccp-b (3.0.0-2) unstable; urgency=low
+chan-sccp (3.0.0-2) unstable; urgency=low
 
   * Release Candidate 2
   * 
@@ -255,11 +255,11 @@ chan-sccp-b (3.0.0-2) unstable; urgency=low
   * 
   * 
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Fri, 14 Sept 2010 11:19:26 +0200
+ -- Diederik de Groot <dkgroot@users.sf.net>  Fri, 14 Sept 2010 11:19:26 +0200
 
-chan-sccp-b (3.0.0-1) unstable; urgency=low
+chan-sccp (3.0.0-1) unstable; urgency=low
 
   * Release Candidate 1
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Thu, 26 Aug 2010 13:56:42 +0200
+ -- Diederik de Groot <dkgroot@users.sf.net>  Thu, 26 Aug 2010 13:56:42 +0200
 

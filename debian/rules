@@ -50,9 +50,9 @@ install: build
 	dh_prep  
 	dh_installdirs
 
-	# Add here commands to install the package into debian/chan-sccp-b
-	$(MAKE) DESTDIR=$(CURDIR)/debian/chan-sccp-b install
-	$(MAKE) DESTDIR=$(CURDIR)/debian/chan-sccp-b gen_sccpconf_install
+	# Add here commands to install the package into debian/chan-sccp
+	$(MAKE) DESTDIR=$(CURDIR)/debian/chan-sccp install
+	$(MAKE) DESTDIR=$(CURDIR)/debian/chan-sccp gen_sccpconf_install
 
 override_dh_auto_install:
 	dh_auto_install
@@ -80,7 +80,7 @@ binary-arch: install
 #	dh_installinfo
 #	dh_installman
 	dh_link
-	dh_strip --dbg-package=chan-sccp-b-dbg
+	dh_strip --dbg-package=chan-sccp-dbg
 	dh_compress
 	dh_fixperms
 #	dh_perl
