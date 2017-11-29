@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `conf_mute_on_entry` varchar(3) default 'off',
   `conf_music_on_hold_class` varchar(80) default 'default',
   `conf_show_conflist`  varchar(3) default 'on',
-  `force_dmtf` varchar(8) default 'auto',
+  `force_dtmfmode` varchar(8) default 'auto',
   `setvar` varchar(100) default NULL,
   `disallow` varchar(255) DEFAULT NULL,
   `allow` varchar(255) DEFAULT NULL,

@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `conf_mute_on_entry` ENUM('on','true','yes','off','false','no') NOT NULL default 'off',
   `conf_music_on_hold_class` varchar(80) default 'default',
   `conf_show_conflist` ENUM('on','true','yes','off','false','no') NOT NULL default 'on',
-  `force_dmtf` ENUM('auto','rfc2833','skinny') NOT NULL default 'auto',
+  `force_dtmfmode` ENUM('auto','rfc2833','skinny') NOT NULL default 'auto',
   `setvar` varchar(100) default NULL,
   `disallow` varchar(255) DEFAULT NULL,
   `allow` varchar(255) DEFAULT NULL,

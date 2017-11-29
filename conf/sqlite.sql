@@ -31,6 +31,7 @@ CREATE TABLE sccpdevice (
   conf_mute_on_entry		varchar(3)	DEFAULT 'off',
   conf_music_on_hold_class      varchar(80)	DEFAULT 'default',
   conf_show_conflist            varchar(3)      DEFAULT 'on',
+  force_dtmfmode		varchar(8)	DEFAULT 'auto',
   setvar 			varchar(100) 	DEFAULT NULL,
   disallow 			varchar(255) 	DEFAULT NULL,
   allow 			varchar(255) 	DEFAULT NULL,
