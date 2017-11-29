@@ -10,6 +10,9 @@
 #include "config.h"
 #include "define.h"
 #include <netinet/in.h>
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
 
 #define SCCP_SOCKADDR_STR_ADDR           (1 << 0)
 #define SCCP_SOCKADDR_STR_PORT           (1 << 1)

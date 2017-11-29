@@ -68,32 +68,32 @@ extern "C" {
 
 /* Add bswap function if necessary */
 #if HAVE_BYTESWAP_H
-#include <byteswap.h>
+#  include <byteswap.h>
 #else
-#if HAVE_SYS_BYTEORDER_H
-#include <sys/byteorder.h>
-#elif HAVE_SYS_ENDIAN_H
-#include <sys/endian.h>
-#endif
-#ifndef HAVE_BSWAP_16
-#warn HAVE_BSWAP_16
-static SCCP_INLINE unsigned short __bswap_16(unsigned short x)
+#  if HAVE_SYS_BYTEORDER_H
+#    include <sys/byteorder.h>
+#  elif HAVE_SYS_ENDIAN_H
+#    include <sys/endian.h>
+#  else
+#    ifndef HAVE_BSWAP_16
+SCCP_INLINE unsigned short __bswap_16(unsigned short x)
 {
-	return (x >> 8) | (x << 8);
+        return (x >> 8) | (x << 8);
 }
-#endif
-#ifndef HAVE_BSWAP_32
-static SCCP_LINE unsigned int __bswap_32(unsigned int x)
+#    endif
+#    ifndef HAVE_BSWAP_32
+SCCP_LINE unsigned int __bswap_32(unsigned int x)
 {
-	return (__bswap_16(x & 0xffff) << 16) | (__bswap_16(x >> 16));
+        return (__bswap_16(x & 0xffff) << 16) | (__bswap_16(x >> 16));
 }
-#endif
-#ifndef HAVE_BSWAP_64
-static SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
+#    endif
+#    ifndef HAVE_BSWAP_64
+SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 {
-	return (((unsigned long long) __bswap_32(x & 0xffffffffull)) << 32) | (__bswap_32(x >> 32));
+        return (((unsigned long long) __bswap_32(x & 0xffffffffull)) << 32) | (__bswap_32(x >> 32));
 }
-#endif
+#    endif
+#  endif
 #endif
 
 /* Byte swap based on platform endianes */
