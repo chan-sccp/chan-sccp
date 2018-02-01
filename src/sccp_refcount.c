@@ -53,8 +53,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 //nb: SCCP_HASH_PRIME defined in config.h, default 563
 #define SCCP_SIMPLE_HASH(_a) (((unsigned long)(_a)) % SCCP_HASH_PRIME)
 #define SCCP_LIVE_MARKER 13
-//#define REFCOUNT_MAX_PARENTS 3
 #if CS_REFCOUNT_DEBUG
+#define REFCOUNT_MAX_PARENTS 3
 #define REF_DEBUG_FILE_MAX_SIZE 10000000
 #define REF_DEBUG_FILE "/tmp/sccp_refs"
 static int __rotate_debug_file(void);
