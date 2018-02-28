@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
 -- Table with device-configuration
 --
 CREATE TABLE IF NOT EXISTS `sccpline` (
-  `id` MEDIUMINT NOT NULL AUTO INCREMENT,
+  `id` MEDIUMINT NOT NULL AUTO_INCREMENT,
   `pin` varchar(7) default NULL,
   `label` varchar(45) default NULL,
   `description` varchar(45) default NULL,
