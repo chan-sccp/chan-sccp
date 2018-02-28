@@ -566,10 +566,6 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wdiv-by-zero dnl
 				-Wenum-compare dnl
 				-Wmisleading-indentation dnl
-				-Wsuggest-attribute=const dnl
-				-Wsuggest-attribute=format dnl
-				-Wsuggest-attribute=noreturn dnl
-				-Wsuggest-attribute=pure dnl
 				-Wswitch dnl
 				-fstack-protector-all dnl
 				-fvisibility=hidden dnl
@@ -582,6 +578,10 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wl,--as-needed dnl
 				-fPIE dnl
 				-fPIE -pie dnl
+				dnl -Wsuggest-attribute=const dnl
+				dnl -Wsuggest-attribute=format dnl
+				dnl -Wsuggest-attribute=noreturn dnl
+				dnl -Wsuggest-attribute=pure dnl
 				dnl
 				dnl // should be added and fixed
 				dnl -Wswitch-enum dnl
