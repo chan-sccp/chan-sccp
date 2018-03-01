@@ -211,8 +211,8 @@ void *sccp_create_hotline(void)
 #ifdef CS_SCCP_REALTIME
 		hotline->realtime = TRUE;
 #endif
-		hotline->label = strdup("Hotline");
-		hotline->context = strdup("default");
+		hotline->label = pbx_strdup("Hotline");
+		hotline->context = pbx_strdup("default");
 		sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
 		sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
 		GLOB(hotline)->line = sccp_line_retain(hotline);						// retain line inside hotline
