@@ -669,7 +669,7 @@ static void sccp_protocol_sendOpenMultiMediaChannelV3(constDevicePtr device, con
 	msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.confServiceNum = htolel(channel->callid);
 	msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.bitRate = htolel(bitRate);
 
-	sccp_dump_msg(msg);
+	//sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 
@@ -706,7 +706,7 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, co
 	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy7                   = htolel(0);
 	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy8                   = htolel(0);
 
-	sccp_dump_msg(msg);
+	//sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 
@@ -852,7 +852,7 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV3(constDevicePtr devic
 		/* \todo add warning */
 	}
 
-	sccp_dump_msg(msg);
+	//sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 
@@ -900,7 +900,7 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV17(constDevicePtr devi
 
 		memcpy(&msg->data.StartMultiMediaTransmission.v17.bel_remoteIpAddr, &in->sin_addr, 4);
 	}
-	sccp_dump_msg(msg);
+	//sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 
