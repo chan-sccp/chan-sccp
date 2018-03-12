@@ -25,7 +25,7 @@ AC_DEFUN([CS_CHECK_PBX], [
 					AC_MSG_NOTICE([Fixed fauly asterisk.pc pkg-config file. Advise:You ought to update your asterisk version])
 					PBX_CFLAGS="`echo ${PBX_CFLAGS} | ${SED} 's/libxml2-g3/libxml2/'`"
 				fi
-				if test$replace_include_with_isystem -eq 1; then
+				if test ${replace_include_with_isystem} -eq 1; then
 					PBX_CFLAGS="`echo ${PBX_CFLAGS} | ${SED} 's/-I/-isystem /'`"
 				fi
 				PBX_CPPFLAGS="${PBX_CFLAGS}"

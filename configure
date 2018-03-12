@@ -24243,7 +24243,7 @@ $as_echo_n "checking pkg-config asterisk... " >&6; }
 $as_echo "$as_me: Fixed fauly asterisk.pc pkg-config file. Advise:You ought to update your asterisk version" >&6;}
 					PBX_CFLAGS="`echo ${PBX_CFLAGS} | ${SED} 's/libxml2-g3/libxml2/'`"
 				fi
-				if test$replace_include_with_isystem -eq 1; then
+				if test ${replace_include_with_isystem} -eq 1; then
 					PBX_CFLAGS="`echo ${PBX_CFLAGS} | ${SED} 's/-I/-isystem /'`"
 				fi
 				PBX_CPPFLAGS="${PBX_CFLAGS}"
