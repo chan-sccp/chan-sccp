@@ -1123,6 +1123,16 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
+		case SKINNY_DEVICETYPE_SPA_508G:
+			for (i = 0; i < 8; i++) {
+				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
+			}
+			btn[btn_index++].type = SKINNY_BUTTONTYPE_VOICEMAIL;
+			btn[btn_index++].type = SKINNY_BUTTONTYPE_HOLD;
+			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
+				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
+			}
+			break;
 		case SKINNY_DEVICETYPE_SPA_509G:
 			for (i = 0; i < 12; i++) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
