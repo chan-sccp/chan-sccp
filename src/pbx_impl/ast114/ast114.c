@@ -89,6 +89,7 @@ int sccp_wrapper_asterisk114_hangup(PBX_CHANNEL_TYPE * ast_channel);
 int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 static int sccp_wrapper_asterisk114_devicestate(const char *data);
+static int sccp_wrapper_asterisk114_setNativeAudioFormats(constChannelPtr channel, skinny_codec_t codecs[], int length);
 static boolean_t sccp_wrapper_asterisk114_setWriteFormat(constChannelPtr channel, skinny_codec_t codec);
 static boolean_t sccp_wrapper_asterisk114_setReadFormat(constChannelPtr channel, skinny_codec_t codec);
 PBX_CHANNEL_TYPE *sccp_wrapper_asterisk114_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE * chan, const char *exten, const char *context);
@@ -896,46 +897,6 @@ static void sccp_wrapper_asterisk114_setCalleridPresentation(PBX_CHANNEL_TYPE *p
 		ast_channel_caller(pbx_channel)->id.name.presentation |= AST_PRES_PROHIB_USER_NUMBER_NOT_SCREENED;
 		ast_channel_caller(pbx_channel)->id.number.presentation |= AST_PRES_PROHIB_USER_NUMBER_NOT_SCREENED;
 	}
-}
-
-static int sccp_wrapper_asterisk114_setNativeAudioFormats(constChannelPtr channel, skinny_codec_t codec[], int length)
-{
-	int i;
-	if (!channel || !channel->owner || !ast_channel_nativeformats(channel->owner)) {
-		pbx_log(LOG_ERROR, "SCCP: (sccp_wrapper_asterisk111_setNativeAudioFormats) no channel provided!\n");
-		return 0;
-	}
-
-	length = 1;												//set only one codec
-
-	ast_debug(10, "%s: set native Formats length: %d\n", (char *) channel->currentDeviceId, length);
-
-	ast_format_cap_remove_by_type(ast_channel_nativeformats(channel->owner), AST_MEDIA_TYPE_AUDIO);
-	//pbx_format_cap_append_skinny(ast_channel_nativeformats(channel->owner), codec);			// if length != 1
-	for (i = 0; i < length; i++) {
-		struct ast_format *format = sccp_asterisk114_skinny2ast_format(codec[1]);
-		if (format != ast_format_none) {
-			unsigned int framing = ast_format_get_default_ms(format);
-			ast_format_cap_append(ast_channel_nativeformats(channel->owner), format, framing);
-		}
-	}
-
-	return 1;
-}
-
-static int sccp_wrapper_asterisk114_setNativeVideoFormats(constChannelPtr channel, skinny_codec_t codec)
-{
-	int i;
-	int length = 1;
-
-	for (i = 0; i < length; i++) {
-		struct ast_format *format = sccp_asterisk114_skinny2ast_format(codec);
-		if (format != ast_format_none) {
-			unsigned int framing = ast_format_get_default_ms(format);
-			ast_format_cap_append(ast_channel_nativeformats(channel->owner), format, framing);
-		}
-	}
-	return 1;
 }
 
 static void sccp_wrapper_asterisk114_removeTimingFD(PBX_CHANNEL_TYPE *ast)
@@ -2278,11 +2239,48 @@ static int sccp_wrapper_asterisk114_setPhoneRTPAddress(const struct sccp_rtp *rt
 	return res;
 }
 
+static int sccp_wrapper_asterisk114_setNativeAudioFormats(constChannelPtr channel, skinny_codec_t codecs[], int length)
+{
+	int n;
+	if (!channel || !channel->owner || !ast_channel_nativeformats(channel->owner)) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_wrapper_asterisk111_setNativeAudioFormats) no channel provided!\n");
+		return 0;
+	}
+
+	//length = 1;												//set only one codecs
+	ast_format_cap_remove_by_type(ast_channel_nativeformats(channel->owner), AST_MEDIA_TYPE_AUDIO);
+	for (n = 0; n < length; n++) {
+		struct ast_format *format = sccp_asterisk114_skinny2ast_format(codecs[n]);
+		if (format != ast_format_none) {
+			unsigned int framing = ast_format_get_default_ms(format);
+			ast_format_cap_append(ast_channel_nativeformats(channel->owner), format, framing);
+			ast_channel_nativeformats_set(channel->owner, ast_channel_nativeformats(channel->owner));
+		}
+	}
+	//struct ast_str *codec_buf = ast_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
+	//sccp_log((DEBUGCAT_RTP | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (asterisk114_setNativeAudioFormats) %s\n", channel->designator, ast_format_cap_get_names(ast_channel_nativeformats(channel->owner), &codec_buf));
+	return 1;
+}
+
+static int sccp_wrapper_asterisk114_setNativeVideoFormats(constChannelPtr channel, skinny_codec_t codec)
+{
+	ast_format_cap_remove_by_type(ast_channel_nativeformats(channel->owner), AST_MEDIA_TYPE_VIDEO);
+	struct ast_format *format = sccp_asterisk114_skinny2ast_format(codec);
+	if (format != ast_format_none) {
+		unsigned int framing = ast_format_get_default_ms(format);
+		ast_format_cap_append(ast_channel_nativeformats(channel->owner), format, framing);
+	}
+	//struct ast_str *codec_buf = ast_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
+	//sccp_log((DEBUGCAT_RTP | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (asterisk114_setNativeAudioFormats) %s\n", channel->designator, ast_format_cap_get_names(ast_channel_nativeformats(channel->owner), &codec_buf));
+	return 1;
+}
+
 static boolean_t sccp_wrapper_asterisk114_setWriteFormat(constChannelPtr channel, skinny_codec_t codec)
 {
 	if (!channel) {
 		return FALSE;
 	}
+	sccp_log((DEBUGCAT_RTP | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (asterisk114_setWriteFormat) %s)\n", channel->designator, codec2str(codec));
 
 	struct ast_format *ast_format = sccp_asterisk114_skinny2ast_format(codec);
 	if (ast_format != ast_format_none) {
@@ -2301,7 +2299,7 @@ static boolean_t sccp_wrapper_asterisk114_setWriteFormat(constChannelPtr channel
 	} else {
 		return FALSE;
 	}
-
+	
 	if (NULL != channel->rtp.audio.instance) {
 		ast_rtp_instance_set_write_format(channel->rtp.audio.instance, ast_format);
 	}
@@ -2314,6 +2312,7 @@ static boolean_t sccp_wrapper_asterisk114_setReadFormat(constChannelPtr channel,
 	if (!channel) {
 		return FALSE;
 	}
+	sccp_log((DEBUGCAT_RTP | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (asterisk114_setReadFormat) %s)\n", channel->designator, codec2str(codec));
 
 	struct ast_format *ast_format = sccp_asterisk114_skinny2ast_format(codec);
 	if (ast_format != ast_format_none) {
