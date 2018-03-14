@@ -154,7 +154,7 @@ boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t 
 	char buf[NI_MAXHOST + NI_MAXSERV];
 	sccp_copy_string(buf, sccp_netsock_stringify(phone_remote), sizeof(buf));
 	boolean_t isMappedIPv4 = sccp_netsock_ipv4_mapped(phone_remote, phone_remote);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (createAudioServer) updated phone %s destination to : %s, family:%s, mapped: %s\n", c->designator, sccp_rtp_type2str(type), buf, sccp_netsock_is_IPv4(phone_remote) ? "IPv4" : "IPv6", isMappedIPv4 ? "True" : "False");
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (createRTPServer) updated phone %s destination to : %s, family:%s, mapped: %s\n", c->designator, sccp_rtp_type2str(type), buf, sccp_netsock_is_IPv4(phone_remote) ? "IPv4" : "IPv6", isMappedIPv4 ? "True" : "False");
 
 	return rtpResult;
 }
@@ -256,7 +256,14 @@ void sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t * const rtp, struct sockadd
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Restart media transmission on channel %d\n", c->currentDeviceId, c->callid);
 
 		/*! \todo we should check if this is a video or audio rtp */
-		sccp_channel_updateMediaTransmission(c);
+		if (rtp->type == SCCP_RTP_AUDIO) {
+			sccp_channel_updateMediaTransmission(c);
+		}
+#if CS_SCCP_VIDEO
+		else if (rtp->type == SCCP_RTP_VIDEO) {
+			sccp_channel_updateMultiMediaTransmission(c);
+		}
+#endif
 	}
 }
 
@@ -281,7 +288,7 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 		/* check if we have new infos */
 		/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
 		/*
-		if (sccp_netsock_equals(new_peer, &c->rtp.audio.phone)) {
+		if (sccp_netsock_equals(new_peer, rtp->phone)) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equal to the current one, ignore change\n", c->currentDeviceId);
 			//return;
 		}
@@ -308,9 +315,9 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 		sccp_copy_string(remoteIpStr, sccp_netsock_stringify(&rtp->phone_remote), sizeof(remoteIpStr));
 		sccp_copy_string(phoneIpStr, sccp_netsock_stringify(&rtp->phone), sizeof(phoneIpStr));
 		if (device->nat >= SCCP_NAT_ON) {
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (NAT:%s)\n", DEV_ID_LOG(device), remoteIpStr, phoneIpStr, peerIpStr);
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send %sRTP/UDP media from %s to %s (NAT:%s)\n", DEV_ID_LOG(device), rtp->type == SCCP_RTP_VIDEO ? "V" : "", remoteIpStr, phoneIpStr, peerIpStr);
 		} else {
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (NoNat)\n", DEV_ID_LOG(device), remoteIpStr, phoneIpStr);
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send %sRTP/UDP media from %s to %s (NoNat)\n", DEV_ID_LOG(device), rtp->type == SCCP_RTP_VIDEO ? "V" : "", remoteIpStr, phoneIpStr);
 		}
 	}
 }

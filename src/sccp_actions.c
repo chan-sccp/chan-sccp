@@ -3399,7 +3399,7 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 				sccp_channel_endcall(channel);
 				break;
 		}
-		channel->rtp.audio.receiveChannelState = resultingChannelState;
+		channel->rtp.video.receiveChannelState = resultingChannelState;
 	} else {
 		// we successfully opened receive channel, but have no channel active -> close receive (maybe the call was already (being) terminated)
 		if (mediastatus == SKINNY_MEDIASTATUS_Ok) {
