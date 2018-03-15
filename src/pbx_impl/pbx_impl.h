@@ -176,6 +176,9 @@ typedef struct _PbxInterface {
 	int (*unregister_application)(const char *app_name);
 	int (*register_function)(struct pbx_custom_function *custom_function);
 	int (*unregister_function)(struct pbx_custom_function *custom_function);
+
+	uint (*get_codec_framing)(constChannelPtr c);
+	uint (*get_dtmf_payload_code)(constChannelPtr c);
 	/* *INDENT-ON* */
 } PbxInterface;
 

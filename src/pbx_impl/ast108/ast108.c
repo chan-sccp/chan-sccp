@@ -2210,6 +2210,16 @@ static boolean_t sccp_wrapper_asterisk18_createRtpInstance(constDevicePtr d, con
 	return TRUE;
 }
 
+static uint sccp_wrapper_get_dtmf_payload_code(constChannelPtr c)
+{
+	int rtp_code = 0;
+	if (SCCP_DTMFMODE_SKINNY != c->dtmfmode) {
+		rtp_code = ast_rtp_codecs_payload_code(ast_rtp_instance_get_codecs(c->rtp.audio.instance), 0, NULL, AST_RTP_DTMF);
+	}
+	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: Using dtmf rtp_code : %d\n", c->designator, rtp_code);
+	return rtp_code != -1 ? rtp_code : 0;
+}
+
 static boolean_t sccp_wrapper_asterisk18_destroyRTP(PBX_RTP_TYPE * rtp)
 {
 	int res;
@@ -3132,6 +3142,8 @@ const PbxInterface iPbx = {
 	unregister_application:		sccp_wrapper_unregister_application,
 	register_function:		sccp_wrapper_register_function,
 	unregister_function:		sccp_wrapper_unregister_function,
+
+	get_dtmf_payload_code:		sccp_wrapper_get_dtmf_payload_code,
 	/* *INDENT-ON* */
 };
 #else
@@ -3262,6 +3274,8 @@ const PbxInterface iPbx = {
 	.unregister_application		= sccp_wrapper_unregister_application,
 	.register_function		= sccp_wrapper_register_function,
 	.unregister_function		= sccp_wrapper_unregister_function,
+
+	.get_dtmf_payload_code		= sccp_wrapper_get_dtmf_payload_code,
 	/* *INDENT-ON* */
 };
 #endif

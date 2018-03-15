@@ -173,12 +173,12 @@ static struct ast_format *sccp_asterisk115_skinny2ast_format(skinny_codec_t skin
 }
 
 static void pbx_format_cap_append_skinny(struct ast_format_cap *caps, skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES]) {
-	int i;
-	for (i=0; i<SKINNY_MAX_CAPABILITIES; i++) {
-		if (codecs[i] == SKINNY_CODEC_NONE) {
+	int n;
+	for (n=0; n<SKINNY_MAX_CAPABILITIES; n++) {
+		if (codecs[n] == SKINNY_CODEC_NONE) {
 			break;
 		}
-		struct ast_format *format = sccp_asterisk115_skinny2ast_format(codecs[i]);
+		struct ast_format *format = sccp_asterisk115_skinny2ast_format(codecs[n]);
 		if (format != ast_format_none) {
 			unsigned int framing = ast_format_get_default_ms(format);
 			ast_format_cap_append(caps, format, framing);
@@ -2158,24 +2158,33 @@ static boolean_t sccp_wrapper_asterisk115_createRtpInstance(constDevicePtr d, co
 	}
 	ast_rtp_instance_set_qos(instance, tos, cos, "SCCP RTP");
 
-	// Add CISCO DTMF SKINNY payload type
-	if (rtp->type == SCCP_RTP_AUDIO && SCCP_DTMFMODE_SKINNY == d->dtmfmode) {
-		ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(c->rtp.audio.instance), c->rtp.audio.instance, 96);
-		ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(c->rtp.audio.instance), c->rtp.audio.instance, 96, "audio", "telephone-event", 0);
-		ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(c->rtp.audio.instance), c->rtp.audio.instance, 101);
-		ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(c->rtp.audio.instance), c->rtp.audio.instance, 101, "audio", "telephone-event", 0);
-		ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(c->rtp.audio.instance), c->rtp.audio.instance, 105);
-		ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(c->rtp.audio.instance), c->rtp.audio.instance, 105, "audio", "cisco-telephone-event", 0);
-	}
+	ast_rtp_codecs_set_framing(ast_rtp_instance_get_codecs(instance), ast_format_cap_get_framing(ast_channel_nativeformats(c->owner)));
+	ast_rtp_instance_set_channel_id(instance, ast_channel_uniqueid(c->owner));
 	ast_rtp_instance_activate(instance);
 
 	if (c->owner) {
 		ast_channel_stage_snapshot_done(c->owner);
 		// this prevent a warning about unknown codec, when rtp traffic starts */
-		ast_queue_frame(c->owner, &ast_null_frame);
+		//ast_queue_frame(c->owner, &ast_null_frame);
+		ast_rtp_instance_set_last_rx(instance, time(NULL));
 	}
 
 	return TRUE;
+}
+
+static uint sccp_wrapper_get_codec_framing(constChannelPtr c)
+{
+	return ast_rtp_codecs_get_framing(ast_rtp_instance_get_codecs(c->rtp.audio.instance));
+}
+
+static uint sccp_wrapper_get_dtmf_payload_code(constChannelPtr c)
+{
+	int rtp_code = 0;
+	if (SCCP_DTMFMODE_SKINNY != c->dtmfmode) {
+		rtp_code = ast_rtp_codecs_payload_code(ast_rtp_instance_get_codecs(c->rtp.audio.instance), 0, NULL, AST_RTP_DTMF);
+	}
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using dtmf rtp_code : %d\n", c->designator, rtp_code);
+	return rtp_code != -1 ? rtp_code : 0;
 }
 
 static boolean_t sccp_wrapper_asterisk115_destroyRTP(PBX_RTP_TYPE * rtp)
@@ -2250,16 +2259,19 @@ static int sccp_wrapper_asterisk115_setNativeAudioFormats(constChannelPtr channe
 		return 0;
 	}
 
-	//length = 1;												//set only one codecs
-	ast_format_cap_remove_by_type(ast_channel_nativeformats(channel->owner), AST_MEDIA_TYPE_AUDIO);
-	for (n = 0; n < length; n++) {
-		struct ast_format *format = sccp_asterisk115_skinny2ast_format(codecs[n]);
-		if (format != ast_format_none) {
-			unsigned int framing = ast_format_get_default_ms(format);
-			ast_format_cap_append(ast_channel_nativeformats(channel->owner), format, framing);
-			ast_channel_nativeformats_set(channel->owner, ast_channel_nativeformats(channel->owner));
-		}
+	struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	if (!caps) {
+		return FALSE;
 	}
+	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(channel->owner), AST_MEDIA_TYPE_UNKNOWN);
+	ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_AUDIO);
+	pbx_format_cap_append_skinny(caps, codecs);
+
+	ast_channel_lock(channel->owner);
+	ast_channel_nativeformats_set(channel->owner, caps);
+	ast_channel_unlock(channel->owner);
+	ao2_cleanup(caps);
+
 	//struct ast_str *codec_buf = ast_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
 	//sccp_log((DEBUGCAT_RTP | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (asterisk115_setNativeAudioFormats) %s\n", channel->designator, ast_format_cap_get_names(ast_channel_nativeformats(channel->owner), &codec_buf));
 	return 1;
@@ -2273,6 +2285,21 @@ static int sccp_wrapper_asterisk115_setNativeVideoFormats(constChannelPtr channe
 		unsigned int framing = ast_format_get_default_ms(format);
 		ast_format_cap_append(ast_channel_nativeformats(channel->owner), format, framing);
 	}
+
+	struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	if (!caps) {
+		return FALSE;
+	}
+	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(channel->owner), AST_MEDIA_TYPE_UNKNOWN);
+	ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_VIDEO);
+	skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = {codec, 0};
+	pbx_format_cap_append_skinny(caps, codecs);
+
+	ast_channel_lock(channel->owner);
+	ast_channel_nativeformats_set(channel->owner, caps);
+	ast_channel_unlock(channel->owner);
+	ao2_cleanup(caps);
+
 	//struct ast_str *codec_buf = ast_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
 	//sccp_log((DEBUGCAT_RTP | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (asterisk115_setNativeAudioFormats) %s\n", channel->designator, ast_format_cap_get_names(ast_channel_nativeformats(channel->owner), &codec_buf));
 	return 1;
@@ -3268,6 +3295,9 @@ const PbxInterface iPbx = {
 	unregister_application:		sccp_wrapper_unregister_application,
 	register_function:		sccp_wrapper_register_function,
 	unregister_function:		sccp_wrapper_unregister_function,
+
+	get_codec_framing:		sccp_wrapper_get_codec_framing,
+	get_dtmf_payload_code:		sccp_wrapper_get_dtmf_payload_code,
 	/* *INDENT-ON* */
 };
 
@@ -3413,6 +3443,9 @@ const PbxInterface iPbx = {
 	.unregister_application		= sccp_wrapper_unregister_application,
 	.register_function		= sccp_wrapper_register_function,
 	.unregister_function		= sccp_wrapper_unregister_function,
+
+	.get_codec_framing		= sccp_wrapper_get_codec_framing,
+	.get_dtmf_payload_code		= sccp_wrapper_get_dtmf_payload_code,
 	/* *INDENT-ON* */
 };
 #endif

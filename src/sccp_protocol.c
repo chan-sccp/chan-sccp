@@ -716,21 +716,19 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, co
 static void sccp_protocol_sendStartMediaTransmissionV3(constDevicePtr device, constChannelPtr channel)
 {
 	sccp_msg_t *msg = sccp_build_packet(StartMediaTransmission, sizeof(msg->data.StartMediaTransmission.v3));
-	int packetSize = 20;											/*! \todo calculate packetSize */
+
+        uint framing = iPbx.get_codec_framing ? iPbx.get_codec_framing(channel) : 20;
+        uint dtmf_payload_code = iPbx.get_dtmf_payload_code ? iPbx.get_dtmf_payload_code(channel) : 101;
 
 	msg->data.StartMediaTransmission.v3.lel_conferenceId = htolel(channel->callid);
 	msg->data.StartMediaTransmission.v3.lel_passThruPartyId = htolel(channel->passthrupartyid);
 	msg->data.StartMediaTransmission.v3.lel_callReference = htolel(channel->callid);
-	msg->data.StartMediaTransmission.v3.lel_millisecondPacketSize = htolel(packetSize);
+	msg->data.StartMediaTransmission.v3.lel_millisecondPacketSize = htolel(framing);
 	msg->data.StartMediaTransmission.v3.lel_payloadType = htolel(channel->rtp.audio.readFormat);
 	msg->data.StartMediaTransmission.v3.lel_precedenceValue = htolel((uint32_t)device->audio_tos);
 	msg->data.StartMediaTransmission.v3.lel_ssValue = htolel(channel->line->silencesuppression);		// Silence supression
 	msg->data.StartMediaTransmission.v3.lel_maxFramesPerPacket = htolel(0);
-	if (SCCP_DTMFMODE_SKINNY == channel->dtmfmode) {
-		msg->data.StartMediaTransmission.v3.lel_RFC2833Type = htolel(0);
-	} else {
-		msg->data.StartMediaTransmission.v3.lel_RFC2833Type = htolel(101);
-	}
+	msg->data.StartMediaTransmission.v3.lel_RFC2833Type = htolel(dtmf_payload_code);
 	msg->data.StartMediaTransmission.v3.lel_dtmfType = htolel(10);;
 
 	if (channel->rtp.audio.phone_remote.ss_family == AF_INET) {
@@ -751,21 +749,19 @@ static void sccp_protocol_sendStartMediaTransmissionV3(constDevicePtr device, co
 static void sccp_protocol_sendStartMediaTransmissionV17(constDevicePtr device, constChannelPtr channel)
 {
 	sccp_msg_t *msg = sccp_build_packet(StartMediaTransmission, sizeof(msg->data.StartMediaTransmission.v17));
-	int packetSize = 20;											/*! \todo calculate packetSize */
 
+        uint framing = iPbx.get_codec_framing ? iPbx.get_codec_framing(channel) : 20;
+        uint dtmf_payload_code = iPbx.get_dtmf_payload_code ? iPbx.get_dtmf_payload_code(channel) : 101;
+        
 	msg->data.StartMediaTransmission.v17.lel_conferenceId = htolel(channel->callid);
 	msg->data.StartMediaTransmission.v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
 	msg->data.StartMediaTransmission.v17.lel_callReference = htolel(channel->callid);
-	msg->data.StartMediaTransmission.v17.lel_millisecondPacketSize = htolel(packetSize);
+	msg->data.StartMediaTransmission.v17.lel_millisecondPacketSize = htolel(framing);
 	msg->data.StartMediaTransmission.v17.lel_payloadType = htolel(channel->rtp.audio.readFormat);
 	msg->data.StartMediaTransmission.v17.lel_precedenceValue = htolel((uint32_t)device->audio_tos);
 	msg->data.StartMediaTransmission.v17.lel_ssValue = htolel(channel->line->silencesuppression);		// Silence supression
 	msg->data.StartMediaTransmission.v17.lel_maxFramesPerPacket = htolel(0);
-	if (SCCP_DTMFMODE_SKINNY == channel->dtmfmode) {
-		msg->data.StartMediaTransmission.v17.lel_RFC2833Type = htolel(0);
-	} else {
-		msg->data.StartMediaTransmission.v17.lel_RFC2833Type = htolel(101);
-	}
+	msg->data.StartMediaTransmission.v17.lel_RFC2833Type = htolel(dtmf_payload_code);
 	msg->data.StartMediaTransmission.v17.lel_dtmfType = htolel(10);;
 
 	if (channel->rtp.audio.phone_remote.ss_family == AF_INET6) {
@@ -788,21 +784,19 @@ static void sccp_protocol_sendStartMediaTransmissionV17(constDevicePtr device, c
 static void sccp_protocol_sendStartMediaTransmissionv22(constDevicePtr device, constChannelPtr channel)
 {
 	sccp_msg_t *msg = sccp_build_packet(StartMediaTransmission, sizeof(msg->data.StartMediaTransmission.v22));
-	int packetSize = 20;											/*! \todo calculate packetSize */
+
+        uint framing = iPbx.get_codec_framing ? iPbx.get_codec_framing(channel) : 20;
+        uint dtmf_payload_code = iPbx.get_dtmf_payload_code ? iPbx.get_dtmf_payload_code(channel) : 101;
 
 	msg->data.StartMediaTransmission.v22.lel_conferenceId = htolel(channel->callid);
 	msg->data.StartMediaTransmission.v22.lel_passThruPartyId = htolel(channel->passthrupartyid);
 	msg->data.StartMediaTransmission.v22.lel_callReference = htolel(channel->callid);
-	msg->data.StartMediaTransmission.v22.lel_millisecondPacketSize = htolel(packetSize);
+	msg->data.StartMediaTransmission.v22.lel_millisecondPacketSize = htolel(framing);
 	msg->data.StartMediaTransmission.v22.lel_payloadType = htolel(channel->rtp.audio.readFormat);
 	msg->data.StartMediaTransmission.v22.lel_precedenceValue = htolel((uint32_t)device->audio_tos);
 	msg->data.StartMediaTransmission.v22.lel_ssValue = htolel(channel->line->silencesuppression);		// Silence supression
 	msg->data.StartMediaTransmission.v22.lel_maxFramesPerPacket = htolel(0);
-	if (SCCP_DTMFMODE_SKINNY == channel->dtmfmode) {
-		msg->data.StartMediaTransmission.v22.lel_RFC2833Type = htolel(0);
-	} else {
-		msg->data.StartMediaTransmission.v22.lel_RFC2833Type = htolel(101);
-	}
+	msg->data.StartMediaTransmission.v22.lel_RFC2833Type = htolel(dtmf_payload_code);
 	msg->data.StartMediaTransmission.v22.lel_dtmfType = htolel(10);;
 
 	if (channel->rtp.audio.phone_remote.ss_family == AF_INET6) {
