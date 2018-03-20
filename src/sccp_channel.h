@@ -164,9 +164,9 @@ SCCP_API void SCCP_CALL sccp_channel_closeMultiMediaReceiveChannel(constChannelP
 #if UNUSEDCODE // 2015-11-01
 SCCP_API void SCCP_CALL sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel);
 #endif
-//#if UNUSEDCODE // 2015-11-01
+#if UNUSEDCODE // 2015-11-01
 SCCP_API void SCCP_CALL sccp_channel_updateMultiMediaTransmission(constChannelPtr channel);
-//#endif
+#endif
 
 SCCP_API void SCCP_CALL sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannelPtr channel);
 
