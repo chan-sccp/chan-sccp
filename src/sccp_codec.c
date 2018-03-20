@@ -9,6 +9,7 @@
 #include "common.h"
 #include "sccp_codec.h"
 #include "sccp_utils.h"
+#include "sccp_channel.h"
 
 const struct skinny_codec skinny_codecs[] = {
 	/* *INDENT-OFF* */
@@ -248,6 +249,7 @@ int sccp_get_codecs_bytype(skinny_codec_t * in_codecs, skinny_codec_t *out_codec
 {
 	int x = 0, y = 0, z = 0;
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
+		//sccp_log((DEBUGCAT_CODEC)) ("SCCP: disallow=all => reset codecs\n");
 		if (SKINNY_CODEC_NONE != in_codecs[x]) {
 			for (y = 0; y < sccp_codec_getArrayLen(); y++) {
 				if (skinny_codecs[y].codec == in_codecs[x] && skinny_codecs[y].codec_type == type) {
@@ -267,6 +269,9 @@ boolean_t __PURE__ sccp_codec_isCompatible(skinny_codec_t codec, const skinny_co
 	uint8_t i;
 
 	for (i = 0; i < length; i++) {
+		if (capabilities[i] == SKINNY_CODEC_NONE) {
+			break;
+		}
 		if (capabilities[i] == codec) {
 			return TRUE;
 		}
@@ -321,89 +326,43 @@ void sccp_codec_combineSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const 
 	}
 }
 
-/*!
- * \brief Find the best codec match Between Preferences, Capabilities and RemotePeerCapabilities
- * 
- * Returns:
- *  - Best Match If Found
- *  - If not it returns the first jointCapability
- *  - Else SKINNY_CODEC_NONE
- */
-skinny_codec_t sccp_codec_findBestJoint(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int cLength, const skinny_codec_t remotePeerCapabilities[], int rLength)
+skinny_codec_t sccp_codec_findBestJoint(constChannelPtr c, const skinny_codec_t ourPreferences[], const skinny_codec_t remotePeerPreferences[])
 {
-	uint8_t r, c, p;
-	skinny_codec_t firstJointCapability = SKINNY_CODEC_NONE;						/*!< used to get a default value */
+	skinny_codec_t res = SKINNY_CODEC_NONE;
+	skinny_codec_t leadPrefs[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+	skinny_codec_t *followPrefs;
 
-	//sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "pLength %d, cLength: %d, rLength: %d\n", pLength, cLength, rLength);
+	/* debug */
+	//char pref_buf[256]; sccp_codec_multiple2str(pref_buf, sizeof(pref_buf) - 1, ourPreferences, SKINNY_MAX_CAPABILITIES);
+	//char remote_buf[256]; sccp_codec_multiple2str(remote_buf, sizeof(remote_buf) - 1, remotePeerPreferences, SKINNY_MAX_CAPABILITIES);
+	//sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ourPref:%s, remoteCap::%s, direction:%s\n", pref_buf, remote_buf, skinny_calltype2str(c->calltype));
+	/* end debug */
 
-	//char pref_buf[256];
-	//sccp_codec_multiple2str(pref_buf, sizeof(pref_buf) - 1, ourPreferences, (int)pLength);
-	//char cap_buf[256];
-	//sccp_codec_multiple2str(cap_buf, sizeof(pref_buf) - 1, ourCapabilities, cLength);
-	//char remote_cap_buf[256];
-	//sccp_codec_multiple2str(remote_cap_buf, sizeof(remote_cap_buf) - 1, remotePeerCapabilities, rLength);
-	//sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ourPref %s\nourCap: %s\nremoteCap: %s\n", pref_buf, cap_buf, remote_cap_buf);
-
-	/** check if we have a preference codec list */
-	if (pLength == 0 || ourPreferences[0] == SKINNY_CODEC_NONE) {
-		/* using remote capabilities to */
-		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "We got an empty preference codec list (exiting)\n");
-		return SKINNY_CODEC_NONE;
-
+	if (ourPreferences[0] == SKINNY_CODEC_NONE && remotePeerPreferences[0] == SKINNY_CODEC_NONE) {
+		pbx_log(LOG_ERROR, "both preference lists are empty\n");
+		goto EXIT;
 	}
 
-	/* iterate over our codec preferences */
-	for (p = 0; p < pLength; p++) {
-		if (ourPreferences[p] == SKINNY_CODEC_NONE) {
-			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "no more preferences at position %d\n", p);
-			break;
-		}
-		/* no more preferences */
-		//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "preference: %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]));
-
-		/* check if we are capable to handle this codec */
-		for (c = 0; c < cLength; c++) {
-			if (ourCapabilities[c] == SKINNY_CODEC_NONE) {
-				/* we reached the end of valide codecs, because we found the first NONE codec */
-				sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) ("Breaking at capability: %d\n", c);
-				break;
-			}
-			//sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "preference: %d(%s), capability: %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]), ourCapabilities[c], codec2name(ourCapabilities[c]));
-
-			/* we have no capabilities from the remote party, use the best codec from ourPreferences */
-			if (ourPreferences[p] == ourCapabilities[c]) {
-				if (firstJointCapability == SKINNY_CODEC_NONE) {
-					firstJointCapability = ourPreferences[p];
-					//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "found first firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
-				}
-
-				if (rLength == 0 || remotePeerCapabilities[0] == SKINNY_CODEC_NONE) {
-					//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "Empty remote Capabilities, using bestCodec from firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
-					return firstJointCapability;
-				} 
-
-				/* using capabilities from remote party, that matches our preferences & capabilities */
-				for (r = 0; r < rLength; r++) {
-					if (remotePeerCapabilities[r] == SKINNY_CODEC_NONE) {
-						//sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) ("Breaking at remotePeerCapability: %d\n", c);
-						break;
-					}
-					sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "preference: %d(%s), capability: %d(%s), remoteCapability: " UI64FMT "(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]), ourCapabilities[c], codec2name(ourCapabilities[c]), (ULONG) remotePeerCapabilities[r], codec2name(remotePeerCapabilities[r]));
-					if (ourPreferences[p] == remotePeerCapabilities[r]) {
-						//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "found bestCodec as joint capability with remote peer %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]));
-						return ourPreferences[p];
-					}
-				}
-			}
-		}
+	/* direction of the call determines who leads */
+	if (SKINNY_CALLTYPE_INBOUND == c->calltype){
+		memcpy(leadPrefs, remotePeerPreferences, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
+		followPrefs = (skinny_codec_t *) ourPreferences;
+	} else {
+		memcpy(leadPrefs, ourPreferences, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
+		followPrefs = (skinny_codec_t *) remotePeerPreferences;
 	}
 
-	if (firstJointCapability != SKINNY_CODEC_NONE) {
-		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "did not find joint capability with remote device, using first joint capability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
-		return firstJointCapability;
-	}
+	sccp_codec_reduceSet(leadPrefs, followPrefs);
+	res = leadPrefs[0];
 
-	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "no joint capability with preference codec list\n");
-	return 0;
+EXIT:
+	if (res == SKINNY_CODEC_NONE) {
+		sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s, Could not find a common prefered codec (yet), using %s (%d)\n", c->designator, codec2name(ourPreferences[0]), ourPreferences[0]);
+		res = ourPreferences[0];
+	}
+	sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: (findBestJoint) returning prefered codec %s (%d)\n", c->designator, codec2name(res), res);
+	return res;
 }
+
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

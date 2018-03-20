@@ -988,7 +988,7 @@ void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, siz
 	if (changes) {
 		sccp_channel_send_callinfo2(channel);
 
-		/* We have a preliminary connected line, indiate RINGOUT_ALERTING */
+		/* We have a preliminary connected line, indicate RINGOUT_ALERTING */
 		if (SKINNY_CALLTYPE_OUTBOUND == channel->calltype && SCCP_CHANNELSTATE_RINGOUT == channel->state) {
 			sccp_indicate(NULL, channel, SCCP_CHANNELSTATE_RINGOUT_ALERTING);
 		}

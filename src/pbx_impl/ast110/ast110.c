@@ -100,7 +100,6 @@ static uint8_t sccp_asterisk10_getSkinnyFormatMultiple(struct ast_format_cap *as
 	while (!ast_format_cap_iter_next(ast_format_capability, &tmp_fmt) && position < length) {
 		if ((found = pbx_codec2skinny_codec(tmp_fmt.id)) != SKINNY_CODEC_NONE) {
 			codec[position++] = found;
-			break;
 		}
 	}
 	ast_format_cap_iter_end(ast_format_capability);
@@ -1272,7 +1271,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 	}
 
 	AUTO_RELEASE(sccp_channel_t, channel , NULL);
-	requestStatus = sccp_requestChannel(lineName, codec, audioCapabilities, ARRAY_LEN(audioCapabilities), autoanswer_type, autoanswer_cause, ringermode, &channel);
+	requestStatus = sccp_requestChannel(lineName, autoanswer_type, autoanswer_cause, ringermode, &channel);
 	switch (requestStatus) {
 		case SCCP_REQUEST_STATUS_SUCCESS:								// everything is fine
 			break;
@@ -1293,6 +1292,13 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 			*cause = AST_CAUSE_UNALLOCATED;
 			goto EXITFUNC;
 	}
+
+	/** set requested codec as prefered codec */
+	memcpy(&channel->remoteCapabilities.audio, audioCapabilities, sizeof(channel->remoteCapabilities.audio));
+#if SCCP_VIDEO
+	memcpy(&channel->remoteCapabilities.video, videoCapabilities, sizeof(channel->remoteCapabilities.video));
+#endif
+	/** done */
 
 	if (!sccp_pbx_channel_allocate(channel, requestor ? requestor->linkedid : NULL, requestor)) {
 		//! \todo handle error in more detail, cleanup sccp channel

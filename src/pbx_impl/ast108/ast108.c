@@ -1493,7 +1493,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 	codec = pbx_codec2skinny_codec(format);
 
 	AUTO_RELEASE(sccp_channel_t, channel , NULL);
-	requestStatus = sccp_requestChannel(lineName, codec, audioCapabilities, ARRAY_LEN(audioCapabilities), autoanswer_type, autoanswer_cause, ringermode, &channel);
+	requestStatus = sccp_requestChannel(lineName, autoanswer_type, autoanswer_cause, ringermode, &channel);
 	switch (requestStatus) {
 		case SCCP_REQUEST_STATUS_SUCCESS:								// everything is fine
 			break;
@@ -1514,6 +1514,13 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 			*cause = AST_CAUSE_UNALLOCATED;
 			goto EXITFUNC;
 	}
+
+	/** set requested codec as prefered codec */
+	memcpy(&channel->remoteCapabilities.audio, audioCapabilities, sizeof(channel->remoteCapabilities.audio));
+#if SCCP_VIDEO
+	memcpy(&channel->remoteCapabilities.video, videoCapabilities, sizeof(channel->remoteCapabilities.video));
+#endif
+	/** done */
 
 	if (!sccp_pbx_channel_allocate(channel, requestor ? requestor->linkedid : NULL, requestor)) {
 		//! \todo handle error in more detail, cleanup sccp channel

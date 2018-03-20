@@ -163,6 +163,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_RING_OUT, GLOB(digittimeout));
 
 				sccp_dev_stoptone(d, lineInstance, c->callid);
+				//if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
 				if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
 				} else {
@@ -177,6 +178,10 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 			/* send by connected line update, to show that we know the remote end, we can now update the callinfo */
 			sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, TRUE);
+			if (d->earlyrtp <= SCCP_EARLYRTP_PROGRESS && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
+				sccp_dev_stoptone(d, lineInstance, c->callid);
+				sccp_channel_openReceiveChannel(c);
+			}
 			break;
 		case SCCP_CHANNELSTATE_RINGING:
 			{

@@ -1531,7 +1531,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk116_request(const char *type, stru
 	int callid_created = ast_callid_threadstorage_auto(&callid);
 
 	AUTO_RELEASE(sccp_channel_t, channel , NULL);
-	requestStatus = sccp_requestChannel(lineName, audio_codec, audioCapabilities, ARRAY_LEN(audioCapabilities), autoanswer_type, autoanswer_cause, ringermode, &channel);
+	requestStatus = sccp_requestChannel(lineName, autoanswer_type, autoanswer_cause, ringermode, &channel);
 	switch (requestStatus) {
 		case SCCP_REQUEST_STATUS_SUCCESS:								// everything is fine
 			break;
@@ -2163,23 +2163,23 @@ static boolean_t sccp_wrapper_asterisk116_createRtpInstance(constDevicePtr d, co
 
 	/* rest below should be moved out of here (refactoring required) */
 	PBX_RTP_TYPE *instance = rtp->instance;
-	//char *rtp_map_filter = NULL;
-	//skinny_payload_type_t codec_type;
+	char *rtp_map_filter = NULL;
+	enum ast_media_type format_type = AST_MEDIA_TYPE_AUDIO;
 	int fd_offset = 0;
 	switch(rtp->type) {
 		case SCCP_RTP_AUDIO:
 			tos = d->audio_tos;
 			cos = d->audio_cos;
-			//rtp_map_filter = "audio";
-			//codec_type = SKINNY_CODEC_TYPE_AUDIO;
+			rtp_map_filter = "audio";
+			format_type = AST_MEDIA_TYPE_AUDIO;
 			break;
 			
 #if CS_SCCP_VIDEO
 		case SCCP_RTP_VIDEO:
 			tos = d->video_tos;
 			cos = d->video_cos;
-			//rtp_map_filter = "video";
-			//codec_type = SKINNY_CODEC_TYPE_VIDEO;
+			rtp_map_filter = "video";
+			format_type = AST_MEDIA_TYPE_VIDEO;
 			fd_offset = 2;
 			break;
 #endif			
@@ -2193,29 +2193,59 @@ static boolean_t sccp_wrapper_asterisk116_createRtpInstance(constDevicePtr d, co
 		ast_channel_set_fd(c->owner, fd_offset, ast_rtp_instance_fd(instance, 0));		// RTP
 		ast_channel_set_fd(c->owner, fd_offset + 1, ast_rtp_instance_fd(instance, 1));		// RTCP
 	}
-	ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_RTCP, AST_RTP_INSTANCE_RTCP_STANDARD);
+	ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_RTCP, 1);
 	if (rtp->type == SCCP_RTP_AUDIO) {
-                ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_DTMF, 1);
+		ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_DTMF, 1);
 		if (c->dtmfmode == SCCP_DTMFMODE_SKINNY) {
-			ast_rtp_instance_dtmf_mode_set(instance, AST_RTP_DTMF_MODE_INBAND);
 			ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
-		} else {
-			ast_rtp_instance_dtmf_mode_set(instance, AST_RTP_DTMF_MODE_RFC2833);
+			ast_rtp_instance_dtmf_mode_set(instance, AST_RTP_DTMF_MODE_INBAND);
 		}
 	}
 	ast_rtp_instance_set_qos(instance, tos, cos, "SCCP RTP");
 
-	ast_rtp_codecs_set_framing(ast_rtp_instance_get_codecs(instance), ast_format_cap_get_framing(ast_channel_nativeformats(c->owner)));
+	//sccp_log_and(DEBUGCAT_CODEC + DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: (create_rtp) Building rtpmap\n", c->designator);
+	struct ast_rtp_codecs newrtp = AST_RTP_CODECS_NULL_INIT;
+	ast_rtp_codecs_payloads_initialize(&newrtp);
+	uint x = 0;
+	for (x = 0; x < ast_format_cap_count(ast_channel_nativeformats(c->owner)); x++){
+		struct ast_format *format = ast_format_cap_get_format(ast_channel_nativeformats(c->owner), x);
+		if (ast_format_get_type(format) == format_type) {
+			int payloadtype = ast_rtp_codecs_payload_code(ast_rtp_instance_get_codecs(instance), 1, format, 0);
+			char *subtype = (char *)ast_rtp_lookup_mime_subtype2(1, format, 0, 0);
+			int samplerate = ast_rtp_lookup_sample_rate2(1, format, 0);
+			if (!ast_rtp_codecs_payloads_set_rtpmap_type_rate(&newrtp, NULL, payloadtype, rtp_map_filter, subtype, 0, samplerate)) {
+				ast_rtp_codecs_payloads_set_m_type(&newrtp, NULL, payloadtype);
+			} else {
+				ast_rtp_codecs_payloads_unset(&newrtp, NULL, payloadtype);
+			}
+		}
+	}
+	//sccp_log_and(DEBUGCAT_CODEC + DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: (create_rtp) Adding: DTMF\n", c->designator);
+	if (rtp->type == SCCP_RTP_AUDIO) {
+		if (!ast_rtp_codecs_payloads_set_rtpmap_type(&newrtp, NULL, 101, "audio", "telephone-event", 0)) {
+			ast_rtp_codecs_payloads_set_m_type(&newrtp, NULL, 101);
+		} else {
+			ast_rtp_codecs_payloads_unset(&newrtp, NULL, 101);
+		}
+	}
+	struct ast_format *tmp_fmt = ast_format_cap_get_format(ast_channel_nativeformats(c->owner), 0);
+	unsigned int framing = ast_format_cap_get_format_framing(ast_channel_nativeformats(c->owner), tmp_fmt);
+	ast_rtp_codecs_set_framing(&newrtp, framing);
+	ao2_ref(tmp_fmt, -1);
+
+	ast_rtp_codecs_payloads_copy(&newrtp, ast_rtp_instance_get_codecs(instance), instance);
+	//sccp_log_and(DEBUGCAT_CODEC + DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: (create_rtp) Done rtpmap\n", c->designator);
+
 	ast_rtp_instance_set_channel_id(instance, ast_channel_uniqueid(c->owner));
 	ast_rtp_instance_activate(instance);
 
 	if (c->owner) {
 		ast_channel_stage_snapshot_done(c->owner);
 		// this prevent a warning about unknown codec, when rtp traffic starts */
-		//ast_queue_frame(c->owner, &ast_null_frame);
 		ast_rtp_instance_set_last_rx(instance, time(NULL));
+		//ast_queue_frame(c->owner, &ast_null_frame);
+		ast_rtp_instance_sendcng(instance, 0);
 	}
-	ast_rtp_codecs_set_framing(ast_rtp_instance_get_codecs(instance), ast_format_cap_get_framing(ast_channel_nativeformats(c->owner)));
 
 	return TRUE;
 }
