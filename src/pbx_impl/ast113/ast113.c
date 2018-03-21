@@ -1194,6 +1194,11 @@ static boolean_t sccp_wrapper_asterisk113_allocPBXChannel(sccp_channel_t * chann
 		return FALSE;
 	}
 
+	struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	if (!caps) {
+		return FALSE;
+	}
+
 	if (ids) {
 		assignedids = ids;
 	}
@@ -1202,6 +1207,7 @@ static boolean_t sccp_wrapper_asterisk113_allocPBXChannel(sccp_channel_t * chann
 	pbxDstChannel = ast_channel_alloc(0, AST_STATE_DOWN, line->cid_num, line->cid_name, line->accountcode, line->name, line->context, assignedids, pbxSrcChannel, line->amaflags, "%s", channel->designator);
 	if (pbxDstChannel == NULL) {
 		pbx_log(LOG_ERROR, "SCCP: (allocPBXChannel) ast_channel_alloc failed\n");
+		ao2_cleanup(caps);
 		return FALSE;
 	}
 	ast_channel_stage_snapshot(pbxDstChannel);
@@ -1209,14 +1215,8 @@ static boolean_t sccp_wrapper_asterisk113_allocPBXChannel(sccp_channel_t * chann
 
 	ast_channel_tech_set(pbxDstChannel, &sccp_tech);
 	ast_channel_tech_pvt_set(pbxDstChannel, sccp_channel_retain(channel));
-	//ast_channel_tech_pvt_set(pbxDstChannel, channel);
 
 	/* Copy Codec from SrcChannel */
-	struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-	if (!caps) {
-		return NULL;
-	}
-
 	if (pbxSrcChannel && ast_format_cap_count(ast_channel_nativeformats(pbxSrcChannel)) > 0) {
 		ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(pbxSrcChannel), AST_MEDIA_TYPE_UNKNOWN);
 	} else if (line && channel) {
@@ -1226,16 +1226,18 @@ static boolean_t sccp_wrapper_asterisk113_allocPBXChannel(sccp_channel_t * chann
 #endif		
 	}
 	ast_channel_nativeformats_set(pbxDstChannel, caps);
-	ao2_ref(caps, -1);
-	
-	struct ast_format *tmpfmt = ast_format_cap_get_format(ast_channel_nativeformats(pbxDstChannel), 0);
-	//struct ast_str *codec_buf = ast_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
-	//pbx_log(LOG_NOTICE, "allocPBXChannel: tmp->nativeformats=%s fmt=%s\n", ast_format_cap_get_names(ast_channel_nativeformats(pbxDstChannel), &codec_buf), ast_format_get_name(tmpfmt));
+	struct ast_format *tmpfmt = ast_format_cap_get_format(caps, 0);
 	ast_channel_set_writeformat(pbxDstChannel, tmpfmt);
 	ast_channel_set_rawwriteformat(pbxDstChannel, tmpfmt);
 	ast_channel_set_readformat(pbxDstChannel, tmpfmt);
 	ast_channel_set_rawreadformat(pbxDstChannel, tmpfmt);
+
+	//struct ast_str *codec_buf = ast_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
+	//pbx_log(LOG_NOTICE, "allocPBXChannel: tmp->nativeformats=%s fmt=%s\n", ast_format_cap_get_names(ast_channel_nativeformats(pbxDstChannel), &codec_buf), ast_format_get_name(tmpfmt));
+
 	ao2_ref(tmpfmt, -1);
+	//ao2_ref(caps, -1);
+	ao2_cleanup(caps);
 	/* EndCodec */
 
 	ast_channel_context_set(pbxDstChannel, line->context);
@@ -1291,6 +1293,7 @@ static boolean_t sccp_wrapper_asterisk113_allocPBXChannel(sccp_channel_t * chann
 	ast_channel_unlock(pbxDstChannel);
 
 	(*_pbxDstChannel) = pbxDstChannel;
+	//pbx_channel_ref(pbxDstChannel);
 
 	return TRUE;
 }
@@ -1328,13 +1331,15 @@ static boolean_t sccp_wrapper_asterisk113_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 	PBX_CHANNEL_TYPE *pbxDstChannel = NULL;
 	struct ast_assigned_ids assignedids = {NULL, NULL};
 
-	struct ast_format *ast_format;
-	unsigned int framing;
-
 	if (!pbxSrcChannel) {
-		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) no pbx channel provided\n");
+		pbx_log(LOG_ERROR, "SCCP: (allocTempPBXChannel) no pbx channel provided\n");
 		return FALSE;
 	}
+	struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	if (!caps) {
+		return FALSE;
+	}
+
 /*
 	assignedids.uniqueid = ast_channel_uniqueid(pbxSrcChannel);
 	{
@@ -1349,27 +1354,39 @@ static boolean_t sccp_wrapper_asterisk113_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 	ast_channel_lock(pbxSrcChannel);
 	pbxDstChannel = ast_channel_alloc(0, AST_STATE_DOWN, 0, 0, ast_channel_accountcode(pbxSrcChannel), pbx_channel_exten(pbxSrcChannel), pbx_channel_context(pbxSrcChannel), &assignedids, pbxSrcChannel, ast_channel_amaflags(pbxSrcChannel), "%s-TMP", ast_channel_name(pbxSrcChannel));
 	if (pbxDstChannel == NULL) {
-		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) ast_channel_alloc failed\n");
+		pbx_log(LOG_ERROR, "SCCP: (allocTempPBXChannel) ast_channel_alloc failed\n");
+		ao2_cleanup(caps);
 		return FALSE;
 	}
 
 	ast_channel_stage_snapshot(pbxDstChannel);
-	// ast_channel_tech_set(pbxDstChannel, &sccp_tech);
+	//sccp_wrapper_asterisk113_setOwner(channel, pbxDstChannel);
+
 	ast_channel_tech_set(pbxDstChannel, &null_tech);							// USE null_tech to prevent fixup issues. Channel is only used to masquerade a channel out of a running bridge.
+	//ast_channel_tech_pvt_set(pbxDstChannel, sccp_channel_retain(channel));
 
 	// if (ast_format_cap_is_empty(pbx_channel_nativeformats(pbxSrcChannel))) {
-	if (ast_format_cap_count(pbx_channel_nativeformats(pbxSrcChannel)) == 0) {
-		ast_format = ast_format_alaw;
-		ao2_ref(ast_format, +1);
+	if (pbxSrcChannel && ast_format_cap_count(ast_channel_nativeformats(pbxSrcChannel)) > 0) {
+		ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(pbxSrcChannel), AST_MEDIA_TYPE_UNKNOWN);
 	} else {
-		ast_format = ast_format_cap_get_best_by_type(pbx_channel_nativeformats(pbxSrcChannel), AST_MEDIA_TYPE_AUDIO);
+		struct ast_format *ast_format = ast_format_slin16;
+		unsigned int framing = ast_format_get_default_ms(ast_format);
+		ast_format_cap_append(caps, ast_format, framing);
 	}
-	framing = ast_format_get_default_ms(ast_format);
-	ast_format_cap_remove_by_type(ast_channel_nativeformats(pbxDstChannel), AST_MEDIA_TYPE_AUDIO);
-	ast_format_cap_append(ast_channel_nativeformats(pbxDstChannel), ast_format, framing);
-	ast_set_read_format(pbxDstChannel, ast_format);
-	ast_set_write_format(pbxDstChannel, ast_format);
-	ao2_ref(ast_format, -1);
+	ast_channel_nativeformats_set(pbxDstChannel, caps);
+	struct ast_format *tmpfmt = ast_format_cap_get_format(caps, 0);
+	ast_channel_set_writeformat(pbxDstChannel, tmpfmt);
+	ast_channel_set_rawwriteformat(pbxDstChannel, tmpfmt);
+	ast_channel_set_readformat(pbxDstChannel, tmpfmt);
+	ast_channel_set_rawreadformat(pbxDstChannel, tmpfmt);
+
+	//struct ast_str *codec_buf = ast_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
+	//pbx_log(LOG_NOTICE, "allocPBXChannel: tmp->nativeformats=%s fmt=%s\n", ast_format_cap_get_names(ast_channel_nativeformats(pbxDstChannel), &codec_buf), ast_format_get_name(tmpfmt));
+
+	ao2_ref(tmpfmt, -1);
+	//ao2_ref(caps, -1);
+	ao2_cleanup(caps);
+	/* EndCodec */
 
 	ast_channel_context_set(pbxDstChannel, ast_channel_context(pbxSrcChannel));
 	ast_channel_exten_set(pbxDstChannel, ast_channel_exten(pbxSrcChannel));
@@ -1380,7 +1397,9 @@ static boolean_t sccp_wrapper_asterisk113_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 	ast_channel_unlock(pbxSrcChannel);
 	ast_channel_unlock(pbxDstChannel);
 
-	(*_pbxDstChannel) = pbx_channel_ref(pbxDstChannel);
+	(*_pbxDstChannel) = pbxDstChannel;
+	//pbx_channel_ref(pbxDstChannel);
+
 	return TRUE;
 }
 
