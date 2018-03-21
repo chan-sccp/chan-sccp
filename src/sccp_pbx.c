@@ -99,12 +99,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 	memcpy(&my_sccp_channel->remoteCapabilities.audio, capabilities, size);
 
 	/** set requested codec as prefered codec */
-	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "prefered audio codec (%d)\n", requestedCodec);
-	if (requestedCodec != SKINNY_CODEC_NONE) {
-		my_sccp_channel->preferences.audio[0] = requestedCodec;
-		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "SCCP: prefered audio codec (%d)\n", my_sccp_channel->preferences.audio[0]);
-	}
-
+	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "peer prefered audio codec (%d)\n", requestedCodec);
 	/** done */
 
 	my_sccp_channel->autoanswer_type = autoanswer_type;
@@ -630,7 +625,7 @@ int sccp_pbx_answered(sccp_channel_t * channel)
 	} else {
 
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) Outgoing call %s has been answered by remote party\n", c->currentDeviceId, iPbx.getChannelName(c));
-		sccp_channel_updateChannelCapability(c);
+		//sccp_channel_updateChannelCapability(c);
 
 		AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
 		if (d) {
