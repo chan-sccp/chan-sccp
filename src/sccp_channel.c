@@ -323,7 +323,7 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
 	    || !sccp_codec_isCompatible(channel->rtp.audio.readFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio))
 	    ) {
 		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: recalculateReadformat\n", channel->currentDeviceId);
-		channel->rtp.audio.readFormat = sccp_codec_findBestJoint(channel->preferences.audio, ARRAY_LEN(channel->preferences.audio), channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio), channel->remoteCapabilities.audio, ARRAY_LEN(channel->remoteCapabilities.audio));
+		channel->rtp.audio.readFormat = sccp_codec_findBestJoint(channel, channel->preferences.audio, channel->remoteCapabilities.audio);
 
 		if (channel->rtp.audio.readFormat == SKINNY_CODEC_NONE) {
 			channel->rtp.audio.readFormat = SKINNY_CODEC_WIDEBAND_256K;
@@ -365,7 +365,7 @@ static void sccp_channel_recalculateWriteformat(sccp_channel_t * channel)
 	    ) {
 		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: recalculateWriteformat\n", channel->currentDeviceId);
 
-		channel->rtp.audio.writeFormat = sccp_codec_findBestJoint(channel->preferences.audio, ARRAY_LEN(channel->preferences.audio), channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio), channel->remoteCapabilities.audio, ARRAY_LEN(channel->remoteCapabilities.audio));
+		channel->rtp.audio.writeFormat = sccp_codec_findBestJoint(channel, channel->preferences.audio, channel->remoteCapabilities.audio);
 
 		if (channel->rtp.audio.writeFormat == SKINNY_CODEC_NONE) {
 			channel->rtp.audio.writeFormat = SKINNY_CODEC_WIDEBAND_256K;
@@ -1067,7 +1067,7 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 		skinny_codec_t *preferences = (skinny_codec_t *) &(channel->preferences.video);
 		preferences[0] = SKINNY_CODEC_H264;
 
-		video->readFormat = sccp_codec_findBestJoint(channel->preferences.video, ARRAY_LEN(channel->preferences.video), channel->capabilities.video, ARRAY_LEN(channel->capabilities.video), channel->remoteCapabilities.video, ARRAY_LEN(channel->remoteCapabilities.video));
+		video->readFormat = sccp_codec_findBestJoint(channel, channel->preferences.video, channel->remoteCapabilities.video);
 
 		if (video->readFormat == 0) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: fall back to h264\n", d->id);
