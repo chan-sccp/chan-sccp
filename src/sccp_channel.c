@@ -628,14 +628,12 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 
 	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
 	if (channel->owner) {
-		iPbx.set_nativeAudioFormats(channel, &audio->writeFormat, 1);
-		iPbx.rtp_setWriteFormat(channel, audio->writeFormat);
+		sccp_channel_updateChannelCapability((sccp_channel_t *)channel);					// discard const
 	}
-
 	sccp_log((DEBUGCAT_RTP + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d], payload %d, echocancel: %s, passthrupartyid: %u, callid: %u\n", d->id, codec2str(channel->rtp.audio.writeFormat), channel->rtp.audio.writeFormat, channel->rtp.audio.writeFormat, channel->line ? (channel->line->echocancel ? "YES" : "NO") : "(nil)>", channel->passthrupartyid, channel->callid);
 	audio->receiveChannelState = SCCP_RTP_STATUS_PROGRESS;
 
-	if (d->nat >= SCCP_NAT_ON) {										/* device is natted */
+	if (d->nat >= SCCP_NAT_ON) {											// device is natted
 		sccp_rtp_updateNatRemotePhone(channel, audio);
 	}
 		
@@ -785,10 +783,10 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 	}
 
 	//sccp_channel_recalculateReadformat(channel);
-	if (channel->owner) {
-		iPbx.set_nativeAudioFormats(channel, &audio->readFormat, 1);
-		iPbx.rtp_setReadFormat(channel, audio->readFormat);
-	}
+	//if (channel->owner) {
+	//	iPbx.set_nativeAudioFormats(channel, &audio->readFormat, 1);
+	//	iPbx.rtp_setReadFormat(channel, audio->readFormat);
+	//}
 
 	audio->mediaTransmissionState |= SCCP_RTP_STATUS_PROGRESS;
 	d->protocol->sendStartMediaTransmission(d, channel);
