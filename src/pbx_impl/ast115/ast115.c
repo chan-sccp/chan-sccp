@@ -1000,11 +1000,6 @@ static boolean_t sccp_wrapper_asterisk115_allocPBXChannel(sccp_channel_t * chann
 	ast_channel_tech_pvt_set(pbxDstChannel, sccp_channel_retain(channel));
 
 	/* Copy Codec from SrcChannel */
-	struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-	if (!caps) {
-		return NULL;
-	}
-
 	if (pbxSrcChannel && ast_format_cap_count(ast_channel_nativeformats(pbxSrcChannel)) > 0) {
 		ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(pbxSrcChannel), AST_MEDIA_TYPE_UNKNOWN);
 	} else if (line && channel) {
