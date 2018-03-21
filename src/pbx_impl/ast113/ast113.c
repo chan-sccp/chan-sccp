@@ -445,63 +445,6 @@ const char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format
 	return buf;
 }
 
-
-/*!
- * \brief Read from an Asterisk Channel
- * \param ast Asterisk Channel as ast_channel
- *
- * \called_from_asterisk
- *
- * \note not following the refcount rules... channel is already retained
- */
-static PBX_FRAME_TYPE *sccp_wrapper_asterisk113_rtp_read(PBX_CHANNEL_TYPE * ast)
-{
-	//AUTO_RELEASE(sccp_channel_t, c , NULL);									// not following the refcount rules... channel is already retained
-	sccp_channel_t *c = NULL;
-	PBX_FRAME_TYPE *frame = &ast_null_frame;
-
-	if (!(c = CS_AST_CHANNEL_PVT(ast))) {									// not following the refcount rules... channel is already retained
-		pbx_log(LOG_ERROR, "SCCP: (rtp_read) no channel pvt\n");
-		goto EXIT_FUNC;
-	}
-
-	if (!c->rtp.audio.instance) {
-		pbx_log(LOG_NOTICE, "SCCP: (rtp_read) no rtp stream yet. skip\n");
-		goto EXIT_FUNC;
-	}
-
-	switch (ast_channel_fdno(ast)) {
-
-		case 0:
-			frame = ast_rtp_instance_read(c->rtp.audio.instance, 0);					/* RTP Audio */
-			break;
-		case 1:
-			frame = ast_rtp_instance_read(c->rtp.audio.instance, 1);					/* RTCP Control Channel */
-			break;
-#ifdef CS_SCCP_VIDEO
-		case 2:
-			frame = ast_rtp_instance_read(c->rtp.video.instance, 0);					/* RTP Video */
-			break;
-		case 3:
-			frame = ast_rtp_instance_read(c->rtp.video.instance, 1);					/* RTCP Control Channel for video */
-			break;
-#endif
-		default:
-			break;
-	}
-	//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast_channel_fdno(ast), frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
-	if (frame->frametype == AST_FRAME_VOICE) {
-#ifdef CS_SCCP_CONFERENCE
-		if (c->conference && (!ast_format_cache_is_slinear(ast_channel_readformat(ast)))) {
-			ast_set_read_format(ast, ast_format_slin96);
-		}
-#endif
-	}
-
-EXIT_FUNC:
-	return frame;
-}
-
 /*!
  * \brief Find Asterisk/PBX channel by linkid
  *
@@ -611,7 +554,7 @@ static const char *asterisk_indication2str(int ind)
 
 static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *data, size_t datalen)
 {
-	int res = 0;
+	int res = 0;	/* indication supported */
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: (pbx_indicate) start indicate '%s'\n", asterisk_indication2str(ind));
 
 	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(ast));
@@ -626,22 +569,18 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 		switch (ind) {
 			case AST_CONTROL_CONNECTED_LINE:
 				sccp_asterisk_connectedline(c, data, datalen);
-				res = 0;
 				break;
 			case AST_CONTROL_REDIRECTING:
 				sccp_asterisk_redirectedUpdate(c, data, datalen);
-				res = 0;
 				break;
 			default:
-				res = -1;
+				res = -1;	/* this indication is not supported */
 				break;
 		}
 		return res;
 	}
 
-	/* when the rtp media stream is open we will let asterisk emulate the tones */
-	res = (((c->rtp.audio.receiveChannelState != SCCP_RTP_STATUS_INACTIVE) || (d && d->earlyrtp)) ? -1 : 0);
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (readStat:%d, writeState:%d, rtp:%s, default res:%s (%d))\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.receiveChannelState, c->rtp.audio.mediaTransmissionState, (c->rtp.audio.instance) ? "yes" : "no", res ? "inband signaling" : "outofband signaling", res);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (readStat:%d, writeState:%d, rtp:%s)\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.receiveChannelState, c->rtp.audio.mediaTransmissionState, (c->rtp.audio.instance) ? "yes" : "no");
 
 	switch (ind) {
 		case AST_CONTROL_RINGING:
@@ -665,16 +604,18 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 					sccp_wrapper_asterisk113_setDialedNumber(c, c->dialedNumber);
 				}
 				iPbx.set_callstate(c, AST_STATE_RING);
-
 			}
 			break;
+
 		case AST_CONTROL_BUSY:
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_BUSY);
 			iPbx.set_callstate(c, AST_STATE_BUSY);
 			break;
+
 		case AST_CONTROL_CONGESTION:
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 			break;
+
 		case AST_CONTROL_PROGRESS:
 			if (c->state != SCCP_CHANNELSTATE_CONNECTED && c->previousChannelState != SCCP_CHANNELSTATE_CONNECTED) {
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
@@ -682,8 +623,8 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 				// ORIGINATE() to SIP indicates PROGRESS after CONNECTED, causing issues with transfer
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 			}
-			res = -1;
 			break;
+
 		case AST_CONTROL_PROCEEDING:
 			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
 				/* 
@@ -699,13 +640,12 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 				sccp_wrapper_asterisk113_setDialedNumber(c, c->dialedNumber);
 			}
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
-			res = -1;
 			break;
+
 		case AST_CONTROL_SRCCHANGE:									/* ask our channel's remote source address to update */
 			if (c->rtp.audio.instance) {
 				ast_rtp_instance_change_source(c->rtp.audio.instance);
 			}
-			res = 0;
 			break;
 
 		case AST_CONTROL_SRCUPDATE:									/* semd control bit to force other side to update, their source address */
@@ -715,21 +655,18 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			if (c->rtp.audio.instance) {
 				ast_rtp_instance_update_source(c->rtp.audio.instance);
 			}
-			res = 0;
 			break;
 
-			/* when the bridged channel hold/unhold the call we are notified here */
-		case AST_CONTROL_HOLD:
+		case AST_CONTROL_HOLD:										/* when the bridged channel hold/unhold the call we are notified here */
 			sccp_asterisk_moh_start(ast, (const char *) data, c->musicclass);
-			res = 0;
 			break;
+
 		case AST_CONTROL_UNHOLD:
 			sccp_asterisk_moh_stop(ast);
 
 			if (c->rtp.audio.instance) {
 				ast_rtp_instance_update_source(c->rtp.audio.instance);
 			}
-			res = 0;
 			break;
 
 		case AST_CONTROL_CONNECTED_LINE:
@@ -740,32 +677,29 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			//	sccp_channel_openReceiveChannel(c);
 			//}
 			sccp_asterisk_connectedline(c, data, datalen);
-			res = 0;
 			break;
 
 		case AST_CONTROL_TRANSFER:
 			ast_log(LOG_NOTICE, "%s: Ast Control Transfer: %d", c->designator, *(int *)data);
 			//sccp_asterisk_connectedline(c, data, datalen);
-			res = 0;
 			break;
 
 		case AST_CONTROL_REDIRECTING:
 			sccp_asterisk_redirectedUpdate(c, data, datalen);
 			sccp_indicate(d, c, c->state);
-			res = 0;
 			break;
 
 		case AST_CONTROL_VIDUPDATE:									/* Request a video frame update */
 #ifdef CS_SCCP_VIDEO
 			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && c->videomode != SCCP_VIDEO_MODE_OFF) {
 				d->protocol->sendFastPictureUpdate(d, c);
-				res = 0;
 			} else 
 #endif
 			{
-				res = -1;
+				res = -1;	/* this indication is not supported */
 			}
 			break;
+
 #ifdef CS_AST_CONTROL_INCOMPLETE
 		case AST_CONTROL_INCOMPLETE:									/*!< Indication that the extension dialed is incomplete */
 			/* \todo implement dial continuation by:
@@ -785,9 +719,9 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 				}
 			}
 			*/
-			res = 0;
 			break;
 #endif
+
 		case AST_CONTROL_PVT_CAUSE_CODE:
 			{
 				/*! \todo This would also be a good moment to update the c->requestHangup to requestQueueHangup */
@@ -795,11 +729,11 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 
 				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: hangup cause set: %d\n", c->designator, hangupcause);
 			}
-			res = -1;
 			break;
+
 		case AST_CONTROL_MASQUERADE_NOTIFY:
-			res = -1;
 			break;
+
 		case -1:											// Asterisk prod the channel
 			if (	c->line && 
 				c->state > SCCP_GROUPED_CHANNELSTATE_DIALING && 
@@ -811,14 +745,71 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 				uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
 				sccp_dev_stoptone(d, instance, c->callid);
 			}
-			res = -1;
 			break;
+
 		default:
 			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) Don't know how to indicate condition '%s' (%d)\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind);
+			res = -1;	/* this indication is not supported */
 			break;
 	}
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_2 "%s: (pbx_indicate) finish: send indication '%s' (%d)\n", DEV_ID_LOG(d), res ? "inband signaling" : "outofband signaling", res);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_2 "%s: (pbx_indicate) finish: send indication (res:%d)\n", DEV_ID_LOG(d), res);
 	return res;
+}
+
+/*!
+ * \brief Read from an Asterisk Channel
+ * \param ast Asterisk Channel as ast_channel
+ *
+ * \called_from_asterisk
+ *
+ * \note not following the refcount rules... channel is already retained
+ */
+static PBX_FRAME_TYPE *sccp_wrapper_asterisk113_rtp_read(PBX_CHANNEL_TYPE * ast)
+{
+	//AUTO_RELEASE(sccp_channel_t, c , NULL);									// not following the refcount rules... channel is already retained
+	sccp_channel_t *c = NULL;
+	PBX_FRAME_TYPE *frame = &ast_null_frame;
+
+	if (!(c = CS_AST_CHANNEL_PVT(ast))) {									// not following the refcount rules... channel is already retained
+		pbx_log(LOG_ERROR, "SCCP: (rtp_read) no channel pvt\n");
+		goto EXIT_FUNC;
+	}
+
+	if (!c->rtp.audio.instance) {
+		pbx_log(LOG_NOTICE, "SCCP: (rtp_read) no rtp stream yet. skip\n");
+		goto EXIT_FUNC;
+	}
+
+	switch (ast_channel_fdno(ast)) {
+
+		case 0:
+			frame = ast_rtp_instance_read(c->rtp.audio.instance, 0);					/* RTP Audio */
+			break;
+		case 1:
+			frame = ast_rtp_instance_read(c->rtp.audio.instance, 1);					/* RTCP Control Channel */
+			break;
+#ifdef CS_SCCP_VIDEO
+		case 2:
+			frame = ast_rtp_instance_read(c->rtp.video.instance, 0);					/* RTP Video */
+			break;
+		case 3:
+			frame = ast_rtp_instance_read(c->rtp.video.instance, 1);					/* RTCP Control Channel for video */
+			break;
+#endif
+		default:
+			break;
+	}
+	//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast_channel_fdno(ast), frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
+	if (frame->frametype == AST_FRAME_VOICE) {
+#ifdef CS_SCCP_CONFERENCE
+		if (c->conference && (!ast_format_cache_is_slinear(ast_channel_readformat(ast)))) {
+			ast_set_read_format(ast, ast_format_slin96);
+		}
+#endif
+	}
+
+EXIT_FUNC:
+	return frame;
 }
 
 /*!
@@ -852,7 +843,7 @@ static int sccp_wrapper_asterisk113_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 					sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", c->currentDeviceId, pbx_channel_name(ast));
 				}
 			}
-			if (c->rtp.audio.instance) {
+			if (c->rtp.audio.instance && (c->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) != 0) {
 				res = ast_rtp_instance_write(c->rtp.audio.instance, frame);
 			}
 			break;
