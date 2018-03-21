@@ -522,6 +522,50 @@ static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, const void *data)
 	return !pbx_channel_pbx(ast) && ast_channel_linkedid(ast) && (!strcasecmp(ast_channel_linkedid(ast), linkedId)) && !pbx_channel_masq(ast);
 }
 
+static void pbx_retrieve_remote_capabilities(sccp_channel_t *c)
+{
+	pbx_assert(c != NULL);
+	PBX_CHANNEL_TYPE *ast = c->owner;
+
+	struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
+
+	((struct ao2_iterator *) iterator)->flags |= AO2_ITERATOR_DONTLOCK;
+	/*! \todo handle multiple remotePeers i.e. DIAL(SCCP/400&SIP/300), find smallest common codecs, what order to use ? */
+	PBX_CHANNEL_TYPE *remotePeer;
+
+	for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
+		if (pbx_find_channel_by_linkid(remotePeer, (void *) ast_channel_linkedid(ast))) {
+			char buf[512];
+
+			AUTO_RELEASE(sccp_channel_t, remoteSccpChannel , get_sccp_channel_from_pbx_channel(remotePeer));
+			if (remoteSccpChannel) {
+				sccp_codec_multiple2str(buf, sizeof(buf) - 1, remoteSccpChannel->preferences.audio, ARRAY_LEN(remoteSccpChannel->preferences.audio));
+				sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote preferences: %s\n", buf);
+				uint8_t x = 0, y = 0, z = 0;
+				for (x = 0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.audio[x] != 0; x++) {
+					for (y = 0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.audio[y] != 0; y++) {
+						if (remoteSccpChannel->preferences.audio[x] == remoteSccpChannel->capabilities.audio[y]) {
+							c->remoteCapabilities.audio[z++] = remoteSccpChannel->preferences.audio[x];
+						}
+					}
+				}
+			} else {
+				/* ask peer for it's codecs */
+				//ast_rtp_instance_get_codecs(c->rtp.adio.rtp);	/ ast_rtp_instance_get_codecs(c->rtp.video.instance);
+				struct ast_str *codec_buf = ast_str_alloca(64);
+				sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote nativeformats: %s\n", ast_format_cap_get_names(ast_channel_nativeformats(remotePeer), &codec_buf));
+				sccp_asterisk114_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+			}
+
+			sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote caps: %s\n", buf);
+			ast_channel_unref(remotePeer);
+			break;
+		}
+	}
+	ast_channel_iterator_destroy(iterator);
+}
+
 static const char *asterisk_indication2str(int ind)
 {
 	switch (ind) {
@@ -564,6 +608,8 @@ static const char *asterisk_indication2str(int ind)
 	return "Unknown/Unhandled/IAX Indication";
 }
 
+
+
 static int sccp_wrapper_asterisk114_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *data, size_t datalen)
 {
 	int res = 0;
@@ -602,6 +648,7 @@ static int sccp_wrapper_asterisk114_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 	switch (ind) {
 		case AST_CONTROL_RINGING:
 			if (SKINNY_CALLTYPE_OUTBOUND == c->calltype) {
+				pbx_retrieve_remote_capabilities(c);
 				// Allow signalling of RINGOUT only on outbound calls.
 				// Otherwise, there are some issues with late arrival of ringing
 				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
@@ -621,46 +668,6 @@ static int sccp_wrapper_asterisk114_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 				}
 				iPbx.set_callstate(c, AST_STATE_RING);
 
-				struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
-
-				((struct ao2_iterator *) iterator)->flags |= AO2_ITERATOR_DONTLOCK;
-				/*! \todo handle multiple remotePeers i.e. DIAL(SCCP/400&SIP/300), find smallest common codecs, what order to use ? */
-				PBX_CHANNEL_TYPE *remotePeer;
-
-				for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
-					if (pbx_find_channel_by_linkid(remotePeer, (void *) ast_channel_linkedid(ast))) {
-						char buf[512];
-						
-						AUTO_RELEASE(sccp_channel_t, remoteSccpChannel , get_sccp_channel_from_pbx_channel(remotePeer));
-						if (remoteSccpChannel) {
-							sccp_codec_multiple2str(buf, sizeof(buf) - 1, remoteSccpChannel->preferences.audio, ARRAY_LEN(remoteSccpChannel->preferences.audio));
-							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote preferences: %s\n", buf);
-							uint8_t x, y, z;
-
-							z = 0;
-							for (x = 0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.audio[x] != 0; x++) {
-								for (y = 0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.audio[y] != 0; y++) {
-									if (remoteSccpChannel->preferences.audio[x] == remoteSccpChannel->capabilities.audio[y]) {
-										c->remoteCapabilities.audio[z++] = remoteSccpChannel->preferences.audio[x];
-									}
-								}
-							}
-						} else {
-							/* ask peer for it's codecs */
-							//ast_rtp_instance_get_codecs(c->rtp.adio.rtp);	
-							//ast_rtp_instance_get_codecs(c->rtp.video.instance);
-							struct ast_str *codec_buf = ast_str_alloca(64);
-							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote nativeformats: %s\n", ast_format_cap_get_names(ast_channel_nativeformats(remotePeer), &codec_buf));
-							sccp_asterisk114_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
-						}
-
-						sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
-						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote caps: %s\n", buf);
-						ast_channel_unref(remotePeer);
-						break;
-					}
-				}
-				ast_channel_iterator_destroy(iterator);
 			}
 			break;
 		case AST_CONTROL_BUSY:
