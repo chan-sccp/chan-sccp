@@ -93,13 +93,14 @@ test:
 	@echo "Success"
 
 install-data-local: chan_sccp-en_US.xml
-	@test -d $(DESTDIR)$(PBX_ETC) || $(mkinstalldirs) $(DESTDIR)$(PBX_ETC);								\
-	if [ ! -f $(DESTDIR)$(PBX_ETC)/sccp.conf ]; then										\
+	@test -d $(DESTDIR)$(PBX_ETC) || $(mkinstalldirs) $(DESTDIR)$(PBX_ETC);
+	@if [ ! -f $(DESTDIR)$(PBX_ETC)/sccp.conf ]; then										\
 		echo "Installing $(DESTDIR)$(PBX_ETC)/sccp.conf...";									\
 		$(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC);							\
-	fi;																\
-	test -d $(DESTDIR)$(PBX_VARLIB)/documentation/thirdparty || $(mkinstalldirs) $(DESTDIR)$(PBX_VARLIB)/documentation/thirdparty;	\
-	$(INSTALL) -m 644 chan_sccp-en_US.xml "$(DESTDIR)$(PBX_VARLIB)/documentation/thirdparty";
+	fi;
+	@echo "Installing chan_sccp-en_US.xml to $(DESTDIR)$(PBX_DATADIR)/documentation/thirdparty/..."					
+	@test -d $(DESTDIR)$(PBX_DATADIR)/documentation/thirdparty || $(mkinstalldirs) $(DESTDIR)$(PBX_DATADIR)/documentation/thirdparty;
+	@$(INSTALL) -m 644 chan_sccp-en_US.xml "$(DESTDIR)$(PBX_DATADIR)/documentation/thirdparty";
 
 XML_chan_sccp_en_US=$(top_srcdir)/src/sccp_appfunctions.c
 chan_sccp-en_US.xml: $(top_builddir)/src/stamp-h1 $(XML_chan_sccp_en_US)

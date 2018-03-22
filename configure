@@ -746,6 +746,7 @@ PBX_LDFLAGS
 PBX_CFLAGS
 PBX_TEMPMODDIR
 PBX_INCLUDE
+PBX_DATADIR
 PBX_VARLIB
 PBX_LIB
 PBX_PREFIX
@@ -24275,11 +24276,15 @@ $as_echo "$as_me: astsbindir could not be found in ${PBX_ETC}/asterisk.conf (you
 						{ $as_echo "$as_me:${as_lineno-$LINENO}: See https://github.com/chan-sccp/chan-sccp/wiki/astmoddir-could-not-be-found for more info" >&5
 $as_echo "$as_me: See https://github.com/chan-sccp/chan-sccp/wiki/astmoddir-could-not-be-found for more info" >&6;}
 					fi
+					PBX_DATADIR="`${SED} -n 's/astdatadir[[[:space:]]]*=>[[[:space:]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 		 		else
 		 			PBX_TEMPMODDIR="$(${PKGCONFIG} --variable=moddir asterisk)"
 		 			PBX_VARLIB="$(${PKGCONFIG} --variable=varlibdir asterisk)"
 					PBX_SBINDIR="${PBX_PREFIX}/sbin/"
 		 		fi
+                                if test -z "$PBX_SDATADIR"; then
+                                        PBX_DATADIR="${PBX_VARLIB}"
+                                fi
 				LDFLAGS="$LDFLAGS -L${PBX_LIB} $(${PKGCONFIG} --libs asterisk)"
 				PBX_LDFLAGS="$LDFLAGS"
 				HAVE_ASTERISK=yes
@@ -24396,6 +24401,7 @@ $as_echo "$as_me: astsbindir could not be found in ${PBX_ETC}/asterisk.conf (you
 						{ $as_echo "$as_me:${as_lineno-$LINENO}: See https://github.com/chan-sccp/chan-sccp/wiki/astmoddir-could-not-be-found for more info" >&5
 $as_echo "$as_me: See https://github.com/chan-sccp/chan-sccp/wiki/astmoddir-could-not-be-found for more info" >&6;}
 					fi
+					PBX_DATADIR="`${SED} -n 's/astdatadir[[[:space:]]]*=>[[[:space:]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 				fi
 				PBX_LDFLAGS="$LDFLAGS -L${checkdir}/lib"
 				case "${build_cpu}" in
@@ -24415,6 +24421,9 @@ $as_echo "$as_me: See https://github.com/chan-sccp/chan-sccp/wiki/astmoddir-coul
 				if test -z "${PBX_SBINDIR}"; then
 					PBX_SBINDIR="/usr/sbin"
 				fi
+                                if test -z "$PBX_SDATADIR"; then
+                                        PBX_DATADIR="${PBX_VARLIB}"
+                                fi
 
 				LDFLAGS="$PBX_LDFLAGS"
 				HAVE_ASTERISK=yes
@@ -24454,6 +24463,12 @@ _ACEOF
 cat >>confdefs.h <<_ACEOF
 #define PBX_VARLIB "${PBX_VARLIB}"
 _ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define PBX_DATADIR "${PBX_DATADIR}"
+_ACEOF
+
 
 
 
@@ -25043,6 +25058,40 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 
 
 $as_echo "#define CS_AST_REGISTER_FILE_VERSION 1" >>confdefs.h
+
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+else
+
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+rm -f conftest*
+
+
+fi
+
+
+	ac_fn_c_check_header_mongrel "$LINENO" "asterisk/autoconfig.h" "ac_cv_header_asterisk_autoconfig_h" "$ac_includes_default"
+if test "x$ac_cv_header_asterisk_autoconfig_h" = xyes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - AST_XML_DOCS defined in asterisk/autoconfig.h..." >&5
+$as_echo_n "checking  - AST_XML_DOCS defined in asterisk/autoconfig.h...... " >&6; }
+		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+			$HEADER_INCLUDE
+			#if defined(AST_XML_DOCS)
+				yes
+			#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+
+
+$as_echo "#define CS_AST_XML_DOCS 1" >>confdefs.h
 
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }

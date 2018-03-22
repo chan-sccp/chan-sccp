@@ -157,6 +157,7 @@ echo "      PBX_PREFIX : ${PBX_PREFIX}"
 echo "         PBX_ETC : ${PBX_ETC}"
 echo "         PBX_LIB : ${PBX_LIB}"
 echo "      PBX_VARLIB : ${PBX_VARLIB}"
+echo "     PBX_DATADIR : ${PBX_DATADIR}"
 echo "     PBX_INCLUDE : ${PBX_INCLUDE}"
 echo "Module Directory : ${PBX_MODDIR}"
 

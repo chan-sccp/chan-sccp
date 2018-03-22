@@ -283,6 +283,20 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 			AC_MSG_RESULT(no)
 		])
 	)
+	AC_CHECK_HEADER([asterisk/autoconfig.h],
+		AC_MSG_CHECKING([ - AST_XML_DOCS defined in asterisk/autoconfig.h...])
+		AC_EGREP_CPP([yes], [
+			$HEADER_INCLUDE
+			#if defined(AST_XML_DOCS)
+				yes
+			#endif
+		],[
+			AC_DEFINE([CS_AST_XML_DOCS],1,['AST_XML_DOCS' available])
+			AC_MSG_RESULT(yes)
+		],[
+			AC_MSG_RESULT(no)
+		])
+	)
 	AC_CHECK_HEADER([asterisk/lock.h],
 		[
 			lock_compiled=yes

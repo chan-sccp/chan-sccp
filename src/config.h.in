@@ -213,6 +213,9 @@
 /* 'AST_SCHED_DEL' available */
 #undef CS_AST_SCHED_DEL
 
+/* 'AST_XML_DOCS' available */
+#undef CS_AST_XML_DOCS
+
 /* Found 'ast_bridge_base_new' in asterisk/bridging.h */
 #undef CS_BRIDGE_BASE_NEW
 
@@ -744,6 +747,9 @@
 
 /* Define PBX_CHANNEL_TYPE as 'struct ast_channel' */
 #undef PBX_CHANNEL_TYPE
+
+/* Define PBX_VARLIB */
+#undef PBX_DATADIR
 
 /* Define PBX_ETC */
 #undef PBX_ETC

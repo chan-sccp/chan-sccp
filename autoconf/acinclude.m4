@@ -51,11 +51,15 @@ AC_DEFUN([CS_CHECK_PBX], [
 						AC_MSG_NOTICE([astsbindir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path separators use '=>', not '='.])
 						AC_MSG_NOTICE([See https://github.com/chan-sccp/chan-sccp/wiki/astmoddir-could-not-be-found for more info])
 					fi
+					PBX_DATADIR="`${SED} -n 's/astdatadir[[[[:space:]]]]*=>[[[[:space:]]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 		 		else
 		 			PBX_TEMPMODDIR="$(${PKGCONFIG} --variable=moddir asterisk)"
 		 			PBX_VARLIB="$(${PKGCONFIG} --variable=varlibdir asterisk)"
 					PBX_SBINDIR="${PBX_PREFIX}/sbin/"
 		 		fi
+                                if test -z "$PBX_SDATADIR"; then
+                                        PBX_DATADIR="${PBX_VARLIB}"
+                                fi
 				LDFLAGS="$LDFLAGS -L${PBX_LIB} $(${PKGCONFIG} --libs asterisk)"
 				PBX_LDFLAGS="$LDFLAGS"
 				HAVE_ASTERISK=yes
@@ -157,6 +161,7 @@ AC_DEFUN([CS_CHECK_PBX], [
 						AC_MSG_NOTICE([astsbindir could not be found in ${PBX_ETC}/asterisk.conf (your asterisk.conf file is faulty or not readable). Note: Path seperators use '=>', not '='])
 						AC_MSG_NOTICE([See https://github.com/chan-sccp/chan-sccp/wiki/astmoddir-could-not-be-found for more info])
 					fi
+					PBX_DATADIR="`${SED} -n 's/astdatadir[[[[:space:]]]]*=>[[[[:space:]]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
 				fi
 				PBX_LDFLAGS="$LDFLAGS -L${checkdir}/lib"
 				case "${build_cpu}" in
@@ -176,6 +181,9 @@ AC_DEFUN([CS_CHECK_PBX], [
 				if test -z "${PBX_SBINDIR}"; then
 					PBX_SBINDIR="/usr/sbin"
 				fi 
+                                if test -z "$PBX_SDATADIR"; then
+                                        PBX_DATADIR="${PBX_VARLIB}"
+                                fi
 
 				LDFLAGS="$PBX_LDFLAGS"
 				HAVE_ASTERISK=yes
@@ -197,6 +205,7 @@ AC_DEFUN([CS_CHECK_PBX], [
 	AC_DEFINE_UNQUOTED([PBX_PREFIX],"${PBX_PREFIX}",[Define PBX_PREFIX])
 	AC_DEFINE_UNQUOTED([PBX_MODDIR],"${PBX_TEMPMODDIR}",[Define PBX_MODDIR])
 	AC_DEFINE_UNQUOTED([PBX_VARLIB],"${PBX_VARLIB}",[Define PBX_VARLIB])
+	AC_DEFINE_UNQUOTED([PBX_DATADIR],"${PBX_DATADIR}",[Define PBX_VARLIB])
 	AC_SUBST([PBX_TYPE])
 	AC_SUBST([PBX_VERSION])
 	AC_SUBST([HAVE_ASTERISK])
@@ -205,6 +214,7 @@ AC_DEFUN([CS_CHECK_PBX], [
 	AC_SUBST([PBX_PREFIX])
 	AC_SUBST([PBX_LIB])
 	AC_SUBST([PBX_VARLIB])
+	AC_SUBST([PBX_DATADIR])
 	AC_SUBST([PBX_INCLUDE])
 	AC_SUBST([PBX_TEMPMODDIR])
 	AC_SUBST([PBX_CFLAGS])
