@@ -182,7 +182,6 @@ static uint8_t sccp_asterisk111_getSkinnyFormatMultiple(struct ast_format_cap *a
 		}
 		if ((found = pbx_codec2skinny_codec(tmp_fmt.id)) != SKINNY_CODEC_NONE) {
 			codec[position++] = found;
-			break;
 		}
 	}
 	ast_format_cap_iter_end(ast_format_capability);
