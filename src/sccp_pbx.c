@@ -792,6 +792,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 
 	/* This should definitely fix CDR */
 	iPbx.alloc_pbxChannel(c, ids, parentChannel, &tmp);
+
 	if (!tmp || !c->owner) {
 		pbx_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", c->designator, l->name);
 		return 0;
@@ -871,6 +872,17 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	/* asterisk needs the native formats bevore dialout, otherwise the next channel gets the whole AUDIO_MASK as requested format
 	 * chan_sip dont like this do sdp processing */
 	//iPbx.set_nativeAudioFormats(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
+
+	/* start audio rtp server early, to facilitate choosing codecs via sdp */
+	if (d && c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
+		if (!channel->rtp.audio.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_AUDIO)) {
+			pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s\n", d->id, channel->designator);
+
+			uint16_t instance = sccp_device_find_index_for_line(d, channel->line->name);
+			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, channel->callid, SKINNY_TONEDIRECTION_USER);
+			return 0;
+		}
+	}	 
 
 	// export sccp informations in asterisk dialplan
 	if (d) {
