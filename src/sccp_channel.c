@@ -321,8 +321,8 @@ static void sccp_channel_recalculateCodecFormat(sccp_channel_t * channel)
 		if (channel->rtp.audio.instance) {			// Fix nativeAudioFormats
 			skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = { joint, 0};
 			iPbx.set_nativeAudioFormats(channel, codecs, 1);
-		} else {
-			iPbx.set_nativeAudioFormats(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
+		//} else {
+		//	iPbx.set_nativeAudioFormats(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
 		}
 	}
 	if (joint != SKINNY_CODEC_NONE) {
@@ -571,7 +571,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, channel->callid, SKINNY_TONEDIRECTION_USER);
 		return;
 	} 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Started RTP on channel %s\n", d->id, channel->designator);
+	//sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Started RTP on channel %s\n", d->id, channel->designator);
 
 	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
 	if (channel->owner) {
