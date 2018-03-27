@@ -33,9 +33,6 @@ SCCP_FILE_VERSION(__FILE__, "");
 /*!
  * \brief SCCP Request Channel
  * \param lineName              Line Name as Char
- * \param requestedCodec        Requested Skinny Codec
- * \param capabilities          Array of Skinny Codec Capabilities
- * \param capabilityLength      Length of Capabilities Array
  * \param autoanswer_type       SCCP Auto Answer Type
  * \param autoanswer_cause      SCCP Auto Answer Cause
  * \param ringermode            Ringer Mode
@@ -44,7 +41,7 @@ SCCP_FILE_VERSION(__FILE__, "");
  * 
  * \called_from_asterisk
  */
-sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_codec_t requestedCodec, skinny_codec_t capabilities[], uint8_t capabilityLength, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel)
+sccp_channel_request_status_t sccp_requestChannel(const char *lineName, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel)
 {
 	sccp_channel_t *my_sccp_channel = NULL;
 	AUTO_RELEASE(sccp_line_t, l , NULL);
@@ -93,14 +90,8 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 		//pbx_log(LOG_NOTICE, "%s: calling all subscribers\n", l->id);
 	}
 
-	uint8_t size = (capabilityLength < sizeof(my_sccp_channel->remoteCapabilities.audio)) ? capabilityLength : sizeof(my_sccp_channel->remoteCapabilities.audio);
-
-	memset(&my_sccp_channel->remoteCapabilities.audio, 0, sizeof(my_sccp_channel->remoteCapabilities.audio));
-	memcpy(&my_sccp_channel->remoteCapabilities.audio, capabilities, size);
-
-	/** set requested codec as prefered codec */
-	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "peer prefered audio codec (%d)\n", requestedCodec);
-	/** done */
+	//memset(&channel->preferences.audio, 0, sizeof(channel->preferences.audio));
+	//memset(&channel->preferences.video, 0, sizeof(channel->preferences.video));
 
 	my_sccp_channel->autoanswer_type = autoanswer_type;
 	my_sccp_channel->autoanswer_cause = autoanswer_cause;
@@ -783,13 +774,29 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:combined capabilities: \"%s\"\n", sccp_codec_multiple2str(s1, sizeof(s1) - 1, channel->capabilities.audio, SKINNY_MAX_CAPABILITIES));
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:  reduced preferences: \"%s\"\n", sccp_codec_multiple2str(s2, sizeof(s2) - 1, channel->preferences.audio, SKINNY_MAX_CAPABILITIES));
 
+	if (c->calltype == SKINNY_CALLTYPE_INBOUND && c->remoteCapabilities.audio[0] != SKINNY_CODEC_NONE) {
+		sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:   remote audio prefs: \"%s\"\n", sccp_codec_multiple2str(s1, sizeof(s1) - 1, channel->remoteCapabilities.audio, SKINNY_MAX_CAPABILITIES));
+		skinny_codec_t ordered_audio_prefs[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+		memcpy(&ordered_audio_prefs, c->remoteCapabilities.audio, sizeof(ordered_audio_prefs));
+		sccp_codec_reduceSet(ordered_audio_prefs, c->preferences.audio);
+		memcpy(&c->preferences.audio, ordered_audio_prefs, sizeof(c->preferences.audio));
+		sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:      set audio prefs: \"%s\"\n", sccp_codec_multiple2str(s2, sizeof(s2) - 1, channel->preferences.audio, SKINNY_MAX_CAPABILITIES));
+
+		sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:   remote video prefs: \"%s\"\n", sccp_codec_multiple2str(s1, sizeof(s1) - 1, channel->remoteCapabilities.video, SKINNY_MAX_CAPABILITIES));
+		skinny_codec_t ordered_video_prefs[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+		memcpy(&ordered_video_prefs, c->remoteCapabilities.video, sizeof(ordered_video_prefs));
+		sccp_codec_reduceSet(ordered_video_prefs, c->preferences.video);
+		memcpy(&c->preferences.video, ordered_video_prefs, sizeof(c->preferences.video));
+		sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:      set video prefs: \"%s\"\n", sccp_codec_multiple2str(s2, sizeof(s2) - 1, channel->preferences.video, SKINNY_MAX_CAPABILITIES));
+	}
+
 	/* This should definitely fix CDR */
 	iPbx.alloc_pbxChannel(c, ids, parentChannel, &tmp);
 	if (!tmp || !c->owner) {
 		pbx_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", c->designator, l->name);
 		return 0;
 	}
-       	sccp_channel_updateChannelCapability(c);
+	//sccp_channel_updateChannelCapability(c);
 	//iPbx.set_nativeAudioFormats(c, c->preferences.audio, 1);
 	//iPbx.set_nativeAudioFormats(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
 	iPbx.setChannelName(c, c->designator);

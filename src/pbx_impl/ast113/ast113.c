@@ -1270,7 +1270,11 @@ static boolean_t sccp_wrapper_asterisk113_allocPBXChannel(sccp_channel_t * chann
 		pbx_format_cap_append_skinny(caps, channel->preferences.video);
 #endif		
 	}
-	ast_channel_nativeformats_set(pbxDstChannel, caps);
+	if (ast_format_cap_count(caps) > 0) {
+		ast_channel_nativeformats_set(pbxDstChannel, caps);
+	} else {
+		ast_channel_nativeformats_set(pbxDstChannel, (&sccp_tech)->capabilities);
+	}
 	if (ast_format_cap_count(caps) == 0) {
 		pbx_log(LOG_WARNING, "%s: Zero Native Codecs", channel->designator);
 	}
@@ -1781,7 +1785,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, stru
 	int callid_created = ast_callid_threadstorage_auto(&callid);
 
 	AUTO_RELEASE(sccp_channel_t, channel , NULL);
-	requestStatus = sccp_requestChannel(lineName, audio_codec, audioCapabilities, ARRAY_LEN(audioCapabilities), autoanswer_type, autoanswer_cause, ringermode, &channel);
+	requestStatus = sccp_requestChannel(lineName, autoanswer_type, autoanswer_cause, ringermode, &channel);
 	switch (requestStatus) {
 		case SCCP_REQUEST_STATUS_SUCCESS:								// everything is fine
 			break;
@@ -1802,6 +1806,13 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, stru
 			*cause = AST_CAUSE_UNALLOCATED;
 			goto EXITFUNC;
 	}
+
+	/** set requested codec as prefered codec */
+	memcpy(&channel->remoteCapabilities.audio, audioCapabilities, sizeof(channel->remoteCapabilities.audio));
+#if SCCP_VIDEO
+	memcpy(&channel->remoteCapabilities.video, videoCapabilities, sizeof(channel->remoteCapabilities.video));
+#endif
+	/** done */
 	
 	if (!sccp_pbx_channel_allocate(channel, assignedids, requestor)) {
 		//! \todo handle error in more detail, cleanup sccp channel
