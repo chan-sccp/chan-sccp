@@ -820,8 +820,22 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk115_rtp_read(PBX_CHANNEL_TYPE * ast)
 #ifdef CS_SCCP_CONFERENCE
 		if (c->conference && (!ast_format_cache_is_slinear(ast_channel_readformat(ast)))) {
 			ast_set_read_format(ast, ast_format_slin96);
-		}
+		} else
 #endif
+		{
+			if (ast_format_cap_iscompatible_format(ast_channel_nativeformats(ast), frame->subclass.format) == AST_FORMAT_CMP_NOT_EQUAL) {
+				struct ast_format_cap *caps;
+				sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: (rtp_read) Format changed to %s\n", c->designator, ast_format_get_name(frame->subclass.format));
+				caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+				if (caps) {
+					ast_format_cap_append(caps, frame->subclass.format, 0);
+					ast_channel_nativeformats_set(ast, caps);
+					ao2_ref(caps, -1);
+				}
+				ast_set_read_format(ast, ast_channel_readformat(ast));
+				ast_set_write_format(ast, ast_channel_writeformat(ast));
+			}
+		}
 	}
 
 EXIT_FUNC:
@@ -851,6 +865,16 @@ static int sccp_wrapper_asterisk115_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 	switch (frame->frametype) {
 		case AST_FRAME_VOICE:
 			// checking for samples to transmit
+			if (ast_format_cap_iscompatible_format(ast_channel_nativeformats(ast), frame->subclass.format) == AST_FORMAT_CMP_NOT_EQUAL) {
+				struct ast_str *codec_buf = ast_str_alloca(64);
+				sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: (rtp_write) Asked to transmit frame type %s, while native formats is %s (read/write = %s/%s)\n",
+					ast_format_get_name(frame->subclass.format),
+					ast_format_cap_get_names(ast_channel_nativeformats(ast), &codec_buf),
+					ast_channel_readformat(ast) ? ast_format_get_name(ast_channel_readformat(ast)) : "",
+					ast_channel_writeformat(ast) ? ast_format_get_name(ast_channel_writeformat(ast)) : ""
+				);
+				//return -1;
+			}
 			if (!frame->samples) {
 				if (strcasecmp(frame->src, "ast_prod")) {
 					pbx_log(LOG_ERROR, "%s: Asked to transmit frame type %d with no samples.\n", c->currentDeviceId, (int) frame->frametype);
@@ -888,6 +912,7 @@ static int sccp_wrapper_asterisk115_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 			pbx_log(LOG_WARNING, "%s: Can't send %d type frames with SCCP write on channel %s\n", c->currentDeviceId, frame->frametype, pbx_channel_name(ast));
 			break;
 	}
+
 	return res;
 }
 
@@ -1000,7 +1025,7 @@ static boolean_t sccp_wrapper_asterisk115_allocPBXChannel(sccp_channel_t * chann
 	}
 
 	sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: (allocPBXChannel) Create New Channel with name: SCCP/%s-%08X\n", line->name, channel->callid);
-	pbxDstChannel = ast_channel_alloc(0, AST_STATE_DOWN, line->cid_num, line->cid_name, line->accountcode, line->name, line->context, assignedids, pbxSrcChannel, line->amaflags, "%s", channel->designator);
+	pbxDstChannel = ast_channel_alloc(1, AST_STATE_DOWN, line->cid_num, line->cid_name, line->accountcode, line->name, line->context, assignedids, pbxSrcChannel, line->amaflags, "%s", channel->designator);
 	if (pbxDstChannel == NULL) {
 		pbx_log(LOG_ERROR, "SCCP: (allocPBXChannel) ast_channel_alloc failed\n");
 		ao2_cleanup(caps);
@@ -1014,7 +1039,30 @@ static boolean_t sccp_wrapper_asterisk115_allocPBXChannel(sccp_channel_t * chann
 
 	/* Copy Codec from SrcChannel */
 	if (pbxSrcChannel && ast_format_cap_count(ast_channel_nativeformats(pbxSrcChannel)) > 0) {
-		ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(pbxSrcChannel), AST_MEDIA_TYPE_UNKNOWN);
+		if (channel->calltype == SKINNY_CALLTYPE_INBOUND && line && channel) {		// pbxSrcChannel is requestor
+			struct ast_format_cap *joint = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+			if (!joint) {
+				ao2_cleanup(pbxDstChannel);
+				ao2_cleanup(caps);
+				return FALSE;
+			}
+			pbx_format_cap_append_skinny(caps, channel->preferences.audio);
+
+			struct ast_format *best_fmt_cap = NULL;
+			struct ast_format *best_fmt_native = NULL;
+			ast_format_cap_get_compatible(caps, ast_channel_nativeformats(pbxSrcChannel /*requestor*/), joint);
+			if (!ast_translator_best_choice(caps, joint, &best_fmt_cap, &best_fmt_native)) {
+				ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_AUDIO);	// clear caps
+				ast_format_cap_append(caps, best_fmt_native, 0);		// insert best first
+				pbx_format_cap_append_skinny(caps, channel->preferences.audio); // re-add rest
+#ifdef CS_SCCP_VIDEO
+	                        pbx_format_cap_append_skinny(caps, channel->preferences.video);
+#endif
+			}
+			ao2_cleanup(joint);
+		} else {
+			ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(pbxSrcChannel), AST_MEDIA_TYPE_UNKNOWN);
+		}
 	} else if (line && channel) {
 		pbx_format_cap_append_skinny(caps, channel->preferences.audio);
 #ifdef CS_SCCP_VIDEO
@@ -1022,6 +1070,9 @@ static boolean_t sccp_wrapper_asterisk115_allocPBXChannel(sccp_channel_t * chann
 #endif		
 	}
 	ast_channel_nativeformats_set(pbxDstChannel, caps);
+	if (ast_format_cap_count(caps) == 0) {
+		pbx_log(LOG_WARNING, "%s: Zero Native Codecs", channel->designator);
+	}
 	struct ast_format *tmpfmt = ast_format_cap_get_format(caps, 0);
 	ast_channel_set_writeformat(pbxDstChannel, tmpfmt);
 	ast_channel_set_rawwriteformat(pbxDstChannel, tmpfmt);
@@ -1180,8 +1231,8 @@ static boolean_t sccp_wrapper_asterisk115_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 	//pbx_log(LOG_NOTICE, "allocPBXChannel: tmp->nativeformats=%s fmt=%s\n", ast_format_cap_get_names(ast_channel_nativeformats(pbxDstChannel), &codec_buf), ast_format_get_name(tmpfmt));
 
 	ao2_ref(tmpfmt, -1);
-	ao2_ref(caps, -1);
-	//ao2_cleanup(caps);
+	//ao2_ref(caps, -1);
+	ao2_cleanup(caps);
 	/* EndCodec */
 
 	ast_channel_context_set(pbxDstChannel, ast_channel_context(pbxSrcChannel));
@@ -1420,24 +1471,22 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk115_request(const char *type, stru
 	struct ast_str *codec_buf = ast_str_alloca(64);
 	ast_callid callid = 0;
 
-	skinny_codec_t audioCapabilities[SKINNY_MAX_CAPABILITIES];
-	skinny_codec_t videoCapabilities[SKINNY_MAX_CAPABILITIES];
+	skinny_codec_t audioCapabilities[SKINNY_MAX_CAPABILITIES] = {0};
+	skinny_codec_t videoCapabilities[SKINNY_MAX_CAPABILITIES] = {0};
 
 	memset(&audioCapabilities, 0, sizeof(audioCapabilities));
 	memset(&videoCapabilities, 0, sizeof(videoCapabilities));
 
 	//! \todo parse request
 	char *lineName;
-	skinny_codec_t codec = SKINNY_CODEC_G711_ULAW_64K;
+	skinny_codec_t audio_codec = SKINNY_CODEC_WIDEBAND_256K;
+	skinny_codec_t video_codec = SKINNY_CODEC_NONE;
 	sccp_autoanswer_t autoanswer_type = SCCP_AUTOANSWER_NONE;
 	uint8_t autoanswer_cause = AST_CAUSE_NOTDEFINED;
 	skinny_ringtype_t ringermode = GLOB(ringtype);
 
 	if (!(ast_format_cap_has_type(cap, AST_MEDIA_TYPE_AUDIO))) {
 		ast_log(LOG_NOTICE, "Asked to get a channel with an unsupported format '%s'\n", ast_format_cap_get_names(cap, &codec_buf));
-		
-		/*! \todo transcode or return NULL ? */
-		// return NULL;
 	}
 
 	*cause = AST_CAUSE_NOTDEFINED;
@@ -1461,7 +1510,6 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk115_request(const char *type, stru
 		*options = '\0';
 		options++;
 	}
-	
 	// sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=" UI64FMT ", lineName=%s, options=%s\n", type, (uint64_t) ast_format_compatibility_codec2bitfield(cap), lineName, (options) ? options : "");
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=%s, lineName=%s, options=%s\n", type, ast_format_cap_get_names(cap, &codec_buf), lineName, (options) ? options : "");
 	if (requestor) {							/* get ringer mode from ALERT_INFO */
@@ -1473,51 +1521,59 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk115_request(const char *type, stru
 	}
 
 	/** getting remote capabilities */
-	char cap_buf[512];
-
-	/* audio capabilities */
 	if (requestor) {
-		AUTO_RELEASE(sccp_channel_t, remoteSccpChannel , get_sccp_channel_from_pbx_channel(requestor));
+		/*AUTO_RELEASE(sccp_channel_t, remoteSccpChannel , get_sccp_channel_from_pbx_channel(requestor));
 		if (remoteSccpChannel) {
-			uint8_t x, y, z;
-
-			z = 0;
-			/* shrink audioCapabilities to remote preferred/capable format */
-			for (x = 0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.audio[x] != 0; x++) {
-				for (y = 0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.audio[y] != 0; y++) {
-					if (remoteSccpChannel->preferences.audio[x] == remoteSccpChannel->capabilities.audio[y]) {
-						audioCapabilities[z++] = remoteSccpChannel->preferences.audio[x];
-						break;
-					}
+			memcpy(audioCapabilities, remoteSccpChannel->preferences.audio, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
+			sccp_codec_reduceSet(remoteSccpChannel->preferences.audio, remoteSccpChannel->capabilities.audio);
+			audio_codec=remoteSccpChannel->preferences.audio[0];
+#if SCCP_VIDEO
+			memcpy(videoCapabilities, remoteSccpChannel->preferences.video, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
+			sccp_codec_reduceSet(remoteSccpChannel->preferences.video, remoteSccpChannel->capabilities.video);
+			video_codec=remoteSccpChannel->preferences.video[0];
+#endif			
+		} else {*/
+			struct ast_format_cap *acaps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+			if (acaps) {
+				ast_format_cap_append_from_cap(acaps, cap, AST_MEDIA_TYPE_AUDIO);
+				ast_format_cap_append_from_cap(acaps, ast_channel_nativeformats(requestor), AST_MEDIA_TYPE_AUDIO);
+				audio_codec = sccp_asterisk115_getSkinnyFormatSingle(acaps);
+				if (!sccp_asterisk115_getSkinnyFormatMultiple(acaps, audioCapabilities, ARRAY_LEN(audioCapabilities))) {
+					pbx_log(LOG_NOTICE, "SCCP: remote native format is not compatible with any skinny format. Transcoding required\n");
+					audioCapabilities[0] = SKINNY_CODEC_WIDEBAND_256K;
 				}
+				ao2_ref(acaps, -1);
 			}
-		} else {
-			if (!sccp_asterisk115_getSkinnyFormatMultiple(ast_channel_nativeformats(requestor), audioCapabilities, ARRAY_LEN(audioCapabilities))) {
-				pbx_log(LOG_NOTICE, "SCCP: remote native format is not compatible with any skinny format. Transcoding required\n");
-				audioCapabilities[0] = SKINNY_CODEC_WIDEBAND_256K;
+#if SCCP_VIDEO
+			struct ast_format_cap *vcaps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+			if (vcaps) {
+				ast_format_cap_append_from_cap(vcaps, cap, AST_MEDIA_TYPE_VIDEO);
+				ast_format_cap_append_from_cap(acaps, ast_channel_nativeformats(requestor), AST_MEDIA_TYPE_VIDEO);
+				video_codec = sccp_asterisk115_getSkinnyFormatSingle(vcaps);
+				if (!sccp_asterisk115_getSkinnyFormatMultiple(vcaps, videoCapabilities, ARRAY_LEN(videoCapabilities))) {
+					pbx_log(LOG_NOTICE, "SCCP: remote native format is not compatible with any skinny format. Transcoding required\n");
+					videoCapabilities[0] = SKINNY_CODEC_NONE;
+				}
+				ao2_ref(vcaps, -1);
 			}
-		}
-
-		/* video capabilities */
-		sccp_asterisk115_getSkinnyFormatMultiple(ast_channel_nativeformats(requestor), videoCapabilities, ARRAY_LEN(videoCapabilities));	//replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
+#endif
+		/*}*/
 	}
 
+	char cap_buf[512];
 	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
-	// sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote audio caps: %s\n", cap_buf);
+	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote audio caps: %s\n", cap_buf);
 
 	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, videoCapabilities, ARRAY_LEN(videoCapabilities));
-	// sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote video caps: %s\n", cap_buf);
-	/** done */
+	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote video caps: %s\n", cap_buf);
 
-	/** get requested format */
-	//codec = pbx_codec2skinny_codec(ast_format_compatibility_format2bitfield(format));
-	codec = sccp_asterisk115_getSkinnyFormatSingle(cap);
-	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "SCCP: requestedCodec in Skinny Format: %d\n", codec);
+	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "SCCP: requestedCodec in Skinny Format: audio:%s (video:%s)\n", codec2name(audio_codec), codec2name(video_codec));
+	/** done getting remote capabilities */
 
 	int callid_created = ast_callid_threadstorage_auto(&callid);
 
 	AUTO_RELEASE(sccp_channel_t, channel , NULL);
-	requestStatus = sccp_requestChannel(lineName, codec, audioCapabilities, ARRAY_LEN(audioCapabilities), autoanswer_type, autoanswer_cause, ringermode, &channel);
+	requestStatus = sccp_requestChannel(lineName, audio_codec, audioCapabilities, ARRAY_LEN(audioCapabilities), autoanswer_type, autoanswer_cause, ringermode, &channel);
 	switch (requestStatus) {
 		case SCCP_REQUEST_STATUS_SUCCESS:								// everything is fine
 			break;
@@ -1634,6 +1690,8 @@ static int sccp_wrapper_asterisk115_call(PBX_CHANNEL_TYPE * ast, const char *des
 #endif
 		}
 	}
+	// chan_sip.c:6479
+	// ast_rtp_instance_available_formats(p->rtp, p->caps, p->prefcaps, p->jointcaps);
 
 	res = sccp_pbx_call(c, (char *) dest, timeout);
 	return res;
@@ -2123,9 +2181,10 @@ static int sccp_wrapper_asterisk115_callerid_presentation(PBX_CHANNEL_TYPE *pbx_
 static boolean_t sccp_wrapper_asterisk115_createRtpInstance(constDevicePtr d, constChannelPtr c, sccp_rtp_t *rtp)
 {
 	struct ast_sockaddr sock = { {0,} };
-	uint32_t tos = 0, cos = 0;
+	//uint32_t tos = 0, cos = 0;
 	
-	if (!c || !d) {
+	//if (!c || !d) {
+	if (!c) {
 		return FALSE;
 	}
 	memcpy(&sock.ss, &GLOB(bindaddr), sizeof(struct sockaddr_storage));
@@ -2153,8 +2212,8 @@ static boolean_t sccp_wrapper_asterisk115_createRtpInstance(constDevicePtr d, co
 	int fd_offset = 0;
 	switch(rtp->type) {
 		case SCCP_RTP_AUDIO:
-			tos = d->audio_tos;
-			cos = d->audio_cos;
+			//tos = d->audio_tos;
+			//cos = d->audio_cos;
 			//codec_type = SKINNY_CODEC_TYPE_AUDIO;
 			rtp_map_filter = "audio";
 			format_type = AST_MEDIA_TYPE_AUDIO;
@@ -2162,8 +2221,8 @@ static boolean_t sccp_wrapper_asterisk115_createRtpInstance(constDevicePtr d, co
 			
 #if CS_SCCP_VIDEO
 		case SCCP_RTP_VIDEO:
-			tos = d->video_tos;
-			cos = d->video_cos;
+			//tos = d->video_tos;
+			//cos = d->video_cos;
 			//codec_type = SKINNY_CODEC_TYPE_VIDEO;
 			rtp_map_filter = "video";
 			format_type = AST_MEDIA_TYPE_VIDEO;
@@ -2188,7 +2247,7 @@ static boolean_t sccp_wrapper_asterisk115_createRtpInstance(constDevicePtr d, co
 			ast_rtp_instance_dtmf_mode_set(instance, AST_RTP_DTMF_MODE_INBAND);
 		}
 	}
-	ast_rtp_instance_set_qos(instance, tos, cos, "SCCP RTP");
+	//ast_rtp_instance_set_qos(instance, tos, cos, "SCCP RTP");
 
 	//sccp_log_and(DEBUGCAT_CODEC + DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: (create_rtp) Building rtpmap\n", c->designator);
 	struct ast_rtp_codecs newrtp = AST_RTP_CODECS_NULL_INIT;
@@ -2215,6 +2274,11 @@ static boolean_t sccp_wrapper_asterisk115_createRtpInstance(constDevicePtr d, co
 			ast_rtp_codecs_payloads_unset(&newrtp, NULL, 101);
 		}
 	}
+	struct ast_format *tmp_fmt = ast_format_cap_get_format(ast_channel_nativeformats(c->owner), 0);
+	unsigned int framing = ast_format_cap_get_format_framing(ast_channel_nativeformats(c->owner), tmp_fmt);
+	ast_rtp_codecs_set_framing(&newrtp, framing);
+	ao2_ref(tmp_fmt, -1);
+
 	ast_rtp_codecs_payloads_copy(&newrtp, ast_rtp_instance_get_codecs(instance), instance);
 	//sccp_log_and(DEBUGCAT_CODEC + DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: (create_rtp) Done rtpmap\n", c->designator);
 
@@ -2322,7 +2386,7 @@ static int sccp_wrapper_asterisk115_setNativeAudioFormats(constChannelPtr channe
 	if (!caps) {
         	return 0;
 	}
-	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(ast), AST_MEDIA_TYPE_AUDIO);
+	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(ast), AST_MEDIA_TYPE_UNKNOWN);
 	ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_AUDIO);
 	pbx_format_cap_append_skinny(caps, codecs);
 	
@@ -2349,7 +2413,7 @@ static int sccp_wrapper_asterisk115_setNativeVideoFormats(constChannelPtr channe
 	if (!caps) {
         	return 0;
 	}
-	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(ast), AST_MEDIA_TYPE_VIDEO);
+	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(ast), AST_MEDIA_TYPE_UNKNOWN);
 	ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_VIDEO);
 	// temp
 	skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = {codec, 0};
@@ -3574,12 +3638,13 @@ static ast_module_load_result load_module(void)
 static int load_module(void)
 #endif
 {
+	if (ast_module_check("chan_skinny.so")) {
+		pbx_log(LOG_ERROR, "Chan_skinny is loaded. Please check modules.conf and remove chan_skinny before loading chan_sccp.\n");
+		return AST_MODULE_LOAD_SUCCESS;
+	}
+
 	int res = AST_MODULE_LOAD_DECLINE;
 	do {
-		if (ast_module_check("chan_skinny.so")) {
-			pbx_log(LOG_ERROR, "Chan_skinny is loaded. Please check modules.conf and remove chan_skinny before loading chan_sccp.\n");
-			break;
-		}
 		if (!(sched = ast_sched_context_create())) {
 			pbx_log(LOG_WARNING, "Unable to create schedule context. SCCP channel type disabled\n");
 			break;
