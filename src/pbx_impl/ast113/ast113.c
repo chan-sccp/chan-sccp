@@ -484,6 +484,11 @@ static void pbx_retrieve_remote_capabilities(sccp_channel_t *c)
 	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(c->owner), AST_MEDIA_TYPE_UNKNOWN);
 	for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
 		if (pbx_find_channel_by_linkid(remotePeer, (void *) ast_channel_linkedid(ast))) {
+			char buf[512];
+			sccp_asterisk113_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+			sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "set remote caps: %s\n", buf);
+
 			if (ast_format_cap_count(ast_channel_nativeformats(remotePeer)) > 0) {
 				struct ast_format_cap *joint = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
 				if (joint) {
@@ -491,9 +496,9 @@ static void pbx_retrieve_remote_capabilities(sccp_channel_t *c)
 					struct ast_format *best_fmt_native = NULL;
 					ast_format_cap_get_compatible(caps, ast_channel_nativeformats(remotePeer), joint);
 					if (!ast_translator_best_choice(caps, joint, &best_fmt_cap, &best_fmt_native)) {
-						ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_AUDIO);	// clear caps
+						ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_AUDIO);
 						ast_format_cap_append(caps, best_fmt_native, 0);
-						pbx_format_cap_append_skinny(caps, c->preferences.audio);
+						ast_format_cap_append_from_cap(caps, joint, AST_MEDIA_TYPE_UNKNOWN);
 						if (ast_format_cap_count(caps) > 0) {
 							ast_channel_nativeformats_set(c->owner, caps);
 							ast_channel_set_writeformat(c->owner, best_fmt_native);
@@ -505,14 +510,9 @@ static void pbx_retrieve_remote_capabilities(sccp_channel_t *c)
 					ao2_cleanup(joint);
 				}
 			}
-			char buf[512];
-			sccp_asterisk113_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
-			sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
-			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote caps: %s\n", buf);
-
 			sccp_asterisk113_getSkinnyFormatMultiple(ast_channel_nativeformats(c->owner), c->preferences.audio, ARRAY_LEN(c->preferences.audio));
 			sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
-			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "best joint preferences: %s\n", buf);
+			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "joint preferences: %s\n", buf);
 
 			ast_channel_unref(remotePeer);
 			break;
