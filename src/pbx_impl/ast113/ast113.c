@@ -888,6 +888,7 @@ static int sccp_wrapper_asterisk113_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 			if (ast_format_cap_iscompatible_format(ast_channel_nativeformats(ast), frame->subclass.format) == AST_FORMAT_CMP_NOT_EQUAL) {
 				struct ast_str *codec_buf = ast_str_alloca(64);
 				sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: (rtp_write) Asked to transmit frame type %s, while native formats is %s (read/write = %s/%s)\n",
+					c->designator,
 					ast_format_get_name(frame->subclass.format),
 					ast_format_cap_get_names(ast_channel_nativeformats(ast), &codec_buf),
 					ast_channel_readformat(ast) ? ast_format_get_name(ast_channel_readformat(ast)) : "",
