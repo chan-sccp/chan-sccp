@@ -182,7 +182,7 @@ static void pbx_format_cap_append_skinny(struct ast_format_cap *caps, skinny_cod
 		if (format != ast_format_none && ast_format_cap_iscompatible_format(caps, format) == AST_FORMAT_CMP_NOT_EQUAL) {
 			unsigned int framing = ast_format_get_default_ms(format);
 			ast_format_cap_append(caps, format, framing);
-			sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "Added codec:%s\n", codec2str(codecs[i]));
+			//sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "Added codec:%s\n", codec2str(codecs[i]));
 		}
 	}
 }
