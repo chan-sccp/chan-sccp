@@ -30,7 +30,7 @@
 /* *INDENT-OFF* */
 static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"servername", 			G_OBJ_REF(servername), 			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		"Asterisk",			"show this name on the device registration\n"},
-	{"keepalive", 			G_OBJ_REF(keepalive), 			TYPE_INT,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"60",				"Phone keep alive message every 60 secs. Used to check the voicemail and keep an open connection between server and phone (nat).\n"
+	{"keepalive", 			G_OBJ_REF(keepalive), 			TYPE_UINT,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"60",				"Phone keep alive message every 60 secs. Used to check the voicemail and keep an open connection between server and phone (nat).\n"
 																										  											"Don't set any lower than 60 seconds.\n"},
 	{"debug", 			G_OBJ_REF(debug), 			TYPE_PARSER(sccp_config_parse_debug),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
 																														  							"examples: debug = 11 | debug = mwi,event,core | debug = all | debug = none or 0\n"
@@ -172,7 +172,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"devicetype", 			D_OBJ_REF(config_type),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device type\n"},
 	{"type", 			0,				0,	TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		"device",			"used for device templates, value will be inherited.\n"},
 	{"description", 		D_OBJ_REF(description),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device description\n"},
-	{"keepalive", 			D_OBJ_REF(keepalive), 			TYPE_INT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"set keepalive to 60\n"},
+	{"keepalive", 			D_OBJ_REF(keepalive), 			TYPE_UINT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"set keepalive to 60\n"},
 	{"tzoffset", 			D_OBJ_REF(tz_offset), 			TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0",				"time zone offset\n"},
 	{"disallow|allow", 		D_OBJ_REF(preferences), 		TYPE_PARSER(sccp_config_parse_codec_preferences),				SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"Same as entry in [general] section"},
 	{"transfer", 			D_OBJ_REF(transfer),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"enable or disable the transfer capability. It does remove the transfer softkey\n"},

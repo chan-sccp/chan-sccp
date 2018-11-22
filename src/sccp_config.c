@@ -390,10 +390,6 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 		return SCCP_CONFIG_NOUPDATENEEDED;
 	}
 
-	if (sccpConfigOption->offset <= 0) {
-		return SCCP_CONFIG_NOUPDATENEEDED;
-	}
-
 	dst = ((uint8_t *) obj) + sccpConfigOption->offset;
 	type = sccpConfigOption->type;
 	flags = sccpConfigOption->flags;
