@@ -393,9 +393,9 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 	dst = ((uint8_t *) obj) + sccpConfigOption->offset;
 	type = sccpConfigOption->type;
 	flags = sccpConfigOption->flags;
-
+	
 	// check if already set during first pass (multi_entry)
-	if (sccpConfigOption->offset > 0 && SetEntries != NULL && ((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
+	if (SetEntries != NULL && ((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
 		uint y;
 
 		for (y = 0; y < sccpConfigSegment->config_size; y++) {
@@ -556,6 +556,8 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 							changed = SCCP_CONFIG_CHANGE_CHANGED;
 						}
 					}
+					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "SCCP: (sccp_config_object_setValue) Set uint16_t:%d\n", *(uint16_t *) dst);
+					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "SCCP: (sccp_config_object_setValue) Set uint16_t:%d\n", GLOB(keepalive));
 					break;
 				case 4:
 					if (sscanf(tmp_value, "%lu", &uint32num) == 1) {
@@ -689,7 +691,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 		((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)		/* Multi_Entry could give back invalid for one of it's values */
 	) {
 		/* if SetEntries is provided lookup the first offset of the struct variable we have set and note the index in SetEntries by changing the boolean_t to TRUE */
-		if (sccpConfigOption->offset > 0 && SetEntries != NULL) {
+		if (SetEntries != NULL) {
 			uint x;
 
 			for (x = 0; x < sccpConfigSegment->config_size; x++) {
