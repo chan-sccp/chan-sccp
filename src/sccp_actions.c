@@ -969,7 +969,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	sccp_device_preregistration(device);
 
 	//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", DEV_ID_LOG(device), device->keepaliveinterval);
-	device->protocol->sendRegisterAck(device, device->keepaliveinterval, device->keepaliveinterval*2, GLOB(dateformat));
+       device->protocol->sendRegisterAck(device, device->keepaliveinterval, device->keepaliveinterval, GLOB(dateformat));
 
 	sccp_dev_set_registered(device, SKINNY_DEVICE_RS_PROGRESS);
 

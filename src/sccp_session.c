@@ -572,8 +572,8 @@ gcc_inline void recalc_wait_time(sccp_session_t *s)
 			keepaliveAdditionalTimePercent = KEEPALIVE_ADDITIONAL_PERCENT_ON_CALL;
 		}
 	}
-	s->keepAlive = (keepAlive * keepaliveAdditionalTimePercent);
-	s->keepAliveInterval = (keepAliveInterval * KEEPALIVE_ADDITIONAL_PERCENT_SESSION);
+       s->keepAlive = (uint16_t)(keepAlive * keepaliveAdditionalTimePercent);
+       s->keepAliveInterval = (uint16_t)(keepAliveInterval * KEEPALIVE_ADDITIONAL_PERCENT_SESSION);
 
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_4 "%s: keepalive:%d, keepaliveinterval:%d\n", s->designator, s->keepAlive, s->keepAliveInterval);
 	if (!s->keepAlive || !s->keepAliveInterval) {	/* temporary */
@@ -1283,8 +1283,8 @@ int sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession 
 		CLI_AMI_TABLE_FIELD(Socket,		"-6",		d,	6,	session->fds[0].fd)					\
 		CLI_AMI_TABLE_FIELD(IP,			"40.40",	s,	40,	clientAddress)						\
 		CLI_AMI_TABLE_FIELD(Port,		"-5",		d,	5,	sccp_netsock_getPort(&session->sin) )    		\
-		CLI_AMI_TABLE_FIELD(KA,			"-4",		d,	4,	(uint32_t) (time(0) - session->lastKeepAlive))		\
-		CLI_AMI_TABLE_FIELD(DKAI,		"-4",		d,	4,	(d ? d->keepaliveinterval : GLOB(keepalive)))		\
+               CLI_AMI_TABLE_FIELD(KALST,              "-5",           d,      5,      (uint32_t) (time(0) - session->lastKeepAlive))          \
+               CLI_AMI_TABLE_FIELD(KAINT,              "-5",           d,      5,      (d ? d->keepaliveinterval : session->keepAliveInterval))\
 		CLI_AMI_TABLE_FIELD(KAMAX,		"-5",		d,	5,	session->keepAlive)					\
 		CLI_AMI_TABLE_FIELD(DeviceName,		"15",		s,	15,	(d) ? d->id : "--")					\
 		CLI_AMI_TABLE_FIELD(State,		"-14.14",	s,	14,	(d) ? sccp_devicestate2str(sccp_device_getDeviceState(d)) : "--")		\
