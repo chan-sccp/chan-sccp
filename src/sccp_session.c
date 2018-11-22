@@ -573,7 +573,8 @@ gcc_inline void recalc_wait_time(sccp_session_t *s)
 		}
 	}
        s->keepAlive = (uint16_t)(keepAlive * keepaliveAdditionalTimePercent);
-       s->keepAliveInterval = (uint16_t)(keepAliveInterval * KEEPALIVE_ADDITIONAL_PERCENT_SESSION);
+       //s->keepAliveInterval = (uint16_t)(keepAliveInterval * KEEPALIVE_ADDITIONAL_PERCENT_SESSION);
+       s->keepAliveInterval = (uint16_t)keepAliveInterval;
 
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_4 "%s: keepalive:%d, keepaliveinterval:%d\n", s->designator, s->keepAlive, s->keepAliveInterval);
 	if (!s->keepAlive || !s->keepAliveInterval) {	/* temporary */
