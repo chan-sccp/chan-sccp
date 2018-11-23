@@ -129,7 +129,7 @@ boolean_t sccp_prePBXLoad(void)
 	((struct sockaddr_in *) &GLOB(bindaddr))->sin_port = DEFAULT_SCCP_PORT;
 
 	GLOB(externrefresh) = 60;
-	GLOB(keepalive) = SCCP_KEEPALIVE;
+	GLOB(keepalive) = SCCP_MIN_KEEPALIVE;
 
 	/* Wait up to 16 seconds for first digit */
 	GLOB(firstdigittimeout) = 16;

@@ -132,7 +132,6 @@ SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define	SCCP_PATH_MAX 2048
 #endif
 
-#define SCCP_MIN_KEEPALIVE 30
 #define SCCP_LOCK_TRIES 10
 #define SCCP_LOCK_USLEEP 100
 #define SCCP_MIN_DTMF_DURATION 80										// 80 ms

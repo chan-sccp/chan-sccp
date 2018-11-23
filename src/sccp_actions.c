@@ -791,7 +791,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	uint32_t deviceType = letohl(msg_in->data.RegisterMessage.lel_deviceType);
 	//uint32_t maxStreams = letohl(msg_in->data.RegisterMessage.lel_maxStreams);
 	//uint32_t activeStreams = letohl(msg_in->data.RegisterMessage.lel_activeStreams);
-	uint8_t protocolVer = letohl(msg_in->data.RegisterMessage.phone_features) & SKINNY_PHONE_FEATURES_PROTOCOLVERSION;
+	uint8_t protocolVer = letohl(msg_in->data.RegisterMessage.phone_features) & SKINNY_PHONE_FEATURES_PROTOCOLVER_MASK;
 	//uint32_t maxConferences = letohl(msg_in->data.RegisterMessage.lel_maxConferences);
 	//uint32_t activeConferences = letohl(msg_in->data.RegisterMessage.lel_activeConferences);
 	uint8_t macAddress[12];
