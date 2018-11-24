@@ -4596,6 +4596,9 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 				break;
 			case APPID_PROVISION:
 				break;
+			case APPID_INPUT:
+				pbx_log(LOG_NOTICE, "%s: APPID_INPUT: appid:%d,call:%d,line:%d,trans:%d,len:%d\ndata:%s\n", d->id, appID, callReference, lineInstance, transactionID, dataLength, data);
+				break;
 		}
 	}
 }

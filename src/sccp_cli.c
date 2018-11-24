@@ -1742,24 +1742,29 @@ static int sccp_test(int fd, int argc, char *argv[])
 		AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(argv[3], FALSE));
 		if (d) {
 			char xmlData1[] = {
-				"<CiscoIPPhoneInput>" "<Title>Change Password</Title>"
-				    //"<URL>:::10.15.15.195:2000:SESSION_NUMBER/Preferences/PinInput</URL>"
-				"<URL>:%s:SESSION_NUMBER/Preferences/PinInput</URL>"
-				    "<Prompt>PROMPT_TEXT</Prompt>"
-				    "<InputItem>"
-				    "<DisplayName>PIN</DisplayName>"
-				    "<QueryStringParam>s</QueryStringParam>"
-				    "<InputFlags>NP</InputFlags>"
-				    "<DefaultValue></DefaultValue>"
-				    "</InputItem>"
-				    "<SoftKeyItem>"
-				    "<Name>Accept</Name>"
-				    "<URL>SoftKey:Submit</URL>"
-				    "<Position>1</Position>"
-				    "</SoftKeyItem>"
-				    "<SoftKeyItem>"
-				    "<Name>Accept</Name>"
-				    "<URL>Key:Submit</URL>" "<Position>2</Position>" "</SoftKeyItem>" "<SoftKeyItem>" "<Name>Cancel</Name>" "<URL>:::SESSION_NUMBER/Preferences/Back</URL>" "<Position>2</Position>" "</SoftKeyItem>" "<SoftKeyItem>" "<Name>&lt;&lt;</Name>" "<URL>SoftKey:&lt;&lt;</URL>" "<Position>3</Position>" "</SoftKeyItem>" "<SoftKeyItem>" "<Name>Home</Name>" "<URL>:::SESSION_NUMBER/Preferences/Home</URL>" "<Position>4</Position>" "</SoftKeyItem>" "</CiscoIPPhoneInput>"
+				"<CiscoIPPhoneInput>"
+				"<Title>Please Login</Title>"
+				"<Prompt></Prompt>"
+				"<URL>http://192.168.178.3:2001/2126149/Login</URL>"
+				"<InputItem><DisplayName>Subscriber</DisplayName><QueryStringParam>s</QueryStringParam><InputFlags>N</InputFlags></InputItem>"
+				"<InputItem><DisplayName>Password</DisplayName><QueryStringParam>p</QueryStringParam><InputFlags>NP</InputFlags></InputItem>"
+				"<SoftKeyItem><Name>Accept</Name><URL>SoftKey:Submit</URL><Position>1</Position></SoftKeyItem>"
+				"<SoftKeyItem><Name>&lt;&lt;</Name><URL>SoftKey:&lt;&lt;</URL><Position>2</Position></SoftKeyItem>"
+				"</CiscoIPPhoneInput>"
+/*
+Will send this http GET to port 2001:
+----------------
+GET /2126149/Login?s=1234&p=4321 HTTP/1.1
+Host: 192.168.178.3:2001
+User-Agent: Allegro-Software-WebClient/4.34
+Accept: x-CiscoIPPhone/*, text/*,image/png,*/*
+Accept-Language: en
+Accept-Charset: utf-8,;q=0.8
+x-CiscoIPPhoneModelName: CP-7970G
+x-CiscoIPPhoneSDKVersion: 8.5.1
+x-CiscoIPPhoneDisplay: 298,168,12,C
+----------------
+*/				    
 			};
 			char xmlData2[2000];
 
