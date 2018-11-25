@@ -495,12 +495,12 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 		if (objects[bucket]) {											\
 			SCCP_RWLIST_RDLOCK(&(objects[bucket])->refCountedObjects);					\
 			SCCP_RWLIST_TRAVERSE(&(objects[bucket])->refCountedObjects, obj, list) {			\
-				char bucketstr[6];									\
+				char bucketstr[8];									\
 				if (!s) {										\
 					if (prev == bucket) {								\
-						snprintf(bucketstr, sizeof(bucketstr), " +-> ");			\
+						snprintf(bucketstr, sizeof(bucketstr), " +---> ");			\
 					} else {									\
-						snprintf(bucketstr, sizeof(bucketstr), "[%3d]", bucket);		\
+						snprintf(bucketstr, sizeof(bucketstr), "[%5d]", bucket);		\
 					}										\
 				} else {										\
 					snprintf(bucketstr, sizeof(bucketstr), "%d", bucket);				\
@@ -557,7 +557,7 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 		}
 
 #define CLI_AMI_TABLE_FIELDS 												\
-	CLI_AMI_TABLE_FIELD(Hash,	"-5.5",		s,	5,	bucketstr)					\
+	CLI_AMI_TABLE_FIELD(Hash,	"-7.7",		s,	7,	bucketstr)					\
 	CLI_AMI_TABLE_FIELD(Type,	"-17.17",	s,	17,	(obj_info[obj->type]).datatype)			\
 	CLI_AMI_TABLE_FIELD(Id,		"-25.25",	s,	25,	obj->identifier)				\
 	CLI_AMI_TABLE_FIELD(Ptr,	"-15",		p,	15,	obj)						\
