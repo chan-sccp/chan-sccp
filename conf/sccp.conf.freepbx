@@ -4,9 +4,9 @@
 ;
 ;=========================================================================================
 [general]
+debug = core, config, action, socket, device, line, channel
 servername = FreePbxSCCP
 keepalive = 60
-debug = 1
 context = from-internal-xfer
 dateformat = D.M.Y
 bindaddr = 0.0.0.0
