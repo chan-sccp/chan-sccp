@@ -3888,6 +3888,8 @@ void handle_ConfigStatMessage(constSessionPtr s, devicePtr d, constMessagePtr ms
 	sccp_copy_string(msg_out->data.ConfigStatMessage.station_identifier.deviceName, d->id, sizeof(msg_out->data.ConfigStatMessage.station_identifier.deviceName));
 	msg_out->data.ConfigStatMessage.station_identifier.lel_stationUserId = htolel(0);
 	msg_out->data.ConfigStatMessage.station_identifier.lel_stationInstance = htolel(1);
+	sccp_copy_string(msg_out->data.ConfigStatMessage.userName, d->id, sizeof(msg_out->data.ConfigStatMessage.userName));
+	sccp_copy_string(msg_out->data.ConfigStatMessage.serverName, GLOB(servername), sizeof(msg_out->data.ConfigStatMessage.serverName));
 	msg_out->data.ConfigStatMessage.lel_numberLines = htolel(lines);
 	msg_out->data.ConfigStatMessage.lel_numberSpeedDials = htolel(speeddials);
 
