@@ -36,6 +36,12 @@
 		size_t current;										\
 	}
 
+/*! \brief Integer vector definition */
+SCCP_VECTOR(sccp_vector_int, int);
+
+/*! \brief String vector definition */
+SCCP_VECTOR(sccp_vector_string, char *);
+
 /*!
  * \brief Define a vector structure with a read/write lock
  *

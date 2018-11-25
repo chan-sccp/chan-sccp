@@ -2073,7 +2073,8 @@ void sccp_do_backtrace()
 #if HAVE_EXECINFO_H
 	void	*addresses[SCCP_BACKTRACE_SIZE];
 	size_t  size, i;
-	char     **strings;
+	bt_string_t *strings;
+
 	struct ast_str *btbuf;
 	if (!(btbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE * 2))) {
 		return;
@@ -2094,9 +2095,14 @@ void sccp_do_backtrace()
 
 	if (strings) {
 		for (i = 1; i < size; i++) {
-			pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, " (bt) > %s\n", strings[i]);		
+#ifdef CS_AST_BACKTRACE_VECTOR_STRING
+			//struct ast_vector_string * strings;
+			pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, " (bt) > %s\n", AST_VECTOR_GET(strings, i));
+#else
+			pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, " (bt) > %s\n", strings[i]);
+#endif			
 		}
-		sccp_free(strings);	// malloced by backtrace_symbols
+		bt_free(strings);
 
 		pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "================================================================================\n");
 		pbx_log(LOG_WARNING, "SCCP: (backtrace) \n%s\n", pbx_str_buffer(btbuf));

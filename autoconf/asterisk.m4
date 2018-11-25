@@ -1102,6 +1102,33 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 		],,[ 
 			$HEADER_INCLUDE
 		])
+		AC_CHECK_HEADER([asterisk/backtrace.h],
+		[
+			AC_DEFINE([HAVE_PBX_BACKTRACE_H],1,[Found 'asterisk/backtrace.h'])
+			AC_MSG_CHECKING([ - availability 'ast_bt_free_symbols'...])
+			AC_COMPILE_IFELSE([
+				AC_LANG_PROGRAM(
+					[
+						$HEADER_INCLUDE
+						#include <asterisk/backtrace.h>
+					], [
+						struct ast_vector_string *string_vector;
+						ast_bt_free_symbols(string_vector);
+					]
+				)
+			], [
+				AC_DEFINE([CS_AST_BACKTRACE_VECTOR_STRING],1,[Found 'ast_bt_free_symbols' in asterisk/backtrace.h])
+				AC_DEFINE([bt_string_t],[struct ast_vector_string],[defined 'bt_string_t'])
+				AC_DEFINE([bt_free],[ast_bt_free_symbols],[defined 'bt_free'])
+				AC_MSG_RESULT(yes)
+			], [
+				AC_DEFINE([bt_string_t],[char *],[defined 'bt_string_t' replacement])
+				AC_DEFINE([bt_free],[sccp_free],[defined 'bt_free' replacement])
+				AC_MSG_RESULT(no)
+			])		
+		],,[ 
+			$HEADER_INCLUDE
+		])
 		dnl restore previous CFLAGS from backup
 		CFLAGS={$CFLAGS_backup}
 		AC_SUBST([SANITIZE_CFLAGS])

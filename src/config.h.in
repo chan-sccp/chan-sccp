@@ -93,6 +93,9 @@
 /* advanced functions enabled */
 #undef CS_ADV_FEATURES
 
+/* Found 'ast_bt_free_symbols' in asterisk/backtrace.h */
+#undef CS_AST_BACKTRACE_VECTOR_STRING
+
 /* Found 'ast_cel_linkedid_ref' in asterisk/cel.h */
 #undef CS_AST_CEL_LINKEDID_REF
 
@@ -514,6 +517,9 @@
 /* Found 'asterisk/app.h' */
 #undef HAVE_PBX_APP_H
 
+/* Found 'asterisk/backtrace.h' */
+#undef HAVE_PBX_BACKTRACE_H
+
 /* Found 'asterisk/bridging_roles.h' */
 #undef HAVE_PBX_BRIDGING_ROLES_H
 
@@ -711,9 +717,6 @@
 
 /* Define to the shared library suffix, say, ".dylib". */
 #undef LT_SHARED_EXT
-
-/* Define to the shared archive member specification, say "(shr.o)". */
-#undef LT_SHARED_LIB_MEMBER
 
 /* Define if dlsym() requires a leading underscore in symbol names. */
 #undef NEED_USCORE
@@ -970,10 +973,16 @@
 /* 'ast_random' replacement */
 #undef ast_random
 
+/* defined 'bt_free' replacement */
+#undef bt_free
+
+/* defined 'bt_string_t' replacement */
+#undef bt_string_t
+
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
-/* Define to a type to use for 'error_t' if it is not otherwise available. */
+/* Define to a type to use for `error_t' if it is not otherwise available. */
 #undef error_t
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
