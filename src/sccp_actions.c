@@ -516,16 +516,18 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Device Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, skinny_devicetype2str(deviceType), deviceType);
 	{
 		// Search for already known device->sessions
-		AUTO_RELEASE(sccp_device_t, tmpdevice , sccp_device_find_byid(deviceName, TRUE));
+		AUTO_RELEASE(sccp_device_t, tmpdevice , sccp_device_find_byid(deviceName, FALSE));
 		if (tmpdevice) {
 			skinny_registrationstate_t state = sccp_device_getRegistrationState(tmpdevice);
-			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + 60) {
-				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
+			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + token_backoff_time) {
+				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up (regState: %s, tokenState:%s, registrationTime:%d)\n", DEV_ID_LOG(device), skinny_registrationstate2str(state), sccp_tokenstate2str(tmpdevice->status.token), (int)(tmpdevice->registrationTime));
+				tmpdevice->registrationTime = time(0);
 				sccp_session_tokenReject(s, token_backoff_time);
 				return;
 			}
 			if (sccp_session_check_crossdevice(s, tmpdevice) || (state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
-				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
+				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later (tokenState:%s)\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
+				tmpdevice->registrationTime = time(0);
 				sccp_session_crossdevice_cleanup(s, tmpdevice->session);
 				sccp_session_tokenReject(s, 10);
 				return;
@@ -555,7 +557,7 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 	if (sccp_session_retainDevice(s, device) < 0) {
 		pbx_log(LOG_WARNING, "%s: Signing over the session to new device failed. Giving up.\n", DEV_ID_LOG(device));
 		sccp_session_tokenReject(s, token_backoff_time);
-		return;
+		goto EXIT;
 	}
 	device->status.token = SCCP_TOKEN_STATE_REJ;
 	device->skinny_type = deviceType;
@@ -566,7 +568,7 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterTokenRequest.sId.deviceName, sccp_netsock_stringify_addr(&sas));
 		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 		sccp_session_tokenReject(s, token_backoff_time);
-		return;
+		goto EXIT;
 	}
 
 	/* accepting token by default */
@@ -643,7 +645,9 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 	}
 
 	device->status.token = (sendAck) ? SCCP_TOKEN_STATE_ACK : SCCP_TOKEN_STATE_REJ;
-	device->registrationTime = time(0);									// last time device tried sending token
+EXIT:
+	if (device)
+		device->registrationTime = time(0);									// last time device tried sending token
 }
 
 /*!
@@ -697,25 +701,27 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 
 	{
 		// Search for already known device-sessions
-		AUTO_RELEASE(sccp_device_t, tmpdevice , sccp_device_find_byid(deviceName, TRUE));
+		AUTO_RELEASE(sccp_device_t, tmpdevice , sccp_device_find_byid(deviceName, FALSE));
 		if (tmpdevice) {
 			skinny_registrationstate_t state = sccp_device_getRegistrationState(tmpdevice);
-			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + 60) {
-				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up\n", DEV_ID_LOG(device));
+			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + token_backoff_time) {
+				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up (regState: %s, tokenState:%s, registrationTime:%d)\n", DEV_ID_LOG(device), skinny_registrationstate2str(state), sccp_tokenstate2str(tmpdevice->status.token), (int)(tmpdevice->registrationTime - time(0)));
+				tmpdevice->registrationTime = time(0);
 				sccp_session_tokenReject(s, token_backoff_time);
 				return;
 			}
 			if (sccp_session_check_crossdevice(s, tmpdevice) || (state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
-				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
+				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later (tokenState:%s)\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
 				sccp_session_crossdevice_cleanup(s, tmpdevice->session);
-				sccp_session_tokenRejectSPCP(s, 10);
+				tmpdevice->registrationTime = time(0);
+				sccp_session_tokenReject(s, 10);
 				return;
 			}
 		}
 	}
 
 	// search for all devices including realtime
-	device = sccp_device_find_byid(msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, TRUE);
+	device = sccp_device_find_byid(deviceName, TRUE);
 	if (!device && GLOB(allowAnonymous)) {
 		device = sccp_device_createAnonymous(msg_in->data.SPCPRegisterTokenRequest.sId.deviceName);
 
@@ -737,7 +743,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 	if (sccp_session_retainDevice(s, device) < 0) {
 		pbx_log(LOG_WARNING, "%s: Signing over the session to new device failed. Giving up.\n", DEV_ID_LOG(device));
 		sccp_session_tokenRejectSPCP(s, token_backoff_time);
-		return;
+		goto EXIT;
 	}
 	device->status.token = SCCP_TOKEN_STATE_REJ;
 	device->skinny_type = deviceType;
@@ -746,7 +752,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, sccp_netsock_stringify_addr(&sas));
 		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 		sccp_session_tokenRejectSPCP(s, token_backoff_time);
-		return;
+		goto EXIT;
 	}
 
 	/* obsolete, see above */
@@ -755,7 +761,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 		sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
 		sccp_session_tokenRejectSPCP(s, token_backoff_time);
 		device->session = sccp_session_reject(device->session, "Crossover session not allowed");
-		return;
+		goto EXIT;
 	}
 
 	/* all checks passed, assign session to device */
@@ -765,7 +771,9 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 	device->status.token = SCCP_TOKEN_STATE_ACK;
 
 	sccp_session_tokenAckSPCP(s, 65535);
-	device->registrationTime = time(0);									// last time device tried sending token
+EXIT:
+	if (device)
+		device->registrationTime = time(0);									// last time device tried sending token
 }
 
 /*!
