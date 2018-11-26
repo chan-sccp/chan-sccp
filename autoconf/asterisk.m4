@@ -1150,7 +1150,10 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 				AC_DEFINE([bt_free],[sccp_free],[defined 'bt_free' replacement])
 				AC_MSG_RESULT(no)
 			])		
-		],,[ 
+		],[
+			AC_DEFINE([bt_string_t],[char *],[defined 'bt_string_t' replacement])
+			AC_DEFINE([bt_free],[sccp_free],[defined 'bt_free' replacement])
+		],[ 
 			$HEADER_INCLUDE
 		])
 		dnl restore previous CFLAGS from backup
