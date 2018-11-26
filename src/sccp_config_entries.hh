@@ -29,14 +29,14 @@
  */
 /* *INDENT-OFF* */
 static const SCCPConfigOption sccpGlobalConfigOptions[]={
-	{"servername", 			G_OBJ_REF(servername), 			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		"Asterisk",			"show this name on the device registration\n"},
-	{"keepalive", 			G_OBJ_REF(keepalive), 			TYPE_UINT,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"60",				"Phone keep alive message every 60 secs. Used to check the voicemail and keep an open connection between server and phone (nat).\n"
-																										  											"Don't set any lower than 60 seconds.\n"},
 	{"debug", 			G_OBJ_REF(debug), 			TYPE_PARSER(sccp_config_parse_debug),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
 																														  							"examples: debug = 11 | debug = mwi,event,core | debug = all | debug = none or 0\n"
 																																					"possible categories:\n"
-																																					"core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey, indicate, pbx\n"
-																																					"socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime, lock, newcode, high, all, none\n"},
+																																					"core, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey, indicate, pbx\n"
+																																					"socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime, lock, parkinglot, newcode, high, all, none\n"},
+	{"servername", 			G_OBJ_REF(servername), 			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		"Asterisk",			"show this name on the device registration\n"},
+	{"keepalive", 			G_OBJ_REF(keepalive), 			TYPE_UINT,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"60",				"Phone keep alive message every 60 secs. Used to check the voicemail and keep an open connection between server and phone (nat).\n"
+																										  											"Don't set any lower than 60 seconds.\n"},
 	{"context", 			G_OBJ_REF(context), 			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"default",			"pbx dialplan context\n"},
 	{"dateformat", 			G_OBJ_REF(dateformat), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"M/D/Y",			"M-D-Y in any order. Use M/D/YA (for 12h format)\n"},
 	{"bindaddr", 			G_OBJ_REF(bindaddr), 			TYPE_PARSER(sccp_config_parse_ipaddress),					SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0",			"replace with the ip address of the asterisk server (RTP important param)\n"}, 
@@ -240,11 +240,11 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"allowRinginNotification", 	D_OBJ_REF(allowRinginNotification), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"allow ringin notification for hinted extensions. experimental configuration param that may be removed in further version\n"},
 #ifdef CS_SCCP_CONFERENCE
 	{"conf_allow",			D_OBJ_REF(allow_conference),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Allow the use of conference"},
-	{"conf_play_general_announce",	D_OBJ_REF(conf_play_general_announce),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Playback General Announcements (like: 'You are Entering/Leaving the conference')"},
-	{"conf_play_part_announce",	D_OBJ_REF(conf_play_part_announce),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Playback Personal/Participant Announcements, (like: 'You have been muted / You have been kicked')"},
-	{"conf_mute_on_entry",		D_OBJ_REF(conf_mute_on_entry),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Mute new participants from the start"},
 	{"conf_music_on_hold_class",	D_OBJ_REF(conf_music_on_hold_class),	TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"default",			"Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played."},
-	{"conf_show_conflist",		D_OBJ_REF(conf_show_conflist),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Automatically show conference list to the moderator"},
+	{"conf_play_general_announce",	D_OBJ_REF(conf_play_general_announce),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Playback General Announcements (like: 'You are Entering/Leaving the conference. Not supported on 7936/7937 conference phones.')"},
+	{"conf_play_part_announce",	D_OBJ_REF(conf_play_part_announce),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Playback Personal/Participant Announcements, (like: 'You have been muted / You have been kicked. '). Not supported on 7936/7937 conference phones."},
+	{"conf_mute_on_entry",		D_OBJ_REF(conf_mute_on_entry),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Mute new participants from the start. Not supported on 7936/7937 conference phones."},
+	{"conf_show_conflist",		D_OBJ_REF(conf_show_conflist),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Automatically show conference list to the moderator. Not supported on 7936/7937 conference phones."},
 #endif
 	{"backgroundImage",		D_OBJ_REF(backgroundImage),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the Background Image after device registered. Image must be set as URI to a http served file."},
 	{"ringtone",			D_OBJ_REF(ringtone),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the Ring Tone after device registered. Ring Tone must be set as URI to a http served file."},
