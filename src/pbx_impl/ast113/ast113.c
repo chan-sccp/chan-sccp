@@ -58,6 +58,10 @@ __BEGIN_C_EXTERN__
 #include <asterisk/bridge_after.h>
 #include <asterisk/bridge_channel.h>
 
+#ifdef CS_EXPERIMENTAL
+#include <asterisk/format_cap.h>		// for AST_FORMAT_CAP_NAMES_LEN
+#endif
+
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
 #undef new
@@ -1693,9 +1697,11 @@ static int sccp_wrapper_asterisk113_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 			//! \todo force update of rtp peer for directrtp
 			// sccp_wrapper_asterisk113_update_rtp_peer(newchan, NULL, NULL, 0, 0, 0);
 
+#ifdef CS_EXPERIMENTAL
 			//! \todo update remote capabilities after fixup
-			struct ast_str *codec_buf = ast_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
-			pbx_log(LOG_NOTICE, "Fixup: nativeformats=%s\n", ast_format_cap_get_names(ast_channel_nativeformats(newchan), &codec_buf));
+			//struct ast_str *codec_buf = ast_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
+			//pbx_log(LOG_NOTICE, "Fixup: nativeformats=%s\n", ast_format_cap_get_names(ast_channel_nativeformats(newchan), &codec_buf));
+#endif
 		}
 	} else {
 		pbx_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", pbx_channel_name(oldchan), (void *) oldchan, pbx_channel_name(newchan), (void *) newchan);
