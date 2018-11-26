@@ -45,7 +45,7 @@ AC_DEFUN([AST_GET_VERSION], [
 			pbx_ver=`echo ${pbx_ver} | sed 's/"//g'`
 
 			# process version number
-			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10" "11" "12" "13" "14" "15"; do
+			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10" "11" "12" "13" "14" "15" "16"; do
 				if test $version_found == 0; then
 					if echo $pbx_ver|grep -q "$x"; then
 						if test ${#x} -gt 3; then		# 1.10
@@ -102,7 +102,8 @@ AC_DEFUN([AST_GET_VERSION], [
 							112) AC_DEFINE([ASTERISK_CONF_1_12], [1], [Defined ASTERISK_CONF_1_12]);;
 							113) AC_DEFINE([ASTERISK_CONF_1_13], [1], [Defined ASTERISK_CONF_1_13]);;
 							114) AC_DEFINE([ASTERISK_CONF_1_14], [1], [Defined ASTERISK_CONF_1_14]);;
-							115) AC_DEFINE([ASTERISK_CONF_1_15], [1], [Defined ASTERISK_CONF_1_15])
+							115) AC_DEFINE([ASTERISK_CONF_1_15], [1], [Defined ASTERISK_CONF_1_15]);;
+							116) AC_DEFINE([ASTERISK_CONF_1_16], [1], [Defined ASTERISK_CONF_1_16])
 								ASTERISK_INCOMPATIBLE=yes;;
 							*) AC_DEFINE([ASTERISK_CONF], [0], [NOT Defined ASTERISK_CONF !!]);;
 						esac 
@@ -145,21 +146,43 @@ AC_DEFUN([AST_GET_VERSION], [
 			AC_MSG_RESULT('ASTERISK_VERSION could not be established)
 		])
 	], [
+		HEADER_INCLUDE="
+#define AST_MODULE_SELF_SYM __internal_chan_sccp_la_self
+#define AST_MODULE "chan_sccp"
+"
 		AC_CHECK_HEADER([asterisk/ast_version.h],
 		[
 			AC_CHECK_HEADER([asterisk/iostream.h],
 			[
-				ASTERISK_VER_GROUP=115
-				ASTERISK_VERSION_NUMBER=11500
-				ASTERISK_REPOS_LOCATION=TRUNK
+				AC_EGREP_CPP([enhances], [
+					#define AST_MODULE_SELF_SYM __internal_chan_sccp_la_self
+					#define AST_MODULE "chan_sccp"
+					#include <asterisk/module.h>
+				],[
+					ASTERISK_VER_GROUP=116
+					ASTERISK_VERSION_NUMBER=11600
+					ASTERISK_REPOS_LOCATION=TRUNK
 
-				AC_DEFINE([ASTERISK_CONF_1_15], [1], [Defined ASTERISK_CONF_1_15])
-				AC_DEFINE([ASTERISK_VERSION_NUMBER], [11500], [ASTERISK Version Number])
-				AC_DEFINE([ASTERISK_VERSION_GROUP], [115], [ASTERISK Version Group])
-				AC_DEFINE([ASTERISK_REPOS_LOCATION], ["TRUNK"],[ASTERISK Source Location])
-				
-				version_found=1
-				AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'.])
+					AC_DEFINE([ASTERISK_CONF_1_16], [1], [Defined ASTERISK_CONF_1_16])
+					AC_DEFINE([ASTERISK_VERSION_NUMBER], [11600], [ASTERISK Version Number])
+					AC_DEFINE([ASTERISK_VERSION_GROUP], [116], [ASTERISK Version Group])
+					AC_DEFINE([ASTERISK_REPOS_LOCATION], ["TRUNK"],[ASTERISK Source Location])
+					
+					version_found=1
+					AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'.])
+				],[
+					ASTERISK_VER_GROUP=115
+					ASTERISK_VERSION_NUMBER=11500
+					ASTERISK_REPOS_LOCATION=TRUNK
+
+					AC_DEFINE([ASTERISK_CONF_1_15], [1], [Defined ASTERISK_CONF_1_15])
+					AC_DEFINE([ASTERISK_VERSION_NUMBER], [11500], [ASTERISK Version Number])
+					AC_DEFINE([ASTERISK_VERSION_GROUP], [115], [ASTERISK Version Group])
+					AC_DEFINE([ASTERISK_REPOS_LOCATION], ["TRUNK"],[ASTERISK Source Location])
+					
+					version_found=1
+					AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'.])
+				])
 			],
 			[
 				AC_CHECK_HEADER([asterisk/media_cache.h],
@@ -221,7 +244,8 @@ AC_DEFUN([AST_GET_VERSION], [
 						])
 					])
 				])
-			])
+			],
+			[$HEADER_INCLUDE])
 		],[
 			AC_MSG_RESULT(['ASTERISK_VERSION could not be established'])
 		])

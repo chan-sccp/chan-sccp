@@ -104,7 +104,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-subdir = src/pbx_impl/ast106
+subdir = src/pbx_impl/ast116
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/autoconf/acinclude.m4 \
 	$(top_srcdir)/autoconf/acx_pthread.m4 \
@@ -127,16 +127,16 @@ CONFIG_HEADER = $(top_builddir)/src/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
-libast106_la_LIBADD =
-am_libast106_la_OBJECTS = libast106_la-ast106.lo
-libast106_la_OBJECTS = $(am_libast106_la_OBJECTS)
+libast116_la_LIBADD =
+am_libast116_la_OBJECTS = libast116_la-ast116.lo
+libast116_la_OBJECTS = $(am_libast116_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libast106_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libast106_la_CFLAGS) \
-	$(CFLAGS) $(libast106_la_LDFLAGS) $(LDFLAGS) -o $@
+libast116_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libast116_la_CFLAGS) \
+	$(CFLAGS) $(libast116_la_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -171,8 +171,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libast106_la_SOURCES)
-DIST_SOURCES = $(libast106_la_SOURCES)
+SOURCES = $(libast116_la_SOURCES)
+DIST_SOURCES = $(libast116_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -477,11 +477,11 @@ AM_CXXFLAGS = -std=c++11 $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	-DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self \
 	-DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS) -D_REENTRANT \
 	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
-noinst_LTLIBRARIES = libast106.la
-noinst_HEADERS = ast106.h
-libast106_la_SOURCES = ast106.c
-libast106_la_CFLAGS = $(AM_CFLAGS)
-libast106_la_LDFLAGS = $(AM_LDFLAGS)
+noinst_LTLIBRARIES = libast116.la
+noinst_HEADERS = ast116.h
+libast116_la_SOURCES = ast116.c
+libast116_la_CFLAGS = $(AM_CFLAGS)
+libast116_la_LDFLAGS = $(AM_LDFLAGS)
 all: all-am
 
 .SUFFIXES:
@@ -495,9 +495,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/pbx_impl/ast106/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/pbx_impl/ast116/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/pbx_impl/ast106/Makefile
+	  $(AUTOMAKE) --gnu src/pbx_impl/ast116/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -528,8 +528,8 @@ clean-noinstLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
-libast106.la: $(libast106_la_OBJECTS) $(libast106_la_DEPENDENCIES) $(EXTRA_libast106_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(libast106_la_LINK)  $(libast106_la_OBJECTS) $(libast106_la_LIBADD) $(LIBS)
+libast116.la: $(libast116_la_OBJECTS) $(libast116_la_DEPENDENCIES) $(EXTRA_libast116_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(libast116_la_LINK)  $(libast116_la_OBJECTS) $(libast116_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -537,7 +537,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libast106_la-ast106.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libast116_la-ast116.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -563,12 +563,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-libast106_la-ast106.lo: ast106.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libast106_la_CFLAGS) $(CFLAGS) -MT libast106_la-ast106.lo -MD -MP -MF $(DEPDIR)/libast106_la-ast106.Tpo -c -o libast106_la-ast106.lo `test -f 'ast106.c' || echo '$(srcdir)/'`ast106.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libast106_la-ast106.Tpo $(DEPDIR)/libast106_la-ast106.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ast106.c' object='libast106_la-ast106.lo' libtool=yes @AMDEPBACKSLASH@
+libast116_la-ast116.lo: ast116.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libast116_la_CFLAGS) $(CFLAGS) -MT libast116_la-ast116.lo -MD -MP -MF $(DEPDIR)/libast116_la-ast116.Tpo -c -o libast116_la-ast116.lo `test -f 'ast116.c' || echo '$(srcdir)/'`ast116.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libast116_la-ast116.Tpo $(DEPDIR)/libast116_la-ast116.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ast116.c' object='libast116_la-ast116.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libast106_la_CFLAGS) $(CFLAGS) -c -o libast106_la-ast106.lo `test -f 'ast106.c' || echo '$(srcdir)/'`ast106.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libast116_la_CFLAGS) $(CFLAGS) -c -o libast116_la-ast116.lo `test -f 'ast116.c' || echo '$(srcdir)/'`ast116.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
