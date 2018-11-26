@@ -13,8 +13,9 @@
 ;debug = core                                                                     ; (MULTI-ENTRY) console debug level or categories
                                                                                   ; examples: debug = 11 | debug = mwi,event,core | debug = all | debug = none or 0
                                                                                   ; possible categories:
-                                                                                  ; core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey, indicate, pbx
-                                                                                  ; socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime, lock, newcode, high, all, none
+                                                                                  ; core, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey, indicate, pbx
+                                                                                  ; socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime, lock,
+                                                                                  ; parkinglot, newcode, high, all, none
 ;servername = Asterisk                                                            ; (REQUIRED) show this name on the device registration
 ;keepalive = 60                                                                   ; (REQUIRED) Phone keep alive message every 60 secs. Used to check the voicemail and keep an open connection between server and phone (nat).
                                                                                   ; Don't set any lower than 60 seconds.
