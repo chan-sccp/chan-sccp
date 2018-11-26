@@ -589,7 +589,6 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				dnl -Wswitch-enum dnl
 				dnl -Wc++-compat		dnl Check if compilable with C++ compiler
 				dnl -Wshorten-64-to-32 dnl
-				dnl -Wpointer-arith dnl
 				dnl
 				dnl // somewhat pedantic 
 				dnl -Wunused-parameter dnl
@@ -612,7 +611,8 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wshadow dnl
 				-fno-strict-overflow dnl
 				-Wshorten-64-to-32 dnl
-				-Wpointer-arith dnl
+				-Wno-pointer-arith dnl
+				dnl -Wpointer-arith dnl
 			], SUPPORTED_CFLAGS)
 		])
 		AS_IF([test "x${AST_C_COMPILER_FAMILY}" = "xclang"], [
