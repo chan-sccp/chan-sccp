@@ -320,6 +320,18 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 		],[
 			AC_MSG_RESULT(no)
 		])
+		AC_MSG_CHECKING([ - HAVE_BKTR defined in asterisk/autoconfig.h...])
+		AC_EGREP_CPP([yes],   [
+			#include "asterisk/autoconfig.h"
+			#if defined(HAVE_BKTR)
+				yes
+			#endif], 
+		[
+			AC_DEFINE([HAVE_BKTR],1,[defined 'HAVE_BKTR'])
+			AC_MSG_RESULT(yes)
+		], [
+			AC_MSG_RESULT(no)
+		])
 	)
 	AC_CHECK_HEADER([asterisk/lock.h],
 		[

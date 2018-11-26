@@ -355,6 +355,9 @@
 /* Found 'bfd.h' */
 #undef HAVE_BFD_H
 
+/* defined 'HAVE_BKTR' */
+#undef HAVE_BKTR
+
 /* Define to 1 if bswap_16 is available. */
 #undef HAVE_BSWAP_16
 
