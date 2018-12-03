@@ -362,8 +362,8 @@ void sccp_feat_handle_directed_pickup(constDevicePtr d, constLinePtr l, channelP
  */
 int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInstance, const char *exten)
 {
-#if CS_AST_DO_PICKUP
 	int res = -1;
+#if CS_AST_DO_PICKUP
 
 	/* assertions */
 	pbx_assert(c && c->line && c->owner && d);
