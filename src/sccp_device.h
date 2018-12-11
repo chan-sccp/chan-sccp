@@ -338,6 +338,7 @@ struct sccp_device {
 	boolean_t directed_pickup;										/*!< Directed Pickup Extension Support (Boolean, default=on) */
 	boolean_t directed_pickup_modeanswer;									/*!< Directed Pickup Mode Answer (Boolean, default on). Answer on directed pickup */
 #endif
+	skinny_callHistoryDisposition_t callhistory_answered_elsewhere;						/*!< What to do with the call history for calls that were answered remotely */
 	boolean_t mwiLight;											/*!< MWI/Light \todo third MWI/light entry in device ? */
 	boolean_t useRedialMenu;
 
@@ -372,7 +373,7 @@ struct sccp_device_indication_cb {
 	void (*const dialing) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION]);
 	void (*const proceed) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
 	void (*const connected) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
-	void (*const suppress_phoneboook_entry) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
+	void (*const callhistory) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_callHistoryDisposition_t disposition);
 	void (*const remoteOnhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
 	void (*const remoteOffhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
 	void (*const remoteConnected) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, skinny_callinfo_visibility_t visibility);

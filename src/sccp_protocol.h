@@ -1371,7 +1371,7 @@ typedef union {
 		uint32_t lel_callReference;									/*!< Call Reference */
 		uint32_t lel_callType;										/*!< Call Type (INBOUND=1, OUTBOUND=2, FORWARD=3) */
 		uint32_t lel_originalCdpnRedirectReason;							/*!< Original CalledParty Redirect Reason */
-		uint32_t lel_lastRedirectingReason;								/*!< Last Redirecting Reason */
+		uint32_t lel_lastRedirectingReason;								/*!< Last Redirecting Reason (=1, =2, =3, FOR=4, PICKUP=5) */
 		uint32_t lel_callInstance;									/*!< Call Instance */
 		uint32_t lel_callSecurityStatus;								/*!< Call Security Status */
 		uint32_t partyPIRestrictionBits;								/*!< Party PI Restriction Bits Structure

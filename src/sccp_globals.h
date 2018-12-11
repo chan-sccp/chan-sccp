@@ -113,6 +113,7 @@ struct sccp_global_vars {
 #else
 	uint8_t _padding1[1];
 #endif
+	skinny_callHistoryDisposition_t callhistory_answered_elsewhere;						/*!< What to do with the call history for calls that were answered remotely */
 	skinny_ringtype_t ringtype;										/*!< RingType for incoming calls */
 	boolean_t meetme;											/*!< Meetme on/off */
 	boolean_t allowAnonymous;										/*!< Allow Anonymous/Guest Devices */
@@ -147,7 +148,6 @@ struct sccp_global_vars {
 	char *token_fallback;											/*!< Fall back immediatly on TokenReq (true/false/odd/even) */
 	int token_backoff_time;											/*!< Backoff time on TokenReject */
 	int server_priority;											/*!< Server Priority to fallback to */
-
 
 	boolean_t reload_in_progress;										/*!< Reload in Progress */
 	boolean_t pendingUpdate;

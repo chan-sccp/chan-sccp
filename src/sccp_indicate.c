@@ -221,7 +221,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				char orig_called_num[StationMaxDirnumSize] = {0};
 				char calling_name[StationMaxNameSize] = {0};
 				char calling_num[StationMaxDirnumSize] = {0};
-				iCallInfo.Getter(sccp_channel_getCallInfo(c), 
+				iCallInfo.Getter(ci,
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &orig_called_name,
 					SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, &orig_called_num,
 					SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name, 
@@ -420,8 +420,9 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 		case SCCP_CHANNELSTATE_ONHOOK:
 			{
 				c->state = SCCP_CHANNELSTATE_DOWN;
-				if (c->answered_elsewhere && d->indicate->suppress_phoneboook_entry) {
-					d->indicate->suppress_phoneboook_entry(d, lineInstance, c->callid);
+				if (c->answered_elsewhere && d->indicate->callhistory) {
+					iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, TRUE);
+					d->indicate->callhistory(d, lineInstance, c->callid, d->callhistory_answered_elsewhere);
 				}
 				if (d->indicate && d->indicate->onhook) {
 					d->indicate->onhook(d, lineInstance, c->callid);
@@ -528,8 +529,8 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 				case SCCP_CHANNELSTATE_DOWN:
 				case SCCP_CHANNELSTATE_ONHOOK:
 					sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s -> %s: indicate remote onhook (lineInstance: %d, callid: %d %s)\n", DEV_ID_LOG(device), DEV_ID_LOG(remoteDevice), lineInstance, c->callid, c->answered_elsewhere ? ", answered elsewhere" :"");
-					if (SKINNY_CALLTYPE_INBOUND == c->calltype && c->answered_elsewhere && remoteDevice->indicate->suppress_phoneboook_entry) {
-						remoteDevice->indicate->suppress_phoneboook_entry(remoteDevice, lineInstance, c->callid);
+					if (SKINNY_CALLTYPE_INBOUND == c->calltype && c->answered_elsewhere && remoteDevice->indicate->callhistory) {
+						remoteDevice->indicate->callhistory(remoteDevice, lineInstance, c->callid, remoteDevice->callhistory_answered_elsewhere);
 					}
 					remoteDevice->indicate->remoteOnhook(remoteDevice, lineInstance, callid);
 					break;
@@ -537,8 +538,8 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 				case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 				case SCCP_CHANNELSTATE_CONNECTED:
 					sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s -> %s: indicate remote connected (lineInstance: %d, callid: %d %s)\n", DEV_ID_LOG(device), DEV_ID_LOG(remoteDevice), lineInstance, c->callid, c->answered_elsewhere ? ", answered elsewhere" : "");
-					if (SKINNY_CALLTYPE_INBOUND == c->calltype && remoteDevice->indicate->suppress_phoneboook_entry) {
-						remoteDevice->indicate->suppress_phoneboook_entry(remoteDevice, lineInstance, c->callid);
+					if (SKINNY_CALLTYPE_INBOUND == c->calltype && remoteDevice->indicate->callhistory) {
+						remoteDevice->indicate->callhistory(remoteDevice, lineInstance, c->callid, remoteDevice->callhistory_answered_elsewhere);
 					}
 					
 					/* if line is not currently active on remote device, collapse the callstate */

@@ -405,7 +405,7 @@ static int sccp_restart_monitor()
 	pbx_mutex_lock(&GLOB(monitor_lock));
 	if (GLOB(monitor_thread) == pthread_self()) {
 		pbx_mutex_unlock(&GLOB(monitor_lock));
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP: (sccp_restart_monitor) Cannot kill myself\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_restart_monitor) Cannot kill myself\n");
 		return -1;
 	}
 	if (GLOB(monitor_thread) != AST_PTHREADT_NULL) {
@@ -415,7 +415,7 @@ static int sccp_restart_monitor()
 		/* Start a new monitor */
 		if (ast_pthread_create_background(&GLOB(monitor_thread), NULL, sccp_do_monitor, NULL) < 0) {
 			pbx_mutex_unlock(&GLOB(monitor_lock));
-			sccp_log((DEBUGCAT_CORE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP: (sccp_restart_monitor) Unable to start monitor thread.\n");
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_restart_monitor) Unable to start monitor thread.\n");
 			return -1;
 		}
 	}
@@ -1685,6 +1685,16 @@ static int sccp_wrapper_asterisk16_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL
 			/* using test_flag for ZOMBIE cannot be used, as it is only set after the fixup call */
 			if (!strstr(pbx_channel_name(newchan), "<ZOMBIE>")) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set c->hangupRequest = requestQueueHangup\n", c->designator);
+				if (pbx_channel_hangupcause(newchan) == AST_CAUSE_ANSWERED_ELSEWHERE) {
+					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Fixup Adding Redirecting Party from:%s\n", c->designator, pbx_channel_name(oldchan));
+					iCallInfo.Setter(sccp_channel_getCallInfo(c),
+						SCCP_CALLINFO_HUNT_PILOT_NAME, oldchan->cid.cid_name,
+						SCCP_CALLINFO_HUNT_PILOT_NUMBER, oldchan->cid.cid_num,
+						SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, oldchan->cid.cid_name,
+						SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, oldchan->cid.cid_num,
+						SCCP_CALLINFO_LAST_REDIRECT_REASON, 5,
+						SCCP_CALLINFO_KEY_SENTINEL);
+				}
 
 				// set channel requestHangup to use ast_queue_hangup (as it is now part of a __ast_pbx_run, after masquerade completes) 
 				c->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;

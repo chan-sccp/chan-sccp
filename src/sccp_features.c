@@ -230,7 +230,6 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 		c->calltype = SKINNY_CALLTYPE_INBOUND;						// reset call direction
 		c->state = SCCP_CHANNELSTATE_RINGING;
 		c->ringermode = answer ? SKINNY_RINGTYPE_SILENT : SKINNY_RINGTYPE_FEATURE;
-		c->answered_elsewhere = TRUE;
 		int lineInstance = sccp_device_find_index_for_line(d, c->line->name);
 		if (d->directed_pickup_modeanswer) {
 			sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGIN);		// setting early to prevent getting multiple pickup button presses
@@ -248,6 +247,27 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 			SCCP_CALLINFO_KEY_SENTINEL);
 
 		//pbx_channel_ref(original);
+
+		{
+			// BTW: Remote end should change it's calltype for callinfo to FORWARD, upon pickup. Not sure how to inform them
+			// iCallInfo.Send(ci, c->callid, SKINNY_CALLTYPE_FORWARD, lineInstance, d, TRUE);
+			/*
+			struct ast_party_redirecting redirecting;
+			struct ast_set_party_redirecting update_redirecting;
+
+			ast_party_redirecting_set_init(&redirecting, ast_channel_redirecting(target));
+			memset(&update_redirecting, 0, sizeof(update_redirecting));
+			redirecting.to.number.valid = 1;
+			redirecting.to.number.str = called_number;
+			redirecting.to.name.valid = 1;
+			redirecting.to.name.str = called_name;
+			//redirecting.count = redirect->count;
+			ast_channel_set_redirecting(target, &redirecting, &update_redirecting);
+
+			ast_party_redirecting_free(&redirecting);
+			*/
+		}
+		
 		res = ast_do_pickup(original, target);
 		pbx_channel_unlock(target);
 		if (!res) {									// directed pickup succeeded
@@ -263,15 +283,14 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 			iCallInfo.Setter(callinfo_orig, 					// update calling end
 				SCCP_CALLINFO_CALLEDPARTY_NAME, called_name, 			// channel picking up
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, called_number, 
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, target_name, 
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, target_number, 
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, 4,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, target_name,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, target_number,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, 5,
 				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, called_name,
 				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, called_number,
 				SCCP_CALLINFO_HUNT_PILOT_NAME, target_name,			// display orig called using HUNT
 				SCCP_CALLINFO_HUNT_PILOT_NUMBER, target_number,			// gets displayed as 'FOR'
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, 4,
-				SCCP_CALLINFO_LAST_REDIRECT_REASON, 4,
+				SCCP_CALLINFO_LAST_REDIRECT_REASON, 5,
 				SCCP_CALLINFO_KEY_SENTINEL);
 
 			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (perform_pickup) channel:%s, modeanser: %s\n", DEV_ID_LOG(d), c->designator, answer ? "yes" : "no");
@@ -417,8 +436,14 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 		pbx_log(LOG_NOTICE, "%s: executing directed_pickup for %s@%s\n", c->designator, exten, context);
 		target = iPbx.findPickupChannelByExtenLocked(original, exten, context);
 		if (target) {
+			// BTW: Remote end should change it's calltype for callinfo to FORWARD, upon pickup. Not sure how to inform them
+			// iCallInfo.Send(ci, c->callid, SKINNY_CALLTYPE_FORWARD, lineInstance, d, TRUE);
+			iPbx.queue_control(target, AST_CONTROL_REDIRECTING);
+			
+			sccp_device_setLamp(d, SKINNY_STIMULUS_CALLPICKUP, lineInstance, SKINNY_LAMP_FLASH);
 			res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
 			target = pbx_channel_unref(target);
+			sccp_device_setLamp(d, SKINNY_STIMULUS_CALLPICKUP, lineInstance, SKINNY_LAMP_OFF);
 		} else {
 			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on call: %s\n", DEV_ID_LOG(d), c->designator);
 			sccp_dev_displayprinotify(d, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_MESSAGE_PRIORITY_TIMEOUT, 5);
@@ -502,8 +527,10 @@ int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstanc
 		if (pbx_channel_ref(original)) {
 			sccp_channel_stop_schedule_digittimout(c);
 			if ((target = iPbx.findPickupChannelByGroupLocked(c->owner))) {
+				sccp_device_setLamp(d, SKINNY_STIMULUS_GROUPCALLPICKUP, lineInstance, SKINNY_LAMP_FLASH);
 				res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
 				target = pbx_channel_unref(target);
+				sccp_device_setLamp(d, SKINNY_STIMULUS_CALLPICKUP, lineInstance, SKINNY_LAMP_OFF);
 				//res = 0;
 			} else {
 				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (gpickup) findPickupChannelByExtenLocked failed on call: %s\n", DEV_ID_LOG(d), c->designator);

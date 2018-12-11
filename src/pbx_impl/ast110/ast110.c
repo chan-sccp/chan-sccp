@@ -1409,6 +1409,16 @@ static int sccp_wrapper_asterisk110_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 			/* using test_flag for ZOMBIE cannot be used, as it is only set after the fixup call */
 			if (!strstr(pbx_channel_name(newchan), "<ZOMBIE>")) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set c->hangupRequest = requestQueueHangup\n", c->designator);
+				if (pbx_channel_hangupcause(newchan) == AST_CAUSE_ANSWERED_ELSEWHERE) {
+					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Fixup Adding Redirecting Party from:%s\n", c->designator, pbx_channel_name(oldchan));
+					iCallInfo.Setter(sccp_channel_getCallInfo(c),
+						SCCP_CALLINFO_HUNT_PILOT_NAME, oldchan->caller.id.name.str,
+						SCCP_CALLINFO_HUNT_PILOT_NUMBER, oldchan->caller.id.number.str,
+						SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, oldchan->caller.id.name.str,
+						SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, oldchan->caller.id.number.str,
+						SCCP_CALLINFO_LAST_REDIRECT_REASON, 5,
+						SCCP_CALLINFO_KEY_SENTINEL);
+				}
 
 				// set channel requestHangup to use ast_queue_hangup (as it is now part of a __ast_pbx_run, after masquerade completes) 
 				c->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;

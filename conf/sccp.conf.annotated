@@ -85,6 +85,7 @@ permit = internal                                                               
 callgroup = ""                                                                    ; We are in caller groups 1,3,4. Valid for all lines
 pickupgroup = ""                                                                  ; We can do call pick-p for call group 1,3,4,5. Valid for all lines
 ;directed_pickup_modeanswer = yes                                                 ; Automatically Answer when using Directed Pickup.
+;callhistory_answered_elsewhere = Ignore					  ; Where to store callinfo for calls answered on a remote device. Options: 'Ignore', 'Missed Calls' (and Placed Calls, Received Calls which are less usefull)
 ;amaflags = default                                                               ; Sets the default AMA flag code stored in the CDR record
 ;callanswerorder = oldestfirst                                                    ; oldestfirst or lastestfirst
                                                                                   ; (POSSIBLE VALUES: ["OldestFirst","LastFirst"])
@@ -133,6 +134,9 @@ regcontext = ""                                                                 
 ;backoff_time = 60                                                                ; Time to wait before re-asking to fallback to primairy server (Token Reject Backoff Time)
 ;server_priority = 1                                                              ; Server Priority for fallback: 1=Primairy, 2=Secundary, 3=Tertiary etc
                                                                                   ; For active-active (fallback=odd/even) use 1 for both
+
+; New Feature
+; 
 
 ;
 ; device section
@@ -183,6 +187,7 @@ meetmeopts = ""                                                                 
 ;directed_pickup = yes                                                            ; enable/disable Pickup button to do directed pickup from a specific extension.
 directed_pickup_context = ""                                                      ; context where direct pickup search for extensions. if not set current contect will be use.
 ;directed_pickup_modeanswer = yes                                                 ; on = asterisk way, the call has been answered when picked up.
+;callhistory_answered_elsewhere = Ignore					  ; Where to store callinfo for calls answered on a remote device. Options: Ignore, Missed Calls (or Placed Calls, Received Calls which are less usefull)
 monitor = ""                                                                      ; 
 allowoverlap = ""                                                                 ; Allow for Overlap dialing (Continue dialing after the first part of the number has already been send to the pstn)
 setvar = ""                                                                       ; (MULTI-ENTRY) extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)

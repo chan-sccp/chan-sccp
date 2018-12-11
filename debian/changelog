@@ -1,3 +1,12 @@
+chan-sccp (4.3.1-5ubuntu1) UNRELEASED; urgency=medium
+
+  * CHANGES:
+    - Added 'force_dtmf' to realtime/database example files
+    - Added 'callhistory_answered_elsewhere = Missed Calls' to fix
+      callhistory/phonebook for picked calls.
+
+ -- Diederik de Groot <ddegroot@users.sf.net>  Fri, 14 Dec 2018 12:46:00 +0100
+
 chan-sccp (4.3.0-5ubuntu1) UNRELEASED; urgency=medium
 
   * WIP

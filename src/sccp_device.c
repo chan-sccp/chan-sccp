@@ -66,8 +66,8 @@ static void sccp_device_indicate_offhook(constDevicePtr device, sccp_linedevices
 static void sccp_device_indicate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION]);
 static void sccp_device_indicate_proceed(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
 static void sccp_device_indicate_connected(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
-static void sccp_device_old_indicate_suppress_phoneboook_entry(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
-static void sccp_device_new_indicate_suppress_phoneboook_entry(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
+static void sccp_device_old_callhistory(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_callHistoryDisposition_t disposition);
+static void sccp_device_new_callhistory(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_callHistoryDisposition_t disposition);
 
 static void sccp_device_indicate_onhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
 static void sccp_device_indicate_offhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
@@ -98,7 +98,7 @@ static const struct sccp_device_indication_cb sccp_device_indication_newerDevice
 	.dialing = sccp_device_indicate_dialing,
 	.proceed = sccp_device_indicate_proceed,
 	.connected = sccp_device_indicate_connected,
-	.suppress_phoneboook_entry = sccp_device_new_indicate_suppress_phoneboook_entry,
+	.callhistory = sccp_device_new_callhistory,
 };
 
 static const struct sccp_device_indication_cb sccp_device_indication_olderDevices = {
@@ -111,7 +111,7 @@ static const struct sccp_device_indication_cb sccp_device_indication_olderDevice
 	.dialing = sccp_device_indicate_dialing,
 	.proceed = sccp_device_indicate_proceed,
 	.connected = sccp_device_indicate_connected,
-	.suppress_phoneboook_entry = sccp_device_old_indicate_suppress_phoneboook_entry,
+	.callhistory = sccp_device_old_callhistory,
 };
 
 static boolean_t sccp_device_checkACLTrue(constDevicePtr device)
@@ -2906,16 +2906,36 @@ static void sccp_device_indicate_connected(constDevicePtr device, const uint8_t 
 	sccp_dev_set_cplane(device, lineInstance, 1);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_CONNECTED, GLOB(digittimeout));
 }
-static void sccp_device_old_indicate_suppress_phoneboook_entry(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
+
+static void sccp_device_old_callhistory(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_callHistoryDisposition_t disposition)
 {
-	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: suppress phonebook entry of callid:%d on lineInstace:%d\n", device->id, callid, lineInstance);
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+	skinny_callstate_t state=SKINNY_CALLSTATE_CONNECTED;
+	skinny_callinfo_visibility_t visibility=SKINNY_CALLINFO_VISIBILITY_HIDDEN;
+	sccp_log((DEBUGCAT_CALLINFO)) (VERBOSE_PREFIX_3 "%s: callhistory: entry of callid:%d on lineInstace:%d, disposition:%s\n", device->id, callid, lineInstance, skinny_callHistoryDisposition2str(disposition));
+	switch(disposition) {
+		case SKINNY_CALL_HISTORY_DISPOSITION_RECEIVED_CALLS:
+			state=SKINNY_CALLSTATE_CONNECTED;
+			visibility=SKINNY_CALLINFO_VISIBILITY_COLLAPSED;
+			break;
+		case SKINNY_CALL_HISTORY_DISPOSITION_MISSED_CALLS:
+			state=SKINNY_CALLSTATE_RINGIN;
+			visibility=SKINNY_CALLINFO_VISIBILITY_COLLAPSED;
+			break;
+		case SKINNY_CALL_HISTORY_DISPOSITION_IGNORE:
+		case SKINNY_CALL_HISTORY_DISPOSITION_PLACED_CALLS:
+		case SKINNY_CALL_HISTORY_DISPOSITION_UNKNOWN:
+		case SKINNY_CALLHISTORYDISPOSITION_SENTINEL:
+			state=SKINNY_CALLSTATE_CONNECTED;
+			visibility=SKINNY_CALLINFO_VISIBILITY_HIDDEN;
+			break;
+	}
+	sccp_device_sendcallstate(device, lineInstance, callid, state, SKINNY_CALLPRIORITY_LOW, visibility);
 }
 
-static void sccp_device_new_indicate_suppress_phoneboook_entry(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
+static void sccp_device_new_callhistory(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_callHistoryDisposition_t disposition)
 {
-	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: suppress phonebook entry of callid:%d on lineInstace:%d\n", device->id, callid, lineInstance);
-	sccp_device_sendCallHistoryDisposition(device, lineInstance, callid, SKINNY_CALL_HISTORY_DISPOSITION_IGNORE);
+	sccp_log((DEBUGCAT_CALLINFO)) (VERBOSE_PREFIX_3 "%s: callhistory: entry of callid:%d on lineInstace:%d, disposition:%s\n", device->id, callid, lineInstance, skinny_callHistoryDisposition2str(disposition));
+	sccp_device_sendCallHistoryDisposition(device, lineInstance, callid, disposition);
 }
 /** End Local Device Indications **/
 
