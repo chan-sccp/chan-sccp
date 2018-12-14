@@ -539,7 +539,8 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 				case SCCP_CHANNELSTATE_CONNECTED:
 					sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s -> %s: indicate remote connected (lineInstance: %d, callid: %d %s)\n", DEV_ID_LOG(device), DEV_ID_LOG(remoteDevice), lineInstance, c->callid, c->answered_elsewhere ? ", answered elsewhere" : "");
 					if (SKINNY_CALLTYPE_INBOUND == c->calltype && remoteDevice->indicate->callhistory) {
-						remoteDevice->indicate->callhistory(remoteDevice, lineInstance, c->callid, remoteDevice->callhistory_answered_elsewhere);
+						//remoteDevice->indicate->callhistory(remoteDevice, lineInstance, c->callid, remoteDevice->callhistory_answered_elsewhere);
+						remoteDevice->indicate->callhistory(remoteDevice, lineInstance, c->callid, SKINNY_CALL_HISTORY_DISPOSITION_IGNORE);
 					}
 					
 					/* if line is not currently active on remote device, collapse the callstate */
