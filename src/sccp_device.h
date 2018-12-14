@@ -334,9 +334,9 @@ struct sccp_device {
 	boolean_t conf_show_conflist;										/*!< Automatically show conference list to the moderator */
 #endif
 #ifdef CS_SCCP_PICKUP
-	char directed_pickup_context[SCCP_MAX_CONTEXT];								/*!< Directed Pickup Context to Use in DialPlan */
 	boolean_t directed_pickup;										/*!< Directed Pickup Extension Support (Boolean, default=on) */
-	boolean_t directed_pickup_modeanswer;									/*!< Directed Pickup Mode Answer (Boolean, default on). Answer on directed pickup */
+	char directed_pickup_context[SCCP_MAX_CONTEXT];								/*!< Directed Pickup Context to Use in DialPlan */
+	boolean_t pickup_modeanswer;										/*!< Directed Pickup Mode Answer (Boolean, default on). Answer on directed pickup */
 #endif
 	skinny_callHistoryDisposition_t callhistory_answered_elsewhere;						/*!< What to do with the call history for calls that were answered remotely */
 	boolean_t mwiLight;											/*!< MWI/Light \todo third MWI/light entry in device ? */

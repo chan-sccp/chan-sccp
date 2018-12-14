@@ -194,6 +194,9 @@ const char * const (sccp_enum_all_entries)(void);
 #define skinny_ringtype_all_entries sccp_enum_all_entries
 #define skinny_callHistoryDisposition_all_entries sccp_enum_all_entries
 
+#define skinny_callHistoryDisposition_str2intval sccp_enum_str2intval
+#define skinny_callHistoryDisposition_all_entries sccp_enum_all_entries
+
 #include "../../src/sccp_config_entries.hh"
 
 /*!

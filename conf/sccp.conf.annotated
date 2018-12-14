@@ -84,7 +84,9 @@ permit = internal                                                               
                                                                                   ; Use with extreme caution as it is very dialplan and provider dependent.
 callgroup = ""                                                                    ; We are in caller groups 1,3,4. Valid for all lines
 pickupgroup = ""                                                                  ; We can do call pick-p for call group 1,3,4,5. Valid for all lines
-;directed_pickup_modeanswer = yes                                                 ; Automatically Answer when using Directed Pickup.
+;directed_pickup = on 								  ; Allow pickup of remote calls
+;directed_pickup_context = ""							  ; Which context to use when performing a remote pickup
+;pickup_modeanswer = yes                                        	          ; Automatically Answer when using Directed Pickup.
 ;callhistory_answered_elsewhere = Ignore					  ; Where to store callinfo for calls answered on a remote device. Options: 'Ignore', 'Missed Calls' (and Placed Calls, Received Calls which are less usefull)
 ;amaflags = default                                                               ; Sets the default AMA flag code stored in the CDR record
 ;callanswerorder = oldestfirst                                                    ; oldestfirst or lastestfirst
@@ -184,9 +186,6 @@ meetmeopts = ""                                                                 
                                                                                   ; Other options (A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see app_meetme documentation
 ;softkeyset = default                                                             ; use specified softkeyset with name 'default'
 ;useRedialMenu = no                                                               ; show redial phone book list instead of dialing the last number (adv_feature). Requires a Phone Service block in SEP....cnf.xml to work correct on Java phones (See conf/tftp/SEP example files)
-;directed_pickup = yes                                                            ; enable/disable Pickup button to do directed pickup from a specific extension.
-directed_pickup_context = ""                                                      ; context where direct pickup search for extensions. if not set current contect will be use.
-;directed_pickup_modeanswer = yes                                                 ; on = asterisk way, the call has been answered when picked up.
 ;callhistory_answered_elsewhere = Ignore					  ; Where to store callinfo for calls answered on a remote device. Options: Ignore, Missed Calls (or Placed Calls, Received Calls which are less usefull)
 monitor = ""                                                                      ; 
 allowoverlap = ""                                                                 ; Allow for Overlap dialing (Continue dialing after the first part of the number has already been send to the pstn)
@@ -252,6 +251,9 @@ accountcode = ""                                                                
 amaflags = ""                                                                     ; sets the AMA flags stored in the CDR record for this line
 callgroup = ""                                                                    ; sets the caller groups this line is a member of
 pickupgroup = ""                                                                  ; sets the pickup groups this line is a member of (this phone can pickup calls from remote phones which are in this caller group
+;directed_pickup = on 								  ; Allow pickup of remote calls
+;directed_pickup_context = "default"						  ; Which context to use when performing a remote pickup
+;pickup_modeanswer = yes                                        	          ; Automatically Answer when using Directed Pickup.
 namedcallgroup = ""                                                               ; sets the named caller groups this line is a member of (ast111)
 namedpickupgroup = ""                                                             ; sets the named pickup groups this line is a member of (this phone can pickup calls from remote phones which are in this caller group (ast111)
 parkinglot = ""                                                                   ; parkinglot assigned to this line
