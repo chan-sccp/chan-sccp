@@ -3062,6 +3062,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 	uint i;
 	const char *id = astman_get_header(m, "ActionID");
 	const char *req_segment = astman_get_header(m, "Segment");
+	const char *req_resultformat = astman_get_header(m, "ResultFormat");
 	uint comma = 0;
 
 	if (sccp_strlen_zero(req_segment)) {										// return all segments
@@ -3069,7 +3070,15 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 
 		sscanf(SCCP_CONFIG_REVISION, "$" "Revision: %i" "$", &sccp_config_revision);
 
-		astman_append(s, "Response: Success\r\n");
+		if (sccp_strcaseequals(req_resultformat, "list")) {
+			astman_send_listack(s, m, "SCCPConfigMetaData Follows", "Start");
+			astman_append(s, "Event: SCCPConfigMetaData\r\n");
+		} else if (sccp_strcaseequals(req_resultformat, "command")) {
+			astman_append(s, "Response: Follows\r\n");
+			astman_append(s, "Priviledge: Command\r\n");
+		} else {
+			astman_append(s, "Response: Success\r\n");
+		}
 		if (!ast_strlen_zero(id)) {
 			astman_append(s, "ActionID: %s\r\n", id);
 		}
@@ -3153,8 +3162,17 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 			astman_append(s, "\"%s\"", sccpConfigSegments[i].name);
 			comma = 1;
 		}
-		astman_append(s, "]}\r\n\r\n");
+		astman_append(s, "]}\r\n");
 		total++;
+		if (sccp_strcaseequals(req_resultformat, "list")) {
+			astman_append(s,
+				"\r\nEvent: SCCPConfigMetaDataComplete\r\n"
+				"EventList: Complete\r\n"
+				"ListItems: %d\r\n\r\n", total);
+		} else if (sccp_strcaseequals(req_resultformat, "command")) {
+			astman_append(s, "--END COMMAND--\r\n");
+		}
+		astman_append(s, "\r\n");
 	} else {												// return metadata for option in segmnet
 		/*
 		   JSON:
@@ -3180,11 +3198,17 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 				sccpConfigSegment = &sccpConfigSegments[i];
 				const SCCPConfigOption *config = sccpConfigSegment->config;
 
-				astman_append(s, "Response: Success\r\n");
+				if (sccp_strcaseequals(req_resultformat, "list")) {
+					astman_send_listack(s, m, "SCCPConfigMetaData Follows", "Start");
+					astman_append(s, "Event: SCCPConfigMetaData\r\n");
+				} else if (sccp_strcaseequals(req_resultformat, "command")) {
+					astman_append(s, "Response: Follows\r\n");
+				} else {
+					astman_append(s, "Response: Success\r\n");
+				}
 				if (!ast_strlen_zero(id)) {
 					astman_append(s, "ActionID: %s\r\n", id);
 				}
-
 				astman_append(s, "JSON: {");
 				astman_append(s, "\"Segment\":\"%s\",", sccpConfigSegment->name);
 				astman_append(s, "\"Options\":[");
@@ -3296,8 +3320,20 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 						comma = 1;
 					}
 				}
-				astman_append(s, "]}\r\n\r\n");
+				astman_append(s, "]}\r\n");
 				total++;
+				if (sccp_strcaseequals(req_resultformat, "list")) {
+					astman_append(s,
+						"\r\nEvent: SCCPConfigMetaDataComplete\r\n"
+						"EventList: Complete\r\n"
+						"ListItems: %d\r\n\r\n", total);
+				} else if (sccp_strcaseequals(req_resultformat, "command")) {
+					astman_append(s, "--END COMMAND--\r\n"
+							 "DataType: JSON\r\n"
+							 "Priviledge: Command\r\n"
+					);
+				}
+				astman_append(s, "\r\n");
 			}
 		}
 	}
