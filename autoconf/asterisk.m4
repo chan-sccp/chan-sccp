@@ -272,7 +272,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 
 	CFLAGS_backup={$CFLAGS}
 	CFLAGS="${CFLAGS_saved}"
-	AX_APPEND_COMPILE_FLAGS([-Werror=incompatible-pointer-types -Werror=implicit-function-declaration -Werror=int-conversion -Werror-shadow], TEST_SUPPORTED_CFLAGS)
+	AX_APPEND_COMPILE_FLAGS([-Werror=incompatible-pointer-types -Werror=implicit-function-declaration -Werror=int-conversion -Werror=implicit-function-declaration -Werror-shadow], TEST_SUPPORTED_CFLAGS)
 	CFLAGS="${CFLAGS_saved} ${TEST_SUPPORTED_CFLAGS}"
 dnl	CFLAGS="${CFLAGS_saved} -Werror=incompatible-pointer-types -Werror=implicit-function-declaration -Werror=int-conversion"
 dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
@@ -1142,26 +1142,37 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 		[
 			AC_DEFINE([HAVE_PBX_BACKTRACE_H],1,[Found 'asterisk/backtrace.h'])
 			AC_MSG_CHECKING([ - availability 'ast_bt_free_symbols'...])
-			AC_COMPILE_IFELSE([
-				AC_LANG_PROGRAM(
-					[
-						$HEADER_INCLUDE
-						#include <asterisk/backtrace.h>
-					], [
-						struct ast_vector_string *string_vector;
-						ast_bt_free_symbols(string_vector);
-					]
-				)
-			], [
-				AC_DEFINE([CS_AST_BACKTRACE_VECTOR_STRING],1,[Found 'ast_bt_free_symbols' in asterisk/backtrace.h])
-				AC_DEFINE([bt_string_t],[struct ast_vector_string],[defined 'bt_string_t'])
-				AC_DEFINE([bt_free],[ast_bt_free_symbols],[defined 'bt_free'])
-				AC_MSG_RESULT(yes)
-			], [
+			AC_EGREP_CPP([__ast_bt_free_symbols], [
+				$HEADER_INCLUDE
+				#include <asterisk/backtrace.h>
+			],[
+				AC_COMPILE_IFELSE([
+					AC_LANG_PROGRAM(
+						[
+							$HEADER_INCLUDE
+							#include <asterisk/backtrace.h>
+						], [
+							void	*addresses = NULL;
+							size_t  size = 0;
+							struct ast_vector_string *strings = __ast_bt_get_symbols(&addresses, size);
+							__ast_bt_free_symbols(strings);
+						]
+					)
+				], [
+					AC_DEFINE([CS_AST_BACKTRACE_VECTOR_STRING],1,[Found 'ast_bt_free_symbols' in asterisk/backtrace.h])
+					AC_DEFINE([bt_string_t],[struct ast_vector_string],[defined 'bt_string_t'])
+					AC_DEFINE([bt_free],[ast_bt_free_symbols],[defined 'bt_free'])
+					AC_MSG_RESULT(yes)
+				], [
+					AC_DEFINE([bt_string_t],[char *],[defined 'bt_string_t' replacement])
+					AC_DEFINE([bt_free],[sccp_free],[defined 'bt_free' replacement])
+					AC_MSG_RESULT(no)
+				])		
+			],[
 				AC_DEFINE([bt_string_t],[char *],[defined 'bt_string_t' replacement])
 				AC_DEFINE([bt_free],[sccp_free],[defined 'bt_free' replacement])
 				AC_MSG_RESULT(no)
-			])		
+			])
 		],[
 			AC_DEFINE([bt_string_t],[char *],[defined 'bt_string_t' replacement])
 			AC_DEFINE([bt_free],[sccp_free],[defined 'bt_free' replacement])

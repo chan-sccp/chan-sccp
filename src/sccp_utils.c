@@ -2070,7 +2070,7 @@ void sccp_do_backtrace()
 		return;
 	}
 
-#if HAVE_EXECINFO_H
+#if defined(HAVE_EXECINFO_H) && defined(HAVE_BKTR)
 	void	*addresses[SCCP_BACKTRACE_SIZE];
 	size_t  size, i;
 	bt_string_t *strings;
