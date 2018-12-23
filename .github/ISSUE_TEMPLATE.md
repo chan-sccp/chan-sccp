@@ -36,6 +36,9 @@
 - Log Files (attach .txt / [pastbin](http://pastebin.com/) / [gist](http://gist.github.com/)): [url]
 - Comments: [Other Information]
 
+** Consider making a donation: **
+- [![Donate](https://img.shields.io/badge/paypal-donate-yellow.svg)](https://www.paypal.com/cgi-bin/webscr?item_name=Donation+to+Chan-SCCP+channel+driver+for+Asterisk&locale.x=en_US&cmd=_donations&business=chan.sccp.b.pp%40gmail.com).
+
 
 
 
