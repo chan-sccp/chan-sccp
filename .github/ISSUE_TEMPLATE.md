@@ -6,6 +6,10 @@
 2. [Second Step]
 3. [Other Steps...]
 
+**chan-sccp version:** (include revision and/or branch if relevant)
+
+**asterisk version:** (include revision and/or branch if relevant)
+
 **Expected behavior:**
 
 [Describe expected behavior here]
@@ -18,10 +22,6 @@
 
 (Screenshots which show reproduction steps and/or demonstrate the problem)
 [url]
-
-**chan-sccp version:** (include revision and/or branch if relevant)
-
-**asterisk version:** (include revision and/or branch if relevant)
 
 **Addition / Optional Information:**
 - Problem started happening recently, didn't happen in an older version of Chan-SCCP: [Yes/No]
@@ -36,9 +36,5 @@
 - Log Files (attach .txt / [pastbin](http://pastebin.com/) / [gist](http://gist.github.com/)): [url]
 - Comments: [Other Information]
 
-** Consider making a donation: **
-- [![Donate](https://img.shields.io/badge/paypal-donate-yellow.svg)](https://www.paypal.com/cgi-bin/webscr?item_name=Donation+to+Chan-SCCP+channel+driver+for+Asterisk&locale.x=en_US&cmd=_donations&business=chan.sccp.b.pp%40gmail.com).
-
-
-
-
+**BTW: Consider making a donation via paypal:**
+- https://www.paypal.com/cgi-bin/webscr?&cmd=_donations&business=chan.sccp.b.pp%40gmail.com
