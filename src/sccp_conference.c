@@ -33,7 +33,10 @@
 #include <asterisk/bridging_roles.h>
 #endif
 #include <asterisk/callerid.h>
-#include <asterisk/causes.h>		// AST_CAUSE_NORMAL_CLEARING
+#include <asterisk/causes.h>			// for AST_CAUSE_NORMAL_CLEARING
+#if ASTERISK_VERSION_GROUP >= 113
+#include <asterisk/format_cap.h>                // for AST_FORMAT_CAP_NAMES_LEN
+#endif
 
 #define sccp_participant_retain(_x)		sccp_refcount_retain_type(sccp_participant_t, _x)
 #define sccp_participant_release(_x)		sccp_refcount_release_type(sccp_participant_t, _x)

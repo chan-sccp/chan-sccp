@@ -57,10 +57,7 @@ __BEGIN_C_EXTERN__
 #include <asterisk/stasis_endpoints.h>
 #include <asterisk/bridge_after.h>
 #include <asterisk/bridge_channel.h>
-
-#ifdef CS_EXPERIMENTAL
 #include <asterisk/format_cap.h>		// for AST_FORMAT_CAP_NAMES_LEN
-#endif
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
