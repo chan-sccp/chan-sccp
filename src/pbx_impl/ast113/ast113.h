@@ -11,6 +11,12 @@
 #include "config.h"
 #include <asterisk/format_compatibility.h>
 
+#include <asterisk/format_cap.h>
+#ifndef AST_FORMAT_CAP_NAMES_LEN
+/*! Buffer size for callers of ast_format_cap_get_names to allocate. */
+#define AST_FORMAT_CAP_NAMES_LEN 384
+#endif
+
 #include "pbx_impl/ast_announce/ast_announce.h"
 
 #undef pbx_channel_ref
