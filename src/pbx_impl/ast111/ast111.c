@@ -1521,9 +1521,12 @@ static int sccp_wrapper_asterisk111_answer(PBX_CHANNEL_TYPE * pbxchan)
 {
 	//! \todo change this handling and split pbx and sccp handling -MC
 	int res = -1;
-	AUTO_RELEASE(sccp_channel_t, channel , get_sccp_channel_from_pbx_channel(pbxchan));
-	if (channel) {
-		res = sccp_pbx_answered(channel);
+	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(pbxchan));
+	if (c) {
+		if (pbx_channel_state(pbxchan) != AST_STATE_UP && c->state < SCCP_GROUPED_CHANNELSTATE_CONNECTION) {
+			pbx_indicate(pbxchan, AST_CONTROL_PROGRESS);
+		}
+		res = sccp_pbx_answer(c);
 	}
 	return res;
 }

@@ -1645,17 +1645,22 @@ static int sccp_wrapper_asterisk116_call(PBX_CHANNEL_TYPE * ast, const char *des
 	return res;
 }
 
-static int sccp_wrapper_asterisk116_answer(PBX_CHANNEL_TYPE * chan)
+static int sccp_wrapper_asterisk116_answer(PBX_CHANNEL_TYPE * pbxchan)
 {
 	//! \todo change this handling and split pbx and sccp handling -MC
 	int res = -1;
 
-	AUTO_RELEASE(sccp_channel_t, channel , get_sccp_channel_from_pbx_channel(chan));
-	if (channel) {
-		if (!channel->pbx_callid_created && !ast_channel_callid(chan)) {
-			ast_callid_threadassoc_add(ast_channel_callid(chan));
+	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(pbxchan));
+	if (c) {
+		if (!c->pbx_callid_created && !ast_channel_callid(pbxchan)) {
+			ast_callid_threadassoc_add(ast_channel_callid(pbxchan));
 		}
-		res = sccp_pbx_answered(channel);
+
+		if (pbx_channel_state(pbxchan) != AST_STATE_UP && c->state < SCCP_GROUPED_CHANNELSTATE_CONNECTION) {
+			pbx_indicate(pbxchan, AST_CONTROL_PROGRESS);
+		}
+
+		res = sccp_pbx_answer(c);
 	}
 	return res;
 }

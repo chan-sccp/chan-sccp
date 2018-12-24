@@ -732,12 +732,21 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 	}
 
 	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
+
+	if (SCCP_RTP_STATUS_INACTIVE == audio->receiveChannelState) {
+		pbx_log(LOG_ERROR, "%s: (sccp_channel_startMediaTransmission) Starting MediaTransmission before OpenReceiveChannel !", channel->currentDeviceId);
+	}
+
 	if (d->nat >= SCCP_NAT_ON) {
 		sccp_rtp_updateNatRemotePhone(channel, audio);
 	}
 
-	if (channel->rtp.audio.readFormat == SKINNY_CODEC_NONE) {
-		audio->readFormat = audio->writeFormat;
+	if (audio->readFormat == SKINNY_CODEC_NONE) {
+		if (audio->writeFormat == SKINNY_CODEC_NONE) {
+			sccp_channel_updateChannelCapability((sccp_channel_t *)channel);
+		} else {
+			audio->readFormat = audio->writeFormat;
+		}
 	}
 	audio->mediaTransmissionState |= SCCP_RTP_STATUS_PROGRESS;
 	d->protocol->sendStartMediaTransmission(d, channel);

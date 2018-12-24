@@ -535,7 +535,7 @@ sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
  *
  * \todo masquarade does not succeed when forwarding to a dialplan extension which starts with PLAYBACK (Is this still the case, i think this might have been resolved ?? - DdG -)
  */
-int sccp_pbx_answered(sccp_channel_t * channel)
+int sccp_pbx_answer(sccp_channel_t * channel)
 {
 	int res = 0;
 
@@ -637,10 +637,13 @@ int sccp_pbx_answered(sccp_channel_t * channel)
 				}
 			}
 			
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
+			if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.receiveChannelState) {
+				sccp_channel_openReceiveChannel(c);
+			}
 			if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState) {
 				sccp_channel_startMediaTransmission(c);
 			}
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
 #if CS_SCCP_CONFERENCE 
 			sccp_indicate(d, c, d->conference ? SCCP_CHANNELSTATE_CONNECTEDCONFERENCE : SCCP_CHANNELSTATE_CONNECTED);
 #else
