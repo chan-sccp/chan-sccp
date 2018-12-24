@@ -48,6 +48,10 @@ struct sccp_line {
 	sccp_group_t callgroup;											/*!< callgroups assigned (seperated by commas) to this lines */
 #ifdef CS_SCCP_PICKUP
 	sccp_group_t pickupgroup;										/*!< pickupgroup assigned to this line */
+
+	boolean_t directed_pickup;										/*!< Directed Pickup Extension Support (Boolean, default=on) */
+	char directed_pickup_context[SCCP_MAX_CONTEXT];								/*!< Directed Pickup Context to Use in DialPlan */
+	boolean_t pickup_modeanswer;										/*!< Directed PickUp Mode Answer (boolean, default" on) */
 #endif
 #ifdef CS_AST_HAS_NAMEDGROUP
 	char *namedcallgroup;											/*!< Named Call Group */

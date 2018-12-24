@@ -17,9 +17,6 @@ park = on
 cfwdall = off
 cfwdbusy = off
 cfwdnoanswer = off
-directed_pickup = on
-directed_pickup_context = from-internal-xfer
-directed_pickup_modeanswer = on
 imageversion = P00405000700
 deny=0.0.0.0/0.0.0.0
 permit=192.168.1.5/255.255.255.255
@@ -32,6 +29,8 @@ mwilamp = on
 mwioncall = off
 setvar=testvar=value
 cfwdall = on
+callhistory_answered_elsewhere = Ignore					  ; Where to store callinfo for calls answered on a remote device. Options: 'Ignore', 'Missed Calls' (and Placed Calls, Received Calls which are less usefull)
+
 
 [SEP002244668800]
 description = Phone Number Two
@@ -54,9 +53,6 @@ park = on
 cfwdall = off
 cfwdbusy = off
 cfwdnoanswer = off
-directed_pickup = on
-directed_pickupcontext = from-internal-xfer
-directed_pickupmodeanswer = on
 imageversion = P00405000700
 deny=0.0.0.0/0.0.0.0
 permit=192.168.1.5/255.255.255.255
@@ -69,3 +65,4 @@ mwilamp = on
 mwioncall = off
 setvar=testvar=value
 cfwdall = on
+callhistory_answered_elsewhere = Missed Calls

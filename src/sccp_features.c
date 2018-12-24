@@ -231,7 +231,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 		c->state = SCCP_CHANNELSTATE_RINGING;
 		c->ringermode = answer ? SKINNY_RINGTYPE_SILENT : SKINNY_RINGTYPE_FEATURE;
 		int lineInstance = sccp_device_find_index_for_line(d, c->line->name);
-		if (d->directed_pickup_modeanswer) {
+		if (c->line->pickup_modeanswer) {
 			sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGIN);		// setting early to prevent getting multiple pickup button presses
 		}
 
@@ -359,7 +359,7 @@ void sccp_feat_handle_directed_pickup(constDevicePtr d, constLinePtr l, channelP
 		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 		sccp_channel_stop_schedule_digittimout(c);
 
-		if (d->directed_pickup_modeanswer && d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
+		if (c->line->pickup_modeanswer && d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
 			sccp_channel_openReceiveChannel(c);
 		}
 	}
@@ -410,8 +410,8 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 	if ((context = strchr(exten, '@'))) {
 		*context++ = '\0';
 	} else {
-		if (!sccp_strlen_zero(d->directed_pickup_context)) {
-			context = pbx_strdupa(d->directed_pickup_context);
+		if (!sccp_strlen_zero(c->line->directed_pickup_context)) {
+			context = pbx_strdupa(c->line->directed_pickup_context);
 		} else {
 			context = pbx_strdupa(pbx_channel_context(c->owner));
 		}
@@ -442,7 +442,7 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 			iPbx.queue_control(target, AST_CONTROL_REDIRECTING);
 #endif			
 			sccp_device_setLamp(d, SKINNY_STIMULUS_CALLPICKUP, lineInstance, SKINNY_LAMP_FLASH);
-			res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
+			res = sccp_feat_perform_pickup(d, c, target, c->line->pickup_modeanswer);			/* unlocks target */
 			target = pbx_channel_unref(target);
 			sccp_device_setLamp(d, SKINNY_STIMULUS_CALLPICKUP, lineInstance, SKINNY_LAMP_OFF);
 		} else {
@@ -529,7 +529,7 @@ int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstanc
 			sccp_channel_stop_schedule_digittimout(c);
 			if ((target = iPbx.findPickupChannelByGroupLocked(c->owner))) {
 				sccp_device_setLamp(d, SKINNY_STIMULUS_GROUPCALLPICKUP, lineInstance, SKINNY_LAMP_FLASH);
-				res = sccp_feat_perform_pickup(d, c, target, d->directed_pickup_modeanswer);			/* unlocks target */
+				res = sccp_feat_perform_pickup(d, c, target, l->pickup_modeanswer);			/* unlocks target */
 				target = pbx_channel_unref(target);
 				sccp_device_setLamp(d, SKINNY_STIMULUS_CALLPICKUP, lineInstance, SKINNY_LAMP_OFF);
 				//res = 0;

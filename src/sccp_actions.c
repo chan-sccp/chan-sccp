@@ -2693,6 +2693,7 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 
 #ifdef CS_SCCP_PICKUP
 	uint8_t pickupgroup = 0;
+	uint8_t directed_pickup = 0;
 #endif
 
 	/* set softkey definition */
@@ -2756,6 +2757,9 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 				if (l->pickupgroup) {
 					pickupgroup = 1;
 				}
+				if (l->directed_pickup) {
+					directed_pickup = 1;
+				}
 #ifdef CS_AST_HAS_NAMEDGROUP
 				if (!sccp_strlen_zero(l->namedpickupgroup)) {
 					pickupgroup = 1;
@@ -2781,7 +2785,7 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 	//sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: MEETME          is  %s\n", d->id, (meetme) ? "enabled" : "disabled");
 #ifdef CS_SCCP_PICKUP
 	//sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPGROUP     is  %s\n", d->id, (pickupgroup) ? "enabled" : "disabled");
-	//sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (d->directed_pickup) ? "enabled" : "disabled");
+	//sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (directed_pickup) ? "enabled" : "disabled");
 #endif
 	size_t buffersize = 20 + (15 * sizeof(softkeysmap));
 	struct ast_str *outputStr = ast_str_create(buffersize);
@@ -2839,7 +2843,7 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 			}
 #endif
 #ifdef CS_SCCP_PICKUP
-			if ((b[c] == SKINNY_LBL_PICKUP) && (!d->directed_pickup)) {
+			if ((b[c] == SKINNY_LBL_PICKUP) && (!directed_pickup)) {
 				continue;
 			}
 			if ((b[c] == SKINNY_LBL_GPICKUP) && (!pickupgroup)) {

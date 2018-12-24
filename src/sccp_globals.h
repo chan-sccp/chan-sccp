@@ -109,7 +109,10 @@ struct sccp_global_vars {
 	sccp_group_t callgroup;											/*!< Call Group */
 #ifdef CS_SCCP_PICKUP
 	sccp_group_t pickupgroup;										/*!< PickUp Group */
-	boolean_t directed_pickup_modeanswer;									/*!< Directed PickUp Mode Answer (boolean, default" on) */
+
+	boolean_t directed_pickup;										/*!< Directed Pickup Extension Support (Boolean, default=on) */
+	char directed_pickup_context[SCCP_MAX_CONTEXT];								/*!< Directed Pickup Context to Use in DialPlan */
+	boolean_t pickup_modeanswer;										/*!< Directed PickUp Mode Answer (boolean, default" on) */
 #else
 	uint8_t _padding1[1];
 #endif

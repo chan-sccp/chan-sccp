@@ -1,5 +1,4 @@
 DROP VIEW sccpdeviceconfig;
-ALTER TABLE `sccpdevice` ADD `pickupcontext` VARCHAR( 100 ) NULL DEFAULT "" AFTER `pickupexten`;
 ALTER TABLE `sccpdevice` CHANGE COLUMN `nat` VARCHAR( 7 ) DEFAULT "auto";
 ALTER TABLE `sccpdevice` CHANGE COLUMN `earlyrtp` VARCHAR(10);
 ALTER TABLE `sccpdevice` ADD `audio_tos` VARCHAR( 11 ) NULL DEFAULT "0xB8" AFTER `softkeyset`;
@@ -33,9 +32,9 @@ ALTER TABLE `sccpline` CHANGE COLUMN `pin` varchar(7);
 ALTER TABLE `sccpdevice` CHANGE COLUMN `type` varchar(15);
 ALTER TABLE `sccpdevice` CHANGE COLUMN `imageversion` varchar(31);
 
-ALTER TABLE `sccpdevice` CHANGE COLUMN `pickupexten` `directed_pickup` VARCHAR(5) NOT NULL default 'on';
-ALTER TABLE `sccpdevice` CHANGE COLUMN `pickupcontext` `directed_pickup_context` VARCHAR(100) default NULL;
-ALTER TABLE `sccpdevice` CHANGE COLUMN `pickupmodeanswer` `directed_pickup_modeanswer` VARCHAR(5) NOT NULL default 'on';
+ALTER TABLE `sccpline` ADD `directed_pickup` VARCHAR( 5 ) NULL DEFAULT "on" AFTER `pickupgroup`;
+ALTER TABLE `sccpline` ADD `directed_pickup_context` VARCHAR( 100 ) NULL DEFAULT NULL AFTER `directed_pickup`;
+ALTER TABLE `sccpline` ADD `pickup_modeanswer` VARCHAR( 5 ) NULL DEFAULT "on" AFTER `directed_pickup_context`;
 
 ALTER TABLE `sccpdevice` CHANGE COLUMN `earlyrtp` ENUM('immediate','offhook','dialing','ringout','progress','none') default NULL;
 ALTER TABLE `sccpdevice` CHANGE COLUMN `mwilamp` ENUM('on','true','yes','off','false','no','wink','flash','blink') default NULL;
