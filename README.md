@@ -71,10 +71,10 @@ We also provide prebuild binaries for:
   - [Ubuntu-16.10](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_16.10/)
   - [Ubuntu-17.04](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_17.04/)
 - Asterisk-16
-  - [OpenSuSE-Leap_15.0](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/openSUSE_Leap_15.0/)
+  - [OpenSuSE-Leap_15.0](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_15.0/)
   - [OpenSuSE-Leap_42.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_42.2/)
   - [OpenSuSE-Leap_42.3](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_42.3/)
-  - [OpenSuSE-Factory](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/openSUSE_Factory/)
+  - [OpenSuSE-Factory](http://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Factory/)
   - [OpenSuSE-Factory_ARM](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Factory_ARM/)
 
 ### Wiki
