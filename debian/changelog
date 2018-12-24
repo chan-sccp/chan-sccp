@@ -2,6 +2,7 @@ chan-sccp (4.3.1-5ubuntu1) UNRELEASED; urgency=medium
 
   * CHANGES:
     - Added 'force_dtmf' to realtime/database example files
+    - Moved call specific pickup setting to be defined per line instead of per device
     - Added 'callhistory_answered_elsewhere = Missed Calls' to fix
       callhistory/phonebook for picked calls.
 
