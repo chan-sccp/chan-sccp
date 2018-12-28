@@ -803,7 +803,8 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	uint32_t deviceType = letohl(msg_in->data.RegisterMessage.lel_deviceType);
 	//uint32_t maxStreams = letohl(msg_in->data.RegisterMessage.lel_maxStreams);
 	//uint32_t activeStreams = letohl(msg_in->data.RegisterMessage.lel_activeStreams);
-	uint8_t protocolVer = letohl(msg_in->data.RegisterMessage.phone_features) & SKINNY_PHONE_FEATURES_PROTOCOLVER_MASK;
+	StationProtocolFeatures_t protocolFeatures = msg_in->data.RegisterMessage.protocolFeatures;
+	uint8_t protocolVer = protocolFeatures.protocolVersion;
 	//uint32_t maxConferences = letohl(msg_in->data.RegisterMessage.lel_maxConferences);
 	//uint32_t activeConferences = letohl(msg_in->data.RegisterMessage.lel_activeConferences);
 	uint8_t macAddress[12];
@@ -885,7 +886,10 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 		return;
 	}
 
-	device->device_features = letohl(msg_in->data.RegisterMessage.phone_features);
+	//device->device_features = letohl(msg_in->data.RegisterMessage.phone_features) & SKINNY_PHONE_FEATURES_MASK;
+	//device->device_features = letohl(msg_in->data.RegisterMessage.lel_phone_features);
+	//device->device_features = msg_in->data.RegisterMessage.lel_phone_features;
+	device->device_features = protocolFeatures;
 	device->linesRegistered = FALSE;
 
 	struct sockaddr_storage register_sasIPv6 = { 0 };
@@ -981,7 +985,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	sccp_device_preregistration(device);
 
 	//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", DEV_ID_LOG(device), device->keepaliveinterval);
-       device->protocol->sendRegisterAck(device, device->keepaliveinterval, device->keepaliveinterval, GLOB(dateformat));
+	device->protocol->sendRegisterAck(device, device->keepaliveinterval, device->keepaliveinterval, GLOB(dateformat));
 
 	sccp_dev_set_registered(device, SKINNY_DEVICE_RS_PROGRESS);
 

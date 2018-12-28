@@ -158,7 +158,8 @@ struct sccp_device {
 	char id[StationMaxDeviceNameSize];									/*!< SEP<macAddress> of the device. */
 	const sccp_deviceProtocol_t *protocol;									/*!< protocol the devices uses */
 	skinny_devicetype_t skinny_type;									/*!< Model of this Phone sent by the station, devicetype */
-	uint32_t device_features;										/*!< device features (contains protocolversion in 8bit first segement */
+	//uint8_t device_features[3];										/*!< device features (contains protocolversion in 8bit first segement */
+	StationProtocolFeatures_t device_features;
 	sccp_earlyrtp_t earlyrtp;										/*!< RTP Channel State where to open the RTP Media Stream */
 	uint16_t keepalive;											/*!< Station Specific Keepalive Timeout */
 	uint16_t keepaliveinterval;										/*!< Currently set Keepalive Timeout */

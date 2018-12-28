@@ -158,7 +158,7 @@ static sccp_dtmfmode_t sccp_device_getDtfmMode(constDevicePtr device)
 	sccp_dtmfmode_t res = device->dtmfmode;
 
 	if (device->dtmfmode == SCCP_DTMFMODE_AUTO) {
-		if ((device->device_features & SKINNY_PHONE_FEATURES_RFC2833) == SKINNY_PHONE_FEATURES_RFC2833) {
+		if (device->device_features.phoneFeatures[2] & SKINNY_PHONE_FEATURES2_RFC2833) {
 			res = SCCP_DTMFMODE_RFC2833;
 		} else {
 			res = SCCP_DTMFMODE_SKINNY;
@@ -771,7 +771,7 @@ void sccp_device_preregistration(devicePtr device)
 			break;
 	}
 #if HAVE_ICONV
-	if (!(device->device_features & SKINNY_PHONE_FEATURES_UTF8)) {
+	if (!(device->device_features.phoneFeatures[1] & SKINNY_PHONE_FEATURES1_UTF8)) {
 		device->copyStr2Locale = sccp_device_copyStr2Locale_Convert;
 	}
 #endif

@@ -30,32 +30,40 @@ __BEGIN_C_EXTERN__
 #define SCCP_MAX_AUTOLOGIN				100							/*!< Maximum allowed of autologins per device */
 #define SCCP_MIN_KEEPALIVE				30							/*!< Minimal keepalive time if not specified in sccp.conf. */
 
-#define SKINNY_PHONE_FEATURES_PROTOCOLVER_MASK		0xFF
-#define SKINNY_PHONE_FEATURES_UTF8 			1<<20
-#define SKINNY_PHONE_FEATURES_UNKNOWN1 			1<<21
-#define SKINNY_PHONE_FEATURES_UNKNOWN2	 		1<<22
-#define SKINNY_PHONE_FEATURES_DYNAMIC_MESSAGES 		1<<24
-#define SKINNY_PHONE_FEATURES_RFC2833			1<<26
-#define SKINNY_PHONE_FEATURES_ABBRDIAL 			1<<31
-
 /*
-#define SKINNY_PHONE_FEATURES_UNKNONW1			1<<16
-#define SKINNY_PHONE_FEATURES_UNKNOWN2			1<<17
-#define SKINNY_PHONE_FEATURES_UNKNOWN3			1<<18
-#define SKINNY_PHONE_FEATURES_MULTIMEDIA_SUPPORT	1<<19
-#define SKINNY_PHONE_FEATURES_SNF_NETWORK_CAPABILITY	1<<20
-#define SKINNY_PHONE_FEATURES_DICTIONARY_NEW_RANGE	1<<21
-#define SKINNY_PHONE_FEATURES_KFACTOR_CAPABILITY	1<<22
-#define SKINNY_PHONE_FEATURES_RSVP_SUPPORT		1<<23
-#define SKINNY_PHONE_FEATURES_UNICODE_CAPABLE		1<<24
-#define SKINNY_PHONE_FEATURES_AUTO_IDLE_DISABLE		1<<25
-#define SKINNY_PHONE_FEATURES_RESTRICT_PI		1<<26
-#define SKINNY_PHONE_FEATURES_AUTHENTICATED_SIGNALING	1<<27
-#define SKINNY_PHONE_FEATURES_INTERNAL_CM_MEDIA		1<<28
-#define SKINNY_PHONE_FEATURES_MEDIA_ENCRYPTION_SUPPORT	1<<29
-#define SKINNY_PHONE_FEATURES_STATION_MAX_FEATURE_MASK	1<<30
-#define SKINNY_PHONE_FEATURES_INTERNALIZATION		1<<31
+Still looking for these features bits
+MULTIMEDIA_SUPPORT, SNF_NETWORK_CAPABILITY, DICTIONARY_NEW_RANGE, KFACTOR_CAPABILITY (related to DSP)
+RSVP_SUPPORT, UNICODE_CAPABLE, AUTO_IDLE_DISABLE, RESTRICT_PI, AUTHENTICATED_SIGNALING,
+MEDIA_ENCRYPTION_SUPPORT, STATION_MAX_FEATURE_MASK, INTERNALIZATION
 */
+
+//#define SKINNY_PHONE_FEATURES0			1<<0
+//#define SKINNY_PHONE_FEATURES0			1<<1
+//#define SKINNY_PHONE_FEATURES0			1<<2
+//#define SKINNY_PHONE_FEATURES0			1<<3
+//#define SKINNY_PHONE_FEATURES0 			1<<4
+//#define SKINNY_PHONE_FEATURES0 			1<<5
+//#define SKINNY_PHONE_FEATURES0	 		1<<6
+//#define SKINNY_PHONE_FEATURES0			1<<7
+
+//#define SKINNY_PHONE_FEATURES1			1<<0
+#define SKINNY_PHONE_FEATURES1_PORTREQUEST		1<<1							/*!< Guess: portRequest/portResponse */
+//#define SKINNY_PHONE_FEATURES1			1<<2
+//#define SKINNY_PHONE_FEATURES1			1<<3
+#define SKINNY_PHONE_FEATURES1_UTF8 			1<<4
+#define SKINNY_PHONE_FEATURES1_UNKNOWN1			1<<5
+#define SKINNY_PHONE_FEATURES1_UNKNOWN2	 		1<<6
+//#define SKINNY_PHONE_FEATURES1			1<<7
+
+#define SKINNY_PHONE_FEATURES2_DYNAMIC_MESSAGES 	1<<0
+//#define SKINNY_PHONE_FEATURES2			1<<1
+#define SKINNY_PHONE_FEATURES2_RFC2833			1<<2
+//#define SKINNY_PHONE_FEATURES2			1<<3
+#define SKINNY_PHONE_FEATURES2_INTERNAL_CM_MEDIA	1<<4
+//#define SKINNY_PHONE_FEATURES2			1<<5
+#define SKINNY_PHONE_FEATURES2_UNKNOWN3			1<<6
+#define SKINNY_PHONE_FEATURES2_ABBRDIAL 		1<<7
+
 
 #define SKINNY_MaxAnnouncementList			32
 #define SKINNY_StationMaxMonitorParties			16
@@ -386,6 +394,10 @@ typedef struct {
 	uint32_t lel_instance;											/*!< Instance */
 } StationIdentifier;												/*!< SKINNY Station Identifier Structure */
 
+typedef struct {
+	uint8_t protocolVersion;
+	uint8_t phoneFeatures[3];
+} StationProtocolFeatures_t;
 /*!
  * \brief SKINNY Station Button Definition Structure
  */
@@ -1511,7 +1523,7 @@ typedef union {
 		uint32_t lel_deviceType;									/*73:00:00:00=115 *//*!< Device Type as part of SKINNY_DEVICETYPE_* */
 		uint32_t lel_maxStreams;									/*05:00:00:00=5 *//*!< Max Streams */
 		uint32_t lel_activeStreams;									/*00:00:00:00=0 *//*!< number of active streams */
-		uint32_t phone_features;									/*11:00:72:85   =17. *//*!< PhoneFeatures (ProtocolVersion + Features) */
+		StationProtocolFeatures_t protocolFeatures;
 		uint32_t lel_maxConferences;
 		uint32_t lel_activeConferences;									/*00:00:00:00 *//*!< Unknown */
 		uint8_t macAddress[12];										/* *//*!< byte array */
@@ -1984,10 +1996,7 @@ typedef union {
 		char dateTemplate[StationDateTemplateSize];							/*!< Date Template */
 		uint8_t alignmentPadding;									/*!< Filler 1 */
 		uint32_t lel_secondaryKeepAliveInterval;							/*!< Keep Alive Interval to the Secundairy Server */
-		uint8_t maxProtocolVer;										/*!< Protocol Version */
-		uint8_t protocolVer2;										/*!< Protocol Version Part 2 */
-		uint8_t phoneFeatures1;										/*!< Phone Features Part 1*/
-		uint8_t phoneFeatures2;										/*!< Phone Features Part 2 */
+		StationProtocolFeatures_t protocolFeatures;
 	} RegisterAckMessage;											/*!< Register Acknowledgement Message Structure */
 
 	struct {

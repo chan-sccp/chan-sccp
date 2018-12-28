@@ -792,15 +792,27 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("MAC-Address",		CLI_AMI_LIST_WIDTH, "%s", d->id);
 	CLI_AMI_OUTPUT_PARAM("Protocol Version",	CLI_AMI_LIST_WIDTH, "Supported '%d', In Use '%d'", d->protocolversion, d->inuseprotocolversion);
 	CLI_AMI_OUTPUT_PARAM("Protocol In Use",		CLI_AMI_LIST_WIDTH, "%s Version %d", d->protocol ? (d->protocol->type == SCCP_PROTOCOL ? "SCCP" : "SPCP" ) : "NONE", d->protocol ? d->protocol->version : 0);
-	char binstr[41] = "";
-	CLI_AMI_OUTPUT_PARAM("Device Features",		CLI_AMI_LIST_WIDTH, "%#1x,%s", d->device_features, sccp_dec2binstr(binstr, 40, d->device_features));
+	char binstr[33] = "";
+	int features = (d->device_features.phoneFeatures[0] << 16) + (d->device_features.phoneFeatures[1] << 8) + d->device_features.phoneFeatures[2];
+	CLI_AMI_OUTPUT_PARAM("Device Features",		CLI_AMI_LIST_WIDTH, "%#1x,%s", features, sccp_dec2binstr(binstr, 33, features) + 8);
+#ifdef CS_EXPERIMENTAL
+	CLI_AMI_OUTPUT_PARAM(" - portrequest:",		CLI_AMI_LIST_WIDTH, "%s", d->device_features.phoneFeatures[1] & SKINNY_PHONE_FEATURES1_PORTREQUEST ? "YES" : "NO");
+	CLI_AMI_OUTPUT_PARAM(" - utf8:",		CLI_AMI_LIST_WIDTH, "%s", d->device_features.phoneFeatures[1] & SKINNY_PHONE_FEATURES1_UTF8 ? "YES" : "NO");
+	CLI_AMI_OUTPUT_PARAM(" - unknown1:",		CLI_AMI_LIST_WIDTH, "%s", d->device_features.phoneFeatures[1] & SKINNY_PHONE_FEATURES1_UNKNOWN1 ? "YES" : "NO");
+	CLI_AMI_OUTPUT_PARAM(" - unknown2:",		CLI_AMI_LIST_WIDTH, "%s", d->device_features.phoneFeatures[1] & SKINNY_PHONE_FEATURES1_UNKNOWN2 ? "YES" : "NO");
+	CLI_AMI_OUTPUT_PARAM(" - dynamic:",		CLI_AMI_LIST_WIDTH, "%s", d->device_features.phoneFeatures[2] & SKINNY_PHONE_FEATURES2_DYNAMIC_MESSAGES ? "YES" : "NO");
+	CLI_AMI_OUTPUT_PARAM(" - rfc2833:",		CLI_AMI_LIST_WIDTH, "%s", d->device_features.phoneFeatures[2] & SKINNY_PHONE_FEATURES2_RFC2833 ? "YES" : "NO");
+	CLI_AMI_OUTPUT_PARAM(" - cm_media:",		CLI_AMI_LIST_WIDTH, "%s", d->device_features.phoneFeatures[2] & SKINNY_PHONE_FEATURES2_INTERNAL_CM_MEDIA ? "YES" : "NO");
+	CLI_AMI_OUTPUT_PARAM(" - abbrdial:",		CLI_AMI_LIST_WIDTH, "%s", d->device_features.phoneFeatures[2] & SKINNY_PHONE_FEATURES2_ABBRDIAL ? "YES" : "NO");
+	CLI_AMI_OUTPUT_PARAM(" - unknown3:",		CLI_AMI_LIST_WIDTH, "%s", d->device_features.phoneFeatures[2] & SKINNY_PHONE_FEATURES2_UNKNOWN3 ? "YES" : "NO");
+#endif
 	CLI_AMI_OUTPUT_PARAM("Tokenstate",		CLI_AMI_LIST_WIDTH, "%s", sccp_tokenstate2str(d->status.token));
 	CLI_AMI_OUTPUT_PARAM("Keepalive",		CLI_AMI_LIST_WIDTH, "%d", d->keepalive);
 	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s", skinny_registrationstate2str(sccp_device_getRegistrationState(d)));
 	CLI_AMI_OUTPUT_PARAM("State",			CLI_AMI_LIST_WIDTH, "%s", sccp_devicestate2str(sccp_device_getDeviceState(d)));
 	CLI_AMI_OUTPUT_PARAM("Addons",			CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(addons_buf));
 	CLI_AMI_OUTPUT_PARAM("MWI light",		CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_lampmode2str(d->mwilamp), d->mwilamp);
-	CLI_AMI_OUTPUT_PARAM("MWI handset light", 	CLI_AMI_LIST_WIDTH, "%s", sccp_dec2binstr(binstr, 40, d->mwilight));
+	CLI_AMI_OUTPUT_PARAM("MWI handset light", 	CLI_AMI_LIST_WIDTH, "%s", sccp_dec2binstr(binstr, 33, d->mwilight));
 	CLI_AMI_OUTPUT_PARAM("MWI During call",		CLI_AMI_LIST_WIDTH, "%s", d->mwioncall ? "keep on" : "turn off");
 	CLI_AMI_OUTPUT_PARAM("Description",		CLI_AMI_LIST_WIDTH, "%s", d->description ? d->description : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Config Phone Type",	CLI_AMI_LIST_WIDTH, "%s", d->config_type);
