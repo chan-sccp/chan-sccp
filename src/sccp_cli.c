@@ -2846,20 +2846,17 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 	if (argc < 3 || argc > 4) {
 		return RESULT_SHOWUSAGE;
 	}
-	if (!strcasecmp(argv[1], "reset")) {
+	if (sccp_strcaseequals(argv[1], "reset")) {
 		if (argc == 4) {
-			if (!strcasecmp(argv[3], "restart")) {
+			if (sccp_strcaseequals(argv[3], "restart")) {
 				type = SKINNY_RESETTYPE_RESTART;
-			}
-			if (!strcasecmp(argv[3], "applyconfig")) {
-				type = SKINNY_RESETTYPE_APPLYCONFIG;
 			} else {
 				return RESULT_SHOWUSAGE;
 			}
 		} else {
 			type = SKINNY_RESETTYPE_RESET;
 		}
-	} else if (!strcasecmp(argv[1], "applyconfig")) {
+	} else if (sccp_strcaseequals(argv[1], "applyconfig")) {
 		type = SKINNY_RESETTYPE_APPLYCONFIG;
 	} else if (argc != 3) {
 		return RESULT_SHOWUSAGE;
@@ -2894,7 +2891,7 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 }
 
 /* --------------------------------------------------------------------------------------------------------------RESET- */
-static char reset_usage[] = "Usage: SCCP reset\n" "       sccp reset <deviceId> [restart|applyconfig]\n";
+static char reset_usage[] = "Usage: SCCP reset\n" "       sccp reset <deviceId> [restart]\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "reset"
