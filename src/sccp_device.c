@@ -2451,7 +2451,7 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 		sccp_session_t *s = d->session;
 		if (s) {
 			if (restart_device) {
-				sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+				sccp_device_sendReset(d, SKINNY_RESETTYPE_RESTART);
 				//sccp_safe_sleep(100);
 			}
 			sccp_session_releaseDevice(s);
@@ -2677,7 +2677,7 @@ sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(devicePtr device, uint16_t
  * \param reset_type as int
  * \return Status as int
  */
-int sccp_device_sendReset(devicePtr d, uint8_t reset_type)
+int sccp_device_sendReset(devicePtr d, skinny_resetType_t reset_type)
 {
 	sccp_msg_t *msg = NULL;
 

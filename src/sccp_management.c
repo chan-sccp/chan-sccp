@@ -27,7 +27,7 @@ SCCP_FILE_VERSION(__FILE__, "");
  */
 static char management_show_devices_desc[] = "Description: Lists SCCP devices in text format with details on current status. (DEPRECATED in favor of SCCPShowDevices)\n" "\n" "DevicelistComplete.\n" "Variables: \n" "  ActionID: <id>	Action ID for this transaction. Will be returned.\n";
 static char management_show_lines_desc[] = "Description: Lists SCCP lines in text format with details on current status. (DEPRECATED in favor of SCCPShowLines)\n" "\n" "LinelistComplete.\n" "Variables: \n" "  ActionID: <id>	Action ID for this transaction. Will be returned.\n";
-static char management_restart_devices_desc[] = "Description: restart a given device\n" "\n" "Variables:\n" "   Devicename: Name of device to restart\n";
+static char management_restart_devices_desc[] = "Description: restart a given device\n" "\n" "Variables:\n" "   Devicename: Name of device to restart\n" "   Type: [reset|restart|applyconfig]";
 static char management_show_device_add_line_desc[] = "Description: Lists SCCP devices in text format with details on current status.\n" "\n" "DevicelistComplete.\n" "Variables: \n" "  Devicename: Name of device to restart.\n" "  Linename: Name of line";
 static char management_device_update_desc[] = "Description: restart a given device\n" "\n" "Variables:\n" "   Devicename: Name of device\n";
 static char management_device_set_dnd_desc[] = "Description: set dnd on device\n" "\n" "Variables:\n" "   Devicename: Name of device\n" "  DNDState: off / reject / silent";
@@ -340,16 +340,14 @@ static int sccp_manager_restart_device(struct mansession *s, const struct messag
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *type = astman_get_header(m, "Type");
 
-	pbx_log(LOG_WARNING, "Attempt to get device %s\n", deviceName);
 	if (sccp_strlen_zero(deviceName)) {
 		astman_send_error(s, m, "Please specify the name of device to be reset");
 		return 0;
 	}
 
-	pbx_log(LOG_WARNING, "Type of Restart ([quick|reset] or [full|restart]) %s\n", deviceName);
-	if (sccp_strlen_zero(deviceName)) {
-		pbx_log(LOG_WARNING, "Type not specified, using quick");
-		type = "quick";
+	if (sccp_strlen_zero(type)) {
+		pbx_log(LOG_WARNING, "Type not specified [reset|restart|applyconfig], using restart");
+		type = "restart";
 	}
 
 	AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(deviceName, FALSE));
@@ -365,9 +363,11 @@ static int sccp_manager_restart_device(struct mansession *s, const struct messag
 	}
 
 	if (!strncasecmp(type, "full", 4) || !strncasecmp(type, "reset", 5)) {
-		sccp_device_sendReset(d, SKINNY_DEVICE_RESET);
+		sccp_device_sendReset(d, SKINNY_RESETTYPE_RESET);
+	} else if (!strncasecmp(type, "applyconfig", 11)) {
+		sccp_device_sendReset(d, SKINNY_RESETTYPE_APPLYCONFIG);
 	} else {
-		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+		sccp_device_sendReset(d, SKINNY_RESETTYPE_RESTART);
 	}
 
 	astman_send_ack(s, m, "Device restarted");

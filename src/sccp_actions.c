@@ -1305,7 +1305,7 @@ void sccp_handle_AvailableLines(constSessionPtr s, devicePtr d, constMessagePtr 
 
 	if (!btn) {
 		pbx_log(LOG_WARNING, "%s: no buttontemplate, reset device\n", DEV_ID_LOG(d));
-		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+		sccp_device_sendReset(d, SKINNY_RESETTYPE_RESTART);
 		return;
 	}
 

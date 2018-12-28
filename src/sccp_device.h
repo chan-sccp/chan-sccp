@@ -457,7 +457,7 @@ SCCP_API int SCCP_CALL sccp_dev_send(constDevicePtr d, sccp_msg_t * msg);
 #if UNUSEDCODE // 2015-11-01
 SCCP_API int SCCP_CALL sccp_device_check_ringback(devicePtr d);
 #endif
-SCCP_API int SCCP_CALL sccp_device_sendReset(devicePtr d, uint8_t reset_type);
+SCCP_API int SCCP_CALL sccp_device_sendReset(devicePtr d, skinny_resetType_t reset_type);
 
 SCCP_API uint8_t SCCP_CALL sccp_device_find_index_for_line(constDevicePtr d, const char *lineName);
 SCCP_API uint8_t SCCP_CALL sccp_device_numberOfChannels(constDevicePtr device);

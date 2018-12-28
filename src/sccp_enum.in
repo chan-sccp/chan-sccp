@@ -976,6 +976,15 @@ strenum toneDirection {
 	SKINNY_TONEDIRECTION_BOTH,			=0x2,	"Both",
 }
 
+/*!
+ * \brief Skinny Reset Type
+ */
+strenum resetType {
+	SKINNY_RESETTYPE_RESET,			=0x1,	"Reset",
+	SKINNY_RESETTYPE_RESTART,		=0x2,	"Restart",
+	SKINNY_RESETTYPE_APPLYCONFIG,		=0x3,	"ApplyConfig",
+}
+
 } /* NAMESPACE skinny */
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

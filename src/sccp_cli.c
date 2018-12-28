@@ -2829,20 +2829,26 @@ CLI_ENTRY(cli_show_version, sccp_show_version, "Show SCCP version details", show
      */
 static int sccp_reset_restart(int fd, int argc, char *argv[])
 {
-	boolean_t restart = TRUE;
+	skinny_resetType_t type = SKINNY_RESETTYPE_RESTART;
 
 	if (argc < 3 || argc > 4) {
 		return RESULT_SHOWUSAGE;
 	}
 	if (!strcasecmp(argv[1], "reset")) {
 		if (argc == 4) {
-			if (strcasecmp(argv[3], "restart")) {
+			if (!strcasecmp(argv[3], "restart")) {
+				type = SKINNY_RESETTYPE_RESTART;
+			}
+			if (!strcasecmp(argv[3], "applyconfig")) {
+				type = SKINNY_RESETTYPE_APPLYCONFIG;
+			} else {
 				return RESULT_SHOWUSAGE;
 			}
-			restart = TRUE;
 		} else {
-			restart = FALSE;
+			type = SKINNY_RESETTYPE_RESET;
 		}
+	} else if (!strcasecmp(argv[1], "applyconfig")) {
+		type = SKINNY_RESETTYPE_APPLYCONFIG;
 	} else if (argc != 3) {
 		return RESULT_SHOWUSAGE;
 	}
@@ -2862,17 +2868,13 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 	
 	/* sccp_device_clean will check active channels */
 	if (d->active_channel) {
-		pbx_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
+		pbx_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], argv[1]);
 		return RESULT_FAILURE;
 	}
 	
 	int res = 0;
-	if (!restart) {
-		res = sccp_device_sendReset(d, SKINNY_DEVICE_RESET);
-	} else {
-		res = sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-	}
-	if (res <= 0) {
+	res = sccp_device_sendReset(d, type);
+	if (res <= 0 && type != SKINNY_RESETTYPE_APPLYCONFIG) {
 		sccp_session_stopthread(d->session, SKINNY_DEVICE_RS_NONE);
 	}
 	
@@ -2880,12 +2882,12 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 }
 
 /* --------------------------------------------------------------------------------------------------------------RESET- */
-static char reset_usage[] = "Usage: SCCP reset\n" "       sccp reset <deviceId> [restart]\n";
+static char reset_usage[] = "Usage: SCCP reset\n" "       sccp reset <deviceId> [restart|applyconfig]\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "reset"
 #define CLI_COMPLETE SCCP_CLI_CONNECTED_DEVICE_COMPLETER
-CLI_ENTRY(cli_reset, sccp_reset_restart, "Show SCCP version details", reset_usage, FALSE)
+CLI_ENTRY(cli_reset, sccp_reset_restart, "Reset an SCCP Device", reset_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
@@ -2896,6 +2898,17 @@ static char restart_usage[] = "Usage: SCCP restart\n" "       sccp restart <devi
 #define CLI_COMMAND "sccp", "restart"
 #define CLI_COMPLETE SCCP_CLI_CONNECTED_DEVICE_COMPLETER
 CLI_ENTRY(cli_restart, sccp_reset_restart, "Restart an SCCP device", restart_usage, FALSE)
+#undef CLI_COMMAND
+#undef CLI_COMPLETE
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
+    /* -------------------------------------------------------------------------------------------------------------APPLYCONFIG- */
+static char applyconfig_usage[] = "Usage: SCCP reset\n" "       sccp applyconfig <deviceId>\n";
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#define CLI_COMMAND "sccp", "applyconfig"
+#define CLI_COMPLETE SCCP_CLI_CONNECTED_DEVICE_COMPLETER
+CLI_ENTRY(cli_applyconfig, sccp_reset_restart, "Force device to reload it's cnf.xml", applyconfig_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
@@ -3432,6 +3445,7 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_reload_line, "SCCP module reload line."),
 	AST_CLI_DEFINE(cli_restart, "Restart an SCCP device"),
 	AST_CLI_DEFINE(cli_reset, "Reset an SCCP Device"),
+	AST_CLI_DEFINE(cli_applyconfig, "Force device to reload it's cnf.xml"),
 	AST_CLI_DEFINE(cli_start_call, "Start a Call."),
 	AST_CLI_DEFINE(cli_end_call, "End a Call."),
 	AST_CLI_DEFINE(cli_set_object, "Change channel/device settings."),

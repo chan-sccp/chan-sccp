@@ -664,7 +664,7 @@ void *sccp_session_device_thread(void *session)
 					pbx_log(LOG_ERROR, "%s: (netsock_device_thread) Received a packet or message (with result:%d) which we could not handle, giving up session: %p!\n", s->designator, result, s);
 					sccp_dump_msg(&msg);
 					if (s->device) {
-						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
+						sccp_device_sendReset(s->device, SKINNY_RESETTYPE_RESTART);
 					}
 					__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 					break;

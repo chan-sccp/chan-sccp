@@ -123,11 +123,6 @@ __BEGIN_C_EXTERN__
 #define SKINNY_MEDIA_G723BRATE_5_3			1
 #define SKINNY_MEDIA_G723BRATE_6_4			2
 
-/* device reset and restart */
-#define SKINNY_DEVICE_RESET 				1
-#define SKINNY_DEVICE_RESTART				2
-#define SKINNY_DEVICE_RELOAD_CONFIG			3
-
 /* statistic processing */
 #define SKINNY_STATSPROCESSING_CLEAR			0
 #define SKINNY_STATSPROCESSING_DONOTCLEAR		1
