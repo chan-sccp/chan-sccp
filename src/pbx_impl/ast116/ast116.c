@@ -96,7 +96,6 @@ static boolean_t sccp_wrapper_asterisk116_setReadFormat(constChannelPtr channel,
 PBX_CHANNEL_TYPE *sccp_wrapper_asterisk116_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE * chan, const char *exten, const char *context);
 PBX_CHANNEL_TYPE *sccp_wrapper_asterisk116_findPickupChannelByGroupLocked(PBX_CHANNEL_TYPE * chan);
 
-/*
 static inline skinny_codec_t sccp_asterisk116_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability)
 {
 	uint formatPosition;
@@ -108,15 +107,17 @@ static inline skinny_codec_t sccp_asterisk116_getSkinnyFormatSingle(struct ast_f
 		uint64_t ast_codec = ast_format_compatibility_format2bitfield(format);
 		ao2_ref(format, -1);
 
-		if ((codec = pbx_codec2skinny_codec(ast_codec))== SKINNY_CODEC_NONE) {
-			ast_log(LOG_WARNING, "SCCP: (getSkinnyFormatSingle) No matching codec found");
+		if ((codec = pbx_codec2skinny_codec(ast_codec)) != SKINNY_CODEC_NONE) {
 			break;
 		}
 	}
 
+	if (codec == SKINNY_CODEC_NONE) {
+		ast_log(LOG_WARNING, "SCCP: (getSkinnyFormatSingle) No matching codec found");
+	}
 	return codec;
 }
-*/
+
 static uint8_t sccp_asterisk116_getSkinnyFormatMultiple(struct ast_format_cap *ast_format_capability, skinny_codec_t codec[], int length)
 {
 	// struct ast_format tmp_fmt;
@@ -1478,43 +1479,32 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk116_request(const char *type, stru
 
 	/** getting remote capabilities */
 	if (requestor) {
-		AUTO_RELEASE(sccp_channel_t, remoteSccpChannel , get_sccp_channel_from_pbx_channel(requestor));
-		if (remoteSccpChannel) {
-			uint8_t x, y, z = 0;
-			/* shrink audioCapabilities to remote preferred/capable format */
-			for (x = 0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.audio[x] != 0; x++) {
-				for (y = 0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.audio[y] != 0; y++) {
-					if (remoteSccpChannel->preferences.audio[x] == remoteSccpChannel->capabilities.audio[y]) {
-						audioCapabilities[z++] = remoteSccpChannel->preferences.audio[x];
-						break;
-					}
-				}
-			}
-		} else {
-			struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-			ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(requestor), AST_MEDIA_TYPE_AUDIO);
-			if (!sccp_asterisk116_getSkinnyFormatMultiple(caps, audioCapabilities, ARRAY_LEN(audioCapabilities))) {
-				pbx_log(LOG_NOTICE, "SCCP: remote native format is not compatible with any skinny format. Transcoding required\n");
+		struct ast_format_cap *acaps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+		if (acaps) {
+			ast_format_cap_append_from_cap(acaps, cap, AST_MEDIA_TYPE_AUDIO);								// Add Resquested
+			audio_codec = sccp_asterisk116_getSkinnyFormatSingle(acaps);									// Is it compatible
+			ast_format_cap_append_from_cap(acaps, ast_channel_nativeformats(requestor), AST_MEDIA_TYPE_AUDIO);				// Add rest
+			sccp_asterisk116_getSkinnyFormatMultiple(acaps, audioCapabilities, ARRAY_LEN(audioCapabilities));
+			if (audio_codec == SKINNY_CODEC_NONE && (audio_codec = audioCapabilities[0]) == SKINNY_CODEC_NONE) {
+				pbx_log(LOG_NOTICE, "SCCP: remote native audio formats are not compatible with any skinny format. Transcoding required\n");
 				audioCapabilities[0] = SKINNY_CODEC_WIDEBAND_256K;
+				audio_codec  =SKINNY_CODEC_WIDEBAND_256K;
 			}
-			ao2_cleanup(caps);
+			ao2_ref(acaps, -1);
 		}
-#ifdef CS_SCCP_VIDEO
-		if (remoteSccpChannel) {
-			uint8_t x, y, z = 0;
-			for (x = 0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.video[x] != 0; x++) {
-				for (y = 0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.video[y] != 0; y++) {
-					if (remoteSccpChannel->preferences.video[x] == remoteSccpChannel->capabilities.video[y]) {
-						videoCapabilities[z++] = remoteSccpChannel->preferences.video[x];
-						break;
-					}
-				}
+#if SCCP_VIDEO
+		struct ast_format_cap *vcaps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+		if (vcaps) {
+			ast_format_cap_append_from_cap(vcaps, cap, AST_MEDIA_TYPE_VIDEO);								// Add Resquested
+			video_codec = sccp_asterisk116_getSkinnyFormatSingle(vcaps);									// Is it compatible
+			ast_format_cap_append_from_cap(vcaps, ast_channel_nativeformats(requestor), AST_MEDIA_TYPE_VIDEO);				// Add rest
+			sccp_asterisk116_getSkinnyFormatMultiple(vcaps, videoCapabilities, ARRAY_LEN(videoCapabilities));
+			if (video_codec == SKINNY_CODEC_NONE && (video_codec = videoCapabilities[0]) == SKINNY_CODEC_NONE) {
+				pbx_log(LOG_NOTICE, "SCCP: remote native video formats are not compatible with any skinny format. Deny video\n");
+				videoCapabilities[0] = SKINNY_CODEC_NONE;
+				video_codec = SKINNY_CODEC_NONE;
 			}
-		} else {
-			struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-			ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(requestor), AST_MEDIA_TYPE_VIDEO);
-			sccp_asterisk116_getSkinnyFormatMultiple(caps, videoCapabilities, ARRAY_LEN(videoCapabilities));
-			ao2_cleanup(caps);
+			ao2_ref(vcaps, -1);
 		}
 #endif
 	} else {

@@ -159,12 +159,15 @@ static inline skinny_codec_t sccp_asterisk11_getSkinnyFormatSingle(struct ast_fo
 
 	ast_format_cap_iter_start(ast_format_capability);
 	while (!ast_format_cap_iter_next(ast_format_capability, &tmp_fmt)) {
-		if ((codec = pbx_codec2skinny_codec(tmp_fmt.id))== SKINNY_CODEC_NONE) {
-			ast_log(LOG_WARNING, "SCCP: (getSkinnyFormatSingle) No matching codec found");
+		if ((codec = pbx_codec2skinny_codec(tmp_fmt.id)) != SKINNY_CODEC_NONE) {
 			break;
 		}
 	}
 	ast_format_cap_iter_end(ast_format_capability);
+
+	if (codec == SKINNY_CODEC_NONE) {
+		ast_log(LOG_WARNING, "SCCP: (getSkinnyFormatSingle) No matching codec found");
+	}
 
 	return codec;
 }
