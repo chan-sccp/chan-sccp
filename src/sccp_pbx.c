@@ -677,14 +677,14 @@ int sccp_pbx_answer(sccp_channel_t * channel)
  * \lock
  *  - usecnt_lock
  */
-uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, const PBX_CHANNEL_TYPE * parentChannel)
+boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, const PBX_CHANNEL_TYPE * parentChannel)
 {
 	PBX_CHANNEL_TYPE *tmp;
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 	AUTO_RELEASE(sccp_device_t, d , NULL);
 
 	if (!c) {
-		return -1;
+		return FALSE;
 	}
 	pbx_assert(c->owner == NULL);										// prevent calling this function when the channel already has a pbx channel
 	
@@ -698,10 +698,10 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	if (!l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_channel_allocate) Unable to find line for channel %s\n", c->designator);
 		pbx_log(LOG_ERROR, "SCCP: Unable to allocate asterisk channel... returning 0\n");
-		return 0;
+		return FALSE;
 	}
 
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (pbx_channel_allocate) try to allocate %s channel on line: %s, \n", skinny_calltype2str(c->calltype), l->name);
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (pbx_channel_allocate) try to allocate %s channel on line: %s\n", skinny_calltype2str(c->calltype), l->name);
 	/* Don't hold a sccp pvt lock while we allocate a channel */
 
 	char cid_name[StationMaxNameSize] = {0};
@@ -716,22 +716,27 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 				}
 			}
 			SCCP_LIST_UNLOCK(&l->devices);
-		} else if (SCCP_LIST_GETSIZE(&l->devices) == 1) {
+		} else if (SCCP_LIST_GETSIZE(&l->devices) > 0) {
 			SCCP_LIST_LOCK(&l->devices);
 			linedevice = SCCP_LIST_FIRST(&l->devices);
-			d = sccp_device_retain(linedevice->device);
 			SCCP_LIST_UNLOCK(&l->devices);
-		}
-		sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
-		
-		if (linedevice) {
-			if (linedevice->subscriptionId.replaceCid) {
-				snprintf(cid_num, StationMaxDirnumSize, "%s", sccp_strlen_zero(linedevice->subscriptionId.number) ? l->cid_num : linedevice->subscriptionId.number);
-				snprintf(cid_name, StationMaxNameSize, "%s", sccp_strlen_zero(linedevice->subscriptionId.name) ? l->cid_name : linedevice->subscriptionId.name);
-			} else {
-				snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, sccp_strlen_zero(linedevice->subscriptionId.number) ? "" : linedevice->subscriptionId.number);
-				snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, sccp_strlen_zero(linedevice->subscriptionId.name) ? "" : linedevice->subscriptionId.name);
+			if (linedevice && linedevice->device) {
+				d = sccp_device_retain(linedevice->device);
 			}
+		}
+		
+		if (!linedevice) {
+			pbx_log(LOG_NOTICE, "%s: Could not find an appropriate linedevice to assign this channel to. Line:%s exists, but was not assigned to any device (yet). We should give up here.\n", c->designator, l->name);
+			return FALSE;
+		}
+
+		sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
+		if (linedevice->subscriptionId.replaceCid) {
+			snprintf(cid_num, StationMaxDirnumSize, "%s", sccp_strlen_zero(linedevice->subscriptionId.number) ? l->cid_num : linedevice->subscriptionId.number);
+			snprintf(cid_name, StationMaxNameSize, "%s", sccp_strlen_zero(linedevice->subscriptionId.name) ? l->cid_name : linedevice->subscriptionId.name);
+		} else {
+			snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, sccp_strlen_zero(linedevice->subscriptionId.number) ? "" : linedevice->subscriptionId.number);
+			snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, sccp_strlen_zero(linedevice->subscriptionId.name) ? "" : linedevice->subscriptionId.name);
 		}
 		switch (c->calltype) {
 			case SKINNY_CALLTYPE_INBOUND:
@@ -777,31 +782,38 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:             amaflags: \"%d\"\n", l->amaflags);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:            chan/call: \"%s\"\n", c->designator);
 	char s1[512], s2[512];
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:combined capabilities: \"%s\"\n", sccp_codec_multiple2str(s1, sizeof(s1) - 1, channel->capabilities.audio, SKINNY_MAX_CAPABILITIES));
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:  reduced preferences: \"%s\"\n", sccp_codec_multiple2str(s2, sizeof(s2) - 1, channel->preferences.audio, SKINNY_MAX_CAPABILITIES));
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:combined capabilities: \"%s\"\n", sccp_codec_multiple2str(s1, sizeof(s1) - 1, c->capabilities.audio, SKINNY_MAX_CAPABILITIES));
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:  reduced preferences: \"%s\"\n", sccp_codec_multiple2str(s2, sizeof(s2) - 1, c->preferences.audio, SKINNY_MAX_CAPABILITIES));
 
-	if (c->calltype == SKINNY_CALLTYPE_INBOUND && c->remoteCapabilities.audio[0] != SKINNY_CODEC_NONE) {
-		sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:   remote audio prefs: \"%s\"\n", sccp_codec_multiple2str(s1, sizeof(s1) - 1, channel->remoteCapabilities.audio, SKINNY_MAX_CAPABILITIES));
-		skinny_codec_t ordered_audio_prefs[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
-		memcpy(&ordered_audio_prefs, c->remoteCapabilities.audio, sizeof(ordered_audio_prefs));
-		sccp_codec_reduceSet(ordered_audio_prefs, c->preferences.audio);
-		memcpy(&c->preferences.audio, ordered_audio_prefs, sizeof(c->preferences.audio));
-		sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:      set audio prefs: \"%s\"\n", sccp_codec_multiple2str(s2, sizeof(s2) - 1, channel->preferences.audio, SKINNY_MAX_CAPABILITIES));
+/*
+	// this should not be done here at this moment, leaving it to alloc_pbxChannel to sort out.
+	if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
+		if (c->remoteCapabilities.audio[0] != SKINNY_CODEC_NONE) {
+			sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:   remote audio prefs: \"%s\"\n", sccp_codec_multiple2str(s1, sizeof(s1) - 1, c->remoteCapabilities.audio, SKINNY_MAX_CAPABILITIES));
+			skinny_codec_t ordered_audio_prefs[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+			memcpy(&ordered_audio_prefs, c->remoteCapabilities.audio, sizeof(ordered_audio_prefs));
+			sccp_codec_reduceSet(ordered_audio_prefs, c->preferences.audio);
+			memcpy(&c->preferences.audio, ordered_audio_prefs, sizeof(c->preferences.audio));
+			sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:      set audio prefs: \"%s\"\n", sccp_codec_multiple2str(s2, sizeof(s2) - 1, c->preferences.audio, SKINNY_MAX_CAPABILITIES));
+		}
 
-		sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:   remote video prefs: \"%s\"\n", sccp_codec_multiple2str(s1, sizeof(s1) - 1, channel->remoteCapabilities.video, SKINNY_MAX_CAPABILITIES));
-		skinny_codec_t ordered_video_prefs[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
-		memcpy(&ordered_video_prefs, c->remoteCapabilities.video, sizeof(ordered_video_prefs));
-		sccp_codec_reduceSet(ordered_video_prefs, c->preferences.video);
-		memcpy(&c->preferences.video, ordered_video_prefs, sizeof(c->preferences.video));
-		sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:      set video prefs: \"%s\"\n", sccp_codec_multiple2str(s2, sizeof(s2) - 1, channel->preferences.video, SKINNY_MAX_CAPABILITIES));
+		if (c->remoteCapabilities.video[0] != SKINNY_CODEC_NONE && (d ? sccp_device_isVideoSupported(d) : TRUE)) {
+			sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:   remote video prefs: \"%s\"\n", sccp_codec_multiple2str(s1, sizeof(s1) - 1, c->remoteCapabilities.video, SKINNY_MAX_CAPABILITIES));
+			skinny_codec_t ordered_video_prefs[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+			memcpy(&ordered_video_prefs, c->remoteCapabilities.video, sizeof(ordered_video_prefs));
+			sccp_codec_reduceSet(ordered_video_prefs, c->preferences.video);
+			memcpy(&c->preferences.video, ordered_video_prefs, sizeof(c->preferences.video));
+			sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:      set video prefs: \"%s\"\n", sccp_codec_multiple2str(s2, sizeof(s2) - 1, c->preferences.video, SKINNY_MAX_CAPABILITIES));
+		}
 	}
+*/
 
 	/* This should definitely fix CDR */
 	iPbx.alloc_pbxChannel(c, ids, parentChannel, &tmp);
 
 	if (!tmp || !c->owner) {
 		pbx_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", c->designator, l->name);
-		return 0;
+		return FALSE;
 	}
 	//sccp_channel_updateChannelCapability(c);
 	//iPbx.set_nativeAudioFormats(c, c->preferences.audio, 1);
@@ -880,18 +892,18 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	//iPbx.set_nativeAudioFormats(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
 
 	/* start audio rtp server early, to facilitate choosing codecs via sdp */
-	if (d && c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-		if (!channel->rtp.audio.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_AUDIO)) {
-			pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s\n", d->id, channel->designator);
-
-			uint16_t instance = sccp_device_find_index_for_line(d, channel->line->name);
-			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, channel->callid, SKINNY_TONEDIRECTION_USER);
-			return 0;
-		}
-	}	 
-
-	// export sccp informations in asterisk dialplan
 	if (d) {
+		if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
+			if (!c->rtp.audio.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_AUDIO)) {
+				pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s\n", d->id, c->designator);
+
+				uint16_t instance = sccp_device_find_index_for_line(d, c->line->name);
+				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, SKINNY_TONEDIRECTION_USER);
+				sccp_channel_schedule_hangup(c, 500);
+				return FALSE;
+			}
+		}
+		// export sccp informations in asterisk dialplan
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_MAC", d->id);
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getSas(d->session, &sas);
@@ -899,7 +911,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", skinny_devicetype2str(d->skinny_type));
 	}
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s\n", (l) ? l->id : "(null)", c->designator);
-	return 1;
+	return TRUE;
 }
 
 /*!
