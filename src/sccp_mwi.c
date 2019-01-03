@@ -224,7 +224,8 @@ void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stas
 	if (msg && ast_mwi_state_type() == stasis_message_type(msg) && change->topic != ast_mwi_topic_all()) {
 		struct ast_mwi_state *mwi_state = stasis_message_data(msg);
 		
-		int newmsgs = mwi_state->new_msgs, oldmsgs = mwi_state->old_msgs;
+		int newmsgs = mwi_state->new_msgs;
+		int oldmsgs = mwi_state->old_msgs;
 
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: Received PBX mwi event for %s@%s, newmsgs:%d, oldmsgs:%d\n", subscription->mailbox, subscription->context, newmsgs, oldmsgs);
 
@@ -507,9 +508,9 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 #if defined( CS_AST_HAS_EVENT)
 #  if ASTERISK_VERSION_NUMBER >= 10800
 		subscription->event_sub = pbx_event_subscribe(AST_EVENT_MWI, sccp_mwi_event, "mailbox subscription", subscription, AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, subscription->mailbox, AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, subscription->context, AST_EVENT_IE_NEWMSGS, AST_EVENT_IE_PLTYPE_EXISTS, AST_EVENT_IE_END);
-#  else
+#  else // ASTERISK_VERSION_NUMBER >= 10800
 		subscription->event_sub = pbx_event_subscribe(AST_EVENT_MWI, sccp_mwi_event, subscription, AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, subscription->mailbox, AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, subscription->context, AST_EVENT_IE_END);
-#  endif
+#  endif // ASTERISK_VERSION_NUMBER >= 10800
 		if (!subscription->event_sub) {
 			pbx_log(LOG_ERROR, "SCCP: PBX MWI event could not be subscribed to for mailbox %s@%s\n", subscription->mailbox, subscription->context);
 		}
@@ -520,14 +521,15 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 		snprintf(mailbox_context, SCCP_MAX_EXTENSION + SCCP_MAX_CONTEXT + 2, "%s@%s", subscription->mailbox, subscription->context);
 		struct stasis_topic *mailbox_specific_topic = ast_mwi_topic(mailbox_context);
 		if (mailbox_specific_topic) {
-			subscription->event_sub = stasis_subscribe(mailbox_specific_topic, sccp_mwi_event, subscription);
+			//subscription->event_sub = stasis_subscribe(mailbox_specific_topic, sccp_mwi_event, subscription);
+			subscription->event_sub = stasis_subscribe_pool(mailbox_specific_topic, sccp_mwi_event, subscription);
 		}
-#else
+#else // defined( CS_AST_HAS_EVENT)
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) Falling back to polling mailbox status\n");
 		if ((subscription->schedUpdate = iPbx.sched_add(SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
 			pbx_log(LOG_ERROR, "SCCP: (mwi_addMailboxSubscription) Error creating mailbox subscription.\n");
 		}
-#endif
+#endif // defined( CS_AST_HAS_EVENT)
 		/* end register asterisk event */
 	}
 
