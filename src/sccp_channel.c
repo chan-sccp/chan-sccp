@@ -627,7 +627,8 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Opened Receive Channel (State: %s[%d])\n", d->id, sccp_channelstate2str(c->state), c->state);
 	sccp_channel_setDevice(c, d);
 	//sccp_rtp_set_phone(c, &c->rtp.audio, &sas);
-	if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState && (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE)) {
+	//if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState && (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE)) {
+	if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState) {
 		sccp_channel_startMediaTransmission(c);
 	}
 	sccp_channel_send_callinfo(d, c);

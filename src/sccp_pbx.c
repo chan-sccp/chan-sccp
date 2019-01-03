@@ -640,8 +640,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
 			if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.receiveChannelState) {
 				sccp_channel_openReceiveChannel(c);
-			}
-			if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState) {
+			} else if ((c->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState) {
 				sccp_channel_startMediaTransmission(c);
 			}
 #if CS_SCCP_CONFERENCE 
