@@ -141,12 +141,12 @@ struct {												\
 #define SCCP_LIST_MOVE_CURRENT_BACKWARDS(newhead, field) do { 						\
 	typeof ((newhead)->first) __list_cur = __new_prev;						\
 	if (!__list_next) {										\
-		AST_DLLIST_REMOVE_CURRENT(field);							\
+		SCCP_LIST_REMOVE_CURRENT(field);							\
 		__new_prev = NULL;									\
-		AST_DLLIST_INSERT_HEAD((newhead), __list_cur, field);					\
+		SCCP_LIST_INSERT_HEAD((newhead), __list_cur, field);					\
 	} else {											\
-		AST_DLLIST_REMOVE_CURRENT(field);							\
-		AST_DLLIST_INSERT_HEAD((newhead), __list_cur, field);					\
+		SCCP_LIST_REMOVE_CURRENT(field);							\
+		SCCP_LIST_INSERT_HEAD((newhead), __list_cur, field);					\
 	}} while (0)
 #define SCCP_RWLIST_MOVE_CURRENT_BACKWARDS SCCP_LIST_MOVE_CURRENT_BACKWARDS
 
