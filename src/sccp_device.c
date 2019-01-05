@@ -1850,7 +1850,7 @@ void sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, bool
 	memset(k, 0, sizeof(sccp_speed_t));
 	sccp_copy_string(k->name, "unknown speeddial", sizeof(k->name));
 
-	SCCP_LIST_LOCK(&((devicePtr)d)->buttonconfig);
+	SCCP_LIST_LOCK(&(((devicePtr)d)->buttonconfig));
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if (config->type == SPEEDDIAL && config->instance == instance) {
 			/* we are searching for hinted speeddials */
@@ -1871,7 +1871,7 @@ void sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, bool
 			}
 		}
 	}
-	SCCP_LIST_UNLOCK(&((devicePtr)d)->buttonconfig);
+	SCCP_LIST_UNLOCK(&(((devicePtr)d)->buttonconfig));
 }
 
 /*!

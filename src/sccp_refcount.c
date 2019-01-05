@@ -457,8 +457,8 @@ void sccp_refcount_gen_report(const void * const ptr, pbx_str_t **buf)
 	RefCountedObject *rel_obj = NULL;
 	for(int bucket = 0; bucket < SCCP_HASH_PRIME; bucket++) {
 		if (objects[bucket]) {
-			SCCP_RWLIST_RDLOCK(&(objects[bucket])->refCountedObjects);
-			SCCP_RWLIST_TRAVERSE(&(objects[bucket])->refCountedObjects, rel_obj, list) {
+			SCCP_RWLIST_RDLOCK(&(objects[bucket]->refCountedObjects));
+			SCCP_RWLIST_TRAVERSE(&(objects[bucket]->refCountedObjects), rel_obj, list) {
 				for (int parentIndex = 0; parentIndex < REFCOUNT_MAX_PARENTS; parentIndex++) {
 					if (rel_obj->parentWeakPtr[parentIndex] && rel_obj->parentWeakPtr[parentIndex] == obj) {
 						pbx_str_append(buf, 0, " %-17.17s %-25.25s (%15p), refcount:%-4.4d, alive:%-5.5s\n", 
@@ -471,7 +471,7 @@ void sccp_refcount_gen_report(const void * const ptr, pbx_str_t **buf)
 					}
 				}
 			}
-			SCCP_RWLIST_UNLOCK(&(objects[bucket])->refCountedObjects);
+			SCCP_RWLIST_UNLOCK(&(objects[bucket]->refCountedObjects));
 		}
 	}
 	ast_rwlock_unlock(&objectslock);
@@ -504,8 +504,8 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 #define CLI_AMI_TABLE_ITERATOR for(bucket = 0; bucket < SCCP_HASH_PRIME; bucket++)
 #define CLI_AMI_TABLE_BEFORE_ITERATION 											\
 		if (objects[bucket]) {											\
-			SCCP_RWLIST_RDLOCK(&(objects[bucket])->refCountedObjects);					\
-			SCCP_RWLIST_TRAVERSE(&(objects[bucket])->refCountedObjects, obj, list) {			\
+			SCCP_RWLIST_RDLOCK(&(objects[bucket]->refCountedObjects));					\
+			SCCP_RWLIST_TRAVERSE(&(objects[bucket]->refCountedObjects), obj, list) {			\
 				char bucketstr[8];									\
 				if (!s) {										\
 					if (prev == bucket) {								\
@@ -561,10 +561,10 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 				prev = bucket;										\
 				numentries++;										\
 			}												\
-			if (maxdepth < SCCP_RWLIST_GETSIZE(&(objects[bucket])->refCountedObjects)) {			\
-				maxdepth = SCCP_RWLIST_GETSIZE(&(objects[bucket])->refCountedObjects);			\
+			if (maxdepth < SCCP_RWLIST_GETSIZE(&(objects[bucket]->refCountedObjects))) {			\
+				maxdepth = SCCP_RWLIST_GETSIZE(&(objects[bucket]->refCountedObjects));			\
 			}												\
-			SCCP_RWLIST_UNLOCK(&(objects[bucket])->refCountedObjects);					\
+			SCCP_RWLIST_UNLOCK(&(objects[bucket]->refCountedObjects));					\
 		}
 
 #define CLI_AMI_TABLE_FIELDS 												\
@@ -967,11 +967,11 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	RefCountedObject *obj = NULL;
 	for (loop = 0; loop < SCCP_HASH_PRIME; loop++) {
 		if (objects[loop]) {
-			SCCP_RWLIST_RDLOCK(&(objects[loop])->refCountedObjects);
-			SCCP_RWLIST_TRAVERSE(&(objects[loop])->refCountedObjects, obj, list) {
+			SCCP_RWLIST_RDLOCK(&(objects[loop]->refCountedObjects));
+			SCCP_RWLIST_TRAVERSE(&(objects[loop]->refCountedObjects), obj, list) {
 				pbx_test_validate(test, obj->type != SCCP_REF_TEST);
 			}
-			SCCP_RWLIST_UNLOCK(&(objects[loop])->refCountedObjects);
+			SCCP_RWLIST_UNLOCK(&(objects[loop]->refCountedObjects));
 		}
 	}
 	ast_rwlock_unlock(&objectslock);

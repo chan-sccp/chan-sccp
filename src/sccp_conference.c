@@ -462,11 +462,11 @@ static void sccp_conference_addParticipant_toList(constConferencePtr conference,
 	// add to participant list 
 	sccp_participant_t *tmpParticipant = NULL;
 	
-	SCCP_RWLIST_WRLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_WRLOCK(&(((conferencePtr)conference)->participants));
 	if ((tmpParticipant = sccp_participant_retain(participant))) {
-		SCCP_RWLIST_INSERT_TAIL(&((conferencePtr)conference)->participants, tmpParticipant, list);
+		SCCP_RWLIST_INSERT_TAIL(&(((conferencePtr)conference)->participants), tmpParticipant, list);
 	}
-	SCCP_RWLIST_UNLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_UNLOCK(&(((conferencePtr)conference)->participants));
 }
 
 /*!
@@ -631,10 +631,10 @@ static void sccp_conference_removeParticipant(conferencePtr conference, particip
 
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Removing Participant %d.\n", conference->id, participant->id);
 
-	SCCP_RWLIST_WRLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_WRLOCK(&(((conferencePtr)conference)->participants));
 	tmp_participant = SCCP_RWLIST_REMOVE(&conference->participants, (sccp_participant_t *)participant, list);
 	num_participants = SCCP_RWLIST_GETSIZE(&conference->participants);
-	SCCP_RWLIST_UNLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_UNLOCK(&(((conferencePtr)conference)->participants));
 
 	if (!ATOMIC_FETCH(&conference->finishing, &conference->lock)) {
 		if ((tmp_participant->isModerator && conference->num_moderators <= 1) || num_participants <= 1) {
@@ -799,7 +799,7 @@ void sccp_conference_hold(conferencePtr conference)
 	/* play music on hold to participants, if there is no moderator, currently active to the conference */
 	if (conference->num_moderators >= 1) {
 		conference->isOnHold = TRUE;
-		SCCP_RWLIST_RDLOCK(&((conferencePtr)conference)->participants);
+		SCCP_RWLIST_RDLOCK(&(((conferencePtr)conference)->participants));
 		SCCP_RWLIST_TRAVERSE(&conference->participants, participant, list) {
 			if (participant->isModerator == FALSE) {
 				sccp_conference_play_music_on_hold_to_participant(conference, participant, TRUE);
@@ -807,7 +807,7 @@ void sccp_conference_hold(conferencePtr conference)
 				participant->device->conferencelist_active = FALSE;
 			}
 		}
-		SCCP_RWLIST_UNLOCK(&((conferencePtr)conference)->participants);
+		SCCP_RWLIST_UNLOCK(&(((conferencePtr)conference)->participants));
 	}
 }
 
@@ -825,13 +825,13 @@ void sccp_conference_resume(conferencePtr conference)
 
 	/* stop play music on hold to participants. */
 	if (conference->isOnHold) {
-		SCCP_RWLIST_RDLOCK(&((conferencePtr)conference)->participants);
+		SCCP_RWLIST_RDLOCK(&(((conferencePtr)conference)->participants));
 		SCCP_RWLIST_TRAVERSE(&conference->participants, participant, list) {
 			if (participant->isModerator == FALSE) {
 				sccp_conference_play_music_on_hold_to_participant(conference, participant, FALSE);
 			}
 		}
-		SCCP_RWLIST_UNLOCK(&((conferencePtr)conference)->participants);
+		SCCP_RWLIST_UNLOCK(&(((conferencePtr)conference)->participants));
 		conference->isOnHold = FALSE;
 		sccp_conference_update_conflist(conference);
 	}
@@ -1063,14 +1063,14 @@ sccp_participant_t *sccp_participant_findByID(constConferencePtr conference, uin
 	if (!conference || identifier == 0) {
 		return NULL;
 	}
-	SCCP_RWLIST_RDLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_RDLOCK(&(((conferencePtr)conference)->participants));
 	SCCP_RWLIST_TRAVERSE(&conference->participants, participant, list) {
 		if (participant->id == identifier) {
 			participant = sccp_participant_retain(participant);
 			break;
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_UNLOCK(&(((conferencePtr)conference)->participants));
 	return participant;
 }
 
@@ -1084,14 +1084,14 @@ sccp_participant_t *sccp_participant_findByChannel(constConferencePtr conference
 	if (!conference || !channel) {
 		return NULL;
 	}
-	SCCP_RWLIST_RDLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_RDLOCK(&(((conferencePtr)conference)->participants));
 	SCCP_RWLIST_TRAVERSE(&conference->participants, participant, list) {
 		if (participant->channel == channel) {
 			participant = sccp_participant_retain(participant);
 			break;
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_UNLOCK(&(((conferencePtr)conference)->participants));
 	return participant;
 }
 
@@ -1105,14 +1105,14 @@ sccp_participant_t *sccp_participant_findByDevice(constConferencePtr conference,
 	if (!conference || !device) {
 		return NULL;
 	}
-	SCCP_RWLIST_RDLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_RDLOCK(&(((conferencePtr)conference)->participants));
 	SCCP_RWLIST_TRAVERSE(&conference->participants, participant, list) {
 		if (participant->device == device) {
 			participant = sccp_participant_retain(participant);
 			break;
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_UNLOCK(&(((conferencePtr)conference)->participants));
 	return participant;
 }
 
@@ -1126,7 +1126,7 @@ sccp_participant_t *sccp_participant_findByPBXChannel(constConferencePtr confere
 	if (!conference || !channel) {
 		return NULL;
 	}
-	SCCP_RWLIST_RDLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_RDLOCK(&(((conferencePtr)conference)->participants));
 	SCCP_RWLIST_TRAVERSE(&conference->participants, participant, list) {
 		if (participant->conferenceBridgePeer == channel) {
 			participant = sccp_participant_retain(participant);
@@ -1134,7 +1134,7 @@ sccp_participant_t *sccp_participant_findByPBXChannel(constConferencePtr confere
 		}
 	}
 
-	SCCP_RWLIST_UNLOCK(&((conferencePtr)conference)->participants);
+	SCCP_RWLIST_UNLOCK(&(((conferencePtr)conference)->participants));
 	return participant;
 }
 
@@ -1208,7 +1208,7 @@ void sccp_conference_show_list(constConferencePtr conference, constChannelPtr ch
 
 		sccp_participant_t *part = NULL;
 
-		SCCP_RWLIST_RDLOCK(&((conferencePtr)conference)->participants);
+		SCCP_RWLIST_RDLOCK(&(((conferencePtr)conference)->participants));
 		SCCP_RWLIST_TRAVERSE(&conference->participants, part, list) {
 			if (part->pendingRemoval) {
 				continue;
@@ -1236,7 +1236,7 @@ void sccp_conference_show_list(constConferencePtr conference, constChannelPtr ch
 			pbx_str_append(&xmlStr, 0, "<URL>UserCallData:%d:%d:%d:%d:%d</URL>", appID, participant->lineInstance, participant->callReference, participant->transactionID, part->id);
 			pbx_str_append(&xmlStr, 0, "</MenuItem>\n");
 		}
-		SCCP_RWLIST_UNLOCK(&((conferencePtr)conference)->participants);
+		SCCP_RWLIST_UNLOCK(&(((conferencePtr)conference)->participants));
 
 		// SoftKeys
 		if (participant->isModerator) {
@@ -1363,13 +1363,13 @@ static void sccp_conference_update_conflist(conferencePtr conference)
 	if (!conference || ATOMIC_FETCH(&(conference)->finishing, &conference->lock)) {
 		return;
 	}
-	SCCP_RWLIST_RDLOCK(&(conference)->participants);
-	SCCP_RWLIST_TRAVERSE(&conference->participants, participant, list) {
+	SCCP_RWLIST_RDLOCK(&(conference->participants));
+	SCCP_RWLIST_TRAVERSE(&(conference->participants), participant, list) {
 		if (participant->channel && participant->device && (participant->device->conferencelist_active || (participant->isModerator && !conference->isOnHold))) {
 			sccp_conference_show_list(conference, participant->channel);
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&(conference)->participants);
+	SCCP_RWLIST_UNLOCK(&(conference->participants));
 }
 
 /*!
@@ -1741,7 +1741,7 @@ char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos
 					AUTO_RELEASE(sccp_conference_t, conference , sccp_conference_findByID(conference_id));
 
 					if (conference) {
-						SCCP_RWLIST_RDLOCK(&((conferencePtr)conference)->participants);
+						SCCP_RWLIST_RDLOCK(&(((conferencePtr)conference)->participants));
 						SCCP_RWLIST_TRAVERSE(&conference->participants, participant, list) {
 							snprintf(tmpname, sizeof(tmpname), "%d", participant->id);
 							if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
@@ -1749,7 +1749,7 @@ char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos
 								break;
 							}
 						}
-						SCCP_RWLIST_UNLOCK(&((conferencePtr)conference)->participants);
+						SCCP_RWLIST_UNLOCK(&(((conferencePtr)conference)->participants));
 					}
 				}
 				break;

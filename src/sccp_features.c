@@ -844,13 +844,13 @@ void sccp_feat_join(constDevicePtr device, constLinePtr l, uint8_t lineInstance,
 	} else {
 		AUTO_RELEASE(sccp_conference_t, conference , sccp_conference_retain(d->conference));
 
-		SCCP_LIST_LOCK(&((sccp_line_t *const)l)->channels);
+		SCCP_LIST_LOCK(&(((sccp_line_t *const)l)->channels));
 		SCCP_LIST_TRAVERSE(&l->channels, moderator_channel, list) {
 			if (conference == moderator_channel->conference ) {
 				break;
 			}
 		}
-		SCCP_LIST_UNLOCK(&((sccp_line_t *const)l)->channels);
+		SCCP_LIST_UNLOCK(&(((sccp_line_t *const)l)->channels));
 		sccp_conference_hold(conference);								// make sure conference is on hold (should already be on hold)
 		if (moderator_channel) {
 			if (newparticipant_channel && moderator_channel != newparticipant_channel) {

@@ -57,7 +57,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 		return;
 	}
 
-	SCCP_LIST_LOCK(&((devicePtr)device)->buttonconfig);
+	SCCP_LIST_LOCK(&(((devicePtr)device)->buttonconfig));
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		if (config->type == FEATURE && config->button.feature.id == featureType) {
 			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) FeatureID = %d, Option: %s\n", DEV_ID_LOG(device), config->button.feature.id, (config->button.feature.options) ? config->button.feature.options : "(none)");
@@ -308,7 +308,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) Got Feature Status Request. Instance = %d, Label: '%s', Status: %d\n", DEV_ID_LOG(device), instance, config->label, config->button.feature.status);
 		}
 	}
-	SCCP_LIST_UNLOCK(&((devicePtr)device)->buttonconfig);
+	SCCP_LIST_UNLOCK(&(((devicePtr)device)->buttonconfig));
 }
 
 /*!

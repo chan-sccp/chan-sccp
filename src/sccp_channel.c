@@ -2692,9 +2692,9 @@ sccp_channel_t *sccp_find_channel_on_line_byid(constLinePtr l, uint32_t id)
 
 	//sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel on line by id %u\n", id);
 
-	SCCP_LIST_LOCK(&((linePtr)l)->channels);
+	SCCP_LIST_LOCK(&(((linePtr)l)->channels));
 	c = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->callid == id && tmpc->state != SCCP_CHANNELSTATE_DOWN), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	SCCP_LIST_UNLOCK(&((linePtr)l)->channels);
+	SCCP_LIST_UNLOCK(&(((linePtr)l)->channels));
 	return c;
 }
 
@@ -2881,9 +2881,9 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(constLinePtr l, sccp_channelst
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
-	SCCP_LIST_LOCK(&((linePtr)l)->channels);
+	SCCP_LIST_LOCK(&(((linePtr)l)->channels));
 	c = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->state == state), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	SCCP_LIST_UNLOCK(&((linePtr)l)->channels);
+	SCCP_LIST_UNLOCK(&(((linePtr)l)->channels));
 
 	if (!c) {
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Could not find active channel with state %s(%u) on line\n", l->id, sccp_channelstate2str(state), state);
@@ -2956,9 +2956,9 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(constDevicePtr d, const
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channel (%d)\n", d->id, channel->callid);
 
-	SCCP_LIST_LOCK(&((devicePtr)d)->selectedChannels);
+	SCCP_LIST_LOCK(&(((devicePtr)d)->selectedChannels));
 	sc = SCCP_LIST_FIND(&d->selectedChannels, sccp_selectedchannel_t, tmpsc, list, (tmpsc->channel == channel), FALSE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	SCCP_LIST_UNLOCK(&((devicePtr)d)->selectedChannels);
+	SCCP_LIST_UNLOCK(&(((devicePtr)d)->selectedChannels));
 	return sc;
 }
 
@@ -2973,9 +2973,9 @@ uint8_t sccp_device_selectedchannels_count(constDevicePtr device)
 	uint8_t count = 0;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channels count\n", device->id);
-	SCCP_LIST_LOCK(&((devicePtr)device)->selectedChannels);
+	SCCP_LIST_LOCK(&(((devicePtr)device)->selectedChannels));
 	count = SCCP_LIST_GETSIZE(&device->selectedChannels);
-	SCCP_LIST_UNLOCK(&((devicePtr)device)->selectedChannels);
+	SCCP_LIST_UNLOCK(&(((devicePtr)device)->selectedChannels));
 
 	return count;
 }
