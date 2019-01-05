@@ -3017,7 +3017,7 @@ static struct ast_endpoint *sccp_wrapper_asterisk113_endpoint_create(const char 
 
 static void sccp_wrapper_asterisk113_endpoint_online(struct ast_endpoint *endpoint, const char *address)
 {
-	RAII_VAR(struct ast_json *, blob, NULL, ast_json_unref);
+	RAII(struct ast_json *, blob, NULL, ast_json_unref);
 	ast_endpoint_set_state(endpoint, AST_ENDPOINT_ONLINE);
 	blob = ast_json_pack("{s: s, s: s}", "peer_status", "Registered", "address", address);
 	ast_endpoint_blob_publish(endpoint, ast_endpoint_state_type(), blob);
@@ -3025,7 +3025,7 @@ static void sccp_wrapper_asterisk113_endpoint_online(struct ast_endpoint *endpoi
 
 static void sccp_wrapper_asterisk113_endpoint_offline(struct ast_endpoint *endpoint, const char *cause)
 {
-	RAII_VAR(struct ast_json *, blob, NULL, ast_json_unref);
+	RAII(struct ast_json *, blob, NULL, ast_json_unref);
 	ast_endpoint_set_state(endpoint, AST_ENDPOINT_OFFLINE);
 	blob = ast_json_pack("{s: s, s: s}", "peer_status", "Unregistered", "cause", cause);
 	ast_endpoint_blob_publish(endpoint, ast_endpoint_state_type(), blob);

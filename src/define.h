@@ -245,9 +245,9 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 typedef void (^sccp_raii_cleanup_block_t)(void);
 static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(); }
 #define RAII(vartype, varname, initval, dtor)										\
-    sccp_raii_cleanup_block_t _raii_cleanup_ ## varname __attribute__((cleanup(sccp_raii_cleanup_block),unused)) = NULL;\
     __block vartype varname = initval;											\
-    _raii_cleanup_ ## varname = ^{ {(void)dtor(varname);} }
+    sccp_raii_cleanup_block_t _raii_cleanup_ ## varname __attribute__((cleanup(sccp_raii_cleanup_block),unused)) = 	\
+        ^{ {(void)dtor(varname);} }
 #elif defined(__GNUC__)
 #define RAII(vartype, varname, initval, dtor)										\
     auto void _dtor_ ## varname (vartype * v);										\
