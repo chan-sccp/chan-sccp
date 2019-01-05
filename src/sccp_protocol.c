@@ -927,11 +927,10 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr dev
 	int hdr_len = 0;
 
 	if (device->protocolversion > 17) {
-		int num_segments = data_len / (StationMaxXMLMessage + 1);
 		int segment = 0;
-		sccp_msg_t *msg[num_segments];
 
-		hdr_len = sizeof(msg[0]->data.UserToDeviceDataVersion1Message);
+		sccp_msg_t *msg = NULL;
+		hdr_len = sizeof(msg->data.UserToDeviceDataVersion1Message);
 		int Sequence = 0x0000;
 		int xmlDataStart = 0;
 
@@ -943,29 +942,31 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr dev
 				Sequence = 0x0002;
 			}
 			data_len -= msg_len;
-
-			msg[segment] = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len);
-			msg[segment]->data.UserToDeviceDataVersion1Message.lel_appID = htolel(appID);
-			msg[segment]->data.UserToDeviceDataVersion1Message.lel_lineInstance = htolel(lineInstance);
-			msg[segment]->data.UserToDeviceDataVersion1Message.lel_callReference = htolel(callReference);
-			msg[segment]->data.UserToDeviceDataVersion1Message.lel_transactionID = htolel(transactionID);
-			msg[segment]->data.UserToDeviceDataVersion1Message.lel_displayPriority = htolel(priority);
-			msg[segment]->data.UserToDeviceDataVersion1Message.lel_dataLength = htolel(msg_len);
-			msg[segment]->data.UserToDeviceDataVersion1Message.lel_sequenceFlag = htolel(Sequence);
-			msg[segment]->data.UserToDeviceDataVersion1Message.lel_conferenceID = htolel(callReference);
-			msg[segment]->data.UserToDeviceDataVersion1Message.lel_appInstanceID = htolel(appID);
-			msg[segment]->data.UserToDeviceDataVersion1Message.lel_routing = htolel(1);
+			msg = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len);
+			if (!msg) {
+				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+				return;
+			}
+			msg->data.UserToDeviceDataVersion1Message.lel_appID = htolel(appID);
+			msg->data.UserToDeviceDataVersion1Message.lel_lineInstance = htolel(lineInstance);
+			msg->data.UserToDeviceDataVersion1Message.lel_callReference = htolel(callReference);
+			msg->data.UserToDeviceDataVersion1Message.lel_transactionID = htolel(transactionID);
+			msg->data.UserToDeviceDataVersion1Message.lel_displayPriority = htolel(priority);
+			msg->data.UserToDeviceDataVersion1Message.lel_dataLength = htolel(msg_len);
+			msg->data.UserToDeviceDataVersion1Message.lel_sequenceFlag = htolel(Sequence);
+			msg->data.UserToDeviceDataVersion1Message.lel_conferenceID = htolel(callReference);
+			msg->data.UserToDeviceDataVersion1Message.lel_appInstanceID = htolel(appID);
+			msg->data.UserToDeviceDataVersion1Message.lel_routing = htolel(1);
 			if (Sequence == 0x0000) {
 				Sequence = 0x0001;
 			}
 
 			if (msg_len) {
-				memcpy(&msg[segment]->data.UserToDeviceDataVersion1Message.data, xmlData + xmlDataStart, msg_len);
+				memcpy(&msg->data.UserToDeviceDataVersion1Message.data, xmlData + xmlDataStart, msg_len);
 				xmlDataStart += msg_len;
 			}
 			
-			sccp_dev_send(device, msg[segment]);
-			usleep(10);
+			sccp_dev_send(device, msg);
 			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d/%d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, (int) strlen(xmlData), hdr_len + msg_len);
 			segment++;
 		}
