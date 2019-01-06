@@ -187,7 +187,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		channel->setDevice = sccp_channel_setDevice;
 		channel->isMicrophoneEnabled = sccp_always_true;
 		channel->setMicrophone = sccp_channel_setMicrophoneState;
-		channel->hangupRequest = sccp_wrapper_asterisk_requestHangup;
+		channel->hangupRequest = sccp_astgenwrap_requestHangup;
 		if (device) {
 			channel->dtmfmode = device->getDtmfMode(device);
 		} else {
@@ -1176,7 +1176,7 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t * orig_channel)
 			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_end_forwarding_channel) Send Hangup to CallForwarding Channel\n", c->designator);
 			sccp_channel_release(&c->parentChannel);				/* explicit release refcounted parentChannel */
 			/* make sure a ZOMBIE channel is hungup using requestHangup if it is still available after the masquerade */
-			c->hangupRequest = sccp_wrapper_asterisk_requestHangup;
+			c->hangupRequest = sccp_astgenwrap_requestHangup;
 			/* need to use scheduled hangup, so that we clear any outstanding locks (during masquerade) before calling hangup */
 			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
 			orig_channel->answered_elsewhere = TRUE;

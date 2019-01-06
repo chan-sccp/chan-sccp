@@ -327,7 +327,7 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 			channel->hangupRequest(channel);
 			return NULL;
 		}
-		channel->hangupRequest = sccp_wrapper_asterisk_requestHangup;					// moderator channel not running in a ast_pbx_start thread, but in a local thread => use hard hangup
+		channel->hangupRequest = sccp_astgenwrap_requestHangup;					// moderator channel not running in a ast_pbx_start thread, but in a local thread => use hard hangup
 		sccp_conference_addParticipant_toList(conference, participant);
 		participant->channel->conference = sccp_conference_retain(conference);
 		participant->channel->conference_id = conference->id;

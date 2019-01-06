@@ -96,7 +96,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, sccp_aut
 	my_sccp_channel->autoanswer_type = autoanswer_type;
 	my_sccp_channel->autoanswer_cause = autoanswer_cause;
 	my_sccp_channel->ringermode = ringermode;
-	my_sccp_channel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
+	my_sccp_channel->hangupRequest = sccp_astgenwrap_requestQueueHangup;
 	return SCCP_REQUEST_STATUS_SUCCESS;
 }
 

@@ -67,7 +67,7 @@ extern struct sccp_pbx_cb sccp_pbx;
 #define PBX_HANGUP_CAUSE_CALL_REJECTED AST_CAUSE_CALL_REJECTED
 
 /*!
- * \brief PBX Hangup Types handled by sccp_wrapper_asterisk_forceHangup
+ * \brief PBX Hangup Types handled by sccp_astgenwrap_forceHangup
  */
 typedef enum {
 	PBX_QUEUED_HANGUP = 0,
@@ -129,38 +129,38 @@ sccp_channel_t *__get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx
 #else
 sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel);
 #endif
-int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value);
-boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t * c);
-boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t * c);
+int sccp_astgenwrap_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value);
+boolean_t sccp_astgenwrap_requestQueueHangup(sccp_channel_t * c);
+boolean_t sccp_astgenwrap_requestHangup(sccp_channel_t * c);
 
 /***** database *****/
-boolean_t sccp_asterisk_addToDatabase(const char *family, const char *key, const char *value);
-boolean_t sccp_asterisk_getFromDatabase(const char *family, const char *key, char *out, int outlen);
-boolean_t sccp_asterisk_removeFromDatabase(const char *family, const char *key);
-boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *key);
+boolean_t sccp_astwrap_addToDatabase(const char *family, const char *key, const char *value);
+boolean_t sccp_astwrap_getFromDatabase(const char *family, const char *key, char *out, int outlen);
+boolean_t sccp_astwrap_removeFromDatabase(const char *family, const char *key);
+boolean_t sccp_astwrap_removeTreeFromDatabase(const char *family, const char *key);
 
 /***** end - database *****/
 
-int sccp_asterisk_moh_start(PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, const char *interpclass);
-void sccp_asterisk_moh_stop(PBX_CHANNEL_TYPE * pbx_channel);
-void sccp_asterisk_connectedline(sccp_channel_t * channel, const void *data, size_t datalen);
-void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen);
-void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason);
-int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *preparse, char *buf, size_t buflen);
+int sccp_astwrap_moh_start(PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, const char *interpclass);
+void sccp_astwrap_moh_stop(PBX_CHANNEL_TYPE * pbx_channel);
+void sccp_astwrap_connectedline(sccp_channel_t * channel, const void *data, size_t datalen);
+void sccp_astwrap_redirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen);
+void sccp_astwrap_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason);
+int sccp_astgenwrap_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *preparse, char *buf, size_t buflen);
 int sccp_parse_alertinfo(PBX_CHANNEL_TYPE *pbx_channel, skinny_ringtype_t *ringermode);
 int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, uint8_t *autoanswer_cause, skinny_ringtype_t *ringermode);
-boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel);
+boolean_t sccp_astgenwrap_featureMonitor(const sccp_channel_t * channel);
 
 #if ASTERISK_VERSION_GROUP > 106
 int sccp_wrapper_sendDigits(const sccp_channel_t * channel, const char *digits);
 int sccp_wrapper_sendDigit(const sccp_channel_t * channel, const char digit);
 #endif
 
-void sccp_wrapper_asterisk_set_callgroup(sccp_channel_t *channel, ast_group_t value);
-void sccp_wrapper_asterisk_set_pickupgroup(sccp_channel_t *channel, ast_group_t value);
+void sccp_astgenwrap_set_callgroup(sccp_channel_t *channel, ast_group_t value);
+void sccp_astgenwrap_set_pickupgroup(sccp_channel_t *channel, ast_group_t value);
 #if CS_AST_HAS_NAMEDGROUP && ASTERISK_VERSION_GROUP >= 111
-void sccp_wrapper_asterisk_set_named_callgroups(sccp_channel_t *channel, struct ast_namedgroups *value);
-void sccp_wrapper_asterisk_set_named_pickupgroups(sccp_channel_t *channel, struct ast_namedgroups *value);
+void sccp_astgenwrap_set_named_callgroups(sccp_channel_t *channel, struct ast_namedgroups *value);
+void sccp_astgenwrap_set_named_pickupgroups(sccp_channel_t *channel, struct ast_namedgroups *value);
 #endif
 
 enum ast_pbx_result pbx_pbx_start(struct ast_channel *pbx_channel);
