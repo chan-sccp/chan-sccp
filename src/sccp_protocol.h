@@ -1980,11 +1980,23 @@ typedef union {
 	} RegisterTokenRequest;											/*!< Register Token Request */
 
 	struct {
-		uint32_t lel_conferenceId;									/*!< Conference ID */
-		uint32_t lel_passThruPartyId;									/*!< Pass Through Party ID */
-		uint32_t bel_remoteIpAddr;									/*!< This field is apparently in big-endian */
-		uint32_t lel_remotePortNumber;									/*!< Remote Port Number */
-		uint32_t lel_callRef;										/*!< Call Reference */
+		union{
+			struct {
+				uint32_t lel_conferenceId;							/*!< Conference ID */
+				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
+				uint32_t bel_remoteIpAddr;							/*!< This field is apparently in big-endian */
+				uint32_t lel_remotePortNumber;							/*!< Remote Port Number */
+				uint32_t lel_callRef;								/*!< Call Reference */
+			} v3;
+			struct {
+				uint32_t lel_conferenceId;							/*!< Conference ID */
+				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
+				uint32_t lel_ipv46;								/*!< ipv4 / ipv6 */
+				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
+				uint32_t lel_remotePortNumber;							/*!< Remote Port Number */
+				uint32_t lel_callRef;								/*!< Call Reference */
+			} v16;
+		};
 	} MediaTransmissionFailure;
 
 	struct {
@@ -2349,7 +2361,7 @@ typedef union {
 	} ServerResMessage;											/*!< Server Result Message Structure */
 
 	struct {
-		uint32_t lel_resetType;										/*!< Reset Type (1=Reset, 2=Restart) */
+		uint32_t lel_resetType;										/*!< Reset Type (1=Reset, 2=Restart, 3=ApplyConfig) */
 	} Reset;												/*!< Reset Message Structure */
 
 	struct {
