@@ -100,9 +100,7 @@ struct refcount_object {
 #endif	
 	uint16_t len;
 	uint16_t alive;
-	//uint32_t padding1[4];
 	SCCP_RWLIST_ENTRY (RefCountedObject) list;
-	//uint32_t padding2[4];
 	unsigned char data[0] __attribute__((aligned(8)));
 };
 
@@ -341,41 +339,27 @@ static gcc_inline int __sccp_refcount_debug(const void *ptr, RefCountedObject * 
 
 static gcc_inline RefCountedObject *sccp_refcount_find_obj(const void *ptr, const char *filename, int lineno, const char *func)
 {
-	RefCountedObject *obj = NULL;
-	boolean_t found = FALSE;
-
-	if (ptr == NULL) {
+	if (!ptr) {
 		return NULL;
 	}
 
-	uint32_t hash = SCCP_SIMPLE_HASH(ptr);
+	RefCountedObject *obj = container_of(ptr, RefCountedObject, data);
 
-	if (objects[hash]) {
-		SCCP_RWLIST_RDLOCK(&(objects[hash]->refCountedObjects));
-		SCCP_RWLIST_TRAVERSE(&(objects[hash]->refCountedObjects), obj, list) {
-			/*
-			if (obj->padding1[0] != 0 || obj->padding1[1] != 0 || obj->padding1[2] != 0 || obj->padding1[3] != 0) {
-				pbx_log(LOG_ERROR, "padding1 was trampled %d,%d,%d,%d\n", obj->padding1[0], obj->padding1[1], obj->padding1[2], obj->padding1[3]);
-			}
-			if (obj->padding2[0] != 0 || obj->padding2[1] != 0 || obj->padding2[2] != 0 || obj->padding2[3] != 0) {
-				pbx_log(LOG_ERROR, "padding2 was trampled %d,%d,%d,%d\n", obj->padding2[0], obj->padding2[1], obj->padding2[2], obj->padding2[3]);
-			}
-			*/
-			if (obj->data == ptr) {
-				if (SCCP_LIVE_MARKER == obj->alive) {
-					found = TRUE;
-				} else {
-#if CS_REFCOUNT_DEBUG
-					__sccp_refcount_debug((void *) ptr, obj, 0, filename, lineno, func);
-#endif
-					sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_1 "SCCP: (sccp_refcount_find_obj) %p Already declared dead (hash: %d)\n", obj, hash);
-				}
-				break;
-			}
+	if (do_expect(obj && obj->data == ptr && SCCP_LIVE_MARKER == obj->alive)) {
+		return obj;
+	} else {
+		/* Replace seperate log lines with one line of debug */
+		if (!obj) {
+			sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_1 "SCCP: (sccp_refcount_find_obj) failed to find obj using container_of for %p\n", ptr);
 		}
-		SCCP_RWLIST_UNLOCK(&(objects[hash]->refCountedObjects));
+		if (obj->data != ptr) {
+			sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_1 "SCCP: (sccp_refcount_find_obj) obj->data:%p and ptr:%p do not match\n", obj->data, ptr);
+		}
+		if (SCCP_LIVE_MARKER != obj->alive) {
+			sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_1 "SCCP: (sccp_refcount_find_obj) %p Already declared dead\n", obj);
+		}
 	}
-	return found ? obj : NULL;
+	return NULL;
 }
 
 static gcc_inline void sccp_refcount_remove_obj(const void *ptr)
@@ -718,15 +702,6 @@ gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char 
 		if (dont_expect( (sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) {
 			pbx_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-35.35s) %*.*s> %*s refcount increased %.2d  +> %.2d for %10s: %s (%p)\n", filename, lineno, func, refcountval, refcountval, "--------------------", 20 - refcountval, " ", refcountval, newrefcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 		}
-
-/*
-		if (obj->padding1[0] != 0 || obj->padding1[1] != 0 || obj->padding1[2] != 0 || obj->padding1[3] != 0) {
-			pbx_log(LOG_ERROR, "padding1 was trampled %d,%d,%d,%d\n", obj->padding1[0], obj->padding1[1], obj->padding1[2], obj->padding1[3]);
-		}
-		if (obj->padding2[0] != 0 || obj->padding2[1] != 0 || obj->padding2[2] != 0 || obj->padding2[3] != 0) {
-			pbx_log(LOG_ERROR, "padding2 was trampled %d,%d,%d,%d\n", obj->padding2[0], obj->padding2[1], obj->padding2[2], obj->padding2[3]);
-		}
-		*/
 		return (void * const) obj->data;	/* regular exit */
 	} 
 #if CS_REFCOUNT_DEBUG
@@ -781,15 +756,6 @@ gcc_inline void * const sccp_refcount_release(const void * * const ptr, const ch
 				pbx_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-35.35s) <%*.*s %*s refcount decreased %.2d  <- %.2d for %10s: %s (%p)\n", filename, lineno, func, newrefcountval, newrefcountval, "--------------------", 20 - newrefcountval, " ", newrefcountval, refcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 			}
 		}
-
-/*
-		if (obj->padding1[0] != 0 || obj->padding1[1] != 0 || obj->padding1[2] != 0 || obj->padding1[3] != 0) {
-			pbx_log(LOG_ERROR, "padding1 was trampled %d,%d,%d,%d\n", obj->padding1[0], obj->padding1[1], obj->padding1[2], obj->padding1[3]);
-		}
-		if (obj->padding2[0] != 0 || obj->padding2[1] != 0 || obj->padding2[2] != 0 || obj->padding2[3] != 0) {
-			pbx_log(LOG_ERROR, "padding2 was trampled %d,%d,%d,%d\n", obj->padding2[0], obj->padding2[1], obj->padding2[2], obj->padding2[3]);
-		}
-		*/
 		*ptr = NULL;
 		return NULL;	/* regular exit */
 	}

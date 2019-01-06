@@ -257,4 +257,7 @@ static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(
     #error "Cannot compile Asterisk: unknown and unsupported compiler."
 #endif /* #if __GNUC__ */
 
+#define container_of(ptr, type, member) ({                      \
+        const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
+        (type *)( (char *)__mptr - offsetof(type,member) );})
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
