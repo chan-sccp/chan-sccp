@@ -919,7 +919,7 @@ static void sccp_astwrap_setOwner(sccp_channel_t * channel, PBX_CHANNEL_TYPE * p
 	}
 }
 
-static void __sccp_asterisk18_updateConnectedLine(PBX_CHANNEL_TYPE *pbx_channel, const char *number, const char *name, uint8_t reason)
+static void __sccp_astwrap_updateConnectedLine(PBX_CHANNEL_TYPE *pbx_channel, const char *number, const char *name, uint8_t reason)
 {
 	if (!pbx_channel) {
 		return;
@@ -2429,7 +2429,7 @@ static void sccp_astwrap_updateConnectedLine(const sccp_channel_t * channel, con
 	if (!channel || !channel->owner) {
 		return;
 	}
-	__sccp_asterisk18_updateConnectedLine(channel->owner, number, name, reason);
+	__sccp_astwrap_updateConnectedLine(channel->owner, number, name, reason);
 }
 
 static int sccp_astwrap_sched_add(int when, sccp_sched_cb callback, const void *data)

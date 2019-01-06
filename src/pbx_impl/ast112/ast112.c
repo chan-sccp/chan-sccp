@@ -93,7 +93,7 @@ static boolean_t sccp_astwrap_setReadFormat(const sccp_channel_t * channel, skin
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE * chan, const char *exten, const char *context);
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByGroupLocked(PBX_CHANNEL_TYPE * chan);
 
-static inline skinny_codec_t sccp_asterisk112_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability)
+static inline skinny_codec_t sccp_astwrap_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability)
 {
 	struct ast_format tmp_fmt;
 	skinny_codec_t codec = SKINNY_CODEC_NONE;
@@ -113,7 +113,7 @@ static inline skinny_codec_t sccp_asterisk112_getSkinnyFormatSingle(struct ast_f
 	return codec;
 }
 
-static uint8_t sccp_asterisk112_getSkinnyFormatMultiple(struct ast_format_cap *ast_format_capability, skinny_codec_t codec[], int length)
+static uint8_t sccp_astwrap_getSkinnyFormatMultiple(struct ast_format_cap *ast_format_capability, skinny_codec_t codec[], int length)
 {
 	struct ast_format tmp_fmt;
 	uint8_t position = 0;
@@ -612,7 +612,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 							}
 						} else {
 							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote nativeformats: %s\n", pbx_getformatname_multiple(buf, sizeof(buf) - 1, ast_channel_nativeformats(remotePeer)));
-							sccp_asterisk112_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+							sccp_astwrap_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 						}
 
 						sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
@@ -1439,11 +1439,11 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 				}
 			}
 		} else {
-			sccp_asterisk112_getSkinnyFormatMultiple(ast_channel_nativeformats(requestor), audioCapabilities, ARRAY_LEN(audioCapabilities));	// replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
+			sccp_astwrap_getSkinnyFormatMultiple(ast_channel_nativeformats(requestor), audioCapabilities, ARRAY_LEN(audioCapabilities));	// replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
 		}
 
 		/* video capabilities */
-		sccp_asterisk112_getSkinnyFormatMultiple(ast_channel_nativeformats(requestor), videoCapabilities, ARRAY_LEN(videoCapabilities));	//replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
+		sccp_astwrap_getSkinnyFormatMultiple(ast_channel_nativeformats(requestor), videoCapabilities, ARRAY_LEN(videoCapabilities));	//replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
 	}
 
 	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
@@ -1455,7 +1455,7 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 
 	/** get requested format */
 	// codec = pbx_codec2skinny_codec(ast_format_cap_to_old_bitfield(format));
-	codec = sccp_asterisk112_getSkinnyFormatSingle(cap);
+	codec = sccp_astwrap_getSkinnyFormatSingle(cap);
 	//callid = ast_read_threadstorage_callid();
 	int callid_created = ast_callid_threadstorage_auto(&callid);
 
@@ -2327,7 +2327,7 @@ static void sccp_astwrap_setRedirectedParty(PBX_CHANNEL_TYPE *pbx_channel, const
 	}
 }
 
-static void __sccp_asterisk112_updateConnectedLine(PBX_CHANNEL_TYPE *pbx_channel, const char *number, const char *name, uint8_t reason)
+static void __sccp_astwrap_updateConnectedLine(PBX_CHANNEL_TYPE *pbx_channel, const char *number, const char *name, uint8_t reason)
 {
 	if (!pbx_channel) {
 		return;
@@ -2363,7 +2363,7 @@ static void sccp_astwrap_updateConnectedLine(constChannelPtr channel, const char
 	if (!channel || !channel->owner) {
 		return;
 	}
-	__sccp_asterisk112_updateConnectedLine(channel->owner, number,name, reason);
+	__sccp_astwrap_updateConnectedLine(channel->owner, number,name, reason);
 }
 
 static int sccp_astwrap_sched_add(int when, sccp_sched_cb callback, const void *data)

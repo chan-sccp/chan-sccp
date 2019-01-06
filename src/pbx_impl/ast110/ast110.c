@@ -73,7 +73,7 @@ static int sccp_astwrap_devicestate(void *data);
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE * chan, const char *exten, const char *context);
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByGroupLocked(PBX_CHANNEL_TYPE * chan);
 
-static skinny_codec_t sccp_asterisk10_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability)
+static skinny_codec_t sccp_astwrap_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability)
 {
 	struct ast_format tmp_fmt;
 	skinny_codec_t codec = SKINNY_CODEC_NONE;
@@ -93,7 +93,7 @@ static skinny_codec_t sccp_asterisk10_getSkinnyFormatSingle(struct ast_format_ca
 	return codec;
 }
 
-static uint8_t sccp_asterisk10_getSkinnyFormatMultiple(struct ast_format_cap *ast_format_capability, skinny_codec_t codec[], int length)
+static uint8_t sccp_astwrap_getSkinnyFormatMultiple(struct ast_format_cap *ast_format_capability, skinny_codec_t codec[], int length)
 {
 	struct ast_format tmp_fmt;
 	uint8_t position = 0;
@@ -581,7 +581,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 							}
 						} else {
 							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote nativeformats: %s\n", pbx_getformatname_multiple(buf, sizeof(buf) - 1, remotePeer->nativeformats));
-							sccp_asterisk10_getSkinnyFormatMultiple(remotePeer->nativeformats, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+							sccp_astwrap_getSkinnyFormatMultiple(remotePeer->nativeformats, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 						}
 
 						sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
@@ -1099,7 +1099,7 @@ static sccp_parkresult_t sccp_astwrap_park(const sccp_channel_t * hostChannel)
 	return res;
 }
 
-static boolean_t sccp_asterisk110_getFeatureExtension(const sccp_channel_t * channel, const char *featureName, char extension[SCCP_MAX_EXTENSION])
+static boolean_t sccp_astwrap_getFeatureExtension(const sccp_channel_t * channel, const char *featureName, char extension[SCCP_MAX_EXTENSION])
 {
 	struct ast_call_feature *feat;
 
@@ -1248,11 +1248,11 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 				}
 			}
 		} else {
-			sccp_asterisk10_getSkinnyFormatMultiple(requestor->nativeformats, audioCapabilities, ARRAY_LEN(audioCapabilities));	// replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
+			sccp_astwrap_getSkinnyFormatMultiple(requestor->nativeformats, audioCapabilities, ARRAY_LEN(audioCapabilities));	// replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
 		}
 
 		/* video capabilities */
-		sccp_asterisk10_getSkinnyFormatMultiple(requestor->nativeformats, videoCapabilities, ARRAY_LEN(videoCapabilities));	//replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
+		sccp_astwrap_getSkinnyFormatMultiple(requestor->nativeformats, videoCapabilities, ARRAY_LEN(videoCapabilities));	//replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
 	}
 
 	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
@@ -1265,7 +1265,7 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 
 	/** get requested format */
 	// codec = pbx_codec2skinny_codec(ast_format_cap_to_old_bitfield(format));
-	codec = sccp_asterisk10_getSkinnyFormatSingle(format);
+	codec = sccp_astwrap_getSkinnyFormatSingle(format);
 
 	/* get requested format */
 	{
@@ -2789,7 +2789,7 @@ const PbxInterface iPbx = {
 	feature_removeFromDatabase:	sccp_astwrap_removeFromDatabase,
 	feature_removeTreeFromDatabase:	sccp_astwrap_removeTreeFromDatabase,
 	feature_monitor:		sccp_astgenwrap_featureMonitor,
-	getFeatureExtension:		sccp_asterisk110_getFeatureExtension,
+	getFeatureExtension:		sccp_astwrap_getFeatureExtension,
 	getPickupExtension:		sccp_astwrap_getPickupExtension,
 
 	eventSubscribe:			NULL,
@@ -2924,7 +2924,7 @@ const PbxInterface iPbx = {
 	.feature_monitor		= sccp_astgenwrap_featureMonitor,
 	
 	.feature_park			= sccp_astwrap_park,
-	.getFeatureExtension		= sccp_asterisk110_getFeatureExtension,
+	.getFeatureExtension		= sccp_astwrap_getFeatureExtension,
 	.getPickupExtension		= sccp_astwrap_getPickupExtension,
 	.findChannelByCallback		= sccp_astwrap_findChannelWithCallback,
 
