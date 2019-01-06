@@ -3346,6 +3346,10 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 
 	d->protocol->parsePortResponse((const sccp_msg_t *) msg_in, &conferenceId, &callReference, &passThruPartyId, &sas, &RTCPPortNumber, &mediaType);
 
+	if (sccp_netsock_is_any_addr(&sas)) {
+		pbx_log(LOG_NOTICE, "%s: (port_response) returned ip-address:0.0.0.0:0 signalling that the phone has run out of RTP ports. Expect trouble.\n", d->id);
+		return;
+	}
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (PortResponse) Got PortResponse Remote RTP/UDP '%s', ConferenceId:%d, PassThruPartyId:%u, CallID:%u, RTCPPortNumber:%d, mediaType:%s\n", d->id, 
 		sccp_netsock_stringify(&sas), conferenceId, passThruPartyId, callReference, RTCPPortNumber, skinny_mediaType2str(mediaType));
 
@@ -3368,15 +3372,8 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 		}
 		
 		if (channel && !sccp_netsock_equals(&sas, &rtp->phone_remote)) {
-			if (d->nat >= SCCP_NAT_ON) {
-				/* Rewrite ip-addres to the outside source address using the phones connection (device->sin) */
-				uint16_t port = sccp_netsock_getPort(&sas);
-				sccp_session_getSas(s, &sas);
-				
-				sccp_netsock_ipv4_mapped(&sas, &sas);
-				sccp_netsock_setPort(&sas, port);
-
-			}
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (PortResponse) Pass PortResponse to sccp_rtp_set_phone\n", channel->designator);
+			rtp->RTCPPortNumber=RTCPPortNumber;
 			sccp_rtp_set_phone(channel, rtp, &sas);
 			//rtp->receiveChannelState = SCCP_RTP_STATUS_PORTSET;
 		}
@@ -3674,7 +3671,7 @@ void handle_mediaTransmissionFailure(constSessionPtr s, devicePtr d, constMessag
 void handle_ipport(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	d->rtpPort = letohl(msg_in->data.IpPortMessage.lel_rtpMediaPort);
-	//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got rtpPort:%d which the device wants to use for media\n", d->id, d->rtpPort);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got rtpPort:%d which the device wants to use for media\n", d->id, d->rtpPort);
 }
 
 /*!
