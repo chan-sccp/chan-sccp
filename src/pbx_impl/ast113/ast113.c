@@ -2404,28 +2404,39 @@ static boolean_t sccp_astwrap_createRtpInstance(constDevicePtr d, constChannelPt
 	//sccp_log_and(DEBUGCAT_CODEC + DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: (create_rtp) Building rtpmap\n", c->designator);
 	struct ast_rtp_codecs newrtp = AST_RTP_CODECS_NULL_INIT;
 	ast_rtp_codecs_payloads_initialize(&newrtp);
-	uint x = 0;
-	for (x = 0; x < ast_format_cap_count(ast_channel_nativeformats(c->owner)); x++){
+	for (uint x = 0; x < ast_format_cap_count(ast_channel_nativeformats(c->owner)); x++){
 		struct ast_format *format = ast_format_cap_get_format(ast_channel_nativeformats(c->owner), x);
 		if (ast_format_get_type(format) == format_type) {
-			int payloadtype = ast_rtp_codecs_payload_code(ast_rtp_instance_get_codecs(instance), 1, format, 0);
-			char *subtype = (char *)ast_rtp_lookup_mime_subtype2(1, format, 0, 0);
-			int samplerate = ast_rtp_lookup_sample_rate2(1, format, 0);
-			sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_2 "%s: setting rtpmap_type_rate: format:%s, payloadtype:%d, mime-subtype:%s, samplerate:%d\n", c->designator, pbx_getformatname(format), payloadtype, subtype, samplerate);
-			if (!ast_rtp_codecs_payloads_set_rtpmap_type_rate(&newrtp, NULL, payloadtype, rtp_map_filter, subtype, 0, samplerate)) {
-				ast_rtp_codecs_payloads_set_m_type(&newrtp, NULL, payloadtype);
-			} else {
-				ast_rtp_codecs_payloads_unset(&newrtp, NULL, payloadtype);
+			int rtp_code = ast_rtp_codecs_payload_code(ast_rtp_instance_get_codecs(instance), 1, format, 0);
+			if (rtp_code != -1) {
+				/* Fixup mime types and rates */
+				const char *mime;
+				int rate = -1;
+				int skinny_payload = SKINNY_CODEC_NONE;
+				if (
+					(mime = ast_rtp_lookup_mime_subtype2(1, format, 0, 0)) &&
+					(rate = ast_rtp_lookup_sample_rate2(1, format, 0)) &&
+					(skinny_payload = (int)pbx_codec2skinny_codec(ast_format_compatibility_format2bitfield(format))) != SKINNY_CODEC_NONE
+				) {
+					//sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_2 "%s: update rtpmap: format:%s, rtp_code:%d -> payload:%d, mime:%s, rate:%d\n",
+					//	c->designator, pbx_getformatname(format), rtp_code, skinny_payload, mime, rate);
+					if (!ast_rtp_codecs_payloads_set_rtpmap_type_rate(&newrtp, instance, skinny_payload, rtp_map_filter, (char *)mime, 0, rate)) {
+						ast_rtp_codecs_payloads_set_m_type(&newrtp, instance, skinny_payload);
+					} else {
+						ast_rtp_codecs_payloads_unset(&newrtp, instance, skinny_payload);
+					}
+				}
 			}
 		}
 	}
 	//sccp_log_and(DEBUGCAT_CODEC + DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: (create_rtp) Adding: DTMF\n", c->designator);
 	if (rtp->type == SCCP_RTP_AUDIO) {
-               sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_2 "%s: setting rtpmap_type_rate: format:%s, payloadtype:%d, mime-subtype:%s, samplerate:%d\n", c->designator, "CISCO-DTMF", 101, "audio", 0);
-		if (!ast_rtp_codecs_payloads_set_rtpmap_type(&newrtp, NULL, 101, "audio", "telephone-event", 0)) {
-			ast_rtp_codecs_payloads_set_m_type(&newrtp, NULL, 101);
+		//sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_2 "%s: update rtpmap: format:%s, payload:%d, mime:%s, rate:%d\n",
+		//	c->designator, "CISCO-DTMF", 101, "audio", 0);
+		if (!ast_rtp_codecs_payloads_set_rtpmap_type(&newrtp, instance, 101, rtp_map_filter, "telephone-event", 0)) {
+			ast_rtp_codecs_payloads_set_m_type(&newrtp, instance, 101);
 		} else {
-			ast_rtp_codecs_payloads_unset(&newrtp, NULL, 101);
+			ast_rtp_codecs_payloads_unset(&newrtp, instance, 101);
 		}
 	}
 	ast_rtp_codecs_set_framing(&newrtp, ast_format_cap_get_framing(ast_channel_nativeformats(c->owner)));
