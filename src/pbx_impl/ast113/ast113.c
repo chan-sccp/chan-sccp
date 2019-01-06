@@ -101,7 +101,10 @@ static inline skinny_codec_t sccp_astwrap_getSkinnyFormatSingle(struct ast_forma
 	uint formatPosition;
 	skinny_codec_t codec = SKINNY_CODEC_NONE;
 	struct ast_format *format;
-	
+
+	struct ast_str *codec_buf = ast_str_alloca(64);
+	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "SCCP: (getSkinnyFormatMultiple) caps %s\n", ast_format_cap_get_names(ast_format_capability,&codec_buf));
+
 	for (formatPosition = 0; formatPosition < ast_format_cap_count(ast_format_capability); ++formatPosition) {
 		format = ast_format_cap_get_format(ast_format_capability, formatPosition);
 		uint64_t ast_codec = ast_format_compatibility_format2bitfield(format);
@@ -124,10 +127,11 @@ static uint8_t sccp_astwrap_getSkinnyFormatMultiple(struct ast_format_cap *ast_f
 	uint formatPosition;
 	skinny_codec_t found = SKINNY_CODEC_NONE;
 	uint8_t position = 0;
-	struct ast_str *codec_buf = ast_str_alloca(64);
 	struct ast_format *format;
 
 	memset(codecs, 0, length * sizeof(skinny_codec_t));
+
+	struct ast_str *codec_buf = ast_str_alloca(64);
 	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "SCCP: (getSkinnyFormatMultiple) caps %s\n", ast_format_cap_get_names(ast_format_capability,&codec_buf));
 
 	for (formatPosition = 0; formatPosition < ast_format_cap_count(ast_format_capability); ++formatPosition) {
@@ -916,11 +920,15 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 				// int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
 				// int codec = pbx_codec2skinny_codec(frame->subclass.format.id);
 
+/*
 				if (ast_format_cmp(ast_format_h264, frame->subclass.format) == AST_FORMAT_CMP_EQUAL) {
 					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: got video frame %s\n", c->currentDeviceId, "H264");
 					c->rtp.video.writeFormat = SKINNY_CODEC_H264;
 					sccp_channel_openMultiMediaReceiveChannel(c);
 				}
+*/
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: got video frame %s\n", c->currentDeviceId, pbx_getformatname(frame->subclass.format));
+				sccp_channel_openMultiMediaReceiveChannel(c);
 			}
 
 			if (c->rtp.video.instance && (c->rtp.video.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) != 0) {
@@ -985,7 +993,7 @@ static int sccp_astwrap_setNativeAudioFormats(constChannelPtr channel, skinny_co
 	return 1;
 }
 
-static int sccp_astwrap_setNativeVideoFormats(constChannelPtr channel, skinny_codec_t codec)
+static int sccp_astwrap_setNativeVideoFormats(constChannelPtr channel, skinny_codec_t codecs[], int length)
 {
 	if (!channel || !channel->owner || !ast_channel_nativeformats(channel->owner)) {
 		pbx_log(LOG_ERROR, "SCCP: (setNativeAudioFormats) no channel provided!\n");
@@ -999,9 +1007,6 @@ static int sccp_astwrap_setNativeVideoFormats(constChannelPtr channel, skinny_co
 	}
 	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(ast), AST_MEDIA_TYPE_UNKNOWN);
 	ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_VIDEO);
-	// temp
-	skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = {codec, 0};
-	// end temp
 	pbx_format_cap_append_skinny(caps, codecs);
 	
 	ast_channel_lock(ast);
@@ -1676,7 +1681,7 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 			}
 			ao2_ref(acaps, -1);
 		}
-#if SCCP_VIDEO
+#if CS_SCCP_VIDEO
 		struct ast_format_cap *vcaps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
 		if (vcaps) {
 			ast_format_cap_append_from_cap(vcaps, cap, AST_MEDIA_TYPE_VIDEO);								// Add Resquested
@@ -1732,7 +1737,7 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 
 	/** set requested codec as prefered codec */
 	memcpy(&channel->remoteCapabilities.audio, audioCapabilities, sizeof(channel->remoteCapabilities.audio));
-#if SCCP_VIDEO
+#if CS_SCCP_VIDEO
 	memcpy(&channel->remoteCapabilities.video, videoCapabilities, sizeof(channel->remoteCapabilities.video));
 #endif
 	/** done */

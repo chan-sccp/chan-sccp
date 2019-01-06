@@ -2636,10 +2636,11 @@ int sccp_device_destroy(const void *ptr)
  */
 boolean_t sccp_device_isVideoSupported(constDevicePtr device)
 {
-
-	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: video support %d \n", device->id, device->capabilities.video[0]);
+	char cap_buf[512];
+	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, device->capabilities.video, ARRAY_LEN(device->capabilities.video));
+	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: video support %s\n", device->id, cap_buf);
 #ifdef CS_SCCP_VIDEO
-	if (device->capabilities.video[0] != 0) {
+	if (device->capabilities.video[0] != SKINNY_CODEC_NONE) {
 		return TRUE;
 	}
 #endif

@@ -2759,19 +2759,17 @@ typedef union {
 			 * 
 			 */
 			struct {
-				uint32_t lel_conferenceID;							/*!< Conference ID */
-				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
-				skinny_codec_t lel_payloadCapability;						/*!< payload capability */
-
+				uint32_t lel_conferenceID;							/*!< Conference ID */				// 0b 00 00 01
+				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */			// 82 00 00 01
+				skinny_codec_t lel_payloadCapability;						/*!< payload capability */			// 67 00 00 00 = codec 103
 				uint32_t bel_remoteIpAddr;							/*!< This field is apparently in big-endian
 														   format, even though most other fields are
-														   little-endian. */
-				uint32_t lel_remotePortNumber;							/*!< Remote Port Number */
-				uint32_t lel_callReference;							/*!< Call Reference */
-				uint32_t lel_payload_rfc_number;						/*!< Payload RFC Number */
-				uint32_t lel_payloadType;							/*!< payload type */
-				uint32_t lel_DSCPValue;								/*!< DSCP Value */
-
+														   little-endian. */				// ac 11 01 66
+				uint32_t lel_remotePortNumber;							/*!< Remote Port Number */			// 45 15 00 00
+				uint32_t lel_callReference;							/*!< Call Reference */				// 0b 00 00 01
+				uint32_t lel_payload_rfc_number;						/*!< Payload RFC Number */			// 00 00 00 00
+				uint32_t lel_payloadType;							/*!< payload type */				// 61 00 00 00 = payload 97
+				uint32_t lel_DSCPValue;								/*!< DSCP Value */				// 88 00 00 00
 				videoParameter_t videoParameter;						/*!< Video Parameter */
 			} v3;
 

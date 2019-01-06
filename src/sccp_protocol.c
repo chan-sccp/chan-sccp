@@ -692,7 +692,8 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, co
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.pictureFormat[0].format = htolel(4);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.pictureFormat[0].mpi = htolel(1);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.profile = htolel(64);
-	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.level = htolel(50);
+//	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.level = htolel(50);
+	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.level = htolel(43);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.macroblockspersec = htolel(40500);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.macroblocksperframe = htolel(1620);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.decpicbuf = htolel(8100);
@@ -705,8 +706,8 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, co
 	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy6                   = htolel(0);
 	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy7                   = htolel(0);
 	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy8                   = htolel(0);
+	sccp_dump_msg(msg);
 
-	//sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 

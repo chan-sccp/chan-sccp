@@ -599,7 +599,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", d->id);
 		} else {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: video rtp started\n", d->id);
-			//sccp_channel_startMultiMediaTransmission(channel);
+			sccp_channel_openMultiMediaReceiveChannel(channel);
 		}
 	}
 #endif
@@ -951,6 +951,9 @@ int sccp_channel_receiveMultiMediaChannelOpen(sccp_device_t *d, sccp_channel_t *
 		return SCCP_RTP_STATUS_INACTIVE;
 	}
 
+	if (SCCP_RTP_STATUS_INACTIVE == c->rtp.video.mediaTransmissionState) {
+		sccp_channel_startMultiMediaTransmission(c);
+	}
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Opened MultiMedia Receive Channel (State: %s[%d])\n", d->id, sccp_channelstate2str(c->state), c->state);
 	c->rtp.video.receiveChannelState |= SCCP_RTP_STATUS_ACTIVE;
 
