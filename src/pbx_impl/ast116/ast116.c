@@ -497,8 +497,22 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk116_rtp_read(PBX_CHANNEL_TYPE * ast)
 #ifdef CS_SCCP_CONFERENCE
 		if (c->conference && (!ast_format_cache_is_slinear(ast_channel_readformat(ast)))) {
 			ast_set_read_format(ast, ast_format_slin96);
-		}
+		} else
 #endif
+		{
+			if (ast_format_cap_iscompatible_format(ast_channel_nativeformats(ast), frame->subclass.format) == AST_FORMAT_CMP_NOT_EQUAL) {
+				struct ast_format_cap *caps;
+				sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: (rtp_read) Format changed to %s\n", c->designator, ast_format_get_name(frame->subclass.format));
+				caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+				if (caps) {
+					ast_format_cap_append(caps, frame->subclass.format, 0);
+					ast_channel_nativeformats_set(ast, caps);
+					ao2_ref(caps, -1);
+				}
+				ast_set_read_format(ast, ast_channel_readformat(ast));
+				ast_set_write_format(ast, ast_channel_writeformat(ast));
+			}
+		}
 	}
 
 EXIT_FUNC:
@@ -2290,10 +2304,7 @@ static boolean_t sccp_wrapper_asterisk116_createRtpInstance(constDevicePtr d, co
 			ast_rtp_codecs_payloads_unset(&newrtp, NULL, 101);
 		}
 	}
-	struct ast_format *tmp_fmt = ast_format_cap_get_format(ast_channel_nativeformats(c->owner), 0);
-	unsigned int framing = ast_format_cap_get_format_framing(ast_channel_nativeformats(c->owner), tmp_fmt);
-	ast_rtp_codecs_set_framing(&newrtp, framing);
-	ao2_ref(tmp_fmt, -1);
+	ast_rtp_codecs_set_framing(&newrtp, ast_format_cap_get_framing(ast_channel_nativeformats(c->owner)));
 
 	ast_rtp_codecs_payloads_copy(&newrtp, ast_rtp_instance_get_codecs(instance), instance);
 	//sccp_log_and(DEBUGCAT_CODEC + DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: (create_rtp) Done rtpmap\n", c->designator);

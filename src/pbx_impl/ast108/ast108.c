@@ -458,19 +458,12 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 		} else
 #endif
 		{
-			if (!(frame->subclass.codec & (ast->rawreadformat & AST_FORMAT_AUDIO_MASK))) {
-				//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n", DEV_ID_LOG(c->device), ast->name, pbx_getformatname(ast->nativeformats), ast->nativeformats, pbx_getformatname(frame->subclass), frame->subclass);
-				sccp_wrapper_asterisk18_setReadFormat(c, c->rtp.audio.readFormat);
-			}
-			if (frame->subclass.codec != (int)(ast->nativeformats & AST_FORMAT_AUDIO_MASK)) {
-				if (!(frame->subclass.codec & skinny_codecs2pbx_codecs(c->capabilities.audio))) {
-					ast_debug(1, "Bogus frame of format '%s' received from '%s'!\n", ast_getformatname(frame->subclass.codec), ast->name);
-					return &ast_null_frame;
-				}
-				ast_debug(1, "SCCP: format changed to %s\n", ast_getformatname(frame->subclass.codec));
-				ast->nativeformats = (ast->nativeformats & (AST_FORMAT_VIDEO_MASK | AST_FORMAT_TEXT_MASK)) | frame->subclass.codec;
+			if (!(frame->subclass.codec & ast->nativeformats)) {
+				sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: (rtp_read) Format changed to %s\n", c->designator, ast_getformatname(frame->subclass.codec));
+				ast->nativeformats = frame->subclass.codec;
 				ast_set_read_format(ast, ast->readformat);
 				ast_set_write_format(ast, ast->writeformat);
+				//ast_rtp_new_source(c->rtp.audio.instance);
 			}
 		}
 	}

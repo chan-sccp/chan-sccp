@@ -453,8 +453,16 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk112_rtp_read(PBX_CHANNEL_TYPE * ast)
 #ifdef CS_SCCP_CONFERENCE
 		if (c->conference && (!ast_format_is_slinear(ast_channel_readformat(ast)))) {
 			ast_set_read_format(ast, &slinFormat);
-		}
+		} else
 #endif
+		{
+			if (!(ast_format_cap_iscompatible(ast_channel_nativeformats(ast), &frame->subclass.format))) {
+				sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: (rtp_read) Format changed to %s\n", c->designator, ast_getformatname(&frame->subclass.format));
+				ast_format_cap_set(ast_channel_nativeformats(ast), &frame->subclass.format);
+				ast_set_read_format(ast, ast_channel_readformat(ast));
+				ast_set_write_format(ast, ast_channel_writeformat(ast));
+			}
+		}
 	}
 
 EXIT_FUNC:

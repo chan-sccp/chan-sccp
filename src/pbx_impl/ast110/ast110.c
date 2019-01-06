@@ -424,8 +424,15 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk110_rtp_read(PBX_CHANNEL_TYPE * ast)
 			ast_set_read_format(ast, &slinFormat);
 		} else
 #endif
-		if (ast_format_cmp(&frame->subclass.format, &ast->rawreadformat) == AST_FORMAT_CMP_NOT_EQUAL) {
-			ast_set_read_format_by_id(ast, frame->subclass.format.id);
+		{
+			if (ast_format_cmp(&frame->subclass.format, &ast->rawreadformat) == AST_FORMAT_CMP_NOT_EQUAL) {
+				ast_format_cap_remove_bytype(ast->nativeformats, AST_FORMAT_TYPE_AUDIO);
+				ast_format_cap_add(ast->nativeformats, &frame->subclass.format);
+				ast_set_read_format(ast, &ast->readformat);
+				ast_set_write_format(ast, &ast->writeformat);
+				//ast_rtp_instance_set_read_format(channel->rtp.audio.instance, &ast->readformat);
+				//ast_rtp_instance_set_write_format(channel->rtp.audio.instance, &ast->writeformat);
+			}
 		}
 	}
 	

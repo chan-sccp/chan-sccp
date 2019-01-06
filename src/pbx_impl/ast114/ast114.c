@@ -2418,10 +2418,7 @@ static boolean_t sccp_wrapper_asterisk114_createRtpInstance(constDevicePtr d, co
 			ast_rtp_codecs_payloads_unset(&newrtp, NULL, 101);
 		}
 	}
-	struct ast_format *tmp_fmt = ast_format_cap_get_format(ast_channel_nativeformats(c->owner), 0);
-	unsigned int framing = ast_format_cap_get_format_framing(ast_channel_nativeformats(c->owner), tmp_fmt);
-	ast_rtp_codecs_set_framing(&newrtp, framing);
-	ao2_ref(tmp_fmt, -1);
+	ast_rtp_codecs_set_framing(&newrtp, ast_format_cap_get_framing(ast_channel_nativeformats(c->owner)));
 
 	ast_rtp_codecs_payloads_copy(&newrtp, ast_rtp_instance_get_codecs(instance), instance);
 	//sccp_log_and(DEBUGCAT_CODEC + DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: (create_rtp) Done rtpmap\n", c->designator);
