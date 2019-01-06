@@ -252,6 +252,21 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				sccp_dev_displayprompt(d, lineInstance, c->callid, prompt, GLOB(digittimeout));
 			}
 			break;
+		case SCCP_CHANNELSTATE_PROGRESS:
+			{
+				if (c->previousChannelState != c->state) {
+					if (c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) {		//! this is a bug of asterisk 1.6 (it sends progress after a call is answered, when it's being diverted to some extensions with dial app)
+						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state from (CONNECTED) to (PROGRESS). Ignoring\n");
+					} else {
+						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state from (%s) to (PROGRESS)\n", sccp_channelstate2str(c->previousChannelState));
+						if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && d->earlyrtp <= SCCP_EARLYRTP_PROGRESS) {
+							sccp_channel_openReceiveChannel(c);
+						}
+						sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROGRESS, GLOB(digittimeout));
+					}
+				}
+			}
+			break;
 		case SCCP_CHANNELSTATE_PROCEED:
 			{
 				if (c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) {		// this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
@@ -272,20 +287,6 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 				if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
 					sccp_channel_openReceiveChannel(c);
-				}
-			}
-			break;
-		case SCCP_CHANNELSTATE_PROGRESS:
-			{
-				sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_2 "%s: SCCP_CHANNELSTATE_PROGRESS\n", d->id);
-				if (c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) {		//! this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
-					sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
-				} else {
-					sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) from (%s)\n", sccp_channelstate2str(c->previousChannelState));
-					if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && d->earlyrtp <= SCCP_EARLYRTP_PROGRESS) {
-						sccp_channel_openReceiveChannel(c);
-					}
-					sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROGRESS, GLOB(digittimeout));
 				}
 			}
 			break;

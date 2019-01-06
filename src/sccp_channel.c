@@ -627,8 +627,10 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Opened Receive Channel (State: %s[%d])\n", d->id, sccp_channelstate2str(c->state), c->state);
 	sccp_channel_setDevice(c, d);
 	//sccp_rtp_set_phone(c, &c->rtp.audio, &sas);
-	//if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState && (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE)) {
 	if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState) {
+		// this will start rtp flowing in both directions, to punch open any intermediate firewall ports.
+		// for early rtp (progress/proceed) the transmission will be stopped immediatly on receiving the first packet
+		// Note: See wrapper_rtp_read
 		sccp_channel_startMediaTransmission(c);
 	}
 	sccp_channel_send_callinfo(d, c);
@@ -642,8 +644,9 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 			iPbx.queue_control(c->owner, -1);				// 'PROD' the remote side to let them know we can receive inband signalling from this moment onwards -> inband signalling required
 		}
 		// indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC
-		if (									// handle out of order arrival when startMediaAck returns before openReceiveChannelAck
-			(c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) &&
+		// handle out of order arrival when startMediaAck returns before openReceiveChannelAck
+		if (    SCCP_CHANNELSTATE_IsConnected(c->state) &&
+			(c->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) &&
 			(c->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE)
 		) {
 			iPbx.set_callstate(c, AST_STATE_UP);
