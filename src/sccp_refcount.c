@@ -337,13 +337,13 @@ static gcc_inline int __sccp_refcount_debug(const void *ptr, RefCountedObject * 
 }
 #endif
 
-static gcc_inline RefCountedObject *sccp_refcount_find_obj(const void *ptr, const char *filename, int lineno, const char *func)
+static gcc_inline RefCountedObject *sccp_refcount_find_obj(const void * const ptr, const char *filename, int lineno, const char *func)
 {
 	if (!ptr) {
 		return NULL;
 	}
 
-	RefCountedObject *obj = container_of(ptr, RefCountedObject, data);
+	RefCountedObject *obj = container_of( ((void *)ptr), RefCountedObject, data);
 
 	if (do_expect(obj && obj->data == ptr && SCCP_LIVE_MARKER == obj->alive)) {
 		return obj;
