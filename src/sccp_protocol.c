@@ -685,12 +685,15 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, co
 	msg->data.OpenMultiMediaChannelMessage.v17.lel_payloadCapability = htolel(skinnyFormat);
 	msg->data.OpenMultiMediaChannelMessage.v17.lel_lineInstance = htolel(lineInstance);
 	msg->data.OpenMultiMediaChannelMessage.v17.lel_callReference = htolel(channel->callid);
+	msg->data.OpenMultiMediaChannelMessage.v17.lel_payload_rfc_number = htolel(0);
 	msg->data.OpenMultiMediaChannelMessage.v17.lel_payloadType = htolel(payloadType);
-	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.confServiceNum = htolel(channel->callid);
+
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.bitRate = htolel(bitRate);
 	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.pictureFormatCount       = htolel(0);
+	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.pictureFormatCount       = htolel(1);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.pictureFormat[0].format = htolel(4);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.pictureFormat[0].mpi = htolel(1);
+	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.confServiceNum = htolel(channel->callid);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.profile = htolel(64);
 //	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.level = htolel(50);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.level = htolel(43);

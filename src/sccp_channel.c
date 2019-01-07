@@ -329,7 +329,7 @@ static void sccp_channel_recalculateCodecFormat(sccp_channel_t * channel)
 
 		if (channel->rtp.audio.instance) {                      // Fix nativeAudioFormats
 			skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = { joint, 0};
-			iPbx.set_nativeAudioFormats(channel, codecs, 1);
+			iPbx.set_nativeAudioFormats(channel, codecs);
 		}
 	}
 	if (joint != SKINNY_CODEC_NONE) {
@@ -867,7 +867,8 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 	uint32_t skinnyFormat;
 	int payloadType;
 	uint8_t lineInstance;
-	int bitRate = 1500;
+	//int bitRate = 1500;
+	int bitRate = 3840;
 	skinny_codec_t joint = SKINNY_CODEC_NONE;
 
 	pbx_assert(channel != NULL);
@@ -898,9 +899,8 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 			joint = channel->preferences.video[0];
 		}
 		video->writeFormat = video->readFormat = joint;
-		//skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = { joint, 0};
-		//iPbx.set_nativeVideoFormats(channel, codecs, 1);
-		iPbx.set_nativeVideoFormats(channel, joint);
+		skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = { joint, 0};
+		iPbx.set_nativeVideoFormats(channel, codecs);
 		iPbx.rtp_setWriteFormat(channel, joint);
 		iPbx.rtp_setReadFormat(channel, joint);
 	}
@@ -2492,8 +2492,8 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		return -1;
 	}
 	/* Update rtp setting to match predecessor */
-	skinny_codec_t codecs[] = { SKINNY_CODEC_WIDEBAND_256K };
-	iPbx.set_nativeAudioFormats(sccp_forwarding_channel, codecs, 1);
+	skinny_codec_t codecs[] = { SKINNY_CODEC_WIDEBAND_256K, 0 };
+	iPbx.set_nativeAudioFormats(sccp_forwarding_channel, codecs);
 	iPbx.rtp_setWriteFormat(sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
 	iPbx.rtp_setReadFormat(sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
 	sccp_channel_updateChannelCapability(sccp_forwarding_channel);

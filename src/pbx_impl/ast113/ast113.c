@@ -966,7 +966,7 @@ static void sccp_astwrap_setCalleridPresentation(PBX_CHANNEL_TYPE *pbx_channel, 
 	}
 }
 
-static int sccp_astwrap_setNativeAudioFormats(constChannelPtr channel, skinny_codec_t codecs[], int length)
+static int sccp_astwrap_setNativeAudioFormats(constChannelPtr channel, skinny_codec_t codecs[])
 {
 	if (!channel || !channel->owner || !ast_channel_nativeformats(channel->owner)) {
 		pbx_log(LOG_ERROR, "SCCP: (setNativeAudioFormats) no channel provided!\n");
@@ -993,7 +993,7 @@ static int sccp_astwrap_setNativeAudioFormats(constChannelPtr channel, skinny_co
 	return 1;
 }
 
-static int sccp_astwrap_setNativeVideoFormats(constChannelPtr channel, skinny_codec_t codecs[], int length)
+static int sccp_astwrap_setNativeVideoFormats(constChannelPtr channel, skinny_codec_t codecs[])
 {
 	if (!channel || !channel->owner || !ast_channel_nativeformats(channel->owner)) {
 		pbx_log(LOG_ERROR, "SCCP: (setNativeAudioFormats) no channel provided!\n");
@@ -1779,7 +1779,7 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 	*/
 	if (!channel->capabilities.audio[0]) {
 		skinny_codec_t codecs[] = { SKINNY_CODEC_WIDEBAND_256K };
-		sccp_astwrap_setNativeAudioFormats(channel, codecs, 1);
+		sccp_astwrap_setNativeAudioFormats(channel, codecs);
 		sccp_astwrap_setReadFormat(channel, SKINNY_CODEC_WIDEBAND_256K);
 		sccp_astwrap_setWriteFormat(channel, SKINNY_CODEC_WIDEBAND_256K);
 	}

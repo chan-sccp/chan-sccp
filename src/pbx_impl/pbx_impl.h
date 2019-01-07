@@ -63,8 +63,8 @@ typedef struct _PbxInterface {
 	boolean_t(*const getRemoteChannel) (const sccp_channel_t *channel, PBX_CHANNEL_TYPE **pbx_channel);
 	void *(*const getChannelByCallback) (int (*is_match)(PBX_CHANNEL_TYPE *, void *),void *data);
 
-	int (*const set_nativeAudioFormats) (constChannelPtr channel, skinny_codec_t codec[], int length);
-	int (*const set_nativeVideoFormats) (constChannelPtr channel, uint32_t);
+	int (*const set_nativeAudioFormats) (constChannelPtr channel, skinny_codec_t codec[]);
+	int (*const set_nativeVideoFormats) (constChannelPtr channel, skinny_codec_t codec[]);
 	int (*const getPeerCodecCapabilities) (constChannelPtr channel, void **capabilities);
 	int (*const send_digit) (constChannelPtr channel, const char digit);
 	int (*const send_digits) (constChannelPtr channel, const char *digits);
