@@ -1,5 +1,8 @@
 language: c
 
+dist: 
+ - xenial
+
 # Setup Build Matrix
 compiler: 
  - clang
@@ -19,36 +22,26 @@ env:
     # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created using: travis encrypt COVERITY_SCAN_TOKEN="xxxxxxx-xxxxxxx" -r dkgroot/chan-sccp-b
     - secure: "VJIQBkTBxuMqUEk872yPrbPq3MAFqB0EnjElxjTk+BWEHIKmheKIHyrlqJgnql/tqyeLSa6D8epV0cJ47adVbedCPAG/l1tk4AzErrQdnw9VVFANUFrJXxlaH/yfm39XiwwumuAJ2RF3OaYGHlyurW+lb91y2HHw8vQHNPu+uHI="
   matrix:
-    - REPOS=precise
-    - REPOS=trusty
-    - REPOS=trusty13
-    - REPOS=utopic
+    - REPOS=xenial   # TLS
+    - REPOS=coverity # Xenial TLS
+    - REPOS=bionic   # TLS
+#    - REPOS=cosmic
+#    - REPOS=disco
 
 matrix:
   allow_failures:
     - compiler: clang
-      env: REPOS=trusty13
+      env: REPOS=coverity
 
 # Install Required Devel Packages
 before_install:
- - if [ "${REPOS}" != "trusty13" ]; 
+ - if [ "${REPOS}" != "coverity" ]; 
    then
-     echo "deb http://archive.ubuntu.com/ubuntu ${REPOS} main restricted universe multiverse"            | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     echo "deb http://archive.ubuntu.com/ubuntu ${REPOS}-updates main restricted universe multiverse"    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     echo "deb http://security.ubuntu.com/ubuntu/ ${REPOS}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     echo "deb http://archive.canonical.com/ubuntu/ ${REPOS} partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list;
      sudo apt-get update -qq;
-     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev asterisk asterisk-dev asterisk-config asterisk-modules binutils.dev libc6-dev gettext;
+     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg binutils.dev libc6-dev gettext  autoconf automake m4 autotools-dev libltdl-dev;
    else
-     echo "deb http://archive.ubuntu.com/ubuntu trusty main restricted universe multiverse"              | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     echo "deb http://archive.ubuntu.com/ubuntu trusty-updates main restricted universe multiverse"      | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     echo "deb http://security.ubuntu.com/ubuntu/ trusty-security main restricted universe multiverse"   | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     echo "deb http://archive.canonical.com/ubuntu/ trusty partner"                                      | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 9C245DE2;
-     echo "deb http://ppa.launchpad.net/jan-hoffmann/asterisk13/ubuntu trusty main"                      | sudo tee -a /etc/apt/sources.list.d/asterisk13.list;
-     echo "deb-src http://ppa.launchpad.net/jan-hoffmann/asterisk13/ubuntu trusty main"			 | sudo tee -a /etc/apt/sources.list.d/asterisk13.list;
      sudo apt-get update -qq;
-     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 libpjsua2-2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg binutils.dev libc6-dev gettext;
+     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg binutils.dev libc6-dev gettext  autoconf automake m4 autotools-dev libltdl-dev;
      if [ "x${CC}" == "xclang" ] && [ "x${TRAVIS_BRANCH}" == "xdevelop" ]; then eval "$COVERITY_SCAN_BUILD"; fi;
    fi
 
