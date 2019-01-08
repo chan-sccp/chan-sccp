@@ -1033,9 +1033,9 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7985:
-			d->capabilities.video[0] = SKINNY_CODEC_H264;
-			d->capabilities.video[1] = SKINNY_CODEC_H263;
 #ifdef CS_SCCP_VIDEO
+			//d->capabilities.video[0] = SKINNY_CODEC_H264;
+			//d->capabilities.video[1] = SKINNY_CODEC_H263;
 			sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
 #endif
 			for (i = 0; i < 1; i++) {
@@ -1072,8 +1072,8 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 		case SKINNY_DEVICETYPE_CISCO8941:
 		case SKINNY_DEVICETYPE_CISCO8945:
 #ifdef CS_SCCP_VIDEO
-			d->capabilities.video[0] = SKINNY_CODEC_H264;
-			d->capabilities.video[1] = SKINNY_CODEC_H263;
+			//d->capabilities.video[0] = SKINNY_CODEC_H264;
+			//d->capabilities.video[1] = SKINNY_CODEC_H263;
 			sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
 #endif
 			d->pushTextMessage = sccp_device_pushTextMessage;
@@ -2636,11 +2636,11 @@ int sccp_device_destroy(const void *ptr)
  */
 boolean_t sccp_device_isVideoSupported(constDevicePtr device)
 {
-	char cap_buf[512];
-	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, device->capabilities.video, ARRAY_LEN(device->capabilities.video));
-	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: video support %s\n", device->id, cap_buf);
 #ifdef CS_SCCP_VIDEO
 	if (device->capabilities.video[0] != SKINNY_CODEC_NONE) {
+		char cap_buf[512];
+		sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, device->capabilities.video, ARRAY_LEN(device->capabilities.video));
+		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: video support %s\n", device->id, cap_buf);
 		return TRUE;
 	}
 #endif
