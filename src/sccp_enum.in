@@ -985,6 +985,32 @@ strenum resetType {
 	SKINNY_RESETTYPE_APPLYCONFIG,		=0x3,	"ApplyConfig",
 }
 
+/*!
+ * \brief Skinny EchoCancellation Type
+ */
+strenum echoCancellaton {
+	SKINNY_ECHOCANCELLATION_OFF,		=0x0,	"Off",
+	SKINNY_ECHOCANCELLATION_ON,		=0x1,	"On",
+}
+
+/*!
+ * \brief Skinny g723BitRate Type
+ */
+strenum g723BitRate {
+	SKINNY_G723BITRATE_5_3,			=0x1,	"5.3",
+	SKINNY_G723BITRATE_6_3,			=0x2,	"6.3",
+}
+
+/*!
+ * \brief Skinny IpAddrType Type
+ */
+strenum ipAddr {
+	SKINNY_IPADDR_IPV4,			=0x0,	"IPv4",
+	SKINNY_IPADDR_IPV6,			=0x1,	"IPv6",
+	SKINNY_IPADDR_IPV46,		=0x2,	"IPv4 and IPv6",
+	SKINNY_IPADDR_INVALID,		=0x3,	"Ip Invalid",
+}
+
 } /* NAMESPACE skinny */
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

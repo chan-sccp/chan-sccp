@@ -652,27 +652,155 @@ static void sccp_protocol_sendOpenMultiMediaChannelV3(constDevicePtr device, con
 	sccp_msg_t *msg = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(msg->data.OpenMultiMediaChannelMessage.v3));
 
 	msg->data.OpenMultiMediaChannelMessage.v3.lel_conferenceID = htolel(channel->callid);
-	msg->data.OpenMultiMediaChannelMessage.v3.lel_passThruPartyId = htolel(channel->passthrupartyid);
-	msg->data.OpenMultiMediaChannelMessage.v3.lel_payloadCapability = htolel(skinnyFormat);
+	msg->data.OpenMultiMediaChannelMessage.v3.lel_passThruPartyID = htolel(channel->passthrupartyid);
+	msg->data.OpenMultiMediaChannelMessage.v3.lel_codecType = htolel(skinnyFormat);
 	msg->data.OpenMultiMediaChannelMessage.v3.lel_lineInstance = htolel(lineInstance);
 	msg->data.OpenMultiMediaChannelMessage.v3.lel_callReference = htolel(channel->callid);
-	msg->data.OpenMultiMediaChannelMessage.v3.lel_payloadType = htolel(payloadType);
-	//msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.pictureFormatCount           = htolel(0);
-	//msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.pictureFormat[0].format      = htolel(4);
-	//msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.pictureFormat[0].mpi         = htolel(30);
-	msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.profile = htolel(64);
-	msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.level = htolel(50);
-	msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.macroblockspersec = htolel(40500);
-	msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.macroblocksperframe = htolel(1620);
-	msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.decpicbuf = htolel(8100);
-	msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.brandcpb = htolel(10000);
-	msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.confServiceNum = htolel(channel->callid);
-	msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.bitRate = htolel(bitRate);
+	
+	msg->data.OpenMultiMediaChannelMessage.v3.payloadType.lel_payload_rfc_number = htolel(0);
+	msg->data.OpenMultiMediaChannelMessage.v3.payloadType.lel_payloadType = htolel(payloadType);
+	
+	msg->data.OpenMultiMediaChannelMessage.v3.lel_isConferenceCreator = htolel(0);
+	
+	skinny_OpenMultiMediaReceiveChannelUnion_t *capability = &(msg->data.OpenMultiMediaChannelMessage.v3.capability);
+	{
+		capability->vidParameters.lel_bitRate = htolel(bitRate);
+		capability->vidParameters.lel_pictureFormatCount = htolel(1);
+		
+		capability->vidParameters.pictureFormat[0].format = htolel(4);					// should be taken from UpdateCapabilitiesMessage
+		capability->vidParameters.pictureFormat[0].mpi = htolel(1);					// should be taken from UpdateCapabilitiesMessage
+		capability->vidParameters.pictureFormat[1].format = htolel(2);
+		capability->vidParameters.pictureFormat[1].mpi = htolel(1);
+		capability->vidParameters.pictureFormat[2].format = htolel(1);
+		capability->vidParameters.pictureFormat[2].mpi = htolel(1);
+		capability->vidParameters.pictureFormat[3].format = htolel(0);
+		capability->vidParameters.pictureFormat[3].mpi = htolel(1);
+		//capability->vidParameters.pictureFormat[4].format = htolel(0);
+		//capability->vidParameters.pictureFormat[4].mpi = htolel(0);
+		
+		capability->vidParameters.lel_confServiceNum = htolel(0);
 
-	//sccp_dump_msg(msg);
+		skinny_ChannelVideoParametersUnion_t *channelVideoParams = &(capability->vidParameters.capability);
+		{
+			if (skinnyFormat == SKINNY_CODEC_H261) {
+				channelVideoParams->h261.lel_temporalSpatialTradeOffCapability = htolel(1);	// ??
+				channelVideoParams->h261.lel_stillImageTransmission = htolel(0);		// ??
+			} else if (skinnyFormat == SKINNY_CODEC_H263) {						//
+				channelVideoParams->h263.lel_capabilityBitfield = htolel(0);			// ??
+				channelVideoParams->h263.lel_annexNandWFutureUse = htolel(0);			// ?? 
+			} else if (skinnyFormat == SKINNY_CODEC_H263P) {					// H263P / aka:Vieo / H263-1998
+				//CIF=1,QCIF=1
+				channelVideoParams->h263P.lel_modelNumber = htolel(0);				// ??
+				channelVideoParams->h263P.lel_bandwidth = htolel(0);				// ?? 90000
+			} else if (skinnyFormat == SKINNY_CODEC_H264) {						// aka: MPEG4-AVC
+				channelVideoParams->h264.lel_profile = htolel(64);				// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_level = htolel(43);				// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxMBPS = htolel(40500);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxFS = htolel(1620);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxDPB = htolel(8100);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxBRandCPB = htolel(10000);			// should be taken from UpdateCapabilitiesMessage
+			} else {
+				// error
+			}
+		}
+	}
+	// Leave empty for now, until we find out more about encryption
+	//msg->data.OpenMultiMediaChannelMessage.v3.RxEncryptionInfo = {0};
+	msg->data.OpenMultiMediaChannelMessage.v3.lel_streamPassThroughID = htolel(channel->passthrupartyid);
+	msg->data.OpenMultiMediaChannelMessage.v3.lel_associatedStreamID = htolel(channel->callid);		// We should use a random number and link it up 
+														// with the MultiMediaTransmission
+
+	sccp_dump_msg(msg);
+
 	sccp_dev_send(device, msg);
 }
+/*!
+ * \brief Send Open MultiMediaChannel Message (V12)
+ */
+static void sccp_protocol_sendOpenMultiMediaChannelV12(constDevicePtr device, constChannelPtr channel, uint32_t skinnyFormat, int payloadType, uint8_t lineInstance, int bitRate)
+{
+	sccp_msg_t *msg = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(msg->data.OpenMultiMediaChannelMessage.v12));
 
+	msg->data.OpenMultiMediaChannelMessage.v12.lel_conferenceID = htolel(channel->callid);
+	msg->data.OpenMultiMediaChannelMessage.v12.lel_passThruPartyID = htolel(channel->passthrupartyid);
+	msg->data.OpenMultiMediaChannelMessage.v12.lel_codecType = htolel(skinnyFormat);
+	msg->data.OpenMultiMediaChannelMessage.v12.lel_lineInstance = htolel(lineInstance);
+	msg->data.OpenMultiMediaChannelMessage.v12.lel_callReference = htolel(channel->callid);
+	
+	msg->data.OpenMultiMediaChannelMessage.v12.payloadType.lel_payload_rfc_number = htolel(0);
+	msg->data.OpenMultiMediaChannelMessage.v12.payloadType.lel_payloadType = htolel(payloadType);
+	
+	msg->data.OpenMultiMediaChannelMessage.v12.lel_isConferenceCreator = htolel(0);
+	
+	skinny_OpenMultiMediaReceiveChannelUnion_t *capability = &(msg->data.OpenMultiMediaChannelMessage.v12.capability);
+	{
+		capability->vidParameters.lel_bitRate = htolel(bitRate);
+		capability->vidParameters.lel_pictureFormatCount = htolel(1);
+		
+		capability->vidParameters.pictureFormat[0].format = htolel(4);					// should be taken from UpdateCapabilitiesMessage
+		capability->vidParameters.pictureFormat[0].mpi = htolel(1);					// should be taken from UpdateCapabilitiesMessage
+		capability->vidParameters.pictureFormat[1].format = htolel(2);
+		capability->vidParameters.pictureFormat[1].mpi = htolel(1);
+		capability->vidParameters.pictureFormat[2].format = htolel(1);
+		capability->vidParameters.pictureFormat[2].mpi = htolel(1);
+		capability->vidParameters.pictureFormat[3].format = htolel(0);
+		capability->vidParameters.pictureFormat[3].mpi = htolel(1);
+		//capability->vidParameters.pictureFormat[4].format = htolel(0);
+		//capability->vidParameters.pictureFormat[4].mpi = htolel(0);
+		
+		capability->vidParameters.lel_confServiceNum = htolel(0);
+
+		skinny_ChannelVideoParametersUnion_t *channelVideoParams = &(capability->vidParameters.capability);
+		{
+			if (skinnyFormat == SKINNY_CODEC_H261) {
+				channelVideoParams->h261.lel_temporalSpatialTradeOffCapability = htolel(1);	// ??
+				channelVideoParams->h261.lel_stillImageTransmission = htolel(0);		// ??
+			} else if (skinnyFormat == SKINNY_CODEC_H263) {						//
+				channelVideoParams->h263.lel_capabilityBitfield = htolel(0);			// ??
+				channelVideoParams->h263.lel_annexNandWFutureUse = htolel(0);			// ?? 
+			} else if (skinnyFormat == SKINNY_CODEC_H263P) {					// H263P / aka:Vieo / H263-1998
+				//CIF=1,QCIF=1
+				channelVideoParams->h263P.lel_modelNumber = htolel(0);				// ??
+				channelVideoParams->h263P.lel_bandwidth = htolel(0);				// ?? 90000
+			} else if (skinnyFormat == SKINNY_CODEC_H264) {						// aka: MPEG4-AVC
+				channelVideoParams->h264.lel_profile = htolel(64);				// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_level = htolel(43);				// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxMBPS = htolel(40500);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxFS = htolel(1620);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxDPB = htolel(8100);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxBRandCPB = htolel(10000);			// should be taken from UpdateCapabilitiesMessage
+			} else {
+				// error
+			}
+		}
+	}
+	// Leave empty for now, until we find out more about encryption
+	//msg->data.OpenMultiMediaChannelMessage.v12.RxEncryptionInfo = {0};
+	msg->data.OpenMultiMediaChannelMessage.v12.lel_streamPassThroughID = htolel(channel->passthrupartyid);
+	msg->data.OpenMultiMediaChannelMessage.v12.lel_associatedStreamID = htolel(channel->callid);		// We should use a random number and link it up 
+														// with the MultiMediaTransmission
+
+	/* Source Ip Address */
+	struct sockaddr_storage sas;
+	if (device->directrtp) {
+		sccp_rtp_getPeer(&channel->rtp.video, &sas);
+	} else {
+		sccp_rtp_getUs(&channel->rtp.video, &sas);
+	}
+	sccp_netsock_ipv4_mapped(&sas, &sas);
+
+	if (sas.ss_family == AF_INET) {
+		struct sockaddr_in *in = (struct sockaddr_in *) &sas;
+		memcpy(&msg->data.OpenMultiMediaChannelMessage.v12.bel_sourceIpAddr, &in->sin_addr, 4);
+	} else {
+		// error
+	}
+	msg->data.OpenMultiMediaChannelMessage.v12.lel_sourcePortNumber=htolel(sccp_netsock_getPort(&sas));
+	
+	sccp_dump_msg(msg);
+
+	sccp_dev_send(device, msg);
+}
 /*!
  * \brief Send Open MultiMediaChannel Message (V17)
  */
@@ -681,34 +809,111 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, co
 	sccp_msg_t *msg = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(msg->data.OpenMultiMediaChannelMessage.v17));
 
 	msg->data.OpenMultiMediaChannelMessage.v17.lel_conferenceID = htolel(channel->callid);
-	msg->data.OpenMultiMediaChannelMessage.v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
-	msg->data.OpenMultiMediaChannelMessage.v17.lel_payloadCapability = htolel(skinnyFormat);
+	msg->data.OpenMultiMediaChannelMessage.v17.lel_passThruPartyID = htolel(channel->passthrupartyid);
+	msg->data.OpenMultiMediaChannelMessage.v17.lel_codecType = htolel(skinnyFormat);
 	msg->data.OpenMultiMediaChannelMessage.v17.lel_lineInstance = htolel(lineInstance);
 	msg->data.OpenMultiMediaChannelMessage.v17.lel_callReference = htolel(channel->callid);
-	msg->data.OpenMultiMediaChannelMessage.v17.lel_payload_rfc_number = htolel(0);
-	msg->data.OpenMultiMediaChannelMessage.v17.lel_payloadType = htolel(payloadType);
+	
+	msg->data.OpenMultiMediaChannelMessage.v17.payloadType.lel_payload_rfc_number = htolel(0);
+	msg->data.OpenMultiMediaChannelMessage.v17.payloadType.lel_payloadType = htolel(payloadType);
+	
+	msg->data.OpenMultiMediaChannelMessage.v17.lel_isConferenceCreator = htolel(0);
+	
 
-	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.bitRate = htolel(bitRate);
-	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.pictureFormatCount       = htolel(0);
-	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.pictureFormatCount       = htolel(1);
-	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.pictureFormat[0].format = htolel(4);
-	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.pictureFormat[0].mpi = htolel(1);
-	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.confServiceNum = htolel(channel->callid);
-	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.profile = htolel(64);
-//	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.level = htolel(50);
-	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.level = htolel(43);
-	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.macroblockspersec = htolel(40500);
-	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.macroblocksperframe = htolel(1620);
-	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.decpicbuf = htolel(8100);
-	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.brandcpb = htolel(10000);
-	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy1                   = htolel(0);
-	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy2                   = htolel(0);
-	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy3                   = htolel(0);
-	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy4                   = htolel(0);
-	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy5                   = htolel(0);
-	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy6                   = htolel(0);
-	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy7                   = htolel(0);
-	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy8                   = htolel(0);
+	skinny_OpenMultiMediaReceiveChannelUnion_t *capability = &(msg->data.OpenMultiMediaChannelMessage.v17.capability);
+	{
+		capability->vidParameters.lel_bitRate = htolel(bitRate);
+		capability->vidParameters.lel_pictureFormatCount = htolel(1);
+		
+		capability->vidParameters.pictureFormat[0].format = htolel(4);					// should be taken from UpdateCapabilitiesMessage
+/*
+	MPI = Minimum Picture interval. 1=means 29.7 frames, 2=halfs that to 14.9.
+	If the receiver does not specify the picture size/MPI optional parameter, then it SHOULD be ready to receive QCIF resolution with MPI=1.
+*/
+		capability->vidParameters.pictureFormat[0].format = htolel(4);					// should be taken from UpdateCapabilitiesMessage
+		capability->vidParameters.pictureFormat[0].mpi = htolel(1);					// should be taken from UpdateCapabilitiesMessage
+		capability->vidParameters.pictureFormat[1].format = htolel(2);
+		capability->vidParameters.pictureFormat[1].mpi = htolel(1);
+		capability->vidParameters.pictureFormat[2].format = htolel(1);
+		capability->vidParameters.pictureFormat[2].mpi = htolel(1);
+		capability->vidParameters.pictureFormat[3].format = htolel(0);
+		capability->vidParameters.pictureFormat[3].mpi = htolel(1);
+		//capability->vidParameters.pictureFormat[4].format = htolel(0);
+		//capability->vidParameters.pictureFormat[4].mpi = htolel(0);
+		
+		capability->vidParameters.lel_confServiceNum = htolel(0);
+
+		skinny_ChannelVideoParametersUnion_t *channelVideoParams = &(capability->vidParameters.capability);
+		{
+			if (skinnyFormat == SKINNY_CODEC_H261) {
+				channelVideoParams->h261.lel_temporalSpatialTradeOffCapability = htolel(1);	// ??
+				channelVideoParams->h261.lel_stillImageTransmission = htolel(0);		// ??
+			} else if (skinnyFormat == SKINNY_CODEC_H263) {						// https://tools.ietf.org/html/rfc4629
+				channelVideoParams->h263.lel_capabilityBitfield = htolel(0);			// ??
+				channelVideoParams->h263.lel_annexNandWFutureUse = htolel(0);			// ?? 
+			} else if (skinnyFormat == SKINNY_CODEC_H263P) {					// H263P / aka:Vieo / H263-1998
+				//CIF=1,QCIF=1
+				channelVideoParams->h263P.lel_modelNumber = htolel(0);				// ??
+				channelVideoParams->h263P.lel_bandwidth = htolel(0);				// ?? 90000
+			} else if (skinnyFormat == SKINNY_CODEC_H264) {						// aka: MPEG4-AVC
+				/*
+				      PROFILE:  profile number, in the range 0 through 10,
+				      specifying the supported H.263 annexes/subparts based on H.263
+				      annex X [H263].  The annexes supported in each profile are listed
+				      in table X.1 of H.263 annex X.  If no profile or H.263 annex is
+				      specified, then the stream is Baseline H.263 (profile 0 of H.263
+				      annex X).
+				*/
+				channelVideoParams->h264.lel_profile = htolel(64);				// should be taken from UpdateCapabilitiesMessage
+				/*
+				      LEVEL:  Level of bitstream operation, in the range 0 through 100,
+				      specifying the level of computational complexity of the decoding
+				      process.  The level are described in table X.2 of H.263 annex X.
+				*/
+				channelVideoParams->h264.lel_level = htolel(43);				// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxMBPS = htolel(40500);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxFS = htolel(1620);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxDPB = htolel(8100);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxBRandCPB = htolel(10000);			// should be taken from UpdateCapabilitiesMessage
+			} else {
+				// error
+			}
+		}
+	}
+	// Leave empty for now, until we find out more about encryption
+	//msg->data.OpenMultiMediaChannelMessage.v17.RxEncryptionInfo = {0};
+	msg->data.OpenMultiMediaChannelMessage.v17.lel_streamPassThroughID = htolel(channel->passthrupartyid);
+	msg->data.OpenMultiMediaChannelMessage.v17.lel_associatedStreamID = htolel(channel->callid);		// We should use a random number and link it up 
+														// with the MultiMediaTransmission
+
+	/* Source Ip Address */
+	struct sockaddr_storage sas;
+	if (device->directrtp) {
+		sccp_rtp_getPeer(&channel->rtp.video, &sas);
+	} else {
+		sccp_rtp_getUs(&channel->rtp.video, &sas);
+	}
+	sccp_netsock_ipv4_mapped(&sas, &sas);
+
+	if (sas.ss_family == AF_INET6) {
+		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *) &sas;
+		msg->data.OpenMultiMediaChannelMessage.v17.sourceIpAddr.lel_ipAddrType = htolel(SKINNY_IPADDR_IPV6);
+		
+		// Also take into account that we could be using IPv46 (ie: both of them)
+		if (sccp_netsock_is_mapped_IPv4(&sas)) {
+			msg->data.OpenMultiMediaChannelMessage.v17.lel_requestedIpAddrType = htolel(SKINNY_IPADDR_IPV46);
+		} else {
+			msg->data.OpenMultiMediaChannelMessage.v17.lel_requestedIpAddrType = htolel(SKINNY_IPADDR_IPV6);
+		}
+		memcpy(&msg->data.OpenMultiMediaChannelMessage.v17.sourceIpAddr.stationIpAddr, &in6->sin6_addr, 16);
+	} else {
+		struct sockaddr_in *in = (struct sockaddr_in *) &sas;
+		msg->data.OpenMultiMediaChannelMessage.v17.sourceIpAddr.lel_ipAddrType = htolel(SKINNY_IPADDR_IPV4);
+		msg->data.OpenMultiMediaChannelMessage.v17.lel_requestedIpAddrType = htolel(SKINNY_IPADDR_IPV4);
+		memcpy(&msg->data.OpenMultiMediaChannelMessage.v17.sourceIpAddr.stationIpAddr, &in->sin_addr, 4);
+	}
+	msg->data.OpenMultiMediaChannelMessage.v17.lel_sourcePortNumber=htolel(sccp_netsock_getPort(&sas));
+	
 	sccp_dump_msg(msg);
 
 	sccp_dev_send(device, msg);
@@ -1392,10 +1597,10 @@ static const sccp_deviceProtocol_t *sccpProtocolDefinition[] = {
 	NULL,
 	NULL,
 	NULL,
-	&(sccp_deviceProtocol_t) {SCCP_PROTOCOL, 15, TimeDateReqMessage, sccp_protocol_sendCallInfoV7, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV3, sccp_protocol_sendOpenMultiMediaChannelV17,
+	&(sccp_deviceProtocol_t) {SCCP_PROTOCOL, 15, TimeDateReqMessage, sccp_protocol_sendCallInfoV7, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV3, sccp_protocol_sendOpenMultiMediaChannelV12,
 				  sccp_protocol_sendStartMultiMediaTransmissionV17, sccp_protocol_sendStartMediaTransmissionV3, sccp_protocol_sendConnectionStatisticsReqV3, sccp_protocol_sendPortRequest,sccp_protocol_sendPortClose, sccp_protocol_sendLineStatRespV3,
 				  sccp_protocol_parseOpenReceiveChannelAckV3, sccp_protocol_parseOpenMultiMediaReceiveChannelAckV3, sccp_protocol_parseStartMediaTransmissionAckV3, sccp_protocol_parseStartMultiMediaTransmissionAckV3, sccp_protocol_parseEnblocCallV3, sccp_protocol_parsePortResponseV3},
-	&(sccp_deviceProtocol_t) {SCCP_PROTOCOL, 16, TimeDateReqMessage, sccp_protocol_sendCallInfoV16, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV3, sccp_protocol_sendOpenMultiMediaChannelV17,
+	&(sccp_deviceProtocol_t) {SCCP_PROTOCOL, 16, TimeDateReqMessage, sccp_protocol_sendCallInfoV16, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV3, sccp_protocol_sendOpenMultiMediaChannelV12,
 				  sccp_protocol_sendStartMultiMediaTransmissionV17, sccp_protocol_sendStartMediaTransmissionV3, sccp_protocol_sendConnectionStatisticsReqV3, sccp_protocol_sendPortRequest,sccp_protocol_sendPortClose, sccp_protocol_sendLineStatRespV3,
 				  sccp_protocol_parseOpenReceiveChannelAckV3, sccp_protocol_parseOpenMultiMediaReceiveChannelAckV3, sccp_protocol_parseStartMediaTransmissionAckV3, sccp_protocol_parseStartMultiMediaTransmissionAckV3, sccp_protocol_parseEnblocCallV3, sccp_protocol_parsePortResponseV3},
 	&(sccp_deviceProtocol_t) {SCCP_PROTOCOL, 17, TimeDateReqMessage, sccp_protocol_sendCallInfoV16, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV17, sccp_protocol_sendOpenMultiMediaChannelV17,
