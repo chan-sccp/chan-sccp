@@ -118,15 +118,16 @@ struct skinny_codec {
 	const char *const name;											// used in sccp.conf
 	const char *const text;											// used to display the codec name
 	const char *mimesubtype;										// rfc mime sub-type e.g. L16
-	unsigned int sample_rate;
-	unsigned int sound_quality;
-	unsigned int rtp_payload_type;
+	uint32_t sample_rate;
+	uint32_t sound_quality;
+	int32_t rtp_payload_type;
 };
 extern const struct skinny_codec skinny_codecs[];
 SCCP_API uint8_t __CONST__ SCCP_CALL sccp_codec_getArrayLen(void);
 SCCP_INLINE const char * SCCP_CALL codec2str(skinny_codec_t value);
 SCCP_INLINE const char * SCCP_CALL codec2name(skinny_codec_t value);
 SCCP_INLINE const skinny_payload_type_t codec2type(skinny_codec_t value);
+SCCP_INLINE const int32_t codec2rtp_payload_type(skinny_codec_t value);
 SCCP_API char * SCCP_CALL sccp_codec_multiple2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength);
 SCCP_API int SCCP_CALL sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing);
 SCCP_API int SCCP_CALL sccp_get_codecs_bytype(skinny_codec_t * in_codecs, skinny_codec_t *out_codecs, skinny_payload_type_t type);
