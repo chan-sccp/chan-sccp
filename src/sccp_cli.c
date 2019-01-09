@@ -465,7 +465,10 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
 //static int sccp_show_globals(int fd, int argc, char *argv[])
 static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	char pref_buf[256];
+	char apref_buf[256];
+#if CS_SCCP_VIDEO
+	char vpref_buf[256];
+#endif
 	pbx_str_t *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 #ifdef CS_SCCP_PICKUP
@@ -479,7 +482,10 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 
 	pbx_rwlock_rdlock(&GLOB(lock));
 
-	sccp_codec_multiple2str(pref_buf, sizeof(pref_buf) - 1, GLOB(global_preferences), ARRAY_LEN(GLOB(global_preferences)));
+	sccp_codec_multiple2str(apref_buf, sizeof(apref_buf) - 1, GLOB(global_preferences).audio, ARRAY_LEN(GLOB(global_preferences).audio));
+#if CS_SCCP_VIDEO
+	sccp_codec_multiple2str(vpref_buf, sizeof(vpref_buf) - 1, GLOB(global_preferences).video, ARRAY_LEN(GLOB(global_preferences).audio));
+#endif
 	debugcategories = sccp_get_debugcategories(GLOB(debug));
 	sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(ha));
 	sccp_print_ha(ha_localnet_buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(localaddr));
@@ -537,7 +543,10 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_BOOL("Pickup Mode Answer ", CLI_AMI_LIST_WIDTH, GLOB(pickup_modeanswer));
 #endif
 	CLI_AMI_OUTPUT_PARAM("CallHistory Answered Elsewhere", CLI_AMI_LIST_WIDTH, "%s", skinny_callHistoryDisposition2str(GLOB(callhistory_answered_elsewhere)));
-	CLI_AMI_OUTPUT_PARAM("Codecs preference", CLI_AMI_LIST_WIDTH, "%s", pref_buf);
+	CLI_AMI_OUTPUT_PARAM("Audio Preference", CLI_AMI_LIST_WIDTH, "%s", apref_buf);
+#if CS_SCCP_VIDEO
+	CLI_AMI_OUTPUT_PARAM("Video Preference", CLI_AMI_LIST_WIDTH, "%s", vpref_buf);
+#endif	
 	CLI_AMI_OUTPUT_BOOL("CFWDALL    ", CLI_AMI_LIST_WIDTH, GLOB(cfwdall));
 	CLI_AMI_OUTPUT_BOOL("CFWBUSY    ", CLI_AMI_LIST_WIDTH, GLOB(cfwdbusy));
 	CLI_AMI_OUTPUT_BOOL("CFWNOANSWER   ", CLI_AMI_LIST_WIDTH, GLOB(cfwdnoanswer));
@@ -714,8 +723,12 @@ CLI_AMI_ENTRY(show_devices, sccp_show_devices, "List defined SCCP devices", cli_
      */
 static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	char pref_buf[256];
-	char cap_buf[512];
+	char apref_buf[256];
+	char acap_buf[512];
+#if CS_SCCP_VIDEO
+	char vpref_buf[256];
+	char vcap_buf[512];
+#endif	
 	pbx_str_t *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	pbx_str_t *permithost_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	PBX_VARIABLE_TYPE *v = NULL;
@@ -742,8 +755,12 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 		pbx_log(LOG_WARNING, "Failed to get device %s\n", dev);
 		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);		/* explicit return */
 	}
-	sccp_codec_multiple2str(pref_buf, sizeof(pref_buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
-	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
+	sccp_codec_multiple2str(apref_buf, sizeof(apref_buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
+	sccp_codec_multiple2str(acap_buf, sizeof(acap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
+#if CS_SCCP_VIDEO
+	sccp_codec_multiple2str(vpref_buf, sizeof(vpref_buf) - 1, d->preferences.video, ARRAY_LEN(d->preferences.video));
+	sccp_codec_multiple2str(vcap_buf, sizeof(vcap_buf) - 1, d->capabilities.video, ARRAY_LEN(d->capabilities.video));
+#endif	
 	sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, d->ha);
 
 	if (d->session) {
@@ -823,13 +840,11 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_YES_NO("linesRegistered",	CLI_AMI_LIST_WIDTH, d->linesRegistered);
 	CLI_AMI_OUTPUT_PARAM("Image Version",		CLI_AMI_LIST_WIDTH, "%s", d->loadedimageversion);
 	CLI_AMI_OUTPUT_PARAM("Timezone Offset",		CLI_AMI_LIST_WIDTH, "%d", d->tz_offset);
-	CLI_AMI_OUTPUT_PARAM("Capabilities",		CLI_AMI_LIST_WIDTH, "%s", cap_buf);
-	CLI_AMI_OUTPUT_PARAM("Codecs preference",	CLI_AMI_LIST_WIDTH, "%s", pref_buf);
+	CLI_AMI_OUTPUT_PARAM("Audio Capabilities",	CLI_AMI_LIST_WIDTH, "%s", acap_buf);
+	CLI_AMI_OUTPUT_PARAM("Auduo Preferences",	CLI_AMI_LIST_WIDTH, "%s", apref_buf);
 #if CS_SCCP_VIDEO
-	sccp_codec_multiple2str(pref_buf, sizeof(pref_buf) - 1, d->preferences.video, ARRAY_LEN(d->preferences.video));
-	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.video, ARRAY_LEN(d->capabilities.video));
-	CLI_AMI_OUTPUT_PARAM("Video Capabilities",	CLI_AMI_LIST_WIDTH, "%s", cap_buf);
-	CLI_AMI_OUTPUT_PARAM("Video Preferences",	CLI_AMI_LIST_WIDTH, "%s", pref_buf);
+	CLI_AMI_OUTPUT_PARAM("Video Capabilities",	CLI_AMI_LIST_WIDTH, "%s", vcap_buf);
+	CLI_AMI_OUTPUT_PARAM("Video Preferences",	CLI_AMI_LIST_WIDTH, "%s", vpref_buf);
 #endif
 	CLI_AMI_OUTPUT_PARAM("Audio TOS",		CLI_AMI_LIST_WIDTH, "%d", d->audio_tos);
 	CLI_AMI_OUTPUT_PARAM("Audio COS",		CLI_AMI_LIST_WIDTH, "%d", d->audio_cos);

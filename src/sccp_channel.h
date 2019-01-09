@@ -49,20 +49,9 @@ struct sccp_channel {
 
 	sccp_private_channel_data_t * const privateData;
 
-	struct {
-		skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];							/*!< our channel Capability in preference order */
-		skinny_codec_t video[SKINNY_MAX_CAPABILITIES];
-	} capabilities;
-
-	struct {
-		skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Audio Codec Preferences */
-		skinny_codec_t video[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Video Codec Preferences */
-	} preferences;
-
-	struct {
-		skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Audio Codec Capabilities */
-		skinny_codec_t video[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Video Codec Capabilities */
-	} remoteCapabilities;
+	skinny_capabilities_t capabilities;									/*!< our channel Capability in preference order */
+	skinny_capabilities_t preferences;
+	skinny_capabilities_t remoteCapabilities;
 
 	struct {
 		uint32_t digittimeout;										/*!< Digit Timeout on Dialing State (Enbloc-Emu) */

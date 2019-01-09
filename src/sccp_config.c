@@ -1413,11 +1413,7 @@ sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_
 sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	struct preferences {
-		skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];
-		skinny_codec_t video[SKINNY_MAX_CAPABILITIES];
-	};
-	struct preferences *prefs = (struct preferences *) dest;
+	skinny_capabilities_t *prefs = (skinny_capabilities_t *) dest;
 	skinny_codec_t new_codecs[SKINNY_MAX_CAPABILITIES] = { 0 };
 	int errors = 0;
 
@@ -1442,13 +1438,13 @@ sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_
 		pbx_log(LOG_NOTICE, "SCCP: (parse_codec preference) Error occured during parsing of the disallowed / allowed codecs\n");
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	} else {
-		if (memcmp(prefs->audio, audio_prefs, SKINNY_MAX_CAPABILITIES * sizeof(skinny_codec_t))) {
-			memcpy(prefs->audio, audio_prefs, SKINNY_MAX_CAPABILITIES * sizeof(skinny_codec_t));
+		if (memcmp(prefs->audio, audio_prefs, ARRAY_LEN(prefs->audio))) {
+			memcpy(prefs->audio, audio_prefs, ARRAY_LEN(prefs->audio));
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
 		}
 #if CS_SCCP_VIDEO
-		if (memcmp(prefs->video, video_prefs, SKINNY_MAX_CAPABILITIES * sizeof(skinny_codec_t))) {
-			memcpy(prefs->video, video_prefs, SKINNY_MAX_CAPABILITIES * sizeof(skinny_codec_t));
+		if (memcmp(prefs->video, video_prefs, ARRAY_LEN(prefs->video))) {
+			memcpy(prefs->video, video_prefs, ARRAY_LEN(prefs->video));
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
 		}
 #endif

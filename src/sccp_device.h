@@ -210,15 +210,8 @@ struct sccp_device {
 	char *backgroundImage;											/*!< backgroundimage we will set after device registered */
 	char *ringtone;												/*!< ringtone we will set after device registered */
 
-	struct {
-		skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Audio Codec Capabilities */
-		skinny_codec_t video[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Video Codec Capabilities */
-	} capabilities;
-
-	struct {
-		skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Audio Codec Preferences */
-		skinny_codec_t video[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Video Codec Preferences */
-	} preferences;
+	skinny_capabilities_t capabilities;
+	skinny_capabilities_t preferences;
 
 	time_t registrationTime;
 

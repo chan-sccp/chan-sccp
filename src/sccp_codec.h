@@ -122,6 +122,12 @@ struct skinny_codec {
 	uint32_t sound_quality;
 	int32_t rtp_payload_type;
 };
+
+typedef struct {
+	skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Audio Codec Preferences */
+	skinny_codec_t video[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Video Codec Preferences */
+} skinny_capabilities_t;
+
 extern const struct skinny_codec skinny_codecs[];
 SCCP_API uint8_t __CONST__ SCCP_CALL sccp_codec_getArrayLen(void);
 SCCP_INLINE const char * SCCP_CALL codec2str(skinny_codec_t value);

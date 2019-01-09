@@ -132,7 +132,7 @@ struct sccp_global_vars {
 #endif
 	char *servername;											/*!< ServerName */
 	char *context;												/*!< Global / General Context */
-	skinny_codec_t global_preferences[SKINNY_MAX_CAPABILITIES];						/*!< Global Asterisk Codecs */
+	skinny_capabilities_t global_preferences;
 	char *externhost;											/*!< External HostName */
 	char *musicclass;											/*!< Music Class */
 	char *language;												/*!< Language */
