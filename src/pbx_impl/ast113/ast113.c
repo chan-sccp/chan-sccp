@@ -473,126 +473,81 @@ static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, const void *data)
 	return !pbx_channel_pbx(ast) && ast_channel_linkedid(ast) && (!strcasecmp(ast_channel_linkedid(ast), linkedId)) && !pbx_channel_masq(ast);
 }
 
-/*! Todo: Use a generic helper function to reduce code duplication */
+/*! Generic helper function to find the best common codec to use */
+static void __find_joint_capabilities(sccp_channel_t *c, PBX_CHANNEL_TYPE* peer, enum ast_media_type media_type, skinny_codec_t remoteCapabilities[])
+{
+	PBX_CHANNEL_TYPE *owner = c->owner;
+	struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	struct ast_format_cap *payload_caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	struct ast_format_cap *remote_caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	struct ast_format_cap *joint = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	struct ast_format *best_fmt_cap = NULL;
+	struct ast_format *best_fmt_native = NULL;
+	if (caps && remote_caps && joint) {
+		ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(owner), AST_MEDIA_TYPE_UNKNOWN);
+		ast_format_cap_append_from_cap(payload_caps, caps, media_type);
+		ast_format_cap_append_from_cap(remote_caps, ast_channel_nativeformats(peer), media_type);
+		//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "HIER: caps:%d, payload_caps:%d, remote_caps:%d\n", (int)ast_format_cap_count(caps), (int)ast_format_cap_count(payload_caps), (int)ast_format_cap_count(remote_caps));
+		if (ast_format_cap_count(caps) && ast_format_cap_count(payload_caps) && ast_format_cap_count(remote_caps)) {
+
+			// fill c->remoteCapabilities
+			sccp_astwrap_getSkinnyFormatMultiple(remote_caps, remoteCapabilities, SKINNY_MAX_CAPABILITIES);
+
+			char buf[512];
+			sccp_codec_multiple2str(buf, sizeof(buf) - 1, remoteCapabilities, SKINNY_MAX_CAPABILITIES);
+			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "skinny set remote %s caps: %s\n", ast_codec_media_type2str(media_type), buf);
+
+			// find compatible and update native, if not translating
+			ast_format_cap_get_compatible(payload_caps, remote_caps, joint);
+			if (!ast_translator_best_choice(payload_caps, joint, &best_fmt_cap, &best_fmt_native)) {
+				ast_format_cap_remove_by_type(caps, media_type);
+				ast_format_cap_append(caps, best_fmt_native, 0);			// copy best in first position
+				ast_format_cap_append_from_cap(caps, joint, media_type);		// re-add rest
+				if (ast_format_cap_count(caps) > 0) {
+					ast_channel_lock(owner);
+					ast_channel_nativeformats_set(owner, caps);
+					ast_set_write_format_from_cap(owner, caps);
+					ast_set_read_format_from_cap(owner, caps);
+					if (c->rtp.audio.instance) {
+						ast_rtp_instance_set_read_format(c->rtp.audio.instance, best_fmt_native);
+						ast_rtp_instance_set_write_format(c->rtp.audio.instance, best_fmt_native);
+					}
+					ast_channel_unlock(owner);
+				}
+			}
+		}
+		ao2_cleanup(joint);
+		ao2_cleanup(remote_caps);
+		ao2_cleanup(payload_caps);
+		ao2_cleanup(caps);
+	}
+}
+
 static void pbx_retrieve_remote_capabilities(sccp_channel_t *c)
 {
-
 	pbx_assert(c != NULL);
 	PBX_CHANNEL_TYPE *ast = c->owner;
+	PBX_CHANNEL_TYPE *remotePeer;
 
 	struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
-
 	((struct ao2_iterator *) iterator)->flags |= AO2_ITERATOR_DONTLOCK;
 
 	//! \todo handle multiple remotePeers i.e. DIAL(SCCP/400&SIP/300), find smallest common codecs, what order to use ?
-	PBX_CHANNEL_TYPE *remotePeer;
-
-	//struct ast_str *codec_buf = ast_str_alloca(64);
-	//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "%s: (pbx_retrieve_remote_capabilities) our caps:%s\n", c->designator, ast_format_cap_get_names(ast_channel_nativeformats(c->owner), &codec_buf));
-
 	for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
 		if (pbx_find_channel_by_linkid(remotePeer, (void *) ast_channel_linkedid(ast))) {
-			ast_channel_iterator_destroy(iterator);
-			{
-				struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-				struct ast_format_cap *audio_caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-				struct ast_format_cap *remote_caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-				struct ast_format_cap *joint = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-				if (caps && remote_caps && joint) {
-					ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(c->owner), AST_MEDIA_TYPE_UNKNOWN);
-					ast_format_cap_append_from_cap(audio_caps, caps, AST_MEDIA_TYPE_AUDIO);
-					ast_format_cap_append_from_cap(remote_caps, ast_channel_nativeformats(remotePeer), AST_MEDIA_TYPE_AUDIO);
-					if (ast_format_cap_count(caps) && ast_format_cap_count(audio_caps) && ast_format_cap_count(remote_caps)) {
-						char buf[512];
-						sccp_astwrap_getSkinnyFormatMultiple(remote_caps, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
-						sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
-						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "set remote audio caps: %s\n", buf);
-
-						struct ast_format *best_fmt_cap = NULL;
-						struct ast_format *best_fmt_native = NULL;
-						ast_format_cap_get_compatible(audio_caps, remote_caps, joint);
-						if (!ast_translator_best_choice(audio_caps, joint, &best_fmt_cap, &best_fmt_native)) {
-							//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "%s: (pbx_retrieve_remote_capabilities) joint caps:%s\n", c->designator, ast_format_cap_get_names(joint, &codec_buf));
-							ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_AUDIO);
-							ast_format_cap_append(caps, best_fmt_native, 0);			// copy best in first position
-							ast_format_cap_append_from_cap(caps, joint, AST_MEDIA_TYPE_AUDIO);	// re-add rest
-							if (ast_format_cap_count(caps) > 0) {
-								ast_channel_lock(c->owner);
-								ast_channel_nativeformats_set(c->owner, caps);
-								ast_set_write_format_from_cap(c->owner, caps);
-								ast_set_read_format_from_cap(c->owner, caps);
-								if (c->rtp.audio.instance) {
-									ast_rtp_instance_set_read_format(c->rtp.audio.instance, best_fmt_native);
-									ast_rtp_instance_set_write_format(c->rtp.audio.instance, best_fmt_native);
-								}
-								ast_channel_unlock(c->owner);
-							}
-						}
-						sccp_astwrap_getSkinnyFormatMultiple(joint, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
-						sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
-						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "joint audio preferences: %s\n", buf);
-					}
-					//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "%s: (pbx_retrieve_remote_capabilities) new caps:%s\n", c->designator, ast_format_cap_get_names(caps, &codec_buf));
-					ao2_cleanup(joint);
-					ao2_cleanup(remote_caps);
-					ao2_cleanup(audio_caps);
-					ao2_cleanup(caps);
-				}
-			}
+			struct ast_str *codec_buf = ast_str_alloca(64);
+			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "%s: remote peer native caps:%s\n", c->designator, ast_format_cap_get_names(ast_channel_nativeformats(remotePeer), &codec_buf));
+			//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "%s: my native caps:%s\n", c->designator, ast_format_cap_get_names(ast_channel_nativeformats(c->owner), &codec_buf));
+			__find_joint_capabilities(c, remotePeer, AST_MEDIA_TYPE_AUDIO, c->remoteCapabilities.audio);
 #if CS_SCCP_VIDEO
-			{
-				struct ast_format_cap *caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-				struct ast_format_cap *video_caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-				struct ast_format_cap *remote_caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-				struct ast_format_cap *joint = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-				//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "%s: (pbx_retrieve_remote_capabilities) checking video\n", c->designator);
-				if (caps && remote_caps && joint) {
-					ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(c->owner), AST_MEDIA_TYPE_UNKNOWN);
-					ast_format_cap_append_from_cap(video_caps, caps, AST_MEDIA_TYPE_VIDEO);
-					//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "%s: (pbx_retrieve_remote_capabilities) our video caps:%s\n", c->designator, ast_format_cap_get_names(video_caps, &codec_buf));
-					ast_format_cap_append_from_cap(remote_caps, ast_channel_nativeformats(remotePeer), AST_MEDIA_TYPE_VIDEO);
-					//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "%s: (pbx_retrieve_remote_capabilities) remote video caps:%s\n", c->designator, ast_format_cap_get_names(remote_caps, &codec_buf));
-					if (ast_format_cap_count(caps) && ast_format_cap_count(video_caps) && ast_format_cap_count(remote_caps)) {
-						char buf[512];
-						sccp_astwrap_getSkinnyFormatMultiple(remote_caps, c->remoteCapabilities.video, ARRAY_LEN(c->remoteCapabilities.video));
-						sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->remoteCapabilities.video, ARRAY_LEN(c->remoteCapabilities.video));
-						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "set remote video caps: %s\n", buf);
-
-						struct ast_format *best_fmt_cap = NULL;
-						struct ast_format *best_fmt_native = NULL;
-						ast_format_cap_get_compatible(video_caps, remote_caps, joint);
-						if (!ast_translator_best_choice(video_caps, joint, &best_fmt_cap, &best_fmt_native)) {
-							ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_VIDEO);
-							ast_format_cap_append(caps, best_fmt_native, 0);			// copy best in first position
-							ast_format_cap_append_from_cap(caps, joint, AST_MEDIA_TYPE_VIDEO);	// re-add rest
-							if (ast_format_cap_count(caps) > 0) {
-								ast_channel_lock(c->owner);
-								ast_channel_nativeformats_set(c->owner, caps);
-								ast_set_write_format_from_cap(c->owner, caps);
-								ast_set_read_format_from_cap(c->owner, caps);
-								if (c->rtp.video.instance) {
-									ast_rtp_instance_set_read_format(c->rtp.video.instance, best_fmt_native);
-									ast_rtp_instance_set_write_format(c->rtp.video.instance, best_fmt_native);
-								}
-								ast_channel_unlock(c->owner);
-							}
-						}
-						sccp_astwrap_getSkinnyFormatMultiple(joint, c->preferences.video, ARRAY_LEN(c->preferences.video));
-						sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->preferences.video, ARRAY_LEN(c->preferences.video));
-						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "joint video preferences: %s\n", buf);
-
-					}
-					ao2_cleanup(joint);
-					ao2_cleanup(remote_caps);
-					ao2_cleanup(video_caps);
-					ao2_cleanup(caps);
-				}
-			}
+			__find_joint_capabilities(c, remotePeer, AST_MEDIA_TYPE_VIDEO, c->remoteCapabilities.video);
 #endif
+			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "%s: new native caps:%s\n", c->designator, ast_format_cap_get_names(ast_channel_nativeformats(c->owner), &codec_buf));
 			ast_channel_unref(remotePeer);
 			break;
 		}
 	}
+	ast_channel_iterator_destroy(iterator);
 }
 
 static const char *asterisk_indication2str(int ind)
