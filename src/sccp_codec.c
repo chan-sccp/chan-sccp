@@ -262,11 +262,11 @@ int sccp_get_codecs_bytype(skinny_codec_t * in_codecs, skinny_codec_t *out_codec
 {
 	int x = 0, y = 0, z = 0;
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-		//sccp_log((DEBUGCAT_CODEC)) ("SCCP: disallow=all => reset codecs\n");
 		if (SKINNY_CODEC_NONE != in_codecs[x]) {
 			for (y = 0; y < sccp_codec_getArrayLen(); y++) {
 				if (skinny_codecs[y].codec == in_codecs[x] && skinny_codecs[y].codec_type == type) {
-					out_codecs[z++] = in_codecs[x];
+					//sccp_log((DEBUGCAT_CODEC)) ("Adding codec:%s\n", skinny_codecs[y].name);
+					out_codecs[z++] = skinny_codecs[y].codec;
 				}
 			}
 		}
