@@ -82,11 +82,12 @@ struct sccp_mailbox_subscriber_list {
 		int oldmsgs;											/*!< Old Messages */
 	} previousVoicemailStatistic;								/*!< Previous Voicemail Statistic Structure */
 
-#if defined ( CS_AST_HAS_EVENT ) || (defined( CS_AST_HAS_STASIS ))
-	/*!
-	 * \brief Asterisk Event Subscribers Structure
-	 */
+
+#if CS_AST_HAS_EVENT
 	struct pbx_event_sub *event_sub;
+#elif CS_AST_HAS_STASIS
+	char uniqueid[AST_MAX_MAILBOX_UNIQUEID];
+	struct stasis_subscription *event_sub;
 #else
 	int schedUpdate;
 #endif
@@ -215,29 +216,34 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
 void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stasis_message *msg)
 {
 	sccp_mailbox_subscriber_list_t *subscription = userdata;
-	struct stasis_subscription_change *change = stasis_message_data(msg);
 
-	if (!subscription || !GLOB(module_running)) {
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: Received PBX mwi event\n");
+	if (!subscription || !GLOB(module_running) || !msg) {
 		return;
 	}
-
-	if (msg && ast_mwi_state_type() == stasis_message_type(msg) && change->topic != ast_mwi_topic_all()) {
+	if (stasis_message_type(msg) == ast_mwi_state_type()) {
 		struct ast_mwi_state *mwi_state = stasis_message_data(msg);
-		
-		int newmsgs = mwi_state->new_msgs;
-		int oldmsgs = mwi_state->old_msgs;
+		if (mwi_state) {
+			int newmsgs = mwi_state->new_msgs;
+			int oldmsgs = mwi_state->old_msgs;
 
-		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: Received PBX mwi event for %s@%s, newmsgs:%d, oldmsgs:%d\n", subscription->mailbox, subscription->context, newmsgs, oldmsgs);
+			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: Received PBX mwi event for %s@%s, newmsgs:%d, oldmsgs:%d\n", subscription->mailbox, subscription->context, newmsgs, oldmsgs);
 
-		subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
-		subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
+			subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
+			subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
 
-		if (newmsgs != -1 && oldmsgs != -1) {
-			subscription->currentVoicemailStatistic.newmsgs = newmsgs;
-			subscription->currentVoicemailStatistic.oldmsgs = oldmsgs;
-			if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
-				sccp_mwi_updatecount(subscription);
+			if (newmsgs != -1 && oldmsgs != -1) {
+				subscription->currentVoicemailStatistic.newmsgs = newmsgs;
+				subscription->currentVoicemailStatistic.oldmsgs = oldmsgs;
+				if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
+					sccp_mwi_updatecount(subscription);
+				}
 			}
+		}
+	} else if (stasis_message_type(msg) == stasis_subscription_change_type()) {
+		struct stasis_subscription_change *change = stasis_message_data(msg);
+		if (change && change->topic != ast_mwi_topic_all()) {
+			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: Received PBX mwi subscription change event\n");
 		}
 	}
 }
@@ -387,6 +393,7 @@ void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
 		return;
 	}
 
+
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "SCCP: (mwi_lineStatusChangedEvent) Get lineStatusChangedEvent\n");
 	/* these are the only events we are interested in */
 	if (	event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_DOWN || \
@@ -430,6 +437,7 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t * event)
 		}
 	}
 }
+
 
 /*!
  * \brief Add Mailbox Subscription
@@ -490,8 +498,24 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 			}
 			ast_event_destroy(event);
 		} else
+#elif CS_AST_HAS_STASIS
+		RAII(struct stasis_message *, mwi_message, NULL, ao2_cleanup);
+		snprintf(subscription->uniqueid, sizeof(subscription->uniqueid), "%s@%s", subscription->mailbox, subscription->context);
+		sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) mailbox_uniqueid:%s, mailbox:%s, context:%s\n", subscription->uniqueid, subscription->mailbox, subscription->context)
+
+		mwi_message = stasis_cache_get(ast_mwi_state_cache(), ast_mwi_state_type(), subscription->uniqueid);
+		if (mwi_message) {
+			struct ast_mwi_state *mwi_state = stasis_message_data(mwi_message);
+			int newmsgs = mwi_state->new_msgs;
+			int oldmsgs = mwi_state->old_msgs;
+			if (newmsgs != -1 && oldmsgs != -1) {
+				subscription->currentVoicemailStatistic.newmsgs = newmsgs;
+				subscription->currentVoicemailStatistic.oldmsgs = oldmsgs;
+			}
+		} else
 #endif
-		{												/* Fall back on checking the mailbox directly */
+		{
+			/* Fall back on checking the mailbox directly */
 			char buffer[512];
 			int newmsgs = 0, oldmsgs = 0;
 
@@ -515,19 +539,12 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 			pbx_log(LOG_ERROR, "SCCP: PBX MWI event could not be subscribed to for mailbox %s@%s\n", subscription->mailbox, subscription->context);
 		}
 #elif defined(CS_AST_HAS_STASIS)
-//		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) Adding STASIS Subscription for mailbox %s\n", subscription->mailbox);
-		char mailbox_context[512];
-
-		snprintf(mailbox_context, SCCP_MAX_EXTENSION + SCCP_MAX_CONTEXT + 2, "%s@%s", subscription->mailbox, subscription->context);
-		struct stasis_topic *mailbox_specific_topic = ast_mwi_topic(mailbox_context);
+		struct stasis_topic *mailbox_specific_topic = ast_mwi_topic(subscription->uniqueid);
 		if (mailbox_specific_topic) {
-			//subscription->event_sub = stasis_subscribe(mailbox_specific_topic, sccp_mwi_event, subscription);
 			subscription->event_sub = stasis_subscribe_pool(mailbox_specific_topic, sccp_mwi_event, subscription);
-#  if ASTERISK_VERSION_GROUP >= 116
 			stasis_subscription_accept_message_type(subscription->event_sub, ast_mwi_state_type());
+                        stasis_subscription_accept_message_type(subscription->event_sub, stasis_subscription_change_type());
 			stasis_subscription_set_filter(subscription->event_sub, STASIS_SUBSCRIPTION_FILTER_SELECTIVE);
-#  endif // ASTERISK_VERSION_GROUP >= 116
-
 		}
 #else // defined( CS_AST_HAS_EVENT)
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) Falling back to polling mailbox status\n");
