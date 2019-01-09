@@ -812,7 +812,7 @@ static void sccp_astwrap_setCalleridPresentation(PBX_CHANNEL_TYPE *pbx_channel, 
 	}
 }
 
-static int sccp_astwrap_setNativeAudioFormats(const sccp_channel_t * channel, skinny_codec_t codec[], int length)
+static int sccp_astwrap_setNativeAudioFormats(const sccp_channel_t * channel, skinny_codec_t codecs[])
 {
 	struct ast_format fmt;
 	int i;
@@ -821,17 +821,18 @@ static int sccp_astwrap_setNativeAudioFormats(const sccp_channel_t * channel, sk
 		return 0;
 	}
 
+	int length = 1;
 	ast_debug(10, "%s: set native Formats length: %d\n", (char *) channel->currentDeviceId, length);
 
 	ast_format_cap_remove_bytype(channel->owner->nativeformats, AST_FORMAT_TYPE_AUDIO);
 	for (i = 0; i < length; i++) {
-		ast_format_set(&fmt, skinny_codec2pbx_codec(codec[i]), 0);
+		ast_format_set(&fmt, skinny_codec2pbx_codec(codecs[i]), 0);
 		ast_format_cap_add(channel->owner->nativeformats, &fmt);
 	}
 	return 1;
 }
 
-static int sccp_astwrap_setNativeVideoFormats(const sccp_channel_t * channel, uint32_t formats)
+static int sccp_astwrap_setNativeVideoFormats(const sccp_channel_t * channel, skinny_codec_t codecs[])
 {
 	return 1;
 }

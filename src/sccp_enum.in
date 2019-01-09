@@ -988,7 +988,7 @@ strenum resetType {
 /*!
  * \brief Skinny EchoCancellation Type
  */
-strenum echoCancellaton {
+enum echoCancellaton {
 	SKINNY_ECHOCANCELLATION_OFF,		=0x0,	"Off",
 	SKINNY_ECHOCANCELLATION_ON,		=0x1,	"On",
 }
@@ -1004,7 +1004,7 @@ strenum g723BitRate {
 /*!
  * \brief Skinny IpAddrType Type
  */
-strenum ipAddr {
+enum ipAddr {
 	SKINNY_IPADDR_IPV4,			=0x0,	"IPv4",
 	SKINNY_IPADDR_IPV6,			=0x1,	"IPv6",
 	SKINNY_IPADDR_IPV46,		=0x2,	"IPv4 and IPv6",
