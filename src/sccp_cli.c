@@ -570,6 +570,7 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("AutoAnswer ringtime", CLI_AMI_LIST_WIDTH, "%d", GLOB(autoanswer_ring_time));
 	CLI_AMI_OUTPUT_PARAM("AutoAnswer tone", CLI_AMI_LIST_WIDTH, "%d", GLOB(autoanswer_tone));
 	CLI_AMI_OUTPUT_PARAM("RemoteHangup tone", CLI_AMI_LIST_WIDTH, "%d", GLOB(remotehangup_tone));
+	CLI_AMI_OUTPUT_BOOL("Transfer Enabled", CLI_AMI_LIST_WIDTH, GLOB(transfer));
 	CLI_AMI_OUTPUT_PARAM("Transfer tone", CLI_AMI_LIST_WIDTH, "%d", GLOB(transfer_tone));
 	CLI_AMI_OUTPUT_BOOL("Transfer on hangup", CLI_AMI_LIST_WIDTH, GLOB(transfer_on_hangup));
 	CLI_AMI_OUTPUT_PARAM("Callwaiting tone", CLI_AMI_LIST_WIDTH, "%d", GLOB(callwaiting_tone));

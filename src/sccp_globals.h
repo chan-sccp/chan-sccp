@@ -104,6 +104,7 @@ struct sccp_global_vars {
 	boolean_t cfwdnoanswer;											/*!< Call Forward on No-Answer Support (Boolean, default=on) */
 	boolean_t directrtp;											/*!< Direct RTP */
 	boolean_t useoverlap;											/*!< Overlap Dial Support */
+	boolean_t transfer;											/*!< Transfer Feature Enabled */
 
 	char *meetmeopts;											/*!< Meetme Options to be Used */
 	sccp_group_t callgroup;											/*!< Call Group */

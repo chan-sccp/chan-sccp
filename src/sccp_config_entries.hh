@@ -62,6 +62,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"autoanswer_tone", 		G_OBJ_REF(autoanswer_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x32",				"Autoanswer confirmation tone. For a complete list of tones: grep SKINNY_TONE sccp_protocol.h\n"
 																														  							"not all the tones can be played in a connected state, so you have to try.\n"},
 	{"remotehangup_tone", 		G_OBJ_REF(remotehangup_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x32",				"Passive hangup notification. 0 for none\n"},
+	{"transfer", 			G_OBJ_REF(transfer),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"enable or disable the transfer capability. It does remove the transfer softkey (you can do that manually)\n"},
 	{"transfer_tone", 		G_OBJ_REF(transfer_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0",				"Confirmation tone on transfer. Works only between SCCP devices\n"},
 	{"transfer_on_hangup",		G_OBJ_REF(transfer_on_hangup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Complete transfer on hangup, without pressing transfer a second time.\n"
 																																					"Will complete transfer, when the transferer puts the receiver on hook, after the destination has been reached.\n"
@@ -178,7 +179,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"keepalive", 			D_OBJ_REF(keepalive), 			TYPE_UINT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"set keepalive to 60\n"},
 	{"tzoffset", 			D_OBJ_REF(tz_offset), 			TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0",				"time zone offset\n"},
 	{"disallow|allow", 		D_OBJ_REF(preferences), 		TYPE_PARSER(sccp_config_parse_codec_preferences),				SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"Same as entry in [general] section"},
-	{"transfer", 			D_OBJ_REF(transfer),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"enable or disable the transfer capability. It does remove the transfer softkey\n"},
+	{"transfer", 			D_OBJ_REF(transfer),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"enable or disable the transfer capability. It does remove the transfer softkey\n"},
 	{"park", 			D_OBJ_REF(park),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"take a look to the compile how-to. Park stuff is not compiled by default.\n"},
 	{"cfwdall", 			D_OBJ_REF(cfwdall), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"no",				"activate the call forward stuff and soft keys\n"},
 	{"cfwdbusy", 			D_OBJ_REF(cfwdbusy), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"no",				"allow call forward when line is busy\n"},
@@ -281,7 +282,7 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 																																					"contain the room number dialed into simpleswitch (this parameter is going to be removed).\n"},
 	{"meetmeopts", 			L_OBJ_REF(meetmeopts),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"options to send the meetme application, defaults are dependent on meetme app see the list above.\n"
 																																					"Other options (app_meetme: A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see conferencing app for specific documentation\n"},
-	{"transfer", 			L_OBJ_REF(transfer),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"per line transfer capability\n"},
+	{"transfer", 			L_OBJ_REF(transfer),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"per line transfer capability\n"},
 	{"incominglimit", 		L_OBJ_REF(incominglimit),		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"6",				"allow x number of incoming calls (call waiting)\n"},
 	{"echocancel",			L_OBJ_REF(echocancel),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the phone echocancel for this line\n"},
 	{"silencesuppression",		L_OBJ_REF(silencesuppression),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the silence suppression for this line\n"},

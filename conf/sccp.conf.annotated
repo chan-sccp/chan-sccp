@@ -42,6 +42,7 @@ permit = internal                                                               
 ;autoanswer_tone = 0x32                                                           ; Autoanswer confirmation tone. For a complete list of tones: grep SKINNY_TONE sccp_protocol.h
                                                                                   ; not all the tones can be played in a connected state, so you have to try.
 ;remotehangup_tone = 0x32                                                         ; Passive hangup notification. 0 for none
+;transfer=on 									  ; Allow the use of the transfer feature. Default is "on". This will not remove the softkey (you can do that manually)
 ;transfer_tone = 0                                                                ; Confirmation tone on transfer. Works only between SCCP devices
 ;transfer_on_hangup = no                                                          ; Complete transfer on hangup, without pressing transfer a second time.
                                                                                   ; Will complete transfer, when the transferer puts the receiver on hook, after the destination has been reached.
