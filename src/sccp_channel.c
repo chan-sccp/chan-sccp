@@ -599,7 +599,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", d->id);
 		} else {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: video rtp started\n", d->id);
-			sccp_channel_startMultiMediaTransmission(channel);
+			//sccp_channel_startMultiMediaTransmission(channel);
 		}
 	}
 #endif
