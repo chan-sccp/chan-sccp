@@ -542,9 +542,11 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 		struct stasis_topic *mailbox_specific_topic = ast_mwi_topic(subscription->uniqueid);
 		if (mailbox_specific_topic) {
 			subscription->event_sub = stasis_subscribe_pool(mailbox_specific_topic, sccp_mwi_event, subscription);
+#if ASTERISK_VERSION_GROUP >= 116
 			stasis_subscription_accept_message_type(subscription->event_sub, ast_mwi_state_type());
                         stasis_subscription_accept_message_type(subscription->event_sub, stasis_subscription_change_type());
 			stasis_subscription_set_filter(subscription->event_sub, STASIS_SUBSCRIPTION_FILTER_SELECTIVE);
+#endif			
 		}
 #else // defined( CS_AST_HAS_EVENT)
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) Falling back to polling mailbox status\n");
