@@ -737,16 +737,15 @@ gcc_inline void * const sccp_refcount_release(const void * * const ptr, const ch
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) *ptr, obj, -1, filename, lineno, func);
 #endif
+		int newrefcountval, refcountval;
 		debugcat = (&obj_info[obj->type])->debugcat;
-		//do {
-		//	refcountval = obj->refcount;
-		//	newrefcountval = refcountval - 1;
-		//} while (refcountval > 0 && (refcountval != CAS32(&obj->refcount, refcountval, newrefcountval, &obj->lock)));
 		// ANNOTATE_HAPPENS_BEFORE(&obj->refcount);
-		volatile int refcountval = ATOMIC_DECR((&obj->refcount), 1, &obj->lock);
+		do {
+			refcountval = obj->refcount;
+			newrefcountval = refcountval - 1;
+		} while ((CAS32(&obj->refcount, refcountval, newrefcountval, &obj->lock)) != refcountval);
 		// ANNOTATE_HAPPENS_AFTER(&obj->refcount);
 		
-		int newrefcountval = refcountval - 1;
 		if (dont_expect(newrefcountval == 0)) {
 			int alive = ATOMIC_DECR(&obj->alive, SCCP_LIVE_MARKER, &obj->lock);
 			sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_1 "SCCP: %-15.15s:%-4.4d (%-35.35s)) (release) Finalizing %p (%p) (alive:%d)\n", filename, lineno, func, obj, *ptr, alive);
