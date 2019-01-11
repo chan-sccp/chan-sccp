@@ -1669,7 +1669,6 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_mailbox_t *mailbox = NULL;
-	char *context, *mbox = NULL;
 
 	SCCP_LIST_HEAD (, sccp_mailbox_t) * mailboxList = dest;
 
@@ -1687,13 +1686,14 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
 		SCCP_LIST_TRAVERSE(mailboxList, mailbox, list) {
 			for (v = vroot; v; v = v->next) {
 				if (!sccp_strlen_zero(v->value)) {
-					mbox = context = pbx_strdupa(v->value);
-					strsep(&context, "@");
-					if (sccp_strlen_zero(context)) {
-						context = "default";
-					}
-					if (sccp_strcaseequals(mailbox->mailbox, mbox) && sccp_strcaseequals(mailbox->context, context)) {	// variable found
+					if (strstr(v->value, "@") && sccp_strcaseequals(mailbox->uniqueid, v->value)) {
 						continue;
+					} else {
+						char uniqueid[SCCP_MAX_MAILBOX_UNIQUEID];
+						snprintf(uniqueid, sizeof(uniqueid), "%s@default", v->value);
+						if (sccp_strcaseequals(mailbox->uniqueid, v->value)) {
+							continue;
+						}
 					}
 					notfound |= TRUE;
 				}
@@ -1702,24 +1702,16 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
 	}
 	if (varCount != listCount || notfound) {								// build new list
 		while ((mailbox = SCCP_LIST_REMOVE_HEAD(mailboxList, list))) {					// clear list
-			sccp_free(mailbox->mailbox);
-			sccp_free(mailbox->context);
 			sccp_free(mailbox);
 		}
 		for (v = vroot; v; v = v->next) {								// create new list
 			if (!sccp_strlen_zero(v->value)) {
-				mbox = context = pbx_strdupa(v->value);
-				strsep(&context, "@");
-				if (sccp_strlen_zero(context)) {
-					context = "default";
-				}
-				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "add new mailbox: %s@%s\n", mbox, context);
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "add new mailbox: %s\n", v->value);
 				if (!(mailbox = sccp_calloc(1, sizeof(sccp_mailbox_t)))) {
 					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 					return SCCP_CONFIG_CHANGE_ERROR;
 				}
-				mailbox->mailbox = pbx_strdup(mbox);
-				mailbox->context = pbx_strdup(context);
+				snprintf(mailbox->uniqueid, sizeof(mailbox->uniqueid), "%s%s", v->value, !strstr(v->value, "@") ? "@default" : "");
 				SCCP_LIST_INSERT_TAIL(mailboxList, mailbox, list);
 			}
 		}

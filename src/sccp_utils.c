@@ -373,25 +373,25 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 	sccp_linedevices_t *linedevice = NULL;
 	sccp_device_t *device = NULL;
 
-	if (!event || !(device = event->event.featureChanged.device)) {
+	if (!event || !(device = event->featureChanged.device)) {
 		return;
 	}
 
-	sccp_log((DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: StorageBackend got Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), sccp_feature_type2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
+	sccp_log((DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: StorageBackend got Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), sccp_feature_type2str(event->featureChanged.featureType), event->featureChanged.featureType);
 	snprintf(family, sizeof(family), "SCCP/%s", device->id);
 
-	switch (event->event.featureChanged.featureType) {
+	switch (event->featureChanged.featureType) {
 		case SCCP_FEATURE_CFWDNONE:
 		case SCCP_FEATURE_CFWDBUSY:
 		case SCCP_FEATURE_CFWDALL:
-			if ((linedevice = event->event.featureChanged.optional_linedevice)) {
+			if ((linedevice = event->featureChanged.optional_linedevice)) {
 				sccp_line_t *line = linedevice->line;
 				uint8_t instance = linedevice->lineInstance;
 
 				sccp_dev_forward_status(line, instance, device);
 				snprintf(cfwdDeviceLineStore, sizeof(cfwdDeviceLineStore), "SCCP/%s/%s", device->id, line->name);
 				snprintf(cfwdLineDeviceStore, sizeof(cfwdLineDeviceStore), "SCCP/%s/%s", line->name, device->id);
-				switch (event->event.featureChanged.featureType) {
+				switch (event->featureChanged.featureType) {
 					case SCCP_FEATURE_CFWDALL:
 						if (linedevice->cfwdAll.enabled) {
 							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdAll", linedevice->cfwdAll.number);

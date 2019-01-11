@@ -236,7 +236,9 @@ void sccp_hint_module_stop(void)
 		SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 		while ((hint = SCCP_LIST_REMOVE_HEAD(&sccp_hint_subscriptions, list))) {
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
-			pbx_event_unsubscribe(hint->device_state_sub);
+			if (hint->device_state_sub) {
+				pbx_event_unsubscribe(hint->device_state_sub);
+			}
 #endif
 			ast_extension_state_del(hint->stateid, NULL);
 
@@ -389,12 +391,12 @@ static void sccp_hint_eventListener(const sccp_event_t * event)
 	}
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
-			device = event->event.deviceRegistered.device;
+			device = event->deviceRegistered.device;
 
 			sccp_hint_deviceRegistered(device);
 			break;
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
-			device = event->event.deviceRegistered.device;
+			device = event->deviceRegistered.device;
 
 			if (device) {
 				char *deviceName = pbx_strdupa(device->id);
@@ -404,17 +406,17 @@ static void sccp_hint_eventListener(const sccp_event_t * event)
 
 			break;
 		case SCCP_EVENT_DEVICE_ATTACHED:
-			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s (hint_eventListener) device %s attached on line %s\n", DEV_ID_LOG(event->event.deviceAttached.linedevice->device), event->event.deviceAttached.linedevice->device->id, event->event.deviceAttached.linedevice->line->name);
-			sccp_hint_attachLine(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
+			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s (hint_eventListener) device %s attached on line %s\n", DEV_ID_LOG(event->deviceAttached.linedevice->device), event->deviceAttached.linedevice->device->id, event->deviceAttached.linedevice->line->name);
+			sccp_hint_attachLine(event->deviceAttached.linedevice->line, event->deviceAttached.linedevice->device);
 			break;
 		case SCCP_EVENT_DEVICE_DETACHED:
-			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s (hint_eventListener) device %s detached from line %s\n", DEV_ID_LOG(event->event.deviceAttached.linedevice->device), event->event.deviceAttached.linedevice->device->id, event->event.deviceAttached.linedevice->line->name);
-			sccp_hint_detachLine(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
+			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s (hint_eventListener) device %s detached from line %s\n", DEV_ID_LOG(event->deviceAttached.linedevice->device), event->deviceAttached.linedevice->device->id, event->deviceAttached.linedevice->line->name);
+			sccp_hint_detachLine(event->deviceAttached.linedevice->line, event->deviceAttached.linedevice->device);
 			break;
 		case SCCP_EVENT_LINESTATUS_CHANGED:
 			pbx_rwlock_rdlock(&GLOB(lock));
 			if (!GLOB(reload_in_progress)) {									/* skip processing hints when reloading */
-				sccp_hint_lineStatusChanged(event->event.lineStatusChanged.line, event->event.lineStatusChanged.optional_device);
+				sccp_hint_lineStatusChanged(event->lineStatusChanged.line, event->lineStatusChanged.optional_device);
 			}
 			pbx_rwlock_unlock(&GLOB(lock));
 			break;
@@ -631,11 +633,21 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 	/* subscripbe to the distributed hint event */
-#if ASTERISK_VERSION_GROUP >= 112
+#if CS_AST_HAS_STASIS
 	struct stasis_topic *devstate_hint_dialplan = ast_device_state_topic(hint->hint_dialplan);
-	hint->device_state_sub = stasis_subscribe(devstate_hint_dialplan, sccp_hint_distributed_devstate_cb, hint);
-#else
+	if (devstate_hint_dialplan) {
+		hint->device_state_sub = stasis_subscribe(devstate_hint_dialplan, sccp_hint_distributed_devstate_cb, hint);
+//#  if CS_AST_HAS_STASIS_SUBSCRIPTION_SET_FILTER
+//		if (hint->device_state_sub)
+//			stasis_subscription_accept_message_type((hint->device_state_sub)->event_sub, ast_device_state_message_type());
+//			stasis_subscription_set_filter((hint->device_state_sub)->event_sub, STASIS_SUBSCRIPTION_FILTER_SELECTIVE);
+//		}
+//#  endif
+	}
+#elif CS_AST_HAS_EVENT
 	hint->device_state_sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE_CHANGE, sccp_hint_distributed_devstate_cb, "sccp_hint_distributed_devstate_cb", hint, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, hint->hint_dialplan, AST_EVENT_IE_END);
+#else
+	pbx_log(LOG_ERROR, "SCCP: distributed devstate not supported\n");
 #endif
 #endif
 
@@ -997,10 +1009,10 @@ static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 {
 	sccp_buttonconfig_t *buttonconfig = NULL;
 
-	switch (event->event.featureChanged.featureType) {
+	switch (event->featureChanged.featureType) {
 		case SCCP_FEATURE_DND:
 			{
-				AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(event->event.featureChanged.device));
+				AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(event->featureChanged.device));
 
 				if (d) {
 					SCCP_LIST_LOCK(&d->buttonconfig);

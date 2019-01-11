@@ -238,7 +238,7 @@ struct parkinglot {
 	char *context;
 	SCCP_VECTOR(, plobserver_t) observers;
 	SCCP_VECTOR(, plslot_t) slots;
-	SCCP_LIST_ENTRY(sccp_parkinglot_t) list;
+	SCCP_RWLIST_ENTRY(sccp_parkinglot_t) list;
 };
 
 #define ICONSTATE_NEW_ON 0x020303												// option:closed, color=yellow, flashspeed=slow

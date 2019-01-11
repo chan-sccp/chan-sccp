@@ -165,23 +165,23 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 	}
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
-			device = event->event.deviceRegistered.device;						// already retained in the event
+			device = event->deviceRegistered.device;						// already retained in the event
 			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "REGISTERED", DEV_ID_LOG(device));
 			break;
 
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
-			device = event->event.deviceRegistered.device;						// already retained in the event
+			device = event->deviceRegistered.device;						// already retained in the event
 			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "UNREGISTERED", DEV_ID_LOG(device));
 			break;
 
 		case SCCP_EVENT_DEVICE_PREREGISTERED:
-			device = event->event.deviceRegistered.device;						// already retained in the event
+			device = event->deviceRegistered.device;						// already retained in the event
 			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "PREREGISTERED", DEV_ID_LOG(device));
 			break;
 
 		case SCCP_EVENT_DEVICE_ATTACHED:
-			device = event->event.deviceAttached.linedevice->device;				// already retained in the event
-			linedevice = event->event.deviceAttached.linedevice;					// already retained in the event
+			device = event->deviceAttached.linedevice->device;				// already retained in the event
+			linedevice = event->deviceAttached.linedevice;					// already retained in the event
 			manager_event(EVENT_FLAG_CALL,
 				      "PeerStatus",
 				      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
@@ -189,8 +189,8 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 			break;
 
 		case SCCP_EVENT_DEVICE_DETACHED:
-			device = event->event.deviceAttached.linedevice->device;				// already retained in the event
-			linedevice = event->event.deviceAttached.linedevice;					// already retained in the event
+			device = event->deviceAttached.linedevice->device;				// already retained in the event
+			linedevice = event->deviceAttached.linedevice;					// already retained in the event
 			manager_event(EVENT_FLAG_CALL,
 				      "PeerStatus",
 				      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
@@ -198,9 +198,9 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 			break;
 
 		case SCCP_EVENT_FEATURE_CHANGED:
-			device = event->event.featureChanged.device;						// already retained in the event
-			linedevice = event->event.featureChanged.optional_linedevice;				// either NULL or already retained in the event
-			sccp_feature_type_t featureType = event->event.featureChanged.featureType;
+			device = event->featureChanged.device;						// already retained in the event
+			linedevice = event->featureChanged.optional_linedevice;				// either NULL or already retained in the event
+			sccp_feature_type_t featureType = event->featureChanged.featureType;
 
 			switch (featureType) {
 				case SCCP_FEATURE_DND:

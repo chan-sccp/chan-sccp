@@ -25090,7 +25090,7 @@ done
 "
 	SANITIZE_CFLAGS=""
 	SANITIZE_LDFLAGS=""
-
+	MWI_USE_EVENTS=0
 	ac_fn_c_check_header_mongrel "$LINENO" "asterisk.h" "ac_cv_header_asterisk_h" "$ac_includes_default"
 if test "x$ac_cv_header_asterisk_h" = xyes; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - if asterisk provides ast_register_file_version..." >&5
@@ -26161,6 +26161,11 @@ $as_echo "#define SCCP_MAX_DATE_FORMAT 8" >>confdefs.h
 $as_echo "#define SCCP_MAX_REALTIME_TABLE_NAME 45" >>confdefs.h
 
 
+cat >>confdefs.h <<_ACEOF
+#define SCCP_MAX_MAILBOX_UNIQUEID (SCCP_MAX_EXTENSION + SCCP_MAX_CONTEXT + 2)
+_ACEOF
+
+
 				ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -27012,8 +27017,7 @@ if test "x$ac_cv_header_asterisk_event_h" = xyes; then :
 
 $as_echo "#define HAVE_PBX_EVENT_H 1" >>confdefs.h
 
-
-		ac_ext=c
+				ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -27075,7 +27079,10 @@ $as_echo "$ac_cv_ast_event_subscribe" >&6; }
         if test "x$val" = "xyes"; then
 
 $as_echo "#define CS_AST_HAS_EVENT 1" >>confdefs.h
- :
+
+					MWI_USE_EVENT=1
+
+			 :
              : :
         fi
 	ac_ext=c
@@ -27083,7 +27090,6 @@ ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
 
 
 
@@ -27100,8 +27106,7 @@ if test "x$ac_cv_header_asterisk_stasis_h" = xyes; then :
 
 $as_echo "#define HAVE_PBX_STASIS_H 1" >>confdefs.h
 
-
-		ac_ext=c
+				ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -27163,6 +27168,82 @@ $as_echo "$ac_cv_ast_stasis_subscribe" >&6; }
         if test "x$val" = "xyes"; then
 
 $as_echo "#define CS_AST_HAS_STASIS 1" >>confdefs.h
+
+					MWI_USE_EVENT=1
+
+			 :
+             : :
+        fi
+	ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+
+		ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - availability 'stasis_subscription_set_filter'..." >&5
+$as_echo_n "checking  - availability 'stasis_subscription_set_filter'...... " >&6; }
+if ${ac_cv_ast_stasis_subscription_set_filter+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+                        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+					$HEADER_INCLUDE
+					#include <asterisk/stasis.h>
+
+int
+main ()
+{
+
+					struct stasis_subscription *subscription = NULL;
+					stasis_subscription_accept_message_type(subscription, NULL);
+					stasis_subscription_set_filter(subscription, STASIS_SUBSCRIPTION_FILTER_SELECTIVE);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+                                        ac_cv_ast_stasis_subscription_set_filter="yes"
+                                        if ${ac_cv_ast_stasis_subscription_set_filter+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "yes"
+fi
+
+
+else
+
+                                        ac_cv_ast_stasis_subscription_set_filter="no"
+                                        if ${ac_cv_ast_stasis_subscription_set_filter+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "no"
+fi
+
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_ast_stasis_subscription_set_filter" >&5
+$as_echo "$ac_cv_ast_stasis_subscription_set_filter" >&6; }
+        eval val=\$ac_cv_ast_stasis_subscription_set_filter
+        if test "x$val" = "xyes"; then
+
+$as_echo "#define CS_AST_HAS_STASIS_SUBSCRIPTION_SET_FILTER 1" >>confdefs.h
  :
              : :
         fi
@@ -28818,6 +28899,19 @@ $as_echo "#define bt_free sccp_free" >>confdefs.h
 fi
 
 
+		if test ${MWI_USE_EVENT} -eq 1; then :
+
+
+$as_echo "#define MWI_USE_EVENT 1" >>confdefs.h
+
+
+else
+
+
+$as_echo "#define MWI_USE_POLLING 1" >>confdefs.h
+
+
+fi
 				CFLAGS={$CFLAGS_backup}
 
 

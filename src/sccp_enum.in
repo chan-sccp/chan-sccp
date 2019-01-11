@@ -160,9 +160,8 @@ enum video_mode {
 
 strenum event_type {
         SCCP_EVENT_NULL,				=0,	"Null Event / To be removed",
-        SCCP_EVENT_LINE_CREATED,			=1<<0,	"Line Created",
-        SCCP_EVENT_LINE_CHANGED,			,	"Line Changed",
-        SCCP_EVENT_LINE_DELETED,			,	"Line Deleted",
+        SCCP_EVENT_LINEINSTANCE_CREATED,		=1<<0,	"Line Created",		/*! multiple events can be registered to one subscriber */
+        SCCP_EVENT_LINEINSTANCE_DESTROYED,		,	"Line Destroyed",
         SCCP_EVENT_DEVICE_ATTACHED,			,	"Device Attached",
         SCCP_EVENT_DEVICE_DETACHED,			,	"Device Detached",
         SCCP_EVENT_DEVICE_PREREGISTERED,		,	"Device Preregistered",

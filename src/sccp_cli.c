@@ -829,8 +829,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s", skinny_registrationstate2str(sccp_device_getRegistrationState(d)));
 	CLI_AMI_OUTPUT_PARAM("State",			CLI_AMI_LIST_WIDTH, "%s", sccp_devicestate2str(sccp_device_getDeviceState(d)));
 	CLI_AMI_OUTPUT_PARAM("Addons",			CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(addons_buf));
-	CLI_AMI_OUTPUT_PARAM("MWI light",		CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_lampmode2str(d->mwilamp), d->mwilamp);
-	CLI_AMI_OUTPUT_PARAM("MWI handset light", 	CLI_AMI_LIST_WIDTH, "%s", sccp_dec2binstr(binstr, 33, d->mwilight));
+	CLI_AMI_OUTPUT_PARAM("MWI state",		CLI_AMI_LIST_WIDTH, "%s (%d/%d)", d->voicemailStatistic.newmsgs ? "on" : "off", d->voicemailStatistic.newmsgs, d->voicemailStatistic.oldmsgs);
+	CLI_AMI_OUTPUT_PARAM("MWI light-type",		CLI_AMI_LIST_WIDTH, "%s", skinny_lampmode2str(d->mwilamp));
 	CLI_AMI_OUTPUT_PARAM("MWI During call",		CLI_AMI_LIST_WIDTH, "%s", d->mwioncall ? "keep on" : "turn off");
 	CLI_AMI_OUTPUT_PARAM("Description",		CLI_AMI_LIST_WIDTH, "%s", d->description ? d->description : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Config Phone Type",	CLI_AMI_LIST_WIDTH, "%s", d->config_type);
@@ -1397,9 +1397,8 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 											\
-		CLI_AMI_TABLE_FIELD(mailbox,		"15.15",	s,	15,	mailbox->mailbox)	\
-		CLI_AMI_TABLE_FIELD(context,		"-15.15",	s,	15,	mailbox->context)
+#define CLI_AMI_TABLE_FIELDS 												\
+		CLI_AMI_TABLE_FIELD(mailbox,		"30.30",	s,	30,	mailbox->uniqueid)
 #include "sccp_cli_table.h"
 		local_table_total++;
 
@@ -1544,7 +1543,7 @@ static char ami_mwi_subscriptions_usage[] = "Usage: SCCPShowMWISubscriptions\n" 
 #define AMI_COMMAND "SCCPShowMWISubscriptions"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS ""
-CLI_AMI_ENTRY(show_mwi_subscriptions, sccp_show_mwi_subscriptions, "Show all SCCP MWI subscriptions", cli_mwi_subscriptions_usage, FALSE, TRUE)
+CLI_AMI_ENTRY(show_mwi_subscriptions, iVoicemail.showSubscriptions, "Show all SCCP MWI subscriptions", cli_mwi_subscriptions_usage, FALSE, TRUE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND

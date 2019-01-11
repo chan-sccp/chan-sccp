@@ -18,7 +18,6 @@
 #include "sccp_utils.h"
 #include "sccp_indicate.h"
 #include "sccp_hint.h"
-#include "sccp_mwi.h"
 #include "sccp_appfunctions.h"
 #include "sccp_management.h"
 #include "sccp_netsock.h"
@@ -2976,7 +2975,6 @@ static int unload_module(void)
 	ast_channel_unregister(&sccp_tech);
 	sccp_unregister_dialplan_functions();
 	sccp_unregister_cli();
-	sccp_mwi_module_stop();
 #ifdef CS_SCCP_MANAGER
 	sccp_unregister_management();
 #endif

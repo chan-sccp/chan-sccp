@@ -295,7 +295,7 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 "
 	SANITIZE_CFLAGS=""
 	SANITIZE_LDFLAGS=""
-
+	MWI_USE_EVENTS=0
 	AC_CHECK_HEADER([asterisk.h],
 		AC_MSG_CHECKING([ - if asterisk provides ast_register_file_version...])
 		AC_EGREP_CPP([ast_register_file_version], [
@@ -581,6 +581,7 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 			AC_DEFINE([SCCP_MAX_SECONDARY_DIALTONE_DIGITS],[10],['defined SCCP_MAX_SECONDARY_DIALTONE_DIGITS = 10'])
 			AC_DEFINE([SCCP_MAX_DATE_FORMAT],[8],['defined SCCP_MAX_DATE_FORMAT = 8'])
 			AC_DEFINE([SCCP_MAX_REALTIME_TABLE_NAME],[45],['defined SCCP_MAX_REALTIME_TABLE_NAME = 45'])
+			AC_DEFINE_UNQUOTED([SCCP_MAX_MAILBOX_UNIQUEID],[(SCCP_MAX_EXTENSION + SCCP_MAX_CONTEXT + 2)],['defined SCCP_MAX_MAILBOX_UNIQUEID'])
 
 			CS_CV_TRY_COMPILE_IFELSE([ - availability 'ast_max_account_code'...], [ac_cv_ast_max_account_code], [
 				$HEADER_INCLUDE
@@ -776,14 +777,17 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 		AC_CHECK_HEADER([asterisk/event.h],	
 		[
 			AC_DEFINE(HAVE_PBX_EVENT_H,1,[Found 'asterisk/event.h'])
-			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_event_subscribe'...], [ac_cv_ast_event_subscribe], [
+			CS_CV_TRY_COMPILE_IFELSE([ - availability 'ast_event_subscribe'...], [ac_cv_ast_event_subscribe], [
 					$HEADER_INCLUDE
 					#include <asterisk/event.h>
 				], [
 					ast_event_cb_t test_cb;
 					void *data;
 					struct ast_event_sub __attribute__((unused)) *test_event_sub = ast_event_subscribe(AST_EVENT_MWI, test_cb, "mailbox subscription", data, AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, NULL, AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, "default", AST_EVENT_IE_END);
-				], [CS_AST_HAS_EVENT],['ast_event_subscribe' available]
+				], [
+					AC_DEFINE([CS_AST_HAS_EVENT],1, ['ast_event_subscribe' available])
+					MWI_USE_EVENT=1
+				]
 			)
 
 		],,[ 
@@ -792,14 +796,26 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 		AC_CHECK_HEADER([asterisk/stasis.h],	
 		[
 			AC_DEFINE(HAVE_PBX_STASIS_H,1,[Found 'asterisk/stasis.h'])
-			CS_CV_TRY_COMPILE_DEFINE([ - availability 'stasis_subscribe'...], [ac_cv_ast_stasis_subscribe], [
+			CS_CV_TRY_COMPILE_IFELSE([ - availability 'stasis_subscribe'...], [ac_cv_ast_stasis_subscribe], [
 					$HEADER_INCLUDE
 					#include <asterisk/stasis.h>
 				], [
 					struct stasis_topic *stasis_topic = NULL;
 					void *data = NULL;
 					struct stasis_subscription __attribute__((unused)) *stasis_sub = stasis_subscribe(stasis_topic, data, data);
-				], [CS_AST_HAS_STASIS],['stasis_subscribe' available]
+				], [
+					AC_DEFINE([CS_AST_HAS_STASIS],1,['stasis_subscribe' available])
+					MWI_USE_EVENT=1
+				]
+			)
+			CS_CV_TRY_COMPILE_DEFINE([ - availability 'stasis_subscription_set_filter'...], [ac_cv_ast_stasis_subscription_set_filter], [
+					$HEADER_INCLUDE
+					#include <asterisk/stasis.h>
+				], [
+					struct stasis_subscription *subscription = NULL;
+					stasis_subscription_accept_message_type(subscription, NULL);
+					stasis_subscription_set_filter(subscription, STASIS_SUBSCRIPTION_FILTER_SELECTIVE);
+				], [CS_AST_HAS_STASIS_SUBSCRIPTION_SET_FILTER], ['stasis_subscription_set_filter' available]
 			)
 			AC_CHECK_HEADER([asterisk/stasis_endpoints.h],	
 			[
@@ -1178,6 +1194,12 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 			AC_DEFINE([bt_free],[sccp_free],[defined 'bt_free' replacement])
 		],[ 
 			$HEADER_INCLUDE
+		])
+		AS_IF([test ${MWI_USE_EVENT} -eq 1],
+		[
+			AC_DEFINE([MWI_USE_EVENT],1,[defined 'MWI_USE_EVENT'])
+		], [
+			AC_DEFINE([MWI_USE_POLLING],1,[defined 'MWI_USE_POLLING'])
 		])
 		dnl restore previous CFLAGS from backup
 		CFLAGS={$CFLAGS_backup}

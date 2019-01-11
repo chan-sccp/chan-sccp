@@ -73,7 +73,9 @@ void sccp_devstate_module_stop(void)
 
 		SCCP_LIST_LOCK(&deviceStates);
 		while ((deviceState = SCCP_LIST_REMOVE_HEAD(&deviceStates, list))) {
-			pbx_event_unsubscribe(deviceState->sub);
+			if (deviceState->sub) {
+				pbx_event_unsubscribe(deviceState->sub);
+			}
 
 			SCCP_LIST_LOCK(&deviceState->subscribers);
 			while ((subscriber = SCCP_LIST_REMOVE_HEAD(&deviceState->subscribers, list))) {
@@ -145,12 +147,12 @@ void sccp_devstate_deviceRegisterListener(const sccp_event_t * event)
 	}
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
-			device = event->event.deviceRegistered.device;
+			device = event->deviceRegistered.device;
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_deviceRegisterListener) device registered\n", DEV_ID_LOG(device));
 			sccp_devstate_deviceRegistered(device);
 			break;
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
-			device = event->event.deviceRegistered.device;
+			device = event->deviceRegistered.device;
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_deviceRegisterListener) device unregistered\n", DEV_ID_LOG(device));
 			sccp_devstate_deviceUnRegistered(device);
 			break;
@@ -195,11 +197,21 @@ sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *
 	}
 	SCCP_LIST_HEAD_INIT(&deviceState->subscribers);
 	sccp_copy_string(deviceState->devicestate, devstate, sizeof(deviceState->devicestate));
-#if ASTERISK_VERSION_GROUP >= 112
+#if CS_AST_HAS_STASIS
 	struct stasis_topic *devstate_specific_topic = ast_device_state_topic((const char *)buf);
-	deviceState->sub = stasis_subscribe(devstate_specific_topic, sccp_devstate_changed_cb, deviceState);
-#else
+	if (devstate_specific_topic) {
+		deviceState->sub = stasis_subscribe(devstate_specific_topic, sccp_devstate_changed_cb, deviceState);
+//#  if CS_AST_HAS_STASIS_SUBSCRIPTION_SET_FILTER
+//		if (deviceState->sub)
+//			stasis_subscription_accept_message_type((deviceState->sub)->event_sub, ast_device_state_message_type());
+//			stasis_subscription_set_filter((deviceState->sub)->event_sub, STASIS_SUBSCRIPTION_FILTER_SELECTIVE);
+//		}
+//#  endif
+	}
+#elif CS_AST_HAS_EVENT
 	deviceState->sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE_CHANGE, sccp_devstate_changed_cb, "sccp_devstate_changed_cb", deviceState, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, pbx_strdup(buf), AST_EVENT_IE_END);
+#else
+	pbx_log(LOG_ERROR, "SCCP: distributed devstate not supported\n");
 #endif
 	deviceState->featureState = (ast_device_state(buf) == AST_DEVICE_NOT_INUSE) ? 0 : 1;
 

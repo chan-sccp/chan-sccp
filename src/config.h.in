@@ -189,6 +189,9 @@
 /* 'stasis_endpoint' available */
 #undef CS_AST_HAS_STASIS_ENDPOINT
 
+/* 'stasis_subscription_set_filter' available */
+#undef CS_AST_HAS_STASIS_SUBSCRIPTION_SET_FILTER
+
 /* 'struct ast_channel_tech' available' */
 #undef CS_AST_HAS_TECH_PVT
 
@@ -727,6 +730,12 @@
 /* Define to the shared archive member specification, say "(shr.o)". */
 #undef LT_SHARED_LIB_MEMBER
 
+/* defined 'MWI_USE_EVENT' */
+#undef MWI_USE_EVENT
+
+/* defined 'MWI_USE_POLLING' */
+#undef MWI_USE_POLLING
+
 /* Define if dlsym() requires a leading underscore in symbol names. */
 #undef NEED_USCORE
 
@@ -871,6 +880,9 @@
 
 /* 'defined SCCP_MAX_LINE_PIN = 8' */
 #undef SCCP_MAX_LINE_PIN
+
+/* 'defined SCCP_MAX_MAILBOX_UNIQUEID' */
+#undef SCCP_MAX_MAILBOX_UNIQUEID
 
 /* 'defined SCCP_MAX_MESSAGESTACK = 10' */
 #undef SCCP_MAX_MESSAGESTACK

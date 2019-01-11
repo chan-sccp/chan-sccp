@@ -163,6 +163,9 @@ SCCP_API void SCCP_CALL sccp_line_cfwd(constLinePtr line, constDevicePtr device,
 SCCP_API void SCCP_CALL sccp_linedevice_resetPickup(sccp_linedevices_t * ld);
 SCCP_API void SCCP_CALL sccp_linedevice_disallowPickup(sccp_linedevices_t * ld);
 
+SCCP_API void SCCP_CALL sccp_line_setMWI(linePtr line, int newlinemsgs, int oldlinemsgs);
+SCCP_API void SCCP_CALL sccp_line_indicateMWI(constLineDevicePtr linedevice);
+
 // find line
 SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_byname(const char *name, uint8_t useRealtime);
 

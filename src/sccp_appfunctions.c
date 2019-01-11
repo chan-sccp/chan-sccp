@@ -63,7 +63,6 @@ SCCP_FILE_VERSION(__FILE__, "");
 					<option name="early_rtp"><para>Early RTP Setting (string).</para></option>
 					<option name="supported_protocol_version"><para>Supported Protocol by Device (integer).</para></option>
 					<option name="used_protocol_version"><para>Currently Used Protocol (integer).</para></option>
-					<option name="mwi_light"><para>Current MWI Light Status (boolean).</para></option>
 					<option name="dnd_feature"><para>DND Feature (boolean).</para></option>
 					<option name="dnd_state"><para>DND State (string).</para></option>
 					<option name="dnd_action"><para>DND Action (string).</para></option>
@@ -469,8 +468,6 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				snprintf(buf, buf_len, "%d", d->protocolversion);
 			} else if (!strcasecmp(token, "used_protocol_version")) {
 				snprintf(buf, buf_len, "%d", d->inuseprotocolversion);
-			} else if (!strcasecmp(token, "mwi_light")) {
-				sccp_copy_string(buf, d->mwilight ? "ON" : "OFF", buf_len);
 			} else if (!strcasecmp(token, "dnd_feature")) {
 				sccp_copy_string(buf, (d->dndFeature.enabled) ? "ON" : "OFF", buf_len);
 			} else if (!strcasecmp(token, "dnd_state")) {
@@ -776,7 +773,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 				SCCP_LIST_LOCK(&l->mailboxes);
 				SCCP_LIST_TRAVERSE(&l->mailboxes, mailbox, list) {
-					pbx_str_append(&lbuf, 0, "%s%s%s%s", addcomma++ ? "," : "", mailbox->mailbox, mailbox->context ? "@" : "", mailbox->context ? mailbox->context : "");
+					pbx_str_append(&lbuf, 0, "%s%s", addcomma++ ? "," : "", mailbox->uniqueid);
 				}
 				SCCP_LIST_UNLOCK(&l->mailboxes);
 				snprintf(buf, buf_len, "%s", pbx_str_buffer(lbuf));

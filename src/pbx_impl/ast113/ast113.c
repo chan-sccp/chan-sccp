@@ -18,7 +18,6 @@
 #include "sccp_utils.h"
 #include "sccp_indicate.h"
 #include "sccp_hint.h"
-#include "sccp_mwi.h"
 #include "sccp_appfunctions.h"
 #include "sccp_management.h"
 #include "sccp_netsock.h"
@@ -3683,7 +3682,6 @@ static int unload_module(void)
 	unregister_channel_tech(&sccp_tech);
 	sccp_unregister_dialplan_functions();
 	sccp_unregister_cli();
-	sccp_mwi_module_stop();
 #ifdef CS_SCCP_MANAGER
 	sccp_unregister_management();
 #endif
@@ -3813,7 +3811,6 @@ static int module_reload(void)
 }
 
 #if defined(__cplusplus) || defined(c_plusplus)
-
 static struct ast_module_info __mod_info = {
 	NULL,
 	load_module,
@@ -3843,8 +3840,16 @@ static void __attribute__ ((destructor)) __unreg_module(void)
 static const __attribute__ ((unused))
 struct ast_module_info *ast_module_info = &__mod_info;
 #else
-
-AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, SCCP_VERSIONSTR,.load = load_module,.unload = unload_module,.reload = module_reload,.load_pri = AST_MODPRI_DEFAULT,.nonoptreq = "chan_local");
+AST_MODULE_INFO(
+	ASTERISK_GPL_KEY,
+	AST_MODFLAG_LOAD_ORDER,
+	SCCP_VERSIONSTR,
+	.load = load_module,
+	.unload = unload_module,
+	.reload = module_reload,
+	.load_pri = AST_MODPRI_DEFAULT,
+	.nonoptreq = "chan_local"
+);
 #endif
 
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE * chan, const char *exten, const char *context)

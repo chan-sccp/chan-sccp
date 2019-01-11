@@ -25,7 +25,6 @@
 #include "sccp_line.h"
 #include "sccp_session.h"
 #include "sccp_indicate.h"
-#include "sccp_mwi.h"
 #include "sccp_utils.h"
 #include "sccp_atomic.h"
 #include "sccp_devstate.h"
@@ -640,6 +639,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->getDtmfMode = sccp_device_getDtfmMode;
 	d->copyStr2Locale = sccp_device_copyStr2Locale_UTF8;
 	d->keepalive = d->keepaliveinterval = d->keepalive ? d->keepalive : GLOB(keepalive);
+	d->mwiUpdateRequired = TRUE;
 
 	d->pendingUpdate = 0;
 	d->pendingDelete = 0;
@@ -1278,8 +1278,6 @@ void sccp_dev_sendmsg(constDevicePtr d, sccp_mid_t t)
  */
 void sccp_dev_set_registered(devicePtr d, skinny_registrationstate_t state)
 {
-	sccp_event_t event = {{{ 0 }}};
-
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (sccp_dev_set_registered) Setting Registered Status for Device from %s to %s\n", DEV_ID_LOG(d), skinny_registrationstate2str(sccp_device_getRegistrationState(d)), skinny_registrationstate2str(state));
 
 	if (!sccp_device_setRegistrationState(d, state)) {
@@ -1292,13 +1290,13 @@ void sccp_dev_set_registered(devicePtr d, skinny_registrationstate_t state)
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(d));
 			sccp_handle_AvailableLines(d->session, d, NULL);
 		}
-
 		sccp_dev_postregistration(d);
 	} else if (state == SKINNY_DEVICE_RS_PROGRESS) {
-		memset(&event, 0, sizeof(sccp_event_t));
-		event.type = SCCP_EVENT_DEVICE_PREREGISTERED;
-		event.event.deviceRegistered.device = sccp_device_retain(d);
-		sccp_event_fire(&event);
+		sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_DEVICE_PREREGISTERED);
+		if (event) {
+			event->deviceRegistered.device = sccp_device_retain(d);
+			sccp_event_fire(event);
+		}
 	}
 	d->registrationTime = time(0);
 }
@@ -2117,7 +2115,6 @@ int sccp_device_check_ringback(devicePtr device)
 void sccp_dev_postregistration(void *data)
 {
 	sccp_device_t *d = data;
-	sccp_event_t event = {{{ 0 }}};
 
 #ifndef ASTDB_FAMILY_KEY_LEN
 #define ASTDB_FAMILY_KEY_LEN 100
@@ -2135,9 +2132,11 @@ void sccp_dev_postregistration(void *data)
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device registered; performing post registration tasks...\n", d->id);
 
 	// Post event to interested listeners (hints, mwi) that device was registered.
-	event.type = SCCP_EVENT_DEVICE_REGISTERED;
-	event.event.deviceRegistered.device = sccp_device_retain(d);
-	sccp_event_fire(&event);
+	sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_DEVICE_REGISTERED);
+	if (event) {
+		event->deviceRegistered.device = sccp_device_retain(d);
+		sccp_event_fire(event);
+	}
 
 	if (iPbx.feature_getFromDatabase) {
 		/* read last line/device states from db */
@@ -2211,18 +2210,17 @@ void sccp_dev_postregistration(void *data)
 		d->useRedialMenu = FALSE;
 	}
 
-	sccp_dev_check_displayprompt(d);
-
-	d->mwilight = 0;
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
 		if (d->lineButtons.instance[instance]) {
 			AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_retain(d->lineButtons.instance[instance]));
-			if (linedevice) {
-				sccp_mwi_setMWILineStatus(linedevice);
+			if (linedevice){
+				sccp_line_indicateMWI(linedevice);
 			}
 		}
 	}
-	sccp_mwi_check(d);
+	sccp_device_setMWI(d);
+	sccp_dev_check_displayprompt(d);
+
 #ifdef CS_SCCP_PARK
 	sccp_buttonconfig_t *config = NULL;
 	SCCP_LIST_LOCK(&d->buttonconfig);
@@ -2313,7 +2311,6 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 	sccp_buttonconfig_t *config = NULL;
 	sccp_selectedchannel_t *selectedChannel = NULL;
 	sccp_channel_t *c = NULL;
-	sccp_event_t event = {{{ 0 }}};
 	int i = 0;
 
 #if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
@@ -2330,9 +2327,7 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 			sccp_device_removeFromGlobals(d);
 		}
 
-		d->mwilight = 0;										/* reset mwi light */
 		d->linesRegistered = FALSE;
-
 		__saveLastDialedNumberToDatabase(d);
 		
 		if (d->active_channel) {
@@ -2394,10 +2389,11 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Unregister Device %s\n", d->id);
 
-		memset(&event, 0, sizeof(sccp_event_t));
-		event.type = SCCP_EVENT_DEVICE_UNREGISTERED;
-		event.event.deviceRegistered.device = sccp_device_retain(d);
-		sccp_event_fire(&event);
+		sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_DEVICE_UNREGISTERED);
+		if (event) {
+			event->deviceRegistered.device = sccp_device_retain(d);
+			sccp_event_fire(event);
+		}
 
 		if (SCCP_NAT_AUTO == d->nat || SCCP_NAT_AUTO_OFF == d->nat || SCCP_NAT_AUTO_ON == d->nat) {
 			d->nat = SCCP_NAT_AUTO;
@@ -3069,22 +3065,22 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 	size_t len = sizeof(tmp);
 	char *s = tmp;
 
-	if (!event || !(device = event->event.featureChanged.device)) {
+	if (!event || !(device = event->featureChanged.device)) {
 		return;
 	}
-	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Received Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), sccp_feature_type2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
-	switch (event->event.featureChanged.featureType) {
+	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Received Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), sccp_feature_type2str(event->featureChanged.featureType), event->featureChanged.featureType);
+	switch (event->featureChanged.featureType) {
 		case SCCP_FEATURE_CFWDNONE:
 			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
 			break;
 		case SCCP_FEATURE_CFWDBUSY:
 		case SCCP_FEATURE_CFWDALL:
-			if ((linedevice = event->event.featureChanged.optional_linedevice)) {
+			if ((linedevice = event->featureChanged.optional_linedevice)) {
 				sccp_line_t *line = linedevice->line;
 				uint8_t instance = linedevice->lineInstance;
 
 				sccp_dev_forward_status(line, instance, device);
-				switch (event->event.featureChanged.featureType) {
+				switch (event->featureChanged.featureType) {
 					case SCCP_FEATURE_CFWDALL:
 						if (linedevice->cfwdAll.enabled) {
 							/* build disp message string */
@@ -3355,4 +3351,51 @@ void sccp_device_setLamp(constDevicePtr device, skinny_stimulus_t stimulus, uint
 	}
 }
 
+void sccp_device_setMWI(devicePtr device)
+{
+	device->voicemailStatistic.newmsgs = 0;
+	device->voicemailStatistic.oldmsgs = 0;
+	for (uint8_t instance = SCCP_FIRST_LINEINSTANCE; instance < device->lineButtons.size; instance++) {
+		if(device->lineButtons.instance[instance]) {
+			sccp_line_t *l = device->lineButtons.instance[instance]->line;
+			device->voicemailStatistic.newmsgs += l->voicemailStatistic.newmsgs;
+			device->voicemailStatistic.oldmsgs += l->voicemailStatistic.oldmsgs;
+		}
+	}
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (sccp_device_setMWI), newmsgs:%d, oldmsgs:%d\n", device->id, device->voicemailStatistic.newmsgs, device->voicemailStatistic.oldmsgs);
+	device->mwiUpdateRequired = TRUE;
+	sccp_device_indicateMWI(device);
+}
+
+/*!
+ * Temporarily suppress MWI output during call
+ */
+void sccp_device_suppressMWI(devicePtr device)
+{
+	if (!device->mwioncall) {
+		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (sccp_device_suppressMWI)\n", device->id);
+		device->mwiUpdateRequired = TRUE;
+		sccp_device_setLamp(device, SKINNY_STIMULUS_VOICEMAIL, 0, SKINNY_LAMP_OFF);
+	}
+}
+
+void sccp_device_indicateMWI(devicePtr device)
+{
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (sccp_device_indicateMWI) indication update required:%s\n", device->id, device->mwiUpdateRequired ? "yes" : "no");
+	if (device->mwiUpdateRequired) {
+		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (sccp_device_indicateMWI) Set main voicemail lamp:%s\n", device->id,
+			device->voicemailStatistic.newmsgs ? "on" : "off");
+		sccp_device_setLamp(device, SKINNY_STIMULUS_VOICEMAIL, 0, device->voicemailStatistic.newmsgs ? device->mwilamp : SKINNY_LAMP_OFF);
+
+		if (device->voicemailStatistic.newmsgs || device->voicemailStatistic.oldmsgs) {
+			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (sccp_device_indicateMWI) Set Have Voicemail on Display\n", device->id);
+			char buffer[StationMaxDisplayTextSize];
+			snprintf(buffer, StationMaxDisplayTextSize, "%s: (%u/%u)", SKINNY_DISP_YOU_HAVE_VOICEMAIL, device->voicemailStatistic.newmsgs, device->voicemailStatistic.oldmsgs);
+			sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_VOICEMAIL, buffer);
+		} else {
+			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (sccp_device_indicateMWI) Remove Have Voicemail from Display\n", device->id);
+			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_VOICEMAIL);
+		}
+	}
+}
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets on;

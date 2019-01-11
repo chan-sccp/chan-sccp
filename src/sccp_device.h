@@ -202,7 +202,6 @@ struct sccp_device {
 	} redialInformation;											/*!< Last Dialed Number */
 	boolean_t linesRegistered;										/*!< did we answer the RegisterAvailableLinesMessage */
 	boolean_t meetme;											/*!< Meetme on/off */
-	boolean_t mwioncall;											/*!< MWI On Call Support (Boolean, default=on) */
 	boolean_t softkeysupport;										/*!< Soft Key Support (Boolean, default=on) */
 	boolean_t realtime;											/*!< is it a realtime configuration */
 	boolean_t transfer;											/*!< Transfer Support (Boolean, default=on) */
@@ -224,7 +223,8 @@ struct sccp_device {
 	boolean_t cfwdnoanswer;											/*!< Call Forward on No-Answer Support (Boolean, default=on) */
 	char *meetmeopts;											/*!< Meetme Options to be Used */
 	skinny_lampmode_t mwilamp;										/*!< MWI/Lamp to indicate MailBox Messages */
-	uint32_t mwilight;											/*!< MWI/Light bit field to to store mwi light for each line and device (offset 0 is current device state) */
+	boolean_t mwioncall;											/*!< MWI On Call Support (Boolean, default=on) */
+	boolean_t mwiUpdateRequired;
 
 	struct {
 		sccp_channel_t *transferee;									/*!< SCCP Channel which will be transferred */
@@ -333,9 +333,8 @@ struct sccp_device {
 	boolean_t pickup_modeanswer;										/*!< Directed Pickup Mode Answer (Boolean, default on). Answer on directed pickup */
 #endif
 	skinny_callHistoryDisposition_t callhistory_answered_elsewhere;						/*!< What to do with the call history for calls that were answered remotely */
-	boolean_t mwiLight;											/*!< MWI/Light \todo third MWI/light entry in device ? */
 	boolean_t useRedialMenu;
-
+	
 	uint32_t  rtpPort;
 #ifdef CS_AST_HAS_STASIS_ENDPOINT
 	PBX_ENDPOINT_TYPE *endpoint;
@@ -484,5 +483,8 @@ SCCP_API sccp_device_t * SCCP_CALL sccp_device_find_realtime(const char *name);
 #endif
 
 SCCP_API void SCCP_CALL sccp_device_setLamp(constDevicePtr device, skinny_stimulus_t stimulus, uint8_t instance, skinny_lampmode_t mode);
+SCCP_API void SCCP_CALL sccp_device_setMWI(devicePtr device);
+SCCP_API void SCCP_CALL sccp_device_suppressMWI(devicePtr device);
+SCCP_API void SCCP_CALL sccp_device_indicateMWI(devicePtr device);
 __END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

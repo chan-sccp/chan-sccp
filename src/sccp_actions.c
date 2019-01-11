@@ -953,7 +953,6 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 
 	// device->session = s;
 	sccp_session_resetLastKeepAlive(s);
-	device->mwilight = 0;
 	device->protocolversion = protocolVer;
 	device->status.token = SCCP_TOKEN_STATE_NOTOKEN;
 	sccp_copy_string(device->loadedimageversion, msg_in->data.RegisterMessage.loadInfo, StationMaxImageVersionSize);
@@ -1259,7 +1258,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 
 						}
 					} else {
-						pbx_log(LOG_WARNING, "%s: Cannot handle feature %d with label:%s (No regular buttons left). Skipped\n", d->id, buttonconfig->index + 1, buttonconfig->label);
+						sccp_log(DEBUGCAT_BUTTONTEMPLATE)(VERBOSE_PREFIX_3 "%s: Cannot handle feature %d with label:%s (No regular buttons left). Skipped\n", d->id, buttonconfig->index + 1, buttonconfig->label);
 						btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
 					}
 					break;

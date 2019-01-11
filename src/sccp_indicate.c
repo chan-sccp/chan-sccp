@@ -67,6 +67,11 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 	sccp_channel_setChannelstate(c, state);
 	sccp_callinfo_t * const ci = sccp_channel_getCallInfo(c);
 
+	if (SCCP_CHANNELSTATE_Idling(state) || SCCP_CHANNELSTATE_IsTerminating(state)) {
+		sccp_device_indicateMWI(d);
+	} else {
+		sccp_device_suppressMWI(d);
+	}
 	switch (state) {
 		case SCCP_CHANNELSTATE_DOWN:
 			{
@@ -190,7 +195,6 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, TRUE);
-
 				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
 
 				if ((d->dndFeature.enabled && d->dndFeature.status == SCCP_DNDMODE_SILENT && c->ringermode != SKINNY_RINGTYPE_URGENT)) {
@@ -450,13 +454,13 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 
 		/* notify features (sccp_feat_channelstateChanged = empty function, skipping) */
 		//sccp_feat_channelstateChanged(d, c);
-
-		sccp_event_t event = {{{0}}};
-		event.type = SCCP_EVENT_LINESTATUS_CHANGED;
-		event.event.lineStatusChanged.line = sccp_line_retain(l);
-		event.event.lineStatusChanged.optional_device = sccp_device_retain(d);
-		event.event.lineStatusChanged.state = c->state;
-		sccp_event_fire(&event);
+		sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_LINESTATUS_CHANGED);
+		if (event) {
+			event->lineStatusChanged.line = sccp_line_retain(l);
+			event->lineStatusChanged.optional_device = d ? sccp_device_retain(d) : NULL;
+			event->lineStatusChanged.state = c->state;
+			sccp_event_fire(event);
+		}
 	}
 
 	sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Finish to indicate channel state:%s on call:%s, lineInstance:%d. New channel state:%s\n", d->id, sccp_channelstate2str(state), c->designator, lineInstance, sccp_channelstate2str(c->state));

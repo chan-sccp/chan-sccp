@@ -16,7 +16,7 @@ typedef struct sccp_event {
 	union {
 		struct {
 			sccp_line_t *line;									/*!< SCCP Line (required) */
-		} lineCreated;											/*!< Event Line Created Structure */
+		} lineInstance;											/*!< Event Line Created/Destroyed Structure */
 		struct {
 			sccp_device_t *device;									/*!< SCCP Device (required) */
 		} deviceRegistered;										/*!< Event Device Registered Structure */
@@ -39,7 +39,7 @@ typedef struct sccp_event {
 			char *str;
 		} TestEvent;											/*!< Event feature changed Structure */
 #endif
-	} event;												/*!< SCCP Event Data Union */
+	};												/*!< SCCP Event Data Union */
 	sccp_event_type_t type;											/*!< Event Type */
 } sccp_event_t;													/*!< SCCP Event Structure */
 
@@ -47,6 +47,7 @@ typedef void (*sccp_event_callback_t) (const sccp_event_t * event);
 
 SCCP_API void SCCP_CALL sccp_event_module_start(void);
 SCCP_API boolean_t SCCP_CALL sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb, boolean_t allowAsyncExecution);
+SCCP_API sccp_event_t * SCCP_CALL sccp_event_allocate(sccp_event_type_t eventType);
 SCCP_API boolean_t SCCP_CALL sccp_event_fire(sccp_event_t * event);
 SCCP_API boolean_t SCCP_CALL sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callback_t cb);
 SCCP_API void SCCP_CALL sccp_event_module_stop(void);
