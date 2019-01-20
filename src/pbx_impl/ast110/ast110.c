@@ -136,7 +136,7 @@ static struct ast_channel_tech sccp_tech = {
 	exception:		NULL,
 //	bridge:			sccp_astwrap_rtpBridge,
 	bridge:			ast_rtp_instance_bridge,
-	early_bridge:		NULL,
+	early_bridge:		ast_rtp_instance_early_bridge,
 	indicate:		sccp_astwrap_indicate,
 	fixup:			sccp_astwrap_fixup,
 	setoption:		NULL,
@@ -177,7 +177,7 @@ struct ast_channel_tech sccp_tech = {
 	//.transfer 		= sccp_pbx_transfer,
 	//.bridge 		= sccp_astwrap_rtpBridge,
 	.bridge 		= ast_rtp_instance_bridge,
-//	.early_bridge           = ast_rtp_instance_early_bridge,
+	.early_bridge           = ast_rtp_instance_early_bridge,
 	//.bridged_channel      =
 
 	.send_text 		= sccp_pbx_sendtext,
