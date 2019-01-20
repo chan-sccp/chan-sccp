@@ -32,3 +32,5 @@ src/sccp_enum.?
 *.diff
 coverage/
 chan_sccp-en_US.xml
+TAGS
+tags
