@@ -1367,7 +1367,7 @@ void sccp_feat_changed(constDevicePtr device, const sccp_linedevices_t * const l
  */
 void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_lineInstance, constChannelPtr maybe_channel)
 {
-	sccp_featureConfiguration_t *monitorFeature = (sccp_featureConfiguration_t *)&device->monitorFeature;		/* discard const */
+	sccp_featureConfiguration_t *monitorFeature = (sccp_featureConfiguration_t *const)&device->monitorFeature;		/* discard const */
 	if (!maybe_channel) {
 		if (monitorFeature->status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) {
 			monitorFeature->status &= ~SCCP_FEATURE_MONITOR_STATE_REQUESTED;

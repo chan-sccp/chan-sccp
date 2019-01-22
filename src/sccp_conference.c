@@ -243,7 +243,7 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 	/** create conference */
 	snprintf(conferenceIdentifier, REFCOUNT_INDENTIFIER_SIZE, "SCCPCONF/%04d", conferenceID);
 	conference = (conferencePtr) sccp_refcount_object_alloc(sizeof(sccp_conference_t), SCCP_REF_CONFERENCE, conferenceIdentifier, __sccp_conference_destroy);
-	if (NULL == conference) {
+	if (!conference) {
 		pbx_log(LOG_ERROR, "SCCPCONF/%04d: cannot alloc memory for new conference.\n", conferenceID);
 		return NULL;
 	}
@@ -310,7 +310,7 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 
 	AUTO_RELEASE(sccp_participant_t, participant , sccp_conference_createParticipant(conference));
 
-	if (participant && conference) {
+	if (participant) {
 #if CS_REFCOUNT_DEBUG
 		sccp_refcount_addWeakParent(participant, device);
 		sccp_refcount_addWeakParent(participant, channel);

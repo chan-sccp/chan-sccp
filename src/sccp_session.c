@@ -160,7 +160,7 @@ static int __sccp_session_setOurAddressFromTheirs(const struct sockaddr_storage 
 
 int sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr_storage *addr)
 {
-	sccp_session_t * const s = (sccp_session_t * const)session;						/* discard const */
+	sessionPtr s = (sessionPtr)session;									/* discard const */
 	if (s) {
 		return __sccp_session_setOurAddressFromTheirs(addr, &s->ourIPv4);
 	}
@@ -455,7 +455,7 @@ static int __sccp_session_addDevice(sessionPtr session, constDevicePtr device)
 int sccp_session_retainDevice(constSessionPtr session, constDevicePtr device)
 {
 	if (session && (!device || (device && session->device != device))) {
-		sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
+		sessionPtr s = (sessionPtr)session;									/* discard const */
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", DEV_ID_LOG(device), s->fds[0].fd, sccp_netsock_stringify_addr(&s->sin));
 		return __sccp_session_addDevice(s, device);
 	}
@@ -465,7 +465,7 @@ int sccp_session_retainDevice(constSessionPtr session, constDevicePtr device)
 
 void sccp_session_releaseDevice(constSessionPtr volatile session)
 {
-	sccp_session_t * s = (sccp_session_t *)session;									/* discard const */
+	sessionPtr s = (sessionPtr)session;										/* discard const */
 	if (s) {
 		AUTO_RELEASE(sccp_device_t, device , NULL);
 		device = __sccp_session_removeDevice(s);
@@ -733,7 +733,7 @@ static void __sccp_netsock_end_device_thread(sccp_session_t *session)
 /* check if same or different thread, choose thread cancel method accordingly */
 gcc_inline void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState)
 {
-	sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
+	sessionPtr s = (sessionPtr)session;										/* discard const */
 	if (s) {
 		pthread_t ptid = pthread_self();
 		if (ptid == s->session_thread) {
@@ -1000,7 +1000,7 @@ int sccp_session_send(constDevicePtr device, const sccp_msg_t * msg_in)
  */
 int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 {
-	sccp_session_t * const s = (sessionPtr) session;								/* discard const */
+	sessionPtr s = (sessionPtr)session;										/* discard const */
 	ssize_t res = 0;
 	uint32_t msgid = letohl(msg->header.lel_messageId);
 	ssize_t bytesSent;
@@ -1080,7 +1080,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 sccp_session_t *sccp_session_reject(constSessionPtr session, char *message)
 {
 	sccp_msg_t *msg = NULL;
-	sccp_session_t * const s = (sccp_session_t * const) session;			/* discard const */
+	sessionPtr s = (sessionPtr)session;										/* discard const */
 
 	REQ(msg, RegisterRejectMessage);
 	sccp_copy_string(msg->data.RegisterRejectMessage.text, message, sizeof(msg->data.RegisterRejectMessage.text));
@@ -1176,8 +1176,7 @@ void sccp_session_tokenAckSPCP(constSessionPtr session, uint32_t features)
  */
 gcc_inline void sccp_session_setProtocol(constSessionPtr session, uint16_t protocolType)
 {
-	sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
-
+	sessionPtr s = (sessionPtr)session;										/* discard const */
 	if (s) {
 		s->protocolType = protocolType;
 	}
@@ -1201,8 +1200,7 @@ gcc_inline uint16_t sccp_session_getProtocol(constSessionPtr session)
  */
 gcc_inline void sccp_session_resetLastKeepAlive(constSessionPtr session)
 {
-	sccp_session_t * s = (sccp_session_t *)session;								/* discard const */
-
+	sessionPtr s = (sessionPtr)session;										/* discard const */
 	if (s) {
 		s->lastKeepAlive = time(0);
 	}

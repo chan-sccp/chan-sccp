@@ -1155,7 +1155,7 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 	/* Copy Codec from SrcChannel */
 	struct ast_str *codec_buf = ast_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
 	if (pbxSrcChannel && ast_format_cap_count(ast_channel_nativeformats(pbxSrcChannel)) > 0) {
-		if (channel->calltype == SKINNY_CALLTYPE_INBOUND && line && channel) {		// pbxSrcChannel is requestor
+		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {		// pbxSrcChannel is requestor
 			struct ast_format_cap *joint = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
 			if (!joint) {
 				ao2_cleanup(pbxDstChannel);
@@ -1187,7 +1187,7 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 			/* Transfer/CallForward call*/
 			ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(pbxSrcChannel), AST_MEDIA_TYPE_UNKNOWN);
 		}
-	} else if (line && channel) {
+	} else {
 		pbx_format_cap_append_skinny(caps, channel->preferences.audio);
 #ifdef CS_SCCP_VIDEO
 		pbx_format_cap_append_skinny(caps, channel->preferences.video);
@@ -1345,7 +1345,7 @@ static boolean_t sccp_astwrap_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChann
 	//ast_channel_tech_pvt_set(pbxDstChannel, sccp_channel_retain(channel));
 
 	// if (ast_format_cap_is_empty(pbx_channel_nativeformats(pbxSrcChannel))) {
-	if (pbxSrcChannel && ast_format_cap_count(ast_channel_nativeformats(pbxSrcChannel)) > 0) {
+	if (ast_format_cap_count(ast_channel_nativeformats(pbxSrcChannel)) > 0) {
 		ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(pbxSrcChannel), AST_MEDIA_TYPE_UNKNOWN);
 	} else {
 		struct ast_format *ast_format = ast_format_slin16;

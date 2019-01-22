@@ -2003,8 +2003,7 @@ void sccp_dev_check_displayprompt(constDevicePtr d)
 
 	sccp_dev_clearprompt(d, 0, 0);
 #ifndef SCCP_ATOMIC
-	sccp_device_t *device = (sccp_device_t *) d;								/* discard const */
-
+	devicePtr device = (devicePtr) d;									/* discard const */
 	sccp_mutex_lock(&device->messageStack.lock);
 #endif
 	for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {

@@ -1775,7 +1775,7 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 		return;
 	}
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Line Key press on line %s\n", d->id, (l) ? l->name : "(nil)");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Line Key press on line %s\n", d->id, l->name);
 	{
 		AUTO_RELEASE(sccp_channel_t, channel , NULL);
 		/* see if have an active call on this instance / callid / device */
@@ -2138,7 +2138,7 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 
 			if (sccp_strcaseequals(config->button.feature.options, "callpresent")) {
 				res = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
-				sccp_featureConfiguration_t *privacyFeature = (sccp_featureConfiguration_t *)&d->privacyFeature;		/* discard const */
+				sccp_featureConfiguration_t *privacyFeature = (sccp_featureConfiguration_t * const)&d->privacyFeature;		/* discard const */
 
 				//sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
 				//sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result=%d\n", d->id, res);
@@ -2186,7 +2186,7 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 				config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
 			}
 
-			sccp_featureConfiguration_t *dndFeature = (sccp_featureConfiguration_t *)&d->dndFeature;		/* discard const */
+			sccp_featureConfiguration_t *dndFeature = (sccp_featureConfiguration_t *const)&d->dndFeature;		/* discard const */
 			if (sccp_strcaseequals(config->button.feature.options, "silent")) {
 				dndFeature->status = (config->button.feature.status) ? SCCP_DNDMODE_SILENT : SCCP_DNDMODE_OFF;
 			} else if (sccp_strcaseequals(config->button.feature.options, "busy")) {
@@ -2247,7 +2247,7 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 			}
 			featureStat1 = (featureStat1 + 1) % 7;
 
-			sccp_featureConfiguration_t *priFeature = (sccp_featureConfiguration_t *)&d->priFeature;		/* discard const */
+			sccp_featureConfiguration_t *priFeature = (sccp_featureConfiguration_t *const)&d->priFeature;		/* discard const */
 
 			priFeature->status = ((featureStat3 + 1) << 16) | ((featureStat2 + 1) << 8) | (featureStat1 + 1);
 			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: priority feature status: %d, %d, %d, total: %d\n", d->id, featureStat3, featureStat2, featureStat1, priFeature->status);
