@@ -998,6 +998,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	return;
 
 FUNC_EXIT:
+/*
 #if CS_REFCOUNT_DEBUG
 	if (device) {
 		pbx_str_t *buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
@@ -1006,6 +1007,7 @@ FUNC_EXIT:
 		sccp_free(buf);
 	}
 #endif
+*/
 	sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 	if (device) {
 		device->session = NULL;

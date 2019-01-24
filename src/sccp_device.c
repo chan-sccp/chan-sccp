@@ -2458,7 +2458,7 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 			sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
 		}
 		sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_NONE);
-
+/*
 #if CS_REFCOUNT_DEBUG
 		if (remove_from_global) {
 			pbx_str_t *buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
@@ -2467,6 +2467,7 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 			sccp_free(buf);
 		}
 #endif
+*/
 	}
 }
 
