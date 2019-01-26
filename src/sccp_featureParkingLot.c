@@ -307,6 +307,7 @@ static int removeParkinglot(sccp_parkinglot_t *pl)
 		SCCP_VECTOR_RESET(&removed->slots, SLOT_CLEANUP);
 		SCCP_VECTOR_FREE(&removed->slots);
 		pbx_mutex_destroy(&removed->lock);
+		sccp_free(removed);
 		res = TRUE;
 	}
 	sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "SCCP: (removeParkinglot) done\n");
@@ -398,14 +399,11 @@ static int detachObserver(const char *options, sccp_device_t * device, uint8_t i
 				.device = device,
 				.instance = instance,
 			};
-
 			if (SCCP_VECTOR_REMOVE_CMP_UNORDERED(&pl->observers, cmp, OBSERVER_CB_CMP, SCCP_VECTOR_ELEM_CLEANUP_NOOP) == 0) {
-				if (SCCP_VECTOR_SIZE(&pl->observers) == 0) {
-					removeParkinglot(pl);	// will unlock and destroy pl
-				} else {
-					sccp_parkinglot_unlock(pl);
-				}
 				res = TRUE;
+			}
+			if (SCCP_VECTOR_SIZE(&pl->observers) == 0) {
+				removeParkinglot(pl);	// will destroy pl and unlock pl in the process
 			} else {
 				sccp_parkinglot_unlock(pl);
 			}
