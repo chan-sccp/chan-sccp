@@ -2226,7 +2226,9 @@ void sccp_dev_postregistration(void *data)
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if (config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
-			iParkingLot.notifyDevice(config->button.feature.options, d);
+			if (iParkingLot.attachObserver && iParkingLot.attachObserver(config->button.feature.options, d, config->instance)) {
+				iParkingLot.notifyDevice(config->button.feature.options, d);
+			}
 		}
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);

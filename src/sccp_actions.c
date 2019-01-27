@@ -1167,7 +1167,8 @@ static btnlist *sccp_make_button_template(devicePtr d)
 
 							case SCCP_FEATURE_PARKINGLOT:
 #ifdef CS_SCCP_PARK
-								if (iParkingLot.attachObserver && iParkingLot.attachObserver(buttonconfig->button.feature.options, d, buttonconfig->instance)) {
+								//if (iParkingLot.attachObserver && iParkingLot.attachObserver(buttonconfig->button.feature.options, d, buttonconfig->instance)) {
+								if (iParkingLot.attachObserver) {
 									if (d->inuseprotocolversion > 15) {
 										btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 										buttonconfig->button.feature.status = 0x010000;
