@@ -520,12 +520,14 @@ int sccp_device_setRegistrationState(constDevicePtr d, const skinny_registration
 
 	int changed = 0;
 	
-	sccp_private_lock(d->privateData);
-	if (state != d->privateData->registrationState) {
-		d->privateData->registrationState = state;
-		changed=1;
+	if (!isPointerDead(d->privateData)) {
+		sccp_private_lock(d->privateData);
+		if (state != d->privateData->registrationState) {
+			d->privateData->registrationState = state;
+			changed=1;
+		}
+		sccp_private_unlock(d->privateData);
 	}
-	sccp_private_unlock(d->privateData);
 	
 #ifdef CS_AST_HAS_STASIS_ENDPOINT
 	if (iPbx.endpoint_online && iPbx.endpoint_offline) {
