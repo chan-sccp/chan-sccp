@@ -49,6 +49,7 @@
     <voiceVlanAccess>0</voiceVlanAccess>
     <videoCapability>0</videoCapability>
     <autoSelectLineEnable>0</autoSelectLineEnable>
+    <autoCallSelect>0</autoCallSelect>
     <webAccess>0</webAccess>
     <daysDisplayNotActive>1,7</daysDisplayNotActive>
     <displayOnTime>08:30</displayOnTime>
@@ -56,15 +57,18 @@
     <displayIdleTimeout>01:00</displayIdleTimeout>
   </vendorConfig>
   <userLocale>
-    <name>Dutch_Netherlands</name>
-    <langCode>nl</langCode>
+    <name>English_United_States</name>
+    <uid>1</uid>
+    <langCode>en_US</langCode>
+    <version>7.1.0.1(1)</version>
     <winCharSet>iso-8859-1</winCharSet>
   </userLocale>
-  <networkLocale>Netherlands</networkLocale>
+
+  <networkLocale>United_States</networkLocale>
   <networkLocaleInfo>
-    <name/>
+    <name>United_States</name>
     <uid>64</uid>
-    <version>4.0(1)</version>
+    <version>7.1.0.1(1)</version>
   </networkLocaleInfo>
   <deviceSecurityMode>1</deviceSecurityMode>
   <idleTimeout>3600</idleTimeout>

@@ -1341,9 +1341,10 @@ void handle_accessorystatus_message(constSessionPtr s, devicePtr d, constMessage
 	sccp_device_setAccessoryStatus(d, accessory, state);
 
 	// these devices don't generate an offhook stimulus
-	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6901) {
-		handle_offhook(s, d, msg_in);
-	}
+	//if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6901) {
+	//	handle_offhook(s, d, msg_in);
+	//}
+	// use <alwaysUsePrimeLineVoiceMail>true</alwaysUsePrimeLineVoiceMail> in sep-file instead
 }
 
 /*!

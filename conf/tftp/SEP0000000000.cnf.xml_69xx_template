@@ -4,8 +4,9 @@
   <sshPassword>cisco</sshPassword>
   <devicePool>
     <dateTimeSetting>
-      <dateTemplate>D-M-YA</dateTemplate>
-      <timeZone>W. Europe Standard/Daylight Time</timeZone>
+      <name>United States</name>
+      <dateTemplate>M/D/Y</dateTemplate>
+      <timeZone>US Eastern Standard Time</timeZone>
       <ntps>
         <ntp>
           <name>x.x.x.x</name>
@@ -26,7 +27,9 @@
       </members>
     </callManagerGroup>
     <srstInfo>
+      <name>Enable</name>
       <srstOption>Disable</srstOption>
+      <userModifiable>true</userModifiable>
       <ipAddr1>x.x.x.x</ipAddr1>
       <port1>2000</port1>
       <ipAddr2/>
@@ -35,7 +38,7 @@
       <port3>2000</port3>
     </srstInfo>
   </devicePool>
-  <loadInformation>SCCP11.8-5-2S</loadInformation>
+  <loadInformation>P00308010100</loadInformation>
   <vendorConfig>
     <disableSpeaker>false</disableSpeaker>
     <disableSpeakerAndHeadset>false</disableSpeakerAndHeadset>
@@ -46,11 +49,18 @@
     <voiceVlanAccess>0</voiceVlanAccess>
     <videoCapability>0</videoCapability>
     <autoSelectLineEnable>0</autoSelectLineEnable>
+    <autoCallSelect>0</autoCallSelect>
     <webAccess>0</webAccess>
     <daysDisplayNotActive>1,7</daysDisplayNotActive>
     <displayOnTime>08:30</displayOnTime>
     <displayOnDuration>11:30</displayOnDuration>
     <displayIdleTimeout>01:00</displayIdleTimeout>
+
+    <!-- 69xx specific -->
+    <!-- Send both accessory and stimulus OFFHOOK messages when going offhook, without this, it only sends the accessory message -->
+    <alwaysUsePrimeLine>true</alwaysUsePrimeLine>
+    <!-- Always select the primary line (if available) when the messages button is pressed while on-hook. Otherwise, the first line that has a message waiting is used. -->
+    <alwaysUsePrimeLineVoiceMail>false</alwaysUsePrimeLineVoiceMail>
   </vendorConfig>
   <userLocale>
     <name>English_United_States</name>
@@ -59,7 +69,6 @@
     <version>7.1.0.1(1)</version>
     <winCharSet>iso-8859-1</winCharSet>
   </userLocale>
-
   <networkLocale>United_States</networkLocale>
   <networkLocaleInfo>
     <name>United_States</name>

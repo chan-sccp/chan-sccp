@@ -430,17 +430,18 @@
 
 	-->
 	<userLocale>
-		<name>Dutch_Netherlands</name>
-		<langCode>nl</langCode>
-		<winCharSet>iso-8859-1</winCharSet>
+	    <name>English_United_States</name>
+	    <uid>1</uid>
+	    <langCode>en_US</langCode>
+	    <version>7.1.0.1(1)</version>
+	    <winCharSet>iso-8859-1</winCharSet>
 	</userLocale>
 
-	<networkLocale>Netherlands</networkLocale>
+	<networkLocale>United_States</networkLocale>
 	<networkLocaleInfo>
-		<name>Dutch_Netherlands</name>
-		<langCode>nl</langCode>
-		<uid>64</uid>
-		<version>4.0(1)</version>
+	    <name>United_States</name>
+	    <uid>64</uid>
+	    <version>7.1.0.1(1)</version>
 	</networkLocaleInfo>
 	<!--
 		This is something to do with dialtones. The above config gives Dutch dialtones.
