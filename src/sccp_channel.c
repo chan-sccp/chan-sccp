@@ -720,11 +720,13 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 
 	if (!d) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_channel_startMediaTransmission) Could not retrieve device from channel\n");
+		sccp_channel_closeMultiMediaReceiveChannel(channel, FALSE);
 		return;
 	}
 
 	if (!channel->rtp.audio.instance) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can't start rtp media transmission, maybe channel is down %s\n", channel->currentDeviceId, channel->designator);
+		sccp_channel_closeMultiMediaReceiveChannel(channel, FALSE);
 		return;
 	}
 
@@ -739,6 +741,8 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 
 	if (SCCP_RTP_STATUS_INACTIVE == audio->receiveChannelState) {
 		pbx_log(LOG_ERROR, "%s: (sccp_channel_startMediaTransmission) Starting MediaTransmission before OpenReceiveChannel !", channel->currentDeviceId);
+		sccp_channel_closeMultiMediaReceiveChannel(channel, FALSE);
+		return;
 	}
 
 	if (d->nat >= SCCP_NAT_ON) {
@@ -760,7 +764,7 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 	sccp_copy_string(buf1, sccp_netsock_stringify(&audio->phone), sizeof(buf1));
 	sccp_copy_string(buf2, sccp_netsock_stringify(&audio->phone_remote), sizeof(buf2));
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from %s to %s (NAT: %s)\n", d->id, buf1, buf2, sccp_nat2str(d->nat));
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", d->id, codec2str(audio->readFormat), audio->readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec:%s(%d), TOS:%d, Silence Suppression:%s for call with PassThruId:%u and CallID:%u\n", d->id, codec2str(audio->readFormat), audio->readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
 }
 
 int sccp_channel_mediaTransmissionStarted(devicePtr d, channelPtr c)
@@ -903,6 +907,7 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 
 	if (joint == SKINNY_CODEC_NONE) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (openMultiMediaReceiveChannel) No joint codecs found\n", d->id);
+		((sccp_channel_t *)channel)->videomode = SCCP_VIDEO_MODE_OFF;						// discard const
 		return;
 	}
 

@@ -17,51 +17,53 @@ const struct skinny_codec skinny_codecs[] = {
 	{SKINNY_CODEC_NONSTANDARD,	SKINNY_CODEC_TYPE_UNKNOWN,	"",		"",		"Non-standard codec", 			NULL,		0,	0,	-1},	//payload unknown
 	{SKINNY_CODEC_IS11172,		SKINNY_CODEC_TYPE_AUDIO,	"is11172",	"is11172",	"IS11172 AudioCap", 			NULL,		8000,	1,	0},	//payload unknown
 	{SKINNY_CODEC_IS13818,		SKINNY_CODEC_TYPE_AUDIO,	"is13872",      "is13872",	"IS13818 AudioCap", 			NULL,		8000,	1,	0},	//payload unknown
-	{SKINNY_CODEC_GSM_FULLRATE,	SKINNY_CODEC_TYPE_AUDIO, 	"gsm",		"gsm/full",	"GSM Full Rate", 			NULL,		8000,	2,	3},
-	{SKINNY_CODEC_GSM_HALFRATE,	SKINNY_CODEC_TYPE_AUDIO, 	"gsm",		"gsm/half",	"GSM Half Rate", 			NULL,		8000,	1,	3},
-	{SKINNY_CODEC_GSM_ENH_FULLRATE,	SKINNY_CODEC_TYPE_AUDIO,	"gsm",		"gsm/enh",	"GSM Enhanced Full Rate",		NULL,		8000,	2,	3},
-	{SKINNY_CODEC_WIDEBAND_256K,	SKINNY_CODEC_TYPE_AUDIO, 	"slin16",	"slin16",	"Wideband 256k", 			"L16",		16000,	3,	25},
-	{SKINNY_CODEC_GSM,		SKINNY_CODEC_TYPE_AUDIO, 	"gsm",		"gsm",		"GSM", 					NULL,		8000,	1,	3},
+	{SKINNY_CODEC_GSM_FULLRATE,	SKINNY_CODEC_TYPE_AUDIO, 	"gsm",		"gsm/full",	"GSM Full Rate", 			"GSM",		8000,	2,	3},
+	{SKINNY_CODEC_GSM_HALFRATE,	SKINNY_CODEC_TYPE_AUDIO, 	"gsm",		"gsm/half",	"GSM Half Rate", 			"GSM-HR-08",	8000,	1,	3},
+	{SKINNY_CODEC_GSM_ENH_FULLRATE,	SKINNY_CODEC_TYPE_AUDIO,	"gsm",		"gsm/enh",	"GSM Enhanced Full Rate",		"GSM-EFR",	8000,	2,	3},
+	//{SKINNY_CODEC_WIDEBAND_256K,	SKINNY_CODEC_TYPE_AUDIO, 	"slin16",	"slin16",	"Wideband 1411.2 kbit/s",		"L16",		44100,	3,	10},
+	//{SKINNY_CODEC_WIDEBAND_256K,	SKINNY_CODEC_TYPE_AUDIO, 	"slin16",	"slin16",	"Wideband 705.6 kbit/s", 		"L16",		44100,	3,	11},
+	{SKINNY_CODEC_WIDEBAND_256K,	SKINNY_CODEC_TYPE_AUDIO, 	"slin16",	"slin16",	"Wideband 256 kbit/k",	 		"L16",		44100,	3,	25},
+	{SKINNY_CODEC_GSM,		SKINNY_CODEC_TYPE_AUDIO, 	"gsm",		"gsm",		"GSM", 					"GSM",		8000,	1,	3},
 	{SKINNY_CODEC_ACTIVEVOICE,	SKINNY_CODEC_TYPE_AUDIO, 	"activevoice",	"activevoice",	"ActiveVoice", 				NULL,		8000,	1,	-1},	//payload unknown
-	{SKINNY_CODEC_G711_ALAW_64K,	SKINNY_CODEC_TYPE_AUDIO, 	"alaw",		"alaw/64k",	"G.711 A-law 64k", 			NULL,		8000,	2,	8},
-	{SKINNY_CODEC_G711_ALAW_56K,	SKINNY_CODEC_TYPE_AUDIO, 	"alaw",		"alaw/56k",	"G.711 A-law 56k", 			NULL,		8000,	1,	8},	// --DD-- which one ?
-	{SKINNY_CODEC_G711_ULAW_64K,	SKINNY_CODEC_TYPE_AUDIO, 	"ulaw",		"ulaw/64k",	"G.711 u-law 64k", 			NULL,		8000,	2,	0},
-	{SKINNY_CODEC_G711_ULAW_56K,	SKINNY_CODEC_TYPE_AUDIO, 	"ulaw",		"ulaw/56k",	"G.711 u-law 56k", 			NULL,		8000,	1,	0},	// --DD-- which one ?
-	{SKINNY_CODEC_G722_64K,		SKINNY_CODEC_TYPE_AUDIO, 	"g722",		"g722/64k",	"G.722 64k", 				NULL,		8000,	3,	9},
-	{SKINNY_CODEC_G722_56K,		SKINNY_CODEC_TYPE_AUDIO, 	"g722",		"g722/56k",	"G.722 56k", 				NULL,		8000,	3,	9},
-	{SKINNY_CODEC_G722_48K,		SKINNY_CODEC_TYPE_AUDIO, 	"g722",		"g722/48k",	"G.722 48k", 				NULL,		8000,	2,	9},	// --DD-- which one ?
+	{SKINNY_CODEC_G711_ALAW_64K,	SKINNY_CODEC_TYPE_AUDIO, 	"alaw",		"alaw/64k",	"G.711 A-law 64k", 			"PCMA",		8000,	2,	8},
+	{SKINNY_CODEC_G711_ALAW_56K,	SKINNY_CODEC_TYPE_AUDIO, 	"alaw",		"alaw/56k",	"G.711 A-law 56k", 			"PCMA",		8000,	1,	8},	// --DD-- which one ?
+	{SKINNY_CODEC_G711_ULAW_64K,	SKINNY_CODEC_TYPE_AUDIO, 	"ulaw",		"ulaw/64k",	"G.711 u-law 64k", 			"PCMU",		8000,	2,	0},
+	{SKINNY_CODEC_G711_ULAW_56K,	SKINNY_CODEC_TYPE_AUDIO, 	"ulaw",		"ulaw/56k",	"G.711 u-law 56k", 			"PCMU",		8000,	1,	0},	// --DD-- which one ?
+	{SKINNY_CODEC_G722_64K,		SKINNY_CODEC_TYPE_AUDIO, 	"g722",		"g722/64k",	"G.722 64k", 				"G722",		8000,	3,	9},
+	{SKINNY_CODEC_G722_56K,		SKINNY_CODEC_TYPE_AUDIO, 	"g722",		"g722/56k",	"G.722 56k", 				"G722",		8000,	3,	9},
+	{SKINNY_CODEC_G722_48K,		SKINNY_CODEC_TYPE_AUDIO, 	"g722",		"g722/48k",	"G.722 48k", 				"G722",		8000,	2,	9},	// --DD-- which one ?
 	{SKINNY_CODEC_G722_1_24K,	SKINNY_CODEC_TYPE_AUDIO, 	"g722.1",	"g722.1/24k",	"G722.1 24k (Siren7)", 			"G7221",	16000,	3,	102},	// --DD-- please check
 	{SKINNY_CODEC_G722_1_32K,	SKINNY_CODEC_TYPE_AUDIO, 	"g722.1",	"g722.1/32k",	"G722.1 32k (Siren14)", 		"G7221", 	32000,	4,	115},	// --DD-- please check
-	{SKINNY_CODEC_G723_1,		SKINNY_CODEC_TYPE_AUDIO, 	"g723",		"g723",		"G.723.1", 				NULL,		8000,	1,	4},
-	{SKINNY_CODEC_G726_16K,		SKINNY_CODEC_TYPE_AUDIO, 	"g726",		"g726/16k",	"G.726 16K", 			 	NULL,		8000,	1,	2},
-	{SKINNY_CODEC_G726_24K,		SKINNY_CODEC_TYPE_AUDIO,	"g726",		"g726/24k",	"G.726 24K", 			 	NULL,		8000,	1,	2},
-	{SKINNY_CODEC_G726_32K,		SKINNY_CODEC_TYPE_AUDIO, 	"g726",		"g726/32k",	"G.726 32K", 			 	NULL,		8000,	1,	112},	//payload could also be 111
-	{SKINNY_CODEC_G728,		SKINNY_CODEC_TYPE_AUDIO,	"g728",		"g728",		"G.728", 			 	NULL,		8000,	1,	-1},	//payload unknown
-	{SKINNY_CODEC_G729,		SKINNY_CODEC_TYPE_AUDIO,	"g729",		"g729",		"G.729", 				NULL,		8000,	1,	18},
-	{SKINNY_CODEC_G729_A,		SKINNY_CODEC_TYPE_AUDIO,	"g729",		"g729a",	"G.729 Annex A", 			NULL,		8000,	1,	18},
-	{SKINNY_CODEC_G729_B_LOW,	SKINNY_CODEC_TYPE_AUDIO, 	"ilbc",		"ilbc",		"G.729B Low/ILBC",			NULL,		8000,	1,	97},
-	{SKINNY_CODEC_G729_B,		SKINNY_CODEC_TYPE_AUDIO,	"g729",		"g729b",	"G.729 Annex B", 			NULL,		8000,	1,	18},
-	{SKINNY_CODEC_G729_AB,		SKINNY_CODEC_TYPE_AUDIO,	"g729",		"g729ab",	"G.729 Annex A + B", 			NULL,		8000,	1,	18},
-	{SKINNY_CODEC_G729_ANNEX_B,	SKINNY_CODEC_TYPE_AUDIO, 	"g729",		"g729/annex/b",	"G.729 Annex B", 			NULL,		8000,	1,	18},
+	{SKINNY_CODEC_G723_1,		SKINNY_CODEC_TYPE_AUDIO, 	"g723",		"g723",		"G.723.1", 				"G723",		8000,	1,	4},
+	{SKINNY_CODEC_G726_16K,		SKINNY_CODEC_TYPE_AUDIO, 	"g726",		"g726/16k",	"G.726 16K", 			 	"G726-16",	8000,	1,	2},
+	{SKINNY_CODEC_G726_24K,		SKINNY_CODEC_TYPE_AUDIO,	"g726",		"g726/24k",	"G.726 24K", 			 	"G726-24",	8000,	1,	2},
+	{SKINNY_CODEC_G726_32K,		SKINNY_CODEC_TYPE_AUDIO, 	"g726",		"g726/32k",	"G.726 32K", 			 	"G726-32",	8000,	1,	112},	//payload could also be 111
+	{SKINNY_CODEC_G728,		SKINNY_CODEC_TYPE_AUDIO,	"g728",		"g728",		"G.728", 			 	"G728",		8000,	1,	-1},	//payload unknown
+	{SKINNY_CODEC_G729,		SKINNY_CODEC_TYPE_AUDIO,	"g729",		"g729",		"G.729", 				"G729",		8000,	1,	18},
+	{SKINNY_CODEC_G729_A,		SKINNY_CODEC_TYPE_AUDIO,	"g729",		"g729a",	"G.729 Annex A", 			"G729a",	8000,	1,	18},
+	{SKINNY_CODEC_G729_B_LOW,	SKINNY_CODEC_TYPE_AUDIO, 	"ilbc",		"ilbc",		"G.729B Low/ILBC",			"iLBC",		8000,	1,	97},
+	{SKINNY_CODEC_G729_B,		SKINNY_CODEC_TYPE_AUDIO,	"g729",		"g729b",	"G.729 Annex B", 			"G729",		8000,	1,	18},
+	{SKINNY_CODEC_G729_AB,		SKINNY_CODEC_TYPE_AUDIO,	"g729",		"g729ab",	"G.729 Annex A + B", 			"G729",		8000,	1,	18},
+	{SKINNY_CODEC_G729_ANNEX_B,	SKINNY_CODEC_TYPE_AUDIO, 	"g729",		"g729/annex/b",	"G.729 Annex B", 			"G729",		8000,	1,	18},
 	{SKINNY_CODEC_ISAC,		SKINNY_CODEC_TYPE_AUDIO,	"isac",		"isac",		"iSAC", 				NULL,		8000,	1,	-1},	//payload unknown
-	{SKINNY_CODEC_OPUS,		SKINNY_CODEC_TYPE_AUDIO,	"opus",		"opus",		"Opus", 				NULL,		16000,	1,	-2},	//new opus payload // --DD-- please check
+	{SKINNY_CODEC_OPUS,		SKINNY_CODEC_TYPE_AUDIO,	"opus",		"opus",		"Opus", 				"opus",		16000,	1,	-2},	//new opus payload // --DD-- please check
 	{SKINNY_CODEC_H224,		SKINNY_CODEC_TYPE_AUDIO,	"h224",		"h224",		"H.224", 				NULL,		8000,	1,	31},
 	{SKINNY_CODEC_AAC,		SKINNY_CODEC_TYPE_AUDIO, 	"aac",		"aac",		"AAC", 					NULL,		8000,	1,	-1},
-	{SKINNY_CODEC_MP4A_LATM_128,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_128","mp4a_latm_128","mp4a latm 128k",			NULL,		128000,	1,	-1},
-	{SKINNY_CODEC_MP4A_LATM_64,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_64",	"mp4a_latm_64",	"mp4a latm 64k",			NULL,		64000,	1,	-1},
-	{SKINNY_CODEC_MP4A_LATM_56,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_56",	"mp4a_latm_56",	"mp4a latm 56k",			NULL,		56000,	1,	-1},
-	{SKINNY_CODEC_MP4A_LATM_48,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_48",	"mp4a_latm_48",	"mp4a latm 48k",			NULL,		48000,	1,	-1},
-	{SKINNY_CODEC_MP4A_LATM_32,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_32",	"mp4a_latm_32",	"mp4a latm 32k",			NULL,		32000,	1,	-1},
-	{SKINNY_CODEC_MP4A_LATM_24,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_24",	"mp4a_latm_24",	"mp4a latm 24k",			NULL,		24000,	1,	-1},
-	{SKINNY_CODEC_MP4A_LATM_NA,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_na",	"mp4a_latm_na",	"mp4a latm nak",			NULL,		8000,	1,	-1},
-	{SKINNY_CODEC_AMR,		SKINNY_CODEC_TYPE_AUDIO,	"amr",		"amr",		"amr",					NULL,		8000,	1,	-2},	// --DD-- please check
-	{SKINNY_CODEC_AMR_WB,		SKINNY_CODEC_TYPE_AUDIO,	"amr_wb",	"amr_wb",	"amr_wb",				NULL,		8000,	1,	-2},	// --DD-- please check
-	{SKINNY_CODEC_H261,		SKINNY_CODEC_TYPE_VIDEO,	"h261",		"h261",		"H.261", 				NULL,		90000,	1,	34},
+	{SKINNY_CODEC_MP4A_LATM_128,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_128","mp4a_latm_128","mp4a latm 128k",			"MP4A-LATM",	128000,	1,	-1},
+	{SKINNY_CODEC_MP4A_LATM_64,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_64",	"mp4a_latm_64",	"mp4a latm 64k",			"MP4A-LATM",	64000,	1,	-1},
+	{SKINNY_CODEC_MP4A_LATM_56,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_56",	"mp4a_latm_56",	"mp4a latm 56k",			"MP4A-LATM",	56000,	1,	-1},
+	{SKINNY_CODEC_MP4A_LATM_48,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_48",	"mp4a_latm_48",	"mp4a latm 48k",			"MP4A-LATM",	48000,	1,	-1},
+	{SKINNY_CODEC_MP4A_LATM_32,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_32",	"mp4a_latm_32",	"mp4a latm 32k",			"MP4A-LATM",	32000,	1,	-1},
+	{SKINNY_CODEC_MP4A_LATM_24,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_24",	"mp4a_latm_24",	"mp4a latm 24k",			"MP4A-LATM",	24000,	1,	-1},
+	{SKINNY_CODEC_MP4A_LATM_NA,	SKINNY_CODEC_TYPE_AUDIO,	"mp4a_latm_na",	"mp4a_latm_na",	"mp4a latm nak",			"MP4A-LATM",	8000,	1,	-1},
+	{SKINNY_CODEC_AMR,		SKINNY_CODEC_TYPE_AUDIO,	"amr",		"amr",		"amr",					"AMR",		8000,	1,	-2},	// --DD-- please check
+	{SKINNY_CODEC_AMR_WB,		SKINNY_CODEC_TYPE_AUDIO,	"amr_wb",	"amr_wb",	"amr_wb",				"AMR-WB",	16000,	1,	-2},	// --DD-- please check
+	{SKINNY_CODEC_H261,		SKINNY_CODEC_TYPE_VIDEO,	"h261",		"h261",		"H.261", 				"H261",		90000,	1,	34},
 	{SKINNY_CODEC_H263,		SKINNY_CODEC_TYPE_VIDEO,	"h263",		"h263",		"H.263", 				"H263",		90000,	1,	34},
-	{SKINNY_CODEC_H263P,		SKINNY_CODEC_TYPE_VIDEO,	"h263",		"h263p",	"Vieo H.263+", 				NULL,		90000,	1,	98},
+	{SKINNY_CODEC_H263P,		SKINNY_CODEC_TYPE_VIDEO,	"h263",		"h263p",	"Vieo H.263+", 				"H263p",	90000,	1,	98},
 	{SKINNY_CODEC_H264,		SKINNY_CODEC_TYPE_VIDEO,	"h264",		"h264",		"H.264", 				"H264",		90000,	1,	103},
-	{SKINNY_CODEC_H264_SVC,		SKINNY_CODEC_TYPE_VIDEO,	"h264",		"h264_svc",	"h264_svc",				NULL,		90000,	1,	-2},	// --DD-- please check
-	{SKINNY_CODEC_H265,		SKINNY_CODEC_TYPE_VIDEO,	"h265",		"h265",		"h265",					NULL,		90000,	1,	-1},
+	{SKINNY_CODEC_H264_SVC,		SKINNY_CODEC_TYPE_VIDEO,	"h264",		"h264_svc",	"h264_svc",				"H264 SVC",	90000,	1,	-2},	// --DD-- please check
+	{SKINNY_CODEC_H265,		SKINNY_CODEC_TYPE_VIDEO,	"h265",		"h265",		"h265",					"H265",		90000,	1,	-1},
 	{SKINNY_CODEC_H264_FEC,		SKINNY_CODEC_TYPE_VIDEO,	"h264",		"h264f",	"h264_fec", 				NULL,		90000,	1,	-2},	//unknown codec type --DD-- please check
 	{SKINNY_CODEC_H264_UC,		SKINNY_CODEC_TYPE_VIDEO,	"h264",		"h264uc",	"h264_uc",				NULL,		90000,	1,	-2},	// --DD-- please check
 	{SKINNY_CODEC_T120,		SKINNY_CODEC_TYPE_TEXT, 	"t120",		"t120",		"T.140", 				NULL,		1000,	1,	-2},	//payload unknown --DD--
@@ -76,11 +78,11 @@ const struct skinny_codec skinny_codecs[] = {
 	{SKINNY_CODEC_NSE_VBD_729A,	SKINNY_CODEC_TYPE_MIXED,	"v729a",	"v729a",	"nse_vbd_729a", 			NULL,		0,	1,	-1},	//unknown codec type
 	{SKINNY_CODEC_CLEAR_CHAN,	SKINNY_CODEC_TYPE_MIXED,	"clear_chan",	"clear_chan",	"clear_chan",				NULL,		0,	1,	-1},
 	{SKINNY_CODEC_UNIVERSAL_XCODER,	SKINNY_CODEC_TYPE_MIXED,	"univ_xcoder",	"univ_xcoder", 	"univ_xcoder",				NULL,		0,	1,	-1},
-	{SKINNY_CODEC_DTMF_OOB_RFC2833,	SKINNY_CODEC_TYPE_MIXED,	"rfc2833",	"rfc2833",	"DTMF RFC 2833 Dyn Pay Load",		NULL,		0,	1,	101},	// --DD-- please check 105| 101| 96 which one goes where
-	{SKINNY_CODEC_DTMF_PASSTHROUGH,	SKINNY_CODEC_TYPE_MIXED,	"passthrough",	"passthrough",	"DTMF Passthrough",			NULL,		0,	1,	101},	// --DD-- please check 105| 101| 96 
+	{SKINNY_CODEC_DTMF_OOB_RFC2833,	SKINNY_CODEC_TYPE_MIXED,	"rfc2833",	"rfc2833",	"DTMF RFC 2833 Dyn Pay Load",		"telephone-event",	0,	1,	101},	// --DD-- please check 105| 101| 96 which one goes where
+	{SKINNY_CODEC_DTMF_PASSTHROUGH,	SKINNY_CODEC_TYPE_MIXED,	"passthrough",	"passthrough",	"DTMF Passthrough",			"CISCO_DTMF pt"	,0,	1,	105},	// --DD-- please check 105| 101| 96
 	{SKINNY_CODEC_DTMF_DYNAMIC,	SKINNY_CODEC_TYPE_MIXED,	"dynamic",	"dynamic",	"DTMF Dynamic",				NULL,		0,	1,	101},	// --DD-- please check 105| 101| 96 
 	{SKINNY_CODEC_DTMF_OOB,		SKINNY_CODEC_TYPE_MIXED,	"oob",		"oob",		"DTMF Out of Band",			NULL,		0,	1,	101},	// --DD-- please check 105| 101| 96
-	{SKINNY_CODEC_DTMF_IB_RFC2833,	SKINNY_CODEC_TYPE_MIXED,	"rfc2833(ib)",	"rfc2833(ib)",	"DTMF RFC2833 In band",			NULL,		0,	1,	101},	// --DD-- please check 105| 101| 96
+	{SKINNY_CODEC_DTMF_IB_RFC2833,	SKINNY_CODEC_TYPE_MIXED,	"rfc2833(ib)",	"rfc2833(ib)",	"DTMF RFC2833 In band",			"CISCO_DTMF ib",0,	1,	96},	// --DD-- please check 105| 101| 96
 	{SKINNY_CODEC_CFB_TONES,	SKINNY_CODEC_TYPE_MIXED,	"cfb",		"cfb",		"CFB Tones",				NULL,		0,	1,	-1},
 	{SKINNY_CODEC_DTMF_NOAUDIO,	SKINNY_CODEC_TYPE_MIXED,	"noaudio",	"noaudio",	"DTMF NoAudio",				NULL,		0,	1,	-1},
 	{SKINNY_CODEC_V150_LC_MODEM_RELAY,SKINNY_CODEC_TYPE_MIXED,	"v150_modem",	"v150_modem", 	"v150_lc_modem_relay",			NULL,		0,	1,	-1},
