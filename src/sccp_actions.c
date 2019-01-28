@@ -1,4 +1,3 @@
-
 /*!
  * \file        sccp_actions.c
  * \brief       SCCP Actions Class
@@ -1340,6 +1339,11 @@ void handle_accessorystatus_message(constSessionPtr s, devicePtr d, constMessage
 	sccp_accessorystate_t state = letohl(msg_in->data.AccessoryStatusMessage.lel_AccessoryStatus);
 
 	sccp_device_setAccessoryStatus(d, accessory, state);
+
+	// these devices don't generate an offhook stimulus
+	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6901) {
+		handle_offhook(s, d, msg_in);
+	}
 }
 
 /*!
