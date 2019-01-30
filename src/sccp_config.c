@@ -409,7 +409,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 	}
 
 	if ((flags & SCCP_CONFIG_FLAG_IGNORE) == SCCP_CONFIG_FLAG_IGNORE) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: config parameter %s='%s' in line %d ignored\n", name, value, lineno);
+		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: config parameter %s='%s' in line %d ignored\n", name, value, lineno);
 		return SCCP_CONFIG_NOUPDATENEEDED;
 	} if ((flags & SCCP_CONFIG_FLAG_CHANGED) == SCCP_CONFIG_FLAG_CHANGED) {
 		pbx_log(LOG_NOTICE, "SCCP: changed config param at %s='%s' in line %d\n - %s -> please check sccp.conf file\n", name, value, lineno, sccpConfigOption->description);
@@ -2446,41 +2446,36 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		} else if (!strcasecmp(utype, "device")) {
 			// check minimum requirements for a device
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Parsing device [%s]\n", cat);
-			if (sccp_strlen_zero(pbx_variable_retrieve(GLOB(cfg), cat, "devicetype"))) {
-				pbx_log(LOG_WARNING, "Unknown type '%s' for '%s' in %s\n", utype, cat, "sccp.conf");
-				continue;
+			v = ast_variable_browse(GLOB(cfg), cat);
+
+			// Try to find out if we have the device already on file.
+			// However, do not look into realtime, since
+			// we might have been asked to create a device for realtime addition,
+			// thus causing an infinite loop / recursion.
+			AUTO_RELEASE(sccp_device_t, device, sccp_device_find_byid(cat, FALSE));
+			sccp_nat_t nat = SCCP_NAT_AUTO;
+
+			/* create new device with default values */
+			if (!device) {
+				device = sccp_device_create(cat);
+				// sccp_copy_string(d->id, cat, sizeof(d->id));         /* set device name */
+				sccp_device_addToGlobals(device);
+				device_count++;
 			} else {
-				v = ast_variable_browse(GLOB(cfg), cat);
-
-				// Try to find out if we have the device already on file.
-				// However, do not look into realtime, since
-				// we might have been asked to create a device for realtime addition,
-				// thus causing an infinite loop / recursion.
-				AUTO_RELEASE(sccp_device_t, device, sccp_device_find_byid(cat, FALSE));
-				sccp_nat_t nat = SCCP_NAT_AUTO;
-
-				/* create new device with default values */
-				if (!device) {
-					device = sccp_device_create(cat);
-					// sccp_copy_string(d->id, cat, sizeof(d->id));         /* set device name */
-					sccp_device_addToGlobals(device);
-					device_count++;
-				} else {
-					if (device->pendingDelete) {
-						nat = device->nat;
-						device->pendingDelete = 0;
-					}
+				if (device->pendingDelete) {
+					nat = device->nat;
+					device->pendingDelete = 0;
 				}
-				sccp_config_buildDevice(device, v, cat, FALSE);
-				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found device %d: %s\n", device_count, cat);
-				/* load saved settings from ast db */
-				sccp_config_restoreDeviceFeatureStatus(device);
-				
-				/* restore current nat status, if device does not get restarted */
-				if (0 == device->pendingDelete && sccp_device_getRegistrationState(device) != SKINNY_DEVICE_RS_NONE) {
-					if (SCCP_NAT_AUTO == device->nat && (SCCP_NAT_AUTO == nat || SCCP_NAT_AUTO_OFF == nat || SCCP_NAT_AUTO_ON == nat)) {
-						device->nat = nat;
-					}
+			}
+			sccp_config_buildDevice(device, v, cat, FALSE);
+			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found device %d: %s\n", device_count, cat);
+			/* load saved settings from ast db */
+			sccp_config_restoreDeviceFeatureStatus(device);
+			
+			/* restore current nat status, if device does not get restarted */
+			if (0 == device->pendingDelete && sccp_device_getRegistrationState(device) != SKINNY_DEVICE_RS_NONE) {
+				if (SCCP_NAT_AUTO == device->nat && (SCCP_NAT_AUTO == nat || SCCP_NAT_AUTO_OFF == nat || SCCP_NAT_AUTO_ON == nat)) {
+					device->nat = nat;
 				}
 			}
 		} else if (!strcasecmp(utype, "line")) {
