@@ -3820,7 +3820,7 @@ static struct ast_module_info __mod_info = {
 	.buildopt_sum = AST_BUILDOPT_SUM,
 	//.load_pri = AST_MODPRI_CHANNEL_DRIVER,
 	.load_pri = AST_MODPRI_APP_DEPEND,
-	.requires = "app_voicemail,res_stasis,res_stasis_device_state",			/* requires = chan_local / Local / ccss / app_voicemail.so*/ 
+	.requires = "app_voicemail,bridge_simple,bridge_native_rtp,bridge_softmix,bridge_holding,res_stasis,res_stasis_device_state",			/* requires = chan_local / Local / ccss / app_voicemail.so*/ 
 	/*.optional_modules= NULL,
 	.enhances= NULL,
 	.reserved1= NULL,
