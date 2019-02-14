@@ -55,6 +55,7 @@
     <displayOnTime>08:30</displayOnTime>
     <displayOnDuration>11:30</displayOnDuration>
     <displayIdleTimeout>01:00</displayIdleTimeout>
+    <displayOnWhenIncomingCall>1</displayOnWhenIncomingCall>
   </vendorConfig>
   <userLocale>
     <name>English_United_States</name>
