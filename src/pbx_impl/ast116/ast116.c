@@ -442,7 +442,6 @@ const char *pbx_getformatname(const struct ast_format *format)
 const char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *format)
 {
 	struct ast_str *codec_buf = ast_str_alloca(64);
-	ast_format_cap_get_names(format, &codec_buf);
 	snprintf(buf, size, "%s", ast_format_cap_get_names(format, &codec_buf));
 	return buf;
 }
@@ -553,41 +552,49 @@ static void pbx_retrieve_remote_capabilities(sccp_channel_t *c)
 	if (!caps) {
 		return;
 	}
-	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(c->owner), AST_MEDIA_TYPE_UNKNOWN);
+	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(c->owner), AST_MEDIA_TYPE_AUDIO);
 	for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
 		if (pbx_find_channel_by_linkid(remotePeer, (void *) ast_channel_linkedid(ast))) {
 			char buf[512];
 			sccp_astwrap_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 			sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "set remote caps: %s\n", buf);
-
 			if (ast_format_cap_count(ast_channel_nativeformats(remotePeer)) > 0) {
-				//struct ast_format *ast_format_cap_get_best_by_type(const struct ast_format_cap *cap, enum ast_media_type type);
 				struct ast_format_cap *joint = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-				if (joint) {
+				struct ast_format_cap *newcaps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+				if (joint && newcaps) {
 					struct ast_format *best_fmt_cap = NULL;
 					struct ast_format *best_fmt_native = NULL;
-					if (!ast_format_cap_get_compatible(caps, ast_channel_nativeformats(remotePeer), joint)) {
+					ast_format_cap_get_compatible(caps, ast_channel_nativeformats(remotePeer), joint);
+					if (ast_format_cap_count(joint) > 0) {
+						//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: pbx_retrieve_remote_capabilities: NOT transcoding\n", c->designator);
 						best_fmt_native = ast_format_cap_get_best_by_type(joint, AST_MEDIA_TYPE_AUDIO);
+						ast_format_cap_append(newcaps, best_fmt_native, 0);
+						ast_format_cap_append_from_cap(newcaps, joint, AST_MEDIA_TYPE_UNKNOWN);
 					} else {
-						ast_translator_best_choice(caps, joint, &best_fmt_cap, &best_fmt_native);
+						ast_translator_best_choice(ast_channel_nativeformats(remotePeer), caps, &best_fmt_cap, &best_fmt_native);
+						//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: pbx_retrieve_remote_capabilities: transcoding, best_native:%s\n", c->designator, ast_format_get_codec_name(best_fmt_native));
+						ao2_ref(best_fmt_native, +1);
+						ast_format_cap_append(newcaps, best_fmt_native, AST_MEDIA_TYPE_UNKNOWN);
+						ast_format_cap_append_from_cap(newcaps, caps, AST_MEDIA_TYPE_UNKNOWN);
 					}
-					ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_AUDIO);
-					ast_format_cap_append(caps, best_fmt_native, 0);
-					ast_format_cap_append_from_cap(caps, joint, AST_MEDIA_TYPE_UNKNOWN);
-					if (ast_format_cap_count(caps) > 0) {
-						ast_channel_nativeformats_set(c->owner, caps);
+					if (best_fmt_native != ast_format_none && ast_format_cap_count(newcaps) > 0) {
+						//struct ast_str *codec_buf = ast_str_alloca(64);
+						//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: pbx_retrieve_remote_capabilities: using: caps:%s, codec:%s\n", c->designator, ast_format_cap_get_names(newcaps, &codec_buf), ast_format_get_codec_name(best_fmt_native));
+						ast_channel_nativeformats_set(c->owner, newcaps);
 						ast_channel_set_writeformat(c->owner, best_fmt_native);
 						ast_channel_set_rawwriteformat(c->owner, best_fmt_native);
 						ast_channel_set_readformat(c->owner, best_fmt_native);
 						ast_channel_set_rawreadformat(c->owner, best_fmt_native);
 					}
+					ao2_ref(best_fmt_native, -1);
+					ao2_cleanup(newcaps);
 					ao2_cleanup(joint);
 				}
 			}
 			sccp_astwrap_getSkinnyFormatMultiple(ast_channel_nativeformats(c->owner), c->preferences.audio, ARRAY_LEN(c->preferences.audio));
 			sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
-			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "joint preferences: %s\n", buf);
+			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "new native formats: %s\n", buf);
 
 			ast_channel_unref(remotePeer);
 			break;
