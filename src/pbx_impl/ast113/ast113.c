@@ -499,20 +499,20 @@ static void pbx_retrieve_remote_capabilities(sccp_channel_t *c)
 					struct ast_format *best_fmt_native = NULL;
 					ast_format_cap_get_compatible(caps, ast_channel_nativeformats(remotePeer), joint);
 					if (ast_format_cap_count(joint) > 0) {
-						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: pbx_retrieve_remote_capabilities: NOT transcoding\n", c->designator);
+						//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: pbx_retrieve_remote_capabilities: NOT transcoding\n", c->designator);
 						best_fmt_native = ast_format_cap_get_best_by_type(joint, AST_MEDIA_TYPE_AUDIO);
 						ast_format_cap_append(newcaps, best_fmt_native, 0);
 						ast_format_cap_append_from_cap(newcaps, joint, AST_MEDIA_TYPE_UNKNOWN);
 					} else {
 						ast_translator_best_choice(ast_channel_nativeformats(remotePeer), caps, &best_fmt_cap, &best_fmt_native);
-						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: pbx_retrieve_remote_capabilities: transcoding, best_native:%s\n", c->designator, ast_format_get_codec_name(best_fmt_native));
+						//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: pbx_retrieve_remote_capabilities: transcoding, best_native:%s\n", c->designator, ast_format_get_codec_name(best_fmt_native));
 						ao2_ref(best_fmt_native, +1);
 						ast_format_cap_append(newcaps, best_fmt_native, AST_MEDIA_TYPE_UNKNOWN);
 						ast_format_cap_append_from_cap(newcaps, caps, AST_MEDIA_TYPE_UNKNOWN);
 					}
 					if (best_fmt_native != ast_format_none && ast_format_cap_count(newcaps) > 0) {
-						struct ast_str *codec_buf = ast_str_alloca(64);
-						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: pbx_retrieve_remote_capabilities: using: caps:%s, codec:%s\n", c->designator, ast_format_cap_get_names(newcaps, &codec_buf), ast_format_get_codec_name(best_fmt_native));
+						//struct ast_str *codec_buf = ast_str_alloca(64);
+						//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: pbx_retrieve_remote_capabilities: using: caps:%s, codec:%s\n", c->designator, ast_format_cap_get_names(newcaps, &codec_buf), ast_format_get_codec_name(best_fmt_native));
 						ast_channel_nativeformats_set(c->owner, newcaps);
 						ast_channel_set_writeformat(c->owner, best_fmt_native);
 						ast_channel_set_rawwriteformat(c->owner, best_fmt_native);
