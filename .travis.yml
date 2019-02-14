@@ -22,7 +22,8 @@ env:
 matrix:
   allow_failures:
     - compiler: clang
-      env: REPOS=develop; TRAVIS_BRANCH=coverity_develop
+      env: COVERITY_SCAN_BRANCH_PATTERN=develop
+      
 
 # Install Required Devel Packages
 before_install:
@@ -57,6 +58,6 @@ addons:
     notification_email: info@talon.nl
     build_command_prepend: ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-advanced-functions && make clean
     build_command: make -j2
-    branch_pattern: coverity_develop
+    branch_pattern: coverity
     
     
