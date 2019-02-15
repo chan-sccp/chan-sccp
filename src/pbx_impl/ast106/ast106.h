@@ -214,7 +214,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 		uint8_t x;											\
                 for (x = 0; x < ARRAY_LEN(cli_ami_params) && x < a->argc; x++) {				\
                         hdrlen = strlen(cli_ami_params[x]) + 2 + strlen(a->argv[x]) + 1;			\
-                        m.headers[m.hdrcount] = alloca(hdrlen);							\
+                        m.headers[m.hdrcount] = (const char *)alloca(hdrlen);					\
                         snprintf((char *) m.headers[m.hdrcount], hdrlen, "%s: %s", cli_ami_params[x], a->argv[x]);	\
                         m.hdrcount++;                                        					\
                 }												\

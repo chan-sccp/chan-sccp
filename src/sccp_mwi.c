@@ -44,7 +44,7 @@ typedef struct subscription {
 	int sched;
 #endif
 } mwi_subscription_t;
-SCCP_VECTOR(, mwi_subscription_t *) subscriptions;
+SCCP_VECTOR(sccp_subscription_vector, mwi_subscription_t *) subscriptions;
 
 /* Forward Declarations */
 void NotifyLine(sccp_line_t *line, int newmsgs, int oldmsgs);
@@ -80,7 +80,7 @@ static void pbxMailboxGetCached(mwi_subscription_t *subscription)
 }
 static void pbx_mwi_event(const pbx_event_t *event, void *data)
 {
-	mwi_subscription_t *subscription = data;
+	mwi_subscription_t *subscription = (mwi_subscription_t *)data;
 	if (!subscription || !subscription->line || !event) {
 		pbx_log(LOG_ERROR, "SCCP: MWI Event skipped (%p, %p)\n", subscription, event);
 		return;
@@ -130,13 +130,13 @@ static void pbxMailboxGetCached(mwi_subscription_t *subscription)
 	RAII(struct stasis_message *, mwi_message, NULL, ao2_cleanup);
 	mwi_message = stasis_cache_get(ast_mwi_state_cache(), ast_mwi_state_type(), (subscription->mailbox)->uniqueid);
 	if (mwi_message) {
-		struct ast_mwi_state *mwi_state = stasis_message_data(mwi_message);
+		struct ast_mwi_state *mwi_state = (struct ast_mwi_state *) stasis_message_data(mwi_message);
 		NotifyLine(subscription->line, mwi_state->new_msgs, mwi_state->old_msgs);
 	}
 }
 static void pbx_mwi_event(void *data, struct stasis_subscription *sub, struct stasis_message *msg)
 {
-	mwi_subscription_t *subscription = data;
+	mwi_subscription_t *subscription = (mwi_subscription_t *)data;
 	struct ast_mwi_state *mwi_state = NULL;
 	//if (!subscription || !subscription->line || stasis_subscription_final_message(sub, msg)) {
 	if (!subscription || !subscription->line) {
@@ -145,7 +145,7 @@ static void pbx_mwi_event(void *data, struct stasis_subscription *sub, struct st
 	}
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "%s: (mwi::%s) uniqueid:%s, msgtype:%s\n", 
 		(subscription->line)->name, __PRETTY_FUNCTION__, (subscription->mailbox)->uniqueid, stasis_message_type_name(stasis_message_type(msg)));
-	if (pbx_mwi_state_type() == stasis_message_type(msg) && (mwi_state = stasis_message_data(msg))) {
+	if (pbx_mwi_state_type() == stasis_message_type(msg) && (mwi_state = (struct ast_mwi_state *) stasis_message_data(msg))) {
 		NotifyLine(subscription->line, mwi_state->new_msgs, mwi_state->old_msgs);
 	} else {
 		// only required on some asterisk-16.1.1 versions, where new events only arrive if the cache has been read
@@ -231,7 +231,7 @@ static void createSubscription(sccp_mailbox_t *mailbox, sccp_line_t *line)
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "%s: (mwi::%s) uniqueid:%s\n",
 		line->name, __PRETTY_FUNCTION__, mailbox->uniqueid);
 
-	mwi_subscription_t *subscription = sccp_calloc(sizeof *subscription,1);
+	mwi_subscription_t *subscription = (mwi_subscription_t *)sccp_calloc(sizeof *subscription,1);
 	if (!subscription) {
 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		return;

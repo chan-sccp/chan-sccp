@@ -45,11 +45,11 @@ SCCP_FILE_VERSION(__FILE__, "");
  * \brief Skinny Codec Mapping
  */
 static const struct pbx2skinny_codec_map {
-       uint64_t pbx_codec;
+       pbx_format_enum_type pbx_codec;
        skinny_codec_t skinny_codec;
 } pbx2skinny_codec_maps[] = {
        /* *INDENT-OFF* */
-       {0,                     SKINNY_CODEC_NONE},
+       {(pbx_format_enum_type)0,SKINNY_CODEC_NONE},
        {AST_FORMAT_ALAW,       SKINNY_CODEC_G711_ALAW_64K},
        {AST_FORMAT_ALAW,       SKINNY_CODEC_G711_ALAW_56K},
        {AST_FORMAT_ULAW,       SKINNY_CODEC_G711_ULAW_64K},
@@ -521,7 +521,7 @@ skinny_codec_t __CONST__ pbx_codec2skinny_codec(ast_format_type fmt)
 			return pbx2skinny_codec_maps[i].skinny_codec;
 		}
 	}
-	return 0;
+	return SKINNY_CODEC_NONE;
 }
 
 /*!
@@ -531,7 +531,7 @@ skinny_codec_t __CONST__ pbx_codec2skinny_codec(ast_format_type fmt)
  *
  * \return fmt Format as ast_format_type
  */
-uint64_t __CONST__ skinny_codec2pbx_codec(skinny_codec_t codec)
+pbx_format_enum_type __CONST__ skinny_codec2pbx_codec(skinny_codec_t codec)
 {
 	uint32_t i;
 
@@ -540,7 +540,7 @@ uint64_t __CONST__ skinny_codec2pbx_codec(skinny_codec_t codec)
 			return pbx2skinny_codec_maps[i].pbx_codec;
 		}
 	}
-	return 0;
+	return (pbx_format_enum_type)0;
 }
 
 /*!
@@ -550,7 +550,7 @@ uint64_t __CONST__ skinny_codec2pbx_codec(skinny_codec_t codec)
  *
  * \return bit array fmt/Format of ast_format_type (int)
  */
-uint64_t __PURE__ skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs)
+pbx_format_type __PURE__ skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs)
 {
 	uint32_t i;
 	int res_codec = 0;
@@ -561,20 +561,6 @@ uint64_t __PURE__ skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs)
 	return res_codec;
 }
 
-#if DEBUG
-/*!
- * \brief Retrieve the SCCP Channel from an Asterisk Channel
- *
- * \param pbx_channel PBX Channel
- * \param filename Debug Filename
- * \param lineno Debug Line Number
- * \param func Debug Function Name
- * \return SCCP Channel on Success or Null on Fail
- *
- * \todo this code is not pbx independent
- */
-sccp_channel_t *__get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel, const char *filename, int lineno, const char *func)
-#else
 /*!
  * \brief Retrieve the SCCP Channel from an Asterisk Channel
  *
@@ -584,17 +570,12 @@ sccp_channel_t *__get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx
  * \todo this code is not pbx independent
  */
 sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel)
-#endif
 {
 	sccp_channel_t *c = NULL;
 
 	if (pbx_channel && CS_AST_CHANNEL_PVT(pbx_channel) && CS_AST_CHANNEL_PVT_CMP_TYPE(pbx_channel, "SCCP")) {
 		if ((c = CS_AST_CHANNEL_PVT(pbx_channel))) {
-#if DEBUG
-			return sccp_refcount_retain(c, filename, lineno, func);
-#else
 			return sccp_channel_retain(c);
-#endif
 		} 
 		pbx_log(LOG_ERROR, "Channel is not a valid SCCP Channel\n");
 		return NULL;
@@ -1218,7 +1199,7 @@ int sccp_astgenwrap_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname
 		PBX_RTP_TYPE *rtp = NULL;
 
 		if (sccp_strlen_zero(args.type)) {
-			args.type = "audio";
+			args.type = pbx_strdupa("audio");
 		}
 
 		if (sccp_strcaseequals(args.type, "audio")) {
@@ -1405,7 +1386,7 @@ int sccp_wrapper_sendDigit(const sccp_channel_t * channel, const char digit)
 
 static void *sccp_astwrap_doPickupThread(void *data)
 {
-	PBX_CHANNEL_TYPE *pbx_channel = data;
+	PBX_CHANNEL_TYPE *pbx_channel = (PBX_CHANNEL_TYPE *)data;
 
 	if (ast_pickup_call(pbx_channel)) {
 		pbx_channel_set_hangupcause(pbx_channel, AST_CAUSE_CALL_REJECTED);

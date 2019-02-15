@@ -34,7 +34,7 @@ static int announce_call(struct ast_channel *chan, const char *addr, int timeout
 
 static int announce_hangup(struct ast_channel *ast)
 {
-	struct announce_pvt *p = ast_channel_tech_pvt(ast);
+	struct announce_pvt *p = (struct announce_pvt *)ast_channel_tech_pvt(ast);
 	int res;
 
 	if (!p) {
@@ -51,7 +51,7 @@ static int announce_hangup(struct ast_channel *ast)
 
 static void announce_pvt_destructor(void *vdoomed)
 {
-	struct announce_pvt *doomed = vdoomed;
+	struct announce_pvt *doomed = (struct announce_pvt *)vdoomed;
 
 	// ao2_cleanup(doomed->bridge);
 	// doomed->bridge = NULL;
@@ -118,7 +118,7 @@ struct ast_channel_tech *sccpconf_announce_get_tech(void)
 
 void sccpconf_announce_channel_depart(struct ast_channel *chan)
 {
-	struct announce_pvt *p = ast_channel_tech_pvt(chan);
+	struct announce_pvt *p = (struct announce_pvt *)ast_channel_tech_pvt(chan);
 
 	if (!p) {
 		return;
@@ -149,7 +149,7 @@ int sccpconf_announce_channel_push(struct ast_channel *ast, struct ast_bridge *b
 
 	{
 		ast_channel_lock(ast);
-		p = ast_channel_tech_pvt(ast);
+		p = (struct announce_pvt *)ast_channel_tech_pvt(ast);
 		if (!p) {
 			ast_channel_unlock(ast);
 			return -1;

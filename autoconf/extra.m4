@@ -580,6 +580,11 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wl,--as-needed dnl
 				-fPIE dnl
 				-fPIE -pie dnl
+				-Wshorten-64-to-32 dnl
+				-Wsuggest-attribute=const dnl
+				-Wsuggest-attribute=format dnl
+				-Wsuggest-attribute=noreturn dnl
+				-Wsuggest-attribute=pure dnl
 				dnl -Wsuggest-attribute=const dnl
 				dnl -Wsuggest-attribute=format dnl
 				dnl -Wsuggest-attribute=noreturn dnl
@@ -587,8 +592,6 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				dnl
 				dnl // should be added and fixed
 				dnl -Wswitch-enum dnl
-				dnl -Wc++-compat		dnl Check if compilable with C++ compiler
-				dnl -Wshorten-64-to-32 dnl
 				dnl
 				dnl // somewhat pedantic 
 				dnl -Wunused-parameter dnl
@@ -612,6 +615,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-fno-strict-overflow dnl
 				-Wshorten-64-to-32 dnl
 				-Wno-pointer-arith dnl
+				-Wc++-compat dnl		Check if compilable with C++ compiler
 				dnl -Wpointer-arith dnl
 			], SUPPORTED_CFLAGS)
 		])

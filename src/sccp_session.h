@@ -25,7 +25,7 @@ SCCP_API void SCCP_CALL sccp_session_tokenReject(constSessionPtr session, uint32
 SCCP_API void SCCP_CALL sccp_session_tokenAck(constSessionPtr session);
 SCCP_API void SCCP_CALL sccp_session_tokenRejectSPCP(constSessionPtr session, uint32_t features);
 SCCP_API void SCCP_CALL sccp_session_tokenAckSPCP(constSessionPtr session, uint32_t features);
-SCCP_INLINE void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState);
+SCCP_INLINE void sccp_session_stopthread(constSessionPtr session, skinny_registrationstate_t newRegistrationState);
 SCCP_API void SCCP_CALL sccp_session_setProtocol(constSessionPtr session, uint16_t protocolType);
 SCCP_API uint16_t SCCP_CALL sccp_session_getProtocol(constSessionPtr session);
 SCCP_API boolean_t SCCP_CALL sccp_session_getOurIP(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage, int family);

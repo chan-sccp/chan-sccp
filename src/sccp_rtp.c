@@ -353,7 +353,7 @@ int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp)
  */
 sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(constChannelPtr c, sccp_rtp_t **rtp)
 {
-	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
+	unsigned int result = SCCP_RTP_INFO_NORTP;
 
 	AUTO_RELEASE(sccp_device_t, device , sccp_channel_getDevice(c));
 
@@ -368,7 +368,7 @@ sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(constChannelPtr c, sccp_rtp_t **rtp)
 	if (device->directrtp && device->nat <= SCCP_NAT_AUTO_OFF && !c->conference) {
 		result |= SCCP_RTP_INFO_ALLOW_DIRECTRTP;
 	}
-	return result;
+	return (sccp_rtp_info_t) result;
 }
 
 #ifdef CS_SCCP_VIDEO
@@ -377,7 +377,7 @@ sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(constChannelPtr c, sccp_rtp_t **rtp)
  */
 sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(constChannelPtr c, sccp_rtp_t ** rtp)
 {
-	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
+	unsigned int result = SCCP_RTP_INFO_NORTP;
 
 	AUTO_RELEASE(sccp_device_t, device , sccp_channel_getDevice(c));
 
@@ -391,7 +391,7 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(constChannelPtr c, sccp_rtp_t ** rtp)
 	if (device->directrtp && device->nat <= SCCP_NAT_AUTO_OFF && !c->conference) {
 		result |= SCCP_RTP_INFO_ALLOW_DIRECTRTP;
 	}
-	return result;
+	return (sccp_rtp_info_t)result;
 }
 
 /*!

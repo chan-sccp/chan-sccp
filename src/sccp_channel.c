@@ -26,7 +26,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_pbx.h"
 #include "sccp_conference.h"
 #include "sccp_atomic.h"
-#include "sccp_features.h"
+#include "sccp_feature.h"
 #include "sccp_indicate.h"
 #include "sccp_line.h"
 #include "sccp_netsock.h"
@@ -36,7 +36,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include <asterisk/pbx.h>			// AST_EXTENSION_NOT_INUSE
 
 static uint32_t callCount = 1;
-void __sccp_channel_destroy(sccp_channel_t * channel);
+int __sccp_channel_destroy(const void * channel);
 
 AST_MUTEX_DEFINE_STATIC(callCountLock);
 
@@ -139,7 +139,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		sccp_refcount_addWeakParent(channel, refLine);
 #endif
 		/* allocate resources */
-		private_data = sccp_calloc(sizeof *private_data, 1);
+		private_data = (struct sccp_private_channel_data *)sccp_calloc(sizeof *private_data, 1);
 		if (!private_data) {
 			pbx_log(LOG_ERROR, "%s: No memory to allocate channel private data on line %s\n", l->id, l->name);
 			break;
@@ -328,7 +328,7 @@ static void sccp_channel_recalculateCodecFormat(sccp_channel_t * channel)
 		}
 
 		if (channel->rtp.audio.instance) {                      // Fix nativeAudioFormats
-			skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = { joint, 0};
+			skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = { joint, SKINNY_CODEC_NONE};
 			iPbx.set_nativeAudioFormats(channel, codecs, 1);
 		}
 	}
@@ -641,7 +641,7 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 		if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
 			iPbx.queue_control(c->owner, AST_CONTROL_ANSWER);
 		} else {
-			iPbx.queue_control(c->owner, -1);				// 'PROD' the remote side to let them know we can receive inband signalling from this moment onwards -> inband signalling required
+			iPbx.queue_control(c->owner, (enum ast_control_frame_type)-1);				// 'PROD' the remote side to let them know we can receive inband signalling from this moment onwards -> inband signalling required
 		}
 		// indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC
 		// handle out of order arrival when startMediaAck returns before openReceiveChannelAck
@@ -864,7 +864,7 @@ void sccp_channel_updateMediaTransmission(constChannelPtr channel)
  */
 void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 {
-	uint32_t skinnyFormat;
+	skinny_codec_t skinnyFormat;
 	int payloadType;
 	uint8_t lineInstance;
 	int bitRate = 1500;
@@ -1314,7 +1314,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
  * \brief get an SCCP Channel
  * Retrieve unused or allocate a new channel
  */
-channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
+channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, skinny_calltype_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
 {
 	pbx_assert(l != NULL && d != NULL);
 	sccp_log(DEBUGCAT_CORE)("%s: (getEmptyChannel) on line:%s, maybe_c:%s\n", d->id, l->name, maybe_c ? maybe_c->designator : "");
@@ -1370,7 +1370,7 @@ channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channe
  * \callergraph
  * 
  */
-channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
+channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, skinny_calltype_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
 {
 	/* handle outgoing calls */
 	if (!l || !device) {
@@ -1941,7 +1941,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 #endif
 		if (channel->privacy) {
 			channel->privacy = FALSE;
-			d->privacyFeature.status = FALSE;
+			d->privacyFeature.status = SCCP_PRIVACYFEATURE_OFF;
 			sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
 		}
 
@@ -1975,11 +1975,12 @@ void sccp_channel_clean(sccp_channel_t * channel)
  * \warning
  *  - line->channels is not always locked
  */
-void __sccp_channel_destroy(sccp_channel_t * channel)
+int __sccp_channel_destroy(const void * data)
 {
+	sccp_channel_t * channel = (sccp_channel_t *) data;
 	if (!channel) {
 		pbx_log(LOG_NOTICE, "SCCP: channel destructor called with NULL pointer\n");
-		return;
+		return -1;
 	}
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Destroying channel %s\n", channel->designator);
@@ -2015,7 +2016,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	pbx_mutex_destroy(&channel->scheduler.lock);
 #endif
 	//ast_mutex_destroy(&channel->lock);
-	return;
+	return 0;
 }
 
 /*!
@@ -2028,7 +2029,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
  */
 void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 {
-	uint8_t prev_channel_state = 0;
+	sccp_channelstate_t prev_channel_state = SCCP_CHANNELSTATE_ZOMBIE;
 	uint32_t blindTransfer = 0;
 	uint16_t instance = 0;
 	PBX_CHANNEL_TYPE *pbx_channel_owner = NULL;
@@ -2578,7 +2579,7 @@ void sccp_channel_park(sccp_channel_t * channel)
  * \param data Stringified Skinny Codec ShortName
  * \return Success as Boolean
  */
-boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data)
+boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const char *data)
 {
 
 	char text[64] = { '\0' };
@@ -2616,7 +2617,7 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data)
 	return TRUE;
 }
 
-boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const void *data){
+boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const char *data){
 	boolean_t res = TRUE;
 	
 #if CS_SCCP_VIDEO

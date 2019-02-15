@@ -23,7 +23,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_channel.h"
-#include "sccp_features.h"
+#include "sccp_feature.h"
 #include "sccp_labels.h"
 
 static const uint32_t appID = APPID_VISUALPARKINGLOT;
@@ -252,7 +252,7 @@ struct parkinglot {
 #define sccp_parkinglot_lock(x)		({pbx_mutex_lock(&((sccp_parkinglot_t * const)(x))->lock);})				// discard const
 #define sccp_parkinglot_unlock(x)	({pbx_mutex_unlock(&((sccp_parkinglot_t * const)(x))->lock);})				// discard const
 
-SCCP_RWLIST_HEAD(, sccp_parkinglot_t) parkinglots;
+SCCP_RWLIST_HEAD(sccp_parkinglot_vector, sccp_parkinglot_t) parkinglots;
 #define OBSERVER_CB_CMP(elem, value) ((elem).device == (value).device && (elem).instance == (value).instance)
 #define SLOT_CB_CMP(elem, value) ((elem).slot == (value))
 
@@ -272,7 +272,7 @@ static sccp_parkinglot_t * addParkinglot(const char *parkinglot)
 	pbx_assert(parkinglot != NULL);
 
 	sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "SCCP: (addParkinglot) %s\n", parkinglot);
-	sccp_parkinglot_t *pl = sccp_calloc(sizeof(sccp_parkinglot_t), 1);
+	sccp_parkinglot_t *pl = (sccp_parkinglot_t *) sccp_calloc(sizeof(sccp_parkinglot_t), 1);
 
 	pl->context = pbx_strdup(parkinglot);
 	pbx_mutex_init(&pl->lock);

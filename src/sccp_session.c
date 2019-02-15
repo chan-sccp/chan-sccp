@@ -57,7 +57,7 @@ static int accept_sock = -1;
 
 void sccp_session_device_thread_exit(void *session);
 void *sccp_session_device_thread(void *session);
-void __sccp_session_stopthread(sessionPtr session, uint8_t newRegistrationState);
+void __sccp_session_stopthread(sessionPtr session, skinny_registrationstate_t newRegistrationState);
 gcc_inline void recalc_wait_time(sccp_session_t *s);
 
 /*!
@@ -689,7 +689,7 @@ void *sccp_session_device_thread(void *session)
 }
 
 /* stop session device thread from the same thread */
-void __sccp_session_stopthread(sessionPtr session, uint8_t newRegistrationState)
+void __sccp_session_stopthread(sessionPtr session, skinny_registrationstate_t newRegistrationState)
 {
 	if (!session) {
 		pbx_log(LOG_NOTICE, "SCCP: session already terminated\n");
@@ -731,7 +731,7 @@ static void __sccp_netsock_end_device_thread(sccp_session_t *session)
 }
 
 /* check if same or different thread, choose thread cancel method accordingly */
-gcc_inline void sccp_session_stopthread(constSessionPtr session, uint8_t newRegistrationState)
+gcc_inline void sccp_session_stopthread(constSessionPtr session, skinny_registrationstate_t newRegistrationState)
 {
 	sessionPtr s = (sessionPtr)session;										/* discard const */
 	if (s) {
@@ -767,7 +767,7 @@ static sccp_session_t * sccp_create_session(int new_socket)
 {
 	sccp_session_t *s;
 
-	if (!(s = sccp_calloc(sizeof *s, 1))) {
+	if (!(s = (sccp_session_t *)sccp_calloc(sizeof *s, 1))) {
 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		return NULL;
 	}
@@ -1031,7 +1031,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 	}
 
 	if (msg && (GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {
-		uint32_t mid = letohl(msg->header.lel_messageId);
+		sccp_mid_t mid = letohl(msg->header.lel_messageId);
 
 		pbx_log(LOG_NOTICE, "%s: Send Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(s->device), msgtype2str(mid), mid, msg->header.length);
 		sccp_dump_msg(msg);

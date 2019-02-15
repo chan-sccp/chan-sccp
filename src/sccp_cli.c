@@ -57,7 +57,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_conference.h"
 #include "sccp_utils.h"
 #include "sccp_config.h"
-#include "sccp_features.h"
+#include "sccp_feature.h"
 #include "sccp_mwi.h"
 #include "sccp_hint.h"
 #include "sccp_labels.h"
@@ -532,7 +532,7 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("Language", CLI_AMI_LIST_WIDTH, "%s", GLOB(language));
 	CLI_AMI_OUTPUT_PARAM("Accountcode", CLI_AMI_LIST_WIDTH, "%s", GLOB(accountcode));
 	CLI_AMI_OUTPUT_PARAM("Musicclass", CLI_AMI_LIST_WIDTH, "%s", GLOB(musicclass));
-	CLI_AMI_OUTPUT_PARAM("AMA flags", CLI_AMI_LIST_WIDTH, "%d (%s)", GLOB(amaflags), pbx_channel_amaflags2string(GLOB(amaflags)));
+	CLI_AMI_OUTPUT_PARAM("AMA flags", CLI_AMI_LIST_WIDTH, "%d (%s)", (int)GLOB(amaflags), pbx_channel_amaflags2string((pbx_ama_flags_type)GLOB(amaflags)));
 	sccp_print_group(callgroup_buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(callgroup));
 	CLI_AMI_OUTPUT_PARAM("Callgroup", CLI_AMI_LIST_WIDTH, "%s", callgroup_buf ? pbx_str_buffer(callgroup_buf) : "");
 #ifdef CS_SCCP_PICKUP
@@ -852,7 +852,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Video TOS",		CLI_AMI_LIST_WIDTH, "%d", d->video_tos);
 	CLI_AMI_OUTPUT_PARAM("Video COS",		CLI_AMI_LIST_WIDTH, "%d", d->video_cos);
 	CLI_AMI_OUTPUT_YES_NO("DND Feature enabled",	CLI_AMI_LIST_WIDTH, d->dndFeature.enabled);
-	CLI_AMI_OUTPUT_PARAM("DND Status",		CLI_AMI_LIST_WIDTH, "%s", (d->dndFeature.status) ? sccp_dndmode2str(d->dndFeature.status) : "Disabled");
+	CLI_AMI_OUTPUT_PARAM("DND Status",		CLI_AMI_LIST_WIDTH, "%s", (d->dndFeature.status) ? sccp_dndmode2str((sccp_dndmode_t)d->dndFeature.status) : "Disabled");
 	CLI_AMI_OUTPUT_PARAM("DND Action", 		CLI_AMI_LIST_WIDTH, "%s", (d->dndmode) ? sccp_dndmode2str(d->dndmode) : "Disabled / Cycle");
 	CLI_AMI_OUTPUT_BOOL("Can Transfer",		CLI_AMI_LIST_WIDTH, d->transfer);
 	CLI_AMI_OUTPUT_BOOL("Can Park",			CLI_AMI_LIST_WIDTH, d->park);
@@ -1029,7 +1029,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 
 #define CLI_AMI_TABLE_NAME CallStatistics
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceStatistics
-#define CLI_AMI_TABLE_ITERATOR for(callstattype = SCCP_CALLSTATISTIC_LAST; callstattype <= SCCP_CALLSTATISTIC_AVG; callstattype++)
+#define CLI_AMI_TABLE_ITERATOR for(callstattype = SCCP_CALLSTATISTIC_LAST; callstattype <= SCCP_CALLSTATISTIC_AVG; enum_incr(callstattype))
 #define CLI_AMI_TABLE_BEFORE_ITERATION stats = &d->call_statistics[callstattype];
 #define CLI_AMI_TABLE_FIELDS																	\
 			CLI_AMI_TABLE_FIELD(Type,		"-8.8",		s,	8,	(callstattype == SCCP_CALLSTATISTIC_LAST) ? "LAST" : "AVG")	\
@@ -1325,7 +1325,7 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	CLI_AMI_OUTPUT_PARAM("Language",		CLI_AMI_LIST_WIDTH, "%s", l->language ? l->language : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Account Code",		CLI_AMI_LIST_WIDTH, "%s", l->accountcode ? l->accountcode : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Musicclass",		CLI_AMI_LIST_WIDTH, "%s", l->musicclass ? l->musicclass : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("AmaFlags",		CLI_AMI_LIST_WIDTH, "%d", l->amaflags);
+	CLI_AMI_OUTPUT_PARAM("AmaFlags",		CLI_AMI_LIST_WIDTH, "%d (%s)", (int)l->amaflags, pbx_channel_amaflags2string(l->amaflags));
 	
 	sccp_print_group(callgroup_buf, DEFAULT_PBX_STR_BUFFERSIZE, l->callgroup);
 	CLI_AMI_OUTPUT_PARAM("Call Group",		CLI_AMI_LIST_WIDTH, "%s", callgroup_buf ? pbx_str_buffer(callgroup_buf) : "");
@@ -1720,7 +1720,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 	if (!strcasecmp(argv[2], "hint")) {
 		int state = (argc == 6) ? sccp_atoi(argv[4], strlen(argv[4])) : 0;
 
-		pbx_devstate_changed(state, "SCCP/%s", argv[3]);
+		pbx_devstate_changed((enum ast_device_state)state, "SCCP/%s", argv[3]);
 		pbx_log(LOG_NOTICE, "Hint %s Set NewState: %d\n", argv[3], state);
 		return RESULT_SUCCESS;
 	}
@@ -1992,8 +1992,8 @@ static int sccp_show_softkeysets(int fd, sccp_cli_totals_t *totals, struct manse
 		}
 #define CLI_AMI_TABLE_FIELDS														\
 				CLI_AMI_TABLE_FIELD(Set,		"-15.15",	s,	15,	softkeyset->name)		\
-				CLI_AMI_TABLE_FIELD(Mode,		"-12.12",	s,	12,	skinny_keymode2str(i))		\
-				CLI_AMI_TABLE_FIELD(Description,	"-40.40",	s,	40,	skinny_keymode2longstr(i))	\
+				CLI_AMI_TABLE_FIELD(Mode,		"-12.12",	s,	12,	skinny_keymode2str((skinny_keymode_t)i))	\
+				CLI_AMI_TABLE_FIELD(Description,	"-40.40",	s,	40,	skinny_keymode2longstr((skinny_keymode_t)i))	\
 				CLI_AMI_TABLE_FIELD(LblID,		"-5",		d,	5,	c)				\
 				CLI_AMI_TABLE_FIELD(Label,	      "-15.15",	s,	15,     label2str(b[c]))
 #include "sccp_cli_table.h"
@@ -2499,7 +2499,8 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 {
 	boolean_t force_reload = FALSE;
 	int returnval = RESULT_FAILURE;
-	sccp_configurationchange_t change;
+	//sccp_configurationchange_t change;
+	unsigned int change;
 	sccp_buttonconfig_t *config = NULL;
 
 	if (argc < 2 || argc > 4) {
@@ -2677,7 +2678,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				int buflen;
 				if (argv[3][0] != '/') { 
 					buflen = strlen(ast_config_AST_CONFIG_DIR) + strlen(argv[3]) + 2;
-					buf = alloca(buflen);
+					buf = (char *)alloca(buflen);
 					snprintf(buf, buflen, "%s/%s", ast_config_AST_CONFIG_DIR, argv[3]);
 				} else {
 					buf = pbx_strdupa(argv[3]);

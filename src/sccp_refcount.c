@@ -188,7 +188,7 @@ int __PURE__ sccp_refcount_isRunning(void)
 	return runState;
 }
 
-void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor)
+void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, int (*destructor)(const void *))
 {
 	RefCountedObject *obj;
 
@@ -197,7 +197,7 @@ void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types t
 		return NULL;
 	}
 
-	if (!(obj = sccp_calloc(size + (sizeof *obj), 1) )) {
+	if (!(obj = (RefCountedObject *)sccp_calloc(size + (sizeof *obj), 1) )) {
 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP: obj");
 		return NULL;
 	}
@@ -222,7 +222,7 @@ void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types t
 		// create new hashtable head when necessary (should this possibly be moved to refcount_init, to avoid raceconditions ?)
 		ast_rwlock_wrlock(&objectslock);
 		if (!objects[hash]) {										// check again after getting the lock, to see if another thread did not create the head already
-			if (!(objects[hash] = sccp_calloc(sizeof *objects[hash], 1))) {
+			if (!(objects[hash] = (struct refcount_objentry *) sccp_calloc(sizeof *objects[hash], 1))) {
 				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP: hashtable");
 				sccp_free(obj);
 				obj = NULL;
@@ -796,7 +796,7 @@ gcc_inline void sccp_refcount_replace(const void * * const replaceptr, const voi
  */
 gcc_inline void sccp_refcount_autorelease(void *refptr)
 {
-	auto_ref_t *ref = refptr;
+	auto_ref_t *ref = (auto_ref_t *)refptr;
 	if (ref && ref->ptr && *ref->ptr) {
 		sccp_refcount_release(ref->ptr, ref->file, ref->line, ref->func);				// explicit release
 	}
@@ -816,15 +816,17 @@ struct refcount_test {
 
 struct refcount_test **object;
 
-static void refcount_test_destroy(struct refcount_test *obj)
+static int refcount_test_destroy(const void *data)
 {
+	struct refcount_test * obj = (struct refcount_test *)data;
 	sccp_free(object[obj->id]->str);
 	object[obj->id]->str = NULL;
+	return 0;
 };
 
 static void *refcount_test_thread(void *data)
 {
-	enum ast_test_result_state *test_result = data;
+	enum ast_test_result_state *test_result = (enum ast_test_result_state *)data;
 	struct refcount_test *obj = NULL, *obj1 = NULL;
 	int loop, objloop;
 	int random_object;
@@ -836,9 +838,9 @@ static void *refcount_test_thread(void *data)
 	for (loop = 0; loop < NUM_LOOPS; loop++) {
 		for (objloop = 0; objloop < NUM_OBJECTS; objloop++) {
 			random_object = rand() % NUM_OBJECTS;
-			if ((obj = sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
-				if ((obj1 = sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
-					if ((obj1 = sccp_refcount_release((const void ** const)&obj1, __FILE__, __LINE__, __PRETTY_FUNCTION__)) != NULL) {
+			if ((obj = (struct refcount_test *)sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
+				if ((obj1 = (struct refcount_test *)sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
+					if ((obj1 = (struct refcount_test *)sccp_refcount_release((const void ** const)&obj1, __FILE__, __LINE__, __PRETTY_FUNCTION__)) != NULL) {
 						pbx_log(LOG_NOTICE, "%d: release obj1 failed\n", threadid);
 						*test_result = AST_TEST_FAIL;
 						break;
@@ -848,7 +850,7 @@ static void *refcount_test_thread(void *data)
 					*test_result = AST_TEST_FAIL;
 					break;
 				}
-				if ((obj = sccp_refcount_release((const void ** const)&obj, __FILE__, __LINE__, __PRETTY_FUNCTION__)) != NULL) {
+				if ((obj = (struct refcount_test *) sccp_refcount_release((const void ** const)&obj, __FILE__, __LINE__, __PRETTY_FUNCTION__)) != NULL) {
 					pbx_log(LOG_NOTICE, "%d: release obj failed\n", threadid);
 					*test_result = AST_TEST_FAIL;
 					break;
@@ -891,7 +893,7 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	char id[23];
 	enum ast_test_result_state test_result[NUM_THREADS] = {AST_TEST_PASS};
 	
-	object = sccp_malloc(sizeof(struct refcount_test) * NUM_OBJECTS);
+	object = (struct refcount_test **)sccp_malloc(sizeof(struct refcount_test) * NUM_OBJECTS);
 
 	pbx_test_status_update(test, "Executing chan-sccp-b refcount tests...\n");
 	pbx_test_status_update(test, "Create %d objects to work on...\n", NUM_OBJECTS);
@@ -921,7 +923,7 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	for (loop = 0; loop < NUM_OBJECTS; loop++) {
 		if (object[loop]) {
 			//pbx_test_status_update(test, "Final Release %d, thread: %d\n", object[loop]->id, (unsigned int) pthread_self());
-			object[loop] = sccp_refcount_release((const void ** const)&object[loop], __FILE__, __LINE__, __PRETTY_FUNCTION__);
+			object[loop] = (struct refcount_test *)sccp_refcount_release((const void ** const)&object[loop], __FILE__, __LINE__, __PRETTY_FUNCTION__);
 			pbx_test_validate(test, object[loop] == NULL);
 		}
 	}

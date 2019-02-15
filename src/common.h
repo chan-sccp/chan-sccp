@@ -50,6 +50,7 @@
 #include "sccp_rtp.h"
 #include "sccp_refcount.h"
 #include "sccp_event.h"
+#include "sccp_feature.h"
 #include "pbx_impl/pbx_impl.h"
 #include "sccp_callinfo.h"
 

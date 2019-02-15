@@ -55,7 +55,7 @@ struct sccp_global_vars {
 	sccp_mutex_t usecnt_lock;										/*!< Use Counter Asterisk Lock */
 #endif
 	int usecnt;												/*!< Keep track of when we're in use. */
-	int amaflags;												/*!< AmaFlags */
+	long int amaflags;											/*!< AmaFlags */
 	pthread_t mwiMonitorThread;										/*!< MWI Monitor Thread */
 
 	char dateformat[SCCP_MAX_DATE_FORMAT];									/*!< Date Format */
@@ -75,11 +75,11 @@ struct sccp_global_vars {
 	char digittimeoutchar;											/*!< Digit End Character. What char will force the dial (Normally '#') */
 	boolean_t simulate_enbloc;										/*!< Simulated Enbloc Dialing for older device to speed up dialing */
 	uint8_t autoanswer_ring_time;										/*!< Auto Answer Ring Time */
-	uint8_t autoanswer_tone;										/*!< Auto Answer Tone */
-	uint8_t remotehangup_tone;										/*!< Remote Hangup Tone */
-	uint8_t transfer_tone;											/*!< Transfer Tone */
-	uint8_t dnd_tone;											/*!< DND Tone */
-	uint8_t callwaiting_tone;										/*!< Call Waiting Tone */
+	skinny_tone_t autoanswer_tone;										/*!< Auto Answer Tone */
+	skinny_tone_t remotehangup_tone;									/*!< Remote Hangup Tone */
+	skinny_tone_t transfer_tone;										/*!< Transfer Tone */
+	skinny_tone_t dnd_tone;											/*!< DND Tone */
+	skinny_tone_t callwaiting_tone;										/*!< Call Waiting Tone */
 
 	uint8_t callwaiting_interval;										/*!< Call Waiting Ring Interval */
 	uint8_t sccp_tos;											/*!< SCCP Socket Type of Service (TOS) (QOS) (Signaling) */

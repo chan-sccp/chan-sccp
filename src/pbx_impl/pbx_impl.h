@@ -32,7 +32,7 @@ typedef struct _PbxInterface {
 	/* *INDENT-OFF* */
 	/* channels */
 	boolean_t(*const alloc_pbxChannel) (sccp_channel_t * channel, const void * ids, const PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel);	/* returns a new channel with pbx_channel_ref and ast_module_info_ref*/
-	int (*const set_callstate) (constChannelPtr pbx_channel, int state);
+	int (*const set_callstate) (constChannelPtr pbx_channel, enum ast_channel_state state);
 	boolean_t(*const checkhangup) (constChannelPtr channel);
 	int (*const hangup) (PBX_CHANNEL_TYPE * channel);
 	sccp_extension_status_t(*const extension_status) (constChannelPtr channel);
@@ -64,7 +64,7 @@ typedef struct _PbxInterface {
 	void *(*const getChannelByCallback) (int (*is_match)(PBX_CHANNEL_TYPE *, void *),void *data);
 
 	int (*const set_nativeAudioFormats) (constChannelPtr channel, skinny_codec_t codec[], int length);
-	int (*const set_nativeVideoFormats) (constChannelPtr channel, uint32_t);
+	int (*const set_nativeVideoFormats) (constChannelPtr channel, skinny_codec_t codec);
 	int (*const getPeerCodecCapabilities) (constChannelPtr channel, void **capabilities);
 	int (*const send_digit) (constChannelPtr channel, const char digit);
 	int (*const send_digits) (constChannelPtr channel, const char *digits);
@@ -100,7 +100,7 @@ typedef struct _PbxInterface {
 	int (*const get_callerid_subaddr) (PBX_CHANNEL_TYPE * pbxChannel, char **subaddr);
 	int (*const get_callerid_dnid) (PBX_CHANNEL_TYPE * pbxChannel, char **dnid);
 	int (*const get_callerid_rdnis) (PBX_CHANNEL_TYPE * pbxChannel, char **rdnis);
-	int (*const get_callerid_presentation) (PBX_CHANNEL_TYPE * pbxChannel);
+	sccp_callerid_presentation_t (*const get_callerid_presentation) (PBX_CHANNEL_TYPE * pbxChannel);
 
 	void (*const set_callerid_name) (PBX_CHANNEL_TYPE * pbxChannel, const char *name);
 	void (*const set_callerid_number) (PBX_CHANNEL_TYPE * pbxChannel, const char *number);
@@ -136,7 +136,7 @@ typedef struct _PbxInterface {
 	/* conference */
 	boolean_t(*const allocTempPBXChannel) (PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel);
 	boolean_t(*const masqueradeHelper) (PBX_CHANNEL_TYPE *pbxChannel, PBX_CHANNEL_TYPE *pbxTmpchannel);
-	PBX_CHANNEL_TYPE *(*const requestAnnouncementChannel) (pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data);
+	PBX_CHANNEL_TYPE *(*const requestAnnouncementChannel) (pbx_format_enum_type format, const PBX_CHANNEL_TYPE * requestor, void *data);
 
 	boolean_t(*const set_language)(PBX_CHANNEL_TYPE *pbxChannel, const char *language);
 

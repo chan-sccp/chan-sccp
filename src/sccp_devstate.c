@@ -184,13 +184,11 @@ sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *
 		return NULL;
 	}
 
-	sccp_devstate_deviceState_t *deviceState = NULL;
 	char buf[256] = "";
-
 	snprintf(buf, 254, "Custom:%s", devstate);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "%s: (sccp_devstate_createDeviceStateHandler) create handler for %s/%s\n", "SCCP", devstate, buf);
 
-	deviceState = sccp_calloc(sizeof *deviceState, 1);
+	sccp_devstate_deviceState_t *deviceState = (sccp_devstate_deviceState_t *)sccp_calloc(sizeof *deviceState, 1);
 	if (!deviceState) {
 		pbx_log(LOG_ERROR, "Memory Allocation for deviceState failed!\n");
 		return NULL;
@@ -221,9 +219,7 @@ sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *
 
 void sccp_devstate_addSubscriber(sccp_devstate_deviceState_t * deviceState, const sccp_device_t * device, sccp_buttonconfig_t * buttonConfig)
 {
-	sccp_devstate_SubscribingDevice_t *subscriber;
-
-	subscriber = sccp_calloc(sizeof *subscriber, 1);
+	sccp_devstate_SubscribingDevice_t *subscriber = (sccp_devstate_SubscribingDevice_t *)sccp_calloc(sizeof *subscriber, 1);
 	subscriber->device = sccp_device_retain((sccp_device_t *) device);
 	subscriber->instance = buttonConfig->instance;
 	subscriber->buttonConfig = buttonConfig;
@@ -282,7 +278,7 @@ void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data)
 	enum ast_device_state state;
 
 #if ASTERISK_VERSION_GROUP >= 112
-	struct ast_device_state_message *dev_state = stasis_message_data(msg);
+	struct ast_device_state_message *dev_state = (struct ast_device_state_message *)stasis_message_data(msg);
 
 	if (ast_device_state_message_type() != stasis_message_type(msg)) {
 		return;
@@ -292,7 +288,7 @@ void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data)
 	}
 	state = dev_state->state;
 #else
-	state = pbx_event_get_ie_uint(ast_event, AST_EVENT_IE_STATE);
+	state = (enum ast_device_state)pbx_event_get_ie_uint(ast_event, AST_EVENT_IE_STATE);
 #endif
 	deviceState = (sccp_devstate_deviceState_t *) data;
 	deviceState->featureState = (state == AST_DEVICE_NOT_INUSE) ? 0 : 1;

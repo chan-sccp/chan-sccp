@@ -117,7 +117,7 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 #define pbx_test_validate_cleanup(test, condition, rc_variable, cleanup_label) ({				\
         if (!(condition)) {											\
                 pbx_test_status_update((test), "%s: %s\n", "Condition failed", #condition);			\
-                rc_variable = 2 /*AST_TEST_FAIL*/;								\
+                rc_variable = (enum ast_test_result_state) 2 /*AST_TEST_FAIL*/;					\
                 goto cleanup_label;										\
         }													\
 })
@@ -264,7 +264,7 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 		uint8_t x;											\
                 for (x = 0; x < ARRAY_LEN(cli_ami_params) && x < a->argc; x++) {				\
                         hdrlen = strlen(cli_ami_params[x]) + 2 + strlen(a->argv[x]) + 1;			\
-                        m.headers[m.hdrcount] = alloca(hdrlen);							\
+                        m.headers[m.hdrcount] = (const char *)alloca(hdrlen);					\
                         snprintf((char *) m.headers[m.hdrcount], hdrlen, "%s: %s", cli_ami_params[x], a->argv[x]);	\
                         m.hdrcount++;                                        					\
                 }												\

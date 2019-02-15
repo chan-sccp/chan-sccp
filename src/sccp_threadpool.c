@@ -24,6 +24,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 //#define SEMAPHORE_UNLOCKED	(1)
 void sccp_threadpool_grow(sccp_threadpool_t * tp_p, int amount);
 void sccp_threadpool_shrink(sccp_threadpool_t * tp_p, int amount);
+void *sccp_threadpool_thread_do(void *p);
 
 typedef struct sccp_threadpool_thread sccp_threadpool_thread_t;
 
@@ -73,7 +74,7 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 		threadsN = THREADPOOL_MAX_SIZE;
 	}
 	/* Make new thread pool */
-	if (!(tp_p = sccp_calloc(sizeof *tp_p, 1))) {
+	if (!(tp_p = (sccp_threadpool_t *) sccp_calloc(sizeof *tp_p, 1))) {
 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		return NULL;
 	}
@@ -110,7 +111,7 @@ void sccp_threadpool_grow(sccp_threadpool_t * tp_p, int amount)
 
 	if (tp_p && !tp_p->sccp_threadpool_shuttingdown) {
 		for (t = 0; t < amount; t++) {
-			if (!(tp_thread = sccp_calloc(sizeof *tp_thread, 1))) {
+			if (!(tp_thread = (sccp_threadpool_thread_t *) sccp_calloc(sizeof *tp_thread, 1))) {
                 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 				return;
 			}
@@ -124,7 +125,7 @@ void sccp_threadpool_grow(sccp_threadpool_t * tp_p, int amount)
 			SCCP_LIST_LOCK(&(tp_p->threads));
 			SCCP_LIST_INSERT_HEAD(&(tp_p->threads), tp_thread, list);
 			SCCP_LIST_UNLOCK(&(tp_p->threads));
-			pbx_pthread_create(&(tp_thread->thread), &attr, (void *) sccp_threadpool_thread_do, (void *) tp_thread);
+			pbx_pthread_create(&(tp_thread->thread), &attr, sccp_threadpool_thread_do, (void *) tp_thread);
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Created thread %d(%p) in pool \n", t, (void *) tp_thread->thread);
 			pbx_cond_broadcast(&(tp_p->work));
 		}
@@ -200,7 +201,7 @@ static void sccp_threadpool_thread_end(void *p)
 }
 
 /* What each individual thread is doing */
-void sccp_threadpool_thread_do(void *p)
+void *sccp_threadpool_thread_do(void *p)
 {
 	sccp_threadpool_thread_t *tp_thread = (sccp_threadpool_thread_t *) p;
 	sccp_threadpool_t *tp_p = tp_thread->tp_p;
@@ -256,7 +257,7 @@ void sccp_threadpool_thread_do(void *p)
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "JobQueue Exiting Thread...\n");
 	pthread_cleanup_pop(1);
-	return;
+	return NULL;
 }
 
 /* Add work to the thread pool */
@@ -266,7 +267,7 @@ int sccp_threadpool_add_work(sccp_threadpool_t * tp_p, void *(*function_p) (void
 	if (!tp_p->sccp_threadpool_shuttingdown) {
 		sccp_threadpool_job_t *newJob;
 
-		if (!(newJob = sccp_calloc(sizeof *newJob, 1))) {
+		if (!(newJob = (sccp_threadpool_job_t *) sccp_calloc(sizeof *newJob, 1))) {
         		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 			exit(1);
 		}
@@ -469,7 +470,7 @@ AST_TEST_DEFINE(sccp_threadpool_work)
 		pbx_test_status_update(test, "Adding work to Test threadpool\n");
 		int work, loopcount=0;
 		for (work = 0; work < NUM_WORK; work++) {
-			pbx_test_validate(test, sccp_threadpool_add_work(test_threadpool, (void *) sccp_cli_threadpool_test_thread, test) > 0);
+			pbx_test_validate(test, sccp_threadpool_add_work(test_threadpool, sccp_cli_threadpool_test_thread, test) > 0);
 		}
 
 		pbx_test_status_update(test, "Waiting for work to finishg in Test threadpool\n");

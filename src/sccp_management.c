@@ -12,7 +12,7 @@
 #include "sccp_actions.h"
 #include "sccp_config.h"
 #include "sccp_device.h"
-#include "sccp_features.h"
+#include "sccp_feature.h"
 #include "sccp_line.h"
 #include "sccp_management.h"
 #include "sccp_session.h"
@@ -204,7 +204,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 
 			switch (featureType) {
 				case SCCP_FEATURE_DND:
-					manager_event(EVENT_FLAG_CALL, "DND", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nFeature: %s\r\nStatus: %s\r\nSCCPDevice: %s\r\n", sccp_feature_type2str(SCCP_FEATURE_DND), sccp_dndmode2str(device->dndFeature.status), DEV_ID_LOG(device));
+					manager_event(EVENT_FLAG_CALL, "DND", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nFeature: %s\r\nStatus: %s\r\nSCCPDevice: %s\r\n", sccp_feature_type2str(SCCP_FEATURE_DND), sccp_dndmode2str((sccp_dndmode_t)device->dndFeature.status), DEV_ID_LOG(device));
 					break;
 				case SCCP_FEATURE_CFWDALL:
 				case SCCP_FEATURE_CFWDBUSY:
@@ -610,7 +610,7 @@ static int sccp_manager_device_set_dnd(struct mansession *s, const struct messag
 			}
 
 			if (d->dndFeature.status != prevStatus) {
-				snprintf(retValStr, sizeof(retValStr), "Device %s DND has been set to %s", d->id, sccp_dndmode2str(d->dndFeature.status));
+				snprintf(retValStr, sizeof(retValStr), "Device %s DND has been set to %s", d->id, sccp_dndmode2str((sccp_dndmode_t)d->dndFeature.status));
 				sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
 				sccp_dev_check_displayprompt(d);
 			} else {

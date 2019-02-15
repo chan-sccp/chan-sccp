@@ -15,7 +15,7 @@
 #include "sccp_channel.h"
 #include "sccp_device.h"
 #include "sccp_conference.h"
-#include "sccp_features.h"
+#include "sccp_feature.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_indicate.h"
@@ -41,7 +41,7 @@ SCCP_FILE_VERSION(__FILE__, "");
  * 
  * \called_from_asterisk
  */
-sccp_channel_request_status_t sccp_requestChannel(const char *lineName, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel)
+sccp_channel_request_status_t sccp_requestChannel(const char *lineName, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, skinny_ringtype_t ringermode, sccp_channel_t ** channel)
 {
 	sccp_channel_t *my_sccp_channel = NULL;
 	AUTO_RELEASE(sccp_line_t, l , NULL);
@@ -116,7 +116,7 @@ struct sccp_answer_conveyor_struct {
  */
 static void *sccp_pbx_call_autoanswer_thread(void *data)
 {
-	struct sccp_answer_conveyor_struct *conveyor = data;
+	struct sccp_answer_conveyor_struct *conveyor = (struct sccp_answer_conveyor_struct *)data;
 
 	int instance = 0;
 
@@ -358,13 +358,13 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
 			isRinging = TRUE;
 			if (c->autoanswer_type) {
-				struct sccp_answer_conveyor_struct *conveyor = sccp_calloc(1, sizeof(struct sccp_answer_conveyor_struct));
+				struct sccp_answer_conveyor_struct *conveyor = (struct sccp_answer_conveyor_struct *)sccp_calloc(1, sizeof(struct sccp_answer_conveyor_struct));
 				if (conveyor) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", DEV_ID_LOG(linedevice->device), iPbx.getChannelName(c));
 					conveyor->callid = c->callid;
 					conveyor->linedevice = sccp_linedevice_retain(linedevice);
 
-					sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_pbx_call_autoanswer_thread, (void *) conveyor);
+					sccp_threadpool_add_work(GLOB(general_threadpool), sccp_pbx_call_autoanswer_thread, (void *) conveyor);
 				} else {
 					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, c->designator);
 				}

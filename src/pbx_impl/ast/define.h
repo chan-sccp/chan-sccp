@@ -132,9 +132,15 @@
 #define pbx_canmatch_extension ast_canmatch_extension
 #define pbx_category_browse ast_category_browse
 #define pbx_cause ast_cause
+#if ASTERISK_VERSION_GROUP < 112
+#define pbx_ama_flags_type long int 
+#else
+#define pbx_ama_flags_type enum ama_flags
+#endif
 #define pbx_cdr_amaflags2int ast_cdr_amaflags2int
 #define pbx_cdr_flags2str ast_cdr_flags2str
 #define pbx_channel_amaflags2string ast_cdr_flags2str
+#define pbx_channel_string2amaflag ast_cdr_amaflags2int
 #define pbx_cdr_start ast_cdr_start
 #define pbx_cdr_update ast_cdr_update
 #define pbx_channel_defer_dtmf ast_channel_defer_dtmf
@@ -149,7 +155,6 @@
 #define pbx_channel_trylock ast_channel_trylock
 #define pbx_channel_undefer_dtmf ast_channel_undefer_dtmf
 #define pbx_channel_unregister ast_channel_unregister
-#define pbx_channel_string2amaflag ast_cdr_amaflags2int
 #define pbx_cli ast_cli
 #define pbx_cli_entry ast_cli_entry
 #define pbx_cli_register ast_cli_register
@@ -192,6 +197,13 @@ typedef struct ast_event pbx_event_t;
 #define pbx_event_get_ie_str ast_event_get_ie_str
 #define pbx_event_get_ie_uint ast_event_get_ie_uint
 #define pbx_event_new ast_event_new
+/*
+#if defined( CS_AST_HAS_STASIS )
+#define pbx_event_sub stasis_subscription
+#else
+#define pbx_event_sub ast_event_sub
+#endif
+*/
 #if defined( HAVE_PBX_STASIS_H )
 #define pbx_event_sub stasis_subscription
 #define pbx_mwi_state_type ast_mwi_state_type
@@ -313,7 +325,16 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_state2str ast_state2str
 #define pbx_str_t struct ast_str
 #define pbx_str_create ast_str_create
-#define pbx_str_alloca ast_str_alloca
+#define pbx_str_alloca(init_len)							\
+({											\
+	pbx_str_t *__pbx_str_buf;							\
+	__pbx_str_buf = (pbx_str_t *)ast_alloca(sizeof(*__pbx_str_buf) + init_len);	\
+	__pbx_str_buf->__AST_STR_LEN = init_len;					\
+	__pbx_str_buf->__AST_STR_USED = 0;						\
+	__pbx_str_buf->__AST_STR_TS = DS_ALLOCA;					\
+	__pbx_str_buf->__AST_STR_STR[0] = '\0';						\
+	(__pbx_str_buf);								\
+})
 #define pbx_str_append ast_str_append
 #define pbx_str_reset ast_str_reset
 #define pbx_str_strlen ast_str_strlen
@@ -347,11 +368,6 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_variable_retrieve ast_variable_retrieve
 #define pbx_variables_destroy ast_variables_destroy
 #define pbx_strlen_zero ast_strlen_zero
-#if defined( CS_AST_HAS_STASIS )
-#define pbx_event_sub stasis_subscription
-#else
-#define pbx_event_sub ast_event_sub
-#endif
 #define pbx_context_find ast_context_find
 #define pbx_hangup ast_hangup
 #define pbx_atomic_fetchadd_int ast_atomic_fetchadd_int

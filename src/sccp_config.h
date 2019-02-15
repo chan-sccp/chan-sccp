@@ -39,7 +39,7 @@ SCCP_API int SCCP_CALL sccp_manager_config_metadata(struct mansession *s, const 
 SCCP_API void SCCP_CALL sccp_config_cleanup_dynamically_allocated_memory(void *obj, const sccp_config_segment_t segment);
 SCCP_API sccp_value_changed_t SCCP_CALL sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfigList, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
 SCCP_API boolean_t SCCP_CALL sccp_config_general(sccp_readingtype_t readingtype);
-SCCP_API void SCCP_CALL cleanup_stale_contexts(char *new, char *old);
+SCCP_API void SCCP_CALL cleanup_stale_contexts(char *new_context, char *old_context);
 SCCP_API boolean_t SCCP_CALL sccp_config_readDevicesLines(sccp_readingtype_t readingtype);
 SCCP_API int SCCP_CALL sccp_manager_config_metadata(struct mansession *s, const struct message *m);
 

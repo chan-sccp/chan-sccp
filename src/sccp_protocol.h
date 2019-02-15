@@ -158,8 +158,9 @@ MEDIA_ENCRYPTION_SUPPORT, STATION_MAX_FEATURE_MASK, INTERNALIZATION
 typedef struct {
 	uint8_t instance;											/*!< Button Instance */
 	uint8_t type;												/*!< Button Type */
-	void *ptr;												/*!< Pointer to the Line */
-} btnlist;													/*!< Button List Structure */
+	//void *ptr;												/*!< Pointer to the Line */
+	sccp_line_t *ptr;											/*!< Pointer to the Line */
+} btnlist;													/*!< Button List Structure */ /* should use constLinePtr */
 
 /*!
  * \brief SKINNY Message Types Enum
@@ -1441,7 +1442,7 @@ typedef union {
 				uint32_t lel_callReference1;							/*!< Call Reference1 */
 				uint32_t bel_ipAddr;								/*!< Ip Address Array (This field is apparently in big-endian format, even though most other fields are in little-endian format.) */
 				uint32_t lel_portNumber;							/*!< Port Number */
-				uint32_t lel_mediastatus;							/*!< Start Media Transmission Status */
+				skinny_mediastatus_t lel_mediastatus;						/*!< Start Media Transmission Status */
 			} v3;
 
 			/* this is from a 6911
@@ -1458,7 +1459,7 @@ typedef union {
 				uint32_t lel_ipv46;								/*!< ipv4 / ipv6 */
 				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
 				uint32_t lel_portNumber;							/*!< Port Number */
-				uint32_t lel_mediastatus;							/*!< startmediatransmission status */
+				skinny_mediastatus_t lel_mediastatus;						/*!< startmediatransmission status */
 			} v17;
 
 			/* this is from a 6901 during transfer (notice missing passThruPartyId)
@@ -1474,6 +1475,7 @@ typedef union {
 	// No struct
 
 	struct {
+		uint8_t dummy;
 	} StationKeepAliveMessage;										/*!< Station Keep Alive Message */
 
 	/* this is register message from 7940 with load 8.1.1 (protocol 0)
@@ -1520,7 +1522,7 @@ typedef union {
 	struct {
 		StationIdentifier sId;										/*!< Station Identifier */
 		uint32_t stationIpAddr;										/*c0:a8:09:24=192.168.9.36 *//*!< Station IP Address */
-		uint32_t lel_deviceType;									/*73:00:00:00=115 *//*!< Device Type as part of SKINNY_DEVICETYPE_* */
+		skinny_devicetype_t lel_deviceType;								/*73:00:00:00=115 *//*!< Device Type as part of SKINNY_DEVICETYPE_* */
 		uint32_t lel_maxStreams;									/*05:00:00:00=5 *//*!< Max Streams */
 		uint32_t lel_activeStreams;									/*00:00:00:00=0 *//*!< number of active streams */
 		StationProtocolFeatures_t protocolFeatures;
@@ -1674,7 +1676,7 @@ typedef union {
 	} HookFlashMessage;											/*!< Hook Flash Message Structure */
 
 	struct {
-		uint32_t lel_deviceType;									/*!< Device Type as part of SKINNY_DEVICETYPE_* */
+		skinny_devicetype_t lel_deviceType;								/*!< Device Type as part of SKINNY_DEVICETYPE_* */
 		uint32_t lel_numberOfInServiceStreams;								/*!< Number Of In-Service Streams  */
 		uint32_t lel_maxStreamsPerConf;									/*!< Maximum Streams Per Configuration */
 		uint32_t lel_numberOfOutOfServiceStreams;							/*!< Number of Out-Of_Service Streams */
@@ -1693,9 +1695,11 @@ typedef union {
 	} LineStatReqMessage;											/*!< Line Status Request Message - Client -> Server */
 
 	struct {
+		uint8_t dummy;
 	} ConfigStatReqMessage;											/*!< Configuration Status Request Message - Client -> Server */
 
 	struct {
+		uint8_t dummy;
 	} TimeDateReqMessage;											/*!< Time Date Request Message  - Client -> Server */
 
 	struct {
@@ -1703,6 +1707,7 @@ typedef union {
 	} ButtonTemplateReqMessage;										/*!< Button Template Request Message - Client -> Server  */
 
 	struct {
+		uint8_t dummy;
 	} VersionReqMessage;											/*!< Version Request Message - Client -> Server */
 
 	struct {
@@ -1718,10 +1723,11 @@ typedef union {
 														   Devices like media bridges */
 
 	struct {
+		uint8_t dummy;
 	} ServerReqMessage;											/*!< Server Request Message - Client -> Server */
 
 	struct {
-		uint32_t lel_alarmSeverity;									/*!< Alarm Severity Level */
+		skinny_alarm_t lel_alarmSeverity;								/*!< Alarm Severity Level */
 		char text[StationMaxAlarmMessage];								/*!< Alarm Text */
 		uint32_t lel_parm1;										/*!< Alarm Parameter 1 */
 		uint32_t lel_parm2;										/*!< Alarm Parameter 2 */
@@ -1746,7 +1752,7 @@ typedef union {
 	struct {
 		union {
 			struct {
-				uint32_t lel_mediastatus;							/*!< receiveChanStatus (OK:0x00 / Error: 0x01)*/
+				skinny_mediastatus_t lel_mediastatus;						/*!< receiveChanStatus (OK:0x00 / Error: 0x01)*/
 				uint32_t bel_ipAddr;								/*!< This field is apparently in big-endian format,
 														   even though most other fields are in
 														   little-endian format. */
@@ -1755,7 +1761,7 @@ typedef union {
 				uint32_t lel_callReference;							/*!< Call Reference */
 			} v3;
 			struct {
-				uint32_t lel_mediastatus;							/*!< Receive Channel Status (OK:0x00 / Error: 0x01)*/
+				skinny_mediastatus_t lel_mediastatus;						/*!< Receive Channel Status (OK:0x00 / Error: 0x01)*/
 				uint32_t lel_ipv46;								/*!< ipv4 (0)/ ipv6 (1) */
 				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format,
 														   even though most other fields are in
@@ -1770,7 +1776,7 @@ typedef union {
 	struct {
 		union {
 			struct {
-				uint32_t lel_mediastatus;							/*!< receiveChanStatus (OK:0x00 / Error: 0x01)*/
+				skinny_mediastatus_t lel_mediastatus;						/*!< receiveChanStatus (OK:0x00 / Error: 0x01)*/
 				uint32_t bel_ipAddr;								/*!< This field is apparently in big-endian format,
 														   even though most other fields are in
 														   little-endian format. */
@@ -1780,7 +1786,7 @@ typedef union {
 			} v3;
 
 			struct {
-				uint32_t lel_mediastatus;							/*!< status (OK:0x00 / Error: 0x01)*/
+				skinny_mediastatus_t lel_mediastatus;						/*!< status (OK:0x00 / Error: 0x01)*/
 				uint32_t lel_ipv46;								/*!< ipv4 (0)/ ipv6 (1) */
 				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format,
 														   even though most other fields are in
@@ -1956,6 +1962,7 @@ typedef union {
 	} OffHookWithCgpnMessage;										/*!< Off Hook With Calling Party Name Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} SoftKeySetReqMessage;											/*!< Soft Key Set Request Message Structure */
 
 	struct {
@@ -1969,12 +1976,13 @@ typedef union {
 	} UnregisterMessage;											/*!< Unregister Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} SoftKeyTemplateReqMessage;										/*!< Soft Key Template Request Message Structure */
 
 	struct {
 		StationIdentifier sId;										/*!< Station Identifier */
 		uint32_t lel_stationIpAddr;									/*!< Station IP Address */
-		uint32_t lel_deviceType;									/*!< Device Type as part of SKINNY_DEVICETYPE_* */
+		skinny_devicetype_t lel_deviceType;								/*!< Device Type as part of SKINNY_DEVICETYPE_* */
 		char ipv6Address[16];
 		uint32_t unknown;										/*!< Active Call ?? */
 	} RegisterTokenRequest;											/*!< Register Token Request */
@@ -2040,6 +2048,7 @@ typedef union {
 	} SetLampMessage;											/*!< Set Lamp Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} SetHookFlashDetectMessage;											/*!< Set Hkf Detect Message Structure */
 
 	struct {
@@ -2154,6 +2163,7 @@ typedef union {
 	} StopMultiMediaTransmission;
 
 	struct {
+		uint8_t dummy;
 	} StartMediaReception;
 
 	struct {
@@ -2333,9 +2343,11 @@ typedef union {
 	} ClearDisplay;
 
 	struct {
+		uint8_t dummy;
 	} CapabilitiesReqMessage;										/*!< Capabilities Reqest Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} EnunciatorCommandMessage;										/*!< Enunciator Command Message Structure */
 
 	struct {
@@ -2365,6 +2377,7 @@ typedef union {
 	} Reset;												/*!< Reset Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} KeepAliveAckMessage;											/*!< Keep Aliver Acknowledgement Message Structure */
 
 	struct {
@@ -2432,7 +2445,7 @@ typedef union {
 		uint32_t lel_conferenceId;									/*!< Conference ID */
 		uint32_t lel_passThruPartyId;									/*!< Pass Through Party ID */
 		uint32_t lel_callReference;									/*!< Call Reference */
-		uint32_t lel_miscCommandType;									/*!< Miscellaneous Command Type 
+		skinny_miscCommandType_t lel_miscCommandType;							/*!< Miscellaneous Command Type 
 															videoFreezePicture: 		0x00
 															videoFastUpdatePicture:		0x01
 															videoFastUpdateGOB: 		0x02
@@ -2680,6 +2693,7 @@ typedef union {
 	} DisplayNotifyMessage;											/*!< Display Notify Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} ClearNotifyMessage;											/*!< Clear Notify Message Structure */
 
 	/* 0x11F FeatureStatMessage */
@@ -2806,7 +2820,7 @@ typedef union {
 				uint32_t lel_callReference1;							/*!< Call Reference1 */
 				uint32_t bel_ipAddr;								/*!< This field is apparently in big-endian format, even though most other fields are little-endian. */
 				uint32_t lel_portNumber;							/*!< Port Number */
-				uint32_t lel_mediastatus;							/*!< Start Media Transmission Status */
+				skinny_mediastatus_t lel_mediastatus;						/*!< Start Media Transmission Status */
 				uint32_t lel_unknown;								/*!< Unknown (Does this actually Exist) */
 			} v3;
 
@@ -2817,7 +2831,7 @@ typedef union {
 				uint32_t lel_ipv46;								/*!< ipv4 / ipv6 */
 				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
 				uint32_t lel_portNumber;							/*!< Port Number */
-				uint32_t lel_mediastatus;							/*!< startmediatransmission status */
+				skinny_mediastatus_t lel_mediastatus;						/*!< startmediatransmission status */
 				uint32_t lel_unknown;								/*!< Unknown (Does this actually Exist)*/
 			} v17;
 		};
@@ -2838,6 +2852,7 @@ typedef union {
 	} ActivateCallPlaneMessage;										/*!< Activate Call Plane Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} DeactivateCallPlaneMessage;										/*!< Deactivate Call Plane Message Structure */
 
 	struct {
@@ -2850,6 +2865,7 @@ typedef union {
 	} BackSpaceResMessage;											/*!< Back Space Request Message Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} RegisterTokenAck;											/*!< Register Token Ackknowledge Message Structure */
 
 	struct {
@@ -2880,7 +2896,7 @@ typedef union {
 	struct {
 		StationIdentifier sId;										/*!< Station Identifier */
 		uint32_t lel_stationIpAddr;									/*!< Station IP Address */
-		uint32_t lel_deviceType;									/*!< Device Type as part of SKINNY_DEVICETYPE_* */
+		skinny_devicetype_t lel_deviceType;								/*!< Device Type as part of SKINNY_DEVICETYPE_* */
 		uint32_t maxStreams;										/*!< Max Streams */
 	} SPCPRegisterTokenRequest;
 
@@ -2969,30 +2985,39 @@ typedef union {
 	} RegisterAvailableLinesMessage;
 
 	struct {
+		uint8_t dummy;
 	} StartMediaFailureDetection;
 
 	struct {
+		uint8_t dummy;
 	} NotifyDtmfToneMessage;
 
 	struct {
+		uint8_t dummy;
 	} SendDtmfToneMessage;
 
 	struct {
+		uint8_t dummy;
 	} SubscribeDtmfPayloadReqMessage;
 
 	struct {
+		uint8_t dummy;
 	} SubscribeDtmfPayloadResMessage;
 
 	struct {
+		uint8_t dummy;
 	} SubscribeDtmfPayloadErrMessage;
 
 	struct {
+		uint8_t dummy;
 	} UnSubscribeDtmfPayloadReqMessage;
 
 	struct {
+		uint8_t dummy;
 	} UnSubscribeDtmfPayloadResMessage;
 
 	struct {
+		uint8_t dummy;
 	} UnSubscribeDtmfPayloadErrMessage;
 
 	struct {
@@ -3064,6 +3089,7 @@ typedef union {
 	} AddParticipantResMessage;
 
 	struct {
+		uint8_t dummy;
 	} AuditConferenceReqMessage;
 
 	struct {
@@ -3138,7 +3164,7 @@ typedef union {
 		uint32_t lel_passThruPartyId;									/*!< Pass Through ID*/
 		uint32_t lel_mediaTransportType;								/*!< Skinny mediaTransportType Enum */
 		uint32_t lel_ipv46;										/*!< ipv4 / ipv6 */
-		uint32_t lel_mediaType;										/*!< Skinny mediaType Enum */
+		skinny_mediaType_t lel_mediaType;								/*!< Skinny mediaType Enum */
 	} PortRequestMessage;											/*!< Port Request Message Structure */
 
 	struct {
@@ -3159,7 +3185,7 @@ typedef union {
 				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
 				uint32_t lel_portNumber;							/*!< Port Number */
 				uint32_t lel_RTCPPortNumber;							/*!< RTCP Port Number */
-				uint32_t lel_mediaType;								/*!< Skinny Media Type (Enum) */
+				skinny_mediaType_t lel_mediaType;						/*!< Skinny Media Type (Enum) */
 			} v19;
 		};
 	} PortResponseMessage;											/*!< Port Response Message Structure */
@@ -3168,35 +3194,44 @@ typedef union {
 		uint32_t lel_conferenceId;									/*!< Conference ID */
 		uint32_t lel_callReference;									/*!< Call Reference */
 		uint32_t lel_passThruPartyId;									/*!< Pass Through ID*/
-		uint32_t lel_mediaType;										/*!< Skinny Media Type (Enum) */
+		skinny_mediaType_t lel_mediaType;								/*!< Skinny Media Type (Enum) */
 	} PortCloseMessage;											/*!< Port Close Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} QoSResvNotifyMessage;											/*!< QoS Resv Notify Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} QoSErrorNotifyMessage;										/*!< QoS Error Notify Message Structure */
 
 
 	struct {
+		uint8_t dummy;
 	} QoSListenMessage;											/*!< QoS Listen Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} QoSPathMessage;											/*!< QoS Path Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} QoSTeardownMessage;											/*!< QoS Teardown Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} UpdateDSCPMessage;											/*!< Update DSCP Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} QoSModifyMessage;											/*!< QoS Modify Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} MwiResponseMessage;											/*!< Mwi Response Message Structure */
 
 	struct {
+		uint8_t dummy;
 	} CallCountRespMessage;											/*!< CallCount Response Message Structure */
 
 	struct {
@@ -3214,7 +3249,7 @@ typedef union {
 struct sccp_header {
 	uint32_t length;											/*!< Message Length */
 	uint32_t lel_protocolVer;										/*!< Protocol Version Message */
-	uint32_t lel_messageId;											/*!< Message ID, the messageId is not part of the skinny header, so it is counted in length */
+	sccp_mid_t lel_messageId;											/*!< Message ID, the messageId is not part of the skinny header, so it is counted in length */
 };
 
 /*!
@@ -3270,7 +3305,7 @@ typedef struct {
 	void (*const sendUserToDeviceDataVersionMessage) (constDevicePtr device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const char *xmlData, uint8_t priority);
 	void (*const sendFastPictureUpdate) (constDevicePtr device, constChannelPtr channel);
 	void (*const sendOpenReceiveChannel) (constDevicePtr device, constChannelPtr channel);
-	void (*const sendOpenMultiMediaChannel) (constDevicePtr device, constChannelPtr channel, uint32_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
+	void (*const sendOpenMultiMediaChannel) (constDevicePtr device, constChannelPtr channel, skinny_codec_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
 	void (*const sendStartMultiMediaTransmission) (constDevicePtr device, constChannelPtr channel, int payloadType, int bitRate);
 	void (*const sendStartMediaTransmission) (constDevicePtr device, constChannelPtr channel);
 	void (*const sendConnectionStatisticsReq) (constDevicePtr device, constChannelPtr channel, uint8_t clear);

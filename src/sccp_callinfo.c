@@ -45,19 +45,21 @@ enum callinfo_types {
 	VOICEMAILBOX,
 };
 
+struct ci_content {
+	callinfo_entry_t entries[HUNT_PILOT + 1];
+	uint32_t originalCdpnRedirectReason;								/*!< Original Called Party Redirect Reason */
+	uint32_t lastRedirectingReason;									/*!< Last Redirecting Reason */
+	sccp_callerid_presentation_t presentation;							/*!< Should this callerinfo be shown (privacy) */
+	boolean_t changed;										/*! Changes since last send */
+	uint8_t callInstance;
+};
+
 /*!
  * \brief SCCP CallInfo Structure
  */
 struct sccp_callinfo {
 	pbx_rwlock_t lock;
-	struct ci_content {
-		callinfo_entry_t entries[HUNT_PILOT + 1];
-		uint32_t originalCdpnRedirectReason;								/*!< Original Called Party Redirect Reason */
-		uint32_t lastRedirectingReason;									/*!< Last Redirecting Reason */
-		sccp_callerid_presentation_t presentation;							/*!< Should this callerinfo be shown (privacy) */
-		boolean_t changed;										/*! Changes since last send */
-		uint8_t callInstance;
-	} content;
+	struct ci_content content;
 };														/*!< SCCP CallInfo Structure */
 
 #define sccp_callinfo_wrlock(x) pbx_rwlock_wrlock(&((sccp_callinfo_t * const)(x))->lock)				/* discard const */
@@ -90,7 +92,7 @@ struct callinfo_lookup {
 
 static sccp_callinfo_t * const callinfo_Constructor(uint8_t callInstance)
 {
-	sccp_callinfo_t *const ci = sccp_calloc(sizeof *ci, 1);
+	sccp_callinfo_t *const ci = (sccp_callinfo_t *) sccp_calloc(sizeof *ci, 1);
 
 	if (!ci) {
 		pbx_log(LOG_ERROR, "SCCP: No memory to allocate callinfo object. Failing\n");
@@ -181,7 +183,7 @@ static int callinfo_Setter(sccp_callinfo_t * const ci, int key, ...)							// ke
 	sccp_callinfo_wrlock(ci);
 	va_list ap;
 	va_start(ap, key);
-	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
+	for (curkey = (sccp_callinfo_key_t)key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = (sccp_callinfo_key_t)va_arg(ap, int)) {
 		//sccp_log(DEBUGCAT_CALLINFO)(VERBOSE_PREFIX_3 "SCCP: curkey:%s (%d)\n", sccp_callinfo_key2str(curkey), curkey);
 		switch (curkey) {
 		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
@@ -204,7 +206,7 @@ static int callinfo_Setter(sccp_callinfo_t * const ci, int key, ...)							// ke
 			break;
 		case SCCP_CALLINFO_PRESENTATION:
 			{
-				sccp_callerid_presentation_t new_value = va_arg(ap, sccp_callerid_presentation_t);
+				sccp_callerid_presentation_t new_value = (sccp_callerid_presentation_t) va_arg(ap, int);
 				if (new_value != ci->content.presentation) {
 					ci->content.presentation = new_value;
 					changes++;
@@ -290,11 +292,11 @@ static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinf
 	sccp_callinfo_rdlock(src_ci);
 	va_list ap;
 	va_start(ap, key);
-	dstkey=va_arg(ap, sccp_callinfo_key_t);
+	dstkey=(sccp_callinfo_key_t) va_arg(ap, int);
 
-	for (	srckey = key; 	
+	for (	srckey = (sccp_callinfo_key_t)key; 	
 		srckey > SCCP_CALLINFO_NONE && dstkey > SCCP_CALLINFO_NONE && srckey < SCCP_CALLINFO_KEY_SENTINEL;
-		srckey = va_arg(ap, sccp_callinfo_key_t), dstkey = va_arg(ap, sccp_callinfo_key_t)
+		srckey = (sccp_callinfo_key_t)va_arg(ap, int), dstkey = (sccp_callinfo_key_t)va_arg(ap, int)
 	) {
 		switch (srckey) {
 		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:
@@ -425,7 +427,7 @@ static int callinfo_Getter(const sccp_callinfo_t * const ci, int key, ...)						
 	va_list ap;
 	va_start(ap, key);
 
-	for (curkey = key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = va_arg(ap, sccp_callinfo_key_t)) {
+	for (curkey = (sccp_callinfo_key_t)key; curkey > SCCP_CALLINFO_NONE && curkey < SCCP_CALLINFO_KEY_SENTINEL; curkey = (sccp_callinfo_key_t) va_arg(ap, int)) {
 		//sccp_log(DEBUGCAT_CALLINFO)(VERBOSE_PREFIX_3 "SCCP: curkey:%s (%d)\n", sccp_callinfo_key2str(curkey), curkey);
 		switch (curkey) {
 		case SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON:

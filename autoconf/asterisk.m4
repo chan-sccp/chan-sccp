@@ -982,17 +982,22 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 			AC_DEFINE([HAVE_PBX_RTP_ENGINE_H],1,[Found 'asterisk/rtp_engine.h'])
 			AC_DEFINE([PBX_RTP_TYPE],[struct ast_rtp_instance],[Defined PBX_RTP_TYPE as 'struct ast_rtp_instance'])
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_rtp_instance_new'...], [ac_cv_ast_rtp_instance_new], [
-					$HEADER_INCLUDE
-					#include <asterisk/rtp_engine.h>
-				], [
-					const struct ast_sockaddr test_sin=NULL;
-					struct ast_rtp_instance __attribute__((unused)) *test_instance = ast_rtp_instance_new(NULL, NULL, &test_sin, NULL);
-				], [CS_AST_RTP_INSTANCE_NEW],[Found 'void ast_rtp_instance_new' in asterisk/rtp_engine.h]
-			)
+				$HEADER_INCLUDE
+				#define new avoid_cxx_new_keyword
+				#include <asterisk/rtp_engine.h>
+				#undef new
+			], [
+				const struct ast_sockaddr test_sin=NULL;
+				struct ast_rtp_instance __attribute__((unused)) *test_instance = ast_rtp_instance_new(NULL, NULL, &test_sin, NULL);
+			], [
+				CS_AST_RTP_INSTANCE_NEW],[Found 'void ast_rtp_instance_new' in asterisk/rtp_engine.h
+			])
 			AC_MSG_CHECKING([ - availability 'ast_rtp_instance_bridge'...])
 			AC_EGREP_CPP([ast_rtp_instance_bridge], [
 				$HEADER_INCLUDE
+				#define new avoid_cxx_new_keyword
 				#include <asterisk/rtp_engine.h>
+				#undef new
 			],[
 				AC_DEFINE([CS_AST_RTP_INSTANCE_BRIDGE],1,[Found 'ast_rtp_instance_bridge' in asterisk/bridging.h])
 				AC_MSG_RESULT(yes)
@@ -1027,6 +1032,8 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 				#endif
 			])
 		],[ 
+			#undef new
+			#define new avoid_cxx_new_keyword
 			$HEADER_INCLUDE
 		])
 		AC_CHECK_HEADER([asterisk/sched.h],

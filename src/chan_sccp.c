@@ -85,7 +85,7 @@ boolean_t sccp_prePBXLoad(void)
 {
 	pbx_log(LOG_NOTICE, "preloading pbx module\n");
 	/* make globals */
-	sccp_globals = sccp_calloc(sizeof *sccp_globals, 1);
+	sccp_globals = (struct sccp_global_vars *) sccp_calloc(sizeof *sccp_globals, 1);
 	if (!sccp_globals) {
 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		return FALSE;
@@ -158,7 +158,7 @@ boolean_t sccp_prePBXLoad(void)
 	GLOB(amaflags) = pbx_channel_string2amaflag("documentation");
 	GLOB(callanswerorder) = SCCP_ANSWER_OLDEST_FIRST;
 	GLOB(earlyrtp) = SCCP_EARLYRTP_PROGRESS;
-	GLOB(global_jbconf) = sccp_calloc(sizeof(struct ast_jb_conf),1);
+	GLOB(global_jbconf) = (struct ast_jb_conf *) sccp_calloc(sizeof(struct ast_jb_conf),1);
 	if (GLOB(global_jbconf)) {
 		GLOB(global_jbconf)->max_size = -1;
 		GLOB(global_jbconf)->resync_threshold = -1;

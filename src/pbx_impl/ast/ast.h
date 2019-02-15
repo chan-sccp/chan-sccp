@@ -14,7 +14,9 @@
 #include <asterisk.h>
 #include <asterisk/pbx.h>			// AST_EXTENSION_NOT_INUSE in mapping below
 #ifdef HAVE_PBX_RTP_ENGINE_H			// sccp_callinfo, sccp_rtp
+#  define new avoid_cxx_new_keyword
 #  include <asterisk/rtp_engine.h>
+#  undef new
 #else
 #  include <asterisk/rtp.h>
 #endif
@@ -102,12 +104,18 @@ PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANN
 const char *pbx_inet_ntoa(struct in_addr ia);
 
 #define ast_format_type int
-#define pbx_format_type int
+#define pbx_format_type uint64_t
+#if ASTERISK_VERSION_GROUP < 113
+#define pbx_format_enum_type enum ast_format_id
+#else
+#define pbx_format_enum_type uint64_t
+#endif
 skinny_codec_t __CONST__ pbx_codec2skinny_codec(ast_format_type fmt);
+
 //ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec);
-uint64_t __CONST__ skinny_codec2pbx_codec(skinny_codec_t codec);
+pbx_format_enum_type __CONST__ skinny_codec2pbx_codec(skinny_codec_t codec);
 //int skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs);
-uint64_t __PURE__ skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs);
+pbx_format_type __PURE__ skinny_codecs2pbx_codecs(const skinny_codec_t * const codecs);
 
 // support for old uin32_t format (only temporarily
 #define pbx_format2skinny_format (uint32_t)pbx_codec2skinny_codec
@@ -123,12 +131,7 @@ static void sccp_free_ptr(void *ptr)
 	sccp_free(ptr);
 }
 
-#if DEBUG
-#define get_sccp_channel_from_pbx_channel(_x) __get_sccp_channel_from_pbx_channel(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-sccp_channel_t *__get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel, const char *filename, int lineno, const char *func);
-#else
 sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel);
-#endif
 int sccp_astgenwrap_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value);
 boolean_t sccp_astgenwrap_requestQueueHangup(sccp_channel_t * c);
 boolean_t sccp_astgenwrap_requestHangup(sccp_channel_t * c);

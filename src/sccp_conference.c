@@ -118,7 +118,7 @@ static void sccp_conference_update_conflist(conferencePtr conference);
 void __sccp_conference_hide_list(participantPtr participant);
 void sccp_conference_invite_participant(constConferencePtr conference, constParticipantPtr moderator);
 void sccp_conference_kick_participant(constConferencePtr conference, participantPtr participant);
-void sccp_participant_kicker(void *data);
+void *sccp_participant_kicker(void *data);
 void sccp_conference_toggle_mute_participant(constConferencePtr conference, participantPtr participant);
 void sccp_conference_promote_demote_participant(conferencePtr conference, participantPtr participant, constParticipantPtr moderator);
 
@@ -141,10 +141,11 @@ void sccp_conference_module_stop(void)
 /*
  * \brief Cleanup after conference refcount goes to zero (refcount destroy)
  */
-static void __sccp_conference_destroy(conferencePtr conference)
+static int __sccp_conference_destroy(const void *data)
 {
+	conferencePtr conference = (conferencePtr) data;
 	if (!conference) {
-		return;
+		return -1;
 	}
 
 	if (conference->playback.channel) {
@@ -175,14 +176,15 @@ static void __sccp_conference_destroy(conferencePtr conference)
 		manager_event(EVENT_FLAG_USER, "SCCPConfEnd", "ConfId: %d\r\n", conference->id);
 	}
 #endif
-	return;
+	return 0;
 }
 
 /*
  * \brief Cleanup after participant refcount goes to zero (refcount destroy)
  */
-static void __sccp_participant_destroy(sccp_participant_t * participant)
+static int __sccp_participant_destroy(const void *data)
 {
+	sccp_participant_t * participant = (sccp_participant_t *)data;
 	sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Destroying participant %d %p\n", participant->conference->id, participant->id, participant);
 
 	if (participant->isModerator && participant->conference) {
@@ -224,7 +226,7 @@ static void __sccp_participant_destroy(sccp_participant_t * participant)
 		sccp_device_release(&participant->device);												/* explicit release */
 	}
 	sccp_conference_release(&participant->conference);												/* explicit release */
-	return;
+	return 0;
 }
 
 /* ============================================================================================================================ Conference Functions === */
@@ -674,11 +676,11 @@ static void *sccp_conference_thread(void *data)
 		*/
 
 #if ASTERISK_VERSION_GROUP >= 113
-		enum ast_bridge_join_flags flags = 0; //AST_BRIDGE_JOIN_PASS_REFERENCE & AST_BRIDGE_JOIN_INHIBIT_JOIN_COLP;
+		enum ast_bridge_join_flags flags = (enum ast_bridge_join_flags) 0; //AST_BRIDGE_JOIN_PASS_REFERENCE & AST_BRIDGE_JOIN_INHIBIT_JOIN_COLP;
 		//enum ast_bridge_join_flags flags = AST_BRIDGE_JOIN_PASS_REFERENCE & AST_BRIDGE_JOIN_INHIBIT_JOIN_COLP;
 		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, NULL, flags);
 #else
-		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, NULL, 0);
+		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, NULL, (enum ast_bridge_join_flags)0);
 #endif
 		participant->pendingRemoval = TRUE;
 
@@ -1408,8 +1410,7 @@ void sccp_conference_handle_device_to_user(devicePtr d, uint32_t callReference, 
 				sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Moderators cannot be kicked (%s)\n", conference->id, DEV_ID_LOG(d));
 				sccp_dev_set_message(d, "cannot kick a moderator", 5, FALSE, FALSE);
 			} else {
-				//sccp_conference_kick_participant(conference, participant);
-				sccp_threadpool_add_work(GLOB(general_threadpool), (void *)sccp_participant_kicker, (void *)participant);
+				sccp_threadpool_add_work(GLOB(general_threadpool), sccp_participant_kicker, participant);
 			}
 		} else if (!strcmp(d->dtu_softkey.action, "EXIT")) {
 			d->conferencelist_active = FALSE;
@@ -1460,13 +1461,13 @@ void sccp_conference_kick_participant(constConferencePtr conference, participant
 #endif
 }
 
-//sccp_threadpool_add_work(GLOB(general_threadpool), (void *)sccp_participant_kicker, (void *)participant);
-void sccp_participant_kicker(void *data) 
+void *sccp_participant_kicker(void *data) 
 {
 	AUTO_RELEASE(sccp_participant_t, participant , sccp_participant_retain(data));
 	if (participant) {
 		sccp_conference_kick_participant(participant->conference, participant);
 	}
+	return NULL;
 }
 
 /*!
@@ -1908,8 +1909,7 @@ int sccp_cli_conference_command(int fd, sccp_cli_totals_t *totals, struct manses
 
 					if (participant) {
 						if (!strncasecmp(argv[2], "Kick", 4)) {				// Kick Command
-							//sccp_conference_kick_participant(conference, participant);
-							sccp_threadpool_add_work(GLOB(general_threadpool), (void *)sccp_participant_kicker, (void *)participant);
+							sccp_threadpool_add_work(GLOB(general_threadpool), sccp_participant_kicker, participant);
 						} else if (!strncasecmp(argv[2], "Mute", 4)) {			// Mute Command
 							sccp_conference_toggle_mute_participant(conference, participant);
 						} else if (!strncasecmp(argv[2], "Invite", 5)) {		// Invite Command

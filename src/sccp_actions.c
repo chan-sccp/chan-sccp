@@ -24,7 +24,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_pbx.h"
 #include "sccp_conference.h"
 #include "sccp_config.h"
-#include "sccp_features.h"
+#include "sccp_feature.h"
 #include "sccp_indicate.h"
 #include "sccp_line.h"
 #include "sccp_labels.h"
@@ -118,7 +118,7 @@ gcc_inline static sccp_device_t * const check_session_message_device(constSessio
 	}
 
 	if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE)) != 0) {
-		uint32_t mid = letohl(msg->header.lel_messageId);
+		sccp_mid_t mid = letohl(msg->header.lel_messageId);
 		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", sccp_session_getDesignator(s), msgtype2str(mid), mid, msg->header.length);
 		sccp_dump_msg(msg);
 	}
@@ -211,7 +211,7 @@ static const struct messageMap_cb spcpMessagesCbMap[SPCP_MESSAGE_HIGH_BOUNDARY +
 int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 {
 	const struct messageMap_cb *messageMap_cb = NULL;
-	uint32_t mid = 0;
+	sccp_mid_t mid = KeepAliveMessage;
 	AUTO_RELEASE(sccp_device_t, device , NULL);
 
 	if (!s) {
@@ -320,7 +320,7 @@ void sccp_handle_dialtone(constDevicePtr d, constLinePtr l, constChannelPtr chan
  */
 void handle_unknown_message(constSessionPtr no_s, devicePtr no_d, constMessagePtr msg_in)
 {
-	uint32_t mid = letohl(msg_in->header.lel_messageId);
+	sccp_mid_t mid = letohl(msg_in->header.lel_messageId);
 
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
 		pbx_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", msgtype2str(mid), mid, msg_in->header.length);
@@ -378,7 +378,8 @@ void handle_alarm(constSessionPtr s, devicePtr no_d, constMessagePtr msg_in)
 		letohl(msg_in->data.AlarmMessage.lel_alarmSeverity), 
 		msg_in->data.AlarmMessage.text, 
 		letohl(msg_in->data.AlarmMessage.lel_parm1), 
-		letohl(msg_in->data.AlarmMessage.lel_parm2));
+		letohl(msg_in->data.AlarmMessage.lel_parm2)
+	);
 }
 
 /*!
@@ -389,7 +390,7 @@ void handle_alarm(constSessionPtr s, devicePtr no_d, constMessagePtr msg_in)
  */
 void handle_XMLAlarmMessage(constSessionPtr s, devicePtr no_d, constMessagePtr msg_in)
 {
-	uint32_t mid = letohl(msg_in->header.lel_messageId);
+	sccp_mid_t mid = letohl(msg_in->header.lel_messageId);
 	char alarmName[101];
 	int reasonEnum;
 	char lastProtocolEventSent[101];
@@ -490,7 +491,7 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 	char *deviceName = "";
 	uint32_t serverPriority = GLOB(server_priority);
 	uint32_t deviceInstance = 0;
-	uint32_t deviceType = 0;
+	skinny_devicetype_t deviceType = SKINNY_DEVICETYPE_UNDEFINED;
 
 	deviceName = pbx_strdupa(msg_in->data.RegisterTokenRequest.sId.deviceName);
 	deviceInstance = letohl(msg_in->data.RegisterTokenRequest.sId.lel_instance);
@@ -673,7 +674,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 	AUTO_RELEASE(sccp_device_t, device , NULL);
 	char *deviceName = "";
 	uint32_t deviceInstance = 0;
-	uint32_t deviceType = 0;
+	skinny_devicetype_t deviceType = SKINNY_DEVICETYPE_UNDEFINED;
 
 	deviceInstance = letohl(msg_in->data.SPCPRegisterTokenRequest.sId.lel_instance);
 	deviceName = pbx_strdupa(msg_in->data.RegisterTokenRequest.sId.deviceName);
@@ -799,7 +800,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	char deviceName[StationMaxDeviceNameSize];
 
 	sccp_copy_string(deviceName, msg_in->data.RegisterMessage.sId.deviceName, StationMaxDeviceNameSize);
-	uint32_t deviceType = letohl(msg_in->data.RegisterMessage.lel_deviceType);
+	skinny_devicetype_t deviceType = letohl(msg_in->data.RegisterMessage.lel_deviceType);
 	//uint32_t maxStreams = letohl(msg_in->data.RegisterMessage.lel_maxStreams);
 	//uint32_t activeStreams = letohl(msg_in->data.RegisterMessage.lel_activeStreams);
 	StationProtocolFeatures_t protocolFeatures = msg_in->data.RegisterMessage.protocolFeatures;
@@ -1027,7 +1028,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 	if (!d) {
 		return NULL;
 	}
-	if (!(btn = sccp_calloc(sizeof *btn, StationMaxButtonTemplateSize))) {
+	if (!(btn = (btnlist *)sccp_calloc(sizeof *btn, StationMaxButtonTemplateSize))) {
 		return NULL;
 	}
 	sccp_dev_build_buttontemplate(d, btn);
@@ -2101,7 +2102,7 @@ static void handle_stimulus_groupcallpickup(constDevicePtr d, constLinePtr l, co
 static void handle_feature_action(constDevicePtr d, const int instance, const boolean_t toggleState)
 {
 	sccp_buttonconfig_t *config = NULL;
-	sccp_callforward_t status = 0;										/* state of cfwd */
+	sccp_callforward_t status = SCCP_CFWD_NONE;								/* state of cfwd */
 	uint32_t featureStat1 = 0;
 	uint32_t featureStat2 = 0;
 	uint32_t featureStat3 = 0;
@@ -2570,7 +2571,7 @@ void handle_headset(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	 * this is used just in protocol v3 stuff
 	 * it has been included in 0x004A AccessoryStatusMessage
 	 */
-	uint32_t headsetmode = letohl(msg_in->data.HeadsetStatusMessage.lel_hsMode);
+	sccp_accessorystate_t headsetmode = letohl(msg_in->data.HeadsetStatusMessage.lel_hsMode);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", sccp_session_getDesignator(s), sccp_accessory2str(SCCP_ACCESSORY_HEADSET), sccp_accessorystate2str(headsetmode), 0);
 }
 
@@ -2799,13 +2800,13 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 	//sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (directed_pickup) ? "enabled" : "disabled");
 #endif
 	size_t buffersize = 20 + (15 * sizeof(softkeysmap));
-	struct ast_str *outputStr = ast_str_create(buffersize);
+	pbx_str_t *outputStr = pbx_str_create(buffersize);
 
 	for (i = 0; i < v_count; i++) {
 		b = v->ptr;
 		uint8_t c, j, cp = 0;
 
-		ast_str_append(&outputStr, buffersize, "%-15s => |", skinny_keymode2str(v->id));
+		pbx_str_append(&outputStr, buffersize, "%-15s => |", skinny_keymode2str(v->id));
 
 		for (c = 0, cp = 0; c < v->count; c++, cp++) {
 			msg_out->data.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[cp] = 0;
@@ -2887,8 +2888,8 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 
 	/* disable videomode and join softkey for all softkeysets */
 	for (i = 0; i < KEYMODE_ONHOOKSTEALABLE; i++) {
-		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_VIDEO_MODE, FALSE);
-		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_JOIN, FALSE);
+		sccp_softkey_setSoftkeyState(d, (skinny_keymode_t) i, SKINNY_LBL_VIDEO_MODE, FALSE);
+		sccp_softkey_setSoftkeyState(d, (skinny_keymode_t) i, SKINNY_LBL_JOIN, FALSE);
 	}
 
 	//sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "There are %d SoftKeySets.\n", iKeySetCount);
@@ -4213,7 +4214,8 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 	if (letohl(msg_in->header.lel_protocolVer) >= 16) {
 		handle_updatecapabilities_V2_message(s, d, msg_in);
 	} else {
-		uint8_t audio_capability = 0, audio_codec = 0, audio_capabilities = 0;
+		uint8_t audio_capability = 0, audio_capabilities = 0;
+		skinny_codec_t audio_codec = SKINNY_CODEC_NONE;
 		uint32_t maxFramesPerPacket = 0;
 		/* parsing audio caps */
 		audio_capabilities = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.lel_audioCapCount);
@@ -4254,7 +4256,7 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 		}
 		//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
 		uint8_t video_capabilities = 0, video_capability = 0;
-		uint8_t video_codec = 0;
+		skinny_codec_t video_codec = SKINNY_CODEC_NONE;
 		boolean_t previousVideoSupport = sccp_device_isVideoSupported(d);					/* to check if this update changes the video capabilities */
 
 		/* parsing video caps */
@@ -4313,7 +4315,8 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	pbx_assert(d != NULL && s != NULL && msg_in != NULL);
-	uint8_t audio_capability = 0, audio_codec = 0, audio_capabilities = 0;
+	uint8_t audio_capability = 0, audio_capabilities = 0;
+	skinny_codec_t audio_codec = SKINNY_CODEC_NONE;
 	uint32_t maxFramesPerPacket = 0;
 
 	/* parsing audio caps */
@@ -4347,7 +4350,7 @@ void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constM
 #endif
 
 	uint8_t video_capabilities = 0, video_capability = 0;
-	uint8_t video_codec = 0;
+	skinny_codec_t video_codec = SKINNY_CODEC_NONE;
 	boolean_t previousVideoSupport = sccp_device_isVideoSupported(d);					/* to check if this update changes the video capabilities */
 
 	/* parsing video caps */
@@ -4406,7 +4409,8 @@ void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constM
 void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	pbx_assert(d != NULL && s != NULL && msg_in != NULL);
-	uint8_t audio_capability = 0, audio_codec = 0, audio_capabilities = 0;
+	uint8_t audio_capability = 0, audio_capabilities = 0;
+	skinny_codec_t audio_codec = SKINNY_CODEC_NONE;
 	uint32_t maxFramesPerPacket = 0;
 
 	/* parsing audio caps */
@@ -4441,7 +4445,7 @@ void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constM
 #endif
 
 	uint8_t video_capabilities = 0, video_capability = 0;
-	uint8_t video_codec = 0;
+	skinny_codec_t video_codec = SKINNY_CODEC_NONE;
 	boolean_t previousVideoSupport = sccp_device_isVideoSupported(d);					/* to check if this update changes the video capabilities */
 
 	/* parsing video caps */
@@ -4524,7 +4528,7 @@ void handle_extension_devicecaps(constSessionPtr s, devicePtr d, constMessagePtr
 	SCCP_LIST_LOCK(&d->addons);
 	if (SCCP_LIST_GETSIZE(&d->addons) < instance) {
 		pbx_log(LOG_NOTICE, "%s: sccp.conf device section is missing addon entry for extension module %d. Please add one.", d->id, instance);
-		sccp_addon_t *addon = sccp_calloc(1, sizeof(sccp_addon_t));
+		sccp_addon_t *addon = (sccp_addon_t *)sccp_calloc(1, sizeof(sccp_addon_t));
 		if (!addon) {
 			pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 			return;

@@ -190,7 +190,7 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	unsigned int field = 0;
 	int data_len = 0;
 	int dummy_len = 0;
-	uint8_t *dummy = sccp_calloc(sizeof(uint8_t), dataSize * StationMaxNameSize);
+	uint8_t *dummy = (uint8_t *)sccp_calloc(sizeof(uint8_t), dataSize * StationMaxNameSize);
 	if (!dummy) {
 		return;
 	}
@@ -647,7 +647,7 @@ static void sccp_protocol_sendOpenReceiveChannelv22(constDevicePtr device, const
 /*!
  * \brief Send Open MultiMediaChannel Message (V3)
  */
-static void sccp_protocol_sendOpenMultiMediaChannelV3(constDevicePtr device, constChannelPtr channel, uint32_t skinnyFormat, int payloadType, uint8_t lineInstance, int bitRate)
+static void sccp_protocol_sendOpenMultiMediaChannelV3(constDevicePtr device, constChannelPtr channel, skinny_codec_t skinnyFormat, int payloadType, uint8_t lineInstance, int bitRate)
 {
 	sccp_msg_t *msg = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(msg->data.OpenMultiMediaChannelMessage.v3));
 
@@ -676,7 +676,7 @@ static void sccp_protocol_sendOpenMultiMediaChannelV3(constDevicePtr device, con
 /*!
  * \brief Send Open MultiMediaChannel Message (V17)
  */
-static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, constChannelPtr channel, uint32_t skinnyFormat, int payloadType, uint8_t lineInstance, int bitRate)
+static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, constChannelPtr channel, skinny_codec_t skinnyFormat, int payloadType, uint8_t lineInstance, int bitRate)
 {
 	sccp_msg_t *msg = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(msg->data.OpenMultiMediaChannelMessage.v17));
 

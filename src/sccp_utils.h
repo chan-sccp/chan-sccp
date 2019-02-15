@@ -30,7 +30,7 @@ SCCP_API void SCCP_CALL sccp_dump_msg(const sccp_msg_t * const msg);
 SCCP_API int SCCP_CALL sccp_addons_taps(sccp_device_t * d);
 SCCP_API void SCCP_CALL sccp_addons_clear(sccp_device_t * d);
 SCCP_API void SCCP_CALL sccp_safe_sleep(int ms);
-SCCP_API void SCCP_CALL sccp_pbx_setcallstate(sccp_channel_t * channel, int state);
+//SCCP_API void SCCP_CALL sccp_pbx_setcallstate(sccp_channel_t * channel, int state);
 #if UNUSEDCODE // 2015-11-01
 SCCP_API void SCCP_CALL sccp_dev_dbclean(void);
 #endif

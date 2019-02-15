@@ -76,17 +76,6 @@ typedef struct sccp_threadpool sccp_threadpool_t;
 SCCP_API sccp_threadpool_t * SCCP_CALL sccp_threadpool_init(int threadsN);
 
 /*!
- * \brief What each thread is doing
- * 
- * In principle this is an endless loop. The only time this loop gets interuppted is once
- * sccp_threadpool_destroy() is invoked.
- * 
- * \param p threadpool to use
- * \return nothing
- */
-SCCP_API void SCCP_CALL sccp_threadpool_thread_do(void *p);
-
-/*!
  * \brief Add work to the job queue
  * 
  * Takes an action and its argument and adds it to the threadpool's job queue.

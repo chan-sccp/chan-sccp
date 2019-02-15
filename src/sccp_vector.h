@@ -71,7 +71,7 @@ SCCP_VECTOR(sccp_vector_string, char *);
 #define SCCP_VECTOR_INIT(vec, size) ({									\
 	size_t __size = (size);										\
 	size_t alloc_size = __size * sizeof(*((vec)->elems));						\
-	(vec)->elems = alloc_size ? ast_calloc(1, alloc_size) : NULL;					\
+	(vec)->elems = alloc_size ? (typeof(((vec)->elems)))ast_calloc(1, alloc_size) : NULL;		\
 	(vec)->current = 0;										\
 	if ((vec)->elems) {										\
 		(vec)->max = __size;									\
@@ -164,7 +164,7 @@ SCCP_VECTOR(sccp_vector_string, char *);
 	do {													\
                 if ((idx) >= (vec)->max) {                                                              	\
 			size_t new_max = ((idx) + 1) * 2;							\
-			typeof((vec)->elems) new_elems = ast_calloc(1,new_max * sizeof(*new_elems));		\
+			typeof((vec)->elems) new_elems = (typeof((vec)->elems)) ast_calloc(1,new_max * sizeof(*new_elems));		\
 			if (new_elems) {									\
 				if((vec)->elems) {								\
 					memcpy(new_elems, (vec)->elems, (vec)->current * sizeof(*new_elems));	\
@@ -605,7 +605,7 @@ SCCP_VECTOR(sccp_vector_string, char *);
 	size_t __sccp_vector_idx;									\
 	typeof((vec)) new_vec = NULL;									\
 	do {												\
-		new_vec = ast_malloc(sizeof(*new_vec));							\
+		new_vec = (typeof((vec)))ast_malloc(sizeof(*new_vec));					\
 		if (!new_vec) {										\
 			break;										\
 		}											\

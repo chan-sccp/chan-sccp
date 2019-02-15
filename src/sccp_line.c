@@ -16,7 +16,7 @@
 #include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_config.h"
-#include "sccp_features.h"
+#include "sccp_feature.h"
 #include "sccp_mwi.h"
 #include "sccp_utils.h"
 
@@ -930,7 +930,7 @@ sccp_line_t *sccp_line_find_byid(constDevicePtr d, uint16_t instance)
 
 	if (0 < instance && instance < d->lineButtons.size && d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line) {
 #if DEBUG
-		l = sccp_refcount_retain(d->lineButtons.instance[instance]->line, filename, lineno, func);
+		l = (sccp_line_t *)sccp_refcount_retain(d->lineButtons.instance[instance]->line, filename, lineno, func);
 #else
 		l = sccp_line_retain(d->lineButtons.instance[instance]->line);
 #endif
@@ -983,7 +983,7 @@ sccp_line_t *sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex
 	
 	if (buttonIndex > 0 && buttonIndex < StationMaxButtonTemplateSize && d->buttonTemplate[buttonIndex - 1].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[buttonIndex - 1].ptr ) {
 #if DEBUG
-		l = sccp_refcount_retain(d->buttonTemplate[buttonIndex - 1].ptr, filename, lineno, func);
+		l = (sccp_line_t *)sccp_refcount_retain(d->buttonTemplate[buttonIndex - 1].ptr, filename, lineno, func);
 #else
 		l = sccp_line_retain(d->buttonTemplate[buttonIndex - 1].ptr);
 #endif
@@ -1081,7 +1081,7 @@ void sccp_line_createLineButtonsArray(sccp_device_t * device)
 		}
 	}
 
-	device->lineButtons.instance = sccp_calloc(lineInstances + SCCP_FIRST_LINEINSTANCE, sizeof(sccp_linedevices_t *));
+	device->lineButtons.instance = (sccp_linedevices_t **)sccp_calloc(lineInstances + SCCP_FIRST_LINEINSTANCE, sizeof(sccp_linedevices_t *));
 	if (!device->lineButtons.instance) {
 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, device->id);
 		return;

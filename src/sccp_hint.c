@@ -143,7 +143,7 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 	//enum ast_device_state state;		/* maybe we should store the last state */
 	
 #if ASTERISK_VERSION_GROUP >= 112
-	struct ast_device_state_message *dev_state = stasis_message_data(msg);
+	struct ast_device_state_message *dev_state = (struct ast_device_state_message *)stasis_message_data(msg);
 	if (ast_device_state_message_type() != stasis_message_type(msg)) {
 		return;
 	}
@@ -158,8 +158,7 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 	cidNumber = "";
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Got new hint event %s, cidname: %s, cidnum: %s\n", hint->hint_dialplan, cidName ? cidName : "NULL", cidNumber ? cidNumber : "NULL");
 #else
-	const struct ast_eid *eid;
-	eid = ast_event_get_ie_raw(event, AST_EVENT_IE_EID);
+	const struct ast_eid *eid = (const struct ast_eid *)ast_event_get_ie_raw(event, AST_EVENT_IE_EID);
 	//state = pbx_event_get_ie_uint(ast_event, AST_EVENT_IE_STATE);
 #if ASTERISK_VERSION_GROUP >= 108
 	cidName = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNAME);
@@ -554,9 +553,7 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 
 	/* add subscribing device */
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_addSubscription4Device) create subscriber or hint: %s in %s\n", DEV_ID_LOG(device), hint->exten, hint->context);
-	sccp_hint_SubscribingDevice_t *subscriber;
-
-	subscriber = sccp_calloc(sizeof *subscriber, 1);
+	sccp_hint_SubscribingDevice_t *subscriber = (sccp_hint_SubscribingDevice_t *)sccp_calloc(sizeof *subscriber, 1);
 	if (!subscriber) {
 		pbx_log(LOG_ERROR, "%s (hint_addSubscription4Device) Memory Allocation Error while creating subscriber object\n", DEV_ID_LOG(device));
 		return;
@@ -610,7 +607,7 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 		}
 	}
 
-	hint = sccp_calloc(sizeof *hint, 1);
+	hint = (sccp_hint_list_t *)sccp_calloc(sizeof *hint, 1);
 	if (!hint) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_hint_create) Memory Allocation Error while creating hint list for hint: %s@%s\n", hint_exten, hint_context);
 		return NULL;
@@ -654,8 +651,7 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	/* force hint update to get currentState */
 #if ASTERISK_VERSION_GROUP >= 111
 	struct ast_state_cb_info info;
-
-	info.exten_state = pbx_extension_state(NULL, hint->context, hint->exten);
+	info.exten_state = (enum ast_extension_states)pbx_extension_state(NULL, hint->context, hint->exten);
 	sccp_hint_devstate_cb(hint->context, hint->exten, &info, hint);
 #else
 	enum ast_extension_states state = pbx_extension_state(NULL, hint->context, hint->exten);
@@ -678,7 +674,7 @@ static void sccp_hint_attachLine(sccp_line_t * line, sccp_device_t * device)
 	}
 	if (!lineState) {		/* create new lineState if necessary */
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s (hint_attachLine) Create new hint_lineState for line: %s\n", DEV_ID_LOG(device), line->name);
-		lineState = sccp_calloc(sizeof *lineState, 1);
+		lineState = (struct sccp_hint_lineState *) sccp_calloc(sizeof *lineState, 1);
 		if (!lineState) {
 			pbx_log(LOG_ERROR, "%s (hint_attachLine) Memory Allocation Error while creating hint-lineState object for line %s\n", DEV_ID_LOG(device), line->name);
 			SCCP_LIST_UNLOCK(&lineStates);

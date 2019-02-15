@@ -1,13 +1,25 @@
 /*!
- * \file        sccp_features.h
- * \brief       SCCP Features Header
+ * \file        sccp_feature.h
+ * \brief       SCCP Feature Header
  * \author      Federico Santulli <fsantulli [at] users.sourceforge.net >
+ * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net >
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License. 
  *              See the LICENSE file at the top of the source tree.
  * \since       2009-01-16
  */
 #pragma once
 __BEGIN_C_EXTERN__
+
+/*!
+ * \brief SCCP Feature Configuration Structure
+ */
+struct sccp_feature_configuration {
+	uint32_t previousStatus;										//!< Feature Previous State
+	uint32_t status;											//!< Feature State
+	boolean_t enabled;											//!< Feature Enabled
+	boolean_t initialized;											//!< Feature Enabled
+};
+
 // callforward
 SCCP_API void SCCP_CALL sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_callforward_t type);
 

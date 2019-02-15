@@ -173,7 +173,7 @@ am_libsccp_la_OBJECTS = libsccp_la-sccp_callinfo.lo \
 	libsccp_la-sccp_threadpool.lo libsccp_la-sccp_softkeys.lo \
 	libsccp_la-sccp_featureButton.lo libsccp_la-sccp_line.lo \
 	libsccp_la-sccp_utils.lo libsccp_la-sccp_actions.lo \
-	libsccp_la-sccp_cli.lo libsccp_la-sccp_features.lo \
+	libsccp_la-sccp_cli.lo libsccp_la-sccp_feature.lo \
 	libsccp_la-sccp_config.lo libsccp_la-sccp_hint.lo \
 	libsccp_la-sccp_refcount.lo libsccp_la-sccp_management.lo \
 	libsccp_la-sccp_mwi.lo libsccp_la-sccp_conference.lo \
@@ -569,7 +569,7 @@ AM_CXXFLAGS = -std=c++11 $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	$(LIBCURL_CFLAGS) -I$(top_builddir)/src/ -I$(top_srcdir)/src/ \
 	-DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self \
 	-DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS) -D_REENTRANT \
-	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
+	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall -fpermissive
 SUBDIRS = pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) .
 DIST_SUBDIRS = pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast114 pbx_impl/ast115 pbx_impl/ast_announce .
 EXTRA_DIST = sccp_enum.in sccp_config_entries.hh
@@ -584,7 +584,7 @@ csmod_LTLIBRARIES = chan_sccp.la
 noinst_HEADERS = chan_sccp.h		sccp_actions.h		sccp_cli.h		sccp_devstate.h		\
 			  sccp_featureButton.h	sccp_line.h		sccp_refcount.h		sccp_utils.h		\
 			  common.h		sccp_appfunctions.h	sccp_cli_table.h	sccp_dllists.h		\
-			  sccp_features.h	sccp_management.h	sccp_rtp.h		sccp_vector.h		\
+			  sccp_feature.h	sccp_management.h	sccp_rtp.h		sccp_vector.h		\
 			  sccp_atomic.h		sccp_conference.h	sccp_threadpool.h	sccp_debug.h		\
 			  sccp_hint.h		sccp_mwi.h		sccp_session.h	 	sccp_callinfo.h		\
 			  sccp_config.h		sccp_indicate.h		sccp_pbx.h		sccp_softkeys.h 	\
@@ -595,7 +595,7 @@ noinst_HEADERS = chan_sccp.h		sccp_actions.h		sccp_cli.h		sccp_devstate.h		\
 libsccp_la_SOURCES = sccp_callinfo.c 	sccp_channel.c		sccp_device.c		sccp_debug.c		\
 			  sccp_indicate.c 	sccp_pbx.c 		sccp_session.c		sccp_threadpool.c	\
 			  sccp_softkeys.c	sccp_featureButton.c	sccp_line.c		sccp_utils.c		\
-			  sccp_actions.c	sccp_cli.c		sccp_features.c 	sccp_config.c		\
+			  sccp_actions.c	sccp_cli.c		sccp_feature.c 	sccp_config.c			\
 			  sccp_hint.c 		sccp_refcount.c		sccp_management.c	sccp_mwi.c		\
 			  sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
 			  sccp_devstate.c	sccp_event.c		sccp_enum.c		sccp_globals.c		\
@@ -722,9 +722,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_devstate.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_enum.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_event.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_feature.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_featureButton.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_featureParkingLot.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_features.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_globals.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_hint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_indicate.Plo@am__quote@
@@ -871,12 +871,12 @@ libsccp_la-sccp_cli.lo: sccp_cli.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_cli.lo `test -f 'sccp_cli.c' || echo '$(srcdir)/'`sccp_cli.c
 
-libsccp_la-sccp_features.lo: sccp_features.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -MT libsccp_la-sccp_features.lo -MD -MP -MF $(DEPDIR)/libsccp_la-sccp_features.Tpo -c -o libsccp_la-sccp_features.lo `test -f 'sccp_features.c' || echo '$(srcdir)/'`sccp_features.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsccp_la-sccp_features.Tpo $(DEPDIR)/libsccp_la-sccp_features.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_features.c' object='libsccp_la-sccp_features.lo' libtool=yes @AMDEPBACKSLASH@
+libsccp_la-sccp_feature.lo: sccp_feature.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -MT libsccp_la-sccp_feature.lo -MD -MP -MF $(DEPDIR)/libsccp_la-sccp_feature.Tpo -c -o libsccp_la-sccp_feature.lo `test -f 'sccp_feature.c' || echo '$(srcdir)/'`sccp_feature.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsccp_la-sccp_feature.Tpo $(DEPDIR)/libsccp_la-sccp_feature.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_feature.c' object='libsccp_la-sccp_feature.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_features.lo `test -f 'sccp_features.c' || echo '$(srcdir)/'`sccp_features.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_feature.lo `test -f 'sccp_feature.c' || echo '$(srcdir)/'`sccp_feature.c
 
 libsccp_la-sccp_config.lo: sccp_config.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -MT libsccp_la-sccp_config.lo -MD -MP -MF $(DEPDIR)/libsccp_la-sccp_config.Tpo -c -o libsccp_la-sccp_config.lo `test -f 'sccp_config.c' || echo '$(srcdir)/'`sccp_config.c

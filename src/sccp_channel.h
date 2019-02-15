@@ -114,8 +114,8 @@ struct sccp_selectedchannel {
 };														/*!< SCCP Selected Channel Structure */
 /* live cycle */
 SCCP_API channelPtr SCCP_CALL sccp_channel_allocate(constLinePtr l, constDevicePtr device);			// device is optional
-SCCP_API channelPtr SCCP_CALL sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);	// retrieve or allocate new channel
-SCCP_API channelPtr SCCP_CALL sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
+SCCP_API channelPtr SCCP_CALL sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, skinny_calltype_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);	// retrieve or allocate new channel
+SCCP_API channelPtr SCCP_CALL sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, skinny_calltype_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
 
 SCCP_API void SCCP_CALL sccp_channel_updateChannelCapability(sccp_channel_t * channel);
 SCCP_API sccp_callinfo_t * const SCCP_CALL sccp_channel_getCallInfo(const sccp_channel_t *const channel);
@@ -186,8 +186,8 @@ SCCP_API void SCCP_CALL sccp_channel_setDevice(sccp_channel_t * const channel, c
 SCCP_API void SCCP_CALL sccp_channel_park(sccp_channel_t * channel);
 #endif
 
-SCCP_API boolean_t SCCP_CALL sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data);
-SCCP_API boolean_t SCCP_CALL sccp_channel_setVideoMode(sccp_channel_t * c, const void *data);
+SCCP_API boolean_t SCCP_CALL sccp_channel_setPreferredCodec(sccp_channel_t * c, const char *data);
+SCCP_API boolean_t SCCP_CALL sccp_channel_setVideoMode(sccp_channel_t * c, const char *data);
 SCCP_API int SCCP_CALL sccp_channel_callwaiting_tone_interval(sccp_device_t * device, sccp_channel_t * channel);
 #if UNUSEDCODE // 2015-11-01
 SCCP_API const char *sccp_channel_getLinkedId(const sccp_channel_t * channel);

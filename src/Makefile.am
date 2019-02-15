@@ -42,7 +42,7 @@ csmod_LTLIBRARIES	= chan_sccp.la
 noinst_HEADERS		= chan_sccp.h		sccp_actions.h		sccp_cli.h		sccp_devstate.h		\
 			  sccp_featureButton.h	sccp_line.h		sccp_refcount.h		sccp_utils.h		\
 			  common.h		sccp_appfunctions.h	sccp_cli_table.h	sccp_dllists.h		\
-			  sccp_features.h	sccp_management.h	sccp_rtp.h		sccp_vector.h		\
+			  sccp_feature.h	sccp_management.h	sccp_rtp.h		sccp_vector.h		\
 			  sccp_atomic.h		sccp_conference.h	sccp_threadpool.h	sccp_debug.h		\
 			  sccp_hint.h		sccp_mwi.h		sccp_session.h	 	sccp_callinfo.h		\
 			  sccp_config.h		sccp_indicate.h		sccp_pbx.h		sccp_softkeys.h 	\
@@ -53,7 +53,7 @@ noinst_HEADERS		= chan_sccp.h		sccp_actions.h		sccp_cli.h		sccp_devstate.h		\
 libsccp_la_SOURCES	= sccp_callinfo.c 	sccp_channel.c		sccp_device.c		sccp_debug.c		\
 			  sccp_indicate.c 	sccp_pbx.c 		sccp_session.c		sccp_threadpool.c	\
 			  sccp_softkeys.c	sccp_featureButton.c	sccp_line.c		sccp_utils.c		\
-			  sccp_actions.c	sccp_cli.c		sccp_features.c 	sccp_config.c		\
+			  sccp_actions.c	sccp_cli.c		sccp_feature.c 	sccp_config.c			\
 			  sccp_hint.c 		sccp_refcount.c		sccp_management.c	sccp_mwi.c		\
 			  sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
 			  sccp_devstate.c	sccp_event.c		sccp_enum.c		sccp_globals.c		\

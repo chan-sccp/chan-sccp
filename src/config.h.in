@@ -210,9 +210,6 @@
 /* Found 'ast_rtp_instance_bridge' in asterisk/bridging.h */
 #undef CS_AST_RTP_INSTANCE_BRIDGE
 
-/* Found 'void ast_rtp_instance_new' in asterisk/rtp_engine.h */
-#undef CS_AST_RTP_INSTANCE_NEW
-
 /* 'ast_rtp_new_source' available */
 #undef CS_AST_RTP_NEW_SOURCE
 

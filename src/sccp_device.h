@@ -92,18 +92,9 @@ struct sccp_speed {
  * \brief Privacy Feature Enum
  */
 enum sccp_privacyfeature {
+	SCCP_PRIVACYFEATURE_OFF 	= 0,
 	SCCP_PRIVACYFEATURE_HINT 	= 1 << 1,
 	SCCP_PRIVACYFEATURE_CALLPRESENT	= 1 << 2,
-};
-
-/*!
- * \brief SCCP Feature Configuration Structure
- */
-struct sccp_feature_configuration {
-	uint32_t previousStatus;										/*!< Feature Previous State */
-	uint32_t status;											/*!< Feature State */
-	boolean_t enabled;											/*!< Feature Enabled */
-	boolean_t initialized;											/*!< Feature Enabled */
 };
 
 /*!
@@ -289,8 +280,8 @@ struct sccp_device {
 	} dtu_softkey;
 
 	boolean_t (*checkACL) (constDevicePtr device);								/*!< check ACL callback function */
-	sccp_push_result_t (*pushURL) (constDevicePtr device, const char *url, uint8_t priority, uint8_t tone);
-	sccp_push_result_t (*pushTextMessage) (constDevicePtr device, const char *messageText, const char *from, uint8_t priority, uint8_t tone);
+	sccp_push_result_t (*pushURL) (constDevicePtr device, const char *url, uint8_t priority, skinny_tone_t tone);
+	sccp_push_result_t (*pushTextMessage) (constDevicePtr device, const char *messageText, const char *from, uint8_t priority, skinny_tone_t tone);
 	boolean_t (*hasDisplayPrompt) (void);									/*!< has Display Prompt callback function (derived from devicetype and protocol) */
 	boolean_t (*useHookFlash) (void);									/*!< use Hook Flasg to transfer (based on devicetype) */
 	boolean_t (*hasEnhancedIconMenuSupport) (void);								/*!< has Enhanced IconMenu Support (derived from devicetype and protocol) */
@@ -370,7 +361,7 @@ struct sccp_device_indication_cb {
 	void (*const remoteOnhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
 	void (*const remoteOffhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
 	void (*const remoteConnected) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, skinny_callinfo_visibility_t visibility);
-	void (*const remoteHold) (constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, skinny_callinfo_visibility_t visibility);
+	void (*const remoteHold) (constDevicePtr device, uint8_t lineInstance, uint32_t callid, skinny_callpriority_t callpriority, skinny_callinfo_visibility_t visibility);
 };
 
 #if UNUSEDCODE // 2015-11-01
@@ -414,15 +405,15 @@ SCCP_API void SCCP_CALL sccp_device_setLastNumberDialed(devicePtr device, const 
 SCCP_API void SCCP_CALL sccp_device_preregistration(devicePtr device);
 SCCP_API uint8_t SCCP_CALL sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn);
 SCCP_API void SCCP_CALL sccp_dev_sendmsg(constDevicePtr d, sccp_mid_t t);
-SCCP_API void SCCP_CALL sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid, uint8_t softKeySetIndex);
-SCCP_API void SCCP_CALL sccp_dev_set_ringer(constDevicePtr d, uint8_t opt, uint8_t lineInstance, uint32_t callid);
+SCCP_API void SCCP_CALL sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid, skinny_keymode_t softKeySetIndex);
+SCCP_API void SCCP_CALL sccp_dev_set_ringer(constDevicePtr d, skinny_ringtype_t ringtype, uint8_t lineInstance, uint32_t callid);
 SCCP_API void SCCP_CALL sccp_dev_cleardisplay(constDevicePtr d);
 SCCP_API void SCCP_CALL sccp_dev_set_registered(devicePtr d, skinny_registrationstate_t state);
 SCCP_API void SCCP_CALL sccp_dev_set_speaker(constDevicePtr d, uint8_t mode);
 SCCP_API void SCCP_CALL sccp_dev_set_microphone(devicePtr d, uint8_t mode);
 SCCP_API void SCCP_CALL sccp_dev_set_cplane(constDevicePtr device, uint8_t lineInstance, int status);
 SCCP_API void SCCP_CALL sccp_dev_deactivate_cplane(constDevicePtr d);
-SCCP_API void SCCP_CALL sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t lineInstance, uint32_t callid, uint32_t timeout);
+SCCP_API void SCCP_CALL sccp_dev_starttone(constDevicePtr d, skinny_tone_t tone, uint8_t lineInstance, uint32_t callid, uint32_t timeout);
 SCCP_API void SCCP_CALL sccp_dev_stoptone(constDevicePtr d, uint8_t lineInstance, uint32_t callid);
 SCCP_API void SCCP_CALL sccp_dev_clearprompt(constDevicePtr d, uint8_t lineInstance, uint32_t callid);
 SCCP_API void SCCP_CALL sccp_dev_display_debug(constDevicePtr d, const char *msg, const char *file, const int lineno, const char *pretty_function);
@@ -433,7 +424,6 @@ SCCP_API void SCCP_CALL sccp_dev_cleardisplaynotify(constDevicePtr d);
 SCCP_API void SCCP_CALL sccp_dev_cleardisplayprinotify(constDevicePtr d, const uint8_t priority);
 SCCP_API void SCCP_CALL sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, boolean_t withHint, sccp_speed_t * const k);
 SCCP_API void SCCP_CALL sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePtr device);
-SCCP_API void SCCP_CALL sccp_dev_postregistration(void *data);
 SCCP_API void SCCP_CALL _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t restart_device);
 #define sccp_dev_clean(d, r) _sccp_dev_clean(d, r, FALSE);
 #define sccp_dev_clean_restart(d, r) _sccp_dev_clean(d, r, TRUE);

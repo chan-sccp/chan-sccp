@@ -158,19 +158,19 @@ void sccp_event_module_stop(void)
  * \param cb SCCP Event Call Back Function
  * \param allowAsyncExecution Handle Event Asynchronously (Boolean)
  */
-boolean_t sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb, boolean_t allowAsyncExecution)
+boolean_t sccp_event_subscribe(int eventType /*sccp_event_type_t*/, sccp_event_callback_t cb, boolean_t allowAsyncExecution)
 {
 	boolean_t res = FALSE;
 	uint8_t _idx; 
 	sccp_event_type_t _mask;
 	
-	for (_idx = 0, _mask = 1 << _idx; sccp_event_running && _idx < NUMBER_OF_EVENT_TYPES; _mask = 1 << ++_idx) {
+	for (_idx = 0, _mask = (sccp_event_type_t)(1 << _idx); sccp_event_running && _idx < NUMBER_OF_EVENT_TYPES; _mask = (sccp_event_type_t)(1 << ++_idx)) {
 		if(eventType & _mask) {
 			//sccp_log(DEBUGCAT_EVENT)(VERBOSE_PREFIX_3 "SCCP: (sccp_event_subscribe) Adding %s with callback:%p to vector at idx:%d\n", sccp_event_type2str(eventType), cb, _idx);
 			//pbx_log(LOG_NOTICE, "SCCP: (sccp_event_subscribe) Adding %s with callback:%p to vector at idx:%d\n", sccp_event_type2str(eventType), cb, _idx);
 			sccp_event_subscriber_t subscriber = {
 				.callback_function = cb,
-				.eventType = eventType,
+				.eventType = (sccp_event_type_t) _idx,
 				.execution = allowAsyncExecution ? SCCP_EVENT_ASYNC : SCCP_EVENT_SYNC,
 			};
 			
@@ -192,13 +192,13 @@ boolean_t sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_
  * \param eventType SCCP Event Type
  * \param cb SCCP Event Call Back Function
  */
-boolean_t sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
+boolean_t sccp_event_unsubscribe(int eventType /*sccp_event_type_t*/, sccp_event_callback_t cb)
 {
 	boolean_t res = FALSE;
 	uint8_t _idx; 
 	sccp_event_type_t _mask;
 	//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_event_unsubscribe) Removing %s.\n", sccp_event_type2str(eventType))
-	for (_idx = 0, _mask = 1 << _idx; sccp_event_running && _idx < NUMBER_OF_EVENT_TYPES; _mask = 1 << ++_idx) {
+	for (_idx = 0, _mask = (sccp_event_type_t)(1 << _idx); sccp_event_running && _idx < NUMBER_OF_EVENT_TYPES; _mask = (sccp_event_type_t)(1 << ++_idx)) {
 		if (eventType & _mask) {
 			sccp_event_vector_t *subscribers = &(event_subscriptions[_idx].subscribers);
 			{
@@ -244,7 +244,7 @@ static gcc_inline boolean_t __execute_callback_helper(const sccp_event_t *event,
 static gcc_inline uint8_t __search_for_position_in_event_array(sccp_event_type_t eventType) {
 	uint8_t _idx = 0;
 	sccp_event_type_t _mask;
-	for (_idx = 0, _mask = 1 << _idx; sccp_event_running && _idx < NUMBER_OF_EVENT_TYPES; _mask = 1 << ++_idx) {
+	for (_idx = 0, _mask = (sccp_event_type_t)(1 << _idx); sccp_event_running && _idx < NUMBER_OF_EVENT_TYPES; _mask = (sccp_event_type_t)(1 << ++_idx)) {
 		if (eventType & _mask) {
 			//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "SCCP: (__search_for_position_in_event_array) found index:%d\n", _idx);
 			break;
@@ -268,7 +268,7 @@ typedef struct __aSyncEventProcessorThreadArg
  */
 static void *sccp_event_processor(void *data)
 {
-	AsyncArgs_t *arg = data;
+	AsyncArgs_t *arg = (AsyncArgs_t *)data;
 	if (arg) {
 		//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Async Processing Event Callbacks Type %s\n", sccp_event_type2str(arg->event->type));
 		__execute_callback_helper(arg->event, arg->async_subscribers);
@@ -280,7 +280,7 @@ static void *sccp_event_processor(void *data)
 
 sccp_event_t * sccp_event_allocate(sccp_event_type_t eventType)
 {
-	sccp_event_t *event = sccp_calloc(sizeof *event,1);
+	sccp_event_t *event = (sccp_event_t *)sccp_calloc(sizeof *event,1);
 	if (event) {
 		event->type = eventType;
 		return event;
@@ -328,12 +328,12 @@ boolean_t sccp_event_fire(sccp_event_t * event)
 			if (async_subscribers_cpy) {
 				if (asyncsize) {
 					AsyncArgs_t *arg = NULL;
-					if (GLOB(general_threadpool) && sccp_event_running && (arg = sccp_malloc(sizeof *arg))) {
+					if (GLOB(general_threadpool) && sccp_event_running && (arg = (AsyncArgs_t *)sccp_malloc(sizeof *arg))) {
 						arg->idx = _idx;
 						//memcpy(&arg->event, event, sizeof(sccp_event_t));
 						arg->event = event;
 						arg->async_subscribers = async_subscribers_cpy;
-						if (sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_event_processor, (void *) arg)) {
+						if (sccp_threadpool_add_work(GLOB(general_threadpool), sccp_event_processor, (void *) arg)) {
 							//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Work added to threadpool for event: %p, type: %s\n", event, sccp_event_type2str(event->type));
 							event = NULL;					// set to NULL, thread will clean event up later.
 							res |= true;
@@ -375,7 +375,7 @@ static void sccp_event_testListener(const sccp_event_t * event) {
 
 AST_TEST_DEFINE(sccp_event_test_subscribe_single)
 {
-	int rc = AST_TEST_PASS;
+	enum ast_test_result_state rc = AST_TEST_PASS;
 	switch(cmd) {
 		case TEST_INIT:
 			info->name = "subscribe_single";
@@ -427,7 +427,7 @@ cleanup:
 
 AST_TEST_DEFINE(sccp_event_test_subscribe_multi)
 {
-	int rc = AST_TEST_PASS;
+	enum ast_test_result_state rc = AST_TEST_PASS;
 	switch(cmd) {
 		case TEST_INIT:
 			info->name = "subscribe_multi";
@@ -474,7 +474,7 @@ cleanup:
 
 AST_TEST_DEFINE(sccp_event_test_subscribe_multi_sync)
 {
-	int rc = AST_TEST_PASS;
+	enum ast_test_result_state rc = AST_TEST_PASS;
 	switch(cmd) {
 		case TEST_INIT:
 			info->name = "subscribe_multi_sync";

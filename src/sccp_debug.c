@@ -133,7 +133,7 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 			size_t new_size = size;
 
 			new_size += strlen(sccp_debug_categories[i].key) + 1 /*sizeof(sep) */  + 1;
-			tmpres = sccp_realloc(res, new_size);
+			tmpres = (char *)sccp_realloc(res, new_size);
 			if (tmpres == NULL) {
 				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 				sccp_free(res);

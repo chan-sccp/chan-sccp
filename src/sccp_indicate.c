@@ -110,7 +110,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 			{
 				int lenDialed = sccp_strlen(c->dialedNumber);
 				int lenSecDialtoneDigits = sccp_strlen(l->secondary_dialtone_digits);
-				uint32_t secondary_dialtone_tone = l->secondary_dialtone_tone;
+				skinny_tone_t secondary_dialtone_tone = l->secondary_dialtone_tone;
 				if (lenSecDialtoneDigits > 0 && lenDialed == lenSecDialtoneDigits && !strncmp(c->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {
 					sccp_dev_starttone(d, secondary_dialtone_tone, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 				} else if (lenDialed > 0) {
@@ -172,7 +172,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
 				} else {
-					sccp_dev_starttone(d, (uint8_t) SKINNY_TONE_ALERTINGTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+					sccp_dev_starttone(d, SKINNY_TONE_ALERTINGTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 				}
 
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGOUT);
@@ -519,7 +519,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 		if (remoteDevice) {
 			sccp_callerid_presentation_t presenceParameter = CALLERID_PRESENTATION_ALLOWED;
 			iCallInfo.Getter(ci, SCCP_CALLINFO_PRESENTATION, &presenceParameter, SCCP_CALLINFO_KEY_SENTINEL);
-			uint8_t stateVisibility = (c->privacy || !presenceParameter) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_DEFAULT;
+			skinny_callinfo_visibility_t stateVisibility = (c->privacy || !presenceParameter) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_DEFAULT;
 
 			/* Remarking the next piece out, solves the transfer issue when using sharedline as default on the transferer. Don't know why though (yet) */
 			if (state != SCCP_CHANNELSTATE_ONHOOK) {

@@ -177,7 +177,7 @@ SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define PTR_TYPE_CMP(_type,_ptr) 					\
 ({									\
 	/*__builtin_types_compatible_p(typeof(_ptr), _type) == 1)*/	\
-	_type __attribute__((unused)) __dummy = (_ptr);			\
+	_type __attribute__((unused)) __dummy = (_type)(_ptr);		\
 	1;								\
 })
 
@@ -258,6 +258,10 @@ static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(
 #endif /* #if __GNUC__ */
 
 #define container_of(ptr, type, member) ({                      \
-        const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
+        const typeof( ((type *)0)->member ) *__mptr = (const typeof( ((type *)0)->member ) *)(ptr);    			\
         (type *)( (void *)__mptr - offsetof(type,member) );})
+
+#define enum_incr(_enum) ({												\
+        _enum=(typeof(_enum))((int)_enum + 1);										\
+})
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

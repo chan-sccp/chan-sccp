@@ -1,7 +1,8 @@
 /*!
- * \file        sccp_features.c
- * \brief       SCCP Features Class
+ * \file        sccp_feature.c
+ * \brief       SCCP Feature Class
  * \author      Federico Santulli <fsantulli [at] users.sourceforge.net >
+ * \author	Diederik de Groot <ddegroot [at] users.sourceforge.net >
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  * \since       2009-01-16
@@ -25,7 +26,7 @@
 #include "sccp_channel.h"
 #include "sccp_device.h"
 #include "sccp_featureButton.h"
-#include "sccp_features.h"
+#include "sccp_feature.h"
 #include "sccp_line.h"
 #include "sccp_pbx.h"
 #include "sccp_conference.h"
@@ -1106,7 +1107,7 @@ static void *sccp_feat_meetme_thread(void *data)
  */
 void sccp_feat_meetme_start(channelPtr c)
 {
-	sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_feat_meetme_thread, (void *) c);
+	sccp_threadpool_add_work(GLOB(general_threadpool), sccp_feat_meetme_thread, (void *) c);
 }
 
 /*!
@@ -1376,7 +1377,7 @@ void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_
 		}
 	} else {
 		constChannelPtr channel = maybe_channel;
-		struct ast_str *amiCommandStr = ast_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+		pbx_str_t *amiCommandStr = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 		char *outStr;
 		if (!(monitorFeature->status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
 			pbx_str_append(&amiCommandStr,0 ,"Action: Monitor\r\n");

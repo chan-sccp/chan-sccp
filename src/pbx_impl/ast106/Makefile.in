@@ -476,7 +476,7 @@ AM_CXXFLAGS = -std=c++11 $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	$(LIBCURL_CFLAGS) -I$(top_builddir)/src/ -I$(top_srcdir)/src/ \
 	-DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self \
 	-DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS) -D_REENTRANT \
-	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
+	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall -fpermissive
 noinst_LTLIBRARIES = libast106.la
 noinst_HEADERS = ast106.h
 libast106_la_SOURCES = ast106.c

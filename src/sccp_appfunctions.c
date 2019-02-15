@@ -382,7 +382,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
 	} else {
-		colname = sccp_alloca(16);
+		colname = (char *)sccp_alloca(16);
 		if (!colname) {
 			return -1;
 		}
@@ -471,7 +471,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			} else if (!strcasecmp(token, "dnd_feature")) {
 				sccp_copy_string(buf, (d->dndFeature.enabled) ? "ON" : "OFF", buf_len);
 			} else if (!strcasecmp(token, "dnd_state")) {
-				sccp_copy_string(buf, sccp_dndmode2str(d->dndFeature.status), buf_len);
+				sccp_copy_string(buf, sccp_dndmode2str((sccp_dndmode_t)d->dndFeature.status), buf_len);
 			} else if (!strcasecmp(token, "dnd_action")) {
 				sccp_copy_string(buf, sccp_dndmode2str(d->dndmode), buf_len);
 			} else if (!strcasecmp(token, "dynamic") || !strcasecmp(token, "realtime")) {
@@ -571,7 +571,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				codecnum = strsep(&codecnum, "]");							// trim trailing ']' if any 
 				int codec_int = sccp_atoi(codecnum, strlen(codecnum));
 				if (skinny_codecs[codec_int].key) {
-					sccp_copy_string(buf, codec2name(codec_int), buf_len);
+					sccp_copy_string(buf, codec2name((skinny_codec_t)codec_int), buf_len);
 				} else {
 					buf[0] = '\0';
 				}
@@ -636,7 +636,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
 	} else {
-		colname = sccp_alloca(16);
+		colname = (char *)sccp_alloca(16);
 		if (!colname) {
 			return -1;
 		}
@@ -872,7 +872,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
 	} else {
-		colname = sccp_alloca(16);
+		colname = (char *)sccp_alloca(16);
 		if (!colname) {
 			return -1;
 		}
@@ -1019,7 +1019,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 				codecnum = strsep(&codecnum, "]");							// trim trailing ']' if any 
 				int codec_int = sccp_atoi(codecnum, strlen(codecnum));
 				if (skinny_codecs[codec_int].key) {
-					sccp_copy_string(buf, codec2name(codec_int), buf_len);
+					sccp_copy_string(buf, codec2name((skinny_codec_t)codec_int), buf_len);
 				} else {
 					buf[0] = '\0';
 				}
@@ -1137,7 +1137,7 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 	}
 
 	int timeout = 0;
-	int priority = -1;
+	sccp_message_priority_t priority = SCCP_MESSAGE_PRIORITY_SENTINEL;
 
 	char *parse = pbx_strdupa(data);
 	AST_DECLARE_APP_ARGS(args,
@@ -1151,7 +1151,7 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 		timeout = sccp_atoi(args.timeout, strlen(args.timeout));
 	}
 	if (!sccp_strlen_zero(args.priority)) {
-		priority = sccp_atoi(args.priority, strlen(args.priority));
+		priority = (sccp_message_priority_t) sccp_atoi(args.priority, strlen(args.priority));
 	}
 
 	AUTO_RELEASE(sccp_device_t, d , NULL);
@@ -1162,13 +1162,13 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 
 	pbx_log(LOG_WARNING, "SCCPSetMessage: text:'%s', prio:%d, timeout:%d\n", args.text, priority, timeout);
 	if (!sccp_strlen_zero(args.text)) {
-		if (priority > -1) {
+		if (priority != SCCP_MESSAGE_PRIORITY_SENTINEL) {
 			sccp_dev_displayprinotify(d, args.text, priority, timeout);
 		} else {
 			sccp_dev_set_message(d, args.text, timeout, TRUE, FALSE);
 		}
 	} else {
-		if (priority > -1) {
+		if (priority != SCCP_MESSAGE_PRIORITY_SENTINEL) {
 			sccp_dev_cleardisplayprinotify(d, priority);
 		} else {
 			sccp_dev_clear_message(d, TRUE);

@@ -21,4 +21,4 @@ AM_CXXFLAGS		= -std=c++11 $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(COVERAG
 #AM_CXXFLAGS            += -I${abs_builddir} -I$(top_builddir)/src/ -I$(top_srcdir)/src/ -I$(top_srcdir)/src/pbx_impl/ -I$(top_srcdir)/src/pbx_impl/ast/ -I$(top_srcdir)/src/$(PBX_COND_SUBDIR) -I$(top_srcdir)/src/$(PBXVER_COND_SUBDIR) -I$(top_srcdir)/src/$(PBXVER_COND_ANNOUNCE_SUBDIR)
 AM_CXXFLAGS		+= -I$(top_builddir)/src/ -I$(top_srcdir)/src/
 AM_CXXFLAGS		+= -DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self -DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS)
-AM_CXXFLAGS		+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
+AM_CXXFLAGS		+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall -fpermissive

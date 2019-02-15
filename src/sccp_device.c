@@ -21,7 +21,7 @@
 #include "sccp_actions.h"
 #include "sccp_config.h"
 #include "sccp_device.h"
-#include "sccp_features.h"
+#include "sccp_feature.h"
 #include "sccp_line.h"
 #include "sccp_session.h"
 #include "sccp_indicate.h"
@@ -71,18 +71,20 @@ static void sccp_device_new_callhistory(constDevicePtr device, const uint8_t lin
 static void sccp_device_indicate_onhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
 static void sccp_device_indicate_offhook_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
 static void sccp_device_indicate_connected_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, skinny_callinfo_visibility_t visibility);
-static void sccp_device_old_indicate_remoteHold(constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, skinny_callinfo_visibility_t visibility);
-static void sccp_device_new_indicate_remoteHold(constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, skinny_callinfo_visibility_t visibility);
+static void sccp_device_old_indicate_remoteHold(constDevicePtr device, uint8_t lineInstance, uint32_t callid, skinny_callpriority_t callpriority, skinny_callinfo_visibility_t visibility);
+static void sccp_device_new_indicate_remoteHold(constDevicePtr device, uint8_t lineInstance, uint32_t callid, skinny_callpriority_t callpriority, skinny_callinfo_visibility_t visibility);
+
+void sccp_dev_postregistration(devicePtr data);
 
 /* end indicate */
-static sccp_push_result_t sccp_device_pushURL(constDevicePtr device, const char *url, uint8_t priority, uint8_t tone);
-static sccp_push_result_t sccp_device_pushURLNotSupported(constDevicePtr device, const char *url, uint8_t priority, uint8_t tone)
+static sccp_push_result_t sccp_device_pushURL(constDevicePtr device, const char *url, uint8_t priority, skinny_tone_t tone);
+static sccp_push_result_t sccp_device_pushURLNotSupported(constDevicePtr device, const char *url, uint8_t priority, skinny_tone_t tone)
 {
 	return SCCP_PUSH_RESULT_NOT_SUPPORTED;
 }
 
-static sccp_push_result_t sccp_device_pushTextMessage(constDevicePtr device, const char *messageText, const char *from, uint8_t priority, uint8_t tone);
-static sccp_push_result_t sccp_device_pushTextMessageNotSupported(constDevicePtr device, const char *messageText, const char *from, uint8_t priority, uint8_t tone)
+static sccp_push_result_t sccp_device_pushTextMessage(constDevicePtr device, const char *messageText, const char *from, uint8_t priority, skinny_tone_t tone);
+static sccp_push_result_t sccp_device_pushTextMessageNotSupported(constDevicePtr device, const char *messageText, const char *from, uint8_t priority, skinny_tone_t tone)
 {
 	return SCCP_PUSH_RESULT_NOT_SUPPORTED;
 }
@@ -219,7 +221,7 @@ static void sccp_device_copyStr2Locale_Convert(constDevicePtr d, char *dst, ICON
 	if (!dst || !src) {
 		return;
 	}
-	char *buf = sccp_alloca(dst_size);
+	char *buf = (char *)sccp_alloca(dst_size);
 	size_t buf_len = dst_size;
 	memset(buf, 0, dst_size);
 	if (sccp_utils_convUtf8toLatin1(src, buf, buf_len)) {
@@ -438,7 +440,7 @@ const sccp_accessory_t sccp_device_getActiveAccessory(constDevicePtr d)
 	pbx_assert(d != NULL && d->privateData != NULL);
 	sccp_accessory_t accessory = SCCP_ACCESSORY_NONE;
 	sccp_private_lock(d->privateData);
-	for (accessory = SCCP_ACCESSORY_NONE ; accessory < SCCP_ACCESSORY_SENTINEL; accessory++) {
+	for (accessory = SCCP_ACCESSORY_NONE ; accessory < SCCP_ACCESSORY_SENTINEL; enum_incr(accessory)) {
 		if (d->privateData->accessoryStatus[accessory] == SCCP_ACCESSORYSTATE_OFFHOOK) {
 			res = accessory;
 			break;
@@ -568,7 +570,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	}
 
 	//memset(d, 0, sizeof(sccp_device_t));
-	private_data = sccp_calloc(sizeof *private_data, 1);
+	private_data = (sccp_private_device_data_t *)sccp_calloc(sizeof *private_data, 1);
 	if (!private_data) {
 		pbx_log(LOG_ERROR, "%s: No memory to allocate device private data\n", id);
 		sccp_device_release(&d);	/* explicit release */
@@ -1220,7 +1222,7 @@ sccp_msg_t __attribute__ ((malloc)) * sccp_build_packet(sccp_mid_t t, size_t pkt
 	int padding = ((pkt_len + 8) % 4);
 	padding = (padding > 0) ? 4 - padding : 0;
 	
-	sccp_msg_t *msg = sccp_calloc(1, pkt_len + SCCP_PACKET_HEADER + padding);
+	sccp_msg_t *msg = (sccp_msg_t *)sccp_calloc(1, pkt_len + SCCP_PACKET_HEADER + padding);
 
 	if (!msg) {
 		pbx_log(LOG_WARNING, "SCCP: Packet memory allocation error\n");
@@ -1309,7 +1311,8 @@ void sccp_dev_set_registered(devicePtr d, skinny_registrationstate_t state)
  * \param softKeySetIndex SoftKeySet Index
  * \todo Disable DirTrfr by Default
  */
-void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid, uint8_t softKeySetIndex)
+//void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid, uint8_t softKeySetIndex)
+void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid, skinny_keymode_t softKeySetIndex)
 {
 	sccp_msg_t *msg = NULL;
 
@@ -1399,7 +1402,7 @@ void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid
  * \param lineInstance LineInstance as uint32_t
  * \param callid Call ID as uint32_t
  */
-void sccp_dev_set_ringer(constDevicePtr d, uint8_t opt, uint8_t lineInstance, uint32_t callid)
+void sccp_dev_set_ringer(constDevicePtr d, skinny_ringtype_t ringtype, uint8_t lineInstance, uint32_t callid)
 {
 	sccp_msg_t *msg = NULL;
 
@@ -1407,7 +1410,7 @@ void sccp_dev_set_ringer(constDevicePtr d, uint8_t opt, uint8_t lineInstance, ui
 	if (!msg) {
 		return;
 	}
-	msg->data.SetRingerMessage.lel_ringMode = htolel(opt);
+	msg->data.SetRingerMessage.lel_ringMode = htolel(ringtype);
 	/* Note that for distinctive ringing to work with the higher protocol versions
  	   the following actually needs to be set to 1 as the original comment says.
 	   Curiously, the variable is not set to 1 ... */
@@ -1415,7 +1418,7 @@ void sccp_dev_set_ringer(constDevicePtr d, uint8_t opt, uint8_t lineInstance, ui
 	msg->data.SetRingerMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.SetRingerMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", DEV_ID_LOG(d), skinny_ringtype2str(opt), opt);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", DEV_ID_LOG(d), skinny_ringtype2str(ringtype), ringtype);
 }
 
 /*!
@@ -1535,7 +1538,7 @@ void sccp_dev_deactivate_cplane(constDevicePtr d)
  * \param callid Call ID as uint32_t
  * \param direction Direction as skinny_toneDirection_t
  */
-void sccp_dev_starttone(constDevicePtr d, uint8_t tone, uint8_t lineInstance, uint32_t callid, skinny_toneDirection_t direction)
+void sccp_dev_starttone(constDevicePtr d, skinny_tone_t tone, uint8_t lineInstance, uint32_t callid, skinny_toneDirection_t direction)
 {
 	sccp_msg_t *msg = NULL;
 
@@ -2112,9 +2115,8 @@ int sccp_device_check_ringback(devicePtr device)
  *
  * \note adds a retained device to the event.deviceRegistered.device
  */
-void sccp_dev_postregistration(void *data)
+void sccp_dev_postregistration(devicePtr d)
 {
-	sccp_device_t *d = data;
 
 #ifndef ASTDB_FAMILY_KEY_LEN
 #define ASTDB_FAMILY_KEY_LEN 100
@@ -2178,7 +2180,7 @@ void sccp_dev_postregistration(void *data)
 		}
 
 		if (iPbx.feature_getFromDatabase(family, "privacy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-			d->privacyFeature.status = TRUE;
+			d->privacyFeature.status = SCCP_PRIVACYFEATURE_HINT;	/* True */
 			sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
 		}
 
@@ -2424,7 +2426,7 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 				if ((btn[i].type == SKINNY_BUTTONTYPE_LINE) && btn[i].ptr) {
-					sccp_line_t  *tmp = btn[i].ptr;						/* implicit cast without type change */
+					sccp_line_t  *tmp = (sccp_line_t *)btn[i].ptr;						/* implicit cast without type change */
 					sccp_line_release(&tmp);
 					btn[i].ptr = NULL;
 				}
@@ -2977,7 +2979,7 @@ static void sccp_device_indicate_connected_remote(constDevicePtr device, const u
 /*!
  * \brief Indicate to device that remote side has been put on hold (old).
  */
-static void sccp_device_old_indicate_remoteHold(constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, skinny_callinfo_visibility_t visibility)
+static void sccp_device_old_indicate_remoteHold(constDevicePtr device, uint8_t lineInstance, uint32_t callid, skinny_callpriority_t callpriority, skinny_callinfo_visibility_t visibility)
 {
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_HOLD, callpriority, visibility);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOLD);
@@ -2987,7 +2989,7 @@ static void sccp_device_old_indicate_remoteHold(constDevicePtr device, uint8_t l
 /*!
  * \brief Indicate to device that remote side has been put on hold (new).
  */
-static void sccp_device_new_indicate_remoteHold(constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, skinny_callinfo_visibility_t visibility)
+static void sccp_device_new_indicate_remoteHold(constDevicePtr device, uint8_t lineInstance, uint32_t callid, skinny_callpriority_t callpriority, skinny_callinfo_visibility_t visibility)
 {
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_HOLDRED, callpriority, visibility);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOLD);
@@ -3151,7 +3153,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 /*!
  * \brief Push a URL to an SCCP device
  */
-static sccp_push_result_t sccp_device_pushURL(constDevicePtr device, const char *url, uint8_t priority, uint8_t tone)
+static sccp_push_result_t sccp_device_pushURL(constDevicePtr device, const char *url, uint8_t priority, skinny_tone_t tone)
 {
 	const char *xmlFormat = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"%s\"/></CiscoIPPhoneExecute>";
 	size_t msg_length = strlen(xmlFormat) + sccp_strlen(url) - 2 /* for %s */  + 1 /* for terminator */ ;
@@ -3179,7 +3181,7 @@ static sccp_push_result_t sccp_device_pushURL(constDevicePtr device, const char 
  * protocolversion < 17 allows for maximum of 1024 characters in the text block / maximum 2000 characted in overall message
  * protocolversion > 17 allows variable sized messages up to 4000 char in the text block (using multiple messages if necessary)
  */
-static sccp_push_result_t sccp_device_pushTextMessage(constDevicePtr device, const char *messageText, const char *from, uint8_t priority, uint8_t tone)
+static sccp_push_result_t sccp_device_pushTextMessage(constDevicePtr device, const char *messageText, const char *from, uint8_t priority, skinny_tone_t tone)
 {
 	const char *xmlFormat = "<CiscoIPPhoneText>%s<Text>%s</Text></CiscoIPPhoneText>";
 	size_t msg_length = strlen(xmlFormat) + sccp_strlen(messageText) - 4 /* for the %s' */  + 1 /* for terminator */ ;
