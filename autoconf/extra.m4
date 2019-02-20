@@ -505,7 +505,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		esac
 		CFLAGS_saved="${CFLAGS_saved} ${optimize_flag} "
 	])
-
+	
 	AS_IF([test "X${enable_debug}" == "Xyes"], [
 		AC_DEFINE([DEBUG],[1],[Extra debugging.])
 		DEBUG=1
@@ -581,15 +581,17 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-fPIE dnl
 				-fPIE -pie dnl
 				-Wshorten-64-to-32 dnl
+			], SUPPORTED_CFLAGS)
+		])
+		AS_IF([test "X${USE_MAINTAINER_MODE}" = "Xyes"], [
+			AC_LANG_SAVE
+			AC_LANG_C
+			AX_APPEND_COMPILE_FLAGS([ dnl
 				-Wsuggest-attribute=const dnl
 				-Wsuggest-attribute=format dnl
 				-Wsuggest-attribute=noreturn dnl
-				-Wsuggest-attribute=pure dnl
-				dnl -Wsuggest-attribute=const dnl
-				dnl -Wsuggest-attribute=format dnl
-				dnl -Wsuggest-attribute=noreturn dnl
+				-Wc++-compat dnl
 				dnl -Wsuggest-attribute=pure dnl
-				dnl
 				dnl // should be added and fixed
 				dnl -Wswitch-enum dnl
 				dnl
@@ -607,6 +609,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				dnl -Wno-unused-but-set-variable
 			], SUPPORTED_CFLAGS)
 		])
+
 		AS_IF([test "x${AST_C_COMPILER_FAMILY}" = "xgcc"], [
 			AC_LANG_SAVE
 			AC_LANG_C
@@ -615,7 +618,6 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-fno-strict-overflow dnl
 				-Wshorten-64-to-32 dnl
 				-Wno-pointer-arith dnl
-				-Wc++-compat dnl		Check if compilable with C++ compiler
 				dnl -Wpointer-arith dnl
 			], SUPPORTED_CFLAGS)
 		])

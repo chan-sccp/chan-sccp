@@ -1608,7 +1608,7 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 #ifdef CS_SCCP_VIDEO
 	if ( (video_codec = pbx_codec2skinny_codec(ast_format_compatibility_format2bitfield(ast_format_cap_get_best_by_type(cap, AST_MEDIA_TYPE_VIDEO)))) == SKINNY_CODEC_NONE) {
 		pbx_log(LOG_NOTICE, "Could not match video codec. No Video\n");
-		video_codec = 0;
+		video_codec = SKINNY_CODEC_NONE;
 	}
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "SCCP: requested Video Codec in Skinny Format: %s\n", codec2str(video_codec));
 #endif
@@ -3860,9 +3860,11 @@ struct ast_module *AST_MODULE_SELF_SYM(void)
 {
 	return __mod_info.self;
 }
-static const __attribute__((unused)) struct ast_module_info *ast_module_info = &__mod_info;
-/* End Replace AST_MODULE_INFO macro */
+//#if !defined(AST_IN_CORE)
+//static const __attribute__((unused)) struct ast_module_info *ast_module_info = &__mod_info;
+//#endif
 
+/* End Replace AST_MODULE_INFO macro */
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE * chan, const char *exten, const char *context)
 {
 	struct ast_channel *target = NULL;									/*!< Potential pickup target */
