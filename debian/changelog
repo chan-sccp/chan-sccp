@@ -1,3 +1,11 @@
+chan-sccp (4.3.2-1ubuntu1) UNRELEASED; urgency=medium
+
+  * CHANGES:
+    - Fixed one way audio issues
+    - Compile with c++ compatibility
+
+ -- Diederik de Groot <ddegroot@users.sf.net>  Wed, 20 Feb 2019 17:47:00 +0100
+
 chan-sccp (4.3.1-5ubuntu1) UNRELEASED; urgency=medium
 
   * CHANGES:

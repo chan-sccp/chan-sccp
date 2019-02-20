@@ -1,3 +1,10 @@
+Version: v4.3.2_DEV
+=====================
+ - Fixed:
+   - One way audio issues
+ - Enhancements:
+   - Compile with c++ compatibility
+
 Version: v4.3.1_DEV
 =====================
  - Added 'force_dtmf' to realtime/database example files
