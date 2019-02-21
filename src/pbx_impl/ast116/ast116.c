@@ -68,6 +68,10 @@ __END_C_EXTERN__
 struct ast_sched_context *sched = 0;
 struct io_context *io = 0;
 
+#if !defined(AST_IN_CORE)
+static const __attribute__((unused)) struct ast_module_info *pbx_module_info;
+#endif
+
 //struct ast_format slinFormat = { AST_FORMAT_SLINEAR, {{0}, 0} };
 
 static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_format_cap *cap, const struct ast_assigned_ids *assignedids, const PBX_CHANNEL_TYPE * requestor, const char *dest, int *cause);
@@ -1213,7 +1217,7 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 		ast_channel_zone_set(pbxDstChannel, ast_get_indication_zone(line->language));			/* this will core asterisk on hangup */
 	}
 
-	ast_module_ref(ast_module_info->self);
+	ast_module_ref(pbx_module_info->self);
 	ast_channel_stage_snapshot_done(pbxDstChannel);
 	ast_channel_unlock(pbxDstChannel);
 
@@ -1313,7 +1317,7 @@ static boolean_t sccp_astwrap_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChann
 	ast_channel_priority_set(pbxDstChannel, ast_channel_priority(pbxSrcChannel));
 	ast_channel_adsicpe_set(pbxDstChannel, AST_ADSI_UNAVAILABLE);
 	ast_channel_stage_snapshot_done(pbxDstChannel);
-	// ast_module_ref(ast_module_info->self);
+	// ast_module_ref(pbx_module_info->self);
 	ast_channel_unlock(pbxSrcChannel);
 	ast_channel_unlock(pbxDstChannel);
 
@@ -1386,7 +1390,7 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		ast_callid_threadstorage_auto_clean(callid, callid_created);
 	}
 
-	ast_module_unref(ast_module_info->self);
+	ast_module_unref(pbx_module_info->self);
 	// ast_channel_stage_snapshot_done(ast_channel);
 	return res;
 }
@@ -3319,14 +3323,14 @@ static const struct ast_msg_tech sccp_msg_tech = {
 /*!
  * \brief pbx_manager_register
  *
- * \note this functions needs to be defined here, because it depends on the static declaration of ast_module_info->self
+ * \note this functions needs to be defined here, because it depends on the static declaration of pbx_module_info->self
  */
 int pbx_manager_register(const char *action, int authority, int (*func) (struct mansession * s, const struct message * m), const char *synopsis, const char *description)
 {
 #if defined(__cplusplus) || defined(c_plusplus)
 	return 0;
 #else
-	return ast_manager_register2(action, authority, func, ast_module_info->self, synopsis, description);
+	return ast_manager_register2(action, authority, func, pbx_module_info->self, synopsis, description);
 #endif
 }
 
@@ -3335,7 +3339,7 @@ static int sccp_wrapper_register_application(const char *app_name, int (*execute
 #if defined(__cplusplus) || defined(c_plusplus)
 	return 0;
 #else
-	return ast_register_application2(app_name, execute, NULL, NULL, ast_module_info->self);
+	return ast_register_application2(app_name, execute, NULL, NULL, pbx_module_info->self);
 #endif
 }
 
@@ -3349,7 +3353,7 @@ static int sccp_wrapper_register_function(struct pbx_custom_function *custom_fun
 #if defined(__cplusplus) || defined(c_plusplus)
 	return 0;
 #else
-	return __ast_custom_function_register(custom_function, ast_module_info->self);
+	return __ast_custom_function_register(custom_function, pbx_module_info->self);
 #endif
 }
 
@@ -3850,6 +3854,7 @@ static struct ast_module_info __mod_info = {
 };
 static void  __attribute__((constructor)) __reg_module(void)
 {
+	pbx_module_info = &__mod_info;
 	ast_module_register(&__mod_info);
 }
 static void  __attribute__((destructor)) __unreg_module(void)
@@ -3860,9 +3865,6 @@ struct ast_module *AST_MODULE_SELF_SYM(void)
 {
 	return __mod_info.self;
 }
-//#if !defined(AST_IN_CORE)
-//static const __attribute__((unused)) struct ast_module_info *ast_module_info = &__mod_info;
-//#endif
 
 /* End Replace AST_MODULE_INFO macro */
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE * chan, const char *exten, const char *context)
