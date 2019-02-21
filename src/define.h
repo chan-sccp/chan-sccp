@@ -161,6 +161,11 @@ SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 
 #define DEFAULT_PBX_STR_BUFFERSIZE 512
 
+#define SCCP_MAX_USER_ID  16
+#define SCCP_MAX_USERNAME 32
+#define SCCP_MAX_USER_PIN 8
+#define SCCP_MAX_USER_TIMESTAMP 16
+
 /*! \todo I don't like the -1 returned value */
 #define sccp_true(x) (pbx_true(x) ? 1 : 0)
 #define sccp_false(x) (pbx_false(x) ? 1 : 0)

@@ -181,8 +181,8 @@ am_libsccp_la_OBJECTS = libsccp_la-sccp_callinfo.lo \
 	libsccp_la-sccp_protocol.lo libsccp_la-sccp_devstate.lo \
 	libsccp_la-sccp_event.lo libsccp_la-sccp_enum.lo \
 	libsccp_la-sccp_globals.lo libsccp_la-sccp_netsock.lo \
-	libsccp_la-sccp_codec.lo libsccp_la-sccp_featureParkingLot.lo \
-	libsccp_la-sccp_labels.lo
+	libsccp_la-sccp_codec.lo libsccp_la-sccp_user.lo \
+	libsccp_la-sccp_labels.lo libsccp_la-sccp_featureParkingLot.lo
 libsccp_la_OBJECTS = $(am_libsccp_la_OBJECTS)
 libsccp_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libsccp_la_CFLAGS) \
@@ -234,6 +234,7 @@ am__depfiles_remade = ./$(DEPDIR)/chan_sccp_la-chan_sccp.Plo \
 	./$(DEPDIR)/libsccp_la-sccp_session.Plo \
 	./$(DEPDIR)/libsccp_la-sccp_softkeys.Plo \
 	./$(DEPDIR)/libsccp_la-sccp_threadpool.Plo \
+	./$(DEPDIR)/libsccp_la-sccp_user.Plo \
 	./$(DEPDIR)/libsccp_la-sccp_utils.Plo
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -623,7 +624,7 @@ noinst_HEADERS = chan_sccp.h		sccp_actions.h		sccp_cli.h		sccp_devstate.h		\
 			  sccp_config.h		sccp_indicate.h		sccp_pbx.h		sccp_softkeys.h 	\
 			  revision.h		sccp_channel.h		sccp_device.h		sccp_event.h		\
 			  sccp_labels.h		sccp_protocol.h		sccp_enum.h		sccp_codec.h		\
-			  define.h		sccp_netsock.h		sccp_featureParkingLot.h
+			  define.h		sccp_netsock.h		sccp_user.h		sccp_featureParkingLot.h
 
 libsccp_la_SOURCES = sccp_callinfo.c 	sccp_channel.c		sccp_device.c		sccp_debug.c		\
 			  sccp_indicate.c 	sccp_pbx.c 		sccp_session.c		sccp_threadpool.c	\
@@ -632,7 +633,8 @@ libsccp_la_SOURCES = sccp_callinfo.c 	sccp_channel.c		sccp_device.c		sccp_debug.
 			  sccp_hint.c 		sccp_refcount.c		sccp_management.c	sccp_mwi.c		\
 			  sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
 			  sccp_devstate.c	sccp_event.c		sccp_enum.c		sccp_globals.c		\
-			  sccp_netsock.c	sccp_codec.c		sccp_featureParkingLot.c sccp_labels.c
+			  sccp_netsock.c	sccp_codec.c		sccp_user.c		sccp_labels.c		\
+			  sccp_featureParkingLot.c
 
 chan_sccp_la_SOURCES = chan_sccp.c
 libsccp_la_DEPENDENCIES = revision.h sccp_enum.h sccp_enum.c
@@ -773,6 +775,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_session.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_softkeys.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_threadpool.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_user.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_utils.Plo@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -1022,12 +1025,12 @@ libsccp_la-sccp_codec.lo: sccp_codec.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_codec.lo `test -f 'sccp_codec.c' || echo '$(srcdir)/'`sccp_codec.c
 
-libsccp_la-sccp_featureParkingLot.lo: sccp_featureParkingLot.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -MT libsccp_la-sccp_featureParkingLot.lo -MD -MP -MF $(DEPDIR)/libsccp_la-sccp_featureParkingLot.Tpo -c -o libsccp_la-sccp_featureParkingLot.lo `test -f 'sccp_featureParkingLot.c' || echo '$(srcdir)/'`sccp_featureParkingLot.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsccp_la-sccp_featureParkingLot.Tpo $(DEPDIR)/libsccp_la-sccp_featureParkingLot.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_featureParkingLot.c' object='libsccp_la-sccp_featureParkingLot.lo' libtool=yes @AMDEPBACKSLASH@
+libsccp_la-sccp_user.lo: sccp_user.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -MT libsccp_la-sccp_user.lo -MD -MP -MF $(DEPDIR)/libsccp_la-sccp_user.Tpo -c -o libsccp_la-sccp_user.lo `test -f 'sccp_user.c' || echo '$(srcdir)/'`sccp_user.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsccp_la-sccp_user.Tpo $(DEPDIR)/libsccp_la-sccp_user.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_user.c' object='libsccp_la-sccp_user.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_featureParkingLot.lo `test -f 'sccp_featureParkingLot.c' || echo '$(srcdir)/'`sccp_featureParkingLot.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_user.lo `test -f 'sccp_user.c' || echo '$(srcdir)/'`sccp_user.c
 
 libsccp_la-sccp_labels.lo: sccp_labels.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -MT libsccp_la-sccp_labels.lo -MD -MP -MF $(DEPDIR)/libsccp_la-sccp_labels.Tpo -c -o libsccp_la-sccp_labels.lo `test -f 'sccp_labels.c' || echo '$(srcdir)/'`sccp_labels.c
@@ -1035,6 +1038,13 @@ libsccp_la-sccp_labels.lo: sccp_labels.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_labels.c' object='libsccp_la-sccp_labels.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_labels.lo `test -f 'sccp_labels.c' || echo '$(srcdir)/'`sccp_labels.c
+
+libsccp_la-sccp_featureParkingLot.lo: sccp_featureParkingLot.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -MT libsccp_la-sccp_featureParkingLot.lo -MD -MP -MF $(DEPDIR)/libsccp_la-sccp_featureParkingLot.Tpo -c -o libsccp_la-sccp_featureParkingLot.lo `test -f 'sccp_featureParkingLot.c' || echo '$(srcdir)/'`sccp_featureParkingLot.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsccp_la-sccp_featureParkingLot.Tpo $(DEPDIR)/libsccp_la-sccp_featureParkingLot.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_featureParkingLot.c' object='libsccp_la-sccp_featureParkingLot.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_featureParkingLot.lo `test -f 'sccp_featureParkingLot.c' || echo '$(srcdir)/'`sccp_featureParkingLot.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1280,6 +1290,7 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_session.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_softkeys.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_threadpool.Plo
+	-rm -f ./$(DEPDIR)/libsccp_la-sccp_user.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_utils.Plo
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -1358,6 +1369,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_session.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_softkeys.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_threadpool.Plo
+	-rm -f ./$(DEPDIR)/libsccp_la-sccp_user.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_utils.Plo
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic

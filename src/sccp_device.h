@@ -157,6 +157,7 @@ struct sccp_device {
 	uint8_t protocolversion;										/*!< Skinny Supported Protocol Version */
 	uint8_t inuseprotocolversion;										/*!< Skinny Used Protocol Version */
 	uint16_t directrtp;											/*!< Direct RTP Support (Boolean, default=on) */
+	char *userid;												/*!< (sccp_user_t)->name reference */
 
 	sccp_nat_t nat;												/*!< Network Address Translation Support (Boolean, default=on) */
 	sccp_session_t *session;										/*!< Current Session */
@@ -172,8 +173,8 @@ struct sccp_device {
 		uint8_t size;
 	} lineButtons;
 
-	//SCCP_LIST_HEAD (, sccp_buttonconfig_t) buttonconfig;							/*!< SCCP Button Config Attached to this Device */
-	sccp_buttonconfig_list_t buttonconfig;									/*!< SCCP Button Config Attached to this Device */
+	sccp_buttonconfig_list_t *buttonconfig;									/*!< SCCP Button Config Currently User by this Device */
+	sccp_buttonconfig_list_t buttondefinition;								/*!< SCCP Button Config Definition for this device */
 	SCCP_LIST_HEAD (, sccp_selectedchannel_t) selectedChannels;						/*!< Selected Channel List */
 	SCCP_LIST_HEAD (, sccp_addon_t) addons;									/*!< Add-Ons connect to this Device */
 	SCCP_LIST_HEAD (, sccp_hostname_t) permithosts;								/*!< Permit Registration to the Hostname/IP Address */
@@ -426,6 +427,7 @@ SCCP_API void SCCP_CALL sccp_dev_cleardisplaynotify(constDevicePtr d);
 SCCP_API void SCCP_CALL sccp_dev_cleardisplayprinotify(constDevicePtr d, const uint8_t priority);
 SCCP_API void SCCP_CALL sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, boolean_t withHint, sccp_speed_t * const k);
 SCCP_API void SCCP_CALL sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePtr device);
+SCCP_API void SCCP_CALL sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig);					/*! \todo move to sccp_buttonconfig.c */
 SCCP_API void SCCP_CALL _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t restart_device);
 #define sccp_dev_clean(d, r) _sccp_dev_clean(d, r, FALSE);
 #define sccp_dev_clean_restart(d, r) _sccp_dev_clean(d, r, TRUE);

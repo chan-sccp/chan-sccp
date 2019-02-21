@@ -525,13 +525,13 @@ static void _notifyHelper(plobserver_t *observer, sccp_parkinglot_t *pl, constDe
 	}
 
 	// change button state
-	SCCP_LIST_LOCK(&device->buttonconfig);
-	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+	SCCP_LIST_LOCK(device->buttonconfig);
+	SCCP_LIST_TRAVERSE(device->buttonconfig, config, list) {
 		if (config->type == FEATURE && config->instance == observer->instance) {
 			config->button.feature.status = iconstate;
 		}
 	}
-	SCCP_LIST_UNLOCK(&device->buttonconfig);
+	SCCP_LIST_UNLOCK(device->buttonconfig);
 
 	// update already displayed visual parkinglot window
 	if (observer->transactionId) {

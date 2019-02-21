@@ -49,6 +49,7 @@ struct sccp_global_vars {
 	SCCP_RWLIST_HEAD (, sccp_session_t) sessions;								/*!< SCCP Sessions */
 	SCCP_RWLIST_HEAD (, sccp_device_t) devices;								/*!< SCCP Devices */
 	SCCP_RWLIST_HEAD (, sccp_line_t) lines;									/*!< SCCP Lines */
+	SCCP_RWLIST_HEAD (, sccp_user_t) users;									/*!< SCCP Users */
 
 	sccp_mutex_t socket_lock;										/*!< Socket Lock */
 #ifndef SCCP_ATOMIC	
@@ -144,7 +145,8 @@ struct sccp_global_vars {
 	char *regcontext;											/*!< Context for auto-extension (DUNDI) */
 #ifdef CS_SCCP_REALTIME
 	char *realtimedevicetable;										/*!< Database Table Name for SCCP Devices */
-	char *realtimelinetable;											/*!< Database Table Name for SCCP Lines */
+	char *realtimelinetable;										/*!< Database Table Name for SCCP Lines */
+	char *realtimeusertable;										/*!< Database Table Name for SCCP Users */
 #endif
 	char used_context[SCCP_MAX_EXTENSION];									/*!< placeholder to check if context are already used in regcontext (DUNDI) */
 
@@ -155,6 +157,8 @@ struct sccp_global_vars {
 	char *token_fallback;											/*!< Fall back immediatly on TokenReq (true/false/odd/even) */
 	int token_backoff_time;											/*!< Backoff time on TokenReject */
 	int server_priority;											/*!< Server Priority to fallback to */
+
+	char *mobility_url;											/*!< Url to be used to handle extension mobility events */
 
 	boolean_t reload_in_progress;										/*!< Reload in Progress */
 	boolean_t pendingUpdate;

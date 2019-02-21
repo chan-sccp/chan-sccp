@@ -88,6 +88,7 @@
 #include "sccp_device.h"
 #include "sccp_featureButton.h"
 #include "sccp_line.h"
+#include "sccp_user.h"
 #include "sccp_mwi.h"
 #include "sccp_session.h"
 #include "sccp_utils.h"
@@ -115,6 +116,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #define G_OBJ_REF(x) offsize(struct sccp_global_vars,x), offsetof(struct sccp_global_vars,x)
 #define D_OBJ_REF(x) offsize(struct sccp_device,x), offsetof(struct sccp_device,x)
 #define L_OBJ_REF(x) offsize(struct sccp_line,x), offsetof(struct sccp_line,x)
+#define U_OBJ_REF(x) offsize(struct sccp_user,x), offsetof(struct sccp_user,x)
 #define S_OBJ_REF(x) offsize(struct softKeySetConfiguration,x), offsetof(struct softKeySetConfiguration,x)
 #define H_OBJ_REF(x) offsize(struct sccp_hotline,x), offsetof(struct sccp_hotline,x)
 //#define BITMASK(b) (1 << ((b) % CHAR_BIT))
@@ -224,6 +226,7 @@ static const SCCPConfigSegment sccpConfigSegments[] = {
 	{"general", sccpGlobalConfigOptions, ARRAY_LEN(sccpGlobalConfigOptions), SCCP_CONFIG_GLOBAL_SEGMENT},
 	{"device", sccpDeviceConfigOptions, ARRAY_LEN(sccpDeviceConfigOptions), SCCP_CONFIG_DEVICE_SEGMENT},
 	{"line", sccpLineConfigOptions, ARRAY_LEN(sccpLineConfigOptions), SCCP_CONFIG_LINE_SEGMENT},
+	{"user", sccpUserConfigOptions, ARRAY_LEN(sccpUserConfigOptions), SCCP_CONFIG_USER_SEGMENT},
 	{"softkey", sccpSoftKeyConfigOptions, ARRAY_LEN(sccpSoftKeyConfigOptions), SCCP_CONFIG_SOFTKEY_SEGMENT},
 };
 
@@ -2172,6 +2175,35 @@ static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const 
 }
 
 /*!
+ * \brief Build User
+ * \param u SCCP User
+ * \param v Asterisk Variable
+ * \param lineName Name of line as char
+ * \param isRealtime is Realtime as Boolean
+ *
+ * \callgraph
+ * \callergraph
+ *
+ */
+static void sccp_config_buildUser(sccp_user_t * u, PBX_VARIABLE_TYPE * v, const char *userId, boolean_t isRealtime)
+{
+	sccp_configurationchange_t res = sccp_config_applyUserConfiguration(u, v);
+
+#ifdef CS_SCCP_REALTIME
+	u->realtime = isRealtime;
+#endif
+	// if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET && l && l->pendingDelete) {
+	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: major user changes detected, device reset required -> pendingUpdate=1\n", u->name);
+		u->pendingUpdate = 1;
+	} else {
+		u->pendingUpdate = 0;
+	}
+	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", u->name);
+	u->pendingDelete = 0;
+}
+
+/*!
  * \brief Build Device
  * \param d SCCP Device
  * \param variable Asterisk Variable
@@ -2193,8 +2225,8 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
 	sccp_buttonconfig_t *config = NULL;
 	sccp_devstate_specifier_t *dspec;
 
-	SCCP_LIST_LOCK(&d->buttonconfig);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+	SCCP_LIST_LOCK(&d->buttondefinition);
+	SCCP_LIST_TRAVERSE(&d->buttondefinition, config, list) {
 		if (config->type == FEATURE) {
 			/* Check for the presence of a devicestate specifier and register in device list. */
 			if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && !sccp_strlen_zero(config->button.feature.options)) {
@@ -2211,7 +2243,7 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
 			}
 		}
 	}
-	SCCP_LIST_UNLOCK(&d->buttonconfig);
+	SCCP_LIST_UNLOCK(&d->buttondefinition);
 
 #endif
 
@@ -2406,8 +2438,9 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 	char *cat = NULL;
 	PBX_VARIABLE_TYPE *v = NULL;
-	uint8_t device_count = 0;
-	uint8_t line_count = 0;
+	uint16_t device_count = 0;
+	uint16_t line_count = 0;
+	uint16_t user_count = 0;
 	sccp_device_t *d = NULL;
 
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Loading Devices and Lines from config\n");
@@ -2496,6 +2529,30 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			} else if ((l = sccp_line_create(cat))) {
 				sccp_config_buildLine(l, v, cat, FALSE);
 				sccp_line_addToGlobals(l);						/* may find another line instance create by another thread, in that case the newly created line is going to be dropped when l is released */
+			}
+			//    SCCP_RWLIST_UNLOCK(&GLOB(lines));
+
+		} else if (!strcasecmp(utype, "user")) {
+			/* check minimum requirements for a line */
+			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Parsing user [%s]\n", cat);
+
+			if (sccp_strlen_zero(pbx_variable_retrieve(GLOB(cfg), cat, "pin")) || sccp_strlen_zero(pbx_variable_retrieve(GLOB(cfg), cat, "name"))) {
+				pbx_log(LOG_WARNING, "Unknown type '%s' for '%s' in %s\n", utype, cat, "sccp.conf");
+				continue;
+			}
+			user_count++;
+
+			v = ast_variable_browse(GLOB(cfg), cat);
+			AUTO_RELEASE(sccp_user_t, u, sccp_user_find_byid(cat, FALSE));
+
+			/* check if we have this line already */
+			//    SCCP_RWLIST_WRLOCK(&GLOB(lines));
+			if (u) {
+				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found user %d: %s, do update\n", user_count, cat);
+				sccp_config_buildUser(u, v, cat, FALSE);
+			} else if ((u = sccp_user_create(cat))) {
+				sccp_config_buildUser(u, v, cat, FALSE);
+				sccp_user_addToGlobals(u);						/* may find another line instance create by another thread, in that case the newly created line is going to be dropped when l is released */
 			}
 			//    SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
@@ -2675,6 +2732,36 @@ sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * 
 	if (d->keepalive < SCCP_MIN_KEEPALIVE) {
 		d->keepalive = SCCP_MIN_KEEPALIVE;
 	}
+	return (sccp_configurationchange_t)res;
+}
+
+/*!
+ * \brief Get Configured User from Asterisk Variable
+ * \param u SCCP Line
+ * \param v Asterisk Variable
+ * \return Configured SCCP Line
+ * \note also used by realtime functionality to user from Asterisk Variable
+ *
+ * \callgraph
+ * \callergraph
+ *
+ */
+sccp_configurationchange_t sccp_config_applyUserConfiguration(sccp_user_t * u, PBX_VARIABLE_TYPE * v)
+{
+	unsigned int res = SCCP_CONFIG_NOUPDATENEEDED;
+	boolean_t SetEntries[ARRAY_LEN(sccpUserConfigOptions)] = { FALSE };
+	PBX_VARIABLE_TYPE *cat_root = v;
+
+	for (; v; v = v->next) {
+		res |= sccp_config_object_setValue(u, cat_root, v->name, v->value, v->lineno, SCCP_CONFIG_USER_SEGMENT, SetEntries);
+	}
+
+	sccp_config_set_defaults(u, SCCP_CONFIG_USER_SEGMENT, SetEntries);
+
+	if (sccp_strlen_zero(u->id)) {
+		snprintf(u->id, sizeof(u->id), "%04d", SCCP_LIST_GETSIZE(&GLOB(users)));
+	}
+
 	return (sccp_configurationchange_t)res;
 }
 

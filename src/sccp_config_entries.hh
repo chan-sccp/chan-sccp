@@ -120,6 +120,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 #ifdef CS_SCCP_REALTIME
 	{"devicetable", 		G_OBJ_REF(realtimedevicetable), 	TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"sccpdevice",			"datebasetable for devices\n"},
 	{"linetable", 			G_OBJ_REF(realtimelinetable), 		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"sccpline",			"datebasetable for lines\n"},
+	{"usertable", 			G_OBJ_REF(realtimeusertable), 		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"sccpuser",			"datebasetable for users\n"},
 #endif
 	{"meetme", 			G_OBJ_REF(meetme), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"enable/disable conferencing via meetme (on/off), make sure you have one of the meetme apps mentioned below activated in module.conf\n"
 																																	"when switching meetme=on it will search for the first of these three possible meetme applications and set these defaults\n"
@@ -169,6 +170,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 //#if defined(CS_EXPERIMENTAL_XML)
 //	{"webdir",			G_OBJ_REF(webdir),			TYPE_PARSER(sccp_config_parse_webdir),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"Directory where xslt stylesheets can be found.\n"},
 //#endif
+	{"extension_mobility_url",	G_OBJ_REF(mobility_url),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"url to call when parsing extension mobiity login form\n"},
 };
 
 /*!
@@ -180,6 +182,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"devicetype", 			D_OBJ_REF(config_type),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device type\n"},
 	{"type", 			0,				0,	TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		"device",			"used for device templates, value will be inherited.\n"},
 	{"description", 		D_OBJ_REF(description),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device description\n"},
+	{"userid",			D_OBJ_REF(userid),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Default UserId, used to link to sccp_user for default user based buttonconfig"},
 	{"keepalive", 			D_OBJ_REF(keepalive), 			TYPE_UINT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"set keepalive to 60\n"},
 	{"tzoffset", 			D_OBJ_REF(tz_offset), 			TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0",				"time zone offset\n"},
 	{"disallow|allow", 		D_OBJ_REF(preferences), 		TYPE_PARSER(sccp_config_parse_codec_preferences),				SCCP_CONFIG_FLAG_DEPRECATED | SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,	"Same as entry in [general] section. Deprecated in favor of setting codec preferences per line instead."},
@@ -228,7 +231,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 																																					"format setvar=param=value, for example setvar=sipno=12345678\n"},
 	{"permithost", 			D_OBJ_REF(permithosts), 		TYPE_PARSER(sccp_config_parse_permithosts),					SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"permit/deny but by resolved hostname"},
 	{"addon", 			D_OBJ_REF(addons),	 		TYPE_PARSER(sccp_config_parse_addons),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"One of 7914, 7915, 7916"},
-	{"button", 			D_OBJ_REF(buttonconfig), 		TYPE_PARSER(sccp_config_parse_button),						SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"Buttons come in the following flavours (empty, line, speeddial, service, feature).\n"
+	{"button", 			D_OBJ_REF(buttondefinition), 		TYPE_PARSER(sccp_config_parse_button),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"Buttons come in the following flavours (empty, line, speeddial, service, feature).\n"
 																																					"Examples (read the documentation for more examples/combinations):\n"
 																																					" - button = line,1234\n"
 																																					" - button = line,1234,default\n"
@@ -322,6 +325,26 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 #if CS_SCCP_VIDEO
 	{"videomode",			L_OBJ_REF(videomode),			TYPE_ENUM(sccp,video_mode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"auto",				"Automatic or Manual video mode. Valid values are 'auto', 'user' or 'off'. When set to 'auto', video will automatically start if both parties have a compatible code enabled. In 'user' mode the user needs to press the vidmode softkey before video will be tried. Default:'auto'\n"},
 #endif
+};
+
+static const SCCPConfigOption sccpUserConfigOptions[] = {
+	{"id", 				0, 	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"userid\n"},
+	{"type", 			0, 	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		"user",				"used for user templates, value will be inherited.\n"},
+	{"name", 			U_OBJ_REF(name),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"username\n"},
+	{"pin", 			U_OBJ_REF(pin), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"pincode for cxml interface\n"},
+	{"password",			U_OBJ_REF(password),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"password for web interface\n"},
+	{"button", 			U_OBJ_REF(buttondefinition), 		TYPE_PARSER(sccp_config_parse_button),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"Buttons come in the following flavours (empty, line, speeddial, service, feature).\n"
+																																					" - button = line,1234\n"
+																																					" - button = line,1234,default\n"
+																																					" - button = empty\n"
+																																					" - button = line,98099@11:Phone1\n"
+																																					" - button = line,98099@12:Phone2@ButtonLabel!silent            ; append cidnum:'12' and cidname:'Phone2' to line-ci with label 'ButtonLabel', don't ring when dialed directly\n"
+																																					" - button = line,98099@+12:Phone2@ButtonLabel!silent           ; same as the previous line\n"
+																																					" - button = line,98099@=12:Phone2!silent                       ; overwrite line-cid instead of appending\n"
+																																					" - button = speeddial,Phone 2 Line 1, 98021, 98021@hints\n"
+																																					" - button = feature,cfwdall,1234\n"
+																																					" - button = feature,PDefault,ParkingLot,default                ; feature, name, feature_type, parkinglotContext[,RetrieveSingle]\n"
+																																					" - button = feature,PDefault,ParkingLot,default,RetrieveSingle ; feature, name, feature_type, parkinglotContext[,RetrieveSinglen]\n"},
 };
 
 /*!

@@ -510,8 +510,8 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 				sccp_buttonconfig_t *config;
 
-				SCCP_LIST_LOCK(&d->buttonconfig);
-				SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+				SCCP_LIST_LOCK(d->buttonconfig);
+				SCCP_LIST_TRAVERSE(d->buttonconfig, config, list) {
 					switch (config->type) {
 						case LINE:
 							pbx_str_append(&lbuf, 0, "%s[%d,%s,%s]", addcomma++ ? "," : "", config->instance, sccp_config_buttontype2str(config->type), config->button.line.name ? config->button.line.name : "");
@@ -532,7 +532,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 							break;
 					}
 				}
-				SCCP_LIST_UNLOCK(&d->buttonconfig);
+				SCCP_LIST_UNLOCK(d->buttonconfig);
 				snprintf(buf, buf_len, "[ %s ]", pbx_str_buffer(lbuf));
 			} else if (!strcasecmp(token, "pending_delete")) {
 				sccp_copy_string(buf, d->pendingDelete ? "yes" : "no", buf_len);

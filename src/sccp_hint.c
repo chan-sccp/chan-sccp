@@ -445,9 +445,8 @@ static void sccp_hint_deviceRegistered(const sccp_device_t * device)
 	AUTO_RELEASE(sccp_device_t, d , sccp_device_retain((sccp_device_t *) device));
 
 	if (d) {
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+		SCCP_LIST_TRAVERSE(d->buttonconfig, config, list) {
 			positionOnDevice++;
-
 			if (config->type == SPEEDDIAL && !sccp_strlen_zero(config->button.speeddial.hint)) {
 				sccp_hint_addSubscription4Device(device, config->button.speeddial.hint, config->instance, positionOnDevice);
 			}
@@ -1015,8 +1014,8 @@ static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 				AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(event->featureChanged.device));
 
 				if (d) {
-					SCCP_LIST_LOCK(&d->buttonconfig);
-					SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+					SCCP_LIST_LOCK(d->buttonconfig);
+					SCCP_LIST_TRAVERSE(d->buttonconfig, buttonconfig, list) {
 						if (buttonconfig->type == LINE) {
 							AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byname(buttonconfig->button.line.name, FALSE));
 
@@ -1026,7 +1025,7 @@ static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 							}
 						}
 					}
-					SCCP_LIST_UNLOCK(&d->buttonconfig);
+					SCCP_LIST_UNLOCK(d->buttonconfig);
 				}
 				break;
 			}

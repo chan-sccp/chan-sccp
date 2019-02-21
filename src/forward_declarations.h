@@ -10,6 +10,8 @@ typedef struct sccp_session sccp_session_t;									/*!< SCCP Session Structure 
 typedef struct sccp_linedevices sccp_linedevices_t;								/*!< SCCP Line Connected to Devices */
 typedef struct sccp_device sccp_device_t;									/*!< SCCP Device Structure */
 typedef struct sccp_line sccp_line_t;										/*!< SCCP Line Structure */
+typedef struct sccp_user sccp_user_t;										/*!< SCCP User Structure */
+typedef struct sccp_usersession sccp_usersession_t;								/*!< SCCP User Session Structure */
 typedef struct sccp_channel sccp_channel_t;									/*!< SCCP Channel Structure */
 typedef struct sccp_speed sccp_speed_t;										/*!< SCCP Speed Structure */
 typedef struct sccp_service sccp_service_t;									/*!< SCCP Service Structure */

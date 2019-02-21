@@ -89,40 +89,63 @@ CREATE TABLE IF NOT EXISTS `sccpline` (
 ) ENGINE=INNODB DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 --
+-- Quick addition of sccpuser
+--
+CREATE TABLE IF NOT EXISTS `sccpuser` (
+  `id` varchar(8) NOT NULL,
+  `name` varchar(45) NOT NULL,
+  `pin` varchar(8) default NULL,
+  `password` varchar(45) default NULL,
+  PRIMARY KEY  (`name`),
+  UNIQUE (`id`)
+) ENGINE=INNODB DEFAULT CHARSET=latin1;
+
+--
 -- Table with button-configuration for device
 --
 -- foreign constrainst:
---   device -> sccpdevice.name
---   type -> buttontype enum
---   name -> if type=='line' then sccpline.name
---           else free field
+--        ref -> sccpdevice.name or sccpline.id
+--    reftype -> is this a device-button or a user-button
+--   instance -> line number to associate this button with
+-- buttontype -> buttontype enum
+--       name -> if type=='line' then sccpline.name
+--               else free field
 -- unique constraints:
 --   device, instance, type
 --
-CREATE TABLE IF NOT EXISTS `buttonconfig` (
-  `device` varchar(15) NOT NULL default '',
+CREATE TABLE IF NOT EXISTS `sccpbuttonconfig` (
+  `ref` varchar(15) NOT NULL default '',
+  `reftype` enum('sccpdevice', 'sccpuser') NOT NULL default 'sccpdevice',
   `instance` tinyint(4) NOT NULL default 0,
-  `type` enum('line','speeddial','service','feature','empty') NOT NULL default 'line',
+  `buttontype` enum('line','speeddial','service','feature','empty') NOT NULL default 'line',
   `name` varchar(36) default NULL,
   `options` varchar(100) default NULL,
-  PRIMARY KEY  (`device`,`instance`,`type`),
-  KEY `device` (`device`),
-  FOREIGN KEY (device) REFERENCES sccpdevice(name) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=INNODB DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+  PRIMARY KEY  (`ref`,`reftype`,`instance`,`buttontype`),
+  KEY `ref` (`ref`,`reftype`),
+--  FOREIGN KEY (device) REFERENCES sccpdevice(name) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=INNODB DEFAULT CHARSET=latin1;
 
-
---
 -- trigger to check buttonconfig sccpline foreign key constrainst:
 --   if type=='line' then check name against sccpline.name column
 --   else free field
 --
 DROP TRIGGER IF EXISTS trg_buttonconfig;
-
 DELIMITER $$
-CREATE TRIGGER trg_buttonconfig BEFORE INSERT ON buttonconfig
+CREATE TRIGGER trg_buttonconfig BEFORE INSERT ON sccpbuttonconfig
 FOR EACH ROW
 BEGIN
-	IF NEW.`type` = 'line' THEN
+	IF NEW.`reftype` = 'sccpdevice' THEN
+		IF (SELECT COUNT(*) FROM `sccpdevice` WHERE `sccpdevice`.`name` = NEW.`ref`) = 0
+		THEN
+			UPDATE `Foreign key contraint violated: ref does not exist in sccpdevice` SET x=1;
+		END IF;
+	ELSE IF NEW.`reftype` = 'sccpuser' THEN
+		IF (SELECT COUNT(*) FROM `sccpuser` WHERE `sccpuser`.`name` = NEW.`ref`) = 0
+		THEN
+			UPDATE `Foreign key contraint violated: ref does not exist in sccpuser` SET x=1;
+		END IF;
+	END IF;
+	IF NEW.`buttontype` = 'line' THEN
 		IF (SELECT COUNT(*) FROM `sccpline` WHERE `sccpline`.`name` = NEW.`name`) = 0
 		THEN
 			UPDATE `Foreign key contraint violated: line does not exist in sccpline` SET x=1;
@@ -146,12 +169,23 @@ DELIMITER ;
 CREATE OR REPLACE
 ALGORITHM = MERGE
 VIEW sccpdeviceconfig AS
-	SELECT GROUP_CONCAT( CONCAT_WS( ',', buttonconfig.type, buttonconfig.name, buttonconfig.options )
-	ORDER BY instance ASC
-	SEPARATOR ';' ) AS button, sccpdevice.*
+	SELECT GROUP_CONCAT( CONCAT_WS( ',', sccpbuttonconfig.type, sccpbuttonconfig.name, sccpbuttonconfig.options )
+	ORDER BY instance ASC SEPARATOR ';' ) AS sccpbutton, sccpdevice.*
 	FROM sccpdevice
-	LEFT JOIN buttonconfig ON ( buttonconfig.device = sccpdevice.name )
+	LEFT JOIN sccpbuttonconfig ON ( 
+	  sccpbuttonconfig.reftype = 'sccpdevice' AND
+	  sccpbuttonconfig.ref = sccpdevice.name )
 GROUP BY sccpdevice.name;
 
+CREATE OR REPLACE
+ALGORITHM = MERGE
+VIEW sccpuserconfig AS
+	SELECT GROUP_CONCAT( CONCAT_WS( ',', sccpbuttonconfig.buttontype as type, sccpbuttonconfig.name, sccpbuttonconfig.options )
+	ORDER BY instance ASC SEPARATOR ';' ) AS button, sccpuser.*
+	FROM sccpuser
+	LEFT JOIN sccpbuttonconfig ON (
+	    sccpbuttonconfig.reftype = 'sccpuser' AND
+            sccpbuttonconfig.ref = sccpuser.id)
+GROUP BY sccpdevice.name;
 
 

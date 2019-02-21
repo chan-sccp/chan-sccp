@@ -31,6 +31,7 @@ typedef enum {
 	SCCP_CONFIG_GLOBAL_SEGMENT,
 	SCCP_CONFIG_DEVICE_SEGMENT,
 	SCCP_CONFIG_LINE_SEGMENT,
+	SCCP_CONFIG_USER_SEGMENT,
 	SCCP_CONFIG_SOFTKEY_SEGMENT,
 } sccp_config_segment_t;
 
@@ -62,6 +63,7 @@ SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyGlobalConfigurati
 SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyLineConfiguration(sccp_line_t * l, PBX_VARIABLE_TYPE * v);
 SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyDeviceConfiguration(sccp_device_t * d, PBX_VARIABLE_TYPE * v);
 SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyDeviceDefaults(sccp_device_t * device, PBX_VARIABLE_TYPE * variable);
+SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyUserConfiguration(sccp_user_t * u, PBX_VARIABLE_TYPE * v);
 
 SCCP_API void SCCP_CALL sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name);
 SCCP_API void SCCP_CALL sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device);
