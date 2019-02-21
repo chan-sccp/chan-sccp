@@ -22,6 +22,7 @@
 #include "sccp_device.h"
 #include "sccp_globals.h"
 #include "sccp_line.h"
+#include "sccp_user.h"
 #include "sccp_netsock.h"
 #include "sccp_mwi.h"
 #include "sccp_session.h"	// use __constructor__ to remove this entry
@@ -109,6 +110,7 @@ boolean_t sccp_prePBXLoad(void)
 	SCCP_RWLIST_HEAD_INIT(&GLOB(sessions));
 	SCCP_RWLIST_HEAD_INIT(&GLOB(devices));
 	SCCP_RWLIST_HEAD_INIT(&GLOB(lines));
+	SCCP_RWLIST_HEAD_INIT(&GLOB(users));
 
 	GLOB(general_threadpool) = sccp_threadpool_init(THREADPOOL_MIN_SIZE);
 
@@ -218,6 +220,7 @@ int sccp_preUnload(void)
 {
 	sccp_device_t *d = NULL;
 	sccp_line_t *l = NULL;
+	sccp_user_t *u = NULL;
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 
@@ -268,6 +271,16 @@ int sccp_preUnload(void)
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
 	if (SCCP_RWLIST_EMPTY(&GLOB(lines))) {
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(lines));
+	}
+
+	/* removing users */
+	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(users), u, list) {
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_4 "SCCP: Removing user %s\n", u->name);
+		sccp_user_clean(u, TRUE);
+	}
+	SCCP_RWLIST_TRAVERSE_SAFE_END;
+	if (SCCP_RWLIST_EMPTY(&GLOB(users))) {
+		SCCP_RWLIST_HEAD_DESTROY(&GLOB(users));
 	}
 	iVoicemail.stopModule();
 	usleep(100);												// wait for events to finalize

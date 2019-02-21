@@ -53,6 +53,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 
 #include "sccp_device.h"
 #include "sccp_line.h"
+#include "sccp_user.h"
 #include "sccp_session.h"
 #include "sccp_conference.h"
 #include "sccp_utils.h"
@@ -75,6 +76,7 @@ typedef enum sccp_cli_completer {
 	SCCP_CLI_CONFERENCE_COMPLETER,
 	SCCP_CLI_DEBUG_COMPLETER,
 	SCCP_CLI_SET_COMPLETER,
+	SCCP_CLI_USER_COMPLETER,
 } sccp_cli_completer_t;
 
 static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, OLDCONST char *word, int pos, int state);
@@ -441,6 +443,9 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
 			break;
 		case SCCP_CLI_SET_COMPLETER:
 			completerStr = sccp_complete_set(line, word, pos, state);
+			break;
+		case SCCP_CLI_USER_COMPLETER:
+			completerStr = sccp_complete_user(line, word, pos, state);
 			break;
 	}
 	return completerStr;
@@ -891,44 +896,45 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_BOOL("conflist_active",		CLI_AMI_LIST_WIDTH, d->conferencelist_active);
 #endif
 	CLI_AMI_OUTPUT_PARAM("CallHistory Answered Elsewhere", CLI_AMI_LIST_WIDTH, "%s", skinny_callHistoryDisposition2str(d->callhistory_answered_elsewhere));
+	CLI_AMI_OUTPUT_PARAM("Extension Mobility",	CLI_AMI_LIST_WIDTH, "%s", d->userid);
 	if (s) {
 		astman_append(s, "\r\n");
 	}
 
 	/* *INDENT-ON* */
-	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
+	if (SCCP_LIST_FIRST(&d->buttondefinition)) {
 		// BUTTONS
 #define CLI_AMI_TABLE_NAME Buttons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceButton
 #define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_buttonconfig_t
-#define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
-#define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
+#define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttondefinition
+#define CLI_AMI_TABLE_LIST_ITER_VAR buttondef
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 #define CLI_AMI_TABLE_FIELDS 																\
-			CLI_AMI_TABLE_FIELD(Id,			"-4",	d,		4,	buttonconfig->index + 1)				\
-			CLI_AMI_TABLE_FIELD(Inst,		"-4",	d,		4,	buttonconfig->instance)					\
-			CLI_AMI_TABLE_FIELD(TypeStr,		"-40",	s,		40,	sccp_config_buttontype2str(buttonconfig->type))		\
-			CLI_AMI_TABLE_FIELD(Type,		"-37",	d,		37,	buttonconfig->type)					\
-			CLI_AMI_TABLE_FIELD(pendUpdt,		"-8",	s,		8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
-			CLI_AMI_TABLE_FIELD(pendDel,		"-8",	s,		8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
-			CLI_AMI_TABLE_FIELD(Default,		"-9",	s,		9,	(0!=buttonconfig->instance && d->defaultLineInstance == buttonconfig->instance && LINE==buttonconfig->type) ? "Yes" : "No")
+			CLI_AMI_TABLE_FIELD(Id,			"-4",	d,		4,	buttondef->index + 1)					\
+			CLI_AMI_TABLE_FIELD(Inst,		"-4",	d,		4,	buttondef->instance)					\
+			CLI_AMI_TABLE_FIELD(TypeStr,		"-40",	s,		40,	sccp_config_buttontype2str(buttondef->type))		\
+			CLI_AMI_TABLE_FIELD(Type,		"-37",	d,		37,	buttondef->type)					\
+			CLI_AMI_TABLE_FIELD(pendUpdt,		"-8",	s,		8, 	buttondef->pendingUpdate ? "Yes" : "No")		\
+			CLI_AMI_TABLE_FIELD(pendDel,		"-8",	s,		8, 	buttondef->pendingUpdate ? "Yes" : "No")		\
+			CLI_AMI_TABLE_FIELD(Default,		"-9",	s,		9,	(0!=buttondef->instance && d->defaultLineInstance == buttondef->instance && LINE==buttondef->type) ? "Yes" : "No")
 #include "sccp_cli_table.h"
 			local_table_total++;
 		// LINES
 #define CLI_AMI_TABLE_NAME LineButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceLine
-#define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
-#define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
+#define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttondefinition
+#define CLI_AMI_TABLE_LIST_ITER_VAR buttondef
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_BEFORE_ITERATION 															\
-			if (buttonconfig->type == LINE) {												\
-				AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byname(buttonconfig->button.line.name, FALSE));				\
+			if (buttondef->type == LINE) {													\
+				AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byname(buttondef->button.line.name, FALSE));				\
 				char subscriptionIdBuf[21] = "";											\
-				if (buttonconfig->button.line.subscriptionId) {										\
-					snprintf(subscriptionIdBuf, 21, "(%s)%s:%s", buttonconfig->button.line.subscriptionId->replaceCid ? "=" : "+", buttonconfig->button.line.subscriptionId->number, buttonconfig->button.line.subscriptionId->name);	\
+				if (buttondef->button.line.subscriptionId) {										\
+					snprintf(subscriptionIdBuf, 21, "(%s)%s:%s", buttondef->button.line.subscriptionId->replaceCid ? "=" : "+", buttondef->button.line.subscriptionId->number, buttondef->button.line.subscriptionId->name);	\
 				}															\
 				if (l) {														\
 					AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(d, l));
@@ -940,10 +946,10 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 																\
-			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)				\
-			CLI_AMI_TABLE_UTF8_FIELD(Name,		"-23.23",	s,	23,	l->name)						\
+			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttondef->index + 1)					\
+			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	l->name)						\
 			CLI_AMI_TABLE_FIELD(SubCid,		"-21.21",	s,	21,	subscriptionIdBuf)					\
-			CLI_AMI_TABLE_UTF8_FIELD(Label,		"-37.37",	s,	37, 	buttonconfig->button.line.subscriptionId ? buttonconfig->button.line.subscriptionId->label : (l->label ? l->label : ""))	\
+			CLI_AMI_TABLE_FIELD(Label,		"-37.37",	s,	37, 	buttondef->button.line.subscriptionId ? buttondef->button.line.subscriptionId->label : (l->label ? l->label : ""))	\
 			CLI_AMI_TABLE_FIELD(CfwdType,		"-10",		s,	10, 	(linedevice && linedevice->cfwdAll.enabled ? "All" : (linedevice && linedevice->cfwdBusy.enabled ? "Busy" : "None")))	\
 			CLI_AMI_TABLE_FIELD(CfwdNumber,		"16.16",	s,	16, 	(linedevice && linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice && linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : "")))
 #include "sccp_cli_table.h"
@@ -952,63 +958,63 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 		// SPEEDDIALS
 #define CLI_AMI_TABLE_NAME SpeeddialButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceSpeeddial
-#define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
-#define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
+#define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttondefinition
+#define CLI_AMI_TABLE_LIST_ITER_VAR buttondef
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
-#define CLI_AMI_TABLE_BEFORE_ITERATION 														\
-			if (buttonconfig->type == SPEEDDIAL) {											
+#define CLI_AMI_TABLE_BEFORE_ITERATION 															\
+			if (buttondef->type == SPEEDDIAL) {
 			
-#define CLI_AMI_TABLE_AFTER_ITERATION 														\
+#define CLI_AMI_TABLE_AFTER_ITERATION 															\
 			}
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 															\
-			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
-			CLI_AMI_TABLE_UTF8_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label ? buttonconfig->label : "")				\
-			CLI_AMI_TABLE_FIELD(Number,		"-22.22",	s,	22,	buttonconfig->button.speeddial.ext ? buttonconfig->button.speeddial.ext : "")		\
-			CLI_AMI_TABLE_FIELD(Hint,		"-64.64",	s,	64, 	buttonconfig->button.speeddial.hint ? buttonconfig->button.speeddial.hint : "")
+#define CLI_AMI_TABLE_FIELDS 																\
+			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttondef->index + 1)					\
+			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttondef->label ? buttondef->label : "")		\
+			CLI_AMI_TABLE_FIELD(Number,		"-22.22",	s,	22,	buttondef->button.speeddial.ext ? buttondef->button.speeddial.ext : "")	\
+			CLI_AMI_TABLE_FIELD(Hint,		"-64.64",	s,	64, 	buttondef->button.speeddial.hint ? buttondef->button.speeddial.hint : "")
 #include "sccp_cli_table.h"
 			local_table_total++;
 
 		// FEATURES
 #define CLI_AMI_TABLE_NAME FeatureButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceFeature
-#define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
-#define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
+#define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttondefinition
+#define CLI_AMI_TABLE_LIST_ITER_VAR buttondef
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
-#define CLI_AMI_TABLE_BEFORE_ITERATION 														\
-			if (buttonconfig->type == FEATURE) {
-#define CLI_AMI_TABLE_AFTER_ITERATION 														\
+#define CLI_AMI_TABLE_BEFORE_ITERATION 															\
+			if (buttondef->type == FEATURE) {
+#define CLI_AMI_TABLE_AFTER_ITERATION 															\
 			}
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 															\
-			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
-			CLI_AMI_TABLE_UTF8_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label ? buttonconfig->label : "")				\
-			CLI_AMI_TABLE_FIELD(Status,		"-22",		d,	22, 	buttonconfig->button.feature.status)		\
-			CLI_AMI_TABLE_FIELD(Options,		"-64.64",	s,	64,	buttonconfig->button.feature.options ? buttonconfig->button.feature.options : "")
+#define CLI_AMI_TABLE_FIELDS 																\
+			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttondef->index + 1)					\
+			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttondef->label ? buttondef->label : "")		\
+			CLI_AMI_TABLE_FIELD(Status,		"-22",		d,	22, 	buttondef->button.feature.status)			\
+			CLI_AMI_TABLE_FIELD(Options,		"-64.64",	s,	64,	buttondef->button.feature.options ? buttondef->button.feature.options : "")
 #include "sccp_cli_table.h"
 			local_table_total++;
 
 		// SERVICEURL
 #define CLI_AMI_TABLE_NAME ServiceURLButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceServiceURL
-#define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
-#define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
+#define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttondefinition
+#define CLI_AMI_TABLE_LIST_ITER_VAR buttondef
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
-#define CLI_AMI_TABLE_BEFORE_ITERATION 														\
-			if (buttonconfig->type == SERVICE) {
-#define CLI_AMI_TABLE_AFTER_ITERATION 														\
+#define CLI_AMI_TABLE_BEFORE_ITERATION 															\
+			if (buttondef->type == SERVICE) {
+#define CLI_AMI_TABLE_AFTER_ITERATION 															\
 			}
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 															\
-			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
-			CLI_AMI_TABLE_UTF8_FIELD(Name,		"-22.22",	s,	22,	buttonconfig->label ? buttonconfig->label : "")				\
-			CLI_AMI_TABLE_FIELD(URL,		"-88.88",	s,	88,	buttonconfig->button.service.url ? buttonconfig->button.service.url : "")
+#define CLI_AMI_TABLE_FIELDS 																\
+			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttondef->index + 1)					\
+			CLI_AMI_TABLE_FIELD(Name,		"-22.22",	s,	22,	buttondef->label ? buttondef->label : "")		\
+			CLI_AMI_TABLE_FIELD(URL,		"-88.88",	s,	88,	buttondef->button.service.url ? buttondef->button.service.url : "")
 #include "sccp_cli_table.h"
 			local_table_total++;
 	}
@@ -1018,8 +1024,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_NAME Variables
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Variable
 #define CLI_AMI_TABLE_ITERATOR for(v = d->variables;v;v = v->next)
-#define CLI_AMI_TABLE_FIELDS 															\
-			CLI_AMI_TABLE_FIELD(Name,		"-28.28",	s,	28,	v->name)					\
+#define CLI_AMI_TABLE_FIELDS 																\
+			CLI_AMI_TABLE_FIELD(Name,		"-28.28",	s,	28,	v->name)						\
 			CLI_AMI_TABLE_FIELD(Value,		"-87.87",	s,	87,	v->value)
 #include "sccp_cli_table.h"
 			local_table_total++;
@@ -1546,8 +1552,43 @@ CLI_AMI_ENTRY(show_sessions, sccp_cli_show_sessions, "Show all SCCP sessions", c
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* ---------------------------------------------------------------------------------------------SHOW_MWI_SUBSCRIPTIONS- */
-    // sccp_show_mwi_subscriptions implementation moved to sccp_mwi.c, because of access to private struct
+
+/* --------------------------------------------------------------------------------------------------------SHOW USERS- */
+static char cli_users_usage[] = "Usage: sccp show users\n" "       Lists defined SCCP users.\n";
+static char ami_users_usage[] = "Usage: SCCPShowUsers\n" "Lists defined SCCP users.\n\n" "PARAMS: None\n";
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#define CLI_COMMAND "sccp", "show", "users"
+#define AMI_COMMAND "SCCPShowUsers"
+#define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
+#define CLI_AMI_PARAMS ""
+CLI_AMI_ENTRY(show_users, sccp_show_users, "List defined SCCP users", cli_users_usage, FALSE, TRUE)
+#undef CLI_AMI_PARAMS
+#undef CLI_COMPLETE
+#undef AMI_COMMAND
+#undef CLI_COMMAND
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
+/* --------------------------------------------------------------------------------------------------------USER COMMAND- */
+static char cli_user_command_usage[] = "Usage: sccp user\n" "	user [login|logout|show|session] <userid> [deviceid].\n";
+static char ami_user_command_usage[] = "Usage: SCCPUser\n" "User Command.\n\n" "PARAMS: \n" "  Command: [loginform | login | logout | show | session]\n" "  Userid\n" "  DeviceId\n";
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#define CLI_COMMAND "sccp", "user"
+#define CLI_COMPLETE SCCP_CLI_USER_COMPLETER
+#define AMI_COMMAND "SCCPUser"
+#define CLI_AMI_PARAMS "Command","UserId", "DeviceId",
+CLI_AMI_ENTRY(user_command, sccp_user_command, "User Action", cli_user_command_usage, TRUE, FALSE)
+#undef CLI_AMI_PARAMS
+#undef CLI_COMPLETE
+#undef AMI_COMMAND
+#undef CLI_COMMAND
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
+
+
+/* ---------------------------------------------------------------------------------------------SHOW_MWI_SUBSCRIPTIONS- */
+// sccp_show_mwi_subscriptions implementation moved to sccp_mwi.c, because of access to private struct
 static char cli_mwi_subscriptions_usage[] = "Usage: sccp show mwi subscriptions\n" "	Show All SCCP MWI Subscriptions.\n";
 static char ami_mwi_subscriptions_usage[] = "Usage: SCCPShowMWISubscriptions\n" "Show All SCCP MWI Subscriptions.\n\n" "PARAMS: None\n";
 
@@ -1715,8 +1756,8 @@ static int sccp_test(int fd, int argc, char *argv[])
 			return RESULT_FAILURE;
 		}
 		if ((d = sccp_device_find_byid(argv[3], FALSE))) {
-			SCCP_LIST_LOCK(&d->buttonconfig);
-			SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+			SCCP_LIST_LOCK(d->buttonconfig);
+			SCCP_LIST_TRAVERSE(d->buttonconfig, buttonconfig, list) {
 				if (buttonconfig->type == SPEEDDIAL) {
 					instance = buttonconfig->instance;
 					REQ(msg1, SpeedDialStatDynamicMessage);
@@ -1726,7 +1767,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 					sccp_dev_send(d, msg1);
 				}
 			}
-			SCCP_LIST_UNLOCK(&d->buttonconfig);
+			SCCP_LIST_UNLOCK(d->buttonconfig);
 		}
 		return RESULT_SUCCESS;
 	}
@@ -2370,15 +2411,15 @@ static int sccp_remove_line_from_device(int fd, int argc, char *argv[])
 			sccp_buttonconfig_t *config;
 
 			d->pendingUpdate = 1;
-			SCCP_LIST_LOCK(&d->buttonconfig);
-			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
+			SCCP_LIST_LOCK(d->buttonconfig);
+			SCCP_LIST_TRAVERSE_SAFE_BEGIN(d->buttonconfig, config, list) {
 				if (config->type == LINE && sccp_strequals(config->button.line.name,line->name)) {
 					config->pendingDelete = 1;
 					pbx_cli(fd, "Found at ButtonIndex %d => Line %s, removing...\n", config->index, line->name);
 				}
 			}
 			SCCP_LIST_TRAVERSE_SAFE_END;
-			SCCP_LIST_UNLOCK(&d->buttonconfig);
+			SCCP_LIST_UNLOCK(d->buttonconfig);
 			
 			pbx_cli(fd, "Line %s has been removed from device %s. Reloading Device...\n", line->name, d->id);
 			sccp_device_check_update(d);
@@ -2428,7 +2469,7 @@ static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 			pbx_log(LOG_ERROR, "Error: Line %s not found\n", argv[4]);
 		}
  		d->pendingUpdate = 1;
-		if (sccp_config_addButton(&d->buttonconfig, -1, LINE, l->name, NULL, NULL) == SCCP_CONFIG_CHANGE_CHANGED) {
+		if (sccp_config_addButton(d->buttonconfig, -1, LINE, l->name, NULL, NULL) == SCCP_CONFIG_CHANGE_CHANGED) {
 			pbx_cli(fd, "Line %s has been added to device %s\n", l->name, d->id);
 			sccp_device_check_update(d);
 			res = RESULT_SUCCESS;
@@ -2587,12 +2628,12 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					}
 				}
 				if (v) {
-					SCCP_LIST_LOCK(&device->buttonconfig);
-					SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+					SCCP_LIST_LOCK(&device->buttondefinition);
+					SCCP_LIST_TRAVERSE(&device->buttondefinition, config, list) {
 						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: Setting Button at Index:%d to pendingDelete\n", device->id, config->index);
 						config->pendingDelete = 1;
 					}
-					SCCP_LIST_UNLOCK(&device->buttonconfig);
+					SCCP_LIST_UNLOCK(&device->buttondefinition);
 
 					change = sccp_config_applyDeviceConfiguration(device, v);
 					sccp_log((DEBUGCAT_CORE)) ("%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> skipping restart (minor changes applied)");
@@ -2661,12 +2702,12 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
 							AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(lineDevice->device));
 							if (device) {
-								SCCP_LIST_LOCK(&device->buttonconfig);
-								SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+								SCCP_LIST_LOCK(&device->buttondefinition);
+								SCCP_LIST_TRAVERSE(&device->buttondefinition, config, list) {
 									sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: Setting Button at Index:%d to pendingDelete\n", device->id, config->index);
 									config->pendingDelete = 1;
 								}
-								SCCP_LIST_UNLOCK(&device->buttonconfig);
+								SCCP_LIST_UNLOCK(&device->buttondefinition);
 #ifdef CS_SCCP_REALTIME
 								if (device->realtime) {
 									if ((dv = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL))) {
@@ -3487,6 +3528,8 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_show_device, "Show an SCCP Device"),
 	AST_CLI_DEFINE(cli_show_lines, "Show All SCCP Lines."),
 	AST_CLI_DEFINE(cli_show_line, "Show an SCCP Line."),
+	AST_CLI_DEFINE(cli_show_users, "Show all SCCP User."),
+	AST_CLI_DEFINE(cli_user_command, "SCCP User Commands."),
 	AST_CLI_DEFINE(cli_show_channels, "Show all SCCP channels."),
 	AST_CLI_DEFINE(cli_show_version, "SCCP show version."),
 	AST_CLI_DEFINE(cli_show_mwi_subscriptions, "Show all mwi subscriptions"),
@@ -3536,7 +3579,7 @@ int sccp_register_cli(void)
 	uint i, res = 0;
 
 	for (i = 0; i < ARRAY_LEN(cli_entries); i++) {
-		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_2 "Cli registered action %s\n", (cli_entries + i)->_full_cmd);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Cli registered action %s\n", (cli_entries + i)->_full_cmd);
 		res |= pbx_cli_register(cli_entries + i);
 	}
 
@@ -3552,6 +3595,8 @@ int sccp_register_cli(void)
 	res |= pbx_manager_register("SCCPShowDevice", _MAN_REP_FLAGS, manager_show_device, "show device settings", ami_device_usage);
 	res |= pbx_manager_register("SCCPShowLines", _MAN_REP_FLAGS, manager_show_lines, "show lines", ami_lines_usage);
 	res |= pbx_manager_register("SCCPShowLine", _MAN_REP_FLAGS, manager_show_line, "show line", ami_line_usage);
+	res |= pbx_manager_register("SCCPShowUsers", _MAN_REP_FLAGS, manager_show_users, "show users", ami_users_usage);
+	res |= pbx_manager_register("SCCPUser", _MAN_REP_FLAGS, manager_user_command, "user commands", ami_user_command_usage);
 	res |= pbx_manager_register("SCCPShowChannels", _MAN_REP_FLAGS, manager_show_channels, "show channels", ami_channels_usage);
 	res |= pbx_manager_register("SCCPShowSessions", _MAN_REP_FLAGS, manager_show_sessions, "show sessions", ami_sessions_usage);
 	res |= pbx_manager_register("SCCPShowMWISubscriptions", _MAN_REP_FLAGS, manager_show_mwi_subscriptions, "show mwi subscriptions", ami_mwi_subscriptions_usage);
@@ -3583,7 +3628,7 @@ int sccp_unregister_cli(void)
 	uint i, res = 0;
 
 	for (i = 0; i < ARRAY_LEN(cli_entries); i++) {
-		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_2 "Cli unregistered action %s\n", (cli_entries + i)->_full_cmd);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Cli unregistered action %s\n", (cli_entries + i)->_full_cmd);
 		res |= pbx_cli_unregister(cli_entries + i);
 	}
 	res |= pbx_manager_unregister("SCCPShowGlobals");
@@ -3591,6 +3636,8 @@ int sccp_unregister_cli(void)
 	res |= pbx_manager_unregister("SCCPShowDevice");
 	res |= pbx_manager_unregister("SCCPShowLines");
 	res |= pbx_manager_unregister("SCCPShowLine");
+	res |= pbx_manager_unregister("SCCPShowUsers");
+	res |= pbx_manager_unregister("SCCPUser");
 	res |= pbx_manager_unregister("SCCPShowChannels");
 	res |= pbx_manager_unregister("SCCPShowSessions");
 	res |= pbx_manager_unregister("SCCPShowMWISubscriptions");

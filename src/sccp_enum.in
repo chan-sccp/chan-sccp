@@ -352,6 +352,13 @@ strenum callinfo_key {
 	SCCP_CALLINFO_PRESENTATION,			,	"presentation",
 };
 
+strenum usersession_state {
+	SCCP_USERSESSION_NONE,				= 0,	"None",
+	SCCP_USERSESSION_PROGRESS,			,	"Progress",
+	SCCP_USERSESSION_LOGGEDIN,			,	"Logged In",
+	SCCP_USERSESSION_INVALID,			,	"Invalid",
+};
+
 } /* NAMESPACE sccp */
 
 namespace skinny {

@@ -43,7 +43,7 @@ typedef enum {
 	DEBUGCAT_LINE 			= 1 << 4,
 	DEBUGCAT_ACTION 		= 1 << 5,
 	DEBUGCAT_CHANNEL 		= 1 << 6,
-	DEBUGCAT_CLI 			= 1 << 7,
+	DEBUGCAT_USER 			= 1 << 7,
 	DEBUGCAT_CONFIG 		= 1 << 8,
 	DEBUGCAT_FEATURE 		= 1 << 9,
 	DEBUGCAT_FEATURE_BUTTON		= 1 << 19,

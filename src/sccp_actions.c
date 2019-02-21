@@ -542,7 +542,7 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 	if (!device && GLOB(allowAnonymous)) {
 		device = sccp_device_createAnonymous(msg_in->data.RegisterTokenRequest.sId.deviceName);
 		sccp_config_applyDeviceConfiguration(device, NULL);
-		sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
+		sccp_config_addButton(device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
 		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", deviceName, GLOB(hotline)->line->name);
 		device->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
 		sccp_device_addToGlobals(device);
@@ -730,7 +730,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 		device = sccp_device_createAnonymous(msg_in->data.SPCPRegisterTokenRequest.sId.deviceName);
 
 		sccp_config_applyDeviceConfiguration(device, NULL);
-		sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
+		sccp_config_addButton(device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
 		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, GLOB(hotline)->line->name);
 		device->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
 		sccp_device_addToGlobals(device);
@@ -856,7 +856,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 			goto FUNC_EXIT;
 		} else {
 			sccp_config_applyDeviceConfiguration(device, NULL);
-			sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
+			sccp_config_addButton(device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
 			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", deviceName, GLOB(hotline)->line->name);
 			device->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
 			sccp_device_addToGlobals(device);
@@ -1039,8 +1039,8 @@ static btnlist *sccp_make_button_template(devicePtr d)
 	boolean_t defaultLineSet = FALSE;
 
 	if (!d->isAnonymous) {
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+		SCCP_LIST_LOCK(d->buttonconfig);
+		SCCP_LIST_TRAVERSE(d->buttonconfig, buttonconfig, list) {
 			//sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "\n%s: searching for position of button type %d\n", DEV_ID_LOG(d), buttonconfig->type);
 
 			if (buttonconfig->instance > 0) {
@@ -1267,10 +1267,10 @@ static btnlist *sccp_make_button_template(devicePtr d)
 			}
 			//sccp_log_and((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured %d Phone Button [%.2d] = %s(%d), label:%s\n", d->id, buttonconfig->index + 1, buttonconfig->instance, skinny_buttontype2str(btn[i].type), btn[i].type, buttonconfig->label);
 		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		SCCP_LIST_UNLOCK(d->buttonconfig);
 	} else {
 		/* reserve one line as hotline */
-		buttonconfig = SCCP_LIST_FIRST(&d->buttonconfig);
+		buttonconfig = SCCP_LIST_FIRST(d->buttonconfig);
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
 		btn[i].ptr = sccp_line_retain(GLOB(hotline)->line);
 		buttonconfig->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
@@ -1486,7 +1486,7 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 	sccp_buttonconfig_t *config;
 
 	//sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_SPEEDDIAL)) (VERBOSE_PREFIX_3 "%s: configure unconfigured speeddialbuttons \n", d->id);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+	SCCP_LIST_TRAVERSE(d->buttonconfig, config, list) {
 		/* we found an unconfigured speeddial */
 		if (config->type == SPEEDDIAL && config->instance == 0) {
 			config->instance = speeddialInstance++;
@@ -1530,8 +1530,8 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 
 	char displayName[SCCP_MAX_LABEL + 1];
 	if (l) {
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+		SCCP_LIST_LOCK(d->buttonconfig);
+		SCCP_LIST_TRAVERSE(d->buttonconfig, config, list) {
 			if (config->type == LINE && config->instance == lineNumber) {
 				if (config->button.line.subscriptionId && !sccp_strlen_zero(config->button.line.subscriptionId->label)) {
 					if (config->button.line.subscriptionId->replaceCid) {
@@ -1545,7 +1545,7 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 				break;
 			}
 		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		SCCP_LIST_UNLOCK(d->buttonconfig);
 	} else {
 		snprintf(displayName, SCCP_MAX_LABEL, "%s", k.name);
 	}
@@ -1554,8 +1554,8 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 
 	if (l) {
 		/* set default line on device if based on "default" config option */
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+		SCCP_LIST_LOCK(d->buttonconfig);
+		SCCP_LIST_TRAVERSE(d->buttonconfig, config, list) {
 			if (config->type == LINE && config->instance == lineNumber) {
 				if (config->button.line.options && strcasestr(config->button.line.options, "default")) {
 					d->defaultLineInstance = lineNumber;
@@ -1564,7 +1564,7 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 				break;
 			}
 		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		SCCP_LIST_UNLOCK(d->buttonconfig);
 	}
 }
 
@@ -2114,7 +2114,7 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 
 	sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: instance: %d, toggle: %s\n", d->id, instance, (toggleState) ? "yes" : "no");
 
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+	SCCP_LIST_TRAVERSE(d->buttonconfig, config, list) {
 		if (config->instance == instance && config->type == FEATURE) {
 			// sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: toggle status from %d\n", d->id, config->button.feature.status);
 			// config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
@@ -2177,7 +2177,7 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 				}
 			}
 
-			SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+			SCCP_LIST_TRAVERSE(d->buttonconfig, config, list) {
 				if (config->type == LINE) {
 					AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byname(config->button.line.name, FALSE));
 
@@ -2751,7 +2751,7 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 	/* look for line trnsvm */
 	sccp_buttonconfig_t *buttonconfig;
 
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+	SCCP_LIST_TRAVERSE(d->buttonconfig, buttonconfig, list) {
 		if (buttonconfig->type == LINE) {
 			AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byname(buttonconfig->button.line.name, FALSE));
 
@@ -3903,15 +3903,15 @@ void handle_ConfigStatMessage(constSessionPtr s, devicePtr d, constMessagePtr ms
 	uint8_t lines = 0;
 	uint8_t speeddials = 0;
 
-	SCCP_LIST_LOCK(&d->buttonconfig);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+	SCCP_LIST_LOCK(d->buttonconfig);
+	SCCP_LIST_TRAVERSE(d->buttonconfig, config, list) {
 		if (config->type == SPEEDDIAL) {
 			speeddials++;
 		} else if (config->type == LINE) {
 			lines++;
 		}
 	}
-	SCCP_LIST_UNLOCK(&d->buttonconfig);
+	SCCP_LIST_UNLOCK(d->buttonconfig);
 
 	REQ(msg_out, ConfigStatMessage);
 	sccp_copy_string(msg_out->data.ConfigStatMessage.station_identifier.deviceName, d->id, sizeof(msg_out->data.ConfigStatMessage.station_identifier.deviceName));
@@ -4051,7 +4051,7 @@ void handle_feature_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 	}
 #endif
 
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+	SCCP_LIST_TRAVERSE(d->buttonconfig, config, list) {
 		if (config->instance == featureIndex && config->type == FEATURE) {
 			sccp_feat_changed(d, NULL, config->button.feature.id);
 		}

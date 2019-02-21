@@ -1712,7 +1712,7 @@ char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos
 	uint i = 0;
 	char *ret = NULL;
 	char tmpname[21];
-	char *actions[5] = { "EndConf", "Kick", "Mute", "Invite", "Moderate" };
+	char *actions[] = { "EndConf", "Kick", "Mute", "Invite", "Moderate" };
 
 	switch (pos) {
 		case 2:											// action

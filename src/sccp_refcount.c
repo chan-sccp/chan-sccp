@@ -73,6 +73,7 @@ static struct sccp_refcount_obj_info {
 	[SCCP_REF_CHANNEL] = {NULL, "channel", DEBUGCAT_CHANNEL},
 	[SCCP_REF_LINEDEVICE] = {NULL, "linedevice", DEBUGCAT_LINE},
 	[SCCP_REF_LINE] = {NULL, "line", DEBUGCAT_LINE},
+	[SCCP_REF_USER] = {NULL, "user", DEBUGCAT_USER},
 	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
 #if CS_TEST_FRAMEWORK
 	[SCCP_REF_TEST] = {NULL, "test", DEBUGCAT_HIGH},

@@ -27,7 +27,7 @@ struct sccp_debug_category const sccp_debug_categories[32] = {
 	{"line",		"line debug level", 			DEBUGCAT_LINE},
 	{"action",		"action debug level", 			DEBUGCAT_ACTION},
 	{"channel",		"channel debug level", 			DEBUGCAT_CHANNEL},
-	{"cli",			"cli debug level", 			DEBUGCAT_CLI},
+	{"user",		"user debug level", 			DEBUGCAT_USER},
 	{"config",		"config debug level", 			DEBUGCAT_CONFIG},
 	{"feature",		"feature debug level", 			DEBUGCAT_FEATURE},
 	{"feature_button",	"feature_button debug level",		DEBUGCAT_FEATURE_BUTTON},
