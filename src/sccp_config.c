@@ -550,17 +550,15 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 					}
 					break;
 				case 2:
-					if (sscanf(tmp_value, "%u", &uint16num) == 1) {
+					if ((!strncmp("0x", tmp_value, 2) && sscanf(tmp_value, "%ux", &uint16num)) || (sscanf(tmp_value, "%u", &uint16num) == 1)) {
 						if ((*(uint16_t *) dst) != uint16num) {
 							*(uint16_t *) dst = uint16num;
 							changed = SCCP_CONFIG_CHANGE_CHANGED;
 						}
 					}
-					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "SCCP: (sccp_config_object_setValue) Set uint16_t:%d\n", *(uint16_t *) dst);
-					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "SCCP: (sccp_config_object_setValue) Set uint16_t:%d\n", GLOB(keepalive));
 					break;
 				case 4:
-					if (sscanf(tmp_value, "%lu", &uint32num) == 1) {
+					if ((!strncmp("0x", tmp_value, 2) && sscanf(tmp_value, "%lx", &uint32num)) || (sscanf(tmp_value, "%lu", &uint32num) == 1)) {
 						if ((*(uint32_t *) dst) != uint32num) {
 							*(uint32_t *) dst = uint32num;
 							changed = SCCP_CONFIG_CHANGE_CHANGED;
@@ -568,7 +566,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 					}
 					break;
 				case 8:
-					if (sscanf(tmp_value, "%llu", &uint64num) == 1) {
+					if ((!strncmp("0x", tmp_value, 2) && sscanf(tmp_value, "%llx", &uint64num)) || (sscanf(tmp_value, "%llu", &uint64num) == 1)) {
 						if ((*(uint64_t *) dst) != uint64num) {
 							*(uint64_t *) dst = uint64num;
 							changed = SCCP_CONFIG_CHANGE_CHANGED;
@@ -644,6 +642,10 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 								enumValue = sccpConfigOption->str2intval("False");
 							}
 						}
+					} else if (!strncmp("0x", value, 2) && sscanf(value, "%x", &enumValue)) {
+						sccp_log(DEBUGCAT_HIGH) ("SCCP: Parse Other Value: %s -> %d\n", value, enumValue);
+					} else if (sscanf(value, "%d", &enumValue)) {
+						sccp_log(DEBUGCAT_HIGH) ("SCCP: Parse Other Value: %s -> %d\n", value, enumValue);
 					} else if ((enumValue = sccpConfigOption->str2intval(value)) != -1) {
 						sccp_log(DEBUGCAT_HIGH) ("SCCP: Parse Other Value: %s -> %d\n", value, enumValue);
 					}

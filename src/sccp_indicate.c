@@ -111,6 +111,13 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				int lenDialed = sccp_strlen(c->dialedNumber);
 				int lenSecDialtoneDigits = sccp_strlen(l->secondary_dialtone_digits);
 				skinny_tone_t secondary_dialtone_tone = l->secondary_dialtone_tone;
+				sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s: digitsfollow: dialed:%s, lenDialed:%d, secDialtoneDigits:%s, lenSecDialtoneDigits:%d, secondary_dialtine:%d\n", 
+					c->designator,
+					c->dialedNumber,
+					lenDialed,
+					l->secondary_dialtone_digits,
+					lenSecDialtoneDigits,
+					secondary_dialtone_tone);
 				if (lenSecDialtoneDigits > 0 && lenDialed == lenSecDialtoneDigits && !strncmp(c->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {
 					sccp_dev_starttone(d, secondary_dialtone_tone, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 				} else if (lenDialed > 0) {

@@ -59,16 +59,16 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"simulate_enbloc",	 	G_OBJ_REF(simulate_enbloc), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Use simulated enbloc dialing to speedup connection when dialing while onhook (older phones)\n"},
 	{"ringtype",		 	G_OBJ_REF(ringtype),			TYPE_ENUM(skinny,ringtype),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"outside",			"Ringtype for incoming calls (default='outside')\n"},
 	{"autoanswer_ring_time", 	G_OBJ_REF(autoanswer_ring_time),	TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"1",				"Ringing time in seconds for the autoanswer.\n"},
-	{"autoanswer_tone", 		G_OBJ_REF(autoanswer_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x32",				"Autoanswer confirmation tone. For a complete list of tones: grep SKINNY_TONE sccp_protocol.h\n"
+	{"autoanswer_tone", 		G_OBJ_REF(autoanswer_tone), 		TYPE_ENUM(skinny,tone),								SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"Zip",				"Autoanswer confirmation tone. For a complete list of tones: grep SKINNY_TONE sccp_protocol.h\n"
 																														  							"not all the tones can be played in a connected state, so you have to try.\n"},
-	{"remotehangup_tone", 		G_OBJ_REF(remotehangup_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x32",				"Passive hangup notification. 0 for none\n"},
+	{"remotehangup_tone", 		G_OBJ_REF(remotehangup_tone), 		TYPE_ENUM(skinny,tone),								SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"Zip",				"Passive hangup notification. 0 for none\n"},
 	{"transfer", 			G_OBJ_REF(transfer),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"enable or disable the transfer capability. It does remove the transfer softkey (you can do that manually)\n"},
-	{"transfer_tone", 		G_OBJ_REF(transfer_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0",				"Confirmation tone on transfer. Works only between SCCP devices\n"},
+	{"transfer_tone", 		G_OBJ_REF(transfer_tone), 		TYPE_ENUM(skinny,tone),								SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0",				"Confirmation tone on transfer. Works only between SCCP devices\n"},
 	{"transfer_on_hangup",		G_OBJ_REF(transfer_on_hangup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Complete transfer on hangup, without pressing transfer a second time.\n"
 																																					"Will complete transfer, when the transferer puts the receiver on hook, after the destination has been reached.\n"
 																																					"To cancel the transfer, either press resume on the transfered channel, press the 'endcall' softkey, or have the receiving party hangup first.\n"},
-	{"dnd_tone", 			G_OBJ_REF(dnd_tone),	 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x0",				"Sets to 0 to disable the dnd tone\n"},
-	{"callwaiting_tone", 		G_OBJ_REF(callwaiting_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x2d",				"Sets to 0 to disable the callwaiting tone\n"},
+	{"dnd_tone", 			G_OBJ_REF(dnd_tone),	 		TYPE_ENUM(skinny,tone),								SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"Silence",			"Sets to 0 to disable the dnd tone\n"},
+	{"callwaiting_tone", 		G_OBJ_REF(callwaiting_tone), 		TYPE_ENUM(skinny,tone),								SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"Call Waiting Tone",		"Sets to 0 to disable the callwaiting tone\n"},
 	{"callwaiting_interval", 	G_OBJ_REF(callwaiting_interval),	TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0",				"Callwaiting ring interval in seconds. Set to 0 to disable the callwaiting ringing interval.\n"},
 	{"musicclass", 			G_OBJ_REF(musicclass), 			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"default",			"Sets the default music on hold class\n"},
 	{"language", 			G_OBJ_REF(language), 			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"en",				"Default language setting\n"},
@@ -306,7 +306,7 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 	{"parkinglot",			L_OBJ_REF(parkinglot),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"parkinglot assigned to this line\n"},
 	{"trnsfvm",			L_OBJ_REF(trnsfvm),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"extension to redirect the caller to for voice mail\n"},
 	{"secondary_dialtone_digits",	L_OBJ_REF(secondary_dialtone_digits),	TYPE_PARSER(sccp_config_parse_secondaryDialtoneDigits),				SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"digits to indicate an external line to user (secondary dialtone) (max 9 digits)\n"},
-	{"secondary_dialtone_tone",	L_OBJ_REF(secondary_dialtone_tone),	TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x22",				"outside dialtone frequency\n"},
+	{"secondary_dialtone_tone",	L_OBJ_REF(secondary_dialtone_tone),	TYPE_ENUM(skinny,tone),								SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"Outside Dial Tone",		"outside dialtone frequency\n"},
 	{"setvar",			L_OBJ_REF(variables),			TYPE_PARSER(sccp_config_parse_variables),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)\n"
 																																					"format setvar=param=value, for example setvar=sipno=12345678\n"},
 	{"dnd",				L_OBJ_REF(dndmode),			TYPE_ENUM(sccp,dndmode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"allow setting dnd action for this line. Valid values are 'off', 'reject' (busy signal), 'silent' (ringer = silent) or 'user' (not used at the moment). . The value 'on' has been made obsolete in favor of 'reject'\n"},
