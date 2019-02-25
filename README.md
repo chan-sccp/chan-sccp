@@ -56,6 +56,18 @@ _Note: When you are making changes to configure.ac, autoconf / or Makefile.am fi
 ### Build and Install
     make -j2 && make install && make reload
 
+### Required Asterisk Modules
+
+Make sure you have the following asterisk modules loaded before loading the chan_sccp
+module:
+ - app_voicemail
+ - bridge_simple
+ - bridge_native_rtp
+ - bridge_softmix
+ - bridge_holding
+ - res_stasis
+ - res_stasis_device_state
+
 ### Binaries
 We also provide prebuild binaries for:
 - [Ubuntu Lauchpad (PPA)](https://launchpad.net/~chan-sccp-b/+archive/ubuntu/ppa)
