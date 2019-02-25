@@ -39,16 +39,16 @@ permit = internal                                                               
 ;simulate_enbloc = yes                                                            ; Use simulated enbloc dialing to speedup connection when dialing while onhook (older phones)
 ;ringtype = outside								  ; Ringtype for incoming calls (default='outside')
 ;autoanswer_ring_time = 1                                                         ; Ringing time in seconds for the autoanswer.
-;autoanswer_tone = 0x32                                                           ; Autoanswer confirmation tone. For a complete list of tones: grep SKINNY_TONE sccp_protocol.h
+;autoanswer_tone = Zip                                                            ; Autoanswer confirmation tone. For a complete list of tones: `grep SKINNY_TONE_ sccp_enum.in`
                                                                                   ; not all the tones can be played in a connected state, so you have to try.
-;remotehangup_tone = 0x32                                                         ; Passive hangup notification. 0 for none
+;remotehangup_tone = Zip                                                          ; Passive hangup notification. 0 for none
 ;transfer=on 									  ; Allow the use of the transfer feature. Default is "on". This will not remove the softkey (you can do that manually)
 ;transfer_tone = 0                                                                ; Confirmation tone on transfer. Works only between SCCP devices
 ;transfer_on_hangup = no                                                          ; Complete transfer on hangup, without pressing transfer a second time.
                                                                                   ; Will complete transfer, when the transferer puts the receiver on hook, after the destination has been reached.
                                                                                   ; To cancel the transfer, either press resume on the transfered channel, press the 'endcall' softkey, or have the receiving party hangup first.
-;dnd_tone = 0x0								          ; Use 0x2D, 0x31, 0x32, 0x33 to activate dnd incoming call indication when dnd silent is active
-;callwaiting_tone = 0x2d                                                          ; Sets to 0 to disable the callwaiting tone
+;dnd_tone = Silence							          ; Use 0x2D, 0x31, 0x32, 0x33 to activate dnd incoming call indication when dnd silent is active
+;callwaiting_tone = Call Waiting Tone                                             ; Sets to 0 to disable the callwaiting tone
 ;callwaiting_interval = 0                                                         ; Callwaiting ring interval in seconds. Set to 0 to disable the callwaiting ringing interval.
 ;musicclass = default                                                             ; Sets the default music on hold class
 ;language = en                                                                    ; Default language setting
@@ -260,7 +260,7 @@ namedpickupgroup = ""                                                           
 parkinglot = ""                                                                   ; parkinglot assigned to this line
 trnsfvm = ""                                                                      ; extension to redirect the caller to for voice mail
 secondary_dialtone_digits = ""                                                    ; digits to indicate an external line to user (secondary dialtone) (max 9 digits)
-;secondary_dialtone_tone = 0x22                                                   ; outside dialtone frequency
+;secondary_dialtone_tone = Outside Dial Tone                                      ; outside dialtone frequency
 setvar = ""                                                                       ; (MULTI-ENTRY) extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)
                                                                                   ; format setvar=param=value, for example setvar=sipno=12345678
 dnd = ""                                                                          ; allow setting dnd action for this line. Valid values are 'off', 'reject' (busy signal), 'silent' (ringer = silent) or 'user' (not used at the moment). . The value 'on' has been made obsolete in favor of 'reject'

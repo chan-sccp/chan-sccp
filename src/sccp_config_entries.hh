@@ -59,7 +59,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"simulate_enbloc",	 	G_OBJ_REF(simulate_enbloc), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Use simulated enbloc dialing to speedup connection when dialing while onhook (older phones)\n"},
 	{"ringtype",		 	G_OBJ_REF(ringtype),			TYPE_ENUM(skinny,ringtype),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"outside",			"Ringtype for incoming calls (default='outside')\n"},
 	{"autoanswer_ring_time", 	G_OBJ_REF(autoanswer_ring_time),	TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"1",				"Ringing time in seconds for the autoanswer.\n"},
-	{"autoanswer_tone", 		G_OBJ_REF(autoanswer_tone), 		TYPE_ENUM(skinny,tone),								SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"Zip",				"Autoanswer confirmation tone. For a complete list of tones: grep SKINNY_TONE sccp_protocol.h\n"
+	{"autoanswer_tone", 		G_OBJ_REF(autoanswer_tone), 		TYPE_ENUM(skinny,tone),								SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"Zip",				"Autoanswer confirmation tone. For a complete list of tones: `grep SKINNY_TONE_ sccp_enum.in.`\n"
 																														  							"not all the tones can be played in a connected state, so you have to try.\n"},
 	{"remotehangup_tone", 		G_OBJ_REF(remotehangup_tone), 		TYPE_ENUM(skinny,tone),								SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"Zip",				"Passive hangup notification. 0 for none\n"},
 	{"transfer", 			G_OBJ_REF(transfer),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"enable or disable the transfer capability. It does remove the transfer softkey (you can do that manually)\n"},
