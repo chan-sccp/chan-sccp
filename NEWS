@@ -2,6 +2,9 @@ Version: v4.3.2_DEV
 =====================
  - Fixed:
    - One way audio issues
+   - Congestion signallling after EndCall Softkey
+   - Rtp receive channel left open after call hangup -> causing phone to run
+     out of rtp channels. (under some circumstances).
  - Enhancements:
    - Compile with c++ compatibility
 
