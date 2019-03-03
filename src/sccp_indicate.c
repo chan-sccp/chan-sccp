@@ -425,8 +425,8 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 			break;
 		case SCCP_CHANNELSTATE_CONGESTION:
 			{
-				/* congestion will be emulated if the rtp audio stream is open */
 				if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
+					/* congestion will be emulated if the rtp audio stream is not yet open */
 					sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 				}
 				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);

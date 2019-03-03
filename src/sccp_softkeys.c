@@ -149,7 +149,6 @@ static void sccp_sk_videomode(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 static void sccp_sk_redial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
 	AUTO_RELEASE(const sccp_line_t, line , NULL);
-
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Redial Pressed\n", DEV_ID_LOG(d));
 	if (!d) {
 		return;
@@ -1143,6 +1142,15 @@ boolean_t sccp_SoftkeyMap_execCallbackByEvent(devicePtr d, linePtr l, uint32_t l
 		return FALSE;
 	}
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Handling Softkey: %s on line: %s and channel: %s\n", d->id, label2str(event), l ? l->name : "UNDEF", c ? sccp_channel_toString(c) : "UNDEF");
+	//! \todo tie the device to the channel, we know the user pressed a button on a particular device
+	/*
+	if (c) {
+		AUTO_RELEASE(sccp_device_t, tmpdevice , sccp_channel_getDevice(c));
+		if (!tmpdevice) {
+			sccp_channel_setDevice(c, d);
+		}
+	}
+	*/
 	softkeyMap_cb->softkeyEvent_cb(softkeyMap_cb, d, l, lineInstance, c);
 	return TRUE;
 }
