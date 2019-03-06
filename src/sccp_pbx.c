@@ -720,7 +720,7 @@ boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, c
 			linedevice = SCCP_LIST_FIRST(&l->devices);
 			SCCP_LIST_UNLOCK(&l->devices);
 			if (linedevice && linedevice->device) {
-				d = sccp_device_retain(linedevice->device);
+				d = sccp_device_retain(linedevice->device);			// ugly hack just picking the first one !
 			}
 		}
 		
@@ -759,15 +759,20 @@ boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, c
 			case SKINNY_CALLTYPE_SENTINEL:
 				break;
 		}
-		if (d) {
-			memcpy(&c->capabilities.audio, &d->capabilities.audio, sizeof(c->capabilities.audio));
-			memcpy(&c->capabilities.video, &d->capabilities.video, sizeof(c->capabilities.video));
-			memcpy(&c->preferences.audio , &d->preferences.audio , sizeof(c->preferences.audio));
-			memcpy(&c->preferences.video , &d->preferences.video , sizeof(c->preferences.video));
-		} else {			/* shared line */
-			/* \todo we should be doing this when a device is attached to a line, and store the caps/prefs inside the sccp_line_t */
-			/* \todo it would be nice if we could set audio preferences by line instead of only per device, especially in case of shared line */
-			sccp_line_copyCodecSetsFromLineToChannel(l, c);
+		if (l->preferences_set_on_line_level) {
+			memcpy(&c->preferences.audio, &l->preferences.audio, sizeof(c->preferences.audio));
+			memcpy(&c->preferences.video, &l->preferences.video, sizeof(c->preferences.video));
+		} else {
+			if (SCCP_LIST_GETSIZE(&l->devices) == 1) {
+				memcpy(&c->capabilities.audio, &d->capabilities.audio, sizeof(c->capabilities.audio));
+				memcpy(&c->capabilities.video, &d->capabilities.video, sizeof(c->capabilities.video));
+				memcpy(&c->preferences.audio , &d->preferences.audio , sizeof(c->preferences.audio));
+				memcpy(&c->preferences.video , &d->preferences.video , sizeof(c->preferences.video));
+			} else {			/* shared line */
+				/* \todo we should be doing this when a device is attached to a line, and store the caps/prefs inside the sccp_line_t */
+				/* \todo it would be nice if we could set audio preferences by line instead of only per device, especially in case of shared line */
+				sccp_line_copyCodecSetsFromLineToChannel(l, c);
+			}
 		}
 		// make sure preferences only contains the codecs that this channel is capable of
 		sccp_codec_reduceSet(c->preferences.audio , c->capabilities.audio);
@@ -856,7 +861,7 @@ boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, c
 		SCCP_LIST_UNLOCK(&l->devices);
 	}
 #if 0
-	{
+	else {
 
 		/* (shared line version) call ast_channel_call_forward_set if all devices for this line are forwarded. Send the first forward destination to PBX */
 		sccp_linedevices_t *linedevice = NULL;
@@ -895,10 +900,7 @@ boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, c
 		if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 			if (!c->rtp.audio.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_AUDIO)) {
 				pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s\n", d->id, c->designator);
-
-				uint16_t instance = sccp_device_find_index_for_line(d, c->line->name);
-				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, SKINNY_TONEDIRECTION_USER);
-				sccp_channel_schedule_hangup(c, 500);
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 				return FALSE;
 			}
 		}

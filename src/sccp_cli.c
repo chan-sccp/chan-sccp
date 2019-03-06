@@ -729,7 +729,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #if CS_SCCP_VIDEO
 	char vpref_buf[256];
 	char vcap_buf[512];
-#endif	
+#endif
 	pbx_str_t *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	pbx_str_t *permithost_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	PBX_VARIABLE_TYPE *v = NULL;
@@ -842,7 +842,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Image Version",		CLI_AMI_LIST_WIDTH, "%s", d->loadedimageversion);
 	CLI_AMI_OUTPUT_PARAM("Timezone Offset",		CLI_AMI_LIST_WIDTH, "%d", d->tz_offset);
 	CLI_AMI_OUTPUT_PARAM("Audio Capabilities",	CLI_AMI_LIST_WIDTH, "%s", acap_buf);
-	CLI_AMI_OUTPUT_PARAM("Auduo Preferences",	CLI_AMI_LIST_WIDTH, "%s", apref_buf);
+	CLI_AMI_OUTPUT_PARAM("Audio Preferences",	CLI_AMI_LIST_WIDTH, "%s", apref_buf);
 #if CS_SCCP_VIDEO
 	CLI_AMI_OUTPUT_PARAM("Video Capabilities",	CLI_AMI_LIST_WIDTH, "%s", vcap_buf);
 	CLI_AMI_OUTPUT_PARAM("Video Preferences",	CLI_AMI_LIST_WIDTH, "%s", vpref_buf);
@@ -1300,6 +1300,13 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for line %s\n", line);		/* explicit return */
 	}
 
+	char apref_buf[256];
+	sccp_codec_multiple2str(apref_buf, sizeof(apref_buf) - 1, l->preferences.audio, ARRAY_LEN(l->preferences.audio));
+#if CS_SCCP_VIDEO
+	char vpref_buf[256];
+	sccp_codec_multiple2str(vpref_buf, sizeof(vpref_buf) - 1, l->preferences.video, ARRAY_LEN(l->preferences.video));
+#endif
+
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver line settings ------------------------------------------------------------------------------------\n");
 	} else {
@@ -1336,11 +1343,16 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	CLI_AMI_OUTPUT_PARAM("Directed Pickup Context",	CLI_AMI_LIST_WIDTH, "%s %s", l->directed_pickup_context, sccp_strlen_zero(l->directed_pickup_context) ? "" : (pbx_context_find(l->directed_pickup_context) ? "<context exists>" : "<context not found !!>"));
 	CLI_AMI_OUTPUT_BOOL("Pickup Mode Answer",	CLI_AMI_LIST_WIDTH, l->pickup_modeanswer);
 #endif
-	
 #ifdef CS_AST_HAS_NAMEDGROUP
 	CLI_AMI_OUTPUT_PARAM("Named Call Group",	CLI_AMI_LIST_WIDTH, "%s", l->namedcallgroup ? l->namedcallgroup : "NONE");
 	CLI_AMI_OUTPUT_PARAM("Named Pickup Group",	CLI_AMI_LIST_WIDTH, "%s", l->namedpickupgroup ? l->namedpickupgroup : "NONE");
 #endif
+	CLI_AMI_OUTPUT_PARAM("Audio Preferences",	CLI_AMI_LIST_WIDTH, "%s", apref_buf);
+#if CS_SCCP_VIDEO
+	CLI_AMI_OUTPUT_PARAM("Video Preferences",	CLI_AMI_LIST_WIDTH, "%s", vpref_buf);
+#endif
+	CLI_AMI_OUTPUT_BOOL("Prefs set at line level",	CLI_AMI_LIST_WIDTH, l->preferences_set_on_line_level);
+
 	CLI_AMI_OUTPUT_PARAM("ParkingLot",		CLI_AMI_LIST_WIDTH, "%s", !sccp_strlen_zero(l->parkinglot) ? l->parkinglot : "default");
 	CLI_AMI_OUTPUT_PARAM("Caller ID name",		CLI_AMI_LIST_WIDTH, "%s", l->cid_name);
 	CLI_AMI_OUTPUT_PARAM("Caller ID number",	CLI_AMI_LIST_WIDTH, "%s", l->cid_num);
@@ -3013,14 +3025,16 @@ static int sccp_start_call(int fd, int argc, char *argv[])
 	}
 
 	AUTO_RELEASE(sccp_line_t, line , NULL);
-	if (d && d->defaultLineInstance > 0) {
+	if (argc == 5) {
+		line = sccp_line_find_byname(argv[4], FALSE);
+	} else if (d->defaultLineInstance > 0) {
 		line = sccp_line_find_byid(d, d->defaultLineInstance);
 	} else {
 		line = sccp_dev_getActiveLine(d);
 	}
 
 	if (!line) {
-		pbx_cli(fd, "Can't find line for device %s\n", argv[2]);
+		pbx_cli(fd, "Can't find line on device %s\n", argv[2]);
 		return RESULT_FAILURE;
 	}
 
@@ -3029,7 +3043,7 @@ static int sccp_start_call(int fd, int argc, char *argv[])
 	return RESULT_SUCCESS;
 }
 
-static char start_call_usage[] = "Usage: sccp call <deviceId> <phone_number>\n" "Call number <number> using device <deviceId>\nIf number is ommitted, device will go off-Hook.\n";
+static char start_call_usage[] = "Usage: sccp call <deviceId> <phone_number> <linename>\n" "Call number <number> using device <deviceId>\nIf number is ommitted, device will go off-Hook.\n" "if <linename> is supplied it will be used to dial out\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "call"

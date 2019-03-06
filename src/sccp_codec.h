@@ -126,6 +126,8 @@ struct skinny_codec {
 typedef struct {
 	skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Audio Codec Preferences */
 	skinny_codec_t video[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Video Codec Preferences */
+	boolean_t audio_inherited;									/*!< (Temp) If audio codecs were inherited from global */
+	boolean_t video_inherited;									/*!< (Temp) If video codecs were inherited from global */
 } skinny_capabilities_t;
 
 extern const struct skinny_codec skinny_codecs[];
@@ -138,6 +140,7 @@ SCCP_API char * SCCP_CALL sccp_codec_multiple2str(char *buf, size_t size, const 
 SCCP_API int SCCP_CALL sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing);
 SCCP_API int SCCP_CALL sccp_get_codecs_bytype(skinny_codec_t * in_codecs, skinny_codec_t *out_codecs, skinny_payload_type_t type);
 SCCP_API boolean_t __PURE__ SCCP_CALL sccp_codec_isCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length);
+SCCP_API int SCCP_CALL sccp_codec_getReducedSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES], skinny_codec_t result[SKINNY_MAX_CAPABILITIES]);
 SCCP_API void SCCP_CALL sccp_codec_reduceSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES]);
 SCCP_API void SCCP_CALL sccp_codec_combineSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t addCodecs[SKINNY_MAX_CAPABILITIES]);
 SCCP_API skinny_codec_t SCCP_CALL sccp_codec_findBestJoint(constChannelPtr c, const skinny_codec_t ourPreferences[], const skinny_codec_t remotePeerPreferences[]);

@@ -377,8 +377,44 @@ void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c)
 		} else {
 			sccp_codec_combineSets(c->capabilities.audio, linedevice->device->capabilities.audio);
 			sccp_codec_combineSets(c->capabilities.video, linedevice->device->capabilities.video);
-			sccp_codec_reduceSet(c->preferences.audio , linedevice->device->preferences.audio);
-			sccp_codec_reduceSet(c->preferences.video , linedevice->device->preferences.video);
+
+			skinny_codec_t temp[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+			if (sccp_codec_getReducedSet(c->preferences.audio , linedevice->device->preferences.audio, temp) == 0) {
+				// zero matching codecs we have to combine
+				sccp_codec_combineSets(c->preferences.audio , linedevice->device->preferences.audio);
+			} else {
+				memcpy(&c->preferences.audio, &temp, sizeof *temp);
+			}
+			memset(&temp, SKINNY_CODEC_NONE, sizeof *temp);
+			if (sccp_codec_getReducedSet(c->preferences.video , linedevice->device->preferences.video, temp) == 0) {
+				// zero matching codecs we have to combine
+				sccp_codec_combineSets(c->preferences.video , linedevice->device->preferences.video);
+			} else {
+				memcpy(&c->preferences.video, &temp, sizeof *temp);
+			}
+		}
+	}
+	SCCP_LIST_UNLOCK(&l->devices);
+}
+
+static void sccp_line_copyCodecSetsFromDeviceToLine(sccp_line_t *l)
+{
+	sccp_linedevices_t *linedevice = NULL;
+	boolean_t first=TRUE;
+	if (!l) {
+		return;
+	}
+	//sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: Update line preferences\n", l->name);
+	/* combine all capabilities */
+	SCCP_LIST_LOCK(&l->devices);
+	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+		if (first) {
+			memcpy(&l->preferences.audio , &linedevice->device->preferences.audio , sizeof(l->preferences.audio));
+			memcpy(&l->preferences.video , &linedevice->device->preferences.video , sizeof(l->preferences.video));
+			first = FALSE;
+		} else {
+			sccp_codec_combineSets(l->preferences.audio , linedevice->device->preferences.audio);
+			sccp_codec_combineSets(l->preferences.video , linedevice->device->preferences.video);
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
@@ -512,7 +548,7 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 	linedevice->device = sccp_device_retain(device);
 	linedevice->line = sccp_line_retain(l);
 	linedevice->lineInstance = lineInstance;
-	
+
 	sccp_linedevice_resetPickup(linedevice);
 	if (NULL != subscriptionId) {
 		sccp_copy_string(linedevice->subscriptionId.name, subscriptionId->name, sizeof(linedevice->subscriptionId.name));
@@ -528,6 +564,10 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 
 	linedevice->line->statistic.numberOfActiveDevices++;
 	linedevice->device->configurationStatistic.numberOfLines++;
+
+	if (!l->preferences_set_on_line_level) {
+		sccp_line_copyCodecSetsFromDeviceToLine(l);
+	}
 
 	// fire event for new device
 	sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_DEVICE_ATTACHED);
@@ -583,6 +623,11 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	SCCP_LIST_UNLOCK(&l->devices);
+
+	if (!l->preferences_set_on_line_level) {
+		sccp_line_copyCodecSetsFromDeviceToLine(l);
+	}
+
 }
 
 /*!

@@ -460,15 +460,16 @@ const char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format
  *
  * \return int
  */
-static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, const void *data)
+static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, PBX_CHANNEL_TYPE * remotePeer, const void *data)
 {
 	const char *linkedId = (char *) data;
+	const char *remoteLinkedId = ast_channel_linkedid(remotePeer);
 
 	if (!linkedId) {
 		return 0;
 	}
 
-	return !pbx_channel_pbx(ast) && ast_channel_linkedid(ast) && (!strcasecmp(ast_channel_linkedid(ast), linkedId)) && !pbx_channel_masq(ast);
+	return remotePeer != ast && remoteLinkedId && (!strcasecmp(linkedId, remoteLinkedId)) && !pbx_channel_masq(remotePeer);
 }
 
 static void pbx_retrieve_remote_capabilities(sccp_channel_t *c)
@@ -489,7 +490,7 @@ static void pbx_retrieve_remote_capabilities(sccp_channel_t *c)
 	}
 	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(c->owner), AST_MEDIA_TYPE_AUDIO);
 	for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
-		if (pbx_find_channel_by_linkid(remotePeer, (void *) ast_channel_linkedid(ast))) {
+		if (pbx_find_channel_by_linkid(ast, remotePeer, (void *) ast_channel_linkedid(ast))) {
 			char buf[512];
 			sccp_astwrap_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 			sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
@@ -3494,6 +3495,8 @@ const PbxInterface iPbx = {
 
 	get_codec_framing		: sccp_wrapper_get_codec_framing,
 	get_dtmf_payload_code		: sccp_wrapper_get_dtmf_payload_code,
+
+	retrieve_remote_capabilities	: pbx_retrieve_remote_capabilities,
 	/* *INDENT-ON* */
 };
 
@@ -3642,6 +3645,8 @@ const PbxInterface iPbx = {
 
 	.get_codec_framing		= sccp_wrapper_get_codec_framing,
 	.get_dtmf_payload_code		= sccp_wrapper_get_dtmf_payload_code,
+
+	.retrieve_remote_capabilities	= pbx_retrieve_remote_capabilities,
 	/* *INDENT-ON* */
 };
 #endif

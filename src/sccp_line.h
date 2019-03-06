@@ -57,6 +57,8 @@ struct sccp_line {
 	char *namedcallgroup;											/*!< Named Call Group */
 	char *namedpickupgroup;											/*!< Named Pickup Group */
 #endif
+	skinny_capabilities_t preferences;									/*!< (shared)line level preferences (overrules device level) */
+	boolean_t preferences_set_on_line_level;								/*!< (Temp) if above was set manually or automatically copied */
 
 	char cid_num[SCCP_MAX_EXTENSION];									/* smaller would be better (i.e. 32) */ /*!< Caller(ID) to use on outgoing calls  */
 	char cid_name[SCCP_MAX_EXTENSION];									/* smaller would be better (i.e. 32) */ /*!< Caller(Name) to use on outgoing calls */

@@ -298,18 +298,29 @@ boolean_t __PURE__ sccp_codec_isCompatible(skinny_codec_t codec, const skinny_co
  * \brief get smallest common denominator codecset
  * intersection of two sets
  */
-void sccp_codec_reduceSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES])
+int sccp_codec_getReducedSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES], skinny_codec_t result[SKINNY_MAX_CAPABILITIES])
 {
-	skinny_codec_t temp[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+	uint8_t overlap=0;
 	uint8_t x = 0, y = 0, z = 0;
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES && (z+1) < SKINNY_MAX_CAPABILITIES && base[x] != SKINNY_CODEC_NONE; x++) {
 		for (y = 0; y < SKINNY_MAX_CAPABILITIES && (z+1) < SKINNY_MAX_CAPABILITIES && reduceByCodecs[y] != SKINNY_CODEC_NONE; y++) {
 			if (base[x] == reduceByCodecs[y]) {
-				temp[z++] = base[x];
+				result[z++] = base[x];
+				overlap++;
 				break;
 			}
 		}
 	}
+	return overlap;
+}
+/*!
+ * \brief get smallest common denominator codecset
+ * intersection of two sets
+ */
+void sccp_codec_reduceSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES])
+{
+	skinny_codec_t temp[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+	sccp_codec_getReducedSet(base, reduceByCodecs, temp);
 	memcpy(base, temp, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 }
 

@@ -179,6 +179,8 @@ typedef struct _PbxInterface {
 
 	uint (*get_codec_framing)(constChannelPtr c);
 	uint (*get_dtmf_payload_code)(constChannelPtr c);
+
+	void (*retrieve_remote_capabilities)(channelPtr c);
 	/* *INDENT-ON* */
 } PbxInterface;
 
