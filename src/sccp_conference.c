@@ -476,33 +476,38 @@ static void sccp_conference_addParticipant_toList(constConferencePtr conference,
  */
 void sccp_conference_update_callInfo(constChannelPtr channel, PBX_CHANNEL_TYPE * pbxChannel, constParticipantPtr participant, uint32_t conferenceID)
 {
-	char conf_str[StationMaxNameSize] = "";
-
-	snprintf(conf_str, StationMaxNameSize, "Conference %d", conferenceID);
+	char moderator_cidname[StationMaxNameSize] = "";
+	char moderator_cidnum[StationMaxNameSize] = "";
 	sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 
 	switch (channel->calltype) {
 		case SKINNY_CALLTYPE_INBOUND:
 			iCallInfo.Getter(ci, 
+				SCCP_CALLINFO_CALLEDPARTY_NAME, moderator_cidname,
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, moderator_cidnum,
 				SCCP_CALLINFO_CALLINGPARTY_NAME, &participant->PartyName,
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, &participant->PartyNumber,
 				SCCP_CALLINFO_KEY_SENTINEL);
 			iCallInfo.Setter(ci, 
 				SCCP_CALLINFO_ORIG_CALLINGPARTY_NAME, participant->PartyName,
 				SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, participant->PartyNumber,
-				SCCP_CALLINFO_CALLINGPARTY_NAME, conf_str,
+				SCCP_CALLINFO_CALLINGPARTY_NAME, moderator_cidname,
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, moderator_cidnum,
 				SCCP_CALLINFO_KEY_SENTINEL);
 			break;
 		case SKINNY_CALLTYPE_OUTBOUND:
 		case SKINNY_CALLTYPE_FORWARD:
 			iCallInfo.Getter(ci, 
+				SCCP_CALLINFO_CALLINGPARTY_NAME, moderator_cidname,
+				SCCP_CALLINFO_CALLINGPARTY_NUMBER, moderator_cidnum,
 				SCCP_CALLINFO_CALLEDPARTY_NAME, &participant->PartyName,
 				SCCP_CALLINFO_CALLEDPARTY_NUMBER, &participant->PartyNumber,
 				SCCP_CALLINFO_KEY_SENTINEL);
 			iCallInfo.Setter(ci, 
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, participant->PartyName,
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, participant->PartyNumber,
-				SCCP_CALLINFO_CALLEDPARTY_NAME, conf_str,
+				SCCP_CALLINFO_CALLEDPARTY_NAME, moderator_cidname,
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, moderator_cidnum,
 				SCCP_CALLINFO_KEY_SENTINEL);
 			break;
 		case SKINNY_CALLTYPE_SENTINEL:
@@ -520,12 +525,12 @@ void sccp_conference_update_callInfo(constChannelPtr channel, PBX_CHANNEL_TYPE *
 
 	update_connected.id.number = 1;
 	connected.id.number.valid = 1;
-	connected.id.number.str = conf_str;
+	connected.id.number.str = moderator_cidnum;
 	connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 
 	update_connected.id.name = 1;
 	connected.id.name.valid = 1;
-	connected.id.name.str = conf_str;
+	connected.id.name.str = moderator_cidname;
 	connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 #if ASTERISK_VERSION_GROUP > 110
 	ast_set_party_id_all(&update_connected.priv);
@@ -535,7 +540,7 @@ void sccp_conference_update_callInfo(constChannelPtr channel, PBX_CHANNEL_TYPE *
 		ast_channel_set_connected_line(pbxChannel, &connected, &update_connected);
 	}
 #endif
-	iPbx.set_connected_line(channel, conf_str, conf_str, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
+	iPbx.set_connected_line(channel, moderator_cidnum, moderator_cidname, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
 }
 
 /*!
