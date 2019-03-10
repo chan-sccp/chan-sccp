@@ -523,7 +523,6 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wall dnl
 				-Wno-long-long dnl
 				-Wno-missing-field-initializers dnl
-				-Wno-format-truncation dnl
 				-Wmissing-declarations dnl
 				-Wnested-externs dnl
 				-Wnonnull dnl
@@ -591,6 +590,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wsuggest-attribute=noreturn dnl
 				-Wc++-compat dnl
 				-Wenum-compare dnl
+				-Wno-format-truncation dnl
 				dnl -Wsuggest-attribute=pure dnl
 				dnl // should be added and fixed
 				dnl -Wswitch-enum dnl
