@@ -566,7 +566,6 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wheader-guard dnl
 				-Wattributes dnl
 				-Wdiv-by-zero dnl
-				-Wenum-compare dnl
 				-Wmisleading-indentation dnl
 				-Wswitch dnl
 				-fstack-protector-all dnl
@@ -591,6 +590,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wsuggest-attribute=format dnl
 				-Wsuggest-attribute=noreturn dnl
 				-Wc++-compat dnl
+				-Wenum-compare dnl
 				dnl -Wsuggest-attribute=pure dnl
 				dnl // should be added and fixed
 				dnl -Wswitch-enum dnl
