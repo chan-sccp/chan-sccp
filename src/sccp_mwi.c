@@ -34,7 +34,7 @@ pbx_mutex_t subscriptions_lock;
 #define subscription_lock()		({pbx_mutex_lock(&subscriptions_lock);})		// discard const
 #define subscription_unlock()		({pbx_mutex_unlock(&subscriptions_lock);})		// discard const
 
-typedef struct pbx_event_sub pbx_event_subscription_t;
+//typedef struct pbx_event_sub pbx_event_subscription_t;
 typedef struct subscription {
 	sccp_mailbox_t *mailbox;
 	sccp_line_t *line;
