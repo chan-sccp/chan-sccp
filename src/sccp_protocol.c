@@ -395,18 +395,20 @@ static void sccp_protocol_sendCallForwardStatus(constDevicePtr device, const scc
 	if (linedevice->cfwdAll.enabled) {
 		msg->data.ForwardStatMessage.v3.lel_forwardAllActive = htolel(1);
 		sccp_copy_string(msg->data.ForwardStatMessage.v3.cfwdallnumber, linedevice->cfwdAll.number, sizeof(msg->data.ForwardStatMessage.v3.cfwdallnumber));
-	}
-	if (linedevice->cfwdBusy.enabled) {
+	} else if (linedevice->cfwdBusy.enabled) {
 		msg->data.ForwardStatMessage.v3.lel_forwardBusyActive = htolel(1);
 		sccp_copy_string(msg->data.ForwardStatMessage.v3.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(msg->data.ForwardStatMessage.v3.cfwdbusynumber));
+	//} else if (linedevice->cfwdNoAnswer.enabled) {
+	//	msg->data.ForwardStatMessage.v3.lel_forwardBusyActive = htolel(1);
+	//	sccp_copy_string(msg->data.ForwardStatMessage.v3.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(msg->data.ForwardStatMessage.v3.cfwdbusynumber));
+	} else {
+		msg->data.ForwardStatMessage.v3.lel_forwardAllActive = htolel(0);
+		msg->data.ForwardStatMessage.v3.lel_forwardBusyActive = htolel(0);
+		msg->data.ForwardStatMessage.v3.lel_forwardNoAnswerActive = htolel(0);
+		sccp_copy_string(msg->data.ForwardStatMessage.v3.cfwdallnumber, "", sizeof(msg->data.ForwardStatMessage.v3.cfwdbusynumber));
+		sccp_copy_string(msg->data.ForwardStatMessage.v3.cfwdbusynumber, "", sizeof(msg->data.ForwardStatMessage.v3.cfwdbusynumber));
+		sccp_copy_string(msg->data.ForwardStatMessage.v3.cfwdnoanswernumber, "", sizeof(msg->data.ForwardStatMessage.v3.cfwdnoanswernumber));
 	}
-	/*
-	if (linedevice->cfwdNoAnswer.enabled) {
-		msg->data.ForwardStatMessage.v3.lel_forwardBusyActive = htolel(1);
-		sccp_copy_string(msg->data.ForwardStatMessage.v3.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(msg->data.ForwardStatMessage.v3.cfwdbusynumber));
-	}
-	*/
-
 	sccp_dev_send(device, msg);
 }
 
@@ -419,23 +421,30 @@ static void sccp_protocol_sendCallForwardStatusV18(constDevicePtr device, const 
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, ForwardStatMessage);
-	msg->data.ForwardStatMessage.v18.lel_activeForward = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) ? htolel(4) : 0;
+	// activeForward / lel_forwardAllActive =  used 4 before... tcpdump shows 2(enbloc ?) or 8(single keypad ?)
+	//msg->data.ForwardStatMessage.v18.lel_activeForward = (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) ? htolel(2) : 0;   // should this be 2 instead ?
 	msg->data.ForwardStatMessage.v18.lel_lineNumber = htolel(linedevice->lineInstance);
-
 	if (linedevice->cfwdAll.enabled) {
-		msg->data.ForwardStatMessage.v18.lel_forwardAllActive = htolel(4);	// needs more information about the possible values and their meaning
+		msg->data.ForwardStatMessage.v18.lel_activeForward = 2;
+		msg->data.ForwardStatMessage.v18.lel_forwardAllActive = htolel(2);	// needs more information about the possible values and their meaning // 2 ?
 		sccp_copy_string(msg->data.ForwardStatMessage.v18.cfwdallnumber, linedevice->cfwdAll.number, sizeof(msg->data.ForwardStatMessage.v18.cfwdallnumber));
-	}
-	if (linedevice->cfwdBusy.enabled) {
-		msg->data.ForwardStatMessage.v18.lel_forwardBusyActive = htolel(4);
+	} else if (linedevice->cfwdBusy.enabled) {
+		msg->data.ForwardStatMessage.v18.lel_activeForward = 2;
+		msg->data.ForwardStatMessage.v18.lel_forwardBusyActive = htolel(2);
 		sccp_copy_string(msg->data.ForwardStatMessage.v18.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(msg->data.ForwardStatMessage.v18.cfwdbusynumber));
+	//} else if (linedevice->cfwdNoAnswer.enabled) {
+	//	msg->data.ForwardStatMessage.v18.lel_activeForward = 2;
+	//	msg->data.ForwardStatMessage.v18.lel_forwardBusyActive = htolel(2);
+	//	sccp_copy_string(msg->data.ForwardStatMessage.v18.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(msg->data.ForwardStatMessage.v18.cfwdbusynumber));
+	} else {
+		msg->data.ForwardStatMessage.v18.lel_activeForward = 0;
+		msg->data.ForwardStatMessage.v18.lel_forwardAllActive = htolel(0);
+		msg->data.ForwardStatMessage.v18.lel_forwardBusyActive = htolel(0);
+		msg->data.ForwardStatMessage.v18.lel_forwardNoAnswerActive = htolel(0);
+		sccp_copy_string(msg->data.ForwardStatMessage.v18.cfwdallnumber, "", sizeof(msg->data.ForwardStatMessage.v18.cfwdbusynumber));
+		sccp_copy_string(msg->data.ForwardStatMessage.v18.cfwdbusynumber, "", sizeof(msg->data.ForwardStatMessage.v18.cfwdbusynumber));
+		sccp_copy_string(msg->data.ForwardStatMessage.v18.cfwdnoanswernumber, "", sizeof(msg->data.ForwardStatMessage.v18.cfwdnoanswernumber));
 	}
-	/*
-	if (linedevice->cfwdNoAnswer.enabled) {
-		msg->data.ForwardStatMessage.v18.lel_forwardBusyActive = htolel(4);
-		sccp_copy_string(msg->data.ForwardStatMessage.v18.cfwdbusynumber, linedevice->cfwdBusy.number, sizeof(msg->data.ForwardStatMessage.v18.cfwdbusynumber));
-	}
-	*/
 
 	//msg->data.ForwardStatMessage.v18.lel_unknown = 0x000000FF;
 	sccp_dev_send(device, msg);
@@ -1115,6 +1124,7 @@ static void sccp_protocol_sendLineStatRespV17(constDevicePtr d, uint32_t lineNum
 		d->copyStr2Locale(d, dummyPtr, displayName, displayNameLen+1);
 		dummyPtr += displayNameLen + 1;
 	}
+	//msg->data.LineStatDynamicMessage.lel_lineDisplayOptions = htolel(lineDisplayOptions);
 	sccp_dev_send(d, msg);
 }
 /* done - sendLineStat */

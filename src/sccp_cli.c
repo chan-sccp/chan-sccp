@@ -1932,6 +1932,30 @@ static int sccp_test(int fd, int argc, char *argv[])
 		return RESULT_SUCCESS;
 	}
 #endif
+	if (!strcasecmp(argv[2], "69xx") && argc > 2) {
+		AUTO_RELEASE(sccp_device_t, d, sccp_device_find_byid(argv[3], FALSE));
+		if (d) {
+			pbx_log(LOG_NOTICE, "%s (cli_test) 69xx status test\n", argv[3]);
+			sccp_dev_clearprompt(d, 0, 0);
+			sleep(3);
+			d->protocol->displayPrompt(d, 0, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS);
+			sleep(1);
+			d->protocol->displayPrompt(d, 0, 0, 0, SKINNY_DISP_DO_NOT_DISTURB_IS_ACTIVE);
+			sleep(1);
+			d->protocol->displayPrompt(d, 0, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS);
+			sleep(1);
+			d->protocol->displayPrompt(d, 0, 0, 0, SKINNY_DISP_DO_NOT_DISTURB);
+			sleep(1);
+			char str[] = SKINNY_DISP_FORWARDED_TO " 11223344";
+			d->protocol->displayPrompt(d, 0, 0, 0, str);
+			sleep(1);
+			d->protocol->displayPrompt(d, 0, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS);
+			sleep(1);
+			d->protocol->displayPrompt(d, 0, 0, 0, "test1");
+			sleep(1);
+		}
+		return RESULT_SUCCESS;
+	}
 	return RESULT_FAILURE;
 }
 

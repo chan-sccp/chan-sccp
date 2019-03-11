@@ -1371,7 +1371,11 @@ typedef union {
 	struct {
 		uint32_t lel_lineNumber;									/*!< Line Number */
 		uint32_t lel_lineType;										/*!< Line Type: Bit-field: 1-Original Dialed 2-Redirected Dialed, 4-Calling line ID, 8-Calling name ID */
-		char dummy[310];										/*!< Dummy (25+141+141) + 3 terminators */
+		char dummy[0];											/*!< Dummy (25+141+141) + 3 terminators */
+		//char lineDirNumber[25];
+		//char lineFullyQualifiedDisplayName[40];
+		//char lineTextLabel[40];
+		//uint32_t lel_lineDisplayOptions;
 	} LineStatDynamicMessage;										/*!< Line Stat Dynmic Message Structure */
 
 	struct {
@@ -1552,7 +1556,6 @@ typedef union {
 			uint32_t lel_stationUserId;								/*!< Station User ID (Not In Use) */
 			uint32_t lel_stationInstance;								/*!< Station Instance */
 		} station_identifier;										/*!< Station Identifier */
-
 		char userName[StationMaxNameSize];								/*!< User Name */
 		char serverName[StationMaxNameSize];								/*!< Server Name */
 		uint32_t lel_numberLines;									/*!< Number of Lines configured */
@@ -1566,9 +1569,8 @@ typedef union {
 			uint32_t lel_stationUserId;								/*!< Station User ID (Not In Use) */
 			uint32_t lel_stationInstance;								/*!< Station Instance */
 		} station_identifier;										/*!< Station Identifier */
-
-		char userName[StationMaxNameSize];								/*!< User Name */
-		char serverName[StationMaxNameSize];								/*!< Server Name */
+		char userName[StationDynamicNameSize];								/*!< User Name */
+		char serverName[StationDynamicNameSize];							/*!< Server Name */
 		uint32_t lel_numberLines;									/*!< Number of Lines configured */
 		uint32_t lel_numberSpeedDials;									/*!< Number of SpeedDials configured */
 	} ConfigStatDynamicMessage;										/*!< Configuration Status Message - Server -> Client */

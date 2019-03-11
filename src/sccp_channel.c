@@ -2160,6 +2160,7 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 				instance = sccp_device_find_index_for_line(d, sccp_channel_new->line->name);
 				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 				sccp_dev_set_keyset(d, instance, sccp_channel_new->callid, KEYMODE_OFFHOOKFEAT);
+				sccp_dev_displayprompt(d, instance, sccp_channel_new->callid, SKINNY_DISP_ENTER_NUMBER, SCCP_DISPLAYSTATUS_TIMEOUT);
 				sccp_device_setLamp(d, SKINNY_STIMULUS_TRANSFER, instance, SKINNY_LAMP_FLASH);
 
 				/* set a var for BLINDTRANSFER. It will be removed if the user manually answers the call Otherwise it is a real BLINDTRANSFER */

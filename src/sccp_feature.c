@@ -104,7 +104,7 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 					if (!sccp_strlen_zero(c->dialedNumber)) {		// checking if we have a number !
 						pbx_log(LOG_ERROR, "%s: 2\n", DEV_ID_LOG(device));
 						sccp_line_cfwd(l, device, type, c->dialedNumber);
-						sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+						sccp_dev_starttone(device, SKINNY_TONE_ZIP, linedevice->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 						sccp_channel_endcall(c);
 						return;
 					}
@@ -118,7 +118,7 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_ca
 						sccp_line_cfwd(l, device, type, number);
 						pbx_log(LOG_ERROR, "%s: 4\n", DEV_ID_LOG(device));
 						// we are on call, so no tone has been played until now :)
-						sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+						sccp_dev_starttone(device, SKINNY_TONE_ZIP, linedevice->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 						sccp_channel_endcall(c);
 						sccp_free(number);
 						return;
@@ -318,7 +318,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 		} else {									// pickup failed
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (perform_pickup) Giving Up\n");
 			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL " " SKINNY_DISP_OPICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
-			sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+			sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 			sccp_channel_schedule_hangup(c, 5000);
 		}
 //	}

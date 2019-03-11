@@ -283,6 +283,7 @@ struct sccp_device {
 	sccp_push_result_t (*pushURL) (constDevicePtr device, const char *url, uint8_t priority, skinny_tone_t tone);
 	sccp_push_result_t (*pushTextMessage) (constDevicePtr device, const char *messageText, const char *from, uint8_t priority, skinny_tone_t tone);
 	boolean_t (*hasDisplayPrompt) (void);									/*!< has Display Prompt callback function (derived from devicetype and protocol) */
+	boolean_t (*hasLabelLimitedDisplayPrompt) (void);							/*!< Can only display very limited selection of label based status bar messages */
 	boolean_t (*useHookFlash) (void);									/*!< use Hook Flasg to transfer (based on devicetype) */
 	boolean_t (*hasEnhancedIconMenuSupport) (void);								/*!< has Enhanced IconMenu Support (derived from devicetype and protocol) */
 	void (*retrieveDeviceCapabilities) (constDevicePtr device);				/*!< set device background image */

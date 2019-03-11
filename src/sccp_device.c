@@ -633,6 +633,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->checkACL = sccp_device_checkACL;
 	d->useHookFlash = sccp_device_falseResult;
 	d->hasDisplayPrompt = sccp_device_trueResult;
+	d->hasLabelLimitedDisplayPrompt = sccp_device_falseResult;
 	d->hasEnhancedIconMenuSupport = sccp_device_falseResult;
 	d->setBackgroundImage = sccp_device_setBackgroundImageNotSupported;
 	d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreviewNotSupported;
@@ -1083,8 +1084,10 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			d->setBackgroundImage = sccp_device_setBackgroundImage;
 			d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreview;
 			d->setRingTone = sccp_device_setRingtone;
-
 			d->hasDisplayPrompt = sccp_device_falseResult;
+			d->hasLabelLimitedDisplayPrompt = sccp_device_trueResult;
+			d->dndmode = SCCP_DNDMODE_REJECT;
+
 			for (i = 0; i < 10; i++) {								// 4 visible, 6 in dropdown
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
@@ -1157,40 +1160,46 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			break;
 		case SKINNY_DEVICETYPE_CISCO6901:
 			d->useHookFlash = sccp_device_trueResult;
-			d->hasDisplayPrompt = sccp_device_falseResult;
+			d->hasLabelLimitedDisplayPrompt = sccp_device_trueResult;
+			//d->dndmode = SCCP_DNDMODE_REJECT;
+			//d->hasDisplayPrompt = sccp_device_falseResult;
 			btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			break;
 		case SKINNY_DEVICETYPE_CISCO6911:
 			d->hasDisplayPrompt = sccp_device_falseResult;
+			//d->dndmode = SCCP_DNDMODE_REJECT;
 			btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			break;
 		case SKINNY_DEVICETYPE_CISCO6921:
-			d->hasDisplayPrompt = sccp_device_falseResult;
+			//d->hasDisplayPrompt = sccp_device_falseResult;
+			d->hasLabelLimitedDisplayPrompt = sccp_device_trueResult;
+			//d->dndmode = SCCP_DNDMODE_REJECT;
 			for (i = 0; i < 2; i++) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
-			/*
 			for (i = 0; i < 6; i++) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
-			btn[btn_index++].type = SKINNY_BUTTONTYPE_NONE;
-			btn[btn_index++].type = SKINNY_BUTTONTYPE_PRIVACY;
-			btn[btn_index++].type = SKINNY_BUTTONTYPE_DO_NOT_DISTURB;
-			btn[btn_index++].type = SKINNY_BUTTONTYPE_HLOG;                       // hunt group logout
-			*/
+			//btn[btn_index++].type = SKINNY_BUTTONTYPE_CONFERENCE;
+			//btn[btn_index++].type = SKINNY_BUTTONTYPE_HOLD;
+			//btn[btn_index++].type = SKINNY_BUTTONTYPE_TRANSFER;
 			break;
 		case SKINNY_DEVICETYPE_CISCO6941:
 		case SKINNY_DEVICETYPE_CISCO6945:
 			for (i = 0; i < 4; i++) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
-			d->hasDisplayPrompt = sccp_device_falseResult;
+			//d->hasDisplayPrompt = sccp_device_falseResult;
+			d->hasLabelLimitedDisplayPrompt = sccp_device_trueResult;
+			//d->dndmode = SCCP_DNDMODE_REJECT;
 			break;
 		case SKINNY_DEVICETYPE_CISCO6961:
 			for (i = 0; i < 12; i++) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
-			d->hasDisplayPrompt = sccp_device_falseResult;
+			//d->hasDisplayPrompt = sccp_device_falseResult;
+			d->hasLabelLimitedDisplayPrompt = sccp_device_trueResult;
+			//d->dndmode = SCCP_DNDMODE_REJECT;
 			break;
 		default:
 			pbx_log(LOG_WARNING, "Unknown device type '%d' found.\n", d->skinny_type);
@@ -1579,6 +1588,9 @@ void sccp_dev_stoptone(constDevicePtr d, uint8_t lineInstance, uint32_t callid)
 	}
 	msg->data.StopToneMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.StopToneMessage.lel_callReference = htolel(callid);
+	if (d->protocolversion >= 11) {
+		msg->data.StopToneMessage.lel_tone = htolel(SKINNY_TONE_SILENCE);
+	}
 	sccp_dev_send(d, msg);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Stop tone on line %d with callid %d\n", d->id, lineInstance, callid);
 }
@@ -1605,7 +1617,11 @@ void sccp_dev_set_message(devicePtr d, const char *msg, const int timeout, const
 	}
 	
 	if (timeout) {
-		sccp_dev_displayprinotify(d, msg, SCCP_MESSAGE_PRIORITY_TIMEOUT, timeout);
+		if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6901 || d->skinny_type == SKINNY_DEVICETYPE_CISCO6921 || d->skinny_type == SKINNY_DEVICETYPE_CISCO6941 || d->skinny_type == SKINNY_DEVICETYPE_CISCO6945 || d->skinny_type == SKINNY_DEVICETYPE_CISCO6961) {
+			sccp_dev_displayprompt(d, 0, 0, msg, timeout);
+		} else {
+			sccp_dev_displayprinotify(d, msg, SCCP_MESSAGE_PRIORITY_TIMEOUT, timeout);
+		}
 	} else {
 		sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_IDLE, msg);
 	}
@@ -1646,7 +1662,7 @@ void sccp_dev_clearprompt(constDevicePtr d, const uint8_t lineInstance, const ui
 {
 	sccp_msg_t *msg = NULL;
 
-	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
+	if (!d || !d->session || !d->protocol || (!d->hasDisplayPrompt() && !d->hasLabelLimitedDisplayPrompt())) {
 		return;												/* only for telecaster and new phones */
 	}
 	REQ(msg, ClearPromptStatusMessage);
@@ -1679,7 +1695,7 @@ void sccp_dev_displayprompt_debug(constDevicePtr d, const uint8_t lineInstance, 
 #if DEBUG
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_displayprompt '%s' for line %d (%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, lineInstance, timeout);
 #endif
-	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
+	if (!d || !d->session || !d->protocol || (!d->hasDisplayPrompt() && !d->hasLabelLimitedDisplayPrompt())) {
 		return;
 	}
 	d->protocol->displayPrompt(d, lineInstance, callid, timeout, msg);
@@ -1697,7 +1713,7 @@ void sccp_dev_displayprompt_debug(constDevicePtr d, const uint8_t lineInstance, 
  */
 void sccp_dev_cleardisplay(constDevicePtr d)
 {
-	//if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
+	//if (!d || !d->session || !d->protocol || (!d->hasDisplayPrompt() && !d->hasLabelLimitedDisplayPrompt())) {
 	//	return;
 	//}
 	//sccp_dev_sendmsg(d, ClearDisplay);  
@@ -1724,6 +1740,7 @@ void sccp_dev_display_debug(constDevicePtr d, const char *msgstr, const char *fi
 #endif
 	sccp_msg_t *msg = NULL;
 
+	if (!d || !d->session || !d->protocol || (!d->hasDisplayPrompt() && !d->hasLabelLimitedDisplayPrompt())) {
 	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
 		return;
 	}
@@ -1751,7 +1768,7 @@ void sccp_dev_display_debug(constDevicePtr d, const char *msgstr, const char *fi
  */
 void sccp_dev_cleardisplaynotify(constDevicePtr d)
 {
-	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
+	if (!d || !d->session || !d->protocol || (!d->hasDisplayPrompt() && !d->hasLabelLimitedDisplayPrompt())) {
 		return;												/* only for telecaster and new phones */
 	}
 	sccp_dev_sendmsg(d, ClearNotifyMessage);
@@ -1776,7 +1793,7 @@ void sccp_dev_displaynotify_debug(constDevicePtr d, const char *msg, uint8_t tim
 	// #if DEBUG
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_displaynotify '%s' (%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, timeout);
 	// #endif
-	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
+	if (!d || !d->session || !d->protocol || (!d->hasDisplayPrompt() && !d->hasLabelLimitedDisplayPrompt())) {
 		return;
 	}
 	if (!msg || sccp_strlen_zero(msg)) {
@@ -1797,7 +1814,7 @@ void sccp_dev_displaynotify_debug(constDevicePtr d, const char *msg, uint8_t tim
 void sccp_dev_cleardisplayprinotify(constDevicePtr d, const uint8_t priority)
 {
 	sccp_msg_t *msg = NULL;
-	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
+	if (!d || !d->session || !d->protocol || (!d->hasDisplayPrompt() && !d->hasLabelLimitedDisplayPrompt())) {
 		return;
 	}
 	REQ(msg, ClearPriNotifyMessage);
@@ -1823,7 +1840,7 @@ void sccp_dev_cleardisplayprinotify(constDevicePtr d, const uint8_t priority)
 //void sccp_dev_displayprinotify(devicePtr d, char *msg, uint32_t priority, uint32_t timeout)
 void sccp_dev_displayprinotify_debug(constDevicePtr d, const char *msg, const sccp_message_priority_t priority, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function)
 {
-	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
+	if (!d || !d->session || !d->protocol || (!d->hasDisplayPrompt() && !d->hasLabelLimitedDisplayPrompt())) {
 		return;
 	}
 	if (!msg || sccp_strlen_zero(msg)) {
@@ -1998,7 +2015,7 @@ void sccp_device_setActiveChannel(devicePtr d, sccp_channel_t * channel)
 void sccp_dev_check_displayprompt(constDevicePtr d)
 {
 	//sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_1 "%s: (sccp_dev_check_displayprompt)\n", DEV_ID_LOG(d));
-	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
+	if (!d || !d->session || !d->protocol || (!d->hasDisplayPrompt() && !d->hasLabelLimitedDisplayPrompt())) {
 		return;
 	}
 	boolean_t message_set = FALSE;
@@ -2011,7 +2028,12 @@ void sccp_dev_check_displayprompt(constDevicePtr d)
 #endif
 	for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
 		if (d->messageStack.messages[i] != NULL && !sccp_strlen_zero(d->messageStack.messages[i])) {
-			sccp_dev_displayprompt(d, 0, 0, d->messageStack.messages[i], 0);
+			//if (!d->hasDisplayPrompt() && d->hasLabelLimitedDisplayPrompt()) {			// 89xx can only do popups no statusbar
+			//	sccp_dev_displayprinotify(d, d->messageStack.messages[i], (sccp_message_priority_t) i, 0);
+				//sccp_dev_displaynotify(d, d->messageStack.messages[i], 0);
+			//} else {
+				sccp_dev_displayprompt(d, 0, 0, d->messageStack.messages[i], 0);
+			//}
 			message_set = TRUE;
 			break;
 		}
@@ -2207,7 +2229,7 @@ void sccp_dev_postregistration(devicePtr d)
 		d->setRingTone(d, d->ringtone);
 	}
 
-	if (d->useRedialMenu && (!d->hasDisplayPrompt)) {
+	if (d->useRedialMenu && (!d->hasDisplayPrompt() && !d->hasLabelLimitedDisplayPrompt())) {
 		pbx_log(LOG_NOTICE, "%s: useRedialMenu is currently not supported on this devicetype. Reverting to old style redial\n", d->id);
 		d->useRedialMenu = FALSE;
 	}
@@ -3115,14 +3137,26 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 
 			break;
 		case SCCP_FEATURE_DND:
-
 			if (!device->dndFeature.status) {
 				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_DND);
 			} else {
-				if (device->dndFeature.status == SCCP_DNDMODE_SILENT) {
-					sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_SILENT ") <<<");
+				char dndmsg[StationMaxDisplayNotifySize];
+				if (!device->dndmode) {										// running in try state/cycle mode
+					if (device->dndFeature.status == SCCP_DNDMODE_SILENT) {
+						snprintf(dndmsg, sizeof(dndmsg), SKINNY_DISP_DND " (" SKINNY_DISP_SILENT ")");
+					} else {
+						snprintf(dndmsg, sizeof(dndmsg), SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ")");
+					}
 				} else {
-					sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ") <<<");
+					snprintf(dndmsg, sizeof(dndmsg), SKINNY_DISP_DO_NOT_DISTURB_IS_ACTIVE);
+				}
+				if (device->hasLabelLimitedDisplayPrompt() && device->hasDisplayPrompt()) {			// 69xx series
+					sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, SKINNY_DISP_DO_NOT_DISTURB_IS_ACTIVE);
+					if (!device->dndmode) {									// popup with precise state
+						sccp_dev_displaynotify(device, dndmsg, 3);
+					}
+				} else {											// 79xx and 89xx series
+					sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, dndmsg);
 				}
 			}
 			break;

@@ -1097,7 +1097,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					sccp_callforward_t type = (sccp_callforward_t) c->ss_data;
 					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Forward %s Extension\n", d->id, sccp_callforward2str(type));
 					if (!sccp_strlen_zero(shortenedNumber)) {
-						sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
+						sccp_dev_starttone(d, SKINNY_TONE_ZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
 						sccp_line_cfwd(l, d, type, shortenedNumber);
 					}
 					sccp_channel_endcall(c);
