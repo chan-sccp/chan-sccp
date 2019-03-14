@@ -846,14 +846,19 @@ static void sccp_sk_meetme(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
  */
 static void sccp_sk_pickup(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Pickup Pressed\n", DEV_ID_LOG(d));
+	assert(d != NULL);
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Pickup Pressed\n", d->id);
 #ifndef CS_SCCP_PICKUP
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Native EXTENSION PICKUP was not compiled in\n");
 #else
-
 	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	if (line) {
-		sccp_feat_handle_directed_pickup(d, line, c);
+		AUTO_RELEASE(const sccp_device_t, call_assoc_device, (c ? c->getDevice(c) : NULL));
+		if (!call_assoc_device || call_assoc_device == d) {
+			sccp_feat_handle_directed_pickup(d, line, c);
+			return;
+		}
+		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: there is already a call:%s present on this (shared)line:%s. Skipping request\n", d->id, c ? c->designator : "SCCP", line->name);
 	}
 #endif
 }
@@ -863,13 +868,19 @@ static void sccp_sk_pickup(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
  */
 static void sccp_sk_gpickup(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Group Pickup Pressed\n", DEV_ID_LOG(d));
+	assert(d != NULL);
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Group Pickup Pressed\n", d->id);
 #ifndef CS_SCCP_PICKUP
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");
 #else
 	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	if (line) {
-		sccp_feat_grouppickup(d, line, lineInstance, c);
+		AUTO_RELEASE(const sccp_device_t, call_assoc_device, (c ? c->getDevice(c) : NULL));
+		if (!call_assoc_device || call_assoc_device == d) {
+			sccp_feat_grouppickup(d, line, lineInstance, c);
+			return;
+		}
+		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: there is already a call:%s present on this (shared)line:%s. Skipping request\n", d->id, c ? c->designator : "SCCP", line->name);
 	}
 #endif
 }

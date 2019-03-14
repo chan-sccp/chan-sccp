@@ -1339,6 +1339,7 @@ channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channe
 		}
 		if (c) {
 			sccp_log(DEBUGCAT_CORE)("%s: (getEmptyChannel) got channel already.\n", d->id);
+			AUTO_RELEASE(const sccp_device_t, call_associated_device, c->getDevice(c));
 			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {		// reuse unused channel
 				sccp_log(DEBUGCAT_CORE)("%s: (getEmptyChannel) channel not in use -> reuse it.\n", d->id);
 				int lineInstance = sccp_device_find_index_for_line(d, c->line->name);
@@ -1346,7 +1347,7 @@ channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channe
 				channel = sccp_channel_retain(c);
 				channel->calltype = calltype;
 				return channel;
-			} else if (!sccp_channel_hold(c)) {
+			} else if ((!call_associated_device || call_associated_device != d) && !sccp_channel_hold(c)) {
 				pbx_log(LOG_ERROR, "%s: Putting Active Channel %s OnHold failed -> Cancelling new CaLL\n", d->id, c->designator);
 				return NULL;
 			}
