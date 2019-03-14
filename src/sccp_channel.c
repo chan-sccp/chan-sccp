@@ -649,7 +649,8 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 		return sccp_channel_closeAllMediaTransmitAndReceive(d, c);
 	}
 	//sccp_rtp_set_phone(c, &c->rtp.audio, &sas);
-	if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState) {
+	//if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState) {
+	if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState && (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE)) {
 		// this will start rtp flowing in both directions, to punch open any intermediate firewall ports.
 		// for early rtp (progress/proceed) the transmission will be stopped immediatly on receiving the first packet
 		// Note: See wrapper_rtp_read
