@@ -150,9 +150,6 @@ devicetype = ""                                                                 
 description = ""                                                                  ; device description
 keepalive = ""                                                                    ; set keepalive to 60
 ;tzoffset = 0                                                                     ; time zone offset
-;disallow = all
-;allow = ulaw                                                                     ; (MULTI-ENTRY) Same as entry in [general] section
-;allow = alaw
 ;transfer = yes                                                                   ; enable or disable the transfer capability. It does remove the transfer softkey
 ;park = yes                                                                       ; take a look to the compile how-to. Park stuff is not compiled by default.
 ;cfwdall = no                                                                     ; activate the call forward stuff and soft keys
@@ -235,6 +232,9 @@ adhocNumber = ""                                                                
                                                                                   ; Adhoc/PLAR circuits have statically configured endpoints and do not require the user dialing to connect calls.
                                                                                   ;  - The adhocNumber is dialed as soon as the Phone is taken off-hook or when the new-call button is pressed.
                                                                                   ;  - The number will not be dialed when choosing a line; so when you choose a line you can enter a number manually.
+;disallow = all
+;allow = ulaw                                                                     ; (MULTI-ENTRY) Same as entry in [general] section
+;allow = alaw
 meetme = ""                                                                       ; enable/disable conferencing via meetme, make sure you have one of the meetme apps mentioned below activated in module.conf.
                                                                                   ; When switching meetme=on it will search for the first of these three possible meetme applications and set these defaults.
                                                                                   ; Meetme=>'qd', ConfBridge=>'Mac', Konference=>'MTV'

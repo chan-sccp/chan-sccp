@@ -47,8 +47,6 @@ CREATE TABLE sccpdevice (
   backgroundImage		varchar(255) 	DEFAULT '',
   ringtone			varchar(255)	DEFAULT '',
   setvar 			varchar(100) 	DEFAULT NULL,
-  disallow 			varchar(255) 	DEFAULT NULL,
-  allow 			varchar(255) 	DEFAULT NULL,
   name 				varchar(15) 	NOT NULL DEFAULT '',
   PRIMARY KEY  (name)
 );
@@ -68,6 +66,8 @@ CREATE TABLE sccpline (
   vmnum 			varchar(45) 	DEFAULT NULL,
   cid_name 			varchar(45) 	DEFAULT NULL,
   cid_num 			varchar(45) 	DEFAULT NOT NULL,
+  disallow 			varchar(255) 	DEFAULT NULL,
+  allow 			varchar(255) 	DEFAULT NULL,
   trnsfvm 			varchar(45) 	DEFAULT NULL,
   secondary_dialtone_digits 	varchar(45) 	DEFAULT NULL,
   secondary_dialtone_tone 	varchar(45) 	DEFAULT NULL,
