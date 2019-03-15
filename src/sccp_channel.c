@@ -1369,8 +1369,7 @@ channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channe
 				channel = sccp_channel_retain(c);
 				channel->calltype = calltype;
 				return channel;
-			//} else if ((!call_associated_device || call_associated_device != d) && !sccp_channel_hold(c)) {
-			} else if (!sccp_channel_hold(c)) {
+			} else if (call_associated_device && call_associated_device == d && !sccp_channel_hold(c)) {
 				pbx_log(LOG_ERROR, "%s: Putting Active Channel %s OnHold failed -> Cancelling new CaLL\n", d->id, c->designator);
 				return NULL;
 			}
