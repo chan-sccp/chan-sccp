@@ -32,9 +32,26 @@ ALTER TABLE sccpdevice ALTER COLUMN type TYPE varchar(15);
 ALTER TABLE sccpdevice ALTER COLUMN imageversion TYPE varchar(31);
 ALTER TABLE sccpdevice RENAME COLUMN dnd TO dndFeature;
 
-ALTER TABLE sccpline ADD COLUMN directed_pickup VARCHAR(5) NULL DEFAULT "on";
+ALTER TABLE sccpline ADD COLUMN directed_pickup VARCHAR(5) NULL DEFAULT 'on';
 ALTER TABLE sccpline ADD COLUMN directed_pickup_context VARCHAR(100) NULL DEFAULT NULL;
-ALTER TABLE sccpline ADD COLUMN pickup_modeanswer VARCHAR(5) NULL DEFAULT "on";
+ALTER TABLE sccpline ADD COLUMN pickup_modeanswer VARCHAR(5) NULL DEFAULT 'on';
+
+update sccpline
+set
+  pickup_modeanswer=dev.pickupmodeanswer,
+  directed_pickup=dev.pickupexten,
+  directed_pickup_context=dev.pickupcontext
+from sccpdevice as dev 
+  join buttonconfig as btn on btn.device=dev.name
+    join sccpline as line on btn.name=line.name 
+where btn.type='line';
+
+ALTER TABLE sccpdevice DROP COLUMN directed_pickup;
+ALTER TABLE sccpdevice DROP COLUMN directed_pickup_context;
+ALTER TABLE sccpdevice DROP COLUMN pickup_modeanswer;
+ALTER TABLE sccpdevice DROP COLUMN pickupexten;
+ALTER TABLE sccpdevice DROP COLUMN pickupcontext;
+ALTER TABLE sccpdevice DROP COLUMN pickupmodeanswer;
 
 CREATE OR REPLACE VIEW sccpdeviceconfig AS
         SELECT 
