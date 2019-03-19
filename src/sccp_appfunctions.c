@@ -413,7 +413,8 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	pbx_str_reset(coldata);
 	if (d) {
 		snprintf(colname + strlen(colname), sizeof *colname, ",");
-		token = strtok(colname, ",");
+		char *tokenrest = NULL;
+		token = strtok_r(colname, ",", &tokenrest);
 		while (token != NULL) {
 			addcomma = 0;
 			token = pbx_trim_blanks(token);
@@ -582,7 +583,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			
 			/** copy buf to coldata */
 			pbx_str_append_escapecommas(&coldata, 0, buf, buf_len);
-			token = strtok(NULL, ",");
+			token = strtok_r(NULL, ",", &tokenrest);
 			if (token != NULL) {
 				pbx_str_append(&coldata, 0, ",");
 			}
@@ -678,7 +679,8 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 	pbx_str_reset(coldata);
 	if (l) {
 		snprintf(colname + strlen(colname), sizeof *colname, ",");
-		token = strtok(colname, ",");
+		char *tokenrest = NULL;
+		token = strtok_r(colname, ",", &tokenrest);
 		while (token != NULL) {
 			addcomma = 0;
 			token = pbx_trim_blanks(token);
@@ -821,7 +823,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 
 			/** copy buf to coldata */
 			pbx_str_append_escapecommas(&coldata, 0, buf, buf_len);
-			token = strtok(NULL, ",");
+			token = strtok_r(NULL, ",", &tokenrest);
 			if (token != NULL) {
 				pbx_str_append(&coldata, 0, ",");
 			}
@@ -903,7 +905,8 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	if (c) {
 		sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
 		snprintf(colname + strlen(colname), sizeof *colname, ",");
-		token = strtok(colname, ",");
+		char *tokenrest = NULL;
+		token = strtok_r(colname, ",", &tokenrest);
 		while (token != NULL) {
 			token = pbx_trim_blanks(token);
 			
@@ -1032,7 +1035,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 
 			/** copy buf to coldata */
 			pbx_str_append_escapecommas(&coldata, 0, buf, buf_len);
-			token = strtok(NULL, ",");
+			token = strtok_r(NULL, ",", &tokenrest);
 			if (token != NULL) {
 				pbx_str_append(&coldata, 0, ",");
 			}

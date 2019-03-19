@@ -254,17 +254,18 @@ static const SCCPConfigOption *sccp_find_config(const sccp_config_segment_t segm
 
 	char delims[] = "|";
 	char *token = NULL;
+	char *tokenrest = NULL;
 	char *config_name = NULL;
 
 	for (i = 0; i < sccpConfigSegment->config_size; i++) {
 		if (strstr(config[i].name, delims) != NULL) {
 			config_name = pbx_strdupa(config[i].name);
-			token = strtok(config_name, delims);
+			token = strtok_r(config_name, delims, &tokenrest);
 			while (token != NULL) {
 				if (!strcasecmp(token, name)) {
 					return &config[i];
 				}
-				token = strtok(NULL, delims);
+				token = strtok_r(NULL, delims, &tokenrest);
 			}
 		}
 		if (!strcasecmp(config[i].name, name)) {
@@ -283,9 +284,10 @@ static PBX_VARIABLE_TYPE *createVariableSetForMultiEntryParameters(PBX_VARIABLE_
 	char delims[] = "|";
 	char option_name[strlen(configOptionName) + 2];
 	char *token = NULL;
+	char *tokenrest = NULL;
 	
 	snprintf(option_name, sizeof(option_name), "%s%s", configOptionName, delims);
-	token = strtok(option_name, delims);
+	token = strtok_r(option_name, delims, &tokenrest);
 	while (token != NULL) {
 		sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Token %s/%s\n", option_name, token);
 		for (v = cat_root; v; v = v->next) {
@@ -308,7 +310,7 @@ static PBX_VARIABLE_TYPE *createVariableSetForMultiEntryParameters(PBX_VARIABLE_
 				}
 			}
 		}
-		token = strtok(NULL, delims);
+		token = strtok_r(NULL, delims, &tokenrest);
 	}
 EXIT:
 	return out;

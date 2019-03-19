@@ -88,7 +88,8 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
 			} else {
 				// parse comma separated debug_var
 				boolean_t matched = FALSE;
-				token = strtok(argument, delimiters);
+				char *tokenrest = NULL;
+				token = strtok_r(argument, delimiters, &tokenrest);
 				while (token != NULL) {
 					// match debug level name to enum
 					for (i = 0; i < ARRAY_LEN(sccp_debug_categories); i++) {
@@ -108,7 +109,7 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
 					if (!matched) {
 						pbx_log(LOG_NOTICE, "SCCP: unknown debug value '%s'\n", token);
 					}
-					token = strtok(NULL, delimiters);
+					token = strtok_r(NULL, delimiters, &tokenrest);
 				}
 			}
 		}

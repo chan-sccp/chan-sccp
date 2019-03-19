@@ -241,6 +241,10 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 #undef strdupa
 #define strdupa(...) _Pragma("GCC error \"use pbx_strdupa instead of strdupa\"")
 
+#define __strtok strtok
+#undef strtok
+#define strtok(...) _Pragma("GCC error \"use strtok_r instead of strtok\"")
+
 #if defined(__clang__)
 typedef void (^sccp_raii_cleanup_block_t)(void);
 static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(); }

@@ -932,7 +932,8 @@ static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 
 	char delims[] = ",";
 	char *uris = pbx_strdupa(softkeyMap_cb->uriactionstr);
-	char *token = strtok(uris, delims);
+	char *tokenrest = NULL;
+	char *token = strtok_r(uris, delims, &tokenrest);
 
 	while (token) {
 		token = sccp_trimwhitespace(token);
@@ -945,7 +946,7 @@ static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 		} else {
 			ast_str_append(&xmlStr, DEFAULT_PBX_STR_BUFFERSIZE, "<ExecuteItem Priority=\"0\" URL=\"%s\"/>", token);
 		}
-		token = strtok(NULL, delims);
+		token = strtok_r(NULL, delims, &tokenrest);
 	}
 	ast_str_append(&xmlStr, DEFAULT_PBX_STR_BUFFERSIZE, "%s", "</CiscoIPPhoneExecute>");
 
