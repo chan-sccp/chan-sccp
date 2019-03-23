@@ -1821,6 +1821,35 @@ long int sccp_random(void)
 	return pbx_random();
 }
 
+/*
+gcc_inline gcc_inline size_t sccp_utf8_strlen_visible(const char *const ms)
+{
+	setlocale(LC_ALL, "");
+	if (ms)
+		return mbstowcs(NULL, ms, 0);
+        else
+		return 0;
+}
+
+gcc_inline size_t sccp_utf8_strlen_nonvisible(const char *const ms)
+{
+	setlocale(LC_ALL, "");
+	if (ms)
+		return strlen(ms) - mbstowcs(NULL, ms, 0);
+	else
+		return 0;
+}
+*/
+
+gcc_inline int sccp_utf8_columnwidth(int width, const char *const ms)
+{
+	setlocale(LC_ALL, "");
+	if (ms)
+		return (int)width + (strlen(ms) - mbstowcs(NULL, ms, width));
+	else
+		return 0;
+}
+
 gcc_inline boolean_t sccp_always_false(void)
 {
 	return FALSE;

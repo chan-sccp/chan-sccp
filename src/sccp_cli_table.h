@@ -46,6 +46,7 @@ const char *UNIQUE_VAR(id, CLI_AMI_TABLE_NAME);
 char UNIQUE_VAR(idtext, CLI_AMI_TABLE_NAME)[256] = "";
 
 #define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d,_e) UNIQUE_VAR(table_width_,CLI_AMI_TABLE_NAME)=UNIQUE_VAR(table_width_,CLI_AMI_TABLE_NAME) + _d+ 1;
+#define CLI_AMI_TABLE_UTF8_FIELD CLI_AMI_TABLE_FIELD
 CLI_AMI_TABLE_FIELDS
 #undef CLI_AMI_TABLE_FIELD
 if (!s)
@@ -82,6 +83,8 @@ CLI_AMI_TABLE_FIELDS
 	/* iterator through list */
 if (!s) {
 #define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d,_e) pbx_cli(fd,"%" _b #_c " ",_e);
+#undef CLI_AMI_TABLE_UTF8_FIELD
+#define CLI_AMI_TABLE_UTF8_FIELD(_a,_b,_c,_d,_e) pbx_cli(fd,"%-*" #_c " ", sccp_utf8_columnwidth(_d,_e), _e);
 #ifdef CLI_AMI_TABLE_LIST_ITERATOR
 	_CLI_AMI_TABLE_LIST_LOCK(CLI_AMI_TABLE_LIST_ITER_HEAD);
 	_CLI_AMI_TABLE_LIST_ITERATOR(CLI_AMI_TABLE_LIST_ITER_HEAD, CLI_AMI_TABLE_LIST_ITER_VAR, list) {
@@ -95,8 +98,9 @@ if (!s) {
 	_CLI_AMI_TABLE_LIST_UNLOCK(CLI_AMI_TABLE_LIST_ITER_HEAD);
 #endif
 #undef CLI_AMI_TABLE_FIELD
+#undef CLI_AMI_TABLE_UTF8_FIELD
+#define CLI_AMI_TABLE_UTF8_FIELD CLI_AMI_TABLE_FIELD
 } else {
-//#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d,_e) CLI_AMI_OUTPUT_PARAM(#_a, 0, "%" #_c, _e);
 #define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d,_e) AMI_OUTPUT_PARAM(#_a, 0, "%" #_c, _e);
 #ifdef CLI_AMI_TABLE_LIST_ITERATOR
 	_CLI_AMI_TABLE_LIST_LOCK(CLI_AMI_TABLE_LIST_ITER_HEAD);
