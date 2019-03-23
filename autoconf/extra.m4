@@ -579,6 +579,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-fPIE dnl
 				-fPIE -pie dnl
 				-Wshorten-64-to-32 dnl
+				-Wno-format-truncation dnl
 			], SUPPORTED_CFLAGS)
 		])
 		AS_IF([test "X${USE_MAINTAINER_MODE}" = "Xyes"], [
@@ -590,7 +591,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wsuggest-attribute=noreturn dnl
 				-Wc++-compat dnl
 				-Wenum-compare dnl
-				-Wno-format-truncation dnl
+				-Wformat-truncation dnl
 				dnl -Wsuggest-attribute=pure dnl
 				dnl // should be added and fixed
 				dnl -Wswitch-enum dnl
@@ -608,6 +609,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl
 				dnl -Wno-unused-but-set-variable
 			], SUPPORTED_CFLAGS)
+			AC_DEFINE(MAINTAINER_MODE, 1, [Define MAINTAINER_MODE])
 		])
 
 		AS_IF([test "x${AST_C_COMPILER_FAMILY}" = "xgcc"], [

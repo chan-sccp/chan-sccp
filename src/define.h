@@ -268,4 +268,9 @@ static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(
 #define enum_incr(_enum) ({												\
         _enum=(typeof(_enum))((int)_enum + 1);										\
 })
+
+#if MAINTAINER_MODE == 1
+#define __snprintf snprintf
+#define snprintf(...) ({int __snprres = __snprintf(__VA_ARGS__); if (__snprres < 0) {pbx_log(LOG_WARNING, "snprintf returned error\n");};__snprres;})
+#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
