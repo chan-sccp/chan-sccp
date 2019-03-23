@@ -366,7 +366,10 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 {
 	pbx_str_t *coldata = pbx_str_thread_get(&coldata_buf, 16);
 	pbx_str_t *colnames = pbx_str_thread_get(&colnames_buf, 16);
-	char *colname;												// we should make this a finite length
+	char *colname = (char *)sccp_alloca(16);								// we should make this a finite length
+	if (!colname) {
+		return -1;
+	}
 	uint16_t buf_len = 1024;
 	char buf[1024] = "";
 	char *token = NULL;
@@ -374,7 +377,6 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 
 	if ((colname = strchr(data, ':'))) {									/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
-
 		*colname++ = '\0';
 		if (deprecation_warning++ % 10 == 0) {
 			pbx_log(LOG_WARNING, "SCCPDevice(): usage of ':' to separate arguments is deprecated. Please use ',' instead.\n");
@@ -382,10 +384,6 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
 	} else {
-		colname = (char *)sccp_alloca(16);
-		if (!colname) {
-			return -1;
-		}
 		snprintf(colname, 16, "ip");
 	}
 
@@ -411,13 +409,14 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	}
 	pbx_str_reset(colnames);
 	pbx_str_reset(coldata);
+	char delims[] = " ,";
 	if (d) {
-		snprintf(colname + strlen(colname), sizeof *colname, ",");
 		char *tokenrest = NULL;
-		token = strtok_r(colname, ",", &tokenrest);
+		token = strtok_r(colname, delims, &tokenrest);
 		while (token != NULL) {
 			addcomma = 0;
-			token = pbx_trim_blanks(token);
+			token = pbx_skip_blanks(token);
+			if (!strlen(token)) continue;
 			
 			/** copy request tokens for HASH() */
 			if (pbx_str_strlen(colnames)) {
@@ -583,7 +582,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			
 			/** copy buf to coldata */
 			pbx_str_append_escapecommas(&coldata, 0, buf, buf_len);
-			token = strtok_r(NULL, ",", &tokenrest);
+			token = strtok_r(NULL, delims, &tokenrest);
 			if (token != NULL) {
 				pbx_str_append(&coldata, 0, ",");
 			}
@@ -621,7 +620,10 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 {
 	pbx_str_t *coldata = pbx_str_thread_get(&coldata_buf, 16);
 	pbx_str_t *colnames = pbx_str_thread_get(&colnames_buf, 16);
-	char *colname;
+	char *colname = (char *)sccp_alloca(16);
+	if (!colname) {
+		return -1;
+	}
 	uint16_t buf_len = 1024;
 	char buf[1024] = "";
 	char *token = NULL;
@@ -629,7 +631,6 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 
 	if ((colname = strchr(data, ':'))) {									/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
-
 		*colname++ = '\0';
 		if (deprecation_warning++ % 10 == 0) {
 			pbx_log(LOG_WARNING, "SCCPLine(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
@@ -637,10 +638,6 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
 	} else {
-		colname = (char *)sccp_alloca(16);
-		if (!colname) {
-			return -1;
-		}
 		snprintf(colname, 16, "id");
 	}
 	AUTO_RELEASE(sccp_line_t, l , NULL);
@@ -677,13 +674,14 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 	}
 	pbx_str_reset(colnames);
 	pbx_str_reset(coldata);
+	char delims[] = " ,";
 	if (l) {
-		snprintf(colname + strlen(colname), sizeof *colname, ",");
 		char *tokenrest = NULL;
-		token = strtok_r(colname, ",", &tokenrest);
+		token = strtok_r(colname, delims, &tokenrest);
 		while (token != NULL) {
 			addcomma = 0;
-			token = pbx_trim_blanks(token);
+			token = pbx_skip_blanks(token);
+			if (!strlen(token)) continue;
 			
 			/** copy request tokens for HASH() */
 			if (pbx_str_strlen(colnames)) {
@@ -823,7 +821,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 
 			/** copy buf to coldata */
 			pbx_str_append_escapecommas(&coldata, 0, buf, buf_len);
-			token = strtok_r(NULL, ",", &tokenrest);
+			token = strtok_r(NULL, delims, &tokenrest);
 			if (token != NULL) {
 				pbx_str_append(&coldata, 0, ",");
 			}
@@ -861,14 +859,16 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	PBX_CHANNEL_TYPE *ast;
 	pbx_str_t *coldata = pbx_str_thread_get(&coldata_buf, 16);
 	pbx_str_t *colnames = pbx_str_thread_get(&colnames_buf, 16);
-	char *colname;
+	char *colname = (char *)sccp_alloca(16);
+	if (!colname) {
+		return -1;
+	}
 	uint16_t buf_len = 1024;
 	char buf[1024] = "";
 	char *token = NULL;
 
 	if ((colname = strchr(data, ':'))) {									/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
-
 		*colname++ = '\0';
 		if (deprecation_warning++ % 10 == 0) {
 			pbx_log(LOG_WARNING, "SCCPChannel(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
@@ -876,10 +876,6 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
 	} else {
-		colname = (char *)sccp_alloca(16);
-		if (!colname) {
-			return -1;
-		}
 		snprintf(colname, 16, "callid");
 	}
 
@@ -902,13 +898,14 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	}
 	pbx_str_reset(colnames);
 	pbx_str_reset(coldata);
+	char delims[] = " ,";
 	if (c) {
 		sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
-		snprintf(colname + strlen(colname), sizeof *colname, ",");
 		char *tokenrest = NULL;
-		token = strtok_r(colname, ",", &tokenrest);
+		token = strtok_r(colname, delims, &tokenrest);
 		while (token != NULL) {
-			token = pbx_trim_blanks(token);
+			token = pbx_skip_blanks(token);
+			if (!strlen(token)) continue;
 			
 			/** copy request tokens for HASH() */
 			if (pbx_str_strlen(colnames)) {
@@ -1035,7 +1032,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 
 			/** copy buf to coldata */
 			pbx_str_append_escapecommas(&coldata, 0, buf, buf_len);
-			token = strtok_r(NULL, ",", &tokenrest);
+			token = strtok_r(NULL, delims, &tokenrest);
 			if (token != NULL) {
 				pbx_str_append(&coldata, 0, ",");
 			}
