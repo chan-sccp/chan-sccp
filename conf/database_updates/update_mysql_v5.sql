@@ -1,4 +1,9 @@
 DROP VIEW sccpdeviceconfig;
+
+ALTER TABLE `sccpdevice` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+ALTER TABLE `sccpline` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+ALTER TABLE `buttonconfig` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+
 ALTER TABLE `sccpdevice` CHANGE COLUMN `nat` VARCHAR( 7 ) DEFAULT "auto";
 ALTER TABLE `sccpdevice` CHANGE COLUMN `earlyrtp` VARCHAR(10);
 ALTER TABLE `sccpdevice` ADD `audio_tos` VARCHAR( 11 ) NULL DEFAULT "0xB8" AFTER `softkeyset`;

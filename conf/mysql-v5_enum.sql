@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `ringtone` varchar(255) DEFAULT NULL,
   `name` varchar(15) NOT NULL default '',
   PRIMARY KEY  (`name`)
-) ENGINE=INNODB DEFAULT CHARSET=latin1;
+) ENGINE=INNODB DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 --
 -- Table with device-configuration
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS `sccpline` (
   `name` varchar(40) NOT NULL default '',
   PRIMARY KEY  (`name`),
   UNIQUE (`id`)
-) ENGINE=INNODB DEFAULT CHARSET=latin1;
+) ENGINE=INNODB DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 --
 -- Table with button-configuration for device
@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS `buttonconfig` (
   PRIMARY KEY  (`device`,`instance`,`type`),
   KEY `device` (`device`),
   FOREIGN KEY (device) REFERENCES sccpdevice(name) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=INNODB DEFAULT CHARSET=latin1;
+) ENGINE=INNODB DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 
 --

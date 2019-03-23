@@ -197,6 +197,7 @@ struct sccp_device {
 	boolean_t realtime;											/*!< is it a realtime configuration */
 	boolean_t transfer;											/*!< Transfer Support (Boolean, default=on) */
 
+	char *iconvcodepage;											/*!< Iconv Codepage to use during conversion from UTF-8, for old phone models */
 	char *backgroundImage;											/*!< backgroundimage we will set after device registered */
 	char *ringtone;												/*!< ringtone we will set after device registered */
 

@@ -39,6 +39,11 @@ SCCP_FILE_VERSION(__FILE__, "");
 #if defined(CS_AST_HAS_EVENT) && defined(HAVE_PBX_EVENT_H) 	// ast_event_subscribe
 #  include <asterisk/event.h>
 #endif
+#if HAVE_ICONV
+#include <iconv.h>
+int sccp_device_createiconv(devicePtr d);
+void sccp_device_destroyiconv(devicePtr d);
+#endif
 
 int __sccp_device_destroy(const void *ptr);
 void sccp_device_removeFromGlobals(devicePtr device);
@@ -54,6 +59,11 @@ struct sccp_private_device_data {
 	sccp_devicestate_t deviceState;											/*!< Device State */
 
 	skinny_registrationstate_t registrationState;
+
+#if HAVE_ICONV
+	iconv_t iconv;
+	sccp_mutex_t iconv_lock;
+#endif
 };
 
 #define sccp_private_lock(x) sccp_mutex_lock(&((struct sccp_private_device_data * const)(x))->lock)			/* discard const */
@@ -216,6 +226,52 @@ static void sccp_device_copyStr2Locale_UTF8(constDevicePtr d, char *dst, ICONV_C
 }
 
 #if HAVE_ICONV
+int sccp_device_createiconv(devicePtr d)
+{
+	d->privateData->iconv = iconv_open(d->iconvcodepage, "UTF-8");
+	if (d->privateData->iconv == (iconv_t) -1) {
+		pbx_log(LOG_ERROR, "SCCP:conversion from 'UTF-8' to 'ISO8859-1' not available.\n");
+		return 0;
+	}
+	pbx_mutex_init(&d->privateData->iconv_lock);
+	return 1;
+}
+void sccp_device_destroyiconv(devicePtr d)
+{
+	if (d->privateData->iconv != (iconv_t) -1) {
+		pbx_mutex_destroy(&d->privateData->iconv_lock);
+		iconv_close(d->privateData->iconv);
+		d->privateData->iconv = (iconv_t) -1;
+	}
+}
+
+gcc_inline boolean_t sccp_device_convUtf8toLatin1(constDevicePtr d, ICONV_CONST char *utf8str, char *buf, size_t len) 
+{
+	if (d->privateData->iconv == (iconv_t) -1) {
+		// fallback to plain string copy
+		sccp_copy_string(buf, utf8str, len);
+		return TRUE;
+	}
+	size_t incount, outcount = len;
+	incount = sccp_strlen(utf8str);
+	if (incount) {
+		pbx_mutex_lock(&d->privateData->iconv_lock);
+		if (iconv(d->privateData->iconv, &utf8str, &incount, &buf, &outcount) == (size_t) -1) {
+			if (errno == E2BIG) {
+				pbx_log(LOG_WARNING, "SCCP: Iconv: output buffer too small.\n");
+			} else if (errno == EILSEQ) {
+				pbx_log(LOG_WARNING,  "SCCP: Iconv: illegal character.\n");
+			} else if (errno == EINVAL) {
+				pbx_log(LOG_WARNING,  "SCCP: Iconv: incomplete character sequence.\n");
+			} else {
+				pbx_log(LOG_WARNING,  "SCCP: Iconv: error %d: %s.\n", errno, strerror(errno));
+			}
+		}
+		pbx_mutex_unlock(&d->privateData->iconv_lock);
+	}
+	return TRUE;
+}
+
 static void sccp_device_copyStr2Locale_Convert(constDevicePtr d, char *dst, ICONV_CONST char *src, size_t dst_size)
 {
 	if (!dst || !src) {
@@ -224,7 +280,7 @@ static void sccp_device_copyStr2Locale_Convert(constDevicePtr d, char *dst, ICON
 	char *buf = (char *)sccp_alloca(dst_size);
 	size_t buf_len = dst_size;
 	memset(buf, 0, dst_size);
-	if (sccp_utils_convUtf8toLatin1(src, buf, buf_len)) {
+	if (sccp_device_convUtf8toLatin1(d, src, buf, buf_len)) {
 		sccp_copy_string(dst, buf, dst_size);
 		return;
 	}
@@ -619,6 +675,9 @@ sccp_device_t *sccp_device_create(const char *id)
 #ifndef SCCP_ATOMIC
 	sccp_mutex_unlock(&d->messageStack.lock);
 #endif
+#if HAVE_ICONV
+	d->privateData->iconv = (iconv_t) -1;
+#endif
 
 	// /* disable videomode and join softkey for all softkeysets */
 	/*
@@ -777,6 +836,7 @@ void sccp_device_preregistration(devicePtr device)
 	}
 #if HAVE_ICONV
 	if (!(device->device_features.phoneFeatures[1] & SKINNY_PHONE_FEATURES1_UTF8)) {
+		sccp_device_createiconv(device);
 		device->copyStr2Locale = sccp_device_copyStr2Locale_Convert;
 	}
 #endif
@@ -2605,6 +2665,12 @@ int __sccp_device_destroy(const void *ptr)
 		pbx_mutex_destroy(&d->messageStack.lock);
 #endif
 	}
+	
+#if HAVE_ICONV
+	if (d->privateData->iconv != (iconv_t) -1) {
+		sccp_device_destroyiconv(d);
+	}
+#endif	
 
 	// cleanup variables
 	if (d->variables) {

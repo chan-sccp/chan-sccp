@@ -35,10 +35,6 @@ SCCP_FILE_VERSION(__FILE__, "");
 #  include <asterisk/acl.h>
 #endif
 
-#if HAVE_ICONV
-#include <iconv.h>
-#endif
-
 /*!
  * \brief Print out a messagebuffer
  * \param messagebuffer Pointer to Message Buffer as char
@@ -1824,55 +1820,6 @@ long int sccp_random(void)
 	/* potentially replace with our own implementation */
 	return pbx_random();
 }
-
-#if HAVE_ICONV
-static iconv_t __sccp_iconv = (iconv_t) -1;
-static sccp_mutex_t __iconv_lock;
-
-static void __attribute__((constructor)) __start_iconv(void)
-{
-	__sccp_iconv = iconv_open("ISO8859-1", "UTF-8");
-	if (__sccp_iconv == (iconv_t) -1) {
-		pbx_log(LOG_ERROR, "SCCP:conversion from 'UTF-8' to 'ISO8859-1' not available.\n");
-	}
-	pbx_mutex_init_notracking(&__iconv_lock);
-}
-
-static void __attribute__((destructor)) __stop_iconv(void)
-{
-	if (__sccp_iconv) {
-		pbx_mutex_destroy(&__iconv_lock);
-		iconv_close(__sccp_iconv);
-	}
-}
-
-gcc_inline boolean_t sccp_utils_convUtf8toLatin1(ICONV_CONST char *utf8str, char *buf, size_t len) 
-{
-	if (__sccp_iconv == (iconv_t) -1) {
-		// fallback to plain string copy
-		sccp_copy_string(buf, utf8str, len);
-		return TRUE;
-	}
-	size_t incount, outcount = len;
-	incount = sccp_strlen(utf8str);
-	if (incount) {
-		pbx_mutex_lock(&__iconv_lock);
-		if (iconv(__sccp_iconv, &utf8str, &incount, &buf, &outcount) == (size_t) -1) {
-			if (errno == E2BIG) {
-				pbx_log(LOG_WARNING, "SCCP: Iconv: output buffer too small.\n");
-			} else if (errno == EILSEQ) {
-				pbx_log(LOG_WARNING,  "SCCP: Iconv: illegal character.\n");
-			} else if (errno == EINVAL) {
-				pbx_log(LOG_WARNING,  "SCCP: Iconv: incomplete character sequence.\n");
-			} else {
-				pbx_log(LOG_WARNING,  "SCCP: Iconv: error %d: %s.\n", errno, strerror(errno));
-}
-		}
-		pbx_mutex_unlock(&__iconv_lock);
-	}
-	return TRUE;
-}
-#endif
 
 gcc_inline boolean_t sccp_always_false(void)
 {
