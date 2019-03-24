@@ -1,4 +1,6 @@
 #!/bin/bash
+set  -e
+
 usage()
 {
 cat << EOF
@@ -51,38 +53,39 @@ then
      exit 1
 fi
 
-
+screenshot_tmp=$(mktemp)
 echo "Retrieving Screenshot from phone at $IPADDRESS..."
 if [[ ! -z $USERNAME ]]; then
 	if [[ ! -z $PASSWORD ]]; then
-		wget -q --user $USERNAME --password $PASSWORD --progress=dot http://$IPADDRESS/CGI/Screenshot >/dev/null
+		wget -q --user $USERNAME --password $PASSWORD --progress=dot http://$IPADDRESS/CGI/Screenshot -O $screenshot_tmp>/dev/null
 	else 
 		usage
 		exit 1
 	fi
 else
-	wget -q http://$IPADDRESS/CGI/Screenshot >/dev/null
+	wget -q http://$IPADDRESS/CGI/Screenshot -O $screenshot_tmp>/dev/null
 fi
 
 #echo "Retrieving ModelInfo from phone at $IPADDRESS..."
-wget -q http://$IPADDRESS/DeviceInformationX >/dev/null
-modelnumber=`grep modelNumber DeviceInformationX`
+deviceinfo_tmp=$(mktemp)
+wget -q http://$IPADDRESS/DeviceInformationX -O $deviceinfo_tmp>/dev/null
+modelnumber=`grep modelNumber $deviceinfo_tmp`
 if [[ ! -z "`grep -e 7960 -e 7940 DeviceInformationX`" ]]; then
 	echo "Converting Screenshot to ${OUTPUTFILE}.png..."
-	./scr2img Screenshot $OUTPUTFILE.png
+	$0/../scr2img $screenshot_tmp $OUTPUTFILE.png
 elif [[ ! -z "`grep -e 8941 -e 8945 DeviceInformationX`" ]]; then
 	echo "Saving Screenshot to ${OUTPUTFILE}.png..."
-	mv Screenshot ${OUTPUTFILE}.png
+	mv $screenshot_tmp ${OUTPUTFILE}.png
 else
 	if [ -n "`which bmptopnm`" ]; then
 		echo "Saving Screenshot to $OUTPUTFILE.png..."
-		bmptopnm Screenshot 2>/dev/null|pnmtopng - >${OUTPUTFILE}.png 2>/dev/null
+		bmptopnm $screenshot_tmp 2>/dev/null|pnmtopng - >${OUTPUTFILE}.png 2>/dev/null
 	else
 		echo "Saving Screenshot to $OUTPUTFILE.bmp..."
-		mv Screenshot ${OUTPUTFILE}.bmp
+		mv $screenshot_tmp ${OUTPUTFILE}.bmp
 	fi     
 fi
-rm Screenshot >& /dev/null
-rm DeviceInformationX >& /dev/null
+[ -f $screenshot_tmp ] && rm $screenshot_tmp >& /dev/null
+[ -f $deviceinfo_tmp ] && rm DeviceInformationX >& /dev/null
 
 

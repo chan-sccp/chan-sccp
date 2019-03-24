@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 usage()
 {
 cat << EOF
@@ -58,7 +60,18 @@ if [[ ! -z $USERNAME ]]; then
 		exit 1
 	fi
 fi
-curl -q --basic $USERPASS --url http://$IPADDRESS/CGI/LineInfo     -o LineInfo 2>/dev/null
-curl -q --basic $USERPASS --url http://$IPADDRESS/CGI/ModeInfo     -o ModeInfo 2>/dev/null
-curl -q --basic $USERPASS --url http://$IPADDRESS/CGI/SettingsInfo -o SetttingsInfo 2>/dev/null
-curl -q --basic $USERPASS --url http://$IPADDRESS/CGI/CallInfo     -o - 2>/dev/null |xmllint --pretty 1 - > CallInfo
+deviceinfo_tmp=$(mktemp)
+curl -q --basic $USERPASS --url http://$IPADDRESS/DeviceInformationX -O $deviceinfo_tmp 2>/dev/null
+modelnumber=`grep modelNumber $deviceinfo_tmp`
+
+if [[ -z "`grep -e 7960 -e 7940 DeviceInformationX`" ]]; then
+        curl -q --basic $USERPASS --url http://$IPADDRESS/CGI/LineInfo     -o LineInfo 2>/dev/null
+        curl -q --basic $USERPASS --url http://$IPADDRESS/CGI/ModeInfo     -o ModeInfo 2>/dev/null
+        curl -q --basic $USERPASS --url http://$IPADDRESS/CGI/SettingsInfo -o SetttingsInfo 2>/dev/null
+        curl -q --basic $USERPASS --url http://$IPADDRESS/CGI/CallInfo     -o CallInfo.tmp 2>/dev/null
+        if [ -f CallInfo.tmp ] && [ $? == 0 ] && [ -z "`grep -e Error CallInfo.tmp`" ]; then 
+                cat CallInfo.tmp |xmllint --pretty 1 - > CallInfo; rm CallInfo.tmp
+        else
+                rm CallInfo.tmp
+        fi
+fi
