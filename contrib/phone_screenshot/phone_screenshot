@@ -65,6 +65,15 @@ if [[ ! -z $USERNAME ]]; then
 else
 	wget -q http://$IPADDRESS/CGI/Screenshot -O $screenshot_tmp>/dev/null
 fi
+if [ -z "`grep 'CiscoIPPhoneError' $screenshot_tmp`" ]; then
+        cat $screenshot_tmp
+        echo "1 = Error Parsing CiscoIPPhoneExecute object"
+        echo "2 = Error framing CiscoIPPhoneResponse object"
+        echo "3 = Internal file error"
+        echo "4 = Authentication error"
+        rm $screenshot_tmp
+        exit 1
+fi
 
 #echo "Retrieving ModelInfo from phone at $IPADDRESS..."
 deviceinfo_tmp=$(mktemp)
@@ -86,6 +95,6 @@ else
 	fi     
 fi
 [ -f $screenshot_tmp ] && rm $screenshot_tmp >& /dev/null
-[ -f $deviceinfo_tmp ] && rm DeviceInformationX >& /dev/null
+[ -f $deviceinfo_tmp ] && rm $deviceinfo_tmp >& /dev/null
 
 

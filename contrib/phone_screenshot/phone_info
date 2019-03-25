@@ -63,7 +63,7 @@ fi
 deviceinfo_tmp=$(mktemp)
 curl -q --basic $USERPASS --url http://$IPADDRESS/DeviceInformationX -O $deviceinfo_tmp 2>/dev/null
 modelnumber=`grep modelNumber $deviceinfo_tmp`
-
+[ -f $deviceinfo_tmp ] && rm $deviceinfo_tmp
 if [[ -z "`grep -e 7960 -e 7940 DeviceInformationX`" ]]; then
         curl -q --basic $USERPASS --url http://$IPADDRESS/CGI/LineInfo     -o LineInfo 2>/dev/null
         curl -q --basic $USERPASS --url http://$IPADDRESS/CGI/ModeInfo     -o ModeInfo 2>/dev/null
