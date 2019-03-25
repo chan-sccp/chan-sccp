@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <device>
-  <sshUserId>cisco</sshUserId>
+  <sshUserId>cisco</sshUserId> <!-- please change -->
   <sshPassword>cisco</sshPassword>
   <devicePool>
     <dateTimeSetting>
@@ -9,7 +9,7 @@
       <timeZone>W. Europe Standard/Daylight Time</timeZone>
       <ntps>
         <ntp>
-          <name>x.x.x.x</name>
+          <name>[x.x.x.x]</name> <!-- please change -->
           <ntpMode>Unicast</ntpMode>
         </ntp>
       </ntps>
@@ -21,21 +21,21 @@
             <ports>
               <ethernetPhonePort>2000</ethernetPhonePort>
             </ports>
-            <processNodeName>x.x.x.x</processNodeName>
+            <processNodeName>[x.x.x.x]</processNodeName> <!-- please change -->
           </callManager>
         </member>
       </members>
     </callManagerGroup>
     <srstInfo>
-      <name>Enable</name>
+      <name>Disable</name>
       <srstOption>Disable</srstOption>
-      <userModifiable>true</userModifiable>
-      <ipAddr1>x.x.x.x</ipAddr1>
-      <port1>2000</port1>
+      <userModifiable>false</userModifiable>
+      <ipAddr1/>
+      <port1/>
       <ipAddr2/>
-      <port2>2000</port2>
+      <port2/>
       <ipAddr3/>
-      <port3>2000</port3>
+      <port3/>
     </srstInfo>
   </devicePool>
   <loadInformation>P00308010100</loadInformation>
@@ -82,13 +82,4 @@
   <dscpForSCCPPhoneConfig>104</dscpForSCCPPhoneConfig>
   <dscpForSCCPPhoneServices>0</dscpForSCCPPhoneServices>
   <dscpForCm2Dvce>184</dscpForCm2Dvce>
-  <transportLayerProtocol>4</transportLayerProtocol>
-  <capfAuthMode>0</capfAuthMode>
-  <capfList>
-    <capf>
-      <phonePort>3804</phonePort>
-    </capf>
-  </capfList>
-  <certHash/>
-  <encrConfig>false</encrConfig>
 </device>
