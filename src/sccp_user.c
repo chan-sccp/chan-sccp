@@ -55,12 +55,14 @@ void sccp_user_pre_reload(void)
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(users), user, list) {
 #ifdef CS_SCCP_REALTIME
 		if (user->realtime == FALSE)
-#endif
 		{
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_USER)) (VERBOSE_PREFIX_3 "%s: Setting User to Pending Delete=1\n", user->name);
 			user->pendingDelete = 1;
+		} else
+#endif
+		{
+			user->pendingUpdate = 1;
 		}
-		user->pendingUpdate = 0;
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
 }
@@ -96,6 +98,8 @@ void sccp_user_post_reload(void)
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
 }
+
+/* ================================================================================================================ user */
 
 /*!
  * \brief Build Default SCCP User.
@@ -399,21 +403,7 @@ sccp_user_t *sccp_user_find_byid(const char *userid, uint8_t useRealtime)
 	return sccp_user_retain(user);
 }
 
-
-//astdb
-/*
- pre login
-SCCP/emsession/userid/1224 -> SEPXXXXXXX
-SCCP/emsession/deviceid/SEPXXXXXXX -> "deviceid=SEPXXXXXXX;userid=1224;state=0;sessionid=4534454545;timestamp=2019/12/12_07:32;timeout=2019/12/12_07:37"
-
- logged in
-SCCP/emsession/userid/1224 -> SEPXXXXXXX
-SCCP/emsession/userid/1226 -> SEPXXXXXXA
-SCCP/emsession/deviceid/SEPXXXXXXX -> "deviceid=SEPXXXXXXX;userid=1224;state=1;sessionid=4534454545;timestamp=2019/12/12_07:32;timeout=2019/12/12_18:15"
-
- logged out
-SCCP/emsession/SEPXXXXXXX/lastuser -> 1224
-*/
+/* ================================================================================================================ usersession */
 #ifndef ASTDB_FAMILY_KEY_LEN
 #define ASTDB_FAMILY_KEY_LEN 100
 #endif
@@ -461,61 +451,6 @@ static sccp_usersession_t *usersession_parseDBString(char *dbstring)
 	return usersession;
 }
 
-/*
-static sccp_usersession_t *usersession_parseDBString(char *dbstring)
-{
-	sccp_usersession_t *usersession = (sccp_usersession_t *)sccp_calloc(sizeof *usersession, 1);
-	if (!usersession) {
-		// error
-		return NULL;
-	}
-	char delims[] = ";";
-	char *tokens_saveptr;
-	char *tokens = pbx_strdupa(dbstring);
-	char *token = strtok_r(tokens, delims, &tokens_saveptr);
-	char *userid = NULL;
-	int matches = 0;
-	while (token != NULL) {
-		do {
-			if (matches += sscanf(token, "deviceid=%16s", usersession->deviceid)) {
-				sccp_log(DEBUGCAT_USER)(VERBOSE_PREFIX_3 "SCCP: (parseDBString) matched token:%s -> deviceid:%s\n", token, usersession->deviceid);
-				break;
-			} else if (matches += sscanf(token, "state=%u", &usersession->state)) {
-				sccp_log(DEBUGCAT_USER)(VERBOSE_PREFIX_3 "SCCP: (parseDBString) matched token:%s -> state:%u\n", token, usersession->state);
-				break;
-			} else if (matches += sscanf(token, "sessionid=%lx", &usersession->sessionid)) {
-				sccp_log(DEBUGCAT_USER)(VERBOSE_PREFIX_3 "SCCP: (parseDBString) matched token:%s -> sessionid:%lx\n", token, usersession->sessionid);
-				break;
-			} else if (matches += sscanf(token, "timestamp=%ld", &usersession->timestamp)) {
-				sccp_log(DEBUGCAT_USER)(VERBOSE_PREFIX_3 "SCCP: (parseDBString) matched token:%s -> timestamp:%ld\n", token, usersession->timestamp);
-				break;
-			} else if (matches += sscanf(token, "timeout=%ld", &usersession->timeout)) {
-				sccp_log(DEBUGCAT_USER)(VERBOSE_PREFIX_3 "SCCP: (parseDBString) matched token:%s -> timeout:%ld\n", token, usersession->timeout);
-				break;
-			} else if (matches += sscanf(token, "userid=%16s", userid) && !sccp_strlen_zero(userid)) {
-				sccp_log(DEBUGCAT_USER)(VERBOSE_PREFIX_3 "SCCP: (parseDBString) matched token:%s -> userid:%s\n", token, userid);
-				usersession->user = sccp_user_find_byid(userid, FALSE);
-				if (!usersession->user) {
-					pbx_log(LOG_ERROR, "SCCP: (parseDBString) could not find provided userid:%s. giving up.\n", userid);
-					sccp_free(usersession);
-					return NULL;
-				}
-				sccp_log(DEBUGCAT_USER)(VERBOSE_PREFIX_3 "SCCP: (parseDBString) matched to user:%s\n", usersession->user->id);
-				break;
-			} else {
-				pbx_log(LOG_ERROR, "SCCP: (parseDBString) encountered and unknown token:%s. giving up.\n", token);
-				sccp_free(usersession);
-				return NULL;
-			}
-		} while(0);
-		token = strtok_r(NULL, delims, &tokens_saveptr);
-	}
-	sccp_log(DEBUGCAT_USER)(VERBOSE_PREFIX_2 "SCCP: (parseDBString) matches(%d) matched: deviceid:%s, state:%u, sessionid:%lx, timestamp:%ld, timeout:%ld, user->id:%s\n", 
-		matches, usersession->deviceid, usersession->state, usersession->sessionid, usersession->timestamp, usersession->timeout, usersession->user ? usersession->user->id : "");
-	return usersession;
-}
-*/
-
 static char * usersession_createDBString(sccp_usersession_t *usersession, char *buffer, size_t buflen)
 {
 	snprintf(buffer, buflen, "deviceid=%s;state=%u;sessionid=%lx;timestamp=%ld;timeout=%ld;%s%s",
@@ -526,8 +461,6 @@ static char * usersession_createDBString(sccp_usersession_t *usersession, char *
 	return buffer;
 }
 
-//SCCP/emsession/userid/1224 -> SEPXXXXXXX
-//SCCP/emsession/deviceid/SEPXXXXXXX -> "deviceid=SEPXXXXXXX;userid=1224;state=0;sessionid=4534454545;timestamp=2019/12/12_07:32;timeout=2019/12/12_07:37"
 /*!
  * sccp_usersession_findByUserId
  * returns malloced sccp_usersession_t
@@ -587,6 +520,29 @@ sccp_usersession_t * sccp_usersession_findByDeviceId(char deviceid[StationMaxDev
 	return NULL;
 }
 
+
+/*!
+ * sccp_usersession_findByDeviceUser
+ * returns malloced sccp_usersession_t
+ * make sure to free after use
+ */
+static sccp_usersession_t * sccp_usersession_findByDeviceUser(constDevicePtr device, const sccp_user_t *user)
+{
+	char deviceid[ASTDB_RESULT_LEN] = { 0 };
+	char sessionstr[SESSIONSTR_LEN] = { 0 };
+	if (iPbx.feature_getFromDatabase) {
+		if (iPbx.feature_getFromDatabase("SCCP/emsession/userid", user->id, deviceid, sizeof(deviceid)) && !sccp_strlen_zero(deviceid)) {
+			if (sccp_strcaseequals(deviceid, device->id)) {
+				if (iPbx.feature_getFromDatabase("SCCP/emsession/deviceid", deviceid, sessionstr, sizeof(sessionstr)) && !sccp_strlen_zero(sessionstr)) {
+					return usersession_parseDBString(sessionstr);
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
+
 /*!
  * sccp_usersession_getButtonconfig
  * returns a pointer to the user buttonconfig if found
@@ -617,6 +573,9 @@ void sccp_usersession_replaceButtonconfig(sccp_device_t *device)
 		sccp_free(usersession);
 	} else {
 		device->buttonconfig = &device->buttondefinition;
+		if (device->userid) {
+			sccp_free(device->userid);
+		}
 	}
 }
 
@@ -634,11 +593,18 @@ int sccp_user_handle_login(sccp_device_t *d, sccp_user_t *u)
 	return res;
 }
 
+/*
+/SCCP/emsession/deviceid/SEP0023043403F9          : deviceid=SEP0023043403F9;state=2;sessionid=71207243;timestamp=1553709336;timeout=1553712936;userid=1000
+/SCCP/emsession/deviceid/SEPE0D173E11D95          : deviceid=SEPE0D173E11D95;state=2;sessionid=54a70d02;timestamp=1551837393;timeout=1551840993;userid=1234
+/SCCP/emsession/userid/1000                       : SEP0023043403F9          
+/SCCP/emsession/userid/1234                       : SEPE0D173E11D95          
+*/
 void sccp_user_handle_logout(sccp_usersession_t *usersession)
 {
+	/*
 	if (usersession->user) {
-		//iPbx.feature_removeFromDatabase("SCCP/emsession/userid", usersession->user->id);
-	}
+		iPbx.feature_removeFromDatabase("SCCP/emsession/userid", usersession->user->id);
+	}*/
 	iPbx.feature_removeFromDatabase("SCCP/emsession/deviceid", usersession->deviceid);
 }
 
@@ -826,21 +792,6 @@ char *sccp_complete_user(OLDCONST char *line, OLDCONST char *word, int pos, int 
 				char *deviceid = NULL;
 				if (sscanf(line, "sccp user logout %33s %17s", username, deviceid) > 0)
 				{
-/*
-					usersession_lock();
-					for (uint32_t idx = 0; idx < SCCP_VECTOR_SIZE(&usersessions); idx++) {
-						sccp_usersession_t  *usersession = SCCP_VECTOR_GET(&usersessions, idx);
-						if (
-							username && deviceid && 
-							sccp_strcaseequals(username, usersession->user->name) &&
-							!strncasecmp(deviceid, usersession->device_id, strlen(deviceid)) 
-						) {
-							ret = pbx_strdup(usersession->device_id);
-							break;
-						}
-					}
-					usersession_unlock();
-*/
 					break;
 				}
 				break;
@@ -910,7 +861,7 @@ int sccp_user_command(int fd, sccp_cli_totals_t *totals, struct mansession *s, c
 	AUTO_RELEASE(sccp_user_t,user, NULL);
 	char error[100];
 
-	//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "User Command:%s, %s, %s\n", argv[2], argv[3], argc >= 5 ? argv[4] : "");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "User Command:%s, %s, %s\n", argv[2], argv[3], argc >= 5 ? argv[4] : "");
 	if (argc < 2 || argc > 8 || sccp_strlen_zero(argv[2])) {
 		return RESULT_SHOWUSAGE;
 	}
@@ -937,10 +888,40 @@ int sccp_user_command(int fd, sccp_cli_totals_t *totals, struct mansession *s, c
 		
 		res = RESULT_SUCCESS;
 	}
-	else if (sccp_strcaseequals("logout", argv[2]) && argc == 4) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "User Logout %s\n", argv[3]);
-		if (sccp_strlen_zero(argv[3])) {
+	else if (sccp_strcaseequals("logout", argv[2]) ) {			// move implementation to seperate logout handler
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "User Logout %s %s\n", argv[3], argv[4]);
+		if (argc < 4 || sccp_strlen_zero(argv[3]) || argc > 5) {
 			return RESULT_SHOWUSAGE;
+		}
+		user = sccp_user_find_byid(argv[3], FALSE);
+		if (argc == 5 && sccp_strlen_zero(argv[4])) {
+			device = sccp_device_find_byid(argv[4], FALSE);
+			if (!device) {
+				// error: device could not be found
+				return RESULT_SHOWUSAGE;
+			}
+		}
+		if (user) {
+			RAII(sccp_usersession_t *, usersession, NULL, sccp_free);
+			if (device) {
+				usersession = sccp_usersession_findByDeviceUser(device, user);
+			} else {
+				usersession = sccp_usersession_findByUserId(user->id);
+			}
+			if (usersession) {
+				sccp_user_handle_logout(usersession);
+				if (device || (device = sccp_device_find_byid(usersession->deviceid, FALSE))) {			// restart device
+					if (device->session) {
+						if (device->active_channel) {
+							// schedule restart
+						} else {
+							sccp_device_sendReset(device, SKINNY_RESETTYPE_RESTART);
+						}
+					}
+				}
+			}
+		} else {
+			// error user could not be found
 		}
 		res = RESULT_SUCCESS;
 	}
@@ -955,7 +936,6 @@ int sccp_user_command(int fd, sccp_cli_totals_t *totals, struct mansession *s, c
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "User Sessions\n");
 /*
 		sccp_usersession_t  *usersession;
-		usersession_lock();
 #define CLI_AMI_TABLE_NAME Usersessions
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Session
 #define CLI_AMI_TABLE_ITERATOR for(uint32_t idx = 0; idx < SCCP_VECTOR_SIZE(&usersessions); idx++)
@@ -967,8 +947,7 @@ int sccp_user_command(int fd, sccp_cli_totals_t *totals, struct mansession *s, c
 			CLI_AMI_TABLE_FIELD(Timestamp,		"-16.16",	s,	16,	usersession->logout_timestamp)
 #include "sccp_cli_table.h"
 		local_table_total++;
-		usersession_unlock();
-*/		
+*/	
 		res = RESULT_SUCCESS;
 	}
 	else {
