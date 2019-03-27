@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS `sccpuser` (
   `password` varchar(45) default NULL,
   PRIMARY KEY  (`name`),
   UNIQUE (`id`)
-) ENGINE=INNODB DEFAULT CHARSET=latin1;
+) ENGINE=INNODB DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 --
 -- Table with button-configuration for device
@@ -120,9 +120,9 @@ CREATE TABLE IF NOT EXISTS `sccpbuttonconfig` (
   `name` varchar(36) default NULL,
   `options` varchar(100) default NULL,
   PRIMARY KEY  (`ref`,`reftype`,`instance`,`buttontype`),
-  KEY `ref` (`ref`,`reftype`),
---  FOREIGN KEY (device) REFERENCES sccpdevice(name) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=INNODB DEFAULT CHARSET=latin1;
+  KEY `ref` (`ref`,`reftype`)
+-- , FOREIGN KEY (device) REFERENCES sccpdevice(name) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=INNODB DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 -- trigger to check buttonconfig sccpline foreign key constrainst:
 --   if type=='line' then check name against sccpline.name column
@@ -138,18 +138,21 @@ BEGIN
 		THEN
 			UPDATE `Foreign key contraint violated: ref does not exist in sccpdevice` SET x=1;
 		END IF;
-	ELSE IF NEW.`reftype` = 'sccpuser' THEN
+        END IF;		
+	IF NEW.`reftype` = 'sccpuser' THEN
 		IF (SELECT COUNT(*) FROM `sccpuser` WHERE `sccpuser`.`name` = NEW.`ref`) = 0
 		THEN
 			UPDATE `Foreign key contraint violated: ref does not exist in sccpuser` SET x=1;
 		END IF;
 	END IF;
 	IF NEW.`buttontype` = 'line' THEN
-		IF (SELECT COUNT(*) FROM `sccpline` WHERE `sccpline`.`name` = NEW.`name`) = 0
-		THEN
-			UPDATE `Foreign key contraint violated: line does not exist in sccpline` SET x=1;
-		END IF;
-	END IF;
+   	IF NEW.`buttontype` = 'line' THEN
+        	SET @line_x = SUBSTRING_INDEX(NEW.`name`,'!',1);
+        	SET @line_x = SUBSTRING_INDEX(@line_x,'@',1);
+        	IF (SELECT COUNT(*) FROM `sccpline` WHERE `sccpline`.`name` = @line_x ) = 0 THEN
+            		UPDATE `Foreign key contraint violated: line does not exist in sccpline` SET x=1;
+        	END IF;
+   	END IF;
 END$$
 DELIMITER ;
 
@@ -168,7 +171,7 @@ DELIMITER ;
 CREATE OR REPLACE
 ALGORITHM = MERGE
 VIEW sccpdeviceconfig AS
-	SELECT GROUP_CONCAT( CONCAT_WS( ',', sccpbuttonconfig.type, sccpbuttonconfig.name, sccpbuttonconfig.options )
+	SELECT GROUP_CONCAT( CONCAT_WS( ',', sccpbuttonconfig.buttontype, sccpbuttonconfig.name, sccpbuttonconfig.options )
 	ORDER BY instance ASC SEPARATOR ';' ) AS sccpbutton, sccpdevice.*
 	FROM sccpdevice
 	LEFT JOIN sccpbuttonconfig ON ( 
@@ -179,12 +182,12 @@ GROUP BY sccpdevice.name;
 CREATE OR REPLACE
 ALGORITHM = MERGE
 VIEW sccpuserconfig AS
-	SELECT GROUP_CONCAT( CONCAT_WS( ',', sccpbuttonconfig.buttontype as type, sccpbuttonconfig.name, sccpbuttonconfig.options )
+	SELECT GROUP_CONCAT( CONCAT_WS( ',', sccpbuttonconfig.buttontype, sccpbuttonconfig.name, sccpbuttonconfig.options )
 	ORDER BY instance ASC SEPARATOR ';' ) AS button, sccpuser.*
 	FROM sccpuser
 	LEFT JOIN sccpbuttonconfig ON (
 	    sccpbuttonconfig.reftype = 'sccpuser' AND
             sccpbuttonconfig.ref = sccpuser.id)
-GROUP BY sccpdevice.name;
+GROUP BY sccpuser.name;
 
 
