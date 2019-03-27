@@ -12,7 +12,7 @@
 #define sccp_user_refreplace(_x, _y)		sccp_refcount_refreplace_type(sccp_user_t, _x, _y)
 
 #include "sccp_device.h"
-#include "forward_declarations.h"
+//#include "forward_declarations.h"
 
 __BEGIN_C_EXTERN__
 /*!
