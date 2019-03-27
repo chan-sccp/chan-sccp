@@ -1,3 +1,5 @@
+#pragma once
+
 __BEGIN_C_EXTERN__
 /* global types */
 #if defined(HAVE_UNALIGNED_BUSERROR)										// for example sparc64
