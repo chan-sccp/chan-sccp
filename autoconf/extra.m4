@@ -578,7 +578,6 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wl,--as-needed dnl
 				-fPIE dnl
 				-fPIE -pie dnl
-				-Wshorten-64-to-32 dnl
 				-Wno-format-truncation dnl
 			], SUPPORTED_CFLAGS)
 		])
@@ -592,6 +591,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wc++-compat dnl
 				-Wenum-compare dnl
 				-Wformat-truncation dnl
+				dnl -Wshorten-64-to-32 dnl
 				dnl -Wsuggest-attribute=pure dnl
 				dnl // should be added and fixed
 				dnl -Wswitch-enum dnl

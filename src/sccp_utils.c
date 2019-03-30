@@ -1815,10 +1815,10 @@ gcc_inline int sccp_atoi(const char * const buf, size_t buflen)
 	return result;
 }
 
-long int sccp_random(void)
+int sccp_random(void)
 {
 	/* potentially replace with our own implementation */
-	return pbx_random();
+	return (int)pbx_random();
 }
 
 /*

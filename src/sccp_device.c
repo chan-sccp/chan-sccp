@@ -245,7 +245,7 @@ void sccp_device_destroyiconv(devicePtr d)
 	}
 }
 
-gcc_inline boolean_t sccp_device_convUtf8toLatin1(constDevicePtr d, ICONV_CONST char *utf8str, char *buf, size_t len) 
+static boolean_t sccp_device_convUtf8toLatin1(constDevicePtr d, ICONV_CONST char *utf8str, char *buf, size_t len) 
 {
 	if (d->privateData->iconv == (iconv_t) -1) {
 		// fallback to plain string copy
