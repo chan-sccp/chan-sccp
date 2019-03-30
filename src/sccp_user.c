@@ -14,6 +14,7 @@
 #include "sccp_config.h"
 #include "sccp_utils.h"
 #include "sccp_vector.h"
+#include <asterisk/astdb.h>
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -23,6 +24,7 @@ int __sccp_user_destroy(const void *ptr);
 #define SCCP_USERSESSION_TIMEOUT 60
 #define SESSIONSTR_LEN 160
 static const uint32_t appID = APPID_EXTENSION_MOBILITY;
+typedef boolean_t (*usersession_cbfunc_t) (sccp_usersession_t *session);
 
 struct sccp_usersession {
 	char deviceid[StationMaxDeviceNameSize];
@@ -474,7 +476,7 @@ sccp_usersession_t * sccp_usersession_findByUserId(char userid[SCCP_MAX_USER_ID]
 		if (iPbx.feature_getFromDatabase("SCCP/emsession/userid", userid, deviceid, sizeof(deviceid)) && !sccp_strlen_zero(deviceid)) {
 			if (iPbx.feature_getFromDatabase("SCCP/emsession/deviceid", deviceid, sessionstr, sizeof(sessionstr)) && !sccp_strlen_zero(sessionstr)) {
 				return usersession_parseDBString(sessionstr);
-			}		
+			}
 		}
 	}
 	return NULL;
@@ -526,6 +528,7 @@ sccp_usersession_t * sccp_usersession_findByDeviceId(char deviceid[StationMaxDev
  * returns malloced sccp_usersession_t
  * make sure to free after use
  */
+/*
 static sccp_usersession_t * sccp_usersession_findByDeviceUser(constDevicePtr device, const sccp_user_t *user)
 {
 	char deviceid[ASTDB_RESULT_LEN] = { 0 };
@@ -541,7 +544,35 @@ static sccp_usersession_t * sccp_usersession_findByDeviceUser(constDevicePtr dev
 	}
 	return NULL;
 }
+*/
 
+static boolean_t sccp_usersession_applycb(const sccp_user_t *user, usersession_cbfunc_t callback)
+{
+	boolean_t res = FALSE;
+        struct ast_db_entry *db_entry, *db_tree;
+	char *deviceid = NULL, *sessionstr = NULL;
+	const char *astdb_family = "SCCP/emsession/userid";
+	db_entry = db_tree = ast_db_gettree(astdb_family, NULL);
+	for (; db_entry; db_entry = db_entry->next) {
+		const char *entryid = strrchr(db_entry->key, '/') + 1;
+		if (entryid <= (const char *) 1)
+			continue;
+		if (user && sccp_strcaseequals(user->id, entryid)) {
+			deviceid = db_entry->data;
+			sessionstr = NULL;
+			if (iPbx.feature_getFromDatabase("SCCP/emsession/deviceid", deviceid, sessionstr, sizeof(sessionstr)) && !sccp_strlen_zero(sessionstr)) {
+				sccp_usersession_t *usersession = usersession_parseDBString(sessionstr);
+				if (usersession) {
+					res |= callback(usersession);
+					sccp_free(usersession);
+				}
+			}
+		}
+	}
+	ast_db_freetree(db_tree);
+	db_tree = NULL;
+	return res;
+}
 
 /*!
  * sccp_usersession_getButtonconfig
@@ -580,7 +611,7 @@ void sccp_usersession_replaceButtonconfig(sccp_device_t *device)
 }
 
 int sccp_user_handle_login(sccp_device_t *d, sccp_user_t *u);
-void sccp_user_handle_logout(sccp_usersession_t *usersession);
+boolean_t sccp_user_handle_logout(sccp_usersession_t *usersession);
 
 int sccp_user_handle_login(sccp_device_t *d, sccp_user_t *u)
 {
@@ -599,13 +630,23 @@ int sccp_user_handle_login(sccp_device_t *d, sccp_user_t *u)
 /SCCP/emsession/userid/1000                       : SEP0023043403F9          
 /SCCP/emsession/userid/1234                       : SEPE0D173E11D95          
 */
-void sccp_user_handle_logout(sccp_usersession_t *usersession)
+boolean_t sccp_user_handle_logout(sccp_usersession_t *usersession)
 {
-	/*
 	if (usersession->user) {
 		iPbx.feature_removeFromDatabase("SCCP/emsession/userid", usersession->user->id);
-	}*/
-	iPbx.feature_removeFromDatabase("SCCP/emsession/deviceid", usersession->deviceid);
+	}
+	if (usersession->deviceid) {
+		AUTO_RELEASE(sccp_device_t, device, NULL);
+		iPbx.feature_removeFromDatabase("SCCP/emsession/deviceid", usersession->deviceid);
+		if ((device = sccp_device_find_byid(usersession->deviceid, FALSE)) && device->session) {			// restart device
+			if (device->active_channel) {
+				// schedule restart
+			} else {
+				sccp_device_sendReset(device, SKINNY_RESETTYPE_RESTART);
+			}
+		}
+	}
+	return TRUE;
 }
 
 /*! \todo split into create_tmpsession & pushurl */
@@ -901,25 +942,8 @@ int sccp_user_command(int fd, sccp_cli_totals_t *totals, struct mansession *s, c
 				return RESULT_SHOWUSAGE;
 			}
 		}
-		if (user) {
-			RAII(sccp_usersession_t *, usersession, NULL, sccp_free);
-			if (device) {
-				usersession = sccp_usersession_findByDeviceUser(device, user);
-			} else {
-				usersession = sccp_usersession_findByUserId(user->id);
-			}
-			if (usersession) {
-				sccp_user_handle_logout(usersession);
-				if (device || (device = sccp_device_find_byid(usersession->deviceid, FALSE))) {			// restart device
-					if (device->session) {
-						if (device->active_channel) {
-							// schedule restart
-						} else {
-							sccp_device_sendReset(device, SKINNY_RESETTYPE_RESTART);
-						}
-					}
-				}
-			}
+		if (user && !device) {
+			sccp_usersession_applycb(user, sccp_user_handle_logout);
 		} else {
 			// error user could not be found
 		}
