@@ -2,12 +2,17 @@
 
 [![Gitter](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/chan-sccp/chan-sccp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Build Status](http://img.shields.io/travis/chan-sccp/chan-sccp.svg?style=flat&branch=develop)](https://travis-ci.org/chan-sccp/chan-sccp)
-[![Coverity](https://img.shields.io/coverity/scan/8656.svg)](https://scan.coverity.com/projects/chan-sccp)
-[![Github Issues](https://img.shields.io/github/issues/chan-sccp/chan-sccp/bug.svg)](https://github.com/chan-sccp/chan-sccp/issues)
+[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/chan-sccp/chan-sccp.svg)](http://isitmaintained.com/project/chan-sccp/chan-sccp "Average time to resolve an issue")
+[![Percentage of issues still open](http://isitmaintained.com/badge/open/chan-sccp/chan-sccp.svg)](http://isitmaintained.com/project/chan-sccp/chan-sccp "Percentage of issues still open")
 [![Download Chan-SCCP channel driver for Asterisk](https://img.shields.io/sourceforge/dt/chan-sccp-b.svg)](https://github.com/chan-sccp/chan-sccp/releases/latest)
 [![Github Releases](https://img.shields.io/github/release/chan-sccp/chan-sccp.svg)](https://github.com/chan-sccp/chan-sccp/releases)
 [![Documentation](https://img.shields.io/badge/docs-wiki-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki)
 [![Donate](https://img.shields.io/badge/paypal-donate-yellow.svg)](https://www.paypal.com/cgi-bin/webscr?item_name=Donation+to+Chan-SCCP+channel+driver+for+Asterisk&locale.x=en_US&cmd=_donations&business=chan.sccp.b.pp%40gmail.com).
+
+<!--
+[![Coverity](https://img.shields.io/coverity/scan/8656.svg)](https://scan.coverity.com/projects/chan-sccp)
+[![Github Issues](https://img.shields.io/github/issues/chan-sccp/chan-sccp/bug.svg)](https://github.com/chan-sccp/chan-sccp/issues)
+-->
 
 Chan_SCCP is free software. Please see the file COPYING for details.
 For documentation, please see the files in the doc subdirectory.
