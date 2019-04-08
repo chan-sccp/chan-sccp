@@ -525,7 +525,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 		}
 		return res;
 	}
-
+	AUTO_RELEASE(sccp_linedevice_t, ld , c->getLineDevice(c));
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
 	res = (((c->rtp.audio.receiveChannelState != SCCP_RTP_STATUS_INACTIVE) || (d && d->earlyrtp)) ? -1 : 0);
@@ -537,7 +537,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				// Allow signalling of RINGOUT only on outbound calls.
 				// Otherwise, there are some issues with late arrival of ringing
 				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGOUT);
+				sccp_indicate(ld, c, SCCP_CHANNELSTATE_RINGOUT);
 				if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
 					/* 
 					 * Redial button isnt't working properly in immediate mode, because the
@@ -545,7 +545,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 					 * remembers the last dialed number in the same cases, where the dialed number
 					 * is being sent - after receiving of RINGOUT -Pavel Troller
 					 */
-					AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(d, c->line));
+					AUTO_RELEASE(sccp_linedevice_t, linedevice , sccp_linedevice_find(d, c->line));
 					if(linedevice){ 
 						sccp_device_setLastNumberDialed(d, c->dialedNumber, linedevice);
 					}
@@ -594,18 +594,18 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			}
 			break;
 		case AST_CONTROL_BUSY:
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_BUSY);
+			sccp_indicate(ld, c, SCCP_CHANNELSTATE_BUSY);
 			iPbx.set_callstate(c, AST_STATE_BUSY);
 			break;
 		case AST_CONTROL_CONGESTION:
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
+			sccp_indicate(ld, c, SCCP_CHANNELSTATE_CONGESTION);
 			break;
 		case AST_CONTROL_PROGRESS:
 			if (c->state != SCCP_CHANNELSTATE_CONNECTED && c->previousChannelState != SCCP_CHANNELSTATE_CONNECTED) {
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
+				sccp_indicate(ld, c, SCCP_CHANNELSTATE_PROGRESS);
 			} else {
 				// ORIGINATE() to SIP indicates PROGRESS after CONNECTED, causing issues with transfer
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+				sccp_indicate(ld, c, SCCP_CHANNELSTATE_CONNECTED);
 			}
 			res = -1;
 			break;
@@ -617,12 +617,12 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 					* remembers the last dialed number in the same cases, where the dialed number
 					* is being sent - after receiving of PROCEEDING -Pavel Troller
 					*/
-				AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(d, c->line));
+				AUTO_RELEASE(sccp_linedevice_t, linedevice , sccp_linedevice_find(d, c->line));
 				if(linedevice){ 
 					sccp_device_setLastNumberDialed(d, c->dialedNumber, linedevice);
 				}
 			}
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
+			sccp_indicate(ld, c, SCCP_CHANNELSTATE_PROCEED);
 			res = -1;
 			break;
 		case AST_CONTROL_SRCCHANGE:
@@ -646,7 +646,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 		 */
 			if (c->state != SCCP_CHANNELSTATE_CONNECTED) {
 				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: force CONNECT\n");
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+				sccp_indicate(ld, c, SCCP_CHANNELSTATE_CONNECTED);
 			}
 			res = 0;
 			break;
@@ -684,7 +684,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 
 		case AST_CONTROL_REDIRECTING:
 			sccp_astwrap_redirectedUpdate(c, data, datalen);
-			sccp_indicate(d, c, c->state);
+			sccp_indicate(ld, c, c->state);
 			res = 0;
 			break;
 
@@ -708,11 +708,11 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			 */
 			if (d->earlyrtp != SCCP_EARLYRTP_IMMEDIATE) {
 				if (!c->scheduler.deny) {
-					sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
+					sccp_indicate(ld, c, SCCP_CHANNELSTATE_DIGITSFOLL);
 					sccp_channel_schedule_digittimout(c, c->enbloc.digittimeout);
 				} else {
 					sccp_channel_stop_schedule_digittimout(c);
-					sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+					sccp_indicate(ld, c, SCCP_CHANNELSTATE_ONHOOK);
 				}
 			}
 			res = 0;
@@ -2637,7 +2637,7 @@ static int sccp_astwrap_message_send(const struct ast_msg *msg, const char *to, 
 	}
 
 	/** \todo move this to line implementation */
-	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevice_t *linedevice = NULL;
 	sccp_push_result_t pushResult;
 
 	SCCP_LIST_LOCK(&line->devices);

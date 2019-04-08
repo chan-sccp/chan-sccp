@@ -96,7 +96,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 							AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byname(buttonconfig->button.line.name, FALSE));
 
 							if (line) {
-								AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(device, line));
+								AUTO_RELEASE(sccp_linedevice_t, linedevice , sccp_linedevice_find(device, line));
 
 								if (linedevice) {
 									sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");

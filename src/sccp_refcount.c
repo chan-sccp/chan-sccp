@@ -511,7 +511,7 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 						unsigned char *cdata;							\
 						sccp_device_t *device;							\
 						sccp_line_t *line;							\
-						sccp_linedevices_t *linedevice;						\
+						sccp_linedevice_t *linedevice;						\
 						sccp_channel_t *channel;						\
 					} data = {									\
 						.cdata = obj->data,							\
@@ -528,7 +528,7 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 							inuse = TRUE;							\
 						}									\
 					} else if (obj->type == SCCP_REF_LINEDEVICE) {					\
-						sccp_linedevices_t *linedevice = data.linedevice;			\
+						sccp_linedevice_t *linedevice = data.linedevice;			\
 						if (linedevice && linedevice->device && linedevice->line &&		\
 							linedevice->device->session && linedevice->device->active_channel && \
 							(linedevice->line->statistic.numberOfActiveChannels ||		\

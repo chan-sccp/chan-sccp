@@ -368,7 +368,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 	char family[25];
 	char cfwdDeviceLineStore[60];										/* backward compatibiliy SCCP/Device/Line */
 	char cfwdLineDeviceStore[60];										/* new format cfwd: SCCP/Line/Device */
-	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevice_t *ld = NULL;
 	sccp_device_t *device = NULL;
 
 	if (!event || !(device = event->featureChanged.device)) {
@@ -382,18 +382,15 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 		case SCCP_FEATURE_CFWDNONE:
 		case SCCP_FEATURE_CFWDBUSY:
 		case SCCP_FEATURE_CFWDALL:
-			if ((linedevice = event->featureChanged.optional_linedevice)) {
-				sccp_line_t *line = linedevice->line;
-				uint8_t instance = linedevice->lineInstance;
-
-				sccp_dev_forward_status(line, instance, device);
-				snprintf(cfwdDeviceLineStore, sizeof(cfwdDeviceLineStore), "SCCP/%s/%s", device->id, line->name);
-				snprintf(cfwdLineDeviceStore, sizeof(cfwdLineDeviceStore), "SCCP/%s/%s", line->name, device->id);
+			if ((ld = event->featureChanged.optional_linedevice)) {
+				sccp_dev_forward_status(ld);
+				snprintf(cfwdDeviceLineStore, sizeof(cfwdDeviceLineStore), "SCCP/%s/%s", device->id, ld->line->name);
+				snprintf(cfwdLineDeviceStore, sizeof(cfwdLineDeviceStore), "SCCP/%s/%s", ld->line->name, device->id);
 				switch (event->featureChanged.featureType) {
 					case SCCP_FEATURE_CFWDALL:
-						if (linedevice->cfwdAll.enabled) {
-							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdAll", linedevice->cfwdAll.number);
-							iPbx.feature_addToDatabase(cfwdLineDeviceStore, "cfwdAll", linedevice->cfwdAll.number);
+						if (ld->cfwdAll.enabled) {
+							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdAll", ld->cfwdAll.number);
+							iPbx.feature_addToDatabase(cfwdLineDeviceStore, "cfwdAll", ld->cfwdAll.number);
 							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						} else {
 							iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdAll");
@@ -402,9 +399,9 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 						}
 						break;
 					case SCCP_FEATURE_CFWDBUSY:
-						if (linedevice->cfwdBusy.enabled) {
-							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdBusy", linedevice->cfwdBusy.number);
-							iPbx.feature_addToDatabase(cfwdLineDeviceStore, "cfwdBusy", linedevice->cfwdBusy.number);
+						if (ld->cfwdBusy.enabled) {
+							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdBusy", ld->cfwdBusy.number);
+							iPbx.feature_addToDatabase(cfwdLineDeviceStore, "cfwdBusy", ld->cfwdBusy.number);
 							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						} else {
 							iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdBusy");

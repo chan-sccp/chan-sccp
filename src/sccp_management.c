@@ -159,7 +159,7 @@ void sccp_manager_module_stop(void)
 void sccp_manager_eventListener(const sccp_event_t * event)
 {
 	sccp_device_t *device = NULL;
-	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevice_t *linedevice = NULL;
 
 	if (!event) {
 		return;
@@ -479,7 +479,7 @@ static int sccp_manager_line_fwd_update(struct mansession *s, const struct messa
 	}
 
 	if (line) {
-		AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(d, line));
+		AUTO_RELEASE(sccp_linedevice_t, linedevice , sccp_linedevice_find(d, line));
 
 		if (linedevice) {
 			if (sccp_strcaseequals("all", forwardType)) {
@@ -522,7 +522,7 @@ static int sccp_manager_line_fwd_update(struct mansession *s, const struct messa
 					snprintf(cbuf, sizeof(cbuf), "Line %s Call Forward Disabled", lineName);
 					break;
 			}
-			sccp_dev_forward_status(line, linedevice->lineInstance, linedevice->device);
+			sccp_dev_forward_status(linedevice);
 		} else {
 			pbx_log(LOG_WARNING, "%s: LineDevice not found for line %s (Device not registeed ?)\n", deviceName, lineName);
 			astman_send_error(s, m, "LineDevice not found (Device not registered ?)");
@@ -668,6 +668,7 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 	}
 
 	AUTO_RELEASE(sccp_channel_t, new_channel , NULL);
+	AUTO_RELEASE(sccp_linedevice_t, ld , sccp_linedevice_find(d, line));
 
 #if ASTERISK_VERSION_GROUP >= 112
 	struct ast_assigned_ids ids = {
@@ -680,9 +681,9 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		astman_send_error_va(s, m, "Uniqueid length exceeds maximum of %d\n", AST_MAX_PUBLIC_UNIQUEID);
 		return 0;
 	}
-	new_channel = sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL, (ids.uniqueid) ? &ids : NULL);
+	new_channel = sccp_channel_newcall(ld, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL, (ids.uniqueid) ? &ids : NULL);
 #else
-	new_channel = sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+	new_channel = sccp_channel_newcall(ld, d, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 #endif
 	astman_send_ack(s, m, "Call Started");
 	return 0;

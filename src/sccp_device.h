@@ -168,7 +168,7 @@ struct sccp_device {
 	sccp_line_t *currentLine;										/*!< Current Line */
 
 	struct {
-		sccp_linedevices_t **instance;
+		sccp_linedevice_t **instance;
 		uint8_t size;
 	} lineButtons;
 
@@ -354,16 +354,16 @@ struct sccp_addon {
  * \brief SCCP Device Indication Callback Structure
  */
 struct sccp_device_indication_cb {
-	void (*const onhook) (constDevicePtr device, const uint8_t lineInstance, uint32_t callid);
-	void (*const offhook) (constDevicePtr device, sccp_linedevices_t * linedevice, uint32_t callid);
-	void (*const dialing) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION]);
-	void (*const proceed) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
-	void (*const connected) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
-	void (*const callhistory) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_callHistoryDisposition_t disposition);
-	void (*const remoteOnhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
-	void (*const remoteOffhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
-	void (*const remoteConnected) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, skinny_callinfo_visibility_t visibility);
-	void (*const remoteHold) (constDevicePtr device, uint8_t lineInstance, uint32_t callid, skinny_callpriority_t callpriority, skinny_callinfo_visibility_t visibility);
+	void (*const onhook) (constLineDevicePtr ld, uint32_t callid);
+	void (*const offhook) (constLineDevicePtr ld, uint32_t callid);
+	void (*const dialing) (constLineDevicePtr ld, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION]);
+	void (*const proceed) (constLineDevicePtr ld, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
+	void (*const connected) (constLineDevicePtr ld, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
+	void (*const callhistory) (constLineDevicePtr ld, const uint32_t callid, const skinny_callHistoryDisposition_t disposition);
+	void (*const remoteOnhook) (constLineDevicePtr ld, const uint32_t callid);
+	void (*const remoteOffhook) (constLineDevicePtr ld, const uint32_t callid);
+	void (*const remoteConnected) (constLineDevicePtr ld, const uint32_t callid, skinny_callinfo_visibility_t visibility);
+	void (*const remoteHold) (constLineDevicePtr ld, uint32_t callid, skinny_callpriority_t callpriority, skinny_callinfo_visibility_t visibility);
 };
 
 #if UNUSEDCODE // 2015-11-01
@@ -403,12 +403,12 @@ SCCP_API sccp_buttonconfig_t * SCCP_CALL sccp_dev_serviceURL_find_byindex(device
 SCCP_API sccp_msg_t * SCCP_CALL sccp_build_packet(sccp_mid_t t, size_t pkt_len);
 
 SCCP_API void SCCP_CALL sccp_dev_check_displayprompt(constDevicePtr d);
-SCCP_API void SCCP_CALL sccp_device_setLastNumberDialed(devicePtr device, const char *lastNumberDialed, const sccp_linedevices_t *linedevice);
+SCCP_API void SCCP_CALL sccp_device_setLastNumberDialed(devicePtr device, const char *lastNumberDialed, const sccp_linedevice_t *linedevice);
 SCCP_API void SCCP_CALL sccp_device_preregistration(devicePtr device);
 SCCP_API uint8_t SCCP_CALL sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn);
 SCCP_API void SCCP_CALL sccp_dev_sendmsg(constDevicePtr d, sccp_mid_t t);
 SCCP_API void SCCP_CALL sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid, skinny_keymode_t softKeySetIndex);
-SCCP_API void SCCP_CALL sccp_dev_set_ringer(constDevicePtr d, skinny_ringtype_t ringtype, uint8_t lineInstance, uint32_t callid);
+SCCP_API void SCCP_CALL sccp_dev_set_ringer(constLineDevicePtr ld, skinny_ringtype_t ringtype, uint32_t callid);
 SCCP_API void SCCP_CALL sccp_dev_cleardisplay(constDevicePtr d);
 SCCP_API void SCCP_CALL sccp_dev_set_registered(devicePtr d, skinny_registrationstate_t state);
 SCCP_API void SCCP_CALL sccp_dev_set_speaker(constDevicePtr d, uint8_t mode);
@@ -425,7 +425,7 @@ SCCP_API void SCCP_CALL sccp_dev_displayprinotify_debug(constDevicePtr d, const 
 SCCP_API void SCCP_CALL sccp_dev_cleardisplaynotify(constDevicePtr d);
 SCCP_API void SCCP_CALL sccp_dev_cleardisplayprinotify(constDevicePtr d, const uint8_t priority);
 SCCP_API void SCCP_CALL sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, boolean_t withHint, sccp_speed_t * const k);
-SCCP_API void SCCP_CALL sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePtr device);
+SCCP_API void SCCP_CALL sccp_dev_forward_status(constLineDevicePtr ld);
 SCCP_API void SCCP_CALL _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t restart_device);
 #define sccp_dev_clean(d, r) _sccp_dev_clean(d, r, FALSE);
 #define sccp_dev_clean_restart(d, r) _sccp_dev_clean(d, r, TRUE);
@@ -436,7 +436,7 @@ SCCP_API void SCCP_CALL sccp_device_addMessageToStack(devicePtr device, const ui
 SCCP_API void SCCP_CALL sccp_device_clearMessageFromStack(devicePtr device, const uint8_t priority);
 SCCP_API void SCCP_CALL sccp_device_featureChangedDisplay(const sccp_event_t * event);
 SCCP_API void SCCP_CALL sccp_device_sendcallstate(constDevicePtr d, uint8_t instance, uint32_t callid, skinny_callstate_t state, skinny_callpriority_t precedence_level, skinny_callinfo_visibility_t visibility);
-SCCP_API void SCCP_CALL sccp_device_sendCallHistoryDisposition(constDevicePtr d, uint8_t lineInstance, uint32_t callid, skinny_callHistoryDisposition_t disposition);
+SCCP_API void SCCP_CALL sccp_device_sendCallHistoryDisposition(constLineDevicePtr ld, uint32_t callid, skinny_callHistoryDisposition_t disposition);
 
 SCCP_API int SCCP_CALL sccp_dev_send(constDevicePtr d, sccp_msg_t * msg);
 #if UNUSEDCODE // 2015-11-01

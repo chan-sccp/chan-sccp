@@ -21,11 +21,11 @@ typedef struct sccp_event {
 			sccp_device_t *device;									/*!< SCCP Device (required) */
 		} deviceRegistered;										/*!< Event Device Registered Structure */
 		struct {
-			sccp_linedevices_t *linedevice;								/*!< SCCP device line (required) */
+			sccp_linedevice_t *linedevice;								/*!< SCCP device line (required) */
 		} deviceAttached;										/*!< Event Device Attached Structure */
 		struct {
 			sccp_device_t *device;									/*!< SCCP device (required) */
-			sccp_linedevices_t *optional_linedevice;						/*!< SCCP linedevice (optional) */
+			sccp_linedevice_t *optional_linedevice;						/*!< SCCP linedevice (optional) */
 			sccp_feature_type_t featureType;							/*!< what feature is changed (required) */
 		} featureChanged;										/*!< Event feature changed Structure */
 		struct {

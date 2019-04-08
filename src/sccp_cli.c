@@ -931,7 +931,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 					buttonconfig->button.line.subscriptionId->name);								\
 				}															\
 				if (l) {														\
-					AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(d, l));
+					AUTO_RELEASE(sccp_linedevice_t, linedevice , sccp_linedevice_find(d, l));
 					
 #define CLI_AMI_TABLE_AFTER_ITERATION 															\
 				}															\
@@ -1089,7 +1089,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 {
 	sccp_line_t *l = NULL;
 	boolean_t found_linedevice;
-	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevice_t *linedevice = NULL;
 	sccp_channel_t *channel = NULL;
 	char cap_buf[512] = {0};
 	PBX_VARIABLE_TYPE *v = NULL;
@@ -1275,7 +1275,7 @@ CLI_AMI_ENTRY(show_lines, sccp_show_lines, "List defined SCCP Lines", cli_lines_
     //static int sccp_show_line(int fd, int argc, char *argv[])
 static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevice_t *linedevice = NULL;
 	sccp_mailbox_t *mailbox = NULL;
 	PBX_VARIABLE_TYPE *v = NULL;
 	pbx_str_t *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
@@ -2661,7 +2661,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					sccp_log((DEBUGCAT_CORE)) ("%s: line has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> skipping restart (minor changes applied)");
 					pbx_cli(fd, "%s: device has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> restart not required");
 					if (change == SCCP_CONFIG_NEEDDEVICERESET) {
-						sccp_linedevices_t *lineDevice = NULL;
+						sccp_linedevice_t *lineDevice = NULL;
 
 						SCCP_LIST_LOCK(&line->devices);
 						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
@@ -3070,7 +3070,8 @@ static int sccp_start_call(int fd, int argc, char *argv[])
 	}
 
 	pbx_cli(fd, "Starting Call for Device: %s\n", argv[2]);
-	channel = sccp_channel_newcall(line, d, argv[3], SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+	AUTO_RELEASE(sccp_linedevice_t, ld , sccp_linedevice_find(d, line));
+	channel = sccp_channel_newcall(ld, argv[3], SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 	return RESULT_SUCCESS;
 }
 

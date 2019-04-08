@@ -11,9 +11,9 @@
  */
 #pragma once
 
-#define sccp_linedevice_retain(_x)		sccp_refcount_retain_type(sccp_linedevices_t, _x)
-#define sccp_linedevice_release(_x)		sccp_refcount_release_type(sccp_linedevices_t, _x)
-#define sccp_linedevice_refreplace(_x, _y)	sccp_refcount_refreplace_type(sccp_linedevices_t, _x, _y)
+#define sccp_linedevice_retain(_x)		sccp_refcount_retain_type(sccp_linedevice_t, _x)
+#define sccp_linedevice_release(_x)		sccp_refcount_release_type(sccp_linedevice_t, _x)
+#define sccp_linedevice_refreplace(_x, _y)	sccp_refcount_refreplace_type(sccp_linedevice_t, _x, _y)
 #define sccp_line_retain(_x)			sccp_refcount_retain_type(sccp_line_t, _x)
 #define sccp_line_release(_x)			sccp_refcount_release_type(sccp_line_t, _x)
 #define sccp_line_refreplace(_x, _y)		sccp_refcount_refreplace_type(sccp_line_t, _x, _y)
@@ -69,7 +69,7 @@ struct sccp_line {
 	
 	SCCP_LIST_HEAD (, sccp_mailbox_t) mailboxes;								/*!< Mailbox Linked List Entry. To check for messages */
 	SCCP_LIST_HEAD (, sccp_channel_t) channels;								/*!< Linked list of current channels for this line */
-	SCCP_LIST_HEAD (, sccp_linedevices_t) devices;								/*!< The device this line is currently registered to. */
+	SCCP_LIST_HEAD (, sccp_linedevice_t) devices;								/*!< The device this line is currently registered to. */
 
 	PBX_VARIABLE_TYPE *variables;										/*!< Channel variables to set */
 
@@ -129,7 +129,7 @@ struct sccp_cfwd_information {
 struct sccp_linedevices {
 	sccp_device_t *device;											/*!< SCCP Device */
 	sccp_line_t *line;											/*!< SCCP Line */
-	SCCP_LIST_ENTRY (sccp_linedevices_t) list;								/*!< Device Linked List Entry */
+	SCCP_LIST_ENTRY (sccp_linedevice_t) list;								/*!< Device Linked List Entry */
 
 	sccp_cfwd_information_t cfwdAll;									/*!< cfwdAll information */
 	sccp_cfwd_information_t cfwdBusy;									/*!< cfwdBusy information */
@@ -163,10 +163,10 @@ SCCP_API sccp_channelstate_t SCCP_CALL sccp_line_getDNDChannelState(sccp_line_t 
 SCCP_API void SCCP_CALL sccp_line_copyCodecSetsFromLineToChannel(constLinePtr l, constDevicePtr maybe_d, sccp_channel_t *c);
 SCCP_API void SCCP_CALL sccp_line_updateCapabilitiesFromDevicesToLine(sccp_line_t *l);
 SCCP_API void SCCP_CALL sccp_line_updateLineCapabilitiesByDevice(constDevicePtr d);
-SCCP_API void SCCP_CALL sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number);
+SCCP_API void SCCP_CALL sccp_line_cfwd(lineDevicePtr ld, sccp_callforward_t type, char *number);
 
-SCCP_API void SCCP_CALL sccp_linedevice_resetPickup(sccp_linedevices_t * ld);
-SCCP_API void SCCP_CALL sccp_linedevice_disallowPickup(sccp_linedevices_t * ld);
+SCCP_API void SCCP_CALL sccp_linedevice_resetPickup(sccp_linedevice_t * ld);
+SCCP_API void SCCP_CALL sccp_linedevice_disallowPickup(sccp_linedevice_t * ld);
 
 SCCP_API void SCCP_CALL sccp_line_setMWI(linePtr line, int newlinemsgs, int oldlinemsgs);
 SCCP_API void SCCP_CALL sccp_line_indicateMWI(constLineDevicePtr linedevice);
@@ -194,9 +194,9 @@ SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_realtime_byname(const char *name
 #endif														// DEBUG
 
 #define sccp_linedevice_find(_x,_y) __sccp_linedevice_find(_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define sccp_linedevice_findByLineinstance(_x,_y) __sccp_linedevice_findByLineinstance(_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-SCCP_API sccp_linedevices_t * SCCP_CALL __sccp_linedevice_find(const sccp_device_t * device, const sccp_line_t * line, const char *filename, int lineno, const char *func);
-SCCP_API sccp_linedevices_t * SCCP_CALL __sccp_linedevice_findByLineinstance(const sccp_device_t * device, uint16_t instance, const char *filename, int lineno, const char *func);
+#define sccp_linedevice_findByLineInstance(_x,_y) __sccp_linedevice_findByLineInstance(_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+SCCP_API sccp_linedevice_t * SCCP_CALL __sccp_linedevice_find(const sccp_device_t * device, const sccp_line_t * line, const char *filename, int lineno, const char *func);
+SCCP_API sccp_linedevice_t * SCCP_CALL __sccp_linedevice_findByLineInstance(const sccp_device_t * device, uint16_t instance, const char *filename, int lineno, const char *func);
 SCCP_API void SCCP_CALL sccp_line_createLineButtonsArray(sccp_device_t * device);
 SCCP_API void SCCP_CALL sccp_line_deleteLineButtonsArray(sccp_device_t * device);
 __END_C_EXTERN__
