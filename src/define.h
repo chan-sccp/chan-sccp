@@ -165,6 +165,7 @@ SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define sccp_true(x) (pbx_true(x) ? 1 : 0)
 #define sccp_false(x) (pbx_false(x) ? 1 : 0)
 
+#define _U_ __attribute__((unused))
 #define GLOB(x) sccp_globals->x
 
 /* Lock Macro for Globals */

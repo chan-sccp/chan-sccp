@@ -612,11 +612,8 @@ static boolean_t sccp_astgenwrap_carefullHangup(sccp_channel_t * c)
 		pbx_log(LOG_NOTICE, "%s: (carefullHangup) processing hangup request, using carefull version. Standby.\n", pbx_channel_name(pbx_channel));
 		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
 			pbx_log(LOG_NOTICE, "%s: (carefullHangup) Already Hungup. Forcing SCCP Remove Call.\n", pbx_channel_name(pbx_channel));
-			AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
-
-			if (d) {
-				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
-			}
+			AUTO_RELEASE(sccp_linedevice_t, ld , c->getLineDevice(c));
+			sccp_indicate(ld, channel, SCCP_CHANNELSTATE_ONHOOK);
 			res = TRUE;
 		} else {
 			pbx_log(LOG_NOTICE, "%s: (carefullHangup) Channel still active.\n", pbx_channel_name(pbx_channel));
@@ -649,11 +646,8 @@ boolean_t sccp_astgenwrap_requestQueueHangup(sccp_channel_t * c)
 		channel->hangupRequest = sccp_astgenwrap_carefullHangup;
 		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
 			pbx_log(LOG_NOTICE, "%s: (requestQueueHangup) Already Hungup\n", channel->designator);
-			AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
-
-			if (d) {
-				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
-			}
+			AUTO_RELEASE(sccp_linedevice_t, ld , c->getLineDevice(c));
+			sccp_indicate(ld, channel, SCCP_CHANNELSTATE_ONHOOK);
 		} else {
 			res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
 		}
@@ -676,11 +670,8 @@ boolean_t sccp_astgenwrap_requestHangup(sccp_channel_t * c)
 		channel->hangupRequest = sccp_astgenwrap_carefullHangup;
 
 		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
-			AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
-
-			if (d) {
-				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
-			}
+			AUTO_RELEASE(sccp_linedevice_t, ld , c->getLineDevice(c));
+			sccp_indicate(ld, channel, SCCP_CHANNELSTATE_ONHOOK);
 		} else {
 			if (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING)) {
 				res = sccp_astgenwrap_requestQueueHangup(channel);
@@ -885,6 +876,7 @@ void sccp_astwrap_connectedline(sccp_channel_t * channel, const void *data, size
 	PBX_CHANNEL_TYPE *ast = channel->owner;
 	int changes = 0;
 	sccp_callinfo_t *const callInfo = sccp_channel_getCallInfo(channel);
+	AUTO_RELEASE(sccp_linedevice_t, ld , channel->getLineDevice(channel));
 
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: %s call Got connected line update, connected.id.number=%s, connected.id.name=%s, source=%s\n",
 		channel->calltype == SKINNY_CALLTYPE_INBOUND ? "INBOUND" : "OUTBOUND",
@@ -951,10 +943,7 @@ void sccp_astwrap_connectedline(sccp_channel_t * channel, const void *data, size
 					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 					SCCP_CALLINFO_KEY_SENTINEL);
 			}
-			AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(channel));
-			if (d) {
-				sccp_indicate(d, channel, channel->state);
-			}
+			sccp_indicate(ld, channel, channel->state);
 		}
 	} else /* OUTBOUND CALL */ {
 		struct ast_party_id connected = pbx_channel_connected_id(ast);
@@ -971,7 +960,7 @@ void sccp_astwrap_connectedline(sccp_channel_t * channel, const void *data, size
 
 		/* We have a preliminary connected line, indicate RINGOUT_ALERTING */
 		if (SKINNY_CALLTYPE_OUTBOUND == channel->calltype && SCCP_CHANNELSTATE_RINGOUT == channel->state) {
-			sccp_indicate(NULL, channel, SCCP_CHANNELSTATE_RINGOUT_ALERTING);
+			sccp_indicate(ld, channel, SCCP_CHANNELSTATE_RINGOUT_ALERTING);
 		}
         }
 #endif

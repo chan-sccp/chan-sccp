@@ -336,7 +336,7 @@ void NotifyLine(sccp_line_t *l, int newmsgs, int oldmsgs)
 
 	sccp_line_setMWI(l, newmsgs, oldmsgs);
 
-	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevice_t *linedevice = NULL;
 	if (SCCP_LIST_GETSIZE(&l->devices)) {
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
