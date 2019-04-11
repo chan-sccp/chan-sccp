@@ -2157,7 +2157,6 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 			if (channel->state != SCCP_CHANNELSTATE_CALLTRANSFER) {
 				sccp_indicate(ld, channel, SCCP_CHANNELSTATE_CALLTRANSFER);
 			}
-			AUTO_RELEASE(sccp_linedevice_t, ld , sccp_linedevice_find(d, channel->line));
 			AUTO_RELEASE(sccp_channel_t, sccp_channel_new , sccp_channel_newcall(ld, NULL, SKINNY_CALLTYPE_OUTBOUND, pbx_channel_owner, NULL));
 
 			if (sccp_channel_new && (pbx_channel_bridgepeer = iPbx.get_bridged_channel(pbx_channel_owner))) {
