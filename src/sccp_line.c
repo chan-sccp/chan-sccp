@@ -477,7 +477,7 @@ void sccp_line_updateLineCapabilitiesByDevice(constDevicePtr d)
 	int instance = 0;
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
 		if (d->lineButtons.instance[instance]) {
-			AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_retain(d->lineButtons.instance[instance]));
+			AUTO_RELEASE(sccp_linedevice_t, linedevice , sccp_linedevice_retain(d->lineButtons.instance[instance]));
 			if (linedevice && linedevice->line){
 				sccp_line_updateCapabilitiesFromDevicesToLine(linedevice->line);
 			}
@@ -916,7 +916,7 @@ sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime)
 	sccp_line_t *l = NULL;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
-	l = SCCP_RWLIST_FIND(&GLOB(lines), sccp_line_t, tmpl, list, (sccp_strcaseequals(tmpl->name, name)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	l = SCCP_RWLIST_FIND(&GLOB(lines), sccp_line_t, tmpl, list, (tmpl && sccp_strcaseequals(tmpl->name, name)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 #ifdef CS_SCCP_REALTIME
 	if (!l && useRealtime) {
