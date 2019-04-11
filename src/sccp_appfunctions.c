@@ -740,6 +740,8 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 #endif
 			} else if (!strcasecmp(token, "codecs")) {
 				sccp_codec_multiple2str(buf, buf_len - 1, l->preferences.audio, ARRAY_LEN(l->preferences.audio));
+			} else if (!strcasecmp(token, "capability")) {
+				sccp_codec_multiple2str(buf, buf_len - 1, l->capabilities.audio, ARRAY_LEN(l->capabilities.audio));
 			} else if (!strcasecmp(token, "cid_name")) {
 				sccp_copy_string(buf, l->cid_name, len);
 			} else if (!strcasecmp(token, "cid_num")) {

@@ -57,6 +57,7 @@ struct sccp_line {
 	char *namedcallgroup;											/*!< Named Call Group */
 	char *namedpickupgroup;											/*!< Named Pickup Group */
 #endif
+	skinny_capabilities_t capabilities;									/*!< (shared)line level preferences (overrules device level) */
 	skinny_capabilities_t preferences;									/*!< (shared)line level preferences (overrules device level) */
 	boolean_t preferences_set_on_line_level;								/*!< (Temp) if above was set manually or automatically copied */
 
@@ -159,7 +160,9 @@ SCCP_API void SCCP_CALL sccp_line_kill_channels(sccp_line_t * l);
 #if UNUSEDCODE // 2015-11-01
 SCCP_API sccp_channelstate_t SCCP_CALL sccp_line_getDNDChannelState(sccp_line_t * line);
 #endif
-SCCP_API void SCCP_CALL sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c);
+SCCP_API void SCCP_CALL sccp_line_copyCodecSetsFromLineToChannel(constLinePtr l, constDevicePtr maybe_d, sccp_channel_t *c);
+SCCP_API void SCCP_CALL sccp_line_updateCapabilitiesFromDevicesToLine(sccp_line_t *l);
+SCCP_API void SCCP_CALL sccp_line_updateLineCapabilitiesByDevice(constDevicePtr d);
 SCCP_API void SCCP_CALL sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number);
 
 SCCP_API void SCCP_CALL sccp_linedevice_resetPickup(sccp_linedevices_t * ld);

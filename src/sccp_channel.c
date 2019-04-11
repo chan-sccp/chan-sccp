@@ -1,5 +1,4 @@
-/*!
- * \file        sccp_channel.c
+                                     /*! * \file        sccp_channel.c
  * \brief       SCCP Channel Class
  * \author      Sergio Chersovani <mlists [at] c-net.it>
  * \date
@@ -194,13 +193,11 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 			channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
 		}
 
-		if (l->preferences_set_on_line_level) {
-			memcpy(&channel->preferences.audio, &l->preferences.audio, sizeof channel->preferences.audio);
-			memcpy(&channel->preferences.video, &l->preferences.video, sizeof channel->preferences.video);
-		}
-
 		/* run setters */
 		sccp_line_addChannel(l, channel);
+		if (refLine->capabilities.audio[0] == SKINNY_CODEC_NONE) {
+			sccp_line_updateCapabilitiesFromDevicesToLine(refLine);			// bit of a hack, UpdateCapabilties is done (long) after device registration
+		}
 		channel->setDevice(channel, device);
 
 		/* return new channel */
@@ -294,25 +291,19 @@ void sccp_channel_setDevice(sccp_channel_t * const channel, const sccp_device_t 
 			sccp_linedevice_refreplace(&channel->privateData->linedevice, ld);
 		}
 		/*! \todo: Check/Fix codec selection on hold/resume */
-		if (channel->preferences.audio[0] == SKINNY_CODEC_NONE) {
-			memcpy(&channel->preferences.audio, &channel->privateData->device->preferences.audio, sizeof(channel->preferences.audio));
-		}
-		if (channel->capabilities.audio[0] == SKINNY_CODEC_NONE) {
-			memcpy(&channel->capabilities.audio, &channel->privateData->device->capabilities.audio, sizeof(channel->capabilities.audio));
+		if (channel->preferences.audio[0] == SKINNY_CODEC_NONE || channel->capabilities.audio[0] == SKINNY_CODEC_NONE) {
+			sccp_line_copyCodecSetsFromLineToChannel(channel->line, channel->privateData->device, channel);
 		}
 		sccp_copy_string(channel->currentDeviceId, channel->privateData->device->id, sizeof(char[StationMaxDeviceNameSize]));
 		channel->dtmfmode = channel->privateData->device->getDtmfMode(channel->privateData->device);
 		return;
 	}
 EXIT:
-	/* \todo instead of copying caps / prefs from global */
 	/*! \todo: Check/Fix codec selection on hold/resume */
-	if (channel->preferences.audio[0] == SKINNY_CODEC_NONE) {
-		memcpy(&channel->preferences.audio, &GLOB(global_preferences), sizeof(channel->preferences.audio));
+	if (channel->preferences.audio[0] == SKINNY_CODEC_NONE || channel->capabilities.audio[0] == SKINNY_CODEC_NONE) {
+		sccp_line_copyCodecSetsFromLineToChannel(channel->line, NULL, channel);
 	}
-	if (channel->capabilities.audio[0] == SKINNY_CODEC_NONE) {
-		memcpy(&channel->capabilities.audio, &GLOB(global_preferences), sizeof(channel->capabilities.audio));
-	}
+
 	sccp_linedevice_refreplace(&channel->privateData->linedevice, NULL);
 	/* \todo we should use */
 	// sccp_line_copyMinimumCodecSetFromLineToChannel(l, c); 
@@ -329,11 +320,16 @@ static void sccp_channel_recalculateCodecFormat(sccp_channel_t * channel)
 
 	if (channel->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.mediaTransmissionState == SCCP_RTP_STATUS_INACTIVE) {
 		if (channel->privateData->device) {
-			preferences = (!channel->line->preferences_set_on_line_level) ? &(channel->privateData->device->preferences) : &(channel->preferences);
+			preferences = (channel->line->preferences_set_on_line_level) ? &(channel->preferences) : &(channel->privateData->device->preferences);
 			sccp_codec_reduceSet(preferences->audio, channel->privateData->device->capabilities.audio);
 			sccp_codec_reduceSet(preferences->video, channel->privateData->device->capabilities.video);
+		} else {
+			preferences = &(channel->preferences);
+			sccp_codec_reduceSet(preferences->audio, channel->capabilities.audio);
+			sccp_codec_reduceSet(preferences->video, channel->capabilities.video);
 		}
 		joint = sccp_codec_findBestJoint(channel, preferences->audio, channel->remoteCapabilities.audio);
+		//joint = sccp_codec_findBestJoint(channel, preferences->video, channel->remoteCapabilities.video);
 		if (SKINNY_CODEC_NONE == joint) {
 			joint = preferences->audio[0] ? preferences->audio[0] : SKINNY_CODEC_WIDEBAND_256K;
 		}
@@ -1382,13 +1378,21 @@ channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channe
 	channel->calltype = calltype;
 	if (!sccp_pbx_channel_allocate(channel, ids, parentChannel)) {
 		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", d->id, l->name);
-		sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
-		sccp_channel_endcall(channel);
+		if (channel->owner) {
+			sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
+			sccp_channel_endcall(channel);
+		} else {
+			sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
+			if (channel->line) {
+				sccp_line_removeChannel(channel->line, channel);
+			}
+			sccp_channel_clean(channel);
+			sccp_channel_release(&channel);
+		}
 		return NULL;
 	}
 	return channel;
 }
-
 
 /*!
  * \brief Allocate a new Outgoing Channel.

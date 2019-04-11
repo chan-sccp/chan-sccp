@@ -358,66 +358,131 @@ int __sccp_lineDevice_destroy(const void *ptr)
 	return 0;
 }
 
-void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c)
+void sccp_line_copyCodecSetsFromLineToChannel(constLinePtr l, constDevicePtr maybe_d, sccp_channel_t *c)
 {
-	sccp_linedevices_t *linedevice = NULL;
-	boolean_t first=TRUE;
 	if (!l || !c) {
 		return;
 	}
-	/* combine all capabilities */
-	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-		if (first) {
-			memcpy(&c->capabilities.audio, &linedevice->device->capabilities.audio, sizeof(c->capabilities.audio));
-			memcpy(&c->capabilities.video, &linedevice->device->capabilities.video, sizeof(c->capabilities.video));
-			memcpy(&c->preferences.audio , &linedevice->device->preferences.audio , sizeof(c->preferences.audio));
-			memcpy(&c->preferences.video , &linedevice->device->preferences.video , sizeof(c->preferences.video));
-			first = FALSE;
-		} else {
-			sccp_codec_combineSets(c->capabilities.audio, linedevice->device->capabilities.audio);
-			sccp_codec_combineSets(c->capabilities.video, linedevice->device->capabilities.video);
-
-			skinny_codec_t temp[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
-			if (sccp_codec_getReducedSet(c->preferences.audio , linedevice->device->preferences.audio, temp) == 0) {
-				// zero matching codecs we have to combine
-				sccp_codec_combineSets(c->preferences.audio , linedevice->device->preferences.audio);
-			} else {
-				memcpy(&c->preferences.audio, &temp, sizeof *temp);
-			}
-			memset(&temp, SKINNY_CODEC_NONE, sizeof *temp);
-			if (sccp_codec_getReducedSet(c->preferences.video , linedevice->device->preferences.video, temp) == 0) {
-				// zero matching codecs we have to combine
-				sccp_codec_combineSets(c->preferences.video , linedevice->device->preferences.video);
-			} else {
-				memcpy(&c->preferences.video, &temp, sizeof *temp);
-			}
-		}
+	/* work already done in sccp_line_copyCodecSetsFromDeviceToLine during sccp_line_addDevice */
+	if (!l->preferences_set_on_line_level && maybe_d) {
+		memcpy(&c->preferences.audio, &maybe_d->preferences.audio, sizeof(c->preferences.audio));
+		memcpy(&c->preferences.video, &maybe_d->preferences.video, sizeof(c->preferences.video));
+	} else {
+		memcpy(&c->preferences.audio, &l->preferences.audio, sizeof(c->preferences.audio));
+		memcpy(&c->preferences.video, &l->preferences.video, sizeof(c->preferences.video));
 	}
-	SCCP_LIST_UNLOCK(&l->devices);
+	if (maybe_d) {
+		memcpy(&c->capabilities.audio, &maybe_d->capabilities.audio, sizeof(c->capabilities.audio));
+		memcpy(&c->capabilities.video, &maybe_d->capabilities.video, sizeof(c->capabilities.video));
+	} else {
+		memcpy(&c->capabilities.audio, &l->capabilities.audio, sizeof(c->capabilities.audio));
+		memcpy(&c->capabilities.video, &l->capabilities.video, sizeof(c->capabilities.video));
+	}
+
+	// use a minimal default set, all devices should be able to support (last resort)
+	if (c->preferences.audio[0] == SKINNY_CODEC_NONE) {
+		pbx_log(LOG_WARNING, "%s: (updatePreferencesFromDevicesToLine) Could not retrieve preferences from line or device. Using Fallback Preferences from Global\n", c->designator);
+		memcpy(&c->preferences.audio, &GLOB(global_preferences), sizeof(c->preferences.audio));
+		memcpy(&c->preferences.video, &GLOB(global_preferences), sizeof(c->preferences.video));
+	}
+
+	char s1[512], s2[512];
+	sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (copyCodecSetsFromLineToChannel) channel capabilities:%s\n", c->designator, sccp_codec_multiple2str(s1, sizeof(s1) - 1, c->capabilities.audio, SKINNY_MAX_CAPABILITIES));
+	sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (copyCodecSetsFromLineToChannel) channel preferences:%s\n", c->designator, sccp_codec_multiple2str(s2, sizeof(s2) - 1, c->preferences.audio, SKINNY_MAX_CAPABILITIES));
 }
 
-static void sccp_line_copyCodecSetsFromDeviceToLine(sccp_line_t *l)
+static void sccp_line_updatePreferencesFromDevicesToLine(sccp_line_t *l)
 {
 	sccp_linedevices_t *linedevice = NULL;
 	boolean_t first=TRUE;
 	if (!l) {
 		return;
 	}
-	//sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: Update line preferences\n", l->name);
-	/* combine all capabilities */
+	// sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: Update line preferences\n", l->name);
+	// combine all preferences
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 		if (first) {
-			memcpy(&l->preferences.audio , &linedevice->device->preferences.audio , sizeof(l->preferences.audio));
-			memcpy(&l->preferences.video , &linedevice->device->preferences.video , sizeof(l->preferences.video));
+			if (!l->preferences_set_on_line_level) {
+				memcpy(&l->preferences.audio, &linedevice->device->preferences.audio , sizeof(l->preferences.audio));
+				memcpy(&l->preferences.video, &linedevice->device->preferences.video , sizeof(l->preferences.video));
+			}
 			first = FALSE;
 		} else {
-			sccp_codec_combineSets(l->preferences.audio , linedevice->device->preferences.audio);
-			sccp_codec_combineSets(l->preferences.video , linedevice->device->preferences.video);
+			if (!l->preferences_set_on_line_level) {
+				skinny_codec_t temp[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+				if (sccp_codec_getReducedSet(l->preferences.audio , linedevice->device->preferences.audio, temp) == 0) {
+					// zero matching codecs we have to combine
+					sccp_codec_combineSets(l->preferences.audio , linedevice->device->preferences.audio);
+				} else {
+					memcpy(&l->preferences.audio, &temp, sizeof *temp);
+				}
+				memset(&temp, SKINNY_CODEC_NONE, sizeof *temp);
+				if (sccp_codec_getReducedSet(l->preferences.video , linedevice->device->preferences.video, temp) == 0) {
+					// zero matching codecs we have to combine
+					sccp_codec_combineSets(l->preferences.video , linedevice->device->preferences.video);
+				} else {
+					memcpy(&l->preferences.video, &temp, sizeof *temp);
+				}
+			}
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
+
+	char s1[512];
+	sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (updatePreferencesFromDevicesToLine) line preferences:%s\n", l->name, sccp_codec_multiple2str(s1, sizeof(s1) - 1, l->preferences.audio, SKINNY_MAX_CAPABILITIES));
+}
+
+void sccp_line_updateCapabilitiesFromDevicesToLine(sccp_line_t *l)
+{
+	sccp_linedevices_t *linedevice = NULL;
+	boolean_t first=TRUE;
+	if (!l) {
+		return;
+	}
+	// sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: Update line capabilities \n", l->name);
+	// combine all capabilities
+	SCCP_LIST_LOCK(&l->devices);
+	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+		if (first) {
+			memcpy(&l->capabilities.audio, &linedevice->device->capabilities.audio, sizeof(l->capabilities.audio));
+			memcpy(&l->capabilities.video, &linedevice->device->capabilities.video, sizeof(l->capabilities.video));
+			first = FALSE;
+		} else {
+			sccp_codec_combineSets(l->capabilities.audio, linedevice->device->capabilities.audio);
+			sccp_codec_combineSets(l->capabilities.video, linedevice->device->capabilities.video);
+		}
+	}
+	SCCP_LIST_UNLOCK(&l->devices);
+
+	// use a minimal default set, all devices should be able to support (last resort)
+	if (l->capabilities.audio[0] == SKINNY_CODEC_NONE) {
+		pbx_log(LOG_WARNING, "%s: (updateCapabilitiesFromDevicesToLine) Could not retrieve capabilities from line or device. Using Fallback Codecs Alaw/Ulaw\n", l->name);
+		l->capabilities.audio[0] = SKINNY_CODEC_G711_ALAW_64K;
+		l->capabilities.audio[1] = SKINNY_CODEC_G711_ALAW_56K;
+		l->capabilities.audio[2] = SKINNY_CODEC_G711_ULAW_64K;
+		l->capabilities.audio[3] = SKINNY_CODEC_G711_ULAW_56K;
+		l->capabilities.audio[4] = SKINNY_CODEC_NONE;
+	}
+
+	char s1[512];
+	sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (updateCapabilitiesFromDevicesToLine) line capabilities:%s\n", l->name, sccp_codec_multiple2str(s1, sizeof(s1) - 1, l->capabilities.audio, SKINNY_MAX_CAPABILITIES));
+}
+
+void sccp_line_updateLineCapabilitiesByDevice(constDevicePtr d)
+{
+	if (!d) {
+		return;
+	}
+	int instance = 0;
+	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
+		if (d->lineButtons.instance[instance]) {
+			AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_retain(d->lineButtons.instance[instance]));
+			if (linedevice && linedevice->line){
+				sccp_line_updateCapabilitiesFromDevicesToLine(linedevice->line);
+			}
+		}
+	}
 }
 
 /*!
@@ -565,9 +630,7 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 	linedevice->line->statistic.numberOfActiveDevices++;
 	linedevice->device->configurationStatistic.numberOfLines++;
 
-	if (!l->preferences_set_on_line_level) {
-		sccp_line_copyCodecSetsFromDeviceToLine(l);
-	}
+	sccp_line_updatePreferencesFromDevicesToLine(l);
 
 	// fire event for new device
 	sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_DEVICE_ATTACHED);
@@ -624,10 +687,8 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	SCCP_LIST_UNLOCK(&l->devices);
 
-	if (!l->preferences_set_on_line_level) {
-		sccp_line_copyCodecSetsFromDeviceToLine(l);
-	}
-
+	sccp_line_updatePreferencesFromDevicesToLine(l);
+	sccp_line_updateCapabilitiesFromDevicesToLine(l);
 }
 
 /*!
@@ -1078,7 +1139,7 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 	SCCP_LIST_UNLOCK(&l->devices);
 
 	if (!linedevice) {
-		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for line %s could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, line->name);
+		sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for line %s could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, line->name);
 	}
 	return linedevice;
 }
@@ -1101,7 +1162,7 @@ sccp_linedevices_t *__sccp_linedevice_findByLineinstance(const sccp_device_t * d
 	}
 
 	if (!linedevice) {
-		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for lineinstance %d could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, instance);
+		sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for lineinstance %d could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, instance);
 	}
 	return linedevice;
 }

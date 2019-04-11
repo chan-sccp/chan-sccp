@@ -724,13 +724,6 @@ CLI_AMI_ENTRY(show_devices, sccp_show_devices, "List defined SCCP devices", cli_
      */
 static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	//setlocale(LC_ALL, "");
-	char apref_buf[256];
-	char acap_buf[512];
-#if CS_SCCP_VIDEO
-	char vpref_buf[256];
-	char vcap_buf[512];
-#endif
 	pbx_str_t *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	pbx_str_t *permithost_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	PBX_VARIABLE_TYPE *v = NULL;
@@ -757,12 +750,16 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 		pbx_log(LOG_WARNING, "Failed to get device %s\n", dev);
 		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);		/* explicit return */
 	}
+	char apref_buf[256];
+	char acap_buf[512];
 	sccp_codec_multiple2str(apref_buf, sizeof(apref_buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 	sccp_codec_multiple2str(acap_buf, sizeof(acap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 #if CS_SCCP_VIDEO
+	char vpref_buf[256];
+	char vcap_buf[512];
 	sccp_codec_multiple2str(vpref_buf, sizeof(vpref_buf) - 1, d->preferences.video, ARRAY_LEN(d->preferences.video));
 	sccp_codec_multiple2str(vcap_buf, sizeof(vcap_buf) - 1, d->capabilities.video, ARRAY_LEN(d->capabilities.video));
-#endif	
+#endif
 	sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, d->ha);
 
 	if (d->session) {
@@ -1302,10 +1299,14 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	}
 
 	char apref_buf[256];
+	char acap_buf[512];
 	sccp_codec_multiple2str(apref_buf, sizeof(apref_buf) - 1, l->preferences.audio, ARRAY_LEN(l->preferences.audio));
+	sccp_codec_multiple2str(acap_buf, sizeof(acap_buf) - 1, l->capabilities.audio, ARRAY_LEN(l->capabilities.audio));
 #if CS_SCCP_VIDEO
 	char vpref_buf[256];
+	char vcap_buf[512];
 	sccp_codec_multiple2str(vpref_buf, sizeof(vpref_buf) - 1, l->preferences.video, ARRAY_LEN(l->preferences.video));
+	sccp_codec_multiple2str(vcap_buf, sizeof(vcap_buf) - 1, l->capabilities.video, ARRAY_LEN(l->capabilities.video));
 #endif
 
 	if (!s) {
@@ -1348,8 +1349,10 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	CLI_AMI_OUTPUT_PARAM("Named Call Group",	CLI_AMI_LIST_WIDTH, "%s", l->namedcallgroup ? l->namedcallgroup : "NONE");
 	CLI_AMI_OUTPUT_PARAM("Named Pickup Group",	CLI_AMI_LIST_WIDTH, "%s", l->namedpickupgroup ? l->namedpickupgroup : "NONE");
 #endif
+	CLI_AMI_OUTPUT_PARAM("Combined Audio Caps",	CLI_AMI_LIST_WIDTH, "%s", acap_buf);
 	CLI_AMI_OUTPUT_PARAM("Audio Preferences",	CLI_AMI_LIST_WIDTH, "%s", apref_buf);
 #if CS_SCCP_VIDEO
+	CLI_AMI_OUTPUT_PARAM("Combined Video Caps",	CLI_AMI_LIST_WIDTH, "%s", vcap_buf);
 	CLI_AMI_OUTPUT_PARAM("Video Preferences",	CLI_AMI_LIST_WIDTH, "%s", vpref_buf);
 #endif
 	CLI_AMI_OUTPUT_BOOL("Prefs set at line level",	CLI_AMI_LIST_WIDTH, l->preferences_set_on_line_level);

@@ -2616,15 +2616,16 @@ void handle_capabilities_res(constSessionPtr s, devicePtr d, constMessagePtr msg
 		memcpy(&d->preferences.audio, &d->capabilities.audio, sizeof(d->preferences.audio));
 	}
 	
-	char cap_buf[512];
-	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
+	//char cap_buf[512];
+	//sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 	//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: audio capabilities: %s (%d)\n", DEV_ID_LOG(d), cap_buf, numAudioCodecs);
 #ifdef CS_SCCP_VIDEO
-	if (d->capabilities.video[0] != SKINNY_CODEC_NONE) {
-		sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.video, ARRAY_LEN(d->capabilities.video));
+	//if (d->capabilities.video[0] != SKINNY_CODEC_NONE) {
+		//sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.video, ARRAY_LEN(d->capabilities.video));
 		//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: video capabilities: %s (%d)\n", DEV_ID_LOG(d), cap_buf, numVideoCodecs);
-	}
+	//}
 #endif
+	sccp_line_updateLineCapabilitiesByDevice(d);
 }
 
 /*!
@@ -4299,6 +4300,7 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 			}
 		}
 #endif
+		sccp_line_updateLineCapabilitiesByDevice(d);
 	}
 }
 /*!
@@ -4393,6 +4395,7 @@ void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constM
 		}
 	}
 #endif
+	sccp_line_updateLineCapabilitiesByDevice(d);
 }
 
 /*!
@@ -4495,7 +4498,7 @@ void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constM
 		}
 	}
 #endif
-
+	sccp_line_updateLineCapabilitiesByDevice(d);
 }
 
 /*!

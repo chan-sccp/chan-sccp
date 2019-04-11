@@ -307,7 +307,7 @@ int sccp_codec_getReducedSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const
 			if (base[x] == reduceByCodecs[y]) {
 				result[z++] = base[x];
 				overlap++;
-				break;
+				//break;
 			}
 		}
 	}
@@ -370,13 +370,13 @@ skinny_codec_t sccp_codec_findBestJoint(constChannelPtr c, const skinny_codec_t 
 	}
 
 	/* direction of the call determines who leads */
-	if (SKINNY_CALLTYPE_INBOUND == c->calltype){
+	/*if (SKINNY_CALLTYPE_INBOUND == c->calltype){
 		memcpy(leadPrefs, remotePeerPreferences, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 		followPrefs = (skinny_codec_t *) ourPreferences;
-	} else {
+	} else {*/
 		memcpy(leadPrefs, ourPreferences, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 		followPrefs = (skinny_codec_t *) remotePeerPreferences;
-	}
+	//}
 
 	sccp_codec_reduceSet(leadPrefs, followPrefs);
 	res = leadPrefs[0];
