@@ -19,6 +19,7 @@
 #include "sccp_device.h"
 #include "sccp_event.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_vector.h"
 
 SCCP_FILE_VERSION(__FILE__, "");

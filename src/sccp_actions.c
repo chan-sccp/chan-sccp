@@ -27,6 +27,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_feature.h"
 #include "sccp_indicate.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_labels.h"
 #include "sccp_featureParkingLot.h"
 
@@ -1058,7 +1059,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 						/*! retains new line in btn[i].ptr, finally released in sccp_dev_clean */
 						if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name, TRUE))) {
 							buttonconfig->instance = btn[i].instance = lineInstance++;
-							sccp_line_addDevice((sccp_line_t *) btn[i].ptr, d, btn[i].instance, buttonconfig->button.line.subscriptionId);
+							sccp_linedevice_allocate(d, (sccp_line_t *) btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
 							if (FALSE == defaultLineSet && !d->defaultLineInstance) {
 								d->defaultLineInstance = buttonconfig->instance;
 								defaultLineSet = TRUE;
@@ -1271,7 +1272,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
 		btn[i].ptr = sccp_line_retain(GLOB(hotline)->line);
 		buttonconfig->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
-		sccp_line_addDevice((sccp_line_t *) btn[i].ptr, d, btn[i].instance, buttonconfig->button.line.subscriptionId);
+		sccp_linedevice_allocate(d, (sccp_line_t *) btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
 	}
 
 	// all non defined buttons are set to UNUSED
@@ -1411,7 +1412,7 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 	btn = d->buttonTemplate = sccp_make_button_template(d);
 
 	/* update lineButtons array */
-	sccp_line_createLineButtonsArray(d);
+	sccp_linedevice_createLineButtonsArray(d);
 
 	if (!btn) {
 		pbx_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);

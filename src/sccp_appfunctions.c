@@ -16,6 +16,7 @@
 #include "sccp_channel.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_mwi.h"
 #include "sccp_conference.h"
 #include "sccp_session.h"
