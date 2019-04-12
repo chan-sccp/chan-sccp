@@ -6,8 +6,21 @@ typedef unsigned long sccp_group_t;										/*!< SCCP callgroup / pickupgroup *
 typedef ULONG sccp_group_t;											/*!< SCCP callgroup / pickupgroup */
 #endif
 
+struct sccp_session;
+struct sccp_linedevice;
+struct sccp_device;
+struct sccp_line;
+struct sccp_channel;
+struct sccp_speed;
+struct sccp_service;
+struct sccp_addon;
+struct sccp_hint;
+struct sccp_hostname;
+struct sccp_header;
+struct sccp_msg;
+
 typedef struct sccp_session sccp_session_t;									/*!< SCCP Session Structure */
-typedef struct sccp_linedevices sccp_linedevice_t;								/*!< SCCP Line Connected to Devices */
+typedef struct sccp_linedevice sccp_linedevice_t;								/*!< SCCP Line Connected to Devices */
 typedef struct sccp_device sccp_device_t;									/*!< SCCP Device Structure */
 typedef struct sccp_line sccp_line_t;										/*!< SCCP Line Structure */
 typedef struct sccp_channel sccp_channel_t;									/*!< SCCP Channel Structure */

@@ -47,6 +47,7 @@
 #include "sccp_channel.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 

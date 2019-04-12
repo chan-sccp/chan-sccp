@@ -14,6 +14,7 @@
 #include "sccp_device.h"
 #include "sccp_enum.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_protocol.h"
 #include "sccp_session.h"
 #include "sccp_utils.h"

@@ -28,6 +28,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_feature.h"
 #include "sccp_indicate.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_netsock.h"
 #include "sccp_utils.h"
 #include "sccp_labels.h"
@@ -1964,7 +1965,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
 
 		if (channel->privateData->linedevice) {
-			sccp_linedevice_resetPickup(channel->privateData->linedevice);
+			channel->privateData->linedevice->resetPickup(channel->privateData->linedevice);
 		}
 
 		/* deactive the active call if needed */

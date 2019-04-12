@@ -32,6 +32,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_device.h"
 #include "sccp_indicate.h"											// only for SCCP_CHANNELSTATE_Idling
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_utils.h"
 #include "sccp_labels.h"
 

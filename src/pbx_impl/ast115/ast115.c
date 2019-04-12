@@ -14,6 +14,7 @@
 #include "sccp_channel.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_cli.h"
 #include "sccp_utils.h"
 #include "sccp_indicate.h"

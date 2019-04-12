@@ -28,6 +28,7 @@
 #include "sccp_featureButton.h"
 #include "sccp_feature.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_pbx.h"
 #include "sccp_conference.h"
 #include "sccp_indicate.h"
@@ -348,7 +349,7 @@ void sccp_feat_handle_directed_pickup(lineDevicePtr ld, channelPtr maybe_c)
 		pbx_log(LOG_NOTICE, "%s: (directed_pickup) pickup button has been disabled for line:%s (already pressed pickup on this call).\n", DEV_ID_LOG(ld->device), ld->line->name);
 		return;
 	}
-	sccp_linedevice_disallowPickup(ld);
+	ld->disallowPickup(ld);
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_getEmptyChannel(ld, maybe_c, SKINNY_CALLTYPE_INBOUND, NULL, NULL));
 	if (c) {
 		c->softswitch_action = SCCP_SOFTSWITCH_GETPICKUPEXTEN;						/* SoftSwitch will catch a number to be dialed */
@@ -502,7 +503,7 @@ int sccp_feat_grouppickup(lineDevicePtr ld, channelPtr maybe_c)
 		pbx_log(LOG_NOTICE, "%s: (directed_pickup) pickup button has been disabled for line:%s (already pressed pickup on this call).\n", DEV_ID_LOG(ld->device), ld->line->name);
 		return -1 ;
 	}
-	sccp_linedevice_disallowPickup(ld);
+	ld->disallowPickup(ld);
 	/* end assertions */
 
 	pbx_log(LOG_NOTICE, "%s: (gpickup) get channel: %s.\n", DEV_ID_LOG(ld->device), maybe_c ? maybe_c->designator : "<null>");
