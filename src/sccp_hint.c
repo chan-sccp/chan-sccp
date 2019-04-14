@@ -201,7 +201,8 @@ void sccp_hint_module_start(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Starting hint system\n");
 	SCCP_LIST_HEAD_INIT(&lineStates);
 	SCCP_LIST_HEAD_INIT(&sccp_hint_subscriptions);
-	sccp_event_subscribe(SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED | SCCP_EVENT_DEVICE_DETACHED | SCCP_EVENT_DEVICE_ATTACHED | SCCP_EVENT_LINESTATUS_CHANGED, sccp_hint_eventListener, TRUE);
+	sccp_event_subscribe(SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_ATTACHED | SCCP_EVENT_LINESTATUS_CHANGED, sccp_hint_eventListener, TRUE);
+	sccp_event_subscribe(SCCP_EVENT_DEVICE_UNREGISTERED | SCCP_EVENT_DEVICE_DETACHED, sccp_hint_eventListener, FALSE);
 	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_hint_handleFeatureChangeEvent, TRUE);
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 	ast_eid_to_str(default_eid_str, sizeof(default_eid_str), &ast_eid_default);
@@ -694,25 +695,28 @@ static void sccp_hint_attachLine(sccp_line_t * line, sccp_device_t * device)
 
 static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device) 
 {
-	sccp_hint_lineStatusChanged(line, device);
-	struct sccp_hint_lineState *lineState = NULL;
-	
-	if (line->statistic.numberOfActiveDevices == 0) {		/* release last instance of lineState->line */
-		//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s (hint_detachLine) detaching line: %s, \n", DEV_ID_LOG(device), line->name);
-		SCCP_LIST_LOCK(&lineStates);
-		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&lineStates, lineState, list) {
-			if (lineState->line == line) {
-				//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_detachLine) line: %s detached\n", DEV_ID_LOG(device), line->name);
-				if (lineState->line) {
-					sccp_line_release(&lineState->line);		/* explicit release*/
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(line));
+	if (l) {
+		sccp_hint_lineStatusChanged(line, device);
+		struct sccp_hint_lineState *lineState = NULL;
+
+		if (line->statistic.numberOfActiveDevices == 0) {		/* release last instance of lineState->line */
+			//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s (hint_detachLine) detaching line: %s, \n", DEV_ID_LOG(device), line->name);
+			SCCP_LIST_LOCK(&lineStates);
+			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&lineStates, lineState, list) {
+				if (lineState->line == line) {
+					//sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_detachLine) line: %s detached\n", DEV_ID_LOG(device), line->name);
+					if (lineState->line) {
+						sccp_line_release(&lineState->line);		/* explicit release*/
+					}
+					SCCP_LIST_REMOVE_CURRENT(list);
+					sccp_free(lineState)
+					break;
 				}
-				SCCP_LIST_REMOVE_CURRENT(list);
-				sccp_free(lineState)
-				break;
 			}
+			SCCP_LIST_TRAVERSE_SAFE_END;
+			SCCP_LIST_UNLOCK(&lineStates);
 		}
-		SCCP_LIST_TRAVERSE_SAFE_END;
-		SCCP_LIST_UNLOCK(&lineStates);
 	}
 }
 

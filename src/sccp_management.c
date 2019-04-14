@@ -138,7 +138,8 @@ int sccp_unregister_management(void)
  */
 void sccp_manager_module_start(void)
 {
-	sccp_event_subscribe(SCCP_EVENT_DEVICE_ATTACHED | SCCP_EVENT_DEVICE_DETACHED | SCCP_EVENT_DEVICE_PREREGISTERED | SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED | SCCP_EVENT_FEATURE_CHANGED, sccp_manager_eventListener, TRUE);
+	sccp_event_subscribe(SCCP_EVENT_DEVICE_ATTACHED | SCCP_EVENT_DEVICE_PREREGISTERED | SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_FEATURE_CHANGED, sccp_manager_eventListener, TRUE);
+	sccp_event_subscribe(SCCP_EVENT_DEVICE_DETACHED | SCCP_EVENT_DEVICE_UNREGISTERED, sccp_manager_eventListener, FALSE);
 }
 
 /*!

@@ -61,7 +61,8 @@ void sccp_devstate_module_start(void)
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Starting devstate system\n");
 	SCCP_LIST_HEAD_INIT(&deviceStates);
-	sccp_event_subscribe(SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED, sccp_devstate_deviceRegisterListener, TRUE);
+	sccp_event_subscribe(SCCP_EVENT_DEVICE_REGISTERED, sccp_devstate_deviceRegisterListener, TRUE);
+	sccp_event_subscribe(SCCP_EVENT_DEVICE_UNREGISTERED, sccp_devstate_deviceRegisterListener, FALSE);
 }
 
 void sccp_devstate_module_stop(void)
