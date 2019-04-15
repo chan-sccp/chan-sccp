@@ -29,7 +29,7 @@
  */
 /* *INDENT-OFF* */
 static const SCCPConfigOption sccpGlobalConfigOptions[]={
-	{"debug", 			G_OBJ_REF(debug), 			TYPE_PARSER(sccp_config_parse_debug),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
+	{"debug", 			G_OBJ_REF(debug), 			TYPE_PARSER(sccp_config_parse_debug),						SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
 																														  							"examples: debug = 11 | debug = mwi,event,core | debug = all | debug = none or 0\n"
 																																					"possible categories:\n"
 																																					"core, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey, indicate, pbx\n"
@@ -48,7 +48,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																																					"Rules are processed from the first to the last.\n"
 																																					"This General rule is valid for all incoming connections. It's the 1st filter.\n"
 																																					"using 'internal' will allow the 10.0.0.0, 172.16.0.0 and 192.168.0.0 networks\n"},
-	{"localnet", 			G_OBJ_REF(localaddr), 			TYPE_PARSER(sccp_config_parse_deny_permit),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NEEDDEVICERESET,		"internal",			"All RFC 1918 addresses are local networks, example '192.168.1.0/255.255.255.0'\n"},
+	{"localnet", 			G_OBJ_REF(localaddr), 			TYPE_PARSER(sccp_config_parse_deny_permit),					SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NEEDDEVICERESET,		"internal",			"All RFC 1918 addresses are local networks, example '192.168.1.0/255.255.255.0'\n"},
 	{"externip", 			G_OBJ_REF(externip), 			TYPE_PARSER(sccp_config_parse_ipaddress),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0",			"External IP Address of the firewall, required in case the PBX is running on a seperate host behind it. IP Address that we're going to use when setting up the RTP media stream for the pbx source address.\n"},
 	{"externhost", 			G_OBJ_REF(externhost), 			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,  					SCCP_CONFIG_NEEDDEVICERESET,		"",				"Resolve Hostname (if dynamic) that we're going to resolve when setting up the RTP media stream (only active if externip=0.0.0.0 and host is natted.)\n"},
 	{"externrefresh", 		G_OBJ_REF(externrefresh), 		TYPE_INT,									SCCP_CONFIG_FLAG_NONE,  					SCCP_CONFIG_NEEDDEVICERESET,		"60",				"Expire time in seconds for the hostname (dns resolution)\n"},
@@ -106,9 +106,9 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"callgroup", 			G_OBJ_REF(callgroup), 			TYPE_PARSER(sccp_config_parse_group),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"We are in caller groups 1,3,4. Valid for all lines\n"},
 #ifdef CS_SCCP_PICKUP	
 	{"pickupgroup", 		G_OBJ_REF(pickupgroup), 		TYPE_PARSER(sccp_config_parse_group),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"We can do call pick-p for call group 1,3,4,5. Valid for all lines\n"},
-	{"directed_pickup", 		G_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"enable/disable Pickup button to do directed pickup from a specific extension.\n"},
+	{"directed_pickup", 		G_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"enable/disable Pickup button to do directed pickup from a specific extension.\n"},
 	{"directed_pickup_context",	G_OBJ_REF(directed_pickup_context),	TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"context where direct pickup search for extensions. If not set, the current context of the picking line will be used.\n"},
-	{"directed_pickup_modeanswer", 	G_OBJ_REF(pickup_modeanswer), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Automatically Answer when using Directed Pickup. (default=on) (Deprecated in favor of pickup_modeanswer)"},
+	{"directed_pickup_modeanswer", 	G_OBJ_REF(pickup_modeanswer), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Automatically Answer when using Directed Pickup. (default=on) (Deprecated in favor of pickup_modeanswer)"},
 	{"pickup_modeanswer", 		G_OBJ_REF(pickup_modeanswer), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Automatically Answer when using Directed Pickup. (default=on)"},
 #endif
 	{"callhistory_answered_elsewhere", G_OBJ_REF(callhistory_answered_elsewhere),TYPE_ENUM(skinny,callHistoryDisposition),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"Ignore",			"Where to store callinfo for calls answered on a remote device. Options: Ignore, Missed Calls (or Placed Calls, Received Calls which are less usefull)"},
@@ -217,18 +217,18 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"softkeyset", 			D_OBJ_REF(softkeyDefinition),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"default",			"use specified softkeyset with name 'default'\n"},
 	{"useRedialMenu", 		D_OBJ_REF(useRedialMenu), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"show redial phone book list instead of dialing the last number (adv_feature). Requires a Phone Service block in SEP....cnf.xml to work correct on Java phones (See conf/tftp/SEP example files)\n"},
 #ifdef CS_SCCP_PICKUP
-	{"directed_pickup", 		D_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"enable/disable Pickup button to do directed pickup from a specific extension. (Deprecated: use line->directed_pickup instead)\n"},
-	{"directed_pickup_context", 	D_OBJ_REF(directed_pickup_context),TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"context where direct pickup search for extensions. If not set, current context will be use. (Deprecated: use line->directed_pickup_context instead)\n"},
-	{"directed_pickup_modeanswer", 	D_OBJ_REF(pickup_modeanswer),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Automatically Answer when using Directed Pickup. (default=on) (Deprecated: use line->pickup_modeanswer instead)\n"},
+	{"directed_pickup", 		D_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"enable/disable Pickup button to do directed pickup from a specific extension. (Deprecated: use line->directed_pickup instead)\n"},
+	{"directed_pickup_context", 	D_OBJ_REF(directed_pickup_context),	TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"context where direct pickup search for extensions. If not set, current context will be use. (Deprecated: use line->directed_pickup_context instead)\n"},
+	{"directed_pickup_modeanswer", 	D_OBJ_REF(pickup_modeanswer),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Automatically Answer when using Directed Pickup. (default=on) (Deprecated: use line->pickup_modeanswer instead)\n"},
 #endif
 	{"callhistory_answered_elsewhere", D_OBJ_REF(callhistory_answered_elsewhere),TYPE_ENUM(skinny,callHistoryDisposition),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Where to store callinfo for calls answered on a remote device. Options: Options: Ignore, Missed Calls (or Placed Calls, Received Calls which are less usefull)"},
 	{"monitor", 			D_OBJ_REF(monitorFeature.enabled), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				""},
 	{"allowoverlap", 		D_OBJ_REF(overlapFeature.enabled), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Allow for Overlap dialing (Continue dialing after the first part of the number has already been send to the pstn)"},
-	{"setvar", 			D_OBJ_REF(variables),			TYPE_PARSER(sccp_config_parse_variables),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)\n"
+	{"setvar", 			D_OBJ_REF(variables),			TYPE_PARSER(sccp_config_parse_variables),					SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)\n"
 																																					"format setvar=param=value, for example setvar=sipno=12345678\n"},
-	{"permithost", 			D_OBJ_REF(permithosts), 		TYPE_PARSER(sccp_config_parse_permithosts),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"permit/deny but by resolved hostname"},
+	{"permithost", 			D_OBJ_REF(permithosts), 		TYPE_PARSER(sccp_config_parse_permithosts),					SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"permit/deny but by resolved hostname"},
 	{"addon", 			D_OBJ_REF(addons),	 		TYPE_PARSER(sccp_config_parse_addons),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"One of 7914, 7915, 7916"},
-	{"button", 			D_OBJ_REF(buttonconfig), 		TYPE_PARSER(sccp_config_parse_button),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"Buttons come in the following flavours (empty, line, speeddial, service, feature).\n"
+	{"button", 			D_OBJ_REF(buttonconfig), 		TYPE_PARSER(sccp_config_parse_button),						SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"Buttons come in the following flavours (empty, line, speeddial, service, feature).\n"
 																																					"Examples (read the documentation for more examples/combinations):\n"
 																																					" - button = line,1234\n"
 																																					" - button = line,1234,default\n"
@@ -315,7 +315,7 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 	{"trnsfvm",			L_OBJ_REF(trnsfvm),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"extension to redirect the caller to for voice mail\n"},
 	{"secondary_dialtone_digits",	L_OBJ_REF(secondary_dialtone_digits),	TYPE_PARSER(sccp_config_parse_secondaryDialtoneDigits),				SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"digits to indicate an external line to user (secondary dialtone) (max 9 digits)\n"},
 	{"secondary_dialtone_tone",	L_OBJ_REF(secondary_dialtone_tone),	TYPE_ENUM(skinny,tone),								SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"Outside Dial Tone",		"outside dialtone frequency\n"},
-	{"setvar",			L_OBJ_REF(variables),			TYPE_PARSER(sccp_config_parse_variables),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)\n"
+	{"setvar",			L_OBJ_REF(variables),			TYPE_PARSER(sccp_config_parse_variables),					SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)\n"
 																																					"format setvar=param=value, for example setvar=sipno=12345678\n"},
 	{"dnd",				L_OBJ_REF(dndmode),			TYPE_ENUM(sccp,dndmode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"allow setting dnd action for this line. Valid values are 'off', 'reject' (busy signal), 'silent' (ringer = silent) or 'user' (not used at the moment). . The value 'on' has been made obsolete in favor of 'reject'\n"},
 	{"regexten",			L_OBJ_REF(regexten),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"SCCP Lines will we added to the regcontext with this number for Dundi look up purpose\n"
@@ -341,7 +341,7 @@ static const SCCPConfigOption sccpSoftKeyConfigOptions[] = {
 	{"onhint",			S_OBJ_REF(modes[KEYMODE_INUSEHINT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,newcall,pickup,gpickup,barge",							"displayed when a hint is activated"},
 	{"onstealable",			S_OBJ_REF(modes[KEYMODE_ONHOOKSTEALABLE]),TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,newcall,cfwdall,pickup,gpickup,dnd,intrcpt",					"displayed when there is a call we could steal on one of the neighboring phones"},
 	{"holdconf",			S_OBJ_REF(modes[KEYMODE_HOLDCONF]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"resume,newcall,endcall,join",								"displayed when we are a conference moderator, have the conference on hold and have another active call"},
-	{"uriaction", 			S_OBJ_REF(softkeyCbMap),		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED, 		NULL,											"softkey uri action to replace default handling. Format: uriaction = softkeyname, uri[,uri...]\n. URI can be an embedded cisco action (like Key:Service, Play:1041.raw) or a URL"
+	{"uriaction", 			S_OBJ_REF(softkeyCbMap),		TYPE_STRING,									SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NOUPDATENEEDED, 		NULL,											"softkey uri action to replace default handling. Format: uriaction = softkeyname, uri[,uri...]\n. URI can be an embedded cisco action (like Key:Service, Play:1041.raw) or a URL"
 																																												"If uri is a url the following parameters will be added to it: devicename, linename, channelname, callid, linkedid, uniqueid, appid, transactionid"},
 };
 /* *INDENT-ON* */
