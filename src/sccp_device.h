@@ -189,7 +189,7 @@ struct sccp_device {
 	uint8_t _padding1;
 	struct {
 		char number[SCCP_MAX_EXTENSION];
-		uint16_t lineInstance;
+		uint8_t lineInstance;
 	} redialInformation;											/*!< Last Dialed Number */
 	boolean_t linesRegistered;										/*!< did we answer the RegisterAvailableLinesMessage */
 	boolean_t meetme;											/*!< Meetme on/off */
@@ -396,7 +396,7 @@ SCCP_API void SCCP_CALL sccp_dev_setActiveLine(devicePtr device, constLinePtr l)
 SCCP_API sccp_channel_t * SCCP_CALL sccp_device_getActiveChannel(constDevicePtr device);
 SCCP_API void SCCP_CALL sccp_device_setActiveChannel(devicePtr d, sccp_channel_t * channel);
 
-SCCP_API sccp_buttonconfig_t * SCCP_CALL sccp_dev_serviceURL_find_byindex(devicePtr device, uint16_t instance);
+SCCP_API sccp_buttonconfig_t * SCCP_CALL sccp_dev_serviceURL_find_byindex(devicePtr device, uint8_t instance);
 
 #define REQ(x,y) x = sccp_build_packet(y, sizeof(x->data.y))
 #define REQCMD(x,y) x = sccp_build_packet(y, 0)
@@ -424,7 +424,7 @@ SCCP_API void SCCP_CALL sccp_dev_displaynotify_debug(constDevicePtr d, const cha
 SCCP_API void SCCP_CALL sccp_dev_displayprinotify_debug(constDevicePtr d, const char *msg, const sccp_message_priority_t priority, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function);
 SCCP_API void SCCP_CALL sccp_dev_cleardisplaynotify(constDevicePtr d);
 SCCP_API void SCCP_CALL sccp_dev_cleardisplayprinotify(constDevicePtr d, const uint8_t priority);
-SCCP_API void SCCP_CALL sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, boolean_t withHint, sccp_speed_t * const k);
+SCCP_API void SCCP_CALL sccp_dev_speed_find_byindex(constDevicePtr d, const uint8_t instance, boolean_t withHint, sccp_speed_t * const k);
 SCCP_API void SCCP_CALL sccp_dev_forward_status(constLineDevicePtr ld);
 SCCP_API void SCCP_CALL _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t restart_device);
 #define sccp_dev_clean(d, r) _sccp_dev_clean(d, r, FALSE);

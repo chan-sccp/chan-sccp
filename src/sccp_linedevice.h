@@ -57,6 +57,6 @@ SCCP_API void SCCP_CALL sccp_linedevice_deleteLineButtonsArray(devicePtr device)
 #define sccp_linedevice_find(_x,_y) __sccp_linedevice_find(_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_linedevice_findByLineInstance(_x,_y) __sccp_linedevice_findByLineInstance(_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 SCCP_API sccp_linedevice_t * SCCP_CALL __sccp_linedevice_find(const sccp_device_t * device, const sccp_line_t * line, const char *filename, int lineno, const char *func);
-SCCP_API sccp_linedevice_t * SCCP_CALL __sccp_linedevice_findByLineInstance(const sccp_device_t * device, uint16_t instance, const char *filename, int lineno, const char *func);
+SCCP_API sccp_linedevice_t * SCCP_CALL __sccp_linedevice_findByLineInstance(const sccp_device_t * device, uint8_t instance, const char *filename, int lineno, const char *func);
 __END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
