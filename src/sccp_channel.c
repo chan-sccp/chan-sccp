@@ -588,7 +588,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 	if (!channel->rtp.audio.instance && !sccp_rtp_createServer(d, (channelPtr)channel, SCCP_RTP_AUDIO)) {			// discard const
 		pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s\n", d->id, channel->designator);
 
-		uint16_t instance = sccp_device_find_index_for_line(d, channel->line->name);
+		uint8_t instance = sccp_device_find_index_for_line(d, channel->line->name);
 		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, channel->callid, SKINNY_TONEDIRECTION_USER);
 		return;
 	}
@@ -1688,7 +1688,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
  */
 int sccp_channel_hold(channelPtr channel)
 {
-	uint16_t instance;
+	uint8_t instance;
 
 	if (!channel || !channel->line) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. No channel provided to put on hold\n");
@@ -1778,7 +1778,7 @@ int sccp_channel_hold(channelPtr channel)
  */
 int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swap_channels)
 {
-	uint16_t instance;
+	uint8_t instance;
 
 	if (!channel || !channel->owner || !channel->line) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. No channel provided to resume\n");
@@ -2076,7 +2076,7 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 {
 	sccp_channelstate_t prev_channel_state = SCCP_CHANNELSTATE_ZOMBIE;
 	uint32_t blindTransfer = 0;
-	uint16_t instance = 0;
+	uint8_t instance = 0;
 	PBX_CHANNEL_TYPE *pbx_channel_owner = NULL;
 	PBX_CHANNEL_TYPE *pbx_channel_bridgepeer = NULL;
 
@@ -2287,7 +2287,7 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 #if ASTERISK_VERSION_GROUP >= 108
 	enum ast_control_transfer control_transfer_message = AST_TRANSFER_FAILED;
 #endif
-	uint16_t instance = 0;
+	uint8_t instance = 0;
 
 	if (!sccp_destination_local_channel) {
 		return;

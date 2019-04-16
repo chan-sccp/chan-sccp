@@ -393,7 +393,7 @@ sccp_linedevice_t *__sccp_linedevice_find(const sccp_device_t * device, const sc
 	return linedevice;
 }
 
-sccp_linedevice_t *__sccp_linedevice_findByLineInstance(const sccp_device_t * device, uint16_t instance, const char *filename, int lineno, const char *func)
+sccp_linedevice_t *__sccp_linedevice_findByLineInstance(const sccp_device_t * device, uint8_t instance, const char *filename, int lineno, const char *func)
 {
 	sccp_linedevice_t *linedevice = NULL;
 

@@ -62,7 +62,7 @@ void __sccp_indicate(constLineDevicePtr maybe_ld, sccp_channel_t * const c, cons
 	}
 	sccp_device_t *d = ld->device;
 	sccp_line_t *l = ld->line;
-	uint16_t lineInstance = ld->lineInstance;
+	uint8_t lineInstance = ld->lineInstance;
 
 	/* all the check are ok. We can safely run all the dev functions with no more checks */
 	sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Indicate SCCP new state:%s, current channel state:%s on call:%s, lineInstance:%d (previous channelstate:%s)\n", d->id, sccp_channelstate2str(state), sccp_channelstate2str(c->state), c->designator, lineInstance, sccp_channelstate2str(c->previousChannelState));

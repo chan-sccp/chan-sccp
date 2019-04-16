@@ -143,7 +143,7 @@ SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_byname(const char *name, uint8_t
 
 #if DEBUG
 #define sccp_line_find_byid(_x,_y) __sccp_line_find_byid(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
-SCCP_API sccp_line_t * SCCP_CALL __sccp_line_find_byid(constDevicePtr d, uint16_t instance, const char *filename, int lineno, const char *func);
+SCCP_API sccp_line_t * SCCP_CALL __sccp_line_find_byid(constDevicePtr d, uint8_t instance, const char *filename, int lineno, const char *func);
 
 #define sccp_line_find_byButtonIndex(_x, _y) __sccp_line_find_byButtonIndex(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 SCCP_API sccp_line_t * SCCP_CALL __sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex, const char *filename, int lineno, const char *func);
@@ -152,7 +152,7 @@ SCCP_API sccp_line_t * SCCP_CALL __sccp_line_find_byButtonIndex(constDevicePtr d
 SCCP_API sccp_line_t * SCCP_CALL __sccp_line_find_realtime_byname(const char *name, const char *filename, int lineno, const char *func);
 #endif														// CS_SCCP_REALTIME
 #else														// DEBUG
-SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_byid(constDevicePtr d, uint16_t instance);
+SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_byid(constDevicePtr d, uint8_t instance);
 SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex);
 
 #ifdef CS_SCCP_REALTIME

@@ -1032,7 +1032,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 	sccp_dev_build_buttontemplate(d, btn);
 
 	uint16_t speeddialInstance = SCCP_FIRST_SPEEDDIALINSTANCE;						/* starting instance for speeddial is 1 */
-	uint16_t lineInstance = SCCP_FIRST_LINEINSTANCE;
+	uint8_t lineInstance = SCCP_FIRST_LINEINSTANCE;
 	uint16_t serviceInstance = SCCP_FIRST_SERVICEINSTANCE;
 	boolean_t defaultLineSet = FALSE;
 
@@ -2095,7 +2095,7 @@ static void handle_stimulus_groupcallpickup(constLineDevicePtr ld, const uint32_
  * \warning
  *   - device->buttonconfig is not always locked
  */
-static void handle_feature_action(constDevicePtr d, const uint16_t instance, const boolean_t toggleState)
+static void handle_feature_action(constDevicePtr d, const uint8_t instance, const boolean_t toggleState)
 {
 	sccp_buttonconfig_t *config = NULL;
 	sccp_callforward_t status = SCCP_CFWD_NONE;								/* state of cfwd */
@@ -2358,7 +2358,7 @@ void handle_stimulus(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	uint32_t stimulusStatus = 0;
 
 	skinny_stimulus_t stimulus = letohl(msg_in->data.StimulusMessage.lel_stimulus);
-	uint16_t instance = letohl(msg_in->data.StimulusMessage.lel_stimulusInstance);
+	uint8_t instance = letohl(msg_in->data.StimulusMessage.lel_stimulusInstance);
 	AUTO_RELEASE(sccp_line_t, l , NULL);
 	
 	if (d->lineButtons.size == 0 || !d->linesRegistered) {
@@ -3999,7 +3999,7 @@ void handle_forward_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 {
 	sccp_msg_t *msg_out = NULL;
 
-	uint16_t lineInstance = letohl(msg_in->data.ForwardStatReqMessage.lel_lineNumber);
+	uint8_t lineInstance = letohl(msg_in->data.ForwardStatReqMessage.lel_lineNumber);
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got Forward Status Request.  Line: %d\n", d->id, lineInstance);
 

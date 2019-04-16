@@ -443,7 +443,7 @@ sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
 	if (d && !SCCP_CHANNELSTATE_Idling(c->state) && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d)) {
 		// if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_device_getActiveChannel_nolock(d))	/* Caused active channels never to be full released */
 		if (GLOB(remotehangup_tone) && d && SCCP_DEVICESTATE_OFFHOOK == sccp_device_getDeviceState(d) && SCCP_CHANNELSTATE_IsConnected(c->state) && c == d->active_channel) {
-			uint16_t instance = sccp_device_find_index_for_line(d, c->line->name);
+			uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), instance, c->callid, SKINNY_TONEDIRECTION_USER);
 		}
 	}
@@ -1067,7 +1067,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			c->hangupRequest(c);
 			goto EXIT_FUNC;
 		}
-		uint16_t instance = sccp_device_find_index_for_line(d, l->name);
+		uint8_t instance = sccp_device_find_index_for_line(d, l->name);
 
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) New call on line %s\n", DEV_ID_LOG(d), l->name);
 

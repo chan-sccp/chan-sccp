@@ -786,14 +786,14 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
  * \param func Debug Function Name
  * \return SCCP Line (can be null)
  */
-sccp_line_t *__sccp_line_find_byid(constDevicePtr d, uint16_t instance, const char *filename, int lineno, const char *func)
+sccp_line_t *__sccp_line_find_byid(constDevicePtr d, uint8_t instance, const char *filename, int lineno, const char *func)
 #else
 /*!
  * \param d SCCP Device
  * \param instance line instance as int
  * \return SCCP Line (can be null)
  */
-sccp_line_t *sccp_line_find_byid(constDevicePtr d, uint16_t instance)
+sccp_line_t *sccp_line_find_byid(constDevicePtr d, uint8_t instance)
 #endif
 {
 	sccp_line_t *l = NULL;
