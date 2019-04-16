@@ -396,7 +396,7 @@ SCCP_API void SCCP_CALL sccp_dev_setActiveLine(devicePtr device, constLinePtr l)
 SCCP_API sccp_channel_t * SCCP_CALL sccp_device_getActiveChannel(constDevicePtr device);
 SCCP_API void SCCP_CALL sccp_device_setActiveChannel(devicePtr d, sccp_channel_t * channel);
 
-SCCP_API sccp_buttonconfig_t * SCCP_CALL sccp_dev_serviceURL_find_byindex(devicePtr device, uint8_t instance);
+SCCP_API sccp_buttonconfig_t * SCCP_CALL sccp_dev_serviceURL_findByLineInstance(devicePtr device, uint8_t instance);
 
 #define REQ(x,y) x = sccp_build_packet(y, sizeof(x->data.y))
 #define REQCMD(x,y) x = sccp_build_packet(y, 0)

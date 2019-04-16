@@ -4078,15 +4078,15 @@ void handle_services_stat_req(constSessionPtr s, devicePtr d, constMessagePtr ms
 	sccp_msg_t *msg_out = NULL;
 	sccp_buttonconfig_t *config = NULL;
 
-	int urlIndex = letohl(msg_in->data.ServiceURLStatReqMessage.lel_serviceURLIndex);
+	uint8_t LineInstance = letohl(msg_in->data.ServiceURLStatReqMessage.lel_lineInstance);
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got ServiceURL Status Request.  Index = %d\n", d->id, urlIndex);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got ServiceURL Status Request.  Index = %d\n", d->id, LineInstance);
 
-	if ((config = sccp_dev_serviceURL_find_byindex(d, urlIndex))) {
+	if ((config = sccp_dev_serviceURL_findByLineInstance(d, LineInstance))) {
 		/* \todo move ServiceURLStatMessage impl to sccp_protocol.c */
 		if (d->inuseprotocolversion < 7) {
 			REQ(msg_out, ServiceURLStatMessage);
-			msg_out->data.ServiceURLStatMessage.lel_serviceURLIndex = htolel(urlIndex);
+			msg_out->data.ServiceURLStatMessage.lel_lineInstance = htolel(LineInstance);
 			sccp_copy_string(msg_out->data.ServiceURLStatMessage.URL, config->button.service.url, sccp_strlen(config->button.service.url) + 1);
 			//sccp_copy_string(msg_out->data.ServiceURLStatMessage.label, config->label, sccp_strlen(config->label) + 1);
 			d->copyStr2Locale(d, msg_out->data.ServiceURLStatMessage.label, config->label, sccp_strlen(config->label) + 1);
@@ -4098,7 +4098,7 @@ void handle_services_stat_req(constSessionPtr s, devicePtr d, constMessagePtr ms
 			int hdr_len = sizeof(msg_in->data.ServiceURLStatDynamicMessage) - 1;
 
 			msg_out = sccp_build_packet(ServiceURLStatDynamicMessage, hdr_len + dummy_len);
-			msg_out->data.ServiceURLStatDynamicMessage.lel_serviceURLIndex = htolel(urlIndex);
+			msg_out->data.ServiceURLStatDynamicMessage.lel_lineInstance = htolel(LineInstance);
 
 			if (dummy_len) {
 				char buffer[dummy_len + 2];
@@ -4115,7 +4115,7 @@ void handle_services_stat_req(constSessionPtr s, devicePtr d, constMessagePtr ms
 		}
 		sccp_dev_send(d, msg_out);
 	} else {
-		pbx_log(LOG_WARNING, "%s: serviceURL %d not assigned\n", sccp_session_getDesignator(s), urlIndex);
+		pbx_log(LOG_WARNING, "%s: serviceURL %d not assigned\n", sccp_session_getDesignator(s), LineInstance);
 	}
 }
 

@@ -1742,7 +1742,7 @@ typedef union {
 	} FeatureStatReqMessage;										/*!< Feature Stat Request Message - Client -> Server */
 
 	struct {
-		uint32_t lel_serviceURLIndex;									/*!< instance on device */
+		uint32_t lel_lineInstance;									/*!< LineInstance on device */
 	} ServiceURLStatReqMessage;										/*!< Service URL Stat Request Message - Client -> Server */
 
 
@@ -2707,13 +2707,13 @@ typedef union {
 	} FeatureStatMessage;											/*!< Feature Status Message Structure */
 
 	struct {
-		uint32_t lel_serviceURLIndex;									/*!< Service URL Index */
+		uint32_t lel_lineInstance;									/*!< Service URL LineInstance */
 		char URL[StationMaxServiceURLSize];								/*!< Actual URL */
 		char label[StationMaxNameSize];									/*!< Label */
 	} ServiceURLStatMessage;										/*!< Service URL Stat Message Structure */
 
 	struct {												// Used Above Protocol 7 */
-		uint32_t lel_serviceURLIndex;									/*!< Service URL Index */
+		uint32_t lel_lineInstance;									/*!< Service URL LineInstance */
 		uint32_t dummy;											/*!< Dummy */
 	} ServiceURLStatDynamicMessage;										/*!< Service URL Stat Message Structure */
 
