@@ -2686,7 +2686,7 @@ boolean_t sccp_device_isVideoSupported(constDevicePtr device)
  * \return SCCP Service
  *
  */
-sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(devicePtr device, uint8_t instance)
+sccp_buttonconfig_t *sccp_dev_serviceURL_findByLineInstance(devicePtr device, uint8_t instance)
 {
 	sccp_buttonconfig_t *config = NULL;
 
