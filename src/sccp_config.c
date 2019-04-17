@@ -2964,9 +2964,9 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 			}
 
 			/* cleanup old value */
-			if (softKeySetConfiguration->modes[keyMode].ptr) {
+			if (softKeySetConfiguration->modes[keyMode].softkeysArray) {
 				//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "KeyMode(%d) Ptr already defined in Softkeyset: %s. Freeing...\n", keyMode, name);
-				sccp_free(softKeySetConfiguration->modes[keyMode].ptr);
+				sccp_free(softKeySetConfiguration->modes[keyMode].softkeysArray);
 			}
 
 			/* add new value */
@@ -2975,11 +2975,11 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 			//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Adding KeyMode(%d), with Size(%d), prt(%p) to Softkeyset: %s\n", keyMode, keySetSize, softkeyset, name);
 			if (keySetSize > 0) {
 				softKeySetConfiguration->modes[keyMode].id = keyMode;
-				softKeySetConfiguration->modes[keyMode].ptr = softkeyset;
+				softKeySetConfiguration->modes[keyMode].softkeysArray = softkeyset;
 				softKeySetConfiguration->modes[keyMode].count = keySetSize;
 			} else {
 				softKeySetConfiguration->modes[keyMode].id = keyMode;
-				softKeySetConfiguration->modes[keyMode].ptr = NULL;
+				softKeySetConfiguration->modes[keyMode].softkeysArray = NULL;
 				softKeySetConfiguration->modes[keyMode].count = 0;
 				sccp_free(softkeyset);
 			}

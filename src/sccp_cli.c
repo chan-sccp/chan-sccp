@@ -2025,7 +2025,7 @@ static int sccp_show_softkeysets(int fd, sccp_cli_totals_t *totals, struct manse
 #define CLI_AMI_TABLE_BEFORE_ITERATION												\
 		v_count = sizeof(softkeyset->modes) / sizeof(softkey_modes);							\
 		for (i = 0; i < v_count; i++) {											\
-			const uint8_t *b = softkeyset->modes[i].ptr;								\
+			const uint8_t *b = softkeyset->modes[i].softkeysArray;								\
 			for (c = 0; c < softkeyset->modes[i].count; c++) {
 
 #define CLI_AMI_TABLE_AFTER_ITERATION												\

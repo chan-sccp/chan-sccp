@@ -2750,7 +2750,7 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 	/* end softkey definition */
 	const softkey_modes *v = d->softKeyConfiguration.modes;
 	const uint8_t v_count = d->softKeyConfiguration.size;
-	const uint8_t *b;
+	const uint8_t *softkeysArray;
 
 	REQ(msg_out, SoftKeySetResMessage);
 	msg_out->data.SoftKeySetResMessage.lel_softKeySetOffset = htolel(0);
@@ -2810,7 +2810,7 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 	pbx_str_t *outputStr = pbx_str_create(buffersize);
 
 	for (i = 0; i < v_count; i++) {
-		b = v->ptr;
+		softkeysArray = v->softkeysArray;
 		uint8_t c, j, cp = 0;
 
 		pbx_str_append(&outputStr, buffersize, "%-15s => |", skinny_keymode2str(v->id));
@@ -2818,65 +2818,65 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 		for (c = 0, cp = 0; c < v->count; c++, cp++) {
 			msg_out->data.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[cp] = 0;
 			/* look for the SKINNY_LBL_ number in the softkeysmap */
-			if ((b[c] == SKINNY_LBL_PARK) && (!d->park)) {
+			if ((softkeysArray[c] == SKINNY_LBL_PARK) && (!d->park)) {
 				continue;
 			}
-			if ((b[c] == SKINNY_LBL_TRANSFER) && (!d->transfer)) {
+			if ((softkeysArray[c] == SKINNY_LBL_TRANSFER) && (!d->transfer)) {
 				continue;
 			}
-			if ((b[c] == SKINNY_LBL_DND) && (!d->dndFeature.enabled)) {
+			if ((softkeysArray[c] == SKINNY_LBL_DND) && (!d->dndFeature.enabled)) {
 				continue;
 			}
-			if ((b[c] == SKINNY_LBL_CFWDALL) && (!d->cfwdall)) {
+			if ((softkeysArray[c] == SKINNY_LBL_CFWDALL) && (!d->cfwdall)) {
 				continue;
 			}
-			if ((b[c] == SKINNY_LBL_CFWDBUSY) && (!d->cfwdbusy)) {
+			if ((softkeysArray[c] == SKINNY_LBL_CFWDBUSY) && (!d->cfwdbusy)) {
 				continue;
 			}
-			if ((b[c] == SKINNY_LBL_CFWDNOANSWER) && (!d->cfwdnoanswer)) {
+			if ((softkeysArray[c] == SKINNY_LBL_CFWDNOANSWER) && (!d->cfwdnoanswer)) {
 				continue;
 			}
-			if ((b[c] == SKINNY_LBL_TRNSFVM) && (!trnsfvm)) {
+			if ((softkeysArray[c] == SKINNY_LBL_TRNSFVM) && (!trnsfvm)) {
 				continue;
 			}
-			if ((b[c] == SKINNY_LBL_IDIVERT) && (!trnsfvm)) {
+			if ((softkeysArray[c] == SKINNY_LBL_IDIVERT) && (!trnsfvm)) {
 				continue;
 			}
-			if ((b[c] == SKINNY_LBL_MEETME) && (!meetme)) {
+			if ((softkeysArray[c] == SKINNY_LBL_MEETME) && (!meetme)) {
 				continue;
 			}
 #ifndef CS_ADV_FEATURES
-			if ((b[c] == SKINNY_LBL_BARGE)) {
+			if ((softkeysArray[c] == SKINNY_LBL_BARGE)) {
 				continue;
 			}
-			if ((b[c] == SKINNY_LBL_CBARGE)) {
+			if ((softkeysArray[c] == SKINNY_LBL_CBARGE)) {
 				continue;
 			}
 #endif
 #ifndef CS_SCCP_CONFERENCE
-			if ((b[c] == SKINNY_LBL_JOIN)) {
+			if ((softkeysArray[c] == SKINNY_LBL_JOIN)) {
 				continue;
 			}
-			if ((b[c] == SKINNY_LBL_CONFRN)) {
+			if ((softkeysArray[c] == SKINNY_LBL_CONFRN)) {
 				continue;
 			}
 #endif
 #ifdef CS_SCCP_PICKUP
-			if ((b[c] == SKINNY_LBL_PICKUP) && (!directed_pickup)) {
+			if ((softkeysArray[c] == SKINNY_LBL_PICKUP) && (!directed_pickup)) {
 				continue;
 			}
-			if ((b[c] == SKINNY_LBL_GPICKUP) && (!pickupgroup)) {
+			if ((softkeysArray[c] == SKINNY_LBL_GPICKUP) && (!pickupgroup)) {
 				continue;
 			}
 #endif
-			if ((b[c] == SKINNY_LBL_PRIVATE) && (!d->privacyFeature.enabled)) {
+			if ((softkeysArray[c] == SKINNY_LBL_PRIVATE) && (!d->privacyFeature.enabled)) {
 				continue;
 			}
-			if (b[c] == SKINNY_LBL_EMPTY) {
+			if (softkeysArray[c] == SKINNY_LBL_EMPTY) {
 				continue;
 			}
 			for (j = 0; j < sizeof(softkeysmap); j++) {
-				if (b[c] == softkeysmap[j]) {
+				if (softkeysArray[c] == softkeysmap[j]) {
 					ast_str_append(&outputStr, buffersize, "%-2d:%-9s|", c, label2str(softkeysmap[j]));
 					msg_out->data.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[cp] = (j + 1);
 					msg_out->data.SoftKeySetResMessage.definition[v->id].les_softKeyInfoIndex[cp] = htoles(j + 301);

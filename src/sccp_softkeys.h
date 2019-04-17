@@ -19,9 +19,9 @@ extern const uint8_t softkeysmap[32];
  * \brief SKINNY Soft Key Modes Structure
  */
 typedef struct {
-	uint8_t *ptr;												/*!< Point to next Mode */
-	skinny_keymode_t id;												/*!< Soft Key ID */
+	skinny_keymode_t id;											/*!< Soft Key ID */
 	uint8_t count;												/*!< Soft Key Count */
+	uint8_t *softkeysArray;											/*!< Allocatable && Resizable Array of Softkeys */
 } softkey_modes;												/*!< SKINNY Soft Key Modes Structure */
 
 typedef struct sccp_softkeyMap_cb sccp_softkeyMap_cb_t;
