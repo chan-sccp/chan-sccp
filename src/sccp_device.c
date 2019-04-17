@@ -2746,25 +2746,25 @@ int sccp_device_sendReset(devicePtr d, skinny_resetType_t reset_type)
  * \callgraph
  * \callergraph
  */
-void sccp_device_sendcallstate(constDevicePtr d, uint8_t instance, uint32_t callid, skinny_callstate_t state, skinny_callpriority_t precedence_level, skinny_callinfo_visibility_t visibility)
+void sccp_device_sendcallstate(constLineDevicePtr ld, uint32_t callid, skinny_callstate_t callstate, skinny_callpriority_t precedence_level, skinny_callinfo_visibility_t visibility)
 {
 	sccp_msg_t *msg = NULL;
 
-	if (!d) {
+	if (!ld->device) {
 		return;
 	}
 	REQ(msg, CallStateMessage);
 	if (!msg) {
 		return;
 	}
-	msg->data.CallStateMessage.lel_callState = htolel(state);
-	msg->data.CallStateMessage.lel_lineInstance = htolel(instance);
+	msg->data.CallStateMessage.lel_callState = htolel(callstate);
+	msg->data.CallStateMessage.lel_lineInstance = htolel(ld->lineInstance);
 	msg->data.CallStateMessage.lel_callReference = htolel(callid);
 	msg->data.CallStateMessage.lel_visibility = htolel(visibility);
 	msg->data.CallStateMessage.precedence.lel_level = htolel(precedence_level);
 	msg->data.CallStateMessage.precedence.lel_domain = htolel(0);
-	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send and Set the call state %s(%d) on call %d (visibility:%s)\n", d->id, skinny_callstate2str(state), state, callid, skinny_callinfo_visibility2str(visibility));
+	sccp_dev_send(ld->device, msg);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send and Set the call state %s(%d) on call %d (visibility:%s)\n", DEV_ID_LOG(ld->device), skinny_callstate2str(callstate), callstate, callid, skinny_callinfo_visibility2str(visibility));
 }
 
 /*!
@@ -2877,7 +2877,7 @@ static void indicate_onhook(constLineDevicePtr ld, uint32_t callid)
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_OFF);
 	sccp_dev_clearprompt(device, lineInstance, callid);
 
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_device_sendcallstate(ld, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	sccp_dev_set_keyset(device, /*base instance*/ 0, 0, KEYMODE_ONHOOK);		/* reset the keyset of the base instance instead of current lineInstance + callid*/
 	if (device->session) {
 		sccp_handle_time_date_req(device->session, (sccp_device_t *) device, NULL);	/** we need datetime on hangup for 7936 */
@@ -2895,7 +2895,7 @@ static void indicate_offhook(constLineDevicePtr ld, uint32_t callid)
 	sccp_device_t *device = ld->device;
 	uint8_t lineInstance = ld->lineInstance;
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_device_sendcallstate(ld, callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	sccp_dev_set_cplane(device, lineInstance, 1);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_OFFHOOK);
@@ -2921,7 +2921,7 @@ static void indicate_normal_dialing(constLineDevicePtr ld, const uint32_t callid
 	if (device->protocol && device->protocol->sendDialedNumber) {
 		device->protocol->sendDialedNumber(device, lineInstance, callid, dialedNumber);
 	}
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_device_sendcallstate(ld, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 }
 
 static void indicate_dialing(constLineDevicePtr ld, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION])
@@ -2938,7 +2938,7 @@ static void indicate_proceed(constLineDevicePtr ld, const uint32_t callid, const
 	sccp_device_t *device = ld->device;
 	uint8_t lineInstance = ld->lineInstance;
 	sccp_dev_stoptone(device, lineInstance, callid);
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_device_sendcallstate(ld, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	iCallInfo.Send(callinfo, callid, calltype, lineInstance, device, FALSE);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 }
@@ -2951,7 +2951,7 @@ static void indicate_connected(constLineDevicePtr ld, const uint32_t callid, con
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_device_sendcallstate(ld, callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	iCallInfo.Send(callinfo, callid, calltype, lineInstance, device, TRUE);
 	sccp_dev_set_cplane(device, lineInstance, 1);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_CONNECTED, GLOB(digittimeout));
@@ -2981,7 +2981,7 @@ static void callhistory_old(constLineDevicePtr ld, const uint32_t callid, const 
 			visibility=SKINNY_CALLINFO_VISIBILITY_HIDDEN;
 			break;
 	}
-	sccp_device_sendcallstate(device, lineInstance, callid, state, SKINNY_CALLPRIORITY_LOW, visibility);
+	sccp_device_sendcallstate(ld, callid, state, SKINNY_CALLPRIORITY_LOW, visibility);
 }
 
 static void callhistory_new(constLineDevicePtr ld, const uint32_t callid, const skinny_callHistoryDisposition_t disposition)
@@ -3000,7 +3000,7 @@ static void indicate_onhook_remote(constLineDevicePtr ld, const uint32_t callid)
 	sccp_dev_cleardisplaynotify(device);
 	sccp_dev_clearprompt(device, lineInstance, callid);
 	sccp_dev_set_ringer(ld, SKINNY_RINGTYPE_OFF, callid);
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_device_sendcallstate(ld, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
 	sccp_dev_set_cplane(device, lineInstance, 0);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
@@ -3013,7 +3013,7 @@ static void indicate_offhook_remote(constLineDevicePtr ld, const uint32_t callid
 {
 	sccp_device_t *device = ld->device;
 	uint8_t lineInstance = ld->lineInstance;
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_device_sendcallstate(ld, callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_OFFHOOK);
 }
 
@@ -3025,7 +3025,7 @@ static void indicate_connected_remote(constLineDevicePtr ld, const uint32_t call
 	sccp_dev_set_ringer(ld, SKINNY_RINGTYPE_OFF, callid);
 	sccp_dev_clearprompt(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_LOW, visibility);
+	sccp_device_sendcallstate(ld, callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_LOW, visibility);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOKSTEALABLE);
 }
 
@@ -3036,7 +3036,7 @@ static void indicate_remoteHold_old(constLineDevicePtr ld, uint32_t callid, skin
 {
 	sccp_device_t *device = ld->device;
 	uint8_t lineInstance = ld->lineInstance;
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_HOLD, callpriority, visibility);
+	sccp_device_sendcallstate(ld, callid, SKINNY_CALLSTATE_HOLD, callpriority, visibility);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOLD);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_HOLD, GLOB(digittimeout));
 }
@@ -3048,7 +3048,7 @@ static void indicate_remoteHold_new(constLineDevicePtr ld, uint32_t callid, skin
 {
 	sccp_device_t *device = ld->device;
 	uint8_t lineInstance = ld->lineInstance;
-	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_HOLDRED, callpriority, visibility);
+	sccp_device_sendcallstate(ld, callid, SKINNY_CALLSTATE_HOLDRED, callpriority, visibility);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOLD);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_HOLD, GLOB(digittimeout));
 }

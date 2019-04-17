@@ -301,9 +301,9 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 				sccp_dev_setActiveLine((sccp_device_t *)d, c->line);
 
 				/* emulate previous indications, before signalling connected */
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_set_cplane(d, lineInstance, 1);
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_indicate(ld, c, SCCP_CHANNELSTATE_CONNECTED);
 			} else {
 				/* remove previous call plane, used to dial pickup extension */
@@ -644,7 +644,7 @@ void sccp_feat_idivert(constLineDevicePtr ld, constChannelPtr c)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: TRANSVM to %s\n", DEV_ID_LOG(ld->device), ld->line->trnsfvm);
 	iPbx.setChannelCallForward(c, ld->line->trnsfvm);
-	sccp_device_sendcallstate(ld->device, ld->lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
+	sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 	pbx_setstate(c->owner, AST_STATE_BUSY);
 	iPbx.queue_control(c->owner, AST_CONTROL_BUSY);
 }

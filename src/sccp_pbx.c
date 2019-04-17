@@ -292,7 +292,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 					/* shared line -> create a temp channel to call forward destination and tie them together */
 					pbx_log(LOG_NOTICE, "%s: initialize cfwd%s for line %s\n", linedevice->device->id, (linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : "None")), l->name);
 					if (sccp_channel_forward(c, linedevice, linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : linedevice->cfwdBusy.number) == 0) {
-						sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+						sccp_device_sendcallstate(linedevice, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 						sccp_channel_send_callinfo(linedevice->device, c);
 						isRinging = TRUE;
 					}
@@ -386,7 +386,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		iPbx.queue_control(c->owner, AST_CONTROL_REDIRECTING);
 #endif
 		pbx_channel_call_forward_set(c->owner, ForwardingLineDevice->cfwdAll.enabled ? ForwardingLineDevice->cfwdAll.number : ForwardingLineDevice->cfwdBusy.number);
-		sccp_device_sendcallstate(ForwardingLineDevice->device, ForwardingLineDevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+		sccp_device_sendcallstate(ForwardingLineDevice, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_channel_send_callinfo(ForwardingLineDevice->device, c);
 	} else if (hasDNDParticipant) {
 		iPbx.queue_control(c->owner, AST_CONTROL_BUSY);
@@ -1134,7 +1134,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			case SCCP_SOFTSWITCH_GETCONFERENCEROOM:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Conference request\n", d->id);
 				if (c->owner && !pbx_check_hangup(c->owner)) {
-					sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+					sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 					sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
 					iPbx.set_callstate(channel, AST_STATE_UP);
 					if (!d->conference) {
@@ -1176,7 +1176,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				// like we're dialing but we're not :)
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Barge Extension\n", d->id);
 				sccp_indicate(ld, c, SCCP_CHANNELSTATE_DIALING);
-				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_channel_send_callinfo(d, c);
 
 				sccp_dev_clearprompt(d, instance, c->callid);
@@ -1195,7 +1195,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Conference Barge Extension\n", d->id);
 				// like we're dialing but we're not :)
 				sccp_indicate(ld, c, SCCP_CHANNELSTATE_DIALING);
-				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_channel_send_callinfo(d, c);
 				sccp_dev_clearprompt(d, instance, c->callid);
 				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
@@ -1258,7 +1258,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 														   It might have to check the device->earlyrtp state, to do the correct thing (Let's see). */
 
 		/* proceed call state is needed to display the called number. The phone will not display callinfo in offhook state */
-		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+		sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_channel_send_callinfo(d, c);
 
 		sccp_dev_clearprompt(d, instance, c->callid);
