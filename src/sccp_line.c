@@ -857,11 +857,11 @@ sccp_line_t *sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex
 
 	sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with buttonIndex %d.\n", DEV_ID_LOG(d), buttonIndex);
 	
-	if (buttonIndex > 0 && buttonIndex < StationMaxButtonTemplateSize && d->buttonTemplate[buttonIndex - 1].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[buttonIndex - 1].ptr ) {
+	if (buttonIndex > 0 && buttonIndex < StationMaxButtonTemplateSize && d->buttonTemplate[buttonIndex - 1].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[buttonIndex - 1].line ) {
 #if DEBUG
-		l = (sccp_line_t *)sccp_refcount_retain(d->buttonTemplate[buttonIndex - 1].ptr, filename, lineno, func);
+		l = (sccp_line_t *)sccp_refcount_retain(d->buttonTemplate[buttonIndex - 1].line, filename, lineno, func);
 #else
-		l = sccp_line_retain(d->buttonTemplate[buttonIndex - 1].ptr);
+		l = sccp_line_retain(d->buttonTemplate[buttonIndex - 1].line);
 #endif
 	}
 	if (!l) {

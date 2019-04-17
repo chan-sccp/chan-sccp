@@ -757,8 +757,8 @@ void sccp_feat_conference_start(constLineDevicePtr ld, channelPtr c)
 			uint8_t i = 0;
 
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-				if (d->buttonTemplate[i].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[i].ptr) {
-					AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(d->buttonTemplate[i].ptr));
+				if (d->buttonTemplate[i].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[i].line) {
+					AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(d->buttonTemplate[i].line));
 
 					if (line) {
 						SCCP_LIST_LOCK(&line->channels);

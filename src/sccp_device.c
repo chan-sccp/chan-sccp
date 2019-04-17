@@ -2454,10 +2454,10 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 			btnlist *btn = d->buttonTemplate;
 
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-				if ((btn[i].type == SKINNY_BUTTONTYPE_LINE) && btn[i].ptr) {
-					sccp_line_t  *tmp = (sccp_line_t *)btn[i].ptr;						/* implicit cast without type change */
+				if ((btn[i].type == SKINNY_BUTTONTYPE_LINE) && btn[i].line) {
+					sccp_line_t  *tmp = (sccp_line_t *)btn[i].line;						/* implicit cast without type change */
 					sccp_line_release(&tmp);
-					btn[i].ptr = NULL;
+					btn[i].line = NULL;
 				}
 			}
 			sccp_free(d->buttonTemplate);

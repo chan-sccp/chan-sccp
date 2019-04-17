@@ -1056,10 +1056,10 @@ static btnlist *sccp_make_button_template(devicePtr d)
 						btn[i].type = SKINNY_BUTTONTYPE_LINE;
 
 						/* search line (create new line, if necessary (realtime)) */
-						/*! retains new line in btn[i].ptr, finally released in sccp_dev_clean */
-						if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name, TRUE))) {
+						/*! retains new line in btn[i].line, finally released in sccp_dev_clean */
+						if ((btn[i].line = sccp_line_find_byname(buttonconfig->button.line.name, TRUE))) {
 							buttonconfig->instance = btn[i].instance = lineInstance++;
-							sccp_linedevice_allocate(d, (sccp_line_t *) btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
+							sccp_linedevice_allocate(d, (sccp_line_t *) btn[i].line, btn[i].instance, buttonconfig->button.line.subscriptionId);
 							if (FALSE == defaultLineSet && !d->defaultLineInstance) {
 								d->defaultLineInstance = buttonconfig->instance;
 								defaultLineSet = TRUE;
@@ -1270,9 +1270,9 @@ static btnlist *sccp_make_button_template(devicePtr d)
 		/* reserve one line as hotline */
 		buttonconfig = SCCP_LIST_FIRST(&d->buttonconfig);
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
-		btn[i].ptr = sccp_line_retain(GLOB(hotline)->line);
+		btn[i].line = sccp_line_retain(GLOB(hotline)->line);
 		buttonconfig->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
-		sccp_linedevice_allocate(d, (sccp_line_t *) btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
+		sccp_linedevice_allocate(d, (sccp_line_t *) btn[i].line, btn[i].instance, buttonconfig->button.line.subscriptionId);
 	}
 
 	// all non defined buttons are set to UNUSED
