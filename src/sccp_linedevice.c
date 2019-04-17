@@ -312,7 +312,7 @@ void sccp_linedevice_createLineButtonsArray(devicePtr device)
 	btn = device->buttonTemplate;
 
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].instance > lineInstances && btn[i].ptr) {
+		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].instance > lineInstances && btn[i].line) {
 			lineInstances = btn[i].instance;
 		}
 	}
@@ -325,8 +325,8 @@ void sccp_linedevice_createLineButtonsArray(devicePtr device)
 	device->lineButtons.size = lineInstances + SCCP_FIRST_LINEINSTANCE;					/* add the offset of SCCP_FIRST_LINEINSTANCE for explicit access */
 
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr) {
-			linedevice = sccp_linedevice_find(device, (sccp_line_t *) btn[i].ptr);
+		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].line) {
+			linedevice = sccp_linedevice_find(device, btn[i].line);
 			if (!(device->lineButtons.instance[btn[i].instance] = linedevice)) {
 				pbx_log(LOG_ERROR, "%s: linedevice could not be found or retained\n", device->id);
 				device->lineButtons.size--;

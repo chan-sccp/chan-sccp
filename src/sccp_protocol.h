@@ -158,8 +158,7 @@ MEDIA_ENCRYPTION_SUPPORT, STATION_MAX_FEATURE_MASK, INTERNALIZATION
 typedef struct {
 	uint8_t instance;											/*!< Button Instance */
 	uint8_t type;												/*!< Button Type */
-	//void *ptr;												/*!< Pointer to the Line */
-	sccp_line_t *ptr;											/*!< Pointer to the Line */
+	sccp_line_t *line;											/*!< Pointer to the Line */
 } btnlist;													/*!< Button List Structure */ /* should use constLinePtr */
 
 /*!
