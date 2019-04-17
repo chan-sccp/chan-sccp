@@ -925,7 +925,10 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 				AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byname(buttonconfig->button.line.name, FALSE));				\
 				char subscriptionIdBuf[21] = "";											\
 				if (buttonconfig->button.line.subscriptionId) {										\
-					snprintf(subscriptionIdBuf, 21, "(%s)%s:%s", buttonconfig->button.line.subscriptionId->replaceCid ? "=" : "+", buttonconfig->button.line.subscriptionId->number, buttonconfig->button.line.subscriptionId->name);	\
+					snprintf(subscriptionIdBuf, 21, "(%s)%s:%s",									\
+					buttonconfig->button.line.subscriptionId->replaceCid ? "=" : "+",						\
+					buttonconfig->button.line.subscriptionId->number,								\
+					buttonconfig->button.line.subscriptionId->name);								\
 				}															\
 				if (l) {														\
 					AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(d, l));

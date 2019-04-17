@@ -520,6 +520,18 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 				break;
 
 			case ID:										// parsing of sub id number
+
+                                // button = line, 98099@=98041:cid_name#label !default
+
+                                // 98099 is the linename
+                                // @ starts a subscriptionid
+                                // = replace the cid of the line with the one of the button
+                                // 98041 is the replacement subscriptionid... also used the replacement cidnum
+                                // cid_name is the new cid_name to use
+                                // label is the new label to use
+                                // ! starts the options / AUX
+                                // default makes this the default line to dial out on
+
 				pbx_assert(i < sizeof(subscriptionId->number));
 				switch (*stringIterator) {
 					case '\0':
@@ -538,7 +550,7 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 						}
 						break;
 					case ':':
-						subscriptionId->number[i] = '\0';
+						subscriptionId->number[i] = '\0';				// assign cidnum
 						i = 0;
 						state = CIDNAME;
 						res++;
