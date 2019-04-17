@@ -435,7 +435,7 @@ SCCP_API void SCCP_CALL sccp_dev_clear_message(devicePtr d, const boolean_t clea
 SCCP_API void SCCP_CALL sccp_device_addMessageToStack(devicePtr device, const uint8_t priority, const char *message);
 SCCP_API void SCCP_CALL sccp_device_clearMessageFromStack(devicePtr device, const uint8_t priority);
 SCCP_API void SCCP_CALL sccp_device_featureChangedDisplay(const sccp_event_t * event);
-SCCP_API void SCCP_CALL sccp_device_sendcallstate(constDevicePtr d, uint8_t instance, uint32_t callid, skinny_callstate_t state, skinny_callpriority_t precedence_level, skinny_callinfo_visibility_t visibility);
+SCCP_API void SCCP_CALL sccp_device_sendcallstate(constLineDevicePtr ld, uint32_t callid, skinny_callstate_t callstate, skinny_callpriority_t precedence_level, skinny_callinfo_visibility_t visibility);
 SCCP_API void SCCP_CALL sccp_device_sendCallHistoryDisposition(constLineDevicePtr ld, uint32_t callid, skinny_callHistoryDisposition_t disposition);
 
 SCCP_API int SCCP_CALL sccp_dev_send(constDevicePtr d, sccp_msg_t * msg);

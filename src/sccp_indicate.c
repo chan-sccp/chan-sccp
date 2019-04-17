@@ -84,7 +84,7 @@ void __sccp_indicate(constLineDevicePtr maybe_ld, sccp_channel_t * const c, cons
 			{
 				sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_set_cplane(d, lineInstance, 1);
 				if (SCCP_CHANNELSTATE_DOWN == c->previousChannelState) {		// new call
 					sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
@@ -100,7 +100,7 @@ void __sccp_indicate(constLineDevicePtr maybe_ld, sccp_channel_t * const c, cons
 			{
 				c->state = SCCP_CHANNELSTATE_OFFHOOK;
 				sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_DIGITSFOLL);
 				sccp_dev_set_cplane(d, lineInstance, 1);
@@ -137,7 +137,7 @@ void __sccp_indicate(constLineDevicePtr maybe_ld, sccp_channel_t * const c, cons
 
 				sccp_dev_set_ringer(ld, SKINNY_RINGTYPE_OFF, c->callid);
 				sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				//sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_OFFHOOK);
 				sccp_dev_set_cplane(d, lineInstance, 1);
@@ -173,7 +173,7 @@ void __sccp_indicate(constLineDevicePtr maybe_ld, sccp_channel_t * const c, cons
 				}
 
 				// first ringout indicate (before connected line update */
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_RING_OUT, GLOB(digittimeout));
 
 				sccp_dev_stoptone(d, lineInstance, c->callid);
@@ -190,7 +190,7 @@ void __sccp_indicate(constLineDevicePtr maybe_ld, sccp_channel_t * const c, cons
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
 			/* send by connected line update, to show that we know the remote end, we can now update the callinfo */
-			sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, TRUE);
 			if (d->earlyrtp <= SCCP_EARLYRTP_PROGRESS && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
 				sccp_dev_stoptone(d, lineInstance, c->callid);
@@ -202,7 +202,7 @@ void __sccp_indicate(constLineDevicePtr maybe_ld, sccp_channel_t * const c, cons
 				sccp_dev_cleardisplaynotify(d);
 				sccp_dev_clearprompt(d, lineInstance, 0);
 
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, TRUE);
 				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
 
@@ -296,7 +296,7 @@ void __sccp_indicate(constLineDevicePtr maybe_ld, sccp_channel_t * const c, cons
 					}
 					iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
 				}
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 				if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
 					sccp_channel_openReceiveChannel(c);
@@ -307,8 +307,8 @@ void __sccp_indicate(constLineDevicePtr maybe_ld, sccp_channel_t * const c, cons
 			{
 				sccp_dev_set_ringer(ld, SKINNY_RINGTYPE_OFF, c->callid);
 				sccp_dev_clearprompt(d, lineInstance, c->callid);
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/** send connected, so it is not listed as missed call */
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/** send connected, so it is not listed as missed call */
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_ONHOOKSTEALABLE);
 			}
 			break;
@@ -338,7 +338,7 @@ void __sccp_indicate(constLineDevicePtr maybe_ld, sccp_channel_t * const c, cons
 					sccp_handle_time_date_req(d->session, d, NULL);
 				}
 				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_WINK);
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_HOLD, GLOB(digittimeout));
 				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, TRUE);
 				sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
@@ -363,7 +363,7 @@ void __sccp_indicate(constLineDevicePtr maybe_ld, sccp_channel_t * const c, cons
 				}
 				sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CALLWAITING (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(c->previousChannelState));
 				sccp_channel_callwaiting_tone_interval(d, c);
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, TRUE);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_WAITING, GLOB(digittimeout));
 				sccp_dev_set_ringer(ld, SKINNY_RINGTYPE_SILENT, c->callid);
@@ -378,14 +378,14 @@ void __sccp_indicate(constLineDevicePtr maybe_ld, sccp_channel_t * const c, cons
 			break;
 		case SCCP_CHANNELSTATE_CALLPARK:
 			{
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_CALLPARK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_CALLPARK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			}
 			break;
 		case SCCP_CHANNELSTATE_CALLTRANSFER:
 			{
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TRANSFER, GLOB(digittimeout));
 				sccp_dev_set_ringer(ld, SKINNY_RINGTYPE_OFF, c->callid);
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_CALLTRANSFER, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(ld, c->callid, SKINNY_CALLSTATE_CALLTRANSFER, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
 			}
 			break;
@@ -396,7 +396,7 @@ void __sccp_indicate(constLineDevicePtr maybe_ld, sccp_channel_t * const c, cons
 			break;
 		case SCCP_CHANNELSTATE_CALLCONFERENCE:
 			{
-				// sccp_device_sendcallstate(d, lineInstance, c->callid, SCCP_CHANNELSTATE_CALLCONFERENCE, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				// sccp_device_sendcallstate(ld, c->callid, SCCP_CHANNELSTATE_CALLCONFERENCE, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			}
 			break;
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
