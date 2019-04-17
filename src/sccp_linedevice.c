@@ -324,6 +324,16 @@ void sccp_linedevice_createLineButtonsArray(devicePtr device)
 	}
 	device->lineButtons.size = lineInstances + SCCP_FIRST_LINEINSTANCE;					/* add the offset of SCCP_FIRST_LINEINSTANCE for explicit access */
 
+	// set SCCP_BASE_LINEINSTANCE
+	device->lineButtons.instance[SCCP_BASE_LINEINSTANCE]->device = sccp_device_retain(device);
+	device->lineButtons.instance[SCCP_BASE_LINEINSTANCE]->lineInstance = 0;
+	device->lineButtons.instance[SCCP_BASE_LINEINSTANCE]->line = NULL;
+	device->lineButtons.instance[SCCP_BASE_LINEINSTANCE]->isPickupAllowed = &sccp_always_false;
+	device->lineButtons.instance[SCCP_BASE_LINEINSTANCE]->resetPickup = NULL;
+	device->lineButtons.instance[SCCP_BASE_LINEINSTANCE]->disallowPickup = NULL;
+	device->lineButtons.instance[SCCP_BASE_LINEINSTANCE]->getCallForward = &getCallForward;
+	device->lineButtons.instance[SCCP_BASE_LINEINSTANCE]->setCallForward = &setCallForward;
+
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].line) {
 			linedevice = sccp_linedevice_find(device, btn[i].line);
@@ -339,6 +349,9 @@ void sccp_linedevice_createLineButtonsArray(devicePtr device)
 void sccp_linedevice_deleteLineButtonsArray(devicePtr device)
 {
 	uint8_t i;
+
+	// unset SCCP_BASE_LINEINSTANCE
+	sccp_device_release(&(device->lineButtons.instance[SCCP_BASE_LINEINSTANCE]->device));
 
 	if (device->lineButtons.instance) {
 		for (i = SCCP_FIRST_LINEINSTANCE; i < device->lineButtons.size; i++) {
