@@ -64,6 +64,14 @@ extern "C" {
 #define __NONNULL(...) 
 #endif
 
+#define _U_ __attribute__((unused))
+
+#if defined(__clang__)
+#define overload __attribute__((overloadable))
+#else
+#define overload
+#endif
+
 #define sccp_mutex_t pbx_mutex_t
 
 /* Add bswap function if necessary */
@@ -135,6 +143,7 @@ SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define SCCP_LOCK_TRIES 10
 #define SCCP_LOCK_USLEEP 100
 #define SCCP_MIN_DTMF_DURATION 80										// 80 ms
+#define SCCP_BASE_LINEINSTANCE 0										/* whats the instance of the base deviceline (with no line assigned) */
 #define SCCP_FIRST_LINEINSTANCE 1										/* whats the instance of the first line */
 #define SCCP_FIRST_SERVICEINSTANCE 1										/* whats the instance of the first service button */
 #define SCCP_FIRST_SPEEDDIALINSTANCE 1										/* whats the instance of the first speeddial button */
@@ -165,7 +174,6 @@ SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define sccp_true(x) (pbx_true(x) ? 1 : 0)
 #define sccp_false(x) (pbx_false(x) ? 1 : 0)
 
-#define _U_ __attribute__((unused))
 #define GLOB(x) sccp_globals->x
 
 /* Lock Macro for Globals */
