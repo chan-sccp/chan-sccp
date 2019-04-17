@@ -1042,9 +1042,9 @@ void sccp_softkey_clear(void)
 	SCCP_LIST_LOCK(&softKeySetConfig);
 	while ((k = SCCP_LIST_REMOVE_HEAD(&softKeySetConfig, list))) {
 		for (i = 0; i < StationMaxSoftKeySetDefinition; i++) {
-			if (k->modes[i].ptr) {
-				//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Freeing KeyMode Ptr: %p for KeyMode %i\n", k->modes[i].ptr, i);
-				sccp_free(k->modes[i].ptr);
+			if (k->modes[i].softkeysArray) {
+				//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Freeing KeyMode Ptr: %p for KeyMode %i\n", k->modes[i].softkeysArray, i);
+				sccp_free(k->modes[i].softkeysArray);
 				k->modes[i].count = 0;
 			}
 		}
@@ -1166,8 +1166,8 @@ void sccp_softkey_setSoftkeyState(devicePtr device, skinny_keymode_t softKeySet,
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: softkey '%s' on %s to %s\n", DEV_ID_LOG(device), label2str(softKey), skinny_keymode2str(softKeySet), enable ? "on" : "off");
 	/* find softkey */
 	for (i = 0; i < device->softKeyConfiguration.modes[softKeySet].count; i++) {
-		if (device->softKeyConfiguration.modes[softKeySet].ptr && device->softKeyConfiguration.modes[softKeySet].ptr[i] == softKey) {
-			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_4 "%s: found softkey '%s' at %d\n", DEV_ID_LOG(device), label2str(device->softKeyConfiguration.modes[softKeySet].ptr[i]), i);
+		if (device->softKeyConfiguration.modes[softKeySet].softkeysArray && device->softKeyConfiguration.modes[softKeySet].softkeysArray[i] == softKey) {
+			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_4 "%s: found softkey '%s' at %d\n", DEV_ID_LOG(device), label2str(device->softKeyConfiguration.modes[softKeySet].softkeysArray[i]), i);
 			if (enable) {
 				device->softKeyConfiguration.activeMask[softKeySet] |= (1 << i);
 			} else {
@@ -1187,7 +1187,7 @@ boolean_t __PURE__ sccp_softkey_isSoftkeyInSoftkeySet(constDevicePtr device, con
 
 	/* find softkey */
 	for (i = 0; i < device->softKeyConfiguration.modes[softKeySet].count; i++) {
-		if (device->softKeyConfiguration.modes[softKeySet].ptr && device->softKeyConfiguration.modes[softKeySet].ptr[i] == softKey) {
+		if (device->softKeyConfiguration.modes[softKeySet].softkeysArray && device->softKeyConfiguration.modes[softKeySet].softkeysArray[i] == softKey) {
 			return TRUE;
 		}
 	}
