@@ -580,7 +580,7 @@ static void notifyLocked(sccp_parkinglot_t *pl)
 	for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
 		observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
 		if (observer) {
-			AUTO_RELEASE(sccp_device_t, device , observer->device);
+			AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(observer->device));
 			if (device) {
 				_notifyHelper(observer, pl, device);
 			}
