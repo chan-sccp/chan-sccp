@@ -6,6 +6,8 @@
  *              See the LICENSE file at the top of the source tree.
  */
 #pragma once
+#include "config.h"
+__BEGIN_C_EXTERN__
 
 #include "sccp_codec.h"
 
@@ -13,7 +15,6 @@
 #include <netinet/in.h>
 //struct sockaddr_storage;
 
-__BEGIN_C_EXTERN__
 /*!
  * \brief SCCP RTP Structure
  */

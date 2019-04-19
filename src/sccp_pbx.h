@@ -9,8 +9,9 @@
  *              See the LICENSE file at the top of the source tree.
  */
 #pragma once
-#include "sccp_codec.h"		/* can be removed if we pass the sccp_codec capabilities by ref */
+#include "config.h"
 __BEGIN_C_EXTERN__
+#include "sccp_codec.h"		/* can be removed if we pass the sccp_codec capabilities by ref */
 SCCP_API sccp_channel_request_status_t SCCP_CALL sccp_requestChannel(const char *lineName, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, skinny_ringtype_t ringermode, sccp_channel_t ** channel);
 SCCP_API boolean_t SCCP_CALL sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, const PBX_CHANNEL_TYPE * parentChannel);
 SCCP_API int SCCP_CALL sccp_pbx_sched_dial(const void *data);

@@ -8,11 +8,11 @@
  */
 #pragma once
 #include "config.h"
+__BEGIN_C_EXTERN__
 #include "define.h"
 #include "sccp_codec.h"
 #include "sccp_netsock.h"
 
-__BEGIN_C_EXTERN__
 SCCP_API char SCCP_VERSIONSTR[300];
 SCCP_API char SCCP_REVISIONSTR[30];
 

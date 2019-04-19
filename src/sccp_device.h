@@ -10,12 +10,12 @@
  *
  */
 #pragma once
+#include "config.h"
+__BEGIN_C_EXTERN__
 
 #define sccp_device_retain(_x)		sccp_refcount_retain_type(sccp_device_t, _x)
 #define sccp_device_release(_x)		sccp_refcount_release_type(sccp_device_t, _x)
 #define sccp_device_refreplace(_x, _y)	sccp_refcount_refreplace_type(sccp_device_t, _x, _y)
-
-__BEGIN_C_EXTERN__
 
 /*!
  * \brief SCCP Button Configuration Structure

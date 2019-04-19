@@ -11,12 +11,12 @@
  * \note        Thank you Federico Santulli for SPCP support
  */
 #pragma once
+#include "config.h"
+__BEGIN_C_EXTERN__
 #include "define.h"
 #include "sccp_codec.h"
 #include "sccp_softkeys.h"
 #include "sccp_enum.h"
-
-__BEGIN_C_EXTERN__
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW		3							/*!< At least we require protocol V.3 */
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH		22							/*!< We support up to protocol V.17 */
 

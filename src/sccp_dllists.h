@@ -10,6 +10,8 @@
  *
  */
 #pragma once
+#include "config.h"
+__BEGIN_C_EXTERN__
 
 /* Lock Macro for Lists */
 #define SCCP_LIST_LOCK(x)			pbx_mutex_lock(&(x)->lock)
@@ -417,4 +419,5 @@ struct {												\
 
 #define SCCP_LIST_GETSIZE(head) (head)->size
 #define SCCP_RWLIST_GETSIZE SCCP_LIST_GETSIZE
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

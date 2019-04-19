@@ -12,13 +12,14 @@
 #pragma once
 
 #include "config.h"
+__BEGIN_C_EXTERN__
+
 #include "common.h"
 
 #ifdef HAVE_ASTERISK
 #include "ast/ast.h"
 #endif
 
-__BEGIN_C_EXTERN__
 #define PBX_BRIDGE_TYPE struct ast_bridge
 
 /*!

@@ -7,7 +7,7 @@
  */
 #pragma once
 #include "config.h"
-
+__BEGIN_C_EXTERN__
 // type redefinitions
 #define pbx_variable ast_variable
 #define pbx_context ast_context
@@ -425,5 +425,5 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_test_validate ast_test_validate
 #endif
 #endif
-
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

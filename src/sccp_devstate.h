@@ -7,8 +7,9 @@
  * \since       2013-08-15
  */
 #pragma once
-
+#include "config.h"
 __BEGIN_C_EXTERN__
+
 /*!
  * \brief SCCP DevState Specifier Structure
  * Recording number of Device State Registrations Per Device

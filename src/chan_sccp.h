@@ -16,10 +16,9 @@
  */
 #pragma once
 #include "config.h"
-#include "define.h"
-//#include "sccp_codec.h"
-
 __BEGIN_C_EXTERN__
+
+#include "define.h"
 SCCP_API int SCCP_CALL load_config(void);
 SCCP_API int SCCP_CALL sccp_preUnload(void);
 SCCP_API int SCCP_CALL sccp_reload(void);

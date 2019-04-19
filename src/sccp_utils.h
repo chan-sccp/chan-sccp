@@ -10,6 +10,7 @@
  */
 #pragma once
 #include "config.h"
+__BEGIN_C_EXTERN__
 
 #ifndef pbx_strdupa
 #define pbx_strdupa(s)						\
@@ -22,8 +23,6 @@
 		__new;						\
 	}))
 #endif
-
-__BEGIN_C_EXTERN__
 
 SCCP_API void SCCP_CALL sccp_dump_packet(unsigned char *messagebuffer, int len);
 SCCP_API void SCCP_CALL sccp_dump_msg(const sccp_msg_t * const msg);

@@ -10,6 +10,7 @@
  * 
  */
 #pragma once
+#include "config.h"
 __BEGIN_C_EXTERN__
 
 SCCP_API int SCCP_CALL sccp_handle_message(constMessagePtr msg, constSessionPtr s);

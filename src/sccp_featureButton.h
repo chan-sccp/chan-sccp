@@ -7,6 +7,7 @@
  * \since       2009-06-15
  */
 #pragma once
+#include "config.h"
 __BEGIN_C_EXTERN__
 SCCP_API void SCCP_CALL sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureType);
 

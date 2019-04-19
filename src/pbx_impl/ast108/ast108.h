@@ -9,7 +9,7 @@
 #pragma once
 
 #include "config.h"
-
+__BEGIN_C_EXTERN__
 #define pbx_channel_unref(c) ({ ao2_ref(c, -1); (PBX_CHANNEL_TYPE *) (NULL); })
 #define pbx_channel_ref(c) ({ ao2_ref(c, 1); (PBX_CHANNEL_TYPE *) c; })
 #define sccp_sched_context_destroy sched_context_destroy
@@ -219,4 +219,5 @@ static inline void __do_nothing(void) {}									// will be optimized out
 		}												\
 	};
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

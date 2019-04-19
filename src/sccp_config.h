@@ -10,6 +10,7 @@
  */
 #pragma once
 
+#include "config.h"
 __BEGIN_C_EXTERN__
 // sccp_buttonconfig_list_t externally declared in sccp_device.h, required by sccp_config_addButton
 extern struct sccp_buttonconfig_list sccp_buttonconfig_list;

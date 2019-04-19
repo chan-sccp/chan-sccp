@@ -7,7 +7,7 @@
  * \since       2009-09-02
  */
 #pragma once
-
+#include "config.h"
 __BEGIN_C_EXTERN__
 /*!
  * \brief SCCP Event Structure

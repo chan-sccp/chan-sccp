@@ -9,10 +9,9 @@
  * \since       2009-01-16
  */
 #pragma once
-//#include "config.h"
-//#include "common.h"
-
+#include "config.h"
 __BEGIN_C_EXTERN__
+
 /* Description:         Library providing a threading pool where you can add work on the fly. The number
  *                      of threads in the pool is adjustable when creating the pool. In most cases
  *                      this should equal the number of threads supported by your cpu.

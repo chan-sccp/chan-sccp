@@ -10,6 +10,7 @@
  *
  */
 #pragma once 
+#include "config.h"
 __BEGIN_C_EXTERN__
 #define CLI_AMI_LIST_WIDTH 46
 typedef struct sccp_cli_totals {

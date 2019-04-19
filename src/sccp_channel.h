@@ -12,13 +12,14 @@
 
 #pragma once
 
+#include "config.h"
+__BEGIN_C_EXTERN__
+
 #include "sccp_device.h"
 
 #define sccp_channel_retain(_x)		sccp_refcount_retain_type(sccp_channel_t, _x)
 #define sccp_channel_release(_x)	sccp_refcount_release_type(sccp_channel_t, _x)
 #define sccp_channel_refreplace(_x, _y)	sccp_refcount_refreplace_type(sccp_channel_t, _x, _y)
-
-__BEGIN_C_EXTERN__
 /*!
  * \brief SCCP Channel Structure
  * \note This contains the current channel information

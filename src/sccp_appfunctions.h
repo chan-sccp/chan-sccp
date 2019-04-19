@@ -11,6 +11,7 @@
  * 
  */
 #pragma once
+#include "config.h"
 __BEGIN_C_EXTERN__
 SCCP_API int SCCP_CALL sccp_register_dialplan_functions(void);
 SCCP_API int SCCP_CALL sccp_unregister_dialplan_functions(void);

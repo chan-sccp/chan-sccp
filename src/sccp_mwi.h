@@ -10,6 +10,8 @@
  * $revision$
  */
 #pragma once
+#include "config.h"
+__BEGIN_C_EXTERN__
 
 /*!
  * \brief SCCP Mailbox Structure
@@ -19,7 +21,6 @@ struct sccp_mailbox {
 	SCCP_LIST_ENTRY (sccp_mailbox_t) list;									/*!< Mailbox Linked List Entry */
 };														/*!< SCCP Mailbox Structure */
 
-__BEGIN_C_EXTERN__
 typedef struct {
 	void (*startModule)(void);
 	void (*stopModule)(void);

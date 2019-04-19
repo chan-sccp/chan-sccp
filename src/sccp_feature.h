@@ -8,6 +8,7 @@
  * \since       2009-01-16
  */
 #pragma once
+#include "config.h"
 __BEGIN_C_EXTERN__
 
 /*!

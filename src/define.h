@@ -17,11 +17,13 @@
 
 #pragma once
 #include "config.h"
+__BEGIN_C_EXTERN__
 #include <pthread.h>
 
 /*!
  * \note most of these should be moved to autoconf/asterisk.m4 and be defined in config.h
  */
+/*
 #if !defined(__BEGIN_C_EXTERN__)
 #  if defined(__cplusplus) || defined(c_plusplus) 
 #    define __BEGIN_C_EXTERN__ 		\
@@ -33,6 +35,7 @@ extern "C" {
 #    define __END_C_EXTERN__ 
 #  endif
 #endif
+*/
 
 #if !defined(SCCP_API)
 #if defined __STDC__ && defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L && defined(__GNUC__)
@@ -73,7 +76,6 @@ extern "C" {
 #endif
 
 #define sccp_mutex_t pbx_mutex_t
-
 /* Add bswap function if necessary */
 #if HAVE_BYTESWAP_H
 #  include <byteswap.h>
@@ -121,6 +123,7 @@ SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 
 #define RET_STRING(_a) #_a
 #define STRINGIFY(_a) RET_STRING(_a)
+
 
 /* Versioning */
 /*
@@ -193,6 +196,9 @@ SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 /* (temporary) forward declarations */
 /* this can be removed by using a pointer version of mutex and rwlock in structures below */
 #define StationMaxServiceURLSize			256
+
+#undef pthread_mutex_t
+#undef pthread_rwlock_t
 struct pbx_mutex_info {
         pthread_mutex_t mutex;
         struct ast_lock_track *track;
@@ -206,6 +212,8 @@ struct pbx_rwlock_info {
 };
 typedef struct pbx_mutex_info pbx_mutex_t;
 typedef struct pbx_rwlock_info pbx_rwlock_t;
+//#define pthread_mutex_t use_pbx_mutex_t_instead_of_pthread_mutex_t
+//#define pthread_rwlock_t use_pbx_rwlock_t_instead_of_pthread_rwlock_t
 
 #define AUTO_MUTEX(varname, lock) SCOPED_LOCK(varname, (lock), pbx_mutex_lock, pbx_mutex_unlock)
 #define AUTO_RDLOCK(varname, lock) SCOPED_LOCK(varname, (lock), pbx_rwlock_rdlock, pbx_rwlock_unlock)
@@ -218,7 +226,6 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 #else
 #define isPointerDead(_x) ((uintptr_t)_x == 0xdeaddead)
 #endif
-
 /* deny the use of unsafe functions */
 #define __strcat strcat
 #define strcat(...) _Pragma("GCC error \"use snprint instead of strcat\"")
@@ -270,6 +277,7 @@ static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(
     #error "Cannot compile Asterisk: unknown and unsupported compiler."
 #endif /* #if __GNUC__ */
 
+
 #define container_of(ptr, type, member) ({                      \
         const typeof( ((type *)0)->member ) *__mptr = (const typeof( ((type *)0)->member ) *)(ptr);    			\
         (type *)( (void *)__mptr - offsetof(type,member) );})
@@ -282,4 +290,5 @@ static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(
 #define __snprintf snprintf
 #define snprintf(...) ({int __snprres = __snprintf(__VA_ARGS__); if (__snprres < 0) {pbx_log(LOG_WARNING, "snprintf returned error\n");};__snprres;})
 #endif
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

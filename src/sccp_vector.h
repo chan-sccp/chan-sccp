@@ -9,6 +9,9 @@
  */
 #pragma once
 
+#include "config.h"
+__BEGIN_C_EXTERN__
+
 /*! \file
  *
  * \brief Vector container support.
@@ -648,6 +651,5 @@ SCCP_VECTOR(sccp_vector_string, char *);
 #define SCCP_VECTOR_RW_WRLOCK_TRY(vec) pbx_rwlock_trywrlock(&(vec)->lock)
 #define SCCP_VECTOR_RW_RDLOCK_TIMED(vec, timespec) pbx_rwlock_timedrdlock(&(vec)->lock, timespec)
 #define SCCP_VECTOR_RW_WRLOCK_TIMED(vec, timespec) pbx_rwlock_timedwrlock(&(vec)->lock, timespec)
-
-
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

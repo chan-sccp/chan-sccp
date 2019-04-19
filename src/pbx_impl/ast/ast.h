@@ -11,21 +11,34 @@
 #pragma once
 //#define REF_DEBUG 1
 
+#include "config.h"
+__BEGIN_C_EXTERN__
+
+#if defined(__cplusplus) || defined(c_plusplus)
+#  define new c_new
+#  define class c_class
+#  define delete c_delete
+#endif
+
 #include <asterisk.h>
 #include <asterisk/pbx.h>			// AST_EXTENSION_NOT_INUSE in mapping below
 #ifdef HAVE_PBX_RTP_ENGINE_H			// sccp_callinfo, sccp_rtp
-#  define new avoid_cxx_new_keyword
 #  include <asterisk/rtp_engine.h>
-#  undef new
 #else
 #  include <asterisk/rtp.h>
 #endif
 #  include <asterisk/manager.h>
 #include <asterisk/causes.h>
 #include <asterisk/buildopts.h>
+
+#if defined(__cplusplus) || defined(c_plusplus)
+#  undef new
+#  undef class
+#  undef delete
+#endif
+
 #include "define.h"
 #include "sccp_protocol.h"
-
 #ifdef ASTERISK_CONF_1_6
 #include "pbx_impl/ast106/ast106.h"
 #endif
@@ -167,4 +180,5 @@ void sccp_astgenwrap_set_named_pickupgroups(sccp_channel_t *channel, struct ast_
 #endif
 
 enum ast_pbx_result pbx_pbx_start(struct ast_channel *pbx_channel);
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

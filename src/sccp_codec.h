@@ -6,12 +6,17 @@
  *              See the LICENSE file at the top of the source tree.
  */
 #pragma once
+
+#include "config.h"
+__BEGIN_C_EXTERN__
+
 #include "define.h"
 
 #define SKINNY_MAX_CAPABILITIES       			18							/*!< max capabilities allowed in Cap response message */
 #define SKINNY_MAX_VIDEO_CAPABILITIES			10
 #define SKINNY_MAX_DATA_CAPABILITIES   			5
 
+#include "config.h"
 __BEGIN_C_EXTERN__
 
 /*!

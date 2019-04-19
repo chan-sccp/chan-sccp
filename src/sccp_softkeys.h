@@ -9,9 +9,9 @@
  *              See the LICENSE file at the top of the source tree.
  */
 #pragma once
-//#include "sccp_labels.h"
-
+#include "config.h"
 __BEGIN_C_EXTERN__
+
 // forward declaration
 extern const uint8_t softkeysmap[32];
 

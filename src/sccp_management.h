@@ -6,9 +6,10 @@
  *              See the LICENSE file at the top of the source tree.
  */
 #pragma once
+#include "config.h"
+__BEGIN_C_EXTERN__
 
 #ifdef CS_SCCP_MANAGER
-__BEGIN_C_EXTERN__
 /*
  * sccp_management.h
  *

@@ -12,6 +12,8 @@
  *              See the LICENSE file at the top of the source tree.
  */
 #pragma once
+#include "config.h"
+__BEGIN_C_EXTERN__
 #define SKINNY_LBL_EMPTY                                             	0					/*< fake button */
 #define SKINNY_LBL_REDIAL                                            	1
 #define SKINNY_LBL_NEWCALL                                           	2
@@ -355,4 +357,5 @@ SCCP_INLINE SCCP_CALL uint32_t labelstr2int(const char *str);
 #define SKINNY_DISP_PRIVATE_WITHOUT_LINE_CHANNEL			"Private without line or channel"
 #define SKINNY_DISP_NO_CHANNEL_TO_PERFORM_XXXXXXX_ON			"No Channel to perform %s on !"
 #define SKINNY_GIVING_UP						"Giving Up"
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -7,13 +7,15 @@
  */
 #pragma once
 
+#include "config.h"
+__BEGIN_C_EXTERN__
+
 #include "sccp_cli.h"
 
 #define sccp_conference_retain(_x)		sccp_refcount_retain_type(sccp_conference_t, _x)
 #define sccp_conference_release(_x)		sccp_refcount_release_type(sccp_conference_t, _x)
 #define sccp_conference_refreplace(_x, _y)	sccp_refcount_refreplace_type(sccp_conference_t, _x, _y)
 
-__BEGIN_C_EXTERN__
 /* prototype definitions */
 SCCP_API void SCCP_CALL sccp_conference_module_start(void);
 SCCP_API void SCCP_CALL sccp_conference_module_stop(void);

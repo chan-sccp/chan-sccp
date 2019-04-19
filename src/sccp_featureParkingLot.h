@@ -10,6 +10,9 @@
  * $revision$
  */
 #pragma once
+#include "config.h"
+__BEGIN_C_EXTERN__
+
 #ifdef CS_SCCP_PARK
 
 //#define AMI13 "1.3"	// user by asterisk-11
@@ -28,7 +31,6 @@
 #endif
 
 #endif
-__BEGIN_C_EXTERN__
 typedef struct {
 	int (*attachObserver) (const char *options, sccp_device_t * device, uint8_t instance);
 	int (*detachObserver) (const char *options, sccp_device_t * device, uint8_t instance);

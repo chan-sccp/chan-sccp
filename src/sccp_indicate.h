@@ -9,6 +9,8 @@
  *              See the LICENSE file at the top of the source tree.
  */
 #pragma once
+#include "config.h"
+__BEGIN_C_EXTERN__
 #define SCCP_INDICATE_NOLOCK 	0
 #define SCCP_INDICATE_LOCK		1
 
@@ -31,4 +33,5 @@ SCCP_API void SCCP_CALL __sccp_indicate(constLineDevicePtr maybe_ld, channelPtr 
 #else
 #define sccp_indicate(x, y, z)	__sccp_indicate(x, (channelPtr) y, z, 0, NULL, 0, NULL)
 #endif
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -9,7 +9,7 @@
 #pragma once
 
 #include "config.h"
-
+__BEGIN_C_EXTERN__
 #undef pbx_channel_ref
 #define pbx_channel_ref ast_channel_ref
 #undef pbx_channel_unref
@@ -213,4 +213,5 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 		}												\
 	};
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+__END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

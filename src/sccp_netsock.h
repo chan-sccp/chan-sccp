@@ -8,6 +8,7 @@
  */
 #pragma once
 #include "config.h"
+__BEGIN_C_EXTERN__
 #include "define.h"
 #include <netinet/in.h>
 #if HAVE_SYS_SOCKET_H
@@ -40,7 +41,6 @@ struct sccp_ha {
 	int sense;
 };
 
-__BEGIN_C_EXTERN__
 SCCP_INLINE boolean_t SCCP_CALL sccp_netsock_is_IPv4(const struct sockaddr_storage *sockAddrStorage);
 SCCP_INLINE boolean_t SCCP_CALL sccp_netsock_is_IPv6(const struct sockaddr_storage *sockAddrStorage);
 SCCP_API uint16_t __PURE__ SCCP_CALL sccp_netsock_getPort(const struct sockaddr_storage *sockAddrStorage);

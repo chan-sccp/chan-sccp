@@ -17,7 +17,7 @@
  * When to use: To Allocate / Destruct / Get & Set Callinfo fields
  * Relations:   
  */
-
+#include "config.h"
 __BEGIN_C_EXTERN__
 
 /* forward declaration */

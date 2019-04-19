@@ -8,6 +8,8 @@
  */
 #pragma once
 #include "config.h"
+__BEGIN_C_EXTERN__
+
 #include "define.h"
 
 #ifdef NO_FILE_LINE_FUNC_DEBUG
@@ -15,7 +17,9 @@
 #endif
 
 #define _B_ "", 0, ""
+#ifndef __LOG_VERBOSE
 #define __LOG_VERBOSE    2
+#endif
 #define NO_FILE_LINE_FUNC_DEBUG      __LOG_VERBOSE, _B_
 
 #define sccp_log1(...) {									\
@@ -28,7 +32,6 @@
 #define sccp_log(_x) if ((sccp_globals->debug & (_x))) sccp_log1
 #define sccp_log_and(_x) if ((sccp_globals->debug & (_x)) == (_x)) sccp_log1
 
-__BEGIN_C_EXTERN__
 extern const char *SS_Memory_Allocation_Error;
 /*!
  * \brief SCCP Debug Category Enum

@@ -1,4 +1,6 @@
+#include "config.h"
 __BEGIN_C_EXTERN__
+
 /* global types */
 #if defined(HAVE_UNALIGNED_BUSERROR)										// for example sparc64
 typedef unsigned long sccp_group_t;										/*!< SCCP callgroup / pickupgroup */
