@@ -1106,7 +1106,7 @@ sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, P
 }
 
 /*!
- * \brief Config Converter/Parser for Secundairy Dialtone Digits
+ * \brief Config Converter/Parser for Secondary Dialtone Digits
  *
  * \note not multi_entry
  */

@@ -472,7 +472,7 @@ void handle_LocationInfoMessage(constSessionPtr s, devicePtr d, constMessagePtr 
  * \brief Handle Token Request
  *
  * If a fall-back server has been entered in the phones cnf.xml file and the phone has fallen back to a secondary server
- * it will send a tokenreq to the primairy every so often (secondary keep alive timeout ?). Once the primairy server sends
+ * it will send a tokenreq to the primary every so often (secondary keep alive timeout ?). Once the primary server sends
  * a token acknowledgement the switches back.
  *
  * \param s SCCP Session
@@ -656,7 +656,7 @@ EXIT:
  * \brief Handle Token Request for SPCP phones
  *
  * If a fall-back server has been entered in the phones cnf.xml file and the phone has fallen back to a secondary server
- * it will send a tokenreq to the primairy every so often (secondary keep alive timeout ?). Once the primairy server sends
+ * it will send a tokenreq to the primary every so often (secondary keep alive timeout ?). Once the primary server sends
  * a token acknowledgement the switches back.
  *
  * \param s SCCP Session
