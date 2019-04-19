@@ -1344,8 +1344,8 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 channelPtr sccp_channel_getEmptyChannel(constLineDevicePtr ld, channelPtr maybe_c, skinny_calltype_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
 {
 	pbx_assert(ld != NULL && ld->line != NULL && ld->device != NULL);
-	AUTO_RELEASE(sccp_line_t, l, ld->line);
-	AUTO_RELEASE(sccp_device_t, d, ld->device);
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(ld->line));
+	AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(ld->device));
 	sccp_log(DEBUGCAT_CORE)("%s: (getEmptyChannel) on line:%s, maybe_c:%s\n", d->id, l->name, maybe_c ? maybe_c->designator : "");
 	sccp_channel_t *channel = NULL;
 	{
@@ -1415,8 +1415,8 @@ channelPtr sccp_channel_newcall(constLineDevicePtr ld, const char *dial, skinny_
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if device or line is not defined!\n");
 		return NULL;
 	}
-	AUTO_RELEASE(sccp_device_t, device, ld->device);
-	AUTO_RELEASE(sccp_line_t, l, ld->line);
+	AUTO_RELEASE(sccp_device_t, device, sccp_device_retain(ld->device));
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(ld->line));
 
 	sccp_channel_t * const channel = sccp_channel_getEmptyChannel(ld, NULL, calltype, parentChannel, ids);
 	if (!channel) {
