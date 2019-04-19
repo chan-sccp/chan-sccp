@@ -17,6 +17,7 @@
 #include "sccp_management.h"
 #include "sccp_session.h"
 #include "sccp_utils.h"
+#include "sccp_labels.h"
 #include "sccp_featureParkingLot.h"
 #include <asterisk/threadstorage.h>
 
@@ -935,15 +936,33 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 #ifdef CS_SCCP_PARK
 		} else if (sccp_strcaseequals("ParkedCall", event) || sccp_strcaseequals("UnParkedCall", event) || sccp_strcaseequals("ParkedCallGiveUp", event) || sccp_strcaseequals("ParkedCallTimeout", event)) {
 			if (iParkingLot.addSlot && iParkingLot.removeSlot) {
-				sccp_log(DEBUGCAT_CORE)("SCCP: (managerHookHelper) %s Received\ncontent:[%s]\n", event, content);
+				sccp_log_and((DEBUGCAT_PARKINGLOT & DEBUGCAT_HIGH))("SCCP: (managerHookHelper) %s Received\ncontent:[%s]\n", event, content);
 
 				str = dupStr = pbx_strdupa(content);
 				struct message m = { 0 };
 				sccp_asterisk_parseStrToAstMessage(str, &m);
 
-				const char *parkinglot = astman_get_header(&m, "ParkingLot");
+				const char *parkinglot = astman_get_header(&m, "Parkinglot");
+				const char *from = astman_get_header(&m, PARKING_FROM);
 				const char *extension = astman_get_header(&m, PARKING_SLOT);
 				int exten = sccp_atoi(extension, strlen(extension));
+				
+				if (sccp_strcaseequals("ParkedCall", event) && !sccp_strlen_zero(from)) {
+					AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(from, FALSE));
+					if (l) {
+						sccp_linedevices_t *ld;
+						char extstr[20] = "";
+						snprintf(extstr, sizeof(extstr), "%c%c %.16s", 128, SKINNY_LBL_CALL_PARK_AT, extension);
+						
+						SCCP_LIST_LOCK(&l->devices);
+						SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+							if (ld->line == l) {
+								sccp_dev_displayprinotify(ld->device, extstr, SCCP_MESSAGE_PRIORITY_TIMEOUT, 20);
+							}
+						}
+						SCCP_LIST_UNLOCK(&l->devices);
+					}
+				}
 				if (parkinglot && exten) {
 					if (sccp_strcaseequals("ParkedCall", event)) {
 						iParkingLot.addSlot(parkinglot, exten, &m);
