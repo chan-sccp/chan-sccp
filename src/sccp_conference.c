@@ -1304,10 +1304,10 @@ void sccp_conference_show_list(constConferencePtr conference, constChannelPtr ch
 				pbx_str_append(&xmlStr, 0, "<IconItem><Index>5</Index><URL>TFTP:Icon.SecureCall.png</URL></IconItem>\n");	// locked conference
 			}
 		} else {
-			pbx_str_append(&xmlStr, 0, "<IconItem><Index>0</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C03F3000C03FF000C03FF003000FF00FFCFFF30FFCFFF303CC3FF300CC3F330000000000</Data></IconItem>");	// moderator
-			pbx_str_append(&xmlStr, 0, "<IconItem><Index>1</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C03FF03CC03FF03CC03FF03C000FF03CFCFFF33CFCFFF33CCC3FF33CCC3FF33C00000000</Data></IconItem>");	// muted moderator
-			pbx_str_append(&xmlStr, 0, "<IconItem><Index>2</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C0303000C030F000C030F003000FF00FFCF0F30F0C00F303CC30F300CC30330000000000</Data></IconItem>");	// participant
-			pbx_str_append(&xmlStr, 0, "<IconItem><Index>3</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C030F03CC030F03CC030F03C000FF03CFCF0F33C0C00F33CCC30F33CCC30F33C00000000</Data></IconItem>\n");	// muted participant
+			pbx_str_append(&xmlStr, 0, "<IconItem><Index>0</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>C3300000FF0F0000F3F30000F3FC0300F3FC0300FFF30000F30F0000FCF30300F0FC0F0000FF3F00</Data></IconItem>");	// moderator
+			pbx_str_append(&xmlStr, 0, "<IconItem><Index>1</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>C3300C00FF0F3C30F3F3F03CF3FCC333F3FC330FFFF3F03CF30FF0F3FCF333CFF0FC0F3C00FF3F30</Data></IconItem>");	// muted moderator
+			pbx_str_append(&xmlStr, 0, "<IconItem><Index>2</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000000000000000000F30000C0FC0300C0FC030000F300000000000000F30300C0FC0F0030FF3F00</Data></IconItem>");	// participant
+			pbx_str_append(&xmlStr, 0, "<IconItem><Index>3</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>00000C0000003C3000F3F03CC0FCC333C0FC330F00F3F03C0000F0F300F333CFC0FC0F3C30FF3F30</Data></IconItem>\n");	// muted participant
 		}
 
 		if (participant->device->protocolversion >= 15) {
