@@ -2103,10 +2103,6 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 {
 	sccp_buttonconfig_t *config = NULL;
 	sccp_callforward_t status = SCCP_CFWD_NONE;								/* state of cfwd */
-	uint32_t featureStat1 = 0;
-	uint32_t featureStat2 = 0;
-	uint32_t featureStat3 = 0;
-	uint32_t res = 0;
 
 	if (!d) {
 		return;
@@ -2139,30 +2135,32 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 	//sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s\n", d->id, config->button.feature.id, featureOption);
 	switch (config->button.feature.id) {
 		case SCCP_FEATURE_PRIVACY:
-			if (!d->privacyFeature.enabled) {
-				//sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: privacy feature is disabled, ignore this change\n", d->id);
-				break;
-			}
-
-			if (sccp_strcaseequals(config->button.feature.options, "callpresent")) {
-				res = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
-				sccp_featureConfiguration_t *privacyFeature = (sccp_featureConfiguration_t * const)&d->privacyFeature;		/* discard const */
-
-				//sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
-				//sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result=%d\n", d->id, res);
-				if (res) {
-					/* switch off */
-					privacyFeature->status &= ~SCCP_PRIVACYFEATURE_CALLPRESENT;
-					config->button.feature.status = 0;
-				} else {
-					privacyFeature->status |= SCCP_PRIVACYFEATURE_CALLPRESENT;
-					config->button.feature.status = 1;
+			{
+				uint32_t res = 0;
+				if (!d->privacyFeature.enabled) {
+					//sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: privacy feature is disabled, ignore this change\n", d->id);
+					break;
 				}
-				//sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
-			} else {
-				pbx_log(LOG_WARNING, "%s: do not know how to handle %s\n", d->id, config->button.feature.options ? config->button.feature.options : "");
-			}
 
+				if (sccp_strcaseequals(config->button.feature.options, "callpresent")) {
+					res = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
+					sccp_featureConfiguration_t *privacyFeature = (sccp_featureConfiguration_t * const)&d->privacyFeature;		/* discard const */
+
+					//sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
+					//sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result=%d\n", d->id, res);
+					if (res) {
+						/* switch off */
+						privacyFeature->status &= ~SCCP_PRIVACYFEATURE_CALLPRESENT;
+						config->button.feature.status = 0;
+					} else {
+						privacyFeature->status |= SCCP_PRIVACYFEATURE_CALLPRESENT;
+						config->button.feature.status = 1;
+					}
+					//sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
+				} else {
+					pbx_log(LOG_WARNING, "%s: do not know how to handle %s\n", d->id, config->button.feature.options ? config->button.feature.options : "");
+				}
+			}
 			break;
 		case SCCP_FEATURE_CFWDALL:
 			status = SCCP_CFWD_NONE;
@@ -2203,7 +2201,7 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 
 			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: dndmode %d is %s\n", d->id, d->dndFeature.status, (d->dndFeature.status) ? "on" : "off");
 			sccp_dev_check_displayprompt(d);
-			sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
+			//sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
 			break;
 #ifdef CS_SCCP_FEATURE_MONITOR
 		case SCCP_FEATURE_MONITOR:
@@ -2243,22 +2241,27 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 #endif
 			break;
 		case SCCP_FEATURE_MULTIBLINK:
-			featureStat1 = (d->priFeature.status & 0xf) - 1;
-			featureStat2 = ((d->priFeature.status & 0xf00) >> 8) - 1;
-			featureStat3 = ((d->priFeature.status & 0xf0000) >> 16) - 1;
+			{
+				uint32_t rithm = 0;
+				uint32_t color = 0;
+				uint32_t icon = 0;
+				rithm = (d->priFeature.status & 0xf) - 1;
+				color = ((d->priFeature.status & 0xf00) >> 8) - 1;
+				icon = ((d->priFeature.status & 0xf0000) >> 16) - 1;
 
-			if (2 == featureStat2 && 6 == featureStat1) {
-				featureStat3 = (featureStat3 + 1) % 2;
+				if (2 == color && 6 == rithm) {
+					icon = (icon + 1) % 3;
+				}
+				if (6 == rithm) {
+					color = (color + 1) % 3;
+				}
+				rithm = (rithm + 1) % 7;
+
+				sccp_featureConfiguration_t *priFeature = (sccp_featureConfiguration_t *const)&d->priFeature;		/* discard const */
+
+				priFeature->status = ((icon + 1) << 16) | ((color + 1) << 8) | (rithm + 1);
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: priority feature status: icon:%d, color:%d, rithm:%d, total: %d\n", d->id, icon, color, rithm, priFeature->status);
 			}
-			if (6 == featureStat1) {
-				featureStat2 = (featureStat2 + 1) % 3;
-			}
-			featureStat1 = (featureStat1 + 1) % 7;
-
-			sccp_featureConfiguration_t *priFeature = (sccp_featureConfiguration_t *const)&d->priFeature;		/* discard const */
-
-			priFeature->status = ((featureStat3 + 1) << 16) | ((featureStat2 + 1) << 8) | (featureStat1 + 1);
-			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: priority feature status: %d, %d, %d, total: %d\n", d->id, featureStat3, featureStat2, featureStat1, priFeature->status);
 			break;
 
 		default:
