@@ -33,23 +33,22 @@ AC_DEFUN([CS_CHECK_PBX], [
 				CPPFLAGS="${CPPFLAGS} ${PBX_CPPFLAGS}"
 	 			PBX_LIB="$(${PKGCONFIG} --variable=libdir asterisk)"
 		 		if test -f "${PBX_ETC}/asterisk.conf"; then
-					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir[[[[:space:]]]]*=>*[[[[:space:]]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
-					
+					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf|${TR} -d ' \t=>'`"
 					if test -z "$PBX_TEMPMODDIR"; then
 						echo ""
 						AC_MSG_NOTICE([astmoddir could not be found in ${PBX_ETC}/asterisk.conf.])
 					fi
-					PBX_VARLIB="`${SED} -n 's/astvarlibdir[[[[:space:]]]]*=>*[[[[:space:]]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					PBX_VARLIB="`${SED} -n 's/astvarlibdir\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf|${TR} -d ' \t=>'`"
 					if test -z "$PBX_VARLIB"; then
 						echo ""
 						AC_MSG_NOTICE([astvarlibdir could not be found in ${PBX_ETC}/asterisk.conf.])
 					fi
-					PBX_SBINDIR="`${SED} -n 's/astsbindir[[[[:space:]]]]*=>*[[[[:space:]]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					PBX_SBINDIR="`${SED} -n 's/astsbindir\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf|${TR} -d ' \t=>'`"
 					if test -z "$PBX_SBINDIR"; then
 						echo ""
 						AC_MSG_NOTICE([astsbindir could not be found in ${PBX_ETC}/asterisk.conf.])
 					fi
-					PBX_DATADIR="`${SED} -n 's/astdatadir[[[[:space:]]]]*=>*[[[[:space:]]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					PBX_DATADIR="`${SED} -n 's/astdatadir\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf|${TR} -d ' \t=>'`"
 		 		else
 		 			PBX_TEMPMODDIR="$(${PKGCONFIG} --variable=moddir asterisk)"
 		 			PBX_VARLIB="$(${PKGCONFIG} --variable=varlibdir asterisk)"
@@ -141,23 +140,22 @@ AC_DEFUN([CS_CHECK_PBX], [
 					fi
 				fi
 		 		if test -f "${PBX_ETC}/asterisk.conf"; then
-					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir[[[[:space:]]]]*=>*[[[[:space:]]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
-					
+					PBX_TEMPMODDIR="`${SED} -n 's/astmoddir\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf|${TR} -d ' \t=>'`"
 					if test -z "$PBX_TEMPMODDIR"; then
 						echo ""
 						AC_MSG_NOTICE([astmoddir could not be found in ${PBX_ETC}/asterisk.conf.])
 					fi
-					PBX_VARLIB="`${SED} -n 's/astvarlibdir[[[[:space:]]]]*=>*[[[[:space:]]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					PBX_VARLIB="`${SED} -n 's/astvarlibdir\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf|${TR} -d ' \t=>'`"
 					if test -z "$PBX_VARLIB"; then
 						echo ""
 						AC_MSG_NOTICE([astvarlibdir could not be found in ${PBX_ETC}/asterisk.conf.])
 					fi
-					PBX_SBINDIR="`${SED} -n 's/astsbindir[[[[:space:]]]]*=>*[[[[:space:]]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					PBX_SBINDIR="`${SED} -n 's/astsbindir\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf|${TR} -d ' \t=>'`"
 					if test -z "$PBX_SBINDIR"; then
 						echo ""
 						AC_MSG_NOTICE([astsbindir could not be found in ${PBX_ETC}/asterisk.conf.])
 					fi
-					PBX_DATADIR="`${SED} -n 's/astdatadir[[[[:space:]]]]*=>*[[[[:space:]]]]*\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf`"
+					PBX_DATADIR="`${SED} -n 's/astdatadir\(.*\)$/\1/p' ${PBX_ETC}/asterisk.conf|${TR} -d ' \t=>'`"
 		 		fi
 				PBX_LDFLAGS="$LDFLAGS -L${checkdir}/lib"
 				case "${build_cpu}" in
