@@ -1374,6 +1374,9 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 #ifdef CS_SCCP_REALTIME
 	CLI_AMI_OUTPUT_BOOL("Is Realtime Line",		CLI_AMI_LIST_WIDTH, l->realtime);
 #endif
+#if CS_SCCP_VIDEO
+	CLI_AMI_OUTPUT_PARAM("Video Mode",		CLI_AMI_LIST_WIDTH, "%s", sccp_video_mode2str(l->videomode));
+#endif
 	CLI_AMI_OUTPUT_BOOL("Pending Delete",		CLI_AMI_LIST_WIDTH, l->pendingUpdate);
 	CLI_AMI_OUTPUT_BOOL("Pending Update",		CLI_AMI_LIST_WIDTH, l->pendingDelete);
 
@@ -1500,6 +1503,7 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 		}														\
 		SCCP_LIST_UNLOCK(&l->channels);											\
 
+#if !CS_SCCP_VIDEO
 #define CLI_AMI_TABLE_FIELDS 															\
 		CLI_AMI_TABLE_FIELD(ID,			"-5",		d,	5,	channel->callid)					\
 		CLI_AMI_TABLE_FIELD(Name,		"-25.25",	s,	25,	pbx_strdupa(tmpname))					\
@@ -1508,13 +1512,30 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10",	s,	10,	channel->dialedNumber)					\
 		CLI_AMI_TABLE_FIELD(PBX State,		"-10.10",	s,	10,	(channel->owner) ? pbx_state2str(iPbx.getChannelState(channel)) : "(none)")	\
 		CLI_AMI_TABLE_FIELD(SCCP State,		"-10.10",	s,	10,	sccp_channelstate2str(channel->state))			\
-		CLI_AMI_TABLE_FIELD(ReadCodec,		"-10.10",	s,	10,	codec2name(channel->rtp.audio.readFormat))		\
-		CLI_AMI_TABLE_FIELD(WriteCodec,		"-10.10",	s,	10,	codec2name(channel->rtp.audio.writeFormat))		\
+		CLI_AMI_TABLE_FIELD(AudioR,		"-6.6",		s,	6,	codec2name(channel->rtp.audio.readFormat))		\
+		CLI_AMI_TABLE_FIELD(AudioW,		"-6.6",		s,	6,	codec2name(channel->rtp.audio.writeFormat))		\
 		CLI_AMI_TABLE_FIELD(RTPPeer,		"22.22",	s,	22,	addrStr)						\
 		CLI_AMI_TABLE_FIELD(Direct,		"-6.6",		s,	6,	channel->rtp.audio.directMedia ? "yes" : "no")		\
 		CLI_AMI_TABLE_FIELD(DTMFmode,		"-8.8",		s,	8,	sccp_dtmfmode2str(channel->dtmfmode))
+#else
+#define CLI_AMI_TABLE_FIELDS 															\
+		CLI_AMI_TABLE_FIELD(ID,			"-5",		d,	5,	channel->callid)					\
+		CLI_AMI_TABLE_FIELD(Name,		"-25.25",	s,	25,	pbx_strdupa(tmpname))					\
+		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	channel->line->name)					\
+		CLI_AMI_TABLE_FIELD(DeviceName,		"-16",		s,	16,	channel->currentDeviceId)				\
+		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10",	s,	10,	channel->dialedNumber)					\
+		CLI_AMI_TABLE_FIELD(PBX State,		"-10.10",	s,	10,	(channel->owner) ? pbx_state2str(iPbx.getChannelState(channel)) : "(none)")	\
+		CLI_AMI_TABLE_FIELD(SCCP State,		"-10.10",	s,	10,	sccp_channelstate2str(channel->state))			\
+		CLI_AMI_TABLE_FIELD(AudioR,		"-6.6",		s,	6,	codec2name(channel->rtp.audio.readFormat))		\
+		CLI_AMI_TABLE_FIELD(AudioW,		"-6.6",		s,	6,	codec2name(channel->rtp.audio.writeFormat))		\
+		CLI_AMI_TABLE_FIELD(VideoR,		"-6.6",		s,	6,	codec2name(channel->rtp.video.readFormat))		\
+		CLI_AMI_TABLE_FIELD(VideoW,		"-6.6",		s,	6,	codec2name(channel->rtp.video.writeFormat))		\
+		CLI_AMI_TABLE_FIELD(RTPPeer,		"22.22",	s,	22,	addrStr)						\
+		CLI_AMI_TABLE_FIELD(Direct,		"-6.6",		s,	6,	channel->rtp.audio.directMedia ? "yes" : "no")		\
+		CLI_AMI_TABLE_FIELD(DTMFmode,		"-8.8",		s,	8,	sccp_dtmfmode2str(channel->dtmfmode))			\
+		CLI_AMI_TABLE_FIELD(Video,		"-5.5",		s, 	5,	sccp_video_mode2str(l->videomode))
+#endif
 #include "sccp_cli_table.h"
-
 	if (s) {
 		totals->lines = local_line_total;
 		totals->tables = 1;
@@ -1687,7 +1708,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 				msg1->data.OpenReceiveChannel.v17.lel_conferenceId = htolel(tmpChannel->callid);
 				msg1->data.OpenReceiveChannel.v17.lel_passThruPartyId = htolel(tmpChannel->passthrupartyid);
 				msg1->data.OpenReceiveChannel.v17.lel_millisecondPacketSize = htolel(packetSize);
-				msg1->data.OpenReceiveChannel.v17.lel_payloadType = htolel(8);
+				msg1->data.OpenReceiveChannel.v17.lel_codecType = (skinny_codec_t)htolel(8);
 				msg1->data.OpenReceiveChannel.v17.lel_vadValue = htolel(tmpChannel->line->echocancel);
 				msg1->data.OpenReceiveChannel.v17.lel_callReference = htolel(tmpChannel->callid);
 				msg1->data.OpenReceiveChannel.v17.lel_dtmfType = htolel(10);
@@ -1698,7 +1719,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 				msg2->data.OpenReceiveChannel.v17.lel_conferenceId = htolel(tmpChannel->callid);
 				msg2->data.OpenReceiveChannel.v17.lel_passThruPartyId = htolel(tmpChannel->passthrupartyid);
 				msg2->data.OpenReceiveChannel.v17.lel_millisecondPacketSize = htolel(packetSize);
-				msg2->data.OpenReceiveChannel.v17.lel_payloadType = htolel(4);
+				msg2->data.OpenReceiveChannel.v17.lel_codecType = (skinny_codec_t)htolel(4);
 				msg2->data.OpenReceiveChannel.v17.lel_vadValue = htolel(tmpChannel->line->echocancel);
 				msg2->data.OpenReceiveChannel.v17.lel_callReference = htolel(tmpChannel->callid);
 				msg2->data.OpenReceiveChannel.v17.lel_dtmfType = htolel(10);

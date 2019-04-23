@@ -101,6 +101,7 @@ struct sccp_line {
 	} voicemailStatistic;											/*!< VoiceMail Statistics Structure */
 	boolean_t transfer;											/*!< Transfer Phone Support */
 
+	sccp_video_mode_t videomode;
 	/* this is for reload routines */
 	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */
 	boolean_t pendingUpdate;										/*!< this bit will tell the scheduler to update this line when unused */

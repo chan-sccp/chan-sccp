@@ -131,14 +131,15 @@ static void sccp_sk_dial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, const
 static void sccp_sk_videomode(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
 #ifdef CS_SCCP_VIDEO
-	if (sccp_device_isVideoSupported(d)) {
+	if (sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(d));
-		if (!c->rtp.video.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_VIDEO)) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(d));
-		} else {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: vrtp started\n", DEV_ID_LOG(d));
+		if (!c->rtp.video.instance || SCCP_RTP_STATUS_INACTIVE == c->rtp.video.receiveChannelState) {
+			sccp_channel_openMultiMediaReceiveChannel(c);
+		}
+		if ((c->rtp.video.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.mediaTransmissionState) {
 			sccp_channel_startMultiMediaTransmission(c);
 		}
+		c->videomode = SCCP_VIDEO_MODE_USER;
 	}
 #endif
 }
@@ -885,6 +886,27 @@ static void sccp_sk_gpickup(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 #endif
 }
 
+static void sccp_sk_info(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr none)
+{
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Info Pressed\n", DEV_ID_LOG(d));
+	sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Info Softkey not (yet) supported\n");
+}
+
+static void sccp_sk_callback(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
+{
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Callback Pressed\n", DEV_ID_LOG(d));
+	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Callback Softkey not (yet) supported\n");
+}
+
+static void sccp_sk_empty(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr none)
+{
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Empty Pressed\n", DEV_ID_LOG(d));
+	sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Empty Softkey not supported\n");
+}
+
 /*!
  * \brief Execute URI(s) 
  */
@@ -958,11 +980,8 @@ static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
  * \brief Softkey Function Callback by SKINNY LABEL
  */
 static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
-	{SKINNY_LBL_NEWCALL, FALSE, sccp_sk_newcall, NULL},
 	{SKINNY_LBL_REDIAL, FALSE, sccp_sk_redial, NULL},
-	{SKINNY_LBL_MEETME, TRUE, sccp_sk_meetme, NULL},
-	{SKINNY_LBL_BARGE, TRUE, sccp_sk_barge, NULL},
-	{SKINNY_LBL_CBARGE, TRUE, sccp_sk_cbarge, NULL},
+	{SKINNY_LBL_NEWCALL, FALSE, sccp_sk_newcall, NULL},
 	{SKINNY_LBL_HOLD, TRUE, sccp_sk_hold, NULL},
 	{SKINNY_LBL_TRANSFER, TRUE, sccp_sk_transfer, NULL},
 	{SKINNY_LBL_CFWDALL, FALSE, sccp_sk_cfwdall, NULL},
@@ -972,22 +991,28 @@ static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
 	{SKINNY_LBL_ENDCALL, TRUE, sccp_sk_endcall, NULL},
 	{SKINNY_LBL_RESUME, TRUE, sccp_sk_resume, NULL},
 	{SKINNY_LBL_ANSWER, TRUE, sccp_sk_answer, NULL},
-	{SKINNY_LBL_TRNSFVM, TRUE, sccp_sk_trnsfvm, NULL},
-	{SKINNY_LBL_IDIVERT, TRUE, sccp_sk_trnsfvm, NULL},
-	{SKINNY_LBL_DND, FALSE, sccp_sk_dnd, NULL},
-	{SKINNY_LBL_DIRTRFR, TRUE, sccp_sk_dirtrfr, NULL},
-	{SKINNY_LBL_SELECT, TRUE, sccp_sk_select, NULL},
-	{SKINNY_LBL_PRIVATE, FALSE, sccp_sk_private, NULL},
-	{SKINNY_LBL_MONITOR, TRUE, sccp_sk_monitor, NULL},
-	{SKINNY_LBL_INTRCPT, TRUE, sccp_sk_resume, NULL},
-	{SKINNY_LBL_DIAL, TRUE, sccp_sk_dial, NULL},
-	{SKINNY_LBL_VIDEO_MODE, TRUE, sccp_sk_videomode, NULL},
+	{SKINNY_LBL_INFO, FALSE, sccp_sk_info, NULL},
+	{SKINNY_LBL_CONFRN, TRUE, sccp_sk_conference, NULL},
 	{SKINNY_LBL_PARK, TRUE, sccp_sk_park, NULL},
+	{SKINNY_LBL_JOIN, TRUE, sccp_sk_join, NULL},
+	{SKINNY_LBL_MEETME, TRUE, sccp_sk_meetme, NULL},
 	{SKINNY_LBL_PICKUP, FALSE, sccp_sk_pickup, NULL},
 	{SKINNY_LBL_GPICKUP, FALSE, sccp_sk_gpickup, NULL},
-	{SKINNY_LBL_CONFRN, TRUE, sccp_sk_conference, NULL},
-	{SKINNY_LBL_JOIN, TRUE, sccp_sk_join, NULL},
+	{SKINNY_LBL_MONITOR, TRUE, sccp_sk_monitor, NULL},
+	{SKINNY_LBL_CALLBACK, TRUE, sccp_sk_callback, NULL},
+	{SKINNY_LBL_BARGE, TRUE, sccp_sk_barge, NULL},
+	{SKINNY_LBL_DND, FALSE, sccp_sk_dnd, NULL},
 	{SKINNY_LBL_CONFLIST, TRUE, sccp_sk_conflist, NULL},
+	{SKINNY_LBL_SELECT, TRUE, sccp_sk_select, NULL},
+	{SKINNY_LBL_PRIVATE, FALSE, sccp_sk_private, NULL},
+	{SKINNY_LBL_TRNSFVM, TRUE, sccp_sk_trnsfvm, NULL},
+	{SKINNY_LBL_DIRTRFR, TRUE, sccp_sk_dirtrfr, NULL},
+	{SKINNY_LBL_IDIVERT, TRUE, sccp_sk_trnsfvm, NULL},
+	{SKINNY_LBL_VIDEO_MODE, TRUE, sccp_sk_videomode, NULL},
+	{SKINNY_LBL_INTRCPT, TRUE, sccp_sk_resume, NULL},
+	{SKINNY_LBL_EMPTY, FALSE, sccp_sk_empty, NULL},
+	{SKINNY_LBL_DIAL, TRUE, sccp_sk_dial, NULL},
+	{SKINNY_LBL_CBARGE, TRUE, sccp_sk_cbarge, NULL},
 };
 
 /*!

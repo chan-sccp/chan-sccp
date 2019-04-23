@@ -164,6 +164,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 					<option name="adhoc_number"><para>If this is a hotline/plar line, this returns the extension to be dialed when the phone goes offhook (extension).</para></option>
 					<option name="newmsgs"><para>Number of new voicemail messages (integer).</para></option>
 					<option name="oldmsgs"><para>Number of old voicemail messages (integer).</para></option>
+					<option name="videomode"><para>Video mode (string).</para></option>
 					<option name="num_devices"><para>Number of devices this line has been registed on (integer).</para></option>
 					<option name="mailboxes"><para>Returns a comma seperated list of voicemail mailboxes connected to this line (csv).</para></option>
 					<option name="cfwd"><para>Returns a comma seperated list of callforward set on this line (csv).</para></option>
@@ -243,6 +244,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 					<option name="answered_elsewhere"><para>This call has been answered somewhere else (boolean).</para></option>
 					<option name="privacy"><para>Privacy (boolean).</para></option>
 					<option name="ss_action"><para>SoftSwitch Action responsible for this channel (string).</para></option>
+					<option name="videomode"><para>Video mode (string).</para></option>
 					<option name="conference_id"><para>Conference Id associated to this channel (string).</para></option>
 					<option name="conference_participant_id"><para>Conference Participant Id (string).</para></option>
 					<option name="parent"><para>Channel Forwarding Parent CallID. When this is a channel originating from a forwarded call, this will link back to the callid of the original call. (integer).</para></option>
@@ -770,6 +772,8 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				snprintf(buf, buf_len, "%d", l->voicemailStatistic.newmsgs);
 			} else if (!strcasecmp(token, "oldmsgs")) {
 				snprintf(buf, buf_len, "%d", l->voicemailStatistic.oldmsgs);
+			} else if (!strcasecmp(token, "videomode")) {
+				snprintf(buf, buf_len, "%s", sccp_video_mode2str(l->videomode));
 			} else if (!strcasecmp(token, "num_devices")) {
 				snprintf(buf, buf_len, "%d", SCCP_LIST_GETSIZE(&l->devices));
 			} else if (!strcasecmp(token, "mailboxes")) {
@@ -977,6 +981,8 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 				snprintf(buf, buf_len, "%s (%d)", sccp_softswitch2str(c->softswitch_action), c->softswitch_action);
 			// } else if (!strcasecmp(token, "monitorEnabled")) {
 				//sccp_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
+			} else if (!strcasecmp(token, "videomode")) {
+				snprintf(buf, buf_len, "%s", sccp_video_mode2str(c->videomode));
 #ifdef CS_SCCP_CONFERENCE
 			} else if (!strcasecmp(token, "conference_id")) {
 				snprintf(buf, buf_len, "%d", c->conference_id);

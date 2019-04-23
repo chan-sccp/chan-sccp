@@ -1096,8 +1096,6 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7985:
-			d->capabilities.video[0] = SKINNY_CODEC_H264;
-			d->capabilities.video[1] = SKINNY_CODEC_H263;
 #ifdef CS_SCCP_VIDEO
 			sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
 #endif
@@ -1135,8 +1133,6 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 		case SKINNY_DEVICETYPE_CISCO8941:
 		case SKINNY_DEVICETYPE_CISCO8945:
 #ifdef CS_SCCP_VIDEO
-			d->capabilities.video[0] = SKINNY_CODEC_H264;
-			d->capabilities.video[1] = SKINNY_CODEC_H263;
 			sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
 #endif
 			d->pushTextMessage = sccp_device_pushTextMessage;
@@ -1412,9 +1408,10 @@ void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid
 		if (softKeySetIndex == KEYMODE_CONNECTED) {
 			softKeySetIndex = (
 #if CS_SCCP_CONFERENCE
-						  (d->conference) ? KEYMODE_CONNCONF :
+						(d->conference) ? KEYMODE_CONNCONF :
 #endif
-						  (d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED);
+						(d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED
+					  );
 		}
 	}
 	REQ(msg, SelectSoftKeysMessage);
@@ -2089,7 +2086,7 @@ void sccp_dev_check_displayprompt(constDevicePtr d)
 	for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
 		if (d->messageStack.messages[i] != NULL && !sccp_strlen_zero(d->messageStack.messages[i])) {
 			//if (!d->hasDisplayPrompt() && d->hasLabelLimitedDisplayPrompt()) {			// 89xx can only do popups no statusbar
-			//	sccp_dev_displayprinotify(d, d->messageStack.messages[i], (sccp_message_priority_t) i, 0);
+				//sccp_dev_displayprinotify(d, d->messageStack.messages[i], (sccp_message_priority_t) i, 0);
 				//sccp_dev_displaynotify(d, d->messageStack.messages[i], 0);
 			//} else {
 				sccp_dev_displayprompt(d, 0, 0, d->messageStack.messages[i], 0);
@@ -2722,10 +2719,11 @@ int sccp_device_destroy(const void *ptr)
  */
 boolean_t sccp_device_isVideoSupported(constDevicePtr device)
 {
-
-	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: video support %d \n", device->id, device->capabilities.video[0]);
 #ifdef CS_SCCP_VIDEO
-	if (device->capabilities.video[0] != 0) {
+	if (device->capabilities.video[0] != SKINNY_CODEC_NONE) {
+		char cap_buf[512];
+		sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, device->capabilities.video, ARRAY_LEN(device->capabilities.video));
+		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: video support %s\n", device->id, cap_buf);
 		return TRUE;
 	}
 #endif
@@ -3203,9 +3201,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 
 			break;
 		case SCCP_FEATURE_DND:
-			if (!device->dndFeature.status) {
-				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_DND);
-			} else {
+			if (device->dndFeature.status) {
 				char dndmsg[StationMaxDisplayNotifySize];
 				if (!device->dndmode) {										// running in try state/cycle mode
 					if (device->dndFeature.status == SCCP_DNDMODE_SILENT) {
@@ -3224,6 +3220,8 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 				} else {											// 79xx and 89xx series
 					sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, dndmsg);
 				}
+			} else {
+				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_DND);
 			}
 			break;
 		case SCCP_FEATURE_PRIVACY:

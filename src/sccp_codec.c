@@ -11,6 +11,11 @@
 #include "sccp_utils.h"
 #include "sccp_channel.h"
 
+
+/*
+ * references: https://en.wikipedia.org/wiki/RTP_audio_video_profile
+ * --DD-- We need an extra column, specifying the RFC number, needed for MultiMediaReceive/MultiMediaTransmission->lel_payload_rfc_number;
+ */
 const struct skinny_codec skinny_codecs[] = {
 	/* *INDENT-OFF* */
 	{SKINNY_CODEC_NONE,		SKINNY_CODEC_TYPE_UNKNOWN, 	"",		"",		"No codec", 				NULL,		0,	0,	-1},	//payload unknown

@@ -32,15 +32,20 @@ ALTER TABLE sccpdevice ALTER COLUMN type TYPE varchar(15);
 ALTER TABLE sccpdevice ALTER COLUMN imageversion TYPE varchar(31);
 ALTER TABLE sccpdevice RENAME COLUMN dnd TO dndFeature;
 
+ALTER TABLE sccpline ADD COLUMN disallow varchar(45) default NULL;
+ALTER TABLE sccpline ADD COLUMN allow varchar(45) default NULL;
 ALTER TABLE sccpline ADD COLUMN directed_pickup VARCHAR(5) NULL DEFAULT 'on';
 ALTER TABLE sccpline ADD COLUMN directed_pickup_context VARCHAR(100) NULL DEFAULT NULL;
 ALTER TABLE sccpline ADD COLUMN pickup_modeanswer VARCHAR(5) NULL DEFAULT 'on';
+ALTER TABLE sccpline ADD COLUMN videomode varchar(5) DEFAULT 'auto';
 
 update sccpline
 set
   pickup_modeanswer=dev.pickupmodeanswer,
   directed_pickup=dev.pickupexten,
-  directed_pickup_context=dev.pickupcontext
+  directed_pickup_context=dev.pickupcontext,
+  disallow=dev.disallow,
+  allow=dev.allow
 from sccpdevice as dev 
   join buttonconfig as btn on btn.device=dev.name
     join sccpline as line on btn.name=line.name 
@@ -52,6 +57,9 @@ ALTER TABLE sccpdevice DROP COLUMN pickup_modeanswer;
 ALTER TABLE sccpdevice DROP COLUMN pickupexten;
 ALTER TABLE sccpdevice DROP COLUMN pickupcontext;
 ALTER TABLE sccpdevice DROP COLUMN pickupmodeanswer;
+ALTER TABLE sccpdevice DROP COLUMN disallow;
+ALTER TABLE sccpdevice DROP COLUMN allow;
+
 
 CREATE OR REPLACE VIEW sccpdeviceconfig AS
         SELECT 
