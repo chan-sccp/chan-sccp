@@ -46,6 +46,7 @@ struct sccp_private_channel_data {
 	sccp_device_t *device;
 	sccp_linedevices_t *linedevice;
 	sccp_callinfo_t * callInfo;
+	SCCP_LIST_HEAD (, sccp_threadpool_job_t) cleanup_jobs;
 	boolean_t microphone;											/*!< Flag to mute the microphone when calling a baby phone */
 };
 
@@ -143,10 +144,12 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 			pbx_log(LOG_ERROR, "%s: No memory to allocate channel private data on line %s\n", l->id, l->name);
 			break;
 		}
+		
 		/* assign private_data default values */
 		private_data->microphone = TRUE;
 		private_data->device = NULL;
 		private_data->callInfo = iCallInfo.Constructor(callInstance);
+		SCCP_LIST_HEAD_INIT(&private_data->cleanup_jobs);
 		if (!private_data->callInfo) {
 			break;
 		}
@@ -187,6 +190,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		channel->isMicrophoneEnabled = sccp_always_true;
 		channel->setMicrophone = sccp_channel_setMicrophoneState;
 		channel->hangupRequest = sccp_astgenwrap_requestHangup;
+		//channel->privacy = (device && (device->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT)) ? TRUE : FALSE;
 		if (device) {
 			channel->dtmfmode = device->getDtmfMode(device);
 		} else {
@@ -220,6 +224,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		if (private_data->callInfo) {
 			iCallInfo.Destructor(&private_data->callInfo);
 		}
+		SCCP_LIST_HEAD_DESTROY(&(private_data->cleanup_jobs));
 		sccp_free(private_data);
 	}
 	if (channel) {
@@ -1344,7 +1349,7 @@ gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t * channel, uint time
  * Schedule digittimeout if allowed
  * Release any previously scheduled digittimeout
  */
-gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t * channel, uint timeout)
+gcc_inline void sccp_channel_schedule_digittimeout(sccp_channel_t * channel, uint timeout)
 {
 	sccp_channel_t *c = sccp_channel_retain(channel);
 
@@ -1516,7 +1521,7 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 			sccp_pbx_softswitch(channel);
 			channel->dialedNumber[0] = '\0';
 		} else {
-			sccp_channel_schedule_digittimout(channel, GLOB(firstdigittimeout));
+			sccp_channel_schedule_digittimeout(channel, GLOB(firstdigittimeout));
 		}
 	}
 
@@ -1783,7 +1788,7 @@ int sccp_channel_hold(channelPtr channel)
 		pbx_log(LOG_WARNING, "SCCP: Channel already on hold\n");
 		return FALSE;
 	}
-
+	
 	instance = sccp_device_find_index_for_line(d, l->name);
 	/* put on hold an active call */
 	if (channel->state != SCCP_CHANNELSTATE_CONNECTED && channel->state != SCCP_CHANNELSTATE_CONNECTEDCONFERENCE && channel->state != SCCP_CHANNELSTATE_PROCEED) {	// TOLL FREE NUMBERS STAYS ALWAYS IN CALL PROGRESS STATE
@@ -1991,6 +1996,27 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 	return TRUE;
 }
 
+void sccp_channel_addCleanupJob(channelPtr c, void *(*function_p) (void *), void *arg_p)
+{
+	if (!c) {
+		return;
+	}
+	sccp_threadpool_job_t *newJob;
+	if (!(newJob = (sccp_threadpool_job_t *) sccp_calloc(sizeof *newJob, 1))) {
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+		exit(1);
+	}
+
+	/* add function and argument */
+	newJob->function = function_p;
+	newJob->arg = arg_p;
+
+	/* add job to cleanup jobqueue */
+	SCCP_LIST_LOCK(&(c->privateData->cleanup_jobs));
+	SCCP_LIST_INSERT_TAIL(&(c->privateData->cleanup_jobs), newJob, list);
+	SCCP_LIST_UNLOCK(&(c->privateData->cleanup_jobs));
+}
+
 /*!
  * \brief Cleanup Channel before Free.
  * \param channel SCCP Channel
@@ -2077,6 +2103,15 @@ void sccp_channel_clean(sccp_channel_t * channel)
 			sccp_linedevice_release(&channel->privateData->linedevice);
 		}
 	}
+
+	sccp_threadpool_job_t *job;
+	SCCP_LIST_LOCK(&channel->privateData->cleanup_jobs);
+	while ((job = SCCP_LIST_REMOVE_HEAD(&channel->privateData->cleanup_jobs, list))) {
+		SCCP_LIST_UNLOCK(&channel->privateData->cleanup_jobs);
+		sccp_threadpool_jobqueue_add(GLOB(general_threadpool), job);
+		SCCP_LIST_LOCK(&channel->privateData->cleanup_jobs);
+	}
+	SCCP_LIST_UNLOCK(&channel->privateData->cleanup_jobs);
 }
 
 /*!
@@ -2122,6 +2157,7 @@ int __sccp_channel_destroy(const void * data)
 	/* destroy immutables, by casting away const */
 	sccp_free(*(char **)&channel->musicclass);
 	sccp_free(*(char **)&channel->designator);
+	SCCP_LIST_HEAD_DESTROY(&(channel->privateData->cleanup_jobs));
 	sccp_free(*(struct sccp_private_channel_data **)&channel->privateData);
 	sccp_line_release((sccp_line_t **)&channel->line);
 	/* */

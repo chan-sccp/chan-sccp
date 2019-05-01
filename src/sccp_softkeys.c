@@ -417,13 +417,13 @@ static void sccp_sk_backspace(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 
 	/* we have no number, so nothing to process */
 	if (!len) {
-		sccp_channel_schedule_digittimout(c, GLOB(firstdigittimeout));
+		sccp_channel_schedule_digittimeout(c, GLOB(firstdigittimeout));
 		return;
 	}
 
 	if (len >= 1) {
 		c->dialedNumber[len - 1] = '\0';
-		sccp_channel_schedule_digittimout(c, GLOB(digittimeout));
+		sccp_channel_schedule_digittimeout(c, GLOB(digittimeout));
 	}
 	// sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: backspacing dial number %s\n", c->device->id, c->dialedNumber);
 	sccp_handle_dialtone(d, line, c);
@@ -719,20 +719,24 @@ static void sccp_sk_private(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 	// check device->privacyFeature.status before toggeling
 
 	// toggle
-	channel->privacy = (channel->privacy) ? FALSE : TRUE;
+	channel->privacy = !channel->privacy;
+	sccp_softkey_setSoftkeyState((sccp_device_t *)d, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_BARGE, channel->privacy);		// const cast
 
 	// update device->privacyFeature.status  using sccp_feat_changed
 	//sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
 
 	// Should actually use the messageStack instead of using displayprompt directly
 	if (channel->privacy) {
-		//sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_PRIVACY, SKINNY_DISP_PRIVATE);
-		sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_PRIVATE, 300);			// replaced with 5 min instead of always, just to make sure we return
 		sccp_channel_set_calleridPresentation(channel, CALLERID_PRESENTATION_FORBIDDEN);
+		pbx_builtin_setvar_helper(channel->owner, "SKINNY_PRIVATE", "1");
+		sccp_device_addMessageToStack((sccp_device_t *)d, SCCP_MESSAGE_PRIORITY_PRIVACY, SKINNY_DISP_PRIVATE);  	// const cast
+		sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_PRIVATE, 5);
 	} else {
-		sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_ENTER_NUMBER, 1);
-		//sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_PRIVACY);
+		pbx_builtin_setvar_helper(channel->owner, "SKINNY_PRIVATE", "0");
+		sccp_channel_set_calleridPresentation(c, CALLERID_PRESENTATION_ALLOWED);
+		sccp_device_clearMessageFromStack((sccp_device_t *)d, SCCP_MESSAGE_PRIORITY_PRIVACY);				// const cast
 	}
+
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Private %s on call %d\n", d->id, channel->privacy ? "enabled" : "disabled", channel->callid);
 }
 
@@ -811,7 +815,7 @@ static void sccp_sk_barge(const sccp_softkeyMap_cb_t * const softkeyMap_cb, cons
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Barge Pressed\n", DEV_ID_LOG(d));
 	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 	if (line) {
-		sccp_feat_handle_barge(line, lineInstance, d);
+		sccp_feat_handle_barge(line, lineInstance, d, c);
 	}
 }
 

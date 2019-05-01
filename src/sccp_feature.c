@@ -48,6 +48,9 @@ SCCP_FILE_VERSION(__FILE__, "");
 #  endif
 #endif
 
+/* forward declarations */
+static int sccp_feat_sharedline_barge(constLineDevicePtr ld, channelPtr bargedChannel);
+
 /*!
  * \brief Handle Call Forwarding
  * \param l SCCP Line
@@ -1110,6 +1113,32 @@ void sccp_feat_meetme_start(channelPtr c)
 	sccp_threadpool_add_work(GLOB(general_threadpool), sccp_feat_meetme_thread, (void *) c);
 }
 
+#define BASE_REGISTRAR "chan_sccp"
+static void *cleanupTempExtensionContext(void *ptr)
+{
+	PBX_CONTEXT_TYPE *context= (struct pbx_context *)ptr;
+	pbx_context_destroy(context, BASE_REGISTRAR);
+	//d->indicate->remoteConnected(d, lineInstance, maybe_c->callid, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
+	//bargedChannel->isBarged = TRUE;
+
+	//sccp_free(context);       // should be freed by pbx_context_destroy (check?)
+	return 0;
+}
+
+static boolean_t createTempExtensionContext(channelPtr c, const char *context_name, const char *ext, const char *app, const char *opts)
+{
+    PBX_CONTEXT_TYPE *context = NULL;
+	if ((context = pbx_context_find_or_create(NULL, NULL, context_name, BASE_REGISTRAR))) {
+		pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/1, /*label*/NULL, /*cidmatch*/NULL, "Answer", NULL, NULL, BASE_REGISTRAR);
+		pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/2, /*label*/NULL, /*cidmatch*/NULL, app, pbx_strdup(opts), sccp_free_ptr, BASE_REGISTRAR);
+		pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/3, /*label*/NULL, /*cidmatch*/NULL, "Hangup", NULL, NULL, BASE_REGISTRAR);
+		pbx_log(LOG_WARNING, "SCCP: created temp context:%s and extension:%s to call %s, with options:'%s'\n", context_name, ext, app, opts);
+		sccp_channel_addCleanupJob(c, &cleanupTempExtensionContext, context);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 /*!
  * \brief Handle Barging into a Call
  * \param l SCCP Line
@@ -1118,64 +1147,47 @@ void sccp_feat_meetme_start(channelPtr c)
  * \return SCCP Channel
  *
  */
-void sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr d)
+void sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr d, channelPtr maybe_c)
 {
 
 	if (!l || !d || sccp_strlen_zero(d->id)) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
 		return;
 	}
-
-	/* look if we have a call */
-	{
-		AUTO_RELEASE(sccp_channel_t, c , sccp_device_getActiveChannel(d));
-
-		if (c) {
-			// we have a channel, checking if
-			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {
-				// we are dialing but without entering a number :D -FS
-				sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
-				// changing SOFTSWITCH_DIALING mode to SOFTSWITCH_GETFORWARDEXTEN
-				c->softswitch_action = SCCP_SOFTSWITCH_GETBARGEEXTEN;				/* SoftSwitch will catch a number to be dialed */
-				c->ss_data = 0;									/* this should be found in thread */
-				// changing channelstate to GETDIGITS
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
-				iPbx.set_callstate(c, AST_STATE_OFFHOOK);
-				return;
-			} if (!sccp_channel_hold(c)) {
-				/* there is an active call, let's put it on hold first */
-				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL, SCCP_DISPLAYSTATUS_TIMEOUT);
-				return;
+	if (maybe_c) {
+		AUTO_RELEASE(sccp_device_t, remoted, maybe_c->getDevice(maybe_c));
+		if (l->isShared && d != remoted) {							// we are peering at a remote shared line
+			/* use the channel pointed to on the screen */
+			sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_2 "%s: handling barge on shared line\n", maybe_c->designator);
+			AUTO_RELEASE(sccp_channel_t, bargedChannel, sccp_channel_retain(maybe_c));
+			AUTO_RELEASE(sccp_linedevices_t, bargingLineDevice, sccp_linedevice_find(d, l));
+			if (!sccp_feat_sharedline_barge(bargingLineDevice, bargedChannel)) {
+				sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, SKINNY_TONEDIRECTION_USER);
 			}
+			return;
 		}
+		// fall through
 	}
-
-	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_allocate(l, d));
-
-	if (!c) {
-		pbx_log(LOG_ERROR, "%s: (handle_barge) Can't allocate SCCP channel for line %s\n", d->id, l->name);
-		return;
+	AUTO_RELEASE(sccp_channel_t, c, sccp_channel_getEmptyChannel(l, d, maybe_c, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));
+	if (c) {
+		sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_2 "%s: handling barge on single line:%s\n", d->id, l->name);
+		c->softswitch_action = SCCP_SOFTSWITCH_GETBARGEEXTEN;					/* SoftSwitch will catch a number to be dialed */
+		c->ss_data = 0;										/* not needed here */
+		sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
+		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
+		sccp_channel_stop_schedule_digittimout(c);
+		if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
+			sccp_channel_openReceiveChannel(c);
+		}
+		if (!maybe_c) {
+			sccp_pbx_softswitch(c);
+		}
+	} else {
+		pbx_log(LOG_ERROR, "%s: (sccp_feat_handle_barge) Can't allocate SCCP channel for line %s\n", DEV_ID_LOG(d), l->name);
+		sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_FAILED_TO_SETUP_BARGE, SCCP_DISPLAYSTATUS_TIMEOUT);
+       	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, SKINNY_TONEDIRECTION_USER);
 	}
-
-	c->softswitch_action = SCCP_SOFTSWITCH_GETBARGEEXTEN;							/* SoftSwitch will catch a number to be dialed */
-	c->ss_data = 0;												/* not needed here */
-
-	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
-	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
-	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
-
-	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
-		pbx_log(LOG_WARNING, "%s: (handle_barge) Unable to allocate a new channel for line %s\n", d->id, l->name);
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
-		return;
-	}
-
-	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
-
-	if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
-		sccp_channel_openReceiveChannel(c);
-	}
+	return;
 }
 
 /*!
@@ -1184,21 +1196,163 @@ void sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr
  * \param exten Extention as char
  * \return Success as int
  */
-int sccp_feat_barge(constChannelPtr c, const char * const exten)
+int sccp_feat_singleline_barge(channelPtr c, const char * const exten)
 {
-	/* sorry but this is private code -FS */
 	if (!c) {
-		return -1;
+		return FALSE;
 	}
-	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
-
-	if (!d) {
-		return -1;
+	AUTO_RELEASE(sccp_linedevices_t, bargingLD, sccp_channel_getLineDevice(c));
+	
+	if (!bargingLD || !bargingLD->line) {
+		sccp_dev_displayprompt(bargingLD->device, bargingLD->lineInstance, 0, SKINNY_DISP_FAILED_TO_SETUP_BARGE, SCCP_DISPLAYSTATUS_TIMEOUT);
+		sccp_dev_starttone(bargingLD->device, SKINNY_TONE_BEEPBONK, bargingLD->lineInstance, 0, SKINNY_TONEDIRECTION_USER);
+		return FALSE;
 	}
-	uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
+	sccp_device_t *d = bargingLD->device;
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(bargingLD->line));
+	uint16_t lineInstance = bargingLD->lineInstance;
+	
+	sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_2 "%s: is barging in on:%s\n", c->designator, /*pbx_channel_name(pbxchannel)*/exten);
+	char ext[SCCP_MAX_EXTENSION];
+	char context[SCCP_MAX_CONTEXT];
+	char opts[SCCP_MAX_CONTEXT];
 
-	sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
-	return 1;
+	// check privacy on ast channel
+	// check already barged on ast channel
+	//bargedChannel->isBarged = TRUE;
+	// retrieve list of channeltypes
+
+	snprintf(context, sizeof(context), "sccp_barge_%s_%s", d->id, l->name);
+	snprintf(ext, sizeof(ext), "%s", l->cid_num);
+	//snprintf(opts, sizeof(opts), "%s@%s,%c%s", exten, l->context, SCCP_CONF_SPACER, "bBE");
+	snprintf(opts, sizeof(opts), "SCCP/%s:SIP/%s:IAX2/%s%c%s", exten, exten, exten, SCCP_CONF_SPACER, "sbBE");
+	if (createTempExtensionContext(c, context, ext, "ExtenSpy", opts)) {
+		// setup softswitch
+		c->softswitch_action = SCCP_SOFTSWITCH_DIAL;
+		c->ss_data = 0;
+
+		// channel switch newly create context
+		iPbx.setChannelContext(c, context);
+		sccp_copy_string(c->dialedNumber, ext, sizeof(c->dialedNumber));
+
+		// set channel to correct mode
+		c->isBarging = TRUE;
+		sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
+		c->channelStateReason = SCCP_CHANNELSTATEREASON_BARGE;
+		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
+
+		// update caller info
+		//sccp_channel_set_calledparty(c, "barged", !sccp_strlen_zero(bargedChannel->subscriptionId.name) ? bargedChannel->subscriptionId.name : bargedChannel->subscriptionId.number);
+		sccp_channel_set_callingparty(c, "barger", !sccp_strlen_zero(c->subscriptionId.name) ? c->subscriptionId.name : c->subscriptionId.number);
+
+		// execute softswitch
+		sccp_pbx_softswitch(c);
+
+		// display prompt on Barged Device
+		/*
+		AUTO_RELEASE(sccp_channel_t,bargedChannel, CS_AST_CHANNEL_PVT(pbxchannel) ? sccp_channel_retain(CS_AST_CHANNEL_PVT(pbxchannel)) : NULL);
+		if (bargedChannel) {
+			char statusmsg[40];
+			AUTO_RELEASE(sccp_linedevices_t, bargedLineDevice, bargedChannel->getLineDevice(bargedChannel));
+			if (!bargedLineDevice || !bargedLineDevice->device) {
+				snprintf(statusmsg, sizeof(statusmsg), SKINNY_DISP_BARGE " " SKINNY_DISP_FROM " %s", l->cid_num);
+				sccp_dev_displayprompt(bargedLineDevice->device, bargedLineDevice->lineInstance, bargedChannel->callid, statusmsg, SCCP_DISPLAYSTATUS_TIMEOUT);
+			}
+		}
+		*/
+		sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_2 "%s: is barged in on:%s\n", c->designator, /*pbx_channel_name(pbxchannel)*/ exten);
+	} else {
+		pbx_log(LOG_ERROR, "Failed to automatically find or create "
+			"context '%s' for sccp_barge!\n", context);
+		sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_FAILED_TO_SETUP_BARGE, SCCP_DISPLAYSTATUS_TIMEOUT);
+		return FALSE;
+	}
+	return TRUE;
+}
+
+/*!
+ * \brief Barging into a Call Feature
+ * \param c SCCP Channel
+ * \param exten Extention as char
+ * \return Success as int
+ */
+int sccp_feat_sharedline_barge(constLineDevicePtr bargingLD, channelPtr bargedChannel)
+{
+	if (!bargingLD || !bargingLD->line || !bargedChannel) {
+		sccp_dev_displayprompt(bargingLD->device, bargingLD->lineInstance, 0, SKINNY_DISP_FAILED_TO_SETUP_BARGE, SCCP_DISPLAYSTATUS_TIMEOUT);
+		return FALSE;
+	}
+	sccp_device_t *d = bargingLD->device;
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(bargingLD->line));
+	uint16_t lineInstance = bargingLD->lineInstance;
+
+	// check privacy status of destination
+	if (bargedChannel->privacy) {
+		sccp_dev_displayprompt(d, lineInstance,  0, SKINNY_DISP_PRIVATE, SCCP_DISPLAYSTATUS_TIMEOUT);
+		return FALSE;
+	}
+	if (bargedChannel->isBarged) {
+		sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_ANOTHER_BARGE_EXISTS, SCCP_DISPLAYSTATUS_TIMEOUT);
+		return FALSE;
+	}
+	bargedChannel->isBarged = TRUE;
+
+	AUTO_RELEASE(sccp_linedevices_t, bargedLineDevice, bargedChannel->getLineDevice(bargedChannel));
+	if (!bargedLineDevice || !bargedLineDevice->device) {
+		sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_FAILED_TO_SETUP_BARGE, SCCP_DISPLAYSTATUS_TIMEOUT);
+		return FALSE;
+	}
+
+	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_getEmptyChannel(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));
+	if (c) {
+		sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_2 "%s: is barging in on:%s\n", c->designator, bargedChannel->designator);
+		char ext[SCCP_MAX_EXTENSION];
+		char context[SCCP_MAX_CONTEXT];
+		char opts[SCCP_MAX_CONTEXT];
+		char statusmsg[40];
+
+		snprintf(context, sizeof(context), "sccp_barge_%s_%s", d->id, l->name);
+		snprintf(ext, sizeof(ext), "%s", l->cid_num);
+		snprintf(opts, sizeof(opts), "SCCP/%s%c%s", bargedChannel->line->name, SCCP_CONF_SPACER, "qbBE");
+		if (createTempExtensionContext(c, context, ext, "ChanSpy", opts)) {
+			// setup softswitch
+			c->softswitch_action = SCCP_SOFTSWITCH_DIAL;
+			c->ss_data = 0;
+
+			// channel switch newly create context
+			iPbx.setChannelContext(c, context);
+			sccp_copy_string(c->dialedNumber, ext, sizeof(c->dialedNumber));
+
+			// set channel to correct mode
+			c->isBarging = TRUE;
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
+			c->channelStateReason = SCCP_CHANNELSTATEREASON_BARGE;
+			sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
+
+			// update caller info
+			sccp_channel_set_calledparty(c, "barged", !sccp_strlen_zero(bargedChannel->subscriptionId.name) ? bargedChannel->subscriptionId.name : bargedChannel->subscriptionId.number);
+			sccp_channel_set_callingparty(c, "barger", !sccp_strlen_zero(c->subscriptionId.name) ? c->subscriptionId.name : c->subscriptionId.number);
+
+			// execute softswitch
+			sccp_pbx_softswitch(c);
+
+			// hide the channel we barged into
+			d->indicate->remoteConnected(d, lineInstance, bargedChannel->callid, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+
+			// display prompt on Barged Device
+			snprintf(statusmsg, sizeof(statusmsg), SKINNY_DISP_BARGE " " SKINNY_DISP_FROM " %s", l->cid_num);
+			sccp_dev_displayprompt(bargedLineDevice->device, bargedLineDevice->lineInstance, bargedChannel->callid, statusmsg, SCCP_DISPLAYSTATUS_TIMEOUT);
+			//sccp_dev_starttone(bargedLineDevice->device, SKINNY_TONE_BARGIN, bargedLineDevice->lineInstance, bargedChannel->callid, SKINNY_TONEDIRECTION_BOTH);
+			sccp_dev_starttone(bargedLineDevice->device, SKINNY_TONE_ZIP, bargedLineDevice->lineInstance, bargedChannel->callid, SKINNY_TONEDIRECTION_BOTH);
+			sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_2 "%s: is barged in on:%s\n", c->designator, bargedChannel->designator);
+		} else {
+			pbx_log(LOG_ERROR, "Failed to automatically find or create "
+				"context '%s' for sccp_barge!\n", context);
+			sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_FAILED_TO_SETUP_BARGE, SCCP_DISPLAYSTATUS_TIMEOUT);
+			return FALSE;
+		}
+	}
+	return TRUE;
 }
 
 /*!
@@ -1413,5 +1567,4 @@ void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_
 	}
 	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) new monitor status:%s (%d)\n", device->id, sccp_feature_monitor_state2str(monitorFeature->status), monitorFeature->status);
 }
-
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

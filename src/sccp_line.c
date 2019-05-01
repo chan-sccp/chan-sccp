@@ -394,6 +394,7 @@ void sccp_line_copyCodecSetsFromLineToChannel(constLinePtr l, constDevicePtr may
 static void sccp_line_updatePreferencesFromDevicesToLine(sccp_line_t *l)
 {
 	sccp_linedevices_t *linedevice = NULL;
+	int numMembers = 0;
 	boolean_t first=TRUE;
 	if (!l) {
 		return;
@@ -426,7 +427,9 @@ static void sccp_line_updatePreferencesFromDevicesToLine(sccp_line_t *l)
 				}
 			}
 		}
+		numMembers++;
 	}
+	l->isShared = numMembers > 1 ? TRUE : FALSE;
 	SCCP_LIST_UNLOCK(&l->devices);
 
 	char s1[512];

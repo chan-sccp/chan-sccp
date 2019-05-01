@@ -102,7 +102,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_DIGITSFOLL);
 				sccp_dev_set_cplane(d, lineInstance, 1);
-				sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+				sccp_dev_starttone(d, SKINNY_TONE_ZIP, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 				/* for earlyrtp take a look at sccp_feat_handle_callforward because we have no c->owner here */
 			}
 			break;
@@ -562,8 +562,17 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const device, co
 					
 					/* if line is not currently active on remote device, collapse the callstate */
 					//if (remoteDevice->currentLine && linedevice->line != remoteDevice->currentLine && !(c->privacy || !presenceParameter)) {
-					if (!sccp_softkey_isSoftkeyInSoftkeySet(remoteDevice, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_INTRCPT)) {
+					if (
+						(c->privacy || presenceParameter == CALLERID_PRESENTATION_FORBIDDEN) ||
+						(
+							!sccp_softkey_isSoftkeyInSoftkeySet(remoteDevice, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_INTRCPT) &&
+							!sccp_softkey_isSoftkeyInSoftkeySet(remoteDevice, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_BARGE)
+						)
+					) {
 						stateVisibility = SKINNY_CALLINFO_VISIBILITY_COLLAPSED;
+					}
+					if (c->channelStateReason == SCCP_CHANNELSTATEREASON_BARGE || c->isBarging || c->isBarged) {
+						stateVisibility = SKINNY_CALLINFO_VISIBILITY_HIDDEN;
 					}
 					remoteDevice->indicate->remoteConnected(remoteDevice, lineInstance, callid, stateVisibility);
 					iCallInfo.Send(ci, callid, calltype, lineInstance, remoteDevice, TRUE);

@@ -153,6 +153,9 @@
 /* 'ast_channel_get_bridge_channel' available */
 #undef CS_AST_HAS_CHANNEL_GET_BRIDGE_CHANNEL
 
+/* 'AST_CONTEXT_DESTROY_BY_NAME' available */
+#undef CS_AST_HAS_CONTEXT_DESTROY_BY_NAME
+
 /* Found 'asterisk/endian.h' */
 #undef CS_AST_HAS_ENDIAN
 

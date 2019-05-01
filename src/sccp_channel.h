@@ -96,6 +96,8 @@ struct sccp_channel {
 	const char *const musicclass;										/*!< Music Class */
 
 	sccp_channel_t *parentChannel;										/*!< if we are a cfwd channel, our parent is this */
+	boolean_t isBarged;
+	boolean_t isBarging;
 
 	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */
 	uint16_t autoanswer_cause;										/*!< Auto Answer Cause */
@@ -162,12 +164,13 @@ SCCP_API sccp_rtp_status_t SCCP_CALL sccp_channel_closeAllMediaTransmitAndReceiv
 SCCP_API boolean_t SCCP_CALL sccp_channel_transfer_on_hangup(constChannelPtr channel);
 SCCP_INLINE void SCCP_CALL sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel);
 SCCP_INLINE void SCCP_CALL sccp_channel_schedule_hangup(sccp_channel_t * channel, uint timeout);
-SCCP_INLINE void SCCP_CALL sccp_channel_schedule_digittimout(sccp_channel_t * channel, uint timeout);
+SCCP_INLINE void SCCP_CALL sccp_channel_schedule_digittimeout(sccp_channel_t * channel, uint timeout);
 SCCP_API void SCCP_CALL sccp_channel_end_forwarding_channel(sccp_channel_t * orig_channel);
 SCCP_API void SCCP_CALL sccp_channel_endcall(sccp_channel_t * channel);
 SCCP_API void SCCP_CALL sccp_channel_StatisticsRequest(sccp_channel_t * channel);
 SCCP_API void SCCP_CALL sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel);
 SCCP_API void SCCP_CALL sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel);
+SCCP_API void SCCP_CALL sccp_channel_addCleanupJob(channelPtr c, void *(*function_p) (void *), void *arg_p);
 SCCP_API void SCCP_CALL sccp_channel_clean(sccp_channel_t * channel);
 SCCP_API void SCCP_CALL sccp_channel_transfer(channelPtr channel, constDevicePtr device);
 SCCP_API void SCCP_CALL sccp_channel_transfer_release(devicePtr d, channelPtr c);

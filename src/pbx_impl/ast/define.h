@@ -369,6 +369,13 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_variables_destroy ast_variables_destroy
 #define pbx_strlen_zero ast_strlen_zero
 #define pbx_context_find ast_context_find
+#if CS_AST_HAS_CONTEXT_DESTROY_BY_NAME
+#define pbx_context_destroy_by_name ast_context_destroy_by_name
+#else
+#define pbx_context_destroy_by_name ast_context_destroy
+#endif
+#define pbx_context_destroy ast_context_destroy
+#define PBX_CONTEXT_TYPE struct ast_context
 #define pbx_hangup ast_hangup
 #define pbx_atomic_fetchadd_int ast_atomic_fetchadd_int
 #define pbx_clear_flag ast_clear_flag
@@ -416,6 +423,7 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_channel_connected_source(_a) (_a)->connected.source
 #define pbx_connected_line_source_name(_a) ast_connected_line_source_name(_a)
 
+#define pbx_streamfile ast_streamfile
 #if CS_TEST_FRAMEWORK
 #define pbx_test_validate_cleanup ast_test_validate_cleanup
 #define pbx_test_status_update ast_test_status_update

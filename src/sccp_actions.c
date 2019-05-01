@@ -1861,10 +1861,12 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 			//sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s for this phone, but remote has one or more-> %s ONHOOKSTEALABLE\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)", d->currentLine ? "hide" : "show");
 			//sccp_device_sendCallHistoryDisposition(d, instance, channel->callid, SKINNY_CALL_HISTORY_DISPOSITION_IGNORE);						// does not work on all device types, sadly
 			sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);	// suppress missed call entry in phonebook
-			if (d->currentLine == NULL) {	/* remote phone is on call, show remote call */
+			if (d->currentLine == NULL) {	/* remote phone is on call and not activated herer, show remote call */
 				sccp_dev_setActiveLine(device, l);
 				sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-			} else {			/* remote phone is on call, hide remote call */
+				sccp_softkey_setSoftkeyState((sccp_device_t *)d, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_BARGE, TRUE);
+				sccp_dev_set_keyset(device, instance, channel->callid, KEYMODE_ONHOOKSTEALABLE);
+			} else {			/* remote phone is on call and already activated, hide remote call */
 				sccp_dev_setActiveLine(device, NULL);
 				sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			}
@@ -2848,10 +2850,10 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 			if ((b[c] == SKINNY_LBL_MEETME) && (!meetme)) {
 				continue;
 			}
+			//if ((b[c] == SKINNY_LBL_BARGE)) {
+			//	continue;
+			//}
 #ifndef CS_ADV_FEATURES
-			if ((b[c] == SKINNY_LBL_BARGE)) {
-				continue;
-			}
 			if ((b[c] == SKINNY_LBL_CBARGE)) {
 				continue;
 			}
@@ -3190,7 +3192,7 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 		/* add digit to dialed number */
 		channel->dialedNumber[len++] = resp;
 		channel->dialedNumber[len] = '\0';
-		sccp_channel_schedule_digittimout(channel, channel->enbloc.digittimeout);
+		sccp_channel_schedule_digittimeout(channel, channel->enbloc.digittimeout);
 
 		if (GLOB(digittimeoutchar) == resp) {								// we dial on digit timeout char !
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Got digit timeout char '%c', dial immediately\n", GLOB(digittimeoutchar));

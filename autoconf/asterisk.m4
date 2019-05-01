@@ -973,6 +973,14 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 				)
 				CFLAGS="${CFLAGS_saved} ${TEST_SUPPORTED_CFLAGS}"
 			])
+
+			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_context_destroy_by_name'...], [ac_cv_ast_context_destroy_by_name], [
+				$HEADER_INCLUDE
+				#include <asterisk/pbx.h>
+				], [
+					int __attribute__((unused)) test = ast_context_destroy_by_name("xxx","xxx");
+				], [CS_AST_HAS_CONTEXT_DESTROY_BY_NAME],['AST_CONTEXT_DESTROY_BY_NAME' available]
+			)
 		],,[ 
 			$HEADER_INCLUDE
 		])

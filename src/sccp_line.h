@@ -92,6 +92,7 @@ struct sccp_line {
 	boolean_t echocancel;											/*!< echocancel phone support */
 	boolean_t silencesuppression;										/*!< Silence Suppression Phone Support */
 	boolean_t meetme;											/*!< Meetme on/off */
+	boolean_t isShared;
 	/*!
 	 * \brief VoiceMail Statistics Structure
 	 */

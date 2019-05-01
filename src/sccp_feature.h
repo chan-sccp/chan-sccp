@@ -36,8 +36,8 @@ SCCP_API void SCCP_CALL sccp_feat_join(constDevicePtr device, constLinePtr l, ui
 SCCP_API void SCCP_CALL sccp_feat_conflist(devicePtr d, uint8_t lineInstance, constChannelPtr c);
 SCCP_API void SCCP_CALL sccp_feat_handle_meetme(constLinePtr l, uint8_t lineInstance, constDevicePtr d);
 SCCP_API void SCCP_CALL sccp_feat_meetme_start(channelPtr c);
-SCCP_API void SCCP_CALL sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr d);
-SCCP_API int SCCP_CALL sccp_feat_barge(constChannelPtr c, const char *const exten);
+SCCP_API void SCCP_CALL sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr d, channelPtr maybe_c);
+SCCP_API int SCCP_CALL sccp_feat_singleline_barge(channelPtr c, const char *const exten);
 SCCP_API void SCCP_CALL sccp_feat_handle_cbarge(constLinePtr l, uint8_t lineInstance, constDevicePtr d);
 SCCP_API int SCCP_CALL sccp_feat_cbarge(constChannelPtr c, const char *const conferencenum);
 SCCP_API void SCCP_CALL sccp_feat_adhocDial(constDevicePtr d, constLinePtr line);
