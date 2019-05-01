@@ -7,6 +7,9 @@ Version: v4.3.2_DEV
      out of rtp channels. (under some circumstances).
  - Enhancements:
    - Compile with c++ compatibility
+   - Directed barge
+   - Shared line barge
+   - CLI: callforward
 
 Version: v4.3.1_DEV
 =====================

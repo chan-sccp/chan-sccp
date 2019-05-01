@@ -1,8 +1,14 @@
 chan-sccp (4.3.2-1ubuntu1) UNRELEASED; urgency=medium
-
-  * CHANGES:
-    - Fixed one way audio issues
+  * Fixed:
+    - One way audio issues
+    - Congestion signallling after EndCall Softkey
+    - Rtp receive channel left open after call hangup -> causing phone to run
+      out of rtp channels. (under some circumstances).
+  * Enhancements:
     - Compile with c++ compatibility
+    - Directed barge
+    - Shared line barge
+    - CLI: callforward
 
  -- Diederik de Groot <ddegroot@users.sf.net>  Wed, 20 Feb 2019 17:47:00 +0100
 
