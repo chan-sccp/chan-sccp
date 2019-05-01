@@ -2371,6 +2371,92 @@ CLI_AMI_ENTRY(dnd_device, sccp_dnd_device, "Set/Unset DND on an SCCP Device", cl
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
+    /* -----------------------------------------------------------------------------------------------------CALLFORWARD DEVICE- */
+    /*!
+     * \brief Message Device
+     * \param fd Fd as int
+     * \param totals Total number of lines as int
+     * \param s AMI Session
+     * \param m Message
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     * 
+     */
+static int sccp_callforward(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
+{
+	int res = RESULT_FAILURE;
+	int local_line_total = 0;
+	sccp_callforward_t type = SCCP_CFWD_NONE;
+	char *dest = NULL;
+	sccp_linedevices_t *linedevice;
+	AUTO_RELEASE(sccp_device_t, d , NULL);
+
+	if (3 > argc || argc > 6) {
+		return RESULT_SHOWUSAGE;
+	}
+
+	AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byname(argv[2], FALSE));
+	CLI_AMI_OUTPUT(fd, s, "2:%s, 3:%s ,4:%s, 5:%s\n", argv[2], argv[3], argv[4], argv[5]);
+	if (l) {
+		if (argc == 6) {
+			d = sccp_device_find_byid(argv[3], FALSE);
+			type = sccp_callforward_str2val(argv[4]);
+			dest = argv[5];
+		} else if (argc == 5) {
+			if (sccp_strcaseequals(argv[4], "none")) {
+				d = sccp_device_find_byid(argv[3], FALSE);
+				type = sccp_callforward_str2val(argv[4]);
+			} else {
+				type = sccp_callforward_str2val(argv[3]);
+				dest = argv[4];
+			}
+		} else {
+			type = SCCP_CFWD_NONE;
+		}
+	} else {
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find line %s\n", argv[2]);		/* explicit return */
+	}
+
+	CLI_AMI_OUTPUT(fd, s, "Set/Unset CallForward to %s:\n", sccp_callforward2str(type));
+	if (l && d) {
+		CLI_AMI_OUTPUT(fd, s, " - on line:%s and device:%s\r\n", l->name, d->id);
+		sccp_line_cfwd(l, d, type, dest);
+		local_line_total++;
+	} else {
+		SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+			CLI_AMI_OUTPUT(fd, s, " - on line:%s and device:%s\r\n", l->name, linedevice->device->id);
+			sccp_line_cfwd(l, linedevice->device, type, dest);
+			local_line_total++;
+		}
+		SCCP_LIST_UNLOCK(&l->devices);
+	}
+	res = RESULT_SUCCESS;
+
+	if (s) {
+		totals->lines = local_line_total;
+	}
+	return res;
+}
+
+static char cli_callforward_usage[] = "Usage: sccp callforward <lineName> [deviceId] <none|all|busy> [number]\n" "       Set/unset callforward on a line. required: line, type and number. Optionally specifying a device\n";
+static char ami_callforward_usage[] = "Usage: SCCPCallForward\n" "Set/Unset CallForward status on a SCCP Line.\n\n" "PARAMS: LineName, DeviceId, Type=[none|all|busy], Destination=number\n";
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#define CLI_COMMAND "sccp", "callforward"
+#define AMI_COMMAND "SCCPCallForward"
+#define CLI_COMPLETE SCCP_CLI_LINE_COMPLETER, SCCP_CLI_NULL_COMPLETER
+#define CLI_AMI_PARAMS "LineName, DeviceId, Dest"
+CLI_AMI_ENTRY(callforward, sccp_callforward, "Set/Unset CallForward on an SCCP Line", cli_callforward_usage, FALSE, FALSE)
+#undef CLI_AMI_PARAMS
+#undef AMI_COMMAND
+#undef CLI_COMPLETE
+#undef CLI_COMMAND
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* --------------------------------------------------------------------------------------------REMOVE_LINE_FROM_DEVICE- */
     /*!
      * \brief Remove Line From Device
@@ -3526,6 +3612,7 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_add_line_to_device, "Add a line to a device."),
 	AST_CLI_DEFINE(cli_show_sessions, "Show All SCCP Sessions."),
 	AST_CLI_DEFINE(cli_dnd_device, "Set DND on a device"),
+	AST_CLI_DEFINE(cli_callforward, "Set CallForward on a line"),
 	AST_CLI_DEFINE(cli_do_debug, "Enable SCCP debugging."),
 	AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
 	AST_CLI_DEFINE(cli_config_generate, "SCCP generate config file."),
@@ -3586,7 +3673,8 @@ int sccp_register_cli(void)
 	res |= pbx_manager_register("SCCPMessageDevices", _MAN_REP_FLAGS, manager_message_devices, "message devices", ami_message_devices_usage);
 	res |= pbx_manager_register("SCCPMessageDevice", _MAN_REP_FLAGS, manager_message_device, "message device", ami_message_device_usage);
 	res |= pbx_manager_register("SCCPSystemMessage", _MAN_REP_FLAGS, manager_system_message, "system message", ami_system_message_usage);
-	res |= pbx_manager_register("SCCPDndDevice", _MAN_REP_FLAGS, manager_dnd_device, "set/unset dnd on device", ami_dnd_device_usage);
+	res |= pbx_manager_register("SCCPDndDevice", _MAN_REP_FLAGS, manager_dnd_device, "set/unset dnd on a device", ami_dnd_device_usage);
+	res |= pbx_manager_register("SCCPCallforward", _MAN_REP_FLAGS, manager_callforward, "set/unset callforward on a line", ami_callforward_usage);
 	res |= pbx_manager_register("SCCPAnswerCall1", _MAN_REP_FLAGS, manager_answercall, "Answer Ringing Incoming Channel on Device", ami_answercall_usage);
 	res |= pbx_manager_register("SCCPTokenAck", _MAN_REP_FLAGS, manager_tokenack, "send tokenack", ami_tokenack_usage);
 #ifdef CS_SCCP_CONFERENCE
@@ -3626,6 +3714,7 @@ int sccp_unregister_cli(void)
 	res |= pbx_manager_unregister("SCCPMessageDevice");
 	res |= pbx_manager_unregister("SCCPSystemMessage");
 	res |= pbx_manager_unregister("SCCPDndDevice");
+	res |= pbx_manager_unregister("SCCPCallforward");
 	res |= pbx_manager_unregister("SCCPAnswerCall1");
 	res |= pbx_manager_unregister("SCCPTokenAck");
 #ifdef CS_SCCP_CONFERENCE
