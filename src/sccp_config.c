@@ -362,7 +362,7 @@ EXIT:
  *
  * \todo add errormsg return to sccpConfigOption->converter_f: so we can have a fixed format the returned errors to the user
  */
-static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VARIABLE_TYPE * cat_root, const char *name, const char *value, int lineno, const sccp_config_segment_t segment, boolean_t *SetEntries, boolean_t default_run)
+static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VARIABLE_TYPE * cat_root, const char *name, const char *value, int lineno, const sccp_config_segment_t segment, boolean_t *SetEntries, boolean_t defaults_run)
 {
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
 	const SCCPConfigOption *sccpConfigOption = sccp_find_config(segment, name);
@@ -416,11 +416,11 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 	if ((flags & SCCP_CONFIG_FLAG_IGNORE) == SCCP_CONFIG_FLAG_IGNORE) {
 		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: config parameter %s='%s' in line %d ignored\n", name, value, lineno);
 		return SCCP_CONFIG_NOUPDATENEEDED;
-	} if ((flags & SCCP_CONFIG_FLAG_CHANGED) == SCCP_CONFIG_FLAG_CHANGED && !default_run) {
+	} if ((flags & SCCP_CONFIG_FLAG_CHANGED) == SCCP_CONFIG_FLAG_CHANGED && !defaults_run) {
 		pbx_log(LOG_NOTICE, "SCCP: changed config param at %s='%s' in line %d\n - %s -> please check sccp.conf file\n", name, value, lineno, sccpConfigOption->description);
-	} else if ((flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED && lineno > 0 && !default_run) {
+	} else if ((flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED && lineno > 0 && !defaults_run) {
 		pbx_log(LOG_NOTICE, "SCCP: deprecated config param at %s='%s' in line %d\n - %s -> using old implementation\n", name, value, lineno, sccpConfigOption->description);
-	} else if ((flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE && lineno > 0 && !default_run) {
+	} else if ((flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE && lineno > 0 && !defaults_run) {
 		pbx_log(LOG_WARNING, "SCCP: obsolete config param at %s='%s' in line %d\n - %s -> param skipped\n", name, value, lineno, sccpConfigOption->description);
 		return SCCP_CONFIG_NOUPDATENEEDED;
 	} else if ((flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) {
@@ -709,7 +709,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 			}
 		}
 	}
-	if (SCCP_CONFIG_CHANGE_INVALIDVALUE == changed && !default_run) {
+	if (SCCP_CONFIG_CHANGE_INVALIDVALUE == changed && !defaults_run) {
 		pbx_log(LOG_NOTICE, "SCCP: Option Description: %s\n", sccpConfigOption->description);
 	}
 	if (SCCP_CONFIG_CHANGE_ERROR == changed) {
@@ -2753,7 +2753,7 @@ sccp_configurationchange_t sccp_config_applyUserConfiguration(sccp_user_t * u, P
 	PBX_VARIABLE_TYPE *cat_root = v;
 
 	for (; v; v = v->next) {
-		res |= sccp_config_object_setValue(u, cat_root, v->name, v->value, v->lineno, SCCP_CONFIG_USER_SEGMENT, SetEntries);
+		res |= sccp_config_object_setValue(u, cat_root, v->name, v->value, v->lineno, SCCP_CONFIG_USER_SEGMENT, SetEntries, FALSE);
 	}
 
 	sccp_config_set_defaults(u, SCCP_CONFIG_USER_SEGMENT, SetEntries);

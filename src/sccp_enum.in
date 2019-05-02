@@ -360,6 +360,17 @@ strenum usersession_state {
 	SCCP_USERSESSION_INVALID,			,	"Invalid",
 };
 
+strenum xml_outputfmt {
+	SCCP_XML_OUTPUTFMT_NULL,			= 0,	"",
+	SCCP_XML_OUTPUTFMT_HTML,			,	"html",
+	SCCP_XML_OUTPUTFMT_XHTML,			,	"html",
+	SCCP_XML_OUTPUTFMT_XML,				,	"xml",
+	SCCP_XML_OUTPUTFMT_CXML,			,	"cxml",
+	SCCP_XML_OUTPUTFMT_AJAX,			,	"ajax",
+	SCCP_XML_OUTPUTFMT_JSON,			,	"json",
+	SCCP_XML_OUTPUTFMT_TXT,				,	"txt",
+};
+
 } /* NAMESPACE sccp */
 
 namespace skinny {

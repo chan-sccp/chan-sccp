@@ -1833,25 +1833,46 @@ int sccp_random(void)
 	return (int)pbx_random();
 }
 
-/*
-gcc_inline gcc_inline size_t sccp_utf8_strlen_visible(const char *const ms)
+const char * sccp_retrieve_str_variable_byKey(PBX_VARIABLE_TYPE *params, const char *key)
 {
-	setlocale(LC_ALL, "");
-	if (ms)
-		return mbstowcs(NULL, ms, 0);
-        else
-		return 0;
+	PBX_VARIABLE_TYPE *param;
+	for(param = params;param;param = param->next) {
+		if (!strcasecmp(key, param->name)) {
+			return param->value;
+			break;
+		}
+	}
+	return NULL;
 }
 
-gcc_inline size_t sccp_utf8_strlen_nonvisible(const char *const ms)
+int sccp_retrieve_int_variable_byKey(PBX_VARIABLE_TYPE *params, const char *key)
 {
-	setlocale(LC_ALL, "");
-	if (ms)
-		return strlen(ms) - mbstowcs(NULL, ms, 0);
-	else
-		return 0;
+	const char *value = sccp_retrieve_str_variable_byKey(params, key);
+	if (value) {
+		return sccp_atoi(value, strlen(value));
+	}
+	return -1;
 }
-*/
+
+boolean_t sccp_append_variable(PBX_VARIABLE_TYPE *params, const char *key, const char *value)
+{
+	boolean_t res = FALSE;
+	PBX_VARIABLE_TYPE *new_entry;
+	if ((new_entry = pbx_variable_new(key, value, ""))) {
+		if (params) {
+			while(params->next) {
+				params = params->next;
+			}
+			params->next = new_entry;
+		} else {
+			params = new_entry;
+		}
+		res = TRUE;
+	} else {
+		pbx_log(LOG_ERROR, "SCCP: (append_variable) Error while creating new var structure\n");
+	}
+	return res;
+}
 
 gcc_inline int sccp_utf8_columnwidth(int width, const char *const ms)
 {

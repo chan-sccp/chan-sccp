@@ -338,6 +338,7 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_str_append ast_str_append
 #define pbx_str_reset ast_str_reset
 #define pbx_str_strlen ast_str_strlen
+#define pbx_str_size ast_str_size
 #define pbx_str_thread_get ast_str_thread_get
 #define pbx_str_append_escapecommas ast_str_append_escapecommas
 #define pbx_str_buffer ast_str_buffer

@@ -31107,6 +31107,55 @@ $as_echo "${T_MD}Checking XML2/EXSLT:${T_ME}" >&6; }
 		CFLAGS="${LIBEXSLT_CFLAGS} "
 		CPPFLAGS="${LIBEXSLT_CFLAGS} "
 		LDFLAGS="${LIBEXSLT_LIBS} "
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xmlInitParser in -lxml2" >&5
+$as_echo_n "checking for xmlInitParser in -lxml2... " >&6; }
+if ${ac_cv_lib_xml2_xmlInitParser+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lxml2  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char xmlInitParser ();
+int
+main ()
+{
+return xmlInitParser ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_xml2_xmlInitParser=yes
+else
+  ac_cv_lib_xml2_xmlInitParser=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_xml2_xmlInitParser" >&5
+$as_echo "$ac_cv_lib_xml2_xmlInitParser" >&6; }
+if test "x$ac_cv_lib_xml2_xmlInitParser" = xyes; then :
+
+			HAVE_LIBXML2=yes
+
+$as_echo "#define HAVE_LIBXML2 1" >>confdefs.h
+
+
+else
+
+			HAVE_LIBXML2=no
+
+fi
+
 		for ac_header in libxml/tree.h libxml/parser.h libxml/xmlstring.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
@@ -31120,6 +31169,55 @@ fi
 
 done
 
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xsltInit in -lxslt" >&5
+$as_echo_n "checking for xsltInit in -lxslt... " >&6; }
+if ${ac_cv_lib_xslt_xsltInit+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lxslt  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char xsltInit ();
+int
+main ()
+{
+return xsltInit ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_xslt_xsltInit=yes
+else
+  ac_cv_lib_xslt_xsltInit=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_xslt_xsltInit" >&5
+$as_echo "$ac_cv_lib_xslt_xsltInit" >&6; }
+if test "x$ac_cv_lib_xslt_xsltInit" = xyes; then :
+
+			HAVE_LIBXSLT=yes
+
+$as_echo "#define HAVE_LIBXSLT 1" >>confdefs.h
+
+
+else
+
+			HAVE_LIBXSLT=no
+
+fi
+
 		for ac_header in libxslt/xsltInternals.h libxslt/transform.h libxslt/xsltutils.h libxslt/extensions.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
@@ -31132,6 +31230,55 @@ _ACEOF
 fi
 
 done
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for exsltRegisterAll in -lexslt" >&5
+$as_echo_n "checking for exsltRegisterAll in -lexslt... " >&6; }
+if ${ac_cv_lib_exslt_exsltRegisterAll+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lexslt  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char exsltRegisterAll ();
+int
+main ()
+{
+return exsltRegisterAll ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_exslt_exsltRegisterAll=yes
+else
+  ac_cv_lib_exslt_exsltRegisterAll=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_exslt_exsltRegisterAll" >&5
+$as_echo "$ac_cv_lib_exslt_exsltRegisterAll" >&6; }
+if test "x$ac_cv_lib_exslt_exsltRegisterAll" = xyes; then :
+
+			HAVE_LIBEXSLT=yes
+
+$as_echo "#define HAVE_LIBEXSLT 1" >>confdefs.h
+
+
+else
+
+			HAVE_LIBEXSLT=no
+
+fi
 
 		for ac_header in libexslt/exslt.h
 do :

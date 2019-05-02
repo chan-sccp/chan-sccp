@@ -635,7 +635,7 @@ boolean_t sccp_user_handle_logout(sccp_usersession_t *usersession)
 	if (usersession->user) {
 		iPbx.feature_removeFromDatabase("SCCP/emsession/userid", usersession->user->id);
 	}
-	if (usersession->deviceid) {
+	if (!sccp_strlen_zero(usersession->deviceid)) {
 		AUTO_RELEASE(sccp_device_t, device, NULL);
 		iPbx.feature_removeFromDatabase("SCCP/emsession/deviceid", usersession->deviceid);
 		if ((device = sccp_device_find_byid(usersession->deviceid, FALSE)) && device->session) {			// restart device
@@ -1009,6 +1009,7 @@ static int sccp_user_processlogin(struct mansession *s, const struct message *m)
 		return -3;
 	}
 	RAII(sccp_usersession_t *, usersession, sccp_usersession_findByDeviceId(device->id), sccp_free);
+	//sccp_usersession_t * usersession = sccp_usersession_findByDeviceId(device->id);
 	if (!usersession) {
 		pbx_log(LOG_ERROR, "(processlogin) Session:%s could not be retrieved\n", sessionid);
 		astman_send_error_va(s, m, "Session:%s could not be retrieved", sessionid);
