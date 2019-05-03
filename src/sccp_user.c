@@ -8,6 +8,9 @@
 
 #include "config.h"
 #include "common.h"
+
+SCCP_FILE_VERSION(__FILE__, "");
+
 #include "sccp_user.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
@@ -15,8 +18,6 @@
 #include "sccp_utils.h"
 #include "sccp_vector.h"
 #include <asterisk/astdb.h>
-
-SCCP_FILE_VERSION(__FILE__, "");
 
 int __sccp_user_destroy(const void *ptr);
 #define SCCP_MAX_SESSION_ID  8
@@ -1008,8 +1009,7 @@ static int sccp_user_processlogin(struct mansession *s, const struct message *m)
 		// handle error
 		return -3;
 	}
-	RAII(sccp_usersession_t *, usersession, sccp_usersession_findByDeviceId(device->id), sccp_free);
-	//sccp_usersession_t * usersession = sccp_usersession_findByDeviceId(device->id);
+	RAII(sccp_usersession_t *, usersession, sccp_usersession_findByDevice(device), sccp_free_ptr);
 	if (!usersession) {
 		pbx_log(LOG_ERROR, "(processlogin) Session:%s could not be retrieved\n", sessionid);
 		astman_send_error_va(s, m, "Session:%s could not be retrieved", sessionid);
