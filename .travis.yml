@@ -23,7 +23,6 @@ matrix:
   allow_failures:
     - compiler: clang
       env: COVERITY_SCAN_BRANCH_PATTERN=develop
-      
 
 # Install Required Devel Packages
 before_install:
@@ -33,6 +32,10 @@ before_install:
 # Prepare Configure Script
 before_script:
  - autoreconf -fi
+ 
+# temporary additiong to run with "xml"
+script:
+ - ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-advanced-functions --enable-experimental-xml && make clean && make && make test
 
 after_script:
  - cat /home/travis/build/chan-sccp/chan-sccp/cov-int/scm_log.txt
