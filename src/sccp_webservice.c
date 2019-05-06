@@ -330,20 +330,22 @@ static __attribute__ ((malloc)) char * searchWebDirForFile(const char *filename,
 		filepath[0] = '\0';
 		return NULL;
 	}
-	return strdup(filepath);
+	return pbx_strdup(filepath);
 }
 
+/*
 static int addTranslation(PBX_VARIABLE_TYPE *request_params)
 {
 	int res = -1;
 	char *translationFilename = searchWebDirForFile("translations", SCCP_XML_OUTPUTFMT_NULL, "xml");
 	if (translationFilename) {
-		//append_variable(request_params, "translationFile", strdup(translationFilename));
+		//append_variable(request_params, "translationFile", pbx_strdup(translationFilename));
 		//sccp_free(translationFilename);
 		sccp_append_variable(request_params, "translationFile", translationFilename);
 	}
 	return res;
 }
+*/
 
 static __attribute__ ((malloc)) char * findStylesheet(const char *const uri, sccp_xml_outputfmt_t outputfmt)
 {
@@ -664,7 +666,7 @@ static boolean_t xmlPostProcess(xmlDoc * const doc, const char *const uri, PBX_V
 
 	if (outputfmt && iXML.applyStyleSheetByName) {
 		//addTranslation(params);
-		//sccp_append_variable(params, "locales", locale ? strdup(locale) : "en");
+		//sccp_append_variable(params, "locales", locale ? pbx_strdup(locale) : "en");
 		if (process_side == ServerSide) {
 			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (xmlPostProcess) Processing xsl server-side\n");
 			char *stylesheetFilename = findStylesheet(uri, outputfmt);
