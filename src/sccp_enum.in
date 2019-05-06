@@ -354,7 +354,7 @@ strenum callinfo_key {
 };
 
 strenum xml_outputfmt {
-	SCCP_XML_OUTPUTFMT_NULL,			,	"",
+	SCCP_XML_OUTPUTFMT_NULL,			= 0,	"",
 	SCCP_XML_OUTPUTFMT_HTML,			,	"html",
 	SCCP_XML_OUTPUTFMT_XHTML,			,	"html",
 	SCCP_XML_OUTPUTFMT_XML,				,	"xml",

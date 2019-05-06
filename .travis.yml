@@ -56,7 +56,7 @@ addons:
     project:
       name: chan-sccp/chan-sccp
     notification_email: info@talon.nl
-    build_command_prepend: ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-advanced-functions && make clean
+    build_command_prepend: ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-advanced-functions --enable-experimental-xml && make clean
     build_command: make -j2
     branch_pattern: coverity
     
