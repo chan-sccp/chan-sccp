@@ -24,6 +24,10 @@ Make sure you have the following installed on your system:
   - gcc >= 4.4  (note: older not supported, higher advised)
   - clang >= 3.6  (note: older not supported, higher advised)
 - gnu make
+- libraries:
+  - libxml2-dev
+  - libxslt1-dev
+  - gettext
 - pbx:
   - asterisk >= 1.6.2 (absolute minimum)
   - asterisk >= 11.21 or asterisk >= 13.7 recommended

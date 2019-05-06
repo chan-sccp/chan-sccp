@@ -43,6 +43,9 @@
 Name:           chan-sccp_%{asteriskver}
 BuildRequires: 	bison
 BuildRequires: 	m4
+BuildRequires:  gettext
+BuildRequires:  libxml2-dev
+BuildRequires:  libxstl1-dev
 BuildRequires: 	%{asteriskver}
 BuildRequires:  %{asteriskver}-devel
 

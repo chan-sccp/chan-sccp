@@ -1,7 +1,7 @@
 Source: chan-sccp
 Priority: extra
 Maintainer: Diederik de Groot <ddegroot@users.sf.net>
-Build-Depends: asterisk, asterisk-dev, dh-make, debhelper, binutils, coreutils, libacl1, libasound2, libc6, libattr1, libc6, libc6-dev, libncurses5, libselinux1, linux-libc-dev, zlib1g
+Build-Depends: asterisk, asterisk-dev, dh-make, debhelper, binutils, coreutils, libacl1, libasound2, libc6, libattr1, libc6, libc6-dev, libncurses5, libselinux1, linux-libc-dev, zlib1g, gettext, libxml2-dev, libxslt1-dev
 Standards-Version: 4.3.0
 Section: libs
 Homepage: https://github.com/chan-sccp/chan-sccp/
