@@ -10,7 +10,6 @@
  *
  */
 
-#include <locale.h>
 #include "config.h"
 #include "common.h"
 #include "sccp_channel.h"
@@ -21,6 +20,7 @@
 
 SCCP_FILE_VERSION(__FILE__, "");
 
+#include <locale.h>
 #if defined(DEBUG) && defined(HAVE_EXECINFO_H)
 #  include <execinfo.h>
 #  if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
