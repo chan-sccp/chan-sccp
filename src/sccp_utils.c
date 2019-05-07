@@ -10,6 +10,7 @@
  *
  */
 
+#include <locale.h>
 #include "config.h"
 #include "common.h"
 #include "sccp_channel.h"
