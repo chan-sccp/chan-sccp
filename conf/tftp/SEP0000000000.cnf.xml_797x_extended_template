@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<device>
+  <fullConfig>true</fullConfig>
+  <deviceProtocol>SCCP</deviceProtocol>
+  <sshUserId/>
+  <sshPassword/>
+  <devicePool uuid="{1b1b9eb6-7803-11d3-bdf0-00108302ead1}">
+    <revertPriority>0</revertPriority>
+    <name>Default</name>
+    <dateTimeSetting uuid="{9ec4850a-7748-11d3-bdf0-00108302ead1}">
+      <name>CMLocal</name>
+      <dateTemplate>D.M.Y</dateTemplate>
+      <timeZone>W. Europe Standard/Daylight Time</timeZone>
+    </dateTimeSetting>
+    <callManagerGroup>
+      <name>Default</name>
+      <tftpDefault>true</tftpDefault>
+      <members>
+        <member priority="0">
+          <callManager>
+            <name>asterisk</name>
+            <description>asterisk03</description>
+            <ports>
+              <ethernetPhonePort>2000</ethernetPhonePort>
+              <sipPort>5060</sipPort>
+              <securedSipPort>5061</securedSipPort>
+              <mgcpPorts>
+                <listen>2427</listen>
+                <keepAlive>2428</keepAlive>
+              </mgcpPorts>
+            </ports>
+            <processNodeName>asterisk</processNodeName>
+          </callManager>
+        </member>
+      </members>
+    </callManagerGroup>
+    <srstInfo uuid="{cd241e11-4a58-4d3d-9661-f06c912a18a3}">
+      <name>Disable</name>
+      <srstOption>Disable</srstOption>
+      <userModifiable>true</userModifiable>
+      <ipAddr1/>
+      <port1>2000</port1>
+      <ipAddr2/>
+      <port2>2000</port2>
+      <ipAddr3/>
+      <port3>2000</port3>
+      <sipIpAddr1/>
+      <sipPort1>5060</sipPort1>
+      <sipIpAddr2/>
+      <sipPort2>5060</sipPort2>
+      <sipIpAddr3/>
+      <sipPort3>5060</sipPort3>
+      <isSecure>false</isSecure>
+    </srstInfo>
+    <mlppDomainId>-1</mlppDomainId>
+    <mlppIndicationStatus>Default</mlppIndicationStatus>
+    <preemption>Default</preemption>
+    <connectionMonitorDuration>120</connectionMonitorDuration>
+  </devicePool>
+  <commonProfile>
+    <phonePassword/>
+    <backgroundImageAccess>true</backgroundImageAccess>
+    <defaultBackground/>
+    <callLogBlfEnabled>3</callLogBlfEnabled>
+  </commonProfile>
+  <loadInformation>term71.default</loadInformation>
+  <addOnModules>
+    <!--
+		<addOnModule idx="1">
+			<loadInformation>S00105000400</loadInformation>
+		</addOnModule>
+-->
+  </addOnModules>
+
+  <enterpriseConfig> <!-- same entries as vendorConfig, can be overwritten by commonConfig secton, parameter values do get interpreted differently -->
+    <g722CodecSupport>0</g722CodecSupport> <!-- 0 = Phone default, 1 = Disabled. Disables G.722-64K2 codec on phone, 2 = Enabled. Enables G.722-64K codec on phone. -->
+  </enterpriseConfig>
+
+  <commonConfig> <!-- same entries as vendorConfig, can be overwritten by vendorConfig secton -->
+    <g722CodecSupport>0</g722CodecSupport> <!-- 0 = Phone default, take from enterpriseConfig, 1 = Disabled. Disables G.722-64K2 codec on phone, 2 = Enabled. Enables G.722-64K codec on phone. -->
+  </commonConfig>
+
+  <vendorConfig> <!-- entries here overwrite commonConfig and enterpriseConfig -->
+    <g722CodecSupport>0</g722CodecSupport> <!-- 0 = Phone default, take from commonConfig, 1 = Disabled. Disables G.722-64K2 codec on phone, 2 = Enabled. Enables G.722-64K codec on phone. -->
+    <disableSpeaker>false</disableSpeaker>
+    <disableSpeakerAndHeadset>false</disableSpeakerAndHeadset>
+    <forwardingDelay>1</forwardingDelay>
+    <pcPort>0</pcPort>
+    <settingsAccess>1</settingsAccess>
+    <garp>1</garp>
+    <voiceVlanAccess>0</voiceVlanAccess>
+    <videoCapability>0</videoCapability>	<!-- make sure this is only set when video is available -->
+    <autoSelectLineEnable>0</autoSelectLineEnable>
+    <webAccess>0</webAccess>			<!-- 0 = enabled, 1 = disabled -->
+    <webProtocol>0</webProtocol>		<!-- 1 = https only, 0 = http and https -->
+    <daysDisplayNotActive>1,2,3,4,5,6,7</daysDisplayNotActive>
+    <displayOnTime>07:30</displayOnTime>
+    <displayOnDuration>10:30</displayOnDuration>
+    <displayIdleTimeout>00:10</displayIdleTimeout>
+    <displayOnWhenIncomingCall>1</displayOnWhenIncomingCall>
+    <spanToPCPort>0</spanToPCPort>
+    <loggingDisplay>1</loggingDisplay>
+    <recordingTone>0</recordingTone>
+    <recordingToneLocalVolume>100</recordingToneLocalVolume>
+    <recordingToneRemoteVolume>50</recordingToneRemoteVolume>
+    <recordingToneDuration/>
+    <rtcp>0</rtcp>
+    <moreKeyReversionTimer>5</moreKeyReversionTimer>
+    <autoCallSelect>1</autoCallSelect>
+    <headsetWidebandUIControl>0</headsetWidebandUIControl>
+    <handsetWidebandUIControl>0</handsetWidebandUIControl>
+    <headsetWidebandEnable>0</headsetWidebandEnable>
+    <handsetWidebandEnable>0</handsetWidebandEnable>
+    <peerFirmwareSharing>1</peerFirmwareSharing>
+    <enableCdpSwPort>1</enableCdpSwPort>
+    <enableCdpPcPort>1</enableCdpPcPort>
+    <enableLldpSwPort>1</enableLldpSwPort>
+    <enableLldpPcPort>1</enableLldpPcPort>
+    <lldpAssetId/>
+    <powerPriority>1</powerPriority>
+
+    <minimumRingVolume>3</minimumRingVolume>
+    <useEnblocDialing>0</useEnblocDialing>
+    <enableGroupListen>0</enableGroupListen>
+    <enableMuteFeature>0</enableMuteFeature>
+    <suppressCallInfoDisplay>0</suppressCallInfoDisplay>
+    <ehookEnable>1</ehookEnable>
+    <PortAutoLinkSync>0</PortAutoLinkSync>
+    <!--
+    <loadServer/>
+    <logServer/>
+    <ipv6LoadServer/>
+    <ipv6LogServer/>
+    <SWRemoteConfig/>
+    <PCRemoteConfig/>
+    <ldapServers/>
+    <loadServer/>
+    <displayRefreshRate/>
+    <sideToneLevel/>
+    <eapAuthentication/>
+    <handsetHeadsetMonitor/>
+    -->
+  </vendorConfig>
+
+  <advertiseG722Codec>1</advertiseG722Codec>
+  <versionStamp>1231176639-afb83e8d-60c2-4c00-b44a-74941a6451e8</versionStamp>
+  <deviceSecurityMode>1</deviceSecurityMode>
+  <idleTimeout>0</idleTimeout>
+  <dscpForSCCPPhoneConfig>104</dscpForSCCPPhoneConfig>
+  <dscpForSCCPPhoneServices>0</dscpForSCCPPhoneServices>
+  <dscpForCm2Dvce>184</dscpForCm2Dvce>
+  <transportLayerProtocol>4</transportLayerProtocol>
+  <dndCallAlert>5</dndCallAlert>
+  <dndReminderTimer>60</dndReminderTimer>
+  <phonePersonalization>1</phonePersonalization>
+  <rollover>0</rollover>
+  <singleButtonBarge>1</singleButtonBarge>
+  <joinAcrossLines>1</joinAcrossLines>
+  <autoCallPickupEnable>false</autoCallPickupEnable>
+  <blfAudibleAlertSettingOfIdleStation>1</blfAudibleAlertSettingOfIdleStation>
+  <blfAudibleAlertSettingOfBusyStation>1</blfAudibleAlertSettingOfBusyStation>
+  <transportLayerProtocol>4</transportLayerProtocol>
+  
+  <authenticationURL/>
+  <directoryURL/>
+  <idleURL/>
+  <informationURL/>
+  <messagesURL/>
+  <proxyServerURL/>
+  <servicesURL/>
+  
+  <secureAuthenticationURL/>
+  <secureIdleURL/>
+  <secureMessagesURL/>
+  <secureInformationURL/>
+  <secureServicesURL/>
+  <secureDirectoryURL/>
+
+  <logouturi/>
+  <MissedCallLoggingOption/>
+  <userId/>
+  <certHash/>
+  <encrConfig>false</encrConfig>
+
+  <userLocale>
+    <name>English_United_States</name>
+    <uid>1</uid>
+    <langCode>en_US</langCode>
+    <version>7.1.0.1(1)</version>
+    <winCharSet>iso-8859-1</winCharSet>
+  </userLocale>
+
+  <networkLocale>United_States</networkLocale>
+  <networkLocaleInfo>
+    <name>United_States</name>
+    <uid>64</uid>
+    <version>7.1.0.1(1)</version>
+  </networkLocaleInfo>
+
+  <capfAuthMode>1</capfAuthMode>
+  <capfList>
+    <capf>
+      <phonePort>3804</phonePort>
+      <processNodeName/>
+    </capf>
+    <capf6>
+      <phonePort>3804</phonePort>
+      <processNodeName/>
+    </capf6>
+  </capfList>
+
+  <mobility>
+    <handoffdn/>
+    <dtmfdn/>
+    <ivrdn/>
+    <dtmfHoldCode>*81</dtmfHoldCode>
+    <dtmfExclusiveHoldCode>*82</dtmfExclusiveHoldCode>
+    <dtmfResumeCode>*83</dtmfResumeCode>
+    <dtmfTxfCode>*84</dtmfTxfCode>
+    <dtmfCnfCode>*85</dtmfCnfCode>
+  </mobility>
+
+  <phoneServices>
+	<provisioning>0</provisioning>
+	<phoneService  type="1" category="0">
+		<name>Missed Calls</name>
+		<url>Application:Cisco/MissedCalls</url>
+		<vendor></vendor>
+		<version></version>
+	</phoneService>
+	<phoneService  type="2" category="0">
+		<name>Voicemail</name>
+		<url>Application:Cisco/Voicemail</url>
+		<vendor></vendor>
+		<version></version>
+	</phoneService>
+	<phoneService  type="1" category="0">
+		<name>Received Calls</name>
+		<url>Application:Cisco/ReceivedCalls</url>
+		<vendor></vendor>
+		<version></version>
+	</phoneService>
+	<phoneService  type="1" category="0">
+		<name>Placed Calls</name>
+		<url>Application:Cisco/PlacedCalls</url>
+		<vendor></vendor>
+		<version></version>
+	</phoneService>
+	<phoneService  type="1" category="0">
+		<name>Personal Directory</name>
+		<url>Application:Cisco/PersonalDirectory</url>
+		<vendor></vendor>
+		<version></version>
+	</phoneService>
+	<phoneService  type="0" category="0">
+		<name>Corporate Directory</name>
+		<url>Application:Cisco/CorporateDirectory</url>
+		<vendor></vendor>
+		<version></version>
+	</phoneService>
+  </phoneServices>
+</device>
