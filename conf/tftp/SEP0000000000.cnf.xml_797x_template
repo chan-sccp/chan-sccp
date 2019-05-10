@@ -123,7 +123,6 @@
     <useEnblocDialing>0</useEnblocDialing>
     <enableGroupListen>0</enableGroupListen>
     <enableMuteFeature>0</enableMuteFeature>
-    <deviceType>Cisco IP Phone 7970</deviceType>
     <suppressCallInfoDisplay>0</suppressCallInfoDisplay>
     <ehookEnable>1</ehookEnable>
     <PortAutoLinkSync>0</PortAutoLinkSync>
