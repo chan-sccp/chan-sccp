@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <device>
-  <sshUserId>cisco</sshUserId> <!-- please change -->
+  <sshUserId>cisco</sshUserId>
+  <!-- please change -->
   <sshPassword>cisco</sshPassword>
   <devicePool>
     <dateTimeSetting>
@@ -9,7 +10,8 @@
       <timeZone>W. Europe Standard/Daylight Time</timeZone>
       <ntps>
         <ntp>
-          <name>[x.x.x.x]</name> <!-- please change -->
+          <name>[x.x.x.x]</name>
+          <!-- please change -->
           <ntpMode>Unicast</ntpMode>
         </ntp>
       </ntps>
@@ -21,7 +23,8 @@
             <ports>
               <ethernetPhonePort>2000</ethernetPhonePort>
             </ports>
-            <processNodeName>[x.x.x.x]</processNodeName> <!-- please change -->
+            <processNodeName>[x.x.x.x]</processNodeName>
+            <!-- please change -->
           </callManager>
         </member>
       </members>

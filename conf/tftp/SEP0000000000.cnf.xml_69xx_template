@@ -55,7 +55,6 @@
     <displayOnTime>08:30</displayOnTime>
     <displayOnDuration>11:30</displayOnDuration>
     <displayIdleTimeout>01:00</displayIdleTimeout>
-
     <!-- 69xx specific -->
     <!-- Send both accessory and stimulus OFFHOOK messages when going offhook, without this, it only sends the accessory message -->
     <alwaysUsePrimeLine>true</alwaysUsePrimeLine>
