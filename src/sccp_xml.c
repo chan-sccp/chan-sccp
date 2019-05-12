@@ -165,7 +165,7 @@ static boolean_t applyStyleSheet(xmlDoc * const doc, PBX_VARIABLE_TYPE *pbx_para
 	if (xslt) {
 		xmlSubstituteEntitiesDefault(1);
 		xmlLoadExtDtdDefaultValue = 1;
-		//convertPbxVar2XsltParams(pbx_params, params, &nbparams);
+		convertPbxVar2XsltParams(pbx_params, params, &nbparams);		// still needed ?
 		xmlDocPtr newdoc = xsltApplyStylesheet(xslt, doc, params);
 		if (newdoc) {			// switch xml doc with newdoc which got the stylesheet applied, free original xml doc
 			xmlFreeDoc(doc);

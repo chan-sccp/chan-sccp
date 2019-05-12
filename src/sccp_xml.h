@@ -24,7 +24,7 @@ typedef struct {
 
 	xmlNode * (*createNode)(const char * const name);
 	xmlNode * (*addElement)(xmlNode *const parentNode, const char * const name, const char *const content);
-	void (*addProperty)(xmlNode *const parentNode, const char * const key, const char *const format, ...);
+	void (*addProperty)(xmlNode *const parentNode, const char * const key, const char *const format, ...) __attribute__ ((format (printf, 3, 4))); 
 	
 	void (*setRootElement)(xmlDoc *const doc, xmlNode *const node);
 

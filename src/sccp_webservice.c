@@ -361,8 +361,8 @@ static int request_parser (
 	PBX_VARIABLE_TYPE 			* request_headers
 ) {
 	int result = 0;
-	pbx_str_t *http_header = NULL;
-	pbx_str_t *out = NULL;
+	pbx_str_t *http_header = pbx_str_create(80);
+	pbx_str_t *out = pbx_str_create(4196);
 	
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "SCCP: (request_parser) Handling Callback\n");
 
@@ -397,8 +397,8 @@ static int request_parser (
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: handler:%p, result:%d\n", handler, result);
 	do {
 		if (result == 0) {
-			pbx_str_t *http_header = pbx_str_create(80);
-			pbx_str_t *out = pbx_str_create(4196);
+			http_header = pbx_str_create(80);
+			out = pbx_str_create(4196);
 			if (!http_header || !out) {
 				pbx_log(LOG_ERROR, "pbx_str_create() out of memory\n");
 				ast_http_error(ser, 500, "Server Error", "Internal Server Error\nast_str_create() out of memory\n");
