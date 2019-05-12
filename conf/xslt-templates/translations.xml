@@ -89,7 +89,7 @@
 
   <sccp:translation locale="fr">
 <!-- Errors -->
-    <entry key="errorno-501">Ce téléphone ne peut pas afficher x-CiscoIpPhone Menus.</entry>'s aus zu fuhren.</entry>
+    <entry key="errorno-501">Ce téléphone ne peut pas afficher x-CiscoIpPhone Menus.</entry>
     <entry key="errorno-502">La conférence demandée est actuellement indisponible.</entry>
     <entry key="errorno-503">Le participant demandé ne fait pas partie de cette conférence.</entry>
     <entry key="errorno-504">Il n'y a pas assez de participants, cette conférence ne peut fonctionner.</entry>
