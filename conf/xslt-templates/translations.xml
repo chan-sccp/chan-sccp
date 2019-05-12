@@ -1,5 +1,34 @@
 <?xml version="1.0"?>
 <sccp:translations xmlns:sccp="http://chan-sccp.net">
+  <sccp:translation locale="en">
+<!-- Errors -->
+    <entry key="errorno-501">This phone is not able to display x-CiscoIpPhone Menus.</entry>
+    <entry key="errorno-502">The requested conference is currently not available.</entry>
+    <entry key="errorno-503">The requested participant is not part of the conference.</entry>
+    <entry key="errorno-504">This conference does not have enough participants.</entry>
+    <entry key="errorno-505">This participant is not allowed to execute any commands.</entry>
+    <entry key="errorno-506">This participant does not have enough permissions.</entry>
+    <entry key="errorno-507">Please enter the extension to be invited.</entry>
+    <entry key="errorno-508">You are not allowed to invite new partipants.</entry>
+<!-- ConfList -->
+    <entry key="Conference">Conference</entry>
+    <entry key="EndConf">EndConf</entry>
+    <entry key="Mute">Mute</entry>
+    <entry key="Kick">Kick</entry>
+    <entry key="Exit">Exit</entry>
+    <entry key="Moderate">Moderate</entry>
+<!-- ConfInvite -->
+    <entry key="Invite">Invite</entry>
+    <entry key="Enter Phone# to Invite">Enter Phone# to invite:</entry>
+    <entry key="Phone Number">Phone Number</entry>
+    <entry key="Name">Name</entry>
+<!-- ParkedCalls -->
+    <entry key="Parked Calls">Parked Calls</entry>
+    <entry key="Please Choose one of the parked Calls">Please choose one of the parked calls</entry>
+    <entry key="No Parked Calls">No parked calls</entry>
+    <entry key="There are no parked calls at this moment">There are no parked calls at this moment</entry>
+  </sccp:translation>
+
   <sccp:translation locale="de">
 <!-- Errors -->
     <entry key="errorno-501">Dieses Telefone ist nicht in der lage x-CiscoIpPhone Menu's zu zeigen.</entry>
@@ -28,6 +57,7 @@
     <entry key="No Parked Calls">Keine geparkte Anrufe</entry>
     <entry key="There are no parked calls at this moment">Am moment gibt es keine geparkte Anrufe</entry>
   </sccp:translation>
+
   <sccp:translation locale="nl">
 <!-- Errors -->
     <entry key="errorno-501">Deze telefoon is niet in staat om x-CiscoIpPhone Menu's te tonen.</entry>
@@ -56,4 +86,33 @@
     <entry key="No Parked Calls">Geen geparkeerde gesprekken</entry>
     <entry key="There are no parked calls at this moment">Op dit moment zijn er geen geparkeerde gesprekken</entry>
   </sccp:translation>
+
+  <sccp:translation locale="fr">
+<!-- Errors -->
+    <entry key="errorno-501">Ce téléphone ne peut pas afficher x-CiscoIpPhone Menus.</entry>'s aus zu fuhren.</entry>
+    <entry key="errorno-502">La conférence demandée est actuellement indisponible.</entry>
+    <entry key="errorno-503">Le participant demandé ne fait pas partie de cette conférence.</entry>
+    <entry key="errorno-504">Il n'y a pas assez de participants, cette conférence ne peut fonctionner.</entry>
+    <entry key="errorno-505"></entry>
+    <entry key="errorno-506"></entry>
+    <entry key="errorno-507"></entry>
+    <entry key="errorno-508"></entry>
+<!-- ConfList -->
+    <entry key="Conference">Conférence</entry>
+    <entry key="EndConf">Terminer</entry>
+    <entry key="Mute">Mue</entry>
+    <entry key="Kick">Exclure</entry>
+    <entry key="Exit">Exit</entry>
+    <entry key="Moderate">Modérateur</entry>
+<!-- ConfInvite -->
+    <entry key="Invite">Inviter</entry>
+    <entry key="Enter Phone# to Invite">Saisissez le numéro à inviter:</entry>
+    <entry key="Phone Number">Numéro de téléphone</entry>
+    <entry key="Name">Nom</entry>
+<!-- ParkedCalls -->
+    <entry key="Parked Calls">Appels parqués</entry>
+    <entry key="Please Choose one of the parked Calls">Sélectionnez un appel parqué</entry>
+    <entry key="No Parked Calls">Pas d'appels parqués</entry>
+    <entry key="There are no parked calls at this moment">Il n'y pas d'appels parqués pour le moment</entry>
+  </sccp:translation>  
 </sccp:translations>
