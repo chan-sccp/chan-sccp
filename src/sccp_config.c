@@ -1801,7 +1801,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 	/* temp current buttonconfiglist status*/
 	{
 		SCCP_LIST_LOCK(buttonconfigList);
-		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status before check\n")
+		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status before check\n");
 		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
 			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "index:%d, type:%-10.10s (%d), pendingDelete:%s, pendingUpdate:%s\n",
 			config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
@@ -1857,7 +1857,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 	/* temp current buttonconfiglist status*/
 	{
 		SCCP_LIST_LOCK(buttonconfigList);
-		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status after check\n")
+		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status after check\n");
 		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
 			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "index:%d, type:%-10.10s (%d), pendingDelete:%s, pendingUpdate:%s\n",
 				config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");

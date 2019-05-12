@@ -11,7 +11,6 @@
 /* forward declarations */
 struct mansession;
 struct message;
-typedef struct ast_str pbx_str_t;
 
 __BEGIN_C_EXTERN__
 #define REFCOUNT_INDENTIFIER_SIZE 32

@@ -18,15 +18,16 @@
 #define __LOG_VERBOSE    2
 #define NO_FILE_LINE_FUNC_DEBUG      __LOG_VERBOSE, _B_
 
-#define sccp_log1(...) {									\
+#define sccp_log2(...) {									\
 	if ((sccp_globals->debug & (DEBUGCAT_FILELINEFUNC)) == DEBUGCAT_FILELINEFUNC) {		\
 		pbx_log(AST_LOG_NOTICE, __VA_ARGS__);						\
 	} else {										\
 		pbx_log(NO_FILE_LINE_FUNC_DEBUG, __VA_ARGS__);					\
 	}											\
 }
-#define sccp_log(_x) if ((sccp_globals->debug & (_x))) sccp_log1
-#define sccp_log_and(_x) if ((sccp_globals->debug & (_x)) == (_x)) sccp_log1
+#define sccp_log1(_format, ...) sccp_log2(_format, ## __VA_ARGS__)}})
+#define sccp_log(_x) ({if ((sccp_globals->debug & (_x))) {sccp_log1
+#define sccp_log_and(_x) ({if ((sccp_globals->debug & (_x)) == (_x)) {sccp_log1
 
 __BEGIN_C_EXTERN__
 extern const char *SS_Memory_Allocation_Error;
