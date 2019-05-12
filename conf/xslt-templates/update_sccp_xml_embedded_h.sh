@@ -10,8 +10,8 @@ function generate () {
 	echo "	const char *name;"
 	echo "	const char *xsl;"
 	echo "} fallback_stylesheets[] = {"
-	for stylesheet in *_cxml.xsl; do
-		name=`basename "${stylesheet}" _cxml.xsl`
+	for stylesheet in *2cxml.xsl; do
+		name=`basename "${stylesheet}" 2cxml.xsl`
 		echo -n "	{\"${name}\", \""
 		cat "${stylesheet}" |tr -d '\010\011\012\013'|sed 's/^ *//;s/ *$//;s/ \{1,\}/ /g;s/"/\\"/g'
 		echo "\"},"

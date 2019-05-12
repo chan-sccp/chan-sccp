@@ -1,6 +1,10 @@
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:include href="translate.xsl"/>
-  <xsl:include href="error.xsl"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0"
+   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+   xmlns:sccp="http://chan-sccp.net" exclude-result-prefixes="sccp"
+>
+  <xsl:include href="./lib/translate.xsl"/>
+  <xsl:include href="./lib/error.xsl"/>
 
   <xsl:template match="/voicemails">
   <CiscoIPPhoneDirectory>

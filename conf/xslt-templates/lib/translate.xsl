@@ -1,13 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0"
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	xmlns:str="http://exslt.org/strings"
 	xmlns:exslt="http://exslt.org/common"
-	xmlns:sccp="http://chan-sccp.net"
-	exclude-result-prefixes="sccp"
+	xmlns:sccp="http://chan-sccp.net" exclude-result-prefixes="sccp"
 >
-  <xsl:param name="translationFile" select="'./translations.xml'"/>
-
-  <xsl:param name="locales" select="'da, nl, de;q=0.9, en-gb;q=0.8, en;q=0.7'"/>
+  <xsl:param name="translationFile" select="'../translations.xml'"/>
+  <xsl:param name="locales" select="'da, fr, ru, nl, de;q=0.9, en-gb;q=0.8, en;q=0.7'"/>
   <xsl:param name="locale"><xsl:call-template name="findLocale"/></xsl:param>
 
   <xsl:template name="findLocale">

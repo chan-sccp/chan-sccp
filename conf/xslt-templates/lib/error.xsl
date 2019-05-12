@@ -1,4 +1,10 @@
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0"
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	xmlns:str="http://exslt.org/strings"
+	xmlns:exslt="http://exslt.org/common"
+	xmlns:sccp="http://chan-sccp.net" exclude-result-prefixes="sccp"
+>
   <xsl:template match="/error">
     <xsl:if test="errorno &gt; 0">
       <CiscoIPPhoneText>

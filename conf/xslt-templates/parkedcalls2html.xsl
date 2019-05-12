@@ -1,7 +1,10 @@
-<?xml version="1.0"?>
-
+<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0"
-xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+   xmlns:sccp="http://chan-sccp.net" exclude-result-prefixes="sccp"
+>
+  <xsl:include href="./lib/translate.xsl"/>
+  <xsl:include href="./lib/error.xsl"/>
 
 <xsl:template match="/">
   <html>
@@ -31,7 +34,6 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   </body>
   </html>
 </xsl:template>
-
 
 <xsl:template match="//response/generic[@event='ParkedCall']">
       <tr>
