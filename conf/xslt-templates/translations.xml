@@ -93,17 +93,18 @@
     <entry key="errorno-502">La conférence demandée est actuellement indisponible.</entry>
     <entry key="errorno-503">Le participant demandé ne fait pas partie de cette conférence.</entry>
     <entry key="errorno-504">Il n'y a pas assez de participants, cette conférence ne peut fonctionner.</entry>
-    <entry key="errorno-505"></entry>
-    <entry key="errorno-506"></entry>
-    <entry key="errorno-507"></entry>
-    <entry key="errorno-508"></entry>
+    <entry key="errorno-505">Ce participant n'a pas autorité pour exécuter des commandes.</entry>
+    <entry key="errorno-506">Les permissions de ce participant ne sont pas suffisantes.</entry>
+    <entry key="errorno-507">Veuillez saisir le numéro de la personne à inviter.</entry>
+    <entry key="errorno-508">Vous n'êtes pas autorisé à inviter d'autres participants.</entry>
 <!-- ConfList -->
     <entry key="Conference">Conférence</entry>
     <entry key="EndConf">Terminer</entry>
-    <entry key="Mute">Mue</entry>
+    <entry key="Mute">Muet</entry>
     <entry key="Kick">Exclure</entry>
     <entry key="Exit">Exit</entry>
-    <entry key="Moderate">Modérateur</entry>
+    <!--<entry key="Moderate">Modérateur</entry>-->
+    <entry key="Moderate">Modérat.</entry>
 <!-- ConfInvite -->
     <entry key="Invite">Inviter</entry>
     <entry key="Enter Phone# to Invite">Saisissez le numéro à inviter:</entry>
