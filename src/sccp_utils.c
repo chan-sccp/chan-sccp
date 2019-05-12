@@ -1858,19 +1858,19 @@ int sccp_retrieve_int_variable_byKey(PBX_VARIABLE_TYPE *params, const char *key)
 boolean_t sccp_append_variable(PBX_VARIABLE_TYPE *params, const char *key, const char *value)
 {
 	boolean_t res = FALSE;
-	PBX_VARIABLE_TYPE *new;
-	if ((new = pbx_variable_new(key, value, ""))) {
+	PBX_VARIABLE_TYPE *newvar;
+	if ((newvar = pbx_variable_new(key, value, ""))) {
 		if (params) {
 			while(params->next) {
 				params = params->next;
 			}
-			params->next = new;
+			params->next = newvar;
 		} else {
-			params = new;
+			params = newvar;
 		}
 		res = TRUE;
 	} else {
-		pbx_log(LOG_ERROR, "SCCP: (append_variable) Error while creating new var structure\n");
+		pbx_log(LOG_ERROR, "SCCP: (append_variable) Error while creating newvar structure\n");
 	}
 	return res;
 }

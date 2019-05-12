@@ -96,7 +96,7 @@ static const char *ftype2mtype(const char *ftype)
 	return NULL;
 }
 
-SCCP_VECTOR_RW(, handler_t) handlers;
+SCCP_VECTOR_RW(sccp_uri_handler, handler_t) handlers;
 
 #define HANDLER_CB_CMP(elem, value) (sccp_strcaseequals((elem).uri, (value)))
 
@@ -164,7 +164,8 @@ static boolean_t parse_http_conf(char *const uri_str)
 					break;
 				}
 			} else if (!strcasecmp(v->name, "bindport")) {
-				if (ast_parse_arg(v->value, PARSE_UINT32 | PARSE_IN_RANGE | PARSE_DEFAULT, &bindport, DEFAULT_PORT, 0, 65535)) {
+				if (ast_parse_arg(v->value, PARSE_UINT32 | PARSE_IN_RANGE | PARSE_DEFAULT,
+						&bindport, DEFAULT_PORT, 0, 65535)) {
 					ast_log(LOG_WARNING, "Invalid port %s specified. Using default port %"PRId32, v->value, DEFAULT_PORT);
 					break;
 				}
@@ -181,8 +182,8 @@ static boolean_t parse_http_conf(char *const uri_str)
 					prefix[0] = '\0';
 				}
 			} else if (!strcasecmp(v->name, "sessionlimit")) {
-				if (ast_parse_arg(v->value, PARSE_INT32|PARSE_DEFAULT|PARSE_IN_RANGE,
-					&cookie_timeout, DEFAULT_SESSION_LIMIT, 1, INT_MAX)) {
+				if (ast_parse_arg(v->value, PARSE_INT32 | PARSE_DEFAULT | PARSE_IN_RANGE,
+						&cookie_timeout, DEFAULT_SESSION_LIMIT, 1, INT_MAX)) {
 					ast_log(LOG_WARNING, "Invalid %s '%s' at line %d of http.conf\n", v->name, v->value, v->lineno);
 				}
 			}
@@ -267,7 +268,7 @@ static handler_t * get_request_handler(PBX_VARIABLE_TYPE * request_params)
 
 	if (uri) {
 		SCCP_VECTOR_RW_RDLOCK(&handlers);
-		handler = SCCP_VECTOR_GET_CMP(&handlers, uri, HANDLER_CB_CMP); 
+		handler = (handler_t *) SCCP_VECTOR_GET_CMP(&handlers, uri, HANDLER_CB_CMP); 
 		SCCP_VECTOR_RW_UNLOCK(&handlers);
 
 		if (!handler) {
@@ -544,7 +545,7 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser
 		goto out403;
 	}
 
-	path = ast_alloca(len);
+	path = (char *) sccp_alloca(len);
 	snprintf(path, len, "%s/sccpxslt/%s", ast_config_AST_DATA_DIR, uri);
 
 	if (stat(path, &st)) {

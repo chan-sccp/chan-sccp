@@ -74,7 +74,7 @@ static xmlNode * addElement(xmlNode *const parentNode, const char * const name, 
 	return node;
 }
 
-static void addProperty(xmlNode *const parentNode, const char * const key, const char *const format, ...)
+static void __attribute__ ((format (printf, 3, 4))) addProperty(xmlNode *const parentNode, const char * const key, const char *const format, ...)
 {
 	va_list args;
 	va_start(args, format);
