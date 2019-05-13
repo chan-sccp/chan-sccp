@@ -283,6 +283,7 @@ struct sccp_device {
 	boolean_t (*hasLabelLimitedDisplayPrompt) (void);							/*!< Can only display very limited selection of label based status bar messages */
 	boolean_t (*useHookFlash) (void);									/*!< use Hook Flasg to transfer (based on devicetype) */
 	boolean_t (*hasEnhancedIconMenuSupport) (void);								/*!< has Enhanced IconMenu Support (derived from devicetype and protocol) */
+	boolean_t (*hasMWILight) (void);									/*!< has Message Waiting Indicator Light */
 	void (*retrieveDeviceCapabilities) (constDevicePtr device);						/*!< set device background image */
 	void (*setBackgroundImage) (constDevicePtr device, const char *url, const char *tn);			/*!< set device background thumbnail image */
 	void (*displayBackgroundImagePreview) (constDevicePtr device, const char *url);				/*!< display background image as preview */

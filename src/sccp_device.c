@@ -694,6 +694,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->hasDisplayPrompt = sccp_device_trueResult;
 	d->hasLabelLimitedDisplayPrompt = sccp_device_falseResult;
 	d->hasEnhancedIconMenuSupport = sccp_device_falseResult;
+	d->hasMWILight = sccp_device_trueResult;
 	d->setBackgroundImage = sccp_device_setBackgroundImageNotSupported;
 	d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreviewNotSupported;
 	d->retrieveDeviceCapabilities = sccp_device_retrieveDeviceCapabilities;
@@ -966,6 +967,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			for (i = 0; i < 13; i++) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
+			d->hasMWILight = sccp_device_falseResult;
 			break;
 		case SKINNY_DEVICETYPE_12SPPLUS:
 		case SKINNY_DEVICETYPE_12SP:
@@ -983,6 +985,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			btn[btn_index++].type = SKINNY_BUTTONTYPE_FORWARDALL;
 			btn[btn_index++].type = SKINNY_BUTTONTYPE_CALLPARK;
 			btn[btn_index++].type = SKINNY_BUTTONTYPE_VOICEMAIL;
+			d->hasMWILight = sccp_device_falseResult;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7902:
 			btn[btn_index++].type = SCCP_BUTTONTYPE_LINE;
@@ -1119,6 +1122,8 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 				d->setRingTone = sccp_device_setRingtone;
 				d->hasEnhancedIconMenuSupport = sccp_device_trueResult;
 			}
+			/* TEMP */
+			d->hasMWILight = sccp_device_falseResult;
 			break;
 		case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
 			/* the nokia icc client identifies it self as SKINNY_DEVICETYPE_CISCO7970, but it can only have one line  */
@@ -1161,6 +1166,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			btn[btn_index++].type = SCCP_BUTTONTYPE_LINE;
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			d->useHookFlash = sccp_device_trueResult;
+			d->hasMWILight = sccp_device_falseResult;
 			break;
 		case SKINNY_DEVICETYPE_ATA188:
 		case SKINNY_DEVICETYPE_ATA186:
@@ -1171,6 +1177,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			}
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			d->useHookFlash = sccp_device_trueResult;
+			d->hasMWILight = sccp_device_falseResult;
 			break;
 		case SKINNY_DEVICETYPE_CISCO8941:
 		case SKINNY_DEVICETYPE_CISCO8945:
@@ -1299,6 +1306,7 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 
 	if (d->skinny_type < 6 || sccp_strcaseequals(d->config_type, "kirk")) {
 		d->hasDisplayPrompt = sccp_device_falseResult;
+		d->hasMWILight = sccp_device_falseResult;
 	}
 
 	// fill the rest with abbreviated dial buttons
