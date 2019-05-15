@@ -132,7 +132,6 @@ static void sccp_free_ptr(void *ptr)
 }
 
 sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel);
-int sccp_astgenwrap_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value);
 boolean_t sccp_astgenwrap_requestQueueHangup(sccp_channel_t * c);
 boolean_t sccp_astgenwrap_requestHangup(sccp_channel_t * c);
 
@@ -150,6 +149,7 @@ void sccp_astwrap_connectedline(sccp_channel_t * channel, const void *data, size
 void sccp_astwrap_redirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen);
 void sccp_astwrap_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason);
 int sccp_astgenwrap_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *preparse, char *buf, size_t buflen);
+int sccp_astgenwrap_channel_write(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value);
 int sccp_parse_alertinfo(PBX_CHANNEL_TYPE *pbx_channel, skinny_ringtype_t *ringermode);
 int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, uint8_t *autoanswer_cause, skinny_ringtype_t *ringermode);
 boolean_t sccp_astgenwrap_featureMonitor(const sccp_channel_t * channel);

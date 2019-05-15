@@ -644,7 +644,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				sccp_channel_startMediaTransmission(c);
 			}
 #if CS_SCCP_VIDEO
-			if (sccp_device_isVideoSupported(d) && c->videomode == SCCP_VIDEO_MODE_AUTO && c->preferences.video[0] != SKINNY_CODEC_NONE) {
+			if (c->videomode == SCCP_VIDEO_MODE_AUTO && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE) {
 				if (SCCP_RTP_STATUS_INACTIVE == c->rtp.video.receiveChannelState) {
 					sccp_channel_openMultiMediaReceiveChannel(c);
 				} else if ((c->rtp.video.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.mediaTransmissionState) {
@@ -919,10 +919,9 @@ boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, c
 				return FALSE;
 			}
 #if CS_SCCP_VIDEO
-			if (sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE && !c->rtp.video.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_AUDIO)) {
+			if (c->videomode != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE && !c->rtp.video.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_AUDIO)) {
 				pbx_log(LOG_WARNING, "%s: Error opening VRTP for channel %s\n", d->id, c->designator);
 				c->videomode = SCCP_VIDEO_MODE_OFF;
-				//c->preferences.video[0] = SCCP_CODEC_NONE;
 			}
 #endif
 		}

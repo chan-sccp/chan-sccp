@@ -145,7 +145,7 @@ static struct ast_channel_tech sccp_tech = {
 	write_text:		NULL,
 	bridged_channel:	NULL,
 	func_channel_read:	sccp_astgenwrap_channel_read,
-	func_channel_write:	sccp_astgenwrap_fktChannelWrite,
+	func_channel_write:	sccp_astgenwrap_channel_write,
 	get_base_channel:	NULL,
 	set_base_channel:	NULL
 	/* *INDENT-ON* */
@@ -185,7 +185,7 @@ struct ast_channel_tech sccp_tech = {
 	//.send_image           =
 
 	.func_channel_read 	= sccp_astgenwrap_channel_read,
-	.func_channel_write 	= sccp_astgenwrap_fktChannelWrite,
+	.func_channel_write 	= sccp_astgenwrap_channel_write,
 
 	.send_digit_begin 	= sccp_wrapper_recvdigit_begin,
 	.send_digit_end 	= sccp_wrapper_recvdigit_end,
@@ -1380,9 +1380,9 @@ static int sccp_astwrap_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
 
 	AST_LIST_TRAVERSE(headp, current, entries) {
 		if (!strcasecmp(ast_var_name(current), "__MaxCallBR")) {
-			sccp_astgenwrap_fktChannelWrite(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
+			sccp_astgenwrap_channel_write(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
 		} else if (!strcasecmp(ast_var_name(current), "MaxCallBR")) {
-			sccp_astgenwrap_fktChannelWrite(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
+			sccp_astgenwrap_channel_write(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
 #if CS_SCCP_VIDEO
 		} else if (!strcasecmp(ast_var_name(current), "SCCP_VIDEO_MODE")) {
 			sccp_channel_setVideoMode(c, ast_var_value(current));

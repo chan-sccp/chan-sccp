@@ -719,9 +719,7 @@ static void sccp_protocol_sendOpenMultiMediaChannelV3(constDevicePtr device, con
 	msg->data.OpenMultiMediaChannelMessage.v3.lel_streamPassThroughID = htolel(channel->passthrupartyid);
 	msg->data.OpenMultiMediaChannelMessage.v3.lel_associatedStreamID = htolel(channel->callid);		// We should use a random number and link it up 
 														// with the MultiMediaTransmission
-
-	sccp_dump_msg(msg);
-
+	//sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 /*!
@@ -808,8 +806,7 @@ static void sccp_protocol_sendOpenMultiMediaChannelV12(constDevicePtr device, co
 	}
 	msg->data.OpenMultiMediaChannelMessage.v12.lel_sourcePortNumber=htolel(sccp_netsock_getPort(&sas));
 	
-	sccp_dump_msg(msg);
-
+	//sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 /*!
@@ -926,8 +923,7 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, co
 	}
 	msg->data.OpenMultiMediaChannelMessage.v17.lel_sourcePortNumber=htolel(sccp_netsock_getPort(&sas));
 	
-	sccp_dump_msg(msg);
-
+	//sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 

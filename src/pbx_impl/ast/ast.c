@@ -694,67 +694,6 @@ boolean_t sccp_astgenwrap_requestHangup(sccp_channel_t * c)
 	return res;
 }
 
-int sccp_astgenwrap_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value)
-{
-	int res = 0;
-
-	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(ast));
-	if (c) {
-		if (!strcasecmp(args, "MaxCallBR")) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set max call bitrate to %s\n", (char *) c->designator, value);
-
-			if (sscanf(value, "%ud", &c->maxBitRate)) {
-				pbx_builtin_setvar_helper(ast, "_MaxCallBR", value);
-			} else {
-				res = -1;
-			}
-
-		} else if (!strcasecmp(args, "codec")) {
-			res = (TRUE == sccp_channel_setPreferredCodec(c, value)) ? 0 : -1;
-			
-		} else if (!strcasecmp(args, "video")) {
-			res = sccp_channel_setVideoMode(c, value);
-			
-		} else if (!strcasecmp(args, "CallingParty")) {
-			char *num, *name;
-
-			pbx_callerid_parse((char *) value, &name, &num);
-			sccp_channel_set_callingparty(c, name, num);
-			sccp_channel_display_callInfo(c);
-		} else if (!strcasecmp(args, "CalledParty")) {
-			char *num, *name;
-
-			pbx_callerid_parse((char *) value, &name, &num);
-			sccp_channel_set_calledparty(c, name, num);
-			sccp_channel_display_callInfo(c);
-		} else if (!strcasecmp(args, "OriginalCallingParty")) {
-			char *num, *name;
-
-			pbx_callerid_parse((char *) value, &name, &num);
-			sccp_channel_set_originalCallingparty(c, name, num);
-			sccp_channel_display_callInfo(c);
-		} else if (!strcasecmp(args, "OriginalCalledParty")) {
-			char *num, *name;
-
-			pbx_callerid_parse((char *) value, &name, &num);
-			sccp_channel_set_originalCalledparty(c, name, num);
-			sccp_channel_display_callInfo(c);
-		} else if (!strcasecmp(args, "microphone")) {
-			if (!value || sccp_strlen_zero(value) || !sccp_true(value)) {
-				c->setMicrophone(c, FALSE);
-			} else {
-				c->setMicrophone(c, TRUE);
-			}
-		} else {
-			res = -1;
-		}
-	} else {
-		pbx_log(LOG_ERROR, "This function requires a valid SCCP channel\n");
-		res = -1;
-	}
-	return res;
-}
-
 /***** database *****/
 boolean_t sccp_astwrap_addToDatabase(const char *family, const char *key, const char *value)
 {
@@ -1189,6 +1128,17 @@ int sccp_astgenwrap_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname
 		} else {
 			sccp_copy_string(buf, "--", buflen);
 		}
+	} else if (sccp_strcaseequals(args.type, "codec")) {
+		sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->capabilities.audio, SKINNY_MAX_CAPABILITIES);
+		sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->preferences.audio, SKINNY_MAX_CAPABILITIES);
+#if CS_SCCP_VIDEO
+		sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->capabilities.video, SKINNY_MAX_CAPABILITIES);
+		sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->preferences.video, SKINNY_MAX_CAPABILITIES);
+#endif
+	} else if (sccp_strcaseequals(args.type, "video")) {
+#if CS_SCCP_VIDEO
+		sccp_copy_string(buf, sccp_video_mode2str(c->videomode), buflen);
+#endif
 	} else if (!strcasecmp(args.param, "useragent")) {
 		sccp_copy_string(buf, skinny_devicetype2str(d->skinny_type), buflen);
 	} else if (!strcasecmp(args.param, "from")) {
@@ -1292,6 +1242,67 @@ int sccp_astgenwrap_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname
 #endif
 	} else {
 		pbx_log(LOG_WARNING, "SCCP: (channel_read) Unrecognized argument '%s' to %s\n", preparse, funcname);
+	}
+	return res;
+}
+
+int sccp_astgenwrap_channel_write(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value)
+{
+	int res = 0;
+
+	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(ast));
+	if (c) {
+		if (!strcasecmp(args, "MaxCallBR")) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set max call bitrate to %s\n", (char *) c->designator, value);
+
+			if (sscanf(value, "%ud", &c->maxBitRate)) {
+				pbx_builtin_setvar_helper(ast, "_MaxCallBR", value);
+			} else {
+				res = -1;
+			}
+
+		} else if (!strcasecmp(args, "codec")) {
+			res = (TRUE == sccp_channel_setPreferredCodec(c, value)) ? 0 : -1;
+			
+		} else if (!strcasecmp(args, "video")) {
+			res = sccp_channel_setVideoMode(c, value);
+			
+		} else if (!strcasecmp(args, "CallingParty")) {
+			char *num, *name;
+
+			pbx_callerid_parse((char *) value, &name, &num);
+			sccp_channel_set_callingparty(c, name, num);
+			sccp_channel_display_callInfo(c);
+		} else if (!strcasecmp(args, "CalledParty")) {
+			char *num, *name;
+
+			pbx_callerid_parse((char *) value, &name, &num);
+			sccp_channel_set_calledparty(c, name, num);
+			sccp_channel_display_callInfo(c);
+		} else if (!strcasecmp(args, "OriginalCallingParty")) {
+			char *num, *name;
+
+			pbx_callerid_parse((char *) value, &name, &num);
+			sccp_channel_set_originalCallingparty(c, name, num);
+			sccp_channel_display_callInfo(c);
+		} else if (!strcasecmp(args, "OriginalCalledParty")) {
+			char *num, *name;
+
+			pbx_callerid_parse((char *) value, &name, &num);
+			sccp_channel_set_originalCalledparty(c, name, num);
+			sccp_channel_display_callInfo(c);
+		} else if (!strcasecmp(args, "microphone")) {
+			if (!value || sccp_strlen_zero(value) || !sccp_true(value)) {
+				c->setMicrophone(c, FALSE);
+			} else {
+				c->setMicrophone(c, TRUE);
+			}
+		} else {
+			res = -1;
+		}
+	} else {
+		pbx_log(LOG_ERROR, "This function requires a valid SCCP channel\n");
+		res = -1;
 	}
 	return res;
 }

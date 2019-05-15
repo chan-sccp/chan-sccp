@@ -398,6 +398,10 @@ static void sccp_channel_recalculateVideoCodecFormat(sccp_channel_t * channel)
 			preferences = &(channel->preferences);
 			sccp_codec_reduceSet(preferences->video, channel->capabilities.video);
 		}
+		if (preferences->video[0] == SKINNY_CODEC_NONE) {
+			sccp_channel_setVideoMode(channel, "off");
+			return;
+		}
 		joint = sccp_codec_findBestJoint(channel, preferences->video, channel->remoteCapabilities.video);
 		if (SKINNY_CODEC_NONE == joint) {
 			joint = preferences->video[0];
@@ -688,7 +692,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 		
 	d->protocol->sendOpenReceiveChannel(d, channel);
 #ifdef CS_SCCP_VIDEO
-	if (sccp_device_isVideoSupported(d) && channel->videomode != SCCP_VIDEO_MODE_OFF) {
+	if (channel->videomode != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", d->id);
 		sccp_channel_openMultiMediaReceiveChannel(channel);
 		//sccp_channel_startMultiMediaTransmission(channel);
@@ -974,7 +978,7 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 		return;
 	}
 
-	if (!sccp_device_isVideoSupported(d) || channel->videomode == SCCP_VIDEO_MODE_OFF) {
+	if (channel->videomode == SCCP_VIDEO_MODE_OFF || !sccp_device_isVideoSupported(d)) {
 		pbx_log(LOG_WARNING, "%s: (openMultiMediaReceiveChannel) No video supported on device:%s or turning off. returning.\n", channel->designator, d->id);
 		return;
 	}
@@ -1079,7 +1083,7 @@ void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean
 		return;
 	}
 	// stop transmitting before closing receivechannel (\note maybe we should not be doing this here)
-	sccp_channel_setVideoMode((channelPtr)channel, "off");						// discard const
+	sccp_channel_setVideoMode((channelPtr)channel, "auto");						// discard const
 	sccp_channel_stopMediaTransmission(channel, KeepPortOpen);
 
 	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
@@ -2732,38 +2736,27 @@ void sccp_channel_park(sccp_channel_t * channel)
  */
 boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const char *data)
 {
-
-	char text[64] = { '\0' };
-	uint64_t x;
-	unsigned int numFoundCodecs = 0;
-
 	if (!data || !c) {
 		return FALSE;
 	}
 
-	skinny_codec_t tempCodecPreferences[ARRAY_LEN(c->preferences.audio)];
+	skinny_codec_t new_codecs[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_NONE};
+	skinny_codec_t audio_prefs[ARRAY_LEN(c->preferences.audio)] = {SKINNY_CODEC_NONE};
+	skinny_codec_t video_prefs[ARRAY_LEN(c->preferences.video)] = {SKINNY_CODEC_NONE};
 
+	char text[64] = { '\0' };
 	sccp_copy_string(text, data, sizeof(text));
-
-	/* save original preferences */
-	memcpy(&tempCodecPreferences, c->preferences.audio, sizeof(c->preferences.audio));
-
-	for (x = 0; x < sccp_codec_getArrayLen() && numFoundCodecs < ARRAY_LEN(c->preferences.audio); x++) {
-		if (!strcasecmp(skinny_codecs[x].key, text)) {
-
-			c->preferences.audio[numFoundCodecs] = skinny_codecs[x].codec;
-			numFoundCodecs++;
-			/* we can have multiple codec versions, so dont break on this step */
-
-			//! \todo we should remove our prefs from original list -MC
-		}
+	sccp_codec_parseAllowDisallow(new_codecs, text, 1 /*allow*/);
+	if (new_codecs[0] != SKINNY_CODEC_NONE) {
+		sccp_get_codecs_bytype(new_codecs, audio_prefs, SKINNY_CODEC_TYPE_AUDIO);
+		sccp_get_codecs_bytype(new_codecs, video_prefs, SKINNY_CODEC_TYPE_VIDEO);
 	}
-	memcpy(&c->preferences.audio[numFoundCodecs], tempCodecPreferences, sizeof(skinny_codec_t) * (ARRAY_LEN(c->preferences.audio) - numFoundCodecs));
-
-	/** update capabilities if somthing changed */
-	if (numFoundCodecs > 0) {
-		sccp_channel_updateChannelCapability(c);
+	if (audio_prefs[0] != SKINNY_CODEC_NONE) {
+		memcpy(c->preferences.audio, audio_prefs, sizeof c->preferences.audio);
 	}
+	memcpy(c->preferences.video, video_prefs, sizeof c->preferences.video);
+
+	sccp_channel_updateChannelCapability(c);
 
 	return TRUE;
 }
@@ -2776,8 +2769,8 @@ boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const char *data){
 		return res;
 	}
 	if (c) {
-		c->videomode = newval;
-		if (c->videomode == SCCP_VIDEO_MODE_AUTO) {
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP))(VERBOSE_PREFIX_2 "%s:Setting Video Mode to %s\n", c->designator, sccp_video_mode2str(newval));
+		if (newval == SCCP_VIDEO_MODE_AUTO) {
 			if (!c->rtp.video.instance || SCCP_RTP_STATUS_INACTIVE == c->rtp.video.receiveChannelState) {
 				sccp_channel_openMultiMediaReceiveChannel(c);
 			}
@@ -2785,6 +2778,21 @@ boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const char *data){
 				sccp_channel_startMultiMediaTransmission(c);
 			}
 		}
+		if (newval == SCCP_VIDEO_MODE_OFF) {
+			if (c->rtp.video.instance) {
+				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.receiveChannelState) {
+					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
+				}
+				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.mediaTransmissionState) {
+					sccp_channel_stopMultiMediaTransmission(c, TRUE);
+				}
+				PBX_RTP_TYPE *rtp = c->rtp.video.instance;
+				iPbx.rtp_stop(rtp);
+				iPbx.rtp_destroy(rtp);
+				rtp = NULL;
+			}
+		}
+		c->videomode = newval;
 		if (c->owner) {
 			pbx_builtin_setvar_helper(c->owner, "_SCCP_VIDEO_MODE", sccp_video_mode2str(c->videomode));
 		}
