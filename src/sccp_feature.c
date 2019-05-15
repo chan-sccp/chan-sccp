@@ -1114,29 +1114,45 @@ void sccp_feat_meetme_start(channelPtr c)
 }
 
 #define BASE_REGISTRAR "chan_sccp"
+
+typedef struct sccp_barge_info_t {
+	PBX_CONTEXT_TYPE *context;
+	sccp_channel_t *bargedChannel;
+	sccp_channel_t *bargingChannel;
+} sccp_barge_info_t;
+
 static void *cleanupTempExtensionContext(void *ptr)
 {
-	PBX_CONTEXT_TYPE *context= (struct pbx_context *)ptr;
-	pbx_context_destroy(context, BASE_REGISTRAR);
-	//d->indicate->remoteConnected(d, lineInstance, maybe_c->callid, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
-	//bargedChannel->isBarged = TRUE;
+	sccp_barge_info_t *barge_info= (struct sccp_barge_info_t *)ptr;
+	sccp_channel_t *bdc = barge_info->bargedChannel;
+	sccp_channel_t *bgc = barge_info->bargingChannel;
+	
+	// restore previous barged channel state
+	bgc->isBarging = FALSE;
+	bdc->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
+	bdc->isBarged = FALSE;
+	sccp_indicate(NULL, bdc, SCCP_CHANNELSTATE_CONNECTED);
 
-	//sccp_free(context);       // should be freed by pbx_context_destroy (check?)
+	pbx_context_destroy(barge_info->context, BASE_REGISTRAR);
+	sccp_channel_release(&barge_info->bargedChannel);
+	sccp_channel_release(&barge_info->bargingChannel);
+	sccp_free(barge_info);
 	return 0;
 }
 
-static boolean_t createTempExtensionContext(channelPtr c, const char *context_name, const char *ext, const char *app, const char *opts)
+static sccp_barge_info_t * createTempExtensionContext(channelPtr c, const char *context_name, const char *ext, const char *app, const char *opts)
 {
-    PBX_CONTEXT_TYPE *context = NULL;
-	if ((context = pbx_context_find_or_create(NULL, NULL, context_name, BASE_REGISTRAR))) {
+	sccp_barge_info_t *barge_info = (sccp_barge_info_t *) sccp_calloc(1, sizeof barge_info);
+	if (barge_info && (barge_info->context = pbx_context_find_or_create(NULL, NULL, context_name, BASE_REGISTRAR))) {
+		barge_info->bargedChannel = sccp_channel_retain(c);
 		pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/1, /*label*/NULL, /*cidmatch*/NULL, "Answer", NULL, NULL, BASE_REGISTRAR);
 		pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/2, /*label*/NULL, /*cidmatch*/NULL, app, pbx_strdup(opts), sccp_free_ptr, BASE_REGISTRAR);
 		pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/3, /*label*/NULL, /*cidmatch*/NULL, "Hangup", NULL, NULL, BASE_REGISTRAR);
 		pbx_log(LOG_WARNING, "SCCP: created temp context:%s and extension:%s to call %s, with options:'%s'\n", context_name, ext, app, opts);
-		sccp_channel_addCleanupJob(c, &cleanupTempExtensionContext, context);
-		return TRUE;
+		sccp_channel_addCleanupJob(c, &cleanupTempExtensionContext, barge_info);
+		return barge_info;
 	}
-	return FALSE;
+	return NULL;
 }
 
 /*!
@@ -1185,7 +1201,7 @@ void sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr
 	} else {
 		pbx_log(LOG_ERROR, "%s: (sccp_feat_handle_barge) Can't allocate SCCP channel for line %s\n", DEV_ID_LOG(d), l->name);
 		sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_FAILED_TO_SETUP_BARGE, SCCP_DISPLAYSTATUS_TIMEOUT);
-       	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, SKINNY_TONEDIRECTION_USER);
+	       	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, SKINNY_TONEDIRECTION_USER);
 	}
 	return;
 }
@@ -1202,6 +1218,7 @@ int sccp_feat_singleline_barge(channelPtr c, const char * const exten)
 		return FALSE;
 	}
 	AUTO_RELEASE(sccp_linedevices_t, bargingLD, sccp_channel_getLineDevice(c));
+	sccp_barge_info_t *barge_info = NULL;
 	
 	if (!bargingLD || !bargingLD->line) {
 		sccp_dev_displayprompt(bargingLD->device, bargingLD->lineInstance, 0, SKINNY_DISP_FAILED_TO_SETUP_BARGE, SCCP_DISPLAYSTATUS_TIMEOUT);
@@ -1226,7 +1243,7 @@ int sccp_feat_singleline_barge(channelPtr c, const char * const exten)
 	snprintf(ext, sizeof(ext), "%s", l->cid_num);
 	//snprintf(opts, sizeof(opts), "%s@%s,%c%s", exten, l->context, SCCP_CONF_SPACER, "bBE");
 	snprintf(opts, sizeof(opts), "SCCP/%s:SIP/%s:IAX2/%s%c%s", exten, exten, exten, SCCP_CONF_SPACER, "sbBE");
-	if (createTempExtensionContext(c, context, ext, "ExtenSpy", opts)) {
+	if ((barge_info = createTempExtensionContext(c, context, ext, "ExtenSpy", opts))) {
 		// setup softswitch
 		c->softswitch_action = SCCP_SOFTSWITCH_DIAL;
 		c->ss_data = 0;
@@ -1237,6 +1254,7 @@ int sccp_feat_singleline_barge(channelPtr c, const char * const exten)
 
 		// set channel to correct mode
 		c->isBarging = TRUE;
+		barge_info->bargingChannel = sccp_channel_retain(c);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
 		c->channelStateReason = SCCP_CHANNELSTATEREASON_BARGE;
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
@@ -1284,6 +1302,7 @@ int sccp_feat_sharedline_barge(constLineDevicePtr bargingLD, channelPtr bargedCh
 	}
 	sccp_device_t *d = bargingLD->device;
 	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(bargingLD->line));
+	sccp_barge_info_t *barge_info = NULL;
 	uint16_t lineInstance = bargingLD->lineInstance;
 
 	// check privacy status of destination
@@ -1314,7 +1333,7 @@ int sccp_feat_sharedline_barge(constLineDevicePtr bargingLD, channelPtr bargedCh
 		snprintf(context, sizeof(context), "sccp_barge_%s_%s", d->id, l->name);
 		snprintf(ext, sizeof(ext), "%s", l->cid_num);
 		snprintf(opts, sizeof(opts), "SCCP/%s%c%s", bargedChannel->line->name, SCCP_CONF_SPACER, "qbBE");
-		if (createTempExtensionContext(c, context, ext, "ChanSpy", opts)) {
+		if ((barge_info = createTempExtensionContext(c, context, ext, "ChanSpy", opts))) {
 			// setup softswitch
 			c->softswitch_action = SCCP_SOFTSWITCH_DIAL;
 			c->ss_data = 0;
@@ -1325,6 +1344,7 @@ int sccp_feat_sharedline_barge(constLineDevicePtr bargingLD, channelPtr bargedCh
 
 			// set channel to correct mode
 			c->isBarging = TRUE;
+			barge_info->bargingChannel = sccp_channel_retain(c);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
 			c->channelStateReason = SCCP_CHANNELSTATEREASON_BARGE;
 			sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
