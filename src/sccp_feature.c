@@ -1127,14 +1127,20 @@ static void *cleanupTempExtensionContext(void *ptr)
 	sccp_channel_t *bdc = barge_info->bargedChannel;
 	sccp_channel_t *bgc = barge_info->bargingChannel;
 	
+	sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_2 "SCCP: destroy temp context:%p\n", barge_info->context);
+	pbx_context_destroy(barge_info->context, BASE_REGISTRAR);
+
 	// restore previous barged channel state
 	bgc->isBarging = FALSE;
-	bdc->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
-	bdc->isBarged = FALSE;
-	sccp_indicate(NULL, bdc, SCCP_CHANNELSTATE_CONNECTED);
+	if (bdc) {
+		bdc->isBarged = FALSE;
+		bdc->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
+		sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_2 "%s: Reindicate CONNECTED to re-set remote-indication\n", bdc->designator);
+		bdc->state = bdc->previousChannelState;
+		sccp_indicate(NULL, bdc, SCCP_CHANNELSTATE_CONNECTED);
+		sccp_channel_release(&barge_info->bargedChannel);
+	}
 
-	pbx_context_destroy(barge_info->context, BASE_REGISTRAR);
-	sccp_channel_release(&barge_info->bargedChannel);
 	sccp_channel_release(&barge_info->bargingChannel);
 	sccp_free(barge_info);
 	return 0;
@@ -1144,11 +1150,11 @@ static sccp_barge_info_t * createTempExtensionContext(channelPtr c, const char *
 {
 	sccp_barge_info_t *barge_info = (sccp_barge_info_t *) sccp_calloc(1, sizeof barge_info);
 	if (barge_info && (barge_info->context = pbx_context_find_or_create(NULL, NULL, context_name, BASE_REGISTRAR))) {
-		barge_info->bargedChannel = sccp_channel_retain(c);
+		barge_info->bargingChannel = sccp_channel_retain(c);
 		pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/1, /*label*/NULL, /*cidmatch*/NULL, "Answer", NULL, NULL, BASE_REGISTRAR);
 		pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/2, /*label*/NULL, /*cidmatch*/NULL, app, pbx_strdup(opts), sccp_free_ptr, BASE_REGISTRAR);
 		pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/3, /*label*/NULL, /*cidmatch*/NULL, "Hangup", NULL, NULL, BASE_REGISTRAR);
-		pbx_log(LOG_WARNING, "SCCP: created temp context:%s and extension:%s to call %s, with options:'%s'\n", context_name, ext, app, opts);
+		sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_2 "SCCP: created temp context:%s and extension:%s to call %s, with options:'%s'\n", context_name, ext, app, opts);
 		sccp_channel_addCleanupJob(c, &cleanupTempExtensionContext, barge_info);
 		return barge_info;
 	}
@@ -1254,7 +1260,6 @@ int sccp_feat_singleline_barge(channelPtr c, const char * const exten)
 
 		// set channel to correct mode
 		c->isBarging = TRUE;
-		barge_info->bargingChannel = sccp_channel_retain(c);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
 		c->channelStateReason = SCCP_CHANNELSTATEREASON_BARGE;
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
@@ -1268,6 +1273,8 @@ int sccp_feat_singleline_barge(channelPtr c, const char * const exten)
 
 		// display prompt on Barged Device
 		/*
+		barge_info->bargedChannel = sccp_channel_retain(bargedChannel);
+		barge_info->bargedChannel->isBarged = TRUE;
 		AUTO_RELEASE(sccp_channel_t,bargedChannel, CS_AST_CHANNEL_PVT(pbxchannel) ? sccp_channel_retain(CS_AST_CHANNEL_PVT(pbxchannel)) : NULL);
 		if (bargedChannel) {
 			char statusmsg[40];
@@ -1344,7 +1351,7 @@ int sccp_feat_sharedline_barge(constLineDevicePtr bargingLD, channelPtr bargedCh
 
 			// set channel to correct mode
 			c->isBarging = TRUE;
-			barge_info->bargingChannel = sccp_channel_retain(c);
+			barge_info->bargedChannel = sccp_channel_retain(bargedChannel);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
 			c->channelStateReason = SCCP_CHANNELSTATEREASON_BARGE;
 			sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
@@ -1355,6 +1362,9 @@ int sccp_feat_sharedline_barge(constLineDevicePtr bargingLD, channelPtr bargedCh
 
 			// execute softswitch
 			sccp_pbx_softswitch(c);
+
+			pbx_builtin_setvar_helper(c->owner, "BARGED", bargedChannel->designator);
+			pbx_builtin_setvar_helper(bargedChannel->owner, "BARGED_BY", c->designator);
 
 			// hide the channel we barged into
 			d->indicate->remoteConnected(d, lineInstance, bargedChannel->callid, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
