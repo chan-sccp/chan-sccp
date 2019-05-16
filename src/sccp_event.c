@@ -28,9 +28,9 @@ void sccp_event_destroy(sccp_event_t * event);
 
 #if CS_TEST_FRAMEWORK
 #include <asterisk/test.h>
-#define NUMBER_OF_EVENT_TYPES 11                                /* grep SCCP_EVENT sccp_enum.in */
+#define NUMBER_OF_EVENT_TYPES 10                                /* grep SCCP_EVENT sccp_enum.in */
 #else
-#define NUMBER_OF_EVENT_TYPES 10                                 /* grep SCCP_EVENT sccp_enum.in */
+#define NUMBER_OF_EVENT_TYPES 9                                 /* grep SCCP_EVENT sccp_enum.in */
 #endif
 /* type declarations */
 typedef struct sccp_event_subscriber sccp_event_subscriber_t;
@@ -386,10 +386,10 @@ AST_TEST_DEFINE(sccp_event_test_subscribe_single)
 		case TEST_EXECUTE:
 			break;
 	}
-	pbx_test_status_update(test, "subscribe to event:0 fails.\n");
+	pbx_test_status_update(test, "async subscribe to event:0 fails.\n");
 	pbx_test_validate(test, sccp_event_subscribe(0, sccp_event_testListener, TRUE) == FALSE);
 	
-	pbx_test_status_update(test, "subscribe to SCCP_EVENT_TYPE_SENTINEL fails.\n");
+	pbx_test_status_update(test, "async subscribe to SCCP_EVENT_TYPE_SENTINEL fails.\n");
 	pbx_test_validate(test, sccp_event_subscribe(SCCP_EVENT_TYPE_SENTINEL, sccp_event_testListener, TRUE) == FALSE);
 	
 	pbx_test_status_update(test, "subscribe to event:0 fails.\n");

@@ -3517,8 +3517,8 @@ AST_TEST_DEFINE(sccp_config_base_functions)
 
 	pbx_test_status_update(test, "sccp_fine_config...\n");
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(SCCP_CONFIG_GLOBAL_SEGMENT);
-	pbx_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "debug") == &sccpConfigSegment->config[2]);
-	pbx_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "disallow") == &sccpConfigSegment->config[7]);
+	pbx_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "debug") == &sccpConfigSegment->config[0]);
+	pbx_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "port") == &sccpConfigSegment->config[6]);
 
 	return AST_TEST_PASS;
 }
