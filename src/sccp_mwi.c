@@ -25,8 +25,12 @@ SCCP_FILE_VERSION(__FILE__, "");
 #elif HAVE_PBX_STASIS_H
 #include <asterisk/stasis.h>
 #endif
+#ifdef HAVE_PBX_MWI_H				// ast_mwi_state_type
+#include <asterisk/mwi.h>
+#else
 #ifdef HAVE_PBX_APP_H				// ast_mwi_state_type
 #include <asterisk/app.h>
+#endif
 #endif
 #include <asterisk/cli.h>
 

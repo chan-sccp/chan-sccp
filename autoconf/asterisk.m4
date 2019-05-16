@@ -1120,6 +1120,12 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 		],,[ 
 			$HEADER_INCLUDE
 		])
+		AC_CHECK_HEADER([asterisk/mwi.h],
+		[
+			AC_DEFINE([HAVE_PBX_MWI_H],1,[Found 'asterisk/mwi.h'])
+		],,[ 
+			$HEADER_INCLUDE
+		])
 		AC_CHECK_HEADER([asterisk/utils.h],
 		[
 			AC_DEFINE([HAVE_PBX_UTILS_H],1,[Found 'asterisk/utils.h'])

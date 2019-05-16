@@ -28855,6 +28855,19 @@ $as_echo "#define HAVE_PBX_MESSAGE_H 1" >>confdefs.h
 fi
 
 
+		ac_fn_c_check_header_compile "$LINENO" "asterisk/mwi.h" "ac_cv_header_asterisk_mwi_h" "
+			$HEADER_INCLUDE
+
+"
+if test "x$ac_cv_header_asterisk_mwi_h" = xyes; then :
+
+
+$as_echo "#define HAVE_PBX_MWI_H 1" >>confdefs.h
+
+
+fi
+
+
 		ac_fn_c_check_header_compile "$LINENO" "asterisk/utils.h" "ac_cv_header_asterisk_utils_h" "
 			$HEADER_INCLUDE
 

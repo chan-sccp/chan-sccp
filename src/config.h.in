@@ -583,6 +583,9 @@
 /* Found 'asterisk/message.h' */
 #undef HAVE_PBX_MESSAGE_H
 
+/* Found 'asterisk/mwi.h' */
+#undef HAVE_PBX_MWI_H
+
 /* Found 'asterisk/pbx.h' */
 #undef HAVE_PBX_PBX_H
 
