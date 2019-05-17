@@ -118,7 +118,7 @@ AC_CONFIG_COMMANDS([.revision],
 AC_CONFIG_COMMANDS([src/sccp_enum.h],
 	output=`cd ${ac_abs_top_builddir}/src/;awk -f "${ac_abs_top_srcdir}/tools/gen_sccp_enum.awk" < ${ac_abs_top_srcdir}/src/sccp_enum.in &>/dev/null`
 )
-AC_CONFIG_FILES([Makefile README doc/Makefile src/Makefile src/pbx_impl/Makefile src/pbx_impl/ast/Makefile src/pbx_impl/ast_announce/Makefile src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile contrib/gen_sccpconf/Makefile tests/Makefile tests/unittests/Makefile])
+AC_CONFIG_FILES([Makefile README doc/Makefile src/Makefile src/pbx_impl/Makefile src/pbx_impl/ast/Makefile src/pbx_impl/ast_announce/Makefile src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile contrib/gen_sccpconf/Makefile])
 AST_SET_PBX_AMCONDITIONALS
 
 VERSION="`echo ${SCCP_VERSION}_${SCCP_BRANCH}`"

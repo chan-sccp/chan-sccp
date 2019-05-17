@@ -6,4 +6,4 @@
 # NOTE:			Process this file with automake to produce a makefile.in script.
 AUTOMAKE_OPTIONS	= gnu
 EXTRA_DIST 		= 
-SUBDIRS 		= unittests
+SUBDIRS 		= $(PBX_COND_UNITTESTS)

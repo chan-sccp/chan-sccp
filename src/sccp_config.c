@@ -3010,6 +3010,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	device->priFeature.initialized = 0;
 	
 #ifdef CS_DEVSTATE_FEATURE
+	const char devstate_db_family[] = "CustomDevstate";
 #ifndef ASTDB_RESULT_LEN
 #define ASTDB_RESULT_LEN 256
 #endif

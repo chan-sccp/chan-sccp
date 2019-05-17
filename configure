@@ -646,6 +646,10 @@ am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+PBX_COND_UNITTESTS
+PBX_COND_TESTS
+BUILD_TEST_FALSE
+BUILD_TEST_TRUE
 ASTERISK_VER_GROUP_116_FALSE
 ASTERISK_VER_GROUP_116_TRUE
 ASTERISK_VER_GROUP_115_FALSE
@@ -674,6 +678,7 @@ BUILD_AST_FALSE
 BUILD_AST_TRUE
 CPU_OPTIONS
 PBX_DEBUGMODDIR
+cstestdir
 csmoddir
 PBX_MODDIR
 SUPPORTED_LDFLAGS
@@ -32195,6 +32200,8 @@ fi
 
 	csmoddir=${PBX_MODDIR}
 
+	cstestdir=${PBX_MODDIR}
+
 
 
 
@@ -32226,7 +32233,7 @@ ac_config_commands="$ac_config_commands .revision"
 
 ac_config_commands="$ac_config_commands src/sccp_enum.h"
 
-ac_config_files="$ac_config_files Makefile README doc/Makefile src/Makefile src/pbx_impl/Makefile src/pbx_impl/ast/Makefile src/pbx_impl/ast_announce/Makefile src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile contrib/gen_sccpconf/Makefile tests/Makefile tests/unittests/Makefile"
+ac_config_files="$ac_config_files Makefile README doc/Makefile src/Makefile src/pbx_impl/Makefile src/pbx_impl/ast/Makefile src/pbx_impl/ast_announce/Makefile src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile contrib/gen_sccpconf/Makefile"
 
 
 	 if test "$PBX_TYPE" == "Asterisk"; then
@@ -32365,6 +32372,27 @@ fi
 fi
 	if test -z "$ASTERISK_VER_GROUP_116_TRUE"; then :
   ac_config_files="$ac_config_files src/pbx_impl/ast116/Makefile"
+
+fi
+
+		PBX_COND_TESTS=
+	PBX_COND_UNITTESTS=
+	 if test "$TEST_FRAMEWORK" == "yes"; then
+  BUILD_TEST_TRUE=
+  BUILD_TEST_FALSE='#'
+else
+  BUILD_TEST_TRUE='#'
+  BUILD_TEST_FALSE=
+fi
+
+	if test "$TEST_FRAMEWORK" == "yes"; then
+		PBX_COND_TESTS=tests
+		PBX_COND_UNITTESTS=unittests
+	fi
+
+
+	if test -z "$BUILD_TEST_TRUE"; then :
+  ac_config_files="$ac_config_files tests/Makefile tests/unittests/Makefile"
 
 fi
 
@@ -32683,6 +32711,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ASTERISK_VER_GROUP_116_TRUE}" && test -z "${ASTERISK_VER_GROUP_116_FALSE}"; then
   as_fn_error $? "conditional \"ASTERISK_VER_GROUP_116\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BUILD_TEST_TRUE}" && test -z "${BUILD_TEST_FALSE}"; then
+  as_fn_error $? "conditional \"BUILD_TEST\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
@@ -33672,8 +33704,6 @@ do
     "src/pbx_impl/ast_announce/Makefile") CONFIG_FILES="$CONFIG_FILES src/pbx_impl/ast_announce/Makefile" ;;
     "src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile") CONFIG_FILES="$CONFIG_FILES src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile" ;;
     "contrib/gen_sccpconf/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/gen_sccpconf/Makefile" ;;
-    "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
-    "tests/unittests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/unittests/Makefile" ;;
     "src/pbx_impl/ast106/Makefile") CONFIG_FILES="$CONFIG_FILES src/pbx_impl/ast106/Makefile" ;;
     "src/pbx_impl/ast108/Makefile") CONFIG_FILES="$CONFIG_FILES src/pbx_impl/ast108/Makefile" ;;
     "src/pbx_impl/ast110/Makefile") CONFIG_FILES="$CONFIG_FILES src/pbx_impl/ast110/Makefile" ;;
@@ -33683,6 +33713,8 @@ do
     "src/pbx_impl/ast114/Makefile") CONFIG_FILES="$CONFIG_FILES src/pbx_impl/ast114/Makefile" ;;
     "src/pbx_impl/ast115/Makefile") CONFIG_FILES="$CONFIG_FILES src/pbx_impl/ast115/Makefile" ;;
     "src/pbx_impl/ast116/Makefile") CONFIG_FILES="$CONFIG_FILES src/pbx_impl/ast116/Makefile" ;;
+    "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
+    "tests/unittests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/unittests/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

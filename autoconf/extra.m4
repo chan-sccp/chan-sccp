@@ -384,6 +384,18 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 	AM_COND_IF([ASTERISK_VER_GROUP_114],[AC_CONFIG_FILES([src/pbx_impl/ast114/Makefile])])
 	AM_COND_IF([ASTERISK_VER_GROUP_115],[AC_CONFIG_FILES([src/pbx_impl/ast115/Makefile])])
 	AM_COND_IF([ASTERISK_VER_GROUP_116],[AC_CONFIG_FILES([src/pbx_impl/ast116/Makefile])])
+
+	dnl check for test framework
+	PBX_COND_TESTS=
+	PBX_COND_UNITTESTS=
+	AM_CONDITIONAL([BUILD_TEST], test "$TEST_FRAMEWORK" == "yes")
+	if test "$TEST_FRAMEWORK" == "yes"; then
+		PBX_COND_TESTS=tests
+		PBX_COND_UNITTESTS=unittests		
+	fi
+	AC_SUBST([PBX_COND_TESTS])
+	AC_SUBST([PBX_COND_UNITTESTS])
+	AM_COND_IF([BUILD_TEST],[AC_CONFIG_FILES([tests/Makefile tests/unittests/Makefile])])
 ])
 
 AC_DEFUN([CS_WITH_PBX], [
@@ -1089,6 +1101,8 @@ AC_DEFUN([CS_SETUP_MODULE_DIR], [
 	AC_SUBST([PBX_MODDIR]) 
 	csmoddir=${PBX_MODDIR}
 	AC_SUBST([csmoddir])
+	cstestdir=${PBX_MODDIR}
+	AC_SUBST([cstestdir])
 	AC_SUBST([PBX_DEBUGMODDIR])
 ])
 

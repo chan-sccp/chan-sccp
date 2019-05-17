@@ -3,11 +3,11 @@
 
 SCCP_FILE_VERSION(__FILE__, "");
 
-#include "../../src/sccp_actions.h"
-#include "../../src/sccp_device.h"
-#include "../../src/sccp_session.h"
-#include "../../src/sccp_channel.h"
-#include "../../src/sccp_line.h"
+#include "sccp_actions.h"
+#include "sccp_device.h"
+#include "sccp_session.h"
+#include "sccp_channel.h"
+#include "sccp_line.h"
 //#include "sccp_utils.h"
 //#include "sccp_pbx.h"
 //#include "sccp_conference.h"

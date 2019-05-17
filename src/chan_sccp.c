@@ -378,8 +378,7 @@ EXIT:
 	return returnval;
 }
 
-#ifdef CS_DEVSTATE_FEATURE
-const char devstate_db_family[] = "CustomDevstate";
-#endif
-
+//#ifdef CS_DEVSTATE_FEATURE
+//const char devstate_db_family[] = "CustomDevstate";
+//#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

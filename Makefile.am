@@ -8,8 +8,9 @@ include 		$(top_srcdir)/amdoxygen.am
 
 AUTOMAKE_OPTIONS	= gnu
 EXTRA_DIST 		= .version tools conf contrib/gen_sccpconf .revision
-SUBDIRS 		= src doc tests
+SUBDIRS 		= src doc $(PBX_COND_TESTS)
 ACLOCAL_AMFLAGS		= -I autoconf
+AM_CFLAGS		= $(LTDLINCL)
 AM_CPPFLAGS		= $(LTDLINCL)
 
 distdir 		= $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)_r$(SCCP_REVISION)

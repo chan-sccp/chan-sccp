@@ -156,7 +156,7 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(csmoddir)"
 LTLIBRARIES = $(csmod_LTLIBRARIES) $(noinst_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-am_chan_sccp_la_OBJECTS = chan_sccp_la-chan_sccp.lo
+am_chan_sccp_la_OBJECTS =
 chan_sccp_la_OBJECTS = $(am_chan_sccp_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -183,7 +183,7 @@ am_libsccp_la_OBJECTS = libsccp_la-sccp_callinfo.lo \
 	libsccp_la-sccp_globals.lo libsccp_la-sccp_netsock.lo \
 	libsccp_la-sccp_codec.lo libsccp_la-sccp_labels.lo \
 	libsccp_la-sccp_xml.lo libsccp_la-sccp_webservice.lo \
-	libsccp_la-sccp_featureParkingLot.lo
+	libsccp_la-sccp_featureParkingLot.lo libsccp_la-chan_sccp.lo
 libsccp_la_OBJECTS = $(am_libsccp_la_OBJECTS)
 libsccp_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libsccp_la_CFLAGS) \
@@ -203,7 +203,7 @@ am__v_at_1 =
 DEFAULT_INCLUDES = 
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/chan_sccp_la-chan_sccp.Plo \
+am__depfiles_remade = ./$(DEPDIR)/libsccp_la-chan_sccp.Plo \
 	./$(DEPDIR)/libsccp_la-sccp_actions.Plo \
 	./$(DEPDIR)/libsccp_la-sccp_appfunctions.Plo \
 	./$(DEPDIR)/libsccp_la-sccp_callinfo.Plo \
@@ -481,6 +481,8 @@ PBXVER_COND_SUBDIR = @PBXVER_COND_SUBDIR@
 PBX_CFLAGS = @PBX_CFLAGS@
 PBX_COND_LIBADD = @PBX_COND_LIBADD@
 PBX_COND_SUBDIR = @PBX_COND_SUBDIR@
+PBX_COND_TESTS = @PBX_COND_TESTS@
+PBX_COND_UNITTESTS = @PBX_COND_UNITTESTS@
 PBX_DATADIR = @PBX_DATADIR@
 PBX_DEBUGMODDIR = @PBX_DEBUGMODDIR@
 PBX_ETC = @PBX_ETC@
@@ -544,6 +546,7 @@ build_os = @build_os@
 build_vendor = @build_vendor@
 builddir = @builddir@
 csmoddir = @csmoddir@
+cstestdir = @cstestdir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
@@ -606,7 +609,7 @@ AM_CXXFLAGS = -std=c++11 $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	-DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self \
 	-DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS) -D_REENTRANT \
 	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall -fpermissive
-SUBDIRS = pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) ../tests/unittests .
+SUBDIRS = pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNOUNCE_SUBDIR) .
 DIST_SUBDIRS = pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast114 pbx_impl/ast115 pbx_impl/ast_announce .
 EXTRA_DIST = sccp_enum.in sccp_config_entries.hh
 BUILT_SOURCES = revision.h sccp_enum.h sccp_enum.c
@@ -637,14 +640,16 @@ libsccp_la_SOURCES = sccp_callinfo.c 	sccp_channel.c		sccp_device.c		sccp_debug.
 			  sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
 			  sccp_devstate.c	sccp_event.c		sccp_enum.c		sccp_globals.c		\
 			  sccp_netsock.c	sccp_codec.c		sccp_labels.c		sccp_xml.c		\
-			  sccp_webservice.c 	sccp_featureParkingLot.c
+			  sccp_webservice.c 	sccp_featureParkingLot.c chan_sccp.c
 
 libsccp_la_DEPENDENCIES = revision.h sccp_enum.h sccp_enum.c
 libsccp_la_CFLAGS = $(AM_CFLAGS)
 libsccp_la_LDFLAGS = $(AM_LDFLAGS)
 libsccp_la_CXXFLAGS = $(AM_CXXFLAGS)
-chan_sccp_la_SOURCES = chan_sccp.c
-chan_sccp_la_LIBADD = libsccp.la pbx_impl/libpbximpl.la $(PBX_COND_LIBADD) $(PBXVER_COND_LIBADD) $(PBXVER_COND_ANNOUNCE_LIBADD) ../tests/unittests/libsccp_unittests.la
+
+#chan_sccp_la_SOURCES	= chan_sccp.c
+chan_sccp_la_SOURCES = 
+chan_sccp_la_LIBADD = libsccp.la pbx_impl/libpbximpl.la $(PBX_COND_LIBADD) $(PBXVER_COND_LIBADD) $(PBXVER_COND_ANNOUNCE_LIBADD)
 chan_sccp_la_DEPENDENCIES = $(chan_sccp_la_LIBADD)
 chan_sccp_la_CFLAGS = $(AM_CFLAGS)
 chan_sccp_la_LDFLAGS = $(AM_LDFLAGS) $(PBX_LDFLAGS) $(PTHREAD_LIBS) \
@@ -746,7 +751,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-chan_sccp.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-chan_sccp.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_actions.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_appfunctions.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_callinfo.Plo@am__quote@ # am--include-marker
@@ -811,13 +816,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
-
-chan_sccp_la-chan_sccp.lo: chan_sccp.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -MT chan_sccp_la-chan_sccp.lo -MD -MP -MF $(DEPDIR)/chan_sccp_la-chan_sccp.Tpo -c -o chan_sccp_la-chan_sccp.lo `test -f 'chan_sccp.c' || echo '$(srcdir)/'`chan_sccp.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/chan_sccp_la-chan_sccp.Tpo $(DEPDIR)/chan_sccp_la-chan_sccp.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='chan_sccp.c' object='chan_sccp_la-chan_sccp.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -c -o chan_sccp_la-chan_sccp.lo `test -f 'chan_sccp.c' || echo '$(srcdir)/'`chan_sccp.c
 
 libsccp_la-sccp_callinfo.lo: sccp_callinfo.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -MT libsccp_la-sccp_callinfo.lo -MD -MP -MF $(DEPDIR)/libsccp_la-sccp_callinfo.Tpo -c -o libsccp_la-sccp_callinfo.lo `test -f 'sccp_callinfo.c' || echo '$(srcdir)/'`sccp_callinfo.c
@@ -1057,6 +1055,13 @@ libsccp_la-sccp_featureParkingLot.lo: sccp_featureParkingLot.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_featureParkingLot.lo `test -f 'sccp_featureParkingLot.c' || echo '$(srcdir)/'`sccp_featureParkingLot.c
 
+libsccp_la-chan_sccp.lo: chan_sccp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -MT libsccp_la-chan_sccp.lo -MD -MP -MF $(DEPDIR)/libsccp_la-chan_sccp.Tpo -c -o libsccp_la-chan_sccp.lo `test -f 'chan_sccp.c' || echo '$(srcdir)/'`chan_sccp.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsccp_la-chan_sccp.Tpo $(DEPDIR)/libsccp_la-chan_sccp.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='chan_sccp.c' object='libsccp_la-chan_sccp.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-chan_sccp.lo `test -f 'chan_sccp.c' || echo '$(srcdir)/'`chan_sccp.c
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
@@ -1269,7 +1274,7 @@ clean-am: clean-csmodLTLIBRARIES clean-generic clean-libtool \
 	clean-noinstLTLIBRARIES mostlyclean-am
 
 distclean: distclean-recursive
-		-rm -f ./$(DEPDIR)/chan_sccp_la-chan_sccp.Plo
+		-rm -f ./$(DEPDIR)/libsccp_la-chan_sccp.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_actions.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_appfunctions.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_callinfo.Plo
@@ -1349,7 +1354,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-recursive
-		-rm -f ./$(DEPDIR)/chan_sccp_la-chan_sccp.Plo
+		-rm -f ./$(DEPDIR)/libsccp_la-chan_sccp.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_actions.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_appfunctions.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_callinfo.Plo

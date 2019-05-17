@@ -342,6 +342,8 @@ PBXVER_COND_SUBDIR = @PBXVER_COND_SUBDIR@
 PBX_CFLAGS = @PBX_CFLAGS@
 PBX_COND_LIBADD = @PBX_COND_LIBADD@
 PBX_COND_SUBDIR = @PBX_COND_SUBDIR@
+PBX_COND_TESTS = @PBX_COND_TESTS@
+PBX_COND_UNITTESTS = @PBX_COND_UNITTESTS@
 PBX_DATADIR = @PBX_DATADIR@
 PBX_DEBUGMODDIR = @PBX_DEBUGMODDIR@
 PBX_ETC = @PBX_ETC@
@@ -405,6 +407,7 @@ build_os = @build_os@
 build_vendor = @build_vendor@
 builddir = @builddir@
 csmoddir = @csmoddir@
+cstestdir = @cstestdir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
@@ -458,7 +461,7 @@ top_srcdir = @top_srcdir@
 # NOTE:			Process this file with automake to produce a makefile.in script.
 AUTOMAKE_OPTIONS = gnu
 EXTRA_DIST = 
-SUBDIRS = unittests
+SUBDIRS = $(PBX_COND_UNITTESTS)
 all: all-recursive
 
 .SUFFIXES:

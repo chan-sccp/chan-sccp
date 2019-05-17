@@ -124,19 +124,45 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/src/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-LTLIBRARIES = $(noinst_LTLIBRARIES)
-libsccp_unittests_la_LIBADD =
-am_libsccp_unittests_la_OBJECTS =  \
-	libsccp_unittests_la-sccp_test_rtp_ack.lo
-libsccp_unittests_la_OBJECTS = $(am_libsccp_unittests_la_OBJECTS)
+am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
+am__vpath_adj = case $$p in \
+    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
+    *) f=$$p;; \
+  esac;
+am__strip_dir = f=`echo $$p | sed -e 's|^.*/||'`;
+am__install_max = 40
+am__nobase_strip_setup = \
+  srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*|]/\\\\&/g'`
+am__nobase_strip = \
+  for p in $$list; do echo "$$p"; done | sed -e "s|$$srcdirstrip/||"
+am__nobase_list = $(am__nobase_strip_setup); \
+  for p in $$list; do echo "$$p $$p"; done | \
+  sed "s| $$srcdirstrip/| |;"' / .*\//!s/ .*/ ./; s,\( .*\)/[^/]*$$,\1,' | \
+  $(AWK) 'BEGIN { files["."] = "" } { files[$$2] = files[$$2] " " $$1; \
+    if (++n[$$2] == $(am__install_max)) \
+      { print $$2, files[$$2]; n[$$2] = 0; files[$$2] = "" } } \
+    END { for (dir in files) print dir, files[dir] }'
+am__base_list = \
+  sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
+  sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
+am__uninstall_files_from_dir = { \
+  test -z "$$files" \
+    || { test ! -d "$$dir" && test ! -f "$$dir" && test ! -r "$$dir"; } \
+    || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
+         $(am__cd) "$$dir" && rm -f $$files; }; \
+  }
+am__installdirs = "$(DESTDIR)$(cstestdir)"
+LTLIBRARIES = $(cstest_LTLIBRARIES)
+am_chan_sccp_test_la_OBJECTS = chan_sccp_test_la-sccp_test_rtp_ack.lo
+chan_sccp_test_la_OBJECTS = $(am_chan_sccp_test_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libsccp_unittests_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+chan_sccp_test_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(libsccp_unittests_la_CFLAGS) $(CFLAGS) \
-	$(libsccp_unittests_la_LDFLAGS) $(LDFLAGS) -o $@
+	$(chan_sccp_test_la_CFLAGS) $(CFLAGS) \
+	$(chan_sccp_test_la_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -153,7 +179,7 @@ DEFAULT_INCLUDES =
 depcomp = $(SHELL) $(top_srcdir)/autoconf/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade =  \
-	./$(DEPDIR)/libsccp_unittests_la-sccp_test_rtp_ack.Plo
+	./$(DEPDIR)/chan_sccp_test_la-sccp_test_rtp_ack.Plo
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -173,8 +199,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libsccp_unittests_la_SOURCES)
-DIST_SOURCES = $(libsccp_unittests_la_SOURCES)
+SOURCES = $(chan_sccp_test_la_SOURCES)
+DIST_SOURCES = $(chan_sccp_test_la_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -353,6 +379,8 @@ PBXVER_COND_SUBDIR = @PBXVER_COND_SUBDIR@
 PBX_CFLAGS = @PBX_CFLAGS@
 PBX_COND_LIBADD = @PBX_COND_LIBADD@
 PBX_COND_SUBDIR = @PBX_COND_SUBDIR@
+PBX_COND_TESTS = @PBX_COND_TESTS@
+PBX_COND_UNITTESTS = @PBX_COND_UNITTESTS@
 PBX_DATADIR = @PBX_DATADIR@
 PBX_DEBUGMODDIR = @PBX_DEBUGMODDIR@
 PBX_ETC = @PBX_ETC@
@@ -416,6 +444,7 @@ build_os = @build_os@
 build_vendor = @build_vendor@
 builddir = @builddir@
 csmoddir = @csmoddir@
+cstestdir = @cstestdir@
 datadir = @datadir@
 datarootdir = @datarootdir@
 docdir = @docdir@
@@ -478,12 +507,20 @@ AM_CXXFLAGS = -std=c++11 $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) \
 	-DAST_MODULE_SELF_SYM=__internal_chan_sccp_la_self \
 	-DAST_MODULE=\"chan_sccp\" $(AST_CLANG_BLOCKS) -D_REENTRANT \
 	-D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall -fpermissive
-noinst_LTLIBRARIES = libsccp_unittests.la
+cstest_LTLIBRARIES = chan_sccp_test.la
 #noinst_HEADERS	 		= sccp_test_rtp_ack.h
-libsccp_unittests_la_SOURCES = sccp_test_rtp_ack.c
-libsccp_unittests_la_CFLAGS = $(AM_CFLAGS) #-Wc++-compat
-libsccp_unittests_la_CXXFLAGS = $(AM_CFLAGS) #-Wc++-compat
-libsccp_unittests_la_LDFLAGS = $(AM_LDFLAGS)
+chan_sccp_test_la_SOURCES = sccp_test_rtp_ack.c
+
+#chan_sccp_test_la_LIBADD	= $(top_builddir)/src/libsccp.la $(top_builddir)/src/pbx_impl/libpbximpl.la $(top_builddir)/src/$(PBX_COND_LIBADD) $(top_builddir)/src/$(PBXVER_COND_LIBADD) $(top_builddir)/src/$(PBXVER_COND_ANNOUNCE_LIBADD) $(top_builddir)/src/chan_sccp.la 
+chan_sccp_test_la_LIBADD = $(top_builddir)/src/libsccp.la $(top_builddir)/src/pbx_impl/libpbximpl.la $(top_builddir)/src/$(PBX_COND_LIBADD) $(top_builddir)/src/$(PBXVER_COND_LIBADD) $(top_builddir)/src/$(PBXVER_COND_ANNOUNCE_LIBADD) $(top_builddir)/src/.libs/chan_sccp.so
+chan_sccp_test_la_DEPENDENCIES = $(chan_sccp_test_la_LIBADD) $(chan_sccp_la_LIBADD)
+chan_sccp_test_la_CFLAGS = $(AM_CFLAGS)
+chan_sccp_test_la_LDFLAGS = $(AM_LDFLAGS) -Wl,--whole-archive \
+	$(PBX_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) $(LIBEXSLT_LIBS) \
+	$(LIBCURL_LIBS) $(EVENT_LIBS) $(LIBBFD) $(LIBEXECINFO) \
+	$(LTLIBICONV) -avoid-version -module -lm -s -rdynamic \
+	-Wl,--no-whole-archive
+chan_sccp_test_la_CXXFLAGS = $(AM_CXXFLAGS)
 all: all-am
 
 .SUFFIXES:
@@ -519,9 +556,18 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
-clean-noinstLTLIBRARIES:
-	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
-	@list='$(noinst_LTLIBRARIES)'; \
+uninstall-cstestLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@list='$(cstest_LTLIBRARIES)'; test -n "$(cstestdir)" || list=; \
+	for p in $$list; do \
+	  $(am__strip_dir) \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(cstestdir)/$$f'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(cstestdir)/$$f"; \
+	done
+
+clean-cstestLTLIBRARIES:
+	-test -z "$(cstest_LTLIBRARIES)" || rm -f $(cstest_LTLIBRARIES)
+	@list='$(cstest_LTLIBRARIES)'; \
 	locs=`for p in $$list; do echo $$p; done | \
 	      sed 's|^[^/]*$$|.|; s|/[^/]*$$||; s|$$|/so_locations|' | \
 	      sort -u`; \
@@ -530,8 +576,8 @@ clean-noinstLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
-libsccp_unittests.la: $(libsccp_unittests_la_OBJECTS) $(libsccp_unittests_la_DEPENDENCIES) $(EXTRA_libsccp_unittests_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(libsccp_unittests_la_LINK)  $(libsccp_unittests_la_OBJECTS) $(libsccp_unittests_la_LIBADD) $(LIBS)
+chan_sccp_test.la: $(chan_sccp_test_la_OBJECTS) $(chan_sccp_test_la_DEPENDENCIES) $(EXTRA_chan_sccp_test_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(chan_sccp_test_la_LINK) -rpath $(cstestdir) $(chan_sccp_test_la_OBJECTS) $(chan_sccp_test_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -539,7 +585,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_unittests_la-sccp_test_rtp_ack.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_test_la-sccp_test_rtp_ack.Plo@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -571,12 +617,12 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-libsccp_unittests_la-sccp_test_rtp_ack.lo: sccp_test_rtp_ack.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_unittests_la_CFLAGS) $(CFLAGS) -MT libsccp_unittests_la-sccp_test_rtp_ack.lo -MD -MP -MF $(DEPDIR)/libsccp_unittests_la-sccp_test_rtp_ack.Tpo -c -o libsccp_unittests_la-sccp_test_rtp_ack.lo `test -f 'sccp_test_rtp_ack.c' || echo '$(srcdir)/'`sccp_test_rtp_ack.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsccp_unittests_la-sccp_test_rtp_ack.Tpo $(DEPDIR)/libsccp_unittests_la-sccp_test_rtp_ack.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_test_rtp_ack.c' object='libsccp_unittests_la-sccp_test_rtp_ack.lo' libtool=yes @AMDEPBACKSLASH@
+chan_sccp_test_la-sccp_test_rtp_ack.lo: sccp_test_rtp_ack.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_test_la_CFLAGS) $(CFLAGS) -MT chan_sccp_test_la-sccp_test_rtp_ack.lo -MD -MP -MF $(DEPDIR)/chan_sccp_test_la-sccp_test_rtp_ack.Tpo -c -o chan_sccp_test_la-sccp_test_rtp_ack.lo `test -f 'sccp_test_rtp_ack.c' || echo '$(srcdir)/'`sccp_test_rtp_ack.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/chan_sccp_test_la-sccp_test_rtp_ack.Tpo $(DEPDIR)/chan_sccp_test_la-sccp_test_rtp_ack.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_test_rtp_ack.c' object='chan_sccp_test_la-sccp_test_rtp_ack.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_unittests_la_CFLAGS) $(CFLAGS) -c -o libsccp_unittests_la-sccp_test_rtp_ack.lo `test -f 'sccp_test_rtp_ack.c' || echo '$(srcdir)/'`sccp_test_rtp_ack.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_test_la_CFLAGS) $(CFLAGS) -c -o chan_sccp_test_la-sccp_test_rtp_ack.lo `test -f 'sccp_test_rtp_ack.c' || echo '$(srcdir)/'`sccp_test_rtp_ack.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -673,6 +719,9 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES)
 installdirs:
+	for dir in "$(DESTDIR)$(cstestdir)"; do \
+	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
+	done
 install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
@@ -706,11 +755,11 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
+clean-am: clean-cstestLTLIBRARIES clean-generic clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/libsccp_unittests_la-sccp_test_rtp_ack.Plo
+		-rm -f ./$(DEPDIR)/chan_sccp_test_la-sccp_test_rtp_ack.Plo
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -727,7 +776,7 @@ info: info-am
 
 info-am:
 
-install-data-am:
+install-data-am: install-cstestLTLIBRARIES
 
 install-dvi: install-dvi-am
 
@@ -756,7 +805,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/libsccp_unittests_la-sccp_test_rtp_ack.Plo
+		-rm -f ./$(DEPDIR)/chan_sccp_test_la-sccp_test_rtp_ack.Plo
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -773,26 +822,49 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am:
+uninstall-am: uninstall-cstestLTLIBRARIES
 
 .MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am am--depfiles check check-am clean \
-	clean-generic clean-libtool clean-noinstLTLIBRARIES \
+	clean-cstestLTLIBRARIES clean-generic clean-libtool \
 	cscopelist-am ctags ctags-am distclean distclean-compile \
 	distclean-generic distclean-libtool distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags tags-am uninstall uninstall-am
+	install-cstestLTLIBRARIES install-data install-data-am \
+	install-dvi install-dvi-am install-exec install-exec-am \
+	install-html install-html-am install-info install-info-am \
+	install-man install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
+	uninstall-am uninstall-cstestLTLIBRARIES
 
 .PRECIOUS: Makefile
 
+
+install-cstestLTLIBRARIES:
+	@$(NORMAL_INSTALL)
+	@test -d "$(DESTDIR)$(cstestdir)" || $(MKDIR_P) "$(DESTDIR)$(cstestdir)"
+	@if test "x$(strip_binaries)" == "xyes" ; then 												\
+		test -d "$(DESTDIR)$(PBX_DEBUGMODDIR)" || $(MKDIR_P) "$(DESTDIR)$(PBX_DEBUGMODDIR)";						\
+		$(OBJCOPY) --only-keep-debug ".libs/chan_sccp_test.so" "$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp_test.so";			\
+		$(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) -s ".libs/chan_sccp_test.so" "$(DESTDIR)$(cstestdir)";	\
+		$(OBJCOPY) --add-gnu-debuglink="$(DESTDIR)$(PBX_DEBUGMODDIR)/chan_sccp_test.so" "$(DESTDIR)$(cstestdir)/chan_sccp_test.so";	\
+		echo    "==============================================================================================="; 			\
+		echo    "Installed Stripped chan_sccp.so to '$(DESTDIR)$(cstestdir)'...";           						\
+		echo    "===============================================================================================";			\
+	else 																	\
+		$(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) ".libs/chan_sccp_test.so" "$(DESTDIR)$(cstestdir)"; \
+ 		echo    "==============================================================================================="; 			\
+		echo    "Installed chan_sccp.so to '$(DESTDIR)$(cstestdir)'...";           							\
+		echo    "===============================================================================================";			\
+	fi
+	@if test -d "$(DESTDIR)$(cstestdir)"; then                                          							\
+		echo    "Please restart asterisk or reload the module to use the new version of chan_sccp_test.so"; 				\
+		echo    "==============================================================================================="; 			\
+	fi
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
