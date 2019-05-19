@@ -255,6 +255,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"phonecodepage", 		D_OBJ_REF(iconvcodepage), 		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Translation codepage for old phones, used to convert labels/buttonnames/descriptions from UTF-8 to this codepage, on pre-java phones. DEFAULT:ISO8859-1\n"},
 #endif
 	{"backgroundImage",		D_OBJ_REF(backgroundImage),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the Background Image after device registered. Image must be set as URI to a http served file."},
+	{"backgroundThumbnail",		D_OBJ_REF(backgroundTN),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the Background Thumbnail after device registered. Thumbnail Image must be set as URI to a http served file. This is required on some of the 89xx series phones."},
 	{"ringtone",			D_OBJ_REF(ringtone),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the Ring Tone after device registered. Ring Tone must be set as URI to a http served file."},
 	{"imageversion",		D_OBJ_REF(imageversion),		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"ImageVersion to be loaded on the device."},
 };

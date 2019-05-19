@@ -38,6 +38,7 @@ CREATE TABLE sccpdevice (
   conf_show_conflist varchar(3) NULL default 'on',
   force_dtmfmode varchar(8) NULL default 'auto',
   backgroundImage varchar(255) DEFAULT NULL,
+  backgroundThumbnail varchar(255) DEFAULT NULL,
   ringtone varchar(255) DEFAULT NULL,
   setvar varchar(100) default NULL,
   name varchar(15) NOT NULL default '',

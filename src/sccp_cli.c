@@ -874,6 +874,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Last dialed number",	CLI_AMI_LIST_WIDTH, "%s (%d)", d->redialInformation.number, d->redialInformation.lineInstance);
 	CLI_AMI_OUTPUT_PARAM("Default line instance",	CLI_AMI_LIST_WIDTH, "%d", d->defaultLineInstance);
 	CLI_AMI_OUTPUT_PARAM("Custom Background Image",	CLI_AMI_LIST_WIDTH, "%s", d->backgroundImage ? d->backgroundImage : "---");
+	CLI_AMI_OUTPUT_PARAM("Custom Background Thumbnail", CLI_AMI_LIST_WIDTH, "%s", d->backgroundTN ? d->backgroundTN : "---");
 	CLI_AMI_OUTPUT_PARAM("Custom Ring Tone",	CLI_AMI_LIST_WIDTH, "%s", d->ringtone ? d->ringtone : "---");
 	CLI_AMI_OUTPUT_BOOL("Use Placed Calls",		CLI_AMI_LIST_WIDTH, d->useRedialMenu);
 	CLI_AMI_OUTPUT_BOOL("PendingUpdate",		CLI_AMI_LIST_WIDTH, d->pendingUpdate);
@@ -3305,7 +3306,11 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 			device->setRingTone(device, argv[5]);
 
 		} else if (!strcmp("backgroundImage", argv[4])) {
-			device->setBackgroundImage(device, argv[5]);
+			if (argc==7) {
+				device->setBackgroundImage(device, argv[5], argv[6]);
+			} else {
+				device->setBackgroundImage(device, argv[5], argv[5]);
+			}
 
 		} else {
 			variable.name = argv[4];
@@ -3381,7 +3386,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 static char set_object_usage[] = "Usage: sccp set channel|device|fallback|debug settings\n" \
 				"sccp set " \
 				"channel <channelId> hold <on/off>" \
-				"|device <deviceId> [ringtone <ringtone>|backgroundImage <url>" \
+				"|device <deviceId> [ringtone <ringtone>|backgroundImage <url> [thumbnail-url]" \
 				"|variable <variable>]" \
 				"|fallback [true|false|odd|even|script path]" \
 				"|debug [[no] <debugcategory>|none]\n";

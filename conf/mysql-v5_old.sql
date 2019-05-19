@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `force_dtmfmode` varchar(8) default 'auto',
   `setvar` varchar(100) default NULL,
   `backgroundImage` varchar(255) DEFAULT NULL,
+  `backgroundThumbnail` varchar(255) DEFAULT NULL,
   `ringtone` varchar(255) DEFAULT NULL,
   `name` varchar(15) NOT NULL default '',
   PRIMARY KEY  (`name`)

@@ -4684,7 +4684,7 @@ void handle_device_to_user_response(constSessionPtr s, devicePtr d, constMessage
 		lineInstance = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_lineInstance);
 		callReference = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_callReference);
 		transactionID = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_transactionID);
-		dataLength = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_dataLength);
+		dataLength = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_dataLength) + 1;
 
 		if (dataLength) {
 			sccp_copy_string(data, msg_in->data.DeviceToUserDataVersion1Message.data, dataLength);

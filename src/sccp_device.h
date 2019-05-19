@@ -199,6 +199,7 @@ struct sccp_device {
 
 	char *iconvcodepage;											/*!< Iconv Codepage to use during conversion from UTF-8, for old phone models */
 	char *backgroundImage;											/*!< backgroundimage we will set after device registered */
+	char *backgroundTN;											/*!< background thumbnail we will set after device registered */
 	char *ringtone;												/*!< ringtone we will set after device registered */
 
 	skinny_capabilities_t capabilities;
@@ -287,10 +288,10 @@ struct sccp_device {
 	boolean_t (*hasLabelLimitedDisplayPrompt) (void);							/*!< Can only display very limited selection of label based status bar messages */
 	boolean_t (*useHookFlash) (void);									/*!< use Hook Flasg to transfer (based on devicetype) */
 	boolean_t (*hasEnhancedIconMenuSupport) (void);								/*!< has Enhanced IconMenu Support (derived from devicetype and protocol) */
-	void (*retrieveDeviceCapabilities) (constDevicePtr device);				/*!< set device background image */
-	void (*setBackgroundImage) (constDevicePtr device, const char *url);			/*!< set device background image */
-	void (*displayBackgroundImagePreview) (constDevicePtr device, const char *url);		/*!< display background image as preview */
-	void (*setRingTone) (constDevicePtr device, const char *url);					/*!< set the default Ringtone */
+	void (*retrieveDeviceCapabilities) (constDevicePtr device);						/*!< set device background image */
+	void (*setBackgroundImage) (constDevicePtr device, const char *url, const char *tn);			/*!< set device background thumbnail image */
+	void (*displayBackgroundImagePreview) (constDevicePtr device, const char *url);				/*!< display background image as preview */
+	void (*setRingTone) (constDevicePtr device, const char *url);						/*!< set the default Ringtone */
 	const struct sccp_device_indication_cb *indicate;
 	
 	sccp_dtmfmode_t(*getDtmfMode) (constDevicePtr device);

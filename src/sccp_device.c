@@ -148,7 +148,7 @@ static void sccp_device_retrieveDeviceCapabilities(constDevicePtr device)
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_DEVICECAPABILITIES, 1, 0, transactionID, xmlStr, 2);
 }
 
-static void sccp_device_setBackgroundImage(constDevicePtr device, const char *url)
+static void sccp_device_setBackgroundImage(constDevicePtr device, const char *url, const char *tn)
 {
 	if (!url || strncasecmp("http://", url, strlen("http://")) != 0) {
 		pbx_log(LOG_WARNING, "SCCP: '%s' needs to be a valid http url\n", url ? url : "--");
@@ -158,7 +158,7 @@ static void sccp_device_setBackgroundImage(constDevicePtr device, const char *ur
 	char xmlStr[StationMaxXMLMessage] = { 0 };
 	unsigned int transactionID = sccp_random();
 
-	snprintf(xmlStr, sizeof(xmlStr), "<setBackground><background><image>%s</image><icon>%s</icon></background></setBackground>\n", url, url);
+	snprintf(xmlStr, sizeof(xmlStr), "<setBackground><background><image>%s</image><icon>%s</icon></background></setBackground>\n", url, tn);
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_BACKGROUND, 0, 0, transactionID, xmlStr, 0);
 	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_2 "%s: sent new background to device: %s via transaction:%d\n", device->id, url, transactionID);
@@ -178,7 +178,7 @@ static sccp_dtmfmode_t sccp_device_getDtfmMode(constDevicePtr device)
 	return res;
 }
 
-static void sccp_device_setBackgroundImageNotSupported(constDevicePtr device, const char *url)
+static void sccp_device_setBackgroundImageNotSupported(constDevicePtr device, const char *url, const char *tn)
 {
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: does not support Background Image\n", device->id);
 }
@@ -2279,7 +2279,7 @@ void sccp_dev_postregistration(devicePtr d)
 	}
 	
 	if (d->backgroundImage) {
-		d->setBackgroundImage(d, d->backgroundImage);
+		d->setBackgroundImage(d, d->backgroundImage, d->backgroundTN ? d->backgroundTN : d->backgroundImage);
 	}
 
 	if (d->ringtone) {
