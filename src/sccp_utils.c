@@ -1734,7 +1734,7 @@ boolean_t sccp_append_variable(PBX_VARIABLE_TYPE *params, const char *key, const
 
 gcc_inline int sccp_utf8_columnwidth(int width, const char *const ms)
 {
-	setlocale(LC_ALL, "");
+	//setlocale(LC_ALL, "");		// don't use this, it changes the locale on a global scale, not thread-local
 	if (ms)
 		return (int)width + (strlen(ms) - mbstowcs(NULL, ms, width));
 	else
