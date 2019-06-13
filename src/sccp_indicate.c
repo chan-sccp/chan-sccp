@@ -464,7 +464,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 		sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_LINESTATUS_CHANGED);
 		if (event) {
 			event->lineStatusChanged.line = sccp_line_retain(l);
-			event->lineStatusChanged.optional_device = d ? sccp_device_retain(d) : NULL;
+			event->lineStatusChanged.optional_device = sccp_device_retain(d);
 			event->lineStatusChanged.state = c->state;
 			sccp_event_fire(event);
 		}
