@@ -1303,7 +1303,12 @@ int sccp_feat_singleline_barge(channelPtr c, const char * const exten)
  */
 int sccp_feat_sharedline_barge(constLineDevicePtr bargingLD, channelPtr bargedChannel)
 {
-	if (!bargingLD || !bargingLD->line || !bargedChannel) {
+	if (!bargingLD) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_feat_sharedline_barge) called without bargingLD\n");
+		return FALSE;
+	}
+	if (!bargingLD->line || !bargedChannel) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_feat_sharedline_barge) called without valid bargingLD->line or bargedChannel\n");
 		sccp_dev_displayprompt(bargingLD->device, bargingLD->lineInstance, 0, SKINNY_DISP_FAILED_TO_SETUP_BARGE, SCCP_DISPLAYSTATUS_TIMEOUT);
 		return FALSE;
 	}
