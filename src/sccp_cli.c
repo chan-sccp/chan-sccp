@@ -2451,7 +2451,7 @@ static char ami_callforward_usage[] = "Usage: SCCPCallForward\n" "Set/Unset Call
 #define CLI_COMMAND "sccp", "callforward"
 #define AMI_COMMAND "SCCPCallForward"
 #define CLI_COMPLETE SCCP_CLI_LINE_COMPLETER, SCCP_CLI_NULL_COMPLETER
-#define CLI_AMI_PARAMS "LineName, DeviceId, Dest"
+#define CLI_AMI_PARAMS "LineName","DeviceId","Dest"
 CLI_AMI_ENTRY(callforward, sccp_callforward, "Set/Unset CallForward on an SCCP Line", cli_callforward_usage, FALSE, FALSE)
 #undef CLI_AMI_PARAMS
 #undef AMI_COMMAND
