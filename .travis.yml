@@ -11,7 +11,8 @@ compiler:
 env:
   global:
     # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created using: travis encrypt COVERITY_SCAN_TOKEN="xxxxxxx-xxxxxxx" -r dkgroot/chan-sccp-b
-    - secure: "Hi986xfrKhNSaM88E6iaKkVWpA0gP7VtUwGHoPYh41YJBpKkYUMwUursgPvUT516rerPPQo4od6JYgdYhuTxIEm2yawtnRjF6BqrqBmDbpEd5grh4eQgmtO2jxCsLVZa1fueIbHg/eJDAY1/Q6LD9okUcyiipr4uYOC5t+67fxQ="
+   - secure: "ambC8BbKKCJRW/6iwwNS7xfcAg2X00jZsK0McvwpFUEBylxypUni2aBdOpOyMcUGd5hQJS16XbcObeBCim2ZYnyAUzR2LKoFZroGVbwN83OhLGJ83cSXgiDbzKUxuBKTwonUocB7HxWuFJLN1OXb9gucwQNWbLC2VuV5tTsp/NY="
+
   matrix:
     - REPOS=xenial   # TLS
     - REPOS=coverity # Xenial TLS
@@ -41,6 +42,9 @@ script:
 after_script:
  - cat /home/travis/build/chan-sccp/chan-sccp/cov-int/scm_log.txt
 
+before_install:
+  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
 # Report Results
 notifications:
   slack: chan-sccp:yfQzKYTnTf4cD1iHElnTYsXD
@@ -59,9 +63,10 @@ addons:
   coverity_scan:
     project:
       name: chan-sccp/chan-sccp
-    notification_email: info@talon.nl
+      description: "Replacement for the SCCP channel driver in Asterisk. Extended features include Shared Lines, Presence / BLF, customizable Feature Buttons, and Custom Device State. Visit our discussion mailing list for help and join us as a developer if you like."
+    notification_email: ddegroot@talon.nl
     build_command_prepend: ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-advanced-functions --enable-experimental-xml && make clean
     build_command: make -j2
-    branch_pattern: coverity
+    branch_pattern: develop
     
     
