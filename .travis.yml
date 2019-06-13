@@ -10,9 +10,16 @@ compiler:
 
 env:
   global:
+    - COVERITY_SCAN_PROJECT_NAME="chan-sccp/chan-sccp"
+    - COVERITY_SCAN_PROJECT_DESCRIPTION="SCCP Channel Addon for Asterisk"
+    - COVERITY_SCAN_NOTIFICATION_EMAIL="info@talon.nl"
+    - COVERITY_SCAN_BRANCH_PATTERN="develop"
+    - COVERITY_SCAN_BUILD_COMMAND_PREPEND="./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-advanced-functions --enable-experimental-xml && make clean"
+    - COVERITY_SCAN_BUILD_COMMAND="make -j2"
+    - COVERITY_SCAN_BUILD_URL="https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh"
+    - COVERITY_SCAN_BUILD="curl -s $COVERITY_SCAN_BUILD_URL | bash"
     # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created using: travis encrypt COVERITY_SCAN_TOKEN="xxxxxxx-xxxxxxx" -r dkgroot/chan-sccp-b
-   - secure: "ambC8BbKKCJRW/6iwwNS7xfcAg2X00jZsK0McvwpFUEBylxypUni2aBdOpOyMcUGd5hQJS16XbcObeBCim2ZYnyAUzR2LKoFZroGVbwN83OhLGJ83cSXgiDbzKUxuBKTwonUocB7HxWuFJLN1OXb9gucwQNWbLC2VuV5tTsp/NY="
-
+    - secure: "ambC8BbKKCJRW/6iwwNS7xfcAg2X00jZsK0McvwpFUEBylxypUni2aBdOpOyMcUGd5hQJS16XbcObeBCim2ZYnyAUzR2LKoFZroGVbwN83OhLGJ83cSXgiDbzKUxuBKTwonUocB7HxWuFJLN1OXb9gucwQNWbLC2VuV5tTsp/NY="
   matrix:
     - REPOS=xenial   # TLS
     - REPOS=coverity # Xenial TLS
@@ -23,22 +30,25 @@ env:
 matrix:
   allow_failures:
     - compiler: clang
-      env: COVERITY_SCAN_BRANCH_PATTERN=develop
+      env: REPOS=coverity
 
 # Install Required Devel Packages
 before_install:
- - sudo apt-get update -qq
- - sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg binutils.dev libc6-dev gettext  autoconf automake m4 autotools-dev libltdl-dev libxml2-dev libxslt1-dev
- - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
-# asterisk-tests
+ - if [ "${REPOS}" != "coverity" ]; 
+   then
+     sudo apt-get update -qq;
+     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg binutils.dev libc6-dev gettext  autoconf automake m4 autotools-dev libltdl-dev;
+   else
+     sudo apt-get update -qq;
+     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg binutils.dev libc6-dev gettext  autoconf automake m4 autotools-dev libltdl-dev;
+     if [ "x${CC}" == "xclang" ] && [ "x${TRAVIS_BRANCH}" == "xdevelop" ]; then 
+      eval "$COVERITY_SCAN_BUILD" || cat /home/travis/build/chan-sccp/chan-sccp/cov-int/scm_log.txt
+     fi
+   fi
 
 # Prepare Configure Script
 before_script:
  - autoreconf -fi
- 
-# temporary additiong to run with "xml"
-script:
- - ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-advanced-functions --enable-experimental-xml && make clean && make && make test
 
 after_script:
  - cat /home/travis/build/chan-sccp/chan-sccp/cov-int/scm_log.txt
@@ -56,15 +66,3 @@ notifications:
     on_success: change  # options: [always|never|change] default: always
     on_failure: always  # options: [always|never|change] default: always
     on_start: never     # options: [always|never|change] default: always
-
-addons:
-  coverity_scan:
-    project:
-      name: chan-sccp/chan-sccp
-      description: "Replacement for the SCCP channel driver in Asterisk. Extended features include Shared Lines, Presence / BLF, customizable Feature Buttons, and Custom Device State. Visit our discussion mailing list for help and join us as a developer if you like."
-    notification_email: ddegroot@talon.nl
-    build_command_prepend: ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-advanced-functions --enable-experimental-xml && make clean
-    build_command: make -j2
-    branch_pattern: develop
-    
-    
