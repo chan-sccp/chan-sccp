@@ -125,21 +125,21 @@ static __attribute__ ((malloc)) char * searchWebDirForFile(const char *filename,
 }
 */
 
-static const char ** convertPbxVar2XsltParams(PBX_VARIABLE_TYPE *pbx_params, const char *params[17], int *nbparams)
+static uint convertPbxVar2XsltParams(PBX_VARIABLE_TYPE *pbx_params, const char *params[17], int nbparams)
 {
 	PBX_VARIABLE_TYPE *v = pbx_params;
 	for(; v; v = v->next) {
-		params[*nbparams++] = v->name;
-		params[*nbparams++] = v->value;
+		params[nbparams++] = v->name;
+		params[nbparams++] = v->value;
 		//params[*nbparams++] = strdup(v->name);
 		//params[*nbparams++] = strdup(v->value);
-		if (*nbparams >= 16) {
+		if (nbparams >= 16) {
 			pbx_log(LOG_ERROR, "SCCP: to many xslt parameters supplied\n");
 			break;
 		}
 	}
-	params[*nbparams] = NULL;
-	return params;
+	params[nbparams] = NULL;
+	return nbparams;
 }
 
 /* rework to easy unit testing, TO MUCH INTEGRATION */
@@ -148,12 +148,12 @@ static boolean_t applyStyleSheet(xmlDoc * const doc, PBX_VARIABLE_TYPE *pbx_para
 {
 	boolean_t res = FALSE;
 	const char *params[17] = {0};
-	int *nbparams = 0;
+	uint nbparams = 0;
 
 	//params[nbparams++] = "locales";
 	//params[nbparams++] = language;
-	params[*nbparams++] = "locales";
-	params[*nbparams++] = "en";
+	params[nbparams++] = "locales";
+	params[nbparams++] = "en";
 	
 	/* process xinclude elements. */
 	if (xmlXIncludeProcess(doc) < 0) {
@@ -165,7 +165,7 @@ static boolean_t applyStyleSheet(xmlDoc * const doc, PBX_VARIABLE_TYPE *pbx_para
 	if (xslt) {
 		xmlSubstituteEntitiesDefault(1);
 		xmlLoadExtDtdDefaultValue = 1;
-		convertPbxVar2XsltParams(pbx_params, params, nbparams);		// still needed ?
+		nbparams = convertPbxVar2XsltParams(pbx_params, params, nbparams);		// still needed ?
 		xmlDocPtr newdoc = xsltApplyStylesheet(xslt, doc, params);
 		if (newdoc) {			// switch xml doc with newdoc which got the stylesheet applied, free original xml doc
 			xmlFreeDoc(doc);
