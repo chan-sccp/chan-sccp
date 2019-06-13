@@ -2401,7 +2401,7 @@ static int sccp_callforward(int fd, sccp_cli_totals_t *totals, struct mansession
 	}
 
 	AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byname(argv[2], FALSE));
-	CLI_AMI_OUTPUT(fd, s, "2:%s, 3:%s ,4:%s, 5:%s\n", argv[2], argv[3], argv[4], argv[5]);
+	//CLI_AMI_OUTPUT(fd, s, "2:%s, 3:%s ,4:%s, 5:%s\n", argv[2], argv[3], argv[4], argv[5]);
 	if (l) {
 		if (argc == 6) {
 			d = sccp_device_find_byid(argv[3], FALSE);
@@ -2451,7 +2451,7 @@ static char ami_callforward_usage[] = "Usage: SCCPCallForward\n" "Set/Unset Call
 #define CLI_COMMAND "sccp", "callforward"
 #define AMI_COMMAND "SCCPCallForward"
 #define CLI_COMPLETE SCCP_CLI_LINE_COMPLETER, SCCP_CLI_NULL_COMPLETER
-#define CLI_AMI_PARAMS "LineName","DeviceId","Dest"
+#define CLI_AMI_PARAMS "LineName","DeviceId","Type","Dest",""
 CLI_AMI_ENTRY(callforward, sccp_callforward, "Set/Unset CallForward on an SCCP Line", cli_callforward_usage, FALSE, FALSE)
 #undef CLI_AMI_PARAMS
 #undef AMI_COMMAND
