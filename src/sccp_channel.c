@@ -2764,11 +2764,11 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const char *data)
 boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const char *data){
 	boolean_t res = FALSE;
 #if CS_SCCP_VIDEO
-	sccp_video_mode_t newval = c->videomode = sccp_video_mode_str2val(data);
-	if (newval == SCCP_VIDEO_MODE_SENTINEL) {
-		return res;
-	}
 	if (c) {
+		sccp_video_mode_t newval = c->videomode = sccp_video_mode_str2val(data);
+		if (newval == SCCP_VIDEO_MODE_SENTINEL) {
+			return res;
+		}
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP))(VERBOSE_PREFIX_2 "%s:Setting Video Mode to %s\n", c->designator, sccp_video_mode2str(newval));
 		if (newval == SCCP_VIDEO_MODE_AUTO) {
 			if (!c->rtp.video.instance || SCCP_RTP_STATUS_INACTIVE == c->rtp.video.receiveChannelState) {
