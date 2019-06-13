@@ -1148,7 +1148,7 @@ static void *cleanupTempExtensionContext(void *ptr)
 
 static sccp_barge_info_t * createTempExtensionContext(channelPtr c, const char *context_name, const char *ext, const char *app, const char *opts)
 {
-	sccp_barge_info_t *barge_info = (sccp_barge_info_t *) sccp_calloc(1, sizeof barge_info);
+	sccp_barge_info_t *barge_info = (sccp_barge_info_t *) sccp_calloc(1, sizeof(sccp_barge_info_t));
 	if (barge_info && (barge_info->context = pbx_context_find_or_create(NULL, NULL, context_name, BASE_REGISTRAR))) {
 		barge_info->bargingChannel = sccp_channel_retain(c);
 		pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/1, /*label*/NULL, /*cidmatch*/NULL, "Answer", NULL, NULL, BASE_REGISTRAR);
@@ -1221,12 +1221,18 @@ void sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr
 int sccp_feat_singleline_barge(channelPtr c, const char * const exten)
 {
 	if (!c) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_feat_sharedline_barge) called without valid channel\n");
 		return FALSE;
 	}
 	AUTO_RELEASE(sccp_linedevices_t, bargingLD, sccp_channel_getLineDevice(c));
 	sccp_barge_info_t *barge_info = NULL;
 	
-	if (!bargingLD || !bargingLD->line) {
+	if (!bargingLD) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_feat_sharedline_barge) called without bargingLD\n");
+		return FALSE;
+	}
+	if (!bargingLD->line) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_feat_sharedline_barge) called without valid bargingLD->line\n");
 		sccp_dev_displayprompt(bargingLD->device, bargingLD->lineInstance, 0, SKINNY_DISP_FAILED_TO_SETUP_BARGE, SCCP_DISPLAYSTATUS_TIMEOUT);
 		sccp_dev_starttone(bargingLD->device, SKINNY_TONE_BEEPBONK, bargingLD->lineInstance, 0, SKINNY_TONEDIRECTION_USER);
 		return FALSE;
