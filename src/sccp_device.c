@@ -2663,12 +2663,6 @@ int __sccp_device_destroy(const void *ptr)
 #endif
 	}
 	
-#if HAVE_ICONV
-	if (d->privateData->iconv != (iconv_t) -1) {
-		sccp_device_destroyiconv(d);
-	}
-#endif	
-
 	// cleanup variables
 	if (d->variables) {
 		pbx_variables_destroy(d->variables);
@@ -2677,6 +2671,11 @@ int __sccp_device_destroy(const void *ptr)
 	
 	// cleanup privateData
 	if (d->privateData) {
+#if HAVE_ICONV
+		if (d->privateData->iconv != (iconv_t) -1) {
+			sccp_device_destroyiconv(d);
+		}
+#endif	
 		sccp_mutex_destroy(&d->privateData->lock);
 		sccp_free(d->privateData);
 	}
