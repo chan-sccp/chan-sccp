@@ -2259,7 +2259,7 @@ void sccp_dev_postregistration(devicePtr d)
 		}
 
 		if (iPbx.feature_getFromDatabase(family, "privacy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-			d->privacyFeature.status = SCCP_PRIVACYFEATURE_HINT;	/* True */
+			sscanf(buffer,"%d", &d->privacyFeature.status);
 			sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
 		}
 
