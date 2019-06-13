@@ -368,7 +368,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 {
 	pbx_str_t *coldata = pbx_str_thread_get(&coldata_buf, 16);
 	pbx_str_t *colnames = pbx_str_thread_get(&colnames_buf, 16);
-	char *colname = (char *)sccp_alloca(16);								// we should make this a finite length
+	char *colname = NULL;											// we should make this a finite length
 	uint16_t buf_len = 1024;
 	char buf[1024] = "";
 	char *token = NULL;
@@ -383,6 +383,10 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
 	} else if (colname) {
+		colname = (char *)sccp_alloca(16);
+		if (!colname) {
+			return -1;
+		}
 		snprintf(colname, 16, "ip");
 	} else {
 		return -1;
@@ -621,7 +625,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 {
 	pbx_str_t *coldata = pbx_str_thread_get(&coldata_buf, 16);
 	pbx_str_t *colnames = pbx_str_thread_get(&colnames_buf, 16);
-	char *colname = (char *)sccp_alloca(16);
+	char *colname = NULL;
 	uint16_t buf_len = 1024;
 	char buf[1024] = "";
 	char *token = NULL;
@@ -635,10 +639,12 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 		}
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
-	} else if (colname) {
-		snprintf(colname, 16, "id");
 	} else {
-		return -1;
+		colname = (char *)sccp_alloca(16);
+		if (!colname) {
+			return -1;
+		}
+		snprintf(colname, 16, "id");
 	}
 	AUTO_RELEASE(sccp_line_t, l , NULL);
 	AUTO_RELEASE(sccp_channel_t, c , NULL);
@@ -863,7 +869,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	PBX_CHANNEL_TYPE *ast;
 	pbx_str_t *coldata = pbx_str_thread_get(&coldata_buf, 16);
 	pbx_str_t *colnames = pbx_str_thread_get(&colnames_buf, 16);
-	char *colname = (char *)sccp_alloca(16);
+	char *colname = NULL;
 	uint16_t buf_len = 1024;
 	char buf[1024] = "";
 	char *token = NULL;
@@ -876,10 +882,12 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		}
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
-	} else if (colname) {
-		snprintf(colname, 16, "callid");
 	} else {
-		return -1;
+		colname = (char *)sccp_alloca(16);
+		if (!colname) {
+			return -1;
+		}
+		snprintf(colname, 16, "callid");
 	}
 
 	AUTO_RELEASE(sccp_channel_t, c , NULL);
