@@ -362,9 +362,8 @@ static int request_parser (
 	PBX_VARIABLE_TYPE 			* request_headers
 ) {
 	int result = 0;
-	pbx_str_t *http_header = pbx_str_create(80);
-	pbx_str_t *out = pbx_str_create(4196);
-	
+	pbx_str_t *http_header = NULL;
+	pbx_str_t *out = NULL;
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "SCCP: (request_parser) Handling Callback\n");
 
 	handler_t *handler = get_request_handler(request_params);
@@ -397,69 +396,67 @@ static int request_parser (
 	//}
 	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: handler:%p, result:%d\n", handler, result);
 	do {
-		if (result == 0) {
-			http_header = pbx_str_create(80);
-			out = pbx_str_create(4196);
-			if (!http_header || !out) {
-				pbx_log(LOG_ERROR, "pbx_str_create() out of memory\n");
-				ast_http_error(ser, 500, "Server Error", "Internal Server Error\nast_str_create() out of memory\n");
-				break;
-			}
-			
-			if (handler->callback(handler->uri, request_params, request_headers, &out)) {
-				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (request_parser) Handling Callback: %s, remote-address: %s\n", request_uri, ast_sockaddr_stringify(&ser->remote_address));
-				char timebuf[80];
-			        struct timeval nowtv = ast_tvnow();
-			        struct ast_tm now;
-				ast_strftime(timebuf, sizeof(timebuf), "%a, %d %b %Y %H:%M:%S GMT", ast_localtime(&nowtv, &now, "GMT"));
-				ast_str_set(&http_header, 0,
-					"Content-type: %s\r\n"
-					"Cache-Control: no-cache;\r\n"
-					"Set-Cookie: sccp_id=\"%08x\"; Version=1; Max-Age=%d\r\n"
-					"Pragma: SuppressEvents\r\n"
-					"Last-Modified: %s\r\n",
-					outputfmt2contenttype[outputfmt],
-					1, 
-					cookie_timeout,
-					timebuf
-				);
-				//sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (request_parser) Returning Header:'%s'\n", pbx_str_buffer(http_header));
-				/*
-				if (handler->outputfmt == SCCP_XML_OUTPUTFMT_XML && handler->outputfmt != outputfmt && iXML.applyStyleSheet) {
-					addTranslation(request_params);
-					if (process_side == ServerSide) {
-						char *stylesheetFilename = findStylesheet(handler, outputfmt);
-						if (stylesheetFilename) {
-							xmlDoc *xmldoc = iXML.createDoc();
-							if (!iXML.applyStyleSheet(xmldoc, stylesheetFilename, locale, outputfmt, request_params)) {
-								ast_http_error(ser, 500, "Server Error", "Internal Server Error\n(sccp_webservice_parser) stylesheet could not be found\n");
-								break;
-							}
-							sccp_free(stylesheetFilename);
-						} else {
-							pbx_log(LOG_ERROR, "Stylesheet could not be found\n");
-							ast_http_error(ser, 500, "Server Error", "Internal Server Error\nstylesheet could not be found\n");
-							break;
-						}
-					}
-				}
-				*/
+		http_header = pbx_str_create(80);
+		out = pbx_str_create(4196);
+		if (!http_header || !out) {
+			pbx_log(LOG_ERROR, "pbx_str_create() out of memory\n");
+			ast_http_error(ser, 500, "Server Error", "Internal Server Error\nast_str_create() out of memory\n");
+			break;
+		}
 
-				ast_http_send(ser, method, 200, NULL, http_header, out, 0, 0);
-				http_header = out = NULL;
-				break;
-			} else {
-				pbx_log(LOG_ERROR, "could not process request, callback failed\n");
-				ast_http_request_close_on_completion(ser);
-				ast_http_error(ser, 500, "Server Error", "Internal Server Error\nCould not process request, callback failed\n");
-				break;
-			}
-		} else {
+		if (result != 0) {
 			pbx_log(LOG_ERROR, "could not parse the uri or headers\n");
 			ast_http_request_close_on_completion(ser);
 			ast_http_error(ser, 500, "Server Error", "Internal Server Error\nURI or Headers could not be parsed\n");
 			break;
 		}
+		if (!handler->callback(handler->uri, request_params, request_headers, &out)) {
+			pbx_log(LOG_ERROR, "could not process request, callback failed\n");
+			ast_http_request_close_on_completion(ser);
+			ast_http_error(ser, 500, "Server Error", "Internal Server Error\nCould not process request, callback failed\n");
+			break;
+		}
+		sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (request_parser) Handling Callback: %s, remote-address: %s\n", request_uri, ast_sockaddr_stringify(&ser->remote_address));
+		char timebuf[80];
+		struct timeval nowtv = ast_tvnow();
+		struct ast_tm now;
+		ast_strftime(timebuf, sizeof(timebuf), "%a, %d %b %Y %H:%M:%S GMT", ast_localtime(&nowtv, &now, "GMT"));
+		ast_str_set(&http_header, 0,
+			"Content-type: %s\r\n"
+			"Cache-Control: no-cache;\r\n"
+			"Set-Cookie: sccp_id=\"%08x\"; Version=1; Max-Age=%d\r\n"
+			"Pragma: SuppressEvents\r\n"
+			"Last-Modified: %s\r\n",
+			outputfmt2contenttype[outputfmt],
+			1, 
+			cookie_timeout,
+			timebuf
+		);
+		//sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (request_parser) Returning Header:'%s'\n", pbx_str_buffer(http_header));
+		/*
+		if (handler->outputfmt == SCCP_XML_OUTPUTFMT_XML && handler->outputfmt != outputfmt && iXML.applyStyleSheet) {
+			addTranslation(request_params);
+			if (process_side == ServerSide) {
+				char *stylesheetFilename = findStylesheet(handler, outputfmt);
+				if (stylesheetFilename) {
+					xmlDoc *xmldoc = iXML.createDoc();
+					if (!iXML.applyStyleSheet(xmldoc, stylesheetFilename, locale, outputfmt, request_params)) {
+						ast_http_error(ser, 500, "Server Error", "Internal Server Error\n(sccp_webservice_parser) stylesheet could not be found\n");
+						break;
+					}
+					sccp_free(stylesheetFilename);
+				} else {
+					pbx_log(LOG_ERROR, "Stylesheet could not be found\n");
+					ast_http_error(ser, 500, "Server Error", "Internal Server Error\nstylesheet could not be found\n");
+					break;
+				}
+			}
+		}
+		*/
+
+		ast_http_send(ser, method, 200, NULL, http_header, out, 0, 0);
+		http_header = out = NULL;
+		break;
 	} while(0);
 
 	if (http_header) {
@@ -768,7 +765,6 @@ static boolean_t sccp_webservice_xmltest(const char *const uri, PBX_VARIABLE_TYP
 static void __attribute__((constructor)) init_webservice(void)
 {
 	if (!running && parse_manager_conf() && parse_http_conf(baseURL)) {
-		pbx_log(LOG_NOTICE, "SCCP: (sccp_webservice_module_starting...\n");
 		SCCP_VECTOR_RW_INIT(&handlers, 1);
 
 		/* begin test */
@@ -778,7 +774,6 @@ static void __attribute__((constructor)) init_webservice(void)
 
 		ast_http_uri_link(&sccp_webservice_uri);
 		ast_http_uri_link(&sccp_webservice_xslt_uri);
-		pbx_log(LOG_NOTICE, "SCCP: (sccp_webservice_module_started\n");
 		running = TRUE;
 	}
 }
