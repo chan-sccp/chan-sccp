@@ -545,7 +545,7 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser
 	path = (char *) sccp_alloca(len);
 	snprintf(path, len, "%s/sccpxslt/%s", ast_config_AST_DATA_DIR, uri);
 
-	if (stat(path, &st)) {
+	if (stat(path, &st) == -1) {
 		goto out404;
 	}
 
@@ -557,8 +557,7 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser
 		goto out403;
 	}
 
-	fd = open(path, O_RDONLY);
-	if (fd < 0) {
+	if ((fd = open(path, O_RDONLY)) == -1) {
 		goto out403;
 	}
 
