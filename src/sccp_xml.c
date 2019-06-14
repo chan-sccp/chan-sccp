@@ -128,7 +128,7 @@ static __attribute__ ((malloc)) char * searchWebDirForFile(const char *filename,
 static uint convertPbxVar2XsltParams(PBX_VARIABLE_TYPE *pbx_params, const char *params[17], int nbparams)
 {
 	PBX_VARIABLE_TYPE *v = pbx_params;
-	for(; v && nbparams <= 16; v = v->next) {
+	for(; v && nbparams <= 14; v = v->next) {
 		params[nbparams++] = v->name;
 		params[nbparams++] = v->value;
 		//params[*nbparams++] = strdup(v->name);
