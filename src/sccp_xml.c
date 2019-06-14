@@ -128,15 +128,11 @@ static __attribute__ ((malloc)) char * searchWebDirForFile(const char *filename,
 static uint convertPbxVar2XsltParams(PBX_VARIABLE_TYPE *pbx_params, const char *params[17], int nbparams)
 {
 	PBX_VARIABLE_TYPE *v = pbx_params;
-	for(; v; v = v->next) {
+	for(; v && nbparams <= 16; v = v->next) {
 		params[nbparams++] = v->name;
 		params[nbparams++] = v->value;
 		//params[*nbparams++] = strdup(v->name);
 		//params[*nbparams++] = strdup(v->value);
-		if (nbparams >= 16) {
-			pbx_log(LOG_ERROR, "SCCP: to many xslt parameters supplied\n");
-			break;
-		}
 	}
 	params[nbparams] = NULL;
 	return nbparams;

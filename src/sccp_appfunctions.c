@@ -382,14 +382,12 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		}
 	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
-	} else if (colname) {
+	} else {
 		colname = (char *)sccp_alloca(16);
 		if (!colname) {
 			return -1;
 		}
 		snprintf(colname, 16, "ip");
-	} else {
-		return -1;
 	}
 
 	AUTO_RELEASE(sccp_device_t, d , NULL);
