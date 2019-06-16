@@ -1558,7 +1558,7 @@ EXITFUNC:
 
 static int sccp_astwrap_call(PBX_CHANNEL_TYPE * ast, const char *dest, int timeout)
 {
-	struct varshead *headp;
+	struct varshead *headp = NULL;
 	struct ast_var_t *current;
 
 	int res = 0;

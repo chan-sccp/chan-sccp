@@ -1899,7 +1899,7 @@ EXITFUNC:
 
 static int sccp_astwrap_call(PBX_CHANNEL_TYPE * ast, const char *dest, int timeout)
 {
-	struct varshead *headp;
+	struct varshead *headp = NULL;
 	struct ast_var_t *current;
 
 	int res = 0;
@@ -1922,16 +1922,18 @@ static int sccp_astwrap_call(PBX_CHANNEL_TYPE * ast, const char *dest, int timeo
 	headp = ast_channel_varshead(ast);
 	//ast_log(LOG_NOTICE, "SCCP: search for varibles!\n");
 
-	AST_LIST_TRAVERSE(headp, current, entries) {
-		//ast_log(LOG_NOTICE, "var: name: %s, value: %s\n", ast_var_name(current), ast_var_value(current));
-		if (!strcasecmp(ast_var_name(current), "__MaxCallBR")) {
-			sccp_astgenwrap_channel_write(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
-		} else if (!strcasecmp(ast_var_name(current), "MaxCallBR")) {
-			sccp_astgenwrap_channel_write(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
+	if (headp) {
+		AST_LIST_TRAVERSE(headp, current, entries) {
+			//ast_log(LOG_NOTICE, "var: name: %s, value: %s\n", ast_var_name(current), ast_var_value(current));
+			if (!strcasecmp(ast_var_name(current), "__MaxCallBR")) {
+				sccp_astgenwrap_channel_write(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
+			} else if (!strcasecmp(ast_var_name(current), "MaxCallBR")) {
+				sccp_astgenwrap_channel_write(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
 #if CS_SCCP_VIDEO
-		} else if (!strcasecmp(ast_var_name(current), "SCCP_VIDEO_MODE")) {
-			sccp_channel_setVideoMode(c, ast_var_value(current));
+			} else if (!strcasecmp(ast_var_name(current), "SCCP_VIDEO_MODE")) {
+				sccp_channel_setVideoMode(c, ast_var_value(current));
 #endif
+			}
 		}
 	}
 	// chan_sip.c:6479
