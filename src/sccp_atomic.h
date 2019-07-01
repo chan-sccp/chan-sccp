@@ -40,11 +40,11 @@
 
 #else														/* SCCP_ATOMIC */
 //#define CAS32_TYPE			int
-#if defined (__i386__) || defined(__x86_64__)
-#define ATOMIC_INCR(_a,_b,_c)	 	ast_atomic_fetchadd_int(_a, _b)
-#define ATOMIC_DECR(_a,_b,_c)	 	ast_atomic_fetchadd_int(_a, -_b)
-#define ATOMIC_FETCH(_a,_c)		ast_atomic_fetchadd_int(_a, 0)
-#else
+//#if defined (__i386__) || defined(__x86_64__)
+//#define ATOMIC_INCR(_a,_b,_c)	 	ast_atomic_fetchadd_int(_a, _b)
+//#define ATOMIC_DECR(_a,_b,_c)	 	ast_atomic_fetchadd_int(_a, -_b)
+//#define ATOMIC_FETCH(_a,_c)		ast_atomic_fetchadd_int(_a, 0)
+//#else
 #define ATOMIC_INCR(_a,_b,_c)							\
 	({									\
 		CAS32_TYPE __res=0;						\
@@ -64,35 +64,35 @@
 	})
 #define ATOMIC_DECR(_a,_b,_c) 		ATOMIC_INCR(_a,-_b,_c)
 #define ATOMIC_FETCH(_a,_c) 		ATOMIC_INCR(_a,0,_c)
-#endif
+//#endif
 #define CAS32(_a,_b,_c,_d)							\
 	({									\
 		CAS32_TYPE __res=-298;						\
 		if (pbx_mutex_trylock(_d) != 0) {				\
 			pbx_log(LOG_NOTICE, "SCCP: atomic cas32 try lock failed\n");\
 			sched_yield();						\
-			return;							\
+		} else {							\
+			__res = *_a;						\
+			if (__res == _b) {					\
+				*_a = _c;					\
+			};							\
 		};								\
-		__res = *_a;							\
-		if (__res == _b) {						\
-			*_a = _c;						\
-		}								\
 		pbx_mutex_unlock(_d);						\
 		__res;								\
 	})
 #define CAS_PTR(_a,_b,_c,_d) 							\
 	({									\
-		boolean_t __res = FALSE;						\
+		boolean_t __res = FALSE;					\
 		if (pbx_mutex_trylock(_d) != 0) {				\
 			pbx_log(LOG_NOTICE, "SCCP: atomic casptr try lock failed\n");\
 			sched_yield();						\
-			return;							\
+		} else {							\
+			if (*_a == _b)	{					\
+				__res = TRUE;					\
+				*_a = _c;					\
+			};							\
+			pbx_mutex_unlock(_d);					\
 		};								\
-		if (*_a == _b)	{						\
-			__res = TRUE;						\
-			*_a = _c;						\
-		}								\
-		pbx_mutex_unlock(_d);						\
 		__res;								\
 	})
 #endif														/* SCCP_ATOMIC */
