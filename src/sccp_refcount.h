@@ -44,6 +44,8 @@ SCCP_API void SCCP_CALL sccp_refcount_replace(const void * * const replaceptr, c
 SCCP_API int SCCP_CALL sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 SCCP_API void SCCP_CALL sccp_refcount_autorelease(void *ptr);
 #if CS_REFCOUNT_DEBUG
+struct ast_str;
+#define pbx_str_t struct ast_str
 SCCP_API void SCCP_CALL sccp_refcount_addWeakParent(const void * const ptr, const void * const parentWeakPtr);
 SCCP_API void SCCP_CALL sccp_refcount_removeWeakParent(const void * const ptr, const void * const parentWeakPtr);
 SCCP_API void SCCP_CALL sccp_refcount_gen_report(const void * const ptr, pbx_str_t **buf);
