@@ -543,12 +543,12 @@ static void __find_joint_capabilities(sccp_channel_t *c, PBX_CHANNEL_TYPE* peer,
 			} else {
 				ast_translator_best_choice(remote_caps, caps, &best_fmt_cap, &best_fmt_native);
 				if (best_fmt_native) {
-					ao2_ref(best_fmt_native, +1);
+					//ao2_ref(best_fmt_native, +1);
 					ast_format_cap_remove_by_type(caps, media_type);
 					ast_format_cap_append(caps, best_fmt_cap, media_type);
 				} else {
 					best_fmt_native = ast_format_cap_get_best_by_type(caps, media_type);
-					ao2_ref(best_fmt_native, +1);
+					//ao2_ref(best_fmt_native, +1);
 				}
 				ast_format_cap_append_from_cap(caps, joint, media_type);
 				sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: pbx_retrieve_remote_capabilities: transcoding, best_cap:%s, best_native:%s\n",
@@ -579,7 +579,7 @@ static void __find_joint_capabilities(sccp_channel_t *c, PBX_CHANNEL_TYPE* peer,
 					ast_rtp_instance_set_read_format(c->rtp.video.instance, best_fmt_native);
 				}
 			}
-			ao2_ref(best_fmt_native, -1);
+			//ao2_ref(best_fmt_native, -1);
 		}
 		ao2_cleanup(joint);
 		ao2_cleanup(remote_caps);
@@ -1116,7 +1116,6 @@ static boolean_t sccp_astwrap_setWriteFormat(constChannelPtr channel, skinny_cod
 	//ast_set_write_format(channel->owner, ast_format);
 	//ast_set_write_format_from_cap(channel->owner, caps);
 	ast_channel_set_writeformat(channel->owner, ast_format);
-	ao2_ref(ast_format, -1);
 	return TRUE;
 }
 
@@ -1135,7 +1134,6 @@ static boolean_t sccp_astwrap_setReadFormat(constChannelPtr channel, skinny_code
 	//ast_set_read_format(channel->owner, ast_format);
 	//ast_set_read_format_from_cap(channel->owner, caps);
 	ast_channel_set_readformat(channel->owner, ast_format);
-	ao2_ref(ast_format, -1);
 	return TRUE;
 }
 
@@ -1266,17 +1264,17 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 			if (best_fmt_native) {
 				ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_UNKNOWN);		// clear caps
 				ast_format_cap_append(caps, best_fmt_native, AST_MEDIA_TYPE_UNKNOWN);	// insert best first
-				ao2_ref(best_fmt_native, -1);
+				//ao2_ref(best_fmt_native, -1);
 			}
 			ast_format_cap_append_from_cap(caps, joint, AST_MEDIA_TYPE_UNKNOWN);
 		} else {
 			ast_translator_best_choice(ast_channel_nativeformats(pbxSrcChannel), caps, &best_fmt_cap, &best_fmt_native);
 			//ao2_ref(best_fmt_cap, +1);
 			if (best_fmt_native) {
-				ao2_ref(best_fmt_native, +1);
+				//ao2_ref(best_fmt_native, +1);
 				ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_UNKNOWN);		// clear caps
 				ast_format_cap_append(caps, best_fmt_native, AST_MEDIA_TYPE_UNKNOWN);	// insert best first
-				ao2_ref(best_fmt_native, -1);
+				//ao2_ref(best_fmt_native, -1);
 			}
 			//ao2_ref(best_fmt_cap, -1);
 		}
@@ -1455,8 +1453,8 @@ static boolean_t sccp_astwrap_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChann
 	//pbx_log(LOG_NOTICE, "allocPBXChannel: tmp->nativeformats=%s fmt=%s\n", ast_format_cap_get_names(ast_channel_nativeformats(pbxDstChannel), &codec_buf), ast_format_get_name(tmpfmt));
 
 	ao2_ref(tmpfmt, -1);
-	//ao2_ref(caps, -1);
-	ao2_cleanup(caps);
+	ao2_ref(caps, -1);
+	//ao2_cleanup(caps);
 	/* EndCodec */
 
 	ast_channel_context_set(pbxDstChannel, ast_channel_context(pbxSrcChannel));
