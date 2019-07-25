@@ -1149,7 +1149,7 @@ static void *cleanupTempExtensionContext(void *ptr)
 static sccp_barge_info_t * createTempExtensionContext(channelPtr c, const char *context_name, const char *ext, const char *app, const char *opts)
 {
 	sccp_barge_info_t *barge_info = (sccp_barge_info_t *) sccp_calloc(1, sizeof(sccp_barge_info_t));
-	if (barge_info) {
+	if (c && barge_info) {
 		if (!(barge_info->context = pbx_context_find_or_create(NULL, NULL, context_name, BASE_REGISTRAR))) {
 			sccp_free(barge_info);
 		}

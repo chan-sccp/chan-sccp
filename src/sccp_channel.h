@@ -52,7 +52,10 @@ struct sccp_channel {
 	skinny_capabilities_t capabilities;									/*!< our channel Capability in preference order */
 	skinny_capabilities_t preferences;
 	skinny_capabilities_t remoteCapabilities;
-
+	
+#if ASTERISK_VERSION_GROUP >= 113
+	struct ast_format_cap *caps;
+#endif
 	struct {
 		uint32_t digittimeout;										/*!< Digit Timeout on Dialing State (Enbloc-Emu) */
 		uint32_t totaldigittime;									/*!< Total Time used to enter Number (Enbloc-Emu) */
@@ -91,13 +94,14 @@ struct sccp_channel {
 	uint32_t conference_participant_id;									/*!< Conference Participant ID */
 
 	void (*setMicrophone) (sccp_channel_t * channel, boolean_t on);
-	boolean_t (*hangupRequest) (sccp_channel_t * channel);
+	boolean_t (*hangupRequest) (constChannelPtr channel);
 	boolean_t (*isMicrophoneEnabled) (void);
 	const char *const musicclass;										/*!< Music Class */
 
 	sccp_channel_t *parentChannel;										/*!< if we are a cfwd channel, our parent is this */
 	boolean_t isBarged;
 	boolean_t isBarging;
+	boolean_t isHangingUp;
 
 	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */
 	uint16_t autoanswer_cause;										/*!< Auto Answer Cause */

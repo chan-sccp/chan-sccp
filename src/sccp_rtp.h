@@ -14,17 +14,21 @@
 //struct sockaddr_storage;
 
 __BEGIN_C_EXTERN__
+typedef struct sccp_rtp_direction {
+	uint16_t state;
+	skinny_codec_t format;
+	sccp_channel_t *c;
+} sccp_rtp_direction_t;
+
 /*!
  * \brief SCCP RTP Structure
  */
 struct sccp_rtp {
 	sccp_mutex_t lock;
 	PBX_RTP_TYPE *instance;											/*!< pbx rtp instance pointer */
-	sccp_rtp_type_t type;
-	uint16_t mediaTransmissionState;									/*!< current RTP read state (StartMediaTransmission / SMT) */
-	uint16_t receiveChannelState;										/*!< current RTP write state (OpenReceiveChannel / ORC) */
-	skinny_codec_t readFormat;										/*!< current read format */
-	skinny_codec_t writeFormat;										/*!< current write format */
+	sccp_rtp_type_t type;											/* audio/video/data */
+	sccp_rtp_direction_t reception;										/* receive rtp / ORC */
+	sccp_rtp_direction_t transmission;									/* transmit rtp / SMT */
 	struct sockaddr_storage phone;										/*!< our phone information (openreceive) */
 	struct sockaddr_storage phone_remote;									/*!< phone destination address (starttransmission) */
 	uint16_t RTCPPortNumber;										/*!< RTCP Port used by the phone */

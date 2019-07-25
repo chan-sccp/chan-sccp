@@ -148,7 +148,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 					break;
 				}
 				d->indicate->dialing(d, lineInstance, c->callid, c->calltype, ci, c->dialedNumber);
-				if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
+				if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
 				}
 			}
@@ -175,8 +175,8 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_RING_OUT, GLOB(digittimeout));
 
 				sccp_dev_stoptone(d, lineInstance, c->callid);
-				//if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
-				if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
+				//if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
+				if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
 				} else {
 					sccp_dev_starttone(d, SKINNY_TONE_ALERTINGTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
@@ -190,7 +190,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 			/* send by connected line update, to show that we know the remote end, we can now update the callinfo */
 			sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, TRUE);
-			if (d->earlyrtp <= SCCP_EARLYRTP_PROGRESS && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
+			if (d->earlyrtp <= SCCP_EARLYRTP_PROGRESS && c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 				sccp_dev_stoptone(d, lineInstance, c->callid);
 				sccp_channel_openReceiveChannel(c);
 			}
@@ -270,7 +270,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state from (CONNECTED) to (PROGRESS). Ignoring\n");
 					} else {
 						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state from (%s) to (PROGRESS)\n", sccp_channelstate2str(c->previousChannelState));
-						if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && d->earlyrtp <= SCCP_EARLYRTP_PROGRESS) {
+						if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE && d->earlyrtp <= SCCP_EARLYRTP_PROGRESS) {
 							sccp_channel_openReceiveChannel(c);
 						}
 						sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROGRESS, GLOB(digittimeout));
@@ -296,7 +296,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				}
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
-				if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
+				if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE && d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
 					sccp_channel_openReceiveChannel(c);
 				}
 			}
@@ -313,7 +313,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 		case SCCP_CHANNELSTATE_CONNECTED:
 			{
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
-				if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
+				if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
 				} else {
 					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_channelstate2str(c->previousChannelState));
@@ -323,7 +323,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
 			{
-				if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
+				if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_dev_starttone(d, SKINNY_TONE_LINEBUSYTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 				}
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_BUSY, GLOB(digittimeout));
@@ -400,7 +400,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 			{
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
-				if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
+				if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
 				} else {
 					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_channelstate2str(c->previousChannelState));
@@ -425,7 +425,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 			break;
 		case SCCP_CHANNELSTATE_CONGESTION:
 			{
-				if (c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
+				if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 					/* congestion will be emulated if the rtp audio stream is not yet open */
 					sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 				}

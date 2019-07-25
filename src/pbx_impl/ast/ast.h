@@ -132,8 +132,8 @@ static void sccp_free_ptr(void *ptr)
 }
 
 sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel);
-boolean_t sccp_astgenwrap_requestQueueHangup(sccp_channel_t * c);
-boolean_t sccp_astgenwrap_requestHangup(sccp_channel_t * c);
+boolean_t sccp_astgenwrap_requestQueueHangup(constChannelPtr c);
+boolean_t sccp_astgenwrap_requestHangup(constChannelPtr c);
 
 /***** database *****/
 boolean_t sccp_astwrap_addToDatabase(const char *family, const char *key, const char *value);

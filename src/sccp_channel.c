@@ -1,4 +1,4 @@
-                                     /*! * \file        sccp_channel.c
+/*! * \file        sccp_channel.c
  * \brief       SCCP Channel Class
  * \author      Sergio Chersovani <mlists [at] c-net.it>
  * \date
@@ -72,12 +72,12 @@ static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t 
 
 	if (enabled) {
 		c->isMicrophoneEnabled = sccp_always_true;
-		if ((c->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE)) {
+		if ((c->rtp.audio.transmission.state & SCCP_RTP_STATUS_ACTIVE)) {
 			sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
 		}
 	} else {
 		c->isMicrophoneEnabled = sccp_always_false;
-		if ((c->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE)) {
+		if ((c->rtp.audio.transmission.state & SCCP_RTP_STATUS_ACTIVE)) {
 			sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 		}
 	}
@@ -101,7 +101,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 	sccp_channel_t *channel = NULL;
 	struct sccp_private_channel_data *private_data = NULL;
 	sccp_line_t *refLine = sccp_line_retain(l);
-	
+
 	if (!refLine) {
 		pbx_log(LOG_ERROR, "SCCP: Could not retain line to create a channel on it, giving up!\n");
 		return NULL;
@@ -188,6 +188,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		channel->getLineDevice = sccp_channel_getLineDevice;
 		channel->setDevice = sccp_channel_setDevice;
 		channel->isMicrophoneEnabled = sccp_always_true;
+		channel->isHangingUp = FALSE;
 		channel->setMicrophone = sccp_channel_setMicrophoneState;
 		channel->hangupRequest = sccp_astgenwrap_requestHangup;
 		//channel->privacy = (device && (device->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT)) ? TRUE : FALSE;
@@ -330,7 +331,7 @@ EXIT:
 	sccp_linedevice_refreplace(&channel->privateData->linedevice, NULL);
 	/* \todo we should use */
 	// sccp_line_copyMinimumCodecSetFromLineToChannel(l, c); 
-	
+
 	sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
 	channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
 }
@@ -338,10 +339,10 @@ EXIT:
 static void sccp_channel_recalculateAudioCodecFormat(sccp_channel_t * channel)
 {
 	char s1[512], s2[512], s3[512], s4[512];
-	skinny_codec_t joint = channel->rtp.audio.writeFormat;
+	skinny_codec_t joint = channel->rtp.audio.reception.format;
 	skinny_capabilities_t *preferences = &(channel->preferences);
 
-	if (channel->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.mediaTransmissionState == SCCP_RTP_STATUS_INACTIVE) {
+	if (channel->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.transmission.state == SCCP_RTP_STATUS_INACTIVE) {
 		if (channel->privateData->device) {
 			preferences = (channel->line->preferences_set_on_line_level) ? &(channel->preferences) : &(channel->privateData->device->preferences);
 			sccp_codec_reduceSet(preferences->audio, channel->privateData->device->capabilities.audio);
@@ -359,10 +360,10 @@ static void sccp_channel_recalculateAudioCodecFormat(sccp_channel_t * channel)
 		}
 	}
 	if (SKINNY_CODEC_NONE != joint) {
-		if (channel->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
-			channel->rtp.audio.writeFormat = joint;
+		if (channel->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
+			channel->rtp.audio.reception.format = joint;
 			iPbx.rtp_setWriteFormat(channel, joint);
-			channel->rtp.audio.readFormat = joint;
+			channel->rtp.audio.transmission.format = joint;
 			iPbx.rtp_setReadFormat(channel, joint);
 		}
 	}
@@ -387,10 +388,10 @@ static void sccp_channel_recalculateAudioCodecFormat(sccp_channel_t * channel)
 static void sccp_channel_recalculateVideoCodecFormat(sccp_channel_t * channel)
 {
 	char s1[512], s2[512], s3[512], s4[512];
-	skinny_codec_t joint = channel->rtp.video.writeFormat;
+	skinny_codec_t joint = channel->rtp.video.reception.format;
 	skinny_capabilities_t *preferences = &(channel->preferences);
 
-	if (channel->rtp.video.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && channel->rtp.video.mediaTransmissionState == SCCP_RTP_STATUS_INACTIVE) {
+	if (channel->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE && channel->rtp.video.transmission.state == SCCP_RTP_STATUS_INACTIVE) {
 		if (channel->privateData->device) {
 			preferences = (channel->line->preferences_set_on_line_level) ? &(channel->preferences) : &(channel->privateData->device->preferences);
 			sccp_codec_reduceSet(preferences->video, channel->privateData->device->capabilities.video);
@@ -411,16 +412,16 @@ static void sccp_channel_recalculateVideoCodecFormat(sccp_channel_t * channel)
 			iPbx.set_nativeVideoFormats(channel, codecs);
 		}
 	}
-	if (channel->rtp.video.receiveChannelState == SCCP_RTP_STATUS_INACTIVE) {
+	if (channel->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 		if (SKINNY_CODEC_NONE == joint) {
 			channel->videomode = SCCP_VIDEO_MODE_OFF;
-			channel->rtp.video.writeFormat = SKINNY_CODEC_NONE;
-			channel->rtp.video.readFormat = SKINNY_CODEC_NONE;
+			channel->rtp.video.reception.format = SKINNY_CODEC_NONE;
+			channel->rtp.video.transmission.format = SKINNY_CODEC_NONE;
 			iPbx.rtp_setWriteFormat(channel, SKINNY_CODEC_NONE);
 			iPbx.rtp_setReadFormat(channel, SKINNY_CODEC_NONE);
 		} else {
-			channel->rtp.video.writeFormat = joint;
-			channel->rtp.video.readFormat = joint;
+			channel->rtp.video.reception.format = joint;
+			channel->rtp.video.transmission.format = joint;
 			iPbx.rtp_setWriteFormat(channel, joint);
 			iPbx.rtp_setReadFormat(channel, joint);
 		}
@@ -488,7 +489,7 @@ void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send callInfo on %s with lineInstance: %d\n", device->id, channel->designator, lineInstance);
 		iCallInfo.Send(channel->privateData->callInfo, channel->callid, channel->calltype, lineInstance, device, FALSE);
 	}
-	
+
 }
 
 /*!
@@ -653,8 +654,12 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
 void sccp_channel_openReceiveChannel(constChannelPtr channel)
 {
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
+	if (channel->isHangingUp) {
+		pbx_log(LOG_ERROR, "%s: (openReceiveChannel) Channel already hanging up\n", channel->designator);
+		return;
+	}
 
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 	if (!d) {
 		pbx_log(LOG_ERROR, "%s: (openReceiveChannel) Could not retrieve device from channel\n", channel->designator);
 		return;
@@ -675,22 +680,23 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, channel->callid, SKINNY_TONEDIRECTION_USER);
 		return;
 	}
-	if (channel->owner && channel->rtp.audio.writeFormat == SKINNY_CODEC_NONE) {
+	if (channel->owner && channel->rtp.audio.reception.format == SKINNY_CODEC_NONE) {
 		sccp_channel_updateChannelCapability((channelPtr)channel);							// discard const
 	}
 	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
 	sccp_log((DEBUGCAT_RTP + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s, OpenReceiveChannel with format %s, payload %d, echocancel: %s, passthrupartyid: %u, pbx_channel_name: %s\n",
-			channel->designator, codec2str(audio->writeFormat), audio->writeFormat,
+			channel->designator, codec2str(audio->reception.format), audio->reception.format,
 			channel->line ? (channel->line->echocancel ? "YES" : "NO") : "(nil)>",
 			channel->passthrupartyid, iPbx.getChannelName(channel)
 		);
 
-	audio->receiveChannelState = SCCP_RTP_STATUS_PROGRESS;
+	audio->reception.state = SCCP_RTP_STATUS_PROGRESS;
 	if (d->nat >= SCCP_NAT_ON) {												// device is natted
 		sccp_rtp_updateNatRemotePhone(channel, audio);
 	}
 		
-	d->protocol->sendOpenReceiveChannel(d, channel);
+	audio->reception.c = sccp_channel_retain(channel);
+	d->protocol->sendOpenReceiveChannel(d, audio->reception.c);								// extra channel retain, released when receive channel is closed
 #ifdef CS_SCCP_VIDEO
 	if (channel->videomode != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", d->id);
@@ -703,10 +709,13 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 {
 	pbx_assert(d != NULL && c != NULL);
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(c->rtp.audio);
+
 	// check channel state
-	if (!c->rtp.audio.instance) {
+	if (!audio->instance) {
 		pbx_log(LOG_ERROR, "%s: Channel has no rtp instance!\n", d->id);
-		sccp_channel_endcall(c);								// FS - 350
+		sccp_channel_endcall(c);											// FS - 350
+		sccp_channel_release(&audio->reception.c);									// release extra receive channel retension
 		return SCCP_RTP_STATUS_INACTIVE;
 	}
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Opened Receive Channel (State: %s[%d])\n", d->id, sccp_channelstate2str(c->state), c->state);
@@ -715,33 +724,36 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_CONGESTION) {
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stopping tones %s\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
 			sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, c->line->name), c->callid);
+			sccp_channel_release(&audio->reception.c);								// release extra receive channel retension
 			return SCCP_RTP_STATUS_ACTIVE;
 		}
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (receiveChannelOpen) Channel is already terminating. Giving up... (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
 		return sccp_channel_closeAllMediaTransmitAndReceive(d, c);
 	}
 	//sccp_rtp_set_phone(c, &c->rtp.audio, &sas);
-	if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState) {
+	if (SCCP_RTP_STATUS_INACTIVE == audio->transmission.state) {
 		// this will start rtp flowing in both directions, to punch open any intermediate firewall ports.
 		// for early rtp (progress/proceed) the transmission will be stopped immediatly on receiving the first packet
 		// Note: See wrapper_rtp_read
 		sccp_channel_startMediaTransmission(c);
 	}
 	sccp_channel_send_callinfo(d, c);
-	c->rtp.audio.receiveChannelState |= SCCP_RTP_STATUS_ACTIVE;
+	audio->reception.state |= SCCP_RTP_STATUS_ACTIVE;
 
 	sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, c->line->name), c->callid);
 	if (c->owner) {
 		if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
 			iPbx.queue_control(c->owner, AST_CONTROL_ANSWER);
 		} else {
-			iPbx.queue_control(c->owner, (enum ast_control_frame_type)-1);				// 'PROD' the remote side to let them know we can receive inband signalling from this moment onwards -> inband signalling required
+			iPbx.queue_control(c->owner, (enum ast_control_frame_type)-1);						// 'PROD' the remote side to let them know
+																// we can receive inband signalling from this
+																// moment onwards -> inband signalling required
 		}
 		// indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC
 		// handle out of order arrival when startMediaAck returns before openReceiveChannelAck
 		if (    SCCP_CHANNELSTATE_IsConnected(c->state) &&
-			(c->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) &&
-			(c->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE)
+			(audio->reception.state & SCCP_RTP_STATUS_ACTIVE) &&
+			(audio->transmission.state & SCCP_RTP_STATUS_ACTIVE)
 		) {
 			iPbx.set_callstate(c, AST_STATE_UP);
 		}
@@ -761,6 +773,7 @@ void sccp_channel_closeReceiveChannel(constChannelPtr channel, boolean_t KeepPor
 	sccp_msg_t *msg = NULL;
 
 	pbx_assert(channel != NULL);
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
 	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 
 	if (!d) {
@@ -768,11 +781,10 @@ void sccp_channel_closeReceiveChannel(constChannelPtr channel, boolean_t KeepPor
 		return;
 	}
 	// stop transmitting before closing receivechannel (\note maybe we should not be doing this here)
-	sccp_channel_stopMediaTransmission(channel, KeepPortOpen);
+	//sccp_channel_stopMediaTransmission(channel, KeepPortOpen);
 	//sccp_rtp_stop(channel);
 
-	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
-	if (audio->receiveChannelState) {
+	if (audio->reception.state) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Close receivechannel on device %s (KeepPortOpen: %s)\n", channel->designator, d->id, KeepPortOpen ? "YES" : "NO");
 		REQ(msg, CloseReceiveChannel);
 		msg->data.CloseReceiveChannel.lel_conferenceId = htolel(channel->callid);
@@ -780,8 +792,9 @@ void sccp_channel_closeReceiveChannel(constChannelPtr channel, boolean_t KeepPor
 		msg->data.CloseReceiveChannel.lel_callReference = htolel(channel->callid);
 		msg->data.CloseReceiveChannel.lel_portHandlingFlag = htolel(KeepPortOpen);
 		sccp_dev_send(d, msg);
-		audio->receiveChannelState = SCCP_RTP_STATUS_INACTIVE;
+		audio->reception.state = SCCP_RTP_STATUS_INACTIVE;
 	}
+	sccp_channel_release(&audio->reception.c);										// release extra receive channel retension
 }
 
 #if UNUSEDCODE // 2015-11-01
@@ -789,11 +802,11 @@ void sccp_channel_updateReceiveChannel(constChannelPtr channel)
 {
 	/* \todo possible to skip the closing of the receive channel (needs testing) */
 	/* \todo if this works without closing, this would make changing codecs on the fly possible */
-	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.receiveChannelState) {
+	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.reception.state) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateReceiveChannel) Close Receive Channel on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_closeReceiveChannel(channel, TRUE);
 	}
-	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.receiveChannelState) {
+	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.reception.state) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateReceiveChannel) Open Receive Channel on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_openReceiveChannel(channel);
 	}
@@ -811,17 +824,22 @@ void sccp_channel_updateReceiveChannel(constChannelPtr channel)
 void sccp_channel_startMediaTransmission(constChannelPtr channel)
 {
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
-
-	if (!d) {
-		pbx_log(LOG_ERROR, "%s: (startMediaTransmission) Could not retrieve device from channel\n", channel->designator);
-		sccp_channel_closeMultiMediaReceiveChannel(channel, FALSE);
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
+	if (channel->isHangingUp) {
+		pbx_log(LOG_ERROR, "%s: (startMediaTransmission) Channel already hanging up\n", channel->designator);
 		return;
 	}
 
-	if (!channel->rtp.audio.instance) {
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
+	if (!d) {
+		pbx_log(LOG_ERROR, "%s: (startMediaTransmission) Could not retrieve device from channel\n", channel->designator);
+		sccp_channel_closeReceiveChannel(channel, FALSE);
+		return;
+	}
+
+	if (!audio->instance || SCCP_RTP_STATUS_INACTIVE == audio->reception.state) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can't start rtp media transmission, maybe channel is down %s\n", channel->currentDeviceId, channel->designator);
-		sccp_channel_closeMultiMediaReceiveChannel(channel, FALSE);
+		sccp_channel_closeReceiveChannel(channel, FALSE);
 		return;
 	}
 
@@ -832,49 +850,46 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 	}
 
-	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
-
-	if (SCCP_RTP_STATUS_INACTIVE == audio->receiveChannelState) {
-		pbx_log(LOG_ERROR, "%s: (sccp_channel_startMediaTransmission) Starting MediaTransmission before OpenReceiveChannel !", channel->currentDeviceId);
-		sccp_channel_closeMultiMediaReceiveChannel(channel, FALSE);
-		return;
-	}
 
 	if (d->nat >= SCCP_NAT_ON) {
 		sccp_rtp_updateNatRemotePhone(channel, audio);
 	}
 
-	if (audio->readFormat == SKINNY_CODEC_NONE) {
-		if (audio->writeFormat == SKINNY_CODEC_NONE) {
+	if (audio->transmission.format == SKINNY_CODEC_NONE) {
+		if (audio->reception.format == SKINNY_CODEC_NONE) {
 			sccp_channel_updateChannelCapability((sccp_channel_t *)channel);
 		} else {
-			audio->readFormat = audio->writeFormat;
+			audio->transmission.format = audio->reception.format;
 		}
 	}
-	audio->mediaTransmissionState |= SCCP_RTP_STATUS_PROGRESS;
-	d->protocol->sendStartMediaTransmission(d, channel);
+	audio->transmission.state |= SCCP_RTP_STATUS_PROGRESS;
+	audio->transmission.c = sccp_channel_retain(channel);
+	d->protocol->sendStartMediaTransmission(d, audio->transmission.c);							// extra channel retain, released when media transmission is closed
 
 	char buf1[NI_MAXHOST + NI_MAXSERV];
 	char buf2[NI_MAXHOST + NI_MAXSERV];
 	sccp_copy_string(buf1, sccp_netsock_stringify(&audio->phone), sizeof(buf1));
 	sccp_copy_string(buf2, sccp_netsock_stringify(&audio->phone_remote), sizeof(buf2));
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from %s to %s (NAT: %s)\n", d->id, buf1, buf2, sccp_nat2str(d->nat));
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec:%s(%d), TOS:%d, Silence Suppression:%s for call with PassThruId:%u and CallID:%u\n", d->id, codec2str(audio->readFormat), audio->readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec:%s(%d), TOS:%d, Silence Suppression:%s for call with PassThruId:%u and CallID:%u\n", d->id, codec2str(audio->transmission.format), audio->transmission.format, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
 }
 
 int sccp_channel_mediaTransmissionStarted(devicePtr d, channelPtr c)
 {
 	pbx_assert(d != NULL && c != NULL);
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(c->rtp.audio);
 	// check channel state
-	if (!c->rtp.audio.instance) {
+	if (!audio->instance) {
 		pbx_log(LOG_ERROR, "%s: Channel has no rtp instance!\n", d->id);
-		sccp_channel_endcall(c);								// FS - 350
+		sccp_channel_endcall(c);											// FS - 350
+		sccp_channel_release(&audio->transmission.c);									// release extra media transmission channel retension
 		return SCCP_RTP_STATUS_INACTIVE;
 	}
 	if (SCCP_CHANNELSTATE_Idling(c->state) || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_CONGESTION) {
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop Tone %s\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
 			sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, c->line->name), c->callid);
+			sccp_channel_release(&audio->transmission.c);								// release extra media transmission channel retension
 			return SCCP_RTP_STATUS_ACTIVE;
 		}
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (mediaTransmissionStarted) Channel is already terminating. Giving up... (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
@@ -882,7 +897,7 @@ int sccp_channel_mediaTransmissionStarted(devicePtr d, channelPtr c)
 	}
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Media Transmission Started (State: %s[%d])\n", d->id, sccp_channelstate2str(c->state), c->state);
-	c->rtp.audio.mediaTransmissionState |= SCCP_RTP_STATUS_ACTIVE;
+	audio->transmission.state |= SCCP_RTP_STATUS_ACTIVE;
 
 	if (c->owner) {
 		if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
@@ -891,7 +906,7 @@ int sccp_channel_mediaTransmissionStarted(devicePtr d, channelPtr c)
 		// indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC
 		if (
 			(c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) &&
-			((c->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && (c->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_ACTIVE))
+			((audio->reception.state & SCCP_RTP_STATUS_ACTIVE) && (audio->transmission.state & SCCP_RTP_STATUS_ACTIVE))
 		) {
 			iPbx.set_callstate(c, AST_STATE_UP);
 		}
@@ -910,17 +925,16 @@ int sccp_channel_mediaTransmissionStarted(devicePtr d, channelPtr c)
 void sccp_channel_stopMediaTransmission(constChannelPtr channel, boolean_t KeepPortOpen)
 {
 	sccp_msg_t *msg = NULL;
-
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
+	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
 
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 	if (!d) {
 		pbx_log(LOG_ERROR, "%s: (stopMediaTransmission) Could not retrieve device from channel\n", channel->designator);
 		return;
 	}
 	// stopping phone rtp
-	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
-	if (audio->mediaTransmissionState) {
+	if (audio->transmission.state) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop mediatransmission on device %s (KeepPortOpen: %s)\n", channel->designator, d->id, KeepPortOpen ? "YES" : "NO");
 		REQ(msg, StopMediaTransmission);
 		msg->data.StopMediaTransmission.lel_conferenceId = htolel(channel->callid);
@@ -928,13 +942,14 @@ void sccp_channel_stopMediaTransmission(constChannelPtr channel, boolean_t KeepP
 		msg->data.StopMediaTransmission.lel_callReference = htolel(channel->callid);
 		msg->data.StopMediaTransmission.lel_portHandlingFlag = htolel(KeepPortOpen);
 		sccp_dev_send(d, msg);
-		audio->mediaTransmissionState = SCCP_RTP_STATUS_INACTIVE;
+		audio->transmission.state = SCCP_RTP_STATUS_INACTIVE;
 #ifdef CS_EXPERIMENTAL
 		if (!KeepPortOpen) {
 			d->protocol->sendPortClose(d, channel, SKINNY_MEDIA_TYPE_AUDIO);
 		}
 #endif
 	}
+	sccp_channel_release(&audio->transmission.c);										// release extra media transmission channel retension
 }
 
 void sccp_channel_updateMediaTransmission(constChannelPtr channel)
@@ -942,11 +957,11 @@ void sccp_channel_updateMediaTransmission(constChannelPtr channel)
 	/* \note apparently startmediatransmission allows us to change the ip-information midflight without stopping mediatransmission beforehand */
 	/* \note this would indicate that it should also be possible to change codecs midflight ! */
 	/* \test should be able to do without this block to stopmediatransmission (Sometimes results in "OpenIngressChan: Potential buffer leak" (phone log) */
-	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.mediaTransmissionState) {
+	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.transmission.state) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (updateMediaTransmission) Stop media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_stopMediaTransmission(channel, TRUE);
 	}
-	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.mediaTransmissionState) {
+	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.transmission.state) {
 		/*! \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (updateMediaTransmission) Start/Update media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_startMediaTransmission(channel);
@@ -965,15 +980,20 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 	int bitRate = 1500;
 
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
+	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
 
+	if (channel->isHangingUp) {
+		pbx_log(LOG_ERROR, "%s: (openMultiMediaReceiveChannel) Channel already hanging up\n", channel->designator);
+		return;
+	}
+
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 	if (!d) {
 		pbx_log(LOG_ERROR, "%s: (openMultiMediaReceiveChannel) Could not retrieve device from channel\n", channel->designator);
 		return;
 	}
 
-	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
-	if ((video->receiveChannelState & SCCP_RTP_STATUS_ACTIVE)) {
+	if ((video->reception.state & SCCP_RTP_STATUS_ACTIVE)) {
 		pbx_log(LOG_WARNING, "%s: (openMultiMediaReceiveChannel) Channel already active. returning.\n", channel->designator);
 		return;
 	}
@@ -983,55 +1003,60 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 		return;
 	}
 
-	if (!video->instance && !sccp_rtp_createServer(d, (channelPtr)channel, SCCP_RTP_VIDEO)) {		// discard const
+	if (!video->instance && !sccp_rtp_createServer(d, (channelPtr)channel, SCCP_RTP_VIDEO)) {				// discard const
 		pbx_log(LOG_WARNING, "%s: Could not start vrtp on device:%s. returning\n", channel->designator, d->id);
-		sccp_channel_setVideoMode((channelPtr)channel, "off");						// discard const
+		sccp_channel_setVideoMode((channelPtr)channel, "off");								// discard const
 		return;
 	}
 
-	if (channel->owner && SKINNY_CODEC_NONE == video->writeFormat) {
+	if (channel->owner && SKINNY_CODEC_NONE == video->reception.format) {
 		sccp_channel_recalculateVideoCodecFormat((channelPtr)channel);
 	}
 
-	if (SKINNY_CODEC_NONE == video->writeFormat) {
+	if (SKINNY_CODEC_NONE == video->reception.format) {
 		pbx_log(LOG_WARNING, "%s: (openMultiMediaReceiveChannel) No joint codecs found. Switching video off && returning.\n", d->id);
-		sccp_channel_setVideoMode((channelPtr)channel, "off");						// discard const
+		sccp_channel_setVideoMode((channelPtr)channel, "off");								// discard const
 		return;
 	}
 
 	//if (d->nat >= SCCP_NAT_ON) {
 	//	sccp_rtp_updateNatRemotePhone(channel, video);
 	//}
-	video->receiveChannelState |= SCCP_RTP_STATUS_PROGRESS;
-	skinnyFormat = video->writeFormat;
+	video->reception.state |= SCCP_RTP_STATUS_PROGRESS;
+	skinnyFormat = video->reception.format;
 
 	if (skinnyFormat == 0) {
-		pbx_log(LOG_NOTICE, "SCCP: Unable to find skinny format for %d\n", video->writeFormat);
-		sccp_channel_setVideoMode((channelPtr)channel, "off");						// discard const
+		pbx_log(LOG_NOTICE, "SCCP: Unable to find skinny format for %d\n", video->reception.format);
+		sccp_channel_setVideoMode((channelPtr)channel, "off");								// discard const
 		return;
 	}
 
-	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, video->writeFormat);
+	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, video->reception.format);
 	lineInstance = sccp_device_find_index_for_line(d, channel->line->name);
 
+	video->reception.c = sccp_channel_retain(channel);
+	d->protocol->sendOpenMultiMediaChannel(d, video->reception.c, skinnyFormat, payloadType, lineInstance, bitRate); 	// extra receive channel retension
+
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d], payload %d\n", d->id,
-		codec2str(video->writeFormat), video->writeFormat, payloadType);
-	d->protocol->sendOpenMultiMediaChannel(d, channel, skinnyFormat, payloadType, lineInstance, bitRate);
+		codec2str(video->reception.format), video->reception.format, payloadType);
 }
 
 int sccp_channel_receiveMultiMediaChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 {
 	pbx_assert(d != NULL && c != NULL);
+	sccp_rtp_t *video = (sccp_rtp_t *) &(c->rtp.video);
 	// check channel state
-	if (!c->rtp.audio.instance) {
+	if (!video->instance) {
 		pbx_log(LOG_ERROR, "%s: Channel has no rtp instance!\n", d->id);
-		sccp_channel_endcall(c);								// FS - 350
+		sccp_channel_endcall(c);											// FS - 350
+		sccp_channel_release(&video->reception.c);									// release extra receive channel retension
 		return SCCP_RTP_STATUS_INACTIVE;
 	}
 	if (SCCP_CHANNELSTATE_Idling(c->state) || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_CONGESTION) {
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop Tone %s\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
 			sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, c->line->name), c->callid);
+			sccp_channel_release(&video->reception.c);								// release extra receive channel retension
 			return SCCP_RTP_STATUS_ACTIVE;
 		}
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (receiveMultiMediaChannelOpen) Channel is already terminating. Giving up... (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
@@ -1039,12 +1064,12 @@ int sccp_channel_receiveMultiMediaChannelOpen(sccp_device_t *d, sccp_channel_t *
 	}
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Opened MultiMedia Receive Channel (State: %s[%d])\n", d->id, sccp_channelstate2str(c->state), c->state);
-	c->rtp.video.receiveChannelState |= SCCP_RTP_STATUS_ACTIVE;
+	video->reception.state |= SCCP_RTP_STATUS_ACTIVE;
 
 	if (c->owner && (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE)) {
 		if (c->videomode == SCCP_VIDEO_MODE_AUTO) {
 			sccp_channel_startMultiMediaTransmission(c);
-		}  else if (SCCP_RTP_STATUS_ACTIVE == c->rtp.video.mediaTransmissionState) {
+		}  else if (SCCP_RTP_STATUS_ACTIVE == video->transmission.state) {
 			// force frame update
 			sccp_msg_t *msg_out = NULL;
 			msg_out = sccp_build_packet(MiscellaneousCommandMessage, sizeof(msg_out->data.MiscellaneousCommandMessage));
@@ -1074,20 +1099,18 @@ int sccp_channel_receiveMultiMediaChannelOpen(sccp_device_t *d, sccp_channel_t *
 void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean_t KeepPortOpen)
 {
 	sccp_msg_t *msg = NULL;
-
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
+	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
 
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 	if (!d) {
 		pbx_log(LOG_ERROR, "%s: (closeMultiMediaReceiveChannel) Could not retrieve device from channel\n", channel->designator);
 		return;
 	}
 	// stop transmitting before closing receivechannel (\note maybe we should not be doing this here)
-	sccp_channel_setVideoMode((channelPtr)channel, "auto");						// discard const
 	sccp_channel_stopMediaTransmission(channel, KeepPortOpen);
 
-	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
-	if (video->receiveChannelState) {
+	if (video->reception.state) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Close multimedia receive channel on device %s (KeepPortOpen: %s)\n", channel->designator, d->id, KeepPortOpen ? "YES" : "NO");
 		REQ(msg, CloseMultiMediaReceiveChannel);
 		msg->data.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(channel->callid);
@@ -1095,23 +1118,25 @@ void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean
 		msg->data.CloseMultiMediaReceiveChannel.lel_callReference = htolel(channel->callid);
 		msg->data.CloseMultiMediaReceiveChannel.lel_portHandlingFlag = htolel(KeepPortOpen);
 		sccp_dev_send(d, msg);
-		video->receiveChannelState = SCCP_RTP_STATUS_INACTIVE;
+		video->reception.state = SCCP_RTP_STATUS_INACTIVE;
 #ifdef CS_EXPERIMENTAL
 		if (!KeepPortOpen) {
 			d->protocol->sendPortClose(d, channel, SKINNY_MEDIA_TYPE_MAIN_VIDEO);
 		}
 #endif
 	}
+	sccp_channel_setVideoMode((channelPtr)channel, "auto");									// discard const
+	sccp_channel_release(&video->reception.c);										// release extra receive channel retension
 }
 
 #if UNUSEDCODE // 2015-11-01
 void sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel)
 {
-	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.receiveChannelState) {
+	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.reception.state) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateMultiMediaReceiveChannel) Stop multimedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_closeMultiMediaReceiveChannel(channel, TRUE);
 	}
-	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.video.receiveChannelState) {
+	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.video.reception.state) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateMultiMediaReceiveChannel) Start media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_openMultiMediaReceiveChannel(channel);
 	}
@@ -1128,32 +1153,38 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 	int bitRate = channel->maxBitRate;
 
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
+	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
+	if (channel->isHangingUp) {
+		pbx_log(LOG_ERROR, "%s: (startMultiMediaTransmission) Channel already hanging up\n", channel->designator);
+		return;
+	}
 
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 	if (!d) {
 		pbx_log(LOG_ERROR, "%s: (startMultiMediaReceiveChannel) Could not retrieve device from channel\n", channel->designator);
 		return;
 	}
-	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.mediaTransmissionState) {
+	if (SCCP_RTP_STATUS_INACTIVE != video->transmission.state) {
 		pbx_log(LOG_ERROR, "%s: (startMultiMediaReceiveChannel) Already Started\n", channel->designator);
 		return;
 	}
-	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
 	if (!video->instance) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can't start vrtp media transmission, maybe channel is down %s\n", channel->currentDeviceId, channel->designator);
-		sccp_channel_setVideoMode((channelPtr)channel, "off");						// discard const
+		sccp_channel_setVideoMode((channelPtr)channel, "off");								// discard const
 		return;
 	}
-	if (d->nat >= SCCP_NAT_ON) {										/* device is natted */
+	if (d->nat >= SCCP_NAT_ON) {												/* device is natted */
 		sccp_rtp_updateNatRemotePhone(channel, video);
 	}
 
 	/* lookup payloadType */
-	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, video->readFormat);
+	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, video->transmission.format);
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: using payload %d\n", d->id, payloadType);
 
-	video->mediaTransmissionState = SCCP_RTP_STATUS_PROGRESS;
-	d->protocol->sendStartMultiMediaTransmission(d, channel, payloadType, bitRate);
+	video->transmission.state = SCCP_RTP_STATUS_PROGRESS;
+	
+	video->transmission.c = sccp_channel_retain(channel);
+	d->protocol->sendStartMultiMediaTransmission(d, video->transmission.c, payloadType, bitRate);				// extra mediatransmission channel retension
 
 	char buf1[NI_MAXHOST + NI_MAXSERV];
 	char buf2[NI_MAXHOST + NI_MAXSERV];
@@ -1162,15 +1193,43 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMultiMediaTransmission) Tell Phone to send VRTP/UDP media from %s to %s (NAT: %s)\n", d->id, buf1, buf2, sccp_nat2str(d->nat));
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (StartMultiMediaTransmission) Using format: %s(%d), payload:%d, TOS %d for call with PassThruId: %u and CallID: %u\n", d->id,
-		codec2str(video->readFormat), video->readFormat, payloadType, d->video_tos, channel->passthrupartyid, channel->callid);
+		codec2str(video->transmission.format), video->transmission.format, payloadType, d->video_tos, channel->passthrupartyid, channel->callid);
 
 	iPbx.queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
 }
 
 int sccp_channel_multiMediaTransmissionStarted(sccp_device_t *d, sccp_channel_t *c)
 {
-	pbx_builtin_setvar_helper(c->owner, "_SCCP_VIDEO_MODE", sccp_video_mode2str(c->videomode));
-	return -1;
+	//pbx_builtin_setvar_helper(c->owner, "_SCCP_VIDEO_MODE", sccp_video_mode2str(c->videomode));
+	//iPbx.queue_control(c->owner, AST_CONTROL_VIDUPDATE);
+	//return SCCP_RTP_STATUS_ACTIVE;
+	pbx_assert(d != NULL && c != NULL);
+	sccp_rtp_t *video = (sccp_rtp_t *) &(c->rtp.video);
+	// check channel state
+	if (!video->instance) {
+		pbx_log(LOG_ERROR, "%s: Channel has no vrtp instance!\n", d->id);
+		sccp_channel_endcall(c);											// FS - 350
+		sccp_channel_release(&video->transmission.c);									// release extra media transmission channel retension
+		return SCCP_RTP_STATUS_INACTIVE;
+	}
+	if (SCCP_CHANNELSTATE_Idling(c->state) || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
+		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_CONGESTION) {
+			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop Tone %s\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
+			sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, c->line->name), c->callid);
+			sccp_channel_release(&video->transmission.c);								// release extra media transmission channel retension
+			return SCCP_RTP_STATUS_ACTIVE;
+		}
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (multiMediaTransmissionStarted) Channel is already terminating. Giving up... (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
+		return sccp_channel_closeAllMediaTransmitAndReceive(d, c);
+	}
+
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Multi Media Transmission Started (State: %s[%d])\n", d->id, sccp_channelstate2str(c->state), c->state);
+
+	video->transmission.state |= SCCP_RTP_STATUS_ACTIVE;
+	if (c->owner) {
+		iPbx.queue_control(c->owner, AST_CONTROL_VIDUPDATE);
+	}
+	return SCCP_RTP_STATUS_ACTIVE;
 }
 
 /*!
@@ -1183,15 +1242,16 @@ void sccp_channel_stopMultiMediaTransmission(constChannelPtr channel, boolean_t 
 	sccp_msg_t *msg = NULL;
 
 	pbx_assert(channel != NULL);
-	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
+	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
 
+	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 	if (!d) {
 		pbx_log(LOG_ERROR, "%s: (stopMultiMediaReceiveChannel) Could not retrieve device from channel\n", channel->designator);
+		sccp_channel_release(&video->transmission.c);									// release extra mediatransmission channel retension
 		return;
 	}
 	// stopping phone vrtp
-	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
-	if (video->mediaTransmissionState) {
+	if (video->transmission.state) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop multimediatransmission on device %s (KeepPortOpen: %s)\n", channel->designator, d->id, KeepPortOpen ? "YES" : "NO");
 		REQ(msg, StopMultiMediaTransmission);
 		msg->data.StopMultiMediaTransmission.lel_conferenceId = htolel(channel->callid);
@@ -1199,18 +1259,19 @@ void sccp_channel_stopMultiMediaTransmission(constChannelPtr channel, boolean_t 
 		msg->data.StopMultiMediaTransmission.lel_callReference = htolel(channel->callid);
 		msg->data.StopMultiMediaTransmission.lel_portHandlingFlag = htolel(KeepPortOpen);
 		sccp_dev_send(d, msg);
-		video->mediaTransmissionState = SCCP_RTP_STATUS_INACTIVE;
+		video->transmission.state = SCCP_RTP_STATUS_INACTIVE;
 	}
+	sccp_channel_release(&video->transmission.c);										// release extra mediatransmission channel retension
 }
 
 #if UNUSEDCODE // 2015-11-01
 void sccp_channel_updateMultiMediaTransmission(constChannelPtr channel)
 {
-	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.mediaTransmissionState) {
+	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.transmission.state) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (updateMultiMediaTransmission) Stop multiemedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_stopMultiMediaTransmission(channel, TRUE);
 	}
-	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.video.mediaTransmissionState) {
+	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.video.transmission.state) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (updateMultiMediaTransmission) Start multimedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_startMultiMediaTransmission(channel);
 	}
@@ -1230,16 +1291,16 @@ sccp_rtp_status_t sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d,
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_closeAllMediaTransmitAndReceive) Stop All Media Reception and Transmission on device %s\n", channel->designator, channel->currentDeviceId);
 	if (d) {
-		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.receiveChannelState) {
+		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.reception.state) {
 			sccp_channel_closeReceiveChannel(channel, FALSE);
 		}
-		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.receiveChannelState) {
+		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.reception.state) {
 			sccp_channel_closeMultiMediaReceiveChannel(channel, FALSE);
 		}
-		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.mediaTransmissionState) {
+		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.transmission.state) {
 			sccp_channel_stopMediaTransmission(channel, FALSE);
 		}
-		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.mediaTransmissionState) {
+		if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.transmission.state) {
 			sccp_channel_stopMultiMediaTransmission(channel, FALSE);
 		}
 		res = SCCP_RTP_STATUS_INACTIVE;
@@ -1397,6 +1458,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 		pbx_log(LOG_WARNING, "No channel or line or device to hangup\n");
 		return;
 	}
+	channel->isHangingUp = TRUE;
 	if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
 		sccp_channel_stop_and_deny_scheduled_tasks(channel);
 	}
@@ -1792,7 +1854,7 @@ int sccp_channel_hold(channelPtr channel)
 		pbx_log(LOG_WARNING, "SCCP: Channel already on hold\n");
 		return FALSE;
 	}
-	
+
 	instance = sccp_device_find_index_for_line(d, l->name);
 	/* put on hold an active call */
 	if (channel->state != SCCP_CHANNELSTATE_CONNECTED && channel->state != SCCP_CHANNELSTATE_CONNECTEDCONFERENCE && channel->state != SCCP_CHANNELSTATE_PROCEED) {	// TOLL FREE NUMBERS STAYS ALWAYS IN CALL PROGRESS STATE
@@ -2106,16 +2168,16 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		if (channel->privateData->linedevice) {
 			sccp_linedevice_release(&channel->privateData->linedevice);
 		}
-	}
 
-	sccp_threadpool_job_t *job;
-	SCCP_LIST_LOCK(&channel->privateData->cleanup_jobs);
-	while ((job = SCCP_LIST_REMOVE_HEAD(&channel->privateData->cleanup_jobs, list))) {
-		SCCP_LIST_UNLOCK(&channel->privateData->cleanup_jobs);
-		sccp_threadpool_jobqueue_add(GLOB(general_threadpool), job);
+		sccp_threadpool_job_t *job;
 		SCCP_LIST_LOCK(&channel->privateData->cleanup_jobs);
+		while ((job = SCCP_LIST_REMOVE_HEAD(&channel->privateData->cleanup_jobs, list))) {
+			SCCP_LIST_UNLOCK(&channel->privateData->cleanup_jobs);
+			sccp_threadpool_jobqueue_add(GLOB(general_threadpool), job);
+			SCCP_LIST_LOCK(&channel->privateData->cleanup_jobs);
+		}
+		SCCP_LIST_UNLOCK(&channel->privateData->cleanup_jobs);
 	}
-	SCCP_LIST_UNLOCK(&channel->privateData->cleanup_jobs);
 }
 
 /*!
@@ -2150,14 +2212,20 @@ int __sccp_channel_destroy(const void * data)
 	if (channel->privateData->callInfo) {
 		iCallInfo.Destructor(&channel->privateData->callInfo);
 	}
-	
+
+#if ASTERISK_VERSION_GROUP >= 113
+	if (channel->caps) {
+		ao2_t_cleanup(channel->caps, "sccp_channel_caps cleanup");
+	}
+#endif
+
 	if (channel->owner) {
 		if (iPbx.removeTimingFD) {
 			iPbx.removeTimingFD(channel->owner); 
 		}
 		iPbx.set_owner(channel, NULL);
 	}
-	
+
 	/* destroy immutables, by casting away const */
 	sccp_free(*(char **)&channel->musicclass);
 	sccp_free(*(char **)&channel->designator);
@@ -2165,7 +2233,7 @@ int __sccp_channel_destroy(const void * data)
 	sccp_free(*(struct sccp_private_channel_data **)&channel->privateData);
 	sccp_line_release((sccp_line_t **)&channel->line);
 	/* */
-	
+
 #ifndef SCCP_ATOMIC
 	pbx_mutex_destroy(&channel->scheduler.lock);
 #endif
@@ -2527,7 +2595,7 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 		pbx_log(LOG_WARNING, "SCCP: Failed to masquerade %s into %s\n", pbx_channel_name(pbx_destination_local_channel), pbx_channel_name(pbx_source_remote_channel));
 		goto EXIT;
 	}
-	
+
 	if (GLOB(transfer_tone) && sccp_destination_local_channel->state == SCCP_CHANNELSTATE_CONNECTED) {
 		/* while connected not all the tones can be played */
 		sccp_dev_starttone(d, GLOB(autoanswer_tone), instance, sccp_destination_local_channel->callid, SKINNY_TONEDIRECTION_USER);
@@ -2612,7 +2680,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	sccp_forwarding_channel->softswitch_action = SCCP_SOFTSWITCH_DIAL;					/* softswitch will catch the number to be dialed */
 	sccp_forwarding_channel->ss_data = 0;									// nothing to pass to action
 	sccp_forwarding_channel->calltype = SKINNY_CALLTYPE_OUTBOUND;
-	
+
 	char calling_name[StationMaxNameSize] = {0};
 	char calling_num[StationMaxDirnumSize] = {0};
 	char called_name[StationMaxNameSize] = {0};
@@ -2770,20 +2838,20 @@ boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const char *data){
 			return res;
 		}
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP))(VERBOSE_PREFIX_2 "%s:Setting Video Mode to %s\n", c->designator, sccp_video_mode2str(newval));
-		if (newval == SCCP_VIDEO_MODE_AUTO) {
-			if (!c->rtp.video.instance || SCCP_RTP_STATUS_INACTIVE == c->rtp.video.receiveChannelState) {
+		if (newval == SCCP_VIDEO_MODE_AUTO && !c->isHangingUp) {
+			if (!c->rtp.video.instance || SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
 				sccp_channel_openMultiMediaReceiveChannel(c);
 			}
-			if ((c->rtp.video.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.mediaTransmissionState) {
+			if ((c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.transmission.state) {
 				sccp_channel_startMultiMediaTransmission(c);
 			}
 		}
 		if (newval == SCCP_VIDEO_MODE_OFF) {
 			if (c->rtp.video.instance) {
-				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.receiveChannelState) {
+				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.reception.state) {
 					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
 				}
-				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.mediaTransmissionState) {
+				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.transmission.state) {
 					sccp_channel_stopMultiMediaTransmission(c, TRUE);
 				}
 				PBX_RTP_TYPE *rtp = c->rtp.video.instance;
@@ -3155,5 +3223,4 @@ uint8_t sccp_device_selectedchannels_count(constDevicePtr device)
 
 	return count;
 }
-
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

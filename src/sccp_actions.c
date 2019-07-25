@@ -3395,7 +3395,7 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (PortResponse) Pass PortResponse to sccp_rtp_set_phone\n", channel->designator);
 			rtp->RTCPPortNumber=RTCPPortNumber;
 			sccp_rtp_set_phone(channel, rtp, &sas);
-			//rtp->receiveChannelState = SCCP_RTP_STATUS_PORTSET;
+			//rtp->reception.state = SCCP_RTP_STATUS_PORTSET;
 		}
 	}
 }
@@ -3418,7 +3418,7 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 
 	AUTO_RELEASE(sccp_channel_t, channel , __get_channel_from_callReference_or_passThruParty(d, callReference, 0, passThruPartyId));
-	if (do_expect(channel != NULL && channel->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_PROGRESS)) {
+	if (do_expect(channel != NULL && channel->rtp.audio.reception.state & SCCP_RTP_STATUS_PROGRESS)) {
 		switch (mediastatus) {
 			case SKINNY_MEDIASTATUS_Ok:
 				sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
@@ -3440,7 +3440,7 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 				sccp_channel_endcall(channel);
 				break;
 		}
-		channel->rtp.audio.receiveChannelState = resultingChannelState;
+		channel->rtp.audio.reception.state = resultingChannelState;
 	} else {
 		// we successfully opened receive channel, but have no channel active -> close receive (maybe the call was already (being) terminated)
 		if (mediastatus == SKINNY_MEDIASTATUS_Ok) {
@@ -3452,10 +3452,8 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 			msg->data.CloseReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
 			msg->data.CloseReceiveChannel.lel_callReference = htolel(callReference);
 			sccp_dev_send(d, msg);
-			//return -1;
 		}
 	}
-	//return resultingChannelState;
 }
 
 /*!
@@ -3476,7 +3474,7 @@ void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessa
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got startMediaTransmission ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u, CallID1:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference, callReference1);
 
 	AUTO_RELEASE(sccp_channel_t, channel , __get_channel_from_callReference_or_passThruParty(d, callReference, callReference1, passThruPartyId));
-	if (do_expect(channel != NULL && channel->rtp.audio.mediaTransmissionState & SCCP_RTP_STATUS_PROGRESS)) {
+	if (do_expect(channel != NULL && channel->rtp.audio.transmission.state & SCCP_RTP_STATUS_PROGRESS)) {
 		switch (mediastatus) {
 			case SKINNY_MEDIASTATUS_Ok:
 				resultingChannelState = sccp_channel_mediaTransmissionStarted(d, channel);
@@ -3497,7 +3495,7 @@ void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessa
 				sccp_channel_endcall(channel);
 				break;
 		}
-		channel->rtp.audio.mediaTransmissionState = resultingChannelState;
+		channel->rtp.audio.transmission.state = resultingChannelState;
 	} else {
 		// we successfully opened receive channel, but have no channel active -> close receive (maybe the call was already (being) terminated)
 		if (mediastatus == SKINNY_MEDIASTATUS_Ok) {
@@ -3515,10 +3513,8 @@ void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessa
 			msg->data.StopMediaTransmission.lel_passThruPartyId = htolel(passThruPartyId);
 			msg->data.StopMediaTransmission.lel_callReference = htolel(callReference);
 			sccp_dev_send(d, msg);
-			//return -1;
 		}
 	}
-	//return resultingChannelState;
 }
 
 /*!
@@ -3539,7 +3535,7 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got Open MultiMedia Channel ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 
 	AUTO_RELEASE(sccp_channel_t, channel , __get_channel_from_callReference_or_passThruParty(d, callReference, 0, passThruPartyId));
-	if (do_expect(channel != NULL && channel->rtp.video.receiveChannelState & SCCP_RTP_STATUS_PROGRESS)) {
+	if (do_expect(channel != NULL && channel->rtp.video.reception.state & SCCP_RTP_STATUS_PROGRESS)) {
 		switch (mediastatus) {
 			case SKINNY_MEDIASTATUS_Ok:
 				sccp_rtp_set_phone(channel, &channel->rtp.video, &sas);
@@ -3564,7 +3560,7 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 				sccp_channel_endcall(channel);
 				break;
 		}
-		channel->rtp.video.receiveChannelState = resultingChannelState;
+		channel->rtp.video.reception.state = resultingChannelState;
 	} else {
 		// we successfully opened receive channel, but have no channel active -> close receive (maybe the call was already (being) terminated)
 		if (mediastatus == SKINNY_MEDIASTATUS_Ok) {
@@ -3576,10 +3572,8 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 			msg->data.CloseMultiMediaReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
 			msg->data.CloseMultiMediaReceiveChannel.lel_callReference = htolel(callReference);
 			sccp_dev_send(d, msg);
-			//return -1;
 		}
 	}
-	//return resultingChannelState;
 }
 
 /*!
@@ -3591,66 +3585,61 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 void handle_startMultiMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	struct sockaddr_storage sas = { 0 };
-
 	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
 	uint32_t passThruPartyId = 0, callReference = 0, callReference1 = 0;
+	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
 
 	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_msg_t *) msg_in, &passThruPartyId, &callReference, &callReference1, &mediastatus, &sas);
 
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got Start MultiMedia Transmission ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u/CallID1:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference, callReference1);
+
 	AUTO_RELEASE(sccp_channel_t, channel , __get_channel_from_callReference_or_passThruParty(d, callReference, callReference1, passThruPartyId));
-	if (do_expect(channel && mediastatus == SKINNY_MEDIASTATUS_Ok)) {
-		if (dont_expect(channel->state == SCCP_CHANNELSTATE_DOWN || channel->state == SCCP_CHANNELSTATE_ONHOOK || channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER)) {
-			if (channel->state != SCCP_CHANNELSTATE_INVALIDNUMBER) {
-				sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (startMediaTransmissionAck) Channel is already onhook/down. Giving up... (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(channel->state));
-				sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
-			} else {
-				pbx_log(LOG_NOTICE, "%s: (startMediaTransmissionAck) Invalid Number (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(channel->state));
-				sccp_indicate(d, channel, SCCP_CHANNELSTATE_INVALIDNUMBER);
-			}
-			return;
+	if (do_expect(channel != NULL && channel->rtp.video.transmission.state & SCCP_RTP_STATUS_PROGRESS)) {
+		switch (mediastatus) {
+			case SKINNY_MEDIASTATUS_Ok:
+				//sccp_rtp_set_phone(channel, &channel->rtp.video, &sas);
+				resultingChannelState = sccp_channel_multiMediaTransmissionStarted(d, channel);
+				iPbx.queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
+				break;
+			case SKINNY_MEDIASTATUS_DeviceOnHook:
+				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (OpenReceiveChannelAck) Device already hungup. Giving up.\n", d->id);
+				sccp_channel_closeMultiMediaReceiveChannel(channel, FALSE);
+				sccp_channel_stopMultiMediaTransmission(channel, FALSE);
+				break;
+			case SKINNY_MEDIASTATUS_OutOfChannels:
+			case SKINNY_MEDIASTATUS_OutOfSockets:
+				pbx_log(LOG_NOTICE, "%s: Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
+				sccp_channel_closeMultiMediaReceiveChannel(channel, FALSE);
+				sccp_channel_stopMultiMediaTransmission(channel, FALSE);
+				sccp_channel_endcall(channel);
+				break;
+			default:
+				pbx_log(LOG_ERROR, "%s: Device returned: '%s' (%d) !. Giving up.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
+				sccp_channel_closeMultiMediaReceiveChannel(channel, FALSE);
+				sccp_channel_stopMultiMediaTransmission(channel, FALSE);
+				sccp_channel_endcall(channel);
+				break;
 		}
+		channel->rtp.video.transmission.state = resultingChannelState;
+	} else {
+		// we successfully opened receive channel, but have no channel active -> close receive (maybe the call was already (being) terminated)
+		if (mediastatus == SKINNY_MEDIASTATUS_Ok) {
+			callReference = callReference ? callReference : passThruPartyId ^ 0xFFFFFFFF;
+			sccp_msg_t *msg = NULL;
 
-		// update status
-		channel->rtp.video.mediaTransmissionState = SCCP_RTP_STATUS_ACTIVE;
-		iPbx.queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK.  Status: '%s' (%d), Remote TCP/IP: '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), callReference, callReference1, passThruPartyId);
-		return;		// SUCCESS
+			REQ(msg, CloseMultiMediaReceiveChannel);
+			msg->data.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(callReference);
+			msg->data.CloseMultiMediaReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
+			msg->data.CloseMultiMediaReceiveChannel.lel_callReference = htolel(callReference);
+			sccp_dev_send(d, msg);
+
+			REQ(msg, StopMultiMediaTransmission);
+			msg->data.StopMultiMediaTransmission.lel_conferenceId = htolel(callReference);
+			msg->data.StopMultiMediaTransmission.lel_passThruPartyId = htolel(passThruPartyId);
+			msg->data.StopMultiMediaTransmission.lel_callReference = htolel(callReference);
+			sccp_dev_send(d, msg);
+		}
 	}
-
-	// handle error cases
-	if (channel && mediastatus == SKINNY_MEDIASTATUS_DeviceOnHook) {
-		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (startMultiMediaTransmissionAckk) Device already hungup. Giving up.\n", d->id);
-		channel->rtp.video.mediaTransmissionState = SCCP_RTP_STATUS_INACTIVE;
-		return;
-	}
-
-	// we successfully opened receive and transmission channels, but have no channel active -> close receive & transmission
-	if (mediastatus == SKINNY_MEDIASTATUS_Ok) {
-		callReference = callReference ? callReference : passThruPartyId ^ 0xFFFFFFFF;
-
-		sccp_msg_t *r = NULL;
-		REQ(r, CloseMultiMediaReceiveChannel);
-		r->data.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(callReference);
-		r->data.CloseMultiMediaReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
-		r->data.CloseMultiMediaReceiveChannel.lel_callReference = htolel(callReference);
-		sccp_dev_send(d, r);
-
-		REQ(r, StopMultiMediaTransmission);
-		r->data.StopMultiMediaTransmission.lel_conferenceId = htolel(callReference);
-		r->data.StopMultiMediaTransmission.lel_passThruPartyId = htolel(passThruPartyId);
-		r->data.StopMultiMediaTransmission.lel_callReference = htolel(callReference);
-		sccp_dev_send(d, r);
-		return;
-	}
-
-	// we do have a channel but media status gave error
-	pbx_log(LOG_ERROR, "%s: (startMediaTransmissionAck) Device returned: '%s' (%d) !. Giving up.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
-	if (mediastatus == SKINNY_MEDIASTATUS_OutOfChannels || mediastatus == SKINNY_MEDIASTATUS_OutOfSockets) {
-		pbx_log(LOG_NOTICE, "%s: (startMediaTransmissionAck) Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
-	}
-	sccp_channel_closeMultiMediaReceiveChannel(channel, FALSE);
-	sccp_channel_stopMultiMediaTransmission(channel, FALSE);
-	sccp_channel_endcall(channel);
 }
 
 /*!
@@ -4713,94 +4702,77 @@ void handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, constMes
 	uint32_t passThruPartyId = letohl(msg_in->data.MiscellaneousCommandMessage.lel_passThruPartyId);
 	commandType = letohl(msg_in->data.MiscellaneousCommandMessage.lel_miscCommandType);
 
-	AUTO_RELEASE(sccp_channel_t, channel , NULL);
-	if ((channel = sccp_device_getActiveChannel(d))) {						// reduce the amount of searching by first checking active_channel
-		if (channel->passthrupartyid != passThruPartyId || channel->callid != callReference) {	// make sure this is the intended channel
-			sccp_channel_release(&channel);
-		}
-	}
-	if (!channel && passThruPartyId) {
-		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
-	}
-
-	if (!channel && callReference) {
-		channel = sccp_channel_find_byid(callReference);
-	}
-
+	AUTO_RELEASE(sccp_channel_t, channel , __get_channel_from_callReference_or_passThruParty(d, conferenceId, callReference, passThruPartyId));
 	if (channel) {
 		switch (commandType) {
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE:
 				break;
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE:
-				//{
-				//	struct sockaddr_in addr_in = { 0 };
-				//	memcpy(&addr_in.sin_addr, &msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.bel_remoteIpAddr, sizeof(addr_in.sin_addr));
-				//	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: videoFastUpdatePicture ip:%s, value1: %u, value2: %u, value3: %u, value4: %u\n",
-				//				  channel ? channel->currentDeviceId : "--", pbx_inet_ntoa(addr_in.sin_addr), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value1), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value2), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value3), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value4)
-				//	    );
-				//}
+				{
+					struct sockaddr_in addr_in = { 0 };
+					memcpy(&addr_in.sin_addr, &msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.bel_remoteIpAddr, sizeof(addr_in.sin_addr));
+					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: videoFastUpdatePicture ip:%s, value1: %u, value2: %u, value3: %u, value4: %u\n",
+								  channel ? channel->currentDeviceId : "--", pbx_inet_ntoa(addr_in.sin_addr), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value1), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value2), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value3), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value4)
+					    );
+				}
 				break;
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
-				//sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: VideoFastUpdateGob, firstGOB: %d, numberOfGOBs: %d\n",
-				//			  channel ? channel->currentDeviceId : "--", 
-				//			  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateGOB.lel_firstGOB),
-				//			  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateGOB.lel_numberOfGOBs)
-				//    );
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: VideoFastUpdateGob, firstGOB: %d, numberOfGOBs: %d\n",
+							  channel ? channel->currentDeviceId : "--",
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateGOB.lel_firstGOB),
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateGOB.lel_numberOfGOBs)
+				    );
 				break;
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB:
-				//sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: VideoFastUpdateMB, firstGOB: %d, firstMB: %d, numberOfMBs: %d\n",
-				//			  channel ? channel->currentDeviceId : "--", 
-				//			  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateMB.lel_firstGOB), 
-				//			  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateMB.lel_firstMB), 
-				//			  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateMB.lel_numberOfMBs)
-				//    );
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: VideoFastUpdateMB, firstGOB: %d, firstMB: %d, numberOfMBs: %d\n",
+							  channel ? channel->currentDeviceId : "--",
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateMB.lel_firstGOB),
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateMB.lel_firstMB),
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateMB.lel_numberOfMBs)
+				    );
 				break;
 			case SKINNY_MISCCOMMANDTYPE_LOSTPICTURE:
-				//sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: LostPicture, pictureNumber %d, longTermPictureIndex %d\n",
-				//			  channel ? channel->currentDeviceId : "--", 
-				//			  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPicture.lel_pictureNumber), 
-				//			  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPicture.lel_longTermPictureIndex)
-				//    );
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: LostPicture, pictureNumber %d, longTermPictureIndex %d\n",
+							  channel ? channel->currentDeviceId : "--",
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPicture.lel_pictureNumber),
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPicture.lel_longTermPictureIndex)
+				    );
 				break;
 			case SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE:
-				//sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: LostPartialPicture, picRef:pictureNumber %d, picRef:longTermPictureIndex %d, firstMB: %d, numberOfMBs: %d\n",
-				//			  channel ? channel->currentDeviceId : "--", 
-				//			  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPartialPicture.pictureReference.lel_pictureNumber), 
-				//			  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPartialPicture.pictureReference.lel_longTermPictureIndex),
-				//			  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPartialPicture.lel_firstMB), 
-				//			  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPartialPicture.lel_numberOfMBs)
-				//    );
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: LostPartialPicture, picRef:pictureNumber %d, picRef:longTermPictureIndex %d, firstMB: %d, numberOfMBs: %d\n",
+							  channel ? channel->currentDeviceId : "--",
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPartialPicture.pictureReference.lel_pictureNumber),
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPartialPicture.pictureReference.lel_longTermPictureIndex),
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPartialPicture.lel_firstMB),
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPartialPicture.lel_numberOfMBs)
+				    );
 				break;
 			case SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE:
 				{
-					int x = 0;
+					int curPic = 0;
 					int pictureCount = letohl(msg_in->data.MiscellaneousCommandMessage.data.recoveryReferencePicture.lel_PictureCount);
 					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: recoveryReferencePicture, pictureCount:%d\n",
-								  channel ? channel->currentDeviceId : "--", 
+								  channel ? channel->currentDeviceId : "--",
 								  pictureCount);
-					for (x = 0; x < pictureCount; x++) {
+					for (curPic = 0; curPic < pictureCount; curPic++) {
 						sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: recoveryReferencePicture[%d], pictureNumber %d, longTermPictureIndex %d\n",
-									channel ? channel->currentDeviceId : "--", 
-									x,
-									letohl(msg_in->data.MiscellaneousCommandMessage.data.recoveryReferencePicture.pictureReference[x].lel_pictureNumber), 
-									letohl(msg_in->data.MiscellaneousCommandMessage.data.recoveryReferencePicture.pictureReference[x].lel_longTermPictureIndex)
+									channel ? channel->currentDeviceId : "--", curPic,
+									letohl(msg_in->data.MiscellaneousCommandMessage.data.recoveryReferencePicture.pictureReference[curPic].lel_pictureNumber),
+									letohl(msg_in->data.MiscellaneousCommandMessage.data.recoveryReferencePicture.pictureReference[curPic].lel_longTermPictureIndex)
 						    );
 					}
 				}
 				break;
 			case SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF:
-				//sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: recoveryReferencePicture, TemporalSpatialTradeOff:%d\n",
-				//			  channel ? channel->currentDeviceId : "--", 
-				//			   letohl(msg_in->data.MiscellaneousCommandMessage.data.lel_temporalSpatialTradeOff));
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: recoveryReferencePicture, TemporalSpatialTradeOff:%d\n",
+							  channel ? channel->currentDeviceId : "--",
+							   letohl(msg_in->data.MiscellaneousCommandMessage.data.lel_temporalSpatialTradeOff));
 			default:
 				break;
 		}
 		if (channel->owner) {
 			iPbx.queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
 		}
-		return;
 	}
-	pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u could not be found (callRef: %u/ confId: %u)\n", DEV_ID_LOG(d), passThruPartyId, callReference, conferenceId);
-	return;
 }
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets on;

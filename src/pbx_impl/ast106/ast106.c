@@ -548,8 +548,8 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 	}
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
-	res = (((c->rtp.audio.receiveChannelState != SCCP_RTP_STATUS_INACTIVE) || (d && d->earlyrtp)) ? -1 : 0);
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (readStat:%d, receiveChannelState:%d, rtp:%s, default res:%s (%d))\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.receiveChannelState, c->rtp.audio.receiveChannelState, (c->rtp.audio.instance) ? "yes" : "no", res ? "inband signaling" : "outofband signaling", res);
+	res = (((c->rtp.audio.reception.state != SCCP_RTP_STATUS_INACTIVE) || (d && d->earlyrtp)) ? -1 : 0);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (readStat:%d, reception.state:%d, rtp:%s, default res:%s (%d))\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.reception.state, c->rtp.audio.reception.state, (c->rtp.audio.instance) ? "yes" : "no", res ? "inband signaling" : "outofband signaling", res);
 
 	switch (ind) {
 		case AST_CONTROL_RINGING:
@@ -609,7 +609,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			if (c->rtp.audio.instance) {
 				ast_rtp_new_source(c->rtp.audio.instance);
 			}
-			if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && c->state > SCCP_CHANNELSTATE_DIALING) {
+			if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE && c->state > SCCP_CHANNELSTATE_DIALING) {
 				sccp_channel_openReceiveChannel(c);
 			}
 			res = 0;
@@ -656,6 +656,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			 *  - adding time to channel->scheduler.digittimeout
 			 *  - rescheduling sccp_pbx_sched_dial 
 			 */
+			/*
 			if (d->earlyrtp != SCCP_EARLYRTP_IMMEDIATE) {
 				if (!c->scheduler.deny) {
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
@@ -665,6 +666,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 				}
 			}
+			*/
 			res = 0;
 			break;
 #endif
@@ -672,7 +674,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			if (	c->line && 
 				c->state > SCCP_GROUPED_CHANNELSTATE_DIALING && 
 				c->calltype == SKINNY_CALLTYPE_OUTBOUND && 
-				c->rtp.audio.receiveChannelState == SCCP_RTP_STATUS_INACTIVE &&
+				c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE &&
 				!ast->hangupcause
 			) {
 				sccp_channel_openReceiveChannel(c);
@@ -744,17 +746,17 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
-			if (c->rtp.video.receiveChannelState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
+			if (c->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
 				int codec = pbx_codec2skinny_codec((frame->subclass & AST_FORMAT_VIDEO_MASK));
 
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: got video frame %d\n", c->currentDeviceId, codec);
 				if (0 != codec) {
-					c->rtp.video.writeFormat = codec;
+					c->rtp.video.reception.format = codec;
 					sccp_channel_openMultiMediaReceiveChannel(c);
 				}
 			}
 
-			if (c->rtp.video.instance && (c->rtp.video.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) != 0) {
+			if (c->rtp.video.instance && (c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) != 0) {
 				res = ast_rtp_write(c->rtp.video.instance, frame);
 			}
 #endif
@@ -1982,7 +1984,7 @@ static int sccp_astwrap_getCodec(PBX_CHANNEL_TYPE * ast)
 		return format;
 	}
 
-	ast_debug(10, "asterisk requests format for channel %s, readFormat: %s(%d)\n", ast->name, codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat);
+	ast_debug(10, "asterisk requests format for channel %s, readFormat: %s(%d)\n", ast->name, codec2str(channel->rtp.audio.transmission.format), channel->rtp.audio.transmission.format);
 	if (channel->remoteCapabilities.audio[0] != SKINNY_CODEC_NONE) {
 		return skinny_codecs2pbx_codecs(channel->remoteCapabilities.audio);
 	} 

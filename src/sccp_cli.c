@@ -1513,8 +1513,8 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10",	s,	10,	channel->dialedNumber)					\
 		CLI_AMI_TABLE_FIELD(PBX State,		"-10.10",	s,	10,	(channel->owner) ? pbx_state2str(iPbx.getChannelState(channel)) : "(none)")	\
 		CLI_AMI_TABLE_FIELD(SCCP State,		"-10.10",	s,	10,	sccp_channelstate2str(channel->state))			\
-		CLI_AMI_TABLE_FIELD(AudioR,		"-6.6",		s,	6,	codec2name(channel->rtp.audio.readFormat))		\
-		CLI_AMI_TABLE_FIELD(AudioW,		"-6.6",		s,	6,	codec2name(channel->rtp.audio.writeFormat))		\
+		CLI_AMI_TABLE_FIELD(AudioR,		"-6.6",		s,	6,	codec2name(channel->rtp.audio.transmission.format))		\
+		CLI_AMI_TABLE_FIELD(AudioW,		"-6.6",		s,	6,	codec2name(channel->rtp.audio.reception.format))		\
 		CLI_AMI_TABLE_FIELD(RTPPeer,		"22.22",	s,	22,	addrStr)						\
 		CLI_AMI_TABLE_FIELD(Direct,		"-6.6",		s,	6,	channel->rtp.audio.directMedia ? "yes" : "no")		\
 		CLI_AMI_TABLE_FIELD(DTMFmode,		"-8.8",		s,	8,	sccp_dtmfmode2str(channel->dtmfmode))
@@ -1527,10 +1527,10 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10",	s,	10,	channel->dialedNumber)					\
 		CLI_AMI_TABLE_FIELD(PBX State,		"-10.10",	s,	10,	(channel->owner) ? pbx_state2str(iPbx.getChannelState(channel)) : "(none)")	\
 		CLI_AMI_TABLE_FIELD(SCCP State,		"-10.10",	s,	10,	sccp_channelstate2str(channel->state))			\
-		CLI_AMI_TABLE_FIELD(AudioR,		"-6.6",		s,	6,	codec2name(channel->rtp.audio.readFormat))		\
-		CLI_AMI_TABLE_FIELD(AudioW,		"-6.6",		s,	6,	codec2name(channel->rtp.audio.writeFormat))		\
-		CLI_AMI_TABLE_FIELD(VideoR,		"-6.6",		s,	6,	codec2name(channel->rtp.video.readFormat))		\
-		CLI_AMI_TABLE_FIELD(VideoW,		"-6.6",		s,	6,	codec2name(channel->rtp.video.writeFormat))		\
+		CLI_AMI_TABLE_FIELD(AudioR,		"-6.6",		s,	6,	codec2name(channel->rtp.audio.transmission.format))		\
+		CLI_AMI_TABLE_FIELD(AudioW,		"-6.6",		s,	6,	codec2name(channel->rtp.audio.reception.format))	\
+		CLI_AMI_TABLE_FIELD(VideoR,		"-6.6",		s,	6,	codec2name(channel->rtp.video.transmission.format))		\
+		CLI_AMI_TABLE_FIELD(VideoW,		"-6.6",		s,	6,	codec2name(channel->rtp.video.reception.format))	\
 		CLI_AMI_TABLE_FIELD(RTPPeer,		"22.22",	s,	22,	addrStr)						\
 		CLI_AMI_TABLE_FIELD(Direct,		"-6.6",		s,	6,	channel->rtp.audio.directMedia ? "yes" : "no")		\
 		CLI_AMI_TABLE_FIELD(DTMFmode,		"-8.8",		s,	8,	sccp_dtmfmode2str(channel->dtmfmode))			\

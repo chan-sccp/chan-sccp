@@ -436,6 +436,7 @@ sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
 		sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asked to hangup channel. SCCP channel already deleted\n");
 		return NULL;
 	}
+	c->isHangingUp = TRUE;
 
 	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
 
@@ -458,7 +459,6 @@ sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
 		sccp_conference_release(&d->conference);								/* explicit release required here */
 	}
 #endif														// CS_SCCP_CONFERENCE
-
 	sccp_channel_closeAllMediaTransmitAndReceive(d, c);
 
 	// removing scheduled dialing
@@ -638,16 +638,16 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 			}
 			
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
-			if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.receiveChannelState) {
+			if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.reception.state) {
 				sccp_channel_openReceiveChannel(c);
-			} else if ((c->rtp.audio.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.mediaTransmissionState) {
+			} else if ((c->rtp.audio.reception.state & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.transmission.state) {
 				sccp_channel_startMediaTransmission(c);
 			}
 #if CS_SCCP_VIDEO
 			if (c->videomode == SCCP_VIDEO_MODE_AUTO && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE) {
-				if (SCCP_RTP_STATUS_INACTIVE == c->rtp.video.receiveChannelState) {
+				if (SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
 					sccp_channel_openMultiMediaReceiveChannel(c);
-				} else if ((c->rtp.video.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.mediaTransmissionState) {
+				} else if ((c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.transmission.state) {
 					sccp_channel_startMultiMediaTransmission(c);
 				}
 			}
@@ -665,7 +665,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 			}
 		}
 
-		if (c->rtp.video.receiveChannelState & SCCP_RTP_STATUS_ACTIVE) {
+		if (c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) {
 			iPbx.queue_control(c->owner, AST_CONTROL_VIDUPDATE);
 		}
 	}
@@ -798,7 +798,7 @@ boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, c
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:         accountcode: %s\n", l->accountcode);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:               exten: %s\n", c->dialedNumber);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:             context: %s\n", l->context);
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:            amaflags: %d\n", l->amaflags);
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:            amaflags: %d\n", (int)l->amaflags);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:           chan/call: %s\n", c->designator);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: combined audio caps: %s\n", sccp_codec_multiple2str(s1, sizeof(s1) - 1, c->capabilities.audio, SKINNY_MAX_CAPABILITIES));
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: reduced audio prefs: %s\n", sccp_codec_multiple2str(s1, sizeof(s1) - 1, c->preferences.audio, SKINNY_MAX_CAPABILITIES));
