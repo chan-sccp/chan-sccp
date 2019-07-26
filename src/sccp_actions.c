@@ -542,7 +542,7 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 	if (!device && GLOB(allowAnonymous)) {
 		device = sccp_device_createAnonymous(msg_in->data.RegisterTokenRequest.sId.deviceName);
 		sccp_config_applyDeviceConfiguration(device, NULL);
-		sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
+		sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line ? GLOB(hotline)->line->name : "hotline", NULL, NULL);
 		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", deviceName, GLOB(hotline)->line->name);
 		device->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
 		sccp_device_addToGlobals(device);
@@ -730,7 +730,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 		device = sccp_device_createAnonymous(msg_in->data.SPCPRegisterTokenRequest.sId.deviceName);
 
 		sccp_config_applyDeviceConfiguration(device, NULL);
-		sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
+		sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line ? GLOB(hotline)->line->name : "hotline", NULL, NULL);
 		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, GLOB(hotline)->line->name);
 		device->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
 		sccp_device_addToGlobals(device);
