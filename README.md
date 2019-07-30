@@ -80,8 +80,10 @@ module:
 ### Binaries
 We also provide prebuild binaries for:
 - [Ubuntu Lauchpad (PPA)](https://launchpad.net/~chan-sccp-b/+archive/ubuntu/ppa)
-  Note: The Ubuntu PPA Packages are build against the asterisk version delivered with ubuntu on the ppa build platform. The chan-sccp driver is
-  only compatible with the exact asterisk version it was build against. Please check the build log, to make sure you have the correct one.
+
+  Note: The Ubuntu PPA Packages are build against the asterisk version delivered with ubuntu on the ppa build platform. The chan-sccp driver
+  is compatible only with the exact asterisk version it was build against. Please check the build log, to make sure you have the correct one.
+  See [PPA Package Details](https://launchpad.net/~chan-sccp-b/+archive/ubuntu/ppa/+packages).
 - Asterisk-11
   - [Debian-8.0](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-11/Debian_8.0/)
 - Asterisk-13
