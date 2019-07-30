@@ -722,6 +722,21 @@ AC_DEFUN([CS_ENABLE_REFCOUNT_DEBUG], [
 	AC_MSG_RESULT([--enable-refcount-debug: ${ac_cv_refcount_debug}])
 ])
 
+AC_DEFUN([CS_ENABLE_ASTOBJ_REFCOUNT], [
+	AS_IF([test "${ASTOBJ2_AVAILABLE}" == "yes"],
+	[
+		AC_ARG_ENABLE(astobj_refcount, 
+			[AC_HELP_STRING([--enable-astobj2-refcount], [enable using astobj2 refcount implementation])], 
+			[ac_cv_astobj_refcount=$enableval], 
+			[ac_cv_astobj_refcount=no]
+		)
+		AS_IF([test "_${ac_cv_astobj_refcount}" == "_yes"], [AC_DEFINE(CS_ASTOBJ_REFCOUNT, 1, [astobj2 refcount enabled])])
+		AC_MSG_RESULT([--enable-astobj2-refcount: ${ac_cv_astobj_refcount}])
+	], [
+		AC_MSG_RESULT([--enable-astobj2-refcount: no (astobj2.h not available)])
+	])
+])
+
 AC_DEFUN([CS_ENABLE_LOCK_DEBUG], [
 	AC_ARG_ENABLE(lock_debug, 
 		[AC_HELP_STRING([--enable-lock-debug], [enable lock debugging (developer only)])], 
@@ -1035,6 +1050,7 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	AC_MSG_RESULT([--enable-devdoc: ${ac_cv_use_devdoc}])
 	CS_ENABLE_GCOV
 	CS_ENABLE_REFCOUNT_DEBUG
+	CS_ENABLE_ASTOBJ_REFCOUNT
 	CS_ENABLE_LOCK_DEBUG
 	CS_ENABLE_STRIP
 	CS_DISABLE_PICKUP

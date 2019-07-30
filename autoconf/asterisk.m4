@@ -276,6 +276,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 	CFLAGS="${CFLAGS_saved} ${TEST_SUPPORTED_CFLAGS}"
 dnl	CFLAGS="${CFLAGS_saved} -Werror=incompatible-pointer-types -Werror=implicit-function-declaration -Werror=int-conversion"
 dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
+	ASTOBJ2_AVAILABLE="no"
 	
 	HEADER_INCLUDE="
 #undef PACKAGE
@@ -438,6 +439,13 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 			], [
 				AC_MSG_RESULT(no)
 			])
+		],,[
+			$HEADER_INCLUDE
+		])
+		AC_CHECK_HEADER([asterisk/astobj2.h],
+		[
+			AC_DEFINE(HAVE_PBX_ASTOBJ2_H,1,[Found 'asterisk/astobj2.h'])
+			ASTOBJ2_AVAILABLE="yes"
 		],,[
 			$HEADER_INCLUDE
 		])

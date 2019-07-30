@@ -96,6 +96,9 @@
 /* advanced functions enabled */
 #undef CS_ADV_FEATURES
 
+/* astobj2 refcount enabled */
+#undef CS_ASTOBJ_REFCOUNT
+
 /* Found 'ast_bt_free_symbols' in asterisk/backtrace.h */
 #undef CS_AST_BACKTRACE_VECTOR_STRING
 
@@ -534,6 +537,9 @@
 
 /* Found 'asterisk/app.h' */
 #undef HAVE_PBX_APP_H
+
+/* Found 'asterisk/astobj2.h' */
+#undef HAVE_PBX_ASTOBJ2_H
 
 /* Found 'asterisk/backtrace.h' */
 #undef HAVE_PBX_BACKTRACE_H

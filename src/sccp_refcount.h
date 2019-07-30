@@ -33,6 +33,9 @@ enum sccp_refcount_runstate {
 	SCCP_REF_DESTROYED = -1
 };
 
+//#if !defined(CS_ASTOBJ_REFCOUNT)
+//#endif
+
 SCCP_API void SCCP_CALL sccp_refcount_init(void);
 SCCP_API void SCCP_CALL sccp_refcount_destroy(void);
 SCCP_API int __PURE__ SCCP_CALL sccp_refcount_isRunning(void);
@@ -50,6 +53,9 @@ SCCP_API void SCCP_CALL sccp_refcount_addWeakParent(const void * const ptr, cons
 SCCP_API void SCCP_CALL sccp_refcount_removeWeakParent(const void * const ptr, const void * const parentWeakPtr);
 SCCP_API void SCCP_CALL sccp_refcount_gen_report(const void * const ptr, pbx_str_t **buf);
 #endif
+#ifdef CS_EXPERIMENTAL
+SCCP_API int SCCP_CALL sccp_refcount_force_release(long findobj, char *identifier);
+#endif
 
 typedef struct {
 	const void ** const ptr;
@@ -63,9 +69,6 @@ _type *_var = _initial; auto_ref_t __attribute__((cleanup(sccp_refcount_autorele
 #define AUTO_RELEASE1(_type,_var,_initial,_file,_func,_line,_counter) AUTO_RELEASE2(_type,_var,_initial,_file,_func,_line,_counter)
 #define AUTO_RELEASE(_type,_var,_initial) AUTO_RELEASE1(_type,_var,_initial,__FILE__,__PRETTY_FUNCTION__,__LINE__,__COUNTER__)
 
-#ifdef CS_EXPERIMENTAL
-SCCP_API int SCCP_CALL sccp_refcount_force_release(long findobj, char *identifier);
-#endif
 
 #define sccp_refcount_retain_type(_type, _x) 		({											\
 	pbx_assert(PTR_TYPE_CMP(const _type *const, _x ) == 1); 										\
@@ -136,7 +139,7 @@ __END_C_EXTERN__
 			}
 		}
 	}
-#endif
+#endif // unused
 
-#endif
+#endif // unused
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off

@@ -999,6 +999,7 @@ with_libevent
 enable_section_relocation
 enable_gcov
 enable_refcount_debug
+enable_astobj_refcount
 enable_lock_debug
 enable_strip
 enable_pickup
@@ -1715,6 +1716,8 @@ Optional Features:
                           enable compiler section relocation
   --enable-gcov           generate Gcov to profile sources
   --enable-refcount-debug enable refcount debugging (developer only)
+  --enable-astobj2-refcount
+                          enable using astobj2 refcount implementation
   --enable-lock-debug     enable lock debugging (developer only)
   --enable-strip          strip the symbols from the binary during
                           installation
@@ -25148,6 +25151,7 @@ fi
 done
 
 	CFLAGS="${CFLAGS_saved} ${TEST_SUPPORTED_CFLAGS}"
+	ASTOBJ2_AVAILABLE="no"
 
 	HEADER_INCLUDE="
 #undef PACKAGE
@@ -25535,6 +25539,20 @@ $as_echo "no" >&6; }
 fi
 rm -f conftest*
 
+
+fi
+
+
+		ac_fn_c_check_header_compile "$LINENO" "asterisk/astobj2.h" "ac_cv_header_asterisk_astobj2_h" "
+			$HEADER_INCLUDE
+
+"
+if test "x$ac_cv_header_asterisk_astobj2_h" = xyes; then :
+
+
+$as_echo "#define HAVE_PBX_ASTOBJ2_H 1" >>confdefs.h
+
+			ASTOBJ2_AVAILABLE="yes"
 
 fi
 
@@ -31794,6 +31812,32 @@ $as_echo "#define CS_REFCOUNT_DEBUG 1" >>confdefs.h
 fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: --enable-refcount-debug: ${ac_cv_refcount_debug}" >&5
 $as_echo "--enable-refcount-debug: ${ac_cv_refcount_debug}" >&6; }
+
+
+	if test "${ASTOBJ2_AVAILABLE}" == "yes"; then :
+
+		# Check whether --enable-astobj_refcount was given.
+if test "${enable_astobj_refcount+set}" = set; then :
+  enableval=$enable_astobj_refcount; ac_cv_astobj_refcount=$enableval
+else
+  ac_cv_astobj_refcount=no
+
+fi
+
+		if test "_${ac_cv_astobj_refcount}" == "_yes"; then :
+
+$as_echo "#define CS_ASTOBJ_REFCOUNT 1" >>confdefs.h
+
+fi
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: --enable-astobj2-refcount: ${ac_cv_astobj_refcount}" >&5
+$as_echo "--enable-astobj2-refcount: ${ac_cv_astobj_refcount}" >&6; }
+
+else
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: --enable-astobj2-refcount: no (astobj2.h not available)" >&5
+$as_echo "--enable-astobj2-refcount: no (astobj2.h not available)" >&6; }
+
+fi
 
 
 	# Check whether --enable-lock_debug was given.

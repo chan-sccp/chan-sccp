@@ -50,6 +50,101 @@
 
 SCCP_FILE_VERSION(__FILE__, "");
 
+static enum sccp_refcount_runstate runState = SCCP_REF_STOPPED;
+
+#ifdef CS_ASTOBJ_REFCOUNT
+void sccp_refcount_init(void)
+{
+	sccp_log((DEBUGCAT_REFCOUNT + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "SCCP: (Refcount) init\n");
+	runState = SCCP_REF_RUNNING;
+}
+void sccp_refcount_destroy(void)
+{
+	runState = SCCP_REF_STOPPED;
+	sched_yield();												//make sure all other threads can finish their work first.
+	runState = SCCP_REF_DESTROYED;
+}
+int sccp_refcount_isRunning(void)
+{
+	return runState;
+}
+void * const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, int (*destructor)(const void *))
+{
+	void *obj = NULL;
+	if (!runState) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Not Running Yet!\n");
+		return NULL;
+	}
+	if (!(obj = ao2_alloc(size, (void (*)(void *))destructor))) {
+		pbx_log(LOG_ERROR, "Could not allocate object with id: %s\n", identifier);
+	}
+	return (void * const)obj;
+}
+void sccp_refcount_updateIdentifier(const void * const ptr, const char * const identifier)
+{
+}
+gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func)
+{
+	void *const obj = (void *const) ptr;
+#if CS_REFCOUNT_DEBUG
+	sccp_log(DEBUG_REFCOUNT(VERBOSE_PREFIX_3)("ptr:%p, filename:%s, lineno:%d, function:%s", obj, NULL, 1, filename, lineno, func);
+#endif
+	ao2_ref(obj, 1);
+	return obj;
+}
+gcc_inline void * const sccp_refcount_release(const void * * const ptr, const char *filename, int lineno, const char *func)
+{
+	void *const obj = (void *const) *ptr;
+#if CS_REFCOUNT_DEBUG
+	sccp_log(DEBUG_REFCOUNT(VERBOSE_PREFIX_3)("ptr:%p, filename:%s, lineno:%d, function:%s", obk, NULL, 1, filename, lineno, func);
+#endif
+	ao2_ref(obj, -1);
+	*ptr = NULL;
+	return NULL;
+}
+gcc_inline void sccp_refcount_replace(const void * * const replaceptr, const void *const newptr, const char *filename, int lineno, const char *func)
+{
+	if (!replaceptr || (&newptr == replaceptr)) {								// nothing changed
+		return;
+	}
+	if (do_expect(newptr !=NULL)) {
+		const void *tmpNewPtr = sccp_refcount_retain(newptr, filename, lineno, func);			// retain new one first
+		if (do_expect(tmpNewPtr != NULL)) {
+			const void *oldPtr = *replaceptr;
+			*replaceptr = tmpNewPtr;
+			if (do_expect(oldPtr != NULL)) {							// release previous one after
+				sccp_refcount_release(&oldPtr, filename, lineno, func);				// explicit release
+			}
+		}
+	} else if (do_expect(*replaceptr != NULL)) {								// release previous only
+		sccp_refcount_release(replaceptr, filename, lineno, func);					// explicit release
+	}
+	
+}
+int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
+{
+	return 0;
+}
+gcc_inline void sccp_refcount_autorelease(void *refptr)
+{
+	auto_ref_t *ref = (auto_ref_t *)refptr;
+	if (ref && ref->ptr && *ref->ptr) {
+		sccp_refcount_release(ref->ptr, ref->file, ref->line, ref->func);				// explicit release
+	}
+}
+#if CS_REFCOUNT_DEBUG
+void sccp_refcount_addWeakParent(const void * const ptr, const void * const parentWeakPtr) {}
+void sccp_refcount_removeWeakParent(const void * const ptr, const void * const parentWeakPtr) {}
+void sccp_refcount_gen_report(const void * const ptr, pbx_str_t **buf) {}
+#endif
+#ifdef CS_EXPERIMENTAL
+int sccp_refcount_force_release(long findobj, char *identifier)
+{
+	return 1;
+}
+#endif
+
+#else
 //nb: SCCP_HASH_PRIME defined in config.h, default 563
 #define SCCP_SIMPLE_HASH(_a) (((uintptr_t)(_a)) % SCCP_HASH_PRIME)
 #define SCCP_LIVE_MARKER 13
@@ -59,7 +154,6 @@ SCCP_FILE_VERSION(__FILE__, "");
 #define REF_DEBUG_FILE "/tmp/sccp_refs"
 static int __rotate_debug_file(void);
 #endif
-static enum sccp_refcount_runstate runState = SCCP_REF_STOPPED;
 
 static struct sccp_refcount_obj_info {
 	int (*destructor) (const void *ptr);
@@ -961,5 +1055,6 @@ static void __attribute__((destructor)) sccp_unregister_tests(void)
 	AST_TEST_UNREGISTER(sccp_refcount_tests);
 }
 #endif
+#endif // CS_ASTOBJ_REFCOUNT
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
