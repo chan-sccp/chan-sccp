@@ -2134,7 +2134,7 @@ static int sccp_astwrap_callerid_rdnis(PBX_CHANNEL_TYPE *pbx_chan, char **cid_rd
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
  */
-static int sccp_astwrap_callerid_presentation(PBX_CHANNEL_TYPE *pbx_chan)
+static sccp_callerid_presentation_t sccp_astwrap_callerid_presentation(PBX_CHANNEL_TYPE *pbx_chan)
 {
 	if (pbx_chan && (ast_party_id_presentation(&pbx_chan->caller.id) & AST_PRES_RESTRICTION) == AST_PRES_ALLOWED) {
 		return CALLERID_PRESENTATION_ALLOWED;
@@ -2502,9 +2502,11 @@ static int sccp_astwrap_sched_wait(int id)
 	return FALSE;
 }
 
-static int sccp_astwrap_setCallState(const sccp_channel_t * channel, int state)
+static int sccp_astwrap_setCallState(const sccp_channel_t * channel, enum ast_channel_state state)
 {
-	sccp_pbx_setcallstate((sccp_channel_t *) channel, state);
+        if (channel && channel->owner) {
+        	pbx_setstate(channel->owner, (int)state);
+        }
 	//! \todo implement correct return value (take into account negative deadlock prevention)
 	return 0;
 }

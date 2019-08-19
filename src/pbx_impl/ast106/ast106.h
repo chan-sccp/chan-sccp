@@ -11,6 +11,8 @@
 #include "config.h"
 #include <asterisk/astobj2.h>
 
+#define ast_alloca(size) __builtin_alloca(size)
+
 #define sccp_sched_context_destroy sched_context_destroy
 //#warning "HERE"
 #if ASTERISK_VERSION_NUMBER >= 10601

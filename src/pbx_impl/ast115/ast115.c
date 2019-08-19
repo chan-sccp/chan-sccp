@@ -2751,8 +2751,9 @@ static int sccp_astwrap_sched_wait(int id)
 
 static int sccp_astwrap_setCallState(constChannelPtr channel, enum ast_channel_state state)
 {
-	pbx_setstate(channel->owner, state);
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Set asterisk state %s (%d) for call %d\n", channel->currentDeviceId, pbx_state2str(state), state, channel->callid);
+        if (channel && channel->owner) {
+		pbx_setstate(channel->owner, state);
+	}
 	return 0;
 }
 

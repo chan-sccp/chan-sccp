@@ -105,7 +105,7 @@ const char *pbx_inet_ntoa(struct in_addr ia);
 
 #define ast_format_type int
 #define pbx_format_type uint64_t
-#if ASTERISK_VERSION_GROUP < 113
+#if ASTERISK_VERSION_GROUP >= 110 && ASTERISK_VERSION_GROUP < 113
 #define pbx_format_enum_type enum ast_format_id
 #else
 #define pbx_format_enum_type uint64_t

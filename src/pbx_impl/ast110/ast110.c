@@ -709,7 +709,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			if (d->earlyrtp != SCCP_EARLYRTP_IMMEDIATE) {
 				if (!c->scheduler.deny) {
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
-					sccp_channel_schedule_digittimout(c, c->enbloc.digittimeout);
+					sccp_channel_schedule_digittimeout(c, c->enbloc.digittimeout);
 				} else {
 					sccp_channel_stop_schedule_digittimout(c);
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
@@ -1020,7 +1020,7 @@ static boolean_t sccp_astwrap_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChann
 	return TRUE;
 }
 
-static PBX_CHANNEL_TYPE *sccp_astwrap_requestAnnouncementChannel(pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data)
+static PBX_CHANNEL_TYPE *sccp_astwrap_requestAnnouncementChannel(pbx_format_enum_type format, const PBX_CHANNEL_TYPE * requestor, void *data);
 {
 	PBX_CHANNEL_TYPE *chan;
 	int cause;
@@ -1844,7 +1844,7 @@ static int sccp_astwrap_callerid_rdnis(PBX_CHANNEL_TYPE *pbx_chan, char **cid_rd
  * \param ast_chan Asterisk Channel
  * \return char * with the caller number
  */
-static int sccp_astwrap_callerid_presentation(PBX_CHANNEL_TYPE *pbx_chan)
+static sccp_callerid_presentation_t sccp_astwrap_callerid_presentation(PBX_CHANNEL_TYPE *pbx_chan)
 {
 	if (pbx_chan && (ast_party_id_presentation(&pbx_chan->caller.id) & AST_PRES_RESTRICTION) == AST_PRES_ALLOWED) {
 		return CALLERID_PRESENTATION_ALLOWED;
@@ -2176,9 +2176,11 @@ static int sccp_astwrap_sched_wait(int id)
 	return FALSE;
 }
 
-static int sccp_astwrap_setCallState(const sccp_channel_t * channel, int state)
+static int sccp_astwrap_setCallState(const sccp_channel_t * channel, enum ast_channel_state state)
 {
-	sccp_pbx_setcallstate((sccp_channel_t *) channel, state);
+        if (channel && channel->owner) {
+		pbx_setstate(channel->owner, state);
+        }
 	//! \todo implement correct return value (take into account negative deadlock prevention)
 	return 0;
 }
