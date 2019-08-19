@@ -1152,6 +1152,7 @@ static sccp_barge_info_t * createTempExtensionContext(channelPtr c, const char *
 	if (c && barge_info) {
 		if (!(barge_info->context = pbx_context_find_or_create(NULL, NULL, context_name, BASE_REGISTRAR))) {
 			sccp_free(barge_info);
+			return NULL;
 		}
 		barge_info->bargingChannel = sccp_channel_retain(c);
 		pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/1, /*label*/NULL, /*cidmatch*/NULL, "Answer", NULL, NULL, BASE_REGISTRAR);
