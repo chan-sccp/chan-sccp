@@ -5,6 +5,7 @@ Version: v4.3.2_DEV
    - Congestion signallling after EndCall Softkey
    - Rtp receive channel left open after call hangup -> causing phone to run
      out of rtp channels. (under some circumstances).
+   - cli output when dealing with accented characters (locale)
  - Enhancements:
    - Compile with c++ compatibility
    - Directed barge
