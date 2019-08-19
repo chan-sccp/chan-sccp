@@ -159,7 +159,6 @@ struct sccp_global_vars {
 	char *token_fallback;											/*!< Fall back immediatly on TokenReq (true/false/odd/even) */
 	int token_backoff_time;											/*!< Backoff time on TokenReject */
 	int server_priority;											/*!< Server Priority to fallback to */
-	locale_t cli_locale;
 
 	boolean_t reload_in_progress;										/*!< Reload in Progress */
 	boolean_t pendingUpdate;

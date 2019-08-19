@@ -35,11 +35,6 @@
 #include "sccp_management.h"	// use __constructor__ to remove this entry
 #include <signal.h>
 
-#include <locale.h>
-#if HAVE_XLOCALE_H
-#include <xlocale.h>
-#endif
-
 SCCP_FILE_VERSION(__FILE__, "");
 
 /*!
@@ -171,8 +166,6 @@ boolean_t sccp_prePBXLoad(void)
 		GLOB(global_jbconf)->target_extra = -1;
 #endif
 	}
-	GLOB(cli_locale) = newlocale(LC_COLLATE_MASK, "LC_ALL", NULL);
-
 	sccp_create_hotline();
 	return TRUE;
 }
@@ -307,8 +300,6 @@ int sccp_preUnload(void)
 	if (GLOB(localaddr)) {
 		sccp_free_ha(GLOB(localaddr));
 	}
-	freelocale(GLOB(cli_locale));
-
 	sccp_config_cleanup_dynamically_allocated_memory(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
 	/* */
 
