@@ -21,6 +21,9 @@
 SCCP_FILE_VERSION(__FILE__, "");
 
 #include <locale.h>
+#if HAVE_XLOCALE_H
+#include <xlocale.h>
+#endif
 #if defined(DEBUG) && defined(HAVE_EXECINFO_H)
 #  include <execinfo.h>
 #  if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
@@ -1732,9 +1735,11 @@ boolean_t sccp_append_variable(PBX_VARIABLE_TYPE *params, const char *key, const
 	return res;
 }
 
+
 gcc_inline int sccp_utf8_columnwidth(int width, const char *const ms)
 {
 	//setlocale(LC_ALL, "");		// don't use this, it changes the locale on a global scale, not thread-local
+	uselocale(GLOB(cli_locale));
 	if (ms)
 		return (int)width + (strlen(ms) - mbstowcs(NULL, ms, width));
 	else
