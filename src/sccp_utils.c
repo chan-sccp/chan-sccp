@@ -1739,17 +1739,18 @@ boolean_t sccp_append_variable(PBX_VARIABLE_TYPE *params, const char *key, const
 gcc_inline int sccp_utf8_columnwidth(int width, const char *const ms)
 {
 	// don't use setlocale() as that is global to the process
+	int res = 0;
 	locale_t locale = newlocale(LC_ALL_MASK, "", NULL);
 	locale_t old_locale = uselocale(locale);
 
 	if (ms)
-		return (int)width + (strlen(ms) - mbstowcs(NULL, ms, width));
-	else
-		return 0;
+		res = (int)width + (strlen(ms) - mbstowcs(NULL, ms, width));
 
 	uselocale(old_locale);
 	if (locale != (locale_t) 0) 
 		freelocale(locale);
+
+	return res;
 }
 
 gcc_inline boolean_t sccp_always_false(void)

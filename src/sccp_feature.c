@@ -1148,19 +1148,20 @@ static void *cleanupTempExtensionContext(void *ptr)
 
 static sccp_barge_info_t * createTempExtensionContext(channelPtr c, const char *context_name, const char *ext, const char *app, const char *opts)
 {
-	sccp_barge_info_t *barge_info = (sccp_barge_info_t *) sccp_calloc(1, sizeof(sccp_barge_info_t));
-	if (c && barge_info) {
-		if (!(barge_info->context = pbx_context_find_or_create(NULL, NULL, context_name, BASE_REGISTRAR))) {
+	if (c) {
+		sccp_barge_info_t *barge_info = (sccp_barge_info_t *) sccp_calloc(1, sizeof(sccp_barge_info_t));
+		if (barge_info) {
+			if ((barge_info->context = pbx_context_find_or_create(NULL, NULL, context_name, BASE_REGISTRAR))) {
+				barge_info->bargingChannel = sccp_channel_retain(c);
+				pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/1, /*label*/NULL, /*cidmatch*/NULL, "Answer", NULL, NULL, BASE_REGISTRAR);
+				pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/2, /*label*/NULL, /*cidmatch*/NULL, app, pbx_strdup(opts), sccp_free_ptr, BASE_REGISTRAR);
+				pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/3, /*label*/NULL, /*cidmatch*/NULL, "Hangup", NULL, NULL, BASE_REGISTRAR);
+				sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_2 "SCCP: created temp context:%s and extension:%s to call %s, with options:'%s'\n", context_name, ext, app, opts);
+				sccp_channel_addCleanupJob(c, &cleanupTempExtensionContext, barge_info);
+				return barge_info;
+			}
 			sccp_free(barge_info);
-			return NULL;
 		}
-		barge_info->bargingChannel = sccp_channel_retain(c);
-		pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/1, /*label*/NULL, /*cidmatch*/NULL, "Answer", NULL, NULL, BASE_REGISTRAR);
-		pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/2, /*label*/NULL, /*cidmatch*/NULL, app, pbx_strdup(opts), sccp_free_ptr, BASE_REGISTRAR);
-		pbx_add_extension(context_name, /*replace*/1, ext, /*prio*/3, /*label*/NULL, /*cidmatch*/NULL, "Hangup", NULL, NULL, BASE_REGISTRAR);
-		sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_2 "SCCP: created temp context:%s and extension:%s to call %s, with options:'%s'\n", context_name, ext, app, opts);
-		sccp_channel_addCleanupJob(c, &cleanupTempExtensionContext, barge_info);
-		return barge_info;
 	}
 	return NULL;
 }
