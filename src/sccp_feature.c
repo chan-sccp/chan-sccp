@@ -61,150 +61,91 @@ static int sccp_feat_sharedline_barge(constLineDevicePtr ld, channelPtr bargedCh
  * \callgraph
  * \callergraph
  */
-void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_callforward_t type)
+//void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, uint32_t lineInstance, channelPtr maybe_c, sccp_callforward_t type)
+void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr d, sccp_callforward_t type)
 {
 	if (!l) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line is not specified!\n");
 		return;
 	}
 
-	if (!device) {
+	if (!d) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if device is not specified!\n");
 		return;
 	}
 
-	AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(device, l));
+	AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(d, l));
 
 	if (!linedevice) {
-		pbx_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+		pbx_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(d));
 		return;
 	}
-
-	/* if call forward is active -> disable */
-	if (linedevice->cfwdAll.enabled && type == SCCP_CFWD_ALL) {
-		sccp_line_cfwd(l, device, SCCP_CFWD_NONE, NULL);
-		sccp_device_setLamp(device, SKINNY_STIMULUS_FORWARDALL, linedevice->lineInstance, SKINNY_LAMP_OFF);
-		return;
-	} else if (linedevice->cfwdBusy.enabled && type == SCCP_CFWD_BUSY) {
-		sccp_line_cfwd(l, device, SCCP_CFWD_NONE, NULL);
-		sccp_device_setLamp(device, SKINNY_STIMULUS_FORWARDBUSY, linedevice->lineInstance, SKINNY_LAMP_OFF);
-		return;
-	} else if (type == SCCP_CFWD_NOANSWER) {
-		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "### CFwdNoAnswer NOT SUPPORTED\n");
-		sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
-		sccp_device_setLamp(device, SKINNY_STIMULUS_FORWARDNOANSWER, linedevice->lineInstance, SKINNY_LAMP_OFF);
-		return;
-	}
-	/* look if we have a call  */
-	AUTO_RELEASE(sccp_channel_t, c , sccp_device_getActiveChannel(device));
+	
+	AUTO_RELEASE(sccp_channel_t, maybe_c , sccp_device_getActiveChannel(d));
+	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_getEmptyChannel(l, d, maybe_c, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));
 	if (c) {
-		if (c->softswitch_action == SCCP_SOFTSWITCH_GETFORWARDEXTEN) {
-			// we have a channel, checking if
+		sccp_softswitch_t ss_action = c->softswitch_action ? c->softswitch_action : SCCP_SOFTSWITCH_GETFORWARDEXTEN;
+		if (
+			(linedevice->cfwdAll.enabled && type == SCCP_CFWD_ALL) ||
+			(linedevice->cfwdBusy.enabled && type == SCCP_CFWD_BUSY) ||
+			(type == SCCP_CFWD_NOANSWER)
+		) {
+			sccp_log(DEBUGCAT_PBX)("%s: Removing Call Forward\n", d->id);
+			ss_action = SCCP_SOFTSWITCH_ENDCALLFORWARD;
+		} else {
+			sccp_log(DEBUGCAT_PBX)("%s: Adding Call Forward\n", d->id);
+		}
+		
+		if (ss_action == SCCP_SOFTSWITCH_GETFORWARDEXTEN) {							// we already have an active channel
 			if (c->state == SCCP_CHANNELSTATE_RINGOUT || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED || c->state == SCCP_CHANNELSTATE_BUSY || c->state == SCCP_CHANNELSTATE_CONGESTION) {
-				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-					pbx_log(LOG_ERROR, "%s: 1\n", DEV_ID_LOG(device));
-					// if we have an outbound call, we can set callforward to dialed number -FS
-					if (!sccp_strlen_zero(c->dialedNumber)) {		// checking if we have a number !
-						pbx_log(LOG_ERROR, "%s: 2\n", DEV_ID_LOG(device));
-						sccp_line_cfwd(l, device, type, c->dialedNumber);
-						sccp_dev_starttone(device, SKINNY_TONE_ZIP, linedevice->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
-						sccp_channel_endcall(c);
-						return;
-					}
-				} else if (iPbx.channel_is_bridged(c)) {					// check if we have an ast channel to get callerid from
+				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && !sccp_strlen_zero(c->dialedNumber)) {	// if we have an outbound call, we can set callforward to dialed number -FS
+					sccp_line_cfwd(l, d, type, c->dialedNumber);
+					sccp_dev_starttone(d, SKINNY_TONE_ZIP, linedevice->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+					sccp_channel_endcall(c);
+					return;
+				} else if (iPbx.channel_is_bridged(c)) {						// check if we have an ast channel to get callerid from
 					// if we have an incoming or forwarded call, let's get number from callerid :) -FS
 					char *number = NULL;
 					if (iPbx.get_callerid_name) {
 						iPbx.get_callerid_number(c->owner, &number);
 					}
 					if (number) {
-						sccp_line_cfwd(l, device, type, number);
-						pbx_log(LOG_ERROR, "%s: 4\n", DEV_ID_LOG(device));
+						sccp_line_cfwd(l, d, type, number);
 						// we are on call, so no tone has been played until now :)
-						sccp_dev_starttone(device, SKINNY_TONE_ZIP, linedevice->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+						sccp_dev_starttone(d, SKINNY_TONE_ZIP, linedevice->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 						sccp_channel_endcall(c);
 						sccp_free(number);
 						return;
 					}
-					// if we where here it is because there is no number in callerid. Put call on hold and ask for a call forward number :) -FS
-					if (!sccp_channel_hold(c)) {
-						// if can't hold  it means there is no active call, so return as we're already waiting a number to dial
-						sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
-						return;
-					}
 				}
-			} else if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {
-				pbx_log(LOG_ERROR, "%s: 5\n", DEV_ID_LOG(device));
-				sccp_dev_stoptone(device, linedevice->lineInstance, (c && c->callid) ? c->callid : 0);
-				// changing SOFTSWITCH_DIALING mode to SOFTSWITCH_GETFORWARDEXTEN
-				c->softswitch_action = SCCP_SOFTSWITCH_GETFORWARDEXTEN;				/* SoftSwitch will catch a number to be dialed */
-				c->ss_data = type;								/* this should be found in thread */
-				sccp_indicate(device, c, SCCP_CHANNELSTATE_GETDIGITS);
-				iPbx.set_callstate(c, AST_STATE_OFFHOOK);
-				return;
-			} else {
-				// we cannot allocate a channel, or ask an extension to pickup.
-				sccp_dev_displayprompt(device, 0, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
-				return;
 			}
 		}
-	}
-
-	if (!c) {
-		// if we where here there is no call in progress, so we should allocate a channel.
-		c = sccp_channel_allocate(l, device);
-		if (!c) {
-			pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", DEV_ID_LOG(device), l->name);
-			return;
+		c->softswitch_action = ss_action;
+		c->ss_data = type;
+		sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
+		switch (type) {
+			case SCCP_CFWD_ALL:
+				sccp_dev_displayprompt(d, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
+				sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDALL, linedevice->lineInstance, SKINNY_LAMP_FLASH);
+				break;
+			case SCCP_CFWD_BUSY:
+				sccp_dev_displayprompt(d, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
+				sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDBUSY, linedevice->lineInstance, SKINNY_LAMP_FLASH);
+				break;
+			/*
+			// already tested for at the beginning of this function: currently we do not support cfwd_noanswer, so no need for handling it here
+			case SCCP_CFWD_NOANSWER:
+				sccp_dev_displayprompt(d, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
+				sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDNOANSWER, linedevice->lineInstance, SKINNY_LAMP_FLASH);
+				break;
+			*/
+			default:
+				sccp_dev_displayprompt(d, linedevice->lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+				break;
 		}
-		if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
-			pbx_log(LOG_WARNING, "%s: (handle_callforward) Unable to allocate a new channel for line %s\n", DEV_ID_LOG(device), l->name);
-			sccp_indicate(device, c, SCCP_CHANNELSTATE_CONGESTION);					// implicitly retained device by sccp_action
-			return;
+		if (ss_action == SCCP_SOFTSWITCH_ENDCALLFORWARD) {
+			sccp_pbx_softswitch(c);
 		}
-
-	} else {
-		if (c->state == SCCP_CHANNELSTATE_OFFHOOK) {
-			/** we just opened a channel for cfwd, switch softswitch_action = SCCP_SOFTSWITCH_GETFORWARDEXTEN */
-			sccp_channel_stop_schedule_digittimout(c);
-			// we are dialing but without entering a number :D -FS
-			sccp_dev_stoptone(device, linedevice->lineInstance, c->callid);
-		} else {
-			if (!sccp_channel_hold(c)) {								// put on hold, other call is allready in progress
-				pbx_log(LOG_ERROR, "%s: Active call '%d' could not be put on hold\n", DEV_ID_LOG(device), c->callid);
-				return;
-			}
-		}
-	}
-
-	c->softswitch_action = SCCP_SOFTSWITCH_GETFORWARDEXTEN;							/* SoftSwitch will catch a number to be dialed */
-	c->ss_data = type;											/* this should be found in thread */
-
-	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
-	sccp_indicate(device, c, SCCP_CHANNELSTATE_GETDIGITS);
-	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
-	switch (type) {
-		case SCCP_CFWD_ALL:
-			sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
-			sccp_device_setLamp(device, SKINNY_STIMULUS_FORWARDALL, linedevice->lineInstance, SKINNY_LAMP_FLASH);
-			break;
-		case SCCP_CFWD_BUSY:
-			sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
-			sccp_device_setLamp(device, SKINNY_STIMULUS_FORWARDBUSY, linedevice->lineInstance, SKINNY_LAMP_FLASH);
-			break;
-		/*
-		// already tested for at the beginning of this function: currently we do not support cfwd_noasnwer, so no need for handling it here
-		case SCCP_CFWD_NOANSWER:
-			sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
-			sccp_device_setLamp(device, SKINNY_STIMULUS_FORWARDNOANSWER, linedevice->lineInstance, SKINNY_LAMP_FLASH);
-			break;
-		*/
-		default:
-			sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
-			break;
-	}			
-	if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
-		sccp_channel_openReceiveChannel(c);
 	}
 }
 

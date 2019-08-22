@@ -1124,6 +1124,29 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					sccp_channel_endcall(c);
 					goto EXIT_FUNC;								// leave simple switch without dial
 				}
+			case SCCP_SOFTSWITCH_ENDCALLFORWARD:
+				{
+					sccp_callforward_t type = (sccp_callforward_t) c->ss_data;
+					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Clear Forward %s\n", d->id, sccp_callforward2str(type));
+					sccp_line_cfwd(l, d, type, NULL);
+					switch (type) {
+						case SCCP_CFWD_ALL:
+							sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDALL, instance, SKINNY_LAMP_OFF);
+							break;
+						case SCCP_CFWD_BUSY:
+							sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDBUSY, instance, SKINNY_LAMP_OFF);
+							break;
+						case SCCP_CFWD_NOANSWER:
+							sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDNOANSWER, instance, SKINNY_LAMP_OFF);
+							break;
+						case SCCP_CFWD_NONE:
+						case SCCP_CALLFORWARD_SENTINEL:
+						default:
+							pbx_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) EndCallForward unknown CFWD_TYPE\n", d->id);
+					}
+					sccp_channel_endcall(c);
+					goto EXIT_FUNC;								// leave simple switch without dial
+				}
 #ifdef CS_SCCP_PICKUP
 			case SCCP_SOFTSWITCH_GETPICKUPEXTEN:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Pickup Extension\n", d->id);

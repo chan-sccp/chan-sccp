@@ -236,6 +236,7 @@ strenum tokenstate {
 strenum softswitch {
 	SCCP_SOFTSWITCH_DIAL,				=0,	"Softswitch Dial",
 	SCCP_SOFTSWITCH_GETFORWARDEXTEN,		,	"Softswitch Get Forward Extension",
+	SCCP_SOFTSWITCH_ENDCALLFORWARD	,		,	"Softswitch End Call Forward",
 #ifdef CS_SCCP_PICKUP
 	SCCP_SOFTSWITCH_GETPICKUPEXTEN,			,	"Softswitch Get Pickup Extension",
 #endif
