@@ -21,7 +21,7 @@ struct sccp_feature_configuration {
 };
 
 // callforward
-SCCP_API void SCCP_CALL sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, sccp_callforward_t type);
+SCCP_API void SCCP_CALL sccp_feat_handle_callforward(constLinePtr l, constDevicePtr d, sccp_callforward_t type, channelPtr maybe_c, uint32_t lineInstance);
 
 #ifdef CS_SCCP_PICKUP
 SCCP_API void SCCP_CALL sccp_feat_handle_directed_pickup(constDevicePtr d, constLinePtr l, channelPtr maybe_c);

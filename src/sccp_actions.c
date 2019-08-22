@@ -1982,8 +1982,9 @@ static void handle_stimulus_conference(constDevicePtr d, constLinePtr l, const u
 static void handle_stimulus_forwardAll(constDevicePtr d, constLinePtr l, const uint16_t instance, const uint32_t callId, const uint32_t stimulusstatus)
 {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Forward All Stimulus\n", d->id);
+	AUTO_RELEASE(sccp_channel_t, maybe_c , sccp_device_getActiveChannel(d));
 	if (d->cfwdall) {
-		sccp_feat_handle_callforward(l, d, SCCP_CFWD_ALL);
+		sccp_feat_handle_callforward(l, d, SCCP_CFWD_ALL, maybe_c, instance);
 		return;
 	}
 	pbx_log(LOG_WARNING, "%s: CFWDALL disabled on device\n", d->id);
@@ -2002,8 +2003,9 @@ static void handle_stimulus_forwardAll(constDevicePtr d, constLinePtr l, const u
 static void handle_stimulus_forwardBusy(constDevicePtr d, constLinePtr l, const uint16_t instance, const uint32_t callId, const uint32_t stimulusstatus)
 {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Forward Busy Stimulus\n", d->id);
+	AUTO_RELEASE(sccp_channel_t, maybe_c , sccp_device_getActiveChannel(d));
 	if (d->cfwdbusy) {
-		sccp_feat_handle_callforward(l, d, SCCP_CFWD_BUSY);
+		sccp_feat_handle_callforward(l, d, SCCP_CFWD_BUSY, maybe_c, instance);
 		return;
 	}
 	pbx_log(LOG_WARNING, "%s: CFWDBUSY disabled on device\n", d->id);
@@ -2022,8 +2024,9 @@ static void handle_stimulus_forwardBusy(constDevicePtr d, constLinePtr l, const 
 static void handle_stimulus_forwardNoAnswer(constDevicePtr d, constLinePtr l, const uint16_t instance, const uint32_t callId, const uint32_t stimulusstatus)
 {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Forward NoAnswer Stimulus\n", d->id);
+	AUTO_RELEASE(sccp_channel_t, maybe_c , sccp_device_getActiveChannel(d));
 	if (d->cfwdnoanswer) {
-		sccp_feat_handle_callforward(l, d, SCCP_CFWD_NOANSWER);
+		sccp_feat_handle_callforward(l, d, SCCP_CFWD_NOANSWER, maybe_c, instance);
 		return;
 	}
 	pbx_log(LOG_WARNING, "%s: CFWDNoAnswer disabled on device\n", d->id);

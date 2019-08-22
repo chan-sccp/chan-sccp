@@ -61,8 +61,7 @@ static int sccp_feat_sharedline_barge(constLineDevicePtr ld, channelPtr bargedCh
  * \callgraph
  * \callergraph
  */
-//void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr device, uint32_t lineInstance, channelPtr maybe_c, sccp_callforward_t type)
-void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr d, sccp_callforward_t type)
+void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr d, sccp_callforward_t type, channelPtr maybe_c, uint32_t lineInstance)
 {
 	if (!l) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line is not specified!\n");
@@ -81,7 +80,6 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr d, sccp_callfor
 		return;
 	}
 	
-	AUTO_RELEASE(sccp_channel_t, maybe_c , sccp_device_getActiveChannel(d));
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_getEmptyChannel(l, d, maybe_c, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));
 	if (c) {
 		sccp_softswitch_t ss_action = c->softswitch_action ? c->softswitch_action : SCCP_SOFTSWITCH_GETFORWARDEXTEN;

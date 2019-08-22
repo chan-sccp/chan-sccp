@@ -594,12 +594,13 @@ static void sccp_sk_cfwdall(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_cfwdall function called without specifying a device\n");
 		return;
 	}
+	
 	AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_NO_LINE_AVAILABLE));
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward All Pressed, line: %s, instance: %d, channel: %d\n", DEV_ID_LOG(d), l ? l->name : "(NULL)", lineInstance, c ? c->callid : 0);
 
 	if (line && d->cfwdall) {
-		sccp_feat_handle_callforward(line, d, SCCP_CFWD_ALL);
+		sccp_feat_handle_callforward(line, d, SCCP_CFWD_ALL, c, lineInstance);
 		return;
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CFWDALL disabled on device\n", d->id);
@@ -621,7 +622,7 @@ static void sccp_sk_cfwdbusy(const sccp_softkeyMap_cb_t * const softkeyMap_cb, c
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward Busy Pressed\n", DEV_ID_LOG(d));
 	if (line && d->cfwdbusy) {
-		sccp_feat_handle_callforward(line, d, SCCP_CFWD_BUSY);
+		sccp_feat_handle_callforward(line, d, SCCP_CFWD_BUSY, c, lineInstance);
 		return;
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CFWDBUSY disabled on device\n", d->id);
@@ -642,7 +643,7 @@ static void sccp_sk_cfwdnoanswer(const sccp_softkeyMap_cb_t * const softkeyMap_c
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward NoAnswer Pressed\n", DEV_ID_LOG(d));
 	if (line && d->cfwdnoanswer) {
-		sccp_feat_handle_callforward(line, d, SCCP_CFWD_NOANSWER);
+		sccp_feat_handle_callforward(line, d, SCCP_CFWD_NOANSWER, c, lineInstance);
 		return;
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CFWDNoAnswer disabled on device\n", d->id);
