@@ -1267,7 +1267,7 @@ int sccp_astgenwrap_channel_write(PBX_CHANNEL_TYPE * ast, const char *funcname, 
 			res = (TRUE == sccp_channel_setPreferredCodec(c, value)) ? 0 : -1;
 			
 		} else if (!strcasecmp(args, "video")) {
-			res = sccp_channel_setVideoMode(c, value);
+			res = (TRUE == sccp_channel_setVideoMode(c, value)) ? 0 : -1;
 			
 		} else if (!strcasecmp(args, "CallingParty")) {
 			char *num, *name;

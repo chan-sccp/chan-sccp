@@ -1500,9 +1500,6 @@ EXITFUNC:
 
 static int sccp_astwrap_call(PBX_CHANNEL_TYPE * ast, const char *dest, int timeout)
 {
-	struct varshead *headp;
-	struct ast_var_t *current;
-
 	int res = 0;
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to call %s (dest:%s, timeout: %d)\n", pbx_channel_name(ast), dest, timeout);
@@ -1520,21 +1517,16 @@ static int sccp_astwrap_call(PBX_CHANNEL_TYPE * ast, const char *dest, int timeo
 	}
 
 	/* Check whether there is MaxCallBR variables */
-	headp = ast_channel_varshead(ast);
-	//ast_log(LOG_NOTICE, "SCCP: search for varibles!\n");
-
-	AST_LIST_TRAVERSE(headp, current, entries) {
-		//ast_log(LOG_NOTICE, "var: name: %s, value: %s\n", ast_var_name(current), ast_var_value(current));
-		if (!strcasecmp(ast_var_name(current), "__MaxCallBR")) {
-			sccp_astgenwrap_channel_write(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
-		} else if (!strcasecmp(ast_var_name(current), "MaxCallBR")) {
-			sccp_astgenwrap_channel_write(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
-#if CS_SCCP_VIDEO
-		} else if (!strcasecmp(ast_var_name(current), "SCCP_VIDEO_MODE")) {
-			sccp_channel_setVideoMode(c, ast_var_value(current));
-#endif
-		}
+	const char *MaxCallBRStr = pbx_builtin_getvar_helper(ast, "MaxCallBR");
+	if (MaxCallBRStr && !sccp_strlen_zero(MaxCallBRStr)) {
+		sccp_astgenwrap_channel_write(ast, "CHANNEL", "MaxCallBR", MaxCallBRStr);
 	}
+#if CS_SCCP_VIDEO
+	const char *VideoStr = pbx_builtin_getvar_helper(ast, "SCCP_VIDEO_MODE");
+	if (VideoStr && !sccp_strlen_zero(VideoStr)) {
+		sccp_channel_setVideoMode(c, VideoStr);
+	}
+#endif
 
 	res = sccp_pbx_call(c, (char *) dest, timeout);
 	return res;

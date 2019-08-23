@@ -1375,21 +1375,6 @@ static int sccp_astwrap_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
 		return -1;
 	}
 
-	/* Check whether there is MaxCallBR variables */
-	headp = &ast->varshead;
-
-	AST_LIST_TRAVERSE(headp, current, entries) {
-		if (!strcasecmp(ast_var_name(current), "__MaxCallBR")) {
-			sccp_astgenwrap_channel_write(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
-		} else if (!strcasecmp(ast_var_name(current), "MaxCallBR")) {
-			sccp_astgenwrap_channel_write(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
-#if CS_SCCP_VIDEO
-		} else if (!strcasecmp(ast_var_name(current), "SCCP_VIDEO_MODE")) {
-			sccp_channel_setVideoMode(c, ast_var_value(current));
-#endif
-		}
-	}
-
 	res = sccp_pbx_call(c, dest, timeout);
 	return res;
 
