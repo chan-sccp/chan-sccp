@@ -1020,7 +1020,7 @@ static boolean_t sccp_astwrap_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChann
 	return TRUE;
 }
 
-static PBX_CHANNEL_TYPE *sccp_astwrap_requestAnnouncementChannel(pbx_format_enum_type format, const PBX_CHANNEL_TYPE * requestor, void *data);
+static PBX_CHANNEL_TYPE *sccp_astwrap_requestAnnouncementChannel(pbx_format_enum_type format, const PBX_CHANNEL_TYPE * requestor, void *data)
 {
 	PBX_CHANNEL_TYPE *chan;
 	int cause;
@@ -1357,8 +1357,6 @@ EXITFUNC:
 
 static int sccp_astwrap_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
 {
-	struct varshead *headp;
-	struct ast_var_t *current;
 	int res = 0;
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to call %s (dest:%s, timeout: %d)\n", pbx_channel_name(ast), dest, timeout);
