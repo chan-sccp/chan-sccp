@@ -11,10 +11,6 @@
 #include "define.h"
 #include "sccp_codec.h"
 #include "sccp_netsock.h"
-#include <locale.h>
-#if HAVE_XLOCALE_H
-#include <xlocale.h>
-#endif
 
 __BEGIN_C_EXTERN__
 SCCP_API char SCCP_VERSIONSTR[300];
