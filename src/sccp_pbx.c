@@ -341,7 +341,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 				}
 				//snprintf(prompt, sizeof(prompt), "%s: %s: %s", active_channel->line->name, SKINNY_DISP_FROM, cid_num);
 				//sccp_dev_displayprompt(linedevice->device, activeChannelLinedevice->lineInstance, active_channel->callid, caller, SCCP_DISPLAYSTATUS_TIMEOUT);
-				sccp_dev_set_message(d, caller, SCCP_DISPLAYSTATUS_TIMEOUT, FALSE, FALSE);
+				sccp_dev_set_message(linedevice->device, caller, SCCP_DISPLAYSTATUS_TIMEOUT, FALSE, FALSE);
 			}
 			ForwardingLineDevice = NULL;	/* reset cfwd if shared */
 			isRinging = TRUE;
