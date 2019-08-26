@@ -1327,8 +1327,7 @@ int sccp_feat_sharedline_barge(constLineDevicePtr bargingLD, channelPtr bargedCh
 			// display prompt on Barged Device
 			snprintf(statusmsg, sizeof(statusmsg), SKINNY_DISP_BARGE " " SKINNY_DISP_FROM " %s", l->cid_num);
 			//sccp_dev_displayprompt(bargedLineDevice->device, bargedLineDevice->lineInstance, bargedChannel->callid, statusmsg, SCCP_DISPLAYSTATUS_TIMEOUT);
-			sccp_dev_displayprinotify(bargedLineDevice->device, statusmsg, SCCP_MESSAGE_PRIORITY_TIMEOUT, SCCP_DISPLAYSTATUS_TIMEOUT);
-						
+			sccp_dev_set_message(d, statusmsg, SCCP_DISPLAYSTATUS_TIMEOUT, FALSE, FALSE);
 			//sccp_dev_starttone(bargedLineDevice->device, SKINNY_TONE_BARGIN, bargedLineDevice->lineInstance, bargedChannel->callid, SKINNY_TONEDIRECTION_BOTH);
 			sccp_dev_starttone(bargedLineDevice->device, SKINNY_TONE_ZIP, bargedLineDevice->lineInstance, bargedChannel->callid, SKINNY_TONEDIRECTION_BOTH);
 			sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_2 "%s: is barged in on:%s\n", c->designator, bargedChannel->designator);
