@@ -6,6 +6,8 @@ Version: v4.3.2_DEV
    - Rtp receive channel left open after call hangup -> causing phone to run
      out of rtp channels. (under some circumstances).
    - cli output when dealing with accented characters (locale)
+   - callforward status bar message on 8945
+   - pop up DND message on 8945 repeatedly (temp measure)
  - Enhancements:
    - Compile with c++ compatibility
    - Directed barge
