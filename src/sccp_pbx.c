@@ -260,11 +260,12 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	}
 	boolean_t isRinging = FALSE;
 	boolean_t hasDNDParticipant = FALSE;
+	boolean_t bypassCallForward = !sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "BYPASS_CFWD"));
 	sccp_linedevices_t *ForwardingLineDevice = NULL;
 
 	sccp_linedevices_t *linedevice = NULL;
 	sccp_channelstate_t previousstate = c->previousChannelState;
-
+	
 	SCCP_LIST_LOCK(&l->devices);
 	c->subscribers = SCCP_LIST_GETSIZE(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
@@ -276,29 +277,29 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 			c->subscribers--;
 			continue;
 		}
+		
 		/* do we have cfwd enabled? */
-		//pbx_log(LOG_NOTICE, "%s: BYPASS_CFWD: %s\n", linedevice->device->id, pbx_builtin_getvar_helper(c->owner, "BYPASS_CFWD"));
-		if (sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "BYPASS_CFWD"))) {
-			if (
+		if (
+			!bypassCallForward && (
 				linedevice->cfwdAll.enabled || 
 				(linedevice->cfwdBusy.enabled && (sccp_device_getDeviceState(linedevice->device) != SCCP_DEVICESTATE_ONHOOK || sccp_device_getActiveAccessory(linedevice->device)))
-			) {
-				if (SCCP_LIST_GETSIZE(&l->devices) == 1) {
-					/* when single line -> use asterisk functionality directly, without creating new channel + masquerade */
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward active on line %s\n", linedevice->device->id, linedevice->line->name);
-					ForwardingLineDevice = linedevice;
-				} else {
-					/* shared line -> create a temp channel to call forward destination and tie them together */
-					pbx_log(LOG_NOTICE, "%s: initialize cfwd%s for line %s\n", linedevice->device->id, (linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : "None")), l->name);
-					if (sccp_channel_forward(c, linedevice, linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : linedevice->cfwdBusy.number) == 0) {
-						sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-						sccp_channel_send_callinfo(linedevice->device, c);
-						isRinging = TRUE;
-					}
+			)
+		) {
+			if (SCCP_LIST_GETSIZE(&l->devices) == 1) {
+				/* when single line -> use asterisk functionality directly, without creating new channel + masquerade */
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward active on line %s\n", linedevice->device->id, linedevice->line->name);
+				ForwardingLineDevice = linedevice;
+			} else {
+				/* shared line -> create a temp channel to call forward destination and tie them together */
+				pbx_log(LOG_NOTICE, "%s: initialize cfwd%s for line %s\n", linedevice->device->id, (linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : "None")), l->name);
+				if (sccp_channel_forward(c, linedevice, linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : linedevice->cfwdBusy.number) == 0) {
+					sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+					sccp_channel_send_callinfo(linedevice->device, c);
+					isRinging = TRUE;
 				}
-				c->subscribers--; 
-				continue;
 			}
+			c->subscribers--; 
+			continue;
 		}
 
 		if (!linedevice->device->session) {
@@ -320,9 +321,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		c->previousChannelState = previousstate;
 		if (active_channel) {
 			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_CALLWAITING);
-
 			/* display the new call on prompt */
-			//AUTO_RELEASE(sccp_linedevices_t, activeChannelLinedevice , sccp_linedevice_find(linedevice->device, active_channel->line));
 			AUTO_RELEASE(sccp_linedevices_t, activeChannelLinedevice , active_channel->getLineDevice(active_channel));
 			if (activeChannelLinedevice) {
 				char caller[100] = {0};
@@ -346,7 +345,6 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 			ForwardingLineDevice = NULL;	/* reset cfwd if shared */
 			isRinging = TRUE;
 		} else {
-
 			/** check if ringermode is not urgent and device enabled dnd in reject mode */
 			if (SKINNY_RINGTYPE_URGENT != c->ringermode && linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: DND active on line %s, returning Busy\n", linedevice->device->id, linedevice->line->name);

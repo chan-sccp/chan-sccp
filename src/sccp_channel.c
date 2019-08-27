@@ -2822,7 +2822,9 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const char *data)
 	if (audio_prefs[0] != SKINNY_CODEC_NONE) {
 		memcpy(c->preferences.audio, audio_prefs, sizeof c->preferences.audio);
 	}
-	memcpy(c->preferences.video, video_prefs, sizeof c->preferences.video);
+	if (video_prefs[0] != SKINNY_CODEC_NONE) {
+		memcpy(c->preferences.video, video_prefs, sizeof c->preferences.video);
+	}
 
 	sccp_channel_updateChannelCapability(c);
 
