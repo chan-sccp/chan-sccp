@@ -2519,7 +2519,7 @@ typedef union {
 			} videoFastUpdatePicture;
 
 			struct {
-				uint32_t lel_firstGOB;
+				uint32_t lel_firstGOB;								/* GOB: Group of Pictures */
 				uint32_t lel_numberOfGOBs;
 			} videoFastUpdateGOB;
 

@@ -597,6 +597,14 @@ strenum ringtype {
 }
 
 /*!
+ * \brief Skinny Ringduration Format (ENUM)
+ */
+strenum ringduration {
+	SKINNY_RINGDURATION_NORMAL,				=1,	"Ring Off",
+	SKINNY_RINGDURATION_SINGLE,				,	"Inside",
+}
+
+/*!
  * \brief Skinny Station Receive/Transmit (ENUM)
  */
 enum receivetransmit {

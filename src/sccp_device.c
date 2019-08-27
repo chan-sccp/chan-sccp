@@ -1504,7 +1504,7 @@ void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid
  * \param lineInstance LineInstance as uint32_t
  * \param callid Call ID as uint32_t
  */
-void sccp_dev_set_ringer(constDevicePtr d, skinny_ringtype_t ringtype, uint8_t lineInstance, uint32_t callid)
+void sccp_dev_set_ringer(constDevicePtr d, skinny_ringtype_t ringtype, skinny_ringduration_t duration, uint8_t lineInstance, uint32_t callid)
 {
 	sccp_msg_t *msg = NULL;
 
@@ -1516,7 +1516,7 @@ void sccp_dev_set_ringer(constDevicePtr d, skinny_ringtype_t ringtype, uint8_t l
 	/* Note that for distinctive ringing to work with the higher protocol versions
  	   the following actually needs to be set to 1 as the original comment says.
 	   Curiously, the variable is not set to 1 ... */
-	msg->data.SetRingerMessage.lel_ringDuration = htolel(1);							/* Normal:1 / Single:2 */
+	msg->data.SetRingerMessage.lel_ringDuration = htolel(duration);							/* Normal:1 / Single:2 */
 	msg->data.SetRingerMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.SetRingerMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, msg);
@@ -2971,7 +2971,7 @@ static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lin
 	if (device->active_channel && device->active_channel->callid == callid) {  
 		sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
 	}
-	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
+	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, SKINNY_RINGDURATION_NORMAL, lineInstance, callid);
 }
 
 static void sccp_device_indicate_offhook(constDevicePtr device, sccp_linedevices_t * linedevice, uint32_t callid)
@@ -3023,7 +3023,7 @@ static void sccp_device_indicate_proceed(constDevicePtr device, const uint8_t li
 
 static void sccp_device_indicate_connected(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo)
 {
-	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
+	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, SKINNY_RINGDURATION_NORMAL, lineInstance, callid);
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
@@ -3071,7 +3071,7 @@ static void sccp_device_indicate_onhook_remote(constDevicePtr device, const uint
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_OFF);
 	sccp_dev_cleardisplaynotify(device);
 	sccp_dev_clearprompt(device, lineInstance, callid);
-	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
+	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, SKINNY_RINGDURATION_NORMAL, lineInstance, callid);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
 	sccp_dev_set_cplane(device, lineInstance, 0);
@@ -3090,7 +3090,7 @@ static void sccp_device_indicate_offhook_remote(constDevicePtr device, const uin
 
 static void sccp_device_indicate_connected_remote(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, skinny_callinfo_visibility_t visibility)
 {
-	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
+	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, SKINNY_RINGDURATION_NORMAL, lineInstance, callid);
 	sccp_dev_clearprompt(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_LOW, visibility);

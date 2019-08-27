@@ -133,7 +133,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				sccp_dev_cleardisplaynotify(d);
 				sccp_dev_clearprompt(d, 0, 0);
 
-				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, lineInstance, c->callid);
+				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, SKINNY_RINGDURATION_NORMAL, lineInstance, c->callid);
 				sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				//sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
@@ -206,7 +206,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 
 				if ((d->dndFeature.enabled && d->dndFeature.status == SCCP_DNDMODE_SILENT && c->ringermode != SKINNY_RINGTYPE_URGENT)) {
 					sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DND is active on device\n", d->id);
-					sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, lineInstance, c->callid);
+					sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, SKINNY_RINGDURATION_SINGLE, lineInstance, c->callid);
 					if (GLOB(dnd_tone) && d->dndFeature.status == SCCP_DNDMODE_SILENT) {
 						sccp_dev_starttone(d, GLOB(dnd_tone), 0, 0, SKINNY_TONEDIRECTION_USER);
 					}
@@ -220,10 +220,10 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 						if (d && remoteDevice && remoteDevice == d) {
 							sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found matching linedevice. Aux parameter = %s\n", d->id, ownlinedevice->subscriptionId.aux);
 							if (0 == strncmp(ownlinedevice->subscriptionId.aux, "silent", 6)) {
-								sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, lineInstance, c->callid);
+								sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, SKINNY_RINGDURATION_SINGLE, lineInstance, c->callid);
 								sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Forcing silent ring for specific device.\n", d->id);
 							} else {
-								sccp_dev_set_ringer(d, c->ringermode, lineInstance, c->callid);
+								sccp_dev_set_ringer(d, c->ringermode, SKINNY_RINGDURATION_NORMAL, lineInstance, c->callid);
 								sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Normal ring occurred.\n", d->id);
 							}
 						}
@@ -303,7 +303,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 			break;
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
 			{
-				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, lineInstance, c->callid);
+				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, SKINNY_RINGDURATION_NORMAL, lineInstance, c->callid);
 				sccp_dev_clearprompt(d, lineInstance, c->callid);
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/** send connected, so it is not listed as missed call */
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -364,7 +364,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, TRUE);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_WAITING, GLOB(digittimeout));
-				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, lineInstance, c->callid);
+				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, SKINNY_RINGDURATION_SINGLE, lineInstance, c->callid);
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGIN);
 
 #ifdef CS_SCCP_CONFERENCE
@@ -382,7 +382,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
 		case SCCP_CHANNELSTATE_CALLTRANSFER:
 			{
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TRANSFER, GLOB(digittimeout));
-				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, lineInstance, c->callid);
+				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, SKINNY_RINGDURATION_NORMAL, lineInstance, c->callid);
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_CALLTRANSFER, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
 			}

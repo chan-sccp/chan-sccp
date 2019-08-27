@@ -4719,7 +4719,7 @@ void handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, constMes
 					    );
 				}
 				break;
-			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
+			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:		/* Group Of Pictures */
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: VideoFastUpdateGob, firstGOB: %d, numberOfGOBs: %d\n",
 							  channel ? channel->currentDeviceId : "--",
 							  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateGOB.lel_firstGOB),
