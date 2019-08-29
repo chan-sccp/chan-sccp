@@ -587,7 +587,7 @@ strenum ringtype {
 	SKINNY_RINGTYPE_INSIDE,				,	"Inside",
 	SKINNY_RINGTYPE_OUTSIDE,			,	"Outside",
 	SKINNY_RINGTYPE_FEATURE,			,	"Feature",
-	SKINNY_RINGTYPE_SILENT,				,	"Silent", 
+	SKINNY_RINGTYPE_SILENT,				,	"Silent/FlashOnly", 
 	SKINNY_RINGTYPE_URGENT,				,	"Urgent",
 	SKINNY_RINGTYPE_BELLCORE_1,			,	"Bellcore1",
 	SKINNY_RINGTYPE_BELLCORE_2,			,	"Bellcore2",
