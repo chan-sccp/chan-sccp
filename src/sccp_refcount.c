@@ -144,7 +144,7 @@ int sccp_refcount_force_release(long findobj, char *identifier)
 }
 #endif
 
-#else
+#else // CS_ASTOBJ_REFCOUNT
 //nb: SCCP_HASH_PRIME defined in config.h, default 563
 #define SCCP_SIMPLE_HASH(_a) (((uintptr_t)(_a)) % SCCP_HASH_PRIME)
 #define SCCP_LIVE_MARKER 13
@@ -1054,7 +1054,6 @@ static void __attribute__((destructor)) sccp_unregister_tests(void)
 {
 	AST_TEST_UNREGISTER(sccp_refcount_tests);
 }
-#endif
+#endif // CS_TEST_FRAMEWORK
 #endif // CS_ASTOBJ_REFCOUNT
-
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

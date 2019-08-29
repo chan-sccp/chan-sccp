@@ -1985,6 +1985,28 @@ static int sccp_test(int fd, int argc, char *argv[])
 		}
 		return RESULT_SUCCESS;
 	}
+	if (!strcasecmp(argv[2], "dnd") && argc > 2) {
+		AUTO_RELEASE(sccp_device_t, d, sccp_device_find_byid(argv[3], FALSE));
+		if (d) {
+			pbx_log(LOG_NOTICE, "%s (cli_test) dnd status test\n", argv[3]);
+				uint32_t instance = d->defaultLineInstance;
+				uint32_t callid = 0;
+				sccp_device_sendcallstate(d, instance, 0, SKINNY_CALLSTATE_CONGESTION, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+				sccp_device_sendcallstate(d, instance, 0, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_callinfo_t *citest = NULL;
+				citest = iCallInfo.Constructor(15);
+				iCallInfo.Setter(citest, SCCP_CALLINFO_CALLEDPARTY_NAME, "DND", 
+							SCCP_CALLINFO_CALLEDPARTY_NUMBER, "DND", 
+							SCCP_CALLINFO_KEY_SENTINEL);
+				iCallInfo.Send(citest, callid, SKINNY_CALLTYPE_INBOUND, instance, d, TRUE);
+				citest = iCallInfo.Destructor(&citest);
+				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_FLASH);
+				sccp_dev_set_keyset(d, instance, 0, KEYMODE_INUSEHINT);
+
+
+		}
+		return RESULT_SUCCESS;
+	}
 	return RESULT_FAILURE;
 }
 
