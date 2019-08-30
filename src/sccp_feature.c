@@ -123,17 +123,17 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr d, sccp_callfor
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 		switch (type) {
 			case SCCP_CFWD_ALL:
-				sccp_dev_displayprompt(d, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
+				sccp_dev_set_message((devicePtr)d, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT, FALSE, FALSE);
 				sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDALL, linedevice->lineInstance, SKINNY_LAMP_FLASH);
 				break;
 			case SCCP_CFWD_BUSY:
-				sccp_dev_displayprompt(d, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
+				sccp_dev_set_message((devicePtr)d, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT, FALSE, FALSE);
 				sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDBUSY, linedevice->lineInstance, SKINNY_LAMP_FLASH);
 				break;
 			/*
 			// already tested for at the beginning of this function: currently we do not support cfwd_noanswer, so no need for handling it here
 			case SCCP_CFWD_NOANSWER:
-				sccp_dev_displayprompt(d, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
+				sccp_dev_set_message((devicePtr)d, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT, FALSE, FALSE);
 				sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDNOANSWER, linedevice->lineInstance, SKINNY_LAMP_FLASH);
 				break;
 			*/

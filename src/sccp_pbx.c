@@ -458,7 +458,9 @@ sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
 		sccp_conference_release(&d->conference);								/* explicit release required here */
 	}
 #endif														// CS_SCCP_CONFERENCE
-	sccp_channel_closeAllMediaTransmitAndReceive(d, c);
+	if (d) {
+		sccp_channel_closeAllMediaTransmitAndReceive(d, c);
+	}
 
 	// removing scheduled dialing
 	sccp_channel_stop_schedule_digittimout(c);

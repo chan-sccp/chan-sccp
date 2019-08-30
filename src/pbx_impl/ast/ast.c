@@ -897,13 +897,15 @@ void sccp_astwrap_connectedline(sccp_channel_t * channel, const void *data, size
 			}
 		}
 	} else /* OUTBOUND CALL */ {
-		struct ast_party_id connected = pbx_channel_connected_id(ast);
-		changes = iCallInfo.Setter(callInfo,
-			SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? connected.number.str : tmpCalledNumber,
-			SCCP_CALLINFO_CALLEDPARTY_NAME, connected.name.valid ? connected.name.str : tmpCalledName,
-			SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, sccp_strlen_zero(tmpOrigCalledPartyNumber) ? (connected.number.valid ? connected.number.str : tmpCalledNumber) : tmpOrigCalledPartyNumber,
-			SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, sccp_strlen_zero(tmpOrigCalledPartyName) ? (connected.name.valid ? connected.name.str : tmpCalledName) : tmpOrigCalledPartyName,
-			SCCP_CALLINFO_KEY_SENTINEL);
+		if (sccp_strlen_zero(pbx_builtin_getvar_helper(ast, "SETCALLEDPARTY"))) {
+			struct ast_party_id connected = pbx_channel_connected_id(ast);
+			changes = iCallInfo.Setter(callInfo,
+				SCCP_CALLINFO_CALLEDPARTY_NUMBER, connected.number.valid ? connected.number.str : tmpCalledNumber,
+				SCCP_CALLINFO_CALLEDPARTY_NAME, connected.name.valid ? connected.name.str : tmpCalledName,
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, (!sccp_strlen_zero(tmpOrigCalledPartyNumber)) ? tmpOrigCalledPartyNumber : (!sccp_strlen_zero(tmpCalledNumber) ? tmpCalledNumber : connected.number.str),
+				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, (!sccp_strlen_zero(tmpOrigCalledPartyName)) ? tmpOrigCalledPartyName : (!sccp_strlen_zero(tmpCalledName) ? tmpCalledName : connected.name.str),
+				SCCP_CALLINFO_KEY_SENTINEL);
+		}
 	}
 	sccp_channel_display_callInfo(channel);
 	if (changes) {
@@ -1275,24 +1277,27 @@ int sccp_astgenwrap_channel_write(PBX_CHANNEL_TYPE * ast, const char *funcname, 
 			pbx_callerid_parse((char *) value, &name, &num);
 			sccp_channel_set_callingparty(c, name, num);
 			sccp_channel_display_callInfo(c);
+			pbx_builtin_setvar_helper(c->owner, "SETCALLINGPARTY", pbx_strdup(value));
 		} else if (!strcasecmp(args, "CalledParty")) {
 			char *num, *name;
-
 			pbx_callerid_parse((char *) value, &name, &num);
 			sccp_channel_set_calledparty(c, name, num);
 			sccp_channel_display_callInfo(c);
+			pbx_builtin_setvar_helper(c->owner, "SETCALLEDPARTY", pbx_strdup(value));
 		} else if (!strcasecmp(args, "OriginalCallingParty")) {
 			char *num, *name;
 
 			pbx_callerid_parse((char *) value, &name, &num);
 			sccp_channel_set_originalCallingparty(c, name, num);
 			sccp_channel_display_callInfo(c);
+			pbx_builtin_setvar_helper(c->owner, "SETORIGCALLINGPARTY", pbx_strdup(value));
 		} else if (!strcasecmp(args, "OriginalCalledParty")) {
 			char *num, *name;
 
 			pbx_callerid_parse((char *) value, &name, &num);
 			sccp_channel_set_originalCalledparty(c, name, num);
 			sccp_channel_display_callInfo(c);
+			pbx_builtin_setvar_helper(c->owner, "SETORIGCALLEDPARTY", pbx_strdup(value));
 		} else if (!strcasecmp(args, "microphone")) {
 			if (!value || sccp_strlen_zero(value) || !sccp_true(value)) {
 				c->setMicrophone(c, FALSE);

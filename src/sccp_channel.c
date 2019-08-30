@@ -1349,12 +1349,18 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t * orig_channel)
 
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&orig_channel->line->channels, c, list) {
 		if (c->parentChannel == orig_channel) {
-			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_end_forwarding_channel) Send Hangup to CallForwarding Channel\n", c->designator);
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_end_forwarding_channel) Send Hangup to CallForwarding Channel:%s\n", orig_channel->designator, c->designator);
 			sccp_channel_release(&c->parentChannel);				/* explicit release refcounted parentChannel */
 			/* make sure a ZOMBIE channel is hungup using requestHangup if it is still available after the masquerade */
 			c->hangupRequest = sccp_astgenwrap_requestHangup;
 			/* need to use scheduled hangup, so that we clear any outstanding locks (during masquerade) before calling hangup */
-			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
+			c->isHangingUp = TRUE;
+			if (ATOMIC_FETCH(&c->scheduler.deny, &c->scheduler.lock) == 0) {
+				sccp_channel_stop_and_deny_scheduled_tasks(c);
+			}
+			c->hangupRequest(c);
+			//sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
+			
 			orig_channel->answered_elsewhere = TRUE;
 		}
 	}
@@ -2128,7 +2134,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		if (channel->privateData->linedevice) {
 			sccp_linedevice_resetPickup(channel->privateData->linedevice);
 		}
-
+		
 		/* deactive the active call if needed */
 		if (channel->privateData->device) {
 			sccp_channel_setDevice(channel, NULL);

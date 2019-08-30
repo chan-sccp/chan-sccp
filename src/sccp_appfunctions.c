@@ -1123,6 +1123,9 @@ static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, void *data)
 
 	pbx_callerid_parse(text, &name, &num);
 	sccp_channel_set_calledparty(c, name, num);
+	sccp_channel_display_callInfo(c);
+	pbx_builtin_setvar_helper(c->owner, "SETCALLEDPARTY", text);
+	
 	return 0;
 }
 static char *calledparty_name = "SCCPSetCalledParty";
