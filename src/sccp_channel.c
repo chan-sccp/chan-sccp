@@ -2685,7 +2685,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	sccp_forwarding_channel->parentChannel = sccp_channel_retain(sccp_channel_parent);
 	sccp_forwarding_channel->softswitch_action = SCCP_SOFTSWITCH_DIAL;					/* softswitch will catch the number to be dialed */
 	sccp_forwarding_channel->ss_data = 0;									// nothing to pass to action
-	sccp_forwarding_channel->calltype = SKINNY_CALLTYPE_OUTBOUND;
+	sccp_forwarding_channel->calltype = SKINNY_CALLTYPE_FORWARD;
 
 	char calling_name[StationMaxNameSize] = {0};
 	char calling_num[StationMaxDirnumSize] = {0};
@@ -2725,6 +2725,22 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	iPbx.rtp_setReadFormat(sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
 	sccp_channel_updateChannelCapability(sccp_forwarding_channel);
 
+	char newcalling_name[StationMaxNameSize] = {0};
+	char newcalling_num[StationMaxDirnumSize] = {0};
+	iCallInfo.Getter(sccp_channel_getCallInfo(sccp_forwarding_channel),
+		SCCP_CALLINFO_CALLINGPARTY_NAME, &newcalling_name,
+		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &newcalling_num,
+		SCCP_CALLINFO_KEY_SENTINEL);
+
+	iCallInfo.Setter(sccp_channel_getCallInfo(sccp_forwarding_channel),
+		SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name,
+		SCCP_CALLINFO_CALLINGPARTY_NUMBER, &calling_num,
+		SCCP_CALLINFO_CALLEDPARTY_NUMBER, &dialedNumber,
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, &newcalling_name,
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, &newcalling_num,
+		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, 4,
+		SCCP_CALLINFO_KEY_SENTINEL);
+
 	/* setting callerid */
 	if (iPbx.set_callerid_number) {
 		iPbx.set_callerid_number(sccp_forwarding_channel->owner, calling_num);
@@ -2747,7 +2763,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	}
 
 	if (iPbx.set_callerid_redirectingParty) {
-		iPbx.set_callerid_redirectingParty(sccp_forwarding_channel->owner, sccp_forwarding_channel->line->cid_num, sccp_forwarding_channel->line->cid_name);
+		iPbx.set_callerid_redirectingParty(sccp_forwarding_channel->owner, newcalling_num, newcalling_name);
 	}
 
 	/* dial sccp_forwarding_channel */
@@ -2762,6 +2778,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s is dialing number %s\n", sccp_forwarding_channel->currentDeviceId, sccp_forwarding_channel->designator, dialedNumber);
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
 		iPbx.set_callstate(sccp_forwarding_channel, AST_STATE_RING);
+
 		pbx_channel_call_forward_set(sccp_forwarding_channel->owner, dialedNumber);
 #if CS_AST_CONTROL_REDIRECTING
 		iPbx.queue_control(sccp_forwarding_channel->owner, AST_CONTROL_REDIRECTING);
