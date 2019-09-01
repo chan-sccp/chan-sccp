@@ -140,12 +140,9 @@ static boolean_t sccp_device_falseResult(void)
 	return FALSE;
 }
 
-static void sccp_device_retrieveDeviceCapabilities(constDevicePtr device)
+static void sccp_device_setBackgroundImageNotSupported(constDevicePtr device, const char *url, const char *tn)
 {
-	char *xmlStr = "<getDeviceCaps></getDeviceCaps>";
-	unsigned int transactionID = sccp_random();
-
-	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_DEVICECAPABILITIES, 1, 0, transactionID, xmlStr, 2);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: does not support Background Image\n", device->id);
 }
 
 static void sccp_device_setBackgroundImage(constDevicePtr device, const char *url, const char *tn)
@@ -161,7 +158,57 @@ static void sccp_device_setBackgroundImage(constDevicePtr device, const char *ur
 	snprintf(xmlStr, sizeof(xmlStr), "<setBackground><background><image>%s</image><icon>%s</icon></background></setBackground>\n", url, tn);
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_BACKGROUND, 0, 0, transactionID, xmlStr, 0);
-	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_2 "%s: sent new background to device: %s via transaction:%d\n", device->id, url, transactionID);
+	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: set background:%s via transaction:%d\n", device->id, url, transactionID);
+}
+
+static void sccp_device_displayBackgroundImagePreviewNotSupported(constDevicePtr device, const char *url)
+{
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: does not support Background Image\n", device->id);
+}
+
+static void sccp_device_displayBackgroundImagePreview(constDevicePtr device, const char *url)
+{
+	if (!url || strncmp("http://", url, strlen("http://")) != 0) {
+		pbx_log(LOG_WARNING, "SCCP: '%s' needs to be a valid http url\n", url ? url : "--");
+		return;
+	}
+	char xmlStr[StationMaxXMLMessage] = {0};
+	unsigned int transactionID = sccp_random();
+
+	snprintf(xmlStr, sizeof(xmlStr), "<setBackgroundPreview><image>%s</image></setBackgroundPreview>", url);
+
+	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_BACKGROUND, 0, 0, transactionID, xmlStr, 0);
+	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: display background:%s via transaction:%d\n", device->id, url, transactionID);
+}
+
+static void sccp_device_retrieveDeviceCapabilities(constDevicePtr device)
+{
+	char *xmlStr = "<getDeviceCaps></getDeviceCaps>";
+	unsigned int transactionID = sccp_random();
+
+	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_DEVICECAPABILITIES, 1, 0, transactionID, xmlStr, 2);
+	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: asking for device capabilities via transaction:%d\n", device->id, transactionID);
+}
+
+static void sccp_device_setRingtoneNotSupported(constDevicePtr device, const char *url)
+{
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: does not support setting ringtone\n", device->id);
+}
+
+static void sccp_device_setRingtone(constDevicePtr device, const char *url)
+{
+	if (!url || strncmp("http://", url, strlen("http://")) != 0) {
+		pbx_log(LOG_WARNING, "SCCP: '%s' needs to be a valid http url\n", url ? url : "--");
+		return;
+	}
+
+	char xmlStr[StationMaxXMLMessage] = {0};
+	unsigned int transactionID = sccp_random();
+
+	snprintf(xmlStr, sizeof(xmlStr), "<setRingTone><ringTone>%s</ringTone></setRingTone>", url);
+
+	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_RINGTONE, 0, 0, transactionID, xmlStr, 0);
+	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: set ringtone:%s via transaction:%d\n", device->id, url, transactionID);
 }
 
 static sccp_dtmfmode_t sccp_device_getDtfmMode(constDevicePtr device)
@@ -176,45 +223,6 @@ static sccp_dtmfmode_t sccp_device_getDtfmMode(constDevicePtr device)
 		}
 	}
 	return res;
-}
-
-static void sccp_device_setBackgroundImageNotSupported(constDevicePtr device, const char *url, const char *tn)
-{
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: does not support Background Image\n", device->id);
-}
-
-static void sccp_device_displayBackgroundImagePreview(constDevicePtr device, const char *url)
-{
-	if (!url || strncmp("http://", url, strlen("http://")) != 0) {
-		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "--");
-		return;
-	}
-	char xmlStr[StationMaxXMLMessage] = {0};
-	unsigned int transactionID = sccp_random();
-
-	snprintf(xmlStr, sizeof(xmlStr), "<setBackgroundPreview><image>%s</image></setBackgroundPreview>", url);
-
-	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_BACKGROUND, 0, 0, transactionID, xmlStr, 0);
-}
-
-static void sccp_device_displayBackgroundImagePreviewNotSupported(constDevicePtr device, const char *url)
-{
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: does not support Background Image\n", device->id);
-}
-
-static void sccp_device_setRingtone(constDevicePtr device, const char *url)
-{
-	if (!url || strncmp("http://", url, strlen("http://")) != 0) {
-		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "--");
-		return;
-	}
-
-	char xmlStr[StationMaxXMLMessage] = {0};
-	unsigned int transactionID = sccp_random();
-
-	snprintf(xmlStr, sizeof(xmlStr), "<setRingTone><ringTone>%s</ringTone></setRingTone>", url);
-
-	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_RINGTONE, 0, 0, transactionID, xmlStr, 0);
 }
 
 static void sccp_device_copyStr2Locale_UTF8(constDevicePtr d, char *dst, ICONV_CONST char *src, size_t dst_size)
@@ -286,11 +294,6 @@ static void sccp_device_copyStr2Locale_Convert(constDevicePtr d, char *dst, ICON
 	}
 }
 #endif
-
-static void sccp_device_setRingtoneNotSupported(constDevicePtr device, const char *url)
-{
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: does not support setting ringtone\n", device->id);
-}
 
 /*
    static void sccp_device_startStream(const sccp_device_t *device, const char *address, uint32_t port){
@@ -2322,11 +2325,11 @@ void sccp_dev_postregistration(devicePtr d)
 		}
 	}
 	
-	if (d->backgroundImage) {
+	if (d->backgroundImage && !sccp_strlen_zero(d->backgroundImage)) {
 		d->setBackgroundImage(d, d->backgroundImage, d->backgroundTN ? d->backgroundTN : d->backgroundImage);
 	}
 
-	if (d->ringtone) {
+	if (d->ringtone && !sccp_strlen_zero(d->ringtone)) {
 		d->setRingTone(d, d->ringtone);
 	}
 
