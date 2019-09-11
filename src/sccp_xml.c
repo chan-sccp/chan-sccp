@@ -159,7 +159,7 @@ static boolean_t applyStyleSheet(xmlDoc * const doc, PBX_VARIABLE_TYPE *pbx_para
 
 	xsltStylesheetPtr xslt = xsltLoadStylesheetPI(doc);
 	if (xslt) {
-		xmlSubstituteEntitiesDefault(1);
+		//xmlSubstituteEntitiesDefault(1);						/* coverity: CID 200164 (#1 of 1): unsafe_xml_parse_config (UNSAFE_XML_PARSE_CONFIG)unsafe_xml_parse_config: Passing 1 (value: 1) to xmlSubstituteEntitiesDefault(int) will allow entity substitution which can allow malicious entities to be substituted.*/
 		xmlLoadExtDtdDefaultValue = 1;
 		nbparams = convertPbxVar2XsltParams(pbx_params, params, nbparams);		// still needed ?
 		xmlDocPtr newdoc = xsltApplyStylesheet(xslt, doc, params);
@@ -226,7 +226,7 @@ static void destroyDoc(xmlDoc *const * doc)
 static void __attribute__((constructor)) init_xml(void)
 {
 	xmlInitParser();
-	xmlSubstituteEntitiesDefault(1);
+	//xmlSubstituteEntitiesDefault(1);	/* coverity: CID 200164 (#1 of 1): unsafe_xml_parse_config (UNSAFE_XML_PARSE_CONFIG)unsafe_xml_parse_config: Passing 1 (value: 1) to xmlSubstituteEntitiesDefault(int) will allow entity substitution which can allow malicious entities to be substituted. */
 	xmlLoadExtDtdDefaultValue = 1;
 	exsltRegisterAll();
 }
