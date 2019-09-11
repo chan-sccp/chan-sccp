@@ -2838,7 +2838,7 @@ static const struct softkeyConfigurationTemplate {
 static int sccp_config_getSoftkeyLbl(char *key)
 {
 	size_t i = 0;
-	for (i = 0; i <= ARRAY_LEN(softKeyTemplate); i++) {
+	for (i = 0; i < ARRAY_LEN(softKeyTemplate); i++) {
 		if (sccp_strcaseequals(softKeyTemplate[i].configVar, key)) {
 			return softKeyTemplate[i].softkey;
 		}
