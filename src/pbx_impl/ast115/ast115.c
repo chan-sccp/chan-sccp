@@ -599,7 +599,7 @@ static void pbx_retrieve_remote_capabilities(sccp_channel_t *c)
 	((struct ao2_iterator *) iterator)->flags |= AO2_ITERATOR_DONTLOCK;
 
 	//! \todo handle multiple remotePeers i.e. DIAL(SCCP/400&SIP/300), find smallest common codecs, what order to use ?
-	for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
+	for (; (remotePeer = ast_channel_iterator_next(iterator)); pbx_channel_unref(remotePeer)) {
 		if (pbx_find_channel_by_linkid(ast, remotePeer, (void *) ast_channel_linkedid(ast))) {
 			pbx_str_t *codec_buf = pbx_str_alloca(64);
 			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_2 "%s: remote peer native caps:%s\n", c->designator, ast_format_cap_get_names(ast_channel_nativeformats(remotePeer), &codec_buf));
@@ -609,7 +609,7 @@ static void pbx_retrieve_remote_capabilities(sccp_channel_t *c)
 			__find_joint_capabilities(c, remotePeer, AST_MEDIA_TYPE_VIDEO, c->remoteCapabilities.video);
 #endif
 			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_2 "%s: new native caps:%s\n", c->designator, ast_format_cap_get_names(ast_channel_nativeformats(c->owner), &codec_buf));
-			ast_channel_unref(remotePeer);
+			pbx_channel_unref(remotePeer);
 			break;
 		}
 	}
@@ -1179,12 +1179,12 @@ static void sccp_astwrap_setOwner(sccp_channel_t * channel, PBX_CHANNEL_TYPE * p
 	PBX_CHANNEL_TYPE *prev_owner = channel->owner;
 
 	if (pbx_channel) {
-		channel->owner = ast_channel_ref(pbx_channel);
+		channel->owner = pbx_channel_ref(pbx_channel);
 	} else {
 		channel->owner = NULL;
 	}
 	if (prev_owner) {
-		ast_channel_unref(prev_owner);
+		pbx_channel_unref(prev_owner);
 	}
 	if (channel->rtp.audio.instance) {
 		ast_rtp_instance_set_channel_id(channel->rtp.audio.instance, pbx_channel ? ast_channel_uniqueid(pbx_channel) : "");
@@ -1402,7 +1402,7 @@ static boolean_t sccp_astwrap_masqueradeHelper(PBX_CHANNEL_TYPE * pbxChannel, PB
 		ast_hangup(pbxTmpChannel);
 	}
 	pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) remove reference from pbxTmpChannel: %s\n", ast_channel_name(pbxTmpChannel));
-	pbxTmpChannel = ast_channel_unref(pbxTmpChannel);
+	pbxTmpChannel = pbx_channel_unref(pbxTmpChannel);
 	return res;
 }
 
@@ -1535,7 +1535,7 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
 			c->answered_elsewhere = TRUE;
 		}
-		/* postponing ast_channel_unref to sccp_channel destructor */
+		/* postponing pbx_channel_unref to sccp_channel destructor */
 		AUTO_RELEASE(sccp_channel_t, channel , sccp_pbx_hangup(c));					/* explicit release from unretained channel returned by sccp_pbx_hangup */
 		ast_channel_tech_pvt_set(ast_channel, NULL);
 		(void) channel;											// suppress unused variable warning
@@ -1618,7 +1618,7 @@ static boolean_t sccp_astwrap_getPickupExtension(constChannelPtr channel, char e
 				sccp_copy_string(extension, pickup_cfg->pickupexten, SCCP_MAX_EXTENSION);
 				res = TRUE;
 			}
-			ast_channel_unref(pickup_cfg);
+			pbx_channel_unref(pickup_cfg);
 		}
 		pbx_channel_unlock(channel->owner);
 	}
@@ -1671,7 +1671,7 @@ static sccp_extension_status_t sccp_astwrap_extensionStatus(constChannelPtr chan
 			pickupexten = "";
 		} else {
 			pickupexten = pbx_strdupa(pickup_cfg->pickupexten);
-			ast_channel_unref(pickup_cfg);
+			pbx_channel_unref(pickup_cfg);
 		}
 		pbx_channel_unlock(channel->owner);
 	}
@@ -1980,8 +1980,8 @@ static int sccp_astwrap_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL_TYPE * new
 				// set channel requestHangup to use ast_hangup (as it will not be part of __ast_pbx_run anymore, upon returning from masquerade)
 				c->hangupRequest = sccp_astgenwrap_requestHangup;
 			}
-			// c->owner = ast_channel_ref(newchan);
-			// ast_channel_unref(oldchan);
+			// c->owner = pbx_channel_ref(newchan);
+			// pbx_channel_unref(oldchan);
 			sccp_astwrap_setOwner(c, newchan);
 
 			//! \todo force update of rtp peer for directrtp
@@ -2576,7 +2576,9 @@ static boolean_t sccp_astwrap_getChannelByName(const char *name, PBX_CHANNEL_TYP
 	if (!ast) {
 		return FALSE;
 	}
-	*pbx_channel = ast;
+	pbx_channel_lock(ast);
+	*pbx_channel = pbx_channel_ref(ast);
+	pbx_channel_unlock(ast);
 	return TRUE;
 }
 
@@ -2753,18 +2755,18 @@ static boolean_t sccp_astwrap_getRemoteChannel(constChannelPtr channel, PBX_CHAN
 	/*
 	struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
 	((struct ao2_iterator *)iterator)->flags |= AO2_ITERATOR_DONTLOCK;
-	for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
+	for (; (remotePeer = ast_channel_iterator_next(iterator)); pbx_channel_unref(remotePeer)) {
 		if (pbx_find_channel_by_linkid(remotePeer, (void *)ast_channel_linkedid(channel->owner))) {
 			break;
 		}
 	}
 	while(!(remotePeer = ast_channel_iterator_next(iterator) ){
-		ast_channel_unref(remotePeer);
+		pbx_channel_unref(remotePeer);
 	}
 	ast_channel_iterator_destroy(iterator);
 	if (remotePeer) {
 		*pbx_channel = remotePeer;
-		remotePeer = ast_channel_unref(remotePeer);                     //  should we be releasing th referenec here, it has not been taken explicitly.
+		remotePeer = pbx_channel_unref(remotePeer);                     //  should we be releasing th referenec here, it has not been taken explicitly.
 		return TRUE;
 	}
 	*/
@@ -2868,10 +2870,10 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_findChannelWithCallback(int (*const found_
 	if (!lock) {
 		((struct ao2_iterator *)iterator)->flags |= AO2_ITERATOR_DONTLOCK;
 	}
-	for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = ast_channel_unref(remotePeer)) {
+	for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = pbx_channel_unref(remotePeer)) {
 		if (found_cb(remotePeer, data)) {
 			// ast_channel_lock(remotePeer);
-			ast_channel_unref(remotePeer);
+			pbx_channel_unref(remotePeer);
 			break;
 		}
 	}
@@ -3919,7 +3921,7 @@ PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE *
 			break;
 		}
 		ast_channel_unlock(target);
-		target = ast_channel_unref(target);
+		target = pbx_channel_unref(target);
 	}
 
 	ast_channel_iterator_destroy(iter);

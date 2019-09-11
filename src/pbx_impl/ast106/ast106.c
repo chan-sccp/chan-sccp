@@ -1027,7 +1027,7 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
 			c->answered_elsewhere = TRUE;
 		}
-		/* postponing ast_channel_unref to sccp_channel destructor */
+		/* postponing pbx_channel_unref to sccp_channel destructor */
 		AUTO_RELEASE(sccp_channel_t, channel , sccp_pbx_hangup(c));					/* explicit release from unretained channel returned by sccp_pbx_hangup */
 		ast_channel->tech_pvt = NULL;
 		(void) channel;											// suppress unused variable warning
@@ -2080,7 +2080,7 @@ static boolean_t sccp_astwrap_getChannelByName(const char *name, PBX_CHANNEL_TYP
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(iPbx.getChannelByName) searching for channel with identification %s\n", name);
 	while ((ast_channel = ast_channel_walk_locked(ast_channel)) != NULL) {
 		if (strlen(ast_channel->name) == strlen(name) && !strncmp(ast_channel->name, name, strlen(ast_channel->name))) {
-			*pbx_channel = ast_channel;
+			*pbx_channel = pbx_channel_ref(ast_channel);
 			pbx_channel_unlock(ast_channel);
 			return TRUE;
 		}

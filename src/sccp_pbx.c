@@ -458,7 +458,7 @@ sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
 		sccp_conference_release(&d->conference);								/* explicit release required here */
 	}
 #endif														// CS_SCCP_CONFERENCE
-	if (d) {
+	if (c->rtp.audio.instance || c->rtp.video.instance) {
 		sccp_channel_closeAllMediaTransmitAndReceive(d, c);
 	}
 
@@ -538,85 +538,77 @@ sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
  */
 int sccp_pbx_answer(sccp_channel_t * channel)
 {
-	int res = 0;
+	int res = -1;
 
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: sccp_pbx_answer\n");
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: sccp_pbx_answer\n");
 
 	/* \todo perhaps we should lock channel here. */
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 
 	if (!c) {
-		return -1;
+		return res;
 	}
 
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: sccp_pbx_answer checking parent channel\n", c->currentDeviceId);
-	if (c->parentChannel) {											// containing a retained channel, final release at the end
-		/* we are a forwarded call, bridge me with my parent */
-		sccp_log((DEBUGCAT_PBX + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: bridge me with my parent's channel %s\n", c->currentDeviceId, iPbx.getChannelName(c));
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: sccp_pbx_answer checking parent channel\n", c->currentDeviceId);
+	if (c->parentChannel) {										// containing a retained channel, final release at the end
+		/* we are a forwarded call, bridge me with my parent (the forwarded channel will take the place of the forwarder.) */
+		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: handling forwarded call.\n", c->designator);
 
-		PBX_CHANNEL_TYPE *astForwardedChannel = c->parentChannel->owner;
-		PBX_CHANNEL_TYPE *br = NULL;
+		PBX_CHANNEL_TYPE *forwarded = NULL;
+		PBX_CHANNEL_TYPE *replace_chan = NULL;
 
+		pbx_channel_lock(c->parentChannel->owner);
+		forwarded = pbx_channel_ref(c->parentChannel->owner);
+		pbx_channel_unlock(c->parentChannel->owner);
+
+		pbx_channel_lock(c->owner);
+		const char *forwardingChannelName = pbx_builtin_getvar_helper(c->owner, CS_BRIDGEPEERNAME);
+		pbx_channel_unlock(c->owner);
+
+		/*
 		if (iPbx.getChannelAppl(c)) {
 			sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) %s bridging to dialplan application %s\n", c->currentDeviceId, iPbx.getChannelName(c), iPbx.getChannelAppl(c));
 		}
-
-		/* at this point we do not have a pointer to our bridge channel so we search for it -MC */
-		const char *bridgePeerChannelName = pbx_builtin_getvar_helper(c->owner, CS_BRIDGEPEERNAME);
-
-		if (!sccp_strlen_zero(bridgePeerChannelName)) {
-			sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for bridgepeer by name: %s\n", bridgePeerChannelName);
-			iPbx.getChannelByName(bridgePeerChannelName, &br);
-		}
-
-		/* did we find our bridge */
-		pbx_log(LOG_NOTICE, "SCCP: bridge: %s\n", (br) ? pbx_channel_name(br) : " -- no bridgepeer found -- ");
-		if (br) {
-			/* set the channel and the bridge to state UP to fix problem with fast pickup / autoanswer */
-			pbx_setstate(c->owner, AST_STATE_UP);
-			pbx_setstate(br, AST_STATE_UP);
-
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) Going to Masquerade %s into %s\n", pbx_channel_name(br), pbx_channel_name(astForwardedChannel));
-
-			if (iPbx.masqueradeHelper(br, astForwardedChannel)) {
-				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) Masqueraded into %s\n", pbx_channel_name(astForwardedChannel));
-				sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: ast %s\n", pbx_state2str(pbx_channel_state(c->owner)));
-				sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: astForwardedChannel %s\n", pbx_state2str(pbx_channel_state(astForwardedChannel)));
-				sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: br %s\n", pbx_state2str(pbx_channel_state(br)));
-				sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
-#if ASTERISK_VERSION_GROUP > 106
-				pbx_indicate(br, AST_CONTROL_CONNECTED_LINE);
+		*/
+		do {
+			// retrieve channel by name which will replace in the forwarded channel
+			if (!sccp_strlen_zero(forwardingChannelName) && iPbx.getChannelByName(forwardingChannelName, &replace_chan)) {
+				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: handling forwarded call. Replace %s with %s.\n", c->designator, pbx_channel_name(replace_chan), pbx_channel_name(forwarded));
+#if ASTERISK_VERSION_GROUP < 116
+				/* set the channel and the bridge to state UP to fix problem with fast pickup / autoanswer */
+				pbx_setstate(c->owner, AST_STATE_UP);
+				pbx_setstate(replace_chan, AST_STATE_UP);
 #endif
+				if (!iPbx.masqueradeHelper(replace_chan, forwarded)) {
+					pbx_log(LOG_ERROR, "(sccp_pbx_answer) Failed to masquerade bridge into forwarded channel\n");
+					res = -1;
+					break;
+				}
+#if ASTERISK_VERSION_GROUP > 106
+				pbx_indicate(c->owner, AST_CONTROL_CONNECTED_LINE);
+#endif
+				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) Masqueraded into %s\n", pbx_channel_name(forwarded));
+				//pbx_channel_unref(replace_chan);
+				res = 0;
 			} else {
-				pbx_log(LOG_ERROR, "(sccp_pbx_answer) Failed to masquerade bridge into forwarded channel\n");
-
-				res = -1;
+				pbx_log(LOG_ERROR, "%s: Could not retrieve forwarding channel by name:%s: -> Hangup\n", c->designator, forwardingChannelName);
+				if (pbx_channel_state(c->owner) == AST_STATE_RING && pbx_channel_state(forwarded) == AST_STATE_DOWN && iPbx.getChannelPbx(c)) {
+					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "SCCP: Receiver Hungup: (hasPBX: %s)\n", iPbx.getChannelPbx(c) ? "yes" : "no");
+					pbx_channel_set_hangupcause(forwarded, AST_CAUSE_CALL_REJECTED);
+					c->parentChannel->hangupRequest(c->parentChannel);
+				} else {
+					pbx_log(LOG_ERROR, "%s: We did not find bridge channel for call forwarding call. Hangup\n", c->currentDeviceId);
+					pbx_channel_set_hangupcause(forwarded, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
+					c->parentChannel->hangupRequest(c->parentChannel);
+					sccp_channel_endcall(c);
+				}
+				pbx_channel_set_hangupcause(forwarded, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 			}
-		} else {
-			/* we have no bridge and can not make a masquerade -> end call */
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: ast %s\n", pbx_state2str(pbx_channel_state(c->owner)));
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: astForwardedChannel %s\n", pbx_state2str(pbx_channel_state(astForwardedChannel)));
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
-
-			pbx_log(LOG_ERROR, "%s: We did not find bridge channel for call forwarding call. Hangup\n", c->currentDeviceId);
-			if (pbx_channel_state(c->owner) == AST_STATE_RING && pbx_channel_state(astForwardedChannel) == AST_STATE_DOWN && iPbx.getChannelPbx(c)) {
-				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "SCCP: Receiver Hungup: (hasPBX: %s)\n", iPbx.getChannelPbx(c) ? "yes" : "no");
-				pbx_channel_set_hangupcause(astForwardedChannel, AST_CAUSE_CALL_REJECTED);
-				c->parentChannel->hangupRequest(c->parentChannel);
-			} else {
-				pbx_log(LOG_ERROR, "%s: We did not find bridge channel for call forwarding call. Hangup\n", c->currentDeviceId);
-				pbx_channel_set_hangupcause(astForwardedChannel, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
-				c->parentChannel->hangupRequest(c->parentChannel);
-				sccp_channel_endcall(c);
-				res = -1;
-			}
-			pbx_channel_set_hangupcause(astForwardedChannel, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
-			res = -1;
-		}
-		// FINISH
+		} while(0);
+		pbx_channel_unref(forwarded);
+		sccp_channel_release(&c->parentChannel);
 	} else {
-
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) Outgoing call %s has been answered by remote party\n", c->currentDeviceId, iPbx.getChannelName(c));
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) Outgoing call %s being answered by remote party\n", c->currentDeviceId, iPbx.getChannelName(c));
 		//sccp_channel_updateChannelCapability(c);
 
 		AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
@@ -658,12 +650,12 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 #else
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 #endif
-
 			/** check for monitor request */
 			if (d && (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
 				pbx_log(LOG_NOTICE, "%s: request monitor\n", d->id);
 				sccp_feat_monitor(d, NULL, 0, c);
 			}
+			res = 0;
 		}
 
 		if (c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) {

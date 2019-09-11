@@ -896,7 +896,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		}
 	} else if (iPbx.getChannelByName(data, &ast) && (c = get_sccp_channel_from_pbx_channel(ast)) != NULL) {
 		/* continue with sccp channel */
-
+		ast_channel_unref(ast);
 	} else {
 		uint32_t callid = sccp_atoi(data, strlen(data));
 

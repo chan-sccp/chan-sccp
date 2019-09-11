@@ -559,7 +559,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				/*! \todo handle multiple remotePeers i.e. DIAL(SCCP/400&SIP/300), find smallest common codecs, what order to use ? */
 				PBX_CHANNEL_TYPE *remotePeer;
 
-				for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = ast_channel_unref(remotePeer)) {
+				for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = pbx_channel_unref(remotePeer)) {
 					if (pbx_find_channel_by_linkid(remotePeer, (void *) ast->linkedid)) {
 						char buf[512];
 						
@@ -585,7 +585,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 
 						sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote caps: %s\n", buf);
-						remotePeer = ast_channel_unref(remotePeer);
+						remotePeer = pbx_channel_unref(remotePeer);
 						break;
 					}
 
@@ -854,12 +854,12 @@ static void sccp_astwrap_setOwner(sccp_channel_t * channel, PBX_CHANNEL_TYPE * p
 	PBX_CHANNEL_TYPE *prev_owner = channel->owner;
 
 	if (pbx_channel) {
-		channel->owner = ast_channel_ref(pbx_channel);
+		channel->owner = pbx_channel_ref(pbx_channel);
 	} else {
 		channel->owner = NULL;
 	}
 	if (prev_owner) {
-		ast_channel_unref(prev_owner);
+		pbx_channel_unref(prev_owner);
 	}
 }
 
@@ -962,7 +962,7 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 		pbxDstChannel->zone = ast_get_indication_zone(line->language);					/* this will core asterisk on hangup */
 	}
 	ast_module_ref(ast_module_info->self);
-	// channel->owner = ast_channel_ref(pbxDstChannel);
+	// channel->owner = pbx_channel_ref(pbxDstChannel);
 	sccp_astwrap_setOwner(channel, pbxDstChannel);
 
 	(*_pbxDstChannel) = pbxDstChannel;
@@ -1050,7 +1050,7 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
 			c->answered_elsewhere = TRUE;
 		}
-		/* postponing ast_channel_unref to sccp_channel destructor */
+		/* postponing pbx_channel_unref to sccp_channel destructor */
 		AUTO_RELEASE(sccp_channel_t, channel , sccp_pbx_hangup(c));					/* explicit release from unretained channel returned by sccp_pbx_hangup */
 		ast_channel->tech_pvt = NULL;
 		(void) channel;											// suppress unused variable warning
@@ -1969,7 +1969,9 @@ static boolean_t sccp_astwrap_getChannelByName(const char *name, PBX_CHANNEL_TYP
 	if (!ast) {
 		return FALSE;
 	}
-	*pbx_channel = ast;
+	pbx_channel_lock(ast);
+	*pbx_channel = pbx_channel_ref(ast);
+	pbx_channel_unlock(ast);
 	return TRUE;
 }
 
@@ -2176,7 +2178,7 @@ static boolean_t sccp_astwrap_getRemoteChannel(const sccp_channel_t * channel, P
 
 	((struct ao2_iterator *) iterator)->flags |= AO2_ITERATOR_DONTLOCK;
 
-	for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = ast_channel_unref(remotePeer)) {
+	for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = pbx_channel_unref(remotePeer)) {
 		if (pbx_find_channel_by_linkid(remotePeer, (void *) channel->owner->linkedid)) {
 			break;
 		}
@@ -2185,7 +2187,7 @@ static boolean_t sccp_astwrap_getRemoteChannel(const sccp_channel_t * channel, P
 
 	if (remotePeer) {
 		*pbx_channel = remotePeer;
-		remotePeer = ast_channel_unref(remotePeer);
+		remotePeer = pbx_channel_unref(remotePeer);
 		return TRUE;
 	}
 	return FALSE;
@@ -2288,7 +2290,7 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_findChannelWithCallback(int (*const found_
 		((struct ao2_iterator *) iterator)->flags |= AO2_ITERATOR_DONTLOCK;
 	}
 
-	for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = ast_channel_unref(remotePeer)) {
+	for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = pbx_channel_unref(remotePeer)) {
 
 		if (found_cb(remotePeer, data)) {
 			ast_channel_lock(remotePeer);
@@ -3129,7 +3131,7 @@ PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANN
 
 	((struct ao2_iterator *) iterator)->flags |= AO2_ITERATOR_DONTLOCK;
 
-	for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = ast_channel_unref(remotePeer)) {
+	for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = pbx_channel_unref(remotePeer)) {
 
 		if (found_cb(remotePeer, data)) {
 			ast_channel_lock(remotePeer);
@@ -3158,7 +3160,7 @@ PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE *
 			break;
 		}
 		ast_channel_unlock(target);
-		target = ast_channel_unref(target);
+		target = pbx_channel_unref(target);
 	}
 
 	ast_channel_iterator_destroy(iter);

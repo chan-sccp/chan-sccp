@@ -2710,12 +2710,11 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	memcpy(&sccp_forwarding_channel->preferences.audio, sccp_channel_parent->preferences.audio, sizeof(sccp_channel_parent->preferences.audio));
 
 	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(sccp_forwarding_channel, NULL, sccp_channel_parent->owner)) {
+	if (!sccp_pbx_channel_allocate(sccp_forwarding_channel, NULL, sccp_channel_parent->owner))
+	{
 		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", lineDevice->device->id, sccp_forwarding_channel->line->name);
 		sccp_line_removeChannel(sccp_forwarding_channel->line, sccp_forwarding_channel);
 		sccp_channel_clean(sccp_forwarding_channel);
-		// sccp_channel_destroy(sccp_forwarding_channel);
-
 		return -1;
 	}
 	/* Update rtp setting to match predecessor */
@@ -2863,26 +2862,32 @@ boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const char *data){
 			return res;
 		}
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP))(VERBOSE_PREFIX_2 "%s:Setting Video Mode to %s\n", c->designator, sccp_video_mode2str(newval));
-		if (newval == SCCP_VIDEO_MODE_AUTO && !c->isHangingUp) {
-			if (!c->rtp.video.instance || SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
-				sccp_channel_openMultiMediaReceiveChannel(c);
-			}
-			if ((c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.transmission.state) {
-				sccp_channel_startMultiMediaTransmission(c);
-			}
-		}
-		if (newval == SCCP_VIDEO_MODE_OFF) {
-			if (c->rtp.video.instance) {
-				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.reception.state) {
-					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
+
+		if (SCCP_CHANNELSTATE_IsConnected(c->state)) {
+			AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
+			if (d) {
+				if (newval == SCCP_VIDEO_MODE_AUTO && !c->isHangingUp) {
+					if (!c->rtp.video.instance || SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
+						sccp_channel_openMultiMediaReceiveChannel(c);
+					}
+					if ((c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.transmission.state) {
+						sccp_channel_startMultiMediaTransmission(c);
+					}
 				}
-				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.transmission.state) {
-					sccp_channel_stopMultiMediaTransmission(c, TRUE);
+				if (newval == SCCP_VIDEO_MODE_OFF) {
+					if (c->rtp.video.instance) {
+						if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.reception.state) {
+							sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
+						}
+						if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.transmission.state) {
+							sccp_channel_stopMultiMediaTransmission(c, TRUE);
+						}
+						PBX_RTP_TYPE *rtp = c->rtp.video.instance;
+						iPbx.rtp_stop(rtp);
+						iPbx.rtp_destroy(rtp);
+						rtp = NULL;
+					}
 				}
-				PBX_RTP_TYPE *rtp = c->rtp.video.instance;
-				iPbx.rtp_stop(rtp);
-				iPbx.rtp_destroy(rtp);
-				rtp = NULL;
 			}
 		}
 		c->videomode = newval;
