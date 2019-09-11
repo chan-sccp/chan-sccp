@@ -1750,7 +1750,11 @@ void sccp_dev_clear_message(devicePtr d, const boolean_t cleardb)
 	}
 
 	sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_IDLE);
-	sccp_dev_clearprompt(d, 0, 0);
+	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6901 || d->skinny_type == SKINNY_DEVICETYPE_CISCO6921 || d->skinny_type == SKINNY_DEVICETYPE_CISCO6941 || d->skinny_type == SKINNY_DEVICETYPE_CISCO6945 || d->skinny_type == SKINNY_DEVICETYPE_CISCO6961) {
+		sccp_dev_clearprompt(d, 0, 0);
+	} else {
+		sccp_dev_cleardisplayprinotify(d, SCCP_MESSAGE_PRIORITY_TIMEOUT);
+	}
 }
 
 /*!
@@ -2765,15 +2769,14 @@ int sccp_device_destroy(const void *ptr)
  */
 boolean_t sccp_device_isVideoSupported(constDevicePtr device)
 {
+	boolean_t res = FALSE;
 #ifdef CS_SCCP_VIDEO
 	if (device->capabilities.video[0] != SKINNY_CODEC_NONE) {
-		char cap_buf[512];
-		sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, device->capabilities.video, ARRAY_LEN(device->capabilities.video));
-		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: video support %s\n", device->id, cap_buf);
-		return TRUE;
+		res = TRUE;
 	}
+	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: video support %s\n", device->id, res ? "true" : "false");
 #endif
-	return FALSE;
+	return res;
 }
 
 /*!

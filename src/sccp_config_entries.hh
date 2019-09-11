@@ -321,7 +321,8 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 	{"dnd",				L_OBJ_REF(dndmode),			TYPE_ENUM(sccp,dndmode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"allow setting dnd action for this line. Valid values are 'off', 'reject' (busy signal), 'silent' (ringer = silent) or 'user' (not used at the moment). . The value 'on' has been made obsolete in favor of 'reject'\n"},
 	{"regexten",			L_OBJ_REF(regexten),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"SCCP Lines will we added to the regcontext with this number for Dundi look up purpose\n"},
 #if CS_SCCP_VIDEO
-	{"videomode",			L_OBJ_REF(videomode),			TYPE_ENUM(sccp,video_mode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"auto",				"Automatic or Manual video mode. Valid values are 'auto', 'user' or 'off'. When set to 'auto', video will automatically start if both parties have a compatible code enabled. In 'user' mode the user needs to press the vidmode softkey before video will be tried. Default:'auto'\n"},
+	{"videomode",			L_OBJ_REF(videomode),			TYPE_ENUM(sccp,video_mode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"auto",				"Automatic or Manual video mode. Valid values are 'auto', 'user' or 'off'. When set to 'auto', video will automatically start if both parties have a compatible code enabled. In 'user' mode the user needs to press the vidmode softkey before video will be tried. Default:'auto'.\n"
+																																					"Note: On the 8945 phones you need to go to Settings->Preferences->CameraSettings and set 'Auto Transmit Video' to 'Off'\n"},
 #endif
 };
 
@@ -336,9 +337,9 @@ static const SCCPConfigOption sccpSoftKeyConfigOptions[] = {
 	{"onhold",			S_OBJ_REF(modes[KEYMODE_ONHOLD]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"resume,newcall,endcall,transfer,conflist,select,dirtrfr,idivert,meetme",		"displayed when we have a call on hold"},
 	{"ringin",			S_OBJ_REF(modes[KEYMODE_RINGIN]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"answer,endcall,transvm,idivert",							"displayed when we have an incoming call"},
 	{"offhook",			S_OBJ_REF(modes[KEYMODE_OFFHOOK]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,endcall,private,cfwdall,cfwdbusy,pickup,gpickup,meetme,barge",			"displayed when the phone is taken off hook"},
-	{"conntrans",			S_OBJ_REF(modes[KEYMODE_CONNTRANS]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"hold,endcall,transfer,conf,park,select,dirtrfr,vidmode,meetme,cfwdall,cfwdbusy",	"displayed when we are connected and could transfer a call"},
+	{"conntrans",			S_OBJ_REF(modes[KEYMODE_CONNTRANS]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"hold,endcall,transfer,conf,park,select,dirtrfr,monitor,vidmode,meetme,cfwdall,cfwdbusy","displayed when we are connected and could transfer a call"},
 	{"digitsfoll",			S_OBJ_REF(modes[KEYMODE_DIGITSFOLL]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"back,endcall,dial",									"displayed when one or more digits have been entered, more are expected"},
-	{"connconf",			S_OBJ_REF(modes[KEYMODE_CONNCONF]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"conflist,newcall,endcall,hold,vidmode",						"displayed when we are in a conference"},
+	{"connconf",			S_OBJ_REF(modes[KEYMODE_CONNCONF]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"conflist,newcall,endcall,hold,vidmode,monitor",					"displayed when we are in a conference"},
 	{"ringout",			S_OBJ_REF(modes[KEYMODE_RINGOUT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"empty,endcall,transfer",								"displayed when We are calling someone"},
 	{"offhookfeat",			S_OBJ_REF(modes[KEYMODE_OFFHOOKFEAT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"resume,newcall,endcall",								"displayed wenn we went offhook using a feature"},
 	{"onhint",			S_OBJ_REF(modes[KEYMODE_INUSEHINT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,newcall,pickup,gpickup",							"displayed when a hint is activated"},

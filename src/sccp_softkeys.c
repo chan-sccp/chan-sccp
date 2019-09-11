@@ -139,7 +139,7 @@ static void sccp_sk_videomode(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 		if ((c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.transmission.state) {
 			sccp_channel_startMultiMediaTransmission(c);
 		}
-		c->videomode = SCCP_VIDEO_MODE_USER;
+		sccp_channel_setVideoMode(c, "user");
 	}
 #endif
 }

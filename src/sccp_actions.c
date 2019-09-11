@@ -1205,12 +1205,12 @@ static btnlist *sccp_make_button_template(devicePtr d)
 								btn[i].type = SKINNY_BUTTONTYPE_REMOVE_LAST_PARTICIPANT;
 								break;
 
-							case SCCP_FEATURE_HLOG:
-								btn[i].type = SKINNY_BUTTONTYPE_HLOG;
+							case SCCP_FEATURE_HUNT_GROUP_LOG_IN_OUT:
+								btn[i].type = SKINNY_BUTTONTYPE_HUNT_GROUP_LOG_IN_OUT;
 								break;
 
-							case SCCP_FEATURE_QRT:
-								btn[i].type = SKINNY_BUTTONTYPE_QRT;
+							case SCCP_FEATURE_QUALITY_REPORT_TOOL:
+								btn[i].type = SKINNY_BUTTONTYPE_QUALITY_REPORT_TOOL;
 								break;
 
 							case SCCP_FEATURE_CALLBACK:
@@ -2320,13 +2320,13 @@ static const struct _skinny_stimulusMap_cb {
 	[SKINNY_STIMULUS_MOBILITY] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_MULTIBLINKFEATURE] 		= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_DO_NOT_DISTURB] 		= {handle_stimulus_feature, FALSE},
-	[SKINNY_STIMULUS_QRT] 				= {handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_QUALITY_REPORT_TOOL]		= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_CALLBACK] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_OTHER_PICKUP] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_VIDEO_MODE] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_NEW_CALL] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_END_CALL] 			= {handle_stimulus_feature, FALSE},
-	[SKINNY_STIMULUS_HLOG] 				= {handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_HUNT_GROUP_LOG_IN_OUT] 	= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_PARKINGLOT] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_TESTF] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_TESTI] 			= {handle_stimulus_feature, FALSE},
@@ -2338,7 +2338,7 @@ static const struct _skinny_stimulusMap_cb {
 	[SKINNY_STIMULUS_T120WHITEBOARD] 		= {NULL, FALSE},
 	[SKINNY_STIMULUS_T120APPLICATIONSHARING]	= {NULL, FALSE},
 	[SKINNY_STIMULUS_T120FILETRANSFER] 		= {NULL, FALSE},
-	[SKINNY_STIMULUS_VIDEO] 			= {NULL, FALSE},
+	[SKINNY_STIMULUS_VIDEO] 			= {handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_ANSWERRELEASE] 		= {NULL, FALSE},
 	[SKINNY_STIMULUS_AUTOANSWER] 			= {NULL, FALSE},
 	[SKINNY_STIMULUS_SELECT] 			= {NULL, FALSE},
@@ -2675,7 +2675,9 @@ void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMess
 				//sccp_copy_string(msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel, label2str(softkeysmap[i]), StationMaxSoftKeyLabelSize);
 				//sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel);
 				msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = (char)128;	/* adding "\200" upfront to indicate that we are using an embedded/xml label */
-				msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = (char)88;
+				msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];	/* this works on 7970 */
+				//msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = (char)128; /* octal 0200 */
+				//msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = (char)88; /* octal 0130 */
 				break;
 #ifdef CS_SCCP_CONFERENCE
 			case SKINNY_LBL_CONFRN:
@@ -2853,19 +2855,19 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 			if ((b[c] == SKINNY_LBL_MEETME) && (!meetme)) {
 				continue;
 			}
-			//if ((b[c] == SKINNY_LBL_BARGE)) {
-			//	continue;
-			//}
 #ifndef CS_ADV_FEATURES
-			if ((b[c] == SKINNY_LBL_CBARGE)) {
+			if (b[c] == SKINNY_LBL_CALLBACK) {
+				continue;
+			}
+			if (b[c] == SKINNY_LBL_CBARGE) {
 				continue;
 			}
 #endif
 #ifndef CS_SCCP_CONFERENCE
-			if ((b[c] == SKINNY_LBL_JOIN)) {
+			if (b[c] == SKINNY_LBL_JOIN) {
 				continue;
 			}
-			if ((b[c] == SKINNY_LBL_CONFRN)) {
+			if (b[c] == SKINNY_LBL_CONFRN) {
 				continue;
 			}
 #endif
@@ -2880,9 +2882,14 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 			if ((b[c] == SKINNY_LBL_PRIVATE) && (!d->privacyFeature.enabled)) {
 				continue;
 			}
-			if (b[c] == SKINNY_LBL_EMPTY) {
+#ifndef CS_SCCP_VIDEO
+			if (b[c] == SKINNY_LBL_VIDEO_MODE) {
 				continue;
 			}
+#endif
+//			if (b[c] == SKINNY_LBL_EMPTY) {
+//				continue;
+//			}
 			for (j = 0; j < sizeof(softkeysmap); j++) {
 				if (b[c] == softkeysmap[j]) {
 					ast_str_append(&outputStr, buffersize, "%-2d:%-9s|", c, label2str(softkeysmap[j]));

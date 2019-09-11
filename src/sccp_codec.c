@@ -354,7 +354,7 @@ void sccp_codec_combineSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const 
 	}
 }
 
-skinny_codec_t sccp_codec_findBestJoint(constChannelPtr c, const skinny_codec_t ourPreferences[], const skinny_codec_t remotePeerPreferences[])
+skinny_codec_t sccp_codec_findBestJoint(constChannelPtr c, const skinny_codec_t ourPreferences[], const skinny_codec_t remotePeerPreferences[], boolean_t fallback)
 {
 	skinny_codec_t res = SKINNY_CODEC_NONE;
 	skinny_codec_t leadPrefs[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
@@ -367,7 +367,7 @@ skinny_codec_t sccp_codec_findBestJoint(constChannelPtr c, const skinny_codec_t 
 	/* end debug */
 
 	if (ourPreferences[0] == SKINNY_CODEC_NONE && remotePeerPreferences[0] == SKINNY_CODEC_NONE) {
-		pbx_log(LOG_ERROR, "both preference lists are empty\n");
+		sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: both preference lists are empty\n", c->designator);
 		goto EXIT;
 	}
 
@@ -384,7 +384,7 @@ skinny_codec_t sccp_codec_findBestJoint(constChannelPtr c, const skinny_codec_t 
 	res = leadPrefs[0];
 
 EXIT:
-	if (res == SKINNY_CODEC_NONE) {
+	if (res == SKINNY_CODEC_NONE && fallback) {
 		sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s, Could not find a common prefered codec (yet), using %s (%d)\n", c->designator, codec2name(ourPreferences[0]), ourPreferences[0]);
 		res = ourPreferences[0];
 	}

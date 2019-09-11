@@ -2780,22 +2780,28 @@ static const struct softkeyConfigurationTemplate {
 	{"private", 			SKINNY_LBL_PRIVATE},
 	{"meetme", 			SKINNY_LBL_MEETME},
 	{"barge", 			SKINNY_LBL_BARGE},
-	{"cbarge", 			SKINNY_LBL_CBARGE},
 	{"back", 			SKINNY_LBL_BACKSPACE},
 	{"intrcpt", 			SKINNY_LBL_INTRCPT},
 	{"monitor", 			SKINNY_LBL_MONITOR},  
 	{"dial", 			SKINNY_LBL_DIAL},
-#if CS_SCCP_VIDEO
-	{"vidmode", 			SKINNY_LBL_VIDEO_MODE},
+#ifndef CS_ADV_FEATURES
+	{"callback",			SKINNY_LBL_CALLBACK},
+	{"trnsfvm",			SKINNY_LBL_TRNSFVM},
+	{"cbarge", 			SKINNY_LBL_CBARGE},
 #endif
-#if CS_SCCP_PICKUP
+#ifdef CS_SCCP_VIDEO
+	{"vidmode", 			SKINNY_LBL_VIDEO_MODE},
+#else
+	{"vidmode", 			-1},
+#endif
+#ifdef CS_SCCP_PICKUP
 	{"pickup", 			SKINNY_LBL_PICKUP},
 	{"gpickup", 			SKINNY_LBL_GPICKUP},
 #else
 	{"pickup", 			-1},
 	{"gpickup", 			-1},
 #endif	
-#if CS_SCCP_PARK	
+#ifdef CS_SCCP_PARK
 	{"park", 			SKINNY_LBL_PARK},
 #else
 	{"park", 			-1},
@@ -2819,7 +2825,9 @@ static const struct softkeyConfigurationTemplate {
 	{"conflist", 			-1},
 #endif	
 	{"empty", 			SKINNY_LBL_EMPTY},
+//	{"info", 			SKINNY_LBL_INFO},
 	/* *INDENT-ON* */
+
 };
 
 /*!
@@ -2829,15 +2837,13 @@ static const struct softkeyConfigurationTemplate {
  */
 static int sccp_config_getSoftkeyLbl(char *key)
 {
-	int i = 0;
-	int size = ARRAY_LEN(softKeyTemplate);
-
-	for (i = 0; i < size; i++) {
+	size_t i = 0;
+	for (i = 0; i <= ARRAY_LEN(softKeyTemplate); i++) {
 		if (sccp_strcaseequals(softKeyTemplate[i].configVar, key)) {
 			return softKeyTemplate[i].softkey;
 		}
 	}
-	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "softkeybutton: %s not defined\n", key);
+	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "softkeybutton: %s not defined\n", key);
 	return SKINNY_LBL_EMPTY;
 }
 
@@ -2861,9 +2867,10 @@ static uint8_t sccp_config_readSoftSet(uint8_t * softkeyset, const char *data)
 
 	labels = pbx_strdupa(data);
 	splitter = labels;
-	while ((label = strsep(&splitter, ",")) != NULL && (i + 1) < StationMaxSoftKeySetDefinition) {
-		if ((softkey = sccp_config_getSoftkeyLbl(label)) != -1) {
-			softkeyset[i++] = sccp_config_getSoftkeyLbl(label);
+	while ((label = strsep(&splitter, ",")) != NULL) {
+		label = pbx_trim_blanks(label);
+		if ((softkey = sccp_config_getSoftkeyLbl(label)) != -1 && (i + 1) < StationMaxSoftKeySetDefinition) {
+			softkeyset[i++] = softkey;
 		}
 	}
 	/*! \todo we used calloc to create this structure, so setting EMPTY should not be required here */

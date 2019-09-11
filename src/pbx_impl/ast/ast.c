@@ -915,6 +915,12 @@ void sccp_astwrap_connectedline(sccp_channel_t * channel, const void *data, size
 		if (SKINNY_CALLTYPE_OUTBOUND == channel->calltype && SCCP_CHANNELSTATE_RINGOUT == channel->state) {
 			sccp_indicate(NULL, channel, SCCP_CHANNELSTATE_RINGOUT_ALERTING);
 		}
+#if CS_SCCP_VIDEO
+		const char *VideoStr = pbx_builtin_getvar_helper(channel->owner, "SCCP_VIDEO_MODE");
+		if (VideoStr && !sccp_strlen_zero(VideoStr)) {
+			sccp_channel_setVideoMode(channel, VideoStr);
+		}
+#endif
         }
 #endif
 }

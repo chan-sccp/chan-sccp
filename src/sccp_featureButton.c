@@ -224,12 +224,12 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 					buttonID = SKINNY_BUTTONTYPE_REMOVE_LAST_PARTICIPANT;
 					break;
 
-				case SCCP_FEATURE_HLOG:
-					buttonID = SKINNY_BUTTONTYPE_HLOG;
+				case SCCP_FEATURE_HUNT_GROUP_LOG_IN_OUT:
+					buttonID = SKINNY_BUTTONTYPE_HUNT_GROUP_LOG_IN_OUT;
 					break;
 
-				case SCCP_FEATURE_QRT:
-					buttonID = SKINNY_BUTTONTYPE_QRT;
+				case SCCP_FEATURE_QUALITY_REPORT_TOOL:
+					buttonID = SKINNY_BUTTONTYPE_QUALITY_REPORT_TOOL;
 					break;
 
 				case SCCP_FEATURE_CALLBACK:

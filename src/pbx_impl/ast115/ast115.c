@@ -783,15 +783,39 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			break;
 
 		case AST_CONTROL_HOLD:										/* when the bridged channel hold/unhold the call we are notified here */
-			sccp_astwrap_moh_start(ast, (const char *) data, c->musicclass);
-			break;
-
-		case AST_CONTROL_UNHOLD:
-			sccp_astwrap_moh_stop(ast);
-
 			if (c->rtp.audio.instance) {
 				ast_rtp_instance_update_source(c->rtp.audio.instance);
 			}
+#ifdef CS_SCCP_VIDEO
+			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.transmission.state) {
+					sccp_channel_stopMultiMediaTransmission(c, TRUE);
+				}
+				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.reception.state) {
+					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
+				}
+				ast_rtp_instance_update_source(c->rtp.video.instance);
+			}
+#endif
+			sccp_astwrap_moh_start(ast, (const char *) data, c->musicclass);
+			sccp_dev_set_message(d, SKINNY_DISP_CALL_ON_HOLD, SCCP_MESSAGE_PRIORITY_TIMEOUT, FALSE, FALSE);
+			break;
+
+		case AST_CONTROL_UNHOLD:
+			if (c->rtp.audio.instance) {
+				ast_rtp_instance_update_source(c->rtp.audio.instance);
+			}
+#ifdef CS_SCCP_VIDEO
+			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+				ast_rtp_instance_update_source(c->rtp.video.instance);
+				if (SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
+					sccp_channel_openMultiMediaReceiveChannel(c);
+				}
+				ast_rtp_instance_update_source(c->rtp.video.instance);
+			}
+#endif
+			sccp_astwrap_moh_stop(ast);
+			sccp_dev_clear_message(d, FALSE);
 			break;
 
 		case AST_CONTROL_CONNECTED_LINE:
@@ -818,8 +842,8 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 
 		case AST_CONTROL_VIDUPDATE:									/* Request a video frame update */
 #ifdef CS_SCCP_VIDEO
-			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && c->videomode != SCCP_VIDEO_MODE_OFF) {
-				d->protocol->sendFastPictureUpdate(d, c);
+			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+				d->protocol->sendMultiMediaCommand(d, c, SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE);
 			} else 
 #endif
 			{
@@ -845,9 +869,11 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			}
 			*/
 			inband_if_receivechannel = TRUE;
+			res = -1;										// Return -1 so that asterisk core will correctly set up hangupcauses.
 			break;
 
 		case AST_CONTROL_AOC:										// Advice of Charge
+			res = -1;										// Return -1 so that asterisk core will correctly set up hangupcauses.
 			break;
 
 		case AST_CONTROL_UPDATE_RTP_PEER: 								// Absorb this since it is handled by the bridge
@@ -855,9 +881,11 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			break;
 
 		case AST_CONTROL_FLASH: 									// We don't currently handle AST_CONTROL_FLASH here, but it is expected, so we don't need to warn either.
+			res = -1;										// Return -1 so that asterisk core will correctly set up hangupcauses.
 			break;
 
 		case AST_CONTROL_T38_PARAMETERS:								// No T38 Fax Support
+			res = -1;										// Return -1 so that asterisk core will correctly set up hangupcauses.
 			break;
 
 		case AST_CONTROL_PVT_CAUSE_CODE:
@@ -867,7 +895,6 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 
 				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: hangup cause set: %d\n", c->designator, hangupcause);
 			}
-			res = -1;										// Return -1 so that asterisk core will correctly set up hangupcauses.
 			break;
 
 		case AST_CONTROL_MASQUERADE_NOTIFY:
@@ -1909,12 +1936,6 @@ static int sccp_astwrap_call(PBX_CHANNEL_TYPE * ast, const char *dest, int timeo
 	if (MaxCallBRStr && !sccp_strlen_zero(MaxCallBRStr)) {
 		sccp_astgenwrap_channel_write(ast, "CHANNEL", "MaxCallBR", MaxCallBRStr);
 	}
-#if CS_SCCP_VIDEO
-	const char *VideoStr = pbx_builtin_getvar_helper(ast, "SCCP_VIDEO_MODE");
-	if (VideoStr && !sccp_strlen_zero(VideoStr)) {
-		sccp_channel_setVideoMode(c, VideoStr);
-	}
-#endif
 
 	res = sccp_pbx_call(c, (char *) dest, timeout);
 	return res;
@@ -2220,7 +2241,7 @@ static int sccp_astwrap_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * r
 			/* video requested by remote side, let's see if we support video */ 
  			/* should be moved to sccp_rtp.c */
 /*
-			if (ast_format_cap_has_type(codecs, AST_MEDIA_TYPE_VIDEO) && sccp_device_isVideoSupported(d) && c->videomode == SCCP_VIDEO_MODE_AUTO) {
+			if (ast_format_cap_has_type(codecs, AST_MEDIA_TYPE_VIDEO) && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_AUTO) {
 				if (!c->rtp.video.instance && !sccp_rtp_createVideoServer(c)) {
 					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(d));
 				} else {

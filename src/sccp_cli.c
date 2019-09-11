@@ -61,7 +61,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_mwi.h"
 #include "sccp_hint.h"
 #include "sccp_labels.h"
-#include "sys/stat.h"
+#include <sys/stat.h>
 #include <asterisk/cli.h>
 #include <asterisk/paths.h>
 
@@ -2002,8 +2002,34 @@ static int sccp_test(int fd, int argc, char *argv[])
 				citest = iCallInfo.Destructor(&citest);
 				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_FLASH);
 				sccp_dev_set_keyset(d, instance, 0, KEYMODE_INUSEHINT);
+		}
+		return RESULT_SUCCESS;
+	}
+	if (!strcasecmp(argv[2], "soft") && argc > 2) {
+		AUTO_RELEASE(sccp_device_t, d, sccp_device_find_byid(argv[3], FALSE));
+		if (d) {
+			AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byid(d, d->defaultLineInstance));
+			if (line) {
+				AUTO_RELEASE(sccp_channel_t, channel, NULL);
+				channel = sccp_channel_newcall(line, d, "4444", SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 
+				pbx_log(LOG_NOTICE, "%s (cli_test) softkey set. starting in 2 seconds.\n", argv[3]);
+				sleep(2);
+				sccp_dev_clearprompt(d, 0, 0);
+				int x=0;
 
+				while (skinny_keymode_exists(x)) {
+					pbx_log(LOG_NOTICE, "%s (cli_test) softkey index: %s\n", d->id, skinny_keymode2str(x));
+					d->protocol->displayPrompt(d, d->defaultLineInstance, channel->callid, 2, skinny_keymode2str(x));
+					sccp_softkey_setSoftkeyState(d, x, SKINNY_LBL_VIDEO_MODE, TRUE);
+					sccp_dev_set_keyset(d, d->defaultLineInstance, channel->callid, x);
+					x++;
+				}
+
+				sleep(2);
+				sccp_dev_set_keyset(d, d->defaultLineInstance, channel->callid, 0);
+				sccp_dev_clearprompt(d, d->defaultLineInstance, channel->callid);
+			}
 		}
 		return RESULT_SUCCESS;
 	}

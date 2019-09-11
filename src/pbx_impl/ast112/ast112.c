@@ -678,15 +678,29 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 
 			/* when the bridged channel hold/unhold the call we are notified here */
 		case AST_CONTROL_HOLD:
+			if (c->rtp.audio.instance) {
+				ast_rtp_instance_update_source(c->rtp.audio.instance);
+			}
+#ifdef CS_SCCP_VIDEO
+			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+				ast_rtp_instance_update_source(c->rtp.video.instance);
+				d->protocol->sendMultiMediaCommand(d, c, SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE);
+			}
+#endif
 			sccp_astwrap_moh_start(ast, (const char *) data, c->musicclass);
 			res = 0;
 			break;
 		case AST_CONTROL_UNHOLD:
+ 			if (c->rtp.audio.instance) {
+ 				ast_rtp_instance_update_source(c->rtp.audio.instance);
+ 			}
+#ifdef CS_SCCP_VIDEO
+			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+				ast_rtp_instance_update_source(c->rtp.video.instance);
+				d->protocol->sendMultiMediaCommand(d, c, SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE);
+			};
+#endif
 			sccp_astwrap_moh_stop(ast);
-
-			if (c->rtp.audio.instance) {
-				ast_rtp_instance_update_source(c->rtp.audio.instance);
-			}
 			res = 0;
 			break;
 
@@ -704,7 +718,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 		case AST_CONTROL_TRANSFER:
 			ast_log(LOG_NOTICE, "%s: Ast Control Transfer: %d", c->designator, *(int *)data);
 			//sccp_astwrap_connectedline(c, data, datalen);
-			res = 0;
+			res = -1;
 			break;
 
 		case AST_CONTROL_REDIRECTING:
@@ -715,8 +729,8 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 
 		case AST_CONTROL_VIDUPDATE:									/* Request a video frame update */
 #ifdef CS_SCCP_VIDEO
-			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && c->videomode != SCCP_VIDEO_MODE_OFF) {
-				d->protocol->sendFastPictureUpdate(d, c);
+			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+				d->protocol->sendMultiMediaCommand(d, c, SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE);
 				res = 0;
 			} else 
 #endif
@@ -742,7 +756,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				}
 			}
 			*/
-			res = 0;
+			res = -1;
 			break;
 #endif
 		case AST_CONTROL_PVT_CAUSE_CODE:
@@ -752,7 +766,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 
 				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: hangup cause set: %d\n", c->designator, hangupcause);
 			}
-			res = -1;										/* Tell asterisk to provide inband signalling */
+			res = 0;										/* Tell asterisk to provide inband signalling */
 			break;
 		case -1:											// Asterisk prod the channel
 			if (	c->line && 
@@ -1582,12 +1596,6 @@ static int sccp_astwrap_call(PBX_CHANNEL_TYPE * ast, const char *dest, int timeo
 	if (MaxCallBRStr && !sccp_strlen_zero(MaxCallBRStr)) {
 		sccp_astgenwrap_channel_write(ast, "CHANNEL", "MaxCallBR", MaxCallBRStr);
 	}
-#if CS_SCCP_VIDEO
-	const char *VideoStr = pbx_builtin_getvar_helper(ast, "SCCP_VIDEO_MODE");
-	if (VideoStr && !sccp_strlen_zero(VideoStr)) {
-		sccp_channel_setVideoMode(c, VideoStr);
-	}
-#endif
 
 	res = sccp_pbx_call(c, (char *) dest, timeout);
 	return res;

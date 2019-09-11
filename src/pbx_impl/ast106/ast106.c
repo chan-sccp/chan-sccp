@@ -587,7 +587,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				// ORIGINATE() to SIP indicates PROGRESS after CONNECTED, causing issues with transfer
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 			}
-			res = -1;
+			res = 0;
 			break;
 		case AST_CONTROL_PROCEEDING:
 			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
@@ -603,7 +603,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				}
 			}
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
-			res = -1;
+			res = 0;
 			break;
 		case AST_CONTROL_SRCCHANGE:
 			if (c->rtp.audio.instance) {
@@ -627,21 +627,37 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 
 			/* when the bridged channel hold/unhold the call we are notified here */
 		case AST_CONTROL_HOLD:
+			if (c->rtp.audio.instance) {
+				ast_rtp_new_source(c->rtp.audio.instance);
+			}
+#ifdef CS_SCCP_VIDEO
+			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+				ast_rtp_new_source(c->rtp.video.instance);
+				d->protocol->sendMultiMediaCommand(d, c, SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE);
+			};
+#endif
+
 			sccp_astwrap_moh_start(ast, (const char *) data, c->musicclass);
 			res = 0;
 			break;
 		case AST_CONTROL_UNHOLD:
-			sccp_astwrap_moh_stop(ast);
 			if (c->rtp.audio.instance) {
 				ast_rtp_new_source(c->rtp.audio.instance);
 			}
+#ifdef CS_SCCP_VIDEO
+			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+				ast_rtp_new_source(c->rtp.video.instance);
+				d->protocol->sendMultiMediaCommand(d, c, SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE);
+			};
+#endif
+			sccp_astwrap_moh_stop(ast);
 			res = 0;
 			break;
 
 		case AST_CONTROL_VIDUPDATE:									/* Request a video frame update */
 #ifdef CS_SCCP_VIDEO
 			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && c->videomode != SCCP_VIDEO_MODE_OFF) {
-				d->protocol->sendFastPictureUpdate(d, c);
+				d->protocol->sendMultiMediaCommand(d, c, SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE);
 				res = 0;
 			} else 
 #endif
@@ -667,7 +683,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				}
 			}
 			*/
-			res = 0;
+			res = -1;
 			break;
 #endif
 		case -1:											// Asterisk prod the channel

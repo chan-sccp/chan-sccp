@@ -172,7 +172,6 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		channel->answered_elsewhere = FALSE;
 		channel->peerIsSCCP = 0;
 		channel->maxBitRate = 15000;
-		channel->videomode = SCCP_VIDEO_MODE_AUTO;
 		iPbx.set_owner(channel, NULL);
 
 		/* this is for dialing scheduler */
@@ -350,7 +349,7 @@ static void sccp_channel_recalculateAudioCodecFormat(sccp_channel_t * channel)
 			preferences = &(channel->preferences);
 			sccp_codec_reduceSet(preferences->audio, channel->capabilities.audio);
 		}
-		joint = sccp_codec_findBestJoint(channel, preferences->audio, channel->remoteCapabilities.audio);
+		joint = sccp_codec_findBestJoint(channel, preferences->audio, channel->remoteCapabilities.audio, TRUE);
 		if (SKINNY_CODEC_NONE == joint) {
 			joint = preferences->audio[0] ? preferences->audio[0] : SKINNY_CODEC_WIDEBAND_256K;
 		}
@@ -385,7 +384,7 @@ static void sccp_channel_recalculateAudioCodecFormat(sccp_channel_t * channel)
 	);
 }
 
-static void sccp_channel_recalculateVideoCodecFormat(sccp_channel_t * channel)
+static boolean_t sccp_channel_recalculateVideoCodecFormat(sccp_channel_t * channel)
 {
 	char s1[512], s2[512], s3[512], s4[512];
 	skinny_codec_t joint = channel->rtp.video.reception.format;
@@ -399,32 +398,18 @@ static void sccp_channel_recalculateVideoCodecFormat(sccp_channel_t * channel)
 			preferences = &(channel->preferences);
 			sccp_codec_reduceSet(preferences->video, channel->capabilities.video);
 		}
-		if (preferences->video[0] == SKINNY_CODEC_NONE) {
+		joint = sccp_codec_findBestJoint(channel, preferences->video, channel->remoteCapabilities.video, FALSE);
+
+		skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = { joint, SKINNY_CODEC_NONE};
+		iPbx.set_nativeVideoFormats(channel, codecs);
+		if (joint == SKINNY_CODEC_NONE) {
 			sccp_channel_setVideoMode(channel, "off");
-			return;
+			return FALSE;
 		}
-		joint = sccp_codec_findBestJoint(channel, preferences->video, channel->remoteCapabilities.video);
-		if (SKINNY_CODEC_NONE == joint) {
-			joint = preferences->video[0];
-		}
-		if (channel->rtp.video.instance && joint != SKINNY_CODEC_NONE) {
-			skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = { joint, SKINNY_CODEC_NONE};
-			iPbx.set_nativeVideoFormats(channel, codecs);
-		}
-	}
-	if (channel->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE) {
-		if (SKINNY_CODEC_NONE == joint) {
-			channel->videomode = SCCP_VIDEO_MODE_OFF;
-			channel->rtp.video.reception.format = SKINNY_CODEC_NONE;
-			channel->rtp.video.transmission.format = SKINNY_CODEC_NONE;
-			iPbx.rtp_setWriteFormat(channel, SKINNY_CODEC_NONE);
-			iPbx.rtp_setReadFormat(channel, SKINNY_CODEC_NONE);
-		} else {
-			channel->rtp.video.reception.format = joint;
-			channel->rtp.video.transmission.format = joint;
-			iPbx.rtp_setWriteFormat(channel, joint);
-			iPbx.rtp_setReadFormat(channel, joint);
-		}
+		channel->rtp.video.reception.format = joint;
+		channel->rtp.video.transmission.format = joint;
+		iPbx.rtp_setWriteFormat(channel, joint);
+		iPbx.rtp_setReadFormat(channel, joint);
 	}
 	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3
 		"%s - %s: (recalculateVideoCodecformat) \n\t"
@@ -442,6 +427,7 @@ static void sccp_channel_recalculateVideoCodecFormat(sccp_channel_t * channel)
 		sccp_codec_multiple2str(s4, sizeof(s4) - 1, channel->remoteCapabilities.video, ARRAY_LEN(channel->remoteCapabilities.video)),
 		codec2name(joint)
 	);
+	return TRUE;
 }
 
 /*!
@@ -698,7 +684,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 	audio->reception.c = sccp_channel_retain(channel);
 	d->protocol->sendOpenReceiveChannel(d, audio->reception.c);								// extra channel retain, released when receive channel is closed
 #ifdef CS_SCCP_VIDEO
-	if (channel->videomode != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d)) {
+	if (sccp_channel_getVideoMode(channel) != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", d->id);
 		sccp_channel_openMultiMediaReceiveChannel(channel);
 		//sccp_channel_startMultiMediaTransmission(channel);
@@ -850,7 +836,6 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 	}
 
-
 	if (d->nat >= SCCP_NAT_ON) {
 		sccp_rtp_updateNatRemotePhone(channel, audio);
 	}
@@ -974,7 +959,6 @@ void sccp_channel_updateMediaTransmission(constChannelPtr channel)
  */
 void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 {
-	skinny_codec_t skinnyFormat;
 	int payloadType;
 	uint8_t lineInstance;
 	int bitRate = 1500;
@@ -993,49 +977,36 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 		return;
 	}
 
-	if ((video->reception.state & SCCP_RTP_STATUS_ACTIVE)) {
+	if (SCCP_RTP_STATUS_INACTIVE != video->reception.state) {
 		pbx_log(LOG_WARNING, "%s: (openMultiMediaReceiveChannel) Channel already active. returning.\n", channel->designator);
 		return;
 	}
 
-	if (channel->videomode == SCCP_VIDEO_MODE_OFF || !sccp_device_isVideoSupported(d)) {
+	if (sccp_channel_getVideoMode(channel) == SCCP_VIDEO_MODE_OFF || !sccp_device_isVideoSupported(d)) {
 		pbx_log(LOG_WARNING, "%s: (openMultiMediaReceiveChannel) No video supported on device:%s or turning off. returning.\n", channel->designator, d->id);
 		return;
 	}
 
 	if (!video->instance && !sccp_rtp_createServer(d, (channelPtr)channel, SCCP_RTP_VIDEO)) {				// discard const
-		pbx_log(LOG_WARNING, "%s: Could not start vrtp on device:%s. returning\n", channel->designator, d->id);
+		pbx_log(LOG_WARNING, "%s: (openMultiMediaReceiveChannel) Could not start vrtp on device:%s. returning\n", channel->designator, d->id);
 		sccp_channel_setVideoMode((channelPtr)channel, "off");								// discard const
 		return;
 	}
 
-	if (channel->owner && SKINNY_CODEC_NONE == video->reception.format) {
-		sccp_channel_recalculateVideoCodecFormat((channelPtr)channel);
-	}
-
-	if (SKINNY_CODEC_NONE == video->reception.format) {
-		pbx_log(LOG_WARNING, "%s: (openMultiMediaReceiveChannel) No joint codecs found. Switching video off && returning.\n", d->id);
-		sccp_channel_setVideoMode((channelPtr)channel, "off");								// discard const
+	if (channel->owner && SKINNY_CODEC_NONE == video->reception.format && !sccp_channel_recalculateVideoCodecFormat((channelPtr)channel)) {
 		return;
 	}
-
+	
 	//if (d->nat >= SCCP_NAT_ON) {
 	//	sccp_rtp_updateNatRemotePhone(channel, video);
 	//}
 	video->reception.state |= SCCP_RTP_STATUS_PROGRESS;
-	skinnyFormat = video->reception.format;
-
-	if (skinnyFormat == 0) {
-		pbx_log(LOG_NOTICE, "SCCP: Unable to find skinny format for %d\n", video->reception.format);
-		sccp_channel_setVideoMode((channelPtr)channel, "off");								// discard const
-		return;
-	}
 
 	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, video->reception.format);
 	lineInstance = sccp_device_find_index_for_line(d, channel->line->name);
 
 	video->reception.c = sccp_channel_retain(channel);
-	d->protocol->sendOpenMultiMediaChannel(d, video->reception.c, skinnyFormat, payloadType, lineInstance, bitRate); 	// extra receive channel retension
+	d->protocol->sendOpenMultiMediaChannel(d, video->reception.c, video->reception.format, payloadType, lineInstance, bitRate); 	// extra receive channel retension
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Open receive multimedia channel with format %s[%d], payload %d\n", d->id,
 		codec2str(video->reception.format), video->reception.format, payloadType);
@@ -1067,24 +1038,15 @@ int sccp_channel_receiveMultiMediaChannelOpen(sccp_device_t *d, sccp_channel_t *
 	video->reception.state |= SCCP_RTP_STATUS_ACTIVE;
 
 	if (c->owner && (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE)) {
-		if (c->videomode == SCCP_VIDEO_MODE_AUTO) {
-			sccp_channel_startMultiMediaTransmission(c);
-		}  else if (SCCP_RTP_STATUS_ACTIVE == video->transmission.state) {
-			// force frame update
-			sccp_msg_t *msg_out = NULL;
-			msg_out = sccp_build_packet(MiscellaneousCommandMessage, sizeof(msg_out->data.MiscellaneousCommandMessage));
-			msg_out->data.MiscellaneousCommandMessage.lel_conferenceId = htolel(c->callid);
-			msg_out->data.MiscellaneousCommandMessage.lel_passThruPartyId = htolel(c->passthrupartyid);
-			msg_out->data.MiscellaneousCommandMessage.lel_callReference = htolel(c->callid);
-			msg_out->data.MiscellaneousCommandMessage.lel_miscCommandType = htolel(SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE);	// videoFastUpdatePicture
-			sccp_dev_send(d, msg_out);
-
+		if (SCCP_RTP_STATUS_ACTIVE == video->transmission.state) {
+			d->protocol->sendMultiMediaCommand(d, c, SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE);
 			//msg_out = sccp_build_packet(FlowControlNotifyMessage, sizeof(msg_out->data.FlowControlNotifyMessage));
 			//msg_out->data.FlowControlNotifyMessage.lel_conferenceID         = htolel(c->callid);
 			//msg_out->data.FlowControlNotifyMessage.lel_passThruPartyId      = htolel(c->passthrupartyid);
 			//msg_out->data.FlowControlNotifyMessage.lel_callReference        = htolel(c->callid);
 			//msg_out->data.FlowControlNotifyMessage.lel_maxBitRate           = htolel(500000);
-			//sccp_dev_send(d, msg_out);
+		} else if (sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_AUTO) {
+			sccp_channel_startMultiMediaTransmission(c);
 		}
 		iPbx.queue_control(c->owner, AST_CONTROL_VIDUPDATE);
 	}
@@ -1125,7 +1087,7 @@ void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean
 		}
 #endif
 	}
-	sccp_channel_setVideoMode((channelPtr)channel, "auto");									// discard const
+	((channelPtr)channel)->videomode = channel->line->videomode;								// discard const
 	sccp_channel_release(&video->reception.c);										// release extra receive channel retension
 }
 
@@ -1165,24 +1127,29 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 		return;
 	}
 	if (SCCP_RTP_STATUS_INACTIVE != video->transmission.state) {
-		pbx_log(LOG_ERROR, "%s: (startMultiMediaReceiveChannel) Already Started\n", channel->designator);
+		pbx_log(LOG_ERROR, "%s: (startMultiMediaTransmission) Already Started\n", channel->designator);
 		return;
 	}
+
+	if (sccp_channel_getVideoMode(channel) == SCCP_VIDEO_MODE_OFF || !sccp_device_isVideoSupported(d)) {
+		pbx_log(LOG_WARNING, "%s: (openMultiMediaTransmission) No video supported on device:%s or turning off. returning.\n", channel->designator, d->id);
+		return;
+	}
+	
 	if (!video->instance) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can't start vrtp media transmission, maybe channel is down %s\n", channel->currentDeviceId, channel->designator);
 		sccp_channel_setVideoMode((channelPtr)channel, "off");								// discard const
 		return;
 	}
-	if (d->nat >= SCCP_NAT_ON) {												/* device is natted */
-		sccp_rtp_updateNatRemotePhone(channel, video);
-	}
+	//if (d->nat >= SCCP_NAT_ON) {												/* device is natted */
+	//	sccp_rtp_updateNatRemotePhone(channel, video);
+	//}
+
+	video->transmission.state = SCCP_RTP_STATUS_PROGRESS;
 
 	/* lookup payloadType */
 	payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, video->transmission.format);
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: using payload %d\n", d->id, payloadType);
 
-	video->transmission.state = SCCP_RTP_STATUS_PROGRESS;
-	
 	video->transmission.c = sccp_channel_retain(channel);
 	d->protocol->sendStartMultiMediaTransmission(d, video->transmission.c, payloadType, bitRate);				// extra mediatransmission channel retension
 
@@ -1191,7 +1158,6 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 	sccp_copy_string(buf1, sccp_netsock_stringify(&video->phone), sizeof(buf1));
 	sccp_copy_string(buf2, sccp_netsock_stringify(&video->phone_remote), sizeof(buf2));
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (startMultiMediaTransmission) Tell Phone to send VRTP/UDP media from %s to %s (NAT: %s)\n", d->id, buf1, buf2, sccp_nat2str(d->nat));
-
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (StartMultiMediaTransmission) Using format: %s(%d), payload:%d, TOS %d for call with PassThruId: %u and CallID: %u\n", d->id,
 		codec2str(video->transmission.format), video->transmission.format, payloadType, d->video_tos, channel->passthrupartyid, channel->callid);
 
@@ -1200,7 +1166,7 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 
 int sccp_channel_multiMediaTransmissionStarted(sccp_device_t *d, sccp_channel_t *c)
 {
-	//pbx_builtin_setvar_helper(c->owner, "_SCCP_VIDEO_MODE", sccp_video_mode2str(c->videomode));
+	//pbx_builtin_setvar_helper(c->owner, "_SCCP_VIDEO_MODE", sccp_video_mode2str(sccp_channel_getVideoMode(c)));
 	//iPbx.queue_control(c->owner, AST_CONTROL_VIDUPDATE);
 	//return SCCP_RTP_STATUS_ACTIVE;
 	pbx_assert(d != NULL && c != NULL);
@@ -2853,7 +2819,18 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const char *data)
 	return TRUE;
 }
 
-boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const char *data){
+sccp_video_mode_t sccp_channel_getVideoMode(constChannelPtr c)
+{
+#if CS_SCCP_VIDEO
+	sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "%s: (getVideoMode) current video mode:%s\n", c->designator, sccp_video_mode2str(c->videomode));
+	return c->videomode;
+#else
+	return FALSE;
+#endif
+}
+
+boolean_t sccp_channel_setVideoMode(channelPtr c, const char *data)
+{
 	boolean_t res = FALSE;
 #if CS_SCCP_VIDEO
 	if (c) {
@@ -2861,18 +2838,19 @@ boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const char *data){
 		if (newval == SCCP_VIDEO_MODE_SENTINEL) {
 			return res;
 		}
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP))(VERBOSE_PREFIX_2 "%s:Setting Video Mode to %s\n", c->designator, sccp_video_mode2str(newval));
-
-		if (SCCP_CHANNELSTATE_IsConnected(c->state)) {
-			AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
-			if (d) {
-				if (newval == SCCP_VIDEO_MODE_AUTO && !c->isHangingUp) {
-					if (!c->rtp.video.instance || SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
-						sccp_channel_openMultiMediaReceiveChannel(c);
-					}
-					if ((c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.transmission.state) {
-						sccp_channel_startMultiMediaTransmission(c);
-					}
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP))(VERBOSE_PREFIX_2 "%s: (setVideoMode) Setting Video Mode to %s\n", c->designator, sccp_video_mode2str(newval));
+		if (c->state >= SCCP_GROUPED_CHANNELSTATE_SETUP && newval == SCCP_VIDEO_MODE_AUTO && !c->isHangingUp) {
+			if (!c->rtp.video.instance || SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
+				sccp_channel_openMultiMediaReceiveChannel(c);
+			}
+			if ((c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.transmission.state) {
+				sccp_channel_startMultiMediaTransmission(c);
+			}
+		}
+		if (newval == SCCP_VIDEO_MODE_OFF) {
+			if (c->rtp.video.instance) {
+				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.reception.state) {
+					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
 				}
 				if (newval == SCCP_VIDEO_MODE_OFF) {
 					if (c->rtp.video.instance) {
@@ -2888,6 +2866,12 @@ boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const char *data){
 						rtp = NULL;
 					}
 				}
+				PBX_RTP_TYPE *rtp = c->rtp.video.instance;
+				iPbx.rtp_stop(rtp);
+
+				// we destroy later, during channel cleanup. causing frack otherwise
+				//iPbx.rtp_destroy(rtp);
+				//rtp = NULL;
 			}
 		}
 		c->videomode = newval;

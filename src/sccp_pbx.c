@@ -637,7 +637,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				sccp_channel_startMediaTransmission(c);
 			}
 #if CS_SCCP_VIDEO
-			if (c->videomode == SCCP_VIDEO_MODE_AUTO && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE) {
+			if (sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_AUTO && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE) {
 				if (SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
 					sccp_channel_openMultiMediaReceiveChannel(c);
 				} else if ((c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.transmission.state) {
@@ -907,6 +907,12 @@ boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, c
 	}
 #endif
 
+#if CS_SCCP_VIDEO
+	const char *VideoStr = pbx_builtin_getvar_helper(c->owner, "SCCP_VIDEO_MODE");
+	if (VideoStr && !sccp_strlen_zero(VideoStr)) {
+		sccp_channel_setVideoMode(c, VideoStr);
+	}
+#endif
 	/* asterisk needs the native formats bevore dialout, otherwise the next channel gets the whole AUDIO_MASK as requested format
 	 * chan_sip dont like this do sdp processing */
 	//iPbx.set_nativeAudioFormats(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
@@ -915,14 +921,14 @@ boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, c
 	if (d) {
 		if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 			if (!c->rtp.audio.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_AUDIO)) {
-				pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s\n", d->id, c->designator);
+				pbx_log(LOG_WARNING, "%s: Error opening RTP instance for channel %s\n", d->id, c->designator);
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 				return FALSE;
 			}
 #if CS_SCCP_VIDEO
-			if (c->videomode != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE && !c->rtp.video.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_AUDIO)) {
-				pbx_log(LOG_WARNING, "%s: Error opening VRTP for channel %s\n", d->id, c->designator);
-				c->videomode = SCCP_VIDEO_MODE_OFF;
+			if (sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE && !c->rtp.video.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_VIDEO)) {
+				pbx_log(LOG_WARNING, "%s: Error opening VRTP instance for channel %s\n", d->id, c->designator);
+				sccp_channel_setVideoMode(channel, "off");
 			}
 #endif
 		}

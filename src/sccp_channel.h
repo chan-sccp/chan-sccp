@@ -194,7 +194,8 @@ SCCP_API void SCCP_CALL sccp_channel_park(sccp_channel_t * channel);
 #endif
 
 SCCP_API boolean_t SCCP_CALL sccp_channel_setPreferredCodec(sccp_channel_t * c, const char *data);
-SCCP_API boolean_t SCCP_CALL sccp_channel_setVideoMode(sccp_channel_t * c, const char *data);
+SCCP_API sccp_video_mode_t SCCP_CALL sccp_channel_getVideoMode(constChannelPtr c);
+SCCP_API boolean_t SCCP_CALL sccp_channel_setVideoMode(channelPtr c, const char *data);
 SCCP_API int SCCP_CALL sccp_channel_callwaiting_tone_interval(sccp_device_t * device, sccp_channel_t * channel);
 #if UNUSEDCODE // 2015-11-01
 SCCP_API const char *sccp_channel_getLinkedId(const sccp_channel_t * channel);

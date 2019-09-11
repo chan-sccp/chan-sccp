@@ -194,7 +194,7 @@ typedef enum {
 	MulticastMediaReceptionAck 			= 0x0021,
 	OpenReceiveChannelAck 				= 0x0022,
 	ConnectionStatisticsRes 			= 0x0023,
-	OffHookWithCgpnMessage 				= 0x0024,
+	OffHookMessageWithCallingPartyMessage		= 0x0024,
 	SoftKeySetReqMessage 				= 0x0025,
 	SoftKeyEventMessage 				= 0x0026,
 	UnregisterMessage 				= 0x0027,
@@ -841,7 +841,6 @@ typedef union {
 		uint32_t lel_timer;										/*!< Timer */
 		char subscriptionID[256];									/*!< SubscriptionID */
 	} SubscriptionStatReqMessage;										/*!< SubscriptionStatReqMessage Message Structure */
-	//} DialedPhoneBookMessage;										/*!< Dialed Phone Book Message Structure */
 
 	struct {
 		uint32_t lel_transactionID;									/*!< TransactionID */ /*!< Number Index (this must be shifted 4 bits right) */
@@ -849,7 +848,6 @@ typedef union {
 		uint32_t lel_timer;										/*!< Timer */
 		uint32_t lel_cause;										/*!< Cause (Enum): OK: 0x00, RouteFail:0x01, AuthFail:0x02, Timeout:0x03, TrunkTerm:0x04, TrunkForbidden:0x05, Throttle:0x06 */
 	} SubscriptionStatMessage;										/*!< SubscriptionStatMessage */
-	//} DialedPhoneBookAckMessage;										/*!< Dialed Phone Book Acknowledgement Structure */
 
 	struct {
 		uint32_t lel_transactionID;									/*!< TransactionID */ /*!< Number Index (this must be shifted 4 bits right) */
@@ -857,7 +855,6 @@ typedef union {
 		uint32_t lel_status;										/*!< Status */
 		uint32_t lel_text[97];										/*~< Text */
 	} NotificationMessage;											/*!< NotificationMessage / CallListStatusUpdate */
-	//}CallListStateUpdate
 
 	struct {
 		uint32_t lel_appID;
@@ -1385,6 +1382,12 @@ typedef union {
 		uint32_t lel_MediaPathCapabilities;								/*!< mediaPathCapabilities (0x1=Enable, 0x2=Disable, 0x3=Monitor) */
 	} MediaPathCapabilityMessage;										/*!< \todo MediaPath Capability Message Structure */
 
+	struct {
+		uint32_t lel_conferenceID;
+		uint32_t lel_callReference;
+		uint32_t lel_layout;										/* index of layoutConfig_t */
+	} VideoDisplayCommandMessage;
+
 	struct {												// INCOMPLETE
 		uint32_t lel_conferenceID;									/*!< Conference ID */
 		uint32_t lel_passThruPartyId;
@@ -1404,7 +1407,6 @@ typedef union {
 		char DirNumber[StationMaxDirnumSize];
 		char DisplayName[StationMaxNameSize];
 	} SpeedDialStatDynamicMessage;										/*!< Speed Dial Stat Dynamic Message Structure */
-
 
 	struct {
 		uint32_t lel_conferenceID;
@@ -1699,10 +1701,9 @@ typedef union {
 
 	struct {
 		char callingPartyNumber[StationMaxDirnumSize];							/*!< Calling Party Number */
-	} OffHookMessageWithCallingPartyNum;									/*!< Off Hook With Calling Party Number Message Structure 
-														   Goes Off Hook and provides a Calling Party Number to the PBX used by multiline Devices
-														 */
-
+	} OffHookMessageWithCallingPartyMessage;								/*!< Off Hook With Calling Party Number Message Structure 
+														   Goes Off Hook and provides a Calling Party Number
+														   to the PBX used by multiline Devices */
 	/*
 	 * 7960: 00000000 - 0C 00 00 00 00 00 00 00  07 00 00 00 00 00 00 00  - ................
 	 *       00000010 - 00 00 00 00                                       - ....
@@ -2001,10 +2002,6 @@ typedef union {
 #pragma pack(pop)
 		};
 	} ConnectionStatisticsRes;
-
-	struct {
-		char calledParty[StationMaxDirnumSize];								/*!< Called Party Array */
-	} OffHookWithCgpnMessage;										/*!< Off Hook With Calling Party Name Message Structure */
 
 	struct {
 		uint8_t dummy;
@@ -3414,7 +3411,7 @@ typedef struct {
 	void (*const displayPriNotify) (constDevicePtr device, uint8_t priority, uint8_t timeout, const char *message);
 	void (*const sendCallforwardMessage) (constDevicePtr device, const sccp_linedevices_t * linedevice);
 	void (*const sendUserToDeviceDataVersionMessage) (constDevicePtr device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const char *xmlData, uint8_t priority);
-	void (*const sendFastPictureUpdate) (constDevicePtr device, constChannelPtr channel);
+	void (*const sendMultiMediaCommand) (constDevicePtr device, constChannelPtr channel, skinny_miscCommandType_t command);
 	void (*const sendOpenReceiveChannel) (constDevicePtr device, constChannelPtr channel);
 	void (*const sendOpenMultiMediaChannel) (constDevicePtr device, constChannelPtr channel, skinny_codec_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
 	void (*const sendStartMultiMediaTransmission) (constDevicePtr device, constChannelPtr channel, int payloadType, int bitRate);
