@@ -1,5 +1,13 @@
 Version: v4.3.2_DEV
 =====================
+ - Enhancements:
+   - Compile with c++ compatibility
+   - Directed barge
+   - Shared line barge
+   - CLI: callforward
+   - Improved Video Handling
+   - Added support for asterisk-17
+
  - Fixed:
    - One way audio issues
    - Congestion signallling after EndCall Softkey
@@ -8,11 +16,7 @@ Version: v4.3.2_DEV
    - cli output when dealing with accented characters (locale)
    - callforward status bar message on 8945
    - pop up DND message on 8945 repeatedly (temp measure)
- - Enhancements:
-   - Compile with c++ compatibility
-   - Directed barge
-   - Shared line barge
-   - CLI: callforward
+   - video mode
 
 Version: v4.3.1_DEV
 =====================
