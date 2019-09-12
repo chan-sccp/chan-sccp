@@ -1,5 +1,5 @@
 /*!
- * \file        ast113.c
+ * \file        ast114.c
  * \brief       SCCP PBX Asterisk Wrapper Class
  * \author      Marcello Ceshia
  * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
@@ -67,8 +67,6 @@ __END_C_EXTERN__
 
 struct ast_sched_context *sched = 0;
 struct io_context *io = 0;
-
-#define pbx_module_info ast_module_info
 
 //struct ast_format slinFormat = { AST_FORMAT_SLINEAR, {{0}, 0} };
 
@@ -1326,6 +1324,7 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 	ao2_ref(fmt, -1);
 	/* EndCodec */
 
+	ast_module_ref(ast_module_info->self);
 	sccp_astwrap_setOwner(channel, pbxDstChannel);
 
 	ast_channel_context_set(pbxDstChannel, line->context);
@@ -1376,7 +1375,6 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 		ast_channel_zone_set(pbxDstChannel, ast_get_indication_zone(line->language));			/* this will core asterisk on hangup */
 	}
 
-	ast_module_ref(ast_module_info->self);
 	ast_channel_stage_snapshot_done(pbxDstChannel);
 	ast_channel_unlock(pbxDstChannel);
 
@@ -1409,7 +1407,6 @@ static boolean_t sccp_astwrap_masqueradeHelper(PBX_CHANNEL_TYPE * pbxChannel, PB
 		ast_hangup(pbxTmpChannel);
 	}
 	pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) remove reference from pbxTmpChannel: %s\n", ast_channel_name(pbxTmpChannel));
-	pbxTmpChannel = pbx_channel_unref(pbxTmpChannel);
 	return res;
 }
 
@@ -1475,12 +1472,12 @@ static boolean_t sccp_astwrap_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChann
 	ao2_cleanup(caps);
 	/* EndCodec */
 
+	// ast_module_ref(ast_module_info->self);
 	ast_channel_context_set(pbxDstChannel, ast_channel_context(pbxSrcChannel));
 	ast_channel_exten_set(pbxDstChannel, ast_channel_exten(pbxSrcChannel));
 	ast_channel_priority_set(pbxDstChannel, ast_channel_priority(pbxSrcChannel));
 	ast_channel_adsicpe_set(pbxDstChannel, AST_ADSI_UNAVAILABLE);
 	ast_channel_stage_snapshot_done(pbxDstChannel);
-	// ast_module_ref(ast_module_info->self);
 	ast_channel_unlock(pbxSrcChannel);
 	ast_channel_unlock(pbxDstChannel);
 
@@ -1555,7 +1552,6 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 	}
 
 	ast_module_unref(ast_module_info->self);
-	// ast_channel_stage_snapshot_done(ast_channel);
 	return res;
 }
 
@@ -1869,22 +1865,6 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, ast_channel_redirecting((PBX_CHANNEL_TYPE *) requestor)->orig.number.str,
 				SCCP_CALLINFO_KEY_SENTINEL);
 	}
-
-	/** workaround for asterisk console log flooded
-	 channel.c:5080 ast_write: Codec mismatch on channel SCCP/xxx-0000002d setting write format to g722 from unknown native formats (nothing)
-	*/
-	if (!channel->capabilities.audio[0]) {
-		skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_WIDEBAND_256K, SKINNY_CODEC_NONE};
-		sccp_astwrap_setNativeAudioFormats(channel, codecs);
-		sccp_astwrap_setReadFormat(channel, SKINNY_CODEC_WIDEBAND_256K);
-		sccp_astwrap_setWriteFormat(channel, SKINNY_CODEC_WIDEBAND_256K);
-	}
-	
-	/* get remote codecs from channel driver */
-	//ast_rtp_instance_get_codecs(c->rtp.adio.rtp);
-	//ast_rtp_instance_get_codecs(c->rtp.video.instance);
-	/** done */
-
 EXITFUNC:
 	if (channel  && channel->owner) {
 		result_ast_channel = channel->owner;

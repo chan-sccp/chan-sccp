@@ -992,6 +992,7 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 	ast_set_write_format(pbxDstChannel, &tmpfmt);
 	/* EndCodec */
 
+	ast_module_ref(ast_module_info->self);
 	ast_channel_context_set(pbxDstChannel, line->context);
 	ast_channel_exten_set(pbxDstChannel, line->name);
 	ast_channel_priority_set(pbxDstChannel, 1);
@@ -1040,7 +1041,6 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 		ast_channel_zone_set(pbxDstChannel, ast_get_indication_zone(line->language));			/* this will core asterisk on hangup */
 	}
 
-	ast_module_ref(ast_module_info->self);
 	ast_channel_stage_snapshot_done(pbxDstChannel);
 	ast_channel_unlock(pbxDstChannel);
 
@@ -1180,12 +1180,12 @@ static boolean_t sccp_astwrap_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChann
 	ast_set_read_format(pbxDstChannel, &tmpfmt);
 	ast_set_write_format(pbxDstChannel, &tmpfmt);
 
+	// ast_module_ref(ast_module_info->self);
 	ast_channel_context_set(pbxDstChannel, ast_channel_context(pbxSrcChannel));
 	ast_channel_exten_set(pbxDstChannel, ast_channel_exten(pbxSrcChannel));
 	ast_channel_priority_set(pbxDstChannel, ast_channel_priority(pbxSrcChannel));
 	ast_channel_adsicpe_set(pbxDstChannel, AST_ADSI_UNAVAILABLE);
 	ast_channel_stage_snapshot_done(pbxDstChannel);
-	// ast_module_ref(ast_module_info->self);
 	ast_channel_unlock(pbxSrcChannel);
 	ast_channel_unlock(pbxDstChannel);
 
@@ -1548,19 +1548,6 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, ast_channel_redirecting((PBX_CHANNEL_TYPE *) requestor)->orig.number.str,
 				SCCP_CALLINFO_KEY_SENTINEL);
 	}
-
-	/** workaround for asterisk console log flooded
-	 channel.c:5080 ast_write: Codec mismatch on channel SCCP/xxx-0000002d setting write format to g722 from unknown native formats (nothing)
-	*/
-	if (!channel->capabilities.audio[0]) {
-		skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_WIDEBAND_256K, SKINNY_CODEC_NONE};
-		sccp_astwrap_setNativeAudioFormats(channel, codecs);
-		sccp_astwrap_setReadFormat(channel, SKINNY_CODEC_WIDEBAND_256K);
-		sccp_astwrap_setWriteFormat(channel, SKINNY_CODEC_WIDEBAND_256K);
-	}
-
-	/** done */
-
 EXITFUNC:
 	if (channel) {
 		result_ast_channel = channel->owner;

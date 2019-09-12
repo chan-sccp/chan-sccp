@@ -1310,24 +1310,19 @@ static boolean_t sccp_astwrap_masqueradeHelper(PBX_CHANNEL_TYPE * pbxChannel, PB
 	boolean_t res = FALSE;
 	pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) answer temp: %s\n", ast_channel_name(pbxTmpChannel));
 
-	ast_raw_answer(pbxTmpChannel);
-//	ast_cdr_reset(ast_channel_name(pbxTmpChannel), 0);
+	//ast_raw_answer(pbxTmpChannel);
+	ast_answer(pbxChannel);
 	pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) replace pbxTmpChannel: %s with %s (move)\n", ast_channel_name(pbxTmpChannel), ast_channel_name(pbxChannel));
 	if (!ast_channel_move(pbxTmpChannel, pbxChannel)) {
-		pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) move succeeded. Hanging up orphan: %s\n", ast_channel_name(pbxChannel));
 		/* Chan is now an orphaned zombie.  Destroy it. */
-		if (pbx_test_flag(pbx_channel_flags(pbxChannel), AST_FLAG_BLOCKING)) {
-			ast_softhangup(pbxChannel, AST_SOFTHANGUP_DEV);
-		} else {
-			ast_hangup(pbxChannel);
-		}
 		pbx_channel_set_hangupcause(pbxTmpChannel, AST_CAUSE_REDIRECTED_TO_NEW_DESTINATION);
+		pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) move succeeded. Hangup orphan: %s\n", ast_channel_name(pbxChannel));
+		ast_hangup(pbxChannel);
 		res = TRUE;
 	} else {
 		ast_hangup(pbxTmpChannel);
 	}
-	pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) remove reference from pbxTmpChannel: %s\n", ast_channel_name(pbxTmpChannel));
-	//pbx_channel_unref(pbxTmpChannel);
+	pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) %s returning res:%s\n", ast_channel_name(pbxTmpChannel), res ? "TRUE" : "FALSE");
 	return res;
 }
 

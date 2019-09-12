@@ -564,14 +564,16 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 		/* we are a forwarded call, bridge me with my parent (the forwarded channel will take the place of the forwarder.) */
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: handling forwarded call.\n", c->designator);
 
-		PBX_CHANNEL_TYPE * forwarded = NULL;
-		PBX_CHANNEL_TYPE * replace_chan = NULL;
+		PBX_CHANNEL_TYPE *forwarded = NULL;
+		PBX_CHANNEL_TYPE *forwarder = NULL;
+		PBX_CHANNEL_TYPE *replace_chan = NULL;
 
 		pbx_channel_lock(c->parentChannel->owner);
-		forwarded = pbx_channel_ref(c->parentChannel->owner);
+		forwarded = c->parentChannel->owner;
 		pbx_channel_unlock(c->parentChannel->owner);
 
 		pbx_channel_lock(c->owner);
+		forwarder = pbx_channel_ref(c->owner);
 		const char *forwardingChannelName = pbx_builtin_getvar_helper(c->owner, CS_BRIDGEPEERNAME);
 		pbx_channel_unlock(c->owner);
 
@@ -585,41 +587,39 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 			if (!sccp_strlen_zero(forwardingChannelName) && iPbx.getChannelByName(forwardingChannelName, &replace_chan)) {
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: handling forwarded call. Replace %s with %s.\n", c->designator, pbx_channel_name(replace_chan), pbx_channel_name(forwarded));
 #if ASTERISK_VERSION_GROUP < 116
-				/* set the channel and the bridge to state UP to fix problem with fast pickup / autoanswer */
+				// set the channel and the bridge to state UP to fix problem with fast pickup / autoanswer
 				pbx_setstate(c->owner, AST_STATE_UP);
 				pbx_setstate(replace_chan, AST_STATE_UP);
 #endif
+				sccp_channel_release(&c->parentChannel);
 				if (!iPbx.masqueradeHelper(replace_chan, forwarded)) {
 					pbx_log(LOG_ERROR, "(sccp_pbx_answer) Failed to masquerade bridge into forwarded channel\n");
 					res = -1;
 					break;
 				}
 #if ASTERISK_VERSION_GROUP > 106
-				pbx_indicate(c->owner, AST_CONTROL_CONNECTED_LINE);
+				pbx_indicate(forwarder, AST_CONTROL_CONNECTED_LINE);
 #endif
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) Masqueraded into %s\n", pbx_channel_name(forwarded));
-				//pbx_channel_unref(replace_chan);
 				res = 0;
 			} else {
 				pbx_log(LOG_ERROR, "%s: Could not retrieve forwarding channel by name:%s: -> Hangup\n", c->designator, forwardingChannelName);
 				if (pbx_channel_state(c->owner) == AST_STATE_RING && pbx_channel_state(forwarded) == AST_STATE_DOWN && iPbx.getChannelPbx(c)) {
 					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "SCCP: Receiver Hungup: (hasPBX: %s)\n", iPbx.getChannelPbx(c) ? "yes" : "no");
 					pbx_channel_set_hangupcause(forwarded, AST_CAUSE_CALL_REJECTED);
-					c->parentChannel->hangupRequest(c->parentChannel);
 				} else {
 					pbx_log(LOG_ERROR, "%s: We did not find bridge channel for call forwarding call. Hangup\n", c->currentDeviceId);
 					pbx_channel_set_hangupcause(forwarded, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
-					c->parentChannel->hangupRequest(c->parentChannel);
-					sccp_channel_endcall(c);
+					//sccp_channel_endcall(c);
 				}
-				pbx_channel_set_hangupcause(forwarded, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
+				sccp_channel_t *tmp = c->parentChannel;
+				sccp_channel_release(&c->parentChannel);
+				tmp->hangupRequest(tmp);
 			}
 		} while(0);
-		pbx_channel_unref(forwarded);
-		sccp_channel_release(&c->parentChannel);
+		pbx_channel_unref(forwarder);
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) Outgoing call %s being answered by remote party\n", c->currentDeviceId, iPbx.getChannelName(c));
-		//sccp_channel_updateChannelCapability(c);
 
 		AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
 		if (d) {
@@ -847,9 +847,6 @@ boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, c
 		pbx_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", c->designator, l->name);
 		return FALSE;
 	}
-	//sccp_channel_updateChannelCapability(c);
-	//iPbx.set_nativeAudioFormats(c, c->preferences.audio, 1);
-	//iPbx.set_nativeAudioFormats(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
 	iPbx.setChannelName(c, c->designator);
 
 	// \todo: Bridge?

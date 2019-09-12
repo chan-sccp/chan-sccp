@@ -340,18 +340,19 @@ static void sccp_channel_recalculateAudioCodecFormat(sccp_channel_t * channel)
 	char s1[512], s2[512], s3[512], s4[512];
 	skinny_codec_t joint = channel->rtp.audio.reception.format;
 	skinny_capabilities_t *preferences = &(channel->preferences);
+	if (channel->privateData->device && !channel->line->preferences_set_on_line_level) {
+		preferences = &(channel->privateData->device->preferences);
+	}
 
 	if (channel->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.transmission.state == SCCP_RTP_STATUS_INACTIVE) {
 		if (channel->privateData->device) {
-			preferences = (channel->line->preferences_set_on_line_level) ? &(channel->preferences) : &(channel->privateData->device->preferences);
 			sccp_codec_reduceSet(preferences->audio, channel->privateData->device->capabilities.audio);
 		} else {
-			preferences = &(channel->preferences);
 			sccp_codec_reduceSet(preferences->audio, channel->capabilities.audio);
 		}
 		joint = sccp_codec_findBestJoint(channel, preferences->audio, channel->remoteCapabilities.audio, TRUE);
 		if (SKINNY_CODEC_NONE == joint) {
-			joint = preferences->audio[0] ? preferences->audio[0] : SKINNY_CODEC_WIDEBAND_256K;
+			joint = SKINNY_CODEC_WIDEBAND_256K;
 		}
 		if (channel->rtp.audio.instance) {                      // Fix nativeAudioFormats
 			skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = { joint, SKINNY_CODEC_NONE};
@@ -378,7 +379,7 @@ static void sccp_channel_recalculateAudioCodecFormat(sccp_channel_t * channel)
 		(SCCP_LIST_GETSIZE(&channel->line->devices) > 1) ? "shared" : "channel",
 		sccp_codec_multiple2str(s2, sizeof(s2) - 1, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio)),
 		channel->line->preferences_set_on_line_level ? "line" : "device",
-		channel->line->preferences_set_on_line_level ? sccp_codec_multiple2str(s3, sizeof(s3) - 1, channel->line->preferences.audio, ARRAY_LEN(channel->line->preferences.audio)) : ((channel->privateData->device) ? sccp_codec_multiple2str(s3, sizeof(s3) - 1, channel->privateData->device->preferences.audio, ARRAY_LEN(channel->privateData->device->preferences.audio)) : ""),
+		sccp_codec_multiple2str(s3, sizeof(s3) - 1, preferences->audio, ARRAY_LEN(preferences->audio)),
 		sccp_codec_multiple2str(s4, sizeof(s4) - 1, channel->remoteCapabilities.audio, ARRAY_LEN(channel->remoteCapabilities.audio)),
 		codec2name(joint)
 	);
@@ -390,12 +391,13 @@ static boolean_t sccp_channel_recalculateVideoCodecFormat(sccp_channel_t * chann
 	skinny_codec_t joint = channel->rtp.video.reception.format;
 	skinny_capabilities_t *preferences = &(channel->preferences);
 
+	if (channel->privateData->device && !channel->line->preferences_set_on_line_level) {
+		preferences = &(channel->privateData->device->preferences);
+	}
 	if (channel->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE && channel->rtp.video.transmission.state == SCCP_RTP_STATUS_INACTIVE) {
 		if (channel->privateData->device) {
-			preferences = (channel->line->preferences_set_on_line_level) ? &(channel->preferences) : &(channel->privateData->device->preferences);
 			sccp_codec_reduceSet(preferences->video, channel->privateData->device->capabilities.video);
 		} else {
-			preferences = &(channel->preferences);
 			sccp_codec_reduceSet(preferences->video, channel->capabilities.video);
 		}
 		joint = sccp_codec_findBestJoint(channel, preferences->video, channel->remoteCapabilities.video, FALSE);
@@ -424,7 +426,7 @@ static boolean_t sccp_channel_recalculateVideoCodecFormat(sccp_channel_t * chann
 		(SCCP_LIST_GETSIZE(&channel->line->devices) > 1) ? "shared" : "channel",
 		sccp_codec_multiple2str(s2, sizeof(s2) - 1, channel->preferences.video, ARRAY_LEN(channel->preferences.video)),
 		channel->line->preferences_set_on_line_level ? "line" : "device",
-		channel->line->preferences_set_on_line_level ? sccp_codec_multiple2str(s3, sizeof(s3) - 1, channel->line->preferences.video, ARRAY_LEN(channel->line->preferences.video)) : ((channel->privateData->device) ? sccp_codec_multiple2str(s3, sizeof(s3) - 1, channel->privateData->device->preferences.video, ARRAY_LEN(channel->privateData->device->preferences.video)) : ""),
+		sccp_codec_multiple2str(s3, sizeof(s3) - 1, preferences->video, ARRAY_LEN(preferences->video)),
 		sccp_codec_multiple2str(s4, sizeof(s4) - 1, channel->remoteCapabilities.video, ARRAY_LEN(channel->remoteCapabilities.video)),
 		codec2name(joint)
 	);
@@ -1326,8 +1328,6 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t * orig_channel)
 				sccp_channel_stop_and_deny_scheduled_tasks(c);
 			}
 			c->hangupRequest(c);
-			//sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
-			
 			orig_channel->answered_elsewhere = TRUE;
 		}
 	}
@@ -2088,6 +2088,10 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
 	}
 
+	if (channel->parentChannel) {
+		sccp_channel_release(&channel->parentChannel);										/* explicit release refcounted parentChannel */
+	}
+
 	if (d) {
 		/* make sure all rtp stuff is closed and destroyed */
 		sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
@@ -2665,10 +2669,15 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		calling_name, calling_num, lineDevice->line->cid_name, lineDevice->line->cid_num, dialedNumber);
 
 	/* Copy Channel Capabilities From Predecessor */
-	memset(&sccp_forwarding_channel->remoteCapabilities.audio, 0, sizeof(sccp_forwarding_channel->remoteCapabilities.audio));
-	memcpy(&sccp_forwarding_channel->remoteCapabilities.audio, sccp_channel_parent->remoteCapabilities.audio, sizeof(sccp_forwarding_channel->remoteCapabilities.audio));
-	memset(&sccp_forwarding_channel->preferences.audio, 0, sizeof(sccp_forwarding_channel->preferences.audio));
+	memcpy(&sccp_forwarding_channel->capabilities.audio, sccp_channel_parent->capabilities.audio, sizeof(sccp_forwarding_channel->capabilities.audio));
 	memcpy(&sccp_forwarding_channel->preferences.audio, sccp_channel_parent->preferences.audio, sizeof(sccp_channel_parent->preferences.audio));
+	memcpy(&sccp_forwarding_channel->remoteCapabilities.audio, sccp_channel_parent->remoteCapabilities.audio, sizeof(sccp_forwarding_channel->remoteCapabilities.audio));
+#if CS_SCCP_VIDEO
+	sccp_forwarding_channel->videomode = sccp_channel_parent->videomode;
+	memcpy(&sccp_forwarding_channel->capabilities.video, sccp_channel_parent->capabilities.video, sizeof(sccp_forwarding_channel->capabilities.video));
+	memcpy(&sccp_forwarding_channel->preferences.video, sccp_channel_parent->preferences.video, sizeof(sccp_channel_parent->preferences.video));
+	memcpy(&sccp_forwarding_channel->remoteCapabilities.video, sccp_channel_parent->remoteCapabilities.video, sizeof(sccp_forwarding_channel->remoteCapabilities.video));
+#endif
 
 	/* ok the number exist. allocate the asterisk channel */
 	if (!sccp_pbx_channel_allocate(sccp_forwarding_channel, NULL, sccp_channel_parent->owner))
@@ -2679,11 +2688,8 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		return -1;
 	}
 	/* Update rtp setting to match predecessor */
-	skinny_codec_t codecs[] = { SKINNY_CODEC_WIDEBAND_256K, SKINNY_CODEC_NONE };
-	iPbx.set_nativeAudioFormats(sccp_forwarding_channel, codecs);
-	iPbx.rtp_setWriteFormat(sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
-	iPbx.rtp_setReadFormat(sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
-	sccp_channel_updateChannelCapability(sccp_forwarding_channel);
+	//sccp_rtp_createServer(lineDevice->device, sccp_forwarding_channel, SCCP_RTP_AUDIO);
+	//sccp_channel_updateChannelCapability(sccp_forwarding_channel);
 
 	char newcalling_name[StationMaxNameSize] = {0};
 	char newcalling_num[StationMaxDirnumSize] = {0};

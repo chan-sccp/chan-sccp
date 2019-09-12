@@ -528,7 +528,7 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("AUDIO cos (rtp)", CLI_AMI_LIST_WIDTH, "%d", GLOB(audio_cos));
 	CLI_AMI_OUTPUT_PARAM("VIDEO tos (vrtp)", CLI_AMI_LIST_WIDTH, "%d", GLOB(video_tos));
 	CLI_AMI_OUTPUT_PARAM("VIDEO cos (vrtp)", CLI_AMI_LIST_WIDTH, "%d", GLOB(video_cos));
-	CLI_AMI_OUTPUT_PARAM("Context", CLI_AMI_LIST_WIDTH, "%s (%s)", GLOB(context), pbx_context_find(GLOB(context)) ? "exists" : "does not exist !!");
+	CLI_AMI_OUTPUT_PARAM("Context", CLI_AMI_LIST_WIDTH, "%s (%s)", GLOB(context), pbx_context_find(GLOB(context)) ? "<context exists>" : "<context not found !!>");
 	CLI_AMI_OUTPUT_PARAM("Language", CLI_AMI_LIST_WIDTH, "%s", GLOB(language));
 	CLI_AMI_OUTPUT_PARAM("Accountcode", CLI_AMI_LIST_WIDTH, "%s", GLOB(accountcode));
 	CLI_AMI_OUTPUT_PARAM("Musicclass", CLI_AMI_LIST_WIDTH, "%s", GLOB(musicclass));
@@ -1334,7 +1334,7 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	CLI_AMI_OUTPUT_BOOL("MeetMe enabled",		CLI_AMI_LIST_WIDTH, l->meetme);
 	CLI_AMI_OUTPUT_PARAM("MeetMe number",		CLI_AMI_LIST_WIDTH, "%s", l->meetmenum ? l->meetmenum : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("MeetMe Options",		CLI_AMI_LIST_WIDTH, "%s", l->meetmeopts ? l->meetmeopts : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("Context",			CLI_AMI_LIST_WIDTH, "%s (%s)", l->context ? l->context : "<not set>", pbx_context_find(l->context) ? "exists" : "does not exist !!");
+	CLI_AMI_OUTPUT_PARAM("Context",			CLI_AMI_LIST_WIDTH, "%s (%s)", l->context ? l->context : "<not set>", pbx_context_find(l->context) ? "<context exists>" : "<context not found !!>");
 	CLI_AMI_OUTPUT_PARAM("Language",		CLI_AMI_LIST_WIDTH, "%s", l->language ? l->language : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Account Code",		CLI_AMI_LIST_WIDTH, "%s", l->accountcode ? l->accountcode : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Musicclass",		CLI_AMI_LIST_WIDTH, "%s", l->musicclass ? l->musicclass : "<not set>");
