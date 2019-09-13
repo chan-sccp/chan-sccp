@@ -545,20 +545,20 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser
 	path = (char *) sccp_alloca(len);
 	snprintf(path, len, "%s/sccpxslt/%s", ast_config_AST_DATA_DIR, uri);
 
-	if (stat(path, &st) == -1) {
-		goto out404;
-	}
-
-	if (S_ISDIR(st.st_mode)) {
-		goto out404;
-	}
-
 	if (strstr(path, "/private/") && !astman_is_authed(ast_http_manid_from_vars(headers))) {
 		goto out403;
 	}
 
 	if ((fd = open(path, O_RDONLY)) == -1) {
+		/* open file before checking failure cause, to prevent TOCTOU */
+		if (stat(path, &st) == -1 || !S_ISREG(st.st_mode))
+			goto out404;
 		goto out403;
+	}
+	
+	if (fstat(fd, &st) == -1) {
+		close(fd);
+	    	goto out403;
 	}
 
 	/* make "Etag:" http header value */
