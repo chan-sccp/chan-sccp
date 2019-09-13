@@ -213,51 +213,51 @@ static Process_XSLT_t parse_useragent(PBX_VARIABLE_TYPE *request_headers)
 	Process_XSLT_t res = ServerSide;
 	char *pos = NULL;
 	const char *user_agent = sccp_retrieve_str_variable_byKey(request_headers, "User-Agent");
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) User-Agent:%s\n", user_agent);
+	sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) User-Agent:%s\n", user_agent);
 	do {
-		sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) Trying to match UserAgents\n");
+		sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) Trying to match UserAgents\n");
 		if (sccp_strlen_zero(user_agent)) {
-			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) No useragent\n");
+			sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) No useragent\n");
 			break;
 		}
 		if (strcasestr(user_agent,"Allegro") || strcasestr(user_agent,"XSI-HTTPClient") || strcasestr(user_agent,"Cisco/SPA")) {
-			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) Cisco VOIP Phone\n");
+			sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) Cisco VOIP Phone\n");
 			break;
 		}
 		if (strcasestr(user_agent,"Firefox/") || strcasestr(user_agent,"SeaMonkey/")) {
-			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) Firefox/ / SeaMonkey/\n");
+			sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) Firefox/ / SeaMonkey/\n");
 			res = ClientSide;
 			break;
 		}
 		if ((pos = strcasestr(user_agent,"MSIE"))) {
-			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) MSIE\n");
+			sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) MSIE\n");
 			pos += 4;
 			if (pos[0]=='/' && !(pos[1]=='1' || pos[1]=='2' || pos[1]=='3' || pos[1]=='4' || pos[1]=='5')) {
-				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) But new enough\n");
+				sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) But new enough\n");
 				res = ClientSide;
 			}
 			break;
 		}
 		if ((pos = strcasestr(user_agent,"Safari/"))) {
-			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) MSIE\n");
+			sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) MSIE\n");
 			pos += 7;
 			if (!(pos[1]=='1' || pos[1]=='2' || pos[1]=='3')) {
-				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) But new enough\n");
+				sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) But new enough\n");
 				res = ClientSide;
 			}
 			break;
 		}
 		if ((pos = strcasestr(user_agent,"Opera"))) {
-			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) MSIE\n");
+			sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) MSIE\n");
 			pos += 5;
 			if ((pos[0]=='/' || pos[0]==' ') && !(pos[1]>'8')) {
-				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) But new enough\n");
+				sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) But new enough\n");
 				res = ClientSide;
 			}
 			break;
 		}
 	} while(0);
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) User-Agent:%s -> %s\n", user_agent, res==ServerSide ? "ServerSide" : "ClientSide");
+	sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (parse_useragent) User-Agent:%s -> %s\n", user_agent, res==ServerSide ? "ServerSide" : "ClientSide");
 	return res;
 }
 
@@ -325,7 +325,7 @@ static __attribute__ ((malloc)) char * searchWebDirForFile(const char *filename,
  	} else {
 		snprintf(filepath, sizeof(filepath), PBX_VARLIB "/sccpxslt/%s.%s", filename, extension);
 	}
-	sccp_log(DEBUGCAT_NEWCODE)("SCCP: (searchWebDirForFile) Looking for '%s'\n", filepath);
+	sccp_log(DEBUGCAT_WEBSERVICE)("SCCP: (searchWebDirForFile) Looking for '%s'\n", filepath);
 	if (access(filepath, F_OK ) == -1) {
 		pbx_log(LOG_ERROR, "\nSCCP: (searchWebDirForFile) file: '%s' could not be found\n", filepath);
 		filepath[0] = '\0';
@@ -364,7 +364,7 @@ static int request_parser (
 	int result = 0;
 	pbx_str_t *http_header = NULL;
 	pbx_str_t *out = NULL;
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "SCCP: (request_parser) Handling Callback\n");
+	sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_1 "SCCP: (request_parser) Handling Callback\n");
 
 	handler_t *handler = get_request_handler(request_params);
 	if (!handler) {
@@ -384,17 +384,17 @@ static int request_parser (
 
 	//if (DEBUG) {
 		PBX_VARIABLE_TYPE *header;
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "request headers:\n");
+		sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "request headers:\n");
 		for(header = request_headers;header;header = header->next) {
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: (request_parser) key: %s, value: %s\n", header->name, header->value);
+			sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "SCCP: (request_parser) key: %s, value: %s\n", header->name, header->value);
 		}
 		PBX_VARIABLE_TYPE *param;
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "request parameters:\n");
+		sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "request parameters:\n");
 		for(param = request_params;param;param = param->next) {
-			sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: (request_parser) key: %s, value: %s\n", param->name, param->value);
+			sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "SCCP: (request_parser) key: %s, value: %s\n", param->name, param->value);
 		}
 	//}
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "SCCP: handler:%p, result:%d\n", handler, result);
+	sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "SCCP: handler:%p, result:%d\n", handler, result);
 	do {
 		http_header = pbx_str_create(80);
 		out = pbx_str_create(4196);
@@ -416,7 +416,7 @@ static int request_parser (
 			ast_http_error(ser, 500, "Server Error", "Internal Server Error\nCould not process request, callback failed\n");
 			break;
 		}
-		sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (request_parser) Handling Callback: %s, remote-address: %s\n", request_uri, ast_sockaddr_stringify(&ser->remote_address));
+		sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (request_parser) Handling Callback: %s, remote-address: %s\n", request_uri, ast_sockaddr_stringify(&ser->remote_address));
 		char timebuf[80];
 		struct timeval nowtv = ast_tvnow();
 		struct ast_tm now;
@@ -432,7 +432,7 @@ static int request_parser (
 			cookie_timeout,
 			timebuf
 		);
-		//sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (request_parser) Returning Header:'%s'\n", pbx_str_buffer(http_header));
+		//sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (request_parser) Returning Header:'%s'\n", pbx_str_buffer(http_header));
 		/*
 		if (handler->outputfmt == SCCP_XML_OUTPUTFMT_XML && handler->outputfmt != outputfmt && iXML.applyStyleSheet) {
 			addTranslation(request_params);
@@ -595,7 +595,7 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser
 		timebuf);
 
 	/* ast_http_send() frees http_header, so we don't need to do it before returning */
-	sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "Service '%s' => '%s' (%s)\n", uri, path, mtype);
+	sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "Service '%s' => '%s' (%s)\n", uri, path, mtype);
 	if (not_modified) {
 		ast_http_send(ser, method, 304, "Not Modified", http_header, NULL, 0, 1);
 	} else {
@@ -628,7 +628,7 @@ static struct ast_http_uri sccp_webservice_xslt_uri = {
 /* begin test */
 static boolean_t sccp_webservice_htmltest(const char *const uri, PBX_VARIABLE_TYPE *params, PBX_VARIABLE_TYPE *headers, pbx_str_t **result)
 {
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (sccp_webservice_test) Test Webservice\n");
+	sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (sccp_webservice_test) Test Webservice\n");
 	PBX_VARIABLE_TYPE *header;
 	PBX_VARIABLE_TYPE *param;
 	pbx_str_append(result, 0, "<html>\n");
@@ -665,21 +665,21 @@ static boolean_t xmlPostProcess(xmlDoc * const doc, const char *const uri, PBX_V
 		//addTranslation(params);
 		//sccp_append_variable(params, "locales", locale ? pbx_strdup(locale) : "en");
 		if (process_side == ServerSide) {
-			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (xmlPostProcess) Processing xsl server-side\n");
+			sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (xmlPostProcess) Processing xsl server-side\n");
 			char *stylesheetFilename = findStylesheet(uri, outputfmt);
 			if (stylesheetFilename) {
 				if (!iXML.applyStyleSheetByName(doc, stylesheetFilename, params, resultstr)) {
 					pbx_log(LOG_ERROR, "Applying Stylesheet failed\n");
 					res = FALSE;
 				}
-				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (xmlPostProcess) resultstr:%s\n", *resultstr);
+				sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (xmlPostProcess) resultstr:%s\n", *resultstr);
 				sccp_free(stylesheetFilename);
 			} else {
 				pbx_log(LOG_ERROR, "Stylesheet could not be found\n");
 				res = FALSE;
 			}
 		} else {
-			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (xmlPostProcess) Processing xsl client-side\n");
+			sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (xmlPostProcess) Processing xsl client-side\n");
 			*resultstr = iXML.dump(doc, TRUE);
 		}
 	}
@@ -689,7 +689,7 @@ static boolean_t xmlPostProcess(xmlDoc * const doc, const char *const uri, PBX_V
 static boolean_t sccp_webservice_xmltest(const char *const uri, PBX_VARIABLE_TYPE *params, PBX_VARIABLE_TYPE *headers, pbx_str_t **result)
 {
 	boolean_t res = FALSE;
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "SCCP: (sccp_webservice_test) Test Webservice\n");
+	sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (sccp_webservice_test) Test Webservice\n");
 
 /*
 	Process_XSLT_t process_side = parse_useragent(headers);
@@ -748,7 +748,7 @@ static boolean_t sccp_webservice_xmltest(const char *const uri, PBX_VARIABLE_TYP
 	char *resultstr = NULL;
 	if ((res |= xmlPostProcess(doc, uri, params, headers, &resultstr))) {
 		// create a function for this
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "resultstr: %s\n", resultstr);
+		sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "resultstr: %s\n", resultstr);
 		pbx_str_append(result, 0, "%s", resultstr);
 		sccp_free(resultstr);
 	//} else {
@@ -825,7 +825,7 @@ static boolean_t removeHandler(const char *const uri)
 	boolean_t result = FALSE;
 	SCCP_VECTOR_RW_WRLOCK(&handlers);
 	if (SCCP_VECTOR_REMOVE_CMP_UNORDERED(&handlers, uri, HANDLER_CB_CMP, SCCP_VECTOR_ELEM_CLEANUP_NOOP) == 0) {
-		sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_1 "SCCP: (sccp_webservice) removed handler for uri: '%s'\n", uri);
+		sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_1 "SCCP: (sccp_webservice) removed handler for uri: '%s'\n", uri);
 		result = TRUE;
 	}
 	SCCP_VECTOR_RW_UNLOCK(&handlers);

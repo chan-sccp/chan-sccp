@@ -148,7 +148,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		/* assign private_data default values */
 		private_data->microphone = TRUE;
 		private_data->device = NULL;
-		private_data->callInfo = iCallInfo.Constructor(callInstance);
+		private_data->callInfo = iCallInfo.Constructor(callInstance, designator);
 		SCCP_LIST_HEAD_INIT(&private_data->cleanup_jobs);
 		if (!private_data->callInfo) {
 			break;

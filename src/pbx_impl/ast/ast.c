@@ -809,7 +809,7 @@ void sccp_astwrap_redirectedUpdate(sccp_channel_t * channel, const void *data, s
 		SCCP_CALLINFO_KEY_SENTINEL);
 #endif
 
-	sccp_channel_display_callInfo(channel);
+	//sccp_channel_display_callInfo(channel);
 	sccp_channel_send_callinfo2(channel);
 }
 
@@ -907,7 +907,7 @@ void sccp_astwrap_connectedline(sccp_channel_t * channel, const void *data, size
 				SCCP_CALLINFO_KEY_SENTINEL);
 		}
 	}
-	sccp_channel_display_callInfo(channel);
+	//sccp_channel_display_callInfo(channel);
 	if (changes) {
 		sccp_channel_send_callinfo2(channel);
 

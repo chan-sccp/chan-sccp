@@ -43,7 +43,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 static __attribute__ ((malloc)) xmlDoc * createDoc(void)
 {
 	xmlDoc *doc = xmlNewDoc((const xmlChar *) "1.0");
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "SCCP: (createDoc) doc:%p\n", doc);
+	sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_2 "SCCP: (createDoc) doc:%p\n", doc);
 	return doc;
 }
 
@@ -51,7 +51,7 @@ static __attribute__ ((malloc)) xmlDoc * createDocFromStr(const char *inbuf, int
 {
 	int options = 0; /* XML_PARSE_XINCLUDE */
 	xmlDoc *doc = xmlReadMemory(inbuf, length, "noname.xml", NULL, options);
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "SCCP: (createDocFromStr) doc:%p\n", doc);
+	sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_2 "SCCP: (createDocFromStr) doc:%p\n", doc);
 	return doc;
 }
 
@@ -63,14 +63,14 @@ static __attribute__ ((malloc)) xmlDoc * createDocFromPbxStr(const pbx_str_t *in
 static xmlNode * createNode(const char * const name)
 {
 	xmlNode * node = xmlNewNode(NULL, (const xmlChar *) name);
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "SCCP: (addElement) name:%s -> node: %p\n", name, node);
+	sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_2 "SCCP: (addElement) name:%s -> node: %p\n", name, node);
 	return node;
 }
 
 static xmlNode * addElement(xmlNode *const parentNode, const char * const name, const char *const content)
 {
 	xmlNode * node = xmlNewChild(parentNode, NULL, (const xmlChar *) name, (const xmlChar *) content);
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "SCCP: (addElement) parent:%p, name:%s, content:%s -> node: %p\n", parentNode, name, content, node);
+	sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_2 "SCCP: (addElement) parent:%p, name:%s, content:%s -> node: %p\n", parentNode, name, content, node);
 	return node;
 }
 
@@ -87,7 +87,7 @@ static void __attribute__ ((format (printf, 3, 4))) addProperty(xmlNode *const p
 
 static void setRootElement(xmlDoc * const doc, xmlNode * const node)
 {
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "SCCP: (setRootElement) doc:%p, node:%p\n", doc, node);
+	sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_2 "SCCP: (setRootElement) doc:%p, node:%p\n", doc, node);
 	xmlDocSetRootElement(doc, node);
 }
 
@@ -97,7 +97,7 @@ static __attribute__ ((malloc)) char * dump(xmlDoc * const doc, boolean_t indent
 	int output_len = 0;
 	xmlDocDumpFormatMemoryEnc(doc, (xmlChar **)&output, &output_len, "UTF-8", indent ? 1 : 0);
 	
-	sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "SCCP: (dump) doc:%p -> XML:\n%s\n", doc, output);
+	sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_2 "SCCP: (dump) doc:%p -> XML:\n%s\n", doc, output);
 	return output;
 }
 
@@ -199,11 +199,11 @@ static boolean_t applyStyleSheetByName(xmlDoc * const doc, const char *const sty
 		if (newdoc) {			// switch xml doc with newdoc which got the stylesheet applied, free original xml doc
 			int output_len = 0;
 			xmlDocDumpFormatMemoryEnc(newdoc, (xmlChar **)result, &output_len, "UTF-8", 1);
-			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "applied Stylesheet newdoc: '%s'\n", *result);
+			sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "applied Stylesheet newdoc: '%s'\n", *result);
 			xmlFreeDoc(newdoc);
 			res = TRUE;
 		}
-		//sccp_log(DEBUGCAT_NEWCODE)(VERBOSE_PREFIX_3 "applied Stylesheet doc: '%s'\n", dump(doc, TRUE));
+		//sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "applied Stylesheet doc: '%s'\n", dump(doc, TRUE));
 		xsltFreeStylesheet(xslt);
 		xsltCleanupGlobals();
 	}

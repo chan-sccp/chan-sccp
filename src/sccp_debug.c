@@ -27,7 +27,6 @@ struct sccp_debug_category const sccp_debug_categories[32] = {
 	{"line",		"line debug level", 			DEBUGCAT_LINE},
 	{"action",		"action debug level", 			DEBUGCAT_ACTION},
 	{"channel",		"channel debug level", 			DEBUGCAT_CHANNEL},
-	{"cli",			"cli debug level", 			DEBUGCAT_CLI},
 	{"config",		"config debug level", 			DEBUGCAT_CONFIG},
 	{"feature",		"feature debug level", 			DEBUGCAT_FEATURE},
 	{"feature_button",	"feature_button debug level",		DEBUGCAT_FEATURE_BUTTON},
@@ -46,8 +45,9 @@ struct sccp_debug_category const sccp_debug_categories[32] = {
 	{"refcount",		"refcount lock debug level", 		DEBUGCAT_REFCOUNT},
 	{"message",		"message debug level", 			DEBUGCAT_MESSAGE},
 	{"parkinglot",		"parkinglot debug level", 		DEBUGCAT_PARKINGLOT},
-	{"newcode",		"newcode debug level", 			DEBUGCAT_NEWCODE},
+	{"webservice",		"webservice debug level", 		DEBUGCAT_WEBSERVICE},
 	{"threadpool",		"threadpool debug level",	 	DEBUGCAT_THPOOL},
+	{"newcode",		"newcode debug level", 			DEBUGCAT_NEWCODE},
 	{"filelinefunc",	"add line/file/function to debug output", DEBUGCAT_FILELINEFUNC},
 	{"high",		"high debug level", 			DEBUGCAT_HIGH},
 	/* *INDENT-ON* */

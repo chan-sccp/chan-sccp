@@ -622,7 +622,7 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 		pbx_log(LOG_ERROR, "SCCP: (sccp_hint_create) Memory Allocation Error while creating hint list for hint: %s@%s\n", hint_exten, hint_context);
 		return NULL;
 	}
-	if (!(hint->callInfo = iCallInfo.Constructor(0))) {
+	if (!(hint->callInfo = iCallInfo.Constructor(0, "hint"))) {
 		sccp_free(hint);
 		return NULL;
 	}

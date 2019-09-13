@@ -1994,7 +1994,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 				sccp_device_sendcallstate(d, instance, 0, SKINNY_CALLSTATE_CONGESTION, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 				sccp_device_sendcallstate(d, instance, 0, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_callinfo_t *citest = NULL;
-				citest = iCallInfo.Constructor(15);
+				citest = iCallInfo.Constructor(15, "SCCP/dnd-test");
 				iCallInfo.Setter(citest, SCCP_CALLINFO_CALLEDPARTY_NAME, "DND", 
 							SCCP_CALLINFO_CALLEDPARTY_NUMBER, "DND", 
 							SCCP_CALLINFO_KEY_SENTINEL);
@@ -3703,7 +3703,6 @@ int sccp_register_cli(void)
 	uint i, res = 0;
 
 	for (i = 0; i < ARRAY_LEN(cli_entries); i++) {
-		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_2 "Cli registered action %s\n", (cli_entries + i)->_full_cmd);
 		res |= pbx_cli_register(cli_entries + i);
 	}
 
@@ -3751,7 +3750,6 @@ int sccp_unregister_cli(void)
 	uint i, res = 0;
 
 	for (i = 0; i < ARRAY_LEN(cli_entries); i++) {
-		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_2 "Cli unregistered action %s\n", (cli_entries + i)->_full_cmd);
 		res |= pbx_cli_unregister(cli_entries + i);
 	}
 	res |= pbx_manager_unregister("SCCPShowGlobals");
