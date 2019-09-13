@@ -21,8 +21,12 @@
 SCCP_FILE_VERSION(__FILE__, "");
 
 #include <locale.h>
-#if HAVE_XLOCALE_H
-#include <xlocale.h>
+#if defined __has_include
+#  if __has_include (<xlocale.h>)
+#    include <xlocale.h>
+#  endif
+#elif defined(HAVE_XLOCALE_H)
+#  include <xlocale.h>
 #endif
 #if defined(DEBUG) && defined(HAVE_EXECINFO_H)
 #  include <execinfo.h>
