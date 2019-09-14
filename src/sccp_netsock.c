@@ -245,6 +245,24 @@ EXIT:
 
 /*!
  * \brief
+ * Compares the port of two sockaddr structures.
+ *
+ * \retval -1 \a a is smaller than \a b
+ * \retval 0 \a a is equal to \a b
+ * \retval 1 \a b is smaller than \a a
+ */
+int sccp_netsock_cmp_port(const struct sockaddr_storage *a, const struct sockaddr_storage *b)
+{
+	uint16_t a_port = sccp_netsock_getPort(a);
+	uint16_t b_port = sccp_netsock_getPort(b);
+
+	sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_2 "SCCP: sccp_netsock_cmp_port(%d, %d) returning %d\n", a_port, b_port, (a_port < b_port) ? -1 : (a_port == b_port) ? 0 : 1);
+
+	return (a_port < b_port) ? -1 : (a_port == b_port) ? 0 : 1;
+}
+
+/*!
+ * \brief
  * Splits a string into its host and port components
  *
  * \param str       [in] The string to parse. May be modified by writing a NUL at the end of

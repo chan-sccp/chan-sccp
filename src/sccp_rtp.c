@@ -279,13 +279,6 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 	if (device) {
 
 		/* check if we have new infos */
-		/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
-		/*
-		if (sccp_netsock_equals(new_peer, &c->rtp.audio.phone)) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equal to the current one, ignore change\n", c->currentDeviceId);
-			//return;
-		}
-		*/
 		char peerIpStr[NI_MAXHOST + NI_MAXSERV];
 		char remoteIpStr[NI_MAXHOST + NI_MAXSERV];
 		char phoneIpStr[NI_MAXHOST + NI_MAXSERV];
@@ -297,6 +290,14 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 			sccp_netsock_ipv4_mapped(new_peer, new_peer);
 			sccp_netsock_setPort(new_peer, port);
 		}
+
+		/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
+		/*
+		if (sccp_netsock_equals(new_peer, &c->rtp.audio.phone)) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equal to the current one, ignore change\n", c->currentDeviceId);
+			return;
+		}
+		*/
 
 		memcpy(&rtp->phone, new_peer, sizeof(rtp->phone));
 
