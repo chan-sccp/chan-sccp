@@ -1113,7 +1113,7 @@ static int sccp_astwrap_setNativeVideoFormats(constChannelPtr channel, skinny_co
         	return 0;
 	}
 	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(ast), AST_MEDIA_TYPE_UNKNOWN);
-	ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_AUDIO);
+	ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_VIDEO);
 	pbx_format_cap_append_skinny(caps, codecs);
 	
 	ast_channel_lock(ast);

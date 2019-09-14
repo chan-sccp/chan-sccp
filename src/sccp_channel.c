@@ -1500,7 +1500,7 @@ channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channe
 			if (channel->line) {
 				sccp_line_removeChannel(channel->line, channel);
 			}
-			sccp_channel_clean(channel);
+			//sccp_channel_clean(channel);
 			sccp_channel_release(&channel);
 		}
 		return NULL;
