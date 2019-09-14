@@ -1523,12 +1523,13 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, format_t format,
 			goto EXITFUNC;
 	}
 
-	/** set requested codec as prefered codec */
 	memcpy(&channel->remoteCapabilities.audio, audioCapabilities, sizeof(channel->remoteCapabilities.audio));
-#if SCCP_VIDEO
-	memcpy(&channel->remoteCapabilities.video, videoCapabilities, sizeof(channel->remoteCapabilities.video));
+#ifdef CS_SCCP_VIDEO
+	memset(&channel->remoteCapabilities.video, 0, sizeof(channel->remoteCapabilities.video));
+	if (videoCapabilities[0] != SKINNY_CODEC_NONE) {
+		memcpy(channel->remoteCapabilities.video, videoCapabilities, ARRAY_LEN(videoCapabilities));
+	}
 #endif
-	/** done */
 
 	if (!sccp_pbx_channel_allocate(channel, requestor ? requestor->linkedid : NULL, requestor)) {
 		//! \todo handle error in more detail, cleanup sccp channel

@@ -399,13 +399,14 @@ static boolean_t sccp_channel_recalculateVideoCodecFormat(sccp_channel_t * chann
 			sccp_codec_reduceSet(preferences->video, channel->capabilities.video);
 		}
 		joint = sccp_codec_findBestJoint(channel, preferences->video, channel->remoteCapabilities.video, FALSE);
-
-		skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = { joint, SKINNY_CODEC_NONE};
-		iPbx.set_nativeVideoFormats(channel, codecs);
 		if (joint == SKINNY_CODEC_NONE) {
 			sccp_channel_setVideoMode(channel, "off");
 			return FALSE;
 		}
+		//if (channel->rtp.video.instance) {
+		skinny_codec_t codecs[SKINNY_MAX_CAPABILITIES] = { joint, SKINNY_CODEC_NONE};
+		iPbx.set_nativeVideoFormats(channel, codecs);
+		//}
 		channel->rtp.video.reception.format = joint;
 		channel->rtp.video.transmission.format = joint;
 		iPbx.rtp_setWriteFormat(channel, joint);

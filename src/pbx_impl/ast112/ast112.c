@@ -1414,7 +1414,8 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 	char *lineName;
 	//skinny_codec_t codec = SKINNY_CODEC_G711_ULAW_64K;
 	sccp_autoanswer_t autoanswer_type = SCCP_AUTOANSWER_NONE;
-	uint8_t autoanswer_cause = AST_CAUSE_NOTDEFINED;
+	uint8_t autoanswer_cause = AST_CAUSE_N
+	OTDEFINED;
 	skinny_ringtype_t ringermode = GLOB(ringtype);
 
 	*cause = AST_CAUSE_NOTDEFINED;
@@ -1509,12 +1510,13 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 			goto EXITFUNC;
 	}
 
-	/** set requested codec as prefered codec */
 	memcpy(&channel->remoteCapabilities.audio, audioCapabilities, sizeof(channel->remoteCapabilities.audio));
-#if SCCP_VIDEO
-	memcpy(&channel->remoteCapabilities.video, videoCapabilities, sizeof(channel->remoteCapabilities.video));
+#ifdef CS_SCCP_VIDEO
+	memset(&channel->remoteCapabilities.video, 0, sizeof(channel->remoteCapabilities.video));
+	if (videoCapabilities[0] != SKINNY_CODEC_NONE) {
+		memcpy(channel->remoteCapabilities.video, videoCapabilities, ARRAY_LEN(videoCapabilities));
+	}
 #endif
-	/** done */
 
 	if (!sccp_pbx_channel_allocate(channel, assignedids, requestor)) {
 		//! \todo handle error in more detail, cleanup sccp channel

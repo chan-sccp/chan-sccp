@@ -1800,7 +1800,7 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, videoCapabilities, ARRAY_LEN(videoCapabilities));
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote video caps: %s\n", cap_buf);
 
-	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "SCCP: requestedCodec in Skinny Format: audio:%s (video:%s)\n", codec2name(audio_codec), codec2name(video_codec));
+	//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "SCCP: requestedCodec in Skinny Format: audio:%s (video:%s)\n", codec2name(audio_codec), codec2name(video_codec));
 	/** done getting remote capabilities */
 
 	int callid_created = ast_callid_threadstorage_auto(&callid);
@@ -1827,13 +1827,14 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 			*cause = AST_CAUSE_UNALLOCATED;
 			goto EXITFUNC;
 	}
-
-	/** set requested codec as prefered codec */
-	memcpy(&channel->remoteCapabilities.audio, audioCapabilities, sizeof(channel->remoteCapabilities.audio));
-#if SCCP_VIDEO
-	memcpy(&channel->remoteCapabilities.video, videoCapabilities, sizeof(channel->remoteCapabilities.video));
+#ifdef CS_SCCP_VIDEO
+	memset(&channel->remoteCapabilities.video, 0, sizeof(channel->remoteCapabilities.video));
+	if (videoCapabilities[0] != SKINNY_CODEC_NONE) {
+		memcpy(channel->remoteCapabilities.video, videoCapabilities, ARRAY_LEN(videoCapabilities));
+	} else if (video_codec) {
+		channel->remoteCapabilities.video[0] = video_codec;
+	}
 #endif
-	/** done */
 	
 	if (!sccp_pbx_channel_allocate(channel, assignedids, requestor)) {
 		//! \todo handle error in more detail, cleanup sccp channel
