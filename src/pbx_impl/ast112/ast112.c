@@ -1414,8 +1414,7 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 	char *lineName;
 	//skinny_codec_t codec = SKINNY_CODEC_G711_ULAW_64K;
 	sccp_autoanswer_t autoanswer_type = SCCP_AUTOANSWER_NONE;
-	uint8_t autoanswer_cause = AST_CAUSE_N
-	OTDEFINED;
+	uint8_t autoanswer_cause = AST_CAUSE_NOTDEFINED;
 	skinny_ringtype_t ringermode = GLOB(ringtype);
 
 	*cause = AST_CAUSE_NOTDEFINED;
