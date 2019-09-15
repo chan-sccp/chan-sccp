@@ -58,16 +58,19 @@ void sccp_refcount_init(void)
 	sccp_log((DEBUGCAT_REFCOUNT + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "SCCP: (Refcount) init\n");
 	runState = SCCP_REF_RUNNING;
 }
+
 void sccp_refcount_destroy(void)
 {
 	runState = SCCP_REF_STOPPED;
 	sched_yield();												//make sure all other threads can finish their work first.
 	runState = SCCP_REF_DESTROYED;
 }
+
 int sccp_refcount_isRunning(void)
 {
 	return runState;
 }
+
 void * const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, int (*destructor)(const void *))
 {
 	void *obj = NULL;
@@ -80,28 +83,33 @@ void * const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types 
 	}
 	return (void * const)obj;
 }
+
 void sccp_refcount_updateIdentifier(const void * const ptr, const char * const identifier)
 {
+	return;
 }
+
 gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func)
 {
 	void *const obj = (void *const) ptr;
 #if CS_REFCOUNT_DEBUG
-	sccp_log(DEBUG_REFCOUNT(VERBOSE_PREFIX_3)("ptr:%p, filename:%s, lineno:%d, function:%s", obj, NULL, 1, filename, lineno, func);
+	sccp_log(DEBUG_REFCOUNT)(VERBOSE_PREFIX_3 "ptr:%p, filename:%s, lineno:%d, function:%s", obj, NULL, 1, filename, lineno, func);
 #endif
 	ao2_ref(obj, 1);
 	return obj;
 }
+
 gcc_inline void * const sccp_refcount_release(const void * * const ptr, const char *filename, int lineno, const char *func)
 {
 	void *const obj = (void *const) *ptr;
 #if CS_REFCOUNT_DEBUG
-	sccp_log(DEBUG_REFCOUNT(VERBOSE_PREFIX_3)("ptr:%p, filename:%s, lineno:%d, function:%s", obk, NULL, 1, filename, lineno, func);
+	sccp_log(DEBUG_REFCOUNT)(VERBOSE_PREFIX_3 "ptr:%p, filename:%s, lineno:%d, function:%s", obk, NULL, 1, filename, lineno, func);
 #endif
 	ao2_ref(obj, -1);
 	*ptr = NULL;
 	return NULL;
 }
+
 gcc_inline void sccp_refcount_replace(const void * * const replaceptr, const void *const newptr, const char *filename, int lineno, const char *func)
 {
 	if (!replaceptr || (&newptr == replaceptr)) {								// nothing changed
@@ -121,10 +129,12 @@ gcc_inline void sccp_refcount_replace(const void * * const replaceptr, const voi
 	}
 	
 }
+
 int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	return 0;
 }
+
 gcc_inline void sccp_refcount_autorelease(void *refptr)
 {
 	auto_ref_t *ref = (auto_ref_t *)refptr;
@@ -132,6 +142,7 @@ gcc_inline void sccp_refcount_autorelease(void *refptr)
 		sccp_refcount_release(ref->ptr, ref->file, ref->line, ref->func);				// explicit release
 	}
 }
+
 #if CS_REFCOUNT_DEBUG
 void sccp_refcount_addWeakParent(const void * const ptr, const void * const parentWeakPtr) {}
 void sccp_refcount_removeWeakParent(const void * const ptr, const void * const parentWeakPtr) {}
@@ -142,6 +153,7 @@ int sccp_refcount_force_release(long findobj, char *identifier)
 {
 	return 1;
 }
+
 #endif
 
 #else // CS_ASTOBJ_REFCOUNT
