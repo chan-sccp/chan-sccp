@@ -23,6 +23,7 @@ contrib/gen_sccpconf/Makefile
 contrib/gen_sccpconf/gen_sccpconf
 src/config.h.bak
 src/config.h.in.bak
+src/stamp-g1
 .*~
 *~
 .revision

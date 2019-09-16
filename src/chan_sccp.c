@@ -177,7 +177,7 @@ boolean_t sccp_postPBX_load(void)
 	// initialize SCCP_REVISIONSTR and SCCP_REVISIONSTR
 	
 #ifdef VCS_SHORT_HASH
-#ifdef VCS_WC_MODIFIED
+#if VCS_WC_MODIFIED
 	snprintf(SCCP_REVISIONSTR, sizeof(SCCP_REVISIONSTR), "%sM", VCS_SHORT_HASH);
 #else
 	snprintf(SCCP_REVISIONSTR, sizeof(SCCP_REVISIONSTR), "%s", VCS_SHORT_HASH);

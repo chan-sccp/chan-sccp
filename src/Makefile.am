@@ -11,22 +11,29 @@ SUBDIRS			= pbx_impl $(PBX_COND_SUBDIR) $(PBXVER_COND_SUBDIR) $(PBXVER_COND_ANNO
 DIST_SUBDIRS		= pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/ast110 pbx_impl/ast111 pbx_impl/ast112 pbx_impl/ast113 pbx_impl/ast114 pbx_impl/ast115 pbx_impl/ast_announce .
 EXTRA_DIST 		= sccp_enum.in sccp_config_entries.hh
 BUILT_SOURCES           = revision.h sccp_enum.h sccp_enum.c
-CLEANFILES              = revision.h sccp_enum.h sccp_enum.c
+CLEANFILES              = revision.h sccp_enum.h sccp_enum.c stamp-g1
 .PHONY: 		.revision
 
 # generated files
 revision.h: 		.revision
 
-.revision:
-			@if [ ! -f @abs_top_builddir@/src/revision.h ] || [ ! -z "`find @abs_top_builddir@/src/revision.h -mmin +60`" ] ; then			\
-				echo "  REV      revision.h";													\
-				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_top_builddir@/src/revision.h" 2>/dev/null;	\
-			fi
+.revision:		stamp-h1
+	@if [ -d "$(top_srcdir)/.git" ] && [ ! -z "$(GIT)" ]; then											\
+		if [ ! -f "@abs_top_builddir@/src/stamp-g1" ] || [ "`$(GIT) log -1 --pretty='%h/%d'`" != "`cat @abs_top_builddir@/src/stamp-g1`" ];	\
+		then																	\
+			echo "  REV      revision.h";													\
+			@abs_top_srcdir@/tools/autorevision -t h -o @abs_top_srcdir@/.revision >"@abs_top_builddir@/src/revision.h" 2>/dev/null;	\
+			$(GIT) log -1 --pretty="%h/%d" > @abs_top_builddir@/src/stamp-g1;								\
+		fi;																	\
+	else																		\
+		@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision >"@abs_top_builddir@/src/revision.h" 2>/dev/null;		\
+	fi
+
 
 sccp_enum.h sccp_enum.c:sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-			@if [ sccp_enum.in -nt $@ ] || [ @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ ]; then						\
-				$(MAKE) gen_enum;														\
-			fi
+	@if [ sccp_enum.in -nt $@ ] || [ @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ ]; then							\
+		$(MAKE) gen_enum;															\
+	fi
 
 gen_enum:		sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 			@echo "  GEN      sccp_enum.h";
