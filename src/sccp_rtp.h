@@ -26,6 +26,7 @@ typedef struct sccp_rtp_direction {
 struct sccp_rtp {
 	sccp_mutex_t lock;
 	PBX_RTP_TYPE *instance;											/*!< pbx rtp instance pointer */
+	boolean_t instance_active;
 	sccp_rtp_type_t type;											/* audio/video/data */
 	sccp_rtp_direction_t reception;										/* receive rtp / ORC */
 	sccp_rtp_direction_t transmission;									/* transmit rtp / SMT */

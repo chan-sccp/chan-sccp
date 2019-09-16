@@ -101,7 +101,6 @@ SCCP_FILE_VERSION(__FILE__, "");
  */
 boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t type)
 {
-	boolean_t rtpResult = FALSE;
 	sccp_rtp_t *rtp = NULL;
 
 	if (!c || !d) {
@@ -123,13 +122,17 @@ boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t 
 	}
 
 	if (rtp->instance) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: we already have a %s server, we use this one\n", c->designator, sccp_rtp_type2str(type));
-		return TRUE;
+		if (rtp->instance_active) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: we already have a %s server, we use this one\n", c->designator, sccp_rtp_type2str(type));
+			return TRUE;
+		} else {
+			sccp_rtp_destroy(c);
+		}
 	}
 	rtp->type = type;
 
 	if (iPbx.rtp_create_instance) {
-		rtpResult = iPbx.rtp_create_instance(d, c, rtp);
+		rtp->instance_active = iPbx.rtp_create_instance(d, c, rtp);
 	} else {
 		pbx_log(LOG_ERROR, "we should start our own rtp server, but we don't have one\n");
 		return FALSE;
@@ -156,7 +159,7 @@ boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t 
 	boolean_t isMappedIPv4 = sccp_netsock_ipv4_mapped(phone_remote, phone_remote);
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (sccp_rtp_createRtpServer) updated phone %s destination to : %s, family:%s, mapped: %s\n", c->designator, sccp_rtp_type2str(type), buf, sccp_netsock_is_IPv4(phone_remote) ? "IPv4" : "IPv6", isMappedIPv4 ? "True" : "False");
 
-	return rtpResult;
+	return rtp->instance_active;
 }
 
 /*!
@@ -190,15 +193,17 @@ void sccp_rtp_stop(constChannelPtr channel)
 		return;
 	}
 	if (iPbx.rtp_stop) {
-		if (channel->rtp.audio.instance) {
-			PBX_RTP_TYPE *rtp = (PBX_RTP_TYPE *) channel->rtp.audio.instance;		/* discard const */
+		sccp_rtp_t *const audio = (sccp_rtp_t *) &(channel->rtp.audio);							// discard const
+		if (audio->instance && audio->instance_active) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX audio rtp transmission on channel %s\n", channel->currentDeviceId, channel->designator);
-			iPbx.rtp_stop(rtp);
+			iPbx.rtp_stop(audio->instance);
+			audio->instance_active = FALSE;
 		}
-		if (channel->rtp.video.instance) {
-			PBX_RTP_TYPE *rtp = (PBX_RTP_TYPE *) channel->rtp.video.instance;		/* discard const */
+		sccp_rtp_t *const video = (sccp_rtp_t *) &(channel->rtp.video);							// discard const
+		if (video->instance && video->instance_active) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX video rtp transmission on channel %s\n", channel->currentDeviceId, channel->designator);
-			iPbx.rtp_stop(rtp);
+			iPbx.rtp_stop(video->instance);
+			video->instance_active = FALSE;
 		}
 	} else {
 		pbx_log(LOG_ERROR, "no pbx function to stop rtp\n");
@@ -216,12 +221,18 @@ void sccp_rtp_destroy(constChannelPtr c)
 
 	if (audio->instance) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX rtp server on channel %s\n", c->currentDeviceId, c->designator);
+		if (audio->instance_active) {
+			iPbx.rtp_stop(audio->instance);
+		}
 		iPbx.rtp_destroy(audio->instance);
 		audio->instance = NULL;
 	}
 
 	if (video->instance) {
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX vrtp server on channel %s\n", c->currentDeviceId, c->designator);
+		if (video->instance_active) {
+			iPbx.rtp_stop(video->instance);
+		}
 		iPbx.rtp_destroy(video->instance);
 		video->instance = NULL;
 	}
