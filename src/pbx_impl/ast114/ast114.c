@@ -1376,7 +1376,7 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 		ast_channel_zone_set(pbxDstChannel, ast_get_indication_zone(line->language));			/* this will core asterisk on hangup */
 	}
 
-	ast_module_ref(pbx_module_info->self);
+	ast_module_ref(ast_module_info->self);
 	ast_channel_stage_snapshot_done(pbxDstChannel);
 	ast_channel_unlock(pbxDstChannel);
 
@@ -3776,7 +3776,6 @@ static int unload_module(void)
 	pbx_log(LOG_NOTICE, "Running Cleanup\n");
 	sccp_free(sccp_globals);
 	pbx_log(LOG_NOTICE, "Module chan_sccp unloaded\n");
-	ast_module_unref(pbx_module_info->self);
 	return 0;
 }
 
