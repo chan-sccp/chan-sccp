@@ -585,6 +585,15 @@ strenum videoformat {
 }
 
 /*!
+ * \brief Skinny Video Capability Type (ENUM)
+ */
+strenum videoCapabilityType {
+	SKINNY_VIDEOCAP_V1,				=0,	"Video Capability V1", 
+	SKINNY_VIDEOCAP_V2,				=1,	"Video Capability V2", 
+	SKINNY_VIDEOCAP_V3,				=2,	"Video Capability V3", 
+}
+
+/*!
  * \brief Skinny Ringtype Format (ENUM)
  */
 strenum ringtype {

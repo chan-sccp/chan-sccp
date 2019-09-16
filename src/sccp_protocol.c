@@ -699,7 +699,7 @@ static void sccp_protocol_sendOpenMultiMediaChannelV3(constDevicePtr device, con
 	skinny_OpenMultiMediaReceiveChannelUnion_t *capability = &(msg->data.OpenMultiMediaChannelMessage.v3.capability);
 	{
 		capability->vidParameters.lel_bitRate = htolel(bitRate);
-		capability->vidParameters.lel_pictureFormatCount = htolel(1);
+		capability->vidParameters.lel_pictureFormatCount = htolel(4);
 		
 		capability->vidParameters.pictureFormat[0].format = htolel(4);					// should be taken from UpdateCapabilitiesMessage
 		capability->vidParameters.pictureFormat[0].mpi = htolel(1);					// should be taken from UpdateCapabilitiesMessage
@@ -709,8 +709,8 @@ static void sccp_protocol_sendOpenMultiMediaChannelV3(constDevicePtr device, con
 		capability->vidParameters.pictureFormat[2].mpi = htolel(1);
 		capability->vidParameters.pictureFormat[3].format = htolel(0);
 		capability->vidParameters.pictureFormat[3].mpi = htolel(1);
-		//capability->vidParameters.pictureFormat[4].format = htolel(0);
-		//capability->vidParameters.pictureFormat[4].mpi = htolel(0);
+		capability->vidParameters.pictureFormat[4].format = htolel(0);
+		capability->vidParameters.pictureFormat[4].mpi = htolel(0);
 		
 		capability->vidParameters.lel_confServiceNum = htolel(0);
 
@@ -727,12 +727,30 @@ static void sccp_protocol_sendOpenMultiMediaChannelV3(constDevicePtr device, con
 				channelVideoParams->h263P.lel_modelNumber = htolel(0);				// ??
 				channelVideoParams->h263P.lel_bandwidth = htolel(0);				// ?? 90000
 			} else if (skinnyFormat == SKINNY_CODEC_H264) {						// aka: MPEG4-AVC
-				channelVideoParams->h264.lel_profile = htolel(64);				// should be taken from UpdateCapabilitiesMessage
+				/*
+				      PROFILE:  profile number, in the range 0 through 10,
+				      specifying the supported H.263 annexes/subparts based on H.263
+				      annex X [H263].  The annexes supported in each profile are listed
+				      in table X.1 of H.263 annex X.  If no profile or H.263 annex is
+				      specified, then the stream is Baseline H.263 (profile 0 of H.263
+				      annex X).
+				*/
+				//channelVideoParams->h264.lel_profile = htolel(64);				// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_profile = htolel(72);				// should be taken from UpdateCapabilitiesMessage
+				/*
+				      LEVEL:  Level of bitstream operation, in the range 0 through 100,
+				      specifying the level of computational complexity of the decoding
+				      process.  The level are described in table X.2 of H.263 annex X.
+				*/
 				channelVideoParams->h264.lel_level = htolel(43);				// should be taken from UpdateCapabilitiesMessage
-				channelVideoParams->h264.lel_customMaxMBPS = htolel(40500);			// should be taken from UpdateCapabilitiesMessage
-				channelVideoParams->h264.lel_customMaxFS = htolel(1620);			// should be taken from UpdateCapabilitiesMessage
-				channelVideoParams->h264.lel_customMaxDPB = htolel(8100);			// should be taken from UpdateCapabilitiesMessage
-				channelVideoParams->h264.lel_customMaxBRandCPB = htolel(10000);			// should be taken from UpdateCapabilitiesMessage
+				//channelVideoParams->h264.lel_customMaxMBPS = htolel(40500);			// should be taken from UpdateCapabilitiesMessage
+				//channelVideoParams->h264.lel_customMaxFS = htolel(1620);			// should be taken from UpdateCapabilitiesMessage
+				//channelVideoParams->h264.lel_customMaxDPB = htolel(8100);			// should be taken from UpdateCapabilitiesMessage
+				//channelVideoParams->h264.lel_customMaxBRandCPB = htolel(10000);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxMBPS = htolel(0);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxFS = htolel(0);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxDPB = htolel(0);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxBRandCPB = htolel(0);			// should be taken from UpdateCapabilitiesMessage
 			} else {
 				// error
 			}
@@ -768,7 +786,7 @@ static void sccp_protocol_sendOpenMultiMediaChannelV12(constDevicePtr device, co
 	skinny_OpenMultiMediaReceiveChannelUnion_t *capability = &(msg->data.OpenMultiMediaChannelMessage.v12.capability);
 	{
 		capability->vidParameters.lel_bitRate = htolel(bitRate);
-		capability->vidParameters.lel_pictureFormatCount = htolel(1);
+		capability->vidParameters.lel_pictureFormatCount = htolel(4);
 		
 		capability->vidParameters.pictureFormat[0].format = htolel(4);					// should be taken from UpdateCapabilitiesMessage
 		capability->vidParameters.pictureFormat[0].mpi = htolel(1);					// should be taken from UpdateCapabilitiesMessage
@@ -778,8 +796,8 @@ static void sccp_protocol_sendOpenMultiMediaChannelV12(constDevicePtr device, co
 		capability->vidParameters.pictureFormat[2].mpi = htolel(1);
 		capability->vidParameters.pictureFormat[3].format = htolel(0);
 		capability->vidParameters.pictureFormat[3].mpi = htolel(1);
-		//capability->vidParameters.pictureFormat[4].format = htolel(0);
-		//capability->vidParameters.pictureFormat[4].mpi = htolel(0);
+		capability->vidParameters.pictureFormat[4].format = htolel(0);
+		capability->vidParameters.pictureFormat[4].mpi = htolel(0);
 		
 		capability->vidParameters.lel_confServiceNum = htolel(0);
 
@@ -796,12 +814,30 @@ static void sccp_protocol_sendOpenMultiMediaChannelV12(constDevicePtr device, co
 				channelVideoParams->h263P.lel_modelNumber = htolel(0);				// ??
 				channelVideoParams->h263P.lel_bandwidth = htolel(0);				// ?? 90000
 			} else if (skinnyFormat == SKINNY_CODEC_H264) {						// aka: MPEG4-AVC
-				channelVideoParams->h264.lel_profile = htolel(64);				// should be taken from UpdateCapabilitiesMessage
+				/*
+				      PROFILE:  profile number, in the range 0 through 10,
+				      specifying the supported H.263 annexes/subparts based on H.263
+				      annex X [H263].  The annexes supported in each profile are listed
+				      in table X.1 of H.263 annex X.  If no profile or H.263 annex is
+				      specified, then the stream is Baseline H.263 (profile 0 of H.263
+				      annex X).
+				*/
+				//channelVideoParams->h264.lel_profile = htolel(64);				// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_profile = htolel(72);				// should be taken from UpdateCapabilitiesMessage
+				/*
+				      LEVEL:  Level of bitstream operation, in the range 0 through 100,
+				      specifying the level of computational complexity of the decoding
+				      process.  The level are described in table X.2 of H.263 annex X.
+				*/
 				channelVideoParams->h264.lel_level = htolel(43);				// should be taken from UpdateCapabilitiesMessage
-				channelVideoParams->h264.lel_customMaxMBPS = htolel(40500);			// should be taken from UpdateCapabilitiesMessage
-				channelVideoParams->h264.lel_customMaxFS = htolel(1620);			// should be taken from UpdateCapabilitiesMessage
-				channelVideoParams->h264.lel_customMaxDPB = htolel(8100);			// should be taken from UpdateCapabilitiesMessage
-				channelVideoParams->h264.lel_customMaxBRandCPB = htolel(10000);			// should be taken from UpdateCapabilitiesMessage
+				//channelVideoParams->h264.lel_customMaxMBPS = htolel(40500);			// should be taken from UpdateCapabilitiesMessage
+				//channelVideoParams->h264.lel_customMaxFS = htolel(1620);			// should be taken from UpdateCapabilitiesMessage
+				//channelVideoParams->h264.lel_customMaxDPB = htolel(8100);			// should be taken from UpdateCapabilitiesMessage
+				//channelVideoParams->h264.lel_customMaxBRandCPB = htolel(10000);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxMBPS = htolel(0);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxFS = htolel(0);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxDPB = htolel(0);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxBRandCPB = htolel(0);			// should be taken from UpdateCapabilitiesMessage
 			} else {
 				// error
 			}
@@ -856,9 +892,8 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, co
 	skinny_OpenMultiMediaReceiveChannelUnion_t *capability = &(msg->data.OpenMultiMediaChannelMessage.v17.capability);
 	{
 		capability->vidParameters.lel_bitRate = htolel(bitRate);
-		capability->vidParameters.lel_pictureFormatCount = htolel(1);
+		capability->vidParameters.lel_pictureFormatCount = htolel(4);
 		
-		capability->vidParameters.pictureFormat[0].format = htolel(4);					// should be taken from UpdateCapabilitiesMessage
 /*
 	MPI = Minimum Picture interval. 1=means 29.7 frames, 2=halfs that to 14.9.
 	If the receiver does not specify the picture size/MPI optional parameter, then it SHOULD be ready to receive QCIF resolution with MPI=1.
@@ -871,8 +906,8 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, co
 		capability->vidParameters.pictureFormat[2].mpi = htolel(1);
 		capability->vidParameters.pictureFormat[3].format = htolel(0);
 		capability->vidParameters.pictureFormat[3].mpi = htolel(1);
-		//capability->vidParameters.pictureFormat[4].format = htolel(0);
-		//capability->vidParameters.pictureFormat[4].mpi = htolel(0);
+		capability->vidParameters.pictureFormat[4].format = htolel(0);
+		capability->vidParameters.pictureFormat[4].mpi = htolel(0);
 		
 		capability->vidParameters.lel_confServiceNum = htolel(0);
 
@@ -897,19 +932,52 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, co
 				      specified, then the stream is Baseline H.263 (profile 0 of H.263
 				      annex X).
 				*/
-				channelVideoParams->h264.lel_profile = htolel(64);				// should be taken from UpdateCapabilitiesMessage
+				//channelVideoParams->h264.lel_profile = htolel(64);				// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_profile = htolel(72);				// should be taken from UpdateCapabilitiesMessage
 				/*
 				      LEVEL:  Level of bitstream operation, in the range 0 through 100,
 				      specifying the level of computational complexity of the decoding
 				      process.  The level are described in table X.2 of H.263 annex X.
 				*/
 				channelVideoParams->h264.lel_level = htolel(43);				// should be taken from UpdateCapabilitiesMessage
-				channelVideoParams->h264.lel_customMaxMBPS = htolel(40500);			// should be taken from UpdateCapabilitiesMessage
-				channelVideoParams->h264.lel_customMaxFS = htolel(1620);			// should be taken from UpdateCapabilitiesMessage
-				channelVideoParams->h264.lel_customMaxDPB = htolel(8100);			// should be taken from UpdateCapabilitiesMessage
-				channelVideoParams->h264.lel_customMaxBRandCPB = htolel(10000);			// should be taken from UpdateCapabilitiesMessage
+				//channelVideoParams->h264.lel_customMaxMBPS = htolel(40500);			// should be taken from UpdateCapabilitiesMessage
+				//channelVideoParams->h264.lel_customMaxFS = htolel(1620);			// should be taken from UpdateCapabilitiesMessage
+				//channelVideoParams->h264.lel_customMaxDPB = htolel(8100);			// should be taken from UpdateCapabilitiesMessage
+				//channelVideoParams->h264.lel_customMaxBRandCPB = htolel(10000);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxMBPS = htolel(0);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxFS = htolel(0);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxDPB = htolel(0);			// should be taken from UpdateCapabilitiesMessage
+				channelVideoParams->h264.lel_customMaxBRandCPB = htolel(0);			// should be taken from UpdateCapabilitiesMessage
 			} else {
 				// error
+/*
+    -- SEPE0D173E11D95:  0: <-> 103 H.264
+    -- SEPE0D173E11D95:         level: 43
+    -- SEPE0D173E11D95:         profile: 64
+    -- SEPE0D173E11D95:         customMaxMBPS: 72
+    -- SEPE0D173E11D95:         customMaxFS: 5
+    -- SEPE0D173E11D95:         customMaxDPB: 0
+    -- SEPE0D173E11D95:         customMaxBRandCPB: 0
+    -- SEPE0D173E11D95:         Codec has 3 levelPreferences:
+    -- SEPE0D173E11D95:         0:     transmitPreference: 50
+    -- SEPE0D173E11D95:                format: 2: qcif (176x144)
+    -- SEPE0D173E11D95:                maxBitRate: 20000
+    -- SEPE0D173E11D95:                minBitRate: 100
+    -- SEPE0D173E11D95:                MPI: 1
+    -- SEPE0D173E11D95:                serviceNumber: 0
+    -- SEPE0D173E11D95:         1:     transmitPreference: 51
+    -- SEPE0D173E11D95:                format: 3: cif (352x288)
+    -- SEPE0D173E11D95:                maxBitRate: 20000
+    -- SEPE0D173E11D95:                minBitRate: 100
+    -- SEPE0D173E11D95:                MPI: 1
+    -- SEPE0D173E11D95:                serviceNumber: 0
+    -- SEPE0D173E11D95:         2:     transmitPreference: 52
+    -- SEPE0D173E11D95:                format: 4: 4cif (704x576)
+    -- SEPE0D173E11D95:                maxBitRate: 20000
+    -- SEPE0D173E11D95:                minBitRate: 100
+    -- SEPE0D173E11D95:                MPI: 1
+    -- SEPE0D173E11D95:                serviceNumber: 0
+*/
 			}
 		}
 	}
@@ -1074,15 +1142,29 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV3(constDevicePtr devic
 	msg->data.StartMultiMediaTransmission.v3.lel_payloadType = htolel(payloadType);
 	msg->data.StartMultiMediaTransmission.v3.lel_DSCPValue = htolel(136);
 	msg->data.StartMultiMediaTransmission.v3.videoParameter.bitRate = htolel(bitRate);
-	//msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormatCount            = htolel(0);
-	//msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[0].format       = htolel(4);
-	//msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[0].mpi          = htolel(30);
-	msg->data.StartMultiMediaTransmission.v3.videoParameter.profile = htolel(0x40);
-	msg->data.StartMultiMediaTransmission.v3.videoParameter.level = htolel(0x32);				/* has to be >= 15 to work with 7985 */
-	msg->data.StartMultiMediaTransmission.v3.videoParameter.macroblockspersec = htolel(40500);
-	msg->data.StartMultiMediaTransmission.v3.videoParameter.macroblocksperframe = htolel(1620);
-	msg->data.StartMultiMediaTransmission.v3.videoParameter.decpicbuf = htolel(8100);
-	msg->data.StartMultiMediaTransmission.v3.videoParameter.brandcpb = htolel(10000);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormatCount            = htolel(1);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[0].format       = htolel(4);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[0].mpi          = htolel(1);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[1].format       = htolel(2);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[1].mpi          = htolel(1);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[2].format       = htolel(1);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[2].mpi          = htolel(1);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[3].format       = htolel(0);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[3].mpi          = htolel(1);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[4].format       = htolel(0);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[4].mpi          = htolel(0);
+	//msg->data.StartMultiMediaTransmission.v3.videoParameter.profile = htolel(0x40);
+	//msg->data.StartMultiMediaTransmission.v3.videoParameter.level = htolel(0x32);				/* has to be >= 15 to work with 7985 */
+	//msg->data.StartMultiMediaTransmission.v3.videoParameter.macroblockspersec = htolel(40500);
+	//msg->data.StartMultiMediaTransmission.v3.videoParameter.macroblocksperframe = htolel(1620);
+	//msg->data.StartMultiMediaTransmission.v3.videoParameter.decpicbuf = htolel(8100);
+	//msg->data.StartMultiMediaTransmission.v3.videoParameter.brandcpb = htolel(10000);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.profile = htolel(72);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.level = htolel(43);				/* has to be >= 15 to work with 7985 */
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.macroblockspersec = htolel(72);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.macroblocksperframe = htolel(5);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.decpicbuf = htolel(0);
+	msg->data.StartMultiMediaTransmission.v3.videoParameter.brandcpb = htolel(0);
 	msg->data.StartMultiMediaTransmission.v3.videoParameter.confServiceNum = htolel(channel->callid);
 	msg->data.StartMultiMediaTransmission.v3.lel_remotePortNumber = htolel(sccp_netsock_getPort(&channel->rtp.video.phone_remote));
 	if (channel->rtp.video.phone_remote.ss_family == AF_INET) {
@@ -1114,23 +1196,23 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV17(constDevicePtr devi
 	msg->data.StartMultiMediaTransmission.v17.lel_DSCPValue = htolel(136);
 	msg->data.StartMultiMediaTransmission.v17.videoParameter.confServiceNum = htolel(channel->callid);
 	msg->data.StartMultiMediaTransmission.v17.videoParameter.bitRate = htolel(bitRate);
-	//msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormatCount        = htolel(1);
-	//msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[0].format   = htolel(4);
-	//msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[0].mpi      = htolel(1);
-	msg->data.StartMultiMediaTransmission.v17.videoParameter.profile = htolel(64);
-	msg->data.StartMultiMediaTransmission.v17.videoParameter.level = htolel(50);
-	msg->data.StartMultiMediaTransmission.v17.videoParameter.macroblockspersec = htolel(40500);
-	msg->data.StartMultiMediaTransmission.v17.videoParameter.macroblocksperframe = htolel(1620);
-	msg->data.StartMultiMediaTransmission.v17.videoParameter.decpicbuf = htolel(8100);
-	msg->data.StartMultiMediaTransmission.v17.videoParameter.brandcpb = htolel(10000);
-	//msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy1 = htolel(1);
-	//msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy2 = htolel(2);
-	//msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy3 = htolel(3);
-	//msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy4 = htolel(4);
-	//msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy5 = htolel(5);
-	//msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy6 = htolel(6);
-	//msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy7 = htolel(7);
-	//msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy8 = htolel(8);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormatCount            = htolel(1);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[0].format       = htolel(4);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[0].mpi          = htolel(1);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[1].format       = htolel(2);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[1].mpi          = htolel(1);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[2].format       = htolel(1);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[2].mpi          = htolel(1);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[3].format       = htolel(0);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[3].mpi          = htolel(1);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[4].format       = htolel(0);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[4].mpi          = htolel(0);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.profile = htolel(72);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.level = htolel(43);				/* has to be >= 15 to work with 7985 */
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.macroblockspersec = htolel(72);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.macroblocksperframe = htolel(5);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.decpicbuf = htolel(0);
+	msg->data.StartMultiMediaTransmission.v17.videoParameter.brandcpb = htolel(0);
 
 	msg->data.StartMultiMediaTransmission.v17.lel_remotePortNumber = htolel(sccp_netsock_getPort(&channel->rtp.video.phone_remote));
 	if (channel->rtp.video.phone_remote.ss_family == AF_INET6) {

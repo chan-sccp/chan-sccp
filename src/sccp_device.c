@@ -49,6 +49,15 @@ void sccp_device_destroyiconv(devicePtr d);
 int __sccp_device_destroy(const void *ptr);
 void sccp_device_removeFromGlobals(devicePtr device);
 
+typedef struct videoCapTaggedUnion {
+	skinny_videoCapabilityType_t tag;
+	union {
+		videoCapV1_t V1[SKINNY_MAX_VIDEO_CAPABILITIES];
+		videoCapV2_t V2[SKINNY_MAX_VIDEO_CAPABILITIES];
+		videoCapV3_t V3[SKINNY_MAX_VIDEO_CAPABILITIES];
+	} caps;
+} sccp_videoCapTaggedUnion_t;
+
 /*!
  * \brief Private Device Data Structure
  */
@@ -59,6 +68,9 @@ struct sccp_private_device_data {
 	sccp_devicestate_t deviceState;											/*!< Device State */
 
 	skinny_registrationstate_t registrationState;
+#ifdef CS_SCCP_VIDEO	
+	sccp_videoCapTaggedUnion_t videoCaps;
+#endif	
 
 #if HAVE_ICONV
 	iconv_t iconv;
@@ -210,6 +222,26 @@ static void sccp_device_setRingtone(constDevicePtr device, const char *url)
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_RINGTONE, 0, 0, transactionID, xmlStr, 0);
 	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: set ringtone:%s via transaction:%d\n", device->id, url, transactionID);
 }
+
+#ifdef CS_SCCP_VIDEO
+static void sccp_device_copyVideoCapabilities(constDevicePtr d, skinny_videoCapabilityType_t tag, void *videoCapabilities, size_t size)
+{
+	d->privateData->videoCaps.tag = tag;
+	switch(tag) {
+		case SKINNY_VIDEOCAP_V1:
+			memcpy(d->privateData->videoCaps.caps.V1, videoCapabilities, size);
+			break;
+		case SKINNY_VIDEOCAP_V2:
+			memcpy(d->privateData->videoCaps.caps.V2, videoCapabilities, size);
+			break;
+		case SKINNY_VIDEOCAP_V3:
+			memcpy(d->privateData->videoCaps.caps.V3, videoCapabilities, size);
+			break;
+		default:
+			break;
+	}
+}
+#endif
 
 static sccp_dtmfmode_t sccp_device_getDtfmMode(constDevicePtr device)
 {
@@ -703,6 +735,9 @@ devicePtr sccp_device_create(const char * id)
 	d->setRingTone = sccp_device_setRingtoneNotSupported;
 	d->getDtmfMode = sccp_device_getDtfmMode;
 	d->copyStr2Locale = sccp_device_copyStr2Locale_UTF8;
+#ifdef CS_SCCP_VIDEO
+	d->copyVideoCapabilities = sccp_device_copyVideoCapabilities;
+#endif
 	d->keepalive = d->keepaliveinterval = d->keepalive ? d->keepalive : GLOB(keepalive);
 	d->mwiUpdateRequired = TRUE;
 

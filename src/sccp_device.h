@@ -274,6 +274,9 @@ struct sccp_device {
 	void (*setBackgroundImage) (constDevicePtr device, const char *url, const char *tn);			/*!< set device background thumbnail image */
 	void (*displayBackgroundImagePreview) (constDevicePtr device, const char *url);				/*!< display background image as preview */
 	void (*setRingTone) (constDevicePtr device, const char *url);						/*!< set the default Ringtone */
+#ifdef CS_SCCP_VIDEO
+	void (*copyVideoCapabilities)(constDevicePtr device, skinny_videoCapabilityType_t tag, void *videoCapabilities, size_t size);
+#endif
 	const struct sccp_device_indication_cb *indicate;
 	
 	sccp_dtmfmode_t(*getDtmfMode) (constDevicePtr device);
