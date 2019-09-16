@@ -2853,23 +2853,11 @@ boolean_t sccp_channel_setVideoMode(channelPtr c, const char *data)
 				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.reception.state) {
 					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
 				}
-				if (newval == SCCP_VIDEO_MODE_OFF) {
-					if (c->rtp.video.instance) {
-						if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.reception.state) {
-							sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
-						}
-						if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.transmission.state) {
-							sccp_channel_stopMultiMediaTransmission(c, TRUE);
-						}
-						PBX_RTP_TYPE *rtp = c->rtp.video.instance;
-						iPbx.rtp_stop(rtp);
-						iPbx.rtp_destroy(rtp);
-						rtp = NULL;
-					}
+				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.transmission.state) {
+					sccp_channel_stopMultiMediaTransmission(c, TRUE);
 				}
 				PBX_RTP_TYPE *rtp = c->rtp.video.instance;
 				iPbx.rtp_stop(rtp);
-
 				// we destroy later, during channel cleanup. causing frack otherwise
 				//iPbx.rtp_destroy(rtp);
 				//rtp = NULL;
