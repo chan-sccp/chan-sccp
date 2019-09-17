@@ -10,6 +10,7 @@ compiler:
 
 env:
   global:
+    - CONFIGURE_FLAGS="--enable-video --enable-conference --enable-distributed-devicestate --enable-advanced-functions --enable-experimental-xml --with-hash-size=3001"
     - COVERITY_SCAN_PROJECT_NAME="chan-sccp/chan-sccp"
     - COVERITY_SCAN_PROJECT_DESCRIPTION="SCCP Channel Addon for Asterisk"
     - COVERITY_SCAN_NOTIFICATION_EMAIL="info@talon.nl"
@@ -24,8 +25,8 @@ env:
     - REPOS=xenial   # TLS
     - REPOS=coverity # Xenial TLS
     - REPOS=bionic   # TLS
-#    - REPOS=cosmic
-#    - REPOS=disco
+    #- REPOS=cosmic
+    - REPOS=disco    # Current
 
 matrix:
   allow_failures:
@@ -50,9 +51,16 @@ before_install:
 before_script:
  - autoreconf -fi
 
+# Note that we use "make -k" to do the entire build, even if there was a
+# build error in there somewhere.  This prevents us from needing to submit
+# to Travis, see the first error, fix that first error, submit again, ...etc.
+script:
+  - ./configure ${CONFIGURE_FLAGS} || travis_terminate 1
+  - make -k || travis_terminate 1
+  - make test  || travis_terminate 1 
+
 #after_script:
 # - cat /home/travis/build/chan-sccp/chan-sccp/cov-int/scm_log.txt
-
 # Report Results
 notifications:
   slack: chan-sccp:yfQzKYTnTf4cD1iHElnTYsXD
