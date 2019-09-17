@@ -1634,8 +1634,9 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 	//! \todo parse request
 	char *lineName;
 	skinny_codec_t audio_codec = SKINNY_CODEC_G722_64K;
-	skinny_codec_t video_codec = SKINNY_CODEC_H264;
-
+#if CS_SCCP_VIDEO
+	skinny_codec_t video_codec = SKINNY_CODEC_NONE;
+#endif
 	sccp_autoanswer_t autoanswer_type = SCCP_AUTOANSWER_NONE;
 	uint8_t autoanswer_cause = AST_CAUSE_NOTDEFINED;
 	skinny_ringtype_t ringermode = GLOB(ringtype);
