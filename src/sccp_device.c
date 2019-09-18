@@ -238,7 +238,7 @@ int sccp_device_createiconv(devicePtr d)
 {
 	d->privateData->iconv = iconv_open(d->iconvcodepage, "UTF-8");
 	if (d->privateData->iconv == (iconv_t) -1) {
-		pbx_log(LOG_ERROR, "SCCP:conversion from 'UTF-8' to 'ISO8859-1' not available.\n");
+		pbx_log(LOG_ERROR, "SCCP:conversion from 'UTF-8' to '%s' not available.\n", d->iconvcodepage);
 		return 0;
 	}
 	pbx_mutex_init(&d->privateData->iconv_lock);
@@ -268,11 +268,11 @@ static boolean_t sccp_device_convUtf8toLatin1(constDevicePtr d, ICONV_CONST char
 			if (errno == E2BIG) {
 				pbx_log(LOG_WARNING, "SCCP: Iconv: output buffer too small.\n");
 			} else if (errno == EILSEQ) {
-				pbx_log(LOG_WARNING,  "SCCP: Iconv: illegal character.\n");
+				pbx_log(LOG_WARNING, "SCCP: Iconv: illegal character.\n");
 			} else if (errno == EINVAL) {
-				pbx_log(LOG_WARNING,  "SCCP: Iconv: incomplete character sequence.\n");
+				pbx_log(LOG_WARNING, "SCCP: Iconv: incomplete character sequence.\n");
 			} else {
-				pbx_log(LOG_WARNING,  "SCCP: Iconv: error %d: %s.\n", errno, strerror(errno));
+				pbx_log(LOG_WARNING, "SCCP: Iconv: error %d: %s.\n", errno, strerror(errno));
 			}
 		}
 		pbx_mutex_unlock(&d->privateData->iconv_lock);
