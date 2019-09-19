@@ -313,7 +313,7 @@ int sccp_codec_getReducedSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const
 			}
 		}
 	}
-	return z /* no matches / overlap */;
+	return z; /* no matches / overlap */
 }
 /*!
  * \brief get smallest common denominator codecset

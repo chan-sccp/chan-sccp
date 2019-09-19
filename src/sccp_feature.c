@@ -447,7 +447,7 @@ int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstanc
 		AUTO_RELEASE(sccp_linedevices_t, ld , sccp_linedevice_find(d, l));
 		if (!ld->isPickupAllowed()) {
 			pbx_log(LOG_NOTICE, "%s: (directed_pickup) pickup button has been disabled for line:%s (already pressed pickup on this call).\n", d->id, l->name);
-			return -1 ;
+			return -1;
 		}
 		sccp_linedevice_disallowPickup(ld);
 	}
