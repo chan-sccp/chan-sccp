@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 export PATH=`git rev-parse --git-dir`/../tools/:$PATH
 git clang-format-10 --extensions c,h -v
 rc=$?
