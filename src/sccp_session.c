@@ -140,7 +140,8 @@ static int __sccp_session_setOurAddressFromTheirs(const struct sockaddr_storage 
 		return -1;
 	}
 
-	if ((sock = socket(tmp_addr.ss.ss_family, SOCK_DGRAM, 0)) < 0) {
+	sock = socket(tmp_addr.ss.ss_family, SOCK_DGRAM, 0);
+	if(sock < 0) {
 		return -1;
 	}
 
@@ -810,7 +811,8 @@ static void *accept_thread(void *ignore)
 	sccp_session_t *s = NULL;
 	socklen_t length = (socklen_t) (sizeof(struct sockaddr_storage));
 	for (;;) {
-		if ((new_socket = accept(accept_sock, (struct sockaddr *)&incoming, &length)) < 0) {	/* blocking call */
+		new_socket = accept(accept_sock, (struct sockaddr *)&incoming, &length);
+		if(new_socket < 0) { /* blocking call */
 			pbx_log(LOG_ERROR, "Error accepting new socket %s on accept_sock:%d\n", strerror(errno), accept_sock);
 			usleep(1000);
 			continue;
@@ -822,8 +824,9 @@ static void *accept_thread(void *ignore)
 			close(new_socket);
 			continue;
 		}
-		
-		if ( (s = sccp_create_session(new_socket) ) == NULL) {
+
+		s = sccp_create_session(new_socket);
+		if(s == NULL) {
 			close(new_socket);
 			continue;
 		}
@@ -915,7 +918,8 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 			snprintf(port_str, sizeof(port_str), "%d", port);
 		}
 
-		if ((status = getaddrinfo(sccp_netsock_stringify_addr(bindaddr), port_str, &hints, &res)) != 0) {
+		status = getaddrinfo(sccp_netsock_stringify_addr(bindaddr), port_str, &hints, &res);
+		if(status != 0) {
 			pbx_log(LOG_ERROR, "Failed to get addressinfo for %s:%s, error: %s!\n", sccp_netsock_stringify_addr(bindaddr), port_str, gai_strerror(status));
 			return FALSE;
 		}

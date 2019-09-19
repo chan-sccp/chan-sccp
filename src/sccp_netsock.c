@@ -89,7 +89,8 @@ static boolean_t __netsock_resolve_first_af(struct sockaddr_storage *addr, const
 	hints.ai_flags |= AI_V4MAPPED;
 #endif
 
-	if ((e = getaddrinfo(name, NULL, &hints, &res)) == 0) {
+	e = getaddrinfo(name, NULL, &hints, &res);
+	if(e == 0) {
 		memcpy(addr, res->ai_addr, res->ai_addrlen);
 		result = TRUE;
 	} else {

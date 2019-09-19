@@ -538,7 +538,8 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser
 	}
 
 	/* Cap maximum length */
-	if ((len = strlen(uri) + strlen(ast_config_AST_DATA_DIR) + strlen("/sccpxslt/") + 5) > 1024) {
+	len = strlen(uri) + strlen(ast_config_AST_DATA_DIR) + strlen("/sccpxslt/") + 5;
+	if(len > 1024) {
 		goto out403;
 	}
 
@@ -549,13 +550,14 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser
 		goto out403;
 	}
 
-	if ((fd = open(path, O_RDONLY)) == -1) {
+	fd = open(path, O_RDONLY);
+	if(fd == -1) {
 		/* open file before checking failure cause, to prevent TOCTOU */
 		if (stat(path, &st) == -1 || !S_ISREG(st.st_mode))
 			goto out404;
 		goto out403;
 	}
-	
+
 	if (fstat(fd, &st) == -1) {
 		close(fd);
 	    	goto out403;

@@ -951,7 +951,8 @@ static void *refcount_test_thread(void *data)
 			random_object = rand() % NUM_OBJECTS;
 			if ((obj = (struct refcount_test *)sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
 				if ((obj1 = (struct refcount_test *)sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
-					if ((obj1 = (struct refcount_test *)sccp_refcount_release((const void ** const)&obj1, __FILE__, __LINE__, __PRETTY_FUNCTION__)) != NULL) {
+					obj1 = (struct refcount_test *)sccp_refcount_release((const void ** const) & obj1, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+					if(obj1 != NULL) {
 						pbx_log(LOG_NOTICE, "%d: release obj1 failed\n", threadid);
 						*test_result = AST_TEST_FAIL;
 						break;
@@ -961,7 +962,8 @@ static void *refcount_test_thread(void *data)
 					*test_result = AST_TEST_FAIL;
 					break;
 				}
-				if ((obj = (struct refcount_test *) sccp_refcount_release((const void ** const)&obj, __FILE__, __LINE__, __PRETTY_FUNCTION__)) != NULL) {
+				obj = (struct refcount_test *)sccp_refcount_release((const void ** const) & obj, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+				if(obj != NULL) {
 					pbx_log(LOG_NOTICE, "%d: release obj failed\n", threadid);
 					*test_result = AST_TEST_FAIL;
 					break;

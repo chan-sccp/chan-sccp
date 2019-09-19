@@ -1500,7 +1500,8 @@ int __PURE__ sccp_strversioncmp(const char *s1, const char *s2)
 	p2 = strcspn(s2, digits);
 	while (p1 == p2 && s1[p1] != '\0' && s2[p2] != '\0') {
 		/* Different prefix */
-		if ((ret = strncmp(s1, s2, p1)) != 0) {
+		ret = strncmp(s1, s2, p1);
+		if(ret != 0) {
 			return ret;
 		}
 		s1 += p1;
@@ -1568,7 +1569,8 @@ int __PURE__ sccp_strversioncmp(const char *s1, const char *s2)
 		if (p1 > p2) {
 			return 1;
 		}
-		if ((ret = strncmp(s1, s2, p1)) != 0) {
+		ret = strncmp(s1, s2, p1);
+		if(ret != 0) {
 			return ret;
 		}
 		/* Numbers are equal or not present, try with next ones. */
