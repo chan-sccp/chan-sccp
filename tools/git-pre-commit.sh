@@ -7,4 +7,7 @@ then
  echo "Nothing needs to be reformatted!"
  exit 0
 fi
+for file in `git diff-index --cached --name-only HEAD` ; do
+  git add "${file}"
+done
 exit 0
