@@ -396,9 +396,8 @@ int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p)
 #define test_category "/channels/chan_sccp/threadpool/"
 static void *sccp_cli_threadpool_test_thread(void *data)
 {
-	int loop;
 	int num_loops=rand() % 10000;
-	for (loop = 0; loop < num_loops; loop++) {
+	for(uint loop = 0; loop < num_loops; loop++) {
 		usleep(1);
 	}
 	return 0;
@@ -468,8 +467,8 @@ AST_TEST_DEFINE(sccp_threadpool_work)
 	
 	if (test_threadpool) {
 		pbx_test_status_update(test, "Adding work to Test threadpool\n");
-		int work, loopcount=0;
-		for (work = 0; work < NUM_WORK; work++) {
+		int loopcount = 0;
+		for(uint work = 0; work < NUM_WORK; work++) {
 			pbx_test_validate(test, sccp_threadpool_add_work(test_threadpool, sccp_cli_threadpool_test_thread, test) > 0);
 		}
 

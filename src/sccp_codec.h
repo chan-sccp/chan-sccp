@@ -136,7 +136,7 @@ SCCP_INLINE const char * SCCP_CALL codec2str(skinny_codec_t value);
 SCCP_INLINE const char * SCCP_CALL codec2name(skinny_codec_t value);
 SCCP_INLINE const skinny_payload_type_t codec2type(skinny_codec_t value);
 SCCP_INLINE const int32_t codec2rtp_payload_type(skinny_codec_t value);
-SCCP_API char * SCCP_CALL sccp_codec_multiple2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength);
+SCCP_API char * SCCP_CALL sccp_codec_multiple2str(char * buf, size_t size, const skinny_codec_t * codecs, const uint clength);
 SCCP_API int SCCP_CALL sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing);
 SCCP_API int SCCP_CALL sccp_get_codecs_bytype(skinny_codec_t * in_codecs, skinny_codec_t *out_codecs, skinny_payload_type_t type);
 SCCP_API boolean_t __PURE__ SCCP_CALL sccp_codec_isCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length);

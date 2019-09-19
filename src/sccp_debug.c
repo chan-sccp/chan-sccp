@@ -124,12 +124,11 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
  */
 char *sccp_get_debugcategories(int32_t debugvalue)
 {
-	uint32_t i;
 	char * res = NULL;
 	char * tmpres = NULL;
 	size_t size = 0;
 
-	for (i = 2; i < ARRAY_LEN(sccp_debug_categories); ++i) {
+	for(uint32_t i = 2; i < ARRAY_LEN(sccp_debug_categories); ++i) {
 		if ((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
 			size_t new_size = size;
 

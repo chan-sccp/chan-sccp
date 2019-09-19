@@ -670,9 +670,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	pbx_mutex_init(&d->messageStack.lock);
 	sccp_mutex_lock(&d->messageStack.lock);
 #endif
-	uint8_t i;
-
-	for (i = 0; i < ARRAY_LEN(d->messageStack.messages); i++) {
+	for(uint8_t i = 0; i < ARRAY_LEN(d->messageStack.messages); i++) {
 		d->messageStack.messages[i] = NULL;
 	}
 #ifndef SCCP_ATOMIC
@@ -2127,14 +2125,13 @@ void sccp_dev_check_displayprompt(constDevicePtr d)
 		return;
 	}
 	boolean_t message_set = FALSE;
-	int i;
 
 	sccp_dev_clearprompt(d, 0, 0);
 #ifndef SCCP_ATOMIC
 	devicePtr device = (devicePtr) d;									/* discard const */
 	sccp_mutex_lock(&device->messageStack.lock);
 #endif
-	for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
+	for(int i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
 		if (d->messageStack.messages[i] != NULL && !sccp_strlen_zero(d->messageStack.messages[i])) {
 			//if (!d->hasDisplayPrompt() && d->hasLabelLimitedDisplayPrompt()) {			// 89xx can only do popups no statusbar
 				//sccp_dev_displayprinotify(d, d->messageStack.messages[i], (sccp_message_priority_t) i, 0);
@@ -2617,7 +2614,6 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 int __sccp_device_destroy(const void *ptr)
 {
 	sccp_device_t *d = (sccp_device_t *) ptr;
-	int i;
 
 	if (!d) {
 		pbx_log(LOG_ERROR, "SCCP: Trying to destroy non-existend device\n");
@@ -2703,7 +2699,7 @@ int __sccp_device_destroy(const void *ptr)
 #ifndef SCCP_ATOMIC
 		sccp_mutex_lock(&d->messageStack.lock);
 #endif
-		for (i = 0; i < SCCP_MAX_MESSAGESTACK; i++) {
+		for(uint i = 0; i < SCCP_MAX_MESSAGESTACK; i++) {
 			if (d->messageStack.messages[i] != NULL) {
 				sccp_free(d->messageStack.messages[i]);
 			}
@@ -3379,8 +3375,7 @@ static sccp_push_result_t sccp_device_pushTextMessage(constDevicePtr device, con
  */
 uint8_t __PURE__ sccp_device_find_index_for_line(constDevicePtr d, const char *lineName)
 {
-	uint8_t instance;
-	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
+	for(uint8_t instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
 		if (d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line && !strcasecmp(d->lineButtons.instance[instance]->line->name, lineName)) {
 			return instance;
 		}

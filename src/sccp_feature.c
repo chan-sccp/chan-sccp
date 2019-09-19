@@ -976,11 +976,7 @@ static void *sccp_feat_meetme_thread(void *data)
 		pbx_log(LOG_NOTICE, "SCCP: no device provided for meetme feature. exiting\n");
 		return NULL;
 	}
-
-	/* searching for meetme app */
-	uint32_t i;
-
-	for (i = 0; i < sizeof(meetmeApps) / sizeof(struct meetmeAppConfig); i++) {
+	for(uint32_t i = 0; i < sizeof(meetmeApps) / sizeof(struct meetmeAppConfig); i++) {
 		if (pbx_findapp(meetmeApps[i].appName)) {
 			app = &(meetmeApps[i]);
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: using '%s' for meetme\n", meetmeApps[i].appName);

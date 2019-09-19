@@ -3700,9 +3700,9 @@ static struct pbx_cli_entry cli_entries[] = {
  */
 int sccp_register_cli(void)
 {
-	uint i, res = 0;
+	uint res = 0;
 
-	for (i = 0; i < ARRAY_LEN(cli_entries); i++) {
+	for(uint i = 0; i < ARRAY_LEN(cli_entries); i++) {
 		res |= pbx_cli_register(cli_entries + i);
 	}
 
@@ -3746,10 +3746,9 @@ int sccp_register_cli(void)
  */
 int sccp_unregister_cli(void)
 {
+	uint res = 0;
 
-	uint i, res = 0;
-
-	for (i = 0; i < ARRAY_LEN(cli_entries); i++) {
+	for(uint i = 0; i < ARRAY_LEN(cli_entries); i++) {
 		res |= pbx_cli_unregister(cli_entries + i);
 	}
 	res |= pbx_manager_unregister("SCCPShowGlobals");

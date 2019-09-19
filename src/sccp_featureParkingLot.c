@@ -428,8 +428,7 @@ static char * const getParkingLotCXML(sccp_parkinglot_t *pl, int protocolversion
 		}
 		pbx_str_append(&buf, 0, "<Title>Parked Calls</Title>");
 		pbx_str_append(&buf, 0, "<Prompt>Choose a ParkingLot Slot</Prompt>");
-		uint8_t idx;
-		for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->slots); idx++) {
+		for(uint8_t idx = 0; idx < SCCP_VECTOR_SIZE(&pl->slots); idx++) {
 			plslot_t *slot = SCCP_VECTOR_GET_ADDR(&pl->slots, idx);
 			pbx_str_append(&buf, 0, "<MenuItem>");
 			pbx_str_append(&buf, 0, "<Name>%s (%s) by %s</Name>", slot->callerid_name, slot->callerid_num, !sccp_strcaseequals(slot->connectedline_name, "<unknown>") ? slot->connectedline_name : slot->from);
@@ -502,8 +501,7 @@ static void hideVisualParkingLot(const char *parkinglot, constDevicePtr d, uint8
 	RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(parkinglot, TRUE), sccp_parkinglot_unlock);
 	if (pl) {
 		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (hideVisualParkingLot) device:%s, instance:%d, size:%d\n", parkinglot, d->id, instance, (int)SCCP_VECTOR_SIZE(&pl->observers));
-		uint8_t idx;
-		for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
+		for(uint8_t idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
 			plobserver_t *observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
 			if (observer->device == d && observer->instance == instance) {
 				__hideVisualParkingLot(pl, d, observer);

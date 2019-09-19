@@ -1151,10 +1151,8 @@ sccp_softkeyMap_cb_t __attribute__ ((malloc)) * sccp_softkeyMap_copyStaticallyMa
  */
 boolean_t sccp_softkeyMap_replaceCallBackByUriAction(sccp_softkeyMap_cb_t * const softkeyMap, uint32_t event, char *uriactionstr)
 {
-	uint i;
-
 	sccp_log(DEBUGCAT_SOFTKEY) (VERBOSE_PREFIX_3 "SCCP: (sccp_softkeyMap_replaceCallBackByUriHook) %p, event: %s, uriactionstr: %s\n", softkeyMap, label2str(event), uriactionstr);
-	for (i = 0; i < ARRAY_LEN(softkeyCbMap); i++) {
+	for(uint i = 0; i < ARRAY_LEN(softkeyCbMap); i++) {
 		if (event == softkeyMap[i].event) {
 			softkeyMap[i].softkeyEvent_cb = sccp_sk_uriaction;
 			softkeyMap[i].uriactionstr = pbx_strdup(sccp_trimwhitespace(uriactionstr));
@@ -1202,15 +1200,13 @@ boolean_t sccp_SoftkeyMap_execCallbackByEvent(devicePtr d, linePtr l, uint32_t l
  */
 void sccp_softkey_setSoftkeyState(devicePtr device, skinny_keymode_t softKeySet, uint8_t softKey, boolean_t enable)
 {
-	uint8_t i;
-
 	if (!device || !device->softKeyConfiguration.size) {
 		return;
 	}
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: softkey '%s' on %s to %s\n", DEV_ID_LOG(device), label2str(softKey), skinny_keymode2str(softKeySet), enable ? "on" : "off");
 	/* find softkey */
-	for (i = 0; i < device->softKeyConfiguration.modes[softKeySet].count; i++) {
+	for(uint8_t i = 0; i < device->softKeyConfiguration.modes[softKeySet].count; i++) {
 		if (device->softKeyConfiguration.modes[softKeySet].ptr && device->softKeyConfiguration.modes[softKeySet].ptr[i] == softKey) {
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_4 "%s: found softkey '%s' at %d\n", DEV_ID_LOG(device), label2str(device->softKeyConfiguration.modes[softKeySet].ptr[i]), i);
 			if (enable) {
@@ -1224,14 +1220,12 @@ void sccp_softkey_setSoftkeyState(devicePtr device, skinny_keymode_t softKeySet,
 
 boolean_t __PURE__ sccp_softkey_isSoftkeyInSoftkeySet(constDevicePtr device, const skinny_keymode_t softKeySet, const uint8_t softKey)
 {
-	uint8_t i;
-
 	if (!device || !device->softKeyConfiguration.size) {
 		return FALSE;
 	}
 
 	/* find softkey */
-	for (i = 0; i < device->softKeyConfiguration.modes[softKeySet].count; i++) {
+	for(uint8_t i = 0; i < device->softKeyConfiguration.modes[softKeySet].count; i++) {
 		if (device->softKeyConfiguration.modes[softKeySet].ptr && device->softKeyConfiguration.modes[softKeySet].ptr[i] == softKey) {
 			return TRUE;
 		}

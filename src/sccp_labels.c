@@ -123,8 +123,7 @@ static const struct skinny_label {
 };
 gcc_inline const char *label2str(uint16_t value)
 {
-	uint32_t i;
-	for (i = 0; i < ARRAY_LEN(skinny_labels); i++) {
+	for(uint32_t i = 0; i < ARRAY_LEN(skinny_labels); i++) {
 		if (skinny_labels[i].label == value) {
 			return skinny_labels[i].text;
 		}
@@ -135,8 +134,7 @@ gcc_inline const char *label2str(uint16_t value)
 
 gcc_inline uint32_t labelstr2int(const char *str)
 {
-	uint32_t i;
-	for (i = 0; i < ARRAY_LEN(skinny_labels); i++) {
+	for(uint32_t i = 0; i < ARRAY_LEN(skinny_labels); i++) {
 		if(strcasecmp(skinny_labels[i].text, str) == 0) {
 			return skinny_labels[i].label;
 		}

@@ -1729,8 +1729,6 @@ gcc_inline boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t ver
  */
 const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(constDevicePtr device, int type)
 {
-
-	uint8_t i;
 	uint8_t version = device->protocolversion;
 	const sccp_deviceProtocol_t ** protocolDef = NULL;
 	size_t protocolArraySize;
@@ -1750,7 +1748,7 @@ const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(constDevicePtr devi
 		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "SCCP: searching for our capability for device protocol SPCP\n");
 	}
 
-	for (i = (protocolArraySize - 1); i > 0; i--) {
+	for(uint8_t i = (protocolArraySize - 1); i > 0; i--) {
 		if (protocolDef[i] != NULL && version >= protocolDef[i]->version) {
 			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: found protocol version '%d' at %d\n", protocolDef[i]->type == SCCP_PROTOCOL ? "SCCP" : "SPCP", protocolDef[i]->version, i);
 			returnProtocol = i;

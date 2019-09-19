@@ -2592,7 +2592,6 @@ void handle_headset(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 void handle_capabilities_res(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	pbx_assert(d != NULL);
-	int i;
 	uint8_t numAudioCodecs = 0;
 #ifdef CS_SCCP_VIDEO
 	uint8_t numVideoCodecs = 0;
@@ -2602,7 +2601,7 @@ void handle_capabilities_res(constSessionPtr s, devicePtr d, constMessagePtr msg
 	uint8_t n = letohl(msg_in->data.CapabilitiesResMessage.lel_count);
 
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Capabilities\n", DEV_ID_LOG(d), n);
-	for (i = 0; i < n; i++) {
+	for(uint i = 0; i < n; i++) {
 		codec = letohl(msg_in->data.CapabilitiesResMessage.caps[i].lel_payloadCapability);
 		if (codec2type(codec) == SKINNY_CODEC_TYPE_AUDIO) {
 			d->capabilities.audio[numAudioCodecs++] = codec;
@@ -2644,7 +2643,6 @@ void handle_capabilities_res(constSessionPtr s, devicePtr d, constMessagePtr msg
  */
 void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
-	uint8_t i;
 	sccp_msg_t *msg_out = NULL;
 
 	/* ok the device support the softkey map */
@@ -2658,7 +2656,7 @@ void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMess
 	msg_out = sccp_build_packet(SoftKeyTemplateResMessage, hdr_len + dummy_len);
 	msg_out->data.SoftKeyTemplateResMessage.lel_softKeyOffset = 0;
 
-	for (i = 0; i < arrayLen; i++) {
+	for(uint8_t i = 0; i < arrayLen; i++) {
 		switch (softkeysmap[i]) {
 			case SKINNY_LBL_EMPTY:
 				// msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 0;

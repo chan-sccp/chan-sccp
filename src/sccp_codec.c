@@ -156,18 +156,18 @@ gcc_inline const int32_t codec2rtp_payload_type(skinny_codec_t value)
  * \param codecs Array of Skinny Codecs
  * \param clength Max Length
  */
-char *sccp_codec_multiple2str(char *buf, size_t size, const skinny_codec_t * codecs, const int clength)
+char * sccp_codec_multiple2str(char * buf, size_t size, const skinny_codec_t * codecs, const uint clength)
 {
 	if (!buf || size <= 2) {
 		return buf;
 	}
 	memset(buf, 0, size);
 	char *endptr = buf;
-	int x, comma = 0;
+	int comma = 0;
 
 	snprintf(endptr++, size, "[");
 	endptr += strlen(endptr);
-	for (x = 0; x < clength; x++) {
+	for(uint x = 0; x < clength; x++) {
 		if (codecs[x] == SKINNY_CODEC_NONE || codecs[x] == SKINNY_CODEC_NONSTANDARD) {
 			break;
 		}
@@ -286,9 +286,7 @@ int sccp_get_codecs_bytype(skinny_codec_t * in_codecs, skinny_codec_t *out_codec
  */
 boolean_t __PURE__ sccp_codec_isCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length)
 {
-	uint8_t i;
-
-	for (i = 0; i < length; i++) {
+	for(uint8_t i = 0; i < length; i++) {
 		if (capabilities[i] == SKINNY_CODEC_NONE) {
 			break;
 		}

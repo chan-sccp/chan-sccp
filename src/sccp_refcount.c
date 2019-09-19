@@ -939,14 +939,14 @@ static void *refcount_test_thread(void *data)
 {
 	enum ast_test_result_state *test_result = (enum ast_test_result_state *)data;
 	struct refcount_test *obj = NULL, *obj1 = NULL;
-	int loop, objloop;
+	int objloop;
 	int random_object;
 	int threadid = (unsigned int) pthread_self();
 	
 	*test_result = AST_TEST_PASS;
 
 	pbx_log(LOG_NOTICE, "%d: Thread running...\n", threadid);
-	for (loop = 0; loop < NUM_LOOPS; loop++) {
+	for(uint loop = 0; loop < NUM_LOOPS; loop++) {
 		for (objloop = 0; objloop < NUM_OBJECTS; objloop++) {
 			random_object = rand() % NUM_OBJECTS;
 			if ((obj = (struct refcount_test *)sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
