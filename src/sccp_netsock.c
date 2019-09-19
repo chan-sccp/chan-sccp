@@ -71,7 +71,7 @@ int __PURE__ sccp_netsock_is_any_addr(const struct sockaddr_storage *sockAddrSto
 
 static boolean_t __netsock_resolve_first_af(struct sockaddr_storage *addr, const char *name, int family)
 {
-	struct addrinfo *res;
+	struct addrinfo * res = NULL;
 	int e;
 	boolean_t result = FALSE;
 	if (!name) {
@@ -173,7 +173,7 @@ boolean_t __PURE__ sccp_netsock_is_mapped_IPv4(const struct sockaddr_storage *so
 
 boolean_t sccp_netsock_ipv4_mapped(const struct sockaddr_storage *sockAddrStorage, struct sockaddr_storage *sockAddrStorage_mapped)
 {
-	const struct sockaddr_in6 *sin6;
+	const struct sockaddr_in6 * sin6 = NULL;
 	struct sockaddr_in sin4;
 
 	if (!sccp_netsock_is_IPv6(sockAddrStorage)) {
@@ -344,10 +344,10 @@ int sccp_netsock_split_hostport(char *str, char **host, char **port, int flags)
 AST_THREADSTORAGE(sccp_netsock_stringify_buf);
 char *__netsock_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, int format)
 {
-	const struct sockaddr_storage *sockAddrStorage_tmp;
+	const struct sockaddr_storage * sockAddrStorage_tmp = NULL;
 	char host[NI_MAXHOST] = "";
 	char port[NI_MAXSERV] = "";
-	struct ast_str *str;
+	struct ast_str * str = NULL;
 	int e;
 	static const size_t size = sizeof(host) - 1 + sizeof(port) - 1 + 4;
 
@@ -374,7 +374,7 @@ char *__netsock_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, in
 	}
 
 	if ((format & SCCP_SOCKADDR_STR_REMOTE) == SCCP_SOCKADDR_STR_REMOTE) {
-		char *p;
+		char * p = NULL;
 
 		if (sccp_netsock_is_ipv6_link_local(sockAddrStorage_tmp) && (p = strchr(host, '%'))) {
 			*p = '\0';

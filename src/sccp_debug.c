@@ -125,8 +125,8 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
 char *sccp_get_debugcategories(int32_t debugvalue)
 {
 	uint32_t i;
-	char *res = NULL;
-	char *tmpres = NULL;
+	char * res = NULL;
+	char * tmpres = NULL;
 	size_t size = 0;
 
 	for (i = 2; i < ARRAY_LEN(sccp_debug_categories); ++i) {

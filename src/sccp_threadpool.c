@@ -62,7 +62,7 @@ struct sccp_threadpool {
 sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Starting Threadpool\n");
-	sccp_threadpool_t *tp_p;
+	sccp_threadpool_t * tp_p = NULL;
 
 #if defined(__GNUC__) && __GNUC__ > 3 && defined(HAVE_SYS_INFO_H)
 	threadsN = get_nprocs_conf();										// get current number of active processors
@@ -106,7 +106,7 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 void sccp_threadpool_grow(sccp_threadpool_t * tp_p, int amount)
 {
 	pthread_attr_t attr;
-	sccp_threadpool_thread_t *tp_thread;
+	sccp_threadpool_thread_t * tp_thread = NULL;
 	int t;
 
 	if (tp_p && !tp_p->sccp_threadpool_shuttingdown) {
@@ -234,8 +234,8 @@ void *sccp_threadpool_thread_do(void *p)
 		{
 			/* Read job from queue and execute it */
 			void *(*func_buff) (void *arg) = NULL;
-			void *arg_buff = NULL;
-			sccp_threadpool_job_t *job;
+			void * arg_buff = NULL;
+			sccp_threadpool_job_t * job = NULL;
 
 			if ((job = SCCP_LIST_REMOVE_HEAD(&(tp_p->jobs), list))) {
 				func_buff = job->function;
@@ -265,7 +265,7 @@ int sccp_threadpool_add_work(sccp_threadpool_t * tp_p, void *(*function_p) (void
 {
 	// prevent new work while shutting down
 	if (!tp_p->sccp_threadpool_shuttingdown) {
-		sccp_threadpool_job_t *newJob;
+		sccp_threadpool_job_t * newJob = NULL;
 
 		if (!(newJob = (sccp_threadpool_job_t *) sccp_calloc(sizeof *newJob, 1))) {
         		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");

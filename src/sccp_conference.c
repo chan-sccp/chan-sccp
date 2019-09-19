@@ -958,7 +958,7 @@ int playback_to_conference(conferencePtr conference, const char *filename, int s
 #else
 int playback_to_conference(conferencePtr conference, const char *filename, int say_number)
 {
-	PBX_CHANNEL_TYPE *underlying_channel;
+	PBX_CHANNEL_TYPE * underlying_channel = NULL;
 	int res = 0;
 
 	if (!conference || !conference->playback_announcements) {

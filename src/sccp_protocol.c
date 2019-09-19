@@ -27,7 +27,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const uint8_t callInstance, const skinny_callsecuritystate_t callsecurityState, constDevicePtr device)
 {
  	pbx_assert(device != NULL);
-	sccp_msg_t *msg;
+	sccp_msg_t * msg = NULL;
 
 	REQ(msg, CallInfoMessage);
 
@@ -1732,7 +1732,7 @@ const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(constDevicePtr devi
 
 	uint8_t i;
 	uint8_t version = device->protocolversion;
-	const sccp_deviceProtocol_t **protocolDef;
+	const sccp_deviceProtocol_t ** protocolDef = NULL;
 	size_t protocolArraySize;
 	uint8_t returnProtocol;
 

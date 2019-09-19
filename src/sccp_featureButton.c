@@ -324,7 +324,7 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	size_t len = strlen("Custom:");
 
 	// char *sspecifier = 0;
-	const char *dev;
+	const char * dev = NULL;
 
 	if (!data || !ast_event) {
 		return;

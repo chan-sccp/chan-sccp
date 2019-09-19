@@ -619,8 +619,8 @@ int sccp_device_setRegistrationState(constDevicePtr d, const skinny_registration
 sccp_device_t *sccp_device_create(const char *id)
 {
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: Create Device\n");
-	struct sccp_private_device_data *private_data;
-	
+	struct sccp_private_device_data * private_data = NULL;
+
 	sccp_device_t *d = (sccp_device_t *) sccp_refcount_object_alloc(sizeof(sccp_device_t), SCCP_REF_DEVICE, id, __sccp_device_destroy);
 
 	if (!d) {
@@ -2662,7 +2662,7 @@ int __sccp_device_destroy(const void *ptr)
 #ifdef CS_DEVSTATE_FEATURE
 	// clean devstate_specifier
 	{
-		sccp_devstate_specifier_t *devstateSpecifier;
+		sccp_devstate_specifier_t * devstateSpecifier = NULL;
 		SCCP_LIST_LOCK(&d->devstateSpecifiers);
 		while ((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
 			if (devstateSpecifier) {
@@ -3141,8 +3141,8 @@ void sccp_device_addMessageToStack(devicePtr device, const uint8_t priority, con
 	if (ARRAY_LEN(device->messageStack.messages) <= priority) {
 		return;
 	}
-	char *newValue = NULL;
-	char *oldValue = NULL;
+	char * newValue = NULL;
+	char * oldValue = NULL;
 
 	newValue = pbx_strdup(message);
 
@@ -3165,8 +3165,8 @@ void sccp_device_clearMessageFromStack(devicePtr device, const uint8_t priority)
 		return;
 	}
 
-	char *newValue = NULL;
-	char *oldValue = NULL;
+	char * newValue = NULL;
+	char * oldValue = NULL;
 
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: clear message stack %d\n", DEV_ID_LOG(device), priority);
 
@@ -3195,8 +3195,8 @@ void sccp_device_clearMessageFromStack(devicePtr device, const uint8_t priority)
  */
 void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 {
-	sccp_linedevices_t *linedevice = NULL;
-	sccp_device_t *device = NULL;
+	sccp_linedevices_t * linedevice = NULL;
+	sccp_device_t * device = NULL;
 
 	char tmp[256] = { 0 };
 	size_t len = sizeof(tmp);

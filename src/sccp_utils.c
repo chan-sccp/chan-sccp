@@ -61,9 +61,9 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 	int hexcolumnlength = 0;
 	const char *hex = "0123456789ABCDEF";
 	char hexout[(numcolumns * 3) + (numcolumns / 8) + 1];							// 3 char per hex value + grouping + endofline
-	char *hexptr;
+	char * hexptr = NULL;
 	char chrout[numcolumns + 1];
-	char *chrptr;
+	char * chrptr = NULL;
 	pbx_str_t *output_buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
 
 	do {
@@ -102,7 +102,7 @@ void sccp_dump_msg(const sccp_msg_t * const msg)
  */
 void sccp_addons_clear(sccp_device_t * d)
 {
-	sccp_addon_t *addon;
+	sccp_addon_t * addon = NULL;
 
 	if (!d) {
 		return;
@@ -270,7 +270,7 @@ char *pbx_strip(char *s)
 unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arraylen)
 {
 	int argc;
-	char *scan;
+	char * scan = NULL;
 	int paren = 0;
 
 	if (!buf || !array || !arraylen) {
@@ -335,8 +335,8 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 	char family[25];
 	char cfwdDeviceLineStore[60];										/* backward compatibiliy SCCP/Device/Line */
 	char cfwdLineDeviceStore[60];										/* new format cfwd: SCCP/Line/Device */
-	sccp_linedevices_t *linedevice = NULL;
-	sccp_device_t *device = NULL;
+	sccp_linedevices_t * linedevice = NULL;
+	sccp_device_t * device = NULL;
 
 	if (!event || !(device = event->featureChanged.device)) {
 		return;
@@ -770,7 +770,7 @@ int __PURE__ sccp_strIsNumeric(const char *s)
  */
 void sccp_free_ha(struct sccp_ha *ha)
 {
-	struct sccp_ha *hal;
+	struct sccp_ha * hal = NULL;
 
 	while (ha) {
 		hal = ha;
@@ -878,13 +878,13 @@ int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storag
 {
 	/* Start optimistic */
 	int res = defaultValue;
-	const struct sccp_ha *current_ha;
+	const struct sccp_ha * current_ha = NULL;
 
 	for (current_ha = ha; current_ha; current_ha = current_ha->next) {
 
 		struct sockaddr_storage result;
 		struct sockaddr_storage mapped_addr;
-		const struct sockaddr_storage *addr_to_use;
+		const struct sockaddr_storage * addr_to_use = NULL;
 
 		if (sccp_netsock_is_IPv4(&ha->netaddr)) {
 			if (sccp_netsock_is_IPv6(addr)) {
@@ -960,10 +960,10 @@ int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storag
 int sccp_sockaddr_storage_parse(struct sockaddr_storage *addr, const char *str, int flags)
 {
 	struct addrinfo hints;
-	struct addrinfo *res;
-	char *s;
-	char *host;
-	char *port;
+	struct addrinfo * res = NULL;
+	char * s = NULL;
+	char * host = NULL;
+	char * port = NULL;
 	int e;
 
 	s = pbx_strdupa(str);
@@ -1078,9 +1078,9 @@ static int parse_cidr_mask(struct sockaddr_storage *addr, int is_v4, const char 
  */
 struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp_ha *path, int *error)
 {
-	struct sccp_ha *ha;
-	struct sccp_ha *prev = NULL;
-	struct sccp_ha *ret;
+	struct sccp_ha * ha = NULL;
+	struct sccp_ha * prev = NULL;
+	struct sccp_ha * ret = NULL;
 	char *tmp = pbx_strdupa(stuff);
 	char *address = NULL, *mask = NULL;
 	int addr_is_v4;
@@ -1619,7 +1619,7 @@ gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size)
  */
 char *sccp_trimwhitespace(char *str)
 {
-	char *end;
+	char * end = NULL;
 
 	// Trim leading space
 	while (isspace(*str)) {
@@ -1660,7 +1660,7 @@ int sccp_random(void)
 
 const char * sccp_retrieve_str_variable_byKey(PBX_VARIABLE_TYPE *params, const char *key)
 {
-	PBX_VARIABLE_TYPE *param;
+	PBX_VARIABLE_TYPE * param = NULL;
 	for(param = params;param;param = param->next) {
 		if (!strcasecmp(key, param->name)) {
 			return param->value;
@@ -1682,7 +1682,7 @@ int sccp_retrieve_int_variable_byKey(PBX_VARIABLE_TYPE *params, const char *key)
 boolean_t sccp_append_variable(PBX_VARIABLE_TYPE *params, const char *key, const char *value)
 {
 	boolean_t res = FALSE;
-	PBX_VARIABLE_TYPE *newvar;
+	PBX_VARIABLE_TYPE * newvar = NULL;
 	if ((newvar = pbx_variable_new(key, value, ""))) {
 		if (params) {
 			while(params->next) {
@@ -1747,22 +1747,22 @@ static void __attribute__((destructor)) sccp_unregister_tests(void)
 #if HAVE_EXECINFO_H
 static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 {
-	char **strings;
-#if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
+	char ** strings = NULL;
+#			if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
 	size_t stackfr;
-	bfd *bfdobj;		/* bfd.h */
+	bfd * bfdobj = NULL;    /* bfd.h */
 	Dl_info dli;		/* dlfcn.h */
 	long allocsize;
 	asymbol **syms = NULL;	/* bfd.h */
 	bfd_vma offset;		/* bfd.h */
-	const char *lastslash;
-	asection *section;
+	const char * lastslash = NULL;
+	asection * section = NULL;
 	const char *file, *func;
 	unsigned int line;
 	char address_str[128];
 	char msg[1024];
 	size_t strings_size;
-	size_t *eachlen;
+	size_t * eachlen = NULL;
 
 	strings_size = num_frames * sizeof(*strings);
 
@@ -1823,7 +1823,7 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 				/* Stack trace output */
 				found++;
 				if ((lastslash = strrchr(file, '/'))) {
-					const char *prevslash;
+					const char * prevslash = NULL;
 
 					for (prevslash = lastslash - 1; *prevslash != '/' && prevslash >= file; prevslash--) {
 					}
@@ -1869,7 +1869,7 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 		}
 
 		if (!ast_strlen_zero(msg)) {
-			char **tmp;
+			char ** tmp = NULL;
 
 			eachlen[stackfr] = strlen(msg) + 1;
 			if (!(tmp = (char **)sccp_realloc(strings, strings_size + eachlen[stackfr]))) {
@@ -1914,9 +1914,8 @@ void sccp_do_backtrace()
 #if defined(HAVE_EXECINFO_H) && defined(HAVE_BKTR)
 	void	*addresses[SCCP_BACKTRACE_SIZE];
 	size_t  size, i;
-	bt_string_t *strings;
-
-	struct ast_str *btbuf;
+	bt_string_t * strings = NULL;
+	struct ast_str * btbuf = NULL;
 	if (!(btbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE * 2))) {
 		return;
 	}

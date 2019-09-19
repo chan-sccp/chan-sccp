@@ -459,7 +459,7 @@ static void __showVisualParkingLot(sccp_parkinglot_t *pl, constDevicePtr d, plob
 {
 	pbx_assert(pl != NULL && d != NULL && observer != NULL);
 	uint32_t transactionId = sccp_random();
-	char *xmlStr;
+	char * xmlStr = NULL;
 
 	sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (showVisualParkingLot) showing on device:%s, instance:%d\n", pl->context, observer->device->id, observer->instance);
 	if ((xmlStr = getParkingLotCXML(pl, d->protocolversion, observer->instance, transactionId, &xmlStr))) {

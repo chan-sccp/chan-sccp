@@ -104,8 +104,8 @@ SCCP_VECTOR_RW(sccp_uri_handler, handler_t) handlers;
 static boolean_t parse_manager_conf(void)
 {
 	boolean_t result = FALSE;
-	struct ast_config *cfg;
-	struct ast_variable *v;
+	struct ast_config * cfg = NULL;
+	struct ast_variable * v = NULL;
 	struct ast_flags config_flags = {0};
 
 	int manager_enabled = 0;
@@ -143,8 +143,8 @@ static boolean_t parse_manager_conf(void)
 static boolean_t parse_http_conf(char *const uri_str)
 {
 	boolean_t result = FALSE;
-	struct ast_config *cfg;
-	struct ast_variable *v;
+	struct ast_config * cfg = NULL;
+	struct ast_variable * v = NULL;
 	struct ast_flags config_flags = {0};
 
 	int http_enabled = 0;
@@ -500,18 +500,18 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser
 	enum ast_http_method method, struct ast_variable *get_vars,
 	struct ast_variable *headers)
 {
-	char *path;
-	const char *ftype;
-	const char *mtype;
+	char * path = NULL;
+	const char * ftype = NULL;
+	const char * mtype = NULL;
 	char wkspace[80];
 	struct stat st;
 	int len;
 	int fd;
-	struct ast_str *http_header;
+	struct ast_str * http_header = NULL;
 	struct timeval tv;
 	struct ast_tm tm;
 	char timebuf[80], etag[23];
-	struct ast_variable *v;
+	struct ast_variable * v = NULL;
 	int not_modified = 0;
 
 	if (method != AST_HTTP_GET && method != AST_HTTP_HEAD) {
@@ -631,8 +631,8 @@ static struct ast_http_uri sccp_webservice_xslt_uri = {
 static boolean_t sccp_webservice_htmltest(const char *const uri, PBX_VARIABLE_TYPE *params, PBX_VARIABLE_TYPE *headers, pbx_str_t **result)
 {
 	sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (sccp_webservice_test) Test Webservice\n");
-	PBX_VARIABLE_TYPE *header;
-	PBX_VARIABLE_TYPE *param;
+	PBX_VARIABLE_TYPE * header = NULL;
+	PBX_VARIABLE_TYPE * param = NULL;
 	pbx_str_append(result, 0, "<html>\n");
 	pbx_str_append(result, 0, "<body>\n");
 	pbx_str_append(result, 0, "<h3>TEST RESULT</h3>\n");
@@ -700,8 +700,8 @@ static boolean_t sccp_webservice_xmltest(const char *const uri, PBX_VARIABLE_TYP
 	const char *locale = NULL;
 	parse_request_headers(headers, locale);
 */
-	PBX_VARIABLE_TYPE *v;
-	
+	PBX_VARIABLE_TYPE * v = NULL;
+
 	xmlDoc * doc = iXML.createDoc();
 	xmlNode *root= iXML.createNode("root");
 	iXML.setRootElement(doc, root);

@@ -554,8 +554,8 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 		/* we are a forwarded call, bridge me with my parent (the forwarded channel will take the place of the forwarder.) */
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: handling forwarded call.\n", c->designator);
 
-		PBX_CHANNEL_TYPE *forwarded = NULL;
-		PBX_CHANNEL_TYPE *replace_chan = NULL;
+		PBX_CHANNEL_TYPE * forwarded = NULL;
+		PBX_CHANNEL_TYPE * replace_chan = NULL;
 
 		pbx_channel_lock(c->parentChannel->owner);
 		forwarded = pbx_channel_ref(c->parentChannel->owner);
@@ -1018,8 +1018,8 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
  */
 void *sccp_pbx_softswitch(sccp_channel_t * channel)
 {
-	PBX_CHANNEL_TYPE *pbx_channel = NULL;
-	PBX_VARIABLE_TYPE *v = NULL;
+	PBX_CHANNEL_TYPE * pbx_channel = NULL;
+	PBX_VARIABLE_TYPE * v = NULL;
 
 	{
 		AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));

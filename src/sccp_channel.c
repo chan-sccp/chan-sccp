@@ -2040,7 +2040,7 @@ void sccp_channel_addCleanupJob(channelPtr c, void *(*function_p) (void *), void
 	if (!c) {
 		return;
 	}
-	sccp_threadpool_job_t *newJob;
+	sccp_threadpool_job_t * newJob = NULL;
 	if (!(newJob = (sccp_threadpool_job_t *) sccp_calloc(sizeof *newJob, 1))) {
 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		exit(1);
@@ -2066,7 +2066,7 @@ void sccp_channel_addCleanupJob(channelPtr c, void *(*function_p) (void *), void
  */
 void sccp_channel_clean(sccp_channel_t * channel)
 {
-	sccp_selectedchannel_t *sccp_selected_channel;
+	sccp_selectedchannel_t * sccp_selected_channel = NULL;
 
 	if (!channel) {
 		pbx_log(LOG_ERROR, "SCCP:No channel provided to clean\n");
@@ -2142,7 +2142,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 			sccp_linedevice_release(&channel->privateData->linedevice);
 		}
 
-		sccp_threadpool_job_t *job;
+		sccp_threadpool_job_t * job = NULL;
 		SCCP_LIST_LOCK(&channel->privateData->cleanup_jobs);
 		while ((job = SCCP_LIST_REMOVE_HEAD(&channel->privateData->cleanup_jobs, list))) {
 			SCCP_LIST_UNLOCK(&channel->privateData->cleanup_jobs);
@@ -2227,8 +2227,8 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 	sccp_channelstate_t prev_channel_state = SCCP_CHANNELSTATE_ZOMBIE;
 	uint32_t blindTransfer = 0;
 	uint16_t instance = 0;
-	PBX_CHANNEL_TYPE *pbx_channel_owner = NULL;
-	PBX_CHANNEL_TYPE *pbx_channel_bridgepeer = NULL;
+	PBX_CHANNEL_TYPE * pbx_channel_owner = NULL;
+	PBX_CHANNEL_TYPE * pbx_channel_bridgepeer = NULL;
 
 	if (!channel) {
 		return;
@@ -2428,10 +2428,10 @@ void sccp_channel_transfer_cancel(devicePtr d, channelPtr c)
  */
 void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 {
-	PBX_CHANNEL_TYPE *pbx_source_local_channel = NULL;
-	PBX_CHANNEL_TYPE *pbx_source_remote_channel = NULL;
-	PBX_CHANNEL_TYPE *pbx_destination_local_channel = NULL;
-	PBX_CHANNEL_TYPE *pbx_destination_remote_channel = NULL;
+	PBX_CHANNEL_TYPE * pbx_source_local_channel = NULL;
+	PBX_CHANNEL_TYPE * pbx_source_remote_channel = NULL;
+	PBX_CHANNEL_TYPE * pbx_destination_local_channel = NULL;
+	PBX_CHANNEL_TYPE * pbx_destination_remote_channel = NULL;
 	boolean_t result = FALSE;
 #if ASTERISK_VERSION_GROUP >= 108
 	enum ast_control_transfer control_transfer_message = AST_TRANSFER_FAILED;

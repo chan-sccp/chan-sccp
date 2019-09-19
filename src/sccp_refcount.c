@@ -296,7 +296,7 @@ int __PURE__ sccp_refcount_isRunning(void)
 
 void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, int (*destructor)(const void *))
 {
-	RefCountedObject *obj;
+	RefCountedObject * obj = NULL;
 
 	if (!runState) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Not Running Yet!\n");

@@ -154,7 +154,7 @@ static void sccp_sk_redial(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 	if (!d) {
 		return;
 	}
-	char *data;
+	char * data = NULL;
 
 	if (d->useRedialMenu) {
 		if (d->protocol->type == SCCP_PROTOCOL) {
@@ -539,8 +539,8 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Select Pressed\n", DEV_ID_LOG(d));
-	sccp_selectedchannel_t *selectedchannel = NULL;
-	sccp_msg_t *msg = NULL;
+	sccp_selectedchannel_t * selectedchannel = NULL;
+	sccp_msg_t * msg = NULL;
 	uint8_t numSelectedChannels = 0, status = 0;
 
 	if (!d) {
@@ -1103,7 +1103,7 @@ void sccp_softkey_post_reload(void)
  */
 void sccp_softkey_clear(void)
 {
-	sccp_softKeySetConfiguration_t *k;
+	sccp_softKeySetConfiguration_t * k = NULL;
 	uint8_t i;
 
 	SCCP_LIST_LOCK(&softKeySetConfig);

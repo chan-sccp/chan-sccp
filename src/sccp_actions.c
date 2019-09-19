@@ -602,7 +602,7 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 				struct sockaddr_storage sas = { 0 };
 				sccp_session_getSas(s, &sas);
 				snprintf(command, SCCP_PATH_MAX, "%s %s %s %s", GLOB(token_fallback), deviceName, sccp_netsock_stringify_host(&sas), skinny_devicetype2str(deviceType));
-				FILE *pp;
+				FILE * pp = NULL;
 
 				//sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: (token_request), executing '%s'\n", deviceName, (char *) command);
 				pp = popen(command, "r");
@@ -792,8 +792,8 @@ EXIT:
 void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_in)
 {
 	AUTO_RELEASE(sccp_device_t, device , NULL);
-	char *phone_ipv4 = NULL;
-	char *phone_ipv6 = NULL;
+	char * phone_ipv4 = NULL;
+	char * phone_ipv6 = NULL;
 
 	uint32_t deviceInstance = letohl(msg_in->data.RegisterMessage.sId.lel_instance);
 	uint32_t userid = letohl(msg_in->data.RegisterMessage.sId.lel_userid);
@@ -1299,7 +1299,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 void sccp_handle_AvailableLines(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
 	uint8_t i = 0, line_count = 0;
-	btnlist *btn;
+	btnlist * btn = NULL;
 
 	line_count = 0;
 
@@ -2993,10 +2993,8 @@ void sccp_handle_time_date_req(constSessionPtr s, devicePtr d, constMessagePtr n
 {
 	pbx_assert(s != NULL);
 	time_t timer = 0;
-	struct tm *cmtime = NULL;
-
-	// char servername[StationMaxDisplayNotifySize];
-	sccp_msg_t *msg_out = NULL;
+	struct tm * cmtime = NULL;
+	sccp_msg_t * msg_out = NULL;
 	REQ(msg_out, DefineTimeDate);
 
 	/* modulate the timezone by full hours only */
@@ -4078,8 +4076,8 @@ void handle_feature_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg
  */
 void handle_services_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
-	sccp_msg_t *msg_out = NULL;
-	sccp_buttonconfig_t *config = NULL;
+	sccp_msg_t * msg_out = NULL;
+	sccp_buttonconfig_t * config = NULL;
 
 	int urlIndex = letohl(msg_in->data.ServiceURLStatReqMessage.lel_serviceURLIndex);
 

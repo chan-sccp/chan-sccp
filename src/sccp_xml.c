@@ -93,7 +93,7 @@ static void setRootElement(xmlDoc * const doc, xmlNode * const node)
 
 static __attribute__ ((malloc)) char * dump(xmlDoc * const doc, boolean_t indent)
 {
-	char *output;
+	char * output = NULL;
 	int output_len = 0;
 	xmlDocDumpFormatMemoryEnc(doc, (xmlChar **)&output, &output_len, "UTF-8", indent ? 1 : 0);
 	

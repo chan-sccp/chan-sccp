@@ -159,8 +159,8 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 
 #if CS_AST_DO_PICKUP
 	PBX_CHANNEL_TYPE *original = c->owner;
-	char *target_name = NULL;
-	char *target_number = NULL;
+	char * target_name = NULL;
+	char * target_number = NULL;
 	if (iPbx.get_callerid_name) {
 		iPbx.get_callerid_name(target, &target_name);
 	}
@@ -338,7 +338,7 @@ int sccp_feat_directed_pickup(constDevicePtr d, channelPtr c, uint32_t lineInsta
 		return -1;
 	}
 
-	char *context;
+	char * context = NULL;
 	if (sccp_strlen_zero(exten)) {
 		pbx_log(LOG_ERROR, "SCCP: (directed_pickup) zero exten. Giving up.\n");
 		return -1;
@@ -1518,7 +1518,7 @@ void sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_
 	} else {
 		constChannelPtr channel = maybe_channel;
 		pbx_str_t *amiCommandStr = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-		char *outStr;
+		char * outStr = NULL;
 		if (!(monitorFeature->status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
 			pbx_str_append(&amiCommandStr,0 ,"Action: Monitor\r\n");
 			pbx_str_append(&amiCommandStr,0 ,"Channel: %s\r\n", pbx_channel_name(channel->owner));

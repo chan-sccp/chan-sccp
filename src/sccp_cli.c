@@ -409,7 +409,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 
 static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
-	char *completerStr;
+	char * completerStr = NULL;
 
 	completerStr = NULL;
 	switch (completer) {
@@ -476,7 +476,7 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 #endif
 	pbx_str_t *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	pbx_str_t *ha_localnet_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-	char *debugcategories;
+	char * debugcategories = NULL;
 	int local_line_total = 0;
 	const char *actionid = "";
 
@@ -641,7 +641,7 @@ CLI_AMI_ENTRY(show_globals, sccp_show_globals, "List defined SCCP global setting
     //static int sccp_show_devices(int fd, int argc, char *argv[])
 static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	struct tm *timeinfo;
+	struct tm * timeinfo = NULL;
 	char regtime[25];
 	int local_line_total = 0;
 	char addrStr[INET6_ADDRSTRLEN];
@@ -1276,9 +1276,9 @@ CLI_AMI_ENTRY(show_lines, sccp_show_lines, "List defined SCCP Lines", cli_lines_
     //static int sccp_show_line(int fd, int argc, char *argv[])
 static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	sccp_linedevices_t *linedevice = NULL;
-	sccp_mailbox_t *mailbox = NULL;
-	PBX_VARIABLE_TYPE *v = NULL;
+	sccp_linedevices_t * linedevice = NULL;
+	sccp_mailbox_t * mailbox = NULL;
+	PBX_VARIABLE_TYPE * v = NULL;
 	pbx_str_t *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	const char *actionid = "";
 
@@ -1288,7 +1288,7 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	int local_line_total = 0;
 	int local_table_total = 0;
 
-	const char *line;
+	const char * line = NULL;
 
 	if (argc < 4) {
 		pbx_log(LOG_WARNING, "LineName needs to be supplied\n");
@@ -1474,8 +1474,8 @@ CLI_AMI_ENTRY(show_line, sccp_show_line, "List defined SCCP line settings", cli_
     //static int sccp_show_channels(int fd, int argc, char *argv[])
 static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	sccp_channel_t *channel = NULL;
-	sccp_line_t *line = NULL;
+	sccp_channel_t * channel = NULL;
+	sccp_line_t * line = NULL;
 	int local_line_total = 0;
 	char tmpname[25];
 	char addrStr[INET6_ADDRSTRLEN] = "";
@@ -3302,7 +3302,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 						cli_result = RESULT_FAILURE;
 						break;
 					}
-					char *dev;
+					char * dev = NULL;
 
 					if (sccp_strcaseequals("device", argv[6])) {				/* 'device' str is optional during 'hold off' (to match old behaviour) */
 						dev = pbx_strdupa(argv[7]);
@@ -3595,7 +3595,7 @@ CLI_ENTRY(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage, FALSE
 static int sccp_tokenack(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	int local_line_total = 0;
-	const char *dev;
+	const char * dev = NULL;
 
 	if (argc < 3 || sccp_strlen_zero(argv[2])) {
 		return RESULT_SHOWUSAGE;

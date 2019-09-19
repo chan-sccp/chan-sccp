@@ -723,7 +723,7 @@ static void __sccp_netsock_end_device_thread(sccp_session_t *session)
 	}
 
 	/* join previous session thread, wait for device cleanup */
-	void *res;
+	void * res = NULL;
 	if (pthread_join(session_thread, &res) == 0) {
 		if (res != PTHREAD_CANCELED) {
 			pbx_log(LOG_ERROR, "SCCP: (sccp_netsock_end_device_thread) pthread join failed\n");
@@ -766,7 +766,7 @@ static boolean_t sccp_session_new_socket_allowed(struct sockaddr_storage *sin)
 
 static sccp_session_t * sccp_create_session(int new_socket)
 {
-	sccp_session_t *s;
+	sccp_session_t * s = NULL;
 
 	if (!(s = (sccp_session_t *)sccp_calloc(sizeof *s, 1))) {
 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
@@ -1009,7 +1009,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 	uint32_t msgid = letohl(msg->header.lel_messageId);
 	ssize_t bytesSent;
 	ssize_t bufLen;
-	uint8_t *bufAddr;
+	uint8_t * bufAddr = NULL;
 
 	if (s && s->session_stop) {
 		return -1;

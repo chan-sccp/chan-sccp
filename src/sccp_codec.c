@@ -358,7 +358,7 @@ skinny_codec_t sccp_codec_findBestJoint(constChannelPtr c, const skinny_codec_t 
 {
 	skinny_codec_t res = SKINNY_CODEC_NONE;
 	skinny_codec_t leadPrefs[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
-	skinny_codec_t *followPrefs;
+	skinny_codec_t * followPrefs = NULL;
 
 	/* debug */
 	//char pref_buf[256]; sccp_codec_multiple2str(pref_buf, sizeof(pref_buf) - 1, ourPreferences, SKINNY_MAX_CAPABILITIES);

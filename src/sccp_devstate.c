@@ -69,8 +69,8 @@ void sccp_devstate_module_stop(void)
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Stopping devstate system\n");
 	{
-		sccp_devstate_deviceState_t *deviceState;
-		sccp_devstate_SubscribingDevice_t *subscriber;
+		sccp_devstate_deviceState_t * deviceState = NULL;
+		sccp_devstate_SubscribingDevice_t * subscriber = NULL;
 
 		SCCP_LIST_LOCK(&deviceStates);
 		while ((deviceState = SCCP_LIST_REMOVE_HEAD(&deviceStates, list))) {

@@ -159,8 +159,8 @@ void sccp_manager_module_stop(void)
  */
 void sccp_manager_eventListener(const sccp_event_t * event)
 {
-	sccp_device_t *device = NULL;
-	sccp_linedevices_t *linedevice = NULL;
+	sccp_device_t * device = NULL;
+	sccp_linedevices_t * linedevice = NULL;
 
 	if (!event) {
 		return;
@@ -1007,12 +1007,12 @@ boolean_t sccp_manager_action2str(const char *manager_command, char **outStr)
 {
 #if ASTERISK_VERSION_GROUP >= 108
         int failure = 0;
-        struct ast_str *buf;
-        
-        if (!outStr || sccp_strlen_zero(manager_command) || !(buf = ast_str_thread_get(&hookresult_threadbuf, HOOKRESULT_INITSIZE))) {
+	struct ast_str * buf = NULL;
+
+	if(!outStr || sccp_strlen_zero(manager_command) || !(buf = ast_str_thread_get(&hookresult_threadbuf, HOOKRESULT_INITSIZE))) {
 		pbx_log(LOG_ERROR, "SCCP: No OutStr or Command Provided\n");
         	return -2;
-        }
+	}
 
 	struct manager_custom_hook hook = {__FILE__, __sccp_manager_hookresult};
         failure = ast_hook_send_action(&hook, manager_command);							/* "Action: ParkedCalls\r\n" */

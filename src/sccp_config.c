@@ -253,9 +253,9 @@ static const SCCPConfigOption *sccp_find_config(const sccp_config_segment_t segm
 	const SCCPConfigOption *config = sccpConfigSegment->config;
 
 	char delims[] = "|";
-	char *token = NULL;
-	char *tokenrest = NULL;
-	char *config_name = NULL;
+	char * token = NULL;
+	char * tokenrest = NULL;
+	char * config_name = NULL;
 
 	for (i = 0; i < sccpConfigSegment->config_size; i++) {
 		if (strstr(config[i].name, delims) != NULL) {
@@ -283,9 +283,9 @@ static PBX_VARIABLE_TYPE *createVariableSetForMultiEntryParameters(PBX_VARIABLE_
 	PBX_VARIABLE_TYPE *tmp = NULL;
 	char delims[] = "|";
 	char option_name[strlen(configOptionName) + 2];
-	char *token = NULL;
-	char *tokenrest = NULL;
-	
+	char * token = NULL;
+	char * tokenrest = NULL;
+
 	snprintf(option_name, sizeof(option_name), "%s%s", configOptionName, delims);
 	token = strtok_r(option_name, delims, &tokenrest);
 	while (token != NULL) {
@@ -323,8 +323,8 @@ static PBX_VARIABLE_TYPE *createVariableSetForTokenizedDefault(const char *confi
 	char delims[] = "|";
 	char *option_name_tokens = pbx_strdupa(configOptionName);
 	char *option_value_tokens = pbx_strdupa(defaultValue);
-	char *option_name_tokens_saveptr;
-	char *option_value_tokens_saveptr;
+	char * option_name_tokens_saveptr = NULL;
+	char * option_value_tokens_saveptr = NULL;
 
 	char *option_name = strtok_r(option_name_tokens, "|", &option_name_tokens_saveptr);
 	char *option_value = strtok_r(option_value_tokens, "|", &option_value_tokens_saveptr);
@@ -363,7 +363,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 {
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
 	const SCCPConfigOption *sccpConfigOption = sccp_find_config(segment, name);
-	void *dst;
+	void * dst = NULL;
 	enum SCCPConfigOptionType type;										/* enum wrapper */
 	enum SCCPConfigOptionFlag flags;									/* enum wrapper */
 
@@ -381,9 +381,9 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 	long unsigned int uint32num;
 	long long unsigned int uint64num;
 	boolean_t boolean;
-	char *str;
+	char * str = NULL;
 	char oldChar;
-	char *tmp_value;
+	char * tmp_value = NULL;
 
 	if (!sccpConfigOption) {
 		if (strlen(name) == 0 || name[0] != '_') {							/* skip generating error, when column name starts with '_' */
@@ -732,10 +732,8 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 
 	/* destination/source config */
 	const SCCPConfigOption *sccpDstConfig = sccpConfigSegment->config;
-	const SCCPConfigOption *sccpDefaultConfigOption;
-
-	/* segment referral for default values  */
-	sccp_device_t *referral_device = NULL;									/* need to find a way to find the default device to copy */
+	const SCCPConfigOption * sccpDefaultConfigOption = NULL;
+	sccp_device_t * referral_device = NULL; /* need to find a way to find the default device to copy */
 	char *referral_cat = "";
 	sccp_config_segment_t search_segment_type;
 	boolean_t referralValueFound = FALSE;
@@ -787,8 +785,8 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 			/* check to see if there is a default value to be found in the config file within referred segment */
 			if (referral_cat) {
 				/* tokenize all option parameters */
-				PBX_VARIABLE_TYPE *v;
-				PBX_VARIABLE_TYPE *cat_root;
+				PBX_VARIABLE_TYPE * v = NULL;
+				PBX_VARIABLE_TYPE * cat_root = NULL;
 				char option_tokens[sccp_strlen(sccpDstConfig[cur_elem].name) + 2];
 				referralValueFound = FALSE;
 
@@ -843,8 +841,8 @@ void sccp_config_cleanup_dynamically_allocated_memory(void *obj, const sccp_conf
 {
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
 	const SCCPConfigOption *sccpConfigOption = sccpConfigSegment->config;
-	void *dst;
-	char *str;
+	void * dst = NULL;
+	char * str = NULL;
 
 	uint8_t i = 0;
 
@@ -1140,8 +1138,8 @@ sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
 
-	char *piece;
-	char *c;
+	char * piece = NULL;
+	char * c = NULL;
 	int start = 0, finish = 0, x;
 	sccp_group_t group = 0;
 
@@ -1741,8 +1739,8 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
 		variableList = NULL;
 	}
 	PBX_VARIABLE_TYPE *variable = variableList;
-	char *var_name = NULL;
-	char *var_value = NULL;
+	char * var_name = NULL;
+	char * var_value = NULL;
 
 	for (; v; v = v->next) {										/* create new list */
 		var_name = pbx_strdupa(v->value);
@@ -2293,7 +2291,7 @@ static void sccp_config_add_default_softkeyset(void)
  */
 boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 {
-	PBX_VARIABLE_TYPE *v;
+	PBX_VARIABLE_TYPE * v = NULL;
 
 	/* Cleanup for reload */
 	if (!GLOB(cfg)) {
@@ -2860,9 +2858,9 @@ static uint8_t sccp_config_readSoftSet(uint8_t * softkeyset, const char *data)
 	}
 
 	int i = 0, j;
-	char *labels;
-	char *splitter;
-	char *label;
+	char * labels = NULL;
+	char * splitter = NULL;
+	char * label = NULL;
 	int softkey;
 
 	labels = pbx_strdupa(data);
@@ -3347,8 +3345,8 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
  */
 int sccp_config_generate(char *filename, int configType)
 {
-	const SCCPConfigSegment *sccpConfigSegment = NULL;
-	const SCCPConfigOption *config = NULL;
+	const SCCPConfigSegment * sccpConfigSegment = NULL;
+	const SCCPConfigOption * config = NULL;
 	long unsigned int sccp_option;
 	long unsigned int segment;
 	char *description = "";
@@ -3363,7 +3361,7 @@ int sccp_config_generate(char *filename, int configType)
 	snprintf(fn, sizeof(fn), "%s/%s", ast_config_AST_CONFIG_DIR, filename);
 	pbx_log(LOG_NOTICE, "Creating new config file '%s'\n", fn);
 
-	FILE *f;
+	FILE * f = NULL;
 
 	if (!(f = fopen(fn, "w"))) {
 		pbx_log(LOG_ERROR, "Error creating new config file \n");
@@ -3410,16 +3408,16 @@ int sccp_config_generate(char *filename, int configType)
 					    	if (strstr(config[sccp_option].name, "|")) {
 					    		char delims[] = "|";
 					    		char *option_name_tokens = pbx_strdupa(config[sccp_option].name);
-					    		char *option_value_tokens;
-					    		if (!sccp_strlen_zero(config[sccp_option].defaultValue)) {
-					    			option_value_tokens = pbx_strdupa(config[sccp_option].defaultValue);
-					    		} else {
-					    			option_value_tokens = pbx_strdupa("\"\"");
+							char * option_value_tokens = NULL;
+							if(!sccp_strlen_zero(config[sccp_option].defaultValue)) {
+								option_value_tokens = pbx_strdupa(config[sccp_option].defaultValue);
+							} else {
+								option_value_tokens = pbx_strdupa("\"\"");
 							}
-					    		char *option_name_tokens_saveptr;
-					    		char *option_value_tokens_saveptr;
-					    		char *option_name = strtok_r(option_name_tokens, delims, &option_name_tokens_saveptr);
-					    		char *option_value = strtok_r(option_value_tokens, delims, &option_value_tokens_saveptr);
+							char * option_name_tokens_saveptr = NULL;
+							char * option_value_tokens_saveptr = NULL;
+							char * option_name = strtok_r(option_name_tokens, delims, &option_name_tokens_saveptr);
+							char *option_value = strtok_r(option_value_tokens, delims, &option_value_tokens_saveptr);
 					    		while (option_name != NULL) {
 								snprintf(name_and_value, sizeof(name_and_value), "%s = %s", option_name, option_value ? option_value : "\"\"");
 								fprintf(f, "%s", name_and_value);

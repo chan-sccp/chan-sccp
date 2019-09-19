@@ -139,8 +139,8 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 #endif
 {
 	sccp_hint_list_t *hint = (sccp_hint_list_t *) data;
-	const char *cidName;
-	const char *cidNumber;
+	const char * cidName = NULL;
+	const char * cidNumber = NULL;
 	//enum ast_device_state state;		/* maybe we should store the last state */
 	
 #if ASTERISK_VERSION_GROUP >= 112
@@ -218,7 +218,7 @@ void sccp_hint_module_stop(void)
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Stopping hint system\n");
 	{
-		struct sccp_hint_lineState *lineState;
+		struct sccp_hint_lineState * lineState = NULL;
 
 		SCCP_LIST_LOCK(&lineStates);
 		while ((lineState = SCCP_LIST_REMOVE_HEAD(&lineStates, list))) {
@@ -231,8 +231,8 @@ void sccp_hint_module_stop(void)
 	}
 
 	{
-		sccp_hint_list_t *hint;
-		sccp_hint_SubscribingDevice_t *subscriber;
+		sccp_hint_list_t * hint = NULL;
+		sccp_hint_SubscribingDevice_t * subscriber = NULL;
 
 		SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 		while ((hint = SCCP_LIST_REMOVE_HEAD(&sccp_hint_subscriptions, list))) {
@@ -1380,11 +1380,11 @@ static void sccp_hint_notifySubscribersViaPbx(struct sccp_hint_lineState *lineSt
 static boolean_t sccp_match_dialplan2lineName(char *hint_app, char *lineName)
 {
 	char *rest = pbx_strdupa(hint_app);
-        char *cur;
-        char *tmp;
+	char * cur = NULL;
+	char * tmp = NULL;
 
-        // get the device portion of the hint string
-        if ((tmp = strrchr(rest, ','))) {
+	// get the device portion of the hint string
+	if ((tmp = strrchr(rest, ','))) {
                 *tmp = '\0';
         }
         

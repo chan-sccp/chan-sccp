@@ -780,7 +780,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 	// char extension[SCCP_MAX_CONTEXT]="";
 	// char name[SCCP_MAX_CONTEXT]="";
 
-	struct pbx_context *con;
+	struct pbx_context * con = NULL;
 	struct pbx_find_info q = {.stacklen = 0 };
 
 	if (sccp_strlen_zero(GLOB(regcontext))) {
@@ -1124,8 +1124,8 @@ sccp_line_t *sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex
  */
 sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const sccp_line_t * line, const char *filename, int lineno, const char *func)
 {
-	sccp_linedevices_t *linedevice = NULL;
-	sccp_line_t *l = NULL;									// loose const qualifier, to be able to lock the list;
+	sccp_linedevices_t * linedevice = NULL;
+	sccp_line_t * l = NULL;                                        // loose const qualifier, to be able to lock the list;
 	if (!line) {
 		pbx_log(LOG_NOTICE, "SCCP: [%s:%d]->linedevice_find: No line provided to search in\n", filename, lineno);
 		return NULL;

@@ -864,7 +864,7 @@ static struct pbx_custom_function sccpline_function = {
  */
 static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *output, size_t len)
 {
-	PBX_CHANNEL_TYPE *ast;
+	PBX_CHANNEL_TYPE * ast = NULL;
 	pbx_str_t *coldata = pbx_str_thread_get(&coldata_buf, 16);
 	pbx_str_t *colnames = pbx_str_thread_get(&colnames_buf, 16);
 	char *colname = NULL;
@@ -995,7 +995,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 			} else if (!strcasecmp(token, "parent")) {
 				snprintf(buf, buf_len, "%d", c->parentChannel->callid);
 			} else if (!strcasecmp(token, "bridgepeer")) {
-				PBX_CHANNEL_TYPE *bridgechannel;
+				PBX_CHANNEL_TYPE * bridgechannel = NULL;
 				if (c->owner && (bridgechannel = iPbx.get_bridged_channel(c->owner))) {
 					snprintf(buf, buf_len, "%s", pbx_channel_name(bridgechannel));
 					pbx_channel_unref(bridgechannel);
@@ -1026,7 +1026,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 					       (int) call_stats[SCCP_CALLSTATISTIC_LAST].concealed_seconds, (int) call_stats[SCCP_CALLSTATISTIC_LAST].severely_concealed_seconds);
 				}
 			} else if (!strncasecmp(token, "codec[", 6)) {
-				char *codecnum;
+				char * codecnum = NULL;
 
 				codecnum = token + 6;									// move past the '[' 
 				codecnum = strsep(&codecnum, "]");							// trim trailing ']' if any 
