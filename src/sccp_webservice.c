@@ -88,7 +88,7 @@ static const char *ftype2mtype(const char *ftype)
 	uint8_t x;
 	if (ftype) {
 		for (x = 0; x < ARRAY_LEN(mimetypes); x++) {
-			if (!strcasecmp(ftype, mimetypes[x].ext)) {
+			if(strcasecmp(ftype, mimetypes[x].ext) == 0) {
 				return mimetypes[x].mtype;
 			}
 		}
@@ -181,7 +181,7 @@ static boolean_t parse_http_conf(char *const uri_str)
 				} else {
 					prefix[0] = '\0';
 				}
-			} else if (!strcasecmp(v->name, "sessionlimit")) {
+			} else if(strcasecmp(v->name, "sessionlimit") == 0) {
 				if (ast_parse_arg(v->value, PARSE_INT32 | PARSE_DEFAULT | PARSE_IN_RANGE,
 						&cookie_timeout, DEFAULT_SESSION_LIMIT, 1, INT_MAX)) {
 					ast_log(LOG_WARNING, "Invalid %s '%s' at line %d of http.conf\n", v->name, v->value, v->lineno);
@@ -573,8 +573,8 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser
 
 	/* check received "If-None-Match" request header and Etag value for file */
 	for (v = headers; v; v = v->next) {
-		if (!strcasecmp(v->name, "If-None-Match")) {
-			if (!strcasecmp(v->value, etag)) {
+		if(strcasecmp(v->name, "If-None-Match") == 0) {
+			if(strcasecmp(v->value, etag) == 0) {
 				not_modified = 1;
 			}
 			break;

@@ -1423,7 +1423,7 @@ void sccp_conference_handle_device_to_user(devicePtr d, uint32_t callReference, 
 		} else if (!strcmp(d->dtu_softkey.action, "INVITE")) {
 			sccp_conference_invite_participant(conference, moderator);
 #endif
-		} else if (!strcmp(d->dtu_softkey.action, "MODERATE")) {
+		} else if(strcmp(d->dtu_softkey.action, "MODERATE") == 0) {
 			sccp_conference_promote_demote_participant(conference, participant, moderator);
 		}
 	} else {

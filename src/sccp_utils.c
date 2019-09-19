@@ -1662,7 +1662,7 @@ const char * sccp_retrieve_str_variable_byKey(PBX_VARIABLE_TYPE *params, const c
 {
 	PBX_VARIABLE_TYPE * param = NULL;
 	for(param = params;param;param = param->next) {
-		if (!strcasecmp(key, param->name)) {
+		if(strcasecmp(key, param->name) == 0) {
 			return param->value;
 			break;
 		}

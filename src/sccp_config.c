@@ -262,13 +262,13 @@ static const SCCPConfigOption *sccp_find_config(const sccp_config_segment_t segm
 			config_name = pbx_strdupa(config[i].name);
 			token = strtok_r(config_name, delims, &tokenrest);
 			while (token != NULL) {
-				if (!strcasecmp(token, name)) {
+				if(strcasecmp(token, name) == 0) {
 					return &config[i];
 				}
 				token = strtok_r(NULL, delims, &tokenrest);
 			}
 		}
-		if (!strcasecmp(config[i].name, name)) {
+		if(strcasecmp(config[i].name, name) == 0) {
 			return &config[i];
 		}
 	}
@@ -291,7 +291,7 @@ static PBX_VARIABLE_TYPE *createVariableSetForMultiEntryParameters(PBX_VARIABLE_
 	while (token != NULL) {
 		sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Token %s/%s\n", option_name, token);
 		for (v = cat_root; v; v = v->next) {
-			if (!strcasecmp(token, v->name)) {
+			if(strcasecmp(token, v->name) == 0) {
 				if (!tmp) {
 					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Create new variable set (%s=%s)\n", v->name, v->value);
 					if (!(out = pbx_variable_new(v->name, v->value, ""))) {
@@ -452,7 +452,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 				if (sccp_strlen(value) > sccpConfigOption->size - 1) {
 					pbx_log(LOG_NOTICE, "SCCP: config parameter %s:%s value '%s' is too long, only using the first %d characters\n", sccpConfigSegment->name, name, value, (int) sccpConfigOption->size - 1);
 				}
-				if (strncasecmp(str, value, sccpConfigOption->size - 1)) {
+				if(strncasecmp(str, value, sccpConfigOption->size - 1) != 0) {
 					if (GLOB(reload_in_progress)) {
 						sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "SCCP: config parameter %s '%s' != '%s'\n", name, str, value);
 					}
@@ -471,7 +471,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 
 			if (!sccp_strlen_zero(value)) {
 				if (str) {
-					if (strcasecmp(str, value)) {
+					if(strcasecmp(str, value) != 0) {
 						changed = SCCP_CONFIG_CHANGE_CHANGED;
 						/* there is a value already, free it */
 						sccp_free(str);

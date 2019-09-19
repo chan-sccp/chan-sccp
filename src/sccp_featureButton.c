@@ -348,7 +348,7 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	   which we registered for. This will lead to unneccesary updates with multiple buttons.
 	   In the future we might need a more elegant hint-registry for this type of notification,
 	   which should be global to chan-sccp-b, not for each device. For now, this suffices. */
-	if (!strncasecmp(dev, "Custom:", len)) {
+	if(strncasecmp(dev, "Custom:", len) == 0) {
 		// sspecifier = (char *)(dev + len);
 		sccp_featButton_changed(device, SCCP_FEATURE_DEVSTATE);
 	}

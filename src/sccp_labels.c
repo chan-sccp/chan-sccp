@@ -137,7 +137,7 @@ gcc_inline uint32_t labelstr2int(const char *str)
 {
 	uint32_t i;
 	for (i = 0; i < ARRAY_LEN(skinny_labels); i++) {
-		if (!strcasecmp(skinny_labels[i].text, str)) {
+		if(strcasecmp(skinny_labels[i].text, str) == 0) {
 			return skinny_labels[i].label;
 		}
 	}

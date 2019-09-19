@@ -3257,7 +3257,7 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 	event = softkeysmap[event - 1];
 
 	/* correct events for nokia icc client (Legacy Support -FS) */
-	if (!strcasecmp(d->config_type, "nokia-icc")) {
+	if(strcasecmp(d->config_type, "nokia-icc") == 0) {
 		switch (event) {
 			case SKINNY_LBL_DIRTRFR:
 				event = SKINNY_LBL_ENDCALL;

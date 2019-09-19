@@ -230,12 +230,12 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 	char *extra_cmds[] = { "no", "none", "off", "all" };
 
 	// check if the sccp debug line contains no before the categories
-	if (!strncasecmp(line, "sccp debug no ", strlen("sccp debug no "))) {
+	if(strncasecmp(line, "sccp debug no ", strlen("sccp debug no ")) == 0) {
 		debugno = 1;
 	}
 	// check extra_cmd
 	for (i = 0; i < ARRAY_LEN(extra_cmds); i++) {
-		if (!strncasecmp(word, extra_cmds[i], wordlen)) {
+		if(strncasecmp(word, extra_cmds[i], wordlen) == 0) {
 			// skip "no" and "none" if in debugno mode
 			if (debugno && !strncasecmp("no", extra_cmds[i], strlen("no"))) {
 				continue;
@@ -260,7 +260,7 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 			}
 		}
 		// find a match with partial category
-		if (!strncasecmp(word, sccp_debug_categories[i].key, wordlen)) {
+		if(strncasecmp(word, sccp_debug_categories[i].key, wordlen) == 0) {
 			if (++which > state) {
 				return pbx_strdup(sccp_debug_categories[i].key);
 			}
