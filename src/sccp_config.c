@@ -2154,6 +2154,10 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const char *lineName, boolean_t isRealtime)
 {
 	sccp_configurationchange_t res = sccp_config_applyLineConfiguration(l, v);
+	if(!l) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_config_buildLine) called without valid line ptr\n");
+		return;
+	}
 
 #ifdef CS_SCCP_REALTIME
 	l->realtime = isRealtime;
@@ -2183,6 +2187,10 @@ static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const 
 static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * variable, const char *deviceName, boolean_t isRealtime)
 {
 	PBX_VARIABLE_TYPE *v = variable;
+	if(!d) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_config_buildDevice) called without valid device ptr\n");
+		return;
+	}
 
 	/* apply configuration */
 	sccp_configurationchange_t res = sccp_config_applyDeviceConfiguration(d, v);
@@ -2452,7 +2460,10 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 			/* create new device with default values */
 			if (!device) {
-				device = sccp_device_create(cat);
+				device = sccp_device_create(cat) /*ref_replace*/;
+				if(!device) {
+					return FALSE;
+				}
 				// sccp_copy_string(d->id, cat, sizeof(d->id));         /* set device name */
 				sccp_device_addToGlobals(device);
 				device_count++;
@@ -2491,7 +2502,10 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			if (l) {
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found line %d: %s, do update\n", line_count, cat);
 				sccp_config_buildLine(l, v, cat, FALSE);
-			} else if ((l = sccp_line_create(cat))) {
+			} else if((l = sccp_line_create(cat)) /*ref_replace*/) {
+				if(!l) {
+					return FALSE;
+				}
 				sccp_config_buildLine(l, v, cat, FALSE);
 				sccp_line_addToGlobals(l);						/* may find another line instance create by another thread, in that case the newly created line is going to be dropped when l is released */
 			}
@@ -2627,6 +2641,10 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, P
 	unsigned int res = SCCP_CONFIG_NOUPDATENEEDED;
 	boolean_t SetEntries[ARRAY_LEN(sccpLineConfigOptions)] = { FALSE };
 	PBX_VARIABLE_TYPE *cat_root = v;
+	if(!l) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_config_applyLineConfiguration) called without valid line ptr\n");
+		return SCCP_CONFIG_ERROR;
+	}
 
 	for (; v; v = v->next) {
 		res |= sccp_config_object_setValue(l, cat_root, v->name, v->value, v->lineno, SCCP_CONFIG_LINE_SEGMENT, SetEntries, FALSE);
@@ -2660,6 +2678,10 @@ sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * 
 	unsigned int res = SCCP_CONFIG_NOUPDATENEEDED;
 	boolean_t SetEntries[ARRAY_LEN(sccpDeviceConfigOptions)] = { FALSE };
 	PBX_VARIABLE_TYPE *cat_root = v;
+	if(!d) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_config_applyDeviceConfiguration) called without valid device ptr\n");
+		return SCCP_CONFIG_ERROR;
+	}
 
 	if (d->pendingDelete) {
 		sccp_dev_clean_restart(d, FALSE);

@@ -41,21 +41,20 @@ SCCP_FILE_VERSION(__FILE__, "");
  * 
  * \called_from_asterisk
  */
-sccp_channel_request_status_t sccp_requestChannel(const char *lineName, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, skinny_ringtype_t ringermode, sccp_channel_t ** channel)
+sccp_channel_request_status_t sccp_requestChannel(const char * lineName, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, skinny_ringtype_t ringermode, sccp_channel_t * const * channel)
 {
-	sccp_channel_t *my_sccp_channel = NULL;
-	AUTO_RELEASE(sccp_line_t, l , NULL);
-
 	if (!lineName) {
 		return SCCP_REQUEST_STATUS_ERROR;
 	}
 
 	char mainId[SCCP_MAX_EXTENSION];
 	sccp_subscription_id_t subscriptionId;
-	if (sccp_parseComposedId(lineName, 80, &subscriptionId, mainId)) {
-		l = sccp_line_find_byname(mainId, FALSE);
+	if(!sccp_parseComposedId(lineName, 80, &subscriptionId, mainId)) {
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "Could not parse lineName:%s !\n", lineName);
+		return SCCP_REQUEST_STATUS_LINEUNKNOWN;
 	};
 
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(mainId, FALSE));
 	if (!l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP/%s does not exist!\n", mainId);
 		return SCCP_REQUEST_STATUS_LINEUNKNOWN;
@@ -70,8 +69,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, sccp_aut
 
 	// Allocate a new SCCP channel.
 	/* on multiline phone we set the line when answering or switching lines */
-	*channel = my_sccp_channel = sccp_channel_allocate(l, NULL);
-
+	AUTO_RELEASE(sccp_channel_t, my_sccp_channel, sccp_channel_allocate(l, NULL));
 	if (!my_sccp_channel) {
 		return SCCP_REQUEST_STATUS_ERROR;
 	}
@@ -97,6 +95,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, sccp_aut
 	my_sccp_channel->autoanswer_cause = autoanswer_cause;
 	my_sccp_channel->ringermode = ringermode;
 	my_sccp_channel->hangupRequest = sccp_astgenwrap_requestQueueHangup;
+	(*(sccp_channel_t **)channel) = sccp_channel_retain(my_sccp_channel);
 	return SCCP_REQUEST_STATUS_SUCCESS;
 }
 
@@ -495,7 +494,7 @@ sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
 			SCCP_LIST_LOCK(&l->devices);
 			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 				if (linedevice->device && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(linedevice->device)) {
-					d = sccp_device_retain(linedevice->device);
+					d = sccp_device_retain(linedevice->device) /*ref_replace*/;
 					break;
 				}
 			}
@@ -710,7 +709,9 @@ boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, c
 	char cid_num[StationMaxDirnumSize] = {0};
 	{
 		sccp_linedevices_t *linedevice = NULL;
-		if ((d = sccp_channel_getDevice(c))) {
+		// if ((d = sccp_channel_getDevice(c))) {
+		d = sccp_channel_getDevice(c) /*ref_replace*/;
+		if(d) {
 			SCCP_LIST_LOCK(&l->devices);
 			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 				if (linedevice->device == d) {
@@ -718,15 +719,15 @@ boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, c
 				}
 			}
 			SCCP_LIST_UNLOCK(&l->devices);
-		} else if (SCCP_LIST_GETSIZE(&l->devices) > 0) {
+		} else if(SCCP_LIST_GETSIZE(&l->devices) > 0) {
 			SCCP_LIST_LOCK(&l->devices);
 			linedevice = SCCP_LIST_FIRST(&l->devices);
 			SCCP_LIST_UNLOCK(&l->devices);
 			if (linedevice && linedevice->device) {
-				d = sccp_device_retain(linedevice->device);			// ugly hack just picking the first one !
+				d = sccp_device_retain(linedevice->device) /*ref_replace*/;                                        // ugly hack just picking the first one !
 			}
 		}
-		
+
 		if (!linedevice) {
 			pbx_log(LOG_NOTICE, "%s: Could not find an appropriate linedevice to assign this channel to. Line:%s exists, but was not assigned to any device (yet). We should give up here.\n", c->designator, l->name);
 			return FALSE;
@@ -952,8 +953,8 @@ boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, c
  */
 int sccp_pbx_sched_dial(const void * data)
 {
-	AUTO_RELEASE(sccp_channel_t, channel , NULL);
-	if ((channel = sccp_channel_retain(data))) {
+	AUTO_RELEASE(sccp_channel_t, channel, sccp_channel_retain(data));
+	if(channel) {
 		if ((ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) && channel->scheduler.hangup_id == -1) {
 			channel->scheduler.digittimeout_id = -3;	/* prevent further digittimeout scheduling */
 			if (channel->owner && !iPbx.getChannelPbx(channel) && !sccp_strlen_zero(channel->dialedNumber)) {

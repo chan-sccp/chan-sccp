@@ -212,7 +212,6 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 {
 	const struct messageMap_cb *messageMap_cb = NULL;
 	sccp_mid_t mid = KeepAliveMessage;
-	AUTO_RELEASE(sccp_device_t, device , NULL);
 
 	if (!s) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_handle_message) Client does not have a session which is required. Exiting sccp_handle_message !\n");
@@ -234,13 +233,12 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 		messageMap_cb = &spcpMessagesCbMap[mid - SPCP_MESSAGE_OFFSET]; 
 	} else {
 		pbx_log(LOG_WARNING, "SCCP: Unknown Message %x. Don't know how to handle it. Skipping.\n", mid);
-		handle_unknown_message(s, device, msg);
+		handle_unknown_message(s, NULL, msg);
 		return 0;
 	}
 	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (0x%X)\n", sccp_session_getDesignator(s), msgtype2str(mid), mid);
 
-	device = check_session_message_device(s, msg, msgtype2str(mid), messageMap_cb->deviceIsNecessary);	/* retained device returned */
-
+	AUTO_RELEASE(sccp_device_t, device, check_session_message_device(s, msg, msgtype2str(mid), messageMap_cb->deviceIsNecessary));
 	if (messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !device) {
 		pbx_log(LOG_ERROR, "SCCP: Device is required to handle this message %s(%x), but none is provided. Exiting sccp_handle_message\n", msgtype2str(mid), mid);
 		return -3;
@@ -321,7 +319,6 @@ void sccp_handle_dialtone(constDevicePtr d, constLinePtr l, constChannelPtr chan
 void handle_unknown_message(constSessionPtr no_s, devicePtr no_d, constMessagePtr msg_in)
 {
 	sccp_mid_t mid = letohl(msg_in->header.lel_messageId);
-
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
 		pbx_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", msgtype2str(mid), mid, msg_in->header.length);
 		sccp_dump_msg(msg_in);
@@ -487,7 +484,6 @@ void handle_LocationInfoMessage(constSessionPtr s, devicePtr d, constMessagePtr 
  */
 void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg_in)
 {
-	AUTO_RELEASE(sccp_device_t, device , NULL);
 	char *deviceName = "";
 	uint32_t serverPriority = GLOB(server_priority);
 	uint32_t deviceInstance = 0;
@@ -520,13 +516,14 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 		if (tmpdevice) {
 			skinny_registrationstate_t state = sccp_device_getRegistrationState(tmpdevice);
 			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + token_backoff_time) {
-				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up (regState: %s, tokenState:%s, registrationTime:%d)\n", DEV_ID_LOG(device), skinny_registrationstate2str(state), sccp_tokenstate2str(tmpdevice->status.token), (int)(tmpdevice->registrationTime));
+				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up (regState: %s, tokenState:%s, registrationTime:%d)\n", deviceName, skinny_registrationstate2str(state),
+					sccp_tokenstate2str(tmpdevice->status.token), (int)(tmpdevice->registrationTime));
 				tmpdevice->registrationTime = time(0);
 				sccp_session_tokenReject(s, token_backoff_time);
 				return;
 			}
 			if (sccp_session_check_crossdevice(s, tmpdevice) || (state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
-				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later (tokenState:%s)\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
+				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later (tokenState:%s)\n", deviceName, skinny_registrationstate2str(state));
 				tmpdevice->registrationTime = time(0);
 				sccp_session_crossdevice_cleanup(s, tmpdevice->session);
 				sccp_session_tokenReject(s, 10);
@@ -538,9 +535,9 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 	}
 
 	// Search for the device (including realtime), if does not exist and hotline is requested create one.
-	device = sccp_device_find_byid(deviceName, TRUE);
+	AUTO_RELEASE(sccp_device_t, device, sccp_device_find_byid(deviceName, TRUE));
 	if (!device && GLOB(allowAnonymous)) {
-		device = sccp_device_createAnonymous(msg_in->data.RegisterTokenRequest.sId.deviceName);
+		device = sccp_device_createAnonymous(msg_in->data.RegisterTokenRequest.sId.deviceName) /*ref_replace*/;
 		sccp_config_applyDeviceConfiguration(device, NULL);
 		sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line ? GLOB(hotline)->line->name : "hotline", NULL, NULL);
 		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", deviceName, GLOB(hotline)->line->name);
@@ -671,7 +668,6 @@ EXIT:
  */
 void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_in)
 {
-	AUTO_RELEASE(sccp_device_t, device , NULL);
 	char *deviceName = "";
 	uint32_t deviceInstance = 0;
 	skinny_devicetype_t deviceType = SKINNY_DEVICETYPE_UNDEFINED;
@@ -690,7 +686,7 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 	if (!skinny_devicetype_exists(deviceType)) {
 		pbx_log(LOG_NOTICE, "%s: We currently do not (fully) support this device type (%d).\n" "Please send this device type number plus the information about the phone model you are using to one of our developers.\n" "Be Warned you should Expect Trouble Ahead\nWe will try to go ahead (Without any guarantees)\n", deviceName, deviceType);
 	}
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a token, Instance: %d, Type: %s (%d)\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, deviceInstance, skinny_devicetype2str(deviceType), deviceType);
+	sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "%s: is requesting a token, Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, skinny_devicetype2str(deviceType), deviceType);
 
 	/* ip address range check */
 	struct sockaddr_storage sas = { 0 };
@@ -707,13 +703,14 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 		if (tmpdevice) {
 			skinny_registrationstate_t state = sccp_device_getRegistrationState(tmpdevice);
 			if (state == SKINNY_DEVICE_RS_TOKEN && tmpdevice->registrationTime < time(0) + token_backoff_time) {
-				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up (regState: %s, tokenState:%s, registrationTime:%d)\n", DEV_ID_LOG(device), skinny_registrationstate2str(state), sccp_tokenstate2str(tmpdevice->status.token), (int)(tmpdevice->registrationTime - time(0)));
+				pbx_log(LOG_NOTICE, "%s: Token already sent, giving up (regState: %s, tokenState:%s, registrationTime:%d)\n", deviceName, skinny_registrationstate2str(state),
+					sccp_tokenstate2str(tmpdevice->status.token), (int)(tmpdevice->registrationTime - time(0)));
 				tmpdevice->registrationTime = time(0);
 				sccp_session_tokenReject(s, token_backoff_time);
 				return;
 			}
 			if (sccp_session_check_crossdevice(s, tmpdevice) || (state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
-				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later (tokenState:%s)\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
+				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later (tokenState:%s)\n", deviceName, skinny_registrationstate2str(state));
 				sccp_session_crossdevice_cleanup(s, tmpdevice->session);
 				tmpdevice->registrationTime = time(0);
 				sccp_session_tokenRejectSPCP(s, 10);
@@ -725,10 +722,9 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 	}
 
 	// search for all devices including realtime
-	device = sccp_device_find_byid(deviceName, TRUE);
+	AUTO_RELEASE(sccp_device_t, device, sccp_device_find_byid(deviceName, TRUE));
 	if (!device && GLOB(allowAnonymous)) {
-		device = sccp_device_createAnonymous(msg_in->data.SPCPRegisterTokenRequest.sId.deviceName);
-
+		device = sccp_device_createAnonymous(msg_in->data.SPCPRegisterTokenRequest.sId.deviceName) /*ref_replace*/;
 		sccp_config_applyDeviceConfiguration(device, NULL);
 		sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line ? GLOB(hotline)->line->name : "hotline", NULL, NULL);
 		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, GLOB(hotline)->line->name);
@@ -791,7 +787,6 @@ EXIT:
  */
 void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_in)
 {
-	AUTO_RELEASE(sccp_device_t, device , NULL);
 	char * phone_ipv4 = NULL;
 	char * phone_ipv6 = NULL;
 
@@ -826,12 +821,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, UserId: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", deviceName, deviceInstance, userid, skinny_devicetype2str(deviceType), deviceType, protocolVer, msg_in->data.RegisterMessage.loadInfo);
 
 	// search for all devices including realtime
-	if (maybe_d) {
-		device = sccp_device_retain(maybe_d);
-		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: cached device configuration (state: %s)\n", DEV_ID_LOG(device), device ? skinny_registrationstate2str(sccp_device_getRegistrationState(device)) : "UNKNOWN");
-	} else {
-		device = sccp_device_find_byid(deviceName, TRUE);
-	}
+	AUTO_RELEASE(sccp_device_t, device, maybe_d ? sccp_device_retain(maybe_d) : sccp_device_find_byid(deviceName, TRUE));
 	if (device) {
 		skinny_registrationstate_t state = sccp_device_getRegistrationState(device);
 		if (
@@ -850,16 +840,17 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	 * but we cannot depend on one of the standard find functions for this, because they return null in two different cases (non-existent and refcount<0).
 	 */
 	if (!device && GLOB(allowAnonymous)) {
-		if (!(device = sccp_device_createAnonymous(deviceName))) {
-			pbx_log(LOG_ERROR, "%s: hotline device could not be created: %s\n", deviceName, GLOB(hotline)->line->name);
-			sccp_session_reject(s, "hotline failed");
-			goto FUNC_EXIT;
-		} else {
+		device = sccp_device_createAnonymous(deviceName) /*ref_replace*/;
+		if(device) {
 			sccp_config_applyDeviceConfiguration(device, NULL);
 			sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
 			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", deviceName, GLOB(hotline)->line->name);
 			device->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
 			sccp_device_addToGlobals(device);
+		} else {
+			pbx_log(LOG_ERROR, "%s: hotline device could not be created: %s\n", deviceName, GLOB(hotline)->line->name);
+			sccp_session_reject(s, "hotline failed");
+			goto FUNC_EXIT;
 		}
 	}
 
@@ -1614,7 +1605,6 @@ static void handle_stimulus_lastnumberredial(constDevicePtr d, constLinePtr l, c
 		return;
 	}
 	AUTO_RELEASE(sccp_channel_t, channel , sccp_device_getActiveChannel(d));
-
 	if (channel) {
 		if (channel->state == SCCP_CHANNELSTATE_OFFHOOK) {
 			sccp_channel_stop_schedule_digittimout(channel);
@@ -1625,7 +1615,7 @@ static void handle_stimulus_lastnumberredial(constDevicePtr d, constLinePtr l, c
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Redial ignored as call in progress\n", d->id);
 		}
 	} else {
-		channel = sccp_channel_newcall(l, d, d->redialInformation.number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+		channel = sccp_channel_newcall(l, d, d->redialInformation.number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL) /*ref_replace*/;
 		sccp_channel_stop_schedule_digittimout(channel);
 	}
 }
@@ -1677,21 +1667,13 @@ static void handle_speeddial(constDevicePtr d, const sccp_speed_t * k)
 	}
 
 	/* \todo check Remote RINGING + gpickup */
-	AUTO_RELEASE(sccp_line_t, l , NULL);
-
-	if (d->defaultLineInstance > 0) {
-		//sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u\n", d->defaultLineInstance);
-		l = sccp_line_find_byid(d, d->defaultLineInstance);
-	} else {
-		l = sccp_dev_getActiveLine(d);
-	}
+	AUTO_RELEASE(sccp_line_t, l, d->defaultLineInstance > 0 ? sccp_line_find_byid(d, d->defaultLineInstance) : sccp_dev_getActiveLine(d));
 	if (!l) {
 		//sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using first line with instance: %u\n", d->defaultLineInstance);
-		l = sccp_line_find_byid(d, SCCP_FIRST_LINEINSTANCE);
+		l = sccp_line_find_byid(d, SCCP_FIRST_LINEINSTANCE) /*ref_replace*/;
 	}
 	if (l) {
-		AUTO_RELEASE(sccp_channel_t, new_channel , NULL);
-		new_channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+		AUTO_RELEASE(sccp_channel_t, new_channel, sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));
 	}
 }
 
@@ -1785,13 +1767,8 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Line Key press on line %s\n", d->id, l->name);
 	{
-		AUTO_RELEASE(sccp_channel_t, channel , NULL);
-		/* see if have an active call on this instance / callid / device */
-		if (instance && callId) {
-			channel = sccp_find_channel_by_lineInstance_and_callid(d, instance, callId);		/* newer phones */
-		} else {
-			channel = sccp_device_getActiveChannel(d);						/* older phones don't provide instance or callid */
-		}
+		/* see if have an active call on this instance / callid / device, if not dealing with older device */
+		AUTO_RELEASE(sccp_channel_t, channel, (instance && callId) ? sccp_find_channel_by_lineInstance_and_callid(d, instance, callId) : sccp_device_getActiveChannel(d));
 		if (channel) {
 			//sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: got active channel %s, line stimulus on line: %s\n", d->id, channel->designator, l->name);
 			AUTO_RELEASE(sccp_device_t, check_device , sccp_channel_getDevice(channel));
@@ -1830,12 +1807,12 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 			//sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n -> New Call\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 			sccp_dev_setActiveLine(device, l);
 			sccp_dev_set_cplane(device, instance, 1);
-			channel = sccp_channel_newcall(l, device, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
-		} else if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING))) {
+			channel = sccp_channel_newcall(l, device, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL) /*ref_replace*/;
+		} else if((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING)) /*ref_replace*/) {
 			//sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Answering incoming/ringing line %d\n", device->id, instance);
 			sccp_channel_answer(device, channel);
 			sccp_dev_set_cplane(device, instance, 1);
-		} else if (l->statistic.numberOfHeldChannels >= 1 && (channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
+		} else if(l->statistic.numberOfHeldChannels >= 1 && (channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD)) /*ref_replace*/) {
 			if (l->statistic.numberOfHeldChannels == 1) {
 				//sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Resume channel %s on line %d\n", device->id, channel->designator, instance);
 				sccp_dev_setActiveLine(device, l);
@@ -1857,7 +1834,7 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 				}
 			}
 			sccp_dev_set_cplane(device, instance, 1);
-		} else if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))) {
+		} else if((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED)) /*ref_replace*/) {
 			//sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s for this phone, but remote has one or more-> %s ONHOOKSTEALABLE\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)", d->currentLine ? "hide" : "show");
 			//sccp_device_sendCallHistoryDisposition(d, instance, channel->callid, SKINNY_CALL_HISTORY_DISPOSITION_IGNORE);						// does not work on all device types, sadly
 			sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);	// suppress missed call entry in phonebook
@@ -1893,12 +1870,12 @@ static void handle_stimulus_hold(constDevicePtr d, constLinePtr l, const uint16_
 
 	AUTO_RELEASE(sccp_channel_t, channel1 , NULL);
 
-	if ((channel1 = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))) {
+	if((channel1 = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED)) && channel1 /*ref_replace*/) {
 		sccp_channel_hold(channel1);
 		return;
-	} if ((channel1 = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
+	}
+	if((channel1 = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD)) && channel1 /*ref_replace*/) {
 		AUTO_RELEASE(sccp_channel_t, channel2 , sccp_device_getActiveChannel(d));
-
 		if (channel2 && channel2->state == SCCP_CHANNELSTATE_OFFHOOK) {
 			if (channel2->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 				sccp_channel_endcall(channel2);
@@ -2394,7 +2371,7 @@ void handle_stimulus(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	if (stimulus == SKINNY_STIMULUS_HOLD && sccp_session_getProtocol(s) == SPCP_PROTOCOL) {
 		AUTO_RELEASE(sccp_channel_t, c, sccp_channel_find_byid(callId));
 		if (c) {
-			l = sccp_line_retain(c->line);
+			l = sccp_line_retain(c->line) /*ref_replace*/;
 			for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
 				if (d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line == l) {
 					break;
@@ -2404,7 +2381,7 @@ void handle_stimulus(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	}
 	if (!instance) {											/*! \todo also use the callReference if available */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Instance 0 is not a valid instance. Trying the active line %d\n", d->id, instance);
-		if ((l = sccp_dev_getActiveLine(d))) {
+		if((l = sccp_dev_getActiveLine(d)) /*ref_replace*/) {
 			instance = sccp_device_find_index_for_line(d, l->name);
 		} else {
 			instance = (d->defaultLineInstance > 0) ? d->defaultLineInstance : SCCP_FIRST_LINEINSTANCE;
@@ -2412,7 +2389,7 @@ void handle_stimulus(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	}
 	if (!l) {
 		// \todo ADD Use of CallReference !!!!
-		l = sccp_line_find_byid(d, instance);
+		l = sccp_line_find_byid(d, instance) /*ref_replace*/;
 	}
 
 	if (stimulus > SKINNY_STIMULUS_UNUSED && stimulus < SKINNY_STIMULUS_UNDEFINED && skinny_stimulusMap_cb[stimulus].handler_cb) {
@@ -2463,29 +2440,22 @@ void handle_offhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	/* \todo This should be changed, to handle and atomic version of sccp_channel_answer if it would return Success/Failed
 	 * (think of two phones on a shared line, picking up at the same time) 
 	 */
-	if ((channel = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_RINGING))) {
+	AUTO_RELEASE(sccp_channel_t, c, sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_RINGING));
+	if(c) {
 		/* Answer the ringing channel. */
 		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answer channel\n", d->id);
 		sccp_channel_answer(d, channel);
 	} else {
 		/* use default line if it is set */
-		AUTO_RELEASE(sccp_line_t, l , NULL);
-
-		if (d->defaultLineInstance > 0) {
-			//sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u\n", d->defaultLineInstance);
-			l = sccp_line_find_byid(d, d->defaultLineInstance);
-		} else {
-			l = sccp_dev_getActiveLine(d);
-		}
+		AUTO_RELEASE(sccp_line_t, l, d->defaultLineInstance > 0 ? sccp_line_find_byid(d, d->defaultLineInstance) : sccp_dev_getActiveLine(d));
 		if (!l) {
 			//sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using first line with instance: %u\n", d->defaultLineInstance);
-			l = sccp_line_find_byid(d, SCCP_FIRST_LINEINSTANCE);
+			l = sccp_line_find_byid(d, SCCP_FIRST_LINEINSTANCE) /*ref_replace*/;
 		}
-
 		if (l) {
 			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Using line %s\n", d->id, l->name);
-			AUTO_RELEASE(sccp_channel_t, new_channel , NULL);
-			new_channel = sccp_channel_newcall(l, d, (!sccp_strlen_zero(l->adhocNumber) ? l->adhocNumber : NULL), SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+			AUTO_RELEASE(sccp_channel_t, new_channel,
+				     sccp_channel_newcall(l, d, (!sccp_strlen_zero(l->adhocNumber) ? l->adhocNumber : NULL), SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));                                        // implicit release
 		}
 	}
 }
@@ -2521,14 +2491,7 @@ void handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_ONHOOK);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook (buttonIndex: %d, callid: %d)\n", DEV_ID_LOG(d), buttonIndex, callid);
 
-	AUTO_RELEASE(sccp_channel_t, channel , NULL);
-
-	if (buttonIndex && callid) {
-		channel = sccp_find_channel_by_buttonIndex_and_callid(d, buttonIndex, callid);
-	}
-	if (!channel) {
-		channel = sccp_device_getActiveChannel(d);
-	}
+	AUTO_RELEASE(sccp_channel_t, channel, buttonIndex && callid ? sccp_find_channel_by_buttonIndex_and_callid(d, buttonIndex, callid) : sccp_device_getActiveChannel(d));
 	if (channel) {
 		if (!GLOB(transfer_on_hangup) || !sccp_channel_transfer_on_hangup(channel)) {
 			sccp_channel_endcall(channel);
@@ -3077,30 +3040,32 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	switch(CallIdAndLineInstance) {
 		case SCCP_CILI_HAS_CALLID | SCCP_CILI_HAS_LINEINSTANCE:
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) BOTH callid and lineinstance\n", DEV_ID_LOG(d));
-			if ((channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid))) {
+			if((channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid)) /*ref_replace*/) {
 				break;
 			}
 			// fallthrough to lineInstance only method (channel could not be found on lineInstance), reported in issue #340
 		case SCCP_CILI_HAS_LINEINSTANCE:
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) only lineinstance\n", DEV_ID_LOG(d));
-			if ((l = sccp_line_find_byid(d, lineInstance))) {
+			if((l = sccp_line_find_byid(d, lineInstance)) /*ref_replace*/) {
 				SCCP_LIST_LOCK(&l->channels);
-				channel = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->state == SCCP_CHANNELSTATE_OFFHOOK || tmpc->state == SCCP_CHANNELSTATE_GETDIGITS || tmpc->state == SCCP_CHANNELSTATE_DIGITSFOLL), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+				channel = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list,
+							 (tmpc->state == SCCP_CHANNELSTATE_OFFHOOK || tmpc->state == SCCP_CHANNELSTATE_GETDIGITS || tmpc->state == SCCP_CHANNELSTATE_DIGITSFOLL), TRUE, __FILE__, __LINE__,
+							 __PRETTY_FUNCTION__);
 				SCCP_LIST_UNLOCK(&l->channels);
 			}
 			break;
 		case SCCP_CILI_HAS_CALLID:
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) only callid\n", DEV_ID_LOG(d));
-			channel = sccp_channel_find_byid(callid);
+			channel = sccp_channel_find_byid(callid) /*ref_replace*/;
 			break;
 		case SCCP_CILI_HAS_NEITHER:
 			/* Old phones like 7912 never uses callid so we would have trouble finding the right channel */
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) has neither, using activeLine and activeChannel\n", DEV_ID_LOG(d));
-			channel = sccp_device_getActiveChannel(d);
+			channel = sccp_device_getActiveChannel(d) /*ref_replace*/;
 			break;
 	}
 	if (!l && channel && channel->line) {
-		l = sccp_line_retain(channel->line);
+		l = sccp_line_retain(channel->line) /*ref_replace*/;
 	}
 	
 	{ /* check if we have all required structures and states for error conditions */
@@ -3272,16 +3237,16 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 		if (d->defaultLineInstance > 0) {
 			lineInstance = d->defaultLineInstance;
 		} else {
-			l = sccp_dev_getActiveLine(d);
+			l = sccp_dev_getActiveLine(d) /*ref_replace*/;
 		}
 	}
 
 	if (!l && lineInstance) {
-		l = sccp_line_find_byid(d, lineInstance);
+		l = sccp_line_find_byid(d, lineInstance) /*ref_replace*/;
 	}
 
 	if (l && callid) {
-		c = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid);
+		c = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid) /*ref_replace*/;
 	}
 
 #ifdef CS_EXPERIMENTAL
@@ -3978,8 +3943,8 @@ void handle_EnblocCallMessage(constSessionPtr s, devicePtr d, constMessagePtr ms
 
 			AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_findByLineinstance(d, lineInstance));
 			if (linedevice) {
-				AUTO_RELEASE(sccp_channel_t, new_channel , NULL);
-				new_channel = sccp_channel_newcall(linedevice->line, d, calledParty, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+				AUTO_RELEASE(sccp_channel_t, new_channel,
+					     sccp_channel_newcall(linedevice->line, d, calledParty, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));                                        // implicit release
 				sccp_channel_stop_schedule_digittimout(new_channel);
 			}
 

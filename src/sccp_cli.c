@@ -2010,9 +2010,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		if (d) {
 			AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byid(d, d->defaultLineInstance));
 			if (line) {
-				AUTO_RELEASE(sccp_channel_t, channel, NULL);
-				channel = sccp_channel_newcall(line, d, "4444", SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
-
+				AUTO_RELEASE(sccp_channel_t, channel, sccp_channel_newcall(line, d, "4444", SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));
 				pbx_log(LOG_NOTICE, "%s (cli_test) softkey set. starting in 2 seconds.\n", argv[3]);
 				sleep(2);
 				sccp_dev_clearprompt(d, 0, 0);
@@ -2452,12 +2450,12 @@ static int sccp_callforward(int fd, sccp_cli_totals_t *totals, struct mansession
 	//CLI_AMI_OUTPUT(fd, s, "2:%s, 3:%s ,4:%s, 5:%s\n", argv[2], argv[3], argv[4], argv[5]);
 	if (l) {
 		if (argc == 6) {
-			d = sccp_device_find_byid(argv[3], FALSE);
+			d = sccp_device_find_byid(argv[3], FALSE) /*ref_replace*/;
 			type = sccp_callforward_str2val(argv[4]);
 			dest = argv[5];
 		} else if (argc == 5) {
 			if (sccp_strcaseequals(argv[4], "none")) {
-				d = sccp_device_find_byid(argv[3], FALSE);
+				d = sccp_device_find_byid(argv[3], FALSE) /*ref_replace*/;
 				type = sccp_callforward_str2val(argv[4]);
 			} else {
 				type = sccp_callforward_str2val(argv[3]);
@@ -2521,16 +2519,15 @@ CLI_AMI_ENTRY(callforward, sccp_callforward, "Set/Unset CallForward on an SCCP L
 static int sccp_remove_line_from_device(int fd, int argc, char *argv[])
 {
 	int res = RESULT_FAILURE;
-	AUTO_RELEASE(sccp_device_t, d , NULL);
-	AUTO_RELEASE(sccp_line_t, line , NULL);
 
 	if (3 > argc || argc > 5) {
 		return RESULT_SHOWUSAGE;
 	}
-	if ((d = sccp_device_find_byid(argv[3], FALSE))) {						// don't create new realtime devices by searching for them
-		if ((line = sccp_line_find_byname(argv[4], FALSE))) {					// don't create new realtime lines by searching for them
-			sccp_buttonconfig_t *config;
-
+	AUTO_RELEASE(sccp_device_t, d, sccp_device_find_byid(argv[3], FALSE));
+	if(d) {                                                                                                                // don't create new realtime devices by searching for them
+		AUTO_RELEASE(sccp_line_t, line, sccp_line_find_byname(argv[4], FALSE));                                        // don't create new realtime lines by searching for them
+		if(line) {
+			sccp_buttonconfig_t * config = NULL;
 			d->pendingUpdate = 1;
 			SCCP_LIST_LOCK(&d->buttonconfig);
 			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
@@ -2732,7 +2729,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 
 					utype = pbx_variable_retrieve(GLOB(cfg), argv[3], "type");
 					if (utype && !strcasecmp(utype, "device")) {
-						device = sccp_device_create(argv[3]);
+						device = sccp_device_create(argv[3]) /*ref_replace*/;
 					} else {
 						pbx_cli(fd, "Could not find device %s in config\n", argv[3]);
 						goto EXIT;
@@ -2791,7 +2788,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 
 					utype = pbx_variable_retrieve(GLOB(cfg), argv[3], "type");
 					if (utype && !strcasecmp(utype, "line")) {
-						line = sccp_line_create(argv[3]);
+						line = sccp_line_create(argv[3]) /*ref_replace*/;
 					} else {
 						pbx_cli(fd, "Could not find line %s in config\n", argv[3]);
 						goto EXIT;
@@ -3196,7 +3193,6 @@ CLI_ENTRY(cli_unregister, sccp_unregister, "Unregister an SCCP device", unregist
      */
 static int sccp_start_call(int fd, int argc, char *argv[])
 {
-	AUTO_RELEASE(sccp_channel_t, channel , NULL);
 	if (argc < 3) {
 		pbx_cli(fd, "argc is less then 2: %d\n", argc);
 		return RESULT_SHOWUSAGE;
@@ -3213,11 +3209,11 @@ static int sccp_start_call(int fd, int argc, char *argv[])
 
 	AUTO_RELEASE(sccp_line_t, line , NULL);
 	if (argc == 5) {
-		line = sccp_line_find_byname(argv[4], FALSE);
+		line = sccp_line_find_byname(argv[4], FALSE) /*ref_replace*/;
 	} else if (d->defaultLineInstance > 0) {
-		line = sccp_line_find_byid(d, d->defaultLineInstance);
+		line = sccp_line_find_byid(d, d->defaultLineInstance) /*ref_replace*/;
 	} else {
-		line = sccp_dev_getActiveLine(d);
+		line = sccp_dev_getActiveLine(d) /*ref_replace*/;
 	}
 
 	if (!line) {
@@ -3226,7 +3222,7 @@ static int sccp_start_call(int fd, int argc, char *argv[])
 	}
 
 	pbx_cli(fd, "Starting Call for Device: %s\n", argv[2]);
-	channel = sccp_channel_newcall(line, d, argv[3], SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+	AUTO_RELEASE(sccp_channel_t, channel, sccp_channel_newcall(line, d, argv[3], SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));
 	return RESULT_SUCCESS;
 }
 
@@ -3276,9 +3272,9 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 
 			sscanf(argv[3], "SCCP/%[^-]-%08x", line, &channel);
 			// c = sccp_find_channel_on_line_byid(l, channeId);	// possible replacement, to also check if the line provided can be matched up.
-			c = sccp_channel_find_byid(channel);
+			c = sccp_channel_find_byid(channel) /*ref_replace*/;
 		} else {
-			c = sccp_channel_find_byid(sccp_atoi(argv[3], strlen(argv[3])));
+			c = sccp_channel_find_byid(sccp_atoi(argv[3], strlen(argv[3]))) /*ref_replace*/;
 		}
 
 		if (!c) {
@@ -3477,9 +3473,9 @@ static int sccp_answercall(int fd, sccp_cli_totals_t *totals, struct mansession 
 
 		sscanf(argv[2], "SCCP/%[^-]-%08x", line, &channelId);
 		// c = sccp_find_channel_on_line_byid(l, channeId);	// possible replacement, to also check if the line provided can be matched up.
-		c = sccp_channel_find_byid(channelId);
+		c = sccp_channel_find_byid(channelId) /*ref_replace*/;
 	} else {
-		c = sccp_channel_find_byid(sccp_atoi(argv[2], strlen(argv[2])));
+		c = sccp_channel_find_byid(sccp_atoi(argv[2], strlen(argv[2]))) /*ref_replace*/;
 	}
 
 	if (c) {
@@ -3557,9 +3553,9 @@ static int sccp_end_call(int fd, int argc, char *argv[])
 		int channel;
 
 		sscanf(argv[2], "SCCP/%[^-]-%08x", line, &channel);
-		c = sccp_channel_find_byid(channel);
+		c = sccp_channel_find_byid(channel) /*ref_replace*/;
 	} else {
-		c = sccp_channel_find_byid(sccp_atoi(argv[2], strlen(argv[2])));
+		c = sccp_channel_find_byid(sccp_atoi(argv[2], strlen(argv[2]))) /*ref_replace*/;
 	}
 	if (!c) {
 		pbx_cli(fd, "Can't find channel for ID %s\n", argv[2]);

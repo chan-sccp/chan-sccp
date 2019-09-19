@@ -64,11 +64,11 @@ typedef struct {
 	int line;
 } auto_ref_t;
 
-#define AUTO_RELEASE2(_type,_var,_initial,_file,_func,_line,_counter) \
-_type *_var = _initial; auto_ref_t __attribute__((cleanup(sccp_refcount_autorelease),unused)) ref##_counter = {(const void **const)&_var, _file,_func,_line}
-#define AUTO_RELEASE1(_type,_var,_initial,_file,_func,_line,_counter) AUTO_RELEASE2(_type,_var,_initial,_file,_func,_line,_counter)
-#define AUTO_RELEASE(_type,_var,_initial) AUTO_RELEASE1(_type,_var,_initial,__FILE__,__PRETTY_FUNCTION__,__LINE__,__COUNTER__)
-
+#define AUTO_RELEASE2(_type, _var, _initial, _file, _func, _line, _counter) \
+	_type * _var = _initial;                                            \
+	auto_ref_t __attribute__((cleanup(sccp_refcount_autorelease), unused)) ref##_counter = { (const void ** const) & _var, _file, _func, _line }
+#	define AUTO_RELEASE1(_type, _var, _initial, _file, _func, _line, _counter) AUTO_RELEASE2(_type, _var, _initial, _file, _func, _line, _counter)
+#	define AUTO_RELEASE(_type, _var, _initial)                                 AUTO_RELEASE1(_type, _var, _initial, __FILE__, __PRETTY_FUNCTION__, __LINE__, __COUNTER__)
 
 #define sccp_refcount_retain_type(_type, _x) 		({											\
 	pbx_assert(PTR_TYPE_CMP(const _type *const, _x ) == 1); 										\

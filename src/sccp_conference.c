@@ -574,10 +574,9 @@ boolean_t sccp_conference_addParticipatingChannel(conferencePtr conference, cons
 			sccp_conference_update_callInfo(originalSCCPChannel, pbxChannel, participant, conference->id);	// Update CallerId on originalChannel before masquerade
 
 			// if peer is sccp then retain peer_sccp_channel
-			AUTO_RELEASE(sccp_channel_t, channel , get_sccp_channel_from_pbx_channel(pbxChannel));
-			AUTO_RELEASE(sccp_device_t, device , NULL);
-
-			if (channel && (device = sccp_channel_getDevice(channel))) {
+			AUTO_RELEASE(sccp_channel_t, channel, get_sccp_channel_from_pbx_channel(pbxChannel));
+			AUTO_RELEASE(sccp_device_t, device, channel ? sccp_channel_getDevice(channel) : NULL);
+			if(device) {
 				participant->playback_announcements = device->conf_play_part_announce;
 				iPbx.setChannelLinkedId(channel, conference->linkedid);
 				sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
@@ -629,7 +628,6 @@ boolean_t sccp_conference_addParticipatingChannel(conferencePtr conference, cons
  */
 static void sccp_conference_removeParticipant(conferencePtr conference, participantPtr participant)
 {
-	AUTO_RELEASE(sccp_participant_t, tmp_participant , NULL);
 	int num_participants = 0;
 
 	if (!conference || !participant) {
@@ -639,7 +637,7 @@ static void sccp_conference_removeParticipant(conferencePtr conference, particip
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Removing Participant %d.\n", conference->id, participant->id);
 
 	SCCP_RWLIST_WRLOCK(&(((conferencePtr)conference)->participants));
-	tmp_participant = SCCP_RWLIST_REMOVE(&conference->participants, (sccp_participant_t *)participant, list);
+	AUTO_RELEASE(sccp_participant_t, tmp_participant, SCCP_RWLIST_REMOVE(&conference->participants, (sccp_participant_t *)participant, list));
 	num_participants = SCCP_RWLIST_GETSIZE(&conference->participants);
 	SCCP_RWLIST_UNLOCK(&(((conferencePtr)conference)->participants));
 

@@ -1339,8 +1339,8 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t * orig_channel)
  */
 static int _sccp_channel_sched_endcall(const void *data)
 {
-	AUTO_RELEASE(sccp_channel_t, channel , NULL);
-	if ((channel = sccp_channel_retain(data))) {
+	AUTO_RELEASE(sccp_channel_t, channel, sccp_channel_retain(data));
+	if(channel) {
 		channel->scheduler.hangup_id = -3;
 		sccp_log(DEBUGCAT_CHANNEL) ("%s: Scheduled Hangup\n", channel->designator);
 		if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {			/* we cancelled all scheduled tasks, so we should not be hanging up this channel anymore */
@@ -1465,11 +1465,7 @@ channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channe
 	sccp_log(DEBUGCAT_CORE)("%s: (getEmptyChannel) on line:%s, maybe_c:%s\n", d->id, l->name, maybe_c ? maybe_c->designator : "");
 	sccp_channel_t *channel = NULL;
 	{
-		AUTO_RELEASE(sccp_channel_t, c , NULL);
-		if (!maybe_c || !(c=sccp_channel_retain(maybe_c))) {
-			sccp_log(DEBUGCAT_CORE)("%s: (getEmptyChannel) getActiveChannel\n", d->id);
-			c = sccp_device_getActiveChannel(d);
-		}
+		AUTO_RELEASE(sccp_channel_t, c, maybe_c ? sccp_channel_retain(maybe_c) : sccp_device_getActiveChannel(d));
 		if (c) {
 			sccp_log(DEBUGCAT_CORE)("%s: (getEmptyChannel) got channel already.\n", d->id);
 			AUTO_RELEASE(const sccp_device_t, call_associated_device, c->getDevice(c));
@@ -2245,10 +2241,10 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 	if (!d) {
 		/* transfer was pressed on first (transferee) channel, check if is our transferee channel and continue with d <= device */
 		if (channel == device->transferChannels.transferee && device->transferChannels.transferer) {
-			d = sccp_device_retain(device);
+			d = sccp_device_retain(device) /*ref_replace*/;
 		} else if (channel->state == SCCP_CHANNELSTATE_HOLD) {
 			if (SCCP_LIST_GETSIZE(&channel->line->devices) == 1) {
-				d = sccp_device_retain(device);
+				d = sccp_device_retain(device) /*ref_replace*/;
 			} else {
 				pbx_log(LOG_WARNING, "%s: The channel %s is not attached to a particular device (hold on shared line, resume first)\n", DEV_ID_LOG(device), channel->designator);
 				instance = sccp_device_find_index_for_line(device, channel->line->name);

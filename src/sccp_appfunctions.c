@@ -395,17 +395,17 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	if (!strncasecmp(data, "current", 7)) {
 		AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(chan));
 
-		if (c) {
-			if (!(d = sccp_channel_getDevice(c))) {
-				pbx_log(LOG_WARNING, "SCCPDevice(): SCCP Device not available\n");
-				return -1;
-			}
-		} else {
-			/* pbx_log(LOG_WARNING, "SCCPDevice(): No current SCCP channel found\n"); */
+		if(!c) {
+			return -1;
+		}
+		d = sccp_channel_getDevice(c) /*ref_replace*/;
+		if(!d) {
+			pbx_log(LOG_WARNING, "SCCPDevice(): SCCP Device not available\n");
 			return -1;
 		}
 	} else {
-		if (!(d = sccp_device_find_byid(data, FALSE))) {
+		d = sccp_device_find_byid(data, FALSE) /*ref_replace*/;
+		if(!d) {
 			pbx_log(LOG_WARNING, "SCCPDevice(): SCCP Device not available\n");
 			return -1;
 		}
@@ -648,30 +648,22 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 	AUTO_RELEASE(sccp_channel_t, c , NULL);
 
 	if (!strncasecmp(data, "current", 7)) {
-		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
-			/* pbx_log(LOG_WARNING, "SCCPLine(): Not an SCCP Channel\n"); */
-			return -1;
-		}
-
-		if (!c->line) {
+		c = get_sccp_channel_from_pbx_channel(chan) /*ref_replace*/;
+		if(!c || !c->line) {
 			pbx_log(LOG_WARNING, "SCCPLine(): SCCP Line not available\n");
 			return -1;
 		}
-		l = sccp_line_retain(c->line);
+		l = sccp_line_retain(c->line) /*ref_replace*/;
 	} else if (!strncasecmp(data, "parent", 7)) {
-		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
-
-			/* pbx_log(LOG_WARNING, "SCCPLine(): Not an SCCP Channel\n"); */
-			return -1;
-		}
-
-		if (!c->parentChannel || !c->parentChannel->line) {
+		c = get_sccp_channel_from_pbx_channel(chan) /*ref_replace*/;
+		if(!c || !c->parentChannel || !c->parentChannel->line) {
 			pbx_log(LOG_WARNING, "SCCPLine(): SCCP Line not available\n");
 			return -1;
 		}
-		l = sccp_line_retain(c->parentChannel->line);
+		l = sccp_line_retain(c->parentChannel->line) /*ref_replace*/;
 	} else {
-		if (!(l = sccp_line_find_byname(data, TRUE))) {
+		l = sccp_line_find_byname(data, TRUE) /*ref_replace*/;
+		if(!l) {
 			pbx_log(LOG_WARNING, "SCCPLine(): SCCP Line not available\n");
 			return -1;
 		}
@@ -891,19 +883,18 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	AUTO_RELEASE(sccp_channel_t, c , NULL);
 
 	if (!strncasecmp(data, "current", 7)) {
-		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
-			return -1;										/* Not a SCCP channel. */
-		}
-	} else if (iPbx.getChannelByName(data, &ast) && (c = get_sccp_channel_from_pbx_channel(ast)) != NULL) {
+		c = get_sccp_channel_from_pbx_channel(chan) /*ref_replace*/;
+	} else if(iPbx.getChannelByName(data, &ast) && ast) {
+		c = get_sccp_channel_from_pbx_channel(ast) /*ref_replace*/;
 		/* continue with sccp channel */
 		ast_channel_unref(ast);
 	} else {
 		uint32_t callid = sccp_atoi(data, strlen(data));
-
-		if (!(c = sccp_channel_find_byid(callid))) {
-			pbx_log(LOG_WARNING, "SCCPChannel(): SCCP Channel not available\n");
-			return -1;
-		}
+		c = sccp_channel_find_byid(callid) /*ref_replace*/;
+	}
+	if(!c) {
+		pbx_log(LOG_WARNING, "SCCPChannel(): SCCP Channel not available\n");
+		return -1;
 	}
 	pbx_str_reset(colnames);
 	pbx_str_reset(coldata);
@@ -1003,22 +994,22 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 					snprintf(buf, buf_len, "<unknown>");
 				}
 			} else if (!strcasecmp(token, "peerip")) {							// NO-NAT (Ip-Address Associated with the Session->sin)
-				AUTO_RELEASE(sccp_device_t, d , NULL);
-				if ((d = sccp_channel_getDevice(c))) {
+				AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
+				if(d) {
 					struct sockaddr_storage sas = { 0 };
 					sccp_session_getOurIP(d->session, &sas, 0);
 					sccp_copy_string(buf, sccp_netsock_stringify(&sas), len);
 				}
 			} else if (!strcasecmp(token, "recvip")) {							// NAT (Actual Source IP-Address Reported by the phone upon registration)
-				AUTO_RELEASE(sccp_device_t, d , NULL);
-				if ((d = sccp_channel_getDevice(c))) {
+				AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
+				if(d) {
 					struct sockaddr_storage sas = { 0 };
 					sccp_session_getSas(d->session, &sas);
 					sccp_copy_string(buf, sccp_netsock_stringify(&sas), len);
 				}
 			} else if (!strcasecmp(colname, "rtpqos")) {
-				AUTO_RELEASE(sccp_device_t, d , NULL);
-				if ((d = sccp_channel_getDevice(c))) {
+				AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
+				if(d) {
 					sccp_call_statistics_t *call_stats = d->call_statistics;
 					snprintf(buf, buf_len, "Packets sent: %d;rcvd: %d;lost: %d;jitter: %d;latency: %d;MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;MLQKvr=%.2f|ICR=%.4f;CCR=%.4f;ICRmx=%.4f|CS=%d;SCS=%d", call_stats[SCCP_CALLSTATISTIC_LAST].packets_sent, call_stats[SCCP_CALLSTATISTIC_LAST].packets_received, call_stats[SCCP_CALLSTATISTIC_LAST].packets_lost, call_stats[SCCP_CALLSTATISTIC_LAST].jitter, call_stats[SCCP_CALLSTATISTIC_LAST].latency,
 					       call_stats[SCCP_CALLSTATISTIC_LAST].opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].avg_opinion_score_listening_quality,
@@ -1078,10 +1069,10 @@ static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, const char *data)
 static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, void *data)
 #endif
 {
-	AUTO_RELEASE(sccp_channel_t, c , NULL);
+	AUTO_RELEASE(sccp_channel_t, c, get_sccp_channel_from_pbx_channel(chan));
 	int res;
 
-	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
+	if(!c) {
 		pbx_log(LOG_WARNING, "SCCPSetCodec: Not an SCCP channel\n");
 		return -1;
 	}
@@ -1109,9 +1100,8 @@ static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, void *data)
 {
 	char *text = (char *) data;
 	char *num, *name;
-	AUTO_RELEASE(sccp_channel_t, c , NULL);
-
-	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
+	AUTO_RELEASE(sccp_channel_t, c, get_sccp_channel_from_pbx_channel(chan));
+	if(!c) {
 		pbx_log(LOG_WARNING, "SCCPSetCalledParty: Not an SCCP channel\n");
 		return 0;
 	}
@@ -1145,9 +1135,8 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, const char *data)
 static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 #endif
 {
-	AUTO_RELEASE(sccp_channel_t, c , NULL);
-
-	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
+	AUTO_RELEASE(sccp_channel_t, c, get_sccp_channel_from_pbx_channel(chan));
+	if(!c) {
 		pbx_log(LOG_WARNING, "SCCPSetMessage: Not an SCCP channel\n");
 		return 0;
 	}
@@ -1170,8 +1159,8 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 		priority = (sccp_message_priority_t) sccp_atoi(args.priority, strlen(args.priority));
 	}
 
-	AUTO_RELEASE(sccp_device_t, d , NULL);
-	if (!(d = sccp_channel_getDevice(c))) {
+	AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
+	if(!d) {
 		pbx_log(LOG_WARNING, "SCCPSetMessage: Not an SCCP device provided\n");
 		return 0;
 	}

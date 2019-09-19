@@ -651,16 +651,13 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		return 0;
 	}
 
-	AUTO_RELEASE(sccp_line_t, line , NULL);
-
-	if (!lineName) {
+	AUTO_RELEASE(sccp_line_t, line, lineName ? sccp_line_find_byname(lineName, FALSE) : NULL);
+	if(!line) {
 		if (d && d->defaultLineInstance > 0) {
-			line = sccp_line_find_byid(d, d->defaultLineInstance);
+			line = sccp_line_find_byid(d, d->defaultLineInstance) /*ref_replace*/;
 		} else {
-			line = sccp_dev_getActiveLine(d);
+			line = sccp_dev_getActiveLine(d) /*ref_replace*/;
 		}
-	} else {
-		line = sccp_line_find_byname(lineName, FALSE);
 	}
 
 	if (!line) {
@@ -668,7 +665,6 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		return 0;
 	}
 
-	AUTO_RELEASE(sccp_channel_t, new_channel , NULL);
 
 #if ASTERISK_VERSION_GROUP >= 112
 	struct ast_assigned_ids ids = {
@@ -681,10 +677,10 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		astman_send_error_va(s, m, "Uniqueid length exceeds maximum of %d\n", AST_MAX_PUBLIC_UNIQUEID);
 		return 0;
 	}
-	new_channel = sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL, (ids.uniqueid) ? &ids : NULL);
-#else
-	new_channel = sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
-#endif
+	AUTO_RELEASE(sccp_channel_t, new_channel, sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *)number, SKINNY_CALLTYPE_OUTBOUND, NULL, (ids.uniqueid) ? &ids : NULL));
+#	else
+	AUTO_RELEASE(sccp_channel_t, new_channel, sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *)number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));
+#	endif
 	astman_send_ack(s, m, "Call Started");
 	return 0;
 }
@@ -714,13 +710,7 @@ static int sccp_manager_answerCall2(struct mansession *s, const struct message *
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_find_byid(channelIntId));
 
 	if (c) {
-		AUTO_RELEASE(sccp_device_t, d , NULL);
-
-		if (sccp_strlen_zero(deviceName)) {
-			d = sccp_channel_getDevice(c);
-		} else {
-			d = sccp_device_find_byid(deviceName, FALSE);
-		}
+		AUTO_RELEASE(sccp_device_t, d, sccp_strlen_zero(deviceName) ? sccp_channel_getDevice(c) : sccp_device_find_byid(deviceName, FALSE));
 		if (d) {
 			if (c->state == SCCP_CHANNELSTATE_RINGING) {
 				sccp_channel_answer(d, c);
@@ -896,10 +886,10 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 			if (pbxchannel) {
 				PBX_CHANNEL_TYPE *pbxBridge = NULL;
 				if ((CS_AST_CHANNEL_PVT_IS_SCCP(pbxchannel))) {
-					channel = get_sccp_channel_from_pbx_channel(pbxchannel);
+					channel = get_sccp_channel_from_pbx_channel(pbxchannel) /*ref_replace*/;
 				} else if ( (pbxBridge = pbx_channel_get_by_name(pbx_builtin_getvar_helper(pbxchannel, "BRIDGEPEER"))) ) {
 					if ((CS_AST_CHANNEL_PVT_IS_SCCP(pbxBridge))) {
-						channel = get_sccp_channel_from_pbx_channel(pbxBridge);
+						channel = get_sccp_channel_from_pbx_channel(pbxBridge) /*ref_replace*/;
 					}
 #if ASTERISK_VERSION_GROUP == 106
 					pbx_channel_unlock(pbxBridge);

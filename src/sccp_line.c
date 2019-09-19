@@ -503,13 +503,13 @@ void sccp_line_updateLineCapabilitiesByDevice(constDevicePtr d)
  */
 void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number)
 {
-	AUTO_RELEASE(sccp_linedevices_t, linedevice , NULL);
 	sccp_feature_type_t feature_type = SCCP_FEATURE_CFWDNONE;
 
 	if (!line || !device) {
 		return;
 	}
-	if ((linedevice = sccp_linedevice_find(device, line))) {
+	AUTO_RELEASE(sccp_linedevices_t, linedevice, sccp_linedevice_find(device, line));
+	if(linedevice) {
 		if (type == SCCP_CFWD_NONE) {
 			if (linedevice->cfwdAll.enabled) {
 				feature_type = SCCP_FEATURE_CFWDALL;

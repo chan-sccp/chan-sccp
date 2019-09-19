@@ -672,8 +672,8 @@ static void handleButtonPress(const char *options, constDevicePtr d, uint8_t ins
 					plslot_t *slot = SCCP_VECTOR_GET_ADDR(&pl->slots, 0);
 					if (slot) {
 						AUTO_RELEASE(sccp_line_t, line , channel ? sccp_line_retain(channel->line) : d->currentLine ? sccp_dev_getActiveLine(d) : sccp_line_find_byid(d, d->defaultLineInstance));
-						AUTO_RELEASE(sccp_channel_t, new_channel , NULL);
-						new_channel = sccp_channel_newcall(line, d, slot->exten, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
+						AUTO_RELEASE(sccp_channel_t, new_channel,
+							     sccp_channel_newcall(line, d, slot->exten, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));                                        // implicit release
 					}
 				} else {
 					sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) multiple slots occupied -> Show Visual ParkingLot\n", args.parkinglot);
@@ -698,8 +698,7 @@ static void handleDevice2User(const char *parkinglot, constDevicePtr d, const ch
 	if (d->dtu_softkey.action && d->dtu_softkey.transactionID == transactionId) {
 		if (sccp_strequals(d->dtu_softkey.action, "DIAL")) {
 			AUTO_RELEASE(sccp_line_t, line , d->currentLine ? sccp_dev_getActiveLine(d) : sccp_line_find_byid(d, d->defaultLineInstance));
-			AUTO_RELEASE(sccp_channel_t, new_channel , NULL);
-			new_channel = sccp_channel_newcall(line, d, slot_exten, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);		/* implicit release */
+			AUTO_RELEASE(sccp_channel_t, new_channel, sccp_channel_newcall(line, d, slot_exten, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));                                        // implicit release
 		} else if (sccp_strequals(d->dtu_softkey.action, "EXIT")) {
 			hideVisualParkingLot(parkinglot, d, instance);
 		}

@@ -543,15 +543,13 @@ void sccp_feat_voicemail(constDevicePtr d, uint8_t lineInstance)
 
 		// TODO(dkgroot): workaround to solve the voicemail button issue with old hint style and speeddials before first line -MC
 		if (d->defaultLineInstance) {
-			l = sccp_line_find_byid(d, d->defaultLineInstance);
+			l = sccp_line_find_byid(d, d->defaultLineInstance) /*ref_replace*/;
 		}
 	}
 	if (l) {
 		if (!sccp_strlen_zero(l->vmnum)) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Dialing voicemail %s\n", d->id, l->vmnum);
-			AUTO_RELEASE(sccp_channel_t, new_channel , NULL);
-
-			new_channel = sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+			AUTO_RELEASE(sccp_channel_t, new_channel, sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));                                        // implicit release
 		} else {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
 		}
@@ -671,7 +669,6 @@ void sccp_feat_conference_start(constDevicePtr device, const uint32_t lineInstan
 		return;
 	}
 #ifdef CS_SCCP_CONFERENCE
-	AUTO_RELEASE(sccp_channel_t, channel , NULL);
 	sccp_selectedchannel_t *selectedChannel = NULL;
 	boolean_t selectedFound = FALSE;
 	PBX_CHANNEL_TYPE *bridged_channel = NULL;
@@ -686,7 +683,7 @@ void sccp_feat_conference_start(constDevicePtr device, const uint32_t lineInstan
 
 		SCCP_LIST_LOCK(&d->selectedChannels);
 		SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
-			channel = sccp_channel_retain(selectedChannel->channel);
+			sccp_channel_t * channel = selectedChannel->channel;
 			if (channel && channel != c) {
 				if (channel != d->active_channel && channel->state == SCCP_CHANNELSTATE_HOLD) {
 					if ((bridged_channel = iPbx.get_bridged_channel(channel->owner))) {
@@ -701,8 +698,8 @@ void sccp_feat_conference_start(constDevicePtr device, const uint32_t lineInstan
 				} else {
 					sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "%s: sccp conference: Channel %s is Active on Shared Line on Other Device... Skipping.\n", DEV_ID_LOG(d), channel->designator);
 				}
+				selectedFound = TRUE;
 			}
-			selectedFound = TRUE;
 		}
 		SCCP_LIST_UNLOCK(&d->selectedChannels);
 
@@ -716,6 +713,7 @@ void sccp_feat_conference_start(constDevicePtr device, const uint32_t lineInstan
 					AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(d->buttonTemplate[i].ptr));
 
 					if (line) {
+						sccp_channel_t * channel = NULL;
 						SCCP_LIST_LOCK(&line->channels);
 						SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
 							if (channel != d->active_channel && channel->state == SCCP_CHANNELSTATE_HOLD) {
@@ -1021,19 +1019,20 @@ static void *sccp_feat_meetme_thread(void *data)
 		// sccp_copy_string(c->owner->exten, ext, sizeof(c->owner->exten));
 		iPbx.setChannelExten(c, ext);
 
-		c = sccp_channel_retain(c);
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
-		sccp_channel_set_calledparty(c, SKINNY_DISP_CONFERENCE, c->dialedNumber);
-		//  sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_PROCEED);
-		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
-		sccp_channel_send_callinfo(d, c);
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+		if(sccp_channel_retain(c)) {                                        // explicit retain
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
+			sccp_channel_set_calledparty(c, SKINNY_DISP_CONFERENCE, c->dialedNumber);
+			//  sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_PROCEED);
+			sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
+			sccp_channel_send_callinfo(d, c);
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 
-		if (pbx_pbx_run(c->owner)) {
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDCONFERENCE);
-			pbx_log(LOG_WARNING, "SCCP: SCCP_CHANNELSTATE_INVALIDCONFERENCE\n");
+			if(pbx_pbx_run(c->owner)) {
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDCONFERENCE);
+				pbx_log(LOG_WARNING, "SCCP: SCCP_CHANNELSTATE_INVALIDCONFERENCE\n");
+			}
+			ast_context_remove_extension(context, ext, 1, NULL);
 		}
-		ast_context_remove_extension(context, ext, 1, NULL);
 	}
 	return NULL;
 }
@@ -1465,9 +1464,7 @@ void sccp_feat_adhocDial(constDevicePtr d, constLinePtr line)
 	} else {
 		// Pull up a channel
 		if (GLOB(hotline)->line) {
-			AUTO_RELEASE(sccp_channel_t, new_channel , NULL);
-
-			new_channel = sccp_channel_newcall(line, d, line->adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+			AUTO_RELEASE(sccp_channel_t, new_channel, sccp_channel_newcall(line, d, line->adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));                                        // explicit release
 		}
 	}
 }

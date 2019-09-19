@@ -658,6 +658,7 @@ sccp_device_t *sccp_device_create(const char *id)
 //	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
 	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_ONHOOK);
 	d->postregistration_thread = AST_PTHREADT_STOP;
+	d->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
 
 	// set minimum protocol levels
 	// d->protocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
@@ -2172,8 +2173,6 @@ void sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePt
 #ifndef ASTDB_RESULT_LEN
 #define ASTDB_RESULT_LEN 80
 #endif
-	AUTO_RELEASE(sccp_linedevices_t, linedevice , NULL);
-
 	if (!l || !device || !device->session) {
 		return;
 	}
@@ -2192,7 +2191,8 @@ void sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePt
 		}
 	}
 
-	if ((linedevice = sccp_linedevice_find(device, l))) {
+	AUTO_RELEASE(sccp_linedevices_t, linedevice, sccp_linedevice_find(device, l));
+	if(linedevice) {
 		device->protocol->sendCallforwardMessage(device, linedevice);
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Sent Forward Status (%s). Line: %s (%d)\n", device->id, (linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : "None")), l->name, linedevice->lineInstance);
 	} else {

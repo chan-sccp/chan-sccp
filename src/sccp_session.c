@@ -427,8 +427,7 @@ static int __sccp_session_addDevice(sessionPtr session, constDevicePtr device)
 		sccp_session_lock(session);
 		new_device = sccp_device_retain(device);				/* do this before releasing anything, to prevent device cleanup if the same */
 		if (session->device) {
-			AUTO_RELEASE(sccp_device_t, remDevice , NULL);
-			remDevice = __sccp_session_removeDevice(session);		/* implicit release */
+			AUTO_RELEASE(sccp_device_t, remDevice, __sccp_session_removeDevice(session)); /* implicit release */
 		}
 		if (device) {
 			if (new_device) {
@@ -468,8 +467,7 @@ void sccp_session_releaseDevice(constSessionPtr volatile session)
 {
 	sessionPtr s = (sessionPtr)session;										/* discard const */
 	if (s) {
-		AUTO_RELEASE(sccp_device_t, device , NULL);
-		device = __sccp_session_removeDevice(s);
+		AUTO_RELEASE(sccp_device_t, device, __sccp_session_removeDevice(s));                                        // implicit release
 	}
 }
 

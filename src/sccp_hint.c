@@ -882,11 +882,11 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 	memset(lineState->callInfo.partyName, 0, sizeof(lineState->callInfo.partyName));
 	memset(lineState->callInfo.partyNumber, 0, sizeof(lineState->callInfo.partyNumber));
 
-	AUTO_RELEASE(sccp_channel_t, channel , NULL);
-
-	if (SCCP_LIST_GETSIZE(&line->channels) > 0) {
+	AUTO_RELEASE(sccp_channel_t, channel, NULL);
+	if(SCCP_LIST_GETSIZE(&line->channels) > 0) {
 		SCCP_LIST_LOCK(&line->channels);
-		channel = SCCP_LIST_LAST(&line->channels) ? sccp_channel_retain(SCCP_LIST_LAST(&line->channels)) : NULL;
+		sccp_channel_t * tmp = SCCP_LIST_LAST(&line->channels);
+		channel = sccp_channel_retain(tmp) /*ref_replace*/;
 		SCCP_LIST_UNLOCK(&line->channels);
 	}
 
