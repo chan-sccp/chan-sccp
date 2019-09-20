@@ -110,22 +110,32 @@ install-data-local:
 		$(INSTALL) -m 644 $(top_srcdir)/conf/sccp.conf $(DESTDIR)$(PBX_ETC);							\
 	fi
 
-unload:	
-	@if [ -f $(PBX_SBINDIR)/asterisk ]; then 											\
+unload:
+	@if [ -f $(PBX_SBINDIR)/asterisk ] && [ 0`pidof -s $(PBX_SBINDIR)/asterisk` -gt 0 ]; then 					\
 		echo "Unloading asterisk module";											\
 		$(PBX_SBINDIR)/asterisk -rx "module unload chan_sccp.so";								\
 	fi
 	
-load:	
-	@if [ -f $(PBX_SBINDIR)/asterisk ]; then 											\
+load: install
+	@if [ -f $(PBX_SBINDIR)/asterisk ] && [ 0`pidof -s $(PBX_SBINDIR)/asterisk` -gt 0 ]; then 					\
 		echo "Loading asterisk module";												\
 		$(PBX_SBINDIR)/asterisk -rx "module load chan_sccp.so";									\
 	fi
 
-_reload: all unload install load	
-
-reload: 
-	@if [ -f $(PBX_SBINDIR)/asterisk ]; then $(MAKE) _reload;fi
+reload: all
+	@if [ -f $(PBX_SBINDIR)/asterisk ] && [ 0`pidof -s $(PBX_SBINDIR)/asterisk` -gt 0 ]; then					\
+		if [ -n "`$(PBX_SBINDIR)/asterisk -rx 'module show like chan_sccp.so' | grep 'Running'`" ]; then			\
+			$(MAKE) unload;													\
+		fi;															\
+		for counter in 1 2 3 4 5; do												\
+			if [ -z "`$(PBX_SBINDIR)/asterisk -rx 'module show like chan_sccp.so' | grep 'Running'`" ]; then		\
+				break;													\
+			fi;														\
+			echo -n "${counter}...";											\
+			sleep 1;													\
+		done;															\
+		$(MAKE) load;														\
+	fi
 
 full-en_US.xml:
 	@if [ -z "$(PYTHON)" ]; then													\
