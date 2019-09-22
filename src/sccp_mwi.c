@@ -124,7 +124,9 @@ static pbx_event_subscription_t *pbxMailboxSubscribe(mwi_subscription_t *subscri
 }
 static void pbxMailboxUnsubscribe(mwi_subscription_t *subscription)
 {
-	pbx_event_unsubscribe(subscription->pbx_subscription);
+	if(subscription->pbx_subscription) {
+		pbx_event_unsubscribe(subscription->pbx_subscription);
+	}
 }
 #elif defined(CS_AST_HAS_STASIS)
 static void pbxMailboxGetCached(mwi_subscription_t *subscription)
@@ -167,6 +169,7 @@ static pbx_event_subscription_t * pbxMailboxSubscribe(mwi_subscription_t *subscr
 		pbx_subscription = stasis_subscribe_pool(mailbox_specific_topic, pbx_mwi_event, subscription);
 #  if CS_AST_HAS_STASIS_SUBSCRIPTION_SET_FILTER
 		stasis_subscription_accept_message_type(pbx_subscription, pbx_mwi_state_type());
+		stasis_subscription_accept_message_type(pbx_subscription, stasis_subscription_change_type());
 		//stasis_subscription_accept_message_type(subscription->pbx_subscription, stasis_subscription_change_type());
 		stasis_subscription_set_filter(pbx_subscription, STASIS_SUBSCRIPTION_FILTER_SELECTIVE);
 #  endif
@@ -174,11 +177,15 @@ static pbx_event_subscription_t * pbxMailboxSubscribe(mwi_subscription_t *subscr
 	//pbxMailboxGetCached(subscription);
 	return pbx_subscription;
 }
+
 static void pbxMailboxUnsubscribe(mwi_subscription_t *subscription)
 {
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "%s: (mwi::%s) uniqueid:%s\n",
 		(subscription->line)->name, __PRETTY_FUNCTION__, (subscription->mailbox)->uniqueid);
-	stasis_unsubscribe(subscription->pbx_subscription);
+
+	if(subscription->pbx_subscription) {
+		stasis_unsubscribe_and_join(subscription->pbx_subscription);
+	}
 }
 /* discard polling implementation */
 /*
