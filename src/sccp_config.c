@@ -2503,11 +2503,10 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found line %d: %s, do update\n", line_count, cat);
 				sccp_config_buildLine(l, v, cat, FALSE);
 			} else if((l = sccp_line_create(cat)) /*ref_replace*/) {
-				if(!l) {
-					return FALSE;
-				}
 				sccp_config_buildLine(l, v, cat, FALSE);
 				sccp_line_addToGlobals(l);						/* may find another line instance create by another thread, in that case the newly created line is going to be dropped when l is released */
+			} else {
+				return FALSE;
 			}
 			//    SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
