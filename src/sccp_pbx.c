@@ -201,8 +201,12 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", l->name, iPbx.getChannelName(c));
 
 	/* if incoming call limit is reached send BUSY */
-	if ((l->incominglimit && SCCP_LIST_GETSIZE(&l->channels) > l->incominglimit)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
+	SCCP_LIST_LOCK(&l->channels);
+	int currentcalls = SCCP_LIST_GETSIZE(&l->channels);
+	SCCP_LIST_UNLOCK(&l->channels);
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP/%s: Number of Calls:%d, Incoming calls limit: %d\n", l->name, currentcalls, l->incominglimit);
+	if(l->incominglimit && currentcalls > l->incominglimit) {
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP/%s: Number of Calls: %d, Incoming calls limit (%d) -> sending BUSY\n", l->name, currentcalls, l->incominglimit);
 		iPbx.queue_control(c->owner, AST_CONTROL_BUSY);
 		//iPbx.set_callstate(c, AST_STATE_BUSY);
 		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_USER_BUSY);
