@@ -1579,31 +1579,28 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
  */
 void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 {
-	pbx_assert(device != NULL && channel != NULL);
-
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Answer Channel %s\n", DEV_ID_LOG(device), channel->designator);
-
 	if (!channel || !channel->line) {
-		pbx_log(LOG_ERROR, "SCCP: Channel %s has no line\n", (channel ? channel->designator : 0));
+		pbx_log(LOG_ERROR, "SCCP: (%s) Channel %s has no line\n", __func__, (channel ? channel->designator : 0));
 		return;
 	}
 	// prevent double answer of the same channel
 	if (channel->privateData && channel->privateData->device) {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Channel %s has already been answered\n", DEV_ID_LOG(device), channel->designator);
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Channel %s has already been answered\n", DEV_ID_LOG(device), __func__, channel->designator);
 		return;
 	}
 
 	if (!channel->owner) {
-		pbx_log(LOG_ERROR, "SCCP: Channel %s has no owner\n", channel->designator);
+		pbx_log(LOG_ERROR, "SCCP: (%s) Channel %s has no owner\n", __func__, channel->designator);
 		return;
 	}
 
 	if (!device) {
-		pbx_log(LOG_ERROR, "SCCP: Channel %s has no device\n", channel->designator);
+		pbx_log(LOG_ERROR, "SCCP: (%s) Channel %s has no device\n", __func__, channel->designator);
 		return;
 	}
-	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(channel->line));
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Answer Channel %s\n", DEV_ID_LOG(device), __func__, channel->designator);
 
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(channel->line));
 	channel->subscribers = 1;
 
 #if 0	/** @todo we have to test this code section */
