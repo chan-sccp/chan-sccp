@@ -2444,7 +2444,7 @@ void handle_offhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	if(c) {
 		/* Answer the ringing channel. */
 		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answer channel\n", d->id);
-		sccp_channel_answer(d, channel);
+		sccp_channel_answer(d, c);
 	} else {
 		/* use default line if it is set */
 		AUTO_RELEASE(sccp_line_t, l, d->defaultLineInstance > 0 ? sccp_line_find_byid(d, d->defaultLineInstance) : sccp_dev_getActiveLine(d));

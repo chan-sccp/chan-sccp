@@ -1579,6 +1579,7 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
  */
 void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 {
+	pbx_assert(device != NULL && channel != NULL);
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Answer Channel %s\n", DEV_ID_LOG(device), channel->designator);
 
