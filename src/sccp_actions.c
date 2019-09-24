@@ -2417,10 +2417,9 @@ void handle_offhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 		return;
 	}
 
-	AUTO_RELEASE(sccp_channel_t, channel , sccp_device_getActiveChannel(d));
-
-	if (channel) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Taken Offhook with a call (%d) in progess. Skip it!\n", d->id, channel->callid);
+	AUTO_RELEASE(sccp_channel_t, active_channel, sccp_device_getActiveChannel(d));
+	if(active_channel) {
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Taken Offhook with a call (%d) in progess. Skip OffHook Event!\n", d->id, active_channel->callid);
 		return;
 	}
 
@@ -2440,11 +2439,11 @@ void handle_offhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	/* \todo This should be changed, to handle and atomic version of sccp_channel_answer if it would return Success/Failed
 	 * (think of two phones on a shared line, picking up at the same time) 
 	 */
-	AUTO_RELEASE(sccp_channel_t, c, sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_RINGING));
-	if(c) {
+	AUTO_RELEASE(sccp_channel_t, ringing_channel, sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_RINGING));
+	if(ringing_channel) {
 		/* Answer the ringing channel. */
-		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answer channel\n", d->id);
-		sccp_channel_answer(d, c);
+		// sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answer channel:%s\n", d->id, ringing_channel->designator);
+		sccp_channel_answer(d, ringing_channel);
 	} else {
 		/* use default line if it is set */
 		AUTO_RELEASE(sccp_line_t, l, d->defaultLineInstance > 0 ? sccp_line_find_byid(d, d->defaultLineInstance) : sccp_dev_getActiveLine(d));
