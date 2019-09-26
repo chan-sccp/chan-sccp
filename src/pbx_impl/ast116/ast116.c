@@ -1730,7 +1730,9 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 #endif
 	} else {
 		audioCapabilities[0] = audio_codec;
+#if CS_SCCP_VIDEO
 		videoCapabilities[0] = video_codec;
+#endif
 	}
 	char cap_buf[512];
 	sccp_codec_multiple2str(cap_buf, sizeof(cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
