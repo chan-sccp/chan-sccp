@@ -2117,11 +2117,14 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 			config->type = FEATURE;
 			config->label = pbx_strdup(name);
 			config->button.feature.id = sccp_feature_type_str2val(options);
-			if (args) {
+			if(args && !sccp_strlen_zero(args)) {
 				config->button.feature.options = pbx_strdup(args);
 				sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_4 "Arguments present on feature button: %d\n", config->instance);
 			} else {
 				config->button.feature.options = NULL;
+				if(SCCP_FEATURE_PARKINGLOT == config->button.feature.id) {
+					config->button.feature.options = pbx_strdup("default,RetrieveSingle");
+				}
 			}
 			sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_4 "Configured feature button with featureID: %s args: %s\n", options, args);
 
