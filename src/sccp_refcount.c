@@ -198,7 +198,8 @@ struct refcount_object {
 #ifndef SCCP_ATOMIC
 	ast_mutex_t lock;
 #endif
-	volatile CAS32_TYPE refcount;
+	// volatile CAS32_TYPE refcount;
+	CAS32_TYPE refcount;
 	enum sccp_refcounted_types type;
 	char identifier[REFCOUNT_INDENTIFIER_SIZE];
 #if CS_REFCOUNT_DEBUG
@@ -218,7 +219,8 @@ static struct refcount_objentry{
 
 #if CS_REFCOUNT_DEBUG
 static FILE *sccp_ref_debug_log;
-static volatile uint32_t ref_debug_size;
+// static volatile uint32_t ref_debug_size;
+static uint32_t ref_debug_size;
 #endif
 
 void sccp_refcount_init(void)
@@ -806,7 +808,8 @@ gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char 
 		__sccp_refcount_debug(ptr, obj, 1, filename, lineno, func);
 #endif
 		// ANNOTATE_HAPPENS_BEFORE(&obj->refcount);
-		volatile int refcountval = ATOMIC_INCR((&obj->refcount), 1, &obj->lock);
+		// volatile int refcountval = ATOMIC_INCR((&obj->refcount), 1, &obj->lock);
+		int refcountval = ATOMIC_INCR((&obj->refcount), 1, &obj->lock);
 		// ANNOTATE_HAPPENS_AFTER(&obj->refcount);
 		int newrefcountval = refcountval + 1;
 		
