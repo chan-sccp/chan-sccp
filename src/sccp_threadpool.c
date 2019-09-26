@@ -396,7 +396,7 @@ int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p)
 #define test_category "/channels/chan_sccp/threadpool/"
 static void *sccp_cli_threadpool_test_thread(void *data)
 {
-	int num_loops=rand() % 10000;
+	uint num_loops = rand() % 10000;
 	for(uint loop = 0; loop < num_loops; loop++) {
 		usleep(1);
 	}
