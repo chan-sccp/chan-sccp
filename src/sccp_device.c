@@ -388,7 +388,7 @@ void sccp_device_pre_reload(void)
 	sccp_device_t *d = NULL;
 	sccp_buttonconfig_t *config = NULL;
 
-	SCCP_RWLIST_WRLOCK(&GLOB(devices));
+	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Setting Device to Pending Delete=1\n", d->id);
 #ifdef CS_SCCP_REALTIME
@@ -885,11 +885,13 @@ void sccp_device_removeFromGlobals(devicePtr device)
 	sccp_device_t * d = NULL;
 
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
-	if ((d = SCCP_RWLIST_REMOVE(&GLOB(devices), device, list))) {
+	d = SCCP_RWLIST_REMOVE(&GLOB(devices), device, list);
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+
+	if(d) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Removed device '%s' from Glob(devices)\n", DEV_ID_LOG(device));
 		sccp_device_release(&d);					/* explicit release of device after removing from list */
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 }
 
 static uint8_t sccp_addon_build_buttontemplate(constDevicePtr d, sccp_addon_t *addon, btnlist * btn, uint8_t btn_index)

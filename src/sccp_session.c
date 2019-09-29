@@ -301,7 +301,7 @@ static boolean_t sccp_session_findBySession(sccp_session_t * s)
 	sccp_session_t *session;
 	boolean_t res = FALSE;
 
-	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
+	SCCP_RWLIST_RDLOCK(&GLOB(sessions));
 	SCCP_RWLIST_TRAVERSE(&GLOB(sessions), session, list) {
 		if (session == s) {
 			res = TRUE;

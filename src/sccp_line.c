@@ -142,13 +142,13 @@ sccp_line_t *sccp_line_create(const char *name)
 void sccp_line_addToGlobals(sccp_line_t * line)
 {
 	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(line));
-
-	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	if (l) {
 		/* add to list */
+		SCCP_RWLIST_WRLOCK(&GLOB(lines));
 		sccp_line_retain(l);										/* add retained line to the list */
 		SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), l, list, cid_num);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Added line '%s' to Glob(lines)\n", l->name);
+		SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 		/* emit event */
 		sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_LINEINSTANCE_CREATED);
@@ -159,7 +159,6 @@ void sccp_line_addToGlobals(sccp_line_t * line)
 	} else {
 		pbx_log(LOG_ERROR, "Adding null to global line list is not allowed!\n");
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 }
 
 /*!
@@ -199,9 +198,7 @@ void *sccp_create_hotline(void)
 	}
 	memset(GLOB(hotline), 0, sizeof(sccp_hotline_t));
 
-	//SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	AUTO_RELEASE(sccp_line_t, hotline , sccp_line_create("Hotline"));
-
 	if (hotline) {
 #ifdef CS_SCCP_REALTIME
 		hotline->realtime = TRUE;
@@ -213,8 +210,6 @@ void *sccp_create_hotline(void)
 		GLOB(hotline)->line = sccp_line_retain(hotline);						// retain line inside hotline
 		sccp_line_addToGlobals(hotline);								// retain line inside GlobalsList
 	}
-	//SCCP_RWLIST_UNLOCK(&GLOB(lines));
-
 	return NULL;
 }
 
@@ -985,7 +980,6 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_4 "SCCP: creating realtime line '%s'\n", name);
 
-		// SCCP_RWLIST_WRLOCK(&GLOB(lines));
 		if ((l = sccp_line_create(name))) {								/* already retained */
 			sccp_config_applyLineConfiguration(l, variable);
 			l->realtime = TRUE;
@@ -994,7 +988,6 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 		} else {
 			pbx_log(LOG_ERROR, "SCCP: Unable to build realtime line '%s'\n", name);
 		}
-		// SCCP_RWLIST_UNLOCK(&GLOB(lines));
 		return l;
 	}
 

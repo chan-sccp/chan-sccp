@@ -2501,7 +2501,6 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byname(cat, FALSE));
 
 			/* check if we have this line already */
-			//    SCCP_RWLIST_WRLOCK(&GLOB(lines));
 			if (l) {
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found line %d: %s, do update\n", line_count, cat);
 				sccp_config_buildLine(l, v, cat, FALSE);
@@ -2511,8 +2510,6 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			} else {
 				return FALSE;
 			}
-			//    SCCP_RWLIST_UNLOCK(&GLOB(lines));
-
 		} else if (!strcasecmp(utype, "softkeyset")) {
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "parsing softkey [%s]\n", cat);
 			if (sccp_strcaseequals(cat, "default")) {
@@ -2598,7 +2595,7 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	if (GLOB(reload_in_progress) && GLOB(pendingUpdate)) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Global param changed needing restart ->  Restart all device\n");
 
-		SCCP_RWLIST_WRLOCK(&GLOB(devices));
+		SCCP_RWLIST_RDLOCK(&GLOB(devices));
 		SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 			if (d->realtime) {
 				d->pendingDelete = 1;
