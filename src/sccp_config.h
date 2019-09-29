@@ -34,7 +34,7 @@ typedef enum {
 	SCCP_CONFIG_SOFTKEY_SEGMENT,
 } sccp_config_segment_t;
 
-SCCP_API void SCCP_CALL sccp_copy_defaultValue(const char *name, void *obj, const sccp_device_t * device, const sccp_config_segment_t segment);
+// SCCP_API void SCCP_CALL sccp_copy_defaultValue(const char *name, void *obj, const sccp_device_t * device, const sccp_config_segment_t segment);
 SCCP_API int SCCP_CALL sccp_manager_config_metadata(struct mansession *s, const struct message *m);
 SCCP_API void SCCP_CALL sccp_config_cleanup_dynamically_allocated_memory(void *obj, const sccp_config_segment_t segment);
 SCCP_API sccp_value_changed_t SCCP_CALL sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfigList, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
@@ -59,12 +59,12 @@ typedef enum {
 
 SCCP_API sccp_config_file_status_t SCCP_CALL sccp_config_getConfig(boolean_t force);
 SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYPE * v);
-SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyLineConfiguration(sccp_line_t * l, PBX_VARIABLE_TYPE * v);
-SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyDeviceConfiguration(sccp_device_t * d, PBX_VARIABLE_TYPE * v);
-SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyDeviceDefaults(sccp_device_t * device, PBX_VARIABLE_TYPE * variable);
+SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyLineConfiguration(linePtr l, PBX_VARIABLE_TYPE * v);
+SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyDeviceConfiguration(devicePtr d, PBX_VARIABLE_TYPE * v);
+// SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyDeviceDefaults(sccp_device_t * device, PBX_VARIABLE_TYPE * variable);
 
 SCCP_API void SCCP_CALL sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name);
-SCCP_API void SCCP_CALL sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device);
+SCCP_API void SCCP_CALL sccp_config_restoreDeviceFeatureStatus(devicePtr device);
 
 SCCP_API int SCCP_CALL sccp_config_generate(char *filename, int configType);
 __END_C_EXTERN__

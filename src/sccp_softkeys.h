@@ -14,6 +14,8 @@
 __BEGIN_C_EXTERN__
 // forward declaration
 extern const uint8_t softkeysmap[32];
+SCCP_API struct softKeySetConfigList softKeySetConfig; /*!< List of SoftKeySets (impl sccp_softkey.c) */
+typedef struct sccp_softkeyMap_cb sccp_softkeyMap_cb_t;
 
 /*!
  * \brief SKINNY Soft Key Modes Structure
@@ -24,7 +26,19 @@ typedef struct {
 	uint8_t count;												/*!< Soft Key Count */
 } softkey_modes;												/*!< SKINNY Soft Key Modes Structure */
 
-typedef struct sccp_softkeyMap_cb sccp_softkeyMap_cb_t;
+/*!
+ * \brief SCCP SoftKeySet Configuration Structure
+ */
+struct softKeySetConfiguration {
+	char name[SCCP_MAX_SOFTKEYSET_NAME];                  /*!< Name for this configuration */
+	softkey_modes modes[SCCP_MAX_SOFTKEY_MODES];          /*!< SoftKeySet modes, see KEYMODE_ */
+	sccp_softkeyMap_cb_t * softkeyCbMap;                  /*!< Softkey Callback Map, ie handlers */
+	SCCP_LIST_ENTRY(sccp_softKeySetConfiguration_t) list; /*!< Next list entry */
+	boolean_t pendingDelete;
+	boolean_t pendingUpdate;
+	uint8_t numberOfSoftKeySets;                                  /*!< Number of SoftKeySets we define */
+};                                                                    /*!< SoftKeySet Configuration Structure */
+SCCP_LIST_HEAD(softKeySetConfigList, sccp_softKeySetConfiguration_t); /*!< SCCP LIST HEAD for softKeySetConfigList (Structure) */
 
 SCCP_API void SCCP_CALL sccp_softkey_pre_reload(void);
 SCCP_API void SCCP_CALL sccp_softkey_post_reload(void);

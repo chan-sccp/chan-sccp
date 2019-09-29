@@ -1219,7 +1219,7 @@ gcc_inline const char * const sccp_session_getDesignator(constSessionPtr session
  * \brief Get device connected to this session
  * \note returns retained device
  */
-gcc_inline sccp_device_t * const sccp_session_getDevice(constSessionPtr session, boolean_t required)
+gcc_inline devicePtr sccp_session_getDevice(constSessionPtr session, boolean_t required)
 {
 	if (!session) {
 		return NULL;

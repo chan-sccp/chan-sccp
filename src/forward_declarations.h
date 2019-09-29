@@ -19,19 +19,22 @@ typedef struct sccp_hostname sccp_hostname_t;									/*!< SCCP HostName Structu
 typedef struct sccp_header sccp_header_t;
 typedef struct sccp_msg sccp_msg_t;
 
+/* we are promissing not to change the pointer (don't cast away `*const`), when we use the object pointer */
 #define sessionPtr sccp_session_t *const
 #define devicePtr sccp_device_t *const
 #define linePtr sccp_line_t *const
 #define channelPtr sccp_channel_t *const
-#define lineDevicePtr sccp_linedevices_t *const;
+#define lineDevicePtr      sccp_linedevices_t * const
 #define conferencePtr sccp_conference_t *const
+#define messagePtr         sccp_msg_t * const
+
+/* we are promissing not to change the object nor the pointer to the object, when we use this object pointer */
 #define constSessionPtr const sccp_session_t *const
 #define constDevicePtr const sccp_device_t *const
 #define constLinePtr const sccp_line_t *const
 #define constChannelPtr const sccp_channel_t *const
 #define constLineDevicePtr const sccp_linedevices_t *const
 #define constConferencePtr const sccp_conference_t *const
-#define messagePtr sccp_msg_t * const
 #define constMessagePtr const sccp_msg_t * const
 
 #ifdef CS_DEVSTATE_FEATURE

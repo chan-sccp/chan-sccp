@@ -616,7 +616,7 @@ int sccp_device_setRegistrationState(constDevicePtr d, const skinny_registration
  * \callgraph
  * \callergraph
  */
-sccp_device_t *sccp_device_create(const char *id)
+devicePtr sccp_device_create(const char * id)
 {
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: Create Device\n");
 	struct sccp_private_device_data * private_data = NULL;
@@ -718,7 +718,7 @@ sccp_device_t *sccp_device_create(const char *id)
  * \callgraph
  * \callergraph
  */
-sccp_device_t *sccp_device_createAnonymous(const char *name)
+devicePtr sccp_device_createAnonymous(const char * name)
 {
 	sccp_device_t *d = sccp_device_create(name);
 
@@ -1321,31 +1321,6 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocated %d Abbreviate Dial Buttons.\n", d->id, StationMaxButtonTemplateSize - btn_index);
 
 	return btn_index;
-}
-
-
-/*!
- * \brief Build an SCCP Message Packet
- * \param[in] t SCCP Message Text
- * \param[out] pkt_len Packet Length
- * \return SCCP Message
- */
-sccp_msg_t __attribute__ ((malloc)) * sccp_build_packet(sccp_mid_t t, size_t pkt_len)
-{
-	int padding = ((pkt_len + 8) % 4);
-	padding = (padding > 0) ? 4 - padding : 0;
-	
-	sccp_msg_t *msg = (sccp_msg_t *)sccp_calloc(1, pkt_len + SCCP_PACKET_HEADER + padding);
-
-	if (!msg) {
-		pbx_log(LOG_WARNING, "SCCP: Packet memory allocation error\n");
-		return NULL;
-	}
-	msg->header.length = htolel(pkt_len + 4 + padding);
-	msg->header.lel_messageId = htolel(t);
-	
-	//sccp_log(DEBUGCAT_DEVICE)("SCCP: (sccp_build_packet) created packet type:0x%x, msg_size=%lu, hdr_len=%lu\n", t, pkt_len + SCCP_PACKET_HEADER + padding, pkt_len + 4 + padding)
-	return msg;
 }
 
 /*!
@@ -2012,7 +1987,7 @@ void sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, bool
  *   - device->buttonconfig is not locked
  * \return_ref d->currentLine
  */
-sccp_line_t *sccp_dev_getActiveLine(constDevicePtr device)
+linePtr sccp_dev_getActiveLine(constDevicePtr device)
 {
 	sccp_buttonconfig_t *buttonconfig;
 
@@ -2061,7 +2036,7 @@ void sccp_dev_setActiveLine(devicePtr device, constLinePtr l)
  * \param device SCCP Device
  * \return SCCP Channel
  */
-sccp_channel_t *sccp_device_getActiveChannel(constDevicePtr device)
+channelPtr sccp_device_getActiveChannel(constDevicePtr device)
 {
 	sccp_channel_t *channel = NULL;
 
@@ -2088,7 +2063,7 @@ sccp_channel_t *sccp_device_getActiveChannel(constDevicePtr device)
  * \param d SCCP Device
  * \param channel SCCP Channel
  */
-void sccp_device_setActiveChannel(devicePtr d, sccp_channel_t * channel)
+void sccp_device_setActiveChannel(constDevicePtr d, constChannelPtr channel)
 {
 	AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 
@@ -2201,39 +2176,6 @@ void sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePt
 		pbx_log(LOG_NOTICE, "%s: Device does not have line configured (no linedevice found)\n", DEV_ID_LOG(device));
 	}
 }
-
-#if UNUSEDCODE // 2015-11-01
-/*!
- * \brief Check Ringback on Device
- * \param device SCCP Device
- * \return Result as int
- */
-int sccp_device_check_ringback(devicePtr device)
-{
-	AUTO_RELEASE(sccp_channel_t, c , NULL);
-	AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(device));
-
-	if (!d) {
-		return 0;
-	}
-	d->needcheckringback = 0;
-	if (SCCP_DEVICESTATE_OFFHOOK == sccp_device_getDeviceState(d)) {
-		return 0;
-	}
-	c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_CALLTRANSFER);
-	if (!c) {
-		c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_RINGING);
-	}
-	if (!c) {
-		c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_CALLWAITING);
-	}
-	if (c) {
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
-		return 1;
-	}
-	return 0;
-}
-#endif
 
 /*!
  * \brief Handle Post Device Registration
@@ -3404,7 +3346,7 @@ gcc_inline int16_t sccp_device_buttonIndex2lineInstance(constDevicePtr d, uint16
  * \param useRealtime Use RealTime as Boolean
  * \return SCCP Device - can bee null if device is not found
  */
-sccp_device_t *sccp_device_find_byid(const char *id, boolean_t useRealtime)
+devicePtr sccp_device_find_byid(const char * id, boolean_t useRealtime)
 {
 	sccp_device_t *d = NULL;
 
@@ -3441,14 +3383,14 @@ sccp_device_t *sccp_device_find_byid(const char *id, boolean_t useRealtime)
  * \param func Debug Function Name
  * \return SCCP Device - can bee null if device is not found
  */
-sccp_device_t *__sccp_device_find_realtime(const char *name, const char *filename, int lineno, const char *func)
-#else
+devicePtr __sccp_device_find_realtime(const char * name, const char * filename, int lineno, const char * func)
+#	else
 /*!
  * \param name Device ID (hostname)
  * \return SCCP Device - can bee null if device is not found
  */
-sccp_device_t *sccp_device_find_realtime(const char *name)
-#endif
+devicePtr sccp_device_find_realtime(const char * name)
+#	endif
 {
 	sccp_device_t *d = NULL;
 	PBX_VARIABLE_TYPE *v, *variable;

@@ -39,7 +39,7 @@ typedef struct sccp_event {
 			char *str;
 		} TestEvent;											/*!< Event feature changed Structure */
 #endif
-	};												/*!< SCCP Event Data Union */
+	};                                                                                                      /*!< SCCP Event Data Union */
 	sccp_event_type_t type;											/*!< Event Type */
 } sccp_event_t;													/*!< SCCP Event Structure */
 

@@ -104,7 +104,7 @@ void handle_hookflash(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			
  * \param deviceIsNecessary Is a valid device necessary for this message to be processed, if it is, the device is retain during execution of this particular message parser
  * \return -1 or retained Device;
  */
-gcc_inline static sccp_device_t * const check_session_message_device(constSessionPtr s, constMessagePtr msg, const char *msgtypestr, boolean_t deviceIsNecessary)
+gcc_inline static devicePtr check_session_message_device(constSessionPtr s, constMessagePtr msg, const char * msgtypestr, boolean_t deviceIsNecessary)
 {
 	int errors = 0;
 	if (!msg) {
@@ -124,7 +124,7 @@ gcc_inline static sccp_device_t * const check_session_message_device(constSessio
 	}
 
 	if (!errors) {
-		sccp_device_t * const device = sccp_session_getDevice(s, deviceIsNecessary);
+		devicePtr device = sccp_session_getDevice(s, deviceIsNecessary);
 		if (device) {
 			return device;
 		}
@@ -141,7 +141,7 @@ gcc_inline static sccp_device_t * const check_session_message_device(constSessio
  * Used to map SKinny Message Id's to their Handling Implementations
  */
 struct messageMap_cb {
-	void (*const messageHandler_cb) (const sccp_session_t * const s, sccp_device_t * const d, const sccp_msg_t * const msg);
+	void (*const messageHandler_cb)(constSessionPtr s, devicePtr d, constMessagePtr msg);
 	boolean_t deviceIsNecessary;
 };
 
@@ -4100,7 +4100,8 @@ static void handle_updatecapabilities_dissect_customPictureFormat(constDevicePtr
 	}
 }
 
-static void handle_updatecapabilities_dissect_levelPreference(sccp_device_t *d, uint32_t levelPreferenceCount, const levelPreference_t levelPreference[MAX_LEVEL_PREFERENCE]) {
+static void handle_updatecapabilities_dissect_levelPreference(constDevicePtr d, uint32_t levelPreferenceCount, const levelPreference_t levelPreference[MAX_LEVEL_PREFERENCE])
+{
 	uint8_t level = 0;
 	if (levelPreferenceCount <= MAX_LEVEL_PREFERENCE) {
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %7s Codec has %d levelPreferences:\n", DEV_ID_LOG(d), "", levelPreferenceCount);

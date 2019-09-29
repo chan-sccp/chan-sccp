@@ -3430,6 +3430,9 @@ typedef struct {
 	void (*const parsePortResponse) (constMessagePtr msg, uint32_t *conferenceId, uint32_t *callReference, uint32_t *passThruPartyId, struct sockaddr_storage *ss, uint32_t * RTCPPortNumber, skinny_mediaType_t *mediaType);
 } sccp_deviceProtocol_t;											/*!< SCCP Device Protocol Callback Structure */
 
+#define REQ(x, y)    x = sccp_build_packet(y, sizeof(x->data.y))
+#define REQCMD(x, y) x = sccp_build_packet(y, 0)
+SCCP_API messagePtr SCCP_CALL sccp_build_packet(sccp_mid_t t, size_t pkt_len);
 SCCP_API boolean_t SCCP_CALL sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version);
 SCCP_API uint8_t __CONST__ SCCP_CALL sccp_protocol_getMaxSupportedVersionNumber(int type);
 SCCP_API const sccp_deviceProtocol_t * SCCP_CALL sccp_protocol_getDeviceProtocol(constDevicePtr device, int type);

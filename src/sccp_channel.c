@@ -55,7 +55,7 @@ struct sccp_private_channel_data {
  * \param channel SCCP Channel
  * \param enabled Enabled as Boolean
  */
-static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t enabled)
+static void sccp_channel_setMicrophoneState(constChannelPtr channel, boolean_t enabled)
 {
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 
@@ -241,12 +241,11 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
  * \param channel SCCP Channel
  * \return SCCP Device
  */
-sccp_device_t * const sccp_channel_getDevice(const sccp_channel_t * channel)
+devicePtr sccp_channel_getDevice(constChannelPtr channel)
 {
 	pbx_assert(channel != NULL);
 	if (channel->privateData && channel->privateData->device) {
-		sccp_device_t *device = sccp_device_retain(channel->privateData->device);
-		return device;
+		return sccp_device_retain(channel->privateData->device);
 	} 
 	return NULL;
 }
@@ -256,12 +255,11 @@ sccp_device_t * const sccp_channel_getDevice(const sccp_channel_t * channel)
  * \param channel SCCP Channel
  * \return SCCP LineDevice
  */
-sccp_linedevices_t * const sccp_channel_getLineDevice(const sccp_channel_t * channel)
+lineDevicePtr sccp_channel_getLineDevice(constChannelPtr channel)
 {
 	pbx_assert(channel != NULL);
 	if (channel->privateData && channel->privateData->linedevice) {
-		sccp_linedevices_t *linedevice = sccp_linedevice_retain(channel->privateData->linedevice);
-		return linedevice;
+		return sccp_linedevice_retain(channel->privateData->linedevice);
 	} 
 	return NULL;
 }
@@ -271,7 +269,7 @@ sccp_linedevices_t * const sccp_channel_getLineDevice(const sccp_channel_t * cha
  * \param channel SCCP Channel
  * \param device SCCP Device
  */
-void sccp_channel_setDevice(sccp_channel_t * const channel, const sccp_device_t * device)
+void sccp_channel_setDevice(channelPtr channel, constDevicePtr device)
 {
 	if (!channel || !channel->privateData) {
 		return;
@@ -294,7 +292,7 @@ void sccp_channel_setDevice(sccp_channel_t * const channel, const sccp_device_t 
 	sccp_device_refreplace(&channel->privateData->device, (sccp_device_t *) device);
 
 	if (device) {
-		sccp_device_setActiveChannel((sccp_device_t *) device, channel);
+		sccp_device_setActiveChannel(device, channel);
 #if CS_REFCOUNT_DEBUG
 		sccp_refcount_addWeakParent(channel, device);
 #endif
@@ -335,7 +333,7 @@ EXIT:
 	channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
 }
 
-static void sccp_channel_recalculateAudioCodecFormat(sccp_channel_t * channel)
+static void sccp_channel_recalculateAudioCodecFormat(channelPtr channel)
 {
 	char s1[512], s2[512], s3[512], s4[512];
 	skinny_codec_t joint = channel->rtp.audio.reception.format;
@@ -384,7 +382,7 @@ static void sccp_channel_recalculateAudioCodecFormat(sccp_channel_t * channel)
 	);
 }
 
-static boolean_t sccp_channel_recalculateVideoCodecFormat(sccp_channel_t * channel)
+static boolean_t sccp_channel_recalculateVideoCodecFormat(channelPtr channel)
 {
 	char s1[512], s2[512], s3[512], s4[512];
 	skinny_codec_t joint = channel->rtp.video.reception.format;
@@ -435,7 +433,7 @@ static boolean_t sccp_channel_recalculateVideoCodecFormat(sccp_channel_t * chann
  * \brief Update Channel Capability
  * \param channel a *retained* SCCP Channel
  */
-void sccp_channel_updateChannelCapability(sccp_channel_t * channel)
+void sccp_channel_updateChannelCapability(channelPtr channel)
 {
 	if (iPbx.retrieve_remote_capabilities && channel->remoteCapabilities.audio[0] == SKINNY_CODEC_NONE) {
 		iPbx.retrieve_remote_capabilities(channel);
@@ -449,7 +447,7 @@ void sccp_channel_updateChannelCapability(sccp_channel_t * channel)
 /*!
  * \brief Get const pointer to channels private callinfo
  */
-sccp_callinfo_t * const __PURE__ sccp_channel_getCallInfo(const sccp_channel_t *const channel)
+sccp_callinfo_t * const __PURE__ sccp_channel_getCallInfo(constChannelPtr channel)
 {
 	return (sccp_callinfo_t * const) channel->privateData->callInfo;			/* discard const because callinfo has a private implementation anyway */
 }
@@ -467,7 +465,7 @@ sccp_callinfo_t * const __PURE__ sccp_channel_getCallInfo(const sccp_channel_t *
  *
  * \todo find a difference solution for sccp_conference callinfo update
  */
-void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel_t * channel)
+void sccp_channel_send_callinfo(constDevicePtr device, constChannelPtr channel)
 {
 	uint8_t lineInstance = 0;
 
@@ -486,7 +484,7 @@ void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel
  * \callgraph
  * \callergraph
  */
-void sccp_channel_send_callinfo2(sccp_channel_t * channel)
+void sccp_channel_send_callinfo2(constChannelPtr channel)
 {
 	pbx_assert(channel != NULL);
 
@@ -529,7 +527,7 @@ void sccp_channel_setChannelstate(channelPtr channel, sccp_channelstate_t state)
  * \callgraph
  * \callergraph
  */
-void sccp_channel_display_callInfo(sccp_channel_t * channel)
+void sccp_channel_display_callInfo(constChannelPtr channel)
 {
 	if ((GLOB(debug) & (DEBUGCAT_CHANNEL)) != 0) {
 		iCallInfo.Print2log(channel->privateData->callInfo, channel->designator);
@@ -563,7 +561,7 @@ void sccp_channel_set_callingparty(constChannelPtr channel, const char *name, co
  * \callgraph
  * \callergraph
  */
-boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *name, char *number)
+boolean_t sccp_channel_set_originalCallingparty(constChannelPtr channel, char * name, char * number)
 {
 	boolean_t changed = FALSE;
 
@@ -585,7 +583,7 @@ boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *
  * \callgraph
  * \callergraph
  */
-void sccp_channel_set_calledparty(sccp_channel_t * channel, const char *name, const char *number)
+void sccp_channel_set_calledparty(constChannelPtr channel, const char * name, const char * number)
 {
 	if (!channel || sccp_strequals(number, "s") /* skip update for immediate earlyrtp + s-extension */ ) {
 		return;
@@ -602,7 +600,7 @@ void sccp_channel_set_calledparty(sccp_channel_t * channel, const char *name, co
  * \callgraph
  * \callergraph
  */
-boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * channel, char *name, char *number)
+boolean_t sccp_channel_set_originalCalledparty(constChannelPtr channel, char * name, char * number)
 {
 	boolean_t changed = FALSE;
 
@@ -619,7 +617,7 @@ boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * channel, char *n
  * \brief Request Call Statistics for SCCP Channel
  * \param channel SCCP Channel
  */
-void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
+void sccp_channel_StatisticsRequest(constChannelPtr channel)
 {
 	pbx_assert(channel != NULL);
 	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
@@ -1013,7 +1011,7 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 		codec2str(video->reception.format), video->reception.format, payloadType);
 }
 
-int sccp_channel_receiveMultiMediaChannelOpen(sccp_device_t *d, sccp_channel_t *c)
+int sccp_channel_receiveMultiMediaChannelOpen(constDevicePtr d, channelPtr c)
 {
 	pbx_assert(d != NULL && c != NULL);
 	sccp_rtp_t *video = (sccp_rtp_t *) &(c->rtp.video);
@@ -1165,7 +1163,7 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 	iPbx.queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
 }
 
-int sccp_channel_multiMediaTransmissionStarted(sccp_device_t *d, sccp_channel_t *c)
+int sccp_channel_multiMediaTransmissionStarted(constDevicePtr d, channelPtr c)
 {
 	//pbx_builtin_setvar_helper(c->owner, "_SCCP_VIDEO_MODE", sccp_video_mode2str(sccp_channel_getVideoMode(c)));
 	//iPbx.queue_control(c->owner, AST_CONTROL_VIDUPDATE);
@@ -1306,7 +1304,7 @@ boolean_t sccp_channel_transfer_on_hangup(constChannelPtr channel)
 /*
  * \brief End all forwarding parent channels
  */
-void sccp_channel_end_forwarding_channel(sccp_channel_t * orig_channel)
+void sccp_channel_end_forwarding_channel(channelPtr orig_channel)
 {
 	sccp_channel_t *c = NULL;
 
@@ -1355,7 +1353,7 @@ static int _sccp_channel_sched_endcall(const void *data)
 /* 
  * Remove Schedule digittimeout
  */
-gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel)
+gcc_inline void sccp_channel_stop_schedule_digittimout(constChannelPtr channel)
 {
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 
@@ -1369,7 +1367,7 @@ gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel)
  * Schedule hangup if allowed and not already scheduled
  * \note needs to take retain on channel to pass it on the the scheduled hangup
  */
-gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t * channel, uint timeout)
+gcc_inline void sccp_channel_schedule_hangup(constChannelPtr channel, uint timeout)
 {
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 	int res = 0;
@@ -1387,7 +1385,7 @@ gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t * channel, uint time
  * Schedule digittimeout if allowed
  * Release any previously scheduled digittimeout
  */
-gcc_inline void sccp_channel_schedule_digittimeout(sccp_channel_t * channel, uint timeout)
+gcc_inline void sccp_channel_schedule_digittimeout(constChannelPtr channel, uint timeout)
 {
 	sccp_channel_t *c = sccp_channel_retain(channel);
 
@@ -1403,7 +1401,7 @@ gcc_inline void sccp_channel_schedule_digittimeout(sccp_channel_t * channel, uin
 	}
 }
 
-void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel)
+void sccp_channel_stop_and_deny_scheduled_tasks(constChannelPtr channel)
 {
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 	if (c) {
@@ -1425,7 +1423,7 @@ void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel)
  * \callgraph
  * \callergraph
  */
-void sccp_channel_endcall(sccp_channel_t * channel)
+void sccp_channel_endcall(channelPtr channel)
 {
 	if (!channel || !channel->line) {
 		pbx_log(LOG_WARNING, "No channel or line or device to hangup\n");
@@ -1577,7 +1575,7 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
  *       Adding a mutex for just c->state should not be impossible, be would require quite a bit of lock debugging (again)
  *       Can also be solved atomically by using a CAS32 / ATOMIC_INCR
  */
-void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
+void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 {
 	if (!channel || !channel->line) {
 		pbx_log(LOG_ERROR, "SCCP: (%s) Channel %s has no line\n", __func__, (channel ? channel->designator : 0));
@@ -2058,7 +2056,7 @@ void sccp_channel_addCleanupJob(channelPtr c, void *(*function_p) (void *), void
  * \callergraph
  * 
  */
-void sccp_channel_clean(sccp_channel_t * channel)
+void sccp_channel_clean(channelPtr channel)
 {
 	sccp_selectedchannel_t * sccp_selected_channel = NULL;
 
@@ -2599,7 +2597,7 @@ EXIT:
  * \param channel SCCP Channel
  * \param presentation SCCP CallerID Presentation ENUM
  */
-void sccp_channel_set_calleridPresentation(sccp_channel_t * channel, sccp_callerid_presentation_t presentation)
+void sccp_channel_set_calleridPresentation(constChannelPtr channel, sccp_callerid_presentation_t presentation)
 {
 	iCallInfo.Setter(channel->privateData->callInfo, SCCP_CALLINFO_PRESENTATION, presentation, SCCP_CALLINFO_KEY_SENTINEL);
 	if (iPbx.set_callerid_presentation) {
@@ -2607,16 +2605,6 @@ void sccp_channel_set_calleridPresentation(sccp_channel_t * channel, sccp_caller
 	}
 }
 
-#if UNUSEDCODE // 2015-11-01
-/*!
- * \brief Reset Caller Id Presentation
- * \param channel SCCP Channel
- */
-void sccp_channel_reset_calleridPresentation(sccp_channel_t * channel)
-{
-	sccp_channel_set_calleridPresentation(channel, CALLERID_PRESENTATION_ALLOWED);
-}
-#endif
 /*!
  * \brief Forward a Channel
  * \param sccp_channel_parent SCCP parent channel
@@ -2626,7 +2614,7 @@ void sccp_channel_reset_calleridPresentation(sccp_channel_t * channel)
  * \callgraph
  * \callergraph
  */
-int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_t * lineDevice, char *fwdNumber)
+int sccp_channel_forward(constChannelPtr sccp_channel_parent, constLineDevicePtr lineDevice, const char * fwdNumber)
 {
 	char dialedNumber[256];
 
@@ -2759,7 +2747,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
  * \brief Park an SCCP Channel
  * \param channel SCCP Channel
  */
-void sccp_channel_park(sccp_channel_t * channel)
+void sccp_channel_park(constChannelPtr channel)
 {
 	sccp_parkresult_t result;
 
@@ -2785,7 +2773,7 @@ void sccp_channel_park(sccp_channel_t * channel)
  * \param data Stringified Skinny Codec ShortName
  * \return Success as Boolean
  */
-boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const char *data)
+boolean_t sccp_channel_setPreferredCodec(channelPtr c, const char * data)
 {
 	if (!data || !c) {
 		return FALSE;
@@ -2871,7 +2859,7 @@ boolean_t sccp_channel_setVideoMode(channelPtr c, const char *data)
 /*!
  * \brief Send callwaiting tone to device multiple times
  */
-int sccp_channel_callwaiting_tone_interval(sccp_device_t * device, sccp_channel_t * channel)
+int sccp_channel_callwaiting_tone_interval(constDevicePtr device, constChannelPtr channel)
 {
 	if (GLOB(callwaiting_tone)) {
 		AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(device));
@@ -2904,7 +2892,7 @@ int sccp_channel_callwaiting_tone_interval(sccp_device_t * device, sccp_channel_
 /*!
  * \brief Helper function to retrieve the pbx channel LinkedID
  */
-const char *sccp_channel_getLinkedId(const sccp_channel_t * channel)
+const char * sccp_channel_getLinkedId(constChannelPtr channel)
 {
 	if (!iPbx.getChannelLinkedId) {
 		return NULL;
@@ -2926,7 +2914,7 @@ const char *sccp_channel_getLinkedId(const sccp_channel_t * channel)
  * \return *refcounted* SCCP Channel (can be null)
  * \todo rename function to include that it checks the channelstate != DOWN
  */
-sccp_channel_t *sccp_find_channel_on_line_byid(constLinePtr l, uint32_t id)
+channelPtr sccp_find_channel_on_line_byid(constLinePtr l, uint32_t id)
 {
 	sccp_channel_t *c = NULL;
 
@@ -2942,7 +2930,7 @@ sccp_channel_t *sccp_find_channel_on_line_byid(constLinePtr l, uint32_t id)
  * Find channel by lineId and CallId, connected to a particular device;
  * \return *refcounted* SCCP Channel (can be null)
  */
-sccp_channel_t *sccp_find_channel_by_buttonIndex_and_callid(const sccp_device_t * d, const uint32_t buttonIndex, const uint32_t callid)
+channelPtr sccp_find_channel_by_buttonIndex_and_callid(constDevicePtr d, const uint32_t buttonIndex, const uint32_t callid)
 {
 	sccp_channel_t *c = NULL;
 
@@ -2966,7 +2954,7 @@ sccp_channel_t *sccp_find_channel_by_buttonIndex_and_callid(const sccp_device_t 
  * Find channel by lineInstance and CallId, connected to a particular device;
  * \return *refcounted* SCCP Channel (can be null)
  */
-sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t * d, const uint32_t lineInstance, const uint32_t callid)
+channelPtr sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t * d, const uint32_t lineInstance, const uint32_t callid)
 {
 	sccp_channel_t *c = NULL;
 
@@ -2998,7 +2986,7 @@ sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t
  *
  * \todo rename function to include that it checks the channelstate != DOWN (sccp_find_channel_on_line_byid)
  */
-sccp_channel_t *sccp_channel_find_byid(uint32_t callid)
+channelPtr sccp_channel_find_byid(uint32_t callid)
 {
 	sccp_channel_t *channel = NULL;
 	sccp_line_t *l = NULL;
@@ -3031,7 +3019,7 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t callid)
  * \param passthrupartyid Party ID
  * \return *refcounted* SCCP Channel - cann bee NULL if no channel with this id was found
  */
-sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
+channelPtr sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
 {
 	sccp_channel_t *c = NULL;
 	sccp_line_t *l = NULL;
@@ -3070,7 +3058,7 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
  * \callergraph
  * 
  */
-sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(constDevicePtr d, uint32_t passthrupartyid)
+channelPtr sccp_channel_find_on_device_bypassthrupartyid(constDevicePtr d, uint32_t passthrupartyid)
 {
 	sccp_channel_t *c = NULL;
 
@@ -3115,7 +3103,7 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(constDevicePtr d, 
  * \param state State
  * \return *refcounted* SCCP Channel
  */
-sccp_channel_t *sccp_channel_find_bystate_on_line(constLinePtr l, sccp_channelstate_t state)
+channelPtr sccp_channel_find_bystate_on_line(constLinePtr l, sccp_channelstate_t state)
 {
 	sccp_channel_t *c = NULL;
 
@@ -3142,7 +3130,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(constLinePtr l, sccp_channelst
  * \param state State as int
  * \return *refcounted* SCCP Channel
  */
-sccp_channel_t *sccp_channel_find_bystate_on_device(constDevicePtr device, sccp_channelstate_t state)
+channelPtr sccp_channel_find_bystate_on_device(constDevicePtr device, sccp_channelstate_t state)
 {
 	sccp_channel_t *c = NULL;
 

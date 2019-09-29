@@ -22,7 +22,7 @@
 
 SCCP_FILE_VERSION(__FILE__, "");
 
-static void __sccp_indicate_remote_device(const sccp_device_t * const maybe_device, const sccp_channel_t * const c, const sccp_line_t * const line, const sccp_channelstate_t state);
+static void __sccp_indicate_remote_device(constDevicePtr device, channelPtr c, linePtr line, const sccp_channelstate_t state);
 
 /*!
  * \brief Indicate Without Lock
@@ -43,7 +43,7 @@ static void __sccp_indicate_remote_device(const sccp_device_t * const maybe_devi
  * 
  */
 //void __sccp_indicate(sccp_device_t * _device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
-void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * const c, const sccp_channelstate_t state, const uint8_t debug, const char *file, const int line, const char *pretty_function)
+void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_channelstate_t state, const uint8_t debug, const char * file, const int line, const char * pretty_function)
 {
 	if (debug) {
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1 "SCCP: [INDICATE] state '%d' in file '%s', on line %d (%s)\n", state, file, line, pretty_function);
@@ -490,7 +490,7 @@ void __sccp_indicate(const sccp_device_t * const maybe_device, sccp_channel_t * 
  * \warning
  *  - line->devices is not always locked
  */
-static void __sccp_indicate_remote_device(const sccp_device_t * const device, const sccp_channel_t * const c, const sccp_line_t * const line, const sccp_channelstate_t state)
+static void __sccp_indicate_remote_device(constDevicePtr device, channelPtr c, linePtr line, const sccp_channelstate_t state)
 {
 	int lineInstance = 0;
 

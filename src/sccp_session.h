@@ -34,7 +34,7 @@ SCCP_API int SCCP_CALL sccp_session_setOurIP4Address(constSessionPtr session, co
 SCCP_API void SCCP_CALL sccp_session_resetLastKeepAlive(constSessionPtr session);
 void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPtr previous_session);
 SCCP_API boolean_t SCCP_CALL sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr device);
-SCCP_API sccp_device_t * const SCCP_CALL sccp_session_getDevice(constSessionPtr session, boolean_t required);
+SCCP_API devicePtr SCCP_CALL sccp_session_getDevice(constSessionPtr session, boolean_t required);
 SCCP_API boolean_t SCCP_CALL sccp_session_isValid(constSessionPtr session);
 SCCP_API int SCCP_CALL sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 

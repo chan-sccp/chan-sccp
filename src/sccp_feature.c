@@ -1476,14 +1476,14 @@ void sccp_feat_adhocDial(constDevicePtr d, constLinePtr line)
  * \param featureType SCCP Feature Type
  * 
  */
-void sccp_feat_changed(constDevicePtr device, const sccp_linedevices_t * const linedevice, sccp_feature_type_t featureType)
+void sccp_feat_changed(constDevicePtr device, constLineDevicePtr maybe_linedevice, sccp_feature_type_t featureType)
 {
 	if (device) {
 		sccp_featButton_changed(device, featureType);
 		sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_FEATURE_CHANGED);
 		if (event) {
 			event->featureChanged.device = sccp_device_retain(device);
-			event->featureChanged.optional_linedevice = linedevice ? sccp_linedevice_retain(linedevice) : NULL;
+			event->featureChanged.optional_linedevice = maybe_linedevice ? sccp_linedevice_retain(maybe_linedevice) : NULL;
 			event->featureChanged.featureType = featureType;
 			sccp_event_fire(event);
 		}

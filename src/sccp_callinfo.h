@@ -44,7 +44,7 @@ typedef struct tagCallInfo {
 	/*
 	 * \brief send callinfo to device
 	 */
-	int (*Send)(sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, const sccp_device_t * const device, boolean_t force);
+	int (*Send)(sccp_callinfo_t * const ci, const uint32_t callid, const skinny_calltype_t calltype, const uint8_t lineInstance, constDevicePtr device, boolean_t force);
 
 	/*
 	 * \brief callinfo getter with variable number of arguments, destination parameter needs to be prodided by reference
