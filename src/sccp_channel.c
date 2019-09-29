@@ -33,6 +33,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_netsock.h"
 #include "sccp_utils.h"
 #include "sccp_labels.h"
+#include "sccp_threadpool.h"
 #include <asterisk/callerid.h>			// sccp_channel, sccp_callinfo
 #include <asterisk/pbx.h>			// AST_EXTENSION_NOT_INUSE
 
@@ -2881,20 +2882,6 @@ int sccp_channel_callwaiting_tone_interval(constDevicePtr device, constChannelPt
 	}
 	return -1;
 }
-
-#if UNUSEDCODE // 2015-11-01
-/*!
- * \brief Helper function to retrieve the pbx channel LinkedID
- */
-const char * sccp_channel_getLinkedId(constChannelPtr channel)
-{
-	if (!iPbx.getChannelLinkedId) {
-		return NULL;
-	}
-
-	return iPbx.getChannelLinkedId(channel);
-}
-#endif
 
 /*=================================================================================== FIND FUNCTIONS ==============*/
 /*!

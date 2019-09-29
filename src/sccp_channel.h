@@ -191,9 +191,6 @@ SCCP_API boolean_t SCCP_CALL sccp_channel_setPreferredCodec(channelPtr c, const 
 SCCP_API sccp_video_mode_t SCCP_CALL sccp_channel_getVideoMode(constChannelPtr c);
 SCCP_API boolean_t SCCP_CALL sccp_channel_setVideoMode(channelPtr c, const char *data);
 SCCP_API int SCCP_CALL sccp_channel_callwaiting_tone_interval(constDevicePtr device, constChannelPtr channel);
-#if UNUSEDCODE // 2015-11-01
-SCCP_API const char * sccp_channel_getLinkedId(constChannelPtr channel);
-#endif
 
 // find channel
 SCCP_API channelPtr SCCP_CALL sccp_channel_find_byid(uint32_t callid);

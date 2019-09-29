@@ -34,6 +34,7 @@
 #include "sccp_devstate.h"
 #endif
 #include "sccp_management.h"	// use __constructor__ to remove this entry
+#include "sccp_threadpool.h"
 #include <signal.h>
 
 SCCP_FILE_VERSION(__FILE__, "");

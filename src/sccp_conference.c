@@ -17,6 +17,7 @@
 #include "sccp_linedevice.h"
 #include "sccp_utils.h"
 #include "sccp_labels.h"
+#include "sccp_threadpool.h"
 #include <asterisk/say.h>
 
 #ifdef CS_SCCP_CONFERENCE

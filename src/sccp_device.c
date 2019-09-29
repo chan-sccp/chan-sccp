@@ -48,7 +48,6 @@ void sccp_device_destroyiconv(devicePtr d);
 
 int __sccp_device_destroy(const void *ptr);
 void sccp_device_removeFromGlobals(devicePtr device);
-int sccp_device_destroy(const void *ptr);
 
 /*!
  * \brief Private Device Data Structure
@@ -2678,27 +2677,6 @@ int __sccp_device_destroy(const void *ptr)
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device Destroyed\n", d->id);
 	return 0;
 }
-
-#if UNUSEDCODE // 2015-11-01
-/*!
- * \brief Free a Device as scheduled command
- * \param ptr SCCP Device Pointer
- * \return success as int
- *
- * \callgraph
- * \callergraph
- *
- * \called_from_asterisk
- *
- */
-int sccp_device_destroy(const void *ptr)
-{
-	sccp_device_t *d = (sccp_device_t *) ptr;
-
-	sccp_device_removeFromGlobals(d);
-	return 0;
-}
-#endif
 
 /*!
  * \brief is Video Support on a Device

@@ -21,6 +21,7 @@
 #include "sccp_line.h"
 #include "sccp_linedevice.h"
 #include "sccp_vector.h"
+#include "sccp_threadpool.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 

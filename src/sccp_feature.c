@@ -35,6 +35,7 @@
 #include "sccp_management.h"
 #include "sccp_utils.h"
 #include "sccp_labels.h"
+#include "sccp_threadpool.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 

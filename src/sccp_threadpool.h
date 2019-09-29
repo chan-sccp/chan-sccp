@@ -57,8 +57,6 @@ struct sccp_threadpool_job {
 	SCCP_LIST_ENTRY (sccp_threadpool_job_t) list;
 };
 
-typedef struct sccp_threadpool sccp_threadpool_t;
-
 /* =========================== FUNCTIONS ================================================ */
 
 /* ----------------------- Threadpool specific --------------------------- */

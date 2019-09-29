@@ -56,6 +56,7 @@ typedef struct sccp_private_channel_data sccp_private_channel_data_t;           
 typedef struct sccp_private_device_data sccp_private_device_data_t;                                           //!< SCCP Private Device Data Structure
 typedef struct sccp_cfwd_information sccp_cfwd_information_t;                                                 //!< SCCP CallForward information Structure
 typedef struct sccp_buttonconfig_list sccp_buttonconfig_list_t;                                               //!< SCCP ButtonConfig List Structure
+typedef struct sccp_threadpool sccp_threadpool_t;                                                             //!< SCCP ThreadPool Structure
 typedef struct _xmlDoc xmlDoc;
 typedef struct _xmlNode xmlNode;
 

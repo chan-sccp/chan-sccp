@@ -25,8 +25,10 @@
 #include "sccp_session.h"
 #include "sccp_atomic.h"
 #include "sccp_labels.h"
+#include "sccp_threadpool.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
+
 #include <asterisk/callerid.h>
 #include <asterisk/module.h>		// ast_update_use_count
 #include <asterisk/causes.h>		// AST_CAUSE_NORMAL_CLEARING

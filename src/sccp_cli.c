@@ -62,6 +62,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_mwi.h"
 #include "sccp_hint.h"
 #include "sccp_labels.h"
+#include "sccp_threadpool.h"
 #include <sys/stat.h>
 #include <asterisk/cli.h>
 #include <asterisk/paths.h>
