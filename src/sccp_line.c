@@ -17,31 +17,29 @@
 #include "sccp_line.h"
 #include "sccp_config.h"
 #include "sccp_feature.h"
+#include "sccp_linedevice.h"
 #include "sccp_mwi.h"
 #include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
-static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptionId, int onoff);
 int __sccp_line_destroy(const void *ptr);
-int __sccp_lineDevice_destroy(const void *ptr);
 
 /*!
- * \brief run before reload is start on lines
- * \note See \ref sccp_config_reload
+ * \brief run before reload is start on lines * \note See \ref sccp_config_reload
  *
  * \callgraph
  * \callergraph
- * 
+ *
  */
 void sccp_line_pre_reload(void)
 {
 	sccp_line_t *l = NULL;
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {
-		if (GLOB(hotline)->line == l) {									/* always remove hotline from linedevice */
+		if(GLOB(hotline)->line == l) { /* always remove hotline from ld */
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Removing Hotline from Device\n", l->name);
-			sccp_line_removeDevice(l, NULL);
-		} else {											/* Don't want to include the hotline line */
+			sccp_linedevice_remove(NULL, l);
+		} else { /* Don't want to include the hotline line */
 #ifdef CS_SCCP_REALTIME
 			if (l->realtime == FALSE)
 #endif
@@ -76,15 +74,14 @@ void sccp_line_post_reload(void)
 
 		if (l) {
 			// existing lines
-			sccp_linedevices_t *linedevice = NULL;
+			sccp_linedevice_t * ld = NULL;
 			SCCP_LIST_LOCK(&l->devices);
-			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-				linedevice->device->pendingUpdate = 1;
-				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: LineDevice (line_post_reload) update:%d, delete:%d\n", l->name, linedevice->device->pendingUpdate, linedevice->device->pendingDelete);
+			SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+				ld->device->pendingUpdate = 1;
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: LineDevice (line_post_reload) update:%d, delete:%d\n", l->name, ld->device->pendingUpdate, ld->device->pendingDelete);
 			}
 			SCCP_LIST_UNLOCK(&l->devices);
-			
-			if (l->pendingDelete) {
+			if(l->pendingDelete) {
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Deleting Line (post_reload)\n", l->name);
 				sccp_line_clean(l, TRUE);
 			} else {
@@ -252,10 +249,10 @@ void sccp_line_kill_channels(sccp_line_t * l)
 void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 {
 	sccp_line_kill_channels(l);
-	sccp_line_removeDevice(l, NULL);									// removing all devices from this line.
+	sccp_linedevice_remove(NULL, l);                                        // removing all devices from this line.
 	if (remove_from_global) {
 		sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_LINEINSTANCE_DESTROYED);
-		if (event) {
+		if(event) {
 			event->lineInstance.line = sccp_line_retain(l);
 			sccp_event_fire(event);
 		}
@@ -286,7 +283,7 @@ int __sccp_line_destroy(const void *ptr)
 	sccp_line_kill_channels(l);
 
 	// cleaning l->devices
-	sccp_line_removeDevice(l, NULL);
+	sccp_linedevice_remove(NULL, l);
 
 	// cleanup mailboxes (l->mailboxes)
 	{
@@ -330,32 +327,9 @@ int __sccp_line_destroy(const void *ptr)
 	return 0;
 }
 
-/*!
- * \brief Free a Line as scheduled command
- * \param ptr SCCP Line Pointer
- * \return success as int
- *
- * \callgraph
- * \callergraph
- * 
- */
-int __sccp_lineDevice_destroy(const void *ptr)
-{
-	sccp_linedevices_t *linedevice = (sccp_linedevices_t *) ptr;
-
-	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: LineDevice FREE %p\n", DEV_ID_LOG(linedevice->device), linedevice);
-	if (linedevice->line) {
-		sccp_line_release(&linedevice->line);						/* explicit release of line retained in linedevice */
-	}
-	if (linedevice->device) {
-		sccp_device_release(&linedevice->device);					/* explicit release of device retained in linedevice */
-	}
-	return 0;
-}
-
 void sccp_line_copyCodecSetsFromLineToChannel(constLinePtr l, constDevicePtr maybe_d, sccp_channel_t *c)
 {
-	if (!l || !c) {
+	if(!l || !c) {
 		return;
 	}
 	/* work already done in sccp_line_copyCodecSetsFromDeviceToLine during sccp_line_addDevice */
@@ -386,37 +360,37 @@ void sccp_line_copyCodecSetsFromLineToChannel(constLinePtr l, constDevicePtr may
 	sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (copyCodecSetsFromLineToChannel) channel preferences:%s\n", c->designator, sccp_codec_multiple2str(s2, sizeof(s2) - 1, c->preferences.audio, SKINNY_MAX_CAPABILITIES));
 }
 
-static void sccp_line_updatePreferencesFromDevicesToLine(sccp_line_t *l)
+void sccp_line_updatePreferencesFromDevicesToLine(sccp_line_t * l)
 {
-	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevice_t * ld = NULL;
 	int numMembers = 0;
 	boolean_t first=TRUE;
-	if (!l) {
+	if(!l) {
 		return;
 	}
 	// sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: Update line preferences\n", l->name);
 	// combine all preferences
 	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+	SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
 		if (first) {
 			if (!l->preferences_set_on_line_level) {
-				memcpy(&l->preferences.audio, &linedevice->device->preferences.audio , sizeof(l->preferences.audio));
-				memcpy(&l->preferences.video, &linedevice->device->preferences.video , sizeof(l->preferences.video));
+				memcpy(&l->preferences.audio, &ld->device->preferences.audio, sizeof(l->preferences.audio));
+				memcpy(&l->preferences.video, &ld->device->preferences.video, sizeof(l->preferences.video));
 			}
 			first = FALSE;
 		} else {
 			if (!l->preferences_set_on_line_level) {
 				skinny_codec_t temp[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
-				if (sccp_codec_getReducedSet(l->preferences.audio , linedevice->device->preferences.audio, temp) == 0) {
+				if(sccp_codec_getReducedSet(l->preferences.audio, ld->device->preferences.audio, temp) == 0) {
 					// zero matching codecs we have to combine
-					sccp_codec_combineSets(l->preferences.audio , linedevice->device->preferences.audio);
+					sccp_codec_combineSets(l->preferences.audio, ld->device->preferences.audio);
 				} else {
 					memcpy(&l->preferences.audio, &temp, sizeof *temp);
 				}
 				memset(&temp, SKINNY_CODEC_NONE, sizeof *temp);
-				if (sccp_codec_getReducedSet(l->preferences.video , linedevice->device->preferences.video, temp) == 0) {
+				if(sccp_codec_getReducedSet(l->preferences.video, ld->device->preferences.video, temp) == 0) {
 					// zero matching codecs we have to combine
-					sccp_codec_combineSets(l->preferences.video , linedevice->device->preferences.video);
+					sccp_codec_combineSets(l->preferences.video, ld->device->preferences.video);
 				} else {
 					memcpy(&l->preferences.video, &temp, sizeof *temp);
 				}
@@ -433,7 +407,7 @@ static void sccp_line_updatePreferencesFromDevicesToLine(sccp_line_t *l)
 
 void sccp_line_updateCapabilitiesFromDevicesToLine(sccp_line_t *l)
 {
-	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevice_t * ld = NULL;
 	boolean_t first=TRUE;
 	if (!l) {
 		return;
@@ -441,18 +415,17 @@ void sccp_line_updateCapabilitiesFromDevicesToLine(sccp_line_t *l)
 	// sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: Update line capabilities \n", l->name);
 	// combine all capabilities
 	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+	SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
 		if (first) {
-			memcpy(&l->capabilities.audio, &linedevice->device->capabilities.audio, sizeof(l->capabilities.audio));
-			memcpy(&l->capabilities.video, &linedevice->device->capabilities.video, sizeof(l->capabilities.video));
+			memcpy(&l->capabilities.audio, &ld->device->capabilities.audio, sizeof(l->capabilities.audio));
+			memcpy(&l->capabilities.video, &ld->device->capabilities.video, sizeof(l->capabilities.video));
 			first = FALSE;
 		} else {
-			sccp_codec_combineSets(l->capabilities.audio, linedevice->device->capabilities.audio);
-			sccp_codec_combineSets(l->capabilities.video, linedevice->device->capabilities.video);
+			sccp_codec_combineSets(l->capabilities.audio, ld->device->capabilities.audio);
+			sccp_codec_combineSets(l->capabilities.video, ld->device->capabilities.video);
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
-
 	// use a minimal default set, all devices should be able to support (last resort)
 	if (l->capabilities.audio[0] == SKINNY_CODEC_NONE) {
 		sccp_log((DEBUGCAT_LINE | DEBUGCAT_CODEC))(VERBOSE_PREFIX_3 "%s: (updateCapabilitiesFromDevicesToLine) Could not retrieve capabilities from line or device.\nUsing Fallback Capabilities Alaw/Ulaw\n", l->name);
@@ -475,9 +448,9 @@ void sccp_line_updateLineCapabilitiesByDevice(constDevicePtr d)
 	int instance = 0;
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
 		if (d->lineButtons.instance[instance]) {
-			AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_retain(d->lineButtons.instance[instance]));
-			if (linedevice && linedevice->line){
-				sccp_line_updateCapabilitiesFromDevicesToLine(linedevice->line);
+			AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_retain(d->lineButtons.instance[instance]));
+			if(ld && ld->line) {
+				sccp_line_updateCapabilitiesFromDevicesToLine(ld->line);
 			}
 		}
 	}
@@ -503,203 +476,57 @@ void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t
 	if (!line || !device) {
 		return;
 	}
-	AUTO_RELEASE(sccp_linedevices_t, linedevice, sccp_linedevice_find(device, line));
-	if(linedevice) {
+	AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(device, line));
+	if(ld) {
 		if (type == SCCP_CFWD_NONE) {
-			if (linedevice->cfwdAll.enabled) {
+			if(ld->cfwdAll.enabled) {
 				feature_type = SCCP_FEATURE_CFWDALL;
 			}
-			if (linedevice->cfwdBusy.enabled) {
+			if(ld->cfwdBusy.enabled) {
 				feature_type = SCCP_FEATURE_CFWDBUSY;
 			}
-			linedevice->cfwdAll.enabled = 0;
-			linedevice->cfwdBusy.enabled = 0;
+			ld->cfwdAll.enabled = 0;
+			ld->cfwdBusy.enabled = 0;
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward disabled on line %s\n", DEV_ID_LOG(device), line->name);
 		} else {
 			if (!number || sccp_strlen_zero(number)) {
-				linedevice->cfwdAll.enabled = 0;
-				linedevice->cfwdBusy.enabled = 0;
+				ld->cfwdAll.enabled = 0;
+				ld->cfwdBusy.enabled = 0;
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid. Cfwd Disabled\n", DEV_ID_LOG(device));
 			} else {
 				switch (type) {
 					case SCCP_CFWD_ALL:
 						feature_type = SCCP_FEATURE_CFWDALL;
-						linedevice->cfwdAll.enabled = 1;
-						sccp_copy_string(linedevice->cfwdAll.number, number, sizeof(linedevice->cfwdAll.number));
+						ld->cfwdAll.enabled = 1;
+						sccp_copy_string(ld->cfwdAll.number, number, sizeof(ld->cfwdAll.number));
 						break;
 					case SCCP_CFWD_BUSY:
 						feature_type = SCCP_FEATURE_CFWDBUSY;
-						linedevice->cfwdBusy.enabled = 1;
-						sccp_copy_string(linedevice->cfwdBusy.number, number, sizeof(linedevice->cfwdBusy.number));
+						ld->cfwdBusy.enabled = 1;
+						sccp_copy_string(ld->cfwdBusy.number, number, sizeof(ld->cfwdBusy.number));
 						break;
 					default:
-						linedevice->cfwdAll.enabled = 0;
-						linedevice->cfwdBusy.enabled = 0;
+						ld->cfwdAll.enabled = 0;
+						ld->cfwdBusy.enabled = 0;
 				}
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward %s enabled on line %s to number %s\n", DEV_ID_LOG(device), sccp_callforward2str(type), line->name, number);
 			}
 		}
-		sccp_feat_changed(linedevice->device, linedevice, feature_type);
-		sccp_dev_forward_status(linedevice->line, linedevice->lineInstance, device);
+		sccp_feat_changed(ld->device, ld, feature_type);
+		sccp_dev_forward_status(ld->line, ld->lineInstance, device);
 	} else {
-		pbx_log(LOG_ERROR, "%s: Device does not have line configured (linedevice not found)\n", DEV_ID_LOG(device));
+		pbx_log(LOG_ERROR, "%s: Device does not have line configured (ld not found)\n", DEV_ID_LOG(device));
 	}
 }
 
-void sccp_linedevice_resetPickup(sccp_linedevices_t * ld) {
-
-	ld->isPickupAllowed = sccp_always_false;
-#ifdef CS_SCCP_PICKUP
-	if (ld->line->pickupgroup
-#ifdef CS_AST_HAS_NAMEDGROUP
-		|| !sccp_strlen_zero(ld->line->namedpickupgroup)
-#endif
-	) {
-		sccp_log(DEBUGCAT_LINE)(VERBOSE_PREFIX_3 "%s: (enable Pickup) on line:%s.\n", ld->device->id, ld->line->name);
-		ld->isPickupAllowed = sccp_always_true;
-	}
-#endif
-}
-
-void sccp_linedevice_disallowPickup(sccp_linedevices_t * ld) {
-	sccp_log(DEBUGCAT_LINE)(VERBOSE_PREFIX_3 "%s: (disable Pickup) on line:%s.\n", ld->device->id, ld->line->name);
-	ld->isPickupAllowed = sccp_always_false;
-}
-
-/*!
- * \brief Attach a Device to a line
- * \param line SCCP Line
- * \param d SCCP Device
- * \param lineInstance lineInstance as uint8_t
- * \param subscriptionId Subscription ID for addressing individual devices on the line
- * 
- */
-void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInstance, sccp_subscription_id_t *subscriptionId)
-{
-	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(line));
-	AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
-
-	if (!device || !l) {
-		pbx_log(LOG_ERROR, "SCCP: sccp_line_addDevice: No line or device provided\n");
-		return;
-	}
-	sccp_linedevices_t *linedevice = NULL;
-
-	if ((linedevice = sccp_linedevice_find(device, l))) {
-		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: device already registered for line '%s'\n", DEV_ID_LOG(device), l->name);
-		sccp_linedevice_release(&linedevice);			/* explicit release of found linedevice */
-		return;
-	}
-	
-	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
-#if CS_REFCOUNT_DEBUG
-	sccp_refcount_addWeakParent(line, device);
-#endif
-	char ld_id[REFCOUNT_INDENTIFIER_SIZE];
-
-	snprintf(ld_id, REFCOUNT_INDENTIFIER_SIZE, "%s/%s", device->id, l->name);
-	linedevice = (sccp_linedevices_t *) sccp_refcount_object_alloc(sizeof(sccp_linedevices_t), SCCP_REF_LINEDEVICE, ld_id, __sccp_lineDevice_destroy);
-	if (!linedevice) {
-		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, ld_id);
-		return;
-	}
-	memset(linedevice, 0, sizeof(sccp_linedevices_t));
-#if CS_REFCOUNT_DEBUG
-	sccp_refcount_addWeakParent(linedevice, l);
-	sccp_refcount_addWeakParent(linedevice, device);
-#endif
-	linedevice->device = sccp_device_retain(device);
-	linedevice->line = sccp_line_retain(l);
-	linedevice->lineInstance = lineInstance;
-
-	sccp_linedevice_resetPickup(linedevice);
-	if (NULL != subscriptionId) {
-		sccp_copy_string(linedevice->subscriptionId.name, subscriptionId->name, sizeof(linedevice->subscriptionId.name));
-		sccp_copy_string(linedevice->subscriptionId.number, subscriptionId->number, sizeof(linedevice->subscriptionId.number));
-		sccp_copy_string(linedevice->subscriptionId.label, subscriptionId->label, sizeof(linedevice->subscriptionId.label));
-		sccp_copy_string(linedevice->subscriptionId.aux, subscriptionId->aux, sizeof(linedevice->subscriptionId.aux));
-		linedevice->subscriptionId.replaceCid = subscriptionId->replaceCid;
-	}
-
-	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_INSERT_HEAD(&l->devices, linedevice, list);
-	SCCP_LIST_UNLOCK(&l->devices);
-
-	linedevice->line->statistic.numberOfActiveDevices++;
-	linedevice->device->configurationStatistic.numberOfLines++;
-
-	sccp_line_updatePreferencesFromDevicesToLine(l);
-
-	// fire event for new device
-	sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_DEVICE_ATTACHED);
-	if (event) {
-		event->deviceAttached.linedevice = sccp_linedevice_retain(linedevice);
-		sccp_event_fire(event);
-	}
-	regcontext_exten(l, &(linedevice->subscriptionId), 1);
-	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: added linedevice: %p with device: %s\n", l->name, linedevice, DEV_ID_LOG(device));
-}
-
-/*!
- * \brief Remove a Device from a Line
- *
- * Fire SCCP_EVENT_DEVICE_DETACHED event after removing device.
- *
- * \param l SCCP Line
- * \param device SCCP Device
- *
- * \note device can be NULL, mening remove all device from this line
- * 
- */
-void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
-{
-	sccp_linedevices_t *linedevice = NULL;
-
-	if (!l) {
-		return;
-	}
-	sccp_log_and((DEBUGCAT_HIGH + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: remove device from line %s\n", DEV_ID_LOG(device), l->name);
-
-	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
-		if (device == NULL || linedevice->device == device) {
-#if CS_REFCOUNT_DEBUG
-			sccp_refcount_removeWeakParent(l, device ? device : linedevice->device);
-#endif
-			regcontext_exten(l, &(linedevice->subscriptionId), 0);
-			SCCP_LIST_REMOVE_CURRENT(list);
-			l->statistic.numberOfActiveDevices--;
-			sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_DEVICE_DETACHED);
-			if (event) {
-				event->deviceAttached.linedevice = sccp_linedevice_retain(linedevice);
-				sccp_event_fire(event);
-			}
-			sccp_linedevice_release(&linedevice);						/* explicit release of list retained linedevice */
-#ifdef CS_SCCP_REALTIME
-			if (l->realtime && SCCP_LIST_GETSIZE(&l->devices) == 0 && SCCP_LIST_GETSIZE(&l->channels) == 0 ) {
-				sccp_line_removeFromGlobals(l);
-			}
-#endif
-		}
-	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
-	SCCP_LIST_UNLOCK(&l->devices);
-
-	if(GLOB(module_running) == TRUE) {
-		sccp_line_updatePreferencesFromDevicesToLine(l);
-		sccp_line_updateCapabilitiesFromDevicesToLine(l);
-	}
-}
-
-/*!
- * \brief Add a Channel to a Line
+/*! * \brief Add a Channel to a Line
  *
  * \param line SCCP Line
  * \param channel SCCP Channel
- * 
+ *
  * \warning
  *  - line->channels is not always locked
- * 
+ *
  */
 void sccp_line_addChannel(constLinePtr line, constChannelPtr channel)
 {
@@ -762,95 +589,17 @@ void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
 	}
 }
 
-/*!
- * \brief Register Extension to Asterisk regextension
- * \param l SCCP Line
- * \param subscriptionId subscriptionId
- * \param onoff On/Off as int
- * \note used for DUNDi Discovery
- */
-static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptionId, int onoff)
-{
-	char multi[256] = "";
-	char *stringp, *ext = "", *context = "";
-
-	// char extension[SCCP_MAX_CONTEXT]="";
-	// char name[SCCP_MAX_CONTEXT]="";
-
-	struct pbx_context * con = NULL;
-	struct pbx_find_info q = {.stacklen = 0 };
-
-	if (sccp_strlen_zero(GLOB(regcontext))) {
-		return;
-	}
-
-	sccp_copy_string(multi, S_OR(l->regexten, l->name), sizeof(multi));
-	stringp = multi;
-	while ((ext = strsep(&stringp, "&"))) {
-		if ((context = strchr(ext, '@'))) {
-			*context++ = '\0';									/* split ext@context */
-			if (!pbx_context_find(context)) {
-				pbx_log(LOG_WARNING, "Context specified in regcontext=%s (sccp.conf) must exist\n", context);
-				continue;
-			}
-		} else {
-			context = pbx_strdupa(GLOB(regcontext));
-		}
-		con = pbx_context_find_or_create(NULL, NULL, context, "SCCP");					/* make sure the context exists */
-		if (con) {
-			if (onoff) {
-				/* register */
-
-				if (!pbx_exists_extension(NULL, context, ext, 1, NULL) && pbx_add_extension(context, 0, ext, 1, NULL, NULL, "Noop", pbx_strdup(l->name), sccp_free_ptr, "SCCP")) {
-					sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Registered RegContext: %s, Extension: %s, Line: %s\n", context, ext, l->name);
-				}
-
-				/* register extension + subscriptionId */
-				/* if (subscriptionId && subscriptionId->number && !sccp_strlen_zero(subscriptionId->number) && !sccp_strlen_zero(subscriptionId->name)) {
-				   snprintf(extension, sizeof(extension), "%s@%s", ext, subscriptionId->number);
-				   snprintf(name, sizeof(name), "%s%s", l->name, subscriptionId->name);
-				   if (!pbx_exists_extension(NULL, context, extension, 2, NULL) && pbx_add_extension(context, 0, extension, 2, NULL, NULL, "Noop", pbx_strdup(name), sccp_free_ptr, "SCCP")) {
-				   sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Registered RegContext: %s, Extension: %s, Line: %s\n", context, extension, name);
-				   }
-				   } */
-			} else {
-				/* un-register */
-
-				if (SCCP_LIST_GETSIZE(&l->devices) == 1) {			// only remove entry if it is the last one (shared line)
-					if (pbx_find_extension(NULL, NULL, &q, context, ext, 1, NULL, "", E_MATCH)) {
-						ast_context_remove_extension(context, ext, 1, NULL);
-						sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, ext);
-					}
-				}
-
-				/* unregister extension + subscriptionId */
-				/* if (subscriptionId && subscriptionId->number && !sccp_strlen_zero(subscriptionId->number) && !sccp_strlen_zero(subscriptionId->name)) {
-				   snprintf(extension, sizeof(extension), "%s@%s", ext, subscriptionId->number);
-				   // if (pbx_exists_extension(NULL, context, extension, 2, NULL)) {
-				   if (pbx_find_extension(NULL, NULL, &q, context, extension, 2, NULL, "", E_MATCH)) {
-				   ast_context_remove_extension(context, extension, 2, NULL);
-				   sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, extension);
-				   }
-				   } */
-			}
-		} else {
-			pbx_log(LOG_ERROR, "SCCP: context '%s' does not exist and could not be created\n", context);
-		}
-	}
-}
-
 #if UNUSEDCODE // 2015-11-01
 /*!
- * \brief check the DND status for single/shared lines
- * On shared line we will return dnd status if all devices in dnd only.
+ * \brief check the DND status for single/shared lines * On shared line we will return dnd status if all devices in dnd only.
  * single line signaling dnd if device is set to dnd
  */
 sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line)
 {
-	sccp_linedevices_t *lineDevice = NULL;
+	sccp_linedevice_t * lineDevice = NULL;
 	sccp_channelstate_t state = SCCP_CHANNELSTATE_CONGESTION;
 
-	if (!line) {
+	if(!line) {
 		pbx_log(LOG_WARNING, "SCCP: (sccp_hint_getDNDState) Either no hint or line provided\n");
 		return state;
 	}
@@ -896,18 +645,16 @@ void sccp_line_setMWI(linePtr line, int newmsgs, int oldmsgs)
 		line->voicemailStatistic.oldmsgs = oldmsgs;
 	}
 }
-void sccp_line_indicateMWI(constLineDevicePtr linedevice)
+void sccp_line_indicateMWI(constLineDevicePtr ld)
 {
-	AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(linedevice->device));
-	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(linedevice->line));
+	AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(ld->device));
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(ld->line));
 	if (l && d) {
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (sccp_line_indicateMWI) Set voicemail lamp:%s on device:%s\n", l->name, 
 			l->voicemailStatistic.newmsgs ? "on" : "off", d->id);
-		sccp_device_setLamp(d, SKINNY_STIMULUS_VOICEMAIL, linedevice->lineInstance, 
-			l->voicemailStatistic.newmsgs ? d->mwilamp : SKINNY_LAMP_OFF);
+		sccp_device_setLamp(d, SKINNY_STIMULUS_VOICEMAIL, ld->lineInstance, l->voicemailStatistic.newmsgs ? d->mwilamp : SKINNY_LAMP_OFF);
 	}
 }
-
 /*=================================================================================== FIND FUNCTIONS ==============*/
 
 /*!
@@ -1100,124 +847,5 @@ sccp_line_t *sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex
 	sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Found line %s\n", "SCCP", l->name);
 
 	return l;
-}
-
-/*!
- * \brief Get Device Configuration
- * \param device SCCP Device
- * \param line SCCP Line
- * \param filename Debug FileName
- * \param lineno Debug LineNumber
- * \param func Debug Function Name
- * \return SCCP Line Devices
- *
- * \callgraph
- * \callergraph
- * 
- * \warning
- *  - line->devices is not always locked
- */
-sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const sccp_line_t * line, const char *filename, int lineno, const char *func)
-{
-	sccp_linedevices_t * linedevice = NULL;
-	sccp_line_t * l = NULL;                                        // loose const qualifier, to be able to lock the list;
-	if (!line) {
-		pbx_log(LOG_NOTICE, "SCCP: [%s:%d]->linedevice_find: No line provided to search in\n", filename, lineno);
-		return NULL;
-	}
-	l = (sccp_line_t *) line;									// loose const qualifier, to be able to lock the list;
-	
-	if (!device) {
-		pbx_log(LOG_NOTICE, "SCCP: [%s:%d]->linedevice_find: No device provided to search for (line: %s)\n", filename, lineno, line->name);
-		return NULL;
-	}
-
-	SCCP_LIST_LOCK(&l->devices);
-	linedevice = SCCP_LIST_FIND(&l->devices, sccp_linedevices_t, tmplinedevice, list, (device == tmplinedevice->device), TRUE, filename, lineno, func);
-	SCCP_LIST_UNLOCK(&l->devices);
-
-	if (!linedevice) {
-		sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for line %s could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, line->name);
-	}
-	return linedevice;
-}
-
-sccp_linedevices_t *__sccp_linedevice_findByLineinstance(const sccp_device_t * device, uint16_t instance, const char *filename, int lineno, const char *func)
-{
-	sccp_linedevices_t *linedevice = NULL;
-
-	if (instance < 1) {
-		pbx_log(LOG_NOTICE, "%s: [%s:%d]->linedevice_find: No line provided to search in\n", DEV_ID_LOG(device), filename, lineno);
-		return NULL;
-	}
-	if (!device) {
-		pbx_log(LOG_NOTICE, "SCCP: [%s:%d]->linedevice_find: No device provided to search for (lineinstance: %d)\n", filename, lineno, instance);
-		return NULL;
-	}
-
-	if (0 < instance && instance < device->lineButtons.size && device->lineButtons.instance[instance]) {	/* 0 < instance < lineButton.size */
-		linedevice = sccp_linedevice_retain(device->lineButtons.instance[instance]);
-	}
-
-	if (!linedevice) {
-		sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for lineinstance %d could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, instance);
-	}
-	return linedevice;
-}
-
-/* create linebutton array */
-void sccp_line_createLineButtonsArray(sccp_device_t * device)
-{
-	sccp_linedevices_t *linedevice = NULL;
-	uint8_t lineInstances = 0;
-	btnlist *btn = NULL;
-	uint8_t i;
-
-	if (device->lineButtons.size) {
-		sccp_line_deleteLineButtonsArray(device);
-	}
-
-	btn = device->buttonTemplate;
-
-	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].instance > lineInstances && btn[i].ptr) {
-			lineInstances = btn[i].instance;
-		}
-	}
-
-	device->lineButtons.instance = (sccp_linedevices_t **)sccp_calloc(lineInstances + SCCP_FIRST_LINEINSTANCE, sizeof(sccp_linedevices_t *));
-	if (!device->lineButtons.instance) {
-		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, device->id);
-		return;
-	}
-	device->lineButtons.size = lineInstances + SCCP_FIRST_LINEINSTANCE;					/* add the offset of SCCP_FIRST_LINEINSTANCE for explicit access */
-
-	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr) {
-			linedevice = sccp_linedevice_find(device, (sccp_line_t *) btn[i].ptr);
-			if (!(device->lineButtons.instance[btn[i].instance] = linedevice)) {
-				pbx_log(LOG_ERROR, "%s: linedevice could not be found or retained\n", device->id);
-				device->lineButtons.size--;
-				sccp_free(device->lineButtons.instance);
-			}
-		}
-	}
-}
-
-void sccp_line_deleteLineButtonsArray(sccp_device_t * device)
-{
-	uint8_t i;
-
-	if (device->lineButtons.instance) {
-		for (i = SCCP_FIRST_LINEINSTANCE; i < device->lineButtons.size; i++) {
-			if (device->lineButtons.instance[i]) {
-				sccp_linedevices_t *tmpld = device->lineButtons.instance[i];			/* castless conversion */
-				sccp_linedevice_release(&tmpld);						/* explicit release of retained linedevice */
-				device->lineButtons.instance[i] = NULL;
-			}
-		}
-		device->lineButtons.size = 0;
-		sccp_free(device->lineButtons.instance);
-	}
 }
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -1,5 +1,5 @@
 #pragma once
-#include <asterisk/autoconfig.h>
+//#include <asterisk/autoconfig.h>
 
 /*
  * undefine asterisk PACKAGE_ variables, so that we can set our own. 

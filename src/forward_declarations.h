@@ -7,11 +7,11 @@ typedef ULONG sccp_group_t;											/*!< SCCP callgroup / pickupgroup */
 #endif
 
 typedef struct sccp_session sccp_session_t;									/*!< SCCP Session Structure */
-typedef struct sccp_linedevices sccp_linedevices_t;								/*!< SCCP Line Connected to Devices */
+typedef struct sccp_linedevice sccp_linedevice_t;                                                               /*!< SCCP Line Connected to Devices */
 typedef struct sccp_device sccp_device_t;									/*!< SCCP Device Structure */
 typedef struct sccp_line sccp_line_t;										/*!< SCCP Line Structure */
-typedef struct sccp_channel sccp_channel_t;									/*!< SCCP Channel Structure */
-typedef struct sccp_speed sccp_speed_t;										/*!< SCCP Speed Structure */
+typedef struct sccp_channel sccp_channel_t;                                                                     /*!< SCCP Channel Structure */
+typedef struct sccp_speed sccp_speed_t;                                                                         /*!< SCCP Speed Structure */
 typedef struct sccp_service sccp_service_t;									/*!< SCCP Service Structure */
 typedef struct sccp_addon sccp_addon_t;										/*!< SCCP Add-On Structure */
 typedef struct sccp_hint sccp_hint_t;										/*!< SCCP Hint Structure */
@@ -24,19 +24,17 @@ typedef struct sccp_msg sccp_msg_t;
 #define devicePtr sccp_device_t *const
 #define linePtr sccp_line_t *const
 #define channelPtr sccp_channel_t *const
-#define lineDevicePtr      sccp_linedevices_t * const
+#define lineDevicePtr      sccp_linedevice_t * const
 #define conferencePtr sccp_conference_t *const
 #define messagePtr         sccp_msg_t * const
-
 /* we are promissing not to change the object nor the pointer to the object, when we use this object pointer */
 #define constSessionPtr const sccp_session_t *const
 #define constDevicePtr const sccp_device_t *const
 #define constLinePtr const sccp_line_t *const
 #define constChannelPtr const sccp_channel_t *const
-#define constLineDevicePtr const sccp_linedevices_t *const
+#define constLineDevicePtr const sccp_linedevice_t * const
 #define constConferencePtr const sccp_conference_t *const
 #define constMessagePtr const sccp_msg_t * const
-
 #ifdef CS_DEVSTATE_FEATURE
 typedef struct sccp_devstate_specifier sccp_devstate_specifier_t;						/*!< SCCP Custom DeviceState Specifier Structure */
 #endif

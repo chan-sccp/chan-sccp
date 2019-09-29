@@ -23,6 +23,7 @@
 #include "sccp_device.h"
 #include "sccp_feature.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_session.h"
 #include "sccp_indicate.h"
 #include "sccp_utils.h"
@@ -71,7 +72,7 @@ struct sccp_private_device_data {
 
 /* indicate definition */
 static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lineInstance, uint32_t callid);
-static void sccp_device_indicate_offhook(constDevicePtr device, sccp_linedevices_t * linedevice, uint32_t callid);
+static void sccp_device_indicate_offhook(constDevicePtr device, sccp_linedevice_t * ld, uint32_t callid);
 static void sccp_device_indicate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION]);
 static void sccp_device_indicate_proceed(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
 static void sccp_device_indicate_connected(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
@@ -746,7 +747,7 @@ static void __saveLastDialedNumberToDatabase(constDevicePtr device)
 	}
 }
 
-void sccp_device_setLastNumberDialed(devicePtr device, const char *lastNumberDialed, const sccp_linedevices_t *linedevice)
+void sccp_device_setLastNumberDialed(devicePtr device, const char * lastNumberDialed, const sccp_linedevice_t * ld)
 {
 	boolean_t ResetNoneLineInstance = FALSE;
 	boolean_t redial_active = FALSE;
@@ -760,10 +761,10 @@ void sccp_device_setLastNumberDialed(devicePtr device, const char *lastNumberDia
 		if (sccp_strlen_zero(device->redialInformation.number)) {
 			ResetNoneLineInstance = TRUE;
 		}
-		if (!sccp_strequals(device->redialInformation.number, lastNumberDialed) || device->redialInformation.lineInstance != linedevice->lineInstance) {
+		if(!sccp_strequals(device->redialInformation.number, lastNumberDialed) || device->redialInformation.lineInstance != ld->lineInstance) {
 			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Update last number dialed to %s.\n", DEV_ID_LOG(device), lastNumberDialed);
 			sccp_copy_string(device->redialInformation.number, lastNumberDialed, sizeof(device->redialInformation.number));
-			device->redialInformation.lineInstance = linedevice->lineInstance;
+			device->redialInformation.lineInstance = ld->lineInstance;
 			update_database = TRUE;
 		}
 		redial_active = TRUE;
@@ -2168,15 +2169,15 @@ void sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePt
 		}
 	}
 
-	AUTO_RELEASE(sccp_linedevices_t, linedevice, sccp_linedevice_find(device, l));
-	if(linedevice) {
-		device->protocol->sendCallforwardMessage(device, linedevice);
-		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Sent Forward Status (%s). Line: %s (%d)\n", device->id, (linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : "None")), l->name, linedevice->lineInstance);
+	AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(device, l));
+	if(ld) {
+		device->protocol->sendCallforwardMessage(device, ld);
+		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Sent Forward Status (%s). Line: %s (%d)\n", device->id, (ld->cfwdAll.enabled ? "All" : (ld->cfwdBusy.enabled ? "Busy" : "None")), l->name,
+							    ld->lineInstance);
 	} else {
-		pbx_log(LOG_NOTICE, "%s: Device does not have line configured (no linedevice found)\n", DEV_ID_LOG(device));
+		pbx_log(LOG_NOTICE, "%s: Device does not have line configured (no ld found)\n", DEV_ID_LOG(device));
 	}
 }
-
 /*!
  * \brief Handle Post Device Registration
  * \param data Data
@@ -2216,22 +2217,21 @@ void sccp_dev_postregistration(devicePtr d)
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Getting Database Settings...\n", d->id);
 		for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
 			if (d->lineButtons.instance[instance]) {
-				AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_retain(d->lineButtons.instance[instance]));
+				AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_retain(d->lineButtons.instance[instance]));
 
-				snprintf(family, sizeof(family), "SCCP/%s/%s", d->id, linedevice->line->name);
+				snprintf(family, sizeof(family), "SCCP/%s/%s", d->id, ld->line->name);
 				if (iPbx.feature_getFromDatabase(family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-					linedevice->cfwdAll.enabled = TRUE;
-					sccp_copy_string(linedevice->cfwdAll.number, buffer, sizeof(linedevice->cfwdAll.number));
-					sccp_feat_changed(d, linedevice, SCCP_FEATURE_CFWDALL);
+					ld->cfwdAll.enabled = TRUE;
+					sccp_copy_string(ld->cfwdAll.number, buffer, sizeof(ld->cfwdAll.number));
+					sccp_feat_changed(d, ld, SCCP_FEATURE_CFWDALL);
 				}
 				if (iPbx.feature_getFromDatabase(family, "cfwdBusy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-					linedevice->cfwdBusy.enabled = TRUE;
-					sccp_copy_string(linedevice->cfwdBusy.number, buffer, sizeof(linedevice->cfwdAll.number));
-					sccp_feat_changed(d, linedevice, SCCP_FEATURE_CFWDBUSY);
+					ld->cfwdBusy.enabled = TRUE;
+					sccp_copy_string(ld->cfwdBusy.number, buffer, sizeof(ld->cfwdAll.number));
+					sccp_feat_changed(d, ld, SCCP_FEATURE_CFWDBUSY);
 				}
 			}
 		}
-
 		/* System Message */
 		if (iPbx.feature_getFromDatabase("SCCP/message", "text", buffer, sizeof(buffer))) {
 			char timebuffer[ASTDB_RESULT_LEN];
@@ -2263,13 +2263,12 @@ void sccp_dev_postregistration(devicePtr d)
 		char lastNumber[SCCP_MAX_EXTENSION] = "";
 		if (iPbx.feature_getFromDatabase(family, "lastDialedNumber", buffer, sizeof(buffer))) {
 			sscanf(buffer,"%79[^;];lineInstance=%d", lastNumber, &instance);
-			AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_findByLineinstance(d, instance));
-			if(linedevice){ 
-				sccp_device_setLastNumberDialed(d, lastNumber, linedevice);
+			AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_findByLineinstance(d, instance));
+			if(ld) {
+				sccp_device_setLastNumberDialed(d, lastNumber, ld);
 			}
 		}
 	}
-	
 	if (d->backgroundImage && !sccp_strlen_zero(d->backgroundImage)) {
 		d->setBackgroundImage(d, d->backgroundImage, d->backgroundTN ? d->backgroundTN : d->backgroundImage);
 	}
@@ -2285,9 +2284,9 @@ void sccp_dev_postregistration(devicePtr d)
 
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
 		if (d->lineButtons.instance[instance]) {
-			AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_retain(d->lineButtons.instance[instance]));
-			if (linedevice){
-				sccp_line_indicateMWI(linedevice);
+			AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_retain(d->lineButtons.instance[instance]));
+			if(ld) {
+				sccp_line_indicateMWI(ld);
 			}
 		}
 	}
@@ -2437,11 +2436,11 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 
 				/* remove devices from line */
 				sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);
-				sccp_line_removeDevice(line, d);
+				sccp_linedevice_remove(d, line);
 #ifdef CS_SCCP_PARK
 			} else if (iParkingLot.detachObserver && config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: checking buttonconfig index:%d, type:%s (%d) to see if there are any observed parkinglots\n",
-					d->id, config->index, sccp_config_buttontype2str(config->type), config->type);
+				sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "%s: checking buttonconfig index:%d, type:%s (%d) to see if there are any observed parkinglots\n", d->id, config->index,
+							    sccp_config_buttontype2str(config->type), config->type);
 				iParkingLot.detachObserver(config->button.feature.options, d, config->instance);
 #endif
 			}
@@ -2507,11 +2506,10 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 		}
 
 		if (device->lineButtons.size) {
-			sccp_line_deleteLineButtonsArray(d);
+			sccp_linedevice_deleteButtonsArray(d);
 		}
 #if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
-		/* Unregister event subscriptions originating from devstate feature */
-		SCCP_LIST_LOCK(&d->devstateSpecifiers);
+		/* Unregister event subscriptions originating from devstate feature */ SCCP_LIST_LOCK(&d->devstateSpecifiers);
 		while ((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
 			if (devstateSpecifier->sub) {
 				pbx_event_unsubscribe(devstateSpecifier->sub);
@@ -2928,15 +2926,15 @@ static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lin
 	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, SKINNY_RINGDURATION_NORMAL, lineInstance, callid);
 }
 
-static void sccp_device_indicate_offhook(constDevicePtr device, sccp_linedevices_t * linedevice, uint32_t callid)
+static void sccp_device_indicate_offhook(constDevicePtr device, sccp_linedevice_t * ld, uint32_t callid)
 {
 
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
-	sccp_device_sendcallstate(device, linedevice->lineInstance, callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-	sccp_dev_set_cplane(device, linedevice->lineInstance, 1);
-	sccp_dev_displayprompt(device, linedevice->lineInstance, callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
-	sccp_dev_set_keyset(device, linedevice->lineInstance, callid, KEYMODE_OFFHOOK);
-	sccp_dev_starttone(device, SKINNY_TONE_INSIDEDIALTONE, linedevice->lineInstance, callid, SKINNY_TONEDIRECTION_USER);
+	sccp_device_sendcallstate(device, ld->lineInstance, callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_dev_set_cplane(device, ld->lineInstance, 1);
+	sccp_dev_displayprompt(device, ld->lineInstance, callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
+	sccp_dev_set_keyset(device, ld->lineInstance, callid, KEYMODE_OFFHOOK);
+	sccp_dev_starttone(device, SKINNY_TONE_INSIDEDIALTONE, ld->lineInstance, callid, SKINNY_TONEDIRECTION_USER);
 }
 
 static void __sccp_device_indicate_immediate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
@@ -3135,7 +3133,7 @@ void sccp_device_clearMessageFromStack(devicePtr device, const uint8_t priority)
  */
 void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 {
-	sccp_linedevices_t * linedevice = NULL;
+	sccp_linedevice_t * ld = NULL;
 	sccp_device_t * device = NULL;
 
 	char tmp[256] = { 0 };
@@ -3152,29 +3150,29 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 			break;
 		case SCCP_FEATURE_CFWDBUSY:
 		case SCCP_FEATURE_CFWDALL:
-			if ((linedevice = event->featureChanged.optional_linedevice)) {
-				sccp_line_t *line = linedevice->line;
-				uint8_t instance = linedevice->lineInstance;
+			if((ld = event->featureChanged.optional_linedevice)) {
+				sccp_line_t * line = ld->line;
+				uint8_t instance = ld->lineInstance;
 
 				sccp_dev_forward_status(line, instance, device);
 				switch (event->featureChanged.featureType) {
 					case SCCP_FEATURE_CFWDALL:
-						if (linedevice->cfwdAll.enabled) {
+						if(ld->cfwdAll.enabled) {
 							/* build disp message string */
-							if (sccp_strlen(line->cid_num) + sccp_strlen(linedevice->cfwdAll.number) > 15) {
-								pbx_build_string(&s, &len, "%s:%s", SKINNY_DISP_CFWDALL, linedevice->cfwdAll.number);
+							if(sccp_strlen(line->cid_num) + sccp_strlen(ld->cfwdAll.number) > 15) {
+								pbx_build_string(&s, &len, "%s:%s", SKINNY_DISP_CFWDALL, ld->cfwdAll.number);
 							} else {
-								pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdAll.number);
+								pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdAll.number);
 							}
 						}
 						break;
 					case SCCP_FEATURE_CFWDBUSY:
-						if (linedevice->cfwdBusy.enabled) {
+						if(ld->cfwdBusy.enabled) {
 							/* build disp message string */
-							if (sccp_strlen(line->cid_num) + sccp_strlen(linedevice->cfwdBusy.number) > 15) {
-								pbx_build_string(&s, &len, "%s:%s", SKINNY_DISP_CFWDBUSY, linedevice->cfwdBusy.number);
+							if(sccp_strlen(line->cid_num) + sccp_strlen(ld->cfwdBusy.number) > 15) {
+								pbx_build_string(&s, &len, "%s:%s", SKINNY_DISP_CFWDBUSY, ld->cfwdBusy.number);
 							} else {
-								pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdBusy.number);
+								pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdBusy.number);
 							}
 						}
 						break;

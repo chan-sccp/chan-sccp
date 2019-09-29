@@ -22,6 +22,7 @@
 #include "sccp_device.h"
 #include "sccp_globals.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_netsock.h"
 #include "sccp_mwi.h"
 #include "sccp_session.h"	// use __constructor__ to remove this entry

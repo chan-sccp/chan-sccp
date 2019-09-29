@@ -41,7 +41,7 @@ SCCP_API int SCCP_CALL sccp_feat_singleline_barge(channelPtr c, const char *cons
 SCCP_API void SCCP_CALL sccp_feat_handle_cbarge(constLinePtr l, uint8_t lineInstance, constDevicePtr d);
 SCCP_API int SCCP_CALL sccp_feat_cbarge(constChannelPtr c, const char *const conferencenum);
 SCCP_API void SCCP_CALL sccp_feat_adhocDial(constDevicePtr d, constLinePtr line);
-SCCP_API void SCCP_CALL sccp_feat_changed(constDevicePtr device, constLineDevicePtr maybe_linedevice, sccp_feature_type_t featureType);
+SCCP_API void SCCP_CALL sccp_feat_changed(constDevicePtr device, constLineDevicePtr maybe_ld, sccp_feature_type_t featureType);
 SCCP_API void SCCP_CALL sccp_feat_monitor(constDevicePtr device, constLinePtr no_line, uint32_t no_lineInstance, constChannelPtr maybe_channel);
 __END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

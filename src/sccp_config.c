@@ -88,6 +88,7 @@
 #include "sccp_device.h"
 #include "sccp_featureButton.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_mwi.h"
 #include "sccp_session.h"
 #include "sccp_utils.h"

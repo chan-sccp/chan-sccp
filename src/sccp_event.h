@@ -21,18 +21,18 @@ typedef struct sccp_event {
 			sccp_device_t *device;									/*!< SCCP Device (required) */
 		} deviceRegistered;										/*!< Event Device Registered Structure */
 		struct {
-			sccp_linedevices_t *linedevice;								/*!< SCCP device line (required) */
+			sccp_linedevice_t * ld;                                                                 /*!< SCCP device line (required) */
 		} deviceAttached;										/*!< Event Device Attached Structure */
 		struct {
 			sccp_device_t *device;									/*!< SCCP device (required) */
-			sccp_linedevices_t *optional_linedevice;						/*!< SCCP linedevice (optional) */
+			sccp_linedevice_t * optional_linedevice;                                                /*!< SCCP ld (optional) */
 			sccp_feature_type_t featureType;							/*!< what feature is changed (required) */
 		} featureChanged;										/*!< Event feature changed Structure */
 		struct {
-			sccp_line_t *line;									/*!< SCCP line (required) */
+			sccp_line_t * line;                                                                     /*!< SCCP line (required) */
 			sccp_device_t *optional_device;								/*!< SCCP device (optional) */
 			uint8_t state;										/*!< state (required) */
-		} lineStatusChanged;										/*!< Event feature changed Structure */
+		} lineStatusChanged;                                                                            /*!< Event feature changed Structure */
 #if CS_TEST_FRAMEWORK
 		struct {
 			uint32_t value;

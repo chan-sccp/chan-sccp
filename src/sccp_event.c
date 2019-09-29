@@ -19,6 +19,7 @@
 #include "sccp_device.h"
 #include "sccp_event.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_vector.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
@@ -88,11 +89,11 @@ void sccp_event_destroy(sccp_event_t * event)
 
 		case SCCP_EVENT_DEVICE_ATTACHED:
 		case SCCP_EVENT_DEVICE_DETACHED:
-			sccp_linedevice_release(&(event->deviceAttached.linedevice));						/* explicit release */
+			sccp_linedevice_release(&(event->deviceAttached.ld)); /* explicit release */
 			break;
 
 		case SCCP_EVENT_FEATURE_CHANGED:
-			sccp_device_release(&(event->featureChanged.device));							/* explicit release */
+			sccp_device_release(&(event->featureChanged.device)); /* explicit release */
 			if (event->featureChanged.optional_linedevice) {
 				sccp_linedevice_release(&(event->featureChanged.optional_linedevice));				/* explicit release */
 			}

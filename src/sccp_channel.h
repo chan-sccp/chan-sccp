@@ -177,12 +177,11 @@ SCCP_API void SCCP_CALL sccp_channel_transfer_cancel(devicePtr d, channelPtr c);
 SCCP_API void SCCP_CALL sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel);
 SCCP_API int SCCP_CALL sccp_channel_hold(channelPtr channel);
 SCCP_API int SCCP_CALL sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swap_channels);
-SCCP_API int SCCP_CALL sccp_channel_forward(constChannelPtr sccp_channel_parent, constLineDevicePtr lineDevice, const char * fwdNumber);
-
+SCCP_API int SCCP_CALL sccp_channel_forward(constChannelPtr sccp_channel_parent, constLineDevicePtr ld, const char * fwdNumber);
 SCCP_API devicePtr SCCP_CALL sccp_channel_getDevice(constChannelPtr channel);
 SCCP_API lineDevicePtr SCCP_CALL sccp_channel_getLineDevice(constChannelPtr channel);
-SCCP_API void SCCP_CALL sccp_channel_setDevice(channelPtr channel, constDevicePtr device);
-//SCCP_API const char * const SCCP_CALL sccp_channel_device_id(const sccp_channel_t * channel);
+SCCP_API void SCCP_CALL sccp_channel_setDevice(channelPtr channel, constDevicePtr device);                                        // SCCP_API const char * const SCCP_CALL sccp_channel_device_id(const sccp_channel_t *
+																  // channel);
 
 #ifdef CS_SCCP_PARK
 SCCP_API void SCCP_CALL sccp_channel_park(constChannelPtr channel);

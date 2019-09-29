@@ -16,6 +16,7 @@
 #include "sccp_channel.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_mwi.h"
 #include "sccp_conference.h"
 #include "sccp_session.h"
@@ -780,25 +781,26 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				SCCP_LIST_UNLOCK(&l->mailboxes);
 				snprintf(buf, buf_len, "%s", pbx_str_buffer(lbuf));
 			} else if (!strcasecmp(token, "cfwd")) {
-				sccp_linedevices_t *linedevice = NULL;
+				sccp_linedevice_t * ld = NULL;
 				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 				SCCP_LIST_LOCK(&l->devices);
-				SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-					if (linedevice) {
-						pbx_str_append(&lbuf, 0, "%s[id:%s,cfwdAll:%s,num:%s,cfwdBusy:%s,num:%s]", addcomma++ ? "," : "", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number, linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number);
+				SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+					if(ld) {
+						pbx_str_append(&lbuf, 0, "%s[id:%s,cfwdAll:%s,num:%s,cfwdBusy:%s,num:%s]", addcomma++ ? "," : "", ld->device->id, ld->cfwdAll.enabled ? "on" : "off", ld->cfwdAll.number,
+							       ld->cfwdBusy.enabled ? "on" : "off", ld->cfwdBusy.number);
 					}
 				}
 				SCCP_LIST_UNLOCK(&l->devices);
 				snprintf(buf, buf_len, "[ %s ]", pbx_str_buffer(lbuf));
 			} else if (!strcasecmp(token, "devices")) {
-				sccp_linedevices_t *linedevice = NULL;
+				sccp_linedevice_t * ld = NULL;
 				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 				SCCP_LIST_LOCK(&l->devices);
-				SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-					if (linedevice) {
-						pbx_str_append(&lbuf, 0, "%s%s", addcomma++ ? "," : "", linedevice->device->id);
+				SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+					if(ld) {
+						pbx_str_append(&lbuf, 0, "%s%s", addcomma++ ? "," : "", ld->device->id);
 					}
 				}
 				SCCP_LIST_UNLOCK(&l->devices);

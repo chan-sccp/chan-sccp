@@ -17,6 +17,7 @@
 #include "sccp_device.h"
 #include "sccp_indicate.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_utils.h"
 #include "sccp_labels.h"
 
@@ -217,17 +218,17 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 						sccp_dev_starttone(d, GLOB(dnd_tone), 0, 0, SKINNY_TONEDIRECTION_USER);
 					}
 				} else {
-					sccp_linedevices_t *ownlinedevice = NULL;
+					sccp_linedevice_t * ownlinedevice = NULL;
 					sccp_device_t *remoteDevice = NULL;
 
 					SCCP_LIST_TRAVERSE(&l->devices, ownlinedevice, list) {
 						remoteDevice = ownlinedevice->device;
 
 						if (d && remoteDevice && remoteDevice == d) {
-							sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found matching linedevice. Aux parameter = %s\n", d->id, ownlinedevice->subscriptionId.aux);
+							sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found matching ld. Aux parameter = %s\n", d->id, ownlinedevice->subscriptionId.aux);
 							if (0 == strncmp(ownlinedevice->subscriptionId.aux, "silent", 6)) {
 								sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, SKINNY_RINGDURATION_NORMAL, lineInstance, c->callid);
-								sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Forcing silent ring for specific device.\n", d->id);
+								sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Forcing silent ring for specific device.\n", d->id);
 							} else {
 								sccp_dev_set_ringer(d, c->ringermode, SKINNY_RINGDURATION_NORMAL, lineInstance, c->callid);
 								sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Normal ring occurred.\n", d->id);
@@ -505,7 +506,7 @@ static void __sccp_indicate_remote_device(constDevicePtr device, channelPtr c, l
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: (__sccp_indicate_remote_device) I'm a hotline, do not notify me!\n");
 		return;
 	}
-	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevice_t * ld = NULL;
 
 	/* copy temp variables, information to be send to remote device (in another thread) */
 	const uint32_t callid = c->callid;
@@ -515,19 +516,19 @@ static void __sccp_indicate_remote_device(constDevicePtr device, channelPtr c, l
 	sccp_callinfo_t * ci = iCallInfo.CopyConstructor(sccp_channel_getCallInfo(c));
 
 	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Remote Indicate state %s (%d) with reason: %s (%d) on remote devices for channel %s\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, sccp_channelstatereason2str(c->channelStateReason), c->channelStateReason, c->designator);
-	SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
-		if (!linedevice->device) {
-			pbx_log(LOG_NOTICE, "Strange to find a linedevice (%p) here without a valid device connected to it !", linedevice);
+	SCCP_LIST_TRAVERSE(&line->devices, ld, list) {
+		if(!ld->device) {
+			pbx_log(LOG_NOTICE, "Strange to find a ld (%p) here without a valid device connected to it !", ld);
 			continue;
 		}
 
-		if (linedevice->device == device) {
+		if(ld->device == device) {
 			// skip self
 			continue;
 		}
-		
+
 		/* check if we have one part of the remote channel */
-		AUTO_RELEASE(sccp_device_t, remoteDevice , sccp_device_retain(linedevice->device));
+		AUTO_RELEASE(sccp_device_t, remoteDevice, sccp_device_retain(ld->device));
 
 		if (remoteDevice) {
 			sccp_callerid_presentation_t presenceParameter = CALLERID_PRESENTATION_ALLOWED;
@@ -545,8 +546,8 @@ static void __sccp_indicate_remote_device(constDevicePtr device, channelPtr c, l
 				}
 			}
 
-			if (linedevice) {
-				lineInstance = linedevice->lineInstance;							//sccp_device_find_index_for_line(remoteDevice, line->name);
+			if(ld) {
+				lineInstance = ld->lineInstance;                                        // sccp_device_find_index_for_line(remoteDevice, line->name);
 			}
 			switch (state) {
 				case SCCP_CHANNELSTATE_DOWN:
@@ -567,14 +568,10 @@ static void __sccp_indicate_remote_device(constDevicePtr device, channelPtr c, l
 					}
 					
 					/* if line is not currently active on remote device, collapse the callstate */
-					//if (remoteDevice->currentLine && linedevice->line != remoteDevice->currentLine && !(c->privacy || !presenceParameter)) {
-					if (
-						(c->privacy || presenceParameter == CALLERID_PRESENTATION_FORBIDDEN) ||
-						(
-							!sccp_softkey_isSoftkeyInSoftkeySet(remoteDevice, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_INTRCPT) &&
-							!sccp_softkey_isSoftkeyInSoftkeySet(remoteDevice, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_BARGE)
-						)
-					) {
+					// if (remoteDevice->currentLine && ld->line != remoteDevice->currentLine && !(c->privacy || !presenceParameter)) {
+					if((c->privacy || presenceParameter == CALLERID_PRESENTATION_FORBIDDEN)
+					   || (!sccp_softkey_isSoftkeyInSoftkeySet(remoteDevice, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_INTRCPT)
+					       && !sccp_softkey_isSoftkeyInSoftkeySet(remoteDevice, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_BARGE))) {
 						stateVisibility = SKINNY_CALLINFO_VISIBILITY_COLLAPSED;
 					}
 					if (c->channelStateReason == SCCP_CHANNELSTATEREASON_BARGE || c->isBarging || c->isBarged) {

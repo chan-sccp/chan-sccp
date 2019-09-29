@@ -53,6 +53,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 
 #include "sccp_device.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_session.h"
 #include "sccp_conference.h"
 #include "sccp_utils.h"
@@ -921,35 +922,32 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
-#define CLI_AMI_TABLE_BEFORE_ITERATION 															\
-			if (buttonconfig->type == LINE) {												\
-				AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byname(buttonconfig->button.line.name, FALSE));				\
-				char subscriptionIdBuf[21] = "";											\
-				if (buttonconfig->button.line.subscriptionId) {										\
-					snprintf(subscriptionIdBuf, 21, "(%s)%s:%s",									\
-					buttonconfig->button.line.subscriptionId->replaceCid ? "=" : "+",						\
-					buttonconfig->button.line.subscriptionId->number,								\
-					buttonconfig->button.line.subscriptionId->name);								\
-				}															\
-				if (l) {														\
-					AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(d, l));
-					
+#define CLI_AMI_TABLE_BEFORE_ITERATION                                                                                                                                                   \
+	if(buttonconfig->type == LINE) {                                                                                                                                                 \
+		AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(buttonconfig->button.line.name, FALSE));                                                                              \
+		char subscriptionIdBuf[21] = "";                                                                                                                                         \
+		if(buttonconfig->button.line.subscriptionId) {                                                                                                                           \
+			snprintf(subscriptionIdBuf, 21, "(%s)%s:%s", buttonconfig->button.line.subscriptionId->replaceCid ? "=" : "+", buttonconfig->button.line.subscriptionId->number, \
+				 buttonconfig->button.line.subscriptionId->name);                                                                                                        \
+		}                                                                                                                                                                        \
+		if(l) {                                                                                                                                                                  \
+			AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, l));
+
 #define CLI_AMI_TABLE_AFTER_ITERATION 															\
 				}															\
 			}
 
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 																\
-			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)				\
-			CLI_AMI_TABLE_UTF8_FIELD(Name,		"-23.23",	s,	23,	l->name)						\
-			CLI_AMI_TABLE_FIELD(SubId,		"-21.21",	s,	21,	subscriptionIdBuf)					\
-			CLI_AMI_TABLE_UTF8_FIELD(Label,		"-37.37",	s,	37, 	buttonconfig->button.line.subscriptionId ? buttonconfig->button.line.subscriptionId->label : (l->label ? l->label : ""))	\
-			CLI_AMI_TABLE_FIELD(CfwdType,		"-10",		s,	10, 	(linedevice && linedevice->cfwdAll.enabled ? "All" : (linedevice && linedevice->cfwdBusy.enabled ? "Busy" : "None")))	\
-			CLI_AMI_TABLE_FIELD(CfwdNumber,		"16.16",	s,	16, 	(linedevice && linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice && linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : "")))
+#define CLI_AMI_TABLE_FIELDS                                                                                                                                                      \
+	CLI_AMI_TABLE_FIELD(Id, "-4", d, 4, buttonconfig->index + 1)                                                                                                              \
+	CLI_AMI_TABLE_UTF8_FIELD(Name, "-23.23", s, 23, l->name)                                                                                                                  \
+	CLI_AMI_TABLE_FIELD(SubId, "-21.21", s, 21, subscriptionIdBuf)                                                                                                            \
+	CLI_AMI_TABLE_UTF8_FIELD(Label, "-37.37", s, 37, buttonconfig->button.line.subscriptionId ? buttonconfig->button.line.subscriptionId->label : (l->label ? l->label : "")) \
+	CLI_AMI_TABLE_FIELD(CfwdType, "-10", s, 10, (ld && ld->cfwdAll.enabled ? "All" : (ld && ld->cfwdBusy.enabled ? "Busy" : "None")))                                         \
+	CLI_AMI_TABLE_FIELD(CfwdNumber, "16.16", s, 16, (ld && ld->cfwdAll.enabled ? ld->cfwdAll.number : (ld && ld->cfwdBusy.enabled ? ld->cfwdBusy.number : "")))
 #include "sccp_cli_table.h"
 			local_table_total++;
-
 		// SPEEDDIALS
 #define CLI_AMI_TABLE_NAME SpeeddialButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceSpeeddial
@@ -1090,10 +1088,10 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 {
 	sccp_line_t *l = NULL;
 	boolean_t found_linedevice;
-	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevice_t * ld = NULL;
 	sccp_channel_t *channel = NULL;
 	char cap_buf[512] = {0};
-	PBX_VARIABLE_TYPE *v = NULL;
+	PBX_VARIABLE_TYPE * v = NULL;
 	int local_line_total = 0;
 	const char *actionid = "";
 
@@ -1118,11 +1116,11 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 		found_linedevice = 0;
 		channel = NULL;
 		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(linedevice->device));
+		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+			AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(ld->device));
 			if (d) {
 				memset(&cap_buf, 0, sizeof(cap_buf));
-				char cid_name[StationMaxNameSize] = {0};
+				char cid_name[StationMaxNameSize] = { 0 };
 				skinny_calltype_t calltype = SKINNY_CALLTYPE_SENTINEL;
 				sccp_channelstate_t state = SCCP_CHANNELSTATE_SENTINEL;
 				
@@ -1149,26 +1147,18 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 				}
 				SCCP_LIST_UNLOCK(&l->channels);
 				if (!s) {
-					pbx_cli(fd, "| %-13s %-3s%-6s %-30s %-16s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n",
-						!found_linedevice ? l->name : " +--", 
-						linedevice->subscriptionId.replaceCid ? "(=)" : "(+)", linedevice->subscriptionId.number, 
-						sccp_strlen_zero(linedevice->subscriptionId.label) ? (l->label ? l->label : "--") : linedevice->subscriptionId.label,
-						l->description ? l->description : "--",
-						d->id, 
-						(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", 
-						SCCP_RWLIST_GETSIZE(&l->channels), 
-						(state != SCCP_CHANNELSTATE_SENTINEL) ? sccp_channelstate2str(state) : "--",
-						(calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(calltype) : "--",
-						cid_name,
-						cap_buf);
+					pbx_cli(fd, "| %-13s %-3s%-6s %-30s %-16s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n", !found_linedevice ? l->name : " +--", ld->subscriptionId.replaceCid ? "(=)" : "(+)",
+						ld->subscriptionId.number, sccp_strlen_zero(ld->subscriptionId.label) ? (l->label ? l->label : "--") : ld->subscriptionId.label, l->description ? l->description : "--", d->id,
+						(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (state != SCCP_CHANNELSTATE_SENTINEL) ? sccp_channelstate2str(state) : "--",
+						(calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(calltype) : "--", cid_name, cap_buf);
 				} else {
 					astman_append(s, "Event: SCCPLineEntry\r\n");
 					astman_append(s, "ChannelType: SCCP\r\n");
 					astman_append(s, "ChannelObjectType: Line\r\n");
 					astman_append(s, "ActionId: %s\r\n", actionid);
 					astman_append(s, "Exten: %s\r\n", l->name);
-					astman_append(s, "SubscriptionNumber: %s\r\n", linedevice->subscriptionId.number);
-					astman_append(s, "Label: %s\r\n", sccp_strlen_zero(linedevice->subscriptionId.label) ? l->label : linedevice->subscriptionId.label);
+					astman_append(s, "SubscriptionNumber: %s\r\n", ld->subscriptionId.number);
+					astman_append(s, "Label: %s\r\n", sccp_strlen_zero(ld->subscriptionId.label) ? l->label : ld->subscriptionId.label);
 					astman_append(s, "Description: %s\r\n", l->description ? l->description : "<not set>");
 					astman_append(s, "Device: %s\r\n", d->id);
 					astman_append(s, "MWI: %s\r\n", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF");
@@ -1276,11 +1266,11 @@ CLI_AMI_ENTRY(show_lines, sccp_show_lines, "List defined SCCP Lines", cli_lines_
     //static int sccp_show_line(int fd, int argc, char *argv[])
 static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	sccp_linedevices_t * linedevice = NULL;
+	sccp_linedevice_t * ld = NULL;
 	sccp_mailbox_t * mailbox = NULL;
 	PBX_VARIABLE_TYPE * v = NULL;
-	pbx_str_t *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-	const char *actionid = "";
+	pbx_str_t * callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	const char * actionid = "";
 
 #ifdef CS_SCCP_PICKUP
 	pbx_str_t *pickupgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
@@ -1399,18 +1389,17 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 #define CLI_AMI_TABLE_NAME AttachedDevices
 #define CLI_AMI_TABLE_PER_ENTRY_NAME AttachedDevice
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &l->devices
-#define CLI_AMI_TABLE_LIST_ITER_VAR linedevice
+#define CLI_AMI_TABLE_LIST_ITER_VAR  ld
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 												\
-		CLI_AMI_TABLE_FIELD(DeviceName,		"-15.15",	s,	15,	linedevice->device->id)		\
-		CLI_AMI_TABLE_FIELD(CfwdType,		"8",		s,	8,	linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : ""))	\
-		CLI_AMI_TABLE_FIELD(CfwdNumber,		"-20.20",	s,	20,	linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : ""))
+#define CLI_AMI_TABLE_FIELDS                                                                                         \
+	CLI_AMI_TABLE_FIELD(DeviceName, "-15.15", s, 15, ld->device->id)                                             \
+	CLI_AMI_TABLE_FIELD(CfwdType, "8", s, 8, ld->cfwdAll.enabled ? "All" : (ld->cfwdBusy.enabled ? "Busy" : "")) \
+	CLI_AMI_TABLE_FIELD(CfwdNumber, "-20.20", s, 20, ld->cfwdAll.enabled ? ld->cfwdAll.number : (ld->cfwdBusy.enabled ? ld->cfwdBusy.number : ""))
 #include "sccp_cli_table.h"
 		local_table_total++;
-
 	// Mailboxes connected to this line
 #define CLI_AMI_TABLE_NAME Mailboxes
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Mailbox
@@ -2439,10 +2428,10 @@ static int sccp_callforward(int fd, sccp_cli_totals_t *totals, struct mansession
 	int local_line_total = 0;
 	sccp_callforward_t type = SCCP_CFWD_NONE;
 	char *dest = NULL;
-	sccp_linedevices_t *linedevice;
+	sccp_linedevice_t * ld;
 	AUTO_RELEASE(sccp_device_t, d , NULL);
 
-	if (3 > argc || argc > 6) {
+	if(3 > argc || argc > 6) {
 		return RESULT_SHOWUSAGE;
 	}
 
@@ -2475,9 +2464,9 @@ static int sccp_callforward(int fd, sccp_cli_totals_t *totals, struct mansession
 		local_line_total++;
 	} else {
 		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			CLI_AMI_OUTPUT(fd, s, " - on line:%s and device:%s\r\n", l->name, linedevice->device->id);
-			sccp_line_cfwd(l, linedevice->device, type, dest);
+		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+			CLI_AMI_OUTPUT(fd, s, " - on line:%s and device:%s\r\n", l->name, ld->device->id);
+			sccp_line_cfwd(l, ld->device, type, dest);
 			local_line_total++;
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
@@ -2814,11 +2803,11 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					sccp_log((DEBUGCAT_CORE)) ("%s: line has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> skipping restart (minor changes applied)");
 					pbx_cli(fd, "%s: device has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> restart not required");
 					if (change == SCCP_CONFIG_NEEDDEVICERESET) {
-						sccp_linedevices_t *lineDevice = NULL;
+						sccp_linedevice_t * lineDevice = NULL;
 
 						SCCP_LIST_LOCK(&line->devices);
 						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
-							AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(lineDevice->device));
+							AUTO_RELEASE(sccp_device_t, device, sccp_device_retain(lineDevice->device));
 							if (device) {
 								SCCP_LIST_LOCK(&device->buttonconfig);
 								SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {

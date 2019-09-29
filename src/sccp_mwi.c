@@ -18,12 +18,12 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_vector.h"
 #include "sccp_line.h"
 #include "sccp_device.h"
+#include "sccp_linedevice.h"
 #include "sccp_utils.h"
 
 #if CS_AST_HAS_EVENT
-#include <asterisk/event.h>
-#elif HAVE_PBX_STASIS_H
-#include <asterisk/stasis.h>
+#	include <asterisk/event.h>#elif HAVE_PBX_STASIS_H
+#	include <asterisk/stasis.h>
 #endif
 #ifdef HAVE_PBX_MWI_H				// ast_mwi_state_type
 #include <asterisk/mwi.h>
@@ -347,13 +347,13 @@ void NotifyLine(sccp_line_t *l, int newmsgs, int oldmsgs)
 
 	sccp_line_setMWI(l, newmsgs, oldmsgs);
 
-	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevice_t * ld = NULL;
 	if (SCCP_LIST_GETSIZE(&l->devices)) {
 		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(linedevice->device));
+		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+			AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(ld->device));
 			if (d) {
-				sccp_line_indicateMWI(linedevice);
+				sccp_line_indicateMWI(ld);
 				sccp_device_setMWI(d);
 			}
 		}

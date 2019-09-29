@@ -28,6 +28,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_feature.h"
 #include "sccp_indicate.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_netsock.h"
 #include "sccp_utils.h"
 #include "sccp_labels.h"
@@ -44,10 +45,10 @@ AST_MUTEX_DEFINE_STATIC(callCountLock);
  */
 struct sccp_private_channel_data {
 	sccp_device_t *device;
-	sccp_linedevices_t *linedevice;
+	sccp_linedevice_t * ld;
 	sccp_callinfo_t * callInfo;
 	SCCP_LIST_HEAD (, sccp_threadpool_job_t) cleanup_jobs;
-	boolean_t microphone;											/*!< Flag to mute the microphone when calling a baby phone */
+	boolean_t microphone; /*!< Flag to mute the microphone when calling a baby phone */
 };
 
 /*!
@@ -258,12 +259,11 @@ devicePtr sccp_channel_getDevice(constChannelPtr channel)
 lineDevicePtr sccp_channel_getLineDevice(constChannelPtr channel)
 {
 	pbx_assert(channel != NULL);
-	if (channel->privateData && channel->privateData->linedevice) {
-		return sccp_linedevice_retain(channel->privateData->linedevice);
-	} 
+	if(channel->privateData && channel->privateData->ld) {
+		return sccp_linedevice_retain(channel->privateData->ld);
+	}
 	return NULL;
 }
-
 /*!
  * \brief Set Device in Channels->Private Channel Data
  * \param channel SCCP Channel
@@ -277,7 +277,7 @@ void sccp_channel_setDevice(channelPtr channel, constDevicePtr device)
 
 	/** for previous device,set active channel to null */
 	if (!device) {
-		sccp_linedevice_refreplace(&channel->privateData->linedevice, NULL);
+		sccp_linedevice_refreplace(&channel->privateData->ld, NULL);
 		if (!channel->privateData->device) {
 			/* channel->privateData->device was already set to NULL */
 			goto EXIT;
@@ -300,11 +300,11 @@ void sccp_channel_setDevice(channelPtr channel, constDevicePtr device)
 
 	if (channel->privateData && channel->privateData->device) {
 		{
-			AUTO_RELEASE(sccp_linedevices_t, ld , sccp_linedevice_find(channel->privateData->device, channel->line));
-			sccp_linedevice_refreplace(&channel->privateData->linedevice, ld);
+			AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(channel->privateData->device, channel->line));
+			sccp_linedevice_refreplace(&channel->privateData->ld, ld);
 		}
 		/*! \todo: Check/Fix codec selection on hold/resume */
-		if (channel->preferences.audio[0] == SKINNY_CODEC_NONE || channel->capabilities.audio[0] == SKINNY_CODEC_NONE) {
+		if(channel->preferences.audio[0] == SKINNY_CODEC_NONE || channel->capabilities.audio[0] == SKINNY_CODEC_NONE) {
 			sccp_line_copyCodecSetsFromLineToChannel(channel->line, channel->privateData->device, channel);
 		}
 #if CS_SCCP_VIDEO
@@ -325,10 +325,9 @@ EXIT:
 		sccp_line_copyCodecSetsFromLineToChannel(channel->line, NULL, channel);
 	}
 
-	sccp_linedevice_refreplace(&channel->privateData->linedevice, NULL);
+	sccp_linedevice_refreplace(&channel->privateData->ld, NULL);
 	/* \todo we should use */
 	// sccp_line_copyMinimumCodecSetFromLineToChannel(l, c); 
-
 	sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
 	channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
 }
@@ -494,11 +493,11 @@ void sccp_channel_send_callinfo2(constChannelPtr channel)
 	if (d) {
 		sccp_channel_send_callinfo(d, channel);
 	} else if (line) {
-		sccp_linedevices_t *linedevice = NULL;
+		sccp_linedevice_t * ld = NULL;
 
 		SCCP_LIST_LOCK(&line->devices);
-		SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
-			AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(linedevice->device));
+		SCCP_LIST_TRAVERSE(&line->devices, ld, list) {
+			AUTO_RELEASE(sccp_device_t, device, sccp_device_retain(ld->device));
 
 			sccp_channel_send_callinfo(device, channel);
 		}
@@ -1604,10 +1603,9 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 #if 0	/** @todo we have to test this code section */
 	/* check if this device holds the line channel->line */
 	{
-		AUTO_RELEASE(sccp_linedevices_t, linedevice1 , sccp_linedevice_find(device, l));
+		AUTO_RELEASE(sccp_linedevice_t, linedevice1 , sccp_linedevice_find(device, l));
 
 		if (!linedevice1) {
-
 			/** this device does not have the original line, mybe it is pickedup with cli or ami function */
 			AUTO_RELEASE(sccp_line_t, activeLine , sccp_dev_getActiveLine(device));
 
@@ -1680,10 +1678,9 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 
 	/** set called party name */
 	{
-		AUTO_RELEASE(sccp_linedevices_t, linedevice2 , sccp_linedevice_find(device, channel->line));
+		AUTO_RELEASE(sccp_linedevice_t, linedevice2, sccp_linedevice_find(device, channel->line));
 		if (linedevice2) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Set Called Party\n", device->id);
-
 			char tmpNumber[StationMaxDirnumSize] = {0};
 			char tmpName[StationMaxNameSize] = {0};
 			if (!sccp_strlen_zero(linedevice2->subscriptionId.number)) {
@@ -1995,26 +1992,26 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 
 	/** set called party name */
 	{
-		AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(d, l));
+		AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, l));
 
-		if (linedevice) {
+		if(ld) {
 			char tmpNumber[StationMaxDirnumSize] = {0};
 			char tmpName[StationMaxNameSize] = {0};
-			if (!sccp_strlen_zero(linedevice->subscriptionId.number)) {
-				snprintf(tmpNumber, StationMaxDirnumSize,  "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
+			if(!sccp_strlen_zero(ld->subscriptionId.number)) {
+				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, ld->subscriptionId.number);
 			} else {
 				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, channel->line->defaultSubscriptionId.number);
 			}
 
-			if (!sccp_strlen_zero(linedevice->subscriptionId.name)) {
-				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, linedevice->subscriptionId.name);
+			if(!sccp_strlen_zero(ld->subscriptionId.name)) {
+				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, ld->subscriptionId.name);
 			} else {
 				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, channel->line->defaultSubscriptionId.name);
 			}
-			if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
+			if(channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 				iCallInfo.SetCallingParty(channel->privateData->callInfo, tmpNumber, tmpName, NULL);
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set callingPartyNumber '%s' callingPartyName '%s'\n", d->id, tmpNumber, tmpName);
-			} else if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
+			} else if(channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 				iCallInfo.SetCalledParty(channel->privateData->callInfo, tmpNumber, tmpName, NULL);
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set calledPartyNumber '%s' calledPartyName '%s'\n", d->id, tmpNumber, tmpName);
 			}
@@ -2090,10 +2087,10 @@ void sccp_channel_clean(channelPtr channel)
 		/* make sure all rtp stuff is closed and destroyed */
 		sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
 
-		if (channel->privateData->linedevice) {
-			sccp_linedevice_resetPickup(channel->privateData->linedevice);
+		if(channel->privateData->ld) {
+			channel->privateData->ld->resetPickup(channel->privateData->ld);
 		}
-		
+
 		/* deactive the active call if needed */
 		if (channel->privateData->device) {
 			sccp_channel_setDevice(channel, NULL);
@@ -2130,8 +2127,8 @@ void sccp_channel_clean(channelPtr channel)
 		if (channel->privateData->device) {
 			sccp_channel_setDevice(channel, NULL);
 		}
-		if (channel->privateData->linedevice) {
-			sccp_linedevice_release(&channel->privateData->linedevice);
+		if(channel->privateData->ld) {
+			sccp_linedevice_release(&channel->privateData->ld);
 		}
 
 		sccp_threadpool_job_t * job = NULL;
@@ -2614,10 +2611,9 @@ void sccp_channel_set_calleridPresentation(constChannelPtr channel, sccp_calleri
  * \callgraph
  * \callergraph
  */
-int sccp_channel_forward(constChannelPtr sccp_channel_parent, constLineDevicePtr lineDevice, const char * fwdNumber)
+int sccp_channel_forward(constChannelPtr sccp_channel_parent, constLineDevicePtr ld, const char * fwdNumber)
 {
 	char dialedNumber[256];
-
 	if (!sccp_channel_parent) {
 		pbx_log(LOG_ERROR, "We can not forward a call without parent channel\n");
 		return -1;
@@ -2627,10 +2623,9 @@ int sccp_channel_forward(constChannelPtr sccp_channel_parent, constLineDevicePtr
 	AUTO_RELEASE(sccp_channel_t, sccp_forwarding_channel , sccp_channel_allocate(sccp_channel_parent->line, NULL));
 
 	if (!sccp_forwarding_channel) {
-		pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel\n", lineDevice->device->id);
+		pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel\n", ld->device->id);
 		return -1;
 	}
-
 	sccp_forwarding_channel->parentChannel = sccp_channel_retain(sccp_channel_parent);
 	sccp_forwarding_channel->softswitch_action = SCCP_SOFTSWITCH_DIAL;					/* softswitch will catch the number to be dialed */
 	sccp_forwarding_channel->ss_data = 0;									// nothing to pass to action
@@ -2649,8 +2644,7 @@ int sccp_channel_forward(constChannelPtr sccp_channel_parent, constLineDevicePtr
 
 	/* copy the number to dial in the ast->exten */
 	sccp_copy_string(sccp_forwarding_channel->dialedNumber, dialedNumber, sizeof(sccp_forwarding_channel->dialedNumber));
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Incoming: %s (%s) Forwarded By: %s (%s) Forwarded To: %s\n", 
-		calling_name, calling_num, lineDevice->line->cid_name, lineDevice->line->cid_num, dialedNumber);
+	sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "Incoming: %s (%s) Forwarded By: %s (%s) Forwarded To: %s\n", calling_name, calling_num, ld->line->cid_name, ld->line->cid_num, dialedNumber);
 
 	/* Copy Channel Capabilities From Predecessor */
 	memset(&sccp_forwarding_channel->remoteCapabilities.audio, 0, sizeof(sccp_forwarding_channel->remoteCapabilities.audio));
@@ -2661,7 +2655,7 @@ int sccp_channel_forward(constChannelPtr sccp_channel_parent, constLineDevicePtr
 	/* ok the number exist. allocate the asterisk channel */
 	if (!sccp_pbx_channel_allocate(sccp_forwarding_channel, NULL, sccp_channel_parent->owner))
 	{
-		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", lineDevice->device->id, sccp_forwarding_channel->line->name);
+		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", ld->device->id, sccp_forwarding_channel->line->name);
 		sccp_line_removeChannel(sccp_forwarding_channel->line, sccp_forwarding_channel);
 		sccp_channel_clean(sccp_forwarding_channel);
 		return -1;

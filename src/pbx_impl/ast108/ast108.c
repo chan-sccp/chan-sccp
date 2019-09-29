@@ -14,6 +14,7 @@
 #include "sccp_channel.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_cli.h"
 #include "sccp_utils.h"
 #include "sccp_indicate.h"
@@ -574,13 +575,12 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 					 * remembers the last dialed number in the same cases, where the dialed number
 					 * is being sent - after receiving of RINGOUT -Pavel Troller
 					 */
-					AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(d, c->line));
-					if(linedevice){ 
-						sccp_device_setLastNumberDialed(d, c->dialedNumber, linedevice);
+					AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, c->line));
+					if(ld) {
+						sccp_device_setLastNumberDialed(d, c->dialedNumber, ld);
 					}
 				}
 				iPbx.set_callstate(c, AST_STATE_RING);
-
 				struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
 
 				((struct ao2_iterator *) iterator)->flags |= AO2_ITERATOR_DONTLOCK;
@@ -646,9 +646,9 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 					* remembers the last dialed number in the same cases, where the dialed number
 					* is being sent - after receiving of PROCEEDING -Pavel Troller
 					*/
-				AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(d, c->line));
-				if(linedevice){ 
-					sccp_device_setLastNumberDialed(d, c->dialedNumber, linedevice);
+				AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, c->line));
+				if(ld) {
+					sccp_device_setLastNumberDialed(d, c->dialedNumber, ld);
 				}
 			}
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
@@ -2984,12 +2984,12 @@ static int sccp_astwrap_message_send(const struct ast_msg *msg, const char *to, 
 	}
 
 	/** \todo move this to line implementation */
-	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevice_t * ld = NULL;
 	sccp_push_result_t pushResult;
 
 	SCCP_LIST_LOCK(&line->devices);
-	SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
-		pushResult = linedevice->device->pushTextMessage(linedevice->device, messageText, from, 1, SKINNY_TONE_ZIP);
+	SCCP_LIST_TRAVERSE(&line->devices, ld, list) {
+		pushResult = ld->device->pushTextMessage(ld->device, messageText, from, 1, SKINNY_TONE_ZIP);
 		if (SCCP_PUSH_RESULT_SUCCESS == pushResult) {
 			res = 0;
 		}

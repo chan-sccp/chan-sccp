@@ -3409,11 +3409,11 @@ typedef struct {
 	void (*const displayPrompt) (constDevicePtr device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message);
 	void (*const displayNotify) (constDevicePtr device, uint8_t timeout, const char *message);
 	void (*const displayPriNotify) (constDevicePtr device, uint8_t priority, uint8_t timeout, const char *message);
-	void (*const sendCallforwardMessage) (constDevicePtr device, const sccp_linedevices_t * linedevice);
+	void (*const sendCallforwardMessage)(constDevicePtr device, const sccp_linedevice_t * ld);
 	void (*const sendUserToDeviceDataVersionMessage) (constDevicePtr device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const char *xmlData, uint8_t priority);
 	void (*const sendMultiMediaCommand) (constDevicePtr device, constChannelPtr channel, skinny_miscCommandType_t command);
-	void (*const sendOpenReceiveChannel) (constDevicePtr device, constChannelPtr channel);
-	void (*const sendOpenMultiMediaChannel) (constDevicePtr device, constChannelPtr channel, skinny_codec_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
+	void (*const sendOpenReceiveChannel)(constDevicePtr device, constChannelPtr channel);
+	void (*const sendOpenMultiMediaChannel)(constDevicePtr device, constChannelPtr channel, skinny_codec_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
 	void (*const sendStartMultiMediaTransmission) (constDevicePtr device, constChannelPtr channel, int payloadType, int bitRate);
 	void (*const sendStartMediaTransmission) (constDevicePtr device, constChannelPtr channel);
 	void (*const sendConnectionStatisticsReq) (constDevicePtr device, constChannelPtr channel, uint8_t clear);
