@@ -40,9 +40,9 @@ SCCP_API boolean_t SCCP_CALL sccp_rtp_createServer(constDevicePtr d, channelPtr 
 SCCP_API int SCCP_CALL sccp_rtp_requestRTPPorts(constDevicePtr device, channelPtr channel);
 SCCP_API void SCCP_CALL sccp_rtp_stop(constChannelPtr channel);
 SCCP_API void SCCP_CALL sccp_rtp_destroy(constChannelPtr c);
-SCCP_API void SCCP_CALL sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer);
-SCCP_API void SCCP_CALL sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer);
-SCCP_API int SCCP_CALL sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp);
+SCCP_API void SCCP_CALL sccp_rtp_set_peer(constChannelPtr c, rtpPtr rtp, struct sockaddr_storage * new_peer);
+SCCP_API void SCCP_CALL sccp_rtp_set_phone(constChannelPtr c, rtpPtr rtp, struct sockaddr_storage * new_peer);
+SCCP_API int SCCP_CALL sccp_rtp_updateNatRemotePhone(constChannelPtr c, rtpPtr rtp);
 
 SCCP_API boolean_t SCCP_CALL sccp_rtp_getAudioPeer(constChannelPtr c, struct sockaddr_storage **new_peer);
 SCCP_API sccp_rtp_info_t SCCP_CALL sccp_rtp_getAudioPeerInfo(constChannelPtr c, sccp_rtp_t **rtp);
@@ -51,10 +51,10 @@ SCCP_API boolean_t SCCP_CALL sccp_rtp_getVideoPeer(constChannelPtr c, struct soc
 SCCP_API sccp_rtp_info_t SCCP_CALL sccp_rtp_getVideoPeerInfo(constChannelPtr c, sccp_rtp_t **rtp);
 #endif
 
-SCCP_API uint8_t SCCP_CALL sccp_rtp_get_payloadType(const sccp_rtp_t *const rtp, skinny_codec_t codec);
-SCCP_API boolean_t SCCP_CALL sccp_rtp_getUs(const sccp_rtp_t * const rtp, struct sockaddr_storage *us);
-SCCP_API boolean_t SCCP_CALL sccp_rtp_getPeer(const sccp_rtp_t * const rtp, struct sockaddr_storage *them);
-SCCP_API uint16_t SCCP_CALL sccp_rtp_getServerPort(const sccp_rtp_t * const rtp);
+SCCP_API uint8_t SCCP_CALL sccp_rtp_get_payloadType(constRtpPtr rtp, skinny_codec_t codec);
+SCCP_API boolean_t SCCP_CALL sccp_rtp_getUs(constRtpPtr rtp, struct sockaddr_storage * us);
+SCCP_API boolean_t SCCP_CALL sccp_rtp_getPeer(constRtpPtr rtp, struct sockaddr_storage * them);
+SCCP_API uint16_t SCCP_CALL sccp_rtp_getServerPort(constRtpPtr rtp);
 SCCP_API int SCCP_CALL sccp_rtp_get_sampleRate(skinny_codec_t codec);
 __END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

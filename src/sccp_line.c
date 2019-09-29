@@ -104,7 +104,7 @@ void sccp_line_post_reload(void)
  * \callgraph
  * \callergraph
  */
-sccp_line_t *sccp_line_create(const char *name)
+linePtr sccp_line_create(const char * name)
 {
 	sccp_line_t *l = NULL;
 
@@ -136,7 +136,7 @@ sccp_line_t *sccp_line_create(const char *name)
  * \note needs to be called with a retained line
  * \note adds a retained line to the list (refcount + 1)
  */
-void sccp_line_addToGlobals(sccp_line_t * line)
+void sccp_line_addToGlobals(constLinePtr line)
 {
 	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(line));
 	if (l) {
@@ -204,7 +204,7 @@ void *sccp_create_hotline(void)
 		hotline->context = pbx_strdup("default");
 		sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
 		sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
-		GLOB(hotline)->line = sccp_line_retain(hotline);						// retain line inside hotline
+		*(sccp_line_t **)&(GLOB(hotline)->line) = sccp_line_retain(hotline);                                        // retain line inside hotline (const cast to emplace)
 		sccp_line_addToGlobals(hotline);								// retain line inside GlobalsList
 	}
 	return NULL;
@@ -218,7 +218,7 @@ void *sccp_create_hotline(void)
  * \callergraph
  *
  */
-void sccp_line_kill_channels(sccp_line_t * l)
+void sccp_line_kill_channels(linePtr l)
 {
 	sccp_channel_t *c = NULL;
 
@@ -246,7 +246,7 @@ void sccp_line_kill_channels(sccp_line_t * l)
  * \callergraph
  * 
  */
-void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
+void sccp_line_clean(linePtr l, boolean_t remove_from_global)
 {
 	sccp_line_kill_channels(l);
 	sccp_linedevice_remove(NULL, l);                                        // removing all devices from this line.
@@ -327,7 +327,7 @@ int __sccp_line_destroy(const void *ptr)
 	return 0;
 }
 
-void sccp_line_copyCodecSetsFromLineToChannel(constLinePtr l, constDevicePtr maybe_d, sccp_channel_t *c)
+void sccp_line_copyCodecSetsFromLineToChannel(constLinePtr l, constDevicePtr maybe_d, channelPtr c)
 {
 	if(!l || !c) {
 		return;
@@ -405,7 +405,7 @@ void sccp_line_updatePreferencesFromDevicesToLine(sccp_line_t * l)
 	sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (updatePreferencesFromDevicesToLine) line preferences:%s\n", l->name, sccp_codec_multiple2str(s1, sizeof(s1) - 1, l->preferences.audio, SKINNY_MAX_CAPABILITIES));
 }
 
-void sccp_line_updateCapabilitiesFromDevicesToLine(sccp_line_t *l)
+void sccp_line_updateCapabilitiesFromDevicesToLine(linePtr l)
 {
 	sccp_linedevice_t * ld = NULL;
 	boolean_t first=TRUE;
@@ -565,14 +565,13 @@ void sccp_line_addChannel(constLinePtr line, constChannelPtr channel)
  *  - line->channels is not always locked
  * 
  */
-void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
+void sccp_line_removeChannel(constLinePtr line, sccp_channel_t * channel)
 {
 	if (!line || !channel) {
 		return;
 	}
 	sccp_channel_t *c = NULL;
 	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(line));
-
 	if (l) {
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = SCCP_LIST_REMOVE(&l->channels, channel, list))) {
@@ -589,70 +588,16 @@ void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
 	}
 }
 
-#if UNUSEDCODE // 2015-11-01
-/*!
- * \brief check the DND status for single/shared lines * On shared line we will return dnd status if all devices in dnd only.
- * single line signaling dnd if device is set to dnd
- */
-sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line)
-{
-	sccp_linedevice_t * lineDevice = NULL;
-	sccp_channelstate_t state = SCCP_CHANNELSTATE_CONGESTION;
-
-	if(!line) {
-		pbx_log(LOG_WARNING, "SCCP: (sccp_hint_getDNDState) Either no hint or line provided\n");
-		return state;
-	}
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_getDNDState) line: %s\n", line->name);
-	if (SCCP_LIST_GETSIZE(&line->devices) > 1) {
-		/* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
-		boolean_t allDevicesInDND = TRUE;
-
-		SCCP_LIST_LOCK(&line->devices);
-		SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
-			if (lineDevice->device->dndFeature.status != SCCP_DNDMODE_REJECT) {
-				allDevicesInDND = FALSE;
-				break;
-			}
-		}
-		SCCP_LIST_UNLOCK(&line->devices);
-
-		if (allDevicesInDND) {
-			state = SCCP_CHANNELSTATE_DND;
-		}
-
-	} else {
-		SCCP_LIST_LOCK(&line->devices);
-		lineDevice = SCCP_LIST_FIRST(&line->devices);
-		SCCP_LIST_UNLOCK(&line->devices);
-
-		if (lineDevice) {
-			if (lineDevice->device->dndFeature.enabled && lineDevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
-				state = SCCP_CHANNELSTATE_DND;
-			}
-		}
-	}													// if(SCCP_LIST_GETSIZE(&line->devices) > 1)
-	return state;
-}
-#endif
-
 /*=================================================================================== MWI EVENT HANDLING ==============*/
-void sccp_line_setMWI(linePtr line, int newmsgs, int oldmsgs)
+void sccp_line_setMWI(constLinePtr l, int newmsgs, int oldmsgs)
 {
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (sccp_line_setMWI), newmsgs:%d, oldmsgs:%d\n", line->name, newmsgs, oldmsgs);
-	if (line->voicemailStatistic.newmsgs != newmsgs || line->voicemailStatistic.oldmsgs != oldmsgs) {
-		line->voicemailStatistic.newmsgs = newmsgs;
-		line->voicemailStatistic.oldmsgs = oldmsgs;
-	}
-}
-void sccp_line_indicateMWI(constLineDevicePtr ld)
-{
-	AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(ld->device));
-	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(ld->line));
-	if (l && d) {
-		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (sccp_line_indicateMWI) Set voicemail lamp:%s on device:%s\n", l->name, 
-			l->voicemailStatistic.newmsgs ? "on" : "off", d->id);
-		sccp_device_setLamp(d, SKINNY_STIMULUS_VOICEMAIL, ld->lineInstance, l->voicemailStatistic.newmsgs ? d->mwilamp : SKINNY_LAMP_OFF);
+	AUTO_RELEASE(sccp_line_t, line, sccp_line_retain(l));
+	if(line) {
+		sccp_log((DEBUGCAT_MWI))(VERBOSE_PREFIX_3 "%s: (sccp_line_setMWI), newmsgs:%d, oldmsgs:%d\n", line->name, newmsgs, oldmsgs);
+		if(line->voicemailStatistic.newmsgs != newmsgs || line->voicemailStatistic.oldmsgs != oldmsgs) {
+			line->voicemailStatistic.newmsgs = newmsgs;
+			line->voicemailStatistic.oldmsgs = oldmsgs;
+		}
 	}
 }
 /*=================================================================================== FIND FUNCTIONS ==============*/
@@ -664,7 +609,7 @@ void sccp_line_indicateMWI(constLineDevicePtr ld)
  * \callergraph
  * 
  */
-sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime)
+linePtr sccp_line_find_byname(const char * name, uint8_t useRealtime)
 {
 	sccp_line_t *l = NULL;
 
@@ -700,14 +645,14 @@ sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime)
  * \param func Debug Function Name
  * \return SCCP Line
  */
-sccp_line_t *__sccp_line_find_realtime_byname(const char *name, const char *filename, int lineno, const char *func)
-#else
+linePtr __sccp_line_find_realtime_byname(const char * name, const char * filename, int lineno, const char * func)
+#	else
 /*!
  * \param name Line Name
  * \return SCCP Line
  */
-sccp_line_t *sccp_line_find_realtime_byname(const char *name)
-#endif
+linePtr sccp_line_find_realtime_byname(const char * name)
+#	endif
 {
 	sccp_line_t *l = NULL;
 	PBX_VARIABLE_TYPE *v = NULL, *variable = NULL;
@@ -761,14 +706,14 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
  * \param func Debug Function Name
  * \return SCCP Line (can be null)
  */
-sccp_line_t *__sccp_line_find_byid(constDevicePtr d, uint16_t instance, const char *filename, int lineno, const char *func)
+linePtr __sccp_line_find_byid(constDevicePtr d, uint16_t instance, const char * filename, int lineno, const char * func)
 #else
 /*!
  * \param d SCCP Device
  * \param instance line instance as int
  * \return SCCP Line (can be null)
  */
-sccp_line_t *sccp_line_find_byid(constDevicePtr d, uint16_t instance)
+linePtr sccp_line_find_byid(constDevicePtr d, uint16_t instance)
 #endif
 {
 	sccp_line_t *l = NULL;
@@ -814,14 +759,14 @@ sccp_line_t *sccp_line_find_byid(constDevicePtr d, uint16_t instance)
  * \param func Debug Function Name
  * \return SCCP Line (can be null)
  */
-sccp_line_t *__sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex, const char *filename, int lineno, const char *func)
+linePtr __sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex, const char * filename, int lineno, const char * func)
 #else
 /*!
  * \param d SCCP Device
  * \param instance line instance as int
  * \return SCCP Line (can be null)
  */
-sccp_line_t *sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex)
+linePtr sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex)
 #endif
 {
 	sccp_line_t *l = NULL;

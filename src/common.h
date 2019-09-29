@@ -47,7 +47,7 @@
 #include "sccp_threadpool.h"
 #include "sccp_debug.h"
 #include "sccp_globals.h"
-#include "sccp_rtp.h"
+//#include "sccp_rtp.h"
 #include "sccp_refcount.h"
 #include "sccp_event.h"
 #include "sccp_feature.h"

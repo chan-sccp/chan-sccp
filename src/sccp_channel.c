@@ -29,6 +29,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_indicate.h"
 #include "sccp_line.h"
 #include "sccp_linedevice.h"
+#include "sccp_rtp.h"
 #include "sccp_netsock.h"
 #include "sccp_utils.h"
 #include "sccp_labels.h"
@@ -44,8 +45,8 @@ AST_MUTEX_DEFINE_STATIC(callCountLock);
  * \brief Private Channel Data Structure
  */
 struct sccp_private_channel_data {
-	sccp_device_t *device;
-	sccp_linedevice_t * ld;
+	devicePtr device;                                        //! \todo use lineDevicePtr instead;
+	lineDevicePtr ld;
 	sccp_callinfo_t * callInfo;
 	SCCP_LIST_HEAD (, sccp_threadpool_job_t) cleanup_jobs;
 	boolean_t microphone; /*!< Flag to mute the microphone when calling a baby phone */
@@ -148,7 +149,6 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		
 		/* assign private_data default values */
 		private_data->microphone = TRUE;
-		private_data->device = NULL;
 		private_data->callInfo = iCallInfo.Constructor(callInstance, designator);
 		SCCP_LIST_HEAD_INIT(&private_data->cleanup_jobs);
 		if (!private_data->callInfo) {

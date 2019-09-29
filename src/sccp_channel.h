@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "sccp_device.h"
+#include "sccp_rtp.h"
 
 #define sccp_channel_retain(_x)		sccp_refcount_retain_type(sccp_channel_t, _x)
 #define sccp_channel_release(_x)	sccp_refcount_release_type(sccp_channel_t, _x)

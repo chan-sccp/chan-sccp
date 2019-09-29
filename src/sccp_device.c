@@ -2286,7 +2286,7 @@ void sccp_dev_postregistration(devicePtr d)
 		if (d->lineButtons.instance[instance]) {
 			AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_retain(d->lineButtons.instance[instance]));
 			if(ld) {
-				sccp_line_indicateMWI(ld);
+				sccp_linedevice_indicateMWI(ld);
 			}
 		}
 	}
@@ -3151,7 +3151,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 		case SCCP_FEATURE_CFWDBUSY:
 		case SCCP_FEATURE_CFWDALL:
 			if((ld = event->featureChanged.optional_linedevice)) {
-				sccp_line_t * line = ld->line;
+				linePtr line = ld->line;
 				uint8_t instance = ld->lineInstance;
 
 				sccp_dev_forward_status(line, instance, device);
@@ -3444,7 +3444,7 @@ void sccp_device_setMWI(devicePtr device)
 	device->voicemailStatistic.oldmsgs = 0;
 	for (uint8_t instance = SCCP_FIRST_LINEINSTANCE; instance < device->lineButtons.size; instance++) {
 		if(device->lineButtons.instance[instance]) {
-			sccp_line_t *l = device->lineButtons.instance[instance]->line;
+			linePtr l = device->lineButtons.instance[instance]->line;
 			device->voicemailStatistic.newmsgs += l->voicemailStatistic.newmsgs;
 			device->voicemailStatistic.oldmsgs += l->voicemailStatistic.oldmsgs;
 		}

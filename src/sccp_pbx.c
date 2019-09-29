@@ -20,6 +20,7 @@
 #include "sccp_utils.h"
 #include "sccp_indicate.h"
 #include "sccp_linedevice.h"
+#include "sccp_rtp.h"
 #include "sccp_netsock.h"
 #include "sccp_session.h"
 #include "sccp_atomic.h"
@@ -184,7 +185,7 @@ FINAL:
 //   * c->parentChannel
 //   * masquerading in sccp_pbx_answer
 //   in that case
-int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
+int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 {
 	if (!c) {
 		return -1;
@@ -424,7 +425,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
  * \note sccp_channel should be retained in calling function
  */
 
-sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
+channelPtr sccp_pbx_hangup(constChannelPtr channel)
 {
 
 	/* here the ast channel is locked */
@@ -540,7 +541,7 @@ sccp_channel_t * sccp_pbx_hangup(sccp_channel_t * channel)
  *
  * \todo masquarade does not succeed when forwarding to a dialplan extension which starts with PLAYBACK (Is this still the case, i think this might have been resolved ?? - DdG -)
  */
-int sccp_pbx_answer(sccp_channel_t * channel)
+int sccp_pbx_answer(constChannelPtr channel)
 {
 	int res = -1;
 
@@ -700,7 +701,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
  * \lock
  *  - usecnt_lock
  */
-boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, const PBX_CHANNEL_TYPE * parentChannel)
+boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, const PBX_CHANNEL_TYPE * parentChannel)
 {
 	PBX_CHANNEL_TYPE *tmp;
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
@@ -948,7 +949,7 @@ boolean_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, c
 #if CS_SCCP_VIDEO
 			if (sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE && !c->rtp.video.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_VIDEO)) {
 				pbx_log(LOG_WARNING, "%s: Error opening VRTP instance for channel %s\n", d->id, c->designator);
-				sccp_channel_setVideoMode(channel, "off");
+				sccp_channel_setVideoMode(c, "off");
 			}
 #endif
 		}
@@ -995,7 +996,7 @@ int sccp_pbx_sched_dial(const void * data)
  * \param c SCCP Channel as sccp_channel_t
  * \return Success as int
  */
-sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
+sccp_extension_status_t sccp_pbx_helper(constChannelPtr c)
 {
 	sccp_extension_status_t extensionStatus;
 	int dialedLen = sccp_strlen(c->dialedNumber);
@@ -1036,7 +1037,7 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
  * \param channel SCCP Channel as sccp_channel_t
  * \todo clarify Soft Switch Function
  */
-void *sccp_pbx_softswitch(sccp_channel_t * channel)
+void * sccp_pbx_softswitch(constChannelPtr channel)
 {
 	PBX_CHANNEL_TYPE * pbx_channel = NULL;
 	PBX_VARIABLE_TYPE * v = NULL;

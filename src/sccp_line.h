@@ -108,7 +108,7 @@ struct sccp_line {
  * \note This contains the new HotLine Feature
  */
 struct sccp_hotline {
-	sccp_line_t *line;											/*!< Line */
+	linePtr line;                                                                                           /*!< Line */
 	char exten[SCCP_MAX_EXTENSION];										/*!< Extension */
 };														/*!< SCCP Hotline Structure */
 
@@ -116,45 +116,39 @@ SCCP_API void SCCP_CALL sccp_line_pre_reload(void);
 SCCP_API void SCCP_CALL sccp_line_post_reload(void);
 /* live cycle */
 SCCP_API void * SCCP_CALL sccp_create_hotline(void);
-SCCP_API sccp_line_t * SCCP_CALL sccp_line_create(const char *name);
-SCCP_API void SCCP_CALL sccp_line_addToGlobals(sccp_line_t * line);
+SCCP_API linePtr SCCP_CALL sccp_line_create(const char * name);
+SCCP_API void SCCP_CALL sccp_line_addToGlobals(constLinePtr line);
 SCCP_API void SCCP_CALL sccp_line_removeFromGlobals(sccp_line_t * line);
 SCCP_API void SCCP_CALL sccp_line_addChannel(constLinePtr line, constChannelPtr channel);
-SCCP_API void SCCP_CALL sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel);
-SCCP_API void SCCP_CALL sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global);
-SCCP_API void SCCP_CALL sccp_line_kill_channels(sccp_line_t * l);
-
-#if UNUSEDCODE // 2015-11-01
-SCCP_API sccp_channelstate_t SCCP_CALL sccp_line_getDNDChannelState(sccp_line_t * line);
-#endif
-SCCP_API void SCCP_CALL sccp_line_copyCodecSetsFromLineToChannel(constLinePtr l, constDevicePtr maybe_d, sccp_channel_t *c);
-SCCP_API void SCCP_CALL sccp_line_updatePreferencesFromDevicesToLine(sccp_line_t * l);
-SCCP_API void SCCP_CALL sccp_line_updateCapabilitiesFromDevicesToLine(sccp_line_t *l);
+SCCP_API void SCCP_CALL sccp_line_removeChannel(constLinePtr line, sccp_channel_t * channel);
+SCCP_API void SCCP_CALL sccp_line_clean(linePtr l, boolean_t remove_from_global);
+SCCP_API void SCCP_CALL sccp_line_kill_channels(linePtr l);
+SCCP_API void SCCP_CALL sccp_line_copyCodecSetsFromLineToChannel(constLinePtr l, constDevicePtr maybe_d, channelPtr c);
+SCCP_API void SCCP_CALL sccp_line_updatePreferencesFromDevicesToLine(linePtr l);
+SCCP_API void SCCP_CALL sccp_line_updateCapabilitiesFromDevicesToLine(linePtr l);
 SCCP_API void SCCP_CALL sccp_line_updateLineCapabilitiesByDevice(constDevicePtr d);
 SCCP_API void SCCP_CALL sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number);
-
-SCCP_API void SCCP_CALL sccp_line_setMWI(linePtr line, int newlinemsgs, int oldlinemsgs);
-SCCP_API void SCCP_CALL sccp_line_indicateMWI(constLineDevicePtr ld);
+SCCP_API void SCCP_CALL sccp_line_setMWI(constLinePtr l, int newlinemsgs, int oldlinemsgs);
 
 // find line
-SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_byname(const char *name, uint8_t useRealtime);
+SCCP_API linePtr SCCP_CALL sccp_line_find_byname(const char * name, uint8_t useRealtime);
 #if DEBUG
-#define sccp_line_find_byid(_x,_y) __sccp_line_find_byid(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
-SCCP_API sccp_line_t * SCCP_CALL __sccp_line_find_byid(constDevicePtr d, uint16_t instance, const char *filename, int lineno, const char *func);
+#	define sccp_line_find_byid(_x, _y) __sccp_line_find_byid(_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+SCCP_API linePtr SCCP_CALL __sccp_line_find_byid(constDevicePtr d, uint16_t instance, const char * filename, int lineno, const char * func);
 
-#define sccp_line_find_byButtonIndex(_x, _y) __sccp_line_find_byButtonIndex(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
-SCCP_API sccp_line_t * SCCP_CALL __sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex, const char *filename, int lineno, const char *func);
-#ifdef CS_SCCP_REALTIME
-#define sccp_line_find_realtime_byname(_x) __sccp_line_find_realtime_byname(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
-SCCP_API sccp_line_t * SCCP_CALL __sccp_line_find_realtime_byname(const char *name, const char *filename, int lineno, const char *func);
-#endif														// CS_SCCP_REALTIME
+#	define sccp_line_find_byButtonIndex(_x, _y) __sccp_line_find_byButtonIndex(_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+SCCP_API linePtr SCCP_CALL __sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex, const char * filename, int lineno, const char * func);
+#	ifdef CS_SCCP_REALTIME
+#		define sccp_line_find_realtime_byname(_x) __sccp_line_find_realtime_byname(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+SCCP_API linePtr SCCP_CALL __sccp_line_find_realtime_byname(const char * name, const char * filename, int lineno, const char * func);
+#	endif                                                                                                  // CS_SCCP_REALTIME
 #else														// DEBUG
-SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_byid(constDevicePtr d, uint16_t instance);
-SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex);
+SCCP_API linePtr SCCP_CALL sccp_line_find_byid(constDevicePtr d, uint16_t instance);
+SCCP_API linePtr SCCP_CALL sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex);
 
-#ifdef CS_SCCP_REALTIME
-SCCP_API sccp_line_t * SCCP_CALL sccp_line_find_realtime_byname(const char *name);
-#endif														// CS_SCCP_REALTIME
+#	ifdef CS_SCCP_REALTIME
+SCCP_API linePtr SCCP_CALL sccp_line_find_realtime_byname(const char * name);
+#	endif                                                                                                  // CS_SCCP_REALTIME
 #endif														// DEBUG
 
 __END_C_EXTERN__
