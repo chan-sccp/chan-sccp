@@ -102,6 +102,7 @@ We also provide prebuild binaries for:
   - [Fedora-28](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_28/)
   - [Fedora-29](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_29/)
   - [Fedora-30](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_30/)
+  - [Fedora-Rawhide](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_Rawhide/) (unstable)
   - [OpenSuSE-Leap_15.0](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_15.0/)
   - [OpenSuSE-Leap_42.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_42.2/)
   - [OpenSuSE-Leap_42.3](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_42.3/)

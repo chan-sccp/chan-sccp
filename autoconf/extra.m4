@@ -180,7 +180,7 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_LANG_C
 	dnl AC_PATH_PROGS([SVN],[svn],[echo Missing subversion],[${PATH}:/opt/csw/bin])
 	dnl AC_PATH_PROGS([SVNVERSION],[svnversion], [echo Missing subversion],[${PATH}:/opt/csw/bin])
-	AC_PATH_PROGS([GIT],[git],[echo Missing git],[${PATH}:/opt/csw/bin])
+	AC_PATH_PROGS([GIT],[git],[No],[${PATH}:/opt/csw/bin])
 	dnl AC_PATH_PROGS([HG],[hg],[echo Missing mercurial],[${PATH}:/opt/csw/bin])
 	AC_PATH_PROGS([SHELL],[bash sh],[echo No compatible shell found])
 	AC_PATH_PROGS([SH],[bash sh],[echo No compatible shell found])
