@@ -985,11 +985,13 @@ static void sccp_astwrap_setOwner(sccp_channel_t * channel, PBX_CHANNEL_TYPE * p
 
 	if (pbx_channel) {
 		channel->owner = pbx_channel_ref(pbx_channel);
+		ast_module_ref(ast_module_info->self);
 	} else {
 		channel->owner = NULL;
 	}
 	if (prev_owner) {
 		pbx_channel_unref(prev_owner);
+		ast_module_unref(ast_module_info->self);
 	}
 }
 
@@ -1105,7 +1107,6 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 	if (!sccp_strlen_zero(line->language) && ast_get_indication_zone(line->language)) {
 		ast_channel_zone_set(pbxDstChannel, ast_get_indication_zone(line->language));			/* this will core asterisk on hangup */
 	}
-	ast_module_ref(ast_module_info->self);
 	sccp_astwrap_setOwner(channel, pbxDstChannel);
 
 	(*_pbxDstChannel) = pbxDstChannel;
@@ -1201,7 +1202,6 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		ast_channel_tech_pvt_set(ast_channel, NULL);
 		pbx_channel_unref(ast_channel);									// strange unknown channel, why did we get called to hang it up ?
 	}
-	ast_module_unref(ast_module_info->self);
 	return res;
 }
 
@@ -2900,135 +2900,137 @@ const PbxInterface iPbx = {
 	/* *INDENT-OFF* */
 
 	/* channel */
-	alloc_pbxChannel 		: sccp_astwrap_allocPBXChannel,
-	extension_status 		: sccp_astwrap_extensionStatus,
-	setPBXChannelLinkedId		: sccp_astwrap_set_pbxchannel_linkedid,
-	getChannelByName 		: sccp_astwrap_getChannelByName,
+	alloc_pbxChannel: sccp_astwrap_allocPBXChannel,
+	extension_status: sccp_astwrap_extensionStatus,
+	setPBXChannelLinkedId: sccp_astwrap_set_pbxchannel_linkedid,
+	getChannelByName: sccp_astwrap_getChannelByName,
 
-	getChannelLinkedId		: sccp_astwrap_get_channel_linkedid,
-	setChannelLinkedId		: sccp_astwrap_set_channel_linkedid,
-	getChannelName			: sccp_astwrap_get_channel_name,
-	setChannelName			: sccp_astwrap_set_channel_name,
-	getChannelUniqueID		: sccp_astwrap_get_channel_uniqueid,
-	getChannelExten			: sccp_astwrap_get_channel_exten,
-	setChannelExten			: sccp_astwrap_set_channel_exten,
-	getChannelContext		: sccp_astwrap_get_channel_context,
-	setChannelContext		: sccp_astwrap_set_channel_context,
-	getChannelMacroExten		: sccp_astwrap_get_channel_macroexten,
-	setChannelMacroExten		: sccp_astwrap_set_channel_macroexten,
-	getChannelMacroContext		: sccp_astwrap_get_channel_macrocontext,
-	setChannelMacroContext		: sccp_astwrap_set_channel_macrocontext,
-	getChannelCallForward		: sccp_astwrap_get_channel_call_forward,
-	setChannelCallForward		: sccp_astwrap_set_channel_call_forward,
+	getChannelLinkedId: sccp_astwrap_get_channel_linkedid,
+	setChannelLinkedId: sccp_astwrap_set_channel_linkedid,
+	getChannelName: sccp_astwrap_get_channel_name,
+	setChannelName: sccp_astwrap_set_channel_name,
+	getChannelUniqueID: sccp_astwrap_get_channel_uniqueid,
+	getChannelExten: sccp_astwrap_get_channel_exten,
+	setChannelExten: sccp_astwrap_set_channel_exten,
+	getChannelContext: sccp_astwrap_get_channel_context,
+	setChannelContext: sccp_astwrap_set_channel_context,
+	getChannelMacroExten: sccp_astwrap_get_channel_macroexten,
+	setChannelMacroExten: sccp_astwrap_set_channel_macroexten,
+	getChannelMacroContext: sccp_astwrap_get_channel_macrocontext,
+	setChannelMacroContext: sccp_astwrap_set_channel_macrocontext,
+	getChannelCallForward: sccp_astwrap_get_channel_call_forward,
+	setChannelCallForward: sccp_astwrap_set_channel_call_forward,
 
-	getChannelAppl			: sccp_astwrap_get_channel_appl,
-	getChannelState			: sccp_astwrap_get_channel_state,
-	getChannelPbx			: sccp_astwrap_get_channel_pbx,
+	getChannelAppl: sccp_astwrap_get_channel_appl,
+	getChannelState: sccp_astwrap_get_channel_state,
+	getChannelPbx: sccp_astwrap_get_channel_pbx,
 
-	getRemoteChannel		: sccp_astwrap_getRemoteChannel,
-	checkhangup			: sccp_astwrap_checkHangup,
+	getRemoteChannel: sccp_astwrap_getRemoteChannel,
+	checkhangup: sccp_astwrap_checkHangup,
 
 	/* digits */
-	send_digits 			: sccp_wrapper_sendDigits,
-	send_digit 			: sccp_wrapper_sendDigit,
+	send_digits: sccp_wrapper_sendDigits,
+	send_digit: sccp_wrapper_sendDigit,
 
 	/* schedulers */
-	sched_add			: sccp_astwrap_sched_add,
-	sched_del			: sccp_astwrap_sched_del,
-	sched_add_ref			: sccp_astwrap_sched_add_ref,
-	sched_del_ref			: sccp_astwrap_sched_del_ref,
-	sched_replace_ref		: sccp_astwrap_sched_replace_ref,
-	sched_when 			: sccp_astwrap_sched_when,
-	sched_wait 			: sccp_astwrap_sched_wait,
+	sched_add: sccp_astwrap_sched_add,
+	sched_del: sccp_astwrap_sched_del,
+	sched_add_ref: sccp_astwrap_sched_add_ref,
+	sched_del_ref: sccp_astwrap_sched_del_ref,
+	sched_replace_ref: sccp_astwrap_sched_replace_ref,
+	sched_when: sccp_astwrap_sched_when,
+	sched_wait: sccp_astwrap_sched_wait,
 
 	/* callstate / indicate */
-	set_callstate 			: sccp_astwrap_setCallState,
+	set_callstate: sccp_astwrap_setCallState,
 
 	/* codecs */
-	set_nativeAudioFormats 		: sccp_astwrap_setNativeAudioFormats,
-	set_nativeVideoFormats 		: sccp_astwrap_setNativeVideoFormats,
+	set_nativeAudioFormats: sccp_astwrap_setNativeAudioFormats,
+	set_nativeVideoFormats: sccp_astwrap_setNativeVideoFormats,
 
 	/* rtp */
-	rtp_getPeer			: sccp_astwrap_rtpGetPeer,
-	rtp_getUs 			: sccp_astwrap_rtpGetUs,
-	rtp_stop 			: ast_rtp_instance_stop,
-	rtp_create_instance		: sccp_astwrap_createRtpInstance,
-	rtp_get_payloadType 		: sccp_astwrap_get_payloadType,
-	rtp_get_sampleRate 		: sccp_astwrap_get_sampleRate,
-	rtp_destroy 			: sccp_astwrap_destroyRTP,
-	rtp_setWriteFormat 		: sccp_astwrap_setWriteFormat,
-	rtp_setReadFormat 		: sccp_astwrap_setReadFormat,
-	rtp_setPhoneAddress		: sccp_astwrap_setPhoneRTPAddress,
+	rtp_getPeer: sccp_astwrap_rtpGetPeer,
+	rtp_getUs: sccp_astwrap_rtpGetUs,
+	rtp_stop: ast_rtp_instance_stop,
+	rtp_create_instance: sccp_astwrap_createRtpInstance,
+	rtp_get_payloadType: sccp_astwrap_get_payloadType,
+	rtp_get_sampleRate: sccp_astwrap_get_sampleRate,
+	rtp_destroy: sccp_astwrap_destroyRTP,
+	rtp_setWriteFormat: sccp_astwrap_setWriteFormat,
+	rtp_setReadFormat: sccp_astwrap_setReadFormat,
+	rtp_setPhoneAddress: sccp_astwrap_setPhoneRTPAddress,
 
 	/* callerid */
-	get_callerid_name 		: sccp_astwrap_callerid_name,
-	get_callerid_number 		: sccp_astwrap_callerid_number,
-	get_callerid_ton 		: sccp_astwrap_callerid_ton,
-	get_callerid_ani 		: sccp_astwrap_callerid_ani,
-	get_callerid_subaddr 		: sccp_astwrap_callerid_subaddr,
-	get_callerid_dnid 		: sccp_astwrap_callerid_dnid,
-	get_callerid_rdnis 		: sccp_astwrap_callerid_rdnis,
-	get_callerid_presentation 	: sccp_astwrap_callerid_presentation,
+	get_callerid_name: sccp_astwrap_callerid_name,
+	get_callerid_number: sccp_astwrap_callerid_number,
+	get_callerid_ton: sccp_astwrap_callerid_ton,
+	get_callerid_ani: sccp_astwrap_callerid_ani,
+	get_callerid_subaddr: sccp_astwrap_callerid_subaddr,
+	get_callerid_dnid: sccp_astwrap_callerid_dnid,
+	get_callerid_rdnis: sccp_astwrap_callerid_rdnis,
+	get_callerid_presentation: sccp_astwrap_callerid_presentation,
 
-	set_callerid_name 		: sccp_astwrap_setCalleridName,
-	set_callerid_number 		: sccp_astwrap_setCalleridNumber,
-	set_callerid_ani 		: sccp_astwrap_setCalleridAni,
-	set_callerid_dnid 		: NULL,						//! \todo implement callback
-	set_callerid_redirectingParty 	: sccp_astwrap_setRedirectingParty,
-	set_callerid_redirectedParty 	: sccp_astwrap_setRedirectedParty,
-	set_callerid_presentation 	: sccp_astwrap_setCalleridPresentation,
+	set_callerid_name: sccp_astwrap_setCalleridName,
+	set_callerid_number: sccp_astwrap_setCalleridNumber,
+	set_callerid_ani: sccp_astwrap_setCalleridAni,
+	set_callerid_dnid: NULL,                                        //! \todo implement callback
+	set_callerid_redirectingParty: sccp_astwrap_setRedirectingParty,
+	set_callerid_redirectedParty: sccp_astwrap_setRedirectedParty,
+	set_callerid_presentation: sccp_astwrap_setCalleridPresentation,
 
-	set_dialed_number		: sccp_astwrap_setDialedNumber,
-	set_connected_line		: sccp_astwrap_updateConnectedLine,
-	sendRedirectedUpdate		: sccp_astwrap_sendRedirectedUpdate,
+	set_dialed_number: sccp_astwrap_setDialedNumber,
+	set_connected_line: sccp_astwrap_updateConnectedLine,
+	sendRedirectedUpdate: sccp_astwrap_sendRedirectedUpdate,
 
 	/* database */
-	feature_addToDatabase 		: sccp_astwrap_addToDatabase,
-	feature_getFromDatabase 	: sccp_astwrap_getFromDatabase,
-	feature_removeFromDatabase	: sccp_astwrap_removeFromDatabase,
-	feature_removeTreeFromDatabase	: sccp_astwrap_removeTreeFromDatabase,
-	feature_monitor			: sccp_astgenwrap_featureMonitor,
+	feature_addToDatabase: sccp_astwrap_addToDatabase,
+	feature_getFromDatabase: sccp_astwrap_getFromDatabase,
+	feature_removeFromDatabase: sccp_astwrap_removeFromDatabase,
+	feature_removeTreeFromDatabase: sccp_astwrap_removeTreeFromDatabase,
+	feature_monitor: sccp_astgenwrap_featureMonitor,
 
-	feature_park			: sccp_astwrap_park,
-	getFeatureExtension		: sccp_astwrap_getFeatureExtension,
-	getPickupExtension		: sccp_astwrap_getPickupExtension,
+	feature_park: sccp_astwrap_park,
+	getFeatureExtension: sccp_astwrap_getFeatureExtension,
+	getPickupExtension: sccp_astwrap_getPickupExtension,
 
-	findChannelByCallback		: sccp_astwrap_findChannelWithCallback,
+	findChannelByCallback: sccp_astwrap_findChannelWithCallback,
 
-	moh_start			: sccp_astwrap_moh_start,
-	moh_stop			: sccp_astwrap_moh_stop,
-	queue_control			: sccp_astwrap_queue_control,
-	queue_control_data		: sccp_astwrap_queue_control_data,
+	moh_start: sccp_astwrap_moh_start,
+	moh_stop: sccp_astwrap_moh_stop,
+	queue_control: sccp_astwrap_queue_control,
+	queue_control_data: sccp_astwrap_queue_control_data,
 
-	allocTempPBXChannel		: sccp_astwrap_allocTempPBXChannel,
-	masqueradeHelper		: sccp_astwrap_masqueradeHelper,
-	requestAnnouncementChannel	: sccp_astwrap_requestAnnouncementChannel,
+	allocTempPBXChannel: sccp_astwrap_allocTempPBXChannel,
+	masqueradeHelper: sccp_astwrap_masqueradeHelper,
+	requestAnnouncementChannel: sccp_astwrap_requestAnnouncementChannel,
 
-	set_language			: sccp_astwrap_setLanguage,
+	set_language: sccp_astwrap_setLanguage,
 
-	getExtensionState		: sccp_astwrap_getExtensionState,
-	findPickupChannelByExtenLocked	: sccp_astwrap_findPickupChannelByExtenLocked,
-	findPickupChannelByGroupLocked	: sccp_astwrap_findPickupChannelByGroupLocked,
+	getExtensionState: sccp_astwrap_getExtensionState,
+	findPickupChannelByExtenLocked: sccp_astwrap_findPickupChannelByExtenLocked,
+	findPickupChannelByGroupLocked: sccp_astwrap_findPickupChannelByGroupLocked,
 
-	set_owner			: sccp_astwrap_setOwner,
-	removeTimingFD			: sccp_astwrap_removeTimingFD,
-	dumpchan			: NULL,
-	channel_is_bridged		: sccp_astwrap_channelIsBridged,
-	get_bridged_channel		: sccp_astwrap_getBridgeChannel,
-	get_underlying_channel		: sccp_astwrap_getUnderlyingChannel,
-	attended_transfer		: sccp_astwrap_attended_transfer,
+	set_owner: sccp_astwrap_setOwner,
+	removeTimingFD: sccp_astwrap_removeTimingFD,
+	dumpchan: NULL,
+	channel_is_bridged: sccp_astwrap_channelIsBridged,
+	get_bridged_channel: sccp_astwrap_getBridgeChannel,
+	get_underlying_channel: sccp_astwrap_getUnderlyingChannel,
+	attended_transfer: sccp_astwrap_attended_transfer,
 
-	set_callgroup			: sccp_astgenwrap_set_callgroup,
-	set_pickupgroup			: sccp_astgenwrap_set_pickupgroup,
-	set_named_callgroups		: sccp_astgenwrap_set_named_callgroups,
-	set_named_pickupgroups		: sccp_astgenwrap_set_named_pickupgroups,
+	set_callgroup: sccp_astgenwrap_set_callgroup,
+	set_pickupgroup: sccp_astgenwrap_set_pickupgroup,
+	set_named_callgroups: sccp_astgenwrap_set_named_callgroups,
+	set_named_pickupgroups: sccp_astgenwrap_set_named_pickupgroups,
 
-	register_application		: sccp_wrapper_register_application,
-	unregister_application		: sccp_wrapper_unregister_application,
-	register_function		: sccp_wrapper_register_function,
-	unregister_function		: sccp_wrapper_unregister_function,
+	register_application: sccp_wrapper_register_application,
+	unregister_application: sccp_wrapper_unregister_application,
+	register_function: sccp_wrapper_register_function,
+	unregister_function: sccp_wrapper_unregister_function,
 
-	get_dtmf_payload_code		: sccp_wrapper_get_dtmf_payload_code,
+	get_dtmf_payload_code: sccp_wrapper_get_dtmf_payload_code,
+	module_ref: sccp_astwrap_module_ref,
+	module_unref: sccp_astwrap_module_unref,
 	/* *INDENT-ON* */
 };
 
@@ -3042,135 +3044,137 @@ const PbxInterface iPbx = {
 	/* *INDENT-OFF* */
 
 	/* channel */
-	.alloc_pbxChannel 		= sccp_astwrap_allocPBXChannel,
-	.extension_status 		= sccp_astwrap_extensionStatus,
-	.setPBXChannelLinkedId		= sccp_astwrap_set_pbxchannel_linkedid,
-	.getChannelByName 		= sccp_astwrap_getChannelByName,
+	.alloc_pbxChannel = sccp_astwrap_allocPBXChannel,
+	.extension_status = sccp_astwrap_extensionStatus,
+	.setPBXChannelLinkedId = sccp_astwrap_set_pbxchannel_linkedid,
+	.getChannelByName = sccp_astwrap_getChannelByName,
 
-	.getChannelLinkedId		= sccp_astwrap_get_channel_linkedid,
-	.setChannelLinkedId		= sccp_astwrap_set_channel_linkedid,
-	.getChannelName			= sccp_astwrap_get_channel_name,
-	.setChannelName			= sccp_astwrap_set_channel_name,
-	.getChannelUniqueID		= sccp_astwrap_get_channel_uniqueid,
-	.getChannelExten		= sccp_astwrap_get_channel_exten,
-	.setChannelExten		= sccp_astwrap_set_channel_exten,
-	.getChannelContext		= sccp_astwrap_get_channel_context,
-	.setChannelContext		= sccp_astwrap_set_channel_context,
-	.getChannelMacroExten		= sccp_astwrap_get_channel_macroexten,
-	.setChannelMacroExten		= sccp_astwrap_set_channel_macroexten,
-	.getChannelMacroContext		= sccp_astwrap_get_channel_macrocontext,
-	.setChannelMacroContext		= sccp_astwrap_set_channel_macrocontext,
-	.getChannelCallForward		= sccp_astwrap_get_channel_call_forward,
-	.setChannelCallForward		= sccp_astwrap_set_channel_call_forward,
+	.getChannelLinkedId = sccp_astwrap_get_channel_linkedid,
+	.setChannelLinkedId = sccp_astwrap_set_channel_linkedid,
+	.getChannelName = sccp_astwrap_get_channel_name,
+	.setChannelName = sccp_astwrap_set_channel_name,
+	.getChannelUniqueID = sccp_astwrap_get_channel_uniqueid,
+	.getChannelExten = sccp_astwrap_get_channel_exten,
+	.setChannelExten = sccp_astwrap_set_channel_exten,
+	.getChannelContext = sccp_astwrap_get_channel_context,
+	.setChannelContext = sccp_astwrap_set_channel_context,
+	.getChannelMacroExten = sccp_astwrap_get_channel_macroexten,
+	.setChannelMacroExten = sccp_astwrap_set_channel_macroexten,
+	.getChannelMacroContext = sccp_astwrap_get_channel_macrocontext,
+	.setChannelMacroContext = sccp_astwrap_set_channel_macrocontext,
+	.getChannelCallForward = sccp_astwrap_get_channel_call_forward,
+	.setChannelCallForward = sccp_astwrap_set_channel_call_forward,
 
-	.getChannelAppl			= sccp_astwrap_get_channel_appl,
-	.getChannelState		= sccp_astwrap_get_channel_state,
-	.getChannelPbx			= sccp_astwrap_get_channel_pbx,
+	.getChannelAppl = sccp_astwrap_get_channel_appl,
+	.getChannelState = sccp_astwrap_get_channel_state,
+	.getChannelPbx = sccp_astwrap_get_channel_pbx,
 
-	.getRemoteChannel		= sccp_astwrap_getRemoteChannel,
-	.checkhangup			= sccp_astwrap_checkHangup,
+	.getRemoteChannel = sccp_astwrap_getRemoteChannel,
+	.checkhangup = sccp_astwrap_checkHangup,
 
 	/* digits */
-	.send_digits 			= sccp_wrapper_sendDigits,
-	.send_digit 			= sccp_wrapper_sendDigit,
+	.send_digits = sccp_wrapper_sendDigits,
+	.send_digit = sccp_wrapper_sendDigit,
 
 	/* schedulers */
-	.sched_add			= sccp_astwrap_sched_add,
-	.sched_del			= sccp_astwrap_sched_del,
-	.sched_add_ref			= sccp_astwrap_sched_add_ref,
-	.sched_del_ref			= sccp_astwrap_sched_del_ref,
-	.sched_replace_ref		= sccp_astwrap_sched_replace_ref,
-	.sched_when 			= sccp_astwrap_sched_when,
-	.sched_wait 			= sccp_astwrap_sched_wait,
+	.sched_add = sccp_astwrap_sched_add,
+	.sched_del = sccp_astwrap_sched_del,
+	.sched_add_ref = sccp_astwrap_sched_add_ref,
+	.sched_del_ref = sccp_astwrap_sched_del_ref,
+	.sched_replace_ref = sccp_astwrap_sched_replace_ref,
+	.sched_when = sccp_astwrap_sched_when,
+	.sched_wait = sccp_astwrap_sched_wait,
 
 	/* callstate / indicate */
-	.set_callstate 			= sccp_astwrap_setCallState,
+	.set_callstate = sccp_astwrap_setCallState,
 
 	/* codecs */
-	.set_nativeAudioFormats 	= sccp_astwrap_setNativeAudioFormats,
-	.set_nativeVideoFormats 	= sccp_astwrap_setNativeVideoFormats,
+	.set_nativeAudioFormats = sccp_astwrap_setNativeAudioFormats,
+	.set_nativeVideoFormats = sccp_astwrap_setNativeVideoFormats,
 
 	/* rtp */
-	.rtp_getPeer			= sccp_astwrap_rtpGetPeer,
-	.rtp_getUs 			= sccp_astwrap_rtpGetUs,
-	.rtp_stop 			= ast_rtp_instance_stop,
-	.rtp_create_instance		= sccp_astwrap_createRtpInstance,
-	.rtp_get_payloadType 		= sccp_astwrap_get_payloadType,
-	.rtp_get_sampleRate 		= sccp_astwrap_get_sampleRate,
-	.rtp_destroy 			= sccp_astwrap_destroyRTP,
-	.rtp_setWriteFormat 		= sccp_astwrap_setWriteFormat,
-	.rtp_setReadFormat 		= sccp_astwrap_setReadFormat,
-	.rtp_setPhoneAddress		= sccp_astwrap_setPhoneRTPAddress,
+	.rtp_getPeer = sccp_astwrap_rtpGetPeer,
+	.rtp_getUs = sccp_astwrap_rtpGetUs,
+	.rtp_stop = ast_rtp_instance_stop,
+	.rtp_create_instance = sccp_astwrap_createRtpInstance,
+	.rtp_get_payloadType = sccp_astwrap_get_payloadType,
+	.rtp_get_sampleRate = sccp_astwrap_get_sampleRate,
+	.rtp_destroy = sccp_astwrap_destroyRTP,
+	.rtp_setWriteFormat = sccp_astwrap_setWriteFormat,
+	.rtp_setReadFormat = sccp_astwrap_setReadFormat,
+	.rtp_setPhoneAddress = sccp_astwrap_setPhoneRTPAddress,
 
 	/* callerid */
-	.get_callerid_name 		= sccp_astwrap_callerid_name,
-	.get_callerid_number 		= sccp_astwrap_callerid_number,
-	.get_callerid_ton 		= sccp_astwrap_callerid_ton,
-	.get_callerid_ani 		= sccp_astwrap_callerid_ani,
-	.get_callerid_subaddr 		= sccp_astwrap_callerid_subaddr,
-	.get_callerid_dnid 		= sccp_astwrap_callerid_dnid,
-	.get_callerid_rdnis 		= sccp_astwrap_callerid_rdnis,
-	.get_callerid_presentation 	= sccp_astwrap_callerid_presentation,
+	.get_callerid_name = sccp_astwrap_callerid_name,
+	.get_callerid_number = sccp_astwrap_callerid_number,
+	.get_callerid_ton = sccp_astwrap_callerid_ton,
+	.get_callerid_ani = sccp_astwrap_callerid_ani,
+	.get_callerid_subaddr = sccp_astwrap_callerid_subaddr,
+	.get_callerid_dnid = sccp_astwrap_callerid_dnid,
+	.get_callerid_rdnis = sccp_astwrap_callerid_rdnis,
+	.get_callerid_presentation = sccp_astwrap_callerid_presentation,
 
-	.set_callerid_name 		= sccp_astwrap_setCalleridName,
-	.set_callerid_number 		= sccp_astwrap_setCalleridNumber,
-	.set_callerid_ani 		= sccp_astwrap_setCalleridAni,
-	.set_callerid_dnid 		= NULL,						//! \todo implement callback
-	.set_callerid_redirectingParty 	= sccp_astwrap_setRedirectingParty,
-	.set_callerid_redirectedParty 	= sccp_astwrap_setRedirectedParty,
-	.set_callerid_presentation 	= sccp_astwrap_setCalleridPresentation,
+	.set_callerid_name = sccp_astwrap_setCalleridName,
+	.set_callerid_number = sccp_astwrap_setCalleridNumber,
+	.set_callerid_ani = sccp_astwrap_setCalleridAni,
+	.set_callerid_dnid = NULL,                                        //! \todo implement callback
+	.set_callerid_redirectingParty = sccp_astwrap_setRedirectingParty,
+	.set_callerid_redirectedParty = sccp_astwrap_setRedirectedParty,
+	.set_callerid_presentation = sccp_astwrap_setCalleridPresentation,
 
-	.set_dialed_number		= sccp_astwrap_setDialedNumber,
-	.set_connected_line		= sccp_astwrap_updateConnectedLine,
-	.sendRedirectedUpdate		= sccp_astwrap_sendRedirectedUpdate,
+	.set_dialed_number = sccp_astwrap_setDialedNumber,
+	.set_connected_line = sccp_astwrap_updateConnectedLine,
+	.sendRedirectedUpdate = sccp_astwrap_sendRedirectedUpdate,
 
 	/* database */
-	.feature_addToDatabase 		= sccp_astwrap_addToDatabase,
-	.feature_getFromDatabase 	= sccp_astwrap_getFromDatabase,
-	.feature_removeFromDatabase     = sccp_astwrap_removeFromDatabase,
+	.feature_addToDatabase = sccp_astwrap_addToDatabase,
+	.feature_getFromDatabase = sccp_astwrap_getFromDatabase,
+	.feature_removeFromDatabase = sccp_astwrap_removeFromDatabase,
 	.feature_removeTreeFromDatabase = sccp_astwrap_removeTreeFromDatabase,
-	.feature_monitor		= sccp_astgenwrap_featureMonitor,
+	.feature_monitor = sccp_astgenwrap_featureMonitor,
 
-	.feature_park			= sccp_astwrap_park,
-	.getFeatureExtension		= sccp_astwrap_getFeatureExtension,
-	.getPickupExtension		= sccp_astwrap_getPickupExtension,
+	.feature_park = sccp_astwrap_park,
+	.getFeatureExtension = sccp_astwrap_getFeatureExtension,
+	.getPickupExtension = sccp_astwrap_getPickupExtension,
 
-	.findChannelByCallback		= sccp_astwrap_findChannelWithCallback,
+	.findChannelByCallback = sccp_astwrap_findChannelWithCallback,
 
-	.moh_start			= sccp_astwrap_moh_start,
-	.moh_stop			= sccp_astwrap_moh_stop,
-	.queue_control			= sccp_astwrap_queue_control,
-	.queue_control_data		= sccp_astwrap_queue_control_data,
+	.moh_start = sccp_astwrap_moh_start,
+	.moh_stop = sccp_astwrap_moh_stop,
+	.queue_control = sccp_astwrap_queue_control,
+	.queue_control_data = sccp_astwrap_queue_control_data,
 
-	.allocTempPBXChannel		= sccp_astwrap_allocTempPBXChannel,
-	.masqueradeHelper		= sccp_astwrap_masqueradeHelper,
-	.requestAnnouncementChannel	= sccp_astwrap_requestAnnouncementChannel,
+	.allocTempPBXChannel = sccp_astwrap_allocTempPBXChannel,
+	.masqueradeHelper = sccp_astwrap_masqueradeHelper,
+	.requestAnnouncementChannel = sccp_astwrap_requestAnnouncementChannel,
 
-	.set_language			= sccp_astwrap_setLanguage,
+	.set_language = sccp_astwrap_setLanguage,
 
-	.getExtensionState		= sccp_astwrap_getExtensionState,
-	.findPickupChannelByExtenLocked	= sccp_astwrap_findPickupChannelByExtenLocked,
-	.findPickupChannelByGroupLocked	= sccp_astwrap_findPickupChannelByGroupLocked,
+	.getExtensionState = sccp_astwrap_getExtensionState,
+	.findPickupChannelByExtenLocked = sccp_astwrap_findPickupChannelByExtenLocked,
+	.findPickupChannelByGroupLocked = sccp_astwrap_findPickupChannelByGroupLocked,
 
-	.set_owner			= sccp_astwrap_setOwner,
-	.removeTimingFD			= sccp_astwrap_removeTimingFD,
-	.dumpchan			= NULL,
-	.channel_is_bridged		= sccp_astwrap_channelIsBridged,
-	.get_bridged_channel		= sccp_astwrap_getBridgeChannel,
-	.get_underlying_channel		= sccp_astwrap_getUnderlyingChannel,
-	.attended_transfer		= sccp_astwrap_attended_transfer,
+	.set_owner = sccp_astwrap_setOwner,
+	.removeTimingFD = sccp_astwrap_removeTimingFD,
+	.dumpchan = NULL,
+	.channel_is_bridged = sccp_astwrap_channelIsBridged,
+	.get_bridged_channel = sccp_astwrap_getBridgeChannel,
+	.get_underlying_channel = sccp_astwrap_getUnderlyingChannel,
+	.attended_transfer = sccp_astwrap_attended_transfer,
 
-	.set_callgroup			= sccp_astgenwrap_set_callgroup,
-	.set_pickupgroup		= sccp_astgenwrap_set_pickupgroup,
-	.set_named_callgroups		= sccp_astgenwrap_set_named_callgroups,
-	.set_named_pickupgroups		= sccp_astgenwrap_set_named_pickupgroups,
+	.set_callgroup = sccp_astgenwrap_set_callgroup,
+	.set_pickupgroup = sccp_astgenwrap_set_pickupgroup,
+	.set_named_callgroups = sccp_astgenwrap_set_named_callgroups,
+	.set_named_pickupgroups = sccp_astgenwrap_set_named_pickupgroups,
 
-	.register_application		= sccp_wrapper_register_application,
-	.unregister_application		= sccp_wrapper_unregister_application,
-	.register_function		= sccp_wrapper_register_function,
-	.unregister_function		= sccp_wrapper_unregister_function,
+	.register_application = sccp_wrapper_register_application,
+	.unregister_application = sccp_wrapper_unregister_application,
+	.register_function = sccp_wrapper_register_function,
+	.unregister_function = sccp_wrapper_unregister_function,
 
-	.get_dtmf_payload_code		= sccp_wrapper_get_dtmf_payload_code,
+	.get_dtmf_payload_code = sccp_wrapper_get_dtmf_payload_code,
+	.module_ref = sccp_astwrap_module_ref,
+	.module_unref = sccp_astwrap_module_unref,
 	/* *INDENT-ON* */
 };
 #endif
