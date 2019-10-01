@@ -445,14 +445,7 @@ static void sccp_sk_answer(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 
 	/* taking the reference during a locked ast channel allows us to call sccp_channel_answer unlock without the risk of loosing the channel */
 	if (c->owner) {
-		pbx_channel_lock(c->owner);
-		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(c->owner);
-		pbx_channel_unlock(c->owner);
-
-		if (pbx_channel) {
-			sccp_channel_answer(d, c);
-			pbx_channel_unref(pbx_channel);
-		}
+		sccp_channel_answer(d, c);
 	}
 }
 
@@ -1158,12 +1151,7 @@ boolean_t sccp_SoftkeyMap_execCallbackByEvent(devicePtr d, linePtr l, uint32_t l
 		return FALSE;
 	}
 	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: Handling Softkey: %s on line: %s and channel: %s\n", d->id, label2str(event), l ? l->name : "UNDEF", c ? c->designator : "UNDEF");
-	if(c) {                                        //! tie the device to the channel, we know the user pressed a button on a particular device
-		AUTO_RELEASE(sccp_device_t, tmpdevice , sccp_channel_getDevice(c));
-		if (!tmpdevice) {
-			sccp_channel_setDevice(c, d);
-		}
-	}
+
 	softkeyMap_cb->softkeyEvent_cb(softkeyMap_cb, d, l, lineInstance, c);
 	return TRUE;
 }

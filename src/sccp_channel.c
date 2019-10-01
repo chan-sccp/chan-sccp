@@ -1582,10 +1582,10 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 		return;
 	}
 	// prevent double answer of the same channel
-	if (channel->privateData && channel->privateData->device) {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Channel %s has already been answered\n", DEV_ID_LOG(device), __func__, channel->designator);
-		return;
-	}
+	// if (channel->privateData && channel->privateData->device) {
+	//	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Channel %s has already been answered\n", DEV_ID_LOG(device), __func__, channel->designator);
+	//	return;
+	//}
 
 	if (!channel->owner) {
 		pbx_log(LOG_ERROR, "SCCP: (%s) Channel %s has no owner\n", __func__, channel->designator);
@@ -1596,6 +1596,17 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 		pbx_log(LOG_ERROR, "SCCP: (%s) Channel %s has no device\n", __func__, channel->designator);
 		return;
 	}
+
+	pbx_channel_lock(channel->owner);
+	RAII(PBX_CHANNEL_TYPE *, pbx_channel, pbx_channel_ref(channel->owner), pbx_channel_unref);
+	if(sccp_strlen_zero(pbx_builtin_getvar_helper(pbx_channel, "SCCP_DEVICE_ANSWERING"))) {
+		pbx_builtin_setvar_helper(pbx_channel, "SCCP_DEVICE_ANSWERING", device->id);
+	} else {
+		pbx_log(LOG_NOTICE, "%s: Call %s is already being answered by someone else\n", DEV_ID_LOG(device), channel->designator);
+		return;
+	}
+	pbx_channel_unlock(channel->owner);
+
 	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Answer Channel %s\n", DEV_ID_LOG(device), __func__, channel->designator);
 
 	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(channel->line));
@@ -1780,7 +1791,6 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answered channel %s on line %s\n", d->id, channel->designator, l->name);
 		}
 	}
-
 }
 
 /*!
@@ -2088,14 +2098,7 @@ void sccp_channel_clean(channelPtr channel)
 		/* make sure all rtp stuff is closed and destroyed */
 		sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
 
-		if(channel->privateData->ld) {
-			channel->privateData->ld->resetPickup(channel->privateData->ld);
-		}
-
 		/* deactive the active call if needed */
-		if (channel->privateData->device) {
-			sccp_channel_setDevice(channel, NULL);
-		}
 		if (d->active_channel == channel) {
 			sccp_device_setActiveChannel(d, NULL);
 		}
@@ -2125,6 +2128,10 @@ void sccp_channel_clean(channelPtr channel)
 		sccp_dev_check_displayprompt(d);
 	}
 	if (channel->privateData) {
+		if(channel->privateData->ld) {
+			channel->privateData->ld->resetPickup(channel->privateData->ld);
+		}
+
 		if (channel->privateData->device) {
 			sccp_channel_setDevice(channel, NULL);
 		}
