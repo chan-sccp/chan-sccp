@@ -493,6 +493,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wl,--as-needed dnl
 				-fPIE dnl
 				-fPIE -pie dnl
+				-Wno-format-truncation dnl
 			], SUPPORTED_CFLAGS)
 		])
 		AC_SUBST([strip_binaries])

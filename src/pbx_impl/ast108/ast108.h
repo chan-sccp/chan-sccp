@@ -92,18 +92,18 @@ static inline void __do_nothing(void) {}									// will be optimized out
 	} else {												\
 		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "yes" : "no")); 		\
 	}
-#define _CLI_AMI_RETURN_ERROR(fd, s, m, line, fmt, ...) 							\
-        /*pbx_log(LOG_WARNING, "SCCP CLI ERROR: " fmt, __VA_ARGS__);*/						\
-	if (NULL != s) {											\
-                char tmp_ ## line[100];										\
-	        snprintf(tmp_ ## line,sizeof(tmp_ ## line),fmt,__VA_ARGS__);					\
-	        astman_send_error(s, m, tmp_ ## line);								\
-		local_line_total++;										\
-	} else {												\
-		ast_cli(fd, "SCCP CLI ERROR: " fmt, __VA_ARGS__);						\
-	}													\
-	return RESULT_FAILURE;
-#define CLI_AMI_RETURN_ERROR(fd, s, m, fmt, ...) _CLI_AMI_RETURN_ERROR(fd, s, m, __LINE__, fmt, __VA_ARGS__)
+#	define _CLI_AMI_RETURN_ERROR(fd, s, m, line, fmt, ...)                     \
+		/*pbx_log(LOG_WARNING, "SCCP CLI ERROR: " fmt, __VA_ARGS__);*/      \
+		if(NULL != s) {                                                     \
+			char tmp_##line[101];                                       \
+			snprintf(tmp_##line, sizeof(tmp_##line), fmt, __VA_ARGS__); \
+			astman_send_error(s, m, tmp_##line);                        \
+			local_line_total++;                                         \
+		} else {                                                            \
+			ast_cli(fd, "SCCP CLI ERROR: " fmt, __VA_ARGS__);           \
+		}                                                                   \
+		return RESULT_FAILURE;
+#	define CLI_AMI_RETURN_ERROR(fd, s, m, fmt, ...) _CLI_AMI_RETURN_ERROR(fd, s, m, __LINE__, fmt, __VA_ARGS__)
 
 // CLI_ENTRY
 //   param1=registration_name
