@@ -103,11 +103,11 @@ We also provide prebuild binaries for:
   - [Fedora-29](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_29/)
   - [Fedora-30](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_30/)
   - [Fedora-Rawhide](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_Rawhide/) (unstable)
-  - [OpenSuSE-Leap_15.0](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_15.0/)
-  - [OpenSuSE-Leap_42.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_42.2/)
-  - [OpenSuSE-Leap_42.3](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_42.3/)
-  - [OpenSuSE-Factory](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Factory/)
-  - [OpenSuSE-Factory_ARM](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Factory_ARM/)
+  - [openSUSE-Leap_15.0](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_15.0/)
+  - [openSUSE-Leap_42.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_42.2/)
+  - [openSUSE-Leap_42.3](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_42.3/)
+  - [openSUSE-Factory](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Factory/)
+  - [openSUSE-Factory_ARM](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Factory_ARM/)
   - [openSUSE_Factory_PPC](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Factory_PPC/)
 
 ### Wiki
