@@ -460,7 +460,7 @@ void sccp_line_updateCapabilitiesFromDevicesToLine(sccp_line_t *l)
 
 	// use a minimal default set, all devices should be able to support (last resort)
 	if (l->capabilities.audio[0] == SKINNY_CODEC_NONE) {
-		pbx_log(LOG_WARNING, "%s: (updateCapabilitiesFromDevicesToLine) Could not retrieve capabilities from line or device. Using Fallback Codecs Alaw/Ulaw\n", l->name);
+		sccp_log((DEBUGCAT_LINE | DEBUGCAT_CODEC))(VERBOSE_PREFIX_3 "%s: (updateCapabilitiesFromDevicesToLine) Could not retrieve capabilities from line or device.\nUsing Fallback Capabilities Alaw/Ulaw\n", l->name);
 		l->capabilities.audio[0] = SKINNY_CODEC_G711_ALAW_64K;
 		l->capabilities.audio[1] = SKINNY_CODEC_G711_ALAW_56K;
 		l->capabilities.audio[2] = SKINNY_CODEC_G711_ULAW_64K;
@@ -690,8 +690,10 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	SCCP_LIST_UNLOCK(&l->devices);
 
-	sccp_line_updatePreferencesFromDevicesToLine(l);
-	sccp_line_updateCapabilitiesFromDevicesToLine(l);
+	if(GLOB(module_running) == TRUE) {
+		sccp_line_updatePreferencesFromDevicesToLine(l);
+		sccp_line_updateCapabilitiesFromDevicesToLine(l);
+	}
 }
 
 /*!

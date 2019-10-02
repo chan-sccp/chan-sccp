@@ -164,8 +164,7 @@ static boolean_t parse_http_conf(char *const uri_str)
 					break;
 				}
 			} else if (!strcasecmp(v->name, "bindport")) {
-				if (ast_parse_arg(v->value, PARSE_UINT32 | PARSE_IN_RANGE | PARSE_DEFAULT,
-						&bindport, DEFAULT_PORT, 0, 65535)) {
+				if(ast_parse_arg(v->value, (enum ast_parse_flags)(PARSE_UINT32 | PARSE_IN_RANGE | PARSE_DEFAULT), &bindport, DEFAULT_PORT, 0, 65535)) {
 					ast_log(LOG_WARNING, "Invalid port %s specified. Using default port %"PRId32, v->value, DEFAULT_PORT);
 					break;
 				}
@@ -182,8 +181,7 @@ static boolean_t parse_http_conf(char *const uri_str)
 					prefix[0] = '\0';
 				}
 			} else if(strcasecmp(v->name, "sessionlimit") == 0) {
-				if (ast_parse_arg(v->value, PARSE_INT32 | PARSE_DEFAULT | PARSE_IN_RANGE,
-						&cookie_timeout, DEFAULT_SESSION_LIMIT, 1, INT_MAX)) {
+				if(ast_parse_arg(v->value, (enum ast_parse_flags)(PARSE_UINT32 | PARSE_IN_RANGE | PARSE_DEFAULT), &cookie_timeout, DEFAULT_SESSION_LIMIT, 1, INT_MAX)) {
 					ast_log(LOG_WARNING, "Invalid %s '%s' at line %d of http.conf\n", v->name, v->value, v->lineno);
 				}
 			}

@@ -2014,18 +2014,18 @@ static int sccp_test(int fd, int argc, char *argv[])
 				pbx_log(LOG_NOTICE, "%s (cli_test) softkey set. starting in 2 seconds.\n", argv[3]);
 				sleep(2);
 				sccp_dev_clearprompt(d, 0, 0);
-				int x=0;
+				skinny_keymode_t keymode = KEYMODE_ONHOLD;
 
-				while (skinny_keymode_exists(x)) {
-					pbx_log(LOG_NOTICE, "%s (cli_test) softkey index: %s\n", d->id, skinny_keymode2str(x));
-					d->protocol->displayPrompt(d, d->defaultLineInstance, channel->callid, 2, skinny_keymode2str(x));
-					sccp_softkey_setSoftkeyState(d, x, SKINNY_LBL_VIDEO_MODE, TRUE);
-					sccp_dev_set_keyset(d, d->defaultLineInstance, channel->callid, x);
-					x++;
+				while(skinny_keymode_exists(keymode)) {
+					pbx_log(LOG_NOTICE, "%s (cli_test) softkey index: %s\n", d->id, skinny_keymode2str(keymode));
+					d->protocol->displayPrompt(d, d->defaultLineInstance, channel->callid, 2, skinny_keymode2str(keymode));
+					sccp_softkey_setSoftkeyState(d, keymode, SKINNY_LBL_VIDEO_MODE, TRUE);
+					sccp_dev_set_keyset(d, d->defaultLineInstance, channel->callid, keymode);
+					keymode = (skinny_keymode_t)((int)keymode + 1);
 				}
 
 				sleep(2);
-				sccp_dev_set_keyset(d, d->defaultLineInstance, channel->callid, 0);
+				sccp_dev_set_keyset(d, d->defaultLineInstance, channel->callid, KEYMODE_ONHOOK);
 				sccp_dev_clearprompt(d, d->defaultLineInstance, channel->callid);
 			}
 		}
