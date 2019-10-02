@@ -152,7 +152,6 @@ codeSkip == 1			{ next }
         #
         # gen enum header
         #
-
         if (sparse == 1) {
 		headerfooter = sprintf("====================================================================================== %30s === */\n", "sparse " namespace "_" enum_name);
 	} else {
@@ -391,11 +390,31 @@ codeSkip == 1			{ next }
 			print "\t\t}" > out_source_file
 			print "\t}" > out_source_file
 		} else {
+			value_map = sprintf("\tuint32_t value_map[] = {")
+			last_value = 0
 			for ( i = 0; i < e; ++i) {
-				print "\tif (sccp_strcaseequals(" namespace "_" enum_name "_map[" i "], lookup_str)) {" > out_source_file
-				print "\t\treturn " Entry_id[i] ";" > out_source_file
-				print "\t}" > out_source_file
+				if (Entry_ifdef[i] == "") {
+					if (Entry_val[i] != "") {
+						last_value = my_strtonum(Entry_val[i])
+						value_map = sprintf("%s%s,", value_map, last_value)
+					} else {
+						last_value = last_value + 1
+						value_map = sprintf("%s%s,", value_map, last_value)
+					}
+				}
 			}
+			print "" value_map "};" > out_source_file
+			
+			print "\tuint32_t idx;" > out_source_file
+			print "\tfor (idx = 0; idx < ARRAY_LEN(" namespace "_" enum_name "_map); idx++) {" > out_source_file
+			print "\t\tif (sccp_strcaseequals(" namespace "_" enum_name "_map[idx], lookup_str)) {" > out_source_file
+			if (bitfield == 0) {
+				print "\t\t\treturn ("namespace "_" enum_name "_t) value_map[idx];" > out_source_file
+			} else {
+				print "\t\t\treturn ("namespace "_" enum_name "_t) value_map[(1 << idx)];" > out_source_file
+			}
+			print "\t\t}" > out_source_file
+			print "\t}" > out_source_file
 		}
 		print "\tpbx_log(LOG_ERROR, LOOKUPERROR_FMT, __" namespace "_" enum_name "_str, lookup_str);" > out_source_file
 		print "\treturn "toupper(namespace) "_" toupper(enum_name) "_SENTINEL;" > out_source_file
