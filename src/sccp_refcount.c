@@ -847,7 +847,7 @@ gcc_inline void * const sccp_refcount_release(const void * * const ptr, const ch
 	RefCountedObject *obj = NULL;
 	sccp_debug_category_t debugcat;
 
-	if (do_expect( (obj = sccp_refcount_find_obj(*ptr, filename, lineno, func)) != NULL && obj->refcount > 0)) {
+	if (do_expect( (obj = sccp_refcount_find_obj(*ptr, filename, lineno, func)) != NULL && ATOMIC_FETCH((&obj->refcount),&obj->lock) > 0)) {
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) *ptr, obj, -1, filename, lineno, func);
 #endif
@@ -855,7 +855,7 @@ gcc_inline void * const sccp_refcount_release(const void * * const ptr, const ch
 		debugcat = (&obj_info[obj->type])->debugcat;
 		// ANNOTATE_HAPPENS_BEFORE(&obj->refcount);
 		do {
-			refcountval = obj->refcount;
+			refcountval = ATOMIC_FETCH((&obj->refcount),&obj->lock);
 			newrefcountval = refcountval - 1;
 		} while ((CAS32(&obj->refcount, refcountval, newrefcountval, &obj->lock)) != refcountval);
 		// ANNOTATE_HAPPENS_AFTER(&obj->refcount);
