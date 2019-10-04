@@ -212,6 +212,7 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 
 /* deny the use of unsafe functions */
 #define __strcat strcat
+#undef strcat
 #define strcat(...) _Pragma("GCC error \"use snprint instead of strcat\"")
 
 #define __strncat strncat
@@ -219,6 +220,7 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 #define strncat(...) _Pragma("GCC error \"use snprint instead of strncat\"")
 
 #define __strcpy strcpy
+#undef strcpy
 #define strcpy(...) _Pragma("GCC error \"use sccp copy string instead of_strcpy\"")
 
 #define __strncpy strcpy
@@ -226,15 +228,19 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 #define strncpy(...) _Pragma("GCC error \"use sccp copy string instead of strncpy\"")
 
 #define __sprintf sprintf
+#undef sprintf
 #define sprintf(...) _Pragma("GCC error \"use snprintf instead of sprintf\"")
 
 #define __vsprintf vsprintf
+#undef vsprintf
 #define vsprintf(...) _Pragma("GCC error \"use vsnprintf instead of vsprintf\"")
 
 #define __gets gets
+#undef gets
 #define gets(...) _Pragma("GCC error \"use fgets instead of gets\"")
 
 #define __atoi atoi
+#undef atoi
 #define atoi(...) _Pragma("GCC error \"use sccp atoi instead of atoi\"")
 
 #define __strdupa strdupa
@@ -244,6 +250,12 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 #define __strtok strtok
 #undef strtok
 #define strtok(...) _Pragma("GCC error \"use strtok_r instead of strtok\"")
+
+#if MAINTAINER_MODE == 1
+#define __snprintf snprintf
+#undef snprintf
+#define snprintf(...) ({int __snprres = __snprintf(__VA_ARGS__); if (__snprres < 0) {pbx_log(LOG_WARNING, "snprintf returned error\n");};__snprres;})
+#endif
 
 #if defined(__clang__)
 typedef void (^sccp_raii_cleanup_block_t)(void);
@@ -268,9 +280,4 @@ static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(
 #define enum_incr(_enum) ({												\
         _enum=(typeof(_enum))((int)_enum + 1);										\
 })
-
-#if MAINTAINER_MODE == 1
-#define __snprintf snprintf
-#define snprintf(...) ({int __snprres = __snprintf(__VA_ARGS__); if (__snprres < 0) {pbx_log(LOG_WARNING, "snprintf returned error\n");};__snprres;})
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
