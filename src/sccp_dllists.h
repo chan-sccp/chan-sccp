@@ -227,18 +227,20 @@ struct {												\
 #define SCCP_RWLIST_TRAVERSE_BACKWARDS_SAFE_END  SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END
 
 /* List Head Init */
-#define SCCP_LIST_HEAD_INIT(head) {									\
-	(head)->first = NULL;										\
-	(head)->last = NULL;										\
-	pbx_mutex_init_notracking(&(head)->lock);							\
-	(head)->size=0;											\
-}
-#define SCCP_RWLIST_HEAD_INIT(head) {									\
-	(head)->first = NULL;										\
-	(head)->last = NULL;										\
-	pbx_rwlock_init_notracking(&(head)->lock);							\
-	(head)->size=0;											\
-}
+#define SCCP_LIST_HEAD_INIT(head)                         \
+	{                                                 \
+		(head)->first = NULL;                     \
+		(head)->last = NULL;                      \
+		pbx_mutex_init_notracking(&(head)->lock); \
+		(head)->size = 0;                         \
+	}
+#define SCCP_RWLIST_HEAD_INIT(head)                        \
+	{                                                  \
+		(head)->first = NULL;                      \
+		(head)->last = NULL;                       \
+		pbx_rwlock_init_notracking(&(head)->lock); \
+		(head)->size = 0;                          \
+	}
 
 /* List Head Destroy */
 #define SCCP_LIST_HEAD_DESTROY(head) {									\

@@ -68,10 +68,6 @@ __END_C_EXTERN__
 struct ast_sched_context *sched = 0;
 struct io_context *io = 0;
 
-#define pbx_module_info ast_module_info
-
-//struct ast_format slinFormat = { AST_FORMAT_SLINEAR, {{0}, 0} };
-
 static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_format_cap *cap, const struct ast_assigned_ids *assignedids, const PBX_CHANNEL_TYPE * requestor, const char *dest, int *cause);
 static int sccp_astwrap_call(PBX_CHANNEL_TYPE * ast, const char *dest, int timeout);
 static int sccp_astwrap_answer(PBX_CHANNEL_TYPE * chan);
@@ -1187,11 +1183,13 @@ static void sccp_astwrap_setOwner(sccp_channel_t * channel, PBX_CHANNEL_TYPE * p
 
 	if (pbx_channel) {
 		channel->owner = pbx_channel_ref(pbx_channel);
+		ast_module_ref(ast_module_info->self);
 	} else {
 		channel->owner = NULL;
 	}
 	if (prev_owner) {
 		pbx_channel_unref(prev_owner);
+		ast_module_unref(ast_module_info->self);
 	}
 	if (channel->rtp.audio.instance) {
 		ast_rtp_instance_set_channel_id(channel->rtp.audio.instance, pbx_channel ? ast_channel_uniqueid(pbx_channel) : "");
@@ -1376,7 +1374,6 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 		ast_channel_zone_set(pbxDstChannel, ast_get_indication_zone(line->language));			/* this will core asterisk on hangup */
 	}
 
-	ast_module_ref(ast_module_info->self);
 	ast_channel_stage_snapshot_done(pbxDstChannel);
 	ast_channel_unlock(pbxDstChannel);
 
@@ -1393,23 +1390,20 @@ static boolean_t sccp_astwrap_masqueradeHelper(PBX_CHANNEL_TYPE * pbxChannel, PB
 	boolean_t res = FALSE;
 	pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) answer temp: %s\n", ast_channel_name(pbxTmpChannel));
 
-	ast_raw_answer(pbxTmpChannel);
-//	ast_cdr_reset(ast_channel_name(pbxTmpChannel), 0);
+	ast_answer(pbxChannel);
+	ast_channel_ref(pbxChannel);
 	pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) replace pbxTmpChannel: %s with %s (move)\n", ast_channel_name(pbxTmpChannel), ast_channel_name(pbxChannel));
-	if (!ast_channel_move(pbxTmpChannel, pbxChannel)) {
-		pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) move succeeded. Hanging up orphan: %s\n", ast_channel_name(pbxChannel));
-		/* Chan is now an orphaned zombie.  Destroy it. */
-		if (pbx_test_flag(pbx_channel_flags(pbxChannel), AST_FLAG_BLOCKING)) {
-			ast_softhangup(pbxChannel, AST_SOFTHANGUP_DEV);
-		} else {
-			ast_hangup(pbxChannel);
-		}
-		res = TRUE;
-	} else {
+	if(ast_channel_move(pbxTmpChannel, pbxChannel)) {
+		pbx_log(LOG_ERROR, "SCCP: (masqueradeHelper) move failed. Hanging up tmp channel: %s\n", ast_channel_name(pbxTmpChannel));
 		ast_hangup(pbxTmpChannel);
+	} else {
+		pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) move succeeded. Hanging up orphan: %s\n", ast_channel_name(pbxChannel));
+		ast_hangup(pbxChannel);
+		pbx_channel_set_hangupcause(pbxTmpChannel, AST_CAUSE_REDIRECTED_TO_NEW_DESTINATION);
+		res = TRUE;
 	}
-	pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) remove reference from pbxTmpChannel: %s\n", ast_channel_name(pbxTmpChannel));
-	pbxTmpChannel = pbx_channel_unref(pbxTmpChannel);
+	pbx_channel_unref(pbxTmpChannel);
+	pbx_channel_unref(pbxChannel);
 	return res;
 }
 
@@ -1480,7 +1474,6 @@ static boolean_t sccp_astwrap_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChann
 	ast_channel_priority_set(pbxDstChannel, ast_channel_priority(pbxSrcChannel));
 	ast_channel_adsicpe_set(pbxDstChannel, AST_ADSI_UNAVAILABLE);
 	ast_channel_stage_snapshot_done(pbxDstChannel);
-	// ast_module_ref(ast_module_info->self);
 	ast_channel_unlock(pbxSrcChannel);
 	ast_channel_unlock(pbxDstChannel);
 
@@ -1554,7 +1547,6 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		ast_callid_threadstorage_auto_clean(callid, callid_created);
 	}
 
-	ast_module_unref(ast_module_info->self);
 	// ast_channel_stage_snapshot_done(ast_channel);
 	return res;
 }
@@ -3402,7 +3394,6 @@ static int sccp_wrapper_unregister_function(struct pbx_custom_function *custom_f
 
 static boolean_t sccp_astwrap_setLanguage(PBX_CHANNEL_TYPE * pbxChannel, const char *language)
 {
-
 	ast_channel_language_set(pbxChannel, language);
 	return TRUE;
 }

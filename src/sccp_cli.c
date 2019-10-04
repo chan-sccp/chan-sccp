@@ -2496,8 +2496,8 @@ static char ami_callforward_usage[] = "Usage: SCCPCallForward\n" "Set/Unset Call
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "callforward"
 #define AMI_COMMAND "SCCPCallForward"
-#define CLI_COMPLETE SCCP_CLI_LINE_COMPLETER, SCCP_CLI_NULL_COMPLETER
-#define CLI_AMI_PARAMS "LineName","DeviceId","Type","Dest",""
+#	define CLI_COMPLETE   SCCP_CLI_LINE_COMPLETER, SCCP_CLI_DEVICE_COMPLETER
+#	define CLI_AMI_PARAMS "LineName", "DeviceId", "Type", "Dest", ""
 CLI_AMI_ENTRY(callforward, sccp_callforward, "Set/Unset CallForward on an SCCP Line", cli_callforward_usage, FALSE, FALSE)
 #undef CLI_AMI_PARAMS
 #undef AMI_COMMAND
@@ -3210,7 +3210,7 @@ static int sccp_start_call(int fd, int argc, char *argv[])
 	AUTO_RELEASE(sccp_line_t, line , NULL);
 	if (argc == 5) {
 		line = sccp_line_find_byname(argv[4], FALSE) /*ref_replace*/;
-	} else if (d->defaultLineInstance > 0) {
+	} else if(d->defaultLineInstance > 0) {
 		line = sccp_line_find_byid(d, d->defaultLineInstance) /*ref_replace*/;
 	} else {
 		line = sccp_dev_getActiveLine(d) /*ref_replace*/;
@@ -3226,7 +3226,9 @@ static int sccp_start_call(int fd, int argc, char *argv[])
 	return RESULT_SUCCESS;
 }
 
-static char start_call_usage[] = "Usage: sccp call <deviceId> <phone_number> <linename>\n" "Call number <number> using device <deviceId>\nIf number is ommitted, device will go off-Hook.\n" "if <linename> is supplied it will be used to dial out\n";
+static char start_call_usage[] = "Usage: sccp call <deviceId> <phone_number> <linename>\n"
+				 "Call number <number> using device <deviceId>\nIf number is ommitted, device will go off-Hook.\n"
+				 "if <linename> is supplied it will be used to dial out\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "call"
@@ -3514,14 +3516,17 @@ static int sccp_answercall(int fd, sccp_cli_totals_t *totals, struct mansession 
 	return res;
 }
 
-static char cli_answercall_usage[] = "Usage: sccp answercall channelId deviceId\n" "       Answer a ringing incoming channel on device.\n";
-static char ami_answercall_usage[] = "Usage: SCCPAsnwerCall1\n" "Answer a ringing incoming channel on device.\n\n" "PARAMS: ChannelId,DeviceId\n";
+static char cli_answercall_usage[] = "Usage: sccp answercall channelId deviceId\n"
+				     "       Answer a ringing incoming channel on device.\n";
+static char ami_answercall_usage[] = "Usage: SCCPAnswerCall1\n"
+				     "Answer a ringing incoming channel on device.\n\n"
+				     "PARAMS: ChannelId,DeviceId\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "answer"
-#define AMI_COMMAND "SCCPAsnwerCall1"
-#define CLI_COMPLETE SCCP_CLI_CHANNEL_COMPLETER, SCCP_CLI_CONNECTED_DEVICE_COMPLETER
-#define CLI_AMI_PARAMS "ChannelId", "DeviceId"
+#	define AMI_COMMAND    "SCCPAnswerCall1"
+#	define CLI_COMPLETE   SCCP_CLI_CHANNEL_COMPLETER, SCCP_CLI_CONNECTED_DEVICE_COMPLETER
+#	define CLI_AMI_PARAMS "ChannelId", "DeviceId"
 CLI_AMI_ENTRY(answercall, sccp_answercall, "Answer a ringing incoming channel on device", cli_answercall_usage, FALSE, FALSE)
 #undef CLI_AMI_PARAMS
 #undef AMI_COMMAND
@@ -3635,61 +3640,128 @@ CLI_AMI_ENTRY(tokenack, sccp_tokenack, "Send TokenAck", cli_tokenack_usage, FALS
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* --- Register Cli Entries-------------------------------------------------------------------------------------------- */
-    /*!
-     * \brief Asterisk Cli Entry
-     *
-     * structure for cli functions including short description.
-     *
-     * \return Result as struct
-     */
-static struct pbx_cli_entry cli_entries[] = {
-	AST_CLI_DEFINE(cli_show_globals, "Show SCCP global settings."),
-	AST_CLI_DEFINE(cli_show_devices, "Show all SCCP Devices."),
-	AST_CLI_DEFINE(cli_show_device, "Show an SCCP Device"),
-	AST_CLI_DEFINE(cli_show_lines, "Show All SCCP Lines."),
-	AST_CLI_DEFINE(cli_show_line, "Show an SCCP Line."),
-	AST_CLI_DEFINE(cli_show_channels, "Show all SCCP channels."),
-	AST_CLI_DEFINE(cli_show_version, "SCCP show version."),
-	AST_CLI_DEFINE(cli_show_mwi_subscriptions, "Show all mwi subscriptions"),
-	AST_CLI_DEFINE(cli_show_softkeysets, "Show all mwi configured SoftKeySets"),
-	AST_CLI_DEFINE(cli_unregister, "Unregister an SCCP device"),
-	AST_CLI_DEFINE(cli_system_message, "Set the SCCP system message."),
-	AST_CLI_DEFINE(cli_message_devices, "Send a message to all SCCP Devices."),
-	AST_CLI_DEFINE(cli_message_device, "Send a message to an SCCP Device."),
-	AST_CLI_DEFINE(cli_remove_line_from_device, "Remove a line from a device."),
-	AST_CLI_DEFINE(cli_add_line_to_device, "Add a line to a device."),
-	AST_CLI_DEFINE(cli_show_sessions, "Show All SCCP Sessions."),
-	AST_CLI_DEFINE(cli_dnd_device, "Set DND on a device"),
-	AST_CLI_DEFINE(cli_callforward, "Set CallForward on a line"),
-	AST_CLI_DEFINE(cli_do_debug, "Enable SCCP debugging."),
-	AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
-	AST_CLI_DEFINE(cli_config_generate, "SCCP generate config file."),
-	AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
-	AST_CLI_DEFINE(cli_reload_file, "SCCP module reload file."),
-	AST_CLI_DEFINE(cli_reload_force, "SCCP module reload force."),
-	AST_CLI_DEFINE(cli_reload_device, "SCCP module reload device."),
-	AST_CLI_DEFINE(cli_reload_line, "SCCP module reload line."),
-	AST_CLI_DEFINE(cli_restart, "Restart an SCCP device"),
-	AST_CLI_DEFINE(cli_reset, "Reset an SCCP Device"),
-	AST_CLI_DEFINE(cli_applyconfig, "Force device to reload it's cnf.xml"),
-	AST_CLI_DEFINE(cli_start_call, "Start a Call."),
-	AST_CLI_DEFINE(cli_end_call, "End a Call."),
-	AST_CLI_DEFINE(cli_set_object, "Change channel/device settings."),
-	AST_CLI_DEFINE(cli_answercall, "Remotely answer a call."),
+
+/* --------------------------------------------------------------------------------------------------------------MICROPHONE CONTROL- */
+/*!
+ * \brief Control Microphone/Mute on remote phone
+ * \param fd Fd as int
+ * \param totals Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ *
+ * \called_from_asterisk
+ */
+static int sccp_microphone(int fd, sccp_cli_totals_t * totals, struct mansession * s, const struct message * m, int argc, char * argv[])
+{
+	int local_line_total = 0;
+	int res = RESULT_FAILURE;
+	char error[100] = "";
+
+	if(argc != 4 || pbx_strlen_zero(argv[2]) || pbx_strlen_zero(argv[3])) {
+		return RESULT_SHOWUSAGE;
+	}
+	AUTO_RELEASE(sccp_device_t, d, sccp_device_find_byid(argv[2], FALSE));
+	if(d) {
+		AUTO_RELEASE(sccp_channel_t, c, sccp_device_getActiveChannel(d));
+		if(c) {
+			sccp_dev_set_microphone(d, sccp_true(argv[3]) ? SKINNY_STATIONMIC_ON : SKINNY_STATIONMIC_OFF);
+			pbx_cli(fd, "%s: Switched microphone %s\n", d->id, sccp_true(argv[3]) ? "on" : "off");
+			res = RESULT_SUCCESS;
+		} else {
+			pbx_log(LOG_WARNING, "%s: (sccp_microphone) No active channel found\n", argv[2]);
+			snprintf(error, sizeof(error), "%s: (sccp_microphone) No active channel found\n", argv[2]);
+		}
+	} else {
+		pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Device %s Not found\n", argv[2]);
+		snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Device %s not found\n", argv[2]);
+	}
+
+	if(res == RESULT_FAILURE && !sccp_strlen_zero(error)) {
+		CLI_AMI_RETURN_ERROR(fd, s, m, "%s\n", error); /* explicit return */
+	}
+
+	if(s) {
+		totals->lines = local_line_total;
+	}
+
+	return res;
+}
+
+static char cli_microphone_usage[] = "Usage: sccp microphone <deviceId> <on/off>\n"
+				     "       Turn microphone <on/off> on active call on <device>.\n";
+static char ami_microphone_usage[] = "Usage: SCCPMicrophone\n"
+				     "Turn microphone <on/off> on active call on <device>.\n\n"
+				     "PARAMS: DeviceId,OnOff\n";
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#	define CLI_COMMAND    "sccp", "microphone"
+#	define AMI_COMMAND    "SCCPMicrophone"
+#	define CLI_COMPLETE   SCCP_CLI_CONNECTED_DEVICE_COMPLETER
+#	define CLI_AMI_PARAMS "DeviceId", "OnOff"
+CLI_AMI_ENTRY(microphone, sccp_microphone, "Turn microphone <on/off> on active call on <device>", cli_microphone_usage, FALSE, FALSE)
+#	undef CLI_AMI_PARAMS
+#	undef AMI_COMMAND
+#	undef CLI_COMPLETE
+#	undef CLI_COMMAND
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+
+/* --- Register Cli Entries-------------------------------------------------------------------------------------------- */
+/*!
+ * \brief Asterisk Cli Entry
+ *
+ * structure for cli functions including short description.
+ *
+ * \return Result as struct
+ */
+static struct pbx_cli_entry cli_entries[] = { AST_CLI_DEFINE(cli_show_globals, "Show SCCP global settings."),
+					      AST_CLI_DEFINE(cli_show_devices, "Show all SCCP Devices."),
+					      AST_CLI_DEFINE(cli_show_device, "Show an SCCP Device"),
+					      AST_CLI_DEFINE(cli_show_lines, "Show All SCCP Lines."),
+					      AST_CLI_DEFINE(cli_show_line, "Show an SCCP Line."),
+					      AST_CLI_DEFINE(cli_show_channels, "Show all SCCP channels."),
+					      AST_CLI_DEFINE(cli_show_version, "SCCP show version."),
+					      AST_CLI_DEFINE(cli_show_mwi_subscriptions, "Show all mwi subscriptions"),
+					      AST_CLI_DEFINE(cli_show_softkeysets, "Show all mwi configured SoftKeySets"),
+					      AST_CLI_DEFINE(cli_unregister, "Unregister an SCCP device"),
+					      AST_CLI_DEFINE(cli_system_message, "Set the SCCP system message."),
+					      AST_CLI_DEFINE(cli_message_devices, "Send a message to all SCCP Devices."),
+					      AST_CLI_DEFINE(cli_message_device, "Send a message to an SCCP Device."),
+					      AST_CLI_DEFINE(cli_remove_line_from_device, "Remove a line from a device."),
+					      AST_CLI_DEFINE(cli_add_line_to_device, "Add a line to a device."),
+					      AST_CLI_DEFINE(cli_show_sessions, "Show All SCCP Sessions."),
+					      AST_CLI_DEFINE(cli_dnd_device, "Set DND on a device"),
+					      AST_CLI_DEFINE(cli_callforward, "Set CallForward on a line"),
+					      AST_CLI_DEFINE(cli_do_debug, "Enable SCCP debugging."),
+					      AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
+					      AST_CLI_DEFINE(cli_config_generate, "SCCP generate config file."),
+					      AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
+					      AST_CLI_DEFINE(cli_reload_file, "SCCP module reload file."),
+					      AST_CLI_DEFINE(cli_reload_force, "SCCP module reload force."),
+					      AST_CLI_DEFINE(cli_reload_device, "SCCP module reload device."),
+					      AST_CLI_DEFINE(cli_reload_line, "SCCP module reload line."),
+					      AST_CLI_DEFINE(cli_restart, "Restart an SCCP device"),
+					      AST_CLI_DEFINE(cli_reset, "Reset an SCCP Device"),
+					      AST_CLI_DEFINE(cli_applyconfig, "Force device to reload it's cnf.xml"),
+					      AST_CLI_DEFINE(cli_start_call, "Start a Call."),
+					      AST_CLI_DEFINE(cli_end_call, "End a Call."),
+					      AST_CLI_DEFINE(cli_set_object, "Change channel/device settings."),
+					      AST_CLI_DEFINE(cli_answercall, "Remotely answer a call."),
+					      AST_CLI_DEFINE(cli_microphone, "Control Microphone on/off on active call."),
 #ifdef CS_EXPERIMENTAL
-	AST_CLI_DEFINE(cli_test, "Test message."),
+					      AST_CLI_DEFINE(cli_test, "Test message."),
 #endif
-	AST_CLI_DEFINE(cli_show_refcount, "Test message."),
-	AST_CLI_DEFINE(cli_tokenack, "Send Token Acknowledgement."),
+					      AST_CLI_DEFINE(cli_show_refcount, "Test message."),
+					      AST_CLI_DEFINE(cli_tokenack, "Send Token Acknowledgement."),
 #ifdef CS_SCCP_CONFERENCE
-	AST_CLI_DEFINE(cli_show_conferences, "Show running SCCP Conferences."),
-	AST_CLI_DEFINE(cli_show_conference, "Show SCCP Conference Info."),
-	AST_CLI_DEFINE(cli_conference_command, "SCCP Conference Commands."),
+					      AST_CLI_DEFINE(cli_show_conferences, "Show running SCCP Conferences."),
+					      AST_CLI_DEFINE(cli_show_conference, "Show SCCP Conference Info."),
+					      AST_CLI_DEFINE(cli_conference_command, "SCCP Conference Commands."),
 #endif
-	AST_CLI_DEFINE(cli_show_hint_lineStates, "Show all hint lineStates"),
-	AST_CLI_DEFINE(cli_show_hint_subscriptions, "Show all hint subscriptions")
-};
+					      AST_CLI_DEFINE(cli_show_hint_lineStates, "Show all hint lineStates"),
+					      AST_CLI_DEFINE(cli_show_hint_subscriptions, "Show all hint subscriptions") };
 
 /*!
  * register CLI functions from asterisk
@@ -3724,6 +3796,7 @@ int sccp_register_cli(void)
 	res |= pbx_manager_register("SCCPDndDevice", _MAN_REP_FLAGS, manager_dnd_device, "set/unset dnd on a device", ami_dnd_device_usage);
 	res |= pbx_manager_register("SCCPCallforward", _MAN_REP_FLAGS, manager_callforward, "set/unset callforward on a line", ami_callforward_usage);
 	res |= pbx_manager_register("SCCPAnswerCall1", _MAN_REP_FLAGS, manager_answercall, "Answer Ringing Incoming Channel on Device", ami_answercall_usage);
+	res |= pbx_manager_register("SCCPMicrophone", _MAN_REP_FLAGS, manager_microphone, "Control Microphone on/off on active call", ami_microphone_usage);
 	res |= pbx_manager_register("SCCPTokenAck", _MAN_REP_FLAGS, manager_tokenack, "send tokenack", ami_tokenack_usage);
 #ifdef CS_SCCP_CONFERENCE
 	res |= pbx_manager_register("SCCPShowConferences", _MAN_REP_FLAGS, manager_show_conferences, "show conferences", ami_conferences_usage);
@@ -3762,6 +3835,7 @@ int sccp_unregister_cli(void)
 	res |= pbx_manager_unregister("SCCPDndDevice");
 	res |= pbx_manager_unregister("SCCPCallforward");
 	res |= pbx_manager_unregister("SCCPAnswerCall1");
+	res |= pbx_manager_unregister("SCCPMicrophone");
 	res |= pbx_manager_unregister("SCCPTokenAck");
 #ifdef CS_SCCP_CONFERENCE
 	res |= pbx_manager_unregister("SCCPShowConferences");

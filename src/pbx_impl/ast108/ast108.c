@@ -919,17 +919,17 @@ static void sccp_astwrap_removeTimingFD(PBX_CHANNEL_TYPE *ast)
 
 static void sccp_astwrap_setOwner(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbx_channel)
 {
-	pbx_log(LOG_NOTICE, "setOWNER: %s, %s\n", channel->designator, pbx_channel ? pbx_channel_name(pbx_channel) : "NULL");
-
-	// removed previous channel->owner unref which causes locking issues (for example: conference hangup outbound participant). No idea why though
 	PBX_CHANNEL_TYPE *prev_owner = channel->owner;
+
 	if (pbx_channel) {
 		channel->owner = pbx_channel_ref(pbx_channel);
+		ast_module_ref(ast_module_info->self);
 	} else {
 		channel->owner = NULL;
 	}
 	if (prev_owner) {
 		pbx_channel_unref(prev_owner);
+		ast_module_unref(ast_module_info->self);
 	}
 }
 
@@ -1030,7 +1030,6 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 	if (!sccp_strlen_zero(line->language) && ast_get_indication_zone(line->language)) {
 		pbxDstChannel->zone = ast_get_indication_zone(line->language);					/* this will core asterisk on hangup */
 	}
-	ast_module_ref(ast_module_info->self);
 	sccp_astwrap_setOwner(channel, pbxDstChannel);
 
 	(*_pbxDstChannel) = pbxDstChannel;
@@ -1120,7 +1119,6 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		ast_channel->tech_pvt = NULL;
 		pbx_channel_unref(ast_channel);									// strange unknown channel, why did we get called to hang it up ?
 	}
-	ast_module_unref(ast_module_info->self);
 	return res;
 }
 
