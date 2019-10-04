@@ -590,7 +590,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 							"\t%-20.20s| primary_call       |%20.20s| creates tmp_channel in sccp_pbx_call to call forwarding destination\n"
 							"\t%-20.20s| temp_bridge        |%20.20s| masquerade on answer of endpoint 2\n"
 							"\t------------------- | ------------------ | ------------------ | <-- masquerade temp_bridge:endpoint2 -> primary_call:endpoint2\n"
-							"\t%-20.20s| primary call       |%20.20s| after masqueradem hangup temp_bridge:temp_channel\n",
+							"\t%-20.20s| primary call       |%20.20s| after masquerading, hangup temp_bridge:temp_channel\n",
 				       "incoming", pbx_channel_name(forwarder), pbx_channel_name(tmp_channel), destinationChannelName, "incoming", destinationChannelName);
 		do {
 			// retrieve channel by name which will replace in the forwarded channel
