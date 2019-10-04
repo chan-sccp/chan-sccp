@@ -22,8 +22,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 #endif
 //#define SEMAPHORE_LOCKED	(0)
 //#define SEMAPHORE_UNLOCKED	(1)
-void sccp_threadpool_grow(sccp_threadpool_t * tp_p, int amount);
-void sccp_threadpool_shrink(sccp_threadpool_t * tp_p, int amount);
+void sccp_threadpool_grow_locked(sccp_threadpool_t * tp_p, int amount);
+void sccp_threadpool_shrink_locked(sccp_threadpool_t * tp_p, int amount);
 void *sccp_threadpool_thread_do(void *p);
 
 typedef struct sccp_threadpool_thread sccp_threadpool_thread_t;
@@ -95,15 +95,15 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 
 	/* Make threads in pool */
 	SCCP_LIST_LOCK(&(tp_p->threads));
-	sccp_threadpool_grow(tp_p, threadsN);
+	sccp_threadpool_grow_locked(tp_p, threadsN);
 	SCCP_LIST_UNLOCK(&(tp_p->threads));
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Threadpool Started\n");
 	return tp_p;
 }
 
-// sccp_threadpool_grow needs to be called with locked &(tp_p->threads)->lock
-void sccp_threadpool_grow(sccp_threadpool_t * tp_p, int amount)
+// sccp_threadpool_grow_locked needs to be called with locked &(tp_p->threads)->lock
+void sccp_threadpool_grow_locked(sccp_threadpool_t * tp_p, int amount)
 {
 	pthread_attr_t attr;
 	sccp_threadpool_thread_t * tp_thread = NULL;
@@ -122,9 +122,7 @@ void sccp_threadpool_grow(sccp_threadpool_t * tp_p, int amount)
 			pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 			pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-			SCCP_LIST_LOCK(&(tp_p->threads));
 			SCCP_LIST_INSERT_HEAD(&(tp_p->threads), tp_thread, list);
-			SCCP_LIST_UNLOCK(&(tp_p->threads));
 			pbx_pthread_create(&(tp_thread->thread), &attr, sccp_threadpool_thread_do, (void *) tp_thread);
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Created thread %d(%p) in pool \n", t, (void *) tp_thread->thread);
 			pbx_cond_broadcast(&(tp_p->work));
@@ -132,22 +130,20 @@ void sccp_threadpool_grow(sccp_threadpool_t * tp_p, int amount)
 	}
 }
 
-// sccp_threadpool_shrink needs to be called with locked &(tp_p->threads)->lock
-void sccp_threadpool_shrink(sccp_threadpool_t * tp_p, int amount)
+// sccp_threadpool_shrink_locked needs to be called with locked &(tp_p->threads)->lock
+void sccp_threadpool_shrink_locked(sccp_threadpool_t * tp_p, int amount)
 {
 	sccp_threadpool_thread_t *tp_thread;
 	int t;
 
 	if (tp_p && !tp_p->sccp_threadpool_shuttingdown) {
 		for (t = 0; t < amount; t++) {
-			SCCP_LIST_LOCK(&(tp_p->threads));
 			SCCP_LIST_TRAVERSE(&(tp_p->threads), tp_thread, list) {
 				if (tp_thread->die == FALSE) {
 					tp_thread->die = TRUE;
 					break;
 				}
 			}
-			SCCP_LIST_UNLOCK(&(tp_p->threads));
 			
 			if (tp_thread) {
 				// wake up all threads
@@ -167,13 +163,13 @@ static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
 		{
 			if (SCCP_LIST_GETSIZE(&tp_p->jobs) > (SCCP_LIST_GETSIZE(&tp_p->threads) * 2) && SCCP_LIST_GETSIZE(&tp_p->threads) < THREADPOOL_MAX_SIZE) {	// increase
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Add new thread to threadpool %p\n", tp_p);
-				sccp_threadpool_grow(tp_p, 1);
+				sccp_threadpool_grow_locked(tp_p, 1);
 				tp_p->last_resize = time(0);
 			} else if (((time(0) - tp_p->last_resize) > THREADPOOL_RESIZE_INTERVAL * 3) &&		// wait a little longer to decrease
 				   (SCCP_LIST_GETSIZE(&tp_p->threads) > THREADPOOL_MIN_SIZE && SCCP_LIST_GETSIZE(&tp_p->jobs) < (SCCP_LIST_GETSIZE(&tp_p->threads) / 2))) {	// decrease
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Remove thread %d from threadpool %p\n", SCCP_LIST_GETSIZE(&tp_p->threads) - 1, tp_p);
 				// kill last thread only if it is not executed by itself
-				sccp_threadpool_shrink(tp_p, 1);
+				sccp_threadpool_shrink_locked(tp_p, 1);
 				tp_p->last_resize = time(0);
 			}
 			tp_p->last_size_check = time(0);
@@ -214,13 +210,16 @@ void *sccp_threadpool_thread_do(void *p)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Starting Threadpool JobQueue:%p\n", thread);
 	while (1) {
 		pthread_testcancel();
-		jobs = SCCP_LIST_GETSIZE(&tp_p->jobs);
-		threads = SCCP_LIST_GETSIZE(&tp_p->threads);
 
-		sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) num_jobs: %d, thread: %p, num_threads: %d\n", jobs, thread, threads);
+		SCCP_LIST_LOCK(&(tp_p->threads));								/* LOCK */
+		threads = SCCP_LIST_GETSIZE(&tp_p->threads);
+		SCCP_LIST_UNLOCK(&(tp_p->threads));
 
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+
 		SCCP_LIST_LOCK(&(tp_p->jobs));									/* LOCK */
+		jobs = SCCP_LIST_GETSIZE(&tp_p->jobs);
+		sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) num_jobs: %d, thread: %p, num_threads: %d\n", jobs, thread, threads);
 		while (SCCP_LIST_GETSIZE(&tp_p->jobs) == 0 && !tp_thread->die) {
 			sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Thread %p Waiting for New Work Condition\n", thread);
 			pbx_cond_wait(&(tp_p->work), &(tp_p->jobs.lock));
@@ -377,8 +376,12 @@ void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_
 	SCCP_LIST_INSERT_TAIL(&(tp_p->jobs), newjob_p, list);
 	SCCP_LIST_UNLOCK(&(tp_p->jobs));
 
-	if ((int)SCCP_LIST_GETSIZE(&tp_p->jobs) > tp_p->job_high_water_mark) {
-		tp_p->job_high_water_mark = SCCP_LIST_GETSIZE(&tp_p->jobs);
+	SCCP_LIST_LOCK(&(tp_p->jobs));
+	int jobs = (int) SCCP_LIST_GETSIZE(&tp_p->jobs);
+	SCCP_LIST_UNLOCK(&(tp_p->jobs));
+
+	if (jobs > tp_p->job_high_water_mark) {
+		tp_p->job_high_water_mark = jobs;
 	}
 	pbx_cond_signal(&(tp_p->work));
 }
@@ -427,12 +430,16 @@ AST_TEST_DEFINE(sccp_threadpool_create_destroy)
 
 	int current_size = sccp_threadpool_thread_count(test_threadpool);
 	pbx_test_status_update(test, "Grow threadpool by 3, current %d\n", current_size);
-	sccp_threadpool_grow(test_threadpool, 3);
+	SCCP_LIST_LOCK(&(test_threadpool->threads));
+	sccp_threadpool_grow_locked(test_threadpool, 3);
+	SCCP_LIST_UNLOCK(&(test_threadpool->threads));
 	pbx_test_validate(test, sccp_threadpool_thread_count(test_threadpool) == current_size + 3); 
 
 	current_size = sccp_threadpool_thread_count(test_threadpool);
 	pbx_test_status_update(test, "Shrink threadpool by 2, current %d\n", current_size);
-	sccp_threadpool_shrink(test_threadpool, 2);
+	SCCP_LIST_LOCK(&(test_threadpool->threads));
+	sccp_threadpool_shrink_locked(test_threadpool, 2);
+	SCCP_LIST_UNLOCK(&(test_threadpool->threads));
 	sleep(1);
 	pbx_test_validate(test, sccp_threadpool_thread_count(test_threadpool) == current_size - 2); 
 
@@ -462,7 +469,9 @@ AST_TEST_DEFINE(sccp_threadpool_work)
 
 	int current_size = sccp_threadpool_thread_count(test_threadpool);
 	pbx_test_status_update(test, "Grow threadpool by 3\n");
-	sccp_threadpool_grow(test_threadpool, 3);
+	SCCP_LIST_LOCK(&(test_threadpool->threads));
+	sccp_threadpool_grow_locked(test_threadpool, 3);
+	SCCP_LIST_UNLOCK(&(test_threadpool->threads));
 	pbx_test_validate(test, sccp_threadpool_thread_count(test_threadpool) == current_size + 3); 
 	
 	if (test_threadpool) {
