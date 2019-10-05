@@ -1,9 +1,10 @@
-chan-sccp (4.3.2-1ubuntu1) UNRELEASED; urgency=medium
+chan-sccp (4.3.2) UNRELEASED; urgency=medium
   * Enhancements:
     - Compile with c++ compatibility
     - Directed barge
     - Shared line barge
     - CLI: callforward
+    - CLI: microphone
     - Improved Video Handling
     - Added support for asterisk-17
 
@@ -16,6 +17,7 @@ chan-sccp (4.3.2-1ubuntu1) UNRELEASED; urgency=medium
     - callforward status bar message on 8945
     - pop up DND message on 8945 repeatedly (temp measure)
     - video mode
+    - Callforward on sharedline
 
  -- Diederik de Groot <ddegroot@users.sf.net>  Wed, 20 Feb 2019 17:47:00 +0100
 

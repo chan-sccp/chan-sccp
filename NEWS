@@ -5,6 +5,7 @@ Version: v4.3.2_DEV
    - Directed barge
    - Shared line barge
    - CLI: callforward
+   - CLI: microphone
    - Improved Video Handling
    - Added support for asterisk-17
 
@@ -17,6 +18,7 @@ Version: v4.3.2_DEV
    - callforward status bar message on 8945
    - pop up DND message on 8945 repeatedly (temp measure)
    - video mode
+   - Callforward on sharedline
 
 Version: v4.3.1_DEV
 =====================
