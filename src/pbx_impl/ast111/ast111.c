@@ -3029,8 +3029,6 @@ const PbxInterface iPbx = {
 	unregister_function: sccp_wrapper_unregister_function,
 
 	get_dtmf_payload_code: sccp_wrapper_get_dtmf_payload_code,
-	module_ref: sccp_astwrap_module_ref,
-	module_unref: sccp_astwrap_module_unref,
 	/* *INDENT-ON* */
 };
 
@@ -3173,8 +3171,6 @@ const PbxInterface iPbx = {
 	.unregister_function = sccp_wrapper_unregister_function,
 
 	.get_dtmf_payload_code = sccp_wrapper_get_dtmf_payload_code,
-	.module_ref = sccp_astwrap_module_ref,
-	.module_unref = sccp_astwrap_module_unref,
 	/* *INDENT-ON* */
 };
 #endif
