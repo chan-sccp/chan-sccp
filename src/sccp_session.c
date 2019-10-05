@@ -518,6 +518,7 @@ static void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 
 		/* destroying mutex and cleaning the session */
 		sccp_mutex_destroy(&s->lock);
+		sccp_mutex_destroy(&s->write_lock);
 		sccp_free(s);
 		s = NULL;
 	}
@@ -772,6 +773,7 @@ static sccp_session_t * sccp_create_session(int new_socket)
 	}
 
 	sccp_mutex_init(&s->lock);
+	sccp_mutex_init(&s->write_lock);
 
 	s->fds[0].events = POLLIN | POLLPRI;
 	s->fds[0].revents = 0;
