@@ -66,18 +66,22 @@ ForEachMacros: [
 ]
 IncludeBlocks: Preserve
 IncludeCategories:
-  - Regex:           '^<[a-z]*>'    # language headers like <algorithm>
-    Priority:        3
-  - Regex:           '^<.*\.h>'     # platform headers like <unistd.h>
-    Priority:        4
-  - Regex:           '^<asterisk/.*'         # asterisk headers
-    Priority:        5
-  - Regex:           '^<.*'         # other external headers
-    Priority:        6
-  - Regex:           '.*'           # any local headers
+  - Regex:           'config.h'     	# primary local headers
     Priority:        1
-  - Regex:           'pbx_impl/.*'           # any local headers
+  - Regex:           'common.h'     	# primary local headers
     Priority:        2
+  - Regex:           '.*'           	# any local headers
+    Priority:        3
+  - Regex:           'pbx_impl/.*'  	# any local headers
+    Priority:        4
+  - Regex:           '^<[a-z]*>'    	# language headers like <algorithm>
+    Priority:        5
+  - Regex:           '^<.*\.h>'     	# platform headers like <unistd.h>
+    Priority:        6
+  - Regex:           '^<asterisk/.*'	# asterisk headers
+    Priority:        7
+  - Regex:           '^<.*'         	# other external headers
+    Priority:        8
 IndentCaseLabels: true
 IndentPPDirectives: AfterHash
 IndentWidth:     8
