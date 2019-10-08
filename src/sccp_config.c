@@ -88,6 +88,7 @@
 #include "sccp_device.h"
 #include "sccp_featureButton.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_mwi.h"
 #include "sccp_session.h"
 #include "sccp_utils.h"
@@ -164,8 +165,8 @@ typedef struct SCCPConfigOption {
 	const size_t size;							/*!< The offsize of the element in the structure where the option value is stored */
 	const int offset;							/*!< The offset relative to the context structure where the option value is stored. */
 	int type; 								/*!< bitfield of enum SCCPConfigOptionType */
-	sccp_value_changed_t(*converter_f) (void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);	/*!< Conversion function */
-        sccp_enum_str2intval_t str2intval;
+	sccp_value_changed_t (*converter_f)(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment); /*!< Conversion function */
+	sccp_enum_str2intval_t str2intval;
         sccp_enum_all_entries_t all_entries;
         const char *parsername;
 	int flags;								/*!< bitfield of enum SCCPConfigOptionFlag */
@@ -175,35 +176,35 @@ typedef struct SCCPConfigOption {
 /* *INDENT-ON* */
 } SCCPConfigOption;
 
-//converter function prototypes 
-sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PBX_VARIABLE_TYPE * vroot, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX_VARIABLE_TYPE * vars, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size, PBX_VARIABLE_TYPE * vroot, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_hotline_label(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_jbflags_maxsize(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_jbflags_impl(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_jbflags_jbresyncthreshold(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+//converter function prototypes
+sccp_value_changed_t sccp_config_parse_codec_preferences(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_mailbox(void * const dest, const size_t size, PBX_VARIABLE_TYPE * vroot, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_tos(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_cos(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_amaflags(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_variables(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_group(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_deny_permit(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t size, PBX_VARIABLE_TYPE * vars, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_permithosts(void * const dest, const size_t size, PBX_VARIABLE_TYPE * vroot, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_addons(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_privacyFeature(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_debug(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_ipaddress(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_port(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_context(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_hotline_context(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_hotline_exten(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_hotline_label(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_enable(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_force(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_log(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_maxsize(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_impl(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_jbresyncthreshold(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttonconfigList, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
-sccp_value_changed_t sccp_config_parse_webdir(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_webdir(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 
 #include "sccp_config_entries.hh"
 
@@ -359,7 +360,8 @@ EXIT:
  *
  * \todo add errormsg return to sccpConfigOption->converter_f: so we can have a fixed format the returned errors to the user
  */
-static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VARIABLE_TYPE * cat_root, const char *name, const char *value, int lineno, const sccp_config_segment_t segment, boolean_t *SetEntries, boolean_t default_run)
+static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, PBX_VARIABLE_TYPE * cat_root, const char * name, const char * value, int lineno, const sccp_config_segment_t segment, boolean_t * SetEntries,
+							      boolean_t default_run)
 {
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
 	const SCCPConfigOption *sccpConfigOption = sccp_find_config(segment, name);
@@ -721,7 +723,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
  * check if we can find the param name in the segment specified and retrieving its value or default value
  * copy the string from the defaultSegment and run through the converter again
  */
-static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, boolean_t *SetEntries)
+static void sccp_config_set_defaults(void * const obj, const sccp_config_segment_t segment, boolean_t * SetEntries)
 {
 	if (!GLOB(cfg)) {
 		pbx_log(LOG_NOTICE, "GLOB(cfg) not available. Skip loading default setting.\n");
@@ -837,7 +839,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
  * \note This makes it easier to change character arrays to stringptr in structs, without having to think about cleaning up after them.
  *
  */
-void sccp_config_cleanup_dynamically_allocated_memory(void *obj, const sccp_config_segment_t segment)
+void sccp_config_cleanup_dynamically_allocated_memory(void * const obj, const sccp_config_segment_t segment)
 {
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
 	const SCCPConfigOption *sccpConfigOption = sccpConfigSegment->config;
@@ -864,7 +866,7 @@ void sccp_config_cleanup_dynamically_allocated_memory(void *obj, const sccp_conf
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_ipaddress(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
@@ -898,7 +900,7 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_port(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
@@ -950,7 +952,7 @@ sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_V
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_privacyFeature(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
@@ -981,7 +983,7 @@ sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t s
  * \note not multi_entry
  */
 /*
-   sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+   sccp_value_changed_t sccp_config_parse_mwilamp(void *const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
    {
    sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
    char *value = pbx_strdupa(v->value);
@@ -1015,7 +1017,7 @@ sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t s
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_tos(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
@@ -1059,7 +1061,7 @@ sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VA
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_cos(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
@@ -1087,7 +1089,7 @@ sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VA
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_amaflags(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
@@ -1108,7 +1110,7 @@ sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, P
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
@@ -1133,7 +1135,7 @@ sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_group(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
@@ -1187,7 +1189,7 @@ sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_context(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	if (v->value && !sccp_strlen_zero(v->value)) {
@@ -1211,7 +1213,7 @@ sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PB
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_hotline_context(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
@@ -1232,7 +1234,7 @@ sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t 
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_hotline_exten(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
@@ -1256,7 +1258,7 @@ sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t si
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_hotline_label(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_hotline_label(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
@@ -1277,7 +1279,7 @@ sccp_value_changed_t sccp_config_parse_hotline_label(void *dest, const size_t si
  *
  * \note not multi_entry
  */
-static sccp_value_changed_t sccp_config_parse_jbflags(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment, const unsigned int flag)
+static sccp_value_changed_t sccp_config_parse_jbflags(void * const dest, const size_t size, const char * value, const sccp_config_segment_t segment, const unsigned int flag)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 
@@ -1290,28 +1292,28 @@ static sccp_value_changed_t sccp_config_parse_jbflags(void *dest, const size_t s
 	return changed;
 }
 
-sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_jbflags_enable(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	char *value = pbx_strdupa(v->value);
 
 	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_ENABLED);
 }
 
-sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_jbflags_force(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	char *value = pbx_strdupa(v->value);
 
 	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_FORCED);
 }
 
-sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_jbflags_log(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	char *value = pbx_strdupa(v->value);
 
 	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_LOG);
 }
 
-sccp_value_changed_t sccp_config_parse_jbflags_maxsize(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_jbflags_maxsize(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	int value = sccp_atoi(v->value, strlen(v->value));
@@ -1324,7 +1326,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_maxsize(void *dest, const size_t 
 	return changed;
 }
 
-sccp_value_changed_t sccp_config_parse_jbflags_jbresyncthreshold(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_jbflags_jbresyncthreshold(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	int value = sccp_atoi(v->value, strlen(v->value));
@@ -1337,7 +1339,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_jbresyncthreshold(void *dest, con
 	return changed;
 }
 
-sccp_value_changed_t sccp_config_parse_jbflags_impl(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_jbflags_impl(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char * value = pbx_strdupa(v->value);
@@ -1353,7 +1355,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_impl(void *dest, const size_t siz
 /*!
  * \brief Config Converter/Parser for WebDir
  */
-sccp_value_changed_t sccp_config_parse_webdir(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_webdir(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
@@ -1386,7 +1388,7 @@ sccp_value_changed_t sccp_config_parse_webdir(void *dest, const size_t size, PBX
  *
  * \note multi_entry
  */
-sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_debug(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	uint32_t debug_new = 0;
@@ -1413,7 +1415,7 @@ sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_
  *
  * \note multi_entry
  */
-sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_codec_preferences(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	skinny_capabilities_t *prefs = (skinny_capabilities_t *) dest;
@@ -1463,7 +1465,7 @@ sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_
  *
  * \note multi_entry
  */
-sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_deny_permit(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	int error = 0;
@@ -1535,7 +1537,7 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
  * \note multi_entry
  * \note order is irrelevant
  */
-sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size, PBX_VARIABLE_TYPE * vroot, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_permithosts(void * const dest, const size_t size, PBX_VARIABLE_TYPE * vroot, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_hostname_t *permithost = NULL;
@@ -1605,7 +1607,7 @@ static skinny_devicetype_t addonstr2enum(const char *addonstr)
  *
  * \note multi_entry
  */
-sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_addons(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	unsigned int changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_addon_t *addon = NULL;
@@ -1668,7 +1670,7 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX
  * \note multi_entry
  * \note order is irrelevant
  */
-sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PBX_VARIABLE_TYPE * vroot, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_mailbox(void * const dest, const size_t size, PBX_VARIABLE_TYPE * vroot, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_mailbox_t *mailbox = NULL;
@@ -1728,7 +1730,7 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
  *
  * \note multi_entry
  */
-sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_variables(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 
@@ -1780,7 +1782,7 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
  *
  * \note multi_entry
  */
-sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX_VARIABLE_TYPE * vars, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t size, PBX_VARIABLE_TYPE * vars, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_CHANGED;
 
@@ -2501,7 +2503,6 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byname(cat, FALSE));
 
 			/* check if we have this line already */
-			//    SCCP_RWLIST_WRLOCK(&GLOB(lines));
 			if (l) {
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found line %d: %s, do update\n", line_count, cat);
 				sccp_config_buildLine(l, v, cat, FALSE);
@@ -2511,8 +2512,6 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			} else {
 				return FALSE;
 			}
-			//    SCCP_RWLIST_UNLOCK(&GLOB(lines));
-
 		} else if (!strcasecmp(utype, "softkeyset")) {
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "parsing softkey [%s]\n", cat);
 			if (sccp_strcaseequals(cat, "default")) {
@@ -2598,7 +2597,7 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	if (GLOB(reload_in_progress) && GLOB(pendingUpdate)) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Global param changed needing restart ->  Restart all device\n");
 
-		SCCP_RWLIST_WRLOCK(&GLOB(devices));
+		SCCP_RWLIST_RDLOCK(&GLOB(devices));
 		SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 			if (d->realtime) {
 				d->pendingDelete = 1;
@@ -2638,7 +2637,7 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
  * \callergraph
  * 
  */
-sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, PBX_VARIABLE_TYPE * v)
+sccp_configurationchange_t sccp_config_applyLineConfiguration(linePtr l, PBX_VARIABLE_TYPE * v)
 {
 	unsigned int res = SCCP_CONFIG_NOUPDATENEEDED;
 	boolean_t SetEntries[ARRAY_LEN(sccpLineConfigOptions)] = { FALSE };
@@ -2675,7 +2674,7 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, P
  * \callergraph
  * 
  */
-sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * d, PBX_VARIABLE_TYPE * v)
+sccp_configurationchange_t sccp_config_applyDeviceConfiguration(devicePtr d, PBX_VARIABLE_TYPE * v)
 {
 	unsigned int res = SCCP_CONFIG_NOUPDATENEEDED;
 	boolean_t SetEntries[ARRAY_LEN(sccpDeviceConfigOptions)] = { FALSE };
@@ -3029,7 +3028,7 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
  * \callergraph
  * 
  */
-void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
+void sccp_config_restoreDeviceFeatureStatus(devicePtr device)
 {
 	if (!device) {
 		return;

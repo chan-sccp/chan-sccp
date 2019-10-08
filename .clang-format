@@ -109,7 +109,7 @@ RawStringFormats:
     BasedOnStyle: llvm
     CanonicalDelimiter: 'cc'
 ReflowComments:  true
-SortIncludes:    true
+SortIncludes:    false
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
 SpaceAfterLogicalNot: false

@@ -15,11 +15,11 @@
 #include "sccp_channel.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_session.h"
 #include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
-
 #include <locale.h>
 #if defined __has_include
 #  if __has_include (<xlocale.h>)
@@ -100,7 +100,7 @@ void sccp_dump_msg(const sccp_msg_t * const msg)
  * \brief Clear all Addons from AddOn Linked List
  * \param d SCCP Device
  */
-void sccp_addons_clear(sccp_device_t * d)
+void sccp_addons_clear(devicePtr d)
 {
 	sccp_addon_t * addon = NULL;
 
@@ -129,75 +129,7 @@ void sccp_safe_sleep(int ms)
 	}
 }
 
-/*!
- * \brief Notify asterisk for new state
- * \param channel SCCP Channel
- * \param state New State - type of AST_STATE_*
- */
-/*
-void sccp_pbx_setcallstate(sccp_channel_t * channel, int state)
-{
-	if (channel) {
-		if (channel->owner) {
-			pbx_setstate(channel->owner, (enum ast_channel_state)state);
-			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Set asterisk state %s (%d) for call %d\n", channel->currentDeviceId, pbx_state2str(state), state, channel->callid);
-		}
-	}
-}
-*/
-
-#if UNUSEDCODE // 2015-11-01
-/*!
- * \brief Clean Asterisk Database Entries in the "SCCP" Family
- * 
- */
-void sccp_dev_dbclean(void)
-{
-	struct ast_db_entry *entry = NULL;
-	sccp_device_t *d = NULL;
-	char key[SCCP_MAX_EXTENSION];
-	char scanfmt[20]="";
-
-	//! \todo write an pbx implementation for that
-	//entry = PBX(feature_getFromDatabase)tree("SCCP", NULL);
-	while (entry) {
-		snprintf(scanfmt, sizeof(scanfmt), "/SCCP/%%%ds", SCCP_MAX_EXTENSION);
-		sscanf(entry->key, scanfmt, key);
-		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Looking for '%s' in the devices list\n", key);
-		if ((strlen(key) == 15) && (!strncmp(key, "SEP", 3) || !strncmp(key, "ATA", 3) || !strncmp(key, "VGC", 3) || !strncmp(key, "AN", 2) || !strncmp(key, "SKIGW", 5))) {
-
-			SCCP_RWLIST_RDLOCK(&GLOB(devices));
-			SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-				if (!strcasecmp(d->id, key)) {
-					break;
-				}
-			}
-			SCCP_RWLIST_UNLOCK(&GLOB(devices));
-
-			if (!d) {
-				iPbx.feature_removeFromDatabase("SCCP", key);
-				sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: device '%s' removed from asterisk database\n", entry->key);
-			}
-
-		}
-		entry = entry->next;
-	}
-	if (entry) {
-		pbx_db_freetree(entry);
-	}
-}
-#endif
-
-#if UNUSEDCODE // 2015-11-01
-gcc_inline uint32_t debugcat2int(const char *str)
-{														/* chan_sccp.h */
-	_STRARR2INT(sccp_debug_categories, key, str, category);
-}
-#endif
-
-
 #ifndef HAVE_PBX_STRINGS_H
-
 /*!
  * \brief Asterisk Skip Blanks
  * \param str as Character
@@ -303,22 +235,6 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
 }
 #endif
 
-#if 0 /* unused */
-/*!
- * \brief get the SoftKeyIndex for a given SoftKeyLabel on specified keymode
- * \param d SCCP Device
- * \param keymode KeyMode as Unsigned Int
- * \param softkey SoftKey as Unsigned Int
- * \return Result as int
- *
- * \todo implement function for finding index of given SoftKey
- */
-int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey)
-{
-	return -1;
-}
-#endif
-
 /*!
  * \brief Handle Feature Change Event for persistent feature storage
  * \param event SCCP Event
@@ -330,15 +246,15 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
  *  - device->buttonconfig is not always locked
  *  - line->devices is not always locked
  */
-void sccp_util_featureStorageBackend(const sccp_event_t * event)
+void sccp_util_featureStorageBackend(const sccp_event_t * const event)
 {
 	char family[25];
 	char cfwdDeviceLineStore[60];										/* backward compatibiliy SCCP/Device/Line */
 	char cfwdLineDeviceStore[60];										/* new format cfwd: SCCP/Line/Device */
-	sccp_linedevices_t * linedevice = NULL;
+	sccp_linedevice_t * ld = NULL;
 	sccp_device_t * device = NULL;
 
-	if (!event || !(device = event->featureChanged.device)) {
+	if(!event || !(device = event->featureChanged.device)) {
 		return;
 	}
 
@@ -349,18 +265,18 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 		case SCCP_FEATURE_CFWDNONE:
 		case SCCP_FEATURE_CFWDBUSY:
 		case SCCP_FEATURE_CFWDALL:
-			if ((linedevice = event->featureChanged.optional_linedevice)) {
-				sccp_line_t *line = linedevice->line;
-				uint8_t instance = linedevice->lineInstance;
+			if((ld = event->featureChanged.optional_linedevice)) {
+				constLinePtr line = ld->line;
+				uint8_t instance = ld->lineInstance;
 
 				sccp_dev_forward_status(line, instance, device);
 				snprintf(cfwdDeviceLineStore, sizeof(cfwdDeviceLineStore), "SCCP/%s/%s", device->id, line->name);
 				snprintf(cfwdLineDeviceStore, sizeof(cfwdLineDeviceStore), "SCCP/%s/%s", line->name, device->id);
 				switch (event->featureChanged.featureType) {
 					case SCCP_FEATURE_CFWDALL:
-						if (linedevice->cfwdAll.enabled) {
-							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdAll", linedevice->cfwdAll.number);
-							iPbx.feature_addToDatabase(cfwdLineDeviceStore, "cfwdAll", linedevice->cfwdAll.number);
+						if(ld->cfwdAll.enabled) {
+							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdAll", ld->cfwdAll.number);
+							iPbx.feature_addToDatabase(cfwdLineDeviceStore, "cfwdAll", ld->cfwdAll.number);
 							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						} else {
 							iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdAll");
@@ -369,9 +285,9 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 						}
 						break;
 					case SCCP_FEATURE_CFWDBUSY:
-						if (linedevice->cfwdBusy.enabled) {
-							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdBusy", linedevice->cfwdBusy.number);
-							iPbx.feature_addToDatabase(cfwdLineDeviceStore, "cfwdBusy", linedevice->cfwdBusy.number);
+						if(ld->cfwdBusy.enabled) {
+							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdBusy", ld->cfwdBusy.number);
+							iPbx.feature_addToDatabase(cfwdLineDeviceStore, "cfwdBusy", ld->cfwdBusy.number);
 							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						} else {
 							iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdBusy");
@@ -616,13 +532,12 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 /*!
  * \brief Match Subscription ID
  * \param channel SCCP Channel
- * \param subscriptionIdNum Subscription ID Number for linedevice
+ * \param subscriptionIdNum Subscription ID Number for ld
  * \return result as boolean
  *
- * \callgraph
- * \callergraph
+ * \callgraph * \callergraph
  */
-boolean_t __PURE__ sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *subscriptionIdNum)
+boolean_t __PURE__ sccp_util_matchSubscriptionId(constChannelPtr channel, const char * subscriptionIdNum)
 {
 	boolean_t result = TRUE;
 
@@ -1409,20 +1324,6 @@ AST_TEST_DEFINE(chan_sccp_acl_invalid_tests)
 	return res;
 }
 #endif
-
-/*!
- * \brief Yields string representation from channel (for debug).
- * \param c SCCP channel
- * \return string constant (on the heap!)
- */
-const char * __PURE__ sccp_channel_toString(sccp_channel_t * c)
-{
-	if (c) {
-		return (const char *) c->designator;
-	} 
-		return "";
-	
-}
 
 /*!
  * \brief Print Group

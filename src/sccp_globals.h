@@ -178,17 +178,10 @@ struct sccp_global_vars {
 })
 
 /* Global Allocations */
-SCCP_LIST_HEAD (softKeySetConfigList, sccp_softKeySetConfiguration_t);						/*!< SCCP LIST HEAD for softKeySetConfigList (Structure) */
 SCCP_API struct sccp_global_vars *sccp_globals;
-SCCP_API struct softKeySetConfigList softKeySetConfig;								/*!< List of SoftKeySets */
 #ifdef CS_DEVSTATE_FEATURE
 SCCP_API const char devstate_db_family[];
 #endif
-
-/* Function Declarations */
-//#if UNUSEDCODE // 2015-11-01
-//SCCP_API int SCCP_CALL sccp_sched_free(void *ptr);
-//#endif
 
 __END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

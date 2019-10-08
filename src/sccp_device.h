@@ -130,19 +130,6 @@ struct sccp_hostname {
 };														/*!< SCCP Hostname Structure */
 
 /*!
- * \brief SCCP SoftKeySet Configuration Structure
- */
-struct softKeySetConfiguration {
-	char name[SCCP_MAX_SOFTKEYSET_NAME];									/*!< Name for this configuration */
-	softkey_modes modes[SCCP_MAX_SOFTKEY_MODES];								/*!< SoftKeySet modes, see KEYMODE_ */
-	sccp_softkeyMap_cb_t *softkeyCbMap;									/*!< Softkey Callback Map, ie handlers */
-	SCCP_LIST_ENTRY (sccp_softKeySetConfiguration_t) list;							/*!< Next list entry */
-	boolean_t pendingDelete;
-	boolean_t pendingUpdate;
-	uint8_t numberOfSoftKeySets;										/*!< Number of SoftKeySets we define */
-};														/*!< SoftKeySet Configuration Structure */
-
-/*!
  * \brief SCCP Device Structure
  */
 struct sccp_device {
@@ -168,10 +155,9 @@ struct sccp_device {
 	sccp_line_t *currentLine;										/*!< Current Line */
 
 	struct {
-		sccp_linedevices_t **instance;
+		sccp_linedevice_t ** instance;
 		uint8_t size;
 	} lineButtons;
-
 	//SCCP_LIST_HEAD (, sccp_buttonconfig_t) buttonconfig;							/*!< SCCP Button Config Attached to this Device */
 	sccp_buttonconfig_list_t buttonconfig;									/*!< SCCP Button Config Attached to this Device */
 	SCCP_LIST_HEAD (, sccp_selectedchannel_t) selectedChannels;						/*!< Selected Channel List */
@@ -339,7 +325,7 @@ struct sccp_device {
  */
 struct sccp_addon {
 	SCCP_LIST_ENTRY (sccp_addon_t) list;									/*!< Linked List Entry for this Add-On */
-	//sccp_device_t *device;											/*!< Device Associated with this Add-On */
+	// sccp_device_t *device;										/*!< Device Associated with this Add-On */
 	skinny_devicetype_t type;										/*!< Addon Device Type */
 };
 
@@ -348,11 +334,11 @@ struct sccp_addon {
  */
 struct sccp_device_indication_cb {
 	void (*const onhook) (constDevicePtr device, const uint8_t lineInstance, uint32_t callid);
-	void (*const offhook) (constDevicePtr device, sccp_linedevices_t * linedevice, uint32_t callid);
+	void (*const offhook)(constDevicePtr device, sccp_linedevice_t * ld, uint32_t callid);
 	void (*const dialing) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION]);
 	void (*const proceed) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
-	void (*const connected) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
-	void (*const callhistory) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_callHistoryDisposition_t disposition);
+	void (*const connected)(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo);
+	void (*const callhistory)(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_callHistoryDisposition_t disposition);
 	void (*const remoteOnhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
 	void (*const remoteOffhook) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid);
 	void (*const remoteConnected) (constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, skinny_callinfo_visibility_t visibility);
@@ -379,24 +365,16 @@ SCCP_API const SCCP_CALL skinny_registrationstate_t sccp_device_getRegistrationS
 SCCP_API int SCCP_CALL sccp_device_setRegistrationState(constDevicePtr d, const skinny_registrationstate_t state);
 /* ======================================================================================================== end getters / setters for privateData */
 
-/* live cycle */
-SCCP_API sccp_device_t * SCCP_CALL sccp_device_create(const char *id);
-SCCP_API sccp_device_t * SCCP_CALL sccp_device_createAnonymous(const char *name);
+SCCP_API devicePtr SCCP_CALL sccp_device_create(const char * id);
+SCCP_API devicePtr SCCP_CALL sccp_device_createAnonymous(const char * name);
 SCCP_API void SCCP_CALL sccp_device_addToGlobals(constDevicePtr device);
-
-SCCP_API sccp_line_t * SCCP_CALL sccp_dev_getActiveLine(constDevicePtr device);
+SCCP_API linePtr SCCP_CALL sccp_dev_getActiveLine(constDevicePtr device);
 SCCP_API void SCCP_CALL sccp_dev_setActiveLine(devicePtr device, constLinePtr l);
-SCCP_API sccp_channel_t * SCCP_CALL sccp_device_getActiveChannel(constDevicePtr device);
-SCCP_API void SCCP_CALL sccp_device_setActiveChannel(devicePtr d, sccp_channel_t * channel);
-
+SCCP_API channelPtr SCCP_CALL sccp_device_getActiveChannel(constDevicePtr device);
+SCCP_API void SCCP_CALL sccp_device_setActiveChannel(constDevicePtr d, constChannelPtr channel);
 SCCP_API sccp_buttonconfig_t * SCCP_CALL sccp_dev_serviceURL_find_byindex(devicePtr device, uint16_t instance);
-
-#define REQ(x,y) x = sccp_build_packet(y, sizeof(x->data.y))
-#define REQCMD(x,y) x = sccp_build_packet(y, 0)
-SCCP_API sccp_msg_t * SCCP_CALL sccp_build_packet(sccp_mid_t t, size_t pkt_len);
-
 SCCP_API void SCCP_CALL sccp_dev_check_displayprompt(constDevicePtr d);
-SCCP_API void SCCP_CALL sccp_device_setLastNumberDialed(devicePtr device, const char *lastNumberDialed, const sccp_linedevices_t *linedevice);
+SCCP_API void SCCP_CALL sccp_device_setLastNumberDialed(devicePtr device, const char * lastNumberDialed, const sccp_linedevice_t * ld);
 SCCP_API void SCCP_CALL sccp_device_preregistration(devicePtr device);
 SCCP_API uint8_t SCCP_CALL sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn);
 SCCP_API void SCCP_CALL sccp_dev_sendmsg(constDevicePtr d, sccp_mid_t t);
@@ -430,41 +408,24 @@ SCCP_API void SCCP_CALL sccp_device_clearMessageFromStack(devicePtr device, cons
 SCCP_API void SCCP_CALL sccp_device_featureChangedDisplay(const sccp_event_t * event);
 SCCP_API void SCCP_CALL sccp_device_sendcallstate(constDevicePtr d, uint8_t instance, uint32_t callid, skinny_callstate_t state, skinny_callpriority_t precedence_level, skinny_callinfo_visibility_t visibility);
 SCCP_API void SCCP_CALL sccp_device_sendCallHistoryDisposition(constDevicePtr d, uint8_t lineInstance, uint32_t callid, skinny_callHistoryDisposition_t disposition);
-
 SCCP_API int SCCP_CALL sccp_dev_send(constDevicePtr d, sccp_msg_t * msg);
-#if UNUSEDCODE // 2015-11-01
-SCCP_API int SCCP_CALL sccp_device_check_ringback(devicePtr d);
-#endif
 SCCP_API int SCCP_CALL sccp_device_sendReset(devicePtr d, skinny_resetType_t reset_type);
-
 SCCP_API uint8_t SCCP_CALL sccp_device_find_index_for_line(constDevicePtr d, const char *lineName);
 SCCP_API uint8_t SCCP_CALL sccp_device_numberOfChannels(constDevicePtr device);
-
 SCCP_API boolean_t SCCP_CALL sccp_device_isVideoSupported(constDevicePtr device);
 SCCP_API boolean_t SCCP_CALL sccp_device_check_update(devicePtr device);
 SCCP_INLINE SCCP_CALL int16_t sccp_device_buttonIndex2lineInstance(constDevicePtr d, uint16_t buttonIndex);
 
 // find device
-SCCP_API sccp_device_t * SCCP_CALL sccp_device_find_byid(const char *id, boolean_t useRealtime);
-
-#if DEBUG
-#define sccp_device_find_byname(_x) __sccp_device_find_byid(_x)
+SCCP_API devicePtr SCCP_CALL sccp_device_find_byid(const char * id, boolean_t useRealtime);
 #ifdef CS_SCCP_REALTIME
-#define sccp_device_find_realtime(_x) __sccp_device_find_realtime(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
-SCCP_API sccp_device_t * SCCP_CALL __sccp_device_find_realtime(const char *name, const char *filename, int lineno, const char *func);
-
-#define sccp_device_find_realtime_byid(_x) sccp_device_find_realtime(_x)
-#define sccp_device_find_realtime_byname(_x) sccp_device_find_realtime(_x)
-#endif
-#else
-
-#define sccp_device_find_byname(x) sccp_device_find_byid(x)
-#ifdef CS_SCCP_REALTIME
-SCCP_API sccp_device_t * SCCP_CALL sccp_device_find_realtime(const char *name);
-
-#define sccp_device_find_realtime_byid(x) sccp_device_find_realtime(x)
-#define sccp_device_find_realtime_byname(x) sccp_device_find_realtime(x)
-#endif
+#	if DEBUG
+#		define sccp_device_find_realtime(_x) __sccp_device_find_realtime(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+SCCP_API devicePtr SCCP_CALL __sccp_device_find_realtime(const char * name, const char * filename, int lineno, const char * func);
+#	else
+SCCP_API devicePtr SCCP_CALL sccp_device_find_realtime(const char * name);
+#	endif
+#	define sccp_device_find_realtime_byid(x) sccp_device_find_realtime(x)
 #endif
 
 SCCP_API void SCCP_CALL sccp_device_setLamp(constDevicePtr device, skinny_stimulus_t stimulus, uint8_t instance, skinny_lampmode_t mode);

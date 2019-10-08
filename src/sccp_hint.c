@@ -32,6 +32,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_device.h"
 #include "sccp_indicate.h"											// only for SCCP_CHANNELSTATE_Idling
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_utils.h"
 #include "sccp_labels.h"
 
@@ -407,16 +408,18 @@ static void sccp_hint_eventListener(const sccp_event_t * event)
 
 			break;
 		case SCCP_EVENT_DEVICE_ATTACHED:
-			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s (hint_eventListener) device %s attached on line %s\n", DEV_ID_LOG(event->deviceAttached.linedevice->device), event->deviceAttached.linedevice->device->id, event->deviceAttached.linedevice->line->name);
-			sccp_hint_attachLine(event->deviceAttached.linedevice->line, event->deviceAttached.linedevice->device);
+			sccp_log((DEBUGCAT_HINT))(VERBOSE_PREFIX_2 "%s (hint_eventListener) device %s attached on line %s\n", DEV_ID_LOG(event->deviceAttached.ld->device), event->deviceAttached.ld->device->id,
+						  event->deviceAttached.ld->line->name);
+			sccp_hint_attachLine(event->deviceAttached.ld->line, event->deviceAttached.ld->device);
 			break;
 		case SCCP_EVENT_DEVICE_DETACHED:
-			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s (hint_eventListener) device %s detached from line %s\n", DEV_ID_LOG(event->deviceAttached.linedevice->device), event->deviceAttached.linedevice->device->id, event->deviceAttached.linedevice->line->name);
-			sccp_hint_detachLine(event->deviceAttached.linedevice->line, event->deviceAttached.linedevice->device);
+			sccp_log((DEBUGCAT_HINT))(VERBOSE_PREFIX_2 "%s (hint_eventListener) device %s detached from line %s\n", DEV_ID_LOG(event->deviceAttached.ld->device), event->deviceAttached.ld->device->id,
+						  event->deviceAttached.ld->line->name);
+			sccp_hint_detachLine(event->deviceAttached.ld->line, event->deviceAttached.ld->device);
 			break;
 		case SCCP_EVENT_LINESTATUS_CHANGED:
 			pbx_rwlock_rdlock(&GLOB(lock));
-			if (!GLOB(reload_in_progress)) {									/* skip processing hints when reloading */
+			if(!GLOB(reload_in_progress)) { /* skip processing hints when reloading */
 				sccp_hint_lineStatusChanged(event->lineStatusChanged.line, event->lineStatusChanged.optional_device);
 			}
 			pbx_rwlock_unlock(&GLOB(lock));
@@ -895,11 +898,11 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 		state = channel->state;
 
 		SCCP_LIST_LOCK(&line->devices);
-		AUTO_RELEASE(sccp_linedevices_t, lineDevice , SCCP_LIST_FIRST(&line->devices) ? sccp_linedevice_retain(SCCP_LIST_FIRST(&line->devices)) : NULL);
+		AUTO_RELEASE(sccp_linedevice_t, lineDevice, SCCP_LIST_FIRST(&line->devices) ? sccp_linedevice_retain(SCCP_LIST_FIRST(&line->devices)) : NULL);
 
 		SCCP_LIST_UNLOCK(&line->devices);
-		if (lineDevice) {
-			AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(lineDevice->device));
+		if(lineDevice) {
+			AUTO_RELEASE(sccp_device_t, device, sccp_device_retain(lineDevice->device));
 
 			if (device) {
 				if (device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT) {
@@ -1482,11 +1485,10 @@ static gcc_inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device
 
 static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 {
-	sccp_linedevices_t *lineDevice = NULL;
+	sccp_linedevice_t * lineDevice = NULL;
 	sccp_line_t *line = lineState->line;
 
-	do {
-		/* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
+	do { /* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
 		boolean_t allDevicesInDND = TRUE;
 
 		SCCP_LIST_LOCK(&line->devices);
@@ -1502,7 +1504,7 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 			lineState->callInfo.calltype = SKINNY_CALLTYPE_INBOUND;
 			lineState->state = SCCP_CHANNELSTATE_DND;
 		}
-	} while (0);
+	} while(0);
 
 	if (lineState->state == SCCP_CHANNELSTATE_DND) {
 		sccp_copy_string(lineState->callInfo.partyName, "DND", sizeof(lineState->callInfo.partyName));

@@ -28,12 +28,14 @@
 #include "sccp_featureButton.h"
 #include "sccp_feature.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_pbx.h"
 #include "sccp_conference.h"
 #include "sccp_indicate.h"
 #include "sccp_management.h"
 #include "sccp_utils.h"
 #include "sccp_labels.h"
+#include "sccp_threadpool.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -73,36 +75,32 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr d, sccp_callfor
 		return;
 	}
 
-	AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(d, l));
+	AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, l));
 
-	if (!linedevice) {
+	if(!ld) {
 		pbx_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(d));
 		return;
 	}
-	
+
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_getEmptyChannel(l, d, maybe_c, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));
 	if (c) {
 		sccp_softswitch_t ss_action = c->softswitch_action ? c->softswitch_action : SCCP_SOFTSWITCH_GETFORWARDEXTEN;
-		if (
-			(linedevice->cfwdAll.enabled && type == SCCP_CFWD_ALL) ||
-			(linedevice->cfwdBusy.enabled && type == SCCP_CFWD_BUSY) ||
-			(type == SCCP_CFWD_NOANSWER)
-		) {
+		if((ld->cfwdAll.enabled && type == SCCP_CFWD_ALL) || (ld->cfwdBusy.enabled && type == SCCP_CFWD_BUSY) || (type == SCCP_CFWD_NOANSWER)) {
 			sccp_log(DEBUGCAT_PBX)("%s: Removing Call Forward\n", d->id);
 			ss_action = SCCP_SOFTSWITCH_ENDCALLFORWARD;
 		} else {
 			sccp_log(DEBUGCAT_PBX)("%s: Adding Call Forward\n", d->id);
 		}
-		
+
 		if (ss_action == SCCP_SOFTSWITCH_GETFORWARDEXTEN) {							// we already have an active channel
 			if (c->state == SCCP_CHANNELSTATE_RINGOUT || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED || c->state == SCCP_CHANNELSTATE_BUSY || c->state == SCCP_CHANNELSTATE_CONGESTION) {
 				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND && !sccp_strlen_zero(c->dialedNumber)) {	// if we have an outbound call, we can set callforward to dialed number -FS
 					sccp_line_cfwd(l, d, type, c->dialedNumber);
-					sccp_dev_starttone(d, SKINNY_TONE_ZIP, linedevice->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+					sccp_dev_starttone(d, SKINNY_TONE_ZIP, ld->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 					sccp_channel_endcall(c);
 					return;
-				} else if (iPbx.channel_is_bridged(c)) {						// check if we have an ast channel to get callerid from
-					// if we have an incoming or forwarded call, let's get number from callerid :) -FS
+				} else if(iPbx.channel_is_bridged(c)) {                                        // check if we have an ast channel to get callerid from					// if we have an incoming or
+													       // forwarded call, let's get number from callerid :) -FS
 					char *number = NULL;
 					if (iPbx.get_callerid_name) {
 						iPbx.get_callerid_number(c->owner, &number);
@@ -110,7 +108,7 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr d, sccp_callfor
 					if (number) {
 						sccp_line_cfwd(l, d, type, number);
 						// we are on call, so no tone has been played until now :)
-						sccp_dev_starttone(d, SKINNY_TONE_ZIP, linedevice->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+						sccp_dev_starttone(d, SKINNY_TONE_ZIP, ld->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 						sccp_channel_endcall(c);
 						sccp_free(number);
 						return;
@@ -124,24 +122,24 @@ void sccp_feat_handle_callforward(constLinePtr l, constDevicePtr d, sccp_callfor
 		switch (type) {
 			case SCCP_CFWD_ALL:
 				sccp_dev_set_message((devicePtr)d, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT, FALSE, FALSE);
-				sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDALL, linedevice->lineInstance, SKINNY_LAMP_FLASH);
+				sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDALL, ld->lineInstance, SKINNY_LAMP_FLASH);
 				break;
 			case SCCP_CFWD_BUSY:
 				sccp_dev_set_message((devicePtr)d, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT, FALSE, FALSE);
-				sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDBUSY, linedevice->lineInstance, SKINNY_LAMP_FLASH);
+				sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDBUSY, ld->lineInstance, SKINNY_LAMP_FLASH);
 				break;
 			/*
 			// already tested for at the beginning of this function: currently we do not support cfwd_noanswer, so no need for handling it here
 			case SCCP_CFWD_NOANSWER:
 				sccp_dev_set_message((devicePtr)d, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT, FALSE, FALSE);
-				sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDNOANSWER, linedevice->lineInstance, SKINNY_LAMP_FLASH);
+				sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDNOANSWER, ld->lineInstance, SKINNY_LAMP_FLASH);
 				break;
 			*/
 			default:
-				sccp_dev_displayprompt(d, linedevice->lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+				sccp_dev_displayprompt(d, ld->lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
 				break;
 		}
-		if (ss_action == SCCP_SOFTSWITCH_ENDCALLFORWARD) {
+		if(ss_action == SCCP_SOFTSWITCH_ENDCALLFORWARD) {
 			sccp_pbx_softswitch(c);
 		}
 	}
@@ -287,16 +285,16 @@ void sccp_feat_handle_directed_pickup(constDevicePtr d, constLinePtr l, channelP
 		return;
 	}
 	{
-		AUTO_RELEASE(sccp_linedevices_t, ld , sccp_linedevice_find(d, l));
+		AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, l));
 		if (!ld->isPickupAllowed()) {
 			pbx_log(LOG_NOTICE, "%s: (directed_pickup) pickup button has been disabled for line:%s (already pressed pickup on this call).\n", d->id, l->name);
 			return;
 		}
-		sccp_linedevice_disallowPickup(ld);
+		ld->disallowPickup(ld);
 	}
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_getEmptyChannel(l, d, maybe_c, SKINNY_CALLTYPE_INBOUND, NULL, NULL));
-	if (c) {
-		c->softswitch_action = SCCP_SOFTSWITCH_GETPICKUPEXTEN;						/* SoftSwitch will catch a number to be dialed */
+	if(c) {
+		c->softswitch_action = SCCP_SOFTSWITCH_GETPICKUPEXTEN;                                          /* SoftSwitch will catch a number to be dialed */
 		c->ss_data = 0;											/* not needed here */
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
@@ -444,15 +442,14 @@ int sccp_feat_grouppickup(constDevicePtr d, constLinePtr l, uint32_t lineInstanc
 		return -1;
 	}
 	{
-		AUTO_RELEASE(sccp_linedevices_t, ld , sccp_linedevice_find(d, l));
+		AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, l));
 		if (!ld->isPickupAllowed()) {
 			pbx_log(LOG_NOTICE, "%s: (directed_pickup) pickup button has been disabled for line:%s (already pressed pickup on this call).\n", d->id, l->name);
 			return -1;
 		}
-		sccp_linedevice_disallowPickup(ld);
+		ld->disallowPickup(ld);
 	}
 	/* end assertions */
-
 	pbx_log(LOG_NOTICE, "%s: (gpickup) get channel: %s.\n", d->id, maybe_c ? maybe_c->designator : "<null>");
 	/* re-use/create channel for pickup */
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_getEmptyChannel(l, d, maybe_c, SKINNY_CALLTYPE_INBOUND, NULL, NULL));
@@ -1121,7 +1118,7 @@ void sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr
 			/* use the channel pointed to on the screen */
 			sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_2 "%s: handling barge on shared line\n", maybe_c->designator);
 			AUTO_RELEASE(sccp_channel_t, bargedChannel, sccp_channel_retain(maybe_c));
-			AUTO_RELEASE(sccp_linedevices_t, bargingLineDevice, sccp_linedevice_find(d, l));
+			AUTO_RELEASE(sccp_linedevice_t, bargingLineDevice, sccp_linedevice_find(d, l));
 			if (!sccp_feat_sharedline_barge(bargingLineDevice, bargedChannel)) {
 				sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, SKINNY_TONEDIRECTION_USER);
 			}
@@ -1163,10 +1160,10 @@ int sccp_feat_singleline_barge(channelPtr c, const char * const exten)
 		pbx_log(LOG_ERROR, "SCCP: (sccp_feat_sharedline_barge) called without valid channel\n");
 		return FALSE;
 	}
-	AUTO_RELEASE(sccp_linedevices_t, bargingLD, sccp_channel_getLineDevice(c));
+	AUTO_RELEASE(sccp_linedevice_t, bargingLD, sccp_channel_getLineDevice(c));
 	sccp_barge_info_t *barge_info = NULL;
-	
-	if (!bargingLD) {
+
+	if(!bargingLD) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_feat_sharedline_barge) called without bargingLD\n");
 		return FALSE;
 	}
@@ -1273,7 +1270,7 @@ int sccp_feat_sharedline_barge(constLineDevicePtr bargingLD, channelPtr bargedCh
 	}
 	bargedChannel->isBarged = TRUE;
 
-	AUTO_RELEASE(sccp_linedevices_t, bargedLineDevice, bargedChannel->getLineDevice(bargedChannel));
+	AUTO_RELEASE(sccp_linedevice_t, bargedLineDevice, bargedChannel->getLineDevice(bargedChannel));
 	if (!bargedLineDevice || !bargedLineDevice->device) {
 		sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_FAILED_TO_SETUP_BARGE, SCCP_DISPLAYSTATUS_TIMEOUT);
 		return FALSE;
@@ -1472,22 +1469,22 @@ void sccp_feat_adhocDial(constDevicePtr d, constLinePtr line)
 /*!
  * \brief Handler to Notify Features have Changed
  * \param device SCCP Device
- * \param linedevice SCCP LineDevice
+ * \param ld SCCP LineDevice
  * \param featureType SCCP Feature Type
- * 
+ *
  */
-void sccp_feat_changed(constDevicePtr device, const sccp_linedevices_t * const linedevice, sccp_feature_type_t featureType)
+void sccp_feat_changed(constDevicePtr device, constLineDevicePtr maybe_ld, sccp_feature_type_t featureType)
 {
 	if (device) {
 		sccp_featButton_changed(device, featureType);
 		sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_FEATURE_CHANGED);
 		if (event) {
 			event->featureChanged.device = sccp_device_retain(device);
-			event->featureChanged.optional_linedevice = linedevice ? sccp_linedevice_retain(linedevice) : NULL;
+			event->featureChanged.optional_linedevice = maybe_ld ? sccp_linedevice_retain(maybe_ld) : NULL;
 			event->featureChanged.featureType = featureType;
 			sccp_event_fire(event);
 		}
-		sccp_log(DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "%s: Feature %s Change Event Scheduled\n", device->id, sccp_feature_type2str(featureType));
+		sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_3 "%s: Feature %s Change Event Scheduled\n", device->id, sccp_feature_type2str(featureType));
 	}
 }
 

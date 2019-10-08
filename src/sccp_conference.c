@@ -14,8 +14,10 @@
 #include "sccp_device.h"
 #include "sccp_indicate.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_utils.h"
 #include "sccp_labels.h"
+#include "sccp_threadpool.h"
 #include <asterisk/say.h>
 
 #ifdef CS_SCCP_CONFERENCE
@@ -636,7 +638,7 @@ static void sccp_conference_removeParticipant(conferencePtr conference, particip
 
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Removing Participant %d.\n", conference->id, participant->id);
 
-	SCCP_RWLIST_WRLOCK(&(((conferencePtr)conference)->participants));
+	SCCP_RWLIST_RDLOCK(&(((conferencePtr)conference)->participants));
 	AUTO_RELEASE(sccp_participant_t, tmp_participant, SCCP_RWLIST_REMOVE(&conference->participants, (sccp_participant_t *)participant, list));
 	num_participants = SCCP_RWLIST_GETSIZE(&conference->participants);
 	SCCP_RWLIST_UNLOCK(&(((conferencePtr)conference)->participants));

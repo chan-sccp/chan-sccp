@@ -19,6 +19,7 @@
 #include "sccp_device.h"
 #include "sccp_feature.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_session.h"
 #include "sccp_utils.h"
 #include "sccp_labels.h"
@@ -444,14 +445,7 @@ static void sccp_sk_answer(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 
 	/* taking the reference during a locked ast channel allows us to call sccp_channel_answer unlock without the risk of loosing the channel */
 	if (c->owner) {
-		pbx_channel_lock(c->owner);
-		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(c->owner);
-		pbx_channel_unlock(c->owner);
-
-		if (pbx_channel) {
-			sccp_channel_answer(d, c);
-			pbx_channel_unref(pbx_channel);
-		}
+		sccp_channel_answer(d, c);
 	}
 }
 
@@ -679,13 +673,13 @@ static void sccp_sk_trnsfvm(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
  * \brief Initiate Private Call on Current Line
  *
  */
-static void sccp_sk_private(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
+static void sccp_sk_private(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr device, constLinePtr l, const uint32_t lineInstance, channelPtr c)
 {
-	if (!d) {
+	if(!device) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_private function called without specifying a device\n");
 		return;
 	}
-
+	AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(device));
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Private Pressed\n", DEV_ID_LOG(d));
 
 	if (!d->privacyFeature.enabled) {
@@ -700,14 +694,12 @@ static void sccp_sk_private(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 		instance = lineInstance;
 	} else {
 		AUTO_RELEASE(const sccp_line_t, line , sccp_sk_get_retained_line(d, l, lineInstance, c, SKINNY_DISP_PRIVATE_WITHOUT_LINE_CHANNEL));
-		AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
-
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Creating new PRIVATE channel\n", d->id);
-		if (line && device) {
-			instance = sccp_device_find_index_for_line(device, line->name);
-			sccp_dev_setActiveLine(device, line);
-			sccp_dev_set_cplane(device, instance, 1);
-			channel = sccp_channel_newcall(line, device, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL) /*ref_replace*/;
+		if(line) {
+			instance = sccp_device_find_index_for_line(d, line->name);
+			sccp_dev_setActiveLine(d, line);
+			sccp_dev_set_cplane(d, instance, 1);
+			channel = sccp_channel_newcall(line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL) /*ref_replace*/;
 		}
 	}
 
@@ -719,7 +711,7 @@ static void sccp_sk_private(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 
 	// toggle
 	channel->privacy = !channel->privacy;
-	sccp_softkey_setSoftkeyState((sccp_device_t *)d, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_BARGE, channel->privacy);		// const cast
+	sccp_softkey_setSoftkeyState(d, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_BARGE, channel->privacy);
 
 	// update device->privacyFeature.status  using sccp_feat_changed
 	//sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
@@ -728,14 +720,13 @@ static void sccp_sk_private(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 	if (channel->privacy) {
 		sccp_channel_set_calleridPresentation(channel, CALLERID_PRESENTATION_FORBIDDEN);
 		pbx_builtin_setvar_helper(channel->owner, "SKINNY_PRIVATE", "1");
-		sccp_device_addMessageToStack((sccp_device_t *)d, SCCP_MESSAGE_PRIORITY_PRIVACY, SKINNY_DISP_PRIVATE);  	// const cast
+		sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_PRIVACY, SKINNY_DISP_PRIVATE);
 		sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_PRIVATE, 5);
 	} else {
 		pbx_builtin_setvar_helper(channel->owner, "SKINNY_PRIVATE", "0");
 		sccp_channel_set_calleridPresentation(c, CALLERID_PRESENTATION_ALLOWED);
-		sccp_device_clearMessageFromStack((sccp_device_t *)d, SCCP_MESSAGE_PRIORITY_PRIVACY);				// const cast
+		sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_PRIVACY);
 	}
-
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Private %s on call %d\n", d->id, channel->privacy ? "enabled" : "disabled", channel->callid);
 }
 
@@ -1058,40 +1049,20 @@ void sccp_softkey_post_reload(void)
 {
 	/* only required because softkeys are parsed after devices */
 	/* incase softkeysets have changed but device was not reloaded, then d->softkeyset needs to be fixed up */
-	sccp_softKeySetConfiguration_t *softkeyset = NULL;
-	sccp_softKeySetConfiguration_t *default_softkeyset = NULL;
-	sccp_device_t *d = NULL;
-	
-	SCCP_LIST_LOCK(&softKeySetConfig);
-	SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
-		if (sccp_strcaseequals("default", softkeyset->name)) {
-                	default_softkeyset = softkeyset;
-                }
-	}
-	SCCP_LIST_UNLOCK(&softKeySetConfig);
-	
-	if (!default_softkeyset) {
-		pbx_log(LOG_ERROR, "SCCP: 'default' softkeyset could not be found. Something is horribly wrong here\n");
-	}
-
-	SCCP_RWLIST_WRLOCK(&GLOB(devices));
+	sccp_device_t * d = NULL;
+	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+		sccp_softKeySetConfiguration_t * softkeyset = NULL;
 		SCCP_LIST_LOCK(&softKeySetConfig);
 		SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
-			if (sccp_strcaseequals(d->softkeyDefinition, softkeyset->name)) {
-				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Re-attaching softkeyset: %s to device d: %s\n", softkeyset->name, d->id);
+			if(sccp_strcaseequals(d->softkeyDefinition, softkeyset->name)) {
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "Re-attaching softkeyset: %s to device d: %s\n", softkeyset->name, d->id);
 				d->softkeyset = softkeyset;
 				d->softKeyConfiguration.modes = softkeyset->modes;
 				d->softKeyConfiguration.size = softkeyset->numberOfSoftKeySets;
 			}
 		}
 		SCCP_LIST_UNLOCK(&softKeySetConfig);
-		
-		if (default_softkeyset && !d->softkeyset) {
-			d->softkeyset = default_softkeyset;
-			d->softKeyConfiguration.modes = default_softkeyset->modes;
-			d->softKeyConfiguration.size = default_softkeyset->numberOfSoftKeySets;
-		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 }
@@ -1179,16 +1150,8 @@ boolean_t sccp_SoftkeyMap_execCallbackByEvent(devicePtr d, linePtr l, uint32_t l
 		pbx_log(LOG_WARNING, "%s: Channel required to handle keypress %d\n", d->id, event);
 		return FALSE;
 	}
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Handling Softkey: %s on line: %s and channel: %s\n", d->id, label2str(event), l ? l->name : "UNDEF", c ? sccp_channel_toString(c) : "UNDEF");
-	//! \todo tie the device to the channel, we know the user pressed a button on a particular device
-	/*
-	if (c) {
-		AUTO_RELEASE(sccp_device_t, tmpdevice , sccp_channel_getDevice(c));
-		if (!tmpdevice) {
-			sccp_channel_setDevice(c, d);
-		}
-	}
-	*/
+	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: Handling Softkey: %s on line: %s and channel: %s\n", d->id, label2str(event), l ? l->name : "UNDEF", c ? c->designator : "UNDEF");
+
 	softkeyMap_cb->softkeyEvent_cb(softkeyMap_cb, d, l, lineInstance, c);
 	return TRUE;
 }

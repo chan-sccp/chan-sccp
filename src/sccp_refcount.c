@@ -47,6 +47,7 @@
 #include "sccp_channel.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -172,18 +173,18 @@ static struct sccp_refcount_obj_info {
 	char datatype[StationMaxDeviceNameSize];
 	sccp_debug_category_t debugcat;
 } obj_info[] = {
-/* *INDENT-OFF* */
-	[SCCP_REF_PARTICIPANT] = {NULL, "participant", DEBUGCAT_CONFERENCE},
-	[SCCP_REF_CONFERENCE] = {NULL, "conference", DEBUGCAT_CONFERENCE},
-	[SCCP_REF_EVENT] = {NULL, "event", DEBUGCAT_EVENT},
-	[SCCP_REF_CHANNEL] = {NULL, "channel", DEBUGCAT_CHANNEL},
-	[SCCP_REF_LINEDEVICE] = {NULL, "linedevice", DEBUGCAT_LINE},
-	[SCCP_REF_LINE] = {NULL, "line", DEBUGCAT_LINE},
-	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
+	/* *INDENT-OFF* */
+	[SCCP_REF_PARTICIPANT] = { NULL, "participant", DEBUGCAT_CONFERENCE },
+	[SCCP_REF_CONFERENCE] = { NULL, "conference", DEBUGCAT_CONFERENCE },
+	[SCCP_REF_EVENT] = { NULL, "event", DEBUGCAT_EVENT },
+	[SCCP_REF_CHANNEL] = { NULL, "channel", DEBUGCAT_CHANNEL },
+	[SCCP_REF_LINEDEVICE] = { NULL, "ld", DEBUGCAT_LINE },
+	[SCCP_REF_LINE] = { NULL, "line", DEBUGCAT_LINE },
+	[SCCP_REF_DEVICE] = { NULL, "device", DEBUGCAT_DEVICE },
 #if CS_TEST_FRAMEWORK
-	[SCCP_REF_TEST] = {NULL, "test", DEBUGCAT_HIGH},
+	[SCCP_REF_TEST] = { NULL, "test", DEBUGCAT_HIGH },
 #endif
-/* *INDENT-ON* */
+	/* *INDENT-ON* */
 };
 
 typedef struct refcount_object RefCountedObject;
@@ -599,61 +600,55 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 #define CLI_AMI_TABLE_NAME Refcount
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Entry
 #define CLI_AMI_TABLE_ITERATOR for(bucket = 0; bucket < SCCP_HASH_PRIME; bucket++)
-#define CLI_AMI_TABLE_BEFORE_ITERATION 											\
-		if (objects[bucket]) {											\
-			SCCP_RWLIST_RDLOCK(&(objects[bucket]->refCountedObjects));					\
-			SCCP_RWLIST_TRAVERSE(&(objects[bucket]->refCountedObjects), obj, list) {			\
-				char bucketstr[8];									\
-				if (!s) {										\
-					if (prev == bucket) {								\
-						snprintf(bucketstr, sizeof(bucketstr), " +---> ");			\
-					} else {									\
-						snprintf(bucketstr, sizeof(bucketstr), "[%5d]", bucket);		\
-					}										\
-				} else {										\
-					snprintf(bucketstr, sizeof(bucketstr), "%d", bucket);				\
-				}											\
-				inuse = FALSE;										\
-				if (check_inuse && obj->alive) {							\
-					union {	/* little union trick to prevent cast-alignment warning	*/		\
-						unsigned char *cdata;							\
-						sccp_device_t *device;							\
-						sccp_line_t *line;							\
-						sccp_linedevices_t *linedevice;						\
-						sccp_channel_t *channel;						\
-					} data = {									\
-						.cdata = obj->data,							\
-					};										\
-					if (obj->type == SCCP_REF_DEVICE) {						\
-						if (data.device && data.device->session && data.device->active_channel) {\
-							inuse = TRUE;							\
-						}									\
-					} else if (obj->type == SCCP_REF_LINE) {					\
-						if (data.line && (							\
-							data.line->statistic.numberOfActiveChannels || 			\
-							data.line->statistic.numberOfHeldChannels)			\
-						) {									\
-							inuse = TRUE;							\
-						}									\
-					} else if (obj->type == SCCP_REF_LINEDEVICE) {					\
-						sccp_linedevices_t *linedevice = data.linedevice;			\
-						if (linedevice && linedevice->device && linedevice->line &&		\
-							linedevice->device->session && linedevice->device->active_channel && \
-							(linedevice->line->statistic.numberOfActiveChannels ||		\
-							linedevice->line->statistic.numberOfHeldChannels)		\
-						) {									\
-							inuse = TRUE;							\
-						}									\
-					} else if (obj->type == SCCP_REF_CHANNEL) {					\
-						if (data.channel && data.channel->owner) {				\
-							inuse = TRUE;							\
-						}									\
-					}										\
-				}											\
-				if (check_inuse == 2 && inuse) {							\
-					continue;									\
+#	define CLI_AMI_TABLE_BEFORE_ITERATION                                                                                                                \
+		if(objects[bucket]) {                                                                                                                         \
+			SCCP_RWLIST_RDLOCK(&(objects[bucket]->refCountedObjects));                                                                            \
+			SCCP_RWLIST_TRAVERSE(&(objects[bucket]->refCountedObjects), obj, list) {                                                              \
+				char bucketstr[8];                                                                                                            \
+				if(!s) {                                                                                                                      \
+					if(prev == bucket) {                                                                                                  \
+						snprintf(bucketstr, sizeof(bucketstr), " +---> ");                                                            \
+					} else {                                                                                                              \
+						snprintf(bucketstr, sizeof(bucketstr), "[%5d]", bucket);                                                      \
+					}                                                                                                                     \
+				} else {                                                                                                                      \
+					snprintf(bucketstr, sizeof(bucketstr), "%d", bucket);                                                                 \
+				}                                                                                                                             \
+				inuse = FALSE;                                                                                                                \
+				if(check_inuse && obj->alive) {                                                                                               \
+					union { /* little union trick to prevent cast-alignment warning	*/                                                    \
+						unsigned char * cdata;                                                                                        \
+						sccp_device_t * device;                                                                                       \
+						sccp_line_t * line;                                                                                           \
+						sccp_linedevice_t * ld;                                                                                       \
+						sccp_channel_t * channel;                                                                                     \
+					} data = {                                                                                                            \
+						.cdata = obj->data,                                                                                           \
+					};                                                                                                                    \
+					if(obj->type == SCCP_REF_DEVICE) {                                                                                    \
+						if(data.device && data.device->session && data.device->active_channel) {                                      \
+							inuse = TRUE;                                                                                         \
+						}                                                                                                             \
+					} else if(obj->type == SCCP_REF_LINE) {                                                                               \
+						if(data.line && (data.line->statistic.numberOfActiveChannels || data.line->statistic.numberOfHeldChannels)) { \
+							inuse = TRUE;                                                                                         \
+						}                                                                                                             \
+					} else if(obj->type == SCCP_REF_LINEDEVICE) {                                                                         \
+						sccp_linedevice_t * ld = data.ld;                                                                             \
+						if(ld && ld->device && ld->line && ld->device->session && ld->device->active_channel                          \
+						   && (ld->line->statistic.numberOfActiveChannels || ld->line->statistic.numberOfHeldChannels)) {             \
+							inuse = TRUE;                                                                                         \
+						}                                                                                                             \
+					} else if(obj->type == SCCP_REF_CHANNEL) {                                                                            \
+						if(data.channel && data.channel->owner) {                                                                     \
+							inuse = TRUE;                                                                                         \
+						}                                                                                                             \
+					}                                                                                                                     \
+				}                                                                                                                             \
+				if(check_inuse == 2 && inuse) {                                                                                               \
+					continue;                                                                                                             \
 				}
-				
+
 #define CLI_AMI_TABLE_AFTER_ITERATION											\
 				prev = bucket;										\
 				numentries++;										\

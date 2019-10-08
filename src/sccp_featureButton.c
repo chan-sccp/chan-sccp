@@ -22,6 +22,7 @@
 #include "sccp_device.h"
 #include "sccp_featureButton.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_utils.h"
 
 #ifdef CS_DEVSTATE_FEATURE
@@ -96,20 +97,21 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 							AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byname(buttonconfig->button.line.name, FALSE));
 
 							if (line) {
-								AUTO_RELEASE(sccp_linedevices_t, linedevice , sccp_linedevice_find(device, line));
+								AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(device, line));
 
-								if (linedevice) {
-									sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
+								if(ld) {
+									sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name,
+															       (ld->cfwdAll.enabled) ? "on" : "off");
 
 									/* set this button active, only if all lines are fwd -requesting issue #3081549 */
-									// Upon finding the first existing line, we need to set the feature status
-									// to TRUE and subsequently AND that value with the forward status of each line.
+									// Upon finding the first existing line, we need to set the feature status									// to TRUE and subsequently AND
+									// that value with the forward status of each line.
 									if (FALSE == lineFound) {
 										lineFound = TRUE;
 										config->button.feature.status = 1;
 									}
 									// Set status of feature by logical and to comply with requirement above.
-									config->button.feature.status &= ((linedevice->cfwdAll.enabled) ? 1 : 0);	// Logical and &= intended here.
+									config->button.feature.status &= ((ld->cfwdAll.enabled) ? 1 : 0);                                        // Logical and &= intended here.
 								}
 							}
 						}

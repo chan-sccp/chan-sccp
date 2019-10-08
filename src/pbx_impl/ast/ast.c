@@ -19,6 +19,7 @@
 #include "sccp_pbx.h"
 #include "sccp_atomic.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 

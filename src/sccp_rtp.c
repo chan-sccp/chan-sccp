@@ -89,6 +89,7 @@
 #include "sccp_channel.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
+#include "sccp_linedevice.h"
 #include "sccp_rtp.h"
 #include "sccp_session.h"
 #include "sccp_utils.h"
@@ -244,7 +245,7 @@ void sccp_rtp_destroy(constChannelPtr c)
  * \param rtp SCCP RTP
  * \param new_peer socket info to remote device
  */
-void sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t * const rtp, struct sockaddr_storage *new_peer)
+void sccp_rtp_set_peer(constChannelPtr c, rtpPtr rtp, struct sockaddr_storage * new_peer)
 {
 	/* validate socket */
 	if (sccp_netsock_getPort(new_peer) == 0) {
@@ -277,7 +278,7 @@ void sccp_rtp_set_peer(constChannelPtr c, sccp_rtp_t * const rtp, struct sockadd
  * \param rtp SCCP RTP
  * \param new_peer socket info to remote device
  */
-void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockaddr_storage *new_peer)
+void sccp_rtp_set_phone(constChannelPtr c, rtpPtr rtp, struct sockaddr_storage * new_peer)
 {
 	/* validate socket */
 	if (sccp_netsock_getPort(new_peer) == 0) {
@@ -328,7 +329,7 @@ void sccp_rtp_set_phone(constChannelPtr c, sccp_rtp_t * const rtp, struct sockad
 }
 
 /*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
-int sccp_rtp_updateNatRemotePhone(constChannelPtr c, sccp_rtp_t *const rtp)
+int sccp_rtp_updateNatRemotePhone(constChannelPtr c, rtpPtr rtp)
 {
 	int res = 0;
 	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
@@ -430,7 +431,7 @@ boolean_t sccp_rtp_getAudioPeer(constChannelPtr c, struct sockaddr_storage **new
 /*!
  * \brief Get Payload Type
  */
-uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t * const rtp, skinny_codec_t codec)
+uint8_t sccp_rtp_get_payloadType(constRtpPtr rtp, skinny_codec_t codec)
 {
 	if (iPbx.rtp_get_payloadType) {
 		return iPbx.rtp_get_payloadType(rtp, codec);
@@ -441,7 +442,7 @@ uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t * const rtp, skinny_codec_t co
 /*!
  * \brief Retrieve Phone Socket Information
  */
-boolean_t sccp_rtp_getUs(const sccp_rtp_t *rtp, struct sockaddr_storage *us)
+boolean_t sccp_rtp_getUs(constRtpPtr rtp, struct sockaddr_storage * us)
 {
 	if (rtp->instance) {
 		iPbx.rtp_getUs(rtp->instance, us);
@@ -451,7 +452,7 @@ boolean_t sccp_rtp_getUs(const sccp_rtp_t *rtp, struct sockaddr_storage *us)
 	return FALSE;
 }
 
-uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * const rtp)
+uint16_t sccp_rtp_getServerPort(constRtpPtr rtp)
 {
 	uint16_t port = 0;
 	struct sockaddr_storage sas;
@@ -465,7 +466,7 @@ uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * const rtp)
 /*!
  * \brief Retrieve Phone Socket Information
  */
-boolean_t sccp_rtp_getPeer(const sccp_rtp_t * const rtp, struct sockaddr_storage *them)
+boolean_t sccp_rtp_getPeer(constRtpPtr rtp, struct sockaddr_storage * them)
 {
 	if (rtp->instance) {
 		iPbx.rtp_getPeer(rtp->instance, them);

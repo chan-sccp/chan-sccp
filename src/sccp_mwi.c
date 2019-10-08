@@ -18,19 +18,20 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_vector.h"
 #include "sccp_line.h"
 #include "sccp_device.h"
+#include "sccp_linedevice.h"
 #include "sccp_utils.h"
 
 #if CS_AST_HAS_EVENT
-#include <asterisk/event.h>
+#	include <asterisk/event.h>
 #elif HAVE_PBX_STASIS_H
-#include <asterisk/stasis.h>
+#	include <asterisk/stasis.h>
 #endif
 #ifdef HAVE_PBX_MWI_H				// ast_mwi_state_type
-#include <asterisk/mwi.h>
+#	include <asterisk/mwi.h>
 #else
-#ifdef HAVE_PBX_APP_H				// ast_mwi_state_type
-#include <asterisk/app.h>
-#endif
+#	ifdef HAVE_PBX_APP_H                                        // ast_mwi_state_type
+#		include <asterisk/app.h>
+#	endif
 #endif
 #include <asterisk/cli.h>
 
@@ -41,7 +42,7 @@ pbx_mutex_t subscriptions_lock;
 //typedef struct pbx_event_sub pbx_event_subscription_t;
 typedef struct subscription {
 	sccp_mailbox_t *mailbox;
-	sccp_line_t *line;
+	constLinePtr line;
 #if MWI_USE_EVENT
 	pbx_event_subscription_t *pbx_subscription;
 #else
@@ -51,7 +52,7 @@ typedef struct subscription {
 SCCP_VECTOR(sccp_subscription_vector, mwi_subscription_t *) subscriptions;
 
 /* Forward Declarations */
-void NotifyLine(sccp_line_t *line, int newmsgs, int oldmsgs);
+void NotifyLine(constLinePtr line, int newmsgs, int oldmsgs);
 
 /* =======================
  * Pbx Event CallBacks
@@ -237,7 +238,7 @@ static void pbxMailboxUnsubscribe(mwi_subscription_t *subscription)
 /* ===========================
  * Create/Destroy Subscription
  * =========================== */
-static void createSubscription(sccp_mailbox_t *mailbox, sccp_line_t *line)
+static void createSubscription(sccp_mailbox_t * mailbox, constLinePtr line)
 {
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "%s: (mwi::%s) uniqueid:%s\n",
 		line->name, __PRETTY_FUNCTION__, mailbox->uniqueid);
@@ -248,7 +249,7 @@ static void createSubscription(sccp_mailbox_t *mailbox, sccp_line_t *line)
 		return;
 	}
 	subscription->mailbox = mailbox;
-	subscription->line = sccp_line_retain(line);
+	*(sccp_line_t **)&(subscription->line) = sccp_line_retain(line);                                        //! const cast / emplace line
 	if (!subscription->line) {
 		pbx_log(LOG_ERROR, "Could not retain the line, to assign to this subscription\n");
 		sccp_free(subscription);
@@ -262,7 +263,7 @@ static void createSubscription(sccp_mailbox_t *mailbox, sccp_line_t *line)
 	subscription->pbx_subscription = pbxMailboxSubscribe(subscription);
 }
 
-static void removeSubscription(sccp_mailbox_t *mailbox, sccp_line_t *line)
+static void removeSubscription(sccp_mailbox_t * mailbox, constLinePtr line)
 {
 	mwi_subscription_t *removed = NULL;
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "%s: (mwi::%s) uniqueid:%s\n",
@@ -341,19 +342,19 @@ static void handleLineDestructionEvent(const sccp_event_t * event)
 /* ==================================
  * Inform the line of any MWI changes
  * ================================== */
-void NotifyLine(sccp_line_t *l, int newmsgs, int oldmsgs)
+void NotifyLine(constLinePtr l, int newmsgs, int oldmsgs)
 {
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "%s: (mwi::NotifyLine) Notify newmsgs:%d oldmsgs:%d\n", l->name, newmsgs, oldmsgs);
 
 	sccp_line_setMWI(l, newmsgs, oldmsgs);
 
-	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevice_t * ld = NULL;
 	if (SCCP_LIST_GETSIZE(&l->devices)) {
 		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(linedevice->device));
+		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+			AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(ld->device));
 			if (d) {
-				sccp_line_indicateMWI(linedevice);
+				sccp_linedevice_indicateMWI(ld);
 				sccp_device_setMWI(d);
 			}
 		}
@@ -378,7 +379,6 @@ void NotifyLine(sccp_line_t *l, int newmsgs, int oldmsgs)
  * ================================== */
 static int showSubscriptions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	sccp_line_t *line = NULL;
 	//sccp_mailboxLine_t *mailboxLine = NULL;
 	//char linebuf[31] = "";
 	int local_line_total = 0;
@@ -387,9 +387,9 @@ static int showSubscriptions(int fd, sccp_cli_totals_t *totals, struct mansessio
 #define CLI_AMI_TABLE_NAME MWISubscriptions
 #define CLI_AMI_TABLE_PER_ENTRY_NAME MailboxSubscriber
 #define CLI_AMI_TABLE_ITERATOR for (uint32_t idx = 0; idx < SCCP_VECTOR_SIZE(&subscriptions); idx++)
-#define CLI_AMI_TABLE_BEFORE_ITERATION 															\
-	mwi_subscription_t *subscription = SCCP_VECTOR_GET(&subscriptions, idx);									\
-	line = subscription->line;
+#define CLI_AMI_TABLE_BEFORE_ITERATION                                            \
+	mwi_subscription_t * subscription = SCCP_VECTOR_GET(&subscriptions, idx); \
+	constLinePtr line = subscription->line;
 
 #if defined (CS_AST_HAS_EVENT)
 #define CLI_AMI_TABLE_FIELDS 																\

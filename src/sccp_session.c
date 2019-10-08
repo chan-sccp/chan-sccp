@@ -301,7 +301,7 @@ static boolean_t sccp_session_findBySession(sccp_session_t * s)
 	sccp_session_t *session;
 	boolean_t res = FALSE;
 
-	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
+	SCCP_RWLIST_RDLOCK(&GLOB(sessions));
 	SCCP_RWLIST_TRAVERSE(&GLOB(sessions), session, list) {
 		if (session == s) {
 			res = TRUE;
@@ -1219,7 +1219,7 @@ gcc_inline const char * const sccp_session_getDesignator(constSessionPtr session
  * \brief Get device connected to this session
  * \note returns retained device
  */
-gcc_inline sccp_device_t * const sccp_session_getDevice(constSessionPtr session, boolean_t required)
+gcc_inline devicePtr sccp_session_getDevice(constSessionPtr session, boolean_t required)
 {
 	if (!session) {
 		return NULL;
