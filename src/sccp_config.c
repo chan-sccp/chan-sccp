@@ -3377,7 +3377,7 @@ int sccp_config_generate(char *filename, int configType)
 	char name_and_value[100] = "";
 	char size_str[15] = "";
 	int linelen = 0;
-	struct ast_str *extra_info = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE * 2);
+	struct ast_str * extra_info = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE * 3);
 
 	char fn[PATH_MAX];
 
