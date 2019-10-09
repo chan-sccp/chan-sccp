@@ -368,6 +368,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, 
 	void * dst = NULL;
 	enum SCCPConfigOptionType type;										/* enum wrapper */
 	enum SCCPConfigOptionFlag flags;									/* enum wrapper */
+	const char * deprecated_obsolete_url = "https://github.com/chan-sccp/chan-sccp/wiki/Deprecated---Obsoleted-Parameters";
 
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;						/* indicates config value is changed or not */
 	sccp_configurationchange_t changes = SCCP_CONFIG_NOUPDATENEEDED;
@@ -418,9 +419,9 @@ static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, 
 	} if ((flags & SCCP_CONFIG_FLAG_CHANGED) == SCCP_CONFIG_FLAG_CHANGED && !default_run) {
 		pbx_log(LOG_NOTICE, "SCCP: changed config param at %s='%s' in line %d\n - %s -> please check sccp.conf file\n", name, value, lineno, sccpConfigOption->description);
 	} else if ((flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED && lineno > 0 && !default_run) {
-		pbx_log(LOG_NOTICE, "SCCP: deprecated config param at %s='%s' in line %d\n - %s -> using old implementation\n", name, value, lineno, sccpConfigOption->description);
+		pbx_log(LOG_WARNING, "SCCP: deprecated config param at %s='%s' in line %d\n - %s -> using old implementation.\nSee:%s\n", name, value, lineno, sccpConfigOption->description, deprecated_obsolete_url);
 	} else if ((flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE && lineno > 0 && !default_run) {
-		pbx_log(LOG_WARNING, "SCCP: obsolete config param at %s='%s' in line %d\n - %s -> param skipped\n", name, value, lineno, sccpConfigOption->description);
+		pbx_log(LOG_ERROR, "SCCP: obsolete config param at %s='%s' in line %d\n - %s -> param skipped\nSee: %s\n", name, value, lineno, sccpConfigOption->description, deprecated_obsolete_url);
 		return SCCP_CONFIG_NOUPDATENEEDED;
 	} else if ((flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) {
 		if (NULL == value) {
