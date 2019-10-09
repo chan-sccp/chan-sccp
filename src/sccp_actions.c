@@ -2430,7 +2430,7 @@ void handle_offhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 
 	/* checking for registered lines */
 	if (!d->configurationStatistic.numberOfLines) {
-		pbx_log(LOG_NOTICE, "No lines registered on %s for take OffHook\n", sccp_session_getDesignator(s));
+		pbx_log(LOG_NOTICE, "No lines registered on %s to take OffHook\n", sccp_session_getDesignator(s));
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_LINES_REGISTERED, SCCP_DISPLAYSTATUS_TIMEOUT);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, SKINNY_TONEDIRECTION_USER);
 		return;
