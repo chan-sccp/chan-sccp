@@ -3404,6 +3404,12 @@ int sccp_config_generate(char *filename, int configType)
 	fprintf(f, ";! Creation Date: %s", date);
 	fprintf(f, ";!\n");
 	fprintf(f, "\n");
+	fprintf(f, ";!\n");
+	fprintf(f, ";! This file is only provided to show a possible parameters and their defaults.\n");
+	fprintf(f, ";! Please do not use this file as a starting point for your sccp.conf file !\n");
+	fprintf(f, ";! Parameters that have blanks or empty strings are just there as a placeholder, not to show a valid value.\n");
+	fprintf(f, ";!\n");
+	fprintf(f, "\n");
 
 	for (segment = SCCP_CONFIG_GLOBAL_SEGMENT; segment <= SCCP_CONFIG_SOFTKEY_SEGMENT; segment++) {
 		sccpConfigSegment = sccp_find_segment((sccp_config_segment_t)segment);
