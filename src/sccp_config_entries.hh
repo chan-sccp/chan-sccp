@@ -30,7 +30,7 @@
 /* *INDENT-OFF* */
 static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"debug", 			G_OBJ_REF(debug), 			TYPE_PARSER(sccp_config_parse_debug),						SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
-																														  							"examples: debug = 11 | debug = mwi,event,core | debug = all | debug = none or 0\n"
+																														  							"examples: debug = 11; debug = mwi,event,core; debug = all; debug = none or 0\n"
 																																					"possible categories:\n"
 																																					"core, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey, indicate, pbx\n"
 																																					"socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime, lock, parkinglot, newcode, high, all, none\n"},
@@ -332,19 +332,19 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 static const SCCPConfigOption sccpSoftKeyConfigOptions[] = {
 	{"type",			0,	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"softkeyset",										"This should be set to softkeyset"},
 	{"name", 			0, 	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		"default",										"softkeyset name\n"},
-	{"onhook",			S_OBJ_REF(modes[KEYMODE_ONHOOK]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,newcall,cfwdall,dnd,pickup,gpickup,private",					"displayed when we are on hook"},
-	{"connected",			S_OBJ_REF(modes[KEYMODE_CONNECTED]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"hold,endcall,park,vidmode,select,cfwdall,cfwdbusy,idivert,monitor",			"displayed when we have a connected call"},
-	{"onhold",			S_OBJ_REF(modes[KEYMODE_ONHOLD]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"resume,newcall,endcall,transfer,conflist,select,dirtrfr,idivert,meetme",		"displayed when we have a call on hold"},
-	{"ringin",			S_OBJ_REF(modes[KEYMODE_RINGIN]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"answer,endcall,transvm,idivert",							"displayed when we have an incoming call"},
-	{"offhook",			S_OBJ_REF(modes[KEYMODE_OFFHOOK]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,endcall,private,cfwdall,cfwdbusy,pickup,gpickup,meetme,barge",			"displayed when the phone is taken off hook"},
-	{"conntrans",			S_OBJ_REF(modes[KEYMODE_CONNTRANS]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"hold,endcall,transfer,conf,park,select,dirtrfr,monitor,vidmode,meetme,cfwdall,cfwdbusy","displayed when we are connected and could transfer a call"},
-	{"digitsfoll",			S_OBJ_REF(modes[KEYMODE_DIGITSFOLL]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"back,endcall,dial",									"displayed when one or more digits have been entered, more are expected"},
-	{"connconf",			S_OBJ_REF(modes[KEYMODE_CONNCONF]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"conflist,newcall,endcall,hold,vidmode,monitor",					"displayed when we are in a conference"},
-	{"ringout",			S_OBJ_REF(modes[KEYMODE_RINGOUT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"empty,endcall,transfer",								"displayed when We are calling someone"},
-	{"offhookfeat",			S_OBJ_REF(modes[KEYMODE_OFFHOOKFEAT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"resume,newcall,endcall",								"displayed wenn we went offhook using a feature"},
-	{"onhint",			S_OBJ_REF(modes[KEYMODE_INUSEHINT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,newcall,pickup,gpickup",							"displayed when a hint is activated"},
-	{"onstealable",			S_OBJ_REF(modes[KEYMODE_ONHOOKSTEALABLE]),TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,newcall,barge,intrcpt,cfwdall,pickup,gpickup,dnd",				"displayed when there is a call we could steal on one of the neighboring phones"},
-	{"holdconf",			S_OBJ_REF(modes[KEYMODE_HOLDCONF]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"resume,newcall,endcall,join",								"displayed when we are a conference moderator, have the conference on hold and have another active call"},
+	{"onhook",			S_OBJ_REF(modes[KEYMODE_ONHOOK]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial, newcall, cfwdall, dnd, pickup, gpickup, private",					"displayed when we are on hook"},
+	{"connected",			S_OBJ_REF(modes[KEYMODE_CONNECTED]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"hold, endcall, park, vidmode, select, cfwdall, cfwdbusy, idivert, monitor",			"displayed when we have a connected call"},
+	{"onhold",			S_OBJ_REF(modes[KEYMODE_ONHOLD]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"resume, newcall, endcall, transfer, conflist, select, dirtrfr, idivert, meetme",		"displayed when we have a call on hold"},
+	{"ringin",			S_OBJ_REF(modes[KEYMODE_RINGIN]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"answer, endcall, transvm, idivert",							"displayed when we have an incoming call"},
+	{"offhook",			S_OBJ_REF(modes[KEYMODE_OFFHOOK]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial, endcall, private, cfwdall, cfwdbusy, pickup, gpickup, meetme, barge",			"displayed when the phone is taken off hook"},
+	{"conntrans",			S_OBJ_REF(modes[KEYMODE_CONNTRANS]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"hold, endcall, transfer, conf, park, select, dirtrfr, monitor, vidmode, meetme, cfwdall, cfwdbusy","displayed when we are connected and could transfer a call"},
+	{"digitsfoll",			S_OBJ_REF(modes[KEYMODE_DIGITSFOLL]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"back, endcall, dial",									"displayed when one or more digits have been entered, more are expected"},
+	{"connconf",			S_OBJ_REF(modes[KEYMODE_CONNCONF]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"conflist, newcall, endcall, hold, vidmode, monitor",					"displayed when we are in a conference"},
+	{"ringout",			S_OBJ_REF(modes[KEYMODE_RINGOUT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"empty, endcall, transfer",								"displayed when We are calling someone"},
+	{"offhookfeat",			S_OBJ_REF(modes[KEYMODE_OFFHOOKFEAT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"resume, newcall, endcall",								"displayed wenn we went offhook using a feature"},
+	{"onhint",			S_OBJ_REF(modes[KEYMODE_INUSEHINT]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial, newcall, pickup, gpickup",							"displayed when a hint is activated"},
+	{"onstealable",			S_OBJ_REF(modes[KEYMODE_ONHOOKSTEALABLE]),TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial, newcall, barge, intrcpt, cfwdall, pickup, gpickup, dnd",				"displayed when there is a call we could steal on one of the neighboring phones"},
+	{"holdconf",			S_OBJ_REF(modes[KEYMODE_HOLDCONF]), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"resume, newcall, endcall, join",								"displayed when we are a conference moderator, have the conference on hold and have another active call"},
 	{"uriaction", 			S_OBJ_REF(softkeyCbMap),		TYPE_STRING,									SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NOUPDATENEEDED, 		NULL,											"softkey uri action to replace default handling. Format: uriaction = softkeyname, uri[,uri...]\n. URI can be an embedded cisco action (like Key:Service, Play:1041.raw) or a URL"
 																																												"If uri is a url the following parameters will be added to it: devicename, linename, channelname, callid, linkedid, uniqueid, appid, transactionid"},
 };

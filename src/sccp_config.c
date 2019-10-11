@@ -3358,6 +3358,117 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 	return 0;
 }
 
+static int _config_generate_wiki(char * filename, int configType)
+{
+	const SCCPConfigSegment * sccpConfigSegment = NULL;
+	const SCCPConfigOption * config = NULL;
+	long unsigned int sccp_option;
+	long unsigned int segment;
+	char * description = "";
+	char * description_part = "";
+	char fn[PATH_MAX];
+
+	snprintf(fn, sizeof(fn), "%s/%s", ast_config_AST_CONFIG_DIR, filename);
+	pbx_log(LOG_NOTICE, "Creating new wiki file '%s'\n", fn);
+
+	FILE * f = NULL;
+
+	if(!(f = fopen(fn, "w"))) {
+		pbx_log(LOG_ERROR, "Error creating new config file \n");
+		return 1;
+	}
+
+	char date[256] = "";
+	time_t t;
+
+	time(&t);
+	sccp_copy_string(date, ctime(&t), sizeof(date));
+
+	fprintf(f, "*sccp.conf options*\n\n");
+	for(segment = SCCP_CONFIG_GLOBAL_SEGMENT; segment <= SCCP_CONFIG_SOFTKEY_SEGMENT; segment++) {
+		sccpConfigSegment = sccp_find_segment((sccp_config_segment_t)segment);
+		fprintf(f, "\n**[%s] section**\n\n", sccpConfigSegment->name);
+		fprintf(f, "<table>\n");
+		fprintf(f, "<tr><td><b>parameter</b></td><td><b>default</b></td><td><b>format</b></td><td><b>required</b></td><td><b>status</b></td></tr>\n");
+		fprintf(f, "<tr><td></td><td colspan='4'><b>description</b></td></tr>\n");
+		config = sccpConfigSegment->config;
+		for(sccp_option = 0; sccp_option < sccpConfigSegment->config_size; sccp_option++) {
+			// if ((config[sccp_option].flags & (SCCP_CONFIG_FLAG_IGNORE | SCCP_CONFIG_FLAG_DEPRECATED | SCCP_CONFIG_FLAG_OBSOLETE)) == 0) {
+			sccp_log((DEBUGCAT_CONFIG))(VERBOSE_PREFIX_2 "adding name: %s, default_value: %s\n", config[sccp_option].name, config[sccp_option].defaultValue);
+			if(!sccp_strlen_zero(config[sccp_option].name)) {
+				char delims[] = "|";
+				char * option_name_tokens = pbx_strdupa(config[sccp_option].name);
+				char * option_value_tokens = NULL;
+				if(!sccp_strlen_zero(config[sccp_option].defaultValue)) {
+					option_value_tokens = pbx_strdupa(config[sccp_option].defaultValue);
+				} else {
+					option_value_tokens = pbx_strdupa("\"\"");
+				}
+				char * option_name_tokens_saveptr = NULL;
+				char * option_value_tokens_saveptr = NULL;
+				char * option_name = strtok_r(option_name_tokens, delims, &option_name_tokens_saveptr);
+				char * option_value = strtok_r(option_value_tokens, delims, &option_value_tokens_saveptr);
+				while(option_name != NULL) {
+					fprintf(f, "<tr class=option_row id='%s'>\n", option_name);
+					fprintf(f, "<td class='name'>%s</td><td class='default_value'>%s</td>\n", option_name, option_value);
+					option_name = strtok_r(NULL, delims, &option_name_tokens_saveptr);
+					option_value = strtok_r(NULL, delims, &option_value_tokens_saveptr);
+					switch(config[sccp_option].type) {
+						case SCCP_CONFIG_DATATYPE_STRING:
+							fprintf(f, "<td class='format'>max length:%d</td>\n", (int)config[sccp_option].size - 1);
+							break;
+						case SCCP_CONFIG_DATATYPE_ENUM: {
+							char * all_entries = pbx_strdupa(config[sccp_option].all_entries());
+							char * possible_entry = "";
+							int subcomma = 0;
+
+							fprintf(f, "<td class='format'><small>potential values:[");
+							while(all_entries && (possible_entry = strsep(&all_entries, ","))) {
+								fprintf(f, "%s%s", subcomma ? ", " : "", possible_entry);
+								subcomma = 1;
+							}
+							fprintf(f, "]</small></td>\n");
+						} break;
+						default:
+							fprintf(f, "<td class='format'>-</td>\n");
+							break;
+					}
+					fprintf(f, "<td class='required'>%s</td>\n", (config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED ? "yes" : "-");
+					fprintf(f, "<td class='status'>%s</td> ",
+						(config[sccp_option].flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED
+						    ? "deprecated"
+						    : (config[sccp_option].flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE ? "obsolete" : "-");
+					fprintf(f, "</tr>\n");
+					if(!sccp_strlen_zero(config[sccp_option].description)) {
+						fprintf(f, "<tr class='descr_row'><td></td>\n");
+						fprintf(f, "<td class='description' id='%s' colspan='4'><small>", config[sccp_option].name);
+						description = pbx_strdupa(config[sccp_option].description);
+						while((description_part = strsep(&description, "\n"))) {
+							if(!sccp_strlen_zero(description_part)) {
+								fprintf(f, "%s.<br>", description_part);
+							}
+						}
+						if(description_part) {
+							sccp_free(description_part);
+						}
+						fprintf(f, "</small></td>\n");
+					}
+				}
+				fprintf(f, "</tr>\n");
+			} else {
+				pbx_log(LOG_ERROR, "Error creating new variable structure for %s='%s'\n", config[sccp_option].name, config[sccp_option].defaultValue);
+				fclose(f);
+				return 2;
+			}
+		}
+		fprintf(f, "</table><br>\n");
+	}
+	fclose(f);
+	pbx_log(LOG_NOTICE, "Created new config file '%s'\n", fn);
+
+	return 0;
+};
+
 /*!
  * \brief Generate default sccp.conf file
  * \param filename Filename
@@ -3369,6 +3480,9 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
  */
 int sccp_config_generate(char *filename, int configType)
 {
+	if(configType == 3) {
+		return _config_generate_wiki(filename, configType);
+	}
 	const SCCPConfigSegment * sccpConfigSegment = NULL;
 	const SCCPConfigOption * config = NULL;
 	long unsigned int sccp_option;
@@ -3525,7 +3639,7 @@ int sccp_config_generate(char *filename, int configType)
 		sccp_log((DEBUGCAT_CONFIG)) ("\n");
 	}
 	fclose(f);
-	pbx_log(LOG_NOTICE, "Created new config file '%s'\n", fn);
+	pbx_log(LOG_NOTICE, "Created new wiki file '%s'\n", fn);
 
 	return 0;
 };

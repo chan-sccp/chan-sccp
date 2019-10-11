@@ -2977,17 +2977,21 @@ static int sccp_cli_config_generate(int fd, int argc, char *argv[])
 {
 	int returnval = RESULT_FAILURE;
 	char *config_file = "sccp.conf.new";
+	int option = 0;
 
-	if (argc < 2 || argc > 4) {
+	if(argc < 2 || argc > 5) {
 		return RESULT_SHOWUSAGE;
 	}
 
 	pbx_cli(fd, "SCCP: Generating new config file.\n");
 
-	if (argc == 4) {
+	if(argc >= 4) {
 		config_file = pbx_strdupa(argv[3]);
 	}
-	if (!sccp_config_generate(config_file, 0)) {
+	if(argc == 5 && sccp_strcaseequals(argv[4], "wiki")) {
+		option = 3;
+	}
+	if(!sccp_config_generate(config_file, option)) {
 		returnval = RESULT_SUCCESS;
 	} else {
 		pbx_cli(fd, "SCCP generation failed.\n");
@@ -2996,7 +3000,8 @@ static int sccp_cli_config_generate(int fd, int argc, char *argv[])
 	return returnval;
 }
 
-static char config_generate_usage[] = "Usage: SCCP config generate [filename]\n" "       Generates a new sccp.conf if none exists. Either creating sccp.conf or [filename] if specified\n";
+static char config_generate_usage[] = "Usage: SCCP config generate [filename] [option]\n"
+				      "       Generates a new sccp.conf if none exists. Either creating sccp.conf or [filename] if specified\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "config", "generate"
