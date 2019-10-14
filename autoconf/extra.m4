@@ -78,24 +78,32 @@ AC_DEFUN([CS_SETUP_HOST_PLATFORM],[
 			use_poll_compat=yes
 			no_libcap=yes
 			ostype=bsd
+			EXTRA_INCLUDE="-I/usr/local/include"
+			EXTRA_LIBS="-L/usr/local/lib"
 			;;
 		*-*-netbsd*)
 			AC_DEFINE([BSD], 1, [using BSD])
 			use_poll_compat=yes
 			no_libcap=yes
 			ostype=bsd
+			EXTRA_INCLUDE="-I/usr/local/include"
+			EXTRA_LIBS="-L/usr/local/lib"
 			;;
 		*-*-openbsd*)
 			AC_DEFINE([BSD], 1, [using BSD])
 			use_poll_compat=yes
 			no_libcap=yes
 			ostype=bsd
+			EXTRA_INCLUDE="-I/usr/local/include"
+			EXTRA_LIBS="-L/usr/local/lib"
 			;;
 		*-*-dragonfly*)
 			AC_DEFINE([BSD], 1, [using BSD])
 			use_poll_compat=yes
 			no_libcap=yes
 			ostype=bsd
+			EXTRA_INCLUDE="-I/usr/local/include"
+			EXTRA_LIBS="-L/usr/local/lib"
 			;;
 		*-aix*)
 			AC_DEFINE([AIX], 1, [using IAX])
@@ -224,7 +232,7 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 
 AC_DEFUN([CS_FIND_LIBRARIES], [
 	LIBS_save=$LIBS
-	LIBS="$LIBS"
+	LIBS="$LIBS $EXTRA_LIBS"
 	AC_CHECK_LIB([c], [main])
 	AC_CHECK_LIB([pthread], [main])
 	AC_CHECK_LIB([socket], [main])
@@ -240,6 +248,7 @@ dnl	])
 	AC_CHECK_HEADERS([pthread.h])
 	AC_CHECK_HEADERS([xlocale.h])
 	AM_ICONV
+	AC_CHECK_LIB([iconv], [main])
 	AC_CHECK_FUNCS([gethostbyname inet_ntoa mkdir]) 
 	AC_HEADER_STDC    
 	AC_HEADER_STDBOOL 

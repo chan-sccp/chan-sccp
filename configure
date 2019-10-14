@@ -7342,6 +7342,8 @@ $as_echo "#define BSD 1" >>confdefs.h
 			use_poll_compat=yes
 			no_libcap=yes
 			ostype=bsd
+			EXTRA_INCLUDE="-I/usr/local/include"
+			EXTRA_LIBS="-L/usr/local/lib"
 			;;
 		*-*-netbsd*)
 
@@ -7350,6 +7352,8 @@ $as_echo "#define BSD 1" >>confdefs.h
 			use_poll_compat=yes
 			no_libcap=yes
 			ostype=bsd
+			EXTRA_INCLUDE="-I/usr/local/include"
+			EXTRA_LIBS="-L/usr/local/lib"
 			;;
 		*-*-openbsd*)
 
@@ -7358,6 +7362,8 @@ $as_echo "#define BSD 1" >>confdefs.h
 			use_poll_compat=yes
 			no_libcap=yes
 			ostype=bsd
+			EXTRA_INCLUDE="-I/usr/local/include"
+			EXTRA_LIBS="-L/usr/local/lib"
 			;;
 		*-*-dragonfly*)
 
@@ -7366,6 +7372,8 @@ $as_echo "#define BSD 1" >>confdefs.h
 			use_poll_compat=yes
 			no_libcap=yes
 			ostype=bsd
+			EXTRA_INCLUDE="-I/usr/local/include"
+			EXTRA_LIBS="-L/usr/local/lib"
 			;;
 		*-aix*)
 
@@ -23383,7 +23391,7 @@ _ACEOF
 
 
 	LIBS_save=$LIBS
-	LIBS="$LIBS"
+	LIBS="$LIBS $EXTRA_LIBS"
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lc" >&5
 $as_echo_n "checking for main in -lc... " >&6; }
 if ${ac_cv_lib_c_main+:} false; then :
@@ -23561,6 +23569,45 @@ fi
 
 done
 
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -liconv" >&5
+$as_echo_n "checking for main in -liconv... " >&6; }
+if ${ac_cv_lib_iconv_main+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-liconv  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+int
+main ()
+{
+return main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_iconv_main=yes
+else
+  ac_cv_lib_iconv_main=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_iconv_main" >&5
+$as_echo "$ac_cv_lib_iconv_main" >&6; }
+if test "x$ac_cv_lib_iconv_main" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBICONV 1
+_ACEOF
+
+  LIBS="-liconv $LIBS"
+
+fi
 
 	for ac_func in gethostbyname inet_ntoa mkdir
 do :
@@ -35400,7 +35447,7 @@ echo "         HOST_CC : ${CC}"
 fi
 echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS}"
 echo "        CPPFLAGS : ${CPPFLAGS} ${AM_CPPFLAGS} ${PBX_CPPFLAGS} ${SANITIZE_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CPPFLAGS} ${COVERAGE_CPPFLAGS} ${EVENT_CPPFLAGS} ${LIBEXSLT_CPPFLAGS} ${LIBCURL_CPPFLAGS}"
-echo "         LDFLAGS : ${LDFLAGS} ${SANITIZE_LDFLAGS} ${SUPPORTED_LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS} ${LIBBFD} ${LIBEXECINFO} ${LIBICONV}"
+echo "         LDFLAGS : ${LDFLAGS} ${LIBS} ${SANITIZE_LDFLAGS} ${SUPPORTED_LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS} ${LIBBFD} ${LIBEXECINFO} ${LTLIBICONV}"
 echo "        PBX_TYPE : ${PBX_TYPE}"
 echo "      PBX_PREFIX : ${PBX_PREFIX}"
 echo "         PBX_ETC : ${PBX_ETC}"
