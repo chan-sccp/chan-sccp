@@ -905,20 +905,16 @@ void sccp_feat_handle_meetme(constLinePtr l, uint8_t lineInstance, constDevicePt
 	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 
 	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
-		pbx_log(LOG_WARNING, "%s: (handle_meetme) Unable to allocate a new channel for line %s\n", d->id, l->name);
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
-		return;
+	if(sccp_pbx_channel_allocate(c, NULL, NULL)) {
+		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
+
+		if(d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
+			sccp_channel_openReceiveChannel(c);
+		}
+
+		/* removing scheduled dial */
+		sccp_channel_stop_schedule_digittimout(c);
 	}
-
-	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
-
-	if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
-		sccp_channel_openReceiveChannel(c);
-	}
-
-	/* removing scheduled dial */
-	sccp_channel_stop_schedule_digittimout(c);
 }
 
 /*!
@@ -1392,16 +1388,12 @@ void sccp_feat_handle_cbarge(constLinePtr l, uint8_t lineInstance, constDevicePt
 	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 
 	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
-		pbx_log(LOG_WARNING, "%s: (handle_cbarge) Unable to allocate a new channel for line %s\n", d->id, l->name);
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
-		return;
-	}
+	if(sccp_pbx_channel_allocate(c, NULL, NULL)) {
+		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 
-	iPbx.set_callstate(c, AST_STATE_OFFHOOK);
-
-	if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
-		sccp_channel_openReceiveChannel(c);
+		if(d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
+			sccp_channel_openReceiveChannel(c);
+		}
 	}
 }
 

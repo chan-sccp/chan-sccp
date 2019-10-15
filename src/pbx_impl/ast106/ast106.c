@@ -1494,8 +1494,6 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, int format, void
 #endif
 
 	if (!sccp_pbx_channel_allocate(channel, NULL, NULL)) {
-		//! \todo handle error in more detail, cleanup sccp channel
-		pbx_log(LOG_WARNING, "SCCP: Unable to allocate channel\n");
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
 		goto EXITFUNC;
 	}

@@ -1485,22 +1485,10 @@ channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channe
 		return NULL;
 	}
 	channel->calltype = calltype;
-	if (!sccp_pbx_channel_allocate(channel, ids, parentChannel)) {
-		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", d->id, l->name);
-		if (channel->owner) {
-			sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
-			sccp_channel_endcall(channel);
-		} else {
-			sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
-			if (channel->line) {
-				sccp_line_removeChannel(channel->line, channel);
-			}
-			//sccp_channel_clean(channel);
-			sccp_channel_release(&channel);
-		}
-		return NULL;
+	if(sccp_pbx_channel_allocate(channel, ids, parentChannel)) {
+		return channel;
 	}
-	return channel;
+	return NULL;
 }
 
 /*!
@@ -2663,9 +2651,6 @@ int sccp_channel_forward(constChannelPtr sccp_channel_parent, constLineDevicePtr
 	/* ok the number exist. allocate the asterisk channel */
 	if (!sccp_pbx_channel_allocate(sccp_forwarding_channel, NULL, sccp_channel_parent->owner))
 	{
-		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", ld->device->id, sccp_forwarding_channel->line->name);
-		sccp_line_removeChannel(sccp_forwarding_channel->line, sccp_forwarding_channel);
-		sccp_channel_clean(sccp_forwarding_channel);
 		return -1;
 	}
 	/* Update rtp setting to match predecessor */

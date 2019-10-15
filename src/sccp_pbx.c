@@ -756,7 +756,7 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 
 		if(!ld) {
 			pbx_log(LOG_NOTICE, "%s: Could not find an appropriate ld to assign this channel to. Line:%s exists, but was not assigned to any device (yet). We should give up here.\n", c->designator, l->name);
-			return FALSE;
+			goto error_exit;
 		}
 
 		sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
@@ -815,7 +815,7 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 				sccp_codec_multiple2str(s1, sizeof(s1) - 1, c->preferences.audio, SKINNY_MAX_CAPABILITIES),
 				l->preferences_set_on_line_level ? "line's" : "device's",
 				sccp_codec_multiple2str(s2, sizeof(s2) - 1, c->capabilities.audio, SKINNY_MAX_CAPABILITIES));
-			return FALSE;
+			goto error_exit;
 		}
 	}
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:             cid_num: %s\n", cid_num);
@@ -857,7 +857,7 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 
 	if (!tmp || !c->owner) {
 		pbx_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", c->designator, l->name);
-		return FALSE;
+		goto error_exit;
 	}
 	//sccp_channel_updateChannelCapability(c);
 	//iPbx.set_nativeAudioFormats(c, c->preferences.audio, 1);
@@ -900,35 +900,6 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 	}
-#if 0
-	else {
-
-		/* (shared line version) call ast_channel_call_forward_set if all devices for this line are forwarded. Send the first forward destination to PBX */
-		sccp_linedevice_t *ld = NULL;
-		int numdevices = SCCP_LIST_GETSIZE(&l->devices);
-		int numforwards = 0;
-		char cfwdnum[SCCP_MAX_EXTENSION] = "";
-
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
-			if (ld->line == l && (ld->cfwdAll.enabled || (ld->cfwdBusy.enabled && (sccp_device_getDeviceState(ld->device) != SCCP_DEVICESTATE_ONHOOK || sccp_device_getActiveAccessory(ld->device))))
-			    ) {
-				numforwards++;
-				if (sccp_strlen_zero(cfwdnum)) {
-					if (ld->cfwdAll.number) {
-						sccp_copy_string(cfwdnum, ld->cfwdAll.number, SCCP_MAX_EXTENSION);
-					} else {
-						sccp_copy_string(cfwdnum, ld->cfwdBusy.number, SCCP_MAX_EXTENSION);
-					}
-				}
-			}		}
-		SCCP_LIST_UNLOCK(&l->devices);
-		if (numdevices == numforwards) {
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: setting ast call forward channel: %s\n", c->designator, cfwdnum);
-			iPbx.setChannelCallForward(c, cfwdnum);
-		}
-	}
-#endif
 
 #if CS_SCCP_VIDEO
 	const char *VideoStr = pbx_builtin_getvar_helper(c->owner, "SCCP_VIDEO_MODE");
@@ -945,8 +916,7 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 		if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 			if (!c->rtp.audio.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_AUDIO)) {
 				pbx_log(LOG_WARNING, "%s: Error opening RTP instance for channel %s\n", d->id, c->designator);
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
-				return FALSE;
+				goto error_exit;
 			}
 #if CS_SCCP_VIDEO
 			if (sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE && !c->rtp.video.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_VIDEO)) {
@@ -963,7 +933,29 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", skinny_devicetype2str(d->skinny_type));
 	}
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s\n", (l) ? l->id : "(null)", c->designator);
+
 	return TRUE;
+
+error_exit:
+	if(c) {
+		pbx_log(LOG_WARNING, "%s: (pbx_channel_allocate) Unable to allocate a new channel for line %s\n -> Hanging up call.", DEV_ID_LOG(d), l ? l->name : "NULL");
+		if(c->owner) {
+			if(d) {
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
+			}
+			sccp_channel_endcall(c);
+		} else {
+			if(d) {
+				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
+			}
+			if(c->line) {
+				sccp_line_removeChannel(c->line, c);
+			}
+			sccp_channel_clean(c);
+			sccp_channel_release(&c);
+		}
+	}
+	return FALSE;
 }
 
 /*!
