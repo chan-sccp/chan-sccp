@@ -2875,25 +2875,26 @@ static int sccp_config_getSoftkeyLbl(char *key)
  * \param data configuration values
  * \return number of parsed softkeys
  */
-static uint8_t sccp_config_readSoftSet(uint8_t * softkeyset, const char *data)
+static uint8_t sccp_config_readSoftKeySet(uint8_t * softkeyset, const char * data)
 {
 	if (!data) {
 		return 0;
 	}
-
 	int i = 0, j;
-	char * labels = NULL;
-	char * splitter = NULL;
-	char * label = NULL;
 	int softkey;
 
-	labels = pbx_strdupa(data);
-	splitter = labels;
-	while ((label = strsep(&splitter, ",")) != NULL) {
-		label = pbx_trim_blanks(label);
+	char * labels = pbx_strdupa(data);
+	char * labelrest = NULL;
+	char delims[] = ",";
+
+	char * label = strtok_r(labels, delims, &labelrest);
+	while(label) {
+		pbx_log(LOG_NOTICE, "SCCP: readSoftKeySet: label:%s ->%s\n", label, pbx_trim_blanks(label));
+		label = pbx_strip(label);
 		if ((softkey = sccp_config_getSoftkeyLbl(label)) != -1 && (i + 1) < StationMaxSoftKeySetDefinition) {
 			softkeyset[i++] = softkey;
 		}
+		label = strtok_r(NULL, delims, &labelrest);
 	}
 	/*! \todo we used calloc to create this structure, so setting EMPTY should not be required here */
 	for (j = i; j < StationMaxSoftKeySetDefinition; j++) {
@@ -3000,7 +3001,7 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 
 			/* add new value */
 			uint8_t *softkeyset = (uint8_t *)sccp_calloc(StationMaxSoftKeySetDefinition, sizeof(uint8_t));
-			keySetSize = sccp_config_readSoftSet(softkeyset, variable->value);
+			keySetSize = sccp_config_readSoftKeySet(softkeyset, variable->value);
 			//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Adding KeyMode(%d), with Size(%d), prt(%p) to Softkeyset: %s\n", keyMode, keySetSize, softkeyset, name);
 			if (keySetSize > 0) {
 				softKeySetConfiguration->modes[keyMode].id = keyMode;
