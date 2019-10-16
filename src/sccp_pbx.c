@@ -938,7 +938,7 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 
 error_exit:
 	if(c) {
-		pbx_log(LOG_WARNING, "%s: (pbx_channel_allocate) Unable to allocate a new channel for line %s\n -> Hanging up call.", DEV_ID_LOG(d), l ? l->name : "NULL");
+		pbx_log(LOG_WARNING, "%s: (pbx_channel_allocate) Unable to allocate a new channel for line %s\n -> Hanging up call.", DEV_ID_LOG(d), l->name);
 		if(c->owner) {
 			if(d) {
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
