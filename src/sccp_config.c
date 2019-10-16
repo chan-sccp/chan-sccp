@@ -2889,7 +2889,6 @@ static uint8_t sccp_config_readSoftKeySet(uint8_t * softkeyset, const char * dat
 
 	char * label = strtok_r(labels, delims, &labelrest);
 	while(label) {
-		pbx_log(LOG_NOTICE, "SCCP: readSoftKeySet: label:%s ->%s\n", label, pbx_trim_blanks(label));
 		label = pbx_strip(label);
 		if ((softkey = sccp_config_getSoftkeyLbl(label)) != -1 && (i + 1) < StationMaxSoftKeySetDefinition) {
 			softkeyset[i++] = softkey;
