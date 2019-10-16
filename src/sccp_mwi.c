@@ -165,16 +165,20 @@ static pbx_event_subscription_t * pbxMailboxSubscribe(mwi_subscription_t *subscr
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "%s: (mwi::%s) uniqueid:%s\n",
 		(subscription->line)->name, __PRETTY_FUNCTION__, (subscription->mailbox)->uniqueid);
 
-	struct stasis_topic *mailbox_specific_topic = ast_mwi_topic((subscription->mailbox)->uniqueid);
+#	if ASTERISK_VER_GROUP >= 117
+	pbx_subscription = (pbx_event_subscription_t *)pbx_mwi_subscribe_pool(subscription->mailbox->uniqueid, pbx_mwi_event, subscription);
+#	else
+	struct stasis_topic * mailbox_specific_topic = pbx_mwi_topic((subscription->mailbox)->uniqueid);
 	if (mailbox_specific_topic) {
 		pbx_subscription = stasis_subscribe_pool(mailbox_specific_topic, pbx_mwi_event, subscription);
-#  if CS_AST_HAS_STASIS_SUBSCRIPTION_SET_FILTER
+#		if CS_AST_HAS_STASIS_SUBSCRIPTION_SET_FILTER
 		stasis_subscription_accept_message_type(pbx_subscription, pbx_mwi_state_type());
 		stasis_subscription_accept_message_type(pbx_subscription, stasis_subscription_change_type());
 		//stasis_subscription_accept_message_type(subscription->pbx_subscription, stasis_subscription_change_type());
 		stasis_subscription_set_filter(pbx_subscription, STASIS_SUBSCRIPTION_FILTER_SELECTIVE);
-#  endif
+#		endif
 	}
+#	endif
 	//pbxMailboxGetCached(subscription);
 	return pbx_subscription;
 }

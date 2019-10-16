@@ -211,6 +211,8 @@ typedef struct ast_event pbx_event_t;
 #define pbx_event_sub ast_event_sub
 #endif
 typedef struct pbx_event_sub pbx_event_subscription_t;
+#define pbx_mwi_topic             ast_mwi_topic
+#define pbx_mwi_subscribe_pool    ast_mwi_subscribe_pool
 #define pbx_event_subscribe ast_event_subscribe
 #define pbx_event_unsubscribe ast_event_unsubscribe
 #define pbx_event_queue_and_cache ast_event_queue_and_cache
