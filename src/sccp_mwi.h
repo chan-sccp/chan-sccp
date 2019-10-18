@@ -21,9 +21,9 @@ struct sccp_mailbox {
 
 __BEGIN_C_EXTERN__
 typedef struct {
-	void (*startModule)(void);
-	void (*stopModule)(void);
-	int (*showSubscriptions) (int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
+	void (*const startModule)(void);
+	void (*const stopModule)(void);
+	int (*const showSubscriptions)(int fd, sccp_cli_totals_t * totals, struct mansession * s, const struct message * m, int argc, char * argv[]);
 } VoicemailInterface;
 extern const VoicemailInterface iVoicemail;
 

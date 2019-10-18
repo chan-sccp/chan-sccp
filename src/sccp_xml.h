@@ -18,25 +18,25 @@
 __BEGIN_C_EXTERN__
 /* interface */
 typedef struct {
-	xmlDoc * (*createDoc)(void);
-	xmlDoc * (*createDocFromStr)(const char *inbuf, int length);
-	xmlDoc * (*createDocFromPbxStr)(const pbx_str_t *inbuf);
+	xmlDoc * (*const createDoc)(void);
+	xmlDoc * (*const createDocFromStr)(const char * inbuf, int length);
+	xmlDoc * (*const createDocFromPbxStr)(const pbx_str_t * inbuf);
 
-	xmlNode * (*createNode)(const char * const name);
-	xmlNode * (*addElement)(xmlNode *const parentNode, const char * const name, const char *const content);
-	void (*addProperty)(xmlNode *const parentNode, const char * const key, const char *const format, ...) __attribute__ ((format (printf, 3, 4))); 
-	
-	void (*setRootElement)(xmlDoc *const doc, xmlNode *const node);
+	xmlNode * (*const createNode)(const char * const name);
+	xmlNode * (*const addElement)(xmlNode * const parentNode, const char * const name, const char * const content);
+	void (*const addProperty)(xmlNode * const parentNode, const char * const key, const char * const format, ...) __attribute__((format(printf, 3, 4)));
+
+	void (*const setRootElement)(xmlDoc * const doc, xmlNode * const node);
 
 #if defined(HAVE_LIBXSLT) && defined(HAVE_LIBEXSLT_EXSLT_H)
-//	int (*setBaseDir)(const char * const baseDir);
-//	const char * const (*getBaseDir)(void);
-	boolean_t (*applyStyleSheet)(xmlDoc * const doc, PBX_VARIABLE_TYPE *pbx_params);
-	boolean_t (*applyStyleSheetByName)(xmlDoc * const doc, const char *const styleSheetFileName, PBX_VARIABLE_TYPE *pbx_params, char **result);
+	//	int (*const setBaseDir)(const char * const baseDir);
+	//	const char * const (*const getBaseDir)(void);
+	boolean_t (*const applyStyleSheet)(xmlDoc * const doc, PBX_VARIABLE_TYPE * pbx_params);
+	boolean_t (*const applyStyleSheetByName)(xmlDoc * const doc, const char * const styleSheetFileName, PBX_VARIABLE_TYPE * pbx_params, char ** result);
 #endif
 
-	char * (*dump)(xmlDoc * const doc, boolean_t indent);
-	void (*destroyDoc)(xmlDoc *const * doc);
+	char * (*const dump)(xmlDoc * const doc, boolean_t indent);
+	void (*const destroyDoc)(xmlDoc * const * doc);
 } XMLInterface;
 
 extern const XMLInterface iXML;

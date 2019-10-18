@@ -159,28 +159,28 @@ typedef struct _PbxInterface {
 	PBX_CHANNEL_TYPE *(*const get_underlying_channel) (PBX_CHANNEL_TYPE *pbx_channel);				/* takes pbx_channel_ref */
 	boolean_t (*const attended_transfer) (sccp_channel_t *destination_channel, sccp_channel_t *source_channel);	/* takes pbx_channel_ref on source_channel */
 
-	void (*set_callgroup)(sccp_channel_t *channel, ast_group_t value);
-	void (*set_pickupgroup)(sccp_channel_t *channel, ast_group_t value);
+	void (*const set_callgroup)(sccp_channel_t * channel, ast_group_t value);
+	void (*const set_pickupgroup)(sccp_channel_t * channel, ast_group_t value);
 #if CS_AST_HAS_NAMEDGROUP && ASTERISK_VERSION_GROUP >= 111
-	void (*set_named_callgroups)(sccp_channel_t *channel, struct ast_namedgroups *value);
-	void (*set_named_pickupgroups)(sccp_channel_t *channel, struct ast_namedgroups *value);
+	void (*const set_named_callgroups)(sccp_channel_t * channel, struct ast_namedgroups * value);
+	void (*const set_named_pickupgroups)(sccp_channel_t * channel, struct ast_namedgroups * value);
 #else
-	void (*set_named_callgroups)(sccp_channel_t *channel, void *value);
-	void (*set_named_pickupgroups)(sccp_channel_t *channel, void *value);
+	void (*const set_named_callgroups)(sccp_channel_t * channel, void * value);
+	void (*const set_named_pickupgroups)(sccp_channel_t * channel, void * value);
 #endif
 #if ASTERISK_VERSION_GROUP >= 108
-	int (*register_application)(const char *app_name, int (*execute)(struct ast_channel *, const char *));
+	int (*const register_application)(const char * app_name, int (*execute_cb)(struct ast_channel *, const char *));
 #else
-	int (*register_application)(const char *app_name, int (*execute)(struct ast_channel *, void *));
+	int (*const register_application)(const char * app_name, int (*execute_cb)(struct ast_channel *, void *));
 #endif
-	int (*unregister_application)(const char *app_name);
-	int (*register_function)(struct pbx_custom_function *custom_function);
-	int (*unregister_function)(struct pbx_custom_function *custom_function);
+	int (*const unregister_application)(const char * app_name);
+	int (*const register_function)(struct pbx_custom_function * custom_function);
+	int (*const unregister_function)(struct pbx_custom_function * custom_function);
 
-	uint (*get_codec_framing)(constChannelPtr c);
-	uint (*get_dtmf_payload_code)(constChannelPtr c);
+	uint (*const get_codec_framing)(constChannelPtr c);
+	uint (*const get_dtmf_payload_code)(constChannelPtr c);
 
-	void (*retrieve_remote_capabilities)(channelPtr c);
+	void (*const retrieve_remote_capabilities)(channelPtr c);
 	/* *INDENT-ON* */
 } PbxInterface;
 

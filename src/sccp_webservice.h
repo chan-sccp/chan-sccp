@@ -19,14 +19,14 @@
 
 __BEGIN_C_EXTERN__
 /* interface */
-//typedef sccp_xml_doc_t *(*sccp_webservice_callback_t) (PBX_VARIABLE_TYPE *params, PBX_VARIABLE_TYPE *headers);
-typedef boolean_t (*sccp_webservice_callback_t) (const char *const uri, PBX_VARIABLE_TYPE *params, PBX_VARIABLE_TYPE *headers, pbx_str_t **result);
+// typedef sccp_xml_doc_t *(*const sccp_webservice_callback_t) (PBX_VARIABLE_TYPE *params, PBX_VARIABLE_TYPE *headers);
+typedef boolean_t (*sccp_webservice_callback_t)(const char * const uri, PBX_VARIABLE_TYPE * params, PBX_VARIABLE_TYPE * headers, pbx_str_t ** result);
 
 typedef struct {
-	boolean_t (*isRunning)(void);
-	const char *const (*getBaseURL)(void);
-	boolean_t (*addHandler)(const char *const uri, sccp_webservice_callback_t callback, sccp_xml_outputfmt_t outputfmt);
-	boolean_t (*removeHandler)(const char *const uri);
+	boolean_t (*const isRunning)(void);
+	const char * const (*const getBaseURL)(void);
+	boolean_t (*const addHandler)(const char * const uri, sccp_webservice_callback_t callback, sccp_xml_outputfmt_t outputfmt);
+	boolean_t (*const removeHandler)(const char * const uri);
 } WebServiceInterface;
 
 extern const WebServiceInterface iWebService;
