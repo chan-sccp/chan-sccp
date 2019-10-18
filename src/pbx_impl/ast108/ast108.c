@@ -807,60 +807,66 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 		return -1;
 	}
 
-	if (c) {
-		switch (frame->frametype) {
-			case AST_FRAME_VOICE:
-				// checking for samples to transmit
-				if (!frame->samples) {
-					if (strcasecmp(frame->src, "ast_prod")) {
-						pbx_log(LOG_ERROR, "%s: Asked to transmit frame type %d with no samples.\n", (char *) c->currentDeviceId, (int) frame->frametype);
-					} else {
-						sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", (char *) c->currentDeviceId, ast->name);
-					}
+	switch(frame->frametype) {
+		case AST_FRAME_VOICE:
+			// checking for samples to transmit
+			if(!frame->samples) {
+				if(strcasecmp(frame->src, "ast_prod")) {
+					pbx_log(LOG_ERROR, "%s: Asked to transmit frame type %d with no samples.\n", (char *)c->currentDeviceId, (int)frame->frametype);
+				} else {
+					sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", (char *)c->currentDeviceId, ast->name);
 				}
-				//CODEC_TRANSLATION_FIX_AFTER_MOH
-				if (frame->subclass.codec != ast->rawwriteformat) {
-					/* asterisk channel.c:4911 temporary fix */
-					if ((!(frame->subclass.codec & ast->nativeformats)) && (ast->writeformat != frame->subclass.codec)) {
-						char s1[512], s2[512], s3[512];
+			}
+			// CODEC_TRANSLATION_FIX_AFTER_MOH
+			if(frame->subclass.codec != ast->rawwriteformat) {
+				/* asterisk channel.c:4911 temporary fix */
+				if((!(frame->subclass.codec & ast->nativeformats)) && (ast->writeformat != frame->subclass.codec)) {
+					char s1[512], s2[512], s3[512];
 
-						sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_2 "%s: Asked to transmit frame type %s, while native formats is %s read/write = %s/%s\n -> Forcing writeformat to %s to fix this issue.\n",
-									    c->currentDeviceId, ast_getformatname(frame->subclass.codec), ast_getformatname_multiple(s1, sizeof(s1), ast->nativeformats & AST_FORMAT_AUDIO_MASK), ast_getformatname_multiple(s2, sizeof(s2), ast->readformat), ast_getformatname_multiple(s3, sizeof(s3), ast->writeformat), ast_getformatname(frame->subclass.codec));
-						ast_set_write_format(ast, frame->subclass.codec);
-					}
-
-					frame = (ast->writetrans) ? ast_translate(ast->writetrans, frame, 0) : frame;
+					sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_2 "%s: Asked to transmit frame type %s, while native formats is %s read/write = %s/%s\n -> Forcing writeformat to %s to fix this issue.\n",
+								   c->currentDeviceId, ast_getformatname(frame->subclass.codec), ast_getformatname_multiple(s1, sizeof(s1), ast->nativeformats & AST_FORMAT_AUDIO_MASK),
+								   ast_getformatname_multiple(s2, sizeof(s2), ast->readformat), ast_getformatname_multiple(s3, sizeof(s3), ast->writeformat),
+								   ast_getformatname(frame->subclass.codec));
+					ast_set_write_format(ast, frame->subclass.codec);
 				}
-				//CODEC_TRANSLATION_FIX_AFTER_MOH
 
-				if (c->rtp.audio.instance && frame) {
-					res = ast_rtp_instance_write(c->rtp.audio.instance, frame);
-				}
-				break;
-			case AST_FRAME_IMAGE:
-			case AST_FRAME_VIDEO:
+				frame = (ast->writetrans) ? ast_translate(ast->writetrans, frame, 0) : frame;
+			}
+			// CODEC_TRANSLATION_FIX_AFTER_MOH
+
+			if(c->rtp.audio.instance && frame) {
+				res = ast_rtp_instance_write(c->rtp.audio.instance, frame);
+			}
+			break;
+		case AST_FRAME_IMAGE:
+		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
-				if (c->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
-					int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
+			if(sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_OFF && c->rtp.video.instance && c->rtp.video.instance_active) {
+				ast_rtp_instance_stop(c->rtp.video.instance);
+				c->rtp.video.instance_active = FALSE;
+				break;
+			}
 
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: got video frame %d\n", (char *) c->currentDeviceId, codec);
-					if (0 != codec) {
-						c->rtp.video.reception.format = codec;
-						sccp_channel_openMultiMediaReceiveChannel(c);
-					}
-				}
+			if(c->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
+				int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
 
-				if (c->rtp.video.instance && frame && (c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) != 0) {
-					res = ast_rtp_instance_write(c->rtp.video.instance, frame);
+				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: got video frame %d\n", (char *)c->currentDeviceId, codec);
+				if(0 != codec) {
+					c->rtp.video.reception.format = codec;
+					sccp_channel_openMultiMediaReceiveChannel(c);
 				}
+			}
+
+			if(c->rtp.video.instance && frame && (c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) != 0) {
+				res = ast_rtp_instance_write(c->rtp.video.instance, frame);
+			}
 #endif
-				break;
-			case AST_FRAME_TEXT:
-			case AST_FRAME_MODEM:
-			default:
-				pbx_log(LOG_WARNING, "%s: Can't send %d type frames with SCCP write on channel %s\n", (char *) c->currentDeviceId, frame->frametype, ast->name);
-				break;
-		}
+			break;
+		case AST_FRAME_TEXT:
+		case AST_FRAME_MODEM:
+		default:
+			pbx_log(LOG_WARNING, "%s: Can't send %d type frames with SCCP write on channel %s\n", (char *)c->currentDeviceId, frame->frametype, ast->name);
+			break;
 	}
 	return res;
 }

@@ -763,6 +763,12 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
+			if(sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_OFF && c->rtp.video.instance && c->rtp.video.instance_active) {
+				ast_rtp_stop(c->rtp.video.instance);
+				c->rtp.video.instance_active = FALSE;
+				break;
+			}
+
 			if (c->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
 				int codec = pbx_codec2skinny_codec((frame->subclass & AST_FORMAT_VIDEO_MASK));
 

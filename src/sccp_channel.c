@@ -2792,7 +2792,7 @@ boolean_t sccp_channel_setPreferredCodec(channelPtr c, const char * data)
 sccp_video_mode_t sccp_channel_getVideoMode(constChannelPtr c)
 {
 #if CS_SCCP_VIDEO
-	sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "%s: (getVideoMode) current video mode:%s\n", c->designator, sccp_video_mode2str(c->videomode));
+	// sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "%s: (getVideoMode) current video mode:%s\n", c->designator, sccp_video_mode2str(c->videomode));
 	return c->videomode;
 #else
 	return FALSE;

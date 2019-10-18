@@ -790,6 +790,12 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
+			if(sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_OFF && c->rtp.video.instance && c->rtp.video.instance_active) {
+				ast_rtp_instance_stop(c->rtp.video.instance);
+				c->rtp.video.instance_active = FALSE;
+				break;
+			}
+
 			if (c->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD
 			    //      && (c->device->capability & frame->subclass)
 			    ) {
@@ -1675,6 +1681,7 @@ static int sccp_astwrap_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * r
 			//ast_sockaddr_to_sin(&sin_tmp, &sin);
 			if (d->nat == SCCP_NAT_OFF) {								// forced nat off to circumvent autodetection + direcrtp, requires checking both phone_ip and external session ip address against devices permit/deny
 				struct ast_sockaddr sin_local;
+
 				struct sockaddr_storage localsas = { 0, };
 				ast_rtp_instance_get_local_address(instance, &sin_local);
 				memcpy(&localsas, &sin_local, sizeof(struct sockaddr_storage));
