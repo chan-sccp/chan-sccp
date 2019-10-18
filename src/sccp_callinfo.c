@@ -181,7 +181,7 @@ static int callinfo_Setter(sccp_callinfo_t * const ci, int key, ...)							// ke
 		iCallInfo.Print2log(ci, "SCCP: (sccp_callinfo_setter) before");
 	}
 	*/
-	
+
 	sccp_callinfo_wrlock(ci);
 	va_list ap;
 	va_start(ap, key);
@@ -279,7 +279,7 @@ static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinf
 	pbx_assert(src_ci != NULL && dst_ci != NULL);
 	struct ci_content tmp_ci_content;
 	memset(&tmp_ci_content, 0, sizeof(struct ci_content));
-	
+
 	sccp_callinfo_key_t srckey = SCCP_CALLINFO_NONE;
 	sccp_callinfo_key_t dstkey = SCCP_CALLINFO_NONE;
 	int changes = 0;
@@ -296,7 +296,7 @@ static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinf
 	va_start(ap, key);
 	dstkey=(sccp_callinfo_key_t) va_arg(ap, int);
 
-	for (	srckey = (sccp_callinfo_key_t)key; 	
+	for (	srckey = (sccp_callinfo_key_t)key;
 		srckey > SCCP_CALLINFO_NONE && dstkey > SCCP_CALLINFO_NONE && srckey < SCCP_CALLINFO_KEY_SENTINEL;
 		srckey = (sccp_callinfo_key_t)va_arg(ap, int), dstkey = (sccp_callinfo_key_t)va_arg(ap, int)
 	) {
@@ -343,7 +343,7 @@ static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinf
 				struct callinfo_lookup tmp_entry = callinfo_lookup[dstkey];
 				callinfo_entry_t *src_callinfo = (callinfo_entry_t *const) &src_ci->content.entries[src_entry.group];
 				callinfo_entry_t *tmp_callinfo = &tmp_ci_content.entries[tmp_entry.group];
-				
+
 				char *srcPtr = NULL;
 				uint16_t *validPtr = NULL;
 				switch(src_entry.type) {
@@ -402,12 +402,12 @@ static int callinfo_CopyByKey(const sccp_callinfo_t * const src_ci, sccp_callinf
 	}
 	va_end(ap);
 	sccp_callinfo_unlock(src_ci);
-	
+
 	sccp_callinfo_wrlock(dst_ci);
 	memcpy(&dst_ci->content, &tmp_ci_content, sizeof(struct ci_content));
 	dst_ci->content.changed = TRUE;
 	sccp_callinfo_unlock(dst_ci);
-	
+
 	if ((GLOB(debug) & DEBUGCAT_CALLINFO) != 0 && (dst_ci->content.callInstance > 0 || (GLOB(debug) & DEBUGCAT_HINT) != 0)) {
 		iCallInfo.Print2log(dst_ci, "(sccp_callinfo_copyByKey)");
 		//sccp_log(DEBUGCAT_CALLINFO)(VERBOSE_PREFIX_4 "%p: (sccp_callinfo_copybykey) changes:%d\n", dst_ci, changes);
@@ -538,7 +538,7 @@ static int callinfo_Send(sccp_callinfo_t * const ci, const uint32_t callid, cons
 	} else {
 		sccp_log(DEBUGCAT_CALLINFO) ("%p: (sccp_callinfo_send) ci has not changed since last send. Skipped sending\n", ci);
 	}
-	
+
 	return 0;
 }
 
@@ -653,7 +653,7 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	        case TEST_EXECUTE:
 	        	break;
 	}
-	
+
 	pbx_test_status_update(test, "Executing chan-sccp-b callinfo tests...\n");
 
 	sccp_callinfo_t *citest = NULL;
@@ -693,12 +693,12 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	pbx_test_validate(test, !strcmp(number, "number"));
 	pbx_test_validate(test, !strcmp(voicemail, "voicemail"));
 	pbx_test_validate(test, !strcmp(nullstr, ""));
-	
+
 	pbx_test_status_update(test, "Callinfo Setter add OrigCalledParty...\n");
 	changes = 0;
 	changes = iCallInfo.SetOrigCalledParty(citest, "origname", "orignumber", "origvm", 4);
 	pbx_test_validate(test, changes == 4);
-	
+
 	pbx_test_status_update(test, "Callinfo Getter OrigCalledParty...\n");
 	name[0]='\0'; number[0]='\0'; voicemail[0]='\0'; nullstr[0]='\0'; origname[0]='\0'; orignumber[0]='\0'; origvoicemail[0]='\0'; changes = 0; reason = 0; presentation = CALLERID_PRESENTATION_ALLOWED;
 	changes = iCallInfo.Getter(citest, SCCP_CALLINFO_CALLEDPARTY_NAME, &name, 
@@ -719,7 +719,7 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	pbx_test_validate(test, !strcmp(orignumber, "orignumber"));
 	pbx_test_validate(test, !strcmp(origvoicemail, "origvm"));
 	pbx_test_validate(test, reason == 4);
-	
+
 	pbx_test_status_update(test, "Callinfo copyConstructor...\n");
 	name[0]='\0'; number[0]='\0'; voicemail[0]='\0'; nullstr[0]='\0'; origname[0]='\0'; orignumber[0]='\0'; origvoicemail[0]='\0'; changes = 0; reason = 0; presentation = CALLERID_PRESENTATION_ALLOWED;
 	sccp_callinfo_t *citest1 = iCallInfo.CopyConstructor(citest);
@@ -772,7 +772,7 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	pbx_test_validate(test, reason == 0);
 	citest2 = iCallInfo.Destructor(&citest2);
 	pbx_test_validate(test, citest2 == NULL);
-	
+
 	pbx_test_status_update(test, "Callinfo Test Destructor...\n");
 	citest = iCallInfo.Destructor(&citest);
 	pbx_test_validate(test, citest == NULL);
