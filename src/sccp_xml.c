@@ -258,11 +258,6 @@ const XMLInterface iXML = {
 	.destroyDoc = destroyDoc,
 };
 
-#else
-const XMLInterface iXML = { 0 };
-#endif // defined(CS_EXPERIMENTAL_XML)
-
-
 #if CS_TEST_FRAMEWORK
 #include <asterisk/test.h>
 AST_TEST_DEFINE(sccp_xml_test)
@@ -315,5 +310,9 @@ static void __attribute__((destructor)) sccp_unregister_tests(void)
 	AST_TEST_UNREGISTER(sccp_xml_test);
 }
 #endif
+
+#else
+const XMLInterface iXML = { 0 };
+#endif                                        // defined(CS_EXPERIMENTAL_XML)
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
