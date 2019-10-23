@@ -705,10 +705,10 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 	}
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Opened Receive Channel (State: %s[%d])\n", d->id, sccp_channelstate2str(c->state), c->state);
 	sccp_channel_setDevice(c, d);
+
+	sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, c->line->name), c->callid);
 	if (SCCP_CHANNELSTATE_Idling(c->state) || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_CONGESTION) {
-			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stopping tones %s\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
-			sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, c->line->name), c->callid);
 			sccp_channel_release(&audio->reception.c);								// release extra receive channel retension
 			return SCCP_RTP_STATUS_ACTIVE;
 		}

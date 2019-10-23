@@ -670,6 +670,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 					sccp_astwrap_setDialedNumber(c, c->dialedNumber);
 				}
 				iPbx.set_callstate(c, AST_STATE_RING);
+				inband_if_receivechannel = TRUE;
 			}
 			if (ast_channel_state(ast) != AST_STATE_RING) {
 				inband_if_receivechannel = TRUE;
@@ -758,10 +759,10 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			}
 #ifdef CS_SCCP_VIDEO
 			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+				ast_rtp_instance_update_source(c->rtp.video.instance);
 				if (SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
 					sccp_channel_openMultiMediaReceiveChannel(c);
 				}
-				ast_rtp_instance_update_source(c->rtp.video.instance);
 			}
 #endif
 			sccp_astwrap_moh_stop(ast);
@@ -776,6 +777,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			//	sccp_channel_openReceiveChannel(c);
 			//}
 			sccp_astwrap_connectedline(c, data, datalen);
+			inband_if_receivechannel = TRUE;
 			break;
 
 		case AST_CONTROL_TRANSFER:
@@ -842,8 +844,6 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				c->calltype == SKINNY_CALLTYPE_OUTBOUND && 
 				!ast_channel_hangupcause(ast)
 			) {
-				uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
-				sccp_dev_stoptone(d, instance, c->callid);
 				if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
 				}

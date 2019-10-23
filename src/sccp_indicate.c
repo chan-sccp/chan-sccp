@@ -181,11 +181,11 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_RING_OUT, GLOB(digittimeout));
 
-				sccp_dev_stoptone(d, lineInstance, c->callid);
 				//if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 				if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
 				} else {
+					sccp_dev_stoptone(d, lineInstance, c->callid);
 					sccp_dev_starttone(d, SKINNY_TONE_ALERTINGTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 				}
 
@@ -291,7 +291,6 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 					sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
 					break;
 				}
-				sccp_dev_stoptone(d, lineInstance, c->callid);
 				if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
 					/* Pavel Troller / Immediate Mode / Overlap Dialing
 					Suppresses sending of the DialedNumber message in the case, when the number is just "s" (initial dial string in immeediate mode)
