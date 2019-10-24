@@ -145,14 +145,14 @@ static char *sccp_complete_line(OLDCONST char *line, OLDCONST char *word, int po
 	int wordlen = strlen(word), which = 0;
 	char *ret = NULL;
 
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		if (!strncasecmp(word, l->name, wordlen) && ++which > state) {
 			ret = pbx_strdup(l->name);
 			break;
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 
 	return ret;
 }
@@ -163,14 +163,14 @@ static char *sccp_complete_connected_line(OLDCONST char *line, OLDCONST char *wo
 	int wordlen = strlen(word), which = 0;
 	char *ret = NULL;
 
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		if (!strncasecmp(word, l->name, wordlen) && SCCP_LIST_GETSIZE(&l->devices) > 0 && ++which > state) {
 			ret = pbx_strdup(l->name);
 			break;
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 
 	return ret;
 }
@@ -193,7 +193,7 @@ static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int
 	int wordlen = strlen(word), which = 0;
 	char *ret = NULL;
 
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
@@ -207,7 +207,7 @@ static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int
 			break;								// break out of outer look, prevent leaking memory by strdup
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 
 	return ret;
 }
@@ -320,7 +320,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 
 			} else if (strstr(line, "channel") != NULL) {
-				SCCP_RWLIST_RDLOCK(&GLOB(lines));
+				SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 				SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 					SCCP_LIST_LOCK(&l->channels);
 					SCCP_LIST_TRAVERSE(&l->channels, c, list) {
@@ -335,7 +335,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 						break;							// break out of outer look, prevent leaking memory by strdup
 					}
 				}
-				SCCP_RWLIST_UNLOCK(&GLOB(lines));
+				SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 			} else if (strstr(line, "fallback") != NULL) {
 				for (i = 0; i < ARRAY_LEN(properties_fallback); i++) {
 					if (!strncasecmp(word, properties_fallback[i], wordlen) && ++which > state) {
@@ -1111,7 +1111,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 		astman_append(s, "\r\n");
 		local_line_total++;
 	}
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		found_linedevice = 0;
 		channel = NULL;
@@ -1225,7 +1225,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 		}
 		local_line_total++;
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 	if (s) {
 		totals->lines = local_line_total;
 		totals->tables = 1;
@@ -1691,7 +1691,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		sccp_line_t *l = NULL;
 		sccp_channel_t *channel = NULL;
 
-		SCCP_RWLIST_RDLOCK(&GLOB(lines));
+		SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 		SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 			SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
 				AUTO_RELEASE(sccp_channel_t, tmpChannel , sccp_channel_retain(channel));
@@ -1721,7 +1721,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 			}
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Testing re-Sending OpenReceiveChannel. It WORKS !\n");
 		}
-		SCCP_RWLIST_UNLOCK(&GLOB(lines));
+		SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 		return RESULT_SUCCESS;
 	}
 	// SpeedDialStatDynamicMessage = 0x0149,

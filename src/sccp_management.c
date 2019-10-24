@@ -315,7 +315,7 @@ static int sccp_manager_show_lines(struct mansession *s, const struct message *m
 
 	pbxman_send_listack(s, m, "Device status list will follow", "start");
 	/* List the peers in separate manager events */
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), line, list) {
 		astman_append(s, "Event: LineEntry\r\n%s", idtext);
 		astman_append(s, "ChannelType: SCCP\r\n");
@@ -327,7 +327,7 @@ static int sccp_manager_show_lines(struct mansession *s, const struct message *m
 		total++;
 	}
 
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 
 	/* Send final confirmation */
 	astman_append(s, "Event: SCCPListLinesComplete\r\n" "EventList: Complete\r\n" "ListItems: %d\r\n" "\r\n", total);

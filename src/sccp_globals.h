@@ -48,7 +48,7 @@ struct sccp_global_vars {
 
 	SCCP_EMB_RWLIST_HEAD(, sccp_session_t) sessions;                                                        /*!< SCCP Sessions */
 	SCCP_EMB_RWLIST_HEAD(, sccp_device_t) devices;                                                          /*!< SCCP Devices */
-	SCCP_RWLIST_HEAD (, sccp_line_t) lines;									/*!< SCCP Lines */
+	SCCP_EMB_RWLIST_HEAD(, sccp_line_t) lines;                                                              /*!< SCCP Lines */
 
 	sccp_mutex_t socket_lock;										/*!< Socket Lock */
 #ifndef SCCP_ATOMIC	

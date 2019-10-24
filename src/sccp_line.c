@@ -141,11 +141,11 @@ void sccp_line_addToGlobals(constLinePtr line)
 	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(line));
 	if (l) {
 		/* add to list */
-		SCCP_RWLIST_WRLOCK(&GLOB(lines));
+		SCCP_EMB_RWLIST_WRLOCK(&GLOB(lines));
 		sccp_line_retain(l);										/* add retained line to the list */
 		SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), l, list, cid_num);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Added line '%s' to Glob(lines)\n", l->name);
-		SCCP_RWLIST_UNLOCK(&GLOB(lines));
+		SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 
 		/* emit event */
 		sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_LINEINSTANCE_CREATED);
@@ -169,9 +169,9 @@ void sccp_line_removeFromGlobals(sccp_line_t * line)
 {
 	sccp_line_t *removed_line = NULL;
 	if (line) {
-		SCCP_RWLIST_WRLOCK(&GLOB(lines));
+		SCCP_EMB_RWLIST_WRLOCK(&GLOB(lines));
 		removed_line = SCCP_RWLIST_REMOVE(&GLOB(lines), line, list);
-		SCCP_RWLIST_UNLOCK(&GLOB(lines));
+		SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Removed line '%s' from Glob(lines)\n", removed_line->name);
 
@@ -577,9 +577,9 @@ linePtr sccp_line_find_byname(const char * name, uint8_t useRealtime)
 {
 	sccp_line_t *l = NULL;
 
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 	l = SCCP_RWLIST_FIND(&GLOB(lines), sccp_line_t, tmpl, list, (sccp_strcaseequals(tmpl->name, name)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 #ifdef CS_SCCP_REALTIME
 	if (!l && useRealtime) {
 		l = sccp_line_find_realtime_byname(name);

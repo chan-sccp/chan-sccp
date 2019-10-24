@@ -2995,14 +2995,14 @@ channelPtr sccp_channel_find_byid(uint32_t callid)
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", callid);
 
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		channel = sccp_find_channel_on_line_byid(l, callid);
 		if (channel) {
 			break;
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 	if (!channel) {
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Could not find channel for callid:%d on device\n", callid);
 	}
@@ -3028,7 +3028,7 @@ channelPtr sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u\n", passthrupartyid);
 
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
 		c = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->passthrupartyid == passthrupartyid && tmpc->state != SCCP_CHANNELSTATE_DOWN), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -3037,7 +3037,7 @@ channelPtr sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
 			break;
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 
 	if (!c) {
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Could not find active channel with Passthrupartyid %u\n", passthrupartyid);

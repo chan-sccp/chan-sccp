@@ -2533,7 +2533,7 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	PBX_VARIABLE_TYPE *rv = NULL;
 	
 	sccp_line_t *l = NULL;
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(l));
 		if (line) {
@@ -2561,7 +2561,7 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			} while (0);
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 	/* finished realtime line reload */
 
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
