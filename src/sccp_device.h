@@ -144,10 +144,11 @@ struct sccp_device {
 	uint8_t protocolversion;										/*!< Skinny Supported Protocol Version */
 	uint8_t inuseprotocolversion;										/*!< Skinny Used Protocol Version */
 	uint16_t directrtp;											/*!< Direct RTP Support (Boolean, default=on) */
+	pbx_rwlock_t * lock;
 
 	sccp_nat_t nat;												/*!< Network Address Translation Support (Boolean, default=on) */
 	sccp_session_t *session;										/*!< Current Session */
-	SCCP_RWLIST_ENTRY (sccp_device_t) list;									/*!< Global Device Linked List */
+	SCCP_EMB_RWLIST_ENTRY(sccp_device_t) list;                                                              /*!< Global Device Linked List */
 
 	sccp_private_device_data_t *privateData;
 	
@@ -160,7 +161,7 @@ struct sccp_device {
 	} lineButtons;
 	//SCCP_LIST_HEAD (, sccp_buttonconfig_t) buttonconfig;							/*!< SCCP Button Config Attached to this Device */
 	sccp_buttonconfig_list_t buttonconfig;									/*!< SCCP Button Config Attached to this Device */
-	SCCP_LIST_HEAD (, sccp_selectedchannel_t) selectedChannels;						/*!< Selected Channel List */
+	SCCP_EMB_RWLIST_HEAD(, sccp_selectedchannel_t) selectedChannels;                                        /*!< Selected Channel List */
 	SCCP_LIST_HEAD (, sccp_addon_t) addons;									/*!< Add-Ons connect to this Device */
 	SCCP_LIST_HEAD (, sccp_hostname_t) permithosts;								/*!< Permit Registration to the Hostname/IP Address */
 

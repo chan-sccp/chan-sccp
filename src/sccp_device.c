@@ -637,11 +637,12 @@ devicePtr sccp_device_create(const char * id)
 	}
 	d->privateData = private_data;
 	d->privateData->registrationState = SKINNY_DEVICE_RS_NONE;
+	d->lock = &GLOB(lock); /* inherit global lock during creation, assign session pointer later */
 	sccp_mutex_init(&d->privateData->lock);
 		
 	sccp_copy_string(d->id, id, sizeof(d->id));
 	SCCP_LIST_HEAD_INIT(&d->buttonconfig);
-	SCCP_LIST_HEAD_INIT(&d->selectedChannels);
+	SCCP_EMB_RWLIST_HEAD_INIT(&d->selectedChannels, d->lock);
 	SCCP_LIST_HEAD_INIT(&d->addons);
 #ifdef CS_DEVSTATE_FEATURE
 	SCCP_LIST_HEAD_INIT(&d->devstateSpecifiers);
@@ -2495,12 +2496,12 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 		}
 
 		/* removing selected channels */
-		SCCP_LIST_LOCK(&d->selectedChannels);
-		while ((selectedChannel = SCCP_LIST_REMOVE_HEAD(&d->selectedChannels, list))) {
+		SCCP_EMB_RWLIST_WRLOCK(&d->selectedChannels);
+		while((selectedChannel = SCCP_EMB_RWLIST_REMOVE_HEAD(&d->selectedChannels, list))) {
 			sccp_channel_release(&selectedChannel->channel);
 			sccp_free(selectedChannel);
 		}
-		SCCP_LIST_UNLOCK(&d->selectedChannels);
+		SCCP_EMB_RWLIST_UNLOCK(&d->selectedChannels);
 
 		/* release line references, refcounted in btnList */
 		if (d->buttonTemplate) {
@@ -2630,16 +2631,16 @@ int __sccp_device_destroy(const void *ptr)
 	// clean selected channels
 	{
 		sccp_selectedchannel_t *selectedChannel = NULL;
-		SCCP_LIST_LOCK(&d->selectedChannels);
-		while ((selectedChannel = SCCP_LIST_REMOVE_HEAD(&d->selectedChannels, list))) {
+		SCCP_EMB_RWLIST_WRLOCK(&d->selectedChannels);
+		while((selectedChannel = SCCP_EMB_RWLIST_REMOVE_HEAD(&d->selectedChannels, list))) {
 			sccp_channel_release(&selectedChannel->channel);
 			sccp_free(selectedChannel);
 		}
-		SCCP_LIST_UNLOCK(&d->selectedChannels);
-		if (!SCCP_LIST_EMPTY(&d->selectedChannels)) {
+		SCCP_EMB_RWLIST_UNLOCK(&d->selectedChannels);
+		if(!SCCP_EMB_RWLIST_EMPTY(&d->selectedChannels)) {
 			pbx_log(LOG_WARNING, "%s: (device_destroy) there are connected selectedChannels left during device destroy\n", d->id);
 		}
-		SCCP_LIST_HEAD_DESTROY(&d->selectedChannels);
+		SCCP_EMB_RWLIST_HEAD_DESTROY(&d->selectedChannels);
 	}
 
 	// cleanup ha

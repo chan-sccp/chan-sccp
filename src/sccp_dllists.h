@@ -115,6 +115,8 @@ struct {												\
 /* List Clear */
 #define SCCP_LIST_EMPTY(head)	(SCCP_LIST_FIRST(head) == NULL)
 #define SCCP_RWLIST_EMPTY SCCP_LIST_EMPTY
+#define SCCP_EMB_LIST_EMPTY     SCCP_LIST_EMPTY
+#define SCCP_EMB_RWLIST_EMPTY   SCCP_LIST_EMPTY
 
 /* List Explore Routine */
 #define SCCP_LIST_TRAVERSE(head,var,field) 								\
@@ -418,6 +420,8 @@ struct {												\
 		cur;											\
 	})
 #define SCCP_RWLIST_REMOVE_HEAD SCCP_LIST_REMOVE_HEAD
+#define SCCP_EMB_LIST_REMOVE_HEAD   SCCP_LIST_REMOVE_HEAD
+#define SCCP_EMB_RWLIST_REMOVE_HEAD SCCP_LIST_REMOVE_HEAD
 
 /* Remove an item from a list */
 #define SCCP_LIST_REMOVE(head, elm, field) ({								\
