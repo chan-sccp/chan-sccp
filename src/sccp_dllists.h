@@ -91,10 +91,14 @@ struct {												\
 	type *next;											\
 }
 #define SCCP_RWLIST_ENTRY SCCP_LIST_ENTRY
+#define SCCP_EMB_LIST_ENTRY   SCCP_LIST_ENTRY
+#define SCCP_EMB_RWLIST_ENTRY SCCP_LIST_ENTRY
 
 /* List First Item */
 #define SCCP_LIST_FIRST(head)	((head)->first)
 #define SCCP_RWLIST_FIRST SCCP_LIST_FIRST
+#define SCCP_EMB_LIST_FIRST     SCCP_LIST_FIRST
+#define SCCP_EMB_RWLIST_FIRST   SCCP_LIST_FIRST
 
 /* List Last Item */
 #define SCCP_LIST_LAST(head)	((head)->last)
@@ -116,6 +120,8 @@ struct {												\
 #define SCCP_LIST_TRAVERSE(head,var,field) 								\
 		for((var) = (head)->first; (var); (var) = (var)->field.next)
 #define SCCP_RWLIST_TRAVERSE SCCP_LIST_TRAVERSE
+#define SCCP_EMB_LIST_TRAVERSE   SCCP_LIST_TRAVERSE
+#define SCCP_EMB_RWLIST_TRAVERSE SCCP_LIST_TRAVERSE
 
 /* List Safe Explore Routine */
 #define SCCP_LIST_TRAVERSE_SAFE_BEGIN(head, var, field) {						\
@@ -131,6 +137,8 @@ struct {												\
 	     __list_next = (var) ? (var)->field.next : NULL						\
 	    )
 #define SCCP_RWLIST_TRAVERSE_SAFE_BEGIN SCCP_LIST_TRAVERSE_SAFE_BEGIN
+#define SCCP_EMB_LIST_TRAVERSE_SAFE_BEGIN   SCCP_LIST_TRAVERSE_SAFE_BEGIN
+#define SCCP_EMB_RWLIST_TRAVERSE_SAFE_BEGIN SCCP_LIST_TRAVERSE_SAFE_BEGIN
 
 /* Current List Item Removal */
 #define SCCP_LIST_REMOVE_CURRENT(field) do { 								\
@@ -154,6 +162,8 @@ struct {												\
 	__list_head->size--; 										\
 } while (0)
 #define SCCP_RWLIST_REMOVE_CURRENT SCCP_LIST_REMOVE_CURRENT
+#define SCCP_EMB_LIST_REMOVE_CURRENT   SCCP_LIST_REMOVE_CURRENT
+#define SCCP_EMB_RWLIST_REMOVE_CURRENT SCCP_LIST_REMOVE_CURRENT
 
 /* Move Current List Item */
 #define SCCP_LIST_MOVE_CURRENT(newhead, field) do { 							\
@@ -188,6 +198,8 @@ struct {												\
 	(head)->size++;											\
 } while (0)
 #define SCCP_RWLIST_INSERT_BEFORE SCCP_LIST_INSERT_BEFORE
+#define SCCP_EMB_LIST_INSERT_BEFORE   SCCP_LIST_INSERT_BEFORE
+#define SCCP_EMB_RWLIST_INSERT_BEFORE SCCP_LIST_INSERT_BEFORE
 
 /* List Item Insertion before Current */
 #define SCCP_LIST_INSERT_BEFORE_CURRENT(elm, field) do {						\
@@ -227,6 +239,8 @@ struct {												\
 /* List Traverse End (Parentesis) */
 #define SCCP_LIST_TRAVERSE_SAFE_END (void) __list_prev; /* to quiet compiler */ }
 #define SCCP_RWLIST_TRAVERSE_SAFE_END SCCP_LIST_TRAVERSE_SAFE_END
+#define SCCP_EMB_LIST_TRAVERSE_SAFE_END   SCCP_LIST_TRAVERSE_SAFE_END
+#define SCCP_EMB_RWLIST_TRAVERSE_SAFE_END SCCP_LIST_TRAVERSE_SAFE_END
 
 /* List Backward Explore Routine */
 #define SCCP_LIST_TRAVERSE_BACKWARDS(head,var,field) 							\
@@ -275,14 +289,7 @@ struct {												\
 		(head)->lock = inherrit_lock;        \
 		(head)->size = 0;                    \
 	}
-
-#define SCCP_EMB_RWLIST_HEAD_INIT(head, inherrit_lock) \
-	{                                              \
-		(head)->first = NULL;                  \
-		(head)->last = NULL;                   \
-		(head)->lock = inherrit_lock;          \
-		(head)->size = 0;                      \
-	}
+#define SCCP_EMB_RWLIST_HEAD_INIT SCCP_EMB_LIST_HEAD_INIT
 
 /* List Head Destroy */
 #define SCCP_LIST_HEAD_DESTROY(head) {									\
@@ -342,6 +349,8 @@ struct {												\
 	(head)->size++;											\
 } while (0)
 #define SCCP_RWLIST_INSERT_SORTALPHA SCCP_LIST_INSERT_SORTALPHA
+#define SCCP_EMB_LIST_INSERT_SORTALPHA   SCCP_LIST_INSERT_SORTALPHA
+#define SCCP_EMB_RWLIST_INSERT_SORTALPHA SCCP_LIST_INSERT_SORTALPHA
 
 /* Inserts a list item at the head of a list. */
 #define SCCP_LIST_INSERT_HEAD(head, elm, field) do {							\
@@ -355,6 +364,8 @@ struct {												\
 		(head)->size++;										\
 } while (0)
 #define SCCP_RWLIST_INSERT_HEAD SCCP_LIST_INSERT_HEAD
+#define SCCP_EMB_LIST_INSERT_HEAD   SCCP_LIST_INSERT_HEAD
+#define SCCP_EMB_RWLIST_INSERT_HEAD SCCP_LIST_INSERT_HEAD
 
 /* Inserts a list item at the tail of a list */
 #define SCCP_LIST_INSERT_TAIL(head, elm, field) do {							\
@@ -372,6 +383,8 @@ struct {												\
       (head)->size++;											\
 } while (0)
 #define SCCP_RWLIST_INSERT_TAIL SCCP_LIST_INSERT_TAIL
+#define SCCP_EMB_LIST_INSERT_TAIL   SCCP_LIST_INSERT_TAIL
+#define SCCP_EMB_RWLIST_INSERT_TAIL SCCP_LIST_INSERT_TAIL
 
 /* Append a whole list to another */
 #define SCCP_LIST_APPEND_LIST(head, list, field) do {							\
@@ -429,6 +442,8 @@ struct {												\
 	(__res);											\
 })
 #define SCCP_RWLIST_REMOVE SCCP_LIST_REMOVE
+#define SCCP_EMB_LIST_REMOVE   SCCP_LIST_REMOVE
+#define SCCP_EMB_RWLIST_REMOVE SCCP_LIST_REMOVE
 
 /* Expensive SCCP_LIST_FIND version: only used during refcount issue finding */
 /*
@@ -465,9 +480,12 @@ struct {												\
 	}                                                                                               \
 	(_var);												\
 })
-
 #define SCCP_RWLIST_FIND SCCP_LIST_FIND
+#define SCCP_EMB_LIST_FIND   SCCP_LIST_FIND
+#define SCCP_EMB_RWLIST_FIND SCCP_LIST_FIND
 
 #define SCCP_LIST_GETSIZE(head) (head)->size
 #define SCCP_RWLIST_GETSIZE SCCP_LIST_GETSIZE
+#define SCCP_EMB_LIST_GETSIZE   SCCP_LIST_GETSIZE
+#define SCCP_EMB_RWLIST_GETSIZE SCCP_LIST_GETSIZE
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
