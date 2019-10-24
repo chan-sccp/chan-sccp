@@ -16,12 +16,22 @@
 #define SCCP_LIST_UNLOCK(x)			pbx_mutex_unlock(&(x)->lock)
 #define SCCP_LIST_TRYLOCK(x)			pbx_mutex_trylock(&(x)->lock)
 
+#define SCCP_EMB_LIST_LOCK(x)    pbx_mutex_lock((x)->lock)
+#define SCCP_EMB_LIST_UNLOCK(x)  pbx_mutex_unlock((x)->lock)
+#define SCCP_EMB_LIST_TRYLOCK(x) pbx_mutex_trylock((x)->lock)
+
 /* Lock Macro for read/write Lists */
 #define SCCP_RWLIST_RDLOCK(x)			pbx_rwlock_rdlock(&(x)->lock)
 #define SCCP_RWLIST_WRLOCK(x)			pbx_rwlock_wrlock(&(x)->lock)
 #define SCCP_RWLIST_UNLOCK(x)			pbx_rwlock_unlock(&(x)->lock)
 #define SCCP_RWLIST_TRYRDLOCK(x)		pbx_rwlock_tryrdlock(&(x)->lock)
 #define SCCP_RWLIST_TRYWRLOCK(x)		pbx_rwlock_trywrlock(&(x)->lock)
+
+#define SCCP_EMB_RWLIST_RDLOCK(x)    pbx_rwlock_rdlock((x)->lock)
+#define SCCP_EMB_RWLIST_WRLOCK(x)    pbx_rwlock_wrlock((x)->lock)
+#define SCCP_EMB_RWLIST_UNLOCK(x)    pbx_rwlock_unlock((x)->lock)
+#define SCCP_EMB_RWLIST_TRYRDLOCK(x) pbx_rwlock_tryrdlock((x)->lock)
+#define SCCP_EMB_RWLIST_TRYWRLOCK(x) pbx_rwlock_trywrlock((x)->lock)
 
 /* Main list head */
 #define SCCP_LIST_HEAD(name, type)									\
@@ -39,6 +49,22 @@ struct name {												\
 	type *last;											\
 	uint32_t size;											\
 }
+
+#define SCCP_EMB_LIST_HEAD(name, type) \
+	struct name {                  \
+		pbx_mutex_t * lock;    \
+		type * first;          \
+		type * last;           \
+		uint32_t size;         \
+	}
+
+#define SCCP_EMB_RWLIST_HEAD(name, type) \
+	struct name {                    \
+		pbx_rwlock_t * lock;     \
+		type * first;            \
+		type * last;             \
+		uint32_t size;           \
+	}
 
 /* Initialize list head */
 #define SCCP_LIST_HEAD_SET(head, entry) do {								\
@@ -242,6 +268,22 @@ struct {												\
 		(head)->size = 0;                          \
 	}
 
+#define SCCP_EMB_LIST_HEAD_INIT(head, inherrit_lock) \
+	{                                            \
+		(head)->first = NULL;                \
+		(head)->last = NULL;                 \
+		(head)->lock = inherrit_lock;        \
+		(head)->size = 0;                    \
+	}
+
+#define SCCP_EMB_RWLIST_HEAD_INIT(head, inherrit_lock) \
+	{                                              \
+		(head)->first = NULL;                  \
+		(head)->last = NULL;                   \
+		(head)->lock = inherrit_lock;          \
+		(head)->size = 0;                      \
+	}
+
 /* List Head Destroy */
 #define SCCP_LIST_HEAD_DESTROY(head) {									\
 	(head)->first = NULL;										\
@@ -255,6 +297,15 @@ struct {												\
 	pbx_rwlock_destroy(&(head)->lock);								\
 	(head)->size=0;											\
 }
+
+#define SCCP_EMB_LIST_HEAD_DESTROY(head) \
+	{                                \
+		(head)->first = NULL;    \
+		(head)->last = NULL;     \
+		(head)->lock = NULL;     \
+		(head)->size = 0;        \
+	}
+#define SCCP_EMB_RWLIST_HEAD_DESTROY SCCP_EMB_LIST_HEAD_DESTROY
 
 /* List Item Insertion After */
 #define SCCP_LIST_INSERT_AFTER(head, listelm, elm, field) do {						\

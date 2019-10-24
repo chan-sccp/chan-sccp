@@ -108,7 +108,7 @@ boolean_t sccp_prePBXLoad(void)
 	/* init refcount */
 	sccp_refcount_init();
 
-	SCCP_RWLIST_HEAD_INIT(&GLOB(sessions));
+	SCCP_EMB_RWLIST_HEAD_INIT(&GLOB(sessions), &GLOB(lock)); /* inherrit lock from sccp_globals->lock */
 	SCCP_RWLIST_HEAD_INIT(&GLOB(devices));
 	SCCP_RWLIST_HEAD_INIT(&GLOB(lines));
 
