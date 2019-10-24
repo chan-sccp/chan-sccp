@@ -659,8 +659,9 @@ void sccp_feat_conference_start(constDevicePtr device, const uint32_t lineInstan
 	if (d->conference /* && num > 3 */ ) {
 		/* if we have selected channels, add this to conference */
 
-		SCCP_LIST_LOCK(&d->selectedChannels);
-		SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&d->selectedChannels);
+		SCCP_EMB_RWLIST_TRAVERSE(&d->selectedChannels, selectedChannel, list)
+		{
 			sccp_channel_t * channel = selectedChannel->channel;
 			if (channel && channel != c) {
 				if (channel != d->active_channel && channel->state == SCCP_CHANNELSTATE_HOLD) {
@@ -679,7 +680,7 @@ void sccp_feat_conference_start(constDevicePtr device, const uint32_t lineInstan
 				selectedFound = TRUE;
 			}
 		}
-		SCCP_LIST_UNLOCK(&d->selectedChannels);
+		SCCP_EMB_RWLIST_UNLOCK(&d->selectedChannels);
 
 		/* If no calls were selected, add all calls to the conference, across all lines. */
 		if (FALSE == selectedFound) {

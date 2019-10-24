@@ -2134,9 +2134,9 @@ void sccp_channel_clean(channelPtr channel)
 		}
 
 		if ((sccp_selected_channel = sccp_device_find_selectedchannel(d, channel))) {
-			SCCP_LIST_LOCK(&d->selectedChannels);
-			sccp_selected_channel = SCCP_LIST_REMOVE(&d->selectedChannels, sccp_selected_channel, list);
-			SCCP_LIST_UNLOCK(&d->selectedChannels);
+			SCCP_EMB_RWLIST_WRLOCK(&d->selectedChannels);
+			sccp_selected_channel = SCCP_EMB_RWLIST_REMOVE(&d->selectedChannels, sccp_selected_channel, list);
+			SCCP_EMB_RWLIST_UNLOCK(&d->selectedChannels);
 			sccp_channel_release(&sccp_selected_channel->channel);
 			sccp_free(sccp_selected_channel);
 		}
@@ -3186,9 +3186,9 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(constDevicePtr d, const
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channel (%d)\n", d->id, channel->callid);
 
-	SCCP_LIST_LOCK(&(((devicePtr)d)->selectedChannels));
-	sc = SCCP_LIST_FIND(&d->selectedChannels, sccp_selectedchannel_t, tmpsc, list, (tmpsc->channel == channel), FALSE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	SCCP_LIST_UNLOCK(&(((devicePtr)d)->selectedChannels));
+	SCCP_EMB_RWLIST_RDLOCK(&(((devicePtr)d)->selectedChannels));
+	sc = SCCP_EMB_RWLIST_FIND(&d->selectedChannels, sccp_selectedchannel_t, tmpsc, list, (tmpsc->channel == channel), FALSE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	SCCP_EMB_RWLIST_UNLOCK(&(((devicePtr)d)->selectedChannels));
 	return sc;
 }
 
@@ -3203,9 +3203,9 @@ uint8_t sccp_device_selectedchannels_count(constDevicePtr device)
 	uint8_t count = 0;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channels count\n", device->id);
-	SCCP_LIST_LOCK(&(((devicePtr)device)->selectedChannels));
-	count = SCCP_LIST_GETSIZE(&device->selectedChannels);
-	SCCP_LIST_UNLOCK(&(((devicePtr)device)->selectedChannels));
+	SCCP_EMB_RWLIST_RDLOCK(&(((devicePtr)device)->selectedChannels));
+	count = SCCP_EMB_RWLIST_GETSIZE(&device->selectedChannels);
+	SCCP_EMB_RWLIST_UNLOCK(&(((devicePtr)device)->selectedChannels));
 
 	return count;
 }

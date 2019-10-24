@@ -466,15 +466,15 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 	AUTO_RELEASE(sccp_channel_t, chan2, NULL);
 	if ((sccp_device_selectedchannels_count(device)) == 2) {
 		sccp_selectedchannel_t *x = NULL;
-		SCCP_LIST_LOCK(&device->selectedChannels);
-		if((x = SCCP_LIST_FIRST(&device->selectedChannels))) {
+		SCCP_EMB_RWLIST_RDLOCK(&device->selectedChannels);
+		if((x = SCCP_EMB_RWLIST_FIRST(&device->selectedChannels))) {
 			chan1 = sccp_channel_retain(x->channel) /*ref_replace*/;
 			sccp_channel_t * tmp = NULL;
 			if((tmp = SCCP_LIST_NEXT(x, list)->channel)) {
 				chan2 = sccp_channel_retain(tmp) /*ref_replace*/;
 			}
 		}
-		SCCP_LIST_UNLOCK(&device->selectedChannels);
+		SCCP_EMB_RWLIST_UNLOCK(&device->selectedChannels);
 	} else {
 		AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(l));
 		if (line) {
@@ -548,18 +548,18 @@ static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 	AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 	if (device) {
 		if ((selectedchannel = sccp_device_find_selectedchannel(device, c))) {
-			SCCP_LIST_LOCK(&device->selectedChannels);
+			SCCP_EMB_RWLIST_WRLOCK(&device->selectedChannels);
 			selectedchannel = SCCP_LIST_REMOVE(&device->selectedChannels, selectedchannel, list);
-			SCCP_LIST_UNLOCK(&device->selectedChannels);
+			SCCP_EMB_RWLIST_UNLOCK(&device->selectedChannels);
 			sccp_channel_release(&selectedchannel->channel);
 			sccp_free(selectedchannel);
 		} else {
 			selectedchannel = (sccp_selectedchannel_t *) sccp_calloc(sizeof *selectedchannel, 1);
 			if (selectedchannel != NULL) {
 				selectedchannel->channel = sccp_channel_retain(c);
-				SCCP_LIST_LOCK(&device->selectedChannels);
-				SCCP_LIST_INSERT_HEAD(&device->selectedChannels, selectedchannel, list);
-				SCCP_LIST_UNLOCK(&device->selectedChannels);
+				SCCP_EMB_RWLIST_WRLOCK(&device->selectedChannels);
+				SCCP_EMB_RWLIST_INSERT_HEAD(&device->selectedChannels, selectedchannel, list);
+				SCCP_EMB_RWLIST_UNLOCK(&device->selectedChannels);
 				status = 1;
 			} else {
 				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");

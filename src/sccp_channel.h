@@ -117,7 +117,7 @@ struct sccp_channel {
  */
 struct sccp_selectedchannel {
 	sccp_channel_t *channel;										/*!< SCCP Channel */
-	SCCP_LIST_ENTRY (sccp_selectedchannel_t) list;								/*!< Selected Channel Linked List Entry */
+	SCCP_EMB_RWLIST_ENTRY(sccp_selectedchannel_t) list;                                                     /*!< Selected Channel Linked List Entry */
 };														/*!< SCCP Selected Channel Structure */
 /* live cycle */
 SCCP_API channelPtr SCCP_CALL sccp_channel_allocate(constLinePtr l, constDevicePtr device);			// device is optional

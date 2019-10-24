@@ -781,9 +781,9 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	sccp_accessory_t activeAccessory = sccp_device_getActiveAccessory(d);
 	sccp_accessorystate_t activeAccessoryState = sccp_device_getAccessoryStatus(d, activeAccessory);
 
-	SCCP_LIST_TRAVERSE(&d->permithosts, hostname, list) {
-		ast_str_append(&permithost_buf, DEFAULT_PBX_STR_BUFFERSIZE, "%s ", hostname->name);
-	}
+	SCCP_EMB_RWLIST_RDLOCK(&d->permithosts);
+	SCCP_EMB_RWLIST_TRAVERSE(&d->permithosts, hostname, list) { ast_str_append(&permithost_buf, DEFAULT_PBX_STR_BUFFERSIZE, "%s ", hostname->name); }
+	SCCP_EMB_RWLIST_UNLOCK(&d->permithosts);
 
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver device settings ----------------------------------------------------------------------------------\n");
@@ -797,16 +797,14 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	}
 	
 	pbx_str_t *addons_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-	SCCP_LIST_LOCK(&d->addons);
-	if (SCCP_LIST_GETSIZE(&d->addons)) {
+	SCCP_EMB_RWLIST_RDLOCK(&d->addons);
+	if(SCCP_EMB_RWLIST_GETSIZE(&d->addons)) {
 		sccp_addon_t *addon = NULL;
 		int comma = 0;
-		SCCP_LIST_TRAVERSE(&d->addons, addon, list) {
-			pbx_str_append(&addons_buf, DEFAULT_PBX_STR_BUFFERSIZE, "%s%s", comma++ ? "," : "", skinny_devicetype2str(addon->type));
-		}
+		SCCP_EMB_RWLIST_TRAVERSE(&d->addons, addon, list) { pbx_str_append(&addons_buf, DEFAULT_PBX_STR_BUFFERSIZE, "%s%s", comma++ ? "," : "", skinny_devicetype2str(addon->type)); }
 	}
-	SCCP_LIST_UNLOCK(&d->addons);
-	
+	SCCP_EMB_RWLIST_UNLOCK(&d->addons);
+
 	/* *INDENT-OFF* */
 	CLI_AMI_OUTPUT_PARAM("MAC-Address",		CLI_AMI_LIST_WIDTH, "%s", d->id);
 	CLI_AMI_OUTPUT_PARAM("Protocol Version",	CLI_AMI_LIST_WIDTH, "Supported '%d', In Use '%d'", d->protocolversion, d->inuseprotocolversion);

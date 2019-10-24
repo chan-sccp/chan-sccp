@@ -4511,8 +4511,8 @@ void handle_extension_devicecaps(constSessionPtr s, devicePtr d, constMessagePtr
 	
 	sccp_log(DEBUGCAT_ACTION + DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: extension/addon. instance:%d, type:%d, maxallowed:%d\n", d->id, instance, type, maxAllowed);
 	sccp_log(DEBUGCAT_ACTION + DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: extension/addon. text='%s'\n", d->id, text);
-	SCCP_LIST_LOCK(&d->addons);
-	if (SCCP_LIST_GETSIZE(&d->addons) < instance) {
+	SCCP_EMB_RWLIST_WRLOCK(&d->addons);
+	if(SCCP_EMB_RWLIST_GETSIZE(&d->addons) < instance) {
 		pbx_log(LOG_NOTICE, "%s: sccp.conf device section is missing addon entry for extension module %d. Please add one.", d->id, instance);
 		sccp_addon_t *addon = (sccp_addon_t *)sccp_calloc(1, sizeof(sccp_addon_t));
 		if (!addon) {
@@ -4536,9 +4536,9 @@ void handle_extension_devicecaps(constSessionPtr s, devicePtr d, constMessagePtr
 					break;
 			}
 		}
-		SCCP_LIST_INSERT_TAIL(&d->addons, addon, list);
+		SCCP_EMB_RWLIST_INSERT_TAIL(&d->addons, addon, list);
 	}
-	SCCP_LIST_UNLOCK(&d->addons);
+	SCCP_EMB_RWLIST_UNLOCK(&d->addons);
 }
 
 /*!

@@ -643,7 +643,8 @@ devicePtr sccp_device_create(const char * id)
 	sccp_copy_string(d->id, id, sizeof(d->id));
 	SCCP_LIST_HEAD_INIT(&d->buttonconfig);
 	SCCP_EMB_RWLIST_HEAD_INIT(&d->selectedChannels, d->lock);
-	SCCP_LIST_HEAD_INIT(&d->addons);
+	SCCP_EMB_RWLIST_HEAD_INIT(&d->addons, d->lock);
+	SCCP_EMB_RWLIST_HEAD_INIT(&d->permithosts, d->lock);
 #ifdef CS_DEVSTATE_FEATURE
 	SCCP_LIST_HEAD_INIT(&d->devstateSpecifiers);
 #endif
@@ -1315,11 +1316,9 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocated %d Device buttons.\n", d->id, btn_index);
 
 	sccp_addon_t *cur = NULL;
-	SCCP_LIST_LOCK(&d->addons);
-	SCCP_LIST_TRAVERSE(&d->addons, cur, list) {
-		btn_index = sccp_addon_build_buttontemplate(d, cur, btn, btn_index);
-	}
-	SCCP_LIST_UNLOCK(&d->addons);
+	SCCP_EMB_RWLIST_WRLOCK(&d->addons);
+	SCCP_EMB_RWLIST_TRAVERSE(&d->addons, cur, list) { btn_index = sccp_addon_build_buttontemplate(d, cur, btn, btn_index); }
+	SCCP_EMB_RWLIST_UNLOCK(&d->addons);
 
 	if (d->skinny_type < 6 || sccp_strcaseequals(d->config_type, "kirk")) {
 		d->hasDisplayPrompt = sccp_device_falseResult;
@@ -2594,20 +2593,31 @@ int __sccp_device_destroy(const void *ptr)
 		SCCP_LIST_HEAD_DESTROY(&d->buttonconfig);
 	}
 
-	// clean  permithosts
+	// clean permithosts
 	{
 		sccp_hostname_t *permithost = NULL;
-		SCCP_LIST_LOCK(&d->permithosts);
-		while ((permithost = SCCP_LIST_REMOVE_HEAD(&d->permithosts, list))) {
+		SCCP_EMB_RWLIST_WRLOCK(&d->permithosts);
+		while((permithost = SCCP_EMB_RWLIST_REMOVE_HEAD(&d->permithosts, list))) {
 			if (permithost) {
 				sccp_free(permithost);
 			}
 		}
-		SCCP_LIST_UNLOCK(&d->permithosts);
-		if (!SCCP_LIST_EMPTY(&d->permithosts)) {
+		SCCP_EMB_RWLIST_UNLOCK(&d->permithosts);
+		if(!SCCP_EMB_RWLIST_EMPTY(&d->permithosts)) {
 			pbx_log(LOG_WARNING, "%s: (device_destroy) there are connected permithosts left during device destroy\n", d->id);
 		}
-		SCCP_LIST_HEAD_DESTROY(&d->permithosts);
+		SCCP_EMB_RWLIST_HEAD_DESTROY(&d->permithosts);
+	}
+
+	// clean addons
+	{
+		SCCP_EMB_RWLIST_WRLOCK(&d->addons);
+		sccp_addons_clear(d);
+		SCCP_EMB_RWLIST_UNLOCK(&d->addons);
+		if(!SCCP_EMB_RWLIST_EMPTY(&d->addons)) {
+			pbx_log(LOG_WARNING, "%s: (device_destroy) there are connected addons left during device destroy\n", d->id);
+		}
+		SCCP_EMB_RWLIST_HEAD_DESTROY(&d->addons);
 	}
 
 #ifdef CS_DEVSTATE_FEATURE

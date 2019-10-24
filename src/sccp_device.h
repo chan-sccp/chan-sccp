@@ -126,7 +126,7 @@ struct sccp_call_statistics {
  */
 struct sccp_hostname {
 	char name[SCCP_MAX_HOSTNAME_LEN];									/*!< Name of the Host */
-	SCCP_LIST_ENTRY (sccp_hostname_t) list;									/*!< Host Linked List Entry */
+	SCCP_EMB_RWLIST_ENTRY(sccp_hostname_t) list;                                                            /*!< Host Linked List Entry */
 };														/*!< SCCP Hostname Structure */
 
 /*!
@@ -162,8 +162,8 @@ struct sccp_device {
 	//SCCP_LIST_HEAD (, sccp_buttonconfig_t) buttonconfig;							/*!< SCCP Button Config Attached to this Device */
 	sccp_buttonconfig_list_t buttonconfig;									/*!< SCCP Button Config Attached to this Device */
 	SCCP_EMB_RWLIST_HEAD(, sccp_selectedchannel_t) selectedChannels;                                        /*!< Selected Channel List */
-	SCCP_LIST_HEAD (, sccp_addon_t) addons;									/*!< Add-Ons connect to this Device */
-	SCCP_LIST_HEAD (, sccp_hostname_t) permithosts;								/*!< Permit Registration to the Hostname/IP Address */
+	SCCP_EMB_RWLIST_HEAD(, sccp_addon_t) addons;                                                            /*!< Add-Ons connect to this Device */
+	SCCP_EMB_RWLIST_HEAD(, sccp_hostname_t) permithosts;                                                    /*!< Permit Registration to the Hostname/IP Address */
 
 	char *description;											/*!< Internal Description. Skinny protocol does not use it */
 	char imageversion[StationMaxImageVersionSize];								/*!< Version to Send to the phone */
@@ -325,7 +325,7 @@ struct sccp_device {
  * \note This defines the add-ons a.k.a sidecars
  */
 struct sccp_addon {
-	SCCP_LIST_ENTRY (sccp_addon_t) list;									/*!< Linked List Entry for this Add-On */
+	SCCP_EMB_LIST_ENTRY(sccp_addon_t) list; /*!< Linked List Entry for this Add-On */
 	// sccp_device_t *device;										/*!< Device Associated with this Add-On */
 	skinny_devicetype_t type;										/*!< Addon Device Type */
 };

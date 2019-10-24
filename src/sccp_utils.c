@@ -108,8 +108,7 @@ void sccp_addons_clear(devicePtr d)
 	if (!d) {
 		return;
 	}
-	// while ((AST_LIST_REMOVE_HEAD(&d->addons, list))) ;
-	while ((addon = SCCP_LIST_REMOVE_HEAD(&d->addons, list))) {
+	while((addon = SCCP_EMB_RWLIST_REMOVE_HEAD(&d->addons, list))) {
 		sccp_free(addon);
 	}
 	d->addons.first = NULL;
