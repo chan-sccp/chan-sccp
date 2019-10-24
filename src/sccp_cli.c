@@ -98,14 +98,14 @@ static char *sccp_complete_device(OLDCONST char *line, OLDCONST char *word, int 
 	int wordlen = strlen(word), which = 0;
 	char *ret = NULL;
 
-	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		if (!strncasecmp(word, d->id, wordlen) && ++which > state) {
 			ret = pbx_strdup(d->id);
 			break;
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 
 	return ret;
 }
@@ -116,14 +116,14 @@ static char *sccp_complete_connected_device(OLDCONST char *line, OLDCONST char *
 	int wordlen = strlen(word), which = 0;
 	char *ret = NULL;
 
-	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		if (!strncasecmp(word, d->id, wordlen) && sccp_device_getRegistrationState(d) != SKINNY_DEVICE_RS_NONE && ++which > state) {
 			ret = pbx_strdup(d->id);
 			break;
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 
 	return ret;
 }
@@ -310,14 +310,14 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 			break;
 		case 3:											// device / channel / line / fallback
 			if (strstr(line, "device") != NULL) {
-				SCCP_RWLIST_RDLOCK(&GLOB(devices));
+				SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
 				SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 					if (!strncasecmp(word, d->id, wordlen) && ++which > state) {
 						ret = pbx_strdup(d->id);
 						break;
 					}
 				}
-				SCCP_RWLIST_UNLOCK(&GLOB(devices));
+				SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 
 			} else if (strstr(line, "channel") != NULL) {
 				SCCP_RWLIST_RDLOCK(&GLOB(lines));
@@ -388,14 +388,14 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 			break;
 		case 7:											// values_hold off device
 			if (strstr(line, "channel") != NULL && strstr(line, "hold off") != NULL && strstr(line, "device") != NULL) {
-				SCCP_RWLIST_RDLOCK(&GLOB(devices));
+				SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
 				SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 					if (!strncasecmp(word, d->id, wordlen) && ++which > state) {
 						ret = pbx_strdup(d->id);
 						break;
 					}
 				}
-				SCCP_RWLIST_UNLOCK(&GLOB(devices));
+				SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 			} else if (strstr(line, "debug") != NULL) {
 				return sccp_complete_debug(line, word, pos, state);
 			}
@@ -656,7 +656,7 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 #define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_device_t
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &GLOB(devices)
 #define CLI_AMI_TABLE_LIST_ITER_VAR list_dev
-#define CLI_AMI_TABLE_LIST_LOCK SCCP_RWLIST_RDLOCK
+#define CLI_AMI_TABLE_LIST_LOCK      SCCP_EMB_RWLIST_RDLOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_RWLIST_TRAVERSE
 #define CLI_AMI_TABLE_BEFORE_ITERATION 																\
 	{																			\
@@ -673,7 +673,7 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 #define CLI_AMI_TABLE_AFTER_ITERATION 																\
 		}																		\
 	}
-#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
+#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_EMB_RWLIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 																	\
 		CLI_AMI_TABLE_UTF8_FIELD(Descr,		"-25.25",	s,	25,	d->description ? d->description : "<not set>")				\
@@ -2165,11 +2165,11 @@ static int sccp_message_devices(int fd, sccp_cli_totals_t *totals, struct manses
 	}
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending message '%s' to all devices (beep: %d, timeout: %d)\n", argv[3], beep, timeout);
-	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_dev_set_message(d, argv[3], timeout, FALSE, beep);
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 
 	if (s) {
 		totals->lines = local_line_total;
@@ -2283,11 +2283,11 @@ static int sccp_system_message(int fd, sccp_cli_totals_t *totals, struct mansess
 	int res = RESULT_FAILURE;
 
 	if (argc == 3) {
-		SCCP_RWLIST_RDLOCK(&GLOB(devices));
+		SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
 		SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 			sccp_dev_clear_message(d, TRUE);
 		}
-		SCCP_RWLIST_UNLOCK(&GLOB(devices));
+		SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 		CLI_AMI_OUTPUT(fd, s, "Message Cleared\n");
 		return RESULT_SUCCESS;
 	}
@@ -2309,12 +2309,12 @@ static int sccp_system_message(int fd, sccp_cli_totals_t *totals, struct mansess
 	snprintf(timeoutStr, sizeof(timeoutStr), "%d", timeout);
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending system message '%s' to all devices (beep: %d, timeout: %d)\n", argv[3], beep, timeout);
-	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_dev_set_message(d, argv[3], timeout, TRUE, beep);
 		res = RESULT_SUCCESS;
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 
 	if (s) {
 		totals->lines = local_line_total;

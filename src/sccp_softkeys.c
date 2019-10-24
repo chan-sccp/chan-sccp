@@ -1050,7 +1050,7 @@ void sccp_softkey_post_reload(void)
 	/* only required because softkeys are parsed after devices */
 	/* incase softkeysets have changed but device was not reloaded, then d->softkeyset needs to be fixed up */
 	sccp_device_t * d = NULL;
-	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_softKeySetConfiguration_t * softkeyset = NULL;
 		SCCP_LIST_LOCK(&softKeySetConfig);
@@ -1064,7 +1064,7 @@ void sccp_softkey_post_reload(void)
 		}
 		SCCP_LIST_UNLOCK(&softKeySetConfig);
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 }
 
 /*!

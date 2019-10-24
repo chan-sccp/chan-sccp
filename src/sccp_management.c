@@ -260,8 +260,8 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 	snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);
 
 	pbxman_send_listack(s, m, "Device status list will follow", "start");
-	// List the peers in separate manager events 
-	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	// List the peers in separate manager events
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), device, list) {
 		timeinfo = localtime(&device->registrationTime);
 
@@ -286,7 +286,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 		total++;
 	}
 
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 
 	// Send final confirmation 
 	astman_append(s, "Event: SCCPListDevicesComplete\r\n" "EventList: Complete\r\n" "ListItems: %d\r\n" "\r\n", total);

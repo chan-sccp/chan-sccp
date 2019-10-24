@@ -108,8 +108,8 @@ boolean_t sccp_prePBXLoad(void)
 	/* init refcount */
 	sccp_refcount_init();
 
-	SCCP_EMB_RWLIST_HEAD_INIT(&GLOB(sessions), &GLOB(lock)); /* inherrit lock from sccp_globals->lock */
-	SCCP_RWLIST_HEAD_INIT(&GLOB(devices));
+	SCCP_EMB_RWLIST_HEAD_INIT(&GLOB(sessions), &GLOB(lock)); /* inherit lock from sccp_globals->lock */
+	SCCP_EMB_RWLIST_HEAD_INIT(&GLOB(devices), &GLOB(lock));
 	SCCP_RWLIST_HEAD_INIT(&GLOB(lines));
 
 	GLOB(general_threadpool) = sccp_threadpool_init(THREADPOOL_MIN_SIZE);
@@ -245,7 +245,7 @@ int sccp_preUnload(void)
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
 	if (SCCP_RWLIST_EMPTY(&GLOB(devices))) {
-		SCCP_RWLIST_HEAD_DESTROY(&GLOB(devices));
+		SCCP_EMB_RWLIST_HEAD_DESTROY(&GLOB(devices));
 	}
 
 	/* hotline will be removed by line removing function */

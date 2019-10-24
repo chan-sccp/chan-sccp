@@ -2564,7 +2564,7 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	/* finished realtime line reload */
 
-	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 		if (device) {
@@ -2592,13 +2592,13 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			} while (0);
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 #endif
 
 	if (GLOB(reload_in_progress) && GLOB(pendingUpdate)) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Global param changed needing restart ->  Restart all device\n");
 
-		SCCP_RWLIST_RDLOCK(&GLOB(devices));
+		SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
 		SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 			if (d->realtime) {
 				d->pendingDelete = 1;
@@ -2606,7 +2606,7 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				d->pendingUpdate = 1;
 			}
 		}
-		SCCP_RWLIST_UNLOCK(&GLOB(devices));
+		SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 	} else {
 		GLOB(pendingUpdate) = 0;
 	}

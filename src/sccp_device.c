@@ -388,7 +388,7 @@ void sccp_device_pre_reload(void)
 	sccp_device_t *d = NULL;
 	sccp_buttonconfig_t *config = NULL;
 
-	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Setting Device to Pending Delete=1\n", d->id);
 #ifdef CS_SCCP_REALTIME
@@ -415,7 +415,7 @@ void sccp_device_pre_reload(void)
 		d->softKeyConfiguration.modes = 0;
 		d->softKeyConfiguration.size = 0;
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 }
 
 /*!
@@ -873,9 +873,9 @@ void sccp_device_addToGlobals(constDevicePtr device)
 	}
 	sccp_device_t *d = sccp_device_retain(device);
 	if (d) {
-		SCCP_RWLIST_WRLOCK(&GLOB(devices));
+		SCCP_EMB_RWLIST_WRLOCK(&GLOB(devices));
 		SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(devices), d, list, id);
-		SCCP_RWLIST_UNLOCK(&GLOB(devices));
+		SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Added device '%s' to Glob(devices)\n", d->id);
 	}
 }
@@ -896,9 +896,9 @@ void sccp_device_removeFromGlobals(devicePtr device)
 	}
 	sccp_device_t * d = NULL;
 
-	SCCP_RWLIST_WRLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_WRLOCK(&GLOB(devices));
 	d = SCCP_RWLIST_REMOVE(&GLOB(devices), device, list);
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 
 	if(d) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Removed device '%s' from Glob(devices)\n", DEV_ID_LOG(device));
@@ -3328,9 +3328,9 @@ devicePtr sccp_device_find_byid(const char * id, boolean_t useRealtime)
 		return NULL;
 	}
 
-	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
 	d = SCCP_RWLIST_FIND(&GLOB(devices), sccp_device_t, tmpd, list, (sccp_strcaseequals(tmpd->id, id)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 
 #ifdef CS_SCCP_REALTIME
 	if (!d && useRealtime) {
