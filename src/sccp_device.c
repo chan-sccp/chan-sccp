@@ -647,7 +647,7 @@ devicePtr sccp_device_create(const char * id)
 	SCCP_EMB_RWLIST_HEAD_INIT(&d->addons, d->lock);
 	SCCP_EMB_RWLIST_HEAD_INIT(&d->permithosts, d->lock);
 #ifdef CS_DEVSTATE_FEATURE
-	SCCP_LIST_HEAD_INIT(&d->devstateSpecifiers);
+	SCCP_EMB_RWLIST_HEAD_INIT(&d->devstateSpecifiers, d->lock);
 #endif
 #ifdef CS_AST_HAS_STASIS_ENDPOINT
 	if (iPbx.endpoint_create) {
@@ -2531,14 +2531,15 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 			sccp_linedevice_deleteButtonsArray(d);
 		}
 #if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
-		/* Unregister event subscriptions originating from devstate feature */ SCCP_LIST_LOCK(&d->devstateSpecifiers);
-		while ((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
+		/* Unregister event subscriptions originating from devstate feature */
+		SCCP_EMB_RWLIST_WRLOCK(&d->devstateSpecifiers);
+		while((devstateSpecifier = SCCP_EMB_RWLIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
 			if (devstateSpecifier->sub) {
 				pbx_event_unsubscribe(devstateSpecifier->sub);
 			}
 			sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_1 "%s: Removed Devicestate Subscription: %s\n", d->id, devstateSpecifier->specifier);
 		}
-		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
+		SCCP_EMB_RWLIST_UNLOCK(&d->devstateSpecifiers);
 #endif
 		sccp_session_t *s = d->session;
 		if (s) {
@@ -2634,17 +2635,17 @@ int __sccp_device_destroy(const void *ptr)
 	// clean devstate_specifier
 	{
 		sccp_devstate_specifier_t * devstateSpecifier = NULL;
-		SCCP_LIST_LOCK(&d->devstateSpecifiers);
-		while ((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
+		SCCP_EMB_RWLIST_WRLOCK(&d->devstateSpecifiers);
+		while((devstateSpecifier = SCCP_EMB_RWLIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
 			if (devstateSpecifier) {
 				sccp_free(devstateSpecifier);
 			}
 		}
-		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
-		if (!SCCP_LIST_EMPTY(&d->devstateSpecifiers)) {
+		SCCP_EMB_RWLIST_UNLOCK(&d->devstateSpecifiers);
+		if(!SCCP_EMB_RWLIST_EMPTY(&d->devstateSpecifiers)) {
 			pbx_log(LOG_WARNING, "%s: (device_destroy) there are connected deviceSpecifiers left during device destroy\n", d->id);
 		}
-		SCCP_LIST_HEAD_DESTROY(&d->devstateSpecifiers);
+		SCCP_EMB_RWLIST_HEAD_DESTROY(&d->devstateSpecifiers);
 	}
 #endif
 

@@ -165,7 +165,7 @@ struct sccp_device {
 	SCCP_EMB_RWLIST_HEAD(, sccp_addon_t) addons;                                                            /*!< Add-Ons connect to this Device */
 	SCCP_EMB_RWLIST_HEAD(, sccp_hostname_t) permithosts;                                                    /*!< Permit Registration to the Hostname/IP Address */
 #ifdef CS_DEVSTATE_FEATURE
-	SCCP_LIST_HEAD(, sccp_devstate_specifier_t) devstateSpecifiers; /*!< List of Custom DeviceState entries the phone monitors. */
+	SCCP_EMB_RWLIST_HEAD(, sccp_devstate_specifier_t) devstateSpecifiers; /*!< List of Custom DeviceState entries the phone monitors. */
 #endif
 
 	char *description;											/*!< Internal Description. Skinny protocol does not use it */

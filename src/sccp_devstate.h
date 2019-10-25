@@ -19,7 +19,7 @@ struct sccp_devstate_specifier {
 	struct ast_event_sub *sub;										/* Asterisk event Subscription related to the devstate extension. */
 	/* Note that the length of the specifier matches the length of "options" of the sccp_feature.options field,
 	   to which it corresponds. */
-	SCCP_LIST_ENTRY (sccp_devstate_specifier_t) list;							/*!< Specifier Linked List Entry */
+	SCCP_EMB_RWLIST_ENTRY(sccp_devstate_specifier_t) list;                                                  /*!< Specifier Linked List Entry */
 };														/*!< SCCP Devstate Specifier Structure */
 
 SCCP_API void SCCP_CALL sccp_devstate_module_start(void);

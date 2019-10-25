@@ -2218,10 +2218,10 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
 			if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && !sccp_strlen_zero(config->button.feature.options)) {
 				if (( dspec = (sccp_devstate_specifier_t *) sccp_calloc(1, sizeof *dspec) )) {
 					//sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
-					SCCP_LIST_LOCK(&d->devstateSpecifiers);
+					SCCP_EMB_RWLIST_WRLOCK(&d->devstateSpecifiers);
 					sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(dspec->specifier));
-					SCCP_LIST_INSERT_TAIL(&d->devstateSpecifiers, dspec, list);
-					SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
+					SCCP_EMB_RWLIST_INSERT_TAIL(&d->devstateSpecifiers, dspec, list);
+					SCCP_EMB_RWLIST_UNLOCK(&d->devstateSpecifiers);
 				} else {
 					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 					break;
@@ -3051,8 +3051,9 @@ void sccp_config_restoreDeviceFeatureStatus(devicePtr device)
 	char buf[ASTDB_RESULT_LEN] = "";
 	sccp_devstate_specifier_t *specifier;
 	/* Read and initialize custom devicestate entries */
-	SCCP_LIST_LOCK(&device->devstateSpecifiers);
-	SCCP_LIST_TRAVERSE(&device->devstateSpecifiers, specifier, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&device->devstateSpecifiers);
+	SCCP_EMB_RWLIST_TRAVERSE(&device->devstateSpecifiers, specifier, list)
+	{
 		/* Check if there is already a devicestate entry */
 		if (iPbx.feature_getFromDatabase(devstate_db_family, specifier->specifier, buf, sizeof(buf))) {
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Found Existing Custom Devicestate Entry: %s, state: %s\n", device->id, specifier->specifier, buf);
@@ -3074,7 +3075,7 @@ void sccp_config_restoreDeviceFeatureStatus(devicePtr device)
 		specifier->sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE, sccp_devstateFeatureState_cb, "devstate subscription", device, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, buf, AST_EVENT_IE_END);
 #endif
 	}
-	SCCP_LIST_UNLOCK(&device->devstateSpecifiers);
+	SCCP_EMB_RWLIST_UNLOCK(&device->devstateSpecifiers);
 #endif
 }
 
