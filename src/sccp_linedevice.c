@@ -153,6 +153,57 @@ static void disallowPickup(lineDevicePtr ld)
 }
 
 /*!
+ * \brief Set a Call Forward on a specific Line
+ * \param line SCCP Line
+ * \param device device that requested the forward
+ * \param type Call Forward Type as uint8_t
+ * \param number Number to which should be forwarded
+ * \todo we should check, that extension is reachable on line
+ *
+ * \callgraph
+ * \callergraph
+ *
+ * \todo implement cfwd_noanswer
+ */
+void sccp_linedevice_cfwd(lineDevicePtr ld, sccp_cfwd_t type, char * number)
+{
+	if(!ld || !ld->line) {
+		return;
+	}
+
+	if(type == SCCP_CFWD_NONE) {
+		for(uint x = SCCP_CFWD_ALL; x < SCCP_CFWD_SENTINEL; x++) {
+			ld->cfwd[x].enabled = FALSE;
+			ld->cfwd[x].number[0] = '\0';
+		}
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: all Call Forwards have been disabled on line %s\n", DEV_ID_LOG(ld->device), ld->line->name);
+	} else {
+		if(!number || sccp_strlen_zero(number)) {
+			ld->cfwd[type].enabled = FALSE;
+			ld->cfwd[type].number[0] = '\0';
+			sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid. Cfwd Disabled\n", DEV_ID_LOG(ld->device));
+		} else {
+			ld->cfwd[type].enabled = TRUE;
+			sccp_copy_string(ld->cfwd[type].number, number, sizeof(ld->cfwd[type].number));
+			sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Call Forward %s enabled on line %s to number %s\n", DEV_ID_LOG(ld->device), sccp_cfwd2str(type), ld->line->name, number);
+		}
+	}
+	sccp_feat_changed(ld->device, ld, sccp_cfwd2feature(type));
+	sccp_dev_forward_status(ld->line, ld->lineInstance, ld->device);
+}
+
+const char * const sccp_linedevice_get_cfwd_string(constLineDevicePtr ld, char * const buffer, size_t size)
+{
+	if(!ld) {
+		buffer[0] = '\0';
+		return NULL;
+	}
+	snprintf(buffer, size, "All:%s, Busy:%s, NoAnswer:%s", ld->cfwd[SCCP_CFWD_ALL].enabled ? ld->cfwd[SCCP_CFWD_ALL].number : "off", ld->cfwd[SCCP_CFWD_BUSY].enabled ? ld->cfwd[SCCP_CFWD_BUSY].number : "off",
+		 ld->cfwd[SCCP_CFWD_NOANSWER].enabled ? ld->cfwd[SCCP_CFWD_NOANSWER].number : "off");
+	return buffer;
+}
+
+/*!
  * \brief Attach a Device to a line
  * \param line SCCP Line
  * \param d SCCP Device

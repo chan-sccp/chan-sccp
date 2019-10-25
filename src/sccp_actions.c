@@ -2085,7 +2085,7 @@ static void handle_stimulus_groupcallpickup(constDevicePtr d, constLinePtr l, co
 static void handle_feature_action(constDevicePtr d, const int instance, const boolean_t toggleState)
 {
 	sccp_buttonconfig_t *config = NULL;
-	sccp_callforward_t status = SCCP_CFWD_NONE;								/* state of cfwd */
+	sccp_cfwd_t status = SCCP_CFWD_NONE; /* state of cfwd */
 
 	if (!d) {
 		return;

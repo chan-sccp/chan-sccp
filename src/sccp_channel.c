@@ -179,6 +179,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		/* this is for dialing scheduler */
 		channel->scheduler.digittimeout_id = -1;
 		channel->scheduler.hangup_id = -1;
+		channel->scheduler.cfwd_noanswer_id = -1;
 		channel->enbloc.digittimeout = GLOB(digittimeout);
 #ifndef SCCP_ATOMIC
 		pbx_mutex_init(&channel->scheduler.lock);
@@ -1406,13 +1407,40 @@ void sccp_channel_stop_and_deny_scheduled_tasks(constChannelPtr channel)
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 	if (c) {
 		(void) ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock);
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks (digittimeout_id:%d) (hangup_id:%d)\n", c->designator, c->scheduler.digittimeout_id, c->scheduler.hangup_id);
+		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks (digittimeout_id:%d) (hangup_id:%d) (cfwd_noanswer_id:%d)\n", c->designator, c->scheduler.digittimeout_id,
+					   c->scheduler.hangup_id, c->scheduler.cfwd_noanswer_id);
 		if (c->scheduler.digittimeout_id > -1) {
 			iPbx.sched_del_ref(&c->scheduler.digittimeout_id, c);
 		}
 		if (c->scheduler.hangup_id > -1) {
 			iPbx.sched_del_ref(&c->scheduler.hangup_id, c);
 		}
+		if(c->scheduler.cfwd_noanswer_id > -1) {
+			iPbx.sched_del_ref(&c->scheduler.cfwd_noanswer_id, c);
+		}
+	}
+}
+
+gcc_inline void sccp_channel_schedule_cfwd_noanswer(constChannelPtr channel, uint timeout)
+{
+	sccp_channel_t * c = sccp_channel_retain(channel);
+	/* only schedule if allowed and not already scheduled */
+	if(c && c->scheduler.cfwd_noanswer_id == -1 && !ATOMIC_FETCH(&c->scheduler.deny, &c->scheduler.lock)) {
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: schedule cfwd_noanswer %d\n", c->designator, timeout);
+		if(c->scheduler.cfwd_noanswer_id == -1) {
+			iPbx.sched_add_ref(&c->scheduler.cfwd_noanswer_id, timeout * 1000, sccp_pbx_cfwdnoanswer_cb, c);
+		}
+		sccp_channel_release(&c);
+	}
+}
+
+gcc_inline void sccp_channel_stop_schedule_cfwd_noanswer(constChannelPtr channel)
+{
+	AUTO_RELEASE(sccp_channel_t, c, sccp_channel_retain(channel));
+
+	if(c && c->scheduler.cfwd_noanswer_id > -1 && iPbx.sched_wait(c->scheduler.cfwd_noanswer_id) > 0) {
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: stop schedule cfwd_noanswer_id %d\n", c->designator, c->scheduler.cfwd_noanswer_id);
+		iPbx.sched_del_ref(&c->scheduler.cfwd_noanswer_id, c);
 	}
 }
 
@@ -2123,6 +2151,7 @@ void sccp_channel_clean(channelPtr channel)
 		if (channel->privateData->device) {
 			sccp_channel_setDevice(channel, NULL);
 		}
+
 		if(channel->privateData->ld) {
 			sccp_linedevice_release(&channel->privateData->ld);
 		}
@@ -2792,7 +2821,7 @@ boolean_t sccp_channel_setPreferredCodec(channelPtr c, const char * data)
 sccp_video_mode_t sccp_channel_getVideoMode(constChannelPtr c)
 {
 #if CS_SCCP_VIDEO
-	sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "%s: (getVideoMode) current video mode:%s\n", c->designator, sccp_video_mode2str(c->videomode));
+	// sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "%s: (getVideoMode) current video mode:%s\n", c->designator, sccp_video_mode2str(c->videomode));
 	return c->videomode;
 #else
 	return FALSE;

@@ -66,6 +66,11 @@ __BEGIN_C_EXTERN__
 #include <asterisk/timing.h>
 __END_C_EXTERN__
 
+//#define pbx_module_ref(x) ({pbx_log(LOG_NOTICE, "!!Retaining Module Reference\n"); ast_module_ref(x);})
+//#define pbx_module_unref(x) ({pbx_log(LOG_NOTICE, "!!Releasing Module Reference\n"); ast_module_unref(x);})
+#define pbx_module_ref(x)   ({ ast_module_ref(x); })
+#define pbx_module_unref(x) ({ ast_module_unref(x); })
+
 struct ast_sched_context *sched = 0;
 struct io_context *io = 0;
 
@@ -1036,19 +1041,21 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
-			if (c->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
-				// int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
-				// int codec = pbx_codec2skinny_codec(frame->subclass.format.id);
+			if(sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+				if(c->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
+					// int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
+					// int codec = pbx_codec2skinny_codec(frame->subclass.format.id);
 
-				if (ast_format_cmp(ast_format_h264, frame->subclass.format) == AST_FORMAT_CMP_EQUAL) {
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: got video frame %s\n", c->currentDeviceId, "H264");
-					c->rtp.video.reception.format = SKINNY_CODEC_H264;
-					sccp_channel_openMultiMediaReceiveChannel(c);
+					if(ast_format_cmp(ast_format_h264, frame->subclass.format) == AST_FORMAT_CMP_EQUAL) {
+						sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: got video frame %s\n", c->currentDeviceId, "H264");
+						c->rtp.video.reception.format = SKINNY_CODEC_H264;
+						sccp_channel_openMultiMediaReceiveChannel(c);
+					}
 				}
-			}
 
-			if (c->rtp.video.instance && (c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) != 0) {
-				res = ast_rtp_instance_write(c->rtp.video.instance, frame);
+				if(c->rtp.video.instance && (c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) != 0) {
+					res = ast_rtp_instance_write(c->rtp.video.instance, frame);
+				}
 			}
 #endif
 			break;
@@ -1103,13 +1110,13 @@ static void sccp_astwrap_setOwner(sccp_channel_t * channel, PBX_CHANNEL_TYPE * p
 
 	if (pbx_channel) {
 		channel->owner = pbx_channel_ref(pbx_channel);
-		ast_module_ref(pbx_module_info->self);
+		pbx_module_ref(pbx_module_info->self);
 	} else {
 		channel->owner = NULL;
 	}
 	if (prev_owner) {
 		pbx_channel_unref(prev_owner);
-		ast_module_unref(pbx_module_info->self);
+		pbx_module_unref(pbx_module_info->self);
 	}
 	if (channel->rtp.audio.instance) {
 		ast_rtp_instance_set_channel_id(channel->rtp.audio.instance, pbx_channel ? ast_channel_uniqueid(pbx_channel) : "");
@@ -3772,7 +3779,7 @@ static int unload_module(void)
 	pbx_log(LOG_NOTICE, "Running Cleanup\n");
 	sccp_free(sccp_globals);
 	pbx_log(LOG_NOTICE, "Module chan_sccp unloaded\n");
-	ast_module_unref(pbx_module_info->self);
+	pbx_module_unref(pbx_module_info->self);
 	return 0;
 }
 

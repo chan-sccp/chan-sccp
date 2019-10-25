@@ -127,7 +127,7 @@ SCCP_API void SCCP_CALL sccp_line_copyCodecSetsFromLineToChannel(constLinePtr l,
 SCCP_API void SCCP_CALL sccp_line_updatePreferencesFromDevicesToLine(linePtr l);
 SCCP_API void SCCP_CALL sccp_line_updateCapabilitiesFromDevicesToLine(linePtr l);
 SCCP_API void SCCP_CALL sccp_line_updateLineCapabilitiesByDevice(constDevicePtr d);
-SCCP_API void SCCP_CALL sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number);
+SCCP_API void SCCP_CALL sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_cfwd_t type, char * number);
 SCCP_API void SCCP_CALL sccp_line_setMWI(constLinePtr l, int newlinemsgs, int oldlinemsgs);
 
 // find line

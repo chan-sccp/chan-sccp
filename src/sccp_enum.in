@@ -74,7 +74,7 @@ strenum devicestate {
         SCCP_DEVICESTATE_FWDALL,			,	"Forward All"
 }
 
-strenum callforward {
+strenum cfwd {
         SCCP_CFWD_NONE,					=0,	"None",
         SCCP_CFWD_ALL,					,	"All",
         SCCP_CFWD_BUSY,					,	"Busy",
@@ -295,6 +295,7 @@ strenum feature_type
 	SCCP_FEATURE_CFWDNONE,				,	"cfwd off",
 	SCCP_FEATURE_CFWDALL,				,	"cfwdall",
 	SCCP_FEATURE_CFWDBUSY,				,	"cfwdbusy",
+	SCCP_FEATURE_CFWDNOANSWER,			,	"cfwdnoanswer",
 	SCCP_FEATURE_DND,				,	"dnd",
 	SCCP_FEATURE_PRIVACY,				,	"privacy",
 	SCCP_FEATURE_MONITOR,				,	"monitor",

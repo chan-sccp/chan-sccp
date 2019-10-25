@@ -280,6 +280,13 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 	SCCP_LIST_LOCK(&l->devices);
 	int num_devices = SCCP_LIST_GETSIZE(&l->devices);
 	c->subscribers = num_devices;
+
+	pbx_str_t * cfwds_all = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	pbx_str_t * cfwds_busy = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	pbx_str_t * cfwds_noanswer = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	int cfwd_all = 0;
+	int cfwd_busy = 0;
+	int cfwd_noanswer = 0;
 	SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
 		AUTO_RELEASE(sccp_channel_t, active_channel, sccp_device_getActiveChannel(ld->device));
 
@@ -291,15 +298,22 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 		}
 		
 		/* do we have cfwd enabled? */
-		if(!bypassCallForward && (ld->cfwdAll.enabled || (ld->cfwdBusy.enabled && (sccp_device_getDeviceState(ld->device) != SCCP_DEVICESTATE_ONHOOK || sccp_device_getActiveAccessory(ld->device))))) {
+		if(ld->cfwd[SCCP_CFWD_ALL].enabled) {
+			ast_str_append(&cfwds_all, DEFAULT_PBX_STR_BUFFERSIZE, "%s%s", cfwd_all++ ? "," : "", ld->cfwd[SCCP_CFWD_ALL].number);
+		}
+		if(ld->cfwd[SCCP_CFWD_BUSY].enabled) {
+			ast_str_append(&cfwds_busy, DEFAULT_PBX_STR_BUFFERSIZE, "%s%s", cfwd_busy++ ? "," : "", ld->cfwd[SCCP_CFWD_BUSY].number);
+		}
+		if(!bypassCallForward
+		   && (ld->cfwd[SCCP_CFWD_ALL].enabled || (ld->cfwd[SCCP_CFWD_BUSY].enabled && (sccp_device_getDeviceState(ld->device) != SCCP_DEVICESTATE_ONHOOK || sccp_device_getActiveAccessory(ld->device))))) {
 			if (num_devices == 1) {
 				/* when single line -> use asterisk functionality directly, without creating new channel + masquerade */
 				sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Call Forward active on line %s\n", ld->device->id, ld->line->name);
 				ForwardingLineDevice = ld;
 			} else {
 				/* shared line -> create a temp channel to call forward destination and tie them together */
-				pbx_log(LOG_NOTICE, "%s: initialize cfwd%s for line %s\n", ld->device->id, (ld->cfwdAll.enabled ? "All" : (ld->cfwdBusy.enabled ? "Busy" : "None")), l->name);
-				if(sccp_channel_forward(c, ld, ld->cfwdAll.enabled ? ld->cfwdAll.number : ld->cfwdBusy.number) == 0) {
+				pbx_log(LOG_NOTICE, "%s: handle cfwd to %s for line %s\n", ld->device->id, ld->cfwd[SCCP_CFWD_ALL].enabled ? ld->cfwd[SCCP_CFWD_ALL].number : ld->cfwd[SCCP_CFWD_BUSY].number, l->name);
+				if(sccp_channel_forward(c, ld, ld->cfwd[SCCP_CFWD_ALL].enabled ? ld->cfwd[SCCP_CFWD_ALL].number : ld->cfwd[SCCP_CFWD_BUSY].number) == 0) {
 					sccp_device_sendcallstate(ld->device, ld->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 					sccp_channel_send_callinfo(ld->device, c);
 					isRinging = TRUE;
@@ -307,6 +321,11 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 			};
 			c->subscribers--;
 			continue;
+		}
+
+		if(ld->cfwd[SCCP_CFWD_NOANSWER].enabled && c) {
+			sccp_channel_schedule_cfwd_noanswer(c, GLOB(cfwdnoanswer_timeout));
+			ast_str_append(&cfwds_noanswer, DEFAULT_PBX_STR_BUFFERSIZE, "%s%s", cfwd_noanswer++ ? "," : "", ld->cfwd[SCCP_CFWD_NOANSWER].number);
 		}
 
 		if(!ld->device->session) {
@@ -380,23 +399,34 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 	SCCP_LIST_UNLOCK(&l->devices);
 
 	//sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: isRinging:%d, hadDNDParticipant:%d, ForwardingLineDevice:%p\n", c->designator, isRinging, hasDNDParticipant, ForwardingLineDevice);
+	if(cfwd_all) {
+		pbx_builtin_setvar_helper(c->owner, "_CFWD_ALL", pbx_str_buffer(cfwds_all));
+	}
+	if(cfwd_busy) {
+		pbx_builtin_setvar_helper(c->owner, "_CFWD_BUSY", pbx_str_buffer(cfwds_busy));
+	}
+	if(cfwd_noanswer) {
+		pbx_builtin_setvar_helper(c->owner, "_CFWD_NOANSWER", pbx_str_buffer(cfwds_noanswer));
+	}
 	if (isRinging) {
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_RINGING);
 		iPbx.set_callstate(c, AST_STATE_RINGING);
 		iPbx.queue_control(c->owner, AST_CONTROL_RINGING);
 	} else if (ForwardingLineDevice) {
 		/* when single line -> use asterisk functionality directly, without creating new channel + masquerade */
-		pbx_log(LOG_NOTICE, "%s: initialize cfwd%s for line %s\n", ForwardingLineDevice->device->id, (ForwardingLineDevice->cfwdAll.enabled ? "All" : (ForwardingLineDevice->cfwdBusy.enabled ? "Busy" : "None")), l->name);
+		pbx_log(LOG_NOTICE, "%s: handle cfwd to %s for line %s\n", ForwardingLineDevice->device->id,
+			ForwardingLineDevice->cfwd[SCCP_CFWD_ALL].enabled ? ForwardingLineDevice->cfwd[SCCP_CFWD_ALL].number : ForwardingLineDevice->cfwd[SCCP_CFWD_BUSY].number, l->name);
 #if CS_AST_CONTROL_REDIRECTING
 		iPbx.queue_control(c->owner, AST_CONTROL_REDIRECTING);
 #endif
-		pbx_channel_call_forward_set(c->owner, ForwardingLineDevice->cfwdAll.enabled ? ForwardingLineDevice->cfwdAll.number : ForwardingLineDevice->cfwdBusy.number);
+		pbx_channel_call_forward_set(c->owner, ForwardingLineDevice->cfwd[SCCP_CFWD_ALL].enabled ? ForwardingLineDevice->cfwd[SCCP_CFWD_ALL].number : ForwardingLineDevice->cfwd[SCCP_CFWD_BUSY].number);
 		sccp_device_sendcallstate(ForwardingLineDevice->device, ForwardingLineDevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_channel_send_callinfo(ForwardingLineDevice->device, c);
 	} else if (hasDNDParticipant) {
 		iPbx.queue_control(c->owner, AST_CONTROL_BUSY);
-		//iPbx.set_callstate(c, AST_STATE_BUSY);
-		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_USER_BUSY);
+		// iPbx.set_callstate(c, AST_STATE_BUSY);
+		// pbx_channel_set_hangupcause(c->owner, AST_CAUSE_USER_BUSY);
+		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_BUSY);
 		res = 0;
 	} else {
 		iPbx.queue_control(c->owner, AST_CONTROL_CONGESTION);
@@ -412,6 +442,72 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_call) Returning: %d\n", c->designator, res);
 	return res;
+}
+
+/*!
+ * callback function to handle callforward when recipient does not answer within GLOB(cfwdnoanswer_timeout)
+ *
+ * this callback is scheduled in sccp_pbx_call / sccp_channel_schedule_cfwd_noanswer
+ */
+int sccp_pbx_cfwdnoanswer_cb(const void * data)
+{
+	AUTO_RELEASE(sccp_channel_t, c, sccp_channel_retain(data));
+	if(!c || !c->owner) {
+		pbx_log(LOG_WARNING, "SCCP: No channel provided.\n");
+		return -1;
+	}
+
+	if((ATOMIC_FETCH(&c->scheduler.deny, &c->scheduler.lock) == 0)) {
+		c->scheduler.cfwd_noanswer_id = -3; /* prevent further cfwd_noanswer_id scheduling */
+	}
+
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(c->line));
+	if(!l) {
+		pbx_log(LOG_WARNING, "SCCP: The channel %08X has no line. giving up.\n", (c->callid));
+		return -2;
+	}
+
+	pbx_channel_lock(c->owner);
+	PBX_CHANNEL_TYPE * forwarder = pbx_channel_ref(c->owner);
+	pbx_channel_unlock(c->owner);
+
+	if(!forwarder || pbx_check_hangup(forwarder)) {
+		pbx_log(LOG_WARNING, "SCCP: The channel %08X was already hungup. giving up.\n", (c->callid));
+		pbx_channel_unref(forwarder);
+		return -3;
+	}
+
+	boolean_t bypassCallForward = !sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "BYPASS_CFWD"));
+
+	sccp_linedevice_t * ld = NULL;
+	SCCP_LIST_LOCK(&l->devices);
+	int num_devices = SCCP_LIST_GETSIZE(&l->devices);
+	SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+		/* do we have cfwd enabled? */
+		if(ld->cfwd[SCCP_CFWD_NOANSWER].enabled && !sccp_strlen_zero(ld->cfwd[SCCP_CFWD_NOANSWER].number)) {
+			if(!bypassCallForward) {
+				if(num_devices == 1) {
+					/* when single line -> use asterisk functionality directly, without creating new channel + masquerade */
+					sccp_log(DEBUGCAT_PBX)("%s: Redirecting call to callforward noanswer:%s\n", c->designator, ld->cfwd[SCCP_CFWD_NOANSWER].number);
+#if CS_AST_CONTROL_REDIRECTING
+					iPbx.queue_control(c->owner, AST_CONTROL_REDIRECTING);
+#endif
+					pbx_channel_call_forward_set(c->owner, ld->cfwd[SCCP_CFWD_NOANSWER].number);
+					sccp_device_sendcallstate(ld->device, ld->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+					sccp_channel_send_callinfo(ld->device, c);
+					iPbx.set_owner(c, NULL);
+					break;                                        //! \todo currently using only the first match.
+				} else {
+					/* shared line -> create a temp channel to call forward destination and tie them together */
+					pbx_log(LOG_NOTICE, "%s: handle cfwd to %s for line %s\n", ld->device->id, ld->cfwd[SCCP_CFWD_NOANSWER].number, l->name);
+					sccp_channel_forward(c, ld, ld->cfwd[SCCP_CFWD_NOANSWER].number);
+				};
+			}
+		}
+	}
+	SCCP_LIST_UNLOCK(&l->devices);
+	pbx_channel_unref(forwarder);
+	return 0;
 }
 
 /*!
@@ -431,7 +527,7 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 {
 
 	/* here the ast channel is locked */
-	//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to hangup channel %s\n", iPbx.getChannelName(c));
+	// sccp_log((DEBUGCAT_CORE)) (;VERBOSE_PREFIX_3 "SCCP: Asterisk request to hangup channel %s\n", iPbx.getChannelName(c));
 	(void) ATOMIC_DECR(&GLOB(usecnt), 1, &GLOB(usecnt_lock));
 
 	pbx_update_use_count();
@@ -471,6 +567,7 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 
 	// removing scheduled dialing
 	sccp_channel_stop_schedule_digittimout(c);
+	sccp_channel_stop_schedule_cfwd_noanswer(c);
 
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Current channel %s state %s(%d)\n", (d) ? DEV_ID_LOG(d) : "(null)", c->designator, sccp_channelstate2str(c->state), c->state);
 
@@ -555,6 +652,8 @@ int sccp_pbx_answer(constChannelPtr channel)
 	if (!c) {
 		return res;
 	}
+
+	sccp_channel_stop_schedule_cfwd_noanswer(c);
 
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: sccp_pbx_answer checking parent channel\n", c->currentDeviceId);
 	if (c->parentChannel) {										// containing a retained channel, final release at the end
@@ -888,12 +987,12 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
 			if(ld->line == l) {
-				if(ld->cfwdAll.enabled) {
-					sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: ast call forward channel_set: %s\n", c->designator, ld->cfwdAll.number);
-					iPbx.setChannelCallForward(c, ld->cfwdAll.number);
-				} else if(ld->cfwdBusy.enabled && (sccp_device_getDeviceState(ld->device) != SCCP_DEVICESTATE_ONHOOK || sccp_device_getActiveAccessory(ld->device))) {
-					sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: ast call forward channel_set: %s\n", c->designator, ld->cfwdBusy.number);
-					iPbx.setChannelCallForward(c, ld->cfwdBusy.number);
+				if(ld->cfwd[SCCP_CFWD_ALL].enabled) {
+					sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: ast call forward channel_set: %s\n", c->designator, ld->cfwd[SCCP_CFWD_ALL].number);
+					iPbx.setChannelCallForward(c, ld->cfwd[SCCP_CFWD_ALL].number);
+				} else if(ld->cfwd[SCCP_CFWD_BUSY].enabled && (sccp_device_getDeviceState(ld->device) != SCCP_DEVICESTATE_ONHOOK || sccp_device_getActiveAccessory(ld->device))) {
+					sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: ast call forward channel_set: %s\n", c->designator, ld->cfwd[SCCP_CFWD_BUSY].number);
+					iPbx.setChannelCallForward(c, ld->cfwd[SCCP_CFWD_BUSY].number);
 				}
 				break;
 			}
@@ -1137,35 +1236,35 @@ void * sccp_pbx_softswitch(constChannelPtr channel)
 		switch (c->softswitch_action) {
 			case SCCP_SOFTSWITCH_GETFORWARDEXTEN:
 				{
-					sccp_callforward_t type = (sccp_callforward_t) c->ss_data;
-					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Forward %s Extension\n", d->id, sccp_callforward2str(type));
-					if (!sccp_strlen_zero(shortenedNumber)) {
-						sccp_dev_starttone(d, SKINNY_TONE_ZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
-						sccp_line_cfwd(l, d, type, shortenedNumber);
-					}
+				sccp_cfwd_t type = (sccp_cfwd_t)c->ss_data;
+				sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Forward %s Extension\n", d->id, sccp_cfwd2str(type));
+				if(!sccp_strlen_zero(shortenedNumber)) {
+					sccp_dev_starttone(d, SKINNY_TONE_ZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
+					sccp_line_cfwd(l, d, type, shortenedNumber);
+				}
 					sccp_channel_endcall(c);
 					goto EXIT_FUNC;								// leave simple switch without dial
 				}
 			case SCCP_SOFTSWITCH_ENDCALLFORWARD:
 				{
-					sccp_callforward_t type = (sccp_callforward_t) c->ss_data;
-					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Clear Forward %s\n", d->id, sccp_callforward2str(type));
-					sccp_line_cfwd(l, d, type, NULL);
-					switch (type) {
-						case SCCP_CFWD_ALL:
-							sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDALL, instance, SKINNY_LAMP_OFF);
-							break;
-						case SCCP_CFWD_BUSY:
-							sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDBUSY, instance, SKINNY_LAMP_OFF);
-							break;
-						case SCCP_CFWD_NOANSWER:
-							sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDNOANSWER, instance, SKINNY_LAMP_OFF);
-							break;
-						case SCCP_CFWD_NONE:
-						case SCCP_CALLFORWARD_SENTINEL:
-						default:
-							pbx_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) EndCallForward unknown CFWD_TYPE\n", d->id);
-					}
+				sccp_cfwd_t type = (sccp_cfwd_t)c->ss_data;
+				sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Clear Forward %s\n", d->id, sccp_cfwd2str(type));
+				sccp_line_cfwd(l, d, type, NULL);
+				switch(type) {
+					case SCCP_CFWD_ALL:
+						sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDALL, instance, SKINNY_LAMP_OFF);
+						break;
+					case SCCP_CFWD_BUSY:
+						sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDBUSY, instance, SKINNY_LAMP_OFF);
+						break;
+					case SCCP_CFWD_NOANSWER:
+						sccp_device_setLamp(d, SKINNY_STIMULUS_FORWARDNOANSWER, instance, SKINNY_LAMP_OFF);
+						break;
+					case SCCP_CFWD_NONE:
+					case SCCP_CFWD_SENTINEL:
+					default:
+						pbx_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) EndCallForward unknown CFWD_TYPE\n", d->id);
+				}
 					sccp_channel_endcall(c);
 					goto EXIT_FUNC;								// leave simple switch without dial
 				}

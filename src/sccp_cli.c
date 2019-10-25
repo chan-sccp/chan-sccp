@@ -548,10 +548,11 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("Audio Preference", CLI_AMI_LIST_WIDTH, "%s", apref_buf);
 #if CS_SCCP_VIDEO
 	CLI_AMI_OUTPUT_PARAM("Video Preference", CLI_AMI_LIST_WIDTH, "%s", vpref_buf);
-#endif	
-	CLI_AMI_OUTPUT_BOOL("CFWDALL    ", CLI_AMI_LIST_WIDTH, GLOB(cfwdall));
-	CLI_AMI_OUTPUT_BOOL("CFWBUSY    ", CLI_AMI_LIST_WIDTH, GLOB(cfwdbusy));
-	CLI_AMI_OUTPUT_BOOL("CFWNOANSWER   ", CLI_AMI_LIST_WIDTH, GLOB(cfwdnoanswer));
+#endif
+	CLI_AMI_OUTPUT_BOOL("CFWDALL", CLI_AMI_LIST_WIDTH, GLOB(cfwdall));
+	CLI_AMI_OUTPUT_BOOL("CFWBUSY", CLI_AMI_LIST_WIDTH, GLOB(cfwdbusy));
+	CLI_AMI_OUTPUT_BOOL("CFWNOANSWER", CLI_AMI_LIST_WIDTH, GLOB(cfwdnoanswer));
+	CLI_AMI_OUTPUT_PARAM("CFWNOANSWER timeout", CLI_AMI_LIST_WIDTH, "%d", GLOB(cfwdnoanswer_timeout));
 #ifdef CS_MANAGER_EVENTS
 	CLI_AMI_OUTPUT_BOOL("Call Events", CLI_AMI_LIST_WIDTH, GLOB(callevents));
 #else
@@ -932,21 +933,19 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 				 buttonconfig->button.line.subscriptionId->name);                                                                                                        \
 		}                                                                                                                                                                        \
 		if(l) {                                                                                                                                                                  \
-			AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, l));
-
+			AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, l));                                                                                                 \
+			char cfwd_str_buf[256] = "";                                                                                                                                     \
+			sccp_linedevice_get_cfwd_string(ld, cfwd_str_buf, sizeof(cfwd_str_buf));
 #define CLI_AMI_TABLE_AFTER_ITERATION 															\
 				}															\
 			}
-
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
-
 #define CLI_AMI_TABLE_FIELDS                                                                                                                                                      \
 	CLI_AMI_TABLE_FIELD(Id, "-4", d, 4, buttonconfig->index + 1)                                                                                                              \
 	CLI_AMI_TABLE_UTF8_FIELD(Name, "-23.23", s, 23, l->name)                                                                                                                  \
 	CLI_AMI_TABLE_FIELD(SubId, "-21.21", s, 21, subscriptionIdBuf)                                                                                                            \
-	CLI_AMI_TABLE_UTF8_FIELD(Label, "-37.37", s, 37, buttonconfig->button.line.subscriptionId ? buttonconfig->button.line.subscriptionId->label : (l->label ? l->label : "")) \
-	CLI_AMI_TABLE_FIELD(CfwdType, "-10", s, 10, (ld && ld->cfwdAll.enabled ? "All" : (ld && ld->cfwdBusy.enabled ? "Busy" : "None")))                                         \
-	CLI_AMI_TABLE_FIELD(CfwdNumber, "16.16", s, 16, (ld && ld->cfwdAll.enabled ? ld->cfwdAll.number : (ld && ld->cfwdBusy.enabled ? ld->cfwdBusy.number : "")))
+	CLI_AMI_TABLE_UTF8_FIELD(Label, "-18.18", s, 18, buttonconfig->button.line.subscriptionId ? buttonconfig->button.line.subscriptionId->label : (l->label ? l->label : "")) \
+	CLI_AMI_TABLE_FIELD(CallForward, "46.46", s, 46, cfwd_str_buf)
 #include "sccp_cli_table.h"
 			local_table_total++;
 		// SPEEDDIALS
@@ -1395,10 +1394,14 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS                                                                                         \
-	CLI_AMI_TABLE_FIELD(DeviceName, "-15.15", s, 15, ld->device->id)                                             \
-	CLI_AMI_TABLE_FIELD(CfwdType, "8", s, 8, ld->cfwdAll.enabled ? "All" : (ld->cfwdBusy.enabled ? "Busy" : "")) \
-	CLI_AMI_TABLE_FIELD(CfwdNumber, "-20.20", s, 20, ld->cfwdAll.enabled ? ld->cfwdAll.number : (ld->cfwdBusy.enabled ? ld->cfwdBusy.number : ""))
+#define CLI_AMI_TABLE_BEFORE_ITERATION \
+	char cfwd_str_buf[256] = "";   \
+	sccp_linedevice_get_cfwd_string(ld, cfwd_str_buf, sizeof(cfwd_str_buf));
+#define CLI_AMI_TABLE_AFTER_ITERATION
+
+#define CLI_AMI_TABLE_FIELDS                                             \
+	CLI_AMI_TABLE_FIELD(DeviceName, "-15.15", s, 15, ld->device->id) \
+	CLI_AMI_TABLE_FIELD(CallForward, "55.55", s, 55, cfwd_str_buf)
 #include "sccp_cli_table.h"
 		local_table_total++;
 	// Mailboxes connected to this line
@@ -2427,9 +2430,8 @@ static int sccp_callforward(int fd, sccp_cli_totals_t *totals, struct mansession
 {
 	int res = RESULT_FAILURE;
 	int local_line_total = 0;
-	sccp_callforward_t type = SCCP_CFWD_NONE;
+	sccp_cfwd_t type = SCCP_CFWD_NONE;
 	char *dest = NULL;
-	sccp_linedevice_t * ld;
 	AUTO_RELEASE(sccp_device_t, d , NULL);
 
 	if(3 > argc || argc > 6) {
@@ -2441,14 +2443,18 @@ static int sccp_callforward(int fd, sccp_cli_totals_t *totals, struct mansession
 	if (l) {
 		if (argc == 6) {
 			d = sccp_device_find_byid(argv[3], FALSE) /*ref_replace*/;
-			type = sccp_callforward_str2val(argv[4]);
+			type = sccp_cfwd_str2val(argv[4]);
 			dest = argv[5];
 		} else if (argc == 5) {
 			if (sccp_strcaseequals(argv[4], "none")) {
-				d = sccp_device_find_byid(argv[3], FALSE) /*ref_replace*/;
-				type = sccp_callforward_str2val(argv[4]);
-			} else {
-				type = sccp_callforward_str2val(argv[3]);
+				d = sccp_device_find_byid(argv[3], FALSE); /*ref_replace*/
+				type = sccp_cfwd_str2val(argv[4]);
+			} else if(sccp_cfwd_str2val(argv[4]) != SCCP_CFWD_SENTINEL) { /* line device all [number empty]*/
+				d = sccp_device_find_byid(argv[3], FALSE);            /*ref_replace*/
+				type = sccp_cfwd_str2val(argv[4]);
+				dest = "";
+			} else { /* line [nodevice] all number */
+				type = sccp_cfwd_str2val(argv[3]);
 				dest = argv[4];
 			}
 		} else {
@@ -2458,16 +2464,17 @@ static int sccp_callforward(int fd, sccp_cli_totals_t *totals, struct mansession
 		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find line %s\n", argv[2]);		/* explicit return */
 	}
 
-	CLI_AMI_OUTPUT(fd, s, "Set/Unset CallForward to %s:\n", sccp_callforward2str(type));
+	CLI_AMI_OUTPUT(fd, s, "Set/Unset CallForward to %s:\n", sccp_cfwd2str(type));
 	if (l && d) {
 		CLI_AMI_OUTPUT(fd, s, " - on line:%s and device:%s\r\n", l->name, d->id);
 		sccp_line_cfwd(l, d, type, dest);
 		local_line_total++;
 	} else {
+		sccp_linedevice_t * ld;
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
 			CLI_AMI_OUTPUT(fd, s, " - on line:%s and device:%s\r\n", l->name, ld->device->id);
-			sccp_line_cfwd(l, ld->device, type, dest);
+			sccp_linedevice_cfwd(ld, type, dest);
 			local_line_total++;
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
@@ -2480,8 +2487,11 @@ static int sccp_callforward(int fd, sccp_cli_totals_t *totals, struct mansession
 	return res;
 }
 
-static char cli_callforward_usage[] = "Usage: sccp callforward <lineName> [deviceId] <none|all|busy> [number]\n" "       Set/unset callforward on a line. required: line, type and number. Optionally specifying a device\n";
-static char ami_callforward_usage[] = "Usage: SCCPCallForward\n" "Set/Unset CallForward status on a SCCP Line.\n\n" "PARAMS: LineName, DeviceId, Type=[none|all|busy], Destination=number\n";
+static char cli_callforward_usage[] = "Usage: sccp callforward <lineName> [deviceId] <none|all|busy|noanswer> [number]\n"
+				      "       Set/unset callforward on a line. required: line, type and number. Optionally specifying a device.\n";
+static char ami_callforward_usage[] = "Usage: SCCPCallForward\n"
+				      "Set/Unset CallForward status on a SCCP Line.\n\n"
+				      "PARAMS: LineName, DeviceId, Type=[none|all|busy|noanswer], Destination=number\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "callforward"

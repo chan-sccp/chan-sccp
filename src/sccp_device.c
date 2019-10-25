@@ -2182,13 +2182,15 @@ void sccp_dev_forward_status(constLinePtr l, uint8_t lineInstance, constDevicePt
 
 	AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(device, l));
 	if(ld) {
-		device->protocol->sendCallforwardMessage(device, ld);
-		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Sent Forward Status (%s). Line: %s (%d)\n", device->id, (ld->cfwdAll.enabled ? "All" : (ld->cfwdBusy.enabled ? "Busy" : "None")), l->name,
+		device->protocol->sendCallForwardStatus(device, ld);
+		char buffer[256];
+		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: Sent Forward Status (%s). Line: %s (%d)\n", device->id, sccp_linedevice_get_cfwd_string(ld, buffer, sizeof(buffer)), l->name,
 							    ld->lineInstance);
 	} else {
 		pbx_log(LOG_NOTICE, "%s: Device does not have line configured (no ld found)\n", DEV_ID_LOG(device));
 	}
 }
+
 /*!
  * \brief Handle Post Device Registration
  * \param data Data
@@ -2229,20 +2231,19 @@ void sccp_dev_postregistration(devicePtr d)
 		for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
 			if (d->lineButtons.instance[instance]) {
 				AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_retain(d->lineButtons.instance[instance]));
-
 				snprintf(family, sizeof(family), "SCCP/%s/%s", d->id, ld->line->name);
-				if (iPbx.feature_getFromDatabase(family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-					ld->cfwdAll.enabled = TRUE;
-					sccp_copy_string(ld->cfwdAll.number, buffer, sizeof(ld->cfwdAll.number));
-					sccp_feat_changed(d, ld, SCCP_FEATURE_CFWDALL);
-				}
-				if (iPbx.feature_getFromDatabase(family, "cfwdBusy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-					ld->cfwdBusy.enabled = TRUE;
-					sccp_copy_string(ld->cfwdBusy.number, buffer, sizeof(ld->cfwdAll.number));
-					sccp_feat_changed(d, ld, SCCP_FEATURE_CFWDBUSY);
+				for(uint x = SCCP_CFWD_ALL; x < SCCP_CFWD_SENTINEL; x++) {
+					char cfwdstr[15] = "";
+					snprintf(cfwdstr, 14, "cfwd%s", sccp_cfwd2str((sccp_cfwd_t)x));
+					if(iPbx.feature_getFromDatabase(family, cfwdstr, buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+						ld->cfwd[x].enabled = TRUE;
+						sccp_copy_string(ld->cfwd[x].number, buffer, sizeof(ld->cfwd[x].number));
+						sccp_feat_changed(d, ld, sccp_cfwd2feature((sccp_cfwd_t)x));
+					}
 				}
 			}
 		}
+
 		/* System Message */
 		if (iPbx.feature_getFromDatabase("SCCP/message", "text", buffer, sizeof(buffer))) {
 			char timebuffer[ASTDB_RESULT_LEN];
@@ -3118,8 +3119,6 @@ void sccp_device_clearMessageFromStack(devicePtr device, const uint8_t priority)
  * \warning
  *   - device->buttonconfig is not always locked
  *   - line->devices is not always locked
- *
- * \todo implement cfwd_noanswer
  */
 void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 {
@@ -3140,34 +3139,21 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 			break;
 		case SCCP_FEATURE_CFWDBUSY:
 		case SCCP_FEATURE_CFWDALL:
+		case SCCP_FEATURE_CFWDNOANSWER:
 			if((ld = event->featureChanged.optional_linedevice)) {
 				linePtr line = ld->line;
 				uint8_t instance = ld->lineInstance;
 
 				sccp_dev_forward_status(line, instance, device);
-				switch (event->featureChanged.featureType) {
-					case SCCP_FEATURE_CFWDALL:
-						if(ld->cfwdAll.enabled) {
-							/* build disp message string */
-							if(sccp_strlen(line->cid_num) + sccp_strlen(ld->cfwdAll.number) > 15) {
-								pbx_build_string(&s, &len, "%s:%s", SKINNY_DISP_CFWDALL, ld->cfwdAll.number);
-							} else {
-								pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdAll.number);
-							}
+				for(uint x = SCCP_CFWD_ALL; x < SCCP_CFWD_SENTINEL; x++) {
+					if(ld->cfwd[x].enabled) {
+						sccp_cfwd_t cfwd_type = (sccp_cfwd_t)x;
+						if(sccp_strlen(line->cid_num) + sccp_strlen(ld->cfwd[x].number) > 15) {
+							pbx_build_string(&s, &len, "%s:%s", sccp_cfwd2disp(cfwd_type), ld->cfwd[x].number);
+						} else {
+							pbx_build_string(&s, &len, "%s:%s %s %s", sccp_cfwd2disp(cfwd_type), line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwd[x].number);
 						}
-						break;
-					case SCCP_FEATURE_CFWDBUSY:
-						if(ld->cfwdBusy.enabled) {
-							/* build disp message string */
-							if(sccp_strlen(line->cid_num) + sccp_strlen(ld->cfwdBusy.number) > 15) {
-								pbx_build_string(&s, &len, "%s:%s", SKINNY_DISP_CFWDBUSY, ld->cfwdBusy.number);
-							} else {
-								pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, ld->cfwdBusy.number);
-							}
-						}
-						break;
-					default:
-						break;
+					}
 				}
 			}
 			if (!sccp_strlen_zero(tmp)) {
@@ -3175,7 +3161,6 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 			} else {
 				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
 			}
-
 			break;
 		case SCCP_FEATURE_DND:
 			if (device->dndFeature.status) {

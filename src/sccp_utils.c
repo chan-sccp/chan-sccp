@@ -18,6 +18,7 @@
 #include "sccp_linedevice.h"
 #include "sccp_session.h"
 #include "sccp_utils.h"
+#include "sccp_labels.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 #include <locale.h>
@@ -265,44 +266,37 @@ void sccp_util_featureStorageBackend(const sccp_event_t * const event)
 		case SCCP_FEATURE_CFWDNONE:
 		case SCCP_FEATURE_CFWDBUSY:
 		case SCCP_FEATURE_CFWDALL:
+		case SCCP_FEATURE_CFWDNOANSWER:
 			if((ld = event->featureChanged.optional_linedevice)) {
 				constLinePtr line = ld->line;
 				uint8_t instance = ld->lineInstance;
+				int res = 0;
 
 				sccp_dev_forward_status(line, instance, device);
 				snprintf(cfwdDeviceLineStore, sizeof(cfwdDeviceLineStore), "SCCP/%s/%s", device->id, line->name);
 				snprintf(cfwdLineDeviceStore, sizeof(cfwdLineDeviceStore), "SCCP/%s/%s", line->name, device->id);
-				switch (event->featureChanged.featureType) {
-					case SCCP_FEATURE_CFWDALL:
-						if(ld->cfwdAll.enabled) {
-							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdAll", ld->cfwdAll.number);
-							iPbx.feature_addToDatabase(cfwdLineDeviceStore, "cfwdAll", ld->cfwdAll.number);
-							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
-						} else {
-							iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdAll");
-							iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, "cfwdAll");
-							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
-						}
-						break;
-					case SCCP_FEATURE_CFWDBUSY:
-						if(ld->cfwdBusy.enabled) {
-							iPbx.feature_addToDatabase(cfwdDeviceLineStore, "cfwdBusy", ld->cfwdBusy.number);
-							iPbx.feature_addToDatabase(cfwdLineDeviceStore, "cfwdBusy", ld->cfwdBusy.number);
-							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
-						} else {
-							iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdBusy");
-							iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, "cfwdBusy");
-							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
-						}
-						break;
-					case SCCP_FEATURE_CFWDNONE:
-						iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdAll");
-						iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, "cfwdBusy");
-						iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, "cfwdAll");
-						iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, "cfwdBusy");
-						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: cfwd cleared from db\n", DEV_ID_LOG(device));
-					default:
-						break;
+				if(event->featureChanged.featureType == SCCP_FEATURE_CFWDNONE) {
+					for(uint x = SCCP_CFWD_ALL; x < SCCP_CFWD_SENTINEL; x++) {
+						char cfwdstr[15] = "";
+						snprintf(cfwdstr, 14, "cfwd%s", sccp_cfwd2str((sccp_cfwd_t)x));
+						res |= iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, cfwdstr);
+						res |= iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, cfwdstr);
+					}
+					sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: all cfwd cleared from db (res:%d)\n", DEV_ID_LOG(device), res);
+				} else {
+					sccp_cfwd_t cfwd = sccp_feature2cfwd(event->featureChanged.featureType);
+					// const char * cfwdstr = sccp_cfwd2str(cfwd);
+					char cfwdstr[15] = "";
+					snprintf(cfwdstr, 14, "cfwd%s", sccp_cfwd2str(cfwd));
+					if(cfwd == SCCP_CFWD_NONE || cfwd == SCCP_CFWD_SENTINEL) {
+						res |= iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, cfwdstr);
+						res |= iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, cfwdstr);
+						sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: db clear %s %s (res:%d))\n", DEV_ID_LOG(device), cfwdDeviceLineStore, cfwdstr, res);
+					} else if(ld->cfwd[cfwd].enabled) {
+						res |= iPbx.feature_addToDatabase(cfwdDeviceLineStore, cfwdstr, ld->cfwd[cfwd].number);
+						res |= iPbx.feature_addToDatabase(cfwdLineDeviceStore, cfwdstr, ld->cfwd[cfwd].number);
+						sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: db put %s %s (res:%d)\n", DEV_ID_LOG(device), cfwdDeviceLineStore, cfwdstr, res);
+					}
 				}
 			}
 			break;
@@ -1628,6 +1622,68 @@ gcc_inline boolean_t sccp_always_true(void)
 	return TRUE;
 }
 
+gcc_inline sccp_feature_type_t sccp_cfwd2feature(const sccp_cfwd_t type)
+{
+	switch(type) {
+		case SCCP_CFWD_ALL:
+			return SCCP_FEATURE_CFWDALL;
+		case SCCP_CFWD_BUSY:
+			return SCCP_FEATURE_CFWDBUSY;
+		case SCCP_CFWD_NOANSWER:
+			return SCCP_FEATURE_CFWDNOANSWER;
+		case SCCP_CFWD_NONE:
+			return SCCP_FEATURE_CFWDNONE;
+		default:
+			return SCCP_FEATURE_TYPE_SENTINEL;
+	}
+}
+
+gcc_inline sccp_cfwd_t sccp_feature2cfwd(const sccp_feature_type_t type)
+{
+	switch(type) {
+		case SCCP_FEATURE_CFWDALL:
+			return SCCP_CFWD_ALL;
+		case SCCP_FEATURE_CFWDBUSY:
+			return SCCP_CFWD_BUSY;
+		case SCCP_FEATURE_CFWDNOANSWER:
+			return SCCP_CFWD_NOANSWER;
+		case SCCP_FEATURE_CFWDNONE:
+			return SCCP_CFWD_NONE;
+		default:
+			return SCCP_CFWD_SENTINEL;
+	}
+}
+
+gcc_inline skinny_stimulus_t sccp_cfwd2stimulus(const sccp_cfwd_t type)
+{
+	switch(type) {
+		case SCCP_CFWD_ALL:
+			return SKINNY_STIMULUS_FORWARDALL;
+		case SCCP_CFWD_BUSY:
+			return SKINNY_STIMULUS_FORWARDBUSY;
+		case SCCP_CFWD_NOANSWER:
+			return SKINNY_STIMULUS_FORWARDNOANSWER;
+		case SCCP_CFWD_NONE:
+		default:
+			return SKINNY_STIMULUS_SENTINEL;
+	}
+}
+
+gcc_inline const char * const sccp_cfwd2disp(const sccp_cfwd_t type)
+{
+	switch(type) {
+		case SCCP_CFWD_ALL:
+			return SKINNY_DISP_CFWDALL;
+		case SCCP_CFWD_BUSY:
+			return SKINNY_DISP_CFWDBUSY;
+		case SCCP_CFWD_NOANSWER:
+			return SKINNY_DISP_CFWDBUSY;
+		case SCCP_CFWD_NONE:
+		case SCCP_CFWD_SENTINEL:
+		default:
+			return "";
+	}
+}
 
 #if CS_TEST_FRAMEWORK
 static void __attribute__((constructor)) sccp_register_tests(void)

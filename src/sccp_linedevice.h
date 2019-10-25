@@ -31,9 +31,7 @@ struct sccp_linedevice {
 	linePtr line;                                                                   //!< SCCP Line
 	SCCP_LIST_ENTRY(sccp_linedevice_t) list;                                        //!< Device Linked List Entry
 
-	sccp_cfwd_information_t cfwdAll;                                         //!< cfwdAll information
-	sccp_cfwd_information_t cfwdBusy;                                        //!< cfwdBusy information
-	// sccp_cfwd_information_t cfwdNoAnswer;	//!< cfwdNoAnswer information
+	sccp_cfwd_information_t cfwd[SCCP_CFWD_SENTINEL];                                        //!< cfwd information
 
 	sccp_subscription_id_t subscriptionId;                                        //!< for addressing individual devices on shared line
 	char label[SCCP_MAX_LABEL];                                                   //!<
@@ -46,6 +44,8 @@ struct sccp_linedevice {
 
 SCCP_API void SCCP_CALL sccp_linedevice_create(constDevicePtr d, constLinePtr line, uint8_t lineInstance, sccp_subscription_id_t * subscriptionId);
 SCCP_API void SCCP_CALL sccp_linedevice_remove(constDevicePtr device, linePtr l);
+SCCP_API void SCCP_CALL sccp_linedevice_cfwd(lineDevicePtr ld, sccp_cfwd_t type, char * number);
+SCCP_API const char * const SCCP_CALL sccp_linedevice_get_cfwd_string(constLineDevicePtr ld, char * const buffer, size_t size);
 SCCP_API void SCCP_CALL sccp_linedevice_indicateMWI(constLineDevicePtr ld);
 
 #define sccp_linedevice_find(_x, _y)               __sccp_linedevice_find(_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)

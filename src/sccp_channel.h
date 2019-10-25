@@ -70,6 +70,7 @@ struct sccp_channel {
 		volatile CAS32_TYPE deny;
 		int digittimeout_id;										/*!< Schedule for Timeout on Dialing State */
 		int hangup_id;											/*!< Automatic hangup after invalid/congested indication */
+		int cfwd_noanswer_id;                                                                           /*!< Forward call when noanswer */
 	} scheduler;
 
 	sccp_dtmfmode_t dtmfmode;										/*!< DTMF Mode (0 inband - 1 outofband) */
@@ -164,6 +165,8 @@ SCCP_API boolean_t SCCP_CALL sccp_channel_transfer_on_hangup(constChannelPtr cha
 SCCP_INLINE void SCCP_CALL sccp_channel_stop_schedule_digittimout(constChannelPtr channel);
 SCCP_INLINE void SCCP_CALL sccp_channel_schedule_hangup(constChannelPtr channel, uint timeout);
 SCCP_INLINE void SCCP_CALL sccp_channel_schedule_digittimeout(constChannelPtr channel, uint timeout);
+SCCP_INLINE void SCCP_CALL sccp_channel_schedule_cfwd_noanswer(constChannelPtr channel, uint timeout);
+SCCP_INLINE void SCCP_CALL sccp_channel_stop_schedule_cfwd_noanswer(constChannelPtr channel);
 SCCP_API void SCCP_CALL sccp_channel_end_forwarding_channel(channelPtr orig_channel);
 SCCP_API void SCCP_CALL sccp_channel_endcall(channelPtr channel);
 SCCP_API void SCCP_CALL sccp_channel_StatisticsRequest(constChannelPtr channel);

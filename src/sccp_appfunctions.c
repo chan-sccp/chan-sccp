@@ -786,10 +786,8 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 
 				SCCP_LIST_LOCK(&l->devices);
 				SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
-					if(ld) {
-						pbx_str_append(&lbuf, 0, "%s[id:%s,cfwdAll:%s,num:%s,cfwdBusy:%s,num:%s]", addcomma++ ? "," : "", ld->device->id, ld->cfwdAll.enabled ? "on" : "off", ld->cfwdAll.number,
-							       ld->cfwdBusy.enabled ? "on" : "off", ld->cfwdBusy.number);
-					}
+					char cfwd_buf[256];
+					pbx_str_append(&lbuf, 0, "%s[id:%s,cfwd:%s]", addcomma++ ? "," : "", ld->device->id, sccp_linedevice_get_cfwd_string(ld, cfwd_buf, sizeof(cfwd_buf)));
 				}
 				SCCP_LIST_UNLOCK(&l->devices);
 				snprintf(buf, buf_len, "[ %s ]", pbx_str_buffer(lbuf));
@@ -799,9 +797,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 
 				SCCP_LIST_LOCK(&l->devices);
 				SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
-					if(ld) {
-						pbx_str_append(&lbuf, 0, "%s%s", addcomma++ ? "," : "", ld->device->id);
-					}
+					pbx_str_append(&lbuf, 0, "%s%s", addcomma++ ? "," : "", ld->device->id);
 				}
 				SCCP_LIST_UNLOCK(&l->devices);
 				snprintf(buf, buf_len, "[ %s ]", pbx_str_buffer(lbuf));

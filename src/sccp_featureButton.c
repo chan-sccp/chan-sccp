@@ -101,7 +101,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 
 								if(ld) {
 									sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name,
-															       (ld->cfwdAll.enabled) ? "on" : "off");
+															       (ld->cfwd[SCCP_CFWD_ALL].enabled) ? "on" : "off");
 
 									/* set this button active, only if all lines are fwd -requesting issue #3081549 */
 									// Upon finding the first existing line, we need to set the feature status									// to TRUE and subsequently AND
@@ -111,7 +111,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 										config->button.feature.status = 1;
 									}
 									// Set status of feature by logical and to comply with requirement above.
-									config->button.feature.status &= ((ld->cfwdAll.enabled) ? 1 : 0);                                        // Logical and &= intended here.
+									config->button.feature.status &= ((ld->cfwd[SCCP_CFWD_ALL].enabled) ? 1 : 0);                                        // Logical and &= intended here.
 								}
 							}
 						}

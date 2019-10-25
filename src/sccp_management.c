@@ -202,27 +202,34 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 			device = event->featureChanged.device;						// already retained in the event
 			ld = event->featureChanged.optional_linedevice;                                        // either NULL or already retained in the event
 			sccp_feature_type_t featureType = event->featureChanged.featureType;
+			sccp_cfwd_t cfwd_type = SCCP_CFWD_NONE;
 
 			switch(featureType) {
 				case SCCP_FEATURE_DND:
 					manager_event(EVENT_FLAG_CALL, "DND", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nFeature: %s\r\nStatus: %s\r\nSCCPDevice: %s\r\n", sccp_feature_type2str(SCCP_FEATURE_DND), sccp_dndmode2str((sccp_dndmode_t)device->dndFeature.status), DEV_ID_LOG(device));
 					break;
 				case SCCP_FEATURE_CFWDALL:
+					cfwd_type = SCCP_CFWD_ALL;
+					break;
 				case SCCP_FEATURE_CFWDBUSY:
-					if(ld) {
-						manager_event(EVENT_FLAG_CALL, "CallForward",
-							      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: %s\r\nExtension: %s\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n",
-							      sccp_feature_type2str(featureType), (SCCP_FEATURE_CFWDALL == featureType) ? ((ld->cfwdAll.enabled) ? "On" : "Off") : ((ld->cfwdBusy.enabled) ? "On" : "Off"),
-							      (SCCP_FEATURE_CFWDALL == featureType) ? ld->cfwdAll.number : ld->cfwdBusy.number, (ld->line) ? ld->line->name : "(null)", DEV_ID_LOG(device));
-					}
+					cfwd_type = SCCP_CFWD_BUSY;
+					break;
+				case SCCP_FEATURE_CFWDNOANSWER:
+					cfwd_type = SCCP_CFWD_NOANSWER;
 					break;
 				case SCCP_FEATURE_CFWDNONE:
+					cfwd_type = SCCP_CFWD_NONE;
 					manager_event(EVENT_FLAG_CALL, "CallForward", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: Off\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n",
 						      sccp_feature_type2str(featureType), (ld && ld->line) ? ld->line->name : "(null)", DEV_ID_LOG(device));
 					break;
 				default:
 					break;
 			}
+			if(ld && cfwd_type != SCCP_CFWD_NONE) {
+				manager_event(EVENT_FLAG_CALL, "CallForward", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: %s\r\nExtension: %s\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n",
+					      sccp_feature_type2str(featureType), ld->cfwd[cfwd_type].enabled ? "On" : "Off", ld->cfwd[cfwd_type].number, (ld->line) ? ld->line->name : "(null)", DEV_ID_LOG(device));
+			}
+
 			break;
 
 		default:
@@ -443,7 +450,7 @@ static int sccp_manager_line_fwd_update(struct mansession *s, const struct messa
 	const char *forwardType = astman_get_header(m, "Forwardtype");
 	const char *Disable = astman_get_header(m, "Disable");
 	const char *number = astman_get_header(m, "Number");
-	sccp_callforward_t cfwd_type = SCCP_CFWD_NONE;
+	sccp_cfwd_t cfwd_type = SCCP_CFWD_NONE;
 	char cbuf[64] = "";
 
 	AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(deviceName, FALSE));
@@ -469,8 +476,8 @@ static int sccp_manager_line_fwd_update(struct mansession *s, const struct messa
 	}
 
 	if (!forwardType) {
-		pbx_log(LOG_WARNING, "%s: Forwardtype is not optional [all | busy]\n", deviceName);
-		astman_send_error(s, m, "Forwardtype is not optional [all | busy]");				/* NoAnswer to be added later on */
+		pbx_log(LOG_WARNING, "%s: Forwardtype is not optional [all | busy | noanswer]\n", deviceName);
+		astman_send_error(s, m, "Forwardtype is not optional [all | busy | noanswer]"); /* NoAnswer to be added later on */
 		return 0;
 	}
 
@@ -482,45 +489,28 @@ static int sccp_manager_line_fwd_update(struct mansession *s, const struct messa
 		AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, line));
 
 		if(ld) {
-			if (sccp_strcaseequals("all", forwardType)) {
-				if (sccp_strcaseequals("yes", Disable)) {
-					ld->cfwdAll.enabled = 0;
-					number = "";
-				} else {
-					ld->cfwdAll.enabled = 1;
+			if(!sccp_strlen_zero(forwardType) && sccp_true(Disable)) {
+				for(uint x = SCCP_CFWD_ALL; x < SCCP_CFWD_SENTINEL; x++) {
+					cfwd_type = (sccp_cfwd_t)x;
+					ld->cfwd[cfwd_type].enabled = FALSE;
+					sccp_copy_string(ld->cfwd[cfwd_type].number, "", sizeof(ld->cfwd[cfwd_type].number));
+					sccp_feat_changed(ld->device, ld, sccp_cfwd2feature(cfwd_type));
+				}
+			} else {
+				if(sccp_strcaseequals("all", forwardType)) {
 					cfwd_type = SCCP_CFWD_ALL;
-				}
-				sccp_copy_string(ld->cfwdAll.number, number, sizeof(ld->cfwdAll.number));
-			} else if (sccp_strcaseequals("busy", forwardType)) {
-				if (sccp_strcaseequals("yes", Disable)) {
-					ld->cfwdBusy.enabled = 0;
-					number = "";
-				} else {
-					ld->cfwdBusy.enabled = 1;
+				} else if(sccp_strcaseequals("busy", forwardType)) {
 					cfwd_type = SCCP_CFWD_BUSY;
+				} else if(sccp_strcaseequals("noanswer", forwardType)) {
+					cfwd_type = SCCP_CFWD_NOANSWER;
 				}
-				sccp_copy_string(ld->cfwdBusy.number, number, sizeof(ld->cfwdBusy.number));
-			} else if (sccp_strcaseequals("yes", Disable)) {
-				ld->cfwdAll.enabled = 0;
-				ld->cfwdBusy.enabled = 0;
-				number = "";
-				sccp_copy_string(ld->cfwdAll.number, number, sizeof(ld->cfwdAll.number));
-				sccp_copy_string(ld->cfwdBusy.number, number, sizeof(ld->cfwdBusy.number));
-			}
-			switch (cfwd_type) {
-				case SCCP_CFWD_ALL:
-					sccp_feat_changed(ld->device, ld, SCCP_FEATURE_CFWDALL);
-					snprintf(cbuf, sizeof(cbuf), "Line %s CallForward ALL set to %s", lineName, ld->cfwdAll.number);
-					break;
-				case SCCP_CFWD_BUSY:
-					sccp_feat_changed(ld->device, ld, SCCP_FEATURE_CFWDBUSY);
-					snprintf(cbuf, sizeof(cbuf), "Line %s CallForward BUSY set to %s", lineName, ld->cfwdBusy.number);
-					break;
-				case SCCP_CFWD_NONE:
-				default:
-					sccp_feat_changed(ld->device, ld, SCCP_FEATURE_CFWDNONE);
-					snprintf(cbuf, sizeof(cbuf), "Line %s Call Forward Disabled", lineName);
-					break;
+				if(cfwd_type != SCCP_CFWD_NONE) {
+					ld->cfwd[cfwd_type].enabled = sccp_true(Disable);
+					const char * destination = ld->cfwd[cfwd_type].enabled ? number : "";
+					sccp_copy_string(ld->cfwd[cfwd_type].number, destination, sizeof(ld->cfwd[cfwd_type].number));
+					sccp_feat_changed(ld->device, ld, sccp_cfwd2feature(cfwd_type));
+					snprintf(cbuf, sizeof(cbuf), "Line %s CallForward %s set to %s", lineName, sccp_cfwd2str(cfwd_type), destination);
+				}
 			}
 			sccp_dev_forward_status(line, ld->lineInstance, ld->device);
 		} else {

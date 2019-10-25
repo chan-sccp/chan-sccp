@@ -469,51 +469,15 @@ void sccp_line_updateLineCapabilitiesByDevice(constDevicePtr d)
  * 
  * \todo implement cfwd_noanswer
  */
-void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_callforward_t type, char *number)
+void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_cfwd_t type, char * number)
 {
-	sccp_feature_type_t feature_type = SCCP_FEATURE_CFWDNONE;
-
 	if (!line || !device) {
 		return;
 	}
+
 	AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(device, line));
 	if(ld) {
-		if (type == SCCP_CFWD_NONE) {
-			if(ld->cfwdAll.enabled) {
-				feature_type = SCCP_FEATURE_CFWDALL;
-			}
-			if(ld->cfwdBusy.enabled) {
-				feature_type = SCCP_FEATURE_CFWDBUSY;
-			}
-			ld->cfwdAll.enabled = 0;
-			ld->cfwdBusy.enabled = 0;
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward disabled on line %s\n", DEV_ID_LOG(device), line->name);
-		} else {
-			if (!number || sccp_strlen_zero(number)) {
-				ld->cfwdAll.enabled = 0;
-				ld->cfwdBusy.enabled = 0;
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid. Cfwd Disabled\n", DEV_ID_LOG(device));
-			} else {
-				switch (type) {
-					case SCCP_CFWD_ALL:
-						feature_type = SCCP_FEATURE_CFWDALL;
-						ld->cfwdAll.enabled = 1;
-						sccp_copy_string(ld->cfwdAll.number, number, sizeof(ld->cfwdAll.number));
-						break;
-					case SCCP_CFWD_BUSY:
-						feature_type = SCCP_FEATURE_CFWDBUSY;
-						ld->cfwdBusy.enabled = 1;
-						sccp_copy_string(ld->cfwdBusy.number, number, sizeof(ld->cfwdBusy.number));
-						break;
-					default:
-						ld->cfwdAll.enabled = 0;
-						ld->cfwdBusy.enabled = 0;
-				}
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward %s enabled on line %s to number %s\n", DEV_ID_LOG(device), sccp_callforward2str(type), line->name, number);
-			}
-		}
-		sccp_feat_changed(ld->device, ld, feature_type);
-		sccp_dev_forward_status(ld->line, ld->lineInstance, device);
+		sccp_linedevice_cfwd(ld, type, number);
 	} else {
 		pbx_log(LOG_ERROR, "%s: Device does not have line configured (ld not found)\n", DEV_ID_LOG(device));
 	}

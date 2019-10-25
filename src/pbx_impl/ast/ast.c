@@ -702,6 +702,7 @@ boolean_t sccp_astwrap_addToDatabase(const char *family, const char *key, const 
 {
 	int res;
 
+	// pbx_log(LOG_NOTICE, "family:%s, key:%s, value:%s\n", family, key, value);
 	if (sccp_strlen_zero(family) || sccp_strlen_zero(key) || sccp_strlen_zero(value)) {
 		return FALSE;
 	}
@@ -713,6 +714,7 @@ boolean_t sccp_astwrap_getFromDatabase(const char *family, const char *key, char
 {
 	int res;
 
+	// pbx_log(LOG_NOTICE, "family:%s, key:%s\n", family, key);
 	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) {
 		return FALSE;
 	}
@@ -724,6 +726,7 @@ boolean_t sccp_astwrap_removeFromDatabase(const char *family, const char *key)
 {
 	int res;
 
+	// pbx_log(LOG_NOTICE, "family:%s, key:%s\n", family, key);
 	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) {
 		return FALSE;
 	}
@@ -735,6 +738,7 @@ boolean_t sccp_astwrap_removeTreeFromDatabase(const char *family, const char *ke
 {
 	int res;
 
+	// pbx_log(LOG_NOTICE, "family:%s, key:%s\n", family, key);
 	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) {
 		return FALSE;
 	}

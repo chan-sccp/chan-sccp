@@ -1,8 +1,8 @@
 ;!
 ;! Automatically generated configuration file
-;! Filename: sccp.conf.annotated (/usr/local/asterisk-17-branch/etc/asterisk/sccp.conf.annotated)
+;! Filename: sccp.conf.annotate (/usr/local/asterisk-13-branch/etc/asterisk/sccp.conf.annotate)
 ;! Generator: sccp config generate
-;! Creation Date: Wed Oct  9 14:06:11 2019
+;! Creation Date: Fri Oct 25 13:19:42 2019
 ;!
 
 ;!
@@ -17,7 +17,7 @@
 ;
 [general]
 ;debug = core                                                                     ; (MULTI-ENTRY) console debug level or categories
-                                                                                  ; examples: debug = 11 | debug = mwi,event,core | debug = all | debug = none or 0
+                                                                                  ; examples: debug = 11; debug = mwi,event,core; debug = all; debug = none or 0
                                                                                   ; possible categories:
                                                                                   ; core, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey, indicate, pbx
                                                                                   ; socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime, lock, parkinglot, newcode, high, all, none
@@ -93,6 +93,7 @@ externhost = ""                                                                 
 ;cfwdall = yes                                                                    ; activate the callforward ALL stuff and softkeys
 ;cfwdbusy = yes                                                                   ; activate the callforward BUSY stuff and softkeys
 ;cfwdnoanswer = yes                                                               ; activate the callforward NOANSWER stuff and softkeys
+;cfwdnoanswer_timeout = 30                                                        ; timeout after which callforward noanswer (when active) will be triggered. default is 30 seconds
 ;nat = auto                                                                       ; Global NAT support.
                                                                                   ; (POSSIBLE VALUES: ["Auto","Off","(Auto)Off","On","(Auto)On"])
 ;directrtp = no                                                                   ; This option allow devices to do direct RTP sessions.
@@ -100,6 +101,7 @@ externhost = ""                                                                 
                                                                                   ; Use with extreme caution as it is very dialplan and provider dependent.
 callgroup = ""                                                                    ; We are in caller groups 1,3,4. Valid for all lines
 pickupgroup = ""                                                                  ; We can do call pick-p for call group 1,3,4,5. Valid for all lines
+directed_pickup = ""                                                              ; enable/disable Pickup button to do directed pickup from a specific extension.
 directed_pickup_context = ""                                                      ; context where direct pickup search for extensions. If not set, the current context of the picking line will be used.
 ;pickup_modeanswer = yes                                                          ; Automatically Answer when using Directed Pickup. (default=on)
 ;callhistory_answered_elsewhere = Ignore                                          ; Where to store callinfo for calls answered on a remote device. Options: Ignore, Missed Calls (or Placed Calls, Received Calls which are less usefull)
@@ -289,18 +291,18 @@ regexten = ""                                                                   
 ;
 ;[mysoftkeyset]
 ;type = softkeyset                                                                ; (SIZE: -1) This should be set to softkeyset
-;onhook = redial,newcall,cfwdall,dnd,pickup,gpickup,private                       ; (SIZE: 15) displayed when we are on hook
-;connected = hold,endcall,park,vidmode,select,cfwdall,cfwdbusy,idivert,monitor    ; (SIZE: 15) displayed when we have a connected call
-;onhold = resume,newcall,endcall,transfer,conflist,select,dirtrfr,idivert,meetme  ; (SIZE: 15) displayed when we have a call on hold
-;ringin = answer,endcall,transvm,idivert                                          ; (SIZE: 15) displayed when we have an incoming call
-;offhook = redial,endcall,private,cfwdall,cfwdbusy,pickup,gpickup,meetme,barge    ; (SIZE: 15) displayed when the phone is taken off hook
-;conntrans = hold,endcall,transfer,conf,park,select,dirtrfr,monitor,vidmode,meetme,cfwdall,cfwdbusy                   ; (SIZE: 15) displayed when we are connected and could transfer a call
-;digitsfoll = back,endcall,dial                                                   ; (SIZE: 15) displayed when one or more digits have been entered, more are expected
-;connconf = conflist,newcall,endcall,hold,vidmode,monitor                         ; (SIZE: 15) displayed when we are in a conference
-;ringout = empty,endcall,transfer                                                 ; (SIZE: 15) displayed when We are calling someone
-;offhookfeat = resume,newcall,endcall                                             ; (SIZE: 15) displayed wenn we went offhook using a feature
-;onhint = redial,newcall,pickup,gpickup                                           ; (SIZE: 15) displayed when a hint is activated
-;onstealable = redial,newcall,barge,intrcpt,cfwdall,pickup,gpickup,dnd            ; (SIZE: 15) displayed when there is a call we could steal on one of the neighboring phones
-;holdconf = resume,newcall,endcall,join                                           ; (SIZE: 15) displayed when we are a conference moderator, have the conference on hold and have another active call
+;onhook = redial, newcall, cfwdall, cfwdbusy, cfwdnoanswer, pickup, gpickup, dnd, private         ; (SIZE: 15) displayed when we are on hook
+;connected = hold, endcall, park, vidmode, select, cfwdall, cfwdbusy, idivert, monitor      ; (SIZE: 15) displayed when we have a connected call
+;onhold = resume, newcall, endcall, transfer, conflist, select, dirtrfr, idivert, meetme        ; (SIZE: 15) displayed when we have a call on hold
+;ringin = answer, endcall, transvm, idivert                                       ; (SIZE: 15) displayed when we have an incoming call
+;offhook = redial, endcall, private, cfwdall, cfwdbusy, cfwdnoanswer, pickup, gpickup, meetme, barg                   ; (SIZE: 15) displayed when the phone is taken off hook
+;conntrans = hold, endcall, transfer, conf, park, select, dirtrfr, monitor, vidmode, meetme, cfwdal                   ; (SIZE: 15) displayed when we are connected and could transfer a call
+;digitsfoll = back, endcall, dial                                                 ; (SIZE: 15) displayed when one or more digits have been entered, more are expected
+;connconf = conflist, newcall, endcall, hold, vidmode, monitor                    ; (SIZE: 15) displayed when we are in a conference
+;ringout = empty, endcall, transfer                                               ; (SIZE: 15) displayed when We are calling someone
+;offhookfeat = resume, newcall, endcall                                           ; (SIZE: 15) displayed wenn we went offhook using a feature
+;onhint = redial, newcall, pickup, gpickup                                        ; (SIZE: 15) displayed when a hint is activated
+;onstealable = redial, newcall, barge, intrcpt, cfwdall, pickup, gpickup, dnd     ; (SIZE: 15) displayed when there is a call we could steal on one of the neighboring phones
+;holdconf = resume, newcall, endcall, join                                        ; (SIZE: 15) displayed when we are a conference moderator, have the conference on hold and have another active call
 uriaction = ""                                                                    ; (MULTI-ENTRY) (SIZE: 7) softkey uri action to replace default handling. Format: uriaction = softkeyname, uri[,uri...]
                                                                                   ; . URI can be an embedded cisco action (like Key:Service, Play:1041.raw) or a URLIf uri is a url the following parameters will be added to it: devicename, linename, channelname, callid, linkedid, uniqueid, appid, transactionid

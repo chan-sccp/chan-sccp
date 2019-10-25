@@ -99,13 +99,13 @@ struct sccp_global_vars {
 	boolean_t trustphoneip;											/*!< Trust Phone IP Support (Boolean, default=on) */
 	boolean_t privacy;											/*!< Privacy Support (Length=2) */
 	boolean_t mwioncall;											/*!< MWI On Call Support (Boolean, default=on) */
-	boolean_t cfwdall;											/*!< Call Forward All Support (Boolean, default=on) */
-	boolean_t cfwdbusy;											/*!< Call Forward on Busy Support (Boolean, default=on) */
-	boolean_t cfwdnoanswer;											/*!< Call Forward on No-Answer Support (Boolean, default=on) */
 	boolean_t directrtp;											/*!< Direct RTP */
 	boolean_t useoverlap;											/*!< Overlap Dial Support */
 	boolean_t transfer;											/*!< Transfer Feature Enabled */
-
+	boolean_t cfwdall;                                                                                      /*!< Call Forward All Support (Boolean, default=on) */
+	boolean_t cfwdbusy;                                                                                     /*!< Call Forward on Busy Support (Boolean, default=on) */
+	boolean_t cfwdnoanswer;                                                                                 /*!< Call Forward on No-Answer Support (Boolean, default=on) */
+	uint16_t cfwdnoanswer_timeout;                                                                          /*!< Call Forward on No-Answer timeout */
 	char *meetmeopts;											/*!< Meetme Options to be Used */
 #if HAVE_ICONV
 	char *iconvcodepage;											/*!< Iconv Codepage to use during conversion from UTF-8, for old phone models */
