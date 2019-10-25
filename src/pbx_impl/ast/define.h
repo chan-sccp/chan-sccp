@@ -50,46 +50,24 @@
 #define pbx_rwlock_init_notracking(x) ast_rwlock_init_notracking((ast_rwlock_t *)x)
 
 #if CS_LOCK_DEBUG
-#	define pbx_mutex_lock(x)                                                                                                                           \
-		{                                                                                                                                           \
-			ast_debug(4, "[%d] %s:%d (%s) MUTEX_LOCK: " #x ": %p\n", (unsigned int)pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x); \
-			ast_mutex_lock((ast_mutex_t *)x);                                                                                                   \
+#	define __sccp_lock_debug_hlp__(_func_, _type_, _lck_)                                                                                                                        \
+		{                                                                                                                                                                     \
+			if(__builtin_types_compatible_p(typeof(_lck_), pbx_##_type_)) {                                                                                               \
+				ast_debug(4, "CS_LOCK_DEBUG|wrong type|" #_lck_ "|expected:" #_type_ "|!LOCK SKIPPED!");                                                              \
+			} else {                                                                                                                                                      \
+				ast_debug(4, "CS_LOCK_DEBUG|%d|%s:%d:%s|%s(" #_lck_ ")|%p\n", (unsigned int)pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, #_func_, _lck_); \
+				_func_((ast_##_type_ *)_lck_);                                                                                                                        \
+			}                                                                                                                                                             \
 		}
-#	define pbx_mutex_trylock(x)                                                                                                                           \
-		{                                                                                                                                              \
-			ast_debug(4, "[%d] %s:%d (%s) MUTEX_TRYLOCK: " #x ": %p\n", (unsigned int)pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x); \
-			ast_mutex_trylock((ast_mutex_t *)x);                                                                                                   \
-		}
-#	define pbx_mutex_unlock(x)                                                                                                                           \
-		{                                                                                                                                             \
-			ast_mutex_unlock((ast_mutex_t *)x);                                                                                                   \
-			ast_debug(4, "[%d] %s:%d (%s) MUTEX_UNLOCK: " #x ": %p\n", (unsigned int)pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x); \
-		}
-#	define pbx_rwlock_rdlock(x)                                                                                                                           \
-		{                                                                                                                                              \
-			ast_debug(5, "[%d] %s:%d (%s) RWLOCK_RDLOCK: " #x ": %p\n", (unsigned int)pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x); \
-			ast_rwlock_rdlock((ast_rwlock_t *)x);                                                                                                  \
-		}
-#	define pbx_rwlock_wrlock(x)                                                                                                                           \
-		{                                                                                                                                              \
-			ast_debug(5, "[%d] %s:%d (%s) RWLOCK_WRLOCK: " #x ": %p\n", (unsigned int)pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x); \
-			ast_rwlock_wrlock((ast_rwlock_t *)x);                                                                                                  \
-		}
-#	define pbx_rwlock_tryrdlock(x)                                                                                                                           \
-		{                                                                                                                                                 \
-			ast_debug(5, "[%d] %s:%d (%s) RWLOCK_TRYRDLOCK: " #x ": %p\n", (unsigned int)pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x); \
-			ast_rwlock_tryrdlock((ast_rwlock_t *)x);                                                                                                  \
-		}
-#	define pbx_rwlock_trywrlock(x)                                                                                                                           \
-		{                                                                                                                                                 \
-			ast_debug(5, "[%d] %s:%d (%s) RWLOCK_TRYWRLOCK: " #x ": %p\n", (unsigned int)pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x); \
-			ast_rwlock_trywrlock((ast_rwlock_t *)x);                                                                                                  \
-		}
-#	define pbx_rwlock_unlock(x)                                                                                                                           \
-		{                                                                                                                                              \
-			ast_rwlock_unlock((ast_rwlock_t *)x);                                                                                                  \
-			ast_debug(5, "[%d] %s:%d (%s) RWLOCK_UNLOCK: " #x ": %p\n", (unsigned int)pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x); \
-		}
+#	define pbx_mutex_lock(_lck_)    ({ __sccp_lock_debug_hlp__(ast_mutex_lock, mutex_t, _lck_); })
+#	define pbx_mutex_trylock(_lck_) ({ __sccp_lock_debug_hlp__(ast_mutex_trylock, mutex_t, _lck_); })
+#	define pbx_mutex_unlock(_lck_)  ({ __sccp_lock_debug_hlp__(ast_mutex_unlock, mutex_t, _lck_); })
+
+#	define pbx_rwlock_rdlock(_lck_)    ({ __sccp_lock_debug_hlp__(ast_rwlock_rdlock, rwlock_t, _lck_); })
+#	define pbx_rwlock_wrlock(_lck_)    ({ __sccp_lock_debug_hlp__(ast_rwlock_wrlock, rwlock_t, _lck_); })
+#	define pbx_rwlock_tryrdlock(_lck_) ({ __sccp_lock_debug_hlp__(ast_rwlock_tryrdlock, rwlock_t, _lck_); })
+#	define pbx_rwlock_trywrlock(_lck_) ({ __sccp_lock_debug_hlp__(ast_rwlock_trywrlock, rwlock_t, _lck_); })
+#	define pbx_rwlock_unlock(_lck_)    ({ __sccp_lock_debug_hlp__(ast_rwlock_unlock, rwlock_t, _lck_); })
 #else
 #	define pbx_mutex_lock(x)       ({ ast_mutex_lock((ast_mutex_t *)x); })
 #	define pbx_mutex_trylock(x)    ({ ast_mutex_trylock((ast_mutex_t *)x); })

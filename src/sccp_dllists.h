@@ -268,20 +268,28 @@ struct {												\
 #define SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END (void) __list_next; /* to quiet compiler */ } 
 #define SCCP_RWLIST_TRAVERSE_BACKWARDS_SAFE_END  SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END
 
+#if CS_LOCK_DEBUG
+#	define __pbx_mutex_init  pbx_mutex_init
+#	define __pbx_rwlock_init pbx_rwlock_init
+#else
+#	define __pbx_mutex_init  pbx_mutex_init_notracking(&(head)->lock);
+#	define __pbx_rwlock_init pbx_rwlock_init_notracking(&(head)->lock);
+#endif
+
 /* List Head Init */
-#define SCCP_LIST_HEAD_INIT(head)                         \
-	{                                                 \
-		(head)->first = NULL;                     \
-		(head)->last = NULL;                      \
-		pbx_mutex_init_notracking(&(head)->lock); \
-		(head)->size = 0;                         \
+#define SCCP_LIST_HEAD_INIT(head)                \
+	{                                        \
+		(head)->first = NULL;            \
+		(head)->last = NULL;             \
+		__pbx_mutex_init(&(head)->lock); \
+		(head)->size = 0;                \
 	}
-#define SCCP_RWLIST_HEAD_INIT(head)                        \
-	{                                                  \
-		(head)->first = NULL;                      \
-		(head)->last = NULL;                       \
-		pbx_rwlock_init_notracking(&(head)->lock); \
-		(head)->size = 0;                          \
+#define SCCP_RWLIST_HEAD_INIT(head)               \
+	{                                         \
+		(head)->first = NULL;             \
+		(head)->last = NULL;              \
+		__pbx_rwlock_init(&(head)->lock); \
+		(head)->size = 0;                 \
 	}
 
 #define SCCP_EMB_LIST_HEAD_INIT(head, inherrit_lock) \
