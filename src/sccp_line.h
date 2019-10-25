@@ -10,6 +10,7 @@
  * 
  */
 #pragma once
+#include "sccp_mwi.h"
 
 #define sccp_line_retain(_x)			sccp_refcount_retain_type(sccp_line_t, _x)
 #define sccp_line_release(_x)			sccp_refcount_release_type(sccp_line_t, _x)
@@ -20,7 +21,7 @@ __BEGIN_C_EXTERN__
  * \note A line is the equivalent of a 'phone line' going to the phone.
  */
 struct sccp_line {
-	//sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
+	pbx_rwlock_t * lock;
 	char id[SCCP_MAX_LINE_ID];										/*!< This line's ID, used for login (for mobility) */
 	char name[StationMaxNameSize];										/*!< The name of the line, so use in asterisk (i.e SCCP/[name]) */
 	uint32_t configurationStatus;										/*!< what is the current configuration status - @see sccp_config_status_t */
@@ -28,7 +29,7 @@ struct sccp_line {
 	boolean_t realtime;											/*!< is it a realtimeconfiguration */
 	uint8_t _padding1[3];
 #endif
-	SCCP_RWLIST_ENTRY (sccp_line_t) list;									/*!< global list entry */
+	SCCP_EMB_RWLIST_ENTRY(sccp_line_t) list; /*!< global list entry */
 	struct {
 		uint8_t numberOfActiveDevices;									/*!< Number of Active Devices */
 		uint8_t numberOfActiveChannels;									/*!< Number of Active Channels */
@@ -62,8 +63,9 @@ struct sccp_line {
 
 	pbx_ama_flags_type amaflags;
 	sccp_dndmode_t dndmode;											/*!< dnd mode: see SCCP_DNDMODE_* */
-	
-	SCCP_LIST_HEAD (, sccp_mailbox_t) mailboxes;								/*!< Mailbox Linked List Entry. To check for messages */
+
+	// SCCP_EMB_RWLIST_HEAD (, sccp_mailbox_t) mailboxes;							/*!< Mailbox Linked List Entry. To check for messages */
+	sccp_mailbox_list_t mailboxes;
 	SCCP_LIST_HEAD (, sccp_channel_t) channels;								/*!< Linked list of current channels for this line */
 	SCCP_LIST_HEAD(, sccp_linedevice_t) devices;                                                            /*!< The device this line is currently registered to. */
 

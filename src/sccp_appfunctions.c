@@ -775,11 +775,9 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			} else if (!strcasecmp(token, "mailboxes")) {
 				sccp_mailbox_t *mailbox;
 				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-				SCCP_LIST_LOCK(&l->mailboxes);
-				SCCP_LIST_TRAVERSE(&l->mailboxes, mailbox, list) {
-					pbx_str_append(&lbuf, 0, "%s%s", addcomma++ ? "," : "", mailbox->uniqueid);
-				}
-				SCCP_LIST_UNLOCK(&l->mailboxes);
+				SCCP_EMB_RWLIST_RDLOCK(&l->mailboxes);
+				SCCP_EMB_RWLIST_TRAVERSE(&l->mailboxes, mailbox, list) { pbx_str_append(&lbuf, 0, "%s%s", addcomma++ ? "," : "", mailbox->uniqueid); }
+				SCCP_EMB_RWLIST_UNLOCK(&l->mailboxes);
 				snprintf(buf, buf_len, "%s", pbx_str_buffer(lbuf));
 			} else if (!strcasecmp(token, "cfwd")) {
 				sccp_linedevice_t * ld = NULL;

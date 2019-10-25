@@ -1676,7 +1676,8 @@ sccp_value_changed_t sccp_config_parse_mailbox(void * const dest, const size_t s
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_mailbox_t *mailbox = NULL;
 
-	SCCP_LIST_HEAD (mailbox, sccp_mailbox_t) * mailboxList = (struct mailbox *)dest;
+	// SCCP_EMB_RWLIST_HEAD (mailbox, sccp_mailbox_t) * mailboxList = (struct mailbox *)dest;
+	sccp_mailbox_list_t * mailboxList = (sccp_mailbox_list_t *)dest;
 
 	PBX_VARIABLE_TYPE *v = NULL;
 	int varCount = 0;
@@ -1718,7 +1719,9 @@ sccp_value_changed_t sccp_config_parse_mailbox(void * const dest, const size_t s
 					return SCCP_CONFIG_CHANGE_ERROR;
 				}
 				snprintf(mailbox->uniqueid, sizeof(mailbox->uniqueid), "%s%s", v->value, !strstr(v->value, "@") ? "@default" : "");
-				SCCP_LIST_INSERT_TAIL(mailboxList, mailbox, list);
+				SCCP_EMB_RWLIST_WRLOCK(mailboxList);
+				SCCP_EMB_RWLIST_INSERT_TAIL(mailboxList, mailbox, list);
+				SCCP_EMB_RWLIST_UNLOCK(mailboxList);
 			}
 		}
 		changed = SCCP_CONFIG_CHANGE_CHANGED;

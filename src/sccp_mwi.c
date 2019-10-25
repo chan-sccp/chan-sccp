@@ -320,10 +320,11 @@ static void handleLineCreationEvent(const sccp_event_t * event)
 
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "%s: (mwi::handleLineCreationEvent)\n", line->name);
 	sccp_mailbox_t *mailbox = NULL;
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&(line->mailboxes), mailbox, list) {
-		createSubscription(mailbox, line);
-	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
+	SCCP_EMB_RWLIST_RDLOCK(&line->mailboxes);
+	// SCCP_LIST_TRAVERSE_SAFE_BEGIN(&(line->mailboxes), mailbox, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&(line->mailboxes), mailbox, list) { createSubscription(mailbox, line); }
+	// SCCP_LIST_TRAVERSE_SAFE_END;
+	SCCP_EMB_RWLIST_UNLOCK(&line->mailboxes);
 }
 
 static void handleLineDestructionEvent(const sccp_event_t * event)
@@ -337,10 +338,11 @@ static void handleLineDestructionEvent(const sccp_event_t * event)
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "%s: (mwi::handleLineDestructionEvent)\n", line->name);
 
 	sccp_mailbox_t *mailbox = NULL;
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&(line->mailboxes), mailbox, list) {
-		removeSubscription(mailbox, line);
-	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
+	SCCP_EMB_RWLIST_RDLOCK(&line->mailboxes);
+	// SCCP_LIST_TRAVERSE_SAFE_BEGIN(&(line->mailboxes), mailbox, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&(line->mailboxes), mailbox, list) { removeSubscription(mailbox, line); }
+	// SCCP_LIST_TRAVERSE_SAFE_END;
+	SCCP_EMB_RWLIST_UNLOCK(&line->mailboxes);
 }
 
 /* ==================================

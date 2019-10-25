@@ -16,8 +16,11 @@
  */
 struct sccp_mailbox {
 	char uniqueid[SCCP_MAX_MAILBOX_UNIQUEID];
-	SCCP_LIST_ENTRY (sccp_mailbox_t) list;									/*!< Mailbox Linked List Entry */
+	SCCP_EMB_RWLIST_ENTRY(sccp_mailbox_t) list;                                                             /*!< Mailbox Linked List Entry */
 };														/*!< SCCP Mailbox Structure */
+
+SCCP_EMB_RWLIST_HEAD(sccp_mailbox_list, struct sccp_mailbox);
+typedef struct sccp_mailbox_list sccp_mailbox_list_t;
 
 __BEGIN_C_EXTERN__
 typedef struct {

@@ -1407,9 +1407,9 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Mailbox
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &l->mailboxes
 #define CLI_AMI_TABLE_LIST_ITER_VAR mailbox
-#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
-#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
-#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+#define CLI_AMI_TABLE_LIST_LOCK      SCCP_EMB_RWLIST_RDLOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR  SCCP_EMB_RWLIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_UNLOCK    SCCP_EMB_RWLIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 												\
 		CLI_AMI_TABLE_FIELD(mailbox,		"30.30",	s,	30,	mailbox->uniqueid)

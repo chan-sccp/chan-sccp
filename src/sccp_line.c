@@ -122,9 +122,11 @@ linePtr sccp_line_create(const char * name)
 	memset(l, 0, sizeof(sccp_line_t));
 	sccp_copy_string(l->name, name, sizeof(l->name));
 
+	l->lock = &GLOB(lock); /* inherit global lock during creation, assign session pointer later */
+
 	SCCP_LIST_HEAD_INIT(&l->channels);
 	SCCP_LIST_HEAD_INIT(&l->devices);
-	SCCP_LIST_HEAD_INIT(&l->mailboxes);
+	SCCP_EMB_RWLIST_HEAD_INIT(&l->mailboxes, l->lock);
 	return l;
 }
 
@@ -287,16 +289,16 @@ int __sccp_line_destroy(const void *ptr)
 
 	// cleanup mailboxes (l->mailboxes)
 	{
-		SCCP_LIST_LOCK(&l->mailboxes);
-		while ((mailbox = SCCP_LIST_REMOVE_HEAD(&l->mailboxes, list))) {
+		SCCP_EMB_RWLIST_WRLOCK(&l->mailboxes);
+		while((mailbox = SCCP_EMB_RWLIST_REMOVE_HEAD(&l->mailboxes, list))) {
 			//sccp_mwi_unsubscribeMailbox(mailbox);
 			sccp_free(mailbox);
 		}
-		SCCP_LIST_UNLOCK(&l->mailboxes);
-		if (!SCCP_LIST_EMPTY(&l->mailboxes)) {
+		SCCP_EMB_RWLIST_UNLOCK(&l->mailboxes);
+		if(!SCCP_EMB_RWLIST_EMPTY(&l->mailboxes)) {
 			pbx_log(LOG_WARNING, "%s: (line_destroy) there are connected mailboxes left during line destroy\n", l->name);
 		}
-		SCCP_LIST_HEAD_DESTROY(&l->mailboxes);
+		SCCP_EMB_RWLIST_HEAD_DESTROY(&l->mailboxes);
 	}
 
 	// cleanup variables
