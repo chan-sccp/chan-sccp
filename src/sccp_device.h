@@ -26,7 +26,7 @@ struct sccp_buttonconfig {
 	uint8_t _padding1[2];
 	sccp_config_buttontype_t type;										/*!< Button type (e.g. line, speeddial, feature, empty) */
 	char *label;												/*!< Button Name/Label */
-	SCCP_LIST_ENTRY (sccp_buttonconfig_t) list;								/*!< Button Linked List Entry */
+	SCCP_EMB_RWLIST_ENTRY(sccp_buttonconfig_t) list;                                                        /*!< Button Linked List Entry */
 
 	/*!
 	 * \brief SCCP Button Structure
@@ -72,7 +72,7 @@ struct sccp_buttonconfig {
 	boolean_t pendingUpdate;
 };														/*!< SCCP Button Configuration Structure */
 
-SCCP_LIST_HEAD (sccp_buttonconfig_list, sccp_buttonconfig_t);
+SCCP_EMB_RWLIST_HEAD(sccp_buttonconfig_list, sccp_buttonconfig_t);
 /*!
  * \brief SCCP SpeedDial Button Structure
  * \todo replace ext/hint with charptr (save 80)
@@ -164,6 +164,9 @@ struct sccp_device {
 	SCCP_EMB_RWLIST_HEAD(, sccp_selectedchannel_t) selectedChannels;                                        /*!< Selected Channel List */
 	SCCP_EMB_RWLIST_HEAD(, sccp_addon_t) addons;                                                            /*!< Add-Ons connect to this Device */
 	SCCP_EMB_RWLIST_HEAD(, sccp_hostname_t) permithosts;                                                    /*!< Permit Registration to the Hostname/IP Address */
+#ifdef CS_DEVSTATE_FEATURE
+	SCCP_LIST_HEAD(, sccp_devstate_specifier_t) devstateSpecifiers; /*!< List of Custom DeviceState entries the phone monitors. */
+#endif
 
 	char *description;											/*!< Internal Description. Skinny protocol does not use it */
 	char imageversion[StationMaxImageVersionSize];								/*!< Version to Send to the phone */
@@ -239,9 +242,6 @@ struct sccp_device {
 	uint8_t video_tos;											/*!< video stream type_of_service (TOS) (VRTP) */
 	uint8_t audio_cos;											/*!< audio stream class_of_service (COS) (VRTP) */
 	uint8_t video_cos;											/*!< video stream class_of_service (COS) (VRTP) */
-#ifdef CS_DEVSTATE_FEATURE
-	SCCP_LIST_HEAD (, sccp_devstate_specifier_t) devstateSpecifiers;					/*!< List of Custom DeviceState entries the phone monitors. */
-#endif
 	struct {
 		softkey_modes *modes;										/*!< used softkeySet */
 		uint32_t activeMask[SCCP_MAX_SOFTKEY_MASK];							/*!< enabled softkeys mask */

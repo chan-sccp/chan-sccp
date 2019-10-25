@@ -1030,9 +1030,10 @@ static btnlist *sccp_make_button_template(devicePtr d)
 	uint16_t serviceInstance = SCCP_FIRST_SERVICEINSTANCE;
 	boolean_t defaultLineSet = FALSE;
 
+	SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
 	if (!d->isAnonymous) {
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+		SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, buttonconfig, list)
+		{
 			//sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "\n%s: searching for position of button type %d\n", DEV_ID_LOG(d), buttonconfig->type);
 
 			if (buttonconfig->instance > 0) {
@@ -1259,7 +1260,6 @@ static btnlist *sccp_make_button_template(devicePtr d)
 			}
 			//sccp_log_and((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured %d Phone Button [%.2d] = %s(%d), label:%s\n", d->id, buttonconfig->index + 1, buttonconfig->instance, skinny_buttontype2str(btn[i].type), btn[i].type, buttonconfig->label);
 		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	} else {
 		/* reserve one line as hotline */
 		buttonconfig = SCCP_LIST_FIRST(&d->buttonconfig);
@@ -1268,6 +1268,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 		buttonconfig->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
 		sccp_linedevice_create(d, (sccp_line_t *)btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
 	}
+	SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 
 	// all non defined buttons are set to UNUSED
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
@@ -1380,9 +1381,6 @@ void handle_unregister(constSessionPtr s, devicePtr device, constMessagePtr msg_
  * \param s SCCP Session
  * \param d SCCP Device
  * \param none SCCP Message
- *
- * \warning
- *   - device->buttonconfig is not always locked
  */
 void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
@@ -1478,7 +1476,9 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 	sccp_buttonconfig_t *config;
 
 	//sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_SPEEDDIAL)) (VERBOSE_PREFIX_3 "%s: configure unconfigured speeddialbuttons \n", d->id);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
+	SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, config, list)
+	{
 		/* we found an unconfigured speeddial */
 		if (config->type == SPEEDDIAL && config->instance == 0) {
 			config->instance = speeddialInstance++;
@@ -1486,6 +1486,7 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 			speeddialInstance = config->instance + 1;
 		}
 	}
+	SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 	/* done */
 
 	sccp_dev_send(d, msg_out);
@@ -1522,8 +1523,9 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 
 	char displayName[SCCP_MAX_LABEL + 1];
 	if (l) {
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
+		SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, config, list)
+		{
 			if (config->type == LINE && config->instance == lineNumber) {
 				if (config->button.line.subscriptionId && !sccp_strlen_zero(config->button.line.subscriptionId->label)) {
 					if (config->button.line.subscriptionId->replaceCid) {
@@ -1537,7 +1539,7 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 				break;
 			}
 		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 	} else {
 		snprintf(displayName, SCCP_MAX_LABEL, "%s", k.name);
 	}
@@ -1546,8 +1548,9 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 
 	if (l) {
 		/* set default line on device if based on "default" config option */
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
+		SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, config, list)
+		{
 			if (config->type == LINE && config->instance == lineNumber) {
 				if (config->button.line.options && strcasestr(config->button.line.options, "default")) {
 					d->defaultLineInstance = lineNumber;
@@ -1556,7 +1559,7 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 				break;
 			}
 		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 	}
 }
 
@@ -2078,9 +2081,6 @@ static void handle_stimulus_groupcallpickup(constDevicePtr d, constLinePtr l, co
  * \param d SCCP Device as sccp_device_t
  * \param instance Instance as int
  * \param toggleState as boolean
- *
- * \warning
- *   - device->buttonconfig is not always locked
  */
 static void handle_feature_action(constDevicePtr d, const int instance, const boolean_t toggleState)
 {
@@ -2093,15 +2093,17 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 
 	sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: instance: %d, toggle: %s\n", d->id, instance, (toggleState) ? "yes" : "no");
 
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
+	SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, config, list)
+	{
 		if (config->instance == instance && config->type == FEATURE) {
 			// sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: toggle status from %d\n", d->id, config->button.feature.status);
 			// config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
 			// sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 " to %d\n", config->button.feature.status);
 			break;
 		}
-
 	}
+	SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 
 	if (!config || !config->type || config->type != FEATURE) {
 		pbx_log(LOG_WARNING, "%s: Couldn find feature with ID = %d \n", d->id, instance);
@@ -2158,6 +2160,7 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 				}
 			}
 
+			SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
 			SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 				if (config->type == LINE) {
 					AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byname(config->button.line.name, FALSE));
@@ -2167,7 +2170,7 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 					}
 				}
 			}
-
+			SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 			break;
 
 		case SCCP_FEATURE_DND:
@@ -2467,9 +2470,6 @@ void handle_offhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
  * \param d SCCP Device
  * \param msg_in SCCP Message
  *
- * \warning
- *   - device->buttonconfig is not always locked
- *
  * \note
  *   - protocolversion < 15 phones send buttonIndex instead of lineInstance
  *   - protocolversion >= 15 phones don't send lineInstance nor callif on onhook (more like device state)
@@ -2668,9 +2668,6 @@ void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMess
  * \param s SCCP Session
  * \param d SCCP Device
  * \param msg_in SCCP Message
- *
- * \warning
- *   - device->buttonconfig is not always locked
  */
 void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
@@ -2729,6 +2726,7 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 	/* look for line trnsvm */
 	sccp_buttonconfig_t *buttonconfig;
 
+	SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 		if (buttonconfig->type == LINE) {
 			AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byname(buttonconfig->button.line.name, FALSE));
@@ -2759,6 +2757,7 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 			}
 		}
 	}
+	SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 
 	//sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: softkey count: %d\n", d->id, v_count);
 
@@ -3876,15 +3875,16 @@ void handle_ConfigStatMessage(constSessionPtr s, devicePtr d, constMessagePtr ms
 	uint8_t lines = 0;
 	uint8_t speeddials = 0;
 
-	SCCP_LIST_LOCK(&d->buttonconfig);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
+	SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, config, list)
+	{
 		if (config->type == SPEEDDIAL) {
 			speeddials++;
 		} else if (config->type == LINE) {
 			lines++;
 		}
 	}
-	SCCP_LIST_UNLOCK(&d->buttonconfig);
+	SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 
 	REQ(msg_out, ConfigStatMessage);
 	sccp_copy_string(msg_out->data.ConfigStatMessage.station_identifier.deviceName, d->id, sizeof(msg_out->data.ConfigStatMessage.station_identifier.deviceName));
@@ -3982,9 +3982,6 @@ void handle_forward_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg
  * \param s SCCP Session
  * \param d SCCP Device
  * \param msg_in SCCP Message
- *
- * \warning
- *   - device->buttonconfig is not always locked
  */
 void handle_feature_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
@@ -4021,11 +4018,13 @@ void handle_feature_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 	}
 #endif
 
+	SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if (config->instance == featureIndex && config->type == FEATURE) {
 			sccp_feat_changed(d, NULL, config->button.feature.id);
 		}
 	}
+	SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 }
 
 /*!

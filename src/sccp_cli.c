@@ -902,9 +902,9 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_buttonconfig_t
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
-#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
-#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
-#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+#define CLI_AMI_TABLE_LIST_LOCK      SCCP_EMB_RWLIST_RDLOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR  SCCP_EMB_RWLIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_UNLOCK    SCCP_EMB_RWLIST_UNLOCK
 #define CLI_AMI_TABLE_FIELDS 																\
 			CLI_AMI_TABLE_FIELD(Id,			"-4",	d,		4,	buttonconfig->index + 1)				\
 			CLI_AMI_TABLE_FIELD(Inst,		"-4",	d,		4,	buttonconfig->instance)					\
@@ -920,8 +920,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceLine
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
-#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
-#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_LOCK      SCCP_EMB_RWLIST_RDLOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR  SCCP_EMB_RWLIST_TRAVERSE
 #define CLI_AMI_TABLE_BEFORE_ITERATION                                                                                                                                                   \
 	if(buttonconfig->type == LINE) {                                                                                                                                                 \
 		AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(buttonconfig->button.line.name, FALSE));                                                                              \
@@ -937,7 +937,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_AFTER_ITERATION 															\
 				}															\
 			}
-#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_EMB_RWLIST_UNLOCK
 #define CLI_AMI_TABLE_FIELDS                                                                                                                                                      \
 	CLI_AMI_TABLE_FIELD(Id, "-4", d, 4, buttonconfig->index + 1)                                                                                                              \
 	CLI_AMI_TABLE_UTF8_FIELD(Name, "-23.23", s, 23, l->name)                                                                                                                  \
@@ -951,14 +951,14 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceSpeeddial
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
-#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
-#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_LOCK      SCCP_EMB_RWLIST_RDLOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR  SCCP_EMB_RWLIST_TRAVERSE
 #define CLI_AMI_TABLE_BEFORE_ITERATION 														\
 			if (buttonconfig->type == SPEEDDIAL) {											
 			
 #define CLI_AMI_TABLE_AFTER_ITERATION 														\
 			}
-#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_EMB_RWLIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 															\
 			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
@@ -973,13 +973,13 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceFeature
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
-#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
-#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_LOCK      SCCP_EMB_RWLIST_RDLOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR  SCCP_EMB_RWLIST_TRAVERSE
 #define CLI_AMI_TABLE_BEFORE_ITERATION 														\
 			if (buttonconfig->type == FEATURE) {
 #define CLI_AMI_TABLE_AFTER_ITERATION 														\
 			}
-#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_EMB_RWLIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 															\
 			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
@@ -994,13 +994,13 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceServiceURL
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
-#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
-#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_LOCK      SCCP_EMB_RWLIST_RDLOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR  SCCP_EMB_RWLIST_TRAVERSE
 #define CLI_AMI_TABLE_BEFORE_ITERATION 														\
 			if (buttonconfig->type == SERVICE) {
 #define CLI_AMI_TABLE_AFTER_ITERATION 														\
 			}
-#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_EMB_RWLIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 															\
 			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
@@ -1734,8 +1734,9 @@ static int sccp_test(int fd, int argc, char *argv[])
 			return RESULT_FAILURE;
 		}
 		if ((d = sccp_device_find_byid(argv[3], FALSE))) {
-			SCCP_LIST_LOCK(&d->buttonconfig);
-			SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+			SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
+			SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, buttonconfig, list)
+			{
 				if (buttonconfig->type == SPEEDDIAL) {
 					instance = buttonconfig->instance;
 					REQ(msg1, SpeedDialStatDynamicMessage);
@@ -1745,7 +1746,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 					sccp_dev_send(d, msg1);
 				}
 			}
-			SCCP_LIST_UNLOCK(&d->buttonconfig);
+			SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 		}
 		return RESULT_SUCCESS;
 	}
@@ -2527,16 +2528,17 @@ static int sccp_remove_line_from_device(int fd, int argc, char *argv[])
 		if(line) {
 			sccp_buttonconfig_t * config = NULL;
 			d->pendingUpdate = 1;
-			SCCP_LIST_LOCK(&d->buttonconfig);
-			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
+			SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
+			SCCP_EMB_RWLIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list)
+			{
 				if (config->type == LINE && sccp_strequals(config->button.line.name,line->name)) {
 					config->pendingDelete = 1;
 					pbx_cli(fd, "Found at ButtonIndex %d => Line %s, removing...\n", config->index, line->name);
 				}
 			}
-			SCCP_LIST_TRAVERSE_SAFE_END;
-			SCCP_LIST_UNLOCK(&d->buttonconfig);
-			
+			SCCP_EMB_RWLIST_TRAVERSE_SAFE_END;
+			SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
+
 			pbx_cli(fd, "Line %s has been removed from device %s. Reloading Device...\n", line->name, d->id);
 			sccp_device_check_update(d);
 			res = RESULT_SUCCESS;
@@ -2744,12 +2746,13 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					}
 				}
 				if (v) {
-					SCCP_LIST_LOCK(&device->buttonconfig);
-					SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+					SCCP_EMB_RWLIST_RDLOCK(&device->buttonconfig);
+					SCCP_EMB_RWLIST_TRAVERSE(&device->buttonconfig, config, list)
+					{
 						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: Setting Button at Index:%d to pendingDelete\n", device->id, config->index);
 						config->pendingDelete = 1;
 					}
-					SCCP_LIST_UNLOCK(&device->buttonconfig);
+					SCCP_EMB_RWLIST_UNLOCK(&device->buttonconfig);
 
 					change = sccp_config_applyDeviceConfiguration(device, v);
 					sccp_log((DEBUGCAT_CORE)) ("%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> skipping restart (minor changes applied)");
@@ -2818,12 +2821,13 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
 							AUTO_RELEASE(sccp_device_t, device, sccp_device_retain(lineDevice->device));
 							if (device) {
-								SCCP_LIST_LOCK(&device->buttonconfig);
-								SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+								SCCP_EMB_RWLIST_RDLOCK(&device->buttonconfig);
+								SCCP_EMB_RWLIST_TRAVERSE(&device->buttonconfig, config, list)
+								{
 									sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: Setting Button at Index:%d to pendingDelete\n", device->id, config->index);
 									config->pendingDelete = 1;
 								}
-								SCCP_LIST_UNLOCK(&device->buttonconfig);
+								SCCP_EMB_RWLIST_UNLOCK(&device->buttonconfig);
 #ifdef CS_SCCP_REALTIME
 								if (device->realtime) {
 									if ((dv = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL))) {

@@ -243,7 +243,6 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
  * \callergraph
  * 
  * \warning
- *  - device->buttonconfig is not always locked
  *  - line->devices is not always locked
  */
 void sccp_util_featureStorageBackend(const sccp_event_t * const event)

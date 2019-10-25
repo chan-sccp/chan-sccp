@@ -1801,13 +1801,14 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 
 	/* temp current buttonconfiglist status*/
 	{
-		SCCP_LIST_LOCK(buttonconfigList);
+		SCCP_EMB_RWLIST_RDLOCK(buttonconfigList);
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status before check\n");
-		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
+		SCCP_EMB_RWLIST_TRAVERSE(buttonconfigList, config, list)
+		{
 			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "index:%d, type:%-10.10s (%d), pendingDelete:%s, pendingUpdate:%s\n",
 			config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
 		}
-		SCCP_LIST_UNLOCK(buttonconfigList);
+		SCCP_EMB_RWLIST_UNLOCK(buttonconfigList);
 	}
 	/* temp */
 
@@ -1847,23 +1848,25 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 		 */
 		if (!changed) {
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Nothing changed, clear the pendingDelete and pendingUpdate settings\n");
-			SCCP_LIST_LOCK(buttonconfigList);
-			SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
+			SCCP_EMB_RWLIST_RDLOCK(buttonconfigList);
+			SCCP_EMB_RWLIST_TRAVERSE(buttonconfigList, config, list)
+			{
 				config->pendingDelete = 0;
 				config->pendingUpdate = 0;
 			}
-			SCCP_LIST_UNLOCK(buttonconfigList);
+			SCCP_EMB_RWLIST_UNLOCK(buttonconfigList);
 		}
 	}
 	/* temp current buttonconfiglist status*/
 	{
-		SCCP_LIST_LOCK(buttonconfigList);
+		SCCP_EMB_RWLIST_RDLOCK(buttonconfigList);
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status after check\n");
-		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
+		SCCP_EMB_RWLIST_TRAVERSE(buttonconfigList, config, list)
+		{
 			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "index:%d, type:%-10.10s (%d), pendingDelete:%s, pendingUpdate:%s\n",
 				config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
 		}
-		SCCP_LIST_UNLOCK(buttonconfigList);
+		SCCP_EMB_RWLIST_UNLOCK(buttonconfigList);
 	}
 	/* temp */
 	if (changed) {
@@ -1891,13 +1894,14 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 
 	/* temp current buttonconfiglist status*/
 	{
-		SCCP_LIST_LOCK(buttonconfigList);
+		SCCP_EMB_RWLIST_RDLOCK(buttonconfigList);
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status after adding new buttons\n");
-		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
+		SCCP_EMB_RWLIST_TRAVERSE(buttonconfigList, config, list)
+		{
 			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "index:%d, type:%-10.10s (%d), pendingDelete:%s, pendingUpdate:%s\n",
 				config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
 		}
-		SCCP_LIST_UNLOCK(buttonconfigList);
+		SCCP_EMB_RWLIST_UNLOCK(buttonconfigList);
 	}
 	/* temp */
 
@@ -1932,14 +1936,15 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 	// boolean_t is_new = FALSE;
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 
-	SCCP_LIST_LOCK(buttonconfigList);
-	SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
+	SCCP_EMB_RWLIST_RDLOCK(buttonconfigList);
+	SCCP_EMB_RWLIST_TRAVERSE(buttonconfigList, config, list)
+	{
 		if (config->index == buttonindex) {
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Found Button index at %d:%d\n", config->index, buttonindex);
 			break;
 		}
 	}
-	SCCP_LIST_UNLOCK(buttonconfigList);
+	SCCP_EMB_RWLIST_UNLOCK(buttonconfigList);
 
 	changed = SCCP_CONFIG_CHANGE_CHANGED;
 	if (config) {
@@ -2046,8 +2051,8 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
 	*/
-	
-	SCCP_LIST_LOCK(buttonconfigList);
+
+	SCCP_EMB_RWLIST_WRLOCK(buttonconfigList);
 	if (!(config = (sccp_buttonconfig_t *)sccp_calloc(1, sizeof(sccp_buttonconfig_t)))) {
 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		return SCCP_CONFIG_CHANGE_ERROR;
@@ -2055,8 +2060,8 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 	config->index = buttonindex;
 	config->type = type;
 	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "New %s Button '%s' at : %d:%d\n", sccp_config_buttontype2str(type), name, buttonindex, config->index);
-	SCCP_LIST_INSERT_TAIL(buttonconfigList, config, list);
-	SCCP_LIST_UNLOCK(buttonconfigList);
+	SCCP_EMB_RWLIST_INSERT_TAIL(buttonconfigList, config, list);
+	SCCP_EMB_RWLIST_UNLOCK(buttonconfigList);
 
 	/* replace faulty button declarations with an empty button */
 	if (type != EMPTY && (sccp_strlen_zero(name) || (type != LINE && !options))) {
@@ -2205,8 +2210,9 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
 	sccp_buttonconfig_t *config = NULL;
 	sccp_devstate_specifier_t *dspec;
 
-	SCCP_LIST_LOCK(&d->buttonconfig);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
+	SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, config, list)
+	{
 		if (config->type == FEATURE) {
 			/* Check for the presence of a devicestate specifier and register in device list. */
 			if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && !sccp_strlen_zero(config->button.feature.options)) {
@@ -2223,7 +2229,7 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
 			}
 		}
 	}
-	SCCP_LIST_UNLOCK(&d->buttonconfig);
+	SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 
 #endif
 

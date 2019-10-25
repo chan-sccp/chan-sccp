@@ -404,13 +404,14 @@ void sccp_device_pre_reload(void)
 		d->softKeyConfiguration.size = 0;
 		d->isAnonymous=FALSE;
 
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
+		SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, config, list)
+		{
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: Setting Button at Index:%d to pendingDelete\n", d->id, config->index);
 			config->pendingDelete = 1;
 			config->pendingUpdate = 0;
 		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 		d->softkeyset = NULL;
 		d->softKeyConfiguration.modes = 0;
 		d->softKeyConfiguration.size = 0;
@@ -641,7 +642,7 @@ devicePtr sccp_device_create(const char * id)
 	sccp_mutex_init(&d->privateData->lock);
 		
 	sccp_copy_string(d->id, id, sizeof(d->id));
-	SCCP_LIST_HEAD_INIT(&d->buttonconfig);
+	SCCP_EMB_RWLIST_HEAD_INIT(&d->buttonconfig, d->lock);
 	SCCP_EMB_RWLIST_HEAD_INIT(&d->selectedChannels, d->lock);
 	SCCP_EMB_RWLIST_HEAD_INIT(&d->addons, d->lock);
 	SCCP_EMB_RWLIST_HEAD_INIT(&d->permithosts, d->lock);
@@ -1966,8 +1967,9 @@ void sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, bool
 	memset(k, 0, sizeof(sccp_speed_t));
 	sccp_copy_string(k->name, "unknown speeddial", sizeof(k->name));
 
-	SCCP_LIST_LOCK(&(((devicePtr)d)->buttonconfig));
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&(((devicePtr)d)->buttonconfig));
+	SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, config, list)
+	{
 		if (config->type == SPEEDDIAL && config->instance == instance) {
 			/* we are searching for hinted speeddials */
 			if (TRUE == withHint && !sccp_strlen_zero(config->button.speeddial.hint)) {
@@ -1987,7 +1989,7 @@ void sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, bool
 			}
 		}
 	}
-	SCCP_LIST_UNLOCK(&(((devicePtr)d)->buttonconfig));
+	SCCP_EMB_RWLIST_UNLOCK(&(((devicePtr)d)->buttonconfig));
 }
 
 /*!
@@ -2014,7 +2016,9 @@ linePtr sccp_dev_getActiveLine(constDevicePtr device)
 	
 	/*! \todo Does this actually make sense. traversing the buttonconfig and then finding a line, potentially doing this multiple times */
 	devicePtr d = (sccp_device_t * const) device;						// need non-const device
-	SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&device->buttonconfig);
+	SCCP_EMB_RWLIST_TRAVERSE(&device->buttonconfig, buttonconfig, list)
+	{
 		if (buttonconfig->type == LINE && !d->currentLine) {
 			if ((d->currentLine = sccp_line_find_byname(buttonconfig->button.line.name, FALSE))) {	// update device->currentLine, returns retained line
 				sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Forcing the active line to %s from NULL\n", d->id, d->currentLine->name);
@@ -2022,6 +2026,7 @@ linePtr sccp_dev_getActiveLine(constDevicePtr device)
 			}
 		}
 	}
+	SCCP_EMB_RWLIST_UNLOCK(&device->buttonconfig);
 
 	// failed to find or set a currentLine
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No lines\n", device->id);
@@ -2307,15 +2312,16 @@ void sccp_dev_postregistration(devicePtr d)
 
 #ifdef CS_SCCP_PARK
 	sccp_buttonconfig_t *config = NULL;
-	SCCP_LIST_LOCK(&d->buttonconfig);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
+	SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, config, list)
+	{
 		if (config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
 			if (iParkingLot.attachObserver && iParkingLot.attachObserver(config->button.feature.options, d, config->instance)) {
 				iParkingLot.notifyDevice(config->button.feature.options, d);
 			}
 		}
 	}
-	SCCP_LIST_UNLOCK(&d->buttonconfig);
+	SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 #endif
 	if (d->useHookFlash()) {
 		sccp_dev_setHookFlashDetect(d);
@@ -2422,8 +2428,9 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 			sccp_dev_setActiveLine(d, NULL);
 		}
 		/* hang up open channels and remove device from line */
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
+		SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, config, list)
+		{
 			if (config->type == LINE) {
 				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: checking buttonconfig index:%d, type:%s (%d) to see if there are any connected lines/channels\n",
 					d->id, config->index, sccp_config_buttontype2str(config->type), config->type);
@@ -2457,7 +2464,9 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 #endif
 			}
 		}
-		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
+		SCCP_EMB_RWLIST_WRLOCK(&d->buttonconfig); /* lock upgrade */
+		SCCP_EMB_RWLIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list)
+		{
 			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: checking buttonconfig for pendingDelete (index:%d, type:%s (%d), pendingDelete:%s, pendingUpdate:%s)\n",
 				d->id, config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
 			config->instance = 0;									/* reset button configuration to rebuild template on register */
@@ -2466,9 +2475,10 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 				sccp_buttonconfig_destroy(config);
 			}
 		}
-		SCCP_LIST_TRAVERSE_SAFE_END;
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
- 
+		SCCP_EMB_RWLIST_TRAVERSE_SAFE_END;
+		SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
+		SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
+
 		d->linesRegistered = FALSE;
 
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Unregister Device %s\n", d->id);
@@ -2582,15 +2592,15 @@ int __sccp_device_destroy(const void *ptr)
 	// clean button config (only generated on read config, so do not remove during device clean)
 	{
 		sccp_buttonconfig_t *config = NULL;
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		while ((config = SCCP_LIST_REMOVE_HEAD(&d->buttonconfig, list))) {
+		SCCP_EMB_RWLIST_WRLOCK(&d->buttonconfig);
+		while((config = SCCP_EMB_RWLIST_REMOVE_HEAD(&d->buttonconfig, list))) {
 			sccp_buttonconfig_destroy(config);
 		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
-		if (!SCCP_LIST_EMPTY(&d->buttonconfig)) {
+		SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
+		if(!SCCP_EMB_RWLIST_EMPTY(&d->buttonconfig)) {
 			pbx_log(LOG_WARNING, "%s: (device_destroy) there are connected buttonconfigs left during device destroy\n", d->id);
 		}
-		SCCP_LIST_HEAD_DESTROY(&d->buttonconfig);
+		SCCP_EMB_RWLIST_HEAD_DESTROY(&d->buttonconfig);
 	}
 
 	// clean permithosts
@@ -2734,8 +2744,9 @@ sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(devicePtr device, uint16_t
 		return NULL;
 	}
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: searching for service with instance %d\n", device->id, instance);
-	SCCP_LIST_LOCK(&device->buttonconfig);
-	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&device->buttonconfig);
+	SCCP_EMB_RWLIST_TRAVERSE(&device->buttonconfig, config, list)
+	{
 		sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: instance: %d buttontype: %d\n", device->id, config->instance, config->type);
 
 		if (config->type == SERVICE && config->instance == instance) {
@@ -2743,7 +2754,7 @@ sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(devicePtr device, uint16_t
 			break;
 		}
 	}
-	SCCP_LIST_UNLOCK(&device->buttonconfig);
+	SCCP_EMB_RWLIST_UNLOCK(&device->buttonconfig);
 
 	return config;
 }
@@ -2848,7 +2859,9 @@ uint8_t sccp_device_numberOfChannels(constDevicePtr device)
 		return 0;
 	}
 
-	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&device->buttonconfig);
+	SCCP_EMB_RWLIST_TRAVERSE(&device->buttonconfig, config, list)
+	{
 		if (config->type == LINE) {
 			AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byname(config->button.line.name, FALSE));
 
@@ -2866,6 +2879,7 @@ uint8_t sccp_device_numberOfChannels(constDevicePtr device)
 			SCCP_LIST_UNLOCK(&l->channels);
 		}
 	}
+	SCCP_EMB_RWLIST_UNLOCK(&device->buttonconfig);
 
 	return numberOfChannels;
 }
@@ -3126,10 +3140,6 @@ void sccp_device_clearMessageFromStack(devicePtr device, const uint8_t priority)
  *
  * \callgraph
  * \callergraph
- *
- * \warning
- *   - device->buttonconfig is not always locked
- *   - line->devices is not always locked
  */
 void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 {
@@ -3297,9 +3307,6 @@ static sccp_push_result_t sccp_device_pushTextMessage(constDevicePtr device, con
  * \param lineName Line Name as char
  * \return Status as int
  * \note device should be locked by parent fuction
- *
- * \warning
- *   - device->buttonconfig is not always locked
  */
 uint8_t __PURE__ sccp_device_find_index_for_line(constDevicePtr d, const char *lineName)
 {

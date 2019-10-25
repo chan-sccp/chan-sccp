@@ -42,9 +42,6 @@ SCCP_FILE_VERSION(__FILE__, "");
  *
  * \param device SCCP Device
  * \param featureType SCCP Feature Type
- * 
- * \warning
- *  - device->buttonconfig is not always locked
  */
 void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureType)
 {
@@ -58,8 +55,9 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 		return;
 	}
 
-	SCCP_LIST_LOCK(&(((devicePtr)device)->buttonconfig));
-	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&(((devicePtr)device)->buttonconfig));
+	SCCP_EMB_RWLIST_TRAVERSE(&device->buttonconfig, config, list)
+	{
 		if (config->type == FEATURE && config->button.feature.id == featureType) {
 			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) FeatureID = %d, Option: %s\n", DEV_ID_LOG(device), config->button.feature.id, (config->button.feature.options) ? config->button.feature.options : "(none)");
 			instance = config->instance;
@@ -91,7 +89,9 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 					config->button.feature.status = 0;
 
 					/* get current state */
-					SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
+					SCCP_EMB_RWLIST_RDLOCK(&(((devicePtr)device)->buttonconfig));
+					SCCP_EMB_RWLIST_TRAVERSE(&device->buttonconfig, buttonconfig, list)
+					{
 						if (buttonconfig->type == LINE) {
 							// Check if line and line device exists and thus forward status on that device can be checked
 							AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byname(buttonconfig->button.line.name, FALSE));
@@ -116,6 +116,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 							}
 						}
 					}
+					SCCP_EMB_RWLIST_UNLOCK(&(((devicePtr)device)->buttonconfig));
 					buttonconfig = NULL;
 
 					break;
@@ -310,7 +311,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) Got Feature Status Request. Instance = %d, Label: '%s', Status: %d\n", DEV_ID_LOG(device), instance, config->label, config->button.feature.status);
 		}
 	}
-	SCCP_LIST_UNLOCK(&(((devicePtr)device)->buttonconfig));
+	SCCP_EMB_RWLIST_UNLOCK(&(((devicePtr)device)->buttonconfig));
 }
 
 /*!
