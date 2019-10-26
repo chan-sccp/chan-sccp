@@ -108,9 +108,11 @@ void sccp_addons_clear(devicePtr d)
 	if (!d) {
 		return;
 	}
+	SCCP_EMB_RWLIST_WRLOCK(&d->addons);
 	while((addon = SCCP_EMB_RWLIST_REMOVE_HEAD(&d->addons, list))) {
 		sccp_free(addon);
 	}
+	SCCP_EMB_RWLIST_UNLOCK(&d->addons);
 	d->addons.first = NULL;
 	d->addons.last = NULL;
 }

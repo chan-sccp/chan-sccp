@@ -1317,7 +1317,8 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: Allocated %d Device buttons.\n", d->id, btn_index);
 
 	sccp_addon_t *cur = NULL;
-	SCCP_EMB_RWLIST_WRLOCK(&d->addons);
+
+	SCCP_EMB_RWLIST_RDLOCK(&d->addons);
 	SCCP_EMB_RWLIST_TRAVERSE(&d->addons, cur, list) { btn_index = sccp_addon_build_buttontemplate(d, cur, btn, btn_index); }
 	SCCP_EMB_RWLIST_UNLOCK(&d->addons);
 

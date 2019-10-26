@@ -1030,6 +1030,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 	uint16_t serviceInstance = SCCP_FIRST_SERVICEINSTANCE;
 	boolean_t defaultLineSet = FALSE;
 
+	pbx_rwlock_rdlock(&GLOB(lock)); /* prevent lock inversion by linedevice_create assing to globals */
 	SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
 	if (!d->isAnonymous) {
 		SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, buttonconfig, list)
@@ -1269,6 +1270,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 		sccp_linedevice_create(d, (sccp_line_t *)btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
 	}
 	SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
+	pbx_rwlock_unlock(&GLOB(lock));
 
 	// all non defined buttons are set to UNUSED
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
