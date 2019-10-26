@@ -33,12 +33,12 @@ struct softKeySetConfiguration {
 	char name[SCCP_MAX_SOFTKEYSET_NAME];                  /*!< Name for this configuration */
 	softkey_modes modes[SCCP_MAX_SOFTKEY_MODES];          /*!< SoftKeySet modes, see KEYMODE_ */
 	sccp_softkeyMap_cb_t * softkeyCbMap;                  /*!< Softkey Callback Map, ie handlers */
-	SCCP_LIST_ENTRY(sccp_softKeySetConfiguration_t) list; /*!< Next list entry */
+	SCCP_EMB_RWLIST_ENTRY(sccp_softKeySetConfiguration_t) list; /*!< Next list entry */
 	boolean_t pendingDelete;
 	boolean_t pendingUpdate;
 	uint8_t numberOfSoftKeySets;                                  /*!< Number of SoftKeySets we define */
 };                                                                    /*!< SoftKeySet Configuration Structure */
-SCCP_LIST_HEAD(softKeySetConfigList, sccp_softKeySetConfiguration_t); /*!< SCCP LIST HEAD for softKeySetConfigList (Structure) */
+SCCP_EMB_RWLIST_HEAD(softKeySetConfigList, sccp_softKeySetConfiguration_t); /*!< SCCP LIST HEAD for softKeySetConfigList (Structure) */
 
 SCCP_API void SCCP_CALL sccp_softkey_pre_reload(void);
 SCCP_API void SCCP_CALL sccp_softkey_post_reload(void);

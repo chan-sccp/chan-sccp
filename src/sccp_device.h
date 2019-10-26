@@ -85,7 +85,6 @@ struct sccp_speed {
 	char name[StationMaxNameSize];										/*!< The name of the speed dial button */
 	char ext[SCCP_MAX_EXTENSION];										/*!< The number to dial when it's hit */
 	char hint[SCCP_MAX_EXTENSION];										/*!< The HINT on this SpeedDial */
-	SCCP_LIST_ENTRY (sccp_speed_t) list;									/*!< SpeedDial Linked List Entry */
 };
 
 /*!
@@ -159,8 +158,7 @@ struct sccp_device {
 		sccp_linedevice_t ** instance;
 		uint8_t size;
 	} lineButtons;
-	//SCCP_LIST_HEAD (, sccp_buttonconfig_t) buttonconfig;							/*!< SCCP Button Config Attached to this Device */
-	sccp_buttonconfig_list_t buttonconfig;									/*!< SCCP Button Config Attached to this Device */
+	sccp_buttonconfig_list_t buttonconfig;                                                                  /*!< SCCP Button Config Attached to this Device (defined as embedded above) */
 	SCCP_EMB_RWLIST_HEAD(, sccp_selectedchannel_t) selectedChannels;                                        /*!< Selected Channel List */
 	SCCP_EMB_RWLIST_HEAD(, sccp_addon_t) addons;                                                            /*!< Add-Ons connect to this Device */
 	SCCP_EMB_RWLIST_HEAD(, sccp_hostname_t) permithosts;                                                    /*!< Permit Registration to the Hostname/IP Address */

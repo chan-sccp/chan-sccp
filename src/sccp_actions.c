@@ -2689,8 +2689,9 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 
 	if (!sccp_strlen_zero(d->softkeyDefinition)) {
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: searching for softkeyset: %s!\n", d->id, d->softkeyDefinition);
-		SCCP_LIST_LOCK(&softKeySetConfig);
-		SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&softKeySetConfig);
+		SCCP_EMB_RWLIST_TRAVERSE(&softKeySetConfig, softkeyset, list)
+		{
 			if (sccp_strcaseequals(d->softkeyDefinition, softkeyset->name)) {
 				//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: using softkeyset: %s (%p)!\n", d->id, softkeyset->name, softkeyset);
 				d->softkeyset = softkeyset;
@@ -2698,21 +2699,22 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 				d->softKeyConfiguration.size = softkeyset->numberOfSoftKeySets;
 			}
 		}
-		SCCP_LIST_UNLOCK(&softKeySetConfig);
+		SCCP_EMB_RWLIST_UNLOCK(&softKeySetConfig);
 		//sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: d->softkeyDefinition=%s!\n", d->id, d->softkeyDefinition);
 	}
 	
 	if (!d->softkeyset) {
 		pbx_log(LOG_WARNING, "SCCP: Defined softkeyset: '%s' could not be found. Falling back to 'default' instead !\n", d->softkeyDefinition);
-		SCCP_LIST_LOCK(&softKeySetConfig);
-		SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&softKeySetConfig);
+		SCCP_EMB_RWLIST_TRAVERSE(&softKeySetConfig, softkeyset, list)
+		{
 			if (sccp_strcaseequals("default", softkeyset->name)) {
 				d->softkeyset = softkeyset;
 				d->softKeyConfiguration.modes = softkeyset->modes;
 				d->softKeyConfiguration.size = softkeyset->numberOfSoftKeySets;
 			}
 		}
-		SCCP_LIST_UNLOCK(&softKeySetConfig);
+		SCCP_EMB_RWLIST_UNLOCK(&softKeySetConfig);
 	}
 
 	/* end softkey definition */

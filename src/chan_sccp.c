@@ -111,7 +111,7 @@ boolean_t sccp_prePBXLoad(void)
 	SCCP_EMB_RWLIST_HEAD_INIT(&GLOB(sessions), &GLOB(lock)); /* inherit lock from sccp_globals->lock */
 	SCCP_EMB_RWLIST_HEAD_INIT(&GLOB(devices), &GLOB(lock));
 	SCCP_EMB_RWLIST_HEAD_INIT(&GLOB(lines), &GLOB(lock));
-
+	SCCP_EMB_RWLIST_HEAD_INIT(&softKeySetConfig, &GLOB(lock));
 	GLOB(general_threadpool) = sccp_threadpool_init(THREADPOOL_MIN_SIZE);
 
 	sccp_event_module_start();
@@ -270,6 +270,7 @@ int sccp_preUnload(void)
 	if (SCCP_RWLIST_EMPTY(&GLOB(lines))) {
 		SCCP_EMB_RWLIST_HEAD_DESTROY(&GLOB(lines));
 	}
+
 	iVoicemail.stopModule();
 	usleep(100);												// wait for events to finalize
 
@@ -288,6 +289,9 @@ int sccp_preUnload(void)
 	sccp_hint_module_stop();
 	sccp_threadpool_destroy(GLOB(general_threadpool));
 	sccp_refcount_destroy();
+
+	sccp_softkey_clear();
+	SCCP_EMB_RWLIST_HEAD_DESTROY(&softKeySetConfig);
 
 	/* free resources */
 	if (GLOB(config_file_name)) {

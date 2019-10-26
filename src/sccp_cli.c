@@ -2085,9 +2085,9 @@ static int sccp_show_softkeysets(int fd, sccp_cli_totals_t *totals, struct manse
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &softKeySetConfig
 #define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_softKeySetConfiguration_t
 #define CLI_AMI_TABLE_LIST_ITER_VAR softkeyset
-#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
-#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
-#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+#define CLI_AMI_TABLE_LIST_LOCK      SCCP_EMB_RWLIST_RDLOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR  SCCP_EMB_RWLIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_UNLOCK    SCCP_EMB_RWLIST_UNLOCK
 #define CLI_AMI_TABLE_BEFORE_ITERATION												\
 		v_count = sizeof(softkeyset->modes) / sizeof(softkey_modes);							\
 		for (i = 0; i < v_count; i++) {											\

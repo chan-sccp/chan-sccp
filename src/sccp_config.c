@@ -2928,14 +2928,15 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 
 	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "start reading softkeyset: %s\n", name);
 
-	SCCP_LIST_LOCK(&softKeySetConfig);
-	SCCP_LIST_TRAVERSE(&softKeySetConfig, softKeySetConfiguration, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&softKeySetConfig);
+	SCCP_EMB_RWLIST_TRAVERSE(&softKeySetConfig, softKeySetConfiguration, list)
+	{
 		if (sccp_strcaseequals(softKeySetConfiguration->name, name)) {
 			//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Softkeyset: %s already defined\n", name);
 			break;
 		}
 	}
-	SCCP_LIST_UNLOCK(&softKeySetConfig);
+	SCCP_EMB_RWLIST_UNLOCK(&softKeySetConfig);
 
 	if (!softKeySetConfiguration) {
 		//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Adding Softkeyset: %s\n", name);
@@ -2947,9 +2948,9 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 		softKeySetConfiguration->softkeyCbMap = NULL;							// defaults to static softkeyMapCb
 
 		/* add new softkexSet to list */
-		SCCP_LIST_LOCK(&softKeySetConfig);
-		SCCP_LIST_INSERT_HEAD(&softKeySetConfig, softKeySetConfiguration, list);
-		SCCP_LIST_UNLOCK(&softKeySetConfig);
+		SCCP_EMB_RWLIST_WRLOCK(&softKeySetConfig);
+		SCCP_EMB_RWLIST_INSERT_HEAD(&softKeySetConfig, softKeySetConfiguration, list);
+		SCCP_EMB_RWLIST_UNLOCK(&softKeySetConfig);
 	}
 
 	while (variable) {

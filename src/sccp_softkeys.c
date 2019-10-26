@@ -82,6 +82,7 @@ struct sccp_softkeyMap_cb {
 };
 
 /* =========================================================================================== Private */
+
 /*
  * \brief Helper to find the correct line to use
  * \returns retained line
@@ -1054,8 +1055,9 @@ void sccp_softkey_post_reload(void)
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_softKeySetConfiguration_t * softkeyset = NULL;
-		SCCP_LIST_LOCK(&softKeySetConfig);
-		SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&softKeySetConfig);                                        //! \warning Potential Lock Inversion
+		SCCP_EMB_RWLIST_TRAVERSE(&softKeySetConfig, softkeyset, list)
+		{
 			if(sccp_strcaseequals(d->softkeyDefinition, softkeyset->name)) {
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "Re-attaching softkeyset: %s to device d: %s\n", softkeyset->name, d->id);
 				d->softkeyset = softkeyset;
@@ -1063,7 +1065,7 @@ void sccp_softkey_post_reload(void)
 				d->softKeyConfiguration.size = softkeyset->numberOfSoftKeySets;
 			}
 		}
-		SCCP_LIST_UNLOCK(&softKeySetConfig);
+		SCCP_EMB_RWLIST_UNLOCK(&softKeySetConfig);
 	}
 	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 }
@@ -1076,8 +1078,8 @@ void sccp_softkey_clear(void)
 	sccp_softKeySetConfiguration_t * k = NULL;
 	uint8_t i;
 
-	SCCP_LIST_LOCK(&softKeySetConfig);
-	while ((k = SCCP_LIST_REMOVE_HEAD(&softKeySetConfig, list))) {
+	SCCP_EMB_RWLIST_WRLOCK(&softKeySetConfig);
+	while((k = SCCP_EMB_RWLIST_REMOVE_HEAD(&softKeySetConfig, list))) {
 		for (i = 0; i < StationMaxSoftKeySetDefinition; i++) {
 			if (k->modes[i].ptr) {
 				//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Freeing KeyMode Ptr: %p for KeyMode %i\n", k->modes[i].ptr, i);
@@ -1096,7 +1098,7 @@ void sccp_softkey_clear(void)
 		//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Softkeyset: %s removed\n", k->name);
 		sccp_free(k);
 	}
-	SCCP_LIST_UNLOCK(&softKeySetConfig);
+	SCCP_EMB_RWLIST_UNLOCK(&softKeySetConfig);
 }
 
 /*!
