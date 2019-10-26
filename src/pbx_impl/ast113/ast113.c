@@ -3296,14 +3296,15 @@ static int sccp_astwrap_message_send(const struct ast_msg *msg, const char *to, 
 	sccp_linedevice_t * ld = NULL;
 	sccp_push_result_t pushResult;
 
-	SCCP_LIST_LOCK(&line->devices);
-	SCCP_LIST_TRAVERSE(&line->devices, ld, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&line->devices);
+	SCCP_EMB_RWLIST_TRAVERSE(&line->devices, ld, list)
+	{
 		pushResult = ld->device->pushTextMessage(ld->device, messageText, from, 1, SKINNY_TONE_ZIP);
 		if (SCCP_PUSH_RESULT_SUCCESS == pushResult) {
 			res = 0;
 		}
 	}
-	SCCP_LIST_UNLOCK(&line->devices);
+	SCCP_EMB_RWLIST_UNLOCK(&line->devices);
 
 	return res;
 }

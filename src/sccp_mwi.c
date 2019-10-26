@@ -355,17 +355,16 @@ void NotifyLine(constLinePtr l, int newmsgs, int oldmsgs)
 	sccp_line_setMWI(l, newmsgs, oldmsgs);
 
 	sccp_linedevice_t * ld = NULL;
-	if (SCCP_LIST_GETSIZE(&l->devices)) {
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
-			AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(ld->device));
-			if (d) {
-				sccp_linedevice_indicateMWI(ld);
-				sccp_device_setMWI(d);
-			}
+	SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+	SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list)
+	{
+		AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(ld->device));
+		if(d) {
+			sccp_linedevice_indicateMWI(ld);
+			sccp_device_setMWI(d);
 		}
-		SCCP_LIST_UNLOCK(&l->devices);
 	}
+	SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 }
 
 /*!

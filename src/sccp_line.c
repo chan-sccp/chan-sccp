@@ -75,12 +75,13 @@ void sccp_line_post_reload(void)
 		if (l) {
 			// existing lines
 			sccp_linedevice_t * ld = NULL;
-			SCCP_LIST_LOCK(&l->devices);
-			SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+			SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+			SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list)
+			{
 				ld->device->pendingUpdate = 1;
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: LineDevice (line_post_reload) update:%d, delete:%d\n", l->name, ld->device->pendingUpdate, ld->device->pendingDelete);
 			}
-			SCCP_LIST_UNLOCK(&l->devices);
+			SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 			if(l->pendingDelete) {
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Deleting Line (post_reload)\n", l->name);
 				sccp_line_clean(l, TRUE);
@@ -125,7 +126,7 @@ linePtr sccp_line_create(const char * name)
 	l->lock = &GLOB(lock); /* inherit global lock during creation, assign session pointer later */
 
 	SCCP_EMB_RWLIST_HEAD_INIT(&l->channels, l->lock);
-	SCCP_LIST_HEAD_INIT(&l->devices);
+	SCCP_EMB_RWLIST_HEAD_INIT(&l->devices, l->lock);
 	SCCP_EMB_RWLIST_HEAD_INIT(&l->mailboxes, l->lock);
 	return l;
 }
@@ -323,10 +324,12 @@ int __sccp_line_destroy(const void *ptr)
 	SCCP_EMB_RWLIST_UNLOCK(&l->channels);
 	SCCP_EMB_RWLIST_HEAD_DESTROY(&l->channels);
 
-	if (!SCCP_LIST_EMPTY(&l->devices)) {
+	SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+	if(!SCCP_EMB_RWLIST_EMPTY(&l->devices)) {
 		pbx_log(LOG_WARNING, "%s: (line_destroy) there are connected device left during line destroy\n", l->name);
 	}
-	SCCP_LIST_HEAD_DESTROY(&l->devices);
+	SCCP_EMB_RWLIST_UNLOCK(&l->devices);
+	SCCP_EMB_RWLIST_HEAD_DESTROY(&l->devices);
 
 	return 0;
 }
@@ -374,8 +377,9 @@ void sccp_line_updatePreferencesFromDevicesToLine(sccp_line_t * l)
 	}
 	// sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: Update line preferences\n", l->name);
 	// combine all preferences
-	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+	SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list)
+	{
 		if (first) {
 			if (!l->preferences_set_on_line_level) {
 				memcpy(&l->preferences.audio, &ld->device->preferences.audio, sizeof(l->preferences.audio));
@@ -403,7 +407,7 @@ void sccp_line_updatePreferencesFromDevicesToLine(sccp_line_t * l)
 		numMembers++;
 	}
 	l->isShared = numMembers > 1 ? TRUE : FALSE;
-	SCCP_LIST_UNLOCK(&l->devices);
+	SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 
 	char s1[512];
 	sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (updatePreferencesFromDevicesToLine) line preferences:%s\n", l->name, sccp_codec_multiple2str(s1, sizeof(s1) - 1, l->preferences.audio, SKINNY_MAX_CAPABILITIES));
@@ -418,8 +422,9 @@ void sccp_line_updateCapabilitiesFromDevicesToLine(linePtr l)
 	}
 	// sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: Update line capabilities \n", l->name);
 	// combine all capabilities
-	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+	SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list)
+	{
 		if (first) {
 			memcpy(&l->capabilities.audio, &ld->device->capabilities.audio, sizeof(l->capabilities.audio));
 			memcpy(&l->capabilities.video, &ld->device->capabilities.video, sizeof(l->capabilities.video));
@@ -429,7 +434,7 @@ void sccp_line_updateCapabilitiesFromDevicesToLine(linePtr l)
 			sccp_codec_combineSets(l->capabilities.video, ld->device->capabilities.video);
 		}
 	}
-	SCCP_LIST_UNLOCK(&l->devices);
+	SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 	// use a minimal default set, all devices should be able to support (last resort)
 	if (l->capabilities.audio[0] == SKINNY_CODEC_NONE) {
 		sccp_log((DEBUGCAT_LINE | DEBUGCAT_CODEC))(VERBOSE_PREFIX_3 "%s: (updateCapabilitiesFromDevicesToLine) Could not retrieve capabilities from line or device.\nUsing Fallback Capabilities Alaw/Ulaw\n", l->name);

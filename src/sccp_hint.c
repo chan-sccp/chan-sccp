@@ -767,7 +767,7 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_updateLineState) Update Line Channel State: %s(%d)\n", line->name, sccp_channelstate2str(lineState->state), lineState->state);
 
 		/* no line, or line without devices */
-		int numdevices = SCCP_LIST_GETSIZE_LOCKED(&line->devices);                                                // same lock as next line (inherited from l->lock)
+		int numdevices = SCCP_EMB_RWLIST_GETSIZE_LOCKED(&line->devices);                                          // same lock as next line (inherited from l->lock)
 		int numchannels = SCCP_EMB_RWLIST_GETSIZE_LOCKED(&line->channels);                                        // taking the same lock/unlock twice here
 
 		if(0 == numdevices) {
@@ -901,9 +901,9 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 		lineState->callInfo.calltype = channel->calltype;
 		state = channel->state;
 
-		SCCP_LIST_LOCK(&line->devices);
-		AUTO_RELEASE(sccp_linedevice_t, lineDevice, SCCP_LIST_FIRST(&line->devices) ? sccp_linedevice_retain(SCCP_LIST_FIRST(&line->devices)) : NULL);
-		SCCP_LIST_UNLOCK(&line->devices);
+		SCCP_EMB_RWLIST_RDLOCK(&line->devices);
+		AUTO_RELEASE(sccp_linedevice_t, lineDevice, SCCP_EMB_RWLIST_FIRST(&line->devices) ? sccp_linedevice_retain(SCCP_EMB_RWLIST_FIRST(&line->devices)) : NULL);
+		SCCP_EMB_RWLIST_UNLOCK(&line->devices);
 
 		if(lineDevice) {
 			AUTO_RELEASE(sccp_device_t, device, sccp_device_retain(lineDevice->device));
@@ -1493,14 +1493,15 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 	do { /* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
 		boolean_t allDevicesInDND = TRUE;
 
-		SCCP_LIST_LOCK(&line->devices);
-		SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&line->devices);
+		SCCP_EMB_RWLIST_TRAVERSE(&line->devices, lineDevice, list)
+		{
 			if (lineDevice->device && lineDevice->device->dndFeature.status != SCCP_DNDMODE_REJECT) {
 				allDevicesInDND = FALSE;
 				break;
 			}
 		}
-		SCCP_LIST_UNLOCK(&line->devices);
+		SCCP_EMB_RWLIST_UNLOCK(&line->devices);
 
 		if (allDevicesInDND) {
 			lineState->callInfo.calltype = SKINNY_CALLTYPE_INBOUND;

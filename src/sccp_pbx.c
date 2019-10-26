@@ -63,7 +63,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char * lineName, sccp_au
 		return SCCP_REQUEST_STATUS_LINEUNKNOWN;
 	}
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	if(SCCP_RWLIST_GETSIZE_LOCKED(&l->devices) == 0) {
+	if(SCCP_EMB_RWLIST_GETSIZE_LOCKED(&l->devices) == 0) {
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
 		return SCCP_REQUEST_STATUS_LINEUNAVAIL;
 	}
@@ -177,6 +177,7 @@ FINAL:
  * \called_from_asterisk
  *
  * \note called with c retained
+ * \warning BIG critical area, should be made shorter
  */
 // improved sharedline handling
 // - calculate c->subscribers correctly			(using when handling sccp_softkey_onhook, to define behaviour)
@@ -277,9 +278,9 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 
 	sccp_linedevice_t * ld = NULL;
 	sccp_channelstate_t previousstate = c->previousChannelState;
-	
-	SCCP_LIST_LOCK(&l->devices);
-	int num_devices = SCCP_LIST_GETSIZE(&l->devices);
+
+	SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+	int num_devices = SCCP_EMB_RWLIST_GETSIZE(&l->devices);
 	c->subscribers = num_devices;
 
 	pbx_str_t * cfwds_all = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
@@ -288,7 +289,8 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 	int cfwd_all = 0;
 	int cfwd_busy = 0;
 	int cfwd_noanswer = 0;
-	SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list)
+	{                                        //! \warning BIG critical area, should be made shorter
 		AUTO_RELEASE(sccp_channel_t, active_channel, sccp_device_getActiveChannel(ld->device));
 
 		// skip incoming call on a shared line from the originator. (sharedline calling same sharedline)
@@ -379,7 +381,7 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 				continue;
 			}
 			ForwardingLineDevice = NULL;	/* reset cfwd if shared */
-			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Ringing %sLine: %s on device:%s using channel:%s, ringermode:%s\n", ld->device->id, SCCP_LIST_GETSIZE_LOCKED(&l->devices) > 1 ? "Shared" : "",
+			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Ringing %sLine: %s on device:%s using channel:%s, ringermode:%s\n", ld->device->id, SCCP_EMB_RWLIST_GETSIZE(&l->devices) > 1 ? "Shared" : "",
 					       ld->line->name, ld->device->id, c->designator, skinny_ringtype2str(c->ringermode));
 			sccp_indicate(ld->device, c, SCCP_CHANNELSTATE_RINGING);
 			isRinging = TRUE;
@@ -397,7 +399,7 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 			}
 		}
 	}
-	SCCP_LIST_UNLOCK(&l->devices);
+	SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 
 	//sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: isRinging:%d, hadDNDParticipant:%d, ForwardingLineDevice:%p\n", c->designator, isRinging, hasDNDParticipant, ForwardingLineDevice);
 	if(cfwd_all) {
@@ -481,9 +483,10 @@ int sccp_pbx_cfwdnoanswer_cb(const void * data)
 	boolean_t bypassCallForward = !sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "BYPASS_CFWD"));
 
 	sccp_linedevice_t * ld = NULL;
-	SCCP_LIST_LOCK(&l->devices);
-	int num_devices = SCCP_LIST_GETSIZE(&l->devices);
-	SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+	int num_devices = SCCP_EMB_RWLIST_GETSIZE(&l->devices);
+	SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list)
+	{                                        //! \warning BIG critical area
 		/* do we have cfwd enabled? */
 		if(ld->cfwd[SCCP_CFWD_NOANSWER].enabled && !sccp_strlen_zero(ld->cfwd[SCCP_CFWD_NOANSWER].number)) {
 			if(!bypassCallForward) {
@@ -506,7 +509,7 @@ int sccp_pbx_cfwdnoanswer_cb(const void * data)
 			}
 		}
 	}
-	SCCP_LIST_UNLOCK(&l->devices);
+	SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 	pbx_channel_unref(forwarder);
 	return 0;
 }
@@ -581,15 +584,15 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 	/* remove call from transferee, transferer */
 	sccp_linedevice_t * ld = NULL;
 	if (l) {
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+		SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list)
+		{
 			AUTO_RELEASE(sccp_device_t, tmpDevice, sccp_device_retain(ld->device));
-
 			if (tmpDevice) {
 				sccp_channel_transfer_release(tmpDevice, c); /* explicit release required here */
 			}
 		}
-		SCCP_LIST_UNLOCK(&l->devices);
+		SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 		/* done - remove call from transferee, transferer */
 
 		sccp_line_removeChannel(l, c);
@@ -597,14 +600,15 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 		if (!d) {
 			/* channel is not answered, just ringin over all devices */
 			/* find the first the device on which it is registered and hangup that one (__sccp_indicate_remote_device will do the rest) */
-			SCCP_LIST_LOCK(&l->devices);
-			SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+			SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+			SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list)
+			{
 				if(ld->device && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(ld->device)) {
 					d = sccp_device_retain(ld->device) /*ref_replace*/;
 					break;
 				}
 			}
-			SCCP_LIST_UNLOCK(&l->devices);
+			SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 		}
 	}
 
@@ -838,19 +842,20 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 		sccp_linedevice_t * ld = NULL;
 		// if ((d = sccp_channel_getDevice(c))) {
 		d = sccp_channel_getDevice(c) /*ref_replace*/;
-		numdevices = SCCP_LIST_GETSIZE_LOCKED(&l->devices);
+		numdevices = SCCP_EMB_RWLIST_GETSIZE_LOCKED(&l->devices);
 		if(d) {
-			SCCP_LIST_LOCK(&l->devices);
-			SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+			SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+			SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list)
+			{
 				if(ld->device == d) {
 					break;
 				}
 			}
-			SCCP_LIST_UNLOCK(&l->devices);
+			SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 		} else if(numdevices > 0) {
-			SCCP_LIST_LOCK(&l->devices);
-			ld = SCCP_LIST_FIRST(&l->devices);
-			SCCP_LIST_UNLOCK(&l->devices);
+			SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+			ld = SCCP_EMB_RWLIST_FIRST(&l->devices);
+			SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 			if(ld && ld->device) {
 				d = sccp_device_retain(ld->device) /*ref_replace*/;                                        // ugly hack just picking the first one !
 			}
@@ -987,8 +992,9 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 	if(numdevices == 1) {
 		sccp_linedevice_t * ld = NULL;
 
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+		SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list)
+		{
 			if(ld->line == l) {
 				if(ld->cfwd[SCCP_CFWD_ALL].enabled) {
 					sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: ast call forward channel_set: %s\n", c->designator, ld->cfwd[SCCP_CFWD_ALL].number);
@@ -1000,7 +1006,7 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 				break;
 			}
 		}
-		SCCP_LIST_UNLOCK(&l->devices);
+		SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 	}
 
 #if CS_SCCP_VIDEO

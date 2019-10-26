@@ -165,7 +165,7 @@ static char *sccp_complete_connected_line(OLDCONST char *line, OLDCONST char *wo
 
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-		if (!strncasecmp(word, l->name, wordlen) && SCCP_LIST_GETSIZE(&l->devices) > 0 && ++which > state) {
+		if(!strncasecmp(word, l->name, wordlen) && SCCP_EMB_RWLIST_GETSIZE_LOCKED(&l->devices) > 0 && ++which > state) {
 			ret = pbx_strdup(l->name);
 			break;
 		}
@@ -1118,8 +1118,9 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		found_linedevice = 0;
 		channel = NULL;
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+		SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list)
+		{                                        //! \warning BIG critical section, refactor
 			AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(ld->device));
 			if (d) {
 				memset(&cap_buf, 0, sizeof(cap_buf));
@@ -1177,7 +1178,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 				found_linedevice = 1;
 			}
 		}
-		SCCP_LIST_UNLOCK(&l->devices);
+		SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 
 		if (found_linedevice == 0) {
 			char cid_name[StationMaxNameSize] = {0};
@@ -1385,9 +1386,9 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 #define CLI_AMI_TABLE_PER_ENTRY_NAME AttachedDevice
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &l->devices
 #define CLI_AMI_TABLE_LIST_ITER_VAR  ld
-#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
-#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
-#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+#define CLI_AMI_TABLE_LIST_LOCK      SCCP_EMB_RWLIST_RDLOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR  SCCP_EMB_RWLIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_UNLOCK    SCCP_EMB_RWLIST_UNLOCK
 
 #define CLI_AMI_TABLE_BEFORE_ITERATION \
 	char cfwd_str_buf[256] = "";   \
@@ -2473,13 +2474,14 @@ static int sccp_callforward(int fd, sccp_cli_totals_t *totals, struct mansession
 		local_line_total++;
 	} else {
 		sccp_linedevice_t * ld;
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+		SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list)
+		{
 			CLI_AMI_OUTPUT(fd, s, " - on line:%s and device:%s\r\n", l->name, ld->device->id);
 			sccp_linedevice_cfwd(ld, type, dest);
 			local_line_total++;
 		}
-		SCCP_LIST_UNLOCK(&l->devices);
+		SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 	}
 	res = RESULT_SUCCESS;
 
@@ -2820,8 +2822,9 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					if (change == SCCP_CONFIG_NEEDDEVICERESET) {
 						sccp_linedevice_t * lineDevice = NULL;
 
-						SCCP_LIST_LOCK(&line->devices);
-						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
+						SCCP_EMB_RWLIST_RDLOCK(&line->devices);
+						SCCP_EMB_RWLIST_TRAVERSE(&line->devices, lineDevice, list)
+						{                                        //! \warning BIG critical section, refactor
 							AUTO_RELEASE(sccp_device_t, device, sccp_device_retain(lineDevice->device));
 							if (device) {
 								SCCP_EMB_RWLIST_RDLOCK(&device->buttonconfig);
@@ -2853,7 +2856,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 #endif
 							}
 						}
-						SCCP_LIST_UNLOCK(&line->devices);
+						SCCP_EMB_RWLIST_UNLOCK(&line->devices);
 					}
 #ifdef CS_SCCP_REALTIME
 					if (line->realtime) {

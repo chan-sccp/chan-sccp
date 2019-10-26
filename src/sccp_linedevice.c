@@ -108,7 +108,7 @@ static void regcontext_exten(constLineDevicePtr ld, int onoff)
 			} else {
 				/* un-register */
 
-				if(SCCP_LIST_GETSIZE(&l->devices) == 1) {                                        // only remove entry if it is the last one (shared line)
+				if(SCCP_EMB_RWLIST_GETSIZE_LOCKED(&l->devices) == 1) {                                        // only remove entry if it is the last one (shared line)
 					if(pbx_find_extension(NULL, NULL, &q, context, ext, 1, NULL, "", E_MATCH)) {
 						ast_context_remove_extension(context, ext, 1, NULL);
 						sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, ext);
@@ -256,9 +256,9 @@ void sccp_linedevice_create(constDevicePtr d, constLinePtr l, uint8_t lineInstan
 		memcpy(&ld->subscriptionId, subscriptionId, sizeof(ld->subscriptionId));
 	}
 
-	SCCP_LIST_LOCK(&line->devices);
-	SCCP_LIST_INSERT_HEAD(&line->devices, ld, list);
-	SCCP_LIST_UNLOCK(&line->devices);
+	SCCP_EMB_RWLIST_WRLOCK(&line->devices);
+	SCCP_EMB_RWLIST_INSERT_HEAD(&line->devices, ld, list);
+	SCCP_EMB_RWLIST_UNLOCK(&line->devices);
 
 	ld->line->statistic.numberOfActiveDevices++;
 	ld->device->configurationStatistic.numberOfLines++;
@@ -295,8 +295,9 @@ void sccp_linedevice_remove(constDevicePtr d, linePtr l)
 	}
 	sccp_log_and((DEBUGCAT_HIGH + DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: remove device from line %s\n", DEV_ID_LOG(d), l->name);
 
-	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, ld, list) {
+	SCCP_EMB_RWLIST_WRLOCK(&l->devices);
+	SCCP_EMB_RWLIST_TRAVERSE_SAFE_BEGIN(&l->devices, ld, list)
+	{
 		if(d == NULL || ld->device == d) {
 #if CS_REFCOUNT_DEBUG
 			sccp_refcount_removeWeakParent(l, d ? d : ld->device);
@@ -311,14 +312,14 @@ void sccp_linedevice_remove(constDevicePtr d, linePtr l)
 			}
 			sccp_linedevice_release(&ld); /* explicit release of list retained ld */
 #ifdef CS_SCCP_REALTIME
-			if(l->realtime && SCCP_LIST_GETSIZE(&l->devices) == 0 && SCCP_EMB_RWLIST_GETSIZE(&l->channels) == 0) {
+			if(l->realtime && SCCP_EMB_RWLIST_GETSIZE(&l->devices) == 0 && SCCP_EMB_RWLIST_GETSIZE(&l->channels) == 0) {
 				sccp_line_removeFromGlobals(l);
 			}
 #endif
 		}
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
-	SCCP_LIST_UNLOCK(&l->devices);
+	SCCP_EMB_RWLIST_TRAVERSE_SAFE_END;
+	SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 
 	if(GLOB(module_running) == TRUE) {
 		sccp_line_updatePreferencesFromDevicesToLine(l);
@@ -347,9 +348,6 @@ void sccp_linedevice_indicateMWI(constLineDevicePtr ld)
  *
  * \callgraph
  * \callergraph
- *
- * \warning
- *  - line->devices is not always locked
  */
 lineDevicePtr __sccp_linedevice_find(constDevicePtr device, constLinePtr line, const char * filename, int lineno, const char * func)
 {
@@ -366,9 +364,9 @@ lineDevicePtr __sccp_linedevice_find(constDevicePtr device, constLinePtr line, c
 		return NULL;
 	}
 
-	SCCP_LIST_LOCK(&l->devices);
-	ld = SCCP_LIST_FIND(&l->devices, sccp_linedevice_t, tmplinedevice, list, (device == tmplinedevice->device), TRUE, filename, lineno, func);
-	SCCP_LIST_UNLOCK(&l->devices);
+	SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+	ld = SCCP_EMB_RWLIST_FIND(&l->devices, sccp_linedevice_t, tmplinedevice, list, (device == tmplinedevice->device), TRUE, filename, lineno, func);
+	SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 
 	if(!ld) {
 		sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: ld for line %s could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, line->name);

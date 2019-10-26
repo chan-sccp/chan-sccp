@@ -771,7 +771,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			} else if (!strcasecmp(token, "videomode")) {
 				snprintf(buf, buf_len, "%s", sccp_video_mode2str(l->videomode));
 			} else if (!strcasecmp(token, "num_devices")) {
-				snprintf(buf, buf_len, "%d", SCCP_LIST_GETSIZE(&l->devices));
+				snprintf(buf, buf_len, "%d", SCCP_EMB_RWLIST_GETSIZE_LOCKED(&l->devices));
 			} else if (!strcasecmp(token, "mailboxes")) {
 				sccp_mailbox_t *mailbox;
 				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
@@ -783,22 +783,21 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				sccp_linedevice_t * ld = NULL;
 				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
-				SCCP_LIST_LOCK(&l->devices);
-				SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+				SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+				SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list)
+				{
 					char cfwd_buf[256];
 					pbx_str_append(&lbuf, 0, "%s[id:%s,cfwd:%s]", addcomma++ ? "," : "", ld->device->id, sccp_linedevice_get_cfwd_string(ld, cfwd_buf, sizeof(cfwd_buf)));
 				}
-				SCCP_LIST_UNLOCK(&l->devices);
+				SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 				snprintf(buf, buf_len, "[ %s ]", pbx_str_buffer(lbuf));
 			} else if (!strcasecmp(token, "devices")) {
 				sccp_linedevice_t * ld = NULL;
 				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
-				SCCP_LIST_LOCK(&l->devices);
-				SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
-					pbx_str_append(&lbuf, 0, "%s%s", addcomma++ ? "," : "", ld->device->id);
-				}
-				SCCP_LIST_UNLOCK(&l->devices);
+				SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+				SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list) { pbx_str_append(&lbuf, 0, "%s%s", addcomma++ ? "," : "", ld->device->id); }
+				SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 				snprintf(buf, buf_len, "[ %s ]", pbx_str_buffer(lbuf));
 			} else if (!strncasecmp(token, "chanvar[", 8)) {
 				char *chanvar = token + 8;

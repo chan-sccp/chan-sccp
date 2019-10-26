@@ -365,22 +365,20 @@ static void sccp_channel_recalculateAudioCodecFormat(channelPtr channel)
 			iPbx.rtp_setReadFormat(channel, joint);
 		}
 	}
-	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3
-		"%s - %s: (recalculateAudioCodecformat) \n\t"
-		"channel capabilities: %s\n\t"
-		"%s preferences %s\n\t"
-		"%s preferences: %s\n\t"
-		"remote caps: %s\n\t"
-		"Format:%s\n",
-		channel->currentDeviceId, channel->designator,
-		sccp_codec_multiple2str(s1, sizeof(s1) - 1, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio)),
-		(SCCP_LIST_GETSIZE(&channel->line->devices) > 1) ? "shared" : "channel",
-		sccp_codec_multiple2str(s2, sizeof(s2) - 1, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio)),
-		channel->line->preferences_set_on_line_level ? "line" : "device",
-		channel->line->preferences_set_on_line_level ? sccp_codec_multiple2str(s3, sizeof(s3) - 1, channel->line->preferences.audio, ARRAY_LEN(channel->line->preferences.audio)) : ((channel->privateData->device) ? sccp_codec_multiple2str(s3, sizeof(s3) - 1, channel->privateData->device->preferences.audio, ARRAY_LEN(channel->privateData->device->preferences.audio)) : ""),
-		sccp_codec_multiple2str(s4, sizeof(s4) - 1, channel->remoteCapabilities.audio, ARRAY_LEN(channel->remoteCapabilities.audio)),
-		codec2name(joint)
-	);
+	int numdevices = SCCP_EMB_RWLIST_GETSIZE_LOCKED(&channel->line->devices);
+	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_CHANNEL))(
+	    VERBOSE_PREFIX_3 "%s - %s: (recalculateAudioCodecformat) \n\t"
+			     "channel capabilities: %s\n\t"
+			     "%s preferences %s\n\t"
+			     "%s preferences: %s\n\t"
+			     "remote caps: %s\n\t"
+			     "Format:%s\n",
+	    channel->currentDeviceId, channel->designator, sccp_codec_multiple2str(s1, sizeof(s1) - 1, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio)), (numdevices > 1) ? "shared" : "channel",
+	    sccp_codec_multiple2str(s2, sizeof(s2) - 1, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio)), channel->line->preferences_set_on_line_level ? "line" : "device",
+	    channel->line->preferences_set_on_line_level
+		? sccp_codec_multiple2str(s3, sizeof(s3) - 1, channel->line->preferences.audio, ARRAY_LEN(channel->line->preferences.audio))
+		: ((channel->privateData->device) ? sccp_codec_multiple2str(s3, sizeof(s3) - 1, channel->privateData->device->preferences.audio, ARRAY_LEN(channel->privateData->device->preferences.audio)) : ""),
+	    sccp_codec_multiple2str(s4, sizeof(s4) - 1, channel->remoteCapabilities.audio, ARRAY_LEN(channel->remoteCapabilities.audio)), codec2name(joint));
 }
 
 static boolean_t sccp_channel_recalculateVideoCodecFormat(channelPtr channel)
@@ -411,22 +409,20 @@ static boolean_t sccp_channel_recalculateVideoCodecFormat(channelPtr channel)
 		iPbx.rtp_setWriteFormat(channel, joint);
 		iPbx.rtp_setReadFormat(channel, joint);
 	}
-	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3
-		"%s - %s: (recalculateVideoCodecformat) \n\t"
-		"channel capabilities: %s\n\t"
-		"%s preferences %s\n\t"
-		"%s preferences: %s\n\t"
-		"remote caps: %s\n\t"
-		"Format:%s\n",
-		channel->currentDeviceId, channel->designator,
-		sccp_codec_multiple2str(s1, sizeof(s1) - 1, channel->capabilities.video, ARRAY_LEN(channel->capabilities.video)),
-		(SCCP_LIST_GETSIZE(&channel->line->devices) > 1) ? "shared" : "channel",
-		sccp_codec_multiple2str(s2, sizeof(s2) - 1, channel->preferences.video, ARRAY_LEN(channel->preferences.video)),
-		channel->line->preferences_set_on_line_level ? "line" : "device",
-		channel->line->preferences_set_on_line_level ? sccp_codec_multiple2str(s3, sizeof(s3) - 1, channel->line->preferences.video, ARRAY_LEN(channel->line->preferences.video)) : ((channel->privateData->device) ? sccp_codec_multiple2str(s3, sizeof(s3) - 1, channel->privateData->device->preferences.video, ARRAY_LEN(channel->privateData->device->preferences.video)) : ""),
-		sccp_codec_multiple2str(s4, sizeof(s4) - 1, channel->remoteCapabilities.video, ARRAY_LEN(channel->remoteCapabilities.video)),
-		codec2name(joint)
-	);
+	int numdevices = SCCP_EMB_RWLIST_GETSIZE_LOCKED(&channel->line->devices);
+	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_CHANNEL))(
+	    VERBOSE_PREFIX_3 "%s - %s: (recalculateVideoCodecformat) \n\t"
+			     "channel capabilities: %s\n\t"
+			     "%s preferences %s\n\t"
+			     "%s preferences: %s\n\t"
+			     "remote caps: %s\n\t"
+			     "Format:%s\n",
+	    channel->currentDeviceId, channel->designator, sccp_codec_multiple2str(s1, sizeof(s1) - 1, channel->capabilities.video, ARRAY_LEN(channel->capabilities.video)), (numdevices > 1) ? "shared" : "channel",
+	    sccp_codec_multiple2str(s2, sizeof(s2) - 1, channel->preferences.video, ARRAY_LEN(channel->preferences.video)), channel->line->preferences_set_on_line_level ? "line" : "device",
+	    channel->line->preferences_set_on_line_level
+		? sccp_codec_multiple2str(s3, sizeof(s3) - 1, channel->line->preferences.video, ARRAY_LEN(channel->line->preferences.video))
+		: ((channel->privateData->device) ? sccp_codec_multiple2str(s3, sizeof(s3) - 1, channel->privateData->device->preferences.video, ARRAY_LEN(channel->privateData->device->preferences.video)) : ""),
+	    sccp_codec_multiple2str(s4, sizeof(s4) - 1, channel->remoteCapabilities.video, ARRAY_LEN(channel->remoteCapabilities.video)), codec2name(joint));
 	return TRUE;
 }
 
@@ -497,13 +493,14 @@ void sccp_channel_send_callinfo2(constChannelPtr channel)
 	} else if (line) {
 		sccp_linedevice_t * ld = NULL;
 
-		SCCP_LIST_LOCK(&line->devices);
-		SCCP_LIST_TRAVERSE(&line->devices, ld, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&line->devices);
+		SCCP_EMB_RWLIST_TRAVERSE(&line->devices, ld, list)
+		{
 			AUTO_RELEASE(sccp_device_t, device, sccp_device_retain(ld->device));
 
 			sccp_channel_send_callinfo(device, channel);
 		}
-		SCCP_LIST_UNLOCK(&line->devices);
+		SCCP_EMB_RWLIST_UNLOCK(&line->devices);
 	}
 }
 
@@ -2262,7 +2259,7 @@ void sccp_channel_transfer(channelPtr channel, constDevicePtr device)
 		if (channel == device->transferChannels.transferee && device->transferChannels.transferer) {
 			d = sccp_device_retain(device) /*ref_replace*/;
 		} else if (channel->state == SCCP_CHANNELSTATE_HOLD) {
-			if (SCCP_LIST_GETSIZE(&channel->line->devices) == 1) {
+			if(SCCP_EMB_RWLIST_GETSIZE_LOCKED(&channel->line->devices) == 1) {
 				d = sccp_device_retain(device) /*ref_replace*/;
 			} else {
 				pbx_log(LOG_WARNING, "%s: The channel %s is not attached to a particular device (hold on shared line, resume first)\n", DEV_ID_LOG(device), channel->designator);

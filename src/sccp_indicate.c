@@ -38,10 +38,6 @@ static void __sccp_indicate_remote_device(constDevicePtr device, channelPtr c, l
  *
  * \callgraph
  * \callergraph
- * 
- * \warning
- *  - line->devices is not always locked
- * 
  */
 //void __sccp_indicate(sccp_device_t * _device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
 void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_channelstate_t state, const uint8_t debug, const char * file, const int line, const char * pretty_function)
@@ -221,7 +217,9 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 					sccp_linedevice_t * ownlinedevice = NULL;
 					sccp_device_t *remoteDevice = NULL;
 
-					SCCP_LIST_TRAVERSE(&l->devices, ownlinedevice, list) {
+					SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+					SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ownlinedevice, list)
+					{
 						remoteDevice = ownlinedevice->device;
 
 						if (d && remoteDevice && remoteDevice == d) {
@@ -235,6 +233,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 							}
 						}
 					}
+					SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 				}
 
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGIN);
@@ -460,7 +459,10 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 	/* if channel state has changed, notify the others */
 	if (d && c->state != c->previousChannelState) {
 		/* if it is a shared line and a state of interest */
-		if ((SCCP_RWLIST_GETSIZE(&l->devices) > 1) && (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DOWN || c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_HOLD || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && !c->conference) {
+		if((SCCP_EMB_RWLIST_GETSIZE_LOCKED(&l->devices) > 1)
+		   && (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DOWN || c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_HOLD
+		       || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE)
+		   && !c->conference) {
 			/* notify all remote devices */
 			__sccp_indicate_remote_device(d, c, l, state);
 		}
@@ -486,9 +488,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
  * \param c SCCP Channel
  * \param line SCCP Line
  * \param state State as int
- * 
- * \warning
- *  - line->devices is not always locked
+ * \warning BIG critical section, refactor
  */
 static void __sccp_indicate_remote_device(constDevicePtr device, channelPtr c, linePtr line, const sccp_channelstate_t state)
 {
@@ -515,7 +515,9 @@ static void __sccp_indicate_remote_device(constDevicePtr device, channelPtr c, l
 	sccp_callinfo_t * ci = iCallInfo.CopyConstructor(sccp_channel_getCallInfo(c));
 
 	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Remote Indicate state %s (%d) with reason: %s (%d) on remote devices for channel %s\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, sccp_channelstatereason2str(c->channelStateReason), c->channelStateReason, c->designator);
-	SCCP_LIST_TRAVERSE(&line->devices, ld, list) {
+	SCCP_EMB_RWLIST_WRLOCK(&line->devices);                                        //! \warning BIG critical section, refactor
+	SCCP_EMB_RWLIST_TRAVERSE(&line->devices, ld, list)
+	{
 		if(!ld->device) {
 			pbx_log(LOG_NOTICE, "Strange to find a ld (%p) here without a valid device connected to it !", ld);
 			continue;
@@ -528,7 +530,6 @@ static void __sccp_indicate_remote_device(constDevicePtr device, channelPtr c, l
 
 		/* check if we have one part of the remote channel */
 		AUTO_RELEASE(sccp_device_t, remoteDevice, sccp_device_retain(ld->device));
-
 		if (remoteDevice) {
 			sccp_callerid_presentation_t presenceParameter = CALLERID_PRESENTATION_ALLOWED;
 			iCallInfo.Getter(ci, SCCP_CALLINFO_PRESENTATION, &presenceParameter, SCCP_CALLINFO_KEY_SENTINEL);
@@ -596,6 +597,7 @@ static void __sccp_indicate_remote_device(constDevicePtr device, channelPtr c, l
 			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Finish Indicating state %s (%d) with reason: %s (%d) on remote device %s for channel %s\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, sccp_channelstatereason2str(c->channelStateReason), c->channelStateReason, DEV_ID_LOG(remoteDevice), c->designator);
 		}
 	}
+	SCCP_EMB_RWLIST_UNLOCK(&line->devices);                                        //! \warning BIG critical section, refactor
 	iCallInfo.Destructor(&ci);
 }
 

@@ -27,9 +27,9 @@ struct sccp_cfwd_information {
  * \brief SCCP Line-Devices Structure
  */
 struct sccp_linedevice {
-	devicePtr device;                                                               //!< SCCP Device
-	linePtr line;                                                                   //!< SCCP Line
-	SCCP_LIST_ENTRY(sccp_linedevice_t) list;                                        //!< Device Linked List Entry
+	devicePtr device;                                                                     //!< SCCP Device
+	linePtr line;                                                                         //!< SCCP Line
+	SCCP_EMB_RWLIST_ENTRY(sccp_linedevice_t) list;                                        //!< Device Linked List Entry
 
 	sccp_cfwd_information_t cfwd[SCCP_CFWD_SENTINEL];                                        //!< cfwd information
 

@@ -469,7 +469,7 @@ static int sccp_manager_line_fwd_update(struct mansession *s, const struct messa
 		return 0;
 	}
 
-	if (SCCP_LIST_GETSIZE(&line->devices) > 1) {
+	if(SCCP_EMB_RWLIST_GETSIZE_LOCKED(&line->devices) > 1) {
 		pbx_log(LOG_WARNING, "%s: Callforwarding on shared lines is not supported at the moment\n", deviceName);
 		astman_send_error(s, m, "Callforwarding on shared lines is not supported at the moment");
 		return 0;
@@ -932,13 +932,14 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 						sccp_linedevice_t * ld;
 						char extstr[20] = "";
 						snprintf(extstr, sizeof(extstr), "%c%c %.16s", 128, SKINNY_LBL_CALL_PARK_AT, extension);
-						SCCP_LIST_LOCK(&l->devices);
-						SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+						SCCP_EMB_RWLIST_RDLOCK(&l->devices);
+						SCCP_EMB_RWLIST_TRAVERSE(&l->devices, ld, list)
+						{
 							if (ld->line == l) {
 								sccp_dev_displayprinotify(ld->device, extstr, SCCP_MESSAGE_PRIORITY_TIMEOUT, 20);
 							}
 						}
-						SCCP_LIST_UNLOCK(&l->devices);
+						SCCP_EMB_RWLIST_UNLOCK(&l->devices);
 					}
 				}
 				if (parkinglot && exten) {
