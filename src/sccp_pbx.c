@@ -63,7 +63,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char * lineName, sccp_au
 		return SCCP_REQUEST_STATUS_LINEUNKNOWN;
 	}
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	if (SCCP_RWLIST_GETSIZE(&l->devices) == 0) {
+	if(SCCP_RWLIST_GETSIZE_LOCKED(&l->devices) == 0) {
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
 		return SCCP_REQUEST_STATUS_LINEUNAVAIL;
 	}
@@ -204,13 +204,14 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 
 	int incomingcalls = 0;
 	sccp_channel_t *count_channel = NULL;
-	SCCP_LIST_LOCK(&l->channels);
-	SCCP_LIST_TRAVERSE(&l->channels, count_channel, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&l->channels);
+	SCCP_EMB_RWLIST_TRAVERSE(&l->channels, count_channel, list)
+	{
 		if (count_channel != c && count_channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 			incomingcalls++;
 		}
 	}
-	SCCP_LIST_UNLOCK(&l->channels);
+	SCCP_EMB_RWLIST_UNLOCK(&l->channels);
 	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP/%s: Incoming calls:%d, Incoming calls limit: %d\n", l->name, incomingcalls, l->incominglimit);
 	/* if incoming call limit is reached send BUSY */
 	if(l->incominglimit && incomingcalls >= l->incominglimit) {
@@ -378,8 +379,8 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 				continue;
 			}
 			ForwardingLineDevice = NULL;	/* reset cfwd if shared */
-			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Ringing %sLine: %s on device:%s using channel:%s, ringermode:%s\n", ld->device->id, SCCP_LIST_GETSIZE(&l->devices) > 1 ? "Shared" : "", ld->line->name,
-					       ld->device->id, c->designator, skinny_ringtype2str(c->ringermode));
+			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Ringing %sLine: %s on device:%s using channel:%s, ringermode:%s\n", ld->device->id, SCCP_LIST_GETSIZE_LOCKED(&l->devices) > 1 ? "Shared" : "",
+					       ld->line->name, ld->device->id, c->designator, skinny_ringtype2str(c->ringermode));
 			sccp_indicate(ld->device, c, SCCP_CHANNELSTATE_RINGING);
 			isRinging = TRUE;
 			if (c->autoanswer_type) {
@@ -807,6 +808,7 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 	PBX_CHANNEL_TYPE *tmp;
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 	AUTO_RELEASE(sccp_device_t, d , NULL);
+	int numdevices = 0;
 
 	if (!c) {
 		return FALSE;
@@ -836,6 +838,7 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 		sccp_linedevice_t * ld = NULL;
 		// if ((d = sccp_channel_getDevice(c))) {
 		d = sccp_channel_getDevice(c) /*ref_replace*/;
+		numdevices = SCCP_LIST_GETSIZE_LOCKED(&l->devices);
 		if(d) {
 			SCCP_LIST_LOCK(&l->devices);
 			SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
@@ -844,7 +847,7 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 				}
 			}
 			SCCP_LIST_UNLOCK(&l->devices);
-		} else if(SCCP_LIST_GETSIZE(&l->devices) > 0) {
+		} else if(numdevices > 0) {
 			SCCP_LIST_LOCK(&l->devices);
 			ld = SCCP_LIST_FIRST(&l->devices);
 			SCCP_LIST_UNLOCK(&l->devices);
@@ -895,8 +898,8 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 		}
 
 		// make sure preferences only contains the codecs that this channel is capable of
-		if (SCCP_LIST_GETSIZE(&l->devices) == 1 && d) {				// singleline
-			//sccp_line_copyCodecSetsFromLineToChannel(l, d, c);
+		if(numdevices == 1 && d) {                                        // singleline
+			// sccp_line_copyCodecSetsFromLineToChannel(l, d, c);
 			sccp_codec_reduceSet(c->preferences.audio, d->capabilities.audio);
 			sccp_codec_reduceSet(c->preferences.video, d->capabilities.video);
 		} else {
@@ -981,7 +984,7 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 	}
 
 	/* call ast_channel_call_forward_set with the forward destination if this device is forwarded */
-	if (SCCP_LIST_GETSIZE(&l->devices) == 1) {
+	if(numdevices == 1) {
 		sccp_linedevice_t * ld = NULL;
 
 		SCCP_LIST_LOCK(&l->devices);

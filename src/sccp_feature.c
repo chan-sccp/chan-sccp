@@ -693,8 +693,9 @@ void sccp_feat_conference_start(constDevicePtr device, const uint32_t lineInstan
 
 					if (line) {
 						sccp_channel_t * channel = NULL;
-						SCCP_LIST_LOCK(&line->channels);
-						SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
+						SCCP_EMB_RWLIST_RDLOCK(&line->channels);
+						SCCP_EMB_RWLIST_TRAVERSE(&line->channels, channel, list)
+						{
 							if (channel != d->active_channel && channel->state == SCCP_CHANNELSTATE_HOLD) {
 								if ((bridged_channel = iPbx.get_bridged_channel(channel->owner))) {
 									sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), sccp_channelstate2str(channel->state));
@@ -709,7 +710,7 @@ void sccp_feat_conference_start(constDevicePtr device, const uint32_t lineInstan
 								sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "%s: sccp conference: Channel %s is Active on Shared Line on Other Device...Skipping.\n", DEV_ID_LOG(d), channel->designator);
 							}
 						}
-						SCCP_LIST_UNLOCK(&line->channels);
+						SCCP_EMB_RWLIST_UNLOCK(&line->channels);
 					}
 				}
 
@@ -764,13 +765,15 @@ void sccp_feat_join(constDevicePtr device, constLinePtr l, uint8_t lineInstance,
 	} else {
 		AUTO_RELEASE(sccp_conference_t, conference , sccp_conference_retain(d->conference));
 
-		SCCP_LIST_LOCK(&(((sccp_line_t *const)l)->channels));
-		SCCP_LIST_TRAVERSE(&l->channels, moderator_channel, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&(((sccp_line_t * const)l)->channels));
+		SCCP_EMB_RWLIST_TRAVERSE(&l->channels, moderator_channel, list)
+		{
 			if (conference == moderator_channel->conference ) {
 				break;
 			}
 		}
-		SCCP_LIST_UNLOCK(&(((sccp_line_t *const)l)->channels));
+		SCCP_EMB_RWLIST_UNLOCK(&(((sccp_line_t * const)l)->channels));
+
 		sccp_conference_hold(conference);								// make sure conference is on hold (should already be on hold)
 		if (moderator_channel) {
 			if (newparticipant_channel && moderator_channel != newparticipant_channel) {

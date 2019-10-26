@@ -182,9 +182,10 @@ static char *sccp_complete_connected_line(OLDCONST char *line, OLDCONST char *wo
  * \param pos Pos as int
  * \param state State as int
  * \return Result as char
- * 
+ *
  * \called_from_asterisk
- * 
+ *
+ * \warning lock order
  */
 static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
@@ -195,14 +196,15 @@ static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int
 
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-		SCCP_LIST_LOCK(&l->channels);
-		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+		SCCP_EMB_RWLIST_RDLOCK(&l->channels);
+		SCCP_EMB_RWLIST_TRAVERSE(&l->channels, c, list)
+		{
 			if (!strncasecmp(word, c->designator, wordlen) && ++which > state) {
 				ret = pbx_strdup(c->designator);
 				break;
 			}
 		}
-		SCCP_LIST_UNLOCK(&l->channels);
+		SCCP_EMB_RWLIST_UNLOCK(&l->channels);
 		if (ret) {
 			break;								// break out of outer look, prevent leaking memory by strdup
 		}
@@ -278,8 +280,9 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
  * \param pos Pos as int
  * \param state State as int
  * \return Result as char
- * 
+ *
  * \called_from_asterisk
+ * \warning locking order
  */
 static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
@@ -322,15 +325,16 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 			} else if (strstr(line, "channel") != NULL) {
 				SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 				SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-					SCCP_LIST_LOCK(&l->channels);
-					SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+					SCCP_EMB_RWLIST_RDLOCK(&l->channels);
+					SCCP_EMB_RWLIST_TRAVERSE(&l->channels, c, list)
+					{
 						snprintf(tmpname, sizeof(tmpname), "SCCP/%s", c->designator);
 						if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
 							ret = pbx_strdup(tmpname);
 							break;
 						}
 					}
-					SCCP_LIST_UNLOCK(&l->channels);
+					SCCP_EMB_RWLIST_UNLOCK(&l->channels);
 					if (ret) {
 						break;							// break out of outer look, prevent leaking memory by strdup
 					}
@@ -1068,20 +1072,21 @@ CLI_AMI_ENTRY(show_device, sccp_show_device, "Lists device settings", cli_device
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* ---------------------------------------------------------------------------------------------------------SHOW LINES- */
-    /*!
-     * \brief Show Lines
-     * \param fd Fd as int
-     * \param totals Total number of lines as int
-     * \param s AMI Session
-     * \param m Message
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     */
-    //static int sccp_show_lines(int fd, int argc, char *argv[])
+/*!
+ * \brief Show Lines
+ * \param fd Fd as int
+ * \param totals Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ *
+ * \called_from_asterisk
+ *
+ * \warning locking order
+ */
+// static int sccp_show_lines(int fd, int argc, char *argv[])
 static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_line_t *l = NULL;
@@ -1121,9 +1126,11 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 				char cid_name[StationMaxNameSize] = { 0 };
 				skinny_calltype_t calltype = SKINNY_CALLTYPE_SENTINEL;
 				sccp_channelstate_t state = SCCP_CHANNELSTATE_SENTINEL;
-				
-				SCCP_LIST_LOCK(&l->channels);
-				SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
+
+				SCCP_EMB_RWLIST_RDLOCK(&l->channels);
+				int numchannels = SCCP_EMB_RWLIST_GETSIZE(&l->channels);
+				SCCP_EMB_RWLIST_TRAVERSE(&l->channels, channel, list)
+				{
 					//if (channel && (channel->state != SCCP_CHANNELSTATE_CONNECTED || sccp_strequals(channel->currentDeviceId, d->id))) {
 					if (channel && (channel->state == SCCP_CHANNELSTATE_HOLD || sccp_strequals(channel->currentDeviceId, d->id))) {
 						if (channel->owner) {
@@ -1143,11 +1150,11 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 						break;
 					}
 				}
-				SCCP_LIST_UNLOCK(&l->channels);
+				SCCP_EMB_RWLIST_UNLOCK(&l->channels);
 				if (!s) {
 					pbx_cli(fd, "| %-13s %-3s%-6s %-30s %-16s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n", !found_linedevice ? l->name : " +--", ld->subscriptionId.replaceCid ? "(=)" : "(+)",
 						ld->subscriptionId.number, sccp_strlen_zero(ld->subscriptionId.label) ? (l->label ? l->label : "--") : ld->subscriptionId.label, l->description ? l->description : "--", d->id,
-						(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (state != SCCP_CHANNELSTATE_SENTINEL) ? sccp_channelstate2str(state) : "--",
+						(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", numchannels, (state != SCCP_CHANNELSTATE_SENTINEL) ? sccp_channelstate2str(state) : "--",
 						(calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(calltype) : "--", cid_name, cap_buf);
 				} else {
 					astman_append(s, "Event: SCCPLineEntry\r\n");
@@ -1160,7 +1167,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 					astman_append(s, "Description: %s\r\n", l->description ? l->description : "<not set>");
 					astman_append(s, "Device: %s\r\n", d->id);
 					astman_append(s, "MWI: %s\r\n", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF");
-					astman_append(s, "ActiveChannels: %d\r\n", SCCP_LIST_GETSIZE(&l->channels));
+					astman_append(s, "ActiveChannels: %d\r\n", numchannels);
 					astman_append(s, "ChannelState: %s\r\n", (state != SCCP_CHANNELSTATE_SENTINEL) ? sccp_channelstate2str(state) : "--");
 					astman_append(s, "CallType: %s\r\n", (calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(calltype) : "--");
 					astman_append(s, "PartyName: %s\r\n", cid_name);
@@ -1175,18 +1182,8 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 		if (found_linedevice == 0) {
 			char cid_name[StationMaxNameSize] = {0};
 			if (!s) {
-				pbx_cli(fd, "| %-13s %-3s%-6s %-30s %-16s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n", 
-					l->name, 
-					"", "",
-					l->label, 
-					l->description,
-					"--", 
-					(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", 
-					SCCP_LIST_GETSIZE(&l->channels),
-					"--", 
-					"--", 
-					cid_name,
-					cap_buf);
+				pbx_cli(fd, "| %-13s %-3s%-6s %-30s %-16s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n", l->name, "", "", l->label, l->description, "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
+					SCCP_EMB_RWLIST_GETSIZE_LOCKED(&l->channels), "--", "--", cid_name, cap_buf);
 			} else {
 				astman_append(s, "Event: SCCPLineEntry\r\n");
 				astman_append(s, "ChannelType: SCCP\r\n");
@@ -1353,7 +1350,7 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	CLI_AMI_OUTPUT_PARAM("Caller ID name",		CLI_AMI_LIST_WIDTH, "%s", l->cid_name);
 	CLI_AMI_OUTPUT_PARAM("Caller ID number",	CLI_AMI_LIST_WIDTH, "%s", l->cid_num);
 	CLI_AMI_OUTPUT_PARAM("Incoming Calls limit",	CLI_AMI_LIST_WIDTH, "%d", l->incominglimit);
-	CLI_AMI_OUTPUT_PARAM("Active Channel Count",	CLI_AMI_LIST_WIDTH, "%d", SCCP_RWLIST_GETSIZE(&l->channels));
+	CLI_AMI_OUTPUT_PARAM("Active Channel Count", CLI_AMI_LIST_WIDTH, "%d", SCCP_EMB_RWLIST_GETSIZE_LOCKED(&l->channels));
 	CLI_AMI_OUTPUT_PARAM("Sec. Dialtone Digits",	CLI_AMI_LIST_WIDTH, "%s", l->secondary_dialtone_digits);
 	CLI_AMI_OUTPUT_PARAM("Sec. Dialtone",		CLI_AMI_LIST_WIDTH, "%s (0x%02x)", skinny_tone2str(l->secondary_dialtone_tone), l->secondary_dialtone_tone);
 	CLI_AMI_OUTPUT_BOOL("Echo Cancellation",	CLI_AMI_LIST_WIDTH, l->echocancel);
@@ -1449,20 +1446,21 @@ CLI_AMI_ENTRY(show_line, sccp_show_line, "List defined SCCP line settings", cli_
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* --------------------------------------------------------------------------------------------------------SHOW CHANNELS- */
-    /*!
-     * \brief Show Channels
-     * \param fd Fd as int
-     * \param totals Total number of lines as int
-     * \param s AMI Session
-     * \param m Message
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     */
-    //static int sccp_show_channels(int fd, int argc, char *argv[])
+/*!
+ * \brief Show Channels
+ * \param fd Fd as int
+ * \param totals Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ *
+ * \called_from_asterisk
+ *
+ * \warning locking order
+ */
+// static int sccp_show_channels(int fd, int argc, char *argv[])
 static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_channel_t * channel = NULL;
@@ -1478,22 +1476,23 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_RWLIST_RDLOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_RWLIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
-#define CLI_AMI_TABLE_BEFORE_ITERATION 												\
-		AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(line));								\
-		SCCP_LIST_LOCK(&l->channels);											\
-		SCCP_LIST_TRAVERSE(&l->channels, channel, list) {								\
-			if (channel->conference_id) {										\
-				snprintf(tmpname, sizeof(tmpname), "SCCPCONF/%03d/%03d", channel->conference_id, channel->conference_participant_id);	\
-			} else {												\
-				snprintf(tmpname, sizeof(tmpname), "%s", channel->designator);					\
-			}													\
-			if (&channel->rtp) {											\
-				sccp_copy_string(addrStr,sccp_netsock_stringify(&channel->rtp.audio.phone), sizeof(addrStr));	\
-			}
+#define CLI_AMI_TABLE_BEFORE_ITERATION                                                                                                        \
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(line));                                                                                 \
+	SCCP_EMB_RWLIST_RDLOCK(&l->channels);                                                                                                 \
+	SCCP_EMB_RWLIST_TRAVERSE(&l->channels, channel, list)                                                                                 \
+	{                                                                                                                                     \
+		if(channel->conference_id) {                                                                                                  \
+			snprintf(tmpname, sizeof(tmpname), "SCCPCONF/%03d/%03d", channel->conference_id, channel->conference_participant_id); \
+		} else {                                                                                                                      \
+			snprintf(tmpname, sizeof(tmpname), "%s", channel->designator);                                                        \
+		}                                                                                                                             \
+		if(&channel->rtp) {                                                                                                           \
+			sccp_copy_string(addrStr, sccp_netsock_stringify(&channel->rtp.audio.phone), sizeof(addrStr));                        \
+		}
 
-#define CLI_AMI_TABLE_AFTER_ITERATION 												\
-		}														\
-		SCCP_LIST_UNLOCK(&l->channels);											\
+#define CLI_AMI_TABLE_AFTER_ITERATION \
+	}                             \
+	SCCP_EMB_RWLIST_UNLOCK(&l->channels);
 
 #if !CS_SCCP_VIDEO
 #	define CLI_AMI_TABLE_FIELDS                                                                                                        \
@@ -1667,10 +1666,11 @@ CLI_AMI_ENTRY(show_hint_subscriptions, sccp_show_hint_subscriptions, "Show all S
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
- * 
+ *
  * \called_from_asterisk
+ * \warning locking order
  */
-#include "sccp_actions.h"
+#	include "sccp_actions.h"
 static int sccp_test(int fd, int argc, char *argv[])
 {
 	if (argc < 3) {
@@ -1691,7 +1691,9 @@ static int sccp_test(int fd, int argc, char *argv[])
 
 		SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
 		SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-			SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
+			SCCP_EMB_RWLIST_RDLOCK(&l->channels);
+			SCCP_EMB_RWLIST_TRAVERSE(&l->channels, channel, list)
+			{
 				AUTO_RELEASE(sccp_channel_t, tmpChannel , sccp_channel_retain(channel));
 				AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(tmpChannel));
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Sending OpenReceiveChannel and changing payloadType to 8\n");
@@ -1717,6 +1719,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 				msg2->data.OpenReceiveChannel.v17.lel_dtmfType = htolel(10);
 				sccp_dev_send(d, msg2);
 			}
+			SCCP_EMB_RWLIST_UNLOCK(&l->channels);
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Testing re-Sending OpenReceiveChannel. It WORKS !\n");
 		}
 		SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));

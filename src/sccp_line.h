@@ -66,7 +66,7 @@ struct sccp_line {
 
 	// SCCP_EMB_RWLIST_HEAD (, sccp_mailbox_t) mailboxes;							/*!< Mailbox Linked List Entry. To check for messages */
 	sccp_mailbox_list_t mailboxes;
-	SCCP_LIST_HEAD (, sccp_channel_t) channels;								/*!< Linked list of current channels for this line */
+	SCCP_EMB_RWLIST_HEAD(, sccp_channel_t) channels;                                                        /*!< Linked list of current channels for this line */
 	SCCP_LIST_HEAD(, sccp_linedevice_t) devices;                                                            /*!< The device this line is currently registered to. */
 
 	PBX_VARIABLE_TYPE *variables;										/*!< Channel variables to set */

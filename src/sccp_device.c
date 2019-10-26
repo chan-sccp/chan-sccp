@@ -2439,8 +2439,9 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 				if (!line) {
 					continue;
 				}
-				SCCP_LIST_LOCK(&line->channels);
-				SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN(&line->channels, c, list) {
+				SCCP_EMB_RWLIST_RDLOCK(&line->channels);
+				SCCP_EMB_RWLIST_TRAVERSE_BACKWARDS(&line->channels, c, list)
+				{
 					AUTO_RELEASE(sccp_channel_t, channel, sccp_channel_retain(c));
 					if (channel) {
 						AUTO_RELEASE(sccp_device_t, tmpDevice, sccp_channel_getDevice(channel));
@@ -2450,8 +2451,7 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 						}
 					}
 				}
-				SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END;
-				SCCP_LIST_UNLOCK(&line->channels);
+				SCCP_EMB_RWLIST_UNLOCK(&line->channels);
 
 				/* remove devices from line */
 				sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);
@@ -2869,15 +2869,16 @@ uint8_t sccp_device_numberOfChannels(constDevicePtr device)
 			if (!l) {
 				continue;
 			}
-			SCCP_LIST_LOCK(&l->channels);
-			SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+			SCCP_EMB_RWLIST_RDLOCK(&l->channels);
+			SCCP_EMB_RWLIST_TRAVERSE(&l->channels, c, list)
+			{
 				AUTO_RELEASE(sccp_device_t, tmpDevice , sccp_channel_getDevice(c));
 
 				if (tmpDevice == device) {
 					numberOfChannels++;
 				}
 			}
-			SCCP_LIST_UNLOCK(&l->channels);
+			SCCP_EMB_RWLIST_UNLOCK(&l->channels);
 		}
 	}
 	SCCP_EMB_RWLIST_UNLOCK(&device->buttonconfig);

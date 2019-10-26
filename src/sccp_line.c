@@ -124,7 +124,7 @@ linePtr sccp_line_create(const char * name)
 
 	l->lock = &GLOB(lock); /* inherit global lock during creation, assign session pointer later */
 
-	SCCP_LIST_HEAD_INIT(&l->channels);
+	SCCP_EMB_RWLIST_HEAD_INIT(&l->channels, l->lock);
 	SCCP_LIST_HEAD_INIT(&l->devices);
 	SCCP_EMB_RWLIST_HEAD_INIT(&l->mailboxes, l->lock);
 	return l;
@@ -227,12 +227,12 @@ void sccp_line_kill_channels(linePtr l)
 	if (!l) {
 		return;
 	}
-	SCCP_LIST_LOCK(&l->channels);
-	while ((c = SCCP_LIST_REMOVE_HEAD(&l->channels, list))) {
+	SCCP_EMB_RWLIST_WRLOCK(&l->channels);
+	while((c = SCCP_EMB_RWLIST_REMOVE_HEAD(&l->channels, list))) {
 		sccp_channel_endcall(c);
 		sccp_channel_release(&c);									// explicit release channel retain in list
 	}
-	SCCP_LIST_UNLOCK(&l->channels);
+	SCCP_EMB_RWLIST_UNLOCK(&l->channels);
 }
 
 /*!
@@ -316,10 +316,12 @@ int __sccp_line_destroy(const void *ptr)
 	}
 
 	// destroy lists
-	if (!SCCP_LIST_EMPTY(&l->channels)) {
+	SCCP_EMB_RWLIST_RDLOCK(&l->channels);
+	if(SCCP_EMB_RWLIST_EMPTY(&l->channels) > 0) {
 		pbx_log(LOG_WARNING, "%s: (line_destroy) there are connected channels left during line destroy\n", l->name);
 	}
-	SCCP_LIST_HEAD_DESTROY(&l->channels);
+	SCCP_EMB_RWLIST_UNLOCK(&l->channels);
+	SCCP_EMB_RWLIST_HEAD_DESTROY(&l->channels);
 
 	if (!SCCP_LIST_EMPTY(&l->devices)) {
 		pbx_log(LOG_WARNING, "%s: (line_destroy) there are connected device left during line destroy\n", l->name);
@@ -489,10 +491,6 @@ void sccp_line_cfwd(constLinePtr line, constDevicePtr device, sccp_cfwd_t type, 
  *
  * \param line SCCP Line
  * \param channel SCCP Channel
- *
- * \warning
- *  - line->channels is not always locked
- *
  */
 void sccp_line_addChannel(constLinePtr line, constChannelPtr channel)
 {
@@ -505,19 +503,19 @@ void sccp_line_addChannel(constLinePtr line, constChannelPtr channel)
 
 	if (l) {
 		//l->statistic.numberOfActiveChannels++;
-		SCCP_LIST_LOCK(&l->channels);
+		SCCP_EMB_RWLIST_WRLOCK(&l->channels);
 		if ((c = sccp_channel_retain(channel))) {							// Add into list retained
 #if CS_REFCOUNT_DEBUG
 			sccp_refcount_addWeakParent(l, c);
 #endif
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s\n", c->callid, l->name);
 			if (GLOB(callanswerorder) == SCCP_ANSWER_OLDEST_FIRST) {
-				SCCP_LIST_INSERT_TAIL(&l->channels, c, list);					// add to list
+				SCCP_EMB_RWLIST_INSERT_TAIL(&l->channels, c, list);                                        // add to list
 			} else {
-				SCCP_LIST_INSERT_HEAD(&l->channels, c, list);					// add to list
+				SCCP_EMB_RWLIST_INSERT_HEAD(&l->channels, c, list);                                        // add to list
 			}
 		}
-		SCCP_LIST_UNLOCK(&l->channels);
+		SCCP_EMB_RWLIST_UNLOCK(&l->channels);
 	}
 }
 
@@ -526,10 +524,6 @@ void sccp_line_addChannel(constLinePtr line, constChannelPtr channel)
  *
  * \param line SCCP Line
  * \param channel SCCP Channel
- * 
- * \warning
- *  - line->channels is not always locked
- * 
  */
 void sccp_line_removeChannel(constLinePtr line, sccp_channel_t * channel)
 {
@@ -539,8 +533,8 @@ void sccp_line_removeChannel(constLinePtr line, sccp_channel_t * channel)
 	sccp_channel_t *c = NULL;
 	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(line));
 	if (l) {
-		SCCP_LIST_LOCK(&l->channels);
-		if ((c = SCCP_LIST_REMOVE(&l->channels, channel, list))) {
+		SCCP_EMB_RWLIST_WRLOCK(&l->channels);
+		if((c = SCCP_EMB_RWLIST_REMOVE(&l->channels, channel, list))) {
 #if CS_REFCOUNT_DEBUG
 			sccp_refcount_removeWeakParent(l, c);
 #endif
@@ -550,7 +544,7 @@ void sccp_line_removeChannel(constLinePtr line, sccp_channel_t * channel)
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Removing channel %d from line %s\n", c->callid, l->name);
 			sccp_channel_release(&c);					/* explicit release of channel from list */
 		}
-		SCCP_LIST_UNLOCK(&l->channels);
+		SCCP_EMB_RWLIST_UNLOCK(&l->channels);
 	}
 }
 

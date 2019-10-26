@@ -478,17 +478,18 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 	} else {
 		AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(l));
 		if (line) {
-			if (SCCP_RWLIST_GETSIZE(&line->channels) == 2) {
-				SCCP_LIST_LOCK(&line->channels);
+			int numchannels = SCCP_EMB_RWLIST_GETSIZE_LOCKED(&line->channels);
+			if(numchannels == 2) {
+				SCCP_EMB_RWLIST_RDLOCK(&line->channels);
 				sccp_channel_t *tmp = NULL;
-				if ((tmp  = SCCP_LIST_FIRST(&line->channels))) {
+				if((tmp = SCCP_EMB_RWLIST_FIRST(&line->channels))) {
 					chan1 = sccp_channel_retain(tmp) /*ref_replace*/;
 					if ((tmp = SCCP_LIST_NEXT(tmp, list))) {
 						chan2 = sccp_channel_retain(tmp) /*ref_replace*/;
 					}
 				}
-				SCCP_LIST_UNLOCK(&line->channels);
-			} else if (SCCP_RWLIST_GETSIZE(&line->channels) < 2) {
+				SCCP_EMB_RWLIST_UNLOCK(&line->channels);
+			} else if(numchannels < 2) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Not enough channels to transfer\n", device->id);
 				sccp_dev_displayprompt(device, lineInstance, c->callid, SKINNY_DISP_NOT_ENOUGH_CALLS_TO_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 				return;

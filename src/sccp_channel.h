@@ -33,7 +33,7 @@ struct sccp_channel {
 	
 	PBX_CHANNEL_TYPE *owner;										/*!< Asterisk Channel Owner */
 	sccp_line_t * const line;										/*!< SCCP Line */
-	SCCP_LIST_ENTRY (sccp_channel_t) list;									/*!< Channel Linked List */
+	SCCP_EMB_RWLIST_ENTRY(sccp_channel_t) list;                                                             /*!< Channel Linked List */
 	char dialedNumber[SCCP_MAX_EXTENSION];									/*!< Last Dialed Number */
 	const char * const designator;
 	sccp_subscription_id_t subscriptionId;

@@ -1807,7 +1807,7 @@ static void handle_stimulus_line(constDevicePtr d, constLinePtr l, const uint16_
 		AUTO_RELEASE(sccp_channel_t, channel , NULL);
 		AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 
-		if (!SCCP_LIST_GETSIZE(&l->channels)) {
+		if(!SCCP_EMB_RWLIST_GETSIZE_LOCKED(&l->channels)) {
 			//sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n -> New Call\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 			sccp_dev_setActiveLine(device, l);
 			sccp_dev_set_cplane(device, instance, 1);
@@ -3046,11 +3046,11 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 		case SCCP_CILI_HAS_LINEINSTANCE:
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) only lineinstance\n", DEV_ID_LOG(d));
 			if((l = sccp_line_find_byid(d, lineInstance)) /*ref_replace*/) {
-				SCCP_LIST_LOCK(&l->channels);
-				channel = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list,
-							 (tmpc->state == SCCP_CHANNELSTATE_OFFHOOK || tmpc->state == SCCP_CHANNELSTATE_GETDIGITS || tmpc->state == SCCP_CHANNELSTATE_DIGITSFOLL), TRUE, __FILE__, __LINE__,
-							 __PRETTY_FUNCTION__);
-				SCCP_LIST_UNLOCK(&l->channels);
+				SCCP_EMB_RWLIST_RDLOCK(&l->channels);
+				channel = SCCP_EMB_RWLIST_FIND(&l->channels, sccp_channel_t, tmpc, list,
+							       (tmpc->state == SCCP_CHANNELSTATE_OFFHOOK || tmpc->state == SCCP_CHANNELSTATE_GETDIGITS || tmpc->state == SCCP_CHANNELSTATE_DIGITSFOLL), TRUE, __FILE__, __LINE__,
+							       __PRETTY_FUNCTION__);
+				SCCP_EMB_RWLIST_UNLOCK(&l->channels);
 			}
 			break;
 		case SCCP_CILI_HAS_CALLID:

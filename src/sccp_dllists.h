@@ -96,13 +96,15 @@ struct {												\
 
 /* List First Item */
 #define SCCP_LIST_FIRST(head)	((head)->first)
-#define SCCP_RWLIST_FIRST SCCP_LIST_FIRST
+#define SCCP_RWLIST_FIRST       SCCP_LIST_FIRST
 #define SCCP_EMB_LIST_FIRST     SCCP_LIST_FIRST
 #define SCCP_EMB_RWLIST_FIRST   SCCP_LIST_FIRST
 
 /* List Last Item */
 #define SCCP_LIST_LAST(head)	((head)->last)
-#define SCCP_RWLIST_LAST SCCP_LIST_LAST
+#define SCCP_RWLIST_LAST        SCCP_LIST_LAST
+#define SCCP_EMB_RWLIST_LAST    SCCP_LIST_LAST
+#define SCCP_EMB_RWLIST_LAST    SCCP_LIST_LAST
 
 /* List Next Item */
 #define SCCP_LIST_NEXT(elm, field)	((elm)->field.next)
@@ -248,6 +250,8 @@ struct {												\
 #define SCCP_LIST_TRAVERSE_BACKWARDS(head,var,field) 							\
 	for((var) = (head)->last; (var); (var) = (var)->field.prev)
 #define SCCP_RWLIST_TRAVERSE_BACKWARDS SCCP_LIST_TRAVERSE_BACKWARDS
+#define SCCP_EMB_LIST_TRAVERSE_BACKWARDS   SCCP_LIST_TRAVERSE_BACKWARDS
+#define SCCP_EMB_RWLIST_TRAVERSE_BACKWARDS SCCP_LIST_TRAVERSE_BACKWARDS
 
 /* List Safe Backward Explore Routine */
 #define SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN(head, var, field) {					\
@@ -263,10 +267,14 @@ struct {												\
 	     __list_prev = (var) ? (var)->field.prev : NULL						\
 	    )
 #define SCCP_RWLIST_TRAVERSE_BACKWARDS_SAFE_BEGIN SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN
+#define SCCP_EMB_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN   SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN
+#define SCCP_EMB_RWLIST_TRAVERSE_BACKWARDS_SAFE_BEGIN SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_BEGIN
 
 /* List Backward Traverse End (Parentesis) */
 #define SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END (void) __list_next; /* to quiet compiler */ } 
 #define SCCP_RWLIST_TRAVERSE_BACKWARDS_SAFE_END  SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END
+#define SCCP_EMB_LIST_TRAVERSE_BACKWARDS_SAFE_END   SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END
+#define SCCP_EMB_RWLIST_TRAVERSE_BACKWARDS_SAFE_END SCCP_LIST_TRAVERSE_BACKWARDS_SAFE_END
 
 #if CS_LOCK_DEBUG
 #	define __pbx_mutex_init  pbx_mutex_init
@@ -500,4 +508,37 @@ struct {												\
 #define SCCP_RWLIST_GETSIZE SCCP_LIST_GETSIZE
 #define SCCP_EMB_LIST_GETSIZE   SCCP_LIST_GETSIZE
 #define SCCP_EMB_RWLIST_GETSIZE SCCP_LIST_GETSIZE
+
+#define SCCP_LIST_GETSIZE_LOCKED(head)          \
+	({                                      \
+		uint32_t __tmp##__LINE__ = 0;   \
+		SCCP_LIST_LOCK((head));         \
+		__tmp##__LINE__ = (head)->size; \
+		SCCP_LIST_UNLOCK((head));       \
+		__tmp##__LINE__;                \
+	})
+#define SCCP_RWLIST_GETSIZE_LOCKED(head)        \
+	({                                      \
+		uint32_t __tmp##__LINE__ = 0;   \
+		SCCP_RWLIST_RDLOCK((head));     \
+		__tmp##__LINE__ = (head)->size; \
+		SCCP_RWLIST_UNLOCK((head));     \
+		__tmp##__LINE__;                \
+	})
+#define SCCP_EMB_LIST_GETSIZE_LOCKED(head)      \
+	({                                      \
+		uint32_t __tmp##__LINE__ = 0;   \
+		SCCP_EMB_LIST_LOCK((head));     \
+		__tmp##__LINE__ = (head)->size; \
+		SCCP_EMB_LIST_UNLOCK((head));   \
+		__tmp##__LINE__;                \
+	})
+#define SCCP_EMB_RWLIST_GETSIZE_LOCKED(head)    \
+	({                                      \
+		uint32_t __tmp##__LINE__ = 0;   \
+		SCCP_EMB_RWLIST_RDLOCK((head)); \
+		__tmp##__LINE__ = (head)->size; \
+		SCCP_EMB_RWLIST_UNLOCK((head)); \
+		__tmp##__LINE__;                \
+	})
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

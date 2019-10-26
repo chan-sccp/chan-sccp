@@ -747,7 +747,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			} else if (!strcasecmp(token, "incoming_limit")) {
 				snprintf(buf, buf_len, "%d", l->incominglimit);
 			} else if (!strcasecmp(token, "channel_count")) {
-				snprintf(buf, buf_len, "%d", SCCP_RWLIST_GETSIZE(&l->channels));
+				snprintf(buf, buf_len, "%d", SCCP_EMB_RWLIST_GETSIZE_LOCKED(&l->channels));
 			} else if (!strcasecmp(token, "dynamic") || !strcasecmp(token, "realtime")) {
 #ifdef CS_SCCP_REALTIME
 				sccp_copy_string(buf, l->realtime ? "Yes" : "No", len);

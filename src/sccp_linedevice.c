@@ -311,7 +311,7 @@ void sccp_linedevice_remove(constDevicePtr d, linePtr l)
 			}
 			sccp_linedevice_release(&ld); /* explicit release of list retained ld */
 #ifdef CS_SCCP_REALTIME
-			if(l->realtime && SCCP_LIST_GETSIZE(&l->devices) == 0 && SCCP_LIST_GETSIZE(&l->channels) == 0) {
+			if(l->realtime && SCCP_LIST_GETSIZE(&l->devices) == 0 && SCCP_EMB_RWLIST_GETSIZE(&l->channels) == 0) {
 				sccp_line_removeFromGlobals(l);
 			}
 #endif
