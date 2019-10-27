@@ -471,7 +471,7 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 		if((x = SCCP_EMB_RWLIST_FIRST(&device->selectedChannels))) {
 			chan1 = sccp_channel_retain(x->channel) /*ref_replace*/;
 			sccp_channel_t * tmp = NULL;
-			if((tmp = SCCP_LIST_NEXT(x, list)->channel)) {
+			if((tmp = SCCP_EMB_RWLIST_NEXT(x, list)->channel)) {
 				chan2 = sccp_channel_retain(tmp) /*ref_replace*/;
 			}
 		}
@@ -485,7 +485,7 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * const softkeyMap_cb, co
 				sccp_channel_t *tmp = NULL;
 				if((tmp = SCCP_EMB_RWLIST_FIRST(&line->channels))) {
 					chan1 = sccp_channel_retain(tmp) /*ref_replace*/;
-					if ((tmp = SCCP_LIST_NEXT(tmp, list))) {
+					if((tmp = SCCP_EMB_RWLIST_NEXT(tmp, list))) {
 						chan2 = sccp_channel_retain(tmp) /*ref_replace*/;
 					}
 				}
@@ -551,7 +551,7 @@ static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 	if (device) {
 		if ((selectedchannel = sccp_device_find_selectedchannel(device, c))) {
 			SCCP_EMB_RWLIST_WRLOCK(&device->selectedChannels);
-			selectedchannel = SCCP_LIST_REMOVE(&device->selectedChannels, selectedchannel, list);
+			selectedchannel = SCCP_EMB_RWLIST_REMOVE(&device->selectedChannels, selectedchannel, list);
 			SCCP_EMB_RWLIST_UNLOCK(&device->selectedChannels);
 			sccp_channel_release(&selectedchannel->channel);
 			sccp_free(selectedchannel);
@@ -1053,7 +1053,8 @@ void sccp_softkey_post_reload(void)
 	/* incase softkeysets have changed but device was not reloaded, then d->softkeyset needs to be fixed up */
 	sccp_device_t * d = NULL;
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
-	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&GLOB(devices), d, list)
+	{
 		sccp_softKeySetConfiguration_t * softkeyset = NULL;
 		SCCP_EMB_RWLIST_RDLOCK(&softKeySetConfig);                                        //! \warning Potential Lock Inversion
 		SCCP_EMB_RWLIST_TRAVERSE(&softKeySetConfig, softkeyset, list)

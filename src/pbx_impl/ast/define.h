@@ -53,18 +53,29 @@
 #	define __sccp_lock_debug_hlp__(_func_, _type_, _lck_)                                                                                                                        \
 		{                                                                                                                                                                     \
 			if(__builtin_types_compatible_p(typeof(_lck_), pbx_##_type_)) {                                                                                               \
-				ast_debug(4, "CS_LOCK_DEBUG|wrong type|" #_lck_ "|expected:" #_type_ "|!LOCK SKIPPED!");                                                              \
+				ast_debug(4, "CS_LOCK_DEBUG|wrong type|" #_lck_ "|expected:" #_type_ "|!LOCK SKIPPED!\n");                                                            \
 			} else {                                                                                                                                                      \
 				ast_debug(4, "CS_LOCK_DEBUG|%d|%s:%d:%s|%s(" #_lck_ ")|%p\n", (unsigned int)pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, #_func_, _lck_); \
 				_func_((ast_##_type_ *)_lck_);                                                                                                                        \
 			}                                                                                                                                                             \
 		}
 #	define pbx_mutex_lock(_lck_)    ({ __sccp_lock_debug_hlp__(ast_mutex_lock, mutex_t, _lck_); })
+//#	define pbx_mutex_lock(_lck_)    ({ __sccp_lock_debug_hlp__(ast_mutex_trylock, mutex_t, _lck_); })
 #	define pbx_mutex_trylock(_lck_) ({ __sccp_lock_debug_hlp__(ast_mutex_trylock, mutex_t, _lck_); })
 #	define pbx_mutex_unlock(_lck_)  ({ __sccp_lock_debug_hlp__(ast_mutex_unlock, mutex_t, _lck_); })
 
-#	define pbx_rwlock_rdlock(_lck_)    ({ __sccp_lock_debug_hlp__(ast_rwlock_rdlock, rwlock_t, _lck_); })
-#	define pbx_rwlock_wrlock(_lck_)    ({ __sccp_lock_debug_hlp__(ast_rwlock_wrlock, rwlock_t, _lck_); })
+#	define pbx_rwlock_rdlock(_lck_) ({ __sccp_lock_debug_hlp__(ast_rwlock_rdlock, rwlock_t, _lck_); })
+#	define pbx_rwlock_wrlock(_lck_) ({ __sccp_lock_debug_hlp__(ast_rwlock_wrlock, rwlock_t, _lck_); })
+//#	define pbx_rwlock_rdlock(_lck_)    ({ __sccp_lock_debug_hlp__(ast_rwlock_tryrdlock, rwlock_t, _lck_); })
+//#	define pbx_rwlock_wrlock(_lck_)    ({ __sccp_lock_debug_hlp__(ast_rwlock_trywrlock, rwlock_t, _lck_); })
+/*
+#	define pbx_rwlock_wrlock(_lck_)                                                                                                                                      \
+		({                                                                                                                                                            \
+			int err = ast_rwlock_trywrlock((ast_rwlock_t *)_lck_);                                                                                                \
+			if(err != 0)                                                                                                                                          \
+				ast_debug(4, "CS_LOCK_DEBUG|wrlock failed|" #_lck_ "|%s:%d:%s|!ERROR:%d:%s!\n", __FILE__, __LINE__, __PRETTY_FUNCTION__, err, strerror(err)); \
+		})
+*/
 #	define pbx_rwlock_tryrdlock(_lck_) ({ __sccp_lock_debug_hlp__(ast_rwlock_tryrdlock, rwlock_t, _lck_); })
 #	define pbx_rwlock_trywrlock(_lck_) ({ __sccp_lock_debug_hlp__(ast_rwlock_trywrlock, rwlock_t, _lck_); })
 #	define pbx_rwlock_unlock(_lck_)    ({ __sccp_lock_debug_hlp__(ast_rwlock_unlock, rwlock_t, _lck_); })

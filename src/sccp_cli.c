@@ -99,7 +99,8 @@ static char *sccp_complete_device(OLDCONST char *line, OLDCONST char *word, int 
 	char *ret = NULL;
 
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
-	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&GLOB(devices), d, list)
+	{
 		if (!strncasecmp(word, d->id, wordlen) && ++which > state) {
 			ret = pbx_strdup(d->id);
 			break;
@@ -117,7 +118,8 @@ static char *sccp_complete_connected_device(OLDCONST char *line, OLDCONST char *
 	char *ret = NULL;
 
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
-	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&GLOB(devices), d, list)
+	{
 		if (!strncasecmp(word, d->id, wordlen) && sccp_device_getRegistrationState(d) != SKINNY_DEVICE_RS_NONE && ++which > state) {
 			ret = pbx_strdup(d->id);
 			break;
@@ -146,7 +148,8 @@ static char *sccp_complete_line(OLDCONST char *line, OLDCONST char *word, int po
 	char *ret = NULL;
 
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
-	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&GLOB(lines), l, list)
+	{
 		if (!strncasecmp(word, l->name, wordlen) && ++which > state) {
 			ret = pbx_strdup(l->name);
 			break;
@@ -164,7 +167,8 @@ static char *sccp_complete_connected_line(OLDCONST char *line, OLDCONST char *wo
 	char *ret = NULL;
 
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
-	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&GLOB(lines), l, list)
+	{
 		if(!strncasecmp(word, l->name, wordlen) && SCCP_EMB_RWLIST_GETSIZE_LOCKED(&l->devices) > 0 && ++which > state) {
 			ret = pbx_strdup(l->name);
 			break;
@@ -195,7 +199,8 @@ static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int
 	char *ret = NULL;
 
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
-	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&GLOB(lines), l, list)
+	{
 		SCCP_EMB_RWLIST_RDLOCK(&l->channels);
 		SCCP_EMB_RWLIST_TRAVERSE(&l->channels, c, list)
 		{
@@ -314,7 +319,8 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 		case 3:											// device / channel / line / fallback
 			if (strstr(line, "device") != NULL) {
 				SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
-				SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+				SCCP_EMB_RWLIST_TRAVERSE(&GLOB(devices), d, list)
+				{
 					if (!strncasecmp(word, d->id, wordlen) && ++which > state) {
 						ret = pbx_strdup(d->id);
 						break;
@@ -324,7 +330,8 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 
 			} else if (strstr(line, "channel") != NULL) {
 				SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
-				SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
+				SCCP_EMB_RWLIST_TRAVERSE(&GLOB(lines), l, list)
+				{
 					SCCP_EMB_RWLIST_RDLOCK(&l->channels);
 					SCCP_EMB_RWLIST_TRAVERSE(&l->channels, c, list)
 					{
@@ -393,7 +400,8 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 		case 7:											// values_hold off device
 			if (strstr(line, "channel") != NULL && strstr(line, "hold off") != NULL && strstr(line, "device") != NULL) {
 				SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
-				SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+				SCCP_EMB_RWLIST_TRAVERSE(&GLOB(devices), d, list)
+				{
 					if (!strncasecmp(word, d->id, wordlen) && ++which > state) {
 						ret = pbx_strdup(d->id);
 						break;
@@ -661,7 +669,7 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &GLOB(devices)
 #define CLI_AMI_TABLE_LIST_ITER_VAR list_dev
 #define CLI_AMI_TABLE_LIST_LOCK      SCCP_EMB_RWLIST_RDLOCK
-#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_RWLIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_ITERATOR  SCCP_EMB_RWLIST_TRAVERSE
 #define CLI_AMI_TABLE_BEFORE_ITERATION 																\
 	{																			\
 		AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(list_dev));											\
@@ -899,7 +907,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	}
 
 	/* *INDENT-ON* */
-	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
+	SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
+	if(SCCP_EMB_RWLIST_FIRST(&d->buttonconfig)) {
 		// BUTTONS
 #define CLI_AMI_TABLE_NAME Buttons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceButton
@@ -1013,6 +1022,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #include "sccp_cli_table.h"
 			local_table_total++;
 	}
+	SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 
 	if (d->variables) {
 		// VARIABLES
@@ -1115,7 +1125,8 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 		local_line_total++;
 	}
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
-	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&GLOB(lines), l, list)
+	{
 		found_linedevice = 0;
 		channel = NULL;
 		SCCP_EMB_RWLIST_RDLOCK(&l->devices);
@@ -1474,9 +1485,9 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Channel
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &GLOB(lines)
 #define CLI_AMI_TABLE_LIST_ITER_VAR line
-#define CLI_AMI_TABLE_LIST_LOCK SCCP_RWLIST_RDLOCK
-#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_RWLIST_TRAVERSE
-#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
+#define CLI_AMI_TABLE_LIST_LOCK      SCCP_EMB_RWLIST_RDLOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR  SCCP_EMB_RWLIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_UNLOCK    SCCP_EMB_RWLIST_UNLOCK
 #define CLI_AMI_TABLE_BEFORE_ITERATION                                                                                                        \
 	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(line));                                                                                 \
 	SCCP_EMB_RWLIST_RDLOCK(&l->channels);                                                                                                 \
@@ -1691,7 +1702,8 @@ static int sccp_test(int fd, int argc, char *argv[])
 		sccp_channel_t *channel = NULL;
 
 		SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
-		SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
+		SCCP_EMB_RWLIST_TRAVERSE(&GLOB(lines), l, list)
+		{
 			SCCP_EMB_RWLIST_RDLOCK(&l->channels);
 			SCCP_EMB_RWLIST_TRAVERSE(&l->channels, channel, list)
 			{
@@ -2169,9 +2181,7 @@ static int sccp_message_devices(int fd, sccp_cli_totals_t *totals, struct manses
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending message '%s' to all devices (beep: %d, timeout: %d)\n", argv[3], beep, timeout);
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
-	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		sccp_dev_set_message(d, argv[3], timeout, FALSE, beep);
-	}
+	SCCP_EMB_RWLIST_TRAVERSE(&GLOB(devices), d, list) { sccp_dev_set_message(d, argv[3], timeout, FALSE, beep); }
 	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 
 	if (s) {
@@ -2287,9 +2297,7 @@ static int sccp_system_message(int fd, sccp_cli_totals_t *totals, struct mansess
 
 	if (argc == 3) {
 		SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
-		SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-			sccp_dev_clear_message(d, TRUE);
-		}
+		SCCP_EMB_RWLIST_TRAVERSE(&GLOB(devices), d, list) { sccp_dev_clear_message(d, TRUE); }
 		SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 		CLI_AMI_OUTPUT(fd, s, "Message Cleared\n");
 		return RESULT_SUCCESS;
@@ -2313,7 +2321,8 @@ static int sccp_system_message(int fd, sccp_cli_totals_t *totals, struct mansess
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending system message '%s' to all devices (beep: %d, timeout: %d)\n", argv[3], beep, timeout);
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
-	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&GLOB(devices), d, list)
+	{
 		sccp_dev_set_message(d, argv[3], timeout, TRUE, beep);
 		res = RESULT_SUCCESS;
 	}

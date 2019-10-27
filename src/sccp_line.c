@@ -35,7 +35,9 @@ int __sccp_line_destroy(const void *ptr);
 void sccp_line_pre_reload(void)
 {
 	sccp_line_t *l = NULL;
-	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list)
+	{
 		if(GLOB(hotline)->line == l) { /* always remove hotline from ld */
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Removing Hotline from Device\n", l->name);
 			sccp_linedevice_remove(NULL, l);
@@ -50,7 +52,8 @@ void sccp_line_pre_reload(void)
 		}
 		l->pendingUpdate = 0;
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
+	SCCP_EMB_LIST_TRAVERSE_SAFE_END;
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 }
 
 /*!
@@ -66,7 +69,9 @@ void sccp_line_post_reload(void)
 {
 	sccp_line_t *line = NULL;
 
-	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), line, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_EMB_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), line, list)
+	{
 		if (!line->pendingDelete && !line->pendingUpdate) {
 			continue;
 		}
@@ -92,7 +97,8 @@ void sccp_line_post_reload(void)
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Line (line_post_reload) update:%d, delete:%d\n", l->name, l->pendingUpdate, l->pendingDelete);
 		}
 	}
-	SCCP_RWLIST_TRAVERSE_SAFE_END;
+	SCCP_EMB_RWLIST_TRAVERSE_SAFE_END;
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 }
 
 /*!
@@ -146,7 +152,7 @@ void sccp_line_addToGlobals(constLinePtr line)
 		/* add to list */
 		SCCP_EMB_RWLIST_WRLOCK(&GLOB(lines));
 		sccp_line_retain(l);										/* add retained line to the list */
-		SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), l, list, cid_num);
+		SCCP_EMB_RWLIST_INSERT_SORTALPHA(&GLOB(lines), l, list, cid_num);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Added line '%s' to Glob(lines)\n", l->name);
 		SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 
@@ -173,7 +179,7 @@ void sccp_line_removeFromGlobals(sccp_line_t * line)
 	sccp_line_t *removed_line = NULL;
 	if (line) {
 		SCCP_EMB_RWLIST_WRLOCK(&GLOB(lines));
-		removed_line = SCCP_RWLIST_REMOVE(&GLOB(lines), line, list);
+		removed_line = SCCP_EMB_RWLIST_REMOVE(&GLOB(lines), line, list);
 		SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Removed line '%s' from Glob(lines)\n", removed_line->name);
@@ -579,7 +585,7 @@ linePtr sccp_line_find_byname(const char * name, uint8_t useRealtime)
 	sccp_line_t *l = NULL;
 
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
-	l = SCCP_RWLIST_FIND(&GLOB(lines), sccp_line_t, tmpl, list, (sccp_strcaseequals(tmpl->name, name)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	l = SCCP_EMB_RWLIST_FIND(&GLOB(lines), sccp_line_t, tmpl, list, (sccp_strcaseequals(tmpl->name, name)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	SCCP_EMB_RWLIST_UNLOCK(&GLOB(lines));
 #ifdef CS_SCCP_REALTIME
 	if (!l && useRealtime) {

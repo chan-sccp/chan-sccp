@@ -109,10 +109,14 @@ struct {												\
 /* List Next Item */
 #define SCCP_LIST_NEXT(elm, field)	((elm)->field.next)
 #define SCCP_RWLIST_NEXT SCCP_LIST_NEXT
+#define SCCP_EMB_LIST_NEXT              SCCP_LIST_NEXT
+#define SCCP_EMB_RWLIST_NEXT            SCCP_LIST_NEXT
 
 /* List Prev Item */
 #define SCCP_LIST_PREV(elm, field)	((elm)->field.prev)
 #define SCCP_RWLIST_PREV SCCP_LIST_PREV
+#define SCCP_EMB_LIST_PREV              SCCP_LIST_PREV
+#define SCCP_EMB_RWLIST_PREV            SCCP_LIST_PREV
 
 /* List Clear */
 #define SCCP_LIST_EMPTY(head)	(SCCP_LIST_FIRST(head) == NULL)
@@ -280,8 +284,8 @@ struct {												\
 #	define __pbx_mutex_init  pbx_mutex_init
 #	define __pbx_rwlock_init pbx_rwlock_init
 #else
-#	define __pbx_mutex_init  pbx_mutex_init_notracking(&(head)->lock);
-#	define __pbx_rwlock_init pbx_rwlock_init_notracking(&(head)->lock);
+#	define __pbx_mutex_init  pbx_mutex_init_notracking
+#	define __pbx_rwlock_init pbx_rwlock_init_notracking
 #endif
 
 /* List Head Init */

@@ -354,7 +354,7 @@ static boolean_t sccp_device_checkACL(constDevicePtr device)
 
 		   uint8_t i = 0;
 
-		   SCCP_LIST_TRAVERSE_SAFE_BEGIN(&device->permithosts, permithost, list) {
+		   SCCP_EMB_RWLIST_TRAVERSE_SAFE_BEGIN(&device->permithosts, permithost, list) {
 		   if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
 		   for (i = 0; NULL != hp->h_addr_list[i]; i++) {                                       // walk resulting ip address
 		   if (sin.sin_addr.s_addr == (*(struct in_addr *) hp->h_addr_list[i]).s_addr) {
@@ -367,7 +367,7 @@ static boolean_t sccp_device_checkACL(constDevicePtr device)
 		   sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Invalid address resolution for permithost = %s (skipping permithost).\n", device->id, permithost->name);
 		   }
 		   }
-		   SCCP_LIST_TRAVERSE_SAFE_END;
+		   SCCP_EMB_RWLIST_TRAVERSE_SAFE_END;
 		 */
 	} else {
 		matchesACL = TRUE;
@@ -389,7 +389,8 @@ void sccp_device_pre_reload(void)
 	sccp_buttonconfig_t *config = NULL;
 
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
-	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&GLOB(devices), d, list)
+	{
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Setting Device to Pending Delete=1\n", d->id);
 #ifdef CS_SCCP_REALTIME
 		if (!d->realtime) {										/* don't want to reset realtime devices, if they have not changed */
@@ -466,7 +467,9 @@ void sccp_device_post_reload(void)
 	sccp_device_t *d = NULL;
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "SCCP: (post_reload)\n");
 
-	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(devices), d, list) {
+	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_EMB_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(devices), d, list)
+	{
 		if (!d->pendingDelete && !d->pendingUpdate) {
 			continue;
 		}
@@ -481,7 +484,8 @@ void sccp_device_post_reload(void)
 		sccp_codec_reduceSet(d->preferences.video , d->capabilities.video);
 		/* should we re-check the device after hangup ? */
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
+	SCCP_EMB_RWLIST_TRAVERSE_SAFE_END;
+	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 }
 
 /* ====================================================================================================== start getters / setters for privateData */
@@ -877,7 +881,7 @@ void sccp_device_addToGlobals(constDevicePtr device)
 	sccp_device_t *d = sccp_device_retain(device);
 	if (d) {
 		SCCP_EMB_RWLIST_WRLOCK(&GLOB(devices));
-		SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(devices), d, list, id);
+		SCCP_EMB_RWLIST_INSERT_SORTALPHA(&GLOB(devices), d, list, id);
 		SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Added device '%s' to Glob(devices)\n", d->id);
 	}
@@ -900,7 +904,7 @@ void sccp_device_removeFromGlobals(devicePtr device)
 	sccp_device_t * d = NULL;
 
 	SCCP_EMB_RWLIST_WRLOCK(&GLOB(devices));
-	d = SCCP_RWLIST_REMOVE(&GLOB(devices), device, list);
+	d = SCCP_EMB_RWLIST_REMOVE(&GLOB(devices), device, list);
 	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 
 	if(d) {
@@ -2005,6 +2009,7 @@ void sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, bool
 linePtr sccp_dev_getActiveLine(constDevicePtr device)
 {
 	sccp_buttonconfig_t *buttonconfig;
+	sccp_line_t * result_line = NULL;
 
 	if (!device || !device->session) {
 		return NULL;
@@ -2023,7 +2028,8 @@ linePtr sccp_dev_getActiveLine(constDevicePtr device)
 		if (buttonconfig->type == LINE && !d->currentLine) {
 			if ((d->currentLine = sccp_line_find_byname(buttonconfig->button.line.name, FALSE))) {	// update device->currentLine, returns retained line
 				sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Forcing the active line to %s from NULL\n", d->id, d->currentLine->name);
-				return sccp_line_retain(d->currentLine);					// returning retained
+				result_line = sccp_line_retain(d->currentLine);                                        // giving back retained
+				break;
 			}
 		}
 	}
@@ -2472,7 +2478,7 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 				d->id, config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
 			config->instance = 0;									/* reset button configuration to rebuild template on register */
 			if (config->pendingDelete) {
-				SCCP_LIST_REMOVE_CURRENT(list);
+				SCCP_EMB_RWLIST_REMOVE_CURRENT(list);
 				sccp_buttonconfig_destroy(config);
 			}
 		}
@@ -3350,7 +3356,7 @@ devicePtr sccp_device_find_byid(const char * id, boolean_t useRealtime)
 	}
 
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
-	d = SCCP_RWLIST_FIND(&GLOB(devices), sccp_device_t, tmpd, list, (sccp_strcaseequals(tmpd->id, id)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	d = SCCP_EMB_RWLIST_FIND(&GLOB(devices), sccp_device_t, tmpd, list, (sccp_strcaseequals(tmpd->id, id)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	SCCP_EMB_RWLIST_UNLOCK(&GLOB(devices));
 
 #ifdef CS_SCCP_REALTIME

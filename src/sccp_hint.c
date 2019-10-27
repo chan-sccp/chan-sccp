@@ -577,7 +577,9 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 	}
 
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_addSubscription4Device) Adding subscription for hint %s@%s\n", DEV_ID_LOG(device), hint->exten, hint->context);
+	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_INSERT_HEAD(&hint->subscribers, subscriber, list);
+	SCCP_LIST_UNLOCK(&hint->subscribers);
 
 	sccp_dev_set_keyset(device, subscriber->instance, 0, KEYMODE_ONHOOK);
 

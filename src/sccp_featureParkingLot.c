@@ -254,18 +254,32 @@ struct parkinglot {
 #define sccp_parkinglot_unlock(x)	({pbx_mutex_unlock(&((sccp_parkinglot_t * const)(x))->lock);})				// discard const
 
 SCCP_RWLIST_HEAD(sccp_parkinglot_vector, sccp_parkinglot_t) parkinglots;
-#define OBSERVER_CB_CMP(elem, value) ((elem).device == (value).device && (elem).instance == (value).instance)
-#define SLOT_CB_CMP(elem, value) ((elem).slot == (value))
+// AST_MUTEX_DEFINE_STATIC(sccp_parkinglot_vector->lock);
+#	define OBSERVER_CB_CMP(elem, value) ((elem).device == (value).device && (elem).instance == (value).instance)
+#	define SLOT_CB_CMP(elem, value)     ((elem).slot == (value))
 
-#define SLOT_CLEANUP(elem) 							\
-	if ((elem).exten) {sccp_free((elem).exten);}				\
-	if ((elem).from) {sccp_free((elem).from);}				\
-	if ((elem).channel) {sccp_free((elem).channel);}			\
-	if ((elem).callerid_num) {sccp_free((elem).callerid_num);}		\
-	if ((elem).callerid_name) {sccp_free((elem).callerid_name);}		\
-	if ((elem).connectedline_num) {sccp_free((elem).connectedline_num);}	\
-	if ((elem).connectedline_name) {sccp_free((elem).connectedline_name);}
-
+#	define SLOT_CLEANUP(elem)                            \
+		if((elem).exten) {                            \
+			sccp_free((elem).exten);              \
+		}                                             \
+		if((elem).from) {                             \
+			sccp_free((elem).from);               \
+		}                                             \
+		if((elem).channel) {                          \
+			sccp_free((elem).channel);            \
+		}                                             \
+		if((elem).callerid_num) {                     \
+			sccp_free((elem).callerid_num);       \
+		}                                             \
+		if((elem).callerid_name) {                    \
+			sccp_free((elem).callerid_name);      \
+		}                                             \
+		if((elem).connectedline_num) {                \
+			sccp_free((elem).connectedline_num);  \
+		}                                             \
+		if((elem).connectedline_name) {               \
+			sccp_free((elem).connectedline_name); \
+		}
 
 /* exported functions */
 static sccp_parkinglot_t * addParkinglot(const char *parkinglot)
@@ -706,6 +720,17 @@ static void handleDevice2User(const char *parkinglot, constDevicePtr d, const ch
 		}
 	}
 }
+
+static void __attribute__((constructor)) __parkinglot_constructor(void)
+{
+	SCCP_RWLIST_HEAD_INIT(&parkinglots);
+}
+
+static void __attribute__((destructor)) __parkinglot_destructor(void)
+{
+	SCCP_RWLIST_HEAD_DESTROY(&parkinglots);
+}
+
 /* Assign to interface */
 const ParkingLotInterface iParkingLot = {
 	.attachObserver = attachObserver,

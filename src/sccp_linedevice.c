@@ -303,7 +303,7 @@ void sccp_linedevice_remove(constDevicePtr d, linePtr l)
 			sccp_refcount_removeWeakParent(l, d ? d : ld->device);
 #endif
 			regcontext_exten(ld, 0);
-			SCCP_LIST_REMOVE_CURRENT(list);
+			SCCP_EMB_RWLIST_REMOVE_CURRENT(list);
 			l->statistic.numberOfActiveDevices--;
 			sccp_event_t * event = sccp_event_allocate(SCCP_EVENT_DEVICE_DETACHED);
 			if(event) {

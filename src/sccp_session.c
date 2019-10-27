@@ -68,7 +68,7 @@ struct sccp_session {
 	time_t lastKeepAlive;											/*!< Last KeepAlive Time */
 	uint16_t keepAlive;
 	uint16_t keepAliveInterval;
-	SCCP_RWLIST_ENTRY (sccp_session_t) list;								/*!< Linked List Entry for this Session */
+	SCCP_EMB_RWLIST_ENTRY(sccp_session_t) list;                                                             /*!< Linked List Entry for this Session */
 	sccp_device_t *device;											/*!< Associated Device */
 	struct pollfd fds[1];											/*!< File Descriptor */
 	struct sockaddr_storage sin;										/*!< Incoming Socket Address */
@@ -296,19 +296,18 @@ static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsign
  * \lock
  *      - session
  */
-static boolean_t sccp_session_findBySession(sccp_session_t * s)
+static boolean_t session_findBySession_locked(sccp_session_t * s)
 {
 	sccp_session_t *session;
 	boolean_t res = FALSE;
 
-	SCCP_EMB_RWLIST_RDLOCK(&GLOB(sessions));
-	SCCP_RWLIST_TRAVERSE(&GLOB(sessions), session, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&GLOB(sessions), session, list)
+	{
 		if (session == s) {
 			res = TRUE;
 			break;
 		}
 	}
-	SCCP_EMB_RWLIST_UNLOCK(&GLOB(sessions));
 	return res;
 }
 
@@ -325,12 +324,13 @@ static boolean_t sccp_session_addToGlobals(sccp_session_t * s)
 	boolean_t res = FALSE;
 
 	if (s) {
-		if (!sccp_session_findBySession(s)) {;
-			SCCP_EMB_RWLIST_WRLOCK(&GLOB(sessions));
-			SCCP_LIST_INSERT_HEAD(&GLOB(sessions), s, list);
+		SCCP_EMB_RWLIST_WRLOCK(&GLOB(sessions));
+		if(!session_findBySession_locked(s)) {
+			;
+			SCCP_EMB_RWLIST_INSERT_HEAD(&GLOB(sessions), s, list);
 			res = TRUE;
-			SCCP_EMB_RWLIST_UNLOCK(&GLOB(sessions));
 		}
+		SCCP_EMB_RWLIST_UNLOCK(&GLOB(sessions));
 	}
 	return res;
 }
@@ -350,14 +350,15 @@ static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
 
 	if (s) {
 		SCCP_EMB_RWLIST_WRLOCK(&GLOB(sessions));
-		SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
+		SCCP_EMB_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list)
+		{
 			if (session == s) {
-				SCCP_LIST_REMOVE_CURRENT(list);
+				SCCP_EMB_RWLIST_REMOVE_CURRENT(list);
 				res = TRUE;
 				break;
 			}
 		}
-		SCCP_RWLIST_TRAVERSE_SAFE_END;
+		SCCP_EMB_RWLIST_TRAVERSE_SAFE_END;
 		SCCP_EMB_RWLIST_UNLOCK(&GLOB(sessions));
 	}
 	return res;
@@ -377,19 +378,17 @@ void sccp_session_terminateAll()
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
 	SCCP_EMB_RWLIST_WRLOCK(&GLOB(sessions));
-	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), s, list) {
-		sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE);
-	}
-	SCCP_RWLIST_TRAVERSE_SAFE_END;
+	SCCP_EMB_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), s, list) { sccp_session_stopthread(s, SKINNY_DEVICE_RS_NONE); }
+	SCCP_EMB_RWLIST_TRAVERSE_SAFE_END;
 	SCCP_EMB_RWLIST_UNLOCK(&GLOB(sessions));
 
 	/* give remote phone a time to close the socket */
 	int waitloop = 10;
-	while (!SCCP_LIST_EMPTY(&GLOB(sessions)) && waitloop-- > 0) {
+	while(!SCCP_EMB_RWLIST_EMPTY(&GLOB(sessions)) && waitloop-- > 0) {
 		usleep(100);
 	}
 
-	if (SCCP_LIST_EMPTY(&GLOB(sessions))) {
+	if(SCCP_EMB_LIST_EMPTY(&GLOB(sessions))) {
 		SCCP_EMB_RWLIST_HEAD_DESTROY(&GLOB(sessions));
 	}
 }
@@ -544,10 +543,6 @@ void sccp_session_device_thread_exit(void *session)
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: cleanup session\n", DEV_ID_LOG(s->device));
 	sccp_session_lock(s);
 	s->session_stop = TRUE;
-/*	if (s->fds[0].fd > 0) {
-		close(s->fds[0].fd);
-		s->fds[0].fd = -1;
-	}*/
 	sccp_session_unlock(s);
 	s->session_thread = AST_PTHREADT_NULL;
 	destroy_session(s, SESSION_DEVICE_CLEANUP_TIME);
@@ -1271,9 +1266,9 @@ int sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession 
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &GLOB(sessions)
 #define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_session_t
 #define CLI_AMI_TABLE_LIST_ITER_VAR session
-#define CLI_AMI_TABLE_LIST_LOCK SCCP_RWLIST_RDLOCK
-#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_RWLIST_TRAVERSE
-#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
+#define CLI_AMI_TABLE_LIST_LOCK      SCCP_EMB_RWLIST_RDLOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR  SCCP_EMB_RWLIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_UNLOCK    SCCP_EMB_RWLIST_UNLOCK
 #define CLI_AMI_TABLE_BEFORE_ITERATION 														\
 		sccp_session_lock(session);													\
 		sccp_copy_string(clientAddress, sccp_netsock_stringify_addr(&session->sin), sizeof(clientAddress));				\

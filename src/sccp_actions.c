@@ -1030,7 +1030,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 	uint16_t serviceInstance = SCCP_FIRST_SERVICEINSTANCE;
 	boolean_t defaultLineSet = FALSE;
 
-	pbx_rwlock_rdlock(&GLOB(lock)); /* prevent lock inversion by linedevice_create assing to globals */
+	// pbx_rwlock_rdlock(&GLOB(lock)); 									/* prevent lock inversion by linedevice_create assing to globals */
 	SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
 	if (!d->isAnonymous) {
 		SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, buttonconfig, list)
@@ -1263,14 +1263,14 @@ static btnlist *sccp_make_button_template(devicePtr d)
 		}
 	} else {
 		/* reserve one line as hotline */
-		buttonconfig = SCCP_LIST_FIRST(&d->buttonconfig);
+		buttonconfig = SCCP_EMB_RWLIST_FIRST(&d->buttonconfig);
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
 		btn[i].ptr = sccp_line_retain(GLOB(hotline)->line);
 		buttonconfig->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
 		sccp_linedevice_create(d, (sccp_line_t *)btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
 	}
 	SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
-	pbx_rwlock_unlock(&GLOB(lock));
+	// pbx_rwlock_unlock(&GLOB(lock));
 
 	// all non defined buttons are set to UNUSED
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
@@ -2163,7 +2163,8 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 			}
 
 			SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
-			SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+			SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, config, list)
+			{
 				if (config->type == LINE) {
 					AUTO_RELEASE(sccp_line_t, line , sccp_line_find_byname(config->button.line.name, FALSE));
 
@@ -2731,7 +2732,8 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 	sccp_buttonconfig_t *buttonconfig;
 
 	SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, buttonconfig, list)
+	{
 		if (buttonconfig->type == LINE) {
 			AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byname(buttonconfig->button.line.name, FALSE));
 
@@ -4023,7 +4025,8 @@ void handle_feature_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 #endif
 
 	SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, config, list)
+	{
 		if (config->instance == featureIndex && config->type == FEATURE) {
 			sccp_feat_changed(d, NULL, config->button.feature.id);
 		}
@@ -4514,8 +4517,7 @@ void handle_extension_devicecaps(constSessionPtr s, devicePtr d, constMessagePtr
 	
 	sccp_log(DEBUGCAT_ACTION + DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: extension/addon. instance:%d, type:%d, maxallowed:%d\n", d->id, instance, type, maxAllowed);
 	sccp_log(DEBUGCAT_ACTION + DEBUGCAT_DEVICE)(VERBOSE_PREFIX_3 "%s: extension/addon. text='%s'\n", d->id, text);
-	SCCP_EMB_RWLIST_WRLOCK(&d->addons);
-	if(SCCP_EMB_RWLIST_GETSIZE(&d->addons) < instance) {
+	if(SCCP_EMB_RWLIST_GETSIZE_LOCKED(&d->addons) < instance) {
 		pbx_log(LOG_NOTICE, "%s: sccp.conf device section is missing addon entry for extension module %d. Please add one.", d->id, instance);
 		sccp_addon_t *addon = (sccp_addon_t *)sccp_calloc(1, sizeof(sccp_addon_t));
 		if (!addon) {
@@ -4539,7 +4541,9 @@ void handle_extension_devicecaps(constSessionPtr s, devicePtr d, constMessagePtr
 					break;
 			}
 		}
+		SCCP_EMB_RWLIST_WRLOCK(&d->addons);
 		SCCP_EMB_RWLIST_INSERT_TAIL(&d->addons, addon, list);
+		SCCP_EMB_RWLIST_UNLOCK(&d->addons);
 	}
 	SCCP_EMB_RWLIST_UNLOCK(&d->addons);
 }

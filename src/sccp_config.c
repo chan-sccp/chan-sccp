@@ -1543,15 +1543,17 @@ sccp_value_changed_t sccp_config_parse_permithosts(void * const dest, const size
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_hostname_t *permithost = NULL;
 
-	SCCP_LIST_HEAD (hostname, sccp_hostname_t) * permithostList = (struct hostname *)dest;
+	SCCP_EMB_RWLIST_HEAD(hostname, sccp_hostname_t) * permithostList = (struct hostname *)dest;
 
 	PBX_VARIABLE_TYPE *v = NULL;
-	int listCount = SCCP_LIST_GETSIZE(permithostList);
+	int listCount = SCCP_EMB_RWLIST_GETSIZE_LOCKED(permithostList);
 	int varCount = 0;
 	int found = 0;
 
+	SCCP_EMB_RWLIST_WRLOCK(permithostList);
 	for (v = vroot; v; v = v->next) {
-		SCCP_LIST_TRAVERSE(permithostList, permithost, list) {
+		SCCP_EMB_RWLIST_TRAVERSE(permithostList, permithost, list)
+		{
 			if (sccp_strcaseequals(permithost->name, v->value)) {					// variable found
 				found++;
 				break;
@@ -1560,19 +1562,21 @@ sccp_value_changed_t sccp_config_parse_permithosts(void * const dest, const size
 		varCount++;
 	}
 	if (listCount != varCount || listCount != found) {							// build new list
-		while ((permithost = SCCP_LIST_REMOVE_HEAD(permithostList, list))) {				// clear list
+		while((permithost = SCCP_EMB_RWLIST_REMOVE_HEAD(permithostList, list))) {                                        // clear list
 			sccp_free(permithost);
 		}
 		for (v = vroot; v; v = v->next) {
 			if (!(permithost = (sccp_hostname_t *)sccp_calloc(1, sizeof(sccp_hostname_t)))) {
 				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+				SCCP_EMB_RWLIST_UNLOCK(permithostList);
 				return SCCP_CONFIG_CHANGE_ERROR;
 			}
 			sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
-			SCCP_LIST_INSERT_TAIL(permithostList, permithost, list);
+			SCCP_EMB_RWLIST_INSERT_TAIL(permithostList, permithost, list);
 		}
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
+	SCCP_EMB_RWLIST_UNLOCK(permithostList);
 	return changed;
 }
 
@@ -1614,9 +1618,11 @@ sccp_value_changed_t sccp_config_parse_addons(void * const dest, const size_t si
 	sccp_addon_t *addon = NULL;
 	skinny_devicetype_t addon_type;
 
-	SCCP_LIST_HEAD (addon, sccp_addon_t) * addonList = (struct addon *)dest;
+	SCCP_EMB_RWLIST_HEAD(addon, sccp_addon_t) * addonList = (struct addon *)dest;
 
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(addonList, addon, list) {
+	SCCP_EMB_RWLIST_WRLOCK(addonList);
+	SCCP_EMB_RWLIST_TRAVERSE_SAFE_BEGIN(addonList, addon, list)
+	{
 		if (v) {
 			if (!sccp_strlen_zero(v->value)) {
 				if ((addon_type = (skinny_devicetype_t) addonstr2enum(v->value))) {
@@ -1632,12 +1638,12 @@ sccp_value_changed_t sccp_config_parse_addons(void * const dest, const size_t si
 			v = v->next;
 		} else {											/* removal */
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("remove addon: %d\n", addon->type);
-			SCCP_LIST_REMOVE_CURRENT(list);
+			SCCP_EMB_RWLIST_REMOVE_CURRENT(list);
 			sccp_free(addon);
 			changed |= SCCP_CONFIG_CHANGE_CHANGED;
 		}
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
+	SCCP_EMB_RWLIST_TRAVERSE_SAFE_END;
 
 	int addon_counter = 0;
 
@@ -1648,10 +1654,11 @@ sccp_value_changed_t sccp_config_parse_addons(void * const dest, const size_t si
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new addon: %d\n", addon_type);
 					if (!(addon = (sccp_addon_t *)sccp_calloc(1, sizeof(sccp_addon_t)))) {
 						pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+						SCCP_EMB_RWLIST_UNLOCK(addonList);
 						return SCCP_CONFIG_CHANGE_ERROR;
 					}
 					addon->type = addon_type;
-					SCCP_LIST_INSERT_TAIL(addonList, addon, list);
+					SCCP_EMB_RWLIST_INSERT_TAIL(addonList, addon, list);
 					changed |= SCCP_CONFIG_CHANGE_CHANGED;
 				} else {
 					changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
@@ -1662,6 +1669,7 @@ sccp_value_changed_t sccp_config_parse_addons(void * const dest, const size_t si
 			changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
 		}
 	}
+	SCCP_EMB_RWLIST_UNLOCK(addonList);
 	return (sccp_value_changed_t)changed;
 }
 
@@ -1689,8 +1697,10 @@ sccp_value_changed_t sccp_config_parse_mailbox(void * const dest, const size_t s
 	for (v = vroot; v; v = v->next) {
 		varCount++;
 	}
+	SCCP_EMB_RWLIST_WRLOCK(mailboxList);
 	if (varCount == listCount) {										// list length equal
-		SCCP_LIST_TRAVERSE(mailboxList, mailbox, list) {
+		SCCP_EMB_RWLIST_TRAVERSE(mailboxList, mailbox, list)
+		{
 			for (v = vroot; v; v = v->next) {
 				if (!sccp_strlen_zero(v->value)) {
 					if (strstr(v->value, "@") && sccp_strcaseequals(mailbox->uniqueid, v->value)) {
@@ -1708,7 +1718,7 @@ sccp_value_changed_t sccp_config_parse_mailbox(void * const dest, const size_t s
 		}
 	}
 	if (varCount != listCount || notfound) {								// build new list
-		while ((mailbox = SCCP_LIST_REMOVE_HEAD(mailboxList, list))) {					// clear list
+		while((mailbox = SCCP_EMB_RWLIST_REMOVE_HEAD(mailboxList, list))) {                                        // clear list
 			sccp_free(mailbox);
 		}
 		for (v = vroot; v; v = v->next) {								// create new list
@@ -1716,16 +1726,16 @@ sccp_value_changed_t sccp_config_parse_mailbox(void * const dest, const size_t s
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "add new mailbox: %s\n", v->value);
 				if (!(mailbox = (sccp_mailbox_t *)sccp_calloc(1, sizeof(sccp_mailbox_t)))) {
 					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+					SCCP_EMB_RWLIST_UNLOCK(mailboxList);
 					return SCCP_CONFIG_CHANGE_ERROR;
 				}
 				snprintf(mailbox->uniqueid, sizeof(mailbox->uniqueid), "%s%s", v->value, !strstr(v->value, "@") ? "@default" : "");
-				SCCP_EMB_RWLIST_WRLOCK(mailboxList);
 				SCCP_EMB_RWLIST_INSERT_TAIL(mailboxList, mailbox, list);
-				SCCP_EMB_RWLIST_UNLOCK(mailboxList);
 			}
 		}
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
+	SCCP_EMB_RWLIST_UNLOCK(mailboxList);
 	return changed;
 }
 
@@ -1840,8 +1850,9 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 			}
 			buttonindex++;
 		}
-		if (!changed && SCCP_LIST_GETSIZE(buttonconfigList) != buttonindex) {
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Number of Buttons changed (%d != %d). Reloading all of them.\n", SCCP_LIST_GETSIZE(buttonconfigList), buttonindex);
+		uint numbuttons = SCCP_EMB_RWLIST_GETSIZE_LOCKED(buttonconfigList);
+		if(!changed && numbuttons != buttonindex) {
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "Number of Buttons changed (%d != %d). Reloading all of them.\n", numbuttons, buttonindex);
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
 		}
 		/* Clear/Set pendingDelete and PendingUpdate if button has changed or not
@@ -2055,7 +2066,6 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 	}
 	*/
 
-	SCCP_EMB_RWLIST_WRLOCK(buttonconfigList);
 	if (!(config = (sccp_buttonconfig_t *)sccp_calloc(1, sizeof(sccp_buttonconfig_t)))) {
 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 		return SCCP_CONFIG_CHANGE_ERROR;
@@ -2063,6 +2073,7 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 	config->index = buttonindex;
 	config->type = type;
 	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "New %s Button '%s' at : %d:%d\n", sccp_config_buttontype2str(type), name, buttonindex, config->index);
+	SCCP_EMB_RWLIST_WRLOCK(buttonconfigList);
 	SCCP_EMB_RWLIST_INSERT_TAIL(buttonconfigList, config, list);
 	SCCP_EMB_RWLIST_UNLOCK(buttonconfigList);
 
@@ -2543,7 +2554,8 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	
 	sccp_line_t *l = NULL;
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(lines));
-	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&GLOB(lines), l, list)
+	{
 		AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(l));
 		if (line) {
 			do {
@@ -2574,7 +2586,8 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	/* finished realtime line reload */
 
 	SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
-	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+	SCCP_EMB_RWLIST_TRAVERSE(&GLOB(devices), d, list)
+	{
 		AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 		if (device) {
 			do {
@@ -2608,7 +2621,8 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Global param changed needing restart ->  Restart all device\n");
 
 		SCCP_EMB_RWLIST_RDLOCK(&GLOB(devices));
-		SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+		SCCP_EMB_RWLIST_TRAVERSE(&GLOB(devices), d, list)
+		{
 			if (d->realtime) {
 				d->pendingDelete = 1;
 			} else if (!d->pendingDelete && !d->pendingUpdate) {
@@ -2666,7 +2680,7 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(linePtr l, PBX_VAR
 	sccp_config_set_defaults(l, SCCP_CONFIG_LINE_SEGMENT, SetEntries);
 
 	if (sccp_strlen_zero(l->id)) {
-		snprintf(l->id, sizeof(l->id), "%04d", SCCP_LIST_GETSIZE(&GLOB(lines)));
+		snprintf(l->id, sizeof(l->id), "%04d", SCCP_EMB_RWLIST_GETSIZE_LOCKED(&GLOB(lines)));
 	}
 
 	return (sccp_configurationchange_t)res;
