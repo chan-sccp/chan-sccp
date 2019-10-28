@@ -1799,6 +1799,21 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 		goto EXITFUNC;
 	}
 
+	sccp_log(DEBUGCAT_PBX)("%s: (sccp_astwrap_request) Before Connected Line Update:\n"
+			       "\t- Requestor: %s\n"
+			       "\t- CallingParty: %s <%s>\n"
+			       "\t- DialedParty : %s\n"
+			       "\t- ConnectedParty : %s <%s>\n"
+			       "\t- RedirectingParty : %s <%s>\n",
+			       channel->designator, ast_channel_linkedid((PBX_CHANNEL_TYPE *)requestor),
+			       S_COR(ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.name.valid, ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.name.str, "(N/A)"),
+			       S_COR(ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.number.valid, ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.number.str, "(N/A)"),
+			       S_OR(ast_channel_dialed((PBX_CHANNEL_TYPE *)requestor)->number.str, "(N/A)"),
+			       S_COR(ast_channel_connected((PBX_CHANNEL_TYPE *)requestor)->id.name.valid, ast_channel_connected((PBX_CHANNEL_TYPE *)requestor)->id.name.str, "(N/A)"),
+			       S_COR(ast_channel_connected((PBX_CHANNEL_TYPE *)requestor)->id.number.valid, ast_channel_connected((PBX_CHANNEL_TYPE *)requestor)->id.number.str, "(N/A)"),
+			       S_COR(ast_channel_redirecting((PBX_CHANNEL_TYPE *)requestor)->from.name.valid, ast_channel_redirecting((PBX_CHANNEL_TYPE *)requestor)->from.name.str, "(N/A)"),
+			       S_COR(ast_channel_redirecting((PBX_CHANNEL_TYPE *)requestor)->from.number.valid, ast_channel_redirecting((PBX_CHANNEL_TYPE *)requestor)->from.number.str, "(N/A)"));
+
 	/* set initial connected line information, to be exchange with remove party during first CONNECTED_LINE update */
 	ast_set_callerid(channel->owner, channel->line->cid_num, channel->line->cid_name, channel->line->cid_num);
 	struct ast_party_connected_line connected;
@@ -1812,6 +1827,21 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 	connected.source = AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN;
 	ast_channel_set_connected_line(channel->owner, &connected, NULL);
 	/* end */
+
+	sccp_log(DEBUGCAT_PBX)("%s: (sccp_astwrap_request) After Forced Connected Line Update:\n"
+			       "\t- Requestor: %s\n"
+			       "\t- CallingParty: %s <%s>\n"
+			       "\t- DialedParty : %s\n"
+			       "\t- ConnectedParty : %s <%s>\n"
+			       "\t- RedirectingParty : %s <%s>\n",
+			       channel->designator, ast_channel_linkedid((PBX_CHANNEL_TYPE *)requestor),
+			       S_COR(ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.name.valid, ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.name.str, "(N/A)"),
+			       S_COR(ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.number.valid, ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.number.str, "(N/A)"),
+			       S_OR(ast_channel_dialed((PBX_CHANNEL_TYPE *)requestor)->number.str, "(N/A)"),
+			       S_COR(ast_channel_connected((PBX_CHANNEL_TYPE *)requestor)->id.name.valid, ast_channel_connected((PBX_CHANNEL_TYPE *)requestor)->id.name.str, "(N/A)"),
+			       S_COR(ast_channel_connected((PBX_CHANNEL_TYPE *)requestor)->id.number.valid, ast_channel_connected((PBX_CHANNEL_TYPE *)requestor)->id.number.str, "(N/A)"),
+			       S_COR(ast_channel_redirecting((PBX_CHANNEL_TYPE *)requestor)->from.name.valid, ast_channel_redirecting((PBX_CHANNEL_TYPE *)requestor)->from.name.str, "(N/A)"),
+			       S_COR(ast_channel_redirecting((PBX_CHANNEL_TYPE *)requestor)->from.number.valid, ast_channel_redirecting((PBX_CHANNEL_TYPE *)requestor)->from.number.str, "(N/A)"));
 
 	if (requestor) {
 		/* set calling party */
