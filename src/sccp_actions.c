@@ -1033,7 +1033,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 	// pbx_rwlock_rdlock(&GLOB(lock)); 									/* prevent lock inversion by linedevice_create assing to globals */
 	SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
 	if (!d->isAnonymous) {
-		SCCP_EMB_RWLIST_TRAVERSE(&d->buttonconfig, buttonconfig, list)
+		SCCP_EMB_RWLIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list)
 		{
 			//sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "\n%s: searching for position of button type %d\n", DEV_ID_LOG(d), buttonconfig->type);
 
@@ -1053,6 +1053,9 @@ static btnlist *sccp_make_button_template(devicePtr d)
 
 						/* search line (create new line, if necessary (realtime)) */
 						/*! retains new line in btn[i].ptr, finally released in sccp_dev_clean */
+
+						/* prevent deadlock by releasing d->buttonconfig list lock temporarily while creaging new linedevice instance */
+						SCCP_EMB_RWLIST_UNLOCK(&d->buttonconfig);
 						if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name, TRUE))) {
 							buttonconfig->instance = btn[i].instance = lineInstance++;
 							sccp_linedevice_create(d, (sccp_line_t *)btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
@@ -1065,6 +1068,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 							buttonconfig->instance = btn[i].instance = 0;
 							pbx_log(LOG_WARNING, "%s: line %s does not exists\n", DEV_ID_LOG(d), buttonconfig->button.line.name);
 						}
+						SCCP_EMB_RWLIST_RDLOCK(&d->buttonconfig);
 
 						//sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: Add line %s on position %d\n", DEV_ID_LOG(d), buttonconfig->button.line.name, buttonconfig->instance);
 					} else {
@@ -1261,6 +1265,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 			}
 			//sccp_log_and((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured %d Phone Button [%.2d] = %s(%d), label:%s\n", d->id, buttonconfig->index + 1, buttonconfig->instance, skinny_buttontype2str(btn[i].type), btn[i].type, buttonconfig->label);
 		}
+		SCCP_EMB_RWLIST_TRAVERSE_SAFE_END;
 	} else {
 		/* reserve one line as hotline */
 		buttonconfig = SCCP_EMB_RWLIST_FIRST(&d->buttonconfig);
