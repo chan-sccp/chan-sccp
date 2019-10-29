@@ -1722,7 +1722,7 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 				       "\t- DialedParty : %s\n"
 				       "\t- ConnectedParty : %s <%s>\n"
 				       "\t- RedirectingParty : %s <%s>\n",
-				       channel->designator, ast_channel_linkedid((PBX_CHANNEL_TYPE *)requestor),
+				       ast_channel_linkedid((PBX_CHANNEL_TYPE *)requestor),
 				       S_COR(ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.name.valid, ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.name.str, "(N/A)"),
 				       S_COR(ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.number.valid, ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.number.str, "(N/A)"),
 				       S_OR(ast_channel_dialed((PBX_CHANNEL_TYPE *)requestor)->number.str, "(N/A)"),
