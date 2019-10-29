@@ -1716,6 +1716,21 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 
 	/** getting remote capabilities */
 	if (requestor) {
+		sccp_log(DEBUGCAT_PBX)("SCCP: (sccp_astwrap_request) Before chan-sccp incoming channel is created:\n"
+				       "\t- Requestor: %s\n"
+				       "\t- CallingParty: %s <%s>\n"
+				       "\t- DialedParty : %s\n"
+				       "\t- ConnectedParty : %s <%s>\n"
+				       "\t- RedirectingParty : %s <%s>\n",
+				       channel->designator, ast_channel_linkedid((PBX_CHANNEL_TYPE *)requestor),
+				       S_COR(ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.name.valid, ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.name.str, "(N/A)"),
+				       S_COR(ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.number.valid, ast_channel_caller((PBX_CHANNEL_TYPE *)requestor)->id.number.str, "(N/A)"),
+				       S_OR(ast_channel_dialed((PBX_CHANNEL_TYPE *)requestor)->number.str, "(N/A)"),
+				       S_COR(ast_channel_connected((PBX_CHANNEL_TYPE *)requestor)->id.name.valid, ast_channel_connected((PBX_CHANNEL_TYPE *)requestor)->id.name.str, "(N/A)"),
+				       S_COR(ast_channel_connected((PBX_CHANNEL_TYPE *)requestor)->id.number.valid, ast_channel_connected((PBX_CHANNEL_TYPE *)requestor)->id.number.str, "(N/A)"),
+				       S_COR(ast_channel_redirecting((PBX_CHANNEL_TYPE *)requestor)->from.name.valid, ast_channel_redirecting((PBX_CHANNEL_TYPE *)requestor)->from.name.str, "(N/A)"),
+				       S_COR(ast_channel_redirecting((PBX_CHANNEL_TYPE *)requestor)->from.number.valid, ast_channel_redirecting((PBX_CHANNEL_TYPE *)requestor)->from.number.str, "(N/A)"));
+
 		struct ast_format_cap *acaps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
 		if (acaps) {
 			ast_format_cap_append_from_cap(acaps, cap, AST_MEDIA_TYPE_AUDIO);								// Add Resquested
