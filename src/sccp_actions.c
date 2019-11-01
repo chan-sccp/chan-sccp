@@ -2624,10 +2624,9 @@ void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMess
 			case SKINNY_LBL_EMPTY:
 				// msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 0;
 				// msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = 0;
-			case SKINNY_LBL_DIAL:
-				sccp_copy_string(msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel, label2str(softkeysmap[i]), StationMaxSoftKeyLabelSize);
-				//sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel);
 				break;
+			case SKINNY_LBL_DIAL:
+				/* fall through */
 			case SKINNY_LBL_MONITOR:
 				sccp_copy_string(msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel, label2str(softkeysmap[i]), StationMaxSoftKeyLabelSize);
 				//sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel);

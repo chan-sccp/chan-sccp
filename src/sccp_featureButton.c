@@ -174,8 +174,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 									}
 									break;
 								case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
-									config->button.feature.status = 1;
-									break;
+									/* fall through */
 								case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
 									config->button.feature.status = 1;
 									break;

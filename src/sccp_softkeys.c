@@ -375,8 +375,7 @@ static void sccp_sk_dnd(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constD
 					device->dndFeature.status = SCCP_DNDMODE_SILENT;
 					break;
 				case SCCP_DNDMODE_SILENT:
-					device->dndFeature.status = SCCP_DNDMODE_OFF;
-					break;
+					/* fall through */
 				default:
 					device->dndFeature.status = SCCP_DNDMODE_OFF;
 					break;

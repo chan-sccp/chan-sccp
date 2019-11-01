@@ -1030,8 +1030,6 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 		msg->header.lel_protocolVer = 0;
 	} else if (s->device && s->device->protocol) {
 		msg->header.lel_protocolVer = s->device->protocol->version < 10 ? 0 : htolel(s->device->protocol->version);
-	} else {
-		msg->header.lel_protocolVer = 0;
 	}
 
 	if (msg && (GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {

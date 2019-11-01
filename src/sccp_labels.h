@@ -350,6 +350,7 @@ SCCP_INLINE SCCP_CALL uint32_t labelstr2int(const char *str);
 #define SKINNY_DISP_DIAL							"Dial"
 #define SKINNY_DISP_CALL_PROGRESS						"Call Progress"
 #define SKINNY_DISP_SILENT							"Silent"
+#define SKINNY_DISP_NOANSWER                                                    "NoAnswer"
 #define SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO					"Enter number to forward to"
 
 // Errors needing to be translated

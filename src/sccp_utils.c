@@ -1677,7 +1677,7 @@ gcc_inline const char * const sccp_cfwd2disp(const sccp_cfwd_t type)
 		case SCCP_CFWD_BUSY:
 			return SKINNY_DISP_CFWDBUSY;
 		case SCCP_CFWD_NOANSWER:
-			return SKINNY_DISP_CFWDBUSY;
+			return SKINNY_DISP_NOANSWER;
 		case SCCP_CFWD_NONE:
 		case SCCP_CFWD_SENTINEL:
 		default:

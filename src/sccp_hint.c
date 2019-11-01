@@ -1068,29 +1068,19 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 		case SCCP_CHANNELSTATE_HOLD:
 			newDeviceState = AST_DEVICE_ONHOLD;
 			break;
-		case SCCP_CHANNELSTATE_BUSY:
-#ifdef CS_EXPERIMENTAL
-			newDeviceState = AST_DEVICE_BUSY;
-			break;
-#endif
 		case SCCP_CHANNELSTATE_DND:
+		case SCCP_CHANNELSTATE_BUSY:
 #ifndef CS_EXPERIMENTAL
 		case SCCP_CHANNELSTATE_PROCEED:
 		case SCCP_CHANNELSTATE_PROGRESS:
 		case SCCP_CHANNELSTATE_GETDIGITS:
 		case SCCP_CHANNELSTATE_DIALING:
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
-#else
-		        /* and this is wrong too, it should only be busy if DND <<busy>>, not in all cases */
 #endif
 			newDeviceState = AST_DEVICE_BUSY;
 			break;
 		case SCCP_CHANNELSTATE_ZOMBIE:
 		case SCCP_CHANNELSTATE_CONGESTION:
-#ifndef CS_EXPERIMENTAL
-		case SCCP_CHANNELSTATE_SPEEDDIAL:
-		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
-#endif
 			newDeviceState = AST_DEVICE_UNAVAILABLE;
 			break;
 #ifdef CS_EXPERIMENTAL
@@ -1113,11 +1103,9 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			newDeviceState = AST_DEVICE_INUSE;
 			break;
 		case SCCP_CHANNELSTATE_SENTINEL:
-#ifdef CS_EXPERIMENTAL
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
 		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
 		        /* returning UNKNOWN */
-#endif
 			break;
 	}
 	return newDeviceState;

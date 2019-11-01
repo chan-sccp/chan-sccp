@@ -272,8 +272,7 @@ static int sccp_astwrap_devicestate(const char *data)
 			res = AST_DEVICE_INVALID;
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
-			res = AST_DEVICE_BUSY;
-			break;
+			/* fall through */
 		case SCCP_CHANNELSTATE_DND:
 			res = AST_DEVICE_BUSY;
 			break;

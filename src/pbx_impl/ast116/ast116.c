@@ -362,8 +362,7 @@ static int sccp_astwrap_devicestate(const char *data)
 			res = AST_DEVICE_INVALID;
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
-			res = AST_DEVICE_BUSY;
-			break;
+			/* fall through */
 		case SCCP_CHANNELSTATE_DND:
 			res = AST_DEVICE_BUSY;
 			break;
@@ -957,9 +956,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			break;
 
 		case AST_CONTROL_FLASH: 									// We don't currently handle AST_CONTROL_FLASH here, but it is expected, so we don't need to warn either.
-			res = -1;										// Return -1 so that asterisk core will correctly set up hangupcauses.
-			break;
-
+														/* fall through */
 		case AST_CONTROL_T38_PARAMETERS:								// No T38 Fax Support
 			res = -1;										// Return -1 so that asterisk core will correctly set up hangupcauses.
 			break;
