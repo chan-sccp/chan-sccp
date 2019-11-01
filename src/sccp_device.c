@@ -2235,7 +2235,7 @@ void sccp_dev_postregistration(devicePtr d)
 				for(uint x = SCCP_CFWD_ALL; x < SCCP_CFWD_SENTINEL; x++) {
 					char cfwdstr[15] = "";
 					snprintf(cfwdstr, 14, "cfwd%s", sccp_cfwd2str((sccp_cfwd_t)x));
-					if(iPbx.feature_getFromDatabase(family, cfwdstr, buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+					if(iPbx.feature_getFromDatabase(family, cfwdstr, buffer, sizeof(buffer)) && strcmp(buffer, "") != 0) {
 						ld->cfwd[x].enabled = TRUE;
 						sccp_copy_string(ld->cfwd[x].number, buffer, sizeof(ld->cfwd[x].number));
 						sccp_feat_changed(d, ld, sccp_cfwd2feature((sccp_cfwd_t)x));
@@ -2257,17 +2257,17 @@ void sccp_dev_postregistration(devicePtr d)
 		}
 
 		snprintf(family, sizeof(family), "SCCP/%s", d->id);
-		if (iPbx.feature_getFromDatabase(family, "dnd", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+		if(iPbx.feature_getFromDatabase(family, "dnd", buffer, sizeof(buffer)) && strcmp(buffer, "") != 0) {
 			d->dndFeature.status = sccp_dndmode_str2val(buffer);
 			sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
 		}
 
-		if (iPbx.feature_getFromDatabase(family, "privacy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+		if(iPbx.feature_getFromDatabase(family, "privacy", buffer, sizeof(buffer)) && strcmp(buffer, "") != 0) {
 			sscanf(buffer,"%d", &d->privacyFeature.status);
 			sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
 		}
 
-		if (iPbx.feature_getFromDatabase(family, "monitor", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+		if(iPbx.feature_getFromDatabase(family, "monitor", buffer, sizeof(buffer)) && strcmp(buffer, "") != 0) {
 			sccp_feat_monitor(d, NULL, 0, NULL);
 			sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 		}

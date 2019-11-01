@@ -1444,12 +1444,12 @@ sccp_value_changed_t sccp_config_parse_codec_preferences(void * const dest, cons
 		pbx_log(LOG_NOTICE, "SCCP: (parse_codec preference) Error occured during parsing of the disallowed / allowed codecs\n");
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	} else {
-		if (memcmp(prefs->audio, audio_prefs, sizeof prefs->audio)) {
+		if(memcmp(prefs->audio, audio_prefs, sizeof prefs->audio) != 0) {
 			memcpy(prefs->audio, audio_prefs, sizeof prefs->audio);
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
 		}
 #if CS_SCCP_VIDEO
-		if (memcmp(prefs->video, video_prefs, sizeof prefs->video)) {
+		if(memcmp(prefs->video, video_prefs, sizeof prefs->video) != 0) {
 			memcpy(prefs->video, video_prefs, sizeof prefs->video);
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
 		}
