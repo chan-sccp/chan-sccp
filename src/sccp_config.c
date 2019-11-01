@@ -1619,7 +1619,7 @@ sccp_value_changed_t sccp_config_parse_addons(void * const dest, const size_t si
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(addonList, addon, list) {
 		if (v) {
 			if (!sccp_strlen_zero(v->value)) {
-				if ((addon_type = (skinny_devicetype_t) addonstr2enum(v->value))) {
+				if((addon_type = addonstr2enum(v->value))) {
 					if (addon->type != addon_type) {					/* change/update */
 						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("change addon: %d => %d\n", addon->type, addon_type);
 						addon->type = addon_type;

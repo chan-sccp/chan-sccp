@@ -1053,7 +1053,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 						/*! retains new line in btn[i].ptr, finally released in sccp_dev_clean */
 						if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name, TRUE))) {
 							buttonconfig->instance = btn[i].instance = lineInstance++;
-							sccp_linedevice_create(d, (sccp_line_t *)btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
+							sccp_linedevice_create(d, btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
 							if (FALSE == defaultLineSet && !d->defaultLineInstance) {
 								d->defaultLineInstance = buttonconfig->instance;
 								defaultLineSet = TRUE;
@@ -1266,7 +1266,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
 		btn[i].ptr = sccp_line_retain(GLOB(hotline)->line);
 		buttonconfig->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
-		sccp_linedevice_create(d, (sccp_line_t *)btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
+		sccp_linedevice_create(d, btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
 	}
 
 	// all non defined buttons are set to UNUSED
@@ -3335,7 +3335,7 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 	skinny_mediaType_t mediaType = SKINNY_MEDIATYPE_SENTINEL;
 	struct sockaddr_storage sas = { 0 };
 
-	d->protocol->parsePortResponse((const sccp_msg_t *) msg_in, &conferenceId, &callReference, &passThruPartyId, &sas, &RTCPPortNumber, &mediaType);
+	d->protocol->parsePortResponse(msg_in, &conferenceId, &callReference, &passThruPartyId, &sas, &RTCPPortNumber, &mediaType);
 
 	if (sccp_netsock_is_any_addr(&sas)) {
 		pbx_log(LOG_NOTICE, "%s: (port_response) returned ip-address:0.0.0.0:0 signalling that the phone has run out of RTP ports. Expect trouble.\n", d->id);
@@ -3384,7 +3384,7 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
 
 	struct sockaddr_storage sas = { 0 };
-	d->protocol->parseOpenReceiveChannelAck((const sccp_msg_t *) msg_in, &mediastatus, &sas, &passThruPartyId, &callReference);
+	d->protocol->parseOpenReceiveChannelAck(msg_in, &mediastatus, &sas, &passThruPartyId, &callReference);
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 
@@ -3440,7 +3440,7 @@ void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessa
 	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
 
 	struct sockaddr_storage sas = { 0 };
-	d->protocol->parseStartMediaTransmissionAck((const sccp_msg_t *) msg_in, &passThruPartyId, &callReference, &callReference1, &mediastatus, &sas);
+	d->protocol->parseStartMediaTransmissionAck(msg_in, &passThruPartyId, &callReference, &callReference1, &mediastatus, &sas);
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got startMediaTransmission ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u, CallID1:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference, callReference1);
 
@@ -3501,7 +3501,7 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
 
 	struct sockaddr_storage sas = { 0 };
-	d->protocol->parseOpenMultiMediaReceiveChannelAck((const sccp_msg_t *) msg_in, &mediastatus, &sas, &passThruPartyId, &callReference);
+	d->protocol->parseOpenMultiMediaReceiveChannelAck(msg_in, &mediastatus, &sas, &passThruPartyId, &callReference);
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got Open MultiMedia Channel ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 
@@ -3560,7 +3560,7 @@ void handle_startMultiMediaTransmissionAck(constSessionPtr s, devicePtr d, const
 	uint32_t passThruPartyId = 0, callReference = 0, callReference1 = 0;
 	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
 
-	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_msg_t *) msg_in, &passThruPartyId, &callReference, &callReference1, &mediastatus, &sas);
+	d->protocol->parseStartMultiMediaTransmissionAck(msg_in, &passThruPartyId, &callReference, &callReference1, &mediastatus, &sas);
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got Start MultiMedia Transmission ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u/CallID1:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference, callReference1);
 
@@ -3912,7 +3912,7 @@ void handle_EnblocCallMessage(constSessionPtr s, devicePtr d, constMessagePtr ms
 	uint32_t lineInstance = 0;
 
 	if (d->protocol->parseEnblocCall) {
-		d->protocol->parseEnblocCall((const sccp_msg_t *) msg_in, calledParty, &lineInstance);
+		d->protocol->parseEnblocCall(msg_in, calledParty, &lineInstance);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: EnblocCall, party: %s, lineInstance %d\n", DEV_ID_LOG(d), calledParty, lineInstance);
 
 		if (!sccp_strlen_zero(calledParty)) {

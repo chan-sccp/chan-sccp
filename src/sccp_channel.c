@@ -450,7 +450,7 @@ void sccp_channel_updateChannelCapability(channelPtr channel)
  */
 sccp_callinfo_t * const __PURE__ sccp_channel_getCallInfo(constChannelPtr channel)
 {
-	return (sccp_callinfo_t * const) channel->privateData->callInfo;			/* discard const because callinfo has a private implementation anyway */
+	return channel->privateData->callInfo; /* discard const because callinfo has a private implementation anyway */
 }
 
 /*!
@@ -695,7 +695,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 {
 	pbx_assert(d != NULL && c != NULL);
-	sccp_rtp_t *audio = (sccp_rtp_t *) &(c->rtp.audio);
+	sccp_rtp_t * audio = &(c->rtp.audio);
 
 	// check channel state
 	if (!audio->instance) {
@@ -862,7 +862,7 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 int sccp_channel_mediaTransmissionStarted(devicePtr d, channelPtr c)
 {
 	pbx_assert(d != NULL && c != NULL);
-	sccp_rtp_t *audio = (sccp_rtp_t *) &(c->rtp.audio);
+	sccp_rtp_t * audio = &(c->rtp.audio);
 	// check channel state
 	if (!audio->instance) {
 		pbx_log(LOG_ERROR, "%s: Channel has no rtp instance!\n", d->id);
@@ -1015,7 +1015,7 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 int sccp_channel_receiveMultiMediaChannelOpen(constDevicePtr d, channelPtr c)
 {
 	pbx_assert(d != NULL && c != NULL);
-	sccp_rtp_t *video = (sccp_rtp_t *) &(c->rtp.video);
+	sccp_rtp_t * video = &(c->rtp.video);
 	// check channel state
 	if (!video->instance) {
 		pbx_log(LOG_ERROR, "%s: Channel has no rtp instance!\n", d->id);
@@ -1170,7 +1170,7 @@ int sccp_channel_multiMediaTransmissionStarted(constDevicePtr d, channelPtr c)
 	//iPbx.queue_control(c->owner, AST_CONTROL_VIDUPDATE);
 	//return SCCP_RTP_STATUS_ACTIVE;
 	pbx_assert(d != NULL && c != NULL);
-	sccp_rtp_t *video = (sccp_rtp_t *) &(c->rtp.video);
+	sccp_rtp_t * video = &(c->rtp.video);
 	// check channel state
 	if (!video->instance) {
 		pbx_log(LOG_ERROR, "%s: Channel has no vrtp instance!\n", d->id);

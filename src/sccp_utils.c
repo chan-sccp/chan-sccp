@@ -1603,7 +1603,7 @@ gcc_inline int sccp_utf8_columnwidth(int width, const char *const ms)
 	locale_t old_locale = uselocale(locale);
 
 	if (ms)
-		res = (int)width + (strlen(ms) - mbstowcs(NULL, ms, width));
+		res = width + (strlen(ms) - mbstowcs(NULL, ms, width));
 
 	uselocale(old_locale);
 	if (locale != (locale_t) 0) 

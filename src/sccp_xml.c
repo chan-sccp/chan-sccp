@@ -215,7 +215,7 @@ static boolean_t applyStyleSheetByName(xmlDoc * const doc, const char *const sty
 static void destroyDoc(xmlDoc *const * doc)
 {
 	if (doc && *doc) {
-		xmlFreeDoc((xmlDoc *) * doc);
+		xmlFreeDoc(*doc);
 		*(xmlDoc **)doc = NULL;
 	}
 	xmlCleanupParser();

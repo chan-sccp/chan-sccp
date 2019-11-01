@@ -2508,7 +2508,7 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 				if ((btn[i].type == SKINNY_BUTTONTYPE_LINE) && btn[i].ptr) {
-					sccp_line_t  *tmp = (sccp_line_t *)btn[i].ptr;						/* implicit cast without type change */
+					sccp_line_t * tmp = btn[i].ptr; /* implicit cast without type change */
 					sccp_line_release(&tmp);
 					btn[i].ptr = NULL;
 				}
