@@ -26000,13 +26000,13 @@ $as_echo "$ac_cv_ast_channel_tech" >&6; }
 $as_echo "#define CS_AST_HAS_TECH_PVT 1" >>confdefs.h
 
 
-$as_echo "#define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)x->tech_pvt)" >>confdefs.h
+$as_echo "#define CS_AST_CHANNEL_PVT(_x) ((sccp_channel_t*)(_x)->tech_pvt)" >>confdefs.h
 
 
-$as_echo "#define CS_AST_CHANNEL_PVT_TYPE(x) x->tech->type" >>confdefs.h
+$as_echo "#define CS_AST_CHANNEL_PVT_TYPE(_x) (_x)->tech->type" >>confdefs.h
 
 
-$as_echo "#define CS_AST_CHANNEL_PVT_CMP_TYPE(x,y) !strncasecmp(x->tech->type, y, strlen(y))" >>confdefs.h
+$as_echo "#define CS_AST_CHANNEL_PVT_CMP_TYPE(_x,_y) !strncasecmp((_x)->tech->type, (_y), strlen((_y)))" >>confdefs.h
 
 			 :
              else
@@ -26014,13 +26014,13 @@ $as_echo "#define CS_AST_CHANNEL_PVT_CMP_TYPE(x,y) !strncasecmp(x->tech->type, y
 $as_echo "#define CS_AST_HAS_TECH_PVT 0" >>confdefs.h
 
 
-$as_echo "#define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)x->pvt->pvt)" >>confdefs.h
+$as_echo "#define CS_AST_CHANNEL_PVT(_x) ((sccp_channel_t*)(_x)->pvt->pvt)" >>confdefs.h
 
 
-$as_echo "#define CS_AST_CHANNEL_PVT_TYPE(x) x->type" >>confdefs.h
+$as_echo "#define CS_AST_CHANNEL_PVT_TYPE(_x) (_x)->type" >>confdefs.h
 
 
-$as_echo "#define CS_AST_CHANNEL_PVT_CMP_TYPE(x,y) !strncasecmp(x->type, y, strlen(y))" >>confdefs.h
+$as_echo "#define CS_AST_CHANNEL_PVT_CMP_TYPE(_x,_y) !strncasecmp((_x)->type, (_y), strlen((_y)))" >>confdefs.h
 
 			 :
         fi
@@ -26032,7 +26032,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-$as_echo "#define CS_AST_CHANNEL_PVT_IS_SCCP(x) CS_AST_CHANNEL_PVT_CMP_TYPE(x,\"SCCP\")" >>confdefs.h
+$as_echo "#define CS_AST_CHANNEL_PVT_IS_SCCP(_x) CS_AST_CHANNEL_PVT_CMP_TYPE((_x),\"SCCP\")" >>confdefs.h
 
 
 

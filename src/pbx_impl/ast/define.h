@@ -17,11 +17,11 @@
 #define sccp_calloc ast_calloc
 #define sccp_realloc ast_realloc
 //#define sccp_strdup ast_strdup
-#define sccp_free(x) {ast_free((void *)x); (x) = NULL; }
+#define sccp_free(_x) {ast_free((void *)(_x)); (_x) = NULL; }
 #define sccp_asprintf ast_asprintf
 #define sccp_vasprintf ast_vasprintf
 #define sccp_calloc_cache ast_calloc_cache
-#define sccp_alloca(size) __builtin_alloca(size)
+#define sccp_alloca(_size) __builtin_alloca((_size))
 #define CS_BRIDGEPEERNAME "BRIDGEPEER"
 
 #if !defined(SCANBUILD) && defined(DEV_MODE)
@@ -31,19 +31,19 @@
 #endif
 
 /* Lock Macro's */
-#define sccp_mutex_init(x)          		pbx_mutex_init(x)
-#define sccp_mutex_destroy(x)       		pbx_mutex_destroy(x)
-#define sccp_mutex_lock(x)			pbx_mutex_lock(x)
-#define sccp_mutex_lock_desc(x,y) 		pbx_mutex_lock(x)
-#define sccp_mutex_unlock(x)			pbx_mutex_unlock(x)
-#define sccp_mutex_trylock(x)			pbx_mutex_trylock(x)
+#define sccp_mutex_init(_x)          		pbx_mutex_init((_x))
+#define sccp_mutex_destroy(_x)       		pbx_mutex_destroy((_x))
+#define sccp_mutex_lock(_x)			pbx_mutex_lock((_x))
+#define sccp_mutex_lock_desc(_x,_y) 		pbx_mutex_lock_desc((_x),(_y))
+#define sccp_mutex_unlock(_x)			pbx_mutex_unlock((_x))
+#define sccp_mutex_trylock(_x)			pbx_mutex_trylock((_x))
 
 // SCCP_FILE_VERSION definition
 #if defined(LOW_MEMORY)
 #  define SCCP_FILE_VERSION(_file, _version)
 #else
 #  if CS_AST_REGISTER_FILE_VERSION
-#    define SCCP_FILE_VERSION(_file, _version) ASTERISK_FILE_VERSION(_file, _version)
+#    define SCCP_FILE_VERSION(_file, _version) ASTERISK_FILE_VERSION((_file), (_version))
 #  else
 #    if ASTERISK_VERSION_GROUP >= 114
 #      define SCCP_FILE_VERSION(_file, _version)
@@ -88,36 +88,36 @@
 #define pbx_bridge_features_init ast_bridge_features_init
 
 #if ASTERISK_VERSION_NUMBER < 11010
-#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags) ast_bridge_join(_bridge, _channel, _replace, _features)
+#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags) ast_bridge_join((_bridge), (_channel), (_replace), (_features))
 #else
 #ifndef CS_BRIDGE_JOIN_PASSREFERENCE
-#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags) ast_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations)
+#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags) ast_bridge_join((_bridge), (_channel), (_replace), (_features), (_tech_optimizations))
 #else
-#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags) ast_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags)
+#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations, _flags) ast_bridge_join((_bridge), (_channel), (_replace), (_features), (_tech_optimizations), (_flags))
 #endif
 #endif
 
 #ifndef CS_BRIDGE_BASE_NEW
-#define pbx_bridge_new(_a,_b,_c,_d,_e) ast_bridge_new(_a, _b)
+#define pbx_bridge_new(_a,_b,_c,_d,_e) ast_bridge_new((_a), (_b))
 #else
-#define pbx_bridge_new(_a,_b,_c,_d,_e) ast_bridge_base_new(_a, _b, _c, _d, _e)
+#define pbx_bridge_new(_a,_b,_c,_d,_e) ast_bridge_base_new((_a), (_b), (_c), (_d), (_e))
 #endif
 #define pbx_bridge_remove ast_bridge_remove
 #define pbx_bridge_kick ast_bridge_kick
 #define pbx_bridge_result ast_bridge_result
 
 #if ASTERISK_VERSION_GROUP < 110
-#define pbx_bridge_impart(_bridge, _underlying_channel, _swap_channel, _features, _allow_hangup) ast_bridge_impart(_bridge, _underlying_channel, _swap_channel, _features)
+#define pbx_bridge_impart(_bridge, _underlying_channel, _swap_channel, _features, _allow_hangup) ast_bridge_impart((_bridge), (_underlying_channel), (_swap_channel), (_features))
 #else
-#define pbx_bridge_impart(_bridge, _underlying_channel, _swap_channel, _features, _allow_hangup) ast_bridge_impart(_bridge, _underlying_channel, _swap_channel, _features, _allow_hangup)
+#define pbx_bridge_impart(_bridge, _underlying_channel, _swap_channel, _features, _allow_hangup) ast_bridge_impart((_bridge), (_underlying_channel), (_swap_channel), (_features), (_allow_hangup))
 #endif
 #ifndef CS_BRIDGE_DEPART_ONLY_CHANNEL
-#define pbx_bridge_depart(_x, _y) ast_bridge_depart(_x,_y)
+#define pbx_bridge_depart(_x, _y) ast_bridge_depart((_x),(_y))
 #else
-#define pbx_bridge_depart(_x, _y) ast_bridge_depart(_y)
+#define pbx_bridge_depart(_x, _y) ast_bridge_depart((_y))
 #endif
 
-#define pbx_bridge_destroy(_x, _y) ast_bridge_destroy(_x)
+#define pbx_bridge_destroy(_x, _y) ast_bridge_destroy((_x))
 #define pbx_bridge_features_cleanup ast_bridge_features_cleanup
 #define pbx_bridge_change_state ast_bridge_change_state
 #define pbx_bridge_lock ast_bridge_lock
@@ -165,22 +165,22 @@
 #define pbx_cond_destroy ast_cond_destroy
 #define pbx_cond_init ast_cond_init
 #define pbx_cond_signal ast_cond_signal
-#define pbx_cond_timedwait(cond, mutex,ts) ast_cond_timedwait(cond, (ast_mutex_t*)mutex, ts)
-#define pbx_cond_wait(cond, mutex) ast_cond_wait(cond, (ast_mutex_t*)mutex)
+#define pbx_cond_timedwait(_cond, _mutex,_ts) ast_cond_timedwait((_cond), (ast_mutex_t*)(_mutex), (_ts))
+#define pbx_cond_wait(_cond, _mutex) ast_cond_wait((_cond), (ast_mutex_t*)(_mutex))
 #define pbx_config_destroy ast_config_destroy
 #define pbx_copy_string ast_copy_string
 #define pbx_custom_function ast_custom_function
 #define pbx_db_freetree ast_db_freetree
 
 #if CS_CACHEABLE_DEVICESTATE
-#define pbx_devstate_changed(_a,_b,_c) ast_devstate_changed(_a,AST_DEVSTATE_CACHABLE,_b,_c)
-#define pbx_devstate_changed_literal(_a,_b) ast_devstate_changed_literal(_a,AST_DEVSTATE_CACHABLE,_b)
+#define pbx_devstate_changed(_a,_b,_c) ast_devstate_changed((_a),AST_DEVSTATE_CACHABLE,(_b),(_c))
+#define pbx_devstate_changed_literal(_a,_b) ast_devstate_changed_literal((_a),AST_DEVSTATE_CACHABLE,(_b))
 #elif defined(CS_DEVICESTATE)
-#define pbx_devstate_changed(_a,_b,_c) ast_devstate_changed(_a,_b,_c)
-#define pbx_devstate_changed_literal(_a,_b) ast_devstate_changed_literal(_a,_b)
+#define pbx_devstate_changed(_a,_b,_c) ast_devstate_changed((_a),(_b),(_c))
+#define pbx_devstate_changed_literal(_a,_b) ast_devstate_changed_literal((_a),(_b))
 #else
-#define pbx_devstate_changed(_a,_b,_c) ast_device_state_changed(_b,_c)
-#define pbx_devstate_changed_literal(_a,_b) ast_device_state_changed_literal(_b)
+#define pbx_devstate_changed(_a,_b,_c) ast_device_state_changed((_b),(_c))
+#define pbx_devstate_changed_literal(_a,_b) ast_device_state_changed_literal((_b))
 #endif
 
 #if defined(CS_AST_ENABLE_DISTRIBUTED_DEVSTATE)
@@ -238,33 +238,33 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_moh_stop ast_moh_stop
 
 //#define pbx_mutex_t ast_mutex_t
-#define pbx_mutex_destroy(x) ast_mutex_destroy((ast_mutex_t *)x)
-#define pbx_mutex_init(x) ast_mutex_init((ast_mutex_t *)x)
-#define pbx_mutex_init_notracking(x) ast_mutex_init_notracking((ast_mutex_t *)x)
+#define pbx_mutex_destroy(_x) ast_mutex_destroy((ast_mutex_t *)(_x))
+#define pbx_mutex_init(_x) ast_mutex_init((ast_mutex_t *)(_x))
+#define pbx_mutex_init_notracking(_x) ast_mutex_init_notracking((ast_mutex_t *)(_x))
 
 //#define pbx_rwlock_t ast_rwlock_t
-#define pbx_rwlock_destroy(x) ast_rwlock_destroy((ast_rwlock_t *)x)
-#define pbx_rwlock_init(x) ast_rwlock_init((ast_rwlock_t *)x)
-#define pbx_rwlock_init_notracking(x) ast_rwlock_init_notracking((ast_rwlock_t *)x)
+#define pbx_rwlock_destroy(_x) ast_rwlock_destroy((ast_rwlock_t *)(_x))
+#define pbx_rwlock_init(_x) ast_rwlock_init((ast_rwlock_t *)(_x))
+#define pbx_rwlock_init_notracking(_x) ast_rwlock_init_notracking((ast_rwlock_t *)(_x))
 
 #if CS_LOCK_DEBUG
-#define pbx_mutex_lock(x) {ast_debug(4, "[%d] %s:%d (%s) MUTEX_LOCK: " #x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x); ast_mutex_lock((ast_mutex_t *)x);}
-#define pbx_mutex_trylock(x) {ast_debug(4, "[%d] %s:%d (%s) MUTEX_TRYLOCK: " #x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x); ast_mutex_trylock((ast_mutex_t *)x);}
-#define pbx_mutex_unlock(x) {ast_mutex_unlock((ast_mutex_t *)x); ast_debug(4, "[%d] %s:%d (%s) MUTEX_UNLOCK: " #x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x);}
-#define pbx_rwlock_rdlock(x) {ast_debug(5, "[%d] %s:%d (%s) RWLOCK_RDLOCK: " #x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x); ast_rwlock_rdlock((ast_rwlock_t *)x);}
-#define pbx_rwlock_wrlock(x) {ast_debug(5, "[%d] %s:%d (%s) RWLOCK_WRLOCK: " #x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x); ast_rwlock_wrlock((ast_rwlock_t *)x);}
-#define pbx_rwlock_tryrdlock(x) {ast_debug(5, "[%d] %s:%d (%s) RWLOCK_TRYRDLOCK: " #x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x); ast_rwlock_tryrdlock((ast_rwlock_t *)x);}
-#define pbx_rwlock_trywrlock(x) {ast_debug(5, "[%d] %s:%d (%s) RWLOCK_TRYWRLOCK: " #x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x); ast_rwlock_trywrlock((ast_rwlock_t *)x);}
-#define pbx_rwlock_unlock(x) {ast_rwlock_unlock((ast_rwlock_t *)x); ast_debug(5, "[%d] %s:%d (%s) RWLOCK_UNLOCK: " #x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, x);}
+#define pbx_mutex_lock(_x) {ast_debug(4, "[%d] %s:%d (%s) MUTEX_LOCK: " #_x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, (_x)); ast_mutex_lock((ast_mutex_t *)(_x));}
+#define pbx_mutex_trylock(_x) {ast_debug(4, "[%d] %s:%d (%s) MUTEX_TRYLOCK: " #_x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, (_x)); ast_mutex_trylock((ast_mutex_t *)(_x));}
+#define pbx_mutex_unlock(_x) {ast_mutex_unlock((ast_mutex_t *)_x); ast_debug(4, "[%d] %s:%d (%s) MUTEX_UNLOCK: " #(_x) ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, (_x));}
+#define pbx_rwlock_rdlock(_x) {ast_debug(5, "[%d] %s:%d (%s) RWLOCK_RDLOCK: " #_x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, (_x)); ast_rwlock_rdlock((ast_rwlock_t *)(_x));}
+#define pbx_rwlock_wrlock(_x) {ast_debug(5, "[%d] %s:%d (%s) RWLOCK_WRLOCK: " #_x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, (_x)); ast_rwlock_wrlock((ast_rwlock_t *)(_x));}
+#define pbx_rwlock_tryrdlock(_x) {ast_debug(5, "[%d] %s:%d (%s) RWLOCK_TRYRDLOCK: " #_x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, (_x)); ast_rwlock_tryrdlock((ast_rwlock_t *)(_x));}
+#define pbx_rwlock_trywrlock(_x) {ast_debug(5, "[%d] %s:%d (%s) RWLOCK_TRYWRLOCK: " #_x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, (_x)); ast_rwlock_trywrlock((ast_rwlock_t *)(_x));}
+#define pbx_rwlock_unlock(_x) {ast_rwlock_unlock((ast_rwlock_t *)(_x)); ast_debug(5, "[%d] %s:%d (%s) RWLOCK_UNLOCK: " #_x ": %p\n", (unsigned int) pthread_self(), __FILE__, __LINE__, __PRETTY_FUNCTION__, (_x));}
 #else
-#define pbx_mutex_lock(x) ({ast_mutex_lock((ast_mutex_t *)x);})
-#define pbx_mutex_trylock(x) ({ast_mutex_trylock((ast_mutex_t *)x);})
-#define pbx_mutex_unlock(x) ({ast_mutex_unlock((ast_mutex_t *)x);})
-#define pbx_rwlock_rdlock(x) ({ast_rwlock_rdlock((ast_rwlock_t *)x);})
-#define pbx_rwlock_wrlock(x) ({ast_rwlock_wrlock((ast_rwlock_t *)x);})
-#define pbx_rwlock_tryrdlock(x) ({ast_rwlock_tryrdlock((ast_rwlock_t *)x);})
-#define pbx_rwlock_trywrlock(x) ({ast_rwlock_trywrlock((ast_rwlock_t *)x);})
-#define pbx_rwlock_unlock(x) ({ast_rwlock_unlock((ast_rwlock_t *)x);})
+#define pbx_mutex_lock(_x) ({ast_mutex_lock((ast_mutex_t *)(_x));})
+#define pbx_mutex_trylock(_x) ({ast_mutex_trylock((ast_mutex_t *)(_x));})
+#define pbx_mutex_unlock(_x) ({ast_mutex_unlock((ast_mutex_t *)(_x));})
+#define pbx_rwlock_rdlock(_x) ({ast_rwlock_rdlock((ast_rwlock_t *)(_x));})
+#define pbx_rwlock_wrlock(_x) ({ast_rwlock_wrlock((ast_rwlock_t *)(_x));})
+#define pbx_rwlock_tryrdlock(_x) ({ast_rwlock_tryrdlock((ast_rwlock_t *)(_x));})
+#define pbx_rwlock_trywrlock(_x) ({ast_rwlock_trywrlock((ast_rwlock_t *)(_x));})
+#define pbx_rwlock_unlock(_x) ({ast_rwlock_unlock((ast_rwlock_t *)(_x));})
 #endif
 
 #define pbx_park_call ast_park_call
@@ -330,8 +330,8 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_str_alloca(init_len)							\
 ({											\
 	pbx_str_t *__pbx_str_buf;							\
-	__pbx_str_buf = (pbx_str_t *)ast_alloca(sizeof(*__pbx_str_buf) + init_len);	\
-	__pbx_str_buf->__AST_STR_LEN = init_len;					\
+	__pbx_str_buf = (pbx_str_t *)ast_alloca(sizeof(*__pbx_str_buf) + (init_len));	\
+	__pbx_str_buf->__AST_STR_LEN = (init_len);					\
 	__pbx_str_buf->__AST_STR_USED = 0;						\
 	__pbx_str_buf->__AST_STR_TS = DS_ALLOCA;					\
 	__pbx_str_buf->__AST_STR_STR[0] = '\0';						\
@@ -352,7 +352,7 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_fileexists ast_fileexists
 #if ASTERISK_VERSION_GROUP < 111 && defined(__clang__)
 #undef AST_STRING_FIELD_ALLOCATION
-#define AST_STRING_FIELD_ALLOCATION(x) *((ast_string_field_allocation *) ((ast_string_field_allocation)x - __alignof__(ast_string_field_allocation)))
+#define AST_STRING_FIELD_ALLOCATION(_x) *((ast_string_field_allocation *) ((ast_string_field_allocation)(_x) - __alignof__(ast_string_field_allocation)))
 #endif
 #define pbx_string_field_build ast_string_field_build
 #define pbx_string_field_set ast_string_field_set
@@ -387,14 +387,14 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_set2_flag ast_set2_flag
 
 // Fixes for asterisk-trunk, need to sorted later
-#define pbx_channel_flags(_a) _a										/* needed in asterisk trunk */
+#define pbx_channel_flags(_a) (_a)										/* needed in asterisk trunk */
 #define pbx_channel_uniqueid(_a) (_a)->uniqueid
 #define pbx_channel_call_forward(_a) (_a)->call_forward
 #define pbx_channel_appl(_a) (_a)->appl
 #define pbx_channel_state(_a) (_a)->_state
 #define pbx_channel_pbx(_a) (_a)->pbx
 #define pbx_channel_hangupcause(_a) (_a)->hangupcause
-#define pbx_channel_set_hangupcause(_a,_b) (_a)->hangupcause = _b
+#define pbx_channel_set_hangupcause(_a,_b) (_a)->hangupcause = (_b)
 #define pbx_channel_softhangup(_a) (_a)->_softhangup
 #define pbx_channel_context(_a) (_a)->context
 #define pbx_channel_nativeformats(_a) (_a)->nativeformats
@@ -405,15 +405,15 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_channel_dialcontext(_a) (_a)->dialcontext
 #define pbx_channel_callgroup(_a) (_a)->callgroup
 #define pbx_channel_masq(_a) (_a)->masq
-#define pbx_channel_setwhentohangup_tv(_a, _b) (_a)->whentohangup = _b
+#define pbx_channel_setwhentohangup_tv(_a, _b) (_a)->whentohangup = (_b)
 #define pbx_channel_blocker(_a) (_a)->blocker
 #define pbx_channel_blockproc(_a) (_a)->blockproc
 #define pbx_channel_tech(_a) (_a)->tech
 #define pbx_channel_bridge(_a) (_a)->bridge
-#define pbx_channel_set_bridge(_a,_b) (_a)->bridge = _b
+#define pbx_channel_set_bridge(_a,_b) (_a)->bridge = (_b)
 #define pbx_channel_language(_a) (_a)->language
 #define pbx_channel_cdr(_a) (_a)->cdr
-#define pbx_channel_call_forward_set(_a,_b) ast_string_field_set(_a, call_forward, _b);
+#define pbx_channel_call_forward_set(_a,_b) ast_string_field_set((_a), call_forward, (_b));
 #define pbx_channel_varshead(_a) &(_a)->varshead
 #define pbx_pickup_call ast_pickup_call
 #define pbx_channel_monitor(_a) (_a)->monitor
@@ -431,7 +431,7 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_test_validate_cleanup ast_test_validate_cleanup
 #define pbx_test_status_update ast_test_status_update
 #ifdef SCANBUILD
-#define pbx_test_validate(_test,_assertion) assert(_assertion);
+#define pbx_test_validate(_test,_assertion) assert((_assertion));
 #else
 #define pbx_test_validate ast_test_validate
 #endif

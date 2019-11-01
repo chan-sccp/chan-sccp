@@ -32,9 +32,9 @@ SCCP_API void SCCP_CALL sccp_safe_sleep(int ms);
 #define _ARR2STR(arrayname, lookup_var, lookup_val, return_var) \
         ({ \
         uint32_t i; \
-        for (i = 0; i < ARRAY_LEN(arrayname); i++) { \
-                if (arrayname[i].lookup_var == lookup_val) { \
-                        return arrayname[i].return_var; \
+        for (i = 0; i < ARRAY_LEN((arrayname)); i++) { \
+                if ((arrayname)[i].lookup_var == (lookup_val)) { \
+                        return (arrayname)[i].return_var; \
                 } \
         } \
         pbx_log(LOG_ERROR, "_ARR2STR Lookup Failed for " #arrayname "." #lookup_var "=%i\n", lookup_val); \
@@ -43,9 +43,9 @@ SCCP_API void SCCP_CALL sccp_safe_sleep(int ms);
 #define _STRARR2INT(arrayname, lookup_var, lookup_val, return_var) \
         ({ \
         uint32_t i; \
-        for (i = 0; i < ARRAY_LEN(arrayname); i++) { \
-                if (!strcasecmp(arrayname[i].lookup_var, lookup_val)) { \
-                        return (uint32_t)arrayname[i].return_var; \
+        for (i = 0; i < ARRAY_LEN((arrayname)); i++) { \
+                if (!strcasecmp((arrayname)[i].lookup_var, (lookup_val))) { \
+                        return (uint32_t)(arrayname)[i].return_var; \
                 } \
         } \
         pbx_log(LOG_ERROR, "_STRARR2INT Lookup Failed for " #arrayname "." #lookup_var "=%s\n", lookup_val); \
@@ -54,9 +54,9 @@ SCCP_API void SCCP_CALL sccp_safe_sleep(int ms);
 #define _ARR2INT(arrayname, lookup_var, lookup_val, return_var) \
         ({ \
         uint32_t i; \
-        for (i = 0; i < ARRAY_LEN(arrayname); i++) { \
-                if (arrayname[i].lookup_var == lookup_val) { \
-                        return arrayname[i].return_var; \
+        for (i = 0; i < ARRAY_LEN((arrayname)); i++) { \
+                if ((arrayname)[i].lookup_var == (lookup_val)) { \
+                        return (arrayname)[i].return_var; \
                 } \
         } \
         pbx_log(LOG_ERROR, "_ARR2STR Lookup Failed for " #arrayname "." #lookup_var "=%i\n", lookup_val); \

@@ -172,12 +172,12 @@ SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define sccp_globals_unlock(x)			pbx_mutex_unlock(&sccp_globals->x)
 #define sccp_globals_trylock(x)			pbx_mutex_trylock(&sccp_globals->x)
 
-#define DEV_ID_LOG(x) (x && !sccp_strlen_zero(x->id)) ? x->id : "SCCP"
+#define DEV_ID_LOG(_x) ((_x) && !sccp_strlen_zero((_x)->id)) ? (_x)->id : "SCCP"
 
-#define PTR_TYPE_CMP(_type,_ptr) 					\
+#define PTR_TYPE_CMP(_T,_ptr) 					\
 ({									\
 	/*__builtin_types_compatible_p(typeof(_ptr), _type) == 1)*/	\
-	_type __attribute__((unused)) __dummy = (_type)(_ptr);		\
+	__auto_type __attribute__((unused)) __dummy = (_T)(_ptr);	\
 	1;								\
 })
 
@@ -205,9 +205,9 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 
 /* check to see if is pointer is actually already being cleaned up */
 #if __WORDSIZE == 64
-#define isPointerDead(_x) (sizeof(char*) == 4 ? (uintptr_t)_x == 0xdeaddead : (uintptr_t)_x == 0xdeaddeaddeaddead)
+#define isPointerDead(_x) (sizeof(char*) == 4 ? (uintptr_t)(_x) == 0xdeaddead : (uintptr_t)(_x) == 0xdeaddeaddeaddead)
 #else
-#define isPointerDead(_x) ((uintptr_t)_x == 0xdeaddead)
+#define isPointerDead(_x) ((uintptr_t)(_x) == 0xdeaddead)
 #endif
 
 /* deny the use of unsafe functions */
@@ -261,7 +261,7 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 typedef void (^sccp_raii_cleanup_block_t)(void);
 static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(); }
 #define RAII(vartype, varname, initval, dtor)										\
-    __block vartype varname = initval;											\
+    __block vartype varname = (initval);										\
     sccp_raii_cleanup_block_t _raii_cleanup_ ## varname __attribute__((cleanup(sccp_raii_cleanup_block),unused)) = 	\
         ^{ {(void)dtor(varname);} }
 #elif defined(__GNUC__)
@@ -273,11 +273,12 @@ static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(
     #error "Cannot compile Asterisk: unknown and unsupported compiler."
 #endif /* #if __GNUC__ */
 
-#define container_of(ptr, type, member) ({                      \
+#define container_of(ptr, type, member) ({                      							\
         const typeof( ((type *)0)->member ) *__mptr = (const typeof( ((type *)0)->member ) *)(ptr);    			\
-        (type *)( (void *)__mptr - offsetof(type,member) );})
+        (type *)( (void *)__mptr - offsetof(type,member) );								\
+})
 
 #define enum_incr(_enum) ({												\
-        _enum=(typeof(_enum))((int)_enum + 1);										\
+        (_enum)=(typeof(_enum))((int)(_enum) + 1);									\
 })
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -100,18 +100,6 @@ uint8_t __CONST__ sccp_codec_getArrayLen()
 {
 	return ARRAY_LEN(skinny_codecs);
 }
-#define _ARR2STR(arrayname, lookup_var, lookup_val, return_var) \
-        ({ \
-        uint32_t i; \
-        for (i = 0; i < ARRAY_LEN(arrayname); i++) { \
-                if (arrayname[i].lookup_var == lookup_val) { \
-                        return arrayname[i].return_var; \
-                } \
-        } \
-        pbx_log(LOG_ERROR, "_ARR2STR Lookup Failed for " #arrayname "." #lookup_var "=%i\n", lookup_val); \
-        return ""; \
-        })
-
 gcc_inline const char *codec2str(skinny_codec_t value)
 {
 	_ARR2STR(skinny_codecs, codec, value, text);

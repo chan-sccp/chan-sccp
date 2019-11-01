@@ -122,7 +122,7 @@ pbx_format_type __PURE__ skinny_codecs2pbx_codecs(const skinny_codec_t * const c
 
 // support for old uin32_t format (only temporarily
 #define pbx_format2skinny_format (uint32_t)pbx_codec2skinny_codec
-#define skinny_format2pbx_format(_x) skinny_codec2pbx_codec((skinny_codec_t)_x)
+#define skinny_format2pbx_format(_x) skinny_codec2pbx_codec((skinny_codec_t)(_x))
 
 /* 
  * sccp_free_ptr should be used when a function pointer for free() needs to be 

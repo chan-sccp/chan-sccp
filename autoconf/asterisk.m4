@@ -532,16 +532,16 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 				int x = sizeof(struct ast_channel_tech); x = x;
 			], [
 				AC_DEFINE([CS_AST_HAS_TECH_PVT],1,['struct ast_channel_tech' available'])
-				AC_DEFINE([CS_AST_CHANNEL_PVT(x)],[((sccp_channel_t*)x->tech_pvt)],['defined channel pvt'])
-				AC_DEFINE([CS_AST_CHANNEL_PVT_TYPE(x)],[x->tech->type],['defined channel_pvt_type'])
-				AC_DEFINE([CS_AST_CHANNEL_PVT_CMP_TYPE(x,y)],[!strncasecmp(x->tech->type, y, strlen(y))],['defined cmp_type'])
+				AC_DEFINE([CS_AST_CHANNEL_PVT(_x)],[((sccp_channel_t*)(_x)->tech_pvt)],['defined channel pvt'])
+				AC_DEFINE([CS_AST_CHANNEL_PVT_TYPE(_x)],[(_x)->tech->type],['defined channel_pvt_type'])
+				AC_DEFINE([CS_AST_CHANNEL_PVT_CMP_TYPE(_x,_y)],[!strncasecmp((_x)->tech->type, (_y), strlen((_y)))],['defined cmp_type'])
 			], [
 				AC_DEFINE([CS_AST_HAS_TECH_PVT],0,['struct ast_channel_tech' available'])
-				AC_DEFINE([CS_AST_CHANNEL_PVT(x)],[((sccp_channel_t*)x->pvt->pvt)],['defined channel pvt'])
-				AC_DEFINE([CS_AST_CHANNEL_PVT_TYPE(x)],[x->type],['defined channel_pvt_type'])
-				AC_DEFINE([CS_AST_CHANNEL_PVT_CMP_TYPE(x,y)],[!strncasecmp(x->type, y, strlen(y))],['defined cmp_type'])
+				AC_DEFINE([CS_AST_CHANNEL_PVT(_x)],[((sccp_channel_t*)(_x)->pvt->pvt)],['defined channel pvt'])
+				AC_DEFINE([CS_AST_CHANNEL_PVT_TYPE(_x)],[(_x)->type],['defined channel_pvt_type'])
+				AC_DEFINE([CS_AST_CHANNEL_PVT_CMP_TYPE(_x,_y)],[!strncasecmp((_x)->type, (_y), strlen((_y)))],['defined cmp_type'])
 			])
-			AC_DEFINE([CS_AST_CHANNEL_PVT_IS_SCCP(x)],[CS_AST_CHANNEL_PVT_CMP_TYPE(x,"SCCP")], ['defined pvt_is_sccp'])
+			AC_DEFINE([CS_AST_CHANNEL_PVT_IS_SCCP(_x)],[CS_AST_CHANNEL_PVT_CMP_TYPE((_x),"SCCP")], ['defined pvt_is_sccp'])
 
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_bridged_channel'...],[ac_cv_ast_bridged_channel],[
 				$HEADER_INCLUDE

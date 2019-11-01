@@ -168,12 +168,12 @@ struct sccp_global_vars {
 ({															\
 	int _count = 0; 												\
 	int _sched_res = -1; 												\
-	while (id > -1 && (_sched_res = iPbx.sched_del(id)) && ++_count < 10) 						\
+	while ((id) > -1 && (_sched_res = iPbx.sched_del((id))) && ++_count < 10) 					\
 		usleep(1); 												\
 	if (_count == 10) { 												\
-		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Unable to cancel schedule ID %d.\n", id); 		\
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Unable to cancel schedule ID %d.\n", (id)); 		\
 	} 														\
-	id = -1; 			/* this might be seen as a side effect */					\
+	(id) = -1; 			/* this might be seen as a side effect */					\
 	(_sched_res); 	 												\
 })
 

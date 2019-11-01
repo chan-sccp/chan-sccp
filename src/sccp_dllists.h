@@ -276,7 +276,7 @@ struct {												\
 		(head)->last = (elm);                                       				\
 	} else {                                                        				\
 		typeof((head)->first) cur = (head)->first, prev = NULL;     				\
-		while (cur && sccp_strversioncmp(cur->sortfield, elm->sortfield) < 0) { 		\
+		while (cur && sccp_strversioncmp((cur)->sortfield, (elm)->sortfield) < 0) { 		\
 			prev = cur;                                            				\
 			cur = cur->field.next;                                 				\
 		}                                                           				\

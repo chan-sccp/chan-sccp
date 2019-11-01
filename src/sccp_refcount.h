@@ -64,23 +64,24 @@ typedef struct {
 	int line;
 } auto_ref_t;
 
-#define AUTO_RELEASE2(_type, _var, _initial, _file, _func, _line, _counter) \
-	_type * _var = _initial;                                            \
-	auto_ref_t __attribute__((cleanup(sccp_refcount_autorelease), unused)) ref##_counter = { (const void ** const) & _var, _file, _func, _line }
-#	define AUTO_RELEASE1(_type, _var, _initial, _file, _func, _line, _counter) AUTO_RELEASE2(_type, _var, _initial, _file, _func, _line, _counter)
-#	define AUTO_RELEASE(_type, _var, _initial)                                 AUTO_RELEASE1(_type, _var, _initial, __FILE__, __PRETTY_FUNCTION__, __LINE__, __COUNTER__)
+#define __AUTO_RELEASE2(_type, _var, _initial, _file, _func, _line, _counter) 									\
+	_type * _var = (_initial);                                          									\
+	auto_ref_t __attribute__((cleanup(sccp_refcount_autorelease), unused)) ref##_counter = { (const void ** const) & (_var), _file, _func, _line };
+#	define __AUTO_RELEASE1(_type, _var, _initial, _file, _func, _line, _counter) __AUTO_RELEASE2(_type, _var, _initial, _file, _func, _line, _counter)
+#	define AUTO_RELEASE(_type, _var, _initial)                                 __AUTO_RELEASE1(_type, _var, _initial, __FILE__, __PRETTY_FUNCTION__, __LINE__, __COUNTER__)
+
 
 #define sccp_refcount_retain_type(_type, _x) 		({											\
-	pbx_assert(PTR_TYPE_CMP(const _type *const, _x ) == 1); 										\
-	(_type *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);								\
+	pbx_assert(PTR_TYPE_CMP(const _type *const, (_x) ) == 1); 										\
+	(_type *)sccp_refcount_retain((_x), __FILE__, __LINE__, __PRETTY_FUNCTION__);								\
 })
 #define sccp_refcount_release_type(_type,_x)		({											\
-	pbx_assert(PTR_TYPE_CMP(_type * *const, _x ) == 1);		 									\
-	sccp_refcount_release((const void ** const)_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);						\
+	pbx_assert(PTR_TYPE_CMP(_type * *const, (_x) ) == 1);		 									\
+	sccp_refcount_release((const void ** const)(_x), __FILE__, __LINE__, __PRETTY_FUNCTION__);						\
 })
 #define sccp_refcount_refreplace_type(_type,_x, _y) 	({											\
-	pbx_assert(PTR_TYPE_CMP(_type * *const, _x) == 1 && PTR_TYPE_CMP(const _type *const, _y) == 1);						\
-	sccp_refcount_replace((const void ** const)_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__);						\
+	pbx_assert(PTR_TYPE_CMP(_type * *const, (_x)) == 1 && PTR_TYPE_CMP(const _type *const, (_y)) == 1);					\
+	sccp_refcount_replace((const void ** const)(_x), (_y), __FILE__, __LINE__, __PRETTY_FUNCTION__);					\
 })
 
 __END_C_EXTERN__
