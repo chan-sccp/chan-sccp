@@ -177,7 +177,7 @@ SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
 #define PTR_TYPE_CMP(_T,_ptr) 					\
 ({									\
 	/*__builtin_types_compatible_p(typeof(_ptr), _type) == 1)*/	\
-	__auto_type __attribute__((unused)) __dummy = (_T)(_ptr);	\
+	_T __attribute__((unused)) __dummy = (_T)(_ptr);	\
 	1;								\
 })
 
