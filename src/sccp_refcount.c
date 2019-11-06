@@ -587,7 +587,7 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 	unsigned int numentries = 0;
 	int check_inuse = 0;
 	boolean_t inuse = FALSE;
-	float fillfactor = 0.00;
+	float fillfactor = 0.00F;
 
 	if (argc == 4) {
 		if (sccp_strcaseequals(argv[3],"show")) {
@@ -940,8 +940,8 @@ static void *refcount_test_thread(void *data)
 	struct refcount_test *obj = NULL, *obj1 = NULL;
 	int objloop;
 	int random_object;
-	int threadid = (unsigned int) pthread_self();
-	
+	unsigned int threadid = (unsigned int)pthread_self();
+
 	*test_result = AST_TEST_PASS;
 
 	pbx_log(LOG_NOTICE, "%d: Thread running...\n", threadid);

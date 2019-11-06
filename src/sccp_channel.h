@@ -163,9 +163,9 @@ SCCP_API sccp_rtp_status_t SCCP_CALL sccp_channel_closeAllMediaTransmitAndReceiv
 
 SCCP_API boolean_t SCCP_CALL sccp_channel_transfer_on_hangup(constChannelPtr channel);
 SCCP_INLINE void SCCP_CALL sccp_channel_stop_schedule_digittimout(constChannelPtr channel);
-SCCP_INLINE void SCCP_CALL sccp_channel_schedule_hangup(constChannelPtr channel, uint timeout);
-SCCP_INLINE void SCCP_CALL sccp_channel_schedule_digittimeout(constChannelPtr channel, uint timeout);
-SCCP_INLINE void SCCP_CALL sccp_channel_schedule_cfwd_noanswer(constChannelPtr channel, uint timeout);
+SCCP_INLINE void SCCP_CALL sccp_channel_schedule_hangup(constChannelPtr channel, int timeout);
+SCCP_INLINE void SCCP_CALL sccp_channel_schedule_digittimeout(constChannelPtr channel, int timeout);
+SCCP_INLINE void SCCP_CALL sccp_channel_schedule_cfwd_noanswer(constChannelPtr channel, int timeout);
 SCCP_INLINE void SCCP_CALL sccp_channel_stop_schedule_cfwd_noanswer(constChannelPtr channel);
 SCCP_API void SCCP_CALL sccp_channel_end_forwarding_channel(channelPtr orig_channel);
 SCCP_API void SCCP_CALL sccp_channel_endcall(channelPtr channel);

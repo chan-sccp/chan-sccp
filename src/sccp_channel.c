@@ -1368,7 +1368,7 @@ gcc_inline void sccp_channel_stop_schedule_digittimout(constChannelPtr channel)
  * Schedule hangup if allowed and not already scheduled
  * \note needs to take retain on channel to pass it on the the scheduled hangup
  */
-gcc_inline void sccp_channel_schedule_hangup(constChannelPtr channel, uint timeout)
+gcc_inline void sccp_channel_schedule_hangup(constChannelPtr channel, int timeout)
 {
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 	int res = 0;
@@ -1386,7 +1386,7 @@ gcc_inline void sccp_channel_schedule_hangup(constChannelPtr channel, uint timeo
  * Schedule digittimeout if allowed
  * Release any previously scheduled digittimeout
  */
-gcc_inline void sccp_channel_schedule_digittimeout(constChannelPtr channel, uint timeout)
+gcc_inline void sccp_channel_schedule_digittimeout(constChannelPtr channel, int timeout)
 {
 	sccp_channel_t *c = sccp_channel_retain(channel);
 
@@ -1421,7 +1421,7 @@ void sccp_channel_stop_and_deny_scheduled_tasks(constChannelPtr channel)
 	}
 }
 
-gcc_inline void sccp_channel_schedule_cfwd_noanswer(constChannelPtr channel, uint timeout)
+gcc_inline void sccp_channel_schedule_cfwd_noanswer(constChannelPtr channel, int timeout)
 {
 	sccp_channel_t * c = sccp_channel_retain(channel);
 	/* only schedule if allowed and not already scheduled */
