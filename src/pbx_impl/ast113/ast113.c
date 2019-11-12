@@ -871,10 +871,9 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 		res = -1;
 	}
 
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3
-		"%s: (pbx_indicate) finish indicating '%s' (%d) condition on channel %s (readStat:%d, writeState:%d, rtp:%s)\n",
-		DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast),
-		c->rtp.audio.receiveChannelState, c->rtp.audio.mediaTransmissionState, (c->rtp.audio.instance) ? "yes" : "no");
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "%s: (pbx_indicate) finish indicating '%s' (%d) condition on channel %s (readStat:%d, writeState:%d, rtp:%s)\n", DEV_ID_LOG(d),
+									asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.reception.state, c->rtp.audio.transmission.state,
+									(c->rtp.audio.instance) ? "yes" : "no");
 	return res;
 }
 
