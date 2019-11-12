@@ -102,13 +102,16 @@ We also provide prebuild binaries for:
   - [Fedora-28](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_28/)
   - [Fedora-29](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_29/)
   - [Fedora-30](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_30/)
+  - [Fedora-31](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_31/)
   - [Fedora-Rawhide](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_Rawhide/) (unstable)
   - [openSUSE-Leap_15.0](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_15.0/)
+  - [openSUSE-Leap_15.1](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_15.1/)
   - [openSUSE-Leap_42.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_42.2/)
   - [openSUSE-Leap_42.3](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_42.3/)
   - [openSUSE-Factory](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Factory/)
   - [openSUSE-Factory_ARM](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Factory_ARM/)
   - [openSUSE_Factory_PPC](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Factory_PPC/)
+  - [Ubuntu 19.10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/xUbuntu_19.10)
 
 ### Wiki
 You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/)
