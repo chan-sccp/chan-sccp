@@ -288,11 +288,10 @@ void sccp_util_featureStorageBackend(const sccp_event_t * const event)
 					// const char * cfwdstr = sccp_cfwd2str(cfwd);
 					char cfwdstr[15] = "";
 					snprintf(cfwdstr, 14, "cfwd%s", sccp_cfwd2str(cfwd));
-					if(cfwd == SCCP_CFWD_NONE || cfwd == SCCP_CFWD_SENTINEL) {
-						res |= iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, cfwdstr);
-						res |= iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, cfwdstr);
-						sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: db clear %s %s (res:%d))\n", DEV_ID_LOG(device), cfwdDeviceLineStore, cfwdstr, res);
-					} else if(ld->cfwd[cfwd].enabled) {
+					res |= iPbx.feature_removeFromDatabase(cfwdDeviceLineStore, cfwdstr);
+					res |= iPbx.feature_removeFromDatabase(cfwdLineDeviceStore, cfwdstr);
+					sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: db clear %s %s (res:%d))\n", DEV_ID_LOG(device), cfwdDeviceLineStore, cfwdstr, res);
+					if(ld->cfwd[cfwd].enabled) {
 						res |= iPbx.feature_addToDatabase(cfwdDeviceLineStore, cfwdstr, ld->cfwd[cfwd].number);
 						res |= iPbx.feature_addToDatabase(cfwdLineDeviceStore, cfwdstr, ld->cfwd[cfwd].number);
 						sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: db put %s %s (res:%d)\n", DEV_ID_LOG(device), cfwdDeviceLineStore, cfwdstr, res);
