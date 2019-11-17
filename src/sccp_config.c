@@ -425,7 +425,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, 
 		return SCCP_CONFIG_NOUPDATENEEDED;
 	} else if ((flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) {
 		if (NULL == value) {
-			pbx_log(LOG_WARNING, "SCCP: required config param at %s='%s' - %s\n", name, value, sccpConfigOption->description);
+			pbx_log(LOG_WARNING, "SCCP: required config param at %s='<NULL>' - %s\n", name, sccpConfigOption->description);
 			return SCCP_CONFIG_WARNING;
 		}
 	}
