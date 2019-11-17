@@ -1,7 +1,8 @@
 ## Welcome to Chan_SCCP
 
 [![Gitter](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/chan-sccp/chan-sccp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![Build Status](http://img.shields.io/travis/chan-sccp/chan-sccp.svg?style=flat&branch=develop)](https://travis-ci.org/chan-sccp/chan-sccp)
+[![Build TR Status](http://img.shields.io/travis/chan-sccp/chan-sccp.svg?style=flat&branch=develop)](https://travis-ci.org/chan-sccp/chan-sccp)
+[![Build GH Status](https://github.com/chan-sccp/chan-sccp/workflows/CI/badge.svg)](https://github.com/chan-sccp/chan-sccp/actions?query=workflow%3ACI)
 [![Coverity](https://img.shields.io/coverity/scan/8656.svg)](https://scan.coverity.com/projects/chan-sccp)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/chan-sccp/chan-sccp.svg)](https://github.com/chan-sccp/chan-sccp/issues "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/chan-sccp/chan-sccp.svg)](https://github.com/chan-sccp/chan-sccp/issues?utf8=✓&q=is%3Aopen+is%3Aissue+-label%3Aenhancement+ "Percentage of issues still open")
