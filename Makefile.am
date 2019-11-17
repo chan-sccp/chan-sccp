@@ -23,7 +23,7 @@ FORCE:
 
 # Update ChangeLog file from SVN Log
 ChangeLog:		FORCE
-	@$(GIT) log v4.2.0...HEAD --pretty=medium >ChangeLog
+	@$(GIT) log v4.3.2-gamma...HEAD --pretty=medium >ChangeLog
 
 # Update ChangeLog Files and Generate Doxygen Documentation
 doxygen: ChangeLog doxygen-doc
@@ -46,7 +46,7 @@ if ENABLE_RPMBUILD
 	@export RPMVERSION=$(SCCP_VERSION);
 	@export RPMBRANCH=$(SCCP_BRANCH);
 	@export RPMREVISION=$(SCCP_REVISION);
-	@cd /usr/src/packages/SOURCES/ && SOURCEDIR="Chan_SCCP-4.3.0_TRUNK_r6452" rpmbuild -bb chan-sccp.spec --define="_usr ~/rpmbuild/";
+	@cd /usr/src/packages/SOURCES/ && SOURCEDIR=$(distdir) rpmbuild -bb chan-sccp.spec --define="_usr ~/rpmbuild/";
 else
 	@echo ""; \
 	echo "RPM Build on your platform not (yet) supported !"; \
