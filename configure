@@ -967,6 +967,7 @@ enable_silent_rules
 enable_static
 enable_optimization
 enable_debug
+enable_lto
 enable_builtin_atomics
 enable_cross_cmpxchg16b
 enable_atomic_ops
@@ -1681,6 +1682,8 @@ Optional Features:
 
 		  --enable-optimization   do not detecti or tune flags for cpu version
   --disable-debug         disable debug information
+  --enable-lto            Enables or Disables Linktime Code Optimization (LTO
+                          is enabled by default)
   --disable-builtin-atomics
                           force the use of inline-assembly (if possible)
                           rather than compiler-builtins for atomics. This is
@@ -6770,6 +6773,70 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+
+
+	# Check whether --enable-lto was given.
+if test "${enable_lto+set}" = set; then :
+  enableval=$enable_lto;
+			enable_lto="$enableval"
+			case $enableval in
+			    "no");;
+			    "yes");;
+			    *) as_fn_error $? "invalid argument --enable-lto=$disableval... stopping" "$LINENO" 5;;
+			esac
+
+else
+  enable_lto="no"
+
+fi
+
+
+	#
+	# LTO Support test
+	#
+	if test "$enable_lto" != "no" ; then
+		OLD_CXXFLAGS="$CFLAGS"
+		CXXFLAGS="$CXXFLAGS -flto"
+		OLD_CFLAGS="$CFLAGS"
+		CFLAGS="$CFLAGS -flto"
+		OLD_LDFLAGS="$LDFLAGS"
+		LDFLAGS="$LDFLAGS -flto"
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CXX supports -flto" >&5
+$as_echo_n "checking whether $CXX supports -flto... " >&6; }
+		if test "$cross_compiling" = yes; then :
+
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: guessing no" >&5
+$as_echo "guessing no" >&6; }
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+			int main(int argc, char **argv){
+				return 0;
+			}
+
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+else
+
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+			CXXFLAGS="$OLD_CXXFLAGS"
+			CFLAGS="$OLD_CXXFLAGS"
+			LDFLAGS="$OLD_LDFLAGS"
+
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+	fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if pointers to integers require aligned access" >&5
 $as_echo_n "checking if pointers to integers require aligned access... " >&6; }
