@@ -1,0 +1,21 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install Dependencies
+      run: sudo apt install asterisk asterisk-dev asterisk-config asterisk-tests asterisk-testsuite asttest automake autoconf libtool gawk libxml2-dev libxslt1-dev xsltproc
+    - name: configure
+      run: ./configure --enable-conference --enable-devdoc --with-hash-size=3001 --enable-experimental-xml --enable-video
+    - name: make
+      run: make -j4
+#    - name: make check
+#      run: make check
+#    - name: make distcheck
+#      run: make distcheck
