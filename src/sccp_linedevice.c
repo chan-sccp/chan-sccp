@@ -58,7 +58,11 @@ static int __sccp_lineDevice_destroy(const void * ptr)
 static void regcontext_exten(constLineDevicePtr ld, int onoff)
 {
 	char multi[256] = "";
-	char *stringp = NULL, *ext = "", *context = "";
+	char * stringp = NULL;
+
+	char * ext = "";
+
+	char * context = "";
 
 	// char extension[SCCP_MAX_CONTEXT]="";
 	// char name[SCCP_MAX_CONTEXT]="";

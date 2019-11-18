@@ -205,7 +205,9 @@ void *sccp_threadpool_thread_do(void *p)
 
 	pthread_cleanup_push(sccp_threadpool_thread_end, tp_thread);
 
-	int jobs = 0, threads = 0;
+	int jobs = 0;
+
+	int threads = 0;
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Starting Threadpool JobQueue:%p\n", thread);
 	while (1) {

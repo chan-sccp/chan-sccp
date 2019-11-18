@@ -49,7 +49,9 @@ SCCP_FILE_VERSION(__FILE__, "");
 void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureType)
 {
 	sccp_msg_t *msg = NULL;
-	sccp_buttonconfig_t *config = NULL, *buttonconfig = NULL;
+	sccp_buttonconfig_t * config = NULL;
+
+	sccp_buttonconfig_t * buttonconfig = NULL;
 	uint8_t instance = 0;
 	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;								// Default feature type.
 	boolean_t lineFound = FALSE;

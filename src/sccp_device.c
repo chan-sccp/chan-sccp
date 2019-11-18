@@ -260,7 +260,9 @@ static boolean_t sccp_device_convUtf8toLatin1(constDevicePtr d, ICONV_CONST char
 		sccp_copy_string(buf, utf8str, len);
 		return TRUE;
 	}
-	size_t incount = 0, outcount = len;
+	size_t incount = 0;
+
+	size_t outcount = len;
 	incount = sccp_strlen(utf8str);
 	if (incount) {
 		pbx_mutex_lock(&d->privateData->iconv_lock);

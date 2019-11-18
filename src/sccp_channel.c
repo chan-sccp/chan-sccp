@@ -336,7 +336,13 @@ EXIT:
 
 static void sccp_channel_recalculateAudioCodecFormat(channelPtr channel)
 {
-	char s1[512], s2[512], s3[512], s4[512];
+	char s1[512];
+
+	char s2[512];
+
+	char s3[512];
+
+	char s4[512];
 	skinny_codec_t joint = channel->rtp.audio.reception.format;
 	skinny_capabilities_t *preferences = &(channel->preferences);
 
@@ -385,7 +391,13 @@ static void sccp_channel_recalculateAudioCodecFormat(channelPtr channel)
 
 static boolean_t sccp_channel_recalculateVideoCodecFormat(channelPtr channel)
 {
-	char s1[512], s2[512], s3[512], s4[512];
+	char s1[512];
+
+	char s2[512];
+
+	char s3[512];
+
+	char s4[512];
 	skinny_codec_t joint = channel->rtp.video.reception.format;
 	skinny_capabilities_t *preferences = &(channel->preferences);
 
@@ -2508,8 +2520,16 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 	{
 		int connectedLineUpdateReason = (sccp_destination_local_channel->state == SCCP_CHANNELSTATE_RINGOUT) ? AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING : AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER;
 
-		char calling_number[StationMaxDirnumSize] = {0}, called_number[StationMaxDirnumSize] = {0}, orig_number[StationMaxDirnumSize] = {0};
-		char calling_name[StationMaxNameSize] = {0}, called_name[StationMaxNameSize] = {0}, orig_name[StationMaxNameSize] = {0};
+		char calling_number[StationMaxDirnumSize] = { 0 };
+
+		char called_number[StationMaxDirnumSize] = { 0 };
+
+		char orig_number[StationMaxDirnumSize] = { 0 };
+		char calling_name[StationMaxNameSize] = { 0 };
+
+		char called_name[StationMaxNameSize] = { 0 };
+
+		char orig_name[StationMaxNameSize] = { 0 };
 
 		iCallInfo.Getter(sccp_channel_getCallInfo(sccp_destination_local_channel), 
 			SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name,

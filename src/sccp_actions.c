@@ -1292,7 +1292,9 @@ static btnlist *sccp_make_button_template(devicePtr d)
  */
 void sccp_handle_AvailableLines(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
-	uint8_t i = 0, line_count = 0;
+	uint8_t i = 0;
+
+	uint8_t line_count = 0;
 	btnlist * btn = NULL;
 
 	line_count = 0;
@@ -1390,7 +1392,9 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 {
 	btnlist * btn = NULL;
 	int i = 0;
-	uint8_t buttonCount = 0, lastUsedButtonPosition = 0;
+	uint8_t buttonCount = 0;
+
+	uint8_t lastUsedButtonPosition = 0;
 
 	sccp_msg_t *msg_out = NULL;
 
@@ -2783,7 +2787,11 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 
 	for (i = 0; i < v_count; i++) {
 		b = v->ptr;
-		uint8_t c = 0, j = 0, cp = 0;
+		uint8_t c = 0;
+
+		uint8_t j = 0;
+
+		uint8_t cp = 0;
 
 		pbx_str_append(&outputStr, buffersize, "%-15s => |", skinny_keymode2str(v->id));
 
@@ -3026,7 +3034,9 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 
 	/* old devices (like 7906) send buttonIndex instead of lineInstance, convert buttonIndex to lineInstance */
 	if (d->protocolversion < 15 && (CallIdAndLineInstance & SCCP_CILI_HAS_LINEINSTANCE)) {
-		int16_t tmpLineInstance = 0, buttonIndex = lineInstance;
+		int16_t tmpLineInstance = 0;
+
+		int16_t buttonIndex = lineInstance;
 		tmpLineInstance = sccp_device_buttonIndex2lineInstance(d, buttonIndex);
 		if(tmpLineInstance >= 0) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) digit:%08x, callid:%d, buttonIndex:%d => lineInstance:%d\n", DEV_ID_LOG(d), digit, callid, buttonIndex, tmpLineInstance);
@@ -3333,7 +3343,13 @@ static channelPtr __get_channel_from_callReference_or_passThruParty(devicePtr d,
  */
 void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
-	uint32_t conferenceId = 0, callReference = 0, passThruPartyId = 0, RTCPPortNumber = 0;
+	uint32_t conferenceId = 0;
+
+	uint32_t callReference = 0;
+
+	uint32_t passThruPartyId = 0;
+
+	uint32_t RTCPPortNumber = 0;
 	skinny_mediaType_t mediaType = SKINNY_MEDIATYPE_SENTINEL;
 	struct sockaddr_storage sas = { 0 };
 
@@ -3382,7 +3398,9 @@ void handle_port_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
-	uint32_t callReference = 0, passThruPartyId = 0;
+	uint32_t callReference = 0;
+
+	uint32_t passThruPartyId = 0;
 	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
 
 	struct sockaddr_storage sas = { 0 };
@@ -3438,7 +3456,11 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
-	uint32_t callReference = 0, passThruPartyId = 0, callReference1 = 0;
+	uint32_t callReference = 0;
+
+	uint32_t passThruPartyId = 0;
+
+	uint32_t callReference1 = 0;
 	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
 
 	struct sockaddr_storage sas = { 0 };
@@ -3499,7 +3521,9 @@ void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessa
 void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
-	uint32_t callReference = 0, passThruPartyId = 0;
+	uint32_t callReference = 0;
+
+	uint32_t passThruPartyId = 0;
 	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
 
 	struct sockaddr_storage sas = { 0 };
@@ -3559,7 +3583,11 @@ void handle_startMultiMediaTransmissionAck(constSessionPtr s, devicePtr d, const
 {
 	struct sockaddr_storage sas = { 0 };
 	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
-	uint32_t passThruPartyId = 0, callReference = 0, callReference1 = 0;
+	uint32_t passThruPartyId = 0;
+
+	uint32_t callReference = 0;
+
+	uint32_t callReference1 = 0;
 	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
 
 	d->protocol->parseStartMultiMediaTransmissionAck(msg_in, &passThruPartyId, &callReference, &callReference1, &mediastatus, &sas);
@@ -4194,7 +4222,9 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 	if (letohl(msg_in->header.lel_protocolVer) >= 16) {
 		handle_updatecapabilities_V2_message(s, d, msg_in);
 	} else {
-		uint8_t audio_capability = 0, audio_capabilities = 0;
+		uint8_t audio_capability = 0;
+
+		uint8_t audio_capabilities = 0;
 		skinny_codec_t audio_codec = SKINNY_CODEC_NONE;
 		uint32_t maxFramesPerPacket = 0;
 		/* parsing audio caps */
@@ -4223,7 +4253,9 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 			sccp_codec_reduceSet(d->preferences.audio , d->capabilities.audio);
 		}
 #ifdef CS_SCCP_VIDEO
-		uint8_t video_customPictureFormat = 0, video_customPictureFormats = 0;
+		uint8_t video_customPictureFormat = 0;
+
+		uint8_t video_customPictureFormats = 0;
 		video_customPictureFormats = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.lel_customPictureFormatCount);
 		for (video_customPictureFormat = 0; video_customPictureFormat < video_customPictureFormats; video_customPictureFormat++) {
 			int width = letohl(msg_in->data.UpdateCapabilitiesMessage.v3.customPictureFormat[video_customPictureFormat].lel_width);
@@ -4235,7 +4267,9 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %6s %-5s customPictureFormat %d: width=%d, height=%d, pixelAspectRatio=%d, pixelClockConversion=%d, pixelClockDivisor=%d\n", DEV_ID_LOG(d), "", "", video_customPictureFormat, width, height, pixelAspectRatio, pixelClockConversion, pixelClockDivisor);
 		}
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
-		uint8_t video_capabilities = 0, video_capability = 0;
+		uint8_t video_capabilities = 0;
+
+		uint8_t video_capability = 0;
 		skinny_codec_t video_codec = SKINNY_CODEC_NONE;
 		boolean_t previousVideoSupport = sccp_device_isVideoSupported(d);					/* to check if this update changes the video capabilities */
 
@@ -4298,7 +4332,9 @@ void handle_updatecapabilities_message(constSessionPtr s, devicePtr d, constMess
 void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	pbx_assert(d != NULL && s != NULL && msg_in != NULL);
-	uint8_t audio_capability = 0, audio_capabilities = 0;
+	uint8_t audio_capability = 0;
+
+	uint8_t audio_capabilities = 0;
 	skinny_codec_t audio_codec = SKINNY_CODEC_NONE;
 	uint32_t maxFramesPerPacket = 0;
 
@@ -4332,7 +4368,9 @@ void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constM
 	handle_updatecapabilities_dissect_customPictureFormat(d, video_customPictureFormats, msg_in->data.UpdateCapabilitiesV2Message.customPictureFormat);
 #endif
 
-	uint8_t video_capabilities = 0, video_capability = 0;
+	uint8_t video_capabilities = 0;
+
+	uint8_t video_capability = 0;
 	skinny_codec_t video_codec = SKINNY_CODEC_NONE;
 	boolean_t previousVideoSupport = sccp_device_isVideoSupported(d);					/* to check if this update changes the video capabilities */
 
@@ -4395,7 +4433,9 @@ void handle_updatecapabilities_V2_message(constSessionPtr s, devicePtr d, constM
 void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	pbx_assert(d != NULL && s != NULL && msg_in != NULL);
-	uint8_t audio_capability = 0, audio_capabilities = 0;
+	uint8_t audio_capability = 0;
+
+	uint8_t audio_capabilities = 0;
 	skinny_codec_t audio_codec = SKINNY_CODEC_NONE;
 	uint32_t maxFramesPerPacket = 0;
 
@@ -4430,7 +4470,9 @@ void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constM
 	handle_updatecapabilities_dissect_customPictureFormat(d, video_customPictureFormats, msg_in->data.UpdateCapabilitiesV3Message.customPictureFormat);
 #endif
 
-	uint8_t video_capabilities = 0, video_capability = 0;
+	uint8_t video_capabilities = 0;
+
+	uint8_t video_capability = 0;
 	skinny_codec_t video_codec = SKINNY_CODEC_NONE;
 	boolean_t previousVideoSupport = sccp_device_isVideoSupported(d);					/* to check if this update changes the video capabilities */
 
@@ -4576,7 +4618,9 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 	if (lineInstance == 0 && callReference == 0) {
 		if (dataLength) {
 			/* split data by "/" */
-			char str_action[11] = "", str_transactionID[11] = "";
+			char str_action[11] = "";
+
+			char str_transactionID[11] = "";
 			if (sscanf(data, "%10[^/]/%10s", str_action, str_transactionID) > 0) {
 				sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s, %s\n", d->id, str_action, str_transactionID);
 				d->dtu_softkey.action = pbx_strdup(str_action);
@@ -4608,7 +4652,9 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 #ifdef CS_SCCP_PARK
 				{
 					//sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle VisualParkingLot Info for AppID %d , Transaction %d, Action: %s, Observer:%d, Data:%s\n", d->id, appID, transactionID, d->dtu_softkey.action, lineInstance, data);
-					char parkinglot[11] = "", slot_exten[11] = "";
+					char parkinglot[11] = "";
+
+					char slot_exten[11] = "";
 					if (sscanf(data, "%10[^/]/%10s", parkinglot, slot_exten) > 0) {
 						iParkingLot.handleDevice2User(parkinglot, d, slot_exten, lineInstance, transactionID);
 					}

@@ -506,7 +506,11 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 	sccp_hint_list_t *hint = NULL;
 
 	char buffer[256] = "";
-	char *splitter = NULL, *hint_exten = NULL, *hint_context = NULL;
+	char * splitter = NULL;
+
+	char * hint_exten = NULL;
+
+	char * hint_context = NULL;
 
 	sccp_copy_string(buffer, hintStr, sizeof(buffer));
 

@@ -502,7 +502,9 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser
 	struct ast_str * http_header = NULL;
 	struct timeval tv;
 	struct ast_tm tm;
-	char timebuf[80], etag[23];
+	char timebuf[80];
+
+	char etag[23];
 	struct ast_variable * v = NULL;
 	int not_modified = 0;
 

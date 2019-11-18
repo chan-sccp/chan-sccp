@@ -208,7 +208,9 @@ int sccp_netsock_cmp_addr(const struct sockaddr_storage *a, const struct sockadd
 	//char *stra = pbx_strdupa(sccp_netsock_stringpify_addr(a));
 	//char *strb = pbx_strdupa(sccp_netsock_stringify_addr(b));
 
-	const struct sockaddr_storage *a_tmp = NULL, *b_tmp = NULL;
+	const struct sockaddr_storage * a_tmp = NULL;
+
+	const struct sockaddr_storage * b_tmp = NULL;
 	struct sockaddr_storage ipv4_mapped;
 	size_t len_a = sccp_netsock_sizeof(a);
 	size_t len_b = sccp_netsock_sizeof(b);

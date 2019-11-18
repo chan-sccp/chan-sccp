@@ -858,7 +858,9 @@ static char * sccp_asterisk_parseStrToAstMessage(char *str, struct message *m)
  */
 static int sccp_asterisk_managerHookHelper(int category, const char *event, char *content)
 {
-	char *str = NULL, *dupStr = NULL;
+	char * str = NULL;
+
+	char * dupStr = NULL;
 
 	if (EVENT_FLAG_CALL == category) {
 		if (!strcasecmp("MonitorStart", event) || !strcasecmp("MonitorStop", event)) {

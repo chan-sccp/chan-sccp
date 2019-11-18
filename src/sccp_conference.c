@@ -1708,7 +1708,9 @@ void sccp_conference_invite_participant(constConferencePtr conference, constPart
 char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
 	int conference_id = 0;
-	int wordlen = strlen(word), which = 0;
+	int wordlen = strlen(word);
+
+	int which = 0;
 	uint i = 0;
 	char *ret = NULL;
 	char tmpname[21];
@@ -1887,7 +1889,9 @@ int sccp_cli_show_conference(int fd, sccp_cli_totals_t *totals, struct mansessio
  */
 int sccp_cli_conference_command(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	int confid = 0, partid = 0;
+	int confid = 0;
+
+	int partid = 0;
 	int local_line_total = 0;
 	int res = RESULT_SUCCESS;
 	char error[100];

@@ -533,7 +533,9 @@ static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Select Pressed\n", DEV_ID_LOG(d));
 	sccp_selectedchannel_t * selectedchannel = NULL;
 	sccp_msg_t * msg = NULL;
-	uint8_t numSelectedChannels = 0, status = 0;
+	uint8_t numSelectedChannels = 0;
+
+	uint8_t status = 0;
 
 	if (!d) {
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "SCCP: (sccp_sk_select) Can't select a channel without a device\n");

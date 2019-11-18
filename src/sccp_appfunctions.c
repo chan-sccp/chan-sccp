@@ -1103,7 +1103,9 @@ static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, void *data)
 #endif
 {
 	char *text = (char *) data;
-	char *num = NULL, *name = NULL;
+	char * num = NULL;
+
+	char * name = NULL;
 	AUTO_RELEASE(sccp_channel_t, c, get_sccp_channel_from_pbx_channel(chan));
 	if(!c) {
 		pbx_log(LOG_WARNING, "SCCPSetCalledParty: Not an SCCP channel\n");

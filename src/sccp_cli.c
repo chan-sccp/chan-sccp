@@ -95,7 +95,9 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
 static char * sccp_complete_device(OLDCONST char * word, int state)
 {
 	sccp_device_t *d = NULL;
-	int wordlen = strlen(word), which = 0;
+	int wordlen = strlen(word);
+
+	int which = 0;
 	char *ret = NULL;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
@@ -113,7 +115,9 @@ static char * sccp_complete_device(OLDCONST char * word, int state)
 static char * sccp_complete_connected_device(OLDCONST char * word, int state)
 {
 	sccp_device_t *d = NULL;
-	int wordlen = strlen(word), which = 0;
+	int wordlen = strlen(word);
+
+	int which = 0;
 	char *ret = NULL;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
@@ -142,7 +146,9 @@ static char * sccp_complete_connected_device(OLDCONST char * word, int state)
 static char * sccp_complete_line(OLDCONST char * word, int state)
 {
 	sccp_line_t *l = NULL;
-	int wordlen = strlen(word), which = 0;
+	int wordlen = strlen(word);
+
+	int which = 0;
 	char *ret = NULL;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
@@ -160,7 +166,9 @@ static char * sccp_complete_line(OLDCONST char * word, int state)
 static char * sccp_complete_connected_line(OLDCONST char * word, int state)
 {
 	sccp_line_t *l = NULL;
-	int wordlen = strlen(word), which = 0;
+	int wordlen = strlen(word);
+
+	int which = 0;
 	char *ret = NULL;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
@@ -190,7 +198,9 @@ static char * sccp_complete_channel(OLDCONST char * word, int state)
 {
 	sccp_line_t *l = NULL;
 	sccp_channel_t *c = NULL;
-	int wordlen = strlen(word), which = 0;
+	int wordlen = strlen(word);
+
+	int which = 0;
 	char *ret = NULL;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
@@ -288,7 +298,9 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 	sccp_channel_t *c = NULL;
 	sccp_line_t *l = NULL;
 
-	int wordlen = strlen(word), which = 0;
+	int wordlen = strlen(word);
+
+	int which = 0;
 	char tmpname[80];
 	char *ret = NULL;
 
@@ -1861,7 +1873,11 @@ static int sccp_test(int fd, int argc, char *argv[])
 	}
 	if (!strcasecmp(argv[2], "labels")) {
 		AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(argv[3], FALSE));
-		uint8_t x = 0, y = 0, block = 0;
+		uint8_t x = 0;
+
+		uint8_t y = 0;
+
+		uint8_t block = 0;
 		char clientAddress[INET6_ADDRSTRLEN];
 
 		pbx_log(LOG_NOTICE, "%s: Running Labels\n", d->id);

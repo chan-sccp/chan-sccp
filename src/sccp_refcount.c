@@ -239,7 +239,9 @@ void sccp_refcount_init(void)
 
 void sccp_refcount_destroy(void)
 {
-	uint32_t hash = 0, type = 0;
+	uint32_t hash = 0;
+
+	uint32_t type = 0;
 	RefCountedObject * obj = NULL;
 
 	pbx_log(LOG_NOTICE, "SCCP: (Refcount) Shutting Down. Checking Clean Shutdown...\n");
@@ -581,7 +583,9 @@ void sccp_refcount_gen_report(const void * const ptr, pbx_str_t **buf)
 int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	int local_line_total = 0;
-	int bucket = 0, prev = 0;
+	int bucket = 0;
+
+	int prev = 0;
 	RefCountedObject *obj = NULL;
 	unsigned int maxdepth = 0;
 	unsigned int numentries = 0;
@@ -847,7 +851,9 @@ gcc_inline void * const sccp_refcount_release(const void * * const ptr, const ch
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) *ptr, obj, -1, filename, lineno, func);
 #endif
-		int newrefcountval = 0, refcountval = 0;
+		int newrefcountval = 0;
+
+		int refcountval = 0;
 		debugcat = (&obj_info[obj->type])->debugcat;
 		// ANNOTATE_HAPPENS_BEFORE(&obj->refcount);
 		do {
@@ -937,7 +943,9 @@ static int refcount_test_destroy(const void *data)
 static void *refcount_test_thread(void *data)
 {
 	enum ast_test_result_state *test_result = (enum ast_test_result_state *)data;
-	struct refcount_test *obj = NULL, *obj1 = NULL;
+	struct refcount_test * obj = NULL;
+
+	struct refcount_test * obj1 = NULL;
 	int objloop = 0;
 	int random_object = 0;
 	unsigned int threadid = (unsigned int)pthread_self();

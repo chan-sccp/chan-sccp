@@ -1143,7 +1143,11 @@ sccp_value_changed_t sccp_config_parse_group(void * const dest, const size_t siz
 
 	char * piece = NULL;
 	char * c = NULL;
-	int start = 0, finish = 0, x = 0;
+	int start = 0;
+
+	int finish = 0;
+
+	int x = 0;
 	sccp_group_t group = 0;
 
 	if (!sccp_strlen_zero(value)) {
@@ -1788,7 +1792,13 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_CHANGED;
 
 	/* parse all button definitions in one pass */
-	char *buttonType = NULL, *buttonName = NULL, *buttonOption = NULL, *buttonArgs = NULL;
+	char * buttonType = NULL;
+
+	char * buttonName = NULL;
+
+	char * buttonOption = NULL;
+
+	char * buttonArgs = NULL;
 	char k_button[256];
 	char * splitter = NULL;
 	sccp_config_buttontype_t type = EMPTY;									/* default to empty */
@@ -2347,7 +2357,11 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
                 /* setup regcontext */
 		char newcontexts[SCCP_MAX_CONTEXT]="";
 		char oldcontexts[SCCP_MAX_CONTEXT]="";
-		char *stringp = NULL, *context = NULL, *oldregcontext = NULL;
+		char * stringp = NULL;
+
+		char * context = NULL;
+
+		char * oldregcontext = NULL;
 
 		sccp_copy_string(newcontexts, GLOB(regcontext), sizeof(newcontexts));
 		//memcpy(newcontexts, GLOB(regcontext), sizeof(newcontexts));
@@ -2379,7 +2393,15 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
  */
 void cleanup_stale_contexts(char *new_contexts, char *old_contexts)
 {
-	char *oldcontext = NULL, *newcontext = NULL, *stalecontext = NULL, *stringp = NULL, newlist[SCCP_MAX_CONTEXT];
+	char * oldcontext = NULL;
+
+	char * newcontext = NULL;
+
+	char * stalecontext = NULL;
+
+	char * stringp = NULL;
+
+	char newlist[SCCP_MAX_CONTEXT];
 
 	while ((oldcontext = strsep(&old_contexts, "&"))) {
 		stalecontext = NULL;
@@ -2879,7 +2901,9 @@ static uint8_t sccp_config_readSoftKeySet(uint8_t * softkeyset, const char * dat
 	if (!data) {
 		return 0;
 	}
-	int i = 0, j = 0;
+	int i = 0;
+
+	int j = 0;
 	int softkey = 0;
 
 	char * labels = pbx_strdupa(data);

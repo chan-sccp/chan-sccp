@@ -990,7 +990,9 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 	struct sccp_ha * prev = NULL;
 	struct sccp_ha * ret = NULL;
 	char *tmp = pbx_strdupa(stuff);
-	char *address = NULL, *mask = NULL;
+	char * address = NULL;
+
+	char * mask = NULL;
 	int addr_is_v4 = 0;
 
 	ret = path;
@@ -1122,7 +1124,17 @@ void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path)
 AST_TEST_DEFINE(chan_sccp_acl_tests)
 {
 	struct sccp_ha *ha = NULL;
-	struct sockaddr_storage sas10, sas1015, sas172, sas200, sasff, sasffff;
+	struct sockaddr_storage sas10;
+
+	struct sockaddr_storage sas1015;
+
+	struct sockaddr_storage sas172;
+
+	struct sockaddr_storage sas200;
+
+	struct sockaddr_storage sasff;
+
+	struct sockaddr_storage sasffff;
 	int error = 0;
 
 	switch (cmd) {
@@ -1387,8 +1399,14 @@ int sockaddr_cmp_addr(struct sockaddr_storage *addr1, socklen_t len1, struct soc
 int __PURE__ sccp_strversioncmp(const char *s1, const char *s2)
 {
 	static const char *digits = "0123456789";
-	int ret = 0, lz1 = 0, lz2 = 0;
-	size_t p1 = 0, p2 = 0;
+	int ret = 0;
+
+	int lz1 = 0;
+
+	int lz2 = 0;
+	size_t p1 = 0;
+
+	size_t p2 = 0;
 
 	p1 = strcspn(s1, digits);
 	p2 = strcspn(s2, digits);
@@ -1871,7 +1889,9 @@ void sccp_do_backtrace()
 
 #if defined(HAVE_EXECINFO_H) && defined(HAVE_BKTR)
 	void	*addresses[SCCP_BACKTRACE_SIZE];
-	size_t size = 0, i = 0;
+	size_t size = 0;
+
+	size_t i = 0;
 	bt_string_t * strings = NULL;
 	struct ast_str * btbuf = NULL;
 	if (!(btbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE * 2))) {

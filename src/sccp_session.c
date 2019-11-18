@@ -909,7 +909,9 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 		memcpy(&boundaddr, bindaddr, sizeof(struct sockaddr_storage));
 		char port_str[15] = "cisco-sccp";
 
-		struct addrinfo hints, *res = NULL;
+		struct addrinfo hints;
+
+		struct addrinfo * res = NULL;
 		memset(&hints, 0, sizeof hints);								// make sure the struct is empty
 		hints.ai_family = AF_UNSPEC;									// don't care IPv4 or IPv6
 		hints.ai_socktype = SOCK_STREAM;								// TCP stream sockets

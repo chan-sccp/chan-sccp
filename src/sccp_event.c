@@ -301,8 +301,14 @@ boolean_t sccp_event_fire(sccp_event_t * event)
 {
 	boolean_t res = FALSE;
 	if (event) {
-		sccp_event_vector_t *sync_subscribers_cpy = NULL, *async_subscribers_cpy = NULL;
-		size_t subsize = 0, syncsize = 0, asyncsize = 0;
+		sccp_event_vector_t * sync_subscribers_cpy = NULL;
+
+		sccp_event_vector_t * async_subscribers_cpy = NULL;
+		size_t subsize = 0;
+
+		size_t syncsize = 0;
+
+		size_t asyncsize = 0;
 		uint8_t _idx = __search_for_position_in_event_array(event->type);
 		
 		/* copy both vectors to a local copy while holding the rwlock */
@@ -440,7 +446,9 @@ AST_TEST_DEFINE(sccp_event_test_subscribe_multi)
 		case TEST_EXECUTE:
 			break;
 	}
-	int registration = 0, numregistrations = 10;
+	int registration = 0;
+
+	int numregistrations = 10;
 
 	pbx_test_status_update(test, "subscribe to SCCP_EVENT_TEST and SCCP_EVENT_LINESTATUS_CHANGED\n");
 	for (registration = 0; registration < numregistrations; registration++) {
@@ -487,7 +495,9 @@ AST_TEST_DEFINE(sccp_event_test_subscribe_multi_sync)
 		case TEST_EXECUTE:
 			break;
 	}
-	int registration = 0, numregistrations = 10;
+	int registration = 0;
+
+	int numregistrations = 10;
 
 	pbx_test_status_update(test, "subscribe to SCCP_EVENT_TEST and SCCP_EVENT_LINESTATUS_CHANGED\n");
 	for (registration = 0; registration < numregistrations; registration++) {

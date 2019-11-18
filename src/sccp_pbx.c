@@ -830,7 +830,9 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (pbx_channel_allocate) try to allocate %s channel on line: %s\n", skinny_calltype2str(c->calltype), l->name);
 	/* Don't hold a sccp pvt lock while we allocate a channel */
-	char s1[512], s2[512];
+	char s1[512];
+
+	char s2[512];
 
 	char cid_name[StationMaxNameSize] = {0};
 	char cid_num[StationMaxDirnumSize] = {0};
