@@ -168,7 +168,7 @@ int sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr
 	return -2;
 }
 
-static void socket_get_error(constSessionPtr s, const char* file, int line, const char *function, int __errnum)
+static void socket_get_error(constSessionPtr s, const char * file, int line, const char * function)
 {
 	if (errno) {
 		if (errno == ECONNRESET) {
@@ -483,7 +483,7 @@ void sccp_session_releaseDevice(constSessionPtr volatile session)
  *      - sessions
  *      - device
  */
-static void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
+static void destroy_session(sccp_session_t * s)
 {
 	if (!s) {
 		return;
@@ -548,7 +548,7 @@ void sccp_session_device_thread_exit(void *session)
 	}*/
 	sccp_session_unlock(s);
 	s->session_thread = AST_PTHREADT_NULL;
-	destroy_session(s, SESSION_DEVICE_CLEANUP_TIME);
+	destroy_session(s);
 }
 
 gcc_inline void recalc_wait_time(sccp_session_t *s)
@@ -639,7 +639,7 @@ void *sccp_session_device_thread(void *session)
 		if (-1 == res) {										/* poll data processing */
 			if (errno > 0 && (errno != EAGAIN) && (errno != EINTR)) {
 				pbx_log(LOG_ERROR, "%s: poll() returned %d. errno: %s, (ip-address: %s)\n", DEV_ID_LOG(s->device), errno, strerror(errno), s->designator);
-				socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
+				socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 				break;
 			}
@@ -657,7 +657,7 @@ void *sccp_session_device_thread(void *session)
 				s->lastKeepAlive = time(0);
 				if (result <= 0) {
 					if (result < 0 || (errno != EINTR || errno != EAGAIN)) {
-						socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
+						socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 						break;
 					}				
 				} else if (!((recv_len += result) && ((SCCP_MAX_PACKET * 2) - recv_len) && process_buffer(s, &msg, recv_buffer, &recv_len) == 0)) {
@@ -836,7 +836,7 @@ static void *accept_thread(void *ignore)
 		recalc_wait_time(s);
 		
 		if (pbx_pthread_create(&s->session_thread, NULL, sccp_session_device_thread, s)) {
-			destroy_session(s, 0);
+			destroy_session(s);
 		}
 	}
 	close(new_socket);
@@ -1053,7 +1053,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 				backoff *= 2;
 				continue;
 			}
-			socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
+			socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 			if (s) {
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 			}

@@ -92,7 +92,7 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
  * 
  * \called_from_asterisk
  */
-static char *sccp_complete_device(OLDCONST char *line, OLDCONST char *word, int pos, int state)
+static char * sccp_complete_device(OLDCONST char * word, int state)
 {
 	sccp_device_t *d = NULL;
 	int wordlen = strlen(word), which = 0;
@@ -110,7 +110,7 @@ static char *sccp_complete_device(OLDCONST char *line, OLDCONST char *word, int 
 	return ret;
 }
 
-static char *sccp_complete_connected_device(OLDCONST char *line, OLDCONST char *word, int pos, int state)
+static char * sccp_complete_connected_device(OLDCONST char * word, int state)
 {
 	sccp_device_t *d = NULL;
 	int wordlen = strlen(word), which = 0;
@@ -139,7 +139,7 @@ static char *sccp_complete_connected_device(OLDCONST char *line, OLDCONST char *
  * \called_from_asterisk
  * 
  */
-static char *sccp_complete_line(OLDCONST char *line, OLDCONST char *word, int pos, int state)
+static char * sccp_complete_line(OLDCONST char * word, int state)
 {
 	sccp_line_t *l = NULL;
 	int wordlen = strlen(word), which = 0;
@@ -157,7 +157,7 @@ static char *sccp_complete_line(OLDCONST char *line, OLDCONST char *word, int po
 	return ret;
 }
 
-static char *sccp_complete_connected_line(OLDCONST char *line, OLDCONST char *word, int pos, int state)
+static char * sccp_complete_connected_line(OLDCONST char * word, int state)
 {
 	sccp_line_t *l = NULL;
 	int wordlen = strlen(word), which = 0;
@@ -186,7 +186,7 @@ static char *sccp_complete_connected_line(OLDCONST char *line, OLDCONST char *wo
  * \called_from_asterisk
  * 
  */
-static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int pos, int state)
+static char * sccp_complete_channel(OLDCONST char * word, int state)
 {
 	sccp_line_t *l = NULL;
 	sccp_channel_t *c = NULL;
@@ -222,7 +222,7 @@ static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int
  * 
  * \called_from_asterisk
  */
-static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int pos, int state)
+static char * sccp_complete_debug(OLDCONST char * line, OLDCONST char * word, int state)
 {
 	uint8_t i = 0;
 	int wordlen = strlen(word);
@@ -343,7 +343,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 					}
 				}
 			} else if (strstr(line, "debug") != NULL) {
-				return sccp_complete_debug(line, word, pos, state);
+				return sccp_complete_debug(line, word, state);
 			}
 			break;
 		case 4:											// properties
@@ -362,7 +362,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 					}
 				}
 			} else if (strstr(line, "debug") != NULL) {
-				return sccp_complete_debug(line, word, pos, state);
+				return sccp_complete_debug(line, word, state);
 			}
 			break;
 		case 5:											// values_hold
@@ -374,7 +374,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 					}
 				}
 			} else if (strstr(line, "debug") != NULL) {
-				return sccp_complete_debug(line, word, pos, state);
+				return sccp_complete_debug(line, word, state);
 			}
 			break;
 		case 6:											// values_hold off device
@@ -383,7 +383,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 					return pbx_strdup("device");
 				}
 			} else if (strstr(line, "debug") != NULL) {
-				return sccp_complete_debug(line, word, pos, state);
+				return sccp_complete_debug(line, word, state);
 			}
 			break;
 		case 7:											// values_hold off device
@@ -397,12 +397,12 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				}
 				SCCP_RWLIST_UNLOCK(&GLOB(devices));
 			} else if (strstr(line, "debug") != NULL) {
-				return sccp_complete_debug(line, word, pos, state);
+				return sccp_complete_debug(line, word, state);
 			}
 			break;
 		default:
 			if (strstr(line, "debug") != NULL) {
-				return sccp_complete_debug(line, word, pos, state);
+				return sccp_complete_debug(line, word, state);
 			}
 			break;
 	}
@@ -419,19 +419,19 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
 			completerStr = NULL;
 			break;
 		case SCCP_CLI_DEVICE_COMPLETER:
-			completerStr = sccp_complete_device(line, word, pos, state);
+			completerStr = sccp_complete_device(word, state);
 			break;
 		case SCCP_CLI_CONNECTED_DEVICE_COMPLETER:
-			completerStr = sccp_complete_connected_device(line, word, pos, state);
+			completerStr = sccp_complete_connected_device(word, state);
 			break;
 		case SCCP_CLI_LINE_COMPLETER:
-			completerStr = sccp_complete_line(line, word, pos, state);
+			completerStr = sccp_complete_line(word, state);
 			break;
 		case SCCP_CLI_CONNECTED_LINE_COMPLETER:
-			completerStr = sccp_complete_connected_line(line, word, pos, state);
+			completerStr = sccp_complete_connected_line(word, state);
 			break;
 		case SCCP_CLI_CHANNEL_COMPLETER:
-			completerStr = sccp_complete_channel(line, word, pos, state);
+			completerStr = sccp_complete_channel(word, state);
 			break;
 		case SCCP_CLI_CONFERENCE_COMPLETER:
 #ifdef CS_SCCP_CONFERENCE
@@ -439,7 +439,7 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
 #endif
 			break;
 		case SCCP_CLI_DEBUG_COMPLETER:
-			completerStr = sccp_complete_debug(line, word, pos, state);
+			completerStr = sccp_complete_debug(line, word, state);
 			break;
 		case SCCP_CLI_SET_COMPLETER:
 			completerStr = sccp_complete_set(line, word, pos, state);

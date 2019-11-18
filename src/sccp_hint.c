@@ -125,7 +125,7 @@ static void sccp_hint_deviceUnRegistered(const char *deviceName);
 static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const char *hintStr, const uint8_t instance, const uint8_t positionOnDevice);
 static void sccp_hint_attachLine(sccp_line_t * line, sccp_device_t * device);
 static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device);
-static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device);
+static void sccp_hint_lineStatusChanged(sccp_line_t * line);
 static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event);
 static void sccp_hint_eventListener(const sccp_event_t * event);
 #ifdef CS_DYNAMIC_SPEEDDIAL
@@ -420,7 +420,7 @@ static void sccp_hint_eventListener(const sccp_event_t * event)
 		case SCCP_EVENT_LINESTATUS_CHANGED:
 			pbx_rwlock_rdlock(&GLOB(lock));
 			if(!GLOB(reload_in_progress)) { /* skip processing hints when reloading */
-				sccp_hint_lineStatusChanged(event->lineStatusChanged.line, event->lineStatusChanged.optional_device);
+				sccp_hint_lineStatusChanged(event->lineStatusChanged.line);
 			}
 			pbx_rwlock_unlock(&GLOB(lock));
 			break;
@@ -701,15 +701,15 @@ static void sccp_hint_attachLine(sccp_line_t * line, sccp_device_t * device)
 		lineState->line = sccp_line_retain(line);
 	}
 	SCCP_LIST_UNLOCK(&lineStates);
-	
-	sccp_hint_lineStatusChanged(line, device);
+
+	sccp_hint_lineStatusChanged(line);
 }
 
 static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device) 
 {
 	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(line));
 	if (l) {
-		sccp_hint_lineStatusChanged(line, device);
+		sccp_hint_lineStatusChanged(line);
 		struct sccp_hint_lineState *lineState = NULL;
 
 		if (line->statistic.numberOfActiveDevices == 0) {		/* release last instance of lineState->line */
@@ -738,7 +738,7 @@ static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device)
  * \param device SCCP Device who initialied the change
  * 
  */
-static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device)
+static void sccp_hint_lineStatusChanged(sccp_line_t * line)
 {
 	struct sccp_hint_lineState *lineState = NULL;
 
@@ -1034,7 +1034,7 @@ static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 
 							if (line) {
 								sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s (hint_handleFeatureChangeEvent) Notify the dnd status (%s) to asterisk for line %s\n", d->id, d->dndFeature.status ? "on" : "off", line->name);
-								sccp_hint_lineStatusChanged(line, d);
+								sccp_hint_lineStatusChanged(line);
 							}
 						}
 					}

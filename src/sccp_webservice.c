@@ -351,14 +351,8 @@ static __attribute__ ((malloc)) char * findStylesheet(const char *const uri, scc
 	return searchWebDirForFile(uri, outputfmt, "xsl");
 }
 
-static int request_parser (
-	struct ast_tcptls_session_instance 	* ser,
-	enum ast_http_method 			method,
-	const struct ast_sockaddr 		* remote_address,
-	const char 				* request_uri,
-	PBX_VARIABLE_TYPE 			* request_params,
-	PBX_VARIABLE_TYPE 			* request_headers
-) {
+static int request_parser(struct ast_tcptls_session_instance * ser, enum ast_http_method method, const char * request_uri, PBX_VARIABLE_TYPE * request_params, PBX_VARIABLE_TYPE * request_headers)
+{
 	int result = 0;
 	pbx_str_t *http_header = NULL;
 	pbx_str_t *out = NULL;
@@ -479,7 +473,7 @@ static int sccp_webservice_callback(struct ast_tcptls_session_instance *ser, con
 		}
 		
 		ast_sockaddr_copy(&ser_remote_address_tmp, &ser->remote_address);
-		retval = request_parser(ser, method, &ser_remote_address_tmp, uri, params, headers);
+		retval = request_parser(ser, method, uri, params, headers);
 		ast_sockaddr_copy(&ser->remote_address, &ser_remote_address_tmp);
 	}
 	return retval;

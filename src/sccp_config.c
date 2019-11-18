@@ -1280,7 +1280,7 @@ sccp_value_changed_t sccp_config_parse_hotline_label(void * const dest, const si
  *
  * \note not multi_entry
  */
-static sccp_value_changed_t sccp_config_parse_jbflags(void * const dest, const size_t size, const char * value, const sccp_config_segment_t segment, const unsigned int flag)
+static sccp_value_changed_t sccp_config_parse_jbflags(void * const dest, const char * value, const unsigned int flag)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 
@@ -1297,21 +1297,21 @@ sccp_value_changed_t sccp_config_parse_jbflags_enable(void * const dest, const s
 {
 	char *value = pbx_strdupa(v->value);
 
-	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_ENABLED);
+	return sccp_config_parse_jbflags(dest, value, AST_JB_ENABLED);
 }
 
 sccp_value_changed_t sccp_config_parse_jbflags_force(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	char *value = pbx_strdupa(v->value);
 
-	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_FORCED);
+	return sccp_config_parse_jbflags(dest, value, AST_JB_FORCED);
 }
 
 sccp_value_changed_t sccp_config_parse_jbflags_log(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	char *value = pbx_strdupa(v->value);
 
-	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_LOG);
+	return sccp_config_parse_jbflags(dest, value, AST_JB_LOG);
 }
 
 sccp_value_changed_t sccp_config_parse_jbflags_maxsize(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
@@ -2157,7 +2157,7 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
  * \callergraph
  * 
  */
-static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const char *lineName, boolean_t isRealtime)
+static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, boolean_t isRealtime)
 {
 	sccp_configurationchange_t res = sccp_config_applyLineConfiguration(l, v);
 	if(!l) {
@@ -2190,7 +2190,7 @@ static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const 
  * \callergraph
  * 
  */
-static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * variable, const char *deviceName, boolean_t isRealtime)
+static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * variable, boolean_t isRealtime)
 {
 	PBX_VARIABLE_TYPE *v = variable;
 	if(!d) {
@@ -2478,7 +2478,7 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 					device->pendingDelete = 0;
 				}
 			}
-			sccp_config_buildDevice(device, v, cat, FALSE);
+			sccp_config_buildDevice(device, v, FALSE);
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found device %d: %s\n", device_count, cat);
 			/* load saved settings from ast db */
 			sccp_config_restoreDeviceFeatureStatus(device);
@@ -2505,9 +2505,9 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			/* check if we have this line already */
 			if (l) {
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found line %d: %s, do update\n", line_count, cat);
-				sccp_config_buildLine(l, v, cat, FALSE);
+				sccp_config_buildLine(l, v, FALSE);
 			} else if((l = sccp_line_create(cat)) /*ref_replace*/) {
-				sccp_config_buildLine(l, v, cat, FALSE);
+				sccp_config_buildLine(l, v, FALSE);
 				sccp_line_addToGlobals(l);						/* may find another line instance create by another thread, in that case the newly created line is going to be dropped when l is released */
 			} else {
 				return FALSE;
@@ -3357,7 +3357,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 	return 0;
 }
 
-static int _config_generate_wiki(char * filename, int configType)
+static int _config_generate_wiki(char * filename)
 {
 	const SCCPConfigSegment * sccpConfigSegment = NULL;
 	const SCCPConfigOption * config = NULL;
@@ -3480,7 +3480,7 @@ static int _config_generate_wiki(char * filename, int configType)
 int sccp_config_generate(char *filename, int configType)
 {
 	if(configType == 3) {
-		return _config_generate_wiki(filename, configType);
+		return _config_generate_wiki(filename);
 	}
 	const SCCPConfigSegment * sccpConfigSegment = NULL;
 	const SCCPConfigOption * config = NULL;

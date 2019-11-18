@@ -452,7 +452,7 @@ static gcc_inline int __sccp_refcount_debug(const void *ptr, RefCountedObject * 
 }
 #endif
 
-static gcc_inline RefCountedObject *sccp_refcount_find_obj(const void * const ptr, const char *filename, int lineno, const char *func)
+static gcc_inline RefCountedObject * sccp_refcount_find_obj(const void * const ptr, int lineno, const char * func)
 {
 	if (!ptr) {
 		return NULL;
@@ -733,7 +733,7 @@ int sccp_refcount_force_release(long findobj, char *identifier)
 
 void sccp_refcount_updateIdentifier(const void * const ptr, const char * const identifier)
 {
-	RefCountedObject *obj = sccp_refcount_find_obj(ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	RefCountedObject * obj = sccp_refcount_find_obj(ptr, __LINE__, __PRETTY_FUNCTION__);
 	if (!obj) {
 		pbx_log(LOG_ERROR, "SCCP: (updateIdentifier) Refcount Object %p could not be found\n", ptr);
 		return;
@@ -799,7 +799,7 @@ gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char 
 #endif	
 	RefCountedObject *obj = NULL;
 
-	if (do_expect((obj = sccp_refcount_find_obj(ptr, filename, lineno, func)) != NULL)) {
+	if(do_expect((obj = sccp_refcount_find_obj(ptr, lineno, func)) != NULL)) {
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug(ptr, obj, 1, filename, lineno, func);
 #endif
@@ -843,7 +843,7 @@ gcc_inline void * const sccp_refcount_release(const void * * const ptr, const ch
 	RefCountedObject *obj = NULL;
 	sccp_debug_category_t debugcat = 0;
 
-	if (do_expect( (obj = sccp_refcount_find_obj(*ptr, filename, lineno, func)) != NULL && ATOMIC_FETCH((&obj->refcount),&obj->lock) > 0)) {
+	if(do_expect((obj = sccp_refcount_find_obj(*ptr, lineno, func)) != NULL && ATOMIC_FETCH((&obj->refcount), &obj->lock) > 0)) {
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) *ptr, obj, -1, filename, lineno, func);
 #endif
