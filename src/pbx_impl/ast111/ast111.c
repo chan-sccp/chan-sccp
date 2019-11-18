@@ -1725,6 +1725,11 @@ static enum ast_rtp_glue_result sccp_astwrap_get_vrtp_info(PBX_CHANNEL_TYPE * as
 		return AST_RTP_GLUE_RESULT_FORBID;
 	}
 
+	if(sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_OFF) {
+		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_2 "%s: (get_rtp_info) Video Not supported on this device\n", c->designator);
+		return AST_RTP_GLUE_RESULT_LOCAL;
+	}
+
 	if (pbx_channel_state(ast) != AST_STATE_UP) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_vrtp_info) Asterisk requested EarlyRTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
 	} else {

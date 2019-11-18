@@ -2010,7 +2010,7 @@ static enum ast_rtp_glue_result __get_rtp_info(PBX_CHANNEL_TYPE * ast, PBX_RTP_T
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) Asterisk requested EarlyRTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
 		return AST_RTP_GLUE_RESULT_LOCAL;		
 	} else {
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) Asterisk requested RTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (get_rtp_info) Asterisk requested %s peer for channel %s\n", c->currentDeviceId, sccp_rtp_type2str(rtptype), pbx_channel_name(ast));
 	}
 
 	if(rtptype == SCCP_RTP_AUDIO) {
@@ -2018,9 +2018,14 @@ static enum ast_rtp_glue_result __get_rtp_info(PBX_CHANNEL_TYPE * ast, PBX_RTP_T
 	}
 #ifdef CS_SCCP_VIDEO
 	else if(rtptype == SCCP_RTP_VIDEO) {
+		if(sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_OFF) {
+			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_2 "%s: (get_rtp_info) Video Not supported on this device\n", c->designator);
+			return AST_RTP_GLUE_RESULT_LOCAL;
+		}
 		rtpInfo = sccp_rtp_getVideoPeerInfo(c, &RTP);
 	}
 #endif
+
 	if(rtpInfo == SCCP_RTP_INFO_NORTP || RTP == NULL) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_2 "%s: (get_rtp_info) got SCCP_RTP_INFO_NORTP => returning AST_RTP_GLUE_RESULT_FORBID\n", c->designator);
 		return AST_RTP_GLUE_RESULT_FORBID;
@@ -2028,7 +2033,7 @@ static enum ast_rtp_glue_result __get_rtp_info(PBX_CHANNEL_TYPE * ast, PBX_RTP_T
 
 	*rtp = RTP->instance;
 	if (!*rtp) {
-		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_2 "%s: (get_rtp_info) no rtp instance yet => returning AST_RTP_GLUE_RESULT_FORBID\n", c->designator);
+		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_2 "%s: (get_rtp_info) no %s instance yet => returning AST_RTP_GLUE_RESULT_FORBID\n", c->designator, sccp_rtp_type2str(rtptype));
 		return AST_RTP_GLUE_RESULT_FORBID;
 	}
 #ifdef HAVE_PBX_RTP_ENGINE_H
@@ -2044,7 +2049,7 @@ static enum ast_rtp_glue_result __get_rtp_info(PBX_CHANNEL_TYPE * ast, PBX_RTP_T
 	}
 
 	if (!(rtpInfo & SCCP_RTP_INFO_ALLOW_DIRECTRTP)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (get_rtp_info) Direct %s disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", c->currentDeviceId, sccp_rtp_type2str(rtptype), pbx_channel_name(ast));
 		return AST_RTP_GLUE_RESULT_LOCAL;
 	}
 
