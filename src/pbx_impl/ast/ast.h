@@ -104,7 +104,6 @@ int pbx_context_remove_extension(const char *context, const char *extension, int
 void pbxman_send_listack(struct mansession *s, const struct message *m, char *msg, char *listflag);
 int pbx_moh_start(PBX_CHANNEL_TYPE * chan, const char *mclass, const char *interpclass);
 PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data);
-const char *pbx_inet_ntoa(struct in_addr ia);
 
 #define ast_format_type int
 #define pbx_format_type uint64_t
