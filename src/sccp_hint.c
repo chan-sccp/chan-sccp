@@ -1180,7 +1180,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					/* fall through */
 
 				default:
-#ifdef CS_DYNAMIC_SPEEDDIAL
 					if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
 						if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
 							iCallInfo.Getter(hint->callInfo, 
@@ -1201,7 +1200,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 						}
 					} else 
-#endif
 					{
 						snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 					}
