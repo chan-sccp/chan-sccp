@@ -1039,10 +1039,10 @@ char * sccp_manager_retrieve_parkedcalls_cxml(char ** out)
 			usleep(500);
 
 			token = sccp_asterisk_parseStrToAstMessage(token, &m);
-		        event  = astman_get_header(&m, "Event");
+			event = astman_get_header(&m, "Event");
 			if (sccp_strcaseequals(event, "ParkedCallsComplete")) {
 				break;
-			} else if (sccp_strcaseequals(event, "ParkedCall")){
+			} else if(sccp_strcaseequals(event, "ParkedCall")) {
 				pbx_str_append(&tmpPbxStr, 0, "<Name>%s (%s) by %s</Name><Telephone>%s</Telephone>", 
 					astman_get_header((const struct message *)&m, "CallerIdName"), 
 					astman_get_header((const struct message *)&m, "CallerIdNum"),
@@ -1051,8 +1051,8 @@ char * sccp_manager_retrieve_parkedcalls_cxml(char ** out)
 				);
 				sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "SCCP: Found ParkedCall: %s on %s@%s\n", astman_get_header((const struct message *)&m, "Channel"), astman_get_header((const struct message *)&m, "Exten"), astman_get_header((const struct message *)&m, "ParkingLot"));
 			}
-		        memset(&m, 0, sizeof(m));
-		        strptr = rest;
+			memset(&m, 0, sizeof(m));
+			strptr = rest;
 		}
 		pbx_str_append(&tmpPbxStr, 0, "</DirectoryEntry>");
 		pbx_str_append(&tmpPbxStr, 0, "</CiscoIPPhoneDirectory>");
