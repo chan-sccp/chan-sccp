@@ -38,7 +38,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include <asterisk/pbx.h>			// AST_EXTENSION_NOT_INUSE
 
 static uint32_t callCount = 1;
-int __sccp_channel_destroy(const void * channel);
+int __sccp_channel_destroy(const void * data);
 
 AST_MUTEX_DEFINE_STATIC(callCountLock);
 
