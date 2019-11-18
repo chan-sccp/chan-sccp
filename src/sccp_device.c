@@ -1816,7 +1816,6 @@ void sccp_dev_cleardisplay(constDevicePtr d)
 	//}
 	//sccp_dev_sendmsg(d, ClearDisplay);  
 	//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Clear the display\n", d->id);
-	return;
 }
 
 #if UNUSEDCODE // 2015-11-01
@@ -2323,7 +2322,6 @@ void sccp_dev_postregistration(devicePtr d)
 		sccp_dev_setHookFlashDetect(d);
 	}
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
-	return;
 }
 
 static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)

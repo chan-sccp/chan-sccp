@@ -1005,7 +1005,6 @@ FUNC_EXIT:
 	if (device) {
 		device->session = NULL;
 	}
-	return;
 }
 
 /*!
@@ -2263,8 +2262,6 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 		//sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Status: %d\n", d->id, instance, config->button.feature.status);
 		sccp_feat_changed(d, NULL, config->button.feature.id);
 	}
-
-	return;
 }
 
 /*!
@@ -2506,8 +2503,6 @@ void handle_onhook(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 		sccp_dev_stoptone(d, 0, 0);
 	}
-
-	return;
 }
 
 /*!

@@ -1107,7 +1107,6 @@ void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPt
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Session %p needs to be closed!\n", current_session->designator, previous_session->designator);
 		__sccp_netsock_end_device_thread(previous_session);
 	}
-	return;
 }
 
 gcc_inline boolean_t sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr device)

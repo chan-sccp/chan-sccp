@@ -1356,7 +1356,6 @@ void sccp_print_group(struct ast_str *buf, int buflen, sccp_group_t group)
 			pbx_str_append(&buf, buflen, "%d", i);
 		}
 	}
-	return;
 }
 
 #if 0
