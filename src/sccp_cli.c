@@ -224,7 +224,7 @@ static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int
  */
 static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
-	uint8_t i;
+	uint8_t i = 0;
 	int wordlen = strlen(word);
 	int which = 0;
 	char *ret = NULL;
@@ -283,7 +283,7 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
  */
 static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
-	uint8_t i;
+	uint8_t i = 0;
 	sccp_device_t *d = NULL;
 	sccp_channel_t *c = NULL;
 	sccp_line_t *l = NULL;
@@ -736,7 +736,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	char clientAddress[INET6_ADDRSTRLEN];
 	char serverAddress[INET6_ADDRSTRLEN];
 
-	const char *dev;
+	const char * dev = NULL;
 
 	if (argc < 4) {
 		pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
@@ -777,7 +777,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 		snprintf(serverAddress, sizeof(serverAddress), "%s", "???.???.???.???");
 	}
 
-	sccp_hostname_t *hostname;
+	sccp_hostname_t * hostname = NULL;
 	sccp_accessory_t activeAccessory = sccp_device_getActiveAccessory(d);
 	sccp_accessorystate_t activeAccessoryState = sccp_device_getAccessoryStatus(d, activeAccessory);
 
@@ -1024,7 +1024,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 			local_table_total++;
 	}
 
-	sccp_call_statistics_type_t callstattype;
+	sccp_call_statistics_type_t callstattype = 0;
 	sccp_call_statistics_t *stats = NULL;
 
 #define CLI_AMI_TABLE_NAME CallStatistics
@@ -1087,7 +1087,7 @@ CLI_AMI_ENTRY(show_device, sccp_show_device, "Lists device settings", cli_device
 static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_line_t *l = NULL;
-	boolean_t found_linedevice;
+	boolean_t found_linedevice = 0;
 	sccp_linedevice_t * ld = NULL;
 	sccp_channel_t *channel = NULL;
 	char cap_buf[512] = {0};
@@ -1861,7 +1861,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 	}
 	if (!strcasecmp(argv[2], "labels")) {
 		AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(argv[3], FALSE));
-		uint8_t x, y, block;
+		uint8_t x = 0, y = 0, block = 0;
 		char clientAddress[INET6_ADDRSTRLEN];
 
 		pbx_log(LOG_NOTICE, "%s: Running Labels\n", d->id);
@@ -2470,7 +2470,7 @@ static int sccp_callforward(int fd, sccp_cli_totals_t *totals, struct mansession
 		sccp_line_cfwd(l, d, type, dest);
 		local_line_total++;
 	} else {
-		sccp_linedevice_t * ld;
+		sccp_linedevice_t * ld = NULL;
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
 			CLI_AMI_OUTPUT(fd, s, " - on line:%s and device:%s\r\n", l->name, ld->device->id);
@@ -2696,7 +2696,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	boolean_t force_reload = FALSE;
 	int returnval = RESULT_FAILURE;
 	//sccp_configurationchange_t change;
-	unsigned int change;
+	unsigned int change = 0;
 	sccp_buttonconfig_t *config = NULL;
 
 	if (argc < 2 || argc > 4) {
@@ -2725,7 +2725,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 
 				if (!device) {
 					pbx_cli(fd, "Could not find device %s\n", argv[3]);
-					const char *utype;
+					const char * utype = NULL;
 
 					utype = pbx_variable_retrieve(GLOB(cfg), argv[3], "type");
 					if (utype && !strcasecmp(utype, "device")) {
@@ -2784,7 +2784,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 #endif
 				if (!line) {
 					pbx_cli(fd, "Could not find line %s\n", argv[3]);
-					const char *utype;
+					const char * utype = NULL;
 
 					utype = pbx_variable_retrieve(GLOB(cfg), argv[3], "type");
 					if (utype && !strcasecmp(utype, "line")) {
@@ -2870,8 +2870,8 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 		} else if (sccp_strequals("file", argv[2])) {
 			if (argc == 4) {
 				// build config file path
-				char *buf;
-				int buflen;
+				char * buf = NULL;
+				int buflen = 0;
 				if (argv[3][0] != '/') { 
 					buflen = strlen(ast_config_AST_CONFIG_DIR) + strlen(argv[3]) + 2;
 					buf = (char *)alloca(buflen);
@@ -3256,7 +3256,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 {
 	AUTO_RELEASE(sccp_channel_t, c , NULL);
 	PBX_VARIABLE_TYPE variable;
-	int res;
+	int res = 0;
 	int cli_result = RESULT_SUCCESS;
 
 	if (argc < 2) {
@@ -3275,7 +3275,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 		// sccp set channel SCCP/test123-123 hold on
 		if (!strncasecmp("SCCP/", argv[3], 5)) {
 			char line[80];
-			int channel;
+			int channel = 0;
 
 			sscanf(argv[3], "SCCP/%[^-]-%08x", line, &channel);
 			// c = sccp_find_channel_on_line_byid(l, channeId);	// possible replacement, to also check if the line provided can be matched up.
@@ -3476,7 +3476,7 @@ static int sccp_answercall(int fd, sccp_cli_totals_t *totals, struct mansession 
 
 	if (!strncasecmp("SCCP/", argv[2], 5)) {
 		char line[80];
-		int channelId;
+		int channelId = 0;
 
 		sscanf(argv[2], "SCCP/%[^-]-%08x", line, &channelId);
 		// c = sccp_find_channel_on_line_byid(l, channeId);	// possible replacement, to also check if the line provided can be matched up.
@@ -3560,7 +3560,7 @@ static int sccp_end_call(int fd, int argc, char *argv[])
 	}
 	if (!strncasecmp("SCCP/", argv[2], 5)) {
 		char line[80];
-		int channel;
+		int channel = 0;
 
 		sscanf(argv[2], "SCCP/%[^-]-%08x", line, &channel);
 		c = sccp_channel_find_byid(channel) /*ref_replace*/;

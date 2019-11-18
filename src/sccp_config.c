@@ -366,8 +366,8 @@ static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, 
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
 	const SCCPConfigOption *sccpConfigOption = sccp_find_config(segment, name);
 	void * dst = NULL;
-	enum SCCPConfigOptionType type;										/* enum wrapper */
-	enum SCCPConfigOptionFlag flags;									/* enum wrapper */
+	enum SCCPConfigOptionType type = 0;  /* enum wrapper */
+	enum SCCPConfigOptionFlag flags = 0; /* enum wrapper */
 	const char * deprecated_obsolete_url = "https://github.com/chan-sccp/chan-sccp/wiki/Deprecated---Obsoleted-Parameters";
 
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;						/* indicates config value is changed or not */
@@ -375,17 +375,17 @@ static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, 
 
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: parsing %s parameter: %s %s%s%s (line: %d)\n", sccpConfigSegment->name, name, value ? "= '" : "", value ? value : "", value ? "' " : "", lineno);
 
-	short int int8num;
-	int int16num;
-	long int int32num;
-	long long int int64num;
-	short unsigned int uint8num;
-	unsigned int uint16num;
-	long unsigned int uint32num;
-	long long unsigned int uint64num;
-	boolean_t boolean;
+	short int int8num = 0;
+	int int16num = 0;
+	long int int32num = 0;
+	long long int int64num = 0;
+	short unsigned int uint8num = 0;
+	unsigned int uint16num = 0;
+	long unsigned int uint32num = 0;
+	long long unsigned int uint64num = 0;
+	boolean_t boolean = 0;
 	char * str = NULL;
-	char oldChar;
+	char oldChar = 0;
 	char * tmp_value = NULL;
 
 	if (!sccpConfigOption) {
@@ -401,7 +401,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, 
 	
 	// check if already set during first pass (multi_entry)
 	if (SetEntries != NULL && ((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
-		uint y;
+		uint y = 0;
 
 		for (y = 0; y < sccpConfigSegment->config_size; y++) {
 			if (sccpConfigOption->offset == sccpConfigSegment->config[y].offset) {
@@ -699,7 +699,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, 
 	) {
 		/* if SetEntries is provided lookup the first offset of the struct variable we have set and note the index in SetEntries by changing the boolean_t to TRUE */
 		if (SetEntries != NULL) {
-			uint x;
+			uint x = 0;
 
 			for (x = 0; x < sccpConfigSegment->config_size; x++) {
 				if (sccpConfigOption->offset == sccpConfigSegment->config[x].offset) {
@@ -738,11 +738,11 @@ static void sccp_config_set_defaults(void * const obj, const sccp_config_segment
 	const SCCPConfigOption * sccpDefaultConfigOption = NULL;
 	sccp_device_t * referral_device = NULL; /* need to find a way to find the default device to copy */
 	char *referral_cat = "";
-	sccp_config_segment_t search_segment_type;
+	sccp_config_segment_t search_segment_type = 0;
 	boolean_t referralValueFound = FALSE;
 
 	// already Set
-	uint skip_elem;
+	uint skip_elem = 0;
 	boolean_t skip = FALSE;
 
 	/* find the defaultValue, first check the reference, if no reference is specified, us the local defaultValue */
@@ -906,7 +906,7 @@ sccp_value_changed_t sccp_config_parse_port(void * const dest, const size_t size
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
 
-	int new_port;
+	int new_port = 0;
 	struct sockaddr_storage bindaddr_storage_prev = (*(struct sockaddr_storage *) dest);
 
 	if (sscanf(value, "%i", &new_port) == 1) {
@@ -1022,7 +1022,7 @@ sccp_value_changed_t sccp_config_parse_tos(void * const dest, const size_t size,
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
-	uint8_t tos;
+	uint8_t tos = 0;
 
 	if (pbx_str2tos(value, &tos)) {
 		/* value is tos */
@@ -1066,7 +1066,7 @@ sccp_value_changed_t sccp_config_parse_cos(void * const dest, const size_t size,
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
-	uint8_t cos;
+	uint8_t cos = 0;
 
 	if (pbx_str2cos(value, &cos)) {
 		/* value is tos */
@@ -1094,7 +1094,7 @@ sccp_value_changed_t sccp_config_parse_amaflags(void * const dest, const size_t 
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = pbx_strdupa(v->value);
-	int amaflags;
+	int amaflags = 0;
 
 	if (!sccp_strlen_zero(value)) {
 		amaflags = pbx_channel_string2amaflag(value);
@@ -1143,7 +1143,7 @@ sccp_value_changed_t sccp_config_parse_group(void * const dest, const size_t siz
 
 	char * piece = NULL;
 	char * c = NULL;
-	int start = 0, finish = 0, x;
+	int start = 0, finish = 0, x = 0;
 	sccp_group_t group = 0;
 
 	if (!sccp_strlen_zero(value)) {
@@ -1612,7 +1612,7 @@ sccp_value_changed_t sccp_config_parse_addons(void * const dest, const size_t si
 {
 	unsigned int changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_addon_t *addon = NULL;
-	skinny_devicetype_t addon_type;
+	skinny_devicetype_t addon_type = 0;
 
 	SCCP_LIST_HEAD (addon, sccp_addon_t) * addonList = (struct addon *)dest;
 
@@ -1790,7 +1790,7 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 	/* parse all button definitions in one pass */
 	char *buttonType = NULL, *buttonName = NULL, *buttonOption = NULL, *buttonArgs = NULL;
 	char k_button[256];
-	char *splitter;
+	char * splitter = NULL;
 	sccp_config_buttontype_t type = EMPTY;									/* default to empty */
 	uint buttonindex = 0;
 	
@@ -2203,7 +2203,7 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
 
 #ifdef CS_DEVSTATE_FEATURE
 	sccp_buttonconfig_t *config = NULL;
-	sccp_devstate_specifier_t *dspec;
+	sccp_devstate_specifier_t * dspec = NULL;
 
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -2278,7 +2278,7 @@ static void sccp_config_add_default_softkeyset(void)
 	// create tempory "default" variable set to create "default" softkeyset, if not defined in sccp.conf
 	PBX_VARIABLE_TYPE * softkeyset_root = NULL;
 	PBX_VARIABLE_TYPE * tmp = NULL;
-	uint cur_elem;
+	uint cur_elem = 0;
 	const SCCPConfigOption *sccpConfigOption = sccpSoftKeyConfigOptions;
 	for (cur_elem = 0; cur_elem < ARRAY_LEN(sccpSoftKeyConfigOptions); cur_elem++) {
 		if (sccpConfigOption[cur_elem].defaultValue != NULL) {
@@ -2347,7 +2347,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
                 /* setup regcontext */
 		char newcontexts[SCCP_MAX_CONTEXT]="";
 		char oldcontexts[SCCP_MAX_CONTEXT]="";
-		char *stringp, *context, *oldregcontext;
+		char *stringp = NULL, *context = NULL, *oldregcontext = NULL;
 
 		sccp_copy_string(newcontexts, GLOB(regcontext), sizeof(newcontexts));
 		//memcpy(newcontexts, GLOB(regcontext), sizeof(newcontexts));
@@ -2379,7 +2379,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
  */
 void cleanup_stale_contexts(char *new_contexts, char *old_contexts)
 {
-	char *oldcontext, *newcontext, *stalecontext, *stringp, newlist[SCCP_MAX_CONTEXT];
+	char *oldcontext = NULL, *newcontext = NULL, *stalecontext = NULL, *stringp = NULL, newlist[SCCP_MAX_CONTEXT];
 
 	while ((oldcontext = strsep(&old_contexts, "&"))) {
 		stalecontext = NULL;
@@ -2440,8 +2440,7 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	}
 
 	while ((cat = pbx_category_browse(GLOB(cfg), cat))) {
-
-		const char *utype;
+		const char * utype = NULL;
 
 		if (!strcasecmp(cat, "general")) {
 			continue;
@@ -2880,8 +2879,8 @@ static uint8_t sccp_config_readSoftKeySet(uint8_t * softkeyset, const char * dat
 	if (!data) {
 		return 0;
 	}
-	int i = 0, j;
-	int softkey;
+	int i = 0, j = 0;
+	int softkey = 0;
 
 	char * labels = pbx_strdupa(data);
 	char * labelrest = NULL;
@@ -2913,7 +2912,7 @@ static uint8_t sccp_config_readSoftKeySet(uint8_t * softkeyset, const char * dat
  */
 void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 {
-	int keySetSize;
+	int keySetSize = 0;
 	sccp_softKeySetConfiguration_t *softKeySetConfiguration = NULL;
 	skinny_keymode_t keyMode = SKINNY_KEYMODE_SENTINEL;
 
@@ -3043,7 +3042,7 @@ void sccp_config_restoreDeviceFeatureStatus(devicePtr device)
 #define ASTDB_RESULT_LEN 256
 #endif
 	char buf[ASTDB_RESULT_LEN] = "";
-	sccp_devstate_specifier_t *specifier;
+	sccp_devstate_specifier_t * specifier = NULL;
 	/* Read and initialize custom devicestate entries */
 	SCCP_LIST_LOCK(&device->devstateSpecifiers);
 	SCCP_LIST_TRAVERSE(&device->devstateSpecifiers, specifier, list) {
@@ -3077,7 +3076,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 {
 	const SCCPConfigSegment *sccpConfigSegment = NULL;
 	int total = 0;
-	uint i;
+	uint i = 0;
 	const char *id = astman_get_header(m, "ActionID");
 	const char *req_segment = astman_get_header(m, "Segment");
 	const char *req_resultformat = astman_get_header(m, "ResultFormat");
@@ -3362,8 +3361,8 @@ static int _config_generate_wiki(char * filename, int configType)
 {
 	const SCCPConfigSegment * sccpConfigSegment = NULL;
 	const SCCPConfigOption * config = NULL;
-	long unsigned int sccp_option;
-	long unsigned int segment;
+	long unsigned int sccp_option = 0;
+	long unsigned int segment = 0;
 	char * description = "";
 	char * description_part = "";
 	char fn[PATH_MAX];
@@ -3379,7 +3378,7 @@ static int _config_generate_wiki(char * filename, int configType)
 	}
 
 	char date[256] = "";
-	time_t t;
+	time_t t = 0;
 
 	time(&t);
 	sccp_copy_string(date, ctime(&t), sizeof(date));
@@ -3485,8 +3484,8 @@ int sccp_config_generate(char *filename, int configType)
 	}
 	const SCCPConfigSegment * sccpConfigSegment = NULL;
 	const SCCPConfigOption * config = NULL;
-	long unsigned int sccp_option;
-	long unsigned int segment;
+	long unsigned int sccp_option = 0;
+	long unsigned int segment = 0;
 	char *description = "";
 	char *description_part = "";
 	char name_and_value[100] = "";
@@ -3507,7 +3506,7 @@ int sccp_config_generate(char *filename, int configType)
 	}
 
 	char date[256] = "";
-	time_t t;
+	time_t t = 0;
 
 	time(&t);
 	sccp_copy_string(date, ctime(&t), sizeof(date));

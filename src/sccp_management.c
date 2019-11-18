@@ -253,7 +253,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 	sccp_device_t *device = NULL;
 	char idtext[256] = "";
 	int total = 0;
-	struct tm *timeinfo;
+	struct tm * timeinfo = NULL;
 	char regtime[25];
 	char clientAddress[INET6_ADDRSTRLEN];
 
@@ -825,11 +825,11 @@ SEND_RESPONSE:
 static char * sccp_asterisk_parseStrToAstMessage(char *str, struct message *m)
 {
 	int x = 0;
-	int curlen;
+	int curlen = 0;
 
 	curlen = sccp_strlen(str);
 	for (x = 0; x < curlen; x++) {
-		int cr;												/* set if we have \r */
+		int cr = 0; /* set if we have \r */
 
 		if (str[x] == '\r' && x + 1 < curlen && str[x + 1] == '\n') {
 			cr = 2;											/* Found. Update length to include \r\n */
@@ -858,7 +858,7 @@ static char * sccp_asterisk_parseStrToAstMessage(char *str, struct message *m)
  */
 static int sccp_asterisk_managerHookHelper(int category, const char *event, char *content)
 {
-	char *str, *dupStr;
+	char *str = NULL, *dupStr = NULL;
 
 	if (EVENT_FLAG_CALL == category) {
 		if (!strcasecmp("MonitorStart", event) || !strcasecmp("MonitorStop", event)) {
@@ -929,7 +929,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 				if (sccp_strcaseequals("ParkedCall", event) && !sccp_strlen_zero(from)) {
 					AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(from, FALSE));
 					if (l) {
-						sccp_linedevice_t * ld;
+						sccp_linedevice_t * ld = NULL;
 						char extstr[20] = "";
 						snprintf(extstr, sizeof(extstr), "%c%c %.16s", 128, SKINNY_LBL_CALL_PARK_AT, extension);
 						SCCP_LIST_LOCK(&l->devices);

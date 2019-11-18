@@ -202,7 +202,7 @@ char *pbx_strip(char *s)
  */
 unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arraylen)
 {
-	int argc;
+	int argc = 0;
 	char * scan = NULL;
 	int paren = 0;
 
@@ -659,7 +659,7 @@ gcc_inline boolean_t sccp_strcaseequals(const char *data1, const char *data2)
 int __PURE__ sccp_strIsNumeric(const char *s)
 {
 	if (*s) {
-		char c;
+		char c = 0;
 
 		while ((c = *s++)) {
 			if (!isdigit(c)) {
@@ -736,7 +736,7 @@ static int apply_netmask(const struct sockaddr_storage *netaddr, const struct so
 		struct sockaddr_in6 result6 = { 0, };
 		struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) netaddr;
 		struct sockaddr_in6 *mask6 = (struct sockaddr_in6 *) netmask;
-		int i;
+		int i = 0;
 
 		result6.sin6_family = AF_INET6;
 		for (i = 0; i < 4; ++i) {
@@ -872,7 +872,7 @@ int sccp_sockaddr_storage_parse(struct sockaddr_storage *addr, const char *str, 
 	char * s = NULL;
 	char * host = NULL;
 	char * port = NULL;
-	int e;
+	int e = 0;
 
 	s = pbx_strdupa(str);
 	if (!sccp_netsock_split_hostport(s, &host, &port, flags)) {
@@ -930,7 +930,7 @@ int sccp_sockaddr_storage_parse(struct sockaddr_storage *addr, const char *str, 
  */
 static int parse_cidr_mask(struct sockaddr_storage *addr, int is_v4, const char *mask_str)
 {
-	int mask;
+	int mask = 0;
 
 	if (sscanf(mask_str, "%30d", &mask) != 1) {
 		return -1;
@@ -951,7 +951,7 @@ static int parse_cidr_mask(struct sockaddr_storage *addr, int is_v4, const char 
 		memcpy(addr, &sin, sizeof(sin));
 	} else {
 		struct sockaddr_in6 sin6 = { 0, };
-		int i;
+		int i = 0;
 
 		if (mask < 0 || mask > 128) {
 			return -1;
@@ -991,7 +991,7 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 	struct sccp_ha * ret = NULL;
 	char *tmp = pbx_strdupa(stuff);
 	char *address = NULL, *mask = NULL;
-	int addr_is_v4;
+	int addr_is_v4 = 0;
 
 	ret = path;
 	while (path) {
@@ -1036,7 +1036,7 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 	if (!mask) {
 		parse_cidr_mask(&ha->netmask, addr_is_v4, addr_is_v4 ? "32" : "128");
 	} else if (strchr(mask, ':') || strchr(mask, '.')) {
-		int mask_is_v4;
+		int mask_is_v4 = 0;
 
 		/* Mask is of x.x.x.x or x:x:x:x:x:x:x:x variety */
 		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "SCCP: (sccp_append_ha) mask:%s\n", mask);
@@ -1299,7 +1299,7 @@ AST_TEST_DEFINE(chan_sccp_acl_invalid_tests)
 		/* IPv6 address and IPv4 netmask */
 		"fe80::1234/255.255.255.0",
 	};
-	uint8_t i;
+	uint8_t i = 0;
 	for (i = 0; i < ARRAY_LEN(invalid_acls); ++i) {
 		int error = 0;
 		ha = sccp_append_ha("permit", invalid_acls[i], ha, &error);
@@ -1327,7 +1327,7 @@ AST_TEST_DEFINE(chan_sccp_acl_invalid_tests)
  */
 void sccp_print_group(struct ast_str *buf, int buflen, sccp_group_t group)
 {
-	unsigned int i;
+	unsigned int i = 0;
 	int first = 1;
 	uint8_t max = (sizeof(sccp_group_t) * 8) - 1;
 
@@ -1387,8 +1387,8 @@ int sockaddr_cmp_addr(struct sockaddr_storage *addr1, socklen_t len1, struct soc
 int __PURE__ sccp_strversioncmp(const char *s1, const char *s2)
 {
 	static const char *digits = "0123456789";
-	int ret, lz1, lz2;
-	size_t p1, p2;
+	int ret = 0, lz1 = 0, lz2 = 0;
+	size_t p1 = 0, p2 = 0;
 
 	p1 = strcspn(s1, digits);
 	p2 = strcspn(s2, digits);
@@ -1480,8 +1480,8 @@ int __PURE__ sccp_strversioncmp(const char *s1, const char *s2)
 char *sccp_dec2binstr(char *buf, size_t size, int value)
 {
 	char b[33] = { 0 };
-	int pos;
-	long long z;
+	int pos = 0;
+	long long z = 0;
 
 	for (z = 1LL << 31, pos = 0; z > 0; z >>= 1, pos++) {
 		b[pos] = (((value & z) == z) ? '1' : '0');
@@ -1869,7 +1869,7 @@ void sccp_do_backtrace()
 
 #if defined(HAVE_EXECINFO_H) && defined(HAVE_BKTR)
 	void	*addresses[SCCP_BACKTRACE_SIZE];
-	size_t  size, i;
+	size_t size = 0, i = 0;
 	bt_string_t * strings = NULL;
 	struct ast_str * btbuf = NULL;
 	if (!(btbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE * 2))) {

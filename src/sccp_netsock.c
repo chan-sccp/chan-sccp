@@ -72,7 +72,7 @@ int __PURE__ sccp_netsock_is_any_addr(const struct sockaddr_storage *sockAddrSto
 static boolean_t __netsock_resolve_first_af(struct sockaddr_storage *addr, const char *name, int family)
 {
 	struct addrinfo * res = NULL;
-	int e;
+	int e = 0;
 	boolean_t result = FALSE;
 	if (!name) {
 		return FALSE;
@@ -208,7 +208,7 @@ int sccp_netsock_cmp_addr(const struct sockaddr_storage *a, const struct sockadd
 	//char *stra = pbx_strdupa(sccp_netsock_stringpify_addr(a));
 	//char *strb = pbx_strdupa(sccp_netsock_stringify_addr(b));
 
-	const struct sockaddr_storage *a_tmp, *b_tmp;
+	const struct sockaddr_storage *a_tmp = NULL, *b_tmp = NULL;
 	struct sockaddr_storage ipv4_mapped;
 	size_t len_a = sccp_netsock_sizeof(a);
 	size_t len_b = sccp_netsock_sizeof(b);
@@ -348,7 +348,7 @@ char *__netsock_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, in
 	char host[NI_MAXHOST] = "";
 	char port[NI_MAXSERV] = "";
 	struct ast_str * str = NULL;
-	int e;
+	int e = 0;
 	static const size_t size = sizeof(host) - 1 + sizeof(port) - 1 + 4;
 
 	if (!sockAddrStorage) {

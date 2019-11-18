@@ -63,8 +63,8 @@ struct sccp_debug_category const sccp_debug_categories[32] = {
  */
 int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug_value)
 {
-	int argi;
-	uint32_t i;
+	int argi = 0;
+	uint32_t i = 0;
 	char *argument = "";
 	char *token = "";
 	const char delimiters[] = " ,\t";

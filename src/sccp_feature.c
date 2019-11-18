@@ -544,7 +544,7 @@ void sccp_feat_voicemail(constDevicePtr d, uint8_t lineInstance)
  */
 void sccp_feat_idivert(constDevicePtr d, constLinePtr l, constChannelPtr c)
 {
-	int instance;
+	int instance = 0;
 
 	if (!l) {
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: TRANSVM pressed but no line found\n", d->id);

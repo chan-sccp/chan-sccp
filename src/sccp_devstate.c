@@ -95,8 +95,8 @@ void sccp_devstate_module_stop(void)
 
 static void sccp_devstate_deviceRegistered(const sccp_device_t * device)
 {
-	sccp_buttonconfig_t *config;
-	sccp_devstate_deviceState_t *deviceState;
+	sccp_buttonconfig_t * config = NULL;
+	sccp_devstate_deviceState_t * deviceState = NULL;
 
 	AUTO_RELEASE(sccp_device_t, d , sccp_device_retain((sccp_device_t *) device));
 
@@ -120,8 +120,8 @@ static void sccp_devstate_deviceRegistered(const sccp_device_t * device)
 
 static void sccp_devstate_deviceUnRegistered(const sccp_device_t * device)
 {
-	sccp_buttonconfig_t *config;
-	sccp_devstate_deviceState_t *deviceState;
+	sccp_buttonconfig_t * config = NULL;
+	sccp_devstate_deviceState_t * deviceState = NULL;
 
 	AUTO_RELEASE(sccp_device_t, d , sccp_device_retain((sccp_device_t *) device));
 
@@ -276,9 +276,9 @@ void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data)
 {
 	sccp_devstate_deviceState_t *deviceState = NULL;
 	sccp_devstate_SubscribingDevice_t *subscriber = NULL;
-	enum ast_device_state state;
+	enum ast_device_state state = 0;
 
-#if ASTERISK_VERSION_GROUP >= 112
+#	if ASTERISK_VERSION_GROUP >= 112
 	struct ast_device_state_message *dev_state = (struct ast_device_state_message *)stasis_message_data(msg);
 
 	if (ast_device_state_message_type() != stasis_message_type(msg)) {

@@ -163,9 +163,9 @@ void sccp_event_module_stop(void)
 boolean_t sccp_event_subscribe(int eventType /*sccp_event_type_t*/, sccp_event_callback_t cb, boolean_t allowAsyncExecution)
 {
 	boolean_t res = FALSE;
-	uint8_t _idx; 
-	sccp_event_type_t _mask;
-	
+	uint8_t _idx = 0;
+	sccp_event_type_t _mask = 0;
+
 	for (_idx = 0, _mask = (sccp_event_type_t)(1 << _idx); sccp_event_running && _idx < NUMBER_OF_EVENT_TYPES; _mask = (sccp_event_type_t)(1 << ++_idx)) {
 		if(eventType & _mask) {
 			//sccp_log(DEBUGCAT_EVENT)(VERBOSE_PREFIX_3 "SCCP: (sccp_event_subscribe) Adding %s with callback:%p to vector at idx:%d\n", sccp_event_type2str(eventType), cb, _idx);
@@ -197,8 +197,8 @@ boolean_t sccp_event_subscribe(int eventType /*sccp_event_type_t*/, sccp_event_c
 boolean_t sccp_event_unsubscribe(int eventType /*sccp_event_type_t*/, sccp_event_callback_t cb)
 {
 	boolean_t res = FALSE;
-	uint8_t _idx; 
-	sccp_event_type_t _mask;
+	uint8_t _idx = 0;
+	sccp_event_type_t _mask = 0;
 	//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_event_unsubscribe) Removing %s.\n", sccp_event_type2str(eventType))
 	for (_idx = 0, _mask = (sccp_event_type_t)(1 << _idx); sccp_event_running && _idx < NUMBER_OF_EVENT_TYPES; _mask = (sccp_event_type_t)(1 << ++_idx)) {
 		if (eventType & _mask) {
@@ -245,7 +245,7 @@ static gcc_inline boolean_t __execute_callback_helper(const sccp_event_t *event,
  */
 static gcc_inline uint8_t __search_for_position_in_event_array(sccp_event_type_t eventType) {
 	uint8_t _idx = 0;
-	sccp_event_type_t _mask;
+	sccp_event_type_t _mask = 0;
 	for (_idx = 0, _mask = (sccp_event_type_t)(1 << _idx); sccp_event_running && _idx < NUMBER_OF_EVENT_TYPES; _mask = (sccp_event_type_t)(1 << ++_idx)) {
 		if (eventType & _mask) {
 			//sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "SCCP: (__search_for_position_in_event_array) found index:%d\n", _idx);
@@ -487,7 +487,7 @@ AST_TEST_DEFINE(sccp_event_test_subscribe_multi_sync)
 		case TEST_EXECUTE:
 			break;
 	}
-	int registration, numregistrations = 10;
+	int registration = 0, numregistrations = 10;
 
 	pbx_test_status_update(test, "subscribe to SCCP_EVENT_TEST and SCCP_EVENT_LINESTATUS_CHANGED\n");
 	for (registration = 0; registration < numregistrations; registration++) {

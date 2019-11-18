@@ -804,7 +804,7 @@ int sccp_pbx_answer(constChannelPtr channel)
  */
 boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, const PBX_CHANNEL_TYPE * parentChannel)
 {
-	PBX_CHANNEL_TYPE *tmp;
+	PBX_CHANNEL_TYPE * tmp = NULL;
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 	AUTO_RELEASE(sccp_device_t, d , NULL);
 
@@ -1091,7 +1091,7 @@ int sccp_pbx_sched_dial(const void * data)
  */
 sccp_extension_status_t sccp_pbx_helper(constChannelPtr c)
 {
-	sccp_extension_status_t extensionStatus;
+	sccp_extension_status_t extensionStatus = 0;
 	int dialedLen = sccp_strlen(c->dialedNumber);
 
 	if (dialedLen > 1) {

@@ -118,7 +118,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		return NULL;
 	}
 
-	int32_t callid;
+	int32_t callid = 0;
 	char designator[32];
 	sccp_mutex_lock(&callCountLock);
 	if (callCount < 0xFFFFFFFF) {						/* callcount limit should be reset at his upper limit :) */
@@ -959,8 +959,8 @@ void sccp_channel_updateMediaTransmission(constChannelPtr channel)
  */
 void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 {
-	int payloadType;
-	uint8_t lineInstance;
+	int payloadType = 0;
+	uint8_t lineInstance = 0;
 	int bitRate = 1500;
 
 	pbx_assert(channel != NULL);
@@ -1111,7 +1111,7 @@ void sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel)
  */
 void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 {
-	int payloadType;
+	int payloadType = 0;
 	int bitRate = channel->maxBitRate;
 
 	pbx_assert(channel != NULL);
@@ -1820,7 +1820,7 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
  */
 int sccp_channel_hold(channelPtr channel)
 {
-	uint16_t instance;
+	uint16_t instance = 0;
 
 	if (!channel || !channel->line) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. No channel provided to put on hold\n");
@@ -1909,7 +1909,7 @@ int sccp_channel_hold(channelPtr channel)
  */
 int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swap_channels)
 {
-	uint16_t instance;
+	uint16_t instance = 0;
 
 	if (!channel || !channel->owner || !channel->line) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. No channel provided to resume\n");
@@ -2765,7 +2765,7 @@ int sccp_channel_forward(constChannelPtr sccp_channel_parent, constLineDevicePtr
  */
 void sccp_channel_park(constChannelPtr channel)
 {
-	sccp_parkresult_t result;
+	sccp_parkresult_t result = 0;
 
 	if (!iPbx.feature_park) {
 		pbx_log(LOG_WARNING, "SCCP, parking feature not implemented\n");

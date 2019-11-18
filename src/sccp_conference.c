@@ -240,7 +240,7 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 	sccp_conference_t *conference = NULL;
 	char conferenceIdentifier[REFCOUNT_INDENTIFIER_SIZE];
 	int conferenceID = ++lastConferenceID;
-	uint32_t bridgeCapabilities;
+	uint32_t bridgeCapabilities = 0;
 
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCP: Creating new conference SCCPCONF/%04d\n", conferenceID);
 

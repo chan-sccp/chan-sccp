@@ -113,25 +113,25 @@ gcc_inline const char *codec2name(skinny_codec_t value)
 /*! \todo should be called skinny_codec_type_t instead of skinny_payload_type_t */
 gcc_inline const skinny_payload_type_t codec2type(skinny_codec_t value)
 {
-        uint32_t i;
-        for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
-                if (skinny_codecs[i].codec == value) {
+	uint32_t i = 0;
+	for(i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
+		if (skinny_codecs[i].codec == value) {
                         return skinny_codecs[i].codec_type;
-                } \
-        } \
-        pbx_log(LOG_ERROR, "codec2type lookup failed for skinny_codecs[%i]\n", value);
+                }
+	}
+	pbx_log(LOG_ERROR, "codec2type lookup failed for skinny_codecs[%i]\n", value);
         return SKINNY_CODEC_TYPE_UNKNOWN;
 }
 
 gcc_inline const int32_t codec2rtp_payload_type(skinny_codec_t value)
 {
-        uint32_t i;
-        for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
-                if (skinny_codecs[i].codec == value) {
+	uint32_t i = 0;
+	for(i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
+		if (skinny_codecs[i].codec == value) {
                         return skinny_codecs[i].rtp_payload_type;
-                } \
-        } \
-        pbx_log(LOG_ERROR, "codec2rtp_payload_type lookup failed for skinny_codecs[%i]\n", value);
+                }
+	}
+	pbx_log(LOG_ERROR, "codec2rtp_payload_type lookup failed for skinny_codecs[%i]\n", value);
         return SKINNY_CODEC_TYPE_UNKNOWN;
 }
 
@@ -215,12 +215,12 @@ int sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const cha
 	if (!skinny_codec_prefs) {
 		return -1;
 	}
-	unsigned int x;
+	unsigned int x = 0;
 	boolean_t all = FALSE;
 	boolean_t found = FALSE;
 	boolean_t allow = allowing;
 	char *parse = NULL, *token = NULL;
-	skinny_codec_t codec;
+	skinny_codec_t codec = 0;
 
 	parse = pbx_strdupa(list);
 	while ((token = strsep(&parse, ","))) {

@@ -239,8 +239,8 @@ void sccp_refcount_init(void)
 
 void sccp_refcount_destroy(void)
 {
-	uint32_t hash, type;
-	RefCountedObject *obj;
+	uint32_t hash = 0, type = 0;
+	RefCountedObject * obj = NULL;
 
 	pbx_log(LOG_NOTICE, "SCCP: (Refcount) Shutting Down. Checking Clean Shutdown...\n");
 	int numObjects = 0;
@@ -581,7 +581,7 @@ void sccp_refcount_gen_report(const void * const ptr, pbx_str_t **buf)
 int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	int local_line_total = 0;
-	int bucket, prev = 0;
+	int bucket = 0, prev = 0;
 	RefCountedObject *obj = NULL;
 	unsigned int maxdepth = 0;
 	unsigned int numentries = 0;
@@ -675,7 +675,7 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 
 	// FillFactor
 	fillfactor = (float) numentries / SCCP_HASH_PRIME;
-	int once;
+	int once = 0;
 #define CLI_AMI_TABLE_NAME FillFactor
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Factor
 #define CLI_AMI_TABLE_ITERATOR for(once=0;once<1;once++)
@@ -705,7 +705,7 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 #ifdef CS_EXPERIMENTAL
 int sccp_refcount_force_release(long findobj, char *identifier)
 {
-	uint32_t hash;
+	uint32_t hash = 0;
 	RefCountedObject *obj = NULL;
 	void *ptr = NULL;
 
@@ -841,13 +841,13 @@ gcc_inline void * const sccp_refcount_release(const void * * const ptr, const ch
 	}
 #endif
 	RefCountedObject *obj = NULL;
-	sccp_debug_category_t debugcat;
+	sccp_debug_category_t debugcat = 0;
 
 	if (do_expect( (obj = sccp_refcount_find_obj(*ptr, filename, lineno, func)) != NULL && ATOMIC_FETCH((&obj->refcount),&obj->lock) > 0)) {
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) *ptr, obj, -1, filename, lineno, func);
 #endif
-		int newrefcountval, refcountval;
+		int newrefcountval = 0, refcountval = 0;
 		debugcat = (&obj_info[obj->type])->debugcat;
 		// ANNOTATE_HAPPENS_BEFORE(&obj->refcount);
 		do {
@@ -938,8 +938,8 @@ static void *refcount_test_thread(void *data)
 {
 	enum ast_test_result_state *test_result = (enum ast_test_result_state *)data;
 	struct refcount_test *obj = NULL, *obj1 = NULL;
-	int objloop;
-	int random_object;
+	int objloop = 0;
+	int random_object = 0;
 	unsigned int threadid = (unsigned int)pthread_self();
 
 	*test_result = AST_TEST_PASS;
@@ -987,8 +987,8 @@ static void *refcount_test_thread(void *data)
 
 AST_TEST_DEFINE(sccp_refcount_tests)
 {
-	int thread;
-	
+	int thread = 0;
+
 	switch(cmd) {
 		case TEST_INIT:
 			info->name = "refcount";
@@ -1001,7 +1001,7 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	}
 	
 	pthread_t t[NUM_THREADS];
-	int loop;
+	int loop = 0;
 	char id[23];
 	enum ast_test_result_state test_result[NUM_THREADS] = {AST_TEST_PASS};
 	

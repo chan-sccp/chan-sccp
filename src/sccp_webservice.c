@@ -85,7 +85,7 @@ static struct {
 
 static const char *ftype2mtype(const char *ftype)
 {
-	uint8_t x;
+	uint8_t x = 0;
 	if (ftype) {
 		for (x = 0; x < ARRAY_LEN(mimetypes); x++) {
 			if(strcasecmp(ftype, mimetypes[x].ext) == 0) {
@@ -381,15 +381,15 @@ static int request_parser (
 	//result |= parse_request_uri();
 
 	//if (DEBUG) {
-		PBX_VARIABLE_TYPE *header;
-		sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "request headers:\n");
-		for(header = request_headers;header;header = header->next) {
-			sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "SCCP: (request_parser) key: %s, value: %s\n", header->name, header->value);
-		}
-		PBX_VARIABLE_TYPE *param;
-		sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "request parameters:\n");
-		for(param = request_params;param;param = param->next) {
-			sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "SCCP: (request_parser) key: %s, value: %s\n", param->name, param->value);
+	PBX_VARIABLE_TYPE * header = NULL;
+	sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "request headers:\n");
+	for(header = request_headers; header; header = header->next) {
+		sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "SCCP: (request_parser) key: %s, value: %s\n", header->name, header->value);
+	}
+	PBX_VARIABLE_TYPE * param = NULL;
+	sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "request parameters:\n");
+	for(param = request_params; param; param = param->next) {
+		sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "SCCP: (request_parser) key: %s, value: %s\n", param->name, param->value);
 		}
 	//}
 	sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "SCCP: handler:%p, result:%d\n", handler, result);
@@ -503,8 +503,8 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser
 	const char * mtype = NULL;
 	char wkspace[80];
 	struct stat st;
-	int len;
-	int fd;
+	int len = 0;
+	int fd = 0;
 	struct ast_str * http_header = NULL;
 	struct timeval tv;
 	struct ast_tm tm;

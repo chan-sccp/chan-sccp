@@ -58,7 +58,7 @@ static int __sccp_lineDevice_destroy(const void * ptr)
 static void regcontext_exten(constLineDevicePtr ld, int onoff)
 {
 	char multi[256] = "";
-	char *stringp, *ext = "", *context = "";
+	char *stringp = NULL, *ext = "", *context = "";
 
 	// char extension[SCCP_MAX_CONTEXT]="";
 	// char name[SCCP_MAX_CONTEXT]="";
@@ -405,7 +405,7 @@ void sccp_linedevice_createButtonsArray(devicePtr device)
 	sccp_linedevice_t * ld = NULL;
 	uint8_t lineInstances = 0;
 	btnlist * btn = NULL;
-	uint8_t i;
+	uint8_t i = 0;
 
 	if(device->lineButtons.size) {
 		sccp_linedevice_deleteButtonsArray(device);
@@ -440,7 +440,7 @@ void sccp_linedevice_createButtonsArray(devicePtr device)
 
 void sccp_linedevice_deleteButtonsArray(devicePtr device)
 {
-	uint8_t i;
+	uint8_t i = 0;
 
 	if(device->lineButtons.instance) {
 		for(i = SCCP_FIRST_LINEINSTANCE; i < device->lineButtons.size; i++) {

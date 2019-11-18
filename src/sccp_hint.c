@@ -303,8 +303,8 @@ static int sccp_hint_devstate_cb(const char *context, const char *id, enum ast_e
 static int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states state, void *data)
 #endif
 {
-	sccp_hint_list_t *hint;
-	int extensionState;
+	sccp_hint_list_t * hint = NULL;
+	int extensionState = 0;
 	//char hintStr[SCCP_MAX_EXTENSION];
 	//const char *cidName;
 	//const char *cidNumber;
@@ -443,7 +443,7 @@ static void sccp_hint_eventListener(const sccp_event_t * event)
  */
 static void sccp_hint_deviceRegistered(const sccp_device_t * device)
 {
-	sccp_buttonconfig_t *config;
+	sccp_buttonconfig_t * config = NULL;
 	uint8_t positionOnDevice = 0;
 
 	AUTO_RELEASE(sccp_device_t, d , sccp_device_retain((sccp_device_t *) device));
@@ -468,7 +468,7 @@ static void sccp_hint_deviceRegistered(const sccp_device_t * device)
 static void sccp_hint_deviceUnRegistered(const char *deviceName)
 {
 	sccp_hint_list_t *hint = NULL;
-	sccp_hint_SubscribingDevice_t *subscriber;
+	sccp_hint_SubscribingDevice_t * subscriber = NULL;
 
 	SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
@@ -506,7 +506,7 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 	sccp_hint_list_t *hint = NULL;
 
 	char buffer[256] = "";
-	char *splitter, *hint_exten, *hint_context;
+	char *splitter = NULL, *hint_exten = NULL, *hint_context = NULL;
 
 	sccp_copy_string(buffer, hintStr, sizeof(buffer));
 
@@ -877,7 +877,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 		return;
 	}
 	sccp_line_t *line = lineState->line;
-	sccp_channelstate_t state;
+	sccp_channelstate_t state = 0;
 
 	//boolean_t dev_privacy = FALSE;
 

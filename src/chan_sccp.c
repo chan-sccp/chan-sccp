@@ -319,7 +319,7 @@ int sccp_preUnload(void)
  */
 int sccp_reload(void)
 {
-	sccp_readingtype_t readingtype;
+	sccp_readingtype_t readingtype = 0;
 	int returnval = 0;
 
 	pbx_rwlock_wrlock(&GLOB(lock));

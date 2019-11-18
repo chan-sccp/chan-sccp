@@ -260,7 +260,7 @@ static boolean_t sccp_device_convUtf8toLatin1(constDevicePtr d, ICONV_CONST char
 		sccp_copy_string(buf, utf8str, len);
 		return TRUE;
 	}
-	size_t incount, outcount = len;
+	size_t incount = 0, outcount = len;
 	incount = sccp_strlen(utf8str);
 	if (incount) {
 		pbx_mutex_lock(&d->privateData->iconv_lock);
@@ -908,7 +908,7 @@ void sccp_device_removeFromGlobals(devicePtr device)
 
 static uint8_t sccp_addon_build_buttontemplate(constDevicePtr d, sccp_addon_t *addon, btnlist * btn, uint8_t btn_index)
 {
-	uint8_t i;
+	uint8_t i = 0;
 	uint8_t start_point = btn_index;
 	skinny_devicetype_t type = addon->type;
 
@@ -958,7 +958,7 @@ static uint8_t sccp_addon_build_buttontemplate(constDevicePtr d, sccp_addon_t *a
  */
 uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 {
-	uint8_t i;
+	uint8_t i = 0;
 	uint8_t btn_index=0;
 	skinny_devicetype_t type = d->skinny_type;
 
@@ -2001,7 +2001,7 @@ void sccp_dev_speed_find_byindex(constDevicePtr d, const uint16_t instance, bool
  */
 linePtr sccp_dev_getActiveLine(constDevicePtr device)
 {
-	sccp_buttonconfig_t *buttonconfig;
+	sccp_buttonconfig_t * buttonconfig = NULL;
 
 	if (!device || !device->session) {
 		return NULL;
@@ -2211,7 +2211,7 @@ void sccp_dev_postregistration(devicePtr d)
 #endif
 	char family[ASTDB_FAMILY_KEY_LEN] = { 0 };
 	char buffer[ASTDB_RESULT_LEN] = { 0 };
-	int instance;
+	int instance = 0;
 
 	if (!d) {
 		return;
@@ -3366,7 +3366,7 @@ devicePtr sccp_device_find_realtime(const char * name)
 #	endif
 {
 	sccp_device_t *d = NULL;
-	PBX_VARIABLE_TYPE *v, *variable;
+	PBX_VARIABLE_TYPE *v = NULL, *variable = NULL;
 
 	if (sccp_strlen_zero(GLOB(realtimedevicetable)) || sccp_strlen_zero(name)) {
 		return NULL;

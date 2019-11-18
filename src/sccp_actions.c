@@ -286,7 +286,7 @@ void sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const u
 void sccp_handle_dialtone(constDevicePtr d, constLinePtr l, constChannelPtr channel)
 {
 	pbx_assert(d != NULL && l != NULL && channel != NULL);
-	uint8_t instance;
+	uint8_t instance = 0;
 
 	//pbx_log(LOG_WARNING, "%s: handle dialtone on %s. Current state: %s\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
 	if (channel->softswitch_action != SCCP_SOFTSWITCH_DIAL || channel->scheduler.hangup_id > -1 || channel->state == SCCP_CHANNELSTATE_DIALING) {
@@ -390,7 +390,7 @@ void handle_XMLAlarmMessage(constSessionPtr s, devicePtr no_d, constMessagePtr m
 {
 	sccp_mid_t mid = letohl(msg_in->header.lel_messageId);
 	char alarmName[101];
-	int reasonEnum;
+	int reasonEnum = 0;
 	char lastProtocolEventSent[101];
 	char lastProtocolEventReceived[101];
 
@@ -1014,8 +1014,8 @@ FUNC_EXIT:
 static btnlist *sccp_make_button_template(devicePtr d)
 {
 	int i = 0;
-	btnlist *btn;
-	sccp_buttonconfig_t *buttonconfig;
+	btnlist * btn = NULL;
+	sccp_buttonconfig_t * buttonconfig = NULL;
 
 	if (!d) {
 		return NULL;
@@ -1386,8 +1386,8 @@ void handle_unregister(constSessionPtr s, devicePtr device, constMessagePtr msg_
  */
 void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
-	btnlist *btn;
-	int i;
+	btnlist * btn = NULL;
+	int i = 0;
 	uint8_t buttonCount = 0, lastUsedButtonPosition = 0;
 
 	sccp_msg_t *msg_out = NULL;
@@ -1475,7 +1475,7 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 
 	/* set speeddial for older devices like 7912 */
 	uint32_t speeddialInstance = 0;
-	sccp_buttonconfig_t *config;
+	sccp_buttonconfig_t * config = NULL;
 
 	//sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_SPEEDDIAL)) (VERBOSE_PREFIX_3 "%s: configure unconfigured speeddialbuttons \n", d->id);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -1500,7 +1500,7 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	sccp_speed_t k;
-	sccp_buttonconfig_t *config;
+	sccp_buttonconfig_t * config = NULL;
 	uint8_t lineNumber = letohl(msg_in->data.LineStatReqMessage.lel_lineNumber);
 	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Configuring line number %d\n", d->id, lineNumber);
 
@@ -1628,7 +1628,7 @@ static void handle_stimulus_lastnumberredial(constDevicePtr d, constLinePtr l, c
  */
 static void handle_speeddial(constDevicePtr d, const sccp_speed_t * k)
 {
-	int len;
+	int len = 0;
 
 	if (!k || !d || !d->session) {
 		return;
@@ -2559,7 +2559,7 @@ void handle_capabilities_res(constSessionPtr s, devicePtr d, constMessagePtr msg
 #ifdef CS_SCCP_VIDEO
 	uint8_t numVideoCodecs = 0;
 #endif
-	skinny_codec_t codec;
+	skinny_codec_t codec = 0;
 
 	uint8_t n = letohl(msg_in->data.CapabilitiesResMessage.lel_count);
 
@@ -2686,7 +2686,7 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 #endif
 
 	/* set softkey definition */
-	sccp_softKeySetConfiguration_t *softkeyset;
+	sccp_softKeySetConfiguration_t * softkeyset = NULL;
 	d->softkeyset = NULL;
 
 	if (!sccp_strlen_zero(d->softkeyDefinition)) {
@@ -2720,13 +2720,13 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 	/* end softkey definition */
 	const softkey_modes *v = d->softKeyConfiguration.modes;
 	const uint8_t v_count = d->softKeyConfiguration.size;
-	const uint8_t *b;
+	const uint8_t * b = NULL;
 
 	REQ(msg_out, SoftKeySetResMessage);
 	msg_out->data.SoftKeySetResMessage.lel_softKeySetOffset = htolel(0);
 
 	/* look for line trnsvm */
-	sccp_buttonconfig_t *buttonconfig;
+	sccp_buttonconfig_t * buttonconfig = NULL;
 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 		if (buttonconfig->type == LINE) {
@@ -2781,7 +2781,7 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 
 	for (i = 0; i < v_count; i++) {
 		b = v->ptr;
-		uint8_t c, j, cp = 0;
+		uint8_t c = 0, j = 0, cp = 0;
 
 		pbx_str_append(&outputStr, buffersize, "%-15s => |", skinny_keymode2str(v->id));
 
@@ -3024,7 +3024,7 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 
 	/* old devices (like 7906) send buttonIndex instead of lineInstance, convert buttonIndex to lineInstance */
 	if (d->protocolversion < 15 && (CallIdAndLineInstance & SCCP_CILI_HAS_LINEINSTANCE)) {
-		int16_t tmpLineInstance, buttonIndex = lineInstance;
+		int16_t tmpLineInstance = 0, buttonIndex = lineInstance;
 		tmpLineInstance = sccp_device_buttonIndex2lineInstance(d, buttonIndex);
 		if(tmpLineInstance >= 0) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) digit:%08x, callid:%d, buttonIndex:%d => lineInstance:%d\n", DEV_ID_LOG(d), digit, callid, buttonIndex, tmpLineInstance);
@@ -4631,11 +4631,11 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 void handle_device_to_user_response(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {
-		uint32_t appID;
-		uint32_t lineInstance;
-		uint32_t callReference;
-		uint32_t transactionID;
-		uint32_t dataLength;
+		uint32_t appID = 0;
+		uint32_t lineInstance = 0;
+		uint32_t callReference = 0;
+		uint32_t transactionID = 0;
+		uint32_t dataLength = 0;
 		char data[StationMaxXMLMessage] = { 0 };
 
 		appID = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_appID);
@@ -4665,7 +4665,7 @@ void handle_device_to_user_response(constSessionPtr s, devicePtr d, constMessage
  */
 void handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 {
-	skinny_miscCommandType_t commandType;
+	skinny_miscCommandType_t commandType = 0;
 	uint32_t conferenceId = letohl(msg_in->data.MiscellaneousCommandMessage.lel_conferenceId);
 	uint32_t callReference = letohl(msg_in->data.MiscellaneousCommandMessage.lel_callReference);
 	uint32_t passThruPartyId = letohl(msg_in->data.MiscellaneousCommandMessage.lel_passThruPartyId);

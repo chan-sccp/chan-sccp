@@ -678,7 +678,7 @@ static void handleButtonPress(const char *options, constDevicePtr d, uint8_t ins
 					}
 				} else {
 					sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) multiple slots occupied -> Show Visual ParkingLot\n", args.parkinglot);
-					uint8_t idx;
+					uint8_t idx = 0;
 					for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
 						plobserver_t *observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
 						if (observer->device == d && observer->instance == instance) {

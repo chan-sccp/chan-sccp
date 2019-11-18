@@ -117,8 +117,8 @@ boolean_t sccp_session_getSas(constSessionPtr session, struct sockaddr_storage *
  */
 static int __sccp_session_setOurAddressFromTheirs(const struct sockaddr_storage *them, struct sockaddr_storage *us)
 {
-	int sock;
-	socklen_t slen;
+	int sock = 0;
+	socklen_t slen = 0;
 
 	union sockaddr_union {
 		struct sockaddr sa;
@@ -208,7 +208,7 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 			break;
 		}
 
-		const struct messagetype *msgtype;
+		const struct messagetype * msgtype = NULL;
 		if (messageId <= SCCP_MESSAGE_HIGH_BOUNDARY) {
 			msgtype = &sccp_messagetypes[messageId];
 			if (msgtype->messageId == messageId) {
@@ -298,7 +298,7 @@ static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsign
  */
 static boolean_t sccp_session_findBySession(sccp_session_t * s)
 {
-	sccp_session_t *session;
+	sccp_session_t * session = NULL;
 	boolean_t res = FALSE;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(sessions));
@@ -345,7 +345,7 @@ static boolean_t sccp_session_addToGlobals(sccp_session_t * s)
  */
 static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
 {
-	sccp_session_t *session;
+	sccp_session_t * session = NULL;
 	boolean_t res = FALSE;
 
 	if (s) {
@@ -593,7 +593,7 @@ gcc_inline void recalc_wait_time(sccp_session_t *s)
  */
 void *sccp_session_device_thread(void *session)
 {
-	int res;
+	int res = 0;
 	sccp_session_t *s = (sccp_session_t *) session;
 
 	if (!s) {
@@ -806,7 +806,7 @@ static void sccp_session_set_ourip(sccp_session_t *s)
  */
 static void *accept_thread(void *ignore)
 {
-	int new_socket;
+	int new_socket = 0;
 	struct sockaddr_storage incoming;
 	sccp_session_t *s = NULL;
 	socklen_t length = (socklen_t) (sizeof(struct sockaddr_storage));
@@ -904,12 +904,12 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Running bind and listen!\n");
 	if (accept_sock < 0) {
-		int status;
+		int status = 0;
 		port = sccp_netsock_getPort(bindaddr);
 		memcpy(&boundaddr, bindaddr, sizeof(struct sockaddr_storage));
 		char port_str[15] = "cisco-sccp";
 
-		struct addrinfo hints, *res;
+		struct addrinfo hints, *res = NULL;
 		memset(&hints, 0, sizeof hints);								// make sure the struct is empty
 		hints.ai_family = AF_UNSPEC;									// don't care IPv4 or IPv6
 		hints.ai_socktype = SOCK_STREAM;								// TCP stream sockets
@@ -1007,8 +1007,8 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 	sessionPtr s = (sessionPtr)session;										/* discard const */
 	ssize_t res = 0;
 	uint32_t msgid = letohl(msg->header.lel_messageId);
-	ssize_t bytesSent;
-	ssize_t bufLen;
+	ssize_t bytesSent = 0;
+	ssize_t bufLen = 0;
 	uint8_t * bufAddr = NULL;
 
 	if (s && s->session_stop) {
