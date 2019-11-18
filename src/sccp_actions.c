@@ -646,8 +646,9 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 
 	device->status.token = (sendAck) ? SCCP_TOKEN_STATE_ACK : SCCP_TOKEN_STATE_REJ;
 EXIT:
-	if (device)
-		device->registrationTime = time(0);									// last time device tried sending token
+	if(device) {
+		device->registrationTime = time(0);                                        // last time device tried sending token
+	}
 }
 
 /*!
@@ -773,8 +774,9 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 
 	sccp_session_tokenAckSPCP(s, 65535);
 EXIT:
-	if (device)
-		device->registrationTime = time(0);									// last time device tried sending token
+	if(device) {
+		device->registrationTime = time(0);                                        // last time device tried sending token
+	}
 }
 
 /*!

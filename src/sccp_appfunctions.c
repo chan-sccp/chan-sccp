@@ -420,8 +420,10 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		while (token != NULL) {
 			addcomma = 0;
 			token = pbx_skip_blanks(token);
-			if (!strlen(token)) continue;
-			
+			if(!strlen(token)) {
+				continue;
+			}
+
 			/** copy request tokens for HASH() */
 			if (pbx_str_strlen(colnames)) {
 				pbx_str_append(&colnames, 0, ",");
@@ -678,8 +680,10 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 		while (token != NULL) {
 			addcomma = 0;
 			token = pbx_skip_blanks(token);
-			if (!strlen(token)) continue;
-			
+			if(!strlen(token)) {
+				continue;
+			}
+
 			/** copy request tokens for HASH() */
 			if (pbx_str_strlen(colnames)) {
 				pbx_str_append(&colnames, 0, ",");
@@ -903,8 +907,10 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		token = strtok_r(colname, delims, &tokenrest);
 		while (token != NULL) {
 			token = pbx_skip_blanks(token);
-			if (!strlen(token)) continue;
-			
+			if(!strlen(token)) {
+				continue;
+			}
+
 			/** copy request tokens for HASH() */
 			if (pbx_str_strlen(colnames)) {
 				pbx_str_append(&colnames, 0, ",");

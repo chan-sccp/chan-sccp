@@ -545,8 +545,9 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser
 	fd = open(path, O_RDONLY);
 	if(fd == -1) {
 		/* open file before checking failure cause, to prevent TOCTOU */
-		if (stat(path, &st) == -1 || !S_ISREG(st.st_mode))
+		if(stat(path, &st) == -1 || !S_ISREG(st.st_mode)) {
 			goto out404;
+		}
 		goto out403;
 	}
 

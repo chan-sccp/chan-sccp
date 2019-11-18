@@ -724,13 +724,15 @@ int sccp_pbx_answer(constChannelPtr channel)
 				}
 				pbx_channel_set_hangupcause(forwarder, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 				pbx_channel_unref(forwarder);
-				if(destination)
+				if(destination) {
 					pbx_channel_unref(destination);
+				}
 				res = -4;
 			}
 		} while(0);
-		if(tmp_channel)
+		if(tmp_channel) {
 			pbx_channel_unref(tmp_channel);
+		}
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) Outgoing call %s being answered by remote party\n", c->currentDeviceId, iPbx.getChannelName(c));
 		//sccp_channel_updateChannelCapability(c);

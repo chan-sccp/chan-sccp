@@ -1601,12 +1601,14 @@ gcc_inline int sccp_utf8_columnwidth(int width, const char *const ms)
 	locale_t locale = newlocale(LC_ALL_MASK, "", NULL);
 	locale_t old_locale = uselocale(locale);
 
-	if (ms)
+	if(ms) {
 		res = width + (strlen(ms) - mbstowcs(NULL, ms, width));
+	}
 
 	uselocale(old_locale);
-	if (locale != (locale_t) 0) 
+	if(locale != (locale_t)0) {
 		freelocale(locale);
+	}
 
 	return res;
 }
