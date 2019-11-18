@@ -617,10 +617,13 @@ void *sccp_session_device_thread(void *session)
 				pbx_rwlock_rdlock(&GLOB(lock));
 				boolean_t reload_in_progress = GLOB(reload_in_progress);
 				pbx_rwlock_unlock(&GLOB(lock));
-				if (reload_in_progress == FALSE) {
-					sccp_device_check_update(d);
+				if(reload_in_progress == FALSE && sccp_device_check_update(d)) {
+					continue;
 				}
-				continue;									// make sure  s->device is still valid
+				sccp_safe_sleep(100);
+				if(!s->device) {
+					continue;
+				}
 			}
 			if ((d->active_channel ? TRUE : FALSE) != oncall) {
 				recalc_wait_time(s);
