@@ -1372,7 +1372,7 @@ static void sccp_hint_notifySubscribersViaPbx(struct sccp_hint_lineState *lineSt
  * exten => 112,hint, SIP/123&Meetme:444&SCCP/98011&SCCP/98031&Custom:DND112,CustomPresence:112,Meetme:444
  * and match on the lineName we are looking for, i.e.: SCCP/98011 and SCCP/98031
  */
-static boolean_t sccp_match_dialplan2lineName(char *hint_app, char *lineName)
+static boolean_t sccp_match_dialplan2lineName(const char * hint_app, char * lineName)
 {
 	char *rest = pbx_strdupa(hint_app);
 	char * cur = NULL;

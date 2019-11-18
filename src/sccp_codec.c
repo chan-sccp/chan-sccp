@@ -262,7 +262,7 @@ int sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const cha
 	return errors;
 }
 
-int sccp_get_codecs_bytype(skinny_codec_t * in_codecs, skinny_codec_t *out_codecs, skinny_payload_type_t type)
+int sccp_get_codecs_bytype(const skinny_codec_t * in_codecs, skinny_codec_t * out_codecs, skinny_payload_type_t type)
 {
 	int x = 0;
 
@@ -302,7 +302,7 @@ boolean_t __PURE__ sccp_codec_isCompatible(skinny_codec_t codec, const skinny_co
  * \brief get smallest common denominator codecset
  * intersection of two sets
  */
-int sccp_codec_getReducedSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES], skinny_codec_t result[SKINNY_MAX_CAPABILITIES])
+int sccp_codec_getReducedSet(const skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES], skinny_codec_t result[SKINNY_MAX_CAPABILITIES])
 {
 	uint8_t x = 0;
 
