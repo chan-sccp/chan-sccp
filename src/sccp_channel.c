@@ -347,13 +347,11 @@ static void sccp_channel_recalculateAudioCodecFormat(channelPtr channel)
 	skinny_capabilities_t *preferences = &(channel->preferences);
 
 	if (channel->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.transmission.state == SCCP_RTP_STATUS_INACTIVE) {
-		if (channel->privateData->device) {
-			preferences = (channel->line->preferences_set_on_line_level) ? &(channel->preferences) : &(channel->privateData->device->preferences);
+		if(channel->privateData->device && !channel->line->preferences_set_on_line_level) {
+			preferences = &(channel->privateData->device->preferences);
 			sccp_codec_reduceSet(preferences->audio, channel->privateData->device->capabilities.audio);
-		} else {
-			preferences = &(channel->preferences);
-			sccp_codec_reduceSet(preferences->audio, channel->capabilities.audio);
 		}
+		sccp_codec_reduceSet(preferences->audio, channel->capabilities.audio);
 		joint = sccp_codec_findBestJoint(channel, preferences->audio, channel->remoteCapabilities.audio, TRUE);
 		if (SKINNY_CODEC_NONE == joint) {
 			joint = preferences->audio[0] ? preferences->audio[0] : SKINNY_CODEC_WIDEBAND_256K;
@@ -402,13 +400,11 @@ static boolean_t sccp_channel_recalculateVideoCodecFormat(channelPtr channel)
 	skinny_capabilities_t *preferences = &(channel->preferences);
 
 	if (channel->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE && channel->rtp.video.transmission.state == SCCP_RTP_STATUS_INACTIVE) {
-		if (channel->privateData->device) {
-			preferences = (channel->line->preferences_set_on_line_level) ? &(channel->preferences) : &(channel->privateData->device->preferences);
+		if(channel->privateData->device && !channel->line->preferences_set_on_line_level) {
+			preferences = &(channel->privateData->device->preferences);
 			sccp_codec_reduceSet(preferences->video, channel->privateData->device->capabilities.video);
-		} else {
-			preferences = &(channel->preferences);
-			sccp_codec_reduceSet(preferences->video, channel->capabilities.video);
 		}
+		sccp_codec_reduceSet(preferences->video, channel->capabilities.video);
 		joint = sccp_codec_findBestJoint(channel, preferences->video, channel->remoteCapabilities.video, FALSE);
 		if (joint == SKINNY_CODEC_NONE) {
 			sccp_channel_setVideoMode(channel, "off");
@@ -2831,6 +2827,10 @@ boolean_t sccp_channel_setPreferredCodec(channelPtr c, const char * data)
 	}
 	if (video_prefs[0] != SKINNY_CODEC_NONE) {
 		memcpy(c->preferences.video, video_prefs, sizeof c->preferences.video);
+	}
+
+	if(c->line) {
+		c->line->preferences_set_on_line_level = TRUE;
 	}
 
 	sccp_channel_updateChannelCapability(c);
