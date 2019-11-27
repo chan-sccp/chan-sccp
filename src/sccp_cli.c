@@ -3450,13 +3450,12 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 	return cli_result;
 }
 
-static char set_object_usage[] = "Usage: sccp set channel|device|fallback|debug settings\n" \
-				"sccp set " \
-				"channel <channelId> hold <on/off>" \
-				"|device <deviceId> [ringtone <ringtone>|backgroundImage <url> [thumbnail-url]" \
-				"|variable <variable>]" \
-				"|fallback [true|false|odd|even|script path]" \
-				"|debug [[no] <debugcategory>|none]\n";
+static char set_object_usage[] = "Usage: sccp set channel|device|variable|fallback|debug settings ...\n"
+				 " - sccp set channel <channelId> hold <on/off>.\n"
+				 " - sccp set device <deviceId> [ringtone <ringtone>|backgroundImage <url> [thumbnail-url].\n"
+				 " - sccp set variable <variable>].\n"
+				 " - sccp set fallback [true|false|odd|even|script path].\n"
+				 " - sccp set debug [[no] <debugcategory>|none].\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "set"
