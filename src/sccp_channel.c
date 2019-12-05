@@ -58,15 +58,9 @@ struct sccp_private_channel_data {
  * \param channel SCCP Channel
  * \param enabled Enabled as Boolean
  */
-static void sccp_channel_setMicrophoneState(constChannelPtr channel, boolean_t enabled)
+static void setMicrophoneState(channelPtr c, boolean_t enabled)
 {
-	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
-
-	if (!c) {
-		return;
-	}
-	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
-
+	AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
 	if (!d) {
 		return;
 	}
@@ -139,7 +133,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 			break;
 		}
 #if CS_REFCOUNT_DEBUG
-		sccp_refcount_addWeakParent(channel, refLine);
+		sccp_refcount_addRelationship(refLine, channel);
 #endif
 		/* allocate resources */
 		private_data = (struct sccp_private_channel_data *)sccp_calloc(sizeof *private_data, 1);
@@ -191,8 +185,9 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		channel->setDevice = sccp_channel_setDevice;
 		channel->isMicrophoneEnabled = sccp_always_true;
 		channel->isHangingUp = FALSE;
-		channel->setMicrophone = sccp_channel_setMicrophoneState;
-		channel->hangupRequest = sccp_astgenwrap_requestHangup;
+		channel->isRunningPbxThread = FALSE;
+		channel->setMicrophone = setMicrophoneState;
+		channel->hangupRequest = sccp_astgenwrap_requestQueueHangup;
 		//channel->privacy = (device && (device->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT)) ? TRUE : FALSE;
 		if (device) {
 			channel->dtmfmode = device->getDtmfMode(device);
@@ -288,7 +283,7 @@ void sccp_channel_setDevice(channelPtr channel, constDevicePtr device)
 	}
 #if CS_REFCOUNT_DEBUG
 	if (device || channel->privateData->device) {
-		sccp_refcount_removeWeakParent(channel, channel->privateData->device ? channel->privateData->device : device);
+		sccp_refcount_removeRelationship(channel->privateData->device ? channel->privateData->device : device, channel);
 	}
 #endif
 	sccp_device_refreplace(&channel->privateData->device, (sccp_device_t *) device);
@@ -296,7 +291,7 @@ void sccp_channel_setDevice(channelPtr channel, constDevicePtr device)
 	if (device) {
 		sccp_device_setActiveChannel(device, channel);
 #if CS_REFCOUNT_DEBUG
-		sccp_refcount_addWeakParent(channel, device);
+		sccp_refcount_addRelationship(device, channel);
 #endif
 	}
 

@@ -208,7 +208,7 @@ static int __sccp_participant_destroy(const void *data)
 #endif
 	if (participant->channel) {
 #if CS_REFCOUNT_DEBUG
-		sccp_refcount_removeWeakParent(participant, participant->channel);
+		sccp_refcount_removeRelationship(participant->channel, participant);
 #endif
 		participant->channel->conference_id = 0;
 		participant->channel->conference_participant_id = 0;
@@ -219,7 +219,7 @@ static int __sccp_participant_destroy(const void *data)
 	}
 	if (participant->device) {
 #if CS_REFCOUNT_DEBUG
-		sccp_refcount_removeWeakParent(participant, participant->device);
+		sccp_refcount_removeRelationship(participant->device, participant);
 #endif
 		participant->device->conferencelist_active = FALSE;
 		if (participant->device->conference) {
@@ -316,8 +316,8 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 
 	if (participant) {
 #if CS_REFCOUNT_DEBUG
-		sccp_refcount_addWeakParent(participant, device);
-		sccp_refcount_addWeakParent(participant, channel);
+		sccp_refcount_addRelationship(device, participant);
+		sccp_refcount_addRelationship(channel, participant);
 #endif
 		conference->num_moderators = 1;
 		participant->channel = sccp_channel_retain(channel);
@@ -384,8 +384,8 @@ static sccp_participant_t *sccp_conference_createParticipant(constConferencePtr 
 		return NULL;
 	}
 #if CS_REFCOUNT_DEBUG
-	sccp_refcount_addWeakParent(participant, conference);
-#endif
+	sccp_refcount_addRelationship(conference, participant);
+#	endif
 	pbx_bridge_features_init(&participant->features);
 	//ast_set_flag(&(participant->features.feature_flags), AST_BRIDGE_CHANNEL_FLAG_IMMOVABLE);
 
@@ -583,8 +583,8 @@ boolean_t sccp_conference_addParticipatingChannel(conferencePtr conference, cons
 				iPbx.setChannelLinkedId(channel, conference->linkedid);
 				sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
 #if CS_REFCOUNT_DEBUG
-				sccp_refcount_addWeakParent(participant, device);
-				sccp_refcount_addWeakParent(participant, channel);
+				sccp_refcount_addRelationship(device, participant);
+				sccp_refcount_addRelationship(channel, participant);
 #endif
 			} else {
 				participant->playback_announcements = conference->playback_announcements;

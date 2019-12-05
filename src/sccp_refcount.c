@@ -145,8 +145,8 @@ gcc_inline void sccp_refcount_autorelease(void *refptr)
 }
 
 #if CS_REFCOUNT_DEBUG
-void sccp_refcount_addWeakParent(const void * const ptr, const void * const parentWeakPtr) {}
-void sccp_refcount_removeWeakParent(const void * const ptr, const void * const parentWeakPtr) {}
+void sccp_refcount_addRelationship(const void * const parentWeakPtr, const void * const ptr) {}
+void sccp_refcount_removeRelationship(const void * const parentWeakPtr, const void * const ptr) {}
 void sccp_refcount_gen_report(const void * const ptr, pbx_str_t **buf) {}
 #endif
 #ifdef CS_EXPERIMENTAL
@@ -162,9 +162,11 @@ int sccp_refcount_force_release(long findobj, char *identifier)
 #define SCCP_SIMPLE_HASH(_a) (((uintptr_t)(_a)) % SCCP_HASH_PRIME)
 #define SCCP_LIVE_MARKER 13
 #if CS_REFCOUNT_DEBUG
-#define REFCOUNT_MAX_PARENTS 3
-#define REF_DEBUG_FILE_MAX_SIZE 10000000
-#define REF_DEBUG_FILE "/tmp/sccp_refs"
+#		define REFCOUNT_MAX_RELATIONS  7
+#		define REF_DEBUG_FILE_MAX_SIZE 10000000
+//#define REF_DEBUG_FILE "/tmp/sccp_refs"
+#		include "asterisk/paths.h"
+#		define REF_DEBUG_FILE ast_config_AST_LOG_DIR
 static int __rotate_debug_file(void);
 #endif
 
@@ -204,7 +206,7 @@ struct refcount_object {
 	enum sccp_refcounted_types type;
 	char identifier[REFCOUNT_INDENTIFIER_SIZE];
 #if CS_REFCOUNT_DEBUG
-	void *parentWeakPtr[REFCOUNT_MAX_PARENTS];
+	void * relation[REFCOUNT_MAX_RELATIONS];
 #endif	
 	uint16_t len;
 	uint16_t alive;
@@ -382,8 +384,8 @@ static int __rotate_debug_file(void)
 		
 		num_debug_files++;
 		char newfilename[SCCP_PATH_MAX];
-		//snprintf(newfilename, SCCP_PATH_MAX, "%s/sccp_refs.%d.log", ast_config_AST_LOG_DIR, num_debug_files);
-		snprintf(newfilename, SCCP_PATH_MAX, "%s.%d", REF_DEBUG_FILE, num_debug_files);
+		// snprintf(newfilename, SCCP_PATH_MAX, "%s.%d", REF_DEBUG_FILE, num_debug_files);
+		snprintf(newfilename, SCCP_PATH_MAX, "%s/sccp_refs.%d.log", ast_config_AST_LOG_DIR, num_debug_files);
 		if (rename(REF_DEBUG_FILE, newfilename)) {
 			pbx_log(LOG_ERROR, "SCCP: ref debug log file: %s could not be moved to %s (%d)\n", REF_DEBUG_FILE, newfilename, errno);
 			sccp_ref_debug_log = NULL;
@@ -535,50 +537,63 @@ static gcc_inline void sccp_refcount_remove_obj(const void *ptr)
 	}
 }
 
-#if CS_REFCOUNT_DEBUG 
+#	if CS_REFCOUNT_DEBUG
+typedef struct ref_relation {
+	RefCountedObject * obj;
+	int depth;
+} sccp_refrelation_t;
+
+static void sccp_refcount_gen_report1(const RefCountedObject * const parent, sccp_refrelation_t relations[], pbx_str_t ** buf, int depth)
+{
+	RefCountedObject * ptr = NULL;
+	uint max_relations = depth * REFCOUNT_MAX_RELATIONS;
+	for(int parentIndex = 0; parentIndex < REFCOUNT_MAX_RELATIONS; parentIndex++) {
+		if((ptr = parent->relation[parentIndex])) {
+			RefCountedObject * obj = sccp_refcount_find_obj(ptr, __LINE__, __PRETTY_FUNCTION__);
+			for(uint x = 0; x < max_relations; x++) {
+				if(relations[x].obj == obj)
+					break;
+				if(relations[x].obj != NULL)
+					continue;
+				relations[x].obj = obj;
+				relations[x].depth = depth;
+				if(depth)
+					sccp_refcount_gen_report1(obj, relations, buf, depth - 1);
+				break;
+			}
+		}
+	}
+}
+
 void sccp_refcount_gen_report(const void * const ptr, pbx_str_t **buf)
 {
 	pbx_str_append(buf, 0, "\n== refcount report =======================================================================\n");
+	int depth = 4;
+	uint max_relations = REFCOUNT_MAX_RELATIONS;
 
-	RefCountedObject *obj = sccp_refcount_find_obj(ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	RefCountedObject * obj = sccp_refcount_find_obj(ptr, __LINE__, __PRETTY_FUNCTION__);
 	if (!obj) {
 		pbx_log(LOG_NOTICE, "SCCP: (refcount_gen_report) Not Refcount Object found for %p\n", ptr);
 		return;
 	}
-	pbx_str_append(buf, 0, " %-17.17s %-25.25s (%15p), refcount:%-4.4d, alive:%-5.5s\n", 
-		(obj_info[obj->type]).datatype, 
-		obj->identifier, 
-		obj, 
-		obj->refcount,
-		SCCP_LIVE_MARKER == obj->alive ? "yes" : "no"
-	);
-	
-	pbx_str_append(buf, 0, "== related objects =======================================================================\n");
+	sccp_refrelation_t relations[REFCOUNT_MAX_RELATIONS] = {
+		{ obj, depth },
+		{ NULL, 0 },
+	};
 	ast_rwlock_rdlock(&objectslock);
-	RefCountedObject *rel_obj = NULL;
-	for(int bucket = 0; bucket < SCCP_HASH_PRIME; bucket++) {
-		if (objects[bucket]) {
-			SCCP_RWLIST_RDLOCK(&(objects[bucket]->refCountedObjects));
-			SCCP_RWLIST_TRAVERSE(&(objects[bucket]->refCountedObjects), rel_obj, list) {
-				for (int parentIndex = 0; parentIndex < REFCOUNT_MAX_PARENTS; parentIndex++) {
-					if (rel_obj->parentWeakPtr[parentIndex] && rel_obj->parentWeakPtr[parentIndex] == obj) {
-						pbx_str_append(buf, 0, " %-17.17s %-25.25s (%15p), refcount:%-4.4d, alive:%-5.5s\n", 
-							(obj_info[rel_obj->type]).datatype, 
-							rel_obj->identifier, 
-							rel_obj, 
-							rel_obj->refcount,
-							SCCP_LIVE_MARKER == rel_obj->alive ? "yes" : "no"
-						);
-					}
-				}
-			}
-			SCCP_RWLIST_UNLOCK(&(objects[bucket]->refCountedObjects));
-		}
+	sccp_refcount_gen_report1(obj, relations, buf, depth);
+	for(uint x = 0; x < max_relations; x++) {
+		if(relations[x].obj == NULL)
+			break;
+		obj = relations[x].obj;
+		pbx_str_append(buf, 0, "%.*s- %-11.11s %-25.25s (%15p), cnt:%-4.4d, live:%-1.1s\n", 4 - relations[x].depth, " ", (obj_info[obj->type]).datatype, obj->identifier, obj, obj->refcount,
+			       SCCP_LIVE_MARKER == obj->alive ? "y" : "n");
 	}
 	ast_rwlock_unlock(&objectslock);
+
 	pbx_str_append(buf, 0, "==========================================================================================\n");
 }
-#endif
+#	endif
 
 int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
@@ -602,9 +617,9 @@ int sccp_show_refcount(int fd, sccp_cli_totals_t *totals, struct mansession *s, 
 	}
 
 	ast_rwlock_rdlock(&objectslock);
-#define CLI_AMI_TABLE_NAME Refcount
-#define CLI_AMI_TABLE_PER_ENTRY_NAME Entry
-#define CLI_AMI_TABLE_ITERATOR for(bucket = 0; bucket < SCCP_HASH_PRIME; bucket++)
+#	define CLI_AMI_TABLE_NAME           Refcount
+#	define CLI_AMI_TABLE_PER_ENTRY_NAME Entry
+#	define CLI_AMI_TABLE_ITERATOR       for(bucket = 0; bucket < SCCP_HASH_PRIME; bucket++)
 #	define CLI_AMI_TABLE_BEFORE_ITERATION                                                                                                                \
 		if(objects[bucket]) {                                                                                                                         \
 			SCCP_RWLIST_RDLOCK(&(objects[bucket]->refCountedObjects));                                                                            \
@@ -745,68 +760,58 @@ void sccp_refcount_updateIdentifier(const void * const ptr, const char * const i
 	sccp_copy_string(obj->identifier, identifier, sizeof(obj->identifier));
 }
 
-#if CS_REFCOUNT_DEBUG 
-void sccp_refcount_addWeakParent(const void * const ptr, const void * const parentWeakPtr)
+#	if CS_REFCOUNT_DEBUG
+void sccp_refcount_addRelationship(const void * const parentWeakPtr, const void * const childPtr)
 {
-	RefCountedObject *obj = sccp_refcount_find_obj(ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	if (!obj) {
-		pbx_log(LOG_ERROR, "SCCP: (addWeakParent) Refcount Object %p could not be found\n", ptr);
-		return;
-	}
-	RefCountedObject *parent = sccp_refcount_find_obj(parentWeakPtr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	RefCountedObject * parent = sccp_refcount_find_obj(parentWeakPtr, __LINE__, __PRETTY_FUNCTION__);
 	if (!parent) {
 		pbx_log(LOG_ERROR, "SCCP: (addWeakParent) Refcount Parent Object %p could not be found\n", parentWeakPtr);
 		return;
 	}
-	for (int x = 0; x < REFCOUNT_MAX_PARENTS; x++) {
-		if (obj->parentWeakPtr[x] && obj->parentWeakPtr[x] == parent) {
+	for(int x = 0; x < REFCOUNT_MAX_RELATIONS; x++) {
+		if(parent->relation[x] && parent->relation[x] == childPtr) {
 			break;
 		}
-		if (!obj->parentWeakPtr[x]) {
-			obj->parentWeakPtr[x] = parent;
+		if(!parent->relation[x]) {
+			parent->relation[x] = (void *)childPtr;
 			break;
 		}
 	}
 }
 
-void sccp_refcount_removeWeakParent(const void * const ptr, const void * const parentWeakPtr)
+void sccp_refcount_removeRelationship(const void * const parentWeakPtr, const void * const childPtr)
 {
-	RefCountedObject *obj = sccp_refcount_find_obj(ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	if (!obj) {
-		pbx_log(LOG_ERROR, "SCCP: (removeWeakParent) Refcount Object %p could not be found\n", ptr);
-		return;
-	}
-	RefCountedObject *parent = sccp_refcount_find_obj(parentWeakPtr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	RefCountedObject * parent = sccp_refcount_find_obj(parentWeakPtr, __LINE__, __PRETTY_FUNCTION__);
 	if (!parent) {
 		pbx_log(LOG_ERROR, "SCCP: (removeWeakParent) Refcount Parent Object %p could not be found\n", parentWeakPtr);
 		return;
 	}
-	for (int x = 0; x < REFCOUNT_MAX_PARENTS; x++) {
-		if (obj->parentWeakPtr[x] && obj->parentWeakPtr[x] == parent) {
-			obj->parentWeakPtr[x] = NULL;
+	for(int x = 0; x < REFCOUNT_MAX_RELATIONS; x++) {
+		if(parent->relation[x] && parent->relation[x] == childPtr) {
+			parent->relation[x] = NULL;
 			break;
 		}
 	}
 }
-#endif
+#	endif
 
 gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func)
 {
-#if CS_REFCOUNT_DEBUG
+#	if CS_REFCOUNT_DEBUG
 	pbx_assert(ptr != NULL);
-#else
+#	else
 	if (ptr == NULL) {											// soft failure
 		pbx_log(LOG_WARNING, "SCCP: (refcount_retain) tried to retain a NULL pointer\n");
 		usleep(10);
 		return NULL;
 	}
-#endif	
+#	endif	
 	RefCountedObject *obj = NULL;
 
 	if(do_expect((obj = sccp_refcount_find_obj(ptr, lineno, func)) != NULL)) {
-#if CS_REFCOUNT_DEBUG
+#	if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug(ptr, obj, 1, filename, lineno, func);
-#endif
+#	endif
 		// ANNOTATE_HAPPENS_BEFORE(&obj->refcount);
 		// volatile int refcountval = ATOMIC_INCR((&obj->refcount), 1, &obj->lock);
 		int refcountval = ATOMIC_INCR((&obj->refcount), 1, &obj->lock);
@@ -817,10 +822,10 @@ gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char 
 			pbx_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-35.35s) %*.*s> %*s refcount increased %.2d  +> %.2d for %10s: %s (%p)\n", filename, lineno, func, refcountval, refcountval, "--------------------", 20 - refcountval, " ", refcountval, newrefcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 		}
 		return (void * const) obj->data;	/* regular exit */
-	} 
-#if CS_REFCOUNT_DEBUG
+	}
+#	if CS_REFCOUNT_DEBUG
 	__sccp_refcount_debug((void *) ptr, NULL, 1, filename, lineno, func);
-#endif
+#	endif
 	pbx_log(__LOG_VERBOSE, __FILE__, 0, "retain", "SCCP: (%-15.15s:%-4.4d (%-35.35s)) ALARM !! trying to retain %p with invalid memory reference! this should never happen !\n", filename, lineno, func, obj);
 	pbx_log(LOG_ERROR, "SCCP: (release) Refcount Object %p could not be found (Major Logic Error). Please report to developers\n", ptr);
 	#ifdef DEBUG

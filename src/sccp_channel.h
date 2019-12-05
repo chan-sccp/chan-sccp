@@ -94,7 +94,7 @@ struct sccp_channel {
 	uint32_t conference_id;											/*!< Conference ID (might be safer to use instead of conference) */
 	uint32_t conference_participant_id;									/*!< Conference Participant ID */
 
-	void (*setMicrophone)(constChannelPtr channel, boolean_t on);
+	void (*setMicrophone)(channelPtr c, boolean_t on);
 	boolean_t (*hangupRequest) (constChannelPtr channel);
 	boolean_t (*isMicrophoneEnabled) (void);
 	const char *const musicclass;										/*!< Music Class */
@@ -103,6 +103,7 @@ struct sccp_channel {
 	boolean_t isBarged;
 	boolean_t isBarging;
 	boolean_t isHangingUp;
+	boolean_t isRunningPbxThread;
 
 	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */
 	uint16_t autoanswer_cause;										/*!< Auto Answer Cause */

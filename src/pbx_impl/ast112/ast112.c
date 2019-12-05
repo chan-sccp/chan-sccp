@@ -2826,7 +2826,7 @@ static skinny_busylampfield_state_t sccp_astwrap_getExtensionState(const char *e
    }
  */
 
-static int sccp_astwrap_dumpchan(struct ast_channel *c, char *buf, size_t size)
+static int sccp_astwrap_dumpchan(PBX_CHANNEL_TYPE * const c, char * const buf, size_t size)
 {
 	long elapsed_seconds = 0;
 	int hour = 0, min = 0, sec = 0;
@@ -2841,7 +2841,7 @@ static int sccp_astwrap_dumpchan(struct ast_channel *c, char *buf, size_t size)
 	memset(buf, 0, size);
 	if (!c) {
 		return 0;
-}
+	}
 
 	elapsed_seconds = ast_channel_get_duration(c);
 	hour = elapsed_seconds / 3600;

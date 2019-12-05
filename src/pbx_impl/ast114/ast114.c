@@ -3110,7 +3110,7 @@ static void sccp_astwrap_endpoint_shutdown(struct ast_endpoint **endpoint)
 	*endpoint = NULL;
 }
 
-static int sccp_astwrap_dumpchan(struct ast_channel *c, char *buf, size_t size)
+static int sccp_astwrap_dumpchan(PBX_CHANNEL_TYPE * const c, char * const buf, size_t size)
 {
 	long elapsed_seconds = 0;
 	int hour = 0, min = 0, sec = 0;

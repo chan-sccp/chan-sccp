@@ -508,7 +508,7 @@ void sccp_line_addChannel(constLinePtr line, constChannelPtr channel)
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = sccp_channel_retain(channel))) {							// Add into list retained
 #if CS_REFCOUNT_DEBUG
-			sccp_refcount_addWeakParent(l, c);
+			sccp_refcount_addRelationship(c, l);
 #endif
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s\n", c->callid, l->name);
 			if (GLOB(callanswerorder) == SCCP_ANSWER_OLDEST_FIRST) {
@@ -542,7 +542,7 @@ void sccp_line_removeChannel(constLinePtr line, sccp_channel_t * channel)
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = SCCP_LIST_REMOVE(&l->channels, channel, list))) {
 #if CS_REFCOUNT_DEBUG
-			sccp_refcount_removeWeakParent(l, c);
+			sccp_refcount_removeRelationship(c, l);
 #endif
 			if (c->state == SCCP_CHANNELSTATE_HOLD) {
 				c->line->statistic.numberOfHeldChannels--;
