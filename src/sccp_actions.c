@@ -2625,37 +2625,27 @@ void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMess
 	for(uint8_t i = 0; i < arrayLen; i++) {
 		switch (softkeysmap[i]) {
 			case SKINNY_LBL_EMPTY:
-				// msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 0;
-				// msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = 0;
 				break;
 			case SKINNY_LBL_DIAL:
-				/* fall through */
 			case SKINNY_LBL_MONITOR:
 				sccp_copy_string(msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel, label2str(softkeysmap[i]), StationMaxSoftKeyLabelSize);
-				//sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel);
 				break;
 			case SKINNY_LBL_VIDEO_MODE:
 				//sccp_copy_string(msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel, label2str(softkeysmap[i]), StationMaxSoftKeyLabelSize);
-				//sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel);
 				msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = (char)128;	/* adding "\200" upfront to indicate that we are using an embedded/xml label */
 				msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];	/* this works on 7970 */
-				//msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = (char)128; /* octal 0200 */
-				//msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = (char)88; /* octal 0130 */
 				break;
 #ifdef CS_SCCP_CONFERENCE
 			case SKINNY_LBL_CONFRN:
 			case SKINNY_LBL_JOIN:
 			case SKINNY_LBL_CONFLIST:
-				if (d->allow_conference) {
-					msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = (char)128;	/* adding "\200" upfront to indicate that we are using an embedded/xml label */
-					msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];
-				}
-				break;
+				if(!d->allow_conference)
+					break;
+					/* fall through */
 #endif
 			default:
 				msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = (char)128;		/* adding "\200" upfront to indicate that we are using an embedded/xml label */
 				msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];
-				//sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Button(%d)[%2d] = %s\n", d->id, i, i + 1, label2str(msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1]));
 		}
 		msg_out->data.SoftKeyTemplateResMessage.definition[i].lel_softKeyEvent = htolel(i + 1);
 	}
@@ -2854,9 +2844,9 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 				continue;
 			}
 #endif
-//			if (b[c] == SKINNY_LBL_EMPTY) {
-//				continue;
-//			}
+			if(b[c] == SKINNY_LBL_EMPTY) {
+				continue;
+			}
 			for (j = 0; j < sizeof(softkeysmap); j++) {
 				if (b[c] == softkeysmap[j]) {
 					ast_str_append(&outputStr, buffersize, "%-2d:%-9s|", c, label2str(softkeysmap[j]));
