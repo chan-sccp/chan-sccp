@@ -2627,6 +2627,7 @@ void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMess
 			case SKINNY_LBL_EMPTY:
 				break;
 			case SKINNY_LBL_DIAL:
+				/* fall through */
 			case SKINNY_LBL_MONITOR:
 				sccp_copy_string(msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel, label2str(softkeysmap[i]), StationMaxSoftKeyLabelSize);
 				break;
@@ -2637,11 +2638,14 @@ void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMess
 				break;
 #ifdef CS_SCCP_CONFERENCE
 			case SKINNY_LBL_CONFRN:
+				/* fall through */
 			case SKINNY_LBL_JOIN:
+				/* fall through */
 			case SKINNY_LBL_CONFLIST:
-				if(!d->allow_conference)
+				if(!d->allow_conference) {
 					break;
-					/* fall through */
+				}
+				/* fall through */
 #endif
 			default:
 				msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = (char)128;		/* adding "\200" upfront to indicate that we are using an embedded/xml label */
