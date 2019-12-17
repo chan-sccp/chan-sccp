@@ -835,6 +835,8 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 			pbx_log(LOG_WARNING, "%s: Cleaning previous session, come back later, state:%s\n", DEV_ID_LOG(device), skinny_registrationstate2str(state));
 			sccp_session_crossdevice_cleanup(s, device->session);
 			sccp_session_reject(s, "Crossover session");
+			sccp_device_setRegistrationState(device, SKINNY_DEVICE_RS_FAILED);
+			device->session = NULL;
 			goto FUNC_EXIT;
 		}
 	}
