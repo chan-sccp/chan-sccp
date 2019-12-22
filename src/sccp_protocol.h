@@ -167,222 +167,224 @@ typedef struct {
  */
 
 typedef enum {
-	/* *INDENT-OFF* */
+/* *INDENT-OFF* */
 
 #define SCCP_MESSAGE_LOW_BOUNDARY			KeepAliveMessage		/*0x0000*/
 	/* Client -> Server */
-	KeepAliveMessage 				= 0x0000,
-	RegisterMessage 				= 0x0001,
-	IpPortMessage 					= 0x0002,
-	KeypadButtonMessage 				= 0x0003,
-	EnblocCallMessage 				= 0x0004,
-	StimulusMessage 				= 0x0005,
-	OffHookMessage 					= 0x0006,
-	OnHookMessage 					= 0x0007,
-	HookFlashMessage 				= 0x0008,
-	ForwardStatReqMessage 				= 0x0009,
-	SpeedDialStatReqMessage 			= 0x000A,
-	LineStatReqMessage 				= 0x000B,
-	ConfigStatReqMessage 				= 0x000C,
-	TimeDateReqMessage 				= 0x000D,
-	ButtonTemplateReqMessage 			= 0x000E,
-	VersionReqMessage 				= 0x000F,
-	CapabilitiesResMessage 				= 0x0010,
-	MediaPortListMessage 				= 0x0011,
-	ServerReqMessage 				= 0x0012,
-	AlarmMessage 					= 0x0020,
-	MulticastMediaReceptionAck 			= 0x0021,
-	OpenReceiveChannelAck 				= 0x0022,
-	ConnectionStatisticsRes 			= 0x0023,
-	OffHookMessageWithCallingPartyMessage		= 0x0024,
-	SoftKeySetReqMessage 				= 0x0025,
-	SoftKeyEventMessage 				= 0x0026,
-	UnregisterMessage 				= 0x0027,
-	SoftKeyTemplateReqMessage 			= 0x0028,
-	RegisterTokenRequest 				= 0x0029,
-	MediaTransmissionFailure 			= 0x002A,
-	HeadsetStatusMessage 				= 0x002B,
-	MediaResourceNotification 			= 0x002C,
-	RegisterAvailableLinesMessage 			= 0x002D,
-	DeviceToUserDataMessage 			= 0x002E,
-	DeviceToUserDataResponseMessage 		= 0x002F,
-	UpdateCapabilitiesMessage			= 0x0030,
-	OpenMultiMediaReceiveChannelAckMessage 		= 0x0031,
-	ClearConferenceMessage 				= 0x0032,
-	ServiceURLStatReqMessage 			= 0x0033,
-	FeatureStatReqMessage 				= 0x0034,
-	CreateConferenceResMessage 			= 0x0035,
-	DeleteConferenceResMessage 			= 0x0036,
-	ModifyConferenceResMessage 			= 0x0037,
-	AddParticipantResMessage 			= 0x0038,
-	AuditConferenceResMessage 			= 0x0039,
-	AuditParticipantResMessage 			= 0x0040,
-	DeviceToUserDataVersion1Message 		= 0x0041,
-	DeviceToUserDataResponseVersion1Message 	= 0x0042,
-	
-	UpdateCapabilitiesV2Message 			= 0x0043,	/*new (2013-12-9)*/
-	UpdateCapabilitiesV3Message			= 0x0044,	/* DynamicUpdateCapabilitiesMessage */ /*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181/ */
-	
-	PortResponseMessage				= 0x0045,	/*new (2013-12-9)*/
-	QoSResvNotifyMessage 				= 0x0046,	/*new (2013-12-9)*/
-	QoSErrorNotifyMessage 				= 0x0047,	/*new (2013-12-9)*/
+	KeepAliveMessage = 0x0000,
+	RegisterMessage = 0x0001,
+	IpPortMessage = 0x0002,
+	KeypadButtonMessage = 0x0003,
+	EnblocCallMessage = 0x0004,
+	StimulusMessage = 0x0005,
+	OffHookMessage = 0x0006,
+	OnHookMessage = 0x0007,
+	HookFlashMessage = 0x0008,
+	ForwardStatReqMessage = 0x0009,
+	SpeedDialStatReqMessage = 0x000A,
+	LineStatReqMessage = 0x000B,
+	ConfigStatReqMessage = 0x000C,
+	TimeDateReqMessage = 0x000D,
+	ButtonTemplateReqMessage = 0x000E,
+	VersionReqMessage = 0x000F,
+	CapabilitiesResMessage = 0x0010,
+	MediaPortListMessage = 0x0011,
+	ServerReqMessage = 0x0012,
+	AlarmMessage = 0x0020,
+	MulticastMediaReceptionAck = 0x0021,
+	OpenReceiveChannelAck = 0x0022,
+	ConnectionStatisticsRes = 0x0023,
+	OffHookMessageWithCallingPartyMessage = 0x0024,
+	SoftKeySetReqMessage = 0x0025,
+	SoftKeyEventMessage = 0x0026,
+	UnregisterMessage = 0x0027,
+	SoftKeyTemplateReqMessage = 0x0028,
+	RegisterTokenRequest = 0x0029,
+	MediaTransmissionFailure = 0x002A,
+	HeadsetStatusMessage = 0x002B,
+	MediaResourceNotification = 0x002C,
+	RegisterAvailableLinesMessage = 0x002D,
+	DeviceToUserDataMessage = 0x002E,
+	DeviceToUserDataResponseMessage = 0x002F,
+	UpdateCapabilitiesMessage = 0x0030,
+	OpenMultiMediaReceiveChannelAckMessage = 0x0031,
+	ClearConferenceMessage = 0x0032,
+	ServiceURLStatReqMessage = 0x0033,
+	FeatureStatReqMessage = 0x0034,
+	CreateConferenceResMessage = 0x0035,
+	DeleteConferenceResMessage = 0x0036,
+	ModifyConferenceResMessage = 0x0037,
+	AddParticipantResMessage = 0x0038,
+	AuditConferenceResMessage = 0x0039,
+	AuditParticipantResMessage = 0x0040,
+	DeviceToUserDataVersion1Message = 0x0041,
+	DeviceToUserDataResponseVersion1Message = 0x0042,
+
+	UpdateCapabilitiesV2Message = 0x0043, /*new (2013-12-9)*/
+	UpdateCapabilitiesV3Message = 0x0044,
+	/* DynamicUpdateCapabilitiesMessage */ /*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181/ */
+
+	PortResponseMessage = 0x0045,   /*new (2013-12-9)*/
+	QoSResvNotifyMessage = 0x0046,  /*new (2013-12-9)*/
+	QoSErrorNotifyMessage = 0x0047, /*new (2013-12-9)*/
 
 	/* This are from protocol V 11 CCM7 */
-	SubscriptionStatReqMessage			= 0x0048,	/* Subscription Stat Request */
-	AccessoryStatusMessage 				= 0x0049,	/* MediaPath Event Message */
-	MediaPathCapabilityMessage			= 0x004A,	/*new name (2013-12-9)*/
-	MwiNotificationMessage 				= 0x004C,
+	SubscriptionStatReqMessage = 0x0048, /* Subscription Stat Request */
+	AccessoryStatusMessage = 0x0049,     /* MediaPath Event Message */
+	MediaPathCapabilityMessage = 0x004A, /*new name (2013-12-9)*/
+	MwiNotificationMessage = 0x004C,
 
 	/* Server -> Client */
-	RegisterAckMessage 				= 0x0081,
-	StartToneMessage 				= 0x0082,
-	StopToneMessage 				= 0x0083,
+	RegisterAckMessage = 0x0081,
+	StartToneMessage = 0x0082,
+	StopToneMessage = 0x0083,
 	// ??
-	SetRingerMessage 				= 0x0085,
-	SetLampMessage 					= 0x0086,
-	SetHookFlashDetectMessage 			= 0x0087,
-	SetSpeakerModeMessage 				= 0x0088,
-	SetMicroModeMessage 				= 0x0089,
-	StartMediaTransmission 				= 0x008A,
-	StopMediaTransmission 				= 0x008B,
-	StartMediaReception 				= 0x008C,
-	StopMediaReception 				= 0x008D,
+	SetRingerMessage = 0x0085,
+	SetLampMessage = 0x0086,
+	SetHookFlashDetectMessage = 0x0087,
+	SetSpeakerModeMessage = 0x0088,
+	SetMicroModeMessage = 0x0089,
+	StartMediaTransmission = 0x008A,
+	StopMediaTransmission = 0x008B,
+	StartMediaReception = 0x008C,
+	StopMediaReception = 0x008D,
 	// ?
-	CallInfoMessage 				= 0x008F,
+	CallInfoMessage = 0x008F,
 
-	ForwardStatMessage 				= 0x0090,
-	SpeedDialStatMessage 				= 0x0091,
-	LineStatMessage 				= 0x0092,
-	ConfigStatMessage 				= 0x0093,
-	DefineTimeDate 					= 0x0094,
-	StartSessionTransmission 			= 0x0095,
-	StopSessionTransmission 			= 0x0096,
-	ButtonTemplateMessage 				= 0x0097,
-	//ButtonTemplateMessageSingle 			= 0x0097,
-	VersionMessage 					= 0x0098,
-	DisplayTextMessage 				= 0x0099,
-	ClearDisplay 					= 0x009A,
-	CapabilitiesReqMessage 				= 0x009B,
-	EnunciatorCommandMessage 			= 0x009C,
-	RegisterRejectMessage 				= 0x009D,
-	ServerResMessage 				= 0x009E,
-	Reset 						= 0x009F,
+	ForwardStatMessage = 0x0090,
+	SpeedDialStatMessage = 0x0091,
+	LineStatMessage = 0x0092,
+	ConfigStatMessage = 0x0093,
+	DefineTimeDate = 0x0094,
+	StartSessionTransmission = 0x0095,
+	StopSessionTransmission = 0x0096,
+	ButtonTemplateMessage = 0x0097,
+	// ButtonTemplateMessageSingle 			= 0x0097,
+	VersionMessage = 0x0098,
+	DisplayTextMessage = 0x0099,
+	ClearDisplay = 0x009A,
+	CapabilitiesReqMessage = 0x009B,
+	EnunciatorCommandMessage = 0x009C,
+	RegisterRejectMessage = 0x009D,
+	ServerResMessage = 0x009E,
+	Reset = 0x009F,
 
-	KeepAliveAckMessage 				= 0x0100,
-	StartMulticastMediaReception 			= 0x0101,
-	StartMulticastMediaTransmission 		= 0x0102,
-	StopMulticastMediaReception 			= 0x0103,
-	StopMulticastMediaTransmission 			= 0x0104,
-	OpenReceiveChannel 				= 0x0105,
-	CloseReceiveChannel 				= 0x0106,
-	ConnectionStatisticsReq 			= 0x0107,
-	SoftKeyTemplateResMessage 			= 0x0108,
-	SoftKeySetResMessage 				= 0x0109,
+	KeepAliveAckMessage = 0x0100,
+	StartMulticastMediaReception = 0x0101,
+	StartMulticastMediaTransmission = 0x0102,
+	StopMulticastMediaReception = 0x0103,
+	StopMulticastMediaTransmission = 0x0104,
+	OpenReceiveChannel = 0x0105,
+	CloseReceiveChannel = 0x0106,
+	ConnectionStatisticsReq = 0x0107,
+	SoftKeyTemplateResMessage = 0x0108,
+	SoftKeySetResMessage = 0x0109,
 
-	SelectSoftKeysMessage 				= 0x0110,
-	CallStateMessage 				= 0x0111,
-	DisplayPromptStatusMessage 			= 0x0112,
-	ClearPromptStatusMessage 			= 0x0113,
-	DisplayNotifyMessage 				= 0x0114,
-	ClearNotifyMessage 				= 0x0115,
-	ActivateCallPlaneMessage 			= 0x0116,
-	DeactivateCallPlaneMessage 			= 0x0117,
-	UnregisterAckMessage 				= 0x0118,
-	BackSpaceResMessage 				= 0x0119,
-	RegisterTokenAck 				= 0x011A,
-	RegisterTokenReject 				= 0x011B,
-	StartMediaFailureDetection 			= 0x011C,
-	DialedNumberMessage 				= 0x011D,
-	DialedNumberMessageV19 				= 0x011D,
-	UserToDeviceDataMessage 			= 0x011E,
-	FeatureStatMessage 				= 0x011F,
-	DisplayPriNotifyMessage 			= 0x0120,
-	ClearPriNotifyMessage 				= 0x0121,
-	StartAnnouncementMessage 			= 0x0122,
-	StopAnnouncementMessage 			= 0x0123,
-	AnnouncementFinishMessage 			= 0x0124,
-	
-	NotifyDtmfToneMessage 				= 0x0127,
-	SendDtmfToneMessage 				= 0x0128,
-	SubscribeDtmfPayloadReqMessage 			= 0x0129,
-	SubscribeDtmfPayloadResMessage 			= 0x012A,
-	SubscribeDtmfPayloadErrMessage 			= 0x012B,
-	UnSubscribeDtmfPayloadReqMessage 		= 0x012C,
-	UnSubscribeDtmfPayloadResMessage 		= 0x012D,
-	UnSubscribeDtmfPayloadErrMessage 		= 0x012E,
-	ServiceURLStatMessage 				= 0x012F,
-	CallSelectStatMessage 				= 0x0130,
-	OpenMultiMediaChannelMessage 			= 0x0131,
-	OpenMultiMediaChannelMessageNew			= 0x0131,
-	StartMultiMediaTransmission 			= 0x0132,
-	StopMultiMediaTransmission 			= 0x0133,
-	MiscellaneousCommandMessage 			= 0x0134,
-	FlowControlCommandMessage 			= 0x0135,
-	CloseMultiMediaReceiveChannel 			= 0x0136,
-	CreateConferenceReqMessage 			= 0x0137,
-	DeleteConferenceReqMessage 			= 0x0138,
-	ModifyConferenceReqMessage 			= 0x0139,
-	AddParticipantReqMessage 			= 0x013A,
-	DropParticipantReqMessage 			= 0x013B,
-	AuditConferenceReqMessage 			= 0x013C,
-	AuditParticipantReqMessage 			= 0x013D,
-	UserToDeviceDataVersion1Message 		= 0x013F,
+	SelectSoftKeysMessage = 0x0110,
+	CallStateMessage = 0x0111,
+	DisplayPromptStatusMessage = 0x0112,
+	ClearPromptStatusMessage = 0x0113,
+	DisplayNotifyMessage = 0x0114,
+	ClearNotifyMessage = 0x0115,
+	ActivateCallPlaneMessage = 0x0116,
+	DeactivateCallPlaneMessage = 0x0117,
+	UnregisterAckMessage = 0x0118,
+	BackSpaceResMessage = 0x0119,
+	RegisterTokenAck = 0x011A,
+	RegisterTokenReject = 0x011B,
+	StartMediaFailureDetection = 0x011C,
+	DialedNumberMessage = 0x011D,
+	DialedNumberMessageV19 = 0x011D,
+	UserToDeviceDataMessage = 0x011E,
+	FeatureStatMessage = 0x011F,
+	DisplayPriNotifyMessage = 0x0120,
+	ClearPriNotifyMessage = 0x0121,
+	StartAnnouncementMessage = 0x0122,
+	StopAnnouncementMessage = 0x0123,
+	AnnouncementFinishMessage = 0x0124,
+
+	NotifyDtmfToneMessage = 0x0127,
+	SendDtmfToneMessage = 0x0128,
+	SubscribeDtmfPayloadReqMessage = 0x0129,
+	SubscribeDtmfPayloadResMessage = 0x012A,
+	SubscribeDtmfPayloadErrMessage = 0x012B,
+	UnSubscribeDtmfPayloadReqMessage = 0x012C,
+	UnSubscribeDtmfPayloadResMessage = 0x012D,
+	UnSubscribeDtmfPayloadErrMessage = 0x012E,
+	ServiceURLStatMessage = 0x012F,
+	CallSelectStatMessage = 0x0130,
+	OpenMultiMediaChannelMessage = 0x0131,
+	OpenMultiMediaChannelMessageNew = 0x0131,
+	StartMultiMediaTransmission = 0x0132,
+	StopMultiMediaTransmission = 0x0133,
+	MiscellaneousCommandMessage = 0x0134,
+	FlowControlCommandMessage = 0x0135,
+	CloseMultiMediaReceiveChannel = 0x0136,
+	CreateConferenceReqMessage = 0x0137,
+	DeleteConferenceReqMessage = 0x0138,
+	ModifyConferenceReqMessage = 0x0139,
+	AddParticipantReqMessage = 0x013A,
+	DropParticipantReqMessage = 0x013B,
+	AuditConferenceReqMessage = 0x013C,
+	AuditParticipantReqMessage = 0x013D,
+	UserToDeviceDataVersion1Message = 0x013F,
 
 	/* sent by us */
-	VideoDisplayCommandMessage 			= 0x0140,
-	FlowControlNotifyMessage			= 0x0141,	/*new name (2013-12-9)*/
-	ConfigStatDynamicMessage			= 0x0142,	/*new (2013-12-9)*/
-	DisplayDynamicNotifyMessage 			= 0x0143,
-	DisplayDynamicPriNotifyMessage 			= 0x0144,
-	DisplayDynamicPromptStatusMessage 		= 0x0145,
-	FeatureStatDynamicMessage 			= 0x0146,
-	LineStatDynamicMessage 				= 0x0147,
-	ServiceURLStatDynamicMessage 			= 0x0148,
-	SpeedDialStatDynamicMessage 			= 0x0149,
-	CallInfoDynamicMessage 				= 0x014A,
-	
-	PortRequestMessage				= 0x014B,	/*new (2013-12-9)*/
-	PortCloseMessage 				= 0x014C,	/*new (2013-12-9)*/
-	QoSListenMessage 				= 0x014D,	/*new (2013-12-9)*/
-	QoSPathMessage 					= 0x014E,	/*new (2013-12-9)*/
-	QoSTeardownMessage 				= 0x014F,	/*new (2013-12-9)*/	
-	UpdateDSCPMessage 				= 0x0150,	/*new (2013-12-9)*/
-	QoSModifyMessage 				= 0x0151,	/*new (2013-12-9)*/
+	VideoDisplayCommandMessage = 0x0140,
+	FlowControlNotifyMessage = 0x0141, /*new name (2013-12-9)*/
+	ConfigStatDynamicMessage = 0x0142, /*new (2013-12-9)*/
+	DisplayDynamicNotifyMessage = 0x0143,
+	DisplayDynamicPriNotifyMessage = 0x0144,
+	DisplayDynamicPromptStatusMessage = 0x0145,
+	FeatureStatDynamicMessage = 0x0146,
+	LineStatDynamicMessage = 0x0147,
+	ServiceURLStatDynamicMessage = 0x0148,
+	SpeedDialStatDynamicMessage = 0x0149,
+	CallInfoDynamicMessage = 0x014A,
+
+	PortRequestMessage = 0x014B, /*new (2013-12-9)*/
+	PortCloseMessage = 0x014C,   /*new (2013-12-9)*/
+	QoSListenMessage = 0x014D,   /*new (2013-12-9)*/
+	QoSPathMessage = 0x014E,     /*new (2013-12-9)*/
+	QoSTeardownMessage = 0x014F, /*new (2013-12-9)*/
+	UpdateDSCPMessage = 0x0150,  /*new (2013-12-9)*/
+	QoSModifyMessage = 0x0151,   /*new (2013-12-9)*/
 
 	/* received from phone */
-	SubscriptionStatMessage 			= 0x0152,	/* Subscription Stat Message */
-	NotificationMessage 				= 0x0153,	/* Notification Message  / CallListStateUpdate*/
-	StartMediaTransmissionAck 			= 0x0154,
-	StartMultiMediaTransmissionAck 			= 0x0155,
-	CallHistoryDispositionMessage 			= 0x0156,
-	LocationInfoMessage				= 0x0157,	/* new (2015-09-08), send by 7925/7926 using firmware version 1.4.7.3 */
+	SubscriptionStatMessage = 0x0152, /* Subscription Stat Message */
+	NotificationMessage = 0x0153,     /* Notification Message  / CallListStateUpdate*/
+	StartMediaTransmissionAck = 0x0154,
+	StartMultiMediaTransmissionAck = 0x0155,
+	CallHistoryDispositionMessage = 0x0156,
+	LocationInfoMessage = 0x0157, /* new (2015-09-08), send by 7925/7926 using firmware version 1.4.7.3 */
 
-	MwiResponseMessage 				= 0x0158,	/*new (2013-12-9)*/
-	ExtensionDeviceCaps 				= 0x0159,
-	XMLAlarmMessage 				= 0x015A,
-	CallCountReqMessage				= 0x015E,	/*new name (2013-12-9)*/		/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/173/ */
-	CallCountRespMessage				= 0x015F,	/*new (2013-12-9)*/
-	RecordingStatusMessage 				= 0x0160,	/*new (2013-12-9)*/
+	MwiResponseMessage = 0x0158, /*new (2013-12-9)*/
+	ExtensionDeviceCaps = 0x0159,
+	XMLAlarmMessage = 0x015A,
+	CallCountReqMessage = 0x015E,
+	/*new name (2013-12-9)*/         /*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/173/ */
+	CallCountRespMessage = 0x015F,   /*new (2013-12-9)*/
+	RecordingStatusMessage = 0x0160, /*new (2013-12-9)*/
 
 #define SCCP_MESSAGE_HIGH_BOUNDARY			RecordingStatusMessage		/*0x0160*/
 #define SPCP_MESSAGE_OFFSET 				SPCP_MESSAGE_LOW_BOUNDARY
 #define SPCP_MESSAGE_LOW_BOUNDARY			SPCPRegisterTokenRequest	/*0x8000*/
 	/* SPCP client -> server; */
-	SPCPRegisterTokenRequest 			= 0x8000,
+	SPCPRegisterTokenRequest = 0x8000,
 	/* SPCP server -> client */
-	SPCPRegisterTokenAck 				= 0x8100,
-	SPCPRegisterTokenReject 			= 0x8101,
+	SPCPRegisterTokenAck = 0x8100,
+	SPCPRegisterTokenReject = 0x8101,
 
 	//UnknownVGMessage				= 0xFF00,	/* Unknown Message (VG224). Reported by Ahmet Zaim */
 //#define SPCP_MESSAGE_HIGH_BOUNDARY			UnknownVGMessage		/*0xFF00*/
 #define SPCP_MESSAGE_HIGH_BOUNDARY			SPCPRegisterTokenReject
-/*
-	SPCPPlatformInfoGetReq				= 0xFF02,
-	SPCPPlatformInfoGetRsp				= 0xFF03,
-	SPCPPlatformInfoGetRej				= 0xFF04,
-*/
+	/*
+		SPCPPlatformInfoGetReq				= 0xFF02,
+		SPCPPlatformInfoGetRsp				= 0xFF03,
+		SPCPPlatformInfoGetRej				= 0xFF04,
+	*/
 	/* *INDENT-ON* */
-} sccp_mid_t;													/*!< SKINNY Message ID Enum */
+} sccp_mid_t; /*!< SKINNY Message ID Enum */
 
 
 /*=====================================================================================================*/
@@ -1396,11 +1398,19 @@ typedef union {
 	} FlowControlNotifyMessage;										/*!< \todo FlowControlNotify Message Structure */
 
 	struct {
-		uint32_t lel_featureIndex;									/*!< Instance */
-		uint32_t lel_featureID;										/*!< always 0x15 */
-		uint32_t lel_featureStatus;									/*!< skinny_busylampfield_state_t */
-		char featureTextLabel[StationDynamicNameSize];							/*!< SpeedDial Display Name \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
-	} FeatureStatDynamicMessage;										/*!< Speed Dial Stat Dynamic Message Structure */
+		uint32_t lel_lineInstance;              /*!< Instance */
+		uint32_t lel_buttonType;                /*!< always 0x15 */
+		union {
+			struct FeatureStateValue {
+				uint8_t rythm;  /*!< 0:off, 1:on, 2-7:different speeds */
+				uint8_t color;  /*!< 0:off, 1:green, 2:red, 3:orange */
+				uint8_t icon;   /*!< 0:open, 1:closed, 2:boxes */
+				uint8_t oldval; /*!< old implementation open/closed */
+			} strct;
+			uint32_t lel_uint32;
+		} stateVal;
+		char textLabel[StationDynamicNameSize]; /*!< SpeedDial Display Name \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
+	} FeatureStatDynamicMessage;                    /*!< Speed Dial Stat Dynamic Message Structure */
 
 	struct {
 		uint32_t lel_Number;
@@ -2784,10 +2794,10 @@ typedef union {
 
 	/* 0x11F FeatureStatMessage */
 	struct {
-		uint32_t lel_featureIndex;									/*!< Feature Instance */
-		uint32_t lel_featureID;										/*!< Feature ID */
-		char featureTextLabel[StationMaxNameSize];							/*!< Feature Text Label */
-		uint32_t lel_featureStatus;									/*!< Feature Status */
+		uint32_t lel_lineInstance;                                                                      /*!< Instance */
+		uint32_t lel_buttonType;                                                                        /*!< always 0x15 */
+		char textLabel[StationMaxNameSize];                                                             /*!< Feature Text Label */
+		uint32_t lel_stateValue;                                                                        /*!< Feature Status */
 	} FeatureStatMessage;											/*!< Feature Status Message Structure */
 
 	struct {

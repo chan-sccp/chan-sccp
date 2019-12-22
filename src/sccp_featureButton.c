@@ -138,6 +138,32 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 							} else {
 								config->button.feature.status = 0;
 							}
+						} else {
+							if (device->inuseprotocolversion > 15) {				// multiple States
+								buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+								switch (status) {
+									case SCCP_DNDMODE_OFF:
+										config->button.feature.status = 0x010000; 	// icon/color/rythm
+										break;
+									case SCCP_DNDMODE_REJECT:
+										config->button.feature.status = 0x020202; 	// icon/color/rythm
+										break;
+									case SCCP_DNDMODE_SILENT:
+										config->button.feature.status = 0x020302; 	// icon/color/rythm
+										break;
+									case SCCP_DNDMODE_SENTINEL:
+										/* fall through */
+									case SCCP_DNDMODE_USERDEFINED:
+										config->button.feature.status = 0x020303;
+										break;
+								}
+							} else {								// old non-java phones
+								if (status == SCCP_DNDMODE_OFF) {
+									config->button.feature.status = 0;
+								} else {
+									config->button.feature.status = 1;
+								}
+							}
 						}
 					}
 					break;
@@ -185,77 +211,73 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 					}
 					break;
 #ifdef CS_DEVSTATE_FEATURE
-				/**
-				  Handling of custom devicestate toggle button feature
-				  */
-				case SCCP_FEATURE_DEVSTATE:
-					/* see sccp_devstate.c */
-					break;
+					case SCCP_FEATURE_DEVSTATE:
+						/* handled by sccp_devstate.c */
+						goto EXIT_FUNC;
 #endif
+					case SCCP_FEATURE_HOLD:
+						buttonID = SKINNY_BUTTONTYPE_HOLD;
+						break;
 
-				case SCCP_FEATURE_HOLD:
-					buttonID = SKINNY_BUTTONTYPE_HOLD;
-					break;
+					case SCCP_FEATURE_TRANSFER:
+						buttonID = SKINNY_BUTTONTYPE_TRANSFER;
+						break;
 
-				case SCCP_FEATURE_TRANSFER:
-					buttonID = SKINNY_BUTTONTYPE_TRANSFER;
-					break;
+					case SCCP_FEATURE_MULTIBLINK:
+						buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+						config->button.feature.status = device->priFeature.status;
+						break;
 
-				case SCCP_FEATURE_MULTIBLINK:
-					buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
-					config->button.feature.status = device->priFeature.status;
-					break;
+					case SCCP_FEATURE_MOBILITY:
+						buttonID = SKINNY_BUTTONTYPE_MOBILITY;
+						config->button.feature.status = device->mobFeature.status;
+						break;
 
-				case SCCP_FEATURE_MOBILITY:
-					buttonID = SKINNY_BUTTONTYPE_MOBILITY;
-					config->button.feature.status = device->mobFeature.status;
-					break;
+					case SCCP_FEATURE_CONFERENCE:
+						buttonID = SKINNY_BUTTONTYPE_CONFERENCE;
+						break;
 
-				case SCCP_FEATURE_CONFERENCE:
-					buttonID = SKINNY_BUTTONTYPE_CONFERENCE;
-					break;
+					case SCCP_FEATURE_DO_NOT_DISTURB:
+						buttonID = SKINNY_BUTTONTYPE_DO_NOT_DISTURB;
+						break;
 
-				case SCCP_FEATURE_DO_NOT_DISTURB:
-					buttonID = SKINNY_BUTTONTYPE_DO_NOT_DISTURB;
-					break;
+					case SCCP_FEATURE_CONF_LIST:
+						buttonID = SKINNY_BUTTONTYPE_CONF_LIST;
+						break;
 
-				case SCCP_FEATURE_CONF_LIST:
-					buttonID = SKINNY_BUTTONTYPE_CONF_LIST;
-					break;
+					case SCCP_FEATURE_REMOVE_LAST_PARTICIPANT:
+						buttonID = SKINNY_BUTTONTYPE_REMOVE_LAST_PARTICIPANT;
+						break;
 
-				case SCCP_FEATURE_REMOVE_LAST_PARTICIPANT:
-					buttonID = SKINNY_BUTTONTYPE_REMOVE_LAST_PARTICIPANT;
-					break;
+					case SCCP_FEATURE_HUNT_GROUP_LOG_IN_OUT:
+						buttonID = SKINNY_BUTTONTYPE_HUNT_GROUP_LOG_IN_OUT;
+						break;
 
-				case SCCP_FEATURE_HUNT_GROUP_LOG_IN_OUT:
-					buttonID = SKINNY_BUTTONTYPE_HUNT_GROUP_LOG_IN_OUT;
-					break;
+					case SCCP_FEATURE_QUALITY_REPORT_TOOL:
+						buttonID = SKINNY_BUTTONTYPE_QUALITY_REPORT_TOOL;
+						break;
 
-				case SCCP_FEATURE_QUALITY_REPORT_TOOL:
-					buttonID = SKINNY_BUTTONTYPE_QUALITY_REPORT_TOOL;
-					break;
+					case SCCP_FEATURE_CALLBACK:
+						buttonID = SKINNY_BUTTONTYPE_CALLBACK;
+						break;
 
-				case SCCP_FEATURE_CALLBACK:
-					buttonID = SKINNY_BUTTONTYPE_CALLBACK;
-					break;
+					case SCCP_FEATURE_OTHER_PICKUP:
+						buttonID = SKINNY_BUTTONTYPE_OTHER_PICKUP;
+						break;
 
-				case SCCP_FEATURE_OTHER_PICKUP:
-					buttonID = SKINNY_BUTTONTYPE_OTHER_PICKUP;
-					break;
+					case SCCP_FEATURE_VIDEO_MODE:
+						buttonID = SKINNY_BUTTONTYPE_VIDEO_MODE;
+						break;
 
-				case SCCP_FEATURE_VIDEO_MODE:
-					buttonID = SKINNY_BUTTONTYPE_VIDEO_MODE;
-					break;
+					case SCCP_FEATURE_NEW_CALL:
+						buttonID = SKINNY_BUTTONTYPE_NEW_CALL;
+						break;
 
-				case SCCP_FEATURE_NEW_CALL:
-					buttonID = SKINNY_BUTTONTYPE_NEW_CALL;
-					break;
+					case SCCP_FEATURE_END_CALL:
+						buttonID = SKINNY_BUTTONTYPE_END_CALL;
+						break;
 
-				case SCCP_FEATURE_END_CALL:
-					buttonID = SKINNY_BUTTONTYPE_END_CALL;
-					break;
-
-				case SCCP_FEATURE_PARKINGLOT:
+					case SCCP_FEATURE_PARKINGLOT:
 #ifdef CS_SCCP_PARK
 					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) parkinglot state:%d\n", DEV_ID_LOG(device), config->button.feature.status);
 					if (device->inuseprotocolversion > 15) {
@@ -296,65 +318,22 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 			/* send status using new message */
 			if (device->inuseprotocolversion >= 15) {
 				REQ(msg, FeatureStatDynamicMessage);
-				msg->data.FeatureStatDynamicMessage.lel_featureIndex = htolel(instance);
-				msg->data.FeatureStatDynamicMessage.lel_featureID = htolel(buttonID);
-				msg->data.FeatureStatDynamicMessage.lel_featureStatus = htolel(config->button.feature.status);
-				sccp_copy_string(msg->data.FeatureStatDynamicMessage.featureTextLabel, config->label, sizeof(msg->data.FeatureStatDynamicMessage.featureTextLabel));
+				msg->data.FeatureStatDynamicMessage.lel_lineInstance = htolel(instance);
+				msg->data.FeatureStatDynamicMessage.lel_buttonType = htolel(buttonID);
+				msg->data.FeatureStatDynamicMessage.stateVal.lel_uint32 = htolel(config->button.feature.status);
+				sccp_copy_string(msg->data.FeatureStatDynamicMessage.textLabel, config->label, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
 			} else {
 				REQ(msg, FeatureStatMessage);
-				msg->data.FeatureStatMessage.lel_featureIndex = htolel(instance);
-				msg->data.FeatureStatMessage.lel_featureID = htolel(buttonID);
-				msg->data.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
-				sccp_copy_string(msg->data.FeatureStatMessage.featureTextLabel, config->label, sizeof(msg->data.FeatureStatDynamicMessage.featureTextLabel));
+				msg->data.FeatureStatMessage.lel_lineInstance = htolel(instance);
+				msg->data.FeatureStatMessage.lel_buttonType = htolel(buttonID);
+				msg->data.FeatureStatMessage.lel_stateValue = htolel(config->button.feature.status);
+				sccp_copy_string(msg->data.FeatureStatMessage.textLabel, config->label, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
 			}
 			sccp_dev_send(device, msg);
 			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) Got Feature Status Request. Instance = %d, Label: '%s', Status: %d\n", DEV_ID_LOG(device), instance, config->label, config->button.feature.status);
 		}
 	}
+EXIT_FUNC:
 	SCCP_LIST_UNLOCK(&(((devicePtr)device)->buttonconfig));
 }
-
-/*!
- * \brief Device State Feature CallBack
- *
- * Called when we want to return a state change of a device
- */
-#if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
-void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
-{
-	/* parse the devstate string */
-	/* If it is the custom family, isolate the specifier. */
-	size_t len = strlen("Custom:");
-
-	// char *sspecifier = 0;
-	const char * dev = NULL;
-
-	if (!data || !ast_event) {
-		return;
-	}
-	dev = pbx_event_get_ie_str(ast_event, AST_EVENT_IE_DEVICE);
-
-	sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "got device state change event from asterisk channel: %s\n", (dev) ? dev : "NULL");
-
-	AUTO_RELEASE(sccp_device_t, device , sccp_device_retain((sccp_device_t *) data));
-
-	if (!device) {
-		sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "NULL device in devstate event callback.\n");
-		return;
-	}
-	if (!dev) {
-		sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "NULL devstate string in devstate event callback.\n");
-		return;
-	}
-
-	/* Note that we update all devstate feature buttons if we receive an event for one of them,
-	   which we registered for. This will lead to unneccesary updates with multiple buttons.
-	   In the future we might need a more elegant hint-registry for this type of notification,
-	   which should be global to chan-sccp-b, not for each device. For now, this suffices. */
-	if(strncasecmp(dev, "Custom:", len) == 0) {
-		// sspecifier = (char *)(dev + len);
-		sccp_featButton_changed(device, SCCP_FEATURE_DEVSTATE);
-	}
-}
-#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

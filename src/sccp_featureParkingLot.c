@@ -355,22 +355,18 @@ static sccp_parkinglot_t * const findCreateParkinglot(const char *parkinglot, bo
 }
 
 // observer
-static int attachObserver(const char *options, sccp_device_t * device, uint8_t instance)
+static int attachObserver(sccp_device_t * device, const sccp_buttonconfig_t * const buttonConfig)
 {
-	pbx_assert(options != NULL && device != NULL);
+	pbx_assert(device != NULL && buttonConfig != NULL);
 	int res = FALSE;
 
-	char *parse = pbx_strdupa(options);
-	AST_DECLARE_APP_ARGS(args, AST_APP_ARG(parkinglot); AST_APP_ARG(flags); );
-	AST_STANDARD_APP_ARGS(args, parse);
-	
-	if (!sccp_strlen_zero(args.parkinglot)) {
-		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (attachObserver) device:%s at instance:%d\n", args.parkinglot, device->id, instance);
-		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(args.parkinglot, TRUE), sccp_parkinglot_unlock);
+	if(!sccp_strlen_zero(buttonConfig->button.feature.options)) {
+		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (attachObserver) device:%s at instance:%d\n", buttonConfig->button.feature.options, device->id, buttonConfig->instance);
+		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(buttonConfig->button.feature.options, TRUE), sccp_parkinglot_unlock);
 		if (pl) {
 			plobserver_t observer = {
 				.device = device,
-				.instance = instance,
+				.instance = buttonConfig->instance,
 				.transactionId = 0,
 			};
 
@@ -383,22 +379,18 @@ static int attachObserver(const char *options, sccp_device_t * device, uint8_t i
 	return res;
 }
 
-static int detachObserver(const char *options, sccp_device_t * device, uint8_t instance)
+static int detachObserver(sccp_device_t * device, const sccp_buttonconfig_t * const buttonConfig)
 {
-	pbx_assert(options != NULL && device != NULL);
+	pbx_assert(device != NULL && buttonConfig != NULL);
 	int res = FALSE;
 
-	char *parse = pbx_strdupa(options);
-	AST_DECLARE_APP_ARGS(args, AST_APP_ARG(parkinglot); AST_APP_ARG(flags); );
-	AST_STANDARD_APP_ARGS(args, parse);
-
-	if (!sccp_strlen_zero(args.parkinglot)) {
-		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (detachObserver) device:%s at instance:%d\n", args.parkinglot, device->id, instance);
-		sccp_parkinglot_t *pl = findCreateParkinglot(args.parkinglot, FALSE);		/* don't use RAII, removeParkinglot unlocks and destroys the lock */
+	if(!sccp_strlen_zero(buttonConfig->button.feature.options)) {
+		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (detachObserver) device:%s at instance:%d\n", buttonConfig->button.feature.options, device->id, buttonConfig->instance);
+		sccp_parkinglot_t * pl = findCreateParkinglot(buttonConfig->button.feature.options, FALSE); /* don't use RAII, removeParkinglot unlocks and destroys the lock */
 		if (pl) {
 			plobserver_t cmp = {
 				.device = device,
-				.instance = instance,
+				.instance = buttonConfig->instance,
 			};
 			if (SCCP_VECTOR_REMOVE_CMP_UNORDERED(&pl->observers, cmp, OBSERVER_CB_CMP, SCCP_VECTOR_ELEM_CLEANUP_NOOP) == 0) {
 				res = TRUE;
@@ -543,20 +535,16 @@ static void _notifyHelper(plobserver_t *observer, sccp_parkinglot_t *pl, constDe
 	sccp_feat_changed(device, NULL, SCCP_FEATURE_PARKINGLOT);
 }
 
-static void notifyDevice(const char *options, constDevicePtr device)
+static void notifyDevice(constDevicePtr device, const sccp_buttonconfig_t * const buttonConfig)
 {
-	pbx_assert(options != NULL && device != NULL);
+	pbx_assert(device != NULL && buttonConfig != NULL);
 	uint8_t idx = 0;
 	//uint32_t iconstate = 0;
 	plobserver_t *observer = NULL;
 
-	char *parse = pbx_strdupa(options);
-	AST_DECLARE_APP_ARGS(args, AST_APP_ARG(parkinglot); AST_APP_ARG(flags); );
-	AST_STANDARD_APP_ARGS(args, parse);
-
-	if (!sccp_strlen_zero(args.parkinglot)) {
-		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (notifyDevice) notifyDevice:%s\n", args.parkinglot, device->id);
-		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(args.parkinglot, TRUE), sccp_parkinglot_unlock);
+	if(!sccp_strlen_zero(buttonConfig->button.feature.options)) {
+		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (notifyDevice) notifyDevice:%s\n", buttonConfig->button.feature.options, device->id);
+		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(buttonConfig->button.feature.options, TRUE), sccp_parkinglot_unlock);
 		if (pl) {
 			for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
 				observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
@@ -649,27 +637,23 @@ static int removeSlot(const char *parkinglot, int slot)
  * 	- If there is 1 parked call: Unpark that call immediatly
  *	- If there is more than 1 parked call: display the visual parking lot representation.
  */
-static void handleButtonPress(const char *options, constDevicePtr d, uint8_t instance) 
+static void handleButtonPress(constDevicePtr d, const sccp_buttonconfig_t * const buttonConfig)
 {
-	pbx_assert(options != NULL && d != NULL);
-	sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) options:%s, instance:%d\n", d->id, options, instance);
-
-	char *parse = pbx_strdupa(options);
-	AST_DECLARE_APP_ARGS(args, AST_APP_ARG(parkinglot); AST_APP_ARG(flags); );
-	AST_STANDARD_APP_ARGS(args, parse);
+	pbx_assert(d != NULL && buttonConfig != NULL);
+	sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) options:%s, instance:%d\n", d->id, buttonConfig->button.feature.options, buttonConfig->instance);
 
 	AUTO_RELEASE(sccp_channel_t, channel , sccp_device_getActiveChannel(d));
 	if (channel && channel->state != SCCP_CHANNELSTATE_OFFHOOK && channel->state != SCCP_CHANNELSTATE_HOLD) {
 		sccp_channel_park(channel);
-	} else if (!sccp_strlen_zero(args.parkinglot)){
-		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(args.parkinglot, TRUE), sccp_parkinglot_unlock);
+	} else if(!sccp_strlen_zero(buttonConfig->button.feature.options)) {
+		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(buttonConfig->button.feature.options, TRUE), sccp_parkinglot_unlock);
 		if (pl) {
 			if (SCCP_VECTOR_SIZE(&pl->slots) == 0) {
-				sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) 0 slot occupied. Show statusBar message\n", args.parkinglot);
+				sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) 0 slot occupied. Show statusBar message\n", buttonConfig->button.feature.options);
 				sccp_dev_displayprinotify(d, SKINNY_DISP_CANNOT_RETRIEVE_PARKED_CALL, SCCP_MESSAGE_PRIORITY_TIMEOUT, 5);
 			} else {
-				if (sccp_strcaseequals(args.flags, "RetrieveSingle") && SCCP_VECTOR_SIZE(&pl->slots) == 1) {
-					sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) 1 slot occupied -> Unpark Call Immediately\n", args.parkinglot);
+				if(sccp_strcaseequals(buttonConfig->button.feature.args, "RetrieveSingle") && SCCP_VECTOR_SIZE(&pl->slots) == 1) {
+					sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) 1 slot occupied -> Unpark Call Immediately\n", buttonConfig->button.feature.options);
 					plslot_t *slot = SCCP_VECTOR_GET_ADDR(&pl->slots, 0);
 					if (slot) {
 						AUTO_RELEASE(sccp_line_t, line , channel ? sccp_line_retain(channel->line) : d->currentLine ? sccp_dev_getActiveLine(d) : sccp_line_find_byid(d, d->defaultLineInstance));
@@ -677,11 +661,11 @@ static void handleButtonPress(const char *options, constDevicePtr d, uint8_t ins
 							     sccp_channel_newcall(line, d, slot->exten, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));                                        // implicit release
 					}
 				} else {
-					sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) multiple slots occupied -> Show Visual ParkingLot\n", args.parkinglot);
+					sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) multiple slots occupied -> Show Visual ParkingLot\n", buttonConfig->button.feature.options);
 					uint8_t idx = 0;
 					for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
 						plobserver_t *observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
-						if (observer->device == d && observer->instance == instance) {
+						if(observer->device == d && observer->instance == buttonConfig->instance) {
 							__showVisualParkingLot(pl, d, observer);
 						}
 					}

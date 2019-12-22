@@ -105,7 +105,7 @@ struct sccp_hint_list {
 
 	int stateid;												/*!< subscription id in asterisk */
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
-	PBX_EVENT_SUBSCRIPTION *device_state_sub;									/*!< asterisk distributed device state subscription */
+	PBX_EVENT_SUBSCRIPTION * device_state_sub; /*!< asterisk distributed device state subscription */
 #endif
 
 	SCCP_LIST_HEAD (, sccp_hint_SubscribingDevice_t) subscribers;						/*!< Hint Type Subscribers Linked List Entry */
@@ -1237,11 +1237,11 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				*/
 				REQ(msg, FeatureStatDynamicMessage);
 				if (msg) {
-					sccp_copy_string(msg->data.FeatureStatDynamicMessage.featureTextLabel, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.featureTextLabel));
-					msg->data.FeatureStatDynamicMessage.featureTextLabel[strlen(displayMessage)-1] = '\0';
-					msg->data.FeatureStatDynamicMessage.lel_featureIndex = htolel(subscriber->instance);
-					msg->data.FeatureStatDynamicMessage.lel_featureID = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
-					msg->data.FeatureStatDynamicMessage.lel_featureStatus = htolel(status);
+					sccp_copy_string(msg->data.FeatureStatDynamicMessage.textLabel, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
+					msg->data.FeatureStatDynamicMessage.textLabel[strlen(displayMessage) - 1] = '\0';
+					msg->data.FeatureStatDynamicMessage.lel_lineInstance = htolel(subscriber->instance);
+					msg->data.FeatureStatDynamicMessage.lel_buttonType = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+					msg->data.FeatureStatDynamicMessage.stateVal.lel_uint32 = htolel(status);
 					sccp_dev_send(d, msg);
 				} else {
 					sccp_free(msg);
@@ -1251,10 +1251,10 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				 * Send the actual message we wanted to send */
 				REQ(msg, FeatureStatDynamicMessage);
 				if (msg) {
-					sccp_copy_string(msg->data.FeatureStatDynamicMessage.featureTextLabel, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.featureTextLabel));
-					msg->data.FeatureStatDynamicMessage.lel_featureIndex = htolel(subscriber->instance);
-					msg->data.FeatureStatDynamicMessage.lel_featureID = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
-					msg->data.FeatureStatDynamicMessage.lel_featureStatus = htolel(status);
+					sccp_copy_string(msg->data.FeatureStatDynamicMessage.textLabel, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
+					msg->data.FeatureStatDynamicMessage.lel_lineInstance = htolel(subscriber->instance);
+					msg->data.FeatureStatDynamicMessage.lel_buttonType = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+					msg->data.FeatureStatDynamicMessage.stateVal.lel_uint32 = htolel(status);
 					sccp_dev_send(d, msg);
 				} else {
 					sccp_free(msg);

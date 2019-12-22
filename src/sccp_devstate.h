@@ -14,16 +14,9 @@ __BEGIN_C_EXTERN__
  * Recording number of Device State Registrations Per Device
  */
 #ifdef CS_DEVSTATE_FEATURE
-struct sccp_devstate_specifier {
-	char specifier[SCCP_MAX_DEVSTATE_SPECIFIER];								/*!< Name of the Custom  Devstate Extension */
-	struct ast_event_sub *sub;										/* Asterisk event Subscription related to the devstate extension. */
-	/* Note that the length of the specifier matches the length of "options" of the sccp_feature.options field,
-	   to which it corresponds. */
-	SCCP_LIST_ENTRY (sccp_devstate_specifier_t) list;							/*!< Specifier Linked List Entry */
-};														/*!< SCCP Devstate Specifier Structure */
-
 SCCP_API void SCCP_CALL sccp_devstate_module_start(void);
 SCCP_API void SCCP_CALL sccp_devstate_module_stop(void);
+SCCP_API enum ast_device_state SCCP_CALL sccp_devstate_getNextDeviceState(constDevicePtr d, sccp_buttonconfig_t * config);
 #endif
 __END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

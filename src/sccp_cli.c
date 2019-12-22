@@ -995,11 +995,12 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 			}
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 															\
-			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
-			CLI_AMI_TABLE_UTF8_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label ? buttonconfig->label : "")				\
-			CLI_AMI_TABLE_FIELD(Status,		"-22",		d,	22, 	buttonconfig->button.feature.status)		\
-			CLI_AMI_TABLE_FIELD(Options,		"-64.64",	s,	64,	buttonconfig->button.feature.options ? buttonconfig->button.feature.options : "")
+#define CLI_AMI_TABLE_FIELDS                                                                                                            \
+	CLI_AMI_TABLE_FIELD(Id, "-4", d, 4, buttonconfig->index + 1)                                                                    \
+	CLI_AMI_TABLE_UTF8_FIELD(Name, "-23.23", s, 23, buttonconfig->label ? buttonconfig->label : "")                                 \
+	CLI_AMI_TABLE_FIELD(Status, "-22", d, 22, buttonconfig->button.feature.status)                                                  \
+	CLI_AMI_TABLE_FIELD(Options, "-14.14", s, 14, buttonconfig->button.feature.options ? buttonconfig->button.feature.options : "") \
+	CLI_AMI_TABLE_FIELD(Args, "-49.49", s, 49, buttonconfig->button.feature.args ? buttonconfig->button.feature.args : "")
 #include "sccp_cli_table.h"
 			local_table_total++;
 
@@ -2036,6 +2037,34 @@ static int sccp_test(int fd, int argc, char *argv[])
 				sleep(2);
 				sccp_dev_set_keyset(d, d->defaultLineInstance, channel->callid, KEYMODE_ONHOOK);
 				sccp_dev_clearprompt(d, d->defaultLineInstance, channel->callid);
+			}
+		}
+		return RESULT_SUCCESS;
+	}
+	if(!strcasecmp(argv[2], "multi") && argc > 2) {
+		AUTO_RELEASE(sccp_device_t, d, sccp_device_find_byid(argv[3], FALSE));
+		if(d) {
+			sleep(1);
+			sccp_msg_t * msg = NULL;
+
+			struct FeatureStateValue state[] = {
+				{ 0, 0, 0, 0 }, { 1, 0, 0, 0 }, { 2, 0, 0, 0 }, { 3, 0, 0, 0 }, { 4, 0, 0, 0 }, { 5, 0, 0, 0 }, { 6, 0, 0, 0 }, { 7, 0, 0, 0 }, { 0, 1, 0, 0 }, { 1, 1, 0, 0 }, { 2, 1, 0, 0 },
+				{ 3, 1, 0, 0 }, { 4, 1, 0, 0 }, { 5, 1, 0, 0 }, { 6, 1, 0, 0 }, { 7, 1, 0, 0 }, { 0, 2, 0, 0 }, { 1, 2, 0, 0 }, { 2, 2, 0, 0 }, { 3, 2, 0, 0 }, { 4, 2, 0, 0 }, { 5, 2, 0, 0 },
+				{ 6, 2, 0, 0 }, { 7, 2, 0, 0 }, { 0, 3, 0, 0 }, { 1, 3, 0, 0 }, { 2, 3, 0, 0 }, { 3, 3, 0, 0 }, { 4, 3, 0, 0 }, { 5, 3, 0, 0 }, { 6, 3, 0, 0 }, { 7, 3, 0, 0 }, { 0, 0, 0, 0 },
+				{ 0, 0, 1, 0 }, { 0, 0, 2, 0 }, { 0, 0, 3, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 1 }, { 0, 0, 0, 2 }, { 0, 0, 0, 3 }, { 0, 0, 1, 2 }, { 0, 0, 2, 2 }, { 0, 0, 3, 1 }, { 0, 0, 0, 0 },
+			};
+			for(uint i = 0; i < ARRAY_LEN(state); i++) {
+				REQ(msg, FeatureStatDynamicMessage);
+				msg->data.FeatureStatDynamicMessage.lel_lineInstance = htolel(1);
+				msg->data.FeatureStatDynamicMessage.lel_buttonType = htolel(SKINNY_BUTTONTYPE_MULTIBLINKFEATURE);
+				msg->data.FeatureStatDynamicMessage.stateVal.strct = state[i];
+				char buf[50] = "";
+				snprintf(buf, 50, "Rythm:%d, Color:%d, Icon:%d, Old:%d", state[i].rythm, state[i].color, state[i].icon, state[i].oldval);
+				sccp_copy_string(msg->data.FeatureStatDynamicMessage.textLabel, buf, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
+				sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_2 "%s (cli_test) multi. value:%s\n", d->id, buf);
+				d->protocol->displayPrompt(d, 0, 0, 3, buf);
+				sccp_dev_send(d, msg);
+				sleep(1);
 			}
 		}
 		return RESULT_SUCCESS;

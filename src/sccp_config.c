@@ -92,7 +92,6 @@
 #include "sccp_mwi.h"
 #include "sccp_session.h"
 #include "sccp_utils.h"
-#include "sccp_devstate.h"
 #include "sccp_labels.h"
 #include "revision.h"
 
@@ -101,6 +100,10 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include <asterisk/paths.h>
 #if defined(CS_AST_HAS_EVENT) && defined(HAVE_PBX_EVENT_H) && (defined(CS_DEVICESTATE) || defined(CS_CACHEABLE_DEVICESTATE))	// ast_event_subscribe
 #  include <asterisk/event.h>
+#endif
+
+#ifdef HAVE_PBX_APP_H
+#	include <asterisk/app.h>                                        // AST_DECLARE_APP_ARGS / AST_STANDARD_APP_ARGS
 #endif
 
 #ifndef offsetof
@@ -2130,16 +2133,52 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 			config->type = FEATURE;
 			config->label = pbx_strdup(name);
 			config->button.feature.id = sccp_feature_type_str2val(options);
+
+			config->button.feature.options = NULL;
+			config->button.feature.args = NULL;
+			AST_DECLARE_APP_ARGS(elems, AST_APP_ARG(option); AST_APP_ARG(arg););
 			if(args && !sccp_strlen_zero(args)) {
-				config->button.feature.options = pbx_strdup(args);
-				sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_4 "Arguments present on feature button: %d\n", config->instance);
-			} else {
-				config->button.feature.options = NULL;
-				if(SCCP_FEATURE_PARKINGLOT == config->button.feature.id) {
-					config->button.feature.options = pbx_strdup("default,RetrieveSingle");
+				char * parse = pbx_strdupa(args);
+				AST_STANDARD_APP_ARGS(elems, parse);
+			}
+
+			if(SCCP_FEATURE_PARKINGLOT == config->button.feature.id) {
+				if(elems.option && !sccp_strlen_zero(elems.option)) {
+					config->button.feature.options = pbx_strdup(elems.option);
+				} else {
+					config->button.feature.options = pbx_strdup("default");
+				}
+				if(elems.arg && !sccp_strlen_zero(elems.arg)) {
+					config->button.feature.args = pbx_strdup(elems.arg);
+				} else {
+					config->button.feature.args = pbx_strdup("RetrieveSingle");
 				}
 			}
-			sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_4 "Configured feature button with featureID: %s args: %s\n", options, args);
+#ifdef CS_DEVSTATE_FEATURE
+			if(SCCP_FEATURE_DEVSTATE == config->button.feature.id) {
+				// Value1:State:0:UNKNOWN|1:NOT_INUSE|2:INUSE|3:BUSY|4:INVALID|5:UNAVAILABLE|6:RINGING|7:RINGINUSE|8:ONHOLD
+				// Value2:RythmCode:0-1:off,2:on,3-7:different_speeds,
+				// Value3:ColorCode:0:off,1:green,2:red,3:orange
+				// Value4:IconCode:0:off,1:open,2:closed,3:box
+				// Value5:NextState:0:UNKNOWN|1:NOT_INUSE|2:INUSE|3:BUSY|4:INVALID|5:UNAVAILABLE|6:RINGING|7:RINGINUSE|8:ONHOLD
+
+				// char *args_str = "devstname,[{"s":"NOT_INUSE","c":"off","r":"off","i":"open","n":"INUSE"},{"s":"INUSE","c":"orange","r":"slow","i":"closed","n":NOT_INUSE}]"
+				// char *args_str = "devstname,[{"s":1,"c":0,"r":0,"i":1,"n":2},{"s":2,"c":3,"r":2,"i":2,"n":1}]"
+				// char *args_str = "devstname,10012|22321"
+				if(elems.option && !sccp_strlen_zero(elems.option)) {
+					config->button.feature.options = pbx_strdup(elems.option);
+				} else {
+					config->button.feature.options = pbx_strdup(config->label);
+				}
+				if(elems.arg && !sccp_strlen_zero(elems.arg)) {
+					config->button.feature.args = pbx_strdup(elems.arg);
+				} else {
+					config->button.feature.args = pbx_strdup("00001|10012|22321");
+				}
+			}
+#endif			
+			sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_4 "Configured feature button:%d with featureID: %s args: %s\n", config->instance,
+													 config->button.feature.options, config->button.feature.args);
 
 			break;
 		case EMPTY:
@@ -2210,32 +2249,6 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
 
 	/* apply configuration */
 	sccp_configurationchange_t res = sccp_config_applyDeviceConfiguration(d, v);
-
-#ifdef CS_DEVSTATE_FEATURE
-	sccp_buttonconfig_t *config = NULL;
-	sccp_devstate_specifier_t * dspec = NULL;
-
-	SCCP_LIST_LOCK(&d->buttonconfig);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		if (config->type == FEATURE) {
-			/* Check for the presence of a devicestate specifier and register in device list. */
-			if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && !sccp_strlen_zero(config->button.feature.options)) {
-				if (( dspec = (sccp_devstate_specifier_t *) sccp_calloc(1, sizeof *dspec) )) {
-					//sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
-					SCCP_LIST_LOCK(&d->devstateSpecifiers);
-					sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(dspec->specifier));
-					SCCP_LIST_INSERT_TAIL(&d->devstateSpecifiers, dspec, list);
-					SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
-				} else {
-					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
-					break;
-				}
-			}
-		}
-	}
-	SCCP_LIST_UNLOCK(&d->buttonconfig);
-
-#endif
 
 #ifdef CS_SCCP_REALTIME
 	d->realtime = isRealtime;
@@ -2503,8 +2516,8 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			sccp_config_buildDevice(device, v, FALSE);
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found device %d: %s\n", device_count, cat);
 			/* load saved settings from ast db */
-			sccp_config_restoreDeviceFeatureStatus(device);
-			
+			// sccp_config_restoreDeviceFeatureStatus(device);
+
 			/* restore current nat status, if device does not get restarted */
 			if (0 == device->pendingDelete && sccp_device_getRegistrationState(device) != SKINNY_DEVICE_RS_NONE) {
 				if (SCCP_NAT_AUTO == device->nat && (SCCP_NAT_AUTO == nat || SCCP_NAT_AUTO_OFF == nat || SCCP_NAT_AUTO_ON == nat)) {
@@ -3042,58 +3055,6 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 
 }
 
-
-/*!
- * \brief Restore feature status from ast-db
- * \param device device to be restored
- * \todo restore cfwd feature
- *
- * \callgraph
- * \callergraph
- * 
- */
-void sccp_config_restoreDeviceFeatureStatus(devicePtr device)
-{
-	if (!device) {
-		return;
-	}
-	/* initialize priority feature */
-	device->priFeature.status = 0x010101;
-	device->priFeature.initialized = 0;
-	
-#ifdef CS_DEVSTATE_FEATURE
-#ifndef ASTDB_RESULT_LEN
-#define ASTDB_RESULT_LEN 256
-#endif
-	char buf[ASTDB_RESULT_LEN] = "";
-	sccp_devstate_specifier_t * specifier = NULL;
-	/* Read and initialize custom devicestate entries */
-	SCCP_LIST_LOCK(&device->devstateSpecifiers);
-	SCCP_LIST_TRAVERSE(&device->devstateSpecifiers, specifier, list) {
-		/* Check if there is already a devicestate entry */
-		if (iPbx.feature_getFromDatabase(devstate_db_family, specifier->specifier, buf, sizeof(buf))) {
-			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Found Existing Custom Devicestate Entry: %s, state: %s\n", device->id, specifier->specifier, buf);
-		} else {
-			/* If not present, add a new devicestate entry. Default: NOT_INUSE */
-			iPbx.feature_addToDatabase(devstate_db_family, specifier->specifier, "NOT_INUSE");
-			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Initialized Devicestate Entry: %s\n", device->id, specifier->specifier);
-		}
-		/* Register as generic hint watcher */
-		/*! \todo Add some filtering in order to reduce number of unnecessarily triggered events.
-		   Have to work out whether filtering with AST_EVENT_IE_DEVICE matches extension or hint device name. */
-		snprintf(buf, 254, "Custom:%s", specifier->specifier);
-		/* When registering for devstate events we wish to know if a single asterisk box has contributed
-		   a change even in a rig of multiple asterisk with distributed devstate. This is to enable toggling
-		   even then when otherwise the aggregate devicestate would obscure the change.
-		   However, we need to force distributed devstate even on single asterisk boxes so to get the desired events. (-DD) */
-#if defined(CS_AST_HAS_EVENT) && (defined(CS_DEVICESTATE) || defined(CS_CACHEABLE_DEVICESTATE))
-		pbx_enable_distributed_devstate();
-		specifier->sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE, sccp_devstateFeatureState_cb, "devstate subscription", device, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, buf, AST_EVENT_IE_END);
-#endif
-	}
-	SCCP_LIST_UNLOCK(&device->devstateSpecifiers);
-#endif
-}
 
 /* generate json output from now on */
 int sccp_manager_config_metadata(struct mansession *s, const struct message *m)

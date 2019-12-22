@@ -64,6 +64,7 @@ struct sccp_buttonconfig {
 			uint8_t index;										/*!< Button Feature Index */
 			sccp_feature_type_t id;									/*!< Button Feature ID */
 			char *options;										/*!< Button Feature Options */
+			char * args;                                                                            /*!< Button Feature Arguments */
 			uint32_t status;									/*!< Button Feature Status */
 		} feature;											/*!< SCCP Button Feature Structure */
 	} button;												/*!< SCCP Button Structure */
@@ -238,9 +239,6 @@ struct sccp_device {
 	uint8_t video_tos;											/*!< video stream type_of_service (TOS) (VRTP) */
 	uint8_t audio_cos;											/*!< audio stream class_of_service (COS) (VRTP) */
 	uint8_t video_cos;											/*!< video stream class_of_service (COS) (VRTP) */
-#ifdef CS_DEVSTATE_FEATURE
-	SCCP_LIST_HEAD (, sccp_devstate_specifier_t) devstateSpecifiers;					/*!< List of Custom DeviceState entries the phone monitors. */
-#endif
 	struct {
 		softkey_modes *modes;										/*!< used softkeySet */
 		uint32_t activeMask[SCCP_MAX_SOFTKEY_MASK];							/*!< enabled softkeys mask */

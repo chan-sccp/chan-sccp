@@ -29,6 +29,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_line.h"
 #include "sccp_linedevice.h"
 #include "sccp_labels.h"
+#include "sccp_devstate.h"
 #include "sccp_featureParkingLot.h"
 
 /*!
@@ -1137,25 +1138,28 @@ static btnlist *sccp_make_button_template(devicePtr d)
 							case SCCP_FEATURE_HOLD:
 								btn[i].type = SKINNY_BUTTONTYPE_HOLD;
 								break;
-#ifdef CS_DEVSTATE_FEATURE
-								// case SCCP_FEATURE_DEVSTATE:
-								//btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
-								//break;
-#endif
+
 							case SCCP_FEATURE_TRANSFER:
 								btn[i].type = SKINNY_BUTTONTYPE_TRANSFER;
 								break;
+#ifdef CS_DEVSTATE_FEATURE
+							case SCCP_FEATURE_DEVSTATE:
+								/* fall through */
+#endif
 
 							case SCCP_FEATURE_MONITOR:
-								if (d->inuseprotocolversion > 15) {
+								/* fall through */
+
+							case SCCP_FEATURE_MULTIBLINK:
+								if (d->inuseprotocolversion >= 15) {
 									btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 								} else {
 									btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
 								}
 								break;
 
-							case SCCP_FEATURE_MULTIBLINK:
-								if (d->inuseprotocolversion >= 15) {
+							case SCCP_FEATURE_DND:
+								if (sccp_strlen_zero(buttonconfig->button.feature.options) && d->inuseprotocolversion >= 15) {
 									btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 								} else {
 									btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
@@ -1429,7 +1433,6 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 		msg_out->data.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 
 		if (SKINNY_BUTTONTYPE_UNUSED != btn[i].type) {
-			//msg_out->data.ButtonTemplateMessage.lel_buttonCount = i+1;
 			buttonCount = i + 1;
 			lastUsedButtonPosition = i;
 		}
@@ -1445,41 +1448,27 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 				}
 				break;
 
-			case SCCP_BUTTONTYPE_SPEEDDIAL:
-				msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_SPEEDDIAL;
-				break;
-
-			case SKINNY_BUTTONTYPE_SERVICEURL:
-				msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_SERVICEURL;
-				break;
-
-			case SKINNY_BUTTONTYPE_FEATURE:
-				msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_FEATURE;
-				break;
-
 			case SCCP_BUTTONTYPE_MULTI:
-				//msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_DISPLAY;
-				//break;
+				/* fall through */
 
 			case SKINNY_BUTTONTYPE_UNUSED:
 				msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_UNDEFINED;
-
 				break;
 
 			default:
 				msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition = btn[i].type;
 				break;
 		}
-		/*
-		if (msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition < SKINNY_BUTTONTYPE_UNDEFINED) {
-			sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s(%d) with instance:%d\n", d->id, i + 1, skinny_buttontype2str(msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition), msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition, msg_out->data.ButtonTemplateMessage.definition[i].instanceNumber);
+		if(msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition != SKINNY_BUTTONTYPE_UNDEFINED) {
+			sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON))(VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s(%d) with instance:%d\n", d->id, i + 1,
+										      skinny_buttontype2str(msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition),
+										      msg_out->data.ButtonTemplateMessage.definition[i].buttonDefinition, msg_out->data.ButtonTemplateMessage.definition[i].instanceNumber);
 		}
-		*/
 	}
 
 	msg_out->data.ButtonTemplateMessage.lel_buttonOffset = 0;
-	//msg_out->data.ButtonTemplateMessage.lel_buttonCount = htolel(msg_out->data.ButtonTemplateMessage.lel_buttonCount);
 	msg_out->data.ButtonTemplateMessage.lel_buttonCount = htolel(buttonCount);
+
 	/* buttonCount is already in a little endian format so don't need to convert it now */
 	msg_out->data.ButtonTemplateMessage.lel_totalButtonCount = htolel(lastUsedButtonPosition + 1);
 
@@ -1487,7 +1476,7 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 	uint32_t speeddialInstance = 0;
 	sccp_buttonconfig_t * config = NULL;
 
-	//sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_SPEEDDIAL)) (VERBOSE_PREFIX_3 "%s: configure unconfigured speeddialbuttons \n", d->id);
+	sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_SPEEDDIAL))(VERBOSE_PREFIX_3 "%s: configure unconfigured speeddialbuttons \n", d->id);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		/* we found an unconfigured speeddial */
 		if (config->type == SPEEDDIAL && config->instance == 0) {
@@ -2190,11 +2179,23 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 				dndFeature->status = (config->button.feature.status) ? SCCP_DNDMODE_SILENT : SCCP_DNDMODE_OFF;
 			} else if (sccp_strcaseequals(config->button.feature.options, "busy")) {
 				dndFeature->status = (config->button.feature.status) ? SCCP_DNDMODE_REJECT : SCCP_DNDMODE_OFF;
-			}
-
+			} else {
+				switch (dndFeature->status) {
+					case SCCP_DNDMODE_OFF:
+						dndFeature->status = SCCP_DNDMODE_REJECT;
+						break;
+					case SCCP_DNDMODE_REJECT:
+						dndFeature->status = SCCP_DNDMODE_SILENT;
+						break;
+					case SCCP_DNDMODE_SILENT:
+						/* fall through */
+					default:
+						dndFeature->status = SCCP_DNDMODE_OFF;
+						break;
+				}
+ 			}
 			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: dndmode %d is %s\n", d->id, d->dndFeature.status, (d->dndFeature.status) ? "on" : "off");
 			sccp_dev_check_displayprompt(d);
-			//sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
 			break;
 #ifdef CS_SCCP_FEATURE_MONITOR
 		case SCCP_FEATURE_MONITOR:
@@ -2212,24 +2213,20 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 		  * Handling of custom devicestate toggle buttons.
 		  */
 		case SCCP_FEATURE_DEVSTATE:
-			//sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Feature Change DevState: '%s', State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options ? config->button.feature.options : "", config->button.feature.status ? "On" : "Off");
+			sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON))(VERBOSE_PREFIX_3 "%s: Feature Change DevState: '%s', State: '%s'\n", DEV_ID_LOG(d),
+									    config->button.feature.options ? config->button.feature.options : "", config->button.feature.status ? "On" : "Off");
 			if (TRUE == toggleState) {
-				if (!sccp_strlen_zero(config->button.feature.options)) {
-					enum ast_device_state newDeviceState = config->button.feature.status ? AST_DEVICE_NOT_INUSE : AST_DEVICE_INUSE;
-					if (iPbx.feature_addToDatabase) {
-						iPbx.feature_addToDatabase("CustomDevstate", config->button.feature.options, ast_devstate_str(newDeviceState));
-					}
-					pbx_devstate_changed(newDeviceState, "Custom:%s", config->button.feature.options);
-				}
+				enum ast_device_state newDeviceState = sccp_devstate_getNextDeviceState(d, config);
+				pbx_devstate_changed(newDeviceState, "Custom:%s", config->button.feature.options);
+				return;
 			}
-
 			break;
 #endif
 		case SCCP_FEATURE_PARKINGLOT:
 #ifdef CS_SCCP_PARK
 			//sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: ParkingLot:'%s' Action, State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options ? config->button.feature.options : "", config->button.feature.status ? "On" : "Off");
 			if (TRUE == toggleState && iParkingLot.handleButtonPress) {
-				iParkingLot.handleButtonPress(config->button.feature.options, d, instance);
+				iParkingLot.handleButtonPress(d, config);
 			}
 #endif
 			break;
@@ -4029,16 +4026,14 @@ void handle_feature_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 		sccp_dev_speed_find_byindex(d, featureIndex, TRUE, &k);
 
 		if (k.valid) {
-			sccp_msg_t *msg_out = NULL;
+			sccp_msg_t * msg = NULL;
 
-			REQ(msg_out, FeatureStatDynamicMessage);
-			msg_out->data.FeatureStatDynamicMessage.lel_featureIndex = htolel(featureIndex);
-			msg_out->data.FeatureStatDynamicMessage.lel_featureID = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
-			msg_out->data.FeatureStatDynamicMessage.lel_featureStatus = 0;
-
-			//sccp_copy_string(msg_out->data.FeatureStatDynamicMessage.DisplayName, k.name, sizeof(msg_out->data.FeatureStatDynamicMessage.DisplayName));
-			d->copyStr2Locale(d, msg_out->data.FeatureStatDynamicMessage.featureTextLabel, k.name, sizeof(msg_out->data.FeatureStatDynamicMessage.featureTextLabel));
-			sccp_dev_send(d, msg_out);
+			REQ(msg, FeatureStatDynamicMessage);
+			msg->data.FeatureStatDynamicMessage.lel_lineInstance = htolel(featureIndex);
+			msg->data.FeatureStatDynamicMessage.lel_buttonType = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+			msg->data.FeatureStatDynamicMessage.stateVal.lel_uint32 = htolel(0);
+			d->copyStr2Locale(d, msg->data.FeatureStatDynamicMessage.textLabel, k.name, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
+			sccp_dev_send(d, msg);
 			return;
 		}
 	}

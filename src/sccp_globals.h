@@ -179,9 +179,6 @@ struct sccp_global_vars {
 
 /* Global Allocations */
 SCCP_API struct sccp_global_vars *sccp_globals;
-#ifdef CS_DEVSTATE_FEATURE
-SCCP_API const char devstate_db_family[];
-#endif
 
 __END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

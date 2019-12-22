@@ -28,7 +28,7 @@
 #include "sccp_indicate.h"
 #include "sccp_utils.h"
 #include "sccp_atomic.h"
-#include "sccp_devstate.h"
+//#include "sccp_devstate.h"
 #include "sccp_featureParkingLot.h"
 #include "sccp_labels.h"
 
@@ -645,9 +645,6 @@ devicePtr sccp_device_create(const char * id)
 	SCCP_LIST_HEAD_INIT(&d->buttonconfig);
 	SCCP_LIST_HEAD_INIT(&d->selectedChannels);
 	SCCP_LIST_HEAD_INIT(&d->addons);
-#ifdef CS_DEVSTATE_FEATURE
-	SCCP_LIST_HEAD_INIT(&d->devstateSpecifiers);
-#endif
 #ifdef CS_AST_HAS_STASIS_ENDPOINT
 	if (iPbx.endpoint_create) {
 		d->endpoint = iPbx.endpoint_create("SCCP", id);
@@ -2311,8 +2308,8 @@ void sccp_dev_postregistration(devicePtr d)
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if (config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
-			if (iParkingLot.attachObserver && iParkingLot.attachObserver(config->button.feature.options, d, config->instance)) {
-				iParkingLot.notifyDevice(config->button.feature.options, d);
+			if(iParkingLot.attachObserver && iParkingLot.attachObserver(d, config)) {
+				iParkingLot.notifyDevice(d, config);
 			}
 		}
 	}
@@ -2363,6 +2360,9 @@ static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)
 			if (buttonconfig->button.feature.options) {
 				sccp_free(buttonconfig->button.feature.options);
 			}
+			if(buttonconfig->button.feature.args) {
+				sccp_free(buttonconfig->button.feature.args);
+			}
 			break;
 		case EMPTY:
 		case SCCP_CONFIG_BUTTONTYPE_SENTINEL:
@@ -2397,11 +2397,7 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 	sccp_channel_t *c = NULL;
 	int i = 0;
 
-#if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
-	sccp_devstate_specifier_t *devstateSpecifier;
-#endif
-
-	if (d) {
+	if(d) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "SCCP: Clean Device %s, remove from global:%s, restart_device:%s\n", d->id, remove_from_global ? "Yes" : "No", restart_device ? "Yes" : "No");
 		sccp_device_setRegistrationState(d, SKINNY_DEVICE_RS_CLEANING);
 		if (remove_from_global) {
@@ -2453,7 +2449,7 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 			} else if (iParkingLot.detachObserver && config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
 				sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "%s: checking buttonconfig index:%d, type:%s (%d) to see if there are any observed parkinglots\n", d->id, config->index,
 							    sccp_config_buttontype2str(config->type), config->type);
-				iParkingLot.detachObserver(config->button.feature.options, d, config->instance);
+				iParkingLot.detachObserver(d, config);
 #endif
 			}
 		}
@@ -2520,16 +2516,6 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 		if (device->lineButtons.size) {
 			sccp_linedevice_deleteButtonsArray(d);
 		}
-#if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
-		/* Unregister event subscriptions originating from devstate feature */ SCCP_LIST_LOCK(&d->devstateSpecifiers);
-		while ((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
-			if (devstateSpecifier->sub) {
-				pbx_event_unsubscribe(devstateSpecifier->sub);
-			}
-			sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_1 "%s: Removed Devicestate Subscription: %s\n", d->id, devstateSpecifier->specifier);
-		}
-		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
-#endif
 		sccp_session_t *s = d->session;
 		if (s) {
 			if (restart_device) {
@@ -2608,24 +2594,6 @@ int __sccp_device_destroy(const void *ptr)
 		}
 		SCCP_LIST_HEAD_DESTROY(&d->permithosts);
 	}
-
-#ifdef CS_DEVSTATE_FEATURE
-	// clean devstate_specifier
-	{
-		sccp_devstate_specifier_t * devstateSpecifier = NULL;
-		SCCP_LIST_LOCK(&d->devstateSpecifiers);
-		while ((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
-			if (devstateSpecifier) {
-				sccp_free(devstateSpecifier);
-			}
-		}
-		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
-		if (!SCCP_LIST_EMPTY(&d->devstateSpecifiers)) {
-			pbx_log(LOG_WARNING, "%s: (device_destroy) there are connected deviceSpecifiers left during device destroy\n", d->id);
-		}
-		SCCP_LIST_HEAD_DESTROY(&d->devstateSpecifiers);
-	}
-#endif
 
 	// clean selected channels
 	{
@@ -3384,7 +3352,7 @@ devicePtr sccp_device_find_realtime(const char * name)
 
 		sccp_config_applyDeviceConfiguration(d, v);		/** load configuration and set defaults */
 
-		sccp_config_restoreDeviceFeatureStatus(d);		/** load device status from database */
+		// sccp_config_restoreDeviceFeatureStatus(d);		/** load device status from database */
 
 		sccp_device_addToGlobals(d);				/** add to device to global device list */
 
