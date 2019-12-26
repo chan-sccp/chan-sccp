@@ -893,6 +893,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 		register_sasIPv6.ss_family = AF_INET6;
 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) &register_sasIPv6;
 		memcpy(&sin6->sin6_addr, &msg_in->data.RegisterMessage.ipv6Address, sizeof(sin6->sin6_addr));
+		sin6->sin6_port = htons(sccp_session_getClientPort(s));
 		phone_ipv6 = pbx_strdupa(sccp_netsock_stringify_host(&register_sasIPv6));
 	}
 
@@ -902,9 +903,11 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 		register_sasIPv4.ss_family = AF_INET;
 		struct sockaddr_in *sin4 = (struct sockaddr_in *) &register_sasIPv4;
 		memcpy(&sin4->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, sizeof(sin4->sin_addr));
+		sin4->sin_port = htons(sccp_session_getClientPort(s));
 		phone_ipv4 = pbx_strdupa(sccp_netsock_stringify_host(&register_sasIPv4));
-		sccp_session_setOurIP4Address(s, &register_sasIPv4);
-		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Our Session IP4 Address %s\n", deviceName, sccp_netsock_stringify(&register_sasIPv4));
+		if(msg_in->data.RegisterMessage.stationIpAddr != 0) {
+			sccp_session_setOurIP4Address(s, &register_sasIPv4);
+		}
 	}
 	
 	/* */

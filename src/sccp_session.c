@@ -20,6 +20,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_netsock.h"
 #include "sccp_utils.h"
 #include <netinet/in.h>
+#include <sys/un.h>
 
 #ifndef CS_USE_POLL_COMPAT
 #include <poll.h>
@@ -59,6 +60,7 @@ void sccp_session_device_thread_exit(void *session);
 void *sccp_session_device_thread(void *session);
 void __sccp_session_stopthread(sessionPtr session, skinny_registrationstate_t newRegistrationState);
 gcc_inline void recalc_wait_time(sccp_session_t *s);
+static struct ast_sockaddr internip;
 
 /*!
  * \brief SCCP Session Structure
@@ -112,58 +114,31 @@ boolean_t sccp_session_getSas(constSessionPtr session, struct sockaddr_storage *
 	return FALSE;
 }
 
-/*!
- * \brief Exchange Socket Addres Information from them to us
- */
-static int __sccp_session_setOurAddressFromTheirs(const struct sockaddr_storage *them, struct sockaddr_storage *us)
+gcc_inline int sccp_session_getClientPort(constSessionPtr session)
 {
-	int sock = 0;
-	socklen_t slen = 0;
-
-	union sockaddr_union {
-		struct sockaddr sa;
-		struct sockaddr_storage ss;
-		struct sockaddr_in sin;
-		struct sockaddr_in6 sin6;
-	} tmp_addr = {
-		.ss = *them,
-	};
-
-	if (sccp_netsock_is_IPv6(them)) {
-		tmp_addr.sin6.sin6_port = htons(sccp_netsock_getPort(&GLOB(bindaddr)));
-		slen = sizeof(struct sockaddr_in6);
-	} else if (sccp_netsock_is_IPv4(them)) {
-		tmp_addr.sin.sin_port = htons(sccp_netsock_getPort(&GLOB(bindaddr)));
-		slen = sizeof(struct sockaddr_in);
-	} else {
-		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Unspecified them format: %s\n", sccp_netsock_stringify(them));
-		return -1;
+	if(session) {
+		return sccp_netsock_getPort(&session->sin);
 	}
-
-	sock = socket(tmp_addr.ss.ss_family, SOCK_DGRAM, 0);
-	if(sock < 0) {
-		return -1;
-	}
-
-	if (connect(sock, &tmp_addr.sa, sizeof(tmp_addr))) {
-		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Failed to connect to %s\n", sccp_netsock_stringify(them));
-		close(sock);
-		return -1;
-	}
-	if (getsockname(sock, &tmp_addr.sa, &slen)) {
-		close(sock);
-		return -1;
-	}
-	close(sock);
-	memcpy(us, &tmp_addr, slen);
 	return 0;
 }
 
-int sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr_storage *addr)
+/*!
+ * \brief Exchange Socket Addres Information from them to us
+ */
+int sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr_storage * them)
 {
-	sessionPtr s = (sessionPtr)session;									/* discard const */
-	if (s) {
-		return __sccp_session_setOurAddressFromTheirs(addr, &s->ourIPv4);
+	sessionPtr s = (sessionPtr)session;                                        // discard const
+	struct sockaddr_storage us = { 0 };
+	sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "SCCP: (setOurIP4Address) client %s\n", sccp_netsock_stringify(them));
+
+	// starting guess for the internal address
+	memcpy(&us, &internip.ss, sizeof(struct sockaddr_storage));
+
+	// now ask the system what would it use to talk to 'them'
+	if(s && sccp_netsock_ouraddrfor(them, &us)) {
+		memcpy(&s->ourIPv4, &us, sizeof(struct sockaddr_storage));
+		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "SCCP: (setOurIP4Address) can be reached best via %s\n", sccp_netsock_stringify(&s->ourIPv4));
+		return 0;
 	}
 	return -2;
 }
@@ -785,18 +760,34 @@ static sccp_session_t * sccp_create_session(int new_socket)
 	s->lastKeepAlive = time(0);
 	
 	return s;
-} 
+}
 
-static void sccp_session_set_ourip(sccp_session_t *s)
+static boolean_t sccp_session_set_ourip(sccp_session_t * s)
 {
 	/** set default handler for registration to sccp */
 	if (sccp_netsock_is_any_addr(&GLOB(bindaddr))) {
-		__sccp_session_setOurAddressFromTheirs(&s->sin, &s->ourip);
+		struct sockaddr_storage them = { 0 };
+
+		if(sccp_netsock_is_mapped_IPv4(&s->sin)) {
+			sccp_netsock_ipv4_mapped(&s->sin, &them);
+		} else {
+			memcpy(&them, &s->sin, sizeof(struct sockaddr_storage));
+		}
+
+		// starting guess for the internal address
+		memcpy(&s->ourip, &internip.ss, sizeof(struct sockaddr_storage));
+
+		// now ask the system what would it use to talk to 'them'
+		if(!sccp_netsock_ouraddrfor(&them, &s->ourip)) {
+			pbx_log(LOG_ERROR, "SCCP: Could not retrieve a valid ip-address to use to communicate with client '%s'\n", sccp_netsock_stringify(&s->sin));
+			// return FALSE
+		}
 	} else {
 		memcpy(&s->ourip, &GLOB(bindaddr), sizeof(s->ourip));
 	}
 	sccp_copy_string(s->designator, sccp_netsock_stringify(&s->ourip), sizeof(s->designator));
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Connected on server via %s\n", s->designator);
+	sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Connected on server via %s\n", s->designator);
+	return TRUE;
 }
 
 /*!
@@ -812,7 +803,10 @@ static void *accept_thread(void *ignore)
 	int new_socket = 0;
 	struct sockaddr_storage incoming;
 	sccp_session_t *s = NULL;
-	socklen_t length = (socklen_t) (sizeof(struct sockaddr_storage));
+	// socklen_t length = (socklen_t)(sizeof(struct sockaddr_un));	//from "sys/un.h"
+	// socklen_t length = (socklen_t)(sizeof(struct sockaddr));
+	socklen_t length = (socklen_t)(sizeof(struct sockaddr_storage));
+
 	for (;;) {
 		new_socket = accept(accept_sock, (struct sockaddr *)&incoming, &length);
 		if(new_socket < 0) { /* blocking call */
@@ -941,6 +935,16 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 				accept_sock = -1;
 				break;
 			}
+
+			struct ast_sockaddr tmp_sa;
+			ast_sockaddr_copy(&internip, storage2ast_sockaddr(bindaddr, &tmp_sa));
+			if(ast_find_ourip(&internip, &tmp_sa, 0)) {
+				ast_log(LOG_ERROR, "Unable to get own IP address\n");
+				close(accept_sock);
+				accept_sock = -1;
+				break;
+			}
+
 			if (listen(accept_sock, DEFAULT_SCCP_BACKLOG)) {
 				pbx_log(LOG_ERROR, "Failed to start listening to %s:%d: %s\n", addrStr, port, strerror(errno));
 				close(accept_sock);
@@ -956,6 +960,7 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 
 	if (accept_sock > -1) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Listening on %s:%d using socket:%d\n", addrStr, port, accept_sock);
+		sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: using default ip:%s\n", ast_sockaddr_stringify_addr(&internip));
 		result = TRUE;
 	}
 	return result;	

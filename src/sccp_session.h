@@ -30,7 +30,8 @@ SCCP_API void SCCP_CALL sccp_session_setProtocol(constSessionPtr session, uint16
 SCCP_API uint16_t SCCP_CALL sccp_session_getProtocol(constSessionPtr session);
 SCCP_API boolean_t SCCP_CALL sccp_session_getOurIP(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage, int family);
 SCCP_API boolean_t SCCP_CALL sccp_session_getSas(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage);
-SCCP_API int SCCP_CALL sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr_storage *addr) ;
+SCCP_INLINE int SCCP_CALL sccp_session_getClientPort(constSessionPtr session);
+SCCP_API int SCCP_CALL sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr_storage * them);
 SCCP_API void SCCP_CALL sccp_session_resetLastKeepAlive(constSessionPtr session);
 void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPtr previous_session);
 SCCP_API boolean_t SCCP_CALL sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr device);

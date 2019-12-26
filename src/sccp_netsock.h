@@ -14,6 +14,9 @@
 #include <sys/socket.h>
 #endif
 
+/* forward declaration */
+struct ast_sockaddr;
+
 #define SCCP_SOCKADDR_STR_ADDR           (1 << 0)
 #define SCCP_SOCKADDR_STR_PORT           (1 << 1)
 #define SCCP_SOCKADDR_STR_BRACKETS       (1 << 2)
@@ -41,6 +44,9 @@ struct sccp_ha {
 };
 
 __BEGIN_C_EXTERN__
+SCCP_INLINE struct sockaddr_storage * SCCP_CALL ast_sockaddr2storage(struct ast_sockaddr * src);
+SCCP_INLINE struct ast_sockaddr * SCCP_CALL storage2ast_sockaddr(struct sockaddr_storage * src, struct ast_sockaddr * dst);
+SCCP_API boolean_t SCCP_CALL sccp_netsock_ouraddrfor(const struct sockaddr_storage * them, struct sockaddr_storage * us);
 SCCP_INLINE boolean_t SCCP_CALL sccp_netsock_is_IPv4(const struct sockaddr_storage *sockAddrStorage);
 SCCP_INLINE boolean_t SCCP_CALL sccp_netsock_is_IPv6(const struct sockaddr_storage *sockAddrStorage);
 SCCP_API uint16_t __PURE__ SCCP_CALL sccp_netsock_getPort(const struct sockaddr_storage *sockAddrStorage);
