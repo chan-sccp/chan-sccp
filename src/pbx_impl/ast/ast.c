@@ -1272,28 +1272,41 @@ int sccp_astgenwrap_channel_write(PBX_CHANNEL_TYPE * ast, const char *funcname, 
 			res = (TRUE == sccp_channel_setVideoMode(c, value)) ? 0 : -1;
 			
 		} else if (!strcasecmp(args, "CallingParty")) {
+			if(!value || sccp_strlen_zero(value)) {
+				pbx_log(LOG_ERROR, "No valid party information provided: '%s'\n", value);
+				return -1;
+			}
 			char *num, *name;
-
 			pbx_callerid_parse((char *) value, &name, &num);
 			sccp_channel_set_callingparty(c, name, num);
 			sccp_channel_display_callInfo(c);
 			pbx_builtin_setvar_helper(c->owner, "SETCALLINGPARTY", pbx_strdup(value));
 		} else if (!strcasecmp(args, "CalledParty")) {
+			if(!value || sccp_strlen_zero(value)) {
+				pbx_log(LOG_ERROR, "No valid party information provided: '%s'\n", value);
+				return -1;
+			}
 			char *num, *name;
 			pbx_callerid_parse((char *) value, &name, &num);
 			sccp_channel_set_calledparty(c, name, num);
 			sccp_channel_display_callInfo(c);
 			pbx_builtin_setvar_helper(c->owner, "SETCALLEDPARTY", pbx_strdup(value));
 		} else if (!strcasecmp(args, "OriginalCallingParty")) {
+			if(!value || sccp_strlen_zero(value)) {
+				pbx_log(LOG_ERROR, "No valid party information provided: '%s'\n", value);
+				return -1;
+			}
 			char *num, *name;
-
 			pbx_callerid_parse((char *) value, &name, &num);
 			sccp_channel_set_originalCallingparty(c, name, num);
 			sccp_channel_display_callInfo(c);
 			pbx_builtin_setvar_helper(c->owner, "SETORIGCALLINGPARTY", pbx_strdup(value));
 		} else if (!strcasecmp(args, "OriginalCalledParty")) {
+			if(!value || sccp_strlen_zero(value)) {
+				pbx_log(LOG_ERROR, "No valid party information provided: '%s'\n", value);
+				return -1;
+			}
 			char *num, *name;
-
 			pbx_callerid_parse((char *) value, &name, &num);
 			sccp_channel_set_originalCalledparty(c, name, num);
 			sccp_channel_display_callInfo(c);

@@ -1117,6 +1117,10 @@ static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, void *data)
 		return 0;
 	}
 
+	if(!text || sccp_strlen_zero(text)) {
+		pbx_log(LOG_ERROR, "SCCPSetCalledParty: No valid party information provided: '%s'\n", text);
+		return 0;
+	}
 	pbx_callerid_parse(text, &name, &num);
 	sccp_channel_set_calledparty(c, name, num);
 	sccp_channel_display_callInfo(c);
