@@ -165,7 +165,7 @@ static pbx_event_subscription_t * pbxMailboxSubscribe(mwi_subscription_t *subscr
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "%s: (mwi::%s) uniqueid:%s\n",
 		(subscription->line)->name, __PRETTY_FUNCTION__, (subscription->mailbox)->uniqueid);
 
-#	if ASTERISK_VER_GROUP >= 117
+#	if ASTERISK_VERSION_GROUP >= 117
 	pbx_subscription = (pbx_event_subscription_t *)pbx_mwi_subscribe_pool(subscription->mailbox->uniqueid, pbx_mwi_event, subscription);
 #	else
 	struct stasis_topic * mailbox_specific_topic = pbx_mwi_topic((subscription->mailbox)->uniqueid);
@@ -189,7 +189,11 @@ static void pbxMailboxUnsubscribe(mwi_subscription_t *subscription)
 		(subscription->line)->name, __PRETTY_FUNCTION__, (subscription->mailbox)->uniqueid);
 
 	if(subscription->pbx_subscription) {
+#	if ASTERISK_VERSION_GROUP >= 117
+		pbx_mwi_unsubscribe_and_join((struct pbx_mwi_subscriber *)subscription->pbx_subscription);
+#	else
 		stasis_unsubscribe_and_join(subscription->pbx_subscription);
+#	endif
 	}
 }
 /* discard polling implementation */
