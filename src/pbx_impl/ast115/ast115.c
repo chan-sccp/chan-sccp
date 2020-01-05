@@ -963,10 +963,11 @@ static PBX_FRAME_TYPE *sccp_astwrap_rtp_read(PBX_CHANNEL_TYPE * ast)
 			break;
 #endif
 		default:
-			break;
+			pbx_log(LOG_ERROR, "SCCP: (rtp_read) Unknown Frame Type.\n");
+			goto EXIT_FUNC;
 	}
 	//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast_channel_fdno(ast), frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
-	if (frame->frametype == AST_FRAME_VOICE) {
+	if(frame && frame != &ast_null_frame && frame->frametype == AST_FRAME_VOICE) {
 #ifdef CS_SCCP_CONFERENCE
 		if (c->conference && (!ast_format_cache_is_slinear(ast_channel_readformat(ast)))) {
 			ast_set_read_format(ast, ast_format_slin96);
