@@ -24998,7 +24998,7 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "ast_bridges" >/dev/null 2>&1; then :
+  $EGREP "struct ao2_container *ast_bridges(void)" >/dev/null 2>&1; then :
 
 						ASTERISK_VER_GROUP=117
 						ASTERISK_VERSION_NUMBER=11700

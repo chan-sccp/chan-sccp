@@ -160,7 +160,7 @@ AC_DEFUN([AST_GET_VERSION], [
 					#define AST_MODULE "chan_sccp"
 					#include <asterisk/module.h>
 				],[
-					AC_EGREP_CPP([ast_bridges], [
+					AC_EGREP_CPP([struct ao2_container *ast_bridges(void)], [
 						#define AST_MODULE_SELF_SYM __internal_chan_sccp_la_self
 						#define AST_MODULE "chan_sccp"
 						#include <asterisk/bridge.h>
