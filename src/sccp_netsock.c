@@ -409,6 +409,7 @@ int sccp_netsock_split_hostport(char *str, char **host, char **port, int flags)
 AST_THREADSTORAGE(sccp_netsock_stringify_buf);
 char *__netsock_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, int format)
 {
+	struct sockaddr_storage sa_ipv4;
 	const struct sockaddr_storage * sockAddrStorage_tmp = NULL;
 	char host[NI_MAXHOST] = "";
 	char port[NI_MAXSERV] = "";
@@ -425,7 +426,6 @@ char *__netsock_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, in
 	}
 
 	if(sccp_netsock_is_mapped_IPv4(sockAddrStorage)) {
-		struct sockaddr_storage sa_ipv4;
 		sccp_netsock_ipv4_mapped(sockAddrStorage, &sa_ipv4);
 		sockAddrStorage_tmp = &sa_ipv4;
 	} else {
