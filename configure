@@ -24968,10 +24968,13 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 else
 
 		HEADER_INCLUDE="
+#define HAVE_ARPA_INET_H 1
 #define AST_MODULE_SELF_SYM __internal_chan_sccp_la_self
 #define AST_MODULE "chan_sccp"
+#include <asterisk.h>
 "
-		ac_fn_c_check_header_mongrel "$LINENO" "asterisk/ast_version.h" "ac_cv_header_asterisk_ast_version_h" "$ac_includes_default"
+		ac_fn_c_check_header_compile "$LINENO" "asterisk/ast_version.h" "ac_cv_header_asterisk_ast_version_h" "$HEADER_INCLUDE
+"
 if test "x$ac_cv_header_asterisk_ast_version_h" = xyes; then :
 
 			ac_fn_c_check_header_compile "$LINENO" "asterisk/iostream.h" "ac_cv_header_asterisk_iostream_h" "$HEADER_INCLUDE
@@ -24981,8 +24984,7 @@ if test "x$ac_cv_header_asterisk_iostream_h" = xyes; then :
 				cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#define AST_MODULE_SELF_SYM __internal_chan_sccp_la_self
-					#define AST_MODULE "chan_sccp"
+					$HEADER_INCLUDE
 					#include <asterisk/module.h>
 
 _ACEOF
@@ -24992,13 +24994,14 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 					cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-						#define AST_MODULE_SELF_SYM __internal_chan_sccp_la_self
-						#define AST_MODULE "chan_sccp"
+						$HEADER_INCLUDE
+						#include <asterisk/module.h>
+						#include <asterisk/iostream.h>
 						#include <asterisk/bridge.h>
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "struct ao2_container *ast_bridges(void)" >/dev/null 2>&1; then :
+  $EGREP "ast_bridges\(void\)" >/dev/null 2>&1; then :
 
 						ASTERISK_VER_GROUP=117
 						ASTERISK_VERSION_NUMBER=11700
