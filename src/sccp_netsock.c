@@ -14,6 +14,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 
 #include "sccp_session.h"
 #include <netinet/in.h>
+#include <asterisk/netsock2.h>
+#include <asterisk/acl.h>
 
 /* arbitrary values */
 #define NETSOCK_TIMEOUT_SEC 10											/* timeout after seven seconds when trying to read/write from/to a socket */
@@ -29,6 +31,67 @@ union sockaddr_union {
 	struct sockaddr_in sin;
 	struct sockaddr_in6 sin6;
 };
+
+gcc_inline struct sockaddr_storage * ast_sockaddr2storage(struct ast_sockaddr * src)
+{
+	return &src->ss;
+}
+
+gcc_inline struct ast_sockaddr * storage2ast_sockaddr(struct sockaddr_storage * src, struct ast_sockaddr * dst)
+{
+	memcpy(&dst->ss, src, sizeof(struct sockaddr_storage));
+	dst->ss.ss_family = src->ss_family;
+	if(src->ss_family == AF_INET6) {
+		dst->len = sizeof(struct sockaddr_in6);
+	} else {
+		dst->len = sizeof(struct sockaddr_in);
+	}
+	return dst;
+}
+
+//#include "sccp_utils.h" // sccp_copy_string
+boolean_t sccp_netsock_ouraddrfor(const struct sockaddr_storage * them, struct sockaddr_storage * us)
+{
+	const char * sock_err;
+	int sockfd;
+	int port = sccp_netsock_getPort(us);
+	socklen_t slen = (socklen_t)(sizeof(struct sockaddr_in));
+	int family = AF_INET;
+	union sockaddr_union themaddr = { .ss = *them };
+	union sockaddr_union usaddr = { .ss = *us };
+
+	if(sccp_netsock_is_IPv6(them)) {
+		family = AF_INET6;
+		slen = (socklen_t)(sizeof(struct sockaddr_in6));
+	}
+
+	sockfd = socket(family, SOCK_DGRAM, 0);
+	if(sockfd < 0) {
+		sock_err = ast_strdupa(strerror(errno));
+		pbx_log(LOG_ERROR, "Cannot create socket to %s: %s\n", sccp_netsock_stringify_addr(them), sock_err);
+		return FALSE;
+	}
+
+	if(connect(sockfd, &themaddr.sa, slen)) {
+		sock_err = ast_strdupa(strerror(errno));
+		pbx_log(LOG_WARNING, "Cannot connect to %s: %s\n", sccp_netsock_stringify_addr(them), sock_err);
+		close(sockfd);
+		return FALSE;
+	}
+
+	if(getsockname(sockfd, &usaddr.sa, &slen)) {
+		sock_err = ast_strdupa(strerror(errno));
+		pbx_log(LOG_WARNING, "Cannot get socket name for connection to %s: %s\n", sccp_netsock_stringify_addr(them), sock_err);
+		close(sockfd);
+		return FALSE;
+	}
+
+	memcpy(us, &usaddr.ss, sizeof(struct sockaddr_storage));
+	close(sockfd);
+	sccp_netsock_setPort(us, port);
+	// sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "SCCP: Connected via '%s'\n", sccp_netsock_stringify_addr(us));
+	return TRUE;
+}
 
 gcc_inline boolean_t sccp_netsock_is_IPv4(const struct sockaddr_storage *sockAddrStorage)
 {
@@ -72,7 +135,7 @@ int __PURE__ sccp_netsock_is_any_addr(const struct sockaddr_storage *sockAddrSto
 static boolean_t __netsock_resolve_first_af(struct sockaddr_storage *addr, const char *name, int family)
 {
 	struct addrinfo * res = NULL;
-	int e;
+	int e = 0;
 	boolean_t result = FALSE;
 	if (!name) {
 		return FALSE;
@@ -208,7 +271,9 @@ int sccp_netsock_cmp_addr(const struct sockaddr_storage *a, const struct sockadd
 	//char *stra = pbx_strdupa(sccp_netsock_stringpify_addr(a));
 	//char *strb = pbx_strdupa(sccp_netsock_stringify_addr(b));
 
-	const struct sockaddr_storage *a_tmp, *b_tmp;
+	const struct sockaddr_storage * a_tmp = NULL;
+
+	const struct sockaddr_storage * b_tmp = NULL;
 	struct sockaddr_storage ipv4_mapped;
 	size_t len_a = sccp_netsock_sizeof(a);
 	size_t len_b = sccp_netsock_sizeof(b);
@@ -344,11 +409,12 @@ int sccp_netsock_split_hostport(char *str, char **host, char **port, int flags)
 AST_THREADSTORAGE(sccp_netsock_stringify_buf);
 char *__netsock_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, int format)
 {
+	struct sockaddr_storage sa_ipv4;
 	const struct sockaddr_storage * sockAddrStorage_tmp = NULL;
 	char host[NI_MAXHOST] = "";
 	char port[NI_MAXSERV] = "";
 	struct ast_str * str = NULL;
-	int e;
+	int e = 0;
 	static const size_t size = sizeof(host) - 1 + sizeof(port) - 1 + 4;
 
 	if (!sockAddrStorage) {
@@ -358,15 +424,13 @@ char *__netsock_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, in
 	if (!(str = ast_str_thread_get(&sccp_netsock_stringify_buf, size))) {
 		return "";
 	}
-	//if (sccp_netsock_ipv4_mapped(sockAddrStorage, &sockAddrStorage_tmp_ipv4)) {
-	//	struct sockaddr_storage sockAddrStorage_tmp_ipv4;
-	//	sockAddrStorage_tmp = &sockAddrStorage_tmp_ipv4;
-	//#if DEBUG
-	//	sccp_log(0)("SCCP: ipv4 mapped in ipv6 address\n");
-	//#endif
-	//} else {
-	sockAddrStorage_tmp = sockAddrStorage;
-	//}
+
+	if(sccp_netsock_is_mapped_IPv4(sockAddrStorage)) {
+		sccp_netsock_ipv4_mapped(sockAddrStorage, &sa_ipv4);
+		sockAddrStorage_tmp = &sa_ipv4;
+	} else {
+		sockAddrStorage_tmp = sockAddrStorage;
+	}
 
 	if ((e = getnameinfo((struct sockaddr *) sockAddrStorage_tmp, sccp_netsock_sizeof(sockAddrStorage_tmp), format & SCCP_SOCKADDR_STR_ADDR ? host : NULL, format & SCCP_SOCKADDR_STR_ADDR ? sizeof(host) : 0, format & SCCP_SOCKADDR_STR_PORT ? port : 0, format & SCCP_SOCKADDR_STR_PORT ? sizeof(port) : 0, NI_NUMERICHOST | NI_NUMERICSERV))) {
 		sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "SCCP: getnameinfo(): %s \n", gai_strerror(e));

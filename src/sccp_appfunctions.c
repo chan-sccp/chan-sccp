@@ -420,8 +420,10 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		while (token != NULL) {
 			addcomma = 0;
 			token = pbx_skip_blanks(token);
-			if (!strlen(token)) continue;
-			
+			if(!strlen(token)) {
+				continue;
+			}
+
 			/** copy request tokens for HASH() */
 			if (pbx_str_strlen(colnames)) {
 				pbx_str_append(&colnames, 0, ",");
@@ -510,7 +512,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				sccp_copy_string(buf, d->currentLine->id, buf_len);
 			} else if (!strcasecmp(token, "button_config")) {
 				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-				sccp_buttonconfig_t *config;
+				sccp_buttonconfig_t * config = NULL;
 
 				SCCP_LIST_LOCK(&d->buttonconfig);
 				SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -560,7 +562,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				       (int) call_stats[SCCP_CALLSTATISTIC_LAST].concealed_seconds, (int) call_stats[SCCP_CALLSTATISTIC_LAST].severely_concealed_seconds);
 			} else if (!strncasecmp(token, "chanvar[", 8)) {
 				char *chanvar = token + 8;
-				PBX_VARIABLE_TYPE *v;
+				PBX_VARIABLE_TYPE * v = NULL;
 
 				chanvar = strsep(&chanvar, "]");
 				for (v = d->variables; v; v = v->next) {
@@ -569,7 +571,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 					}
 				}
 			} else if (!strncasecmp(token, "codec[", 6)) {
-				char *codecnum;
+				char * codecnum = NULL;
 
 				codecnum = token + 6;									// move past the '[' 
 				codecnum = strsep(&codecnum, "]");							// trim trailing ']' if any 
@@ -678,8 +680,10 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 		while (token != NULL) {
 			addcomma = 0;
 			token = pbx_skip_blanks(token);
-			if (!strlen(token)) continue;
-			
+			if(!strlen(token)) {
+				continue;
+			}
+
 			/** copy request tokens for HASH() */
 			if (pbx_str_strlen(colnames)) {
 				pbx_str_append(&colnames, 0, ",");
@@ -772,7 +776,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			} else if (!strcasecmp(token, "num_devices")) {
 				snprintf(buf, buf_len, "%d", SCCP_LIST_GETSIZE(&l->devices));
 			} else if (!strcasecmp(token, "mailboxes")) {
-				sccp_mailbox_t *mailbox;
+				sccp_mailbox_t * mailbox = NULL;
 				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 				SCCP_LIST_LOCK(&l->mailboxes);
 				SCCP_LIST_TRAVERSE(&l->mailboxes, mailbox, list) {
@@ -804,7 +808,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			} else if (!strncasecmp(token, "chanvar[", 8)) {
 				char *chanvar = token + 8;
 
-				PBX_VARIABLE_TYPE *v;
+				PBX_VARIABLE_TYPE * v = NULL;
 
 				chanvar = strsep(&chanvar, "]");
 				for (v = l->variables; v; v = v->next) {
@@ -903,8 +907,10 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		token = strtok_r(colname, delims, &tokenrest);
 		while (token != NULL) {
 			token = pbx_skip_blanks(token);
-			if (!strlen(token)) continue;
-			
+			if(!strlen(token)) {
+				continue;
+			}
+
 			/** copy request tokens for HASH() */
 			if (pbx_str_strlen(colnames)) {
 				pbx_str_append(&colnames, 0, ",");
@@ -1068,7 +1074,7 @@ static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, void *data)
 #endif
 {
 	AUTO_RELEASE(sccp_channel_t, c, get_sccp_channel_from_pbx_channel(chan));
-	int res;
+	int res = 0;
 
 	if(!c) {
 		pbx_log(LOG_WARNING, "SCCPSetCodec: Not an SCCP channel\n");
@@ -1097,7 +1103,9 @@ static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, void *data)
 #endif
 {
 	char *text = (char *) data;
-	char *num, *name;
+	char * num = NULL;
+
+	char * name = NULL;
 	AUTO_RELEASE(sccp_channel_t, c, get_sccp_channel_from_pbx_channel(chan));
 	if(!c) {
 		pbx_log(LOG_WARNING, "SCCPSetCalledParty: Not an SCCP channel\n");
@@ -1109,6 +1117,10 @@ static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, void *data)
 		return 0;
 	}
 
+	if(!text || sccp_strlen_zero(text)) {
+		pbx_log(LOG_ERROR, "SCCPSetCalledParty: No valid party information provided: '%s'\n", text);
+		return 0;
+	}
 	pbx_callerid_parse(text, &name, &num);
 	sccp_channel_set_calledparty(c, name, num);
 	sccp_channel_display_callInfo(c);

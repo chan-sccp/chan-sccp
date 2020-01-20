@@ -107,7 +107,7 @@ void sccp_threadpool_grow_locked(sccp_threadpool_t * tp_p, int amount)
 {
 	pthread_attr_t attr;
 	sccp_threadpool_thread_t * tp_thread = NULL;
-	int t;
+	int t = 0;
 
 	if (tp_p && !tp_p->sccp_threadpool_shuttingdown) {
 		for (t = 0; t < amount; t++) {
@@ -133,8 +133,8 @@ void sccp_threadpool_grow_locked(sccp_threadpool_t * tp_p, int amount)
 // sccp_threadpool_shrink_locked needs to be called with locked &(tp_p->threads)->lock
 void sccp_threadpool_shrink_locked(sccp_threadpool_t * tp_p, int amount)
 {
-	sccp_threadpool_thread_t *tp_thread;
-	int t;
+	sccp_threadpool_thread_t * tp_thread = NULL;
+	int t = 0;
 
 	if (tp_p && !tp_p->sccp_threadpool_shuttingdown) {
 		for (t = 0; t < amount; t++) {
@@ -205,7 +205,9 @@ void *sccp_threadpool_thread_do(void *p)
 
 	pthread_cleanup_push(sccp_threadpool_thread_end, tp_thread);
 
-	int jobs = 0, threads = 0;
+	int jobs = 0;
+
+	int threads = 0;
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Starting Threadpool JobQueue:%p\n", thread);
 	while (1) {

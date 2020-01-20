@@ -319,7 +319,7 @@ int sccp_preUnload(void)
  */
 int sccp_reload(void)
 {
-	sccp_readingtype_t readingtype;
+	sccp_readingtype_t readingtype = 0;
 	int returnval = 0;
 
 	pbx_rwlock_wrlock(&GLOB(lock));
@@ -378,9 +378,5 @@ EXIT:
 	pbx_rwlock_unlock(&GLOB(lock));
 	return returnval;
 }
-
-#ifdef CS_DEVSTATE_FEATURE
-const char devstate_db_family[] = "CustomDevstate";
-#endif
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

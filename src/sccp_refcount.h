@@ -49,8 +49,8 @@ SCCP_API void SCCP_CALL sccp_refcount_autorelease(void *ptr);
 #if CS_REFCOUNT_DEBUG
 struct ast_str;
 #define pbx_str_t struct ast_str
-SCCP_API void SCCP_CALL sccp_refcount_addWeakParent(const void * const ptr, const void * const parentWeakPtr);
-SCCP_API void SCCP_CALL sccp_refcount_removeWeakParent(const void * const ptr, const void * const parentWeakPtr);
+SCCP_API void SCCP_CALL sccp_refcount_addRelationship(const void * const parentWeakPtr, const void * const childPtr);
+SCCP_API void SCCP_CALL sccp_refcount_removeRelationship(const void * const parentWeakPtr, const void * const childPtr);
 SCCP_API void SCCP_CALL sccp_refcount_gen_report(const void * const ptr, pbx_str_t **buf);
 #endif
 #ifdef CS_EXPERIMENTAL

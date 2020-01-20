@@ -496,10 +496,11 @@ static PBX_FRAME_TYPE *sccp_astwrap_rtp_read(PBX_CHANNEL_TYPE * ast)
 			break;
 #endif
 		default:
-			break;
+			pbx_log(LOG_ERROR, "SCCP: (rtp_read) Unknown Frame Type.\n");
+			goto EXIT_FUNC;
 	}
 	//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast_channel_fdno(ast), frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
-	if (frame->frametype == AST_FRAME_VOICE) {
+	if(frame && frame != &ast_null_frame && frame->frametype == AST_FRAME_VOICE) {
 #ifdef CS_SCCP_CONFERENCE
 		if (c->conference && (!ast_format_is_slinear(ast_channel_readformat(ast)))) {
 			ast_set_read_format(ast, &slinFormat);
@@ -2014,20 +2015,17 @@ static sccp_callerid_presentation_t sccp_astwrap_callerid_presentation(PBX_CHANN
 
 static boolean_t sccp_astwrap_createRtpInstance(constDevicePtr d, constChannelPtr c, sccp_rtp_t *rtp)
 {
-	struct ast_sockaddr sock = { {0,} };
 	uint32_t tos = 0, cos = 0;
 	
 	if (!c || !d) {
 		return FALSE;
 	}
-	memcpy(&sock.ss, &GLOB(bindaddr), sizeof(struct sockaddr_storage));
-	if (GLOB(bindaddr).ss_family == AF_INET6) {
-		sock.ss.ss_family = AF_INET6;
-		sock.len = sizeof(struct sockaddr_in6);
-	} else {
-		sock.ss.ss_family = AF_INET;
-		sock.len = sizeof(struct sockaddr_in);
-	}
+	struct sockaddr_storage ourip = { 0 };
+	sccp_session_getOurIP(d->session, &ourip, 0);
+	struct ast_sockaddr sock = { {
+	    0,
+	} };
+	storage2ast_sockaddr(&ourip, &sock);
 
 	if ((rtp->instance = ast_rtp_instance_new("asterisk", sched, &sock, NULL))) {
 		struct ast_sockaddr instance_addr = { {0,} };

@@ -589,112 +589,101 @@ sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_c
 //{
 //      return FALSE;
 //}
+static void log_hangup_info(const char * hanguptype, constChannelPtr c, PBX_CHANNEL_TYPE * const pbx_channel)
+{
+	sccp_log(DEBUGCAT_PBX)("%s: (%s):\n"
+			       " - pbx_channel: %s\n"
+			       " - channel_flags:\n"
+			       "   - ZOMBIE: %s\n"
+			       "   - BLOCKING: %s\n"
+			       " - pbx_channel_hangup_locked: %s\n"
+			       " - runningPbxThread: %s\n"
+			       " - pbx_channel_is_bridged: %s\n"
+			       " - pbx_channel_pbx: %s\n",
+			       c->designator, hanguptype, pbx_channel ? pbx_channel_name(pbx_channel) : "", pbx_channel ? pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) ? "YES" : "NO" : "",
+			       pbx_channel ? pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING) ? "YES" : "NO" : "", pbx_channel ? pbx_check_hangup_locked(pbx_channel) ? "YES" : "NO" : "",
+			       c->isRunningPbxThread ? "YES" : "NO", pbx_channel ? ast_channel_is_bridged(pbx_channel) ? "YES" : "NO" : "", pbx_channel ? pbx_channel_pbx(pbx_channel) ? "YES" : "NO" : "");
+#if CS_REFCOUNT_DEBUG
+	AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
+	if(d) {
+		pbx_str_t * buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE * 3);
+		sccp_refcount_gen_report(d, &buf);
+		pbx_log(LOG_NOTICE, "%s: (%s) refcount_report:\n%s\n", c->designator, hanguptype, pbx_str_buffer(buf));
+		sccp_free(buf);
+	}
+#endif
+}
+
+static boolean_t sccp_astgenwrap_handleHangup(constChannelPtr c, const char * hanguptype)
+{
+	boolean_t res = FALSE;
+	AUTO_RELEASE(sccp_channel_t, channel , sccp_channel_retain(c));
+	if (channel) {
+		channel->isHangingUp = TRUE;
+		PBX_CHANNEL_TYPE * pbx_channel = pbx_channel_ref(channel->owner);
+
+		if(ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
+			sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		}
+		do {
+			log_hangup_info(hanguptype, c, pbx_channel);
+			if(!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
+				AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(channel));
+				if(d) {
+					sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
+					sccp_log(DEBUGCAT_PBX)("%s: (%s): Onhook Only\n", c->designator, hanguptype);
+				}
+				if(iPbx.dumpchan) {
+					char * buf = sccp_alloca(sizeof(char) * 2048);
+					iPbx.dumpchan(pbx_channel, buf, 2048);
+					sccp_log(DEBUGCAT_PBX)("SCCP: (dumpchan) %s", buf);
+				}
+				res = TRUE;
+				break;
+			}
+			if((pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING) || ast_channel_is_bridged(pbx_channel) || pbx_channel_pbx(pbx_channel))) {
+				if(c->isRunningPbxThread) {
+					ast_softhangup_nolock(pbx_channel, AST_SOFTHANGUP_DEV);
+					sccp_log(DEBUGCAT_PBX)("%s: (%s): Softhangup\n", c->designator, hanguptype);
+					res = TRUE;
+				} else {
+					res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
+					sccp_log(DEBUGCAT_PBX)("%s: (%s): Hangup Queued\n", c->designator, hanguptype);
+				}
+				break;
+			}
+			ast_hangup(pbx_channel);
+			sccp_log(DEBUGCAT_PBX)("%s: (%s): AstHangup\n", c->designator, hanguptype);
+			res = TRUE;
+		} while(0);
+		pbx_channel_unref(pbx_channel);
+	}
+	return res;
+}
 
 static boolean_t sccp_astgenwrap_carefullHangup(constChannelPtr c)
 {
 	boolean_t res = FALSE;
-
-	if (!c || !c->owner) {
-		return FALSE;
-	}
 	AUTO_RELEASE(sccp_channel_t, channel , sccp_channel_retain(c));
 	if (channel) {
 		channel->isHangingUp = TRUE;
-		PBX_CHANNEL_TYPE *pbx_channel = NULL;
-		if (channel->owner && (pbx_channel = pbx_channel_ref(channel->owner))) {
-			if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
-				sccp_channel_stop_and_deny_scheduled_tasks(channel);
-			}
-
-			/* let's wait for a bit, for the dust to settle */
-			sched_yield();
-			pbx_safe_sleep(pbx_channel, 1000);
-
-			/* recheck everything before going forward */
-			pbx_log(LOG_NOTICE, "%s: (carefullHangup) processing hangup request, using carefull version. Standby.\n", pbx_channel_name(pbx_channel));
-			if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
-				pbx_log(LOG_NOTICE, "%s: (carefullHangup) Already Hungup. Forcing SCCP Remove Call.\n", pbx_channel_name(pbx_channel));
-				AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
-
-				if (d) {
-					sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
-				}
-				res = TRUE;
-			} else {
-				pbx_log(LOG_NOTICE, "%s: (carefullHangup) Channel still active.\n", pbx_channel_name(pbx_channel));
-				if (pbx_channel_pbx(pbx_channel) || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING) || pbx_channel_state(pbx_channel) == AST_STATE_UP) {
-					pbx_log(LOG_NOTICE, "%s: (carefullHangup) Has PBX -> ast_queue_hangup.\n", pbx_channel_name(pbx_channel));
-					res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
-				} else {
-					pbx_log(LOG_NOTICE, "%s: (carefullHangup) Has no PBX -> ast_hangup.\n", pbx_channel_name(pbx_channel));
-					ast_hangup(pbx_channel);
-					res = TRUE;
-				}
-			}
-			pbx_channel_unref(pbx_channel);
-		}
+		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
+		sched_yield();
+		pbx_safe_sleep(pbx_channel, 1000);
+		res = sccp_astgenwrap_handleHangup(channel, "RequestCarefullHangup");
+		pbx_channel_unref(pbx_channel);
 	}
 	return res;
 }
 
 boolean_t sccp_astgenwrap_requestQueueHangup(constChannelPtr c)
 {
-	boolean_t res = FALSE;
-	AUTO_RELEASE(sccp_channel_t, channel , sccp_channel_retain(c));
-	if (channel) {
-		channel->isHangingUp = TRUE;
-		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
-
-		if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
-			sccp_channel_stop_and_deny_scheduled_tasks(channel);
-		}
-
-		channel->hangupRequest = sccp_astgenwrap_carefullHangup;
-		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
-			pbx_log(LOG_NOTICE, "%s: (requestQueueHangup) Already Hungup\n", channel->designator);
-			AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
-
-			if (d) {
-				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
-			}
-		} else {
-			res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
-		}
-		pbx_channel_unref(pbx_channel);
-	}
-	return res;
+	return sccp_astgenwrap_handleHangup(c, "RequestQueueHangup");
 }
 
 boolean_t sccp_astgenwrap_requestHangup(constChannelPtr c)
 {
-	boolean_t res = FALSE;
-	AUTO_RELEASE(sccp_channel_t, channel , sccp_channel_retain(c));
-	if (channel) {
-		channel->isHangingUp = TRUE;
-		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
-
-		if (ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
-			sccp_channel_stop_and_deny_scheduled_tasks(channel);
-		}
-		channel->hangupRequest = sccp_astgenwrap_carefullHangup;
-
-		if (!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
-			AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
-
-			if (d) {
-				sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
-			}
-		} else {
-			if (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING)) {
-				res = sccp_astgenwrap_requestQueueHangup(channel);
-			} else {
-				ast_hangup(pbx_channel);
-				res = TRUE;
-			}
-		}
-		pbx_channel_unref(pbx_channel);
-	}
-	return res;
+	return sccp_astgenwrap_handleHangup(c, "RequestHangup");
 }
 
 /***** database *****/
@@ -1283,28 +1272,41 @@ int sccp_astgenwrap_channel_write(PBX_CHANNEL_TYPE * ast, const char *funcname, 
 			res = (TRUE == sccp_channel_setVideoMode(c, value)) ? 0 : -1;
 			
 		} else if (!strcasecmp(args, "CallingParty")) {
+			if(!value || sccp_strlen_zero(value)) {
+				pbx_log(LOG_ERROR, "No valid party information provided: '%s'\n", value);
+				return -1;
+			}
 			char *num, *name;
-
 			pbx_callerid_parse((char *) value, &name, &num);
 			sccp_channel_set_callingparty(c, name, num);
 			sccp_channel_display_callInfo(c);
 			pbx_builtin_setvar_helper(c->owner, "SETCALLINGPARTY", pbx_strdup(value));
 		} else if (!strcasecmp(args, "CalledParty")) {
+			if(!value || sccp_strlen_zero(value)) {
+				pbx_log(LOG_ERROR, "No valid party information provided: '%s'\n", value);
+				return -1;
+			}
 			char *num, *name;
 			pbx_callerid_parse((char *) value, &name, &num);
 			sccp_channel_set_calledparty(c, name, num);
 			sccp_channel_display_callInfo(c);
 			pbx_builtin_setvar_helper(c->owner, "SETCALLEDPARTY", pbx_strdup(value));
 		} else if (!strcasecmp(args, "OriginalCallingParty")) {
+			if(!value || sccp_strlen_zero(value)) {
+				pbx_log(LOG_ERROR, "No valid party information provided: '%s'\n", value);
+				return -1;
+			}
 			char *num, *name;
-
 			pbx_callerid_parse((char *) value, &name, &num);
 			sccp_channel_set_originalCallingparty(c, name, num);
 			sccp_channel_display_callInfo(c);
 			pbx_builtin_setvar_helper(c->owner, "SETORIGCALLINGPARTY", pbx_strdup(value));
 		} else if (!strcasecmp(args, "OriginalCalledParty")) {
+			if(!value || sccp_strlen_zero(value)) {
+				pbx_log(LOG_ERROR, "No valid party information provided: '%s'\n", value);
+				return -1;
+			}
 			char *num, *name;
-
 			pbx_callerid_parse((char *) value, &name, &num);
 			sccp_channel_set_originalCalledparty(c, name, num);
 			sccp_channel_display_callInfo(c);
@@ -1527,6 +1529,7 @@ enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 
 			if (pbx_channel_pbx(pbx_channel) && !pbx_check_hangup(pbx_channel)) {
 				sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "%s: (pbx_pbx_start) autoloop has started, set requestHangup = requestQueueHangup\n", channel->designator);
+				channel->isRunningPbxThread = TRUE;
 				channel->hangupRequest = sccp_astgenwrap_requestQueueHangup;
 			} else {
 				pbx_log(LOG_NOTICE, "%s: (pbx_pbx_start) pbx_pbx_start thread is not running anymore, carefullHangup should remain. This channel will be hungup/being hungup soon\n", channel->designator);

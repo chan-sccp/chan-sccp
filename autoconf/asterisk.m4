@@ -148,21 +148,23 @@ AC_DEFUN([AST_GET_VERSION], [
 		])
 	], [
 		HEADER_INCLUDE="
+#define HAVE_ARPA_INET_H 1
 #define AST_MODULE_SELF_SYM __internal_chan_sccp_la_self
 #define AST_MODULE "chan_sccp"
+#include <asterisk.h>
 "
 		AC_CHECK_HEADER([asterisk/ast_version.h],
 		[
 			AC_CHECK_HEADER([asterisk/iostream.h],
 			[
 				AC_EGREP_CPP([enhances], [
-					#define AST_MODULE_SELF_SYM __internal_chan_sccp_la_self
-					#define AST_MODULE "chan_sccp"
+					$HEADER_INCLUDE
 					#include <asterisk/module.h>
 				],[
-					AC_EGREP_CPP([ast_bridges], [
-						#define AST_MODULE_SELF_SYM __internal_chan_sccp_la_self
-						#define AST_MODULE "chan_sccp"
+					AC_EGREP_CPP([ast_bridges\(void\)], [
+						$HEADER_INCLUDE
+						#include <asterisk/module.h>
+						#include <asterisk/iostream.h>
 						#include <asterisk/bridge.h>
 					], 
 					[
@@ -265,11 +267,10 @@ AC_DEFUN([AST_GET_VERSION], [
 						])
 					])
 				])
-			],
-			[$HEADER_INCLUDE])
+			], [$HEADER_INCLUDE])
 		],[
 			AC_MSG_RESULT(['ASTERISK_VERSION could not be established'])
-		])
+		], [$HEADER_INCLUDE])
 	])
 	if test $version_found == 0; then
 		echo ""

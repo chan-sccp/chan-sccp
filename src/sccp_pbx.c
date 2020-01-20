@@ -724,13 +724,15 @@ int sccp_pbx_answer(constChannelPtr channel)
 				}
 				pbx_channel_set_hangupcause(forwarder, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 				pbx_channel_unref(forwarder);
-				if(destination)
+				if(destination) {
 					pbx_channel_unref(destination);
+				}
 				res = -4;
 			}
 		} while(0);
-		if(tmp_channel)
+		if(tmp_channel) {
 			pbx_channel_unref(tmp_channel);
+		}
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) Outgoing call %s being answered by remote party\n", c->currentDeviceId, iPbx.getChannelName(c));
 		//sccp_channel_updateChannelCapability(c);
@@ -804,7 +806,7 @@ int sccp_pbx_answer(constChannelPtr channel)
  */
 boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, const PBX_CHANNEL_TYPE * parentChannel)
 {
-	PBX_CHANNEL_TYPE *tmp;
+	PBX_CHANNEL_TYPE * tmp = NULL;
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 	AUTO_RELEASE(sccp_device_t, d , NULL);
 
@@ -828,7 +830,9 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (pbx_channel_allocate) try to allocate %s channel on line: %s\n", skinny_calltype2str(c->calltype), l->name);
 	/* Don't hold a sccp pvt lock while we allocate a channel */
-	char s1[512], s2[512];
+	char s1[512];
+
+	char s2[512];
 
 	char cid_name[StationMaxNameSize] = {0};
 	char cid_num[StationMaxDirnumSize] = {0};
@@ -1091,7 +1095,7 @@ int sccp_pbx_sched_dial(const void * data)
  */
 sccp_extension_status_t sccp_pbx_helper(constChannelPtr c)
 {
-	sccp_extension_status_t extensionStatus;
+	sccp_extension_status_t extensionStatus = 0;
 	int dialedLen = sccp_strlen(c->dialedNumber);
 
 	if (dialedLen > 1) {

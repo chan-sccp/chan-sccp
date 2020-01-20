@@ -58,7 +58,11 @@ static int __sccp_lineDevice_destroy(const void * ptr)
 static void regcontext_exten(constLineDevicePtr ld, int onoff)
 {
 	char multi[256] = "";
-	char *stringp, *ext = "", *context = "";
+	char * stringp = NULL;
+
+	char * ext = "";
+
+	char * context = "";
 
 	// char extension[SCCP_MAX_CONTEXT]="";
 	// char name[SCCP_MAX_CONTEXT]="";
@@ -230,7 +234,7 @@ void sccp_linedevice_create(constDevicePtr d, constLinePtr l, uint8_t lineInstan
 
 	sccp_log((DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), line->name);
 #if CS_REFCOUNT_DEBUG
-	sccp_refcount_addWeakParent(line, device);
+	sccp_refcount_addRelationship(device, line);
 #endif
 	char ld_id[REFCOUNT_INDENTIFIER_SIZE];
 
@@ -242,8 +246,8 @@ void sccp_linedevice_create(constDevicePtr d, constLinePtr l, uint8_t lineInstan
 	}
 	memset(ld, 0, sizeof *ld);
 #if CS_REFCOUNT_DEBUG
-	sccp_refcount_addWeakParent(ld, l);
-	sccp_refcount_addWeakParent(ld, device);
+	sccp_refcount_addRelationship(l, ld);
+	sccp_refcount_addRelationship(device, ld);
 #endif
 	*(sccp_device_t **)&(ld->device) = sccp_device_retain(device);                                        // const cast to emplace device
 	*(sccp_line_t **)&(ld->line) = sccp_line_retain(line);                                                // const cast to emplace line
@@ -299,7 +303,7 @@ void sccp_linedevice_remove(constDevicePtr d, linePtr l)
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, ld, list) {
 		if(d == NULL || ld->device == d) {
 #if CS_REFCOUNT_DEBUG
-			sccp_refcount_removeWeakParent(l, d ? d : ld->device);
+			sccp_refcount_removeRelationship(d ? d : ld->device, l);
 #endif
 			regcontext_exten(ld, 0);
 			SCCP_LIST_REMOVE_CURRENT(list);
@@ -405,7 +409,7 @@ void sccp_linedevice_createButtonsArray(devicePtr device)
 	sccp_linedevice_t * ld = NULL;
 	uint8_t lineInstances = 0;
 	btnlist * btn = NULL;
-	uint8_t i;
+	uint8_t i = 0;
 
 	if(device->lineButtons.size) {
 		sccp_linedevice_deleteButtonsArray(device);
@@ -440,7 +444,7 @@ void sccp_linedevice_createButtonsArray(devicePtr device)
 
 void sccp_linedevice_deleteButtonsArray(devicePtr device)
 {
-	uint8_t i;
+	uint8_t i = 0;
 
 	if(device->lineButtons.instance) {
 		for(i = SCCP_FIRST_LINEINSTANCE; i < device->lineButtons.size; i++) {

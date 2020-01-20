@@ -41,7 +41,6 @@ SCCP_API sccp_value_changed_t SCCP_CALL sccp_config_addButton(sccp_buttonconfig_
 SCCP_API boolean_t SCCP_CALL sccp_config_general(sccp_readingtype_t readingtype);
 SCCP_API void SCCP_CALL cleanup_stale_contexts(char *new_context, char *old_context);
 SCCP_API boolean_t SCCP_CALL sccp_config_readDevicesLines(sccp_readingtype_t readingtype);
-SCCP_API int SCCP_CALL sccp_manager_config_metadata(struct mansession *s, const struct message *m);
 
 /*!
  * \brief Enum for Config File Status (Return Values)

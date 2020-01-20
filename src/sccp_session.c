@@ -20,6 +20,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_netsock.h"
 #include "sccp_utils.h"
 #include <netinet/in.h>
+#include <sys/un.h>
 
 #ifndef CS_USE_POLL_COMPAT
 #include <poll.h>
@@ -59,6 +60,7 @@ void sccp_session_device_thread_exit(void *session);
 void *sccp_session_device_thread(void *session);
 void __sccp_session_stopthread(sessionPtr session, skinny_registrationstate_t newRegistrationState);
 gcc_inline void recalc_wait_time(sccp_session_t *s);
+static struct ast_sockaddr internip;
 
 /*!
  * \brief SCCP Session Structure
@@ -112,63 +114,36 @@ boolean_t sccp_session_getSas(constSessionPtr session, struct sockaddr_storage *
 	return FALSE;
 }
 
-/*!
- * \brief Exchange Socket Addres Information from them to us
- */
-static int __sccp_session_setOurAddressFromTheirs(const struct sockaddr_storage *them, struct sockaddr_storage *us)
+gcc_inline int sccp_session_getClientPort(constSessionPtr session)
 {
-	int sock;
-	socklen_t slen;
-
-	union sockaddr_union {
-		struct sockaddr sa;
-		struct sockaddr_storage ss;
-		struct sockaddr_in sin;
-		struct sockaddr_in6 sin6;
-	} tmp_addr = {
-		.ss = *them,
-	};
-
-	if (sccp_netsock_is_IPv6(them)) {
-		tmp_addr.sin6.sin6_port = htons(sccp_netsock_getPort(&GLOB(bindaddr)));
-		slen = sizeof(struct sockaddr_in6);
-	} else if (sccp_netsock_is_IPv4(them)) {
-		tmp_addr.sin.sin_port = htons(sccp_netsock_getPort(&GLOB(bindaddr)));
-		slen = sizeof(struct sockaddr_in);
-	} else {
-		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Unspecified them format: %s\n", sccp_netsock_stringify(them));
-		return -1;
+	if(session) {
+		return sccp_netsock_getPort(&session->sin);
 	}
-
-	sock = socket(tmp_addr.ss.ss_family, SOCK_DGRAM, 0);
-	if(sock < 0) {
-		return -1;
-	}
-
-	if (connect(sock, &tmp_addr.sa, sizeof(tmp_addr))) {
-		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Failed to connect to %s\n", sccp_netsock_stringify(them));
-		close(sock);
-		return -1;
-	}
-	if (getsockname(sock, &tmp_addr.sa, &slen)) {
-		close(sock);
-		return -1;
-	}
-	close(sock);
-	memcpy(us, &tmp_addr, slen);
 	return 0;
 }
 
-int sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr_storage *addr)
+/*!
+ * \brief Exchange Socket Addres Information from them to us
+ */
+int sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr_storage * them)
 {
-	sessionPtr s = (sessionPtr)session;									/* discard const */
-	if (s) {
-		return __sccp_session_setOurAddressFromTheirs(addr, &s->ourIPv4);
+	sessionPtr s = (sessionPtr)session;                                        // discard const
+	struct sockaddr_storage us = { 0 };
+	sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "SCCP: (setOurIP4Address) client %s\n", sccp_netsock_stringify(them));
+
+	// starting guess for the internal address
+	memcpy(&us, &internip.ss, sizeof(struct sockaddr_storage));
+
+	// now ask the system what would it use to talk to 'them'
+	if(s && sccp_netsock_ouraddrfor(them, &us)) {
+		memcpy(&s->ourIPv4, &us, sizeof(struct sockaddr_storage));
+		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "SCCP: (setOurIP4Address) can be reached best via %s\n", sccp_netsock_stringify(&s->ourIPv4));
+		return 0;
 	}
 	return -2;
 }
 
-static void socket_get_error(constSessionPtr s, const char* file, int line, const char *function, int __errnum)
+static void socket_get_error(constSessionPtr s, const char * file, int line, const char * function)
 {
 	if (errno) {
 		if (errno == ECONNRESET) {
@@ -208,7 +183,7 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 			break;
 		}
 
-		const struct messagetype *msgtype;
+		const struct messagetype * msgtype = NULL;
 		if (messageId <= SCCP_MESSAGE_HIGH_BOUNDARY) {
 			msgtype = &sccp_messagetypes[messageId];
 			if (msgtype->messageId == messageId) {
@@ -298,7 +273,7 @@ static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsign
  */
 static boolean_t sccp_session_findBySession(sccp_session_t * s)
 {
-	sccp_session_t *session;
+	sccp_session_t * session = NULL;
 	boolean_t res = FALSE;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(sessions));
@@ -345,7 +320,7 @@ static boolean_t sccp_session_addToGlobals(sccp_session_t * s)
  */
 static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
 {
-	sccp_session_t *session;
+	sccp_session_t * session = NULL;
 	boolean_t res = FALSE;
 
 	if (s) {
@@ -483,7 +458,7 @@ void sccp_session_releaseDevice(constSessionPtr volatile session)
  *      - sessions
  *      - device
  */
-static void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
+static void destroy_session(sccp_session_t * s)
 {
 	if (!s) {
 		return;
@@ -548,7 +523,7 @@ void sccp_session_device_thread_exit(void *session)
 	}*/
 	sccp_session_unlock(s);
 	s->session_thread = AST_PTHREADT_NULL;
-	destroy_session(s, SESSION_DEVICE_CLEANUP_TIME);
+	destroy_session(s);
 }
 
 gcc_inline void recalc_wait_time(sccp_session_t *s)
@@ -593,7 +568,7 @@ gcc_inline void recalc_wait_time(sccp_session_t *s)
  */
 void *sccp_session_device_thread(void *session)
 {
-	int res;
+	int res = 0;
 	sccp_session_t *s = (sccp_session_t *) session;
 
 	if (!s) {
@@ -617,10 +592,13 @@ void *sccp_session_device_thread(void *session)
 				pbx_rwlock_rdlock(&GLOB(lock));
 				boolean_t reload_in_progress = GLOB(reload_in_progress);
 				pbx_rwlock_unlock(&GLOB(lock));
-				if (reload_in_progress == FALSE) {
-					sccp_device_check_update(d);
+				if(reload_in_progress == FALSE && sccp_device_check_update(d)) {
+					continue;
 				}
-				continue;									// make sure  s->device is still valid
+				sccp_safe_sleep(100);
+				if(!s->device) {
+					continue;
+				}
 			}
 			if ((d->active_channel ? TRUE : FALSE) != oncall) {
 				recalc_wait_time(s);
@@ -639,7 +617,7 @@ void *sccp_session_device_thread(void *session)
 		if (-1 == res) {										/* poll data processing */
 			if (errno > 0 && (errno != EAGAIN) && (errno != EINTR)) {
 				pbx_log(LOG_ERROR, "%s: poll() returned %d. errno: %s, (ip-address: %s)\n", DEV_ID_LOG(s->device), errno, strerror(errno), s->designator);
-				socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
+				socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 				break;
 			}
@@ -657,7 +635,7 @@ void *sccp_session_device_thread(void *session)
 				s->lastKeepAlive = time(0);
 				if (result <= 0) {
 					if (result < 0 || (errno != EINTR || errno != EAGAIN)) {
-						socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
+						socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 						break;
 					}				
 				} else if (!((recv_len += result) && ((SCCP_MAX_PACKET * 2) - recv_len) && process_buffer(s, &msg, recv_buffer, &recv_len) == 0)) {
@@ -782,18 +760,34 @@ static sccp_session_t * sccp_create_session(int new_socket)
 	s->lastKeepAlive = time(0);
 	
 	return s;
-} 
+}
 
-static void sccp_session_set_ourip(sccp_session_t *s)
+static boolean_t sccp_session_set_ourip(sccp_session_t * s)
 {
 	/** set default handler for registration to sccp */
 	if (sccp_netsock_is_any_addr(&GLOB(bindaddr))) {
-		__sccp_session_setOurAddressFromTheirs(&s->sin, &s->ourip);
+		struct sockaddr_storage them = { 0 };
+
+		if(sccp_netsock_is_mapped_IPv4(&s->sin)) {
+			sccp_netsock_ipv4_mapped(&s->sin, &them);
+		} else {
+			memcpy(&them, &s->sin, sizeof(struct sockaddr_storage));
+		}
+
+		// starting guess for the internal address
+		memcpy(&s->ourip, &internip.ss, sizeof(struct sockaddr_storage));
+
+		// now ask the system what would it use to talk to 'them'
+		if(!sccp_netsock_ouraddrfor(&them, &s->ourip)) {
+			pbx_log(LOG_ERROR, "SCCP: Could not retrieve a valid ip-address to use to communicate with client '%s'\n", sccp_netsock_stringify(&s->sin));
+			// return FALSE
+		}
 	} else {
 		memcpy(&s->ourip, &GLOB(bindaddr), sizeof(s->ourip));
 	}
 	sccp_copy_string(s->designator, sccp_netsock_stringify(&s->ourip), sizeof(s->designator));
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Connected on server via %s\n", s->designator);
+	sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Connected on server via %s\n", s->designator);
+	return TRUE;
 }
 
 /*!
@@ -806,10 +800,13 @@ static void sccp_session_set_ourip(sccp_session_t *s)
  */
 static void *accept_thread(void *ignore)
 {
-	int new_socket;
+	int new_socket = 0;
 	struct sockaddr_storage incoming;
 	sccp_session_t *s = NULL;
-	socklen_t length = (socklen_t) (sizeof(struct sockaddr_storage));
+	// socklen_t length = (socklen_t)(sizeof(struct sockaddr_un));	//from "sys/un.h"
+	// socklen_t length = (socklen_t)(sizeof(struct sockaddr));
+	socklen_t length = (socklen_t)(sizeof(struct sockaddr_storage));
+
 	for (;;) {
 		new_socket = accept(accept_sock, (struct sockaddr *)&incoming, &length);
 		if(new_socket < 0) { /* blocking call */
@@ -836,7 +833,7 @@ static void *accept_thread(void *ignore)
 		recalc_wait_time(s);
 		
 		if (pbx_pthread_create(&s->session_thread, NULL, sccp_session_device_thread, s)) {
-			destroy_session(s, 0);
+			destroy_session(s);
 		}
 	}
 	close(new_socket);
@@ -904,12 +901,14 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Running bind and listen!\n");
 	if (accept_sock < 0) {
-		int status;
+		int status = 0;
 		port = sccp_netsock_getPort(bindaddr);
 		memcpy(&boundaddr, bindaddr, sizeof(struct sockaddr_storage));
 		char port_str[15] = "cisco-sccp";
 
-		struct addrinfo hints, *res;
+		struct addrinfo hints;
+
+		struct addrinfo * res = NULL;
 		memset(&hints, 0, sizeof hints);								// make sure the struct is empty
 		hints.ai_family = AF_UNSPEC;									// don't care IPv4 or IPv6
 		hints.ai_socktype = SOCK_STREAM;								// TCP stream sockets
@@ -936,6 +935,16 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 				accept_sock = -1;
 				break;
 			}
+
+			struct ast_sockaddr tmp_sa;
+			ast_sockaddr_copy(&internip, storage2ast_sockaddr(bindaddr, &tmp_sa));
+			if(ast_find_ourip(&internip, &tmp_sa, 0)) {
+				ast_log(LOG_ERROR, "Unable to get own IP address\n");
+				close(accept_sock);
+				accept_sock = -1;
+				break;
+			}
+
 			if (listen(accept_sock, DEFAULT_SCCP_BACKLOG)) {
 				pbx_log(LOG_ERROR, "Failed to start listening to %s:%d: %s\n", addrStr, port, strerror(errno));
 				close(accept_sock);
@@ -951,6 +960,7 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 
 	if (accept_sock > -1) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Listening on %s:%d using socket:%d\n", addrStr, port, accept_sock);
+		sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: using default ip:%s\n", ast_sockaddr_stringify_addr(&internip));
 		result = TRUE;
 	}
 	return result;	
@@ -1007,8 +1017,8 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 	sessionPtr s = (sessionPtr)session;										/* discard const */
 	ssize_t res = 0;
 	uint32_t msgid = letohl(msg->header.lel_messageId);
-	ssize_t bytesSent;
-	ssize_t bufLen;
+	ssize_t bytesSent = 0;
+	ssize_t bufLen = 0;
 	uint8_t * bufAddr = NULL;
 
 	if (s && s->session_stop) {
@@ -1053,7 +1063,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 				backoff *= 2;
 				continue;
 			}
-			socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__, errno);
+			socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 			if (s) {
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 			}
@@ -1105,7 +1115,6 @@ void sccp_session_crossdevice_cleanup(constSessionPtr current_session, sessionPt
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Session %p needs to be closed!\n", current_session->designator, previous_session->designator);
 		__sccp_netsock_end_device_thread(previous_session);
 	}
-	return;
 }
 
 gcc_inline boolean_t sccp_session_check_crossdevice(constSessionPtr session, constDevicePtr device)

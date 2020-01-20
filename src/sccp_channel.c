@@ -39,6 +39,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 
 static uint32_t callCount = 1;
 int __sccp_channel_destroy(const void * data);
+
 int complete_resume(constDevicePtr device, channelPtr channel);
 
 AST_MUTEX_DEFINE_STATIC(callCountLock);
@@ -59,15 +60,9 @@ struct sccp_private_channel_data {
  * \param channel SCCP Channel
  * \param enabled Enabled as Boolean
  */
-static void sccp_channel_setMicrophoneState(constChannelPtr channel, boolean_t enabled)
+static void setMicrophoneState(channelPtr c, boolean_t enabled)
 {
-	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
-
-	if (!c) {
-		return;
-	}
-	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
-
+	AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
 	if (!d) {
 		return;
 	}
@@ -119,7 +114,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		return NULL;
 	}
 
-	int32_t callid;
+	int32_t callid = 0;
 	char designator[32];
 	sccp_mutex_lock(&callCountLock);
 	if (callCount < 0xFFFFFFFF) {						/* callcount limit should be reset at his upper limit :) */
@@ -140,7 +135,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 			break;
 		}
 #if CS_REFCOUNT_DEBUG
-		sccp_refcount_addWeakParent(channel, refLine);
+		sccp_refcount_addRelationship(refLine, channel);
 #endif
 		/* allocate resources */
 		private_data = (struct sccp_private_channel_data *)sccp_calloc(sizeof *private_data, 1);
@@ -192,8 +187,9 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		channel->setDevice = sccp_channel_setDevice;
 		channel->isMicrophoneEnabled = sccp_always_true;
 		channel->isHangingUp = FALSE;
-		channel->setMicrophone = sccp_channel_setMicrophoneState;
-		channel->hangupRequest = sccp_astgenwrap_requestHangup;
+		channel->isRunningPbxThread = FALSE;
+		channel->setMicrophone = setMicrophoneState;
+		channel->hangupRequest = sccp_astgenwrap_requestQueueHangup;
 		//channel->privacy = (device && (device->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT)) ? TRUE : FALSE;
 		if (device) {
 			channel->dtmfmode = device->getDtmfMode(device);
@@ -289,7 +285,7 @@ void sccp_channel_setDevice(channelPtr channel, constDevicePtr device)
 	}
 #if CS_REFCOUNT_DEBUG
 	if (device || channel->privateData->device) {
-		sccp_refcount_removeWeakParent(channel, channel->privateData->device ? channel->privateData->device : device);
+		sccp_refcount_removeRelationship(channel->privateData->device ? channel->privateData->device : device, channel);
 	}
 #endif
 	sccp_device_refreplace(&channel->privateData->device, (sccp_device_t *) device);
@@ -297,7 +293,7 @@ void sccp_channel_setDevice(channelPtr channel, constDevicePtr device)
 	if (device) {
 		sccp_device_setActiveChannel(device, channel);
 #if CS_REFCOUNT_DEBUG
-		sccp_refcount_addWeakParent(channel, device);
+		sccp_refcount_addRelationship(device, channel);
 #endif
 	}
 
@@ -337,18 +333,22 @@ EXIT:
 
 static void sccp_channel_recalculateAudioCodecFormat(channelPtr channel)
 {
-	char s1[512], s2[512], s3[512], s4[512];
+	char s1[512];
+
+	char s2[512];
+
+	char s3[512];
+
+	char s4[512];
 	skinny_codec_t joint = channel->rtp.audio.reception.format;
 	skinny_capabilities_t *preferences = &(channel->preferences);
 
 	if (channel->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.transmission.state == SCCP_RTP_STATUS_INACTIVE) {
-		if (channel->privateData->device) {
-			preferences = (channel->line->preferences_set_on_line_level) ? &(channel->preferences) : &(channel->privateData->device->preferences);
+		if(channel->privateData->device && !channel->line->preferences_set_on_line_level) {
+			preferences = &(channel->privateData->device->preferences);
 			sccp_codec_reduceSet(preferences->audio, channel->privateData->device->capabilities.audio);
-		} else {
-			preferences = &(channel->preferences);
-			sccp_codec_reduceSet(preferences->audio, channel->capabilities.audio);
 		}
+		sccp_codec_reduceSet(preferences->audio, channel->capabilities.audio);
 		joint = sccp_codec_findBestJoint(channel, preferences->audio, channel->remoteCapabilities.audio, TRUE);
 		if (SKINNY_CODEC_NONE == joint) {
 			joint = preferences->audio[0] ? preferences->audio[0] : SKINNY_CODEC_WIDEBAND_256K;
@@ -386,18 +386,22 @@ static void sccp_channel_recalculateAudioCodecFormat(channelPtr channel)
 
 static boolean_t sccp_channel_recalculateVideoCodecFormat(channelPtr channel)
 {
-	char s1[512], s2[512], s3[512], s4[512];
+	char s1[512];
+
+	char s2[512];
+
+	char s3[512];
+
+	char s4[512];
 	skinny_codec_t joint = channel->rtp.video.reception.format;
 	skinny_capabilities_t *preferences = &(channel->preferences);
 
 	if (channel->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE && channel->rtp.video.transmission.state == SCCP_RTP_STATUS_INACTIVE) {
-		if (channel->privateData->device) {
-			preferences = (channel->line->preferences_set_on_line_level) ? &(channel->preferences) : &(channel->privateData->device->preferences);
+		if(channel->privateData->device && !channel->line->preferences_set_on_line_level) {
+			preferences = &(channel->privateData->device->preferences);
 			sccp_codec_reduceSet(preferences->video, channel->privateData->device->capabilities.video);
-		} else {
-			preferences = &(channel->preferences);
-			sccp_codec_reduceSet(preferences->video, channel->capabilities.video);
 		}
+		sccp_codec_reduceSet(preferences->video, channel->capabilities.video);
 		joint = sccp_codec_findBestJoint(channel, preferences->video, channel->remoteCapabilities.video, FALSE);
 		if (joint == SKINNY_CODEC_NONE) {
 			sccp_channel_setVideoMode(channel, "off");
@@ -973,8 +977,8 @@ void sccp_channel_updateMediaTransmission(constChannelPtr channel)
  */
 void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 {
-	int payloadType;
-	uint8_t lineInstance;
+	int payloadType = 0;
+	uint8_t lineInstance = 0;
 	int bitRate = 1500;
 
 	pbx_assert(channel != NULL);
@@ -1125,7 +1129,7 @@ void sccp_channel_updateMultiMediaReceiveChannel(constChannelPtr channel)
  */
 void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 {
-	int payloadType;
+	int payloadType = 0;
 	int bitRate = channel->maxBitRate;
 
 	pbx_assert(channel != NULL);
@@ -1858,7 +1862,7 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
  */
 int sccp_channel_hold(channelPtr channel)
 {
-	uint16_t instance;
+	uint16_t instance = 0;
 
 	if (!channel || !channel->line) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. No channel provided to put on hold\n");
@@ -1947,7 +1951,7 @@ int sccp_channel_hold(channelPtr channel)
  */
 int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swap_channels)
 {
-	uint16_t instance;
+	uint16_t instance = 0;
 
 	if (!channel || !channel->owner || !channel->line) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. No channel provided to resume\n");
@@ -2548,8 +2552,16 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 	{
 		int connectedLineUpdateReason = (sccp_destination_local_channel->state == SCCP_CHANNELSTATE_RINGOUT) ? AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING : AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER;
 
-		char calling_number[StationMaxDirnumSize] = {0}, called_number[StationMaxDirnumSize] = {0}, orig_number[StationMaxDirnumSize] = {0};
-		char calling_name[StationMaxNameSize] = {0}, called_name[StationMaxNameSize] = {0}, orig_name[StationMaxNameSize] = {0};
+		char calling_number[StationMaxDirnumSize] = { 0 };
+
+		char called_number[StationMaxDirnumSize] = { 0 };
+
+		char orig_number[StationMaxDirnumSize] = { 0 };
+		char calling_name[StationMaxNameSize] = { 0 };
+
+		char called_name[StationMaxNameSize] = { 0 };
+
+		char orig_name[StationMaxNameSize] = { 0 };
 
 		iCallInfo.Getter(sccp_channel_getCallInfo(sccp_destination_local_channel), 
 			SCCP_CALLINFO_CALLINGPARTY_NAME, &calling_name,
@@ -2804,7 +2816,7 @@ int sccp_channel_forward(constChannelPtr sccp_channel_parent, constLineDevicePtr
  */
 void sccp_channel_park(constChannelPtr channel)
 {
-	sccp_parkresult_t result;
+	sccp_parkresult_t result = 0;
 
 	if (!iPbx.feature_park) {
 		pbx_log(LOG_WARNING, "SCCP, parking feature not implemented\n");
@@ -2850,6 +2862,10 @@ boolean_t sccp_channel_setPreferredCodec(channelPtr c, const char * data)
 	}
 	if (video_prefs[0] != SKINNY_CODEC_NONE) {
 		memcpy(c->preferences.video, video_prefs, sizeof c->preferences.video);
+	}
+
+	if(c->line) {
+		c->line->preferences_set_on_line_level = TRUE;
 	}
 
 	sccp_channel_updateChannelCapability(c);

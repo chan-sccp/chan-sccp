@@ -660,8 +660,18 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 	int changes = 0;
 	int reason = 0;
 	sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
-	char name[StationMaxNameSize], number[StationMaxNameSize], voicemail[StationMaxNameSize], nullstr[StationMaxNameSize];
-	char origname[StationMaxNameSize], orignumber[StationMaxNameSize], origvoicemail[StationMaxNameSize];
+	char name[StationMaxNameSize];
+
+	char number[StationMaxNameSize];
+
+	char voicemail[StationMaxNameSize];
+
+	char nullstr[StationMaxNameSize];
+	char origname[StationMaxNameSize];
+
+	char orignumber[StationMaxNameSize];
+
+	char origvoicemail[StationMaxNameSize];
 
 	pbx_test_status_update(test, "Callinfo Constructor...\n");
 	citest = iCallInfo.Constructor(15, "SCCP/test1");

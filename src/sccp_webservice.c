@@ -85,7 +85,7 @@ static struct {
 
 static const char *ftype2mtype(const char *ftype)
 {
-	uint8_t x;
+	uint8_t x = 0;
 	if (ftype) {
 		for (x = 0; x < ARRAY_LEN(mimetypes); x++) {
 			if(strcasecmp(ftype, mimetypes[x].ext) == 0) {
@@ -351,14 +351,8 @@ static __attribute__ ((malloc)) char * findStylesheet(const char *const uri, scc
 	return searchWebDirForFile(uri, outputfmt, "xsl");
 }
 
-static int request_parser (
-	struct ast_tcptls_session_instance 	* ser,
-	enum ast_http_method 			method,
-	const struct ast_sockaddr 		* remote_address,
-	const char 				* request_uri,
-	PBX_VARIABLE_TYPE 			* request_params,
-	PBX_VARIABLE_TYPE 			* request_headers
-) {
+static int request_parser(struct ast_tcptls_session_instance * ser, enum ast_http_method method, const char * request_uri, PBX_VARIABLE_TYPE * request_params, PBX_VARIABLE_TYPE * request_headers)
+{
 	int result = 0;
 	pbx_str_t *http_header = NULL;
 	pbx_str_t *out = NULL;
@@ -381,15 +375,15 @@ static int request_parser (
 	//result |= parse_request_uri();
 
 	//if (DEBUG) {
-		PBX_VARIABLE_TYPE *header;
-		sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "request headers:\n");
-		for(header = request_headers;header;header = header->next) {
-			sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "SCCP: (request_parser) key: %s, value: %s\n", header->name, header->value);
-		}
-		PBX_VARIABLE_TYPE *param;
-		sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "request parameters:\n");
-		for(param = request_params;param;param = param->next) {
-			sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "SCCP: (request_parser) key: %s, value: %s\n", param->name, param->value);
+	PBX_VARIABLE_TYPE * header = NULL;
+	sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "request headers:\n");
+	for(header = request_headers; header; header = header->next) {
+		sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "SCCP: (request_parser) key: %s, value: %s\n", header->name, header->value);
+	}
+	PBX_VARIABLE_TYPE * param = NULL;
+	sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "request parameters:\n");
+	for(param = request_params; param; param = param->next) {
+		sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "SCCP: (request_parser) key: %s, value: %s\n", param->name, param->value);
 		}
 	//}
 	sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "SCCP: handler:%p, result:%d\n", handler, result);
@@ -479,7 +473,7 @@ static int sccp_webservice_callback(struct ast_tcptls_session_instance *ser, con
 		}
 		
 		ast_sockaddr_copy(&ser_remote_address_tmp, &ser->remote_address);
-		retval = request_parser(ser, method, &ser_remote_address_tmp, uri, params, headers);
+		retval = request_parser(ser, method, uri, params, headers);
 		ast_sockaddr_copy(&ser->remote_address, &ser_remote_address_tmp);
 	}
 	return retval;
@@ -503,12 +497,14 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser
 	const char * mtype = NULL;
 	char wkspace[80];
 	struct stat st;
-	int len;
-	int fd;
+	int len = 0;
+	int fd = 0;
 	struct ast_str * http_header = NULL;
 	struct timeval tv;
 	struct ast_tm tm;
-	char timebuf[80], etag[23];
+	char timebuf[80];
+
+	char etag[23];
 	struct ast_variable * v = NULL;
 	int not_modified = 0;
 
@@ -551,8 +547,9 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance *ser
 	fd = open(path, O_RDONLY);
 	if(fd == -1) {
 		/* open file before checking failure cause, to prevent TOCTOU */
-		if (stat(path, &st) == -1 || !S_ISREG(st.st_mode))
+		if(stat(path, &st) == -1 || !S_ISREG(st.st_mode)) {
 			goto out404;
+		}
 		goto out403;
 	}
 

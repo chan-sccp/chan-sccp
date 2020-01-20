@@ -208,7 +208,7 @@ static int __sccp_participant_destroy(const void *data)
 #endif
 	if (participant->channel) {
 #if CS_REFCOUNT_DEBUG
-		sccp_refcount_removeWeakParent(participant, participant->channel);
+		sccp_refcount_removeRelationship(participant->channel, participant);
 #endif
 		participant->channel->conference_id = 0;
 		participant->channel->conference_participant_id = 0;
@@ -219,7 +219,7 @@ static int __sccp_participant_destroy(const void *data)
 	}
 	if (participant->device) {
 #if CS_REFCOUNT_DEBUG
-		sccp_refcount_removeWeakParent(participant, participant->device);
+		sccp_refcount_removeRelationship(participant->device, participant);
 #endif
 		participant->device->conferencelist_active = FALSE;
 		if (participant->device->conference) {
@@ -240,7 +240,7 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 	sccp_conference_t *conference = NULL;
 	char conferenceIdentifier[REFCOUNT_INDENTIFIER_SIZE];
 	int conferenceID = ++lastConferenceID;
-	uint32_t bridgeCapabilities;
+	uint32_t bridgeCapabilities = 0;
 
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCP: Creating new conference SCCPCONF/%04d\n", conferenceID);
 
@@ -316,8 +316,8 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 
 	if (participant) {
 #if CS_REFCOUNT_DEBUG
-		sccp_refcount_addWeakParent(participant, device);
-		sccp_refcount_addWeakParent(participant, channel);
+		sccp_refcount_addRelationship(device, participant);
+		sccp_refcount_addRelationship(channel, participant);
 #endif
 		conference->num_moderators = 1;
 		participant->channel = sccp_channel_retain(channel);
@@ -384,8 +384,8 @@ static sccp_participant_t *sccp_conference_createParticipant(constConferencePtr 
 		return NULL;
 	}
 #if CS_REFCOUNT_DEBUG
-	sccp_refcount_addWeakParent(participant, conference);
-#endif
+	sccp_refcount_addRelationship(conference, participant);
+#	endif
 	pbx_bridge_features_init(&participant->features);
 	//ast_set_flag(&(participant->features.feature_flags), AST_BRIDGE_CHANNEL_FLAG_IMMOVABLE);
 
@@ -583,8 +583,8 @@ boolean_t sccp_conference_addParticipatingChannel(conferencePtr conference, cons
 				iPbx.setChannelLinkedId(channel, conference->linkedid);
 				sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
 #if CS_REFCOUNT_DEBUG
-				sccp_refcount_addWeakParent(participant, device);
-				sccp_refcount_addWeakParent(participant, channel);
+				sccp_refcount_addRelationship(device, participant);
+				sccp_refcount_addRelationship(channel, participant);
 #endif
 			} else {
 				participant->playback_announcements = conference->playback_announcements;
@@ -1708,7 +1708,9 @@ void sccp_conference_invite_participant(constConferencePtr conference, constPart
 char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
 	int conference_id = 0;
-	int wordlen = strlen(word), which = 0;
+	int wordlen = strlen(word);
+
+	int which = 0;
 	uint i = 0;
 	char *ret = NULL;
 	char tmpname[21];
@@ -1887,7 +1889,9 @@ int sccp_cli_show_conference(int fd, sccp_cli_totals_t *totals, struct mansessio
  */
 int sccp_cli_conference_command(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	int confid = 0, partid = 0;
+	int confid = 0;
+
+	int partid = 0;
 	int local_line_total = 0;
 	int res = RESULT_SUCCESS;
 	char error[100];

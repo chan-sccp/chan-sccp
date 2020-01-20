@@ -544,7 +544,7 @@ void sccp_feat_voicemail(constDevicePtr d, uint8_t lineInstance)
  */
 void sccp_feat_idivert(constDevicePtr d, constLinePtr l, constChannelPtr c)
 {
-	int instance;
+	int instance = 0;
 
 	if (!l) {
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: TRANSVM pressed but no line found\n", d->id);
@@ -723,7 +723,6 @@ void sccp_feat_conference_start(constDevicePtr device, const uint32_t lineInstan
 	sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: conference not enabled\n", DEV_ID_LOG(d));
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
 #endif
-	return;
 }
 
 /*!
@@ -1122,7 +1121,6 @@ void sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr
 		sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_FAILED_TO_SETUP_BARGE, SCCP_DISPLAYSTATUS_TIMEOUT);
 	       	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, SKINNY_TONEDIRECTION_USER);
 	}
-	return;
 }
 
 /*!

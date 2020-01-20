@@ -404,7 +404,7 @@ static void sccp_sk_backspace(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 	if (!line) {
 		return;
 	}
-	int len;
+	int len = 0;
 
 	if (((c->state != SCCP_CHANNELSTATE_DIALING) && (c->state != SCCP_CHANNELSTATE_DIGITSFOLL) && (c->state != SCCP_CHANNELSTATE_OFFHOOK) && (c->state != SCCP_CHANNELSTATE_GETDIGITS)) || iPbx.getChannelPbx(c)) {
 		return;
@@ -533,7 +533,9 @@ static void sccp_sk_select(const sccp_softkeyMap_cb_t * const softkeyMap_cb, con
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Select Pressed\n", DEV_ID_LOG(d));
 	sccp_selectedchannel_t * selectedchannel = NULL;
 	sccp_msg_t * msg = NULL;
-	uint8_t numSelectedChannels = 0, status = 0;
+	uint8_t numSelectedChannels = 0;
+
+	uint8_t status = 0;
 
 	if (!d) {
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "SCCP: (sccp_sk_select) Can't select a channel without a device\n");
@@ -1013,7 +1015,7 @@ static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
  */
 gcc_inline static const sccp_softkeyMap_cb_t *sccp_getSoftkeyMap_by_SoftkeyEvent(constDevicePtr d, uint32_t event)
 {
-	uint8_t i;
+	uint8_t i = 0;
 
 	const sccp_softkeyMap_cb_t *mySoftkeyCbMap = softkeyCbMap;
 
@@ -1072,7 +1074,7 @@ void sccp_softkey_post_reload(void)
 void sccp_softkey_clear(void)
 {
 	sccp_softKeySetConfiguration_t * k = NULL;
-	uint8_t i;
+	uint8_t i = 0;
 
 	SCCP_LIST_LOCK(&softKeySetConfig);
 	while ((k = SCCP_LIST_REMOVE_HEAD(&softKeySetConfig, list))) {

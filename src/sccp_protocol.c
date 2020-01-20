@@ -1755,8 +1755,8 @@ const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(constDevicePtr devi
 {
 	uint8_t version = device->protocolversion;
 	const sccp_deviceProtocol_t ** protocolDef = NULL;
-	size_t protocolArraySize;
-	uint8_t returnProtocol;
+	size_t protocolArraySize = 0;
+	uint8_t returnProtocol = 0;
 
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "SCCP: searching for our capability for device protocol version %d\n", version);
 

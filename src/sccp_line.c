@@ -355,7 +355,9 @@ void sccp_line_copyCodecSetsFromLineToChannel(constLinePtr l, constDevicePtr may
 		memcpy(&c->preferences.video, &GLOB(global_preferences), sizeof(c->preferences.video));
 	}
 
-	char s1[512], s2[512];
+	char s1[512];
+
+	char s2[512];
 	sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (copyCodecSetsFromLineToChannel) channel capabilities:%s\n", c->designator, sccp_codec_multiple2str(s1, sizeof(s1) - 1, c->capabilities.audio, SKINNY_MAX_CAPABILITIES));
 	sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (copyCodecSetsFromLineToChannel) channel preferences:%s\n", c->designator, sccp_codec_multiple2str(s2, sizeof(s2) - 1, c->preferences.audio, SKINNY_MAX_CAPABILITIES));
 }
@@ -506,7 +508,7 @@ void sccp_line_addChannel(constLinePtr line, constChannelPtr channel)
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = sccp_channel_retain(channel))) {							// Add into list retained
 #if CS_REFCOUNT_DEBUG
-			sccp_refcount_addWeakParent(l, c);
+			sccp_refcount_addRelationship(c, l);
 #endif
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s\n", c->callid, l->name);
 			if (GLOB(callanswerorder) == SCCP_ANSWER_OLDEST_FIRST) {
@@ -540,7 +542,7 @@ void sccp_line_removeChannel(constLinePtr line, sccp_channel_t * channel)
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = SCCP_LIST_REMOVE(&l->channels, channel, list))) {
 #if CS_REFCOUNT_DEBUG
-			sccp_refcount_removeWeakParent(l, c);
+			sccp_refcount_removeRelationship(c, l);
 #endif
 			if (c->state == SCCP_CHANNELSTATE_HOLD) {
 				c->line->statistic.numberOfHeldChannels--;

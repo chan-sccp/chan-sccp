@@ -113,25 +113,25 @@ gcc_inline const char *codec2name(skinny_codec_t value)
 /*! \todo should be called skinny_codec_type_t instead of skinny_payload_type_t */
 gcc_inline const skinny_payload_type_t codec2type(skinny_codec_t value)
 {
-        uint32_t i;
-        for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
-                if (skinny_codecs[i].codec == value) {
+	uint32_t i = 0;
+	for(i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
+		if (skinny_codecs[i].codec == value) {
                         return skinny_codecs[i].codec_type;
-                } \
-        } \
-        pbx_log(LOG_ERROR, "codec2type lookup failed for skinny_codecs[%i]\n", value);
+                }
+	}
+	pbx_log(LOG_ERROR, "codec2type lookup failed for skinny_codecs[%i]\n", value);
         return SKINNY_CODEC_TYPE_UNKNOWN;
 }
 
 gcc_inline const int32_t codec2rtp_payload_type(skinny_codec_t value)
 {
-        uint32_t i;
-        for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
-                if (skinny_codecs[i].codec == value) {
+	uint32_t i = 0;
+	for(i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
+		if (skinny_codecs[i].codec == value) {
                         return skinny_codecs[i].rtp_payload_type;
-                } \
-        } \
-        pbx_log(LOG_ERROR, "codec2rtp_payload_type lookup failed for skinny_codecs[%i]\n", value);
+                }
+	}
+	pbx_log(LOG_ERROR, "codec2rtp_payload_type lookup failed for skinny_codecs[%i]\n", value);
         return SKINNY_CODEC_TYPE_UNKNOWN;
 }
 
@@ -215,12 +215,14 @@ int sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const cha
 	if (!skinny_codec_prefs) {
 		return -1;
 	}
-	unsigned int x;
+	unsigned int x = 0;
 	boolean_t all = FALSE;
 	boolean_t found = FALSE;
 	boolean_t allow = allowing;
-	char *parse = NULL, *token = NULL;
-	skinny_codec_t codec;
+	char * parse = NULL;
+
+	char * token = NULL;
+	skinny_codec_t codec = 0;
 
 	parse = pbx_strdupa(list);
 	while ((token = strsep(&parse, ","))) {
@@ -260,9 +262,13 @@ int sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const cha
 	return errors;
 }
 
-int sccp_get_codecs_bytype(skinny_codec_t * in_codecs, skinny_codec_t *out_codecs, skinny_payload_type_t type)
+int sccp_get_codecs_bytype(const skinny_codec_t * in_codecs, skinny_codec_t * out_codecs, skinny_payload_type_t type)
 {
-	int x = 0, y = 0, z = 0;
+	int x = 0;
+
+	int y = 0;
+
+	int z = 0;
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 		if (SKINNY_CODEC_NONE != in_codecs[x]) {
 			for (y = 0; y < sccp_codec_getArrayLen(); y++) {
@@ -296,9 +302,13 @@ boolean_t __PURE__ sccp_codec_isCompatible(skinny_codec_t codec, const skinny_co
  * \brief get smallest common denominator codecset
  * intersection of two sets
  */
-int sccp_codec_getReducedSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES], skinny_codec_t result[SKINNY_MAX_CAPABILITIES])
+int sccp_codec_getReducedSet(const skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES], skinny_codec_t result[SKINNY_MAX_CAPABILITIES])
 {
-	uint8_t x = 0, y = 0, z = 0;
+	uint8_t x = 0;
+
+	uint8_t y = 0;
+
+	uint8_t z = 0;
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES && (z+1) < SKINNY_MAX_CAPABILITIES && base[x] != SKINNY_CODEC_NONE; x++) {
 		for (y = 0; y < SKINNY_MAX_CAPABILITIES && (z+1) < SKINNY_MAX_CAPABILITIES && reduceByCodecs[y] != SKINNY_CODEC_NONE; y++) {
 			if (base[x] == reduceByCodecs[y]) {
@@ -325,7 +335,13 @@ void sccp_codec_reduceSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const sk
  */
 void sccp_codec_combineSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t addCodecs[SKINNY_MAX_CAPABILITIES])
 {
-	uint8_t x = 0, y = 0, z = 0, demarquation = SKINNY_MAX_CAPABILITIES;
+	uint8_t x = 0;
+
+	uint8_t y = 0;
+
+	uint8_t z = 0;
+
+	uint8_t demarquation = SKINNY_MAX_CAPABILITIES;
 	for (y = 0; y < SKINNY_MAX_CAPABILITIES && addCodecs[y] != SKINNY_CODEC_NONE; y++) {
 		boolean_t found = FALSE;
 		for (x = 0; x < demarquation && base[x] != SKINNY_CODEC_NONE; x++) {
