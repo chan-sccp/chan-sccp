@@ -23,7 +23,10 @@ SCCP_FILE_VERSION(__FILE__, "");
 
 typedef struct FeatureState feature_state_t;
 struct FeatureState {
-	struct FeatureStateValue value;
+	union {
+		struct FeatureStateValue strct;
+		uint32_t lel_uint32;
+	} value;
 	enum ast_device_state nextstate;
 };
 
@@ -114,7 +117,7 @@ static void printStates(feature_state_t * states)
 {
 	for(uint x = 0; x < AST_DEVICE_TOTAL; x++) {
 		feature_state_t state = states[x];
-		sccp_log((DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "'%s'(%d): rythm:%d, color:%d, icon:%d, nextstate:%s(%d)\n", ast_devstate2str((enum ast_device_state)x), x, state.value.rythm, state.value.color, state.value.icon,
+		sccp_log((DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "'%s'(%d): rythm:%d, color:%d, icon:%d, nextstate:%s(%d)\n", ast_devstate2str((enum ast_device_state)x), x, state.value.strct.rythm, state.value.strct.color, state.value.strct.icon,
 			ast_devstate2str(state.nextstate), state.nextstate);
 	}
 }
@@ -133,12 +136,13 @@ static void parseButtonArgs(const char * args, feature_state_t * states)
 	while((arg = strsep(&_args, "|")) != NULL) {
 		unsigned short int state, rythm, color, icon, nextstate;
 		if(sscanf(arg, "%1hd%1hd%1hd%1hd%1hd", &state, &rythm, &color, &icon, &nextstate) == 5) {
-			states[state].value.rythm = rythm;
-			states[state].value.color = color;
-			states[state].value.icon = icon;
+			states[state].value.strct.rythm = rythm;
+			states[state].value.strct.color = color;
+			states[state].value.strct.icon = icon;
+			states[state].value.strct.oldval = 0;
 			states[state].nextstate = (enum ast_device_state)nextstate;
-			// sccp_log((DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "SCCP: parseButtonArgs(%p): added: '%s' -> '%s', %d, %d, %d, '%s'\n", (void *)&states[state], arg, ast_devstate2str(state), states[state].value.rythm,
-			// states[state].value.color, states[state].value.icon, ast_devstate2str(states[state].nextstate));
+			// sccp_log((DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "SCCP: parseButtonArgs(%p): added: '%s' -> '%s', %d, %d, %d, '%s'\n", (void *)&states[state], arg, ast_devstate2str(state), states[state].value.strct.rythm,
+			// states[state].value.strct.color, states[state].value.strct.icon, ast_devstate2str(states[state].nextstate));
 		} else {
 			pbx_log(LOG_ERROR, "SCCP: (parseButtonArgs) could not parse '%s', failed segment:'%s'\n", args, args);
 		}
@@ -346,13 +350,14 @@ void notifySubscriber(deviceState_t * deviceState, const SubscribingDevice_t * s
 		REQ(msg, FeatureStatDynamicMessage);
 		msg->data.FeatureStatDynamicMessage.lel_lineInstance = htolel(subscriber->buttonConfig->instance);
 		msg->data.FeatureStatDynamicMessage.lel_buttonType = htolel(SKINNY_BUTTONTYPE_MULTIBLINKFEATURE);
-		msg->data.FeatureStatDynamicMessage.stateVal.strct = curstate->value;
+		msg->data.FeatureStatDynamicMessage.stateVal.strct = curstate->value.strct;
 		sccp_copy_string(msg->data.FeatureStatDynamicMessage.textLabel, subscriber->label, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
 	} else {
 		REQ(msg, FeatureStatMessage);
 		msg->data.FeatureStatMessage.lel_lineInstance = htolel(subscriber->buttonConfig->instance);
 		msg->data.FeatureStatMessage.lel_buttonType = htolel(SKINNY_BUTTONTYPE_FEATURE);
-		msg->data.FeatureStatMessage.lel_stateValue = htolel((*(int *)&curstate->value) ? 1 : 0);
+		//msg->data.FeatureStatMessage.lel_stateValue = htolel((*(int *)&curstate->value) ? 1 : 0);
+		msg->data.FeatureStatMessage.lel_stateValue = htolel(curstate->value.lel_uint32);
 		sccp_copy_string(msg->data.FeatureStatMessage.textLabel, subscriber->label, sizeof(msg->data.FeatureStatMessage.textLabel));
 	}
 	sccp_dev_send(subscriber->device, msg);
