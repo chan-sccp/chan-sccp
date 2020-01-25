@@ -2010,54 +2010,53 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 					&& sccp_strequals(config->label, name)
 					&& config->button.feature.id == sccp_feature_type_str2val(options)
 				) {
-					if ((!args || sccp_strlen_zero(args)) && sccp_strlen_zero(config->button.feature.options) && sccp_strlen_zero(config->button.feature.args)) {
+					if (!args || sccp_strlen_zero(args)) {
+						if (sccp_strlen_zero(config->button.feature.options) && sccp_strlen_zero(config->button.feature.args)) {
+							sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition remained the same\n");
+							changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+						}
+						break;
+					}
+					char *option_default = NULL;
+					char *arg_default = NULL;
+					char * parse = pbx_strdupa(args);
+					AST_DECLARE_APP_ARGS(elems, AST_APP_ARG(option); AST_APP_ARG(arg););
+					AST_STANDARD_APP_ARGS(elems, parse);
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition:%s,%s -> %s,%s\n", config->button.feature.options,config->button.feature.args,elems.option,elems.arg);
+					if(SCCP_FEATURE_PARKINGLOT == config->button.feature.id) {
+						option_default = "default";
+						arg_default = "RetrieveSingle";
+					}
+#ifdef CS_DEVSTATE_FEATURE
+					else if(SCCP_FEATURE_DEVSTATE == config->button.feature.id) {
+						option_default = "default";
+						arg_default = "RetrieveSingle";
+					}
+#endif
+					if(
+						(
+							(elems.option && !sccp_strlen_zero(elems.option) && sccp_strequals(config->button.feature.options, elems.option))
+							||
+							(
+								(option_default && !elems.option && sccp_strlen_zero(elems.option) && sccp_strequals(config->button.feature.options, option_default))
+								||
+								(!option_default && !elems.option && sccp_strlen_zero(elems.option) && sccp_strlen_zero(config->button.feature.options))
+							)
+						) && (
+							(elems.arg && !sccp_strlen_zero(elems.arg) && sccp_strequals(config->button.feature.args, elems.arg))
+							||
+							(
+								(arg_default && !elems.arg && sccp_strlen_zero(elems.arg) && sccp_strequals(config->button.feature.args, arg_default))
+								||
+								(!arg_default && !elems.arg && sccp_strlen_zero(elems.arg) && sccp_strlen_zero(config->button.feature.args))
+							)
+						)
+					) {
 						sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition remained the same\n");
 						changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 						break;
-					} else {
-						char *option_default = NULL;
-						char *arg_default = NULL;
-						char * parse = pbx_strdupa(args);
-						AST_DECLARE_APP_ARGS(elems, AST_APP_ARG(option); AST_APP_ARG(arg););
-						AST_STANDARD_APP_ARGS(elems, parse);
-						sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition:%s,%s -> %s,%s\n", config->button.feature.options,config->button.feature.args,elems.option,elems.arg);
-						if(SCCP_FEATURE_PARKINGLOT == config->button.feature.id) {
-							option_default = "default";
-							arg_default = "RetrieveSingle";
-						}
-#ifdef CS_DEVSTATE_FEATURE
-						else if(SCCP_FEATURE_DEVSTATE == config->button.feature.id) {
-							option_default = "default";
-							arg_default = "RetrieveSingle";
-						}
-#endif
-						if(
-							(
-								(elems.option && !sccp_strlen_zero(elems.option) && sccp_strequals(config->button.feature.options, elems.option))
-								||
-								(
-									(option_default && !elems.option && sccp_strlen_zero(elems.option) && sccp_strequals(config->button.feature.options, option_default))
-									||
-									(!option_default && !elems.option && sccp_strlen_zero(elems.option) && sccp_strlen_zero(config->button.feature.options))
-								)
-							) && (
-								(elems.arg && !sccp_strlen_zero(elems.arg) && sccp_strequals(config->button.feature.args, elems.arg))
-								||
-								(
-									(arg_default && !elems.arg && sccp_strlen_zero(elems.arg) && sccp_strequals(config->button.feature.args, arg_default))
-									||
-									(!arg_default && !elems.arg && sccp_strlen_zero(elems.arg) && sccp_strlen_zero(config->button.feature.args))
-								)
-							)
-						) {
-							changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-						}
 					}
-					if (changed == SCCP_CONFIG_CHANGE_NOCHANGE) {
-						sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition remained the same\n");
-					} else {
-						sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition changed\n");
-					}
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition changed\n");
 				}
 				break;
 			case EMPTY:
