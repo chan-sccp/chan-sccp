@@ -405,17 +405,17 @@ strenum callstate {
 	SKINNY_CALLSTATE_RINGIN,			,	"ring-in",
 	SKINNY_CALLSTATE_CONNECTED,			,	"connected",
 	SKINNY_CALLSTATE_BUSY,				,	"busy",
-	SKINNY_CALLSTATE_CONGESTION,			,	"congestion",
-	SKINNY_CALLSTATE_HOLD,				,	"hold",
-	SKINNY_CALLSTATE_CALLWAITING,			,	"call waiting",
-	SKINNY_CALLSTATE_CALLTRANSFER,			,	"call transfer",
+	SKINNY_CALLSTATE_CONGESTION,		,	"congestion",
+	SKINNY_CALLSTATE_HOLD,				,	"hold",						/* normal hold : green flashing*/
+	SKINNY_CALLSTATE_CALLWAITING,		,	"call waiting",
+	SKINNY_CALLSTATE_CALLTRANSFER,		,	"call transfer",
 	SKINNY_CALLSTATE_CALLPARK,			,	"call park",
 	SKINNY_CALLSTATE_PROCEED,			,	"proceed",
-	SKINNY_CALLSTATE_CALLREMOTEMULTILINE,		,	"call remote multiline",
-	SKINNY_CALLSTATE_INVALIDNUMBER,			,	"invalid number",
-	SKINNY_CALLSTATE_HOLDYELLOW,			,	"hold yellow",		/* Hold Revert*/
-	SKINNY_CALLSTATE_INTERCOMONEWAY,		,	"intercom one-way",	/* Whisper */
-	SKINNY_CALLSTATE_HOLDRED,			,	"hold red",		/* RemoteHold */
+	SKINNY_CALLSTATE_CALLREMOTEMULTILINE,,	"call remote multiline",	/* Remote Multiline: steady red / Do-not-disturb */
+	SKINNY_CALLSTATE_INVALIDNUMBER,		,	"invalid number",
+	SKINNY_CALLSTATE_HOLDYELLOW,		,	"hold yellow",				/* Hold: yellow flashing, Incoming Call /  Reverting Call*/
+	SKINNY_CALLSTATE_INTERCOMONEWAY,	,	"intercom one-way",			/* Whisper: steady yellow */
+	SKINNY_CALLSTATE_HOLDRED,			,	"hold red",					/* RemoteHold: red flashing */
 }
 
 /*!

@@ -2888,7 +2888,11 @@ static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lin
 static void sccp_device_indicate_offhook(constDevicePtr device, sccp_linedevice_t * ld, uint32_t callid)
 {
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
-	sccp_device_sendcallstate(device, ld->lineInstance, callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	if (device->dndFeature.status == SCCP_DNDMODE_OFF && device->monitorFeature.status == SCCP_FEATURE_MONITOR_STATE_DISABLED) {
+		sccp_device_sendcallstate(device, ld->lineInstance, callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	} else {
+		sccp_device_sendcallstate(device, ld->lineInstance, callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	}
 	sccp_dev_set_cplane(device, ld->lineInstance, 1);
 	sccp_dev_displayprompt(device, ld->lineInstance, callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 	sccp_dev_set_keyset(device, ld->lineInstance, callid, KEYMODE_OFFHOOK);
