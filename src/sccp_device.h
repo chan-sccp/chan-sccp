@@ -64,7 +64,7 @@ struct sccp_buttonconfig {
 			uint8_t index;										/*!< Button Feature Index */
 			sccp_feature_type_t id;									/*!< Button Feature ID */
 			char *options;										/*!< Button Feature Options */
-			char * args;                                                                            /*!< Button Feature Arguments */
+			char *args;                                                                           	/*!< Button Feature Arguments */
 			uint32_t status;									/*!< Button Feature Status */
 		} feature;											/*!< SCCP Button Feature Structure */
 	} button;												/*!< SCCP Button Structure */
