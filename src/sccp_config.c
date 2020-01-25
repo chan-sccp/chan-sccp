@@ -409,7 +409,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, 
 		for (y = 0; y < sccpConfigSegment->config_size; y++) {
 			if (sccpConfigOption->offset == sccpConfigSegment->config[y].offset) {
 				if (SetEntries[y] == TRUE) {
-					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_object_setValue) Set Entry[%d] = TRUE for MultiEntry %s -> SKIPPING\n", y, sccpConfigSegment->config[y].name);
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_object_setValue) Set Entry[%d] = TRUE for MultiEntry %s -> SKIPPING\n", y, sccpConfigSegment->config[y].name);
 					return SCCP_CONFIG_NOUPDATENEEDED;
 				}
 			}
@@ -1483,10 +1483,10 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void * const dest, const size
 	struct sccp_ha *ha = NULL;
 
 	for (; v; v = v->next) {
-		//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("sccp_config_parse_deny_permit: name: %s, value:%s\n", v->name, v->value);
+		//sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("sccp_config_parse_deny_permit: name: %s, value:%s\n", v->name, v->value);
 		if (sccp_strcaseequals(v->name, "deny")) {
 			ha = sccp_append_ha("deny", v->value, ha, &error);
-			//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Deny: %s\n", v->value);
+			//sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Deny: %s\n", v->value);
 		} else if (sccp_strcaseequals(v->name, "permit") || sccp_strcaseequals(v->name, "localnet")) {
 			if (sccp_strcaseequals(v->value, "internal")) {
 				ha = sccp_append_ha("permit", "127.0.0.0/255.0.0.0", ha, &error);
@@ -1499,7 +1499,7 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void * const dest, const size
 			} else {
 				ha = sccp_append_ha("permit", v->value, ha, &error);
 			}
-			//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Permit: %s\n", v->value);
+			//sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Permit: %s\n", v->value);
 		}
 		errors |= error;
 	}
@@ -1628,7 +1628,7 @@ sccp_value_changed_t sccp_config_parse_addons(void * const dest, const size_t si
 			if (!sccp_strlen_zero(v->value)) {
 				if((addon_type = addonstr2enum(v->value))) {
 					if (addon->type != addon_type) {					/* change/update */
-						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("change addon: %d => %d\n", addon->type, addon_type);
+						sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("change addon: %d => %d\n", addon->type, addon_type);
 						addon->type = addon_type;
 						changed |= SCCP_CONFIG_CHANGE_CHANGED;
 					}
@@ -1638,7 +1638,7 @@ sccp_value_changed_t sccp_config_parse_addons(void * const dest, const size_t si
 			}
 			v = v->next;
 		} else {											/* removal */
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("remove addon: %d\n", addon->type);
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("remove addon: %d\n", addon->type);
 			SCCP_LIST_REMOVE_CURRENT(list);
 			sccp_free(addon);
 			changed |= SCCP_CONFIG_CHANGE_CHANGED;
@@ -1652,7 +1652,7 @@ sccp_value_changed_t sccp_config_parse_addons(void * const dest, const size_t si
 		if (2 > addon_counter++) {
 			if (!sccp_strlen_zero(v->value)) {
 				if ((addon_type = addonstr2enum(v->value))) {
-					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new addon: %d\n", addon_type);
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new addon: %d\n", addon_type);
 					if (!(addon = (sccp_addon_t *)sccp_calloc(1, sizeof(sccp_addon_t)))) {
 						pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 						return SCCP_CONFIG_CHANGE_ERROR;
@@ -1719,7 +1719,7 @@ sccp_value_changed_t sccp_config_parse_mailbox(void * const dest, const size_t s
 		}
 		for (v = vroot; v; v = v->next) {								// create new list
 			if (!sccp_strlen_zero(v->value)) {
-				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "add new mailbox: %s\n", v->value);
+				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "add new mailbox: %s\n", v->value);
 				if (!(mailbox = (sccp_mailbox_t *)sccp_calloc(1, sizeof(sccp_mailbox_t)))) {
 					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 					return SCCP_CONFIG_CHANGE_ERROR;
@@ -1759,7 +1759,7 @@ sccp_value_changed_t sccp_config_parse_variables(void * const dest, const size_t
 			*var_value++ = '\0';
 		}
 		if (!sccp_strlen_zero(var_name) && !sccp_strlen_zero(var_value)) {
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new variable: %s=%s\n", var_name, var_value);
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new variable: %s=%s\n", var_name, var_value);
 			if (!variable) {
 				if (!(variableList = pbx_variable_new(var_name, var_value, ""))) {
 					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
@@ -1815,9 +1815,9 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 	/* temp current buttonconfiglist status*/
 	{
 		SCCP_LIST_LOCK(buttonconfigList);
-		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status before check\n");
+		sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status before check\n");
 		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
-			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "index:%d, type:%-10.10s (%d), pendingDelete:%s, pendingUpdate:%s\n",
+			sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "index:%d, type:%-10.10s (%d), pendingDelete:%s, pendingUpdate:%s\n",
 			config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
 		}
 		SCCP_LIST_UNLOCK(buttonconfigList);
@@ -1826,10 +1826,10 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 
 	if (GLOB(reload_in_progress)) {
 		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Checking Button Config\n");
+		sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Checking Button Config\n");
 		/* check if the number of buttons got reduced */
 		for (v = first_var; v && !sccp_strlen_zero(v->value); v = v->next) {				/* check buttons against currently loaded set*/
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Checking button: %s\n", v->value);
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Checking button: %s\n", v->value);
 			sccp_copy_string(k_button, v->value, sizeof(k_button));
 			splitter = k_button;
 			buttonType = strsep(&splitter, ",");
@@ -1844,13 +1844,13 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 				type = EMPTY;
 			}
 			if ((changed = sccp_config_checkButton(buttonconfigList, buttonindex, type, buttonName ? pbx_strip(buttonName) : NULL, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL))) {
-				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Button: %s changed. Giving up on checking buttonchanges, reloading all of them.\n", v->value);
+				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Button: %s changed. Giving up on checking buttonchanges, reloading all of them.\n", v->value);
 				break;
 			}
 			buttonindex++;
 		}
 		if (!changed && SCCP_LIST_GETSIZE(buttonconfigList) != buttonindex) {
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Number of Buttons changed (%d != %d). Reloading all of them.\n", SCCP_LIST_GETSIZE(buttonconfigList), buttonindex);
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Number of Buttons changed (%d != %d). Reloading all of them.\n", SCCP_LIST_GETSIZE(buttonconfigList), buttonindex);
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
 		}
 		/* Clear/Set pendingDelete and PendingUpdate if button has changed or not
@@ -1859,7 +1859,7 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 		 * That way adding/removind a line while accidentally keeping the button config for that line still works.
 		 */
 		if (!changed) {
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Nothing changed, clear the pendingDelete and pendingUpdate settings\n");
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Nothing changed, clear the pendingDelete and pendingUpdate settings\n");
 			SCCP_LIST_LOCK(buttonconfigList);
 			SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
 				config->pendingDelete = 0;
@@ -1871,9 +1871,9 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 	/* temp current buttonconfiglist status*/
 	{
 		SCCP_LIST_LOCK(buttonconfigList);
-		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status after check\n");
+		sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status after check\n");
 		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
-			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "index:%d, type:%-10.10s (%d), pendingDelete:%s, pendingUpdate:%s\n",
+			sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "index:%d, type:%-10.10s (%d), pendingDelete:%s, pendingUpdate:%s\n",
 				config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
 		}
 		SCCP_LIST_UNLOCK(buttonconfigList);
@@ -1881,7 +1881,7 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 	/* temp */
 	if (changed) {
 		buttonindex = 0;										/* buttonconfig has changed. Load all buttons as new ones */
-		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Any Previous ButtonConfig will be discared during post-process\n");
+		sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Any Previous ButtonConfig will be discared during post-process\n");
 		for (v = first_var; v && !sccp_strlen_zero(v->value); v = v->next) {
 			sccp_copy_string(k_button, v->value, sizeof(k_button));
 			splitter = k_button;
@@ -1897,7 +1897,7 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 				type = EMPTY;
 			}
 			sccp_config_addButton(buttonconfigList, buttonindex, type, buttonName ? pbx_strip(buttonName) : NULL, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL);
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Added button: %s\n", v->value);
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Added button: %s\n", v->value);
 			buttonindex++;
 		}
 	}
@@ -1905,9 +1905,9 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 	/* temp current buttonconfiglist status*/
 	{
 		SCCP_LIST_LOCK(buttonconfigList);
-		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status after adding new buttons\n");
+		sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "buttonconfig status after adding new buttons\n");
 		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
-			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "index:%d, type:%-10.10s (%d), pendingDelete:%s, pendingUpdate:%s\n",
+			sccp_log_and((DEBUGCAT_DEVICE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "index:%d, type:%-10.10s (%d), pendingDelete:%s, pendingUpdate:%s\n",
 				config->index, sccp_config_buttontype2str(config->type), config->type, config->pendingDelete ? "True" : "False", config->pendingUpdate ? "True" : "False");
 		}
 		SCCP_LIST_UNLOCK(buttonconfigList);
@@ -1948,7 +1948,7 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 	SCCP_LIST_LOCK(buttonconfigList);
 	SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
 		if (config->index == buttonindex) {
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Found Button index at %d:%d\n", config->index, buttonindex);
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Found Button index at %d:%d\n", config->index, buttonindex);
 			break;
 		}
 	}
@@ -1963,7 +1963,7 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 				sccp_subscription_id_t subscriptionId;
 				int parseRes = sccp_parseComposedId(name, 80, &subscriptionId, extension);
 				if (parseRes) {
-					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: ComposedId extension: %s, subscriptionId[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscriptionId.number, subscriptionId.name, subscriptionId.label, subscriptionId.aux);
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: ComposedId extension: %s, subscriptionId[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscriptionId.number, subscriptionId.name, subscriptionId.label, subscriptionId.aux);
 					if (LINE == config->type &&
 						sccp_strequals(config->label, name) && 
 						sccp_strequals(config->button.line.name, extension) && 
@@ -1978,10 +1978,10 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 						))
 					) {
 						if (!options || sccp_strequals(config->button.line.options, options)) {
-							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Line Button Definition remained the same\n");
+							sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Line Button Definition remained the same\n");
 							changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 						} else {
-							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "options: %s <-> %s  (%d)\n", config->button.line.options, options, sccp_strequals(config->button.line.options, options));
+							sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "options: %s <-> %s  (%d)\n", config->button.line.options, options, sccp_strequals(config->button.line.options, options));
 						}
 					}
 				} else {
@@ -1993,14 +1993,14 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 				/* \todo check if values change */
 				if (SPEEDDIAL == config->type && sccp_strequals(config->label, name) && sccp_strequals(config->button.speeddial.ext, options)) {
 					if (!args || sccp_strequals(config->button.speeddial.hint, args)) {
-						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Speeddial Button Definition remained the same\n");
+						sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Speeddial Button Definition remained the same\n");
 						changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 					}
 				}
 				break;
 			case SERVICE:
 				if (SERVICE == config->type && sccp_strequals(config->label, name) && sccp_strequals(config->button.service.url, options)) {
-					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Service Button Definition remained the same\n");
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Service Button Definition remained the same\n");
 					changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 				}
 				break;
@@ -2011,7 +2011,7 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 					&& config->button.feature.id == sccp_feature_type_str2val(options)
 				) {
 					if ((!args || sccp_strlen_zero(args)) && sccp_strlen_zero(config->button.feature.options) && sccp_strlen_zero(config->button.feature.args)) {
-						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition remained the same\n");
+						sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition remained the same\n");
 						changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 						break;
 					} else {
@@ -2020,7 +2020,7 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 						char * parse = pbx_strdupa(args);
 						AST_DECLARE_APP_ARGS(elems, AST_APP_ARG(option); AST_APP_ARG(arg););
 						AST_STANDARD_APP_ARGS(elems, parse);
-						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition:%s,%s -> %s,%s\n", config->button.feature.options,config->button.feature.args,elems.option,elems.arg);
+						sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition:%s,%s -> %s,%s\n", config->button.feature.options,config->button.feature.args,elems.option,elems.arg);
 						if(SCCP_FEATURE_PARKINGLOT == config->button.feature.id) {
 							option_default = "default";
 							arg_default = "RetrieveSingle";
@@ -2054,15 +2054,15 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 						}
 					}
 					if (changed == SCCP_CONFIG_CHANGE_NOCHANGE) {
-						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition remained the same\n");
+						sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition remained the same\n");
 					} else {
-						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition changed\n");
+						sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition changed\n");
 					}
 				}
 				break;
 			case EMPTY:
 				if (EMPTY == config->type) {
-					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Button Definition remained the same\n");
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Button Definition remained the same\n");
 					changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 				}
 				break;
@@ -2098,7 +2098,7 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfigList, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args)
 {
 	sccp_buttonconfig_t *config = NULL;
-	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Loading New Button Config\n");
+	sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Loading New Button Config\n");
 	
 	/*
 	if (!sccp_config_buttontype_exists(type)) {
@@ -2114,7 +2114,7 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 	}
 	config->index = buttonindex;
 	config->type = type;
-	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "New %s Button '%s' at : %d:%d\n", sccp_config_buttontype2str(type), name, buttonindex, config->index);
+	sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "New %s Button '%s' at : %d:%d\n", sccp_config_buttontype2str(type), name, buttonindex, config->index);
 	SCCP_LIST_INSERT_TAIL(buttonconfigList, config, list);
 	SCCP_LIST_UNLOCK(buttonconfigList);
 
@@ -2134,8 +2134,8 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 				return SCCP_CONFIG_CHANGE_INVALIDVALUE;
  			}
 			if (sccp_parseComposedId(name, 80, subscriptionId, extension)) {;
-				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Line Button Definition\n");
-				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: ComposedId extension: %s, subscriptionId[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscriptionId->number, subscriptionId->name, subscriptionId->label, subscriptionId->aux);
+				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Line Button Definition\n");
+				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: ComposedId extension: %s, subscriptionId[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscriptionId->number, subscriptionId->name, subscriptionId->label, subscriptionId->aux);
 				config->type = LINE;
 				config->label = pbx_strdup(name);
 				config->button.line.name = pbx_strdup(extension);
@@ -2158,7 +2158,7 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 			break;
 		}
 		case SPEEDDIAL:
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Speeddial Button Definition\n");
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Speeddial Button Definition\n");
 			config->type = SPEEDDIAL;
 			config->label = pbx_strdup(name);
 			config->button.speeddial.ext = pbx_strdup(options);
@@ -2169,14 +2169,14 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 			}
 			break;
 		case SERVICE:
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Service Button Definition\n");
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Service Button Definition\n");
 			config->type = SERVICE;
 			config->label = pbx_strdup(name);
 			config->button.service.url = pbx_strdup(options);
 			break;
 		case FEATURE:
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition\n");
-			sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_4 "featureID: %s\n", options);
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition\n");
+			sccp_log_and((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_4 "featureID: %s\n", options);
 			config->type = FEATURE;
 			config->label = pbx_strdup(name);
 			config->button.feature.id = sccp_feature_type_str2val(options);
@@ -2232,17 +2232,17 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 					config->button.feature.args = pbx_strdup(elems.arg);
 				}
 			}
-			sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_4 "Configured feature button:%d with featureID: %s args: %s\n", config->instance,
+			sccp_log_and((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_4 "Configured feature button:%d with featureID: %s args: %s\n", config->instance,
 													 config->button.feature.options, config->button.feature.args);
 
 			break;
 		case EMPTY:
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Empty Button Definition\n");
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Empty Button Definition\n");
 			config->type = EMPTY;
 			config->label = NULL;
 			break;
 		default:
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Unknown Button Type:%d\n", type);
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Unknown Button Type:%d\n", type);
 			config->type = EMPTY;
 			config->label = NULL;
 			break;
