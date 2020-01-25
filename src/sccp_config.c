@@ -2005,12 +2005,59 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 				}
 				break;
 			case FEATURE:
-				if (FEATURE == config->type && buttonindex == config->index && sccp_strequals(config->label, name) && config->button.feature.id == sccp_feature_type_str2val(options)) {
-					if (!args || sccp_strequals(config->button.feature.options, args)) {
+				if (	FEATURE == config->type 
+					&& buttonindex == config->index
+					&& sccp_strequals(config->label, name)
+					&& config->button.feature.id == sccp_feature_type_str2val(options)
+				) {
+					if ((!args || sccp_strlen_zero(args)) && sccp_strlen_zero(config->button.feature.options) && sccp_strlen_zero(config->button.feature.args)) {
 						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition remained the same\n");
 						changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+						break;
+					} else {
+						char *option_default = NULL;
+						char *arg_default = NULL;
+						char * parse = pbx_strdupa(args);
+						AST_DECLARE_APP_ARGS(elems, AST_APP_ARG(option); AST_APP_ARG(arg););
+						AST_STANDARD_APP_ARGS(elems, parse);
+						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition:%s,%s -> %s,%s\n", config->button.feature.options,config->button.feature.args,elems.option,elems.arg);
+						if(SCCP_FEATURE_PARKINGLOT == config->button.feature.id) {
+							option_default = "default";
+							arg_default = "RetrieveSingle";
+						}
+#ifdef CS_DEVSTATE_FEATURE
+						else if(SCCP_FEATURE_DEVSTATE == config->button.feature.id) {
+							option_default = "default";
+							arg_default = "RetrieveSingle";
+						}
+#endif
+						if(
+							(
+								(elems.option && !sccp_strlen_zero(elems.option) && sccp_strequals(config->button.feature.options, elems.option))
+								||
+								(
+									(option_default && !elems.option && sccp_strlen_zero(elems.option) && sccp_strequals(config->button.feature.options, option_default))
+									||
+									(!option_default && !elems.option && sccp_strlen_zero(elems.option) && sccp_strlen_zero(config->button.feature.options))
+								)
+							) && (
+								(elems.arg && !sccp_strlen_zero(elems.arg) && sccp_strequals(config->button.feature.args, elems.arg))
+								||
+								(
+									(arg_default && !elems.arg && sccp_strlen_zero(elems.arg) && sccp_strequals(config->button.feature.args, arg_default))
+									||
+									(!arg_default && !elems.arg && sccp_strlen_zero(elems.arg) && sccp_strlen_zero(config->button.feature.args))
+								)
+							)
+						) {
+							changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+						}
 					}
-					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition changed\n");
+					if (changed == SCCP_CONFIG_CHANGE_NOCHANGE) {
+						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition remained the same\n");
+					} else {
+						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Feature Button Definition changed\n");
+					}
 				}
 				break;
 			case EMPTY:
@@ -2153,7 +2200,7 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 				} else {
 					config->button.feature.args = pbx_strdup("RetrieveSingle");
 				}
-			}
+			} else
 #ifdef CS_DEVSTATE_FEATURE
 			if(SCCP_FEATURE_DEVSTATE == config->button.feature.id) {
 				// Value1:State:0:UNKNOWN|1:NOT_INUSE|2:INUSE|3:BUSY|4:INVALID|5:UNAVAILABLE|6:RINGING|7:RINGINUSE|8:ONHOLD
@@ -2175,8 +2222,16 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 				} else {
 					config->button.feature.args = pbx_strdup("00001|10012|22321");
 				}
-			}
+			} else
 #endif			
+			{
+				if(elems.option && !sccp_strlen_zero(elems.option)) {
+					config->button.feature.options = pbx_strdup(elems.option);
+				}
+				if(elems.arg && !sccp_strlen_zero(elems.arg)) {
+					config->button.feature.args = pbx_strdup(elems.arg);
+				}
+			}
 			sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE))(VERBOSE_PREFIX_4 "Configured feature button:%d with featureID: %s args: %s\n", config->instance,
 													 config->button.feature.options, config->button.feature.args);
 
