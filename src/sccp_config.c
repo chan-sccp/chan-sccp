@@ -1690,25 +1690,24 @@ sccp_value_changed_t sccp_config_parse_mailbox(void * const dest, const size_t s
 	int listCount = 0;
 
 	listCount = mailboxList->size;
-	boolean_t notfound = FALSE;
+	int notfound = 0;
 
 	for (v = vroot; v; v = v->next) {
-		varCount++;
+		if (!sccp_strlen_zero(v->value)) {
+			varCount++;
+		}
 	}
+
 	if (varCount == listCount) {										// list length equal
 		SCCP_LIST_TRAVERSE(mailboxList, mailbox, list) {
 			for (v = vroot; v; v = v->next) {
 				if (!sccp_strlen_zero(v->value)) {
-					if (strstr(v->value, "@") && sccp_strcaseequals(mailbox->uniqueid, v->value)) {
+					char uniqueid[SCCP_MAX_MAILBOX_UNIQUEID];
+					snprintf(uniqueid, sizeof(uniqueid), "%s%s", v->value, !strstr(v->value, "@") ? "@default" : "");
+					if (sccp_strcaseequals(mailbox->uniqueid, uniqueid)) {
 						continue;
-					} else {
-						char uniqueid[SCCP_MAX_MAILBOX_UNIQUEID];
-						snprintf(uniqueid, sizeof(uniqueid), "%s@default", v->value);
-						if (sccp_strcaseequals(mailbox->uniqueid, uniqueid)) {
-							continue;
-						}
 					}
-					notfound |= TRUE;
+					notfound += 1;
 				}
 			}
 		}
@@ -1719,7 +1718,7 @@ sccp_value_changed_t sccp_config_parse_mailbox(void * const dest, const size_t s
 		}
 		for (v = vroot; v; v = v->next) {								// create new list
 			if (!sccp_strlen_zero(v->value)) {
-				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "add new mailbox: %s\n", v->value);
+				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "add new mailbox: '%s'\n", v->value);
 				if (!(mailbox = (sccp_mailbox_t *)sccp_calloc(1, sizeof(sccp_mailbox_t)))) {
 					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 					return SCCP_CONFIG_CHANGE_ERROR;
