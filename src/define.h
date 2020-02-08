@@ -67,47 +67,45 @@ extern "C" {
 #define sccp_mutex_t pbx_mutex_t
 
 /* Add bswap function if necessary */
-#if HAVE_BYTESWAP_H
-#  include <byteswap.h>
+#if defined(HAVE_ENDIAN_H)
+#  include <endian.h>
+#elif defined(HAVE_SYS_ENDIAN_H)
+#  include <sys/endian.h>
 #else
-#  if HAVE_SYS_BYTEORDER_H
-#    include <sys/byteorder.h>
-#  elif HAVE_SYS_ENDIAN_H
-#    include <sys/endian.h>
-#  else
-#    ifndef HAVE_BSWAP_16
-SCCP_INLINE unsigned short __bswap_16(unsigned short x)
+SCCP_INLINE unsigned short ___bswap_16(unsigned short x)
 {
         return (x >> 8) | (x << 8);
 }
-#    endif
-#    ifndef HAVE_BSWAP_32
-SCCP_LINE unsigned int __bswap_32(unsigned int x)
+SCCP_LINE unsigned int ___bswap_32(unsigned int x)
 {
         return (__bswap_16(x & 0xffff) << 16) | (__bswap_16(x >> 16));
 }
-#    endif
-#    ifndef HAVE_BSWAP_64
-SCCP_LINE unsigned long long __bswap_64(unsigned long long x)
+SCCP_LINE unsigned long long ___bswap_64(unsigned long long x)
 {
         return (((unsigned long long) __bswap_32(x & 0xffffffffull)) << 32) | (__bswap_32(x >> 32));
 }
-#    endif
+#endif
+
+#if defined(HAVE_ENDIAN_H) || defined(HAVE_SYS_ENDIAN_H)
+#  define letohl(x) le32toh(x)
+#  define letohs(x) le16toh(x)
+#  define htolel(x) htole32(x)
+#  define htoles(x) htole16(x)
+#else
+#  if SCCP_LITTLE_ENDIAN == 1
+#    define letohl(x) (uint32_t)(x)
+#    define letohs(x) (uint32_t)(x)
+#    define htolel(x) (uint16_t)(x)
+#    define htoles(x) (uint16_t)(x)
+#  else
+#    define letohs(x) ___bswap_16(x)
+#    define htoles(x) ___bswap_16(x)
+#    define letohl(x) ___bswap_32(x)
+#    define htolel(x) ___bswap_32(x)
 #  endif
 #endif
 
 /* Byte swap based on platform endianes */
-#if SCCP_LITTLE_ENDIAN == 1
-#define letohl(x) (x)
-#define letohs(x) (x)
-#define htolel(x) (x)
-#define htoles(x) (x)
-#else
-#define letohs(x) __bswap_16(x)
-#define htoles(x) __bswap_16(x)
-#define letohl(x) __bswap_32(x)
-#define htolel(x) __bswap_32(x)
-#endif
 
 #define SCCP_TECHTYPE_STR "SCCP"
 

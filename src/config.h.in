@@ -367,18 +367,6 @@
 /* defined 'HAVE_BKTR' */
 #undef HAVE_BKTR
 
-/* Define to 1 if bswap_16 is available. */
-#undef HAVE_BSWAP_16
-
-/* Define to 1 if bswap_32 is available. */
-#undef HAVE_BSWAP_32
-
-/* Define to 1 if bswap_64 is available. */
-#undef HAVE_BSWAP_64
-
-/* Define to 1 if you have the <byteswap.h> header file. */
-#undef HAVE_BYTESWAP_H
-
 /* Uses Callweaver as PBX */
 #undef HAVE_CALLWEAVER
 
@@ -423,6 +411,9 @@
 
 /* Define if you have the _dyld_func_lookup function. */
 #undef HAVE_DYLD
+
+/* Define to 1 if you have the <endian.h> header file. */
+#undef HAVE_ENDIAN_H
 
 /* Define to 1 if you have the <errno.h> header file. */
 #undef HAVE_ERRNO_H
@@ -666,9 +657,6 @@
 
 /* Define to 1 if `tm_zone' is a member of `struct tm'. */
 #undef HAVE_STRUCT_TM_TM_ZONE
-
-/* Define to 1 if you have the <sys/byteorder.h> header file. */
-#undef HAVE_SYS_BYTEORDER_H
 
 /* Define to 1 if you have the <sys/dl.h> header file. */
 #undef HAVE_SYS_DL_H

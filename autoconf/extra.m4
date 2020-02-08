@@ -328,27 +328,8 @@ AC_DEFUN([CS_CHECK_TYPES], [
 		AC_MSG_RESULT([no])
 	])
 	# Big Endian / Little Endian	
+	AC_CHECK_HEADERS([endian.h sys/endian.h], [break])
 	AC_C_BIGENDIAN(AC_DEFINE([SCCP_BIG_ENDIAN],1,[Big Endian]),AC_DEFINE([SCCP_LITTLE_ENDIAN],1,[Little Endian]))
-
-	AC_CHECK_HEADERS([byteswap.h sys/endian.h sys/byteorder.h], [break])
-	# Even if we have byteswap.h, we may lack the specific macros/functions.
-	if test x$ac_cv_header_byteswap_h = xyes ; then
-		m4_foreach([FUNC], [bswap_16,bswap_32,bswap_64], [
-			AC_MSG_CHECKING([if FUNC is available])
-			AC_LINK_IFELSE([AC_LANG_SOURCE([
-				#include <byteswap.h>
-				int
-				main(void)
-				{
-					FUNC[](42);
-					return 0;
-				}
-			])], [
-				AC_DEFINE(HAVE_[]m4_toupper(FUNC), [1],	[Define to 1 if] FUNC [is available.])
-				AC_MSG_RESULT([yes])
-			], [AC_MSG_RESULT([no])])
-		])
-	fi
 ])
 
 dnl Conditional Makefile.am Macros
