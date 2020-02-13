@@ -742,7 +742,8 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 		// handle out of order arrival when startMediaAck returns before openReceiveChannelAck
 		if (    SCCP_CHANNELSTATE_IsConnected(c->state) &&
 			(audio->reception.state & SCCP_RTP_STATUS_ACTIVE) &&
-			(audio->transmission.state & SCCP_RTP_STATUS_ACTIVE)
+			(audio->transmission.state & SCCP_RTP_STATUS_ACTIVE) &&
+			pbx_channel_state(c->owner) != AST_STATE_UP
 		) {
 			iPbx.set_callstate(c, AST_STATE_UP);
 		}
@@ -894,7 +895,8 @@ int sccp_channel_mediaTransmissionStarted(devicePtr d, channelPtr c)
 		// indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC
 		if (
 			(c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) &&
-			((audio->reception.state & SCCP_RTP_STATUS_ACTIVE) && (audio->transmission.state & SCCP_RTP_STATUS_ACTIVE))
+			((audio->reception.state & SCCP_RTP_STATUS_ACTIVE) && (audio->transmission.state & SCCP_RTP_STATUS_ACTIVE)) &&
+			pbx_channel_state(c->owner) != AST_STATE_UP
 		) {
 			iPbx.set_callstate(c, AST_STATE_UP);
 		}
@@ -1617,6 +1619,12 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 	}
 
 	pbx_channel_lock(channel->owner);
+	if (pbx_channel_state(channel->owner) == AST_STATE_UP) {
+		pbx_log(LOG_ERROR, "SCCP: (%s) Channel '%s' already answered elsewhere\n", __func__, channel->designator);
+		channel->answered_elsewhere = TRUE;
+		return;
+	}
+	iPbx.set_callstate(channel, AST_STATE_UP);
 	RAII(PBX_CHANNEL_TYPE *, pbx_channel, pbx_channel_ref(channel->owner), pbx_channel_unref);
 	if(sccp_strlen_zero(pbx_builtin_getvar_helper(pbx_channel, "SCCP_DEVICE_ANSWERING"))) {
 		pbx_builtin_setvar_helper(pbx_channel, "SCCP_DEVICE_ANSWERING", device->id);
