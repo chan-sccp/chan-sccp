@@ -937,16 +937,22 @@ static PBX_FRAME_TYPE *sccp_astwrap_rtp_read(PBX_CHANNEL_TYPE * ast)
 		case 1:
 			frame = ast_rtp_instance_read(c->rtp.audio.instance, 1);					/* RTCP Control Channel */
 			break;
-#ifdef CS_SCCP_VIDEO
 		case 2:
+#ifdef CS_SCCP_VIDEO
 			frame = ast_rtp_instance_read(c->rtp.video.instance, 0);					/* RTP Video */
+#else
+			pbx_log(LOG_NOTICE, "SCCP: (rtp_read) Cannot handle video rtp stream.\n");
+#endif
 			break;
 		case 3:
+#ifdef CS_SCCP_VIDEO
 			frame = ast_rtp_instance_read(c->rtp.video.instance, 1);					/* RTCP Control Channel for video */
-			break;
+#else
+			pbx_log(LOG_NOTICE, "SCCP: (rtp_read) Cannot handle video rtcp stream.\n");
 #endif
+			break;
 		default:
-			pbx_log(LOG_ERROR, "SCCP: (rtp_read) Unknown Frame Type.\n");
+			pbx_log(LOG_ERROR, "SCCP: (rtp_read) Unknown Frame Type: %d\n", ast_channel_fdno(ast));
 			goto EXIT_FUNC;
 	}
 	//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast_channel_fdno(ast), frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
