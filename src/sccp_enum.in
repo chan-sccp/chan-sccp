@@ -606,8 +606,8 @@ strenum ringtype {
  * \brief Skinny Ringduration Format (ENUM)
  */
 strenum ringduration {
-	SKINNY_RINGDURATION_NORMAL,				=1,	"Off",
-	SKINNY_RINGDURATION_SINGLE,				,	"Inside",
+	SKINNY_RINGDURATION_NORMAL,				=1,	"Normal",
+	SKINNY_RINGDURATION_SINGLE,				,	"Single",
 }
 
 /*!

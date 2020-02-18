@@ -1465,7 +1465,7 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		callid_created = c->pbx_callid_created;
 		c->pbx_callid_created = 0;
 		if (pbx_channel_hangupcause(ast_channel) == AST_CAUSE_ANSWERED_ELSEWHERE) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
+			sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: This call was answered elsewhere\n", c->designator);
 			c->answered_elsewhere = TRUE;
 		}
 		/* postponing pbx_channel_unref to sccp_channel destructor */

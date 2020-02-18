@@ -3534,9 +3534,6 @@ static int sccp_answercall(int fd, sccp_cli_totals_t *totals, struct mansession 
 			AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(argv[3], FALSE));
 			if (d) {
 				sccp_channel_answer(d, c);
-				if (c->owner) {
-					iPbx.queue_control(c->owner, AST_CONTROL_ANSWER);
-				}
 				res = RESULT_SUCCESS;
 			} else {
 				pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Device %s not found\n", argv[3]);
