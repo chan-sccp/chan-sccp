@@ -589,11 +589,11 @@ strenum videoformat {
  * \brief Skinny Ringtype Format (ENUM)
  */
 strenum ringtype {
-	SKINNY_RINGTYPE_OFF,				=1,	"Ring Off",
+	SKINNY_RINGTYPE_OFF,				=1,	"Off",
 	SKINNY_RINGTYPE_INSIDE,				,	"Inside",
 	SKINNY_RINGTYPE_OUTSIDE,			,	"Outside",
 	SKINNY_RINGTYPE_FEATURE,			,	"Feature",
-	SKINNY_RINGTYPE_SILENT,				,	"Silent/FlashOnly", 
+	SKINNY_RINGTYPE_SILENT,				,	"Silent", 
 	SKINNY_RINGTYPE_URGENT,				,	"Urgent",
 	SKINNY_RINGTYPE_BELLCORE_1,			,	"Bellcore1",
 	SKINNY_RINGTYPE_BELLCORE_2,			,	"Bellcore2",
@@ -606,7 +606,7 @@ strenum ringtype {
  * \brief Skinny Ringduration Format (ENUM)
  */
 strenum ringduration {
-	SKINNY_RINGDURATION_NORMAL,				=1,	"Ring Off",
+	SKINNY_RINGDURATION_NORMAL,				=1,	"Off",
 	SKINNY_RINGDURATION_SINGLE,				,	"Inside",
 }
 
