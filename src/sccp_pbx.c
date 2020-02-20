@@ -525,7 +525,6 @@ int sccp_pbx_cfwdnoanswer_cb(const void * data)
 
 channelPtr sccp_pbx_hangup(constChannelPtr channel)
 {
-
 	/* here the ast channel is locked */
 	// sccp_log((DEBUGCAT_CORE)) (;VERBOSE_PREFIX_3 "SCCP: Asterisk request to hangup channel %s\n", iPbx.getChannelName(c));
 	(void) ATOMIC_DECR(&GLOB(usecnt), 1, &GLOB(usecnt_lock));
@@ -569,13 +568,15 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 	sccp_channel_stop_schedule_digittimout(c);
 	sccp_channel_stop_schedule_cfwd_noanswer(c);
 
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Current channel %s state %s(%d)\n", (d) ? DEV_ID_LOG(d) : "(null)", c->designator, sccp_channelstate2str(c->state), c->state);
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Current channel %s state %s(%d)\n", l->name, c->designator, sccp_channelstate2str(c->state), c->state);
 
 	/* end callforwards */
 	sccp_channel_end_forwarding_channel(c);
 
 	/* cancel transfer if in progress */
-	sccp_channel_transfer_cancel(d, c);
+	if(d) {
+		sccp_channel_transfer_cancel(d, c);
+	}
 
 	/* remove call from transferee, transferer */
 	sccp_linedevice_t * ld = NULL;
