@@ -108,6 +108,8 @@ struct sccp_channel {
 	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */
 	uint16_t autoanswer_cause;										/*!< Auto Answer Cause */
 
+	uint32_t answer_winner;
+
 #if ASTERISK_VERSION_GROUP >= 111
 	int16_t pbx_callid_created;
 #endif

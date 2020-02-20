@@ -193,8 +193,10 @@ struct pbx_rwlock_info {
         struct ast_lock_track *track;
         unsigned int tracking:1;
 };
+
 typedef struct pbx_mutex_info pbx_mutex_t;
 typedef struct pbx_rwlock_info pbx_rwlock_t;
+typedef pthread_cond_t pbx_cond_t;
 
 #define AUTO_MUTEX(varname, lock) SCOPED_LOCK(varname, (lock), pbx_mutex_lock, pbx_mutex_unlock)
 #define AUTO_RDLOCK(varname, lock) SCOPED_LOCK(varname, (lock), pbx_rwlock_rdlock, pbx_rwlock_unlock)

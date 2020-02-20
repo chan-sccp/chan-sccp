@@ -104,6 +104,8 @@ boolean_t sccp_prePBXLoad(void)
 #if ASTERISK_VERSION_GROUP < 110
 	pbx_mutex_init(&GLOB(monitor_lock));
 #endif
+	pbx_mutex_init(&GLOB(answer_lock));
+	pbx_cond_init(&GLOB(answer_cond), NULL);
 
 	/* init refcount */
 	sccp_refcount_init();
@@ -309,6 +311,8 @@ int sccp_preUnload(void)
 #ifndef SCCP_ATOMIC
 	pbx_mutex_destroy(&GLOB(usecnt_lock));
 #endif	
+	pbx_mutex_destroy(&GLOB(answer_lock));
+	pbx_cond_destroy(&GLOB(answer_cond));
 	pbx_rwlock_destroy(&GLOB(lock));
 	return 0;
 }
