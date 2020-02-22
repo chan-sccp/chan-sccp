@@ -103,66 +103,6 @@ sccp_channel_request_status_t sccp_requestChannel(const char * lineName, sccp_au
 }
 
 /*!
- * \brief SCCP Structure to pass data to the pbx answer thread
- */
-struct sccp_answer_conveyor_struct {
-	sccp_linedevice_t * ld;
-	uint32_t callid;
-};
-/*!
- * \brief Call Auto Answer Thead
- * \param data Data
- *
- * The Auto Answer thread is started by ref sccp_pbx_call if necessary
- */
-static void *sccp_pbx_call_autoanswer_thread(void *data)
-{
-	struct sccp_answer_conveyor_struct *conveyor = (struct sccp_answer_conveyor_struct *)data;
-
-	int instance = 0;
-
-	sleep(GLOB(autoanswer_ring_time));
-	pthread_testcancel();
-
-	if (!conveyor) {
-		return NULL;
-	}
-	if(!conveyor->ld) {
-		goto FINAL;
-	}
-
-	{
-		AUTO_RELEASE(sccp_device_t, device, sccp_device_retain(conveyor->ld->device));
-
-		if (!device) {
-			goto FINAL;
-		}
-
-		AUTO_RELEASE(sccp_channel_t, c , sccp_channel_find_byid(conveyor->callid));
-
-		if (!c || c->state != SCCP_CHANNELSTATE_RINGING) {
-			goto FINAL;
-		}
-
-		sccp_channel_answer(device, c);
-
-		if (GLOB(autoanswer_tone) != SKINNY_TONE_SILENCE && GLOB(autoanswer_tone) != SKINNY_TONE_NOTONE) {
-			instance = sccp_device_find_index_for_line(device, c->line->name);
-			sccp_dev_starttone(device, GLOB(autoanswer_tone), instance, c->callid, SKINNY_TONEDIRECTION_USER);
-		}
-		if (c->autoanswer_type == SCCP_AUTOANSWER_1W) {
-			sccp_dev_set_microphone(device, SKINNY_STATIONMIC_OFF);
-		}
-	}
-FINAL:
-	if(conveyor->ld) {
-		sccp_linedevice_release(&conveyor->ld);                                        // retained in calling thread, explicit release required here
-	}
-	sccp_free(conveyor);
-	return NULL;
-}
-
-/*!
  * \brief Incoming Calls by Asterisk SCCP_Request
  * \param c SCCP Channel
  * \param dest Destination as char
@@ -383,16 +323,8 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 			sccp_indicate(ld->device, c, SCCP_CHANNELSTATE_RINGING);
 			isRinging = TRUE;
 			if (c->autoanswer_type) {
-				struct sccp_answer_conveyor_struct *conveyor = (struct sccp_answer_conveyor_struct *)sccp_calloc(1, sizeof(struct sccp_answer_conveyor_struct));
-				if (conveyor) {
-					sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", DEV_ID_LOG(ld->device), iPbx.getChannelName(c));
-					conveyor->callid = c->callid;
-					conveyor->ld = sccp_linedevice_retain(ld);
-
-					sccp_threadpool_add_work(GLOB(general_threadpool), sccp_pbx_call_autoanswer_thread, (void *) conveyor);
-				} else {
-					pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, c->designator);
-				}
+				sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", DEV_ID_LOG(ld->device), iPbx.getChannelName(c));
+				sccp_channel_answer(ld->device, c);
 			}
 		}
 	}
@@ -537,6 +469,10 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 		sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asked to hangup channel. SCCP channel already deleted\n");
 		return NULL;
 	}
+	if(c->answer_thread && c->answer_thread != AST_PTHREADT_STOP) {
+		pthread_join(c->answer_thread, NULL);
+	}
+	c->answer_thread = AST_PTHREADT_STOP;
 	c->isHangingUp = TRUE;
 
 	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));

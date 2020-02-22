@@ -178,7 +178,12 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 #ifndef SCCP_ATOMIC
 		pbx_mutex_init(&channel->scheduler.lock);
 #endif
-
+		pbx_mutex_init(&channel->rtp.audio.lock);
+		pbx_cond_init(&channel->rtp.audio.cond, NULL);
+#ifdef SCCP_VIDEO
+		pbx_mutex_init(&channel->rtp.audio.lock);
+		pbx_cond_init(&channel->rtp.audio.cond, NULL);
+#endif
 		/* assign virtual functions */
 		channel->getDevice = sccp_channel_getDevice;
 		channel->getLineDevice = sccp_channel_getLineDevice;
@@ -633,6 +638,17 @@ void sccp_channel_StatisticsRequest(constChannelPtr channel)
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device is Requesting CallStatisticsAndClear\n", d->id);
 }
 
+static boolean_t channel_createRtpInstance(devicePtr d, channelPtr c, sccp_rtp_type_t type)
+{
+	if(!c->rtp.audio.instance && !sccp_rtp_createServer(d, c, type)) {
+		pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s\n", d->id, c->designator);
+		uint16_t instance = sccp_device_find_index_for_line(d, c->line->name);
+		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, SKINNY_TONEDIRECTION_USER);
+		return FALSE;
+	}
+	return TRUE;
+}
+
 /*!
  * \brief Tell Device to Open a RTP Receive Channel
  *
@@ -661,12 +677,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 	}
 
-	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
-	if (!channel->rtp.audio.instance && !sccp_rtp_createServer(d, (channelPtr)channel, SCCP_RTP_AUDIO)) {			// discard const
-		pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s\n", d->id, channel->designator);
-
-		uint16_t instance = sccp_device_find_index_for_line(d, channel->line->name);
-		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, channel->callid, SKINNY_TONEDIRECTION_USER);
+	if(!channel_createRtpInstance(d, (channelPtr)channel, SCCP_RTP_AUDIO)) {                                        // discard const
 		return;
 	}
 	if (channel->owner && channel->rtp.audio.reception.format == SKINNY_CODEC_NONE) {
@@ -721,7 +732,7 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 		return sccp_channel_closeAllMediaTransmitAndReceive(d, c);
 	}
 	//sccp_rtp_set_phone(c, &c->rtp.audio, &sas);
-	if (SCCP_RTP_STATUS_INACTIVE == audio->transmission.state) {
+	if(SCCP_RTP_STATUS_INACTIVE == audio->transmission.state && !c->isHangingUp && !c->answered_elsewhere) {
 		// this will start rtp flowing in both directions, to punch open any intermediate firewall ports.
 		// for early rtp (progress/proceed) the transmission will be stopped immediatly on receiving the first packet
 		// Note: See wrapper_rtp_read
@@ -731,46 +742,59 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 	audio->reception.state |= SCCP_RTP_STATUS_ACTIVE;
 
 	sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, c->line->name), c->callid);
-
-	pbx_mutex_lock(&GLOB(answer_lock));
-	pbx_channel_lock(c->owner);
-	if(c->owner && pbx_channel_state(c->owner) != AST_STATE_UP && ((audio->reception.state & SCCP_RTP_STATUS_ACTIVE) && (audio->transmission.state & SCCP_RTP_STATUS_ACTIVE))
-	   && (SCCP_CHANNELSTATE_IsSettingUp(c->state) || SCCP_CHANNELSTATE_IsConnected(c->state))) {
-		// indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC
-		// handle out of order arrival when startMediaAck returns before openReceiveChannelAck
-		if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
-			iPbx.set_callstate(c, AST_STATE_UP);
-			c->answer_winner = c->callid;
-			pbx_cond_broadcast(&GLOB(answer_cond));
-		} else {
-			// 'PROD' the remote side to let them know we can receive inband signalling
-			iPbx.queue_control(c->owner, (enum ast_control_frame_type) - 1);
-		}
+	if(c->owner && c->calltype != SKINNY_CALLTYPE_INBOUND) {
+		iPbx.queue_control(c->owner, (enum ast_control_frame_type) - 1);
 	}
-	pbx_channel_unlock(c->owner);
-	pbx_mutex_unlock(&GLOB(answer_lock));
 	return SCCP_RTP_STATUS_ACTIVE;
 }
 
-/*
-// sccp_actions.c:
-//    if (sem_post(&(audio->mutex))) exit(semaphore_error);
+/*!
+ * \brief openReceiveChannel synchonously
+ *
+ * Wrapper around sccp_channel_openReceiveChannel, handle_openReceiveChannelAck and sccp_channel_receiveChannelOpen
+ *
+ * \note this function can only run in a separate thread (from the session thread) either using pthread_create or sccp_threadpool_add_work
+ *
+ * This will send the openReceiveChannel message to the phone
+ * And wait for the message to return and be process
+ * Only when complete will it return the result to the caller
+ */
+uint16_t sccp_channel_syncOpenReceiveChannel(constChannelPtr channel)
+{
+	sccp_rtp_t * rtp = (sccp_rtp_t *)&(channel->rtp.audio);                                        // discard const
+	pbx_mutex_lock(&rtp->lock);
+	if((rtp->reception.state & SCCP_RTP_STATUS_ACTIVE) != SCCP_RTP_STATUS_ACTIVE) {
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: Opening Receive Channel Synchronously\n", channel->designator);
+		// async call
+		sccp_channel_openReceiveChannel(channel);
 
-rtp_status_t *openreceivechannel1(sccp_channel_t *c) {
+		// await result
+		int timed_out = 0;
+		struct timeval relative_timeout = { 2, 0 };
+		struct timeval absolute_timeout = ast_tvadd(ast_tvnow(), relative_timeout);
+		struct timespec timeout_arg = { absolute_timeout.tv_sec, absolute_timeout.tv_usec * 1000 };
 
-// async
-	if (sem_init(&(audio->mutex), THREAD_SEMAPHORE, 0)) {
-		return (void *) semaphore_error;
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: Wait for result\n", channel->designator);
+		while(rtp->reception.state == SCCP_RTP_STATUS_PROGRESS && timed_out != ETIMEDOUT) {
+			timed_out = pbx_cond_timedwait(&rtp->cond, (ast_mutex_t *)&rtp->lock, &timeout_arg);
+		}
+
+		// handle results
+		if(timed_out == ETIMEDOUT) {
+			sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: Timedout\n", channel->designator);
+			rtp->reception.state = (SCCP_RTP_STATUS_INACTIVE | SCCP_RTP_STATUS_ERROR);
+		}
 	}
-	sem_init(&(rtp->mutex), THREAD_SEMAPHORE, 0);
-	add_work(threadpool, openOpenReceiveChannel, c);								// extra channel retain, released when receive channel is closed
+	pbx_mutex_unlock(&rtp->lock);
+	if((rtp->reception.state & SCCP_RTP_STATUS_ACTIVE) != SCCP_RTP_STATUS_ACTIVE) {
+		sccp_channel_endcall((sccp_channel_t *)channel);                                        // discard const
+	}
+	sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: Setting State to Up\n", channel->designator);
+	iPbx.set_callstate(channel, AST_STATE_UP);
 
-// await
-	if (sem_wait(&(rtp->mutex))) return (void *) semaphore_error;
-	sem_destroy(&(audio->mutex));
-	return *audio->reception.state;
+	sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: Returning: %d\n", channel->designator, rtp->reception.state);
+	return rtp->reception.state;
 }
-*/
 
 /*!
  * \brief Tell Device to Close an RTP Receive Channel and Stop Media Transmission
@@ -819,7 +843,7 @@ void sccp_channel_updateReceiveChannel(constChannelPtr channel)
 	}
 	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.reception.state) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateReceiveChannel) Open Receive Channel on channel %d\n", channel->currentDeviceId, channel->callid);
-		sccp_channel_openReceiveChannel(channel);
+		sccp_channel_syncOpenReceiveChannel(channel);
 	}
 }
 #endif
@@ -908,21 +932,6 @@ int sccp_channel_mediaTransmissionStarted(devicePtr d, channelPtr c)
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Media Transmission Started (State: %s[%d])\n", d->id, sccp_channelstate2str(c->state), c->state);
 	audio->transmission.state |= SCCP_RTP_STATUS_ACTIVE;
-
-	pbx_mutex_lock(&GLOB(answer_lock));
-	pbx_channel_lock(c->owner);
-
-	// indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC
-	if(c->owner && pbx_channel_state(c->owner) != AST_STATE_UP && ((audio->reception.state & SCCP_RTP_STATUS_ACTIVE) && (audio->transmission.state & SCCP_RTP_STATUS_ACTIVE))
-	   && (SCCP_CHANNELSTATE_IsSettingUp(c->state) || SCCP_CHANNELSTATE_IsConnected(c->state))) {
-		if (c->calltype == SKINNY_CALLTYPE_INBOUND) {
-			iPbx.set_callstate(c, AST_STATE_UP);
-			c->answer_winner = c->callid;
-			pbx_cond_broadcast(&GLOB(answer_cond));
-		}
-	}
-	pbx_channel_unlock(c->owner);
-	pbx_mutex_unlock(&GLOB(answer_lock));
 	return SCCP_RTP_STATUS_ACTIVE;
 }
 
@@ -1605,17 +1614,6 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 }
 
 /*!
- * helper function to handle answer asynchronously
- * allowing one of multiple phones to answer a huntgroup call
- */
-static void *sccp_channel_openReceiveChannel_wrapper(void *data) {
-	AUTO_RELEASE(sccp_channel_t, c, (sccp_channel_t *)data);
-	if (c) {
-		sccp_channel_openReceiveChannel(c);
-	}
-	return NULL;
-}
-/*!
  * \brief Answer an Incoming Call.
  * \param device SCCP Device who answers
  * \param channel incoming *retained* SCCP channel
@@ -1624,80 +1622,75 @@ static void *sccp_channel_openReceiveChannel_wrapper(void *data) {
  * \callgraph
  * \callergraph
  *
- * \todo sccp_channel_answer should be changed to make the answer action an atomic one. Either using locks or atomics to change the c->state and c->answered_elsewhere
- *       Think of multiple devices on a shared line, whereby two answer the incoming call at exactly the same time.
- *       Adding a mutex for just c->state should not be impossible, be would require quite a bit of lock debugging (again)
- *       Can also be solved atomically by using a CAS32 / ATOMIC_INCR
+ * app_dial is waiting for one of the huntgroup channels to do the following
+ * check any of the ringing device to switch to AST_STATE_UP one by one
+ * if it see the change, it will read then read a single frame
+ * looking for a queued AST_CONTROL_ANSWER
+ * If this is the case, the call is answered and we only have one winner
+ * This process is running in the single thread of the caller, so no locking is required
  */
-void sccp_channel_answer(constDevicePtr device, channelPtr channel)
+static void channel_answer(lineDevicePtr ld, channelPtr c)
 {
-	int timed_out = 0;
-	if (!channel || !channel->line) {
-		pbx_log(LOG_ERROR, "SCCP: (%s) Channel %s has no line\n", __func__, (channel ? channel->designator : 0));
+	if(!c->owner) {
+		pbx_log(LOG_ERROR, "%s: (%s) Channel has no owner.\n", c->designator, __func__);
 		return;
 	}
-	AUTO_RELEASE(sccp_channel_t, c, sccp_channel_retain(channel));
+	sccp_device_t * d = ld->device;
+	sccp_line_t * l = ld->line;
 
-	if(channel->privateData && channel->privateData->device) {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Channel has already been answered\n", DEV_ID_LOG(device), __func__, channel->designator);
-		return;
-	}
-
-	if(!channel->owner) {
-		pbx_log(LOG_ERROR, "%s: (%s) Channel '%s' has no owner.\n", DEV_ID_LOG(device), __func__, channel->designator);
-		return;
-	}
-
-	if(!device) {
-		pbx_log(LOG_ERROR, "%s: (%s) Channel has no device.\n", channel->designator, __func__);
-		return;
-	}
-	// AUTO_RELEASE(sccp_device_t, d , sccp_device_retain((sccp_device_t *) device));
-	AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(device));
-	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(channel->line));
-	if(!d || !l) {
-		pbx_log(LOG_ERROR, "%s: (%s) Could not retain line or device. Giving up.\n", channel->designator, __func__);
-		return;
-	}
-
-	{ /* look if we have a call to put on hold */
-		AUTO_RELEASE(sccp_channel_t, sccp_channel_1 , sccp_device_getActiveChannel(device));
-		if (sccp_channel_1) {
-			/* If there is a ringout or offhook call, we end it so that we can answer the call. */
-			if (sccp_channel_1->state == SCCP_CHANNELSTATE_OFFHOOK || sccp_channel_1->state == SCCP_CHANNELSTATE_RINGOUT) {
-				sccp_channel_endcall(sccp_channel_1);
-			} else if (!sccp_channel_hold(sccp_channel_1)) {
-				pbx_log(LOG_ERROR, "%s: Putting Active Channel %s OnHold failed -> Cancelling new CaLL\n", d->id, l->name);
-				return;
-			}
-		}
-	}
-
-	// note: these locks have to be taken in order and resemble sccp_channel_receiveChannelOpen/sccp_channel_mediaTransmissionStarted
-	SCOPED_MUTEX(answerlock, (ast_mutex_t *)&GLOB(answer_lock));
+	RAII(PBX_CHANNEL_TYPE *, pbx_channel, NULL, pbx_channel_unref);
 	{
-		SCOPED_CHANNELLOCK(channellock, channel->owner);
-		RAII(PBX_CHANNEL_TYPE *, pbx_channel, pbx_channel_ref(channel->owner), pbx_channel_unref);
-
-		if(pbx_channel_state(pbx_channel) == AST_STATE_UP || ast_channel_is_bridged(pbx_channel)) {
-			pbx_log(LOG_NOTICE, "%s: (%s) Channel '%s' already answered elsewhere\n", d->id, __func__, channel->designator);
-			pbx_channel_set_hangupcause(pbx_channel, AST_CAUSE_ANSWERED_ELSEWHERE);
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
-			return;
-		} else if(channel->isHangingUp || pbx_channel_hangupcause(pbx_channel) == AST_CAUSE_ANSWERED_ELSEWHERE || channel->answered_elsewhere) {
-			pbx_log(LOG_NOTICE, "%s: (%s) Channel '%s' already hanging up\n", d->id, __func__, channel->designator);
+		SCOPED_CHANNELLOCK(channellock, c->owner);
+		pbx_channel = pbx_channel_ref(c->owner);
+		if(pbx_check_hangup(pbx_channel) || c->isHangingUp || pbx_channel_hangupcause(pbx_channel) == AST_CAUSE_ANSWERED_ELSEWHERE || c->answered_elsewhere) {
+			pbx_log(LOG_NOTICE, "%s: (%s) Channel '%s' already hanging up\n", d->id, __func__, c->designator);
 			return;
 		}
 	}
 
-	sccp_channel_updateChannelCapability(channel);
-	sccp_channel_setDevice(channel, d);
+	// speed up sccp_channel_syncOpenReceiveChannel process
+	if(!channel_createRtpInstance(d, c, SCCP_RTP_AUDIO)) {
+		return;
+	}
+	sccp_channel_updateChannelCapability(c);
 	sccp_dev_setActiveLine(d, l);
 
-	/** set called party name */
-	AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, l));
-	if(ld) {
-		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Set Called Party\n", d->id, __func__);
+	// sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
+	{
+		sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, SKINNY_RINGDURATION_NORMAL, ld->lineInstance, c->callid);
+		sccp_device_sendcallstate(d, ld->lineInstance, c->callid, SKINNY_CALLSTATE_HOLDYELLOW, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+		sccp_dev_displayprompt(d, ld->lineInstance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
+	}
+	// syncOpenReceiveChannel will set AST_STATE_UP if successfull
+	sccp_log_and((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Attempt to Answer Channel %s\n", d->id, __func__, c->designator);
+	if(pbx_channel_state(pbx_channel) != AST_STATE_UP) {
+		if((sccp_channel_syncOpenReceiveChannel(c) & SCCP_RTP_STATUS_ACTIVE) != SCCP_RTP_STATUS_ACTIVE) {
+			sccp_log_and((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) syncOpenReceiveChannel returned error..\n", d->id, __func__);
+			sccp_device_sendcallstate(d, ld->lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL,
+						  SKINNY_CALLINFO_VISIBILITY_DEFAULT); /** send connected, so it is not listed as missed call */
+			iPbx.set_callstate(c, AST_STATE_DOWN);
+			return;
+		}
+	}
+
+	// let's make sure we are the winner / recheck conditions
+	// sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: (%s) Recheck %s\n", d->id, __func__, c->designator);
+	if(c->isHangingUp || !pbx_channel || pbx_channel_hangupcause(pbx_channel) == AST_CAUSE_ANSWERED_ELSEWHERE || pbx_channel_state(pbx_channel) != AST_STATE_UP) {
+		// sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: (%s) Recheck %s. Already answered by other channel.\n", d->id, __func__, c->designator);
+		sccp_device_sendcallstate(d, ld->lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /** send connected, so it is not listed as missed call */
+		return;
+	}
+
+	// ok we won the answer race
+	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Finished answering channel %s on line %s\n", d->id, c->designator, l->name);
+
+	/* end callforwards if any */
+	sccp_channel_end_forwarding_channel(c);
+	c->subscribers = 1;
+
+	// update called party name
+	{
+		// sccp_log_and((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Set Called Party\n", d->id, __func__);
 		char tmpNumber[StationMaxDirnumSize] = {0};
 		char tmpName[StationMaxNameSize] = {0};
 		if(!sccp_strlen_zero(ld->subscriptionId.number)) {
@@ -1711,88 +1704,26 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 		} else {
 			snprintf(tmpName, StationMaxNameSize, "%s%s", l->cid_name, l->defaultSubscriptionId.name);
 		}
-		iCallInfo.Setter(channel->privateData->callInfo, 
-			SCCP_CALLINFO_CALLEDPARTY_NUMBER, tmpNumber, 
-			SCCP_CALLINFO_CALLEDPARTY_NAME, tmpName,
-			SCCP_CALLINFO_KEY_SENTINEL);
-		iPbx.set_callerid_number(channel->owner, tmpNumber);
-		iPbx.set_callerid_name(channel->owner, tmpName);
+		iCallInfo.Setter(c->privateData->callInfo, SCCP_CALLINFO_CALLEDPARTY_NUMBER, tmpNumber, SCCP_CALLINFO_CALLEDPARTY_NAME, tmpName, SCCP_CALLINFO_KEY_SENTINEL);
+		iPbx.set_callerid_number(pbx_channel, tmpNumber);
+		iPbx.set_callerid_name(pbx_channel, tmpName);
 	}
 
-	// app_dial is waiting for one of the huntgroup channels to do the following
-	// AST_STATE_UP
-	// it will read then read a single frame
-	// looking for AST_CONTROL_ANSWER
-	//
-	// openReceiveChannel + startmediatransmission will set AST_STATE_UP if successfull
-	// it will broadcast back here who ever was the winner
-	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Attempt to Answer Channel %s\n", d->id, __func__, channel->designator);
-	{
-		// indicate SCCP_CHANNELSTATE_CONNECTED indication asynchronously
-		sccp_device_sendcallstate(d, ld->lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/** send connected, so it is not listed as missed call */
-		sccp_threadpool_add_work(GLOB(general_threadpool), sccp_channel_openReceiveChannel_wrapper, (void *)sccp_channel_retain(c));  /* released inside sccp_channel_openReceiveChannel_wrapper */
-
-		// wait for signal to continue from openreceive / startmediatransmission
-		struct timeval relative_timeout = { 2, 0};
-		struct timeval absolute_timeout = ast_tvadd(ast_tvnow(), relative_timeout);
-		struct timespec timeout_arg = {absolute_timeout.tv_sec, absolute_timeout.tv_usec * 1000};
-
-		while (c->answer_winner == 0 && timed_out != ETIMEDOUT) {
-			//pbx_channel_unlock(pbx_channel);
-			timed_out = pbx_cond_timedwait(&GLOB(answer_cond), (ast_mutex_t*)&GLOB(answer_lock), &timeout_arg);
-			//pbx_channel_lock(pbx_channel);
-		}
-		// either openreceive_ack or mediatransmission_ack has signalled and has set c->answer_winner to it's callid
-	}
-
-	// let's make sure we are the winner / recheck conditions
-	// should not be necessary any more, if we add a named_answer_lock
-	{
-		if (timed_out == ETIMEDOUT) {
-			sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) TIMED_OUT(%d) during answer race.\n", d->id, __func__, timed_out);
-			//sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
-			iPbx.set_callstate(c, AST_STATE_DOWN);
-			return;
-		}
-
-		if (c->answer_winner != c->callid) {
-			sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Lost the race to answer this line..\n", d->id, __func__, c->answer_winner);
-			sccp_device_sendcallstate(d, ld->lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/** send connected, so it is not listed as missed call */
-			iPbx.set_callstate(c, AST_STATE_DOWN);
-			return;
-		}
-
-		SCOPED_CHANNELLOCK(channellock, channel->owner);
-		RAII(PBX_CHANNEL_TYPE *, pbx_channel, pbx_channel_ref(channel->owner), pbx_channel_unref);
-		if (pbx_check_hangup(pbx_channel) || !pbx_channel ||pbx_channel != channel->owner || pbx_channel_hangupcause(pbx_channel) == AST_CAUSE_ANSWERED_ELSEWHERE) {
-			//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Already being hungup.\n", d->id, __func__);
-			return;
-		}
-	}
-
-	// ok we won the answer race
-	iPbx.set_callstate(c, AST_STATE_UP);                                        // making sure, in case startmediatransmission is a little slow
-	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Answering channel %s on line %s\n", d->id, channel->designator, l->name);
-
-	/* end callforwards if any */
-	sccp_channel_end_forwarding_channel(channel);
-	channel->subscribers = 1;
-
-	/* set devicevariables */
-	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: (%s) Set Connected Line\n", d->id, __func__);
+	// sccp_log_and((DEBUGCAT_CHANNEL + DEBUGCAT_CORE + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: (%s) Set Connected Line\n", d->id, __func__);
 	char tmpCalledNumber[StationMaxDirnumSize] = { 0 };
 	char tmpCalledName[StationMaxNameSize] = { 0 };
-	iCallInfo.Getter(channel->privateData->callInfo, SCCP_CALLINFO_CALLEDPARTY_NUMBER, &tmpCalledNumber, SCCP_CALLINFO_CALLEDPARTY_NAME, &tmpCalledName, SCCP_CALLINFO_KEY_SENTINEL);
+	iCallInfo.Getter(c->privateData->callInfo, SCCP_CALLINFO_CALLEDPARTY_NUMBER, &tmpCalledNumber, SCCP_CALLINFO_CALLEDPARTY_NAME, &tmpCalledName, SCCP_CALLINFO_KEY_SENTINEL);
+	iPbx.set_connected_line(c, tmpCalledNumber, tmpCalledName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
+	sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 
-	iPbx.set_connected_line(channel, tmpCalledNumber, tmpCalledName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
-
-	/** check for monitor request */
+	// check for monitor request
 	if((d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
 		pbx_log(LOG_NOTICE, "%s: request monitor\n", d->id);
-		sccp_feat_monitor(d, NULL, 0, channel);
+		sccp_feat_monitor(d, NULL, 0, c);
 	}
-	sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
-	iPbx.queue_control(c->owner, AST_CONTROL_ANSWER);
+
+	// Finally send answer to remote channel
+	iPbx.queue_control(pbx_channel, AST_CONTROL_ANSWER);
 
 #ifdef CS_MANAGER_EVENTS
 	if(GLOB(callevents)) {
@@ -1800,8 +1731,8 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 		char tmpCallingName[StationMaxNameSize] = { 0 };
 		char tmpOrigCallingName[StationMaxNameSize] = { 0 };
 		char tmpLastRedirectingName[StationMaxNameSize] = { 0 };
-		iCallInfo.Getter(channel->privateData->callInfo, SCCP_CALLINFO_CALLINGPARTY_NUMBER, &tmpCallingNumber, SCCP_CALLINFO_CALLINGPARTY_NAME, &tmpCallingName, SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER,
-				 &tmpOrigCallingName, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &tmpLastRedirectingName, SCCP_CALLINFO_KEY_SENTINEL);
+		iCallInfo.Getter(c->privateData->callInfo, SCCP_CALLINFO_CALLINGPARTY_NUMBER, &tmpCallingNumber, SCCP_CALLINFO_CALLINGPARTY_NAME, &tmpCallingName, SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &tmpOrigCallingName,
+				 SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &tmpLastRedirectingName, SCCP_CALLINFO_KEY_SENTINEL);
 		manager_event(EVENT_FLAG_CALL, "CallAnswered",
 			      "Channel: %s\r\n"
 			      "SCCPLine: %s\r\n"
@@ -1811,10 +1742,122 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 			      "CallingPartyName: %s\r\n"
 			      "originalCallingParty: %s\r\n"
 			      "lastRedirectingParty: %s\r\n",
-			      channel->designator, l->name, d->id, iPbx.getChannelUniqueID(channel), tmpCallingNumber, tmpCallingName, tmpOrigCallingName, tmpLastRedirectingName);
+			      c->designator, l->name, d->id, iPbx.getChannelUniqueID(c), tmpCallingNumber, tmpCallingName, tmpOrigCallingName, tmpLastRedirectingName);
 	}
 #endif
-	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Answered channel %s on line %s\n", d->id, channel->designator, l->name);
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Answered channel %s on line %s\n", d->id, c->designator, l->name);
+}
+
+/*!
+ * \brief SCCP Structure to pass data to the pbx answer thread
+ */
+typedef struct sccp_answer_conveyor_struct {
+	sccp_linedevice_t * ld;
+	sccp_channel_t * channel;
+	boolean_t autoanswer;
+} sccp_answer_conveyor_t;
+
+/*!
+ * \brief Call Answer Thead
+ * \param data Data
+ *
+ * The Answer thread is started by ref sccp_channel_answer (and ref sccp_pbx_call if necessary)
+ */
+static void * sccp_channel_answer_thread(void * data)
+{
+	struct sccp_answer_conveyor_struct * conveyor = (struct sccp_answer_conveyor_struct *)data;
+	if(!conveyor) {
+		return NULL;
+	}
+	if(!conveyor->ld) {
+		goto FINAL;
+	}
+	AUTO_RELEASE(sccp_linedevice_t, ld, conveyor->ld);
+	if(!conveyor->channel) {
+		goto FINAL;
+	}
+	AUTO_RELEASE(sccp_channel_t, c, conveyor->channel);
+	if(conveyor->autoanswer) {
+		sleep(GLOB(autoanswer_ring_time));
+	}
+	pthread_testcancel();
+	{
+		if(c->state != SCCP_CHANNELSTATE_RINGING) {
+			goto FINAL;
+		}
+
+		channel_answer(ld, c);
+
+		if(conveyor->autoanswer) {
+			if(GLOB(autoanswer_tone) != SKINNY_TONE_SILENCE && GLOB(autoanswer_tone) != SKINNY_TONE_NOTONE) {
+				sccp_dev_starttone(ld->device, GLOB(autoanswer_tone), ld->lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+			}
+			if(c->autoanswer_type == SCCP_AUTOANSWER_1W) {
+				sccp_dev_set_microphone(ld->device, SKINNY_STATIONMIC_OFF);
+			}
+		}
+	}
+FINAL:
+	sccp_free(conveyor);
+	return NULL;
+}
+
+/*!
+ * \brief Schedule an Incoming Call to be answered (Async/Await).
+ * \param device SCCP Device who answers
+ * \param channel incoming *retained* SCCP channel
+ * \todo handle codec choose
+ *
+ * \callgraph
+ * \callergraph
+ *
+ * Calls have to be answered in a separate thread so we can wait for syncOpenReceiveChannel to finish
+ */
+void sccp_channel_answer(constDevicePtr d, channelPtr c)
+{
+	if(!c || !c->line || !c->owner) {
+		pbx_log(LOG_ERROR, "SCCP: (%s) Channel %s has no line\n", __func__, (c ? c->designator : 0));
+		return;
+	}
+	if(c->answer_thread != AST_PTHREADT_STOP) {
+		pbx_log(LOG_ERROR, "SCCP: (%s) Channel %s already answering\n", __func__, c->designator);
+	}
+	if(c->privateData && c->privateData->device) {
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Channel has already been answered\n", c->designator, __func__);
+		return;
+	}
+	if(!d) {
+		pbx_log(LOG_ERROR, "%s: (%s) Could not retain device. Giving up.\n", c->designator, __func__);
+		return;
+	}
+	AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, c->line));
+	if(!ld) {
+		pbx_log(LOG_ERROR, "%s: (%s) Could not retain linedevice. Giving up.\n", c->designator, __func__);
+		return;
+	}
+	{                                        // look if we have a call to put on hold
+		AUTO_RELEASE(sccp_channel_t, sccp_channel_1, sccp_device_getActiveChannel(ld->device));
+		if(sccp_channel_1) {
+			/* If there is a ringout or offhook call, we end it so that we can answer the call. */
+			if(sccp_channel_1->state == SCCP_CHANNELSTATE_OFFHOOK || sccp_channel_1->state == SCCP_CHANNELSTATE_RINGOUT) {
+				sccp_channel_endcall(sccp_channel_1);
+			} else if(!sccp_channel_hold(sccp_channel_1)) {
+				pbx_log(LOG_ERROR, "%s: Putting Active Channel %s OnHold failed -> Cancelling new CaLL\n", ld->device->id, c->line->name);
+				return;
+			}
+		}
+	}
+	sccp_channel_setDevice(c, d);
+	sccp_answer_conveyor_t * conveyor = (sccp_answer_conveyor_t *)sccp_calloc(1, sizeof(sccp_answer_conveyor_t));
+	if(conveyor) {
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Running the answer thread on %s\n", DEV_ID_LOG(ld->device), iPbx.getChannelName(c));
+		conveyor->ld = sccp_linedevice_retain(ld);                                         // released by conveyor
+		conveyor->channel = sccp_channel_retain(c);                                        // released by conveyor
+		conveyor->autoanswer = c->autoanswer_type;
+		pbx_pthread_create_background(&c->answer_thread, NULL, sccp_channel_answer_thread, (void *)conveyor);
+	} else {
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, c->designator);
+	}
 }
 
 /*!
@@ -2194,7 +2237,6 @@ int __sccp_channel_destroy(const void * data)
 		pbx_log(LOG_NOTICE, "SCCP: channel destructor called with NULL pointer\n");
 		return -1;
 	}
-
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Destroying channel %s\n", channel->designator);
 	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 	if (d) {
@@ -2237,6 +2279,12 @@ int __sccp_channel_destroy(const void * data)
 
 #ifndef SCCP_ATOMIC
 	pbx_mutex_destroy(&channel->scheduler.lock);
+#endif
+	pbx_mutex_destroy(&channel->rtp.audio.lock);
+	pbx_cond_destroy(&channel->rtp.audio.cond);
+#ifdef SCCP_VIDEO
+	pbx_mutex_destroy(&channel->rtp.audio.lock);
+	pbx_cond_detroy(&channel->rtp.audio.cond);
 #endif
 	//ast_mutex_destroy(&channel->lock);
 	return 0;

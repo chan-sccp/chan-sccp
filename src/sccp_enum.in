@@ -189,6 +189,7 @@ enum rtp_status {
 	SCCP_RTP_STATUS_INACTIVE, 			=0,	"Rtp Inactive",
 	SCCP_RTP_STATUS_PROGRESS, 			=1<<0,	"Rtp In Progress",
 	SCCP_RTP_STATUS_ACTIVE,				=1<<1,	"Rtp Active",
+	SCCP_RTP_STATUS_ERROR,				=1<<2,	"Rtp Error",
 }
 
 strenum rtp_type {

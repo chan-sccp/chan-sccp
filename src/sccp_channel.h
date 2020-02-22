@@ -107,8 +107,7 @@ struct sccp_channel {
 
 	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */
 	uint16_t autoanswer_cause;										/*!< Auto Answer Cause */
-
-	uint32_t answer_winner;
+	pthread_t answer_thread;
 
 #if ASTERISK_VERSION_GROUP >= 111
 	int16_t pbx_callid_created;
@@ -139,6 +138,7 @@ SCCP_API void SCCP_CALL sccp_channel_set_calledparty(constChannelPtr channel, co
 SCCP_API boolean_t SCCP_CALL sccp_channel_set_originalCalledparty(constChannelPtr channel, char * name, char * number);
 SCCP_API void SCCP_CALL sccp_channel_set_calleridPresentation(constChannelPtr channel, sccp_callerid_presentation_t presentation);
 
+uint16_t sccp_channel_syncOpenReceiveChannel(constChannelPtr channel);
 SCCP_API void SCCP_CALL sccp_channel_openReceiveChannel(constChannelPtr channel);
 SCCP_API int SCCP_CALL sccp_channel_receiveChannelOpen(devicePtr d, channelPtr c);
 SCCP_API void SCCP_CALL sccp_channel_closeReceiveChannel(constChannelPtr channel, boolean_t KeepPortOpen);
@@ -173,7 +173,7 @@ SCCP_INLINE void SCCP_CALL sccp_channel_stop_schedule_cfwd_noanswer(constChannel
 SCCP_API void SCCP_CALL sccp_channel_end_forwarding_channel(channelPtr orig_channel);
 SCCP_API void SCCP_CALL sccp_channel_endcall(channelPtr channel);
 SCCP_API void SCCP_CALL sccp_channel_StatisticsRequest(constChannelPtr channel);
-SCCP_API void SCCP_CALL sccp_channel_answer(constDevicePtr device, channelPtr channel);
+SCCP_API void SCCP_CALL sccp_channel_answer(constDevicePtr d, channelPtr c);
 SCCP_API void SCCP_CALL sccp_channel_stop_and_deny_scheduled_tasks(constChannelPtr channel);
 SCCP_API void SCCP_CALL sccp_channel_addCleanupJob(channelPtr c, void *(*function_p) (void *), void *arg_p);
 SCCP_API void SCCP_CALL sccp_channel_clean(channelPtr channel);

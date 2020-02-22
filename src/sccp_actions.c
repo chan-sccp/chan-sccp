@@ -3392,7 +3392,7 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 	uint32_t callReference = 0;
 
 	uint32_t passThruPartyId = 0;
-	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
+	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE | SCCP_RTP_STATUS_ERROR;
 
 	struct sockaddr_storage sas = { 0 };
 	d->protocol->parseOpenReceiveChannelAck(msg_in, &mediastatus, &sas, &passThruPartyId, &callReference);
@@ -3408,21 +3408,23 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 				break;
 			case SKINNY_MEDIASTATUS_DeviceOnHook:
 				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (OpenReceiveChannelAck) Device already hungup. Giving up.\n", d->id);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+				resultingChannelState |= sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
 				break;
 			case SKINNY_MEDIASTATUS_OutOfChannels:
 			case SKINNY_MEDIASTATUS_OutOfSockets:
 				pbx_log(LOG_NOTICE, "%s: Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
-				sccp_channel_endcall(channel);
+				resultingChannelState |= sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
 				break;
 			default:
 				pbx_log(LOG_ERROR, "%s: Device returned: '%s' (%d) !. Giving up.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
-				sccp_channel_endcall(channel);
+				resultingChannelState |= sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
 				break;
 		}
-		channel->rtp.audio.reception.state = resultingChannelState;
+		sccp_rtp_t * rtp = (sccp_rtp_t *)&(channel->rtp.audio);
+		pbx_mutex_lock(&rtp->lock);
+		rtp->reception.state = resultingChannelState;
+		pbx_cond_signal(&rtp->cond);
+		pbx_mutex_unlock(&rtp->lock);
 	} else {
 		// we successfully opened receive channel, but have no channel active -> close receive (maybe the call was already (being) terminated)
 		if (mediastatus == SKINNY_MEDIASTATUS_Ok) {

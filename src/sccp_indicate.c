@@ -318,12 +318,10 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 			break;
 		case SCCP_CHANNELSTATE_CONNECTED:
 			{
-				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
 				if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
 					sccp_channel_openReceiveChannel(c);
-				} else {
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_channelstate2str(c->previousChannelState));
 				}
+				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_CONNECTED);
 			}
 			break;

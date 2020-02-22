@@ -156,9 +156,6 @@ struct sccp_global_vars {
 	int token_backoff_time;											/*!< Backoff time on TokenReject */
 	int server_priority;											/*!< Server Priority to fallback to */
 
-	pbx_mutex_t answer_lock;
-	pbx_cond_t answer_cond;
-
 	boolean_t reload_in_progress;										/*!< Reload in Progress */
 	boolean_t pendingUpdate;
 };														/*!< SCCP Global Varable Structure */
