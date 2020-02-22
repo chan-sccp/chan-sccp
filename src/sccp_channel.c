@@ -1819,9 +1819,6 @@ void sccp_channel_answer(constDevicePtr d, channelPtr c)
 		pbx_log(LOG_ERROR, "SCCP: (%s) Channel %s has no line\n", __func__, (c ? c->designator : 0));
 		return;
 	}
-	if(c->answer_thread != AST_PTHREADT_STOP) {
-		pbx_log(LOG_ERROR, "SCCP: (%s) Channel %s already answering\n", __func__, c->designator);
-	}
 	if(c->privateData && c->privateData->device) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Channel has already been answered\n", c->designator, __func__);
 		return;

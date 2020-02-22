@@ -217,14 +217,15 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 
 			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (perform_pickup) channel:%s, modeanser: %s\n", DEV_ID_LOG(d), c->designator, answer ? "yes" : "no");
 			if (answer) {
-				sccp_channel_setDevice(c, d);
-				sccp_dev_setActiveLine((sccp_device_t *)d, c->line);
+				// sccp_channel_setDevice(c, d);
+				// sccp_dev_setActiveLine((sccp_device_t *)d, c->line);
 
 				/* emulate previous indications, before signalling connected */
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-				sccp_dev_set_cplane(d, lineInstance, 1);
+				// sccp_dev_set_cplane(d, lineInstance, 1);
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+				// sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+				sccp_channel_answer(d, c);
 			} else {
 				/* remove previous call plane, used to dial pickup extension */
 				sccp_dev_deactivate_cplane(d);
