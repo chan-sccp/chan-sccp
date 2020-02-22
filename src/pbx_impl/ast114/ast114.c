@@ -952,7 +952,7 @@ static PBX_FRAME_TYPE *sccp_astwrap_rtp_read(PBX_CHANNEL_TYPE * ast)
 #endif
 			break;
 		default:
-			pbx_log(LOG_ERROR, "SCCP: (rtp_read) Unknown Frame Type: %d\n", ast_channel_fdno(ast));
+			// pbx_log(LOG_NOTICE, "%s: (rtp_read) Unknown Frame Type (%d). Skipping\n", c->designator, ast_channel_fdno(ast));
 			goto EXIT_FUNC;
 	}
 	//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast_channel_fdno(ast), frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
@@ -976,6 +976,12 @@ static PBX_FRAME_TYPE *sccp_astwrap_rtp_read(PBX_CHANNEL_TYPE * ast)
 				ast_set_write_format(ast, ast_channel_writeformat(ast));
 			}
 		}
+	}
+
+	/* Only allow audio through if they sent progress, or if the channel is actually answered */
+	if(frame && frame->frametype == AST_FRAME_VOICE && ((c->rtp.audio.reception.state & SCCP_RTP_STATUS_ACTIVE) != SCCP_RTP_STATUS_ACTIVE) && pbx_channel_state(ast) != AST_STATE_UP) {
+		ast_frfree(frame);
+		frame = &ast_null_frame;
 	}
 
 EXIT_FUNC:
