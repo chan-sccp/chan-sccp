@@ -160,7 +160,7 @@ SCCP_API void SCCP_CALL sccp_channel_stopMultiMediaTransmission(constChannelPtr 
 SCCP_API void SCCP_CALL sccp_channel_updateMultiMediaTransmission(constChannelPtr channel);
 #endif
 
-SCCP_API sccp_rtp_status_t SCCP_CALL sccp_channel_closeAllMediaTransmitAndReceive(constDevicePtr d, constChannelPtr channel);
+SCCP_API sccp_rtp_status_t SCCP_CALL sccp_channel_closeAllMediaTransmitAndReceive(constChannelPtr channel);
 
 SCCP_API boolean_t SCCP_CALL sccp_channel_transfer_on_hangup(constChannelPtr channel);
 SCCP_INLINE void SCCP_CALL sccp_channel_stop_schedule_digittimout(constChannelPtr channel);

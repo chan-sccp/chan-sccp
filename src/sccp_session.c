@@ -54,6 +54,7 @@ static int accept_sock = -1;
 #define sccp_session_lock(x)			pbx_mutex_lock(&(x)->lock)
 #define sccp_session_unlock(x)			pbx_mutex_unlock(&(x)->lock)
 #define sccp_session_trylock(x)			pbx_mutex_trylock(&(x)->lock)
+#define SCOPED_SESSION(x)                       SCOPED_MUTEX(sessionlock, (ast_mutex_t *)&(x)->lock);
 /* */
 
 void sccp_session_device_thread_exit(void *session);
@@ -82,6 +83,8 @@ struct sccp_session {
 	struct sockaddr_storage ourip;										/*!< Our IP is for rtp use */
 	struct sockaddr_storage ourIPv4;
 	char designator[40];
+	uint16_t requestsInFlight;
+	pbx_cond_t pendingRequest;
 };														/*!< SCCP Session Structure */
 
 boolean_t sccp_session_getOurIP(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage, int family)
@@ -143,6 +146,43 @@ int sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr
 	return -2;
 }
 
+void sccp_session_waitForPendingRequests(sccp_session_t * s)
+{
+	struct timeval timeout_val = ast_tvadd(ast_tvnow(), ast_samp2tv(0, 1000));
+	struct timespec timeout_spec = {
+		.tv_sec = timeout_val.tv_sec,
+		.tv_nsec = timeout_val.tv_usec * 1000,
+	};
+
+	SCOPED_SESSION(s);
+	while(s->requestsInFlight) {
+		pbx_log(LOG_NOTICE, "%s: Waiting for %d Pending Requests!\n", s->designator, s->requestsInFlight);
+		if(pbx_cond_timedwait(&s->pendingRequest, &s->lock, &timeout_spec) == ETIMEDOUT) {
+			pbx_log(LOG_NOTICE, "%s: waitForPendingRequests timed out!\n", s->designator);
+			break;
+		}
+	}
+}
+
+uint16_t sccp_session_getPendingRequests(sccp_session_t * s)
+{
+	SCOPED_SESSION(s);
+	return s->requestsInFlight;
+}
+
+static void request_pending(sccp_session_t * s)
+{
+	SCOPED_SESSION(s);
+	s->requestsInFlight++;
+}
+
+static void response_received(sccp_session_t * s)
+{
+	SCOPED_SESSION(s);
+	s->requestsInFlight--;
+	pbx_cond_broadcast(&s->pendingRequest);
+}
+
 static void socket_get_error(constSessionPtr s, const char * file, int line, const char * function)
 {
 	if (errno) {
@@ -183,23 +223,17 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 			break;
 		}
 
-		const struct messagetype * msgtype = NULL;
-		if (messageId <= SCCP_MESSAGE_HIGH_BOUNDARY) {
-			msgtype = &sccp_messagetypes[messageId];
-			if (msgtype->messageId == messageId) {
-				return msgtype->size + SCCP_PACKET_HEADER;
+		struct messageinfo * msginfo = lookupMsgInfoStruct(messageId);
+		if(msginfo) {
+			if(msginfo->messageId != messageId) {
+				pbx_log(LOG_ERROR, "%s: (session_dissect_header) messageId %d (0x%x) unknown. matched:0x%x discarding message.\n", DEV_ID_LOG(s->device), messageId, messageId, msginfo->messageId);
+				break;
 			}
-			pbx_log(LOG_ERROR, "%s: (session_dissect_header) messageId %d (0x%x) unknown. discarding message.\n", DEV_ID_LOG(s->device), messageId, messageId);
-			break;
-		} else if (messageId >= SPCP_MESSAGE_LOW_BOUNDARY && messageId <= SPCP_MESSAGE_HIGH_BOUNDARY) {
-			msgtype = &spcp_messagetypes[messageId - SPCP_MESSAGE_OFFSET];
-			if (msgtype->messageId == messageId) {
-				return msgtype->size + SCCP_PACKET_HEADER;
+			if(msginfo->type == SKINNY_MSGTYPE_RESPONSE) {
+				response_received(s);
+				sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Response '%s' Received\n", DEV_ID_LOG(s->device), msginfo->text);
 			}
-			pbx_log(LOG_ERROR, "%s: (session_dissect_header) messageId %d (0x%x) unknown. discarding message.\n", DEV_ID_LOG(s->device), messageId, messageId);
-			break;
-		} else {
-			pbx_log(LOG_ERROR, "%s: (session_dissect_header) messageId out of bounds: %d < %u > %d. Or messageId unknown. discarding message.\n", DEV_ID_LOG(s->device), SCCP_MESSAGE_LOW_BOUNDARY, messageId, SPCP_MESSAGE_HIGH_BOUNDARY);
+			result = msginfo->size + SCCP_PACKET_HEADER;
 			break;
 		}
 	} while (0);
@@ -494,6 +528,7 @@ static void destroy_session(sccp_session_t * s)
 		/* destroying mutex and cleaning the session */
 		sccp_mutex_destroy(&s->lock);
 		sccp_mutex_destroy(&s->write_lock);
+		pbx_cond_destroy(&s->pendingRequest);
 		sccp_free(s);
 		s = NULL;
 	}
@@ -751,6 +786,7 @@ static sccp_session_t * sccp_create_session(int new_socket)
 	}
 
 	sccp_mutex_init(&s->lock);
+	pbx_cond_init(&s->pendingRequest, NULL);
 	sccp_mutex_init(&s->write_lock);
 
 	s->fds[0].events = POLLIN | POLLPRI;
@@ -1022,7 +1058,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 	uint8_t * bufAddr = NULL;
 
 	if (s && s->session_stop) {
-		return -1;
+		return -2;
 	}
 
 	if (!s || s->fds[0].fd <= 0) {
@@ -1032,7 +1068,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 		}
 		sccp_free(msg);
 		msg = NULL;
-		return -1;
+		return -3;
 	}
 	int mysocket = s->fds[0].fd;
 
@@ -1042,17 +1078,26 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 		msg->header.lel_protocolVer = s->device->protocol->version < 10 ? 0 : htolel(s->device->protocol->version);
 	}
 
-	if (msg && (GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {
-		sccp_mid_t mid = letohl(msg->header.lel_messageId);
-
-		pbx_log(LOG_NOTICE, "%s: Send Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(s->device), msgtype2str(mid), mid, msg->header.length);
-		sccp_dump_msg(msg);
-	}
-
 	uint backoff = WRITE_BACKOFF;
 	bytesSent = 0;
 	bufAddr = ((uint8_t *) msg);
 	bufLen = (ssize_t) (letohl(msg->header.length) + 8);
+
+	struct messageinfo * msginfo = lookupMsgInfoStruct(msgid);
+	if(msginfo) {
+		if(msginfo->messageId != msgid) {
+			pbx_log(LOG_ERROR, "%s: (session_send2) messageId %d (0x%x) unknown. matched:0x%x discarding message.\n", DEV_ID_LOG(s->device), msgid, msgid, msginfo->messageId);
+			return -4;
+		}
+		if(msginfo->type == SKINNY_MSGTYPE_REQUEST) {
+			request_pending(s);
+			sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Request '%s' to device Pending\n", DEV_ID_LOG(s->device), msginfo->text);
+		}
+		if((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {
+			pbx_log(LOG_NOTICE, "%s: Sending Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(s->device), msginfo->text, msgid, msg->header.length);
+			sccp_dump_msg(msg);
+		}
+	}
 	do {
 		pbx_mutex_lock(&s->write_lock);									/* prevent two threads writing at the same time. That should happen in a synchronized way */
 		res = send(mysocket, bufAddr + bytesSent, bufLen - bytesSent, 0);
@@ -1287,20 +1332,21 @@ int sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession 
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 														\
 		}																\
-		sccp_session_unlock(session);													\
+		sccp_session_unlock(session);
 
-#define CLI_AMI_TABLE_FIELDS 															\
-		CLI_AMI_TABLE_FIELD(Socket,		"-6",		d,	6,	session->fds[0].fd)					\
-		CLI_AMI_TABLE_FIELD(IP,			"40.40",	s,	40,	clientAddress)						\
-		CLI_AMI_TABLE_FIELD(Port,		"-5",		d,	5,	sccp_netsock_getPort(&session->sin) )    		\
-               CLI_AMI_TABLE_FIELD(KALST,              "-5",           d,      5,      (uint32_t) (time(0) - session->lastKeepAlive))          \
-               CLI_AMI_TABLE_FIELD(KAINT,              "-5",           d,      5,      (d ? d->keepaliveinterval : session->keepAliveInterval))\
-		CLI_AMI_TABLE_FIELD(KAMAX,		"-5",		d,	5,	session->keepAlive)					\
-		CLI_AMI_TABLE_FIELD(DeviceName,		"15",		s,	15,	(d) ? d->id : "--")					\
-		CLI_AMI_TABLE_FIELD(State,		"-14.14",	s,	14,	(d) ? sccp_devicestate2str(sccp_device_getDeviceState(d)) : "--")		\
-		CLI_AMI_TABLE_FIELD(Type,		"-15.15",	s,	15,	(d) ? skinny_devicetype2str(d->skinny_type) : "--")	\
-		CLI_AMI_TABLE_FIELD(RegState,		"-10.10",	s,	10,	(d) ? skinny_registrationstate2str(sccp_device_getRegistrationState(d)) : "--")	\
-		CLI_AMI_TABLE_FIELD(Token,		"-10.10",	s,	10,	d ? sccp_tokenstate2str(d->status.token) : "--")
+#define CLI_AMI_TABLE_FIELDS                                                                                                           \
+	CLI_AMI_TABLE_FIELD(Socket, "-6", d, 6, session->fds[0].fd)                                                                    \
+	CLI_AMI_TABLE_FIELD(IP, "40.40", s, 40, clientAddress)                                                                         \
+	CLI_AMI_TABLE_FIELD(Port, "-5", d, 5, sccp_netsock_getPort(&session->sin))                                                     \
+	CLI_AMI_TABLE_FIELD(KALST, "-5", d, 5, (uint32_t)(time(0) - session->lastKeepAlive))                                           \
+	CLI_AMI_TABLE_FIELD(KAINT, "-5", d, 5, (d ? d->keepaliveinterval : session->keepAliveInterval))                                \
+	CLI_AMI_TABLE_FIELD(KAMAX, "-5", d, 5, session->keepAlive)                                                                     \
+	CLI_AMI_TABLE_FIELD(DeviceName, "15", s, 15, (d) ? d->id : "--")                                                               \
+	CLI_AMI_TABLE_FIELD(State, "-14.14", s, 14, (d) ? sccp_devicestate2str(sccp_device_getDeviceState(d)) : "--")                  \
+	CLI_AMI_TABLE_FIELD(Type, "-15.15", s, 15, (d) ? skinny_devicetype2str(d->skinny_type) : "--")                                 \
+	CLI_AMI_TABLE_FIELD(RegState, "-10.10", s, 10, (d) ? skinny_registrationstate2str(sccp_device_getRegistrationState(d)) : "--") \
+	CLI_AMI_TABLE_FIELD(Token, "-10.10", s, 10, d ? sccp_tokenstate2str(d->status.token) : "--")                                   \
+	CLI_AMI_TABLE_FIELD(Req, "-3", d, 3, session->requestsInFlight)
 #include "sccp_cli_table.h"
 
 	if (s) {

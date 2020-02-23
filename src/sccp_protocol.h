@@ -3390,15 +3390,18 @@ struct sccp_msg {
  * \brief SCCP Message Type Structure
  */
 #define offsize(TYPE, MEMBER) sizeof(((TYPE *)0)->MEMBER)
-struct messagetype {
+struct messageinfo {
 	sccp_mid_t messageId;	
 	const char *const text;
 	const size_t size;
+	skinny_msgType_t type;
+	skinny_msgDirection_t direction;
 };
 
-extern const struct messagetype sccp_messagetypes[];
-extern const struct messagetype spcp_messagetypes[];
-SCCP_INLINE const char * SCCP_CALL msgtype2str(sccp_mid_t msgId);
+extern const struct messageinfo sccp_messageinfo[];
+extern const struct messageinfo spcp_messageinfo[];
+SCCP_INLINE struct messageinfo * SCCP_CALL lookupMsgInfoStruct(uint32_t messageId);
+SCCP_INLINE const char * SCCP_CALL msginfo2str(sccp_mid_t msgId);
 
 /*!
  * \brief SCCP Device Protocol Callback Structure

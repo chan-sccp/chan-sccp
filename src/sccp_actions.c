@@ -121,7 +121,7 @@ gcc_inline static devicePtr check_session_message_device(constSessionPtr s, cons
 
 	if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE)) != 0) {
 		sccp_mid_t mid = letohl(msg->header.lel_messageId);
-		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", sccp_session_getDesignator(s), msgtype2str(mid), mid, msg->header.length);
+		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", sccp_session_getDesignator(s), msginfo2str(mid), mid, msg->header.length);
 		sccp_dump_msg(msg);
 	}
 
@@ -238,11 +238,11 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 		handle_unknown_message(s, NULL, msg);
 		return 0;
 	}
-	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (0x%X)\n", sccp_session_getDesignator(s), msgtype2str(mid), mid);
+	sccp_log((DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_3 "%s: >> Got message %s (0x%X)\n", sccp_session_getDesignator(s), msginfo2str(mid), mid);
 
-	AUTO_RELEASE(sccp_device_t, device, check_session_message_device(s, msg, msgtype2str(mid), messageMap_cb->deviceIsNecessary));
+	AUTO_RELEASE(sccp_device_t, device, check_session_message_device(s, msg, msginfo2str(mid), messageMap_cb->deviceIsNecessary));
 	if (messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !device) {
-		pbx_log(LOG_ERROR, "SCCP: Device is required to handle this message %s(%x), but none is provided. Exiting sccp_handle_message\n", msgtype2str(mid), mid);
+		pbx_log(LOG_ERROR, "SCCP: Device is required to handle this message %s(%x), but none is provided. Exiting sccp_handle_message\n", msginfo2str(mid), mid);
 		return -3;
 	}
 	if (messageMap_cb->messageHandler_cb) {
@@ -322,7 +322,7 @@ void handle_unknown_message(constSessionPtr no_s, devicePtr no_d, constMessagePt
 {
 	sccp_mid_t mid = letohl(msg_in->header.lel_messageId);
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
-		pbx_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", msgtype2str(mid), mid, msg_in->header.length);
+		pbx_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", msginfo2str(mid), mid, msg_in->header.length);
 		sccp_dump_msg(msg_in);
 	}
 }
@@ -446,7 +446,7 @@ void handle_XMLAlarmMessage(constSessionPtr s, devicePtr no_d, constMessagePtr m
 		 */
 	}
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
-		pbx_log(LOG_WARNING, "SCCP XMLAlarm Message: %s(0x%04X) %d bytes length\n", msgtype2str(mid), mid, msg_in->header.length);
+		pbx_log(LOG_WARNING, "SCCP XMLAlarm Message: %s(0x%04X) %d bytes length\n", msginfo2str(mid), mid, msg_in->header.length);
 		sccp_dump_msg(msg_in);
 	}
 }
@@ -3408,17 +3408,17 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 				break;
 			case SKINNY_MEDIASTATUS_DeviceOnHook:
 				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (OpenReceiveChannelAck) Device already hungup. Giving up.\n", d->id);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel);
 				break;
 			case SKINNY_MEDIASTATUS_OutOfChannels:
 			case SKINNY_MEDIASTATUS_OutOfSockets:
 				pbx_log(LOG_NOTICE, "%s: Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel);
 				sccp_channel_endcall(channel);
 				break;
 			default:
 				pbx_log(LOG_ERROR, "%s: Device returned: '%s' (%d) !. Giving up.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel);
 				sccp_channel_endcall(channel);
 				break;
 		}
@@ -3467,17 +3467,17 @@ void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessa
 				break;
 			case SKINNY_MEDIASTATUS_DeviceOnHook:
 				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (startMediaTransmissionAck) Device already hungup. Giving up.\n", d->id);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel);
 				break;
 			case SKINNY_MEDIASTATUS_OutOfChannels:
 			case SKINNY_MEDIASTATUS_OutOfSockets:
 				pbx_log(LOG_NOTICE, "%s: Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel);
 				sccp_channel_endcall(channel);
 				break;
 			default:
 				pbx_log(LOG_ERROR, "%s: Device returned: '%s' (%d) !. Giving up.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel);
 				sccp_channel_endcall(channel);
 				break;
 		}

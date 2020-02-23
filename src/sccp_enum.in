@@ -1037,6 +1037,18 @@ enum ipAddr {
 	SKINNY_IPADDR_INVALID,			=0x3,	"Ip Invalid",
 }
 
+enum msgType {
+	SKINNY_MSGTYPE_EVENT,			,0x0	"Event",
+	SKINNY_MSGTYPE_REQUEST,			,	"Request",
+	SKINNY_MSGTYPE_RESPONSE,		,	"Response",
+}
+enum msgDirection {
+	SKINNY_MSGDIRECTION_UNKNOWN,		=0x0,	"Unknown",
+	SKINNY_MSGDIRECTION_DEV2PBX,		,	"Dev2Pbx",
+	SKINNY_MSGDIRECTION_PBX2DEV,		,	"Pbx2Dev",
+	SKINNY_MSGDIRECTION_BIDIR,		,	"BiDirectional",
+}
+
 } /* NAMESPACE skinny */
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

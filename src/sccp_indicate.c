@@ -337,7 +337,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 			break;
 		case SCCP_CHANNELSTATE_HOLD:
 			{
-				sccp_channel_closeAllMediaTransmitAndReceive(d, c);
+				sccp_channel_closeAllMediaTransmitAndReceive(c);
 				if (d->session) {
 					sccp_handle_time_date_req(d->session, d, NULL);
 				}
@@ -424,7 +424,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 			{
 				/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_UNKNOWN_NUMBER, GLOB(digittimeout));
-				sccp_channel_closeAllMediaTransmitAndReceive(d, c);
+				sccp_channel_closeAllMediaTransmitAndReceive(c);
 				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 				sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);			// wait 15 seconds, then hangup automatically
 			}

@@ -541,6 +541,9 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 	c->isHangingUp = TRUE;
 
 	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
+	if(d && d->session) {
+		sccp_session_waitForPendingRequests(d->session);
+	}
 
 	if (d && !SCCP_CHANNELSTATE_Idling(c->state) && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d)) {
 		// if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_device_getActiveChannel_nolock(d))	/* Caused active channels never to be full released */
@@ -562,7 +565,7 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 	}
 #endif														// CS_SCCP_CONFERENCE
 	if (c->rtp.audio.instance || c->rtp.video.instance) {
-		sccp_channel_closeAllMediaTransmitAndReceive(d, c);
+		sccp_channel_closeAllMediaTransmitAndReceive(c);
 	}
 
 	// removing scheduled dialing
