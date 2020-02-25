@@ -30,7 +30,8 @@ struct sccp_channel {
 	sccp_channelstate_t previousChannelState;								/*!< Previous channel state SCCP_CHANNELSTATE_* */
 	sccp_channelstatereason_t channelStateReason;								/*!< Reason the new/current state was set (for example to handle HOLD differently for transfer then normal) */
 	skinny_calltype_t calltype;										/*!< Skinny Call Type as SKINNY_CALLTYPE_* */
-	
+	sccp_mutex_t lock;
+
 	PBX_CHANNEL_TYPE *owner;										/*!< Asterisk Channel Owner */
 	sccp_line_t * const line;										/*!< SCCP Line */
 	SCCP_LIST_ENTRY (sccp_channel_t) list;									/*!< Channel Linked List */
@@ -122,6 +123,7 @@ struct sccp_selectedchannel {
 };														/*!< SCCP Selected Channel Structure */
 /* live cycle */
 SCCP_API channelPtr SCCP_CALL sccp_channel_allocate(constLinePtr l, constDevicePtr device);			// device is optional
+SCCP_API PBX_CHANNEL_TYPE * SCCP_CALL sccp_channel_lock_full(channelPtr c);
 SCCP_API channelPtr SCCP_CALL sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, skinny_calltype_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);	// retrieve or allocate new channel
 SCCP_API channelPtr SCCP_CALL sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, skinny_calltype_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
 

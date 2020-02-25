@@ -239,6 +239,36 @@ void sccp_rtp_destroy(constChannelPtr c)
 	}
 }
 
+sccp_rtp_status_t sccp_rtp_get_state(rtpPtr rtp, sccp_rtp_direction_t * direction);
+void sccp_rtp_append_state(rtpPtr rtp, sccp_rtp_direction_t * direction, sccp_rtp_status_t state);
+void sccp_rtp_subtract_state(rtpPtr rtp, sccp_rtp_direction_t * direction, sccp_rtp_status_t state);
+void sccp_rtp_set_state(rtpPtr rtp, sccp_rtp_direction_t * direction, sccp_rtp_status_t newstate);
+
+sccp_rtp_status_t sccp_rtp_get_state(rtpPtr rtp, sccp_rtp_direction_t * direction)
+{
+	SCOPED_MUTEX(audiolock, (ast_mutex_t *)&rtp->lock);
+	return direction->state;
+}
+void sccp_rtp_append_state(rtpPtr rtp, sccp_rtp_direction_t * direction, sccp_rtp_status_t state)
+{
+	SCOPED_MUTEX(audiolock, (ast_mutex_t *)&rtp->lock);
+	direction->state |= state;
+}
+void sccp_rtp_subtract_state(rtpPtr rtp, sccp_rtp_direction_t * direction, sccp_rtp_status_t state)
+{
+	SCOPED_MUTEX(audiolock, (ast_mutex_t *)&rtp->lock);
+	direction->state &= ~state;
+}
+void sccp_rtp_set_state(rtpPtr rtp, sccp_rtp_direction_t * direction, sccp_rtp_status_t newstate)
+{
+	SCOPED_MUTEX(audiolock, (ast_mutex_t *)&rtp->lock);
+	direction->state = newstate;
+}
+
+// void sccp_rtp_get_format();
+// void sccp_rtp_set_format();
+// void sccp_rtp_associate();
+
 /*!
  * \brief update the phones destination address (it's peer)
  * \param c SCCP Channel

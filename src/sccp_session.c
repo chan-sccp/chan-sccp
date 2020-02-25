@@ -49,6 +49,7 @@ static int accept_sock = -1;
 #define KEEPALIVE_ADDITIONAL_PERCENT_SESSION 1.05								/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
 #define KEEPALIVE_ADDITIONAL_PERCENT_DEVICE 1.20								/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
 #define KEEPALIVE_ADDITIONAL_PERCENT_ON_CALL 2.00								/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
+#define SESSION_REQUEST_TIMEOUT              3
 
 /* Lock Macro for Sessions */
 #define sccp_session_lock(x)			pbx_mutex_lock(&(x)->lock)
@@ -148,10 +149,13 @@ int sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr
 
 void sccp_session_waitForPendingRequests(sccp_session_t * s)
 {
-	struct timeval timeout_val = ast_tvadd(ast_tvnow(), ast_samp2tv(0, 1000));
+	struct timeval relative_timeout = {
+		SESSION_REQUEST_TIMEOUT,
+	};
+	struct timeval absolute_timeout = ast_tvadd(ast_tvnow(), relative_timeout);
 	struct timespec timeout_spec = {
-		.tv_sec = timeout_val.tv_sec,
-		.tv_nsec = timeout_val.tv_usec * 1000,
+		.tv_sec = absolute_timeout.tv_sec,
+		.tv_nsec = absolute_timeout.tv_usec * 1000,
 	};
 
 	SCOPED_SESSION(s);

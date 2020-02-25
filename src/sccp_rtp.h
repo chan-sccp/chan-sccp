@@ -14,10 +14,13 @@
 //struct sockaddr_storage;
 
 __BEGIN_C_EXTERN__
+typedef void (*scpp_rtp_direction_cb_t)(constChannelPtr c);
+
 typedef struct sccp_rtp_direction {
 	uint16_t state;
 	skinny_codec_t format;
 	sccp_channel_t *c;
+	//	scpp_rtp_direction_cb_t callback;
 } sccp_rtp_direction_t;
 
 /*!

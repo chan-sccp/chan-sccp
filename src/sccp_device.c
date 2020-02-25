@@ -2077,7 +2077,7 @@ void sccp_device_setActiveChannel(constDevicePtr d, constChannelPtr channel)
 {
 	AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 
-	if (device) {
+	if(device && device->active_channel != channel) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Set the active channel %d on device\n", DEV_ID_LOG(d), (channel) ? channel->callid : 0);
 		if (device->active_channel && device->active_channel->line) {
 			device->active_channel->line->statistic.numberOfActiveChannels--;
