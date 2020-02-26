@@ -164,10 +164,11 @@ int sccp_refcount_force_release(long findobj, char *identifier)
 #if CS_REFCOUNT_DEBUG
 #		define REFCOUNT_MAX_RELATIONS  7
 #		define REF_DEBUG_FILE_MAX_SIZE 10000000
-//#define REF_DEBUG_FILE "/tmp/sccp_refs"
 #		include "asterisk/paths.h"
-#		define REF_DEBUG_FILE ast_config_AST_LOG_DIR
+static char debug_filename[SCCP_PATH_MAX];
 static int __rotate_debug_file(void);
+static FILE * sccp_ref_debug_log;
+static uint32_t ref_debug_size;
 #endif
 
 static struct sccp_refcount_obj_info {
@@ -219,12 +220,6 @@ static ast_rwlock_t objectslock;										// general lock to modify hash table e
 static struct refcount_objentry{
 	SCCP_RWLIST_HEAD (, RefCountedObject) refCountedObjects  __attribute__((aligned(8)));			//!< one rwlock per hash table entry, used to modify list
 } *objects[SCCP_HASH_PRIME] = {0};										//!< objects hash table
-
-#if CS_REFCOUNT_DEBUG
-static FILE *sccp_ref_debug_log;
-// static volatile uint32_t ref_debug_size;
-static uint32_t ref_debug_size;
-#endif
 
 void sccp_refcount_init(void)
 {
@@ -291,7 +286,7 @@ void sccp_refcount_destroy(void)
 	if (sccp_ref_debug_log) {
 		fclose(sccp_ref_debug_log);
 		sccp_ref_debug_log = NULL;
-		pbx_log(LOG_NOTICE, "SCCP: ref debug log file: %s closed\n", REF_DEBUG_FILE);
+		pbx_log(LOG_NOTICE, "SCCP: ref debug log file: %s closed\n", debug_filename);
 	}
 #endif
 	runState = SCCP_REF_DESTROYED;
@@ -373,10 +368,11 @@ void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types t
 static int __rotate_debug_file(void)
 {
 	static uint32_t num_debug_files = 0;
+	snprintf(debug_filename, SCCP_PATH_MAX, "%s/sccp_refs", ast_config_AST_LOG_DIR);
 
 	if (sccp_ref_debug_log) {
 		if (fclose(sccp_ref_debug_log)) {
-			pbx_log(LOG_ERROR, "SCCP: ref debug log file: %s close failed\n", REF_DEBUG_FILE);
+			pbx_log(LOG_ERROR, "SCCP: ref debug log file: %s close failed\n", debug_filename);
 			sccp_ref_debug_log = NULL;
 			return -1;
 		}
@@ -384,17 +380,16 @@ static int __rotate_debug_file(void)
 		
 		num_debug_files++;
 		char newfilename[SCCP_PATH_MAX];
-		// snprintf(newfilename, SCCP_PATH_MAX, "%s.%d", REF_DEBUG_FILE, num_debug_files);
-		snprintf(newfilename, SCCP_PATH_MAX, "%s/sccp_refs.%d.log", ast_config_AST_LOG_DIR, num_debug_files);
-		if (rename(REF_DEBUG_FILE, newfilename)) {
-			pbx_log(LOG_ERROR, "SCCP: ref debug log file: %s could not be moved to %s (%d)\n", REF_DEBUG_FILE, newfilename, errno);
+		snprintf(newfilename, SCCP_PATH_MAX, "%s/sccp_refs.%d", ast_config_AST_LOG_DIR, num_debug_files);
+		if(rename(debug_filename, newfilename)) {
+			pbx_log(LOG_ERROR, "SCCP: ref debug log file: %s could not be moved to %s (%d)\n", debug_filename, newfilename, errno);
 			sccp_ref_debug_log = NULL;
 			return -2;
 		}
 	}
-	sccp_ref_debug_log = fopen(REF_DEBUG_FILE, "w");
+	sccp_ref_debug_log = fopen(debug_filename, "w");
 	if (!sccp_ref_debug_log) {
-		pbx_log(LOG_ERROR, "SCCP: Failed to open ref debug log file '%s'\n", REF_DEBUG_FILE);
+		pbx_log(LOG_ERROR, "SCCP: Failed to open ref debug log file '%s'\n", debug_filename);
 		sccp_ref_debug_log = NULL;
 		return -3;
 	}
