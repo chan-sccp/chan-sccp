@@ -522,12 +522,6 @@ static PBX_FRAME_TYPE *sccp_astwrap_rtp_read(PBX_CHANNEL_TYPE * ast)
 		}
 	}
 
-	/* Only allow audio through if they sent progress, or if the channel is actually answered */
-	if(frame && frame->frametype == AST_FRAME_VOICE && ((c->rtp.audio.reception.state & SCCP_RTP_STATUS_ACTIVE) != SCCP_RTP_STATUS_ACTIVE) && pbx_channel_state(ast) != AST_STATE_UP) {
-		ast_frfree(frame);
-		frame = &ast_null_frame;
-	}
-
 EXIT_FUNC:
 	return frame;
 }
