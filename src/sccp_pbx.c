@@ -537,7 +537,10 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 		sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asked to hangup channel. SCCP channel already deleted\n");
 		return NULL;
 	}
+	pbx_mutex_lock(&c->lock);
 	c->isHangingUp = TRUE;
+	pbx_mutex_unlock(&c->lock);
+
 	sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Asked to hangup channel.\n", c->designator);
 
 	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
@@ -761,17 +764,19 @@ int sccp_pbx_answer(constChannelPtr channel)
 #else
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 #endif
-			sccp_session_waitForPendingRequests(d->session);
+			// sccp_session_waitForPendingRequests(d->session);
 			iPbx.set_callstate(c, AST_STATE_UP);
-#if CS_SCCP_VIDEO
-			if (sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_AUTO && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE) {
-				if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
-					sccp_channel_openMultiMediaReceiveChannel(c);
-				} else if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) && !sccp_rtp_getState(&c->rtp.video, SCCP_RTP_TRANSMISSION)) {
-					sccp_channel_startMultiMediaTransmission(c);
-				}
-			}
-#endif
+			/*
+			#if CS_SCCP_VIDEO
+						if (sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_AUTO && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE) {
+							if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
+								sccp_channel_openMultiMediaReceiveChannel(c);
+							} else if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) && !sccp_rtp_getState(&c->rtp.video, SCCP_RTP_TRANSMISSION)) {
+								sccp_channel_startMultiMediaTransmission(c);
+							}
+						}
+			#endif
+			*/
 			/** check for monitor request */
 			if((d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
 				pbx_log(LOG_NOTICE, "%s: request monitor\n", d->id);
@@ -1017,12 +1022,13 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 				pbx_log(LOG_WARNING, "%s: Error opening RTP instance for channel %s\n", d->id, c->designator);
 				goto error_exit;
 			}
-#if CS_SCCP_VIDEO
-			if (sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE && !c->rtp.video.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_VIDEO)) {
-				pbx_log(LOG_WARNING, "%s: Error opening VRTP instance for channel %s\n", d->id, c->designator);
-				sccp_channel_setVideoMode(c, "off");
-			}
-#endif
+			/*
+			#if CS_SCCP_VIDEO
+						if (sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE && !c->rtp.video.instance &&
+			!sccp_rtp_createServer(d, c, SCCP_RTP_VIDEO)) { pbx_log(LOG_WARNING, "%s: Error opening VRTP instance for channel %s\n", d->id, c->designator); sccp_channel_setVideoMode(c, "off");
+						}
+			#endif
+			*/
 		}
 		// export sccp informations in asterisk dialplan
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_MAC", d->id);

@@ -4719,13 +4719,7 @@ void handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, constMes
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE:
 				break;
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE:
-				{
-					struct sockaddr_in addr_in = { 0 };
-					memcpy(&addr_in.sin_addr, &msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.bel_remoteIpAddr, sizeof(addr_in.sin_addr));
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: videoFastUpdatePicture ip:%s, value1: %u, value2: %u, value3: %u, value4: %u\n",
-								  channel ? channel->currentDeviceId : "--", pbx_inet_ntoa(addr_in.sin_addr), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value1), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value2), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value3), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value4)
-					    );
-				}
+				iPbx.queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
 				break;
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:		/* Group Of Pictures */
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: VideoFastUpdateGob, firstGOB: %d, numberOfGOBs: %d\n",

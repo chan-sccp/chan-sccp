@@ -37,6 +37,27 @@
 #define sccp_mutex_lock_desc(_x,_y) 		pbx_mutex_lock_desc((_x),(_y))
 #define sccp_mutex_unlock(_x)			pbx_mutex_unlock((_x))
 #define sccp_mutex_trylock(_x)			pbx_mutex_trylock((_x))
+#ifdef SCOPED_LOCK
+#	undef SCOPED_LOCK
+#endif
+#define SCOPED_LOCK(varname, lock, lockfunc, unlockfunc) \
+	RAII(typeof((lock)), varname, ({                 \
+		     lockfunc((lock));                   \
+		     (lock);                             \
+	     }),                                         \
+	     unlockfunc)
+#ifdef SCOPED_MUTEX
+#	undef SCOPED_MUTEX
+#endif
+#define SCOPED_MUTEX(varname, lock) SCOPED_LOCK(varname, (lock), pbx_mutex_lock, pbx_mutex_unlock)
+#ifdef SCOPED_RDLOCK
+#	undef SCOPED_RDLOCK
+#endif
+#define SCOPED_RDLOCK(varname, lock) SCOPED_LOCK(varname, (lock), pbx_rwlock_rdlock, pbx_rwlock_unlock)
+#ifdef SCOPED_WRLOCK
+#	undef SCOPED_WRLOCK
+#endif
+#define SCOPED_WRLOCK(varname, lock) SCOPED_LOCK(varname, (lock), pbx_rwlock_wrlock, pbx_rwlock_unlock)
 
 // SCCP_FILE_VERSION definition
 #if defined(LOW_MEMORY)

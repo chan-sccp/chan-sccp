@@ -3433,7 +3433,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 					break;
 				}
 				if (sccp_strcaseequals("on", argv[5])) {					/* check to see if enable hold */
-					pbx_cli(fd, "PLACING CHANNEL %s ON HOLD\n", argv[3]);
+					pbx_cli(fd, "Placing channel %s on hold\n", argv[3]);
 					sccp_channel_hold(c);
 				} else if (!strcmp("off", argv[5])) {						/* check to see if disable hold */
 					if (argc < 7) {
@@ -3459,7 +3459,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 						cli_result = RESULT_FAILURE;
 						break;
 					}
-					pbx_cli(fd, "PLACING CHANNEL %s OFF HOLD\n", argv[3]);
+					pbx_cli(fd, "Removing channel %s from hold\n", argv[3]);
 
 					sccp_channel_resume(d, c, FALSE);
 				} else {

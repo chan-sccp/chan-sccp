@@ -160,9 +160,9 @@ void sccp_session_waitForPendingRequests(sccp_session_t * s)
 
 	SCOPED_SESSION(s);
 	while(s->requestsInFlight) {
-		pbx_log(LOG_NOTICE, "%s: Waiting for %d Pending Requests!\n", s->designator, s->requestsInFlight);
+		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Waiting for %d Pending Requests!\n", s->designator, s->requestsInFlight);
 		if(pbx_cond_timedwait(&s->pendingRequest, &s->lock, &timeout_spec) == ETIMEDOUT) {
-			pbx_log(LOG_NOTICE, "%s: waitForPendingRequests timed out!\n", s->designator);
+			pbx_log(LOG_WARNING, "%s: waitForPendingRequests timed out!\n", s->designator);
 			break;
 		}
 	}
@@ -208,13 +208,13 @@ static void socket_get_error(constSessionPtr s, const char * file, int line, con
 	}
 }
 
-static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
+static int session_dissect_header(sccp_session_t * s, sccp_header_t * header, struct messageinfo ** msgInfoPtr)
 {
 	int result = -1;
+	struct messageinfo * msginfo = *msgInfoPtr;
 	unsigned int packetSize = header->length = letohl(header->length);
 	int protocolVersion = letohl(header->lel_protocolVer);
 	sccp_mid_t messageId = letohl(header->lel_messageId);
-
 	do {
 		// dissecting header to see if we have a valid sccp message, that we can handle
 		if (packetSize < 4 || packetSize > SCCP_MAX_PACKET - 8) {
@@ -227,17 +227,13 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 			break;
 		}
 
-		struct messageinfo * msginfo = lookupMsgInfoStruct(messageId);
-		if(msginfo) {
+		if((msginfo = lookupMsgInfoStruct(messageId))) {
 			if(msginfo->messageId != messageId) {
 				pbx_log(LOG_ERROR, "%s: (session_dissect_header) messageId %d (0x%x) unknown. matched:0x%x discarding message.\n", DEV_ID_LOG(s->device), messageId, messageId, msginfo->messageId);
 				break;
 			}
-			if(msginfo->type == SKINNY_MSGTYPE_RESPONSE) {
-				response_received(s);
-				sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Response '%s' Received\n", DEV_ID_LOG(s->device), msginfo->text);
-			}
 			result = msginfo->size + SCCP_PACKET_HEADER;
+			*msgInfoPtr = msginfo;
 			break;
 		}
 	} while (0);
@@ -247,9 +243,13 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header)
 
 static gcc_inline int session_buffer2msg(sccp_session_t * s, unsigned char *buffer, int lenAccordingToPacketHeader, sccp_msg_t *msg) 
 {
+	int res = -5;
 	sccp_header_t msg_header = {0};
+	struct messageinfo * msginfo = NULL;
 	memcpy(&msg_header, buffer, SCCP_PACKET_HEADER);
-	int lenAccordingToOurProtocolSpec = session_dissect_header(s, &msg_header);
+
+	// dissect the message header
+	int lenAccordingToOurProtocolSpec = session_dissect_header(s, &msg_header, &msginfo);
 	if (dont_expect(lenAccordingToOurProtocolSpec < 0)) {
 		if (lenAccordingToOurProtocolSpec == -2) {
 			return 0;
@@ -270,7 +270,16 @@ static gcc_inline int session_buffer2msg(sccp_session_t * s, unsigned char *buff
 	memset(msg, 0, SCCP_MAX_PACKET);
 	memcpy(msg, buffer, lenAccordingToOurProtocolSpec);
 	msg->header.length = lenAccordingToOurProtocolSpec;								// patch up msg->header.length to new size
-	return sccp_handle_message(msg, s);
+
+	// handle the message
+	res = sccp_handle_message(msg, s);
+
+	// check response after handling message
+	if(msginfo && msginfo->type == SKINNY_MSGTYPE_RESPONSE) {
+		response_received(s);
+		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Response '%s' Received\n", DEV_ID_LOG(s->device), msginfo->text);
+	}
+	return res;
 }
 
 static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsigned char *buffer, size_t *len)

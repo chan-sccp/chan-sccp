@@ -880,11 +880,9 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			}
 #ifdef CS_SCCP_VIDEO
 			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+				d->protocol->sendMultiMediaCommand(d, c, SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE);
 				if(sccp_rtp_getState(&c->rtp.video, SCCP_RTP_TRANSMISSION)) {
 					sccp_channel_stopMultiMediaTransmission(c, TRUE);
-				}
-				if(sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
-					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
 				}
 				ast_rtp_instance_update_source(c->rtp.video.instance);
 			}
@@ -902,6 +900,8 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				ast_rtp_instance_update_source(c->rtp.video.instance);
 				if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openMultiMediaReceiveChannel(c);
+				} else if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) && !sccp_rtp_getState(&c->rtp.video, SCCP_RTP_TRANSMISSION)) {
+					sccp_channel_startMultiMediaTransmission(c);
 				}
 				ast_rtp_instance_update_source(c->rtp.video.instance);
 			}
@@ -1056,19 +1056,16 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
-			if(sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
-				if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
-					// int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
-					// int codec = pbx_codec2skinny_codec(frame->subclass.format.id);
-
-					if(ast_format_cmp(ast_format_h264, frame->subclass.format) == AST_FORMAT_CMP_EQUAL) {
-						sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: got video frame %s\n", c->currentDeviceId, "H264");
-						c->rtp.video.reception.format = SKINNY_CODEC_H264;
-						sccp_channel_openMultiMediaReceiveChannel(c);
-					}
+			if(sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF && c->state != SCCP_CHANNELSTATE_HOLD) {
+				if(ast_format_cmp(ast_format_h264, frame->subclass.format) != AST_FORMAT_CMP_EQUAL) {
+					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
+					sccp_channel_stopMultiMediaTransmission(c, TRUE);
 				}
-
-				if(c->rtp.video.instance && (sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) != 0) {
+				if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
+					sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: got video frame %s\n", c->currentDeviceId, "H264");
+					c->rtp.video.reception.format = SKINNY_CODEC_H264;
+					sccp_channel_openMultiMediaReceiveChannel(c);
+				} else if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE)) {
 					res = ast_rtp_instance_write(c->rtp.video.instance, frame);
 				}
 			}

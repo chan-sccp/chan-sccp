@@ -690,7 +690,10 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 		return res;
 	}
 
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (readStat:%d, reception.state:%d, rtp:%s)\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.reception.state, c->rtp.audio.reception.state, (c->rtp.audio.instance) ? "yes" : "no");
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL
+		  | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_1 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (rtp_instance:%s, reception.state:%d/%s, transmission.state:%d/%s)\n", DEV_ID_LOG(d),
+					asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.instance ? "yes" : "no", sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION),
+					codec2str(c->rtp.audio.reception.format), sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION), codec2str(c->rtp.audio.transmission.format));
 
 	boolean_t inband_if_receivechannel = FALSE;
 	switch (ind) {
@@ -787,11 +790,9 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			}
 #ifdef CS_SCCP_VIDEO
 			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
-				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.transmission.state) {
+				d->protocol->sendMultiMediaCommand(d, c, SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE);
+				if(sccp_rtp_getState(&c->rtp.video, SCCP_RTP_TRANSMISSION)) {
 					sccp_channel_stopMultiMediaTransmission(c, TRUE);
-				}
-				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.reception.state) {
-					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
 				}
 				ast_rtp_instance_update_source(c->rtp.video.instance);
 			}
@@ -805,11 +806,14 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				ast_rtp_instance_update_source(c->rtp.audio.instance);
 			}
 #ifdef CS_SCCP_VIDEO
-			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+			if(c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
 				ast_rtp_instance_update_source(c->rtp.video.instance);
-				if (SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
+				if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openMultiMediaReceiveChannel(c);
+				} else if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) && !sccp_rtp_getState(&c->rtp.video, SCCP_RTP_TRANSMISSION)) {
+					sccp_channel_startMultiMediaTransmission(c);
 				}
+				ast_rtp_instance_update_source(c->rtp.video.instance);
 			}
 #endif
 			sccp_astwrap_moh_stop(ast);
@@ -891,7 +895,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				c->calltype == SKINNY_CALLTYPE_OUTBOUND && 
 				!ast_channel_hangupcause(ast)
 			) {
-				if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
+				if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openReceiveChannel(c);
 				}
 			}
@@ -903,7 +907,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			res = -1;	/* this indication is not supported */
 			break;
 	}
-	if (inband_if_receivechannel && c->rtp.audio.reception.state != SCCP_RTP_STATUS_INACTIVE) {
+	if(inband_if_receivechannel && sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 		res = -1;
 	}
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_2 "%s: (pbx_indicate) finish: send indication (res:%d)\n", DEV_ID_LOG(d), res);
@@ -1029,26 +1033,25 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 					sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", c->currentDeviceId, pbx_channel_name(ast));
 				}
 			}
-			if (c->rtp.audio.instance && (c->rtp.audio.reception.state & SCCP_RTP_STATUS_ACTIVE) != 0) {
+			if(c->rtp.audio.instance && (sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) != 0) {
 				res = ast_rtp_instance_write(c->rtp.audio.instance, frame);
 			}
 			break;
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
-			if (c->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
-				// int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
-				// int codec = pbx_codec2skinny_codec(frame->subclass.format.id);
-
-				if (ast_format_cmp(ast_format_h264, frame->subclass.format) == AST_FORMAT_CMP_EQUAL) {
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: got video frame %s\n", c->currentDeviceId, "H264");
+			if(sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF && c->state != SCCP_CHANNELSTATE_HOLD) {
+				if(ast_format_cmp(ast_format_h264, frame->subclass.format) != AST_FORMAT_CMP_EQUAL) {
+					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
+					sccp_channel_stopMultiMediaTransmission(c, TRUE);
+				}
+				if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
+					sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: got video frame %s\n", c->currentDeviceId, "H264");
 					c->rtp.video.reception.format = SKINNY_CODEC_H264;
 					sccp_channel_openMultiMediaReceiveChannel(c);
+				} else if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE)) {
+					res = ast_rtp_instance_write(c->rtp.video.instance, frame);
 				}
-			}
-
-			if (c->rtp.video.instance && (c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) != 0) {
-				res = ast_rtp_instance_write(c->rtp.video.instance, frame);
 			}
 #endif
 			break;

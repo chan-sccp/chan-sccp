@@ -147,104 +147,89 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 		iPbx.get_callerid_number(target, &target_number);
 	}
 
-//	if (res == 0) {
-		sccp_channel_stop_schedule_digittimout(c);
-		c->calltype = SKINNY_CALLTYPE_INBOUND;						// reset call direction
-		c->state = SCCP_CHANNELSTATE_RINGING;
-		c->ringermode = answer ? SKINNY_RINGTYPE_SILENT : SKINNY_RINGTYPE_FEATURE;
-		int lineInstance = sccp_device_find_index_for_line(d, c->line->name);
-		if (c->line->pickup_modeanswer) {
-			sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGIN);		// setting early to prevent getting multiple pickup button presses
-		}
+	sccp_channel_stop_schedule_digittimout(c);
+	c->calltype = SKINNY_CALLTYPE_INBOUND;                                        // reset call direction
+	c->state = SCCP_CHANNELSTATE_RINGING;
+	c->ringermode = answer ? SKINNY_RINGTYPE_SILENT : SKINNY_RINGTYPE_FEATURE;
+	int lineInstance = sccp_device_find_index_for_line(d, c->line->name);
+	if(c->line->pickup_modeanswer) {
+		sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGIN);                                        // setting early to prevent getting multiple pickup button presses
+	}
 
-		char called_number[StationMaxDirnumSize] = {0};
-		char called_name[StationMaxNameSize] = {0};
+	char called_number[StationMaxDirnumSize] = { 0 };
+	char called_name[StationMaxNameSize] = { 0 };
 
-		/* Gather CallInfo */
-		sccp_callinfo_t *callinfo_orig = NULL;
+	/* Gather CallInfo */
+	sccp_callinfo_t * callinfo_orig = NULL;
+	callinfo_orig = sccp_channel_getCallInfo(c);
+	iCallInfo.Getter(callinfo_orig,                                                                       // picker
+			 SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,                                        // name of picker
+			 SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_number, SCCP_CALLINFO_KEY_SENTINEL);
+
+	{
+		// BTW: Remote end should change it's calltype for callinfo to FORWARD, upon pickup. Not sure how to inform them
+		// iCallInfo.Send(ci, c->callid, SKINNY_CALLTYPE_FORWARD, lineInstance, d, TRUE);
+		/*
+		struct ast_party_redirecting redirecting;
+		struct ast_set_party_redirecting update_redirecting;
+
+		ast_party_redirecting_set_init(&redirecting, ast_channel_redirecting(target));
+		memset(&update_redirecting, 0, sizeof(update_redirecting));
+		redirecting.to.number.valid = 1;
+		redirecting.to.number.str = called_number;
+		redirecting.to.name.valid = 1;
+		redirecting.to.name.str = called_name;
+		//redirecting.count = redirect->count;
+		ast_channel_set_redirecting(target, &redirecting, &update_redirecting);
+
+		ast_party_redirecting_free(&redirecting);
+		*/
+	}
+
+	res = ast_do_pickup(original, target);
+	pbx_channel_unlock(target);
+	if(!res) {                                        // directed pickup succeeded
+		sccp_log((DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: (perform_pickup) pickup succeeded on call: %s\n", DEV_ID_LOG(d), c->designator);
+		/* disconnect from masquaraded zombie channel */
+		sccp_channel_setDevice(c, NULL);
+		pbx_channel_set_hangupcause(original, AST_CAUSE_ANSWERED_ELSEWHERE);
+
+		/* continue with masquaraded channel */
+		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);                                        // reset hangupcause up new channel
+		pbx_setstate(c->owner, AST_STATE_RINGING);                                                               // reset ringing on new channel
+
 		callinfo_orig = sccp_channel_getCallInfo(c);
-		iCallInfo.Getter(callinfo_orig,							// picker
-			SCCP_CALLINFO_CALLEDPARTY_NAME, &called_name,				// name of picker
-			SCCP_CALLINFO_CALLEDPARTY_NUMBER, &called_number,
-			SCCP_CALLINFO_KEY_SENTINEL);
+		iCallInfo.Setter(callinfo_orig,                                                                      // update calling end
+				 SCCP_CALLINFO_CALLEDPARTY_NAME, called_name,                                        // channel picking up
+				 SCCP_CALLINFO_CALLEDPARTY_NUMBER, called_number, SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, target_name, SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, target_number,
+				 SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, 5, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, called_name, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, called_number,
+				 SCCP_CALLINFO_HUNT_PILOT_NAME, target_name,                                            // display orig called using HUNT
+				 SCCP_CALLINFO_HUNT_PILOT_NUMBER, target_number,                                        // gets displayed as 'FOR'
+				 SCCP_CALLINFO_LAST_REDIRECT_REASON, 5, SCCP_CALLINFO_KEY_SENTINEL);
 
-		//pbx_channel_ref(original);
-
-		{
-			// BTW: Remote end should change it's calltype for callinfo to FORWARD, upon pickup. Not sure how to inform them
-			// iCallInfo.Send(ci, c->callid, SKINNY_CALLTYPE_FORWARD, lineInstance, d, TRUE);
-			/*
-			struct ast_party_redirecting redirecting;
-			struct ast_set_party_redirecting update_redirecting;
-
-			ast_party_redirecting_set_init(&redirecting, ast_channel_redirecting(target));
-			memset(&update_redirecting, 0, sizeof(update_redirecting));
-			redirecting.to.number.valid = 1;
-			redirecting.to.number.str = called_number;
-			redirecting.to.name.valid = 1;
-			redirecting.to.name.str = called_name;
-			//redirecting.count = redirect->count;
-			ast_channel_set_redirecting(target, &redirecting, &update_redirecting);
-
-			ast_party_redirecting_free(&redirecting);
-			*/
+		sccp_log((DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: (perform_pickup) channel:%s, modeanser: %s\n", DEV_ID_LOG(d), c->designator, answer ? "yes" : "no");
+		if(answer) {
+			/* emulate previous indications, before signalling connected */
+			sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			sccp_channel_answer(d, c);
+		} else {
+			/* remove previous call plane, used to dial pickup extension */
+			sccp_dev_deactivate_cplane(d);
+			sccp_parse_alertinfo(c->owner, &c->ringermode);
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
+			sccp_dev_set_cplane(d, lineInstance, 1);
 		}
-
-		sccp_log((DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: (perform_pickup) %s is attempting to pickup call: %s\n", DEV_ID_LOG(d), pbx_channel_name(original), pbx_channel_name(target));
-		res = ast_do_pickup(original, target);
-		pbx_channel_unlock(target);
-		if (!res) {									// directed pickup succeeded
-			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (perform_pickup) pickup succeeded on call: %s\n", DEV_ID_LOG(d), c->designator);
-			/* disconnect from masquaraded zombie channel */
-			sccp_channel_setDevice(c, NULL);
-			pbx_channel_set_hangupcause(original, AST_CAUSE_ANSWERED_ELSEWHERE);
-			
-			/* continue with masquaraded channel */
-			pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);	// reset picked up channel
-
-			callinfo_orig = sccp_channel_getCallInfo(c);
-			iCallInfo.Setter(callinfo_orig, 					// update calling end
-				SCCP_CALLINFO_CALLEDPARTY_NAME, called_name, 			// channel picking up
-				SCCP_CALLINFO_CALLEDPARTY_NUMBER, called_number, 
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NAME, target_name,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_NUMBER, target_number,
-				SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, 5,
-				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, called_name,
-				SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NUMBER, called_number,
-				SCCP_CALLINFO_HUNT_PILOT_NAME, target_name,			// display orig called using HUNT
-				SCCP_CALLINFO_HUNT_PILOT_NUMBER, target_number,			// gets displayed as 'FOR'
-				SCCP_CALLINFO_LAST_REDIRECT_REASON, 5,
-				SCCP_CALLINFO_KEY_SENTINEL);
-
-			sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (perform_pickup) channel:%s, modeanser: %s\n", DEV_ID_LOG(d), c->designator, answer ? "yes" : "no");
-			if (answer) {
-				sccp_channel_setDevice(c, d);
-				sccp_dev_setActiveLine((sccp_device_t *)d, c->line);
-
-				/* emulate previous indications, before signalling connected */
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-				sccp_dev_set_cplane(d, lineInstance, 1);
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
-			} else {
-				/* remove previous call plane, used to dial pickup extension */
-				sccp_dev_deactivate_cplane(d);
-				sccp_parse_alertinfo(c->owner, &c->ringermode);
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
-				sccp_dev_set_cplane(d, lineInstance, 1);
-			}
-			/* hangup masqueraded zombie channel*/
-			if (pbx_test_flag(pbx_channel_flags(original), AST_FLAG_ZOMBIE)) {
-				pbx_hangup(original);
-			}
-		} else {									// pickup failed
-			pbx_log(LOG_NOTICE, "SCCP: (perform_pickup) Pickup Failed (Some other caller must have gotten it, or remote end hungup). Giving Up.\n");
-			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL " " SKINNY_DISP_OPICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
-			sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
-			sccp_channel_schedule_hangup(c, 5000);
+		/* hangup masqueraded zombie channel*/
+		if(pbx_test_flag(pbx_channel_flags(original), AST_FLAG_ZOMBIE)) {
+			pbx_hangup(original);
 		}
-//	}
-	//pbx_channel_unlock(target);
+	} else {                                        // pickup failed
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: (perform_pickup) Giving Up\n");
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL " " SKINNY_DISP_OPICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+		sccp_channel_schedule_hangup(c, 5000);
+	}
 #else
 	pbx_log(LOG_NOTICE, "%s: (directed_pickup) no support for pickup in asterisk\n");
 #endif
@@ -1191,6 +1176,7 @@ int sccp_feat_singleline_barge(channelPtr c, const char * const exten)
 
 		// set channel to correct mode
 		c->isBarging = TRUE;
+		sccp_channel_setDevice(c, d);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
 		c->channelStateReason = SCCP_CHANNELSTATEREASON_BARGE;
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
@@ -1287,6 +1273,7 @@ int sccp_feat_sharedline_barge(constLineDevicePtr bargingLD, channelPtr bargedCh
 
 			// set channel to correct mode
 			c->isBarging = TRUE;
+			sccp_channel_setDevice(c, d);
 			barge_info->bargedChannel = sccp_channel_retain(bargedChannel);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
 			c->channelStateReason = SCCP_CHANNELSTATEREASON_BARGE;
@@ -1307,10 +1294,9 @@ int sccp_feat_sharedline_barge(constLineDevicePtr bargingLD, channelPtr bargedCh
 
 			// display prompt on Barged Device
 			snprintf(statusmsg, sizeof(statusmsg), SKINNY_DISP_BARGE " " SKINNY_DISP_FROM " %s", l->cid_num);
-			//sccp_dev_displayprompt(bargedLineDevice->device, bargedLineDevice->lineInstance, bargedChannel->callid, statusmsg, SCCP_DISPLAYSTATUS_TIMEOUT);
 			sccp_dev_set_message(d, statusmsg, SCCP_DISPLAYSTATUS_TIMEOUT, FALSE, FALSE);
-			//sccp_dev_starttone(bargedLineDevice->device, SKINNY_TONE_BARGIN, bargedLineDevice->lineInstance, bargedChannel->callid, SKINNY_TONEDIRECTION_BOTH);
 			sccp_dev_starttone(bargedLineDevice->device, SKINNY_TONE_ZIP, bargedLineDevice->lineInstance, bargedChannel->callid, SKINNY_TONEDIRECTION_BOTH);
+
 			sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_2 "%s: is barged in on:%s\n", c->designator, bargedChannel->designator);
 		} else {
 			pbx_log(LOG_ERROR, "Failed to automatically find or create "

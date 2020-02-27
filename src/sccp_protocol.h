@@ -2512,17 +2512,8 @@ typedef union {
 														*/
 		union {
 			uint32_t lel_none;
-			
-			struct {										/* this one does not seem to exist */
-				uint32_t bel_remoteIpAddr;
-				uint32_t unknown1;
-				uint32_t unknown2;
-				uint32_t unknown3;
-				uint32_t unknown4;
-				uint32_t lel_value1;
-				uint32_t lel_value2;
-				uint32_t lel_value3;
-				uint32_t lel_value4;
+
+			struct { /* this one seems to be empty */
 			} videoFastUpdatePicture;
 
 			struct {

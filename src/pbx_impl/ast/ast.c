@@ -602,7 +602,7 @@ static void log_hangup_info(const char * hanguptype, constChannelPtr c, PBX_CHAN
 			       " - pbx_channel_pbx: %s\n",
 			       c->designator, hanguptype, pbx_channel ? pbx_channel_name(pbx_channel) : "", pbx_channel ? pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) ? "YES" : "NO" : "",
 			       pbx_channel ? pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING) ? "YES" : "NO" : "", pbx_channel ? pbx_check_hangup_locked(pbx_channel) ? "YES" : "NO" : "",
-			       c->isRunningPbxThread ? "YES" : "NO", pbx_channel ? ast_channel_is_bridged(pbx_channel) ? "YES" : "NO" : "", pbx_channel ? pbx_channel_pbx(pbx_channel) ? "YES" : "NO" : "");
+			       c->isRunningPbxThread ? "YES" : "NO", iPbx.channel_is_bridged((channelPtr)c) ? "YES" : "NO", pbx_channel ? pbx_channel_pbx(pbx_channel) ? "YES" : "NO" : "");
 #if CS_REFCOUNT_DEBUG
 	AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
 	if(d) {
@@ -614,24 +614,24 @@ static void log_hangup_info(const char * hanguptype, constChannelPtr c, PBX_CHAN
 #endif
 }
 
-static boolean_t sccp_astgenwrap_handleHangup(constChannelPtr c, const char * hanguptype)
+static boolean_t sccp_astgenwrap_handleHangup(constChannelPtr channel, const char * hanguptype)
 {
 	boolean_t res = FALSE;
 	int tries = 10;
-	AUTO_RELEASE(sccp_channel_t, channel , sccp_channel_retain(c));
+	AUTO_RELEASE(sccp_channel_t, c, sccp_channel_retain(channel));
 	if (channel) {
-		channel->isHangingUp = TRUE;
-		PBX_CHANNEL_TYPE * pbx_channel = pbx_channel_ref(channel->owner);
+		c->isHangingUp = TRUE;
+		PBX_CHANNEL_TYPE * pbx_channel = pbx_channel_ref(c->owner);
 
-		if(ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) {
-			sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		if(ATOMIC_FETCH(&c->scheduler.deny, &c->scheduler.lock) == 0) {
+			sccp_channel_stop_and_deny_scheduled_tasks(c);
 		}
 		do {
 			log_hangup_info(hanguptype, c, pbx_channel);
 			if(!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
-				AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(channel));
+				AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
 				if(d) {
-					sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
+					sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 					sccp_log(DEBUGCAT_PBX)("%s: (%s): Onhook Only\n", c->designator, hanguptype);
 				}
 				if(iPbx.dumpchan) {
@@ -649,7 +649,7 @@ static boolean_t sccp_astgenwrap_handleHangup(constChannelPtr c, const char * ha
 				res = FALSE;
 				break;
 			}
-			if(channel->isRunningPbxThread || pbx_channel_pbx(pbx_channel)) {
+			if(c->isRunningPbxThread || pbx_channel_pbx(pbx_channel)) {
 				// outbound / call initiator (running pbx_pbx_start)
 				sccp_log(DEBUGCAT_PBX)("%s: (%s): Hangup Queued\n", c->designator, hanguptype);
 				pbx_channel_unlock(pbx_channel);
@@ -657,7 +657,7 @@ static boolean_t sccp_astgenwrap_handleHangup(constChannelPtr c, const char * ha
 				res = TRUE;
 				break;
 			}
-			if(SCCP_CHANNELSTATE_IsSettingUp(c->state) || SCCP_CHANNELSTATE_IsConnected(c->state) || ast_channel_is_bridged(pbx_channel)) {
+			if(SCCP_CHANNELSTATE_IsSettingUp(c->state) || SCCP_CHANNELSTATE_IsConnected(c->state) || iPbx.channel_is_bridged(c)) {
 				// inbound / receiving call
 				sccp_log(DEBUGCAT_PBX)("%s: (%s): Softhangup\n", c->designator, hanguptype);
 				ast_softhangup(pbx_channel, AST_SOFTHANGUP_DEV);
