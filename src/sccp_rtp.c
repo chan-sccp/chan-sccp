@@ -239,30 +239,34 @@ void sccp_rtp_destroy(constChannelPtr c)
 	}
 }
 
-sccp_rtp_status_t sccp_rtp_get_state(rtpPtr rtp, sccp_rtp_direction_t * direction);
-void sccp_rtp_append_state(rtpPtr rtp, sccp_rtp_direction_t * direction, sccp_rtp_status_t state);
-void sccp_rtp_subtract_state(rtpPtr rtp, sccp_rtp_direction_t * direction, sccp_rtp_status_t state);
-void sccp_rtp_set_state(rtpPtr rtp, sccp_rtp_direction_t * direction, sccp_rtp_status_t newstate);
-
-sccp_rtp_status_t sccp_rtp_get_state(rtpPtr rtp, sccp_rtp_direction_t * direction)
+sccp_rtp_status_t sccp_rtp_getState(constRtpPtr rtp, sccp_rtp_dir_t dir)
 {
 	SCOPED_MUTEX(audiolock, (ast_mutex_t *)&rtp->lock);
-	return direction->state;
+	const sccp_rtp_direction_t * const direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
+	return direction->_state;
 }
-void sccp_rtp_append_state(rtpPtr rtp, sccp_rtp_direction_t * direction, sccp_rtp_status_t state)
+sccp_rtp_status_t sccp_rtp_areBothInvalid(constRtpPtr rtp)
 {
 	SCOPED_MUTEX(audiolock, (ast_mutex_t *)&rtp->lock);
-	direction->state |= state;
+	return !rtp->reception._state && !rtp->transmission._state;
 }
-void sccp_rtp_subtract_state(rtpPtr rtp, sccp_rtp_direction_t * direction, sccp_rtp_status_t state)
+void sccp_rtp_appendState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t state)
 {
 	SCOPED_MUTEX(audiolock, (ast_mutex_t *)&rtp->lock);
-	direction->state &= ~state;
+	sccp_rtp_direction_t * direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
+	direction->_state |= state;
 }
-void sccp_rtp_set_state(rtpPtr rtp, sccp_rtp_direction_t * direction, sccp_rtp_status_t newstate)
+void sccp_rtp_subtractState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t state)
 {
 	SCOPED_MUTEX(audiolock, (ast_mutex_t *)&rtp->lock);
-	direction->state = newstate;
+	sccp_rtp_direction_t * direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
+	direction->_state &= ~state;
+}
+void sccp_rtp_setState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t newstate)
+{
+	SCOPED_MUTEX(audiolock, (ast_mutex_t *)&rtp->lock);
+	sccp_rtp_direction_t * direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
+	direction->_state = newstate;
 }
 
 // void sccp_rtp_get_format();
@@ -292,7 +296,7 @@ void sccp_rtp_set_peer(constChannelPtr c, rtpPtr rtp, struct sockaddr_storage * 
 	memcpy(&rtp->phone_remote, new_peer, sizeof rtp->phone_remote);
 	pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_peer ) Set new remote address to %s\n", c->currentDeviceId, sccp_netsock_stringify(&rtp->phone_remote));
 
-	if (rtp->transmission.state != SCCP_RTP_STATUS_INACTIVE) {
+	if(sccp_rtp_getState(rtp, SCCP_RTP_TRANSMISSION)) {
 		/* Shutdown any early-media or previous media on re-invite */
 		/*! \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Restart media transmission on channel %d\n", c->currentDeviceId, c->callid);

@@ -316,9 +316,9 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 		case SCCP_CHANNELSTATE_CONNECTED:
 			{
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
-				if(!c->rtp.audio.reception.state) {
+				if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openReceiveChannel(c);
-				} else if(!c->rtp.audio.transmission.state) {
+				} else if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION)) {
 					sccp_channel_startMediaTransmission(c);
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_CONNECTED);
@@ -326,7 +326,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
 			{
-			if((c->rtp.audio.reception.state & SCCP_RTP_STATUS_INACTIVE) == SCCP_RTP_STATUS_INACTIVE) {
+			if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 				sccp_dev_starttone(d, SKINNY_TONE_LINEBUSYTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 			}
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_BUSY, GLOB(digittimeout));
@@ -403,9 +403,9 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 			{
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
-				if(!c->rtp.audio.reception.state) {
+				if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openReceiveChannel(c);
-				} else if(!c->rtp.audio.transmission.state) {
+				} else if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION)) {
 					sccp_channel_startMediaTransmission(c);
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_CONNCONF);
@@ -428,7 +428,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 			break;
 		case SCCP_CHANNELSTATE_CONGESTION:
 			{
-			if((c->rtp.audio.reception.state & SCCP_RTP_STATUS_INACTIVE) == SCCP_RTP_STATUS_INACTIVE) {
+			if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 				/* congestion will be emulated if the rtp audio stream is not yet open */
 				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 			}

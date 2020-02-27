@@ -199,6 +199,11 @@ strenum rtp_type {
 	SCCP_RTP_TEXT,					=1<<2,	"Text RTP",
 }
 
+strenum rtp_dir {
+	SCCP_RTP_RECEPTION,				=0,	"RTP Reception"
+	SCCP_RTP_TRANSMISSION,				=1,	"RTP Transmission"
+}
+
 enum extension_status {
 	SCCP_EXTENSION_NOTEXISTS, 			=0,	"Extension does not exist",
 	SCCP_EXTENSION_MATCHMORE, 			,	"Matches more than one extension",

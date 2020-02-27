@@ -17,10 +17,9 @@ __BEGIN_C_EXTERN__
 typedef void (*scpp_rtp_direction_cb_t)(constChannelPtr c);
 
 typedef struct sccp_rtp_direction {
-	uint16_t state;
+	uint16_t _state;
 	skinny_codec_t format;
 	sccp_channel_t *c;
-	//	scpp_rtp_direction_cb_t callback;
 } sccp_rtp_direction_t;
 
 /*!
@@ -53,6 +52,12 @@ SCCP_API sccp_rtp_info_t SCCP_CALL sccp_rtp_getAudioPeerInfo(constChannelPtr c, 
 SCCP_API boolean_t SCCP_CALL sccp_rtp_getVideoPeer(constChannelPtr c, struct sockaddr_storage **new_peer);
 SCCP_API sccp_rtp_info_t SCCP_CALL sccp_rtp_getVideoPeerInfo(constChannelPtr c, sccp_rtp_t **rtp);
 #endif
+
+sccp_rtp_status_t sccp_rtp_getState(constRtpPtr rtp, sccp_rtp_dir_t dir);
+sccp_rtp_status_t sccp_rtp_areBothInvalid(constRtpPtr rtp);
+void sccp_rtp_appendState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t state);
+void sccp_rtp_subtractState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t state);
+void sccp_rtp_setState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t newstate);
 
 SCCP_API uint8_t SCCP_CALL sccp_rtp_get_payloadType(constRtpPtr rtp, skinny_codec_t codec);
 SCCP_API boolean_t SCCP_CALL sccp_rtp_getUs(constRtpPtr rtp, struct sockaddr_storage * us);

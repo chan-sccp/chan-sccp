@@ -134,10 +134,10 @@ static void sccp_sk_videomode(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(d));
-		if (!c->rtp.video.instance || SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
+		if(!c->rtp.video.instance || sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
 			sccp_channel_openMultiMediaReceiveChannel(c);
 		}
-		if ((c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.transmission.state) {
+		if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) && !sccp_rtp_getState(&c->rtp.video, SCCP_RTP_TRANSMISSION)) {
 			sccp_channel_startMultiMediaTransmission(c);
 		}
 		sccp_channel_setVideoMode(c, "user");

@@ -765,9 +765,9 @@ int sccp_pbx_answer(constChannelPtr channel)
 			iPbx.set_callstate(c, AST_STATE_UP);
 #if CS_SCCP_VIDEO
 			if (sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_AUTO && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE) {
-				if (SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
+				if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openMultiMediaReceiveChannel(c);
-				} else if ((c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.transmission.state) {
+				} else if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) && !sccp_rtp_getState(&c->rtp.video, SCCP_RTP_TRANSMISSION)) {
 					sccp_channel_startMultiMediaTransmission(c);
 				}
 			}
@@ -780,7 +780,7 @@ int sccp_pbx_answer(constChannelPtr channel)
 			res = 0;
 		}
 
-		if (c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) {
+		if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE)) {
 			iPbx.queue_control(c->owner, AST_CONTROL_VIDUPDATE);
 		}
 	}

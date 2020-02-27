@@ -781,12 +781,10 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 		return res;
 	}
 
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1
-		"%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (rtp_instance:%s, reception.state:%d/%s, transmission.state:%d/%s)\n", 
-		DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), 
-		c->rtp.audio.instance ? "yes" : "no",
-		c->rtp.audio.reception.state, codec2str(c->rtp.audio.transmission.format), c->rtp.audio.transmission.state, codec2str(c->rtp.audio.reception.format)
-	);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL
+		  | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_1 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (rtp_instance:%s, reception.state:%d/%s, transmission.state:%d/%s)\n", DEV_ID_LOG(d),
+					asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.instance ? "yes" : "no", sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION),
+					codec2str(c->rtp.audio.reception.format), sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION), codec2str(c->rtp.audio.transmission.format));
 
 	boolean_t inband_if_receivechannel = FALSE;
 	switch (ind) {
@@ -882,10 +880,10 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			}
 #ifdef CS_SCCP_VIDEO
 			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
-				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.transmission.state) {
+				if(sccp_rtp_getState(&c->rtp.video, SCCP_RTP_TRANSMISSION)) {
 					sccp_channel_stopMultiMediaTransmission(c, TRUE);
 				}
-				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.reception.state) {
+				if(sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
 					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
 				}
 				ast_rtp_instance_update_source(c->rtp.video.instance);
@@ -902,7 +900,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 #ifdef CS_SCCP_VIDEO
 			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
 				ast_rtp_instance_update_source(c->rtp.video.instance);
-				if (SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
+				if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openMultiMediaReceiveChannel(c);
 				}
 				ast_rtp_instance_update_source(c->rtp.video.instance);
@@ -1000,7 +998,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				c->calltype == SKINNY_CALLTYPE_OUTBOUND && 
 				!ast_channel_hangupcause(ast)
 			) {
-				if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
+				if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openReceiveChannel(c);
 				}
 			}
@@ -1012,7 +1010,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			res = -1;	/* this indication is not supported */
 			break;
 	}
-	if (inband_if_receivechannel && c->rtp.audio.reception.state != SCCP_RTP_STATUS_INACTIVE) {
+	if(inband_if_receivechannel && sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 		res = -1;
 	}
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_2 "%s: (pbx_indicate) finish: send indication (res:%d)\n", DEV_ID_LOG(d), res);
@@ -1059,7 +1057,7 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
 			if(sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
-				if(c->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
+				if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
 					// int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
 					// int codec = pbx_codec2skinny_codec(frame->subclass.format.id);
 
@@ -1070,7 +1068,7 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 					}
 				}
 
-				if(c->rtp.video.instance && (c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) != 0) {
+				if(c->rtp.video.instance && (sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) != 0) {
 					res = ast_rtp_instance_write(c->rtp.video.instance, frame);
 				}
 			}

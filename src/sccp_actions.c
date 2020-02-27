@@ -3400,10 +3400,11 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 
 	AUTO_RELEASE(sccp_channel_t, channel , __get_channel_from_callReference_or_passThruParty(d, callReference, 0, passThruPartyId));
-	if (do_expect(channel != NULL && channel->rtp.audio.reception.state & SCCP_RTP_STATUS_PROGRESS)) {
+	if(do_expect(channel != NULL && sccp_rtp_getState(&channel->rtp.audio, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_PROGRESS)) {
+		sccp_rtp_t * audio = &(channel->rtp.audio);
 		switch (mediastatus) {
 			case SKINNY_MEDIASTATUS_Ok:
-				sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
+				sccp_rtp_set_phone(channel, audio, &sas);
 				resultingChannelState = sccp_channel_receiveChannelOpen(d, channel);
 				break;
 			case SKINNY_MEDIASTATUS_DeviceOnHook:
@@ -3422,7 +3423,7 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 				sccp_channel_endcall(channel);
 				break;
 		}
-		channel->rtp.audio.reception.state = resultingChannelState;
+		sccp_rtp_setState(audio, SCCP_RTP_RECEPTION, resultingChannelState);
 	} else {
 		// we successfully opened receive channel, but have no channel active -> close receive (maybe the call was already (being) terminated)
 		if (mediastatus == SKINNY_MEDIASTATUS_Ok) {
@@ -3460,7 +3461,8 @@ void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessa
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got startMediaTransmission ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u, CallID1:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference, callReference1);
 
 	AUTO_RELEASE(sccp_channel_t, channel , __get_channel_from_callReference_or_passThruParty(d, callReference, callReference1, passThruPartyId));
-	if (do_expect(channel != NULL && channel->rtp.audio.transmission.state & SCCP_RTP_STATUS_PROGRESS)) {
+	if(do_expect(channel != NULL && sccp_rtp_getState(&channel->rtp.audio, SCCP_RTP_TRANSMISSION) & SCCP_RTP_STATUS_PROGRESS)) {
+		sccp_rtp_t * audio = &(channel->rtp.audio);
 		switch (mediastatus) {
 			case SKINNY_MEDIASTATUS_Ok:
 				resultingChannelState = sccp_channel_mediaTransmissionStarted(d, channel);
@@ -3481,7 +3483,7 @@ void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessa
 				sccp_channel_endcall(channel);
 				break;
 		}
-		channel->rtp.audio.transmission.state = resultingChannelState;
+		sccp_rtp_setState(audio, SCCP_RTP_TRANSMISSION, resultingChannelState);
 	} else {
 		// we successfully opened receive channel, but have no channel active -> close receive (maybe the call was already (being) terminated)
 		if (mediastatus == SKINNY_MEDIASTATUS_Ok) {
@@ -3523,7 +3525,8 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got Open MultiMedia Channel ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 
 	AUTO_RELEASE(sccp_channel_t, channel , __get_channel_from_callReference_or_passThruParty(d, callReference, 0, passThruPartyId));
-	if (do_expect(channel != NULL && channel->rtp.video.reception.state & SCCP_RTP_STATUS_PROGRESS)) {
+	if(do_expect(channel != NULL && sccp_rtp_getState(&channel->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_PROGRESS)) {
+		sccp_rtp_t * video = &(channel->rtp.video);
 		switch (mediastatus) {
 			case SKINNY_MEDIASTATUS_Ok:
 				sccp_rtp_set_phone(channel, &channel->rtp.video, &sas);
@@ -3548,7 +3551,7 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 				sccp_channel_endcall(channel);
 				break;
 		}
-		channel->rtp.video.reception.state = resultingChannelState;
+		sccp_rtp_setState(video, SCCP_RTP_RECEPTION, resultingChannelState);
 	} else {
 		// we successfully opened receive channel, but have no channel active -> close receive (maybe the call was already (being) terminated)
 		if (mediastatus == SKINNY_MEDIASTATUS_Ok) {
@@ -3586,7 +3589,8 @@ void handle_startMultiMediaTransmissionAck(constSessionPtr s, devicePtr d, const
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got Start MultiMedia Transmission ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u/CallID1:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference, callReference1);
 
 	AUTO_RELEASE(sccp_channel_t, channel , __get_channel_from_callReference_or_passThruParty(d, callReference, callReference1, passThruPartyId));
-	if (do_expect(channel != NULL && channel->rtp.video.transmission.state & SCCP_RTP_STATUS_PROGRESS)) {
+	if(do_expect(channel != NULL && sccp_rtp_getState(&channel->rtp.video, SCCP_RTP_TRANSMISSION) & SCCP_RTP_STATUS_PROGRESS)) {
+		sccp_rtp_t * video = &(channel->rtp.video);
 		switch (mediastatus) {
 			case SKINNY_MEDIASTATUS_Ok:
 				//sccp_rtp_set_phone(channel, &channel->rtp.video, &sas);
@@ -3612,7 +3616,7 @@ void handle_startMultiMediaTransmissionAck(constSessionPtr s, devicePtr d, const
 				sccp_channel_endcall(channel);
 				break;
 		}
-		channel->rtp.video.transmission.state |= resultingChannelState;
+		sccp_rtp_setState(video, SCCP_RTP_TRANSMISSION, resultingChannelState);
 	} else {
 		// we successfully opened receive channel, but have no channel active -> close receive (maybe the call was already (being) terminated)
 		if (mediastatus == SKINNY_MEDIASTATUS_Ok) {
