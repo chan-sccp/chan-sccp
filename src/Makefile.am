@@ -12,22 +12,21 @@ DIST_SUBDIRS		= pbx_impl pbx_impl/ast pbx_impl/ast106 pbx_impl/ast108 pbx_impl/a
 EXTRA_DIST 		= sccp_enum.in sccp_config_entries.hh
 BUILT_SOURCES           = revision.h sccp_enum.h sccp_enum.c
 CLEANFILES              = revision.h sccp_enum.h sccp_enum.c stamp-g1
-.PHONY:			revision.h
+.PHONY:			force
 # generated files
-revision.h: 		stamp-h1
-	@if [ "x$(GIT)" != "xNo" ] && [ -d "@abs_top_srcdir@/.git" ]; then										\
-		if [ ! -f @abs_top_builddir@//src/stamp-g1 ] || [ "`$(GIT) log -1 --pretty='%h/%d'`" != "`cat @abs_top_builddir@/src/stamp-g1`" ];	\
-		then																	\
-			echo "  REV      revision.h";													\
-			@abs_top_srcdir@/tools/autorevision -t h -o @abs_top_srcdir@/.revision >@abs_top_builddir@/src/revision.h 2>/dev/null;		\
-			$(GIT) log -1 --pretty="%h/%d" > @abs_top_builddir@/src/stamp-g1;								\
-		fi;																	\
-	elif [ -f @abs_top_srcdir@/.revision ]; then													\
-		echo "  REV      revision.h";														\
-		@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_builddir@/.revision >@abs_top_builddir@/src/revision.h 2>/dev/null;		\
-	else																		\
-		touch @abs_top_builddir@/src/revision.h;												\
-	fi
+revision.gen:
+	@echo "  REV      revision.h";
+	@@abs_top_srcdir@/tools/autorevision -t h -o @abs_top_srcdir@/.revision >@abs_top_builddir@/src/revision.h 2>/dev/null;
+
+revision.force: force
+	@if	[ ! -f @abs_top_builddir@/src/revision.h ] ||																	\
+	 	[ "x$(GIT)" != "xNo" -a @abs_top_builddir@/src/revision.h -ot @abs_top_srcdir@/.git/COMMIT_EDITMSG -a @abs_top_builddir@/src/revision.h -ot @abs_top_srcdir@/.git/HEAD ] ||	\
+		[ "x$(GIT)" == "xNo" -a @abs_top_builddir@/src/revision.h -ot @abs_top_builddir@/.revision ];											\
+	then																							\
+		$(MAKE) revision.gen;																				\
+	fi	
+
+revision.h: revision.force
 
 sccp_enum.h sccp_enum.c:sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 	@if [ sccp_enum.in -nt $@ ] || [ @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ ]; then							\
